@@ -137,15 +137,41 @@ class TestVerbosityMinimalPreservesSemantic:
 
 
 class TestActionClassAliases:
-    """AUDIT_RECORD and READ must be accepted as observability aliases."""
+    """Granular audit aliases must resolve to distinct reversibility classes.
 
-    def test_audit_record_resolves_to_observe(self):
+    Audit 2026-07-28 B2 correction: the prior blanket AUDIT_RECORD=OBSERVE
+    alias conflated audit-reads (no mutation) with audit-appends (mutation)
+    and audit-seals (immutable). The canonical ActionClass now exposes
+    granular aliases that map to distinct reversibility classes.
+
+    Mapping per auditor's table:
+      - AUDIT_RECORD_READ       → OBSERVE        (read history, no state change)
+      - AUDIT_RECORD_APPEND     → MUTATE         (reversible audit append)
+      - AUDIT_SEAL              → IRREVERSIBLE   (immutable audit seal)
+      - AUDIT_RECORD (legacy)   → OBSERVE        (kept for backward compat — read semantics)
+      - READ (generic)          → OBSERVE        (no state change)
+    """
+
+    def test_audit_record_read_resolves_to_observe(self):
         from arifosmcp.schemas.federation_envelope import ActionClass
-        assert ActionClass.AUDIT_RECORD.value == "OBSERVE"
+        assert ActionClass.AUDIT_RECORD_READ.value == "OBSERVE"
+
+    def test_audit_record_append_resolves_to_mutate(self):
+        from arifosmcp.schemas.federation_envelope import ActionClass
+        assert ActionClass.AUDIT_RECORD_APPEND.value == "MUTATE"
+
+    def test_audit_seal_resolves_to_irreversible(self):
+        from arifosmcp.schemas.federation_envelope import ActionClass
+        assert ActionClass.AUDIT_SEAL.value == "IRREVERSIBLE"
 
     def test_read_resolves_to_observe(self):
         from arifosmcp.schemas.federation_envelope import ActionClass
         assert ActionClass.READ.value == "OBSERVE"
+
+    def test_legacy_audit_record_kept_for_backward_compat(self):
+        from arifosmcp.schemas.federation_envelope import ActionClass
+        # Legacy AUDIT_RECORD = "OBSERVE" — kept so existing callers don't break.
+        assert ActionClass.AUDIT_RECORD.value == "OBSERVE"
 
     def test_canonical_classes_intact(self):
         from arifosmcp.schemas.federation_envelope import ActionClass
@@ -163,6 +189,26 @@ class TestActionClassAliases:
         assert canonical.issubset(actual), (
             f"canonical classes missing: {canonical - actual}"
         )
+
+
+class TestDryRunDowngrade:
+    """Audit 2026-07-28 B3: dry_run must downgrade IRREVERSIBLE tools to OBSERVE."""
+
+    def test_arif_forge_dry_run_is_observe(self):
+        from arifosmcp.core.enforcement.risk_classifier import classify_tool
+        passport = classify_tool('arif_forge', mode='dry_run')
+        assert passport.action_class.value == 'OBSERVE'
+
+    def test_arif_seal_verify_is_observe(self):
+        from arifosmcp.core.enforcement.risk_classifier import classify_tool
+        passport = classify_tool('arif_seal', mode='verify')
+        assert passport.action_class.value == 'OBSERVE'
+
+    def test_arif_forge_compose_is_irreversible(self):
+        """Without dry_run, arif_forge is IRREVERSIBLE as expected."""
+        from arifosmcp.core.enforcement.risk_classifier import classify_tool
+        passport = classify_tool('arif_forge', mode='compose')
+        assert passport.action_class.value in ('IRREVERSIBLE', 'ATOMIC')
 
 
 class TestLeaseIssueActionClasses:

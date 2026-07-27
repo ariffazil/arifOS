@@ -615,9 +615,12 @@ async def _wrap_call(
         except Exception as motto_err:
             logger.debug(f"Motto resolution failed: {motto_err}")
 
-        # Ensure status matches dry_run intent
+        # Ensure status reflects completed execution. Dry-run mode is conveyed
+        # via envelope.mode / payload.dry_run — NOT via a transport status
+        # (audit 2026-07-28: canonical RuntimeStatus has no DRY_RUN; it would
+        # otherwise collapse transport state into execution-mode flag).
         if payload.get("dry_run"):
-            envelope.status = RuntimeStatus.DRY_RUN
+            envelope.status = RuntimeStatus.SUCCESS
 
         # Anti-chaos decoration
         envelope.caller_state, envelope.allowed_next_tools, envelope.blocked_tools = (
@@ -1361,14 +1364,17 @@ async def engineering_memory_dispatch_impl(
     store = _get_constitutional_memory_store()
 
     if not store and mode in ("vector_forget", "vector_store", "vector_query"):
-        # PHASE 0 FIX: Graceful degradation when Qdrant unavailable
+        # PHASE 0 FIX: Graceful degradation when Qdrant unavailable.
+        # Audit 2026-07-28 rule: "tool blocked by constitutional gate → RuntimeStatus.HOLD"
+        # The Qdrant backend absence is a transport-level block (call still
+        # resolved; caller can retry with RETRY status once backend recovers).
         return RuntimeEnvelope(
             ok=True,
             tool="engineering_memory",
             session_id=session_id,
             stage="555m_MEMORY",
             verdict=Verdict.SABAR,
-            status=RuntimeStatus.SABAR,  # canonical transport: transient wait / pending
+            status=RuntimeStatus.HOLD,
             payload={
                 "error": "BACKEND_UNAVAILABLE",
                 "message": (

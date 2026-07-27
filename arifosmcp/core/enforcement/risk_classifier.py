@@ -418,6 +418,19 @@ def classify_tool(
     # Explicit mapping for canonical tools
     if name in _CANONICAL_TOOL_RISKS:
         passport = _CANONICAL_TOOL_RISKS[name]
+        # Audit 2026-07-28 B3: dry_run is a universal non-mutating flag.
+        # Any tool called with mode="dry_run" is downgraded to OBSERVE —
+        # dry-run simulation never mutates state, regardless of tool's static
+        # risk class. Without this, arif_forge(mode="dry_run") was rejected
+        # by LEGACY_WRAP as IRREVERSIBLE, blocking bounded forge previews.
+        if mode and str(mode).strip().lower() == "dry_run":
+            return RiskPassport(
+                tier=RiskTier.T0,
+                action_class=ActionClass.OBSERVE,
+                tool_class=ToolClass.OBSERVE,
+                blast_radius=BlastRadius.NONE,
+                reversibility=ReversibilityLevel.HIGH,
+            )
         # Mode-aware downgrade: read-only modes of IRREVERSIBLE tools
         if mode and passport.action_class in (ActionClass.ATOMIC, ActionClass.IRREVERSIBLE):
             _READ_ONLY_MODES = {

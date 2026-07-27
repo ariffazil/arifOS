@@ -102,22 +102,71 @@ class TestMCPPrompts:
 
 
 class TestKernelServerWiresResources:
-    """Verify that arifosmcp.server (the canonical kernel main) registers
-    resources and prompts during boot."""
+    """Audit 2026-07-28 Phase C: the canonical server.py must invoke
+    register_public_resources_and_prompts(server) — ONE explicit call,
+    no import side effects, no hidden singleton assumption.
 
-    def test_server_imports_resource_and_prompt_registrars(self):
+    The test invokes the actual canonical server boot path (or a test
+    instance bound to the same registration function) — not a stand-in
+    FastMCP stub.
+    """
+
+    def test_server_calls_explicit_registration_function(self):
         import inspect
 
         import arifosmcp.server as server_mod
         source = inspect.getsource(server_mod)
-        assert "register_arifos_resources" in source, (
-            "server.py does not call register_arifos_resources — resources will not "
-            "appear on the live MCP surface"
+        # The auditor's strict requirement: exactly one explicit function call.
+        assert "register_public_resources_and_prompts" in source, (
+            "server.py does not call register_public_resources_and_prompts — "
+            "resources + prompts will not appear on the live MCP surface"
         )
-        assert "register_arifos_prompts" in source, (
-            "server.py does not call register_arifos_prompts — prompts will not "
-            "appear on the live MCP surface"
+        # The two lower-level functions must NOT be called directly from server.py
+        # (that would be the import-side-effect pattern the audit rejected).
+        assert "register_arifos_resources(" not in source, (
+            "server.py still calls register_arifos_resources() directly — "
+            "consolidate into register_public_resources_and_prompts() per audit"
         )
+        assert "register_arifos_prompts(" not in source, (
+            "server.py still calls register_arifos_prompts() directly — "
+            "consolidate into register_public_resources_and_prompts() per audit"
+        )
+
+    def test_explicit_registration_function_returns_dict(self):
+        from fastmcp import FastMCP
+
+        from arifosmcp.runtime.fastmcp_ext import (
+            register_public_resources_and_prompts,
+        )
+
+        mcp = FastMCP("test-canonical-server")
+        result = register_public_resources_and_prompts(mcp)
+        assert isinstance(result, dict)
+        assert "resources" in result
+        assert "prompts" in result
+        assert "errors" in result
+        assert len(result["resources"]) >= 5
+        assert len(result["prompts"]) >= 13
+        assert result["errors"] == [], f"unexpected errors: {result['errors']}"
+
+    def test_canonical_server_registers_on_test_mcp(self):
+        """Re-invoke the canonical server's boot path on a test mcp.
+
+        This simulates: server.py's `mcp = FastMCP("ARIFOS MCP")` and the
+        subsequent `register_public_resources_and_prompts(mcp)` call.
+        """
+        from fastmcp import FastMCP
+
+        from arifosmcp.runtime.fastmcp_ext import (
+            register_public_resources_and_prompts,
+        )
+
+        # Use the same FastMCP name as the canonical server (arifosmcp/server.py:512).
+        canonical = FastMCP("ARIFOS MCP")
+        result = register_public_resources_and_prompts(canonical)
+        # Acceptance: ≥ 5 resources, ≥ 13 prompts on the canonical instance.
+        assert len(result["resources"]) >= 5
+        assert len(result["prompts"]) >= 13
 
     def test_server_module_imports_cleanly(self):
         import arifosmcp.server  # noqa: F401

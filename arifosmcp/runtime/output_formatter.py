@@ -517,21 +517,20 @@ def _map_status(status: RuntimeStatus | str | None) -> str:
     if status is None:
         return "ERROR"
     # Map RuntimeStatus (transport semantics) to display string.
-    # Canonical RuntimeStatus: SUCCESS / ERROR / TIMEOUT / RETRY / HOLD / SABAR / DRY_RUN / DEGRADED
+    # Audit 2026-07-28: canonical RuntimeStatus is 5 values only — SUCCESS,
+    # ERROR, TIMEOUT, RETRY, HOLD. SABAR/DRY_RUN/DEGRADED are governance
+    # verdicts, not transport states. Map them at the verdict layer, not here.
     status_map = {
         RuntimeStatus.SUCCESS: "OK",
         RuntimeStatus.ERROR: "ERROR",
         RuntimeStatus.TIMEOUT: "TIMEOUT",
+        RuntimeStatus.RETRY: "RETRY",
         RuntimeStatus.HOLD: "HOLD",
-        RuntimeStatus.SABAR: "PENDING",
-        RuntimeStatus.DRY_RUN: "PARTIAL",
-        RuntimeStatus.DEGRADED: "PARTIAL",
         "SUCCESS": "OK",
         "ERROR": "ERROR",
         "TIMEOUT": "TIMEOUT",
         "HOLD": "HOLD",
-        "RETRY": "PARTIAL",
-        "SABAR": "PENDING",
+        "RETRY": "RETRY",
     }
     if isinstance(status, RuntimeStatus):
         return status_map.get(status, "ERROR")

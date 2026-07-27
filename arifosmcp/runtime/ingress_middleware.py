@@ -1072,15 +1072,17 @@ if IS_FASTMCP_3:
                         )
                     # ────────────────────────────────────────────────────────────────
 
-                    # Extract mode from arguments first (FIX: _tool_mode must exist
-                    # before classify_tool call on line ~1006 — was UnboundLocalError)
-                    _tool_mode = (msg.arguments or {}).get("mode")
+                    # Extract mode and dry_run from arguments
+                    _args_dict = dict(msg.arguments or {})
+                    _tool_mode = _args_dict.get("mode")
+                    if _args_dict.get("dry_run") is True or str(_tool_mode).strip().lower() == "dry_run":
+                        _tool_mode = "dry_run"
 
                     # ── LOCAL SERVICE TRUST (Hermes bridge) ────────────────────────
                     # Promotion authenticates locality and the service token before
                     # touching identity, risk, or checkpoint state.
                     _trusted = _try_promote_local_service(
-                        envelope, dict(msg.arguments or {}), tool_name
+                        envelope, _args_dict, tool_name
                     )
                     if _trusted:
                         logger.info(
@@ -1090,12 +1092,16 @@ if IS_FASTMCP_3:
 
                     # ── ACTION CLASSIFICATION ──────────────────────────────────────
                     _tool_risk = classify_tool(tool_name, mode=_tool_mode)
-                    if (
+                    if _tool_mode == "dry_run":
+                        envelope.risk.action_class = ActionClass.OBSERVE
+                        envelope.risk.tier = _tool_risk.tier
+                    elif (
                         envelope.risk.action_class == ActionClass.OBSERVE
                         and _tool_risk.action_class != ActionClass.OBSERVE
                     ):
                         envelope.risk.action_class = _tool_risk.action_class
                         envelope.risk.tier = _tool_risk.tier
+
 
                     envelope_ok, envelope_reason = _validate_envelope_for_tool(
                         envelope, tool_name, mode=_tool_mode

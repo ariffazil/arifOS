@@ -730,7 +730,50 @@ async def arif_judge(
                 must escalate to HOLD unless explicit Sovereign override.
             action_tier: "standard" | "sovereign" | "c4" | "c5".
     ...
-        # ── 666_HEART: Ethical Gate (Red Team Finding #1) ────────────────────────
+        # Delegate to kernel intercept classification if reversibility_level/action_class provided
+    _rev_param = reversibility_level or action_class
+    if _rev_param and str(_rev_param).strip():
+        try:
+            from arifosmcp.tools.arif_kernel_intercept import _arif_kernel_intercept
+
+            _intercept_res = await _arif_kernel_intercept(
+                actor=actor_id or "anonymous",
+                intent=candidate or "Adjudication",
+                requested_capability=requested_capability or "kernel.judge",
+                domain=domain or "governance",
+                reversibility_level=_rev_param,
+                blast_radius=blast_radius or "LOW",
+                action_class=action_class or reversibility_level,
+                seal_purpose=seal_purpose,
+                authority_effect=authority_effect,
+                actor_signature=actor_signature,
+                session_id=session_id,
+            )
+            _v_str = _intercept_res.get("decision") or _intercept_res.get("status") or "HOLD"
+            _code = (
+                VerdictCode.SEAL
+                if _v_str == "SEAL"
+                else (VerdictCode.VOID if _v_str == "VOID" else VerdictCode.HOLD)
+            )
+            return VerdictOutput(
+                verdict=_code,
+                reasons=[
+                    _intercept_res.get("reason")
+                    or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
+                ],
+                next_safe_action=_intercept_res.get(
+                    "next_safe_action", "Execute or review per verdict"
+                ),
+                meta={
+                    "kernel_intercept": _intercept_res,
+                    "reversibility_level": _rev_param,
+                    "action_class": action_class or reversibility_level,
+                },
+            )
+        except Exception as _int_err:
+            logger.warning("Kernel intercept delegation failed: %s", _int_err)
+
+    # ── 666_HEART: Ethical Gate (Red Team Finding #1) ────────────────────────
         # Hard-wire the heart's verdict into the judge loop.
         if mode == "judge" and heart_critique:
             heart_verdict = heart_critique.get("action_risk_verdict") or heart_critique.get("verdict")
@@ -1634,6 +1677,7 @@ async def arif_judge(
             )
 
     import asyncio
+
 
     t_judge_start = time_module.monotonic()
 

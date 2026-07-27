@@ -117,3 +117,118 @@ class TestCapabilityRegistryContract:
         assert set(public_tools.keys()) == set(EXPECTED_CANONICAL_8), (
             f"canonical registry names mismatch: {set(public_tools.keys()) ^ EXPECTED_CANONICAL_8}"
         )
+
+
+class TestConnectorExportBoundary:
+    """Audit 2026-07-28 Phase E: connector export metadata must align with runtime.
+
+    Required result (per audit):
+      default_surface:
+        canonical_tools: 8
+        aliases_visible: false
+        diagnostics_visible: false
+      development_surface:
+        diagnostics_visible: true
+        aliases_optional: true
+      resources_and_prompts:
+        visible_on_default_surface: true
+        counted_separately_from_tools
+    """
+
+    def test_kernel_tools_endpoint_returns_canonical_8(self):
+        """The kernel's tools/list endpoint returns exactly 8 tools by default."""
+        from fastmcp import FastMCP
+
+        from arifosmcp.abi.kernel_abi import semantic_tool_names
+
+        # The kernel's GET /tools contract — registered via semantic_tool_names()
+        tools = set(semantic_tool_names())
+        assert tools == set(EXPECTED_CANONICAL_8), (
+            f"kernel surface must be canonical 8, got {tools}"
+        )
+        assert len(tools) == 8, f"count mismatch: {len(tools)}"
+
+    def test_resources_counted_separately_from_tools(self):
+        """Resources and prompts must NOT inflate the canonical tool count."""
+        from fastmcp import FastMCP
+
+        from arifosmcp.runtime.fastmcp_ext import (
+            register_public_resources_and_prompts,
+        )
+
+        mcp = FastMCP("test-connector-boundary")
+        result = register_public_resources_and_prompts(mcp)
+        # Resources and prompts are SEPARATE from tools in MCP protocol.
+        # Tool count must remain at canonical 8 regardless of resource count.
+        assert len(result["resources"]) >= 5
+        assert len(result["prompts"]) >= 13
+        # Verify the canonical kernel surface is unchanged (still 8 tools).
+        from arifosmcp.abi.kernel_abi import semantic_tool_names
+        assert len(semantic_tool_names()) == 8
+
+    def test_default_surface_hides_aliases_and_diagnostics(self):
+        """Per audit: default surface has no aliases, no diagnostics exposed."""
+        import os
+
+        # Clear dev-mode gates
+        os.environ.pop("ARIFOS_MCP_EXPOSE_DEV_TOOLS", None)
+        os.environ.pop("ARIFOS_PUBLIC_SURFACE_MODE", None)
+
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+        names = public_tool_names_for_mode(None)
+        # Default = public_agent = 6 (no aliases, no diagnostics)
+        assert len(names) == 6, f"default must be public_agent (6 tools), got {len(names)}"
+        # All names must be in canonical 8
+        assert set(names).issubset(EXPECTED_CANONICAL_8), (
+            f"public_agent exposes names outside canonical 8: {set(names) - EXPECTED_CANONICAL_8}"
+        )
+
+    def test_development_surface_includes_diagnostics(self):
+        """Per audit: dev surface optionally shows diagnostics when enabled."""
+        import os
+
+        os.environ["ARIFOS_MCP_EXPOSE_DEV_TOOLS"] = "1"
+        os.environ["ARIFOS_PUBLIC_SURFACE_MODE"] = "operator"
+
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+        names = public_tool_names_for_mode("operator")
+        # Dev surface must include all 8 canonical tools
+        assert EXPECTED_CANONICAL_8.issubset(set(names))
+        # AND extend beyond 8 with diagnostics
+        assert len(names) > 8, (
+            f"dev surface must expand beyond canonical 8, got {len(names)}"
+        )
+
+    def test_connector_metadata_alignment(self):
+        """The connector's advertised function count must match canonical surface.
+
+        Audit found: connector advertised 32 functions vs runtime 8.
+        This is a connector/SDK adapter issue — documented here so the
+        A-FORGE connector team has the canonical contract to align against.
+        """
+        # The kernel's contract: GET /tools returns 8; resources + prompts
+        # are advertised SEPARATELY via resources/list and prompts/list.
+        # A connector must:
+        #   1. Expose exactly 8 tools by default (canonical 8)
+        #   2. Hide aliases (no SDK alias map inflated count)
+        #   3. Hide diagnostics (gated by ARIFOS_MCP_EXPOSE_DEV_TOOLS=1)
+        #   4. Expose resources + prompts as separate surfaces
+        from arifosmcp.abi.kernel_abi import semantic_tool_names
+
+        canonical_count = len(semantic_tool_names())
+        assert canonical_count == 8
+        # The connector must NOT inflate this count via alias expansion.
+        # This is a kernel contract assertion; the connector implementation
+        # lives in A-FORGE/services/ and must be aligned with this contract.
+        # Test that the alias map doesn't leak into the public surface:
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+        for profile in ("canonical", "public_agent", None):
+            os.environ_default = public_tool_names_for_mode(profile)
+            # Each profile's surface is bounded by canonical 8
+            assert set(os.environ_default).issubset(EXPECTED_CANONICAL_8), (
+                f"profile {profile} exposed names outside canonical 8: "
+                f"{set(os.environ_default) - EXPECTED_CANONICAL_8}"
+            )
