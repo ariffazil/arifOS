@@ -1697,10 +1697,9 @@ async def arif_judge(
     # C4_SOVEREIGN: unbounded — no timeout. Human deliberation has no SLA.
     # All other classes: hard timeout via asyncio.wait_for.
     # If judge_fn exceeds budget → degrade immediately (preventive, not retroactive).
-    timeout_seconds: float | None = None
-    from arifosmcp.runtime.tools import _arif_judge
+    from arifosmcp.runtime.tools import _arif_judge_deliberate_tool
 
-    judge_coro = _arif_judge(
+    judge_coro = _arif_judge_deliberate_tool(
         mode=mode,
         candidate=candidate,
         session_id=session_id,
