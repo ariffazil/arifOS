@@ -140,6 +140,23 @@ sync:
 	@git push origin main
 
 # security-audit: moved to include
+# ============================================================
+# SURFACE CONFORMANCE GATE — Verify registry contract == runtime exposure
+# ============================================================
+
+surface-gate:
+	@echo "═══ Surface Conformance Gate ═══"
+	@cd /root/arifOS && $(PYTHON) -m pytest tests/surface/test_surface_conformance_gate.py -v --tb=short --no-header -q 2>&1 \
+		|| (echo "888_HOLD: Surface drift detected — registry contract != runtime exposure" && exit 1)
+	@echo "SEAL: Surface conformance gate passed."
+
+surface-gate-static:
+	@echo "═══ Surface Conformance Gate (static only, no kernel) ═══"
+	@cd /root/arifOS && $(PYTHON) -m pytest tests/surface/test_surface_conformance_gate.py::TestRegistrySelfConsistency \
+		tests/surface/test_surface_conformance_gate.py::TestRegistryInvariants \
+		tests/surface/test_surface_conformance_gate.py::TestConformanceProfiles \
+		-v --tb=short --no-header -q
+	@echo "SEAL: Static registry validation passed."
 
 # ============================================================
 # PROOF PACK — Single command to prove substrate health

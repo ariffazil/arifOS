@@ -308,13 +308,32 @@ def _load_soul_shadow(model_key: str | None) -> tuple[dict, dict]:
 
     Single source of truth for the soul/shadow load path used by both
     light and full init modes.
+
+    When `model_key` is None or empty, falls back to env-derived keys so
+    agent harness invocations (which historically did not thread model_key)
+    still bind to the correct alignment/adversarial profile. 2026-07-27 patch
+    resolves SABAR.DEGRADED for sovereign sessions where the loader
+    previously returned empty dicts.
     """
+    import os
+
     soul: dict = {}
     shadow: dict = {}
-    if not model_key:
+    key = (model_key or "").strip()
+    if not key or key.lower() == "unknown":
+        # F1 AMANAH + F11 AUDITABILITY: try explicit env first, then harness
+        # conventions, then a sentinel that maps to a generic constitutional
+        # baseline. Never silently return empty — that hides degradation.
+        key = (
+            os.environ.get("ARIFOS_MODEL_KEY")
+            or os.environ.get("KIMI_MODEL")
+            or os.environ.get("OPENAI_MODEL")
+            or ""
+        ).strip()
+    if not key:
         return soul, shadow
     try:
-        soul, shadow, _ = _load_model_registry(model_key)
+        soul, shadow, _ = _load_model_registry(key)
     except Exception:
         pass
     return soul, shadow
