@@ -755,20 +755,22 @@ async def arif_judge(
                 if _v_str == "SEAL"
                 else (VerdictCode.VOID if _v_str == "VOID" else VerdictCode.HOLD)
             )
-            return VerdictOutput(
-                verdict=_code,
-                reasons=[
-                    _intercept_res.get("reason")
-                    or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
-                ],
-                next_safe_action=_intercept_res.get(
-                    "next_safe_action", "Execute or review per verdict"
-                ),
-                meta={
-                    "kernel_intercept": _intercept_res,
-                    "reversibility_level": _rev_param,
-                    "action_class": action_class or reversibility_level,
-                },
+            return _echo_standing(
+                VerdictOutput(
+                    verdict=_code,
+                    reasons=[
+                        _intercept_res.get("reason")
+                        or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
+                    ],
+                    next_safe_action=_intercept_res.get(
+                        "next_safe_action", "Execute or review per verdict"
+                    ),
+                    meta={
+                        "kernel_intercept": _intercept_res,
+                        "reversibility_level": _rev_param,
+                        "action_class": action_class or reversibility_level,
+                    },
+                )
             )
         except Exception as _int_err:
             logger.warning("Kernel intercept delegation failed: %s", _int_err)

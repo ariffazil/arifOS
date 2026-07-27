@@ -738,9 +738,12 @@ try:
         embodied_mind_reason_handler,
     )
 
+    from arifosmcp.tools.judge import arif_judge as _arif_judge_facade
+
     register_all_arifos_tools()
 
     _CANONICAL_HANDLERS["arif_think"] = embodied_mind_reason_handler
+    _CANONICAL_HANDLERS["arif_judge"] = _arif_judge_facade
 
     # ── AKAL middleware: wire cognitive invariants into tool handlers ──
     # Internal physics — not exposed on MCP surface. Each wrapper adds
