@@ -1,0 +1,41 @@
+{
+  "ts": 1785182797,
+  "constitutional": {
+    "state": "UNSEALED",
+    "verdict": "HOLD",
+    "vitality": 0.5946
+  },
+  "system": {
+    "mem_pct": 47,
+    "disk_pct": 44,
+    "load": "1.69, 1.48, 1.46"
+  },
+  "organs": {
+    "arifOS": "healthy",
+    "A-FORGE": "healthy",
+    "AAA": "healthy",
+    "GEOX": "healthy",
+    "WEALTH": "healthy",
+    "WELL": "degraded"
+  },
+  "nodes": {
+    "phone_keys": 4,
+    "total_keys": 36
+  },
+  "degraded_organs": "WELL",
+  "dependencies": {
+    "check_ts": 1785182797,
+    "all_satisfied": true,
+    "exit_code": 0,
+    "well_clarity": 7.0,
+    "results": [
+      "A-FORGE → WELL: ✅ degraded",
+      "A-FORGE → arifOS: ✅ healthy",
+      "AAA → arifOS: ✅ healthy",
+      "GEOX → WELL: ✅ degraded",
+      "WEALTH → GEOX: ✅ healthy",
+      "WEALTH → WELL: ✅ degraded"
+    ],
+    "cascade_risks": []
+  }
+}

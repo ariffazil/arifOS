@@ -1,0 +1,140 @@
+#!/bin/bash
+# arifOS Cross-Organ Dependency Check v1
+# Reads organ_dependencies.json + arifos_state.json, validates all dep edges
+# DITEMPA BUKAN DIBERI
+# Usage: arif-dependency-check [--json]
+
+set -euo pipefail
+
+MANIFEST="/etc/arifos/organ_dependencies.json"
+STATE="/var/run/arifos_state.json"
+MODE="${1:-text}"
+
+[ -f "$MANIFEST" ] || { echo "FATAL: $MANIFEST not found" >&2; exit 2; }
+[ -f "$STATE" ]    || { echo "FATAL: $STATE not found" >&2; exit 2; }
+
+# ── load current organ status from Ghost MOTD state ──
+declare -A HEALTH_STATUS
+while IFS=$'\t' read -r name status; do
+  HEALTH_STATUS["$name"]="$status"
+done < <(jq -r '.organs | to_entries[] | [.key, .value] | @tsv' "$STATE")
+
+# ── probe WELL clarity ──
+WELL_CLARITY="0"
+if curl -sf --max-time 2 http://127.0.0.1:18083/health 2>/dev/null | jq -e '[.vitality, .clarity, .cognitive_clarity] | map(select(. != null)) | .[0]' >/dev/null 2>&1; then
+  WELL_CLARITY=$(curl -sf --max-time 2 http://127.0.0.1:18083/health 2>/dev/null | jq '[.vitality, .clarity, .cognitive_clarity] | map(select(. != null)) | .[0] // 0' 2>/dev/null)
+else
+  WELL_CLARITY=$(jq -r '.constitutional.vitality // 0' "$STATE")
+  if [ "${HEALTH_STATUS["WELL"]:-unknown}" = "degraded" ]; then
+    WELL_CLARITY="4"
+  fi
+fi
+WELL_CLARITY=$(echo "$WELL_CLARITY" | awk '{printf "%.1f", $1 + 0}')
+
+# ── dependency check engine ──
+EXIT_CODE=0
+declare -a RESULTS
+declare -a CASCADE_RISKS
+declare -a WARNINGS
+
+check_dep() {
+  local organ="$1" dep_name="$2" dep_spec="$3"
+  local required_status min_clarity action note
+  required_status=$(echo "$dep_spec" | jq -r '.required_status // ""')
+  min_clarity=$(echo "$dep_spec" | jq -r '.min_clarity // ""')
+  action=$(echo "$dep_spec" | jq -r '.action // "HOLD"')
+  note=$(echo "$dep_spec" | jq -r '.note // ""')
+
+  local dep_status="${HEALTH_STATUS[$dep_name]:-unreachable}"
+  local ok=true reason=""
+
+  if [ -n "$required_status" ]; then
+    if [ "$dep_status" != "$required_status" ]; then
+      ok=false
+      reason="status=${dep_status} (requires ${required_status})"
+    fi
+  fi
+
+  if [ -n "$min_clarity" ]; then
+    if echo "$WELL_CLARITY < $min_clarity" | bc | grep -q '^1$' 2>/dev/null; then
+      ok=false
+      [ -n "$reason" ] && reason+="; "
+      reason+="clarity=${WELL_CLARITY} (requires >=${min_clarity})"
+    fi
+  fi
+
+  if $ok; then
+    RESULTS+=("${organ} → ${dep_name}: ✅ ${dep_status}")
+  else
+    EXIT_CODE=1
+    RESULTS+=("${organ} → ${dep_name}: ❌ ${reason} → ${action}")
+  fi
+}
+
+# ── iterate manifest dependencies ──
+ORGANS=$(jq -c '.organs' "$MANIFEST")
+for organ in $(echo "$ORGANS" | jq -r 'keys[]'); do
+  deps=$(echo "$ORGANS" | jq -c --arg o "$organ" '.[$o].depends_on // {}')
+  for dep_name in $(echo "$deps" | jq -r 'keys[]'); do
+    dep_spec=$(echo "$deps" | jq -c --arg d "$dep_name" '.[$d]')
+    check_dep "$organ" "$dep_name" "$dep_spec"
+  done
+done
+
+# ── check routing rules for cascade risks ──
+while read -r rule; do
+  [ -z "$rule" ] && continue
+  from_org=$(echo "$rule" | jq -r '.from // ""')
+  to_org=$(echo "$rule" | jq -r '.to // ""')
+  via_route=$(echo "$rule" | jq -r '.via // ""')
+  action_unmet=$(echo "$rule" | jq -r '.action_if_unmet // "HOLD"')
+
+  reqs=$(echo "$rule" | jq -c '.requires // {}')
+  for req_organ in $(echo "$reqs" | jq -r 'keys[]'); do
+    req_min_clarity=$(echo "$reqs" | jq -c --arg r "$req_organ" '.[$r]' | jq -r '.min_clarity // ""')
+    if [ -n "$req_min_clarity" ]; then
+      if echo "$WELL_CLARITY < $req_min_clarity" | bc | grep -q '^1$' 2>/dev/null; then
+        CASCADE_RISKS+=("CASCADE: ${from_org}→${to_org} via ${via_route} (${req_organ} clarity ${WELL_CLARITY} < ${req_min_clarity})")
+        EXIT_CODE=1
+      fi
+    fi
+  done
+done < <(jq -c '.routing_rules[]? // empty' "$MANIFEST" 2>/dev/null)
+
+# ── output ──
+if [ "$MODE" = "--json" ]; then
+  RESULTS_JSON=$(printf '%s\n' "${RESULTS[@]}" | jq -Rs 'split("\n") | map(select(length > 0))')
+  CASCADE_JSON=$(printf '%s\n' "${CASCADE_RISKS[@]}" | jq -Rs 'split("\n") | map(select(length > 0))')
+
+  jq -n \
+    --argjson ts "$(date +%s)" \
+    --argjson all_ok "$([ $EXIT_CODE -eq 0 ] && echo true || echo false)" \
+    --argjson exit_code "$EXIT_CODE" \
+    --argjson well_clarity "$(echo "$WELL_CLARITY" | awk '{printf "%.1f", $1 + 0}')" \
+    --argjson results "$RESULTS_JSON" \
+    --argjson cascade "$CASCADE_JSON" \
+    '{
+      check_ts: $ts,
+      all_satisfied: $all_ok,
+      exit_code: $exit_code,
+      well_clarity: $well_clarity,
+      results: $results,
+      cascade_risks: $cascade
+    }'
+else
+  echo '═══ Cross-Organ Dependency Check ═══'
+  echo "  WELL clarity: ${WELL_CLARITY}"
+  for r in "${RESULTS[@]}"; do
+    echo "  $r"
+  done
+  for r in "${CASCADE_RISKS[@]}"; do
+    echo "  $r"
+  done
+  if [ $EXIT_CODE -eq 0 ]; then
+    echo '✅ All dependencies satisfied'
+  else
+    echo '❌ One or more dependencies broken'
+  fi
+fi
+
+exit $EXIT_CODE

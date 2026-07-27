@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "sealed": "2026-07-27",
+  "organs": {
+    "arifOS": {
+      "depends_on": {},
+      "provides": ["constitutional_state", "floor_enforcement", "vault_seal"]
+    },
+    "WEALTH": {
+      "depends_on": {
+        "GEOX": {"required_status": "healthy", "action": "HOLD"},
+        "WELL": {"min_clarity": 7, "action": "HOLD_if_below"}
+      },
+      "provides": ["npv", "irr", "market_data", "institutional_diagnosis"]
+    },
+    "A-FORGE": {
+      "depends_on": {
+        "arifOS": {"required_status": "healthy", "action": "HOLD"},
+        "WELL": {"min_clarity": 7, "action": "HOLD_if_below"}
+      },
+      "provides": ["code_execution", "deployment", "mcp_gateway"]
+    },
+    "GEOX": {
+      "depends_on": {
+        "WELL": {"min_clarity": 7, "action": "HOLD_if_below", "note": "Drill decisions require human clarity"}
+      },
+      "provides": ["basin_analysis", "petrophysics", "prospect_eval", "seismic"]
+    },
+    "AAA": {
+      "depends_on": {
+        "arifOS": {"required_status": "healthy", "action": "HOLD"}
+      },
+      "provides": ["cockpit", "a2a_gateway", "agent_registry"]
+    },
+    "WELL": {
+      "depends_on": {},
+      "provides": ["human_readiness", "fatigue_assessment", "dignity_guard"]
+    }
+  },
+  "routing_rules": [
+    {
+      "from": "GEOX",
+      "to": "WEALTH",
+      "via": "geox_to_wealth_bridge",
+      "requires": {"WELL": {"min_clarity": 7}},
+      "action_if_unmet": "HOLD"
+    }
+  ]
+}
