@@ -44,7 +44,7 @@ STAGE_FAILURE_HANDLERS: dict[str, dict[str, Any]] = {
     },
     Stage.SENSE_111.value: {
         "verdict": Verdict.HOLD,
-        "status": RuntimeStatus.SABAR,
+        "status": RuntimeStatus.SABAR,  # canonical transport: transient wait
         "action": "request_more_context",
         "recoverable": True,
         "error_code": "SENSE_INSUFFICIENT",
@@ -59,8 +59,8 @@ STAGE_FAILURE_HANDLERS: dict[str, dict[str, Any]] = {
         "description": "Cannot form coherent reasoning plan. Clarify intent.",
     },
     Stage.MEMORY_555.value: {
-        "verdict": Verdict.DEGRADED,
-        "status": RuntimeStatus.SUCCESS,
+        "verdict": Verdict.PARTIAL,  # canonical: degraded maps to PARTIAL (incomplete availability)
+        "status": RuntimeStatus.DEGRADED,  # canonical transport: degraded execution mode
         "action": "continue_without_memory",
         "recoverable": True,
         "error_code": "MEMORY_UNAVAILABLE",
@@ -195,7 +195,7 @@ async def handle_pns_shield(content: str, session_id: str) -> RuntimeEnvelope:
     status = RuntimeStatus.SUCCESS
     verdict = Verdict.SEAL
     if report.is_injection:
-        status = RuntimeStatus.SABAR
+        status = RuntimeStatus.SABAR  # canonical transport: transient wait (injection shield)
         verdict = Verdict.VOID
     return RuntimeEnvelope(
         tool="pns_shield",

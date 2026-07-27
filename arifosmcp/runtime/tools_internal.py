@@ -1368,7 +1368,7 @@ async def engineering_memory_dispatch_impl(
             session_id=session_id,
             stage="555m_MEMORY",
             verdict=Verdict.SABAR,
-            status=RuntimeStatus.SABAR,
+            status=RuntimeStatus.SABAR,  # canonical transport: transient wait / pending
             payload={
                 "error": "BACKEND_UNAVAILABLE",
                 "message": (

@@ -416,6 +416,10 @@ class RuntimeStatus(StrEnum):
     TIMEOUT = "TIMEOUT"  # Tool exceeded its time budget
     RETRY = "RETRY"  # Transient failure — caller should retry
     HOLD = "HOLD"  # Tool blocked by constitutional gate (NOT governance verdict — transport block)
+    SABAR = "SABAR"  # Transient wait / pending execution
+    DRY_RUN = "DRY_RUN"  # Dry run execution mode
+    DEGRADED = "DEGRADED"  # Degraded execution mode
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

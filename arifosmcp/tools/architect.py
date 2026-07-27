@@ -97,7 +97,7 @@ async def a_architect_dispatch_impl(
             session_id=session_id,
             stage="M-4_ARCH",
             verdict=Verdict.VOID,
-            status=RuntimeStatus.FAILURE,
+            status=RuntimeStatus.ERROR,  # transport: error (FAILURE not in canonical enum)
             payload={"error": "Query is required"},
         )
 
