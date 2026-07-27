@@ -1188,4 +1188,15 @@ class SealOutput(BaseModel):
 
 
 # Rebuild Pydantic core schemas for model forward references
+AnomalousContrast.model_rebuild()
+ThermodynamicState.model_rebuild()
+DecisionCollapse.model_rebuild()
+GrowthParadox.model_rebuild()
+AkalState.model_rebuild()
+AmanahProof.model_rebuild()
+FloorComplianceProof.model_rebuild()
+DissentReasoning.model_rebuild()
+CivilizationalAnchor.model_rebuild()
+CircuitBreaker.model_rebuild()
+ApprovalRequired.model_rebuild()
 VerdictOutput.model_rebuild()
