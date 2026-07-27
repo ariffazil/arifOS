@@ -142,6 +142,10 @@ class ActionClass(StrEnum):
     # Compatibility aliases for legacy code
     PREPARE = "DRAFT"
     ATOMIC = "IRREVERSIBLE"
+    # Audit 2026-07-27: AUDIT_RECORD and READ are observability actions — they
+    # do not modify state. Treating them as OBSERVE preserves audit semantics.
+    AUDIT_RECORD = "OBSERVE"
+    READ = "OBSERVE"
 
 
 class ToolClass(StrEnum):

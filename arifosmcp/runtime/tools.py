@@ -24077,6 +24077,12 @@ async def _arif_lease_issue(
         "MUTATE",
         "EXTERNAL",
         "IRREVERSIBLE",
+        # Audit 2026-07-27: read-only observability aliases accepted.
+        "AUDIT_RECORD",
+        "READ",
+        "ANALYZE",
+        "DRAFT",
+        "SIMULATE",
     )
     if max_action_class not in valid_action_classes:
         return {

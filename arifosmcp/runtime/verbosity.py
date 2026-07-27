@@ -104,16 +104,21 @@ _MINIMAL_STRIP_TOP_LEVEL = {
     "degraded",
     "call_hash",
     "stage_progression",
-    "facts",
-    "inferences",
-    "recommendations",
-    "unknowns",
-    "do_not_conclude",
-    "confidence",
-    "metacognition",
-    "constitutional_check",
-    "next_safe_action",
-    "risk",
+    # NOTE (F2 TRUTH audit 2026-07-27): the following semantic fields used to be
+    # in the strip list, which silently discarded the kernel's actual output
+    # payload (facts, inferences, confidence, etc.) when verbosity=minimal.
+    # They are now PRESERVED in minimal mode. See _SEMANTIC_PRESERVED_FIELDS
+    # in trim_for_verbosity(). Stripping here would be a regression.
+    # "facts",
+    # "inferences",
+    # "recommendations",
+    # "unknowns",
+    # "do_not_conclude",
+    # "confidence",
+    # "metacognition",
+    # "constitutional_check",
+    # "next_safe_action",
+    # "risk",
     "_nine_signal_compliant",
     "_violations",
     "live_kernel_envelope",
@@ -220,6 +225,31 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     nsa = _lookup("next_safe_action")
     if nsa:
         minimal["next_safe_action"] = nsa
+
+    # F2 TRUTH: PRESERVE semantic content in minimal mode.
+    # Audit 2026-07-27 found that arif_observe / arif_think / arif_route returned
+    # only the control-plane envelope (status, call_hash, trace_id, etc.) without
+    # the actual facts/inferences/confidence — because _MINIMAL_STRIP_FIELDS was
+    # dropping them, AND the minimal dict was constructed from scratch without
+    # including them. Metabolic utility was 41/100.
+    #
+    # The whole point of `minimal` is to drop *verbose* metadata (atlas333 boot,
+    # work_contract, full SCT, etc.), NOT the semantic payload itself.
+    _SEMANTIC_PRESERVED_FIELDS = (
+        "facts",
+        "inferences",
+        "recommendations",
+        "unknowns",
+        "do_not_conclude",
+        "confidence",
+        "metacognition",
+        "constitutional_check",
+        "risk",
+    )
+    for field in _SEMANTIC_PRESERVED_FIELDS:
+        value = _lookup(field)
+        if value is not None:
+            minimal[field] = value
 
     # F11 SAFETY NET: verify required fields are present
     required = ["verdict", "session_id", "actor", "call_hash"]
