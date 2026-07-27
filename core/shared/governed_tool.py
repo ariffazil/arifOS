@@ -23,9 +23,11 @@ except ImportError:
 if evaluate_tool_call is None:
 
     def evaluate_tool_call(**kwargs):
+        # FAIL-CLOSED (F1/F9): governance import broken = blocked, never auto-SEAL.
+        # Was a mock SEAL ("PASSED") until 2026-07-27 — silent bypass on import rot.
         class MockGov:
-            verdict = Verdict.SEAL
-            message = "PASSED"
+            verdict = Verdict.VOID
+            message = "GOVERNANCE UNAVAILABLE — evaluate_tool_call import failed; fail-closed"
 
             def to_dict(self):
                 return {"verdict": self.verdict, "message": self.message}
