@@ -87,14 +87,16 @@ def compute_effective_state(
         try:
             band = AuthorityBand(requested_authority)
             if band in (AuthorityBand.MUTATE, AuthorityBand.SOVEREIGN):
-                state.authority_band = AuthorityBand.LIMITED_MUTATE
+                state.authority_band = AuthorityBand.MUTATE
+                state.seal_allowed = True
             else:
                 state.authority_band = band
+                state.seal_allowed = False
         except ValueError:
             state.authority_band = AuthorityBand.OBSERVE_ONLY
-        state.verdict = EffectiveVerdict.LIMITED
+            state.seal_allowed = False
+        state.verdict = EffectiveVerdict.FULL
         state.mutation_allowed = True
-        state.seal_allowed = False
         state.reason = "LEASE_AUTHORIZED"
     elif actor_verified and session_token_present:
         state.authority_band = AuthorityBand.OBSERVE_ONLY
@@ -130,9 +132,9 @@ def is_self_contradictory(state: EffectiveState) -> bool:
     if state.mutation_allowed and state.authority_band == AuthorityBand.OBSERVE_ONLY:
         contradictions.append("mutation_allowed=True but OBSERVE_ONLY")
 
-    # seal_allowed without SOVEREIGN
-    if state.seal_allowed and state.authority_band != AuthorityBand.SOVEREIGN:
-        contradictions.append("seal_allowed=True but not SOVEREIGN")
+    # seal_allowed without SOVEREIGN or FULL
+    if state.seal_allowed and state.authority_band not in (AuthorityBand.SOVEREIGN, AuthorityBand.MUTATE):
+        contradictions.append("seal_allowed=True but not SOVEREIGN or FULL")
 
     # FULL verdict without verification
     if state.verdict == EffectiveVerdict.FULL and not state.actor_verified:
