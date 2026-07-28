@@ -51,7 +51,7 @@ Physics defines **what cannot be violated**.
 - **Second Law of Thermodynamics:** Entropy increases in closed systems—order costs energy, and intelligence is the temporary defiance of disorder, paid for in heat dissipation.
 - **Free Energy Principle:** All adaptive systems minimize surprise by building predictive models.
 - **Maxwell's Demon:** Information processing requires energy—every thought is a thermodynamic transaction.
-- **Energy Depletion:** Causes exponential, not linear, collapse in biological and artificial systems—which is why E² appears in the equation.
+- **Energy Depletion:** Causes exponential, not linear, collapse in biological and artificial systems.
 
 **Physics says:** Intelligence emerges when systems resist entropy long enough to compress patterns, build models, and act. But the universe always collects its debt.
 
@@ -117,7 +117,7 @@ Through eigendecomposition, we extract **four directions of maximum variance**:
 ### 1. The Genius Index
 
 ```
-G = A × P × X × E²
+G = A × P × E × X
 G ≥ 0.80  # Genius under governance (measurable wisdom)
 ```
 
@@ -162,7 +162,7 @@ A × (P × X × E²)
 ### 4. Constrained Genius (Lagrangian)
 
 ```
-G_max = max(A × P × X × E²) × (1 - C_dark)
+G = A × P × E × X
 
 Subject to:
   ΔS ≤ 0           # Clarity (F4)
