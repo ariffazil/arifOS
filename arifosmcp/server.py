@@ -549,71 +549,80 @@ mcp = FastMCP(
 # Do not wire completion/complete or advertise completions:{} (SEP agent surface).
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PHASE 2: UNIFIED FEDERATION SKILLS AS MCP RESOURCES (SKILL://)
-# Expose the canonical 7-core + project SKILL.md playbooks (aaa-doctrine-loader,
-# federation-router, arifos-kernel-operator, etc.) as first-class MCP resources.
-# Uses the official FastMCP SkillsDirectoryProvider (per Skills Over MCP WG / SEP-2640).
-# This gives all agents under AAA (Grok Build, Kimi, Claude, A2A agents, etc.)
-# a unified way to discover and load the exact same skill instructions via
-# resources/list + resources/read (skill://<name>/SKILL.md + _manifest).
-# Complements (does not replace) the custom domain .py SkillsDirectoryProvider.
+# PHASE 2: ZEN SKILL RESOURCES (skill://) — 2026-07-28
+# Replaces the FastMCP SkillsDirectoryProvider which dumped 294 individual
+# skill:// resources (one per SKILL.md + _manifest per skill directory).
+# Zen: 1 index resource + 1 URI template = ~2 resources instead of 294.
+# Agents discover skills via skill://index, then load individual skills
+# on demand via skill://{name}/SKILL.md. F4 CLARITY: ΔS ≪ 0.
 # ═══════════════════════════════════════════════════════════════════════════
-if FastMCPSkillsDirectoryProvider is not None and Path is not None:
+if Path is not None:
     try:
-        _skill_roots: list[Path] = [
-            Path("/root/.agents/skills"),  # SINGLE SOT — all agents load from here
-        ]
-        _federation_skills_provider = FastMCPSkillsDirectoryProvider(
-            roots=_skill_roots,
-            supporting_files=[],  # [] = SKILL.md only; no _manifest. Zen of resources 2026-06-28.
-            reload=False,  # stable in prod; dev can set True
-        )
-        mcp.add_provider(_federation_skills_provider)
-        logger.info(
-            "Federation SkillsDirectoryProvider added: skill:// URIs available for core SKILL.md "
-            "(unified bootstrap across all AAA agents via MCP resources)"
-        )
+        _skill_root = Path("/root/.agents/skills")
+        if _skill_root.exists():
+            import json as _json
 
-        # Bridge for wire protocol DISABLED 2026-06-28 (zen of resources):
-        # skill:// URIs are filesystem mirrors, not domain operational data.
-        # The SkillsDirectoryProvider still serves skill:// via resources/read for
-        # clients that explicitly request a known skill URI. The wire bridge was
-        # adding 37 redundant FileResource entries to resources/list, inflating
-        # the surface from ~20 to ~97. MCP resources should be domain data AI
-        # needs for work — not file mirrors (those live in the filesystem MCP).
-        # if FastMCPSkillsDirectoryProvider is not None and Path is not None:
-        #     try:
-        #         from fastmcp.resources.types import FileResource  # type: ignore
-        #         _wire_registered: list[str] = []
-        #         for _r in _skill_roots:
-        #             if not _r.exists():
-        #                 continue
-        #             for _sd in sorted(_r.iterdir()):
-        #                 if not _sd.is_dir() or _sd.name.startswith(".") or _sd.name.startswith("_"):
-        #                     continue
-        #                 _fn = "SKILL.md"
-        #                 _fp = _sd / _fn
-        #                 if _fp.is_file():
-        #                     _uri = f"skill://{_sd.name}/{_fn}"
-        #                     try:
-        #                         _fr = FileResource(uri=_uri, path=_fp, name=_uri,
-        #                             description=f"Federation SKILL.md playbook ({_sd.name})",
-        #                             mime_type="text/markdown")
-        #                         mcp.add_resource(_fr)
-        #                         _wire_registered.append(_uri)
-        #                     except Exception as _re:
-        #                         logger.debug("skill FileResource add non-fatal for %s: %s", _uri, _re)
-        #         if _wire_registered:
-        #             logger.info("Wire-bridge: added %d explicit skill://SKILL.md FileResources",
-        #                         len(_wire_registered))
-        #     except Exception as _wire_err:
-        #         logger.warning("Wire bridge disabled: %s", _wire_err)
+            # Build the skill index once at startup
+            _skill_index: list[dict] = []
+            for _sd in sorted(_skill_root.iterdir()):
+                if not _sd.is_dir() or _sd.name.startswith(".") or _sd.name.startswith("_"):
+                    continue
+                _sf = _sd / "SKILL.md"
+                if _sf.is_file():
+                    _desc = ""
+                    try:
+                        _lines = _sf.read_text().splitlines()
+                        # Extract description from YAML frontmatter or first heading
+                        for _line in _lines:
+                            _stripped = _line.strip()
+                            if _stripped.startswith("description:") or _stripped.startswith(
+                                "description:"
+                            ):
+                                _desc = _stripped.split(":", 1)[1].strip().strip("'").strip('"')
+                                if _desc.startswith(">"):
+                                    _desc = _desc[1:].strip()
+                                break
+                            elif _stripped.startswith("#") and not _stripped.startswith("##"):
+                                _desc = _stripped.lstrip("#").strip()
+                                break
+                    except Exception:
+                        pass
+                    _skill_index.append(
+                        {
+                            "name": _sd.name,
+                            "uri": f"skill://{_sd.name}/SKILL.md",
+                            "description": _desc or _sd.name,
+                        }
+                    )
+
+            @mcp.resource(
+                "skill://index",
+                name="Federation Skill Index",
+                description="Complete index of all federation skills with names, URIs, and descriptions. "
+                "Use skill://{name}/SKILL.md to load any specific skill on demand. "
+                f"{len(_skill_index)} skills registered.",
+            )
+            def skill_index_resource() -> str:
+                return _json.dumps({"skills": _skill_index, "total": len(_skill_index)}, indent=2)
+
+            @mcp.resource(
+                "skill://{name}/SKILL.md",
+                name="Federation Skill by Name",
+                description="Load a specific federation skill's SKILL.md by name. "
+                "Use skill://index first to discover available skills.",
+            )
+            def skill_by_name_resource(name: str) -> str:
+                _path = _skill_root / name / "SKILL.md"
+                if not _path.is_file():
+                    raise FileNotFoundError(f"Skill not found: {name}")
+                return _path.read_text()
+
+            logger.info(
+                "Zen skill resources wired: skill://index + skill://{name}/SKILL.md "
+                f"({len(_skill_index)} skills indexed, 2 MCP resources total)"
+            )
     except Exception as _skills_err:
-        logger.warning(
-            f"Could not wire standard SkillsDirectoryProvider for SKILL.md: {_skills_err}"
-        )
-else:
-    logger.info("FastMCPSkillsDirectoryProvider not available — skipping skill:// wiring")
+        logger.warning(f"Zen skill resources failed: {_skills_err}")
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PHASE 0: TRANSPORT CANARY LAYER
@@ -698,6 +707,7 @@ IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
+
     # Audit 2026-07-28 Phase C: arif-arifos resources now consolidated under
     # register_public_resources_and_prompts(server) — no separate import here.
     from arifosmcp.runtime.heartbeat_registry import arif_heartbeat as _arif_heartbeat
@@ -954,6 +964,7 @@ try:
     # passed in explicitly. Failure modes are surfaced in the returned
     # dict; partial registration does not crash boot.
     from arifosmcp.runtime.fastmcp_ext import register_public_resources_and_prompts
+
     _rp_registration = register_public_resources_and_prompts(mcp)
     if _rp_registration["errors"]:
         for _err in _rp_registration["errors"]:
@@ -1554,7 +1565,10 @@ try:
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
     try:
-        from arifosmcp.runtime.fastmcp_ext import register_public_resources_and_prompts as _rp_register
+        from arifosmcp.runtime.fastmcp_ext import (
+            register_public_resources_and_prompts as _rp_register,
+        )
+
         _rp = _rp_register(mcp)
         v2_resources_registered += _rp["resources"]
         v2_prompts_registered += _rp["prompts"]
