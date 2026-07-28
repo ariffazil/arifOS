@@ -500,6 +500,67 @@ async def create_episode(req: EpisodeCreateRequest):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# RAW QUERY (for dreamer.py internal consumer)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class QueryRequest(BaseModel):
+    query: str
+    params: dict[str, Any] = {}
+
+
+def _node_to_dict(node: Any) -> dict[str, Any]:
+    """Convert a FalkorDB Node to a properties dict."""
+    if node is None:
+        return {}
+    if hasattr(node, "properties"):
+        return dict(node.properties) if node.properties else {}
+    if isinstance(node, dict):
+        return node
+    return {"value": str(node)}
+
+
+def _row_to_dicts(header: list[str], row: list[Any]) -> dict[str, Any]:
+    """Convert a FalkorDB result row to a dict keyed by RETURN alias."""
+    result: dict[str, Any] = {}
+    for i, col in enumerate(header):
+        if i >= len(row):
+            result[col] = None
+            continue
+        val = row[i]
+        if hasattr(val, "properties"):
+            result[col] = _node_to_dict(val)
+        elif hasattr(val, "labels"):
+            result[col] = _node_to_dict(val)
+        else:
+            result[col] = val
+    return result
+
+
+@app.post("/query")
+async def raw_query(req: QueryRequest):
+    """Execute raw Cypher query. Returns rows keyed by RETURN aliases.
+    Internal consumer — dreamer.py induction pipeline.
+    """
+    graph = _get_graph()
+    if graph is None:
+        return {"error": "FalkorDB unavailable", "rows": []}
+    try:
+        result = graph.query(req.query, req.params or {})
+        rows_raw = result.result_set if result else []
+        raw_header = result.header or []
+        header = [
+            h[1].split(".")[-1] if isinstance(h, (list, tuple)) and len(h) > 1 else str(h)
+            for h in raw_header
+        ]
+        rows = [_row_to_dicts(header, row) for row in rows_raw]
+        return {"rows": rows, "total": len(rows)}
+    except Exception as e:
+        logger.warning("Raw query failed: %s", e)
+        return {"error": str(e), "rows": []}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # UTILITIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
