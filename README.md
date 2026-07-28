@@ -1,7 +1,7 @@
 mcp-name: io.github.ariffazil/arifos
 <!-- SOT-MANIFEST
-federation_release: v2026.07.26
-last_verified: 2026-07-26T12:30Z
+federation_release: v2026.07.28
+last_verified: 2026-07-28T18:00Z
 live_commit: 31640cb32
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
@@ -14,7 +14,7 @@ organs: 6 live (arifOS:8088, A-FORGE:7071, AAA:3001, GEOX:8081, WEALTH:18082, WE
 |authorization: F13 Ed25519 challenge-response — canonical binding, Redis replay protection, A-FORGE structural gate, AAA approval card
 |-->
 
-**SOT:** 2026-07-26 | **seal_seq:** `68d5b8a37` | **F13 three-gate close**
+**SOT:** 2026-07-28 | **seal_seq:** `68d5b8a37` | **F13 three-gate close**
 
 <div align="center">
 
@@ -52,7 +52,7 @@ organs: 6 live (arifOS:8088, A-FORGE:7071, AAA:3001, GEOX:8081, WEALTH:18082, WE
 [![Unified CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml)
 [![⚖️ KERNEL](https://img.shields.io/badge/%E2%9A%96%EF%B8%8F%20KERNEL-8%20tools-0a7b83)](https://arifos.arif-fazil.com/mcp)
-[![Federation](https://img.shields.io/badge/Federation-6%20organs-1f6feb)](#5-federation-architecture)
+[![Federation](https://img.shields.io/badge/Federation-v2026.07.28-0a7b83)](https://arifos.arif-fazil.com)
 [![ChatGPT](https://img.shields.io/badge/ChatGPT-✔-brightgreen)](#connecting-from-chatgpt)
 [![Claude Desktop](https://img.shields.io/badge/Claude%20Desktop-✔-brightgreen)](#connecting-from-claude-desktop)
 [![PyPI](https://img.shields.io/pypi/v/arifos?label=PyPI)](https://pypi.org/project/arifos/)
@@ -339,7 +339,7 @@ STDIO: `npx -y arifos-mcp`
 | **HERMES** | Multi-modal bridge | [repo](https://github.com/ariffazil/HERMES) | — | — | — |
 
 **Public:** [arif-fazil.com](https://arif-fazil.com) · **Federation root:** [arifos.arif-fazil.com](https://arifos.arif-fazil.com)
-**SOT:** 2026-07-26
+**SOT:** 2026-07-28
 
 ## 8. License & Sovereignty
 
