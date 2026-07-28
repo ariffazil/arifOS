@@ -35,6 +35,8 @@ from .types import (
     OMEGA_HARD_LIMIT,
     OMEGA_MAX,
     OMEGA_WARN,
+    OMEGA_ZERO_MAX,
+    OMEGA_ZERO_MIN,
     PSI_MIN,
     CollapseResult,
     EvidenceFusion,
@@ -61,6 +63,12 @@ def judge(state: GovernanceState) -> GovernanceState:
     tripwires.append(tw)
     if tw.severity == "BLOCK":
         return _build_collapse(state, "VOID", tripwires)
+    if tw.severity == "DELAY":
+        return _build_collapse(state, "HOLD", tripwires)
+
+    # Tripwire 2.5: OMEGA_ZERO_BAND (F7 — Gödel Lock)
+    tw = _check_omega_zero_band(state)
+    tripwires.append(tw)
     if tw.severity == "DELAY":
         return _build_collapse(state, "HOLD", tripwires)
 
@@ -125,6 +133,33 @@ def _check_uncertainty(state: GovernanceState) -> TripwireResult:
         )
     return TripwireResult(
         id="UNCERTAINTY", triggered=False, reason=f"Ω={o:.3f} within range", severity="WARN"
+    )
+
+
+def _check_omega_zero_band(state: GovernanceState) -> TripwireResult:
+    """F7 HUMILITY: Ω₀ must fall within [0.03, 0.05] — no fake certainty, no fake humility."""
+    oz = state.scalars.omega_zero
+    if oz < OMEGA_ZERO_MIN:
+        return TripwireResult(
+            id="OMEGA_ZERO_BAND",
+            triggered=True,
+            reason=f"F7 HUMILITY: Ω₀={oz:.4f} < {OMEGA_ZERO_MIN}. Overconfidence detected — "
+            f"confidence too high. Cap at {OMEGA_ZERO_MIN}.",
+            severity="DELAY",
+        )
+    if oz > OMEGA_ZERO_MAX:
+        return TripwireResult(
+            id="OMEGA_ZERO_BAND",
+            triggered=True,
+            reason=f"F7 HUMILITY: Ω₀={oz:.4f} > {OMEGA_ZERO_MAX}. Over-humility detected — "
+            f"uncertainty band too wide. Tighten to ≤ {OMEGA_ZERO_MAX}.",
+            severity="DELAY",
+        )
+    return TripwireResult(
+        id="OMEGA_ZERO_BAND",
+        triggered=False,
+        reason=f"Ω₀={oz:.4f} within [{OMEGA_ZERO_MIN}, {OMEGA_ZERO_MAX}]",
+        severity="WARN",
     )
 
 

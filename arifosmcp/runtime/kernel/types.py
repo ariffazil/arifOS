@@ -141,6 +141,7 @@ class GovernanceScalars:
     delta: float  # Δ — entropy/pressure
     omega: float  # Ω — uncertainty/epistemic
     psi: float  # Ψ — integrity/alignment
+    omega_zero: float = 0.04  # Ω₀ — baseline confidence band [0.03, 0.05]
 
 
 # ── 8. Collapse Result ────────────────────────
@@ -249,3 +250,5 @@ PSI_MIN = 0.7
 DELTA_CRITICAL = 0.7
 OMEGA_WARN = 0.3
 OMEGA_HARD_LIMIT = 0.6
+OMEGA_ZERO_MIN = 0.03  # F7 HUMILITY: Ω₀ floor — no fake certainty
+OMEGA_ZERO_MAX = 0.05  # F7 HUMILITY: Ω₀ ceiling — no fake humility

@@ -1328,8 +1328,34 @@ class GovernancePipeline:
     # ═══════════════════════════════════════════════════════════════════════
 
     def _gate_identity(self, ctx: ToolCallContext) -> GateResult:
-        """Verify actor identity and authority for the action class."""
+        """Verify actor identity and authority for the action class.
+
+        F7 GÖDEL LOCK: arif_judge cannot pass when caller == target actor.
+        No agent may adjudicate its own actions — external witness required.
+        """
         t0 = time.perf_counter()
+
+        # ── P2-3: Self-certification blocker (Gödel Lock) ──────────────
+        if ctx.tool_name in ("arif_judge", "arifos_judge"):
+            caller_id = getattr(ctx, "actor_id", None) or "anonymous"
+            # Extract target actor from params
+            params = getattr(ctx, "params", {}) or {}
+            target_actor = (
+                params.get("actor_id")
+                or params.get("target_actor")
+                or params.get("candidate_actor")
+            )
+            if target_actor and caller_id != "anonymous" and caller_id == target_actor:
+                return GateResult(
+                    gate=Gate.IDENTITY,
+                    passed=False,
+                    reason=f"F7 GÖDEL LOCK: Self-certification blocked. "
+                    f"Actor '{caller_id}' cannot judge their own actions. "
+                    f"External witness required. Route to different judge instance.",
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                    metadata={"violated_laws": ["F7", "L11"], "godel_lock": True},
+                )
+        # ────────────────────────────────────────────────────────────────
 
         # Anonymous is fine for OBSERVE
         if not ctx.actor_id or ctx.actor_id in ("anonymous", "None", ""):

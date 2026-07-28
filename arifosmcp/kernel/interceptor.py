@@ -999,6 +999,80 @@ def clear_nonce_cache() -> None:
         _NONCE_SEEN.clear()
 
 
+# ── Overclaim detection (F7 — Gödel Lock) ─────────────────────────────────
+
+
+# Phrases that indicate absolute certainty without proof reference
+_OVERCLAIM_PATTERNS: list[str] = [
+    r"\bI (am |)(certain|sure|confident|positive|absolutely sure)\b",
+    r"\b(this|it|that) (is |)(definitely|certainly|undoubtedly|unquestionably|absolutely|always|never)\b",
+    r"\b(always|never|guaranteed|proven|verified|confirmed|100%)\b",
+    r"\b(without (any |a )doubt|beyond (any |a )doubt|no question)\b",
+    r"\b(this (is|must be|has to be) (true|correct|right|the case))\b",
+    r"\b(every single|all possible|without exception)\b",
+    r"\b(cannot (possibly |)be wrong|infallible|unassailable)\b",
+]
+
+
+def _check_overclaim(
+    req: InterceptorInput,
+    capability: CapabilityNode | None,
+    authority: AuthorityTier,
+) -> InterceptorDecision | None:
+    """F7 HUMILITY — detect absolute-certainty phrases without proof reference.
+
+    Triggers HOLD_888 when a HIGH/MUTATE action contains overclaim language
+    in arguments or task description. OBSERVE-class actions get WARN only.
+    """
+    # Combine all text fields to scan
+    text_fields: list[str] = []
+    if req.task:
+        text_fields.append(req.task)
+    if req.raw_arguments:
+        import json as _json
+
+        try:
+            args_str = _json.dumps(req.raw_arguments)
+            text_fields.append(args_str)
+        except (TypeError, ValueError):
+            pass
+
+    combined = " ".join(text_fields)
+    if not combined.strip():
+        return None
+
+    # Compile regex patterns (lazy — re not at module scope)
+    _regex = [re.compile(p, re.IGNORECASE) for p in _OVERCLAIM_PATTERNS]
+
+    matches: list[str] = []
+    for pattern in _regex:
+        found = pattern.findall(combined)
+        if found:
+            matches.extend([str(m) for m in found])
+
+    if not matches:
+        return None
+
+    # For OBSERVE/DRAFT — warn only
+    if capability and capability.mutation_class in (MutationClass.NONE,):
+        return None  # Let it through; overclaim in observation is low-risk
+
+    # For MUTATE/HIGH actions — block
+    unique_matches = list(set(matches))[:5]  # dedupe, limit to 5
+    return InterceptorDecision(
+        verdict=AdmissibilityVerdict.HOLD_888,
+        reason=f"F7 HUMILITY: Overclaim language detected: {', '.join(unique_matches)}. "
+        f"Add epistemic label (OBS/DER/INT/SPEC) and confidence band. "
+        f"Absolute certainty requires proof reference.",
+        authority_tier=authority,
+        truth_class=TruthClass.INTERPRETATION,
+        floors_evaluated=["F7"],
+        floors_violated=["F7"],
+        decision_class="C2_STANDARD",
+        latency_ms=0.0,
+    )
+
+
 # ── Main interceptor ──────────────────────────────────────────────────────────
 
 
@@ -1071,6 +1145,11 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
 
     # Standard floors always evaluated
     base_floors = ["F1", "F2", "F4", "F7", "F8", "F9", "F10", "F11"]
+
+    # Step 3.5: Overclaim detection (F7 — Gödel Lock)
+    overclaim_block = _check_overclaim(req, capability, authority)
+    if overclaim_block is not None:
+        return overclaim_block
 
     # Step 4: Apply policy floors
     policy_block = _check_policy_floors(req, capability, authority)
