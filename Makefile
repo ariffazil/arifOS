@@ -275,20 +275,9 @@ include /root/arifOS/scripts/security_audit.mk
 # --- AGI Kernel Proof Engine ---
 .PHONY: prove constitutional-benchmark vault999-verify reality-replay
 
-constitutional-benchmark:
-	@echo "Running constitutional floor and boundary benchmarks..."
-	pytest benchmarks/floors/ benchmarks/organs/ benchmarks/ledgers/
+# --- AGI Kernel Proof Engine ---
+.PHONY: prove constitutional-benchmark vault999-verify reality-replay
 
-vault999-verify:
-	@echo "Verifying VAULT999 hash chains and receipts..."
-	python3 /root/arifOS/core/vault999/verify.py
-
-reality-replay:
-	@echo "Comparing predictions with observed outcomes in Reality Ledger..."
-	# python -m arifos.core.reality_ledger replay
-
-prove: health sot-check security-audit constitutional-benchmark vault999-verify reality-replay
-	@echo "Synthesizing ARIFOS_PROOF_PACK.md..."
 
 drift-check:
 	@echo "Checking transport contract alignment..."
