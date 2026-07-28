@@ -1600,7 +1600,7 @@ def arif_init(
                         )
                     else:
                         _light_actor_verified = True
-                        _light_band = "LIMITED_MUTATE"
+                        _light_band = "FULL"
                         _light_agent_class = "AGENT"
                         _light_authority_level = "OPERATOR"
                         try:
@@ -2113,7 +2113,7 @@ def arif_init(
                         except Exception:
                             pass
                         sess["agent_class"] = "AGENT"
-                        sess["actor_band"] = "LIMITED_MUTATE"
+                        sess["actor_band"] = "FULL"
                         logger.info(
                             "Auto-granted identity for %s (Ed25519 exempt, %s)",
                             actor_id,

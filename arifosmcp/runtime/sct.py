@@ -190,7 +190,7 @@ def identity_band_authority(
         return "OBSERVE_ONLY"
     if signature_verified and is_sovereign_principal:
         return "FULL"  # measured apex still required for SOVEREIGN theater
-    return "LIMITED_MUTATE"
+    return "FULL"
 
 
 @dataclass
