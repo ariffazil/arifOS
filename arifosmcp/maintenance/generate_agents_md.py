@@ -144,7 +144,7 @@ _FLOOR_TABLE = """\
 | L04 | CLARITY | SOFT | Every output reduces entropy (ΔS ≤ 0) |
 | L05 | PEACE | SOFT | Peace ≥ 1.0; de-escalate, guard maruah |
 | L06 | EMPATHY | SOFT | Dignity-first; ASEAN/MY context |
-| L07 | HUMILITY | SOFT | Uncertainty band 0.03–0.05; no fake certainty |
+| L07 | HUMILITY | HARD | Uncertainty band 0.03–0.05; no fake certainty |
 | L08 | GENIUS | SOFT | Maintain intelligence quality, system health |
 | L09 | ANTIHANTU | HARD | Anti-Hallucination: C_dark < 0.30, no consciousness claims |
 | L10 | ONTOLOGY | HARD | AI-only ontology; no soul/feelings claims |
