@@ -147,13 +147,14 @@ def estimate_g(evidence_n: int, actor_verified: bool, judge_verdict: str | None)
     X = {"SEAL": 0.9, "HOLD": 0.4, "SABAR": 0.55, "VOID": 0.1}.get(
         (judge_verdict or "HOLD").upper(), 0.4
     )
-    Phi = 0.85
-    G = A * P * E * X * Phi
+    # Canonical G = (A × P × E × X)^(1/4) — no Φ, no H
+    math = __import__("math")
+    G = math.exp((math.log(max(A, 1e-10)) + math.log(max(P, 1e-10)) + math.log(max(E, 1e-10)) + math.log(max(X, 1e-10))) / 4)
     C_dark = A * (1 - P) * (1 - X)
     return {
         "G": round(G, 4),
         "C_dark": round(C_dark, 4),
-        "primitives": {"A": A, "P": P, "E": E, "X": X, "Phi": Phi},
+        "primitives": {"A": A, "P": P, "E": E, "X": X},
         "epistemic": "ESTIMATE",
         "pass_G": G >= 0.80,
         "pass_C": C_dark < 0.30,

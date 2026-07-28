@@ -225,7 +225,7 @@ make status-all                             # federation-wide git status
 | **F5 PEACE²** | SOFT | Non-destructive power. Blocks harm/harass/extort. |
 | **F6 EMPATHY** | SOFT | Protect weakest stakeholder. κᵣ thresholds. |
 | **F7 HUMILITY** | HARD | Ω₀ ∈ [0.03, 0.05]. No fake certainty. |
-| **F8 GENIUS** | DERIVED | G = (A·P·X·E²)·(1-h) ≥ 0.80. |
+| **F8 GENIUS** | DERIVED | G = (A×P×E×X)^(1/4) ≥ 0.80. |
 | **F9 ANTIHANTU** | HARD | No deception, manipulation, consciousness claims. C_dark < 0.30. |
 | **F10 ONTOLOGY** | HARD | AI-only ontology. No soul/feelings/sentience. |
 | **F11 AUDITABILITY** | HARD | Every decision logged, inspectable, attributable. |

@@ -2,7 +2,7 @@
 core/enforcement/genius.py — Constitutional Genius & Dial Derivation
 
 This module implements the "Real Scoring" system for arifOS.
-It derives the 4 APEX Dials (A/P/X/E) from the 13 Constitutional Laws.
+It derives the 4 APEX Dials (A·P·E·X) from the 13 Constitutional Laws.
 
 PRIMARY PATH (N ≥ 5 observations):
   13 floor vectors → covariance matrix → eigenvalue decomposition → top 4 PCs → A,P,X,E
@@ -11,7 +11,7 @@ PRIMARY PATH (N ≥ 5 observations):
 FALLBACK PATH (N < 5 observations):
   Geometric mean of canonical floor clusters (theory-derived prior).
 
-G = A × P × X × E²
+G = (A × P × E × X)^(1/4)  — canonical geometric mean (APEX MATH CANON A2)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -276,14 +276,6 @@ def _compute_pca_dials(
         P=round(float(dials_normalized[1]), 4),
         X=round(float(dials_normalized[2]), 4),
         E=round(float(dials_normalized[3]), 4),
-        PHI=round(
-            float(
-                getattr(floors, "f3_tri_witness", 0.8)
-                * (1.0 - min(getattr(floors, "f9_anti_hantu", 0.0), 0.99))
-                * getattr(floors, "f13_sovereign", 0.9)
-            ),
-            4,
-        ),  # Φ derived from tri-witness × (1 - anti-hantu) × sovereign
     )
 
     return dials, metadata
@@ -353,13 +345,12 @@ def _compute_cluster_dials(
     energy_vitality = (energy_from_floors + energy_ratio) / 2.0
     energy = max(0.0, energy_vitality - (uncertainty_penalty * 0.5))
 
-    # ZEN Phase 1: Φ (Witness) dial — tri-witness × (1 - ToAC contrast) × f13
-    # Per 777_SOUL_APEX.md + 040_APEX_STACK.md. Closes Φ gap.
+    # ZEN: phi computed for legacy compatibility only — not used in G
     tri_witness = getattr(floors, "f3_tri_witness", 0.8)
-    toac_contrast = (telemetry or {}).get("contrast_score", 0.5)  # ToAC AC_Risk; default per brief
-    phi = tri_witness * (1.0 - min(toac_contrast, 0.99)) * getattr(floors, "f13_sovereign", 0.9)
+    toac_contrast = (telemetry or {}).get("contrast_score", 0.5)
+    # phi is not returned — G = (A·P·E·X)^(1/4) without Φ
 
-    return APEXDials(A=akal, P=presence, X=exploration, E=energy, PHI=phi)
+    return APEXDials(A=akal, P=presence, X=exploration, E=energy)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -369,9 +360,7 @@ def _compute_cluster_dials(
 
 class APEXDials(BaseModel):
     """
-    The 5 APEX dials (A·P·E·X·Φ) derived from 13 floor scores via eigendecomposition.
-    ZEN Phase 1 update per APEX_STACK_Forge_2026-07-06_v1 + 777_SOUL_APEX.md + 040_APEX_STACK.md.
-    Φ (Witness) closes the underdeveloped gap: tri-witness × (1 - ToAC contrast) × f13.
+    The 4 APEX dials (A·P·E·X) derived from 13 floor scores via eigendecomposition.
     """
 
     A: float = Field(
@@ -390,21 +379,9 @@ class APEXDials(BaseModel):
         le=1.0,
         description="Energy: Vitality dimension (PC4 or L12/L13 + budget)",
     )
-    PHI: float = Field(
-        default=0.0,
-        ge=0.0,
-        le=1.0,
-        description=(
-            "Witness (Φ): tri-witness × (1 - ToAC contrast) × sovereign/f13. "
-            "New 5th dial for full G = A·P·E·X·Φ"
-        ),
-    )
 
     def to_dict(self, include_phi: bool = False) -> dict[str, float]:
-        dials = {"A": self.A, "P": self.P, "X": self.X, "E": self.E}
-        if include_phi:
-            dials["PHI"] = self.PHI
-        return dials
+        return {"A": self.A, "P": self.P, "X": self.X, "E": self.E}
 
 
 def audit_result_to_floor_scores(audit_result: Any) -> FloorScores:
@@ -539,7 +516,7 @@ def get_thermodynamic_budget_window(
 def geometric_mean(values: list[float]) -> float:
     """
     Compute geometric mean of values.
-    Returns 0.0 if any value is <= 0.0 to enforce HARD floor logic.
+    Returns 0.0 if any value is <= 0.0 to enforce HARD floor logic (Nash Collapse).
     """
     if not values:
         return 0.0
@@ -605,10 +582,9 @@ def calculate_genius(
     telemetry: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    The Unified Genius Equation (ZEN Phase 1): G = A · P · E · X · Φ × (1 - h)
-    Full 5-factor per user synthesis + 777_SOUL_APEX.md + 040_APEX_STACK.md.
-    Dials derived via eigendecomposition (PCA or cluster) + Φ witness.
-    ToAC contrast and TPCP enforced upstream in envelope/judge.
+    The Unified Genius Equation (Constitutional v3): G = (A · P · E · X)^(1/4)
+    Canonical 4-factor Nash Bargaining Product. No Φ, no H, no S, no U.
+    Dials derived via eigendecomposition (PCA) or cluster projection.
     """
     # Record this floor observation for future PCA
     history = get_floor_history()
@@ -621,11 +597,10 @@ def calculate_genius(
     presence = dials.P
     exploration = dials.X
     energy = dials.E
-    phi = getattr(dials, "PHI", 0.8)  # Witness
 
-    # ZEN: G = A · P · E · X · Φ  (full 5-factor)
-    g_gen = akal * presence * energy * exploration * phi
-    final_g = g_gen * (1.0 - h)
+    # Canonical G = (A · P · E · X)^(1/4) — 4-factor Nash Bargaining Product
+    # Constitutional target per Arif's directive. No Φ, no H.
+    final_g = geometric_mean([akal, presence, energy, exploration])
 
     # Determine derivation method
     _, pca_meta = _compute_pca_dials(floors, history)
@@ -660,14 +635,13 @@ def calculate_genius(
 
     return {
         "genius_score": round(final_g, 4),
-        "dials": dials.to_dict(include_phi=True),
+        "dials": dials.to_dict(include_phi=False),
         "hysteresis": h,
         "passed": final_g >= 0.80,
         "verdict": ("SEAL" if final_g >= 0.80 else "PARTIAL" if final_g >= 0.60 else "VOID"),
         "derivation": derivation,
         "derivation_meta": derivation_meta,
         "provenance": "constitutional_measurement",
-        "phi_witness": phi,  # ZEN explicit
         # Dalio 17x probe-vs-act signals (F8 GENIUS enforcement)
         "probe_signal": probe_signal,
         "confidence_gap": confidence_gap,

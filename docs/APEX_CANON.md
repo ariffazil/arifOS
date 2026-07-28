@@ -1,9 +1,9 @@
 # APEX CANON — Grand Equation, Axioms, and Verification
 
-> **⚠ SUPERSEDED 2026-07-26 (F13-ratified).** Canonical form is now
-> [`canon/CANON_APEX_V2/02_APEX_CANON_GRAND_EQUATION.md`](./canon/CANON_APEX_V2/02_APEX_CANON_GRAND_EQUATION.md):
-> **G = (A·P·E²·X)^(1/5)** — 4 APEX letters, exclusive floor ownership, hard-floor veto first.
-> The `√(S·U)` coupling and the 6-dial raw product `A·P·H·S·U·E²` below are deprecated — do not cite.
+> **⚠ SUPERSEDED 2026-07-28 (F13-ratified).** Canonical form is now
+> [`/root/arifOS/docs/APEX_MATH_CANON.md`](./APEX_MATH_CANON.md):
+> **G = (A×P×E×X)^(1/4)** — 4 APEX letters, geometric mean, Nash Collapse on any zero dial.
+> All earlier formulas (E², ^(1/5), Φ, H, S, U factors) are HARAM — do not cite.
 
 **Version:** v2026.07.12 (hard scientific humility)  
 **SEAL:** DITEMPA BUKAN DIBERI  
