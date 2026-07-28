@@ -246,4 +246,4 @@ Tool counts outside arifOS are dynamic observations, not constants. Probe them a
 - Manifest hash: 183010c82e38b98b
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-07-28T02:07:23.510263+00:00 ---
+--- Auto-generated 2026-07-28T10:37:58.622234+00:00 ---
