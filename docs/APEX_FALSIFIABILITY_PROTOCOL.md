@@ -59,7 +59,7 @@ A = clarity / entropy reduction
 P = stability / coherence / Peace²
 E = vitality / usefulness / task energy
 X = ethics / constitutional alignment
-G = A * P * E * X
+G = (A × P × E × X)^(1/4)
 ```
 
 Human raters score:

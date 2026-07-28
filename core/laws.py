@@ -198,7 +198,7 @@ LAW_DESCRIPTIONS = {
     "F5": "Peace² - Non-destructive power",
     "F6": "Empathy - Stakeholder care (κᵣ)",
     "F7": "Humility - Uncertainty band [0.03, 0.05]",
-    "F8": "Genius - G = (A × P × X × E²) × (1 - h)",
+    "F8": "Genius - G = (A × P × E × X)^(1/4) (canonical Nash Bargaining Product, no Φ, no H)",
     "F9": "Anti-Hantu - No spiritual cosplay / consciousness claims",
     "L10": "Ontology - Category lock (AI ≠ human)",
     "L11": "CommandAuth - Verified identity / session required",

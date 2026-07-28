@@ -1,12 +1,16 @@
-"""arifOS APEX Calculus Engine (v2026.07.APEX.2).
+"""arifOS APEX Calculus Engine (v2026.07.APEX.3).
 
-Computes G = (A · P · E² · X)^(1/5) from Constitutional Floor Scores F1-F13.
+Canonical G = (A · P · E · X)^(1/4) — 4-factor Nash Bargaining Product.
 
-APEX letters (CANON_APEX_V2/02, F13-ratified 2026-07-26):
-  A = AKAL               → F2, F7, F10
-  P = PRESENT×AUTHORITY  → F1, F5, F11, F13
-  E = ENTROPY×ENERGY     → F4, F12, energy  (Landauer conjugate pair: ΔE ≥ kT·ln2·ΔS)
-  X = EXPLORATION×AMANAH → F3, F6, F8, F9, risk
+Nash Collapse invariant: ANY dial ≤ 0 → G = 0.0000.
+No compensatory arithmetic. No averaging around zeros.
+No Φ, H, S, U, E² factors — Arif explicitly banned these.
+
+APEX letters (CANON_APEX_V3, F13-ratified 2026-07-28):
+  A = AKAL/AUTHORITY     → F2, F7, F10  (verified identity, lawful reasoning)
+  P = PRESENT/PHYSICS    → F1, F5, F11, F13  (substrate reality, reversibility)
+  E = ENERGY/EVIDENCE    → F4, F12, energy  (epistemic clarity, thermodynamic budget)
+  X = EXPLORATION/XEC    → F3, F6, F8, F9, risk  (action class, provable outcomes)
 
 Floor ownership is exclusive (no double-counting). Hard floors veto BEFORE
 scoring — the geometric mean never launders a constitutional violation.
@@ -116,18 +120,19 @@ def compute_apex(
     A = geometric_mean(  # noqa: N806  AKAL — reasoning lawfulness
         [floors.get("F2", 0), floors.get("F7", 0), floors.get("F10", 0)]
     )
-    P = geometric_mean(  # noqa: N806  PRESENT×AUTHORITY — state truth + legitimacy
+    P = geometric_mean(  # noqa: N806  PRESENT×PHYSICS — state truth + reversibility
         [floors.get("F1", 0), floors.get("F5", 0), floors.get("F11", 0), floors.get("F13", 0)]
     )
-    E = geometric_mean(  # noqa: N806  ENTROPY×ENERGY — Landauer conjugate pair
+    E = geometric_mean(  # noqa: N806  ENERGY×EVIDENCE — epistemic clarity + budget
         [floors.get("F4", 0), floors.get("F12", 0), energy_score]
     )
-    X = geometric_mean(  # noqa: N806  EXPLORATION×AMANAH — risk under custody
+    X = geometric_mean(  # noqa: N806  EXPLORATION×XEC — action class + provable outcomes
         [floors.get("F3", 0), floors.get("F6", 0), floors.get("F8", 0), floors.get("F9", 0), risk_score]
     )
 
-    # 4. GRAND EQUATION: G = (A · P · E² · X)^(1/5) — E enters twice (E-dominant)
-    G = geometric_mean([A, P, E, E, X])  # noqa: N806
+    # 4. GRAND EQUATION: G = (A · P · E · X)^(1/4) — 4-factor Nash Bargaining Product
+    #    Constitutional target. No E², no Φ, no H, no S, no U.
+    G = geometric_mean([A, P, E, X])  # noqa: N806
 
     # 5. DECIDE VERDICT
     if is_hold:
