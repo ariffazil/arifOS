@@ -90,17 +90,7 @@ from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
 from starlette.responses import JSONResponse  # noqa: E402
 
-# Standard FastMCP Skills provider for exposing SKILL.md playbooks as first-class resources
-# (skill:// URIs). Distinct from the custom arifosmcp.providers.skills (domain .py callables).
-try:
-    from pathlib import Path
-
-    from fastmcp.server.providers.skills import (
-        SkillsDirectoryProvider as FastMCPSkillsDirectoryProvider,
-    )
-except ImportError:
-    FastMCPSkillsDirectoryProvider = None  # type: ignore
-    Path = None  # type: ignore
+from pathlib import Path
 
 from arifosmcp.constitutional_map import (  # noqa: E402
     CANONICAL_TOOLS,
