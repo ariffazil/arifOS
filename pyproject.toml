@@ -327,7 +327,7 @@ cache_dir = "C:/Users/User/AppData/Local/Temp/pytest_cache"
 filterwarnings = [
     "ignore:Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.:UserWarning:langsmith.schemas",
 ]
-addopts = "-W \"ignore:Core Pydantic V1 functionality isn.t compatible with Python 3.14 or greater.:UserWarning:langsmith.schemas\""
+addopts = "-W \"ignore:Core Pydantic V1 functionality isn.t compatible with Python 3.14 or greater.:UserWarning:langsmith.schemas\" --ignore=arifosd.py --ignore=CLAUDE.md --ignore=AGENTS.md"
 
 [tool.black]
 line-length = 100
