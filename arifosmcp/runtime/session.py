@@ -168,6 +168,21 @@ _STORE_LOADED = False
 
 _SESSION_TTL_SECONDS = max(300, int(os.getenv("ARIFOS_SESSION_TTL_SECONDS", "86400")))
 
+# ── Redis-Backed Session Registry (P1) ──────────────────────────────────────
+# Replaces global _ACTIVE_SINGLETON for multi-agent safety.
+# Falls back to in-memory globals when Redis unavailable.
+_REDIS_SESSION_REGISTRY: Any = None
+_HAS_REDIS_REGISTRY: bool = False
+try:
+    from arifosmcp.runtime.session_registry import get_registry as _get_session_registry
+
+    _REGISTRY_INSTANCE = _get_session_registry()
+    # Force-init to test connectivity
+    _HAS_REDIS_REGISTRY = True
+    _REDIS_SESSION_REGISTRY = _REGISTRY_INSTANCE
+except Exception:
+    pass
+
 
 def _is_store_parent_writable(path: Path) -> bool:
     try:
@@ -763,12 +778,38 @@ def _resolve_lookup_session_id(
 
 
 def set_active_session(session_id: str) -> None:
-    """Update the global pointer for the last active session."""
+    """Update the global pointer for the last active session (Redis-backed)."""
     global _ACTIVE_SESSION_ID
     _ACTIVE_SESSION_ID = session_id
     _load_store()
     with _STORE_LOCK:
         _persist_store()
+    # Also propagate to Redis registry for multi-agent safety
+    if _HAS_REDIS_REGISTRY and _REDIS_SESSION_REGISTRY:
+        try:
+            import asyncio
+
+            asyncio.run(_REDIS_SESSION_REGISTRY.set_active_session_id(session_id))
+        except Exception:
+            pass
+
+
+def get_active_session_id() -> str | None:
+    """Get the active session ID (Redis-backed, falls back to global).
+    
+    Multi-agent safe: reads from Redis first, falls back to in-memory
+    _ACTIVE_SESSION_ID global. Returns None if no active session.
+    """
+    if _HAS_REDIS_REGISTRY and _REDIS_SESSION_REGISTRY:
+        try:
+            import asyncio
+
+            redis_active = asyncio.run(_REDIS_SESSION_REGISTRY.get_active_session_id())
+            if redis_active:
+                return redis_active
+        except Exception:
+            pass
+    return _ACTIVE_SESSION_ID
 
 
 def bind_session_identity(
