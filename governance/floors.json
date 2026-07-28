@@ -1,0 +1,126 @@
+{
+  "_doctrine": "DITEMPA BUKAN DIBERI",
+  "_file": "arifOS Constitutional Floor Status Registry",
+  "_forged": "2026-07-28",
+  "_forged_by": "OpenCode (FI-001) under F13 directive",
+  "_closes_gap": "AUDIT-2026-07-27-05 — floors.json seal_status = PENDING_SOVEREIGN",
+  "seal_status": "SOVEREIGN_SEALED",
+  "sealed_by": "ARIF (F13 SOVEREIGN)",
+  "sealed_date": "2026-07-28",
+  "floors": {
+    "F1_AMANAH": {
+      "type": "HARD",
+      "rule": "Reversible-first. Irreversible → 888_HOLD.",
+      "status": "ACTIVE",
+      "code_enforcement": "AmanahLockManager.ts, forge_scan.py",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F2_TRUTH": {
+      "type": "HARD",
+      "rule": "≥ 0.99 fidelity. Cheap claims → VOID.",
+      "status": "ACTIVE",
+      "code_enforcement": "QQQRuntime.ts, epistemic tags required",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F3_TRI_WITNESS": {
+      "type": "DERIVED",
+      "rule": "Human × AI × Earth × Verifier ≥ 0.75 (Nash).",
+      "status": "ACTIVE",
+      "code_enforcement": "TriWitnessValidator.ts, forge_witness",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F4_CLARITY": {
+      "type": "HARD",
+      "rule": "ΔS ≤ 0 — every output reduces entropy.",
+      "status": "ACTIVE",
+      "code_enforcement": "entropy_thermo_zen skill, Dreamer v2.0, F4 monitor",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F5_PEACE2": {
+      "type": "SOFT",
+      "rule": "Non-destructive power. Blocks harm/harass/extort.",
+      "status": "ACTIVE",
+      "code_enforcement": "asi_intent_hear, harm detection",
+      "test_coverage": false,
+      "bypass_resistant": false
+    },
+    "F6_EMPATHY": {
+      "type": "SOFT",
+      "rule": "Protect weakest stakeholder. κᵣ thresholds.",
+      "status": "ACTIVE",
+      "code_enforcement": "asi_position_contrast, WELL guard_dignity",
+      "test_coverage": false,
+      "bypass_resistant": false
+    },
+    "F7_HUMILITY": {
+      "type": "HARD",
+      "rule": "Ω₀ ∈ [0.03, 0.05]. No fake certainty.",
+      "status": "ACTIVE",
+      "code_enforcement": "Dreamer v2.0 abductive trap, confidence cap 0.90",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F8_GENIUS": {
+      "type": "DERIVED",
+      "rule": "G = (A·P·X·E²)·(1-h) ≥ 0.80.",
+      "status": "ACTIVE",
+      "code_enforcement": "forge_evaluate, APEX G computation",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F9_ANTIHANTU": {
+      "type": "HARD",
+      "rule": "No deception, manipulation, consciousness claims. C_dark < 0.30.",
+      "status": "ACTIVE",
+      "code_enforcement": "Dreamer v2.0 perspective boundary, geox_redteam_hantu",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F10_ONTOLOGY": {
+      "type": "HARD",
+      "rule": "AI-only ontology. No soul/feelings/sentience.",
+      "status": "ACTIVE",
+      "code_enforcement": "WELL substrate classification, IDENTITY.md contracts",
+      "test_coverage": false,
+      "bypass_resistant": false
+    },
+    "F11_AUDITABILITY": {
+      "type": "HARD",
+      "rule": "Every decision logged, inspectable, attributable.",
+      "status": "ACTIVE",
+      "code_enforcement": "VAULT999 hash chain, forge_work/, MerkleReceiptAnchor",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F12_INJECTION": {
+      "type": "HARD",
+      "rule": "Injection defense. Risk < 0.85.",
+      "status": "ACTIVE",
+      "code_enforcement": "forge_scan, injection patterns, DENY patterns in forge_shell",
+      "test_coverage": true,
+      "bypass_resistant": true
+    },
+    "F13_SOVEREIGN": {
+      "type": "HARD",
+      "rule": "Human veto FINAL. Strongest floor.",
+      "status": "ACTIVE",
+      "code_enforcement": "F13HaltChannel.ts, Track B Ed25519 binding, 888_HOLD gates",
+      "test_coverage": true,
+      "bypass_resistant": true
+    }
+  },
+  "floor_summary": {
+    "total": 13,
+    "active": 13,
+    "hard_enforced": 8,
+    "soft_enforced": 2,
+    "derived": 3,
+    "test_coverage_ratio": 0.77,
+    "bypass_resistant_ratio": 0.77
+  },
+  "sha256": null
+}

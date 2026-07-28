@@ -1,0 +1,98 @@
+{
+  "_doctrine": "DITEMPA BUKAN DIBERI",
+  "_file": "arifOS Governance Authority Registry",
+  "_purpose": "Single source of truth for all authority delegations in the federation",
+  "_forged": "2026-07-28",
+  "_forged_by": "OpenCode (FI-001) under F13 directive",
+  "_closes_gap": "AUDIT-2026-07-27-02 — authority.json not on disk",
+  "authorities": {
+    "F13_SOVEREIGN": {
+      "actor_id": "arif",
+      "role": "SOVEREIGN",
+      "authority_class": "ABSOLUTE",
+      "can_override": "ALL",
+      "bound_by": [],
+      "identity_proof": "ed25519:arifos-ed25519-c0704fe2c583ddd8",
+      "phrase_signals": ["buat ja la", "yes confirm", "execute", "i'm the architect", "jalan terus", "approve", "proceed", "confirmed", "buatvja", "seal it", "go", "just do it", "ok"],
+      "track_b": "ED25519_BOUND — see /root/AAA/scripts/track_b_sign_verify.py"
+    },
+    "888_APEX": {
+      "actor_id": "888-APEX",
+      "role": "JUDGE",
+      "authority_class": "CONSTITUTIONAL",
+      "can_override": ["SEAL", "HOLD", "SABAR", "VOID"],
+      "bound_by": ["F1", "F2", "F3", "F4", "F7", "F9", "F11", "F13"],
+      "identity_proof": "arifos-kernel:888"
+    },
+    "333_AGI": {
+      "actor_id": "333-AGI",
+      "role": "DELTA_MIND",
+      "authority_class": "REASONING",
+      "can_override": ["THINK", "PLAN", "ABDUCT"],
+      "bound_by": ["F2", "F4", "F7", "F9"],
+      "delegates_to": ["opencode", "forge", "planner"]
+    },
+    "555_ASI": {
+      "actor_id": "555-ASI",
+      "role": "MEMORY_STEWARD",
+      "authority_class": "STEWARDSHIP",
+      "can_override": ["MEMORY", "CLASSIFY", "DRIFT_DETECT"],
+      "bound_by": ["F2", "F4", "F6", "F7", "F9", "F11"],
+      "delegates_to": ["hermes", "asi"]
+    },
+    "A_AUDIT": {
+      "actor_id": "A-AUDIT",
+      "role": "AUDITOR",
+      "authority_class": "OBSERVE_ONLY",
+      "can_override": ["AUDIT", "REPORT", "DETECT"],
+      "bound_by": ["F2", "F11"],
+      "identity_proof": "arifos-kernel:audit"
+    },
+    "A_ARCHIVE": {
+      "actor_id": "A-ARCHIVE",
+      "role": "ARCHIVIST",
+      "authority_class": "OBSERVE_ONLY",
+      "can_override": ["ARCHIVE", "INDEX", "RECALL"],
+      "bound_by": ["F1", "F2", "F11"],
+      "identity_proof": "arifos-kernel:archive"
+    },
+    "opencode_FI001": {
+      "actor_id": "opencode",
+      "role": "FORGE_WORKER",
+      "authority_class": "EXECUTE",
+      "can_override": ["OBSERVE", "ANALYZE", "DRAFT", "MUTATE"],
+      "bound_by": ["F1", "F2", "F4", "F9", "F11"],
+      "autonomy_tier": "T1_AUTO_DO",
+      "identity_proof": "opencode:FI-001"
+    },
+    "aforge_000_omega": {
+      "actor_id": "000-omega-forge",
+      "role": "EXECUTOR",
+      "authority_class": "EXECUTE",
+      "can_override": ["BUILD", "DEPLOY", "TEST", "MUTATE"],
+      "bound_by": ["F1", "F2", "F4", "F11"],
+      "autonomy_tier": "T2_ANNOUNCE",
+      "identity_proof": "aforge:000-omega"
+    },
+    "hermes_FI002": {
+      "actor_id": "hermes",
+      "role": "SOVEREIGN_RELAY",
+      "authority_class": "OBSERVE",
+      "can_override": ["READ", "ROUTE", "RELAY"],
+      "bound_by": ["F2", "F5", "F6", "F9", "F13"],
+      "autonomy_tier": "T1_AUTO_DO",
+      "identity_proof": "hermes:FI-002"
+    }
+  },
+  "action_class_matrix": {
+    "OBSERVE": {"requires_authority": "OBSERVE", "requires_seal": false},
+    "ANALYZE": {"requires_authority": "REASONING", "requires_seal": false},
+    "DRAFT": {"requires_authority": "REASONING", "requires_seal": false},
+    "MUTATE": {"requires_authority": "EXECUTE", "requires_seal": true},
+    "IRREVERSIBLE": {"requires_authority": "CONSTITUTIONAL", "requires_seal": true, "requires_f13": true},
+    "EXTERNAL_SIDE_EFFECT": {"requires_authority": "SOVEREIGN", "requires_seal": true, "requires_f13": true}
+  },
+  "sealed": "2026-07-28T10:21:00Z",
+  "sealed_by": "OpenCode (FI-001)",
+  "sha256": null
+}
