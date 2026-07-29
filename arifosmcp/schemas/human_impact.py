@@ -232,6 +232,7 @@ class HumanImpactAssessment:
         combined_severity = (1.0 - f5_score) * (1.0 - f6_score)
         escalate_to_hold = combined_severity > 0.4
 
+        weakest = self.identify_weakest()
         return {
             "f5_peace_score": f5_score,
             "f5_reasons": f5_reasons,
@@ -241,7 +242,5 @@ class HumanImpactAssessment:
             "f6_passed": f6_score >= 0.7,
             "combined_severity": combined_severity,
             "escalate_to_hold": escalate_to_hold,
-            "weakest_stakeholder": (
-                self.identify_weakest().id if self.identify_weakest() is not None else None
-            ),
+            "weakest_stakeholder": weakest.id if weakest is not None else None,
         }

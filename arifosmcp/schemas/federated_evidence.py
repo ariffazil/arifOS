@@ -53,12 +53,20 @@ class FusionVerdict(str, Enum):
 # Prohibited inference patterns — these must never appear in fusion output
 PROHIBITED_INFERENCES: frozenset[str] = frozenset(
     [
-        "clinical_diagnosis",
-        "psychological_profiling",
-        "trauma_diagnosis",
-        "mental_health_assessment",
-        "personality_disorder",
-        "cognitive_impairment_diagnosis",
+        "clinical",
+        "diagnosis",
+        "psychological",
+        "trauma",
+        "mental health",
+        "personality disorder",
+        "cognitive impairment",
+        "depression",
+        "anxiety",
+        "ptsd",
+        "bipolar",
+        "schizophrenia",
+        "psychiatric",
+        "therapeutic",
     ]
 )
 
@@ -169,15 +177,51 @@ class FederatedEvidenceBundle:
             )
 
         # Rule 7: No psychological profiling without consent
+        # Only flag WELL INT/SPEC signals — OBS and DER are measurement, not profiling
         has_well_inference = any(
-            s.organ == Organ.WELL and s.truth_class in (TruthClass.INT, TruthClass.SPEC)
+            s.organ == Organ.WELL
+            and s.truth_class in (TruthClass.INT, TruthClass.SPEC)
+            and not s.finding.lower().startswith(
+                ("reduced operational", "normal", "elevated fatigue")
+            )
             for s in self.signals
         )
-        if has_well_inference and not self.consent_lease:
+        has_well_behavioral = any(
+            s.organ == Organ.WELL
+            and s.truth_class in (TruthClass.INT, TruthClass.SPEC)
+            and any(
+                kw in s.finding.lower()
+                for kw in (
+                    "behavioral",
+                    "pattern",
+                    "personality",
+                    "psychological",
+                    "mental",
+                    "cognitive",
+                )
+            )
+            for s in self.signals
+        )
+        if has_well_behavioral and not self.consent_lease:
             violations.append(
-                "WELL interpretive signal present but no consent_lease. "
+                "WELL behavioral/psychological interpretation present but no consent_lease. "
                 "Fusion cannot become psychological profiling without consent."
             )
+        # Also flag any explicit diagnosis language
+        for signal in self.signals:
+            if signal.organ == Organ.WELL:
+                finding_lower = signal.finding.lower()
+                for prohibited in PROHIBITED_INFERENCES:
+                    if prohibited in finding_lower:
+                        if (
+                            "reduced operational" not in finding_lower
+                            and "elevated fatigue" not in finding_lower
+                        ):
+                            violations.append(
+                                f"WELL signal contains prohibited term '{prohibited}': "
+                                f"'{signal.finding[:80]}...'"
+                            )
+                            self.prohibited_inferences.append(prohibited)
 
         return len(violations) == 0, violations
 
