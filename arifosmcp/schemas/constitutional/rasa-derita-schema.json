@@ -9,14 +9,14 @@
   "confidence_cap": 0.9,
   "purpose": "Prevent agentic reproduction of betrayal, coercion, concealment and cascading harm",
   "status": "888_HOLD",
-  "phase": "PHASE2_SEMANTICS_REPAIRED",
-  "status_reason": "Phase 2: F2/F4/F5/F6 evaluators + scar fail-closed repaired in code. Schema not boot-loaded; cascade/consent not judge-mandatory; no VAULT INSTALLED_ENFORCED; public tools remain 8.",
+  "phase": "PHASE3_GATES_WIRED",
+  "status_reason": "Phase 3: causal_cascade + consent_lease wired into kernel judge, arif_judge, arif_forge mutate path, and forge_preflight. Schema load receipt on /health. Not boot-enforced as sole organ; not VAULT INSTALLED_ENFORCED; tools still 8.",
   "kernel_complete_when": {
     "constitutional_matrix_populated": true,
     "schema_landed_in_repo": true,
     "schema_loaded_by_runtime": false,
-    "causal_cascade_mandatory_at_judge": false,
-    "consent_lease_enforced": false,
+    "causal_cascade_mandatory_at_judge": true,
+    "consent_lease_enforced": true,
     "rasa_derita_evals_implemented": false,
     "public_surface_single_sot": false,
     "conformance_receipts": false,
@@ -615,7 +615,7 @@
     "tested_evals_executed": false,
     "deployed": false,
     "attested": false,
-    "enforcement_mode": "NONE"
+    "enforcement_mode": "PARTIAL_CODEPATH"
   },
   "note": "arifosmcp/rasa/* is ARIF_RASA_CONTRACT_v1 (human rasa decoder), not this module. Do not conflate."
 }

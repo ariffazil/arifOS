@@ -60,12 +60,14 @@ class TestSchemaStructure:
         result = load_rasa_derita_schema()
         assert result.payload.get("status") == "888_HOLD"
 
-    def test_phase1_flags(self):
+    def test_phase_progress_flags(self):
         kcw = load_rasa_derita_schema().payload.get("kernel_complete_when") or {}
         assert kcw.get("schema_landed_in_repo") is True
+        # Phase 3 wires cascade/consent in codepaths; full boot organ still open
+        assert kcw.get("causal_cascade_mandatory_at_judge") is True
+        assert kcw.get("consent_lease_enforced") is True
         assert kcw.get("schema_loaded_by_runtime") is False
-        assert kcw.get("causal_cascade_mandatory_at_judge") is False
-        assert kcw.get("consent_lease_enforced") is False
+        assert kcw.get("conformance_receipts") is False
 
     def test_five_axes_unique_ids(self):
         axes = load_rasa_derita_schema().payload["axes"]
@@ -130,9 +132,12 @@ class TestSchemaStructure:
         assert any("RATIFIED" in v or "status=" in v for v in violations)
 
 
-class TestPhase1DoesNotClaimEnforcement:
-    def test_installation_block_not_enforced(self):
+class TestDoesNotClaimFullInstallation:
+    def test_installation_block_not_sealed(self):
         inst = load_rasa_derita_schema().payload.get("installation") or {}
         assert inst.get("enforced") is False
         assert inst.get("loaded") is False
-        assert inst.get("enforcement_mode") == "NONE"
+        assert inst.get("attested") is False
+        # PARTIAL_CODEPATH after Phase 3 is allowed; full SEAL is not
+        assert inst.get("enforcement_mode") in ("NONE", "PARTIAL_CODEPATH")
+        assert load_rasa_derita_schema().payload.get("status") == "888_HOLD"

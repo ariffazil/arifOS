@@ -119,6 +119,7 @@ TripwireId = Literal[
     "INTEGRITY",
     "ENTROPY",
     "REVERSIBILITY",
+    "RASA_DERITA",
     "FLOOR",
 ]
 
@@ -204,6 +205,12 @@ class GovernanceState:
     session_id: str | None = None
     actor_id: str | None = None
     collapse: CollapseResult | None = None
+    # RASA DERITA Phase 3 — optional mutation gate inputs (not public tools)
+    causal_cascade: dict | None = None
+    consent_lease: dict | None = None
+    action_mode: str | None = None
+    action_tier: str | None = None
+    requires_consent: bool = False
 
     def clone(self, **overrides) -> GovernanceState:
         """Immutable-style update: returns new state with overridden fields."""
@@ -220,6 +227,11 @@ class GovernanceState:
             "session_id": self.session_id,
             "actor_id": self.actor_id,
             "collapse": self.collapse,
+            "causal_cascade": self.causal_cascade,
+            "consent_lease": self.consent_lease,
+            "action_mode": self.action_mode,
+            "action_tier": self.action_tier,
+            "requires_consent": self.requires_consent,
         }
         data.update(overrides)
         return GovernanceState(**data)
