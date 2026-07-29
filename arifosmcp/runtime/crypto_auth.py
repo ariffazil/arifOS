@@ -934,3 +934,82 @@ def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
     except ImportError:
         pass
     return None
+
+
+def generate_session_keypair() -> dict[str, str]:
+    """Generate fresh Ed25519 keypair for session identity binding.
+
+    Returns dict with:
+      - private_b64: base64-encoded 32-byte private key (kernel-side only, NEVER returned to agent)
+      - public_b64:  base64-encoded 32-byte public key
+      - thumbprint:  "sha256:<hex>" fingerprint for cross-reference
+
+    Used by arif_init when generate_session_keypair=True.
+    Agent receives thumbprint only. Private key stays in kernel session memory.
+    """
+    import base64 as _b64
+    import hashlib as _hashlib
+
+    from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
+
+    _sk = _ed.Ed25519PrivateKey.generate()
+    _pk = _sk.public_key()
+    _sk_bytes = _sk.private_bytes_raw()  # 32 bytes
+    _pk_bytes = _pk.public_bytes_raw()  # 32 bytes
+    _thumbprint = _hashlib.sha256(_pk_bytes).hexdigest()
+    return {
+        "private_b64": _b64.b64encode(_sk_bytes).decode(),
+        "public_b64": _b64.b64encode(_pk_bytes).decode(),
+        "thumbprint": f"sha256:{_thumbprint}",
+    }
+
+
+def verify_session_identity_binding(
+    *,
+    public_key_b64: str,
+    actor_id: str,
+    payload_hash: str,
+    nonce: str,
+    signature_b64: str,
+) -> bool:
+    """Verify Ed25519 signature for session identity binding.
+
+    Message: actor_id || payload_hash || nonce
+    Returns True if signature valid, False otherwise.
+    """
+    import base64 as _b64
+
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
+
+    try:
+        _pk_bytes = _b64.b64decode(public_key_b64)
+        _pk = _ed.Ed25519PublicKey.from_public_bytes(_pk_bytes)
+        _message = f"{actor_id}:{payload_hash}:{nonce}".encode()
+        _sig_bytes = _b64.b64decode(signature_b64)
+        _pk.verify(_sig_bytes, _message)
+        return True
+    except (InvalidSignature, Exception):
+        return False
+
+
+def sign_with_session_key(
+    *,
+    private_key_b64: str,
+    actor_id: str,
+    payload_hash: str,
+    nonce: str,
+) -> str:
+    """Sign seal payload with session Ed25519 private key.
+
+    Returns base64-encoded signature.
+    """
+    import base64 as _b64
+
+    from cryptography.hazmat.primitives.asymmetric import ed25519 as _ed
+
+    _sk_bytes = _b64.b64decode(private_key_b64)
+    _sk = _ed.Ed25519PrivateKey.from_private_bytes(_sk_bytes)
+    _message = f"{actor_id}:{payload_hash}:{nonce}".encode()
+    _sig = _sk.sign(_message)
+    return _b64.b64encode(_sig).decode()

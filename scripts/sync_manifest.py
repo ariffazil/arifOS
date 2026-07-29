@@ -53,30 +53,80 @@ def _build_url(base: str) -> str:
 
 
 def _fetch_live_count(wealth_url: str) -> int:
-    """Call WEALTH MCP tools/list and return the number of live tools."""
-    payload = json.dumps(
-        {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "tools/list",
-            "params": {},
-        }
-    ).encode()
+    """Call WEALTH MCP tools/list via Streamable HTTP and return the number of live tools."""
+    import urllib.request as urllib_req
 
-    req = urllib.request.Request(
+    # Step 1: Initialize session
+    init_payload = json.dumps({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-03-26",
+            "capabilities": {},
+            "clientInfo": {"name": "sync_manifest", "version": "1.0"}
+        }
+    }).encode()
+
+    req = urllib_req.Request(
         wealth_url,
-        data=payload,
+        data=init_payload,
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib_req.urlopen(req, timeout=10) as resp:
+            session_id = resp.headers.get("Mcp-Session-Id", "")
+            body = json.loads(resp.read())
+    except json.JSONDecodeError as exc:
+        print(f"SYNC_ABORT: Invalid JSON from WEALTH — {exc}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as exc:
+        # Fallback: try health endpoint
+        health_url = wealth_url.rsplit("/mcp", 1)[0] + "/health"
+        try:
+            with urllib_req.urlopen(health_url, timeout=10) as resp:
+                body = json.loads(resp.read())
+                return body.get("tools_loaded", body.get("public_tools", 0))
+        except Exception:
+            print(f"SYNC_ABORT: Cannot reach WEALTH at {wealth_url} — {exc}", file=sys.stderr)
+            sys.exit(1)
+
+    if not session_id:
+        # No session — try health fallback
+        health_url = wealth_url.rsplit("/mcp", 1)[0] + "/health"
+        try:
+            with urllib_req.urlopen(health_url, timeout=10) as resp:
+                body = json.loads(resp.read())
+                return body.get("tools_loaded", body.get("public_tools", 0))
+        except Exception as exc:
+            print(f"SYNC_ABORT: Cannot reach WEALTH health — {exc}", file=sys.stderr)
+            sys.exit(1)
+
+    # Step 2: List tools with session
+    tools_payload = json.dumps({
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+    }).encode()
+
+    req2 = urllib_req.Request(
+        wealth_url,
+        data=tools_payload,
         headers={
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "Mcp-Session-Id": session_id,
         },
         method="POST",
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib_req.urlopen(req2, timeout=10) as resp:
             body = json.loads(resp.read())
-    except urllib.error.URLError as exc:
+    except urllib_req.URLError as exc:
         print(f"SYNC_ABORT: Cannot reach WEALTH at {wealth_url} — {exc}", file=sys.stderr)
         sys.exit(1)
     except json.JSONDecodeError as exc:
