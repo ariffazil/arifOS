@@ -1125,9 +1125,11 @@ def arif_init(
     work_budget: dict | None = None,
     verification_requirements: list[str] | None = None,
     autonomy_band: str = "ORANGE",
-    #   ephemeral_eval: read-only, no identity bind, auto-HOLD on any mutate
-    #   persistent_bound: full governed path, identity required
-    #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
+    # ── Identity binding (2026-07-29): session-scoped Ed25519 keypair ─────
+    generate_session_keypair: bool = False,
+    #   When True, arif_init generates a fresh Ed25519 keypair for this session.
+    #   Private key stays kernel-side. Agent receives public key thumbprint only.
+    #   Subsequent arif_seal calls auto-inject identity_binding with kernel signature.
 ) -> SessionManifest:
     """
     000_INIT — Constitutional session bootstrap.
@@ -2328,6 +2330,26 @@ def arif_init(
                 bool(_model_shadow),
             )
 
+        # ── Session identity binding (2026-07-29): opt-in Ed25519 keypair ──
+        # Generates a fresh session-scoped keypair. Private key stays kernel-side.
+        # Agent receives thumbprint only. arif_seal auto-injects identity_binding
+        # with kernel signature when a session keypair exists.
+        if generate_session_keypair and mode in ("init", "full", "light"):
+            try:
+                from arifosmcp.runtime.crypto_auth import generate_session_keypair
+
+                _kp = generate_session_keypair()
+                sess["session_pubkey_full"] = _kp["public_b64"]
+                sess["session_pubkey_thumbprint"] = _kp["thumbprint"]
+                sess["session_private_key"] = _kp["private_b64"]  # kernel-side only
+                logger.info(
+                    "Session keypair generated for %s thumbprint=%s",
+                    actor_id,
+                    _kp["thumbprint"],
+                )
+            except Exception as _kpe:
+                logger.warning("Session keypair generation failed: %s", _kpe)
+
         # ── Project to frozen header (mode=init/full: same shape as light) ─
         sid = sess.get("session_id", "UNKNOWN")
         _vb_full = _normalize_verbosity(verbose)
@@ -2491,6 +2513,8 @@ def arif_init(
                 authority=sess.get("authority", "OBSERVE_ONLY"),  # DEPRECATED
                 init_tier=5 if mode == "full" else 4,
                 actor_verified=identity_verified,  # DEPRECATED
+                session_pubkey_thumbprint=sess.get("session_pubkey_thumbprint"),
+                session_pubkey_full=sess.get("session_pubkey_full"),
             ),
             actor={
                 "claimed_id": actor_id,

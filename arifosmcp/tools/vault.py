@@ -398,6 +398,63 @@ async def arif_seal(
             )
         )
 
+    # ── Identity binding (2026-07-29): auto-sign with session keypair ─────
+    # If session has an Ed25519 keypair (from arif_init with
+    # generate_session_keypair=True), kernel auto-signs the seal payload.
+    # This binds the seal cryptographically to the session identity.
+    # Private key stays kernel-side. Auditor verifies with public key.
+    _identity_binding: dict[str, Any] | None = None
+    if session_id and payload and actor_id:
+        try:
+            from arifosmcp.runtime.session_registry import _SESSION_STORE
+
+            _sess = _SESSION_STORE.get(session_id) if hasattr(_SESSION_STORE, "get") else None
+            if _sess is None:
+                from arifosmcp.runtime.session_registry import resolve_session
+
+                _sess = resolve_session(session_id)
+            _sk = None
+            if isinstance(_sess, dict):
+                _sk = _sess.get("session_private_key")
+            elif hasattr(_sess, "session_private_key"):
+                _sk = _sess.session_private_key
+            elif hasattr(_sess, "get"):
+                _sk = _sess.get("session_private_key")
+
+            if _sk:
+                import hashlib as _id_hashlib
+                import secrets as _id_secrets
+
+                from arifosmcp.runtime.crypto_auth import sign_with_session_key
+
+                _payload_hash = _id_hashlib.sha256(payload.encode()).hexdigest()
+                _nonce = _id_secrets.token_hex(16)
+                _thumbprint = (
+                    _sess.get("session_pubkey_thumbprint")
+                    if isinstance(_sess, dict)
+                    else getattr(_sess, "session_pubkey_thumbprint", None)
+                )
+                _sig = sign_with_session_key(
+                    private_key_b64=_sk,
+                    actor_id=actor_id,
+                    payload_hash=_payload_hash,
+                    nonce=_nonce,
+                )
+                _identity_binding = {
+                    "actor_id": actor_id,
+                    "session_pubkey_thumbprint": _thumbprint or "unknown",
+                    "nonce": _nonce,
+                    "actor_signature": _sig,
+                    "kernel_verified": True,  # kernel signed this — NOT from agent payload
+                }
+                logger.info(
+                    "Identity binding auto-signed for actor=%s thumbprint=%s",
+                    actor_id,
+                    _thumbprint,
+                )
+        except Exception as _ibe:
+            logger.warning("Identity binding auto-sign failed: %s", _ibe)
+
     result = _arif_vault_seal(
         mode=mode,
         payload=payload,
@@ -416,6 +473,14 @@ async def arif_seal(
     if not ack_irreversible:
         result["seal_type"] = "SEAL_RECORD"
         result["authorized_execution"] = False
+
+    # ── Inject identity binding into seal result (2026-07-29) ─────────────
+    # kernel_verified=True means the KERNEL signed this, not the agent.
+    # Auditor trust: only arifOS kernel can write to VAULT999 (append-only).
+    if _identity_binding:
+        result["identity_binding"] = _identity_binding
+        result["meta"] = result.get("meta", {})
+        result["meta"]["identity_binding"] = _identity_binding
 
     # ── E1 FIX: Mint cryptographic SEAL token for IRREVERSIBLE actions ─────────
     # After arif_seal approves (mode="seal" + ack_irreversible), mint a token

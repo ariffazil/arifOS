@@ -476,6 +476,15 @@ class SessionState(BaseModel):
     actor_signature: str | None = None
     nonce: str | None = None
     signature_verified: bool = False
+    # Session identity binding (2026-07-29) — opt-in Ed25519 keypair per session
+    session_pubkey_thumbprint: str | None = Field(
+        default=None,
+        description="SHA256 of session Ed25519 public key — cross-ref index for auditor",
+    )
+    session_pubkey_full: str | None = Field(
+        default=None,
+        description="Base64-encoded Ed25519 public key (session-scoped, kernel-only)",
+    )
     constitution_bound: bool = False
     # Phase 2A: Bound verdict + authority + actor_verified into SessionState
     # These were previously only in SessionManifest — now in the session state itself.
