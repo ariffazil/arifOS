@@ -2246,7 +2246,12 @@ async def mcp_health(request: Request) -> JSONResponse:
     )
 
 
-app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
+# 2026-07-29: stateful streamable-HTTP (GEOX pattern).
+# - json_response=True: POST returns JSON-RPC (no long-lived response SSE)
+# - stateless_http=False: mint mcp-session-id on initialize (Grok/rmcp need this)
+# - GET text/event-stream: 405 from landing route + transport patch (avoid PHOENIX-73C 409)
+# Constitutional tools remain actor/SCT gated; transport session ≠ governance session.
+app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
 # Counts are derived live from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (imported above).
 _actual_canonical_count = len(CANONICAL_TOOLS)
 _actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)
@@ -2261,13 +2266,11 @@ app.state._diagnostic_tool_count = _actual_diagnostic_count  # pyright: ignore[r
 app.state._total_tool_count = _actual_total_count  # pyright: ignore[reportAttributeAccessIssue]
 if app:
     # ── MCP 2025-11-25 Transport Compliance Middleware ──────────────────────
-    # PHOENIX-73C FIX (updated 2026-06-27): stateless_http=True.
-    # - Each request is stateless (fresh transport per call)
-    # - No MCP-Session-Id header required on subsequent calls
-    # - arifOS constitutional tools are sessionless by design
-    # - MCP spec sessionId in JSON body (2025-11-25) not implemented in SDK 1.27.2;
-    #   session comes via HTTP header only — stateless mode sidesteps this gap
-    # StatelessGetRejectMiddleware removed — SSE streaming now works via sessions.
+    # Stateful + JSON response (aligned with GEOX 2026-07-24):
+    # - Server assigns mcp-session-id on InitializeResult
+    # - Client MUST echo it on subsequent POSTs
+    # - json_response avoids multi-client SSE 409 (PHOENIX-73C)
+    # - GET discovery stays for browsers; event-stream Accept → 405
     #
     # MCP Transport Bridge (Ω, 2026-06-12):
     #   MCPSessionBridgeMiddleware  — extracts MCP-Session-Id from headers

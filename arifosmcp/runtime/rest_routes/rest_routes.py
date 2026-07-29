@@ -2749,8 +2749,23 @@ def register_rest_routes(
 
     @route("/mcp", methods=["GET"])
     async def mcp_landing(request: Request) -> Response:
-        """AAA MCP landing page — serves HTML to browsers, API info to MCP clients."""
+        """AAA MCP landing — HTML for browsers, discovery JSON for tools, 405 for SSE.
+
+        Streamable-HTTP clients (Grok rmcp, Cursor) probe GET with
+        Accept: text/event-stream. Returning discovery JSON (200) makes them
+        poll forever. With json_response mode we do not offer SSE — return 405
+        so the client falls back to POST-only (same as GEOX transport patch).
+        """
         accept = request.headers.get("Accept", "")
+        if "text/event-stream" in accept:
+            return Response(
+                status_code=405,
+                headers={
+                    "Allow": "POST, DELETE",
+                    "MCP-Protocol-Version": "2025-11-25",
+                    "Cache-Control": "no-store",
+                },
+            )
         if "text/html" in accept:
             return HTMLResponse(aaa_landing_html, headers={"Cache-Control": "max-age=60"})
         # For MCP clients requesting JSON — same SOT payload as root + /health counts.
