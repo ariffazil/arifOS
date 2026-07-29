@@ -26,7 +26,13 @@ from arifosmcp.transport.canonical_envelope import (
 from arifosmcp.transport.dialects.raw_jsonrpc import raw_jsonrpc_adapter
 from arifosmcp.transport.dialects.stdio import stdio_adapter
 from arifosmcp.transport.dialects.streamable_http import streamable_http_adapter
-from arifosmcp.transport.errors import arif_error, protocol_mismatch
+from arifosmcp.transport.errors import (
+    AirlockError,
+    TransportFaultCode,
+    arif_error,
+    build_transport_error_envelope,
+    protocol_mismatch,
+)
 
 log = logging.getLogger("arifos.airlock")
 
@@ -243,6 +249,48 @@ def _bump_metric(bucket: str, key: str) -> None:
     counts[key] = counts.get(key, 0) + 1
 
 
+def _transport_error_code(transport_error: Any) -> str:
+    """Extract a stable fault code from dict envelopes or AirlockError objects.
+
+    Historically process_request() mixed JSON-RPC error dicts with AirlockError
+    exceptions. Metrics must never throw on that shape drift — a metrics panic
+    became a kernel 500 and killed MCP handshakes (Grok doctor flake).
+    """
+    if isinstance(transport_error, AirlockError):
+        return str(transport_error.code.value)
+    if isinstance(transport_error, dict):
+        error = transport_error.get("error")
+        if isinstance(error, dict):
+            data = error.get("data")
+            if isinstance(data, dict) and data.get("code"):
+                return str(data["code"])
+            if error.get("code") is not None:
+                return str(error["code"])
+        if transport_error.get("code") is not None:
+            return str(transport_error["code"])
+    return "UNKNOWN"
+
+
+def _coerce_transport_error(err: Any, *, request_id: Any = None) -> dict[str, Any] | None:
+    """Normalize transport_error to a JSON-RPC error dict (or None)."""
+    if err is None:
+        return None
+    if isinstance(err, dict):
+        return err
+    if isinstance(err, AirlockError):
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "error": err.to_jsonrpc_error(),
+        }
+    return build_transport_error_envelope(
+        TransportFaultCode.ARIF_ENVELOPE_MISSING,
+        message=f"Unclassified transport fault: {err!r}",
+        request_id=request_id,
+        detail={"raw_type": type(err).__name__},
+    )
+
+
 def record_airlock_result(result: AirlockResult, *, mode: str, blocked: bool = False) -> None:
     """Record lightweight in-process Airlock edge telemetry."""
     AIRLOCK_METRICS["total_requests"] += 1
@@ -251,8 +299,7 @@ def record_airlock_result(result: AirlockResult, *, mode: str, blocked: bool = F
 
     if result.transport_error:
         AIRLOCK_METRICS["transport_errors"] += 1
-        error_data = result.transport_error.get("error", {}).get("data", {})
-        code = error_data.get("code") or "UNKNOWN"
+        code = _transport_error_code(result.transport_error)
         AIRLOCK_METRICS["last_error"] = {"code": code, "trace_id": result.trace_id}
         _bump_metric("error_codes", code)
     else:
@@ -335,8 +382,11 @@ def process_request(request: dict[str, Any], transport_type: str = "http") -> Ai
     """Main Airlock entry point for transport middleware."""
     pv = request.get("protocol_version") or request.get("params", {}).get("protocolVersion")
     if isinstance(pv, str) and pv not in SUPPORTED_PROTOCOL_VERSIONS:
+        # Always emit a JSON-RPC error dict — never a bare AirlockError exception.
+        # Bare exceptions crash record_airlock_result and become kernel panics.
+        mismatch = protocol_mismatch(pv)
         return AirlockResult(
-            transport_error=protocol_mismatch(pv),
+            transport_error=_coerce_transport_error(mismatch, request_id=request.get("id")),
             envelope=None,
             dialect_used="unknown",
             trace_id=uuid.uuid4().hex[:16],
@@ -358,7 +408,17 @@ def process_request(request: dict[str, Any], transport_type: str = "http") -> Ai
             trace_id=trace_id,
         )
 
-    return handler(request)
+    result = handler(request)
+    # Defensive: dialect adapters must return dict|None, never exception objects.
+    if result.transport_error is not None and not isinstance(result.transport_error, dict):
+        coerced = _coerce_transport_error(result.transport_error, request_id=request.get("id"))
+        return AirlockResult(
+            transport_error=coerced,
+            envelope=result.envelope,
+            dialect_used=result.dialect_used,
+            trace_id=result.trace_id,
+        )
+    return result
 
 
 def _raw_target_name(request: dict[str, Any]) -> str:
