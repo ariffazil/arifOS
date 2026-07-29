@@ -90,6 +90,12 @@ def judge(state: GovernanceState) -> GovernanceState:
     if tw.severity == "BLOCK":
         return _build_collapse(state, "HOLD", tripwires)
 
+    # Tripwire 5.5: RASA DERITA — causal cascade + consent lease (Phase 3)
+    tw = _check_rasa_derita(state)
+    tripwires.append(tw)
+    if tw.severity == "BLOCK":
+        return _build_collapse(state, "HOLD", tripwires)
+
     # Tripwire 6: FLOOR
     tw = _check_floors(state)
     tripwires.append(tw)
@@ -209,6 +215,52 @@ def _check_reversibility(state: GovernanceState) -> TripwireResult:
     return TripwireResult(
         id="REVERSIBILITY", triggered=False, reason="Action is reversible", severity="WARN"
     )
+
+
+def _check_rasa_derita(state: GovernanceState) -> TripwireResult:
+    """RASA DERITA Phase 3: cascade + consent for L3+/irreversible mutation."""
+    try:
+        from arifosmcp.kernel.rasa_derita_gates import evaluate_mutation_gates
+
+        blast = getattr(state.risk, "blast_radius", None)
+        verdict = evaluate_mutation_gates(
+            mode=getattr(state, "action_mode", None),
+            action_tier=getattr(state, "action_tier", None),
+            reversible=state.reversible,
+            blast_radius=str(blast) if blast is not None else None,
+            causal_cascade=getattr(state, "causal_cascade", None),
+            consent_lease=getattr(state, "consent_lease", None),
+            require_consent=bool(getattr(state, "requires_consent", False)),
+        )
+        if not verdict.passed:
+            return TripwireResult(
+                id="RASA_DERITA",
+                triggered=True,
+                reason=" | ".join(verdict.reasons)
+                or "RASA DERITA gate failed — 888_HOLD",
+                severity="BLOCK",
+            )
+        return TripwireResult(
+            id="RASA_DERITA",
+            triggered=False,
+            reason=verdict.reasons[0] if verdict.reasons else "RASA DERITA gates clear",
+            severity="WARN",
+        )
+    except Exception as exc:
+        # Fail-closed on gate module failure for irreversible paths
+        if not state.reversible:
+            return TripwireResult(
+                id="RASA_DERITA",
+                triggered=True,
+                reason=f"RASA DERITA gate unavailable on irreversible path: {exc}",
+                severity="BLOCK",
+            )
+        return TripwireResult(
+            id="RASA_DERITA",
+            triggered=False,
+            reason=f"RASA DERITA gate soft-skip (reversible): {exc}",
+            severity="WARN",
+        )
 
 
 def _check_floors(state: GovernanceState) -> TripwireResult:

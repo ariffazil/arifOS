@@ -2946,6 +2946,10 @@ def register_rest_routes(
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
             "runtime_floors": thermo.get("floors", {}),
+            # RASA DERITA Phase 3 — schema load receipt (not a public tool)
+            "rasa_derita": __import__(
+                "arifosmcp.kernel.rasa_derita_gates", fromlist=["schema_load_receipt"]
+            ).schema_load_receipt(),
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
             "registry_truth": "VERIFIED",
             "schema_hash": _compute_schema_hash(mcp, tool_registry),

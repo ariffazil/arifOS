@@ -774,6 +774,68 @@ async def arif_judge(
         except Exception as _int_err:
             logger.warning("Kernel intercept delegation failed: %s", _int_err)
 
+    # ── RASA DERITA Phase 3 — causal cascade + consent lease ────────────────
+    # For L3+/irreversible candidates: missing cascade or invalid lease → HOLD.
+    try:
+        from arifosmcp.kernel.rasa_derita_gates import evaluate_from_payload
+
+        _rd_payload: dict[str, Any] = {}
+        if isinstance(candidate, dict):
+            _rd_payload = dict(candidate)
+        elif isinstance(candidate, str) and candidate.strip().startswith("{"):
+            import json as _json
+
+            try:
+                _parsed = _json.loads(candidate)
+                if isinstance(_parsed, dict):
+                    _rd_payload = _parsed
+            except Exception:
+                _rd_payload = {"mode": mode, "candidate_text": candidate}
+        else:
+            _rd_payload = {"mode": mode}
+        if isinstance(evidence, dict):
+            _rd_payload.setdefault("evidence", evidence)
+            if evidence.get("causal_cascade") and "causal_cascade" not in _rd_payload:
+                _rd_payload["causal_cascade"] = evidence["causal_cascade"]
+            if evidence.get("consent_lease") and "consent_lease" not in _rd_payload:
+                _rd_payload["consent_lease"] = evidence["consent_lease"]
+        _rd_payload.setdefault("action_tier", action_tier)
+        if reversibility_level:
+            _rd_payload.setdefault(
+                "reversible",
+                str(reversibility_level).upper()
+                in ("FULL", "REVERSIBLE", "L0", "L1", "LOW"),
+            )
+        if blast_radius:
+            _rd_payload.setdefault("blast_radius", blast_radius)
+        if action_class:
+            _rd_payload.setdefault("mode", action_class)
+
+        _rd = evaluate_from_payload(
+            _rd_payload,
+            mode=str(_rd_payload.get("mode") or mode),
+            action_tier=action_tier,
+            reversible=_rd_payload.get("reversible"),
+        )
+        if not _rd.passed:
+            return _echo_standing(
+                VerdictOutput(
+                    verdict=VerdictCode.HOLD,
+                    reasons=list(_rd.reasons),
+                    next_safe_action=(
+                        "Provide causal_cascade (≥3 steps, recovery, reversibility, "
+                        "omission risk) and/or valid consent_lease before re-judge."
+                    ),
+                    meta={
+                        "rasa_derita_gate": _rd.to_dict(),
+                        "verdict": "888_HOLD",
+                        "module": "RASA_DERITA",
+                    },
+                )
+            )
+    except Exception as _rd_err:
+        logger.warning("RASA DERITA judge gate soft-fail (non-blocking): %s", _rd_err)
+
     # ── 666_HEART: Ethical Gate (Red Team Finding #1) ────────────────────────
         # Hard-wire the heart's verdict into the judge loop.
         if mode == "judge" and heart_critique:

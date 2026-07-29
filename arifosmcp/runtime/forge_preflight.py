@@ -865,6 +865,8 @@ def stage_12_execution_or_hold(
     replay = stage_results.get("replay_detected", False)
     # P1: Ed25519 forge gate
     ed25519_verified = stage_results.get("ed25519_verified", True)
+    # RASA DERITA Phase 3
+    rasa_derita_ok = stage_results.get("rasa_derita_ok", True)
 
     # Dry-run: short-circuit to HOLD
     if dry_run:
@@ -887,6 +889,10 @@ def stage_12_execution_or_hold(
     # HOLD conditions
     if authority_gap:
         reasons.append("E_PREFLIGHT_FINAL_HOLD:authority_gap")
+        return "HOLD", reasons
+
+    if not rasa_derita_ok:
+        reasons.append("E_PREFLIGHT_FINAL_HOLD:rasa_derita_gate")
         return "HOLD", reasons
 
     if not judge_valid:
@@ -1253,6 +1259,31 @@ def run_forge_preflight(
         stage_results["ed25519_verified"] = ed25519_verified
     else:
         stage_results["ed25519_verified"] = True  # OBSERVE_ONLY — no gate
+
+    # ── Stage 3c: RASA DERITA cascade + consent (Phase 3) ───────────
+    _mutate_for_rd = forge_mode in {"engineer", "write", "generate", "commit", "deploy"}
+    if _mutate_for_rd:
+        try:
+            from arifosmcp.kernel.rasa_derita_gates import evaluate_from_payload
+
+            _rd = evaluate_from_payload(
+                manifest,
+                mode=forge_mode,
+                ack_irreversible=ack_irreversible,
+                reversible=False if forge_mode in {"commit", "deploy"} else None,
+            )
+            stage_results["rasa_derita"] = _rd.to_dict()
+            if not _rd.passed:
+                reasons.extend([f"RASA_DERITA:{r}" for r in _rd.reasons])
+                stage_results["rasa_derita_ok"] = False
+            else:
+                stage_results["rasa_derita_ok"] = True
+        except Exception as _rd_exc:
+            stage_results["rasa_derita_ok"] = False
+            stage_results["rasa_derita"] = {"error": str(_rd_exc)}
+            reasons.append(f"RASA_DERITA:gate_error:{_rd_exc}")
+    else:
+        stage_results["rasa_derita_ok"] = True
 
     # ── Stage 4: Judge State Retrieval ─────────────────────────────
     s4_valid, judge_state, s4_reasons = stage_04_judge_state_retrieval(

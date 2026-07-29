@@ -198,6 +198,49 @@ async def arif_forge(
             )
         )
 
+    # ── RASA DERITA Phase 3 — cascade + consent for MUTATE/ATOMIC ───────────
+    # Machine 888_HOLD when L3 mutation lacks causal_cascade / consent_lease.
+    # Zero new public tools — gates on existing arif_forge parameters only.
+    if mode in _FORGE_MUTATE_ATOMIC:
+        try:
+            from arifosmcp.kernel.rasa_derita_gates import evaluate_from_payload
+
+            _rd = evaluate_from_payload(
+                manifest,
+                mode=mode,
+                action_tier=action_tier,
+                ack_irreversible=ack_irreversible,
+                reversible=False if mode in _ATOMIC_MODES else None,
+            )
+            if not _rd.passed:
+                return ForgeOutput(
+                    status="HOLD",
+                    result={},
+                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                    meta={
+                        "error_code": ForgeErrorCode.E_SIDE_EFFECTS_BLOCKED,
+                        "reason": " | ".join(_rd.reasons),
+                        "rasa_derita_gate": _rd.to_dict(),
+                        "verdict": "888_HOLD",
+                        "module": "RASA_DERITA",
+                    },
+                    timestamp=datetime.now(UTC).isoformat(),
+                )
+        except Exception as _rd_exc:
+            # Fail-closed on mutate path if gate module cannot run
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "error_code": ForgeErrorCode.E_SIDE_EFFECTS_BLOCKED,
+                    "reason": f"RASA DERITA gate unavailable on mutate path: {_rd_exc}",
+                    "verdict": "888_HOLD",
+                    "module": "RASA_DERITA",
+                },
+                timestamp=datetime.now(UTC).isoformat(),
+            )
+
     # ── P0 EXECUTION BOUNDARY — CLOSED 2026-07-25 ──────────────────────────
     # FALSIFICATION AUDIT: All MUTATE/ATOMIC modes HALTED until permit-to-execute
     # protocol is hardened. Only query mode passes for read-only introspection.
