@@ -82,54 +82,52 @@ class TestScarFailClosed:
     """
 
     def test_scar_store_unavailable_should_not_return_present_false(self):
-        """When scar store is unavailable, consult_scar should NOT
-        silently return present=False.
+        """When scar store is unavailable, consult_scar must expose unavailability.
 
-        Current behavior (lines 155-157):
-          except Exception:
-              return ScarConsultResult(present=False)
-
-        This is the critical fail-open bug.
+        Fail-closed: present=False alone is not enough — scan_successful must
+        distinguish "no scar" from "could not check".
         """
-        # We can only test this if we can simulate store failure.
-        # For now, document the expected behavior:
-        # consult_scar should raise or return a distinct "unavailable" state,
-        # not silently return present=False.
-
-        # Test: when fingerprint is provided but scan fails, we should
-        # know the difference between "no scar exists" and "could not check"
+        # Readable empty path set via non-existent roots → unavailable
+        ghost = (Path("/tmp/rasa-derita-no-scars-xyz-does-not-exist"),)
         result = consult_scar(
             tool_name="__nonexistent_tool_xyz__",
             intent="this intent should not match anything",
+            operation_mode="read",
+            scar_paths=ghost,
         )
-        # For a new tool with no match, present=False is correct
         assert result.present is False
+        assert result.scan_successful is False
+        assert result.unavailable is True
+        assert result.verdict == "SABAR"
 
-        # But the critical question is: can we distinguish between
-        # "no scar" and "scan failed"? Currently we cannot.
-        # This test documents the requirement that we SHOULD be able to.
-        # The fix: add a `scan_successful` field to ScarConsultResult.
+        # Contrast: when a readable empty dir exists, no-match is OK
+        with tempfile.TemporaryDirectory() as tmp:
+            empty = (Path(tmp),)
+            ok = consult_scar(
+                tool_name="__brand_new_tool__",
+                intent="fresh",
+                operation_mode="read",
+                scar_paths=empty,
+            )
+            assert ok.present is False
+            assert ok.scan_successful is True
+            assert ok.unavailable is False
+            assert ok.verdict == "PASS"
 
     def test_mutation_path_requires_scar_availability(self):
-        """For mutation operations, scar scan failure must block, not pass.
-
-        This test documents the expected behavior for the repaired path.
-        Once repaired, consult_scar() should differentiate between:
-          1. No matching scar (present=False, scan_successful=True)
-          2. Scan failed (present=False, scan_successful=False)
-
-        Case 2 must trigger HOLD for mutation paths.
-        """
-        # This is a specification test — it describes what the API should expose
+        """Mutation + scar store unavailable → 888_HOLD (fail-closed)."""
+        ghost = (Path("/tmp/rasa-derita-no-scars-xyz-does-not-exist"),)
         result = consult_scar(
             tool_name="test_tool",
             fingerprint="sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            operation_mode="mutate",
+            scar_paths=ghost,
         )
-        # CURRENT: result only has `present` field
-        # EXPECTED: result should also have `scan_successful` field
-        assert hasattr(result, "present"), "ScarConsultResult must have present field"
-        # After repair:
-        # assert hasattr(result, "scan_successful"), "Must expose scan health"
+        assert hasattr(result, "scan_successful")
+        assert result.scan_successful is False
+        assert result.unavailable is True
+        assert result.verdict == "888_HOLD"
+        assert result.blocks_mutation() is True
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

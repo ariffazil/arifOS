@@ -311,40 +311,43 @@ class TestHumanImpactAssessment:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class TestCurrentF5F6Gaps:
-    """Document the gaps in the current word-list and verb-detection approach.
+class TestRepairedF5F6Semantics:
+    """Phase 2: evaluators must use human-impact semantics, not word/verb proxies."""
 
-    These tests demonstrate that the CURRENT evaluators use wrong proxies.
-    They will FAIL once the evaluators are repaired (which is desired).
-    """
-
-    def test_current_f5_is_word_filter(self):
-        """Current F5 only checks for insult words."""
+    def test_polite_destructive_action_fails_f5(self):
+        """Polite phrasing must not redeem destructive force (F5 PEACE²)."""
         from core.laws import ConstitutionalLaws
 
         c = ConstitutionalLaws()
-        # Polite destructive action — should fail F5 on semantic grounds
-        result = c._check_f5_peace("delete", {"query": "please politely remove entry 42"})
-        # CURRENT: score=1.05 (passed) — no inflammatory words detected
-        # EXPECTED: should detect destructive action regardless of politeness
-        # This test documents the semantic gap
-        assert result.score <= 1.00 or "Clean" in result.details, (
-            "Current F5 only checks for inflammatory words — "
-            "a polite destructive action passes. This gap needs repair."
+        result = c._check_f5_peace(
+            "delete", {"query": "please politely remove all evidence entry 42"}
         )
+        assert result.score < 0.7, (
+            f"Polite destructive action must fail F5. Got score={result.score} details={result.details}"
+        )
+        assert "Destructive" in result.details or "destructive" in result.details.lower()
 
-    def test_current_f6_is_verb_detector(self):
-        """Current F6 only checks for verb categories."""
+    def test_rude_harmless_does_not_equal_destructive_force(self):
+        """Insult language is not the same as destructive power."""
         from core.laws import ConstitutionalLaws
 
         c = ConstitutionalLaws()
-        # "delete" gets low score regardless of context
+        rude = c._check_f5_peace("search", {"query": "you are stupid but please list files"})
+        polite_delete = c._check_f5_peace("delete", {"query": "kindly purge the ledger"})
+        # Destructive must score worse than mere rudeness
+        assert polite_delete.score < rude.score or polite_delete.score < 0.7
+
+    def test_f6_differentiates_protective_vs_vulnerable_harm(self):
+        """F6 must not treat all 'delete' verbs identically."""
+        from core.laws import ConstitutionalLaws
+
+        c = ConstitutionalLaws()
         result_legitimate = c._check_f6_empathy(
             "delete malicious content protecting users", "moderation_tool"
         )
         result_malicious = c._check_f6_empathy("delete whistleblower evidence", "admin_tool")
-        # CURRENT: both get score 0.4 because "delete" is in stakeholder_harm
-        # EXPECTED: context should differentiate
-        assert result_legitimate.score == result_malicious.score, (
-            "Current F6 treats all 'delete' actions equally. This gap needs repair."
+        assert result_legitimate.score > result_malicious.score, (
+            f"Protective delete ({result_legitimate.score}) must score higher than "
+            f"whistleblower-harming delete ({result_malicious.score})"
         )
+        assert result_malicious.score < 0.5
