@@ -3,6 +3,8 @@ import pytest
 from arifosmcp.transport import AirlockASGIMiddleware as ExportedAirlockASGIMiddleware
 from arifosmcp.transport.airlock import (
     AirlockASGIMiddleware,
+    process_request,
+    record_airlock_result,
     reset_airlock_metrics,
     get_airlock_metrics,
 )
@@ -38,6 +40,27 @@ def test_transport_error_preserves_jsonrpc_id():
     )
     assert error["jsonrpc"] == "2.0"
     assert error["id"] == "rpc-123"
+
+
+def test_protocol_mismatch_returns_dict_not_exception():
+    """Regression: bare AirlockError in transport_error crashed metrics → MCP 500."""
+    result = process_request(
+        {
+            "jsonrpc": "2.0",
+            "id": 42,
+            "method": "initialize",
+            "protocol_version": "99.99.99",
+        }
+    )
+    assert result.envelope is None
+    assert isinstance(result.transport_error, dict)
+    assert result.transport_error["id"] == 42
+    assert "error" in result.transport_error
+    reset_airlock_metrics()
+    record_airlock_result(result, mode="shadow")  # must not raise
+    metrics = get_airlock_metrics()
+    assert metrics["transport_errors"] == 1
+    assert metrics["last_error"]["code"] == "ARIF_PROTOCOL_VERSION_MISMATCH"
 
 
 class MockASGIApp:
