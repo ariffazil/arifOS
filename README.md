@@ -1,7 +1,7 @@
 mcp-name: io.github.ariffazil/arifos
 <!-- SOT-MANIFEST
-federation_release: v2026.07.28
-last_verified: 2026-07-28T18:00Z
+federation_release: v2026.07.29
+last_verified: 2026-07-29T18:00Z
 live_commit: 31640cb32
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
