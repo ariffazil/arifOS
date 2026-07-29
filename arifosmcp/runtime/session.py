@@ -64,6 +64,7 @@ _EXECUTION_FIELD_KEYS: tuple[str, ...] = (
     "caller_actor_id",
     "executor_actor_id",
     "delegation_mode",
+    "tenant_id",  # P0 MULTI-TENANT (2026-07-29): tenant-scoped session isolation
     "apex",
     "authority",
     "authority_state",
@@ -796,7 +797,7 @@ def set_active_session(session_id: str) -> None:
 
 def get_active_session_id() -> str | None:
     """Get the active session ID (Redis-backed, falls back to global).
-    
+
     Multi-agent safe: reads from Redis first, falls back to in-memory
     _ACTIVE_SESSION_ID global. Returns None if no active session.
     """

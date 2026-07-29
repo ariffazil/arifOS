@@ -259,6 +259,8 @@ async def seal(
     # C2 attribution fields — all callers should supply these
     source_agent: str = "arifos_vault",
     pipeline_stage: str = "999_VAULT",
+    # P0 MULTI-TENANT (2026-07-29): tenant-scoped seal isolation
+    tenant_id: str | None = None,
     **kwargs: Any,
 ) -> VaultOutput:
     """
@@ -435,6 +437,8 @@ async def seal(
         "pipeline_stage": pipeline_stage,
         # A-RIF Constitutional RAG: AAA dataset provenance binding
         "aaa_revision": os.getenv("AAA_DATASET_REVISION", "unknown"),
+        # P0 MULTI-TENANT (2026-07-29): tenant-scoped seal
+        "tenant_id": tenant_id or "default",
     }
 
     entry_hash = compute_vault_seal_hash(entry_data)
