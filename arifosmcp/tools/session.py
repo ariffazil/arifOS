@@ -1106,6 +1106,8 @@ def arif_init(
     executor_actor_id: str | None = None,
     sovereign_id: str | None = None,
     delegation_mode: str | None = None,
+    # ── P0 MULTI-TENANT (2026-07-29): tenant-scoped session isolation ─────
+    tenant_id: str | None = None,
     # ── Ω-PATCH 2026-06-13: thin client payload enrichment ───────────────
     intent: str | None = None,
     #   Human-readable purpose. Recorded for audit (F2 TRUTH).
@@ -1746,6 +1748,9 @@ def arif_init(
         _light_auth = sess.get("authority", _light_band) or "OBSERVE_ONLY"
 
         # ── Persist session ──────────────────────────────────────────────
+        # P0 MULTI-TENANT (2026-07-29): bind tenant_id to session record
+        if tenant_id:
+            sess["tenant_id"] = tenant_id
         try:
             from arifosmcp.runtime.tools import _SESSIONS
 
@@ -2790,6 +2795,9 @@ def arif_init(
             sess["sovereign_id"] = sovereign_id
         if delegation_mode:
             sess["delegation_mode"] = delegation_mode
+        # P0 MULTI-TENANT (2026-07-29): tenant-scoped session isolation
+        if tenant_id:
+            sess["tenant_id"] = tenant_id
 
         # Persist session birth
         try:
