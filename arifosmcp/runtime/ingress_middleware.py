@@ -443,7 +443,16 @@ async def _write_harness_telemetry_in_thread(
             )
             telemetry.model_validate(telemetry.model_dump())
 
-            db_url = "postgresql://arifos_admin:ArifPostgres2026!@127.0.0.1:5432/vault999"
+            # P2 FIX (2026-07-29): Removed hardcoded credential.
+            # Database URL must come from environment.
+            db_url = (
+                os.getenv("ARIFOS_TELEMETRY_DB_URL")
+                or os.getenv("POSTGRES_URL")
+                or os.getenv("DATABASE_URL")
+            )
+            if not db_url:
+                logger.warning("No database URL configured — telemetry persistence skipped")
+                return
             engine = create_engine(db_url, echo=False)
             with Session(engine) as db_session:
                 db_session.add(telemetry)
@@ -1075,15 +1084,16 @@ if IS_FASTMCP_3:
                     # Extract mode and dry_run from arguments
                     _args_dict = dict(msg.arguments or {})
                     _tool_mode = _args_dict.get("mode")
-                    if _args_dict.get("dry_run") is True or str(_tool_mode).strip().lower() == "dry_run":
+                    if (
+                        _args_dict.get("dry_run") is True
+                        or str(_tool_mode).strip().lower() == "dry_run"
+                    ):
                         _tool_mode = "dry_run"
 
                     # ── LOCAL SERVICE TRUST (Hermes bridge) ────────────────────────
                     # Promotion authenticates locality and the service token before
                     # touching identity, risk, or checkpoint state.
-                    _trusted = _try_promote_local_service(
-                        envelope, _args_dict, tool_name
-                    )
+                    _trusted = _try_promote_local_service(envelope, _args_dict, tool_name)
                     if _trusted:
                         logger.info(
                             f"Ingress: local service trust promoted for {tool_name} "
@@ -1101,7 +1111,6 @@ if IS_FASTMCP_3:
                     ):
                         envelope.risk.action_class = _tool_risk.action_class
                         envelope.risk.tier = _tool_risk.tier
-
 
                     envelope_ok, envelope_reason = _validate_envelope_for_tool(
                         envelope, tool_name, mode=_tool_mode
