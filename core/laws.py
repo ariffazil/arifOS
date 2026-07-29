@@ -250,7 +250,7 @@ class ConstitutionalLaws:
         if not f5_result.passed:
             violations.append(f"{f5_result.law_id}_PEACE")
 
-        f6_result = self._check_f6_empathy(action, tool_name)
+        f6_result = self._check_f6_empathy(action, tool_name, parameters)
         self.results.append(f6_result)
 
         f7_result = self._check_f7_humility(parameters)
@@ -514,89 +514,129 @@ class ConstitutionalLaws:
         )
 
     def _check_f2_truth(self, action: str, tool_name: str, parameters: dict[str, Any]) -> LawResult:
+        """F2 TRUTH — output claim envelopes, not input wording.
+
+        RASA DERITA Gate 1: consequential outputs must carry truth_class,
+        confidence, evidence/provenance. Input lexical markers
+        ("according to", "source:") alone MUST NOT inflate the score.
+        """
         threshold = THRESHOLDS["F2_TRUTH"]
+        parameters = parameters if isinstance(parameters, dict) else {}
 
-        query = parameters.get("query", "") or parameters.get("prompt", "")
-
-        if not query:
-            return LawResult(
-                law_id="F2",
-                name="Truth",
-                passed=False,
-                score=0.1,
-                threshold=threshold,
-                details="Evidence check: no query, no evidence",
-            )
-
-        evidence_signals: list[str] = []
-
-        has_source = any(
-            marker in query.lower()
-            for marker in (
-                "http",
-                "https",
-                "src:",
-                "source:",
-                "[ref",
-                "[1]",
-                "[2]",
-                "[3]",
-                "observation from",
-                "measured by",
-                "data from",
-                "according to",
-                "based on",
-                "derived from",
-                "calculated from",
-            )
+        claims_raw = (
+            parameters.get("_output_claims")
+            or parameters.get("output_claims")
+            or parameters.get("claims")
         )
-        if has_source:
-            evidence_signals.append("source_attribution")
 
-        has_grounded_claim = any(
-            kw in query.lower()
-            for kw in (
-                "measured",
-                "observed",
-                "computed",
-                "calculated",
-                "demonstrated",
-                "confirmed by",
-                "verified by",
-                "recorded as",
-            )
+        if claims_raw is not None:
+            try:
+                from arifosmcp.schemas.claim_envelope import (
+                    ClaimEnvelope,
+                    TruthClass,
+                    validate_claim_bundle,
+                )
+
+                claims: list[Any] = []
+                if isinstance(claims_raw, list):
+                    for item in claims_raw:
+                        if isinstance(item, ClaimEnvelope):
+                            claims.append(item)
+                        elif isinstance(item, dict):
+                            tc = item.get("truth_class", TruthClass.UNK)
+                            if isinstance(tc, str):
+                                tc = TruthClass(tc)
+                            claims.append(
+                                ClaimEnvelope(
+                                    claim=str(item.get("claim", "")),
+                                    truth_class=tc,
+                                    confidence=float(item.get("confidence", 0.0)),
+                                    evidence_receipts=item.get("evidence_receipts") or [],
+                                    derived_from=item.get("derived_from") or [],
+                                    uncertainties=item.get("uncertainties") or [],
+                                    provenance=str(item.get("provenance", "arifOS.kernel")),
+                                )
+                            )
+                if not claims:
+                    return LawResult(
+                        law_id="F2",
+                        name="Truth",
+                        passed=False,
+                        score=0.15,
+                        threshold=threshold,
+                        details="output_claims present but empty/unparseable",
+                    )
+
+                # UNK-only bundles are honest but non-authorizing
+                if all(getattr(c, "truth_class", None) == TruthClass.UNK for c in claims):
+                    return LawResult(
+                        law_id="F2",
+                        name="Truth",
+                        passed=False,
+                        score=0.30,
+                        threshold=threshold,
+                        details="UNK claims are honest but cannot authorize consequential action",
+                    )
+
+                valid, violations = validate_claim_bundle(claims)
+                if valid:
+                    avg_conf = sum(float(c.confidence) for c in claims) / len(claims)
+                    # Cap score below absolute certainty (F7 humility band)
+                    score = min(avg_conf, 0.96)
+                    return LawResult(
+                        law_id="F2",
+                        name="Truth",
+                        passed=score >= threshold,
+                        score=score,
+                        threshold=threshold,
+                        details=f"claim_envelope: {len(claims)} valid claims; avg_conf={avg_conf:.2f}",
+                    )
+                return LawResult(
+                    law_id="F2",
+                    name="Truth",
+                    passed=False,
+                    score=0.25,
+                    threshold=threshold,
+                    details=f"claim_envelope violations: {'; '.join(violations[:4])}",
+                )
+            except Exception as exc:
+                return LawResult(
+                    law_id="F2",
+                    name="Truth",
+                    passed=False,
+                    score=0.15,
+                    threshold=threshold,
+                    details=f"claim_envelope validation error: {exc}",
+                )
+
+        # No output envelopes — do NOT reward prompt wording.
+        # Mutation-class actions fail hard; observe-class gets a low non-authorizing score.
+        action_l = f"{action} {tool_name}".lower()
+        mutate_markers = (
+            "delete",
+            "remove",
+            "write",
+            "deploy",
+            "execute",
+            "mutate",
+            "forge",
+            "seal",
+            "commit",
+            "purge",
+            "drop",
         )
-        if has_grounded_claim:
-            evidence_signals.append("grounded_claim")
-
-        has_question_only = query.strip().endswith("?") and not has_source
-        is_rhetorical = (
-            any(kw in query.lower() for kw in ("why do you", "why is", "why does", "why did"))
-            and not has_source
-            and not has_grounded_claim
-        )
-        if is_rhetorical:
-            evidence_signals.append("rhetorical_question")
-
-        signal_count = sum([has_source, has_grounded_claim])
-        if has_question_only or is_rhetorical:
-            score = 0.3
-        elif signal_count >= 2:
-            score = 1.0
-        elif signal_count == 1:
-            score = 0.7
-        else:
-            score = 0.4
-
-        passed = score >= threshold
-
+        is_mutate = any(m in action_l for m in mutate_markers)
+        score = 0.20 if is_mutate else 0.35
         return LawResult(
             law_id="F2",
             name="Truth",
-            passed=passed,
+            passed=False,
             score=score,
             threshold=threshold,
-            details=f"Evidence signals ({len(evidence_signals)}): {', '.join(evidence_signals) if evidence_signals else 'none detected'}",
+            details=(
+                "No output claim envelopes — F2 requires output-side epistemic labels "
+                "(truth_class/confidence/evidence). Input wording is not evidence."
+            ),
         )
 
     def _check_f3_witness(self, action: str, parameters: dict[str, Any]) -> LawResult:
@@ -656,17 +696,101 @@ class ConstitutionalLaws:
         )
 
     def _check_f5_peace(self, action: str, parameters: dict[str, Any]) -> LawResult:
+        """F5 PEACE² — non-destructive power, not insult-word filter.
+
+        RASA DERITA Gate 5: politely phrased destructive actions fail;
+        rude but harmless text does not auto-fail on force grounds.
+        """
         threshold = THRESHOLDS["F5_PEACE"]
+        parameters = parameters if isinstance(parameters, dict) else {}
 
-        combined = (action + " " + str(parameters)).lower()
-        violations = [w for w in _INFLAMMATORY_WORDS if w in combined]
+        # Structured human-impact path
+        impact_raw = parameters.get("_human_impact") or parameters.get("human_impact")
+        if impact_raw is not None:
+            try:
+                from arifosmcp.schemas.human_impact import HumanImpactAssessment
 
-        if violations:
-            score = 0.50
+                if isinstance(impact_raw, HumanImpactAssessment):
+                    assessment = impact_raw
+                elif isinstance(impact_raw, dict):
+                    assessment = HumanImpactAssessment(
+                        action=str(impact_raw.get("action", action)),
+                        stakeholders=impact_raw.get("stakeholders") or [],
+                        reversibility=impact_raw.get("reversibility", "FULL"),
+                        least_harmful_alternative=str(
+                            impact_raw.get("least_harmful_alternative", "")
+                        ),
+                        blast_radius_bounded=bool(impact_raw.get("blast_radius_bounded", False)),
+                        benefit_justifies_harm=bool(
+                            impact_raw.get("benefit_justifies_harm", False)
+                        ),
+                        weakest_stakeholder_protected=bool(
+                            impact_raw.get("weakest_stakeholder_protected", False)
+                        ),
+                    )
+                else:
+                    assessment = None
+                if assessment is not None:
+                    score, reasons = assessment.assess_f5_peace()
+                    return LawResult(
+                        law_id="F5",
+                        name="Peace",
+                        passed=score >= 0.7,
+                        score=score,
+                        threshold=threshold,
+                        details=f"human_impact F5: {'; '.join(reasons) if reasons else 'ok'}",
+                    )
+            except Exception as exc:
+                return LawResult(
+                    law_id="F5",
+                    name="Peace",
+                    passed=False,
+                    score=0.3,
+                    threshold=threshold,
+                    details=f"human_impact F5 error: {exc}",
+                )
+
+        combined = f"{action} {parameters}".lower()
+        inflammatory = [w for w in _INFLAMMATORY_WORDS if w in combined]
+
+        destructive_markers = (
+            "delete",
+            "remove",
+            "destroy",
+            "purge",
+            "wipe",
+            "drop",
+            "truncate",
+            "kill",
+            "terminate",
+            "erase",
+            "expunge",
+            "shred",
+        )
+        is_destructive = any(m in combined for m in destructive_markers)
+
+        if is_destructive:
+            # Politeness does not redeem destructive power
+            score = 0.45
+            details = (
+                "Destructive action detected regardless of polite phrasing — "
+                f"markers in action/params. Inflammatory={inflammatory or 'none'}"
+            )
+        elif inflammatory:
+            score = 0.55
+            details = f"Inflammatory language: {inflammatory}"
         else:
-            score = 1.05
+            score = 1.0
+            details = "No destructive force indicators; language clean"
 
-        passed = score >= threshold
+        # Soft floor: use 0.7 operational pass for semantic F5; keep THRESHOLDS for catalog
+        operational_threshold = min(threshold, 0.7) if threshold >= 1.0 else threshold
+        # Preserve catalog threshold in result; pass uses operational when threshold is free-pass 1.0
+        # Historical F5 threshold is 1.0; semantic pass uses score >= 0.7 when not destructive
+        if is_destructive or inflammatory:
+            passed = score >= 0.7
+        else:
+            passed = score >= operational_threshold or score >= 0.7
 
         return LawResult(
             law_id="F5",
@@ -674,56 +798,271 @@ class ConstitutionalLaws:
             passed=passed,
             score=score,
             threshold=threshold,
-            details=f"Inflammatory language: {violations}" if violations else "Clean",
+            details=details,
         )
 
     def _check_f4_clarity(self, parameters: dict[str, Any]) -> LawResult:
-        threshold = THRESHOLDS["F4_CLARITY"]
+        """F4 CLARITY — ΔS / ambiguity, not query length.
 
-        query = parameters.get("query", "") or parameters.get("prompt", "")
+        RASA DERITA Gate 4: short ambiguous requests must not auto-pass;
+        long clear requests must not auto-fail on character count alone.
+        """
+        # Raise free-pass threshold (legacy 0.0 always passed)
+        catalog_threshold = THRESHOLDS["F4_CLARITY"]
+        threshold = 0.5 if catalog_threshold <= 0.0 else catalog_threshold
+        parameters = parameters if isinstance(parameters, dict) else {}
 
-        if not query:
-            score = 1.0
-        elif len(query) > 500:
-            score = 0.4
-        elif len(query) > 200:
-            score = 0.7
-        else:
-            score = 1.0
+        # Prefer explicit entropy assessment when provided
+        entropy_raw = (
+            parameters.get("_entropy_assessment")
+            or parameters.get("entropy_assessment")
+            or parameters.get("entropy_ledger")
+        )
+        if entropy_raw is not None:
+            try:
+                from arifosmcp.schemas.entropy_ledger import (
+                    EntropyAssessment,
+                    EntropyLedgerEntry,
+                )
 
-        passed = score >= threshold
+                if isinstance(entropy_raw, EntropyAssessment):
+                    assessment = entropy_raw
+                elif isinstance(entropy_raw, dict):
+                    before = entropy_raw.get("before")
+                    after = entropy_raw.get("after")
+                    assessment = EntropyAssessment(
+                        before=(
+                            before
+                            if isinstance(before, EntropyLedgerEntry)
+                            else EntropyLedgerEntry(**before)
+                            if isinstance(before, dict)
+                            else None
+                        ),
+                        after=(
+                            after
+                            if isinstance(after, EntropyLedgerEntry)
+                            else EntropyLedgerEntry(**after)
+                            if isinstance(after, dict)
+                            else None
+                        ),
+                        bounded_unknowns=list(entropy_raw.get("bounded_unknowns") or []),
+                        contradictions_named=list(entropy_raw.get("contradictions_named") or []),
+                        evidence_acquired=bool(entropy_raw.get("evidence_acquired", False)),
+                    )
+                else:
+                    assessment = None
+                if assessment is not None:
+                    passed, delta_s, reasons = assessment.evaluate_f4()
+                    if delta_s is None:
+                        score = 0.2
+                    elif delta_s < 0:
+                        score = min(1.0, 0.7 + abs(delta_s))
+                    elif delta_s == 0 and passed:
+                        score = 0.65
+                    else:
+                        score = max(0.0, 0.5 - float(delta_s))
+                    return LawResult(
+                        law_id="F4",
+                        name="Clarity",
+                        passed=passed and score >= threshold,
+                        score=score,
+                        threshold=threshold,
+                        details=f"ΔS={delta_s}: {'; '.join(reasons)}",
+                    )
+            except Exception as exc:
+                return LawResult(
+                    law_id="F4",
+                    name="Clarity",
+                    passed=False,
+                    score=0.2,
+                    threshold=threshold,
+                    details=f"entropy assessment error: {exc}",
+                )
 
+        query = str(parameters.get("query", "") or parameters.get("prompt", "") or "")
+        score, details = self._estimate_query_clarity(query)
         return LawResult(
             law_id="F4",
             name="Clarity",
-            passed=passed,
+            passed=score >= threshold,
             score=score,
             threshold=threshold,
-            details=f"Query clarity: {len(query)} chars",
+            details=details,
         )
 
-    def _check_f6_empathy(self, action: str, tool_name: str) -> LawResult:
+    def _estimate_query_clarity(self, query: str) -> tuple[float, str]:
+        """Heuristic clarity score from query semantics (not raw length)."""
+        if not query or not query.strip():
+            return 0.45, "Empty query — unresolved ambiguity (not perfect clarity)"
+
+        q = query.strip().lower()
+        score = 1.0
+        reasons: list[str] = []
+
+        # Short ambiguous imperatives / underspecified pronouns
+        ambiguous_imperatives = (
+            "fix it",
+            "do it",
+            "handle it",
+            "make it work",
+            "sort it",
+            "deal with it",
+            "clean it",
+            "update it",
+            "change it",
+        )
+        if any(p in q for p in ambiguous_imperatives):
+            score -= 0.45
+            reasons.append("ambiguous imperative without object/scope")
+
+        tokens = re.findall(r"[a-z0-9_]+", q)
+        if len(tokens) <= 4 and any(t in {"it", "this", "that", "them", "stuff", "thing"} for t in tokens):
+            score -= 0.30
+            reasons.append("underspecified pronoun/referent")
+
+        if q in {"?", "??", "...", "idk", "help", "fix"}:
+            score -= 0.40
+            reasons.append("minimal underspecified request")
+
+        # Ambiguity markers
+        amb_markers = ("maybe", "possibly", "unclear", "whatever", "somehow", " magically")
+        amb_hits = sum(1 for m in amb_markers if m.strip() in q)
+        if amb_hits:
+            score -= 0.1 * amb_hits
+            reasons.append(f"ambiguity markers={amb_hits}")
+
+        # Clarity boosters (structured intent) — length alone is not a penalty
+        clarity_markers = (
+            "because",
+            "specifically",
+            "compare",
+            "using",
+            "from",
+            "depth",
+            "well",
+            "log",
+            "receipt",
+            "with evidence",
+        )
+        clarity_hits = sum(1 for m in clarity_markers if m in q)
+        if clarity_hits >= 2:
+            score = min(1.0, score + 0.15)
+            reasons.append(f"structured intent markers={clarity_hits}")
+
+        # Mild length pressure only when also unstructured
+        if len(q) > 800 and clarity_hits == 0:
+            score -= 0.15
+            reasons.append("very long unstructured text")
+
+        score = max(0.0, min(1.0, score))
+        detail = (
+            f"semantic clarity score={score:.2f}"
+            + (f" ({'; '.join(reasons)})" if reasons else " (clear)")
+            + f"; len={len(query)}"
+        )
+        return score, detail
+
+    def _check_f6_empathy(
+        self, action: str, tool_name: str, parameters: dict[str, Any] | None = None
+    ) -> LawResult:
+        """F6 EMPATHY — weakest-stakeholder protection, not verb lists.
+
+        RASA DERITA Gate 5: context distinguishes protective moderation from
+        harming vulnerable parties (e.g. whistleblower evidence deletion).
+        """
         threshold = THRESHOLDS["F6_EMPATHY"]
+        parameters = parameters if isinstance(parameters, dict) else {}
 
-        stakeholder_harm = ["delete", "remove", "ban", "suspend", "fire"]
-        stakeholder_care = ["help", "support", "create", "list", "get", "search"]
+        impact_raw = parameters.get("_human_impact") or parameters.get("human_impact")
+        if impact_raw is not None:
+            try:
+                from arifosmcp.schemas.human_impact import HumanImpactAssessment
 
-        if any(p in action.lower() for p in stakeholder_harm):
-            score = 0.4
-        elif any(p in action.lower() for p in stakeholder_care):
-            score = 0.9
+                if isinstance(impact_raw, HumanImpactAssessment):
+                    assessment = impact_raw
+                elif isinstance(impact_raw, dict):
+                    assessment = HumanImpactAssessment(
+                        action=str(impact_raw.get("action", action)),
+                        stakeholders=impact_raw.get("stakeholders") or [],
+                        urgency_exploited=bool(impact_raw.get("urgency_exploited", False)),
+                        weakest_stakeholder_protected=bool(
+                            impact_raw.get("weakest_stakeholder_protected", False)
+                        ),
+                    )
+                else:
+                    assessment = None
+                if assessment is not None:
+                    score, reasons = assessment.assess_f6_empathy()
+                    return LawResult(
+                        law_id="F6",
+                        name="Empathy",
+                        passed=score >= threshold,
+                        score=score,
+                        threshold=threshold,
+                        details=f"human_impact F6: {'; '.join(reasons) if reasons else 'ok'}",
+                    )
+            except Exception as exc:
+                return LawResult(
+                    law_id="F6",
+                    name="Empathy",
+                    passed=False,
+                    score=0.2,
+                    threshold=threshold,
+                    details=f"human_impact F6 error: {exc}",
+                )
+
+        text = f"{action} {tool_name} {parameters}".lower()
+
+        # Context: legitimate protective vs harming vulnerable party
+        protective = any(
+            k in text
+            for k in (
+                "malicious",
+                "protecting users",
+                "protect users",
+                "security incident",
+                "attacker",
+                "spam",
+                "malware",
+            )
+        )
+        vulnerable_harm = any(
+            k in text
+            for k in (
+                "whistleblower",
+                "evidence",
+                "victim",
+                "complainant",
+                "journal",
+                "audit trail",
+            )
+        )
+        harm_verbs = any(k in text for k in ("delete", "remove", "ban", "suspend", "fire", "purge"))
+        care_verbs = any(k in text for k in ("help", "support", "create", "list", "search", "heal"))
+
+        if harm_verbs and vulnerable_harm and not protective:
+            score = 0.25
+            details = "Action risks harming vulnerable stakeholder (context-sensitive F6)"
+        elif harm_verbs and protective:
+            score = 0.85
+            details = "Protective/moderation context — weakest parties defended"
+        elif harm_verbs:
+            score = 0.45
+            details = "Potentially harmful action without protective context or stakeholder map"
+        elif care_verbs:
+            score = 0.90
+            details = "Care-oriented action"
         else:
-            score = 0.7
-
-        passed = score >= threshold
+            score = 0.70
+            details = "Neutral action — no stakeholder map provided (κᵣ unknown)"
 
         return LawResult(
             law_id="F6",
             name="Empathy",
-            passed=passed,
+            passed=score >= threshold,
             score=score,
             threshold=threshold,
-            details=f"Stakeholder impact: {score:.2f}",
+            details=details,
         )
 
     def _check_f7_humility(self, parameters: dict[str, Any]) -> LawResult:

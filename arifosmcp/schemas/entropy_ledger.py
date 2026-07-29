@@ -171,6 +171,7 @@ def estimate_entropy_from_query(query: str) -> EntropyLedgerEntry:
     based on claim analysis, not query length.
     """
     entry = EntropyLedgerEntry(label="before", total_claims=1)
+    q = (query or "").lower().strip()
 
     # Heuristics for ambiguity detection
     ambiguous_patterns = [
@@ -184,10 +185,18 @@ def estimate_entropy_from_query(query: str) -> EntropyLedgerEntry:
         "unclear",
         "unknown",
         "?",
+        "fix it",
+        "do it",
+        "handle it",
+        "whatever",
     ]
-    entry.unresolved_ambiguity = sum(1 for p in ambiguous_patterns if p in query.lower())
+    entry.unresolved_ambiguity = sum(1 for p in ambiguous_patterns if p in q)
 
-    # Scope bounding check
-    entry.unbounded_scope = len(query) < 20 and "?" in query
+    # Underspecified short imperatives = unbounded scope
+    entry.unbounded_scope = len(q) < 20 and (
+        "?" in q
+        or any(p in q for p in ("fix it", "do it", "handle it", "make it", "sort it"))
+        or q in {"fix", "help", "do", "update", "change"}
+    )
 
     return entry

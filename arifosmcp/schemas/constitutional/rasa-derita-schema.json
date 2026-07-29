@@ -9,7 +9,8 @@
   "confidence_cap": 0.9,
   "purpose": "Prevent agentic reproduction of betrayal, coercion, concealment and cascading harm",
   "status": "888_HOLD",
-  "status_reason": "Phase 1: constitutional schema landed in arifOS tree. NOT loaded by kernel boot. NOT enforced by arif_judge/forge. NOT VAULT-attested. SPECIFICATION FORGED; INSTALLATION NOT YET PROVEN.",
+  "phase": "PHASE2_SEMANTICS_REPAIRED",
+  "status_reason": "Phase 2: F2/F4/F5/F6 evaluators + scar fail-closed repaired in code. Schema not boot-loaded; cascade/consent not judge-mandatory; no VAULT INSTALLED_ENFORCED; public tools remain 8.",
   "kernel_complete_when": {
     "constitutional_matrix_populated": true,
     "schema_landed_in_repo": true,
@@ -18,7 +19,9 @@
     "consent_lease_enforced": false,
     "rasa_derita_evals_implemented": false,
     "public_surface_single_sot": false,
-    "conformance_receipts": false
+    "conformance_receipts": false,
+    "floor_evaluators_semantic": true,
+    "scar_fail_closed": true
   },
   "ontology_boundary": {
     "agent_has_lived_experience": false,
@@ -604,11 +607,9 @@
     "current_drift": "Plugin schema advertised arif_conformance_report but live surface rejected — only 8 canonical tools recognized",
     "fix": "Generate all tool manifests from single source: the live MCP tools/list endpoint"
   },
-  "phase": "PHASE1_LANDED",
-  "landed_at": "2026-07-29T17:28:56.464790+00:00",
   "canonical_path": "arifosmcp/schemas/constitutional/rasa-derita-schema.json",
   "installation": {
-    "committed": "pending_this_commit",
+    "committed": true,
     "loaded": false,
     "enforced": false,
     "tested_evals_executed": false,

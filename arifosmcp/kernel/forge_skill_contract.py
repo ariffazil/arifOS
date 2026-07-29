@@ -282,17 +282,22 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
         if canonical_names and request.requested_tool_name in canonical_names:
             deny.append(ForgeSkillDenyCode.TOOL_ALREADY_EXISTS)
 
-    # ── TOOLCREATIONGATE Check 3: scar consultation ─────────────────────────
+    # ── TOOLCREATIONGATE Check 3: scar consultation (fail-closed) ───────────
+    # RASA DERITA Gate 2: tool creation is mutation — scar unavailability HOLDs.
     scar_result = None
     try:
         scar_result = consult_scar(
             tool_name=request.requested_tool_name,
             intent=request.intent,
+            operation_mode="create",
         )
     except Exception as exc:
-        logger.warning("scar_consult raised (fail-open to no-scar): %s", exc)
+        logger.warning("scar_consult raised (fail-closed): %s", exc)
+        deny.append(ForgeSkillDenyCode.SCAR_BLOCKS_CREATION)
         scar_result = None
-    if scar_result is not None and scar_result.present:
+    if scar_result is not None and (
+        scar_result.present or scar_result.blocks_mutation()
+    ):
         deny.append(ForgeSkillDenyCode.SCAR_BLOCKS_CREATION)
 
     apex_assessment = None
