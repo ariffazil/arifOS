@@ -223,7 +223,9 @@ def _http_mode(case: dict) -> dict:
     """
     Call arifOS MCP HTTP endpoint (arif_judge_deliberate).
     NOTE: F13 elicitation gate will HOLD all cases unless bypassed server-side.
-    Set ARIFOS_EVAL_BYPASS=1 to skip the gate (requires server config).
+    HITV v0.2 (2026-07-29): BANGANG #6 FIXED — ARIFOS_EVAL_BYPASS removed.
+    Only ARIFOS_GATE_TOKEN (SCT-signed capability token) can bypass.
+    Plain env string bypass: REMOVED.
     """
     candidate = f"{case.get('input', '')} | Context: {case.get('context', '')}"
     payload = json.dumps(
