@@ -53,10 +53,13 @@ _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 # F4 extraction uses a text-generation model (not an embedding model).
 # bge-m3 was incorrectly used here; it cannot generate coherent text.
 _EXTRACTION_MODEL = os.getenv("F4_EXTRACTION_MODEL", "qwen2.5:3b")
-_PG_URL = os.getenv(
-    "ARIFOS_MEMORY_POSTGRES_URL",
-    "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999",
-)
+_PG_URL = os.getenv("ARIFOS_MEMORY_POSTGRES_URL")
+# P2 FIX (2026-07-29): Removed hardcoded credential fallback.
+# ARIFOS_MEMORY_POSTGRES_URL must be set in environment.
+# If absent, Postgres-dependent features will be gracefully unavailable.
+if not _PG_URL:
+    logger.warning("ARIFOS_MEMORY_POSTGRES_URL not set — Postgres-dependent F4 features disabled")
+    _PG_URL = None  # type: ignore[assignment]
 
 # ============================================================================
 # F4 Entity Extraction Output Schema
