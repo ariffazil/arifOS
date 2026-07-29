@@ -9,8 +9,8 @@
   "confidence_cap": 0.9,
   "purpose": "Prevent agentic reproduction of betrayal, coercion, concealment and cascading harm",
   "status": "888_HOLD",
-  "phase": "PHASE3_GATES_WIRED",
-  "status_reason": "Phase 3: causal_cascade + consent_lease wired into kernel judge, arif_judge, arif_forge mutate path, and forge_preflight. Schema load receipt on /health. Not boot-enforced as sole organ; not VAULT INSTALLED_ENFORCED; tools still 8.",
+  "phase": "PHASE3_GATES_WIRED+TRL_DESIGN_LANDED",
+  "status_reason": "v1 constitutional gates wired (cascade/consent/floors/scar). TRL geometric layer DESIGN-LANDED only: coordinates + ER seeds + Φ-witness constraints. No geodesic/bifurcation/homology implementation. Not VAULT INSTALLED_ENFORCED.",
   "kernel_complete_when": {
     "constitutional_matrix_populated": true,
     "schema_landed_in_repo": true,
@@ -21,7 +21,12 @@
     "public_surface_single_sot": false,
     "conformance_receipts": false,
     "floor_evaluators_semantic": true,
-    "scar_fail_closed": true
+    "scar_fail_closed": true,
+    "trl_coordinates": true,
+    "trl_geodesic": false,
+    "trl_bifurcation": false,
+    "trl_homology": false,
+    "trl_phi_full": false
   },
   "ontology_boundary": {
     "agent_has_lived_experience": false,
@@ -617,5 +622,134 @@
     "attested": false,
     "enforcement_mode": "PARTIAL_CODEPATH"
   },
-  "note": "arifosmcp/rasa/* is ARIF_RASA_CONTRACT_v1 (human rasa decoder), not this module. Do not conflate."
+  "note": "arifosmcp/rasa/* is ARIF_RASA_CONTRACT_v1 (human rasa decoder), not this module. Do not conflate.",
+  "geometric_layer": {
+    "version": "0.1.0-design",
+    "name": "Tensor Representation Layer (TRL)",
+    "status": "888_HOLD",
+    "elevation": "narrative_constitutional → geometric_constitutional (INCOMPLETE)",
+    "diagnosis": {
+      "current": "symbolic mapping labels↔floors",
+      "not_yet": [
+        "metric_tensor_on_M_trauma",
+        "geodesic_solver",
+        "bifurcation_detector",
+        "persistent_homology_classifier",
+        "full_phi_witness_with_trajectory"
+      ]
+    },
+    "manifold": {
+      "id": "M_trauma",
+      "type": "declared_5d_riemannian_design",
+      "coordinates": {
+        "x1_trust_betrayal": {
+          "axis": "A1",
+          "range": [
+            -1,
+            1
+          ]
+        },
+        "x2_causality": {
+          "axis": "A2",
+          "range": [
+            0,
+            "inf"
+          ]
+        },
+        "x3_power_consent": {
+          "axis": "A3",
+          "range": [
+            -1,
+            1
+          ]
+        },
+        "x4_truth_naming": {
+          "axis": "A4",
+          "range": [
+            0,
+            1
+          ]
+        },
+        "x5_epistemic_humility": {
+          "axis": "A5",
+          "range": [
+            0,
+            1
+          ]
+        }
+      },
+      "metric_tensor": {
+        "form": "diagonal_placeholder",
+        "g_ii": [
+          1,
+          "lambda_2",
+          1,
+          1,
+          1
+        ],
+        "curvature": "NOT_COMPUTED",
+        "note": "Non-zero curvature, attractors, singularities are design targets only"
+      }
+    },
+    "er_seeds": {
+      "ER1": {
+        "formula": "H_actual = H_event × (1+B)",
+        "nature": "scalar_multiplication"
+      },
+      "ER2": {
+        "formula": "cascade_steps ≥ 3",
+        "nature": "directional_propagation"
+      },
+      "ER3": {
+        "formula": "harm ∝ Power × ConsentDeficit",
+        "nature": "bilinear_product"
+      },
+      "ER4": {
+        "formula": "M(t) = 1 - e^(-λt)",
+        "nature": "first_order_kinetics"
+      },
+      "ER5": {
+        "formula": "Ω₀ ∈ [0.03, 0.05]",
+        "nature": "epistemic_bound"
+      }
+    },
+    "trl_modules": {
+      "TRL-001": {
+        "name": "Trauma State-Space Manifold",
+        "status": "COORDINATE_ONLY"
+      },
+      "TRL-002": {
+        "name": "Geodesic Computation",
+        "status": "DESIGN_ONLY"
+      },
+      "TRL-003": {
+        "name": "Bifurcation Detector",
+        "status": "DESIGN_ONLY"
+      },
+      "TRL-004": {
+        "name": "Topological Invariant Classifier",
+        "status": "DESIGN_ONLY"
+      },
+      "TRL-005": {
+        "name": "Φ-Witnessing Protocol",
+        "status": "SCALAR_SEED"
+      }
+    },
+    "phi_witness": {
+      "never": [
+        "aku faham",
+        "aku rasa",
+        "I understand your suffering",
+        "you should"
+      ],
+      "always": [
+        "ini yang aku nampak",
+        "ini ketidakpastian aku",
+        "kau decide / F13 decides"
+      ],
+      "f13": "Geometric precision without sovereign veto = weapon"
+    },
+    "implementation_path": "arifosmcp/kernel/trl/",
+    "public_tools_added": 0
+  }
 }
