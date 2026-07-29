@@ -776,31 +776,65 @@ def replay_chain(
 
 
 def derive_head(vault_dir: Path | str | None = None) -> dict[str, Any]:
-    """Head is derived from chain tail — never an independent freestyle seal."""
+    """Head is derived from chain tail — never an independent freestyle seal.
+
+    Prefers the last CANONICAL entry (F-004 envelope) for actor/timestamp/verdict metadata.
+    Falls back to last non-corrupt entry if no canonical entries exist.
+    Hash is the chain-level hash from verify_chain(canonical scope).
+    Sequence is the count of canonical entries.
+    """
     p = paths_for(vault_dir)
     lines = parse_chain_lines(p.chain) if p.chain.exists() else []
-    last: dict[str, Any] | None = None
+
+    # Find last canonical entry first, fall back to last non-corrupt
+    last_canon: dict[str, Any] | None = None
+    last_entry: dict[str, Any] | None = None
     for pl in reversed(lines):
-        if not pl.corrupt and pl.entry is not None:
-            last = pl.entry
+        if pl.corrupt or pl.entry is None:
+            continue
+        if last_entry is None:
+            last_entry = pl.entry
+        if is_canonical_entry(pl.entry):
+            last_canon = pl.entry
             break
+
+    # Use canonical if available, otherwise raw tail
+    last = last_canon if last_canon is not None else last_entry
+
+    # Count entries
+    total_entries = sum(1 for pl in lines if not pl.corrupt and pl.entry is not None)
+    canonical_entries = sum(
+        1
+        for pl in lines
+        if not pl.corrupt and pl.entry is not None and is_canonical_entry(pl.entry)
+    )
+
+    # Derive chain-level hash from verify — matches /999/verify endpoint
+    try:
+        vr = verify_chain(vault_dir, scope="canonical")
+        chain_hash = vr.head_hash
+    except Exception:
+        chain_hash = None
 
     if last is None:
         head = {
             "seq": 0,
-            "sequence": 0,
             "hash": GENESIS_PREV_HASH,
-            "receipt_hash": GENESIS_PREV_HASH,
-            "epoch": CANONICAL_EPOCH_ID,
             "status": "genesis",
             "derived": True,
+            "canonical_entries": 0,
+            "historical_entries": total_entries,
         }
     else:
+        entry_hash = entry_this_hash(last)
+        # Prefer chain-verified hash over single-entry hash
+        effective_hash = chain_hash or entry_hash or GENESIS_PREV_HASH
+        # Use canonical count for seq — monotonic, integer, externally verifiable
+        effective_seq = canonical_entries if canonical_entries > 0 else entry_sequence(last)
         head = {
-            "seq": entry_sequence(last),
-            "sequence": entry_sequence(last),
-            "hash": entry_this_hash(last),
-            "receipt_hash": entry_this_hash(last),
+            "seq": effective_seq,
+            "hash": effective_hash,
+            "receipt_hash": entry_hash,
             "receipt_id": last.get("receipt_id") or last.get("id"),
             "actor": last.get("actor_id") or last.get("actor"),
             "timestamp": last.get("timestamp") or last.get("epoch"),
@@ -808,6 +842,8 @@ def derive_head(vault_dir: Path | str | None = None) -> dict[str, Any]:
             "verdict": last.get("verdict", "SEAL"),
             "derived": True,
             "source": "chain_tail",
+            "canonical_entries": canonical_entries,
+            "historical_entries": total_entries,
         }
 
     # Cache derived head (overwrite freestyle head — F-004 alignment)
