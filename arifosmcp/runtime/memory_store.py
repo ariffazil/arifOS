@@ -155,14 +155,21 @@ _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest")
 # ADR-010: L4 canonical store is LOCAL Postgres (port 5432), not Supabase pooler.
 # ARIFOS_MEMORY_POSTGRES_URL was pointing to Supabase, causing recall failures.
-# Priority: POSTGRES_URL (local) > ARIFOS_MEMORY_POSTGRES_URL (env) > default (local)
-_PG_URL = os.getenv(
-    "POSTGRES_URL",
-    os.getenv(
-        "ARIFOS_MEMORY_POSTGRES_URL",
-        "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999",
-    ),
-)
+# Priority: POSTGRES_URL (local) > ARIFOS_MEMORY_POSTGRES_URL (env).
+# P0 FIX (2026-07-29): No hardcoded default. If neither env var is set,
+# memory degrades gracefully (read-only / Qdrant-projection-only) with
+# an audit log warning — never a daemon crash. The real credential lives
+# in kunci-mas.env, injected at runtime via systemd.
+_PG_URL = os.getenv("POSTGRES_URL") or os.getenv("ARIFOS_MEMORY_POSTGRES_URL")
+
+if not _PG_URL:
+    import logging
+
+    _logger = logging.getLogger(__name__)
+    _logger.warning(
+        "POSTGRES_URL unset — L4/L5 memory persistence degraded. "
+        "Memory writes will be Qdrant-only until the env var is configured."
+    )
 
 # Tier constants
 TIER_SACRED = "sacred"
@@ -1109,14 +1116,32 @@ def store(
     if not qdrant_ok:
         return {"stored": False, "memory_id": memory_id, "error": "qdrant_write_failed"}
 
+    # ── P0-3 FIX (2026-07-29): stored=true requires Postgres commit for governed quality ──
+    # Previously stored=true was returned based on Qdrant success alone.
+    # Postgres is now the canonical durable store. Qdrant is a rebuildable projection.
+    # For quick quality, stored=true is allowed Qdrant-only but is labelled non-canonical.
+    if normalised_quality == QUALITY_GOVERNED and not pg_ok:
+        return {
+            "stored": False,
+            "memory_id": memory_id,
+            "canonical": "failed",
+            "error": "postgres_commit_failed",
+            "detail": "Governed quality requires Postgres commit. Qdrant write succeeded but is non-canonical.",
+            "qdrant_projection": "written",
+            "pg_committed": False,
+        }
+
+    canonical_status = "committed" if pg_ok else "non-canonical"
     return {
         "stored": True,
         "memory_id": memory_id,
+        "canonical": canonical_status,
         "indexed": True,
         "point_id": point_id,
         "pg_id": pg_memory_id,
         "pg_ok": pg_ok,
-        "l5_status": l5_status,  # FEDERATION: Graphiti episode forge outcome
+        "qdrant_projection": "written",
+        "l5_status": l5_status,
         "tier": normalised_tier,
         "quality": normalised_quality,
         "backends": {"qdrant": qdrant_ok, "postgres": pg_ok, "graphiti": l5_status},
