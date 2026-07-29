@@ -1,7 +1,7 @@
 """
 Streamable HTTP Transport Entrypoint
 ═════════════════════════════════════
-Runs the arifOS MCP server over streamable HTTP (stateless).
+Runs the arifOS MCP server over streamable HTTP (stateful + JSON response).
 """
 
 from __future__ import annotations
@@ -16,14 +16,24 @@ from arifosmcp.server import GlobalPanicMiddleware, mcp
 
 def create_http_app():
     """Create and configure the HTTP ASGI app with gateway endpoints."""
-    app = mcp.http_app(stateless_http=True)
+    # Match production server.py: session IDs + JSON-RPC POST bodies.
+    app = mcp.http_app(stateless_http=False, json_response=True)
 
     app.add_middleware(GlobalPanicMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-        allow_headers=["X-API-Key", "Content-Type", "Authorization", "X-MCP-Protocol"],
+        allow_headers=[
+            "X-API-Key",
+            "Content-Type",
+            "Authorization",
+            "X-MCP-Protocol",
+            "MCP-Protocol-Version",
+            "Mcp-Session-Id",
+            "Accept",
+        ],
+        expose_headers=["Mcp-Session-Id", "MCP-Protocol-Version"],
     )
     return app
 
