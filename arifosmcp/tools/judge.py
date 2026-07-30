@@ -1039,19 +1039,55 @@ async def arif_judge(
             pass
 
     # ── F13 CHALLENGE AUTHORIZATION (public MCP wrapper chain) ─────────────
-    # Every MCP caller now hits the same handler. When actor_signature + nonce
-    # are present, verify the Ed25519-signed canonical challenge BEFORE any
-    # deliberation. This closes the wrapper chain mismatch where the public
-    # arif_judge surface previously had no F13 verification path.
+    # Every MCP caller now hits the same handler. Prefer HMAC-rootkey (same as
+    # arif_init Telegram/F13 ritual path), then Ed25519 challenge-response.
+    # Without HMAC-first, federation_ritual HMAC digests fail Ed25519 verify
+    # with CHALLENGE_UNKNOWN and permanently HOLD Lane A seals (2026-07-30).
     if actor_signature and nonce and actor_id:
         try:
-            from arifosmcp.runtime.crypto_auth import verify_authorization_challenge
+            _auth_ok = False
+            _auth_code = "CHALLENGE_UNKNOWN"
+            _auth_result: dict[str, Any] = {}
+            _auth_method = "none"
 
-            _auth_ok, _auth_code, _auth_result = verify_authorization_challenge(
-                actor=actor_id,
-                nonce=nonce,
-                signature_b64=actor_signature,
-            )
+            # 1) HMAC-rootkey (ariffazil / arif / 888)
+            try:
+                from arifosmcp.runtime.governance_identity import normalize_actor_id
+                from arifosmcp.runtime.sovereign_verify import verify_hmac_signature
+
+                _aid = normalize_actor_id(actor_id) or (
+                    actor_id.lower().strip() if actor_id else ""
+                )
+                _hmac_actor = (
+                    "ariffazil"
+                    if _aid in ("arif", "888", "ariffazil")
+                    else (actor_id or "")
+                )
+                _hmac_ok, _hmac_reason = verify_hmac_signature(
+                    actor_id=_hmac_actor,
+                    challenge=nonce,
+                    sig=actor_signature,
+                )
+                if _hmac_ok:
+                    _auth_ok = True
+                    _auth_code = "HMAC_OK"
+                    _auth_method = "hmac"
+                    _auth_result = {"reason": _hmac_reason}
+            except Exception as _hmac_err:
+                logger.debug("F13 HMAC path skipped: %s", _hmac_err)
+
+            # 2) Ed25519 challenge-response (fallback)
+            if not _auth_ok:
+                from arifosmcp.runtime.crypto_auth import verify_authorization_challenge
+
+                _auth_ok, _auth_code, _auth_result = verify_authorization_challenge(
+                    actor=actor_id,
+                    nonce=nonce,
+                    signature_b64=actor_signature,
+                )
+                if _auth_ok:
+                    _auth_method = "ed25519_challenge"
+
             if not _auth_ok:
                 return VerdictOutput(
                     verdict=VerdictCode.HOLD,
@@ -1060,8 +1096,8 @@ async def arif_judge(
                         _auth_result.get("reason", "Authorization could not be verified"),
                     ],
                     next_safe_action=(
-                        "Re-issue authorization challenge via _arif_kernel_intercept "
-                        "and sign with Ed25519 key before retrying"
+                        "Provide HMAC-rootkey signature (ARIFOS_ROOTKEY over nonce) "
+                        "or re-issue Ed25519 challenge via _arif_kernel_intercept"
                     ),
                     meta={
                         "gate": "F13_CHALLENGE_AUTH",
@@ -1072,8 +1108,9 @@ async def arif_judge(
                     },
                 )
             logger.info(
-                "F13: arif_judge challenge authorization PASS — actor=%s session=%s",
+                "F13: arif_judge challenge authorization PASS — actor=%s method=%s session=%s",
                 actor_id,
+                _auth_method,
                 session_id or "(none)",
             )
         except Exception as _f13_err:

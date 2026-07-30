@@ -972,7 +972,8 @@ def _check_policy_floors(
 
 
 # ── Nonce replay-protection cache (Floor 11b) ───────────────────────────────
-import re as _NONCE_RE
+import re
+import re as _NONCE_RE  # alias retained for nonce validators
 import threading as _threading
 
 _NONCE_TTL_SECONDS = 86400  # 24h

@@ -1920,7 +1920,63 @@ def arif_init(
         identity_verified = False
         # Wire_ArifInit_Signature_To_Session_v1: unified crypto bind
         # Accepts both crypto_auth payload and kernel identity/verify payload.
+        # HMAC-rootkey FIRST (Telegram/F13 ritual path) — Ed25519 second.
+        # Without HMAC-first, federation_ritual HMAC digests fail Ed25519 verify
+        # and standing collapses to OBSERVE_ONLY even for ARIF.
         if actor_id and nonce and actor_signature:
+            try:
+                from arifosmcp.runtime.sovereign_verify import verify_hmac_signature
+
+                _hmac_actor = normalize_actor_id(actor_id) or (
+                    actor_id.lower().strip() if actor_id else ""
+                )
+                # HMAC path requires actor_id == "ariffazil" (sovereign_verify contract)
+                _hmac_try = (
+                    "ariffazil"
+                    if _hmac_actor in ("arif", "888", "ariffazil")
+                    else (actor_id or "")
+                )
+                _hmac_ok, _hmac_reason = verify_hmac_signature(
+                    actor_id=_hmac_try,
+                    challenge=nonce,
+                    sig=actor_signature,
+                )
+                if _hmac_ok:
+                    identity_verified = True
+                    sess["signature_verified"] = True
+                    sess["verified"] = True
+                    sess["verification_method"] = "hmac"
+                    sess["evidence_ref"] = f"hmac://{_hmac_reason}"
+                    sess["identity_verify_reason"] = _hmac_reason
+                    sess["actor_band"] = "FULL"
+                    sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
+                    sess.setdefault("auth_context", {})
+                    if isinstance(sess.get("auth_context"), dict):
+                        sess["auth_context"]["verification_method"] = "hmac"
+                        sess["auth_context"]["auth_method"] = "hmac"
+                    try:
+                        from arifosmcp.runtime.authority import bind_authority_state
+                        from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                            build_authority_state_for_actor,
+                        )
+
+                        _av_state = build_authority_state_for_actor(
+                            actor_id,
+                            verified=True,
+                            verification_method="hmac",
+                        )
+                        bind_authority_state(sess, _av_state)
+                    except Exception:
+                        pass
+                    logger.info(
+                        "init-mode HMAC-rootkey bind actor=%s reason=%s → FULL",
+                        actor_id,
+                        _hmac_reason,
+                    )
+            except Exception as _hmac_exc:
+                logger.debug("init-mode HMAC bind skipped: %s", _hmac_exc)
+
+        if actor_id and nonce and actor_signature and not identity_verified:
             try:
                 from arifosmcp.runtime.crypto_auth import (
                     classify_actor_band,
@@ -2206,8 +2262,19 @@ def arif_init(
             sess["verdict"] = "OBSERVE_ONLY"
             authority_level = "ANONYMOUS"
             sess.setdefault("agent_class", "UNVERIFIED")
+        # Persist authority onto session record so compose_standing can derive band
+        # (it reads runtime_authority / authority_level / authority / actor_band).
+        sess["authority_level"] = authority_level
+        sess["runtime_authority"] = _derived_auth
 
         # ── Workstream 1: Canonical AuthorityState ──────────────────
+        # Prefer method already proven on sess (hmac / ed25519 / system_exempt).
+        # Do not downgrade hmac → "signature" or system_exempt → "identity_claim".
+        _vm_for_auth = sess.get("verification_method") or (
+            "signature"
+            if (nonce and actor_signature and identity_verified)
+            else ("identity_claim" if identity_verified else "none")
+        )
         _auth_state = compute_authority_state(
             actor_id=actor_id or "",
             actor_verified=bool(identity_verified),
@@ -2217,15 +2284,16 @@ def arif_init(
             session_bound=True,
             actor_bound=bool(identity_verified),
             authority_band=_derived_auth,
-            verification_method="signature"
-            if (nonce and actor_signature and identity_verified)
-            else ("identity_claim" if identity_verified else "none"),
+            verification_method=str(_vm_for_auth),
             verification_reason=(
-                "cryptographically_verified"
-                if (nonce and actor_signature and identity_verified)
-                else "identity_claim_accepted"
-                if identity_verified
-                else "identity_not_verified"
+                sess.get("identity_verify_reason")
+                or (
+                    "cryptographically_verified"
+                    if (nonce and actor_signature and identity_verified)
+                    else "identity_claim_accepted"
+                    if identity_verified
+                    else "identity_not_verified"
+                )
             ),
         )
         sess["authority_state"] = _auth_state
