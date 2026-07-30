@@ -141,42 +141,17 @@ async def _arifos_prompt_render(self, arguments=None, context=None):  # type: ig
 
 _FastMCPPrompt.render = _arifos_prompt_render  # type: ignore[method-assign]
 
-
-# FastMCP's get_prompt() wraps any Exception (including our McpError) in a new
-# ValueError, which the transport layer maps to -32603 INTERNAL_ERROR. To
-# preserve the McpError code raised by our render wrapper above, wrap the
-# FastMCP.get_prompt method and re-raise the McpError on its way out.
-import functools as _ft  # noqa: E402
-
-
-def _patch_get_prompt(fastmcp_cls: type) -> None:
-    if getattr(fastmcp_cls, "_arifos_prompt_rewrap_installed", False):
-        return
-    original = fastmcp_cls.get_prompt  # type: ignore[attr-defined]
-
-    @_ft.wraps(original)
-    async def _arifos_get_prompt(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-        try:
-            return await original(self, *args, **kwargs)
-        except McpError:
-            # Already a proper protocol error (e.g. -32602 from render) — let
-            # it surface with its original code.
-            raise
-        except ValueError as exc:
-            # FastMCP's get_prompt() re-wraps every prompt error as
-            # ValueError(str(original)), which the transport maps to -32603.
-            # For prompts, every failure path is a parameter problem, so we
-            # promote them all to -32602 Invalid params. (The McpError raised
-            # by our render wrapper above flows through McpError, not here.)
-            raise McpError(
-                ErrorData(code=-32602, message=str(exc)),
-            ) from exc
-
-    fastmcp_cls.get_prompt = _arifos_get_prompt  # type: ignore[method-assign]
-    fastmcp_cls._arifos_prompt_rewrap_installed = True  # type: ignore[attr-defined]
-
-
-_patch_get_prompt(FastMCP)
+# NOTE: An earlier revision of this file also wrapped FastMCP.get_prompt to
+# re-raise McpError(-32602) when prompts/get surfaced as ValueError. That
+# patch was backed out 2026-07-30 because the deeper layer
+# (streamable_http.py:602) catches any exception during response dispatch and
+# creates an INTERNAL_ERROR response, overriding the McpError code. The
+# correct fix is upstream in FastMCP — the framework's get_prompt() rewrites
+# every exception as ValueError and the transport hardcodes -32603 for
+# non-McpError flows. The kernel message ("Invalid params: Missing required
+# arguments: ...") is now correct; only the numeric JSON-RPC code remains
+# stuck at -32603 until FastMCP ships the fix. F1 AMANAH: do not hack the
+# venv. Filed as a tracked defect against the framework contract.
 
 from pathlib import Path
 
