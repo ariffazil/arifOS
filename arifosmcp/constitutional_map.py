@@ -859,7 +859,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
-        "modes": ["seal", "verify", "ledger", "changelog", "audit"],
+        "modes": ["seal", "verify", "ledger", "changelog", "audit", "session_close"],
         "eureka_insight": (
             "ZEN-9: seal restored to public surface — 999 needs its verb. "
             "Gödel break: 999 cannot authorize 000. Only sovereign heartbeat. "
@@ -867,32 +867,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ),
         "cognitive_axis": "seal",
         "expose": True,  # ZEN-9 collapse 2026-07-04: restored to public surface
-    },
-    # ── arif_verify removed from CANONICAL_TOOLS 2026-07-18 (F-003) ──
-    # arif_verify is NOT a separate constitutional capability. It is the
-    # `_arif_ed25519_verify_tool` Python function (live MCP) which is a
-    # callable, but the canonical capability is reached via
-    # `arif_seal mode="verify"` for SEAL-token verification. The live
-    # `_arif_verify_tool` (JITU SEAL-token gate) lives only as a Python
-    # handle and HTTP /kernel/arif_verify, never on the canonical surface.
-    "arif_seal": {
-        "lane": TrinityLane.AGI,
-        "floors": [
-            Law.L01_AMANAH,
-            Law.L02_TRUTH,
-            Law.L11_AUDIT,
-            Law.L12_INJECTION,
-            Law.L13_SOVEREIGN,
-        ],
-        "risk_tier": "medium",
-        "irreversible": False,
-        "modes": ["ed25519_verify"],
-        "eureka_insight": (
-            "Identity = cryptographic, not declarative. arif_verify closes the gap between "
-            "claimed and proven actor identity. Without it, authority bands are theatre."
-        ),
-        "cognitive_axis": "verify",
-        "expose": True,  # AAA Wave 2: live MCP surface for Ed25519 ceremony
     },
     "arif_challenge": {
         "name": "arif_challenge",
