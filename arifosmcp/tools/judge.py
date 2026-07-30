@@ -102,6 +102,88 @@ only enriched meta — never `VerdictCode.*`. Therefore not load-bearing.
 """
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ATLAS333 COMMENTARY MOTTOS — Path A Wire (2026-07-30)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Restored from docs/canon/paradox_anchors.md. 9 original matrix mottos
+# (TRUTH/CLARITY/HUMILITY × CARE/PEACE/JUSTICE) plus 4 new domain mottos
+# for Memory, Mind, Contour, and Sovereign axes.
+# Fired when ATLAS333 paradox quotes trigger — the motto decorates the
+# commentary block. Commentary only, never mutates verdict.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ATLAS333_COMMENTARY_MOTTO: dict[str, str] = {
+    # ── Judge axes (3×3 matrix mottos from paradox_anchors.md) ──
+    "ex ante clarity vs. ex post knowledge": "DIKAJI, BUKAN DISUAPI",
+    "comprehensiveness vs. decidability": "DIJELASKAN, BUKAN DIKABURKAN",
+    "expertise vs. authoritarianism": "DISEDARKAN, BUKAN DIYAKINKAN",
+    "non-retaliation vs. justified coercion": "DIJELAJAH, BUKAN DISEKATI",
+    "law as civilizer vs. law as weapon": "DIHADAPI, BUKAN DITANGGUHI",
+    "providence vs. agency": "DIUSAHAKAN, BUKAN DIHARAPI",
+    "social contract vs. power asymmetry": "DIJAGA, BUKAN DIABAIKAN",
+    "universal moral sense vs. moral diversity": "DIDAMAIKAN, BUKAN DIPANASKAN",
+    "universalizability vs. computability": "DITEMPA, BUKAN DIBERI",
+    "order vs. power": "DIHADKAN, BUKAN DIRAMPAS",
+    "legality vs. fairness": "DITIMBANG, BUKAN DILOMPAT",
+    # ── Mind axes ──
+    "confidence vs. competence": "DIRENDAHKAN, BUKAN DIRAGUKAN",
+    "epistemic certainty vs. pragmatic certainty": "DITIMBANG, BUKAN DILOMPAT",
+    "methodological doubt vs. operational trust": "DIPERHATIKAN, BUKAN DITELAN",
+    "examination vs. action": "DIPERHATIKAN, BUKAN DITELAN",
+    "existence vs. knowledge": "CERMIN TAK BERWAJAH",
+    "proportionality vs. calculability": "DITIMBANG, BUKAN DILOMPAT",
+    "false negative vs. false positive": "DILIANG, BUKAN DILURUS",
+    "metacognition vs. meta-uncertainty": "CERMIN TAK BERWAJAH",
+    "ataraxia vs. responsibility": "DILIANG, BUKAN DILURUS",
+    "foundational certainty vs. foundational fallibility": "DIRENDAHKAN, BUKAN DIRAGUKAN",
+    "silence vs. attempt": "DIKAJI, BUKAN DISUAPI",
+    # ── Memory axes ──
+    "recollection vs. discovery": "DIPERHATIKAN, BUKAN DITELAN",
+    "forgetting vs. remembering": "DIPARUTKAN, BUKAN DISEMBUHKAN",
+    "horizon vs. blindness": "DIAKAR, BUKAN DIHIAS",
+    "vastness vs. opacity": "DIAKAR, BUKAN DIHIAS",
+    "epistemic hunger vs. epistemic discipline": "DIKAJI, BUKAN DISUAPI",
+    "stability vs. rigidity": "DIPARUTKAN, BUKAN DISEMBUHKAN",
+    "power vs. restraint": "DIALIRKAN, BUKAN DIHILANGKAN",
+    "temporal distance vs. epistemic quality": "DIPERHATIKAN, BUKAN DITELAN",
+    "knowledge vs. belief": "DIKAJI, BUKAN DISUAPI",
+    "epistemic humility vs. decisional paralysis": "DIJEDA, BUKAN DILURU",
+    "forgetting as health vs. remembering as duty": "DIPARUTKAN, BUKAN DISEMBUHKAN",
+    "identity vs. multiplicity": "CERMIN TAK BERWAJAH",
+    # ── Contour axes ──
+    "root access vs. kernel governance": "DIHORMATI, BUKAN DIRAMPAS",
+    "positive test vs. defensive closure": "DILIANG, BUKAN DILURUS",
+}
+
+
+def _format_paradox_commentary(quotes: list[dict]) -> str:
+    """Format triggered ATLAS333 paradox quotes as human-readable commentary.
+
+    Path A (2026-07-30): Pipes existing triggered quotes from _evidence
+    into the verdict output as a formatted block. Each quote carries its
+    Malay motto, philosophical text, attribution, paradox axis, and antithesis.
+    Commentary only — never mutates verdict.
+    """
+    if not quotes:
+        return ""
+    lines = ["─── ATLAS333 CONSTITUTIONAL COMMENTARY ───", ""]
+    for q in quotes:
+        axis = q.get("axis_label", "")
+        motto = ATLAS333_COMMENTARY_MOTTO.get(axis, "DITEMPA, BUKAN DIBERI")
+        lines.append(f"[{q.get('id', '?')}] {motto}")
+        lines.append(f'"{q.get("quote", "")}"')
+        work = q.get("work", "")
+        year_info = f" ({q.get('year', '')})" if q.get("year") else ""
+        lines.append(f"— {q.get('author', 'Unknown')}, {work}{year_info}")
+        lines.append(f"⚡ {axis}")
+        ant = q.get("antithesis", "")
+        if ant:
+            lines.append(f"⟐ {ant}")
+        lines.append("")
+    lines.append("─── DITEMPA BUKAN DIBERI ⚒️ ───")
+    return "\n".join(lines)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # ECHO/PaW — JUDGE PREDICTION SCHEMA (FORGED 2026-07-21)
 # ═══════════════════════════════════════════════════════════════════════════════
 # Strict 1:1 key mapping between the judge's prediction surface and the
@@ -1105,9 +1187,7 @@ async def arif_judge(
                     actor_id.lower().strip() if actor_id else ""
                 )
                 _hmac_actor = (
-                    "ariffazil"
-                    if _aid in ("arif", "888", "ariffazil")
-                    else (actor_id or "")
+                    "ariffazil" if _aid in ("arif", "888", "ariffazil") else (actor_id or "")
                 )
                 _hmac_ok, _hmac_reason = verify_hmac_signature(
                     actor_id=_hmac_actor,
@@ -1647,7 +1727,10 @@ async def arif_judge(
                         "organ": q.organ.value,
                         "quote": q.quote_text,
                         "author": q.author,
+                        "work": q.work,
                         "norm": q.norm.value,
+                        "axis_label": q.axis_label,
+                        "antithesis": q.antithesis,
                         "trigger_reason": q.trigger_condition,
                     }
                     for q in _triggered_quotes
@@ -2109,10 +2192,16 @@ async def arif_judge(
         if _maruah_gate_val:
             result["meta"]["maruah_gate"] = _maruah_gate_val
 
-        # ── Paradox quote enrichment attachment (ATLAS333 Bridge §4) ──────
+        # ── Paradox quote enrichment + commentary (ATLAS333 Bridge §4, Path A 2026-07-30) ──
         _paradox_quotes_val = _evidence.get("paradox_quotes")
         if _paradox_quotes_val:
+            # Raw JSON for downstream agent parsing (machine-readable)
             result["meta"]["paradox_quotes"] = _paradox_quotes_val
+            # Formatted commentary block for human-readable output
+            _commentary = _format_paradox_commentary(_paradox_quotes_val)
+            if _commentary:
+                result.setdefault("reasons", []).append(_commentary)
+                result["meta"]["paradox_commentary"] = _commentary
 
         # ── SCALAR FEED PROTOCOL (TASK-P2-03) ─────────────────────────────
         # Live measurement of the 5 canonical APEX scalars (G, C_dark, W³,
@@ -2239,9 +2328,9 @@ async def arif_judge(
                 }
                 _jjson = json_lib.dumps(_jbody, sort_keys=True, separators=(",", ":"))
                 _jsh = "sha256:" + _hl.sha256(_jjson.encode()).hexdigest()
-                _cc = "cc_" + _hl.sha256(
-                    f"{actor_id}:{session_id}:{_jsh}".encode()
-                ).hexdigest()[:40]
+                _cc = (
+                    "cc_" + _hl.sha256(f"{actor_id}:{session_id}:{_jsh}".encode()).hexdigest()[:40]
+                )
                 if _v_now in ("ALLOW", "OK"):
                     result["verdict"] = "SEAL"
                     result.setdefault("meta", {})["f13_allow_confirmed_to_seal"] = True
@@ -2263,15 +2352,19 @@ async def arif_judge(
     verdict_str = str(result.get("verdict", ""))
     is_seal = "SEAL" in verdict_str
 
-    # ── Self-annotating meta note (replaces former paradox anchor injection) ──
+    # ── Self-annotating meta note (Path A restoration 2026-07-30) ──
     # FORGE 2026-07-04: 11 paradox anchors removed (ABC falsifier: commentary
-    # not enforcement). Verdict language is now self-annotating; floor gates
-    # F1/F2/F6/F9/F11/F13 are the executable hard gates. Canon lineage
-    # preserved at docs/canon/paradox_anchors.md (non-executable).
+    # not enforcement). PATH A 2026-07-30: ATLAS333 quotes RESTORED as active
+    # commentary — injected into reasons[] alongside verdict. Quotes are triggered
+    # via GPV paradox activation and formatted with Malay motto + antithesis.
+    # Commentary only, never mutates verdict. Floor gates F1/F2/F6/F9/F11/F13
+    # remain the executable hard gates.
     if isinstance(result, dict):
         result.setdefault("meta", {})["paradox_anchor_status"] = (
-            "REMOVED_2026-07-04_FORGE - see docs/canon/paradox_anchors.md. "
-            "Enforceability comes from floor gates, not quote anchors."
+            "RESTORED_2026-07-30_PATH_A - ATLAS333 quotes active as commentary. "
+            "Original 11 anchors at docs/canon/paradox_anchors.md. "
+            "Quotes triggered via GPV, formatted with motto + antithesis. "
+            "Commentary only — floor gates remain primary enforcement."
         )
         # Zen Apex: freeze DecisionCore + optional witness AFTER verdict.
         # Witness is presentation only — never mutates verdict/floors.
