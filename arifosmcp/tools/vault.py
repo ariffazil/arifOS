@@ -11,6 +11,7 @@ Contains:
 
 from __future__ import annotations
 
+import logging
 import hashlib
 from typing import Any, Literal
 
@@ -20,6 +21,8 @@ from arifosmcp.models.verdicts import Verdict
 # _arif_vault_seal_tool) dropped that kwarg 2026-07-07 — do not call it here.
 from arifosmcp.runtime.tools import _arif_vault_seal
 from arifosmcp.schemas.verdict import SealOutput
+
+logger = logging.getLogger(__name__)
 
 
 async def arif_seal(
