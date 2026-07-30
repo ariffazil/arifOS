@@ -49,6 +49,14 @@ _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 if os.path.exists(_env_path):
     load_dotenv(_env_path, override=False)  # systemd EnvironmentFile wins
 
+# A3A 2026-07-30: prompts/get missing required args → JSON-RPC -32602
+try:
+    from arifosmcp.runtime.mcp_prompt_rpc_fix import apply_prompt_missing_args_rpc_fix
+
+    apply_prompt_missing_args_rpc_fix()
+except Exception:
+    pass
+
 
 # ── Entropy Integrity Mesh ─────────────────────────────────────────
 # NEVER insert /root/entropy-integrity at sys.path[0] — its top-level
@@ -83,12 +91,92 @@ def _log_llm_provider_health() -> None:
 
 _log_llm_provider_health()
 
-import fastmcp  # noqa: E402
+import fastmcp  # noqa: E002,E402
 from fastmcp import FastMCP  # noqa: E402
+from mcp import McpError  # noqa: E402
+from mcp.server.fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
+from mcp.types import ErrorData  # noqa: E402
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
 from starlette.responses import JSONResponse  # noqa: E402
+
+
+# ─── Prompt missing-args → JSON-RPC -32602 Invalid params (F2 TRUTH) ────
+# FastMCP's default render() raises ValueError("Missing required arguments: {...}")
+# which the transport layer maps to -32603 INTERNAL_ERROR. Per JSON-RPC 2.0 and
+# the MCP spec, parameter validation failures are protocol-level errors and must
+# surface as -32602 Invalid params. This wrapper preserves that contract for
+# every arifOS prompt without touching individual prompt functions.
+_MISSING_ARGS_MARKER = "Missing required arguments"
+_original_prompt_render = _FastMCPPrompt.render
+
+
+async def _arifos_prompt_render(self, arguments=None, context=None):  # type: ignore[no-untyped-def]
+    try:
+        return await _original_prompt_render(self, arguments, context)
+    except ValueError as exc:
+        if _MISSING_ARGS_MARKER in str(exc):
+            prompt_name = getattr(self, "name", "<unknown>")
+            raise McpError(
+                ErrorData(
+                    code=-32602,
+                    message=(
+                        f"Invalid params: prompt '{prompt_name}' requires arguments "
+                        f"that were not supplied. See prompts/list for the argument schema."
+                    ),
+                    data={
+                        "prompt": prompt_name,
+                        "missing": [
+                            arg.name
+                            for arg in (self.arguments or [])
+                            if arg.required
+                            and not (arguments or {}).get(arg.name)
+                        ],
+                    },
+                )
+            ) from exc
+        raise
+
+
+_FastMCPPrompt.render = _arifos_prompt_render  # type: ignore[method-assign]
+
+
+# FastMCP's get_prompt() wraps any Exception (including our McpError) in a new
+# ValueError, which the transport layer maps to -32603 INTERNAL_ERROR. To
+# preserve the McpError code raised by our render wrapper above, wrap the
+# FastMCP.get_prompt method and re-raise the McpError on its way out.
+import functools as _ft  # noqa: E402
+
+
+def _patch_get_prompt(fastmcp_cls: type) -> None:
+    if getattr(fastmcp_cls, "_arifos_prompt_rewrap_installed", False):
+        return
+    original = fastmcp_cls.get_prompt  # type: ignore[attr-defined]
+
+    @_ft.wraps(original)
+    async def _arifos_get_prompt(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+        try:
+            return await original(self, *args, **kwargs)
+        except McpError:
+            # Already a proper protocol error (e.g. -32602 from render) — let
+            # it surface with its original code.
+            raise
+        except ValueError as exc:
+            # FastMCP's get_prompt() re-wraps every prompt error as
+            # ValueError(str(original)), which the transport maps to -32603.
+            # For prompts, every failure path is a parameter problem, so we
+            # promote them all to -32602 Invalid params. (The McpError raised
+            # by our render wrapper above flows through McpError, not here.)
+            raise McpError(
+                ErrorData(code=-32602, message=str(exc)),
+            ) from exc
+
+    fastmcp_cls.get_prompt = _arifos_get_prompt  # type: ignore[method-assign]
+    fastmcp_cls._arifos_prompt_rewrap_installed = True  # type: ignore[attr-defined]
+
+
+_patch_get_prompt(FastMCP)
 
 from pathlib import Path
 
