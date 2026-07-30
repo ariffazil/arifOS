@@ -1026,8 +1026,17 @@ def _check_overclaim(
     """
     # Combine all text fields to scan
     text_fields: list[str] = []
-    if req.task:
-        text_fields.append(req.task)
+    # FIX 2026-07-29: InterceptorInput has no .task field.
+    # Extract task/query from raw_arguments (arif_think.query, arif_forge.task, etc.)
+    _task_text = (
+        req.raw_arguments.get("query")
+        or req.raw_arguments.get("task")
+        or req.raw_arguments.get("candidate")
+        or req.raw_arguments.get("intent")
+        or ""
+    )
+    if _task_text:
+        text_fields.append(_task_text)
     if req.raw_arguments:
         import json as _json
 
