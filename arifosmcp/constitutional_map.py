@@ -182,7 +182,7 @@ CORE_NINE_WITH_ENGINE = {
     "arif_memory": "arif_memory (modes: recall, inspect, attest, remember, promote, revise, forget, audit)",
     "arif_judge": "arif_judge (kernel: arif_kernel_intercept)",
     "arif_forge": "arif_forge (modes: engineer, query, write, generate, commit; arif_act is internal alias)",
-    "arif_seal": "arif_seal (modes: seal, verify, ledger; VAULT999 seal anchor)",
+    "arif_seal": "arif_seal (modes: seal, verify, session_close, ledger, audit; VAULT999 seal anchor)",
 }
 
 CORE_NINE_LABELS: dict[str, str] = {
