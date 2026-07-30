@@ -376,11 +376,15 @@ def _parse_event_epoch(event: dict[str, Any]) -> float | None:
     return None
 
 
-def hydrate_test_cache_from_durable_bus(*, limit: int = 5000) -> int:
+def hydrate_test_cache_from_durable_bus(*, limit: int = 50_000) -> int:
     """Merge durable operation SUCCESS events into the capability test cache.
 
     Returns number of public tools updated. F2 honesty: only SUCCESS/ok/pass
     statuses count as proven; STARTED alone never does.
+
+    Default limit raised 5k → 50k (2026-07-30): operations.log + receipts.log
+    combined exceeds 5k lines, so the old window was mostly receipts and
+    missed recent arif_* SUCCESS operations — proven_live stuck at 3/8.
     """
     try:
         from arifosmcp.runtime.event_bus import read_durable_events
