@@ -1362,6 +1362,19 @@ def arif_observe(
         vitals["organs_alive"] = sum(1 for o in organs.values() if o.get("alive"))
         vitals["organs_total"] = len(_ORGANS)
 
+        # ── FIX #6: Fail loudly on empty organ output (STABILIZATION-7) ──
+        # If no actual telemetry was captured (all /proc reads failed),
+        # return HOLD instead of a successful-looking empty envelope.
+        _vital_keys = {"load_1m", "mem_used_pct", "disk_used_pct", "io_pressure", "uptime_hours"}
+        _has_vitals = any(k in vitals and vitals[k] != -1 for k in _vital_keys)
+        if not _has_vitals and vitals.get("organs_alive", 0) == 0:
+            return _hold(
+                "arif_observe",
+                "EMPTY_VITALS: all /proc reads failed and 0 organs probed. "
+                "Cannot return meaningful telemetry. Check /proc mount and organ health.",
+                floors=["F2", "F6"],
+            )
+
         return _ok("arif_observe", vitals)
     if mode == "organ_health":
         # EUREKA 5 (2026-07-30): Standalone organ health probe.
