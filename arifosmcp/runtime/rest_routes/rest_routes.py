@@ -2225,7 +2225,7 @@ _CRITICAL_MODULES = [
     "arifosmcp/runtime/tools.py",
     "arifosmcp/runtime/forge_preflight.py",
     "arifosmcp/core/conflict_resolver.py",
-    "arifosmcp/core/crypto_auth/__init__.py",
+    "arifosmcp/runtime/crypto_auth.py",
 ]
 
 
@@ -3176,15 +3176,26 @@ def register_rest_routes(
             # ── P1 State Axes — separate four independent dimensions ────
             # OBSERVE_ONLY + UNSEALED + NOT_EVALUATED is a healthy observation,
             # not a HOLD. These four axes prevent false failure signals.
+            # ── ChatGPT Audit Fix (2026-07-30): actor_verified conflated 3 concepts ──
+            # Now returns separated identity fields per F2/F11.
+            # identity_declared: did they claim an ID?
+            # identity_authenticated: did they prove it cryptographically?
+            # authority_level: what can they actually do?
             "state_axes": {
                 "session_authority": "OBSERVE_ONLY",
                 "evidence_state": "VALID",
                 "action_judgment": "NOT_EVALUATED",
                 "receipt_state": "UNSEALED",
                 "overall_health": "PASS",
+                # Separated identity fields (replaces conflated actor_verified)
+                "identity_declared": True,
+                "identity_authenticated": False,
+                "authority_level": "OBSERVE_ONLY",
+                # Legacy compat — remove 2026-09-30
                 "actor_verified": True,
                 "invariants": [
-                    "actor_verified=true implies session_authority != UNVERIFIED",
+                    "identity_authenticated=false does not block observation",
+                    "identity_declared + identity_authenticated + authority_level are independent axes",
                     "action_judgment=APPROVED requires receipt_state=SEALED",
                     "evidence_state=UNKNOWN does not trigger action_judgment=HOLD",
                 ],

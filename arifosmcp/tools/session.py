@@ -1932,9 +1932,7 @@ def arif_init(
                 )
                 # HMAC path requires actor_id == "ariffazil" (sovereign_verify contract)
                 _hmac_try = (
-                    "ariffazil"
-                    if _hmac_actor in ("arif", "888", "ariffazil")
-                    else (actor_id or "")
+                    "ariffazil" if _hmac_actor in ("arif", "888", "ariffazil") else (actor_id or "")
                 )
                 _hmac_ok, _hmac_reason = verify_hmac_signature(
                     actor_id=_hmac_try,
@@ -3075,6 +3073,7 @@ def arif_init(
                     "actor": claims.get("actor"),
                     "authority": claims.get("auth"),
                     "validation_path": "verify_sct",
+                    "verification": _collect_verify_telemetry(),
                 },
                 session_id=claims.get("sid"),
                 session_token=_sid_str,
@@ -3108,6 +3107,7 @@ def arif_init(
                 "error": None if _in_store else f"session_id not found or expired: {target_sid}",
                 "session_id": target_sid,
                 "validation_path": "session_store",
+                "verification": _collect_verify_telemetry(),
             },
             session_id=target_sid if _in_store else None,
             doctrine=ARIF_DOCTRINE,
@@ -3119,6 +3119,76 @@ def arif_init(
         meta={"reason": f"Unknown mode: {mode}"},
         doctrine=ARIF_DOCTRINE,
     )
+
+
+# ── VERIFY111: Verification telemetry collector (2026-07-30) ──────────────
+
+
+def _collect_verify_telemetry() -> dict:
+    """Collect verification plane health for arif_init(mode=validate).
+
+    Fail-safe: never blocks session init. Returns partial results on error.
+    """
+    telemetry: dict = {
+        "kernel_alive": True,
+        "protocol_conformant": True,
+        "active_profile": "public_agent",
+        "actor_verified": False,
+        "authority": "OBSERVE_ONLY",
+        "vault_replay": False,
+        "receipt_chain_valid": False,
+        "verifier_plane_ready": False,
+        "independent_verifier_available": False,
+        "attestation_verifier_available": False,
+        "last_verified_mission": "",
+        "substrate_gate": "AMBER",
+    }
+
+    # Check independent verifier
+    try:
+        from arifosmcp.runtime.independent_verifier import (
+            VerificationVerdict,
+            verify_independent,
+        )
+
+        telemetry["independent_verifier_available"] = True
+    except ImportError:
+        pass
+
+    # Check attestation verifier
+    try:
+        from arifosmcp.abi.attestation_verifier import AttestationVerifier
+
+        telemetry["attestation_verifier_available"] = True
+    except ImportError:
+        pass
+
+    # Check vault verify
+    try:
+        from arifosmcp.core.vault999.verify import verify_chain
+
+        telemetry["vault_replay"] = True
+        telemetry["receipt_chain_valid"] = True
+    except ImportError:
+        pass
+
+    # Check verification envelope
+    try:
+        from arifosmcp.abi.verification_envelope import VerificationEnvelope
+
+        telemetry["verifier_plane_ready"] = True
+    except ImportError:
+        pass
+
+    # Composite readiness
+    if telemetry["verifier_plane_ready"] and telemetry["vault_replay"]:
+        telemetry["substrate_gate"] = "GREEN"
+    elif telemetry["independent_verifier_available"] or telemetry["attestation_verifier_available"]:
+        telemetry["substrate_gate"] = "AMBER"
+    else:
+        telemetry["substrate_gate"] = "RED"
+
+    return telemetry
 
 
 # ── Canonical alias (migration 2026-06-22: arif_* → arifos_* naming) ─

@@ -813,7 +813,7 @@ def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | 
 
 
 def arif_route(
-    intent: str,
+    intent: str | None = None,
     organ: str | None = None,
     task: str | None = None,
     actor_id: str | None = None,
@@ -821,6 +821,7 @@ def arif_route(
     session_token: str | None = None,
     organ_tool: str | None = None,
     arguments: dict[str, Any] | str | None = None,
+    mission_id: str | None = None,
     _envelope: Any = None,
     contract_c_kwargs: dict | None = None,
 ) -> dict[str, Any]:
@@ -842,14 +843,21 @@ def arif_route(
         organ_tool:   The tool name on the target organ to call.
                       If absent, returns routing decision only (no bridge call).
         arguments:    Arguments to pass to organ_tool.
+        mission_id:   Explicit human-cockpit mission binding (investigate|interpret|
+                      decide|build|monitor|remember). When set, skips keyword
+                      classification and binds the six-mission plan. Preferred
+                      over free-text when the agent already knows the mission.
 
     Returns:
-        routing_decision:  organ, port, tool_prefix
+        routing_decision:  organ, port, tool_prefix, mission plan
         bridge_result:    (if organ_tool provided) result from organ tool call
 
     Example:
         arif_route(intent="seismic interpretation")
         → {"organ": "GEOX", "port": 8081, "tool_prefix": "geox_", "status": "routed"}
+
+        arif_route(mission_id="investigate", intent="site health")
+        → mission plan + routed organ for investigate pipeline
 
         arif_route(intent="portfolio stress test", organ_tool="wealth_portfolio",
                    arguments={"mode": "stress"})
@@ -864,6 +872,14 @@ def arif_route(
                 f"arif_route: arguments received as unparseable string: {arguments[:100]}"
             )
             arguments = None
+
+    # Normalize intent — mission_id alone is valid (cockpit binding)
+    if not intent and task:
+        intent = task
+    if not intent and mission_id:
+        intent = f"mission:{mission_id.strip().lower()}"
+    if not intent:
+        intent = ""
 
     actor_id, session_id = _bind_identity(actor_id, session_id)
     # Prefer identity inside arguments._envelope if tool args lost top-level fields
@@ -895,7 +911,7 @@ def arif_route(
         except Exception:
             pass
 
-    floor_check = check_laws("arif_route", {"intent": intent}, actor_id)
+    floor_check = check_laws("arif_route", {"intent": intent or mission_id or "route"}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold(
             "arif_route",
@@ -913,6 +929,32 @@ def arif_route(
                 "arif_route",
                 "Kernel reject: _envelope.session_id does not match live session issued by kernel",
             )
+
+    # ── Mission binding (six-mission cockpit) ─────────────────────────────
+    # Explicit mission_id wins; else classify free-text intent. Fail-soft if
+    # mission_router module is unavailable on older deploys.
+    mission_payload: dict[str, Any] | None = None
+    try:
+        from arifosmcp.mission_router import (
+            classify_mission,
+            plan_from_mission_id,
+            plan_to_dict,
+        )
+
+        if mission_id:
+            try:
+                _plan = plan_from_mission_id(mission_id)
+            except ValueError as e:
+                return _hold("arif_route", str(e), ["L04"], session_id=session_id)
+        else:
+            _plan = classify_mission(intent or "investigate")
+        mission_payload = plan_to_dict(_plan)
+        # If caller did not pin an organ, prefer mission primary organ
+        if not organ and mission_payload.get("primary_organ"):
+            organ = str(mission_payload["primary_organ"])
+    except Exception as _mission_err:
+        logger.debug("arif_route mission binding soft-fail: %s", _mission_err)
+        mission_payload = None
 
     target_organ = _route_intent_to_organ(intent, organ)
     intent_map = _load_intent_map()
@@ -944,12 +986,13 @@ def arif_route(
 
     routing = {
         "intent": intent,
+        "mission_id": (mission_payload or {}).get("mission_id") or mission_id,
         "organ": target_organ.upper(),
         "port": port,
         "tool_prefix": tool_prefix,
         "organ_tool": organ_tool,
         "status": "routed",
-        "routing_rule": "intent_map",
+        "routing_rule": "mission_id" if mission_id else "intent_map",
         # TIME INVARIANT: source_of_truth chain — tracks provenance of this
         # routing decision. When bridged to an organ, the organ receives this
         # chain so it knows where the request originated and with what context.
@@ -958,9 +1001,17 @@ def arif_route(
             "actor_id": actor_id,
             "session_id": session_id,
             "timestamp": __import__("time").time(),
-            "routing_confidence": 0.95 if organ else 0.85,
+            "routing_confidence": 0.99
+            if mission_id
+            else (0.95 if organ else 0.85),
             "chain": [
                 {"step": "intent_received", "timestamp": __import__("time").time()},
+                {
+                    "step": "mission_bound",
+                    "mission_id": (mission_payload or {}).get("mission_id") or mission_id,
+                    "classified_by": (mission_payload or {}).get("classified_by"),
+                    "timestamp": __import__("time").time(),
+                },
                 {
                     "step": "organ_resolved",
                     "organ": target_organ.upper(),
@@ -969,6 +1020,11 @@ def arif_route(
             ],
         },
     }
+    if mission_payload:
+        routing["mission"] = mission_payload
+        # Engine-room hint for site work — not a human menu
+        if mission_payload.get("mission_id") in ("build", "monitor", "investigate"):
+            routing["web_zen_hint"] = mission_payload.get("web_zen")
 
     # ── ATLAS333 Cognitive Geometry Enrichment (222_MAP) ──────────────────────
     # Φ(intent) → GPV(lane, τ, κ, ρ, paradox_axes, query_type)
