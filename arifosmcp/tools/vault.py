@@ -34,6 +34,7 @@ async def arif_seal(
         "verify_chain",  # Public chain verification — delegates to arif_vault_verify (sovereign 2026-07-18)
         "chain_status",  # Public chain head + last N entries
         "audit",  # Full audit report with receipts
+        "session_close",  # Autonomous 5-phase session seal (EUREKA 2026-07-30)
     ] = "seal",
     # 999_SEAL NOTE (F13, 2026-07-24):
     # arif_seal is deterministic — it appends the prior arif_judge verdict to
@@ -131,6 +132,107 @@ async def arif_seal(
                 )
         except Exception:
             pass
+
+    # ── ZEN HARD GATE (2026-07-30): Seal preconditions — no LLM needed ──
+    # Per ChatGPT forensic: arif_seal must reject immediately when the
+    # constitutional chain is incomplete. LLM writes explanations, but
+    # never becomes the gatekeeper for the vault.
+    _seal_reasons: list[str] = []
+
+    # Gate S1: Seal requires a prior arif_judge verdict (judge_state_hash or cc_id)
+    if mode == "seal" and not (judge_state_hash or constitutional_chain_id):
+        _seal_reasons.append(
+            "Seal requires judge_state_hash or constitutional_chain_id "
+            "from a prior arif_judge verdict. No self-sealing allowed."
+        )
+
+    # Gate S2: Irreversible seal requires ack
+    if mode == "seal" and not ack_irreversible:
+        _seal_reasons.append(
+            "Seal is IRREVERSIBLE. Set ack_irreversible=True to confirm. "
+            "This gate runs BEFORE any LLM or vault access."
+        )
+
+    # Gate S3: Seal without actor_id is inadmissible
+    if mode == "seal" and not actor_id:
+        _seal_reasons.append("Seal requires actor_id for non-repudiation.")
+
+    if _seal_reasons:
+        return SealOutput(
+            mode=mode,
+            status="HOLD",
+            verdict="HOLD",
+            reasons=_seal_reasons,
+            next_safe_action=(
+                "Route through arif_init → arif_judge (SEAL verdict) → arif_seal. "
+                "The judge must produce a constitutional_chain_id before sealing. "
+                "No LLM wait — these are hard preconditions."
+            ),
+            entry_id="",
+            actor_id=actor_id,
+            meta={"gate": "hard_deterministic", "llm_consulted": False, "zend": "2026-07-30"},
+        )
+
+    # ── EUREKA 5-PHASE: session_close pre-gate — organ health check ──────────
+    # Phase 2 of the autonomous seal protocol. Before sealing the session,
+    # probe all 7 federation organs. If any organ is dead, HOLD the seal.
+    # Agent must repair the organ before sealing the session record.
+    _is_session_close = mode == "session_close"
+    _organ_health: dict[str, Any] | None = None
+    if _is_session_close:
+        import subprocess as _sp, json as _json
+
+        _ORGANS = {
+            "arifOS": ("127.0.0.1", 8088, ["status"]),
+            "A-FORGE": ("127.0.0.1", 7071, ["ok"]),
+            "arifFlow": ("127.0.0.1", 7073, ["status"]),
+            "GEOX": ("127.0.0.1", 8081, ["status"]),
+            "WEALTH": ("127.0.0.1", 18082, ["status"]),
+            "WELL": ("127.0.0.1", 18083, ["status"]),
+            "AAA": ("127.0.0.1", 3001, ["status"]),
+        }
+        _organ_health = {}
+        _dead_organs: list[str] = []
+        for _name, (_host, _port, _fields) in _ORGANS.items():
+            try:
+                _r = _sp.run(
+                    ["curl", "-sf", "--max-time", "3", f"http://{_host}:{_port}/health"],
+                    capture_output=True, text=True, timeout=5,
+                )
+                if _r.returncode == 0 and _r.stdout.strip():
+                    _raw = _json.loads(_r.stdout)
+                    _organ_health[_name] = {"alive": True, "status": _raw.get("status", "?")}
+                else:
+                    _organ_health[_name] = {"alive": False, "error": f"HTTP {_r.returncode}"}
+                    _dead_organs.append(_name)
+            except Exception as _e:
+                _organ_health[_name] = {"alive": False, "error": str(_e)[:120]}
+                _dead_organs.append(_name)
+
+        if _dead_organs:
+            return _echo_standing(
+                SealOutput(
+                    mode="session_close",
+                    status="HOLD",
+                    verdict="HOLD",
+                    reasons=[f"Organ health check FAILED: {', '.join(_dead_organs)}"],
+                    next_safe_action=(
+                        f"Repair dead organs ({', '.join(_dead_organs)}) before sealing. "
+                        "Run arif_observe(mode=organ_health) to diagnose."
+                    ),
+                    entry_id="",
+                    actor_id=actor_id,
+                    meta={
+                        "gate": "SESSION_CLOSE_ORGAN_HEALTH",
+                        "organ_health": _organ_health,
+                        "organs_alive": sum(1 for o in _organ_health.values() if o.get("alive")),
+                        "organs_total": len(_ORGANS),
+                        "dead_organs": _dead_organs,
+                    },
+                )
+            )
+        # All organs alive — proceed to seal. Override mode for the vault path.
+        mode = "seal"
 
     def _echo_standing(out: SealOutput) -> SealOutput:
         """Echo next-hop SCT continuity onto a direct SealOutput."""
@@ -719,6 +821,59 @@ async def arif_seal(
                 "error": str(exc),
                 "note": "Index failure is non-fatal — Layer 3 is rebuildable from DAG.",
             }
+
+    # ── EUREKA Phase 5: session_close post-hook — git commit + push ──────────
+    # After successful seal, sync the sovereign remote. Git failure is non-fatal
+    # (Phase 5 is verification, not immutability — VAULT999 already has the truth).
+    _git_result: dict[str, Any] | None = None
+    if _is_session_close and result.get("verdict") == "SEAL":
+        _git_result = {"synced": False, "phase": "5_remote_sync"}
+        try:
+            import subprocess as _gsp
+
+            _repo_root = "/root"
+            _gsp.run(
+                ["git", "add", "-A"],
+                cwd=_repo_root, capture_output=True, text=True, timeout=30,
+            )
+            _gsp.run(
+                ["git", "diff", "--cached", "--quiet"],
+                cwd=_repo_root, capture_output=True, text=True, timeout=30,
+            )
+            # Always commit — even if no diff, record the seal intent
+            _commit_msg = (
+                f"chore(core): seal session — {actor_id or 'agent'} closes autonomously\n\n"
+                f"Session summary: {(payload or 'sealed')[:200]}\n"
+                f"Organs alive: {_organ_health.get('organs_alive', '?') if _organ_health else '?'}/{_organ_health.get('organs_total', '?') if _organ_health else '?'}\n"
+                f"VAULT999 entry: {result.get('entry_id', '?')}\n\n"
+                f"Co-Authored-By: arifOS Kernel <noreply@arif-fazil.com>"
+            )
+            _gsp.run(
+                ["git", "commit", "--allow-empty", "-m", _commit_msg],
+                cwd=_repo_root, capture_output=True, text=True, timeout=30,
+            )
+            _push = _gsp.run(
+                ["git", "push", "origin", "main"],
+                cwd=_repo_root, capture_output=True, text=True, timeout=60,
+            )
+            if _push.returncode == 0:
+                _git_result["synced"] = True
+                _git_result["remote"] = "origin/main"
+            else:
+                _git_result["error"] = _push.stderr[:200] if _push.stderr else "push failed"
+        except Exception as _ge:
+            _git_result["error"] = str(_ge)[:200]
+
+        result["meta"] = result.get("meta", {})
+        result["meta"]["session_close"] = {
+            "phase": "5_remote_sync",
+            "organ_health": _organ_health,
+            "organs_alive": sum(1 for o in (_organ_health or {}).values() if o.get("alive")),
+            "organs_total": len(_organ_health or {}),
+            "git": _git_result,
+            "seal_complete": True,
+            "delta_s": "NEGATIVE — session sealed, state synchronized, entropy reduced",
+        }
 
     return _echo_standing(SealOutput(**result))
 

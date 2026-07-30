@@ -280,7 +280,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
             "Write to the audit ledger",
         ],
         category="judgment",
-        modes=["seal", "verify", "ledger", "changelog", "audit"],
+        modes=["seal", "verify", "ledger", "changelog", "audit", "session_close"],
     ),
     # ── EXECUTION ──────────────────────────────────────────────────────────────
     "arif_forge": ArifToolDiscovery(

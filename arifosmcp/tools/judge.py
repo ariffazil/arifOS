@@ -729,7 +729,59 @@ async def arif_judge(
                 must escalate to HOLD unless explicit Sovereign override.
             action_tier: "standard" | "sovereign" | "c4" | "c5".
     ...
-        # Delegate to kernel intercept classification if reversibility_level/action_class provided
+    # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any LLM call ──
+    # Per ChatGPT forensic: arif_judge must not wait 45s for LLM to decide
+    # hard facts. Identity, permissions, and reversibility are checkable
+    # without reasoning. LLM = interpretive layer only.
+    _hard_reasons: list[str] = []
+
+    # Gate 1: Caller identity required for judgment
+    if not actor_id and not session_id:
+        _hard_reasons.append("No actor_id or session_id — cannot identify caller.")
+
+    # Gate 2: Irreversible actions require cryptographic proof
+    _rev = (reversibility_level or action_class or "").upper()
+    _br = (blast_radius or "").upper()
+    if _rev in ("IRREVERSIBLE", "MUTATE", "EXTERNAL_SIDE_EFFECT") and not actor_signature:
+        _hard_reasons.append(
+            f"Irreversible action ({_rev}) requires actor_signature for non-repudiation."
+        )
+
+    # Gate 3: Critical blast radius requires sovereign receipt
+    if _br in ("CRITICAL", "L3_CRITICAL", "HIGH") and not sovereign_receipt and action_tier == "standard":
+        _hard_reasons.append(
+            f"Critical blast radius ({_br}) requires sovereign_receipt or action_tier=sovereign."
+        )
+
+    # Gate 4: Action tier c4/c5 requires WELL attestation (cannot proceed without it)
+    if action_tier in ("c4", "c5") and not heart_critique:
+        _hard_reasons.append(
+            f"Action tier {action_tier} requires heart_critique (WELL readiness attestation)."
+        )
+
+    # Gate 5: Mode=escalate without sovereign_receipt → HOLD
+    if mode == "escalate" and not sovereign_receipt:
+        _hard_reasons.append("Escalation requires sovereign_receipt.")
+
+    if _hard_reasons:
+        return _echo_standing(
+            VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=_hard_reasons,
+                next_safe_action=(
+                    "Provide missing credentials (actor_signature, sovereign_receipt, "
+                    "heart_critique) or reduce blast_radius/reversibility level. "
+                    "These gates run BEFORE any LLM is consulted — no 45s wait."
+                ),
+                meta={
+                    "gate": "hard_deterministic",
+                    "llm_consulted": False,
+                    "zend": "2026-07-30",
+                },
+            )
+        )
+
+    # Delegate to kernel intercept classification if reversibility_level/action_class provided
     _rev_param = reversibility_level or action_class
     if _rev_param and str(_rev_param).strip():
         try:
@@ -1740,7 +1792,6 @@ async def arif_judge(
             )
 
     import asyncio
-
 
     t_judge_start = time_module.monotonic()
 

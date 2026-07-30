@@ -129,7 +129,102 @@ OLLAMA_TEXT_ENABLED = os.getenv("OLLAMA_TEXT_ENABLED", "false").lower() in {"1",
 # No auth needed — localhost-only, UFW-gated.
 FLAME_BASE_URL = os.getenv("FLAME_BASE_URL", "http://localhost:18901/v1")
 FLAME_MODEL = os.getenv("FLAME_MODEL", "llama-3.3-70b-versatile")
-FLAME_TIMEOUT = 8.0  # fast local proxy, 1s typical
+FLAME_TIMEOUT = 4.0  # ZEN: 4s max — FLAME typical 0.3-1s
+
+# ── ZEN CASCADE BUDGET (2026-07-30) ──────────────────────────────────────
+# Per ChatGPT forensic: one slow provider must not consume the entire kernel
+# budget and block faster providers. Every provider gets 3-4s individual
+# timeout. Total cascade completes in under 30s, leaving 15s for kernel
+# response construction before the 45s ToolTimeoutMiddleware fires.
+PROVIDER_TIMEOUT = 4.0  # max per-provider HTTP timeout
+TOTAL_CASCADE_BUDGET = 30.0  # hard ceiling for entire cascade
+CB_FAIL_THRESHOLD = 2  # consecutive failures before circuit breaks
+CB_COOLDOWN_SECONDS = 120  # circuit stays open for 2 minutes
+
+# Circuit breaker state (module-level, resets on process restart)
+_circuit_state: dict[str, dict[str, float]] = {}  # provider → {failures, open_until}
+
+
+def _cb_is_open(provider: str) -> bool:
+    """Check if circuit breaker is open for a provider (skip it)."""
+    import time as _time
+
+    state = _circuit_state.get(provider)
+    if state is None:
+        return False
+    if state["open_until"] > _time.monotonic():
+        return True
+    # Circuit has cooled — reset
+    _circuit_state.pop(provider, None)
+    return False
+
+
+def _cb_record_failure(provider: str) -> None:
+    """Record a failure. Open circuit after CB_FAIL_THRESHOLD consecutive failures."""
+    import time as _time
+
+    state = _circuit_state.get(provider, {"failures": 0, "open_until": 0})
+    state["failures"] += 1
+    if state["failures"] >= CB_FAIL_THRESHOLD:
+        state["open_until"] = _time.monotonic() + CB_COOLDOWN_SECONDS
+        logger.warning("CIRCUIT BREAKER OPEN for %s (%ds cooldown)", provider, CB_COOLDOWN_SECONDS)
+    _circuit_state[provider] = state
+
+
+def _cb_record_success(provider: str) -> None:
+    """Reset circuit on success."""
+    _circuit_state.pop(provider, None)
+
+
+def _cascade_exhausted(
+    tool_origin: str,
+    mode: str,
+    combined_prompt: str,
+    trace_recursion_depth: int,
+    failures: list[str] | None = None,
+) -> LLMOutputEnvelope:
+    """
+    ZEN (2026-07-30): Return structured HOLD when all providers fail or budget exceeded.
+
+    Per ChatGPT forensic: do NOT wait 45s. Return DEGRADED immediately
+    so the kernel can respond within the ToolTimeoutMiddleware budget.
+    """
+    t0 = time.monotonic()
+    failed_providers = failures or ["all"]
+    parsed = {
+        "status": "DEGRADED",
+        "verdict": "HOLD",
+        "reason": "llm_cascade_exhausted",
+        "reasons": [
+            f"All LLM providers consumed within {TOTAL_CASCADE_BUDGET}s budget.",
+            f"Failed providers: {', '.join(failed_providers)}.",
+            "This is a constitutional HOLD — execution is blocked until "
+            "the reasoning backend recovers. No LLM, no judgment.",
+        ],
+        "failed_providers": failed_providers,
+        "budget_total_s": TOTAL_CASCADE_BUDGET,
+        "human_decision_required": True,
+        "execution_allowed": False,
+        "retryable": True,
+        "next_safe_action": (
+            "Recharge TokenRouter credit or wait for circuit breakers to cool "
+            f"({CB_COOLDOWN_SECONDS}s). FLAME (:18901) is the fastest recovery path."
+        ),
+        "confidence": 0.0,
+    }
+    return _make_envelope(
+        json.dumps(parsed),
+        parsed,
+        "deterministic_fallback",
+        "cascade-exhausted-v1",
+        tool_origin,
+        mode,
+        combined_prompt,
+        (time.monotonic() - t0) * 1000,
+        None,
+        trace_recursion_depth,
+    )
+
 
 # Tier 2.5 — ILMU hosted fallback (2026-06-03, replaces ollama as Tier 2)
 # BLOCKED per FFF 2026-06-15. Removed from cascade.
@@ -484,7 +579,7 @@ async def _call_sea_lion(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=25.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{SEA_LION_BASE_URL}/chat/completions",
                 headers={
@@ -762,7 +857,7 @@ async def _call_minimax(
     t0 = time.monotonic()
     try:
         # P2 FIX (2026-07-12): 20s timeout — cascade budget: TokenRouter(10s) + MiniMax(20s) = 30s
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{MINIMAX_BASE_URL}/v1/chat/completions",
                 headers={
@@ -919,7 +1014,7 @@ async def _call_groq(
 
     t0 = time.monotonic()
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{GROQ_BASE_URL}/chat/completions",
                 headers={
@@ -1006,7 +1101,7 @@ async def _call_gemini(
 
     t0 = time.monotonic()
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{GEMINI_BASE_URL}/chat/completions",
                 headers={
@@ -1093,7 +1188,7 @@ async def _call_cerebras(
 
     t0 = time.monotonic()
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{CEREBRAS_BASE_URL}/chat/completions",
                 headers={
@@ -1179,7 +1274,7 @@ async def _call_mimo(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{MIMO_BASE_URL}/chat/completions",
                 headers={
@@ -1259,7 +1354,7 @@ async def _call_azure(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{AZURE_OPENAI_ENDPOINT}/chat/completions",
                 headers={
@@ -1336,7 +1431,7 @@ async def _call_ollama(
         # Longer prompts should use SEA-LION (GPU-accelerated API).
         # Previously 50s; reduced 2026-06-13 to prevent Ollama from
         # blocking faster upstream providers in the cascade.
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{OLLAMA_BASE_URL}/api/generate",
                 json=payload,
@@ -1431,7 +1526,7 @@ async def _call_ilmu(
 
     try:
         # ILMU is a hosted API — 20s is generous; typical responses are <5s.
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
                 f"{ILMU_BASE_URL}/chat/completions",
                 headers={
@@ -1806,179 +1901,20 @@ async def call_llm(
 
     # Tier 0 — TokenRouter (OpenAI-compatible proxy, embedded key) — PRIMARY
     # APEX Theory: resolve per organ/task for quality/cost/latency + redundancy.
+    cascade_start = time.monotonic()
     effective_model = preferred_model or resolve_tokenrouter_model(organ, task_type)
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_tokenrouter(
-            system, user, response_schema, temperature, max_tokens, model=effective_model
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "tokenrouter",
-            effective_model,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
-
-    # Tier 0.5 — FLAME free-loop (local Groq proxy, ZEN-fix 2026-07-30)
-    # FLAME is proven working (1s response, Groq Llama-3.3-70b backend).
-    # Inserted BEFORE paid tiers so the cascade reaches a working backend
-    # within the 45s ToolTimeoutMiddleware budget.
-    # This is the ZEN repair: one nerve at a time — FLAME unblocks arif_think.
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_flame(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "flame-groq",
-            FLAME_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
-
-    # Tier 1 — MiniMax M3 (frontier agentic model, best at structured JSON)
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_minimax(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "minimax",
-            MINIMAX_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
-
-    # Tier 1.5 — MiMo (TokenPlan mimo-v2.5-pro)
-    # Replaces Azure per Arif directive 2026-06-27.
-    # M3 ↔ MiMo loop: M3 primary, MiMo secondary when M3 fails/rate-limited.
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_mimo(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "mimo",
-            MIMO_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
-
-    # Tier 2 — Groq LPU (FREE tier, ultra-fast 560-1000 t/s, 128K context)
-    # Inserted after MiMo, before ILMU/SEA-LION.
-    # Pure OpenAI-compatible, no special headers needed.
-    # Rate limits are generous on free tier (14,400 req/day for llama-3.1-8b).
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_groq(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "groq",
-            GROQ_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
-
-    # Tier 2 — Google Gemini (FREE tier, 1,500 req/day, 1M ctx, multimodal)
-    # OpenAI-compatible v1beta endpoint. Best free general-purpose model.
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_gemini(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "gemini",
-            GEMINI_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
-
-    # Tier 2 — Cerebras ($5 free credit, expires Aug 20 2026)
-    # Wafer-scale hardware, fast. Models: gpt-oss-120b, gemma-4-31b, zai-glm-4.7.
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_cerebras(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "cerebras",
-            CEREBRAS_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
-
-    # Tier 2 — ILMU BLOCKED per FFF 2026-06-15 (never in trinity loop).
-    # F13 inversion, register-dependent hallucination, L02A parse failure.
-    # Removed from cascade. See ariffazil/BBB, CCC, DDD, FFF for full receipts.
-    # To re-enable: set ILMU_ENABLED = True AND obtain F13 SOVEREIGN directive.
-    if ILMU_ENABLED:
+    if not _cb_is_open("tokenrouter"):
         try:
             t0 = time.monotonic()
-            raw_output, parsed = await _call_ilmu(
-                system, user, response_schema, temperature, max_tokens
+            raw_output, parsed = await _call_tokenrouter(
+                system, user, response_schema, temperature, max_tokens, model=effective_model
             )
+            _cb_record_success("tokenrouter")
             return _make_envelope(
                 raw_output,
                 parsed,
-                "ilmu",
-                ILMU_MODEL,
+                "tokenrouter",
+                effective_model,
                 tool_origin,
                 mode,
                 combined_prompt,
@@ -1987,37 +1923,196 @@ async def call_llm(
                 trace_recursion_depth,
             )
         except LLMUnavailableError:
-            pass
+            _cb_record_failure("tokenrouter")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
+
+    # Tier 0.5 — FLAME free-loop (local Groq proxy, ZEN-fix 2026-07-30)
+    # FLAME is proven working (1s response, Groq Llama-3.3-70b backend).
+    # Inserted BEFORE paid tiers so the cascade reaches a working backend
+    # within the 45s ToolTimeoutMiddleware budget.
+    if not _cb_is_open("flame"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_flame(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("flame")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "flame-groq",
+                FLAME_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("flame")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
+
+    # Tier 1 — MiniMax M3 (frontier agentic model, best at structured JSON)
+    if not _cb_is_open("minimax"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_minimax(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("minimax")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "minimax",
+                MINIMAX_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("minimax")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
+
+    # Tier 1.5 — MiMo (TokenPlan mimo-v2.5-pro)
+    if not _cb_is_open("mimo"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_mimo(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("mimo")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "mimo",
+                MIMO_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("mimo")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
+
+    # Tier 2 — Groq LPU (FREE tier, ultra-fast 560-1000 t/s, 128K context)
+    if not _cb_is_open("groq"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_groq(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("groq")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "groq",
+                GROQ_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("groq")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
+
+    # Tier 2 — Google Gemini (FREE tier, 1M ctx, multimodal)
+    if not _cb_is_open("gemini"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_gemini(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("gemini")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "gemini",
+                GEMINI_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("gemini")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
+
+    # Tier 2 — Cerebras (free credit, wafer-scale)
+    if not _cb_is_open("cerebras"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_cerebras(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("cerebras")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "cerebras",
+                CEREBRAS_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("cerebras")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
 
     # Tier 2 — SEA-LION v4 (GPU-accelerated, third voice in trinity)
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_sea_lion(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "sea_lion",
-            SEA_LION_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
+    if not _cb_is_open("sea_lion"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_sea_lion(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("sea_lion")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "sea_lion",
+                SEA_LION_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("sea_lion")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
 
-    # Tier 2.5 — opt-in local text generation. Ollama remains enabled for
-    # embeddings even when this CPU-bound generation path is disabled.
-    if OLLAMA_TEXT_ENABLED:
+    # Tier 2.5 — Ollama (local CPU, opt-in)
+    if OLLAMA_TEXT_ENABLED and not _cb_is_open("ollama"):
         try:
             t0 = time.monotonic()
             raw_output, parsed = await _call_ollama(
                 system, user, response_schema, temperature, max_tokens
             )
+            _cb_record_success("ollama")
             return _make_envelope(
                 raw_output,
                 parsed,
@@ -2031,32 +2126,25 @@ async def call_llm(
                 trace_recursion_depth,
             )
         except LLMUnavailableError:
-            pass
+            _cb_record_failure("ollama")
 
-    # Tier 3 — deterministic rule fallback. Provider outages are not floor violations,
-    # so fail closed with HOLD; VOID remains reserved for a hard-floor decision.
-    t0 = time.monotonic()
-    parsed = {
-        "status": "HOLD",
-        "verdict": "HOLD",
-        "reason": "all_llm_providers_unavailable",
-        "reasons": ["No LLM provider returned a usable response."],
-        "human_decision_required": True,
-        "violated_floors": [],
-        "confidence": 0.0,
-        "confidence_status": "UNMEASURED",
-    }
-    return _make_envelope(
-        json.dumps(parsed),
-        parsed,
-        "deterministic_fallback",
-        "constitutional-rule-v1",
-        tool_origin,
-        mode,
-        combined_prompt,
-        (time.monotonic() - t0) * 1000,
-        None,
-        trace_recursion_depth,
+    # ── All providers exhausted → structured DEGRADED/HOLD ──
+    failed = [
+        p
+        for p in [
+            "tokenrouter",
+            "flame",
+            "minimax",
+            "mimo",
+            "groq",
+            "gemini",
+            "cerebras",
+            "sea_lion",
+        ]
+        if _cb_is_open(p) or p in ("tokenrouter",)
+    ]  # tokenrouter always tried
+    return _cascade_exhausted(
+        tool_origin, mode, combined_prompt, trace_recursion_depth, failures=failed
     )
 
 
