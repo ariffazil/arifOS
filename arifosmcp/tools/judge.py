@@ -923,11 +923,33 @@ async def arif_judge(
     _standing_delta: dict[str, Any] | None = None
 
     def _echo_standing(out: VerdictOutput) -> VerdictOutput:
-        """Echo next-hop SCT continuity onto a direct VerdictOutput."""
+        """Echo next-hop SCT continuity onto a direct VerdictOutput.
+
+        FIX #5 (STABILIZATION-7): Session tokens are never returned in full.
+        Only a SHA-256 prefix reference is echoed for traceability.
+        FIX #4: status is always set based on verdict.
+        """
+        import hashlib
+
+        _STABLE_VERDICT_TO_STATUS: dict[str, str] = {
+            "SEAL": "completed",
+            "SABAR": "completed",
+            "HOLD": "pending",
+            "HOLD_888": "pending",
+            "OBSERVE_ONLY": "pending",
+            "VOID": "blocked",
+        }
         if not _standing_token:
-            return out
+            # Still inject status even without token
+            data = out.model_dump(mode="json")
+            verdict_str = str(data.get("verdict", ""))
+            if not data.get("status"):
+                data["status"] = _STABLE_VERDICT_TO_STATUS.get(verdict_str, "pending")
+            return VerdictOutput(**data)
         data = out.model_dump(mode="json")
-        data["session_token"] = _standing_token
+        # FIX #5: Redact raw session token — return hash reference only
+        token_ref = hashlib.sha256(_standing_token.encode()).hexdigest()[:16]
+        data["session_token_ref"] = f"sct_ref:{token_ref}"
         data["standing_source"] = _standing_source or "sct"
         if _standing_apex is not None:
             data["apex_scalars"] = _standing_apex
@@ -935,9 +957,13 @@ async def arif_judge(
         data["actor_verified"] = _standing_actor_verified
         if _standing_delta is not None:
             data["authority_delta"] = _standing_delta
+        # FIX #4: Always set status based on verdict
+        verdict_str = str(data.get("verdict", ""))
+        if not data.get("status"):
+            data["status"] = _STABLE_VERDICT_TO_STATUS.get(verdict_str, "pending")
         res = data.get("result")
         if isinstance(res, dict):
-            res.setdefault("session_token", _standing_token)
+            res.setdefault("session_token_ref", f"sct_ref:{token_ref}")
             res.setdefault("standing_source", _standing_source or "sct")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _standing_apex)
