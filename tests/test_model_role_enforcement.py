@@ -336,6 +336,9 @@ async def test_allowed_judge_model_failure_never_enters_generic_cascade(
     import arifosmcp.runtime.llm_client as llm_mod
 
     monkeypatch.setattr(llm_mod, "TOKENROUTER_API_KEY", "dead-key")
+    # Kill constitutional DeepSeek direct channel too — all map seats must fail
+    # without entering MiniMax/MiMo/Groq generic cascade.
+    monkeypatch.setattr(llm_mod, "DEEPSEEK_API_KEY", "")
 
     # Mock fallback engines that MUST NOT be called
     original_minimax = llm_mod._call_minimax
@@ -378,10 +381,14 @@ async def test_allowed_judge_model_failure_never_enters_generic_cascade(
     assert call_tracker == [], (
         f"Generic cascade WAS entered! Called: {call_tracker}"
     )
-    # VAULT999 event must exist
+    # VAULT999 event must exist (last line may be multi-event JSONL)
     assert vault_outcomes_path.exists()
-    event = json.loads(vault_outcomes_path.read_text(encoding="utf-8").strip())
-    assert event["event"] == "JUDGE_SEAT_UNAVAILABLE"
+    lines = [
+        json.loads(line)
+        for line in vault_outcomes_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    event = next(e for e in lines if e.get("event") == "JUDGE_SEAT_UNAVAILABLE")
     assert event["decision"] == "HOLD"
 
 
@@ -407,3 +414,53 @@ async def test_call_llm_smoke_mode_bypasses_gate(
     # Smoke returns deterministic HOLD envelope.
     assert envelope is not None
     assert envelope.provider == "deterministic_fallback"
+
+
+@pytest.mark.asyncio
+async def test_deepseek_direct_channel_serves_judge_when_tokenrouter_dead(
+    agent_model_map_path: Path,
+    vault_outcomes_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TR dead + DeepSeek direct OK → seat served without generic cascade.
+
+    AMEND-20260730-SEAT-DEPUTY: map-allowed DeepSeek seat may use official
+    DeepSeek API when TokenRouter is quota/channel-dead. MiniMax must not run.
+    """
+    import arifosmcp.runtime.llm_client as llm_mod
+    from arifosmcp.runtime.llm_client import call_llm
+
+    monkeypatch.setattr(llm_mod, "TOKENROUTER_API_KEY", "dead-key")
+
+    async def fake_deepseek(*a, **kw):
+        return (
+            json.dumps({"verdict": "HOLD", "reason": "direct-ok"}),
+            {"verdict": "HOLD", "reason": "direct-ok"},
+        )
+
+    call_tracker: list[str] = []
+
+    async def track_minimax(*a, **kw):
+        call_tracker.append("minimax")
+        raise llm_mod.LLMUnavailableError("should not run")
+
+    monkeypatch.setattr(llm_mod, "_call_deepseek_direct", fake_deepseek)
+    monkeypatch.setattr(llm_mod, "_call_minimax", track_minimax)
+
+    envelope = await call_llm(
+        system="judge",
+        user="candidate",
+        constitutional_role="666_JUDGE",
+        preferred_model="deepseek-v4-pro",
+        mode="infer",
+        tool_origin="arif_judge",
+    )
+    assert envelope is not None
+    assert call_tracker == []
+    # Deputy/channel event recorded
+    lines = [
+        json.loads(line)
+        for line in vault_outcomes_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert any(e.get("event") == "JUDGE_SEAT_DEPUTY_ACTIVATED" for e in lines)
