@@ -2484,13 +2484,12 @@ def arif_init(
                     )
                     else ("operator" if identity_verified else "observer")
                 )
+                # bind_session_identity accepts verified= (not actor_verified=).
+                # Extra identity fields live in auth_context only (2026-07-30).
                 bind_session_identity(
                     session_id=sess["session_id"],
                     actor_id=actor_id or "anonymous",
                     authority_level=_auth_lvl,
-                    actor_verified=identity_verified,
-                    verification_method=sess.get("verification_method") or "system_exempt",
-                    evidence_ref=sess.get("evidence_ref") or f"session://{sess['session_id']}",
                     verified=bool(identity_verified),
                     stage=str(sess.get("stage") or "000"),
                     lane=str(sess.get("lane") or "AGI"),
@@ -2500,6 +2499,8 @@ def arif_init(
                         or ("system_exempt" if identity_verified else None),
                         "auth_method": sess.get("verification_method")
                         or ("system_exempt" if identity_verified else None),
+                        "evidence_ref": sess.get("evidence_ref")
+                        or f"session://{sess['session_id']}",
                         "verified_key_id": (
                             "sha256:c843960f8c85d625bd0e8dc563beba331b4cfe6d0c08f71c2e6da80eb58b8c6a"
                             if identity_verified
