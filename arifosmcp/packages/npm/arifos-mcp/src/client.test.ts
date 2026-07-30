@@ -70,7 +70,7 @@ describe("@arifos/mcp client", () => {
 
 describe("public package contract", () => {
   it("exports the narrowed public version and endpoints", () => {
-    expect(VERSION).toBe("0.5.0");
+    expect(VERSION).toBe("0.6.0");
     expect(PUBLIC_TOOL_NAMES).toHaveLength(8);
     expect(ENDPOINTS.VPS).toBe("https://arifosmcp.arif-fazil.com/mcp");
     expect("SSE" in ENDPOINTS).toBe(false);
