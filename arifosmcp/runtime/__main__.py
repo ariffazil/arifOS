@@ -744,6 +744,14 @@ def main() -> None:
 
     _bootstrap_environment()
 
+    # ── A3A 2026-07-30: prompts/get missing args → JSON-RPC -32602 ─────
+    try:
+        from arifosmcp.runtime.mcp_prompt_rpc_fix import apply_prompt_missing_args_rpc_fix
+
+        apply_prompt_missing_args_rpc_fix()
+    except Exception:
+        pass  # never block startup
+
     # ── Release 1: Boot-time runtime truth attestation ────────────────
     try:
         from arifosmcp.runtime.release_attestation import fail_closed_check

@@ -807,21 +807,25 @@ async def arif_judge(
             _rev_u = str(_rev_param or "").upper()
             _br_u = str(blast_radius or "").upper()
             _has_f13 = bool(sovereign_receipt and str(sovereign_receipt).strip())
+            # Explicit only — empty rev/blast must not default to "safe".
             _attest_safe = _rev_u in (
                 "REVERSIBLE",
                 "ATTEST",
                 "OBSERVE",
                 "R0_OBSERVE",
                 "R1_REVERSIBLE",
-            ) or _br_u in ("LOW", "L1_LOCAL", "")
-            if _v_str in ("ALLOW", "SEAL", "OK") and _has_f13 and _attest_safe:
+            ) and _br_u in ("LOW", "L1_LOCAL")
+            # F13 confirms a *passed* intercept (ALLOW/OK/SEAL). Never rewrite HOLD.
+            if _v_str in ("ALLOW", "OK") and _has_f13 and _attest_safe:
                 _code = VerdictCode.SEAL
                 _v_str = "SEAL"
+            elif _v_str == "SEAL":
+                _code = VerdictCode.SEAL
             else:
                 _code = (
-                    VerdictCode.SEAL
-                    if _v_str == "SEAL"
-                    else (VerdictCode.VOID if _v_str == "VOID" else VerdictCode.HOLD)
+                    VerdictCode.VOID
+                    if _v_str == "VOID"
+                    else VerdictCode.HOLD
                 )
             _cc_id = (
                 _intercept_res.get("constitutional_chain_id")
@@ -835,10 +839,10 @@ async def arif_judge(
                 _intercept_res.get("reason")
                 or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
             ]
-            if _code == VerdictCode.SEAL and _has_f13:
+            if _code == VerdictCode.SEAL and _has_f13 and _v_str == "SEAL":
                 _reasons.append(
-                    "F13 sovereign_receipt present — ALLOW promoted to SEAL for "
-                    "attestation-class action; chain ids attached for arif_seal."
+                    "F13 sovereign_receipt present — confirms passed intercept "
+                    "(ALLOW/OK→SEAL or SEAL retained); HOLD is never rewritten."
                 )
             return _echo_standing(
                 VerdictOutput(
@@ -2191,23 +2195,37 @@ async def arif_judge(
             }
             result.setdefault("reasons", []).append(
                 f"F13_SOVEREIGN_RECEIPT: {_receipt_hash} — "
-                "sovereign confirmation recorded. Proceeding under F13 authority."
+                "sovereign confirmation recorded. Receipt authorizes a properly "
+                "judged action; it does not convert an unresolved HOLD into SEAL."
             )
-            # Deliberation often returns HOLD even after F13 receipt. For
-            # attestation-class (REVERSIBLE + LOW blast + sovereign tier/receipt),
-            # promote to SEAL and mint chain ids so arif_seal can append (2026-07-30).
+            # ── Constitutional integrity (2026-07-30 APEX subtraction) ─────
+            # Historical defect (298ef83): `(action_tier … or True)` +
+            # `_v_now in (HOLD, …)` rewrote any HOLD into SEAL whenever an
+            # F13 receipt was present. That violated F2 TRUTH and F13:
+            # a sovereign receipt authorizes a *passed* judgment; it must
+            # not mechanically assert SEAL over unresolved HOLD.
+            #
+            # Law now:
+            #   1. HOLD / VOID / SABAR / empty — receipt recorded only; verdict
+            #      unchanged. Caller must re-judge with evidence until pass.
+            #   2. ALLOW / OK (passed judgment) + explicit tier + explicit
+            #      REVERSIBLE/ATTEST/OBSERVE + explicit LOW blast → may become
+            #      SEAL and mint chain ids for arif_seal.
+            #   3. SEAL already — mint chain ids if missing; never rewrite.
+            #   4. No empty-string "safe" defaults. No `or True`.
             _v_now = str(result.get("verdict", "")).upper()
             _rev_u = str(reversibility_level or action_class or "").upper()
             _br_u = str(blast_radius or "").upper()
-            _attest_safe = (
-                _rev_u in ("REVERSIBLE", "ATTEST", "OBSERVE", "")
-                or _br_u in ("LOW", "L1_LOCAL", "")
+            _tier_ok = action_tier in ("sovereign", "c4", "c5")
+            _attest_safe = _rev_u in ("REVERSIBLE", "ATTEST", "OBSERVE") and _br_u in (
+                "LOW",
+                "L1_LOCAL",
             )
-            if (
-                _v_now in ("HOLD", "OK", "ALLOW", "")
-                and _attest_safe
-                and (action_tier in ("sovereign", "c4", "c5") or True)
-            ):
+            _passed_judgment = _v_now in ("SEAL", "ALLOW", "OK")
+            if _v_now in ("HOLD", "VOID", "SABAR", ""):
+                result.setdefault("meta", {})["f13_does_not_promote_hold"] = True
+                result.setdefault("meta", {})["f13_deliberation_promoted_to_seal"] = False
+            elif _passed_judgment and _tier_ok and _attest_safe:
                 import hashlib as _hl
 
                 _jbody = {
@@ -2217,20 +2235,28 @@ async def arif_judge(
                     "candidate": (candidate or "")[:500],
                     "receipt_hash": _receipt_hash,
                     "seal_purpose": seal_purpose or "federation_state_attestation",
+                    "prior_verdict": _v_now,
                 }
                 _jjson = json_lib.dumps(_jbody, sort_keys=True, separators=(",", ":"))
                 _jsh = "sha256:" + _hl.sha256(_jjson.encode()).hexdigest()
                 _cc = "cc_" + _hl.sha256(
                     f"{actor_id}:{session_id}:{_jsh}".encode()
                 ).hexdigest()[:40]
-                result["verdict"] = "SEAL"
+                if _v_now in ("ALLOW", "OK"):
+                    result["verdict"] = "SEAL"
+                    result.setdefault("meta", {})["f13_allow_confirmed_to_seal"] = True
+                    result.setdefault("reasons", []).append(
+                        f"F13 confirmed passed judgment {_v_now}→SEAL: {_cc}"
+                    )
+                else:
+                    result.setdefault("meta", {})["f13_allow_confirmed_to_seal"] = False
+                    result.setdefault("reasons", []).append(
+                        f"F13 receipt attached to existing SEAL; chain {_cc}"
+                    )
                 result.setdefault("meta", {})["constitutional_chain_id"] = _cc
                 result.setdefault("meta", {})["state_hash"] = _jsh
                 result.setdefault("meta", {})["judge_state_hash"] = _jsh
-                result.setdefault("meta", {})["f13_deliberation_promoted_to_seal"] = True
-                result.setdefault("reasons", []).append(
-                    f"F13 attestation SEAL minted: {_cc} (deliberation HOLD→SEAL under sovereign receipt)"
-                )
+                result.setdefault("meta", {})["f13_deliberation_promoted_to_seal"] = False
         if "f13_sovereign_receipt" in _evidence:
             result.setdefault("meta", {})["f13_clarity_waiver"] = _evidence["f13_sovereign_receipt"]
 
