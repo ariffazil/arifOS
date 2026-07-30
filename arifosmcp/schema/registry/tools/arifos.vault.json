@@ -12,16 +12,17 @@
   "backing_tool": "vault_ledger",
   "role": "ledger",
   "role_description": "Immutable verdict logging and integrity verification",
-  "modes": ["seal", "verify"],
+  "modes": ["seal", "verify", "session_close", "chain", "list", "audit"],
   "default_mode": "seal",
-  "purpose": "Seal final governed records into immutable ledger with hash verification and audit integrity. What happened, preserved forever with proof.",
+  "purpose": "Seal final governed records into immutable ledger with hash verification and audit integrity. What happened, preserved forever with proof. session_close runs the autonomous 5-phase session macro.",
   "when_to_use": [
     "After judge renders SEAL verdict",
     "Need immutable record of decisions",
     "Before forge execution (audit trail)",
     "After forge execution (result logging)",
     "Need to verify integrity of past records",
-    "Compliance and audit requirements"
+    "Compliance and audit requirements",
+    "End of agent session — mode=session_close for autonomous 5-phase seal"
   ],
   "when_not_to_use": [
     "Do not use for mutable data - that's arifos.memory",
@@ -38,8 +39,8 @@
   "inputs": {
     "mode": {
       "type": "string",
-      "enum": ["seal", "verify"],
-      "description": "seal: append record, verify: check integrity"
+      "enum": ["seal", "verify", "session_close", "chain", "list", "audit"],
+      "description": "seal: append record; verify: check integrity; session_close: autonomous 5-phase session seal (organ health → SOT → atlas333 → VAULT999 → git)"
     },
     "required_payload": {
       "verdict": "object - The verdict to seal",

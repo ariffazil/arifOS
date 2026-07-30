@@ -18902,6 +18902,7 @@ async def _arif_vault_seal_tool(
     constitutional: dict[str, Any] | None = None,
     ctx: Context | None = None,
     seal_purpose: str | None = None,
+    ack_irreversible: bool = False,
 ) -> dict[str, Any]:
     """
     999_VAULT: Immutable ledger anchoring and cryptographic seal.
@@ -18912,26 +18913,69 @@ async def _arif_vault_seal_tool(
 
     REMOVED 2026-07-07: ack_irreversible self-attestation boolean.
     Use constitutional_chain_id from prior arif_judge SEAL instead.
+    Restored 2026-07-30 as optional surface flag for session_close RECORD path.
 
     Modes:
-      seal    — Anchor a payload to the immutable ledger.
-      verify  — Cryptographically verify a prior vault entry.
-      chain   — Retrieve the Merkle chain tip and lineage.
-      list    — Enumerate entries scoped to the current session.
+      seal          — Anchor a payload to the immutable ledger (requires judge packet).
+      verify        — Cryptographically verify a prior vault entry.
+      chain         — Retrieve the Merkle chain tip and lineage.
+      list          — Enumerate entries scoped to the current session.
+      session_close — Autonomous 5-phase session seal macro (EUREKA 2026-07-30):
+                      organ health → SOT eureka → atlas333 → VAULT999 RECORD → git sync.
+                      Call: mode=session_close, payload=<summary>, actor_id=<system actor>,
+                      ack_irreversible=True. No prior arif_judge required.
 
     Parameters:
-      mode                  — seal | verify | chain | list
-      payload               — JSON string to anchor (seal mode)
-      constitutional_chain_id — Prior arif_judge SEAL chain hash (replaces ack_irreversible)
+      mode                  — seal | verify | chain | list | session_close
+      payload               — JSON/text to anchor (seal / session_close)
+      constitutional_chain_id — Prior arif_judge SEAL chain hash (seal mode)
       judge_state_hash      — Judge verdict hash that authorized this seal
       witness_type          — ai | human (L13: human bypasses sovereign gate)
       session_id            — Governed session ID
       actor_id              — Sovereign actor identifier
+      ack_irreversible      — Required True for session_close (permanent ledger write)
       ctx                   — FastMCP Context for progress reporting and elicitation
 
     Returns:
       SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
+      session_close adds meta.session_close with stages 0–5 receipt.
     """
+    # ── MCP DOOR: session_close → tools.vault.arif_seal (5-phase macro) ─────
+    # Critical: do NOT call sync _arif_vault_seal here — that path lacks the
+    # organ-health gate, BOOT_EUREKA append, atlas333 vectorize, and git sync.
+    # Canonical implementation lives in arifosmcp.tools.vault.arif_seal.
+    if mode == "session_close":
+        from arifosmcp.tools.vault import arif_seal as _canonical_session_close
+
+        if ctx is not None:
+            try:
+                await ctx.report_progress(10, 100, "session_close: organ health + SOT + vault")
+            except Exception:
+                pass
+        out = await _canonical_session_close(
+            mode="session_close",
+            payload=payload or "",
+            session_id=session_id,
+            session_token=session_token,
+            actor_id=actor_id,
+            actor_signature=actor_signature,
+            nonce=nonce,
+            constitutional_chain_id=constitutional_chain_id,
+            judge_state_hash=judge_state_hash,
+            witness_type=witness_type,
+            drift_events=drift_events,
+            ack_irreversible=True,  # permanent ledger write; vault uses RECORD internally
+            seal_purpose=seal_purpose or "session_close",
+        )
+        if ctx is not None:
+            try:
+                await ctx.report_progress(100, 100, "session_close: complete")
+            except Exception:
+                pass
+        if hasattr(out, "model_dump"):
+            return out.model_dump(mode="json")
+        return dict(out) if out is not None else {"status": "HOLD", "verdict": "HOLD"}
+
     trace = None
     if _ensure_langfuse_tracer() is not None:
         try:
@@ -18950,7 +18994,7 @@ async def _arif_vault_seal_tool(
 
     try:
         # Verify mode is read-only — no irreversible ack needed
-        if mode in ("verify", "chain", "list"):
+        if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit"):
             ack_irreversible = True
             hold = None
         else:
@@ -18968,19 +19012,48 @@ async def _arif_vault_seal_tool(
         if ctx is not None:
             await ctx.report_progress(100, 100, "arif_vault_seal: completed")
 
-        result = _arif_vault_seal(
-            mode=mode,
-            payload=payload,
-            session_id=session_id,
-            ack_irreversible=ack_irreversible,
-            actor_id=actor_id,
-            actor_signature=actor_signature,
-            nonce=nonce,
-            constitutional_chain_id=constitutional_chain_id,
-            judge_state_hash=judge_state_hash,
-            witness_type=witness_type,
-            constitutional=constitutional,
-        )
+        # Prefer tools.vault.arif_seal for modes it owns (verify_chain, seal_card, …)
+        # while keeping _arif_vault_seal for classic seal/verify/chain/list.
+        if mode in (
+            "verify_chain",
+            "chain_status",
+            "audit",
+            "seal_card",
+            "render",
+            "dry_run",
+        ):
+            from arifosmcp.tools.vault import arif_seal as _canonical_seal
+
+            out = await _canonical_seal(
+                mode=mode,  # type: ignore[arg-type]
+                payload=payload,
+                session_id=session_id,
+                session_token=session_token,
+                actor_id=actor_id,
+                actor_signature=actor_signature,
+                nonce=nonce,
+                constitutional_chain_id=constitutional_chain_id,
+                judge_state_hash=judge_state_hash,
+                witness_type=witness_type,
+                drift_events=drift_events,
+                ack_irreversible=bool(ack_irreversible),
+                seal_purpose=seal_purpose,
+            )
+            result = out.model_dump(mode="json") if hasattr(out, "model_dump") else dict(out)
+        else:
+            result = _arif_vault_seal(
+                mode=mode,
+                payload=payload,
+                session_id=session_id,
+                ack_irreversible=ack_irreversible,
+                actor_id=actor_id,
+                actor_signature=actor_signature,
+                nonce=nonce,
+                constitutional_chain_id=constitutional_chain_id,
+                judge_state_hash=judge_state_hash,
+                witness_type=witness_type,
+                constitutional=constitutional,
+            )
 
         if trace:
             await trace.span(

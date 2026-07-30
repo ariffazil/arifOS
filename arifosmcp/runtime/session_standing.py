@@ -758,6 +758,16 @@ def attach_canonical(
     # preserves verdict (it is not a legacy identity field), but reading
     # it now gives the verdict composer the tool's claim to reduce.
     inner_verdict = response.get("verdict") if isinstance(response, dict) else None
+    # Prefer nested session_close stage4 verdict when top-level already stripped
+    if not inner_verdict and isinstance(response, dict):
+        _meta = response.get("meta") if isinstance(response.get("meta"), dict) else {}
+        _sc = _meta.get("session_close") if isinstance(_meta.get("session_close"), dict) else {}
+        _s4 = (_sc.get("stages") or {}).get("4_vault") if isinstance(_sc.get("stages"), dict) else None
+        if isinstance(_s4, dict) and _s4.get("verdict"):
+            inner_verdict = _s4.get("verdict")
+        elif _sc.get("seal_complete"):
+            inner_verdict = "SEAL"
+
     attach_canonical_standing(response, session_id=session_id, actor_id=actor_id)
     standing = response.get("standing") if isinstance(response, dict) else None
     band: str | None = None
@@ -767,6 +777,16 @@ def attach_canonical(
             band_value = authority.get("band")
             if isinstance(band_value, str):
                 band = band_value
+
+    # Session-close RECORD is ledger accounting, not AUTHORIZE-to-execute.
+    # When the 5-phase macro completed (VAULT999 entry written), do not
+    # downgrade SEAL → OBSERVE_ONLY solely because SCT standing is unbound.
+    # Identity still attaches for audit; effective_verdict stays SEAL.
+    if isinstance(response, dict):
+        _meta2 = response.get("meta") if isinstance(response.get("meta"), dict) else {}
+        _sc2 = _meta2.get("session_close") if isinstance(_meta2.get("session_close"), dict) else {}
+        if _sc2.get("seal_complete") and str(inner_verdict or "").upper() == "SEAL":
+            band = None
 
     from arifosmcp.runtime.verdict import attach_effective_verdict
 
