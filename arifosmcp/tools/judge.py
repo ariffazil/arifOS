@@ -32,6 +32,10 @@ from typing import Any
 logger = logging.getLogger("arifos.judge")
 
 from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
+from arifosmcp.constitution.derita_payload import (
+    format_derita_commentary,
+    resolve_derita_stakes,
+)
 from arifosmcp.core.conflict_resolver import (
     resolve_conflict,
 )
@@ -2202,6 +2206,30 @@ async def arif_judge(
             if _commentary:
                 result.setdefault("reasons", []).append(_commentary)
                 result["meta"]["paradox_commentary"] = _commentary
+
+        # ── 99 DERITA — Trauma topology overlay (L2, 2026-07-30) ──────────
+        # Dual trigger: paradox axes + breached floors. Fires independently
+        # of ATLAS333 — the human stakes are visible even on pure floor breach.
+        _triggered_paradox_axes: list[str] = []
+        if _paradox_quotes_val:
+            _triggered_paradox_axes = list(
+                {q.get("axis_label", "") for q in _paradox_quotes_val if q.get("axis_label")}
+            )
+        _breached_floors: list[str] = (
+            list(_evidence.get("floors_violated", [])) if isinstance(_evidence, dict) else []
+        )
+        _derita_vectors = resolve_derita_stakes(
+            paradox_axis=_triggered_paradox_axes[0] if _triggered_paradox_axes else None,
+            floors_breached=_breached_floors if _breached_floors else None,
+        )
+        if _derita_vectors:
+            # Raw JSON for machine consumption
+            result["meta"]["derita_vectors"] = [dv.to_dict() for dv in _derita_vectors]
+            # Formatted commentary block
+            _derita_commentary = format_derita_commentary(_derita_vectors)
+            if _derita_commentary:
+                result.setdefault("reasons", []).append(_derita_commentary)
+                result["meta"]["derita_commentary"] = _derita_commentary
 
         # ── SCALAR FEED PROTOCOL (TASK-P2-03) ─────────────────────────────
         # Live measurement of the 5 canonical APEX scalars (G, C_dark, W³,
