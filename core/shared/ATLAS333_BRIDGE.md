@@ -3,7 +3,7 @@
 > **SOURCE OF TRUTH — ATLAS333 cognitive substrate (theory ↔ runtime bridge).**
 > **Purpose:** Connect 333_MIND_ATLAS.md (constitutional theory) to paradox_quotes.py, atlas.py, paradox_gate.py, and types.py (runtime). Does NOT duplicate any existing file — only maps relationships between them.
 > **DITEMPA BUKAN DIBERI**
-> **Authority:** F13 SOVEREIGN — sealed 2026-07-15
+> **Authority:** F13 SOVEREIGN — sealed 2026-07-15 | verified 2026-07-30
 
 ---
 
