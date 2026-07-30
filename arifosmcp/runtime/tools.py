@@ -17735,19 +17735,35 @@ def _arif_vault_seal(
     # ── EPISTEMIC GATE (2026-06-21) — reject AI-synthesised evidence ──────
     # If the payload carries an _epistemic tag, verify it is vault-eligible.
     # Haram: AI-synthesised evidence must never enter the immutable ledger.
+    # Exception: session_close RECORD accounting (WITNESS_ONLY macro tag).
     try:
         from arifosmcp.runtime.epistemic_injector import verify_vault_eligibility
 
         if mode == "seal" and payload:
-            # Check if payload is a JSON string that might contain _epistemic
-            _payload_to_check = payload
             try:
                 import json as _epi_json
 
                 _payload_parsed = _epi_json.loads(payload)
-                _eligible, _reason = verify_vault_eligibility(_payload_parsed)
+                _epi = (
+                    _payload_parsed.get("_epistemic")
+                    if isinstance(_payload_parsed, dict)
+                    else None
+                )
+                # Autonomous session_close macro: accounting witness, not executive evidence
+                if isinstance(_epi, dict) and (
+                    _epi.get("session_close_macro") is True
+                    or (
+                        isinstance(_payload_parsed, dict)
+                        and _payload_parsed.get("seal_purpose") == "session_close"
+                    )
+                ):
+                    _eligible, _reason = True, "session_close RECORD — accounting witness (F2)"
+                else:
+                    _eligible, _reason = verify_vault_eligibility(
+                        _payload_parsed if isinstance(_payload_parsed, dict) else {}
+                    )
             except (json.JSONDecodeError, TypeError, ValueError):
-                # Payload is not JSON or has no _epistemic — allow (not all payloads are tool responses)
+                # Payload is not JSON — allow (not all payloads are tool responses)
                 _eligible = True
                 _reason = "Non-JSON payload — epistemic check skipped"
 

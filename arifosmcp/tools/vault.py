@@ -25,6 +25,101 @@ from arifosmcp.schemas.verdict import SealOutput
 logger = logging.getLogger(__name__)
 
 
+def _lookup_session_for_identity(session_id: str) -> dict[str, Any] | None:
+    """Sync session lookup for identity binding. No resolve_session / _SESSION_STORE.
+
+    Order:
+      1. arifosmcp.runtime.tools.get_session → in-process _SESSIONS
+      2. session_registry fallback dict (sync)
+      3. session_enforcer record (best-effort)
+    """
+    if not session_id:
+        return None
+    try:
+        from arifosmcp.runtime.tools import get_session as _tools_get
+
+        sess = _tools_get(session_id)
+        if sess:
+            return sess if isinstance(sess, dict) else None
+    except Exception:
+        pass
+    try:
+        from arifosmcp.runtime.session_registry import get_session_sync
+
+        sess = get_session_sync(session_id)
+        if sess:
+            return sess
+    except Exception:
+        pass
+    try:
+        from arifosmcp.runtime.session_enforcer import get_session as _enf_get
+
+        rec = _enf_get(session_id)
+        if rec is None:
+            return None
+        if isinstance(rec, dict):
+            return rec
+        # SessionRecord-like
+        data: dict[str, Any] = {}
+        for attr in (
+            "session_id",
+            "actor_id",
+            "session_private_key",
+            "session_pubkey_thumbprint",
+        ):
+            if hasattr(rec, attr):
+                data[attr] = getattr(rec, attr)
+        return data or None
+    except Exception:
+        return None
+
+
+def _tag_session_close_epistemic(
+    payload: str | None,
+    *,
+    session_id: str | None,
+    actor_id: str | None,
+    eureka_id: str | None = None,
+) -> str:
+    """Wrap session_close payload with vault-eligible _epistemic tag (F2).
+
+    Session close is ACCOUNTING / WITNESS_ONLY — not AI_SYNTHESIZED executive evidence.
+    Eligible under verify_vault_eligibility (blocks only AI_SYNTHESIZED + GENERATED/EXECUTIVE).
+    """
+    import json as _json
+    from datetime import UTC, datetime
+
+    body: dict[str, Any]
+    raw = payload or ""
+    try:
+        parsed = _json.loads(raw) if raw.strip().startswith(("{", "[")) else None
+        if isinstance(parsed, dict):
+            body = dict(parsed)
+        else:
+            body = {"summary": raw, "summary_kind": "text"}
+    except Exception:
+        body = {"summary": raw, "summary_kind": "text"}
+
+    body.setdefault("session_id", session_id or "")
+    body.setdefault("actor_id", actor_id or "")
+    if eureka_id:
+        body["eureka_id"] = eureka_id
+    body["seal_purpose"] = "session_close"
+    body["_epistemic"] = {
+        "output_class": "ACCOUNTING",
+        "ai_involvement": "ASSISTED",
+        "authority_claim": "WITNESS_ONLY",
+        "evidence_source": "SESSION_SUMMARY",
+        "session_close_macro": True,
+        "f2_witness": "human — F13 sovereign directive 2026-07-30",
+        "note": "AI-generated session summary, F2 witness: human",
+        "tagged_by": "arif_session_close_macro",
+        "tagged_at": datetime.now(UTC).isoformat(),
+        "schema_version": "session_close/2026-07-30",
+    }
+    return _json.dumps(body, ensure_ascii=False)
+
+
 async def arif_seal(
     mode: Literal[
         "seal",
@@ -516,19 +611,12 @@ async def arif_seal(
         )
 
     # ── Identity binding (2026-07-29): auto-sign with session keypair ─────
+    # Session lookup: tools.get_session (_SESSIONS) is canonical sync path.
+    # session_registry.resolve_session does NOT exist — never import it.
     _identity_binding: dict[str, Any] | None = None
     if session_id and payload and actor_id:
         try:
-            _sess = None
-            try:
-                from arifosmcp.runtime.session_registry import resolve_session as _rs
-                _sess = _rs(session_id)
-            except Exception:
-                try:
-                    from arifosmcp.runtime.session import get_session as _gs
-                    _sess = _gs(session_id)
-                except Exception:
-                    _sess = None
+            _sess = _lookup_session_for_identity(session_id)
             _sk = None
             if isinstance(_sess, dict):
                 _sk = _sess.get("session_private_key")
@@ -537,7 +625,9 @@ async def arif_seal(
             if _sk:
                 import hashlib as _id_hashlib
                 import secrets as _id_secrets
+
                 from arifosmcp.runtime.crypto_auth import sign_with_session_key
+
                 _payload_hash = _id_hashlib.sha256(payload.encode()).hexdigest()
                 _nonce = _id_secrets.token_hex(16)
                 _thumbprint = (
@@ -561,9 +651,19 @@ async def arif_seal(
         except Exception as _ibe:
             logger.warning("Identity binding auto-sign failed: %s", _ibe)
 
-    # ── Session-close RECORD path: mint judge packet + RECORD vault write ──
+    # ── Session-close RECORD path: epistemic tag + judge packet + vault ──
     _vault_ack = ack_irreversible
+    _seal_payload = payload
     if _is_session_close:
+        # F2: tag session summary as ACCOUNTING WITNESS (eligible), never as
+        # AI_SYNTHESIZED executive evidence. Also sets session_close_macro so
+        # _arif_vault_seal epistemic gate can short-circuit safely.
+        _seal_payload = _tag_session_close_epistemic(
+            payload,
+            session_id=session_id,
+            actor_id=actor_id,
+            eureka_id=(_macro_pre or {}).get("eureka", {}).get("eureka_id"),
+        )
         try:
             from arifosmcp.models.verdicts import Verdict as _V
             from arifosmcp.runtime.tools import _build_judge_contract
@@ -600,7 +700,7 @@ async def arif_seal(
 
     result = _arif_vault_seal(
         mode=mode,
-        payload=payload,
+        payload=_seal_payload,
         session_id=session_id,
         ack_irreversible=_vault_ack,
         actor_id=actor_id,

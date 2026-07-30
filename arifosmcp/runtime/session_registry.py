@@ -347,7 +347,20 @@ def get_registry() -> SessionRegistry:
     return _registry
 
 
+def get_session_sync(session_id: str) -> dict | None:
+    """Sync session lookup for identity binding / non-async call sites.
+
+    Prefers in-memory fallback; Redis async path is not used here.
+    For full Redis, await SessionRegistry.get_session.
+    """
+    if not session_id:
+        return None
+    with _fallback_lock:
+        return _fallback_sessions.get(session_id)
+
+
 __all__ = [
     "SessionRegistry",
     "get_registry",
+    "get_session_sync",
 ]
