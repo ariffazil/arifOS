@@ -796,6 +796,78 @@ async def arif_forge(
     except Exception:
         pass
 
+    # ── VERIFY111: Independent post-execution verification (non-blocking, fail-safe) ──
+    # Wires the existing independent_verifier.py into the forge_execute path.
+    # Verifier ≠ executor (enforced by R1 in verify_independent).
+    # Failure here does NOT block execution — it enriches the result with verification data.
+    try:
+        import time as _time
+
+        from arifosmcp.runtime.independent_verifier import (
+            VerificationRequest,
+            VerificationVerdict,
+            verify_independent,
+        )
+
+        _verdict = (
+            getattr(result, "verdict", "COMPLETED") if hasattr(result, "verdict") else "COMPLETED"
+        )
+        _intent_hash = hashlib.sha256(
+            f"{mode}:{manifest}:{session_id or 'anon'}".encode()
+        ).hexdigest()[:16]
+        _executor_id = actor_id or "unknown"
+
+        _vreq = VerificationRequest(
+            original_intent_hash=_intent_hash,
+            executor_id=_executor_id,
+            executor_session_id=session_id or "unknown",
+            mutation_receipt={
+                "mode": mode,
+                "verdict": str(_verdict),
+                "artifact_id": artifact_id or "",
+                "manifest_hash": hashlib.sha256((manifest or "").encode()).hexdigest()[:16],
+            },
+            success_criteria=[
+                f"verdict=SEAL",
+                f"status=OK",
+            ],
+            freshness_requirement=300.0,  # 5 minutes
+            evidence_sources=["forge_execute_receipt", "reality_ledger"],
+        )
+
+        # Verifier identity is "A-AUDIT" — separate from executor
+        _vresult = verify_independent(_vreq, verifier_id="A-AUDIT")
+
+        # Attach verification result to forge output
+        if result.meta is None:
+            result.meta = {}
+        result.meta["independent_verification"] = {
+            "verdict": _vresult.verdict.value,
+            "verifier_id": _vresult.verifier_id,
+            "request_hash": _vresult.request_hash,
+            "rule_violations": _vresult.rule_violations,
+            "evidence_quality": _vresult.evidence_quality,
+            "verified_at": _vresult.verified_at,
+            "note": "VERIFY111: independent post-execution verification (fail-safe, non-blocking)",
+        }
+
+        # If verification failed, surface HOLD recommendation
+        if _vresult.verdict != VerificationVerdict.PASS:
+            result.meta["verification_hold"] = {
+                "reason": f"Independent verification returned {_vresult.verdict.value}",
+                "violations": _vresult.rule_violations,
+                "recommendation": "HOLD — review verification failures before sealing",
+            }
+    except Exception as _verr:
+        # Fail-safe: verification failure does not block execution
+        if result.meta is None:
+            result.meta = {}
+        result.meta["independent_verification"] = {
+            "verdict": "UNAVAILABLE",
+            "error": str(_verr)[:200],
+            "note": "VERIFY111: independent verifier not reachable — execution completed without verification",
+        }
+
     return _echo_standing(result)
 
 

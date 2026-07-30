@@ -61,7 +61,7 @@ These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed vi
 | `arif_memory` | 000 | authenticated | ✗ HOLD | recall, inspect, attest, remember, promote, revise +2 more |
 | `arif_judge` | 888 | authenticated | ✓ | intercept, judge, validate, hold, escalate |
 | `arif_judge_deliberate` | 888 | internal_only | ✓ | judge, validate, hold, rules, armor, probe +1 more |
-| `arif_seal` | unknown | public | ✓ | ed25519_verify |
+| `arif_seal` | 999 | authenticated | ✗ HOLD | seal, verify, ledger, changelog, audit, session_close |
 | `arif_challenge` | 000 | internal_only | ✓ | challenge |
 | `arif_forge` | 777 | authenticated | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
 | `arif_measure` | 111 | internal_only | ✓ | health, vitals, cost, genius, topology, drift |
@@ -246,4 +246,4 @@ Tool counts outside arifOS are dynamic observations, not constants. Probe them a
 - Manifest hash: 183010c82e38b98b
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-07-28T18:36:04.459871+00:00 ---
+--- Auto-generated 2026-07-30T17:09:35.602964+00:00 ---

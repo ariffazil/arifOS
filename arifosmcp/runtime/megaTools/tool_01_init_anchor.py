@@ -71,10 +71,27 @@ def _bootstrap_result(
     platform: str,
     stage: str,
 ) -> dict[str, Any]:
+    """Return bootstrap envelope with separated identity fields.
+
+    CHATGPT-AUDIT-FIX (2026-07-30): actor_verified conflated three concepts:
+    - identity_declared (did they claim an ID?)
+    - identity_authenticated (did they prove it cryptographically?)
+    - authority_level (what can they do?)
+
+    Now returns all three as separate booleans/strings while keeping
+    `verified` as a legacy compat field for one release cycle.
+    """
+    actor_stated = actor_id and actor_id.strip() and actor_id != "anonymous"
     return {
         "session_id": session_id,
         "actor": actor_id,
+        # Legacy compat — will be removed 2026-09-30
         "verified": verified,
+        # NEW separated identity fields (ChatGPT Audit 2026-07-30)
+        "identity_declared": actor_stated,
+        "identity_authenticated": verified,
+        "authority_level": "SOVEREIGN" if verified else "OBSERVER",
+        # Existing fields
         "risk": risk_tier,
         "platform": platform,
         "stage": stage,
@@ -301,7 +318,15 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
             "result": _bootstrap_result(session_id, actor_id, verified, risk_tier, platform, stage),
             "session": {
                 "actor_id": actor_id,
+                # Legacy compat
                 "verified": verified,
+                # NEW separated identity fields (ChatGPT Audit 2026-07-30)
+                "identity_declared": bool(
+                    actor_id and actor_id.strip() and actor_id != "anonymous"
+                ),
+                "identity_authenticated": verified,
+                "authority_level": "SOVEREIGN" if verified else "OBSERVER",
+                # Existing
                 "risk_tier": risk_tier,
                 "platform": platform,
             },

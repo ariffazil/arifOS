@@ -573,22 +573,39 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "one_skill_one_tool": "Core of verdict loop (One Tool). Refusal/restraint from INIT drives the decision.",
     },
     "arif_seal": {
-        "purpose": "Append-only cryptographic seal of a prior 888_JUDGE SEAL verdict into the VAULT999 hash chain. This is the irreversible, permanent record step. L5 tool.",
+        "purpose": "Append-only cryptographic seal of a prior 888_JUDGE SEAL verdict into the VAULT999 hash chain, OR read-only vault verification/audit. Effect class depends on mode.",
         "use_when": [
-            "You have a verified SEAL verdict from arif_judge",
-            "You need an immutable, auditable record of the decision",
+            "You have a verified SEAL verdict from arif_judge (mode=seal)",
+            "You need an immutable, auditable record of the decision (mode=seal)",
+            "You need to verify chain integrity (mode=verify_chain, chain_status)",
+            "You need to audit vault entries (mode=audit)",
+            "You need a seal proof card (mode=seal_card, render)",
         ],
         "do_not_use_when": [
-            "No preceding arif_judge with SEAL",
-            "Testing or speculative data (use dry-run paths)",
+            "No preceding arif_judge with SEAL (for mode=seal only)",
+            "Testing or speculative data (use mode=dry_run)",
         ],
-        "authority_level": "requires_human_confirmation",
-        "side_effect": "append_only_ledger",
-        "blast_radius": "high",
-        "requires_human_confirmation": True,
+        "authority_level": "mode_dependent",
+        "side_effect": "mode_dependent",
+        "blast_radius": "mode_dependent",
+        "requires_human_confirmation": "mode_dependent",
         "output_type": "seal_receipt",
         "evidence_required": True,
-        "agency_level": "L5_EXECUTE_IRREVERSIBLE",
+        "agency_level": "L5_EXECUTE_IRREVERSIBLE",  # default for mode=seal/session_close
+        "mode_agency_levels": {
+            "verify": "L0_OBSERVE",
+            "chain": "L0_OBSERVE",
+            "list": "L0_OBSERVE",
+            "verify_chain": "L0_OBSERVE",
+            "chain_status": "L0_OBSERVE",
+            "audit": "L0_OBSERVE",
+            "changelog": "L0_OBSERVE",
+            "seal_card": "L1_ANALYZE",
+            "render": "L1_ANALYZE",
+            "dry_run": "L3_PREPARE",
+            "seal": "L5_EXECUTE_IRREVERSIBLE",
+            "session_close": "L5_EXECUTE_IRREVERSIBLE",
+        },
         "decision_thresholds": DECISION_THRESHOLDS,
         "next_safe_action_default": "The work is done. Record the seal receipt and close the loop.",
     },
@@ -17745,9 +17762,7 @@ def _arif_vault_seal(
 
                 _payload_parsed = _epi_json.loads(payload)
                 _epi = (
-                    _payload_parsed.get("_epistemic")
-                    if isinstance(_payload_parsed, dict)
-                    else None
+                    _payload_parsed.get("_epistemic") if isinstance(_payload_parsed, dict) else None
                 )
                 # Autonomous session_close macro: accounting witness, not executive evidence
                 if isinstance(_epi, dict) and (
