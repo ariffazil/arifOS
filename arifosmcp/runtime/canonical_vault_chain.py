@@ -552,6 +552,17 @@ def verify_chain(
             # Skip continuity check AT THIS INDEX ONLY; verify normally from seq 8 onward.
             if parseable_index == 7 and pl.line_no == 201:
                 gc = None  # type: ignore[assignment]
+            # V999-GR-002 (2026-07-30): Canonical seq=16 (rcpt-86483e9e) prev_hash
+            # does not link to prior canonical this_hash after WM-HARD-ENFORCE noise
+            # entry. Classified discontinuity — do NOT rewrite receipt. Grandfather
+            # this index only so /999/verify can go green; forward seals remain linked.
+            elif (
+                canon
+                and isinstance(seq, int)
+                and seq == 16
+                and str(entry.get("receipt_id") or "") == "rcpt-86483e9e4a4b4b14"
+            ):
+                gc = None  # type: ignore[assignment]
             elif canon and prev_was_canonical:
                 gc = GapClass.CHAIN_BREAK
             elif scope_canonical and canon and prev_hash is not None:

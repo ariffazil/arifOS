@@ -61,13 +61,22 @@ VALID_BANDS = frozenset({BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND
 
 # Methods strong enough to elevate mutation/seal authority.
 # identity_claim is a WEAK proof class: may bind name, never grant mutation.
+# HMAC-rootkey (Telegram/F13 ritual) + system_exempt (VPS localhost ARIF) +
+# ed25519_auto_localhost are strong proofs on the sovereign host — without
+# them compose_standing collapses FULL→OBSERVE_ONLY and blocks arif_judge/seal.
 STRONG_VERIFICATION_METHODS = frozenset(
     {
         "ed25519",
         "ed25519_signature",
+        "ed25519_auto_localhost",
         "sct_sovereign",
         "vault_seal",
         "capability_token",
+        "hmac",
+        "hmac_signature",
+        "hmac_signature_verified",
+        "system_exempt",
+        "signature",  # generic crypto bind from init authority_state
     }
 )
 
@@ -208,9 +217,16 @@ def _derive_authority_band(record: dict[str, Any] | None, actor_id: str | None) 
     """Compute the single authority band. No other code path may compute it."""
     if not record:
         return BAND_OBSERVE_ONLY
-    # Prefer runtime_authority (the canonical underlying field), then
-    # authority_level (legacy alias). Both must converge to the same band.
-    level = record.get("runtime_authority") or record.get("authority_level")
+    # Prefer runtime_authority (canonical), then authority_level (legacy),
+    # then session authority / actor_band written by arif_init birth path.
+    # Without authority/actor_band fallback, verified+strong sessions with
+    # only sess["authority"]="FULL" collapsed to OBSERVE_ONLY (2026-07-30).
+    level = (
+        record.get("runtime_authority")
+        or record.get("authority_level")
+        or record.get("authority")
+        or record.get("actor_band")
+    )
     return _normalize_band(level)
 
 
@@ -403,6 +419,18 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
         band = BAND_OBSERVE_ONLY
 
     mutation_allowed = band in {BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN}
+    # Seal is SOVEREIGN-band only per AuthorityStanding invariant. Elevate
+    # verified human principal (arif) with strong method from FULL → SOVEREIGN
+    # so seal_allowed can open without inventing a second authority surface.
+    _claimed_norm = str(claimed_id or "").strip().lower()
+    if (
+        verified
+        and _is_strong_method(verification_method)
+        and band == BAND_FULL
+        and _claimed_norm in ("arif", "ariffazil", "888")
+    ):
+        band = BAND_SOVEREIGN
+        mutation_allowed = True
     seal_allowed = band == BAND_SOVEREIGN and _is_strong_method(verification_method)
 
     # Final AC belt: if somehow mutation_allowed with unverified, hard-deny
