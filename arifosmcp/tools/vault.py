@@ -231,6 +231,56 @@ async def arif_seal(
         except Exception:
             pass
 
+    # ── Layer 6 effect typing (2026-07-30) ───────────────────────────────
+    # Safe modes are OBSERVE-class (no vault append). Dangerous modes remain
+    # IRREVERSIBLE and require FULL/SOVEREIGN authority + ack.
+    _SEAL_SAFE_MODES = frozenset(
+        {
+            "list",
+            "verify",
+            "verify_chain",
+            "chain",
+            "chain_status",
+            "audit",
+            "dry_run",
+            "seal_card",
+            "render",
+        }
+    )
+    _SEAL_DANGEROUS_MODES = frozenset({"seal", "session_close"})
+    _effect_class = "OBSERVE" if mode in _SEAL_SAFE_MODES else "IRREVERSIBLE"
+    _auth_band = (_standing_authority or "OBSERVE_ONLY").upper()
+    if mode in _SEAL_DANGEROUS_MODES and _auth_band in (
+        "OBSERVE_ONLY",
+        "LIMITED_MUTATE",
+        "LOW",
+        "",
+    ):
+        return _echo_standing(
+            SealOutput(
+                mode=mode,
+                status="HOLD",
+                verdict="HOLD",
+                reasons=[
+                    f"effect_class=IRREVERSIBLE mode={mode} requires FULL or SOVEREIGN "
+                    f"authority (current={_auth_band or 'unknown'})"
+                ],
+                next_safe_action=(
+                    "Call arif_init with verified sovereign actor for mode=seal, "
+                    "or use mode=verify|verify_chain|list|audit for OBSERVE-class access"
+                ),
+                entry_id="",
+                actor_id=actor_id,
+                meta={
+                    "gate": "L6_EFFECT_TYPING",
+                    "effect_class": "IRREVERSIBLE",
+                    "mode": mode,
+                    "authority": _auth_band,
+                    "safe_modes": sorted(_SEAL_SAFE_MODES),
+                },
+            )
+        )
+
     # ── ZEN HARD GATE (2026-07-30): Seal preconditions — no LLM needed ──
     # Per ChatGPT forensic: arif_seal must reject immediately when the
     # constitutional chain is incomplete. LLM writes explanations, but
@@ -474,8 +524,9 @@ async def arif_seal(
     if mode == "verify_chain":
         from arifosmcp.tools.vault import arif_vault_verify as _vault_verify_fn
 
-        # Anonymous callers allowed (this is the PUBLIC verify tier)
-        _chain_verdict = await _vault_verify_fn(
+        # Anonymous callers allowed (this is the PUBLIC verify tier).
+        # arif_vault_verify is sync — never await (2026-07-30 fix).
+        _chain_verdict = _vault_verify_fn(
             mode="verify_chain",
             actor_id=actor_id,
             sovereign_receipt_ref="",

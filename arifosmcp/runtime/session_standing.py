@@ -580,28 +580,43 @@ def _allowed_verbs_for_band(band: str) -> list[str]:
 
     The full public surface must be reachable under SOVEREIGN/FULL.
     """
-    if band in (BAND_FULL, BAND_SOVEREIGN):
+    # Single source: AUTHORITY_VERBS in sct.py (Layer 6 effect typing 2026-07-30).
+    # OBSERVE_ONLY includes arif_seal for safe modes only; mode=seal still HOLD'd
+    # inside arif_seal by effect_class IRREVERSIBLE.
+    try:
+        from arifosmcp.runtime.sct import derive_verbs
+
+        return derive_verbs(band)
+    except Exception:
+        if band in (BAND_FULL, BAND_SOVEREIGN):
+            return [
+                "arif_init",
+                "arif_observe",
+                "arif_think",
+                "arif_route",
+                "arif_memory",
+                "arif_judge",
+                "arif_forge",
+                "arif_seal",
+            ]
+        if band == BAND_LIMITED_MUTATE:
+            return [
+                "arif_init",
+                "arif_observe",
+                "arif_think",
+                "arif_route",
+                "arif_memory",
+                "arif_judge",
+                "arif_forge",
+                "arif_seal",
+            ]
         return [
             "arif_init",
             "arif_observe",
             "arif_think",
             "arif_route",
-            "arif_memory",
-            "arif_judge",
-            "arif_forge",
             "arif_seal",
         ]
-    if band == BAND_LIMITED_MUTATE:
-        return [
-            "arif_init",
-            "arif_observe",
-            "arif_think",
-            "arif_route",
-            "arif_memory",
-            "arif_judge",
-            "arif_forge",
-        ]
-    return ["arif_init", "arif_observe", "arif_think", "arif_route"]
 
 
 def _sync_authority_surfaces_from_standing(

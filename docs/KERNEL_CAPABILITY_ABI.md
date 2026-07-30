@@ -15,6 +15,16 @@ arifOS has eight stable semantic capabilities. MCP, REST, A2A, model providers, 
 | `action.execute` | 1.0.0 | `arif_forge` | MATERIAL | EXECUTOR |
 | `history.seal` | 1.0.0 | `arif_seal` | IRREVERSIBLE | SOVEREIGN |
 
+### history.seal — effect_by_mode (Layer 6, 2026-07-30)
+
+| Mode | Effect | Authority |
+|------|--------|-----------|
+| `verify`, `verify_chain`, `chain`, `chain_status`, `list`, `audit`, `dry_run`, `seal_card`, `render` | OBSERVE | OBSERVE_ONLY+ |
+| `seal`, `session_close` | IRREVERSIBLE | FULL / SOVEREIGN |
+
+Do not classify risk by tool name alone. `arif_seal(mode=verify)` is A-FORGE token verification (OBSERVE), not vault append.
+
+
 ## Profiles
 
 | Profile | Capabilities | Diagnostics |
