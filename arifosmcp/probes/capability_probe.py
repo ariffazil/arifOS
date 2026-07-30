@@ -128,9 +128,132 @@ class ProbeReport:
 
 # ── MCP wire layer ─────────────────────────────────────────────────────────────
 
-
 class MCPError(RuntimeError):
     pass
+
+
+def _mcp_endpoint(mcp_url: str) -> str:
+    """Normalize base URL → streamable HTTP /mcp endpoint."""
+    base = mcp_url.rstrip("/")
+    if base.endswith("/mcp"):
+        return base
+    return f"{base}/mcp"
+
+
+class MCPTransport:
+    """Streamable-HTTP MCP session: initialize → session id → tools/call.
+
+    FastMCP streamable HTTP rejects tools/call without Mcp-Session-Id
+    (HTTP 400 Missing session ID). SCT (session_token) is separate —
+    constitutional authority inside arguments; transport session is wire state.
+    """
+
+    def __init__(self, mcp_url: str) -> None:
+        self.endpoint = _mcp_endpoint(mcp_url)
+        self.session_id: str | None = None
+        self._rpc_id = 0
+        self._open()
+
+    def _headers(self) -> dict[str, str]:
+        h = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        if self.session_id:
+            h["Mcp-Session-Id"] = self.session_id
+        return h
+
+    def _next_id(self) -> int:
+        self._rpc_id += 1
+        return self._rpc_id
+
+    def _open(self) -> None:
+        init_body = {
+            "jsonrpc": "2.0",
+            "id": self._next_id(),
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-03-26",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "arifos-capability-probe",
+                    "version": "2026.07.30",
+                },
+            },
+        }
+        resp = requests.post(
+            self.endpoint, json=init_body, headers=self._headers(), timeout=20
+        )
+        if resp.status_code != 200:
+            raise MCPError(
+                f"MCP initialize HTTP {resp.status_code}: {resp.text[:200]}"
+            )
+        sid = resp.headers.get("mcp-session-id") or resp.headers.get("Mcp-Session-Id")
+        if not sid:
+            raise MCPError("MCP initialize returned no Mcp-Session-Id header")
+        self.session_id = sid
+        note = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+        requests.post(self.endpoint, json=note, headers=self._headers(), timeout=10)
+
+    def call(
+        self,
+        tool: str,
+        *,
+        mode: str | None,
+        session_token: str | None,
+        actor_id: str,
+        extra_args: dict[str, Any] | None = None,
+        minimal_envelope: bool = True,
+    ) -> dict[str, Any]:
+        """JSON-RPC tools/call. SCT in arguments.session_token (not HTTP header)."""
+        arguments: dict[str, Any] = {"intent": f"daily_probe:{tool}"}
+        if minimal_envelope:
+            arguments["verbosity"] = "minimal"
+        if mode:
+            arguments["mode"] = mode
+        if session_token:
+            arguments["session_token"] = session_token
+        if actor_id:
+            arguments["actor_id"] = actor_id
+        if extra_args:
+            arguments.update(extra_args)
+
+        body = {
+            "jsonrpc": "2.0",
+            "id": self._next_id(),
+            "method": "tools/call",
+            "params": {"name": tool, "arguments": arguments},
+        }
+        resp = requests.post(
+            self.endpoint, json=body, headers=self._headers(), timeout=30
+        )
+        if resp.status_code != 200:
+            raise MCPError(f"{tool}: HTTP {resp.status_code}: {resp.text[:200]}")
+        ctype = (resp.headers.get("content-type") or "").lower()
+        text_body = resp.text
+        if "text/event-stream" in ctype and "data:" in text_body:
+            for line in reversed(text_body.splitlines()):
+                if line.startswith("data:"):
+                    payload = line[5:].strip()
+                    if payload and payload != "[DONE]":
+                        try:
+                            return json.loads(payload)
+                        except json.JSONDecodeError:
+                            continue
+        try:
+            return resp.json()
+        except json.JSONDecodeError as exc:
+            raise MCPError(f"{tool}: response is not JSON: {text_body[:200]}") from exc
+
+
+_TRANSPORT: MCPTransport | None = None
+
+
+def _get_transport(mcp_url: str) -> MCPTransport:
+    global _TRANSPORT
+    if _TRANSPORT is None:
+        _TRANSPORT = MCPTransport(mcp_url)
+    return _TRANSPORT
 
 
 def _mcp_call(
@@ -143,52 +266,19 @@ def _mcp_call(
     extra_args: dict[str, Any] | None = None,
     minimal_envelope: bool = True,
 ) -> dict[str, Any]:
-    """Single JSON-RPC `tools/call`. Returns the parsed response envelope.
+    """Single JSON-RPC tools/call via streamable-HTTP MCP session.
 
-    SCT is passed in `params.arguments.session_token` (per
-    tools_internal.py:482-508 — NOT an HTTP header).
-
-    verbosity="minimal" is set on every probe call so the response stays
-    small (per arifosmcp/runtime/verbosity.py). The probe only needs
-    verdict, session_id, trace_id, call_hash — not the full 70+ field
-    standard envelope. Per Arif's framing: the kernel is the governance
-    product, but consumers shouldn't have to parse kilobytes to get a
-    session_id. Fat envelope burns the calling agent's context window.
+    SCT is passed in params.arguments.session_token (per tools_internal).
+    Transport Mcp-Session-Id is established once per probe run.
     """
-    arguments: dict[str, Any] = {"intent": f"daily_probe:{tool}"}
-    if minimal_envelope:
-        arguments["verbosity"] = "minimal"
-    if mode:
-        arguments["mode"] = mode
-    if session_token:
-        arguments["session_token"] = session_token
-    if actor_id:
-        arguments["actor_id"] = actor_id
-    if extra_args:
-        arguments.update(extra_args)
-
-    body = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "tools/call",
-        "params": {"name": tool, "arguments": arguments},
-    }
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json, text/event-stream",
-    }
-    resp = requests.post(
-        f"{mcp_url.rstrip('/')}/mcp",
-        json=body,
-        headers=headers,
-        timeout=15,
+    return _get_transport(mcp_url).call(
+        tool,
+        mode=mode,
+        session_token=session_token,
+        actor_id=actor_id,
+        extra_args=extra_args,
+        minimal_envelope=minimal_envelope,
     )
-    if resp.status_code != 200:
-        raise MCPError(f"{tool}: HTTP {resp.status_code}: {resp.text[:200]}")
-    try:
-        return resp.json()
-    except json.JSONDecodeError as exc:
-        raise MCPError(f"{tool}: response is not JSON: {resp.text[:200]}") from exc
 
 
 def _extract_envelope(response: dict[str, Any]) -> dict[str, Any]:
@@ -335,7 +425,12 @@ def run(mcp_url: str = "http://127.0.0.1:8088", actor_id: str = PROBE_ACTOR_ID) 
     Returns a ProbeReport. Raises MCPError if the very first call (arif_init)
     fails — the probe cannot proceed without a session.
     """
+    global _TRANSPORT
+    # Fresh MCP transport session each run (streamable HTTP session id).
+    _TRANSPORT = None
     report = ProbeReport()
+    # Open wire session before any tools/call
+    _get_transport(mcp_url)
 
     # ── 1. arif_init — mint session_token ───────────────────────────────────
     # arif_init keeps the standard envelope because the minimal trim strips
