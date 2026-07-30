@@ -26,7 +26,7 @@
     { "name": "arif_memory", "description": "KERNEL memory governor — L1-L6 under F1/F2/F4/F11. Modes: recall | inspect | attest | remember | promote | revise | forget. Writes are J-space mutations." },
     { "name": "arif_judge", "description": "KERNEL 888 — Constitutional verdict. Only organ that SEAL/HOLD/SABAR/VOIDs. Binding floor + authority arbitration. Requires actor, intent, domain, reversibility_level, blast_radius." },
     { "name": "arif_forge", "description": "KERNEL 777 — Execution gate via A-FORGE. Mutates only after arif_judge SEAL + lease/chain IDs. Modes: dry_run | engineer | query | write | generate | commit | recall." },
-    { "name": "arif_seal", "description": "KERNEL 999 — VAULT999 immutable append. Irreversible civilizational memory. Modes: seal | verify | chain | list | dry_run. Requires ack_irreversible. Kernel judges; vault seals." }
+    { "name": "arif_seal", "description": "KERNEL 999 — VAULT999 immutable append. Irreversible civilizational memory. Modes: seal | verify | chain | list | dry_run | session_close | audit. session_close = autonomous 5-phase session seal (organ health → SOT → atlas333 → VAULT999 RECORD → git). Requires ack_irreversible for write modes." }
   ],
   "public_tool_count": 8,
   "resources": [

@@ -12,7 +12,7 @@
     { "name": "arif_memory", "description": "555 — Memory governor. L1-L6 recall/inspect/remember/promote. J-space mutations gated." },
     { "name": "arif_judge", "description": "888 — Constitutional verdict. SEAL/HOLD/SABAR/VOID. Binding floor + authority arbitration." },
     { "name": "arif_forge", "description": "777 — Governed execution gate. Requires prior arif_judge SEAL. Routes to A-FORGE." },
-    { "name": "arif_seal", "description": "999 — VAULT999 immutable append. Irreversible civilizational memory. Needs ack_irreversible." }
+    { "name": "arif_seal", "description": "999 — VAULT999 immutable append. Modes: seal | verify | chain | list | session_close | audit. session_close = autonomous 5-phase session seal. Needs ack_irreversible for write modes." }
   ],
   "resources": [
     { "uri": "arifos://doctrine", "description": "Immutable law (F1-F13)" },
