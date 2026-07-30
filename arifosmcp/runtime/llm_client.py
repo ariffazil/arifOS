@@ -77,6 +77,12 @@ TOKENROUTER_API_KEY = _tokenrouter_cfg["key"]
 TOKENROUTER_BASE_URL = _tokenrouter_cfg["url"]
 TOKENROUTER_MODEL = _tokenrouter_cfg["model"]
 
+# Constitutional seat direct channel — DeepSeek official API (not generic cascade).
+# Used only when the model is a DeepSeek constitutional seat and TokenRouter fails
+# (quota/channel). Never grants non-map models authority for 666_JUDGE / 999_SEAL.
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").rstrip("/")
+
 # Tier 1 — MiniMax M3 (frontier agentic operator, MSA architecture, 1M ctx, native multimodal)
 MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY")
 MINIMAX_BASE_URL = os.getenv("MINIMAX_API_HOST", "https://api.minimax.io")
@@ -1757,12 +1763,15 @@ def _emit_seat_unavailable(
     seat_model: str,
     tool_origin: str,
     attempted_model: str | None,
+    *,
+    attempted_seats: list[str] | None = None,
+    channels_tried: list[str] | None = None,
 ) -> None:
     """Emit JUDGE_SEAT_UNAVAILABLE or SEAL_SEAT_UNAVAILABLE to VAULT999.
 
-    AMEND-20260724-001: when the constitutional seat model fails, the system
-    MUST NOT enter the generic provider cascade. The event is best-effort
-    (failures are swallowed) — it is an operational log, not a seal.
+    AMEND-20260724-001 / AMEND-20260730-SEAT-DEPUTY:
+    When all constitutional seats (map-allowed models only) fail on all
+    constitutional channels, HOLD. Generic provider cascade is still forbidden.
     """
     event_kind = (
         "JUDGE_SEAT_UNAVAILABLE"
@@ -1776,16 +1785,232 @@ def _emit_seat_unavailable(
         "role": role,
         "seat_model": seat_model,
         "attempted_model": attempted_model or seat_model,
+        "attempted_seats": attempted_seats or [seat_model],
+        "channels_tried": channels_tried or [],
         "tool_origin": tool_origin,
         "decision": "HOLD",
         "reason": (
-            f"Constitutional seat model {seat_model!r} is unavailable "
-            f"for role {role}. No cascade — deputy requires F13 directive."
+            f"All constitutional seats unavailable for role {role}. "
+            f"Tried seats={attempted_seats or [seat_model]}; "
+            f"channels={channels_tried or []}. "
+            "No generic cascade — only map-allowed models and their bound channels."
         ),
         "registry_path": _agent_model_map_path(),
         "timestamp": datetime.now(UTC).isoformat(),
     }
     _emit_vault999_outcome(event)
+
+
+def _emit_seat_deputy_event(
+    role: str,
+    primary_seat: str,
+    deputy_seat: str,
+    channel: str,
+    tool_origin: str,
+) -> None:
+    """Record activation of a map-allowed deputy seat / alternate channel."""
+    _emit_vault999_outcome(
+        {
+            "event": "JUDGE_SEAT_DEPUTY_ACTIVATED"
+            if role == "666_JUDGE"
+            else "SEAL_SEAT_DEPUTY_ACTIVATED"
+            if role == "999_SEAL"
+            else "CONSTITUTIONAL_SEAT_DEPUTY_ACTIVATED",
+            "role": role,
+            "primary_seat": primary_seat,
+            "deputy_seat": deputy_seat,
+            "channel": channel,
+            "tool_origin": tool_origin,
+            "decision": "PROCEED",
+            "reason": (
+                f"Primary seat {primary_seat!r} failed; "
+                f"serving role {role} via map-allowed {deputy_seat!r} on {channel}."
+            ),
+            "registry_path": _agent_model_map_path(),
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+    )
+
+
+def _short_model_key(model: str) -> str:
+    m = (model or "").strip()
+    return m.split("/", 1)[-1] if "/" in m else m
+
+
+def _is_deepseek_seat(model: str) -> bool:
+    short = _short_model_key(model).lower()
+    return short.startswith("deepseek")
+
+
+def ordered_constitutional_seats(
+    role: str,
+    preferred_model: str | None = None,
+) -> list[str]:
+    """Ordered map-allowed seats for a gated constitutional role.
+
+    Preference order:
+      1. preferred_model if allowed
+      2. deepseek-v4-pro / deepseek/deepseek-v4-pro if allowed
+      3. remaining allowed models (stable sort by short key)
+    """
+    model_map = _load_agent_model_map()
+    allowed = _allowed_models_for_role(model_map, role)
+    if not allowed:
+        return []
+
+    # Index by short form → preferred full key from map
+    by_short: dict[str, str] = {}
+    for a in allowed:
+        by_short[_short_model_key(a)] = a
+
+    ordered: list[str] = []
+    seen: set[str] = set()
+
+    def _push(model: str | None) -> None:
+        if not model:
+            return
+        short = _short_model_key(model)
+        # Prefer canonical map key when present
+        canon = by_short.get(short, model if short in by_short or model in allowed else "")
+        if not canon:
+            # preferred may be short form of an allowed model
+            if short not in by_short and model not in allowed:
+                return
+            canon = by_short.get(short, model)
+        if canon in seen:
+            return
+        # validate membership via short form
+        if short not in by_short and canon not in allowed:
+            return
+        ordered.append(canon if canon in allowed else by_short[short])
+        seen.add(ordered[-1])
+        seen.add(short)
+
+    _push(preferred_model)
+    _push("deepseek/deepseek-v4-pro")
+    _push("deepseek-v4-pro")
+    for short in sorted(by_short.keys()):
+        _push(by_short[short])
+    return ordered
+
+
+async def _call_deepseek_direct(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+    model: str | None = None,
+) -> tuple[str, dict[str, Any]]:
+    """Constitutional channel: official DeepSeek API for DeepSeek seat models only."""
+    if not DEEPSEEK_API_KEY:
+        raise LLMUnavailableError("DEEPSEEK_API_KEY not configured")
+
+    short = _short_model_key(model or "deepseek-v4-pro")
+    if not short.startswith("deepseek"):
+        raise LLMUnavailableError(
+            f"DeepSeek direct channel refuses non-DeepSeek model {model!r}"
+        )
+
+    messages: list[dict[str, str]] = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": short,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=45.0) as client:
+            response = await client.post(
+                f"{DEEPSEEK_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("DeepSeek direct transport error: %s", exc)
+        raise LLMUnavailableError(f"DeepSeek direct transport error: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning(
+            "DeepSeek direct HTTP %s: %s", response.status_code, response.text[:200]
+        )
+        raise LLMUnavailableError(f"DeepSeek direct HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "") or msg.get("reasoning_content", "")
+    except Exception as exc:
+        raise LLMUnavailableError(f"DeepSeek direct parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content or "")
+    try:
+        parsed = json.loads(raw_output) if raw_output else {}
+    except json.JSONDecodeError:
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            parsed = repaired
+            raw_output = json.dumps(repaired)
+        else:
+            parsed = {"reasoning": raw_output, "answer": raw_output}
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(
+            f"DeepSeek direct output must be JSON object, got {type(parsed).__name__}"
+        )
+    if not parsed:
+        # Empty content still yields a governed envelope payload
+        parsed = {"reasoning": raw_output or "", "answer": raw_output or "", "status": "OK"}
+        raw_output = json.dumps(parsed)
+
+    logger.info("DeepSeek direct seat channel OK model=%s", short)
+    return raw_output, parsed
+
+
+async def _call_constitutional_seat_channel(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int,
+    model: str,
+) -> tuple[str, dict[str, Any], str]:
+    """Try constitutional channels for one map-allowed seat model.
+
+    Returns (raw, parsed, channel_name). Channel order:
+      1. tokenrouter (primary gateway)
+      2. deepseek_direct (only for DeepSeek seats)
+    Never MiniMax/MiMo/Groq — those are generic cascade only.
+    """
+    errors: list[str] = []
+
+    try:
+        raw, parsed = await _call_tokenrouter(
+            system, user, response_schema, temperature, max_tokens, model=model
+        )
+        return raw, parsed, "tokenrouter"
+    except LLMUnavailableError as exc:
+        errors.append(f"tokenrouter:{exc}")
+
+    if _is_deepseek_seat(model):
+        try:
+            raw, parsed = await _call_deepseek_direct(
+                system, user, response_schema, temperature, max_tokens, model=model
+            )
+            return raw, parsed, "deepseek_direct"
+        except LLMUnavailableError as exc:
+            errors.append(f"deepseek_direct:{exc}")
+
+    raise LLMUnavailableError(
+        f"All constitutional channels failed for seat {model!r}: {'; '.join(errors)}"
+    )
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -1850,51 +2075,87 @@ async def call_llm(
             trace_recursion_depth,
         )
 
-    # F13 — Constitutional model-role gate (AMEND-20260724-001, 2026-07-24)
-    # For roles 666_JUDGE / 999_SEAL, the effective model is determined by
-    # select_model_for_role() which enforces the seat policy. The returned
-    # model MUST be used — the generic cascade below is NEVER entered for
-    # gated roles. If the exact seat model fails → ConstitutionalSeatUnavailable
-    # → HOLD (fail-closed). No fallback, no silent substitution.
+    # F13 — Constitutional model-role gate (AMEND-20260724-001 + SEAT-DEPUTY 2026-07-30)
+    # For roles 666_JUDGE / 999_SEAL:
+    #   - Only AGENT_MODEL_MAP-allowed models may serve the seat
+    #   - Ordered seats: preferred → deepseek-v4-pro → other map-allowed deputies
+    #   - Channels per seat: tokenrouter → deepseek_direct (DeepSeek seats only)
+    #   - Generic cascade (MiniMax/MiMo/Groq/…) is NEVER entered
+    #   - All seats+channels fail → ConstitutionalSeatUnavailable → HOLD
     # Non-constitutional roles pass through to the generic cascade unchanged.
     if constitutional_role and constitutional_role in CONSTITUTIONAL_ROLES_GATED:
-        gated_model = select_model_for_role(
-            constitutional_role, preferred_model, agent_id=tool_origin
-        )
+        # Validate preferred (if any) is not forbidden — raises FORBIDDEN_MODEL
+        if preferred_model:
+            select_model_for_role(
+                constitutional_role, preferred_model, agent_id=tool_origin
+            )
+        seats = ordered_constitutional_seats(constitutional_role, preferred_model)
+        if not seats:
+            # Empty map / no allowed models — same fail-closed as select_model_for_role
+            select_model_for_role(
+                constitutional_role, preferred_model, agent_id=tool_origin
+            )
+            seats = [preferred_model or "deepseek-v4-pro"]
+
+        primary_seat = seats[0]
         t0 = time.monotonic()
-        try:
-            raw_output, parsed = await _call_tokenrouter(
-                system,
-                user,
-                response_schema,
-                temperature,
-                max_tokens,
-                model=gated_model,
-            )
-            return _make_envelope(
-                raw_output,
-                parsed,
-                "tokenrouter",
-                gated_model,
-                tool_origin,
-                mode,
-                combined_prompt,
-                (time.monotonic() - t0) * 1000,
-                response_schema,
-                trace_recursion_depth,
-            )
-        except LLMUnavailableError:
-            _emit_seat_unavailable(
-                constitutional_role,
-                gated_model,
-                tool_origin,
-                preferred_model,
-            )
-            raise ConstitutionalSeatUnavailable(
-                f"Constitutional seat unavailable: role={constitutional_role} "
-                f"model={gated_model} — HOLD. No cascade for gated roles. "
-                f"Deputy must be activated by F13 directive."
-            ) from None
+        channels_tried: list[str] = []
+        last_err: str | None = None
+
+        for seat in seats:
+            try:
+                raw_output, parsed, channel = await _call_constitutional_seat_channel(
+                    system,
+                    user,
+                    response_schema,
+                    temperature,
+                    max_tokens,
+                    model=seat,
+                )
+                channels_tried.append(f"{seat}@{channel}:ok")
+                if seat != primary_seat or channel != "tokenrouter":
+                    _emit_seat_deputy_event(
+                        constitutional_role,
+                        primary_seat,
+                        seat,
+                        channel,
+                        tool_origin,
+                    )
+                return _make_envelope(
+                    raw_output,
+                    parsed,
+                    channel,
+                    seat,
+                    tool_origin,
+                    mode,
+                    combined_prompt,
+                    (time.monotonic() - t0) * 1000,
+                    response_schema,
+                    trace_recursion_depth,
+                )
+            except LLMUnavailableError as exc:
+                channels_tried.append(f"{seat}:fail")
+                last_err = str(exc)
+                logger.warning(
+                    "Constitutional seat %s failed for %s: %s",
+                    seat,
+                    constitutional_role,
+                    exc,
+                )
+
+        _emit_seat_unavailable(
+            constitutional_role,
+            primary_seat,
+            tool_origin,
+            preferred_model,
+            attempted_seats=seats,
+            channels_tried=channels_tried,
+        )
+        raise ConstitutionalSeatUnavailable(
+            f"Constitutional seat unavailable: role={constitutional_role} "
+            f"seats={seats} channels={channels_tried} — HOLD. "
+            f"No generic cascade. last_error={last_err}"
+        ) from None
     elif constitutional_role:
         # Non-gated constitutional role — validate but don't short-circuit cascade
         select_model_for_role(constitutional_role, preferred_model, agent_id=tool_origin)
