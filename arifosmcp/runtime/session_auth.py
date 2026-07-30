@@ -57,6 +57,10 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "forge": "operator",
     "opencode": "operator",
     "hermes": "operator",
+    "claude": "operator",
+    "claude-code": "operator",
+    "deepseek": "operator",
+    "kimi": "operator",
 }
 
 

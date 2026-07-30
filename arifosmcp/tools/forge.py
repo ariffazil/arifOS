@@ -176,6 +176,50 @@ async def arif_forge(
         except Exception:
             pass
 
+    # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any execution ──
+    # Per ChatGPT forensic: arif_forge must reject immediately without prior
+    # SEAL verdict. No LLM, no 45s wait. These are checkable facts.
+    _forge_reasons: list[str] = []
+    _mutate_modes = {"engineer", "write", "generate", "commit", "deploy"}
+
+    # Gate F1: No session → cannot execute anything
+    if not session_id and not _standing_token:
+        _forge_reasons.append("No session_id or session_token — cannot execute.")
+
+    # Gate F2: MUTATE modes require prior SEAL verdict (judge_state_hash or cc_id)
+    if mode in _mutate_modes and not (judge_state_hash or constitutional_chain_id):
+        _forge_reasons.append(
+            f"Mode '{mode}' is MUTATE but no judge_state_hash or constitutional_chain_id "
+            "provided. A prior arif_judge SEAL verdict is required before forge execution."
+        )
+
+    # Gate F3: Irreversible execution requires explicit ack
+    if mode in _mutate_modes and not ack_irreversible:
+        _forge_reasons.append(
+            f"Mode '{mode}' may be irreversible. Set ack_irreversible=True to confirm. "
+            "This gate runs BEFORE any backend call — no 45s wait."
+        )
+
+    # Gate F4: engineer/commit/deploy modes require a plan_id
+    if mode in {"engineer", "commit", "deploy"} and not plan_id:
+        _forge_reasons.append(f"Mode '{mode}' requires plan_id from a prior forge_plan.")
+
+    if _forge_reasons:
+        return _echo_standing(
+            ForgeOutput(
+                status="HOLD",
+                result={"gate": "hard_deterministic", "llm_consulted": False, "zend": "2026-07-30"},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
+                    "reason": "; ".join(_forge_reasons),
+                    "violated_laws": ["L01", "L11"],
+                    "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+                },
+                timestamp=datetime.now(UTC).isoformat(),
+            )
+        )
+
     # Amanah: dry_run never mutates — structured receipt only
     if dry_run:
         return _echo_standing(
