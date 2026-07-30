@@ -26,6 +26,60 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
+def _default_witness_log_path() -> str:
+    """Resolve mutable witness ledger path (service-owned, not /root).
+
+    Order:
+      1. ARIFOS_WITNESS_LOG  — explicit file path
+      2. ARIFOS_WITNESS_DIR  — directory; append log.jsonl
+      3. ARIFOS_STATE_DIR    — {state}/witness/log.jsonl
+      4. /var/lib/arifos/witness/log.jsonl  — systemd StateDirectory=arifos
+      5. XDG_DATA_HOME or ~/.local/share/arifos/witness (dev / interactive only)
+    """
+    explicit = (os.environ.get("ARIFOS_WITNESS_LOG") or "").strip()
+    if explicit:
+        return explicit
+
+    # File override (legacy alias ARIFOS_WITNESS_FILE)
+    for file_key in ("ARIFOS_WITNESS_LOG", "ARIFOS_WITNESS_FILE"):
+        explicit_file = (os.environ.get(file_key) or "").strip()
+        if explicit_file:
+            return explicit_file
+
+    for env_key in ("ARIFOS_WITNESS_DIR", "ARIFOS_STATE_DIR", "ARIFOS_STATE_DIRECTORY"):
+        base = (os.environ.get(env_key) or "").strip()
+        if not base:
+            continue
+        if env_key in ("ARIFOS_STATE_DIR", "ARIFOS_STATE_DIRECTORY"):
+            base = os.path.join(base, "witness")
+        return os.path.join(base, "log.jsonl")
+
+    # Production default: service state tree (arifos.service StateDirectory)
+    service_default = "/var/lib/arifos/witness/log.jsonl"
+    try:
+        parent = Path(service_default).parent
+        parent.mkdir(parents=True, exist_ok=True)
+        # Probe writability as current euid
+        probe = parent / ".write_probe"
+        try:
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink(missing_ok=True)
+            return service_default
+        except OSError:
+            pass
+    except OSError:
+        pass
+
+    # Dev fallback (interactive root / local)
+    home = os.path.expanduser("~")
+    xdg = (os.environ.get("XDG_DATA_HOME") or "").strip()
+    if xdg:
+        arifos_dir = os.path.join(xdg, "arifos", "witness")
+    else:
+        arifos_dir = os.path.join(home, ".local", "share", "arifos", "witness")
+    return os.path.join(arifos_dir, "log.jsonl")
+
+
 class WitnessRecord(BaseModel):
     """
     A single immutable witness record.
@@ -99,17 +153,19 @@ class WitnessLog:
         Initialize witness log.
 
         Args:
-            path: File path for JSONL storage. Default: ~/.arifos/witness.jsonl
+            path: File path for JSONL storage. Default: service-owned
+                  /var/lib/arifos/witness/log.jsonl (not /root/...).
             max_records: Max records to keep in memory index.
         """
         if path is None:
-            home = os.path.expanduser("~")
-            arifos_dir = os.path.join(home, ".local", "share", "arifos", "witness")
-            os.makedirs(arifos_dir, exist_ok=True)
-            path = os.path.join(arifos_dir, "log.jsonl")
+            path = _default_witness_log_path()
 
         self.path = Path(path)
         self.max_records = max_records
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            logger.warning("Witness log dir create failed (%s): %s", self.path.parent, e)
 
         # In-memory index for fast queries
         self._index: dict[str, list[str]] = {}  # key → record_ids
