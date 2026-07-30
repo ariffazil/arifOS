@@ -839,10 +839,10 @@ async def arif_judge(
                 _intercept_res.get("reason")
                 or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
             ]
-            if _code == VerdictCode.SEAL and _has_f13:
+            if _code == VerdictCode.SEAL and _has_f13 and _v_str == "SEAL":
                 _reasons.append(
-                    "F13 sovereign_receipt present — ALLOW promoted to SEAL for "
-                    "attestation-class action; chain ids attached for arif_seal."
+                    "F13 sovereign_receipt present — confirms passed intercept "
+                    "(ALLOW/OK→SEAL or SEAL retained); HOLD is never rewritten."
                 )
             return _echo_standing(
                 VerdictOutput(
