@@ -960,6 +960,29 @@ async def arif_judge(
                 _standing_actor_verified = _standing.actor_verified
                 _standing_authority = _standing.authority
                 _standing_delta = _standing.authority_delta
+                # ── FIX #3: Hard Capability Enforcement (STABILIZATION-7) ──
+                # OBSERVE_ONLY tokens must not execute arif_judge.
+                # The SCT verb allowlist is authoritative — not advisory.
+                _allowed = getattr(_standing, "allowed", None) or []
+                if not _standing.actor_verified or "arif_judge" not in _allowed:
+                    return _echo_standing(
+                        VerdictOutput(
+                            verdict=VerdictCode.HOLD,
+                            status="blocked",
+                            reasons=[
+                                "CAPABILITY_DENIED: session token does not permit arif_judge",
+                                f"authority={_standing_authority} actor_verified={_standing.actor_verified}",
+                                "Re-init with arif_init(requested_authority=LIMITED_MUTATE) or higher.",
+                            ],
+                            next_safe_action="Call arif_init with elevated authority, then re-invoke.",
+                            meta={
+                                "gate": "STABILIZATION-7_FIX3",
+                                "floor": "F11",
+                                "floor_type": "HARD",
+                                "session_id": session_id,
+                            },
+                        )
+                    )
                 if _standing.session_id:
                     session_id = _standing.session_id
                 if _standing.actor_id and _standing.actor_id != "anonymous":
