@@ -599,6 +599,7 @@ def arif_observe(
       atlas    → Structural layer map (stub — pending vector atlas)
       entropy_dS → Random entropy delta (physics stub)
       vitals   → System vitals stub
+      organ_health → Federation organ health probe (HTTP /health on all 7 organs)
       rasa_dunia → Evaluates physical-world thermodynamic and market stresses
     """
     if mode in (
@@ -1248,15 +1249,178 @@ def arif_observe(
             },
         )
     if mode == "vitals":
-        return _ok(
-            "arif_observe",
-            {
-                "cpu": 12.5,
-                "mem": 34.0,
-                "io": "normal",
-                "partition": partition_mode,
-            },
-        )
+        # ZEN FIX (2026-07-30): Read REAL system vitals from /proc, not hardcoded fake data.
+        # Per ChatGPT forensic: arif_observe(mode=vitals) must return ACTUAL telemetry.
+        import os as _os
+
+        vitals: dict[str, Any] = {"source": "/proc", "live": True}
+        try:
+            # CPU load
+            with open("/proc/loadavg") as f:
+                parts = f.read().strip().split()
+                vitals["load_1m"] = float(parts[0])
+                vitals["load_5m"] = float(parts[1])
+                vitals["load_15m"] = float(parts[2])
+                vitals["running_procs"] = int(parts[3].split("/")[0])
+                vitals["total_procs"] = int(parts[3].split("/")[1])
+        except Exception:
+            vitals["load_1m"] = -1
+        try:
+            # Memory
+            meminfo: dict[str, int] = {}
+            with open("/proc/meminfo") as f:
+                for line in f:
+                    if ":" in line:
+                        k, v = line.split(":", 1)
+                        meminfo[k.strip()] = int(v.strip().split()[0])
+            total_kb = meminfo.get("MemTotal", 0)
+            avail_kb = meminfo.get("MemAvailable", 0)
+            if total_kb > 0:
+                vitals["mem_total_gb"] = round(total_kb / 1024 / 1024, 2)
+                vitals["mem_available_gb"] = round(avail_kb / 1024 / 1024, 2)
+                vitals["mem_used_pct"] = round((1 - avail_kb / total_kb) * 100, 1)
+        except Exception:
+            vitals["mem_used_pct"] = -1
+        try:
+            # Disk
+            stat = _os.statvfs("/")
+            vitals["disk_total_gb"] = round(stat.f_frsize * stat.f_blocks / 1024**3, 1)
+            vitals["disk_free_gb"] = round(stat.f_frsize * stat.f_bavail / 1024**3, 1)
+            vitals["disk_used_pct"] = round((1 - stat.f_bavail / stat.f_blocks) * 100, 1)
+        except Exception:
+            vitals["disk_used_pct"] = -1
+        try:
+            # IO pressure (PSI)
+            if _os.path.exists("/proc/pressure/io"):
+                with open("/proc/pressure/io") as f:
+                    line = f.readline().strip()
+                    parts = line.split()
+                    vitals["io_pressure"] = parts[1] if len(parts) > 1 else "unknown"
+            else:
+                vitals["io_pressure"] = "unavailable"
+        except Exception:
+            vitals["io_pressure"] = "error"
+        try:
+            # Uptime
+            with open("/proc/uptime") as f:
+                uptime_s = float(f.read().split()[0])
+                vitals["uptime_hours"] = round(uptime_s / 3600, 1)
+        except Exception:
+            vitals["uptime_hours"] = -1
+        vitals["partition_mode"] = partition_mode
+
+        # ── Organ Health Probes (2026-07-30: wired into vitals) ──────
+        # Probe every federation organ via HTTP /health, extract key fields.
+        # Synchronous via subprocess to avoid httpx async dependency in vitals path.
+        import subprocess as _sp, json as _json
+
+        _ORGANS = {
+            "arifOS": ("127.0.0.1", 8088, ["status", "floors_active", "runtime_drift"]),
+            "A-FORGE": ("127.0.0.1", 7071, ["ok", "tool_count", "deployment_drift"]),
+            "arifFlow": (
+                "127.0.0.1",
+                7073,
+                ["status", "receipts", "cooling.phase", "fq.verdict", "fq.quotient"],
+            ),
+            "GEOX": ("127.0.0.1", 8081, ["status", "tools_loaded", "surface_drift.ok"]),
+            "WEALTH": ("127.0.0.1", 18082, ["status", "tools_loaded"]),
+            "WELL": ("127.0.0.1", 18083, ["status", "well_score"]),
+            "AAA": ("127.0.0.1", 3001, ["status", "chain.verdict"]),
+        }
+        organs: dict[str, Any] = {}
+        for name, (host, port, fields) in _ORGANS.items():
+            try:
+                r = _sp.run(
+                    ["curl", "-sf", "--max-time", "3", f"http://{host}:{port}/health"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if r.returncode == 0 and r.stdout.strip():
+                    raw = _json.loads(r.stdout)
+                    organ_data: dict[str, Any] = {"alive": True}
+                    for f in fields:
+                        parts = f.split(".")
+                        val = raw
+                        for p in parts:
+                            if isinstance(val, dict):
+                                val = val.get(p)
+                            else:
+                                val = None
+                                break
+                        organ_data[parts[-1]] = val
+                    # Infer verdict
+                    if name == "arifFlow":
+                        phase = raw.get("cooling", {}).get("phase", "?")
+                        organ_data["cooling_phase"] = phase
+                    organs[name] = organ_data
+                else:
+                    organs[name] = {"alive": False, "error": f"HTTP {r.returncode}"}
+            except Exception as e:
+                organs[name] = {"alive": False, "error": str(e)[:120]}
+        vitals["organs"] = organs
+        vitals["organs_alive"] = sum(1 for o in organs.values() if o.get("alive"))
+        vitals["organs_total"] = len(_ORGANS)
+
+        return _ok("arif_observe", vitals)
+    if mode == "organ_health":
+        # EUREKA 5 (2026-07-30): Standalone organ health probe.
+        # Delegates to the same organ probing logic as vitals, but returns
+        # ONLY the organ health block — no /proc, no disk, no memory.
+        # Agents use this to check federation liveness without noise.
+        import subprocess as _sp, json as _json
+
+        _ORGANS = {
+            "arifOS": ("127.0.0.1", 8088, ["status", "floors_active", "runtime_drift"]),
+            "A-FORGE": ("127.0.0.1", 7071, ["ok", "tool_count", "deployment_drift"]),
+            "arifFlow": (
+                "127.0.0.1",
+                7073,
+                ["status", "receipts", "cooling.phase", "fq.verdict", "fq.quotient"],
+            ),
+            "GEOX": ("127.0.0.1", 8081, ["status", "tools_loaded", "surface_drift.ok"]),
+            "WEALTH": ("127.0.0.1", 18082, ["status", "tools_loaded"]),
+            "WELL": ("127.0.0.1", 18083, ["status", "well_score"]),
+            "AAA": ("127.0.0.1", 3001, ["status", "chain.verdict"]),
+        }
+        organs: dict[str, Any] = {}
+        for name, (host, port, fields) in _ORGANS.items():
+            try:
+                r = _sp.run(
+                    ["curl", "-sf", "--max-time", "3", f"http://{host}:{port}/health"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if r.returncode == 0 and r.stdout.strip():
+                    raw = _json.loads(r.stdout)
+                    organ_data: dict[str, Any] = {"alive": True}
+                    for f in fields:
+                        parts = f.split(".")
+                        val = raw
+                        for p in parts:
+                            if isinstance(val, dict):
+                                val = val.get(p)
+                            else:
+                                val = None
+                                break
+                        organ_data[parts[-1]] = val
+                    if name == "arifFlow":
+                        phase = raw.get("cooling", {}).get("phase", "?")
+                        organ_data["cooling_phase"] = phase
+                    organs[name] = organ_data
+                else:
+                    organs[name] = {"alive": False, "error": f"HTTP {r.returncode}"}
+            except Exception as e:
+                organs[name] = {"alive": False, "error": str(e)[:120]}
+        result: dict[str, Any] = {
+            "organs": organs,
+            "organs_alive": sum(1 for o in organs.values() if o.get("alive")),
+            "organs_total": len(_ORGANS),
+            "source": "organ_health_probe",
+            "live": True,
+        }
+        return _ok("arif_observe", result)
     if mode == "rasa_dunia":
         try:
             from arifosmcp.rasa.rasa_dunia import get_rasa_dunia_snapshot
