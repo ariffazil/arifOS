@@ -8,8 +8,13 @@ Operations and economic thermodynamics telemetry.
 from __future__ import annotations
 
 import asyncio
+import json
+import os
+import subprocess
 import time
+import urllib.request
 from datetime import UTC, datetime
+from pathlib import Path
 
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.session_auth import validate_session
@@ -230,45 +235,202 @@ def arif_measure(
             )
         )
     if mode == "vitals":
-        # P2-OBS-2 fix: Wire to live thermodynamic telemetry instead of hardcoded values.
-        # Sources: core.physics.thermodynamics_hardened (G_star, entropy_delta, omega)
-        #          + cooldown_engine for sabar state.
-        live_vitals = {
-            "g_score": 0.97,
-            "delta_S": 0.002,
-            "omega": 0.95,
-            "psi_le": 1.02,
-            "source": "default",
+        # ── VERIFY111 P0: Rich vitals body — live-probed, not cached ──
+        # Dynamic-state principle: every vital probed at T₁, not from memory at T₀.
+        # Returns the cheapest possible truth about federation health.
+
+        import time
+
+        vitals = {
+            "mode": "vitals",
+            "probed_at_utc": None,  # set below
+            "probe_latency_ms": 0,  # set below
+            "thermodynamics": {
+                "g_score": 0.97,
+                "delta_S": 0.002,
+                "omega": 0.95,
+                "psi_le": 1.02,
+                "source": "default",
+            },
+            "organs": {},
+            "system": {},
+            "docker": {},
+            "vault": {},
+            "pressure": {},
+            "session": {},
         }
+
+        t0 = time.monotonic()
+
+        # ── Thermodynamic scalars ──
         try:
-            # Primary: live thermodynamic report from physics engine
             from core.physics.thermodynamics_hardened import get_thermodynamic_report
 
             thermo = get_thermodynamic_report()
-            live_vitals["g_score"] = thermo.get("G_star", 0.97)
-            live_vitals["delta_S"] = thermo.get("entropy_delta", 0.002)
-            live_vitals["omega"] = thermo.get("omega", 0.95)
-            live_vitals["psi_le"] = thermo.get("psi_le", 1.02)
-            live_vitals["source"] = "thermodynamic_report"
+            vitals["thermodynamics"] = {
+                "g_score": thermo.get("G_star", 0.97),
+                "delta_S": thermo.get("entropy_delta", 0.002),
+                "omega": thermo.get("omega", 0.95),
+                "psi_le": thermo.get("psi_le", 1.02),
+                "source": "thermodynamic_report",
+            }
         except Exception:
-            # Fallback: try cooldown engine vitals as secondary source
             try:
                 from arifosmcp.core.cooldown_engine import get_cooldown_engine
 
                 engine = get_cooldown_engine()
                 cd_vitals = engine.vitals()
                 if isinstance(cd_vitals, dict):
-                    live_vitals["g_score"] = cd_vitals.get("g_score", live_vitals["g_score"])
-                    live_vitals["delta_S"] = cd_vitals.get("delta_S", live_vitals["delta_S"])
-                    live_vitals["omega"] = cd_vitals.get("omega", live_vitals["omega"])
-                    live_vitals["source"] = "cooldown_engine"
+                    vitals["thermodynamics"] = {
+                        "g_score": cd_vitals.get("g_score", 0.97),
+                        "delta_S": cd_vitals.get("delta_S", 0.002),
+                        "omega": cd_vitals.get("omega", 0.95),
+                        "psi_le": cd_vitals.get("psi_le", 1.02),
+                        "source": "cooldown_engine",
+                    }
             except Exception:
-                live_vitals["source"] = "default_unavailable"
+                vitals["thermodynamics"]["source"] = "default_unavailable"
+
+        # ── Live federation organ probes (T₁ dynamic state) ──
+        ORGANS = {
+            "arifos": 8088,
+            "aforge": 7071,
+            "geox": 8081,
+            "wealth": 18082,
+            "well": 18083,
+            "aaa": 3001,
+        }
+        import urllib.request
+
+        for name, port in ORGANS.items():
+            try:
+                req = urllib.request.Request(
+                    f"http://127.0.0.1:{port}/health",
+                    headers={"Accept": "application/json"},
+                )
+                with urllib.request.urlopen(req, timeout=3) as resp:
+                    body = json.loads(resp.read().decode())
+                    vitals["organs"][name] = {
+                        "port": port,
+                        "http": resp.status,
+                        "status": body.get("status", "unknown"),
+                        "tools": body.get("tools_loaded") or body.get("tool_count") or body.get(
+                            "canonical_tools", "?"
+                        ),
+                        "version": body.get("version", "?"),
+                        "drift": (
+                            body.get("deployment_drift")
+                            or body.get("deployment_drift_status") == "drifted"
+                        ),
+                    }
+            except Exception as e:
+                vitals["organs"][name] = {
+                    "port": port,
+                    "http": "unreachable",
+                    "status": "DOWN",
+                    "error": str(e)[:120],
+                }
+
+        # ── System vitals (CPU / memory / disk) ──
+        try:
+            import psutil
+
+            vitals["system"] = {
+                "cpu_pct": round(psutil.cpu_percent(interval=0.1), 1),
+                "mem_pct": round(psutil.virtual_memory().percent, 1),
+                "disk_pct": round(psutil.disk_usage("/").percent, 1),
+                "load_1m": round(psutil.getloadavg()[0], 2),
+                "uptime_h": round(
+                    (time.time() - psutil.boot_time()) / 3600, 1
+                ),
+            }
+        except ImportError:
+            vitals["system"] = {"source": "psutil_unavailable"}
+
+        # ── Docker service states ──
+        try:
+            result = subprocess.run(
+                ["docker", "ps", "--format", "{{.Names}} {{.Status}}"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            containers = {}
+            for line in result.stdout.strip().split("\n"):
+                if line:
+                    parts = line.split(" ", 1)
+                    if len(parts) == 2:
+                        containers[parts[0]] = parts[1]
+            vitals["docker"] = {
+                "containers": containers,
+                "total": len(containers),
+                "unhealthy": sum(
+                    1 for v in containers.values() if "unhealthy" in v.lower()
+                ),
+            }
+        except Exception:
+            vitals["docker"] = {"source": "docker_unavailable"}
+
+        # ── VAULT999 chain head ──
+        try:
+            vault_path = Path("/root/arifOS/VAULT999/outcomes.jsonl")
+            if vault_path.exists():
+                with open(vault_path) as f:
+                    # Seek last ~4KB for fast tail read
+                    f.seek(0, os.SEEK_END)
+                    size = f.tell()
+                    f.seek(max(0, size - 4096))
+                    tail = f.read()
+                lines = [l for l in tail.strip().split("\n") if l.strip()]
+                last = json.loads(lines[-1]) if lines else {}
+                vitals["vault"] = {
+                    "entries": size,  # rough — bytes as proxy
+                    "last_seq": last.get("seq", "?"),
+                    "last_verdict": last.get("verdict", "?"),
+                    "last_ts": last.get("timestamp", "?"),
+                    "path": str(vault_path),
+                }
+        except Exception:
+            vitals["vault"] = {"source": "vault_unavailable"}
+
+        # ── Token pressure (if arifOS telemetry available) ──
+        try:
+            req = urllib.request.Request(
+                "http://127.0.0.1:8088/health",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                h = json.loads(resp.read().decode())
+            tp = h.get("token_pressure", {})
+            vitals["pressure"] = {
+                "phase": tp.get("phase", "?"),
+                "total_tokens": tp.get("global", {}).get("total_tokens_used", 0),
+                "active_sessions": tp.get("global", {}).get("active_sessions", 0),
+                "auto_compaction": tp.get("autonomous_compaction_enabled", False),
+            }
+        except Exception:
+            vitals["pressure"] = {"source": "pressure_unavailable"}
+
+        # ── Session summary (if session_id provided) ──
+        if session_id:
+            try:
+                sess = get_session(session_id) if "get_session" in dir() else {}
+                vitals["session"] = {
+                    "id": session_id,
+                    "actor": sess.get("actor_id", "?") if sess else "?",
+                    "authority": sess.get("authority", "?") if sess else "?",
+                    "drift_events": len(sess.get("drift_log", [])) if sess else 0,
+                }
+            except Exception:
+                vitals["session"] = {"id": session_id, "source": "session_unavailable"}
+
+        vitals["probed_at_utc"] = datetime.now(UTC).isoformat()
+        vitals["probe_latency_ms"] = round((time.monotonic() - t0) * 1000, 1)
 
         return TelemetryBlock(
             **_ok(
                 "arif_measure",
-                live_vitals,
+                vitals,
                 meta=drift_metrics,
                 session_id=session_id,
             )

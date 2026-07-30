@@ -33,8 +33,8 @@ logger = logging.getLogger("arifos.judge")
 
 from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
 from arifosmcp.constitution.derita_payload import (
-    format_derita_commentary,
     resolve_derita_stakes,
+    inject_derita_context,
 )
 from arifosmcp.core.conflict_resolver import (
     resolve_conflict,
@@ -2218,18 +2218,33 @@ async def arif_judge(
         _breached_floors: list[str] = (
             list(_evidence.get("floors_violated", [])) if isinstance(_evidence, dict) else []
         )
-        _derita_vectors = resolve_derita_stakes(
-            paradox_axis=_triggered_paradox_axes[0] if _triggered_paradox_axes else None,
-            floors_breached=_breached_floors if _breached_floors else None,
-        )
+        # Resolve derita for each triggered paradox axis and each breached floor
+        _derita_vectors: list[dict] = []
+        _seen_ids: set = set()
+        for _axis in _triggered_paradox_axes:
+            _dvs = resolve_derita_stakes(paradox_axis=_axis, max_results=2)
+            for _dv in _dvs:
+                if _dv.derita_id not in _seen_ids:
+                    _derita_vectors.append(_dv.to_dict())
+                    _seen_ids.add(_dv.derita_id)
+        for _floor in _breached_floors:
+            _dvs = resolve_derita_stakes(floor_breached=_floor, max_results=2)
+            for _dv in _dvs:
+                if _dv.derita_id not in _seen_ids:
+                    _derita_vectors.append(_dv.to_dict())
+                    _seen_ids.add(_dv.derita_id)
         if _derita_vectors:
-            # Raw JSON for machine consumption
-            result["meta"]["derita_vectors"] = [dv.to_dict() for dv in _derita_vectors]
-            # Formatted commentary block
-            _derita_commentary = format_derita_commentary(_derita_vectors)
-            if _derita_commentary:
-                result.setdefault("reasons", []).append(_derita_commentary)
-                result["meta"]["derita_commentary"] = _derita_commentary
+            result["meta"]["derita_vectors"] = _derita_vectors
+            # Build compact stakes summary for reasons[]
+            _stakes_lines = ["─── 99 DERITA — WHAT IS AT STAKE ───", ""]
+            for _dv in _derita_vectors[:6]:  # Cap at 6 for readability
+                _stakes_lines.append(f"⚕ {_dv.get('derita_id', '?')}: {_dv.get('name', '?')}")
+                _stakes_lines.append(f'   "{_dv.get("quote", "")}"')
+                _stakes_lines.append(f"   — {_dv.get('author', 'Unknown')}")
+                _stakes_lines.append(f"   {_dv.get('stakes', '')[:200]}...")
+                _stakes_lines.append("")
+            _stakes_lines.append("─── DITEMPA BUKAN DIBERI ⚒️ ───")
+            result.setdefault("reasons", []).append("\n".join(_stakes_lines))
 
         # ── SCALAR FEED PROTOCOL (TASK-P2-03) ─────────────────────────────
         # Live measurement of the 5 canonical APEX scalars (G, C_dark, W³,
