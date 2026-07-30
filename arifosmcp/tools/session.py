@@ -552,14 +552,15 @@ def _project_light(
     _is_ephemeral = session_mode == "ephemeral_eval"
     # Fix 2026-07-06 ROUND-2: allowed_next_verbs gated by actual authority,
     # not just actor_verified boolean. FULL/SOVEREIGN → all verbs.
-    # LIMITED_MUTATE → no seal. OBSERVE_ONLY → observe/think/route only.
+    # LIMITED_MUTATE → no seal append. OBSERVE_ONLY → observe/think/route +
+    # arif_seal safe modes only (Layer 6 effect typing 2026-07-30).
     # FIX 2026-07-09: SOVEREIGN is equal or higher than FULL — both get all verbs.
     # FIX 2026-07-09 (amanah): public surface uses arif_forge; arif_act is internal
     # alias only and must not leak into allowed_next_verbs (registry contract).
     _is_full_authority = _authority in ("FULL", "SOVEREIGN")
     _is_limited = _authority in ("LIMITED_MUTATE",)
     if _is_ephemeral:
-        _allowed_next = ["arif_observe", "arif_think", "arif_route"]
+        _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_seal"]
     elif _is_full_authority:
         _allowed_next = [
             "arif_observe",
@@ -577,9 +578,12 @@ def _project_light(
             "arif_route",
             "arif_judge",
             "arif_forge",
+            "arif_seal",  # safe modes only; mode=seal HOLD via L6 in vault.py
         ]
     else:
-        _allowed_next = ["arif_observe", "arif_think", "arif_route"]
+        # OBSERVE_ONLY: seal verb permitted for OBSERVE modes (verify/list/audit…)
+        # mode=seal still IRREVERSIBLE and HOLD'd inside arif_seal (Layer 6).
+        _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_seal"]
 
     # Fix 2026-07-08: intent is an explicit param — never read free variable `sess`
     # (NameError blocked light bootstrap → all tools stayed anonymous).
@@ -1309,7 +1313,7 @@ def arif_init(
         _eval_envelope = make_ephemeral_envelope(
             verb="arif_init",
             session_id=_eval_sid,
-            allowed_next=["arif_observe", "arif_think", "arif_route"],
+            allowed_next=["arif_observe", "arif_think", "arif_route", "arif_seal"],
         )
         _eval_header = {
             "session_id": _eval_sid,
@@ -1331,7 +1335,12 @@ def arif_init(
                 ],
                 "mode3_collapse": False,
             },
-            "allowed_next_verbs": ["arif_observe", "arif_think", "arif_route"],
+            "allowed_next_verbs": [
+                "arif_observe",
+                "arif_think",
+                "arif_route",
+                "arif_seal",
+            ],
             "trace": {
                 "run_id": _eval_sid,
                 "scenario_id": None,

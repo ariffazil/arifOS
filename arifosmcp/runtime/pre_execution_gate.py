@@ -745,9 +745,21 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
     ),
     "arif_seal": ToolManifestEntry(
         tool_name="arif_seal",
+        # Default class is IRREVERSIBLE (mode=seal). Safe modes resolve to OBSERVE
+        # via resolve_action_class_for_mode() — Layer 6 effect typing (2026-07-30).
         action_class=ActionClass.IRREVERSIBLE,
-        safe_modes=["list", "verify", "chain", "dry_run"],
-        dangerous_modes=["seal"],
+        safe_modes=[
+            "list",
+            "verify",  # A-FORGE token verify — crypto OBSERVE, not vault append
+            "verify_chain",  # public chain integrity — L0 OBSERVE
+            "chain",
+            "chain_status",
+            "audit",
+            "dry_run",
+            "seal_card",
+            "render",
+        ],
+        dangerous_modes=["seal", "session_close"],
         requires_lease=True,
         requires_f13_sovereign_ack=True,
         blast_radius=BlastRadius.HIGH,  # Append-only vault write, not destructive infrastructure
@@ -968,6 +980,37 @@ def _model_hazard_check(
     return None
 
 
+def resolve_action_class_for_mode(
+    tool_name: str,
+    tool_mode: str,
+    requested_action: ActionClass,
+) -> ActionClass:
+    """Layer 6 effect typing: per-mode action class, not tool-name alone.
+
+    If tool_mode is in the manifest safe_modes, return OBSERVE even when the
+    tool's default action_class is MUTATE/IRREVERSIBLE (e.g. arif_seal
+    mode=verify / verify_chain). Dangerous modes keep the requested class.
+    """
+    if not tool_name or not tool_mode:
+        return requested_action
+    canonical = _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+    entry = CANONICAL_TOOL_MANIFEST.get(canonical)
+    if entry is None:
+        return requested_action
+    mode = (tool_mode or "").strip().lower()
+    if mode in {m.lower() for m in (entry.safe_modes or [])}:
+        return ActionClass.OBSERVE
+    if mode in {m.lower() for m in (entry.dangerous_modes or [])}:
+        # Prefer manifest default for dangerous modes when stronger
+        if entry.action_class in (
+            ActionClass.IRREVERSIBLE,
+            ActionClass.MUTATE,
+            ActionClass.EXTERNAL_SIDE_EFFECT,
+        ):
+            return entry.action_class
+    return requested_action
+
+
 def pre_execution_gate(
     envelope: KernelEnvelope,
     requested_action: ActionClass,
@@ -996,6 +1039,12 @@ def pre_execution_gate(
         GateResult with verdict (SEAL/SABAR/HOLD/VOID) and reasons.
     """
     t0 = time.monotonic()
+
+    # Layer 6: mode-aware effect class (safe mode → OBSERVE)
+    tool_name_for_effect = getattr(getattr(envelope, "organ", None), "tool_name", "") or ""
+    requested_action = resolve_action_class_for_mode(
+        tool_name_for_effect, tool_mode, requested_action
+    )
 
     # ── Instrumental-reasoning advisory log (non-blocking) ──────────────
     # Records whether this governed action demonstrates goal-directed

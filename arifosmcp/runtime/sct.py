@@ -52,6 +52,9 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_observe",
         "arif_think",
         "arif_route",
+        # arif_seal allowed ONLY for safe modes (verify/list/audit/…) —
+        # mode=seal is blocked inside arif_seal by effect typing (Layer 6).
+        "arif_seal",
     ],
     "LIMITED_MUTATE": [
         "arif_init",
@@ -61,6 +64,7 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_memory",
         "arif_judge",
         "arif_forge",
+        "arif_seal",  # safe modes OBSERVE; mode=seal still L6 HOLD without FULL
     ],
     "FULL": [
         "arif_init",
