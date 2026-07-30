@@ -23180,12 +23180,60 @@ _LEGACY_PARAM_ALIASES: dict[str, dict[str, str]] = {
         "proposal": "candidate",
         "action": "candidate",
     },
-    # arif_judge — public-surface tool name. Maps Contract C (canonical
-    # public-schema fields: actor/intent/requested_capability/domain/
-    # reversibility_level/blast_radius/evidence/authority_token/epistemic_state)
-    # to Contract D (handler named params). Without these aliases, public
-    # clients hit a TypeError on extra kwargs and the wrapper returns VOID,
-    # breaking F13 L13 elicit gate. Patched 2026-06-30 (F13 SOVEREIGN
+    # ── Canonical 8 public tools (2026-07-30 AAAGW boring-test hardening) ──
+    # Clients pass subject/task/request; schema only accepts query/intent.
+    # Without aliases, unfiltered paths raise TypeError -32000.
+    "arif_observe": {
+        "subject": "query",
+        "prompt": "query",
+        "input": "query",
+        "question": "query",
+        "text": "query",
+    },
+    "arif_think": {
+        "task": "query",
+        "prompt": "query",
+        "input": "query",
+        "question": "query",
+        "text": "query",
+    },
+    "arif_route": {
+        "request": "intent",
+        "query": "intent",
+        "prompt": "intent",
+        "question": "intent",
+        "text": "intent",
+    },
+    "arif_memory": {
+        "subject": "query",
+        "prompt": "query",
+        "input": "query",
+        "question": "query",
+        "text": "query",
+    },
+    # arif_judge — Contract C → Contract D (public surface → handler params)
+    "arif_judge": {
+        "subject": "candidate",
+        "proposal": "candidate",
+        "action": "candidate",
+        "claim": "candidate",
+        "intent": "candidate",
+        "actor": "actor_id",
+        "prompt": "candidate",
+    },
+    "arif_forge": {
+        "command": "manifest",
+        "instructions": "manifest",
+        "code": "manifest",
+        "task": "manifest",
+        "request": "manifest",
+    },
+    "arif_seal": {
+        "claim": "payload",
+        "content": "payload",
+        "data": "payload",
+        "text": "payload",
+    },
     "arif_reply_compose": {"topic": "message", "text": "message", "content": "message"},
     "arif_gateway_connect": {
         "endpoint": "target_agent",
