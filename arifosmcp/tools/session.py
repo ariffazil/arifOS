@@ -3128,7 +3128,15 @@ def _collect_verify_telemetry() -> dict:
     """Collect verification plane health for arif_init(mode=validate).
 
     Fail-safe: never blocks session init. Returns partial results on error.
+    Prefer shared Proof Spine collector when available.
     """
+    try:
+        from arifosmcp.runtime.proof_spine import validate_summary
+
+        return validate_summary()
+    except Exception:  # noqa: BLE001
+        pass
+
     telemetry: dict = {
         "kernel_alive": True,
         "protocol_conformant": True,
@@ -3141,7 +3149,10 @@ def _collect_verify_telemetry() -> dict:
         "independent_verifier_available": False,
         "attestation_verifier_available": False,
         "last_verified_mission": "",
+        "last_proof_mission": None,
         "substrate_gate": "AMBER",
+        "executor_self_verified": False,
+        "milestone": "E2E_PROOF_SPINE_V1",
     }
 
     # Check independent verifier
@@ -3178,6 +3189,20 @@ def _collect_verify_telemetry() -> dict:
 
         telemetry["verifier_plane_ready"] = True
     except ImportError:
+        pass
+
+    try:
+        from arifosmcp.runtime.proof_spine import load_last_proof
+
+        last = load_last_proof()
+        if last:
+            telemetry["last_proof_mission"] = {
+                "mission_id": last.get("mission_id"),
+                "disposition": last.get("disposition"),
+                "match": last.get("match"),
+            }
+            telemetry["last_verified_mission"] = last.get("mission_id") or ""
+    except Exception:  # noqa: BLE001
         pass
 
     # Composite readiness
