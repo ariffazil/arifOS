@@ -119,7 +119,7 @@
       "type": ["object", "null"],
       "description": "Filled only by arifOS judge — never by source organ",
       "properties": {
-        "verdict": { "type": "string", "enum": ["SEAL", "HOLD", "SABAR", "VOID"] },
+        "verdict": { "type": "string", "enum": ["SEAL", "PARTIAL", "SABAR", "HOLD", "VOID"] }, "_comment": "F13 RATIFIED 2026-07-31 (D6): 5-state monotonic lattice VOID > HOLD > SABAR > PARTIAL > SEAL. Aliases DENY/DEGRADED/OBSERVE_ONLY/UNKNOWN/AUTO/PROCEED/REDUCE/DEFER deprecated.",
         "reasons": { "type": "array", "items": { "type": "string" } },
         "receipt_ref": { "type": ["string", "null"] }
       }

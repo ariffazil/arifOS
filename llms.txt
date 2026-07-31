@@ -3,7 +3,7 @@
 > Total MCP: 63 Tools | 25 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
 > Version: v2026.07.24-ZEN-SURVIVAL · MCP Protocol: 2025-11-25
-> Verdict grammar: SEAL / HOLD / SABAR / VOID
+> Verdict grammar: SEAL / PARTIAL / SABAR / HOLD / VOID (5-state monotonic lattice per F13 D6 ratified 2026-07-31)
 > Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class
 
 ## Canonical Kernel Tools (8 exposed via /tools/list)
@@ -16,7 +16,7 @@ The live MCP gateway exposes 8 canonical kernel verbs. The internal constitution
 | `arif_think` | 333 | Structured reasoning under F2/F7 |
 | `arif_route` | 444 | Intent-to-organ dispatch across GEOX/WEALTH/WELL/A-FORGE |
 | `arif_memory` | mem | Governed L1–L6 semantic recall |
-| `arif_judge` | 888 | Constitutional verdict — SEAL/HOLD/SABAR/VOID |
+| `arif_judge` | 666 | Constitutional verdict (F13 D5 ratified 2026-07-31) |
 | `arif_forge` | 777 | Execution gate via A-FORGE — mutates ONLY after SEAL |
 | `arif_seal` | 999 | VAULT999 immutable append |
 
@@ -48,7 +48,7 @@ Across the federation (arifOS kernel + GEOX + WEALTH + WELL + A-FORGE + AAA + Ch
 These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed via /tools/list — see 'Canonical Kernel Tools (8 exposed via /tools/list)' above for the live MCP surface.
 | Tool | Stage | Access | Reversible | Modes |
 |------|-------|--------|------------|-------|
-| `arif_kernel_intercept` | 888 | internal_only | ✓ | intercept |
+| `arif_kernel_intercept` |666| internal_only | ✓ | intercept |
 | `arif_init` | 000 | public | ✓ | init, light, resume, validate, canary, preflight +5 more |
 | `arif_observe` | 111 | public | ✓ | search, fetch, hybrid_discovery, ingest, compass, atlas +2 more |
 | `arif_fetch` | 111 | internal_only | ✓ | fetch, search, eureka |
@@ -57,20 +57,20 @@ These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed vi
 | `arif_route` | 444 | public | ✓ | route, bridge |
 | `arif_triage` | 000 | internal_only | ✓ | status, preflight, triage |
 | `arif_bridge_connect` | 444 | internal_only | ✓ | connect |
-| `arif_compose` | 888 | internal_only | ✓ | compose, summarize, cite, tone_shift |
+| `arif_compose` |777| internal_only | ✓ | compose, summarize, cite, tone_shift |
 | `arif_memory` | 000 | authenticated | ✗ HOLD | recall, inspect, attest, remember, promote, revise +2 more |
-| `arif_judge` | 888 | authenticated | ✓ | intercept, judge, validate, hold, escalate |
-| `arif_judge_deliberate` | 888 | internal_only | ✓ | judge, validate, hold, rules, armor, probe +1 more |
+| `arif_judge` |666| authenticated | ✓ | intercept, judge, validate, hold, escalate |
+| `arif_judge_deliberate` |666| internal_only | ✓ | judge, validate, hold, rules, armor, probe +1 more |
 | `arif_seal` | 999 | authenticated | ✗ HOLD | seal, verify, ledger, changelog, audit, session_close |
 | `arif_challenge` | 000 | internal_only | ✓ | challenge |
 | `arif_forge` | 777 | authenticated | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
 | `arif_measure` | 111 | internal_only | ✓ | health, vitals, cost, genius, topology, drift |
 | `arif_entropy_observe` | 111 | internal_only | ✓ | observe |
-| `arif_j_state_assess` | 888 | internal_only | ✓ | assess |
-| `arif_correction_probe` | 888 | internal_only | ✓ | draft_probe, record_response, classify_response, close_probe |
+| `arif_j_state_assess` |666| internal_only | ✓ | assess |
+| `arif_correction_probe` | 666 | internal_only | ✓ | draft_probe, record_response, classify_response, close_probe |
 | `arif_consequence_trace` | 111 | internal_only | ✓ | trace |
 | `arif_entropy_route` | 444 | internal_only | ✓ | route |
-| `arif_j_gate` | 888 | internal_only | ✓ | gate |
+| `arif_j_gate` | 666 | internal_only | ✓ | gate |
 
 ### Operational Support Tools (40)
 | Tool | Category | Risk | Mutates | Modes |

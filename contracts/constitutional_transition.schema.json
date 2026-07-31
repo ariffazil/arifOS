@@ -109,7 +109,7 @@
     },
     "verdict": {
       "type": "string",
-      "enum": ["SEAL", "HOLD", "SABAR", "VOID", "OBSERVE_ONLY", "UNKNOWN"]
+      "enum": ["SEAL", "PARTIAL", "SABAR", "HOLD", "VOID"], "_comment": "F13 RATIFIED 2026-07-31 (D6): 5-state monotonic lattice VOID > HOLD > SABAR > PARTIAL > SEAL. Aliases DENY/DEGRADED/OBSERVE_ONLY/UNKNOWN/AUTO/PROCEED/REDUCE/DEFER deprecated."
     },
     "verdict_scope": {
       "type": "string",

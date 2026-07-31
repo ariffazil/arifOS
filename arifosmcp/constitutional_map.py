@@ -74,14 +74,20 @@ class TrinityLane(StrEnum):
 
 
 class ToolStage(StrEnum):
+    """
+    F13 RATIFIED 2026-07-31 (D5):
+      - JUDGE = "666" (was "888" — corrected to canonical per CORE_NINE_STAGE_MAP)
+      - REPLY = "888" DEPRECATED (legacy compose, absorbed into FORGE_EXECUTE)
+      See docs/sovereign/D1-D6-receipts-20260731.md §D5 for evidence.
+    """
     INIT = "000"  # Session bootstrap (absorbed: canary, triage)
     OBSERVE = "111"  # Reality sensing (absorbed: fetch)
     REASON = "333"  # Cognitive reasoning
     ROUTE = "444"  # Intent routing (absorbed: bridge_connect)
     CRITIQUE = "555"  # Adversarial critique (promoted from arif_think mode)
-    JUDGE = "888"  # Constitutional verdict
+    JUDGE = "666"  # Constitutional verdict — F13 RATIFIED 2026-07-31
     FORGE_EXECUTE = "777"  # Guarded execution
-    REPLY = "888"  # Response composition
+    # REPLY = "888"  DEPRECATED 2026-07-31 — absorbed into FORGE_EXECUTE
     SEAL = "999"  # VAULT999 seal anchor
 
 
@@ -753,9 +759,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_compose": {
         "name": "arif_compose",
-        "description": "KERNEL reply — final human-facing composition with citations and tone control.",
+        "description": "KERNEL reply — final human-facing composition with citations and tone control. F13 RATIFIED 2026-07-31 (D5): compose absorbed into FORGE_EXECUTE stage.",
         "access": "internal_only",
-        "stage": ToolStage.REPLY,
+        "stage": ToolStage.FORGE_EXECUTE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L02_TRUTH, Law.L04_CLARITY, Law.L06_EMPATHY, Law.L09_ANTIHANTU],
         "risk_tier": "low",
@@ -2250,7 +2256,7 @@ TOOL_STAGES: dict[str, ToolStage] = {
     "arif_think": ToolStage.REASON,
     "arif_critique": ToolStage.REASON,
     "arif_route": ToolStage.ROUTE,
-    "arif_compose": ToolStage.REPLY,
+    "arif_compose": ToolStage.FORGE_EXECUTE,  # F13 D5: was REPLY=888, absorbed into forge
     "arif_judge": ToolStage.JUDGE,
     "arif_seal": ToolStage.SEAL,
     "arif_forge": ToolStage.FORGE_EXECUTE,

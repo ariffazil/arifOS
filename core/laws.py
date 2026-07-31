@@ -68,10 +68,14 @@ class GovernanceResult:
     paradox_flags: list[str] = field(default_factory=list)
 
 
+# F13 RATIFIED 2026-07-31 — W³ threshold canon:
+#   0.75 = runtime canon (enforced threshold for SEAL)
+#   0.95 = aspirational SEAL ceiling (Ω₀ acknowledgment, doctrine-only)
+# See docs/sovereign/D1-D6-receipts-20260731.md §D1 for evidence + decision.
 THRESHOLDS = {
     "F1_AMANAH": 0.50,
     "F2_TRUTH": 0.99,
-    "F3_QUAD_WITNESS": 0.75,
+    "F3_QUAD_WITNESS": 0.75,  # RATIFIED: runtime canon (0.95 aspirational)
     "F4_CLARITY": 0.0,
     "F5_PEACE": 1.0,
     "F6_EMPATHY": 0.70,

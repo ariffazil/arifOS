@@ -31,16 +31,16 @@ G = A × P × X × E²
 
 | Form | Source | Notes |
 |---|---|---|
-| `G = A × P × X × E²` | 000_FOUNDATIONS.md, 000_LAW.md, K000_ROOT.md, 777_SOUL_APEX.md, 010_FEDERATION.md, A110_CANON.md, A801_GEMINI.md, kernel/README.md, 000_CONSTITUTION.md, physics_invariants, APEX-THEORY-UNIFIED-MAP | **CANONICAL** — 15+ sources |
-| `G = A · P · E · X · Φ` | AGENTS.md (APEX section), BOOTSTRAP.md, hermes skills | **5-primitive variant** — adds Φ (Faithfulness/Conservation). Φ not defined in canonical. |
+| `G = A × P × X × E²` | 000_FOUNDATIONS.md, 000_LAW.md, K000_ROOT.md, 777_SOUL_APEX.md, 010_FEDERATION.md, A110_CANON.md, A801_GEMINI.md, kernel/README.md, 000_CONSTITUTION.md, physics_invariants, APEX-THEORY-UNIFIED-MAP | **CANONICAL** (F13 RATIFIED 2026-07-31) — 4-primitive, 15+ sources |
+| `G = A · P · E · X · Φ` | AGENTS.md (APEX section), BOOTSTRAP.md, hermes skills | **DEPRECATED** (F13 RATIFIED 2026-07-31) — 5-primitive. Φ is a correction factor (humility, dark, suppression), NOT a primitive. |
 | `G = (A×P×X×E²)×(1-h)` | arif-fazil.com/public/CLAUDE.md, .quarantine readme | **With humility correction** — h = humility deficit |
 | `G* = max(A×P×X×E²)×(1-C_dark)` | 000_FOUNDATIONS.md §18, K000_ROOT | **With dark correction** — max G penalized by C_dark |
 | `G = (1-S_comp)×P_verify` | docs/canon/ZEN_99.md (Gemini) | **Operational form** — complexity entropy × verification rate |
 | `G = A·P·X·E²·(1-h)` | docs/doctrine/PENTAGON_AS_CONSTITUTION.md | Same as (1-h) variant |
 
-**Reconciliation:**
-- The **4-primitive form** `G = A×P×X×E²` is the canonical source (000_FOUNDATIONS.md, 15+ references)
-- The **5-primitive form** `G = A·P·E·X·Φ` adds Φ (Faithfulness) which is NOT in the original foundations. It appears in AGENTS.md and Hermes skills but not in the kernel canon. **Needs F13 decision: keep 4 or adopt 5.**
+**Reconciliation (F13 RATIFIED 2026-07-31):**
+- The **4-primitive form** `G = A·P·E·X` (with E non-squared — see APEX_MATH_CANON.md §E²) is the **canonical** form. Per APEX_MATH_CANON.md:452, `E²` is mathematically disproven; canonical form is `(A·P·E·X)^(1/4)` (geometric mean, single E).
+- The **5-primitive form** `G = A·P·E·X·Φ` is **DEPRECATED**. Φ is not a primitive; it appears as correction factors in other forms (h, C_dark, S_comp).
 - The **operational form** `G = (1-S_comp)×P_verify` from ZEN99 is a measurement proxy, not the theoretical formula. It's how you MEASURE G in practice, not what G IS conceptually.
 - The `(1-h)` and `(1-C_dark)` corrections are **post-hoc adjustments** applied at judgment time, not part of the base formula.
 
