@@ -32,11 +32,30 @@ jobs:
           echo "Target repo: $TARGET_REPO"
           echo "Target repo (lowercase): ${TARGET_REPO,,}"
 
-          COMMITS=$(git log --format='%H %B' origin/main..HEAD)
-          echo "Checking commits..."
+          # M4 FIX 2026-07-31 (repo-routing-validation gate that never fired):
+          #
+          # Bug 1: `echo "$COMMITS" | while ... FAILED+=(...)` runs the loop in
+          #         a PIPELINE SUBSHELL — variable mutations are lost when the
+          #         subshell exits, so the FAILED array was always empty and
+          #         `exit 1` never fired. The gate was decorative.
+          #
+          # Bug 2: `git log --format='%H %B'` returns one record per commit
+          #         where the body is MULTI-LINE; `while read sha body` only
+          #         reads the FIRST line of each body, treating subsequent
+          #         body lines (e.g. "REPO=arifOS" trailer) as separate fake
+          #         "commits" — so even with bug 1 fixed, valid trailers
+          #         would be mis-parsed.
+          #
+          # Fix:
+          #   - Use process substitution `< <(git rev-list ...)` so the loop
+          #     body runs in the MAIN shell (FAILED persists).
+          #   - Fetch body per commit via `git log -1 --format='%B'` so multi-
+          #     line trailers stay attached to their commit hash.
 
           declare -a FAILED=()
-          echo "$COMMITS" | while IFS= read -r sha body; do
+          while IFS= read -r sha; do
+            [ -z "$sha" ] && continue
+            body=$(git log -1 --format='%B' "$sha")
             if ! echo "$body" | grep -qi "^REPO="; then
               echo "❌ Commit $sha: Missing REPO= trailer"
               FAILED+=("commit $sha: no REPO= trailer")
@@ -49,7 +68,7 @@ jobs:
                 echo "✅ Commit $sha: REPO=$DECLARED ✓"
               fi
             fi
-          done
+          done < <(git rev-list origin/main..HEAD 2>/dev/null || git rev-list HEAD)
 
           if [ ${#FAILED[@]} -gt 0 ]; then
             echo ""
