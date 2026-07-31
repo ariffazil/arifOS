@@ -51,7 +51,7 @@ The 99 historical figures embedded in arifOS are not inspirations — they are *
 | **Sovereigns** | Define human authority, governance | 888_HOLD, F13, Phoenix-72 | Washington, Mandela, Lincoln |
 | **Dictator Shadows** | Define warning variables, C_dark | F9 Anti-Hantu, detection | Machiavelli, Stalin, Pol Pot |
 | **Architects** | Define structure, form, optimization | 13 Floors, 000→999 pipeline | Vitruvius, Buckminster Fuller |
-| **Philanthropists** | Define service, non-discrimination | F4 Empathy, universal access | Edhi, Mother Teresa, Malala |
+| **Philanthropists** | Define service, non-discrimination | F6 Empathy, universal access | Edhi, Mother Teresa, Malala |
 | **Modern Founders** | Define genesis, immediate vision | Human Sovereign, Cooling Ledger | Arif Fazil, Satoshi Nakamoto, P. Ramlee |
 
 ### Why Legacies, Not Algorithms
@@ -550,7 +550,7 @@ This document is subject to the floors it describes.
 |-------|------------------------------|
 | **F1 (Amanah)** | This document is auditable in VAULT-999 |
 | **F2 (Truth)** | These paradoxes are accurate descriptions of real tensions |
-| **F6 (Clarity)** | This document reduces entropy by explaining the framework |
+| **F6 (Empathy)** | This document reduces entropy by explaining the framework |
 | **F7 (Humility)** | These resolutions may be incomplete (Ω₀ ≈ 0.04) |
 | **F10 (Ontology)** | This document does not claim consciousness for the system |
 
