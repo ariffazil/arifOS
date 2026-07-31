@@ -1944,12 +1944,47 @@ def arif_init(
             authority_level = "ANONYMOUS"
 
         identity_verified = False
+        # Intercept sct_v1. token strings provided as a session nonce to execute Option A.1 (Symmetric Key Sync)
+        if nonce and (str(nonce).startswith("sct_v1.") or str(nonce).startswith("arifos.v1.")):
+            try:
+                from arifosmcp.runtime.sct import verify_sct
+                _claims = verify_sct(nonce, expected_actor=actor_id)
+                if _claims:
+                    identity_verified = True
+                    sess["signature_verified"] = True
+                    sess["verified"] = True
+                    sess["verification_method"] = "sct_symmetric"
+                    sess["evidence_ref"] = f"sct://{nonce.split('.', 2)[1][:16] if nonce.count('.') >= 2 else 'valid'}"
+                    sess["identity_verify_reason"] = "sct_symmetric_token_verified"
+                    sess["actor_band"] = _claims.get("auth") or "FULL"
+                    sess["agent_class"] = "AGENT" if _claims.get("auth") != "SOVEREIGN" else "SOVEREIGN_PRINCIPAL"
+                    sess.setdefault("auth_context", {})
+                    if isinstance(sess.get("auth_context"), dict):
+                        sess["auth_context"]["verification_method"] = "sct_symmetric"
+                        sess["auth_context"]["auth_method"] = "sct"
+                    try:
+                        from arifosmcp.runtime.authority import bind_authority_state
+                        from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                            build_authority_state_for_actor,
+                        )
+                        _av_state = build_authority_state_for_actor(
+                            actor_id,
+                            verified=True,
+                            verification_method="sct_symmetric",
+                        )
+                        bind_authority_state(sess, _av_state)
+                    except Exception:
+                        pass
+                    logger.info("init-mode sct_symmetric verification successful for %s", actor_id)
+            except Exception as _sct_exc:
+                logger.warning("init-mode sct_symmetric verification failed: %s", _sct_exc)
+
         # Wire_ArifInit_Signature_To_Session_v1: unified crypto bind
         # Accepts both crypto_auth payload and kernel identity/verify payload.
         # HMAC-rootkey FIRST (Telegram/F13 ritual path) — Ed25519 second.
         # Without HMAC-first, federation_ritual HMAC digests fail Ed25519 verify
         # and standing collapses to OBSERVE_ONLY even for ARIF.
-        if actor_id and nonce and actor_signature:
+        if not identity_verified and actor_id and nonce and actor_signature:
             try:
                 from arifosmcp.runtime.sovereign_verify import verify_hmac_signature
 
