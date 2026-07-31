@@ -1,0 +1,108 @@
+{
+  "mission": "M8-runtime-identity-matrix",
+  "timestamp_utc": "2026-07-31T05:02:40Z",
+  "timestamp_myt": "2026-07-31T13:02:40+08:00",
+  "hostname": "forge",
+  "user": "root",
+  "repository": {
+    "path": "/root/arifOS",
+    "branch": "main",
+    "local_head": "b9ac84f43b45a3d06d5fb51199f6c2f0fc585f07",
+    "origin_main_head": "9a34ba63b94a562767fd9da6ab58008ede7ab2a4",
+    "ahead_behind_origin_main": "0 2",
+    "working_tree_clean": true,
+    "candidate_commit_chain_from_old_to_new": [
+      "0b03b5b9d docs: sync unified Federation architecture navigation matrix and canonical links (RUNTIME STARTING POINT)",
+      "4bc03e446 fix(observatory): populate governance/evidence/receipt organ fields",
+      "d81703c23 fix(kernel): tools_sot.yaml codegen from constitutional_map (M3)",
+      "4daeb9185 fix(kernel): fail-closed totality in law_evaluator (M2)",
+      "abf45d966 fix(ci): repo-routing-validation.yml subshell gate (M4)",
+      "9284c7cb5 fix(docs): F4/F6 transposition sweep (M5)",
+      "c2bf4b4ee docs(sovereign): D1-D6 ratification stubs for F13 (M6)",
+      "63fcda1bc fix(sovereign): apply F13 ratifications D1-D6",
+      "b9ac84f43 docs(receipt): M7 credential exposure assessment (P0 containment)"
+    ]
+  },
+  "systemd": {
+    "unit": "arifos.service",
+    "working_directory": "/opt/arifos/app",
+    "execstart": "/bin/sh -c 'export ARIFOS_VAULT_DIR=/var/lib/arifos/vault; exec /opt/arifos/venv/bin/python -c \"from arifosmcp.runtime.__main__ import main; main()\"'",
+    "main_pid": 3544057,
+    "process_start_time_utc": "2026-07-31T04:58:07Z",
+    "process_executable": "/usr/bin/python3.13",
+    "process_cwd": "/opt/arifos/app"
+  },
+  "version_endpoints": {
+    "health_endpoint_version_field": "v2026.07.24-ZEN-SURVIVAL",
+    "mcp_initialize_version_field": "kanon-2026.07.31+0b03b5b",
+    "version_consistency": "INCONSISTENT — health says ZEN-SURVIVAL, MCP says kanon-0b03b5b; both predate M3-M5 + F13"
+  },
+  "file_hash_comparison": [
+    {
+      "path": "arifosmcp/core/law_evaluator.py",
+      "src_sha256": "7a98be726f6d61ed717d5550756061ace36f805f46beb47dbe73e1cba6f932db",
+      "rt_sha256": "7a98be726f6d61ed717d5550756061ace36f805f46beb47dbe73e1cba6f932db",
+      "status": "ALIGNED"
+    },
+    {
+      "path": "arifosmcp/constitutional_map.py",
+      "src_sha256": "dbbe707bf595b5776e6a0b81b85d40f69f71d8ddcaf5383fa2ba1877e2f63dc3",
+      "rt_sha256": "43d3cd253ade4274a1cee07cb44618ff6cbfce63bf049fc2170c1f26b480d588",
+      "status": "DIVERGED — D5 (JUDGE=666) + D4 (F14→L12) NOT in runtime; runtime still has JUDGE=888"
+    },
+    {
+      "path": "arifosmcp/runtime/law.py",
+      "src_sha256": "8c8b4f470f444e6e31768ad54d9ac7a75e61b70d297f6bcb1620728c91ef9e49",
+      "rt_sha256": "cf68713c9e7028697de02adc95e9c46de22823ec77ebb038ee6587b38bdc9407",
+      "status": "DIVERGED — D4 (F14→L12 fold) NOT in runtime; F14 still emitted by violated_laws"
+    },
+    {
+      "path": "tools_sot.yaml",
+      "src_sha256": "b0f13c3b8a6656bbee1b48e777dc7a017ce211888366cd8993b7fd3cd4dcd2f2",
+      "rt_sha256": "655db5f384f8ae56bb25b6434e5b29a3a32c781176de22852d76b146f81e964e",
+      "status": "DIVERGED — M3 codegen output (8 tools, JUDGE=666) NOT in runtime"
+    },
+    {
+      "path": "scripts/gen_tools_sot.py",
+      "src_sha256": "c908f96da14fe9547267cfce813b03842d1d24d0afc239359f727c8ab94c74cb",
+      "rt_sha256": null,
+      "status": "NOT INSTALLED — codegen script does not exist at /opt/arifos/app/scripts/"
+    },
+    {
+      "path": ".github/workflows/repo-routing-validation.yml",
+      "src_sha256": "6c9b520c39b0e4da656f58dc935e06f49300c2d37322edc1af7d4210d3841509",
+      "rt_sha256": "c00f49d0e0de1a009599eadafb8707e7dc400c17fdbcbd10e145ab09ed56938b",
+      "status": "DIVERGED — M4 gate fix NOT in runtime; the broken-gate version is still served"
+    }
+  ],
+  "m5_static_docs_hash_sample": {
+    "checked": 11,
+    "aligned": 6,
+    "diverged": 5,
+    "notes": "Diverged files: K111_PHYSICS.md (kernel + docs/KERNEL/ROOT), K333_CODE.md (kernel + docs/KERNEL/ROOT), 002_TPCP_PAPER.md (theory/000). Runtime still has wrong F4/F6 pairings in 5 of 11 files — M5 sweep NOT deployed."
+  },
+  "classification": "RUNTIME_IDENTITY_MISMATCH",
+  "classification_evidence": "Health endpoint reports 'v2026.07.24-ZEN-SURVIVAL' and MCP initialize reports 'kanon-2026.07.31+0b03b5b'. Both predate M3-M5 + F13 ratifications (commits 63fcda1bc + b9ac84f43). Yet arifosmcp/core/law_evaluator.py (M2) is ALIGNED with the local source — proving the deploy is PARTIAL, not atomic. The version invariant (production process must report the exact commit from which its installed artefact was built) is BROKEN.",
+  "version_invariant_status": "BROKEN",
+  "version_invariant_fix_proposal": "Build-time generation of __version__ = kanon-{ISO_DATE}+{GIT_SHA} at the install step. Runtime reads from the installed artefact, not from any ambient checkout. This requires a build step (e.g. setup.py writes a _version.py during wheel build) — currently absent.",
+  "rollback_package": {
+    "current_known_good_commit_local": "b9ac84f43 (HEAD, M7 receipt; contains all M1-M6 + F13)",
+    "current_known_good_commit_runtime": "0b03b5b9d (per MCP version field) — but PARTIAL install means runtime is not a known-good commit, it is a mixed tree",
+    "installed_directory_backup": "REQUIRED before any deployment — /opt/arifos/app/ should be rsynced to /opt/arifos/app.backup-20260731/",
+    "database_compatibility": "Postgres schema unchanged across M1-M6 (operational ALTER USER only). F13 ratifications were source/contracts only.",
+    "exact_rollback_commands": [
+      "sudo systemctl stop arifos",
+      "sudo rsync -a /opt/arifos/app.backup-20260731/ /opt/arifos/app/",
+      "sudo systemctl start arifos",
+      "curl -s http://127.0.0.1:8088/health | jq .version"
+    ],
+    "blast_radius": "ONE systemd unit, 10s restart window, no DB impact",
+    "post_rollback_probes": [
+      "curl -s http://127.0.0.1:8088/mcp -X POST ... initialize — expect 'kanon-2026.07.31+0b03b5b'",
+      "curl -s http://127.0.0.1:8088/mcp ... tools/list — expect 8 tools",
+      "PGPASSWORD=$(cat /root/.secrets/vault.flat.env | grep POSTGRES_PASSWORD | cut -d= -f2) psql -h 127.0.0.1 -U arifos_admin -d vault999 -c 'SELECT 1'"
+    ]
+  },
+  "deployment_proposed": false,
+  "deployment_blocked_on": "ACK_M8_DEPLOY_CANONICAL"
+}
