@@ -19,9 +19,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
-# Backward-compatible aliases for non-canonical members (Phase 3 unification, 2026-07-07)
-# (v1.0 ratified 2026-07-07: Verdict.PARTIAL is now canonical SealType.PARTIAL — patch removed.)
-Verdict.HOLD_888 = "888_HOLD"  # type: ignore[attr-defined]  # → VerdictState.HOLD_888
+# Backward-compatible alias check
+HOLD_888 = getattr(Verdict, "HOLD_888", "888_HOLD")
 
 
 class FloorViolation(BaseModel):
@@ -392,7 +391,7 @@ class GovernanceEngine:
                 f"Insufficient constitutional compliance. Review floors: {', '.join(floors_failed)}"
             )
         elif request.action_type in ["code_execution", "data_modification"] and not human_available:
-            verdict = Verdict.HOLD_888
+            verdict = HOLD_888
             reasoning = "High-risk action requires human sovereign ratification (L13)."
         else:
             verdict = Verdict.SEAL
@@ -421,10 +420,10 @@ class GovernanceEngine:
             tri_witness=tri_witness,
             reasoning=reasoning,
             recommendations=recommendations if request.request_recommendations else [],
-            hold_reason=reasoning if verdict == Verdict.HOLD_888 else None,
+            hold_reason=reasoning if verdict == HOLD_888 else None,
             hold_url=(
                 f"https://arifosmcp.arif-fazil.com/hold/{request.action_id}"
-                if verdict == Verdict.HOLD_888
+                if verdict == HOLD_888
                 else None
             ),
         )

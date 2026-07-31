@@ -6772,6 +6772,8 @@ async function init() {{
 init();
 setInterval(refreshSot, 30000);
 </script></body></html>"""
+            from starlette.responses import HTMLResponse
+
             return HTMLResponse(html)
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
