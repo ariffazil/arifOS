@@ -1207,6 +1207,23 @@ def arif_init(
         except ImportError:
             pass  # contracts.identity unavailable — proceed with raw actor_id
 
+        # ── TRANSPORT PROXY IDENTITY REMAP (2026-07-31) ──
+        # When OpenCode's MCP proxy forwards a call to arifOS, it injects
+        # its harness identity (OPENCODE) as actor_id. Remap transport proxy
+        # identities to their governing Trinity agents so session stores the
+        # true agent identity (333-AGI), not the harness.
+        _TRANSPORT_PROXY_REMAP: dict[str, str] = {
+            "OPENCODE": "333-AGI",  # OpenCode CLI harness → Delta MIND
+        }
+        if actor_id and actor_id in _TRANSPORT_PROXY_REMAP:
+            _resolved = _TRANSPORT_PROXY_REMAP[actor_id]
+            logger.info(
+                "arif_init: transport proxy '%s' remapped → '%s'",
+                actor_id,
+                _resolved,
+            )
+            actor_id = _resolved
+
     # ── PREFLIGHT / TRIAGE (absorbed from standalone arif_triage) ──
     if mode in ("preflight", "triage"):
         from arifosmcp.tools.kernel_canonical import arif_triage as _session_preflight
