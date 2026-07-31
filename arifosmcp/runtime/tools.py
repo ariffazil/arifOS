@@ -23845,11 +23845,22 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 "detail": final_resp.get("detail", final_resp.get("error", ""))[:500],
             }
             os.makedirs(os.path.dirname(_outcomes_path), exist_ok=True)
+            _outcome_line = json.dumps(_outcome_entry, default=str)
+            # ── F1 AMANAH: JSONL pre-write validator (forged 2026-08-01) ──
+            # Reject multi-line entries before they corrupt the vault.
+            # Root cause: pretty-printed json.dumps(obj, indent=2) or
+            # accidental file content append causes 2,067 parse errors.
+            if "\n" in _outcome_line:
+                raise ValueError(
+                    f"VAULT999 REFUSED: multi-line JSONL entry detected. "
+                    f"Use json.dumps(obj) NOT json.dumps(obj, indent=2). "
+                    f"Entry preview: {_outcome_line[:120]}"
+                )
             with open(_outcomes_path, "a") as _f:
-                _f.write(json.dumps(_outcome_entry, default=str) + "\n")
+                _f.write(_outcome_line + "\n")
         except Exception as e:
             logger.debug(f"outcomes.jsonl write failed: {e}")
-        # APEX Phase 3: record every tool call for APEX primitive derivation
+        # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
         try:
             from arifosmcp.runtime.apex_primitives import (
                 record_tool_call as _apex_record,
@@ -24039,11 +24050,22 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 "detail": final_resp.get("detail", final_resp.get("error", ""))[:500],
             }
             os.makedirs(os.path.dirname(_outcomes_path), exist_ok=True)
+            _outcome_line = json.dumps(_outcome_entry, default=str)
+            # ── F1 AMANAH: JSONL pre-write validator (forged 2026-08-01) ──
+            # Reject multi-line entries before they corrupt the vault.
+            # Root cause: pretty-printed json.dumps(obj, indent=2) or
+            # accidental file content append causes 2,067 parse errors.
+            if "\n" in _outcome_line:
+                raise ValueError(
+                    f"VAULT999 REFUSED: multi-line JSONL entry detected. "
+                    f"Use json.dumps(obj) NOT json.dumps(obj, indent=2). "
+                    f"Entry preview: {_outcome_line[:120]}"
+                )
             with open(_outcomes_path, "a") as _f:
-                _f.write(json.dumps(_outcome_entry, default=str) + "\n")
+                _f.write(_outcome_line + "\n")
         except Exception as e:
             logger.debug(f"outcomes.jsonl write failed: {e}")
-        # APEX Phase 3: record every tool call for APEX primitive derivation (async)
+        # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
         try:
             from arifosmcp.runtime.apex_primitives import (
                 record_tool_call as _apex_record,
