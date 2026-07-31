@@ -2843,6 +2843,9 @@ def register_rest_routes(
         )
         runtime_drift_val = _drift.get("runtime_drift", False)
         contract_drift_val = contracts.get("contract_drift", True)
+        c_dark_val = float(
+            (thermo.get("apex_scalars", {}).get("C_dark", {}) or {}).get("value") or 0.0
+        )
 
         # Compute floor classification lists from canonical doctrine.
         # Single source of truth — no hardcoded snapshots in /health.
@@ -3052,22 +3055,19 @@ def register_rest_routes(
             },
             "owner_summary": {
                 "color": (
-                    "GREEN"
-                    if _vault_health == "healthy"
-                    and not runtime_drift_val
-                    and not contract_drift_val
+                    "RED"
+                    if _vault_health != "healthy"
                     else "YELLOW"
-                    if _vault_health == "healthy"
-                    else "RED"
+                    if runtime_drift_val or contract_drift_val or c_dark_val >= 0.30
+                    else "GREEN"
                 ),
                 "reasons": (
-                    ["vault_healthy", "no_runtime_drift", "no_contract_drift"]
-                    if _vault_health == "healthy"
-                    and not runtime_drift_val
-                    and not contract_drift_val
-                    else ["vault_healthy", "runtime_or_contract_drift_detected"]
-                    if _vault_health == "healthy"
-                    else ["vault_unavailable_or_degraded"]
+                    ["vault_unavailable_or_degraded"]
+                    if _vault_health != "healthy"
+                    else ["vault_healthy"]
+                    + (["runtime_drift"] if runtime_drift_val else [])
+                    + (["contract_drift"] if contract_drift_val else [])
+                    + ([f"c_dark_elevated_{c_dark_val:.3f}"] if c_dark_val >= 0.30 else [])
                 ),
             },
             # SoT linkage — enables drift detection between repo / docs / runtime
