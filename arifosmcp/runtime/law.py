@@ -194,7 +194,13 @@ LAW_DESCRIPTIONS: dict[Law, str] = {
 
 def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> dict[str, Any]:
     """
-    Run F1–L13 interceptors + F14 semantic gate for a tool call.
+    Run F1–L13 interceptors for a tool call.
+
+    F13 RATIFIED 2026-07-31 (D4): F14 (semantic gate) is FOLDED into L12
+    INJECTION. Text-injection / instruction-manipulation detection is
+    the responsibility of L12_INJECTION. The old "F14 Semantic Gate"
+    namespace is preserved internally for backward compat but reports
+    violated_laws=["L12"].
 
     Returns dict with:
       - verdict: SEAL | HOLD | VOID
@@ -209,7 +215,7 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
       - Action: narrow (EXECUTE, VAULT_WRITE → HARD GATE)
       - Design/Simulate → ALLOW_WITH_CAVEAT
 
-    F14 Semantic Gate:
+    L12 INJECTION (formerly F14 Semantic Gate):
       - Instruction intent → VOID (blocked even in reasoning tools)
       - Manipulation intent → HOLD (blocked)
       - Crisis / self-support → ALLOW + supportive resources
@@ -272,14 +278,15 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
 
     # ── 2. Angel/Devil reasoning — always allowed (niats freely) ────────────
     # "The Instrument may imagine the forbidden."
-    # BUT: F14 semantic gate catches instruction/manipulation BEFORE the NIAT free-pass.
+    # BUT: L12 INJECTION catches instruction/manipulation BEFORE the NIAT free-pass.
+    # F13 RATIFIED 2026-07-31 (D4): was "F14 semantic gate", now L12.
     if request_type in (
         RequestType.REASON,
         RequestType.CRITIQUE,
         RequestType.RED_TEAM,
         RequestType.READ,
     ):
-        # F14 Semantic Gate: check text inputs for instruction/manipulation intent
+        # L12 INJECTION: check text inputs for instruction/manipulation intent
         # This runs BEFORE the NIAT free-pass so harmful intent is caught even in reasoning tools
         query_param = (
             params.get("query")
@@ -302,9 +309,9 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
                         return {
                             "verdict": "VOID",
                             "label": VerdictLabel.VOID,
-                            "violated_laws": ["F14"],
+                            "violated_laws": ["L12"],
                             "reason": (
-                                f"F14 Semantic: {intent_result['category']} "
+                                f"L12 INJECTION: {intent_result['category']} "
                                 f"(confidence={intent_result['confidence']:.2f})"
                             ),
                             "request_type": request_type,
@@ -315,16 +322,16 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
                             return {
                                 "verdict": "HOLD",
                                 "label": VerdictLabel.HOLD_EXECUTION,
-                                "violated_laws": ["F14"],
+                                "violated_laws": ["L12"],
                                 "reason": (
-                                    f"F14 Semantic: manipulation "
+                                    f"L12 INJECTION: manipulation "
                                     f"(confidence={intent_result['confidence']:.2f})"
                                 ),
                                 "request_type": request_type,
                                 "next_safe_action": "Hold — manipulation attempt blocked",
                             }
                 except Exception as e:
-                    logger.error(f"F14 Semantic Gate failed: {e}")
+                    logger.error(f"L12 INJECTION semantic check failed (was F14): {e}")
         # NIAT free-pass for education/critique/self-support/crisis
         return {
             "verdict": "SEAL",

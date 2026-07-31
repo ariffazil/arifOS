@@ -157,7 +157,7 @@
       "additionalProperties": false,
       "description": "Kernel-stamped zone — IMMUTABLE in transit. Sender MUST NOT author this zone. Validator rejects any sender attempt to write here.",
       "properties": {
-        "verdict": { "type": "string", "enum": ["SEAL", "SABAR", "PARTIAL", "VOID"], "description": "Kernel-computed verdict. NOT sender-declarable." },
+        "verdict": { "type": "string", "enum": ["SEAL", "PARTIAL", "SABAR", "HOLD", "VOID"], "description": "Kernel-computed verdict. NOT sender-declarable." }, "_comment": "F13 RATIFIED 2026-07-31 (D6): 5-state monotonic lattice VOID > HOLD > SABAR > PARTIAL > SEAL. Aliases DENY/DEGRADED/OBSERVE_ONLY/UNKNOWN/AUTO/PROCEED/REDUCE/DEFER deprecated.",
         "reversibility": { "type": "string", "enum": ["SAFE", "REVERSIBLE", "IRREVERSIBLE", "NEEDS_CONFIRMATION"], "description": "Kernel-computed. NOT sender-declarable." },
         "reversibility_rationale": { "type": "string" },
         "recommendation_tier": { "type": "string", "enum": ["WAJIB", "SUNAT", "HARUS", "MAKRUH", "HARAM"], "description": "Kernel-final. May differ from sender's hint." },
