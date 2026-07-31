@@ -1,0 +1,101 @@
+{
+  "mission": "M7_M11_REALITY_CONVERGENCE",
+  "timestamp_utc": "2026-07-31T05:10:00Z",
+  "credential_incident": {
+    "active_secret_compromised": "YES",
+    "exposure_locations": [
+      {"location": "docs/receipts/M1-postgres-auth-repair-20260731.md", "exposure_class": "LOCAL_GIT_HISTORY", "tracked": true, "published": false, "secret_active": true, "response": "rotate; new receipt uses SHA-256 fingerprint only"},
+      {"location": "deploy/rollback/20260729-100111/ingress_middleware.py", "exposure_class": "LOCAL_FILE", "tracked": false, "published": false, "secret_active": false, "response": "historical rollback snapshot; rotation supersedes"},
+      {"location": "build/lib/arifosmcp/runtime/ingress_middleware.py", "exposure_class": "LOCAL_FILE", "tracked": false, "published": false, "secret_active": false, "response": "regenerate build/ after rotation"},
+      {"location": "/root/.secrets/vault.flat.env (40 files contain string under /root/.secrets/)", "exposure_class": "LOCAL_FILE", "tracked": false, "published": false, "secret_active": true, "response": "rotate canonical secret source; never log new value"},
+      {"location": "/root/backups/ (3 files)", "exposure_class": "BACKUP", "tracked": false, "published": false, "secret_active": true, "response": "rotation invalidates old backups; document post-rotation"},
+      {"location": "/tmp/hermes-snap-*.sh + /tmp/state.db.bak", "exposure_class": "TEMP_FILE", "tracked": false, "published": false, "secret_active": true, "response": "wipe /tmp after rotation"},
+      {"location": "/proc/<arifOS-pid>/environ (2 POSTGRES_PASSWORD vars)", "exposure_class": "ACTIVE_RUNTIME_ONLY", "tracked": false, "published": false, "secret_active": true, "response": "process env re-read after restart"},
+      {"location": "agent session transcript (this conversation, prior turns)", "exposure_class": "AGENT_TRANSCRIPT", "tracked": false, "published": false, "secret_active": true, "response": "rotation supersedes; transcript cannot be unprinted"}
+    ],
+    "plaintext_present_in_current_tree": true,
+    "plaintext_present_in_git_history": true,
+    "git_history_commits_with_credential": 14,
+    "credential_pushed_to_remote_in_sprint": false,
+    "rotation_required": true,
+    "rotation_executed": false,
+    "old_secret_rejected": false,
+    "rotation_blocked_on": "ACK_M7_ROTATE_DB_SECRET"
+  },
+  "identity": {
+    "local_head": "9dddfedf6",
+    "remote_head": "9a34ba63b",
+    "build_commit": "n/a (no build step in this sprint)",
+    "installed_commit": "0b03b5b9d (per /health version field; per MCP initialize version field)",
+    "runtime_commit": "0b03b5b9d (MCP initialize version: kanon-2026.07.31+0b03b5b)",
+    "version_endpoint_commit": "0b03b5b9d",
+    "local_ahead_of_remote": 4,
+    "local_ahead_of_installed": "M2-M5, F13 ratification, M7 receipt, M8 receipt, M9 receipt (5 commits post-0b03b5b not deployed)",
+    "aligned": false,
+    "alignment_classification": "RUNTIME_IDENTITY_MISMATCH",
+    "version_invariant_broken": true
+  },
+  "missions": {
+    "M1": "PARTIAL — operational fix works; receipt leaks credential (M7 containment pending ACK)",
+    "M2": "PASS — 4/4 tests; 0 silent-failures; runtime aligned",
+    "M3": "PASS — 8 tools, 0 diff vs codegen, no 888; runtime diverged (own registry still returns 8)",
+    "M4": "PASS — 7/7 synthetic test cases; runtime workflow NOT deployed (broken gate still served)",
+    "M5": "PASS — 0 wrong pairings in static/ + docs/core/; runtime has 5 of 11 M5-corrected files still wrong",
+    "M6": "PASS — 6 stubs present; no canon changes; docs only",
+    "M7": "HOLD — exposure assessment complete; rotation prepared; awaiting ACK_M7_ROTATE_DB_SECRET",
+    "M8": "COMPLETE — RUNTIME_IDENTITY_MISMATCH classified; rollback package prepared; awaiting ACK_M8_DEPLOY_CANONICAL",
+    "M9": "COMPLETE — independent re-verification surfaced PARTIAL runtime deployment (only M2 made it); document honest constraint mismatch",
+    "M10": "PREPARED — branch candidate 'kernel-hardening-m1-m7' identified (4 commits ahead of origin/main); push BLOCKED on ACK_M10_PUSH_BRANCH",
+    "M11": "PASS — 8 canonical tools callable; 5 forbidden diagnostic tools return unknown-tool; forge/seal correctly fail-closed"
+  },
+  "public_surface": {
+    "declared": 8,
+    "runtime_tools_list_count": 8,
+    "runtime_tools_names": ["arif_forge", "arif_init", "arif_judge", "arif_memory", "arif_observe", "arif_route", "arif_seal", "arif_think"],
+    "callable": 8,
+    "tested": 8,
+    "phantom": 0,
+    "diagnostic_leaks": 0,
+    "forbidden_tools_returned_unknown": ["arif_triage", "arif_canary", "arif_conformance_report", "arif_compose", "arif_measure"]
+  },
+  "remote_ci": {
+    "branch_pushed": false,
+    "branch_candidate_name": "kernel-hardening-m1-m7",
+    "commits_ahead_of_origin_main": 4,
+    "workflow_urls": [],
+    "all_required_checks_passed": false,
+    "local_test_matrix_run": {
+      "M2_pytest": "4 passed",
+      "M3_codegen_diff": "0 lines",
+      "M5_wrong_pairings": "0 hits in static/ + docs/core/",
+      "M9_receipts_present": 4
+    },
+    "push_blocked_on": "ACK_M10_PUSH_BRANCH"
+  },
+  "deployment": {
+    "performed": false,
+    "rollback_prepared": true,
+    "rollback_package_in_M8_receipt": true,
+    "post_deploy_conformance_passed": false,
+    "deployment_blocked_on": "ACK_M8_DEPLOY_CANONICAL"
+  },
+  "sovereign_decisions": {
+    "D1": "HOLD — ballot drafted in docs/sovereign/D1-D6-ratification-ballot-20260731.md",
+    "D2": "HOLD — ballot drafted",
+    "D3": "HOLD — ballot drafted",
+    "D4": "HOLD — ballot drafted",
+    "D5": "HOLD — ballot drafted",
+    "D6": "HOLD — ballot drafted",
+    "note": "T1 implementation of D1-D6 was applied in F13 execution commit 63fcda1bc BUT IS NOT DEPLOYED TO RUNTIME (per M8). The ballot is the formal ratification record that supersedes the implicit F13 ratification of M6 era."
+  },
+  "unresolved_conflicts": [
+    "runtime version string (kanon-2026.07.31+0b03b5b) is hardcoded legacy; does NOT reflect installed code (which includes M2 source changes despite version claim)",
+    "runtime tools/list returns 8 names correctly despite runtime tools_sot.yaml being divergent — runtime uses its own CANONICAL_TOOLS registry",
+    "F13 ratification of D1-D6 (commit 63fcda1bc) is source-only; runtime constitutional_map.py still has ToolStage.JUDGE='888' (D5 not deployed)",
+    "origin/main HEAD (9a34ba63b) is 4 commits BEHIND local HEAD (9dddfedf6); nothing in this sprint was pushed",
+    "M1 receipt bundled into M2 commit (4daeb9185) violates 'one commit per mission' — accepted as PARTIAL per brief"
+  ],
+  "verdict": "HOLD",
+  "next_safe_action": "ROTATE THE POSTGRES CREDENTIAL (awaiting ACK_M7_ROTATE_DB_SECRET). Until that completes: (a) live runtime is at pre-M3 state; (b) all 5 forbidden diagnostic tools correctly return unknown-tool error (M11 PASS); (c) git history contains the credential in 14 commits — none pushed to remote. Next sovereign acknowledgement required: ACK_M7_ROTATE_DB_SECRET, followed by ACK_M8_DEPLOY_CANONICAL, ACK_M10_PUSH_BRANCH, ACK_M11_VAULT_SEAL in that order.",
+  "classification": "LOCAL_PATCHSET"
+}
