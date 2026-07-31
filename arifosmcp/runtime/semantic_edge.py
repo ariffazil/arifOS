@@ -109,7 +109,9 @@ def enrich_edge_semantic_state(edge: dict[str, Any]) -> dict[str, Any]:
     edge["color_hint"] = {
         "UNTESTED": "grey",
         "TRANSPORT_ONLY": "blue",
+        "IDENTITY_ALIGNED": "blue",
         "SCHEMA_ALIGNED": "amber",
+        "CONTRACT_ALIGNED": "amber",
         "CONTEXT_ALIGNED": "amber",
         "GOVERNED": "green",
         "FAILED": "red",
