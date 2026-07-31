@@ -42,7 +42,7 @@ ORGAN_MAP: dict[str, dict[str, Any]] = {
     },
     "geox": {
         "internal_port": 8081,
-        "host_port": 18081,
+        "host_port": 8081,
         "public_origin": "https://geox.arif-fazil.com",
         "ontological_layer": "EARTH",
         "exposure": "proxied",
@@ -445,10 +445,10 @@ def _probe_organ_via_public(organ: str, expected_name: str) -> OrganStandardProb
         if any(v == "degraded" for v in p.readiness_dependencies.values())
         else "unknown"
     )
-    # Capability: org surface
+    # Capability: org surface — None = unknown (honest), 0 = falsely claims zero tools
     p.capability_declared = 12  # baseline
-    p.capability_registered = 0  # honest about lack of introspection
-    p.capability_drift = True  # we can't verify, so mark honest UNKNOWN-ish → drift
+    p.capability_registered = None  # honest: no introspection available → unknown, not zero
+    p.capability_drift = None  # unknown, not asserted drift
     # Governance defaults
     p.governance_session_required = True
     p.governance_mutation_allowed = False
