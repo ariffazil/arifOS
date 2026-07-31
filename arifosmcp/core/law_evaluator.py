@@ -295,14 +295,57 @@ class FloorEvaluator:
 
     @classmethod
     def _lazy_floor(cls, floor_class: type, cache: dict) -> Any:
-        """Lazily instantiate and cache a floor class instance."""
+        """Lazily instantiate and cache a floor class instance.
+
+        F9 ANTI-HANTU FIX 2026-07-31 (M2 — fail-closed totality):
+        instantiation errors PROPAGATE. Callers handle the exception as
+        VOID. Silently swallowing instantiation failures was a fail-open
+        path — a floor that fails to load was silently never evaluated.
+
+        The cache dict is conventionally pre-seeded with None sentinels
+        ("not yet instantiated"). We treat None as "not loaded" and
+        trigger instantiation. A successful instantiation overwrites
+        the sentinel with the real instance.
+        """
         key = floor_class.__name__
-        if key not in cache:
-            try:
-                cache[key] = floor_class()
-            except Exception:
-                return None
+        if cache.get(key) is None:
+            cache[key] = floor_class()  # let it raise
         return cache[key]
+
+    @classmethod
+    def _check_floor(
+        cls,
+        floor_class: type,
+        floor_label: str,
+        fc: dict,
+        failed: list,
+        reasons: dict,
+    ) -> None:
+        """Total floor evaluation: instantiate + check, any exception → VOID.
+
+        F9 ANTI-HANTU FIX 2026-07-31 (M2 — fail-closed totality).
+        Floor evaluation is now a total function. A raising floor is
+        recorded as failed with the exception class+message in the trace,
+        not silently passed. Replaces the 10 silent swallow blocks that
+        previously let raising floors slip through as passes.
+        """
+        try:
+            instance = cls._lazy_floor(floor_class, {floor_class.__name__: None})
+            r = instance.check(fc)
+            if not r.passed:
+                failed.append(floor_label)
+                reasons[floor_label] = r.reason
+            elif floor_label not in failed:
+                reasons[floor_label] = r.reason
+        except Exception as e:
+            # A raising floor = VOID. F1 AMANAH + F9 ANTI-HANTU both
+            # require this — silent pass on exception is the exact
+            # fail-open the constitutional axiom forbids.
+            failed.append(floor_label)
+            reasons[floor_label] = (
+                f"floor {floor_class.__name__} raised "
+                f"{type(e).__name__}: {e}"
+            )
 
     @classmethod
     def evaluate(cls, context: Any, threat: ThreatAssessment) -> LawResult:
@@ -317,18 +360,26 @@ class FloorEvaluator:
         # ── Build floor context dict from ActionContext + ThreatAssessment ──────
         fc = cls._floor_context(context, threat)
 
-        # ── L01 AMANAH — Trustworthiness / Irreversibility ─────────────────────
-        f1 = cls._lazy_floor(F1_Amanah, {"F1_Amanah": None})
-        if f1 is not None:
-            try:
-                r = f1.check(fc)
-                if not r.passed:
-                    failed.append("L01")
-                    reasons["L01"] = r.reason
-            except Exception:
-                pass  # Fallback to old boolean check below
+        # ── Floor evaluation — F9 ANTI-HANTU FIX 2026-07-31 (M2) ──────────────
+        # Floor evaluation is a TOTAL FUNCTION. Any exception (instantiation
+        # or check) is recorded as a failure with the exception fingerprint.
+        # This replaces 10 silent swallow blocks that previously let raising
+        # floors slip through as passes — a fail-open F1/F9 violation.
+        cls._check_floor(F1_Amanah,      "L01", fc, failed, reasons)
+        cls._check_floor(F2_Truth,       "L02", fc, failed, reasons)
+        cls._check_floor(F3_QuadWitness, "L03", fc, failed, reasons)
+        cls._check_floor(F4_Clarity,     "L04", fc, failed, reasons)
+        cls._check_floor(F5_Peace2,      "L05", fc, failed, reasons)
+        cls._check_floor(F6_Empathy,     "L06", fc, failed, reasons)
+        cls._check_floor(F7_Humility,    "L07", fc, failed, reasons)
+        cls._check_floor(F8_Genius,      "L08", fc, failed, reasons)
+        cls._check_floor(F9_AntiHantu,   "L09", fc, failed, reasons)
+        cls._check_floor(L10_Ontology,   "L10", fc, failed, reasons)
 
-        # Fallback L01 (keep existing logic as safety net)
+        # Fallback L01 (keep existing logic as safety net — only fires
+        # when the F1_Amanah class itself raised or was unavailable, in
+        # which case L01 is already in `failed`. This is a defence-in-depth
+        # irreversibility check that runs alongside the floor.)
         tool_base_irreversibility = {
             ("arif_seal", "seal"): IrreversibilityLevel.CRITICAL,
             ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
@@ -350,8 +401,10 @@ class FloorEvaluator:
             key=lambda x: x.value,
         )
         if effective_irreversibility.value >= IrreversibilityLevel.HIGH.value:
-            # Compatibility: support the legacy ack flag while also honoring the
-            # newer constitutional_chain_id / sovereign-session proof.
+            # F9 ANTI-HANTU FIX: this defence-in-depth check now records the
+            # failure when the F1_Amanah floor itself was unavailable.
+            # The floor's own check is the primary path; this catches gaps
+            # only when the floor raised (already in failed list).
             has_prior_seal = bool(getattr(context, "constitutional_chain_id", None))
             has_ack = bool(getattr(context, "ack_irreversible", False))
             is_sovereign = getattr(context, "actor_id", None) == "arif"
@@ -363,123 +416,6 @@ class FloorEvaluator:
                         "requires ack_irreversible, prior arif_judge SEAL "
                         "(constitutional_chain_id), or sovereign session"
                     )
-
-        # ── L02 TRUTH — Information Fidelity (≥ 0.99) ───────────────────────────
-        f2 = cls._lazy_floor(F2_Truth, {"F2_Truth": None})
-        if f2 is not None:
-            try:
-                r = f2.check(fc)
-                if not r.passed:
-                    failed.append("L02")
-                    reasons["L02"] = r.reason
-                elif "L02" not in failed:
-                    reasons["L02"] = r.reason
-            except Exception:
-                pass
-
-        # ── L03 WITNESS — Quad-Witness Byzantine Consensus (≥ 0.75) ────────────
-        f3 = cls._lazy_floor(F3_QuadWitness, {"F3_QuadWitness": None})
-        if f3 is not None:
-            try:
-                r = f3.check(fc)
-                if not r.passed:
-                    failed.append("L03")
-                    reasons["L03"] = r.reason
-                elif "L03" not in reasons:
-                    reasons["L03"] = r.reason
-            except Exception:
-                pass
-
-        # ── L04 CLARITY — Entropy Reduction (ΔS ≤ 0) ───────────────────────────
-        f4 = cls._lazy_floor(F4_Clarity, {"F4_Clarity": None})
-        if f4 is not None:
-            try:
-                r = f4.check(fc)
-                if not r.passed:
-                    failed.append("L04")
-                    reasons["L04"] = r.reason
-                elif "L04" not in reasons:
-                    reasons["L04"] = r.reason
-            except Exception:
-                pass
-
-        # ── L05 PEACE² — Non-Destructive Power (≥ 1.0) ─────────────────────────
-        f5 = cls._lazy_floor(F5_Peace2, {"F5_Peace2": None})
-        if f5 is not None:
-            try:
-                r = f5.check(fc)
-                if not r.passed:
-                    failed.append("L05")
-                    reasons["L05"] = r.reason
-                elif "L05" not in reasons:
-                    reasons["L05"] = r.reason
-            except Exception:
-                pass
-
-        # ── L06 EMPATHY — Stakeholder Care (κᵣ ≥ 0.70) ─────────────────────────
-        f6 = cls._lazy_floor(F6_Empathy, {"F6_Empathy": None})
-        if f6 is not None:
-            try:
-                r = f6.check(fc)
-                if not r.passed:
-                    failed.append("L06")
-                    reasons["L06"] = r.reason
-                elif "L06" not in reasons:
-                    reasons["L06"] = r.reason
-            except Exception:
-                pass
-
-        # ── L07 HUMILITY — Uncertainty Band ([0.03, 0.05]) ─────────────────────
-        f7 = cls._lazy_floor(F7_Humility, {"F7_Humility": None})
-        if f7 is not None:
-            try:
-                r = f7.check(fc)
-                if not r.passed:
-                    failed.append("L07")
-                    reasons["L07"] = r.reason
-                elif "L07" not in reasons:
-                    reasons["L07"] = r.reason
-            except Exception:
-                pass
-
-        # ── L08 GENIUS — Governed Intelligence (G ≥ 0.80) ─────────────────────
-        f8 = cls._lazy_floor(F8_Genius, {"F8_Genius": None})
-        if f8 is not None:
-            try:
-                r = f8.check(fc)
-                if not r.passed:
-                    failed.append("L08")
-                    reasons["L08"] = r.reason
-                elif "L08" not in reasons:
-                    reasons["L08"] = r.reason
-            except Exception:
-                pass
-
-        # ── L09 ANTIHANTU — No Fake Consciousness (C_dark < 0.30) ───────────────
-        f9 = cls._lazy_floor(F9_AntiHantu, {"F9_AntiHantu": None})
-        if f9 is not None:
-            try:
-                r = f9.check(fc)
-                if not r.passed:
-                    failed.append("L09")
-                    reasons["L09"] = r.reason
-                elif "L09" not in reasons:
-                    reasons["L09"] = r.reason
-            except Exception:
-                pass
-
-        # ── L10 ONTOLOGY — Category Lock (Boolean) ─────────────────────────────
-        f10 = cls._lazy_floor(L10_Ontology, {"L10_Ontology": None})
-        if f10 is not None:
-            try:
-                r = f10.check(fc)
-                if not r.passed:
-                    failed.append("L10")
-                    reasons["L10"] = r.reason
-                elif "L10" not in reasons:
-                    reasons["L10"] = r.reason
-            except Exception:
-                pass
 
         # ── L11 AUTH — Verify identity ─────────────────────────────────────────
         if getattr(context, "session_id", None) and context.session_id not in getattr(
