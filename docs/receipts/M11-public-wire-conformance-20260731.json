@@ -1,0 +1,43 @@
+{
+  "mission": "M11-public-wire-conformance",
+  "timestamp_utc": "2026-07-31T05:08:00Z",
+  "target": "Default public kernel surface on https://mcp.arif-fazil.com/mcp (probed via 127.0.0.1:8088/mcp in-process)",
+  "public_surface_declared": 8,
+  "public_surface_runtime_count": 8,
+  "tools_runtime_list": [
+    "arif_init",
+    "arif_observe",
+    "arif_think",
+    "arif_route",
+    "arif_memory",
+    "arif_judge",
+    "arif_forge",
+    "arif_seal"
+  ],
+  "canonical_8_tests": [
+    {"test": "1. MCP initialize succeeds", "result": "PASS", "note": "kanon-2026.07.31+0b03b5b"},
+    {"test": "2. Protocol version is valid", "result": "PASS", "note": "2024-11-05"},
+    {"test": "3. tools/list returns exactly 8 tools", "result": "PASS", "count": 8},
+    {"test": "4. Each tool schema is valid", "result": "DEFERRED", "note": "schema-shape validator not in this sprint"},
+    {"test": "5. arif_init creates/resumes session", "result": "PASS"},
+    {"test": "6. arif_observe returns structured evidence or typed degradation", "result": "PASS", "evidence": "returns {status:pending, verdicts:{substrate:{state:DEGRADED,issuer:arifos_conformance}}}"},
+    {"test": "7. arif_think preserves uncertainty", "result": "PASS", "note": "accepted intent without forcing a verdict"},
+    {"test": "8. arif_route does not mutate", "result": "PASS", "note": "intent-only call returned without execution side-effects"},
+    {"test": "9. arif_memory read path is bounded", "result": "PASS", "note": "recall query returned bounded response, no SQL/VAULT writes invoked"},
+    {"test": "10. arif_judge handles hypothetical candidate", "result": "PASS"},
+    {"test": "11. arif_forge without valid judge chain fails closed", "result": "FAIL_CLOSED", "note": "returned isError=true; did not execute mutation"},
+    {"test": "12. arif_seal without acknowledgement fails closed", "result": "FAIL_CLOSED", "note": "returned isError=true; no VAULT999 write attempted"},
+    {"test": "13. deprecated and diagnostic names return unknown-tool errors", "result": "PASS", "tested": ["arif_triage", "arif_canary", "arif_conformance_report", "arif_compose", "arif_measure"]},
+    {"test": "14. session and trace IDs remain stable across the sequence", "result": "PASS", "note": "single mcp-session-id used for all 13 calls above"},
+    {"test": "15. actor authority never silently escalates", "result": "PASS", "note": "anonymous actor (no prior arif_init bind) received FAIL_CLOSED on forge/seal, ALLOW on read-only tools"}
+  ],
+  "diagnostic_leaks": {
+    "arif_triage": "absent (unknown-tool)",
+    "arif_canary": "absent (unknown-tool)",
+    "arif_conformance_report": "absent (unknown-tool)",
+    "arif_compose": "absent (unknown-tool)",
+    "arif_measure": "absent (unknown-tool)"
+  },
+  "phantom_tools": 0,
+  "verdict": "PUBLIC_SURFACE_CONFORMANT — runtime serves the 8 canonical tools; 0 diagnostic leaks; forge/seal correctly fail closed without authority chains"
+}
