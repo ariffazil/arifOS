@@ -1,0 +1,58 @@
+name: 13-sot-manifest-check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sot-manifest-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify README SOT-manifest live_commit matches git HEAD
+        run: |
+          set -euo pipefail
+
+          README_COMMIT=$(grep 'live_commit:' README.md | head -1 | awk '{print $2}')
+          GIT_HEAD=$(git rev-parse --short=7 HEAD)
+
+          echo "README live_commit: $README_COMMIT"
+          echo "git HEAD:           $GIT_HEAD"
+
+          if [ "$README_COMMIT" != "$GIT_HEAD" ]; then
+            echo ""
+            echo "❌ SOT MANIFEST DRIFT DETECTED"
+            echo "   README claims: $README_COMMIT"
+            echo "   Reality:       $GIT_HEAD"
+            echo ""
+            echo "Fix: update live_commit in README.md SOT-MANIFEST header"
+            echo "     to match the current git HEAD before pushing."
+            exit 1
+          fi
+
+          echo "✅ SOT-manifest consistent: README live_commit == git HEAD"
+
+      - name: Verify SOT-manifest last_verified is recent
+        run: |
+          set -euo pipefail
+
+          LAST_VERIFIED=$(grep 'last_verified:' README.md | head -1 | awk '{print $2}' | cut -d'T' -f1)
+          TODAY=$(date +%Y-%m-%d)
+
+          echo "last_verified: $LAST_VERIFIED"
+          echo "today:         $TODAY"
+
+          DAYS_OLD=$(( ($(date -d "$TODAY" +%s) - $(date -d "$LAST_VERIFIED" +%s)) / 86400 ))
+
+          if [ "$DAYS_OLD" -gt 7 ]; then
+            echo "⚠️  SOT-manifest last_verified is $DAYS_OLD days old"
+            echo "   Consider re-verifying and updating the timestamp."
+          else
+            echo "✅ last_verified is within 7 days"
+          fi
