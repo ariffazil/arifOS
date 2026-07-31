@@ -421,7 +421,7 @@ def _b64url_decode(s: str) -> bytes:
 
 
 def _sign(payload_b64: str) -> str:
-    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()
+    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()[:16]
 
 
 def mint_sct(

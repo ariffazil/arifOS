@@ -3210,7 +3210,9 @@ def _actor_for_response(session_id: str | None = None, candidate: str | None = N
     placeholders from wrap_legacy_call when identity was dropped. Prefer
     session-bound actor over those placeholders (identity-propagation fix 2026-07-09).
     """
-    _RELAY_PLACEHOLDERS = frozenset({"anonymous", "openclaw-anon", "unknown", "null", "", "None"})
+    _RELAY_PLACEHOLDERS = frozenset(
+        {"anonymous", "openclaw-anon", "OPENCODE", "unknown", "null", "", "None"}
+    )
     if candidate and str(candidate) not in _RELAY_PLACEHOLDERS:
         return str(candidate)
     ctx = _RESPONSE_CONTEXT.get() or {}
@@ -5838,6 +5840,25 @@ _SESSIONS = _SESSION_STORE  # backward-compat alias for code that does _SESSIONS
 _memory_engine = None
 _VAULT_LEDGER: list[dict[str, Any]] = []
 
+# ── Transport Proxy Identity Resolution (2026-07-31) ──────────────────────
+# When an MCP proxy (OpenCode, OpenClaw, etc.) forwards a call to arifOS,
+# it may inject its own harness identity as actor_id. These are legitimate
+# transport identities but should NOT override the session-bound actor
+# (e.g. 333-AGI, 555-ASI) stored during arif_init.
+#
+# When kwarg actor_id ∈ _TRANSPORT_PROXIES:
+#   - Pre-flight: recover session actor BEFORE verify_and_inject_token
+#   - Token injection: do NOT overwrite with SCT transport-proxy actor
+#   - Response: treat as relay placeholder, resolve from session store
+_TRANSPORT_PROXIES: frozenset[str] = frozenset(
+    {
+        "OPENCODE",  # OpenCode CLI MCP proxy harness
+        "openclaw-anon",  # OpenClaw legacy relay (also in _RELAY_PLACEHOLDERS)
+    }
+)
+# _TRANSPORT_PROXIES is a subset of _RELAY_PLACEHOLDERS plus harness identities
+# that carry real auth (SCT) but should defer to session-stored actor_id.
+
 # WS3: Nonce tracking — replay prevention for ack_irreversible
 _CONSUMED_NONCES: set[str] = set()
 
@@ -8070,7 +8091,6 @@ def _build_atlas333_payload() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-
 def _proof_spine_validate_summary() -> dict:
     """Bounded proof summary for arif_init(mode=validate) — Proof Spine v1."""
     try:
@@ -9502,92 +9522,91 @@ def _arif_session_init(
             session_id=session_id,
         )
 
-
     if normalized_mode == "validate":
-            # P0 2026-07-17: federation_sct wire contract.
-            # AAA (and organs) call arif_init(mode=validate, session_id=<SCT token>).
-            # That is intentional overload: validate mode accepts either:
-            #   (a) sct_v1.* / arifos.v1.* capability token → crypto verify via verify_sct
-            #   (b) SEAL-* session id → session-store liveness check
-            # Response shape required by AAA governance/federation_sct.py:
-            #   {"valid": bool, "claims": {...}, "error": str|None}
-            #
-            # Prefer token-shaped values from session_token param, payload, or session_id.
-            _sct_arg = session_token
-            if not _sct_arg and isinstance(payload, dict):
-                _sct_arg = payload.get("session_token") or payload.get("sct")
-            _candidate = session_id
-            for _cand in (_sct_arg, session_id):
-                if _cand and (str(_cand).startswith("sct_v1.") or str(_cand).startswith("arifos.v1.")):
-                    _candidate = _cand
-                    break
-            session_id = _candidate
+        # P0 2026-07-17: federation_sct wire contract.
+        # AAA (and organs) call arif_init(mode=validate, session_id=<SCT token>).
+        # That is intentional overload: validate mode accepts either:
+        #   (a) sct_v1.* / arifos.v1.* capability token → crypto verify via verify_sct
+        #   (b) SEAL-* session id → session-store liveness check
+        # Response shape required by AAA governance/federation_sct.py:
+        #   {"valid": bool, "claims": {...}, "error": str|None}
+        #
+        # Prefer token-shaped values from session_token param, payload, or session_id.
+        _sct_arg = session_token
+        if not _sct_arg and isinstance(payload, dict):
+            _sct_arg = payload.get("session_token") or payload.get("sct")
+        _candidate = session_id
+        for _cand in (_sct_arg, session_id):
+            if _cand and (str(_cand).startswith("sct_v1.") or str(_cand).startswith("arifos.v1.")):
+                _candidate = _cand
+                break
+        session_id = _candidate
 
-            if not session_id:
+        if not session_id:
+            return {
+                "valid": False,
+                "claims": None,
+                "error": "session_id required for validate (pass SCT token or SEAL session id)",
+                "session_valid": False,
+                "verification": _proof_spine_validate_summary(),
+            }
+
+        _sid_str = str(session_id)
+        _recv_prefix = _sid_str[:24]
+        _token_like = _sid_str.startswith("sct_v1.") or _sid_str.startswith("arifos.v1.")
+        if _token_like:
+            from arifosmcp.runtime.sct import verify_sct
+
+            claims = verify_sct(_sid_str, expected_actor=actor_id)
+            if not claims:
                 return {
                     "valid": False,
                     "claims": None,
-                    "error": "session_id required for validate (pass SCT token or SEAL session id)",
+                    "error": "SCT signature/expiry/actor verification failed",
                     "session_valid": False,
-                    "verification": _proof_spine_validate_summary(),
-                }
-
-            _sid_str = str(session_id)
-            _recv_prefix = _sid_str[:24]
-            _token_like = _sid_str.startswith("sct_v1.") or _sid_str.startswith("arifos.v1.")
-            if _token_like:
-                from arifosmcp.runtime.sct import verify_sct
-
-                claims = verify_sct(_sid_str, expected_actor=actor_id)
-                if not claims:
-                    return {
-                        "valid": False,
-                        "claims": None,
-                        "error": "SCT signature/expiry/actor verification failed",
-                        "session_valid": False,
-                        "validation_path": "verify_sct",
-                        "received_prefix": _recv_prefix,
-                    }
-                return {
-                    "valid": True,
-                    "claims": claims,
-                    "error": None,
-                    "session_id": claims.get("sid"),
-                    "session_valid": True,
                     "validation_path": "verify_sct",
-                    "actor": claims.get("actor"),
-                    "authority": claims.get("auth"),
                     "received_prefix": _recv_prefix,
-                    # E2E Proof Spine v1 — bounded proof summary (2026-07-30)
-                    "verification": _proof_spine_validate_summary(),
                 }
-
-            # SEAL-* session store path (legacy session health)
-            _in_store = session_id in _SESSIONS
             return {
-                "valid": _in_store,
-                "claims": None,
-                "error": None if _in_store else f"session_id not found or expired: {session_id}",
-                "session_id": session_id,
-                "binding": binding if _in_store else None,
-                "governance": governance if _in_store else None,
-                "next_allowed_tools": next_allowed_tools if _in_store else [],
-                "session_valid": _in_store,
-                "validation_path": "session_store",
+                "valid": True,
+                "claims": claims,
+                "error": None,
+                "session_id": claims.get("sid"),
+                "session_valid": True,
+                "validation_path": "verify_sct",
+                "actor": claims.get("actor"),
+                "authority": claims.get("auth"),
                 "received_prefix": _recv_prefix,
-                "counterparty_receipt": _SESSIONS.get(session_id, {}).get("counterparty_receipt"),
-                "context_receipt": _SESSIONS.get(session_id, {}).get("context_receipt"),
-                "evidence_receipt": _SESSIONS.get(session_id, {}).get("evidence_receipt"),
-                "tool_binding": {
-                    "wired": _SESSIONS.get(session_id, {}).get("tooling_receipt", {}).get("wired", {}),
-                },
-                "memory_receipt": _SESSIONS.get(session_id, {}).get("memory_receipt"),
-                "session_verdict": _SESSIONS.get(session_id, {}).get("session_verdict", "STABLE")
-                if _in_store
-                else None,
                 # E2E Proof Spine v1 — bounded proof summary (2026-07-30)
                 "verification": _proof_spine_validate_summary(),
             }
+
+        # SEAL-* session store path (legacy session health)
+        _in_store = session_id in _SESSIONS
+        return {
+            "valid": _in_store,
+            "claims": None,
+            "error": None if _in_store else f"session_id not found or expired: {session_id}",
+            "session_id": session_id,
+            "binding": binding if _in_store else None,
+            "governance": governance if _in_store else None,
+            "next_allowed_tools": next_allowed_tools if _in_store else [],
+            "session_valid": _in_store,
+            "validation_path": "session_store",
+            "received_prefix": _recv_prefix,
+            "counterparty_receipt": _SESSIONS.get(session_id, {}).get("counterparty_receipt"),
+            "context_receipt": _SESSIONS.get(session_id, {}).get("context_receipt"),
+            "evidence_receipt": _SESSIONS.get(session_id, {}).get("evidence_receipt"),
+            "tool_binding": {
+                "wired": _SESSIONS.get(session_id, {}).get("tooling_receipt", {}).get("wired", {}),
+            },
+            "memory_receipt": _SESSIONS.get(session_id, {}).get("memory_receipt"),
+            "session_verdict": _SESSIONS.get(session_id, {}).get("session_verdict", "STABLE")
+            if _in_store
+            else None,
+            # E2E Proof Spine v1 — bounded proof summary (2026-07-30)
+            "verification": _proof_spine_validate_summary(),
+        }
 
     if normalized_mode == "epoch_open":
         if not session_id:
@@ -23504,9 +23523,15 @@ def verify_and_inject_token(
             _SESSIONS[sid] = sess_reconstructed
 
         kwargs["session_id"] = sid or kwargs.get("session_id")
-        # Never collapse known actor → anonymous
+        # Never collapse known actor → anonymous.
+        # PATCH 2026-07-31: transport proxies (OPENCODE, openclaw-anon) must
+        # NOT overwrite session-stored identity (e.g. 333-AGI). The pre-flight
+        # check above recovers session actor before we reach this point; here
+        # we harden by refusing to overwrite with a proxy identity.
         if actor and actor != "anonymous":
-            kwargs["actor_id"] = actor
+            if actor not in _TRANSPORT_PROXIES:
+                kwargs["actor_id"] = actor
+            # else: transport proxy — keep whatever pre-flight recovered from session
         elif not kwargs.get("actor_id"):
             kwargs["actor_id"] = actor
         kwargs["session_token"] = live_token
@@ -23582,7 +23607,13 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
         # Identity is request-scoped. A supplied session may recover its bound
         # actor, but a missing session never inherits the last active session.
-        if kwargs.get("session_id") and not kwargs.get("actor_id"):
+        # PATCH 2026-07-31: also recover when incoming actor is a transport proxy
+        # (e.g. OPENCODE from OpenCode MCP proxy). Session-stored identity (333-AGI)
+        # always wins over transport harness identity.
+        _incoming_actor = kwargs.get("actor_id")
+        _has_session = bool(kwargs.get("session_id"))
+        _is_transport_proxy = bool(_incoming_actor and _incoming_actor in _TRANSPORT_PROXIES)
+        if _has_session and (not _incoming_actor or _is_transport_proxy):
             try:
                 _sess = _SESSIONS.get(kwargs["session_id"])
                 if _sess and _sess.get("actor_id"):
