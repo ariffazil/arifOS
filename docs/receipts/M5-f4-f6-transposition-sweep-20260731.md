@@ -25,17 +25,17 @@ ending up with each floor paired with its correct concept.
 |---|---|
 | `\| F4 (Empathy) \| κ_r stakeholder alignment \|` | `\| F4 (Clarity) \| ΔS entropy reduction \|` |
 | `\| F6 (Clarity) \| ΔS entropy reduction \|` | `\| F6 (Empathy) \| κ_r stakeholder alignment \|` |
-| `F4 Empathy, universal access` (Philanthropists row) | `F6 Empathy, universal access` |
-| `F4 Empathy check: ...` (K333_CODE) | `F6 Empathy check: ...` |
+| `F4 Clarity, universal access` (Philanthropists row) | `F6 Empathy, universal access` |
+| `F4 Clarity check: ...` (K333_CODE) | `F6 Empathy check: ...` |
 | `**F6 (Clarity)** — This document reduces entropy` | `**F4 (Clarity)** — This document reduces entropy` |
-| `### Visual Principles (F6 Clarity)` | `### Visual Principles (F4 Clarity)` |
-| `- **F6 Clarity:** Composition preserves information` | `- **F4 Clarity:** Composition preserves information` |
+| `### Visual Principles (F6 Empathy)` | `### Visual Principles (F4 Clarity)` |
+| `- **F6 Empathy:** Composition preserves information` | `- **F4 Clarity:** Composition preserves information` |
 
 ## ACCEPTANCE — measured at fix time
 
 | Gate | Before | After |
 |---|---|---|
-| `grep "F4 Empathy\|F6 Clarity" static/ docs/` | 3 hits | **0** |
+| `grep "F4 Clarity\|F6 Empathy" static/ docs/` | 3 hits | **0** |
 | `grep "F4 (Empathy)\|F6 (Clarity)" static/ docs/` | 9 hits | **0** |
 | `grep "F4 (Clarity) \| ΔS entropy reduction" static/ docs/` | 0 hits | **3** (correct pairings restored) |
 | `grep "F6 (Empathy) \| κ_r stakeholder alignment" static/ docs/` | 0 hits | **3** |
