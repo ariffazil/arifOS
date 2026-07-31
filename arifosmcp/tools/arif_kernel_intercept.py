@@ -37,6 +37,46 @@ except Exception:
 
 logger = logging.getLogger("arifos.kernel.intercept")
 
+# SCT Decision Event — kernel observability (PR4 2026-07-31)
+try:
+    import sys as _sys_aaa
+
+    _sys_aaa.path.insert(0, "/root/AAA")
+    from governance.sct_decision_event import emit_decision as _emit_kernel_decision
+
+    _sys_aaa.path.pop(0)
+    _SCT_DECISION_WIRED = True
+except Exception as _exc_sct:
+    _SCT_DECISION_WIRED = False
+    logger.warning("arif_kernel_intercept: SCT decision event not wired: %s", _exc_sct)
+
+
+def _sct_emit_if_wired(
+    tool: str,
+    decision: str,
+    reason_code: str,
+    actor_id: str = "",
+    action_class: str = "",
+    require_sct: bool = False,
+    organ: str = "arifos",
+    **_extra,
+) -> None:
+    """Best-effort SCT decision event. Never blocks the gate."""
+    if not _SCT_DECISION_WIRED:
+        return
+    try:
+        _emit_kernel_decision(
+            tool=tool,
+            organ=organ,
+            decision=decision,
+            reason_code=reason_code,
+            actor_id=actor_id,
+            action_class=action_class,
+            require_sct=require_sct,
+        )
+    except Exception as _exc:
+        logger.debug("arif_kernel_intercept: sct emit skipped: %s", _exc)
+
 
 # F13 SOVEREIGN key registry — kernel-side, not config-side.
 # Production: real Ed25519 verification via crypto_auth.verify_actor_signature().
@@ -681,4 +721,15 @@ async def _arif_kernel_intercept(
         "hold_required": is_l5,
         "agency_level": target_aff.get("agency_level"),
     }
+
+    # ── PR4: emit SCT decision event for kernel observability ──
+    _sct_emit_if_wired(
+        tool=requested_capability,
+        decision=output.decision,
+        reason_code="OK" if output.decision == "ALLOW" else output.decision,
+        actor_id=actor,
+        action_class=action_class or _rev_raw,
+        require_sct=bool(authority_token),
+    )
+
     return base
