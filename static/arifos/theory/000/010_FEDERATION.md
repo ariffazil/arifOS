@@ -200,7 +200,7 @@ Preserves:
 
 **Constitutional Enforcement:**
 - **F1 Amanah:** Morphisms must be reversible or auditable
-- **F6 Clarity:** Composition preserves information (no entropy increase)
+- **F4 Clarity:** Composition preserves information (no entropy increase)
 
 ---
 

@@ -15,7 +15,7 @@ The arifOS visual system is built on the metaphor of **forging** — the transfo
 - **Heat gradients** → Activity, life, attention
 - **Dark void** → The substrate of potential, the unknown
 
-### Visual Principles (F6 Clarity)
+### Visual Principles (F4 Clarity)
 1. **Entropy Reduction**: Every element must reduce visual noise
 2. **Thermodynamic Honesty**: Heat (activity) only where justified
 3. **Sacred Geometry**: Triangles, circles, grids as foundational patterns

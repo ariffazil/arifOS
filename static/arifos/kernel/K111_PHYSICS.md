@@ -286,9 +286,9 @@ The Thermodynamic Paradox Conductance Protocol reframes artificial intelligence 
 | F1 (Amanah) | Resolution reversibility |
 | F2 (Truth) | ΔP accuracy requirement |
 | F3 (Tri-Witness) | ΨP consensus validation |
-| F4 (Empathy) | κ_r stakeholder alignment |
+| F6 (Empathy) | κ_r stakeholder alignment |
 | F5 (Peace²) | ΨP stability metric |
-| F6 (Clarity) | ΔS entropy reduction |
+| F4 (Clarity) | ΔS entropy reduction |
 | F7 (Humility) | Ω₀ uncertainty bounds |
 | F8 (Genius) | Φ_P convergence threshold |
 | F9 (Anti-Hantu) | Dark paradox detection |

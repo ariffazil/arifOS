@@ -695,7 +695,7 @@ Query: "Will this medicine harm patient?"
 arifOS Response:
   "SEAL: Do not use (weakest stakeholder protection triggered)
    Knowing:
-     - F4 Empathy check: Patient vulnerability = 0.95 (highest)
+     - F6 Empathy check: Patient vulnerability = 0.95 (highest)
      - F5 Peace check: Side effects detected in literature
      - F6 RASA: Medical expertise consulted (tri-witness H=0.98)
    Not-Knowing:
