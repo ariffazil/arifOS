@@ -478,9 +478,20 @@ def _finish_edge_fields(edge: dict[str, Any]) -> None:
 
     transport_ok = edge.get("transport") in ("reachable", "up")
     identity_ok = edge.get("identity_match") is True
-    if transport_ok and identity_ok:
+    schema_ok = edge.get("schema_match") is True
+    semantic_ok = all(
+        edge.get(f) is True
+        for f in ("session_propagated", "actor_propagated", "trace_propagated", "receipt_produced")
+    )
+    if transport_ok and identity_ok and schema_ok and semantic_ok:
+        edge["state"] = "SEMANTIC_PROVEN"
+        edge["overall"] = "GOVERNED"
+    elif transport_ok and identity_ok and schema_ok:
+        edge["state"] = "CONTRACT_ALIGNED"
+        edge["overall"] = "CONTRACT_ALIGNED"
+    elif transport_ok and identity_ok:
         edge["state"] = "TRANSPORT_IDENTITY_OK"
-        edge["overall"] = "TRANSPORT_ONLY"
+        edge["overall"] = "IDENTITY_ALIGNED"
     elif transport_ok:
         edge["state"] = "TRANSPORT_ONLY"
         edge["overall"] = "TRANSPORT_ONLY"
@@ -713,22 +724,25 @@ def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
 
 
 def edge_aggregate_state(edges: list[dict[str, Any]]) -> str:
-    """Aggregate: TRANSPORT_* counts as transport success."""
+    """Aggregate: tiered from GOVERNED → CONTRACT_ALIGNED → IDENTITY_ALIGNED → TRANSPORT_ONLY.
+
+    Returns the LOWEST tier across all edges — the federation is only as governed
+    as its weakest edge.
+    """
     if not edges:
         return "UNKNOWN"
-    states = [e.get("state", "unknown") for e in edges]
-    transport_ok = sum(
-        1
-        for s in states
-        if s
-        in (
-            "reachable",
-            "TRANSPORT_IDENTITY_OK",
-            "TRANSPORT_ONLY",
-            "TRANSPORT_ONLY_PARTIAL_ID",
-        )
-    )
-    total = len(states)
+    overalls = [e.get("overall", "unknown") for e in edges]
+    # Tier priority (lowest to highest): TRANSPORT_ONLY < IDENTITY_ALIGNED < CONTRACT_ALIGNED < GOVERNED
+    tier_order = {"TRANSPORT_ONLY": 0, "IDENTITY_ALIGNED": 1, "CONTRACT_ALIGNED": 2, "GOVERNED": 3}
+    min_tier = min((tier_order.get(o, -1) for o in overalls), default=-1)
+    if min_tier >= 3:
+        return "GOVERNED"
+    if min_tier >= 2:
+        return "CONTRACT_ALIGNED"
+    if min_tier >= 1:
+        return "IDENTITY_ALIGNED"
+    transport_ok = sum(1 for o in overalls if o not in ("ERROR", "unknown", "unreachable"))
+    total = len(edges)
     if transport_ok == total:
         return "TRANSPORT_ALIGNED"
     if transport_ok >= total * 0.7:
@@ -930,8 +944,18 @@ class Edge:
 
 
 def edge_aggregate_state(edges: list[dict[str, Any]]) -> str:
+    """Aggregate: tiered from GOVERNED → CONTRACT_ALIGNED → IDENTITY_ALIGNED → TRANSPORT_ONLY."""
     if not edges:
         return "UNKNOWN"
+    overalls = [e.get("overall", "unknown") for e in edges if isinstance(e, dict)]
+    tier_order = {"TRANSPORT_ONLY": 0, "IDENTITY_ALIGNED": 1, "CONTRACT_ALIGNED": 2, "GOVERNED": 3}
+    min_tier = min((tier_order.get(o, -1) for o in overalls), default=-1)
+    if min_tier >= 3:
+        return "GOVERNED"
+    if min_tier >= 2:
+        return "CONTRACT_ALIGNED"
+    if min_tier >= 1:
+        return "IDENTITY_ALIGNED"
     states = {e.get("state") for e in edges if isinstance(e, dict)}
     if "unreachable" in states:
         return "UNREACHABLE"
