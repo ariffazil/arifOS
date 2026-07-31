@@ -405,6 +405,9 @@ async def _arif_kernel_intercept(
             "why_this_tool": "Kernel cannot classify unknown reversibility",
             "next_safe_action": base["next_safe_action"],
         }
+        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
+                           reason_code="CLASSIFICATION_HOLD", actor_id=actor,
+                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
         return base
 
     try:
@@ -530,6 +533,12 @@ async def _arif_kernel_intercept(
             }
             base["next_safe_action"] = "Sign authorization_request with Ed25519 then resubmit"
             base["constitutional_check"] = {"hold_required": True, "floor": "F13"}
+            _sct_emit_if_wired(
+                tool=requested_capability, decision=output.decision,
+                reason_code="F13_SOVEREIGN_REQUIRED", actor_id=actor,
+                action_class=action_class or _rev_raw,
+                require_sct=bool(authority_token),
+            )
             return base
 
     # 2. Evidence Thresholds for Truth (F2 TRUTH)
@@ -551,6 +560,9 @@ async def _arif_kernel_intercept(
             "Gather cited evidence (arif_fetch or arif_observe) then re-submit to kernel_intercept"
         )
         base["metacognition"] = {"confidence": 0.95, "next_safe_action": base["next_safe_action"]}
+        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
+                           reason_code="F2_NO_EVIDENCE", actor_id=actor,
+                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
         return base
 
     if t_state == TruthState.CONFLICT and not evidence:
@@ -570,6 +582,9 @@ async def _arif_kernel_intercept(
         base["affordance"] = target_aff
         base["next_safe_action"] = "Resolve contradiction with explicit evidence then re-intercept"
         base["metacognition"] = {"confidence": 0.85, "next_safe_action": base["next_safe_action"]}
+        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
+                           reason_code="F2_CONFLICT_NO_EVIDENCE", actor_id=actor,
+                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
         return base
 
     if (
@@ -594,6 +609,9 @@ async def _arif_kernel_intercept(
             "Attach evidence or downgrade epistemic_state before re-intercept"
         )
         base["metacognition"] = {"confidence": 0.80, "next_safe_action": base["next_safe_action"]}
+        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
+                           reason_code="F2_HIGH_BLAST_NO_EVIDENCE", actor_id=actor,
+                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
         return base
 
     if _has_measurement:
@@ -619,6 +637,9 @@ async def _arif_kernel_intercept(
                 "next_safe_action": base["next_safe_action"],
                 "measurement_used": True,
             }
+            _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
+                               reason_code="F9_C_DARK_ESCALATE", actor_id=actor,
+                               action_class=action_class or _rev_raw, require_sct=bool(authority_token))
             return base
 
         if _G is not None and _G < 0.50:
@@ -643,6 +664,9 @@ async def _arif_kernel_intercept(
                 "next_safe_action": base["next_safe_action"],
                 "measurement_used": True,
             }
+            _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
+                               reason_code="F8_G_ESCALATE", actor_id=actor,
+                               action_class=action_class or _rev_raw, require_sct=bool(authority_token))
             return base
 
     # 3. Standard Allow
