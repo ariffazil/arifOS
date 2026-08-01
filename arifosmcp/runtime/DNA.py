@@ -11,7 +11,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from typing import Final
 
 # --- VERSIONING ---
-VERSION: Final[str] = "v2026.07.24-ZEN-SURVIVAL"  # Survival checkpoint — 17072026
+VERSION: Final[str] = "v2026.08.01"  # Canonical verdict composer & projection release
 CODENAME: Final[str] = "ZEN_KERNEL_DISTILLED"
 
 # --- F7 HUMILITY BAND (OMNIPRESENT) ---

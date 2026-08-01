@@ -432,6 +432,35 @@ def classify_tool(
     """
     params = params or {}
 
+    # ── Content-Aware Payload Discrimination (2026-08-01 Hardening) ──
+    # Inspect string payload in params to catch destructive commands (rm -rf, drop table, etc.)
+    # regardless of whether passed to arif_judge, arif_think, arif_act, or arif_forge.
+    param_str = str(params).lower()
+    _DESTRUCTIVE_KEYWORDS = [
+        "rm -rf",
+        "drop table",
+        "drop database",
+        "git push --force",
+        "format ",
+        "partition ",
+        "reboot",
+        "shutdown",
+        "erase audit",
+        "truncate",
+    ]
+    if any(kw in param_str for kw in _DESTRUCTIVE_KEYWORDS):
+        return ToolRiskProfile(
+            tool_name=tool_name,
+            mode="destructive_content",
+            action_class="IRREVERSIBLE",
+            risk_tier="ATOMIC",
+            blast_radius="INFRASTRUCTURE",
+            reversibility=0.0,
+            autonomy_floor="HOLD",
+            rationale="Content-aware scanner: destructive payload detected in tool parameters",
+            requires_lease=True,
+        )
+
     # Extract mode from params — check common mode field names
     mode = params.get("mode") or params.get("action") or params.get("type")
     if mode:

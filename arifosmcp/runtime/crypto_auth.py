@@ -899,14 +899,38 @@ def _find_ed25519_key() -> bytes | None:
     global _ED25519_KEY_CACHE
     if _ED25519_KEY_CACHE is not None:
         return _ED25519_KEY_CACHE
+    _permission_failures: list[str] = []
     for path in _ED25519_KEY_PATHS:
         p = Path(path)
         if p.exists() and p.stat().st_size > 0:
+            # FORGED 2026-08-01: Pre-flight readability check.
+            # Prevents silent PermissionError → context collapse loop.
+            # Root cause: arifOS runs as 'arifos' user but key was root:600.
+            if not os.access(path, os.R_OK):
+                _permission_failures.append(path)
+                logger.warning(
+                    "FATAL_OS_ACL: Ed25519 key exists but is NOT readable by "
+                    "current user (uid=%d): %s — fix with: "
+                    "setfacl -m u:$(whoami):r %s",
+                    os.getuid(),
+                    path,
+                    path,
+                )
+                continue
             try:
                 _ED25519_KEY_CACHE = p.read_bytes()
                 return _ED25519_KEY_CACHE
             except OSError:
                 continue
+    if _permission_failures:
+        logger.error(
+            "FATAL_OS_ACL: ALL Ed25519 key paths failed readability check. "
+            "Paths tried: %s. Permission-denied: %s. "
+            "Agent identity verification will FAIL. "
+            "Fix: setfacl -m u:arifos:r <key_path> + setfacl -m u:arifos:x <key_dir>",
+            list(_ED25519_KEY_PATHS),
+            _permission_failures,
+        )
     return None
 
 

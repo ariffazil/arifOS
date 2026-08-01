@@ -7855,6 +7855,15 @@ def _build_judge_contract(
         timestamp=_now(),
     )
     state_hash = _stable_hash(contract.model_dump(mode="json", exclude={"state_hash"}))
+    # F1 AMANAH · FAIL-CLOSED (Tier A choke point, 2026-08-01).
+    # An empty state_hash means the contract cannot be registered into the
+    # canonical JUDGE_STATE_REGISTRY, which would silently break audit
+    # resolution downstream. Refuse to register and raise.
+    if not state_hash or not isinstance(state_hash, str):
+        raise RuntimeError(
+            "F1 AMANAH: JudgeSealContract produced empty/invalid state_hash — "
+            "refusing to register an unverifiable packet. F2 TRUTH."
+        )
     contract = contract.model_copy(update={"state_hash": state_hash})
     packet = contract.model_dump(mode="json")
     _JUDGE_STATE_REGISTRY[contract.state_hash] = packet
@@ -16872,11 +16881,22 @@ def _arif_judge_deliberate(
         1: _ForgeIrrevLevel.SEMI_IRREVERSIBLE,
         2: _ForgeIrrevLevel.IRREVERSIBLE,
     }.get(_irrev_for_contract, _ForgeIrrevLevel.CATASTROPHIC)
+    # F1 AMANAH · FAIL-CLOSED (Tier A choke point, 2026-08-01).
+    # A breach-contract that is built from an empty/null `verdict.state_hash`
+    # cannot be re-anchored to its lineage — it would silently bypass the
+    # verdict. Refuse to construct it and raise 888_HOLD.
+    if not verdict.state_hash or not isinstance(verdict.state_hash, str):
+        raise RuntimeError(
+            "F1 AMANAH: forge breach-contract requires a non-empty "
+            "verdict.state_hash to anchor the lineage. Refusing to "
+            "construct a breach record from an empty state_hash. "
+            "888_HOLD. F2 TRUTH."
+        )
     _breach_contract = JudgeSealContract(
         constitutional_chain_id=constitutional_chain_id
         or verdict.state_hash
         or uuid.uuid4().hex[:16],
-        state_hash=verdict.state_hash or "",
+        state_hash=verdict.state_hash,
         session_id=session_id,
         actor_id=actor_id,
         candidate=candidate,
@@ -17027,12 +17047,23 @@ def _arif_judge_deliberate(
     if evidence_receipt is None and mode == "judge":
         _override_reason = "SEAL requires evidence_receipt. Without evidence, max verdict is SABAR."
         _invariants_checked.append("F2_evidence_gate_no_evidence")
+        # F1 AMANAH · FAIL-CLOSED (Tier A choke point, 2026-08-01).
+        # Same lineage-anchor guarantee as the breach path: a SABAR record
+        # built from an empty/null `verdict.state_hash` cannot be re-anchored
+        # to its origin. Refuse to construct and raise 888_HOLD.
+        if not verdict.state_hash or not isinstance(verdict.state_hash, str):
+            raise RuntimeError(
+                "F1 AMANAH: forge SABAR-contract requires a non-empty "
+                "verdict.state_hash to anchor the lineage. Refusing to "
+                "construct a SABAR record from an empty state_hash. "
+                "888_HOLD. F2 TRUTH."
+            )
         # Build a SABAR-specific contract
         _sabar_contract = JudgeSealContract(
             constitutional_chain_id=constitutional_chain_id
             or verdict.state_hash
             or uuid.uuid4().hex[:16],
-            state_hash=verdict.state_hash or "",
+            state_hash=verdict.state_hash,
             session_id=session_id,
             actor_id=actor_id,
             candidate=candidate,
@@ -22604,7 +22635,27 @@ async def _arif_act(
             }
         # verdict_state == "PROCEED" falls through to execution
     except ImportError:
-        pass  # executor module unavailable — degrade to seal-only gate
+        # F1 AMANAH · FAIL-CLOSED (Tier A choke point, 2026-08-01).
+        # The dynamic executor constraints module is REQUIRED for any
+        # arif_act dispatch. If it cannot be imported, the verdict state
+        # cannot be validated against the seal — refuse to fall through.
+        return {
+            "verdict": "888_HOLD",
+            "reason": (
+                "DYNAMIC_EXECUTOR_CONSTRAINTS unavailable — cannot validate "
+                "prior verdict state before execution. arif_act is blocked "
+                "until the executor module is reachable. F1 AMANAH."
+            ),
+            "next_safe_action": (
+                "Investigate runtime import path; restore the executor "
+                "constraints module; re-issue from arif_init."
+            ),
+            "dynamic_executor": {
+                "state": "ESCALATE_888",
+                "verdict_ref": seal_verdict_id,
+                "failure_mode": "executor_constraints_import_error",
+            },
+        }
 
     # 3. Delegate to the execution engine (forge)
     try:

@@ -256,11 +256,25 @@ def evaluate_autonomy_ceiling(
         (autonomy_tier: str, rationale: str, envelope: dict)
     """
 
-    # ── Guard 0: Principal direct access — always FULL_AUTO ──
+    # ── Guard 0: Principal direct access — obey F1 AMANAH reversibility floor ──
     if caller_is_principal:
+        if reversibility < REVERSIBILITY_HARD_FLOOR:
+            return (
+                AutonomyTier.HOLD.value,
+                f"E7 HOLD: Reversibility {reversibility:.2f} below hard floor "
+                f"({REVERSIBILITY_HARD_FLOOR}). Full principal control required.",
+                {
+                    "gate": "E7",
+                    "verdict": GateVerdict.HOLD.value,
+                    "principal_direct": True,
+                    "ceiling_override": False,
+                    "violation": "IRREVERSIBILITY_FLOOR",
+                    "reversibility": reversibility,
+                },
+            )
         return (
             AutonomyTier.FULL_AUTO.value,
-            "Principal (F13 SOVEREIGN) — direct authority, no ceiling.",
+            "Principal (F13 SOVEREIGN) — direct authority, obeying F1 AMANAH reversibility floor.",
             {
                 "gate": "E7",
                 "verdict": GateVerdict.PROCEED.value,
