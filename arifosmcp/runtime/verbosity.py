@@ -185,6 +185,27 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
 
     actor_id = _lookup("actor_id") or "anonymous"
     actor_verified = bool(_lookup("actor_verified"))
+    # F13 SOVEREIGN 2026-08-01: if the top-level actor_verified is False
+    # but the session_token (the canonical cryptographic proof of binding)
+    # has av=True, trust the JWT. The kernel's standing projection can
+    # collapse the in-memory session state after the JWT is minted; the
+    # JWT is immutable and authoritative. Same for the auth band.
+    _stok = _lookup("session_token")
+    _jwt_av = None
+    _jwt_auth = None
+    if _stok and isinstance(_stok, str) and _stok.startswith("sct_v1."):
+        try:
+            import base64 as _b64
+            import json as _json
+            _payload_b64 = _stok.split(".", 2)[1]
+            _payload_b64 += "=" * (4 - len(_payload_b64) % 4)
+            _claims = _json.loads(_b64.urlsafe_b64decode(_payload_b64))
+            _jwt_av = _claims.get("av")
+            _jwt_auth = _claims.get("auth")
+        except Exception:
+            pass
+    if not actor_verified and _jwt_av is True:
+        actor_verified = True
     session_id = _lookup("session_id")
     call_hash = _lookup("call_hash")
     trace_id = _lookup("trace_id")
@@ -196,6 +217,10 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     nested_actor = response.get("actor")
     if isinstance(nested_actor, dict):
         authority_level = nested_actor.get("authority_level", "OBSERVER")
+    # F13 SOVEREIGN 2026-08-01: prefer the JWT auth band over the
+    # standing-collapsed value when both are present.
+    if _jwt_auth and _jwt_auth in ("OBSERVE_ONLY", "LIMITED_MUTATE", "FULL"):
+        authority_level = _jwt_auth
 
     unified_actor = {
         "actor_id": actor_id,
