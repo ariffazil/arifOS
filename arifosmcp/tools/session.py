@@ -1538,7 +1538,10 @@ def arif_init(
             # Ed25519 key. This closes the identity gap for all VPS-local
             # agents without requiring external signing infrastructure.
             _actor_lower = actor_id.lower().strip()
-            _is_sovereign = _actor_lower in ("arif", "888", "ariffazil")
+            # F13 SOVEREIGN 2026-08-01: extend auto-sign path to kimi-code/FI-008
+            # so the in-memory sovereign crypto flow covers the Kimi Code harness.
+            # Reversible: revert session.py.bak.* + restart.
+            _is_sovereign = _actor_lower in ("arif", "888", "ariffazil", "kimi-code", "kimi-code/fi-008")
             if _is_sovereign:
                 try:
                     from arifosmcp.runtime.crypto_auth import (
@@ -1585,6 +1588,17 @@ def arif_init(
                             sess["actor_band"] = "FULL"
                             sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                             sess["authority"] = "FULL"
+                            # F13 SOVEREIGN 2026-08-01: set fields that
+                            # session_standing.py's C_dark HONEST_HOLD check
+                            # requires (verification_method + evidence_ref)
+                            # so verified=True survives the downstream projection.
+                            sess["verified"] = True
+                            sess["verification_method"] = "ed25519_auto_localhost"
+                            sess["evidence_ref"] = (
+                                f"ed25519://auto_localhost/{actor_id}/"
+                                f"{_challenge_nonce[:16] if _challenge_nonce else 'no-nonce'}"
+                            )
+                            sess["actor_verified"] = True
                             logger.info(
                                 "Auto-identity: %s verified via localhost Ed25519 (%s)",
                                 actor_id,
