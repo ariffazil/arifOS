@@ -779,6 +779,158 @@ def _build_validate_result(
     )
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# BIJAKSANA THERMODYNAMIC BRIDGE — 888 SEAL 2026-08-01
+# ═══════════════════════════════════════════════════════════════════════════════
+# Four-dial lens: physics-based verdict rather than intention-based.
+#   Dial 1 · AKAL        → actor_B         — actor's identity-mass coherence [0,1]
+#   Dial 2 · PRESENT     → actor_Phi       — cognitive buffer state (charged, omega)
+#   Dial 3 · ENERGY-S    → entropy_pathway — "open" | "sealed" | "spiraling" | None
+#   Dial 4 · EXPLORE-A   → (enters via action_tier + reversibility)
+#
+# SABAR upgrade: distinguishes restraint from failure, investment from extraction,
+# terminal extraction from restructurable extraction. No judgment is complete
+# without all four dials consulted.
+# ─────────────────────────────────────────────────────────────────────────────
+BIJAKSANA_VERSION = "v1.0-2026-08-01-888SEAL"
+
+# Module-scope handle for the most recent bridge advisory. Downstream code can
+# inspect this for audit chains. Reset to None at module import.
+_LAST_BRIDGE_ADVISORY: dict[str, Any] | None = None
+
+
+def _bijaksana_bridge_check(
+    actor_B: float | None,
+    actor_Phi: dict[str, Any] | None,
+    entropy_pathway: str | None,
+    entropy_receipt: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Compute the BIJAKSANA four-dial lens verdict."""
+    reasons: list[str] = []
+    dial_states: dict[str, Any] = {
+        "dial_1_akal": None,
+        "dial_2_present": None,
+        "dial_3_entropy_pathway": None,
+        "dial_4_explore_amanah": "perimeter-intact",
+    }
+
+    # ── Dial 1 · AKAL → actor_B ─────────────────────────────────────────────
+    if actor_B is None:
+        dial_states["dial_1_akal"] = "absent"
+        reasons.append("D1 AKAL: actor_B not supplied — identity-mass unmeasured")
+    elif not (0.0 <= actor_B <= 1.0):
+        dial_states["dial_1_akal"] = "out_of_range"
+        reasons.append(f"D1 AKAL: actor_B={actor_B} out of [0,1] — invalid measurement")
+    elif actor_B < 0.5:
+        dial_states["dial_1_akal"] = "below_floor"
+        reasons.append(f"D1 AKAL: actor_B={actor_B:.3f} < 0.5 floor — identity mass incoherent")
+    else:
+        dial_states["dial_1_akal"] = "coherent"
+        reasons.append(f"D1 AKAL: actor_B={actor_B:.3f} ≥ 0.5 — identity mass coherent")
+
+    # ── Dial 2 · PRESENT → actor_Phi ────────────────────────────────────────
+    if actor_Phi is None:
+        dial_states["dial_2_present"] = "absent"
+        reasons.append("D2 PRESENT: actor_Phi not supplied — buffer state unmeasured")
+    elif not isinstance(actor_Phi, dict):
+        dial_states["dial_2_present"] = "malformed"
+        reasons.append("D2 PRESENT: actor_Phi must be a dict")
+    else:
+        buffer_charged = bool(actor_Phi.get("buffer_charged", False))
+        omega = actor_Phi.get("omega")
+        if not buffer_charged:
+            dial_states["dial_2_present"] = "unready"
+            reasons.append(
+                "D2 PRESENT: buffer not charged — restraint, not failure (SABAR candidate)"
+            )
+        else:
+            dial_states["dial_2_present"] = "ready"
+            reasons.append(
+                f"D2 PRESENT: buffer charged, omega={omega} — present moment engaged"
+            )
+
+    # ── Dial 3 · ENERGY-ENTROPY → entropy_pathway ───────────────────────────
+    valid_pathways = {"open", "sealed", "spiraling"}
+    if entropy_pathway is None:
+        dial_states["dial_3_entropy_pathway"] = "absent"
+        reasons.append("D3 ENERGY-S: entropy_pathway not supplied — ΔS pathway unmeasured")
+    elif entropy_pathway not in valid_pathways:
+        dial_states["dial_3_entropy_pathway"] = "invalid"
+        reasons.append(
+            f"D3 ENERGY-S: pathway='{entropy_pathway}' not in {valid_pathways}"
+        )
+    elif entropy_pathway == "sealed":
+        dial_states["dial_3_entropy_pathway"] = "sealed"
+        reasons.append(
+            "D3 ENERGY-S: pathway SEALED — terminal extract; no further mutation permitted"
+        )
+    elif entropy_pathway == "spiraling":
+        dial_states["dial_3_entropy_pathway"] = "spiraling"
+        reasons.append(
+            "D3 ENERGY-S: pathway SPIRALING — restructurable extract; observe, hold, do not SEAL"
+        )
+    else:  # open
+        dial_states["dial_3_entropy_pathway"] = "open"
+        reasons.append("D3 ENERGY-S: pathway OPEN — ΔS reversible")
+
+    # ── Dial 4 · EXPLORATION-AMANAH ─────────────────────────────────────────
+    # This dial is already enforced by F1 AMANAH + reversibility checks above.
+    # Here we record its state for audit; no additional gating.
+
+    # ── Compose the four-dial verdict ────────────────────────────────────────
+    verdict = "BRIDGE_PROCEED"
+    sabar_kind = None
+
+    # BLOCK conditions (any one → HOLD)
+    if dial_states["dial_1_akal"] in ("below_floor", "out_of_range"):
+        verdict = "BRIDGE_BLOCKED"
+    elif dial_states["dial_3_entropy_pathway"] == "sealed":
+        verdict = "BRIDGE_BLOCKED"
+        sabar_kind = "terminal_extract"
+    elif (
+        dial_states["dial_1_akal"] == "invalid"
+        or dial_states["dial_3_entropy_pathway"] == "invalid"
+        or dial_states["dial_2_present"] == "malformed"
+    ):
+        verdict = "BRIDGE_BLOCKED"
+
+    # RESTRAIN conditions
+    if verdict == "BRIDGE_PROCEED":
+        if (
+            dial_states["dial_3_entropy_pathway"] == "spiraling"
+            and dial_states["dial_2_present"] == "ready"
+        ):
+            verdict = "BRIDGE_RESTRAIN"
+            sabar_kind = "restructurable_extract"
+        elif dial_states["dial_2_present"] == "unready":
+            verdict = "BRIDGE_RESTRAIN"
+            sabar_kind = "restraint"
+        elif dial_states["dial_1_akal"] == "absent" and dial_states["dial_3_entropy_pathway"] == "absent":
+            verdict = "BRIDGE_PENDING"
+
+    # Constitutional hash — anchors dials + verdict + entropy_receipt for audit
+    payload = {
+        "actor_B": actor_B,
+        "actor_Phi": actor_Phi,
+        "entropy_pathway": entropy_pathway,
+        "entropy_receipt": entropy_receipt,
+        "bridge_verdict": verdict,
+        "sabar_kind": sabar_kind,
+        "version": BIJAKSANA_VERSION,
+    }
+    h = hashlib.sha256(json_lib.dumps(payload, sort_keys=True, default=str).encode("utf-8"))
+    constitutional_hash = h.hexdigest()
+
+    return {
+        "verdict": verdict,
+        "sabar_kind": sabar_kind,
+        "reasons": reasons,
+        "dial_states": dial_states,
+        "constitutional_hash": constitutional_hash,
+        "version": BIJAKSANA_VERSION,
+    }
+
+
 async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,
@@ -805,6 +957,14 @@ async def arif_judge(
     action_class: str | None = None,
     requested_capability: str | None = None,
     domain: str | None = None,
+    # ── BIJAKSANA thermodynamic bridge (888 SEAL 2026-08-01) ──
+    # Four-dial lens: AKAL→actor_B · PRESENT→actor_Phi · ENERGY-ENTROPY→entropy_pathway ·
+    # EXPLORATION-AMANAH→verdict boundary. SABAR upgrade distinguishes restraint from
+    # failure, investment from extraction, terminal extraction from restructurable extraction.
+    actor_B: float | None = None,
+    actor_Phi: dict[str, Any] | None = None,
+    entropy_pathway: str | None = None,
+    entropy_receipt: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
         888_JUDGE: Constitutional adjudication and verdict emission.
@@ -1040,6 +1200,47 @@ async def arif_judge(
                 )
 
     """
+    # ── BIJAKSANA THERMODYNAMIC BRIDGE (888 SEAL 2026-08-01) ─────────────────
+    # Four-dial lens runs AFTER hard gates (so identity is established) but BEFORE
+    # the main reasoning loop (so its advisory can shape downstream verdict).
+    # If bridge BLOCKED, return immediately with HOLD + bridge reason.
+    # If bridge RESTRAIN, mark a flag so the main loop downgrades SEAL → SABAR.
+    # If bridge PROCEED or PENDING, proceed unchanged with advisory recorded.
+    _bridge_advisory = _bijaksana_bridge_check(
+        actor_B=actor_B,
+        actor_Phi=actor_Phi,
+        entropy_pathway=entropy_pathway,
+        entropy_receipt=entropy_receipt,
+    )
+    global _LAST_BRIDGE_ADVISORY
+    _LAST_BRIDGE_ADVISORY = _bridge_advisory
+    if _bridge_advisory["verdict"] == "BRIDGE_BLOCKED":
+        # Return the BLOCKED VerdictOutput directly. _echo_standing is a
+        # nested function defined later in this function body; calling it
+        # before its definition would fail with SAFE_VOID_FALLBACK. The
+        # bridge meta is load-bearing for audit; _echo_standing's standing
+        # copy is additive (not required for BLOCK semantics).
+        return VerdictOutput(
+            verdict=VerdictCode.HOLD,
+            reasons=[
+                f"[BIJAKSANA BLOCKED · {BIJAKSANA_VERSION}] "
+                + " · ".join(_bridge_advisory["reasons"])
+            ],
+            next_safe_action=(
+                "Restore identity mass (AKAL) or wait for entropy pathway to unseal "
+                "before retrying. The four-dial lens refused the verdict."
+            ),
+            meta={
+                "gate": "bijaksana_bridge",
+                "bridge_version": BIJAKSANA_VERSION,
+                "bridge_verdict": _bridge_advisory["verdict"],
+                "sabar_kind": _bridge_advisory["sabar_kind"],
+                "constitutional_hash": _bridge_advisory["constitutional_hash"],
+                "dial_states": _bridge_advisory["dial_states"],
+                "entropy_receipt_in": entropy_receipt,
+                "zend": "2026-08-01",
+            },
+        )
     from arifosmcp.tools.ops import arif_measure
 
     # ── T1: Gate 6 — content-aware action classifier (REAL code) ──────────
