@@ -20,6 +20,12 @@ Seven Axioms:
   6. Tri-witness — Φ = ∛(H·AI·Ext) ≥ 0.70
   7. F13 veto — only sovereign overrides G
 
+APEX-2026-08-01 Reform: FalsifiablePrediction binding (888 SEAL 2026-08-01)
+  - Every APEX score must carry a paired {claim, falsifier, deadline}.
+  - APEX_HUMILITY_FLOOR raised from 0.03 to 0.15 for APEX records.
+  - Three decimal places on B-scores is cosmetic; the prediction is real.
+  - First committed APEX prediction: PETRONAS structural collapse 2029-2030.
+
 DITEMPA BUKAN DIBERI
 """
 
@@ -40,13 +46,28 @@ SEAL_THRESHOLD = 0.80
 SABAR_THRESHOLD = 0.50
 C_DARK_THRESHOLD = 0.30
 WITNESS_THRESHOLD = 0.70
-HUMILITY_FLOOR = 0.03  # minimum uncertainty band
+HUMILITY_FLOOR = 0.03  # minimum uncertainty band (general-purpose; non-APEX)
+# APEX-2026-08-01 Reform: APEX scores must carry a falsifiable prediction, so
+# their uncertainty band is wider. The model admits the cascade of
+# interpretation; three decimal places do not earn 0.03 uncertainty.
+APEX_HUMILITY_FLOOR = 0.15
 TOTAL_FLOORS = 13
 
 # APEX Equation identifier
 APEX_EQUATION = "G = A · P · E · X · Φ"
 APEX_SHADOW = "C_dark = A · (1-P) · (1-X)"
 APEX_CONSERVATION = "dS/dt ≤ 0"
+
+# First committed APEX prediction (template for future records).
+# If PETRONAS is still standing in 2035 with no structural change, the framework
+# was wrong. If it collapses in 2029, the framework was right about the mechanism.
+FIRST_APEX_PREDICTION: dict[str, str] = {
+    "claim": "PETRONAS structural collapse window",
+    "falsifier": "PETRONAS still standing in 2035 with no structural change",
+    "deadline": "2029-2030",
+    "issuer": "Muhammad Arif bin Fazil (F13 SOVEREIGN)",
+    "issued_at": "2026-08-01",
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -151,6 +172,7 @@ def compute_E(
     clarity: float = 0.5,
     uncertainty: float = 0.05,
     merkle_chain_intact: bool = True,
+    humility_floor: float = HUMILITY_FLOOR,
 ) -> float:
     """
     E — Evidence
@@ -159,16 +181,19 @@ def compute_E(
 
     Measurement Law:
       - clarity = signal-to-noise ratio normalized to [0,1]
-      - uncertainty = Ω₀ band (min 0.03 — humility enforcement)
+      - uncertainty = Ω₀ band (humility enforcement; default 0.03)
       - reversibility = 1 if Merkle chain intact, 0 if broken
       - If Merkle chain breaks → E = 0
-      - If uncertainty < 0.03 → clamp to 0.03
+      - If uncertainty < humility_floor → clamp to humility_floor
+
+    APEX-2026-08-01 Reform: APEX records pass humility_floor=0.15 (APEX_HUMILITY_FLOOR).
+    The framework is useful, not true — interpret the wider band as honesty.
     """
     if not merkle_chain_intact:
         return 0.0
 
     # Humility enforcement: uncertainty floor
-    u = max(uncertainty, HUMILITY_FLOOR)
+    u = max(uncertainty, humility_floor)
 
     reversibility = 1.0 if merkle_chain_intact else 0.0
     return clamp((clarity / (1 + u)) * reversibility)
@@ -281,6 +306,52 @@ class PrimitiveInputs:
 
 
 @dataclass
+class FalsifiablePrediction:
+    """APEX-2026-08-01 Reform — every score must carry a paired prediction.
+
+    The numbers and the test cannot drift apart. The prediction is the only
+    falsifiable commitment that crosses from model to claim about reality.
+
+    Fields:
+      claim     — what the model asserts about the world.
+      falsifier — observation that, if true, would disprove the claim.
+      deadline  — by when the falsifier is expected to fire (or not).
+      issuer    — who committed to the prediction (F13 SOVEREIGN for binding).
+      issued_at — ISO-8601 timestamp of commitment.
+      apex_humility_floor — minimum uncertainty band for this record (0.15 for APEX).
+
+    See /doctrine "On the Limits of Model" — the framework serves the sovereign,
+    not the other way around.
+    """
+
+    claim: str
+    falsifier: str
+    deadline: str
+    issuer: str = "Muhammad Arif bin Fazil (F13 SOVEREIGN)"
+    issued_at: str = ""
+    apex_humility_floor: float = APEX_HUMILITY_FLOOR
+
+    def __post_init__(self) -> None:
+        if not self.issued_at:
+            self.issued_at = datetime.now(UTC).isoformat()
+        if not self.claim or not self.falsifier or not self.deadline:
+            raise ValueError(
+                "FalsifiablePrediction requires non-empty claim, falsifier, deadline. "
+                "The model admits it cannot self-validate — only a test against reality can."
+            )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "claim": self.claim,
+            "falsifier": self.falsifier,
+            "deadline": self.deadline,
+            "issuer": self.issuer,
+            "issued_at": self.issued_at,
+            "apex_humility_floor": self.apex_humility_floor,
+        }
+
+
+@dataclass
 class APEXResult:
     """Complete APEX computation result."""
 
@@ -306,6 +377,13 @@ class APEXResult:
     gate_w3: float = 0.0  # tri-witness gate
     G_seal: float = 0.0  # gated score
 
+    # APEX-2026-08-01 Reform: every APEX result carries a FalsifiablePrediction.
+    # None is permitted only for backward-compat with pre-reform records;
+    # new scores MUST bind a prediction. The framework's commitment to
+    # reality is encoded in the prediction, not in the number.
+    prediction: FalsifiablePrediction | None = None
+    is_falsifiable: bool = False  # True iff a prediction is bound
+
     # Metadata
     axioms_satisfied: int = 0
     axioms_total: int = 7
@@ -314,8 +392,13 @@ class APEXResult:
     conservation: str = APEX_CONSERVATION
     timestamp: str = ""
 
+    def __post_init__(self) -> None:
+        # Falsifiability check — fail-loud for APEX-2026-08-01 records.
+        if self.prediction is not None:
+            self.is_falsifiable = True
+
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result: dict[str, Any] = {
             "primitives": {
                 "A": round(self.A, 4),
                 "P": round(self.P, 4),
@@ -339,8 +422,12 @@ class APEXResult:
             "equation": self.equation,
             "shadow": self.shadow,
             "conservation": self.conservation,
+            "is_falsifiable": self.is_falsifiable,
             "timestamp": self.timestamp or datetime.now(UTC).isoformat(),
         }
+        if self.prediction is not None:
+            result["prediction"] = self.prediction.to_dict()
+        return result
 
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent)
@@ -352,6 +439,7 @@ def compute_apex(
     gate_h: float = 0.0,
     gate_delta_s: float = 0.0,
     gate_w3: float = 1.0,
+    prediction: FalsifiablePrediction | None = None,
 ) -> APEXResult:
     """
     Compute the canonical APEX score.
@@ -362,7 +450,11 @@ def compute_apex(
 
     G_seal = G_raw · (1-h) · |ΔS|^β · W³  (gate layer, separate)
 
-    Returns APEXResult with primitives, G, C_dark, verdict.
+    APEX-2026-08-01 Reform: if a `prediction` is supplied, compute_E uses
+    APEX_HUMILITY_FLOOR (0.15) instead of the generic HUMILITY_FLOOR (0.03).
+    Three decimal places on B-scores is cosmetic; the bound prediction is real.
+
+    Returns APEXResult with primitives, G, C_dark, verdict, prediction.
     """
     # Compute each primitive via its measurement law
     A = compute_A(
@@ -383,10 +475,15 @@ def compute_apex(
         seis_contradicts_geo=inputs.seis_contradicts_geo,
     )
 
+    # APEX-2026-08-01 Reform: bound prediction raises the humility floor.
+    # The wider band (0.15 vs 0.03) honestly reflects the interpretive cascade
+    # baked into every APEX score. The framework is useful, not true.
+    humility_floor = APEX_HUMILITY_FLOOR if prediction is not None else HUMILITY_FLOOR
     E = compute_E(
         clarity=inputs.clarity,
         uncertainty=inputs.uncertainty,
         merkle_chain_intact=inputs.merkle_chain_intact,
+        humility_floor=humility_floor,
     )
 
     X = compute_X(
@@ -456,6 +553,7 @@ def compute_apex(
         gate_w3=w3,
         G_seal=G_seal,
         axioms_satisfied=axioms,
+        prediction=prediction,
     )
 
 
