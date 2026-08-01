@@ -1,8 +1,8 @@
 mcp-name: io.github.ariffazil/arifos
 <!-- SOT-MANIFEST
-federation_release: v2026.07.31
-last_verified: 2026-07-31T03:23:00Z
-live_commit: e3ab0e2
+federation_release: v2026.08.01
+last_verified: 2026-08-01T00:45:00Z
+live_commit: f9c6aebc7
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 total_declared_tools: 48 (includes diagnostics, internal modes, aliases)
@@ -19,7 +19,7 @@ authorization: F13 Ed25519 challenge-response — canonical binding, Redis repla
 [![Unified CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions)
 [![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions)
 [![⚖️ KERNEL](https://img.shields.io/badge/%E2%9A%96%EF%B8%8F%20KERNEL-8%20Canonical%20Tools-0a7b83)](https://mcp.arif-fazil.com/mcp)
-[![Federation](https://img.shields.io/badge/Federation-v2026.07.31-0a7b83)](https://arifos.arif-fazil.com)
+[![Federation](https://img.shields.io/badge/Federation-v2026.08.01-0a7b83)](https://arifos.arif-fazil.com)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](./LICENSE)
 
 **arifOS** is a zero-trust, constitutional governance kernel and AGI substrate layer operating between AI agent harnesses (Claude Desktop, OpenCode, ChatGPT, AutoGen, CrewAI) and high-blast-radius execution environments. 
@@ -195,27 +195,3 @@ arifOS operates as the Constitutional Kernel and Judge for the entire **arifOS F
 
 *DITEMPA BUKAN DIBERI — Forged, Not Given.*  
 *Truth must cool before it rules. 999 SEAL ALIVE.*
-
-/forge.arif-fazil.com/health) | [llms.txt](https://forge.arif-fazil.com/llms.txt) |
-| **AAA** | Cockpit — displays, routes | [repo](https://github.com/ariffazil/AAA) | — | [health](https://aaa.arif-fazil.com/health) | [llms.txt](https://aaa.arif-fazil.com/llms.txt) |
-| **GEOX** | Earth intelligence | [repo](https://github.com/ariffazil/GEOX) | [mcp](https://geox.arif-fazil.com/mcp) | [health](https://geox.arif-fazil.com/health) | [llms.txt](https://geox.arif-fazil.com/llms.txt) |
-| **WEALTH** | Capital intelligence | [repo](https://github.com/ariffazil/WEALTH) | [mcp](https://wealth.arif-fazil.com/mcp) | [health](https://wealth.arif-fazil.com/health) | [llms.txt](https://wealth.arif-fazil.com/llms.txt) |
-| **WELL** | Vitality guard | [repo](https://github.com/ariffazil/WELL) | [mcp](https://well.arif-fazil.com/mcp) | [health](https://well.arif-fazil.com/health) | [llms.txt](https://well.arif-fazil.com/llms.txt) |
-| **HERMES** | Multi-modal bridge | [repo](https://github.com/ariffazil/HERMES) | — | — | — |
-
-**Public:** [arif-fazil.com](https://arif-fazil.com) · **Federation root:** [arifos.arif-fazil.com](https://arifos.arif-fazil.com)
-**SOT:** 2026-07-28
-
-## 8. License & Sovereignty
-
-**AGPL-3.0.** The constitution must remain open. The kernel must remain inspectable.
-
-**Muhammad Arif bin Fazil** is F13 SOVEREIGN. His veto is absolute. No algorithm overrides. No agent bypasses. No institution supersedes.
-
-```
-arifOS · Port 8088 · 8 canonical tools · 13 floors · 6 live organs
-AGPL-3.0 · Sovereign: Arif Fazil · Federation: ALIVE
-MCP · ChatGPT ✓ · Claude Desktop ✓ · PyPI
-DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
-```
-# force unique hash 1784320830
