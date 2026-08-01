@@ -77,7 +77,8 @@ if os.getenv("ARIFOS_DEV_DID_REGISTRY_FALLBACK") == "1":
     )
 
 # Actors that may always receive challenges (in addition to registered agents)
-_ALWAYS_CHALLENGEABLE = frozenset({"arif", "888", "ariffazil"})
+# F13 SOVEREIGN 2026-08-01: extend to kimi-code harness (Kimi Code / FI-008)
+_ALWAYS_CHALLENGEABLE = frozenset({"arif", "888", "ariffazil", "kimi-code", "kimi-code/fi-008"})
 
 # ── Production gate defaults ──────────────────────────────────────────────
 _ARIFOS_ED25519_ENABLED = os.getenv("ARIFOS_ED25519_ENABLED", "true").lower() in (
@@ -892,6 +893,11 @@ _ED25519_KEY_PATHS: tuple[str, ...] = (
     "/root/.secrets/jwks/ed25519-private.key",
     "/root/.ssh/id_ed25519",
     "/root/.secrets/aaa-identity/keys/arif_private.pem",
+    # F13 SOVEREIGN 2026-08-01: kimi-code/FI-008 harness key (Kimi Code sovereign)
+    # Resolved from A-FORGE IDENTITY/keys dir; matches the registry entry in
+    # /opt/arifos/app/arifos/identity/agent_registry.json and the public key at
+    # /root/A-FORGE/IDENTITY/keys/kimi-code/kimi-code_ed25519_public.pem.
+    "/root/A-FORGE/IDENTITY/keys/kimi-code/kimi-code_ed25519_private.pem",
 )
 
 
@@ -935,7 +941,36 @@ def _find_ed25519_key() -> bytes | None:
 
 
 def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
-    key_bytes = _find_ed25519_key()
+    # F13 SOVEREIGN 2026-08-01: actor-aware key lookup so each actor signs
+    # with the private key that matches its registered public key. Without
+    # this, the first key in _ED25519_KEY_PATHS is used for all actors,
+    # which only works for the sovereign actor whose key happens to be first.
+    aid = _normalize_actor(actor_id)
+    # F13 SOVEREIGN 2026-08-01: actor → key path map. The default iteration
+    # order in _ED25519_KEY_PATHS puts /root/.ssh/id_ed25519 (the GitHub push
+    # key) before the sovereign key, which would cause signature mismatch
+    # for the arif actor. Pinning the sovereign actors to their own keys
+    # closes that gap.
+    _ACTOR_KEY_OVERRIDES: dict[str, str] = {
+        "kimi-code": "/root/A-FORGE/IDENTITY/keys/kimi-code/kimi-code_ed25519_private.pem",
+        "kimi-code/fi-008": "/root/A-FORGE/IDENTITY/keys/kimi-code/kimi-code_ed25519_private.pem",
+        "arif": "/root/.secrets/aaa-identity/keys/arif_private.pem",
+        "888": "/root/.secrets/aaa-identity/keys/arif_private.pem",
+        "ariffazil": "/root/.secrets/aaa-identity/keys/arif_private.pem",
+    }
+    override = _ACTOR_KEY_OVERRIDES.get(aid)
+    key_bytes: bytes | None = None
+    if override:
+        try:
+            p = Path(override)
+            if p.exists() and p.stat().st_size > 0 and os.access(override, os.R_OK):
+                key_bytes = p.read_bytes()
+            else:
+                logger.debug("actor %s override key unreadable, falling back: %s", aid, override)
+        except Exception as exc:
+            logger.debug("actor %s override key read failed: %s", aid, exc)
+    if key_bytes is None:
+        key_bytes = _find_ed25519_key()
     if not key_bytes:
         return None
     message = f"{actor_id}:{nonce}".encode()
