@@ -1114,6 +1114,26 @@ async def arif_judge(
     _standing_authority: str | None = None
     _standing_delta: dict[str, Any] | None = None
 
+    if session_token or session_id:
+        try:
+            from arifosmcp.runtime.sct import resolve_standing
+
+            _standing = resolve_standing(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+                allow_store=True,
+            )
+            if _standing.valid:
+                _standing_token = _standing.session_token or session_token
+                _standing_source = _standing.source
+                _standing_apex = dict(_standing.apex) if _standing.apex else None
+                _standing_actor_verified = _standing.actor_verified
+                _standing_authority = _standing.authority
+                _standing_delta = _standing.authority_delta
+        except Exception as _st_exc:
+            logger.debug("Early resolve_standing in judge skipped: %s", _st_exc)
+
     def _echo_standing(out: VerdictOutput) -> VerdictOutput:
         """Echo next-hop SCT continuity onto a direct VerdictOutput.
 

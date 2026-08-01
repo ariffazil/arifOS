@@ -60,8 +60,13 @@ def _get_capability_id(tool_name: str) -> str:
 def _extract_canonical_verdict(response: dict[str, Any]) -> str:
     """Extract the dominant canonical_verdict from the response.
 
-    Priority order: result.verdict → status → session.verdict → PROCEED
+    Priority order: effective_verdict → top-level verdict → result.verdict → status → session.verdict → PROCEED
     """
+    top_ev = response.get("effective_verdict") or response.get("verdict")
+    if top_ev and str(top_ev).upper() in ("SEAL", "HOLD", "SABAR", "VOID", "PROCEED", "DENY"):
+        _map = {"SEAL": "PROCEED", "SABAR": "HOLD", "PARTIAL": "PROCEED"}
+        return _map.get(str(top_ev).upper(), str(top_ev).upper())
+
     # Check result sub-object first (deepest signal)
     result = response.get("result")
     if isinstance(result, dict):
@@ -147,6 +152,11 @@ def _extract_reason_code(
     response: dict[str, Any],
 ) -> str:
     """Extract or derive a machine-readable reason code."""
+    # Check top-level response first
+    top_rc = response.get("reason_code")
+    if top_rc:
+        return str(top_rc)
+
     # Check for existing reason codes in meta
     meta = response.get("meta", {}) if isinstance(response.get("meta"), dict) else {}
     reason_code = meta.get("reason_code") or meta.get("reason", "")

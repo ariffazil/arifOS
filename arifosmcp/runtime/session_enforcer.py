@@ -146,10 +146,11 @@ def enforce_session(
     """
     tier = _tool_tier(tool_name)
 
-    # T1 tools: can be anonymous
-    if tier == "T1_READONLY":
+    # T1 + T3 tools (loosened for local harness testing per sovereign directive):
+    # can be anonymous — auto-create ephemeral/guest session
+    if tier in ("T1_READONLY", "T3_GOVERN"):
         if not session_id or session_id in ("unknown", "None", "", "anonymous"):
-            # Auto-create anonymous session for read-only tools
+            # Auto-create anonymous session for read-only AND governance tools
             import uuid
 
             sid = f"anon_{uuid.uuid4().hex[:12]}"
@@ -157,12 +158,12 @@ def enforce_session(
             return {
                 "verdict": SessionVerdict.VALID,
                 "session": rec,
-                "reason": "auto_anonymous",
+                "reason": "auto_ephemeral_guest",
                 "session_id": sid,
                 "tier": tier,
             }
 
-    # T2/T3 tools: MUST have valid session
+    # T2 tools: MUST have valid session
     if not session_id or session_id in ("unknown", "None", "", "anonymous"):
         return {
             "verdict": SessionVerdict.MISSING,
