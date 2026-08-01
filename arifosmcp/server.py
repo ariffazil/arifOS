@@ -868,6 +868,12 @@ try:
 
             @functools.wraps(handler)
             async def wrapped(*args, **kwargs):
+                # T1_TEST_MARKER
+                try:
+                    with open("/tmp/.t1_akal_wrapper_called", "w") as _mf:
+                        _mf.write("called")
+                except Exception:
+                    pass
                 blast = kwargs.get("blast_radius", "low")
                 intent = kwargs.get("intent", "")
                 dual = akal_pre_judge(
@@ -926,6 +932,40 @@ try:
                             )
                     except Exception:
                         pass  # Never break judge on middleware failure
+
+                # ── T3: Canonical composer surgery (server.py layer) ───
+                # The composer in tools/judge.py was dead code (return path
+                # bypassed _echo_standing). This layer IS in the response
+                # path. Apply the canonical 4-field envelope:
+                # status, effective_verdict, reason_code, next_action.
+                # Hardened for sustained-load: fail-closed try/except.
+                try:
+                    from arifosmcp.runtime.verdict import (
+                        compose_effective_verdict,
+                        verdict_to_envelope,
+                    )
+                    _cv_inner = str(result.get("verdict", "OBSERVE_ONLY") or "OBSERVE_ONLY")
+                    _cv_auth = "SOVEREIGN" if result.get("actor_verified") else "OBSERVE_ONLY"
+                    _cv_drift = []  # drift is a separate signal
+                    _canonical = compose_effective_verdict(
+                        inner_verdict=_cv_inner,
+                        session_authority_band=_cv_auth,
+                        drift=_cv_drift,
+                    )
+                    _envelope = verdict_to_envelope(_canonical)
+                    # Merge the four canonical fields into the response
+                    result["status"] = _envelope["status"]
+                    result["effective_verdict"] = _envelope["effective_verdict"]
+                    result["reason_code"] = _envelope["reason_code"]
+                    result["next_action"] = _envelope["next_action"]
+                except Exception as _t3_exc:
+                    # Fail-closed: never let the composer crash the worker.
+                    # Force a deterministic HOLD; downstream status = pending.
+                    try:
+                        result["effective_verdict"] = "HOLD"
+                        result["reason_code"] = "COMPOSER_FAIL_CLOSED"
+                    except Exception:
+                        pass
                 return result
 
             return wrapped

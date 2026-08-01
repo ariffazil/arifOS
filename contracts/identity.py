@@ -314,6 +314,15 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "default_tier": "AGENT",
         "aliases": ["codex", "codex-cli", "FI-005", "FI-005-codex-cli"],
     },
+    # F1 AMANAH · Tier-A identity registration (calibration session 2026-08-01).
+    # Fingerprint a1d4971c986c1642 · Ed25519 public key at
+    # /root/AAA/IDENTITY/keys/FI-008_public.pem.
+    # Reversible: delete this block + restore the .bak file.
+    "FI-008": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["FI-008", "fi-008", "kimi-code-fi008", "kimi-code"],
+    },
 }
 
 

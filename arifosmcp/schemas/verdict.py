@@ -633,8 +633,12 @@ class VerdictOutput(BaseModel):
     status: str = "OK"
     tool: str = "arif_judge"
 
-    # Core verdict
+    # Core verdict & canonical composer projection
     verdict: VerdictCode = Field(description="SEAL | SABAR | VOID | HOLD")
+    effective_verdict: str | None = Field(default=None, description="Canonical effective verdict (SEAL | HOLD | VOID | SABAR)")
+    reason_code: str | None = Field(default=None, description="Canonical reason code (e.g. IDENTITY_UNVERIFIED, SAFE_OBSERVATION)")
+    next_action: str | None = Field(default=None, description="Canonical next safe action")
+    canonical_verdict: str | None = Field(default=None, description="Canonical verdict alias")
     candidate: str | None = Field(default=None, description="What was judged")
 
     # Reasoning result

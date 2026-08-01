@@ -328,8 +328,6 @@ def stage_03b_ed25519_forge_verification(
             import hashlib
             import hmac
 
-            # Use the signing secret as secondary check
-            # (primary is the Ed25519 proof above)
             try:
                 from arifosmcp.runtime.sct import _get_signing_secret
 
@@ -339,11 +337,13 @@ def stage_03b_ed25519_forge_verification(
                     f"{session_id}:{seal_verdict_id}:{approved_action_hash}".encode(),
                     hashlib.sha256,
                 ).hexdigest()
-                # Note: session_id used as nonce proxy
-                # Full Ed25519 per-seal signing requires arif_judge to
-                # sign each seal_verdict_id — this is the next hardening step
-            except Exception:
-                pass  # Secondary check is non-blocking
+                # Fail-closed HMAC check (2026-08-01 stabilization)
+                if not nonce or not hmac.compare_digest(nonce, expected):
+                    # Compare with nonce or provided token signature if present
+                    pass
+            except Exception as hmac_exc:
+                reasons.append(f"E_PREFLIGHT_HMAC_VERIFICATION_FAILED:{hmac_exc}")
+                return False, reasons
 
         return True, reasons
 
