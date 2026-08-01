@@ -31,9 +31,11 @@ def create_http_app():
             "X-MCP-Protocol",
             "MCP-Protocol-Version",
             "Mcp-Session-Id",
+            "Mcp-Method",
+            "Mcp-Name",
             "Accept",
         ],
-        expose_headers=["Mcp-Session-Id", "MCP-Protocol-Version"],
+        expose_headers=["Mcp-Session-Id", "MCP-Protocol-Version", "Mcp-Method", "Mcp-Name"],
     )
     return app
 

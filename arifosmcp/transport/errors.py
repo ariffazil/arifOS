@@ -142,11 +142,11 @@ def protocol_mismatch(
 ) -> AirlockError:
     return AirlockError(
         code=AirlockErrorCode.ARIF_PROTOCOL_VERSION_MISMATCH,
-        message=f"Protocol version mismatch: client={client_version}, server supports 2025-11-25",
+        message=f"Protocol version mismatch: client={client_version}, server supports 2026-07-28 (stateless), 2025-11-25",
         stage=AirlockStage.PROTOCOL_VERSION,
         transport=transport,
         protocol_version_received=client_version,
-        protocol_versions_supported=["2025-11-25", "2025-03-26"],
+        protocol_versions_supported=["2026-07-28", "2025-11-25", "2025-03-26"],
         expected_shape="2025-11-25",
         received_shape=client_version,
         retryable=True,

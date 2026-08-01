@@ -375,7 +375,14 @@ def detect_dialect(request: dict[str, Any], transport_type: str = "http") -> str
     return "raw_jsonrpc"
 
 
-SUPPORTED_PROTOCOL_VERSIONS = frozenset({"2025-11-25", "2025-03-26", "2024-11-05"})
+SUPPORTED_PROTOCOL_VERSIONS = frozenset(
+    {
+        "2026-07-28",  # Stateless MCP 2.0 — SEP-2567 + SEP-2575 + MRTR
+        "2025-11-25",  # Stateful Streamable HTTP
+        "2025-03-26",
+        "2024-11-05",
+    }
+)
 
 
 def process_request(request: dict[str, Any], transport_type: str = "http") -> AirlockResult:
@@ -693,16 +700,27 @@ class AirlockASGIMiddleware:
         headers_dict = dict(scope.get("headers", []))
         mcp_session_id = ""
         protocol_version = "2025-11-25"
+        mcp_method = ""
+        mcp_name = ""
         for key, value in headers_dict.items():
             key_lower = key.lower()
             if key_lower in (b"mcp-session-id", b"x-mcp-session-id"):
                 mcp_session_id = value.decode("utf-8")
             elif key_lower in (b"mcp-protocol-version", b"x-mcp-protocol-version"):
                 protocol_version = value.decode("utf-8")
+            elif key_lower == b"mcp-method":
+                mcp_method = value.decode("utf-8")
+            elif key_lower == b"mcp-name":
+                mcp_name = value.decode("utf-8")
 
         if mcp_session_id:
             rpc_data["_session_id"] = mcp_session_id
         rpc_data["protocol_version"] = protocol_version
+        # Stateless MCP 2026-07-28: inject header-routed method/name for gateway dispatch
+        if mcp_method:
+            rpc_data["_mcp_method"] = mcp_method
+        if mcp_name:
+            rpc_data["_mcp_name"] = mcp_name
         rpc_data["_transport"] = "http"
 
         airlock_res = process_request(rpc_data, transport_type="streamable_http")

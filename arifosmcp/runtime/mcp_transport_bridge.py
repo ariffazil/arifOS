@@ -52,13 +52,14 @@ _current_mcp_session_id: contextvars.ContextVar[str | None] = contextvars.Contex
 
 SUPPORTED_PROTOCOL_VERSIONS: frozenset[str] = frozenset(
     {
+        "2026-07-28",  # P1 STATELESS (2026-08-01): Stateless MCP 2.0 — SEP-2243 header routing
         "2025-11-25",
         "2025-03-26",
         "2024-11-05",
     }
 )
 
-LATEST_PROTOCOL_VERSION = "2025-11-25"
+LATEST_PROTOCOL_VERSION = "2026-07-28"
 
 # ═══════════════════════════════════════════════════════════════
 # MCP PROTOCOL VERSION MIDDLEWARE

@@ -56,9 +56,13 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
 
     # Enforce lifecycle gate: no normal operations before valid initialize/initialized exchange
     mcp_session_id = request.get("_session_id") or request.get("mcp_session_id") or ""
+    protocol_version = request.get("protocol_version", "2025-11-25")
+    is_stateless = protocol_version == "2026-07-28"
 
-    # If the method is not lifecycle/discovery, verify we have a session ID
-    if (
+    # Stateless MCP 2026-07-28: no session gate — every request is self-contained.
+    # Tools/call, resources/list, etc. carry _meta with clientInfo and capabilities.
+    # Skip the legacy lifecycle gate for stateless calls.
+    if not is_stateless and (
         method
         not in (
             "initialize",
