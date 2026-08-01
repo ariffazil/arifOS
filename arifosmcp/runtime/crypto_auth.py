@@ -957,6 +957,8 @@ def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
         "arif": "/root/.secrets/aaa-identity/keys/arif_private.pem",
         "888": "/root/.secrets/aaa-identity/keys/arif_private.pem",
         "ariffazil": "/root/.secrets/aaa-identity/keys/arif_private.pem",
+        "opencode": "/root/A-FORGE/IDENTITY/keys/opencode/opencode_ed25519_private.pem",
+        "333-agi": "/root/A-FORGE/IDENTITY/keys/opencode/opencode_ed25519_private.pem",
     }
     override = _ACTOR_KEY_OVERRIDES.get(aid)
     key_bytes: bytes | None = None
