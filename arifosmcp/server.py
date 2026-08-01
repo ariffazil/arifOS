@@ -130,8 +130,7 @@ async def _arifos_prompt_render(self, arguments=None, context=None):  # type: ig
                         "missing": [
                             arg.name
                             for arg in (self.arguments or [])
-                            if arg.required
-                            and not (arguments or {}).get(arg.name)
+                            if arg.required and not (arguments or {}).get(arg.name)
                         ],
                     },
                 )
@@ -490,6 +489,31 @@ try:
         return _arifos_orig_check(self, request)
 
     StreamableHTTPServerTransport._check_accept_headers = _arifos_patched_check
+
+    # P1 STATELESS (2026-08-01): Register 2026-07-28 as a supported protocol version
+    # in FastMCP's shared version registry. Without this, _validate_protocol_version
+    # rejects stateless clients before they reach arifOS's own protocol handling.
+    from mcp.shared import version as mcp_shared_version
+
+    if "2026-07-28" not in mcp_shared_version.SUPPORTED_PROTOCOL_VERSIONS:
+        mcp_shared_version.SUPPORTED_PROTOCOL_VERSIONS.append("2026-07-28")
+
+    # P1 STATELESS (2026-08-01): Disable transport-level session enforcement.
+    # The arifOS kernel carries authority via SCT tokens (self-contained
+    # HMAC-SHA256 signed session_token), not via MCP transport session state.
+    #
+    # FastMCP's _validate_session enforces a per-transport session model where
+    # one initialize call creates a global session for ALL subsequent requests.
+    # This is incompatible with multi-client stateless use. We bypass it entirely
+    # — tool handlers validate SCT tokens independently via the kernel.
+    #
+    # See SEP-2243 for stateless MCP routing design.
+    _arifos_orig_validate_session = StreamableHTTPServerTransport._validate_session
+
+    async def _arifos_patched_validate_session(self, request, send):
+        return True  # Stateless — all session auth via SCT, not transport
+
+    StreamableHTTPServerTransport._validate_session = _arifos_patched_validate_session
 except Exception as _e:
     pass  # fail-soft — spec compliance patch is best-effort
 
@@ -2309,12 +2333,13 @@ async def mcp_health(request: Request) -> JSONResponse:
     )
 
 
-# 2026-07-29: stateful streamable-HTTP (GEOX pattern).
+# P1 STATELESS (2026-08-01): stateless_http=True — new transport per request,
+# no session tracking. Authority via SCT tokens, not transport sessions.
 # - json_response=True: POST returns JSON-RPC (no long-lived response SSE)
-# - stateless_http=False: mint mcp-session-id on initialize (Grok/rmcp need this)
 # - GET text/event-stream: 405 from landing route + transport patch (avoid PHOENIX-73C 409)
 # Constitutional tools remain actor/SCT gated; transport session ≠ governance session.
-app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
+# Backward compat: initialize still works (returns capabilities), no persistent session.
+app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
 # Counts are derived live from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (imported above).
 _actual_canonical_count = len(CANONICAL_TOOLS)
 _actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)
