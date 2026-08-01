@@ -57,47 +57,69 @@ def _get_capability_id(tool_name: str) -> str:
 # ── Verdict extraction helpers ──────────────────────────────────────────────
 
 
-def _extract_canonical_verdict(response: dict[str, Any]) -> str:
-    """Extract the dominant canonical_verdict from the response.
+# ── Trinity: internal telemetry (4-class fidelity preserved) ──────────────
+# Path 3 architectural separation — see v2_envelope.py:251 for execution_state
+# and verdict.py:222 for legacy-strip list. This split prevents the 4→2
+# vocabulary collapse that was previously hard-coded here.
+_INTERNAL_VERDICTS_4CLASS = (
+    "SEAL", "SABAR", "VOID", "HOLD", "HOLD_888", "OBSERVE_ONLY",
+)
 
-    Priority order: effective_verdict → top-level verdict → result.verdict → status → session.verdict → PROCEED
+
+def _extract_internal_telemetry(response: dict[str, Any]) -> str:
+    """Extract internal 4-class effective_verdict (full fidelity).
+
+    Priority order: effective_verdict → top-level verdict → result.verdict → status → session.verdict → HOLD
+
+    Returns one of {SEAL, SABAR, VOID, HOLD, HOLD_888, OBSERVE_ONLY} — the
+    kernel's native 4-class internal vocabulary. The 2-class public envelope
+    is derived separately by _extract_public_transport_envelope.
     """
     top_ev = response.get("effective_verdict") or response.get("verdict")
-    if top_ev and str(top_ev).upper() in ("SEAL", "HOLD", "SABAR", "VOID", "PROCEED", "DENY"):
-        _map = {"SEAL": "PROCEED", "SABAR": "HOLD", "PARTIAL": "PROCEED"}
-        return _map.get(str(top_ev).upper(), str(top_ev).upper())
+    if top_ev and str(top_ev).upper() in _INTERNAL_VERDICTS_4CLASS:
+        return str(top_ev).upper()
 
-    # Check result sub-object first (deepest signal)
+    # Check result sub-object (deepest signal)
     result = response.get("result")
     if isinstance(result, dict):
         rv = result.get("verdict")
-        if rv and rv in ("SEAL", "HOLD", "SABAR", "VOID", "PROCEED", "DENY"):
-            # Map kernel verdicts to canonical set: SEAL→PROCEED, SABAR→HOLD
-            _map = {"SEAL": "PROCEED", "SABAR": "HOLD", "PARTIAL": "PROCEED"}
-            return _map.get(rv, rv)
+        if rv and str(rv).upper() in _INTERNAL_VERDICTS_4CLASS:
+            return str(rv).upper()
 
     # Check session object
     session = response.get("session")
     if isinstance(session, dict):
         sv = session.get("verdict")
-        if sv and sv in ("SEAL", "HOLD", "SABAR", "VOID"):
-            _map = {"SEAL": "PROCEED", "SABAR": "HOLD"}
-            return _map.get(sv, sv)
+        if sv and str(sv).upper() in _INTERNAL_VERDICTS_4CLASS:
+            return str(sv).upper()
 
-    # Check top-level status
+    # Check status for fallback (last resort)
     status = response.get("status", "")
-    if status:
-        _status_map = {
-            "OK": "PROCEED",
-            "HOLD": "HOLD",
-            "ERROR": "HOLD",
-            "VOID": "VOID",
-            "FAIL": "DENY",
-            "PENDING": "HOLD",
-        }
-        return _status_map.get(status, "HOLD")
+    if status == "blocked":
+        return "VOID"
+    if status == "completed":
+        return "SEAL"
+    if status == "pending":
+        return "HOLD"
 
-    return "PROCEED"
+    return "HOLD"
+
+
+def _extract_public_transport_envelope(response: dict[str, Any]) -> str:
+    """Derive public 2-class transport envelope from internal 4-class.
+
+    Public surface: PROCEED (SEAL|SABAR) | DENY (VOID|HOLD|HOLD_888|OBSERVE_ONLY).
+    This is a DERIVATION, not a replacement — internal telemetry preserves
+    4-class fidelity separately.
+    """
+    internal = _extract_internal_telemetry(response)
+    if internal in ("SEAL", "SABAR"):
+        return "PROCEED"
+    return "DENY"
+
+
+# Backward-compat alias — keeps existing callers working without modification
+_extract_canonical_verdict = _extract_public_transport_envelope
 
 
 def _extract_authority_scope(response: dict[str, Any]) -> str:
@@ -240,17 +262,22 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
     if tool_name not in CANONICAL_TOOL_NAMES:
         return response
 
-    # Determine execution state
-    status = response.get("status", "")
-    execution_state_map = {
-        "OK": "COMPLETED",
-        "HOLD": "FAILED",
-        "ERROR": "FAILED",
+    # ── Trinity: execution_state derived DIRECTLY from internal effective_verdict ──
+    # Closes Lifecycle Clobber — was: HOLD → "pending" (status) → "RUNNING" (state)
+    # Now: HOLD → "AWAITING_INPUT" directly from effective_verdict.
+    # Preserves 4-class fidelity: SEAL/SABAR/VOID/HOLD/HOLD_888/OBSERVE_ONLY
+    _internal_verdict = _extract_internal_telemetry(response)
+    _EXECUTION_STATE_FROM_VERDICT = {
+        "SEAL": "COMPLETED",
+        "SABAR": "RUNNING",                # SABAR → proceed cautiously to FORGE
         "VOID": "FAILED",
-        "FAIL": "FAILED",
-        "PENDING": "RUNNING",
+        "HOLD": "AWAITING_INPUT",          # Closes Lifecycle Clobber
+        "HOLD_888": "BLOCKED",             # sovereign 888 veto
+        "OBSERVE_ONLY": "AWAITING_IDENTITY",
     }
-    execution_state = execution_state_map.get(status, "COMPLETED")
+    execution_state = _EXECUTION_STATE_FROM_VERDICT.get(
+        _internal_verdict, "UNKNOWN"
+    )
 
     # Extract V2 fields from existing response
     canonical_verdict = _extract_canonical_verdict(response)

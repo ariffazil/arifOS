@@ -222,7 +222,9 @@ def verdict_to_envelope(effective: EffectiveVerdict) -> dict[str, Any]:
 _LEGACY_VERDICT_TOP_LEVEL = (
     "verdict",
     "verdict_code",
-    "canonical_verdict",
+    # "canonical_verdict" REMOVED per Trinity Path 3 — preserve canonical transparency.
+    # The 4-class internal verdict must reach the public response intact so that
+    # downstream consumers can distinguish SEAL vs SABAR vs HOLD vs VOID.
     "reasoning_verdict",
     "verdict_state_version",
     "nine_signal_aggregate",
