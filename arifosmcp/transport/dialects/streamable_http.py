@@ -28,6 +28,8 @@ CANARY_TOOLS = frozenset(
     }
 )
 
+SUPPORTED_VERSIONS = ["2025-11-25", "2026-07-28"]
+
 
 def _tool_call_name(method: str, params: Any) -> str:
     if method == "tools/call" and isinstance(params, dict):
@@ -57,6 +59,28 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
     # Enforce lifecycle gate: no normal operations before valid initialize/initialized exchange
     mcp_session_id = request.get("_session_id") or request.get("mcp_session_id") or ""
     protocol_version = request.get("protocol_version", "2025-11-25")
+
+    # MCP 2026-07-28 §Versioning: reject explicitly-requested unsupported versions
+    # with code -32022 + supported array. Legacy clients need this diagnostic.
+    if "protocol_version" in request and protocol_version not in SUPPORTED_VERSIONS:
+        return AirlockResult(
+            transport_error=build_transport_error_envelope(
+                TransportFaultCode.MCP_UNSUPPORTED_PROTOCOL_VERSION,
+                f"Unsupported protocol version: {protocol_version}. "
+                f"Supported: {SUPPORTED_VERSIONS}",
+                transport="streamable_http",
+                protocol_version_received=protocol_version,
+                protocol_versions_supported=SUPPORTED_VERSIONS,
+                request_id=request.get("id"),
+                trace_id=trace_id,
+                next_probe="arif_initialize_probe",
+                retryable=True,
+            ),
+            envelope=None,
+            dialect_used="streamable_http",
+            trace_id=trace_id,
+        )
+
     is_stateless = protocol_version == "2026-07-28"
 
     # Stateless MCP 2026-07-28: no session gate — every request is self-contained.
