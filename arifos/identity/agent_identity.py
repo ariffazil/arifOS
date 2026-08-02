@@ -167,9 +167,16 @@ class AgentIdentity:
 
     # ── Cryptography ────────────────────────────────────────────────────
 
-    def compute_fingerprint(self) -> str:
-        """BLAKE3 hash of core identity fields."""
+    def compute_fingerprint(self, temporal_root: str | None = None) -> str:
+        """BLAKE3 hash of core identity fields.
+
+        If temporal_root is provided, it is included in the hash — binding
+        identity to temporal state. Legacy (no temporal_root) behavior is
+        preserved for backward-compatible seal verification.
+        """
         canonical = f"{self.agent_id}|{self.actor_id}|{self.ed25519_pubkey_hex}|{self.bound_to}"
+        if temporal_root:
+            canonical += f"|{temporal_root}"
         return blake3.blake3(canonical.encode()).hexdigest()[:32]
 
     def sign(self, message: bytes | str) -> str:
