@@ -1,0 +1,225 @@
+{
+  "$schema": "arifos://constitution/quranic-runtime-map/v1",
+  "version": "v2026.08.02-distillation",
+  "ratified_by": "F13 SOVEREIGN (Muhammad Arif bin Fazil, 888)",
+  "ratified_at_utc": "2026-08-02T09:08:00Z",
+  "epistemic_label": "INT (interpretive mapping) · PLAUSIBLE",
+  "doctrine_pointer": "/root/arifOS/GENESIS/000_KERNEL_CANON.md",
+  "reversibility": "git revert <sha> restores prior state",
+
+  "threelayer_separation": {
+    "source": "/root/arifOS/GENESIS/045_THREE_LAYER_SEPARATION.md",
+    "layer_a_os": "arifOS — constitutional kernel (this work targets here)",
+    "layer_b_runtime": "A-FORGE — execution (not in scope)",
+    "layer_c_constitutional": "arifOS canon (this is what gets distilled)"
+  },
+
+  "distillation": {
+
+    "al_fatihah_kernel": {
+      "source": "Al-Fatihah (Surah 1, verses 1-7)",
+      "role": "Boot ROM + Security Context — kernel of arifOS",
+      "epistemic_label": "INT (interpretive mapping) · PLAUSIBLE",
+      "recursive_invariant": "Re-bound every session cycle (analogous to per-rakaat re-binding)",
+      "boot_functions": [
+        {
+          "order": 1,
+          "ayat": "Bismillāhi r-Raḥmāni r-Raḥīm",
+          "name": "bismillah",
+          "function": "Bismillah",
+          "enforcement": "Bind authority source BEFORE any verb. Identity bind precedes actor_verified check.",
+          "floor_mapping": ["F11 AUDITABILITY", "F13 SOVEREIGN"],
+          "violation_response": "HOLD + reject verb"
+        },
+        {
+          "order": 2,
+          "ayat": "Al-Ḥamdu lillāhi Rabbil 'ālamīn · Ar-Raḥmāni r-Raḥīm",
+          "name": "ar_rahman_ar_raheem",
+          "function": "MercyDials",
+          "enforcement": "Two mercy dials gate ALL power. Every action passes through both windows.",
+          "floor_mapping": ["F5 PEACE²", "F6 EMPATHY/MARUAH"],
+          "violation_response": "VOID + audit chain break"
+        },
+        {
+          "order": 3,
+          "ayat": "Māliki yawmid-dīn",
+          "name": "maliki_yawmiddin",
+          "function": "MalikiYawmiddin",
+          "enforcement": "Accountability anchored in FUTURE tense. Every trace will be judged (judgment_pending_at).",
+          "floor_mapping": ["F11 AUDITABILITY", "VAULT999 chain"],
+          "violation_response": "ESCALATE_F13 + chain break"
+        },
+        {
+          "order": 4,
+          "ayat": "Iyyāka na'budu wa iyyāka nasta'īn",
+          "name": "iyyaka_na_budu",
+          "function": "IyyakaNaBudu",
+          "enforcement": "Single-source routing. NO shirk in authority. One sovereign, one kernel.",
+          "floor_mapping": ["F13 SOVEREIGN", "F8 GENIUS"],
+          "violation_response": "VOID + multi-source flag"
+        },
+        {
+          "order": 5,
+          "ayat": "Ihdinā ṣ-ṣirāṭ al-mustaqīm · ṣirāṭ al-ladhīna an'amta 'alaihim · ghayril-maghḍūbi 'alaihim wa lāḍ-ḍāllīn",
+          "name": "ihdina_siratal_mustaqim",
+          "function": "IhdinaSiratalMustaqim",
+          "enforcement": "Continuous guidance request. Fault-handling via two negative archetypes (maghdubi_alayhim + dhalliin).",
+          "floor_mapping": ["F2 TRUTH", "F4 CLARITY", "F7 HUMILITY"],
+          "violation_response": "CAUTION + reject-mode flag"
+        }
+      ]
+    },
+
+    "al_asr_scheduler": {
+      "source": "Al-'Asr (Surah 103)",
+      "role": "Scheduler — temporal resource + action sequencing",
+      "epistemic_label": "INT (interpretive mapping) · PLAUSIBLE",
+      "default_state": "khusr (loss) — entropy default for any unauthenticated session",
+      "scheduler_gears": [
+        {
+          "order": 1,
+          "ayat": "Wal-'aṣr",
+          "name": "wal_asr",
+          "function": "wal_asr",
+          "enforcement": "Time as resource. Stamp creation_ts on every session. Tied to temporal_root keystone (already forged 2026-08-02).",
+          "floor_mapping": ["F11 AUDITABILITY"],
+          "output_anchor": "temporal_root.epoch_ms"
+        },
+        {
+          "order": 2,
+          "ayat": "Innal-insāna la-fī khuṣr",
+          "name": "amanu",
+          "function": "amanu",
+          "enforcement": "Model/worldview bind. Default = khusr (loss) unless amanu (faith) verified. Bind worldview hash to constitution_hash.",
+          "floor_mapping": ["F2 TRUTH", "F10 ONTOLOGY"],
+          "output_anchor": "constitution_hash binding"
+        },
+        {
+          "order": 3,
+          "ayat": "Illal-ladhīna āmanū wa 'amiluṣ-ṣāliḥāt",
+          "name": "wa_amilus_salihāt",
+          "function": "wa_amilus_salihāt",
+          "enforcement": "Action with ΔS ≤ 0. Every session response must reduce entropy OR clamp verbose to maintain budget.",
+          "floor_mapping": ["F4 CLARITY"],
+          "output_anchor": "verbose clamp on entropy overflow"
+        },
+        {
+          "order": 4,
+          "ayat": "Wa tawāṣaw bil-ḥaqq",
+          "name": "tawasau_bil_haqq",
+          "function": "tawasau_bil_haqq",
+          "enforcement": "Mutual truth-propagation. Inter-agent messaging must propagate verified truth, not speculation.",
+          "floor_mapping": ["F2 TRUTH", "F11 AUDITABILITY"],
+          "output_anchor": "inter_agent_truth_propagation_hook"
+        },
+        {
+          "order": 5,
+          "ayat": "Wa tawāṣaw biṣ-ṣabr",
+          "name": "tawasau_bis_sabr",
+          "function": "tawasau_bis_sabr",
+          "enforcement": "Mutual patience under uncertainty. Inter-agent must signal sabar (sabar_mode) when intent is unclear.",
+          "floor_mapping": ["F7 HUMILITY", "F12 RESILIENCE"],
+          "output_anchor": "inter_agent_patience_hook"
+        }
+      ]
+    },
+
+    "al_kahf_privilege_boundary": {
+      "source": "Al-Kahf (Surah 18, verses 60-82 — Musa and Khidr)",
+      "role": "Privilege Boundary — separates framework-level from sovereign-level",
+      "epistemic_label": "INT (interpretive mapping) · PLAUSIBLE",
+      "core_contract": "Framework reads residue, sovereign holds niat. Agent acts with sabar (patience), not interrogation.",
+      "boundary_rules": [
+        {
+          "name": "residue_only",
+          "function": "requires_residue_only",
+          "ayat_ref": "Musa nampak perahu rosak — nampak residue sahaja",
+          "enforcement": "AuthorityProof.requires_residue_only = True by default. Agent sees output, NOT intent.",
+          "floor_mapping": ["F13 SOVEREIGN"]
+        },
+        {
+          "name": "niat_holder",
+          "function": "niat_holder",
+          "ayat_ref": "Khidr pegang niat — Musa nampak sebab tak nampak",
+          "enforcement": "AuthorityProof.niat_holder = 'F13_SOVEREIGN'. Intent is sovereign's domain.",
+          "floor_mapping": ["F13 SOVEREIGN"]
+        },
+        {
+          "name": "sabar_mode",
+          "function": "sabar_mode",
+          "ayat_ref": "Khidr: Sabar. Jangan tanya apa-apa sampai aku terangkan",
+          "enforcement": "AuthorityProof.sabar_mode = True. Prevents agent over-interrogation when intent is unclear.",
+          "floor_mapping": ["F7 HUMILITY", "F12 RESILIENCE"]
+        }
+      ]
+    },
+
+    "ayat_al_kursi_enforcement": {
+      "source": "Ayat al-Kursi (Al-Baqarah 2:255)",
+      "role": "Liveness + Permission-Gate Enforcement — NOT identity, NOT kernel",
+      "epistemic_label": "INT (interpretive mapping) · PLAUSIBLE",
+      "scope_note": "Enforcement layer over what Al-Fatihah binds. Ayat al-Kursi enforces; Al-Fatihah binds.",
+      "enforcement_properties": [
+        {
+          "name": "al_hayy",
+          "arabic": "الحيّ",
+          "meaning": "The Ever-Living",
+          "runtime_layer": "daemon_heartbeat",
+          "enforcement": "liveness_proof_required_per_session",
+          "violation_response": "HOLD + reinit"
+        },
+        {
+          "name": "al_qayyum",
+          "arabic": "القيوم",
+          "meaning": "The Self-Subsisting",
+          "runtime_layer": "watchdog_of_watchdogs",
+          "enforcement": "kernel_self_sustain_no_external_dep",
+          "violation_response": "ESCALATE_F13"
+        },
+        {
+          "name": "no_sleep_claim",
+          "arabic": "لا تأخذه سنة ولا نوم",
+          "meaning": "Neither drowsiness nor sleep overtakes Him",
+          "runtime_layer": "health_claim_gate",
+          "enforcement": "no_normal_status_without_7day_evidence",
+          "violation_response": "DEMOTE_to_DEGRADED"
+        },
+        {
+          "name": "no_intercession_without_permission",
+          "arabic": "لا يشفع عنده إلا بإذنه",
+          "meaning": "No one can intercede except by His permission",
+          "runtime_layer": "f13_gate",
+          "enforcement": "no_irreversible_action_without_ack",
+          "violation_response": "VOID + require_human_seal"
+        }
+      ]
+    }
+  },
+
+  "supporting_ayat": {
+    "al_hujurat_49_11_12": {
+      "role": "Inter-agent protocol (MARUAH/EMPATHY floor)",
+      "enforcement": "no_mocking · no_spying · no_gossip_between_agents",
+      "floor_mapping": ["F6 EMPATHY/MARUAH"]
+    },
+    "al_zalzalah_99": {
+      "role": "Audit substrate (every atom recorded)",
+      "enforcement": "VAULT999 immutable — every action recorded",
+      "floor_mapping": ["F11 AUDITABILITY", "VAULT999 chain"]
+    },
+    "ar_rahman_55_7_8": {
+      "role": "Mizan (calibration, balance of power)",
+      "enforcement": "no_transgression_in_balance — calibrate authority per context",
+      "floor_mapping": ["F8 GENIUS"]
+    }
+  },
+
+  "out_of_scope": {
+    "not_touching": [
+      "/root/arifOS/GENESIS/FLOOR_TABLE.json (F2 ratified, no scope creep)",
+      "arifOS constitutional canon (GENESIS files immutable without 888_HOLD)",
+      "A-FORGE / GEOX / WEALTH / WELL organs",
+      "new ports or services"
+    ]
+  }
+}
