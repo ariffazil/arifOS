@@ -150,7 +150,7 @@ Example: agi_evidence_capture (skill #4)
   math:    500 (Count) → enumerate evidence sources
   code:    800 (Observe) → collect and structure
 
-Example: apex_floor_check (skill #1)
+Example: arifos-constitutional-judge (skill #1)
   physics: 366 (Entropy) → ΔS ≤ 0 check
   math:    700 (Prove) → formal verification of floor
   code:    888 (Judge) → constitutional verdict
