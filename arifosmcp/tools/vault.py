@@ -164,6 +164,7 @@ async def arif_seal(
     reversion_event: dict[str, Any] | None = None,
     blast_radius: str = "L2_SYSTEM",
     seal_purpose: str | None = None,
+    delta_s: float | None = None,
 ) -> SealOutput:
     """
     999_VAULT: Immutable ledger anchoring.
@@ -178,6 +179,12 @@ async def arif_seal(
             Without it, cooldown is logged as bypassed (legacy compat path).
             Internal hardening — no new tool surface.
         session_token: SCT (sct_v1) preferred standing from arif_init.
+        delta_s: F4 CLARITY compression ratio. Computed as
+            1 - (novel_claims / total_claims) where novel_claims are those
+            without a back-reference to any prior VAULT999 entry.
+            delta_s > 0 = agent compressed (good). delta_s = 0 = all novel.
+            delta_s < 0 = hallucination. Added 2026-08-02 per compression
+            isomorphism spec. Passed through to seal receipt metadata.
     """
     # ── SCT standing (Spine P0) ──
     _standing_token = session_token
@@ -749,6 +756,20 @@ async def arif_seal(
         except Exception as _jc_exc:  # noqa: BLE001
             logger.warning("session_close judge contract mint failed: %s", _jc_exc)
 
+    # Z5 REALITY ANCHOR — append VPS delta + evidence refs to seal payload (non-blocking)
+    try:
+        import json as _json_anchor
+        from arifosmcp.core.reality_anchors import seal_reality_context
+
+        _reality_ctx = seal_reality_context(
+            init_snapshot_hash="",  # populated when init snapshot is passed through session
+            evidence_ids=[],
+        )
+        _reality_suffix = f"\n[Z5_REALITY_ANCHOR] {_json_anchor.dumps(_reality_ctx, default=str)}"
+        _seal_payload = (_seal_payload or "") + _reality_suffix
+    except Exception:
+        pass  # Reality anchor must never block seal
+
     result = _arif_vault_seal(
         mode=mode,
         payload=_seal_payload,
@@ -897,6 +918,8 @@ async def arif_seal(
             result["meta"]["vault_receipt_id"] = _receipt_id
             result["meta"]["vault_receipt_hash"] = _receipt_hash
             result["meta"]["receipt_state"] = "SEALED"
+            if delta_s is not None:
+                result["meta"]["delta_s"] = delta_s
         except Exception as _rx:
             result["meta"] = result.get("meta", {})
             result["meta"]["receipt_state"] = "UNSEALED"

@@ -664,7 +664,22 @@ def arif_observe(
     def _ok(tool: str, result: dict, **kwargs: Any) -> dict[str, Any]:  # type: ignore[no-redef]
         from arifosmcp.runtime.tools import _ok as _ok_raw
 
-        return _with_continuity(_ok_raw(tool, result, **kwargs))
+        resp = _with_continuity(_ok_raw(tool, result, **kwargs))
+        # Z5 REALITY ANCHOR — persist hash-verified evidence to disk (non-blocking)
+        try:
+            from arifosmcp.core.reality_anchors import persist_evidence
+            _ev = persist_evidence(
+                result if isinstance(result, dict) else {"raw": str(result)[:500]},
+                source=f"arif_observe.{mode}",
+                session_id=session_id or "",
+            )
+            if _ev and isinstance(resp, dict):
+                resp.setdefault("meta", {})
+                if isinstance(resp["meta"], dict):
+                    resp["meta"]["evidence_receipt"] = _ev
+        except Exception:
+            pass  # Evidence persistence must never block observation
+        return resp
 
     def _hold(tool: str, reason: str, floors=None, **kwargs: Any) -> dict[str, Any]:  # type: ignore[no-redef]
         from arifosmcp.runtime.tools import _hold as _hold_raw

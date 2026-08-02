@@ -3029,6 +3029,13 @@ async def arif_judge(
         _actor = result.get("actor", "unknown") if isinstance(result, dict) else "unknown"
         _verdict = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
         _session = result.get("session_id", "unknown") if isinstance(result, dict) else "unknown"
+        # Z5 REALITY ANCHOR — extract falsifiable predictions (non-blocking)
+        _predictions = {}
+        try:
+            from arifosmcp.core.reality_anchors import extract_prediction
+            _predictions = extract_prediction(result if isinstance(result, dict) else {})
+        except Exception:
+            pass
         write_reality_event(
             actor=str(_actor),
             event_type="arif_judge",
@@ -3036,7 +3043,10 @@ async def arif_judge(
             verdict=str(_verdict),
             summary=f"arif_judge verdict: {_verdict}",
             action_class="judge",
-            evidence={"call_hash": result.get("call_hash", "") if isinstance(result, dict) else ""},
+            evidence={
+                "call_hash": result.get("call_hash", "") if isinstance(result, dict) else "",
+                "falsifiable_predictions": _predictions,
+            },
         )
     except Exception:
         pass  # Ledger write must never block governance verdict

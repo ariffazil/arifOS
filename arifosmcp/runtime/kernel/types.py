@@ -258,9 +258,20 @@ class Organ:
 # ── 12. Thresholds ────────────────────────────
 
 OMEGA_MAX = 0.4
-PSI_MIN = 0.7
+PSI_MIN = 0.7  # F2 base integrity floor — fallback when evidence class is ambiguous
 DELTA_CRITICAL = 0.7
 OMEGA_WARN = 0.3
 OMEGA_HARD_LIMIT = 0.6
 OMEGA_ZERO_MIN = 0.03  # F7 HUMILITY: Ω₀ floor — no fake certainty
 OMEGA_ZERO_MAX = 0.05  # F7 HUMILITY: Ω₀ ceiling — no fake humility
+
+# ── 12.5 — F2 Dual-Mode Thresholds (Compression-Kernel Doctrine, 2026-08-02) ──
+# Per the compression-kernel doctrine: the kernel IS a compressor.
+# LIT (direct observation, OBS) → F2 ≥ 0.99 — near-certain, range-encoded precision
+# REF (derivation, DER/INT/SPEC) → F2 ≥ 0.85 — back-reference inherits + decays
+# Demanding 0.99 for derivations makes the dictionary useless — every match
+# gets demoted to LIT, FQ → 0, kernel over-verifies. See DOCTRINE.md §2.4, §6.
+# Forged: 2026-08-02 by 333-AGI under F13 SOVEREIGN directive "execute now".
+# Seal: RECEIPT.md §Bug 2 (F2 threshold too strict for REFs).
+PSI_MIN_OBS = 0.99  # F2 TRUTH: direct observation threshold — near-certain
+PSI_MIN_DER = 0.85  # F2 TRUTH: derivation/interpretation threshold — inherited confidence

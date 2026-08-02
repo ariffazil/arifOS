@@ -239,12 +239,20 @@ def build_seal_receipt(
     payload: dict[str, Any],
     private_key: Ed25519PrivateKey,
     pubkey_id: str = "arifOS-kernel",
+    delta_s: float | None = None,
 ) -> dict[str, Any]:
     """
     Build a complete seal_receipt dict clients can verify offline.
 
     Structure: {seq, timestamp_iso, payload, prev_hash, curr_hash,
-                signature (b64), pubkey_id}
+                signature (b64), pubkey_id, delta_s}
+
+    delta_s: F4 CLARITY compression ratio. Computed as
+      1 - (novel_claims / total_claims) where novel_claims are those
+      without a back-reference to any prior VAULT999 entry.
+      delta_s > 0 = agent compressed (good). delta_s = 0 = all novel.
+      delta_s < 0 = hallucination (more novel claims than evidence supports).
+      Added 2026-08-02 per compression isomorphism spec.
 
     Anchor the chain head periodically to an external append-only system
     or RFC 3161 timestamp authority for stronger guarantees.
@@ -252,7 +260,7 @@ def build_seal_receipt(
     from datetime import UTC, datetime
 
     curr_hash, sig = seal_entry(prev_hash, payload, private_key)
-    return {
+    receipt: dict[str, Any] = {
         "seq": seq,
         "timestamp_iso": datetime.now(UTC).isoformat(),
         "payload": payload,
@@ -261,3 +269,6 @@ def build_seal_receipt(
         "signature": sig,
         "pubkey_id": pubkey_id,
     }
+    if delta_s is not None:
+        receipt["delta_s"] = delta_s
+    return receipt

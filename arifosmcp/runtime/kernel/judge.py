@@ -38,6 +38,8 @@ from .types import (
     OMEGA_ZERO_MAX,
     OMEGA_ZERO_MIN,
     PSI_MIN,
+    PSI_MIN_OBS,
+    PSI_MIN_DER,
     CollapseResult,
     EvidenceFusion,
     GovernanceState,
@@ -170,16 +172,55 @@ def _check_omega_zero_band(state: GovernanceState) -> TripwireResult:
 
 
 def _check_integrity(state: GovernanceState) -> TripwireResult:
+    """F2 TRUTH: dual-mode integrity check (Compression-Kernel Doctrine, 2026-08-02).
+
+    LIT (OBS/CLAIM): PSI ≥ 0.99 — direct observation, near-certain, range-encoded precision.
+    REF (DER/INT/SPEC): PSI ≥ 0.85 — derivation inherits + decays from source.
+    Base fallback: PSI ≥ 0.70 — ambiguous evidence class.
+
+    The threshold is determined by the dominant evidence class:
+    - If evidence is mostly CLAIM (OBS) → use PSI_MIN_OBS (0.99)
+    - If evidence is mostly PLAUSIBLE/HYPOTHESIS (DER/INT) → use PSI_MIN_DER (0.85)
+    - Otherwise → use PSI_MIN (0.70, fallback)
+    """
     p = state.scalars.psi
-    if p < PSI_MIN:
+
+    # Determine the appropriate F2 threshold from evidence composition
+    evidence = state.evidence
+    if not evidence:
+        psi_threshold = PSI_MIN
+        threshold_label = "FALLBACK (no evidence)"
+    else:
+        obs_count = sum(1 for e in evidence if e.uncertainty in ("CLAIM",))
+        der_count = sum(1 for e in evidence if e.uncertainty in ("PLAUSIBLE", "HYPOTHESIS"))
+        total = obs_count + der_count
+        if total == 0:
+            psi_threshold = PSI_MIN
+            threshold_label = f"FALLBACK (PSI_MIN={PSI_MIN})"
+        elif obs_count >= der_count:
+            psi_threshold = PSI_MIN_OBS
+            threshold_label = f"OBS (PSI_MIN_OBS={PSI_MIN_OBS})"
+        else:
+            psi_threshold = PSI_MIN_DER
+            threshold_label = f"DER (PSI_MIN_DER={PSI_MIN_DER})"
+
+    if p < psi_threshold:
         return TripwireResult(
             id="INTEGRITY",
             triggered=True,
-            reason=f"F2 TRUTH: Ψ={p:.3f} < {PSI_MIN}. Floor compliance or drift intolerable.",
+            reason=(
+                f"F2 TRUTH: Ψ={p:.3f} < {psi_threshold} ({threshold_label}). "
+                f"Floor compliance or drift intolerable. "
+                f"obs_evidence={obs_count if evidence else 0} "
+                f"der_evidence={der_count if evidence else 0}"
+            ),
             severity="DELAY",
         )
     return TripwireResult(
-        id="INTEGRITY", triggered=False, reason=f"Ψ={p:.3f} above minimum", severity="WARN"
+        id="INTEGRITY",
+        triggered=False,
+        reason=f"Ψ={p:.3f} ≥ {psi_threshold} ({threshold_label})",
+        severity="WARN",
     )
 
 
@@ -236,8 +277,7 @@ def _check_rasa_derita(state: GovernanceState) -> TripwireResult:
             return TripwireResult(
                 id="RASA_DERITA",
                 triggered=True,
-                reason=" | ".join(verdict.reasons)
-                or "RASA DERITA gate failed — 888_HOLD",
+                reason=" | ".join(verdict.reasons) or "RASA DERITA gate failed — 888_HOLD",
                 severity="BLOCK",
             )
         return TripwireResult(
@@ -266,7 +306,9 @@ def _check_rasa_derita(state: GovernanceState) -> TripwireResult:
 def _check_floors(state: GovernanceState) -> TripwireResult:
     if not state.evidence:
         return TripwireResult(
-            id="FLOOR", triggered=True, reason="F4 CLARITY: No evidence provided. Evidence required for SEAL.",
+            id="FLOOR",
+            triggered=True,
+            reason="F4 CLARITY: No evidence provided. Evidence required for SEAL.",
             severity="BLOCK",
         )
     llm_only = all(e.source.upper() in ("LLM", "UNKNOWN") for e in state.evidence)
