@@ -1,8 +1,8 @@
 {
   "comment": "arifOS Model Registry — canonical source of truth for model identity, capabilities, and risk bounds.",
-  "version": "2026.07.04-v5",
-  "last_updated": "2026-07-04T14:15:00Z",
-  "updated_by": "FORGE (000Ω) — GLM-5.2 (bailian-token-plan)",
+  "version": "2026.08.02-v1",
+  "last_updated": "2026-08-02T13:30:00Z",
+  "updated_by": "kimi-code/FI-008 + F13 ratification (F13::AAA_ENTROPY_REDUCTION round 2)",
   "change_log": [
     "EVALUATED: Qwen model cheat sheet — 9/11 context windows WRONG, 'free=no tool_call' claim FALSE",
     "VERIFIED: All 11 cheat sheet models live and callable via DashScope Intl API",
@@ -42,7 +42,15 @@
     "UPDATED: qwen soul/shadow — variants expanded to include Token Plan models",
     "UPDATED: FEDERATION_MODEL.json — routing updated for Qwen Token Plan",
     "UPDATED: model_registry version bumped to 2026.07.04-v4",
-    "VERIFIED: all Qwen Token Plan models live and callable via bailian-token-plan endpoint"
+    "VERIFIED: all Qwen Token Plan models live and callable via bailian-token-plan endpoint",
+    "=== 2026-08-02 ROUND: F13 SOVEREIGN ratification ARIF acknowledged ===",
+    "FIXED: minimax/minimax-m3 — confirmed live per MINIMAX_PLUGIN_API_KEY probe; status was already live here, but federation-models.json side had stale KEYS_INVALID (corrected in A2 patch)",
+    "LIFTED: claude-block entries on claude-mythos-5/claude-fable-5/claude-opus-4.8 — block was on kernel-context wiring (HARDENED_DISPATCH_MAP['apex_judge'] clashes with CAI constitution), NOT on the model itself. Agents via non-kernel paths (e.g. forge shells, OpenCode Zen gateway) MAY use Claude at any tier; 666/999 path still gated by arif_judge regardless of underlying model.",
+    "ADDED: opencode-go entries (17 paid models under $10/mo flat) — see federation-models.json for full roster. Hits all WAJIB candidates at once.",
+    "ADDED: opencode-zen entries (50+ models PAYG + 7 transient FREE) — Claude Sonnet 5 ($2/$10 cheaper than direct), Gemini 3.5 Flash Lite ($0.30/$2.50 cheapest Gemini), GPT 5 Nano ($0.05/$0.40), Qwen 3.5 Plus ($0.20/$1.20), and transient FREE for FLAME replacement (Big Pickle, DeepSeek V4 Flash Free, MiMo-V2.5 Free, Ling-3.0-flash Free, North Mini Code Free, Nemotron 3 Ultra Free, Laguna S 2.1 Free)",
+    "BACKED: usage_signal from opencode.ai/data (Jun 8 -> Aug 2, 19T tokens total). deepseek-v4-flash 14T (+21% MoM) is the king; kimi-k3 +32% MoM is rising; hy3 +110% (Tencent); glm-5.2 -29% (declining). Cache ratio observed: 95%.",
+    "VERIFIED: validator at /root/HERMES/scripts/zen/validate_federation_models.py catches 26 schema drifts in pre-patch SOT (duplicate model_key, missing provider_ref/status); 0 errors in staged draft.",
+    "BUMP: version 2026.07.04-v5 -> 2026.08.02-v1"
   ],
   "models": [
     {
