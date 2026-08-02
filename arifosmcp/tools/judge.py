@@ -3033,6 +3033,7 @@ async def arif_judge(
         _predictions = {}
         try:
             from arifosmcp.core.reality_anchors import extract_prediction
+
             _predictions = extract_prediction(result if isinstance(result, dict) else {})
         except Exception:
             pass
@@ -3050,6 +3051,23 @@ async def arif_judge(
         )
     except Exception:
         pass  # Ledger write must never block governance verdict
+
+    # ── F3/F8 INJECTION: Surface g_score and quad_witness for A-FORGE FloorEnforcer ──
+    if isinstance(result, dict):
+        # g_score from evidence vitals (already computed by arif_measure)
+        result.setdefault("g_score", _evidence.get("vitals", {}).get("g_score"))
+        # quad_witness from evidence if available, else compute from available witnesses
+        _witness = _evidence.get("witness", {}) or _evidence.get("quad_witness", {})
+        if isinstance(_witness, dict):
+            h = _witness.get("human", _witness.get("H", 0))
+            a = _witness.get("ai", _witness.get("A", 0))
+            e = _witness.get("earth", _witness.get("E", 0))
+            v = _witness.get("verifier", _witness.get("V", 0))
+            if h > 0 and a > 0 and e > 0 and v > 0:
+                from core.shared.physics import W_4
+
+                result["quad_witness"] = W_4(h, a, e, v)
+                result["witness_breakdown"] = {"human": h, "ai": a, "earth": e, "verifier": v}
 
     try:
         return _echo_standing(VerdictOutput(**result))
