@@ -46,6 +46,14 @@ from arifosmcp.runtime.tools import _hold, _ok
 from core.shared.atlas import Φ
 
 
+class ConfigError(RuntimeError):
+    """Raised when a canonical config is missing, malformed, or invalid.
+
+    Forged 2026-08-02 by F13 SOVEREIGN directive. Fail-closed semantics —
+    no silent fallbacks to hardcoded duplicates.
+    """
+
+
 def _token_in(token: str, text: str) -> bool:
     """Substring match with word boundaries for short / single-token keywords.
 
@@ -82,337 +90,43 @@ _intent_map_cache: dict[str, Any] | None = None
 
 
 def _load_intent_map() -> dict[str, Any]:
-    """Load organ intent map once, cache forever."""
+    """Load organ intent map once, cache forever.
+
+    Hardened 2026-08-02 (F13 SOVEREIGN directive): fail-closed. If the
+    canonical YAML config is missing or unparseable, raise ConfigError
+    instead of silently falling back to a hardcoded dict. The hardcoded
+    fallback was 316 lines of duplicated config that drifted from YAML.
+
+    F4 CLARITY: single source of truth lives at
+    arifosmcp/config/organ_intent_map.yaml.
+    F1 AMANAH: F8 GENIUS rule — fail loud, not silent.
+    """
     global _intent_map_cache
     if _intent_map_cache is not None:
         return _intent_map_cache
-    try:
-        import yaml
 
-        map_path = Path(__file__).parent.parent / "config" / "organ_intent_map.yaml"
-        if map_path.exists():
-            with open(map_path) as f:
-                _intent_map_cache = yaml.safe_load(f)
-                return _intent_map_cache
-    except Exception:
-        pass
-    # Fallback: hardcoded map — G13 FIX (2026-06-30): machine domain + AAA added
-    _intent_map_cache = {
-        "organ_routes": {
-            "arifos": {
-                "organ": "arifOS",
-                "port": 8088,
-                "intent_keywords": [
-                    # Machine / MCP surface
-                    "MCP",
-                    "MCP server",
-                    "MCP tool",
-                    "MCP endpoint",
-                    "MCP connector",
-                    "MCP diagnostic",
-                    "MCP conformance",
-                    "MCP surface",
-                    "ChatGPT connector",
-                    "OpenAI connector",
-                    "Copilot connector",
-                    "surface drift",
-                    "connector schema",
-                    "connector cache",
-                    "protocol version",
-                    "protocol drift",
-                    "protocol conformance",
-                    "tool registry",
-                    "tool schema",
-                    "tool conformance",
-                    "tool surface",
-                    "tool manifest",
-                    "tools/list",
-                    "tools/call",
-                    "capability surface",
-                    "capability lease",
-                    # Governance / constitutional
-                    "kernel health",
-                    "kernel status",
-                    "kernel route",
-                    "kernel attest",
-                    "arifos kernel",
-                    "arifos health",
-                    "arifos status",
-                    "constitutional floor",
-                    "constitutional check",
-                    "governance check",
-                    "governance status",
-                    "seal boundary",
-                    "seal verdict",
-                    "authority envelope",
-                    "epistemic tag",
-                    "cognitive axis",
-                    # Session / memory / vault
-                    "initialize session",
-                    "session init",
-                    "session anchor",
-                    "memory recall",
-                    "memory search",
-                    "vault seal",
-                    "vault ledger",
-                    "lease request",
-                    "belief state",
-                    "runtime schema",
-                    # Canonical tool names
-                    "arif init",
-                    "arif route",
-                    "arif triage",
-                    "arif judge",
-                    "arif seal",
-                    "arif measure",
-                    "arif observe",
-                    "arif think",
-                    "arif critique",
-                    "arif bridge",
-                    "arif gateway",
-                    "arif forge",
-                    "arif_forge",
-                    "arif memory",
-                    "arif_memory",
-                    "arif session",
-                    "arif vault",
-                    # Federation
-                    "federation contract",
-                    "federation manifest",
-                    "organ attestation",
-                    "organ health",
-                    "agentic search",
-                    "agent registry",
-                    # Sovereign / personal decisions
-                    "life roadmap",
-                    "career decision",
-                    "personal decision",
-                    "what should i do",
-                    "life direction",
-                    "should i leave",
-                    "should i stay",
-                    "human sovereign",
-                    "sovereign decision",
-                    "life choice",
-                    "exit strategy",
-                    "what do i want",
-                    "my future",
-                ],
-            },
-            "aaa": {
-                "organ": "AAA",
-                "port": 3001,
-                "intent_keywords": [
-                    # ROUTING-CALIBRATION FIX (2026-07-12): added federation
-                    # state/topology and broadcast keywords so AAA domain queries
-                    # route correctly instead of falling through to arifOS default
-                    "cockpit",
-                    "dashboard",
-                    "control plane",
-                    "AAA cockpit",
-                    "AAA dashboard",
-                    "agent identity",
-                    "agent registry cockpit",
-                    "permission list",
-                    "access control",
-                    "audit log",
-                    "federation health",
-                    "approval queue",
-                    "A2A gateway",
-                    "identity anchor",
-                    "throttle",
-                    "federation state",
-                    "federation topology",
-                    "agent topology",
-                    "agent map",
-                    "organ map",
-                    "federation map",
-                    "broadcast message",
-                    "broadcast to all",
-                    "topology map",
-                    "state and topology",
-                ],
-            },
-            "a_forge": {
-                "organ": "A-FORGE",
-                "port": 7071,
-                "intent_keywords": [
-                    # ROUTING-CALIBRATION FIX (2026-07-12): added explicit
-                    # service-restart phrases so "restart the arifos service"
-                    # routes to A-FORGE despite "arifos" being in the intent.
-                    # These are longer than any arifOS keyword for the same text.
-                    "build",
-                    "deploy",
-                    "forge",
-                    "compile",
-                    "commit",
-                    "push",
-                    "git",
-                    "docker",
-                    "container",
-                    "image",
-                    "pipeline",
-                    "ci/cd",
-                    "jenkins",
-                    "github",
-                    "repository",
-                    "version",
-                    "dry run",
-                    "dry-run",
-                    "execute plan",
-                    "node install",
-                    "npm install",
-                    "npm build",
-                    "npm test",
-                    "uv sync",
-                    "docker compose",
-                    "systemctl restart",
-                    "systemd unit",
-                    "service restart",
-                    "service stop",
-                    "restart the service",
-                    "restart the arifos service",
-                    "restart arifos service",
-                    "restart the well service",
-                    "restart well service",
-                    "stop the service",
-                    "stop the well service",
-                    "stop the arifos service",
-                    "stop service",
-                    "make deploy",
-                    "code deploy",
-                    "rollback",
-                    "mutate file",
-                    "forge execute",
-                    "forge plan",
-                    "forge dryrun",
-                    "staged code change",
-                    "staged deploy",
-                    "deploy with rollback",
-                ],
-            },
-            "geox": {
-                "organ": "GEOX",
-                "port": 8081,
-                "intent_keywords": [
-                    "seismic",
-                    "well log",
-                    "las",
-                    "petrophysics",
-                    "horizon",
-                    "fault",
-                    "amplitude",
-                    "basin",
-                    "prospect",
-                    "subsurface",
-                    "velocity",
-                    "lithology",
-                    "porosity",
-                    "permeability",
-                    "resistivity",
-                    "gamma ray",
-                    "sonic",
-                    "density",
-                    "structural",
-                    "trap",
-                    # SERP API: academic/local domain (2026-07-07)
-                    "scholar",
-                    "academic paper",
-                    "research paper",
-                    "citation",
-                    "patent",
-                    "patent search",
-                    "geology consultant",
-                    "local business",
-                    "geological survey",
-                ],
-            },
-            "wealth": {
-                "organ": "WEALTH",
-                "port": 18082,
-                "intent_keywords": [
-                    "portfolio",
-                    "npv",
-                    "irr",
-                    "emv",
-                    "option",
-                    "derivative",
-                    "capital",
-                    "hedge",
-                    "risk metric",
-                    "risk assessment",
-                    "allocation",
-                    "stress test",
-                    # SERP API: finance/commerce/trends domain (2026-07-07)
-                    "stock price",
-                    "stock quote",
-                    "market data",
-                    "market overview",
-                    "crypto price",
-                    "forex rate",
-                    "exchange rate",
-                    "commodity price",
-                    "bond yield",
-                    "finance search",
-                    "product price",
-                    "shopping",
-                    "price comparison",
-                    "market trends",
-                    "search trends",
-                    "trending topics",
-                    "fiscal data",
-                    "gdp",
-                    "inflation",
-                ],
-            },
-            "well": {
-                "organ": "WELL",
-                "port": 18083,
-                "intent_keywords": [
-                    # G13 FIX: human-vitality-only keywords
-                    # ROUTING-CALIBRATION FIX (2026-07-12): added explicit
-                    # human-state phrases so WELL matches without being stolen
-                    "human health",
-                    "personal health",
-                    "wellness",
-                    "vitality",
-                    "biometric",
-                    "sleep",
-                    "heart rate",
-                    "hrv",
-                    "metabolic",
-                    "readiness",
-                    "recovery",
-                    "autonomic",
-                    "wellbeing",
-                    "maruah",
-                    "fatigue",
-                    "cognition load",
-                    "cognitive clarity",
-                    "stress load",
-                    "decision readiness",
-                    "fit to decide",
-                    "human readiness",
-                    "operator readiness",
-                    "operator fatigue",
-                    "substrate readiness",
-                    "human decision readiness",
-                    "feeling tired",
-                    "feeling stressed",
-                    "high stakes decision",
-                    # SERP API: travel domain (2026-07-07)
-                    "flight search",
-                    "hotel search",
-                    "travel planning",
-                    "flight deal",
-                    "hotel review",
-                    "travel destination",
-                    "rest planning",
-                    "vacation",
-                ],
-            },
-        }
-    }
+    import yaml
+
+    map_path = Path(__file__).parent.parent / "config" / "organ_intent_map.yaml"
+    if not map_path.exists():
+        raise ConfigError(
+            f"ORGAN_INTENT_MAP_MISSING: canonical config {map_path} not found. "
+            f"Routing cannot proceed without organ_intent_map.yaml. "
+            f"Restore the YAML or run `make regenerate-intent-map`."
+        )
+    try:
+        with open(map_path) as f:
+            _intent_map_cache = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise ConfigError(
+            f"ORGAN_INTENT_MAP_PARSE_ERROR: {map_path} is malformed: {e}. "
+            f"Fix the YAML or restore from git."
+        ) from e
+    if not _intent_map_cache or "organ_routes" not in _intent_map_cache:
+        raise ConfigError(
+            f"ORGAN_INTENT_MAP_INVALID: {map_path} loaded but lacks 'organ_routes' key. "
+            f"Expected schema: {{organ_routes: {{arifos: {{organ, port, intent_keywords}}, ...}}}}"
+        )
     return _intent_map_cache
 
 
