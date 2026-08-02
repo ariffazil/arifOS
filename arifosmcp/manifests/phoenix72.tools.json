@@ -6,6 +6,19 @@
   "authority": "ariffazil/arifos",
   "status": "target_not_sealed",
   "note": "This manifest is a TARGET STATE. Do not treat proxy_pending or planned entries as implemented.",
+  "doctrine": {
+    "f13_clause": "Model ≠ truth. The framework is the glass; the sovereign is the eye. Every tool in this manifest operates under F1-F13 floors and F13 SOVEREIGN authority. F13 SOVEREIGN is the only authority that can override the falsifiability requirement. The framework produces useful distinctions, not truth. The sovereign decides what truth is.",
+    "apex_reform_2026_08_01": "Every APEX score must carry a paired FalsifiablePrediction. The numbers and the test cannot drift apart. APEX_HUMILITY_FLOOR = 0.15 (wider than the generic 0.03) honestly reflects the interpretive cascade baked into every score.",
+    "bijaksana_bridge_2026_08_01": "arif_judge operates through a four-dial lens (AKAL, PRESENT, ENERGY-ENTROPY, EXPLORATION-AMANAH). v1.1: BRIDGE_BLOCKED → immediate HOLD; BRIDGE_RESTRAIN → downgrades SEAL to SABAR. The framework refuses to seal when the bridge says restraint. The sovereign still decides.",
+    "first_apex_prediction": "PETRONAS structural collapse 2029-2030. If PETRONAS is still standing in 2035 with no structural change, the framework was wrong. If it collapses in 2029, the framework was right about the mechanism. That is the only way to know if the model maps to reality.",
+    "f13_acceptance_required_for": [
+      "Constitutional changes (F1-F13 floors)",
+      "Tier crossings in any [A]→[I]→[F] analogy",
+      "APEX v1.x schema amendments",
+      "arif_judge verdict overrides",
+      "VAULT999 historical rewrites"
+    ]
+  },
   "tools": [
     {"name": "arif_init",      "organ": "arifos", "stage": "000", "emd": "D", "trinity": "AGI", "floors": ["L01", "L11"], "mutation": false, "status": "implemented"},
     {"name": "arif_observe",     "organ": "arifos", "stage": "111", "emd": "D", "trinity": "AGI", "floors": ["L02", "L04"], "mutation": false, "status": "implemented"},

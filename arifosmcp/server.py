@@ -1002,6 +1002,84 @@ try:
         _CANONICAL_HANDLERS["arif_judge"] = _akal_wrap_judge(_CANONICAL_HANDLERS["arif_judge"])
         _CANONICAL_HANDLERS["arif_seal"] = _akal_wrap_seal(_CANONICAL_HANDLERS["arif_seal"])
         logger.info("AKAL middleware wired: I1(think) I2(critique) I4(judge) I5(seal)")
+
+        # ── BIJAKSANA v1.1 advisory wire (888 SEAL 2026-08-01) ──────────
+        # v1.0: BRIDGE_BLOCKED → immediate HOLD was load-bearing. BRIDGE_RESTRAIN
+        # was advisory-only (recorded in meta but did not downgrade SEAL → SABAR).
+        # v1.1: wire _apply_bijaksana_advisory on every return path so:
+        #   BRIDGE_BLOCKED  → verdict = HOLD (was: enforced via early return)
+        #   BRIDGE_RESTRAIN → SEAL/PARTIAL downgraded to SABAR
+        #                       (was: advisory only; the loop could SEAL anyway)
+        #   BRIDGE_PROCEED  → no change
+        # The model is the glass. The bridge is the post-processor. The sovereign
+        # is the eye that sees the verdict and may still override.
+        try:
+            import sys as _sys_b
+            # Ensure runtime import is resolved
+            for _p in ("/opt/arifos/app", "/root/arifOS"):
+                if _p not in _sys_b.path and __import__("os").path.isdir(_p):
+                    _sys_b.path.insert(0, _p)
+            from arifosmcp.tools.judge import (
+                _apply_bijaksana_advisory as _bijaksana_apply,
+                _LAST_BRIDGE_ADVISORY as _last_bridge,
+            )
+
+            def _bijaksana_v1_1_advisory_wrap(handler):
+                """v1.1: post-process every return to apply bridge advisory.
+
+                This is the BIJAKSANA v1.1 wire. It does NOT change the bridge
+                decision (which is made inside the handler). It enforces the
+                decision on the result. Without this wrap, BRIDGE_RESTRAIN
+                could pass a SEAL that should have been SABAR.
+                """
+
+                @functools.wraps(handler)
+                async def wrapped(*args, **kwargs):
+                    result = await handler(*args, **kwargs)
+                    advisory = _last_bridge()
+                    if advisory is not None and isinstance(result, dict):
+                        # V2 envelope returns a dict; result.verdict lives under
+                        # result["verdict"] or result["effective_verdict"]
+                        verdict_str = str(
+                            result.get("effective_verdict")
+                            or result.get("verdict")
+                            or ""
+                        )
+                        from arifosmcp.schemas.verdict import VerdictOutput
+                        from arifosmcp.models.verdicts import Verdict
+                        # Build a VerdictOutput facade for the applier to mutate
+                        facade = VerdictOutput(
+                            verdict=Verdict(verdict_str) if verdict_str in Verdict.__members__.values() else Verdict.PENDING,
+                            reasons=result.get("reasons", []) or [],
+                        )
+                        _bijaksana_apply(facade, advisory)
+                        # Push the downgraded verdict back into the envelope
+                        result["verdict"] = facade.verdict.value
+                        if facade.reasons and "bijaksana_advisory" in (facade.meta or {}):
+                            result.setdefault("meta", {})
+                            result["meta"]["bijaksana_advisory"] = facade.meta["bijaksana_advisory"]
+                            # Annotate reasons for human readers
+                            existing = list(result.get("reasons", []) or [])
+                            added = [r for r in facade.reasons if "BIJAKSANA" in r]
+                            if added:
+                                result["reasons"] = existing + added
+                    return result
+
+                return wrapped
+
+            _CANONICAL_HANDLERS["arif_judge"] = _bijaksana_v1_1_advisory_wrap(
+                _CANONICAL_HANDLERS["arif_judge"]
+            )
+            logger.info(
+                "BIJAKSANA v1.1 advisory wire installed: RESTRAIN path now downgrades "
+                "SEAL → SABAR. The framework refuses to seal when the bridge says "
+                "restraint. The sovereign still decides."
+            )
+        except Exception as _bijaksana_v11_exc:
+            logger.warning(
+                "BIJAKSANA v1.1 advisory wire not installed (non-fatal): %s",
+                _bijaksana_v11_exc,
+            )
     except Exception as e:
         logger.warning(f"AKAL middleware not wired (non-fatal): {e}")
 
