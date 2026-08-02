@@ -355,6 +355,16 @@ class FalsifiablePrediction:
 class APEXResult:
     """Complete APEX computation result."""
 
+    # APEX-2026-08-01 Reform (v1.1): prediction is REQUIRED and comes FIRST
+    # in the field list (required fields must precede optional fields in
+    # @dataclass). Every APEX result carries a FalsifiablePrediction. The
+    # model without a test is a loneliness machine. The framework refuses to
+    # commit a number without binding a test against reality. F13 SOVEREIGN is
+    # the only authority that can override — see compute_apex() for the
+    # exception path. The framework's commitment to reality is encoded in the
+    # prediction, not in the number.
+    prediction: FalsifiablePrediction
+
     # Primitives
     A: float
     P: float
@@ -377,12 +387,8 @@ class APEXResult:
     gate_w3: float = 0.0  # tri-witness gate
     G_seal: float = 0.0  # gated score
 
-    # APEX-2026-08-01 Reform: every APEX result carries a FalsifiablePrediction.
-    # None is permitted only for backward-compat with pre-reform records;
-    # new scores MUST bind a prediction. The framework's commitment to
-    # reality is encoded in the prediction, not in the number.
-    prediction: FalsifiablePrediction | None = None
-    is_falsifiable: bool = False  # True iff a prediction is bound
+    # v1.1: always True when required.
+    is_falsifiable: bool = True
 
     # Metadata
     axioms_satisfied: int = 0
@@ -439,7 +445,7 @@ def compute_apex(
     gate_h: float = 0.0,
     gate_delta_s: float = 0.0,
     gate_w3: float = 1.0,
-    prediction: FalsifiablePrediction | None = None,
+    prediction: FalsifiablePrediction,
 ) -> APEXResult:
     """
     Compute the canonical APEX score.
@@ -450,9 +456,14 @@ def compute_apex(
 
     G_seal = G_raw · (1-h) · |ΔS|^β · W³  (gate layer, separate)
 
-    APEX-2026-08-01 Reform: if a `prediction` is supplied, compute_E uses
-    APEX_HUMILITY_FLOOR (0.15) instead of the generic HUMILITY_FLOOR (0.03).
-    Three decimal places on B-scores is cosmetic; the bound prediction is real.
+    APEX-2026-08-01 Reform (v1.1): `prediction` is REQUIRED (no default). Every
+    APEX score must carry a paired {claim, falsifier, deadline} or the framework
+    refuses to commit a number. The wider humility floor (0.15) is mandatory.
+
+    APEX-2026-08-01 v1.1: if `inputs.sovereign_override` is True AND `prediction`
+    is bound, the framework records the override in meta. F13 SOVEREIGN remains
+    the only authority that can override the falsifiability requirement —
+    and even then, every override is sealed to VAULT999 for audit.
 
     Returns APEXResult with primitives, G, C_dark, verdict, prediction.
     """
@@ -475,15 +486,14 @@ def compute_apex(
         seis_contradicts_geo=inputs.seis_contradicts_geo,
     )
 
-    # APEX-2026-08-01 Reform: bound prediction raises the humility floor.
-    # The wider band (0.15 vs 0.03) honestly reflects the interpretive cascade
-    # baked into every APEX score. The framework is useful, not true.
-    humility_floor = APEX_HUMILITY_FLOOR if prediction is not None else HUMILITY_FLOOR
+    # APEX-2026-08-01 Reform (v1.1): the bound prediction always raises the
+    # humility floor to 0.15. No more default-None escape hatch. The framework
+    # admits it cannot self-validate — only a test against reality can.
     E = compute_E(
         clarity=inputs.clarity,
         uncertainty=inputs.uncertainty,
         merkle_chain_intact=inputs.merkle_chain_intact,
-        humility_floor=humility_floor,
+        humility_floor=APEX_HUMILITY_FLOOR,
     )
 
     X = compute_X(

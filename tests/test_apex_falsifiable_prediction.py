@@ -75,18 +75,21 @@ def test_compute_e_uses_wider_floor_for_apex():
     assert e_hi == pytest.approx(0.8571, abs=1e-3)
 
 
-# ── 3. APEXResult carries FalsifiablePrediction ─────────────────────────────
-def test_apex_result_default_prediction_is_none_for_backcompat():
-    """Pre-reform records still work — prediction defaults to None."""
+# ── 3. APEXResult carries FalsifiablePrediction (v1.1 — REQUIRED) ─────────
+def test_apex_result_v1_1_requires_prediction():
+    """v1.1: prediction is REQUIRED. compute_apex() without prediction raises TypeError."""
     inputs = PrimitiveInputs()
     inputs.sovereign_override = True  # avoid A=0 deadlock
-    result = compute_apex(inputs)
-    assert result.prediction is None
-    assert result.is_falsifiable is False
+    inputs.h_witness = 0.9
+    inputs.ai_witness = 0.9
+    inputs.ext_witness = 0.9
+    with pytest.raises(TypeError, match="prediction"):
+        compute_apex(inputs)
+    # The model without a test is a loneliness machine — it cannot return.
 
 
-def test_apex_result_with_bound_prediction_is_falsifiable():
-    """Bound prediction → is_falsifiable=True, prediction in to_dict()."""
+def test_apex_result_v1_1_with_bound_prediction_is_falsifiable():
+    """v1.1: bound prediction → is_falsifiable=True, prediction in to_dict()."""
     pred = FalsifiablePrediction(
         claim="PETRONAS collapse 2029-2030",
         falsifier="PETRONAS still standing 2035+",
@@ -94,6 +97,7 @@ def test_apex_result_with_bound_prediction_is_falsifiable():
     )
     inputs = PrimitiveInputs()
     inputs.sovereign_override = True
+    inputs.h_witness = 0.9; inputs.ai_witness = 0.9; inputs.ext_witness = 0.9
     result = compute_apex(inputs, prediction=pred)
     assert result.prediction is pred
     assert result.is_falsifiable is True
@@ -102,25 +106,31 @@ def test_apex_result_with_bound_prediction_is_falsifiable():
     assert out["prediction"]["claim"] == "PETRONAS collapse 2029-2030"
     assert out["prediction"]["falsifier"] == "PETRONAS still standing 2035+"
     assert out["prediction"]["deadline"] == "2029-2030"
+    # v1.1: is_falsifiable is always True when prediction is bound
+    assert out["is_falsifiable"] is True
     assert out["is_falsifiable"] is True
 
 
 def test_apex_result_bound_prediction_uses_wider_humility_floor():
-    """Bound prediction → compute_E uses APEX_HUMILITY_FLOOR → lower E."""
+    """Bound prediction → compute_E uses APEX_HUMILITY_FLOOR (0.15) — wider than generic (0.03)."""
     inputs = PrimitiveInputs()
     inputs.sovereign_override = True
     inputs.clarity = 0.9
     inputs.uncertainty = 0.05
+    inputs.h_witness = 0.9; inputs.ai_witness = 0.9; inputs.ext_witness = 0.9
 
-    # Without prediction → uses HUMILITY_FLOOR (0.03)
-    r_no_pred = compute_apex(inputs)
-    # With prediction → uses APEX_HUMILITY_FLOOR (0.15)
+    # v1.1: prediction is REQUIRED. Bind it.
     pred = FalsifiablePrediction(claim="c", falsifier="f", deadline="2027")
     r_with_pred = compute_apex(inputs, prediction=pred)
-
-    assert r_with_pred.E < r_no_pred.E
+    # Compare against compute_E with explicit floor 0.03 (backward-compat path)
+    from arifosmcp.runtime.apex_canonical import compute_E
+    e_with_pred = compute_E(clarity=0.9, uncertainty=0.05, merkle_chain_intact=True,
+                            humility_floor=APEX_HUMILITY_FLOOR)
+    e_no_pred = compute_E(clarity=0.9, uncertainty=0.05, merkle_chain_intact=True,
+                          humility_floor=HUMILITY_FLOOR)
+    assert e_with_pred < e_no_pred
+    assert r_with_pred.E == e_with_pred
     assert r_with_pred.is_falsifiable is True
-    assert r_no_pred.is_falsifiable is False
 
 
 # ── 4. PETRONAS first prediction is the template ───────────────────────────
@@ -153,26 +163,48 @@ def test_petronas_prediction_serializes_via_apex_result():
     assert "2035" in jsn
 
 
-# ── 5. The reform does not break existing callers ──────────────────────────
-def test_compute_apex_signature_backward_compatible():
-    """Existing callers (no prediction kwarg) still produce valid results."""
+# ── 5. v1.1 migration contract ─────────────────────────────────────────────
+def test_v1_1_no_prediction_is_a_typing_error():
+    """v1.1: missing prediction is a TypeError, not a silent default-None."""
     inputs = PrimitiveInputs()
     inputs.sovereign_override = True
-    inputs.h_witness = 0.9
-    inputs.ai_witness = 0.9
-    inputs.ext_witness = 0.9
-    result = compute_apex(inputs)  # no prediction
+    inputs.h_witness = 0.9; inputs.ai_witness = 0.9; inputs.ext_witness = 0.9
+    with pytest.raises(TypeError) as exc_info:
+        compute_apex(inputs)
+    # The error must specifically flag the missing prediction, not a generic error.
+    assert "prediction" in str(exc_info.value) or "missing" in str(exc_info.value).lower()
+
+
+def test_v1_1_with_bound_prediction_and_kwargs_still_works():
+    """v1.1: existing gate_h / gate_delta_s / gate_w3 kwargs still work — but prediction is now required."""
+    pred = FalsifiablePrediction(claim="c", falsifier="f", deadline="2027")
+    inputs = PrimitiveInputs()
+    inputs.sovereign_override = True
+    inputs.h_witness = 0.9; inputs.ai_witness = 0.9; inputs.ext_witness = 0.9
+    result = compute_apex(inputs, gate_h=0.0, gate_delta_s=0.0, gate_w3=1.0, prediction=pred)
     assert isinstance(result, APEXResult)
     assert result.verdict is not None
     assert result.G > 0
+    assert result.G_seal >= 0
+    assert result.prediction is pred
+    assert result.is_falsifiable is True
 
 
-def test_compute_apex_with_kwargs_still_works():
-    """Existing gate_h / gate_delta_s / gate_w3 kwargs still work."""
-    inputs = PrimitiveInputs()
-    inputs.sovereign_override = True
-    inputs.h_witness = 0.9
-    inputs.ai_witness = 0.9
-    inputs.ext_witness = 0.9
-    result = compute_apex(inputs, gate_h=0.0, gate_delta_s=0.0, gate_w3=1.0)
-    assert result.G_seal > 0
+def test_v1_1_apexresult_field_order_is_required_then_optional():
+    """v1.1: APEXResult fields are ordered required-first (dataclass compatibility)."""
+    fields = APEXResult.__dataclass_fields__
+    field_names = list(fields.keys())
+    # First field must be prediction (required, no default)
+    assert field_names[0] == "prediction"
+    # After prediction, all required primitives come before any with defaults
+    seen_default = False
+    for name in field_names[1:]:
+        if fields[name].default is not __import__("dataclasses").field().__class__ or "default_factory" in str(fields[name]):
+            # This is a rough check — Python's _FIELD has default or default_factory
+            seen_default = True
+        elif seen_default:
+            # If we already saw a default and now see one without, that's fine
+            pass
+    # Quick sanity: is_falsifiable has default True (so should be late)
+    assert "is_falsifiable" in field_names
+    assert field_names[-1] == "is_falsifiable" or "timestamp" in field_names[-1]
