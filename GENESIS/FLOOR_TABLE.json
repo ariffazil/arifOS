@@ -40,7 +40,9 @@
       "rule": "Every output must reduce entropy (ΔS ≤ 0).",
       "color": "#3B82F6",
       "operator": "ΔS",
-      "sealed_range": {"min": null, "max": 0}
+      "sealed_range": {"min": null, "max": 0},
+      "compression_framing": "F4 is the compression ratio guarantee. ΔS = 1 - (unique_new_claims / total_claims_in_session). A session that makes 10 claims, 8 of which are back-references to VAULT999, has ΔS = 0.80 (high compression). A session with all novel claims has ΔS = 0.00 (no compression, F4 WARNING). This is the LZ77 dictionary-coder guarantee applied to agentic cognition.",
+      "quantitative_delta_s": "delta_s = 1 - (novel_tokens / total_tokens) where novel_tokens are those without a back-reference to any prior VAULT999 entry. delta_s > 0 means the agent compressed; delta_s = 0 means all output was novel; delta_s < 0 means the agent is hallucinating (more novel claims than existing evidence supports)."
     },
     {
       "id": "F5",
@@ -136,10 +138,10 @@
   "f2_band_mapping": {
     "schema": "lossless, exact, no fifth class invented",
     "mapping": [
-      {"label": "OBS",   "band": "CLAIM",     "definition": "Direct observation / official source / API response", "supports_seal": true},
-      {"label": "DER",   "band": "PLAUSIBLE", "definition": "Derived from OBS with documented chain",              "supports_seal": true},
-      {"label": "INT",   "band": "ESTIMATE",  "definition": "Interpretive synthesis across multiple sources",     "supports_seal": true},
-      {"label": "SPEC",  "band": "UNKNOWN",   "definition": "Speculation, no falsifiable anchor",                 "supports_seal": false}
+      {"label": "OBS",   "band": "CLAIM",     "definition": "Direct observation / official source / API response", "supports_seal": true,  "compression_mode": "LIT",     "compression_analogue": "LIT(b) — new evidence, no back-reference. Raw byte emitted into stream."},
+      {"label": "DER",   "band": "PLAUSIBLE", "definition": "Derived from OBS with documented chain",              "supports_seal": true,  "compression_mode": "REF",     "compression_analogue": "REF(d, ℓ) — back-reference to existing VAULT999 entry. Provenance preserved."},
+      {"label": "INT",   "band": "ESTIMATE",  "definition": "Interpretive synthesis across multiple sources",     "supports_seal": true,  "compression_mode": "REF+Δ",   "compression_analogue": "REF(d, ℓ) + delta filter. Interpretation = transformed back-reference (x[i] = x[i] - x[i-1])."},
+      {"label": "SPEC",  "band": "UNKNOWN",   "definition": "Speculation, no falsifiable anchor",                 "supports_seal": false, "compression_mode": "MARKOV",  "compression_analogue": "Markov chain prediction, range-coded output. P(next_bit | last_N_bits) without dictionary anchor."}
     ],
     "user_natural_mapping": {
       "OBS":  "CLAIM",
