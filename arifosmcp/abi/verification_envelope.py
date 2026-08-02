@@ -268,7 +268,9 @@ class VerificationTelemetry:
     actor_verified: bool = False
     authority: str = "OBSERVE_ONLY"
     vault_replay: bool = False
-    receipt_chain_valid: bool = False
+    receipt_chain_valid: bool = False  # backward compat alias
+    receipt_chain_intact: bool = False  # honest name: integrity, not veracity
+    receipt_chain_detail: dict = field(default_factory=dict)
     verifier_plane_ready: bool = False
     independent_verifier_available: bool = False
     attestation_verifier_available: bool = False
@@ -300,24 +302,37 @@ def collect_verification_telemetry() -> VerificationTelemetry:
     except ImportError:
         pass
 
-    # Check vault — canonical path: arifosmcp.apps.command_center.vault_chain
-    # 2026-08-02: Fix import path (was arifosmcp.core.vault999.verify — wrong module).
-    # The kernel's vault chain verification lives in arifosmcp.apps.command_center.
+    # Check vault chain integrity — canonical scope (F-004 forward chain).
+    # 2026-08-02 P1-AC: Use canonical_vault_chain.verify_chain(scope="canonical")
+    # which checks only F-004 envelope entries (the governed chain), not the
+    # full historical ledger which contains pre-chain legacy breaks.
+    # Epistemic rename: "intact" (integrity) not "valid" (veracity).
+    # The chain proves nothing changed since writing; it cannot prove
+    # the contents are true. See Claude audit 2026-08-02.
     try:
-        from arifosmcp.apps.command_center.vault_chain import (
-            verify_chain as _vault_verify_chain,
+        from arifosmcp.runtime.canonical_vault_chain import (
+            verify_chain as _canonical_verify,
         )
 
         telemetry.vault_replay = True
-        # Actually run the chain verification
-        _chain_result = _vault_verify_chain()
-        telemetry.receipt_chain_valid = _chain_result.get("chain_physically_valid", False)
+        _cr = _canonical_verify(scope="canonical")
+        _intact = bool(_cr.verified)
+        telemetry.receipt_chain_intact = _intact
+        telemetry.receipt_chain_valid = _intact  # backward compat alias
+        telemetry.receipt_chain_detail = {
+            "scope": "canonical",
+            "intact": _intact,
+            "status": str(_cr.status),
+            "entries": _cr.entries,
+            "corrupt_lines": _cr.corrupt_lines,
+            "anchor_ref": "https://arif-fazil.com/000",
+            "note": "integrity only — veracity requires external replay",
+        }
         telemetry.last_verified_mission = (
-            f"entries={_chain_result.get('entries_checked', 0)} "
-            f"valid={_chain_result.get('chain_physically_valid')} "
-            f"anomaly={_chain_result.get('historical_anomaly')}"
+            f"canonical entries={_cr.entries} intact={_intact} "
+            f"status={_cr.status}"
         )
-    except ImportError:
+    except Exception:  # noqa: BLE001 — fail closed
         pass
 
     # Verifier plane ready = independent verifier reachable
