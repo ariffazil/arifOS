@@ -799,12 +799,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_containers:
         live_signals.append("container_runtime")
 
-    if False and len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
+    if len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
         try:
-            from ..core.governance_kernel import get_kernel
+            from core.governance_kernel import get_governance_kernel
 
             live_session_id = "live-sot"
-            live_kernel = get_kernel()
+            live_kernel = get_governance_kernel()
             # clear_governance_kernel is not exported in this version
             if hasattr(live_kernel, "apply_temporal_grounding"):
                 live_kernel.apply_temporal_grounding(
@@ -5925,7 +5925,8 @@ def register_rest_routes(
                     sessions.append(
                         {
                             "session_id": entry.get("session_id", ""),
-                            "verdict": entry.get("verdict", "UNKNOWN"),
+                            "verdict": entry.get("verdict")
+                            or entry.get("verdict_issued", "UNKNOWN"),
                             "stage": entry.get("stage", ""),
                             "timestamp": entry.get("timestamp", ""),
                             "floors": entry.get("floors", {}),

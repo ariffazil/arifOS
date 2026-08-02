@@ -243,7 +243,7 @@ def _normalize_seal_receipt_v0(record: dict[str, Any]) -> dict[str, Any]:
         "source": "arifos://vault999/legacy-seal",
         "timestamp": record.get("ts") or datetime.now(UTC).isoformat(),
         "data": {
-            "verdict": record.get("verdict", "UNKNOWN"),
+            "verdict": record.get("verdict") or record.get("verdict_issued", "UNKNOWN"),
             "actor": record.get("actor", "unknown"),
             "vault_seq": record.get("vault_seq", 0),
             "receipt_sha": record.get("receipt_sha", ""),
@@ -282,7 +282,7 @@ def _normalize_session_v0(record: dict[str, Any]) -> dict[str, Any]:
         "data": {
             "actor": record.get("actor", "unknown"),
             "intent": record.get("intent", ""),
-            "verdict": record.get("verdict", "UNKNOWN"),
+            "verdict": record.get("verdict") or record.get("verdict_issued", "UNKNOWN"),
         },
         "actor_id": record.get("actor"),
         "session_id": record.get("agent_session"),

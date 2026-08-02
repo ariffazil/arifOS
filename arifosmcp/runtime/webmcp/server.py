@@ -579,7 +579,8 @@ class WebMCPGateway:
                                         "timestamp": entry.get("timestamp", ""),
                                         "session_id": entry.get("session_id", "")[:16] + "...",
                                         "action": entry.get("action", entry.get("tool", "unknown")),
-                                        "verdict": entry.get("verdict", "UNKNOWN"),
+                                        "verdict": entry.get("verdict")
+                                        or entry.get("verdict_issued", "UNKNOWN"),
                                         "seal_hash": (
                                             entry.get("seal_hash", "")[:16] + "..."
                                             if entry.get("seal_hash")
