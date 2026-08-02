@@ -172,9 +172,9 @@ Skills are internal capability taxonomies rather than low-level system call wrap
 
 | # | Skill Name | Competency Scope |
 |---|---|---|
-| 1 | `apex_floor_check` | Run a full F1–F13 floor audit on any action candidate |
-| 2 | `apex_scope_check` | Ensure operations do not violate repository boundaries |
-| 3 | `apex_authority_check` | Verify agent clearance level against the command ceiling |
+| 1 | `arifos-constitutional-judge` | Run a full F1–F13 floor audit on any action candidate |
+| 2 | `arifos-constitutional-judge` | Ensure operations do not violate repository boundaries |
+| 3 | `arifos-constitutional-judge` | Verify agent clearance level against the command ceiling |
 | 4 | `apex_reversibility_test` | Classify whether a plan contains irreversible actions |
 | 5 | `apex_rollback_requirement`| Ensure a robust rollback script exists before execution |
 | 6 | `apex_irreversibility_flag` | Inject `888_HOLD` on any irreversible mutation candidate |
@@ -190,14 +190,14 @@ Skills are internal capability taxonomies rather than low-level system call wrap
 | 16| `apex_tool_approval_gate` | Enforce human-in-the-loop validation for executing tools |
 | 17| `apex_seal_precondition_check`| Verify all safety checks have passed before writing a SEAL |
 | 18| `apex_action_block` | Block unauthorized system writes or execution commands |
-| 19| `apex_audit_coverage_check`| Ensure all active organs are emitting telemetry |
+| 19| `arifos-constitutional-judge`| Ensure all active organs are emitting telemetry |
 | 20| `apex_event_integrity_check`| Validate hash signatures on incoming audit events |
 | 21| `apex_replay_admissibility`| Verify old audit logs cannot be replayed maliciously |
 | 22| `apex_retention_rule_check`| Enforce retention constraints on memory structures |
 | 23| `apex_disposition_rule_check`| Enforce secure garbage collection of temporary credentials |
 | 24| `apex_record_completeness_check`| Verify telemetry packets contain required variables |
-| 25| `apex_verdict_seal` | Issue a `SEAL` verdict to commit actions to VAULT999 |
-| 26| `apex_verdict_hold` | Issue a `HOLD` verdict to halt execution pending review |
+| 25| `arifos-constitutional-judge` | Issue a `SEAL` verdict to commit actions to VAULT999 |
+| 26| `arifos-constitutional-judge` | Issue a `HOLD` verdict to halt execution pending review |
 | 27| `apex_verdict_void` | Issue a `VOID` verdict to abort and block a task block |
 | 28| `apex_emergency_override_govern`| Manage break-glass procedures and override tokens |
 | 29| `apex_break_glass_log` | Record detailed forensics during emergency bypasses |
