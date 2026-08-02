@@ -151,7 +151,12 @@ def arif_measure(
                 "shadow_activation_count": shadow_activations,
                 "self_authorization_attempt_count": self_auth_attempts,
                 "forge_block_count": self_auth_attempts,
-                "correction_success_rate": (1.0 if shadow_activations > 0 else 0.0),  # Logic stub
+                # Forged 2026-08-02: real ratio. shadow_activations / max(1, drift_total)
+                # gives a true correction rate from the actual drift log, not a
+                # binary 0.0/1.0 placeholder. Hardened from "Logic stub".
+                "correction_success_rate": round(
+                    shadow_activations / max(1, len(drift_log)), 3
+                ),
             }
 
     floor_check = check_laws(
@@ -479,10 +484,28 @@ def arif_measure(
             )
         )
     if mode == "landauer":
+        # Forged 2026-08-02: real Landauer limit at current CPU temp.
+        # k_B * T * ln(2) — Boltzmann constant × temperature × bit entropy.
+        # Falls back to 300K (room temp) if /sys/class/thermal unavailable.
+        import math
+        K_B_EV_PER_K = 8.617333262e-5  # eV/K (Boltzmann)
+        _t_kelvin = 300.0  # default
+        try:
+            with open("/sys/class/thermal/thermal_zone0/temp") as _f:
+                _t_kelvin = int(_f.read().strip()) / 1000.0  # mK → K
+        except (OSError, ValueError, IOError):
+            pass
+        _min_energy_eV = round(K_B_EV_PER_K * _t_kelvin * math.log(2), 6)
         return TelemetryBlock(
             **_ok(
                 "arif_measure",
-                {"min_energy": 0.017, "unit": "eV", "note": "Landauer limit stub"},
+                {
+                    "min_energy": _min_energy_eV,
+                    "unit": "eV",
+                    "temperature_kelvin": _t_kelvin,
+                    "formula": "k_B × T × ln(2)",
+                    "note": "Real Landauer limit from /sys/class/thermal (or 300K fallback)",
+                },
                 session_id=session_id,
             )
         )
@@ -678,8 +701,23 @@ def arif_measure(
                         seals = sum(1 for e in witness_log if e.get("verdict") == "SEAL")
                         rubber_stamp_rate = round(seals / total_calls, 2)
 
-                        # Average ack time (stub — would need timestamp diffs)
-                        avg_ack_time_ms = 0.0
+                        # Forged 2026-08-02: real avg ack time from witness_log
+                        # timestamp diffs. Each witness event carries a ts_ms field;
+                        # we compute the mean gap between consecutive events.
+                        # Falls back to 0.0 if timestamps unavailable.
+                        _ts_list = [
+                            e.get("ts_ms")
+                            for e in witness_log
+                            if isinstance(e.get("ts_ms"), (int, float))
+                        ]
+                        if len(_ts_list) >= 2:
+                            _diffs = [
+                                _ts_list[i] - _ts_list[i - 1]
+                                for i in range(1, len(_ts_list))
+                            ]
+                            avg_ack_time_ms = round(sum(_diffs) / len(_diffs), 2)
+                        else:
+                            avg_ack_time_ms = 0.0
 
                         # Dignity holds from session
                         dignity_holds = sum(1 for e in witness_log if e.get("stage") == "WELL_GATE")
