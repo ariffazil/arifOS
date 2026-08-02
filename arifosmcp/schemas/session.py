@@ -570,3 +570,13 @@ class SessionManifest(BaseModel):
         "TEARFRAME thresholds, activation rules, MCP resources. "
         "Governance substrate inherited by every federation agent.",
     )
+    # Temporal Intelligence Keystone (FORGED 2026-08-02)
+    # Binds session identity to temporal state. Completes the four-organ
+    # architecture: Sense (now) → Conscience (detector) → Identity (this)
+    # → Vessel (VAULT999). <1ms, no external calls, no writes.
+    temporal_root: dict[str, Any] | None = Field(
+        default=None,
+        description="Temporal root — binds session identity to genesis time. "
+        "Fields: fingerprint (sha256[:16]), iso8601, epoch_ms, myt, dow, iso_week. "
+        "Al-'Asr 103:1-3 constitutional anchor.",
+    )

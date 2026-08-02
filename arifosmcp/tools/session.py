@@ -2629,6 +2629,8 @@ def arif_init(
 
         from arifosmcp.runtime.work_spine import create_work_contract
 
+        header["temporal_root"] = _temporal_root
+
         header["work_contract"] = create_work_contract(
             session_id=sid,
             objective=objective or intent or "governed session work",
@@ -2658,6 +2660,28 @@ def arif_init(
                 result={"session": sess, "header": header},
                 doctrine=ARIF_DOCTRINE,
             )
+
+        # ── Temporal Intelligence Keystone (forged 2026-08-02) ──
+        # Binds session identity to temporal state. Completes the four-organ
+        # architecture: Sense (now) → Conscience (detector) → Identity (this)
+        # → Vessel (VAULT999). <1ms, no external calls, no writes.
+        from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+        import hashlib as _hashlib
+
+        _t_now = _dt.now(_tz.utc)
+        _t_myt = _t_now + _td(hours=8)
+        _temporal_root = {
+            "fingerprint": _hashlib.sha256(
+                f"{sid}|{_t_now.isoformat()}|{_derived_auth}|{identity_verified}".encode()
+            ).hexdigest()[:16],
+            "iso8601": _t_now.isoformat(),
+            "epoch_ms": int(_t_now.timestamp() * 1000),
+            "myt": _t_myt.strftime("%Y-%m-%d %H:%M:%S MYT"),
+            "dow": _t_myt.strftime("%A"),
+            "iso_week": _t_now.isocalendar()[1],
+        }
+        # Persist on session so identity_store can read it
+        sess["temporal_root"] = _temporal_root
 
         # ── /000 Principal-Agent Response (forged 2026-07-01) ────────────
         _sovereign_id = sess.get("sovereign_id")
