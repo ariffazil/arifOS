@@ -264,7 +264,7 @@ wheels = [
 
 [[package]]
 name = "arifos"
-version = "1!2026.7.26"
+version = "1!2026.8.2"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
