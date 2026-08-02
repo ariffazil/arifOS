@@ -1,0 +1,47 @@
+{
+  "build_hash": "bijaksana-bridge-v1.0-2026-08-01",
+  "build_time": "2026-08-01T15:35:00Z",
+  "version": "1!2026.8.1-bijaksana-bridge-v1.0",
+  "base_version": "1!2026.7.26",
+  "repo": "ariffazil/arifOS",
+  "branch": "main",
+  "deploy_method": "888-sealed-manual-restart",
+  "sovereign_ack_token": "ACK_F13_BIJAKSANA_BRIDGE",
+  "release_name": "v2026.08.01-bijaksana",
+  "constitutional_change": {
+    "type": "F1-F13 judge.py modification",
+    "rationale": "BIJAKSANA thermodynamic bridge — 888 SEAL 2026-08-01",
+    "added": [
+      "BIJAKSANA_VERSION constant",
+      "_bijaksana_bridge_check() four-dial lens",
+      "_apply_bijaksana_advisory() helper",
+      "_LAST_BRIDGE_ADVISORY module handle",
+      "arif_judge kwargs: actor_B, actor_Phi, entropy_pathway, entropy_receipt"
+    ],
+    "load_bearing": "BRIDGE_BLOCKED → immediate HOLD (fail-closed)",
+    "advisory": "BRIDGE_RESTRAIN/PROCEED/PENDING → recorded in result meta + module handle",
+    "schema_impact": "verdict enum unchanged (no canonical extension); advisory stored in meta dict",
+    "dials": {
+      "D1_AKAL": "actor_B ∈ [0,1] — identity-mass coherence",
+      "D2_PRESENT": "actor_Phi.{buffer_charged, omega} — present-moment engagement",
+      "D3_ENERGY_ENTROPY": "entropy_pathway ∈ {open, sealed, spiraling}",
+      "D4_EXPLORATION_AMANAH": "F1 hard gates + reversibility (unchanged)"
+    }
+  },
+  "tests": {
+    "new_file": "/root/arifOS/tests/test_bijaksana_bridge.py",
+    "test_count": 12,
+    "passing": 12,
+    "regression_sweep_passing": 76,
+    "regression_failures_pre_existing_unrelated": [
+      "test_organ_forge_smoke: ImportError on arifosmcp.memory.WriteRequest",
+      "test_agi_kernel_grade: AttributeError on KernelEnvelope.session_token",
+      "test_canonical13_enforcement: CANONICAL_12 set drift"
+    ]
+  },
+  "restart_plan": {
+    "announce_seconds": 10,
+    "command": "systemctl restart arifos",
+    "verification": "/health must remain 200; /ready should expose bridge dial states"
+  }
+}
