@@ -26,7 +26,7 @@ from arifosmcp.core.threat_engine import ThreatAssessment
 
 # Al-Kahf privilege boundary constants (forged 2026-08-02)
 NIAT_HOLDER_DEFAULT: str = "F13_SOVEREIGN"  # Sovereign holds niat (intent)
-EPistemic_LABEL_KAHF: str = "INT (interpretive mapping) · PLAUSIBLE"
+EPISTEMIC_LABEL_KAHF: str = "INT (interpretive mapping) · PLAUSIBLE"
 AL_KAHF_RATIFIED_BY: str = "F13 SOVEREIGN (Muhammad Arif bin Fazil, 888)"
 AL_KAHF_RATIFIED_AT_UTC: str = "2026-08-02T09:08:00Z"
 
@@ -51,7 +51,7 @@ class AuthorityProof(BaseModel):
     sabar_mode: bool = True  # patience enforcement prevents over-questioning
     al_kahf_ratified_by: str = AL_KAHF_RATIFIED_BY
     al_kahf_ratified_at_utc: str = AL_KAHF_RATIFIED_AT_UTC
-    al_kahf_epistemic_label: str = EPistemic_LABEL_KAHF
+    al_kahf_epistemic_label: str = EPISTEMIC_LABEL_KAHF
 
 
 class AuthorityGate:
