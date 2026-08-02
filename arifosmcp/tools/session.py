@@ -100,10 +100,7 @@ def _make_init_hold(
     )
 
 
-def _compute_signature(status: str, mode: str, session_id: str, ts: float) -> str:
-    """Deterministic constitutional signature. Even HOLD responses are signed."""
-    payload = f"{DITEMPA_MOTTO}|{status}|{mode}|{session_id}|{ts:.6f}"
-    return f"sha256:{hashlib.sha256(payload.encode()).hexdigest()[:16]}"
+from arifosmcp.runtime.ditempa import compute_signature as _compute_signature
 
 
 def _probe_constitution_hash() -> tuple[bool, str]:
@@ -155,12 +152,6 @@ def _probe_constitution_hash() -> tuple[bool, str]:
     return True, (
         f"constitution_hash_intact: sealed={sealed_hash} runtime={runtime_hash} expected={expected}"
     )
-
-
-def _compute_signature(status: str, mode: str, session_id: str, ts: float) -> str:
-    """Deterministic constitutional signature. Even HOLD responses are signed."""
-    payload = f"{DITEMPA_MOTTO}|{status}|{mode}|{session_id}|{ts:.6f}"
-    return f"sha256:{hashlib.sha256(payload.encode()).hexdigest()[:16]}"
 
 
 def _ditempa_seal(manifest: SessionManifest, mode: str = "") -> SessionManifest:
