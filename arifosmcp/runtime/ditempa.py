@@ -17,7 +17,6 @@ Reversibility: git revert <sha> restores prior state.
 from __future__ import annotations
 
 import hashlib
-import time
 from typing import Any
 
 # ─── Constants (canonical, single source) ─────────────────────────────────────
