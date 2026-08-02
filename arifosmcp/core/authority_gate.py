@@ -5,6 +5,12 @@ arifOS Constitutional Kernel — Authority Gate
 Enforces L13 Sovereign Overrides and Authority Binding.
 Ensures irreversible actions require human-validated proof.
 
+Hardened 2026-08-02 (F13 SOVEREIGN directive): Al-Kahf privilege boundary.
+Added 3 enforcement fields to AuthorityProof:
+  - requires_residue_only: agent sees residue, not intent
+  - niat_holder: sovereign identity holding intent
+  - sabar_mode: patience enforcement prevents over-interrogation
+
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
@@ -17,6 +23,12 @@ from pydantic import BaseModel
 
 from arifosmcp.core.law_evaluator import FloorEvaluator
 from arifosmcp.core.threat_engine import ThreatAssessment
+
+# Al-Kahf privilege boundary constants (forged 2026-08-02)
+NIAT_HOLDER_DEFAULT: str = "F13_SOVEREIGN"  # Sovereign holds niat (intent)
+EPistemic_LABEL_KAHF: str = "INT (interpretive mapping) · PLAUSIBLE"
+AL_KAHF_RATIFIED_BY: str = "F13 SOVEREIGN (Muhammad Arif bin Fazil, 888)"
+AL_KAHF_RATIFIED_AT_UTC: str = "2026-08-02T09:08:00Z"
 
 
 class WitnessType(Enum):
@@ -31,6 +43,15 @@ class AuthorityProof(BaseModel):
     witness_type: WitnessType = WitnessType.AI
     plan_approved: bool = False
     reason: str = ""
+    # ── Al-Kahf privilege boundary (forged 2026-08-02) ───────────────────
+    # Framework reads residue, sovereign holds niat. Agent acts with sabar,
+    # not interrogation. F13 SOVEREIGN = the niat holder.
+    requires_residue_only: bool = True  # agent sees output, NOT intent
+    niat_holder: str = NIAT_HOLDER_DEFAULT
+    sabar_mode: bool = True  # patience enforcement prevents over-questioning
+    al_kahf_ratified_by: str = AL_KAHF_RATIFIED_BY
+    al_kahf_ratified_at_utc: str = AL_KAHF_RATIFIED_AT_UTC
+    al_kahf_epistemic_label: str = EPistemic_LABEL_KAHF
 
 
 class AuthorityGate:

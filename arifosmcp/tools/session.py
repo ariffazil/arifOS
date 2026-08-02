@@ -1811,6 +1811,41 @@ def arif_init(
         _light_delegation = sess.get("delegation_mode", "direct")
         _light_auth = sess.get("authority", _light_band) or "OBSERVE_ONLY"
 
+        # ── Quranic Distillation Surface (forged 2026-08-02) ──────────────
+        # Surface the Al-Fatihah binding + Ayat al-Kursi enforcement on the
+        # session header. Additive — fields are missing-safe (only present
+        # when bindings loaded successfully inside the arif_init hook).
+        if isinstance(header, dict):
+            _fatihah = sess.get("fatihah_binding")
+            _runtime_heart = sess.get("runtime_heart")
+            if _fatihah or _runtime_heart:
+                header["quranic_distillation"] = {
+                    "binding_source": "Al-Fatihah (Surah 1:1-7) + Ayat al-Kursi (2:255)",
+                    "binding_authority": _fatihah.get("binding_authority") if _fatihah else None,
+                    "binding_ts_utc": _fatihah.get("binding_ts_utc") if _fatihah else None,
+                    "epistemic_label": (
+                        _fatihah.get("epistemic_label") if _fatihah
+                        else _runtime_heart.get("epistemic_label") if _runtime_heart else None
+                    ),
+                    "fatihah_loaded": bool(_fatihah),
+                    "ayat_al_kursi_loaded": bool(_runtime_heart),
+                    "runtime_heart_fingerprint": sess.get("runtime_heart_fingerprint"),
+                    "al_fatihah_functions_bound": (
+                        [
+                            "bismillah",
+                            "mercy_dials",
+                            "maliki_yawmiddin",
+                            "iyyaka_na_budu",
+                            "ihdina_siratal_mustaqim",
+                        ]
+                        if _fatihah else []
+                    ),
+                    "ayat_al_kursi_properties_bound": (
+                        list(_runtime_heart.get("properties", {}).keys())
+                        if _runtime_heart else []
+                    ),
+                }
+
         # ── Persist session ──────────────────────────────────────────────
         # P0 MULTI-TENANT (2026-07-29): bind tenant_id to session record
         if tenant_id:
@@ -3000,6 +3035,34 @@ def arif_init(
         if intent:
             sess["birth_intent"] = intent
         sess["requested_authority"] = requested_authority
+
+        # ── Quranic Runtime Distillation Hooks (forged 2026-08-02) ────────
+        # Al-Fatihah = kernel boot ROM + security context. Each arif_init
+        # re-binds authority through the 5 boot functions (recursive per
+        # session cycle — analogous to per-rakaat re-binding).
+        # Ayat al-Kursi = liveness + permission-gate enforcement layer.
+        # All hooks idempotent, fail-soft (try/except, log + continue).
+        try:
+            from arifosmcp.constitution.fatihah_boot import fatihah_boot
+            from arifosmcp.constitution.ayat_bindings import (
+                bind_ayat_al_kursi_to_session,
+            )
+
+            # Al-Fatihah 5 boot functions (binding layer)
+            fatihah_receipt = fatihah_boot(
+                actor_id=actor_id or "anonymous",
+                session_id=sid,
+                judgment_pending_at=None,  # future-tense, bound on session expiry
+                audit_trail_ref=f"arifos://session/{sid}",
+            )
+            sess["fatihah_binding"] = fatihah_receipt
+
+            # Ayat al-Kursi 4 enforcement properties
+            sess = bind_ayat_al_kursi_to_session(sess)
+        except Exception as _quranic_exc:
+            # Fail-soft: Quranic bindings are additive metadata, must never
+            # block arif_init. Log and continue.
+            logger.warning(f"Quranic distillation hooks failed (non-blocking): {_quranic_exc}")
         if idempotency_key:
             sess["idempotency_key"] = composite_key  # use composite, not raw
         # Record call chain for audit
