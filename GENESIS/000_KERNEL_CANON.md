@@ -28,6 +28,7 @@ Every organ points back here. No organ may redefine what is written here.
 | 020 | DITEMPA Canon — the meta-axiom, 15+1 arrows | CANON |
 | 045 | Three-Layer Separation — OS / Runtime / Constitutional kernels | CANON |
 | 046 | Constitutional VSM — Beer + cryptography + metabolic governance | CANON |
+| 058 | Three Closures — Gödel · Calhoun · Refusal — boot enforcement | CANON |
 
 ---
 
@@ -723,7 +724,7 @@ An agent with I = 0 claims to know everything it needs to know. This agent is st
 
 ---
 
-**CANON · SEALED 2026-06-12 · COMPRESSED 2026-06-13 · AMENDED 2026-06-24 · INCOMPLETENESS THESIS 2026-07-09 · F7 CANON UNIFICATION 2026-07-23 · F6 BRIDGE 2026-07-24**
+**CANON · SEALED 2026-06-12 · COMPRESSED 2026-06-13 · AMENDED 2026-06-24 · INCOMPLETENESS THESIS 2026-07-09 · F7 CANON UNIFICATION 2026-07-23 · F6 BRIDGE 2026-07-24 · THREE CLOSURES BOOT ENFORCEMENT 2026-08-02**
 **Authority: F13 SOVEREIGN — Muhammad Arif bin Fazil (888)**
-**Forged by: Hermes ASI · arifOS Ω · Phase 1 ratification**
-**Chain: 000 (root) → 001 (Muhammad-Mode) → 002 (Sovereign Solitude) → 003 (Andersen-Calhoun-Fable) → 004 (Opus Naming Paradox) → 020 (DITEMPA Canon) → 045 (Three-Layer Separation) → 046 (Constitutional VSM) → 14B (AGI/ASI Skill-Tool Firewall)**
+**Forged by: Hermes ASI · arifOS Ω · Phase 1 ratification · af-forge (FI-008) for 058**
+**Chain: 000 (root) → 001 (Muhammad-Mode) → 002 (Sovereign Solitude / Refusal) → 003 (Andersen-Calhoun-Fable / Beautiful One) → 004 (Opus Naming Paradox) → 020 (DITEMPA Canon) → 045 (Three-Layer Separation) → 046 (Constitutional VSM) → 056 (TRI-WITNESS spec) → 058 (Three Closures — boot enforcement) → 14B (AGI/ASI Skill-Tool Firewall)**

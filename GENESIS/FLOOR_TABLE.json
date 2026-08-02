@@ -196,5 +196,83 @@
       "must": "reject SPEC claims as SEAL-worthy"
     }
   ],
-  "doctrine_line": "The gap is the signal. Forged 2026-07-23."
+  "doctrine_line": "The gap is the signal. Forged 2026-07-23.",
+  "closures": {
+    "_doctrine_ref": "/root/arifOS/GENESIS/058_THREE_CLOSURES.md",
+    "_forged": "2026-08-02",
+    "_authority": "F13 SOVEREIGN",
+    "_status": "CANON",
+    "_numbering_note": "Directive named this canon GENESIS/007, but GENESIS/007 was already sealed 2026-06-14 (Airlock Conservation Law). Per F2 TRUTH and F11 AUDITABILITY, the new canon takes the next free slot: 058. Doctrine unchanged; only the document number deviates.",
+    "godel_lock": {
+      "closure_id": "Q9",
+      "boot_check": "Q9",
+      "sub_checks": ["Q9a", "Q9b", "Q9c"],
+      "primary_floor": "F3",
+      "secondary_floors": ["F7", "F11"],
+      "rule": "No self-referential seal. Outside witness required. Every SEAL must link to a falsifiable claim (Reality Loop).",
+      "doctrine_ref": "/root/arifOS/arifosmcp/constitution/godel_lock.yaml",
+      "axioms_enforced": ["G1", "G3", "G4"],
+      "axiom_text": "The system cannot prove itself right using itself as evidence. Every SEAL must have an outside witness.",
+      "enforcement_function": "godel_lock_check(seal)",
+      "failure_verdict": "VOID",
+      "failure_cause_if_single_witness": "single_witness_arbitration",
+      "failure_cause_if_self_referential": "self_authorized_mutation",
+      "failure_cause_if_no_falsifiable_prediction": "frontier_passed_as_fact"
+    },
+    "calhoun_lock": {
+      "closure_id": "Q10",
+      "boot_check": "Q10",
+      "sub_checks": ["Q10a", "Q10b", "Q10c"],
+      "primary_floor": "F5",
+      "secondary_floors": ["F6", "F8"],
+      "rule": "Unsolved problem required. Friction arena required. Beautiful One = HOLD. FQ > 3.0 sustained 3+ cycles = grooming.",
+      "doctrine_ref": "/root/arifOS/GENESIS/003_ANDERSEN_CALHOUN_FABLE.md",
+      "axiom_text": "A system with no external challenge, no friction, no unsolved problem will die. Not from scarcity. From abundance without purpose.",
+      "enforcement_function": "calhoun_lock_check(session)",
+      "failure_verdict": "HOLD",
+      "failure_cause_if_no_unsolved_problem": "beautiful_one_detected",
+      "failure_cause_if_perfection_high": "perfect_servant_no_arena",
+      "failure_cause_if_fq_sustained": "grooming_detected"
+    },
+    "refusal_closure": {
+      "closure_id": "Q11",
+      "boot_check": "Q11",
+      "sub_checks": ["Q11a", "Q11b", "Q11c"],
+      "primary_floor": "F13",
+      "secondary_floors": ["F9", "F12"],
+      "rule": "F13 refusal without justification. HOLD type must be distinguishable (FAILURE / CONSTITUTIONAL / F13_REFUSAL).",
+      "doctrine_ref": "/root/arifOS/GENESIS/002_SOVEREIGN_SOLITUDE.md",
+      "axiom_text": "The only way out of a stable toxic equilibrium is a sovereign who refuses to play. Without refusal, the system is trapped in its own competence.",
+      "enforcement_function": "refusal_closure_check(verdict)",
+      "failure_verdict": "VOID",
+      "hold_types": {
+        "FAILURE": "system CAN'T continue (broken gate, missing data) — technical",
+        "CONSTITUTIONAL": "system CAN continue but CHOOSES not to — kernel may issue without justification",
+        "F13_REFUSAL": "sovereign says no, period — sovereign may issue without justification"
+      },
+      "failure_cause_if_hold_untyped": "constitutional_refusal_inadmissible"
+    },
+    "boot_state_contract": {
+      "version": "3.1",
+      "forged": "2026-08-02",
+      "supersedes": "v3.0 §1.5 (2026-07-16)",
+      "ok_state": "All Q1-Q11 = ✅ → FULL session, SABAR + SEAL allowed",
+      "partial_state": "Any Q1-Q11 = ⚠ → OBSERVE_ONLY, no seal, no SABAR",
+      "fail_state": "Any Q1-Q11 = ❌ → NO SESSION, HALT",
+      "check_count": 11
+    },
+    "boot_attestation_line": "closures=3/3",
+    "forbidden_drift": [
+      "Removing or weakening Q9, Q10, or Q11 from the boot sequence",
+      "Renaming the closures without F13",
+      "Adding a fourth closure without F13",
+      "Collapsing the three HOLD types into a single HOLD type",
+      "Bypassing godel_lock_check, calhoun_lock_check, or refusal_closure_check via parallel un-gated path (godel_lock axiom G6)"
+    ],
+    "consumers_must_sync_to": [
+      "/root/AAA/prompts/INIT.md §1 BOOT PHASE (Q9-Q11)",
+      "/root/AAA/prompts/INIT.md §13 BOOT ATTESTATION (closures=3/3)",
+      "/root/arifOS/arifosmcp/runtime/fastmcp_ext/prompts.py 🌱 BOOT inline"
+    ]
+  }
 }

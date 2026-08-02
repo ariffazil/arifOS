@@ -695,7 +695,13 @@ def _sync_authority_surfaces_from_standing(
         meta["authority_mode"] = band
 
     # Re-mint SCT from standing when weak/unverified so wire token matches law
-    if standing.session_id and standing.session_id != "anonymous":
+    # F-AUDIT-CLAUDE-2026-08-02 (Finding 4): Token MUST NOT be minted on the DENY path.
+    # The condition was `session_id != "anonymous"` — which lets unverified actors
+    # (session_id="unknown", verified=False) still get a signed SCT. Now the gate
+    # requires `verified=True` AND non-anonymous session_id. If either fails,
+    # no token is returned — the caller gets a structured HOLD with a
+    # challenge nonce for sovereign key re-attestation, not a bypass token.
+    if standing.session_id and standing.session_id != "anonymous" and verified:
         try:
             from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
 

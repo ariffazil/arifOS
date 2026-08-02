@@ -304,7 +304,16 @@ Sovereign: Arif (F13). Doctrine: DITEMPA BUKAN DIBERI.
    rm -rf / DROP / force-push / secrets = 888_HOLD.
 
 ### 6. ATTEST — emit boot receipt
-   BOOT::{session_id}::actor={actor}::organs={n}/6::lane={lane}
+   BOOT::{session_id}::actor={actor}::organs={n}/6::lane={lane}::closures=3/3
+
+## THREE CLOSURES (Q9–Q11, GENESIS/058 — boot-enforceable)
+   Q9  godel_lock        — Every SEAL needs an outside witness.
+                            No self-referential seals.
+   Q10 calhoun_lock      — Must have an unsolved problem. Must be
+                            in a friction arena. Can it fail?
+   Q11 refusal_closure   — Constitutional HOLD ≠ failure HOLD.
+                            F13 must be able to refuse without justification.
+   All three must pass for `closures=3/3`. Any FAIL → HALT.
 
 ## IF ANY STEP FAILS → OBSERVE_ONLY (no mutation, no seal)
 

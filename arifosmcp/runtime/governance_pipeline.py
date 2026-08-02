@@ -161,6 +161,37 @@ except ImportError:
     _ASI_FIREWALL_AVAILABLE = False
 # ──────────────────────────────────────────────────────────────────────
 
+# ── Three Closures (GENESIS/058, sealed 2026-08-02) ─────────────────────
+# Gödel Lock gate (Q9): outside witness required for SEAL-bound actions.
+try:
+    from arifosmcp.runtime.godel_lock_gate import godel_lock_gate as _godel_lock_gate
+
+    _GODEL_LOCK_GATE_AVAILABLE = True
+except ImportError:
+    _GODEL_LOCK_GATE_AVAILABLE = False
+    _godel_lock_gate = None
+
+# Calhoun anti-sink gate (Q10): friction requirement at the governance layer.
+try:
+    from arifosmcp.runtime.calhoun_anti_sink_gate import (
+        calhoun_anti_sink_gate as _calhoun_anti_sink_gate,
+    )
+
+    _CALHOUN_GATE_AVAILABLE = True
+except ImportError:
+    _CALHOUN_GATE_AVAILABLE = False
+    _calhoun_anti_sink_gate = None
+
+# Reality Loop gate (Q9c): FalsifiablePrediction seam. Advisory only.
+try:
+    from arifosmcp.runtime.reality_loop import reality_loop_gate as _reality_loop_gate
+
+    _REALITY_LOOP_GATE_AVAILABLE = True
+except ImportError:
+    _REALITY_LOOP_GATE_AVAILABLE = False
+    _reality_loop_gate = None
+# ──────────────────────────────────────────────────────────────────────
+
 logger = logging.getLogger("arifosmcp.governance_pipeline")
 
 _SOVEREIGN_ALIASES = frozenset(
@@ -380,6 +411,9 @@ class Gate(StrEnum):
     Gate  3: RISK         — Does the action exceed the risk ceiling?
     Gate  4: VAULT        — Is the audit trail fresh enough?
     Gate  5: FLOORS       — Do F1-F13 constitutional floors pass?
+    Gate 5.1: GODEL_CLOSURE   — Q9 outside witness for SEAL-bound actions (GENESIS/058)
+    Gate 5.2: CALHOUN_CLOSURE — Q10 anti-sink / friction requirement (GENESIS/058)
+    Gate 5.3: REALITY_LOOP   — Q9c FalsifiablePrediction seam (advisory, GENESIS/058)
     Gate 5b: QQQ          — Is the recommendation envelope QQQ-compliant?
     Gate  6: DRIFT        — Does the tool surface match the manifest?
     Gate  7: ENVELOPE     — Is the FederationEnvelope v2 valid?
@@ -396,6 +430,9 @@ class Gate(StrEnum):
     RISK = "GATE_3_RISK"
     VAULT = "GATE_4_VAULT_LIVENESS"
     FLOORS = "GATE_5_FLOORS"
+    GODEL_CLOSURE = "GATE_5.1_GODEL_CLOSURE"  # Q9: outside witness (GENESIS/058)
+    CALHOUN_CLOSURE = "GATE_5.2_CALHOUN_CLOSURE"  # Q10: anti-sink (GENESIS/058)
+    REALITY_LOOP = "GATE_5.3_REALITY_LOOP"  # Q9c: FalsifiablePrediction (advisory, GENESIS/058)
     QQQ = "GATE_5B_QQQ"  # QQQ recommendation discipline (F2+F4+F7 operationalization)
     DRIFT = "GATE_6_DRIFT"
     ENVELOPE = "GATE_7_ENVELOPE"
@@ -573,6 +610,10 @@ class GovernancePipeline:
         drift_enabled: bool = True,
         floor_enabled: bool = True,
         envelope_enabled: bool = True,
+        # ── Three Closures (GENESIS/058 — sealed 2026-08-02) ──
+        godel_closure_enabled: bool = True,
+        calhoun_closure_enabled: bool = True,
+        reality_loop_enabled: bool = True,
         # ── Budget limits ──
         max_turns: int = 8,
         max_tool_calls: int = 12,
@@ -592,6 +633,13 @@ class GovernancePipeline:
         self.drift_enabled = drift_enabled
         self.floor_enabled = floor_enabled
         self.envelope_enabled = envelope_enabled
+
+        # Three Closures (GENESIS/058) — wires are guarded by *_AVAILABLE
+        self.godel_closure_enabled = godel_closure_enabled and _GODEL_LOCK_GATE_AVAILABLE
+        self.calhoun_closure_enabled = (
+            calhoun_closure_enabled and _CALHOUN_GATE_AVAILABLE
+        )
+        self.reality_loop_enabled = reality_loop_enabled and _REALITY_LOOP_GATE_AVAILABLE
 
         # F0_ROOTKEY Gate (Gate -2 — constitutional prerequisite)
         self.f0_rootkey_enabled = f0_rootkey_enabled and _F0_ROOTKEY_AVAILABLE
@@ -912,6 +960,88 @@ class GovernancePipeline:
             result.metadata["qqq_inadmissible"] = True
             result.metadata["qqq_compliance"] = gate.metadata.get("qqq_compliance")
             result.metadata["qqq_reasons"] = gate.reason
+
+        # Gate 5.1: GÖDEL CLOSURE (Q9 — outside witness for SEAL)
+        # GENESIS/058 §1: every SEAL must have an outside witness.
+        # SOFT-by-default; HARD-HOLD only on SEAL-bound with Φ_external < 0.50
+        # or self-certification (caller == target).
+        if self.godel_closure_enabled:
+            gate = self._gate_godel_closure(ctx)
+            result.gate_results.append(gate)
+            if not gate.passed:
+                if self.enforcement_mode == "simulate":
+                    gate = GateResult(
+                        gate=gate.gate,
+                        passed=True,
+                        reason=f"[SIMULATE] GÖDEL would have failed: {gate.reason}",
+                        latency_ms=gate.latency_ms,
+                        metadata={
+                            **gate.metadata,
+                            "enforcement_mode": "simulate",
+                            "would_have_blocked": True,
+                        },
+                    )
+                    result.gate_results[-1] = gate
+                else:
+                    result.verdict = PipelineVerdict.HOLD
+                    result.blocked_at = gate.gate
+                    result.reasons.append(gate.reason)
+                    result.violated_laws.extend(gate.metadata.get("violated_laws", ["F11"]))
+                    result.next_safe_action = (
+                        "GÖDEL_CLOSURE: provide outside witness (auditor_id) or F13 override."
+                    )
+                    result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                    self._publish_to_mesh(ctx, result)
+                    return result
+
+        # Gate 5.2: CALHOUN CLOSURE (Q10 — anti-sink / friction requirement)
+        # GENESIS/058 §1: at least one UNSOLVED problem + arena where agent CAN fail.
+        # SOFT-by-default; HARD-HOLD only on sustained pattern (3+ consecutive warnings).
+        if self.calhoun_closure_enabled:
+            gate = self._gate_calhoun_closure(ctx)
+            result.gate_results.append(gate)
+            if not gate.passed:
+                if self.enforcement_mode == "simulate":
+                    gate = GateResult(
+                        gate=gate.gate,
+                        passed=True,
+                        reason=f"[SIMULATE] CALHOUN would have failed: {gate.reason}",
+                        latency_ms=gate.latency_ms,
+                        metadata={
+                            **gate.metadata,
+                            "enforcement_mode": "simulate",
+                            "would_have_blocked": True,
+                        },
+                    )
+                    result.gate_results[-1] = gate
+                else:
+                    result.verdict = PipelineVerdict.HOLD
+                    result.blocked_at = gate.gate
+                    result.reasons.append(gate.reason)
+                    result.violated_laws.extend(gate.metadata.get("violated_laws", ["F5", "F6"]))
+                    result.next_safe_action = (
+                        "CALHOUN_CLOSURE: inject friction (unsolved problem, "
+                        "real arena) or F13 override."
+                    )
+                    result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                    self._publish_to_mesh(ctx, result)
+                    return result
+
+        # Gate 5.3: REALITY LOOP (Q9c — FalsifiablePrediction seam)
+        # GENESIS/058 §1: every SEAL linked to a falsifiable claim.
+        # ADVISORY ONLY — never blocks. Attaches prediction_id to receipt.
+        if self.reality_loop_enabled:
+            gate = self._gate_reality_loop(ctx)
+            result.gate_results.append(gate)
+            # Reality Loop is advisory — pass-through, but record prediction_id
+            # in result metadata so downstream SEAL/MCP can carry it forward.
+            reality_receipt = gate.metadata.get("reality_receipt", {})
+            if isinstance(reality_receipt, dict):
+                q9c = reality_receipt.get("q9c", {})
+                if q9c.get("prediction_id"):
+                    result.metadata["reality_prediction_id"] = q9c["prediction_id"]
+                if q9c.get("commitment_missing"):
+                    result.metadata["reality_commitment_missing"] = True
 
         # Gate 6: Drift
         if self.drift_enabled:
@@ -1816,6 +1946,129 @@ class GovernancePipeline:
                 reason=f"Floor check error: {e}",
                 latency_ms=(time.perf_counter() - t0) * 1000,
             )
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE 5.1: GÖDEL CLOSURE (Q9 — outside witness for SEAL-bound actions)
+    # ═══════════════════════════════════════════════════════════════════════
+    # GENESIS/058 §1 Q9: every SEAL must have an outside witness.
+    # Reuses arifosmcp.runtime.godel_lock_enforcement primitives.
+    # Soft-by-default (SABAR for OBSERVE/REASON); HARD-HOLD only on
+    # self-certification or Φ_external < 0.50 on SEAL-bound actions.
+    def _gate_godel_closure(self, ctx: ToolCallContext) -> GateResult:
+        t0 = time.perf_counter()
+        if not _GODEL_LOCK_GATE_AVAILABLE:
+            return GateResult(
+                gate=Gate.GODEL_CLOSURE,
+                passed=True,
+                reason="godel_lock_gate not available — soft pass (degraded mode)",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        try:
+            result = _godel_lock_gate(ctx)
+        except Exception as e:
+            logger.warning(f"Gödel closure gate error (fail-soft): {e}")
+            return GateResult(
+                gate=Gate.GODEL_CLOSURE,
+                passed=True,
+                reason=f"Gödel closure error — soft pass: {e}",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        return GateResult(
+            gate=Gate.GODEL_CLOSURE,
+            passed=result["passed"],
+            reason=f"[{result['verdict']}] {result['reason']}",
+            latency_ms=(time.perf_counter() - t0) * 1000,
+            metadata={
+                "violated_laws": result.get("violated_laws", []),
+                "phi_external": result.get("phi_external"),
+                "phi_status": result.get("phi_status"),
+                "claim_severity": result.get("claim_severity"),
+                "self_certified": result.get("self_certified"),
+                "anti_calhoun_score": result.get("anti_calhoun_score"),
+                "anti_calhoun_passed": result.get("anti_calhoun_passed"),
+                "reality_receipt": result.get("receipt", {}),
+            },
+        )
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE 5.2: CALHOUN CLOSURE (Q10 — anti-sink / friction requirement)
+    # ═══════════════════════════════════════════════════════════════════════
+    # GENESIS/058 §1 Q10: at least one UNSOLVED problem + arena where the
+    # agent CAN fail. Composes anti_calhoun_score + behavioral sink scan +
+    # FQ overheat window. Observation tools always pass (the anti-sink needs
+    # to be able to observe its own arena).
+    def _gate_calhoun_closure(self, ctx: ToolCallContext) -> GateResult:
+        t0 = time.perf_counter()
+        if not _CALHOUN_GATE_AVAILABLE:
+            return GateResult(
+                gate=Gate.CALHOUN_CLOSURE,
+                passed=True,
+                reason="calhoun_anti_sink_gate not available — soft pass (degraded mode)",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        try:
+            result = _calhoun_anti_sink_gate(ctx)
+        except Exception as e:
+            logger.warning(f"Calhoun closure gate error (fail-soft): {e}")
+            return GateResult(
+                gate=Gate.CALHOUN_CLOSURE,
+                passed=True,
+                reason=f"Calhoun closure error — soft pass: {e}",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        return GateResult(
+            gate=Gate.CALHOUN_CLOSURE,
+            passed=result["passed"],
+            reason=f"[{result['verdict']}] {result['reason']}",
+            latency_ms=(time.perf_counter() - t0) * 1000,
+            metadata={
+                "violated_laws": result.get("violated_laws", []),
+                "anti_calhoun": result.get("anti_calhoun"),
+                "behavioral_sink": result.get("behavioral_sink"),
+                "fq_window": result.get("fq_window"),
+                "warnings_count": result.get("warnings_count"),
+                "reality_receipt": result.get("receipt", {}),
+            },
+        )
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE 5.3: REALITY LOOP (Q9c — FalsifiablePrediction seam)
+    # ═══════════════════════════════════════════════════════════════════════
+    # GENESIS/058 §1 Q9c: every SEAL linked to a falsifiable claim.
+    # ADVISORY ONLY — never blocks. Attaches prediction_id to result metadata
+    # so downstream SEAL/MCP can carry it forward.
+    def _gate_reality_loop(self, ctx: ToolCallContext) -> GateResult:
+        t0 = time.perf_counter()
+        if not _REALITY_LOOP_GATE_AVAILABLE:
+            return GateResult(
+                gate=Gate.REALITY_LOOP,
+                passed=True,
+                reason="reality_loop_gate not available — soft pass (degraded mode)",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        try:
+            result = _reality_loop_gate(ctx)
+        except Exception as e:
+            logger.warning(f"Reality loop gate error (fail-soft): {e}")
+            return GateResult(
+                gate=Gate.REALITY_LOOP,
+                passed=True,
+                reason=f"Reality loop error — soft pass: {e}",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        return GateResult(
+            gate=Gate.REALITY_LOOP,
+            passed=True,  # advisory — never blocks
+            reason=f"[{result['verdict']}] {result['reason']}",
+            latency_ms=(time.perf_counter() - t0) * 1000,
+            metadata={
+                "violated_laws": [],
+                "prediction_id": result.get("prediction_id"),
+                "commitment_missing": result.get("commitment_missing"),
+                "register_receipt": result.get("register_receipt"),
+                "reality_receipt": result.get("receipt", {}),
+            },
+        )
 
     # ═══════════════════════════════════════════════════════════════════════
     # GATE 5b: QQQ RECOMMENDATION DISCIPLINE

@@ -677,10 +677,6 @@ def _project_light(
         # OPERATOR GUIDANCE
         "next_safe_action": "proceed" if not degraded else "address degraded items",
         "energy_remaining": "sufficient",
-        # Z5 REALITY ANCHOR — VPS snapshot at init (non-blocking, fail-safe)
-        "vps_snapshot": _safe_build(
-            _get_vps_snapshot, fallback={"error": "anchor_unavailable"}
-        ),
         # BACKWARD-COMPAT MINIMAL ALIASES (one source, no duplication)
         # FIX 2026-07-09 (amanah): session_birth MUST mirror real authority band.
         # Prior bug: actor_verified alone → authority_mode=SOVEREIGN / verdict=FULL
@@ -723,9 +719,7 @@ def _project_light(
             "status": "not_computed",
         },
         # Z5 REALITY ANCHOR — VPS snapshot at init (non-blocking, fail-safe)
-        "vps_snapshot": _safe_build(
-            _get_vps_snapshot, fallback={"error": "anchor_unavailable"}
-        ),
+        "vps_snapshot": _safe_build(_get_vps_snapshot, fallback={"error": "anchor_unavailable"}),
         # ── DRAFT_CONTROL_DOCTRINE: Stage 000 INIT clarity (2026-07-08) ─────────
         # Forces clarity_contract minimum on every session birth.
         "clarity_contract": {
@@ -756,8 +750,27 @@ def _project_light(
     }
 
     # ── SCT Signed Capability (sct_v1 only — never dual-mint arifos.v1) ─────
+    # F-AUDIT-CLAUDE-2026-08-02 (Finding 4): Token MUST NOT be minted on the
+    # DENY path. Previously the mint ran for any session that reached
+    # this block — including anonymous / unverified actors. Now we gate
+    # on `actor_verified` (cryptographic identity proven). If the actor
+    # is not cryptographically verified, we skip the mint and surface a
+    # challenge nonce so the caller can re-attest sovereign key.
     try:
         from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
+
+        if not actor_verified:
+            out["session_token"] = None
+            out["standing_source"] = "no_sct_unverified"
+            out["session_birth"]["session_token"] = None
+            out["session_birth"]["session_token_status"] = (
+                "DENY: actor not cryptographically verified"
+            )
+            out["sct_claims"] = None
+            raise RuntimeError(
+                "F-AUDIT-CLAUDE-2026-08-02: token not minted — actor_verified=False. "
+                "Caller must sign challenge_nonce for sovereign key re-attestation."
+            )
 
         # W3 FIX 2026-07-29: Use real shadow measurement when intent is provided.
         # Falls through to unmeasured_apex() if probe fails or intent is blank.
@@ -1549,7 +1562,13 @@ def arif_init(
             # F13 SOVEREIGN 2026-08-01: extend auto-sign path to kimi-code/FI-008
             # so the in-memory sovereign crypto flow covers the Kimi Code harness.
             # Reversible: revert session.py.bak.* + restart.
-            _is_sovereign = _actor_lower in ("arif", "888", "ariffazil", "kimi-code", "kimi-code/fi-008")
+            _is_sovereign = _actor_lower in (
+                "arif",
+                "888",
+                "ariffazil",
+                "kimi-code",
+                "kimi-code/fi-008",
+            )
             if _is_sovereign:
                 try:
                     from arifosmcp.runtime.crypto_auth import (
@@ -1644,6 +1663,8 @@ def arif_init(
                         sess["signature_verified"] = True
                         sess["verified"] = True
                         sess["actor_verified"] = True
+                        sess["verification_method"] = "session"
+                        sess["evidence_ref"] = f"session://{actor_id}/exempt"
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                         sess["authority"] = "FULL"
                         logger.info(
@@ -1710,6 +1731,8 @@ def arif_init(
                             sess["signature_verified"] = True
                             sess["verified"] = True
                             sess["actor_verified"] = True
+                            sess["verification_method"] = "session_challenge"
+                            sess["evidence_ref"] = f"session://{actor_id}/challenge_pending"
                             sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                             sess["authority"] = "FULL"
                             try:
@@ -1970,16 +1993,21 @@ def arif_init(
         if nonce and (str(nonce).startswith("sct_v1.") or str(nonce).startswith("arifos.v1.")):
             try:
                 from arifosmcp.runtime.sct import verify_sct
+
                 _claims = verify_sct(nonce, expected_actor=actor_id)
                 if _claims:
                     identity_verified = True
                     sess["signature_verified"] = True
                     sess["verified"] = True
                     sess["verification_method"] = "sct_symmetric"
-                    sess["evidence_ref"] = f"sct://{nonce.split('.', 2)[1][:16] if nonce.count('.') >= 2 else 'valid'}"
+                    sess["evidence_ref"] = (
+                        f"sct://{nonce.split('.', 2)[1][:16] if nonce.count('.') >= 2 else 'valid'}"
+                    )
                     sess["identity_verify_reason"] = "sct_symmetric_token_verified"
                     sess["actor_band"] = _claims.get("auth") or "FULL"
-                    sess["agent_class"] = "AGENT" if _claims.get("auth") != "SOVEREIGN" else "SOVEREIGN_PRINCIPAL"
+                    sess["agent_class"] = (
+                        "AGENT" if _claims.get("auth") != "SOVEREIGN" else "SOVEREIGN_PRINCIPAL"
+                    )
                     sess.setdefault("auth_context", {})
                     if isinstance(sess.get("auth_context"), dict):
                         sess["auth_context"]["verification_method"] = "sct_symmetric"
@@ -1989,6 +2017,7 @@ def arif_init(
                         from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
                             build_authority_state_for_actor,
                         )
+
                         _av_state = build_authority_state_for_actor(
                             actor_id,
                             verified=True,
@@ -3311,6 +3340,7 @@ def _get_vps_snapshot() -> dict:
     """Z5 Reality Anchor — live VPS state snapshot for init. Non-blocking."""
     try:
         from arifosmcp.core.reality_anchors import vps_snapshot
+
         return vps_snapshot()
     except Exception as e:
         return {"error": str(e)[:80]}

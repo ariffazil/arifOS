@@ -300,13 +300,23 @@ def collect_verification_telemetry() -> VerificationTelemetry:
     except ImportError:
         pass
 
-    # Check vault
+    # Check vault — canonical path: arifosmcp.apps.command_center.vault_chain
+    # 2026-08-02: Fix import path (was arifosmcp.core.vault999.verify — wrong module).
+    # The kernel's vault chain verification lives in arifosmcp.apps.command_center.
     try:
-        from arifosmcp.core.vault999.verify import (
+        from arifosmcp.apps.command_center.vault_chain import (
             verify_chain as _vault_verify_chain,
         )
 
         telemetry.vault_replay = True
+        # Actually run the chain verification
+        _chain_result = _vault_verify_chain()
+        telemetry.receipt_chain_valid = _chain_result.get("chain_physically_valid", False)
+        telemetry.last_verified_mission = (
+            f"entries={_chain_result.get('entries_checked', 0)} "
+            f"valid={_chain_result.get('chain_physically_valid')} "
+            f"anomaly={_chain_result.get('historical_anomaly')}"
+        )
     except ImportError:
         pass
 
