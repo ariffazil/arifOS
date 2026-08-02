@@ -580,3 +580,14 @@ class SessionManifest(BaseModel):
         "Fields: fingerprint (sha256[:16]), iso8601, epoch_ms, myt, dow, iso_week. "
         "Al-'Asr 103:1-3 constitutional anchor.",
     )
+    # Quranic Distillation Surface (FORGED 2026-08-02)
+    # Surfaces the Al-Fatihah boot binding + Ayat al-Kursi enforcement on
+    # every session manifest. Additive — fields missing-safe.
+    quranic_distillation: dict[str, Any] | None = Field(
+        default=None,
+        description="Quranic runtime distillation — Al-Fatihah (Surah 1:1-7) "
+        "kernel boot ROM + Ayat al-Kursi (2:255) enforcement properties. "
+        "Fields: binding_source, binding_authority, binding_ts_utc, "
+        "fatihah_loaded, ayat_al_kursi_loaded, al_fatihah_functions_bound, "
+        "ayat_al_kursi_properties_bound, runtime_heart_fingerprint.",
+    )
