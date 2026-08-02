@@ -3287,13 +3287,29 @@ def _collect_verify_telemetry() -> dict:
     except ImportError:
         pass
 
-    # Check vault verify
+    # Check vault chain integrity — canonical scope (F-004 forward chain).
+    # 2026-08-02 P1-AC: Same fix as verification_envelope.py.
+    # Epistemic rename: "intact" (integrity) not "valid" (veracity).
     try:
-        from arifosmcp.core.vault999.verify import verify_chain
+        from arifosmcp.runtime.canonical_vault_chain import (
+            verify_chain as _canonical_verify,
+        )
 
+        _cr = _canonical_verify(scope="canonical")
+        _intact = bool(_cr.verified)
         telemetry["vault_replay"] = True
-        telemetry["receipt_chain_valid"] = True
-    except ImportError:
+        telemetry["receipt_chain_intact"] = _intact
+        telemetry["receipt_chain_valid"] = _intact  # backward compat
+        telemetry["receipt_chain_detail"] = {
+            "scope": "canonical",
+            "intact": _intact,
+            "status": str(_cr.status),
+            "entries": _cr.entries,
+            "corrupt_lines": _cr.corrupt_lines,
+            "anchor_ref": "https://arif-fazil.com/000",
+            "note": "integrity only — veracity requires external replay",
+        }
+    except Exception:  # noqa: BLE001 — fail closed
         pass
 
     # Check verification envelope

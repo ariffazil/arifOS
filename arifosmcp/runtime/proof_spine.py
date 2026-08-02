@@ -239,6 +239,8 @@ def validate_summary() -> dict[str, Any]:
                 "attestation_verifier_available": tel.attestation_verifier_available,
                 "vault_replay": tel.vault_replay,
                 "receipt_chain_valid": tel.receipt_chain_valid,
+                "receipt_chain_intact": tel.receipt_chain_intact,
+                "receipt_chain_detail": tel.receipt_chain_detail,
                 "substrate_gate": tel.substrate_gate,
             }
         )
