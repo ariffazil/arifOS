@@ -1148,7 +1148,7 @@ def arif_observe(
                     {
                         "query": query,
                         "results": [],
-                        "source": "fallback_stub",
+                        "source": "reality_handler_unavailable",
                         "verdict": "SABAR",
                         "omega_0": 0.04,
                         "partition": "ONLINE",
@@ -1245,22 +1245,56 @@ def arif_observe(
             )
 
     if mode == "atlas":
+        # Forged 2026-08-02: honest empty-state. Previously returned an empty
+        # map silently (no source marker). Now tags the result as
+        # 'unavailable' so callers can distinguish "no data" from "not yet
+        # implemented". A real vector atlas would query Qdrant — pending.
         return _ok(
             "arif_observe",
             {
                 "map": {},
                 "layers": layers or [],
                 "partition": partition_mode,
+                "source": "atlas_unavailable_pending_qdrant",
+                "note": (
+                    "Structural layer atlas pending Qdrant integration. "
+                    "Returning honest empty state, not fake data."
+                ),
             },
         )
     if mode == "entropy_dS":
-        ds = random.uniform(-0.1, 0.1)
+        # Forged 2026-08-02: real Shannon entropy from /proc/loadavg,
+        # not random.uniform placeholder. Samples system activity and
+        # computes entropy of the load distribution.
+        import math as _math
+        _samples: list[float] = []
+        try:
+            with open("/proc/loadavg") as _f:
+                _parts = _f.read().strip().split()
+                # load_1m, load_5m, load_15m — three samples of system load
+                _samples = [float(_parts[0]), float(_parts[1]), float(_parts[2])]
+        except (OSError, ValueError, IndexError):
+            _samples = []
+        if not _samples or sum(_samples) == 0:
+            # No signal — return 0 with explicit source marker.
+            ds = 0.0
+            _source = "entropy_dS_no_signal"
+        else:
+            # Shannon entropy on normalized load distribution.
+            _total = sum(_samples)
+            _probs = [s / _total for s in _samples if s > 0]
+            if len(_probs) > 1:
+                ds = -sum(p * _math.log2(p) for p in _probs)
+            else:
+                ds = 0.0
+            _source = "entropy_dS_from_loadavg"
         return _ok(
             "arif_observe",
             {
                 "delta_S": round(ds, 6),
                 "trend": "stable",
                 "partition": partition_mode,
+                "source": _source,
             },
         )
     if mode == "vitals":
