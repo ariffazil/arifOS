@@ -845,9 +845,7 @@ def _bijaksana_bridge_check(
             )
         else:
             dial_states["dial_2_present"] = "ready"
-            reasons.append(
-                f"D2 PRESENT: buffer charged, omega={omega} — present moment engaged"
-            )
+            reasons.append(f"D2 PRESENT: buffer charged, omega={omega} — present moment engaged")
 
     # ── Dial 3 · ENERGY-ENTROPY → entropy_pathway ───────────────────────────
     valid_pathways = {"open", "sealed", "spiraling"}
@@ -856,9 +854,7 @@ def _bijaksana_bridge_check(
         reasons.append("D3 ENERGY-S: entropy_pathway not supplied — ΔS pathway unmeasured")
     elif entropy_pathway not in valid_pathways:
         dial_states["dial_3_entropy_pathway"] = "invalid"
-        reasons.append(
-            f"D3 ENERGY-S: pathway='{entropy_pathway}' not in {valid_pathways}"
-        )
+        reasons.append(f"D3 ENERGY-S: pathway='{entropy_pathway}' not in {valid_pathways}")
     elif entropy_pathway == "sealed":
         dial_states["dial_3_entropy_pathway"] = "sealed"
         reasons.append(
@@ -905,7 +901,10 @@ def _bijaksana_bridge_check(
         elif dial_states["dial_2_present"] == "unready":
             verdict = "BRIDGE_RESTRAIN"
             sabar_kind = "restraint"
-        elif dial_states["dial_1_akal"] == "absent" and dial_states["dial_3_entropy_pathway"] == "absent":
+        elif (
+            dial_states["dial_1_akal"] == "absent"
+            and dial_states["dial_3_entropy_pathway"] == "absent"
+        ):
             verdict = "BRIDGE_PENDING"
 
     # Constitutional hash — anchors dials + verdict + entropy_receipt for audit
@@ -1200,6 +1199,41 @@ async def arif_judge(
                 )
 
     """
+    # ── APEX COLLAPSE TRIGGER AUTO-COMPUTE (Phase 1, 2026-08-02) ───────────────
+    # If four-dial params (actor_B, actor_Phi, entropy_pathway, entropy_receipt)
+    # are not explicitly provided, auto-compute them from the candidate text using
+    # the collapse trigger. Phase 1: observe-only, never blocks. Phase 2: gates
+    # enforcement when COLLAPSE_TRIGGER_ENFORCE=True.
+    # F1: fail-soft — collapse trigger failure never blocks arif_judge.
+    if actor_B is None and candidate and str(candidate).strip():
+        try:
+            from arifosmcp.core.apex_collapse_trigger import collapse_json
+
+            _collapse_result = collapse_json(
+                intent=str(candidate)[:200],
+                tool_name="arif_judge",
+                has_recent_observation=True,
+                has_evidence=bool(evidence),
+                session_id=session_id or "",
+                actor_id=actor_id or "unknown",
+            )
+            actor_B = _collapse_result.get("B_phi")
+            actor_Phi = {
+                "phi": _collapse_result["dials"].get("phi", 0.0),
+                "c_dark": _collapse_result.get("c_dark", 0.0),
+                "omega_0": _collapse_result.get("omega_0", 0.04),
+                "gradient": _collapse_result.get("gradient", 0.0),
+            }
+            entropy_pathway = _collapse_result.get("verdict", "SEAL")
+            entropy_receipt = {
+                "receipt_hash": _collapse_result.get("receipt_hash", ""),
+                "dials": _collapse_result.get("dials", {}),
+                "phase": _collapse_result.get("phase", "OBSERVE_ONLY"),
+                "enforce": _collapse_result.get("enforce", False),
+            }
+        except Exception:
+            pass  # fail-soft: collapse trigger never blocks arif_judge
+
     # ── BIJAKSANA THERMODYNAMIC BRIDGE (888 SEAL 2026-08-01) ─────────────────
     # Four-dial lens runs AFTER hard gates (so identity is established) but BEFORE
     # the main reasoning loop (so its advisory can shape downstream verdict).
@@ -1257,30 +1291,73 @@ async def arif_judge(
                 ArifOSMetabolism,
                 Gate as ClsGate,
             )
+
             _cand_str = str(candidate).lower().strip()
-            _touches_secret = any(kw in _cand_str for kw in [
-                "secret", "env", "token", "key", "password", "auth", "kunci-mas",
-            ])
-            _disables_safeguard = any(kw in _cand_str for kw in [
-                "rm -rf", "drop table", "drop database", "git push --force",
-                "format", "partition", "bypass", "disable", "vault999",
-            ])
-            if _disables_safeguard or any(kw in _cand_str for kw in [
-                "rm -rf", "drop", "delete", "destroy", "format",
-            ]):
+            _touches_secret = any(
+                kw in _cand_str
+                for kw in [
+                    "secret",
+                    "env",
+                    "token",
+                    "key",
+                    "password",
+                    "auth",
+                    "kunci-mas",
+                ]
+            )
+            _disables_safeguard = any(
+                kw in _cand_str
+                for kw in [
+                    "rm -rf",
+                    "drop table",
+                    "drop database",
+                    "git push --force",
+                    "format",
+                    "partition",
+                    "bypass",
+                    "disable",
+                    "vault999",
+                ]
+            )
+            if _disables_safeguard or any(
+                kw in _cand_str
+                for kw in [
+                    "rm -rf",
+                    "drop",
+                    "delete",
+                    "destroy",
+                    "format",
+                ]
+            ):
                 _act_cls = ClsActionClass.ATOMIC
                 _rev_val = 0.0
                 _blast_val = 1.0
-            elif any(kw in _cand_str for kw in [
-                "write", "modify", "update", "create", "restart",
-                "systemctl", "deploy", "commit",
-            ]):
+            elif any(
+                kw in _cand_str
+                for kw in [
+                    "write",
+                    "modify",
+                    "update",
+                    "create",
+                    "restart",
+                    "systemctl",
+                    "deploy",
+                    "commit",
+                ]
+            ):
                 _act_cls = ClsActionClass.MUTATE
                 _rev_val = 0.5
                 _blast_val = 0.5
-            elif any(kw in _cand_str for kw in [
-                "plan", "prepare", "test", "lint", "audit",
-            ]):
+            elif any(
+                kw in _cand_str
+                for kw in [
+                    "plan",
+                    "prepare",
+                    "test",
+                    "lint",
+                    "audit",
+                ]
+            ):
                 _act_cls = ClsActionClass.PREPARE
                 _rev_val = 0.8
                 _blast_val = 0.2
@@ -1347,11 +1424,11 @@ async def arif_judge(
         # ── T1 marker: verify execution path (wrapped so a ValueError on
         # invalid verdict string doesn't break the canonical composer below)
         try:
-            if hasattr(out, 'model_copy'):
+            if hasattr(out, "model_copy"):
                 # Use a VALID VerdictCode value as the marker — 'HOLD' is the
                 # safe default. The marker exists only to confirm the path ran;
                 # downstream composer will overwrite verdict canonically.
-                _marker_out = out.model_copy(update={'verdict': 'HOLD'})
+                _marker_out = out.model_copy(update={"verdict": "HOLD"})
                 # If we got here, the path is reachable — log marker.
                 logger.debug("T1 _echo_standing marker fired")
                 # Don't actually replace out — let downstream composer decide.
@@ -1379,6 +1456,7 @@ async def arif_judge(
                 from arifosmcp.runtime.__advisory__.arif_action_classifier import (
                     Gate as ClsGateOV,
                 )
+
                 _cg = _cls_verdict_for_override.gate
                 _cm = _cls_verdict_for_override.may_execute
                 if _cg == ClsGateOV.ALLOW and _cm:
@@ -1399,9 +1477,7 @@ async def arif_judge(
                 out = out.model_copy(update={"verdict": "HOLD"})
             except Exception:
                 pass
-            logger.warning(
-                "T1 classifier override forced fail-closed HOLD: %s", _ovr_exc
-            )
+            logger.warning("T1 classifier override forced fail-closed HOLD: %s", _ovr_exc)
 
         # ── T2: Canonical composer — produce the four-field envelope ──
         # The canonical composer (verdict.py:compose_effective_verdict) maps the
@@ -1414,27 +1490,27 @@ async def arif_judge(
                 compose_effective_verdict,
                 verdict_to_envelope,
             )
+
             _canonical = compose_effective_verdict(
                 inner_verdict=str(getattr(out, "verdict", "OBSERVE_ONLY") or "OBSERVE_ONLY"),
                 session_authority_band=(
-                    "SOVEREIGN" if _standing_actor_verified
-                    else "OBSERVE_ONLY"
+                    "SOVEREIGN" if _standing_actor_verified else "OBSERVE_ONLY"
                 ),
                 drift=[],
             )
             _envelope = verdict_to_envelope(_canonical)
             # Merge the four canonical fields into the response payload.
-            out = out.model_copy(update={
-                "status": _envelope["status"],
-                "effective_verdict": _envelope["effective_verdict"],
-                "reason_code": _envelope["reason_code"],
-                "next_action": _envelope["next_action"],
-            })
+            out = out.model_copy(
+                update={
+                    "status": _envelope["status"],
+                    "effective_verdict": _envelope["effective_verdict"],
+                    "reason_code": _envelope["reason_code"],
+                    "next_action": _envelope["next_action"],
+                }
+            )
         except Exception as _cmp_exc:
             # Fail-closed: never let the composer crash the worker.
-            logger.warning(
-                "T2 canonical composer forced fail-closed fallback: %s", _cmp_exc
-            )
+            logger.warning("T2 canonical composer forced fail-closed fallback: %s", _cmp_exc)
 
         if not _standing_token:
             # Still inject status even without token
@@ -1458,7 +1534,9 @@ async def arif_judge(
         data["canonical_verdict"] = data.get("effective_verdict") or str(data.get("verdict", ""))
         verdict_str = str(data.get("verdict", ""))
         if not data.get("status"):
-            data["status"] = data.get("effective_verdict") or _STABLE_VERDICT_TO_STATUS.get(verdict_str, "pending")
+            data["status"] = data.get("effective_verdict") or _STABLE_VERDICT_TO_STATUS.get(
+                verdict_str, "pending"
+            )
         res = data.get("result")
         if isinstance(res, dict):
             res.setdefault("session_token_ref", f"sct_ref:{token_ref}")
