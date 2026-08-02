@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "1!2026.7.26"
+version = "1!2026.8.2"
 
 # 2026.06.19 — Packaging Unification (FORGE SEAL)
 #   Package rename: arifosmcp → arifos (MCP is transport, not identity)
