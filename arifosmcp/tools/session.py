@@ -1453,6 +1453,24 @@ def arif_init(
         sid = sess.get("session_id", "UNKNOWN")
         model_key = declared_model_key or "unknown"
 
+        # ── Quranic Runtime Distillation Hooks (forged 2026-08-02) ────────
+        # Light mode is the canonical init path — bind Fatihah + Ayat
+        # al-Kursi here so every agent session carries the anchor. Fail-soft.
+        try:
+            from arifosmcp.constitution.fatihah_boot import fatihah_boot
+            from arifosmcp.constitution.ayat_bindings import (
+                bind_ayat_al_kursi_to_session,
+            )
+
+            sess["fatihah_binding"] = fatihah_boot(
+                actor_id=actor_id or "anonymous",
+                session_id=sid,
+                audit_trail_ref=f"arifos://session/{sid}",
+            )
+            sess = bind_ayat_al_kursi_to_session(sess)
+        except Exception as _qexc:
+            logger.warning(f"Quranic hooks failed (non-blocking): {_qexc}")
+
         # ════════════════════════════════════════════════════════════════════════
         # DITEMPA 2026-06-22 — LAYERED INIT (frozen header, statics by reference)
         # Mandate: light=default for agents, statics NEVER inline.
@@ -1824,8 +1842,11 @@ def arif_init(
                     "binding_authority": _fatihah.get("binding_authority") if _fatihah else None,
                     "binding_ts_utc": _fatihah.get("binding_ts_utc") if _fatihah else None,
                     "epistemic_label": (
-                        _fatihah.get("epistemic_label") if _fatihah
-                        else _runtime_heart.get("epistemic_label") if _runtime_heart else None
+                        _fatihah.get("epistemic_label")
+                        if _fatihah
+                        else _runtime_heart.get("epistemic_label")
+                        if _runtime_heart
+                        else None
                     ),
                     "fatihah_loaded": bool(_fatihah),
                     "ayat_al_kursi_loaded": bool(_runtime_heart),
@@ -1838,11 +1859,11 @@ def arif_init(
                             "iyyaka_na_budu",
                             "ihdina_siratal_mustaqim",
                         ]
-                        if _fatihah else []
+                        if _fatihah
+                        else []
                     ),
                     "ayat_al_kursi_properties_bound": (
-                        list(_runtime_heart.get("properties", {}).keys())
-                        if _runtime_heart else []
+                        list(_runtime_heart.get("properties", {}).keys()) if _runtime_heart else []
                     ),
                 }
 
@@ -2737,6 +2758,10 @@ def arif_init(
                 entropy_delta=sess.get("entropy_delta", 0.0),
                 sealed=sess.get("sealed", False),
                 constitution_bound=True,
+                # ═══ temporal_root keystone (2026-08-02) ═══
+                # Binds session identity to genesis time. Sense→Conscience→
+                # Identity→Vessel closed. Exposed in the INIT envelope.
+                temporal_root=sess.get("temporal_root"),
                 # INIT v2.0: identity membrane fields bound from session state
                 verdict=sess.get("verdict", "OBSERVE_ONLY"),
                 authority=sess.get("authority", "OBSERVE_ONLY"),  # DEPRECATED
