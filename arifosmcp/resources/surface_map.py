@@ -32,6 +32,8 @@ SURFACE_MAP = {
             "arifos://quickstart",
             "arifos://mcp-alignment",
             "arifos://mcp/surface-map",
+            "arifos://floor/{fid}",
+            "arifos://refusal-surface",
         ],
         "a2a_agent_card": {
             "name": "arifOS Kernel",
