@@ -22,6 +22,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from arifosmcp.core.law_evaluator import FloorEvaluator
+from arifosmcp.core.niat_guard import NiatVerdict, check_niat_claim
 from arifosmcp.core.threat_engine import ThreatAssessment
 
 # Al-Kahf privilege boundary constants (forged 2026-08-02)
@@ -86,6 +87,40 @@ class AuthorityGate:
                 requires_human=True,
                 witness_type=getattr(context, "witness_type", WitnessType.AI),
                 reason="L13 SOVEREIGN: human witness required",
+            )
+
+        # ── Al-Kahf Privilege Boundary (forged 2026-08-02) ──────────────────
+        # Consult NiatClaimGuard before returning authorized=True. Any artifact
+        # that claims to know sovereign intent → CAUTION/VOID. The boundary is
+        # runtime refusal, not a declaration — checked here on every verify().
+        artifact_text = getattr(context, "artifact_text", "") or ""
+        niat_result = check_niat_claim(
+            artifact_text,
+            requires_residue_only=True,
+            sabar_mode=True,
+            niat_holder=NIAT_HOLDER_DEFAULT,
+        )
+        if niat_result.verdict == NiatVerdict.VOID:
+            return AuthorityProof(
+                authorized=False,
+                requires_human=True,
+                reason=(
+                    f"Al-Kahf boundary: VOID — claim of knowing intent "
+                    f"(pattern={niat_result.trigger_pattern!r}, "
+                    f"match={niat_result.matched_text!r})"
+                ),
+            )
+        if niat_result.verdict == NiatVerdict.CAUTION:
+            # Surface CAUTION — still authorized but flag in reason for audit.
+            return AuthorityProof(
+                authorized=True,
+                requires_human=requires_human,
+                plan_approved=plan_approved,
+                reason=(
+                    f"Al-Kahf sabar_mode: CAUTION "
+                    f"({niat_result.trigger_pattern!r}); "
+                    f"residue_only_preserved=False"
+                ),
             )
 
         return AuthorityProof(
