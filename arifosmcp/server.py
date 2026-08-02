@@ -346,6 +346,10 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         "https://outlook.office365.com",
         "https://login.microsoftonline.com",
         "https://graph.microsoft.com",
+        # OpenAI / ChatGPT — MCP plugin surface
+        "https://chatgpt.com",
+        "https://chat.openai.com",
+        "https://*.chatgpt.com",
         # Wildcard subdomains — scoped to specific domains (not *.microsoft.com)
         "https://*.office.com",
         "https://*.cloud.microsoft",
@@ -944,6 +948,7 @@ try:
                         compose_effective_verdict,
                         verdict_to_envelope,
                     )
+
                     _cv_inner = str(result.get("verdict", "OBSERVE_ONLY") or "OBSERVE_ONLY")
                     _cv_auth = "SOVEREIGN" if result.get("actor_verified") else "OBSERVE_ONLY"
                     _cv_drift = []  # drift is a separate signal
@@ -1015,6 +1020,7 @@ try:
         # is the eye that sees the verdict and may still override.
         try:
             import sys as _sys_b
+
             # Ensure runtime import is resolved
             for _p in ("/opt/arifos/app", "/root/arifOS"):
                 if _p not in _sys_b.path and __import__("os").path.isdir(_p):
@@ -1041,15 +1047,16 @@ try:
                         # V2 envelope returns a dict; result.verdict lives under
                         # result["verdict"] or result["effective_verdict"]
                         verdict_str = str(
-                            result.get("effective_verdict")
-                            or result.get("verdict")
-                            or ""
+                            result.get("effective_verdict") or result.get("verdict") or ""
                         )
                         from arifosmcp.schemas.verdict import VerdictOutput
                         from arifosmcp.models.verdicts import Verdict
+
                         # Build a VerdictOutput facade for the applier to mutate
                         facade = VerdictOutput(
-                            verdict=Verdict(verdict_str) if verdict_str in Verdict.__members__.values() else Verdict.PENDING,
+                            verdict=Verdict(verdict_str)
+                            if verdict_str in Verdict.__members__.values()
+                            else Verdict.PENDING,
                             reasons=result.get("reasons", []) or [],
                         )
                         _bijaksana_apply(facade, advisory)
