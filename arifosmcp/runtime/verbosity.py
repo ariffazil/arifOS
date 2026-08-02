@@ -197,6 +197,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         try:
             import base64 as _b64
             import json as _json
+
             _payload_b64 = _stok.split(".", 2)[1]
             _payload_b64 += "=" * (4 - len(_payload_b64) % 4)
             _claims = _json.loads(_b64.urlsafe_b64decode(_payload_b64))
@@ -270,6 +271,15 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "metacognition",
         "constitutional_check",
         "risk",
+        # 2026-08-02: External audit (Claude Opus) — minimal verbosity
+        # must not silently drop constitutional verdict fields.
+        # A lazy client reading minimal sees no DENY without these.
+        "substrate",
+        "substrate_gate",
+        "effective_verdict",
+        "canonical_verdict",
+        "receipt_state",
+        "floor_passed",
     )
     for field in _SEMANTIC_PRESERVED_FIELDS:
         value = _lookup(field)

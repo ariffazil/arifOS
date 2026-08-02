@@ -261,7 +261,7 @@ class VaultDB:
         self.pool: asyncpg.Pool | None = None
 
     async def connect(self):
-        self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=3)
+        self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=3, statement_cache_size=0)
         log.info("Connected to vault999 database")
 
     async def close(self):
@@ -276,15 +276,14 @@ class VaultDB:
         async with self.pool.acquire() as conn:
             # Acquire advisory lock to prevent concurrent writer races
             await conn.execute("SELECT pg_advisory_xact_lock(999)")
-            # Read current head with FOR UPDATE to block concurrent readers
+            # Read current chain head (ALL event types) with FOR UPDATE
             prev_row = await conn.fetchrow(
                 """SELECT id, seal_hash, chain_hash FROM vault_seals
-                   WHERE event_type = 'SOVEREIGN_SEAL' OR event_type IS NULL
                    ORDER BY epoch DESC LIMIT 1
                    FOR UPDATE"""
             )
-            # prev_seal_id is VARCHAR in DB — cast to string
-            prev_seal_id = str(prev_row["id"]) if prev_row else None
+            # prev_seal_id stores seal_hash (TEXT) — trigger matches on seal_hash
+            prev_seal_id = prev_row["seal_hash"] if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
 
             epoch_val = (
@@ -293,7 +292,8 @@ class VaultDB:
             prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
 
             seal_hash = compute_seal_hash(prev_chain_hash, req.action, epoch_val, req.payload)
-            chain_hash = compute_chain_hash(prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash)
+            # chain_hash: pass NULL — DB trigger computes SHA256(prev_chain||payload||actor)
+            chain_hash = None
 
             # Build witness with Ed25519 proof metadata
             witness = {
