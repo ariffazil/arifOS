@@ -677,6 +677,10 @@ def _project_light(
         # OPERATOR GUIDANCE
         "next_safe_action": "proceed" if not degraded else "address degraded items",
         "energy_remaining": "sufficient",
+        # Z5 REALITY ANCHOR — VPS snapshot at init (non-blocking, fail-safe)
+        "vps_snapshot": _safe_build(
+            _get_vps_snapshot, fallback={"error": "anchor_unavailable"}
+        ),
         # BACKWARD-COMPAT MINIMAL ALIASES (one source, no duplication)
         # FIX 2026-07-09 (amanah): session_birth MUST mirror real authority band.
         # Prior bug: actor_verified alone → authority_mode=SOVEREIGN / verdict=FULL
@@ -718,6 +722,10 @@ def _project_light(
             "score": None,
             "status": "not_computed",
         },
+        # Z5 REALITY ANCHOR — VPS snapshot at init (non-blocking, fail-safe)
+        "vps_snapshot": _safe_build(
+            _get_vps_snapshot, fallback={"error": "anchor_unavailable"}
+        ),
         # ── DRAFT_CONTROL_DOCTRINE: Stage 000 INIT clarity (2026-07-08) ─────────
         # Forces clarity_contract minimum on every session birth.
         "clarity_contract": {
@@ -3297,6 +3305,15 @@ arif_session_init = arif_init
 
 
 # ── Helper Builders ────────────────────────────────────────────
+
+
+def _get_vps_snapshot() -> dict:
+    """Z5 Reality Anchor — live VPS state snapshot for init. Non-blocking."""
+    try:
+        from arifosmcp.core.reality_anchors import vps_snapshot
+        return vps_snapshot()
+    except Exception as e:
+        return {"error": str(e)[:80]}
 
 
 def _build_embodiment_card() -> EmbodimentCard:

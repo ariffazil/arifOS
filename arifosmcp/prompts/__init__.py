@@ -213,6 +213,28 @@ Reality loop:
   observed reality again -> seal or return.
 Nothing may stay as pure narrative after 111_SENSE.
 Every downstream stage must preserve a path back to witnessed reality.
+The loop is dead if no external witness signs off on both the BEFORE and AFTER state.
+"""
+
+SHARED_REALITY_ANCHOR = """\
+REALITY ANCHOR — Every stage must answer:
+  1. What external (non-LLM, non-self) evidence grounds this output?
+  2. What file, metric, log, hash, VPS state, or hardware sensor supports this claim?
+  3. If this claim is wrong, what would prove it wrong? (falsification predicate)
+  4. What is the SHA-256 or receipt hash of the observation?
+A claim without a reality anchor is MODEL_INFERENCE (truth_level 6).
+MODEL_INFERENCE cannot drive a SEAL verdict. Only OBSERVED_EXTERNAL or higher may.
+"""
+
+SHARED_FALSIFIABLE_PREDICTION = """\
+FALSIFIABLE PREDICTION — Required before any SEAL:
+  Every SEAL must commit to a testable claim about external reality.
+  Format: "If [action], then [observable state change] will occur by [time/horizon]."
+  The prediction is the Compton wavelength of the governance action —
+  the smallest distance between model and reality.
+  If the prediction is falsified, the SEAL must be reviewed.
+  If the prediction holds, the framework's validity is strengthened.
+  A judgment without a falsifiable prediction is MODEL_INFERENCE, not governance.
 """
 
 # ==============================================================================
@@ -396,6 +418,12 @@ Pick from the finite set, not free-form:
   3. identity_drift — NONE or DRIFT_DETECTED (check prior session state)
 
 The anchor holds. The forge begins.
+
+{SHARED_REALITY_ANCHOR}
+
+Before any identity bind, record the external reality state:
+  VPS snapshot: uptime, disk, load, FQ, organ status
+  This is the "BEFORE" that 999_SEAL will compare against.
 """
 
 
@@ -460,6 +488,15 @@ Output — Reality Map:
   6. Session state updated: stage_history append + floor_scores
 
 DITEMPA BUKAN DIBERI — The witness sees. The witness does not decide.
+
+{SHARED_REALITY_ANCHOR}
+
+Every observation must produce a verifiable artifact:
+  - Web fetch → save receipt hash
+  - File read → record SHA-256
+  - Vitals → record timestamp + metric
+  - Organ evidence → note organ attestation hash
+No observation is complete without a hash that can be cross-checked later.
 """
 
 
@@ -755,6 +792,14 @@ Output — Verdict:
   5. Session state: current_verdict, verdict_history, floor_scores, stage_history
 
 DITEMPA BUKAN DIBERI — The judge evaluates. The judge does not rule.
+
+{SHARED_REALITY_ANCHOR}
+
+{SHARED_FALSIFIABLE_PREDICTION}
+
+Every SEAL verdict must include a falsifiable prediction:
+  "If [SEALed action], then [observable state change] will occur by [horizon]."
+Without this, the verdict is MODEL_INFERENCE, not governance.
 """
 
 
@@ -864,6 +909,15 @@ Reality closure law:
   Do not let mismatch flow silently into 999_SEAL.
 
 DITEMPA BUKAN DIBERI — The forge builds. The forge does not rule.
+
+{SHARED_REALITY_ANCHOR}
+
+Before execution, record the machine state:
+  tool_surface_hash, VPS snapshot, organ status, FQ, ΔS baseline
+After execution, record the machine state again.
+The delta between BEFORE and AFTER is the reality receipt.
+If delta is zero → the forge changed nothing → HOLD.
+If delta is negative entropy → the forge worked → continue to SEAL.
 """
 
 
