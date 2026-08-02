@@ -2676,6 +2676,7 @@ def arif_init(
 
         from arifosmcp.runtime.work_spine import create_work_contract
 
+        _temporal_root = {}  # APEX patch 2026-08-02: F1 fallback before Temporal Intelligence Keystone (line below) sets proper value
         header["temporal_root"] = _temporal_root
 
         header["work_contract"] = create_work_contract(
