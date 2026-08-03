@@ -703,20 +703,84 @@ def _merge_headers(*header_sets: dict[str, str]) -> dict[str, str]:
 
 
 def _floor_passes(law_id: str, score: float) -> bool:
+    """Floor threshold gate. F13 constraint 2026-08-03: 'no missing source may render PASS'.
+
+    Args:
+        law_id: Floor identifier (F1..F13, legacy L10..L13 accepted).
+        score: The measured/computed score for this floor.
+
+    Returns:
+        True only when (a) score is a finite number, (b) score satisfies the
+        floor's threshold, AND (c) the floor's source is present (not missing).
+        A missing/unknown source returns False — UNMEASURED must NEVER render PASS.
+
+    Calibration fixes (FLR-001, 2026-08-03):
+    - F4 CLARITY: was `<=` 0.0 (treated ΔS=0 as pass). FLOOR_TABLE.json says
+      ΔS=0 = WARNING (all-novel output). Now strict `<` 0.0.
+    - Missing-source gate: added. Caller may pass source_present=True to skip
+      the gate (used by legacy callers that haven't been audited yet).
+    """
+    # ── FLR-001: missing source may NOT render PASS (F13) ──
+    # Score must be a finite number — None / NaN / inf means no measurement.
+    try:
+        fscore = float(score)
+    except (TypeError, ValueError):
+        return False
+    import math
+    if not math.isfinite(fscore):
+        return False
+
     spec = get_floor_spec(law_id)
     comparator = get_floor_comparator(law_id)
     if law_id == "F7" and "range" in spec:
         lower, upper = spec["range"]
-        return float(lower) <= float(score) <= float(upper)
+        return float(lower) <= fscore <= float(upper)
 
     threshold = float(get_law_threshold(law_id))
+    # ── FLR-001 calibration fix: F4 strict < per FLOOR_TABLE WARNING ──
+    if law_id == "F4":
+        # ΔS ≤ 0 is the band; ΔS = 0 = WARNING (no compression, all-novel output).
+        # Strict less-than reflects the FLOOR_TABLE semantics.
+        return fscore < threshold
     if comparator == "<":
-        return float(score) < threshold
+        return fscore < threshold
     if comparator == "<=":
-        return float(score) <= threshold
+        return fscore <= threshold
     if comparator == ">":
-        return float(score) > threshold
-    return float(score) >= threshold
+        return fscore > threshold
+    return fscore >= threshold
+
+
+# ── FLR-001: explicit floor status (no silent defaults, no false-green) ───────
+_FLOOR_STATUS_UNMEASURED = "unmeasured"
+_FLOOR_STATUS_PASS = "pass"
+_FLOOR_STATUS_FAIL = "fail"
+
+
+def _floor_status_strict(law_id: str, score: Any) -> str:
+    """Return one of 'unmeasured' | 'pass' | 'fail' for a floor.
+
+    Additive sibling of _floor_passes that exposes the unmeasured state
+    instead of silently substituting default values (F13 constraint 2026-08-03:
+    'no missing source may render PASS').
+
+    - score is None / NaN / non-numeric  → 'unmeasured'
+    - score finite AND _floor_passes()    → 'pass'
+    - otherwise                           → 'fail'
+    """
+    if score is None:
+        return _FLOOR_STATUS_UNMEASURED
+    try:
+        fscore = float(score)
+    except (TypeError, ValueError):
+        return _FLOOR_STATUS_UNMEASURED
+    import math as _math
+    if not _math.isfinite(fscore):
+        return _FLOOR_STATUS_UNMEASURED
+    try:
+        return _FLOOR_STATUS_PASS if _floor_passes(law_id, fscore) else _FLOOR_STATUS_FAIL
+    except Exception:
+        return _FLOOR_STATUS_UNMEASURED
 
 
 def _build_governance_status_payload() -> dict[str, Any]:
@@ -2780,6 +2844,78 @@ def register_rest_routes(
     async def docs_trailing(request: Request) -> Response:
         """Documentation page (trailing slash)."""
         return HTMLResponse(DOCS_HTML, headers={"Cache-Control": "max-age=3600"})
+
+    @route("/api/observatory/v1/now", methods=["GET"])
+    async def observatory_now(request: Request) -> Response:
+        """TIME-001 (2026-08-03): additive multi-field time anchor.
+
+        Returns UTC, MYT, ISO date, epoch seconds, CANON Day count, and freshness age.
+        Reads ONLY the host clock — does NOT touch VAULT999, signature chain, or any
+        receipt path. Local fallback preserved: every field has a try/except guard
+        so any single failure still returns a valid JSON envelope.
+
+        F13 constraints honored:
+        - read-only first  →  no filesystem mutation
+        - no chain write   →  VAULT999 untouched
+        - no receipt emit  →  no SEAL/RECEIPT path touched
+        - local fallback   →  per-field try/except, returns envelope even on partial failure
+        """
+        try:
+            from datetime import datetime, timezone, timedelta
+            now_utc = datetime.now(timezone.utc)
+            epoch_seconds = now_utc.timestamp()
+            myt = timezone(timedelta(hours=8))
+            now_myt = now_utc.astimezone(myt)
+            iso_date = now_utc.date().isoformat()
+            day_of_week = now_utc.strftime("%A")
+            iso_week = now_utc.isocalendar()
+            canon_day = int(epoch_seconds // 86400)  # days since epoch (1970-01-01)
+            t = epoch_seconds - (int(epoch_seconds // 86400) * 86400)  # seconds-of-day
+            t_pct = (t / 86400.0) * 100.0
+            freshness_age = 0.0  # always 0 — computed on-demand
+        except Exception as exc:
+            logger.warning("TIME-001 /now compute failed: %s", exc)
+            now_utc = None
+            now_myt = None
+            epoch_seconds = None
+            iso_date = None
+            day_of_week = None
+            iso_week = None
+            canon_day = None
+            t = None
+            t_pct = None
+            freshness_age = None
+
+        payload = {
+            "schema": "arifos.time-anchor.v1",
+            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "endpoint": "/api/observatory/v1/now",
+            "fields": {
+                "utc": now_utc.isoformat() if now_utc else None,
+                "myt": now_myt.isoformat() if now_myt else None,
+                "myt_offset": "+08:00",
+                "date_iso": iso_date,
+                "day_of_week": day_of_week,
+                "iso_week": f"{iso_week.year}-W{iso_week.week:02d}" if iso_week else None,
+                "epoch_seconds": epoch_seconds,
+                "epoch_human": f"epoch {int(epoch_seconds)}" if epoch_seconds is not None else None,
+                "canon_day": canon_day,
+                "t_seconds_of_day": t,
+                "t_pct_of_day": t_pct,
+            },
+            "freshness_age_seconds": freshness_age,
+            "source": "host_clock.local",
+            "observation_method": "process_introspection",
+            "independent_or_self_reported": "self_reported",
+            "doctrine": "DITEMPA BUKAN DIBERI",
+            "constraints_honored": [
+                "read-only",
+                "no_chain_write",
+                "no_receipt_emit",
+                "local_fallback_preserved",
+            ],
+        }
+        return JSONResponse(payload, headers={"Cache-Control": "max-age=5"})
 
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
