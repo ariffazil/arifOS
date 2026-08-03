@@ -30,6 +30,7 @@ import json
 import logging
 
 import httpx
+import httpx2  # FastMCP 4 migration: catch httpx2 exceptions (same names, different namespace)
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger("arifosmcp.organ_proxy")
@@ -157,12 +158,12 @@ class OrganProxyMiddleware:
 
         try:
             await self._proxy(scope, receive, send, target_url, organ_name)
-        except httpx.ConnectError:
+        except (httpx.ConnectError, httpx2.ConnectError):
             logger.error("organ_proxy: %s unreachable at %s", organ_name, backend)
             await self._send_error(
                 send, 502, f"organ '{organ_name}' unreachable — service may be down"
             )
-        except httpx.TimeoutException:
+        except (httpx.TimeoutException, httpx2.TimeoutException):
             logger.error("organ_proxy: %s timed out", organ_name)
             await self._send_error(send, 504, f"organ '{organ_name}' request timed out")
         except Exception as exc:

@@ -727,6 +727,7 @@ def _floor_passes(law_id: str, score: float) -> bool:
     except (TypeError, ValueError):
         return False
     import math
+
     if not math.isfinite(fscore):
         return False
 
@@ -775,6 +776,7 @@ def _floor_status_strict(law_id: str, score: Any) -> str:
     except (TypeError, ValueError):
         return _FLOOR_STATUS_UNMEASURED
     import math as _math
+
     if not _math.isfinite(fscore):
         return _FLOOR_STATUS_UNMEASURED
     try:
@@ -2862,6 +2864,7 @@ def register_rest_routes(
         """
         try:
             from datetime import datetime, timezone, timedelta
+
             now_utc = datetime.now(timezone.utc)
             epoch_seconds = now_utc.timestamp()
             myt = timezone(timedelta(hours=8))
@@ -3960,7 +3963,7 @@ def register_rest_routes(
                         result["status"] = "degraded"
                         result["error"] = f"HTTP {r.status_code}"
 
-            except httpx.TimeoutException:
+            except (httpx.TimeoutException, httpx2.TimeoutException):
                 result["status"] = "timeout"
                 result["error"] = f"No response within {PROBE_TIMEOUT}s"
                 result["latency_ms"] = round((time.perf_counter() - start) * 1000, 2)

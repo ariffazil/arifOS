@@ -27,6 +27,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
+import httpx2  # FastMCP 4 migration
 
 logger = logging.getLogger("arifosmcp.intelligence_mesh")
 
@@ -142,7 +143,7 @@ async def probe_organ(
                 "probed_at": t0.isoformat(),
             }
 
-    except httpx.TimeoutException:
+    except (httpx.TimeoutException, httpx2.TimeoutException):
         return {
             "organ_id": organ_id,
             "alive": False,
