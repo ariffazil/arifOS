@@ -18,6 +18,7 @@ DITEMPA BUKAN DIBERI — Forged 2026-06-12 by Omega (Ω)
 from __future__ import annotations
 
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -86,6 +87,73 @@ class SessionRecord:
 # tools.py _SESSIONS (= _FileSessionStore) and token_pressure._SESSIONS.
 _HOLD_TRACKER: dict[str, SessionRecord] = {}
 
+# ── Persistent revocation store (GAP #1 fix, 2026-08-03) ──
+# Survives kernel restart. Checked before every tool call.
+import json as _json
+
+_REVOCATION_PATH = os.path.join(
+    os.environ.get("ARIFOS_STATE_DIR", "/var/lib/arifos"),
+    "revocations.jsonl",
+)
+_REVOKED_SESSIONS: set[str] = set()
+_REVOKED_ACTORS: set[str] = set()
+_FEDERATION_KILL_SWITCH: bool = False
+_KILL_SWITCH_REASON: str = ""
+
+
+def _load_revocations() -> None:
+    """Load persistent revocation state from disk."""
+    global _FEDERATION_KILL_SWITCH, _KILL_SWITCH_REASON
+    try:
+        if os.path.exists(_REVOCATION_PATH):
+            with open(_REVOCATION_PATH) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = _json.loads(line)
+                        scope = entry.get("scope", "session")
+                        if scope == "federation":
+                            _FEDERATION_KILL_SWITCH = True
+                            _KILL_SWITCH_REASON = entry.get("reason", "kill_switch")
+                        elif scope == "actor":
+                            _REVOKED_ACTORS.add(str(entry.get("target", "")))
+                        else:
+                            _REVOKED_SESSIONS.add(str(entry.get("target", "")))
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
+
+def _persist_revocation(entry: dict) -> None:
+    """Append a revocation entry to the persistent store."""
+    try:
+        os.makedirs(os.path.dirname(_REVOCATION_PATH), exist_ok=True)
+        with open(_REVOCATION_PATH, "a") as f:
+            f.write(_json.dumps(entry, default=str) + "\n")
+    except Exception as e:
+        logger.warning(f"Failed to persist revocation: {e}")
+
+
+# Load at module init
+_load_revocations()
+
+
+def is_session_revoked(session_id: str, actor_id: str = "") -> tuple[bool, str]:
+    """Check if a session or actor is revoked. Returns (revoked, reason)."""
+    if _FEDERATION_KILL_SWITCH:
+        return True, f"FEDERATION_KILL_SWITCH: {_KILL_SWITCH_REASON}"
+    if session_id in _REVOKED_SESSIONS:
+        return True, "session_revoked"
+    if actor_id and actor_id in _REVOKED_ACTORS:
+        return True, "actor_revoked"
+    # Also check in-process tracker
+    if session_id in _HOLD_TRACKER and _HOLD_TRACKER[session_id].hold_active:
+        return True, _HOLD_TRACKER[session_id].hold_reason
+    return False, ""
+
 
 def register_session(
     session_id: str, actor_id: str = "anonymous", identity_verified: bool = False
@@ -111,13 +179,66 @@ def register_session(
 
 
 def revoke_session(session_id: str, reason: str = "sovereign_revoke") -> bool:
-    """Revoke a session."""
+    """Revoke a session. Persists to disk for survival across restarts."""
     if session_id in _HOLD_TRACKER:
         _HOLD_TRACKER[session_id].hold_active = True
         _HOLD_TRACKER[session_id].hold_reason = reason
-        logger.info(f"[session_enforcer] Revoked session {session_id}: {reason}")
-        return True
-    return False
+    _REVOKED_SESSIONS.add(session_id)
+    _persist_revocation(
+        {
+            "scope": "session",
+            "target": session_id,
+            "reason": reason,
+            "ts": time.time(),
+        }
+    )
+    logger.info(f"[session_enforcer] Revoked session {session_id}: {reason}")
+    return True
+
+
+def revoke_actor(actor_id: str, reason: str = "sovereign_revoke") -> bool:
+    """Revoke all sessions for an actor. Persists to disk."""
+    _REVOKED_ACTORS.add(actor_id)
+    for sid, rec in list(_HOLD_TRACKER.items()):
+        if rec.actor_id == actor_id:
+            rec.hold_active = True
+            rec.hold_reason = reason
+    _persist_revocation(
+        {
+            "scope": "actor",
+            "target": actor_id,
+            "reason": reason,
+            "ts": time.time(),
+        }
+    )
+    logger.info(f"[session_enforcer] Revoked actor {actor_id}: {reason}")
+    return True
+
+
+def federation_kill_switch(reason: str = "sovereign_override") -> bool:
+    """F13: Force entire federation into OBSERVE_ONLY. Irreversible until cleared."""
+    global _FEDERATION_KILL_SWITCH, _KILL_SWITCH_REASON
+    _FEDERATION_KILL_SWITCH = True
+    _KILL_SWITCH_REASON = reason
+    _persist_revocation(
+        {
+            "scope": "federation",
+            "target": "*",
+            "reason": reason,
+            "ts": time.time(),
+        }
+    )
+    logger.critical(f"[session_enforcer] FEDERATION KILL SWITCH ACTIVATED: {reason}")
+    return True
+
+
+def clear_kill_switch() -> bool:
+    """F13: Clear federation kill switch. Requires F13 authority."""
+    global _FEDERATION_KILL_SWITCH, _KILL_SWITCH_REASON
+    _FEDERATION_KILL_SWITCH = False
+    _KILL_SWITCH_REASON = ""
+    logger.info("[session_enforcer] Kill switch cleared")
+    return True
 
 
 def get_session(session_id: str) -> SessionRecord | None:
