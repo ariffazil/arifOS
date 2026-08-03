@@ -1113,9 +1113,9 @@ fastavro==1.12.2 ; sys_platform != 'emscripten' \
     --hash=sha256:e367a84c9133018e0a3bc822abe78d7f1f9a6092991a0ec409468cf4ef260282 \
     --hash=sha256:f604ba83498e209fff4c7ecc5063a39421dc538dace694bc592f9f338254f3dc
     # via cohere
-fastmcp==3.4.4 \
-    --hash=sha256:378202e26ec15b23819d9a1c0d1b0ebda096bc712720532010a0b82a45c2b1df \
-    --hash=sha256:f86f208713212260068cf55c32936839eee856fefc7808e18a032f31eb0f718e
+fastmcp==3.4.5 \
+    --hash=sha256:5d3d438eb2917e63e6faf53e8cb8fe26d887ec3232f848093a4eecad7fa34861 \
+    --hash=sha256:a95f2bc876bef42e8b50f7872f24f3f2fe3b1d37408c734e8b9d9e03014b72d3
     # via
     #   arifos
     #   pydantic-ai-slim
@@ -2793,9 +2793,9 @@ openpyxl==3.1.5 \
     --hash=sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2 \
     --hash=sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050
     # via arifos
-opentelemetry-api==1.42.1 \
-    --hash=sha256:51a69edacadbc03a8950ace1c4c21099cacc538820ac2c9e36277e78cebba714 \
-    --hash=sha256:56c63bea9f77b62856be8c47600474acad853b2924b99b1687c4cb6297166716
+opentelemetry-api==1.44.0 \
+    --hash=sha256:67647e5e9566edcf421166fdf022b3537f818635daa852b289e34604dc6fb33a \
+    --hash=sha256:94b98c893a91b88657eaac1e3ba89618cdb85be6918196705354f34728b2cdef
     # via
     #   arifos
     #   chromadb
@@ -2811,67 +2811,67 @@ opentelemetry-api==1.42.1 \
     #   opentelemetry-semantic-conventions
     #   pydantic-ai-slim
     #   pydocket
-opentelemetry-exporter-otlp==1.42.1 \
-    --hash=sha256:2d9ebaed714377a67d224d46795ddcc11d2c877fa5de35fda70b6f3b010729a9 \
-    --hash=sha256:aedd54545bb0587cd45210abdc8be545af9c01413f3307786e276df1e3c83bee
+opentelemetry-exporter-otlp==1.44.0 \
+    --hash=sha256:4a498fa8d8fd8be9e8e2d175fe5524a3fe581ccffadd8509db86526a5fb97051 \
+    --hash=sha256:af1cde7c33ea8ed624bf04ac49a885730fe44c1f1ad698656e592c38f70ce106
     # via arifos
-opentelemetry-exporter-otlp-proto-common==1.42.1 \
-    --hash=sha256:04f1f01fb597c4249dfcd7f8b861c902c2102369d376d9d346ff38de4469a2ee \
-    --hash=sha256:f48d395ab815b444da118868977e9798ea354c25737d5cf39578ae894011c140
+opentelemetry-exporter-otlp-proto-common==1.44.0 \
+    --hash=sha256:9a9fe61bba73d802904bc989f1d6b4a7b1ee40f06c40e98d6f85af65aaebb694 \
+    --hash=sha256:dc87a5a5bc58f149a56d1547e4691588fa12994cdc3bc039a694ccb3375862ac
     # via
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-proto-grpc==1.42.1 \
-    --hash=sha256:0ae1177e2038b18a929b3098215243631ef91136cba26b7e2b12790ceb7e87cc \
-    --hash=sha256:975c4461f167dd8ed8857d68d3b6b25f3d272eab896f6a9470d0f5b90e2faf15
+opentelemetry-exporter-otlp-proto-grpc==1.44.0 \
+    --hash=sha256:40d1ae9e03fcc36de3cbac610cc99f35894938bff9cfd90fc4ec68bd85448463 \
+    --hash=sha256:6a1a645ea182a2f59440c51fa8301d309f3324a8f9d65f8395584b064b67ee4e
     # via
     #   chromadb
     #   opentelemetry-exporter-otlp
-opentelemetry-exporter-otlp-proto-http==1.42.1 \
-    --hash=sha256:00a16da1b312a1d6c7233d600d557c91df71125af73020f3b9a7765bd699d59d \
-    --hash=sha256:bf142a21035d7571ac3a09cb2e5639f49886f243972883cfe777ed3bf02b734d
+opentelemetry-exporter-otlp-proto-http==1.44.0 \
+    --hash=sha256:838592fce774c1c8bb7b9a0a7facbfa82e17be5a8a4e94cef10cb84ae026bae3 \
+    --hash=sha256:c633d7270ad6b57cd4cfbe8b0007a9e2e7c0cb50bd6c50fe2a7b245f721a09d8
     # via
     #   logfire
     #   opentelemetry-exporter-otlp
-opentelemetry-instrumentation==0.63b1 \
-    --hash=sha256:32368d6ae52c8de20aa790a6ad86b10a76f09956092337ae37d675773990e541 \
-    --hash=sha256:f1986716d52cc316ea5f60189098726a9071d8ecc0eee96c9ed110be08bade9c
+opentelemetry-instrumentation==0.65b0 \
+    --hash=sha256:071d9d9eced9bd6460444ec3b0c77229870ed05a881c22c84fdede58e4eed09b \
+    --hash=sha256:ea967a72b9939b5fcfdad572753b4306c59dcb99e3f382d95dae04286805e137
     # via
     #   logfire
     #   opentelemetry-instrumentation-asgi
     #   opentelemetry-instrumentation-fastapi
     #   opentelemetry-instrumentation-httpx
     #   opentelemetry-instrumentation-starlette
-opentelemetry-instrumentation-asgi==0.63b1 \
-    --hash=sha256:1a22453dfa965f14799b10a674b8acbcb897a8a75c79136060af54214cc7886e \
-    --hash=sha256:267b422416d768f3c7f4054883b41d9c3a7c943d86d20032b738c99a3dbb5862
+opentelemetry-instrumentation-asgi==0.65b0 \
+    --hash=sha256:3a845a8ebd1c4ef0d8263401e6545f5b219b2feee612090d50f578a87e71fd65 \
+    --hash=sha256:892bca67c56522ffa85a8a83cf934d7b50b3be2132e45cbee705825f0a5ba426
     # via
     #   opentelemetry-instrumentation-fastapi
     #   opentelemetry-instrumentation-starlette
-opentelemetry-instrumentation-fastapi==0.63b1 \
-    --hash=sha256:52ee2cde9a2ac094bdd45d79f85860e03a972928a2553006071fe61d94cf7281 \
-    --hash=sha256:cc42dff56c96d0a2921510c4abab2a4c2e27fe64b26dc1254727fb550df100ba
+opentelemetry-instrumentation-fastapi==0.65b0 \
+    --hash=sha256:10a3a95486036230413a58fe4fdf4a83fa6bba46918407e527476994bd92bd97 \
+    --hash=sha256:cda2610a0ec1b22d19886f33e4d861e9f5dbb886aeaa3a1263b47aff82c36943
     # via arifos
-opentelemetry-instrumentation-httpx==0.63b1 \
-    --hash=sha256:14df6e99d81be9a8cd238f6639b6fa52404c4d3ce219058fcb5dc8c0f2211f86 \
-    --hash=sha256:f41ec82f25c3abcdada621052db3e5fd648e3b43d55eec4b9c0c5d3ecb7b4ff4
+opentelemetry-instrumentation-httpx==0.65b0 \
+    --hash=sha256:400f1b78afa4ee2332b5debe58e1ed1b317913d58812c952576be76660aeadb1 \
+    --hash=sha256:4627aa9c6bb99bf4462c8b565b0ef6aeb9ffad95c6c92868be1ef7895de112ee
     # via
     #   arifos
     #   logfire
-opentelemetry-instrumentation-starlette==0.63b1 \
-    --hash=sha256:824dbcc9039b89cee24df641d02aad6132cb09c9c67c2fd6ef55955ae90252c5 \
-    --hash=sha256:e6cc1798169362d2ef000905477d145b75798d45c955b181f07622a10d3d6c37
+opentelemetry-instrumentation-starlette==0.65b0 \
+    --hash=sha256:2ec3269c684617bdaaba06ec90fc3f3bfd5e90f51dae3f62f014fd15e488a81a \
+    --hash=sha256:365539afdc4d379b54a8be9aad07989e686dadaf9c0e356400d584991a0e4c5c
     # via arifos
-opentelemetry-proto==1.42.1 \
-    --hash=sha256:c6a51e6b4f05ae63565f3a113217f3d2bfaec68f78c02d7a6c85f9010d1cfca6 \
-    --hash=sha256:dedb74cba2886c59c7789b227a7a670613025a07489040050aedff6e5c0fb43c
+opentelemetry-proto==1.44.0 \
+    --hash=sha256:898b155a0e1557afd867478fb6158e8122a46329ca0bb8dc53cc55e98f017f56 \
+    --hash=sha256:c547a79c2f8c0c515d31509154682e5921c7cfd5ca67b70e1f9266e2c3e103f3
     # via
     #   opentelemetry-exporter-otlp-proto-common
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-sdk==1.42.1 \
-    --hash=sha256:083cd4bbfaa5aa7b5a9e552430d9951219967cfb27aa61feb13a77aba1fc839d \
-    --hash=sha256:8c834e8f8c9ba4171d4ec843d0cb8a67e4c7394d3f9e9297e582cbd9456ddbf7
+opentelemetry-sdk==1.44.0 \
+    --hash=sha256:cebe7f65dc12f26ead75c6064de12fd2a9052e5060c0272d402cfa203aae123b \
+    --hash=sha256:df081c4c6bcfdb1211e3e86140376792643128a25f8d72d1d27675936e7e96ad
     # via
     #   arifos
     #   chromadb
@@ -2879,9 +2879,9 @@ opentelemetry-sdk==1.42.1 \
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
     #   xai-sdk
-opentelemetry-semantic-conventions==0.63b1 \
-    --hash=sha256:3daf963611334b365e98a57438183eb012d3bfb40b2d931a9af613476b8701a9 \
-    --hash=sha256:dfe5ef4dee82586b746f522b818ceb298d00b3d59f660042bd79404bff8d0682
+opentelemetry-semantic-conventions==0.65b0 \
+    --hash=sha256:1cacde7b0ad306f84c5ef08c3dbe1bbaf20165bba6f8bff43b670e555a086bcb \
+    --hash=sha256:f9b2b81e9d5b64f11bc952075e7e9c7fb0aab075c7fd1c46d597f1b919852d60
     # via
     #   opentelemetry-instrumentation
     #   opentelemetry-instrumentation-asgi
@@ -2889,9 +2889,9 @@ opentelemetry-semantic-conventions==0.63b1 \
     #   opentelemetry-instrumentation-httpx
     #   opentelemetry-instrumentation-starlette
     #   opentelemetry-sdk
-opentelemetry-util-http==0.63b1 \
-    --hash=sha256:6284194028c59cd439f8acfe388145069a6127f11dc077e1344a2094adacc3f8 \
-    --hash=sha256:ba1268f00922ee522dba2ae38458060f99486e7385a8056985901ca9685adfff
+opentelemetry-util-http==0.65b0 \
+    --hash=sha256:7553b606f963097cb190536dc30556cce85090692e471a422fff30ca29b04348 \
+    --hash=sha256:84f82d826978bba416ab453460ff6a7391cdc3534c93a786595e4068680016b7
     # via
     #   opentelemetry-instrumentation-asgi
     #   opentelemetry-instrumentation-fastapi
