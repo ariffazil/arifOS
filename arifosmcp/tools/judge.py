@@ -930,6 +930,96 @@ def _bijaksana_bridge_check(
     }
 
 
+# STABILIZE 2026-08-03 — bridge v1.1 wire restoration.
+# The v1.1 wire (server.py:_bijaksana_v1_1_advisory_wrap) imports this helper
+# from arifosmcp.tools.judge so it can downgrade SEAL/PARTIAL/PROVISIONAL
+# verdicts to SABAR (BRIDGE_RESTRAIN) or force HOLD (BRIDGE_BLOCKED) BEFORE
+# arif_judge returns its envelope. The function was referenced from server.py
+# since 2026-08-02 but never materialised in this module — the wire fell
+# into the except branch and silently no-op'd. test_bijaksana_bridge.py
+# (Test 9 + Test 10) depends on it; v1.1 wire re-activates BIJAKSANA
+# restraint as the post-processor the 888-SEAL on 2026-08-01 declared.
+def _apply_bijaksana_advisory(result: Any, advisory: dict[str, Any]) -> None:
+    """Apply a BIJAKSANA bridge advisory to a verdict result.
+
+    Args:
+        result: A VerdictOutput-shaped facade (or any object with .verdict,
+            .reasons, .meta attributes). The function mutates result in place.
+        advisory: The dict returned by ``_bijaksana_bridge_check`` with keys
+            ``verdict`` (one of "BRIDGE_BLOCKED" / "BRIDGE_RESTRAIN" /
+            "BRIDGE_PROCEED"), ``sabar_kind`` (str | None), ``reasons`` (list),
+            ``constitutional_hash`` (str).
+
+    Behaviour:
+        * Always records the advisory in ``result.meta["bijaksana_advisory"]``
+          with bridge_verdict + sabar_kind for downstream audit (F11).
+        * ``BRIDGE_BLOCKED`` → forces ``result.verdict = HOLD`` regardless of
+          the candidate verdict (load-bearing — must outrank SEAL).
+        * ``BRIDGE_RESTRAIN`` → downgrades SEAL/PARTIAL/PROVISIONAL → SABAR.
+          PENDING/VOID/SABAR/HOLD pass through unchanged.
+        * ``BRIDGE_PROCEED`` → no verdict change; advisory still recorded.
+
+    The function is idempotent on meta: a second call overwrites the prior
+    advisory with the latest one (last-write-wins, consistent with the
+    module-scope ``_LAST_BRIDGE_ADVISORY`` handle).
+    """
+    # Lazy import to avoid circular dep at module load
+    from arifosmcp.models.verdicts import Verdict
+
+    bridge_verdict = advisory.get("verdict", "BRIDGE_PROCEED")
+    sabar_kind = advisory.get("sabar_kind")
+    bridge_reasons = advisory.get("reasons", []) or []
+
+    # 1. Always record the advisory in meta (F11 AUDITABILITY)
+    if getattr(result, "meta", None) is None:
+        result.meta = {}
+    result.meta["bijaksana_advisory"] = {
+        "bridge_verdict": bridge_verdict,
+        "sabar_kind": sabar_kind,
+        "constitutional_hash": advisory.get("constitutional_hash"),
+        "version": advisory.get("version", BIJAKSANA_VERSION),
+    }
+
+    current_verdict = getattr(result, "verdict", None)
+    current_reasons = list(getattr(result, "reasons", []) or [])
+
+    if bridge_verdict == "BRIDGE_BLOCKED":
+        # Outrank everything: any candidate verdict becomes HOLD.
+        # load-bearing — must not let SEAL escape when AKAL floor is breached.
+        result.verdict = Verdict.HOLD
+        annotated = "BIJAKSANA BLOCKED: four-dial lens refuses SEAL — bridge holds."
+        if bridge_reasons:
+            annotated = annotated + " " + " | ".join(str(r) for r in bridge_reasons)
+        if annotated not in current_reasons:
+            current_reasons.append(annotated)
+        result.reasons = current_reasons
+
+    elif bridge_verdict == "BRIDGE_RESTRAIN":
+        # Downgrade only verdicts that would commit irreversibly.
+        # PENDING/VOID/SABAR/HOLD already carry the appropriate caution.
+        _downgrade_targets = {
+            getattr(Verdict, "SEAL", None),
+            getattr(Verdict, "PARTIAL", None),
+            getattr(Verdict, "PROVISIONAL", None),
+        }
+        _downgrade_targets.discard(None)
+        if current_verdict in _downgrade_targets:
+            result.verdict = Verdict.SABAR
+            annotated = (
+                f"BIJAKSANA RESTRAIN: {current_verdict.value} → SABAR "
+                f"(sabar_kind={sabar_kind or 'restraint'}). "
+                "The framework refuses to seal when the bridge says restraint. "
+                "The sovereign still decides."
+            )
+            if bridge_reasons:
+                annotated = annotated + " " + " | ".join(str(r) for r in bridge_reasons)
+            if annotated not in current_reasons:
+                current_reasons.append(annotated)
+            result.reasons = current_reasons
+        # else: candidate verdict already carries sufficient caution — pass through
+    # else: BRIDGE_PROCEED → advisory recorded, verdict untouched
+
+
 async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,
