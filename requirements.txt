@@ -720,9 +720,9 @@ cloudpickle==3.1.2 \
     # via
     #   pydocket
     #   pymc
-cohere==7.0.4 ; sys_platform != 'emscripten' \
-    --hash=sha256:23dfaa0790940174363dede0c646765e5a5ade3fe3d2415b19933df3d535e889 \
-    --hash=sha256:35b6a397d35ae6eafa1a02921f42c2a98309a990874533e5238efaf3426b6a21
+cohere==7.0.8 ; sys_platform != 'emscripten' \
+    --hash=sha256:5d9986b9b13cfe5590021474540648ff3c9e9ce4bfddc3d7f8e31acf1898c4d7 \
+    --hash=sha256:a4fe9b9e148cb277ee152009d3566434b055db9d41fc7433abda78add22632ab
     # via pydantic-ai-slim
 colorama==0.4.6 ; os_name == 'nt' or sys_platform == 'win32' \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
