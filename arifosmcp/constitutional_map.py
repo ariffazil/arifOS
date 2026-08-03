@@ -80,6 +80,7 @@ class ToolStage(StrEnum):
       - REPLY = "888" DEPRECATED (legacy compose, absorbed into FORGE_EXECUTE)
       See docs/sovereign/D1-D6-receipts-20260731.md §D5 for evidence.
     """
+
     INIT = "000"  # Session bootstrap (absorbed: canary, triage)
     OBSERVE = "111"  # Reality sensing (absorbed: fetch)
     REASON = "333"  # Cognitive reasoning
@@ -957,6 +958,55 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F8: measured intelligence is not useful intelligence."
         ),
         "cognitive_axis": "vitality",
+    },
+    "arif_stage": {
+        "name": "arif_stage",
+        "description": (
+            "KERNEL STAGE: Pre-seal staging buffer. Agent proposes a payload; kernel "
+            "hash-locks it and returns a stg_hash for sovereign review. 888-APEX Option A "
+            "(Decoupled Staging Protocol). Agents can PROPOSE, cannot COMMIT."
+        ),
+        "access": "authenticated",
+        "stage": ToolStage.FORGE_EXECUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L11_AUDIT],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["stage", "verify", "list"],
+        "eureka_insight": (
+            "F1: staging is reversible (auto-expires 24h). F2: hash-locked payload "
+            "prevents tampering. Agent proposes; sovereign commits. Fixes SCT authority "
+            "gap identified in session SEAL-7cd7f18462234116."
+        ),
+        "cognitive_axis": "prepare",
+        "expose": True,
+    },
+    "arif_commit": {
+        "name": "arif_commit",
+        "description": (
+            "KERNEL COMMIT: Sovereign-only authorization gate. Commits a staged proposal "
+            "(from arif_stage) to VAULT999. Requires SOVEREIGN authority. Invariant: "
+            "commit caller MUST NOT be the staging agent (F1 AMANAH enforcement)."
+        ),
+        "access": "authenticated",
+        "stage": ToolStage.FORGE_EXECUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [
+            Law.L01_AMANAH,
+            Law.L02_TRUTH,
+            Law.L03_WITNESS,
+            Law.L11_AUDIT,
+            Law.L13_SOVEREIGN,
+        ],
+        "risk_tier": "critical",
+        "irreversible": True,
+        "modes": ["commit", "verify"],
+        "eureka_insight": (
+            "F13: ONLY sovereign can commit. F1: absolute invariant — agent cannot "
+            "commit its own staging. Fixes SCT authority gap — sovereign signal bridge."
+        ),
+        "cognitive_axis": "execute",
+        "expose": True,
         "expose": False,
     },
     # ── Entropy Integrity Mesh — public wire (v2026.07.12) ──────────

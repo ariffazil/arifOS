@@ -22696,6 +22696,8 @@ async def _arif_act(
 
 
 from arifosmcp.tools.judge import arif_judge as arif_judge_facade
+from arifosmcp.tools.stage import arif_stage as _arif_stage_handler  # 888-APEX Option A
+from arifosmcp.tools.commit import arif_commit as _arif_commit_handler  # 888-APEX Option A
 
 
 _CANONICAL_HANDLERS: dict[str, Any] = {
@@ -22735,6 +22737,9 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge_deliberate": _arif_judge_deliberate_tool,
     "arif_vault_seal": _arif_vault_seal_tool,
     "arif_mind_reason": _arif_mind_reason_tool,
+    # ── Staging protocol (888-APEX Option A, 2026-08-03) ──────────
+    "arif_stage": _arif_stage_handler,
+    "arif_commit": _arif_commit_handler,
 }
 
 # ── Backward-compat internal aliases (Rule 14 mode-first naming migration) ──
