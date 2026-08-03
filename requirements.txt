@@ -3971,9 +3971,9 @@ pydantic-settings==2.14.2 \
     #   chromadb
     #   fastmcp-slim
     #   mcp
-pydocket==0.21.1 \
-    --hash=sha256:79d19d5f3be29caa23eba95226a516f8b2aed3ba1ad7830095fdce59f49b51f7 \
-    --hash=sha256:7f3b12c307488efbfde96f76dac533babf5dff4ce72dc0a108a49de03ab39564
+pydocket==0.23.1 \
+    --hash=sha256:136c1cc8b7aa7c4c08ea12431e966ae75eb093bb6ce6e0ac9db3391ba3d6034b \
+    --hash=sha256:3da279978fd0d07eb96d4119e1a213de61d6b4acd1792a28bc62e67f3e7e5929
     # via fastmcp-slim
 pyee==13.0.1 \
     --hash=sha256:0b931f7c14535667ed4c7e0d531716368715e860b988770fc7eb8578d1f67fc8 \
