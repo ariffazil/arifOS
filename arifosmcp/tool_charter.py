@@ -28,6 +28,8 @@ CANONICAL_ORDER: list[str] = [
     "arif_gateway_connect",
     "arif_measure",
     "arif_judge",
+    "arif_stage",
+    "arif_commit",
     "arif_seal",
     "arif_forge",
 ]
@@ -1205,6 +1207,163 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "writes_memory": False,
             "writes_immutable_record": False,
             "contains_sensitive_data_possible": False,
+            "redaction_required": False,
+        },
+    },
+    # ── STAGE / COMMIT — Staging Protocol (888-APEX Option A, 2026-08-03) ─────
+    "arif_stage": {
+        "eureka_insight": "The Agent proposes; the Sovereign disposes. Separating proposal from authorization prevents self-certifying authority (F1 AMANAH). Hash-locked staging makes the boundary cryptographic, not rhetorical.",
+        "stage_code": "S1",
+        "stage_name": "STAGE",
+        "purpose": [
+            "Stage a proposal for sovereign review. Agent PROPOSES; cannot COMMIT.",
+            "Hash-locks the payload — any modification changes the hash.",
+            "Auto-expires after TTL (default 24h) — F1 reversible by design.",
+        ],
+        "use_when": [
+            "Agent has prepared a VAULT999 seal payload.",
+            "The action requires F13 sovereign authorization.",
+            "A seal attempt via arif_seal returns HOLD due to SCT authority gap.",
+        ],
+        "do_not_use_when": [
+            "The agent has SOVEREIGN authority (use arif_seal directly).",
+            "The payload is empty or unverified.",
+        ],
+        "modes": {
+            "stage": {
+                "purpose": "Stage a proposal. Returns stg_hash.",
+                "returns": ["stg_hash", "expires_at"],
+            },
+            "verify": {
+                "purpose": "Check staging status for a session.",
+                "returns": ["staged_entries"],
+            },
+            "list": {
+                "purpose": "List all active staged proposals.",
+                "returns": ["active_proposals"],
+            },
+        },
+        "inputs": {
+            "mode": {
+                "type": "string",
+                "allowed_values": ["stage", "verify", "list"],
+                "default": "stage",
+            },
+            "payload": {"type": "string", "meaning": "Seal payload content."},
+            "session_token": {
+                "type": "string",
+                "meaning": "Agent's SCT (verified for staging, NOT for commit).",
+            },
+        },
+        "outputs": {
+            "stg_hash": {
+                "meaning": "Cryptographic hash of the staged proposal. Share with sovereign for arif_commit."
+            },
+            "expires_at": {"meaning": "Unix timestamp when the staging auto-expires."},
+        },
+        "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
+        "state": {"requires_session_id": True, "recommended_session_id": True},
+        "next_recommended_tools": ["arif_commit"],
+        "authority_boundary": {
+            "may": ["stage", "verify", "list"],
+            "may_not": ["commit", "seal", "modify_vault"],
+        },
+        "examples": {
+            "good": [
+                {
+                    "user_intent": "Prepare a research synthesis for sovereign seal",
+                    "call": {"tool": "arif_stage", "args": {"mode": "stage", "payload": "..."}},
+                }
+            ],
+            "bad": [
+                {
+                    "user_intent": "Seal directly without sovereign review",
+                    "reason_not_to_call": "arif_stage prepares; arif_commit (sovereign-only) executes the seal.",
+                }
+            ],
+        },
+        "privacy_scope": {
+            "reads_memory": False,
+            "writes_memory": True,
+            "writes_immutable_record": False,
+            "contains_sensitive_data_possible": True,
+            "redaction_required": False,
+        },
+    },
+    "arif_commit": {
+        "eureka_insight": "Only the Sovereign may seal. The kernel verifies the caller, not the agent's SCT. Authority is proven by execution context, not claimed by parameter.",
+        "stage_code": "S2",
+        "stage_name": "COMMIT",
+        "purpose": [
+            "Sovereign-only authorization gate. Commits a staged proposal to VAULT999.",
+            "Verifies sovereign identity via execution context (TTY, SSH, cockpit, signed nonce).",
+            "Invariant: commit caller MUST NOT be the staging agent (F1 enforcement).",
+        ],
+        "use_when": [
+            "A staged proposal awaits sovereign authorization (has valid stg_hash).",
+            "The caller has SOVEREIGN authority (proven, not claimed).",
+        ],
+        "do_not_use_when": [
+            "The caller is the same agent that staged the proposal (F1 VIOLATION).",
+            "The stg_hash is not found or has expired.",
+            "ack_irreversible is not explicitly set to True.",
+        ],
+        "modes": {
+            "commit": {
+                "purpose": "Execute the sovereign seal. IRREVERSIBLE.",
+                "returns": ["vault_entry_id", "chain_hash"],
+            },
+            "verify": {
+                "purpose": "Check staging status before committing.",
+                "returns": ["status", "expired"],
+            },
+        },
+        "inputs": {
+            "mode": {"type": "string", "allowed_values": ["commit", "verify"], "default": "commit"},
+            "stg_hash": {"type": "string", "meaning": "Hash returned by arif_stage."},
+            "ack_irreversible": {
+                "type": "boolean",
+                "meaning": "Explicit acknowledgment of irreversible VAULT999 append.",
+            },
+            "auth_type": {
+                "type": "string",
+                "allowed_values": ["terminal", "ssh_key", "cockpit", "signed_token"],
+                "meaning": "How sovereign identity is proven.",
+            },
+        },
+        "outputs": {
+            "vault_entry_id": {"meaning": "ID of the newly created VAULT999 entry."},
+            "stg_hash": {"meaning": "The committed staging hash."},
+        },
+        "risk": {"tier": "critical", "irreversible": True, "requires_human_ack": True},
+        "state": {"requires_session_id": True, "recommended_session_id": True},
+        "next_recommended_tools": ["arif_seal"],
+        "authority_boundary": {
+            "may": ["commit", "verify"],
+            "may_not": ["stage", "unseal", "modify_staged"],
+        },
+        "examples": {
+            "good": [
+                {
+                    "user_intent": "Authorize a staged research synthesis for immutable seal",
+                    "call": {
+                        "tool": "arif_commit",
+                        "args": {"mode": "commit", "stg_hash": "...", "ack_irreversible": True},
+                    },
+                }
+            ],
+            "bad": [
+                {
+                    "user_intent": "Commit from the same agent session that staged",
+                    "reason_not_to_call": "F1 AMANAH VIOLATION. Agent cannot commit its own staging.",
+                }
+            ],
+        },
+        "privacy_scope": {
+            "reads_memory": True,
+            "writes_memory": True,
+            "writes_immutable_record": True,
+            "contains_sensitive_data_possible": True,
             "redaction_required": False,
         },
     },

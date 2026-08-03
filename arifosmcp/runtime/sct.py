@@ -65,6 +65,7 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_judge",
         "arif_forge",
         "arif_seal",  # safe modes OBSERVE; mode=seal still L6 HOLD without FULL
+        "arif_stage",  # agents can PROPOSE, cannot COMMIT
     ],
     "FULL": [
         "arif_init",
@@ -75,6 +76,8 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_judge",
         "arif_forge",
         "arif_seal",
+        "arif_stage",
+        "arif_commit",
     ],
     "SOVEREIGN": [
         "arif_init",
@@ -85,6 +88,8 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_judge",
         "arif_forge",
         "arif_seal",
+        "arif_stage",
+        "arif_commit",
     ],
 }
 
@@ -421,7 +426,9 @@ def _b64url_decode(s: str) -> bytes:
 
 
 def _sign(payload_b64: str) -> str:
-    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()[:16]
+    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()[
+        :16
+    ]
 
 
 def mint_sct(
