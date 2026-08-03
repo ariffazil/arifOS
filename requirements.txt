@@ -1302,9 +1302,9 @@ fsspec==2026.4.0 \
     # via
     #   huggingface-hub
     #   torch
-gast==0.6.0 ; sys_platform == 'darwin' \
-    --hash=sha256:52b182313f7330389f72b069ba00f174cfe2a06411099547288839c6cbafbd54 \
-    --hash=sha256:88fc5300d32c7ac6ca7b515310862f71e6fdf2c029bbec7c66c0f5dd47b6b1fb
+gast==0.7.0 ; sys_platform == 'darwin' \
+    --hash=sha256:0bb14cd1b806722e91ddbab6fb86bba148c22b40e7ff11e248974e04c8adfdae \
+    --hash=sha256:99cbf1365633a74099f69c59bd650476b96baa5ef196fec88032b00b31ba36f7
     # via
     #   beniget
     #   pythran
