@@ -1,0 +1,22 @@
+[Unit]
+Description=Refresh arifOS public-state.v1 (Tier 1 observatory upgrade)
+Documentation=file:///root/AGENTS.md
+After=arifOS.service ariflow.service aaa.service
+ConditionPathExists=/opt/arifos/app/scripts/build_public_state.py
+RequiresMountsFor=/var/www/html
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/arifos/app
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/arifos/venv/bin/python /opt/arifos/app/scripts/build_public_state.py
+TimeoutStartSec=2min
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arifos-public-state-refresh
+UMask=0022
+
+# Additive: never deletes, never replaces, never overrides.
+# Same venv, same script, same writers (runtime + webroot).
