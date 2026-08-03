@@ -1928,9 +1928,9 @@ lancedb==0.34.0 \
     --hash=sha256:51cbc11808f9e3332819b9367c975b3a888541447a8e7bea09c57c852a279153 \
     --hash=sha256:c462f2e6f933cad659fd0179394eaab578acbc9151fe2ef41bc29b36ecca5058
     # via arifos
-langchain-core==1.4.8 \
-    --hash=sha256:5bf1f8411077c904182ad8f975943d36adcbf579c4e017b3a118b719229ebf9a \
-    --hash=sha256:d84c28b05e3ba8d4271d0827aad5b592ccdaaf986e76768c23503f0a2045e8aa
+langchain-core==1.5.3 \
+    --hash=sha256:48b56fa580277209594dd7baf837f5b9a2a3651613f34ff9fb1728b429df015f \
+    --hash=sha256:a56457ac444fef41e9404443c187f0ecea708d36e816ea4ba9573c027f7d1a2d
     # via
     #   langgraph
     #   langgraph-checkpoint
