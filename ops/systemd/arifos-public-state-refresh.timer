@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh arifOS public-state.v1 every 5 minutes (Tier 1 observatory upgrade)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Persistent=true
+Unit=arifos-public-state-refresh.service
+
+[Install]
+WantedBy=timers.target
