@@ -292,9 +292,19 @@ def tool_surface_hash() -> str | None:
 def project_public_state(
     snapshot: dict[str, Any] | None,
     health: dict[str, Any] | None,
+    *,
+    extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Project arifos.public-state.v1 from Observatory snapshot + live /health.
+
+    `extra` is an optional dict of additional fields (e.g. APEX scalars, FQ,
+    identity hashes, drift log freshness) collected from independent live probes.
+    All `extra` keys are merged at the top level of the returned payload under
+    the same names — never silently overridden by the snapshot.
+    """
     snap = snapshot or {}
     health = health or {}
+    extra = extra or {}
 
     ri = snap.get("runtime_identity") if isinstance(snap.get("runtime_identity"), dict) else {}
     caps = snap.get("capabilities") if isinstance(snap.get("capabilities"), dict) else {}
@@ -571,6 +581,89 @@ def project_public_state(
             "initialize": mcp_init,
             "tools_list": tools_list,
             "health_status": health.get("status"),
+        },
+        # ── Capability matrix (T1.1): expose the snapshot's matrix so the
+        # Observatory renderer can populate the drift table instead of
+        # "0 matrix rows parsed". Additive — never overrides snapshot.
+        "capabilities": {
+            "declared_count": caps.get("declared_count"),
+            "registered_count": caps.get("registered_count"),
+            "exposed_count": caps.get("exposed_count"),
+            "invocable_count": caps.get("invocable_count"),
+            "tested_count": caps.get("tested_count"),
+            "degraded_count": caps.get("degraded_count"),
+            "callable_public": caps.get("callable_public"),
+            "untested_count": caps.get("untested_count"),
+            "matrix": caps.get("matrix") if isinstance(caps.get("matrix"), list) else [],
+            "as_of": caps.get("as_of"),
+            "semantics": caps.get("semantics") if isinstance(caps.get("semantics"), dict) else {},
+        },
+        # ── APEX scalars (T1.3): G, C_dark, W³, h, QDF from AAA live probe.
+        # Independent of snapshot — fed by `extra` parameter from live AAA /health.
+        "apex": {
+            "G": extra.get("apex_G"),
+            "C_dark": extra.get("apex_C_dark"),
+            "W3": extra.get("apex_W3"),
+            "h": extra.get("apex_h"),
+            "QDF": extra.get("apex_QDF"),
+            "source": extra.get("apex_source", "aaa:3001/health"),
+            "observed_at": extra.get("apex_observed_at"),
+        },
+        # ── arifFLOW FQ (T1.3): FLOW quotient + verdict, size-bounded.
+        "ariflow": {
+            "fq_quotient": extra.get("ariflow_fq_quotient"),
+            "fq_verdict": extra.get("ariflow_fq_verdict"),
+            "execute_count": extra.get("arifflow_execute_count"),
+            "verify_count": extra.get("ariflow_verify_count"),
+            "receipts": extra.get("arifflow_receipts"),
+            "uptime_ms": extra.get("ariflow_uptime_ms"),
+            "source": extra.get("ariflow_source", "ariflow:7073/health"),
+            "observed_at": extra.get("ariflow_observed_at"),
+        },
+        # ── Identity hashes per organ (T1.3): trust chain links.
+        "identity_hashes": {
+            "arifos": extra.get("identity_arifos"),
+            "geox": extra.get("identity_geox"),
+            "wealth": extra.get("identity_wealth"),
+            "well": extra.get("identity_well"),
+            "aforge": extra.get("identity_aforge"),
+            "aaa": extra.get("identity_aaa"),
+            "ariflow": extra.get("identity_ariflow"),
+            "observed_at": extra.get("identity_observed_at"),
+        },
+        # ── Drift log freshness (T1.3): the actual age of the last drfit check.
+        "drift_log_freshness": {
+            "last_check_at": extra.get("drift_last_check_at"),
+            "overall_status": extra.get("drift_overall_status"),
+            "age_seconds": extra.get("drift_age_seconds"),
+            "source": extra.get("drift_source", "/root/.local/share/arifos/vault999/drift_log.jsonl"),
+        },
+        # ── Chain integrity (T1.5): sanitized card from /seal/verify.
+        # Sensitive fields (ledger_path, failure_classes) are operator-only.
+        "chain_integrity": {
+            "entries": extra.get("chain_entries"),
+            "canonical_entries": extra.get("chain_canonical_entries"),
+            "historical_entries": extra.get("chain_historical_entries"),
+            "corrupt_lines": extra.get("chain_corrupt_lines"),
+            "gap_count": extra.get("chain_gap_count"),
+            "verified": extra.get("chain_verified"),
+            "head_hash": extra.get("chain_head_hash"),
+            "head_seq": extra.get("chain_head_seq"),
+            "observed_at": extra.get("chain_observed_at"),
+            "source": extra.get("chain_source", "/api/observatory/v1/seal/verify"),
+        },
+        # ── Kernel canonical verdict (T1.6): the actual nine-signal verdict
+        # (BELUM_SAH / SYUBHAH / SABAR / SEAL / HOLD) — never the parser's
+        # 'UNKNOWN' fallback, which would render as false-green HOLD.
+        "canonical_verdict": {
+            "state": extra.get("kernel_verdict_state", "UNKNOWN"),
+            "native": extra.get("kernel_verdict_native", "BELUM_SAH"),
+            "native_en": extra.get("kernel_verdict_native_en", "UNAUTHENTICATED"),
+            "failed_floors": extra.get("kernel_failed_floors", []),
+            "reason": extra.get("kernel_verdict_reason"),
+            "next_safe_action": extra.get("kernel_next_safe_action"),
+            "observed_at": extra.get("kernel_observed_at"),
+            "source": extra.get("kernel_source", "arif_observe"),
         },
         "governance": {
             "state": gov_state,
@@ -992,19 +1085,170 @@ def write_public_state(state: dict[str, Any]) -> list[Path]:
     return written
 
 
+def collect_extras() -> dict[str, Any]:
+    """Collect live probes from independent federation organs.
+
+    All probes are best-effort and never raise — failures degrade to None so
+    the renderer can render UNKNOWN instead of failing the whole public-state.
+    Returns a flat dict keyed by the field names consumed in project_public_state().
+    """
+    extras: dict[str, Any] = {}
+    observed_at = now_iso()
+
+    # ── APEX scalars from AAA (/health): apex_scalars.{G, C_dark, W3, h, QDF}
+    aaa = probe_url("http://127.0.0.1:3001/health", timeout=2.0)
+    if aaa.get("state") == "PRESENT":
+        apex = aaa.get("data", {}).get("apex_scalars") or {}
+        extras["apex_G"] = apex.get("G", {}).get("value") if isinstance(apex.get("G"), dict) else apex.get("G")
+        extras["apex_C_dark"] = apex.get("C_dark", {}).get("value") if isinstance(apex.get("C_dark"), dict) else apex.get("C_dark")
+        extras["apex_W3"] = apex.get("W3", {}).get("value") if isinstance(apex.get("W3"), dict) else apex.get("W3")
+        extras["apex_h"] = apex.get("h", {}).get("value") if isinstance(apex.get("h"), dict) else apex.get("h")
+        extras["apex_QDF"] = apex.get("QDF", {}).get("value") if isinstance(apex.get("QDF"), dict) else apex.get("QDF")
+        extras["apex_source"] = "aaa:3001/health"
+        extras["apex_observed_at"] = observed_at
+
+    # ── arifFLOW FQ from /health (Rust daemon :7073)
+    flow = probe_url("http://127.0.0.1:7073/health", timeout=2.0)
+    if flow.get("state") == "PRESENT":
+        fq = flow.get("data", {}).get("fq") or {}
+        extras["ariflow_fq_quotient"] = fq.get("quotient")
+        extras["ariflow_fq_verdict"] = fq.get("verdict")
+        extras["ariflow_execute_count"] = fq.get("execute_count")
+        extras["ariflow_verify_count"] = fq.get("verify_count")
+        extras["ariflow_receipts"] = flow.get("data", {}).get("receipts")
+        extras["ariflow_uptime_ms"] = flow.get("data", {}).get("uptime_ms")
+        extras["ariflow_source"] = "ariflow:7073/health"
+        extras["ariflow_observed_at"] = observed_at
+
+    # ── Organ identity hashes: arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, arifFLOW
+    organ_health_urls = {
+        "arifos": "http://127.0.0.1:8088/health",
+        "geox": "http://127.0.0.1:8081/health",
+        "wealth": "http://127.0.0.1:18082/health",
+        "well": "http://127.0.0.1:18083/health",
+        "aforge": "http://127.0.0.1:7071/health",
+        "aaa": "http://127.0.0.1:3001/health",
+        "ariflow": "http://127.0.0.1:7073/health",
+    }
+    for organ_id, url in organ_health_urls.items():
+        result = probe_url(url, timeout=2.0)
+        if result.get("state") == "PRESENT":
+            data = result.get("data", {})
+            extras[f"identity_{organ_id}"] = (
+                data.get("identity_hash") or data.get("identity") or data.get("git_version")
+            )
+    extras["identity_observed_at"] = observed_at
+
+    # ── Drift log freshness: last entry from /root/.local/share/arifos/vault999/drift_log.jsonl
+    drift_log = Path("/root/.local/share/arifos/vault999/drift_log.jsonl")
+    if drift_log.exists():
+        try:
+            # Read last line efficiently (file is large; use reverse byte iterator)
+            last_line = None
+            with drift_log.open("rb") as f:
+                try:
+                    f.seek(0, 2)  # end
+                    pos = f.tell()
+                    buf = b""
+                    while pos > 0:
+                        pos -= 1
+                        f.seek(pos)
+                        ch = f.read(1)
+                        if ch == b"\n" and buf:
+                            break
+                        buf = ch + buf
+                    last_line = buf.decode("utf-8", errors="replace").strip()
+                except Exception:
+                    last_line = None
+            if last_line:
+                try:
+                    rec = json.loads(last_line)
+                    ts = rec.get("timestamp") or rec.get("checked_at")
+                    payload = rec.get("payload") or {}
+                    extras["drift_last_check_at"] = ts
+                    extras["drift_overall_status"] = payload.get("overall_drift") or rec.get("status")
+                    if ts:
+                        try:
+                            from datetime import datetime, timezone
+                            ts_clean = ts.replace("Z", "+00:00") if isinstance(ts, str) else ts
+                            dt = datetime.fromisoformat(ts_clean)
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=timezone.utc)
+                            extras["drift_age_seconds"] = int((datetime.now(timezone.utc) - dt).total_seconds())
+                        except Exception:
+                            extras["drift_age_seconds"] = None
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    # ── Chain integrity: sanitized public card from /api/observatory/v1/seal/verify
+    seal = probe_url("http://127.0.0.1:8088/api/observatory/v1/seal/verify", timeout=3.0)
+    if seal.get("state") == "PRESENT":
+        sd = seal.get("data", {})
+        extras["chain_entries"] = sd.get("entries")
+        extras["chain_canonical_entries"] = sd.get("canonical_entries")
+        extras["chain_historical_entries"] = sd.get("historical_entries")
+        extras["chain_corrupt_lines"] = sd.get("corrupt_lines")
+        extras["chain_gap_count"] = sd.get("gap_count")
+        extras["chain_verified"] = sd.get("verified")
+        extras["chain_head_hash"] = sd.get("head_hash")
+        extras["chain_head_seq"] = sd.get("head_seq")
+        extras["chain_observed_at"] = observed_at
+
+    # ── Kernel canonical verdict: read from arifOS /health state_axes
+    arifos = probe_url("http://127.0.0.1:8088/health", timeout=2.0)
+    if arifos.get("state") == "PRESENT":
+        data = arifos.get("data", {})
+        # state_axes carries overall_health, action_judgment, receipt_state
+        axes = data.get("state_axes") or {}
+        overall = (axes.get("overall_health") or "UNKNOWN").upper()
+        # 9-signal plane is exposed via arif_observe, not /health — call it
+        obs = probe_url(
+            "http://127.0.0.1:8088/mcp",
+            timeout=2.0,
+        )
+        # Actually we can read the nine-signal from the meta of the public-state
+        # snapshot (which already has it). Try that first.
+        snap = load_snapshot()
+        if snap:
+            meta = snap.get("meta") or {}
+            nine = meta.get("nine_signal") or {}
+            overall_block = nine.get("overall") or {}
+            extras["kernel_verdict_state"] = overall
+            extras["kernel_verdict_native"] = overall_block.get("state", "BELUM_SAH")
+            extras["kernel_verdict_native_en"] = overall_block.get("en", "UNAUTHENTICATED")
+            extras["kernel_failed_floors"] = meta.get("failed_floors") or []
+            extras["kernel_verdict_reason"] = meta.get("reason")
+            extras["kernel_next_safe_action"] = meta.get("next_safe_action")
+        else:
+            extras["kernel_verdict_state"] = overall
+            extras["kernel_verdict_native"] = "BELUM_SAH"
+            extras["kernel_verdict_native_en"] = "UNAUTHENTICATED"
+        extras["kernel_observed_at"] = observed_at
+        extras["kernel_source"] = "arifOS:8088/health + snapshot.meta.nine_signal"
+
+    return extras
+
+
 def main() -> int:
     snap = load_snapshot()
     health = get_health()
-    if not snap and not health:
-        print("error: no snapshot and no health", file=sys.stderr)
+    extras = collect_extras()
+    if not snap and not health and not extras:
+        print("error: no snapshot, no health, no extras", file=sys.stderr)
         return 1
-    state = project_public_state(snap, health)
+    state = project_public_state(snap, health, extra=extras)
     paths = write_public_state(state)
     print(
         f"public-state {state['schema']} headline={state['headline']!r} "
         f"tools={state['mcp']['public_tools']} "
         f"alignment={state['release']['deployment_alignment']} "
-        f"open_findings={state['findings']['open_count']} paths={[str(p) for p in paths]}"
+        f"open_findings={state['findings']['open_count']} "
+        f"apex_G={state['apex'].get('G')!r} "
+        f"ariflow_fq={state['ariflow'].get('fq_verdict')!r} "
+        f"kernel_verdict={state['canonical_verdict'].get('native')!r} "
+        f"paths={[str(p) for p in paths]}"
     )
     return 0
 
