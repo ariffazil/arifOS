@@ -5486,9 +5486,9 @@ uvloop==0.22.1 ; platform_python_implementation != 'PyPy' and sys_platform != 'c
     --hash=sha256:e047cc068570bac9866237739607d1313b9253c3051ad84738cbb095be0537b2 \
     --hash=sha256:fe94b4564e865d968414598eea1a6de60adba0c040ba4ed05ac1300de402cd42
     # via uvicorn
-vectorbt==0.28.2 \
-    --hash=sha256:93e5fb20d2ff072b7fed78603b516eb64f967c9bf9420ce8ba28329af0410e7d \
-    --hash=sha256:e1a5b7a11c0e2b5b271f18093cb7d1ea075d94d711388c0f423355e83c63c104
+vectorbt==1.1.0 \
+    --hash=sha256:67a3b41466234485af70c18d201da105f1ebb2c1d1fac079db20059e45ddc73b \
+    --hash=sha256:7fa055ccdb16a266b349e7b322410525c2923b119e13ac292b99bc4a9a5b2885
     # via riskfolio-lib
 watchfiles==1.1.1 \
     --hash=sha256:00485f441d183717038ed2e887a7c868154f216877653121068107b227a2f64c \
