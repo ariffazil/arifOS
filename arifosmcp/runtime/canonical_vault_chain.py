@@ -126,6 +126,7 @@ class ReceiptEnvelope:
     this_hash: str | None = None
     actor: str | None = None
     verdict: str = "SEAL"
+    idempotency_key: str = ""
 
     def __post_init__(self) -> None:
         if self.seq is None:
@@ -906,6 +907,8 @@ class AppendResult:
     receipt: dict[str, Any] | None
     failure_class: str | None = None
     detail: str = ""
+    idempotent: bool = False
+    note: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -915,6 +918,8 @@ class AppendResult:
             "sequence": (self.receipt or {}).get("sequence"),
             "failure_class": self.failure_class,
             "detail": self.detail,
+            "idempotent": self.idempotent,
+            "note": self.note,
         }
 
 
@@ -937,8 +942,15 @@ def append_receipt(
     vault_dir: Path | str | None = None,
     force_prev_hash: str | None = None,
     force_sequence: int | None = None,
+    idempotency_key: str = "",
 ) -> AppendResult:
-    """Append one canonical receipt. Concurrent-safe via flock + thread lock."""
+    """Append one canonical receipt. Concurrent-safe via flock + thread lock.
+
+    Idempotency: if idempotency_key is provided and a receipt with the same
+    key already exists in the chain, the existing receipt is returned instead
+    of appending a duplicate. This prevents permanent VAULT999 duplicates
+    from network retries (Claude audit GAP #2).
+    """
     p = paths_for(vault_dir)
     p.vault_dir.mkdir(parents=True, exist_ok=True)
 
@@ -993,7 +1005,20 @@ def append_receipt(
             "software_release": software_release or "",
             "epoch_id": CANONICAL_EPOCH_ID,
         }
+        if idempotency_key:
+            body["idempotency_key"] = idempotency_key
         receipt_hash = compute_receipt_hash(body)
+
+        # ── Idempotency check (GAP #2 fix, 2026-08-03) ──
+        if idempotency_key and p.chain.exists():
+            for pl in parse_chain_lines(p.chain):
+                if pl.entry and pl.entry.get("idempotency_key") == idempotency_key:
+                    return AppendResult(
+                        ok=True,
+                        receipt=pl.entry,
+                        idempotent=True,
+                        note=f"Existing receipt found for idempotency_key={idempotency_key[:16]}...",
+                    )
 
         env = ReceiptEnvelope(
             receipt_id=receipt_id,
@@ -1017,6 +1042,7 @@ def append_receipt(
             signature=signature or "",
             epoch_id=CANONICAL_EPOCH_ID,
             verdict=verdict,
+            idempotency_key=idempotency_key,
         )
         wire = env.to_wire()
         wire["envelope_version"] = "f004-v1"
