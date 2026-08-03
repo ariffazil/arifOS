@@ -39,6 +39,7 @@ import logging
 from typing import Any
 
 import httpx
+import httpx2  # FastMCP 4 migration
 
 from arifosmcp.core.agent_policy import AgentPolicy
 
@@ -84,7 +85,7 @@ async def _call_aaa(endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
                 resp.text[:200],
             )
             return {"ok": False, "error": f"AAA_{resp.status_code}"}
-    except httpx.TimeoutException:
+    except (httpx.TimeoutException, httpx2.TimeoutException):
         logger.warning("AAA bridge: %s timed out after %.1fs", endpoint, AAA_TIMEOUT)
         return {"ok": False, "error": "AAA_TIMEOUT"}
     except Exception as exc:

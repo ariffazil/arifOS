@@ -23,6 +23,7 @@ import os
 from typing import Any
 
 import httpx
+import httpx2  # FastMCP 4 migration
 
 from core.shared.laws import get_law_threshold
 
@@ -146,7 +147,7 @@ class TavilyMCPBridge:
             )
             resp.raise_for_status()
             raw = resp.json()
-        except httpx.HTTPStatusError as exc:
+        except (httpx.HTTPStatusError, httpx2.HTTPStatusError) as exc:
             logger.error(
                 "Tavily REST HTTP error: %s %s", exc.response.status_code, exc.response.text
             )
@@ -377,7 +378,7 @@ class TavilyMCPBridge:
             )
             resp.raise_for_status()
             return resp.json()
-        except httpx.HTTPStatusError as exc:
+        except (httpx.HTTPStatusError, httpx2.HTTPStatusError) as exc:
             status = exc.response.status_code
             body = exc.response.text[:200]
             logger.error("Tavily REST %s HTTP %s: %s", endpoint, status, body)
