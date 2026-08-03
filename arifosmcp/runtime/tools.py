@@ -11821,18 +11821,19 @@ def _arif_mind_reason(
     deductive, abductive, analogical, and critical reasoning.
 
     Modes:
-      reason       — General constitutional reasoning with axiom trace.
-      reflect      — Introspective replay of prior reasoning steps.
-      verify       — Truth-check a specific claim against the constitution.
-      critique     — Adversarial stress-test of a reasoning chain.
-      axioms       — List available constitutional axioms and their confidence.
-      plan         — Generate a governed execution plan (PlanReceipt).
-      plan_review  — Retrieve an existing plan by plan_id.
-      plan_approve — Promote a plan from pending_approval → approved.
-      refactor_plan — Compress chaotic context into keep/merge/delete/rename/patch/test/seal.
+      reason            — General constitutional reasoning with axiom trace.
+      reflect           — Introspective replay of prior reasoning steps.
+      verify            — Truth-check a specific claim against the constitution.
+      critique          — Adversarial stress-test of a reasoning chain.
+      axioms            — List available constitutional axioms and their confidence.
+      plan              — Generate a governed execution plan (PlanReceipt).
+      plan_review       — Retrieve an existing plan by plan_id.
+      plan_approve      — Promote a plan from pending_approval → approved.
+      refactor_plan     — Compress chaotic context into keep/merge/delete/rename/patch/test/seal.
+      strange_loop_audit — Detect self-referential reasoning (PHANTOM_FOUNDATION). SHADOW-DS-006.
 
     Parameters:
-      mode       — reason | reflect | verify | critique | axioms | plan | plan_review | plan_approve | refactor_plan
+      mode       — reason | reflect | verify | critique | axioms | plan | plan_review | plan_approve | refactor_plan | strange_loop_audit
       query      — Reasoning prompt or claim to verify
       session_id — Governed session ID
       actor_id   — Sovereign actor identifier
@@ -12693,6 +12694,46 @@ def _arif_mind_reason(
             ),
             delta_S=0.0,
         )
+    if mode == "strange_loop_audit":
+        from arifosmcp.tools.strange_loop_audit import audit_strange_loop
+
+        # Extract original prompt tokens from attention_context if available
+        original_prompt = None
+        document_tokens = None
+        if attention_context and isinstance(attention_context, dict):
+            original_prompt = attention_context.get("focus_claim") or query
+            document_tokens = attention_context.get("in_scope", None)
+
+        result = audit_strange_loop(
+            reasoning_trace=query or "",
+            original_prompt=original_prompt,
+            original_document_tokens=document_tokens,
+        )
+
+        verdict = result.get("verdict", "PASS")
+        if verdict == "HOLD":
+            return _hold(
+                "arif_mind_reason",
+                f"Strange loop audit: {result.get('phantom_count', 0)} phantom foundations detected. "
+                f"Audit score: {result.get('audit_score', 0)}. Shadow: SHADOW-DS-006.",
+                ["L02_TRUTH", "L04_CLARITY"],
+                session_id=session_id,
+            )
+        if verdict == "CAUTION":
+            return _sabar(
+                "arif_mind_reason",
+                f"Strange loop audit: {result.get('phantom_count', 0)} phantom foundations — "
+                f"review recommended before execution. Audit score: {result.get('audit_score', 0)}.",
+                session_id=session_id,
+            )
+
+        return _ok(
+            "arif_mind_reason",
+            result,
+            delta_S=-0.003,  # entropy-reducing: flags hidden drift
+            session_id=session_id,
+        )
+
     return _hold("arif_mind_reason", f"Unknown mode: {mode}", session_id=session_id)
 
 
@@ -23236,7 +23277,15 @@ def _build_enriched_signature(handler: Any) -> inspect.Signature:
         )
         new_params.append(session_id_param)
 
-    return sig.replace(parameters=new_params)
+    # STABILIZE 2026-08-03: drop the return annotation in the rebuilt signature.
+    # The handler may declare `-> StageOutput` (or any other typed return) which,
+    # under `from __future__ import annotations`, becomes a string forward ref
+    # like 'StageOutput'. FastMCP's from_function then tries
+    # TypeAdapter('StageOutput') and Pydantic raises "not fully defined".
+    # The wrapper always returns a dict (via _sanitize_envelope) so the typed
+    # return is irrelevant to runtime behaviour; stripping it here removes the
+    # bad input to FastMCP's schema generation pipeline.
+    return sig.replace(parameters=new_params, return_annotation=inspect.Signature.empty)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -24274,6 +24323,19 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # shape returned in dict; clients that want strict schema should opt-in via
     # tools/call response shape, not via the tool registration.
     _wrapped.__annotations__.pop("return", None)
+    # STABILIZE 2026-08-03: drop __wrapped__ so inspect.signature() does NOT
+    # follow back to the original handler's `-> 'StageOutput'` forward-ref.
+    # With `from __future__ import annotations` in stage.py the return type
+    # is the unresolved string "StageOutput". FastMCP then calls
+    # get_type_hints() against the wrapper's __globals__ (tools.py), where
+    # StageOutput is undefined → PydanticUserError:
+    #   `TypeAdapter[StageOutput]` is not fully defined.
+    # The P4/P5 fixes removed the local annotation, but functools.wraps
+    # re-attached __wrapped__, which inspect.signature() still follows.
+    try:
+        delattr(_wrapped, "__wrapped__")
+    except AttributeError:
+        pass
     # Ensure _envelope is in __annotations__ so FastMCP/Pydantic type-hint
     # resolution does not KeyError when building the input schema.
     _wrapped.__annotations__["_envelope"] = Any
