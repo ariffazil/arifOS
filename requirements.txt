@@ -362,9 +362,9 @@ beautifulsoup4==4.14.3 \
     #   arifos
     #   markdownify
     #   yfinance
-beniget==0.4.2.post1 ; sys_platform == 'darwin' \
-    --hash=sha256:a0258537e65e7e14ec33a86802f865a667f949bb6c73646d55e42f7c45a052ae \
-    --hash=sha256:e1b336e7b5f2ae201e6cc21f533486669f1b9eccba018dcff5969cd52f1c20ba
+beniget==0.5.0 ; sys_platform == 'darwin' \
+    --hash=sha256:909efcd083af1ac4a5db311f57c415df8cb05c4307eda345edeafac3cd930043 \
+    --hash=sha256:e7af11fa8ec7de3d3eb3d98b1e722d15d44017d8b35d8aa11d54f6719b312f22
     # via pythran
 black==26.5.1 \
     --hash=sha256:1037d5ac7b7b310b2632ad867ec8d0e4c4819dcdb0b820f63135da746a24e418 \
