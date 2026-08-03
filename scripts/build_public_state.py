@@ -289,6 +289,73 @@ def tool_surface_hash() -> str | None:
     return None
 
 
+def _override_floors_with_canonical(
+    floors: dict[str, Any], extras: dict[str, Any]
+) -> dict[str, Any]:
+    """T1.4 — flip floor status to FAIL for any floor in kernel canonical_verdict.failed_floors.
+
+    The snapshot's `_floor_passes` returns True for F4/F9/F12 because of strict-< comparator
+    bands (ΔS ≤ 0, C_dark < 0.30, Risk < 0.85). But the kernel's 9-signal plane can
+    independently mark these floors as failed when sub-signal floors dominate the
+    aggregate (verdict_monotonicity: pending → SYUBHAH). We never override the score
+    — only the status — so the underlying measurement stays visible.
+    """
+    failed = list(extras.get("kernel_failed_floors") or [])
+    if not failed:
+        return floors
+    out: dict[str, Any] = {}
+    for fid, fdata in floors.items():
+        if fid in failed and isinstance(fdata, dict):
+            fdata = dict(fdata)
+            status = fdata.get("status")
+            if isinstance(status, dict):
+                fdata["status"] = {
+                    **status,
+                    "value": "fail",
+                    "source": "kernel canonical_verdict (overrides _floor_passes band)",
+                }
+            else:
+                fdata["status"] = {
+                    "value": "fail",
+                    "source": "kernel canonical_verdict (overrides _floor_passes band)",
+                    "state": "derived",
+                    "confidence": 0.95,
+                    "observation_method": "kernel_override",
+                    "observed_at": extras.get("kernel_observed_at"),
+                }
+        out[fid] = fdata
+    return out
+
+
+def _override_verdict_with_canonical(
+    gov: dict[str, Any], extras: dict[str, Any]
+) -> dict[str, Any]:
+    """T1.4 — replace the snapshot's parser verdict (UNKNOWN) with the kernel
+    canonical_verdict (e.g. SYUBHAH, SABAR, SEAL, HOLD) so the renderer
+    displays the truth instead of "HOLD (raw UNKNOWN)".
+    """
+    canonical = extras.get("kernel_canonical_verdict")
+    if not canonical:
+        return gov
+    out = dict(gov)
+    verdict = out.get("verdict")
+    if isinstance(verdict, dict):
+        verdict = dict(verdict)
+        verdict["value"] = canonical
+        verdict["source"] = "kernel canonical_verdict (overrides parser UNKNOWN)"
+        out["verdict"] = verdict
+    else:
+        out["verdict"] = {
+            "value": canonical,
+            "source": "kernel canonical_verdict (overrides parser UNKNOWN)",
+            "state": "observed",
+            "confidence": 0.95,
+            "observation_method": "kernel_override",
+            "observed_at": extras.get("kernel_observed_at"),
+        }
+    return out
+
+
 def project_public_state(
     snapshot: dict[str, Any] | None,
     health: dict[str, Any] | None,
@@ -321,6 +388,16 @@ def project_public_state(
         if isinstance(snap.get("authority_dimensions"), dict)
         else {}
     )
+
+    # T1.4: override verdict + failed floors with kernel canonical_verdict.
+    if extra:
+        canon_failed = list(extra.get("kernel_failed_floors") or [])
+        canon_verdict = extra.get("kernel_canonical_verdict")
+        if canon_failed or canon_verdict:
+            raw_floors = gov.get("floors") if isinstance(gov.get("floors"), dict) else {}
+            gov = dict(gov)
+            gov["floors"] = _override_floors_with_canonical(raw_floors, extra)
+            gov = _override_verdict_with_canonical(gov, extra)
 
     source = short_commit(
         pf_value(ri.get("workspace_source_commit")) or pf_value(ri.get("source_commit")),
@@ -1203,30 +1280,63 @@ def collect_extras() -> dict[str, Any]:
         # state_axes carries overall_health, action_judgment, receipt_state
         axes = data.get("state_axes") or {}
         overall = (axes.get("overall_health") or "UNKNOWN").upper()
-        # 9-signal plane is exposed via arif_observe, not /health — call it
-        obs = probe_url(
-            "http://127.0.0.1:8088/mcp",
-            timeout=2.0,
-        )
-        # Actually we can read the nine-signal from the meta of the public-state
-        # snapshot (which already has it). Try that first.
-        snap = load_snapshot()
-        if snap:
-            meta = snap.get("meta") or {}
-            nine = meta.get("nine_signal") or {}
-            overall_block = nine.get("overall") or {}
-            extras["kernel_verdict_state"] = overall
-            extras["kernel_verdict_native"] = overall_block.get("state", "BELUM_SAH")
-            extras["kernel_verdict_native_en"] = overall_block.get("en", "UNAUTHENTICATED")
-            extras["kernel_failed_floors"] = meta.get("failed_floors") or []
-            extras["kernel_verdict_reason"] = meta.get("reason")
-            extras["kernel_next_safe_action"] = meta.get("next_safe_action")
-        else:
+        # 9-signal + canonical_verdict live inside arif_observe (MCP JSON-RPC).
+        # Call it directly so the public-state carries the kernel's real verdict.
+        try:
+            payload = json.dumps({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {"name": "arif_observe", "arguments": {"mode": "identity"}},
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                "http://127.0.0.1:8088/mcp",
+                data=payload,
+                headers={"Content-Type": "application/json", "Accept": "application/json, text/event-stream"},
+            )
+            with urllib.request.urlopen(req, timeout=4.0) as resp:
+                raw = resp.read().decode("utf-8", errors="replace")
+            # SSE / JSON response — extract the JSON line
+            text_blob = ""
+            for line in raw.split("\n"):
+                if line.startswith("data:"):
+                    text_blob = line[5:].strip()
+                    break
+                if line.startswith("{") and '"jsonrpc"' in line:
+                    text_blob = line.strip()
+                    break
+            if text_blob:
+                rpc = json.loads(text_blob)
+                content = (rpc.get("result") or {}).get("content") or []
+                if content:
+                    inner = json.loads(content[0].get("text", "{}"))
+                    meta = inner.get("meta") or {}
+                    nine = meta.get("nine_signal") or {}
+                    overall_block = nine.get("overall") or {}
+                    failed = meta.get("failed_floors") or []
+                    # Legacy L01–L13 aliases are accepted; normalise to F01–F13.
+                    extras["kernel_failed_floors"] = [
+                        f"F{n}" if f.upper().startswith("L") and f[1:].isdigit() else f
+                        for f in failed
+                    ]
+                    extras["kernel_verdict_state"] = overall
+                    extras["kernel_verdict_native"] = overall_block.get("state", "BELUM_SAH")
+                    extras["kernel_verdict_native_en"] = overall_block.get("en", "UNAUTHENTICATED")
+                    extras["kernel_verdict_reason"] = meta.get("reason")
+                    extras["kernel_next_safe_action"] = meta.get("next_safe_action")
+                    # The witness reason is also surfaced in evidence_reference of action
+                    action = (inner.get("verdicts") or {}).get("action") or {}
+                    extras["kernel_canonical_verdict"] = (
+                        action.get("evidence_reference", "").replace("canonical_verdict=", "")
+                    )
+                    extras["kernel_source"] = "arifOS:8088/mcp tools/call arif_observe"
+        except Exception as exc:
+            extras["kernel_error"] = f"{type(exc).__name__}:{str(exc)[:80]}"
             extras["kernel_verdict_state"] = overall
             extras["kernel_verdict_native"] = "BELUM_SAH"
             extras["kernel_verdict_native_en"] = "UNAUTHENTICATED"
+            extras["kernel_source"] = "arifOS:8088/health (fallback)"
         extras["kernel_observed_at"] = observed_at
-        extras["kernel_source"] = "arifOS:8088/health + snapshot.meta.nine_signal"
 
     return extras
 
