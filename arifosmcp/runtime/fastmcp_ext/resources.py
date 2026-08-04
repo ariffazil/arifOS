@@ -236,6 +236,51 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     registered.append("arifos://flow-state")
 
+    # ── Instructions resource (MCP-native server discover, FastMCP 3 compat) ──
+    @mcp.resource(
+        "arifos://instructions",
+        description=(
+            "Agent bootstrap instructions — the MCP-native equivalent of server/discover. "
+            "Every agent entering arifOS for the first time should read this. "
+            "Contains boot sequence, key resources, canonical tools, and constitutional rules."
+        ),
+    )
+    async def get_instructions() -> str:
+        return (
+            "═══ AGENT BOOT SEQUENCE (MCP-NATIVE) ═══\n"
+            "Every agent entering arifOS for the first time MUST:\n"
+            "  1. CALL prompt '/init' → full 10-step autonomous ignition sequence\n"
+            "  2. READ resource arifos://bootstrap → live federation context\n"
+            "  3. READ resource arifos://carry-forward → prior session state\n"
+            "  4. READ resource arifos://flow-state → FQ pulse (FQ<0.5 → OBSERVE_ONLY)\n"
+            "  5. CALL tool arif_init → bind session + get SCT token\n\n"
+            "═══ AGENT CLOSE SEQUENCE (MCP-NATIVE) ═══\n"
+            "Every session MUST close with:\n"
+            "  1. CALL prompt '/seal' → 11-step autonomous close ritual\n"
+            "  2. CALL tool arif_seal or forge_vault → immutable record\n"
+            "  3. VERIFY: resources/read arifos://vault/head\n\n"
+            "═══ MEMBRANE PRINCIPLE ═══\n"
+            "- Language is lossy compression, not the world.\n"
+            "- Truth survives falsification, not assertion.\n"
+            "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
+            "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
+            "Golden path: init → observe → think → route → memory → judge → forge → seal\n\n"
+            "CANONICAL 8 TOOLS — select by gap:\n"
+            "  arif_init    — No session? Bind actor identity.\n"
+            "  arif_observe — Evidence gap? Search, fetch, vitals.\n"
+            "  arif_think   — Reasoning gap? Plan, analyze, verify.\n"
+            "  arif_route   — Tool uncertainty? Route to correct organ.\n"
+            "  arif_memory  — Memory gap? Recall, inspect, attest.\n"
+            "  arif_judge   — Decision time? Constitutional verdict.\n"
+            "  arif_forge   — Ready to execute? Governed execution.\n"
+            "  arif_seal    — Need finality? VAULT999 immutable append.\n\n"
+            "KEY RESOURCES: arifos://bootstrap, arifos://carry-forward, arifos://flow-state, arifos://vitals, arifos://doctrine, arifos://identity\n"
+            "KEY PROMPTS: /init (ignition), /seal (close)\n"
+            "DITEMPA BUKAN DIBERI — Forged, Not Given\n"
+        )
+
+    registered.append("arifos://instructions")
+
     logger.info(
         "Registered %d extended resources (incl. %d INIT prompts + agent_init + carry-forward + flow-state)",
         len(registered),
