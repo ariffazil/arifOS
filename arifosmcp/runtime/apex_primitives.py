@@ -20,10 +20,13 @@ DITEMPA BUKAN DIBERI
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import time
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # ── Persistence ────────────────────────────────────────────────────────
 _DB_DIR = Path("/var/lib/arifos")
@@ -97,16 +100,19 @@ def record_tool_call(
         )
         conn.commit()
         conn.close()
-    except Exception:
-        pass  # Metrics are best-effort
+    except Exception as e:
+        logger.debug("apex record_tool_call failed for %s: %s", tool_name, e)
 
 
-def compute_apex_from_metrics(window_seconds: int = 86400) -> dict[str, Any]:
+def compute_apex_from_metrics(window_seconds: int = 604800) -> dict[str, Any]:
     """Compute APEX primitives from recent tool call metrics.
 
     Returns dict with A, P, E, X, Φ, G, C_dark, W3, plus breakdown.
 
-    Window defaults to 24h. Adjusts for empty data (returns defaults).
+    Window defaults to 7 days (604800s). Previous 24h window produced
+    UNMEASURED on cold start because only ~10 records existed in that window.
+    7-day window captures ~6-7K records with meaningful signal.
+    Adjusts for empty data (returns UNMEASURED defaults).
     """
     try:
         conn = _get_db()
