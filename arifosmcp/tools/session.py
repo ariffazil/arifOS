@@ -2857,6 +2857,15 @@ def arif_init(
         #   cycle but are now DERIVED from authority_state (below).
         #   Consumers SHOULD migrate to reading `authority_state` instead.
         # ═══════════════════════════════════════════════════════════════
+        # F13 SOVEREIGN: derive actor.authority_level from the same _derived_auth
+        # that produces result.authority (sess.authority → _project_light) — single
+        # source of truth (Step 2: One authority resolver).
+        if _derived_auth == "FULL":
+            _kc8_authority_level = "SOVEREIGN" if _is_signed_principal else "OPERATOR"
+        elif _derived_auth == "LIMITED_MUTATE":
+            _kc8_authority_level = "OPERATOR"
+        else:
+            _kc8_authority_level = "ANONYMOUS"
         return _sm(
             status="OK",
             tool="arif_init",
@@ -2887,7 +2896,7 @@ def arif_init(
                 "sovereign_id": _sovereign_id,
                 "delegation_mode": _delegation_mode,
                 "identity_verified": identity_verified,
-                "authority_level": authority_level,  # DEPRECATED
+                "authority_level": _kc8_authority_level,
                 "principal_agent_separation": _is_delegated,
                 # Workstream 1: canonical authority state
                 "authority_state": _auth_state,
