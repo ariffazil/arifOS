@@ -3976,7 +3976,7 @@ def register_rest_routes(
                         result["status"] = "degraded"
                         result["error"] = f"HTTP {r.status_code}"
 
-            except (httpx.TimeoutException, httpx2.TimeoutException):
+            except (httpx.TimeoutException, httpx.TimeoutException):
                 result["status"] = "timeout"
                 result["error"] = f"No response within {PROBE_TIMEOUT}s"
                 result["latency_ms"] = round((time.perf_counter() - start) * 1000, 2)

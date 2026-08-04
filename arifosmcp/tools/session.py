@@ -1192,6 +1192,17 @@ def arif_init(
     #   When True, arif_init generates a fresh Ed25519 keypair for this session.
     #   Private key stays kernel-side. Agent receives public key thumbprint only.
     #   Subsequent arif_seal calls auto-inject identity_binding with kernel signature.
+    # ── GENESIS/059: FQ Seal Gauge (ratified 2026-08-04) ──────────────────
+    session_class: str = "OPERATIONAL",
+    #   OPERATIONAL | PARADOX | CRISIS | SOCIAL | CARE
+    #   OPERATIONAL: no paradoxes to resolve → φE waived (≡ 1.0)
+    #   Non-OPERATIONAL: must declare n_act (paradox count for Eureka margin)
+    Z_est: float | None = None,
+    #   Theoretical maximum entropy reduction for this session (must be > 0).
+    #   Used to compute φZ = Z(t)/Z_est. Required for seal readiness per GENESIS/059.
+    n_act: int | None = None,
+    #   Number of activated ATLAS333 paradoxes. Required if session_class ≠ OPERATIONAL.
+    #   Used to compute φE = n_resolved/n_act for Eureka margin.
 ) -> SessionManifest:
     """
     000_INIT — Constitutional session bootstrap.

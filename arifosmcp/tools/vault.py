@@ -11,6 +11,7 @@ Contains:
 
 from __future__ import annotations
 
+import json
 import logging
 import hashlib
 from typing import Any, Literal
@@ -165,6 +166,9 @@ async def arif_seal(
     blast_radius: str = "L2_SYSTEM",
     seal_purpose: str | None = None,
     delta_s: float | None = None,
+    # ── GENESIS/059: FQ Seal Gauge (ratified 2026-08-04) ──────────────────
+    f13_override: bool = False,
+    override_reason: str | None = None,
 ) -> SealOutput:
     """
     999_VAULT: Immutable ledger anchoring.
@@ -311,6 +315,67 @@ async def arif_seal(
     # Gate S3: Seal without actor_id is inadmissible
     if mode == "seal" and not actor_id:
         _seal_reasons.append("Seal requires actor_id for non-repudiation.")
+
+    # Gate S4 (GENESIS/059 — 2026-08-04): FQ metabolic gate
+    # FQ must be in [1,3] (φFQ ≥ 0.80) or seal carries f13_override.
+    # FQ < 0.5 → HARD BLOCK (no override possible).
+    if mode in ("seal", "session_close") and not f13_override:
+        try:
+            import urllib.request as _ur
+
+            _fq_raw = None
+            try:
+                _req = _ur.Request("http://127.0.0.1:7073/health")
+                _resp = _ur.urlopen(_req, timeout=3)
+                _fq_data = json.loads(_resp.read())
+                _fq_raw = _fq_data.get("fq", {})
+            except Exception:
+                # arifFlow unreachable — fall back to flow_state.json
+                try:
+                    import os as _os
+
+                    _flow_path = _os.path.join(
+                        _os.environ.get("ARIFOS_HOME", "/root"),
+                        "AAA",
+                        "state",
+                        "flow_state.json",
+                    )
+                    with open(_flow_path) as _ff:
+                        _fq_cache = json.load(_ff)
+                        _fq_raw = _fq_cache
+                except Exception:
+                    pass
+
+            if _fq_raw:
+                _fq_val = _fq_raw.get("quotient") or _fq_raw.get("fq") or _fq_raw.get("FQ")
+                if isinstance(_fq_val, dict):
+                    _fq_val = _fq_val.get("quotient") or _fq_val.get("fq")
+                _fq_val = float(_fq_val) if _fq_val else None
+
+                if _fq_val is not None:
+                    if _fq_val < 0.5:
+                        _seal_reasons.append(
+                            f"FQ={_fq_val:.2f} STUCK — HARD BLOCK. "
+                            f"Seal impossible from STUCK state (GENESIS/059 §1.3). "
+                            f"No f13_override available below FQ=0.5."
+                        )
+                    else:
+                        _phi_fq = (
+                            1.0
+                            if 1.0 <= _fq_val <= 3.0
+                            else _fq_val / 3.0
+                            if 0.5 <= _fq_val < 1.0
+                            else min(1.0, 3.0 / _fq_val)
+                        )
+                        if _phi_fq < 0.80:
+                            _seal_reasons.append(
+                                f"FQ={_fq_val:.2f} φFQ={_phi_fq:.3f} < 0.80 — OVERHEAT penalty. "
+                                f"Seal requires FQ∈[1,3] or f13_override=True "
+                                f"(GENESIS/059 §4). Pause, run verification, let FQ settle."
+                            )
+        except Exception as _fq_exc:
+            # FQ probe failure is non-fatal but logged
+            logger.warning("FQ gate probe failed: %s", _fq_exc)
 
     if _seal_reasons:
         return SealOutput(

@@ -37,7 +37,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
-import httpx2  # FastMCP 4 migration: catch httpx2 exceptions
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -573,9 +572,9 @@ async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
                         pass
 
             return {"status_code": resp.status_code, "body": body_data}
-        except (httpx.TimeoutException, httpx2.TimeoutException):
+        except (httpx.TimeoutException, httpx.TimeoutException):
             return {"status_code": 504, "error": f"Upstream {organ_name} timeout"}
-        except (httpx.ConnectError, httpx2.ConnectError):
+        except (httpx.ConnectError, httpx.ConnectError):
             return {"status_code": 502, "error": f"Upstream {organ_name} unreachable"}
 
 
