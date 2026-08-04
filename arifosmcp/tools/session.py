@@ -649,13 +649,13 @@ def _project_light(
             "mode3_collapse": False,
             "diversity_level": "NONE" if not actor_verified else "PARTIAL",
         },
-        # VERDICT (single source)
-        "verdict": {
-            "delta": "STABLE",
-            "psi": "INTACT",
-            "omega": "OK",
-            "overall": "OK" if not degraded else f"DEGRADED:{len(degraded)}",
-        },
+        # VERDICT (single source — A1 fix 2026-08-05)
+        # MUST be a string, not a dict. _compute_canonical_verdict calls str()
+        # on this value; a dict produces a non-matching repr that defaults to
+        # "SEAL" (the cheerful-corpse bug). The structured verdict data lives
+        # in result.verdict (inside this result dict) — consumers reading the
+        # public envelope read envelope.verdict (string), not result.verdict.
+        "verdict": "OK" if not degraded else f"DEGRADED:{len(degraded)}",
         "verdict_code": "OK" if not degraded else "SABAR.DEGRADED",
         "action_class": "OBSERVE",
         # CONSTITUTION (by-reference, never inline)
@@ -892,7 +892,8 @@ def _build_audit_full(sess: dict, actor_id: str, model_key: str, deployment_id: 
         _compute_warnings,
         actor_id=actor_id,
         declared_model_key=model_key,
-        floor_check={"verdict": sess.get("verdict", "SEAL")},
+        # A1: default must not invent SEAL when session has no verdict yet
+        floor_check={"verdict": sess.get("verdict") or sess.get("verdict_code") or "OK"},
         fallback=[],
     )
     context_completeness = _safe_build(

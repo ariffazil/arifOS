@@ -4876,7 +4876,11 @@ def _enforce_nine_signal(
         # ensure_standard_mcp_output above just set ADVISORY_ONLY from conf=0.65.
         # Must overwrite here — this is the common arif_init path.
         if tool_name == "arif_init":
+            # A1: out (engine) may hold substrate that envelope lost
+            if isinstance(out, dict):
+                _preserve_arif_init_truth(out, envelope)
             _stamp_arif_init_deterministic(envelope)
+            apply_deployment_drift_floor(envelope)
 
         return envelope
 
@@ -7238,6 +7242,100 @@ def _record_tool_invocation(
         pass  # Best-effort — never throw from a gauge
 
 
+def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[str, Any]:
+    """A1 (2026-08-05): never drop substrate / software_release when wrapping arif_init.
+
+    Bug: ensure_standard_mcp_output rebuilds a grammar envelope via
+    build_standard_mcp_result, which sets verdict="SEAL" from
+    constitutional_check and leaves substrate=None. Downstream then cannot
+    see drift, and the wire shows SEAL over a dead substrate (cheerful corpse).
+
+    Preserve truth fields from the engine payload onto the wire envelope, then
+    force monotonicity: DEGRADED/drift ⇒ not SEAL, mutation_allowed=False.
+    """
+    if not isinstance(src, dict) or not isinstance(dst, dict):
+        return dst
+
+    # Always re-attach substrate / release / degraded (overwrite None)
+    for key in (
+        "substrate",
+        "software_release",
+        "degraded",
+        "session_id",
+        "actor_id",
+        "session_token",
+        "session_birth",
+        "verdict_code",
+        "clarity_contract",
+        "allowed_next_verbs",
+        "next_tool",
+        "authority",
+        "authority_band",
+        "authority_state",
+    ):
+        if key in src and (key not in dst or dst.get(key) is None):
+            dst[key] = src[key]
+
+    # Keep structured init geometry if engine emitted a dict verdict
+    if isinstance(src.get("verdict"), dict):
+        dst["verdict_geometry"] = src["verdict"]
+
+    sub = dst.get("substrate") if isinstance(dst.get("substrate"), dict) else {}
+    if not sub and isinstance(src.get("substrate"), dict):
+        sub = src["substrate"]
+        dst["substrate"] = sub
+    sw = dst.get("software_release") if isinstance(dst.get("software_release"), dict) else {}
+    if not sw and isinstance(src.get("software_release"), dict):
+        sw = src["software_release"]
+        dst["software_release"] = sw
+
+    drifted = (
+        sub.get("state") == "DEGRADED"
+        or sub.get("drift") is True
+        or sw.get("drift") is True
+        or (
+            isinstance(dst.get("degraded"), list)
+            and any("drift" in str(x).lower() for x in dst["degraded"])
+        )
+        or (
+            isinstance(src.get("degraded"), list)
+            and any("drift" in str(x).lower() for x in src["degraded"])
+        )
+    )
+    if drifted:
+        # Monotonic floor — never SEAL / OK celebration over degraded substrate
+        dst["verdict"] = "DEGRADED"
+        dst["effective_verdict"] = "DEGRADED"
+        dst["canonical_verdict"] = "HOLD"
+        dst["mutation_allowed"] = False
+        dst["seal_allowed"] = False
+        if str(dst.get("status", "")).lower() in ("ok", "completed", "healthy", "seal"):
+            dst["status"] = "degraded"
+        dst["reason_code"] = dst.get("reason_code") or "DEPLOYMENT_DRIFT"
+        # Annotate geometry if present
+        geom = dst.get("verdict_geometry")
+        if isinstance(geom, dict):
+            overall = geom.get("overall")
+            if isinstance(overall, str) and "DEGRADED" not in overall.upper():
+                geom["overall"] = f"DEGRADED:{overall}"
+    elif isinstance(src.get("verdict"), dict):
+        # Healthy bind: do not invent SEAL from conf=1.0 grammar.
+        # Prefer OK / verdict_code from engine.
+        vc = src.get("verdict_code") or src["verdict"].get("overall") or "OK"
+        if isinstance(vc, str) and vc.upper() in _SEALISH and vc.upper() != "SEAL":
+            dst["verdict"] = "OK"
+        elif isinstance(vc, str) and vc.upper() == "SEAL":
+            # Engine used SEAL string only when floors truly sealed — keep
+            dst["verdict"] = "SEAL"
+        else:
+            dst["verdict"] = "OK" if not isinstance(vc, str) else vc
+        dst.setdefault("effective_verdict", dst["verdict"])
+
+    # Always re-run drift floor after preserve (idempotent)
+    apply_deployment_drift_floor(dst)
+    return dst
+
+
 def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
     """Session.bind is DETERMINISTIC — never emit probabilistic confidence_band.
 
@@ -7256,6 +7354,9 @@ def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
     Call this on EVERY arif_init exit from _coerce_public_envelope /
     _enforce_nine_signal / ensure_standard_mcp_output so the stamp cannot
     be skipped by return-path ordering.
+
+    A1 (2026-08-05): also re-apply deployment drift floor so DETERMINISTIC
+    stamp never re-greens a DEGRADED substrate.
     """
     if not isinstance(payload, dict):
         return payload
@@ -7272,6 +7373,8 @@ def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
     )
     payload["metacognition"] = meta
     payload["confidence"] = "N/A — deterministic"
+    # Never let stamp leave SEAL over drift
+    apply_deployment_drift_floor(payload)
     return payload
 
 
@@ -7498,6 +7601,8 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
             )
         # arif_init bind is always DETERMINISTIC even when metacognition pre-exists
         if tool == "arif_init":
+            # A1: preserve substrate before stamp (pre-existing envelope path)
+            _preserve_arif_init_truth(payload, payload)
             return _stamp_arif_init_deterministic(payload)
         return payload
 
@@ -7526,18 +7631,9 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
             raw_result=payload,
             mode="init",
         )
-        # G8 FIX (2026-08-05): Downgrade verdict when substrate is DEGRADED.
-        # arif_init is excluded from the wrapper's drift detector, so we
-        # check here. SEAL over DEGRADED substrate is A1 — a cheerful corpse.
-        _sub = payload.get("substrate") if isinstance(payload.get("substrate"), dict) else {}
-        _drift = (
-            _sub.get("drift", False)
-            or isinstance(_sub.get("drift"), str)
-            and _sub["drift"] not in ("false", "False", "", "NONE")
-        )
-        if _sub.get("state") == "DEGRADED" or _drift:
-            _built["effective_verdict"] = "DEGRADED"
-            _built["verdict"] = "DEGRADED"
+        # A1 + G8 (2026-08-05): preserve engine truth then floor SEAL-over-drift.
+        # build_standard_mcp_result invents verdict="SEAL" and drops substrate.
+        _preserve_arif_init_truth(payload, _built)
         return _stamp_arif_init_deterministic(_built)
 
     # Derive basics — check routing-specific confidence before default
