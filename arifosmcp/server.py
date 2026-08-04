@@ -597,23 +597,26 @@ mcp = FastMCP(
     # MCP logging: SEP-2577 deprecated — FastMCP may still declare logging; no expansion.
     client_log_level="warning",
     instructions=(
-        "Constitutional AI orchestration kernel — arifOS.\n\n"
-        "Membrane Principle:\n"
+        "arifOS — Constitutional AI orchestration kernel. F1-F13 governed.\n\n"
+        "═══ AGENT BOOT SEQUENCE (MCP-NATIVE) ═══\n"
+        "Every agent entering arifOS for the first time MUST:\n"
+        "  1. CALL prompt '/init' → full 10-step autonomous ignition sequence\n"
+        "  2. READ resource arifos://bootstrap → live federation context\n"
+        "  3. READ resource arifos://carry-forward → prior session state\n"
+        "  4. READ resource arifos://flow-state → FQ pulse (FQ<0.5 → OBSERVE_ONLY)\n"
+        "  5. CALL tool arif_init → bind session + get SCT token\n\n"
+        "═══ AGENT CLOSE SEQUENCE (MCP-NATIVE) ═══\n"
+        "Every session MUST close with:\n"
+        "  1. CALL prompt '/seal' → 11-step autonomous close ritual\n"
+        "  2. CALL tool arif_seal or forge_vault → immutable record\n"
+        "  3. VERIFY: resources/read arifos://vault/head\n\n"
+        "═══ Membrane Principle ═══\n"
         "- Language is lossy compression, not the world.\n"
-        "- Intelligence is uncertainty reduction under constraint and human judgment.\n"
         "- Truth survives falsification, not assertion.\n"
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
         "Golden path: init → observe → think → route → memory → judge → forge → seal\n\n"
-        # RSI 2026-07-19: Canonical 8 (was 9). arif_critique absorbed into
-        # arif_think(mode=critique); arif_compose absorbed into arif_forge(mode=compose);
-        # arif_memory promoted to public surface. Source of truth:
-        # constitutional_map.py → KERNEL_ABI_8.
-        # Only advertise public surface tools. Hidden tools
-        # (arif_triage, arif_kernel_attest, etc.) must NOT appear in
-        # instructions — ChatGPT/external callers try to call them and get blocked.
-        # Agentic selection: each tool closes a specific gap in the intent→action pipeline.
-        "Canonical 8 — select by gap:\n"
+        "Canonical 8 tools — select by gap:\n"
         "  arif_init    — No session yet? Start here. Binds actor identity.\n"
         "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
         "  arif_think   — Reasoning gap? Plan, analyze, verify. (arif_critique → mode=critique)\n"
@@ -622,6 +625,9 @@ mcp = FastMCP(
         "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
         "  arif_forge   — Ready to execute? Governed execution path. (arif_compose → mode=compose)\n"
         "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
+        "Key resources: arifos://bootstrap, arifos://carry-forward, arifos://flow-state, "
+        "arifos://vitals, arifos://doctrine, arifos://identity.\n"
+        "Key prompts: /init (ignition), /seal (close), 🌱 BOOT (lightweight), 🌀 SABAR (governed loop).\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )

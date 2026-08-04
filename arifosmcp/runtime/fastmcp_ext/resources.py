@@ -141,7 +141,9 @@ def register_arifos_resources(mcp: Any) -> list[str]:
         """Return the contents of a named INIT prompt file."""
         filepath = _INIT_PROMPT_FILES.get(name)
         if not filepath:
-            return f"[Unknown INIT resource: {name}. Available: {sorted(_INIT_PROMPT_FILES.keys())}]"
+            return (
+                f"[Unknown INIT resource: {name}. Available: {sorted(_INIT_PROMPT_FILES.keys())}]"
+            )
         return _read_file_safe(filepath)
 
     registered.append("arifos://init/opencode/{name}")
@@ -160,8 +162,82 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     registered.append("arifos://init/agent_init")
 
+    # ── carry-forward resource (session state continuity) ─────────────────
+    _CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
+
+    @mcp.resource(
+        "arifos://carry-forward",
+        description=(
+            "Live session carry-forward state. Returns prior session ID, completed tasks, "
+            "open 888_HOLD loops, entropy delta, cooling status, and successor pointer. "
+            "This is the MCP-native equivalent of reading carry_forward.json from filesystem. "
+            "Essential for agent continuity — load at session start instead of FS reads."
+        ),
+    )
+    async def get_carry_forward() -> str:
+        """Return current carry-forward.json contents."""
+        try:
+            with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+                return fh.read()
+        except FileNotFoundError:
+            return (
+                '{"error":"carry_forward.json not found","note":"No prior session state available"}'
+            )
+        except Exception as exc:
+            return f'{{"error":"{exc}"}}'
+
+    registered.append("arifos://carry-forward")
+
+    # ── flow-state resource (FQ pulse — metabolic nerve health) ───────────
+    _FLOW_STATE_PATH = "/root/AAA/state/flow_state.json"
+
+    @mcp.resource(
+        "arifos://flow-state",
+        description=(
+            "Live Flow Quality (FQ) pulse — the federation's metabolic nerve health. "
+            "Returns FQ value, verdict (OPTIMAL/BALANCED/WATCHING/STUCK), and last update. "
+            "FQ < 0.5 → ALL agents HOLD (OBSERVE_ONLY). "
+            "FQ >= 0.5 → forge. This replaces filesystem reads of /root/AAA/state/flow_state.json. "
+            "Cross-reference with arifFlow :7073/health for real-time metabolic data."
+        ),
+    )
+    async def get_flow_state() -> str:
+        """Return current flow_state.json contents."""
+        try:
+            with open(_FLOW_STATE_PATH, encoding="utf-8") as fh:
+                flow_data = fh.read()
+        except (FileNotFoundError, Exception):
+            # Try arifFlow as fallback
+            import json
+
+            try:
+                import urllib.request
+
+                with urllib.request.urlopen("http://localhost:7073/health", timeout=3) as resp:
+                    arifflow_data = json.loads(resp.read())
+                flow_data = json.dumps(
+                    {
+                        "fq": arifflow_data.get("fq", {}),
+                        "status": arifflow_data.get("status", "unknown"),
+                        "source": "arifFlow :7073 (fallback — flow_state.json unavailable)",
+                    },
+                    indent=2,
+                )
+            except Exception:
+                flow_data = json.dumps(
+                    {
+                        "fq": {"quotient": 0.5, "verdict": "UNKNOWN"},
+                        "error": "Neither flow_state.json nor arifFlow available",
+                        "action": "Proceed with FQ=0.5 (conservative). Monitor.",
+                    },
+                    indent=2,
+                )
+        return flow_data
+
+    registered.append("arifos://flow-state")
+
     logger.info(
-        "Registered %d extended resources (incl. %d INIT prompts + agent_init)",
+        "Registered %d extended resources (incl. %d INIT prompts + agent_init + carry-forward + flow-state)",
         len(registered),
         len(_INIT_PROMPT_FILES),
     )
