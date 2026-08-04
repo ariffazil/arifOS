@@ -31,6 +31,55 @@ logger = logging.getLogger("arifosmcp.lease_registry")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Capability resolution helpers (ADR-002)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _resolve_tool_capability(tool_name: str) -> str | None:
+    """Resolve a tool name to its canonical capability path.
+
+    Lazy-imports capability_taxonomy to avoid circular dependency at module load.
+    Returns None if taxonomy unavailable or tool not found.
+    """
+    try:
+        from arifosmcp.runtime.capability_taxonomy import resolve_capability
+
+        return resolve_capability(tool_name)
+    except Exception:
+        return None
+
+
+def _capability_match(scope_entry: str, tool_capability: str | None) -> bool:
+    """Check if a scope entry matches a tool's capability path.
+
+    Supports wildcard patterns:
+        "capability:*"             → matches any capability
+        "capability:shell/*"       → matches all shell tools
+        "capability:shell/execute" → exact match
+        "capability:*/read"        → any domain, read action
+    """
+    if not tool_capability or not scope_entry.startswith("capability:"):
+        return False
+
+    # Parse scope entry: "capability:<domain>/<action>"
+    scope_path = scope_entry[len("capability:") :]
+    scope_domain, _, scope_action = scope_path.partition("/")
+
+    # Parse tool capability: "capability:<domain>/<action>"
+    cap_path = tool_capability[len("capability:") :]
+    cap_domain, _, cap_action = cap_path.partition("/")
+
+    # Domain matching
+    if scope_domain != "*" and scope_domain != cap_domain:
+        return False
+    # Action matching (empty, "*", or exact)
+    if scope_action not in ("*", "", cap_action):
+        return False
+
+    return True
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Lease record
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -60,23 +109,47 @@ class LeaseRecord:
         return not self.revoked and not self.is_expired()
 
     def allows_tool(self, tool_name: str) -> bool:
+        # ── Layer 1: Hard forbid (tool name + capability path) ────
         if tool_name in self.forbidden:
             return False
+        # Resolve the tool's capability path for semantic matching
+        tool_cap = _resolve_tool_capability(tool_name)
+        for forbidden_entry in self.forbidden:
+            if _capability_match(forbidden_entry, tool_cap):
+                return False
+
+        # ── Layer 2: Empty scope = allow all ──────────────────────
         if not self.scope:
             return True
+
+        # ── Layer 3: Scope matching (capability path + legacy) ────
         for entry in self.scope:
+            # 3a: Semantic capability matching (e.g. "capability:shell/*")
+            if entry.startswith("capability:"):
+                if tool_cap and _capability_match(entry, tool_cap):
+                    return True
+                continue
+
+            # 3b: Exact tool name match
             if entry == tool_name:
                 return True
+
+            # 3c: Wildcard all
             if entry == "*":
                 return True
+
+            # 3d: Legacy prefix:* matching (e.g. "forge_shell:*")
             if entry.endswith(":*"):
                 prefix = entry[:-2]
+                if tool_name == prefix:
+                    return True  # Exact match on prefix root
                 if (
                     tool_name.startswith(prefix)
                     and len(tool_name) > len(prefix)
                     and tool_name[len(prefix)] in (":", "_")
                 ):
                     return True
+
         return False
 
     def has_uses_remaining(self) -> bool:
