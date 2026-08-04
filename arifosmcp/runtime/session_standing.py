@@ -620,22 +620,68 @@ def _allowed_verbs_for_band(band: str) -> list[str]:
         ]
 
 
-def _sync_authority_surfaces_from_standing(
+def _sync_authority_surfaces_from_standing_dict(
     response: dict[str, Any],
-    standing: SessionStanding,
+    standing_env: dict[str, Any],
 ) -> None:
-    """P0: standing is the sole authority surface — kill dual narrative.
+    """Same as object form, but accepts already-serialized standing envelope dict.
 
-    session_birth / clarity_contract / top-level authority must not claim
-    FULL/verified/mutation while standing says OBSERVE_ONLY/unverified.
-    Mutates response in place.
+    Live arif_init path stores standing as a dict on the response — the object
+    form was being called with a dict and silently excepting (authority fork).
     """
-    env = standing_to_envelope(standing)
-    actor = env["actor"]
-    authority = env["authority"]
-    band = authority["band"]
-    verified = bool(actor["verified"])
-    mutation = bool(authority["mutation_allowed"])
+    if not isinstance(response, dict) or not isinstance(standing_env, dict):
+        return
+    actor = standing_env.get("actor") if isinstance(standing_env.get("actor"), dict) else {}
+    authority = (
+        standing_env.get("authority") if isinstance(standing_env.get("authority"), dict) else {}
+    )
+    band = authority.get("band") or "OBSERVE_ONLY"
+    verified = bool(actor.get("verified"))
+    mutation = bool(authority.get("mutation_allowed"))
+    # Deployment drift always wins over standing mutation claim
+    if _response_has_deployment_drift(response):
+        mutation = False
+    _apply_authority_surface_values(
+        response,
+        band=str(band),
+        verified=verified,
+        mutation=mutation,
+        actor=actor,
+        authority=authority,
+        session_id=standing_env.get("session_id"),
+    )
+
+
+def _response_has_deployment_drift(response: dict[str, Any]) -> bool:
+    spots = [response]
+    res = response.get("result")
+    if isinstance(res, dict):
+        spots.append(res)
+    for d in spots:
+        sub = d.get("substrate") if isinstance(d.get("substrate"), dict) else {}
+        if sub.get("state") == "DEGRADED" or sub.get("drift") is True:
+            return True
+        sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
+        if sw.get("drift") is True:
+            return True
+        deg = d.get("degraded")
+        if isinstance(deg, list) and any("drift" in str(x).lower() for x in deg):
+            return True
+    return False
+
+
+def _apply_authority_surface_values(
+    response: dict[str, Any],
+    *,
+    band: str,
+    verified: bool,
+    mutation: bool,
+    actor: dict[str, Any],
+    authority: dict[str, Any],
+    session_id: str | None = None,
+    standing_obj: SessionStanding | None = None,
+) -> None:
+    """Shared writer for authority surfaces (object or dict standing)."""
     allowed = _allowed_verbs_for_band(band)
 
     # Top-level mirrors (if present)
@@ -649,6 +695,20 @@ def _sync_authority_surfaces_from_standing(
         response["authority_mode"] = band
     if "allowed_next_verbs" in response:
         response["allowed_next_verbs"] = list(allowed)
+    if "mutation_allowed" in response:
+        response["mutation_allowed"] = mutation
+    if "seal_allowed" in response:
+        response["seal_allowed"] = bool(authority.get("seal_allowed")) and mutation
+
+    # standing.authority on the response itself
+    st = response.get("standing")
+    if isinstance(st, dict):
+        st_auth = st.get("authority") if isinstance(st.get("authority"), dict) else {}
+        st_auth = dict(st_auth)
+        st_auth["mutation_allowed"] = mutation
+        if not mutation:
+            st_auth["seal_allowed"] = False
+        st["authority"] = st_auth
 
     # session_birth — the dual-claim residual named by the auditor
     birth = response.get("session_birth")
@@ -658,23 +718,34 @@ def _sync_authority_surfaces_from_standing(
         birth["verdict"] = band
         birth["mutation_allowed"] = mutation
         birth["authority_source"] = "standing"
-        # Align identity fields with standing
-        birth["claimed_id"] = actor["claimed_id"]
-        birth["canonical_id"] = actor["canonical_id"]
-        birth["verification_method"] = actor["verification_method"]
-        birth["evidence_ref"] = actor["evidence_ref"]
-        if standing.session_id and standing.session_id != "anonymous":
-            birth["session_id"] = standing.session_id
-        # Invalidate pre-collapse SCT in birth — token may still claim FULL
+        birth["claimed_id"] = actor.get("claimed_id")
+        birth["canonical_id"] = actor.get("canonical_id")
+        birth["verification_method"] = actor.get("verification_method")
+        birth["evidence_ref"] = actor.get("evidence_ref")
+        sid = session_id or (standing_obj.session_id if standing_obj else None)
+        if sid and sid != "anonymous":
+            birth["session_id"] = sid
         if birth.get("session_token") and not verified:
             birth["session_token_status"] = "SUPERSEDED_BY_STANDING"
-            # Keep token for audit trail but mark non-authoritative
             birth["session_token_authoritative"] = False
 
-    # Nested result.session_birth (some wrappers nest)
+    # Nested result (authority fields only — avoid recursive standing object call)
     result = response.get("result")
     if isinstance(result, dict):
-        _sync_authority_surfaces_from_standing(result, standing)
+        if "mutation_allowed" in result:
+            result["mutation_allowed"] = mutation
+        if "seal_allowed" in result:
+            result["seal_allowed"] = bool(authority.get("seal_allowed")) and mutation
+        if "authority_scope" in result:
+            result["authority_scope"] = band
+        rb = result.get("session_birth")
+        if isinstance(rb, dict):
+            rb["mutation_allowed"] = mutation
+            rb["authority_mode"] = band
+            rb["actor_verified"] = verified
+        ra = result.get("actor")
+        if isinstance(ra, dict):
+            ra["authority_level"] = band
 
     # clarity_contract mutation_allowed must match standing
     clarity = response.get("clarity_contract")
@@ -695,38 +766,59 @@ def _sync_authority_surfaces_from_standing(
     if isinstance(meta, dict) and "authority_mode" in meta:
         meta["authority_mode"] = band
 
-    # 2026-08-04 333-AGI: Authority surgeon — collapse remaining dual-narrative fields.
-    # Four fields give four contradictory answers. Standing is the single resolver.
-    # Every other authority-like field derives from standing.authority.band or is deleted.
     # Actor block
     actor_block = response.get("actor")
-    if isinstance(actor_block, dict):
-        actor_block["authority_level"] = band
-    actor_block = (
-        response.get("result", {}).get("actor")
-        if isinstance(response.get("result"), dict)
-        else None
-    )
     if isinstance(actor_block, dict):
         actor_block["authority_level"] = band
     # Constitutional check
     cc = response.get("constitutional_check")
     if isinstance(cc, dict):
         cc["agency_level"] = band
-        cc["floor_passed"] = band != "HOLD" and band != "VOID"
+        cc["floor_passed"] = band not in ("HOLD", "VOID")
     # Risk
     risk = response.get("risk")
     if isinstance(risk, dict):
         risk["agency_level"] = band
-    # Top-level authority scope
-    if response.get("authority_scope") is not None:
-        response["authority_scope"] = band
     # Runtime verdict scopes
     scoped = (
         response.get("scoped_verdicts") if isinstance(response.get("scoped_verdicts"), dict) else {}
     )
     if isinstance(scoped, dict) and "runtime" in scoped and isinstance(scoped["runtime"], dict):
         scoped["runtime"]["band"] = band
+
+
+def _sync_authority_surfaces_from_standing(
+    response: dict[str, Any],
+    standing: SessionStanding,
+) -> None:
+    """P0: standing is the sole authority surface — kill dual narrative.
+
+    session_birth / clarity_contract / top-level authority must not claim
+    FULL/verified/mutation while standing says OBSERVE_ONLY/unverified.
+    Mutates response in place.
+    """
+    env = standing_to_envelope(standing)
+    actor = env["actor"]
+    authority = env["authority"]
+    band = authority["band"]
+    verified = bool(actor["verified"])
+    mutation = bool(authority["mutation_allowed"])
+    # Drift floor: never re-open mutation if deployment is drifted
+    if _response_has_deployment_drift(response):
+        mutation = False
+        authority = dict(authority)
+        authority["mutation_allowed"] = False
+        authority["seal_allowed"] = False
+    _apply_authority_surface_values(
+        response,
+        band=str(band),
+        verified=verified,
+        mutation=mutation,
+        actor=actor,
+        authority=authority,
+        session_id=standing.session_id,
+        standing_obj=standing,
+    )
 
     # Re-mint SCT from standing when weak/unverified so wire token matches law
     # F-AUDIT-CLAUDE-2026-08-02 (Finding 4): Token MUST NOT be minted on the DENY path.

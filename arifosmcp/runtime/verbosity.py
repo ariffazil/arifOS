@@ -334,10 +334,58 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             if str(minimal.get("verdict")).lower() == "pending":
                 minimal["verdict"] = "SEAL"
 
+    # W-03: deployment drift is a hard floor — never re-green to SEAL/PROCEED.
+    def _has_drift(d: dict) -> bool:
+        if not isinstance(d, dict):
+            return False
+        sub = d.get("substrate") if isinstance(d.get("substrate"), dict) else {}
+        if sub.get("state") == "DEGRADED" or sub.get("drift") is True:
+            return True
+        sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
+        if sw.get("drift") is True:
+            return True
+        deg = d.get("degraded")
+        if isinstance(deg, list) and any("drift" in str(x).lower() for x in deg):
+            return True
+        res = d.get("result") if isinstance(d.get("result"), dict) else {}
+        rsub = res.get("substrate") if isinstance(res.get("substrate"), dict) else {}
+        return rsub.get("state") == "DEGRADED" or rsub.get("drift") is True
+
+    _drift = _has_drift(minimal) or _has_drift(response if isinstance(response, dict) else {})
+
     # Derive effective/canonical from constitutional_check — single resolver.
     # 2026-08-04 audit: floor_passed=true + hold_required=false must not
     # coexist with effective_verdict=HOLD / canonical=DENY (Mode 3).
-    if isinstance(_cc, dict) and _cc.get("floor_passed") and not _cc.get("hold_required"):
+    # 2026-08-04 W-03: drift must not be overpainted by floor_passed=true.
+    if _drift:
+        minimal["effective_verdict"] = "HOLD"
+        minimal["canonical_verdict"] = "HOLD"
+        minimal["reason_code"] = minimal.get("reason_code") or "DEPLOYMENT_DRIFT"
+        minimal["next_action"] = minimal.get("next_action") or "RECONCILE_SOURCE_BUILT_DEPLOYED"
+        if str(minimal.get("status", "")).lower() in ("ok", "completed", "healthy"):
+            minimal["status"] = "degraded"
+        # Keep nine_signal honest if present
+        ns = minimal.get("nine_signal")
+        if isinstance(ns, dict):
+            overall = ns.get("overall")
+            if isinstance(overall, dict) and overall.get("state") in ("SELAMAT", "SAFE"):
+                ns["overall"] = {
+                    "state": "RETAK",
+                    "en": "HOLDING",
+                    "reason": "deployment_drift",
+                }
+        # Mutation never true under drift
+        if "mutation_allowed" in minimal:
+            minimal["mutation_allowed"] = False
+        sb = minimal.get("session_birth")
+        if isinstance(sb, dict):
+            sb["mutation_allowed"] = False
+        st = minimal.get("standing")
+        if isinstance(st, dict) and isinstance(st.get("authority"), dict):
+            st["authority"]["mutation_allowed"] = False
+            st["authority"]["seal_allowed"] = False
+        minimal["_drift_floor_applied"] = True
+    elif isinstance(_cc, dict) and _cc.get("floor_passed") and not _cc.get("hold_required"):
         _v = str(minimal.get("verdict") or response.get("verdict") or "").upper()
         if _v in ("SEAL", "OK", "COMPLETED", "SYUBHAH", "SABAR", ""):
             # SYUBHAH is epistemic doubt on content, not session DENY

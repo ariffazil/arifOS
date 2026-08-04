@@ -105,6 +105,174 @@ def _unlock(handle: Any) -> None:
         pass
 
 
+# ── W-02 / W-03: Deployment-drift floor (2026-08-04) ─────────────────
+# INVARIANT: If substrate.drift or software_release.drift is true, the
+# payload must NOT claim SEAL/PROCEED/SELAMAT and must NOT claim
+# mutation_allowed=true in any nested block. Standing must not overwrite
+# the safer floor set by session.py under drift.
+_SEALISH = frozenset(
+    {
+        "SEAL",
+        "PROCEED",
+        "OK",
+        "APPROVED",
+        "COMPLETED",
+        "completed",
+        "SAFE",
+        "SELAMAT",
+        "FULL",
+    }
+)
+
+
+def _payload_has_deployment_drift(payload: dict[str, Any]) -> bool:
+    """True if any known location reports deployment/kernel drift."""
+    if not isinstance(payload, dict):
+        return False
+    spots: list[dict[str, Any]] = [payload]
+    res = payload.get("result")
+    if isinstance(res, dict):
+        spots.append(res)
+    for d in spots:
+        sub = d.get("substrate") if isinstance(d.get("substrate"), dict) else {}
+        if sub.get("state") == "DEGRADED" or sub.get("drift") is True:
+            return True
+        sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
+        if sw.get("drift") is True:
+            return True
+        inv = sw.get("deployment_invariant") if isinstance(sw.get("deployment_invariant"), dict) else {}
+        if inv.get("drift") is True:
+            return True
+        deg = d.get("degraded")
+        if isinstance(deg, list) and any("drift" in str(x).lower() for x in deg):
+            return True
+    return False
+
+
+def apply_deployment_drift_floor(payload: Any) -> Any:
+    """Collapse cheerful-corpse + authority-fork under deployment drift.
+
+    Mutates dict payload in place. Safe to call multiple times.
+    """
+    if not isinstance(payload, dict) or not _payload_has_deployment_drift(payload):
+        return payload
+
+    def _force_no_mutate(d: dict[str, Any]) -> None:
+        if "mutation_allowed" in d:
+            d["mutation_allowed"] = False
+        if "seal_allowed" in d:
+            d["seal_allowed"] = False
+
+    def _force_verdict_keys(d: dict[str, Any]) -> None:
+        # Always set floors under drift — do not wait for a SEAL already present
+        # (final envelope often writes SEAL *after* an earlier partial stamp).
+        for k in ("effective_verdict", "canonical_verdict"):
+            v = d.get(k)
+            if v is None or (isinstance(v, str) and v.upper() in _SEALISH) or (
+                isinstance(v, str) and v.upper() not in ("HOLD", "VOID", "888_HOLD", "SABAR", "OBSERVE_ONLY", "DEGRADED")
+            ):
+                d[k] = "HOLD"
+        v = d.get("verdict")
+        if isinstance(v, str) and v.upper() in _SEALISH:
+            d["verdict"] = "HOLD"
+        elif isinstance(v, str) and v.lower() in ("completed", "ok", "proceed", "approved"):
+            d["verdict"] = "HOLD"
+        elif isinstance(v, dict):
+            overall = v.get("overall")
+            if isinstance(overall, str) and "DEGRADED" not in overall.upper() and overall.upper() not in (
+                "HOLD",
+                "RETAK",
+            ):
+                v["overall"] = f"DEGRADED:{overall}"
+            elif isinstance(overall, dict) and overall.get("state") in (
+                "SELAMAT",
+                "SAFE",
+                "OK",
+            ):
+                overall["state"] = "RETAK"
+                overall["en"] = "HOLDING"
+        # Ensure status is not pure celebration under drift
+        if str(d.get("status", "")).lower() in ("completed", "ok", "healthy"):
+            d["status"] = "degraded"
+        d["reason_code"] = d.get("reason_code") or "DEPLOYMENT_DRIFT"
+        d["next_action"] = d.get("next_action") or "RECONCILE_SOURCE_BUILT_DEPLOYED"
+
+    def _force_nine(d: dict[str, Any]) -> None:
+        ns = d.get("nine_signal")
+        if not isinstance(ns, dict):
+            return
+        overall = ns.get("overall")
+        if isinstance(overall, dict) and overall.get("state") in ("SELAMAT", "SAFE"):
+            ns["overall"] = {
+                "state": "RETAK",
+                "en": "HOLDING",
+                "reason": "deployment_drift",
+            }
+        elif isinstance(overall, str) and overall.upper() in ("SELAMAT", "SAFE"):
+            ns["overall"] = "RETAK"
+
+    def _force_standing(d: dict[str, Any]) -> None:
+        st = d.get("standing")
+        if not isinstance(st, dict):
+            return
+        auth = st.get("authority")
+        if isinstance(auth, dict):
+            auth["mutation_allowed"] = False
+            auth["seal_allowed"] = False
+        actor = st.get("actor")
+        # keep identity band but do not invent mutation
+
+    _force_no_mutate(payload)
+    _force_verdict_keys(payload)
+    _force_nine(payload)
+    _force_standing(payload)
+
+    birth = payload.get("session_birth")
+    if isinstance(birth, dict):
+        _force_no_mutate(birth)
+
+    clarity = payload.get("clarity_contract")
+    if isinstance(clarity, dict):
+        _force_no_mutate(clarity)
+
+    res = payload.get("result")
+    if isinstance(res, dict):
+        _force_no_mutate(res)
+        _force_verdict_keys(res)
+        _force_nine(res)
+        rb = res.get("session_birth")
+        if isinstance(rb, dict):
+            _force_no_mutate(rb)
+        rc = res.get("clarity_contract")
+        if isinstance(rc, dict):
+            _force_no_mutate(rc)
+        # action verdicts that claim APPROVED under drift
+        verdicts = res.get("verdicts") if isinstance(res.get("verdicts"), dict) else {}
+        action = verdicts.get("action") if isinstance(verdicts.get("action"), dict) else {}
+        if action.get("state") in ("APPROVED", "SEAL", "PROCEED"):
+            action["state"] = "HOLD"
+            action["reason"] = "deployment_drift_floor"
+
+    verdicts_top = payload.get("verdicts") if isinstance(payload.get("verdicts"), dict) else {}
+    action_top = (
+        verdicts_top.get("action") if isinstance(verdicts_top.get("action"), dict) else {}
+    )
+    if action_top.get("state") in ("APPROVED", "SEAL", "PROCEED"):
+        action_top["state"] = "HOLD"
+        action_top["reason"] = "deployment_drift_floor"
+
+    # Surface prefix for agents
+    prefix = payload.get("response_prefix") or ""
+    if "DRIFT" not in str(prefix).upper():
+        payload["response_prefix"] = (
+            "⚠️ DRIFT DETECTED — substrate DEGRADED. mutation_allowed=false. "
+            "Headline cannot be SEAL/SAFE. " + str(prefix)
+        )
+
+    payload["_drift_floor_applied"] = True
+    return payload
+
+
 # ── FORGE 1: Verdict Monotonicity (2026-06-22) ────────────────────────
 # INVARIANT: No aggregate verdict may rank safer than its worst
 # load-bearing sub-signal. PASS (SEAL) forbidden if any evidence
@@ -2233,6 +2401,23 @@ def _compute_canonical_verdict(
     if verdict == "SEAL" and _any_degraded_flag(out):
         verdict = "DEGRADED"
         degradation.append(f"degraded_flags: {_degraded_flag_reason(out)}")
+
+    # ── Step 3b: Substrate drift (G8 FIX 2026-08-05) ──────────────────────
+    # SEAL over DEGRADED substrate is A1 — a cheerful corpse.
+    # Check both top-level substrate and verdicts.substrate (delegate vs wrapper).
+    if verdict == "SEAL":
+        _drift_sub = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
+        if not _drift_sub:
+            _drift_verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
+            _drift_sub = _drift_verdicts.get("substrate") if isinstance(_drift_verdicts.get("substrate"), dict) else {}
+        _drift_flag = (
+            _drift_sub.get("drift", False)
+            or isinstance(_drift_sub.get("drift"), str)
+            and _drift_sub["drift"] not in ("false", "False", "", "NONE")
+        )
+        if _drift_sub.get("state") == "DEGRADED" or _drift_flag:
+            verdict = "DEGRADED"
+            degradation.append(f"substrate_drift: state={_drift_sub.get('state')}, drift={_drift_sub.get('drift')}")
 
     # ── Step 4: Inner verdicts from result payload ────────────────────────
     inner_degradation = _find_degradation_in_payload(result_payload)
@@ -4566,26 +4751,25 @@ def _enforce_nine_signal(
         # 2026-08-04 333-AGI: Make drift bite.
         # deployment_invariant.note says: must refuse to report healthy when drift is true.
         # When substrate is DEGRADED or drift is true, surface it prominently and
-        # suppress any SAFE/SELAMAT signal in nine_signal.
+        # suppress any SAFE/SELAMAT signal in nine_signal AND downgrade verdict.
         _sub = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
+        # G8 FIX: Also check verdicts.substrate (arif_init puts drift data there)
+        if not _sub:
+            _verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
+            _sub = _verdicts.get("substrate") if isinstance(_verdicts.get("substrate"), dict) else {}
         _drift = (
             _sub.get("drift", False)
             or isinstance(_sub.get("drift"), str)
             and _sub["drift"] not in ("false", "False", "", "NONE")
         )
-        if _sub.get("state") == "DEGRADED" or _drift:
-            _drift_note = f"⚠️ DRIFT DETECTED — substrate DEGRADED. Deployment invariant requires refusal to report healthy. "
-            envelope["response_prefix"] = _drift_note + (envelope.get("response_prefix") or "")
-            # Suppress SAFE signal in nine_signal
-            ns = (
-                envelope.get("nine_signal") if isinstance(envelope.get("nine_signal"), dict) else {}
-            )
-            if isinstance(ns.get("overall"), dict) and ns["overall"].get("state") in (
-                "SELAMAT",
-                "SAFE",
-            ):
-                ns["overall"] = {"state": "SELAMAT_SEBATAS_PEMERHATIAN", "en": "SAFE_OBSERVE_ONLY"}
-                envelope["nine_signal"] = ns
+        # Also merge substrate from out into envelope so floor sees it
+        if isinstance(out.get("substrate"), dict) and "substrate" not in envelope:
+            envelope["substrate"] = out["substrate"]
+        if isinstance(out.get("software_release"), dict) and "software_release" not in envelope:
+            envelope["software_release"] = out["software_release"]
+        if isinstance(out.get("degraded"), list) and "degraded" not in envelope:
+            envelope["degraded"] = out["degraded"]
+        apply_deployment_drift_floor(envelope)
 
         if apex_env is not None:
             envelope["apex"] = apex_env
@@ -4758,6 +4942,9 @@ def _enforce_nine_signal(
             # (which lived only after the NineSignalOutput branch). Stamp here.
             if tool_name == "arif_init":
                 _stamp_arif_init_deterministic(out)
+            # W-03: this early return previously re-greened drift payloads
+            # (status=OK → implied SEAL) after floor already set nine_signal RETAK.
+            apply_deployment_drift_floor(out)
             return out
 
     response = _coerce_public_envelope(response)
@@ -4926,26 +5113,39 @@ def _enforce_nine_signal(
                     }
                 except Exception:
                     pass  # non-fatal
-            # 2026-08-04 333-AGI: Authority surgeon — collapse dual narrative.
-            # standing.authority.band is the single resolver. Sync all other
-            # authority fields from standing for arif_init responses.
+            # Authority surfaces from standing, then drift floor must win.
+            # Standing does not know deployment drift — floor re-applies after.
             _standing = enforced.get("standing")
             if isinstance(_standing, dict):
                 try:
                     from arifosmcp.runtime.session_standing import (
-                        _sync_authority_surfaces_from_standing,
+                        _sync_authority_surfaces_from_standing_dict,
                     )
 
-                    _sync_authority_surfaces_from_standing(enforced, _standing)
+                    _sync_authority_surfaces_from_standing_dict(enforced, _standing)
                 except Exception:
-                    pass
+                    try:
+                        # Fallback: only if standing is a SessionStanding object
+                        from arifosmcp.runtime.session_standing import (
+                            _sync_authority_surfaces_from_standing,
+                        )
+
+                        if hasattr(_standing, "authority"):
+                            _sync_authority_surfaces_from_standing(enforced, _standing)
+                    except Exception:
+                        pass
+            apply_deployment_drift_floor(enforced)
 
         # ALWAYS stamp DETERMINISTIC for arif_init (bind is not inference).
         # Previously gated on effective_verdict==SEAL only, and placed after
         # an early-return path that never reached here. Independent n=20 saw
         # ADVISORY_ONLY on the wire; stamp is now path-invariant.
         _stamp_arif_init_deterministic(enforced)
+        # Final pass: stamp must never re-green a drifted substrate
+        apply_deployment_drift_floor(enforced)
 
+    # Last line of every tool envelope: drift floor wins over SEAL
+    apply_deployment_drift_floor(enforced)
     return enforced
 
 
@@ -7284,6 +7484,18 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
             raw_result=payload,
             mode="init",
         )
+        # G8 FIX (2026-08-05): Downgrade verdict when substrate is DEGRADED.
+        # arif_init is excluded from the wrapper's drift detector, so we
+        # check here. SEAL over DEGRADED substrate is A1 — a cheerful corpse.
+        _sub = payload.get("substrate") if isinstance(payload.get("substrate"), dict) else {}
+        _drift = (
+            _sub.get("drift", False)
+            or isinstance(_sub.get("drift"), str)
+            and _sub["drift"] not in ("false", "False", "", "NONE")
+        )
+        if _sub.get("state") == "DEGRADED" or _drift:
+            _built["effective_verdict"] = "DEGRADED"
+            _built["verdict"] = "DEGRADED"
         return _stamp_arif_init_deterministic(_built)
 
     # Derive basics — check routing-specific confidence before default
@@ -8840,6 +9052,9 @@ def _arif_session_init(
             _result_dict = (
                 _init_result.model_dump() if hasattr(_init_result, "model_dump") else _init_result
             )
+            # W-02/W-03: single drift floor on pre-session init return
+            if isinstance(_result_dict, dict):
+                apply_deployment_drift_floor(_result_dict)
             return _inject_atlas333_boot(_result_dict)
         except Exception as e:
             return _hold(
