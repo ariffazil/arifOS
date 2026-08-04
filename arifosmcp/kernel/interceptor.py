@@ -418,6 +418,18 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
                 from arifosmcp.runtime.tools import _SESSIONS
 
                 _sess = _SESSIONS.get(req.session_id)
+                # 2026-08-04 333-AGI: Session store bridge.
+                # arif_init creates sessions in session._store but _SESSIONS may
+                # not have them. Fallback to session._store via get_session_identity.
+                if _sess is None:
+                    try:
+                        from arifosmcp.runtime.session import get_session_identity
+
+                        _ident = get_session_identity(req.session_id)
+                        if _ident and isinstance(_ident, dict):
+                            _sess = dict(_ident)
+                    except Exception:
+                        pass
                 if _sess:
                     _sess_auth = (_sess.get("authority") or "").upper()
                     if _sess_auth in ("FULL", "SOVEREIGN"):

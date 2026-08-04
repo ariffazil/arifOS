@@ -287,11 +287,61 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "canonical_verdict",
         "receipt_state",
         "floor_passed",
+        # 2026-08-04 audit: metabolic payload MUST survive minimal trim.
+        # arif_observe returned status=OK + organs live via direct call, but
+        # MCP minimal strip left only control-plane → agents saw pending/empty.
+        "result",
+        "organs",
+        "organs_alive",
+        "organs_total",
+        "verdicts",
+        "nine_signal",
+        "reasons",
+        "apex_scalars",
+        "standing",
+        "authority",
+        "allowed_next_verbs",
+        "runtime_grant",
+        "session_birth",
+        "mutation_allowed",
+        "seal_allowed",
+        "affordance_contract",
     )
     for field in _SEMANTIC_PRESERVED_FIELDS:
         value = _lookup(field)
         if value is not None:
             minimal[field] = value
+
+    # 2026-08-04 audit: do not emit status=pending for completed OBSERVE work.
+    # pending + empty result is Mode 3 (narrate HOLD while tool already ran).
+    _st = str(minimal.get("status") or "").lower()
+    _tool = str(minimal.get("tool") or response.get("tool") or "")
+    _cc = minimal.get("constitutional_check") or {}
+    if _st == "pending" and _tool in (
+        "arif_observe",
+        "arif_think",
+        "arif_route",
+        "arif_init",
+    ):
+        # Prefer original response status when it was OK/completed
+        _orig = str(response.get("status") or "").upper()
+        if _orig in ("OK", "COMPLETED", "SEAL"):
+            minimal["status"] = "completed" if _orig != "OK" else "OK"
+            if str(minimal.get("verdict")).lower() == "pending":
+                minimal["verdict"] = response.get("verdict") or "SEAL"
+        elif _cc.get("floor_passed") and not _cc.get("hold_required"):
+            minimal["status"] = "OK"
+            if str(minimal.get("verdict")).lower() == "pending":
+                minimal["verdict"] = "SEAL"
+
+    # Derive effective/canonical if missing but constitutional_check is clear
+    if minimal.get("effective_verdict") is None and isinstance(_cc, dict):
+        if _cc.get("floor_passed") and not _cc.get("hold_required"):
+            minimal["effective_verdict"] = "SEAL"
+            minimal["canonical_verdict"] = "PROCEED"
+        elif _cc.get("hold_required"):
+            minimal["effective_verdict"] = "HOLD"
+            minimal["canonical_verdict"] = "DENY"
 
     # F11 SAFETY NET: verify required fields are present
     required = ["verdict", "session_id", "actor", "call_hash"]
