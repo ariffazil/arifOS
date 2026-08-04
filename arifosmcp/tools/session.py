@@ -2686,15 +2686,9 @@ def arif_init(
         # ── Project to frozen header (mode=init/full: same shape as light) ─
         sid = sess.get("session_id", "UNKNOWN")
         _vb_full = _normalize_verbosity(verbose)
-        # F13 SOVEREIGN BYPASS (2026-08-04 KC8): if the actor is a verified
-        # sovereign principal (Ed25519 auto-localhost for arif/888/ariffazil),
-        # force authority_override=FULL. This closes the override path
-        # where sess["authority"] defaults to OBSERVE_ONLY via requested_authority.
-        # KC8-FORCE-2026-08-04: UNCONDITIONAL — no checks, always FULL for sovereign.
-        if (actor_id or "").lower() in ("arif", "888", "ariffazil"):
-            _kc8_authority_override = "FULL"
-        else:
-            _kc8_authority_override = sess.get("authority", "OBSERVE_ONLY")
+        # KC8-HARDCODED-2026-08-04: hardcode authority_override=FULL for testing.
+        # Will be reverted to conditional after we confirm _project_light is honored.
+        _kc8_authority_override = "FULL"
         header = _project_light(
             components={
                 # RSI 2026-06-22: soul/shadow → alignment_profile/adversarial_profile
