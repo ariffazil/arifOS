@@ -185,7 +185,7 @@ CORE_NINE_WITH_ENGINE = {
     "arif_init": "arif_init (modes: init, light, resume, canary, preflight, triage)",
     "arif_observe": "arif_observe (modes: search, fetch, ingest, vitals, atlas)",
     "arif_think": "arif_think (modes: reason, plan, reflect, verify, critique, simulate, wonder)",
-    "arif_route": "arif_route (modes: route, bridge, dispatch)",
+    "arif_route": "arif_route (no modes — routing is the only operation)",
     "arif_memory": "arif_memory (modes: recall, inspect, attest, remember, promote, revise, forget, audit)",
     "arif_judge": "arif_judge (kernel: arif_kernel_intercept)",
     "arif_forge": "arif_forge (modes: engineer, query, write, generate, commit; arif_act is internal alias)",
