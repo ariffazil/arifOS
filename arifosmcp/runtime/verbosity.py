@@ -334,12 +334,19 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             if str(minimal.get("verdict")).lower() == "pending":
                 minimal["verdict"] = "SEAL"
 
-    # Derive effective/canonical if missing but constitutional_check is clear
-    if minimal.get("effective_verdict") is None and isinstance(_cc, dict):
-        if _cc.get("floor_passed") and not _cc.get("hold_required"):
-            minimal["effective_verdict"] = "SEAL"
+    # Derive effective/canonical from constitutional_check — single resolver.
+    # 2026-08-04 audit: floor_passed=true + hold_required=false must not
+    # coexist with effective_verdict=HOLD / canonical=DENY (Mode 3).
+    if isinstance(_cc, dict) and _cc.get("floor_passed") and not _cc.get("hold_required"):
+        _v = str(minimal.get("verdict") or response.get("verdict") or "").upper()
+        if _v in ("SEAL", "OK", "COMPLETED", "SYUBHAH", "SABAR", ""):
+            # SYUBHAH is epistemic doubt on content, not session DENY
+            minimal["effective_verdict"] = (
+                "SEAL" if _v in ("SEAL", "OK", "COMPLETED", "") else _v
+            )
             minimal["canonical_verdict"] = "PROCEED"
-        elif _cc.get("hold_required"):
+    elif isinstance(_cc, dict) and _cc.get("hold_required"):
+        if minimal.get("effective_verdict") is None:
             minimal["effective_verdict"] = "HOLD"
             minimal["canonical_verdict"] = "DENY"
 
