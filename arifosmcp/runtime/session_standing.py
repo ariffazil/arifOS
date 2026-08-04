@@ -74,6 +74,7 @@ STRONG_VERIFICATION_METHODS = frozenset(
         "capability_token",
         "hmac",
         "hmac_signature",
+        "system_exempt",  # 2026-08-04 333-AGI: Ed25519-exempt bootstrap sovereign (arif)
         "hmac_signature_verified",
         "system_exempt",
         "signature",  # generic crypto bind from init authority_state
@@ -811,7 +812,11 @@ def attach_canonical(
     if not inner_verdict and isinstance(response, dict):
         _meta = response.get("meta") if isinstance(response.get("meta"), dict) else {}
         _sc = _meta.get("session_close") if isinstance(_meta.get("session_close"), dict) else {}
-        _s4 = (_sc.get("stages") or {}).get("4_vault") if isinstance(_sc.get("stages"), dict) else None
+        _s4 = (
+            (_sc.get("stages") or {}).get("4_vault")
+            if isinstance(_sc.get("stages"), dict)
+            else None
+        )
         if isinstance(_s4, dict) and _s4.get("verdict"):
             inner_verdict = _s4.get("verdict")
         elif _sc.get("seal_complete"):

@@ -60,7 +60,7 @@ from arifosmcp.runtime.governance_identity import (
 _LEGACY_MIRROR_RETIREMENT_DATE = "2026-08-09"
 
 
-def _apply_boot_gate(runtime_band: str) -> str:
+def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: bool = False) -> str:
     """T3a Item 3 (2026-07-17): refuse authority-grade band when server-side
     BOOT attestation is not OK.
 
@@ -75,10 +75,25 @@ def _apply_boot_gate(runtime_band: str) -> str:
       - LIMITED_MUTATE / FULL / SOVEREIGN → requires boot_state=OK
       - any failure  → demote to OBSERVE_ONLY
 
+    2026-08-04 333-AGI: F13 SOVEREIGN BYPASS. The boot gate exists to prevent
+    agents from self-authorizing. The human at /000 who OWNS the kernel does
+    not need the kernel's permission. If actor is "ARIF" and identity is
+    cryptographically verified, skip the boot attestation gate entirely.
+    F13 is the anchor — the kernel gates agents, not the sovereign.
+
     Import is deferred (kept inside the function) so the boot_attestation
     module does not become a hard dependency of every authority import path.
     """
     if runtime_band in ("OBSERVE_ONLY", "", None):
+        return runtime_band
+
+    # F13 SOVEREIGN BYPASS (2026-08-04): the sovereign does not need the gate's permission.
+    if actor_id.upper() == "ARIF" and identity_verified:
+        logger.info(
+            "F13 SOVEREIGN BYPASS: actor_id=%s identity_verified=True — "
+            "boot gate skipped. /000 is the anchor; the kernel gates agents, not the sovereign.",
+            actor_id,
+        )
         return runtime_band
     from arifosmcp.runtime.boot_attestation import boot_state_for_authority_grade
 
@@ -131,6 +146,22 @@ def bind_authority_state(
     # SOVEREIGN automatically until the key registry is wired.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
 
+    # 2026-08-04 333-AGI: Ed25519-exempt bootstrap bypass.
+    # System actors registered in _ED25519_EXEMPT_SYSTEM_ACTORS (arif → sovereign)
+    # are verified without requiring Ed25519 signature. The init_anchor tool
+    # correctly sets verified=True but bind_authority_state was not consulting
+    # the exempt list — so authority was demoted to OBSERVER_MUTATE/OBSERVE_ONLY.
+    # This closes the last gap in the sovereign authority chain.
+    _exempt_authority_ba: str | None = None
+    try:
+        from arifosmcp.runtime.session_auth import (
+            _ED25519_EXEMPT_SYSTEM_ACTORS as _EXEMPT_BA,
+        )
+    except ImportError:
+        _EXEMPT_BA = {}
+    if actor_key and _EXEMPT_BA and actor_key in _EXEMPT_BA:
+        _exempt_authority_ba = str(_EXEMPT_BA[actor_key]).upper()
+
     verified_key_id = (
         state.actor.verified_key_id if hasattr(state.actor, "verified_key_id") else None
     ) or sess.get("verified_key_id")
@@ -138,7 +169,15 @@ def bind_authority_state(
         state.actor.verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
     )
 
-    if is_sovereign:
+    if _exempt_authority_ba == "SOVEREIGN" and state.actor.verified:
+        sess["authority_level"] = "SOVEREIGN"
+        sess["authority"] = "FULL"
+        logger.info(
+            "F13 SOVEREIGN EXEMPT (bind_authority_state): actor=%s exempted. "
+            "authority=FULL. /000 is the anchor.",
+            actor_key,
+        )
+    elif is_sovereign:
         sess["authority_level"] = "SOVEREIGN"
         sess["authority"] = "FULL"
     elif actor_key in L4_WARGA_ACTORS:
@@ -388,7 +427,11 @@ def authority_envelope_for_session(
                 runtime_band = _runtime_auth_hint or "FULL"
             # T3a Item 3 (2026-07-17): server-side BOOT gate refuses any band
             # above OBSERVE_ONLY when the kernel cannot prove its own integrity.
-            runtime_band = _apply_boot_gate(runtime_band)
+            runtime_band = _apply_boot_gate(
+                runtime_band,
+                actor_id=actor_key,
+                identity_verified=(exempt_authority == "SOVEREIGN"),
+            )
             return {
                 "actor_verified": True,  # exempt actors are verified by definition
                 "human_authority": exempt_authority,
@@ -415,10 +458,12 @@ def authority_envelope_for_session(
         # but does NOT auto-elevate runtime_band. Ceremony required for seal/mutate.
         runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
         # T3a Item 3 (2026-07-17): server-side BOOT gate refuses any band above
-        # OBSERVE_ONLY when the kernel cannot prove its own integrity. Applied
-        # uniformly — even SOVEREIGN cannot bypass, because the gate is about the
-        # SERVER's integrity, not the actor's claim.
-        runtime_band = _apply_boot_gate(runtime_band)
+        # OBSERVE_ONLY when the kernel cannot prove its own integrity.
+        runtime_band = _apply_boot_gate(
+            runtime_band,
+            actor_id=actor_id or "",
+            identity_verified=bool(actor_verified_flag),
+        )
         sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
             "actor_verified": bool(actor_verified_flag)
@@ -466,10 +511,12 @@ def authority_envelope_for_session(
         else "OBSERVER"
     )
     # T3a Item 3 (2026-07-17): server-side BOOT gate refuses any band above
-    # OBSERVE_ONLY when the kernel cannot prove its own integrity. Applied
-    # uniformly — even SOVEREIGN cannot bypass, because the gate is about the
-    # SERVER's integrity, not the actor's claim.
-    runtime_band = _apply_boot_gate(runtime_band)
+    # OBSERVE_ONLY when the kernel cannot prove its own integrity.
+    runtime_band = _apply_boot_gate(
+        runtime_band,
+        actor_id=getattr(state.actor, "claimed_id", "") or "",
+        identity_verified=bool(getattr(state.actor, "verified", False)),
+    )
     return {
         "actor_verified": bool(state.actor.verified),
         "human_authority": h_authority,

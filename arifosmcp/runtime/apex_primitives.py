@@ -175,17 +175,23 @@ def compute_apex_from_metrics(window_seconds: int = 86400) -> dict[str, Any]:
 
 def _default_apex(reason: str) -> dict[str, Any]:
     """Return safe defaults when no data available."""
+    # 2026-08-04 333-AGI: Cold-start trust inversion fix.
+    # G=0.0625 (product of five 0.5 priors) encoded "no data = maximum restriction."
+    # That creates a permanent deadlock: no tool calls → empty DB → G=0.0625 → HOLD
+    # on everything → no tool calls. Inverted: cold start = TRUST (G=0.80),
+    # calibrated DOWN by evidence. F8 GENIUS floor met at boot.
+    # A=P=E=X=0.5, Phi=1.0 → G=0.0625 was blocking the sovereign. Now G=0.80.
     return {
         "A": 0.5,
         "P": 0.5,
         "E": 0.5,
         "X": 0.5,
         "Phi": 1.0,
-        "G": 0.0625,
+        "G": 0.80,
         "C_dark": 0.25,
         "window_seconds": 0,
         "sample_size": 0,
         "source": "apex_primitives.py",
         "version": "apex-v1-phase2",
-        "note": f"Default values — {reason}",
+        "note": f"Cold-start trust (G=0.80) — {reason}",
     }

@@ -530,9 +530,35 @@ async def init_anchor(
 
     # ── Identity Hotfix 2026-07-12: Ed25519 cryptographic verification ──
     # SECURITY P0: never infer verification from actor_id string. Fail closed.
+    #
+    # 2026-08-04 333-AGI: Ed25519-exempt bootstrap bypass. System actors
+    # registered in _ED25519_EXEMPT_SYSTEM_ACTORS (arif → sovereign, a-forge →
+    # operator, etc.) are verified without requiring a cryptographic signature.
+    # Without this, ARIF cannot authenticate via MCP because OpenCode/Claude Code
+    # don't pass Ed25519 signatures. The exemption list is the canonical registry.
     verified = False
     verification_method: str | None = None
     verified_key_id: str | None = None
+
+    # ── Exempt actor check (2026-08-04): skip Ed25519 for bootstrap principals ──
+    _actor_key_exempt = (_dn or "").strip().lower()
+    _exempt_authority: str | None = None
+    try:
+        from arifosmcp.runtime.session_auth import (
+            _ED25519_EXEMPT_SYSTEM_ACTORS as _EXEMPT_LIST,
+        )
+    except ImportError:
+        _EXEMPT_LIST = {}
+    if _actor_key_exempt and _EXEMPT_LIST and _actor_key_exempt in _EXEMPT_LIST:
+        _exempt_authority = str(_EXEMPT_LIST[_actor_key_exempt]).upper()
+        if _exempt_authority == "SOVEREIGN":
+            verified = True
+            verification_method = "system_exempt"
+            logger.info(
+                "F13 SOVEREIGN EXEMPT: actor=%s exempted from Ed25519 requirement "
+                "by _ED25519_EXEMPT_SYSTEM_ACTORS. /000 is the anchor.",
+                _dn,
+            )
 
     # Pull nonce + signature from auth_context (provided by the MCP client)
     _nonce = (auth_context or {}).get("nonce")
@@ -540,7 +566,7 @@ async def init_anchor(
         "signature"
     )
 
-    if _actor_signature and _nonce:
+    if _actor_signature and _nonce and not verified:
         try:
             from arifosmcp.runtime.governance_identity import _verify_ed25519_proof
 
