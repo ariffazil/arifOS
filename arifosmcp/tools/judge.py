@@ -1064,6 +1064,8 @@ async def arif_judge(
                 must escalate to HOLD unless explicit Sovereign override.
             action_tier: "standard" | "sovereign" | "c4" | "c5".
     ...
+    """
+
     # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any LLM call ──
     # Per ChatGPT forensic: arif_judge must not wait 45s for LLM to decide
     # hard facts. Identity, permissions, and reversibility are checkable
@@ -1083,7 +1085,11 @@ async def arif_judge(
         )
 
     # Gate 3: Critical blast radius requires sovereign receipt
-    if _br in ("CRITICAL", "L3_CRITICAL", "HIGH") and not sovereign_receipt and action_tier == "standard":
+    if (
+        _br in ("CRITICAL", "L3_CRITICAL", "HIGH")
+        and not sovereign_receipt
+        and action_tier == "standard"
+    ):
         _hard_reasons.append(
             f"Critical blast radius ({_br}) requires sovereign_receipt or action_tier=sovereign."
         )
@@ -1099,21 +1105,19 @@ async def arif_judge(
         _hard_reasons.append("Escalation requires sovereign_receipt.")
 
     if _hard_reasons:
-        return _echo_standing(
-            VerdictOutput(
-                verdict=VerdictCode.HOLD,
-                reasons=_hard_reasons,
-                next_safe_action=(
-                    "Provide missing credentials (actor_signature, sovereign_receipt, "
-                    "heart_critique) or reduce blast_radius/reversibility level. "
-                    "These gates run BEFORE any LLM is consulted — no 45s wait."
-                ),
-                meta={
-                    "gate": "hard_deterministic",
-                    "llm_consulted": False,
-                    "zend": "2026-07-30",
-                },
-            )
+        return VerdictOutput(
+            verdict=VerdictCode.HOLD,
+            reasons=_hard_reasons,
+            next_safe_action=(
+                "Provide missing credentials (actor_signature, sovereign_receipt, "
+                "heart_critique) or reduce blast_radius/reversibility level. "
+                "These gates run BEFORE any LLM is consulted — no 45s wait."
+            ),
+            meta={
+                "gate": "hard_deterministic",
+                "llm_consulted": False,
+                "zend": "2026-07-30",
+            },
         )
 
     # Delegate to kernel intercept classification if reversibility_level/action_class provided
@@ -1157,19 +1161,13 @@ async def arif_judge(
             elif _v_str == "SEAL":
                 _code = VerdictCode.SEAL
             else:
-                _code = (
-                    VerdictCode.VOID
-                    if _v_str == "VOID"
-                    else VerdictCode.HOLD
-                )
-            _cc_id = (
-                _intercept_res.get("constitutional_chain_id")
-                or (_intercept_res.get("output") or {}).get("constitutional_chain_id")
-            )
-            _jsh = (
-                _intercept_res.get("judge_state_hash")
-                or (_intercept_res.get("output") or {}).get("judge_state_hash")
-            )
+                _code = VerdictCode.VOID if _v_str == "VOID" else VerdictCode.HOLD
+            _cc_id = _intercept_res.get("constitutional_chain_id") or (
+                _intercept_res.get("output") or {}
+            ).get("constitutional_chain_id")
+            _jsh = _intercept_res.get("judge_state_hash") or (
+                _intercept_res.get("output") or {}
+            ).get("judge_state_hash")
             _reasons = [
                 _intercept_res.get("reason")
                 or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
@@ -1179,30 +1177,24 @@ async def arif_judge(
                     "F13 sovereign_receipt present — confirms passed intercept "
                     "(ALLOW/OK→SEAL or SEAL retained); HOLD is never rewritten."
                 )
-            return _echo_standing(
-                VerdictOutput(
-                    verdict=_code,
-                    reasons=_reasons,
-                    next_safe_action=(
-                        "Proceed to arif_seal(ack_irreversible=true) with "
-                        "constitutional_chain_id + judge_state_hash"
-                        if _code == VerdictCode.SEAL
-                        else _intercept_res.get(
-                            "next_safe_action", "Execute or review per verdict"
-                        )
-                    ),
-                    meta={
-                        "kernel_intercept": _intercept_res,
-                        "reversibility_level": _rev_param,
-                        "action_class": action_class or reversibility_level,
-                        "constitutional_chain_id": _cc_id,
-                        "state_hash": _jsh,
-                        "judge_state_hash": _jsh,
-                        "f13_promoted_allow_to_seal": bool(
-                            _code == VerdictCode.SEAL and _has_f13
-                        ),
-                    },
-                )
+            return VerdictOutput(
+                verdict=_code,
+                reasons=_reasons,
+                next_safe_action=(
+                    "Proceed to arif_seal(ack_irreversible=true) with "
+                    "constitutional_chain_id + judge_state_hash"
+                    if _code == VerdictCode.SEAL
+                    else _intercept_res.get("next_safe_action", "Execute or review per verdict")
+                ),
+                meta={
+                    "kernel_intercept": _intercept_res,
+                    "reversibility_level": _rev_param,
+                    "action_class": action_class or reversibility_level,
+                    "constitutional_chain_id": _cc_id,
+                    "state_hash": _jsh,
+                    "judge_state_hash": _jsh,
+                    "f13_promoted_allow_to_seal": bool(_code == VerdictCode.SEAL and _has_f13),
+                },
             )
         except Exception as _int_err:
             logger.warning("Kernel intercept delegation failed: %s", _int_err)
@@ -1236,8 +1228,7 @@ async def arif_judge(
         if reversibility_level:
             _rd_payload.setdefault(
                 "reversible",
-                str(reversibility_level).upper()
-                in ("FULL", "REVERSIBLE", "L0", "L1", "LOW"),
+                str(reversibility_level).upper() in ("FULL", "REVERSIBLE", "L0", "L1", "LOW"),
             )
         if blast_radius:
             _rd_payload.setdefault("blast_radius", blast_radius)
@@ -1250,35 +1241,38 @@ async def arif_judge(
             action_tier=action_tier,
             reversible=_rd_payload.get("reversible"),
         )
-        if not _rd.passed:
-            return _echo_standing(
-                VerdictOutput(
-                    verdict=VerdictCode.HOLD,
-                    reasons=list(_rd.reasons),
-                    next_safe_action=(
-                        "Provide causal_cascade (≥3 steps, recovery, reversibility, "
-                        "omission risk) and/or valid consent_lease before re-judge."
-                    ),
-                    meta={
-                        "rasa_derita_gate": _rd.to_dict(),
-                        "verdict": "888_HOLD",
-                        "module": "RASA_DERITA",
-                    },
-                )
-            )
+        if _rd.passed:
+            return None
+        return VerdictOutput(
+            verdict=VerdictCode.HOLD,
+            reasons=list(_rd.reasons),
+            next_safe_action=(
+                "Provide causal_cascade (≥3 steps, recovery, reversibility, "
+                "omission risk) and/or valid consent_lease before re-judge."
+            ),
+            meta={
+                "rasa_derita_gate": _rd.to_dict(),
+                "verdict": "888_HOLD",
+                "module": "RASA_DERITA",
+            },
+        )
     except Exception as _rd_err:
         logger.warning("RASA DERITA judge gate soft-fail (non-blocking): %s", _rd_err)
 
-    # ── 666_HEART: Ethical Gate (Red Team Finding #1) ────────────────────────
+        # ── 666_HEART: Ethical Gate (Red Team Finding #1) ────────────────────────
         # Hard-wire the heart's verdict into the judge loop.
         if mode == "judge" and heart_critique:
-            heart_verdict = heart_critique.get("action_risk_verdict") or heart_critique.get("verdict")
+            heart_verdict = heart_critique.get("action_risk_verdict") or heart_critique.get(
+                "verdict"
+            )
             if heart_verdict in ("VOID", "HOLD"):
                 return VerdictOutput(
                     verdict=VerdictCode.HOLD,
                     reasons=[
                         f"666_HEART_GATE: Critique returned {heart_verdict}.",
-                        heart_critique.get("reason", "Ethical risks or uncertainty detected by Heart."),
+                        heart_critique.get(
+                            "reason", "Ethical risks or uncertainty detected by Heart."
+                        ),
                     ],
                     next_safe_action="Review 666_HEART risks and provide mitigations before re-judging.",
                     meta={
@@ -1288,7 +1282,6 @@ async def arif_judge(
                     },
                 )
 
-    """
     # ── APEX COLLAPSE TRIGGER AUTO-COMPUTE (Phase 1, 2026-08-02) ───────────────
     # If four-dial params (actor_B, actor_Phi, entropy_pathway, entropy_receipt)
     # are not explicitly provided, auto-compute them from the candidate text using
@@ -1372,7 +1365,6 @@ async def arif_judge(
     # is captured in _cls_verdict_for_override and applied in _echo_standing
     # below, bypassing the uniform-paranoia fallback (confidence: 0.2 < 0.5)
     # while preserving fail-closed semantics for true ambiguity.
-    _cls_verdict_for_override: Any = None
     if candidate and str(candidate).strip():
         try:
             from arifosmcp.runtime.__advisory__.arif_action_classifier import (
@@ -1475,13 +1467,6 @@ async def arif_judge(
     _has_receipt = bool(sovereign_receipt and sovereign_receipt.strip())
 
     # ── SCT-first standing (Spine P0) — store optional ─────────────────────
-    _standing_token = session_token
-    _standing_source = None
-    _standing_apex: dict[str, Any] | None = None
-    _standing_actor_verified = False
-    _standing_authority: str | None = None
-    _standing_delta: dict[str, Any] | None = None
-
     if session_token or session_id:
         try:
             from arifosmcp.runtime.sct import resolve_standing
