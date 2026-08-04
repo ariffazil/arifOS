@@ -955,9 +955,47 @@ try:
                         verdict_to_envelope,
                     )
 
-                    _cv_inner = str(result.get("verdict", "OBSERVE_ONLY") or "OBSERVE_ONLY")
+                    # Prefer already-floored verdicts; never re-upgrade SEAL under drift.
+                    _cv_inner = str(
+                        result.get("effective_verdict")
+                        or result.get("canonical_verdict")
+                        or result.get("verdict")
+                        or "OBSERVE_ONLY"
+                    )
+                    # verdict may be a dict from session.py — use overall
+                    if isinstance(result.get("verdict"), dict):
+                        _cv_inner = str(
+                            (result["verdict"] or {}).get("overall")
+                            or result.get("effective_verdict")
+                            or "OBSERVE_ONLY"
+                        )
                     _cv_auth = "SOVEREIGN" if result.get("actor_verified") else "OBSERVE_ONLY"
-                    _cv_drift = []  # drift is a separate signal
+                    # W-03: pass real deployment drift so composer cannot emit SEAL
+                    _cv_drift: list[str] = []
+                    _sub = result.get("substrate") if isinstance(result.get("substrate"), dict) else {}
+                    if _sub.get("drift") is True or _sub.get("state") == "DEGRADED":
+                        _cv_drift.append("substrate_drift")
+                    _sw = (
+                        result.get("software_release")
+                        if isinstance(result.get("software_release"), dict)
+                        else {}
+                    )
+                    if _sw.get("drift") is True:
+                        _cv_drift.append("software_release_drift")
+                    _deg = result.get("degraded")
+                    if isinstance(_deg, list) and any("drift" in str(x).lower() for x in _deg):
+                        _cv_drift.append("kernel_drift")
+                    # Map soft status tokens that are not constitutional verdicts
+                    if _cv_inner.lower() in ("completed", "ok", "proceed", "approved"):
+                        _cv_inner = "SEAL" if not _cv_drift else "DEGRADED"
+                    if _cv_drift and str(_cv_inner).upper() in (
+                        "SEAL",
+                        "PROCEED",
+                        "OK",
+                        "COMPLETED",
+                        "APPROVED",
+                    ):
+                        _cv_inner = "DEGRADED"
                     _canonical = compose_effective_verdict(
                         inner_verdict=_cv_inner,
                         session_authority_band=_cv_auth,
@@ -969,6 +1007,17 @@ try:
                     result["effective_verdict"] = _envelope["effective_verdict"]
                     result["reason_code"] = _envelope["reason_code"]
                     result["next_action"] = _envelope["next_action"]
+                    # Keep canonical_verdict aligned with effective under drift
+                    if _cv_drift:
+                        result["canonical_verdict"] = _envelope["effective_verdict"]
+                        result["_drift_floor_applied"] = True
+                        # Belt-and-braces: re-apply tools floor if available
+                        try:
+                            from arifosmcp.runtime.tools import apply_deployment_drift_floor
+
+                            apply_deployment_drift_floor(result)
+                        except Exception:
+                            pass
                 except Exception as _t3_exc:
                     # Fail-closed: never let the composer crash the worker.
                     # Force a deterministic HOLD; downstream status = pending.
