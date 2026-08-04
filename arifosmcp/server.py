@@ -1048,7 +1048,7 @@ try:
                 @functools.wraps(handler)
                 async def wrapped(*args, **kwargs):
                     result = await handler(*args, **kwargs)
-                    advisory = _last_bridge()
+                    advisory = _last_bridge
                     if advisory is not None and isinstance(result, dict):
                         # V2 envelope returns a dict; result.verdict lives under
                         # result["verdict"] or result["effective_verdict"]
