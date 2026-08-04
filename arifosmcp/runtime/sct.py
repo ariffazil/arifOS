@@ -679,7 +679,26 @@ def _claims_to_standing(
     source: str,
     reason: str,
 ) -> Standing:
-    apex = claims.get("apex") or unmeasured_apex()
+    # W-09 FIX (2026-08-05): Compute live APEX from tool_calls DB
+    # instead of defaulting to UNMEASURED. Falls back to unmeasured_apex()
+    # if the DB is unreachable or has no records.
+    try:
+        from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
+
+        _live = compute_apex_from_metrics()
+        if _live.get("sample_size", 0) > 0:
+            apex = {
+                "G": _live.get("G"),
+                "C_dark": _live.get("C_dark"),
+                "W3": _live.get("W3", None),
+                "h": _live.get("h", None),
+                "sample_size": _live.get("sample_size"),
+                "source": "apex_primitives.py",
+            }
+        else:
+            apex = unmeasured_apex()
+    except Exception:
+        apex = unmeasured_apex()
     return Standing(
         valid=True,
         source=source,
