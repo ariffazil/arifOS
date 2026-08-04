@@ -2980,8 +2980,21 @@ def register_rest_routes(
             _probe_langfuse_tracing,
             fallback={"status": "unknown", "note": "probe offloaded; no cache yet"},
         )
-        runtime_drift_val = _drift.get("runtime_drift", False)
+        runtime_drift_val = bool(_drift.get("runtime_drift", False))
         contract_drift_val = contracts.get("contract_drift", True)
+        # 2026-08-04 audit: software_release.drift is an independent SOT
+        # (source_commit == built_commit == deployed_commit). Health was
+        # emitting status=healthy + deployment_drift_status=aligned while
+        # software_release.drift=true — Mode 3 (narrate SAFE, arithmetic says drift).
+        try:
+            from arifosmcp.runtime.build import get_runtime_attestation as _get_att
+
+            _attest = _get_att() or {}
+            _sr_drift = bool(_attest.get("drift"))
+        except Exception:
+            _attest = {}
+            _sr_drift = False
+        runtime_drift_val = runtime_drift_val or _sr_drift
         c_dark_val = float(
             (thermo.get("apex_scalars", {}).get("C_dark", {}) or {}).get("value") or 0.0
         )

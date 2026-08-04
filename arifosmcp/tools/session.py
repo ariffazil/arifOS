@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import sys as _kc8sys
 import time as _time
 
 logger = logging.getLogger(__name__)
@@ -807,6 +808,52 @@ def _project_light(
             "sid": _claims.get("sid"),
             "sct_v": _claims.get("sct_v"),
         }
+        # 2026-08-04 333-AGI + audit fix: Session store bridge.
+        # SCT returns sid=SEAL-* while identity bind uses sid_sess-*.
+        # Downstream get_session(SEAL-*) must resolve actor_verified=True.
+        # Do NOT import arifosmcp.runtime.tools here (circular import → silent fail).
+        # Write via upsert_session_record (session identity store) under BOTH keys.
+        _sct_sid = _claims.get("sid")
+        if _sct_sid and actor_verified:
+            _bridge_rec = {
+                "session_id": _sct_sid,
+                "actor_id": actor_id or "anonymous",
+                "actor_verified": True,
+                "authority": str(_authority or "SOVEREIGN").upper(),
+                "authority_level": str(_authority or "SOVEREIGN").upper(),
+                "verification_method": "system_exempt",
+                "verified": True,
+                "identity_verified": True,
+                "sct_sid": _sct_sid,
+                "birth_sid": sid,
+            }
+            try:
+                from arifosmcp.runtime.session import upsert_session_record
+
+                upsert_session_record(_sct_sid, _bridge_rec)
+                # Also alias the birth sid (sid_sess-*) if different
+                if sid and sid != _sct_sid:
+                    _alias = dict(_bridge_rec)
+                    _alias["session_id"] = sid
+                    _alias["sct_sid"] = _sct_sid
+                    upsert_session_record(sid, _alias)
+                out["session_bridge"] = {
+                    "status": "bound",
+                    "sct_sid": _sct_sid,
+                    "birth_sid": sid,
+                }
+            except Exception as _bridge_exc:
+                logger.error(
+                    "session_bridge_failed sct_sid=%s birth_sid=%s err=%s",
+                    _sct_sid,
+                    sid,
+                    _bridge_exc,
+                )
+                out["session_bridge"] = {
+                    "status": "failed",
+                    "error": type(_bridge_exc).__name__,
+                    "detail": str(_bridge_exc)[:200],
+                }
     except Exception as _sct_exc:
         # Continuity mint failure must not block init — but mark clearly
         logger.error(f"SCT mint failed: {_sct_exc}")
@@ -1167,6 +1214,17 @@ def arif_init(
     # ── Sovereign alias normalization (FORGED 2026-07-15) ──
     # Normalize natural-language actor_id variants to canonical form.
     # "Salam ARIF" → "arif", "Hi Arif" → "arif", "Saya Arif" → "arif"
+    try:
+        with open("/tmp/arifos-debug.log", "a") as _dbg:
+            _dbg.write(f"DEBUG-KC8: arif_init ENTRY mode={mode!r} actor_id={actor_id!r} requested_authority={requested_authority!r}\n")
+    except Exception:
+        pass
+    # KC8: file-based debug — direct to /tmp
+    try:
+        with open("/tmp/kc8-debug.log", "a") as _dbg:
+            _dbg.write(f"DEBUG-KC8-1: arif_init ENTRY mode={mode!r} actor_id={actor_id!r} requested_authority={requested_authority!r}\n")
+    except Exception as _e:
+        _kc8sys.stderr.write(f"KC8-1-FAIL: {_e!r}\n")
     _canonical_actor_id: str | None = None
     if actor_id:
         try:
@@ -2001,6 +2059,11 @@ def arif_init(
 
     # ── INIT / FULL MODE ─────────────────────────────────────────────
     if mode in ("init", "full"):
+        try:
+            with open("/tmp/kc8-debug.log", "a") as _dbg:
+                _dbg.write(f"DEBUG-KC8-2: ENTERED init/full block mode={mode!r} actor_id={actor_id!r}\n")
+        except Exception as _e:
+            _kc8sys.stderr.write(f"KC8-2-FAIL: {_e!r}\n")
         sess = _new_session(
             actor_id,
             declared_model_key=declared_model_key,
@@ -2084,6 +2147,8 @@ def arif_init(
         # and standing collapses to OBSERVE_ONLY even for ARIF.
         if not identity_verified and actor_id and nonce and actor_signature:
             try:
+                with open("/tmp/kc8-debug.log", "a") as _dbg:
+                    _dbg.write("DEBUG-KC8-3: entered hmac block (nonce provided)\n")
                 from arifosmcp.runtime.sovereign_verify import verify_hmac_signature
 
                 _hmac_actor = normalize_actor_id(actor_id) or (
@@ -2135,6 +2200,8 @@ def arif_init(
 
         if actor_id and nonce and actor_signature and not identity_verified:
             try:
+                with open("/tmp/kc8-debug.log", "a") as _dbg:
+                    _dbg.write("DEBUG-KC8-4: entered ed25519 block (nonce+sig)\n")
                 from arifosmcp.runtime.crypto_auth import (
                     classify_actor_band,
                     is_registered_actor,
@@ -2204,10 +2271,17 @@ def arif_init(
                 logger.warning("init-mode crypto bind failed: %s", _exc)
 
         # ── Auto-sign block for VPS-local agents (FORGED 2026-07-19) ──
+        with open("/tmp/kc8-debug.log", "a") as _dbg:
+            _dbg.write(f"DEBUG-KC8-5: about to enter auto-sign block identity_verified={identity_verified} actor_id={actor_id!r}\n")
         # mode="light" has this at lines 1320-1368. mode="init" was missing it.
         # This left non-exempt registered agents (kimi, hermes, opencode) stuck
         # at OBSERVE_ONLY on their primary init path. Copy + adapt: fire for
         # ANY registered actor, not just sovereign. (Audit: Arif 2026-07-19)
+        logger.info(
+            "DEBUG-KC8: mode=init auto-sign block ENTERED actor=%s identity_verified=%s",
+            actor_id,
+            identity_verified,
+        )
         if not identity_verified and actor_id:
             try:
                 from arifosmcp.runtime.crypto_auth import (
@@ -2217,6 +2291,8 @@ def arif_init(
                     verify_init_identity,
                 )
 
+                logger.info("DEBUG-KC8: mode=init auto-sign imports OK")
+
                 # Issue challenge — succeeds for registered + exempt actors
                 _challenge_nonce = issue_actor_challenge(actor_id)
 
@@ -2224,11 +2300,17 @@ def arif_init(
                 _auto_sig = _auto_sign_nonce(actor_id, _challenge_nonce)
 
                 if _auto_sig:
+                    logger.info("DEBUG-KC8: mode=init auto-sign got _auto_sig, verifying")
                     _ok, _reason = verify_init_identity(
                         actor_id=actor_id,
                         nonce=_challenge_nonce,
                         signature_b64=_auto_sig,
                         constitution_hash=CONSTITUTION_HASH,
+                    )
+                    logger.info(
+                        "DEBUG-KC8: mode=init verify_init_identity returned ok=%s reason=%s",
+                        _ok,
+                        _reason,
                     )
                     if _ok:
                         _band = classify_actor_band(actor_id, True)
@@ -2402,8 +2484,34 @@ def arif_init(
         # Prefer classify_actor_band when crypto path ran
         if sess.get("actor_band") in ("FULL", "LIMITED_MUTATE", "OBSERVE_ONLY"):
             _derived_auth = sess["actor_band"]
-        if requested_authority and requested_authority == "OBSERVE_ONLY":
+        logger.info(
+            "DEBUG-KC8: mode=init auth derive actor=%s identity_verified=%s sig_verified=%s _is_signed_principal=%s sess_actor_band=%s _derived_auth(before)=%s requested_authority=%s",
+            actor_id,
+            identity_verified,
+            sig_verified,
+            _is_signed_principal,
+            sess.get("actor_band"),
+            _derived_auth,
+            requested_authority,
+        )
+        # F13 SOVEREIGN BYPASS (2026-08-04): the requested_authority=OBSERVE_ONLY
+        # default is an aspirational cap for non-sovereign actors. Sovereign
+        # principals (arif/888/ariffazil) verified via Ed25519 are NOT subject
+        # to the aspirational default — F13 SOVEREIGN supersedes caller
+        # aspiration. Without this guard, every MCP call to arif_init defaulted
+        # requested_authority=OBSERVE_ONLY, downgrading sovereigns to OBSERVE_ONLY
+        # even after auto-sign proved identity.
+        if (
+            requested_authority
+            and requested_authority == "OBSERVE_ONLY"
+            and not _is_signed_principal
+        ):
             _derived_auth = "OBSERVE_ONLY"
+        logger.info(
+            "DEBUG-KC8: mode=init _derived_auth(after)=%s sess_authority_being_set=%s",
+            _derived_auth,
+            _derived_auth,
+        )
         sess["authority"] = _derived_auth
         if _derived_auth == "FULL":
             sess["verdict"] = "OK"
