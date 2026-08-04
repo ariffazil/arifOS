@@ -89,6 +89,7 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
 SOVEREIGN_KEY_IDS: set[str] = {
     "ed25519:sha256:a8fbb5ae8b4772b0",  # Arif /000/ DID key (did:web:arif-fazil.com)
     "ed25519:sha256:9c35a833fef25f17",  # Arif AAA identity key (2026-07-12)
+    "ed25519:sha256:679a6416e734666a",  # Arif AF-FORGE session key (2026-08-04, /root/.secrets/aaa-identity/keys/arif_public.pem)
 }
 
 # SSH sovereign key fingerprints are registered dynamically by forge_seal_init.sh
