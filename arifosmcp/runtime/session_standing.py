@@ -695,6 +695,39 @@ def _sync_authority_surfaces_from_standing(
     if isinstance(meta, dict) and "authority_mode" in meta:
         meta["authority_mode"] = band
 
+    # 2026-08-04 333-AGI: Authority surgeon — collapse remaining dual-narrative fields.
+    # Four fields give four contradictory answers. Standing is the single resolver.
+    # Every other authority-like field derives from standing.authority.band or is deleted.
+    # Actor block
+    actor_block = response.get("actor")
+    if isinstance(actor_block, dict):
+        actor_block["authority_level"] = band
+    actor_block = (
+        response.get("result", {}).get("actor")
+        if isinstance(response.get("result"), dict)
+        else None
+    )
+    if isinstance(actor_block, dict):
+        actor_block["authority_level"] = band
+    # Constitutional check
+    cc = response.get("constitutional_check")
+    if isinstance(cc, dict):
+        cc["agency_level"] = band
+        cc["floor_passed"] = band != "HOLD" and band != "VOID"
+    # Risk
+    risk = response.get("risk")
+    if isinstance(risk, dict):
+        risk["agency_level"] = band
+    # Top-level authority scope
+    if response.get("authority_scope") is not None:
+        response["authority_scope"] = band
+    # Runtime verdict scopes
+    scoped = (
+        response.get("scoped_verdicts") if isinstance(response.get("scoped_verdicts"), dict) else {}
+    )
+    if isinstance(scoped, dict) and "runtime" in scoped and isinstance(scoped["runtime"], dict):
+        scoped["runtime"]["band"] = band
+
     # Re-mint SCT from standing when weak/unverified so wire token matches law
     # F-AUDIT-CLAUDE-2026-08-02 (Finding 4): Token MUST NOT be minted on the DENY path.
     # The condition was `session_id != "anonymous"` — which lets unverified actors

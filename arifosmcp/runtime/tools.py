@@ -4929,6 +4929,24 @@ def _enforce_nine_signal(
                 except Exception:
                     pass
 
+            # 2026-08-04 333-AGI: Split deterministic from probabilistic.
+            # Session.bind is DETERMINISTIC — not a probabilistic inference.
+            # The confidence scalar template leaks onto a computation.
+            # Mark it explicitly so consumers don't treat this as a low-confidence guess.
+            _meta = (
+                enforced.get("metacognition")
+                if isinstance(enforced.get("metacognition"), dict)
+                else {}
+            )
+            _meta["reasoning_state"] = "DETERMINISTIC"
+            _meta["confidence"] = "N/A — deterministic operation"
+            _meta["confidence_band"] = "DETERMINISTIC"
+            _meta["band_note"] = (
+                "Session bind is DETERMINISTIC, not probabilistic. Confidence scalar N/A."
+            )
+            enforced["metacognition"] = _meta
+            enforced["confidence"] = "N/A — deterministic"
+
     return enforced
 
 

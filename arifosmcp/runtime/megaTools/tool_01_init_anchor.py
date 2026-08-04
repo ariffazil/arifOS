@@ -748,6 +748,28 @@ async def init_anchor(
         res_payload["session_id"] = _session_id
         res_payload["bound_session"]["session_id"] = _session_id
         res_payload["result"]["session_id"] = _session_id
+        # 2026-08-04 333-AGI: Session store bridge.
+        # bind_session_identity stores in session._store but downstream
+        # wrappers (tools._coerce_public_envelope) read from tools._SESSIONS.
+        # Sync the new session to _SESSIONS so actor_verified and authority
+        # propagate to subsequent tool calls (arif_observe, arif_think, etc.).
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS as _bridge_sessions
+
+            _bridge_sessions[_session_id] = {
+                "actor_id": _dn,
+                "actor_verified": verified,
+                "authority": _authority_level.upper(),
+                "authority_level": _authority_level.upper(),
+                "verification_method": auth_ctx.get("verification_method"),
+                "evidence_ref": auth_ctx.get("verified_key_id")
+                and f"key://{auth_ctx['verified_key_id']}"
+                or f"session://{_session_id}",
+                "verified": verified,
+                "identity_verified": verified,
+            }
+        except Exception:
+            pass  # non-fatal — session still exists in session._store
     except Exception as e:
         logger.warning(f"Session identity binding failed: {e}")
 
