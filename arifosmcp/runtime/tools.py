@@ -260,6 +260,16 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
     if action_top.get("state") in ("APPROVED", "SEAL", "PROCEED"):
         action_top["state"] = "HOLD"
         action_top["reason"] = "deployment_drift_floor"
+    # W-02: scoped substrate must not PASS while top-level substrate is DEGRADED
+    sub_scope = (
+        verdicts_top.get("substrate") if isinstance(verdicts_top.get("substrate"), dict) else {}
+    )
+    if sub_scope.get("state") in ("PASS", "HEALTHY", ""):
+        sub_scope["state"] = "DEGRADED"
+        sub_scope["evidence_reference"] = sub_scope.get("evidence_reference") or "deployment_drift"
+        sub_scope["issuer"] = sub_scope.get("issuer") or "arifos_conformance"
+        verdicts_top["substrate"] = sub_scope
+        payload["verdicts"] = verdicts_top
 
     # Surface prefix for agents
     prefix = payload.get("response_prefix") or ""
@@ -2641,16 +2651,48 @@ def _compute_scoped_verdicts(
     vs = VerdictScopes()
 
     # ── Substrate scope: kernel conformance health ──────────────────────
-    # Derived from: status STALE/ERROR → DEGRADED, presence of degradation flags
+    # Derived from: status STALE/ERROR → DEGRADED, presence of degradation flags,
+    # AND explicit substrate/software_release.drift (W-02: must not PASS when
+    # top-level substrate.state is DEGRADED).
     _is_healthy = status in ("OK", "SEAL")
     _has_degradation = bool(degradation)
     _has_error = status in ("ERROR", "STALE", "TIMEOUT")
+    _sub_out = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
+    _sw_out = (
+        out.get("software_release") if isinstance(out.get("software_release"), dict) else {}
+    )
+    _rp_sub = (
+        result_payload.get("substrate")
+        if isinstance(result_payload, dict) and isinstance(result_payload.get("substrate"), dict)
+        else {}
+    )
+    _substrate_degraded = (
+        _sub_out.get("state") == "DEGRADED"
+        or _sub_out.get("drift") is True
+        or _rp_sub.get("state") == "DEGRADED"
+        or _rp_sub.get("drift") is True
+        or _sw_out.get("drift") is True
+        or (
+            isinstance(out.get("degraded"), list)
+            and any("drift" in str(x).lower() for x in out.get("degraded") or [])
+        )
+    )
 
     if _has_error:
         vs.substrate = ScopeEvidence(
             state="FAIL",
             issuer="arifos_conformance",
             evidence_reference="transport_error" if "error" in str(degradation).lower() else "",
+        )
+    elif _substrate_degraded:
+        vs.substrate = ScopeEvidence(
+            state="DEGRADED",
+            issuer="arifos_conformance",
+            evidence_reference="deployment_drift"
+            if (_sub_out.get("drift") or _sw_out.get("drift") or _rp_sub.get("drift"))
+            else "; ".join(degradation[:3])
+            if degradation
+            else "substrate_degraded",
         )
     elif _has_degradation and not _is_healthy:
         vs.substrate = ScopeEvidence(
