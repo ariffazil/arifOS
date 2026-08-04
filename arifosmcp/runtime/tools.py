@@ -2615,6 +2615,7 @@ from pydantic import BaseModel, Field
 from arifosmcp.constitutional_map import (
     CANONICAL_TOOLS,
     STAGE_PROGRESSION,
+    _TOOL_ANNOTATIONS,
     validate_tool_response_schema,
 )
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
@@ -7645,10 +7646,14 @@ def _ok(
             or (isinstance(result.get("result"), dict) and len(result["result"]) > 2)
             or (isinstance(result.get("result"), list) and len(result["result"]) > 0)
         )
-        # APEX X-signal: dry_run detection (broadened 2026-07-16)
-        # Check meta_payload dry_run flag OR read-only tools that don't mutate
+        # APEX X-signal: dry_run detection (2026-08-04 fix)
+        # Previous check used meta_payload["action_class"]=="OBSERVE" which was
+        # never True (set to "READ" or from affordance). Result: X=0 always,
+        # G=A*P*E*0*Φ=0 always — dead metric across 33K records.
+        # Fix: check tool's readOnlyHint from constitutional annotations.
         _is_dry_run = bool(
-            meta_payload.get("dry_run") or meta_payload.get("action_class") == "OBSERVE"
+            meta_payload.get("dry_run")
+            or _TOOL_ANNOTATIONS.get(tool, {}).get("readOnlyHint", False)
         )
         _apex_record(
             tool_name=tool,
