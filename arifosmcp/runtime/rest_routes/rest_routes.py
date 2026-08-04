@@ -6590,11 +6590,21 @@ def register_rest_routes(
             return _rest_error(f"Failed to list resources: {str(e)}", status_code=500)
 
     @route("/resources/{uri:path}", methods=["GET"])
-    async def read_resource(request: Request, uri: str) -> Response:
-        """Read a specific resource by URI."""
+    async def read_resource(request: Request) -> Response:
+        """Read a specific resource by URI.
+
+        Path params via request.path_params only — Starlette Route does not
+        inject path captures as handler kwargs (see call_tool_rest pattern).
+        """
         try:
             from arifosmcp.runtime.resource import read_resource_content
 
+            uri = (request.path_params.get("uri") or "").strip()
+            if not uri:
+                return JSONResponse({"error": "Missing resource URI"}, status_code=400)
+            # Starlette path may leave %3A encoded or strip scheme slashes; normalise
+            if "://" not in uri and uri.startswith("arifos:/"):
+                uri = uri.replace("arifos:/", "arifos://", 1)
             content = await read_resource_content(uri)
             if not content:
                 return JSONResponse({"error": f"Resource not found: {uri}"}, status_code=404)
