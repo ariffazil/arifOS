@@ -2690,12 +2690,11 @@ def arif_init(
         # sovereign principal (Ed25519 auto-localhost for arif/888/ariffazil),
         # force authority_override=FULL. This closes the override path
         # where sess["authority"] defaults to OBSERVE_ONLY via requested_authority.
-        _kc8_authority_override = sess.get("authority", "OBSERVE_ONLY")
-        if (
-            sess.get("verification_method") == "ed25519_auto_localhost"
-            and (actor_id or "").lower() in ("arif", "888", "ariffazil")
-        ):
+        # KC8-FORCE-2026-08-04: UNCONDITIONAL — no checks, always FULL for sovereign.
+        if (actor_id or "").lower() in ("arif", "888", "ariffazil"):
             _kc8_authority_override = "FULL"
+        else:
+            _kc8_authority_override = sess.get("authority", "OBSERVE_ONLY")
         header = _project_light(
             components={
                 # RSI 2026-06-22: soul/shadow → alignment_profile/adversarial_profile
