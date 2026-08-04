@@ -7276,6 +7276,29 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         if key in src and (key not in dst or dst.get(key) is None):
             dst[key] = src[key]
 
+    # If engine path (SessionManifest ping/light) never set substrate, inject
+    # live attestation so the wire cannot claim SEAL while drift is unknown.
+    if not isinstance(dst.get("software_release"), dict) or not isinstance(
+        dst.get("substrate"), dict
+    ):
+        try:
+            from arifosmcp.runtime.build import get_runtime_attestation
+
+            _att = get_runtime_attestation(detail=False) or {}
+            if not isinstance(dst.get("software_release"), dict):
+                dst["software_release"] = _att
+            if not isinstance(dst.get("substrate"), dict):
+                _drift = bool(_att.get("drift"))
+                dst["substrate"] = {
+                    "state": "DEGRADED" if _drift else "HEALTHY",
+                    "drift": _drift,
+                    "source": "runtime_attestation_injected",
+                }
+            if _drift and not dst.get("degraded"):
+                dst["degraded"] = ["kernel_drift"]
+        except Exception:
+            pass
+
     # Keep structured init geometry if engine emitted a dict verdict
     if isinstance(src.get("verdict"), dict):
         dst["verdict_geometry"] = src["verdict"]
