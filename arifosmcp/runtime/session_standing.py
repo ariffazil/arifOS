@@ -831,6 +831,24 @@ def _sync_authority_surfaces_from_standing(
         try:
             from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
 
+            # W-09 (2026-08-05): Compute live APEX from tool_calls DB
+            # before minting the SCT. Done here (not in mint_sct) to
+            # avoid import resolution issues in the signing context.
+            _apex = None
+            try:
+                from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
+
+                _live = compute_apex_from_metrics()
+                if _live.get("sample_size", 0) > 0:
+                    _apex = {
+                        "G": _live.get("G"),
+                        "C_dark": _live.get("C_dark"),
+                        "W3": _live.get("W3", None),
+                        "h": _live.get("h", None),
+                    }
+            except Exception:
+                _apex = None  # fall through to mint_sct default
+
             token, claims = mint_sct(
                 sid=standing.session_id,
                 actor=str(actor["claimed_id"] or "anonymous"),
@@ -841,7 +859,7 @@ def _sync_authority_surfaces_from_standing(
                 verdict_state=band,
                 dominant_reason=None,
                 allowed=allowed,
-                apex=unmeasured_apex(),
+                apex=_apex,  # W-09: measured values from DB, or None for UNMEASURED
                 witness={
                     "active": 1 if verified else 0,
                     "diversity": "PARTIAL" if verified else "NONE",

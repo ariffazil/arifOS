@@ -778,8 +778,25 @@ def _project_light(
                     _apex = _probe_result
             except Exception:
                 logger.debug("shadow probe failed — falling through to unmeasured_apex")
+        # W-09 FIX (2026-08-05): Fall back to compute_apex_from_metrics()
+        # instead of unmeasured_apex(). The DB has 4,600+ tool_calls records
+        # with real G/C_dark values. Health endpoint already shows MEASURED.
         if _apex is None:
-            _apex = unmeasured_apex()  # birth: honest UNMEASURED unless real measure
+            try:
+                from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
+
+                _live = compute_apex_from_metrics()
+                if _live.get("sample_size", 0) > 0:
+                    _apex = {
+                        "G": _live.get("G"),
+                        "C_dark": _live.get("C_dark"),
+                        "W3": _live.get("W3", None),
+                        "h": _live.get("h", None),
+                    }
+            except Exception:
+                pass
+        if _apex is None:
+            _apex = unmeasured_apex()  # last resort: honest UNMEASURED
         _token, _claims = mint_sct(
             sid=sid,
             actor=actor_id or "anonymous",
