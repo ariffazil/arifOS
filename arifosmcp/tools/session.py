@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import sys as _kc8sys
 import time as _time
 
 logger = logging.getLogger(__name__)
@@ -1214,17 +1213,12 @@ def arif_init(
     # ── Sovereign alias normalization (FORGED 2026-07-15) ──
     # Normalize natural-language actor_id variants to canonical form.
     # "Salam ARIF" → "arif", "Hi Arif" → "arif", "Saya Arif" → "arif"
-    try:
-        with open("/tmp/arifos-debug.log", "a") as _dbg:
-            _dbg.write(f"DEBUG-KC8: arif_init ENTRY mode={mode!r} actor_id={actor_id!r} requested_authority={requested_authority!r}\n")
-    except Exception:
-        pass
-    # KC8: file-based debug — direct to /tmp
-    try:
-        with open("/tmp/kc8-debug.log", "a") as _dbg:
-            _dbg.write(f"DEBUG-KC8-1: arif_init ENTRY mode={mode!r} actor_id={actor_id!r} requested_authority={requested_authority!r}\n")
-    except Exception as _e:
-        _kc8sys.stderr.write(f"KC8-1-FAIL: {_e!r}\n")
+    # ── K2-adj FIX (2026-08-04 FI-008) ──────────────────────────────────
+    # Removed: 6 /tmp/arifos-debug.log + /tmp/kc8-debug.log file-write blocks
+    # (mode 0666, world-readable). Per F11 AUDITABILITY + F12 RESILIENCE,
+    # debug telemetry MUST route through VAULT999 (sealed) or logger (mode 600),
+    # never append to world-readable /tmp files. All call paths below retain
+    # their logger.warning/debug/info equivalents for diagnostics.
     _canonical_actor_id: str | None = None
     if actor_id:
         try:
@@ -2059,11 +2053,6 @@ def arif_init(
 
     # ── INIT / FULL MODE ─────────────────────────────────────────────
     if mode in ("init", "full"):
-        try:
-            with open("/tmp/kc8-debug.log", "a") as _dbg:
-                _dbg.write(f"DEBUG-KC8-2: ENTERED init/full block mode={mode!r} actor_id={actor_id!r}\n")
-        except Exception as _e:
-            _kc8sys.stderr.write(f"KC8-2-FAIL: {_e!r}\n")
         sess = _new_session(
             actor_id,
             declared_model_key=declared_model_key,
@@ -2147,8 +2136,6 @@ def arif_init(
         # and standing collapses to OBSERVE_ONLY even for ARIF.
         if not identity_verified and actor_id and nonce and actor_signature:
             try:
-                with open("/tmp/kc8-debug.log", "a") as _dbg:
-                    _dbg.write("DEBUG-KC8-3: entered hmac block (nonce provided)\n")
                 from arifosmcp.runtime.sovereign_verify import verify_hmac_signature
 
                 _hmac_actor = normalize_actor_id(actor_id) or (
@@ -2200,8 +2187,6 @@ def arif_init(
 
         if actor_id and nonce and actor_signature and not identity_verified:
             try:
-                with open("/tmp/kc8-debug.log", "a") as _dbg:
-                    _dbg.write("DEBUG-KC8-4: entered ed25519 block (nonce+sig)\n")
                 from arifosmcp.runtime.crypto_auth import (
                     classify_actor_band,
                     is_registered_actor,
@@ -2271,8 +2256,6 @@ def arif_init(
                 logger.warning("init-mode crypto bind failed: %s", _exc)
 
         # ── Auto-sign block for VPS-local agents (FORGED 2026-07-19) ──
-        with open("/tmp/kc8-debug.log", "a") as _dbg:
-            _dbg.write(f"DEBUG-KC8-5: about to enter auto-sign block identity_verified={identity_verified} actor_id={actor_id!r}\n")
         # mode="light" has this at lines 1320-1368. mode="init" was missing it.
         # This left non-exempt registered agents (kimi, hermes, opencode) stuck
         # at OBSERVE_ONLY on their primary init path. Copy + adapt: fire for
