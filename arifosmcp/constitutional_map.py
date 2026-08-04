@@ -721,9 +721,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Law.L01_AMANAH, Law.L04_CLARITY, Law.L10_ONTOLOGY, Law.L11_AUDIT],
         "risk_tier": "low",
         "irreversible": False,
-        "modes": ["route", "bridge"],
+        "modes": [],  # W-05 FIX: arif_route() does NOT accept mode. Modes declared by individual adapted tools (arif_bridge_connect, arif_entropy_route).
         "deprecated_aliases": [],  # no live aliases — convergence over choice
-        "eureka_insight": "ZEN-9: route absorbs bridge as mode. One tool, two operations.",
+        "eureka_insight": "ZEN-9: route absorbs bridge as mode. One tool, two operations. NOTE: mode injection removed 2026-08-05 — arif_route handler signature does not accept mode.",
         "cognitive_axis": "boundary",
         "expose": True,
     },
