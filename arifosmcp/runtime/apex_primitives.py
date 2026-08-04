@@ -153,12 +153,25 @@ def compute_apex_from_metrics(window_seconds: int = 604800) -> dict[str, Any]:
         # When no data exists (n==0), factors are None → G is UNMEASURED.
         # Previously coerced None→0.5 producing G=0.0625 as a phantom number.
         # UNMEASURED must never coerce. Nil times anything is nil.
+        #
+        # 2026-08-05 W-09 FIX: Switch from Nash product to geometric mean.
+        # Product formula A×P×E×X×Φ collapses when any factor ≈0
+        # (X=0.0013 with product gives G≈0.0 even with 4,644 samples).
+        # F8 GENIUS defines G = (A×P×E×X)^(1/4). We extend to include
+        # Φ as a 5th factor: G = (A×P×E×X×Φ)^(1/5).
+        # Also apply a floor of 0.01 to each factor to prevent collapse.
         _factors = [A, P, E, X, PHI]
         if None in _factors:
             G = None
             C_dark = None
         else:
-            G = round(A * P * E * X * PHI, 4)
+            import math as _math
+
+            _floored = [max(0.01, f) for f in _factors]
+            _product = 1.0
+            for f in _floored:
+                _product *= f
+            G = round(_product ** (1.0 / len(_floored)), 4)
             C_dark = round(A * (1 - P) * (1 - X), 4)
 
         return {
