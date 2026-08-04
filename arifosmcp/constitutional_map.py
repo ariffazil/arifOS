@@ -2004,10 +2004,15 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     # ═══════════════════════════════════════════════════════════════════
     # CANONICAL TOOLS — action_class from tool_risk_registry.py
     # ═══════════════════════════════════════════════════════════════════
-    "arif_init": derive_mcp_annotations(
-        "PREPARE",
-        title="000 Init · Kernel Session",
-    ),
+    # idempotentHint=False: each init mints a fresh session_id (not MCP-idempotent).
+    # resume/validate modes are safer retries; the tool surface as a whole is not.
+    "arif_init": {
+        **derive_mcp_annotations(
+            "PREPARE",
+            title="000 Init · Kernel Session",
+        ),
+        "idempotentHint": False,
+    },
     "arif_observe": derive_mcp_annotations(
         "OBSERVE",
         title="111 Observe · Sense Reality",
