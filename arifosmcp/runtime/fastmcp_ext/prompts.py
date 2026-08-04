@@ -830,8 +830,159 @@ Constraints:
 
     registered.append("agi_reply_protocol_v3")
 
+    # ─── /init — FULL 10-step autonomous ignition (MCP-native bootstrap) ──
+    # 2026-08-04: Distinct from 🌱 BOOT (lightweight). This loads the full
+    # operational init.md command file for complete agent ignition with
+    # organ probes, FQ gate, ATLAS333, EUREKA777, and RSI Phase 0.
+    _INIT_CMD_PATH = "/root/.config/opencode/command/init.md"
+
+    @mcp.prompt(
+        name="/init",
+        description=(
+            "/init — Full 10-step autonomous ignition sequence (000_INIT anchor). "
+            "Probes kernel, /000, /999, binds session, checks FQ pulse, activates "
+            "ATLAS333 cognitive geometry, runs organ+memory attestation, configures "
+            "RSI Phase 0. Use as the canonical agent bootstrap for any session. "
+            "Distinct from 🌱 BOOT which is a lightweight pre-flight check."
+        ),
+        meta={
+            "stage": "BOOT",
+            "sigil": "⚓",
+            "lexical": "INIT",
+            "role": "Full autonomous agent ignition sequence",
+            "linked_tools": [
+                "arif_init",
+                "arifos_arif_init",
+                "arif_observe",
+                "arif_think",
+                "arif_route",
+                "arif_memory",
+            ],
+            "linked_resources": [
+                "arifos://bootstrap",
+                "arifos://carry-forward",
+                "arifos://flow-state",
+                "arifos://vitals",
+                "arifos://identity",
+                "arifos://doctrine",
+            ],
+            "floors_referenced": "F1,F2,F4,F7,F11,F13",
+            "federation_layer": "arifOS.kernel.prompts",
+            "canonical_source": _INIT_CMD_PATH,
+            "version": "2026.08.04",
+        },
+    )
+    def init_full(depth: str = "full") -> str:
+        """/init — Full 10-step autonomous ignition sequence. 000_INIT anchor.
+
+        Loads the complete operational init command from the canonical source.
+        Includes: kernel probe, /000↔/999, session bind, FQ gate, organ attestation,
+        ATLAS333 lane detection, EUREKA777 activation, RSI Phase 0 configuration.
+        """
+        try:
+            with open(_INIT_CMD_PATH, encoding="utf-8") as fh:
+                content = fh.read()
+                if depth == "summary":
+                    lines = content.split("\n")
+                    # Return heading + step names only (compact)
+                    summary_lines = []
+                    for line in lines:
+                        if (
+                            line.startswith("### STEP")
+                            or line.startswith("## ")
+                            or line.startswith("# ")
+                        ):
+                            summary_lines.append(line)
+                    if summary_lines:
+                        return (
+                            "\n".join(summary_lines)
+                            + "\n\nLoad with depth='full' for complete sequence."
+                        )
+                return content
+        except OSError as exc:
+            return (
+                f"[/init] Could not load init command from {_INIT_CMD_PATH}: {exc}. "
+                f"Fallback: use 🌱 BOOT prompt for lightweight bootstrap, then arif_init tool."
+            )
+
+    registered.append("/init")
+
+    # ─── /seal — FULL 11-step autonomous session close (MCP-native) ─────
+    _SEAL_CMD_PATH = "/root/.config/opencode/command/seal.md"
+
+    @mcp.prompt(
+        name="/seal",
+        description=(
+            "/seal — Full 11-step autonomous session close ritual (999_CLOSE). "
+            "Two-lane: Lane B SESSION_RECEIPT (default) or Lane A CONSTITUTIONAL_SEAL "
+            "(threshold). Runs RSI cycle, entropy sweep, arifFlow ingest, EUREKA777 "
+            "cooling, carry-forward write, gate fire log, vault record, and verify. "
+            "Distinct from 💎 SEAL which is Stage 6 of the governed SABAR loop."
+        ),
+        meta={
+            "stage": "CLOSE",
+            "sigil": "🔐",
+            "lexical": "SEAL",
+            "role": "Full autonomous session close ritual",
+            "linked_tools": [
+                "arif_seal",
+                "arif_judge",
+                "aforge_forge_vault",
+                "arifflow_flow_ingest",
+                "hermes_hermes_fact_check",
+                "hermes_hermes_plan_review",
+                "hermes_hermes_memory_steward",
+            ],
+            "linked_resources": [
+                "arifos://seal-readiness",
+                "arifos://vitals",
+                "arifos://flow-state",
+                "arifos://vault/head",
+            ],
+            "floors_referenced": "F1,F2,F3,F4,F7,F11,F13",
+            "federation_layer": "arifOS.kernel.prompts",
+            "canonical_source": _SEAL_CMD_PATH,
+            "version": "2026.08.04",
+        },
+    )
+    def seal_full(depth: str = "full") -> str:
+        """/seal — Full 11-step autonomous session close ritual. 999_CLOSE.
+
+        Loads the complete operational seal command from the canonical source.
+        Includes: lane detection, reversibility classification, RSI cycle,
+        entropy sweep, arifFlow ingest, EUREKA777 cooling, carry-forward write,
+        gate fire log, vault record (Lane B receipt or Lane A constitutional seal),
+        verify, and anti-patterns.
+        """
+        try:
+            with open(_SEAL_CMD_PATH, encoding="utf-8") as fh:
+                content = fh.read()
+                if depth == "summary":
+                    lines = content.split("\n")
+                    summary_lines = []
+                    for line in lines:
+                        if (
+                            line.startswith("## STEP")
+                            or line.startswith("## ")
+                            or line.startswith("# ")
+                        ):
+                            summary_lines.append(line)
+                    if summary_lines:
+                        return (
+                            "\n".join(summary_lines)
+                            + "\n\nLoad with depth='full' for complete sequence."
+                        )
+                return content
+        except OSError as exc:
+            return (
+                f"[/seal] Could not load seal command from {_SEAL_CMD_PATH}: {exc}. "
+                f"Fallback: use 💎 SEAL prompt for Stage 6 closure, then forge_vault for receipt."
+            )
+
+    registered.append("/seal")
+
     logger.info(
-        "arifOS zen prompts registered: %d (10 zen + 3 legacy aliases)",
+        "arifOS zen prompts registered: %d (10 zen + 2 bootstrap + 3 legacy aliases)",
         len(registered),
     )
     return registered
