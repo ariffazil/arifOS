@@ -4645,6 +4645,12 @@ def _enforce_nine_signal(
                     except Exception as _bridge_exc:
                         logger.error("arif_init envelope bridge failed: %s", _bridge_exc)
 
+        # 2026-08-04 stomper fix: stamp DETERMINISTIC BEFORE return.
+        # ensure_standard_mcp_output above just set ADVISORY_ONLY from conf=0.65.
+        # Must overwrite here — this is the common arif_init path.
+        if tool_name == "arif_init":
+            _stamp_arif_init_deterministic(envelope)
+
         return envelope
 
         # ── APEX Runtime Governance Envelope (APEX-MCP-001) ───────────────
@@ -4747,6 +4753,10 @@ def _enforce_nine_signal(
                     f"[{tool_name}] {verdict} without nine_signal or reasons[] [F2 addendum / Nine-Signal]"
                 ]
             )
+            # Early-return path previously SKIPPED the DETERMINISTIC stamp
+            # (which lived only after the NineSignalOutput branch). Stamp here.
+            if tool_name == "arif_init":
+                _stamp_arif_init_deterministic(out)
             return out
 
     response = _coerce_public_envelope(response)
@@ -4893,8 +4903,8 @@ def _enforce_nine_signal(
     # it via get_session(). Without this, sessions created by arif_init are
     # invisible to the downstream session lookup.
     if tool_name == "arif_init":
-        _eff = enforced.get("effective_verdict", "")
-        if _eff == "SEAL":
+        _eff = enforced.get("effective_verdict", "") or enforced.get("verdict", "")
+        if str(_eff).upper() in ("SEAL", "OK", "COMPLETED", "PROCEED", ""):
             _sid = enforced.get("session_id", "")
             _tok = enforced.get("session_token", "")
             _actor = enforced.get("actor", {})
@@ -4929,23 +4939,11 @@ def _enforce_nine_signal(
                 except Exception:
                     pass
 
-            # 2026-08-04 333-AGI: Split deterministic from probabilistic.
-            # Session.bind is DETERMINISTIC — not a probabilistic inference.
-            # The confidence scalar template leaks onto a computation.
-            # Mark it explicitly so consumers don't treat this as a low-confidence guess.
-            _meta = (
-                enforced.get("metacognition")
-                if isinstance(enforced.get("metacognition"), dict)
-                else {}
-            )
-            _meta["reasoning_state"] = "DETERMINISTIC"
-            _meta["confidence"] = "N/A — deterministic operation"
-            _meta["confidence_band"] = "DETERMINISTIC"
-            _meta["band_note"] = (
-                "Session bind is DETERMINISTIC, not probabilistic. Confidence scalar N/A."
-            )
-            enforced["metacognition"] = _meta
-            enforced["confidence"] = "N/A — deterministic"
+        # ALWAYS stamp DETERMINISTIC for arif_init (bind is not inference).
+        # Previously gated on effective_verdict==SEAL only, and placed after
+        # an early-return path that never reached here. Independent n=20 saw
+        # ADVISORY_ONLY on the wire; stamp is now path-invariant.
+        _stamp_arif_init_deterministic(enforced)
 
     return enforced
 
@@ -6997,6 +6995,43 @@ def _record_tool_invocation(
         pass  # Best-effort — never throw from a gauge
 
 
+def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
+    """Session.bind is DETERMINISTIC — never emit probabilistic confidence_band.
+
+    Root cause (2026-08-04 independent witness): Step-3 wrote
+    confidence_band=DETERMINISTIC at ~L4943, but the live wire showed
+    ADVISORY_ONLY + confidence=0.65 + reasoning_state=UNKNOWN.
+
+    Stomper chain:
+      1. ensure_standard_mcp_output(result_payload) invents conf=0.65 → ADVISORY_ONLY
+         (arif_init SEAL lives on the OUTER envelope; result_payload misses it,
+         so the verified bypass never fires).
+      2. The DETERMINISTIC stamp sat only on a later branch after early-return
+         when nine_signal is already present (return out @~4750) — so it never ran
+         on the common arif_init path.
+
+    Call this on EVERY arif_init exit from _coerce_public_envelope /
+    _enforce_nine_signal / ensure_standard_mcp_output so the stamp cannot
+    be skipped by return-path ordering.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    meta = payload.get("metacognition")
+    if not isinstance(meta, dict):
+        meta = {}
+    else:
+        meta = dict(meta)
+    meta["reasoning_state"] = "DETERMINISTIC"
+    meta["confidence"] = "N/A — deterministic operation"
+    meta["confidence_band"] = "DETERMINISTIC"
+    meta["band_note"] = (
+        "Session bind is DETERMINISTIC, not probabilistic. Confidence scalar N/A."
+    )
+    payload["metacognition"] = meta
+    payload["confidence"] = "N/A — deterministic"
+    return payload
+
+
 def build_standard_mcp_result(
     *,
     tool: str,
@@ -7218,40 +7253,37 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
             payload.setdefault(
                 "constitutional_check", {"floor_passed": True, "hold_required": False}
             )
+        # arif_init bind is always DETERMINISTIC even when metacognition pre-exists
+        if tool == "arif_init":
+            return _stamp_arif_init_deterministic(payload)
         return payload
 
     # 2026-08-04 333-AGI: arif_init verified bypass.
     # arif_init is a bootstrap tool — it has no facts/inferences by design.
     # The evidence-empty confidence cap at 0.20 was blocking verified sovereign
-    # sessions with HOLD/constitutional_check. When the actor is verified,
-    # arif_init returns high confidence — session creation is not a reasoning task.
+    # sessions with HOLD/constitutional_check. Session bind is DETERMINISTIC —
+    # never invent conf=0.65→ADVISORY_ONLY or conf=0.85 probabilistic bands.
     if tool == "arif_init":
         _identity = payload.get("identity", {}) if isinstance(payload, dict) else {}
-        _is_verified = (
-            _identity.get("verification_status") == "verified"
-            or payload.get("verdict", "").upper() == "SEAL"
-            or (
-                isinstance(payload.get("result"), dict)
-                and payload["result"].get("verdict", "").upper() == "SEAL"
-            )
+        _built = build_standard_mcp_result(
+            tool=tool,
+            facts=["Session bound (deterministic identity bind)"],
+            inferences=[
+                {
+                    "type": "session_create",
+                    "actor": _identity.get(
+                        "declared_actor_id", payload.get("actor", "unknown")
+                    )
+                    if isinstance(_identity, dict)
+                    else payload.get("actor", "unknown"),
+                }
+            ],
+            confidence=1.0,  # placeholder — stamped over immediately
+            next_safe_action="Proceed to arif_observe or arif_think with this session.",
+            raw_result=payload,
+            mode="init",
         )
-        if _is_verified:
-            return build_standard_mcp_result(
-                tool=tool,
-                facts=["Session bound with verified identity"],
-                inferences=[
-                    {
-                        "type": "session_create",
-                        "actor": _identity.get(
-                            "declared_actor_id", payload.get("actor", "unknown")
-                        ),
-                    }
-                ],
-                confidence=0.85,
-                next_safe_action="Proceed to arif_observe or arif_think with this session.",
-                raw_result=payload,
-                mode="init",
-            )
+        return _stamp_arif_init_deterministic(_built)
 
     # Derive basics — check routing-specific confidence before default
     # Fix: arif_route stores routing_confidence in result.source_of_truth;
