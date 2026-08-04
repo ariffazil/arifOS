@@ -2930,10 +2930,20 @@ def register_rest_routes(
         module load — cold-start penalty (~2.2s) paid once, not per-request. All expensive
         probes called once and reused. Result: 1.5s → <5ms (300x improvement).
         """
-        # ── Cache check (30s TTL, bypass with ?nocache=1) ──
+        # ── Cache check (30s TTL, bypass with ?nocache=1 or ?detail=1) ──
         _now = time.monotonic()
         _nocache = request.query_params.get("nocache") == "1"
-        if not _nocache and _health_cache["payload"] is not None:
+        _want_detail = str(request.query_params.get("detail", "")).lower() in (
+            "1",
+            "true",
+            "full",
+            "yes",
+        )
+        if (
+            not _nocache
+            and not _want_detail
+            and _health_cache["payload"] is not None
+        ):
             if _now - _health_cache["ts"] < 300.0:  # 5min TTL (was 30s; cold build ~10s)
                 return JSONResponse(_health_cache["payload"])
 
@@ -3354,9 +3364,70 @@ def register_rest_routes(
             },
         }
 
+        # ── M5 payload diet (KUTIP SAMPAH 2026-08-05) ──
+        # Default compact: drop prose tax + expand-on-demand detail.
+        # detail=1 restores full keys (hashes, semantics, advisories).
+        # Hygiene only — does not change floors, drift arithmetic, or SEAL.
+        _detail = str(request.query_params.get("detail", "")).lower() in (
+            "1",
+            "true",
+            "full",
+            "yes",
+        )
+        if not _detail:
+            payload = dict(payload)
+            payload.pop("tool_count_semantics", None)
+            payload.pop("known_gaps", None)
+            payload.pop("source_of_truth", None)
+            # software_release already compact via get_runtime_attestation(detail=False)
+            # when callers use that helper; force-slim if full dict snuck in
+            _sw = payload.get("software_release")
+            if isinstance(_sw, dict) and "critical_module_hashes" in _sw:
+                payload["software_release"] = {
+                    k: _sw[k]
+                    for k in (
+                        "release_id",
+                        "source_commit",
+                        "built_commit",
+                        "deployed_commit",
+                        "drift",
+                        "wheel_hash",
+                        "runtime_manifest_hash",
+                        "surface_hash",
+                        "critical_module_hash_count",
+                        "payload_mode",
+                    )
+                    if k in _sw
+                }
+            _cmh = payload.get("critical_module_hashes")
+            if isinstance(_cmh, dict) and _cmh and not all(
+                k in ("count", "detail_ref") for k in _cmh
+            ):
+                payload["critical_module_hashes"] = {
+                    "count": len(_cmh),
+                    "detail_ref": "/health?detail=1",
+                }
+            _tp = payload.get("token_pressure")
+            if isinstance(_tp, dict) and "advisory" in _tp:
+                _tp = dict(_tp)
+                _tp.pop("advisory", None)
+                payload["token_pressure"] = _tp
+            _sa = payload.get("state_axes")
+            if isinstance(_sa, dict) and "invariants" in _sa:
+                _sa = dict(_sa)
+                _sa.pop("invariants", None)
+                payload["state_axes"] = _sa
+            payload["payload_mode"] = "compact"
+            payload["detail_ref"] = "/health?detail=1"
+        else:
+            payload = dict(payload)
+            payload["payload_mode"] = "detail"
+
         # ── RSI: Update cache ──
-        _health_cache["payload"] = payload
-        _health_cache["ts"] = _now
+        # Cache compact only — detail bypasses shared cache pollution
+        if not _detail:
+            _health_cache["payload"] = payload
+            _health_cache["ts"] = _now
 
         return JSONResponse(
             payload,

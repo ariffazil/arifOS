@@ -121,8 +121,13 @@ def _compute_tool_surface_hash() -> str:
         return "unavailable"
 
 
-def get_runtime_attestation() -> dict[str, Any]:
-    """Public, machine-readable binding from release to this live process."""
+def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
+    """Public, machine-readable binding from release to this live process.
+
+    KUTIP SAMPAH M5 (2026-08-05): default is compact — hash manifest + drift only.
+    Full critical_module_hashes and prose semantics available with detail=True
+    (or /health?detail=1). Target success payload tax < 2 KB on compact path.
+    """
     source_commit = _full_source_commit()
     critical_module_hashes = {
         rel: digest for rel in _CRITICAL_MODULES if (digest := _sha256_file(ROOT / rel)) is not None
@@ -152,7 +157,7 @@ def get_runtime_attestation() -> dict[str, Any]:
     release_id = os.getenv("ARIFOS_RELEASE_ID", "").strip() or (
         f"arifos-{source_commit[:12]}" if source_commit != "unknown" else "unknown"
     )
-    return {
+    compact = {
         "release_id": release_id,
         "source_commit": source_commit,
         "built_commit": built_commit,
@@ -163,6 +168,14 @@ def get_runtime_attestation() -> dict[str, Any]:
         "surface_hash": surface_hash,
         "service_pid": os.getpid(),
         "service_started_at": PROCESS_STARTED_AT,
+        "critical_module_hash_count": len(critical_module_hashes),
+        "payload_mode": "compact",
+    }
+    if not detail:
+        return compact
+    return {
+        **compact,
+        "payload_mode": "detail",
         "critical_module_hashes": critical_module_hashes,
         "deployment_invariant": {
             "rule": "source_commit == built_commit == deployed_commit == health_commit",
