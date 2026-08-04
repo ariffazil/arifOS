@@ -25320,7 +25320,7 @@ def register_tools(
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
-    from arifosmcp.tool_charter import TOOL_CHARTER
+    from arifosmcp.tool_charter import CANONICAL_ORDER, TOOL_CHARTER
 
     # MCP Tasks extension: long-running async tools that benefit from
     # background execution + polling (SEP-2025 / FastMCP 3.x tasks).
@@ -25377,7 +25377,7 @@ def register_tools(
                     "risk_tier": manifest.get("risk", {}).get("tier", "low"),
                     "irreversible": manifest.get("risk", {}).get("irreversible", False),
                     "requires_human_ack": manifest.get("risk", {}).get("requires_human_ack", False),
-                    "canonical_order": manifest.get("canonical_order", []),
+                    "canonical_order": manifest.get("canonical_order") or list(CANONICAL_ORDER),
                     # Canonical risk passport (Reconstruction A Foundation)
                     "risk_passport": {
                         "tier": tool_risk.tier.value,

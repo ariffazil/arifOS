@@ -16,23 +16,52 @@ from typing import Any
 # CANONICAL TOOL SEQUENCE — The Constitutional Golden Path
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Live public kernel surface (8 verbs). Legacy absorbed names remain in
+# TOOL_CHARTER for internal/diagnostic consumers but are NOT in this order.
 CANONICAL_ORDER: list[str] = [
-    "arif_init",
-    "arif_observe",
-    "arif_fetch",
-    "arif_think",
-    "arif_kernel_route",
-    "arif_compose",
-    "arif_memory_recall",
-    "arif_critique",
-    "arif_gateway_connect",
-    "arif_measure",
-    "arif_judge",
-    "arif_stage",
-    "arif_commit",
-    "arif_seal",
-    "arif_forge",
+    "arif_init",  # 000
+    "arif_observe",  # 111
+    "arif_think",  # 333
+    "arif_route",  # 444
+    "arif_memory",  # memory governor
+    "arif_judge",  # 888
+    "arif_forge",  # 777
+    "arif_seal",  # 999
 ]
+
+# Shared agent contract: how to act on verdict fields carried by every response.
+# Put on init (first verb agents read) and referenced by all others.
+VERDICT_RESPONSE_CONTRACT: dict[str, str] = {
+    "SEAL": "Proceed to next canonical stage. Authority granted for this branch only.",
+    "HOLD": "Stop autonomous progression. Escalate to human (F13). Do not forge/seal.",
+    "SABAR": "Wait / backoff / retry after degraded clears. Do not invent success.",
+    "VOID": "Abandon this branch. Do not retry the same candidate without new evidence.",
+    "PARTIAL_PROCEED": "Continue OBSERVE/THINK only. mutation_allowed and seal_allowed false.",
+}
+
+# Kernel-wide degraded / transport failure contract (agents need this in manifest).
+FAILURE_MODES_KERNEL: dict[str, Any] = {
+    "http_5xx": {
+        "agent_action": "Backoff ≥60s then retry once. If persists: declare SABAR, do not forge.",
+        "retry_budget": 1,
+        "fallback": "arif_observe(mode=vitals) then re-init validate",
+    },
+    "deployment_drift": {
+        "agent_action": "Treat as HOLD on mutation. Observe/think only until source=built=deployed.",
+        "next_action": "RECONCILE_SOURCE_BUILT_DEPLOYED",
+    },
+    "empty_manifest": {
+        "agent_action": "Use live input_schema mode enum only; do not invent modes from prose.",
+    },
+}
+
+# Risk scale Rosetta: display tier ↔ passport T-tier (keep risk_passport authoritative).
+RISK_SCALE_MAP: dict[str, str] = {
+    "low": "T1",
+    "medium": "T2",
+    "high": "T3",
+    "critical": "T4/T5",
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -66,25 +95,44 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "init": {
                 "purpose": "Start a new governed session with full constitutional binding.",
                 "required_parameters": ["actor_id"],
-                "optional_parameters": ["ack_irreversible", "epoch_id"],
+                "optional_parameters": ["ack_irreversible", "epoch_id", "intent", "verbosity"],
                 "returns": [
                     "session_id",
+                    "session_token",
                     "constitution_hash",
-                    "invariants_hash",
                     "allowed_next_tools",
+                    "degraded",
                 ],
+            },
+            "light": {
+                "purpose": "Lightweight bind — same as init with compact payload (agent-friendly).",
+                "required_parameters": ["actor_id"],
+                "returns": ["session_id", "session_token", "authority_band"],
             },
             "resume": {
                 "purpose": "Reattach to an existing session by session_id.",
                 "required_parameters": ["session_id"],
-                "optional_parameters": [],
+                "optional_parameters": ["session_token"],
                 "returns": ["session_id", "status", "allowed_next_tools"],
             },
             "validate": {
                 "purpose": "Check session health and constitutional alignment.",
                 "required_parameters": ["session_id"],
-                "optional_parameters": [],
                 "returns": ["session_id", "status", "floors_ok", "floors_fail"],
+            },
+            "canary": {
+                "purpose": "Probe kernel liveness without full session bind.",
+                "returns": ["ok", "release_id", "tool_count"],
+            },
+            "preflight": {
+                "purpose": "Pre-flight checks before mutation (drift, floors, substrate).",
+                "optional_parameters": ["session_id"],
+                "returns": ["preflight_ok", "degraded", "blockers"],
+            },
+            "triage": {
+                "purpose": "Session triage mode of arif_init (NOT a separate tool). Classify readiness.",
+                "optional_parameters": ["session_id", "intent"],
+                "returns": ["triage_class", "next_safe_action", "degraded"],
             },
             "epoch_open": {
                 "purpose": "Open a new epoch, binding epoch_id to session_id (H3).",
@@ -98,6 +146,16 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "optional_parameters": ["epoch_id", "ack_irreversible"],
                 "returns": ["epoch_id", "session_id", "vault_entry_id", "status"],
             },
+            "opt_out": {
+                "purpose": "Opt out of optional profiling / telemetry for this session.",
+                "required_parameters": ["session_id"],
+                "returns": ["status"],
+            },
+            "opt_out_profiling": {
+                "purpose": "Opt out of profiling only (narrower than opt_out).",
+                "required_parameters": ["session_id"],
+                "returns": ["status"],
+            },
         },
         "inputs": {
             "mode": {
@@ -105,10 +163,16 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "meaning": "Operation mode for the session lifecycle.",
                 "allowed_values": [
                     "init",
+                    "light",
                     "resume",
                     "validate",
+                    "canary",
+                    "preflight",
+                    "triage",
                     "epoch_open",
                     "epoch_seal",
+                    "opt_out",
+                    "opt_out_profiling",
                 ],
                 "default": "init",
                 "required": True,
@@ -143,6 +207,11 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "meaning": "Unique identifier for the governed session.",
                 "use_in_next_tools": True,
             },
+            "session_token": {
+                "meaning": "SCT (sct_v1.*) — Session Capability Token. Pass to every downstream arif_* and federation organ call.",
+                "use_in_next_tools": True,
+                "trust_role": "capability_bearer",
+            },
             "constitution_hash": {
                 "meaning": "SHA-256 fingerprint of the active constitutional rulebase.",
                 "trust_role": "integrity_anchor",
@@ -150,26 +219,38 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "allowed_next_tools": {
                 "meaning": "Suggested safe continuation path from this session.",
             },
+            "degraded": {
+                "meaning": "List of degraded conditions (e.g. kernel_drift). Non-empty → mutation_allowed=false.",
+            },
         },
         "risk": {
-            "tier": "critical",
+            "tier": "low",
             "irreversible": False,
             "requires_human_ack": False,
             "requires_judge_state_hash": False,
             "requires_vault_entry_id": False,
+            "risk_passport_authoritative": True,
+            "display_tier_note": "risk.tier is display only; use risk_passport for machine gates.",
         },
         "state": {
             "requires_session_id": False,
             "accepts_anonymous": False,
-            "carries_forward": ["session_id", "constitution_hash"],
+            "carries_forward": [
+                "session_id",
+                "session_token",
+                "constitution_hash",
+            ],
         },
+        "canonical_order": CANONICAL_ORDER,
+        "verdict_response_contract": VERDICT_RESPONSE_CONTRACT,
+        "failure_modes": FAILURE_MODES_KERNEL,
         "next_recommended_tools": [
             "arif_observe",
-            "arif_fetch",
             "arif_think",
+            "arif_route",
         ],
         "authority_boundary": {
-            "may": ["bind", "validate", "resume"],
+            "may": ["bind", "validate", "resume", "triage", "preflight", "light", "canary"],
             "may_not": [
                 "self-approve irreversible actions",
                 "override human judge",
@@ -182,7 +263,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                     "user_intent": "Start a governed reasoning session",
                     "call": {
                         "tool": "arif_init",
-                        "args": {"mode": "init", "actor_id": "ChatGPT"},
+                        "args": {"mode": "init", "actor_id": "arif"},
                     },
                 }
             ],
@@ -226,8 +307,18 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_parameters": ["query"],
                 "returns": ["query", "results", "source", "omega_0"],
             },
+            "fetch": {
+                "purpose": "Fetch a URL as evidence (live mode; not a separate arif_fetch tool).",
+                "required_parameters": ["url"],
+                "returns": ["url", "content", "source"],
+            },
+            "hybrid_discovery": {
+                "purpose": "Hybrid search + discovery across configured backends.",
+                "required_parameters": ["query"],
+                "returns": ["results", "sources"],
+            },
             "ingest": {
-                "purpose": "Fetch and parse a specific URL.",
+                "purpose": "Fetch and parse a specific URL into structured evidence.",
                 "required_parameters": ["url"],
                 "returns": ["url", "ingested", "note"],
             },
@@ -254,6 +345,8 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "type": "string",
                 "allowed_values": [
                     "search",
+                    "fetch",
+                    "hybrid_discovery",
                     "ingest",
                     "compass",
                     "atlas",
@@ -265,17 +358,28 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "query": {
                 "type": "string",
                 "meaning": "Free-text search query or observation target.",
-                "required_when": [{"mode": "search"}],
+                "required_when": [
+                    {"mode": "search"},
+                    {"mode": "hybrid_discovery"},
+                ],
             },
             "url": {
                 "type": "string",
-                "meaning": "Target URL for ingest mode.",
-                "required_when": [{"mode": "ingest"}],
+                "meaning": "Target URL for fetch/ingest mode.",
+                "required_when": [{"mode": "fetch"}, {"mode": "ingest"}],
             },
             "layers": {
                 "type": "list[string]",
                 "meaning": "Layer identifiers for atlas mode.",
                 "required_when": [{"mode": "atlas"}],
+            },
+            "session_id": {
+                "type": "string",
+                "meaning": "Governing session (recommended).",
+            },
+            "session_token": {
+                "type": "string",
+                "meaning": "SCT from arif_init — carry forward for federation continuity.",
             },
         },
         "outputs": {
@@ -284,8 +388,13 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "delta_S": {"meaning": "Entropy change from this observation."},
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
-        "state": {"requires_session_id": False, "recommended_session_id": True},
-        "next_recommended_tools": ["arif_fetch", "arif_think"],
+        "state": {
+            "requires_session_id": False,
+            "recommended_session_id": True,
+            "carries_forward": ["session_id", "session_token"],
+        },
+        "canonical_order": CANONICAL_ORDER,
+        "next_recommended_tools": ["arif_think", "arif_route"],
         "authority_boundary": {
             "may": ["observe", "search", "measure"],
             "may_not": ["modify", "judge", "seal"],
@@ -452,7 +561,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "do_not_use_when": [
             "User only needs raw evidence fetching.",
             "The task requires final arbitration (use 888_JUDGE).",
-            "The task requires execution or system modification (use 010_FORGE).",
+            "The task requires execution or system modification (use arif_forge after 888 SEAL).",
             "The query is purely factual and needs no constitutional framing.",
         ],
         "modes": {
@@ -475,11 +584,6 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_parameters": ["query"],
                 "returns": ["verdict", "evidence", "confidence"],
             },
-            "critique": {
-                "purpose": "Adversarial stress-test of a reasoning chain.",
-                "required_parameters": ["query"],
-                "returns": ["gaps", "biases", "counterarguments"],
-            },
             "axioms": {
                 "purpose": "List available constitutional axioms and their confidence.",
                 "returns": ["axioms"],
@@ -499,6 +603,31 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_parameters": ["plan_id"],
                 "returns": ["plan_id", "status"],
             },
+            "refactor_plan": {
+                "purpose": "Refactor an existing plan_id into a tighter task_graph.",
+                "required_parameters": ["plan_id"],
+                "returns": ["plan_receipt", "plan_id"],
+            },
+            "metabolize": {
+                "purpose": "Metabolize evidence/receipts into a structured mind state.",
+                "required_parameters": ["query"],
+                "returns": ["metabolized", "delta_S"],
+            },
+            "simulate": {
+                "purpose": "Simulate outcomes of a candidate without mutation.",
+                "required_parameters": ["query"],
+                "returns": ["simulation", "risks"],
+            },
+            "wonder": {
+                "purpose": "Open-ended generative exploration under F7 humility bounds.",
+                "required_parameters": ["query"],
+                "returns": ["wonderings", "omega_0"],
+            },
+            "atlas": {
+                "purpose": "Cognitive atlas / map of reasoning zones for the query.",
+                "required_parameters": ["query"],
+                "returns": ["atlas", "zones"],
+            },
         },
         "inputs": {
             "mode": {
@@ -507,11 +636,15 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                     "reason",
                     "reflect",
                     "verify",
-                    "critique",
                     "axioms",
                     "plan",
                     "plan_review",
                     "plan_approve",
+                    "refactor_plan",
+                    "metabolize",
+                    "simulate",
+                    "wonder",
+                    "atlas",
                 ],
                 "default": "reason",
             },
@@ -521,14 +654,29 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_when": [
                     {"mode": "reason"},
                     {"mode": "verify"},
-                    {"mode": "critique"},
                     {"mode": "plan"},
+                    {"mode": "metabolize"},
+                    {"mode": "simulate"},
+                    {"mode": "wonder"},
+                    {"mode": "atlas"},
                 ],
             },
             "plan_id": {
                 "type": "string",
-                "meaning": "Plan identifier (for plan_review / plan_approve).",
-                "required_when": [{"mode": "plan_review"}, {"mode": "plan_approve"}],
+                "meaning": "Plan identifier (for plan_review / plan_approve / refactor_plan).",
+                "required_when": [
+                    {"mode": "plan_review"},
+                    {"mode": "plan_approve"},
+                    {"mode": "refactor_plan"},
+                ],
+            },
+            "session_id": {
+                "type": "string",
+                "meaning": "Governing session (recommended).",
+            },
+            "session_token": {
+                "type": "string",
+                "meaning": "SCT from arif_init.",
             },
         },
         "outputs": {
@@ -544,8 +692,10 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "requires_session_id": False,
             "recommended_session_id": True,
             "emits_chain_data": True,
+            "carries_forward": ["session_id", "session_token", "plan_id"],
         },
-        "next_recommended_tools": ["arif_critique", "arif_judge"],
+        "canonical_order": CANONICAL_ORDER,
+        "next_recommended_tools": ["arif_route", "arif_judge", "arif_memory"],
         "authority_boundary": {
             "may": ["reason", "classify", "suggest"],
             "may_not": ["approve irreversible action", "replace human judgment"],
@@ -578,85 +728,140 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-    # ── 444_KERNEL ───────────────────────────────────────────────────────────
-    "arif_kernel_route": {
-        "eureka_insight": "Orchestration is the physics of routing. No AGI lane task may unilaterally cross into the APEX lane.",
+    # ── 444_ROUTE (live public name: arif_route) ─────────────────────────────
+    "arif_route": {
+        "eureka_insight": "Orchestration is the physics of routing. Intent→organ is a decision, not an execution. Bridge is opt-in.",
         "stage_code": "444",
-        "stage_name": "KERNEL",
+        "stage_name": "ROUTE",
         "purpose": [
-            "Central orchestration, intent routing, and stage dispatch.",
-            "Traffic controller for the 13-tool constitutional surface.",
+            "Dispatch natural-language intent to GEOX / WEALTH / WELL / A-FORGE.",
+            "Optionally bridge-call an organ tool after routing decision.",
+            "Bind six-mission cockpit plans when mission_id is known.",
         ],
         "use_when": [
-            "User intent is ambiguous and needs routing to the correct tool.",
-            "A session stage needs to be queried or advanced.",
-            "The cognitive lane (AGI/ASI/APEX) needs to be switched.",
+            "You know what the user wants but not which organ owns it.",
+            "Domain evidence is needed from GEOX, WEALTH, or WELL.",
+            "You want a routing decision only (mode=route) before any organ call.",
+            "You have organ_tool + arguments and want governed bridge dispatch (mode=bridge).",
         ],
         "do_not_use_when": [
-            "The target tool is already known and can be called directly.",
-            "The task requires reasoning, evidence, or judgment rather than routing.",
+            "Kernel-only work (init/observe/think/judge/forge/seal) — call those verbs directly.",
+            "You need a binding verdict — use arif_judge.",
+            "You need irreversible mutation — use arif_forge after SEAL.",
+            "Casual chat with no organ evidence required.",
         ],
         "modes": {
             "route": {
-                "purpose": "Resolve intent to a canonical tool + stage path.",
-                "required_parameters": ["target"],
-                "returns": ["target", "path", "hops"],
+                "purpose": "Return routing decision only (organ, confidence, mission). No organ call.",
+                "required_parameters": ["intent"],
+                "optional_parameters": ["organ", "mission_id", "session_id", "session_token"],
+                "returns": ["organ", "confidence", "mission_id", "rationale", "allowed_tools"],
             },
-            "status": {
-                "purpose": "Return kernel health and routing table state.",
-                "returns": ["status", "routing_table"],
+            "bridge": {
+                "purpose": "Route then invoke organ_tool with arguments on the target organ.",
+                "required_parameters": ["intent", "organ_tool"],
+                "optional_parameters": [
+                    "organ",
+                    "arguments",
+                    "mission_id",
+                    "session_id",
+                    "session_token",
+                ],
+                "returns": ["organ", "organ_tool", "result", "bridge_receipt"],
             },
         },
         "inputs": {
             "mode": {
                 "type": "string",
-                "allowed_values": ["route", "status"],
+                "allowed_values": ["route", "bridge"],
                 "default": "route",
+                "meaning": "route = decision only; bridge = decision + organ tool call.",
             },
-            "target": {
+            "intent": {
                 "type": "string",
-                "meaning": "Target tool, endpoint, or lane name.",
-                "required_when": [{"mode": "route"}],
+                "meaning": "Natural-language description of what the user wants.",
+                "required_when": [{"mode": "route"}, {"mode": "bridge"}],
             },
             "task": {
                 "type": "string",
-                "meaning": "Task description for routing resolution.",
+                "meaning": "Alias for intent (backward compat).",
             },
-            "stage": {
+            "organ": {
                 "type": "string",
-                "meaning": "Explicit stage override (000–999).",
+                "meaning": "Optional explicit organ override (GEOX|WEALTH|WELL|A-FORGE). Skips intent matching.",
+            },
+            "organ_tool": {
+                "type": "string",
+                "meaning": "Tool name on the target organ. Required for mode=bridge; absent → route-only.",
+                "required_when": [{"mode": "bridge"}],
+            },
+            "arguments": {
+                "type": "object|string",
+                "meaning": "Arguments to pass to organ_tool when bridging.",
+            },
+            "mission_id": {
+                "type": "string",
+                "meaning": "Human-cockpit mission: investigate|interpret|decide|build|monitor|remember.",
+            },
+            "actor_id": {"type": "string", "meaning": "Calling actor."},
+            "session_id": {"type": "string", "meaning": "Governing session."},
+            "session_token": {
+                "type": "string",
+                "meaning": "SCT from arif_init — required for federation organ continuity.",
             },
         },
         "outputs": {
-            "path": {"meaning": "Suggested tool sequence from current state to target."},
-            "hops": {"meaning": "Number of stage transitions required."},
-            "allowed_tools": {"meaning": "Tools permitted in the current session state."},
+            "organ": {"meaning": "Selected organ (GEOX|WEALTH|WELL|A-FORGE|kernel)."},
+            "confidence": {"meaning": "Routing confidence 0.0–1.0."},
+            "mission_id": {"meaning": "Bound mission if classified or provided."},
+            "result": {"meaning": "Organ tool result when mode=bridge."},
+            "bridge_receipt": {"meaning": "Audit receipt for the bridge call."},
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
-        "state": {"requires_session_id": True, "recommended_session_id": True},
+        "state": {
+            "requires_session_id": False,
+            "recommended_session_id": True,
+            "carries_forward": ["session_id", "session_token", "mission_id"],
+        },
+        "canonical_order": CANONICAL_ORDER,
         "next_recommended_tools": [
-            "arif_observe",
             "arif_think",
-            "arif_measure",
+            "arif_memory",
+            "arif_judge",
         ],
         "authority_boundary": {
-            "may": ["route", "query"],
-            "may_not": ["execute", "judge", "seal"],
+            "may": ["route", "bridge_read", "suggest_organ"],
+            "may_not": ["self-seal organ results", "bypass judge", "mutate production"],
         },
         "examples": {
             "good": [
                 {
-                    "user_intent": "What tool should I use next?",
+                    "user_intent": "Which organ handles seismic interpretation?",
                     "call": {
-                        "tool": "arif_kernel_route",
-                        "args": {"mode": "route", "target": "arif_judge"},
+                        "tool": "arif_route",
+                        "args": {
+                            "mode": "route",
+                            "intent": "interpret this seismic section",
+                        },
                     },
-                }
+                },
+                {
+                    "user_intent": "Get WELL readiness for decision fitness",
+                    "call": {
+                        "tool": "arif_route",
+                        "args": {
+                            "mode": "bridge",
+                            "intent": "operator readiness",
+                            "organ": "WELL",
+                            "organ_tool": "well_reflect",
+                        },
+                    },
+                },
             ],
             "bad": [
                 {
-                    "user_intent": "Execute the deployment",
-                    "reason_not_to_call": "Kernel routes; it does not execute.",
+                    "user_intent": "Deploy the build",
+                    "reason_not_to_call": "Route does not execute. Use arif_judge then arif_forge after SEAL.",
                 }
             ],
         },
@@ -664,9 +869,10 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "reads_memory": False,
             "writes_memory": False,
             "writes_immutable_record": False,
-            "contains_sensitive_data_possible": False,
+            "contains_sensitive_data_possible": True,
             "redaction_required": False,
         },
+        "failure_modes": FAILURE_MODES_KERNEL,
     },
     # ── 444_REPLY ────────────────────────────────────────────────────────────
     "arif_compose": {
@@ -799,52 +1005,88 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "redaction_required": False,
         },
     },
-    # ── 555_MEMORY ───────────────────────────────────────────────────────────
-    "arif_memory_recall": {
-        "eureka_insight": "Memory is an associative projection. Recalled facts must inherit their original epistemic uncertainty.",
+    # ── MEMORY GOVERNOR (live public name: arif_memory) ──────────────────────
+    "arif_memory": {
+        "eureka_insight": "Memory is not truth until provenance-bound. Truth is not final until sealed (L6 VAULT999).",
         "stage_code": "555",
         "stage_name": "MEMORY",
         "purpose": [
-            "Associative retrieval from VAULT999 and vector memory.",
-            "Recalls prior session artifacts, reasoning traces, and sealed events.",
+            "Governed L1–L6 semantic recall, storage, promotion, revision, and forget.",
+            "Preserve epistemic labels across memory lifecycle.",
+            "Enforce F1 reversibility (supersede/tombstone) and F13 on forget.",
         ],
         "use_when": [
-            "User asks about prior session history or decisions.",
-            "A reasoning step needs context from past interactions.",
-            "Sealed events or audit records must be retrieved.",
+            "Need prior session/decision context before reasoning or judging.",
+            "Store a provisional memory with truth_class and provenance.",
+            "Promote / revise / forget memory under floor gates.",
+            "Audit memory lineage or attest integrity.",
         ],
         "do_not_use_when": [
-            "The user asks about topics never discussed in prior sessions.",
-            "The task requires creating new memory without retrieval.",
+            "Need immutable civilizational seal — use arif_seal (L6 write path).",
+            "Need live web evidence — use arif_observe.",
+            "Need organ compute (earth/capital/vitality) — use arif_route.",
+            "Casual note with no provenance — do not pollute memory tiers.",
         ],
         "modes": {
             "recall": {
-                "purpose": "Semantic search across all stored memories.",
+                "purpose": "Semantic / hybrid recall across memory tiers.",
                 "required_parameters": ["query"],
-                "returns": ["memories", "confidence"],
+                "optional_parameters": ["tier", "top_k", "hybrid", "graph_first"],
+                "returns": ["memories", "confidence", "tier_hits"],
             },
-            "store": {
-                "purpose": "Ingest a new memory entry (requires ack_irreversible).",
-                "required_parameters": ["query"],
-                "returns": ["memory_id", "status"],
-            },
-            "get": {
-                "purpose": "Exact retrieval by memory_id.",
+            "inspect": {
+                "purpose": "Inspect a single memory_id or aspect without mutation.",
                 "required_parameters": ["memory_id"],
-                "returns": ["memory"],
+                "returns": ["memory", "provenance", "truth_class"],
             },
-            "list": {
-                "purpose": "List memories scoped to the current session.",
-                "returns": ["memories"],
+            "attest": {
+                "purpose": "Attest integrity of a memory or seal lineage.",
+                "optional_parameters": ["memory_id", "seal_id", "include_proof"],
+                "returns": ["attested", "proof"],
             },
-            "prune": {
-                "purpose": "Remove expired memories (F1 Amanah — reversible only).",
-                "returns": ["pruned"],
+            "remember": {
+                "purpose": "Write a new provisional memory with provenance.",
+                "required_parameters": ["content"],
+                "optional_parameters": [
+                    "truth_class",
+                    "provenance",
+                    "tier_hint",
+                    "memory_class",
+                ],
+                "returns": ["memory_id", "tier", "status"],
             },
-            "searah": {
-                "purpose": "SEARAH Investigation Level 2 Agentic RAG — multi-hop retrieval, constitutional validation.",
-                "required_parameters": ["query"],
-                "returns": ["answer", "confidence", "sub_question_count"],
+            "promote": {
+                "purpose": "Promote memory across tiers (requires floors + often human_approval).",
+                "required_parameters": ["memory_id", "to_tier"],
+                "optional_parameters": [
+                    "from_tier",
+                    "promotion_reason",
+                    "required_floors_satisfied",
+                    "human_approval",
+                ],
+                "returns": ["memory_id", "from_tier", "to_tier", "status"],
+            },
+            "revise": {
+                "purpose": "Supersede content (reversible correction event).",
+                "required_parameters": ["memory_id", "new_content"],
+                "optional_parameters": ["correction_event", "new_truth_class"],
+                "returns": ["memory_id", "supersedes_memory_id", "status"],
+            },
+            "forget": {
+                "purpose": "Tombstone a memory. F13 — human ack required for hard forget.",
+                "required_parameters": ["memory_id"],
+                "optional_parameters": [
+                    "human_approval",
+                    "require_human_ack",
+                    "tombstone_text",
+                    "cascade",
+                ],
+                "returns": ["memory_id", "tombstoned", "status"],
+            },
+            "audit": {
+                "purpose": "Audit memory scope / policy / lineage for a query or memory_id.",
+                "optional_parameters": ["query", "memory_id", "scope"],
+                "returns": ["audit_report", "violations"],
             },
         },
         "inputs": {
@@ -852,74 +1094,108 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "type": "string",
                 "allowed_values": [
                     "recall",
-                    "store",
-                    "get",
-                    "list",
-                    "prune",
-                    "search",
-                    "context",
-                    "dry_run",
-                    "searah",
+                    "inspect",
+                    "attest",
+                    "remember",
+                    "promote",
+                    "revise",
+                    "forget",
+                    "audit",
                 ],
                 "default": "recall",
             },
             "query": {
                 "type": "string",
-                "meaning": "Semantic search query (recall/search modes) OR text content (store mode).",
-                "required_when": [{"mode": "recall"}, {"mode": "search"}],
+                "meaning": "Semantic search query (recall/audit).",
+                "required_when": [{"mode": "recall"}],
             },
             "content": {
                 "type": "string",
-                "meaning": "Convenience alias for store mode — maps to metadata['text']. Use this OR query.",
-                "required_when": [{"mode": "store", "missing": "query"}],
-            },
-            "project_id": {
-                "type": "string",
-                "meaning": "Project namespace for memory isolation.",
-                "default": "default",
-            },
-            "area": {
-                "type": "string",
-                "meaning": "Memory area: 'main', 'working', 'sacred', 'canon'.",
-                "default": "working",
+                "meaning": "Text body for remember mode.",
+                "required_when": [{"mode": "remember"}],
             },
             "memory_id": {
                 "type": "string",
-                "meaning": "Exact UUID for get/delete.",
-                "required_when": [{"mode": "get"}, {"mode": "prune"}],
+                "meaning": "Target memory UUID.",
+                "required_when": [
+                    {"mode": "inspect"},
+                    {"mode": "promote"},
+                    {"mode": "revise"},
+                    {"mode": "forget"},
+                ],
             },
-            "session_id": {
+            "new_content": {
                 "type": "string",
-                "meaning": "Session scope for list operations.",
+                "meaning": "Replacement content for revise.",
+                "required_when": [{"mode": "revise"}],
             },
+            "to_tier": {
+                "type": "string",
+                "meaning": "Destination tier for promote (L1–L6).",
+                "required_when": [{"mode": "promote"}],
+            },
+            "human_approval": {
+                "type": "boolean",
+                "meaning": "Explicit human approval for promote/forget gates.",
+                "default": False,
+            },
+            "session_id": {"type": "string", "meaning": "Governing session."},
+            "session_token": {"type": "string", "meaning": "SCT from arif_init."},
+            "actor_id": {"type": "string", "meaning": "Calling actor (F11 attribution)."},
         },
         "outputs": {
-            "memories": {"meaning": "Retrieved memory entries with source tags."},
-            "confidence": {"meaning": "Retrieval confidence score."},
-            "memory_id": {"meaning": "UUID of stored memory (store mode)."},
-            "stored": {"meaning": "Boolean success flag (store mode)."},
+            "memories": {"meaning": "Retrieved entries with truth_class + provenance."},
+            "memory_id": {"meaning": "UUID of written or targeted memory."},
+            "tier": {"meaning": "Memory tier L1–L6."},
+            "status": {"meaning": "Operation status."},
+            "confidence": {"meaning": "Recall confidence (inherits source epistemic band)."},
         },
-        "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
-        "state": {"requires_session_id": True, "accepts_anonymous": False},
-        "next_recommended_tools": ["arif_think", "arif_critique"],
+        "risk": {
+            "tier": "medium",
+            "irreversible": False,
+            "requires_human_ack": False,
+            "note": "forget with hard tombstone can be irreversible → human_approval required.",
+        },
+        "state": {
+            "requires_session_id": True,
+            "accepts_anonymous": False,
+            "carries_forward": ["session_id", "session_token", "memory_id"],
+        },
+        "canonical_order": CANONICAL_ORDER,
+        "next_recommended_tools": ["arif_think", "arif_judge"],
         "authority_boundary": {
-            "may": ["recall", "list"],
-            "may_not": ["unauthorized deletion", "seal"],
+            "may": ["recall", "inspect", "attest", "remember", "revise"],
+            "may_not": [
+                "unauthorized forget without human_approval",
+                "claim sealed truth without vault lineage",
+                "bypass F2 truth_class gates",
+            ],
         },
         "examples": {
             "good": [
                 {
                     "user_intent": "What did we decide about the deployment strategy?",
                     "call": {
-                        "tool": "arif_memory_recall",
+                        "tool": "arif_memory",
                         "args": {"mode": "recall", "query": "deployment strategy"},
                     },
-                }
+                },
+                {
+                    "user_intent": "Store this session finding as provisional memory",
+                    "call": {
+                        "tool": "arif_memory",
+                        "args": {
+                            "mode": "remember",
+                            "content": "Manifest drift: route/memory empty keys",
+                            "truth_class": "observed",
+                        },
+                    },
+                },
             ],
             "bad": [
                 {
                     "user_intent": "Delete all past memories",
-                    "reason_not_to_call": "Pruning requires explicit ack and session scope. Use prune mode with care.",
+                    "reason_not_to_call": "forget is tombstone-scoped, F13-gated. Never mass-delete.",
                 }
             ],
         },
@@ -930,6 +1206,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "contains_sensitive_data_possible": True,
             "redaction_required": True,
         },
+        "failure_modes": FAILURE_MODES_KERNEL,
     },
     # ── 666_HEART ────────────────────────────────────────────────────────────
     "arif_critique": {
@@ -949,7 +1226,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "do_not_use_when": [
             "The task is purely informational with no action proposed.",
             "The task requires final arbitration (use 888_JUDGE).",
-            "The task requires execution (use 010_FORGE after judge seal).",
+            "The task requires execution (use arif_forge after 888 SEAL after judge seal).",
         ],
         "modes": {
             "critique": {
@@ -1383,8 +1660,8 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         ],
         "do_not_use_when": [
             "The task is purely informational or observational.",
-            "The task requires raw evidence fetching (use 222_FETCH).",
-            "The task requires execution (use 010_FORGE after judge seal).",
+            "The task requires raw evidence fetching (use arif_observe).",
+            "The task requires execution (use arif_forge after judge SEAL).",
             "No candidate action or proposal has been formulated.",
         ],
         "modes": {
@@ -1393,25 +1670,31 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_parameters": ["candidate"],
                 "returns": ["verdict", "floor_compliance", "epistemic_snapshot"],
             },
-            "compare": {
-                "purpose": "Side-by-side comparison of two candidate actions.",
+            "intercept": {
+                "purpose": "Early gate: intercept a proposed action before full deliberation.",
                 "required_parameters": ["candidate"],
-                "returns": ["comparison", "recommendation"],
+                "returns": ["verdict", "intercept_reason"],
             },
-            "history": {
-                "purpose": "Retrieve prior verdicts from the constitutional chain.",
-                "returns": ["verdicts"],
-            },
-            "explain": {
-                "purpose": "Generate a human-readable rationale for a verdict.",
+            "validate": {
+                "purpose": "Validate an existing verdict/receipt against floors without new arbitration.",
                 "required_parameters": ["candidate"],
-                "returns": ["rationale"],
+                "returns": ["valid", "floor_compliance"],
+            },
+            "hold": {
+                "purpose": "Explicit HOLD emission — pause progression pending human/sovereign input.",
+                "required_parameters": ["candidate"],
+                "returns": ["verdict", "hold_reason"],
+            },
+            "escalate": {
+                "purpose": "Escalate to higher authority band / F13 surface.",
+                "required_parameters": ["candidate"],
+                "returns": ["escalation", "required_actor"],
             },
         },
         "inputs": {
             "mode": {
                 "type": "string",
-                "allowed_values": ["judge", "compare", "history", "explain"],
+                "allowed_values": ["intercept", "judge", "validate", "hold", "escalate"],
                 "default": "judge",
             },
             "candidate": {
@@ -1419,8 +1702,10 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "meaning": "Action or proposal to adjudicate.",
                 "required_when": [
                     {"mode": "judge"},
-                    {"mode": "compare"},
-                    {"mode": "explain"},
+                    {"mode": "intercept"},
+                    {"mode": "validate"},
+                    {"mode": "hold"},
+                    {"mode": "escalate"},
                 ],
             },
             "constitutional_chain_id": {
@@ -1437,7 +1722,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "state": {"requires_session_id": True, "accepts_anonymous": False},
         "next_recommended_tools": ["arif_seal", "arif_forge"],
         "authority_boundary": {
-            "may": ["evaluate", "compare", "explain", "emit_verdict_structure"],
+            "may": ["evaluate", "intercept", "validate", "hold", "escalate", "emit_verdict_structure"],
             "may_not": [
                 "self-approve irreversible actions",
                 "override human judge",
@@ -1498,22 +1783,38 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
             "verify": {
                 "purpose": "Cryptographically verify a prior vault entry.",
-                "required_parameters": ["vault_entry_id"],
+                "required_parameters": ["payload"],
                 "returns": ["verified", "chain_tip"],
             },
-            "chain": {
-                "purpose": "Retrieve the Merkle chain tip and lineage.",
-                "returns": ["chain_tip", "lineage"],
+            "ledger": {
+                "purpose": "Read VAULT999 ledger tip / scoped entries (replaces phantom chain/list).",
+                "returns": ["entries", "chain_tip"],
             },
-            "list": {
-                "purpose": "Enumerate entries scoped to the current session.",
-                "returns": ["entries"],
+            "changelog": {
+                "purpose": "Enumerate recent sealed changes for audit continuity.",
+                "returns": ["changelog"],
+            },
+            "audit": {
+                "purpose": "Session-scoped audit package over sealed outcomes.",
+                "returns": ["audit_package"],
+            },
+            "session_close": {
+                "purpose": "Close session continuity and emit terminal continuity receipt.",
+                "required_parameters": ["session_id"],
+                "returns": ["status", "session_id"],
             },
         },
         "inputs": {
             "mode": {
                 "type": "string",
-                "allowed_values": ["seal", "verify", "chain", "list"],
+                "allowed_values": [
+                    "seal",
+                    "verify",
+                    "ledger",
+                    "changelog",
+                    "audit",
+                    "session_close",
+                ],
                 "default": "seal",
             },
             "payload": {
@@ -1581,10 +1882,10 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
-    # ── 010_FORGE ────────────────────────────────────────────────────────────
+    # ── 777_FORGE (public stage_code; metabolic alias 010 retired) ───────────
     "arif_forge": {
         "eureka_insight": "Execution is irreversible. If undo(a) does not exist, explicit human acknowledgment (ack_irreversible) is mandatory.",
-        "stage_code": "010",
+        "stage_code": "777",
         "stage_name": "FORGE",
         "purpose": [
             "Metabolic execution, build orchestration, and artifact forging.",
@@ -1666,8 +1967,8 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
             "artifact_id": {
                 "type": "string",
-                "meaning": "Target artifact for rollback/status.",
-                "required_when": [{"mode": "rollback"}],
+                "meaning": "Target artifact for commit/recall (no standalone rollback mode on public surface).",
+                "required_when": [{"mode": "commit"}, {"mode": "recall"}],
             },
             "ack_irreversible": {
                 "type": "boolean",
@@ -1705,10 +2006,19 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "requires_judge_state_hash": True,
             "requires_vault_entry_id": False,
         },
-        "state": {"requires_session_id": True, "accepts_anonymous": False},
+        "state": {
+            "requires_session_id": True,
+            "accepts_anonymous": False,
+            "carries_forward": [
+                "session_id",
+                "session_token",
+                "artifact_id",
+                "plan_id",
+            ],
+        },
         "next_recommended_tools": ["arif_seal"],
         "authority_boundary": {
-            "may": ["execute_authorized", "query", "rollback"],
+            "may": ["execute_authorized", "query", "dry_run", "recall"],
             "may_not": ["self-approve", "bypass judge", "execute without seal"],
         },
         "examples": {
@@ -1743,4 +2053,49 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
 }
 
 
-__all__ = ["TOOL_CHARTER", "CANONICAL_ORDER"]
+# Live public surface aliases — registration looks up TOOL_CHARTER[name].
+# Pre-audit empty manifests on arif_route/arif_memory were caused by looking up
+# absorbed legacy names that were the only charter keys.
+TOOL_CHARTER["arif_kernel_route"] = TOOL_CHARTER["arif_route"]
+TOOL_CHARTER["arif_memory_recall"] = TOOL_CHARTER["arif_memory"]
+
+# Stamp shared agent contracts on every charter entry (ΔS: one source of truth).
+for _name, _entry in TOOL_CHARTER.items():
+    if not isinstance(_entry, dict):
+        continue
+    _entry.setdefault("canonical_order", list(CANONICAL_ORDER))
+    _entry.setdefault("verdict_response_contract", VERDICT_RESPONSE_CONTRACT)
+    _entry.setdefault("failure_modes", FAILURE_MODES_KERNEL)
+    _entry.setdefault("risk_scale_map", RISK_SCALE_MAP)
+    st = _entry.setdefault("state", {})
+    if isinstance(st, dict):
+        cf = st.setdefault("carries_forward", [])
+        if isinstance(cf, list) and "session_token" not in cf:
+            cf.append("session_token")
+    # Repair dead next_recommended_tools pointers to live public verbs.
+    nxt = _entry.get("next_recommended_tools")
+    if isinstance(nxt, list):
+        _remap = {
+            "arif_fetch": "arif_observe",  # fetch is observe mode
+            "arif_critique": "arif_judge",
+            "arif_memory_recall": "arif_memory",
+            "arif_kernel_route": "arif_route",
+            "arif_gateway_connect": "arif_route",
+            "arif_measure": "arif_observe",
+            "arif_triage": "arif_init",  # triage is init mode
+            "arif_compose": "arif_think",
+            "arif_stage": "arif_judge",
+            "arif_commit": "arif_seal",
+        }
+        _entry["next_recommended_tools"] = [
+            _remap.get(t, t) for t in nxt if _remap.get(t, t) in set(CANONICAL_ORDER) | set(TOOL_CHARTER)
+        ]
+
+
+__all__ = [
+    "TOOL_CHARTER",
+    "CANONICAL_ORDER",
+    "VERDICT_RESPONSE_CONTRACT",
+    "FAILURE_MODES_KERNEL",
+    "RISK_SCALE_MAP",
+]

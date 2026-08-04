@@ -2697,7 +2697,9 @@ def arif_init(
                 "next": {
                     # RSI 2026-06-27: external callers get arif_observe (public surface),
                     # not arif_kernel_attest (hidden from public facade).
-                    "recommended_next": "arif_triage" if identity_verified else "arif_observe"
+                    # 2026-08-04 agentic clarity: never emit arif_triage as a tool name —
+                    # triage is arif_init(mode=triage|preflight), not a registered verb.
+                    "recommended_next": "arif_observe"
                 },
             },
             sid=sid,
