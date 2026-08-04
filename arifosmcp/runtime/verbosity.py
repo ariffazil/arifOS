@@ -218,9 +218,16 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     nested_actor = response.get("actor")
     if isinstance(nested_actor, dict):
         authority_level = nested_actor.get("authority_level", "OBSERVER")
-    # F13 SOVEREIGN 2026-08-01: prefer the JWT auth band over the
-    # standing-collapsed value when both are present.
-    if _jwt_auth and _jwt_auth in ("OBSERVE_ONLY", "LIMITED_MUTATE", "FULL"):
+    # F13 SOVEREIGN 2026-08-01 / audit 2026-08-04: prefer JWT auth band.
+    # Include SOVEREIGN — omitting it left authority_level stuck at OBSERVER
+    # while SCT carried auth:SOVEREIGN (authority fork / Mode 3).
+    if _jwt_auth and _jwt_auth in (
+        "OBSERVE_ONLY",
+        "LIMITED_MUTATE",
+        "FULL",
+        "SOVEREIGN",
+        "OPERATOR",
+    ):
         authority_level = _jwt_auth
 
     unified_actor = {

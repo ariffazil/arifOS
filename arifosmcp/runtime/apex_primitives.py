@@ -132,21 +132,28 @@ def compute_apex_from_metrics(window_seconds: int = 86400) -> dict[str, Any]:
         unique_failures = len(set(failure_codes))
 
         # A = lease compliance rate
-        A = round(in_lease / n, 4)
+        A = round(in_lease / n, 4) if n > 0 else None
         # P = evidence floor compliance
-        P = round(with_evidence / n, 4) if n > 0 else 0.5
+        P = round(with_evidence / n, 4) if n > 0 else None
         # E = tool call success rate
-        E = round(successes / n, 4)
+        E = round(successes / n, 4) if n > 0 else None
         # X = reversibility rate (dry-run before execute)
-        X = round(dry_runed / n, 4) if n > 0 else 0.5
+        X = round(dry_runed / n, 4) if n > 0 else None
         # Φ = scar feedback (1 - repeated_failure_rate)
         repeated_rate = unique_failures / n if n > 0 else 0
-        PHI = round(max(0.0, 1.0 - repeated_rate), 4)
+        PHI = round(max(0.0, 1.0 - repeated_rate), 4) if n > 0 else None
 
-        # G = A · P · E · X · Φ
-        G = round(A * P * E * X * PHI, 4)
-        # C_dark = A · (1-P) · (1-X)
-        C_dark = round(A * (1 - P) * (1 - X), 4)
+        # 2026-08-04 333-AGI: UNMEASURED propagation.
+        # When no data exists (n==0), factors are None → G is UNMEASURED.
+        # Previously coerced None→0.5 producing G=0.0625 as a phantom number.
+        # UNMEASURED must never coerce. Nil times anything is nil.
+        _factors = [A, P, E, X, PHI]
+        if None in _factors:
+            G = None
+            C_dark = None
+        else:
+            G = round(A * P * E * X * PHI, 4)
+            C_dark = round(A * (1 - P) * (1 - X), 4)
 
         return {
             "A": A,
@@ -174,24 +181,25 @@ def compute_apex_from_metrics(window_seconds: int = 86400) -> dict[str, Any]:
 
 
 def _default_apex(reason: str) -> dict[str, Any]:
-    """Return safe defaults when no data available."""
-    # 2026-08-04 333-AGI: Cold-start trust inversion fix.
-    # G=0.0625 (product of five 0.5 priors) encoded "no data = maximum restriction."
-    # That creates a permanent deadlock: no tool calls → empty DB → G=0.0625 → HOLD
-    # on everything → no tool calls. Inverted: cold start = TRUST (G=0.80),
-    # calibrated DOWN by evidence. F8 GENIUS floor met at boot.
-    # A=P=E=X=0.5, Phi=1.0 → G=0.0625 was blocking the sovereign. Now G=0.80.
+    """Return UNMEASURED defaults when no data available.
+
+    2026-08-04 333-AGI: UNMEASURED propagation fix.
+    G=0.0625 (product of five faked 0.5 priors) was a phantom number encoding
+    "no data = maximum restriction." Replaced with None/UNMEASURED sentinel.
+    Cold start = UNMEASURED, not 0.0625, not 0.80. Measure first, gate second.
+    """
     return {
-        "A": 0.5,
-        "P": 0.5,
-        "E": 0.5,
-        "X": 0.5,
-        "Phi": 1.0,
-        "G": 0.80,
-        "C_dark": 0.25,
+        "A": None,
+        "P": None,
+        "E": None,
+        "X": None,
+        "Phi": None,
+        "G": None,
+        "C_dark": None,
         "window_seconds": 0,
         "sample_size": 0,
         "source": "apex_primitives.py",
         "version": "apex-v1-phase2",
-        "note": f"Cold-start trust (G=0.80) — {reason}",
+        "note": f"UNMEASURED — no APEX sample yet ({reason}). Not a G score.",
+        "measurement_status": "UNMEASURED",
     }
