@@ -54,7 +54,6 @@ from dataclasses import dataclass
 from typing import Any
 
 import httpx
-import httpx2  # FastMCP 4 migration
 
 logger = logging.getLogger(__name__)
 
@@ -515,7 +514,7 @@ def embed_text(
 
     try:
         resp = client.post(f"{cfg.base_url}/api/embed", json=payload)
-    except (httpx.HTTPError, httpx2.HTTPError) as exc:
+    except (httpx.HTTPError, httpx.HTTPError) as exc:
         _breaker_record_failure(cfg)
         if fail_open:
             _log_fail_open(f"http_error:{type(exc).__name__}", config=cfg)
@@ -620,7 +619,7 @@ def embed_texts_batch(
 
     try:
         resp = client.post(f"{cfg.base_url}/api/embed", json=payload)
-    except (httpx.HTTPError, httpx2.HTTPError) as exc:
+    except (httpx.HTTPError, httpx.HTTPError) as exc:
         _breaker_record_failure(cfg)
         if fail_open:
             _log_fail_open(f"http_error:{type(exc).__name__}", config=cfg)
@@ -692,7 +691,7 @@ def healthcheck(
         client = _get_client(cfg.base_url, timeout)
         resp = client.get(f"{cfg.base_url}/api/version")
         reachable = resp.status_code < 500
-    except (httpx.HTTPError, httpx2.HTTPError) as exc:
+    except (httpx.HTTPError, httpx.HTTPError) as exc:
         reachable = False
         logger.debug("PRL embedder healthcheck HTTP error: %s", exc)
         if not fail_open:

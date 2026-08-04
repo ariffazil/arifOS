@@ -26,7 +26,6 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 import httpx
-import httpx2  # FastMCP 4 migration
 import structlog
 
 log = structlog.get_logger("arifos.policy.opa")
@@ -122,9 +121,9 @@ class OPABridge:
             data = resp.json()
         except (
             httpx.HTTPError,
-            httpx2.HTTPError,
+            httpx.HTTPError,
             httpx.RequestError,
-            httpx2.RequestError,
+            httpx.RequestError,
             Exception,
         ) as e:
             log.warning("opa_eval_failed", error=str(e), policy=policy_path)
@@ -174,6 +173,6 @@ class OPABridge:
             )
             resp.raise_for_status()
             return {"status": "loaded", "policy_path": policy_path}
-        except (httpx.HTTPError, httpx2.HTTPError) as e:
+        except (httpx.HTTPError, httpx.HTTPError) as e:
             log.error("opa_load_failed", error=str(e), policy=policy_path)
             return {"status": "failed", "error": str(e), "policy_path": policy_path}

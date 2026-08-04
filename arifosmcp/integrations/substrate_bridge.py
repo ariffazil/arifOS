@@ -20,7 +20,6 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-import httpx2  # FastMCP 4 migration
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +106,7 @@ class SubstrateClient:
                 else:
                     response.raise_for_status()
 
-            except (httpx.HTTPStatusError, httpx2.HTTPStatusError) as e:
+            except (httpx.HTTPStatusError, httpx.HTTPStatusError) as e:
                 last_error = f"HTTP {e.response.status_code}: {e.response.text}"
                 if e.response.status_code != 404:
                     break

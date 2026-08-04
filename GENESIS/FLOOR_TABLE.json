@@ -9,12 +9,37 @@
     {
       "id": "F1",
       "name": "AMANAH",
-      "rule": "Reversible first. Irreversible → 888 HOLD.",
+      "rule": "Reversible first. Irreversible → 888 HOLD. Metabolic gate φFQ ≥ 0.80 required before seal (FQ ∈ [1,3]; penalized outside).",
       "color": "#FF4500",
       "epistemic_label_form": null,
       "epistemic_band_form": null,
-      "operator": null,
-      "sealed_range": null
+      "operator": "φFQ · φZ · φE",
+      "sealed_range": {"min": 0.80, "max": 1.0},
+      "metabolic_gate": {
+        "φFQ": {
+          "computation": "if FQ ∈ [1,3]: 1.0; if FQ ∈ [0.5,1): FQ/3.0; if FQ < 0.5: 0.0 (HARD BLOCK); if FQ > 3.0: min(1.0, 3.0/FQ)",
+          "threshold": 0.80,
+          "source": "arifFlow :7073/health",
+          "doctrine_ref": "GENESIS/059"
+        },
+        "φZ": {
+          "computation": "Z(t) / Z_est where Z(t) = -ΣΔS_i",
+          "threshold": 0.80,
+          "source": "session ΔS ledger",
+          "Z_est_declared_at": "arif_init"
+        },
+        "φE": {
+          "computation": "n_resolved / n_activated paradoxes",
+          "threshold": 0.80,
+          "source": "ATLAS333 resolution counter",
+          "waiver": "OPERATIONAL session class → φE ≡ 1.0"
+        },
+        "AMC": {
+          "computation": "|∂Z + ∂E| / FQ",
+          "threshold": 0.05,
+          "role": "marginal saturation check — necessary but NOT sufficient"
+        }
+      }
     },
     {
       "id": "F2",
