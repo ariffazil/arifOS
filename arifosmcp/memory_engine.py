@@ -1,3 +1,4 @@
+"""DEPRECATED: Langfuse replaced by Kabarkan (NATS JetStream). Remove this module when all callers are migrated."""
 """
 arifosmcp/memory_engine.py
 ══════════════════════════════════════════
