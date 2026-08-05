@@ -2847,7 +2847,7 @@ def arif_init(
         _temporal_root = {}  # APEX patch 2026-08-02: F1 fallback before Temporal Intelligence Keystone (line below) sets proper value
         header["temporal_root"] = _temporal_root
 
-            header["work_contract"] = create_work_contract(
+        header["work_contract"] = create_work_contract(
             session_id=sid,
             objective=objective or intent or "governed session work",
             success_criteria=success_criteria,
