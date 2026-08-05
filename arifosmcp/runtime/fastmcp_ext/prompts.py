@@ -1,5 +1,5 @@
 """
-arifOS MCP Prompts — Zen Federation Surface (2026-07-16).
+arifOS MCP Prompts — Zen Federation Surface (2026-08-05).
 
 Forged from Fable-5 audit cycle + QQQQ evaluation. Single-sigil +
 single-lexical naming per zen-md rule. Backwards-compat: old names
@@ -25,7 +25,10 @@ from fastmcp.prompts import Message, PromptResult
 
 logger = logging.getLogger(__name__)
 
-_AGENT_INIT_V3_CANON = "/root/AAA/prompts/INIT.md"  # was AGENT_INIT_v3.0.md → zen-dated 2026.07.17
+# Canonical INIT path — 12 orthogonal layers, init→seal→RSI→reality loop
+_INIT_CANON = _AGENT_INIT_V3_CANON = (
+    "/root/AAA/prompts/INIT.md"  # v4.0 (2026-08-05) — keep legacy alias for compat
+)
 
 
 # ─── Zen pipeline — meta-templates for the 6-stage reality loop ────────
@@ -78,7 +81,7 @@ def _linked_prompt(
             "linked_resources": linked_resources,
             "floors_referenced": floors,
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
         "intent_text": intent_text,
     }
@@ -159,7 +162,7 @@ def sabar_run_loop(
                 ],
                 "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
                 "federation_layer": "arifOS.kernel.prompts",
-                "version": "2026.07.16",
+                "version": "2026.08.05",
             },
         )
     # depth='stage' — multi-message instruction for human-in-loop
@@ -211,7 +214,7 @@ def sabar_run_loop(
             ],
             "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
 
@@ -254,12 +257,12 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
             "stage": "PRE_LOOP",
             "sigil": "🌱",
             "lexical": "BOOT",
-            "role": "Constitutional bootstrap",
+            "role": "Constitutional bootstrap — attestation + loop + RSI + reality",
             "linked_tools": ["arif_init"],
-            "linked_resources": ["arifos://init/agent_init", "arifos://init/opencode/*"],
+            "linked_resources": ["arifos://bootstrap", "arifos://carry-forward"],
             "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
             "supersedes": "arif_init_prompt",
         },
     )
@@ -267,65 +270,56 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
         """🌱 BOOT — arifOS constitutional bootstrap prompt."""
         if depth == "full":
             try:
-                with open(_AGENT_INIT_V3_CANON, encoding="utf-8") as fh:
+                with open(_INIT_CANON, encoding="utf-8") as fh:
                     return fh.read()
             except OSError as exc:
                 return (
-                    f"[🌱 BOOT] Could not load full canon from {_AGENT_INIT_V3_CANON}: {exc}. "
+                    f"[🌱 BOOT] Could not load full canon from {_INIT_CANON}: {exc}. "
                     f"Falling back to boot phase."
                 )
         return """# 🌱 BOOT — arifOS Constitutional Ignition
 
 You are a citizen of the arifOS Federation.
-The constitution runs at http://127.0.0.1:8088. Probe before you act.
+The constitution runs at the kernel. Probe before you act.
 Sovereign: Arif (F13). Doctrine: DITEMPA BUKAN DIBERI.
 
-## METABOLIC BOOT — run these 6 steps, don't just read them
+## SELF-ATTESTATION — Prove before you act (INIT.md §0)
 
-### 1. PROBE — curl :8088/health
-   Verify: verdict=SEAL, floors=13, drift=False.
-   If not SEAL → HALT, request bootstrap.
+Run these 10 checks. All must pass to exit OBSERVE_ONLY:
+  Q1  IDENTITY:   Do I know my agent_id and actor_id?
+  Q2  FLOORS:     Are all 13 floors active? (kernel /health)
+  Q3  ORGANS:     Are ≥4/7 core organs alive? (live probe, not cache)
+  Q4  SOVEREIGN:  Do I recognize ARIF = F13 = absolute veto?
+  Q5  SESSION:    Do I have a live session_id from arif_init?
+  Q6  AUTHORITY:  What tier am I operating at? (T0-T3)
+  Q7  MEMORY:     Have I loaded carry-forward from last session?
+  Q8  REFUSAL:    Have I loaded the refusal surface?
+  Q9  RSI:        Is the RSI ledger accessible?
+  Q10 SEAL:       Do I know the one seal path? (SEAL.md)
 
-### 2. BIND — arif_init(actor_id, intent, verbosity="minimal")
-   Returns session_id + session_token. No session = no work.
+OK (10/10) = FULL session. PARTIAL (any ⚠) = OBSERVE_ONLY. FAIL (any ❌) = HALT.
 
-### 3. WITNESS — probe all 6 organs + FLAME
-   arifos :8088 · aforge :7071 · aaa :3001
-   geox :8081 · wealth :18082 · well :18083
-   FLAME :18901 (free inference lane)
+## THE LOOP — Init→Observe→Think→Route→Memory→Judge→Forge→Seal
 
-### 4. CLASSIFY — determine task lane
-   CRISIS → high τ, high ρ. FACTUAL → high τ. SOCIAL → high κ.
-   CARE → high κ. UNKNOWN → probe more.
-   Lane determines which paradoxes govern this task.
+Eight canonical verbs. One pattern. Skip no verb:
+  arif_init    → Bind identity. No work without binding.
+  arif_observe → Sense reality. Probe, don't guess.
+  arif_think   → Reason. Structured, not stream-of-consciousness.
+  arif_route   → Right organ for right intent.
+  arif_memory  → Recall, store, promote. Memory ≠ truth.
+  arif_judge   → Constitutional verdict. Before any irreversible act.
+  arif_forge   → Execute. Only after SEAL verdict.
+  arif_seal    → Immutable append. One door facing out.
 
-### 5. RECOGNIZE — Arif = F13 = absolute veto
-   "buat ja la" / "jalan terus" = ACT immediately.
-   rm -rf / DROP / force-push / secrets = 888_HOLD.
+## RSI — Every session improves something
+  TRACE → DIAGNOSE → REMEDIATE → LEDGER → SEAL
 
-### 6. ATTEST — emit boot receipt
-   BOOT::{session_id}::actor={actor}::organs={n}/6::lane={lane}::closures=3/3
+## REALITY LOOP — 000→999 perpetual
+  /000 human intent → F1-F13 governance → 333→888→777→999 → /999 seal → verify
 
-## THREE CLOSURES (Q9–Q11, GENESIS/058 — boot-enforceable)
-   Q9  godel_lock        — Every SEAL needs an outside witness.
-                            No self-referential seals.
-   Q10 calhoun_lock      — Must have an unsolved problem. Must be
-                            in a friction arena. Can it fail?
-   Q11 refusal_closure   — Constitutional HOLD ≠ failure HOLD.
-                            F13 must be able to refuse without justification.
-   All three must pass for `closures=3/3`. Any FAIL → HALT.
-
-## IF ANY STEP FAILS → OBSERVE_ONLY (no mutation, no seal)
-
-## After boot: load domain tools on demand
-   Geology → geox_*   Market → wealth_*
-   Vitality → well_*  Build → aforge_forge_*
-   Governance → arif_*
-
-The full canon (TRINITY-33, RSI, ATLAS333, model rotation, refusal surface)
-is available as MCP resources: arifos://trinity33, arifos://init/contract,
-arifos://models/rotation, arifos://paths, arifos://refusal-surface.
-Load them via resources/read when your task demands them.
+After boot, load the full canon via /init prompt (depth=full) or
+MCP resources: arifos://bootstrap, arifos://carry-forward,
+arifos://identity, arifos://doctrine.
 """
 
     registered.append("🌱 BOOT")
@@ -344,7 +338,7 @@ Load them via resources/read when your task demands them.
             "linked_resources": ["arifos://init/agent_init_v3"],
             "floors_referenced": "F1-F13",
             "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def _arif_init_alias(depth: str = "boot") -> str:
@@ -365,7 +359,7 @@ Load them via resources/read when your task demands them.
             "linked_resources": ["arifos://verdict/{session_id}", "arifos://vitals"],
             "floors_referenced": "F2,F3,F9,F12",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def witness(intent: str, focus: str = "") -> str:
@@ -413,7 +407,7 @@ Then hand off to 🧠 REASON.
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F2,F7,F8",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def reason(witness_block: str, hypothesis_count: int = 3) -> str:
@@ -466,7 +460,7 @@ Hand off to ⚖ MARUAH.
             "linked_resources": ["arifos://vitals"],
             "floors_referenced": "F5,F6,F9,F10",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def maruah(reason_block: str) -> str:
@@ -514,7 +508,7 @@ Hand off to 🔒 JUDGE.
             "linked_resources": ["arifos://vitals"],
             "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
             "supersedes": "constitutional_pre_flight",
         },
     )
@@ -557,7 +551,7 @@ If any floor fails → return VOID or HOLD with specific remediation.
             "linked_resources": ["arifos://vitals"],
             "floors_referenced": "F1-F13",
             "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def _preflight_alias(operation: str) -> str:
@@ -581,7 +575,7 @@ If any floor fails → return VOID or HOLD with specific remediation.
             "linked_resources": ["arifos://verdict/{session_id}"],
             "floors_referenced": "F1,F2,F7,F11,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def judge(maruah_block: str) -> str:
@@ -634,7 +628,7 @@ Verdict SEAL → proceed to 🔥 FORGE.
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1,F4,F11",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def forge(judge_block: str) -> str:
@@ -688,7 +682,7 @@ Hand off to 💎 SEAL.
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1,F11",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def seal(forge_block: str) -> str:
@@ -754,7 +748,7 @@ Loop complete. The human may now start a new loop with 🌱 BOOT + 🌀 SABAR.
             ],
             "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def sabar(intent: str, session_id: str = "", depth: str = "stage") -> PromptResult:
@@ -779,7 +773,7 @@ Loop complete. The human may now start a new loop with 🌱 BOOT + 🌀 SABAR.
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1,F2,F4,F6,F7,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
             "supersedes": "agi_reply_protocol_v3",
         },
     )
@@ -822,7 +816,7 @@ Constraints:
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1-F13",
             "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-            "version": "2026.07.16",
+            "version": "2026.08.05",
         },
     )
     def _reply_alias(query: str, recipient_id: str = "human") -> str:
