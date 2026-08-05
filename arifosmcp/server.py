@@ -625,8 +625,16 @@ mcp = FastMCP(
         "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
         "  arif_forge   — Ready to execute? Governed execution path. (arif_compose → mode=compose)\n"
         "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
-        "Key resources: arifos://bootstrap, arifos://carry-forward, arifos://flow-state, "
-        "arifos://vitals, arifos://doctrine, arifos://identity.\n"
+        "Key resources (38 static + 24 templates = 62 total):\n"
+        "  Core: arifos://doctrine, identity, vitals, bootstrap, schema, trinity,\n"
+        "        arifos://civilization, jurisdiction, refusal-surface, seal-readiness,\n"
+        "        arifos://loop-engineering, quickstart, mcp-alignment, memory,\n"
+        "        arifos://human/metabolized, reality/state, mcp/surface-map\n"
+        "  Operational: arifos://carry-forward, flow-state, init/agent_init, instructions\n"
+        "  ATLAS333: arifos://atlas333/* (index, paradox, zones, thresholds, activation, flow, geometry)\n"
+        "  Templates: arifos://verdict/{sid}, continuity/{sid}, floor/{fid}, vault/{type}\n"
+        "  Skills: skill://index, skill://{name}/SKILL.md\n"
+        "  Wisdom: arifos://wisdom/quotes/*, arifos://wisdom/contract\n"
         "Key prompts: /init (ignition), /seal (close), 🌱 BOOT (lightweight), 🌀 SABAR (governed loop).\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
@@ -972,7 +980,9 @@ try:
                     _cv_auth = "SOVEREIGN" if result.get("actor_verified") else "OBSERVE_ONLY"
                     # W-03: pass real deployment drift so composer cannot emit SEAL
                     _cv_drift: list[str] = []
-                    _sub = result.get("substrate") if isinstance(result.get("substrate"), dict) else {}
+                    _sub = (
+                        result.get("substrate") if isinstance(result.get("substrate"), dict) else {}
+                    )
                     if _sub.get("drift") is True or _sub.get("state") == "DEGRADED":
                         _cv_drift.append("substrate_drift")
                     _sw = (
