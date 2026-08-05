@@ -99,9 +99,10 @@ def build_session_token(
         elif key == "h" and isinstance(val, str) and val != "UNMEASURED":
             apex[key] = val
 
-    # Birth doctrine: if G was the old default theater, force UNMEASURED
-    if apex.get("G") in (0.0625, 0.0) and apex.get("W3") in (0.0, 0.85):
-        apex = unmeasured_apex()
+    # 2026-08-05 W-12 FIX: Removed hardcoded 0.0625 / 0.0 catch.
+    # The upstream APEX math (apex_primitives.py, apex_canonical.py) now
+    # produces the canonical 4-factor geometric mean (A·P·E·X)^(1/4).
+    # A 0.0625 = 0.5^4 phantom can no longer originate here.
 
     token, _claims = mint_sct(
         sid=session_id,
