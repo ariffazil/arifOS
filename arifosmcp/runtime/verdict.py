@@ -222,9 +222,12 @@ def verdict_to_envelope(effective: EffectiveVerdict) -> dict[str, Any]:
 _LEGACY_VERDICT_TOP_LEVEL = (
     "verdict",
     "verdict_code",
-    # "canonical_verdict" REMOVED per Trinity Path 3 — preserve canonical transparency.
-    # The 4-class internal verdict must reach the public response intact so that
-    # downstream consumers can distinguish SEAL vs SABAR vs HOLD vs VOID.
+    # STEP 2 (2026-08-05): canonical_verdict RE-ADDED to strip list.
+    # Was: "preserve canonical transparency" — this created a second
+    # authoritative verdict field that disagreed with effective_verdict.
+    # Now: effective_verdict is the SINGLE root. Canonical transparency
+    # is preserved through effective_verdict's 6-class taxonomy.
+    "canonical_verdict",
     "reasoning_verdict",
     "verdict_state_version",
     "nine_signal_aggregate",

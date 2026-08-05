@@ -62,7 +62,12 @@ def _get_capability_id(tool_name: str) -> str:
 # and verdict.py:222 for legacy-strip list. This split prevents the 4→2
 # vocabulary collapse that was previously hard-coded here.
 _INTERNAL_VERDICTS_4CLASS = (
-    "SEAL", "SABAR", "VOID", "HOLD", "HOLD_888", "OBSERVE_ONLY",
+    "SEAL",
+    "SABAR",
+    "VOID",
+    "HOLD",
+    "HOLD_888",
+    "OBSERVE_ONLY",
 )
 
 
@@ -269,15 +274,13 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
     _internal_verdict = _extract_internal_telemetry(response)
     _EXECUTION_STATE_FROM_VERDICT = {
         "SEAL": "COMPLETED",
-        "SABAR": "RUNNING",                # SABAR → proceed cautiously to FORGE
+        "SABAR": "RUNNING",  # SABAR → proceed cautiously to FORGE
         "VOID": "FAILED",
-        "HOLD": "AWAITING_INPUT",          # Closes Lifecycle Clobber
-        "HOLD_888": "BLOCKED",             # sovereign 888 veto
+        "HOLD": "AWAITING_INPUT",  # Closes Lifecycle Clobber
+        "HOLD_888": "BLOCKED",  # sovereign 888 veto
         "OBSERVE_ONLY": "AWAITING_IDENTITY",
     }
-    execution_state = _EXECUTION_STATE_FROM_VERDICT.get(
-        _internal_verdict, "UNKNOWN"
-    )
+    execution_state = _EXECUTION_STATE_FROM_VERDICT.get(_internal_verdict, "UNKNOWN")
 
     # Extract V2 fields from existing response
     canonical_verdict = _extract_canonical_verdict(response)
@@ -298,7 +301,9 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
     envelope.setdefault("schema_version", "2.0.0")
     envelope.setdefault("capability_id", capability_id)
     envelope.setdefault("implementation_tool", tool_name)
-    envelope.setdefault("canonical_verdict", canonical_verdict)
+    # STEP 2 (2026-08-05): canonical_verdict REMOVED — effective_verdict is
+    # the SINGLE authoritative root. All sub-signals are read-only echoes.
+    # See /root/forge_work/2026-08-05/kernel-audit/ for before/after receipts.
     envelope.setdefault("reason_code", reason_code)
     envelope.setdefault("authority_scope", authority_scope)
     envelope.setdefault("receipt_state", receipt_state)
