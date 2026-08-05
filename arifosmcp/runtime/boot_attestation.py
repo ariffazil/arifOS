@@ -4,7 +4,7 @@ arifosmcp/runtime/boot_attestation.py — Server-side BOOT-attestation proofs.
 T3a Item 3 / APEX-CONCORDANCE-17072026 §7 (BOOT becomes real only when
 converted from language into geometry).
 
-The BOOT protocol's 7 questions (per /root/AAA/prompts/INIT.md §1) must be
+The BOOT protocol's 10 questions (per /root/AAA/prompts/INIT.md §0 — v4.0) must be
 answered from server-side state, not by the agent self-attesting. An agent
 that lies (or is just wrong) can otherwise answer "yes yes yes" and proceed
 without anything being honestly checked.

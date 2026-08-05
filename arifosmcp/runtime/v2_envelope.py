@@ -322,4 +322,9 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
         envelope.setdefault("evidence_refs", result.get("evidence_refs", []))
         envelope.setdefault("recommended_next", result.get("recommended_next", []))
 
+    # STEP 2 (2026-08-05): Strip canonical_verdict — it may have been injected
+    # by internal tool handlers (tools.py, verbosity.py, judge.py, server.py).
+    # effective_verdict is the single authoritative root.
+    envelope.pop("canonical_verdict", None)
+
     return envelope

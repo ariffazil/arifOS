@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # ── INIT prompt files — canonical paths ──────────────────────────────────
 _INIT_PROMPT_DIR = "/root/AAA/agents/opencode"
-_AGENT_INIT_V3_PATH = "/root/AAA/prompts/INIT.md"
+_INIT_PATH = "/root/AAA/prompts/INIT.md"  # v4.0 (2026-08-05)
 
 _INIT_PROMPT_FILES: dict[str, str] = {
     "AGENTS": os.path.join(_INIT_PROMPT_DIR, "AGENTS.md"),
@@ -148,17 +148,17 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     registered.append("arifos://init/opencode/{name}")
 
-    # ── AGENT_INIT_v3.0 resource ──────────────────────────────────────────
+    # ── Agent INIT resource ──────────────────────────────────────────────
     @mcp.resource(
         "arifos://init/agent_init",
         description=(
-            "Canonical INIT.md (zen-dated 2026.07.17, ex AGENT_INIT_v3.0) — TRINITY-33 + RSI + Constitutional Friction. "
-            "Full 612-line boot-phase contract for all agents entering the arifOS federation. "
-            "Forged 2026-07-08 by FORGE (000Ω) under F13 SOVEREIGN directive."
+            "Canonical INIT.md v4.0 (2026-08-05) — 12 orthogonal layers, 10-question attestation, "
+            "init→seal→RSI→reality loop. 293-line universal bootstrap for all arifOS agents. "
+            "Forged 2026-08-05 by 333-AGI (Δ MIND) under F13 SOVEREIGN directive."
         ),
     )
     async def agent_init() -> str:
-        return _read_file_safe(_AGENT_INIT_V3_PATH)
+        return _read_file_safe(_INIT_PATH)
 
     registered.append("arifos://init/agent_init")
 
