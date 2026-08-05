@@ -461,6 +461,17 @@ SealChain (VAULT999 hash chain)
 | **Agent Cards** | `arifosmcp/runtime/a2a/agent_card_v2.py` | 444_ROUTE — 6-axis model |
 | **A-FORGE** | `/root/A-FORGE/src/` | 777_FORGE — execution pipeline |
 | **VAULT999** | `/root/arifOS/VAULT999/outcomes.jsonl` | 999_SEAL — immutable receipts |
+| **ATLAS333 Ledger** | `/root/.local/share/arifos/atlas333/atlas_ledger.db` | 222_MAP→999_SEAL — GPV paradox events, append-only |
+
+### §8.1 — ATLAS333 Ledger Persistence Contract
+
+- **Canonical path:** `/root/.local/share/arifos/atlas333/atlas_ledger.db` — persistent state dir, same home as `carry_forward.json`, backed up with it. NOT `/tmp`, NOT ephemeral.
+- **Schema:** SQLite `paradox_events` — GPV paradox activations (lane, τ/κ/ρ, paradox_id, tension_score, zone, verdict). AUTOINCREMENT id.
+- **Append-only:** agents INSERT only. DDL (CREATE/DROP/ALTER) is kernel-or-sovereign only (F11 auditability).
+- **Permissions:** `640 root:arifos` — consistent with `carry_forward.json`. No world read.
+- **Amnesia rule:** the ledger cures ATLAS333 amnesia — persistence is the point. Never point it at an ephemeral path.
+
+*sealed_by: ARIF :: 2026-08-05 (ratified in AAA session — storage doctrine, layer 3)*
 
 ---
 
