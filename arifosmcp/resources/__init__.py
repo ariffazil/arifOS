@@ -443,6 +443,7 @@ def get_resource_provenance(uri: str) -> dict[str, Any] | None:
     return None
 
 
+from . import alignment_gap  # noqa: F401 — registers 4 missing provenance resources
 from .atlas333 import attach_to_mcp_resource as _atlas333_attach
 from .embodied_resources import register_embodied_resources
 from .evidence import register_evidence_resources
@@ -570,6 +571,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_vault999_template(mcp))
     registered.extend(register_surface_map(mcp))
     registered.extend(register_wisdom_resources(mcp))
+    registered.extend(alignment_gap.register_alignment_gap_resources(mcp))
     if _atlas333_attach:
         registered.extend(_atlas333_attach(mcp))
     return registered
