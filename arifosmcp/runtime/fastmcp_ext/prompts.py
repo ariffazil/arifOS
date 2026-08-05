@@ -220,29 +220,31 @@ def sabar_run_loop(
 
 
 def register_arifos_prompts(mcp: Any) -> list[str]:
-    """Register the 10-zen arifOS MCP prompts + 3 legacy aliases.
+    """Register the 12 arifOS MCP prompts (10 zen + 2 bootstrap).
 
-        Zen surface (single sigil + single lexical per zen-md):
-    🌱 BOOT — boot-phase contract (replaces arif_init_prompt)
-          🌊 WITNESS    — 111 SENSE observation
-          🧠 REASON     — 333 REASON propose
-          ⚖ MARUAH    — 555 CRITIQUE dignity check
-          🔍 PREFLIGHT  — pre-operation constitutional check (replaces constitutional_pre_flight)
-          🔒 JUDGE      — 888 JUDGE constitutional gate
-          🔥 FORGE      — 777 FORGE execute
-          💎 SEAL       — 999 SEAL persist
-          🌀 SABAR      — Recursive Governed Loop orchestrator
-          📜 REPLY      — governed reply envelope (replaces agi_reply_protocol_v3)
+    Zen surface (single sigil + single lexical per zen-md):
+      🌱 BOOT     — boot-phase contract (loads INIT.md canon at depth=full)
+      🌊 WITNESS  — 111 SENSE observation (provenance-bound labels)
+      🧠 REASON   — 333 REASON propose
+      ⚖ MARUAH   — 555 CRITIQUE dignity check
+      🔍 PREFLIGHT — pre-operation F1-F13 floor check
+      🔒 JUDGE    — 888 JUDGE constitutional gate
+      🔥 FORGE    — 777 FORGE execute
+      💎 SEAL     — 999 SEAL persist
+      🌀 SABAR    — Recursive Governed Loop orchestrator
+      📜 REPLY    — governed reply envelope
 
-        Legacy aliases (compat mode A, one epoch):
-          constitutional_pre_flight  → 🔍 PREFLIGHT
-          arif_init_prompt          → 🌱 BOOT
-          agi_reply_protocol_v3        → 📜 REPLY
+    Bootstrap (full operational sequences):
+      /init       — 10-step autonomous ignition (000_INIT anchor)
+      /seal       — 11-step autonomous session close (999_CLOSE)
 
-        The 🌀 SABAR prompt runs the 6-stage reality loop autonomously:
-          🌊 WITNESS → 🧠 REASON → ⚖ MARUAH → 🔒 JUDGE → 🔥 FORGE → 💎 SEAL
+    The 🌀 SABAR prompt runs the 6-stage reality loop autonomously:
+      🌊 WITNESS → 🧠 REASON → ⚖ MARUAH → 🔒 JUDGE → 🔥 FORGE → 💎 SEAL
 
-        Returns list of registered prompt names (zen + legacy).
+    Legacy aliases (arif_init_prompt, constitutional_pre_flight, agi_reply_protocol_v3)
+    were archived 2026-08-05 per F13 SOVEREIGN directive.
+
+    Returns list of registered prompt names.
     """
     registered: list[str] = []
 
@@ -324,27 +326,8 @@ arifos://identity, arifos://doctrine.
 
     registered.append("🌱 BOOT")
 
-    # Legacy alias
-    @mcp.prompt(
-        name="arif_init_prompt",
-        description="[LEGACY ALIAS → 🌱 BOOT] Same behavior, deprecated after 2026-08-16.",
-        meta={
-            "stage": "PRE_LOOP",
-            "sigil": "🌱",
-            "lexical": "BOOT",
-            "deprecated_alias_of": "🌱 BOOT",
-            "removal_epoch": "2026-08-16",
-            "linked_tools": ["arif_init"],
-            "linked_resources": ["arifos://init/agent_init_v3"],
-            "floors_referenced": "F1-F13",
-            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-            "version": "2026.08.05",
-        },
-    )
-    def _arif_init_alias(depth: str = "boot") -> str:
-        return boot(depth=depth)
-
-    registered.append("arif_init_prompt")
+    # arif_init_prompt LEGACY ALIAS REMOVED (2026-08-05). Use 🌱 BOOT.
+    # Rationale: removal epoch 2026-08-16 accelerated per F13 directive.
 
     # ─── 🌊 WITNESS — 111 SENSE observation stage ───────────────────────
     @mcp.prompt(
@@ -363,7 +346,7 @@ arifos://identity, arifos://doctrine.
         },
     )
     def witness(intent: str, focus: str = "") -> str:
-        """🌊 WITNESS — observe reality."""
+        """🌊 WITNESS — observe reality with provenance-bound labels."""
         focus_clause = f" Focus on: {focus}." if focus else ""
         return f"""🌊 WITNESS — Stage 1/6 of the reality loop
 
@@ -376,21 +359,31 @@ intent: {intent}{focus_clause}
 4. Read arifos://vitals → thermodynamic budget.
 5. Read arifos://verdict/{{session_id}} → current constitutional verdict.
 
-## F2 TRUTH contract
-- Every claim labeled OBS / DER / INT / SPEC.
-- Confidence capped at 0.90 for OBS, lower for derived.
-- If ground truth absent → emit UNKNOWN + reason.
+## F2 TRUTH — PROVENANCE-BOUND LABELS (non-bypassable)
+Epistemic labels MUST originate at data INGRESS — not at model output.
+A label generated at reasoning time without a retrieval path is VOID.
+Every observation in the WITNESS block MUST carry:
+  - provenance_source:  [tool + endpoint + timestamp] — where the data came from
+  - confidence:         [0.0-1.0] — capped at 0.90 for OBS, lower for derived
+  - staleness_seconds:  [int] — age of data at observation time
+  - epistemic_tag:      OBS|DER|INT|SPEC — assigned at retrieval, not later
 
-## Output format
-Return a WITNESS block:
-  observation: <string>
-  confidence: <0.0-1.0>
-  epistemic_tag: OBS|DER|INT|SPEC
-  floors_passed: [list of F-IDs]
-  next_stage_recommendation: REASON
+The model does NOT generate tags. The model carries tags from retrieval.
+If ground truth absent → emit UNKNOWN + reason. Never fabricate.
+Post-hoc labeling (DER generated on an OBS source at output time) → F2 VOID.
 
-Then hand off to 🧠 REASON.
-"""
+## Output format — WITNESS block with provenance fields
+Return a WITNESS block. Each observation is a record:
+  observation_id:   <string>
+  observation:      <string>
+  provenance_source: <tool_name + endpoint + iso_timestamp>
+  confidence:        <0.0-1.0>
+  staleness_seconds: <int>
+  epistemic_tag:     OBS|DER|INT|SPEC  ← MUST originate at retrieval event
+  floors_passed:     [list of F-IDs]
+
+Then hand off to 🧠 REASON. REASON must use the provenance fields from WITNESS —
+it must not re-tag observations."""
 
     registered.append("🌊 WITNESS")
 
@@ -537,27 +530,8 @@ If any floor fails → return VOID or HOLD with specific remediation.
 
     registered.append("🔍 PREFLIGHT")
 
-    # Legacy alias
-    @mcp.prompt(
-        name="constitutional_pre_flight",
-        description="[LEGACY ALIAS → 🔍 PREFLIGHT] Same behavior, deprecated after 2026-08-16.",
-        meta={
-            "stage": "PRE_OPERATION",
-            "sigil": "🔍",
-            "lexical": "PREFLIGHT",
-            "deprecated_alias_of": "🔍 PREFLIGHT",
-            "removal_epoch": "2026-08-16",
-            "linked_tools": ["arif_observe", "well_classify_substrate"],
-            "linked_resources": ["arifos://vitals"],
-            "floors_referenced": "F1-F13",
-            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-            "version": "2026.08.05",
-        },
-    )
-    def _preflight_alias(operation: str) -> str:
-        return preflight(operation)
-
-    registered.append("constitutional_pre_flight")
+    # constitutional_pre_flight LEGACY ALIAS REMOVED (2026-08-05). Use 🔍 PREFLIGHT.
+    # Rationale: removal epoch 2026-08-16 accelerated per F13 directive.
 
     # ─── 🔒 JUDGE — 888 JUDGE constitutional gate ────────────────────────
     @mcp.prompt(
@@ -579,7 +553,7 @@ If any floor fails → return VOID or HOLD with specific remediation.
         },
     )
     def judge(maruah_block: str) -> str:
-        """🔒 JUDGE — constitutional gate."""
+        """🔒 JUDGE — constitutional gate with provenance verification."""
         return f"""🔒 JUDGE — Stage 4/6 of the reality loop
 
 maruah_block: {maruah_block}
@@ -590,6 +564,14 @@ maruah_block: {maruah_block}
 3. Call geox_falsify → Popperian falsification.
 4. Compute verdict: SEAL | HOLD | SABAR | VOID.
 
+## F2 PROVENANCE GATE (non-bypassable)
+Before issuing SEAL, verify EVERY epistemic tag in the chain:
+  - Does the tag trace back to a WITNESS retrieval event with provenance_source?
+  - Was the tag assigned at data ingress, or generated later by the model?
+  - If any OBS/DER/INT/SPEC tag lacks a provenance_source → VOID.
+  - Tags generated at output time without retrieval provenance → F2 violation.
+This gate catches labels that the model invented rather than carried.
+
 ## F11 AUTH + F13 SOVEREIGN contracts
 - Identity verified before any destructive verdict.
 - 888_HOLD triggered for: rm-rf, DROP TABLE, force-push, secret rotation,
@@ -599,6 +581,8 @@ maruah_block: {maruah_block}
 Return a JUDGE block:
   verdict: SEAL|HOLD|SABAR|VOID
   confidence: <0-1>
+  provenance_verified: true|false  ← REQUIRED: did all labels trace to retrieval?
+  provenance_violations: [list of tag_ids with missing provenance]
   floors_passed: [list of F-IDs]
   floors_failed: [list of F-IDs]
   remediation_required: <string or null>
@@ -686,7 +670,7 @@ Hand off to 💎 SEAL.
         },
     )
     def seal(forge_block: str) -> str:
-        """💎 SEAL — persist."""
+        """💎 SEAL — persist with provenance chain."""
         return f"""💎 SEAL — Stage 6/6 of the reality loop (TERMINAL)
 
 forge_block: {forge_block}
@@ -700,6 +684,13 @@ forge_block: {forge_block}
 3. F11 AUDIT: actor_signature + call_hash + trace_id on every receipt.
 4. Return seal_id + chain_hash.
 
+## F2 PROVENANCE RECORDING (non-bypassable)
+The seal payload MUST include the full provenance chain:
+  - Every epistemic tag's retrieval provenance (source + confidence + staleness)
+  - The JUDGE block's provenance_verified field
+  - If provenance_verified=false → DO NOT SEAL. Return HOLD.
+Sealed records embed provenance. A seal without provenance is a decorated receipt.
+
 ## F1 AMANAH contract
 - Sealed records are immutable (append-only).
 - Reversal requires F13 ratification.
@@ -708,6 +699,7 @@ forge_block: {forge_block}
 Return a SEAL block:
   seal_id: <uuid>
   chain_hash: <sha256>
+  provenance_chain_verified: true|false  ← REQUIRED
   ledger_path: /var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl
   audit_provenance: <call_hash + trace_id + signature>
   next_action: HUMAN_INIT_NEXT_LOOP_OR_HALT
@@ -802,27 +794,8 @@ Constraints:
 
     registered.append("📜 REPLY")
 
-    # Legacy alias
-    @mcp.prompt(
-        name="agi_reply_protocol_v3",
-        description="[LEGACY ALIAS → 📜 REPLY] Same behavior, deprecated after 2026-08-16.",
-        meta={
-            "stage": "POST_LOOP",
-            "sigil": "📜",
-            "lexical": "REPLY",
-            "deprecated_alias_of": "📜 REPLY",
-            "removal_epoch": "2026-08-16",
-            "linked_tools": ["arif_forge"],
-            "linked_resources": ["arifos://continuity/{session_id}"],
-            "floors_referenced": "F1-F13",
-            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-            "version": "2026.08.05",
-        },
-    )
-    def _reply_alias(query: str, recipient_id: str = "human") -> str:
-        return reply(query=query, recipient_id=recipient_id)
-
-    registered.append("agi_reply_protocol_v3")
+    # agi_reply_protocol_v3 LEGACY ALIAS REMOVED (2026-08-05). Use 📜 REPLY.
+    # Rationale: removal epoch 2026-08-16 accelerated per F13 directive.
 
     # ─── /init — FULL 10-step autonomous ignition (MCP-native bootstrap) ──
     # 2026-08-04: Distinct from 🌱 BOOT (lightweight). This loads the full
@@ -976,7 +949,7 @@ Constraints:
     registered.append("/seal")
 
     logger.info(
-        "arifOS zen prompts registered: %d (10 zen + 2 bootstrap + 3 legacy aliases)",
+        "arifOS zen prompts registered: %d (10 zen + 2 bootstrap, 3 legacy aliases archived)",
         len(registered),
     )
     return registered

@@ -10,10 +10,12 @@
 # compatibility aliases registered by the two runtime prompt modules.
 # register_prompts() delegates to zen module as of 2026-07-20.
 
-schema_version: "2026.07.20"
+schema_version: "2026.08.05"
 registry_id: "arifos.prompt_registry.v2"
 registry_forged_at: "2026-07-20T15:11Z"
 registry_forged_by: "FORGE (000Ω) — F13 SOVEREIGN directive · dual registration collapse"
+registry_updated_at: "2026-08-05T19:20Z"
+registry_updated_by: "333-AGI (Δ MIND) — F13 SOVEREIGN directive · legacy alias archival + provenance hardening"
 lineage:
   sealed_at: "2026-07-20T15:11Z"
   supersedes:
@@ -26,13 +28,21 @@ lineage:
     - path: "arifosmcp/server.py dual registration"
       removed: true
       reason: "server.py no longer calls register_arifos_prompts() separately; register_prompts() is the sole entry point as of 2026-07-20"
+  updates:
+    - at: "2026-08-05T19:20Z"
+      what: "Legacy aliases archived (arif_init_prompt, constitutional_pre_flight, agi_reply_protocol_v3). Provenance-bound labels hardened in WITNESS/JUDGE/SEAL stages."
 
-# The only permitted non-canonical names on prompts/list. Runtime decorators
-# repeat this transport metadata, and the singularity gate enforces parity.
+# Legacy aliases were archived 2026-08-05 per F13 SOVEREIGN directive.
+# They are no longer registered on the MCP surface.
+# Historical records preserved below for audit.
+aliases_archived:
+  - { id: "arif_init_prompt", canonical_id: "🌱 BOOT", archived_at: "2026-08-05" }
+  - { id: "constitutional_pre_flight", canonical_id: "🔍 PREFLIGHT", archived_at: "2026-08-05" }
+  - { id: "agi_reply_protocol_v3", canonical_id: "📜 REPLY", archived_at: "2026-08-05" }
+
+# Active aliases — numeric legacy names for backward compat during transition epoch.
+# arif_init_prompt, constitutional_pre_flight, agi_reply_protocol_v3 moved to aliases_archived.
 aliases:
-  - { id: "arif_init_prompt", canonical_id: "🌱 BOOT", removal_epoch: "2026-08-16" }
-  - { id: "constitutional_pre_flight", canonical_id: "🔍 PREFLIGHT", removal_epoch: "2026-08-16" }
-  - { id: "agi_reply_protocol_v3", canonical_id: "📜 REPLY", removal_epoch: "2026-08-16" }
   - { id: "111_sense", canonical_id: "🌊 WITNESS", removal_epoch: "2026-09-16" }
   - { id: "333_reason", canonical_id: "🧠 REASON", removal_epoch: "2026-09-16" }
   - { id: "555_critique", canonical_id: "⚖ MARUAH", removal_epoch: "2026-09-16" }
@@ -100,8 +110,8 @@ prompts:
 
   - id: "🌊 WITNESS"
     semantic_name: "witness"
-    title: "🌊 WITNESS — Reality Sensing"
-    description: "Open observation, pattern detection, evidence gathering with epistemic labels (F2). Calls arif_observe + geox_evidence + well_validate_vitality. Supersedes 111_sense."
+    title: "🌊 WITNESS — Reality Sensing (provenance-bound)"
+    description: "Open observation, pattern detection, evidence gathering with provenance-bound epistemic labels (F2). Labels MUST originate at data ingress, not at model output. Calls arif_observe + geox_evidence + well_validate_vitality. Supersedes 111_sense."
     floor_binding: ["L02", "L03", "L07", "L12"]
     inputs_schema:
       type: "object"
@@ -110,10 +120,14 @@ prompts:
         intent: { type: "string", minLength: 1 }
         focus: { type: "string" }
     expected_contracts:
-      - "evidence labeled OBS/DER/INT/SPEC"
+      - "evidence labeled OBS/DER/INT/SPEC with provenance_source, confidence, staleness_seconds"
       - "confidence capped at 0.90"
-      - "WITNESS block returned"
+      - "WITNESS block returned with provenance fields per observation"
     entropy_budget_tokens: 600
+    provenance:
+      enabled: true
+      requires: ["provenance_source", "confidence", "staleness_seconds"]
+      rule: "Labels must originate at data ingress. Post-hoc model-generated labels → F2 VOID."
 
   - id: "🧠 REASON"
     semantic_name: "mind"
@@ -165,8 +179,8 @@ prompts:
 
   - id: "🔒 JUDGE"
     semantic_name: "gate"
-    title: "🔒 JUDGE — Constitutional Gate"
-    description: "Constitutional verdict — four tests + F1-F13 floor matrix. SEAL/HOLD/SABAR/VOID. Calls arif_judge. Supersedes 666_judge."
+    title: "🔒 JUDGE — Constitutional Gate (provenance-aware)"
+    description: "Constitutional verdict — four tests + F1-F13 floor matrix + provenance verification. SEAL/HOLD/SABAR/VOID. Any epistemic tag without a provenance trace → VOID. Calls arif_judge. Supersedes 666_judge."
     floor_binding: ["L01", "L02", "L11", "L13"]
     inputs_schema:
       type: "object"
@@ -178,9 +192,14 @@ prompts:
         blast_radius: { type: "string" }
     expected_contracts:
       - "verdict returned (SEAL/SABAR/HOLD/VOID)"
+      - "provenance_verified: true|false — did all labels trace to retrieval?"
+      - "provenance_violations[] if any tag lacks provenance_source"
       - "violated_floors[] if not SEAL"
       - "JUDGE block returned"
     entropy_budget_tokens: 600
+    provenance:
+      enabled: true
+      gate: "Any epistemic tag without provenance_source → VOID regardless of other floor results."
 
   - id: "🔥 FORGE"
     semantic_name: "hammer"
