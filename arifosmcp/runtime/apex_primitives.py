@@ -155,12 +155,14 @@ def compute_apex_from_metrics(window_seconds: int = 604800) -> dict[str, Any]:
         # UNMEASURED must never coerce. Nil times anything is nil.
         #
         # 2026-08-05 W-09 FIX: Switch from Nash product to geometric mean.
-        # Product formula A×P×E×X×Φ collapses when any factor ≈0
+        # Product formula A×P×E×X collapses when any factor ≈0
         # (X=0.0013 with product gives G≈0.0 even with 4,644 samples).
-        # F8 GENIUS defines G = (A×P×E×X)^(1/4). We extend to include
-        # Φ as a 5th factor: G = (A×P×E×X×Φ)^(1/5).
+        # 2026-08-05 W-12 FIX: F8 GENIUS canonical is 4 factors (A,P,E,X).
+        # Φ is scar pressure (separate gate per A2 canonic), NOT a 5th G dial.
+        # G = (A×P×E×X)^(1/4). Adding Φ to the product changes Nash bargaining
+        # geometry and would penalize every score for having a 5th factor.
         # Also apply a floor of 0.01 to each factor to prevent collapse.
-        _factors = [A, P, E, X, PHI]
+        _factors = [A, P, E, X]
         if None in _factors:
             G = None
             C_dark = None

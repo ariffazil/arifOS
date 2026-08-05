@@ -4,7 +4,9 @@ APEX Verification Pipeline — Canonical Runtime
 
 The ONE governance function for the arifOS federation.
 
-G_raw  = A · P · E · X · Φ           ← canonical (multiplicative, Nash)
+G_raw  = A · P · E · X               ← veto semantic (Nash bargaining product)
+G      = (A · P · E · X)^(1/4)        ← F8 GENIUS canonical (4-factor geo-mean)
+Φ      = scar pressure gate           ← SEPARATE, NOT a 5th G dial
 C_dark = A · (1-P) · (1-X)           ← shadow term (hallucination bound)
 dS/dt  ≤ 0                           ← conservation law (thermodynamic)
 
@@ -510,7 +512,11 @@ def compute_apex(
     )
 
     # ═══ THE CANONICAL FORMULA ═══
-    G = A * P * E * X * Phi
+    # F8 GENIUS canonical: G = (A·P·E·X)^(1/4). 4 factors, geometric mean.
+    # 2026-08-05 W-12 FIX: Φ is scar pressure (separate gate per A2 canonic),
+    # NOT a 5th G dial. Adding it to the product changed Nash bargaining
+    # geometry and silently penalized every score for having a 5th factor.
+    G = (A * P * E * X) ** (1/4)
 
     # ═══ THE SHADOW TERM ═══
     C_dark = A * (1 - P) * (1 - X)
@@ -623,8 +629,14 @@ def _determine_verdict(
 
 
 def compute_G(A: float, P: float, E: float, X: float, Phi: float) -> float:
-    """Quick G computation from pre-computed primitives."""
-    return clamp(A) * clamp(P) * clamp(E) * clamp(X) * clamp(Phi)
+    """Quick G computation from pre-computed primitives.
+
+    Canonical F8 GENIUS: G = (A·P·E·X)^(1/4). Φ is accepted for backward
+    compatibility but excluded from the geometric mean — it is scar pressure
+    (separate gate per A2 canonic), not a 5th G dial.
+    """
+    a, p, e, x = clamp(A), clamp(P), clamp(E), clamp(X)
+    return (a * p * e * x) ** (1/4)
 
 
 def compute_C_dark(A: float, P: float, X: float) -> float:
