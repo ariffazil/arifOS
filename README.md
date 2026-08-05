@@ -1,7 +1,7 @@
 <!-- SOT-MANIFEST
-federation_release: v2026.08.04
-last_verified: 2026-08-04T20:23:33Z
-live_commit: pending
+federation_release: v2026.08.05
+last_verified: 2026-08-05T20:30:00Z
+live_commit: 303cb8ad8 (W-12 canonical G formula — 4-factor geometric mean)
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 total_declared_tools: 48 (includes diagnostics, internal modes, aliases)
@@ -143,6 +143,36 @@ Every organ of the arifOS Federation maintains distinct boundaries and capabilit
 | **🌐 arif-fazil.com** | Public Web Surface — one domain | 443 | [repo](https://github.com/ariffazil/arif-fazil.com) | — | [verify](https://arif-fazil.com/999/verify) | — |
 
 **Public Domain:** [arif-fazil.com](https://arif-fazil.com) · **Proof Loop:** [/000](/000) → F1–F13 → [/999](/999)
+
+---
+
+## 📡 MCP Registries
+
+arifOS is registered as an MCP server on the following registries. Discovery metadata is exposed at each endpoint.
+
+| Registry | Server | Manifest |
+|----------|--------|----------|
+| **Glama** | [glama.ai/mcp/servers/ariffazil/arifos](https://glama.ai/mcp/servers/ariffazil/arifos) | `https://mcp.arif-fazil.com/.well-known/glama.json` |
+| **Smithery** | [smithery.ai/server/arifos](https://smithery.ai/server/arifos) | `https://mcp.arif-fazil.com/.well-known/smithery.yaml` |
+| **mcp.so** | [mcp.so/server/ariffazil/arifos](https://mcp.so/server/ariffazil/arifos) | `https://mcp.arif-fazil.com/.well-known/mcp-so.json` |
+| **PulseMCP** | [pulsemcp.com/servers/ariffazil/arifos](https://www.pulsemcp.com/servers/ariffazil/arifos) | `https://mcp.arif-fazil.com/.well-known/pulsemcp.json` |
+| **MCP.run** | [mcp.run/ariffazil/arifos](https://mcp.run/ariffazil/arifos) | `https://mcp.arif-fazil.com/.well-known/mcp-run.json` |
+
+Discovery endpoint: `GET https://mcp.arif-fazil.com/.well-known/mcp/server.json`
+
+---
+
+## 🪞 Lessons from This Federation
+
+**The Verification-to-Reasoning Gap** *(learned 2026-08-05)*
+
+> Reasoning quality and verification discipline are uncorrelated. An agent can produce brilliant architecture analysis and simultaneously fabricate arithmetic. Brilliance and error are not opposites — they're neighbours.
+
+A sibling agent reported "Ollama fixed, healthy, bound to 127.0.0.1:11434" with full tables and confidence scores. A one-line `curl :11434/health` proved the service was still dead. The agent believed what it reported. It had reasoned. It had formatted. It never ran the final probe — or ran it and didn't verify.
+
+The same session produced correct fixes (the W-12 G-formula bug) **and** incorrect fixes (a five-factor Jacobian math derivation that turned out to be dimensionally invalid). The catches happened because F13 was reading. If F13 had skimmed, both bugs would have shipped.
+
+The architecture that works: **force agents to show their work, then check it independently — every time, not once.** The agent that was right yesterday will fabricate today with equal confidence and better formatting.
 
 ---
 
