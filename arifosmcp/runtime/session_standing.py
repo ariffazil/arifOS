@@ -684,6 +684,14 @@ def _apply_authority_surface_values(
     """Shared writer for authority surfaces (object or dict standing)."""
     allowed = _allowed_verbs_for_band(band)
 
+    # W-02 FIX (2026-08-05): If drift floor already force-set mutation_allowed=False
+    # anywhere in the response, standing sync must not re-elevate it. The drift floor
+    # is the authority on mutation capability; standing provides identity context only.
+    _drift_capped = (
+        response.get("mutation_allowed") is False
+        or response.get("result", {}).get("mutation_allowed") is False
+    )
+
     # Top-level mirrors (if present)
     if "actor_verified" in response:
         response["actor_verified"] = verified
@@ -696,7 +704,7 @@ def _apply_authority_surface_values(
     if "allowed_next_verbs" in response:
         response["allowed_next_verbs"] = list(allowed)
     if "mutation_allowed" in response:
-        response["mutation_allowed"] = mutation
+        response["mutation_allowed"] = False if _drift_capped else mutation
     if "seal_allowed" in response:
         response["seal_allowed"] = bool(authority.get("seal_allowed")) and mutation
 
@@ -705,8 +713,8 @@ def _apply_authority_surface_values(
     if isinstance(st, dict):
         st_auth = st.get("authority") if isinstance(st.get("authority"), dict) else {}
         st_auth = dict(st_auth)
-        st_auth["mutation_allowed"] = mutation
-        if not mutation:
+        st_auth["mutation_allowed"] = False if _drift_capped else mutation
+        if not mutation or _drift_capped:
             st_auth["seal_allowed"] = False
         st["authority"] = st_auth
 
@@ -716,7 +724,7 @@ def _apply_authority_surface_values(
         birth["actor_verified"] = verified
         birth["authority_mode"] = band
         birth["verdict"] = band
-        birth["mutation_allowed"] = mutation
+        birth["mutation_allowed"] = False if _drift_capped else mutation
         birth["authority_source"] = "standing"
         birth["claimed_id"] = actor.get("claimed_id")
         birth["canonical_id"] = actor.get("canonical_id")
@@ -733,14 +741,16 @@ def _apply_authority_surface_values(
     result = response.get("result")
     if isinstance(result, dict):
         if "mutation_allowed" in result:
-            result["mutation_allowed"] = mutation
+            result["mutation_allowed"] = False if _drift_capped else mutation
         if "seal_allowed" in result:
-            result["seal_allowed"] = bool(authority.get("seal_allowed")) and mutation
+            result["seal_allowed"] = bool(authority.get("seal_allowed")) and (
+                False if _drift_capped else mutation
+            )
         if "authority_scope" in result:
             result["authority_scope"] = band
         rb = result.get("session_birth")
         if isinstance(rb, dict):
-            rb["mutation_allowed"] = mutation
+            rb["mutation_allowed"] = False if _drift_capped else mutation
             rb["authority_mode"] = band
             rb["actor_verified"] = verified
         ra = result.get("actor")
@@ -751,7 +761,7 @@ def _apply_authority_surface_values(
     clarity = response.get("clarity_contract")
     if isinstance(clarity, dict):
         clarity["authority_band"] = band
-        clarity["mutation_allowed"] = mutation
+        clarity["mutation_allowed"] = False if _drift_capped else mutation
         clarity["actor_bound"] = verified
         clarity["evidence_honesty"] = "CLEAR" if verified else "FUZZY"
 
