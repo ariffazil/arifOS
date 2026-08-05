@@ -285,7 +285,11 @@ def _normalize_session_v0(record: dict[str, Any]) -> dict[str, Any]:
             "verdict": record.get("verdict") or record.get("verdict_issued", "UNKNOWN"),
         },
         "actor_id": record.get("actor"),
-        "session_id": record.get("agent_session"),
+        "session_id": (
+            record.get("session_id")
+            or record.get("agent_session")
+            or record.get("session")
+        ),
         "tags": ["legacy", "session-v0"],
     }
 
