@@ -24,6 +24,17 @@ from re import Pattern
 
 from .types import GPV, QueryType
 
+# ATLAS333 Paradox Ledger — persistent cognitive state
+# Import is at module level for Φ() integration.
+# F1 FAIL-SAFE: ledger operations are wrapped in try/except;
+# a ledger failure NEVER blocks the kernel.
+try:
+    from .paradox_ledger import record_paradox_batch as _record_paradox_batch
+
+    _LEDGER_AVAILABLE = True
+except ImportError:
+    _LEDGER_AVAILABLE = False
+
 
 class Lane(str, Enum):
     """
@@ -560,9 +571,16 @@ def Θ(lane: Lane) -> tuple[float, float, float]:
     return demand_map.get(lane, (0.5, 0.5, 0.5))
 
 
-def Φ(text: str) -> GPV:
+def Φ(text: str, session_id: str = "") -> GPV:
     """
     Φ (Phi): Complete mapping — Text → Governance Placement Vector
+
+    Args:
+        text:       Raw query text to classify
+        session_id: Optional arifOS session identifier for ledger attribution.
+                    When provided, paradox activations are recorded with this
+                    session_id for cross-session EUREKA tracking.
+                    When empty, a phi_{query_hash} placeholder is used.
     """
     lane = Λ(text)
     query_type = classify_query_type(text)
@@ -585,6 +603,34 @@ def Φ(text: str) -> GPV:
 
     # ATLAS-333 bridge: resolve paradox axes from GPV configuration
     gpv.paradox_axes = resolve_paradox_axes(gpv)
+
+    # ── P0+P1: Record paradox activation to persistent ledger ──────────
+    # F1 FAIL-SAFE: try/except wrapper — ledger failure NEVER blocks kernel.
+    # If SQLite is locked, corrupt, or disk is full: swallow, log warning, continue.
+    # The cognitive observer cannot crash the execution shell.
+    if _LEDGER_AVAILABLE and gpv.paradox_axes:
+        try:
+            import hashlib
+
+            query_hash = hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest()[:16]
+            # Use the real session_id if provided to Φ(), else fall back to hash placeholder.
+            # When arif_init / arif_think passes session_id, events are attributable.
+            resolved_session_id = session_id or f"phi_{query_hash}"
+            _record_paradox_batch(
+                session_id=resolved_session_id,
+                paradox_ids=gpv.paradox_axes,
+                lane=gpv.lane,
+                tau=gpv.tau,
+                kappa=gpv.kappa,
+                rho=gpv.rho,
+                catalyst=text[:200] if text else "",
+                query_hash=query_hash,
+                verdict="UNKNOWN",
+            )
+        except Exception:
+            # F1: Swallow all exceptions. The ledger is non-blocking.
+            # The kernel proceeds regardless.
+            pass
 
     logger.info(
         f"Lane: {gpv.lane} | "
@@ -656,8 +702,8 @@ def Theta(lane: Lane) -> tuple[float, float, float]:
     return Θ(lane)
 
 
-def Phi(text: str) -> GPV:
-    return Φ(text)
+def Phi(text: str, session_id: str = "") -> GPV:
+    return Φ(text, session_id=session_id)
 
 
 def classify(query: str) -> dict[str, any]:

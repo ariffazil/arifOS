@@ -394,10 +394,45 @@ def evaluate_paradox_gate_gpv(
             # If paradox_quotes not available, skip resolution risk check
             pass
 
+    # ── EUREKA DETECTOR: Cross-Session Paradox Maturity ─────────────────
+    # PURE READ on the persistent paradox ledger.
+    # If any paradox in the GPV has activated in 3+ distinct sessions,
+    # flag it as PARADOX_MATURED → route to 888-APEX for review.
+    # The detector NEVER self-seals. It emits CANDIDATE only.
+    try:
+        from core.shared.paradox_ledger import check_eureka_threshold
+
+        for pid in paradox_ids:
+            eureka = check_eureka_threshold(f"P{pid}")
+            if eureka["verdict"] == "EUREKA_CANDIDATE":
+                flags.append(
+                    ParadoxFlag(
+                        paradox_id=f"P{pid}",
+                        motif_a="cross-session-maturity",
+                        motif_b="pending-resolution",
+                        tension=eureka["distinct_sessions"] / 10.0,  # normalize
+                        flag="PARADOX_MATURED",
+                        detail=(
+                            f"Paradox P{pid} has activated in "
+                            f"{eureka['distinct_sessions']} distinct sessions "
+                            f"({eureka['total_activations']} total activations). "
+                            f"EUREKA CANDIDATE — route to 888-APEX for constitutional review. "
+                            f"DO NOT auto-resolve."
+                        ),
+                    )
+                )
+    except ImportError:
+        # Paradox ledger not available — skip cross-session check
+        pass
+
     # Determine verdict
     resolution_risks = [f for f in flags if f.flag == "RESOLUTION_RISK"]
+    matured = [f for f in flags if f.flag == "PARADOX_MATURED"]
 
-    if resolution_risks and paradox_score > 0.5:
+    if matured:
+        # EUREKA candidates detected — escalate to HOLD for 888-APEX review
+        verdict = "HOLD_PARADOX"
+    elif resolution_risks and paradox_score > 0.5:
         verdict = "FLAGGED"
     elif len(zones) >= 4:
         # Many zones active = high tension, flag even without resolution risk
