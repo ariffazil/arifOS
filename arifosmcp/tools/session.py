@@ -731,7 +731,7 @@ def _project_light(
             "actor_verified": actor_verified,
             "session_bound": True,
             "authority_declared": True,
-            "mutation_allowed": _is_full_authority or _is_limited,
+            "mutation_allowed": (_is_full_authority or _is_limited) and not _drift,
         },
         "clarity_metrics": {
             "intent_sharpness": "CLEAR",

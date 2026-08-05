@@ -140,7 +140,11 @@ def _payload_has_deployment_drift(payload: dict[str, Any]) -> bool:
         sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
         if sw.get("drift") is True:
             return True
-        inv = sw.get("deployment_invariant") if isinstance(sw.get("deployment_invariant"), dict) else {}
+        inv = (
+            sw.get("deployment_invariant")
+            if isinstance(sw.get("deployment_invariant"), dict)
+            else {}
+        )
         if inv.get("drift") is True:
             return True
         deg = d.get("degraded")
@@ -162,14 +166,23 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
             d["mutation_allowed"] = False
         if "seal_allowed" in d:
             d["seal_allowed"] = False
+        # W-02 FIX: authority_scope must not claim SOVEREIGN when mutation is blocked
+        if "authority_scope" in d and d.get("mutation_allowed", True) is False:
+            d["authority_scope"] = "OBSERVE_ONLY"
 
     def _force_verdict_keys(d: dict[str, Any]) -> None:
         # Always set floors under drift — do not wait for a SEAL already present
         # (final envelope often writes SEAL *after* an earlier partial stamp).
         for k in ("effective_verdict", "canonical_verdict"):
             v = d.get(k)
-            if v is None or (isinstance(v, str) and v.upper() in _SEALISH) or (
-                isinstance(v, str) and v.upper() not in ("HOLD", "VOID", "888_HOLD", "SABAR", "OBSERVE_ONLY", "DEGRADED")
+            if (
+                v is None
+                or (isinstance(v, str) and v.upper() in _SEALISH)
+                or (
+                    isinstance(v, str)
+                    and v.upper()
+                    not in ("HOLD", "VOID", "888_HOLD", "SABAR", "OBSERVE_ONLY", "DEGRADED")
+                )
             ):
                 d[k] = "HOLD"
         v = d.get("verdict")
@@ -179,9 +192,14 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
             d["verdict"] = "HOLD"
         elif isinstance(v, dict):
             overall = v.get("overall")
-            if isinstance(overall, str) and "DEGRADED" not in overall.upper() and overall.upper() not in (
-                "HOLD",
-                "RETAK",
+            if (
+                isinstance(overall, str)
+                and "DEGRADED" not in overall.upper()
+                and overall.upper()
+                not in (
+                    "HOLD",
+                    "RETAK",
+                )
             ):
                 v["overall"] = f"DEGRADED:{overall}"
             elif isinstance(overall, dict) and overall.get("state") in (
@@ -254,9 +272,7 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
             action["reason"] = "deployment_drift_floor"
 
     verdicts_top = payload.get("verdicts") if isinstance(payload.get("verdicts"), dict) else {}
-    action_top = (
-        verdicts_top.get("action") if isinstance(verdicts_top.get("action"), dict) else {}
-    )
+    action_top = verdicts_top.get("action") if isinstance(verdicts_top.get("action"), dict) else {}
     if action_top.get("state") in ("APPROVED", "SEAL", "PROCEED"):
         action_top["state"] = "HOLD"
         action_top["reason"] = "deployment_drift_floor"
@@ -2419,7 +2435,11 @@ def _compute_canonical_verdict(
         _drift_sub = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
         if not _drift_sub:
             _drift_verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
-            _drift_sub = _drift_verdicts.get("substrate") if isinstance(_drift_verdicts.get("substrate"), dict) else {}
+            _drift_sub = (
+                _drift_verdicts.get("substrate")
+                if isinstance(_drift_verdicts.get("substrate"), dict)
+                else {}
+            )
         _drift_flag = (
             _drift_sub.get("drift", False)
             or isinstance(_drift_sub.get("drift"), str)
@@ -2427,7 +2447,9 @@ def _compute_canonical_verdict(
         )
         if _drift_sub.get("state") == "DEGRADED" or _drift_flag:
             verdict = "DEGRADED"
-            degradation.append(f"substrate_drift: state={_drift_sub.get('state')}, drift={_drift_sub.get('drift')}")
+            degradation.append(
+                f"substrate_drift: state={_drift_sub.get('state')}, drift={_drift_sub.get('drift')}"
+            )
 
     # ── Step 4: Inner verdicts from result payload ────────────────────────
     inner_degradation = _find_degradation_in_payload(result_payload)
@@ -2658,9 +2680,7 @@ def _compute_scoped_verdicts(
     _has_degradation = bool(degradation)
     _has_error = status in ("ERROR", "STALE", "TIMEOUT")
     _sub_out = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
-    _sw_out = (
-        out.get("software_release") if isinstance(out.get("software_release"), dict) else {}
-    )
+    _sw_out = out.get("software_release") if isinstance(out.get("software_release"), dict) else {}
     _rp_sub = (
         result_payload.get("substrate")
         if isinstance(result_payload, dict) and isinstance(result_payload.get("substrate"), dict)
@@ -4798,7 +4818,9 @@ def _enforce_nine_signal(
         # G8 FIX: Also check verdicts.substrate (arif_init puts drift data there)
         if not _sub:
             _verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
-            _sub = _verdicts.get("substrate") if isinstance(_verdicts.get("substrate"), dict) else {}
+            _sub = (
+                _verdicts.get("substrate") if isinstance(_verdicts.get("substrate"), dict) else {}
+            )
         _drift = (
             _sub.get("drift", False)
             or isinstance(_sub.get("drift"), str)
@@ -7391,9 +7413,7 @@ def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
     meta["reasoning_state"] = "DETERMINISTIC"
     meta["confidence"] = "N/A — deterministic operation"
     meta["confidence_band"] = "DETERMINISTIC"
-    meta["band_note"] = (
-        "Session bind is DETERMINISTIC, not probabilistic. Confidence scalar N/A."
-    )
+    meta["band_note"] = "Session bind is DETERMINISTIC, not probabilistic. Confidence scalar N/A."
     payload["metacognition"] = meta
     payload["confidence"] = "N/A — deterministic"
     # Never let stamp leave SEAL over drift
@@ -7642,9 +7662,7 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
             inferences=[
                 {
                     "type": "session_create",
-                    "actor": _identity.get(
-                        "declared_actor_id", payload.get("actor", "unknown")
-                    )
+                    "actor": _identity.get("declared_actor_id", payload.get("actor", "unknown"))
                     if isinstance(_identity, dict)
                     else payload.get("actor", "unknown"),
                 }
