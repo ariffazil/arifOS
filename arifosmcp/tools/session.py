@@ -465,7 +465,50 @@ def _strip_by_verbosity(out: dict, verbosity: str) -> dict:
     for key in list(out.keys()):
         if key in remove:
             del out[key]
+    # M5 payload diet (KUTIP SAMPAH 2026-08-05): strip nested bloat at minimal
+    if verbosity == "minimal":
+        _strip_nested_bloat(out)
     return out
+
+
+def _strip_nested_bloat(out: dict) -> None:
+    """Remove nested duplicate/redundant fields from minimal-verbosity payload."""
+    # 1. Strip session_token from session_birth (already at top level)
+    birth = out.get("session_birth")
+    if isinstance(birth, dict):
+        birth.pop("session_token", None)
+
+    # 2. Strip *_WEIGHT lookup tables from verdicts (static enums, not runtime data)
+    verdicts = out.get("verdicts")
+    if isinstance(verdicts, dict):
+        for k in list(verdicts.keys()):
+            if k.endswith("_WEIGHT"):
+                del verdicts[k]
+
+    # 3. Strip domain_meaning strings from nine_signal subfields (decorative)
+    ns = out.get("nine_signal")
+    if isinstance(ns, dict):
+        for plane in ("delta", "psi", "omega"):
+            plane_dict = ns.get(plane)
+            if isinstance(plane_dict, dict):
+                plane_dict.pop("domain_meaning", None)
+
+    # 4. Strip failure_modes from metacognition (identical generic constants)
+    meta = out.get("metacognition")
+    if isinstance(meta, dict):
+        meta.pop("failure_modes", None)
+
+    # 5. Strip work_contract from result (task budgeting, not session bind)
+    result = out.get("result")
+    if isinstance(result, dict):
+        result.pop("work_contract", None)
+
+    # 6. Strip affordance_contract detail at minimal (available via arifos://resource)
+    out.pop("affordance_contract", None)
+
+    # 7. Strip vps_snapshot from session_birth at minimal (available via /health)
+    if isinstance(birth, dict):
+        birth.pop("vps_snapshot", None)
 
 
 def _project_light(
