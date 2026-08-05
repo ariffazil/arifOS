@@ -83,8 +83,6 @@ COPY pyproject.toml /app/
 
 # Install runtime-only deps — heuristic-only build (no torch/sentence-transformers).
 # ML semantic floors use fast heuristic fallback. Full ML packages (torch, SBERT)
-# can be installed at runtime if needed. langfuse SDK goes to system Python.
-RUN --mount=type=cache,target=/root/.cache/pip pip install blake3==1.0.8 "fastapi>=0.100.0" "langfuse>=2.0.0"
 
 # Non-root user
 RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /app
