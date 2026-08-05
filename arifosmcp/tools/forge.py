@@ -869,6 +869,71 @@ async def arif_forge(
                 timestamp=datetime.now(UTC).isoformat(),
             )
 
+    # ── Gödel Lock pre-execution check (G1-G7) ──────────────────────────
+    # DITEMPA 2026-08-05: runtime_hook.check_godel_lock was dead code; wire it
+    # into the MUTATE pre-execution path per its docstring contract. Anti-
+    # Beautiful-One invariant: the agent CANNOT certify its own safety.
+    if _is_mutate:
+        # VAULT999 liveness check (G6 axiom: pre-executive gate cannot verify
+        # when VAULT999 is broken).
+        try:
+            from pathlib import Path as _VPath
+            _vault_alive = _VPath("/root/arifOS/VAULT999/outcomes.jsonl").exists()
+        except Exception:
+            _vault_alive = False
+        try:
+            from arifosmcp.constitution.runtime_hook import check_godel_lock as _godel_check
+            _godel_result = _godel_check(
+                action_class="MUTATE",
+                actor_id=actor_id or "",
+                actor_signature=actor_signature or "",
+                has_judge_hash=bool(judge_state_hash),
+                has_plan_id=bool(plan_id),
+                has_vaul_entry=bool(vault_entry_id),
+                has_vaul999_connection=_vault_alive,
+                failure_cause="",
+            )
+            if not _godel_result.get("ok", True):
+                _meta = {
+                    "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+                    "reason": (
+                        f"Gödel Lock violation [{_godel_result.get('axiom_id', '?')}] "
+                        f"{_godel_result.get('axiom_name', '?')}: "
+                        f"{_godel_result.get('reason', '?')} "
+                        f"(verdict={_godel_result.get('verdict', '?')})"
+                    ),
+                    "violated_laws": [f"G{_godel_result.get('axiom_id', '?')[1:]}"],
+                    "f13_status": "ENFORCED — Gödel lock pre-execution",
+                    "godel_audit": "arif_runtime_hook_2026-08-05",
+                }
+                _add_floor_compat(_meta)
+                return ForgeOutput(
+                    status="HOLD",
+                    result={},
+                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                    meta=_meta,
+                    timestamp=datetime.now(UTC).isoformat(),
+                )
+        except ImportError:
+            pass  # runtime_hook not available — fall through (governance_pipeline catches)
+        except Exception as _godel_err:
+            # Fail-closed: a malfunctioning Gödel lock must not be bypassed.
+            _meta = {
+                "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+                "reason": f"Gödel Lock check error — fail-closed (HOLD): {_godel_err}",
+                "violated_laws": ["F11"],
+                "f13_status": "ENFORCED — Gödel lock fail-closed",
+                "godel_audit": "arif_runtime_hook_2026-08-05",
+            }
+            _add_floor_compat(_meta)
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta=_meta,
+                timestamp=datetime.now(UTC).isoformat(),
+            )
+
     def _run_forge():
         return _arif_forge(
             mode=mode,

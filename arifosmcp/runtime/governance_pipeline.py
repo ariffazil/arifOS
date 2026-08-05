@@ -1957,20 +1957,24 @@ class GovernancePipeline:
     def _gate_godel_closure(self, ctx: ToolCallContext) -> GateResult:
         t0 = time.perf_counter()
         if not _GODEL_LOCK_GATE_AVAILABLE:
+            # FAIL-CLOSED: Gödel closure gate unavailable = unverified self-certification
+            # protection cannot be guaranteed → HOLD action. DITEMPA 2026-08-05.
             return GateResult(
                 gate=Gate.GODEL_CLOSURE,
-                passed=True,
-                reason="godel_lock_gate not available — soft pass (degraded mode)",
+                passed=False,
+                reason="godel_lock_gate not available — fail-closed (HOLD)",
                 latency_ms=(time.perf_counter() - t0) * 1000,
             )
         try:
             result = _godel_lock_gate(ctx)
         except Exception as e:
-            logger.warning(f"Gödel closure gate error (fail-soft): {e}")
+            # FAIL-CLOSED: a malfunctioning Gödel lock must not be bypassed —
+            # the whole point is that an agent cannot certify its own safety.
+            logger.warning(f"Gödel closure gate error (fail-closed HOLD): {e}")
             return GateResult(
                 gate=Gate.GODEL_CLOSURE,
-                passed=True,
-                reason=f"Gödel closure error — soft pass: {e}",
+                passed=False,
+                reason=f"Gödel closure error — fail-closed (HOLD): {e}",
                 latency_ms=(time.perf_counter() - t0) * 1000,
             )
         return GateResult(

@@ -6,6 +6,7 @@
 # - sequential_mcp_bridge: Governed oracle/comparator for reasoning validation
 # - fetch_bridge: Reality grounding / external evidence
 # - git_bridge: Source control / audit trailing
+# - hf_bridge: Hugging Face import gate — constitutional model/dataset validation
 #
 # Ditempa Bukan Diberi — 999 SEAL ALIVE
 #
