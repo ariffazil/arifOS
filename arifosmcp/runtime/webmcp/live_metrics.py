@@ -307,20 +307,23 @@ class LiveMetricsCollector:
                     vault_entries = row["n"] if row and row["n"] is not None else 0
                     vault_last = row["last_timestamp"] if row and row["last_timestamp"] else ""
                     await conn.close()
-                else:
-                    # SC3 FIX (2026-08-06): canonical seal chain, not relative VAULT999/vault999.jsonl
-                    vault_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
-                    if not vault_path.exists():
-                        vault_path = Path("/root/arifOS/VAULT999/outcomes.jsonl")
-                    if vault_path.exists():
-                        with open(vault_path) as f:
-                            lines = f.readlines()
-                            vault_entries = len(lines)
-                            if lines:
-                                last = json.loads(lines[-1])
-                                vault_last = last.get("timestamp", "") or last.get("created_at", "")
             except Exception:
                 pass
+            # SC3 FIX (2026-08-06): File fallback runs regardless of postgres outcome.
+            # Postgres may be unreachable or table missing — file is always the
+            # canonical backup. Uses absolute paths to seal_chain.jsonl (primary)
+            # and outcomes.jsonl (secondary).
+            if not vault_last:
+                vault_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+                if not vault_path.exists():
+                    vault_path = Path("/root/arifOS/VAULT999/outcomes.jsonl")
+                if vault_path.exists():
+                    with open(vault_path) as f:
+                        lines = f.readlines()
+                        vault_entries = max(vault_entries, len(lines))
+                        if lines:
+                            last = json.loads(lines[-1])
+                            vault_last = last.get("timestamp", "") or last.get("created_at", "")
 
             # Get session count
             active_sessions = 0
