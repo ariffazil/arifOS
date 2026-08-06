@@ -410,12 +410,22 @@ def verify_chain(
     p = paths_for(vault_dir)
     if not p.chain.exists():
         return VerifyResult(
-            verified=True,  # empty genesis is valid
+            verified=False,  # empty genesis is NOT verified
             status=VerifyStatus.NO_CHAIN,
             entries=0,
             corrupt_lines=0,
             ledger_path=str(p.chain),
             failure_classes={GapClass.EMPTY_OK: 1},
+            gaps=[
+                GapRecord(
+                    index=0,
+                    line_no=0,
+                    gap_class=GapClass.EMPTY_OK,
+                    expected_prev=None,
+                    got_prev=None,
+                    detail="EMPTY_CHAIN: vault file does not exist — integrity cannot be asserted on empty chain",
+                )
+            ],
         )
 
     lines = parse_chain_lines(p.chain)
