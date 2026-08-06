@@ -240,10 +240,17 @@ class ContradictionDetector(Middleware):
         # Phase 4: Strip all 64 legacy fields — only authority block remains
         count, removed = strip_legacy_fields(sc)
         if count > 0:
+            sys.stderr.write(
+                f"PHASE4_STRIP: {tool_name} — removed {count} legacy fields: {removed[:5]}...\n"
+            )
             logger.info(
                 "Phase 4: stripped %d legacy fields from %s. Authority block is now sole truth.",
                 count,
                 tool_name,
+            )
+        else:
+            sys.stderr.write(
+                f"PHASE4_STRIP: {tool_name} — ZERO fields stripped. sc keys: {list(sc.keys())[:10]}\n"
             )
 
         return result
