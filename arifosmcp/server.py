@@ -1899,6 +1899,47 @@ try:
                 exc,
             )
 
+    # ── Contradiction Detector (Phase 2, 2026-08-06) ─────────────────────────
+    # Registered BEFORE AuthorityMiddleware so it sees the pre-authority
+    # payload with legacy fields intact. Read-only. Logs every disagreement.
+    if IS_FASTMCP_3:
+        try:
+            from arifosmcp.runtime.contradiction_detector import ContradictionDetector
+
+            _cd_mw = ContradictionDetector()
+            mcp.add_middleware(_cd_mw)  # pyright: ignore[reportArgumentType]
+            logger.info("ContradictionDetector attached — logging legacy vs authority")
+            import sys as _sys2
+
+            _sys2.stderr.write("CD_MW: registered ContradictionDetector\n")
+        except Exception as exc:
+            logger.warning("ContradictionDetector: attachment failed (%s)", exc)
+            import sys as _sys2
+
+            _sys2.stderr.write(f"CD_MW: FAILED — {exc}\n")
+        except Exception as exc:
+            logger.warning("ContradictionDetector: attachment failed (%s)", exc)
+
+    # ── Authority Middleware (Phase 1 — Single Writer, 2026-08-06) ─────────
+    # LAST middleware. Sees the final assembled payload after all handlers.
+    # Sole writer of the `authority` block (may_mutate, may_seal, verdict).
+    # Phase 2 will add ContradictionDetector. Phase 3 will enforce outputSchema.
+    if IS_FASTMCP_3:
+        try:
+            from arifosmcp.runtime.authority_middleware import AuthorityMiddleware
+
+            _auth_mw = AuthorityMiddleware()
+            mcp.add_middleware(_auth_mw)  # pyright: ignore[reportArgumentType]
+            logger.info("AuthorityMiddleware attached — sole writer of proceed-authority")
+            import sys as _sys
+
+            _sys.stderr.write("AUTH_MW: registered AuthorityMiddleware\n")
+        except Exception as exc:
+            logger.warning("AuthorityMiddleware: attachment failed (%s)", exc)
+            import sys as _sys
+
+            _sys.stderr.write(f"AUTH_MW: FAILED — {exc}\n")
+
     # ── Model Registry Query — compiled registry MCP surface ────────────────
     # Read-only query tool for the model registry. No session required.
     from arifosmcp.tools.registry_query import arif_model_registry as _registry_query

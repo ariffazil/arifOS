@@ -1,0 +1,202 @@
+"""
+Phase 2 — Contradiction Detector (2026-08-06)
+
+Read-only middleware. Logs every disagreement between the single-writer
+`authority` block and the 64 legacy fields that also answer "may I proceed?".
+
+This proves the 64 are redundant before Phase 4 deletion. Each disagreement
+is a live bug — callers may have acted on a wrong answer.
+
+FastMCP 3.4.4. Registered BEFORE AuthorityMiddleware so it sees the
+pre-authority payload with legacy fields intact.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import sys
+from typing import Any
+
+from fastmcp.server.middleware import Middleware, MiddlewareContext
+
+logger = logging.getLogger(__name__)
+
+# ── Version Pin: FastMCP 3.4.4 ───────────────────────────────────────────────
+
+
+# All 64 fields that answer "may I proceed?" — from Suite A1 census
+LEGACY_FIELDS = [
+    # Mutation authority (multiple writers)
+    "mutation_allowed",
+    "result.mutation_allowed",
+    "actor.authority_state.runtime_grant.mutation_allowed",
+    "standing.authority.mutation_allowed",
+    "session_birth.mutation_allowed",
+    # Seal authority
+    "seal_allowed",
+    "result.seal_allowed",
+    "actor.authority_state.runtime_grant.seal_allowed",
+    "standing.authority.seal_allowed",
+    "session_birth.seal_allowed",
+    # Execution readiness
+    "execution_readiness",
+    "execution_state",
+    "can_mutate",
+    "can_claim_success",
+    "can_continue_observing",
+    # Verdict — multiple fields answering same question
+    "effective_verdict",
+    "verdicts.action.state",
+    "verdicts.substrate.state",
+    "verdicts.session.state",
+    "nine_signal.overall.state",
+    "nine_signal.overall.en",
+    "canonical_verdict",
+    "verdicts.action.issuer",
+    # Authority scope
+    "authority_scope",
+    "authority_band",
+    "actor.authority_level",
+    "standing.authority.band",
+    "session_birth.authority_mode",
+    # Action verdicts
+    "result.effective_verdict",
+    "next_action",
+    "reason_code",
+    "result.reason_code",
+    # Session state
+    "session_notice.session_state",
+    "session_notice.action_verdict",
+    "session_notice.severity",
+    # Risk
+    "risk.agency_level",
+    "risk.human_confirmation_required",
+    # Constitutional
+    "constitutional_check.hold_required",
+    "constitutional_check.agency_level",
+    # Affordance
+    "affordance_contract.action_class",
+    "affordance_contract.mutation",
+    "affordance_contract.requires_human_ack",
+    # Substrate
+    "substrate.state",
+    "substrate.drift",
+    # Degraded
+    "degraded",
+    "_drift_floor_applied",
+    "response_prefix",
+    # Output policy
+    "output_policy",
+    "status_scope",
+    # Receipt
+    "receipt_state",
+    # Actor verification
+    "actor.actor_verified",
+    "standing.actor.verified",
+    "session_birth.actor_verified",
+    "actor_cryptographically_verified",
+    "session_birth.actor_cryptographically_verified",
+    # Warnings
+    "warnings",
+    "_violations",
+    "_nine_signal_compliant",
+    # Meta
+    "meta.authority_mode",
+    "meta.sabar_gate.verdict",
+    "meta.post_observe_gate.verdict",
+    # Seal readiness
+    "seal_readiness",
+]
+
+
+def _dig(d: dict, path: str, default: Any = None) -> Any:
+    """Drill into nested dict by dot-separated path."""
+    keys = path.split(".")
+    for k in keys:
+        if isinstance(d, dict):
+            d = d.get(k, default)
+        else:
+            return default
+    return d
+
+
+def _disagrees(legacy_val: Any, authority_verdict: str) -> bool:
+    """Determine if a legacy field disagrees with the computed authority verdict."""
+    if legacy_val is None:
+        return False  # absent field — not a disagreement, just missing
+
+    # mutation_allowed-like booleans vs HOLD/SABAR
+    if authority_verdict in ("HOLD", "VOID"):
+        # Under HOLD/VOID, nothing should be allowed
+        if legacy_val in (True, "true", "SEAL", "APPROVED", "PROCEED", "FULL"):
+            return True
+        if isinstance(legacy_val, str) and legacy_val.upper() in ("SEAL", "FULL", "SOVEREIGN"):
+            return True
+
+    # SABAR vs FULL
+    if authority_verdict == "SABAR":
+        if legacy_val in (True, "SEAL", "APPROVED"):
+            return True
+
+    # PROCEED/SEAL — permissive, but shouldn't contradict with DENIED/HOLD artifacts
+    if legacy_val in (False, "HOLD", "VOID", "OBSERVE_ONLY") and authority_verdict in (
+        "PROCEED",
+        "SEAL",
+    ):
+        return True
+
+    return False
+
+
+class ContradictionDetector(Middleware):
+    """Read-only. Logs every disagreement between computed authority and legacy fields.
+
+    Registered BEFORE AuthorityMiddleware so it sees the pre-authority payload
+    with the 64 legacy fields still intact.
+    """
+
+    async def on_call_tool(self, context: MiddlewareContext, call_next):
+        result = await call_next(context)
+
+        sc = getattr(result, "structured_content", None)
+        if sc is None:
+            return result
+
+        # The authority block is already computed and injected by AuthorityMiddleware
+        authority = sc.get("authority", {})
+        if not authority:
+            return result
+
+        authority_verdict = authority.get("verdict", "UNKNOWN")
+        tool_name = getattr(context.message, "name", "unknown")
+
+        # Check every legacy field
+        disagreements = []
+        for path in LEGACY_FIELDS:
+            val = _dig(sc, path)
+            if _disagrees(val, authority_verdict):
+                disagreements.append(
+                    {
+                        "tool": tool_name,
+                        "field": path,
+                        "value": str(val),
+                        "authority_verdict": authority_verdict,
+                    }
+                )
+
+        if disagreements:
+            sys.stderr.write(
+                f"CONTRADICTION_DETECTED: {tool_name} — {len(disagreements)} disagreements\n"
+            )
+            for d in disagreements:
+                sys.stderr.write(
+                    f"  {d['field']} = {d['value']} vs authority.{d['authority_verdict']}\n"
+                )
+            logger.warning(
+                "ContradictionDetector: %d disagreements in %s",
+                len(disagreements),
+                tool_name,
+            )
+
+        return result

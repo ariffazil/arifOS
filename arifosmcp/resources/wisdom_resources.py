@@ -54,7 +54,7 @@ def register_wisdom_resources(mcp) -> list[str]:
         doctrine = reg.get("doctrine", [])
 
         result = {
-            "_meta": reg.get("_metadata", {}),
+            "_meta": reg.get("_meta", reg.get("_metadata", {})),
             "doctrine_count": len(doctrine),
             "quote_count": len(quotes),
             "doctrine": [
@@ -73,6 +73,26 @@ def register_wisdom_resources(mcp) -> list[str]:
         return json.dumps(result, indent=2, ensure_ascii=False)
 
     registered.append("arifos://wisdom/quotes/all")
+
+    # ── Single quote by id ──────────────────────────────────────────────────
+    @mcp.resource("arifos://wisdom/quotes/{quote_id}")
+    def wisdom_quote_by_id(quote_id: str) -> str:
+        """Return a single quote by its canonical id (text hash or legacy id)."""
+        reg = load_registry()
+        quotes = reg.get("quotes", [])
+        for q in quotes:
+            qid = q.get("id") or q.get("quote_id")
+            if qid == quote_id:
+                return json.dumps(_summarize_quote(q), indent=2, ensure_ascii=False)
+            # Also check legacy deprecated_ids
+            v3 = q.get("_v3") or {}
+            if quote_id in v3.get("deprecated_ids", []):
+                result = _summarize_quote(q)
+                result["_redirected_from"] = quote_id
+                return json.dumps(result, indent=2, ensure_ascii=False)
+        return json.dumps({"found": False, "quote_id": quote_id, "error": "not found"}, indent=2)
+
+    registered.append("arifos://wisdom/quotes/{quote_id}")
 
     # ── By floor ────────────────────────────────────────────────────────────
     @mcp.resource("arifos://wisdom/quotes/by-floor/{floor_id}")
@@ -259,6 +279,7 @@ def register_wisdom_resources(mcp) -> list[str]:
                 "draft_council_ids_pending_sovereign_ratification": True,
                 "resources": [
                     "arifos://wisdom/quotes/all",
+                    "arifos://wisdom/quotes/{quote_id}",
                     "arifos://wisdom/quotes/by-floor/{floor_id}",
                     "arifos://wisdom/quotes/by-tradition/{tradition}",
                     "arifos://wisdom/quotes/disputed",
@@ -280,42 +301,85 @@ def register_wisdom_resources(mcp) -> list[str]:
 
 
 def _summarize_quote(q: dict) -> dict[str, Any]:
-    """Create a safe summary of a quote for resource responses (v1+v2 schema)."""
-    raw_text = q.get("text", "")
-    if isinstance(raw_text, dict):
-        text_str = str(raw_text.get("canonical") or raw_text.get("normalized") or "")
-        language = raw_text.get("language", "en")
+    """Create a safe summary of a quote for resource responses.
+
+    v3: flat fields. Derives source_class, strips constant fields,
+    renders display_label from speaker + popularized_by + confidence.
+    Falls back to v2 nested format for compatibility.
+    """
+    # ── Primary: v3 flat fields ──
+    text_str = str(q.get("text", "") or "")
+    if isinstance(text_str, dict):
+        text_str = str(text_str.get("canonical") or text_str.get("normalized") or "")
+    language = q.get("language", "en")
+
+    # speaker — flat v3 or nested v2 fallback
+    speaker = q.get("speaker") or (q.get("attribution") or {}).get("speaker", "Unknown")
+
+    # confidence — flat v3 or nested v2 fallback
+    confidence = q.get("attribution_confidence") or (q.get("attribution") or {}).get(
+        "attribution_confidence", 0.0
+    )
+    if isinstance(confidence, (int, float)):
+        confidence = float(confidence)
     else:
-        text_str = str(raw_text or "")
-        language = "en"
+        confidence = 0.0
 
+    # source_class — derive from confidence (v3) or read nested (v2 fallback)
     attr = q.get("attribution") or {}
-    classification = q.get("classification") or {}
-    display = q.get("display") or {}
-    display_label = ""
-    if isinstance(display, dict):
-        display_label = display.get("attribution_label", "") or ""
-    if not display_label:
-        display_label = attr.get("speaker", "") or ""
+    source_class = attr.get("source_class", "")
+    if not source_class and confidence:
+        if confidence >= 0.95:
+            source_class = "PRIMARY_VERIFIED"
+        elif confidence >= 0.85:
+            source_class = "SECONDARY_VERIFIED"
+        elif confidence >= 0.70:
+            source_class = "PARAPHRASE"
+        elif confidence >= 0.50:
+            source_class = "TRADITIONAL"
+        elif confidence >= 0.30:
+            source_class = "DISPUTED_ATTRIBUTION"
+        else:
+            source_class = "UNCERTAIN"
 
-    return {
-        "quote_id": q.get("id") or q.get("quote_id"),
+    # display_label — flat v3 or derived
+    popularized_by = q.get("popularized_by")
+    display_label = q.get("display_label", "")
+    if not display_label:
+        if popularized_by:
+            display_label = f"{speaker}, quoted by {popularized_by}"
+        else:
+            display_label = speaker
+    if confidence < 0.45:
+        display_label += " (attribution uncertain)"
+    elif confidence < 0.60 and source_class == "DISPUTED_ATTRIBUTION":
+        display_label += " (attribution disputed)"
+
+    # Traditions/tags/floors — flat v3 or nested v2 fallback
+    cls_ = q.get("classification") or {}
+    tradition = q.get("tradition") or cls_.get("tradition", [])
+    tags = q.get("tags") or cls_.get("tags", [])
+    floors = q.get("arifos_floors") or cls_.get("arifos_floors", [])
+    dark = q.get("dark_modes") or cls_.get("dark_modes", [])
+
+    # permitted_uses — flat v3 or nested v2 fallback
+    usage = q.get("usage") or {}
+    permitted = q.get("permitted_uses") or usage.get("permitted", [])
+
+    result: dict[str, Any] = {
+        "id": q.get("id", q.get("quote_id", "")),
         "text": text_str,
         "language": language,
-        "speaker": attr.get("speaker", "Unknown"),
-        "source_class": attr.get("source_class", ""),
-        "attribution_confidence": attr.get("attribution_confidence", 0.0),
+        "speaker": speaker,
+        "source_class": source_class,
+        "attribution_confidence": confidence,
         "display_label": display_label,
-        "tradition": classification.get("tradition", [])
-        if isinstance(classification, dict)
-        else [],
-        "tags": classification.get("tags", []) if isinstance(classification, dict) else [],
-        "arifos_floors": classification.get("arifos_floors", [])
-        if isinstance(classification, dict)
-        else [],
-        "dark_modes": classification.get("dark_modes", [])
-        if isinstance(classification, dict)
-        else [],
-        "permitted_uses": (q.get("usage") or {}).get("permitted", []),
-        "prohibited_uses": (q.get("usage") or {}).get("prohibited", []),
+        "tradition": tradition if isinstance(tradition, list) else [],
+        "tags": tags if isinstance(tags, list) else [],
+        "floors": floors if isinstance(floors, list) else [],
+        "dark_modes": dark if isinstance(dark, list) else [],
+        "permitted_uses": permitted if isinstance(permitted, list) else [],
     }
+    if popularized_by:
+        result["popularized_by"] = popularized_by
+    return result
