@@ -166,13 +166,15 @@ def verify_chain(
     _ensure_vault_dir()
     if not os.path.exists(_VAULT_PATH):
         return {
-            "chain_physically_valid": True,
+            "status": "UNMEASURED",
+            "chain_physically_valid": "UNMEASURED",
             "entries_checked": 0,
-            "breaks": [],
+            "breaks": ["EMPTY_CHAIN: vault file does not exist"],
             "historical_anomaly": False,
             "accepted_risk": False,
             "anomaly_repaired": False,
             "sovereign_receipt_ref": sovereign_receipt_ref or "",
+            "reason": "Vault file does not exist — integrity cannot be asserted on an empty chain",
         }
 
     breaks: list[str] = []
@@ -234,9 +236,23 @@ def verify_chain(
             breaks.append(f"Entry {entry.get('entry_id', '?')}: chain_hash mismatch")
 
     chain_valid = len(breaks) == 0
+    entries_checked = len(lines)
+    if entries_checked == 0:
+        return {
+            "status": "UNMEASURED",
+            "chain_physically_valid": "UNMEASURED",
+            "entries_checked": 0,
+            "breaks": ["EMPTY_CHAIN: vault file contains zero entries"],
+            "historical_anomaly": False,
+            "accepted_risk": False,
+            "anomaly_repaired": False,
+            "sovereign_receipt_ref": sovereign_receipt_ref or "",
+            "reason": "Zero entries in vault — integrity cannot be asserted on an empty chain",
+        }
     return {
+        "status": "OK" if chain_valid else "GAPS_FOUND",
         "chain_physically_valid": chain_valid,
-        "entries_checked": len(lines),
+        "entries_checked": entries_checked,
         "breaks": breaks,
         "historical_anomaly": not chain_valid,
         "accepted_risk": not chain_valid if sovereign_receipt_ref else False,

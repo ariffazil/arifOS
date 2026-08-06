@@ -1256,8 +1256,9 @@ def arif_vault_verify(
 
     if mode in ("verify_chain", "audit"):
         chain_report = verify_chain(sovereign_receipt_ref=sovereign_receipt_ref)
+        derived_status = chain_report.get("status", "UNMEASURED")
         result: dict[str, Any] = {
-            "status": "OK",
+            "status": derived_status,
             "mode": "verify_chain",
             "verifier_authority_class": "AUDIT_READ_ONLY",
             "caller": actor,
