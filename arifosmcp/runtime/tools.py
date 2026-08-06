@@ -2167,6 +2167,45 @@ MODE_AFFORDANCE_OVERRIDES: dict[str, dict[str, dict[str, Any]]] = {
             "expected_blast_radius": "LOW",
             "safe_autonomous_use": True,
         },
+        # D4 follow-up (2026-08-06): write modes are MUTATE-class.
+        # Without these overrides, promote/revise/remember/forget would
+        # inherit the OBSERVE base contract and be under-gated.
+        "remember": {
+            "action_class": "MUTATE",
+            "mutation": True,
+            "irreversible": False,
+            "requires_lease": True,
+            "requires_human_ack": False,
+            "expected_blast_radius": "MEDIUM",
+            "safe_autonomous_use": False,
+        },
+        "promote": {
+            "action_class": "MUTATE",
+            "mutation": True,
+            "irreversible": True,
+            "requires_lease": True,
+            "requires_human_ack": True,
+            "expected_blast_radius": "HIGH",
+            "safe_autonomous_use": False,
+        },
+        "revise": {
+            "action_class": "MUTATE",
+            "mutation": True,
+            "irreversible": True,
+            "requires_lease": True,
+            "requires_human_ack": True,
+            "expected_blast_radius": "HIGH",
+            "safe_autonomous_use": False,
+        },
+        "forget": {
+            "action_class": "MUTATE",
+            "mutation": True,
+            "irreversible": True,
+            "requires_lease": True,
+            "requires_human_ack": True,
+            "expected_blast_radius": "HIGH",
+            "safe_autonomous_use": False,
+        },
     },
 }
 
@@ -2477,6 +2516,7 @@ def _compute_canonical_verdict(
     result_payload: dict[str, Any],
     out: dict[str, Any],
     actor_verified: bool | None,
+    mode: str | None = None,
 ) -> tuple[str, list[str]]:
     """WAJIB-3: Single canonical verdict derivation.
 
@@ -2493,6 +2533,11 @@ def _compute_canonical_verdict(
         5. Actor verification (identity gating)
         6. Affordance narrowing (OBSERVE-class over-gating)
         7. Nine_signal consistency
+
+    D4 (2026-08-06): mode parameter threads per-mode affordance overrides
+    (e.g. arif_seal mode=verify_chain is OBSERVE-class, not SEAL-class).
+    Step 6 must look up the same contract the envelope applies, otherwise
+    a read-only vault verify gets over-gated as SEAL-class.
 
     Returns: (verdict, degradation_reasons)
     """
@@ -2739,7 +2784,11 @@ def _compute_canonical_verdict(
                 )
 
     # ── Step 6: Affordance narrowing (WAJIB-2) ───────────────────────────
-    affordance = _get_affordance_contract(tool_name)
+    # D4 fix (2026-08-06): pass mode so per-mode overrides apply in the
+    # verdict path, not only in the envelope. Without mode, a read-only
+    # arif_seal(verify_chain) call would inherit the SEAL-class base
+    # contract and over-gate, contradicting the envelope's OBSERVE view.
+    affordance = _get_affordance_contract(tool_name, mode=mode)
     pre_affordance = verdict
     verdict = _derive_affordance_verdict(tool_name, verdict, affordance)
     if verdict != pre_affordance:
@@ -4467,6 +4516,7 @@ def _enforce_nine_signal(
             result_payload=result_payload,
             out=out,
             actor_verified=actor_verified_flag,
+            mode=out.get("mode") if isinstance(out, dict) else None,
         )
 
         if degradation:
