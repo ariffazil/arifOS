@@ -4281,6 +4281,32 @@ def _enforce_nine_signal(
                     pass
             if _sess and isinstance(_sess, dict):
                 actor_verified_flag = bool(_sess.get("actor_verified", False))
+        # D1 FIX (2026-08-06): SCT fallback when session store misses.
+        # In multi-worker uvicorn deployments, in-memory session stores don't
+        # propagate across workers. The SCT token (from arif_init) carries the
+        # canonical standing. When session lookup fails, extract actor_verified
+        # and authority from the SCT claims.
+        if not actor_verified_flag and not (
+            _sess if resolved_session_id and resolved_session_id != "unknown" else None
+        ):
+            _sct_fallback = out.get("session_token") or result_payload.get("session_token")
+            if (
+                _sct_fallback
+                and isinstance(_sct_fallback, str)
+                and _sct_fallback.startswith("sct_v1.")
+            ):
+                try:
+                    import base64, json as _json_sct
+
+                    _parts = _sct_fallback.split(".")
+                    if len(_parts) >= 2:
+                        _claims = _json_sct.loads(
+                            base64.urlsafe_b64decode(_parts[1] + "===").decode()
+                        )
+                        if _claims.get("av") is True:
+                            actor_verified_flag = True
+                except Exception:
+                    pass
         # Log per-tool claims for audit (advisory only, not used for gating)
         _tool_claimed_av = out.get("actor_verified")
         if _tool_claimed_av is not None and _tool_claimed_av != actor_verified_flag:
