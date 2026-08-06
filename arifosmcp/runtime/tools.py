@@ -1694,98 +1694,6 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "safe_autonomous_use": False,
         "known": True,
     },
-    # ── D4 MODE AFFORDANCE OVERRIDES (2026-08-06) ─────────────────────────
-    # Read-only modes of SEAL-class tools must not inherit IRREVERSIBLE/SEAL
-    # base contract. These overrides are applied AFTER base contract lookup.
-}
-
-MODE_AFFORDANCE_OVERRIDES: dict[str, dict[str, dict[str, Any]]] = {
-    "arif_seal": {
-        "verify_chain": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-        "chain_status": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-        "verify": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-        "audit": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-        "chain": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-        "list": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-    },
-    "arif_memory": {
-        "recall": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-        "inspect": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-        "attest": {
-            "action_class": "OBSERVE",
-            "mutation": False,
-            "irreversible": False,
-            "requires_lease": False,
-            "requires_human_ack": False,
-            "expected_blast_radius": "LOW",
-            "safe_autonomous_use": True,
-        },
-    },
-}
     # ── EXECUTE-class (irreversible, requires lease + ack) ────────────────
     "arif_forge": {
         "action_class": "EXECUTE",
@@ -2172,7 +2080,7 @@ MODE_AFFORDANCE_OVERRIDES: dict[str, dict[str, dict[str, Any]]] = {
 }
 
 
-def _get_affordance_contract(tool_name: str, mode: str | None = None) -> dict[str, Any]:
+def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
     """C4-2: Look up affordance contract for a tool. Default: conservative unknown.
 
     If a tool name is not in TOOL_AFFORDANCE_CONTRACTS, return a
@@ -2183,18 +2091,12 @@ def _get_affordance_contract(tool_name: str, mode: str | None = None) -> dict[st
     public tool list but missing from TOOL_AFFORDANCE_CONTRACTS, generate a
     generic affordance with known=True so the tool_list and affordance contract
     do not contradict each other (known:false + tool_list claiming known).
-
-    D4 FIX (2026-08-06): Accept optional mode parameter. When provided, applies
-    per-mode overrides from MODE_AFFORDANCE_OVERRIDES after base contract lookup.
     """
     lookup_name = _LEGACY_ALIASES.get(tool_name, tool_name)
     for candidate in (lookup_name, tool_name):
         if candidate in TOOL_AFFORDANCE_CONTRACTS:
             contract = dict(TOOL_AFFORDANCE_CONTRACTS[candidate])
             contract["known"] = True
-            # D4: Apply per-mode overrides if mode specified
-            if mode and mode in MODE_AFFORDANCE_OVERRIDES.get(candidate, {}):
-                contract.update(MODE_AFFORDANCE_OVERRIDES[candidate][mode])
             return contract
 
     # P1: Check if tool is listed in public_tool_names() but missing affordance
@@ -4845,9 +4747,7 @@ def _enforce_nine_signal(
             # Audit 2026-07-09: stop pasting full schema (decision_thresholds /
             # agency / full_affordance) on every hop — one referenced contract.
             "affordance_ref": f"arifos://tools/affordance/{tool_name}",
-            "affordance_contract": _get_affordance_contract(
-                tool_name, mode=out.get("mode") if isinstance(out, dict) else None
-            ),  # D4: per-mode affordance
+            "affordance_contract": _get_affordance_contract(tool_name),  # slim power surface only
             "stage_progression": _compute_stage_progression(tool_name, verdict),
             # /000 principal-agent separation: surface delegation chain in
             # every MCP response envelope (not buried in result).
