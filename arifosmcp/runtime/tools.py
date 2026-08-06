@@ -2079,8 +2079,99 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
     },
 }
 
+# ── D4 MODE AFFORDANCE OVERRIDES (2026-08-06) ─────────────────────────
+# Read-only modes of SEAL/MUTATE-class tools must not inherit IRREVERSIBLE
+# base contracts. These per-mode overrides are applied AFTER base lookup.
+MODE_AFFORDANCE_OVERRIDES: dict[str, dict[str, dict[str, Any]]] = {
+    "arif_seal": {
+        "verify_chain": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+        "chain_status": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+        "verify": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+        "audit": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+        "chain": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+        "list": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+    },
+    "arif_memory": {
+        "recall": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+        "inspect": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+        "attest": {
+            "action_class": "OBSERVE",
+            "mutation": False,
+            "irreversible": False,
+            "requires_lease": False,
+            "requires_human_ack": False,
+            "expected_blast_radius": "LOW",
+            "safe_autonomous_use": True,
+        },
+    },
+}
 
-def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
+
+def _get_affordance_contract(tool_name: str, mode: str | None = None) -> dict[str, Any]:
     """C4-2: Look up affordance contract for a tool. Default: conservative unknown.
 
     If a tool name is not in TOOL_AFFORDANCE_CONTRACTS, return a
@@ -2097,6 +2188,9 @@ def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
         if candidate in TOOL_AFFORDANCE_CONTRACTS:
             contract = dict(TOOL_AFFORDANCE_CONTRACTS[candidate])
             contract["known"] = True
+            # D4: Apply per-mode overrides if mode specified
+            if mode and mode in MODE_AFFORDANCE_OVERRIDES.get(candidate, {}):
+                contract.update(MODE_AFFORDANCE_OVERRIDES[candidate][mode])
             return contract
 
     # P1: Check if tool is listed in public_tool_names() but missing affordance
@@ -4747,7 +4841,9 @@ def _enforce_nine_signal(
             # Audit 2026-07-09: stop pasting full schema (decision_thresholds /
             # agency / full_affordance) on every hop — one referenced contract.
             "affordance_ref": f"arifos://tools/affordance/{tool_name}",
-            "affordance_contract": _get_affordance_contract(tool_name),  # slim power surface only
+            "affordance_contract": _get_affordance_contract(
+                tool_name, mode=out.get("mode") if isinstance(out, dict) else None
+            ),  # D4: per-mode
             "stage_progression": _compute_stage_progression(tool_name, verdict),
             # /000 principal-agent separation: surface delegation chain in
             # every MCP response envelope (not buried in result).
