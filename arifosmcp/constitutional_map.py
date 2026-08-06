@@ -2300,6 +2300,38 @@ CANONICAL_OUTPUT_SCHEMA: dict[str, Any] = {
             "type": ["object", "null"],
             "description": "Next stage auto-chain hint",
         },
+        "authority": {
+            "type": "object",
+            "description": "Single-writer authority block — computed by AuthorityMiddleware.compute, the sole legitimate source of proceed-authority in the federation",
+            "properties": {
+                "verdict": {
+                    "type": "string",
+                    "description": "Computed verdict: SEAL, PROCEED, HOLD, SABAR, VOID",
+                },
+                "may_mutate": {
+                    "type": "boolean",
+                    "description": "Whether mutation is allowed under current constitutional state",
+                },
+                "may_seal": {
+                    "type": "boolean",
+                    "description": "Whether sealing is allowed under current constitutional state",
+                },
+                "reason_code": {
+                    "type": "string",
+                    "description": "Machine-readable reason for the authority verdict",
+                },
+                "computed_from": {
+                    "type": "object",
+                    "description": "Measured inputs used to compute the authority verdict (substrate, crypto, drift, grants)",
+                },
+                "writer": {
+                    "type": "string",
+                    "const": "AuthorityMiddleware.compute",
+                    "description": "Sole writer of proceed-authority. Structurally impossible to be anything else. Phase 3 enforced.",
+                },
+            },
+            "required": ["verdict", "may_mutate", "may_seal", "writer"],
+        },
     },
     "required": ["status", "tool", "verdict", "result", "nine_signal", "reasons"],
 }
