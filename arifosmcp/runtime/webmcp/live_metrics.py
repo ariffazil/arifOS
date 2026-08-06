@@ -308,14 +308,17 @@ class LiveMetricsCollector:
                     vault_last = row["last_timestamp"] if row and row["last_timestamp"] else ""
                     await conn.close()
                 else:
-                    vault_path = Path("VAULT999/vault999.jsonl")
+                    # SC3 FIX (2026-08-06): canonical seal chain, not relative VAULT999/vault999.jsonl
+                    vault_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+                    if not vault_path.exists():
+                        vault_path = Path("/root/arifOS/VAULT999/outcomes.jsonl")
                     if vault_path.exists():
                         with open(vault_path) as f:
                             lines = f.readlines()
                             vault_entries = len(lines)
                             if lines:
                                 last = json.loads(lines[-1])
-                                vault_last = last.get("timestamp", "")
+                                vault_last = last.get("timestamp", "") or last.get("created_at", "")
             except Exception:
                 pass
 
