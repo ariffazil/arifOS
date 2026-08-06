@@ -25334,11 +25334,18 @@ def register_tools(
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
 
+    import os
+
     from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS, CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
-    from arifosmcp.tool_charter import CANONICAL_ORDER, TOOL_CHARTER
+    from arifosmcp.tool_charter import (
+        CANONICAL_ORDER,
+        TOOL_CHARTER,
+        surface_manifest,
+        wire_tool_description,
+    )
 
     # MCP Tasks extension: long-running async tools that benefit from
     # background execution + polling (SEP-2025 / FastMCP 3.x tasks).
@@ -25349,9 +25356,19 @@ def register_tools(
         "arif_evidence_fetch",
     }
 
+    # Wire meta: compact by default (ΔS). Full charter only when explicitly requested.
+    # ARIFOS_FULL_MANIFEST_META=1 restores pre-zen 48KB tools/list dump (debug only).
+    _full_manifest_meta = os.environ.get("ARIFOS_FULL_MANIFEST_META", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "full",
+    }
+
     registered: list[str] = []
     del include_legacy_compat
     spec_by_name = public_tool_spec_by_name(surface_mode)
+    _registry_all = {**CANONICAL_TOOLS, **DIAGNOSTIC_TOOLS}
     for name in public_tool_names_for_mode(surface_mode):
         handler = _CANONICAL_HANDLERS.get(name)
         if handler is None:
@@ -25366,12 +25383,24 @@ def register_tools(
         if handler is None:
             continue
         try:
-            manifest = TOOL_CHARTER.get(name, {})
+            full_charter = TOOL_CHARTER.get(name, {})
             spec = spec_by_name.get(name)
+            # Live mode authority: constitutional_map (injected into schema below).
+            _map_spec = _registry_all.get(name) or {}
+            live_modes = list(_map_spec.get("modes") or []) or None
+            manifest = surface_manifest(
+                name, full=_full_manifest_meta, live_modes=live_modes
+            )
+            # Description: public_registry one-liner preferred; charter only as fallback.
+            desc = wire_tool_description(
+                name,
+                preferred=(spec.description if spec is not None else None),
+                live_modes=None,  # modes belong in input_schema enum, not prose
+            )
             wrapped = _wrap_handler(handler, name)
 
             # Compute canonical risk passport for this tool
-            tool_risk = classify_tool(name, spec.description if spec else None)
+            tool_risk = classify_tool(name, desc)
 
             # Tasks extension: only async handlers can be background tasks.
             is_async = inspect.iscoroutinefunction(handler)
@@ -25382,30 +25411,42 @@ def register_tools(
             # output returned" on high-risk tools (arif_seal, arif_act, arif_judge).
             # The CANONICAL_OUTPUT_SCHEMA caused FastMCP/MCP SDK to reject valid
             # tool responses. Each tool enforces its own governance internally.
+            # Meta: compact surface by default — full TOOL_CHARTER is NOT SOT for wire.
+            meta_payload: dict[str, Any] = {
+                "arifos_manifest": manifest,
+                "stage_code": manifest.get("stage_code")
+                or full_charter.get("stage_code", ""),
+                "stage_name": manifest.get("stage_name")
+                or full_charter.get("stage_name", ""),
+                "risk_tier": (manifest.get("risk") or full_charter.get("risk") or {}).get(
+                    "tier", "low"
+                ),
+                "irreversible": (manifest.get("risk") or full_charter.get("risk") or {}).get(
+                    "irreversible", False
+                ),
+                "requires_human_ack": (
+                    manifest.get("risk") or full_charter.get("risk") or {}
+                ).get("requires_human_ack", False),
+                # Canonical order once at top-level (not 8× full charter copies).
+                "canonical_order": list(CANONICAL_ORDER),
+                "manifest_surface": "full" if _full_manifest_meta else "compact",
+                # Canonical risk passport (Reconstruction A Foundation)
+                "risk_passport": {
+                    "tier": tool_risk.tier.value,
+                    "action_class": tool_risk.action_class.value,
+                    "blast_radius": tool_risk.blast_radius.value,
+                    "reversibility": tool_risk.reversibility.value,
+                    "secret_touch": tool_risk.secret_touch.value,
+                    "external_effect": tool_risk.external_effect.value,
+                },
+            }
             mcp.tool(
                 name=name,
-                description=(spec.description if spec is not None else None),
+                description=desc,
                 tags={"canonical", "arifos"},
                 annotations=_TOOL_ANNOTATIONS.get(name),
                 task=task_flag or None,
-                meta={
-                    "arifos_manifest": manifest,
-                    "stage_code": manifest.get("stage_code", ""),
-                    "stage_name": manifest.get("stage_name", ""),
-                    "risk_tier": manifest.get("risk", {}).get("tier", "low"),
-                    "irreversible": manifest.get("risk", {}).get("irreversible", False),
-                    "requires_human_ack": manifest.get("risk", {}).get("requires_human_ack", False),
-                    "canonical_order": manifest.get("canonical_order") or list(CANONICAL_ORDER),
-                    # Canonical risk passport (Reconstruction A Foundation)
-                    "risk_passport": {
-                        "tier": tool_risk.tier.value,
-                        "action_class": tool_risk.action_class.value,
-                        "blast_radius": tool_risk.blast_radius.value,
-                        "reversibility": tool_risk.reversibility.value,
-                        "secret_touch": tool_risk.secret_touch.value,
-                        "external_effect": tool_risk.external_effect.value,
-                    },
-                },
+                meta=meta_payload,
             )(wrapped)
 
             # ── Inject JSON Schema enums and required fields ─────────────────
