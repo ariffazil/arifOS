@@ -1,9 +1,21 @@
 """
 arifosmcp/kernel/apex_decision_field.py — Epoch 34/36Ω organism gate
 
+⚠️ NOT the canonical F8 GENIUS gate — DO NOT USE for floor checks.
+
 APEX Theory says governance must become intrinsic to action, not a policeman
 outside the action. This module implements the first machine-checkable form of
 that idea for generated capabilities.
+
+CANONICAL F8 G-FOLD (W-12, 303cb8ad8, 2026-07-25):
+  G = (A · P · E · X)^(1/4)         ← geometric mean (Nash bargaining)
+  C_dark = A · (1-P) · (1-X)
+  Source: arifosmcp.runtime.apex_canonical — call via arif_think(mode='apex')
+
+This module's G36 = A·P·E·X is LINEAR multiplicative — a GOVERNANCE FITNESS
+score for generated-capability ADMISSION decisions, NOT the constitutional
+floor. Using G36 as the F8 GENIUS gate is a V2→V3 doctrinal drift (sealed
+303cb8ad8). New code requiring F8 MUST call apex_canonical via arif_think.
 
 Epoch 34 field:
 
