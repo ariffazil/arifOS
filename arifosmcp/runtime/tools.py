@@ -4602,6 +4602,11 @@ def _enforce_nine_signal(
                             f"PHASE_A: SCT authority resolved: {_runtime_auth} "
                             f"for session={resolved_session_id}"
                         )
+                    # D1 FIX (2026-08-06): Also resolve actor_verified from SCT av claim.
+                    # When session store misses (multi-worker uvicorn), the SCT carries
+                    # the canonical standing from arif_init including av:true.
+                    if _claims.get("av") is True and not actor_verified_flag:
+                        actor_verified_flag = True
             # Legacy fallback: only if SCT token not present or not resolved
             if not _sct_authority_resolved:
                 if isinstance(result_payload, dict):
