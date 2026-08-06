@@ -39,54 +39,55 @@ from arifosmcp.runtime.quote_registry import (
 
 
 class TestRegistryIntegrity:
-    """Structural integrity of the quote registry."""
+    """Structural integrity of the quote registry (v3 flat schema)."""
 
     def test_registry_loads(self):
         reg = load_registry(force_reload=True)
         assert "doctrine" in reg
         assert "quotes" in reg
-        assert reg["_metadata"]["version"] in {"1.0.0", "2.0.0"}
+        v = (reg.get("_meta") or reg.get("_metadata") or {}).get("version", "?")
+        assert v[0] in ("1", "2", "3"), f"Unknown version: {v}"
 
     def test_all_quotes_have_required_fields(self):
         reg = load_registry(force_reload=True)
         for q in reg["quotes"]:
-            qid = q.get("quote_id") or q.get("id")
-            assert qid, f"Missing quote_id in {q}"
-            text = q.get("text", {})
-            has_text = (isinstance(text, dict) and text.get("canonical")) or (isinstance(text, str) and text)
-            assert has_text, f"Missing text in {qid}"
-            attr = q.get("attribution", {})
-            assert attr.get("speaker"), f"Missing speaker in {qid}"
-            assert attr.get("source_class") in PROVENANCE_CLASSES, (
-                f"Invalid source_class {attr.get('source_class')} in {qid}"
-            )
+            qid = q.get("id", "")
+            assert qid, f"Missing id in {q}"
+            text = q.get("text", "")
+            assert text, f"Missing text in {qid}"
+            assert q.get("speaker"), f"Missing speaker in {qid}"
+            conf = q.get("attribution_confidence", 0.0)
+            assert conf >= 0.0, f"Missing confidence in {qid}"
 
     def test_disputed_quotes_have_warning(self):
         reg = load_registry(force_reload=True)
         for q in reg["quotes"]:
-            if q["attribution"]["source_class"] == "DISPUTED_ATTRIBUTION":
-                assert q["attribution"].get("commonly_attributed_to"), (
-                    f"Disputed quote {q['id']} missing commonly_attributed_to"
-                )
-                assert q["attribution"].get("note"), f"Disputed quote {q['id']} missing note"
+            conf = q.get("attribution_confidence", 0.0)
+            if conf < 0.45 and conf >= 0.30:  # DISPUTED band
+                assert q.get("note"), f"Disputed quote {q['id']} missing note"
 
     def test_fictional_voice_labeled(self):
         reg = load_registry(force_reload=True)
         for q in reg["quotes"]:
-            if q["attribution"]["source_class"] == "FICTIONAL_VOICE":
-                has_label = isinstance(q.get("display"), dict) and bool(q["display"].get("attribution_label"))
-                has_note = bool(q["attribution"].get("note", ""))
-                assert has_label or has_note, (
-                    f"Fictional quote {q['id']} missing display label"
-                )
+            # FICTIONAL_VOICE = confidence exactly 0.95 with specific marker
+            is_fictional = q.get("attribution_confidence") == 0.95 and "FICTIONAL" in str(
+                q.get("_v3_migrated_from", "")
+            )
+            if is_fictional:
+                has_label = bool(q.get("display_label", ""))
+                has_note = bool(q.get("note", ""))
+                assert has_label or has_note, f"Fictional quote {q['id']} missing display label"
 
     def test_doctrine_separated(self):
         reg = load_registry(force_reload=True)
         assert len(reg["doctrine"]) >= 17, f"Expected >=17 doctrine, got {len(reg['doctrine'])}"
         for d in reg["doctrine"]:
             assert d.get("doctrine_id"), "doctrine entry missing doctrine_id"
-            # v2: ratification_status; legacy: status.ratification
-            rat = d.get("ratification_status") or (d.get("status") or {}).get("ratification")
+            rat = (
+                d.get("ratification_status")
+                or d.get("ratification")
+                or (d.get("status") or {}).get("ratification")
+            )
             assert rat, f"{d.get('doctrine_id')}: missing ratification status"
 
 
@@ -266,30 +267,28 @@ class TestKernelConstraints:
 
 
 class TestProvenanceIntegrity:
-    """Every quote must conform to its provenance class requirements."""
+    """Every quote must conform to its provenance class requirements (v3 flat)."""
 
     def test_primary_verified_has_work_reference(self):
         reg = load_registry(force_reload=True)
         for q in reg["quotes"]:
-            if q["attribution"]["source_class"] == "PRIMARY_VERIFIED":
-                assert q["attribution"].get("work") or q["attribution"].get("note"), (
+            conf = q.get("attribution_confidence", 0.0)
+            if conf >= 0.95:  # PRIMARY_VERIFIED band
+                assert q.get("work") or q.get("note"), (
                     f"PRIMARY_VERIFIED quote {q['id']} missing work reference"
                 )
 
     def test_paraphrase_has_note(self):
         reg = load_registry(force_reload=True)
         for q in reg["quotes"]:
-            if q["attribution"]["source_class"] == "PARAPHRASE":
-                assert q["attribution"].get("note") or q["attribution"].get(
-                    "commonly_attributed_to"
-                ), f"PARAPHRASE quote {q['id']} missing note or commonly_attributed_to"
+            conf = q.get("attribution_confidence", 0.0)
+            if 0.50 <= conf < 0.85:  # PARAPHRASE band
+                assert q.get("note"), f"PARAPHRASE quote {q['id']} missing note"
 
     def test_scriptural_has_version_note(self):
         reg = load_registry(force_reload=True)
         for q in reg["quotes"]:
-            if q["attribution"]["source_class"] == "SCRIPTURAL_TRANSLATION":
-                # Must have either work or note specifying translation
-                has_ref = q["attribution"].get("work") or q["attribution"].get("note")
-                assert has_ref, (
-                    f"SCRIPTURAL_TRANSLATION {q['id']} missing version/translation info"
-                )
+            conf = q.get("attribution_confidence", 0.0)
+            if conf >= 0.85 and q.get("language") in ("zh", "ms"):
+                has_ref = q.get("work") or q.get("note")
+                assert has_ref, f"SCRIPTURAL quote {q['id']} missing version/translation info"

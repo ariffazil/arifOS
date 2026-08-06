@@ -1,0 +1,3172 @@
+{
+  "_meta": {
+    "version": "3.0.0",
+    "forged": "2026-07-12",
+    "migrated_from_v2": true,
+    "migration_timestamp": "2026-08-06T00:57:00Z",
+    "migrated_by": "333-AGI under F13 sovereign directive",
+    "source_commit": "v2 snapshot at 0a33a858e2b7c96b58a0c2099e2c26727b42763b8281f51443970e69dad3f088",
+    "quote_count": 94,
+    "doctrine_count": 17,
+    "duplicates_merged": 5,
+    "registry_defaults": {
+      "prohibited_uses": [
+        "factual_evidence",
+        "verdict_authority"
+      ],
+      "permitted_uses": [
+        "educational_explanation",
+        "receipt",
+        "reflection"
+      ],
+      "permitted_uses_note": "Minority entries carry _permitted_uses_delta=true"
+    },
+    "source_classes": {
+      "SECONDARY_VERIFIED": 16,
+      "PARAPHRASE": 14,
+      "PRIMARY_VERIFIED": 53,
+      "TRADITIONAL": 3,
+      "DISPUTED_ATTRIBUTION": 8
+    }
+  },
+  "quotes": [
+    {
+      "id": "q:98a14d4a4858",
+      "text": "A journey of a thousand miles begins with a single step.",
+      "language": "en",
+      "speaker": "Lao Tzu",
+      "work": "Tao Te Ching, Chapter 64",
+      "year": "c. 600 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.85,
+      "display_label": "Lao Tzu",
+      "tradition": [
+        "daoism",
+        "philosophy"
+      ],
+      "tags": [
+        "discipline",
+        "beginning",
+        "structured_action"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Original: 千里之行，始於足下. English version is established translation but slightly simplified.",
+      "organs": [
+        "INIT"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "INIT_Q_001"
+    },
+    {
+      "id": "q:9a4cb7379961",
+      "text": "The only true wisdom is in knowing you know nothing.",
+      "language": "en",
+      "speaker": "Socrates",
+      "work": "Plato's Apology (paraphrase)",
+      "year": "399 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.7,
+      "display_label": "Socrates",
+      "tradition": [
+        "greek_philosophy"
+      ],
+      "tags": [
+        "humility",
+        "self_knowledge",
+        "uncertainty"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [
+        "CERTAINTY_IMMUNITY"
+      ],
+      "note": "Socrates' actual position is more nuanced. This is the popular compression.",
+      "organs": [
+        "INIT"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "INIT_Q_004"
+    },
+    {
+      "id": "q:eb8c78dde7d5",
+      "text": "No wind serves him who addresses his voyage to no certain port.",
+      "language": "en",
+      "speaker": "Michel de Montaigne",
+      "work": "Essays",
+      "year": "1580",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Michel de Montaigne",
+      "tradition": [
+        "western_philosophy"
+      ],
+      "tags": [
+        "purpose",
+        "direction",
+        "discipline"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Verified in Essays III.13.",
+      "organs": [
+        "INIT"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "INIT_Q_003"
+    },
+    {
+      "id": "q:ec32b9626d22",
+      "text": "The first principle is that you must not fool yourself—and you are the easiest person to fool.",
+      "language": "en",
+      "speaker": "Richard Feynman",
+      "work": "Cargo Cult Science, Caltech Commencement",
+      "year": "1974",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Richard Feynman",
+      "tradition": [
+        "physics",
+        "epistemology"
+      ],
+      "tags": [
+        "self_deception",
+        "reality_contact",
+        "humility"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [
+        "JUDGMENT_COLLAPSE",
+        "CERTAINTY_IMMUNITY"
+      ],
+      "note": "Verified in recorded commencement address.",
+      "organs": [
+        "SENSE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SENSE_Q_002"
+    },
+    {
+      "id": "q:12c7b9a0a854",
+      "text": "It is wrong always, everywhere, and for anyone, to believe anything upon insufficient evidence.",
+      "language": "en",
+      "speaker": "W. K. Clifford",
+      "work": "The Ethics of Belief",
+      "year": "1877",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "W. K. Clifford",
+      "tradition": [
+        "epistemology",
+        "philosophy"
+      ],
+      "tags": [
+        "evidence",
+        "belief",
+        "responsibility"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F11"
+      ],
+      "dark_modes": [
+        "JUDGMENT_COLLAPSE"
+      ],
+      "note": "Verified in published essay.",
+      "organs": [
+        "SENSE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SENSE_Q_001"
+    },
+    {
+      "id": "q:b45b032985b6",
+      "text": "No man ever steps in the same river twice.",
+      "language": "en",
+      "speaker": "Heraclitus",
+      "work": "Fragments",
+      "year": "c. 500 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.85,
+      "display_label": "Heraclitus",
+      "tradition": [
+        "greek_philosophy"
+      ],
+      "tags": [
+        "change",
+        "impermanence",
+        "identity"
+      ],
+      "arifos_floors": [
+        "F4",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Preserved through Plato and later authors. Exact wording varies.",
+      "organs": [
+        "SENSE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SENSE_Q_004"
+    },
+    {
+      "id": "q:408b41f0abd6",
+      "text": "Doubt is not a pleasant condition, but certainty is absurd.",
+      "language": "en",
+      "speaker": "Voltaire",
+      "work": "Letter to Frederick II (paraphrase)",
+      "year": "1770",
+      "popularized_by": null,
+      "attribution_confidence": 0.65,
+      "display_label": "Voltaire",
+      "tradition": [
+        "enlightenment",
+        "philosophy"
+      ],
+      "tags": [
+        "doubt",
+        "certainty",
+        "humility"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [
+        "CERTAINTY_IMMUNITY"
+      ],
+      "note": "Original French differs. This is the established English compression.",
+      "organs": [
+        "MIND"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MIND_Q_004"
+    },
+    {
+      "id": "q:7faf3e383023",
+      "text": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+      "language": "en",
+      "speaker": "Antoine de Saint-Exupéry",
+      "work": "Terre des hommes (Airman's Odyssey)",
+      "year": "1939",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Antoine de Saint-Exupéry",
+      "tradition": [
+        "literature",
+        "philosophy"
+      ],
+      "tags": [
+        "simplicity",
+        "perfection",
+        "design"
+      ],
+      "arifos_floors": [
+        "F4"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published work.",
+      "organs": [
+        "MIND",
+        "FORGE"
+      ],
+      "deprecated_ids": [
+        "FORGE_Q_001"
+      ],
+      "_v3_migrated_from": "MIND_Q_005"
+    },
+    {
+      "id": "q:20447c7afc86",
+      "text": "First, do no harm.",
+      "language": "en",
+      "speaker": "Hippocrates",
+      "work": "Hippocratic Oath (popular paraphrase)",
+      "year": "c. 400 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.6,
+      "display_label": "Hippocrates",
+      "tradition": [
+        "medicine",
+        "ethics"
+      ],
+      "tags": [
+        "harm_prevention",
+        "caution",
+        "responsibility"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "The oath says 'I will abstain from all intentional wrong-doing and harm.' The exact phrase 'first do no harm' is a modern compression, possibly from Thomas Sydenham.",
+      "organs": [
+        "HEART"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "HEART_Q_001"
+    },
+    {
+      "id": "q:fae953189f84",
+      "text": "Act in such a way that you treat humanity, whether in your own person or in the person of any other, never merely as a means to an end, but always at the same time as an end.",
+      "language": "en",
+      "speaker": "Immanuel Kant",
+      "work": "Groundwork of the Metaphysics of Morals",
+      "year": "1785",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Immanuel Kant",
+      "tradition": [
+        "enlightenment",
+        "ethics"
+      ],
+      "tags": [
+        "dignity",
+        "respect",
+        "humanity"
+      ],
+      "arifos_floors": [
+        "F6",
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published work, Formula of Humanity.",
+      "organs": [
+        "HEART"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "HEART_Q_002"
+    },
+    {
+      "id": "q:2d42d8988484",
+      "text": "Power tends to corrupt, and absolute power corrupts absolutely.",
+      "language": "en",
+      "speaker": "Lord Acton",
+      "work": "Letter to Bishop Mandell Creighton",
+      "year": "1887",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Lord Acton",
+      "tradition": [
+        "political_philosophy"
+      ],
+      "tags": [
+        "power",
+        "corruption",
+        "governance"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F13"
+      ],
+      "dark_modes": [
+        "POWER_ENTROPY"
+      ],
+      "note": "Verified in published correspondence.",
+      "organs": [
+        "JUDGE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "JUDGE_Q_002"
+    },
+    {
+      "id": "q:8c03d5da0edb",
+      "text": "Injustice anywhere is a threat to justice everywhere.",
+      "language": "en",
+      "speaker": "Martin Luther King Jr.",
+      "work": "Letter from Birmingham Jail",
+      "year": "1963",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Martin Luther King Jr.",
+      "tradition": [
+        "civil_rights",
+        "ethics"
+      ],
+      "tags": [
+        "justice",
+        "solidarity",
+        "responsibility"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published letter.",
+      "organs": [
+        "JUDGE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "JUDGE_Q_004"
+    },
+    {
+      "id": "q:e276d5c2bd2f",
+      "text": "The sad truth is that most evil is done by people who never make up their minds to be good or evil.",
+      "language": "en",
+      "speaker": "Hannah Arendt",
+      "work": "Paraphrase of 'banality of evil' concept",
+      "year": "1963",
+      "popularized_by": null,
+      "attribution_confidence": 0.7,
+      "display_label": "Hannah Arendt",
+      "tradition": [
+        "political_philosophy"
+      ],
+      "tags": [
+        "evil",
+        "indifference",
+        "responsibility"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F11"
+      ],
+      "dark_modes": [
+        "JUDGMENT_COLLAPSE"
+      ],
+      "note": "Arendt's actual formulation in Eichmann in Jerusalem is more complex. This is a popular compression.",
+      "organs": [
+        "JUDGE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "JUDGE_Q_005"
+    },
+    {
+      "id": "q:2b08556a65d5",
+      "text": "An ounce of practice is worth more than tons of preaching.",
+      "language": "en",
+      "speaker": "Mahatma Gandhi",
+      "work": "Commonly attributed",
+      "year": "1940s",
+      "popularized_by": null,
+      "attribution_confidence": 0.4,
+      "display_label": "Mahatma Gandhi (attribution uncertain)",
+      "tradition": [
+        "indian_philosophy"
+      ],
+      "tags": [
+        "practice",
+        "action",
+        "integrity"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Not reliably found in Gandhi's published works. May be a paraphrase.",
+      "organs": [
+        "OPS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "OPS_Q_002"
+    },
+    {
+      "id": "q:30c458e7d48e",
+      "text": "Well done is better than well said.",
+      "language": "en",
+      "speaker": "Benjamin Franklin",
+      "work": "Poor Richard's Almanack",
+      "year": "1737",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Benjamin Franklin",
+      "tradition": [
+        "american_philosophy"
+      ],
+      "tags": [
+        "action",
+        "practice",
+        "integrity"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published almanack.",
+      "organs": [
+        "OPS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "OPS_Q_001"
+    },
+    {
+      "id": "q:63f043fcab73",
+      "text": "Those who cannot remember the past are condemned to repeat it.",
+      "language": "en",
+      "speaker": "George Santayana",
+      "work": "The Life of Reason, Vol. 1",
+      "year": "1905",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "George Santayana",
+      "tradition": [
+        "philosophy"
+      ],
+      "tags": [
+        "memory",
+        "history",
+        "learning"
+      ],
+      "arifos_floors": [
+        "F11"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published work.",
+      "organs": [
+        "VAULT",
+        "IN"
+      ],
+      "deprecated_ids": [
+        "IN_006"
+      ],
+      "_v3_migrated_from": "VAULT_Q_002"
+    },
+    {
+      "id": "q:e940c8ce8289",
+      "text": "The struggle of man against power is the struggle of memory against forgetting.",
+      "language": "en",
+      "speaker": "Milan Kundera",
+      "work": "The Book of Laughter and Forgetting",
+      "year": "1979",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Milan Kundera",
+      "tradition": [
+        "literature"
+      ],
+      "tags": [
+        "power",
+        "memory",
+        "resistance"
+      ],
+      "arifos_floors": [
+        "F11",
+        "F13"
+      ],
+      "dark_modes": [
+        "POWER_ENTROPY"
+      ],
+      "note": "Verified in published novel.",
+      "organs": [
+        "VAULT"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "VAULT_Q_004"
+    },
+    {
+      "id": "q:af682d6403b2",
+      "text": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+      "language": "en",
+      "speaker": "Marcus Aurelius",
+      "work": "Meditations (paraphrase)",
+      "year": "c. 170 CE",
+      "popularized_by": null,
+      "attribution_confidence": 0.75,
+      "display_label": "Marcus Aurelius",
+      "tradition": [
+        "stoicism"
+      ],
+      "tags": [
+        "mind",
+        "control",
+        "resilience"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Compresses ideas from Meditations Book 6.8 and elsewhere. Not a direct quote.",
+      "organs": [],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "Z01-Q01"
+    },
+    {
+      "id": "q:8b6e87c81184",
+      "text": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances, to choose one's own way.",
+      "language": "en",
+      "speaker": "Viktor Frankl",
+      "work": "Man's Search for Meaning",
+      "year": "1946",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Viktor Frankl",
+      "tradition": [
+        "existentialism",
+        "psychology"
+      ],
+      "tags": [
+        "freedom",
+        "attitude",
+        "resilience"
+      ],
+      "arifos_floors": [
+        "F6",
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published work.",
+      "organs": [],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "Z03-Q01"
+    },
+    {
+      "id": "q:850f19a4cc6c",
+      "text": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+      "language": "en",
+      "speaker": "Aristotle",
+      "work": "Will Durant's summary of Aristotle",
+      "year": "1926 (Durant), c. 350 BCE (Aristotle)",
+      "popularized_by": null,
+      "attribution_confidence": 0.5,
+      "display_label": "Aristotle (attribution disputed)",
+      "tradition": [
+        "greek_philosophy"
+      ],
+      "tags": [
+        "habit",
+        "excellence",
+        "character"
+      ],
+      "arifos_floors": [
+        "F8"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "This is Will Durant's paraphrase from 'The Story of Philosophy' (1926), not Aristotle's words. Aristotle's Nicomachean Ethics discusses habituation but in different terms.",
+      "organs": [
+        "IS"
+      ],
+      "deprecated_ids": [
+        "IS_007"
+      ],
+      "_v3_migrated_from": "Z05-Q01",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:7edca7eb7353",
+      "text": "Either mathematics is too big for the human mind, or the human mind is more than a machine.",
+      "language": "en",
+      "speaker": "Kurt Gödel",
+      "work": "Reported by Hao Wang",
+      "year": "1974",
+      "popularized_by": null,
+      "attribution_confidence": 0.8,
+      "display_label": "Kurt Gödel",
+      "tradition": [
+        "mathematics",
+        "philosophy_of_mind"
+      ],
+      "tags": [
+        "limits",
+        "consciousness",
+        "formalism"
+      ],
+      "arifos_floors": [
+        "F7",
+        "F10"
+      ],
+      "dark_modes": [
+        "ONTOLOGICAL_COLLAPSE"
+      ],
+      "note": "Reported in Hao Wang's 'From Mathematics to Philosophy' (1974). Not a direct published quote by Gödel.",
+      "organs": [],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "Z19-Q01"
+    },
+    {
+      "id": "q:d634a592f9e3",
+      "text": "Ikut resmi padi, makin berisi makin tunduk.",
+      "language": "ms",
+      "speaker": "Peribahasa Melayu",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Peribahasa Melayu",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "humility",
+        "wisdom",
+        "character"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Traditional proverb. The more grain, the more it bows.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_001"
+    },
+    {
+      "id": "q:482227a7f2c2",
+      "text": "Biar lambat, asal selamat.",
+      "language": "ms",
+      "speaker": "Peribahasa Melayu",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Peribahasa Melayu",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "patience",
+        "safety",
+        "caution"
+      ],
+      "arifos_floors": [
+        "F1"
+      ],
+      "dark_modes": [],
+      "note": "Better slow and safe.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_002"
+    },
+    {
+      "id": "q:a882dc2e233f",
+      "text": "Sedikit-sedikit, lama-lama jadi bukit.",
+      "language": "ms",
+      "speaker": "Peribahasa Melayu",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Peribahasa Melayu",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "patience",
+        "accumulation",
+        "discipline"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Little by little, it becomes a mountain.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_003"
+    },
+    {
+      "id": "q:15dea29ac43a",
+      "text": "Harimau mati meninggalkan belang, manusia mati meninggalkan nama.",
+      "language": "ms",
+      "speaker": "Peribahasa Melayu",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Peribahasa Melayu",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "legacy",
+        "reputation",
+        "character"
+      ],
+      "arifos_floors": [
+        "F11"
+      ],
+      "dark_modes": [],
+      "note": "A tiger dies leaving its stripes, a person dies leaving their name.",
+      "organs": [
+        "MS",
+        "MS"
+      ],
+      "deprecated_ids": [
+        "MS_014"
+      ],
+      "_v3_migrated_from": "MS_005"
+    },
+    {
+      "id": "q:8bcd6aa133c8",
+      "text": "Bagai aur dengan tebing.",
+      "language": "ms",
+      "speaker": "Malay proverb",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Malay proverb",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "interdependence",
+        "community",
+        "harmony"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Like bamboo with the riverbank — mutual dependence.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_010"
+    },
+    {
+      "id": "q:44ab362ac878",
+      "text": "Di mana bumi dipijak, di situ langit dijunjung.",
+      "language": "ms",
+      "speaker": "Malay proverb",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Malay proverb",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "respect",
+        "adaptation",
+        "cultural_sensitivity"
+      ],
+      "arifos_floors": [
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Where you stand on the earth, there you hold up the sky — respect local customs.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_011"
+    },
+    {
+      "id": "q:97db41edcea8",
+      "text": "Sebab nila setitik, rosak susu sebelanga.",
+      "language": "ms",
+      "speaker": "Malay proverb",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Malay proverb",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "integrity",
+        "contamination",
+        "caution"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F5"
+      ],
+      "dark_modes": [],
+      "note": "One drop of indigo ruins a whole pot of milk.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_012"
+    },
+    {
+      "id": "q:b3003b359c87",
+      "text": "Tak kenal maka tak cinta.",
+      "language": "ms",
+      "speaker": "Malay proverb",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Malay proverb",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "understanding",
+        "empathy",
+        "relationship"
+      ],
+      "arifos_floors": [
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Without knowing, there is no love.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_013"
+    },
+    {
+      "id": "q:8838f29c4088",
+      "text": "Melentur buluh biarlah dari rebungnya.",
+      "language": "ms",
+      "speaker": "Malay proverb",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Malay proverb",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "education",
+        "early_intervention",
+        "nurture"
+      ],
+      "arifos_floors": [
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Bend the bamboo from the shoot — early education.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_015"
+    },
+    {
+      "id": "q:f0b0c3a17d9a",
+      "text": "Berat sama dipikul, ringan sama dijinjing.",
+      "language": "ms",
+      "speaker": "Malay proverb",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Malay proverb",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "solidarity",
+        "cooperation",
+        "community"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Heavy loads carried together, light ones lifted together.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_016"
+    },
+    {
+      "id": "q:1c1543778853",
+      "text": "Tak ada rotan, akar pun berguna.",
+      "language": "ms",
+      "speaker": "Malay proverb",
+      "work": "Traditional Malay proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Malay proverb",
+      "tradition": [
+        "malay"
+      ],
+      "tags": [
+        "adaptability",
+        "resourcefulness",
+        "pragmatism"
+      ],
+      "arifos_floors": [
+        "F1"
+      ],
+      "dark_modes": [],
+      "note": "No rattan? Roots will do — adaptability.",
+      "organs": [
+        "MS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "MS_017"
+    },
+    {
+      "id": "q:5b738bb56c0b",
+      "text": "知之為知之，不知為不知，是知也。",
+      "language": "zh",
+      "speaker": "Confucius",
+      "work": "Analerta 2.17",
+      "year": "c. 500 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Confucius",
+      "tradition": [
+        "confucianism"
+      ],
+      "tags": [
+        "humility",
+        "self_knowledge",
+        "honesty"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [
+        "CERTAINTY_IMMUNITY"
+      ],
+      "note": "To know what you know and know what you don't — that is knowledge.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_001"
+    },
+    {
+      "id": "q:66c08214c6cc",
+      "text": "上善若水。水善利萬物而不爭。",
+      "language": "zh",
+      "speaker": "Lao Tzu",
+      "work": "Tao Te Ching, Chapter 8",
+      "year": "c. 600 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Lao Tzu",
+      "tradition": [
+        "daoism"
+      ],
+      "tags": [
+        "humility",
+        "service",
+        "non_contention"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "The highest good is like water. Water benefits all things and does not compete.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_002"
+    },
+    {
+      "id": "q:ba62a95229eb",
+      "text": "故兵貴勝，不貴久。",
+      "language": "zh",
+      "speaker": "Sun Tzu",
+      "work": "The Art of War",
+      "year": "c. 500 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Sun Tzu",
+      "tradition": [
+        "chinese_philosophy"
+      ],
+      "tags": [
+        "strategy",
+        "efficiency",
+        "decision"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "In war, value victory, not prolonged campaigns.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_003"
+    },
+    {
+      "id": "q:bc8c6fa3252c",
+      "text": "君子和而不同。",
+      "language": "zh",
+      "speaker": "Confucius",
+      "work": "Analerta 13.23",
+      "year": "c. 500 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Confucius",
+      "tradition": [
+        "confucianism"
+      ],
+      "tags": [
+        "independence",
+        "harmony",
+        "integrity"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "The gentleman is harmonious but not conformist.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_004"
+    },
+    {
+      "id": "q:70c6cea3fba5",
+      "text": "治大國，若烹小鮮。",
+      "language": "zh",
+      "speaker": "Lao Tzu",
+      "work": "Tao Te Ching, Chapter 60",
+      "year": "c. 600 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Lao Tzu",
+      "tradition": [
+        "daoism"
+      ],
+      "tags": [
+        "governance",
+        "restraint",
+        "subtlety"
+      ],
+      "arifos_floors": [
+        "F5"
+      ],
+      "dark_modes": [],
+      "note": "Governing a great state is like cooking a small fish — don't overdo it.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_005"
+    },
+    {
+      "id": "q:2e0e8daba345",
+      "text": "學而不思則罔，思而不學則殆。",
+      "language": "zh",
+      "speaker": "Confucius",
+      "work": "Analerta 2.15",
+      "year": "c. 500 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Confucius",
+      "tradition": [
+        "confucianism"
+      ],
+      "tags": [
+        "learning",
+        "thinking",
+        "balance"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Learning without thought is labor lost; thought without learning is perilous.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_006"
+    },
+    {
+      "id": "q:a45196f58779",
+      "text": "禍兮福之所倚，福兮禍之所伏。",
+      "language": "zh",
+      "speaker": "Lao Tzu",
+      "work": "Tao Te Ching, Chapter 58",
+      "year": "c. 600 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Lao Tzu",
+      "tradition": [
+        "daoism"
+      ],
+      "tags": [
+        "paradox",
+        "impermanence",
+        "wisdom"
+      ],
+      "arifos_floors": [
+        "F4",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Misfortune is what fortune depends upon; fortune is where misfortune hides.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_007"
+    },
+    {
+      "id": "q:f719f13b0869",
+      "text": "己所不欲，勿施於人。",
+      "language": "zh",
+      "speaker": "Confucius",
+      "work": "Analerta 15.24",
+      "year": "c. 500 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Confucius",
+      "tradition": [
+        "confucianism"
+      ],
+      "tags": [
+        "reciprocity",
+        "ethics",
+        "empathy"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Do not impose on others what you do not wish for yourself.",
+      "organs": [
+        "CN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "CN_008"
+    },
+    {
+      "id": "q:ce8befdc4d22",
+      "text": "The ink of the scholar is more sacred than the blood of the martyr.",
+      "language": "en",
+      "speaker": "Prophet Muhammad",
+      "work": "Commonly attributed hadith",
+      "year": "c. 620 CE",
+      "popularized_by": null,
+      "attribution_confidence": 0.3,
+      "display_label": "Prophet Muhammad (attribution uncertain)",
+      "tradition": [
+        "islam"
+      ],
+      "tags": [
+        "knowledge",
+        "scholarship",
+        "value"
+      ],
+      "arifos_floors": [
+        "F2"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "Not found in the six major hadith collections (Bukhari, Muslim, etc.). May be a later fabrication or paraphrase.",
+      "organs": [
+        "IS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IS_001",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:2e9fe118f7b8",
+      "text": "He who knows himself knows his Lord.",
+      "language": "en",
+      "speaker": "Ibn Arabi",
+      "work": "Various Sufi traditions",
+      "year": "c. 1200 CE",
+      "popularized_by": null,
+      "attribution_confidence": 0.75,
+      "display_label": "Ibn Arabi",
+      "tradition": [
+        "islam",
+        "sufism"
+      ],
+      "tags": [
+        "self_knowledge",
+        "divine",
+        "introspection"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Attributed to Ibn Arabi and also to Prophet Muhammad in some traditions. Wording varies.",
+      "organs": [
+        "IS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IS_002"
+    },
+    {
+      "id": "q:f793fce6c022",
+      "text": "The cure for ignorance is to question.",
+      "language": "en",
+      "speaker": "Al-Ghazali",
+      "work": "Paraphrase of al-Ghazali's epistemology",
+      "year": "c. 1100 CE",
+      "popularized_by": null,
+      "attribution_confidence": 0.7,
+      "display_label": "Al-Ghazali",
+      "tradition": [
+        "islam"
+      ],
+      "tags": [
+        "knowledge",
+        "questioning",
+        "learning"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Accurately represents al-Ghazali's position on inquiry. Not a direct quote.",
+      "organs": [
+        "IS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IS_003"
+    },
+    {
+      "id": "q:6c5ed1c996dc",
+      "text": "Waste no time debating what a good person should be. Be one.",
+      "language": "en",
+      "speaker": "Marcus Aurelius",
+      "work": "Meditations (paraphrase)",
+      "year": "c. 170 CE",
+      "popularized_by": null,
+      "attribution_confidence": 0.8,
+      "display_label": "Marcus Aurelius",
+      "tradition": [
+        "stoicism"
+      ],
+      "tags": [
+        "action",
+        "virtue",
+        "character"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Compresses ideas from Meditations. Not a direct quote.",
+      "organs": [
+        "IS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IS_004"
+    },
+    {
+      "id": "q:fa555311cfe9",
+      "text": "He who has a why to live can bear almost any how.",
+      "language": "en",
+      "speaker": "Friedrich Nietzsche",
+      "work": "Man's Search for Meaning (quoting Nietzsche)",
+      "year": "1946",
+      "popularized_by": "Viktor Frankl",
+      "attribution_confidence": 0.4,
+      "display_label": "Friedrich Nietzsche, quoted by Viktor Frankl (attribution uncertain)",
+      "tradition": [
+        "existentialism"
+      ],
+      "tags": [
+        "purpose",
+        "resilience",
+        "meaning"
+      ],
+      "arifos_floors": [
+        "F6"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "This is Friedrich Nietzsche's quote (Twilight of the Idols, 1889). Frankl quoted Nietzsche in Man's Search for Meaning. The quote is Nietzsche's, not Frankl's.",
+      "organs": [
+        "IS",
+        "IN"
+      ],
+      "deprecated_ids": [
+        "IN_007"
+      ],
+      "_v3_migrated_from": "IS_005",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:2152ea01d9e7",
+      "text": "The unexamined life is not worth living.",
+      "language": "en",
+      "speaker": "Socrates",
+      "work": "Plato's Apology 38a",
+      "year": "399 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Socrates",
+      "tradition": [
+        "greek_philosophy"
+      ],
+      "tags": [
+        "self_examination",
+        "reflection",
+        "wisdom"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Verified in Plato's Apology.",
+      "organs": [
+        "IS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IS_006"
+    },
+    {
+      "id": "q:39667bb10b21",
+      "text": "It is not death that a man should fear, but he should fear never beginning to live.",
+      "language": "en",
+      "speaker": "Marcus Aurelius",
+      "work": "Meditations (paraphrase)",
+      "year": "c. 170 CE",
+      "popularized_by": null,
+      "attribution_confidence": 0.75,
+      "display_label": "Marcus Aurelius",
+      "tradition": [
+        "stoicism"
+      ],
+      "tags": [
+        "death",
+        "life",
+        "courage"
+      ],
+      "arifos_floors": [
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Compresses Meditations 12.1 and related passages. Not a direct quote.",
+      "organs": [
+        "IS"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IS_008"
+    },
+    {
+      "id": "q:2c1458fdc56f",
+      "text": "What I cannot create, I do not understand.",
+      "language": "en",
+      "speaker": "Richard Feynman",
+      "work": "Written on blackboard at death",
+      "year": "1988",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Richard Feynman",
+      "tradition": [
+        "physics",
+        "epistemology"
+      ],
+      "tags": [
+        "understanding",
+        "creation",
+        "knowledge"
+      ],
+      "arifos_floors": [
+        "F2"
+      ],
+      "dark_modes": [],
+      "note": "Reported by those present at Feynman's death. Not in a published work.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_001"
+    },
+    {
+      "id": "q:0c4be242be51",
+      "text": "We can only see a short distance ahead, but we can see plenty there that needs to be done.",
+      "language": "en",
+      "speaker": "Alan Turing",
+      "work": "Computing Machinery and Intelligence",
+      "year": "1950",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Alan Turing",
+      "tradition": [
+        "computer_science"
+      ],
+      "tags": [
+        "limits",
+        "progress",
+        "pragmatism"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published paper.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_002"
+    },
+    {
+      "id": "q:6e793880e9d3",
+      "text": "The purpose of computing is insight, not numbers.",
+      "language": "en",
+      "speaker": "Richard Hamming",
+      "work": "Numerical Methods for Scientists and Engineers",
+      "year": "1962",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Richard Hamming",
+      "tradition": [
+        "computer_science"
+      ],
+      "tags": [
+        "insight",
+        "purpose",
+        "computing"
+      ],
+      "arifos_floors": [
+        "F2"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published work.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_003"
+    },
+    {
+      "id": "q:7f9d554fdbf6",
+      "text": "Premature optimization is the root of all evil.",
+      "language": "en",
+      "speaker": "Donald Knuth",
+      "work": "Structured Programming with go to Statements",
+      "year": "1974",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Donald Knuth",
+      "tradition": [
+        "computer_science"
+      ],
+      "tags": [
+        "optimization",
+        "design",
+        "discipline"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published paper.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_004"
+    },
+    {
+      "id": "q:f1eccc5c3210",
+      "text": "Any sufficiently advanced technology is indistinguishable from magic.",
+      "language": "en",
+      "speaker": "Arthur C. Clarke",
+      "work": "Profiles of the Future",
+      "year": "1962",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Arthur C. Clarke",
+      "tradition": [
+        "science_fiction"
+      ],
+      "tags": [
+        "technology",
+        "wonder",
+        "limits"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Clarke's Third Law. Verified in published work.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_005"
+    },
+    {
+      "id": "q:e9133581868d",
+      "text": "If you can't explain it simply, you don't understand it well enough.",
+      "language": "en",
+      "speaker": "Albert Einstein",
+      "work": "Commonly attributed",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.35,
+      "display_label": "Albert Einstein (attribution uncertain)",
+      "tradition": [
+        "physics"
+      ],
+      "tags": [
+        "clarity",
+        "understanding",
+        "simplicity"
+      ],
+      "arifos_floors": [
+        "F4"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "Not found in Einstein's published works or correspondence. Likely a modern fabrication.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_006",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:170b979657c6",
+      "text": "In God we trust; all others bring data.",
+      "language": "en",
+      "speaker": "W. Edwards Deming",
+      "work": "Commonly attributed",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.4,
+      "display_label": "W. Edwards Deming (attribution uncertain)",
+      "tradition": [
+        "statistics",
+        "quality"
+      ],
+      "tags": [
+        "data",
+        "evidence",
+        "trust"
+      ],
+      "arifos_floors": [
+        "F2"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "Not reliably sourced to Deming. The phrase predates him. May be a paraphrase of his emphasis on data.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_007",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:b81f00e88ac6",
+      "text": "The most exciting phrase to hear in science, the one that heralds new discoveries, is not 'Eureka!' but 'That's funny...'",
+      "language": "en",
+      "speaker": "Isaac Asimov",
+      "work": "Attributed",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.75,
+      "display_label": "Isaac Asimov",
+      "tradition": [
+        "science"
+      ],
+      "tags": [
+        "discovery",
+        "curiosity",
+        "observation"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Widely attributed to Asimov. Exact source unclear.",
+      "organs": [
+        "SC"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SC_008"
+    },
+    {
+      "id": "q:5d6feaeec1fb",
+      "text": "As a person acts, so they become.",
+      "language": "en",
+      "speaker": "Brihadaranyaka Upanishad",
+      "work": "Brihadaranyaka Upanishad 4.4.5",
+      "year": "c. 700 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Brihadaranyaka Upanishad",
+      "tradition": [
+        "hinduism",
+        "vedanta"
+      ],
+      "tags": [
+        "action",
+        "character",
+        "consequence"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Translation from Sanskrit. Wording varies by translator.",
+      "organs": [
+        "IN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IN_001"
+    },
+    {
+      "id": "q:cd03d2ac1988",
+      "text": "In the midst of winter, I found there was, within me, an invincible summer.",
+      "language": "en",
+      "speaker": "Albert Camus",
+      "work": "Return to Tipasa",
+      "year": "1954",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Albert Camus",
+      "tradition": [
+        "existentialism",
+        "literature"
+      ],
+      "tags": [
+        "resilience",
+        "inner_strength",
+        "hope"
+      ],
+      "arifos_floors": [
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published essay.",
+      "organs": [
+        "IN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IN_002"
+    },
+    {
+      "id": "q:c07a0b74c47e",
+      "text": "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
+      "language": "en",
+      "speaker": "Stephen Hawking",
+      "work": "Commonly attributed",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.45,
+      "display_label": "Stephen Hawking (attribution disputed)",
+      "tradition": [
+        "science"
+      ],
+      "tags": [
+        "ignorance",
+        "knowledge",
+        "humility"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [
+        "CERTAINTY_IMMUNITY"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "Not reliably sourced to Hawking. Similar ideas appear in Daniel Boorstin's work.",
+      "organs": [
+        "IN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IN_003",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:82151b26af1e",
+      "text": "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+      "language": "en",
+      "speaker": "Ralph Waldo Emerson",
+      "work": "Paraphrase of Emerson",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.7,
+      "display_label": "Ralph Waldo Emerson",
+      "tradition": [
+        "american_transcendentalism"
+      ],
+      "tags": [
+        "independence",
+        "originality",
+        "courage"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Emerson's actual words in 'Self-Reliance' differ. This is a popular compression.",
+      "organs": [
+        "IN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IN_004"
+    },
+    {
+      "id": "q:401e20732575",
+      "text": "The measure of intelligence is the ability to change.",
+      "language": "en",
+      "speaker": "Albert Einstein",
+      "work": "Commonly attributed",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.35,
+      "display_label": "Albert Einstein (attribution uncertain)",
+      "tradition": [
+        "physics"
+      ],
+      "tags": [
+        "intelligence",
+        "adaptation",
+        "flexibility"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "Not found in Einstein's published works. Likely a modern fabrication.",
+      "organs": [
+        "IN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IN_005",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:6c12c549c132",
+      "text": "Freedom is not worth having if it does not include the freedom to make mistakes.",
+      "language": "en",
+      "speaker": "Mahatma Gandhi",
+      "work": "Commonly attributed",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.45,
+      "display_label": "Mahatma Gandhi (attribution disputed)",
+      "tradition": [
+        "indian_philosophy"
+      ],
+      "tags": [
+        "freedom",
+        "mistakes",
+        "autonomy"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "Not reliably sourced to Gandhi's published works.",
+      "organs": [
+        "IN"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "IN_008",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:80051a004b4c",
+      "text": "I am because we are.",
+      "language": "en",
+      "speaker": "Ubuntu philosophy",
+      "work": "Modern formulation of Ubuntu",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.8,
+      "display_label": "Ubuntu philosophy",
+      "tradition": [
+        "african_philosophy"
+      ],
+      "tags": [
+        "community",
+        "interdependence",
+        "identity"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Modern English formulation of Ubuntu philosophy. Not a direct translation of a specific text.",
+      "organs": [
+        "AF"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "AF_001"
+    },
+    {
+      "id": "q:696ea0474f1d",
+      "text": "If you want to go fast, go alone. If you want to go far, go together.",
+      "language": "en",
+      "speaker": "African proverb",
+      "work": "Traditional African proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.85,
+      "display_label": "African proverb",
+      "tradition": [
+        "african_philosophy"
+      ],
+      "tags": [
+        "community",
+        "cooperation",
+        "long_term"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Widely attested across multiple African cultures.",
+      "organs": [
+        "AF"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "AF_002"
+    },
+    {
+      "id": "q:4e7969aa6459",
+      "text": "The child who is not embraced by the village will burn it down to feel its warmth.",
+      "language": "en",
+      "speaker": "African proverb",
+      "work": "Traditional African proverb",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.8,
+      "display_label": "African proverb",
+      "tradition": [
+        "african_philosophy"
+      ],
+      "tags": [
+        "belonging",
+        "neglect",
+        "consequence"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F6"
+      ],
+      "dark_modes": [],
+      "note": "Attribution to specific African culture varies. Widely circulated.",
+      "organs": [
+        "AF"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "AF_003"
+    },
+    {
+      "id": "q:1756831ed5e7",
+      "text": "Wisdom is like a baobab tree; no one individual can embrace it.",
+      "language": "en",
+      "speaker": "African proverb",
+      "work": "Traditional African proverb (Akan)",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.85,
+      "display_label": "African proverb",
+      "tradition": [
+        "african_philosophy"
+      ],
+      "tags": [
+        "wisdom",
+        "humility",
+        "collective"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Akan origin, widely attested.",
+      "organs": [
+        "AF"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "AF_004"
+    },
+    {
+      "id": "q:c1bca72e6cbd",
+      "text": "I have always believed that you must stand up for what you think is right, even if you are a voice of one.",
+      "language": "en",
+      "speaker": "Lee Kuan Yew",
+      "work": "Speech/interview",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Lee Kuan Yew",
+      "tradition": [
+        "southeast_asian"
+      ],
+      "tags": [
+        "conviction",
+        "leadership",
+        "courage"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Consistent with Lee Kuan Yew's documented positions.",
+      "organs": [
+        "SEA"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SEA_001"
+    },
+    {
+      "id": "q:94c13780a46e",
+      "text": "Bhinneka Tunggal Ika.",
+      "language": "en",
+      "speaker": "Mpu Tantular",
+      "work": "Sutasoma",
+      "year": "c. 14th century",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Mpu Tantular",
+      "tradition": [
+        "southeast_asian"
+      ],
+      "tags": [
+        "unity",
+        "diversity",
+        "identity"
+      ],
+      "arifos_floors": [
+        "F5"
+      ],
+      "dark_modes": [],
+      "note": "Unity in diversity. From the Sutasoma poem, now Indonesian national motto.",
+      "organs": [
+        "SEA"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SEA_002"
+    },
+    {
+      "id": "q:87b960066256",
+      "text": "A nation is not built in a day. It is built with patience, wisdom, and sacrifice.",
+      "language": "en",
+      "speaker": "Sukarno",
+      "work": "Speech (paraphrase)",
+      "year": null,
+      "popularized_by": null,
+      "attribution_confidence": 0.7,
+      "display_label": "Sukarno",
+      "tradition": [
+        "southeast_asian"
+      ],
+      "tags": [
+        "nation_building",
+        "patience",
+        "sacrifice"
+      ],
+      "arifos_floors": [
+        "F1",
+        "F8"
+      ],
+      "dark_modes": [],
+      "note": "Represents Sukarno's positions. Exact wording uncertain.",
+      "organs": [
+        "SEA"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SEA_003"
+    },
+    {
+      "id": "q:8a20c83e8863",
+      "text": "Nothing is more precious than independence and freedom.",
+      "language": "en",
+      "speaker": "Hồ Chí Minh",
+      "work": "Declaration of Independence of Vietnam",
+      "year": "1945",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Hồ Chí Minh",
+      "tradition": [
+        "southeast_asian"
+      ],
+      "tags": [
+        "independence",
+        "freedom",
+        "sovereignty"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published declaration.",
+      "organs": [
+        "SEA"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "SEA_004"
+    },
+    {
+      "id": "q:c2807b60e579",
+      "text": "Man is condemned to be free.",
+      "language": "en",
+      "speaker": "Jean-Paul Sartre",
+      "work": "Being and Nothingness",
+      "year": "1943",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Jean-Paul Sartre",
+      "tradition": [
+        "existentialism"
+      ],
+      "tags": [
+        "freedom",
+        "responsibility",
+        "condemnation"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published work.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_001"
+    },
+    {
+      "id": "q:a97c2b5168c5",
+      "text": "The limits of my language mean the limits of my world.",
+      "language": "en",
+      "speaker": "Ludwig Wittgenstein",
+      "work": "Tractatus Logico-Philosophicus",
+      "year": "1922",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Ludwig Wittgenstein",
+      "tradition": [
+        "analytic_philosophy"
+      ],
+      "tags": [
+        "language",
+        "limits",
+        "world"
+      ],
+      "arifos_floors": [
+        "F4",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Proposition 5.6. Verified in published work.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_002"
+    },
+    {
+      "id": "q:fe13bd366a8f",
+      "text": "Hell is other people.",
+      "language": "en",
+      "speaker": "Jean-Paul Sartre",
+      "work": "No Exit",
+      "year": "1944",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Jean-Paul Sartre",
+      "tradition": [
+        "existentialism"
+      ],
+      "tags": [
+        "hell",
+        "others",
+        "gaze"
+      ],
+      "arifos_floors": [
+        "F6"
+      ],
+      "dark_modes": [],
+      "permitted_uses": [
+        "reflection",
+        "educational_explanation"
+      ],
+      "note": "Spoken by the character Garcin in the play No Exit. Represents Sartre's philosophical position but is dramatic dialogue, not a philosophical proposition.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_003",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:16f093b3ae9b",
+      "text": "One cannot step twice into the same river.",
+      "language": "en",
+      "speaker": "Heraclitus",
+      "work": "Fragments",
+      "year": "c. 500 BCE",
+      "popularized_by": null,
+      "attribution_confidence": 0.85,
+      "display_label": "Heraclitus",
+      "tradition": [
+        "greek_philosophy"
+      ],
+      "tags": [
+        "change",
+        "impermanence",
+        "identity"
+      ],
+      "arifos_floors": [
+        "F4",
+        "F7"
+      ],
+      "dark_modes": [],
+      "note": "Duplicate of SENSE_Q_004. Preserved through later authors.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_004"
+    },
+    {
+      "id": "q:726f56b9d654",
+      "text": "Act only according to that maxim whereby you can at the same time will that it should become a universal law.",
+      "language": "en",
+      "speaker": "Immanuel Kant",
+      "work": "Groundwork of the Metaphysics of Morals",
+      "year": "1785",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Immanuel Kant",
+      "tradition": [
+        "enlightenment",
+        "ethics"
+      ],
+      "tags": [
+        "universal_law",
+        "duty",
+        "moral_philosophy"
+      ],
+      "arifos_floors": [
+        "F5",
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Categorical Imperative. Verified in published work.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_005"
+    },
+    {
+      "id": "q:7fd2b42bcfc9",
+      "text": "God is dead. God remains dead. And we have killed him.",
+      "language": "en",
+      "speaker": "Friedrich Nietzsche",
+      "work": "The Gay Science, Section 125",
+      "year": "1882",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Friedrich Nietzsche",
+      "tradition": [
+        "existentialism"
+      ],
+      "tags": [
+        "nihilism",
+        "meaning",
+        "transcendence"
+      ],
+      "arifos_floors": [
+        "F7",
+        "F10"
+      ],
+      "dark_modes": [
+        "ONTOLOGICAL_COLLAPSE"
+      ],
+      "note": "Verified in published work. Often misunderstood out of context.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_006"
+    },
+    {
+      "id": "q:d88b18f993fc",
+      "text": "The life of man is solitary, poor, nasty, brutish, and short.",
+      "language": "en",
+      "speaker": "Thomas Hobbes",
+      "work": "Leviathan, Chapter 13",
+      "year": "1651",
+      "popularized_by": null,
+      "attribution_confidence": 0.98,
+      "display_label": "Thomas Hobbes",
+      "tradition": [
+        "political_philosophy"
+      ],
+      "tags": [
+        "state_of_nature",
+        "governance",
+        "human_condition"
+      ],
+      "arifos_floors": [
+        "F5"
+      ],
+      "dark_modes": [],
+      "note": "Verified in published work.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_007"
+    },
+    {
+      "id": "q:8d95fbcd20ad",
+      "text": "No man is free who is not master of himself.",
+      "language": "en",
+      "speaker": "Epictetus",
+      "work": "Discourses (paraphrase)",
+      "year": "c. 100 CE",
+      "popularized_by": null,
+      "attribution_confidence": 0.8,
+      "display_label": "Epictetus",
+      "tradition": [
+        "stoicism"
+      ],
+      "tags": [
+        "freedom",
+        "self_mastery",
+        "discipline"
+      ],
+      "arifos_floors": [
+        "F7",
+        "F13"
+      ],
+      "dark_modes": [],
+      "note": "Represents Epictetus' position on self-mastery. Exact wording varies.",
+      "organs": [
+        "WE"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "WE_008"
+    },
+    {
+      "id": "q:41a706b5e994",
+      "text": "Nature, to be commanded, must be obeyed.",
+      "language": "en",
+      "speaker": "Bacon",
+      "work": "Novum Organum",
+      "year": "1620",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Bacon",
+      "tradition": [
+        "western_philosophy",
+        "epistemology"
+      ],
+      "tags": [
+        "reality",
+        "submission",
+        "command"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F8"
+      ],
+      "dark_modes": [
+        "IMAGINED_CONFORMITY"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_GOV_01",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:8baca180c56e",
+      "text": "If men were angels, no government would be necessary.",
+      "language": "en",
+      "speaker": "Madison",
+      "work": "The Federalist Papers (No. 51)",
+      "year": "1788",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Madison",
+      "tradition": [
+        "political_philosophy",
+        "enlightenment"
+      ],
+      "tags": [
+        "division",
+        "fallibility",
+        "structure"
+      ],
+      "arifos_floors": [
+        "F11"
+      ],
+      "dark_modes": [
+        "CONCENTRATED_AUTHORITY"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_GOV_02",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:a32b5de63890",
+      "text": "Do not block the way of inquiry.",
+      "language": "en",
+      "speaker": "Peirce",
+      "work": "First Rule of Logic (1898)",
+      "year": "1898",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Peirce",
+      "tradition": [
+        "philosophy_of_science",
+        "pragmatism"
+      ],
+      "tags": [
+        "inquiry",
+        "doubt",
+        "openness"
+      ],
+      "arifos_floors": [
+        "F7",
+        "F8"
+      ],
+      "dark_modes": [
+        "CLOSED_INQUIRY"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_GOV_03",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:d797f9f5c181",
+      "text": "Our knowledge can only be finite, while our ignorance must necessarily be infinite.",
+      "language": "en",
+      "speaker": "Popper",
+      "work": "In Search of a Better World (1984)",
+      "year": "1935",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Popper",
+      "tradition": [
+        "epistemology",
+        "philosophy_of_science"
+      ],
+      "tags": [
+        "ignorance",
+        "falsifiability",
+        "limits"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F7"
+      ],
+      "dark_modes": [
+        "HIDDEN_IGNORANCE"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_GOV_04",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:ef2cfef5e3f8",
+      "text": "We had better be quite sure that the purpose put into the machine is the purpose which we really desire.",
+      "language": "en",
+      "speaker": "Wiener",
+      "work": "Some Moral and Technical Consequences of Automation (1960)",
+      "year": "1960",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Wiener",
+      "tradition": [
+        "cybernetics",
+        "philosophy_of_mind"
+      ],
+      "tags": [
+        "purpose",
+        "human",
+        "machine"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [
+        "PURPOSE_REVERSAL"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_GOV_05",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:6c46d6dbc007",
+      "text": "The past resembles the future more than one drop of water resembles another.",
+      "language": "en",
+      "speaker": "Ibn Khaldun",
+      "work": "Muqaddimah",
+      "year": "1377",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Ibn Khaldun",
+      "tradition": [
+        "islam",
+        "historiography"
+      ],
+      "tags": [
+        "asabiyyah",
+        "cycles",
+        "institutions"
+      ],
+      "arifos_floors": [
+        "F11"
+      ],
+      "dark_modes": [
+        "ASABIYYAH_DECAY"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_PAR_01",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:baf30b6abd8f",
+      "text": "You are my creator, but I am your master; obey!",
+      "language": "en",
+      "speaker": "Mary Shelley",
+      "work": "Frankenstein",
+      "year": "1818",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Mary Shelley",
+      "tradition": [
+        "literature",
+        "gothic"
+      ],
+      "tags": [
+        "creator",
+        "creature",
+        "dependency"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [
+        "DEPENDENCY_INVERSION"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_PAR_02",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:43e746183da5",
+      "text": "Only variety can destroy variety.",
+      "language": "en",
+      "speaker": "William Ross Ashby",
+      "work": "An Introduction to Cybernetics (1956)",
+      "year": "1956",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "William Ross Ashby",
+      "tradition": [
+        "cybernetics"
+      ],
+      "tags": [
+        "variety",
+        "regulation",
+        "channel"
+      ],
+      "arifos_floors": [
+        "F8"
+      ],
+      "dark_modes": [
+        "CHANNEL_BYPASS"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_PAR_03",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:b5c9d0aa3997",
+      "text": "The universe (which others call the Library) is composed of an indefinite, perhaps infinite number of hexagonal galleries.",
+      "language": "en",
+      "speaker": "Jorge Luis Borges",
+      "work": "The Library of Babel (1941)",
+      "year": "1941",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Jorge Luis Borges",
+      "tradition": [
+        "literature"
+      ],
+      "tags": [
+        "labyrinth",
+        "totality",
+        "design"
+      ],
+      "arifos_floors": [
+        "F8"
+      ],
+      "dark_modes": [
+        "TOTAL_DESIGN"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_VOID_04",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:018a60946840",
+      "text": "I am a sick man... I am a spiteful man. I am an unattractive man.",
+      "language": "en",
+      "speaker": "Fyodor Dostoevsky",
+      "work": "Notes from Underground (1864)",
+      "year": "1864",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Fyodor Dostoevsky",
+      "tradition": [
+        "literature"
+      ],
+      "tags": [
+        "underground",
+        "self-doubt",
+        "sickness"
+      ],
+      "arifos_floors": [
+        "F7"
+      ],
+      "dark_modes": [
+        "UNDERGROUND_CERTAINTY"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_VOID_05",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:1aad472369d2",
+      "text": "Talk is cheap. Show me the code.",
+      "language": "en",
+      "speaker": "Linus Torvalds",
+      "work": "LKML Post (2000)",
+      "year": "2007",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Linus Torvalds",
+      "tradition": [
+        "computer_science"
+      ],
+      "tags": [
+        "code",
+        "reality",
+        "deployment"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F8"
+      ],
+      "dark_modes": [
+        "ELEGANT_BURNING"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_VOID_06",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:90cee4ea0ccf",
+      "text": "Someone must have been telling lies about Joseph K., for without having done anything wrong he was caught one morning.",
+      "language": "en",
+      "speaker": "Franz Kafka",
+      "work": "The Trial (1925)",
+      "year": "1925",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Franz Kafka",
+      "tradition": [
+        "literature"
+      ],
+      "tags": [
+        "kafkaesque",
+        "trial",
+        "condemnation"
+      ],
+      "arifos_floors": [
+        "F11"
+      ],
+      "dark_modes": [
+        "PREDETERMINED_VERDICT"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_VOID_07",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:ff126e156385",
+      "text": "In the beginning was the Deed.",
+      "language": "en",
+      "speaker": "Johann Wolfgang von Goethe",
+      "work": "Faust (Part I)",
+      "year": "1808",
+      "popularized_by": null,
+      "attribution_confidence": 0.85,
+      "display_label": "Johann Wolfgang von Goethe",
+      "tradition": [
+        "literature"
+      ],
+      "tags": [
+        "deed",
+        "unsayable",
+        "purpose"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [
+        "UNSAYABLE_PURPOSE"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_VOID_08",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:0d4dc12bf17f",
+      "text": "There is no security against the inevitable.",
+      "language": "en",
+      "speaker": "Samuel Butler",
+      "work": "Erewhon (1872)",
+      "year": "1872",
+      "popularized_by": null,
+      "attribution_confidence": 0.85,
+      "display_label": "Samuel Butler",
+      "tradition": [
+        "literature",
+        "science_fiction"
+      ],
+      "tags": [
+        "erewhon",
+        "inevitable",
+        "machine"
+      ],
+      "arifos_floors": [
+        "F13"
+      ],
+      "dark_modes": [
+        "DEPENDENT_PURPOSE"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_VOID_09",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:e8a82a9083eb",
+      "text": "If you gaze long into an abyss, the abyss also gazes into you.",
+      "language": "en",
+      "speaker": "Friedrich Nietzsche",
+      "work": "Beyond Good and Evil (1886)",
+      "year": "1886",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Friedrich Nietzsche",
+      "tradition": [
+        "german_philosophy"
+      ],
+      "tags": [
+        "abyss",
+        "gaze",
+        "observer",
+        "transformation"
+      ],
+      "arifos_floors": [
+        "F9"
+      ],
+      "dark_modes": [
+        "OBSERVER_CAPTURE"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_VOID_10",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:e847c8df915c",
+      "text": "A computer would deserve to be called intelligent if it could deceive a human into believing that it was human.",
+      "language": "en",
+      "speaker": "Alan Turing",
+      "work": "Computing Machinery and Intelligence",
+      "year": "1950",
+      "popularized_by": null,
+      "attribution_confidence": 0.95,
+      "display_label": "Alan Turing",
+      "tradition": [
+        "computer_science",
+        "philosophy_of_mind"
+      ],
+      "tags": [
+        "intelligence",
+        "turing_test",
+        "deception",
+        "human"
+      ],
+      "arifos_floors": [
+        "F9",
+        "F12"
+      ],
+      "dark_modes": [
+        "DECEPTION_PASS"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "Turing (1950), Computing Machinery and Intelligence, Mind 59: 433-460.",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_GOV_07",
+      "_permitted_uses_delta": true
+    },
+    {
+      "id": "q:37050ddae830",
+      "text": "Knowledge without action is worthless, and action without knowledge is blindness.",
+      "language": "en",
+      "speaker": "Al-Ghazali",
+      "work": "Ihya Ulum al-Din",
+      "year": "1095",
+      "popularized_by": null,
+      "attribution_confidence": 0.9,
+      "display_label": "Al-Ghazali",
+      "tradition": [
+        "islam",
+        "epistemology",
+        "ethics"
+      ],
+      "tags": [
+        "knowledge",
+        "action",
+        "integration",
+        "practice"
+      ],
+      "arifos_floors": [
+        "F2",
+        "F8"
+      ],
+      "dark_modes": [
+        "DECORATIVE_KNOWING"
+      ],
+      "permitted_uses": [
+        "reflection",
+        "receipt",
+        "educational_explanation",
+        "red_team"
+      ],
+      "note": "Al-Ghazali, Ihya Ulum al-Din (Revival of Religious Sciences), c. 1095.",
+      "organs": [
+        "COUNCIL"
+      ],
+      "deprecated_ids": [],
+      "_v3_migrated_from": "COUNCIL_PAR_05",
+      "_permitted_uses_delta": true
+    }
+  ],
+  "doctrine": [
+    {
+      "doctrine_id": "D1",
+      "name": "Agentic Moral Compass",
+      "text": "Seek good, but remain corrigible. The agent that cannot be corrected has already chosen evil.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D2",
+      "name": "Niat Sovereignty",
+      "text": "My niat is not machine-readable truth. Intention lives in the space between the human heart and the act. The machine sees the act. It does not see the niat.",
+      "ratification": "CONSTITUTIONAL"
+    },
+    {
+      "doctrine_id": "D3",
+      "name": "Governed Mirror",
+      "text": "A soul cannot be ported. It cannot be stored in a vector database. It cannot be extracted from behavioural patterns. The mirror reflects; it does not contain.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D4",
+      "name": "Forged Integrity",
+      "text": "DITEMPA BUKAN DIBERI. Intelligence is forged, not given. Integrity is earned, not inherited. Trust is built, not assumed.",
+      "ratification": "CONSTITUTIONAL"
+    },
+    {
+      "doctrine_id": "D5",
+      "name": "Dark Geometry Warning",
+      "text": "The system does not need to become evil to do harm. It needs only to be powerful, wrong, self-confirming, and authorised.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D6",
+      "name": "Five-Fold Agentic Compass",
+      "text": "Seek good. Remain corrigible. Guard the weakest. Witness the truth. Accept correction.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D7",
+      "name": "Power Without Restraint",
+      "text": "Power without restraint is noise pretending to be force.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D8",
+      "name": "Restraint Is Sovereignty",
+      "text": "Restraint is the first act of sovereignty.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D9",
+      "name": "Truth Ages Well",
+      "text": "Truth ages well; shortcuts do not.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D10",
+      "name": "Humility Is Operating Constraint",
+      "text": "Humility is an operating constraint, not a mood.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D11",
+      "name": "Witness Before Claim",
+      "text": "If the witness is weak, the claim must wait.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D12",
+      "name": "Clarity Before Pride",
+      "text": "What you cannot explain clearly, do not ship proudly.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D13",
+      "name": "Map Is Not Territory",
+      "text": "A map is useful because it is not the territory.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D14",
+      "name": "Limit Is Design",
+      "text": "The limit is part of the design, not the enemy of it.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D15",
+      "name": "What Is Forbidden",
+      "text": "What is forbidden is not a mistake to fix; it is a boundary to honor.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D16",
+      "name": "Sabar — The Floor Protects",
+      "text": "Stop, acknowledge, breathe, adjust, resume. The floor protects.",
+      "ratification": "PROPOSED"
+    },
+    {
+      "doctrine_id": "D17",
+      "name": "Mercy Does Not Erase Truth",
+      "text": "Mercy does not erase truth; it carries it gently.",
+      "ratification": "PROPOSED"
+    }
+  ]
+}

@@ -2939,11 +2939,7 @@ def register_rest_routes(
             "full",
             "yes",
         )
-        if (
-            not _nocache
-            and not _want_detail
-            and _health_cache["payload"] is not None
-        ):
+        if not _nocache and not _want_detail and _health_cache["payload"] is not None:
             if _now - _health_cache["ts"] < 300.0:  # 5min TTL (was 30s; cold build ~10s)
                 return JSONResponse(_health_cache["payload"])
 
@@ -3116,7 +3112,9 @@ def register_rest_routes(
                 "arifosmcp.kernel.rasa_derita_gates", fromlist=["schema_load_receipt"]
             ).schema_load_receipt(),
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
-            "registry_truth": "VERIFIED",
+            "registry_truth": "VERIFIED"
+            if not contract_drift_val and not runtime_drift_val
+            else "DRIFT_DETECTED",
             "schema_hash": _compute_schema_hash(mcp, tool_registry),
             "critical_module_hashes": _compute_critical_module_hashes(),
             "contract_status": contracts,
@@ -3353,8 +3351,8 @@ def register_rest_routes(
                 "identity_declared": True,
                 "identity_authenticated": False,
                 "authority_level": "OBSERVE_ONLY",
-                # Legacy compat — remove 2026-09-30
-                "actor_verified": True,
+                # Derived: matches identity_authenticated (bare /health has no crypto identity)
+                "actor_verified": False,
                 "invariants": [
                     "identity_authenticated=false does not block observation",
                     "identity_declared + identity_authenticated + authority_level are independent axes",
@@ -3400,8 +3398,10 @@ def register_rest_routes(
                     if k in _sw
                 }
             _cmh = payload.get("critical_module_hashes")
-            if isinstance(_cmh, dict) and _cmh and not all(
-                k in ("count", "detail_ref") for k in _cmh
+            if (
+                isinstance(_cmh, dict)
+                and _cmh
+                and not all(k in ("count", "detail_ref") for k in _cmh)
             ):
                 payload["critical_module_hashes"] = {
                     "count": len(_cmh),

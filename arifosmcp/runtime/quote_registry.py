@@ -194,8 +194,10 @@ PROVENANCE_CLASSES = frozenset(
 
 VALID_USES = frozenset({"REFLECTION", "RECEIPT", "EDUCATION", "RED_TEAM"})
 
-# Canonical registry: v2 (zen-witness-doctrine). v1 retained on disk as legacy only.
-_REGISTRY_PATH = Path(__file__).resolve().parent.parent / "data" / "quote_registry_v2.json"
+# Canonical registry: v3 (six-collapse, text-hash identity). v2 retained on disk as legacy only.
+_REGISTRY_PATH = Path(__file__).resolve().parent.parent / "data" / "quote_registry_v3.json"
+# Legacy path for rollback
+_REGISTRY_PATH_V2 = Path(__file__).resolve().parent.parent / "data" / "quote_registry_v2.json"
 # SOT declaration (2026-07-19): schema + contract, regenerated from data.
 _REGISTRY_SOT_PATH = Path(__file__).resolve().parent.parent / "data" / "quote_registry_sot.yaml"
 _registry_cache: dict | None = None
@@ -268,22 +270,59 @@ class ResolveResult:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+# ── v3 flat field helpers ──────────────────────────────────────────────────
+
+
+def _qc(q: dict, field: str, default=None):
+    """Flat access to v3 quote dict field (no nesting)."""
+    return q.get(field, default)
+
+
+def _src_class(confidence: float, language: str = "en") -> str:
+    """Derive source_class from attribution_confidence band."""
+    if confidence >= 0.95:
+        return "PRIMARY_VERIFIED"
+    elif confidence >= 0.85:
+        return "SECONDARY_VERIFIED"
+    elif confidence >= 0.70:
+        return "PARAPHRASE"
+    elif confidence >= 0.50:
+        return "PROVERB" if language == "ms" else "TRADITIONAL"
+    elif confidence >= 0.30:
+        return "DISPUTED_ATTRIBUTION"
+    return "DISPUTED_ATTRIBUTION"
+
+
 def load_registry(force_reload: bool = False) -> dict:
-    """Load the canonical quote registry from disk."""
+    """Load the canonical quote registry from disk (v3, flat schema).
+
+    Returns raw dict with flat fields per entry: id, text, speaker,
+    attribution_confidence, tradition, tags, arifos_floors, dark_modes,
+    permitted_uses, display_label, language, etc.
+    """
     global _registry_cache
     if _registry_cache is not None and not force_reload:
         return _registry_cache
 
     if not _REGISTRY_PATH.exists():
-        logger.warning("Quote registry not found at %s", _REGISTRY_PATH)
-        _registry_cache = {"doctrine": [], "quotes": []}
+        if _REGISTRY_PATH_V2.exists():
+            logger.warning("v3 registry not found, falling back to v2 at %s", _REGISTRY_PATH_V2)
+            with _REGISTRY_PATH_V2.open("r", encoding="utf-8") as fh:
+                _registry_cache = json.load(fh)
+        else:
+            logger.warning(
+                "Quote registry not found at %s or %s", _REGISTRY_PATH, _REGISTRY_PATH_V2
+            )
+            _registry_cache = {"doctrine": [], "quotes": []}
         return _registry_cache
 
     with _REGISTRY_PATH.open("r", encoding="utf-8") as fh:
         _registry_cache = json.load(fh)
 
+    v = _registry_cache.get("_meta", {}).get("version", "?")
     logger.info(
-        "Loaded quote registry: %d doctrine + %d quotes",
+        "Loaded quote registry v%s: %d doctrine + %d quotes (flat schema)",
+        v,
         len(_registry_cache.get("doctrine", [])),
         len(_registry_cache.get("quotes", [])),
     )
@@ -418,8 +457,9 @@ def wisdom_quote_resolve(
         q_text = q.get("text", "")
         if isinstance(q_text, dict):
             q_text = q_text.get("canonical", q_text.get("normalized", ""))
-        attr = q.get("attribution", {})
-        source_class = attr.get("source_class", "")
+        confidence = q.get("attribution_confidence", 0.0)
+        language = q.get("language", "en")
+        source_class = _src_class(confidence, language)
 
         # Exclude disputed if requested
         if exclude_disputed and source_class == "DISPUTED_ATTRIBUTION":
@@ -431,12 +471,14 @@ def wisdom_quote_resolve(
 
         # Tradition filter
         if traditions_allowed:
-            q_traditions = set(q.get("classification", {}).get("tradition", []))
+            q_traditions = set(q.get("tradition", []))
             if not q_traditions & set(traditions_allowed):
                 continue
 
         # Usage permission check
-        permitted = set(q.get("usage", {}).get("permitted", []))
+        permitted = set(
+            q.get("permitted_uses", ["educational_explanation", "receipt", "reflection"])
+        )
         use_map = {
             "REFLECTION": "reflection",
             "RECEIPT": "receipt",
@@ -449,10 +491,9 @@ def wisdom_quote_resolve(
         # --- Scoring ---
         score = 0.0
         relevance_signal = 0.0  # Must be >0 for quote to be considered relevant
-        classification = q.get("classification", {})
-        q_tags = set(classification.get("tags", []))
-        q_floors = set(classification.get("arifos_floors", []))
-        q_dark = set(classification.get("dark_modes", []))
+        q_tags = set(q.get("tags", []))
+        q_floors = set(q.get("arifos_floors", []))
+        q_dark = set(q.get("dark_modes", []))
 
         # Tag overlap (primary signal)
         context_set = set(t.lower() for t in context_tags)
@@ -478,7 +519,6 @@ def wisdom_quote_resolve(
         score = relevance_signal
 
         # Attribution confidence boost (only after relevance gate)
-        confidence = attr.get("attribution_confidence", 0.5)
         if source_class == "PRIMARY_VERIFIED":
             score += confidence * 2.0
         elif source_class == "SECONDARY_VERIFIED":
@@ -509,23 +549,22 @@ def wisdom_quote_resolve(
         )
 
     best_score, best_q = selected[0]
-    attr = best_q.get("attribution", {})
-    classification = best_q.get("classification", {})
-    usage = best_q.get("usage", {})
-    display = best_q.get("display", {})
-    text = best_q.get("text", {})
 
-    source_class = attr.get("source_class", "")
+    source_class = _src_class(
+        best_q.get("attribution_confidence", 0.0), best_q.get("language", "en")
+    )
     disputed = source_class == "DISPUTED_ATTRIBUTION"
 
     # Build provenance warning
     provenance_warning = None
     if disputed:
-        provenance_warning = f"DISPUTED_ATTRIBUTION — {attr.get('commonly_attributed_to', 'Unknown')}. Not primary-verified."
+        provenance_warning = (
+            f"DISPUTED_ATTRIBUTION — {best_q.get('speaker', 'Unknown')}. Not primary-verified."
+        )
     elif source_class == "PARAPHRASE":
-        provenance_warning = f"PARAPHRASE — not exact wording. {attr.get('note', '')}"
+        provenance_warning = f"PARAPHRASE — not exact wording. {best_q.get('note', '')}"
     elif source_class == "FICTIONAL_VOICE":
-        provenance_warning = f"FICTIONAL_VOICE — spoken by {attr.get('speaker', 'a fictional character')}. Literary, not empirical."
+        provenance_warning = f"FICTIONAL_VOICE — spoken by {best_q.get('speaker', 'a fictional character')}. Literary, not empirical."
     elif source_class == "PROVERB":
         provenance_warning = "PROVERB — traditional saying without single confirmed author."
     elif source_class == "ARIFOS_DOCTRINE":
@@ -533,16 +572,16 @@ def wisdom_quote_resolve(
             "ARIFOS_DOCTRINE — original constitutional language. Not civilisational witness."
         )
 
-    display_label = display.get("attribution_label", "")
+    display_label = best_q.get("display_label", "")
     if not display_label and disputed:
-        display_label = f"Commonly attributed to {attr.get('commonly_attributed_to', attr.get('speaker', 'Unknown'))}"
+        display_label = f"Commonly attributed to {best_q.get('speaker', 'Unknown')}"
     elif not display_label:
-        speaker = attr.get("speaker", "Unknown")
-        work = attr.get("work", "")
+        speaker = best_q.get("speaker", "Unknown")
+        work = best_q.get("work", "")
         display_label = f"{speaker}" + (f", {work}" if work else "")
 
-    # v2: text may be string or dict; id may be 'id' or 'quote_id'
-    q_id_final = best_q.get("id", best_q.get("quote_id", ""))
+    # v3: text may be string or dict; id is flat
+    q_id_final = best_q.get("id", "")
     q_text_final = best_q.get("text", "")
     if isinstance(q_text_final, dict):
         q_text_final = q_text_final.get("canonical", q_text_final.get("normalized", ""))
@@ -550,14 +589,16 @@ def wisdom_quote_resolve(
     quote = QuoteResult(
         quote_id=q_id_final,
         text=q_text_final,
-        speaker=attr.get("speaker", "Unknown"),
+        speaker=best_q.get("speaker", "Unknown"),
         source_class=source_class,
-        attribution_confidence=attr.get("attribution_confidence", 0.0),
-        tradition=classification.get("tradition", []),
-        tags=classification.get("tags", []),
-        arifos_floors=classification.get("arifos_floors", []),
-        dark_modes=classification.get("dark_modes", []),
-        permitted_uses=usage.get("permitted", []),
+        attribution_confidence=best_q.get("attribution_confidence", 0.0),
+        tradition=best_q.get("tradition", []),
+        tags=best_q.get("tags", []),
+        arifos_floors=best_q.get("arifos_floors", []),
+        dark_modes=best_q.get("dark_modes", []),
+        permitted_uses=best_q.get(
+            "permitted_uses", ["educational_explanation", "receipt", "reflection"]
+        ),
         display_label=display_label,
         provenance_warning=provenance_warning,
         disputed=disputed,
@@ -566,7 +607,7 @@ def wisdom_quote_resolve(
 
     return ResolveResult(
         quote=quote,
-        selection_reason=f"Matched tags: {set(classification.get('tags', [])) & set(t.lower() for t in context_tags)}. Score: {best_score:.1f}",
+        selection_reason=f"Matched tags: {set(best_q.get('tags', [])) & set(t.lower() for t in context_tags)}. Score: {best_score:.1f}",
         provenance_warning=provenance_warning,
         candidates_considered=len(candidates),
         # Layer A — APEX fingerprint attached to envelope
@@ -627,24 +668,24 @@ def compute_apex_fingerprint(
     if verdict_context is not None and isinstance(verdict_context, dict):
         intended_use = verdict_context.get("intended_use", intended_use)
 
-    classification = quote.get("classification", {}) or {}
-    attr = quote.get("attribution", {}) or {}
-    usage = quote.get("usage", {}) or {}
-
-    source_class = attr.get("source_class", "")
-    confidence = float(attr.get("attribution_confidence", 0.0))
+    confidence = float(quote.get("attribution_confidence", 0.0))
+    language = quote.get("language", "en")
+    source_class = _src_class(confidence, language)
+    prohibited = ["factual_evidence", "verdict_authority"]  # registry default
+    tradition = quote.get("tradition") or []
+    floors = quote.get("arifos_floors") or []
 
     # Per-organ G contributions
     organs = {
         "Reality": confidence if source_class == "PRIMARY_VERIFIED" else confidence * 0.6,
-        "Governance": 1.0 if "verdict_authority" in usage.get("prohibited", []) else 0.0,
-        "Civilization": 1.0 if classification.get("tradition") else 0.0,
-        "Execution": 1.0 if classification.get("arifos_floors") else 0.5,
+        "Governance": 1.0 if "verdict_authority" in prohibited else 0.0,
+        "Civilization": 1.0 if tradition else 0.0,
+        "Execution": 1.0 if floors else 0.5,
         "Memory": 1.0
         if source_class in ("PRIMARY_VERIFIED", "SECONDARY_VERIFIED", "ARIFOS_DOCTRINE")
         else 0.3,
         "Witness": confidence,
-        "Meaning": 1.0 if classification.get("arifos_floors") else 0.0,
+        "Meaning": 1.0 if floors else 0.0,
     }
     # Multiplicative — APEX canon (zero anywhere = collapse)
     try:
@@ -658,9 +699,8 @@ def compute_apex_fingerprint(
         c_dark += (1.0 - confidence) * 0.6
     if source_class == "FICTIONAL_VOICE":
         c_dark += 0.3
-    # Missing prohibited_use list = hidden shadow (Pillar VI red flag)
-    if not usage.get("prohibited"):
-        c_dark += 0.1
+    # prohibited_uses is a registry default — always present
+    c_dark += 0.0  # no hidden shadow from missing prohibited list (it's a default now)
     # Fictional voices + RECEIPT/RED_TEAM use = elevated shadow
     if source_class == "FICTIONAL_VOICE" and intended_use in ("RECEIPT", "RED_TEAM"):
         c_dark += 0.2
@@ -782,9 +822,6 @@ def _doctrine_ratification(d: dict) -> str:
 def _doctrine_tags(d: dict) -> list:
     if isinstance(d.get("tags"), list):
         return d["tags"]
-    classification = d.get("classification") or {}
-    if isinstance(classification, dict):
-        return classification.get("tags", []) or []
     return []
 
 
@@ -802,25 +839,22 @@ def audit_quote(text: str, claimed_author: str) -> dict:
 
     for q in all_quotes:
         q_text = _quote_text(q).strip().lower()
-        attr = q.get("attribution") or {}
-        q_speaker = str(attr.get("speaker", "")).strip().lower()
-        q_commonly = str(attr.get("commonly_attributed_to", "")).strip().lower()
+        q_speaker = str(q.get("speaker", "")).strip().lower()
+        q_commonly = str(q.get("popularized_by", "")).strip().lower()
 
         # Text fuzzy match (simple substring)
         if q_text and (text_norm in q_text or q_text in text_norm):
             # Author match
             if author_norm == q_speaker or author_norm == q_commonly:
-                display = q.get("display") or {}
-                display_label = ""
-                if isinstance(display, dict):
-                    display_label = display.get("attribution_label", "") or ""
+                display_label = q.get("display_label", "") or ""
+                confidence = q.get("attribution_confidence", 0.0)
                 return {
                     "found": True,
                     "quote_id": _quote_id(q),
-                    "source_class": attr.get("source_class"),
-                    "attribution_confidence": attr.get("attribution_confidence"),
+                    "source_class": _src_class(confidence, q.get("language", "en")),
+                    "attribution_confidence": confidence,
                     "required_display_label": display_label,
-                    "note": attr.get("note", ""),
+                    "note": q.get("note", ""),
                 }
 
     # Check doctrine
@@ -867,7 +901,7 @@ def get_quotes_by_tradition(tradition: str) -> list[dict]:
     registry = load_registry()
     result = []
     for q in registry.get("quotes", []):
-        traditions = q.get("classification", {}).get("tradition", [])
+        traditions = q.get("tradition", [])
         if tradition.lower() in [t.lower() for t in traditions]:
             result.append(_summarize_quote(q))
     return result
@@ -878,7 +912,8 @@ def get_disputed_quotes() -> list[dict]:
     registry = load_registry()
     result = []
     for q in registry.get("quotes", []):
-        if q.get("attribution", {}).get("source_class") == "DISPUTED_ATTRIBUTION":
+        src = _src_class(q.get("attribution_confidence", 0.0), q.get("language", "en"))
+        if src == "DISPUTED_ATTRIBUTION":
             result.append(_summarize_quote(q))
     return result
 
@@ -899,39 +934,24 @@ def get_doctrine() -> list[dict]:
 
 
 def get_prohibited_uses() -> list:
-    """Return all prohibited use patterns."""
+    """Return all prohibited use patterns (from registry defaults)."""
     registry = load_registry()
-    prohibited = set()
-    for q in registry.get("quotes", []):
-        for p in q.get("usage", {}).get("prohibited", []):
-            prohibited.add(p)
-    return sorted(prohibited)
+    defaults = (registry.get("_meta") or {}).get("registry_defaults", {})
+    return sorted(defaults.get("prohibited_uses", ["factual_evidence", "verdict_authority"]))
 
 
 def _summarize_quote(q: dict) -> dict:
-    """Create a safe summary of a quote for resource responses (v1+v2 schema)."""
-    attr = q.get("attribution") or {}
-    classification = q.get("classification") or {}
-    display = q.get("display") or {}
-    display_label = ""
-    if isinstance(display, dict):
-        display_label = display.get("attribution_label", "") or ""
-    if not display_label:
-        display_label = attr.get("speaker", "") or ""
-
+    """Create a safe summary of a quote for resource responses (v3 flat schema)."""
+    confidence = q.get("attribution_confidence", 0.0)
     return {
-        "quote_id": _quote_id(q),
+        "id": _quote_id(q),
         "text": _quote_text(q),
-        "speaker": attr.get("speaker", "Unknown"),
-        "source_class": attr.get("source_class", ""),
-        "attribution_confidence": attr.get("attribution_confidence", 0.0),
-        "display_label": display_label,
-        "tradition": classification.get("tradition", [])
-        if isinstance(classification, dict)
-        else [],
-        "arifos_floors": classification.get("arifos_floors", [])
-        if isinstance(classification, dict)
-        else [],
+        "speaker": q.get("speaker", "Unknown"),
+        "source_class": _src_class(confidence, q.get("language", "en")),
+        "attribution_confidence": confidence,
+        "display_label": q.get("display_label", "") or q.get("speaker", "") or "",
+        "tradition": q.get("tradition", []),
+        "arifos_floors": q.get("arifos_floors", []),
     }
 
 

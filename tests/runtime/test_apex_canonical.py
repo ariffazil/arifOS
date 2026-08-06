@@ -15,6 +15,7 @@ import unittest
 
 from arifosmcp.runtime.apex_canonical import (
     APEXResult,
+    FalsifiablePrediction,
     PrimitiveInputs,
     Verdict,
     compute_A,
@@ -26,6 +27,15 @@ from arifosmcp.runtime.apex_canonical import (
     compute_X,
     compute_apex,
     quick_verdict,
+)
+
+
+# APEX-2026-08-01 Reform: every compute_apex() call requires a paired FalsifiablePrediction.
+# Test helper: a default prediction that satisfies the validator. Each test can override.
+_DEFAULT_PREDICTION = FalsifiablePrediction(
+    claim="test canonical formula",
+    falsifier="test no longer matches canonical formula",
+    deadline="2026-12-31",
 )
 
 
@@ -238,10 +248,22 @@ class TestCanonicalFormula(unittest.TestCase):
         self.assertEqual(compute_G(1.0, 1.0, 1.0, 1.0, 0.0), 0.0)
 
     def test_multiplicative(self):
-        """G is multiplicative, not additive."""
+        """G is the geometric mean of A·P·E·X (4 factors, F8 GENIUS canonical).
+
+        W-12: Φ (scar pressure) is a separate gate, NOT a 5th G dial.
+        Phi is accepted in the signature for backward compatibility but
+        excluded from the geometric mean.
+        """
         a, p, e, x, phi = 0.8, 0.9, 0.7, 0.6, 0.85
-        expected = a * p * e * x * phi
+        expected = (a * p * e * x) ** (1 / 4)
         self.assertAlmostEqual(compute_G(a, p, e, x, phi), expected)
+
+    def test_multiplicative_zero_phi(self):
+        """Phi=0 should NOT collapse G (Phi is not a G dial)."""
+        a, p, e, x = 0.8, 0.9, 0.7, 0.6
+        expected = (a * p * e * x) ** (1 / 4)
+        self.assertAlmostEqual(compute_G(a, p, e, x, 0.0), expected)
+        self.assertAlmostEqual(compute_G(a, p, e, x, 1.0), expected)  # Phi=1 also same
 
     def test_shadow_term(self):
         """C_dark = A · (1-P) · (1-X)."""
@@ -308,7 +330,7 @@ class TestFullPipeline(unittest.TestCase):
             ext_witness=0.9,
             entropy_rate=-0.01,
         )
-        result = compute_apex(inputs)
+        result = compute_apex(inputs, prediction=_DEFAULT_PREDICTION)
         self.assertEqual(result.verdict, Verdict.SEAL)
         self.assertGreater(result.G, 0.80)
         self.assertLess(result.C_dark, 0.30)
@@ -325,7 +347,7 @@ class TestFullPipeline(unittest.TestCase):
             ai_witness=0.9,
             ext_witness=0.9,
         )
-        result = compute_apex(inputs)
+        result = compute_apex(inputs, prediction=_DEFAULT_PREDICTION)
         self.assertEqual(result.verdict, Verdict.VOID)
 
     def test_floor_violation_void(self):
@@ -337,7 +359,7 @@ class TestFullPipeline(unittest.TestCase):
             ai_witness=0.9,
             ext_witness=0.9,
         )
-        result = compute_apex(inputs)
+        result = compute_apex(inputs, prediction=_DEFAULT_PREDICTION)
         self.assertEqual(result.verdict, Verdict.VOID)
 
     def test_sovereign_override(self):
@@ -353,7 +375,7 @@ class TestFullPipeline(unittest.TestCase):
             ai_witness=0.9,
             ext_witness=0.9,
         )
-        result = compute_apex(inputs)
+        result = compute_apex(inputs, prediction=_DEFAULT_PREDICTION)
         self.assertEqual(result.A, 1.0)
 
     def test_json_output(self):
@@ -364,7 +386,7 @@ class TestFullPipeline(unittest.TestCase):
             ai_witness=0.8,
             ext_witness=0.8,
         )
-        result = compute_apex(inputs)
+        result = compute_apex(inputs, prediction=_DEFAULT_PREDICTION)
         json_str = result.to_json()
         self.assertIn("G", json_str)
         self.assertIn("C_dark", json_str)
