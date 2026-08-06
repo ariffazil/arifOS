@@ -7944,6 +7944,79 @@ setInterval(refreshSot, 30000);
                 "release_name": BUILD_INFO["version"],
                 "git_commit": (BUILD_INFO.get("build") or {}).get("commit") or "unknown",
                 "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json",
+                "charter_url": "/charter",
+                "manifest_surface": "schema_only",
+                "note": (
+                    "tools/list meta is compact by default (arifos_manifest.surface=compact). "
+                    "Full operational grammar: GET /charter/{tool} or ARIFOS_FULL_MANIFEST_META=1."
+                ),
+            }
+        )
+
+    @route("/charter", methods=["GET"])
+    async def charter_index_endpoint(request: Request) -> JSONResponse:
+        """Index of operational charters (full grammar is opt-in, not tools/list)."""
+        from arifosmcp.tool_charter import CANONICAL_ORDER, surface_manifest
+
+        full = (request.query_params.get("full") or "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "full",
+        }
+        tools_out = {
+            name: surface_manifest(name, full=full) for name in CANONICAL_ORDER
+        }
+        return JSONResponse(
+            {
+                "service": "ARIFOS MCP",
+                "surface": "full" if full else "compact",
+                "canonical_order": list(CANONICAL_ORDER),
+                "tools": tools_out,
+                "count": len(tools_out),
+                "sot": {
+                    "wire_description": "public_registry._TOOL_DESCRIPTIONS",
+                    "mode_enum": "live input_schema / constitutional_map.modes",
+                    "operational_grammar": "tool_charter.TOOL_CHARTER",
+                    "constitution": "GENESIS/FLOOR_TABLE.json",
+                },
+                "note": "Default tools/list meta is compact. ?full=1 returns full TOOL_CHARTER projection.",
+            }
+        )
+
+    @route("/charter/{tool_name}", methods=["GET"])
+    async def charter_tool_endpoint(request: Request) -> JSONResponse:
+        """Full or compact operational charter for one kernel verb (deep-dive)."""
+        from arifosmcp.tool_charter import CANONICAL_ORDER, TOOL_CHARTER, surface_manifest
+
+        tool_name = request.path_params.get("tool_name", "")
+        # Resolve legacy aliases to live names.
+        if tool_name == "arif_kernel_route":
+            tool_name = "arif_route"
+        elif tool_name == "arif_memory_recall":
+            tool_name = "arif_memory"
+        if tool_name not in TOOL_CHARTER and tool_name not in set(CANONICAL_ORDER):
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "error": "unknown_tool",
+                    "tool": tool_name,
+                    "canonical_order": list(CANONICAL_ORDER),
+                },
+                status_code=404,
+            )
+        full = (request.query_params.get("full") or "1").strip().lower() not in {
+            "0",
+            "false",
+            "no",
+            "compact",
+        }
+        return JSONResponse(
+            {
+                "ok": True,
+                "tool": tool_name,
+                "surface": "full" if full else "compact",
+                "manifest": surface_manifest(tool_name, full=full),
             }
         )
 
