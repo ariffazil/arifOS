@@ -44,8 +44,16 @@ from typing import Any
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════════
 
-SEAL_THRESHOLD = 0.80
-SABAR_THRESHOLD = 0.50
+# ── G Thresholds (sovereign-calibrated 2026-08-06) ────────────────────
+# G_deliberative (apex_canonical): used for SEAL/HOLD/VOID constitutional gates.
+#   Computed from measured primitives with full tri-witness and scar pressure.
+# G_operational (apex_primitives): used for live system health dashboards.
+#   Derived from recent tool call metrics (A,P,E,X) as running estimate.
+# These are SEPARATE paths. G_operational is ADVISORY_ONLY — never gates a seal.
+SEAL_THRESHOLD = 0.80  # G ≥ 0.80 → constitutional SEAL eligible (deliberative)
+HEALTHY_THRESHOLD = 0.50  # G ≥ 0.50 → system operational (was SABAR_THRESHOLD)
+DEGRADED_THRESHOLD = 0.30  # G < 0.30 → system degraded, OBSERVE_ONLY
+SABAR_THRESHOLD = 0.50  # backward compat alias for HEALTHY_THRESHOLD
 C_DARK_THRESHOLD = 0.30
 WITNESS_THRESHOLD = 0.70
 HUMILITY_FLOOR = 0.03  # minimum uncertainty band (general-purpose; non-APEX)
@@ -516,7 +524,7 @@ def compute_apex(
     # 2026-08-05 W-12 FIX: Φ is scar pressure (separate gate per A2 canonic),
     # NOT a 5th G dial. Adding it to the product changed Nash bargaining
     # geometry and silently penalized every score for having a 5th factor.
-    G = (A * P * E * X) ** (1/4)
+    G = (A * P * E * X) ** (1 / 4)
 
     # ═══ THE SHADOW TERM ═══
     C_dark = A * (1 - P) * (1 - X)
@@ -636,7 +644,7 @@ def compute_G(A: float, P: float, E: float, X: float, Phi: float) -> float:
     (separate gate per A2 canonic), not a 5th G dial.
     """
     a, p, e, x = clamp(A), clamp(P), clamp(E), clamp(X)
-    return (a * p * e * x) ** (1/4)
+    return (a * p * e * x) ** (1 / 4)
 
 
 def compute_C_dark(A: float, P: float, X: float) -> float:
