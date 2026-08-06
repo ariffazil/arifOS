@@ -156,6 +156,7 @@ def compose_effective_verdict(
     session_authority_band: str | None = None,
     drift: list[str] | None = None,
     explicit_reason: str | None = None,
+    g_score: float | None = None,
 ) -> EffectiveVerdict:
     """Compute the single effective verdict.
 
@@ -167,9 +168,17 @@ def compose_effective_verdict(
       drift: list of identity-drift violation strings; non-empty forces HOLD.
       explicit_reason: optional override for reason_code (must still be one
         of the canonical reason codes).
+      g_score: APEX G scalar [0-1]. If provided and < SEAL_THRESHOLD (0.80),
+        SEAL is downgraded to SABAR per F8 GENIUS gate.
+        FIX 2026-08-06 (Claude audit #4): G was computed but never gated.
 
     Output: EffectiveVerdict with status / verdict / reason_code / next_action.
     """
+    # F8 GENIUS gate constants (single source, matches apex_canonical.py)
+    _G_SEAL_THRESHOLD = 0.80
+    _G_SABAR_THRESHOLD = 0.50
+    _G_DEGRADED_THRESHOLD = 0.30
+
     canonical = _normalize_verdict(inner_verdict)
 
     # F1 AMANAH: identity-not-bound is a real constraint. If the session is
@@ -182,6 +191,28 @@ def compose_effective_verdict(
     # of what the tool claims.
     if drift:
         canonical = HOLD
+
+    # F8 GENIUS: G gate — computed but previously never wired.
+    # G below SEAL threshold blocks SEAL. G below DEGRADED downgrades to HOLD.
+    if g_score is not None and canonical == SEAL:
+        if g_score < _G_DEGRADED_THRESHOLD:
+            canonical = HOLD
+            explicit_reason = (
+                explicit_reason
+                or f"F8_GENIUS: G={g_score:.3f} < {_G_DEGRADED_THRESHOLD} DEGRADED threshold"
+            )
+        elif g_score < _G_SABAR_THRESHOLD:
+            canonical = SABAR
+            explicit_reason = (
+                explicit_reason
+                or f"F8_GENIUS: G={g_score:.3f} < {_G_SABAR_THRESHOLD} SABAR threshold"
+            )
+        elif g_score < _G_SEAL_THRESHOLD:
+            canonical = SABAR
+            explicit_reason = (
+                explicit_reason
+                or f"F8_GENIUS: G={g_score:.3f} < {_G_SEAL_THRESHOLD} SEAL threshold"
+            )
 
     # Void cannot be downgraded by anything except 888_HOLD.
     if canonical == VOID and session_authority_band is None:
