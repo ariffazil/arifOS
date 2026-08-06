@@ -1467,6 +1467,12 @@ async def arif_judge(
     _has_receipt = bool(sovereign_receipt and sovereign_receipt.strip())
 
     # ── SCT-first standing (Spine P0) — store optional ─────────────────────
+    _standing_token = session_token
+    _standing_source = None
+    _standing_apex: dict[str, Any] | None = None
+    _standing_actor_verified = False
+    _standing_authority: str | None = None
+    _standing_delta: dict[str, Any] | None = None
     if session_token or session_id:
         try:
             from arifosmcp.runtime.sct import resolve_standing
@@ -1572,6 +1578,7 @@ async def arif_judge(
                     "SOVEREIGN" if _standing_actor_verified else "OBSERVE_ONLY"
                 ),
                 drift=[],
+                g_score=_standing_apex.get("G") if isinstance(_standing_apex, dict) else None,
             )
             _envelope = verdict_to_envelope(_canonical)
             # Merge the four canonical fields into the response payload.

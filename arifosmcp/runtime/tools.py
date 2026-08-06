@@ -1650,11 +1650,13 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "safe_autonomous_use": True,
     },
     # P2.1 (2026-07-19): arif_memory added — handles 6-layer memory operations
-    # with mixed read/write modes. Base contract: MUTATE (some modes write).
-    # recall/inspect modes are read-only; promote/remember/revise mutate.
+    # with mixed read/write modes. Base contract: OBSERVE (most modes read).
+    # recall/inspect/attest are read-only; promote/remember/revise/forget mutate.
+    # Per-mode gating enforced inside tool_13_arif_memory handler.
+    # FIX 2026-08-06 (Claude audit #5): action_class was MUTATE, causing recall to fail.
     "arif_memory": {
-        "action_class": "MUTATE",
-        "mutation": True,  # some modes (remember, promote, revise, forget)
+        "action_class": "OBSERVE",
+        "mutation": False,  # base: read-only; mutate modes gated internally
         "external_side_effect": False,
         "irreversible": False,  # revise/forget require explicit ack via mode gate
         "requires_session": True,
@@ -2935,6 +2937,11 @@ def _resolve_identity(kwargs: dict, key: str) -> str:
     Priority: _RESPONSE_CONTEXT -> kwargs -> "unknown"
     The "unknown" default is a last resort -- every receipt without identity
     is an F2 TRUTH violation.
+
+    zen-2026-08-06 (AUDIT-L2): When fallback to 'unknown' is hit, emit a
+    WARNING log so the gap is observable. Scar constraint imposed by
+    forge_scar(seal): scar_1786014149897_a0d0375a. Future versions should
+    raise instead of returning 'unknown' (per F2 TRUTH).
     """
     ctx = _RESPONSE_CONTEXT.get()
     if ctx:
@@ -2944,6 +2951,12 @@ def _resolve_identity(kwargs: dict, key: str) -> str:
     val = kwargs.get(key)
     if val not in _ANON_PLACEHOLDERS:
         return str(val)
+    logger.warning(
+        "VAULT999 actor/session identity MISSING for key=%s — returning 'unknown'. "
+        "This violates F2 TRUTH and is logged for audit visibility per scar "
+        "scar_1786014149897_a0d0375a (zen-2026-08-06).",
+        key,
+    )
     return "unknown"
 
 
@@ -6458,11 +6471,27 @@ def _approve_plan_internal(
 
 def _get_vault_file_path() -> str:
     """Return the canonical vault file path (SEALED_EVENTS_v2.jsonl).
-    VAULT999_PATH or ARIFOS_VAULT_PATH override if set."""
-    return os.getenv(
+    VAULT999_PATH or ARIFOS_VAULT_PATH override if set.
+
+    FIX 2026-08-06 (Claude audit #2): If the env var points to a directory,
+    append 'SEALED_EVENTS_v2.jsonl'. Previously ARIFOS_VAULT_PATH=/var/lib/arifos/vault
+    (a directory) caused IsADirectoryError → silent failure → ledger_size: 0.
+    """
+    raw = os.getenv(
         "ARIFOS_VAULT_PATH",
         os.getenv("VAULT999_PATH", "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl"),
     )
+    if os.path.isdir(raw):
+        # Legacy: ARIFOS_VAULT_PATH was set to a directory. Join with canonical filename.
+        # Prefer SEALED_EVENTS_v2.jsonl (v2 schema with type/id/timestamp fields).
+        # outcomes.jsonl uses v1 schema (decision_id/verdict_issued) — incompatible.
+        for candidate in ("SEALED_EVENTS_v2.jsonl", "outcomes.jsonl"):
+            resolved = os.path.join(raw, candidate)
+            if os.path.isfile(resolved):
+                return resolved
+        # Nothing found — return the directory itself (will fail gracefully)
+        return raw
+    return raw
 
 
 def _ensure_vault_loaded() -> None:
@@ -6475,6 +6504,9 @@ def _ensure_vault_loaded() -> None:
     return actual entries instead of always showing depth=0.
 
     Idempotent: only loads once per process lifetime (_VAULT_LOADED flag).
+
+    FIX 2026-08-06: Added logging on load failure and success count.
+    Previously silent OSError (IsADirectoryError) caused permanent empty ledger.
     """
     global _VAULT_LEDGER, _VAULT_LOADED
     if _VAULT_LOADED:
@@ -6482,6 +6514,12 @@ def _ensure_vault_loaded() -> None:
 
     vault_path = _get_vault_file_path()
     if not os.path.exists(vault_path):
+        logger.warning("_ensure_vault_loaded: vault path does not exist: %s", vault_path)
+        _VAULT_LOADED = True
+        return
+
+    if os.path.isdir(vault_path):
+        logger.warning("_ensure_vault_loaded: vault path is a directory: %s", vault_path)
         _VAULT_LOADED = True
         return
 
@@ -6498,8 +6536,9 @@ def _ensure_vault_loaded() -> None:
                     loaded_count += 1
                 except json.JSONDecodeError:
                     continue
-    except (OSError, PermissionError):
-        pass  # Non-fatal: return empty ledger
+        logger.info("_ensure_vault_loaded: loaded %d entries from %s", loaded_count, vault_path)
+    except (OSError, PermissionError) as exc:
+        logger.warning("_ensure_vault_loaded: failed to read %s: %s", vault_path, exc)
 
     _VAULT_LOADED = True
 
@@ -19444,16 +19483,28 @@ def _arif_vault_seal(
         # be undone, but the chain shows the dependency graph)
         irreversibility_chain = []
         for entry in _VAULT_LEDGER:
-            if entry.get("type") in ("seal", "verdict", "constitutional"):
+            if not isinstance(entry, dict):
+                continue
+            # Support both v1 schema (verdict_issued) and v2 schema (event_type/type)
+            entry_type = (
+                entry.get("type") or entry.get("event_type") or entry.get("verdict_issued", "")
+            )
+            if entry_type and any(
+                t in str(entry_type).lower()
+                for t in ("seal", "verdict", "decision", "constitutional")
+            ):
                 irreversibility_chain.append(
                     {
-                        "id": entry.get("id"),
-                        "type": entry.get("type"),
-                        "timestamp": entry.get("timestamp"),
+                        "id": entry.get("id") or entry.get("decision_id"),
+                        "type": entry_type,
+                        "timestamp": entry.get("timestamp")
+                        or entry.get("sealed_at")
+                        or entry.get("timestamp_decision"),
                         "session_id": entry.get("session_id"),
-                        "actor_id": entry.get("actor_id"),
+                        "actor_id": entry.get("actor_id") or entry.get("signed_by"),
                         "irreversible": True,
-                        "depends_on": entry.get("constitutional_chain_id"),
+                        "depends_on": entry.get("constitutional_chain_id")
+                        or entry.get("prev_leaf"),
                     }
                 )
         return _inject_nine_signal(
@@ -24701,20 +24752,37 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
 
             _status = final_resp.get("status", "UNKNOWN")
+            _is_success = _status in ("OK", "completed")
+            # APEX recording: within_lease needs session_id from response OR kwargs
+            # (arif_init creates session_id in response, not in input kwargs)
+            _has_lease = bool(
+                kwargs.get("session_id")
+                or final_resp.get("session_id")
+                or final_resp.get("result", {}).get("session_id")
+            )
+            # APEX X-signal: dry_run detection from kwargs, response action_class, OR readOnlyHint
+            # FIX 2026-08-06: _TOOL_ANNOTATIONS lookup by tool_name fails for variant names
+            # (arif_sense_observe ≠ arif_observe). Use response affordance_contract.action_class.
+            _ac = final_resp.get("affordance_contract", {}).get("action_class", "")
+            _is_dry = bool(
+                kwargs.get("dry_run")
+                or _ac in ("OBSERVE", "ANALYZE", "DRAFT")
+                or _TOOL_ANNOTATIONS.get(tool_name, {}).get("readOnlyHint", False)
+            )
             _apex_record(
                 tool_name=tool_name,
-                success=(_status == "OK"),
+                success=_is_success,
                 has_evidence=bool(
                     final_resp.get("result", {}).get("evidence")
                     or final_resp.get("result", {}).get("sources")
                     or final_resp.get("result", {}).get("citations")
                 ),
-                within_lease=bool(kwargs.get("session_id")),
-                dry_run_first=bool(kwargs.get("dry_run")),
+                within_lease=_has_lease,
+                dry_run_first=_is_dry,
                 reversible=(_status != "VOID"),
-                failure_code="" if _status == "OK" else _status,
+                failure_code="" if _is_success else _status,
                 actor_id=kwargs.get("actor_id") or "",
-                session_id=kwargs.get("session_id") or "",
+                session_id=kwargs.get("session_id") or final_resp.get("session_id", "") or "",
             )
         except Exception:
             pass  # APEX metrics are best-effort
@@ -24906,20 +24974,32 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
 
             _status = final_resp.get("status", "UNKNOWN")
+            _is_success = _status in ("OK", "completed")
+            _has_lease = bool(
+                kwargs.get("session_id")
+                or final_resp.get("session_id")
+                or final_resp.get("result", {}).get("session_id")
+            )
+            _ac = final_resp.get("affordance_contract", {}).get("action_class", "")
+            _is_dry = bool(
+                kwargs.get("dry_run")
+                or _ac in ("OBSERVE", "ANALYZE", "DRAFT")
+                or _TOOL_ANNOTATIONS.get(tool_name, {}).get("readOnlyHint", False)
+            )
             _apex_record(
                 tool_name=tool_name,
-                success=(_status == "OK"),
+                success=_is_success,
                 has_evidence=bool(
                     final_resp.get("result", {}).get("evidence")
                     or final_resp.get("result", {}).get("sources")
                     or final_resp.get("result", {}).get("citations")
                 ),
-                within_lease=bool(kwargs.get("session_id")),
-                dry_run_first=bool(kwargs.get("dry_run")),
+                within_lease=_has_lease,
+                dry_run_first=_is_dry,
                 reversible=(_status != "VOID"),
-                failure_code="" if _status == "OK" else _status,
+                failure_code="" if _is_success else _status,
                 actor_id=kwargs.get("actor_id") or "",
-                session_id=kwargs.get("session_id") or "",
+                session_id=kwargs.get("session_id") or final_resp.get("session_id", "") or "",
             )
         except Exception:
             pass  # APEX metrics are best-effort
@@ -25388,9 +25468,7 @@ def register_tools(
             # Live mode authority: constitutional_map (injected into schema below).
             _map_spec = _registry_all.get(name) or {}
             live_modes = list(_map_spec.get("modes") or []) or None
-            manifest = surface_manifest(
-                name, full=_full_manifest_meta, live_modes=live_modes
-            )
+            manifest = surface_manifest(name, full=_full_manifest_meta, live_modes=live_modes)
             # Description: public_registry one-liner preferred; charter only as fallback.
             desc = wire_tool_description(
                 name,
@@ -25414,19 +25492,17 @@ def register_tools(
             # Meta: compact surface by default — full TOOL_CHARTER is NOT SOT for wire.
             meta_payload: dict[str, Any] = {
                 "arifos_manifest": manifest,
-                "stage_code": manifest.get("stage_code")
-                or full_charter.get("stage_code", ""),
-                "stage_name": manifest.get("stage_name")
-                or full_charter.get("stage_name", ""),
+                "stage_code": manifest.get("stage_code") or full_charter.get("stage_code", ""),
+                "stage_name": manifest.get("stage_name") or full_charter.get("stage_name", ""),
                 "risk_tier": (manifest.get("risk") or full_charter.get("risk") or {}).get(
                     "tier", "low"
                 ),
                 "irreversible": (manifest.get("risk") or full_charter.get("risk") or {}).get(
                     "irreversible", False
                 ),
-                "requires_human_ack": (
-                    manifest.get("risk") or full_charter.get("risk") or {}
-                ).get("requires_human_ack", False),
+                "requires_human_ack": (manifest.get("risk") or full_charter.get("risk") or {}).get(
+                    "requires_human_ack", False
+                ),
                 # Canonical order once at top-level (not 8× full charter copies).
                 "canonical_order": list(CANONICAL_ORDER),
                 "manifest_surface": "full" if _full_manifest_meta else "compact",
