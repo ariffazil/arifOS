@@ -923,6 +923,28 @@ def _build_governance_status_payload() -> dict[str, Any]:
         val = resolved_floors.get(fid)
         if val is not None and not _floor_passes(fid, float(val)):
             resolved_floors[fid] = _FLOOR_DEFAULTS[fid]
+
+    # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
+    # where negative values = clarity improved. But runtime_floors must display
+    # in [0,1] band for cross-floor comparability and G scalar integrity.
+    #   ΔS < -0.5  → 1.0  (strong clarity gain)
+    #   ΔS ∈ [-0.5, 0) → 0.7-1.0  (moderate clarity)
+    #   ΔS = 0     → 0.5  (warning: all-novel, no compression)
+    #   ΔS > 0     → max(0, 1.0 - ΔS)  (entropy increased, clarity degraded)
+    raw_f4 = resolved_floors.get("F4")
+    if raw_f4 is not None:
+        try:
+            f4_val = float(raw_f4)
+            if f4_val < -0.5:
+                resolved_floors["F4"] = 1.0
+            elif f4_val < 0:
+                resolved_floors["F4"] = round(0.7 + abs(f4_val) * 0.6, 4)
+            elif f4_val == 0:
+                resolved_floors["F4"] = 0.5
+            else:
+                resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
+        except (TypeError, ValueError):
+            pass
     resolved_witness = {
         k: witness.get(k) if witness.get(k) is not None and witness.get(k) != 0.0 else v
         for k, v in _WITNESS_DEFAULTS.items()
@@ -7964,9 +7986,7 @@ setInterval(refreshSot, 30000);
             "yes",
             "full",
         }
-        tools_out = {
-            name: surface_manifest(name, full=full) for name in CANONICAL_ORDER
-        }
+        tools_out = {name: surface_manifest(name, full=full) for name in CANONICAL_ORDER}
         return JSONResponse(
             {
                 "service": "ARIFOS MCP",
