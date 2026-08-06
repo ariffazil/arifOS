@@ -2407,6 +2407,51 @@ def _compute_canonical_verdict(
     # ── Step 1: Initial verdict from status ───────────────────────────────
     verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
 
+    # ── Step 1b: D2 HOLLOW SUCCESS GATE (2026-08-06) ──────────────────────
+    # A verdict may never be more favourable than the payload supporting it.
+    # Empty/hollow result payloads → FAILED/UNMEASURED, never OK/SEAL.
+    _rp = result_payload if isinstance(result_payload, dict) else {}
+    _hollow = False
+    _hollow_reason = ""
+    if isinstance(_rp, dict):
+        _rp_result = _rp.get("result") if isinstance(_rp.get("result"), dict) else None
+        # Check for hollow patterns: empty reasons, empty result, no content
+        _rp_reasons = _rp.get("reasons")
+        _rp_content = _rp.get("content") or _rp.get("payload")
+        _rp_keys = [
+            k
+            for k in _rp
+            if k
+            not in (
+                "status",
+                "tool",
+                "verdict",
+                "meta",
+                "session_id",
+                "actor_id",
+                "session_token",
+                "trace_id",
+                "call_hash",
+                "_wrapper_degradation",
+                "_wrapper_note",
+                "reasons",
+                "actor",
+            )
+        ]
+        if _rp_result is not None and _rp_reasons is not None:
+            # Has result but empty reasons → possibly hollow
+            if (not _rp_reasons or _rp_reasons == []) and (not _rp_content) and len(_rp_keys) <= 2:
+                _hollow = True
+                _hollow_reason = "empty_reasons_and_content"
+        elif _rp_result is None and not _rp_content:
+            _hollow = True
+            _hollow_reason = "missing_result_and_content"
+    if _hollow and verdict == "SEAL":
+        verdict = "UNMEASURED"
+        degradation.append(
+            f"hollow_success_gate: {_hollow_reason} — empty payload cannot support SEAL verdict"
+        )
+
     # ── Step 2: Sub-gate verdicts ─────────────────────────────────────────
     _meta = meta if isinstance(meta, dict) else {}
     post_obs = _meta.get("post_observe_gate", {})
