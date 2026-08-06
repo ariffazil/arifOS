@@ -4301,7 +4301,9 @@ def _enforce_nine_signal(
                     _parts = _sct_fallback.split(".")
                     if len(_parts) >= 2:
                         _claims = _json_sct.loads(
-                            base64.urlsafe_b64decode(_parts[1] + "===").decode()
+                            base64.urlsafe_b64decode(
+                                _parts[1] + "=" * (4 - len(_parts[1]) % 4)
+                            ).decode()
                         )
                         if _claims.get("av") is True:
                             actor_verified_flag = True
