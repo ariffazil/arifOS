@@ -107,11 +107,11 @@ def _probe_federation_health() -> str:
     reachable = 0
     for port, _name in organ_ports:
         try:
-            with socket.create_connection(("127.0.0.1", port), timeout=0.05):
+            with socket.create_connection(("127.0.0.1", port), timeout=0.2):
                 reachable += 1
         except (TimeoutError, OSError):
             pass
-    if reachable == len(organ_ports):
+    if reachable >= 2:  # D5: majority quorum — avoid flapping on single slow probe
         return "OK"
     if reachable >= 1:
         return "DEGRADED"
