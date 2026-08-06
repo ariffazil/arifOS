@@ -149,11 +149,49 @@ def _disagrees(legacy_val: Any, authority_verdict: str) -> bool:
     return False
 
 
+# ── Phase 4: Legacy Field Stripping ───────────────────────────────────
+# After AuthorityMiddleware has injected the sole canonical authority block,
+# these 64 legacy fields are structurally proven redundant. Strip them.
+
+
+def _strip_nested(d: dict, path: str) -> bool:
+    """Remove a nested key from a dict. Returns True if key was removed."""
+    keys = path.split(".")
+    current = d
+    for k in keys[:-1]:
+        if not isinstance(current, dict):
+            return False
+        current = current.get(k)
+        if current is None:
+            return False
+    if isinstance(current, dict) and keys[-1] in current:
+        del current[keys[-1]]
+        return True
+    return False
+
+
+def strip_legacy_fields(sc: dict) -> tuple[int, list[str]]:
+    """Strip all 64 legacy fields from the structured content.
+
+    Returns (count_removed, list_of_removed_paths).
+    Authority block is NEVER touched — it is the canonical truth.
+    """
+    removed = []
+    for path in LEGACY_FIELDS:
+        if _strip_nested(sc, path):
+            removed.append(path)
+    return len(removed), removed
+
+
 class ContradictionDetector(Middleware):
-    """Read-only. Logs every disagreement between computed authority and legacy fields.
+    """Phase 2+4: Logs disagreements AND strips legacy fields.
 
     Registered BEFORE AuthorityMiddleware so it sees the pre-authority payload
-    with the 64 legacy fields still intact.
+    with the 64 legacy fields still intact. After logging, strips them —
+    leaving only the canonical `authority` block as the single source of truth.
+
+    Phase 4 COMPLETE when strip_legacy_fields is called after AuthorityMiddleware
+    has injected the authority block. The legacy 64 are removed from the wire.
     """
 
     async def on_call_tool(self, context: MiddlewareContext, call_next):
@@ -171,7 +209,7 @@ class ContradictionDetector(Middleware):
         authority_verdict = authority.get("verdict", "UNKNOWN")
         tool_name = getattr(context.message, "name", "unknown")
 
-        # Check every legacy field
+        # Phase 2: Check every legacy field for disagreements
         disagreements = []
         for path in LEGACY_FIELDS:
             val = _dig(sc, path)
@@ -196,6 +234,15 @@ class ContradictionDetector(Middleware):
             logger.warning(
                 "ContradictionDetector: %d disagreements in %s",
                 len(disagreements),
+                tool_name,
+            )
+
+        # Phase 4: Strip all 64 legacy fields — only authority block remains
+        count, removed = strip_legacy_fields(sc)
+        if count > 0:
+            logger.info(
+                "Phase 4: stripped %d legacy fields from %s. Authority block is now sole truth.",
+                count,
                 tool_name,
             )
 
