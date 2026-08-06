@@ -2092,10 +2092,164 @@ for _name, _entry in TOOL_CHARTER.items():
         ]
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SURFACE PROJECTION — compact wire meta (tools/list blast-radius control)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# SOT stack (do not collapse):
+#   1. live input_schema.mode.enum  → callable mode truth (OBS)
+#   2. public_registry descriptions → one-line wire description (tools/list)
+#   3. TOOL_CHARTER full dict       → operational grammar (deep / opt-in)
+#   4. GENESIS/FLOOR_TABLE          → constitutional law (not tool prose)
+#
+# Default MCP meta emits COMPACT only. Full charter remains in TOOL_CHARTER
+# and is available via surface_manifest(name, full=True) or
+# ARIFOS_FULL_MANIFEST_META=1 (debug / deep clients only).
+# Kernel-wide contracts (verdict/failure/order) attach only on arif_init.
+
+
+def _mode_names(entry: dict[str, Any], live_modes: list[str] | None = None) -> list[str]:
+    """Prefer live constitutional_map / schema modes; fall back to charter keys."""
+    if live_modes is not None:
+        return list(live_modes)
+    modes = entry.get("modes")
+    if isinstance(modes, dict):
+        return list(modes.keys())
+    if isinstance(modes, list):
+        return list(modes)
+    return []
+
+
+def _mode_purpose_map(
+    entry: dict[str, Any], mode_names: list[str]
+) -> dict[str, str]:
+    """One-line purpose per mode — no required/optional param trees on the wire."""
+    modes = entry.get("modes")
+    out: dict[str, str] = {}
+    if not isinstance(modes, dict):
+        return out
+    for m in mode_names:
+        block = modes.get(m)
+        if isinstance(block, dict):
+            purpose = block.get("purpose")
+            if isinstance(purpose, str) and purpose.strip():
+                out[m] = purpose.strip()
+    return out
+
+
+def compact_surface_manifest(
+    name: str,
+    *,
+    live_modes: list[str] | None = None,
+    entry: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Project TOOL_CHARTER → agent-critical wire surface (ΔS ≤ 0 on tools/list).
+
+    Drops full inputs/outputs trees, multi-example blobs, and duplicates of
+    kernel-wide contracts on every tool. Modes are names (+ short purpose);
+    callable enum authority remains live input_schema.
+    """
+    full = entry if entry is not None else TOOL_CHARTER.get(name, {})
+    if not isinstance(full, dict):
+        full = {}
+    mode_names = _mode_names(full, live_modes)
+    compact: dict[str, Any] = {
+        "surface": "compact",
+        "tool": name,
+        "stage_code": full.get("stage_code", ""),
+        "stage_name": full.get("stage_name", ""),
+        "eureka_insight": full.get("eureka_insight", ""),
+        "purpose": list(full.get("purpose") or [])[:2],
+        "use_when": list(full.get("use_when") or [])[:2],
+        "do_not_use_when": list(full.get("do_not_use_when") or [])[:2],
+        "modes": mode_names,
+        "mode_purpose": _mode_purpose_map(full, mode_names),
+        "carries_forward": list((full.get("state") or {}).get("carries_forward") or []),
+        "next_recommended_tools": list(full.get("next_recommended_tools") or []),
+        "authority_boundary": full.get("authority_boundary") or {},
+        "risk": full.get("risk") or {},
+        "privacy_scope": full.get("privacy_scope") or {},
+        "full_charter": f"arifos://charter/{name}",
+        "mode_authority": "live_input_schema",
+    }
+    # Kernel-wide agent contracts once — on session ignition only.
+    if name == "arif_init":
+        compact["canonical_order"] = list(full.get("canonical_order") or CANONICAL_ORDER)
+        compact["verdict_response_contract"] = full.get(
+            "verdict_response_contract", VERDICT_RESPONSE_CONTRACT
+        )
+        compact["failure_modes"] = full.get("failure_modes", FAILURE_MODES_KERNEL)
+        compact["risk_scale_map"] = full.get("risk_scale_map", RISK_SCALE_MAP)
+        ex = full.get("examples") or {}
+        compact["examples"] = {
+            "good": list(ex.get("good") or [])[:1],
+            "bad": list(ex.get("bad") or [])[:1],
+        }
+    return compact
+
+
+def surface_manifest(
+    name: str,
+    *,
+    full: bool = False,
+    live_modes: list[str] | None = None,
+) -> dict[str, Any]:
+    """Return wire meta for a tool. full=True → entire TOOL_CHARTER entry."""
+    entry = TOOL_CHARTER.get(name, {})
+    if not isinstance(entry, dict):
+        entry = {}
+    if full:
+        out = dict(entry)
+        out["surface"] = "full"
+        out["tool"] = name
+        if live_modes is not None:
+            # Annotate live mode authority without mutating mode trees.
+            out["live_modes"] = list(live_modes)
+            out["mode_authority"] = "live_input_schema"
+        return out
+    return compact_surface_manifest(name, live_modes=live_modes, entry=entry)
+
+
+def wire_tool_description(
+    name: str,
+    *,
+    preferred: str | None = None,
+    live_modes: list[str] | None = None,
+) -> str:
+    """One-line tools/list description. Prefer public_registry; never paste charter."""
+    if preferred and preferred.strip():
+        return preferred.strip()
+    entry = TOOL_CHARTER.get(name) or {}
+    stage = entry.get("stage_code") or ""
+    stage_name = entry.get("stage_name") or ""
+    purpose0 = ""
+    purp = entry.get("purpose")
+    if isinstance(purp, list) and purp:
+        purpose0 = str(purp[0])
+    elif isinstance(purp, str):
+        purpose0 = purp
+    if stage and purpose0:
+        base = f"KERNEL {stage} · {stage_name} — {purpose0}"
+    elif purpose0:
+        base = purpose0
+    else:
+        base = f"arifOS kernel verb: {name}"
+    # Cap wire prose; modes live in input_schema enum.
+    if len(base) > 160:
+        base = base[:157] + "…"
+    if live_modes and len(live_modes) <= 8 and "mode" not in base.lower():
+        # Tiny dynamic hint when schema may lag client parsers.
+        return f"{base} modes={','.join(live_modes)}"
+    return base
+
+
 __all__ = [
     "TOOL_CHARTER",
     "CANONICAL_ORDER",
     "VERDICT_RESPONSE_CONTRACT",
     "FAILURE_MODES_KERNEL",
     "RISK_SCALE_MAP",
+    "compact_surface_manifest",
+    "surface_manifest",
+    "wire_tool_description",
 ]
