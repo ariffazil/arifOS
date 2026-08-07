@@ -4995,7 +4995,9 @@ def _enforce_nine_signal(
                 # at this layer may be 'pending'; effective_verdict is computed
                 # downstream. verdicts.action.state IS authoritative and set
                 # BEFORE this override.
-                _outer_verdict = str(envelope.get("effective_verdict") or envelope.get("verdict") or "").upper()
+                _outer_verdict = str(
+                    envelope.get("effective_verdict") or envelope.get("verdict") or ""
+                ).upper()
                 _outer_reasons = envelope.get("reasons", []) or []
                 _scoped_v = envelope.get("verdicts", {}) or {}
                 _substrate_state = (
@@ -5024,30 +5026,36 @@ def _enforce_nine_signal(
                 _failed_floors = sorted(set(_failed_floors))
                 # HARD RULE: any HOLD/VOID signal anywhere = floor_passed=False.
                 # No exceptions. Substrate drift also blocks.
-                _is_hold = (
-                    _outer_verdict in ("HOLD", "VOID", "888_HOLD")
-                    or _action_state in ("HOLD", "VOID", "DENIED")
+                _is_hold = _outer_verdict in ("HOLD", "VOID", "888_HOLD") or _action_state in (
+                    "HOLD",
+                    "VOID",
+                    "DENIED",
                 )
                 _is_degraded = _substrate_state in ("DEGRADED", "FAIL")
-                # SINGLE SOURCE OF TRUTH: derive from outer verdict + failed_floors + scoped.
+                # STAB-2026-08-08j: FLOOR_HONESTY.
+                # floor_passed is None (unmeasured) unless floors actually
+                # failed. No silent True/False.
+                _floors_checked_here = bool(_failed_floors)
+                _hold_or_degraded = _is_hold or _is_degraded
+                if _floors_checked_here:
+                    _fp = False
+                else:
+                    _fp = None  # not measured
                 envelope["constitutional_check"] = {
-                    "floor_passed": not _is_hold and not _is_degraded and not _failed_floors,
+                    "floor_passed": _fp,
+                    "_floor_measurement": "measured" if _floors_checked_here else "unmeasured",
                     "hold_required": _is_hold or bool(_failed_floors),
                     "hold_reason": (
                         "outer_verdict=" + _outer_verdict
                         if _is_hold
                         else (
-                            "failed_floors=" + ",".join(_failed_floors)
-                            if _failed_floors
-                            else None
+                            "failed_floors=" + ",".join(_failed_floors) if _failed_floors else None
                         )
                     ),
                     "failed_floors": _failed_floors,
                     "substrate_state": _substrate_state,
                     "session_state": _session_state,
-                    "agency_level": envelope.get("constitutional_check", {}).get(
-                        "agency_level"
-                    ),
+                    "agency_level": envelope.get("constitutional_check", {}).get("agency_level"),
                     "observe_class_exempt": envelope.get("constitutional_check", {}).get(
                         "observe_class_exempt", False
                     ),
@@ -7911,7 +7919,8 @@ def build_standard_mcp_result(
         # The old code fell through to "medium" because the threshold bucket
         # matched a confidence value that was silently defaulted to 0.65.
         "evidence_strength": (
-            "unknown" if confidence is None
+            "unknown"
+            if confidence is None
             else ("high" if confidence > 0.8 else ("medium" if confidence > 0.5 else "low"))
         ),
         "assumptions": assumptions,
@@ -7961,8 +7970,16 @@ def build_standard_mcp_result(
     # be told "we don't know" rather than "looks fine, proceed".
     _conf_unmeasured = band == "UNMEASURED"
     _l5_hold = human_req and not _is_observe_class
+    # STAB-2026-08-08k: CONFIDENCE GATE IS NOT A FLOOR GATE.
+    # floor_passed and hold_required at this layer reflect confidence-band
+    # heuristics ONLY. Actual constitutional floor measurement is deferred to
+    # the kernel judge (arif_judge). When confidence is UNMEASURED, floor_passed
+    # is None (unmeasured) — the honest absence is better than a fabricated False.
+    # Downstream verdict derivation handles None as "no floor data — defer to
+    # confidence gate."
+    _fp = None if _conf_unmeasured else not (_conf_hold or _l5_hold)
     constitutional_check = {
-        "floor_passed": not (_conf_hold or _l5_hold or _conf_unmeasured),
+        "floor_passed": _fp,
         "hold_required": bool(_conf_hold or _l5_hold or _conf_unmeasured),
         "hold_reason": (
             "L5 irreversible action"
@@ -8014,12 +8031,13 @@ def build_standard_mcp_result(
         # VERDICT IS DERIVED FROM constitutional_check — never independent.
         # P0 fix 2026-07-04: single source of truth. If they disagree, constitutional_check wins.
         "verdict": "SEAL"
-        if constitutional_check["floor_passed"] and not constitutional_check["hold_required"]
+        if constitutional_check["floor_passed"] is True
+        and not constitutional_check["hold_required"]
         else (
             "HOLD"
             if constitutional_check["hold_required"]
             else "VOID"
-            if not constitutional_check["floor_passed"]
+            if constitutional_check["floor_passed"] is False
             else "ADVISORY"
         ),
     }
@@ -8045,23 +8063,31 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
             payload.setdefault(
                 "constitutional_check",
                 {
-                    "floor_passed": False,
+                    "floor_passed": None,
                     "hold_required": True,
                     "hold_reason": "Inferred from existing HOLD verdict",
+                    "_floor_measurement": "unmeasured",
                 },
             )
         elif _existing_verdict == "VOID":
             payload.setdefault(
-                "constitutional_check", {"floor_passed": False, "hold_required": False}
+                "constitutional_check",
+                {"floor_passed": None, "hold_required": False, "_floor_measurement": "unmeasured"},
             )
         elif _existing_verdict == "ADVISORY":
             payload.setdefault(
                 "constitutional_check",
-                {"floor_passed": True, "hold_required": False, "advisory": True},
+                {
+                    "floor_passed": None,
+                    "hold_required": False,
+                    "advisory": True,
+                    "_floor_measurement": "unmeasured",
+                },
             )
         else:
             payload.setdefault(
-                "constitutional_check", {"floor_passed": True, "hold_required": False}
+                "constitutional_check",
+                {"floor_passed": None, "hold_required": False, "_floor_measurement": "unmeasured"},
             )
         # arif_init bind is always DETERMINISTIC even when metacognition pre-exists
         if tool == "arif_init":
@@ -11886,9 +11912,7 @@ def _arif_sense_observe(
         # Information-theoretic estimate: more contradictions → higher entropy
         _n_tokens = max(len(_input_text.split()), 1)
         _contradiction_density = _contradictions / _n_tokens
-        _dS = round(
-            min(_contradiction_density * 5.0, 2.0), 4
-        )  # scale up, cap at 2.0
+        _dS = round(min(_contradiction_density * 5.0, 2.0), 4)  # scale up, cap at 2.0
         _trend = "divergent" if _dS > 0.1 else ("stable" if _dS == 0 else "convergent")
         _is_contradictory = _contradictions > 0
         return _ok(
@@ -11905,7 +11929,7 @@ def _arif_sense_observe(
             # Rule #1: contradiction → HOLD. The entropy gate is real now.
             hold_required=_is_contradictory,
             hold_reason=(
-                f"F4_ENTROPY_VIOLATION: { _contradictions } self-contradiction(s) "
+                f"F4_ENTROPY_VIOLATION: {_contradictions} self-contradiction(s) "
                 f"density={_contradiction_density:.4f}. ΔS={_dS} > 0."
                 if _is_contradictory
                 else None

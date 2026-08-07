@@ -833,7 +833,14 @@ def _apply_authority_surface_values(
             or _ev in ("HOLD", "VOID", "888_HOLD")
             or _cv in ("HOLD", "VOID", "888_HOLD")
         )
-        cc["floor_passed"] = not _has_hold
+        # STAB-2026-08-08j: FLOOR_HONESTY.
+        # floor_passed = None when no floors actually measured.
+        _floors_actually_checked = bool(_ff)
+        if _floors_actually_checked:
+            cc["floor_passed"] = False
+        else:
+            cc["floor_passed"] = None
+        cc["_floor_measurement"] = "measured" if _floors_actually_checked else "unmeasured"
         cc["hold_required"] = _has_hold
         cc["failed_floors"] = list(_ff) if _ff else cc.get("failed_floors", [])
         if _has_hold:
