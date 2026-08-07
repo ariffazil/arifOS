@@ -752,8 +752,10 @@ def build_index() -> str:
                 "description": "The ttl_ms, cache_scope, and priority fields in this index are APPLICATION-LAYER hints — NOT protocol-enforced. The MCP spec provides ttlMs + cacheScope only on list responses (resources/list, tools/list, server/discover), not per-resource. Agents MUST be explicitly coded to read arifos://index and apply these hints. No MCP client will natively respect ttl_ms: 0 on state resources without agent-level enforcement.",
                 "listChanged_override": {
                     "rule": "listChanged notification OVERRIDES all TTLs. Even a 24h-cached law resource MUST be invalidated immediately on listChanged.",
-                    "critical_gap": "arifOS does NOT currently declare the listChanged capability. Without it, agents cannot detect law amendments — a 24h TTL on law/ resources is DANGEROUS (agent may work against stale constitution).",
-                    "mitigation": "Until listChanged is declared: re-validate law/ resources on every session start (arif_init). Do not trust cached law/ resources across sessions.",
+                    "spec_nuance": "listChanged and subscribe are INDEPENDENT capabilities. FastMCP declares listChanged for any ChangeNotifyingServer (auto). Subscribe requires explicit client action via subscriptions/listen.",
+                    "fastmcp_reality": "FastMCP 3.2+ automatically sends notifications/resources/list_changed when resources are added, enabled, or disabled. The capability is implicitly declared. arifOS runs FastMCP 3.2+ — listChanged IS active.",
+                    "notification_strength": "The notification is SHOULD, not MUST — absence of notification is NOT a guarantee of no change. Re-validation on session start remains prudent.",
+                    "mitigation": "For law/ resources (24h TTL): trust the cache during a session, but re-validate on every session start (arif_init). listChanged handles intra-session invalidation; session-start re-validation handles the SHOULD gap.",
                 },
                 "enforcement": "Self-enforced. The geometry is correct (change_rate → ttl_ms) but the protocol won't help you. Read this index first. Apply the hints yourself. Watch for listChanged when available.",
             },
