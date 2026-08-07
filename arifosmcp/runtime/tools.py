@@ -8685,7 +8685,11 @@ def _hold(
         "tool": tool,
         "result": {},
         "meta": meta,
-        "delta_S": 0.0,
+        # STAB-2026-08-07g: hold path did NOT measure entropy.
+        # Pass None through. Honoring doctrine: 'half-built is worse
+        # than absent.' Earlier hardcoded 0.0 — fabricating certainty
+        # when the kernel blocked execution before any measurement.
+        "delta_S": None,
         "timestamp": timestamp,
         "call_hash": call_hash,
         "trace_id": _hold_trace_id,
