@@ -99,7 +99,7 @@ def test_envelope_construction_full():
             },
         },
         session_id="sess-full-001",
-        session_token="sct_v1.eyJhY3RvciI6ImFyaWZmYXppbCJ9.mock",
+        session_token="act_v1.eyJhY3RvciI6ImFyaWZmYXppbCJ9.mock",
         authority="FULL",
         allowed_scope=[
             "arif_init",

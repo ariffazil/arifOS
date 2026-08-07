@@ -453,7 +453,7 @@ def check_session_starts() -> dict[str, Any]:
     passed = (
         _raw_status in ("READY", "SEAL", "OK", "ok", "seal")
         or (_raw_sid and _raw_sid not in ("unknown", "none", ""))
-        or (_raw_token.startswith("sct_v1.") if _raw_token else False)
+        or (_raw_token.startswith("act_v1.") if _raw_token else False)
     )
     return {
         "check": "session_starts",

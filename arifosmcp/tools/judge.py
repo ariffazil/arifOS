@@ -656,7 +656,7 @@ def _build_validate_result(
 
     if not chain_entry:
         try:
-            from arifosmcp.runtime.sct import resolve_standing
+            from arifosmcp.runtime.act_token import resolve_standing
 
             standing = resolve_standing(
                 session_id=session_id,
@@ -1527,7 +1527,7 @@ async def arif_judge(
     _standing_delta: dict[str, Any] | None = None
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.sct import resolve_standing
+            from arifosmcp.runtime.act_token import resolve_standing
 
             _standing = resolve_standing(
                 session_id=session_id,
@@ -1681,7 +1681,7 @@ async def arif_judge(
 
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.sct import resolve_standing
+            from arifosmcp.runtime.act_token import resolve_standing
 
             _standing = resolve_standing(
                 session_id=session_id,

@@ -59,7 +59,7 @@ async def embodied_mind_reason_handler(
     # SCT resolve: if only token given, recover session_id
     if session_token and not session_id:
         try:
-            from arifosmcp.runtime.sct import resolve_standing
+            from arifosmcp.runtime.act_token import resolve_standing
 
             st = resolve_standing(
                 session_token=session_token,

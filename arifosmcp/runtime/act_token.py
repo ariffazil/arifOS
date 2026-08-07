@@ -1,18 +1,19 @@
 """
-Session Capability Token (SCT) — Spine P0 (inhabit, don't interrogate)
+Arif's Capability Token (ACT) — Spine P0 (inhabit, don't interrogate)
 
 State rides with a signed token; the store is optional cache only.
 
 Wire format (canonical — only birth path):
-    sct_v1.<base64url(payload_json)>.<hmac_sha256_hex>
+    act_v1.<base64url(payload_json)>.<hmac_sha256_hex>
 
 Legacy verify-only (never mint):
-    arifos.v1.<b64>.<b64sig>  → normalized into sct claims
+    act_v1.<b64>.<b64sig>  → normalized into ACT claims (dual-accept window)
+    arifos.v1.<b64>.<b64sig>  → legacy verify-only
+
+Renamed from sct.py (Session Capability Token → Arif's Capability Token, 2026-08-07).
 
 Merged from capability_token.py (2026-07-09 Spine P0):
   derive_verbs, apply_caveats, compute_authority_delta, derive_authority (measured only)
-
-Spec: /root/A-FORGE/forge_work/2026-07-09/SESSION-CAPABILITY-TOKEN-SPEC.md
 """
 
 from __future__ import annotations
@@ -31,8 +32,9 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-SCT_PREFIX = "sct_v1"
-SCT_VERSION = 1
+ACT_PREFIX = "act_v1"
+LEGACY_SCT_PREFIX = "sct_v1"  # P2.1 dual-accept: verify sct_v1 during transition
+ACT_VERSION = 1
 DEFAULT_TTL_SECONDS = 28800  # 8h — agentic autonomous sessions need headroom (was 3600)
 UNMEASURED = "UNMEASURED"
 
@@ -511,7 +513,7 @@ def mint_sct(
     normalized_actor = normalize_actor_id(actor) or (actor or "anonymous")
 
     claims: dict[str, Any] = {
-        "sct_v": SCT_VERSION,
+        "act_v": ACT_VERSION,
         "sid": sid,
         "actor": normalized_actor,
         "auth": auth_norm,
@@ -539,7 +541,7 @@ def mint_sct(
     dump = json.dumps(claims, sort_keys=True, separators=(",", ":"))
     payload_b64 = _b64url_encode(dump.encode("utf-8"))
     sig = _sign(payload_b64)
-    token = f"{SCT_PREFIX}.{payload_b64}.{sig}"
+    token = f"{ACT_PREFIX}.{payload_b64}.{sig}"
     return token, claims
 
 
@@ -604,7 +606,8 @@ def verify_sct(
     if len(parts) != 3:
         return None
     prefix, payload_b64, sig = parts
-    if prefix != SCT_PREFIX:
+    # P2.1 DUAL-ACCEPT: verify both act_v1 (new) and sct_v1 (legacy) prefixes
+    if prefix != ACT_PREFIX and prefix != LEGACY_SCT_PREFIX:
         return None
 
     try:
@@ -622,7 +625,7 @@ def verify_sct(
 
     if not isinstance(claims, dict):
         return None
-    if claims.get("sct_v") != SCT_VERSION:
+    if (claims.get("act_v") or claims.get("sct_v")) != ACT_VERSION:
         return None
 
     ts = now if now is not None else time.time()
@@ -831,7 +834,7 @@ def resolve_standing(
             raw_claims = None
             try:
                 parts = session_token.split(".")
-                if len(parts) == 3 and parts[0] == SCT_PREFIX:
+                if len(parts) == 3 and (parts[0] == ACT_PREFIX or parts[0] == LEGACY_SCT_PREFIX):
                     raw_claims = json.loads(_b64url_decode(parts[1]).decode("utf-8"))
                     if raw_claims and time.time() > float(raw_claims.get("exp", 0)):
                         return Standing(

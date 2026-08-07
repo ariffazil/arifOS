@@ -42,7 +42,7 @@ try:
     import sys as _sys_aaa
 
     _sys_aaa.path.insert(0, "/root/AAA")
-    from governance.sct_decision_event import emit_decision as _emit_kernel_decision
+    from governance.act_decision_event import emit_decision as _emit_kernel_decision
 
     _sys_aaa.path.pop(0)
     _SCT_DECISION_WIRED = True

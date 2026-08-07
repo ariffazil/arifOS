@@ -331,7 +331,7 @@ def _act_reflex_check(
     FAIL-CLOSED: if ACT module is unavailable, returns GateResult(HOLD).
     """
     try:
-        from arifosmcp.runtime.act import (
+        from arifosmcp.runtime.act_token import (
             ActRequest,
             ActResult,
             ActVerdict,
@@ -1193,7 +1193,7 @@ def pre_execution_gate(
     _sct = (envelope.session_token or "").strip()
     if _sct:
         try:
-            from arifosmcp.runtime.sct import verify_token
+            from arifosmcp.runtime.act_token import verify_token
 
             _sct_claims = verify_token(_sct)
             if not _sct_claims or not _sct_claims.get("session", {}).get("actor_bound"):

@@ -5,7 +5,7 @@ Tests the compute_authority_state() function and AuthorityState model.
 
 from __future__ import annotations
 
-from arifosmcp.runtime.sct import compute_authority_state
+from arifosmcp.runtime.act_token import compute_authority_state
 from arifosmcp.schemas.kernel_envelope import AuthorityState, ConstitutionalRole, RuntimeGrantLevel
 
 

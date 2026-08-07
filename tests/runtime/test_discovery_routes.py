@@ -178,7 +178,7 @@ def test_webmcp_init_returns_session(client):
 
 def test_a2a_routes_reachable(client):
     """A2A discovery stays public while task routes require a valid SCT."""
-    from arifosmcp.runtime.sct import mint_sct
+    from arifosmcp.runtime.act_token import mint_sct
 
     health = client.get("/a2a/health")
     assert health.status_code == 200

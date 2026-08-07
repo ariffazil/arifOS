@@ -45,7 +45,7 @@ from arifosmcp.probes.capability_probe import (
 
 
 def _init_response(
-    token: str = "sct_v1.fake.token",
+    token: str = "act_v1.fake.token",
     session_id: str = "SEAL-fixture-001",
     trace_id: str = "trc-init-fixture",
     verdict: str = "OBSERVE_ONLY",
@@ -108,7 +108,7 @@ def test_parse_sct_expiry_known_far_future_token():
     """A token with exp far in the future returns a large positive number.
 
     arifOS SCT format: parts[1] is the base64url-encoded JSON payload
-    (per tools_internal.py:482 — token after `sct_v1.`).
+    (per tools_internal.py:482 — token after `act_v1.`).
     """
     import time as _t
 
@@ -118,7 +118,7 @@ def test_parse_sct_expiry_known_far_future_token():
     payload = (
         base64.urlsafe_b64encode(json.dumps({"exp": far_future}).encode()).rstrip(b"=").decode()
     )
-    token = f"sct_v1.{payload}.sig"
+    token = f"act_v1.{payload}.sig"
     remaining = _parse_sct_expiry(token)
     assert remaining is not None
     assert 3500 < remaining < 3700, f"Expected ~3600s, got {remaining}"
@@ -129,7 +129,7 @@ def test_parse_sct_expiry_returns_none_for_garbage():
     assert _parse_sct_expiry(None) is None
     assert _parse_sct_expiry("") is None
     assert _parse_sct_expiry("not-a-jwt") is None
-    assert _parse_sct_expiry("sct_v1.") is None
+    assert _parse_sct_expiry("act_v1.") is None
 
 
 def test_extract_envelope_from_structured_content():
@@ -157,7 +157,7 @@ def test_maybe_refresh_returns_same_token_when_fresh():
 
     header = base64.urlsafe_b64encode(b'{"alg":"none"}').rstrip(b"=").decode()
     payload = base64.urlsafe_b64encode(json.dumps({"exp": future}).encode()).rstrip(b"=").decode()
-    token = f"sct_v1.{header}.{payload}.sig"
+    token = f"act_v1.{header}.{payload}.sig"
     # No refresh should be called
     with patch.object(capability_probe, "_mcp_call") as mcp:
         result = _maybe_refresh("http://x", token, "arif")
@@ -205,7 +205,7 @@ def test_run_invokes_all_eight_tools():
 
 def test_run_session_token_carries_into_subsequent_calls():
     """arif_init's session_token must be in every subsequent call's arguments."""
-    init_token = "sct_v1.fake.token"
+    init_token = "act_v1.fake.token"
     init_session = "SEAL-carrytest"
 
     captured_args: list[dict[str, Any]] = []

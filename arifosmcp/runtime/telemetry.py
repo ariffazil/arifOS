@@ -225,9 +225,7 @@ def _hash_payload(data: Any) -> str:
 # Never blocks the kernel tool path — silent on failure.
 # arifFlow is the canonical federation telemetry sink.
 
-_ARIFLOW_TELEMETRY_URL = os.getenv(
-    "ARIFLOW_TELEMETRY_URL", "http://127.0.0.1:7073/telemetry/log"
-)
+_ARIFLOW_TELEMETRY_URL = os.getenv("ARIFLOW_TELEMETRY_URL", "http://127.0.0.1:7073/telemetry/log")
 _ARIFLOW_TELEMETRY_ENABLED = os.getenv("ARIFLOW_TELEMETRY_ENABLED", "true").lower() == "true"
 
 
@@ -268,36 +266,36 @@ def _forward_to_arifflow(
         pass  # fire-and-forget — never block the kernel
 
 
-# ── SCT Token Filter (F12/F11 CRITICAL — 2026-07-25) ──────────────────
-# Session Capability Tokens (sct_v1.*) are cryptographic bearer tokens.
+# ── ACT Token Filter (F12/F11 CRITICAL — 2026-07-25, updated 2026-08-07) ──
+# Arif's Capability Tokens (act_v1.*, legacy sct_v1.*) are cryptographic bearer tokens.
 # They MUST NOT be written to any telemetry sink in plaintext form.
-# This filter hashes any sct_v1.* substring before serialization.
+# This filter hashes any act_v1.* / sct_v1.* substring before serialization.
 
 import re
 
-_SCT_PATTERN = re.compile(r"sct_v1\.[A-Za-z0-9+/=._-]+")
+_ACT_PATTERN = re.compile(r"(?:act_v1|sct_v1)\.[A-Za-z0-9+/=._-]+")
 
 
 def _sanitize_session_id(value: str | None) -> str | None:
     """Hash SCT tokens in session_id before telemetry serialization.
 
     Preserves opaque SEAL-* session IDs as-is.
-    Hashes sct_v1.* tokens with SHA-256 to maintain audit traceability
+    Hashes act_v1.* tokens with SHA-256 to maintain audit traceability
     without exposing the bearer capability token.
     """
     if value is None:
         return None
-    if _SCT_PATTERN.search(value):
+    if _ACT_PATTERN.search(value):
         # Hash the full value — don't retain the raw token
         return f"SCT-HASH:{hashlib.sha256(value.encode()).hexdigest()[:16]}"
     return value
 
 
 def _redact_sct_in_string(value: str) -> str:
-    """Replace any sct_v1.* substring with its SHA-256 hash."""
+    """Replace any act_v1.* substring with its SHA-256 hash."""
     if not isinstance(value, str):
         return str(value)
-    return _SCT_PATTERN.sub(
+    return _ACT_PATTERN.sub(
         lambda m: f"[SCT-HASH:{hashlib.sha256(m.group(0).encode()).hexdigest()[:12]}]",
         value,
     )
@@ -426,7 +424,7 @@ class Telemetry:
         reasons: list[str] | None = None,
         next_safe_action: str | None = None,
     ) -> None:
-        # F12/F11 CRITICAL: Sanitize session_id — hash any sct_v1.* tokens
+        # F12/F11 CRITICAL: Sanitize session_id — hash any act_v1.* tokens
         # before they reach Langfuse, Kabarkan NATS, or Postgres sinks
         session_id = _sanitize_session_id(session_id)
 

@@ -208,7 +208,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "use_in_next_tools": True,
             },
             "session_token": {
-                "meaning": "SCT (sct_v1.*) — Session Capability Token. Pass to every downstream arif_* and federation organ call.",
+                "meaning": "SCT (act_v1.*) — Session Capability Token. Pass to every downstream arif_* and federation organ call.",
                 "use_in_next_tools": True,
                 "trust_role": "capability_bearer",
             },

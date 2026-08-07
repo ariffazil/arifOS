@@ -611,7 +611,7 @@ def arif_route(
     # SCT continuity: recover session from token when ChatGPT only has SCT
     if session_token and not session_id:
         try:
-            from arifosmcp.runtime.sct import resolve_standing
+            from arifosmcp.runtime.act_token import resolve_standing
 
             st = resolve_standing(
                 session_token=session_token,
@@ -964,7 +964,7 @@ def arif_triage(
 
     if mode == "preflight":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
-        from arifosmcp.runtime.sct import resolve_standing
+        from arifosmcp.runtime.act_token import resolve_standing
 
         # ── Organ health probe (local-only, synchronous) ──────────
         _organ_health: dict[str, dict[str, Any]] = {}

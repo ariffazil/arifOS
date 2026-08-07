@@ -40,7 +40,7 @@ from arifosmcp.runtime.federation_edges import (
 
 
 def _init_response_payload(
-    session_token: str = "sct_v1.fake.token",
+    session_token: str = "act_v1.fake.token",
     session_id: str = "SEAL-fake-001",
     actor_id: str = "f006-edge-probe",
 ):

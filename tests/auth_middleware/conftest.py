@@ -19,6 +19,6 @@ import pytest
 def valid_sct_token() -> str:
     """A syntactically valid SCT (not cryptographically valid — for middleware testing)."""
     return (
-        "sct_v1.eyJhY3RvciI6InRlc3QtYWdlbnQiLCJzaWQiOiJURVNULXNlc3Npb24iLC"
+        "act_v1.eyJhY3RvciI6InRlc3QtYWdlbnQiLCJzaWQiOiJURVNULXNlc3Npb24iLC"
         "JhdXRoIjoiTElNSVRFRF9NVVRBVEUiLCJleHAiOjk5OTk5OTk5OTl9.dummy_hmac"
     )

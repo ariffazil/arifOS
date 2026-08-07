@@ -63,7 +63,7 @@ def stage_01_session_token_validation(
         return False, reasons, None
 
     try:
-        from arifosmcp.runtime.sct import resolve_standing
+        from arifosmcp.runtime.act_token import resolve_standing
 
         standing = resolve_standing(
             session_token=session_token,
@@ -329,7 +329,7 @@ def stage_03b_ed25519_forge_verification(
             import hmac
 
             try:
-                from arifosmcp.runtime.sct import _get_signing_secret
+                from arifosmcp.runtime.act_token import _get_signing_secret
 
                 secret = _get_signing_secret()
                 expected = hmac.new(

@@ -220,7 +220,7 @@ async def arif_forge(
 
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.sct import resolve_standing
+            from arifosmcp.runtime.act_token import resolve_standing
 
             _standing = resolve_standing(
                 session_id=session_id,

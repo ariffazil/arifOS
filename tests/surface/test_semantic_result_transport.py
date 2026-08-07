@@ -68,7 +68,7 @@ class TestVerbosityMinimalPreservesSemantic:
             "call_hash": "sha256:abc",
             "trace_id": "trc-1",
             "signature": None,
-            "session_token": "sct_v1.eyJhY3RvciI6ImFyaWYifQ==",
+            "session_token": "act_v1.eyJhY3RvciI6ImFyaWYifQ==",
             "facts": ["observation 1", "observation 2"],
             "inferences": [{"claim": "verdict=SEAL", "confidence": 0.85, "basis": "kernel floors"}],
             "recommendations": [{"action": "continue"}],

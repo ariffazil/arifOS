@@ -2,12 +2,12 @@
 arifOS Federation — Shared SCT Auth Middleware
 ==============================================
 
-FastMCP middleware that validates arifOS Session Capability Tokens (sct_v1.*)
+FastMCP middleware that validates arifOS Session Capability Tokens (act_v1.*)
 on every request. Drop this into any federation organ for unified auth.
 
 Architecture:
-    - SCT rides in Authorization: Bearer sct_v1.<payload>.<hmac>
-    - Validation delegates to arifosmcp.runtime.sct.verify_sct()
+    - SCT rides in Authorization: Bearer act_v1.<payload>.<hmac>
+    - Validation delegates to arifosmcp.runtime.act.verify_sct()
     - Verified claims attached to ctx.set_state("sct_claims", ...)
     - Public endpoints (list_tools, arif_init, initialize) bypass auth
     - Fails CLOSED: any unauthenticated call to a gated tool = PermissionError
@@ -130,7 +130,7 @@ class SCTMiddleware(Middleware):
                 tool_name,
             )
             raise PermissionError(
-                "Authentication required. Provide SCT via Authorization: Bearer sct_v1.<...>"
+                "Authentication required. Provide SCT via Authorization: Bearer act_v1.<...>"
             )
 
         claims = await self._verify(token)
@@ -178,7 +178,7 @@ class SCTMiddleware(Middleware):
             auth = headers.get("authorization", "")
             if auth.startswith("Bearer "):
                 token = auth.removeprefix("Bearer ").strip()
-                if token.startswith("sct_v1.") or token.startswith("arifos.v1."):
+                if token.startswith("act_v1.") or token.startswith("arifos.v1."):
                     return token
             return None
         except ImportError:
@@ -192,7 +192,7 @@ class SCTMiddleware(Middleware):
     async def _verify(token: str) -> dict[str, Any] | None:
         """Delegate to kernel's verify_sct. Returns claims or None."""
         try:
-            from arifosmcp.runtime.sct import verify_sct
+            from arifosmcp.runtime.act_token import verify_sct
 
             return verify_sct(token)
         except ImportError:

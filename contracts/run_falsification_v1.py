@@ -109,7 +109,7 @@ def main() -> int:
     t = mcp(
         "arif_judge",
         {
-            "session_token": "sct_v1.fake.replay",
+            "session_token": "act_v1.fake.replay",
             "session_id": "SEAL-replay",
             "actor": "attacker",
             "actor_id": "attacker",

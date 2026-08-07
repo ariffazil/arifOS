@@ -7,7 +7,7 @@ This is the first membrane of authority — "who is allowed to touch the tools."
 
 Hardened 2026-08-02 (F13 SOVEREIGN directive): replaced stub implementation with
 SCT-backed binding proof. Each IdentityBinding now carries a Session Capability
-Token (sct_v1.*) minted via arifosmcp.runtime.sct.mint_sct, plus a VAULT999
+Token (act_v1.*) minted via arifosmcp.runtime.act.mint_sct, plus a VAULT999
 chain pointer (sealed_by) and an explicit reversibility handle.
 
 Forged 2026-08-02. Epistemic label: INT (interpretive mapping) · PLAUSIBLE.
@@ -40,7 +40,7 @@ class IdentityBinding:
     """
     Binds an actor to a session with proof of identity.
 
-    SCT-backed: each binding carries a Session Capability Token (sct_v1.*)
+    SCT-backed: each binding carries a Session Capability Token (act_v1.*)
     minted via runtime.sct.mint_sct. The binding_hash alone was insufficient —
     SCT provides a signed envelope that includes expiry, claims, and a
     VAULT999 chain pointer. This is the first membrane of authority.
@@ -60,7 +60,7 @@ class IdentityBinding:
     issuer: str = "arifos-kernel"  # Who issued this binding
     binding_hash: str = ""  # SHA-256 of binding proof
     # ── SCT-backed additions (forged 2026-08-02) ────────────────────────────
-    sct_token: str = ""  # Session Capability Token (sct_v1.*), minted by runtime/sct.py
+    sct_token: str = ""  # Session Capability Token (act_v1.*), minted by runtime/sct.py
     sealed_by: str = ""  # VAULT999 chain pointer for this binding
     reversibility_handle: str = "git revert <commit-sha>"  # F1 AMANAH
     epistemic_label: str = "INT (interpretive mapping) · PLAUSIBLE"
@@ -82,7 +82,7 @@ class IdentityBinding:
         # Lazy SCT mint — avoid circular import by deferring to call time.
         if not self.sct_token:
             try:
-                from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
+                from arifosmcp.runtime.act_token import mint_sct, unmeasured_apex
 
                 _token, _claims = mint_sct(
                     sid=self.session_id,

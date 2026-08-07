@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.runtime.sct import compute_authority_state
+from arifosmcp.runtime.act_token import compute_authority_state
 
 
 def _state(**kwargs):

@@ -182,4 +182,4 @@ def test_sct_fallback_is_process_local_random_and_strict_production_holds(
     monkeypatch.setenv("ARIFOS_ENV", "production")
     with pytest.raises(RuntimeError, match="strict production"):
         sct._get_signing_secret()
-    assert sct.verify_sct("sct_v1.invalid.invalid") is None
+    assert sct.verify_sct("act_v1.invalid.invalid") is None

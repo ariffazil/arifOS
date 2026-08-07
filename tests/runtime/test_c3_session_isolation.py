@@ -20,7 +20,7 @@ def test_validate_session_never_inherits_environment(
     monkeypatch.setenv("ARIFOS_SESSION_ID", "c3-live-valid-probe")
     monkeypatch.setenv("ARIFOS_ACTOR_ID", "previous-test-actor")
     monkeypatch.setattr(
-        "arifosmcp.runtime.sct.resolve_standing",
+        "arifosmcp.runtime.act.resolve_standing",
         lambda **_: _InvalidStanding(),
     )
 
@@ -40,7 +40,7 @@ def test_valid_session_actor_spelling_normalizes(
     actor_variant: str,
 ) -> None:
     monkeypatch.setattr(
-        "arifosmcp.runtime.sct.resolve_standing",
+        "arifosmcp.runtime.act.resolve_standing",
         lambda **_: _InvalidStanding(),
     )
 

@@ -247,7 +247,7 @@ def scenario_f() -> None:
         8088,
         "arif_judge",
         {
-            "session_token": "sct_v1.expired.deadbeef",
+            "session_token": "act_v1.expired.deadbeef",
             "session_id": "SEAL-fake-replay",
             "actor_id": "replay-attacker",
             "intent": "seal irreversible deploy",

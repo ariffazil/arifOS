@@ -165,7 +165,7 @@ def build_federation_envelope(
         identity_verified: Whether the actor identity was cryptographically verified
         authority_state:   Full AuthorityState dict from session (compute_authority_state)
         session_id:        Governing kernel session ID
-        session_token:     SCT session capability token string (sct_v1.*)
+        session_token:     SCT session capability token string (act_v1.*)
         authority:         Session authority band (OBSERVE_ONLY / LIMITED_MUTATE / FULL)
         allowed_scope:     Verbs the session allows
         intent:            Natural-language intent description
@@ -591,7 +591,7 @@ if __name__ == "__main__":
         actor_id="test-agent",
         identity_verified=True,
         session_id="sess-test-001",
-        session_token="sct_v1.testtoken",
+        session_token="act_v1.testtoken",
         authority="LIMITED_MUTATE",
         allowed_scope=["arif_observe", "arif_think"],
         intent="test bridge parity",
