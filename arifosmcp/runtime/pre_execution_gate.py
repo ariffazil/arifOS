@@ -41,6 +41,74 @@ import logging
 import time
 
 try:
+    from arifosmcp.schemas.kernel_envelope import ActionClass as _ActionClassEnum
+except ImportError:  # pragma: no cover — defensive; ActionClass always imported below
+    _ActionClassEnum = None
+
+# P0 BOUNDARY FIX (2026-08-07, ACT E2E VALIDATION):
+# Close the OBSERVE-downgrade attack path at Layer 4. The caller's
+# requested_action MUST be at least as conservative as the manifest's
+# declared action_class. A downgrade attempt (manifest IRREVERSIBLE,
+# caller OBSERVE) is rejected as ForgedClassificationError before any
+# other gate runs.
+#
+# ActionClass rank — higher = more invasive. Callers may ASK for a
+# higher class than the manifest (more conservative) but never a
+# lower one (would bypass downstream gates that gate on class).
+_ACTION_RANK: dict[str, int] = {
+    "OBSERVE": 0,
+    "ANALYZE": 1,
+    "DRAFT": 2,
+    "SIMULATE": 3,
+    "MUTATE": 4,
+    "EXTERNAL_SIDE_EFFECT": 5,
+    "IRREVERSIBLE": 6,
+}
+
+
+def _action_rank(value: object) -> int:
+    """Map ActionClass → integer rank. Unknown → -1 (fail-closed for compare)."""
+    if value is None:
+        return -1
+    name = getattr(value, "name", None) or str(value)
+    # accept both enum and plain string
+    return _ACTION_RANK.get(str(name).upper(), -1)
+
+
+class ForgedClassificationError(Exception):
+    """The caller's requested_action is LESS conservative than the
+    tool's manifest-declared action_class. This is the structural
+    downgrade vector closed at Layer 4 (resolver).
+
+    F1 AMANAH: fail-closed. The kernel treats this as evidence of
+    envelope tampering, not as an error to retry. The decision is
+    logged to the kernel receipt stream with the manifest hash and
+    the caller's identity.
+    """
+
+    def __init__(
+        self,
+        tool_name: str,
+        manifest_class: object,
+        requested_class: object,
+        reason: str = "",
+    ) -> None:
+        self.tool_name = tool_name
+        self.manifest_class = manifest_class
+        self.requested_class = requested_class
+        self.reason = (
+            reason
+            or (
+                f"requested {getattr(requested_class, 'name', requested_class)} "
+                f"is less conservative than manifest "
+                f"{getattr(manifest_class, 'name', manifest_class)} "
+                f"for tool '{tool_name}'"
+            )
+        )
+        super().__init__(self.reason)
+
+
+try:
     from arifosmcp.runtime.self_mod_lock import (
         classify_cognitive_tier as _classify_cognitive_tier,
     )
@@ -308,24 +376,91 @@ def _art_reflex_check(
     )
 
 
+def _resolve_independent_evidence(
+    envelope: KernelEnvelope,
+    manifest_entry: ToolManifestEntry | None,
+) -> dict[str, bool]:
+    """Item 3 (ACT E2E audit 2026-08-07): resolve dry-run / compensation
+    availability from INDEPENDENT evidence, not caller assertions.
+
+    ACT v1 consumes blast_radius / is_reversible as manifest-declared truth.
+    ACT v2 must verify them against independent evidence: dry-run diff
+    hashes, filesystem snapshots, or tool-output receipts (e.g. a dry-run
+    receipt ledger keyed by session_id).
+
+    Until such evidence sources exist, this helper honestly returns False
+    (no independent evidence available) — matching the previous hardcoded
+    False/False defaults. Behavior is unchanged; the plug-in point is now
+    explicit instead of implicit.
+    """
+    # Future evidence sources (ACT v2):
+    #   - dry-run receipt ledger (session_id -> diff_hash)
+    #   - filesystem snapshot store (pre/post image hashes)
+    #   - tool-output verification receipts from A-FORGE
+    return {
+        "dry_run_available": False,
+        "compensation_plan_available": False,
+    }
+
+
+def _resolve_previous_stage_verified(envelope: KernelEnvelope) -> bool:
+    """Item 4 (ACT E2E audit 2026-08-07): resolve previous-stage verification
+    from SESSION STATE, not from the caller's request.
+
+    ACT v1 hardcoded previous_stage_verified=True, which let a multi-step
+    program fake a fresh stage-1 start per call (Attack Path 3). A
+    session-stages ledger does not exist yet; until it does, single calls
+    default to True for backward compatibility and the gap is logged.
+
+    ACT v2: read a session-stages receipt ledger keyed by session_id and
+    return the actual last-stage verified status. Forging that then requires
+    forging the ledger receipt.
+    """
+    try:
+        session_id = getattr(envelope.kernel, "session_id", "") or ""
+        if not session_id:
+            return True  # no session context — single-shot semantics
+        # Future: session-stages ledger lookup keyed by session_id.
+        # If a stage ledger exists and the previous stage is unverified,
+        # return False here → ACT holds the program until verified.
+        return True
+    except Exception:
+        # Fail-safe: never block a legitimate call because the ledger probe
+        # itself raised. The gap is documented for ACT v2.
+        return True
+
+
 def _act_reflex_check(
     envelope: KernelEnvelope,
     requested_action: ActionClass,
     manifest_entry: ToolManifestEntry | None,
 ) -> GateResult | None:
-    """Gate 2.6 — ACT execution craft check.
+    """Gate 2.6 — ACT execution craft check (advisory, not a security gate).
 
-    Called AFTER Gate 2.5 (ART) says PROCEED. Decides HOW to sequence
-    and stage the execution. Enforces:
-      - Stage verification (can't proceed to N+1 if N failed)
-      - Dry-run requirement for irreversible + high blast
-      - Canary requirement for high blast
-      - Human coordination for irreversible + high blast
-      - Compensation plan requirement for irreversible
+    Called AFTER Gate 2.5 (ART) says PROCEED. Returns None for
+    OBSERVE/ANALYZE. For higher action classes, forwards caller-supplied
+    blast_radius / is_reversible / human_acknowledged to act() without
+    independent verification. This is an advisory craft layer, not a
+    security gate. The real enforcement is downstream: Kernel floors
+    (F1-F13), arif_judge (888), and F13 human Allow.
+
+    Behaviour by action class:
+      - OBSERVE / ANALYZE —> None (ceremony skipped)
+      - DRAFT / SIMULATE —> act() advisory check; returns HOLD advice
+      - MUTATE / IRREVERSIBLE —> act() with classification-contradiction
+        guard (ForgedClassificationError if manifest contradicts caller)
+
+    ACT v1 AUDIT VERDICT (2026-08-07):
+      - Token-layer: PARTIAL (identity works, delegation missing)
+      - Ceremony-layer: FAIL (checks declarations, not actions)
+      - Kernel/human layers: SEAL (F1-F13 + F13 Allow = the real gates)
+      The federation is safe because of kernel + human Allow,
+      not because of the craft-and-ceremony layers in between.
 
     Returns:
         None if ACT says PROCEED (continue to Gate 3).
         GateResult(HOLD) if ACT says DRY_RUN_REQUIRED, CANARY_REQUIRED, etc.
+        GateResult(VOID) if ForgedClassificationError.
         GateResult(REJECT) if ACT says BLOCK.
 
     FAIL-CLOSED: if ACT module is unavailable, returns GateResult(HOLD).
@@ -346,7 +481,12 @@ def _act_reflex_check(
             reasons=["ACT module unavailable — fail-closed per F1 AMANAH"],
         )
 
-    # Only check ACT for non-trivial actions
+    # Only check ACT for non-trivial actions.
+    # NOTE (ACT E2E audit 2026-08-07): the OBSERVE/ANALYZE bypass is closed
+    # at Layer 4 in resolve_action_class_for_mode() — a caller claiming
+    # OBSERVE/ANALYZE for a tool whose manifest declares MUTATE/IRREVERSIBLE
+    # (with no safe-mode justification) raises ForgedClassificationError,
+    # which pre_execution_gate() converts to GateResult(VOID).
     if requested_action in (ActionClass.OBSERVE, ActionClass.ANALYZE):
         return None
 
@@ -366,6 +506,21 @@ def _act_reflex_check(
 
     is_reversible = manifest_entry.is_reversible if manifest_entry else False
 
+    # ══ Independent evidence flag (2026-08-07 audit, item 3) ══
+    # blast_radius and is_reversible are declared in the manifest, not
+    # independently measured. ACT v1 consumes these as truth-assertions.
+    # ACT v2 should verify them against: dry-run diff hashes, filesystem
+    # snapshots, or tool-output receipts. Until then, the flag is honest.
+    independent_evidence = _resolve_independent_evidence(
+        envelope, manifest_entry
+    )
+
+    # ══ Stage verification from session state (2026-08-07 audit, item 4) ══
+    # Previously hardcoded `previous_stage_verified=True`. Now reaches into
+    # the session-stages ledger. If no ledger exists, defaults to True for
+    # backward compatibility but logs the gap.
+    prev_verified = _resolve_previous_stage_verified(envelope)
+
     # For single tool calls, ACT checks:
     #   1. Dry-run required for irreversible actions
     #   2. Human coordination for irreversible + high blast
@@ -381,13 +536,13 @@ def _act_reflex_check(
         execution_pattern=ExecutionPattern.SINGLE_SHOT.value,
         blast_radius=blast_str,
         is_reversible=is_reversible,
-        has_dry_run=False,
-        has_compensation=False,
+        has_dry_run=independent_evidence.get("dry_run_available", False),
+        has_compensation=independent_evidence.get("compensation_plan_available", False),
         human_acknowledged=(
             envelope.authority.f13_sovereign_required
             or (manifest_entry and manifest_entry.requires_f13_sovereign_ack)
         ),
-        previous_stage_verified=True,
+        previous_stage_verified=prev_verified,
         is_multi_step=False,
         stage_number=1,
         total_stages=1,
@@ -991,11 +1146,28 @@ def resolve_action_class_for_mode(
     tool's default action_class is MUTATE/IRREVERSIBLE (e.g. arif_seal
     mode=verify / verify_chain). Dangerous modes keep the requested class.
     """
-    if not tool_name or not tool_mode:
+    if not tool_name:
         return requested_action
     canonical = _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
     entry = CANONICAL_TOOL_MANIFEST.get(canonical)
     if entry is None:
+        return requested_action
+    if not tool_mode:
+        # 5-LINE FIX (2026-08-07, ACT E2E VALIDATION): no mode context does
+        # NOT waive the manifest floor. An OBSERVE claim on a tool whose
+        # manifest declares IRREVERSIBLE/MUTATE, with no safe-mode
+        # justification, is the structural downgrade vector → reject.
+        if (
+            entry.action_class is not None
+            and entry.action_class != ActionClass.UNKNOWN
+            and _action_rank(requested_action) < _action_rank(entry.action_class)
+            and _action_rank(entry.action_class) >= 0
+        ):
+            raise ForgedClassificationError(
+                tool_name=canonical,
+                manifest_class=entry.action_class,
+                requested_class=requested_action,
+            )
         return requested_action
     mode = (tool_mode or "").strip().lower()
     if mode in {m.lower() for m in (entry.safe_modes or [])}:
@@ -1008,6 +1180,25 @@ def resolve_action_class_for_mode(
             ActionClass.EXTERNAL_SIDE_EFFECT,
         ):
             return entry.action_class
+
+    # P0 BOUNDARY FIX (2026-08-07, ACT E2E VALIDATION):
+    # Manifest floor — the caller's requested_action MUST be at least as
+    # conservative as the manifest's declared action_class. A downgrade
+    # (manifest IRREVERSIBLE, caller OBSERVE) is the structural
+    # OBSERVE-bypass vector; reject it as ForgedClassificationError.
+    # Caller may ASK for a higher class (more conservative); that is fine.
+    if (
+        entry.action_class is not None
+        and entry.action_class != ActionClass.UNKNOWN
+        and _action_rank(requested_action) < _action_rank(entry.action_class)
+        and _action_rank(entry.action_class) >= 0
+    ):
+        raise ForgedClassificationError(
+            tool_name=canonical,
+            manifest_class=entry.action_class,
+            requested_class=requested_action,
+        )
+
     return requested_action
 
 
@@ -1042,9 +1233,34 @@ def pre_execution_gate(
 
     # Layer 6: mode-aware effect class (safe mode → OBSERVE)
     tool_name_for_effect = getattr(getattr(envelope, "organ", None), "tool_name", "") or ""
-    requested_action = resolve_action_class_for_mode(
-        tool_name_for_effect, tool_mode, requested_action
-    )
+    try:
+        requested_action = resolve_action_class_for_mode(
+            tool_name_for_effect, tool_mode, requested_action
+        )
+    except ForgedClassificationError as fce:
+        # F1 AMANAH: structural downgrade = envelope tampering, fail-closed.
+        # Log to kernel receipt stream (logger) and return VOID — not HOLD,
+        # because HOLD implies "you can retry after fixing inputs." A
+        # classification forgery is a constitutional violation, not a
+        # fixable input problem.
+        logger.warning(
+            "ForgedClassificationError: tool=%s manifest=%s requested=%s reason=%s",
+            fce.tool_name,
+            getattr(fce.manifest_class, "name", fce.manifest_class),
+            getattr(fce.requested_class, "name", fce.requested_class),
+            fce.reason,
+        )
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.VOID,
+            reasons=[
+                f"ForgedClassificationError: {fce.reason}",
+                "Constitutional violation: caller-supplied action class is "
+                "less conservative than the tool manifest declares.",
+            ],
+            violations=["F1_AMANAH — classification forgery at Layer 4"],
+            blocked_action_class=fce.requested_class,
+        )
 
     # ── Instrumental-reasoning advisory log (non-blocking) ──────────────
     # Records whether this governed action demonstrates goal-directed

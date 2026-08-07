@@ -60,8 +60,9 @@ BAND_LIMITED_MUTATE = "LIMITED_MUTATE"
 BAND_FULL = "FULL"
 BAND_SOVEREIGN = "SOVEREIGN"
 
-VALID_BANDS = frozenset({BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN,
-                          BAND_SYSTEM_CRON_WRITE})  # T3 grant 2026-08-07 by 888 SOVEREIGN
+VALID_BANDS = frozenset(
+    {BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN, BAND_SYSTEM_CRON_WRITE}
+)  # T3 grant 2026-08-07 by 888 SOVEREIGN
 
 # Methods strong enough to elevate mutation/seal authority.
 # identity_claim is a WEAK proof class: may bind name, never grant mutation.
@@ -425,7 +426,9 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
     # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE is exempt —
     # the band itself encodes the scoped write permission; collapse only
     # happens if the verification_method is not in the strong set.
-    if (not verified or not _is_strong_method(verification_method)) and band != BAND_SYSTEM_CRON_WRITE:
+    if (
+        not verified or not _is_strong_method(verification_method)
+    ) and band != BAND_SYSTEM_CRON_WRITE:
         if band != BAND_OBSERVE_ONLY:
             logger.info(
                 "Authority collapse: verified=%s method=%s band=%s→OBSERVE_ONLY (claimed=%s)",
@@ -438,7 +441,12 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
 
     # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE allows scoped
     # mutation (vault seal). Cannot escalate beyond this band.
-    mutation_allowed = band in {BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN, BAND_SYSTEM_CRON_WRITE}
+    mutation_allowed = band in {
+        BAND_LIMITED_MUTATE,
+        BAND_FULL,
+        BAND_SOVEREIGN,
+        BAND_SYSTEM_CRON_WRITE,
+    }
     # Seal is SOVEREIGN-band only per AuthorityStanding invariant. Elevate
     # verified human principal (arif) with strong method from FULL → SOVEREIGN
     # so seal_allowed can open without inventing a second authority surface.
@@ -453,9 +461,8 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
         mutation_allowed = True
     # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE allows vault seal.
     # Cannot perform session_close (5-phase macro) — only single-shot seals.
-    seal_allowed = (
-        band in {BAND_SOVEREIGN, BAND_SYSTEM_CRON_WRITE}
-        and _is_strong_method(verification_method)
+    seal_allowed = band in {BAND_SOVEREIGN, BAND_SYSTEM_CRON_WRITE} and _is_strong_method(
+        verification_method
     )
 
     # Final AC belt: if somehow mutation_allowed with unverified, hard-deny.
@@ -791,11 +798,11 @@ def _apply_authority_surface_values(
         clarity["actor_bound"] = verified
         clarity["evidence_honesty"] = "CLEAR" if verified else "FUZZY"
 
-    # sct_claims.av must not claim verified if standing denies it
-    sct = response.get("sct_claims")
-    if isinstance(sct, dict):
-        sct["av"] = verified
-        sct["auth"] = band
+    # act_claims.av must not claim verified if standing denies it
+    act = response.get("act_claims")
+    if isinstance(act, dict):
+        act["av"] = verified
+        act["auth"] = band
 
     # meta.authority_mode residual
     meta = response.get("meta")
@@ -829,9 +836,7 @@ def _apply_authority_surface_values(
             or []
         )
         _has_hold = (
-            bool(_ff)
-            or _ev in ("HOLD", "VOID", "888_HOLD")
-            or _cv in ("HOLD", "VOID", "888_HOLD")
+            bool(_ff) or _ev in ("HOLD", "VOID", "888_HOLD") or _cv in ("HOLD", "VOID", "888_HOLD")
         )
         # STAB-2026-08-08j: FLOOR_HONESTY.
         # floor_passed = None when no floors actually measured.
@@ -941,13 +946,13 @@ def _sync_authority_surfaces_from_standing(
                 },
             )
             response["session_token"] = token
-            if isinstance(response.get("sct_claims"), dict) or "sct_claims" in response:
-                response["sct_claims"] = {
+            if isinstance(response.get("act_claims"), dict) or "act_claims" in response:
+                response["act_claims"] = {
                     "auth": claims.get("auth", band),
                     "av": claims.get("av", verified),
                     "exp": claims.get("exp"),
                     "sid": claims.get("sid", standing.session_id),
-                    "sct_v": claims.get("sct_v"),
+                    "act_v": claims.get("act_v"),
                 }
             if isinstance(birth, dict):
                 birth["session_token"] = token

@@ -813,12 +813,12 @@ def _project_light(
 
         if not actor_verified:
             out["session_token"] = None
-            out["standing_source"] = "no_sct_unverified"
+            out["standing_source"] = "no_act_unverified"
             out["session_birth"]["session_token"] = None
             out["session_birth"]["session_token_status"] = (
                 "DENY: actor not cryptographically verified"
             )
-            out["sct_claims"] = None
+            out["act_claims"] = None
             raise RuntimeError(
                 "F-AUDIT-CLAUDE-2026-08-02: token not minted — actor_verified=False. "
                 "Caller must sign challenge_nonce for sovereign key re-attestation."
@@ -876,14 +876,14 @@ def _project_light(
         )
         out["session_token"] = _token
         out["apex_scalars"] = dict(_apex)
-        out["standing_source"] = "sct"
+        out["standing_source"] = "act"
         out["session_birth"]["session_token"] = _token
-        out["sct_claims"] = {
+        out["act_claims"] = {
             "auth": _claims.get("auth"),
             "av": _claims.get("av"),
             "exp": _claims.get("exp"),
             "sid": _claims.get("sid"),
-            "sct_v": _claims.get("sct_v"),
+            "act_v": _claims.get("act_v"),
         }
         # 2026-08-04 333-AGI + audit fix: Session store bridge.
         # SCT returns sid=SEAL-* while identity bind uses sid_sess-*.
@@ -901,7 +901,7 @@ def _project_light(
                 "verification_method": "system_exempt",
                 "verified": True,
                 "identity_verified": True,
-                "sct_sid": _sct_sid,
+                "act_sid": _sct_sid,
                 "birth_sid": sid,
             }
             try:
@@ -912,16 +912,16 @@ def _project_light(
                 if sid and sid != _sct_sid:
                     _alias = dict(_bridge_rec)
                     _alias["session_id"] = sid
-                    _alias["sct_sid"] = _sct_sid
+                    _alias["act_sid"] = _sct_sid
                     upsert_session_record(sid, _alias)
                 out["session_bridge"] = {
                     "status": "bound",
-                    "sct_sid": _sct_sid,
+                    "act_sid": _sct_sid,
                     "birth_sid": sid,
                 }
             except Exception as _bridge_exc:
                 logger.error(
-                    "session_bridge_failed sct_sid=%s birth_sid=%s err=%s",
+                    "session_bridge_failed act_sid=%s birth_sid=%s err=%s",
                     _sct_sid,
                     sid,
                     _bridge_exc,
@@ -3502,7 +3502,7 @@ def arif_init(
         sess_data = _SESSIONS.get(target_sid, {})
         claims_data = (
             {
-                "sct_v": 1,
+                "act_v": 1,
                 "sid": target_sid,
                 "actor": sess_data.get("actor_id") or "arif",
                 "auth": sess_data.get("authority", "OBSERVE_ONLY"),

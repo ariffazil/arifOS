@@ -8,7 +8,7 @@ on every request. Drop this into any federation organ for unified auth.
 Architecture:
     - SCT rides in Authorization: Bearer act_v1.<payload>.<hmac>
     - Validation delegates to arifosmcp.runtime.act.verify_sct()
-    - Verified claims attached to ctx.set_state("sct_claims", ...)
+    - Verified claims attached to ctx.set_state("act_claims", ...)
     - Public endpoints (list_tools, arif_init, initialize) bypass auth
     - Fails CLOSED: any unauthenticated call to a gated tool = PermissionError
 
@@ -146,7 +146,7 @@ class SCTMiddleware(Middleware):
         fc = context.fastmcp_context
         if fc is not None:
             try:
-                await fc.set_state("sct_claims", claims)
+                await fc.set_state("act_claims", claims)
                 await fc.set_state("actor_id", claims.get("actor", "anonymous"))
                 await fc.set_state("session_id", claims.get("sid", ""))
                 await fc.set_state("auth_level", claims.get("auth", "ANONYMOUS"))
@@ -178,7 +178,17 @@ class SCTMiddleware(Middleware):
             auth = headers.get("authorization", "")
             if auth.startswith("Bearer "):
                 token = auth.removeprefix("Bearer ").strip()
-                if token.startswith("act_v1.") or token.startswith("arifos.v1."):
+                # P2.1 DUAL-ACCEPT (2026-08-07 audit): accept act_v1 (canonical),
+                # sct_v1 (legacy, still in migration window), and arifos.v1
+                # (legacy verify-only). verify_sct() dual-accepts all three —
+                # the whitelist must not reject a legacy token before the
+                # verifier gets to accept it. When the migration window closes,
+                # delete the sct_v1 branch here AND in verify_sct() together.
+                if (
+                    token.startswith("act_v1.")
+                    or token.startswith("sct_v1.")
+                    or token.startswith("arifos.v1.")
+                ):
                     return token
             return None
         except ImportError:

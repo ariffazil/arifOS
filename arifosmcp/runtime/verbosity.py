@@ -132,7 +132,7 @@ _MINIMAL_STRIP_TOP_LEVEL = {
     "clarity_contract",
     "apex_scalars",
     "standing_source",
-    "sct_claims",
+    "act_claims",
     "work_contract",
     "session_token",
     "session_birth",
@@ -389,9 +389,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         _v = str(minimal.get("verdict") or response.get("verdict") or "").upper()
         if _v in ("SEAL", "OK", "COMPLETED", "SYUBHAH", "SABAR", ""):
             # SYUBHAH is epistemic doubt on content, not session DENY
-            minimal["effective_verdict"] = (
-                "SEAL" if _v in ("SEAL", "OK", "COMPLETED", "") else _v
-            )
+            minimal["effective_verdict"] = "SEAL" if _v in ("SEAL", "OK", "COMPLETED", "") else _v
             minimal["canonical_verdict"] = "PROCEED"
     elif isinstance(_cc, dict) and _cc.get("hold_required"):
         if minimal.get("effective_verdict") is None:
