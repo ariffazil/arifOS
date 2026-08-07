@@ -4260,7 +4260,11 @@ def _enforce_nine_signal(
                     "session_id": session_id,
                     "actor_id": actor_id,
                 },
-                "delta_S": 0.0,
+                # STAB-2026-08-07i: post_observe_gate HOLD did NOT measure entropy.
+                # Pass None through. Honoring doctrine: 'half-built is worse
+                # than absent.' Hardcoded 0.0 fabricated certainty when the
+                # gate blocked execution before any measurement.
+                "delta_S": None,
                 "timestamp": None,
                 "reasons": gate_result.get("reasons")
                 or [
@@ -4341,7 +4345,8 @@ def _enforce_nine_signal(
                             "blocked": True,
                             "session_id": session_id,
                             "actor_id": actor_id,
-                            "delta_S": 0.0,
+                            # STAB-2026-08-07i: SABAR_HOLD did NOT measure entropy.
+                            "delta_S": None,
                             "timestamp": None,
                             "reasons": [
                                 f"SABAR_HOLD: floors={','.join(_sabar.get('violated_floors', []))}; "
@@ -8844,7 +8849,8 @@ def _sabar(
         "tool": tool,
         "result": {},
         "meta": meta,
-        "delta_S": 0.0,
+        # STAB-2026-08-07i: SABAR did NOT measure entropy. Pass None through.
+        "delta_S": None,
         "timestamp": timestamp,
         "call_hash": call_hash,
         "trace_id": _sabar_trace_id,
@@ -8908,7 +8914,8 @@ def _error_envelope(
         "result": {},
         "error": error,
         "meta": {},
-        "delta_S": 0.0,
+        # STAB-2026-08-07i: ERROR envelope did NOT measure entropy.
+        "delta_S": None,
         "timestamp": timestamp,
         "call_hash": call_hash,
         "called_from_kernel": True,
