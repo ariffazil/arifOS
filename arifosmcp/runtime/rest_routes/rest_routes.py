@@ -3129,6 +3129,18 @@ def register_rest_routes(
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
             "runtime_floors": thermo.get("floors", {}),
+            # ── SC4 (2026-08-07): Annotate floors with measurement status ──
+            # 0.0 is ambiguous: could mean "floor at zero" or "never measured".
+            # runtime_floors_status adds measured/unmeasured/pass/fail per floor.
+            # Consumers can now distinguish "F9 unmeasured" from "F9 failed".
+            "runtime_floors_status": {
+                fid: {
+                    "score": score,
+                    "status": _floor_status_strict(fid, score),
+                    "measured": _floor_status_strict(fid, score) != "unmeasured",
+                }
+                for fid, score in thermo.get("floors", {}).items()
+            },
             # RASA DERITA Phase 3 — schema load receipt (not a public tool)
             "rasa_derita": __import__(
                 "arifosmcp.kernel.rasa_derita_gates", fromlist=["schema_load_receipt"]
