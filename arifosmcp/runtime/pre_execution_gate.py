@@ -96,14 +96,11 @@ class ForgedClassificationError(Exception):
         self.tool_name = tool_name
         self.manifest_class = manifest_class
         self.requested_class = requested_class
-        self.reason = (
-            reason
-            or (
-                f"requested {getattr(requested_class, 'name', requested_class)} "
-                f"is less conservative than manifest "
-                f"{getattr(manifest_class, 'name', manifest_class)} "
-                f"for tool '{tool_name}'"
-            )
+        self.reason = reason or (
+            f"requested {getattr(requested_class, 'name', requested_class)} "
+            f"is less conservative than manifest "
+            f"{getattr(manifest_class, 'name', manifest_class)} "
+            f"for tool '{tool_name}'"
         )
         super().__init__(self.reason)
 
@@ -511,9 +508,7 @@ def _act_reflex_check(
     # independently measured. ACT v1 consumes these as truth-assertions.
     # ACT v2 should verify them against: dry-run diff hashes, filesystem
     # snapshots, or tool-output receipts. Until then, the flag is honest.
-    independent_evidence = _resolve_independent_evidence(
-        envelope, manifest_entry
-    )
+    independent_evidence = _resolve_independent_evidence(envelope, manifest_entry)
 
     # ══ Stage verification from session state (2026-08-07 audit, item 4) ══
     # Previously hardcoded `previous_stage_verified=True`. Now reaches into
@@ -1403,8 +1398,8 @@ def pre_execution_gate(
             required_human_ack=True,
         )
 
-    # ── Gate 4: SCT verification (identity propagation) ────────────
-    # Every action with a session_token must carry a cryptographically valid SCT.
+    # ── Gate 4: ACT verification (identity propagation) ─────────────
+    # Every action with a session_token must carry a cryptographically valid ACT.
     # This ensures identity binding survives the kernel→organ bridge.
     _sct = (envelope.session_token or "").strip()
     if _sct:
@@ -1416,16 +1411,16 @@ def pre_execution_gate(
                 return GateResult(
                     envelope=envelope,
                     verdict=GateVerdict.HOLD,
-                    reasons=["SCT present but actor not bound — identity propagation blocked"],
-                    violations=["F11_AUDIT — unbound SCT on cross-organ call"],
+                    reasons=["ACT present but actor not bound — identity propagation blocked"],
+                    violations=["F11_AUDIT — unbound ACT on cross-organ call"],
                     blocked_action_class=requested_action,
                 )
         except Exception as _sct_err:
             return GateResult(
                 envelope=envelope,
                 verdict=GateVerdict.HOLD,
-                reasons=[f"SCT verification failed: {_sct_err}"],
-                violations=["F11_AUDIT — SCT invalid"],
+                reasons=[f"ACT verification failed: {_sct_err}"],
+                violations=["F11_AUDIT — ACT invalid"],
                 blocked_action_class=requested_action,
             )
 

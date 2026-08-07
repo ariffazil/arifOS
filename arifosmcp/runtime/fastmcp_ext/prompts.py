@@ -823,7 +823,7 @@ Constraints:
             "Probes kernel, organs, binds session with lane+profile detection, "
             "loads context. Lane detection at init. Governance Profile axis "
             "(OBSERVE/BUILD/MUTATE/DEPLOY). FLAME/ATLAS333/EUREKA777/Graphiti "
-            "demoted to intent-driven optional plugins. SCT token stored for seal. "
+            "demoted to intent-driven optional plugins. ACT token stored for seal. "
             "Collapsed from 10 to 4 steps under F13 architectural review 2026-08-07."
         ),
         meta={
