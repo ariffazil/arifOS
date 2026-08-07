@@ -4983,7 +4983,11 @@ def _enforce_nine_signal(
             # scoped verdicts. They MUST agree. Override the inner value with a
             # derivation from the outer's authoritative fields.
             try:
-                _outer_verdict = str(envelope.get("effective_verdict") or envelope.get("verdict") or "").upper()  # STAB-2026-08-07b: pin on effective, not raw
+                # STAB-2026-08-07c: derive from MULTIPLE sources. Outer verdict
+                # at this layer may be 'pending'; effective_verdict is computed
+                # downstream. verdicts.action.state IS authoritative and set
+                # BEFORE this override.
+                _outer_verdict = str(envelope.get("effective_verdict") or envelope.get("verdict") or "").upper()
                 _outer_reasons = envelope.get("reasons", []) or []
                 _scoped_v = envelope.get("verdicts", {}) or {}
                 _substrate_state = (
@@ -4996,18 +5000,26 @@ def _enforce_nine_signal(
                     if isinstance(_scoped_v.get("session"), dict)
                     else "UNKNOWN"
                 )
-                # Extract failed_floors from reasons[] (e.g. "Constitutional HOLD: L02,L03")
+                _action_state = (
+                    _scoped_v.get("action", {}).get("state", "UNKNOWN")
+                    if isinstance(_scoped_v.get("action"), dict)
+                    else "UNKNOWN"
+                )
                 _failed_floors: list[str] = []
                 for _r in _outer_reasons if isinstance(_outer_reasons, list) else []:
                     _rs = str(_r)
-                    # Patterns: "Constitutional HOLD: L02, L03, L07" or "failed_floors:F2,F3"
                     if "L0" in _rs or "L1" in _rs or "F0" in _rs or "F1" in _rs:
                         for tok in _rs.replace(":", " ").replace(",", " ").split():
                             tok = tok.strip()
                             if tok.startswith(("L0", "L1", "F0", "F1")) and len(tok) >= 3:
                                 _failed_floors.append(tok)
                 _failed_floors = sorted(set(_failed_floors))
-                _is_hold = _outer_verdict in ("HOLD", "VOID", "888_HOLD")
+                # HARD RULE: any HOLD/VOID signal anywhere = floor_passed=False.
+                # No exceptions. Substrate drift also blocks.
+                _is_hold = (
+                    _outer_verdict in ("HOLD", "VOID", "888_HOLD")
+                    or _action_state in ("HOLD", "VOID", "DENIED")
+                )
                 _is_degraded = _substrate_state in ("DEGRADED", "FAIL")
                 # SINGLE SOURCE OF TRUTH: derive from outer verdict + failed_floors + scoped.
                 envelope["constitutional_check"] = {

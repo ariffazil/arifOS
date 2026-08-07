@@ -326,6 +326,31 @@ def attach_effective_verdict(
     response["effective_verdict"] = effective.verdict
     response["reason_code"] = effective.reason_code
     response["next_action"] = effective.next_action
+    # STAB-2026-08-07b: this is the LAST writer of effective_verdict.
+    # Re-derive floor_passed HERE so it cannot disagree with the verdict
+    # that just landed. effective_verdict in {HOLD, VOID, 888_HOLD} → False.
+    # failed_floors populated → False. This is the single source of truth;
+    # every other writer must defer to this one.
+    cc = response.get("constitutional_check")
+    if isinstance(cc, dict):
+        _ev = effective.verdict
+        _ff = (
+            response.get("failed_floors")
+            or response.get("violated_floors")
+            or (response.get("meta", {}) or {}).get("violated_laws")
+            or (cc.get("failed_floors") or [])
+            or []
+        )
+        _has_hold = _ev in ("HOLD", "VOID", "888_HOLD") or bool(_ff)
+        cc["floor_passed"] = not _has_hold
+        cc["hold_required"] = _has_hold
+        cc["failed_floors"] = list(_ff) if _ff else cc.get("failed_floors", [])
+        if _has_hold and not cc.get("hold_reason"):
+            cc["hold_reason"] = (
+                f"STAB-2026-08-07b canonical: effective_verdict={_ev} "
+                f"failed_floors={list(_ff)}"
+            )
+        cc["_derivation"] = "attach_effective_verdict:last_writer"
     return response
 
 
