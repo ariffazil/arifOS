@@ -740,10 +740,24 @@ async def _arif_kernel_intercept(
         "next_safe_action": next_act,
         "measurement_used": _has_measurement,
     }
+    # STAB-2026-08-07b: floor_passed must derive from the SAME source as
+    # constitutional_check elsewhere — effective_verdict + failed_floors.
+    # The OLD code hardcoded floor_passed=True here because the kernel
+    # intercept only does authority check, not constitutional check.
+    # Two consequences of that lie:
+    #   1. arif_judge returned EVIDENCE_EMPTY HOLD but wire showed floor_passed=True
+    #   2. A model reading both fields sees "HOLD + passed" — contradiction
+    # Now: only floor_passed=True if the OUTER effective_verdict is SEAL/SABAR
+    # AND there are no failed floors. Anything else → floor_passed=False.
+    _outer_eff = str(base.get("effective_verdict", "")).upper()
+    _outer_failed = base.get("failed_floors") or []
+    _is_hold_or_void = _outer_eff in ("HOLD", "VOID", "888_HOLD") or bool(_outer_failed)
     base["constitutional_check"] = {
-        "floor_passed": True,
-        "hold_required": is_l5,
+        "floor_passed": not _is_hold_or_void,
+        "hold_required": _is_hold_or_void or is_l5,
         "agency_level": target_aff.get("agency_level"),
+        "_derivation": "arif_kernel_intercept+effective_verdict+failed_floors",
+        "_stab_fix": "2026-08-07b-floor-passed-derivation",
     }
 
     # ── PR4: emit SCT decision event for kernel observability ──
