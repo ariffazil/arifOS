@@ -7,7 +7,7 @@ DITEMPA BUKAN DIBERI — Reality is forged, not given.
 MCP Prompts (spec 2026-07-28): user-controlled templates exposed via
 prompts/list + prompts/get. Clients discover, select, and fill arguments.
 See: https://modelcontextprotocol.io/specification/2026-07-28/server/prompts
-FastMCP 4 aligned. Streamable HTTP transport. JSON Schema 2020-12.
+FastMCP 3.4.6 (stable). MCP Python SDK v2. arifOS runs Streamable HTTP transport.
 
 These prompts are the invariant spine of agentic work:
 general, modular, orthogonal, timeless, and repo-agnostic.
@@ -414,9 +414,14 @@ Pick from the finite set, not free-form:
   arif_init · arif_observe · arif_think · arif_route ·
   arif_memory · arif_judge · arif_forge · arif_seal
 
-  Internal (not on wire — routed via canonical tools):
-  arif_critique → arif_think(mode=critique)  ·  arif_compose → arif_forge(mode=compose)
-  arif_verify   → internal Ed25519 padlock   ·  arif_session_init → arif_init
+  Internal aliases (not on wire; note live-mode status):
+  arif_critique  → NO MODE on arif_think (dead path — CRITIQUE_PROMPT is legacy)
+  arif_compose   → NO MODE on arif_forge (was planned, never implemented)
+  arif_verify    → arif_think(mode=verify) — this one EXISTS
+  arif_session_init → arif_init (canonical name)
+  arif_vault_seal   → arif_seal (canonical name)
+  arif_judge_deliberate → arif_judge (canonical name)
+  arif_bridge_connect  → arif_route(mode=bridge) — EXISTS
 
 ## INHERITED CONTEXT (load before first tool call)
   1. carry_forward.json — prior assumption ledger
