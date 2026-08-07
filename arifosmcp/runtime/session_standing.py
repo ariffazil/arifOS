@@ -322,18 +322,21 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
     """
     record = _read_session_record(session_id)
 
-    # Claimed id prefers the caller argument (THIS request), not a stale record.
-    # Case-normalize at intake (Claude audit 2026-07-17): ARIF → arif.
-    claimed_id = actor_id or (record.get("actor_id") if record else None) or "anonymous"
-    claimed_id = str(claimed_id).strip()
+    # STAB-2026-08-07: Preserve caller's original claimed_id verbatim.
+    # The normalizer is for canonical authority matching (is_sovereign checks),
+    # NOT for rewriting the human-visible claimed_id. Claude audit: two values
+    # in same payload (actor_id vs standing.actor.claimed_id) is dual-truth.
+    original_claimed_id = str(actor_id or "").strip() or "anonymous"
+    normalized_id = None
     try:
         from arifosmcp.runtime.governance_identity import normalize_actor_id
 
-        _norm = normalize_actor_id(claimed_id)
-        if _norm:
-            claimed_id = _norm
+        normalized_id = normalize_actor_id(original_claimed_id)
     except Exception:
-        claimed_id = claimed_id.lower() if claimed_id else "anonymous"
+        pass
+    # Use normalized form for canonical matching, original for display
+    claimed_id = original_claimed_id
+    canonical_match_id = normalized_id or original_claimed_id
 
     if record:
         verification_method = _resolve_verification_method(record)
@@ -803,11 +806,30 @@ def _apply_authority_surface_values(
     actor_block = response.get("actor")
     if isinstance(actor_block, dict):
         actor_block["authority_level"] = band
-    # Constitutional check
+    # Constitutional check — single source of truth: effective_verdict + failed_floors.
+    # Bug fixed 2026-08-07: previously derived from `band` (authority), which is a
+    # session-state field, not a constitutional truth. An anonymous session returning
+    # HOLD (failed_floors populated) used to show floor_passed=true because
+    # authority band was OBSERVE_ONLY (not HOLD/VOID). That lies about the verdict.
+    # Now: if EITHER effective_verdict in {HOLD,VOID} OR failed_floors non-empty → false.
     cc = response.get("constitutional_check")
     if isinstance(cc, dict):
         cc["agency_level"] = band
-        cc["floor_passed"] = band not in ("HOLD", "VOID")
+        _ev = str(response.get("effective_verdict", "")).upper()
+        _ff = (
+            response.get("failed_floors")
+            or response.get("violated_floors")
+            or (response.get("meta", {}) or {}).get("violated_laws")
+            or []
+        )
+        _has_hold = _ev in ("HOLD", "VOID") or bool(_ff)
+        cc["floor_passed"] = not _has_hold
+        cc["hold_required"] = _has_hold
+        if _has_hold and not cc.get("hold_reason"):
+            cc["hold_reason"] = (
+                f"Derived from effective_verdict={_ev or 'UNSET'} "
+                f"and failed_floors={list(_ff)}"
+            )
     # Risk
     risk = response.get("risk")
     if isinstance(risk, dict):

@@ -1072,6 +1072,58 @@ async def arif_judge(
     # without reasoning. LLM = interpretive layer only.
     _hard_reasons: list[str] = []
 
+    # STAB-2026-08-07 Rule #1 (Opus receipt): empty evidence = STOP.
+    # If the caller sends evidence={} or evidence=None, the judge cannot
+    # adjudicate. No receipt, no verdict — hard HOLD, no LLM call.
+    _ev_empty = (
+        evidence is None
+        or not isinstance(evidence, dict)
+        or all(v is None or v == "" or v == [] for v in evidence.values())
+        or len(evidence) == 0
+    )
+    if _ev_empty and mode not in ("escalate", "seal"):
+        # Seal mode has a separate evidence path (receipt-based, not caller evidence)
+        _hard_reasons.append(
+            "EVIDENCE_EMPTY: judge received no evidence. "
+            "No receipt, no verdict — Rule #1 (empty=STOP). "
+            "Call arif_observe first, then resubmit."
+        )
+
+    # STAB-2026-08-07 Rule #6 (1373/1374 lesson): a filename is a rumor; a hash is proof.
+    elif mode not in ("escalate", "seal") and isinstance(evidence, dict):
+        try:
+            import hashlib
+            import json as _json
+
+            _ev_hash = evidence.get("evidence_hash")
+            _ev_in_band = evidence.get("in_band") is True
+            _ev_content_keys = [
+                k
+                for k in evidence.keys()
+                if k not in ("evidence_hash", "in_band", "source")
+            ]
+            if _ev_content_keys and not _ev_hash and not _ev_in_band:
+                _hard_reasons.append(
+                    "EVIDENCE_HASH_MISSING: Rule #6 (1373/1374). Evidence carries "
+                    f"{len(_ev_content_keys)} content field(s) but no evidence_hash. "
+                    "Provide sha256 of canonical JSON or in_band=true."
+                )
+            elif _ev_hash and _ev_content_keys:
+                _content = {k: evidence[k] for k in _ev_content_keys}
+                _canonical = _json.dumps(_content, sort_keys=True, default=str)
+                _computed = hashlib.sha256(_canonical.encode()).hexdigest()
+                _supplied = str(_ev_hash).lower().removeprefix("sha256:")
+                if _supplied != _computed:
+                    _hard_reasons.append(
+                        f"EVIDENCE_HASH_MISMATCH: Rule #6 (1373/1374). "
+                        f"supplied={str(_ev_hash)[:24]} computed={_computed[:24]} "
+                        "Payload mutated in transit. Reject."
+                    )
+        except Exception:
+            _hard_reasons.append(
+                "EVIDENCE_HASH_UNVERIFIABLE: Rule #6 — hash computation failed."
+            )
+
     # Gate 1: Caller identity required for judgment
     if not actor_id and not session_id:
         _hard_reasons.append("No actor_id or session_id — cannot identify caller.")

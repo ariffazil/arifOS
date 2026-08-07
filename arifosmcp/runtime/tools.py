@@ -4976,9 +4976,77 @@ def _enforce_nine_signal(
             envelope.setdefault("next_safe_action", enriched.get("next_safe_action"))
             envelope.setdefault("constitutional_check", enriched.get("constitutional_check", {}))
             envelope.setdefault("risk", enriched.get("risk", {}))
+
+            # STAB-2026-08-07: Constitutional-check dual-truth fix.
+            # The inner path computes constitutional_check from confidence/agency_level
+            # alone. The outer envelope has the canonical verdict + failed_floors +
+            # scoped verdicts. They MUST agree. Override the inner value with a
+            # derivation from the outer's authoritative fields.
+            try:
+                _outer_verdict = str(envelope.get("verdict", "")).upper()
+                _outer_reasons = envelope.get("reasons", []) or []
+                _scoped_v = envelope.get("verdicts", {}) or {}
+                _substrate_state = (
+                    _scoped_v.get("substrate", {}).get("state", "UNKNOWN")
+                    if isinstance(_scoped_v.get("substrate"), dict)
+                    else "UNKNOWN"
+                )
+                _session_state = (
+                    _scoped_v.get("session", {}).get("state", "UNKNOWN")
+                    if isinstance(_scoped_v.get("session"), dict)
+                    else "UNKNOWN"
+                )
+                # Extract failed_floors from reasons[] (e.g. "Constitutional HOLD: L02,L03")
+                _failed_floors: list[str] = []
+                for _r in _outer_reasons if isinstance(_outer_reasons, list) else []:
+                    _rs = str(_r)
+                    # Patterns: "Constitutional HOLD: L02, L03, L07" or "failed_floors:F2,F3"
+                    if "L0" in _rs or "L1" in _rs or "F0" in _rs or "F1" in _rs:
+                        for tok in _rs.replace(":", " ").replace(",", " ").split():
+                            tok = tok.strip()
+                            if tok.startswith(("L0", "L1", "F0", "F1")) and len(tok) >= 3:
+                                _failed_floors.append(tok)
+                _failed_floors = sorted(set(_failed_floors))
+                _is_hold = _outer_verdict in ("HOLD", "VOID", "888_HOLD")
+                _is_degraded = _substrate_state in ("DEGRADED", "FAIL")
+                # SINGLE SOURCE OF TRUTH: derive from outer verdict + failed_floors + scoped.
+                envelope["constitutional_check"] = {
+                    "floor_passed": not _is_hold and not _is_degraded and not _failed_floors,
+                    "hold_required": _is_hold or bool(_failed_floors),
+                    "hold_reason": (
+                        "outer_verdict=" + _outer_verdict
+                        if _is_hold
+                        else (
+                            "failed_floors=" + ",".join(_failed_floors)
+                            if _failed_floors
+                            else None
+                        )
+                    ),
+                    "failed_floors": _failed_floors,
+                    "substrate_state": _substrate_state,
+                    "session_state": _session_state,
+                    "agency_level": envelope.get("constitutional_check", {}).get(
+                        "agency_level"
+                    ),
+                    "observe_class_exempt": envelope.get("constitutional_check", {}).get(
+                        "observe_class_exempt", False
+                    ),
+                    # Provenance: derived from envelope, not independently computed.
+                    "_derivation": "envelope_verdict+failed_floors+scoped_verdicts",
+                    "_stab_fix": "2026-08-07-P0-dual-truth",
+                }
+            except Exception:
+                # If derivation fails, keep the inner value but tag it.
+                _cc = envelope.get("constitutional_check", {})
+                if isinstance(_cc, dict):
+                    _cc["_derivation"] = "enrichment_inner_only"
+                    _cc["_stab_fix"] = "2026-08-07-derivation-failed"
         except Exception:
-            # Never break a tool response for metacog enrichment
-            envelope.setdefault("metacognition", {"note": "enrichment_failed", "confidence": 0.5})
+            # Never break a tool response for metacog enrichment.
+            # STAB-2026-08-07: in the failure path, confidence is None (not 0.5).
+            # 0.5 was a fabricated number wearing the costume of a measurement —
+            # it made a broken envelope look "ADVISORY_ONLY" instead of broken.
+            envelope.setdefault("metacognition", {"note": "enrichment_failed", "confidence": None})
             envelope.setdefault(
                 "next_safe_action", "Inspect raw result. If high blast, escalate to 888_HOLD."
             )
@@ -7739,7 +7807,12 @@ def build_standard_mcp_result(
     assumptions = assumptions or []
 
     # Derive confidence band
-    if confidence < 0.5:
+    # STAB-2026-08-07 Rule #2: when confidence is None (UNMEASURED), the band
+    # is also UNMEASURED. Never invent a band from a fabricated confidence.
+    if confidence is None:
+        band = "UNMEASURED"
+        band_note = "No confidence source available — reporting UNMEASURED. Do not act on this."
+    elif confidence < 0.5:
         band = "HOLD"
         band_note = DECISION_THRESHOLDS["confidence_below_0_50"]
     elif confidence < 0.70:
@@ -7779,13 +7852,18 @@ def build_standard_mcp_result(
         )
 
     metacognition = {
-        "confidence": round(confidence, 2),
+        "confidence": round(confidence, 2) if confidence is not None else None,
         "confidence_band": band,
         "band_note": band_note,
         "uncertainty_reason": "; ".join(unknowns[:3]) if unknowns else "No major unknowns declared",
-        "evidence_strength": "high"
-        if confidence > 0.8
-        else ("medium" if confidence > 0.5 else "low"),
+        # 2026-08-07 STAB: when confidence is None (no inner source gave a number),
+        # we must NOT pretend to measure evidence strength. Honest signal is "unknown".
+        # The old code fell through to "medium" because the threshold bucket
+        # matched a confidence value that was silently defaulted to 0.65.
+        "evidence_strength": (
+            "unknown" if confidence is None
+            else ("high" if confidence > 0.8 else ("medium" if confidence > 0.5 else "low"))
+        ),
         "assumptions": assumptions,
         "failure_modes": do_not_conclude[:3]
         if do_not_conclude
@@ -7828,17 +7906,27 @@ def build_standard_mcp_result(
         "organ_health",
     )
     _conf_hold = band == "HOLD" and not _is_observe_class
+    # STAB-2026-08-07: UNMEASURED is not "HOLD" — it is absence of measurement.
+    # It must NOT pass the floor, even on OBSERVE-class actions. The agent must
+    # be told "we don't know" rather than "looks fine, proceed".
+    _conf_unmeasured = band == "UNMEASURED"
     _l5_hold = human_req and not _is_observe_class
     constitutional_check = {
-        "floor_passed": not (_conf_hold or _l5_hold),
-        "hold_required": bool(_conf_hold or _l5_hold),
+        "floor_passed": not (_conf_hold or _l5_hold or _conf_unmeasured),
+        "hold_required": bool(_conf_hold or _l5_hold or _conf_unmeasured),
         "hold_reason": (
             "L5 irreversible action"
             if _l5_hold
-            else ("confidence < 0.5 on non-OBSERVE action" if _conf_hold else None)
+            else (
+                "UNMEASURED — no confidence source; cannot pass floor (Rule #2)"
+                if _conf_unmeasured
+                else ("confidence < 0.5 on non-OBSERVE action" if _conf_hold else None)
+            )
         ),
         "agency_level": afford.get("agency_level"),
         "observe_class_exempt": _is_observe_class,
+        "band": band,
+        "_stab_fix": "2026-08-07-unmeasured-floor",
     }
 
     if isinstance(next_safe_action, str):
@@ -7866,7 +7954,9 @@ def build_standard_mcp_result(
         "assumptions": assumptions,
         "unknowns": unknowns,
         "do_not_conclude": do_not_conclude,
-        "confidence": round(confidence, 2),
+        # STAB-2026-08-07: top-level payload confidence must mirror the metacognition block.
+        # When confidence is None, do not coerce — emit None so downstream schema can flag UNMEASURED.
+        "confidence": round(confidence, 2) if confidence is not None else None,
         "risk": risk,
         "metacognition": metacognition,
         "constitutional_check": constitutional_check,
@@ -8002,17 +8092,25 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         or payload.get("meta", {}).get("confidence")
         or (res.get("confidence") if isinstance(res, dict) else None)
         or _routing_conf
-        or 0.65
     )
+    # 2026-08-07 FIX: removed `or 0.65` silent default.
+    # When no confidence source exists, leave conf as None (honest absence)
+    # instead of injecting a fabricated 0.65 that forces ADVISORY_ONLY on
+    # every non-deterministic call — the exact "hardcoded constant wearing
+    # the costume of a measurement" Opus 5 flagged.
     if isinstance(conf, dict):
-        conf = conf.get("overall", conf.get("value", 0.65))
+        conf = conf.get("overall", conf.get("value", None))
     try:
         conf = float(conf)
     except Exception:
-        conf = 0.65
+        # STAB-2026-08-07 Rule #2: no fake math. If we cannot compute
+        # confidence, return UNMEASURED — never a fabricated 0.65.
+        conf = None
 
     # ── P0-REASONING_EMPTY confidence cap (2026-07-19) ─────────────────
     # The wrapper must derive confidence from inner state, never default it.
+    # STAB-2026-08-07: caps still apply when conf is numeric. UNMEASURED
+    # stays UNMEASURED — never silently downgraded to a number.
     # If the inner result has empty evidence and degraded provenance,
     # cap confidence at 0.20 regardless of what was passed or defaulted.
     _inner_result = payload.get("result", {}) if isinstance(payload, dict) else {}
@@ -8343,6 +8441,11 @@ def _ok(
     if session_id and session_id in _SESSIONS:
         invocation_count = _SESSIONS[session_id].get("invocation_count", 0)
 
+    # STAB 2026-08-07: if the caller already put delta_S in `result`, propagate
+    # it (including None). The old default 0.0 produced a "measurable entropy
+    # was zero" signal even when entropy was never measured.
+    if isinstance(result, dict) and "delta_S" in result:
+        delta_S = result["delta_S"]
     response = {
         "status": "OK",
         "tool": tool,
@@ -11704,11 +11807,53 @@ def _arif_sense_observe(
                 delta_S=0.0,
             )
     if mode == "entropy_dS":
-        dS = random.uniform(-0.1, 0.1)
+        # STAB-2026-08-07 Rule #1 + Rule #7 (Opus receipts):
+        # random.uniform was a gas detector with no sensor.
+        # Now compute contradiction density from the actual input.
+        # F4: ΔS ≤ 0 means the input must reduce entropy, not increase it.
+        import re as _re
+
+        _input_text = str(frame or subject or query or "").lower()
+        _contradictions = 0
+        # Detect self-contradiction patterns: "both X and Y" where X/Y negate
+        _contradiction_patterns = [
+            r"\bboth\b.*\band\b.*\bnot\b",
+            r"\b(empty|none|null)\b.*\b(\d{2,}|full|present|exists|healthy)\b",
+            r"\b(true|verified|yes|present)\b.*\b(false|unverified|no|absent|missing)\b",
+            r"\b(healthy|pass|ok)\b.*\b(degraded|fail|error|broken)\b",
+            r"\b(always|never)\b.*\b(not|never|always)\b",
+            r"\ball\b.*\bnone\b",
+            r"\b(alive|dead)\b.*\b(dead|alive)\b",
+        ]
+        for _pat in _contradiction_patterns:
+            _contradictions += len(_re.findall(_pat, _input_text))
+        # Information-theoretic estimate: more contradictions → higher entropy
+        _n_tokens = max(len(_input_text.split()), 1)
+        _contradiction_density = _contradictions / _n_tokens
+        _dS = round(
+            min(_contradiction_density * 5.0, 2.0), 4
+        )  # scale up, cap at 2.0
+        _trend = "divergent" if _dS > 0.1 else ("stable" if _dS == 0 else "convergent")
+        _is_contradictory = _contradictions > 0
         return _ok(
             "arif_sense_observe",
-            {"delta_S": round(dS, 6), "trend": "stable"},
-            delta_S=abs(dS),
+            {
+                "delta_S": _dS,
+                "trend": _trend,
+                "contradictions_detected": _contradictions,
+                "contradiction_density": round(_contradiction_density, 4),
+                "input_tokens": _n_tokens,
+                "source": "rule1_contradiction_detector",
+            },
+            delta_S=_dS,
+            # Rule #1: contradiction → HOLD. The entropy gate is real now.
+            hold_required=_is_contradictory,
+            hold_reason=(
+                f"F4_ENTROPY_VIOLATION: { _contradictions } self-contradiction(s) "
+                f"density={_contradiction_density:.4f}. ΔS={_dS} > 0."
+                if _is_contradictory
+                else None
+            ),
         )
     if mode == "vitals":
         try:

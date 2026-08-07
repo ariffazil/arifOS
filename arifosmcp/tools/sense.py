@@ -1276,8 +1276,12 @@ def arif_observe(
         except (OSError, ValueError, IndexError):
             _samples = []
         if not _samples or sum(_samples) == 0:
-            # No signal — return 0 with explicit source marker.
-            ds = 0.0
+            # 2026-08-07 STAB: no signal → null delta_S (not 0.0).
+            # Returning 0.0 lets F4 (ΔS ≤ 0) pass when there was NO MEASUREMENT.
+            # Null means "not measured, cannot judge" — downstream must not treat
+            # it as "zero confusion, proceed". This is the gas detector without
+            # a sensor: green light because the light is always green.
+            ds = None
             _source = "entropy_dS_no_signal"
         else:
             # Shannon entropy on normalized load distribution.
@@ -1291,7 +1295,8 @@ def arif_observe(
         return _ok(
             "arif_observe",
             {
-                "delta_S": round(ds, 6),
+                # STAB 2026-08-07: ds may be None (no_signal) — never round(None).
+                "delta_S": round(ds, 6) if ds is not None else None,
                 "trend": "stable",
                 "partition": partition_mode,
                 "source": _source,
