@@ -52,7 +52,11 @@ _TIER_AUTHORITY_MAP: dict[str, str] = {
 # Doc: /root/arifOS/docs/ED25519_REGISTRY_BOOTSTRAP_EXEMPTION.md
 # Seal reference: A-FORGE/forge_work/IRR-DIP-AUDIT-FINAL.md Priority 3
 _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
-    "arif": "sovereign",
+    # P0 HOTFIX 2026-08-07: string-match "arif" → operator (not sovereign).
+    # Exempt from Ed25519 requirement for MCP bootstrap, but WITHOUT
+    # cryptographic proof, authority is capped at operator — no judge/seal.
+    # Sovereign authority requires Ed25519 signature or SCT token.
+    "arif": "operator",
     "a-forge": "operator",
     "forge": "operator",
     "opencode": "operator",
