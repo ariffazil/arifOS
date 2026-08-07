@@ -715,9 +715,7 @@ def arif_route(
             "actor_id": actor_id,
             "session_id": session_id,
             "timestamp": __import__("time").time(),
-            "routing_confidence": 0.99
-            if mission_id
-            else (0.95 if organ else 0.85),
+            "routing_confidence": 0.99 if mission_id else (0.95 if organ else 0.85),
             "chain": [
                 {"step": "intent_received", "timestamp": __import__("time").time()},
                 {
@@ -968,6 +966,54 @@ def arif_triage(
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
         from arifosmcp.runtime.sct import resolve_standing
 
+        # ── Organ health probe (local-only, synchronous) ──────────
+        _organ_health: dict[str, dict[str, Any]] = {}
+        _ORGAN_PORTS = {
+            "arifos": 8088,
+            "aforge": 7071,
+            "arifflow": 7073,
+            "aaa": 3001,
+            "geox": 8081,
+            "wealth": 18082,
+            "well": 18083,
+        }
+        for _org_name, _org_port in _ORGAN_PORTS.items():
+            try:
+                import urllib.request as _ur
+
+                _req = _ur.Request(f"http://127.0.0.1:{_org_port}/health", method="GET")
+                with _ur.urlopen(_req, timeout=2.0) as _resp:
+                    if _resp.status == 200:
+                        _body = _resp.read().decode("utf-8", errors="replace")
+                        try:
+                            _payload = json.loads(_body)
+                            _organ_health[_org_name] = {
+                                "status": (_payload.get("status") or "healthy"),
+                                "port": _org_port,
+                            }
+                        except json.JSONDecodeError:
+                            _organ_health[_org_name] = {
+                                "status": "degraded",
+                                "port": _org_port,
+                                "error": "non-json response",
+                            }
+                    else:
+                        _organ_health[_org_name] = {
+                            "status": "degraded",
+                            "port": _org_port,
+                            "error": f"HTTP {_resp.status}",
+                        }
+            except Exception as _e:
+                _organ_health[_org_name] = {
+                    "status": "down",
+                    "port": _org_port,
+                    "error": str(_e)[:120],
+                }
+
+        _organs_alive = sum(
+            1 for v in _organ_health.values() if v.get("status") in ("healthy", "alive", "ok")
+        )
+
         session_id_present = bool(session_id) or bool(session_token)
         actor_id_present = bool(actor_id)
 
@@ -1009,6 +1055,9 @@ def arif_triage(
 
         preflight_payload: dict[str, Any] = {
             "kernel": "alive",
+            "organs": _organ_health,
+            "organs_alive": _organs_alive,
+            "organs_total": len(_ORGAN_PORTS),
             "observe_only": (not _actor_verified) or _authority_mode == "OBSERVE_ONLY",
             "mutation_allowed": _actor_verified
             and _authority_mode in ("FULL", "SOVEREIGN", "LIMITED_MUTATE"),
@@ -1033,18 +1082,14 @@ def arif_triage(
         if _apex_scalars:
             preflight_payload["apex_scalars"] = _apex_scalars
 
+        # ── Preflight without session: return diagnostics (not HOLD) ──
+        # v5.0 protocol Step 1+2 collapsed into one call. No session required.
+        # This is the one-round-trip boot: kernel health + organ liveness in
+        # a single arif_init(mode="preflight") call.
         if not session_id_present:
-            return _hold(
-                "arif_triage",
-                reason="SESSION_REQUIRED",
-                floors=["F11"],
-                extra_meta={
-                    "hold_reason": "SESSION_REQUIRED",
-                    "required_precondition_failed": "session_id_or_session_token",
-                    "next_safe_action": "arif_init",
-                    "preflight_diagnostics": preflight_payload,
-                },
-            )
+            preflight_payload["session_required"] = False
+            return _ok("arif_triage", preflight_payload)
+
         if not _session_found:
             return _hold(
                 "arif_triage",
