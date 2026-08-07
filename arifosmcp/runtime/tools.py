@@ -5497,14 +5497,43 @@ def _enforce_nine_signal(
     # SEAL-* session_id so subsequent tool calls (arif_observe, etc.) can find
     # it via get_session(). Without this, sessions created by arif_init are
     # invisible to the downstream session lookup.
+    #
+    # STAB-2026-08-07h: arif_init's response nests session_id and session_token
+    # under `result.*` and `session.*` — NOT at the top level of `enforced`.
+    # The old bridge read from top level, so `_sid` and `_tok` were always
+    # empty strings, the bridge never fired, and downstream tools got
+    # `L11 AUTH: session_id not found or expired` immediately after a fresh
+    # arif_init. Live receipt 13:08:50Z + 13:09:18Z confirms.
+    # Fix: extract from `result.*` with top-level fallback.
     if tool_name == "arif_init":
-        _eff = enforced.get("effective_verdict", "") or enforced.get("verdict", "")
+        _eff = (
+            enforced.get("effective_verdict", "")
+            or enforced.get("verdict", "")
+            or (enforced.get("result") or {}).get("verdict", "")
+        )
         if str(_eff).upper() in ("SEAL", "OK", "COMPLETED", "PROCEED", ""):
-            _sid = enforced.get("session_id", "")
-            _tok = enforced.get("session_token", "")
-            _actor = enforced.get("actor", {})
-            if isinstance(_actor, dict):
-                _actor = _actor.get("actor_id", "ARIF")
+            _result_block = enforced.get("result") or {}
+            _session_block = enforced.get("session") or {}
+            _sid = (
+                enforced.get("session_id", "")
+                or _result_block.get("session_id", "")
+                or _session_block.get("session_id", "")
+            )
+            _tok = (
+                enforced.get("session_token", "")
+                or _result_block.get("session_token", "")
+                or _session_block.get("session_token", "")
+            )
+            _actor_block = (
+                enforced.get("actor")
+                or _result_block.get("actor")
+                or _session_block.get("actor")
+                or {}
+            )
+            if isinstance(_actor_block, dict):
+                _actor = _actor_block.get("actor_id", "ARIF")
+            else:
+                _actor = "ARIF"
             if _sid and _tok:
                 try:
                     _SESSIONS[_sid] = {
