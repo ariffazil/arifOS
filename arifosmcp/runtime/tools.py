@@ -4865,7 +4865,8 @@ def _enforce_nine_signal(
                 if isinstance(result_payload, dict) and "atlas333" in result_payload
                 else {}
             ),
-            "delta_S": float(delta_s),
+            # STAB-2026-08-07e: pass None through when entropy was not measured.
+            "delta_S": float(delta_s) if delta_s is not None else None,
             "timestamp": out.get("timestamp") or _now(),
             "call_hash": _audit_call_hash,
             "trace_id": _audit_trace_id,
@@ -5257,7 +5258,8 @@ def _enforce_nine_signal(
                 _boundary = str(
                     _inner.get("present_boundary") or out.get("present_boundary") or "LIVE"
                 )
-                _delta_s_val = abs(float(delta_s))
+                # STAB-2026-08-07e: pass None through to _build_apex_envelope
+                _delta_s_val = abs(float(delta_s)) if delta_s is not None else None
                 envelope["apex"] = _build_apex_envelope(
                     tool_name=tool_name,
                     confidence=max(0.0, min(1.0, _conf)),
