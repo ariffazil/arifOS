@@ -69,6 +69,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
+from .aaa_index import register_aaa_index
 from .atlas_repo import register_atlas_repo
 from .bootstrap import register_bootstrap
 from .civilization import register_civilization
@@ -545,6 +546,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_doctrine(mcp))
     registered.extend(register_namespace_index(mcp))
     registered.extend(register_atlas_repo(mcp))
+    registered.extend(register_aaa_index(mcp))
     registered.extend(register_floor_template(mcp))
     registered.extend(register_refusal_surface(mcp))
     registered.extend(register_trinity(mcp))
