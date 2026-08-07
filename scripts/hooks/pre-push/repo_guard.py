@@ -12,6 +12,7 @@ Exit 1 → BLOCK push (with diagnostics)
 
 DITEMPA BUKAN DIBERI
 """
+
 import json
 import os
 import subprocess
@@ -21,7 +22,7 @@ from pathlib import Path
 
 REPO_ROOT = Path("/root/arifOS")  # canonical source tree (always use this for git rev-parse)
 assert (REPO_ROOT / ".git").exists(), f"No .git at {REPO_ROOT}"
-VENV_PY = "/opt/arifos/venv/bin/python"
+VENV_PY = "/root/arifOS/.venv/bin/python"  # canonical source venv (not /opt/arifos/venv which has stale deps)
 TESTS_DIR = REPO_ROOT / "tests"
 PYTEST_TARGET = TESTS_DIR / "test_e2e_kernel.py"
 PATH_A_DETECTOR = TESTS_DIR / "verify_fix_path_a.py"
@@ -36,8 +37,11 @@ def step(name: str) -> None:
 def run(cmd: list[str], cwd: Path | None = None, timeout: int = 120) -> tuple[int, str]:
     try:
         r = subprocess.run(
-            cmd, cwd=str(cwd) if cwd else None,
-            capture_output=True, text=True, timeout=timeout,
+            cmd,
+            cwd=str(cwd) if cwd else None,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
         )
         out = (r.stdout or "") + (r.stderr or "")
         return r.returncode, out.strip()
@@ -52,9 +56,19 @@ def gate_1_pytest() -> tuple[bool, str]:
     if not PYTEST_TARGET.exists():
         return False, f"Missing {PYTEST_TARGET}"
     rc, out = run(
-        [VENV_PY, "-m", "pytest", str(PYTEST_TARGET), "-q",
-         "-p", "no:logfire", "--timeout=15", "--tb=line"],
-        cwd=REPO_ROOT, timeout=120,
+        [
+            VENV_PY,
+            "-m",
+            "pytest",
+            str(PYTEST_TARGET),
+            "-q",
+            "-p",
+            "no:logfire",
+            "--timeout=15",
+            "--tb=line",
+        ],
+        cwd=REPO_ROOT,
+        timeout=120,
     )
     # Allow if only the vault-corruption detector fails (Opus 5 known issue)
     # The test name is test_no_null_id_entries_on_parseable_lines
@@ -64,8 +78,10 @@ def gate_1_pytest() -> tuple[bool, str]:
     if rc == 0:
         return True, "all green"
     if failed_count == 1 and "test_no_null_id_entries_on_parseable_lines" in out:
-        return True, ("1 expected fail (vault corruption detector — Opus 5 known issue). "
-                      "All other tests green.")
+        return True, (
+            "1 expected fail (vault corruption detector — Opus 5 known issue). "
+            "All other tests green."
+        )
     return False, f"{failed_count} tests failed\n{chr(10).join(summary)}"
 
 
@@ -79,8 +95,10 @@ def gate_2_path_a() -> tuple[bool, str]:
     # A3 is fixed (entropy_dS now correctly None). A1 + A2 still detect.
     # Allow if A3 passes (STAB fix verified); require A1 + A2 status tracked in output.
     if "✅ A3" in out:
-        return True, ("A3 entropy_dS FIXED (STAB-e/f/i working). "
-                      "A1 + A2 still detect — known open work, tracked.")
+        return True, (
+            "A3 entropy_dS FIXED (STAB-e/f/i working). "
+            "A1 + A2 still detect — known open work, tracked."
+        )
     return False, f"A3 not yet fixed\n{out}"
 
 
@@ -88,7 +106,9 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
     step("GATE 3: deploy drift check (:8088/health vs git HEAD)")
     try:
         git_head = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT), text=True,
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(REPO_ROOT),
+            text=True,
         ).strip()
     except Exception as e:
         return False, f"git rev-parse failed: {e}"
@@ -108,7 +128,9 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
     if deployed == head_short and drift is False and runtime_drift is False and status == "healthy":
         return True, f"deployed={deployed} == HEAD={head_short} · drift=False · status=healthy"
 
-    msgs = [f"deployed={deployed} HEAD={head_short} drift={drift} runtime_drift={runtime_drift} status={status}"]
+    msgs = [
+        f"deployed={deployed} HEAD={head_short} drift={drift} runtime_drift={runtime_drift} status={status}"
+    ]
     if deployed != head_short:
         msgs.append("  → re-run K9 deploy: rsync + systemctl restart arifos.service")
     if status != "healthy":
