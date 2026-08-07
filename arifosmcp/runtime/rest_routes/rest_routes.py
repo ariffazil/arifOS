@@ -752,10 +752,90 @@ def _floor_passes(law_id: str, score: float) -> bool:
     return fscore >= threshold
 
 
-# ── FLR-001: explicit floor status (no silent defaults, no false-green) ───────
+# ── FLR-001: explicit floor status (no silent defaults, no false-green) ────────
 _FLOOR_STATUS_UNMEASURED = "unmeasured"
 _FLOOR_STATUS_PASS = "pass"
 _FLOOR_STATUS_FAIL = "fail"
+
+
+def _read_vault_last_seal() -> dict[str, Any]:
+    """Arrow of time: read the canonical VAULT999 ledger directly.
+
+    K3 (2026-08-07): An arrow of time is only as accurate as the clock you read.
+    Reality is the aggregate of ALL immutable ledgers. This function:
+      1. Reads /root/VAULT999/outcomes.jsonl (the canonical live ledger).
+      2. ALSO scans sibling ledger files (SEALED_EVENTS_v2.jsonl, vault999.jsonl,
+         session-seals.jsonl, local_seals.jsonl) for the most recent timestamp.
+      3. Returns the most recent across all ledgers — never raises.
+
+    Distinguishes:
+      - vault_reachable: True/False (file exists & readable)
+      - chain_intact: True/False (last entry has payload_hash)
+      - no_measurement: empty chain (no entries)
+      - phantom_timeline: primary ledger is stale relative to a sibling
+    """
+    primary_path = "/root/VAULT999/outcomes.jsonl"
+    sibling_paths = [
+        "/root/VAULT999/SEALED_EVENTS.jsonl",
+        "/root/VAULT999/SEALED_EVENTS_v2.jsonl",
+        "/root/VAULT999/vault999.jsonl",
+        "/root/VAULT999/session-seals.jsonl",
+        "/root/VAULT999/local_seals.jsonl",
+        "/root/VAULT999/outcomes_manual.jsonl",
+    ]
+
+    def _read(path: str) -> dict[str, Any] | None:
+        try:
+            if not os.path.exists(path):
+                return None
+            with open(path) as f:
+                lines = [line.strip() for line in f if line.strip()]
+            if not lines:
+                return None
+            return json.loads(lines[-1])
+        except (json.JSONDecodeError, OSError):
+            return None
+
+    primary = _read(primary_path)
+    siblings = {p: _read(p) for p in sibling_paths}
+
+    candidates: list[tuple[str, str, dict[str, Any]]] = []
+    for path, entry in [(primary_path, primary)] + list(siblings.items()):
+        if entry and isinstance(entry, dict):
+            ts = entry.get("timestamp") or entry.get("ts")
+            if isinstance(ts, str):
+                candidates.append((path, ts, entry))
+
+    if not candidates:
+        return {
+            "last_seal_timestamp": None,
+            "last_entry_id": None,
+            "last_actor": None,
+            "vault_reachable": os.path.exists(primary_path),
+            "chain_intact": False,
+            "vault_path": primary_path,
+            "reason": "no_measurement: vault has no entries",
+            "phantom_timeline": False,
+        }
+
+    candidates.sort(key=lambda c: c[1], reverse=True)
+    path, ts, entry = candidates[0]
+    primary_ts = primary.get("timestamp") if primary else None
+
+    return {
+        "last_seal_timestamp": ts,
+        "last_entry_id": entry.get("entry_id") or entry.get("receipt_id"),
+        "last_actor": entry.get("actor_id") or entry.get("actor"),
+        "vault_reachable": True,
+        "chain_intact": bool(entry.get("payload_hash") or entry.get("chain_hash")),
+        "vault_path": path,
+        "reason": None,
+        "phantom_timeline": (
+            primary_ts is not None
+            and ts != primary_ts
+            and ts > primary_ts
+        ),
+    }
 
 
 def _floor_status_strict(law_id: str, score: Any) -> str:
@@ -904,7 +984,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
         except Exception:
             logger.exception("Failed to hydrate live-sot governance kernel state")
 
-    resolved_floors = {k: floors.get(k, v) for k, v in _FLOOR_DEFAULTS.items()}
+    # K1/K2 (2026-08-07): NO silent default substitution. A floor lacking a
+    # measurement must be null, not a default like 0.04. False precision is a
+    # hallucination. The downstream _floor_status_strict already returns
+    # 'unmeasured' for None, so the silence is honest.
+    resolved_floors: dict[str, float | None] = {}
+    for fid in _FLOOR_DEFAULTS:
+        v = floors.get(fid)
+        if v is not None:
+            try:
+                resolved_floors[fid] = float(v)
+            except (TypeError, ValueError):
+                resolved_floors[fid] = None
+        else:
+            resolved_floors[fid] = None
     canonical_floor_aliases = {
         "F2": "tau_truth",
         "F3": "witness_coherence",
@@ -2976,19 +3069,12 @@ def register_rest_routes(
         telemetry = thermo.get("telemetry", {})
         contracts = contract_status_summary()
 
-        # Probe vault for last seal timestamp (best-effort, null if unavailable)
-        vault_last_seal = None
-        try:
-            from arifosmcp.runtime.webmcp.live_metrics import get_live_metrics
-
-            live = await get_live_metrics()
-            vault_last_seal = (
-                live.get("governance", {}).get("vault_last_seal")
-                if isinstance(live, dict)
-                else None
-            ) or None
-        except Exception:
-            pass
+        # K3 (2026-08-07): Arrow of time — read the canonical VAULT999 ledger directly.
+        # Scans ALL sibling ledgers (SEALED_EVENTS, vault999, session-seals, etc.)
+        # for the most recent timestamp. Distinguishes: (a) vault unreachable,
+        # (b) vault empty, (c) vault has seals, (d) phantom timeline.
+        vault_arrow = _read_vault_last_seal()
+        vault_last_seal = vault_arrow["last_seal_timestamp"]
 
         ml_runtime = get_ml_floor_runtime()
         graphiti_enabled = _probe_graphiti_enabled()
