@@ -24953,6 +24953,31 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 "verdict": _verdict,
                 "detail": final_resp.get("detail", final_resp.get("error", ""))[:500],
             }
+            # ── C1 ARROW OF TIME (2026-08-07): Kernel-side chain enforcement ──
+            # The kernel computes payload_hash, prev_hash, and chain_hash BEFORE
+            # writing. Agents cannot bypass — there is no other path to disk.
+            # First proper write with all three fields becomes the epoch anchor.
+            import hashlib as _hl
+
+            _payload_hash = _hl.sha256(
+                json.dumps(_outcome_entry, sort_keys=True, default=str).encode()
+            ).hexdigest()[:16]
+            _prev_hash = "GENESIS"
+            if os.path.exists(_outcomes_path) and os.path.getsize(_outcomes_path) > 0:
+                with open(_outcomes_path) as _pf:
+                    _prev_lines = [l.strip() for l in _pf if l.strip()]
+                if _prev_lines:
+                    try:
+                        _last = json.loads(_prev_lines[-1])
+                        _prev_hash = (
+                            _last.get("payload_hash") or _last.get("chain_hash") or "GENESIS"
+                        )
+                    except Exception:
+                        pass
+            _chain_hash = _hl.sha256(f"{_payload_hash}:{_prev_hash}".encode()).hexdigest()[:16]
+            _outcome_entry["payload_hash"] = _payload_hash
+            _outcome_entry["prev_hash"] = _prev_hash
+            _outcome_entry["chain_hash"] = _chain_hash
             os.makedirs(os.path.dirname(_outcomes_path), exist_ok=True)
             _outcome_line = json.dumps(_outcome_entry, default=str)
             # ── F1 AMANAH: JSONL pre-write validator (forged 2026-08-01) ──
