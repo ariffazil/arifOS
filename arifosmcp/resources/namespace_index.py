@@ -27,7 +27,9 @@ H before and after and have a receipt for it."
 DITEMPA BUKAN DIBERI. Forged by 333-AGI Δ MIND under F13 SOVEREIGN directive.
 """
 
+import hashlib
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 from fastmcp import FastMCP
@@ -593,6 +595,28 @@ def build_index() -> str:
         p = e["plane"]
         plane_dist[p] = plane_dist.get(p, 0) + 1
 
+    # ── ATTESTATION (Tension 2 resolution — MCP spec gap) ──
+    # Hash the STABLE content (42 entries + architecture + migration rules,
+    # excluding dynamic timestamps). This proves the index hasn't drifted.
+    stable_content = json.dumps(
+        {
+            "resources": INDEX_ENTRIES,
+            "architecture_planes": sorted(plane_dist.keys()),
+            "migration_rules": [
+                "1. Delete nothing.",
+                "2. Publish this index (DONE — this is it).",
+                "3. Add aliases at proposed URIs (redirect or content-negotiate).",
+                "4. Update tools and agents to use proposed URIs.",
+                "5. Deprecate old URIs (keep serving, add deprecation header).",
+                "6. Remove old URIs only when zero callers remain (90-day window).",
+            ],
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+    )
+    content_hash = hashlib.sha256(stable_content.encode()).hexdigest()
+    generated_at = datetime.now(timezone.utc).isoformat()
+
     result = {
         "_meta": {
             "resource": "arifos://index",
@@ -603,6 +627,15 @@ def build_index() -> str:
             "directive": "F13 SOVEREIGN — Arif bin Fazil",
             "doctrine": "DITEMPA BUKAN DIBERI",
             "total_resources": total,
+            "content_hash": content_hash,
+            "generated_at": generated_at,
+            "generator": "arifOS/arifosmcp/resources/namespace_index.py::build_index",
+            "is_derived": False,
+            "annotations": {
+                "audience": ["assistant"],
+                "priority": 1.0,
+                "lastModified": generated_at,
+            },
         },
         "entropy": {
             "H": H,
@@ -690,7 +723,12 @@ def register_namespace_index(mcp: FastMCP) -> list[str]:
     NOT a Zen violation — this is governance data, not a mirror.
     """
 
-    @mcp.resource("arifos://index")
+    @mcp.resource(
+        "arifos://index",
+        name="arifOS Namespace Index",
+        mime_type="application/json",
+        description="Migration map: 42 resources → 6-plane architecture. Entropy H=0.26. Every entry carries current_uri, proposed_uri, plane, source_of_truth, duplicate_of, attestation gap. Rule: delete nothing, alias second, deprecate last.",
+    )
     def namespace_index() -> str:
         """arifOS Namespace Index — complete migration map with entropy metrics.
 
@@ -705,4 +743,19 @@ def register_namespace_index(mcp: FastMCP) -> list[str]:
         """
         return build_index()
 
-    return ["arifos://index"]
+    # ── ALIAS (Tension 1 resolution — handler-level aliasing) ──
+    # MCP spec has no redirect primitive. This is the least-wrong pattern:
+    # one handler, two URIs. Single source of truth, no content duplication.
+    # The old arifos://resources/index was disabled 2026-06-28 as
+    # "catalog-of-catalog" — resurrected as an alias for the migration map.
+    @mcp.resource(
+        "arifos://resources/index",
+        name="arifOS Namespace Index (alias)",
+        mime_type="application/json",
+        description="ALIAS for arifos://index — the namespace migration map. Same handler, same content, different URI. MCP spec has no redirect; handler-level aliasing is the least-wrong pattern.",
+    )
+    def namespace_index_alias() -> str:
+        """ALIAS: arifos://index → arifos://resources/index."""
+        return build_index()
+
+    return ["arifos://index", "arifos://resources/index"]
