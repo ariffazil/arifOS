@@ -253,7 +253,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "  2. READ resource arifos://bootstrap → live federation context\n"
             "  3. READ resource arifos://carry-forward → prior session state\n"
             "  4. READ resource arifos://flow-state → FQ pulse (FQ<0.5 → OBSERVE_ONLY)\n"
-            "  5. CALL tool arif_init → bind session + get SCT token\n\n"
+            "  5. CALL tool arif_init → bind session + get ACT token\n\n"
             "═══ AGENT CLOSE SEQUENCE (MCP-NATIVE) ═══\n"
             "Every session MUST close with:\n"
             "  1. CALL prompt '/seal' → 11-step autonomous close ritual\n"

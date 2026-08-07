@@ -1038,7 +1038,7 @@ def get_session_identity(session_id: str) -> dict[str, Any] | None:
             payload = verify_token(session_id)
             if payload:
                 # Preserve actor_verified from any previously stored session identity.
-                # A SCT (Session Capability Token) may carry witness.active_count=0
+                # An ACT (Actor Capability Token) may carry witness.active_count=0
                 # while a prior bind_identity() already set actor_verified=True.
                 # Overwriting would create state-envelope drift between verdict and birth.
                 _existing = _SESSION_IDENTITY.get(payload.sub, {})
@@ -1512,7 +1512,7 @@ def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) ->
     historical runtime/test surface.
 
     P0 BOUNDARY FIX (2026-07-19): the returned value is the CANONICAL MACHINE
-    ACTOR ID, which MUST be lowercase so every downstream comparison (SCT
+    ACTOR ID, which MUST be lowercase so every downstream comparison (ACT
     claim, bridge envelope, organ-side session validator, GEOX validator,
     WEALTH validator, WELL validator, receipts) operates on one form. The
     display label "ARIF" belongs at the UI layer, not in this field. Per
