@@ -819,24 +819,29 @@ Constraints:
     @mcp.prompt(
         name="/init",
         description=(
-            "/init — Full 10-step autonomous ignition sequence (000_INIT anchor). "
-            "Probes kernel, /000, /999, binds session, checks FQ pulse, activates "
-            "ATLAS333 cognitive geometry, runs organ+memory attestation, configures "
-            "RSI Phase 0. Use as the canonical agent bootstrap for any session. "
-            "Distinct from 🌱 BOOT which is a lightweight pre-flight check."
+            "/init — Collapsed 4-step governed ignition (000_INIT v5.0). "
+            "Probes kernel, organs, binds session with lane+profile detection, "
+            "loads context. Lane detection at init. Governance Profile axis "
+            "(OBSERVE/BUILD/MUTATE/DEPLOY). FLAME/ATLAS333/EUREKA777/Graphiti "
+            "demoted to intent-driven optional plugins. SCT token stored for seal. "
+            "Collapsed from 10 to 4 steps under F13 architectural review 2026-08-07."
         ),
         meta={
             "stage": "BOOT",
             "sigil": "⚓",
             "lexical": "INIT",
-            "role": "Full autonomous agent ignition sequence",
+            "role": "Collapsed governed agent ignition — 4 steps",
             "linked_tools": [
                 "arif_init",
-                "arifos_arif_init",
                 "arif_observe",
                 "arif_think",
                 "arif_route",
                 "arif_memory",
+            ],
+            "linked_cross_organ_tools": [
+                "forge_vault (A-FORGE :7071)",
+                "flow_ingest (arifFlow :7073)",
+                "flow_health (arifFlow :7073)",
             ],
             "linked_resources": [
                 "arifos://bootstrap",
@@ -846,18 +851,18 @@ Constraints:
                 "arifos://identity",
                 "arifos://doctrine",
             ],
-            "floors_referenced": "F1,F2,F4,F7,F11,F13",
+            "floors_referenced": "F1,F2,F4,F7,F8,F11,F13",
             "federation_layer": "arifOS.kernel.prompts",
             "canonical_source": _INIT_CMD_PATH,
-            "version": "2026.08.04",
+            "version": "2026.08.07",
         },
     )
     def init_full(depth: str = "full") -> str:
-        """/init — Full 10-step autonomous ignition sequence. 000_INIT anchor.
+        """/init — Collapsed 4-step governed ignition sequence. 000_INIT v5.0.
 
         Loads the complete operational init command from the canonical source.
-        Includes: kernel probe, /000↔/999, session bind, FQ gate, organ attestation,
-        ATLAS333 lane detection, EUREKA777 activation, RSI Phase 0 configuration.
+        Includes: kernel probe, organ probe, session bind (lane+profile detection),
+        context load. FLAME/ATLAS333/EUREKA777/Graphiti are optional, intent-driven.
         """
         try:
             with open(_INIT_CMD_PATH, encoding="utf-8") as fh:
