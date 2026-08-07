@@ -14131,12 +14131,15 @@ async def _arif_mind_reason_tool(
                 "result": {
                     "query": query,
                     "synthesis": synthesis.get("bounded_answer", ""),
-                    "confidence": synthesis.get("overall_confidence", 0.65),
+                    # STAB-2026-08-07b: kill the trio of fabricated defaults —
+                    # 0.65/0.5/0.3 wore the costume of measurements but were not.
+                    # Honest absence is now propagated as None (UNMEASURED).
+                    "confidence": synthesis.get("overall_confidence", None),
                     "what_is_supported": synthesis.get("what_is_supported", []),
                     "what_is_not_supported": synthesis.get("what_is_not_supported", []),
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
-                    "confidence_reasoning": synthesis.get("confidence_reasoning", 0.5),
-                    "confidence_evidence": synthesis.get("confidence_evidence", 0.3),
+                    "confidence_reasoning": synthesis.get("confidence_reasoning", None),
+                    "confidence_evidence": synthesis.get("confidence_evidence", None),
                     "confidence_provenance": "OBSERVED",
                 },
             }

@@ -135,7 +135,10 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 "result": {
                     "query": query,
                     "synthesis": synthesis.get("bounded_answer", ""),
-                    "confidence": synthesis.get("overall_confidence", 0.65),
+                    # STAB-2026-08-07b: default of 0.65 was a fabricated number.
+                    # When synthesis omits overall_confidence, return None (UNMEASURED)
+                    # rather than inventing 0.65 that downstream interprets as STRONG.
+                    "confidence": synthesis.get("overall_confidence", None),
                     "what_is_supported": synthesis.get("what_is_supported", []),
                     "what_is_not_supported": synthesis.get("what_is_not_supported", []),
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
