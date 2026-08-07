@@ -11625,7 +11625,7 @@ def _arif_sense_observe(
 
             # Calibration guidance from paradox activation
             _cal = {
-                "confidence_cap": 0.90,
+                "confidence_cap": 0.95,  # F7: Ω₀ ∈ [0.03,0.05] → cap = 1-Ω₀ ∈ [0.95,0.97]
                 "requires_witness": False,
                 "requires_authority_chain": False,
                 "gate_verdict": "PROCEED",
@@ -15848,7 +15848,9 @@ def _arif_memory_recall(
         telemetry["confidence"] = round(
             (coverage * 0.4) + ((1.0 - conflict) * 0.3) + (avg_rel * 0.3), 3
         )
-        telemetry["confidence"] = min(0.90, telemetry["confidence"])  # F7 HUMILITY cap
+        telemetry["confidence"] = min(
+            0.95, telemetry["confidence"]
+        )  # F7 HUMILITY cap (Ω₀ ∈ [0.03,0.05] → cap ∈ [0.95,0.97])
 
         # Verdict
         if telemetry["coverage_score"] >= 0.8 and telemetry["conflict_score"] <= 0.2:
