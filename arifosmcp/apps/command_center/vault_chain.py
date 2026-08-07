@@ -206,9 +206,35 @@ def verify_chain(
     # Find first chain-linked entry (legacy entries lack payload_hash)
     first_chain_idx = next((i for i, e in enumerate(lines) if "payload_hash" in e), len(lines))
 
+    unlinked: list[str] = []
     for i, entry in enumerate(lines):
-        # Skip legacy entries without chain fields
-        if "payload_hash" not in entry:
+        # ── C1 FIX (2026-08-07): Break silence on unlinked entries ───────
+        # Previously: entries without payload_hash were silently skipped.
+        # This masked six weeks of broken seals (Jul 30 → Aug 3) where
+        # entries had no chain fields at all. Now: entries missing BOTH
+        # payload_hash AND prev_hash are flagged as UNLINKED gaps.
+        # Entries with prev_hash but no payload_hash are legacy-partial
+        # (logged as warning, not fatal).
+        has_payload = "payload_hash" in entry
+        has_prev = bool(entry.get("prev_hash"))
+        if not has_payload:
+            entry_id = (
+                entry.get("id")
+                or entry.get("entry_id")
+                or entry.get("receipt_id")
+                or f"line_{i + 1}"
+            )
+            timestamp = entry.get("timestamp", "null")
+            if not has_prev:
+                unlinked.append(
+                    f"Entry {entry_id}: UNLINKED — no payload_hash, no prev_hash "
+                    f"(timestamp={timestamp}). Arrow of time broken at this entry."
+                )
+            else:
+                breaks.append(
+                    f"Entry {entry_id}: legacy-partial — has prev_hash={entry.get('prev_hash', '')[:16]} "
+                    f"but no payload_hash. Cannot verify forward link."
+                )
             continue
 
         # Determine expected prev_hash
@@ -235,7 +261,7 @@ def verify_chain(
         if entry.get("chain_hash", "") != expected_chain:
             breaks.append(f"Entry {entry.get('entry_id', '?')}: chain_hash mismatch")
 
-    chain_valid = len(breaks) == 0
+    chain_valid = len(breaks) == 0 and len(unlinked) == 0
     entries_checked = len(lines)
     if entries_checked == 0:
         return {
@@ -249,11 +275,14 @@ def verify_chain(
             "sovereign_receipt_ref": sovereign_receipt_ref or "",
             "reason": "Zero entries in vault — integrity cannot be asserted on an empty chain",
         }
+    # Merge unlinked into breaks for reporting
+    all_breaks = breaks + unlinked
     return {
         "status": "OK" if chain_valid else "GAPS_FOUND",
         "chain_physically_valid": chain_valid,
         "entries_checked": entries_checked,
-        "breaks": breaks,
+        "breaks": all_breaks,
+        "unlinked_count": len(unlinked),
         "historical_anomaly": not chain_valid,
         "accepted_risk": not chain_valid if sovereign_receipt_ref else False,
         "anomaly_repaired": False,
