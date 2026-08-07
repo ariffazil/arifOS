@@ -72,6 +72,7 @@ from fastmcp import FastMCP
 from .aaa_index import register_aaa_index
 from .aforge_index import register_aforge_index
 from .atlas_repo import register_atlas_repo
+from .vault999_index import register_vault999_index
 from .bootstrap import register_bootstrap
 from .civilization import register_civilization
 from .doctrine import register_doctrine
@@ -549,6 +550,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_atlas_repo(mcp))
     registered.extend(register_aaa_index(mcp))
     registered.extend(register_aforge_index(mcp))
+    registered.extend(register_vault999_index(mcp))
     registered.extend(register_floor_template(mcp))
     registered.extend(register_refusal_surface(mcp))
     registered.extend(register_trinity(mcp))
