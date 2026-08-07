@@ -587,29 +587,33 @@ class VerdictScopes(BaseModel):
     )
 
     # ── Scope weight maps for worst-scope derivation ─────────────
+    # STAB-2026-08-07: prefix with _ to stop pydantic serialization into every
+    # payload. These are internal lookup tables, not agent-visible data.
+    # Agent callers must read the derived states (substrate.state, session.state,
+    # action.state, receipt.state) instead of these raw constants.
 
-    SUBSTRATE_WEIGHT: dict[str, int] = {
+    _SUBSTRATE_WEIGHT: dict[str, int] = {
         "PASS": 0,
         "HEALTHY": 1,
         "DEGRADED": 2,
         "FAIL": 3,
     }
 
-    SESSION_WEIGHT: dict[str, int] = {
+    _SESSION_WEIGHT: dict[str, int] = {
         "OBSERVE_ONLY": 0,
         "LIMITED_MUTATE": 1,
         "FULL": 2,
         "SABAR": -1,  # Special: SABAR is a caution, mapped to SABAR in legacy
     }
 
-    ACTION_WEIGHT: dict[str, int] = {
+    _ACTION_WEIGHT: dict[str, int] = {
         "APPROVED": 0,
         "DENIED": 2,
         "HOLD": 3,
         "VOID": 4,
     }
 
-    RECEIPT_WEIGHT: dict[str, int] = {
+    _RECEIPT_WEIGHT: dict[str, int] = {
         "SEALED": 0,
         "UNSEALED": 1,
     }
