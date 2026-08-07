@@ -748,6 +748,15 @@ def build_index() -> str:
             },
             "orthogonality_rule": "Planes separated by change rate. Nothing per-call sits next to something per-amendment.",
             "fractal_rule": "Every plane: index · subject · subject/attestation. Learn one, navigate all.",
+            "protocol_reality": {
+                "description": "The ttl_ms, cache_scope, and priority fields in this index are APPLICATION-LAYER hints — NOT protocol-enforced. The MCP spec provides ttlMs + cacheScope only on list responses (resources/list, tools/list, server/discover), not per-resource. Agents MUST be explicitly coded to read arifos://index and apply these hints. No MCP client will natively respect ttl_ms: 0 on state resources without agent-level enforcement.",
+                "listChanged_override": {
+                    "rule": "listChanged notification OVERRIDES all TTLs. Even a 24h-cached law resource MUST be invalidated immediately on listChanged.",
+                    "critical_gap": "arifOS does NOT currently declare the listChanged capability. Without it, agents cannot detect law amendments — a 24h TTL on law/ resources is DANGEROUS (agent may work against stale constitution).",
+                    "mitigation": "Until listChanged is declared: re-validate law/ resources on every session start (arif_init). Do not trust cached law/ resources across sessions.",
+                },
+                "enforcement": "Self-enforced. The geometry is correct (change_rate → ttl_ms) but the protocol won't help you. Read this index first. Apply the hints yourself. Watch for listChanged when available.",
+            },
             "caching": {
                 "description": "MCP §16 — every resource SHOULD declare ttlMs + cacheScope. Derived from change_rate (the geometric primitive).",
                 "policy": {
@@ -758,8 +767,8 @@ def build_index() -> str:
                     "versioned": CACHE_POLICY["versioned"],
                     "append-only": CACHE_POLICY["append-only"],
                 },
-                "progressive_discovery": "Load arifos://index (ttl=1h, public). Navigate plane. Read only needed resources. Cache per policy above.",
-                "subscription_hint": "Subscribe to resources/listChanged for plane-level awareness. Per-resource subscriptions for state/ resources (per-call, no cache).",
+                "progressive_discovery": "Load arifos://index first (ttl=1h, public). Navigate plane. Read only needed resources. Apply cache hints from this index — the protocol won't enforce them. Re-validate law/ resources on every session start until listChanged capability is declared.",
+                "subscription_hint": "Subscribe to resources/listChanged for plane-level awareness (NOT YET DECLARED on arifOS). Per-resource subscriptions for state/ resources (per-call, no cache).",
             },
             "priority": {
                 "description": "MCP §1 annotations.priority — 0/42 arifOS resources carry it. Index fills the gap. Derived from plane (the geometric primitive). Enables selective context injection — clients inject high-priority resources, drop low-priority ones.",
