@@ -41,8 +41,12 @@ async def test_claimed_arif_without_signature_is_not_verified():
         f"Got actor_verified=True, expected False/None."
     )
     assert result.actor_verified in (None, False)
-    # Authority must not be SOVEREIGN
-    assert result.authority.level.value in ("anonymous", "observe_only")
+    # Authority must not be SOVEREIGN. Exempt actors (Ed25519 bypass)
+    # may receive 'operator' — identity confirmed, authority capped.
+    assert result.authority.level.value in ("anonymous", "observe_only", "operator"), (
+        f"P0 REGRESSION: unverified arif claim got elevated authority. "
+        f"Got {result.authority.level.value}, expected anonymous/observe_only/operator."
+    )
     # No mutation gate
     gate = getattr(result, "forge_gate", None)
     assert gate is None or gate is False or (hasattr(gate, "enabled") and gate.enabled is False)
