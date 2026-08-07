@@ -4983,7 +4983,7 @@ def _enforce_nine_signal(
             # scoped verdicts. They MUST agree. Override the inner value with a
             # derivation from the outer's authoritative fields.
             try:
-                _outer_verdict = str(envelope.get("verdict", "")).upper()
+                _outer_verdict = str(envelope.get("effective_verdict") or envelope.get("verdict") or "").upper()  # STAB-2026-08-07b: pin on effective, not raw
                 _outer_reasons = envelope.get("reasons", []) or []
                 _scoped_v = envelope.get("verdicts", {}) or {}
                 _substrate_state = (
