@@ -806,29 +806,42 @@ def _apply_authority_surface_values(
     actor_block = response.get("actor")
     if isinstance(actor_block, dict):
         actor_block["authority_level"] = band
-    # Constitutional check — single source of truth: effective_verdict + failed_floors.
-    # Bug fixed 2026-08-07: previously derived from `band` (authority), which is a
-    # session-state field, not a constitutional truth. An anonymous session returning
-    # HOLD (failed_floors populated) used to show floor_passed=true because
-    # authority band was OBSERVE_ONLY (not HOLD/VOID). That lies about the verdict.
-    # Now: if EITHER effective_verdict in {HOLD,VOID} OR failed_floors non-empty → false.
+    # Constitutional check — single source of truth.
+    # STAB-2026-08-07b: derive from fields that EXIST in `response` NOW (not
+    # effective_verdict alone, which may be written LATER by attach_effective_verdict).
+    # The judge path was the leak: dual-truth enrichment set hold_reason=HOLD,
+    # then `_sync_authority_surfaces_from_standing` re-ran with effective_verdict
+    # still empty → `_has_hold = False` → floor_passed=True corrupted the render.
+    # Source-of-truth order (most authoritative first):
+    #   1. failed_floors / violated_floors on the response (already populated)
+    #   2. canonical_verdict (also written earlier)
+    #   3. effective_verdict (may be written later)
     cc = response.get("constitutional_check")
     if isinstance(cc, dict):
         cc["agency_level"] = band
         _ev = str(response.get("effective_verdict", "")).upper()
+        _cv = str(response.get("canonical_verdict", "")).upper()
         _ff = (
             response.get("failed_floors")
             or response.get("violated_floors")
             or (response.get("meta", {}) or {}).get("violated_laws")
+            or (cc.get("failed_floors") or [])
             or []
         )
-        _has_hold = _ev in ("HOLD", "VOID") or bool(_ff)
+        _has_hold = (
+            bool(_ff)
+            or _ev in ("HOLD", "VOID", "888_HOLD")
+            or _cv in ("HOLD", "VOID", "888_HOLD")
+        )
         cc["floor_passed"] = not _has_hold
         cc["hold_required"] = _has_hold
-        if _has_hold and not cc.get("hold_reason"):
-            cc["hold_reason"] = (
+        cc["failed_floors"] = list(_ff) if _ff else cc.get("failed_floors", [])
+        if _has_hold:
+            cc.setdefault(
+                "hold_reason",
                 f"Derived from effective_verdict={_ev or 'UNSET'} "
-                f"and failed_floors={list(_ff)}"
+                f"canonical_verdict={_cv or 'UNSET'} "
+                f"failed_floors={list(_ff)}",
             )
     # Risk
     risk = response.get("risk")
