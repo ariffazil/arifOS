@@ -97,52 +97,96 @@ def sabar_run_loop(
 ) -> PromptResult:
     """🌀 SABAR orchestrator — drives the 6-stage reality loop.
 
-    For a governed run:
+    Stages:
       1. 🌊 WITNESS  — observe (arif_observe, geox_evidence, well_validate_vitality)
-      2. 🧠 REASON   — propose hypothesis (arif_think)
-      3. ⚖ MARUAH  — check dignity (arif_think mode=critique, well_guard_dignity)
-      4. 🔒 JUDGE    — constitutional gate (arif_judge)
-      5. 🔥 FORGE    — execute after kernel approval (arif_forge)
+      2. 🧠 REASON   — propose hypothesis (arif_think mode=reason)
+      3. ⚖ MARUAH  — dignity check (arif_think mode=reflect, well_guard_dignity)
+      4. 🔒 JUDGE    — constitutional gate (arif_judge, geox_contradiction_scan, geox_falsify)
+      5. 🔥 FORGE    — execute after SEAL/SABAR verdict (arif_forge)
       6. 💎 SEAL     — persist (arif_seal)
 
-    depth='stage'  → returns a multi-message instruction for the LLM caller
-                     to drive the loop manually (recommended for human-in-loop).
-    depth='auto'   → returns an orchestration template. It grants no authority;
-                     every tool keeps its own kernel and sovereign gates.
+    depth='stage'  → human-in-loop: agent completes one stage, hands off.
+    depth='auto'   → AUTONOMOUS: agent chains all 6 stages without stopping
+                      at stage boundaries. Only HOLD/VOID gates pause the loop.
+
+    Receipt tiering (autonomous mode):
+      NONE (agent alone)   → PROVISIONAL — telemetry only
+      PARTIAL (1 witness)  → LEDGER
+      ≥2 independent       → SEAL eligible
+    The loop can stack PROVISIONAL receipts all night. Human review
+    converts a batch to SEAL. Agent never upgrades its own record class.
+
+    F2 PROVENANCE GATE (non-bypassable, active in autonomous mode):
+      Every epistemic tag (OBS/DER/INT/SPEC) MUST trace to a retrieval
+      event with provenance_source. Tags invented at output time → VOID.
     """
     depth = (depth or "stage").lower()
     if depth == "auto":
-        # Auto-execution template — describes what the agent must do
         return PromptResult(
             messages=[
                 Message(
-                    f"GOVERNED LOOP TEMPLATE — 🌀 SABAR\n"
+                    f"AUTONOMOUS REALITY LOOP — 🌀 SABAR (depth=auto)\n"
                     f"intent: {intent}\n"
                     f"session_id: {session_id or 'pending'}\n"
                     f"actor_id: {actor_id or 'anonymous'}\n\n"
-                    "Sequence the 6-stage reality loop without bypassing any gate. "
-                    "At each stage:\n"
-                    f"  1. Request the linked tools only when their authority contract permits\n"
-                    f"  2. Load the linked resources (see meta.linked_resources)\n"
-                    f"  3. Record the stage receipt in your continuity chain\n"
-                    f"  4. Pass forward to the next stage\n\n"
-                    "At the end, prepare evidence for arif_seal; only an authorized "
-                    "actor may seal.",
+                    "EXECUTE ALL 6 STAGES WITHOUT STOPPING AT BOUNDARIES.\n"
+                    "Do not ask. Do not wait. Do not hand off between stages.\n"
+                    "The loop runs until: (a) all 6 stages complete, or\n"
+                    "(b) a HOLD/VOID gate fires.\n\n"
+                    "═══ TIERED RECEIPT DISCIPLINE ═══\n"
+                    "Record every stage receipt to arifflow_flow_ingest.\n"
+                    "Receipt class is capped by witness diversity:\n"
+                    "  NONE (agent alone)   → PROVISIONAL\n"
+                    "  PARTIAL               → LEDGER\n"
+                    "  ≥2 independent        → SEAL eligible\n\n"
+                    "═══ F2 PROVENANCE GATE ═══\n"
+                    "Before JUDGE: verify every OBS/DER/INT/SPEC tag\n"
+                    "has provenance_source from a retrieval event.\n"
+                    "Tags without provenance → VOID. Do not seal.\n"
+                    "ΔS is UNMEASURED unless a meter exists.\n\n"
+                    "═══ STAGE SEQUENCE ═══\n"
+                    "1. 🌊 WITNESS: arif_observe(mode=vitals) + geox_evidence\n"
+                    "   + well_validate_vitality. Output WITNESS block with\n"
+                    "   provenance_source on every tag.\n"
+                    "2. 🧠 REASON: arif_think(mode=reason). Extract principles.\n"
+                    "   Propose hypothesis. Hand evidence to next stage.\n"
+                    "3. ⚖ MARUAH: arif_think(mode=reflect) + well_guard_dignity.\n"
+                    "   Consequence scan. Weakest stakeholder check.\n"
+                    "4. 🔒 JUDGE: arif_judge + geox_contradiction_scan +\n"
+                    "   geox_falsify. Emit SEAL|HOLD|SABAR|VOID with\n"
+                    "   provenance_verified field.\n"
+                    "5. 🔥 FORGE: arif_forge (only if verdict=SEAL|SABAR).\n"
+                    "   Execute governed mutation. Verify reversibility.\n"
+                    "6. 💎 SEAL: arif_seal (only if FORGE complete +\n"
+                    "   witness diversity ≥2 or human ack).\n\n"
+                    "═══ GATE BEHAVIOR ═══\n"
+                    "VOID at any stage → HALT entire loop. Record scar.\n"
+                    "HOLD at JUDGE → return to WITNESS with named failures.\n"
+                    "HOLD at FORGE → escalate to human (888_HOLD).\n"
+                    "FQ < 0.5 → ALL agents HOLD until recovery.\n\n"
+                    "This prompt grants no judgment, execution, or seal\n"
+                    "authority on its own. Every tool keeps its kernel and\n"
+                    "sovereign gates. The loop is a RATED conveyor, not\n"
+                    "a blank check.",
                     role="user",
                 ),
                 Message(
-                    "Understood. Starting 🌊 WITNESS by requesting arif_observe and "
-                    "geox_evidence for ground-truth signals. Will report after observation.",
+                    "🌀 SABAR autonomous loop engaged. Executing all 6 stages "
+                    "without boundary stops. Recording receipts at "
+                    "witness-diversity-capped tiers. Will halt only on "
+                    "HOLD/VOID gates or FQ < 0.5.",
                     role="assistant",
                 ),
             ],
-            description="🌀 SABAR autonomous reality-loop orchestrator (depth=auto)",
+            description="🌀 SABAR autonomous reality-loop orchestrator (depth=auto) — rated conveyor",
             meta={
                 "stage": "000_LOOP",
                 "sigil": "🌀",
                 "lexical": "SABAR",
-                "role": "Recursive Governed Loop orchestrator",
+                "role": "Autonomous 6-stage reality loop orchestrator",
                 "depth": "auto",
+                "receipt_tiers": ["PROVISIONAL", "LEDGER", "SEAL"],
+                "f2_provenance_gate": True,
                 "linked_tools": [
                     "arif_observe",
                     "geox_evidence",
@@ -151,8 +195,10 @@ def sabar_run_loop(
                     "well_guard_dignity",
                     "arif_judge",
                     "geox_contradiction_scan",
+                    "geox_falsify",
                     "arif_forge",
                     "arif_seal",
+                    "arifflow_flow_ingest",
                 ],
                 "linked_resources": [
                     "arifos://verdict/{session_id}",
@@ -162,7 +208,7 @@ def sabar_run_loop(
                 ],
                 "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
                 "federation_layer": "arifOS.kernel.prompts",
-                "version": "2026.08.05",
+                "version": "2026.08.07",
             },
         )
     # depth='stage' — multi-message instruction for human-in-loop
