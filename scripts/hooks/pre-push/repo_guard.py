@@ -19,7 +19,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path("/root/arifOS")  # canonical source tree (always use this for git rev-parse)
+assert (REPO_ROOT / ".git").exists(), f"No .git at {REPO_ROOT}"
 VENV_PY = "/opt/arifos/venv/bin/python"
 TESTS_DIR = REPO_ROOT / "tests"
 PYTEST_TARGET = TESTS_DIR / "test_e2e_kernel.py"

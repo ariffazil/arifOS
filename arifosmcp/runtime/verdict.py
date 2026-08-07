@@ -342,7 +342,21 @@ def attach_effective_verdict(
             or []
         )
         _has_hold = _ev in ("HOLD", "VOID", "888_HOLD") or bool(_ff)
-        cc["floor_passed"] = not _has_hold
+        # STAB-2026-08-08j: FLOOR_HONESTY.
+        # floor_passed is now a genuine sensor: None = unmeasured,
+        # True = floors measured and passed, False = floors failed.
+        # If no floors were checked (_ff empty AND no nine_signal floor data),
+        # floor_passed = None — honest absence, not silent True/False.
+        _floors_actually_checked = bool(_ff)
+        if _floors_actually_checked:
+            cc["floor_passed"] = False  # if we got here, floors DID fail
+        elif _has_hold and not _ff:
+            # HOLD without specific floor failures = unmeasured
+            cc["floor_passed"] = None
+        else:
+            # No hold, no failed floors, but also no measured floors
+            cc["floor_passed"] = None  # not measured, not assumed
+        cc["_floor_measurement"] = "measured" if _floors_actually_checked else "unmeasured"
         cc["hold_required"] = _has_hold
         cc["failed_floors"] = list(_ff) if _ff else cc.get("failed_floors", [])
         if _has_hold and not cc.get("hold_reason"):

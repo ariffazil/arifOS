@@ -388,15 +388,26 @@ class TestFloorHonesty:
             )
 
     def test_unmeasured_floors_declared_k2(self):
-        """K2: unmeasured floors are declared, not defaulted to passed."""
+        """K2 (STAB-2026-08-08j): unmeasured floors are EXPLICITLY None, not silently True."""
         sc = init_session()
         cc = sc.get("constitutional_check", {})
-        floor_passed = cc.get("floor_passed", {})
-        # Some floors may legitimately pass — but none should be silently absent
-        # The key is that the response tells us which floors were checked
-        assert floor_passed is not None, (
-            "floor_passed is missing — floors not declared at all (K2 violation)"
+        floor_passed = cc.get("floor_passed", "MISSING")
+        floor_measurement = cc.get("_floor_measurement", "MISSING")
+        # STAB-2026-08-08j: floor_passed MUST be one of {True, False, None}.
+        # None = unmeasured (honest absence). True/False = measured.
+        # "MISSING" key (or True with empty failed_floors and no measurement
+        # evidence) is the K2 violation we're guarding against.
+        assert floor_passed in (True, False, None), (
+            f"floor_passed must be one of (True, False, None); got {floor_passed!r}"
         )
+        assert floor_measurement in ("measured", "unmeasured"), (
+            f"_floor_measurement must be 'measured' or 'unmeasured'; got {floor_measurement!r}"
+        )
+        if floor_passed is True:
+            # If True, must be backed by evidence
+            assert floor_measurement == "measured", (
+                f"floor_passed=True without _floor_measurement=measured — silent True is the K2 lie"
+            )
 
     def test_no_delta_s_fabrication_k_series(self):
         """K-series: delta_S is None when no measurement, never 0.0."""
