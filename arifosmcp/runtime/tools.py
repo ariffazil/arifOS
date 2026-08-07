@@ -2616,27 +2616,34 @@ def _compute_canonical_verdict(
         verdict = "DEGRADED"
         degradation.append(f"degraded_flags: {_degraded_flag_reason(out)}")
 
-    # ── Step 3b: Substrate drift (G8 FIX 2026-08-05) ──────────────────────
+    # ── Step 3b: Substrate drift (G8 FIX 2026-08-05, HARDENED 2026-08-06) ──
     # SEAL over DEGRADED substrate is A1 — a cheerful corpse.
-    # Check both top-level substrate and verdicts.substrate (delegate vs wrapper).
+    # UNION CHECK: both top-level substrate AND verdicts.substrate (delegate vs wrapper).
+    # Prior code used fallback (if not _drift_sub: ...) which never reached verdicts.substrate
+    # because out["substrate"] always exists after arif_init. Now: check BOTH, any DEGRADED wins.
     if verdict == "SEAL":
         _drift_sub = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
-        if not _drift_sub:
-            _drift_verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
-            _drift_sub = (
-                _drift_verdicts.get("substrate")
-                if isinstance(_drift_verdicts.get("substrate"), dict)
-                else {}
-            )
-        _drift_flag = (
-            _drift_sub.get("drift", False)
-            or isinstance(_drift_sub.get("drift"), str)
+        _drift_verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
+        _vdrift_sub = (
+            _drift_verdicts.get("substrate")
+            if isinstance(_drift_verdicts.get("substrate"), dict)
+            else {}
+        )
+        # UNION: check both sources independently
+        _drift_flag_top = _drift_sub.get("drift", False) or (
+            isinstance(_drift_sub.get("drift"), str)
             and _drift_sub["drift"] not in ("false", "False", "", "NONE")
         )
-        if _drift_sub.get("state") == "DEGRADED" or _drift_flag:
+        _drift_flag_vsub = _vdrift_sub.get("drift", False) or (
+            isinstance(_vdrift_sub.get("drift"), str)
+            and _vdrift_sub["drift"] not in ("false", "False", "", "NONE")
+        )
+        _top_degraded = _drift_sub.get("state") == "DEGRADED" or _drift_flag_top
+        _vsub_degraded = _vdrift_sub.get("state") == "DEGRADED" or _drift_flag_vsub
+        if _top_degraded or _vsub_degraded:
             verdict = "DEGRADED"
             degradation.append(
-                f"substrate_drift: state={_drift_sub.get('state')}, drift={_drift_sub.get('drift')}"
+                f"substrate_drift: top_state={_drift_sub.get('state')} vsub_state={_vdrift_sub.get('state')}"
             )
 
     # ── Step 4: Inner verdicts from result payload ────────────────────────
@@ -5053,17 +5060,26 @@ def _enforce_nine_signal(
         # deployment_invariant.note says: must refuse to report healthy when drift is true.
         # When substrate is DEGRADED or drift is true, surface it prominently and
         # suppress any SAFE/SELAMAT signal in nine_signal AND downgrade verdict.
+        # HARDENED 2026-08-06: UNION check — evaluate BOTH top-level and verdicts.substrate.
+        # Prior fallback pattern (if not _sub: ...) never reached verdicts.substrate
+        # because out["substrate"] always exists after arif_init.
         _sub = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
-        # G8 FIX: Also check verdicts.substrate (arif_init puts drift data there)
-        if not _sub:
-            _verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
-            _sub = (
-                _verdicts.get("substrate") if isinstance(_verdicts.get("substrate"), dict) else {}
-            )
-        _drift = (
-            _sub.get("drift", False)
-            or isinstance(_sub.get("drift"), str)
+        _verdicts = out.get("verdicts") if isinstance(out.get("verdicts"), dict) else {}
+        _vsub = _verdicts.get("substrate") if isinstance(_verdicts.get("substrate"), dict) else {}
+        # UNION: check both independently
+        _drift_top = _sub.get("drift", False) or (
+            isinstance(_sub.get("drift"), str)
             and _sub["drift"] not in ("false", "False", "", "NONE")
+        )
+        _drift_vsub = _vsub.get("drift", False) or (
+            isinstance(_vsub.get("drift"), str)
+            and _vsub["drift"] not in ("false", "False", "", "NONE")
+        )
+        _degraded = (
+            _sub.get("state") == "DEGRADED"
+            or _drift_top
+            or _vsub.get("state") == "DEGRADED"
+            or _drift_vsub
         )
         # Also merge substrate from out into envelope so floor sees it
         if isinstance(out.get("substrate"), dict) and "substrate" not in envelope:
