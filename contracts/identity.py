@@ -323,6 +323,16 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "default_tier": "AGENT",
         "aliases": ["FI-008", "fi-008", "kimi-code-fi008", "kimi-code"],
     },
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: register SOTCRON as Tier-A identity.
+    # Federation SOT/Drift cron — continuous World Model vault bridge.
+    # Ed25519 public key fingerprint matches did:arif:sot-cron in
+    # /opt/arifos/secrets/did-registry.json. DPoP+registry promotion channel
+    # gates actual seal authority — this entry only grants identity normalization.
+    "SOTCRON": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["SOTCRON", "sot-cron", "sotcron"],
+    },
 }
 
 

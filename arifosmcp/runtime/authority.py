@@ -49,6 +49,64 @@ from arifosmcp.runtime.model import (
 
 logger = logging.getLogger(__name__)
 
+# ── DID Registry Validation ──────────────────────────────────────────────────
+# F13 T3 directive 2026-08-07: dynamically validate actors against the
+# federation DID registry alongside the legacy sovereign tuple.
+# F1 AMANAH: if the registry is unreadable, fail closed (default deny).
+
+import json as _json_import  # late import — only for DID registry reads
+import os as _os_import
+
+_DID_REGISTRY_PATH: str = "/opt/arifos/secrets/did-registry.json"
+_DID_CACHE: dict | None = None
+_DID_CACHE_MTIME: float | None = None
+
+
+def _load_did_registry() -> dict | None:
+    """Load the federation DID registry. Returns None if unreadable (F1 fail-closed).
+
+    Caches by mtime — re-reads only when the file changes on disk.
+    """
+    global _DID_CACHE, _DID_CACHE_MTIME
+    try:
+        mtime = _os_import.path.getmtime(_DID_REGISTRY_PATH)
+        if _DID_CACHE is not None and _DID_CACHE_MTIME == mtime:
+            return _DID_CACHE
+        with open(_DID_REGISTRY_PATH) as _fh:
+            _DID_CACHE = _json_import.load(_fh)
+            _DID_CACHE_MTIME = mtime
+            return _DID_CACHE
+    except (FileNotFoundError, _json_import.JSONDecodeError, PermissionError, OSError) as exc:
+        logger.warning(
+            "DID registry load failed (F1 fail-closed, path=%s): %s",
+            _DID_REGISTRY_PATH, exc,
+        )
+        return None
+
+
+def _actor_in_did_registry(actor_id: str | None) -> bool:
+    """Check whether *actor_id* matches a short name in the DID registry.
+
+    DID keys are ``did:arif:<name>``; we extract ``<name>`` and compare
+    case-insensitively against *actor_id*.
+
+    F1 AMANAH: returns ``False`` when the registry cannot be read.
+    """
+    registry = _load_did_registry()
+    if not registry:
+        return False
+    dids = registry.get("dids", {})
+    actor_lower = (actor_id or "").strip().lower()
+    if not actor_lower:
+        return False
+    for did_key in dids:
+        parts = did_key.split(":")
+        if len(parts) >= 3 and parts[-1].lower() == actor_lower:
+            return True
+    return False
+
+# ── End DID Registry Validation ──────────────────────────────────────────────
+
 # L4 Warga constants — §10 Node 3 registration
 from arifosmcp.runtime.governance_identity import (
     L4_ALLOWED_VERBS,
@@ -180,6 +238,15 @@ def bind_authority_state(
     elif is_sovereign:
         sess["authority_level"] = "SOVEREIGN"
         sess["authority"] = "FULL"
+    elif _actor_in_did_registry(actor_key) and state.actor.verified:
+        # DID-registered organ — F13 T3 directive 2026-08-07.
+        # Verified DID organs get FULL authority (can seal via three-call tick).
+        sess["authority_level"] = "OPERATOR"
+        sess["authority"] = "FULL"
+        logger.info(
+            "DID registry: actor=%s matched DID registry, granted FULL authority.",
+            actor_key,
+        )
     elif actor_key in L4_WARGA_ACTORS:
         # L4 Warga: OBSERVE_ONLY — cannot mutate, seal, or judge.
         # §10 Node 3 registration: agent anchor registered, AI instance borrows ceiling.
@@ -501,11 +568,15 @@ def authority_envelope_for_session(
     # Ed25519 signature. The session store's authority field was already set by
     # bind_authority_state which performed its own verification.
     _known_sovereign = actor_key in ("arif", "888", "ariffazil", "arif_fazil")
+    # DID registry dynamic validation — F13 T3 directive 2026-08-07.
+    # Actors registered in the federation DID registry are verified organs
+    # entitled to OPERATOR authority with FULL mutation band.
+    _did_match = _actor_in_did_registry(actor_key)
     h_authority = (
         "SOVEREIGN"
         if (state.actor.verified and ((_vkey and _vkey in SOVEREIGN_KEY_IDS) or _known_sovereign))
         else "OPERATOR"
-        if state.actor.verified
+        if state.actor.verified or _did_match
         else "OPERATOR_CLAIMED"
         if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
         else "OBSERVER"

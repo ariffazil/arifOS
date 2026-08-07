@@ -37,7 +37,10 @@ DEFAULT_TTL_SECONDS = 3600
 UNMEASURED = "UNMEASURED"
 
 VALID_AUTH = frozenset(
-    {"OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN", "OPERATOR", "ANONYMOUS"}
+    {"OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN", "OPERATOR", "ANONYMOUS",
+     # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE tier.
+     # Verified automation identity — scoped vault-write only.
+     "SYSTEM_CRON_WRITE"}
 )
 
 # Metabolic verbs by authority band (no arif_act — public surface uses arif_forge)
@@ -91,9 +94,26 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_stage",
         "arif_commit",
     ],
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE.
+    # Scoped verbs only — cron seals and observes; nothing else.
+    # No arif_judge (cannot render verdicts), no arif_forge (cannot mutate
+    # code), no arif_memory write modes (cannot mutate memory), no
+    # arif_stage/arif_commit (cannot propose/commit). The full surface is
+    # reachable ONLY via the constitutional three-call tick.
+    "SYSTEM_CRON_WRITE": [
+        "arif_init",
+        "arif_observe",
+        "arif_seal",
+    ],
 }
 
-_AUTH_ORDER = {"OBSERVE_ONLY": 0, "LIMITED_MUTATE": 1, "FULL": 2, "SOVEREIGN": 3}
+_AUTH_ORDER = {
+    "OBSERVE_ONLY": 0, "LIMITED_MUTATE": 1,
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE ranks between
+    # LIMITED_MUTATE and FULL. It can be granted but cannot escalate higher.
+    "SYSTEM_CRON_WRITE": 1.5,
+    "FULL": 2, "SOVEREIGN": 3,
+}
 
 _FALLBACK_SECRET = secrets.token_bytes(32)
 _PROD_SIGNING_KEY_PATHS = (
