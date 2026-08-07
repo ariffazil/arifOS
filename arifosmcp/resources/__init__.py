@@ -73,6 +73,7 @@ from .bootstrap import register_bootstrap
 from .civilization import register_civilization
 from .doctrine import register_doctrine
 from .floor_table import register_floor_template
+from .namespace_index import register_namespace_index
 from .refusal_surface import register_refusal_surface
 
 logger = logging.getLogger(__name__)
@@ -541,6 +542,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     """
     registered: list[str] = []
     registered.extend(register_doctrine(mcp))
+    registered.extend(register_namespace_index(mcp))
     registered.extend(register_floor_template(mcp))
     registered.extend(register_refusal_surface(mcp))
     registered.extend(register_trinity(mcp))
