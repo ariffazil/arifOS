@@ -4566,9 +4566,11 @@ def _enforce_nine_signal(
         meta_payload = dict(meta_payload)
         meta_payload.setdefault("actor_id", resolved_actor_id)
 
-        delta_s = out.get("delta_S", 0.0)
-        if not isinstance(delta_s, int | float):
-            delta_s = 0.0
+        # STAB-2026-08-07e: do not fabricate 0.0 when entropy was not measured.
+        # Honoring the doctrine "half-built is worse than absent" — pass None through.
+        delta_s = out.get("delta_S", None)
+        if delta_s is not None and not isinstance(delta_s, int | float):
+            delta_s = None
 
         nine = out.get("nine_signal")
         # PHASE A BIRTH-FIX (2026-07-10): Always derive nine_signal from verdict,
