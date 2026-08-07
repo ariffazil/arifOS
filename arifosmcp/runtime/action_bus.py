@@ -37,8 +37,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from arifosmcp.runtime.act import ActRequest, ActResult
-from arifosmcp.runtime.act import act as _act_runtime
+from arifosmcp.runtime.act_token import ActRequest, ActResult
+from arifosmcp.runtime.act_token import act as _act_runtime
 from arifosmcp.runtime.governance_pipeline import (
     GovernancePipeline,
     PipelineResult,

@@ -90,7 +90,7 @@ async def arif_stage(
     _standing_authority: str = "OBSERVE_ONLY"
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.sct import resolve_standing
+            from arifosmcp.runtime.act_token import resolve_standing
 
             _standing = resolve_standing(
                 session_id=session_id,

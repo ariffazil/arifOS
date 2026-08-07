@@ -483,12 +483,12 @@ async def _wrap_call(
     token = payload.get("session_token") or (
         session_id
         if session_id
-        and (str(session_id).startswith("sct_v1.") or str(session_id).startswith("arifos.v1."))
+        and (str(session_id).startswith("act_v1.") or str(session_id).startswith("arifos.v1."))
         else None
     )
     if token:
         try:
-            from arifosmcp.runtime.sct import resolve_standing, verify_sct
+            from arifosmcp.runtime.act_token import resolve_standing, verify_sct
 
             claims = verify_sct(token)
             if claims:

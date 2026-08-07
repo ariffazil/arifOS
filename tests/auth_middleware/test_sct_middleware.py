@@ -7,7 +7,7 @@ Mocks FastMCP context, headers, and SCT verification.
 
 Patch targets:
     - get_http_headers → fastmcp.server.dependencies.get_http_headers (local import source)
-    - verify_sct → arifosmcp.runtime.sct.verify_sct (local import source)
+    - verify_sct → arifosmcp.runtime.act.verify_sct (local import source)
 
 Scenarios covered:
     1. Valid SCT → pass through
@@ -133,7 +133,7 @@ class TestSCTMiddlewareDecisionTree:
             "av": True,
         }
 
-        with patch.object(mw, "_extract_token", return_value="sct_v1.valid.token"):
+        with patch.object(mw, "_extract_token", return_value="act_v1.valid.token"):
             with patch.object(mw, "_verify", return_value=valid_claims):
                 ctx = _make_mock_context(method="tools/call", tool_name="arif_seal")
                 await mw.on_request(ctx, call_next)
@@ -148,7 +148,7 @@ class TestSCTMiddlewareDecisionTree:
         mw = SCTMiddleware()
         call_next = AsyncMock()
 
-        with patch.object(mw, "_extract_token", return_value="sct_v1.bad.token"):
+        with patch.object(mw, "_extract_token", return_value="act_v1.bad.token"):
             with patch.object(mw, "_verify", return_value=None):
                 ctx = _make_mock_context(method="tools/call", tool_name="arif_seal")
                 with pytest.raises(PermissionError, match="Invalid or expired SCT"):
@@ -172,12 +172,12 @@ class TestSCTMiddlewareDecisionTree:
 
 class TestTokenExtraction:
     def test_bearer_sct_extracted(self):
-        """Bearer sct_v1.xxx → token extracted."""
+        """Bearer act_v1.xxx → token extracted."""
         mw = SCTMiddleware()
-        headers = {"authorization": "Bearer sct_v1.eyJhY3RvciI6IjMzMy1BR0kifQ.abc123"}
+        headers = {"authorization": "Bearer act_v1.eyJhY3RvciI6IjMzMy1BR0kifQ.abc123"}
         with patch("fastmcp.server.dependencies.get_http_headers", return_value=headers):
             token = mw._extract_token(MagicMock())
-            assert token == "sct_v1.eyJhY3RvciI6IjMzMy1BR0kifQ.abc123"
+            assert token == "act_v1.eyJhY3RvciI6IjMzMy1BR0kifQ.abc123"
 
     def test_legacy_arifos_v1_extracted(self):
         """Bearer arifos.v1.xxx → token extracted."""
@@ -238,16 +238,16 @@ class TestSCTVerification:
         """Valid SCT → claims dict returned."""
         mw = SCTMiddleware()
         claims = {"sid": "SEAL-xyz", "actor": "agent"}
-        with patch("arifosmcp.runtime.sct.verify_sct", return_value=claims):
-            result = await mw._verify("sct_v1.valid.token")
+        with patch("arifosmcp.runtime.act.verify_sct", return_value=claims):
+            result = await mw._verify("act_v1.valid.token")
             assert result == claims
 
     @pytest.mark.asyncio
     async def test_invalid_token_returns_none(self):
         """Invalid SCT → None."""
         mw = SCTMiddleware()
-        with patch("arifosmcp.runtime.sct.verify_sct", return_value=None):
-            result = await mw._verify("sct_v1.bad.token")
+        with patch("arifosmcp.runtime.act.verify_sct", return_value=None):
+            result = await mw._verify("act_v1.bad.token")
             assert result is None
 
     @pytest.mark.asyncio
@@ -255,10 +255,10 @@ class TestSCTVerification:
         """verify_sct not importable → None (fail-closed)."""
         mw = SCTMiddleware()
         with patch(
-            "arifosmcp.runtime.sct.verify_sct",
+            "arifosmcp.runtime.act.verify_sct",
             side_effect=ImportError("no module"),
         ):
-            result = await mw._verify("sct_v1.token")
+            result = await mw._verify("act_v1.token")
             assert result is None
 
 

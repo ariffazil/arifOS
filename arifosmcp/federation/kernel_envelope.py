@@ -160,7 +160,7 @@ def _resolve_actor_verified(session_id: str | None, actor_id: str | None = None)
     if not session_id or str(session_id).startswith("SES-IMPLICIT-"):
         return False
     try:
-        from arifosmcp.runtime.sct import resolve_standing
+        from arifosmcp.runtime.act_token import resolve_standing
 
         standing = resolve_standing(
             session_id=session_id,

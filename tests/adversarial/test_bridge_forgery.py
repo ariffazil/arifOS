@@ -60,7 +60,7 @@ def _full_env(actor="arif", session="sess-001", authority="FULL", verified=True,
         actor_id=actor,
         identity_verified=verified,
         session_id=session,
-        session_token=kw.pop("session_token", f"sct_v1.{session}"),
+        session_token=kw.pop("session_token", f"act_v1.{session}"),
         authority=authority,
         allowed_scope=["arif_observe", "arif_think", "arif_route"],
         intent=kw.pop("intent", "probe"),
@@ -127,9 +127,9 @@ def test_case_2_session_preservation():
 
 
 def test_case_2b_session_token_must_be_carried():
-    """Session token (sct_v1.*) must be carried verbatim — kernel verifies downstream."""
-    env = _full_env(session="sess-X", session_token="sct_v1.deadbeefcafe")
-    assert env["session"]["session_token"] == "sct_v1.deadbeefcafe"
+    """Session token (act_v1.*) must be carried verbatim — kernel verifies downstream."""
+    env = _full_env(session="sess-X", session_token="act_v1.deadbeefcafe")
+    assert env["session"]["session_token"] == "act_v1.deadbeefcafe"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

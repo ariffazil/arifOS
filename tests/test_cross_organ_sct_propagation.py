@@ -48,15 +48,15 @@ def _inject(args: dict, envelope: dict) -> dict:
 
 class TestSCTEnvelopeEmbedding:
     def test_sct_embedded_in_federation_envelope(self):
-        env = _fed_env(session_token="sct_v1.eyJhdXRo.abc123")
-        assert env["session"]["session_token"] == "sct_v1.eyJhdXRo.abc123"
+        env = _fed_env(session_token="act_v1.eyJhdXRo.abc123")
+        assert env["session"]["session_token"] == "act_v1.eyJhdXRo.abc123"
 
     def test_missing_sct_yields_empty_string_not_crash(self):
         env = _fed_env(session_token=None)
         assert env["session"]["session_token"] == ""
 
     def test_authority_band_preserved(self):
-        env = _fed_env(authority="OBSERVE_ONLY", session_token="sct_v1.test")
+        env = _fed_env(authority="OBSERVE_ONLY", session_token="act_v1.test")
         assert env["session"]["authority"] == "OBSERVE_ONLY"
 
 
@@ -65,17 +65,17 @@ class TestSCTEnvelopeEmbedding:
 
 class TestSCTInjectionPropagation:
     def test_sct_carried_through_inject_envelope(self):
-        args = _inject({"mode": "test"}, _fed_env(session_token="sct_v1.prop"))
-        assert args["_envelope"]["session_token"] == "sct_v1.prop"
+        args = _inject({"mode": "test"}, _fed_env(session_token="act_v1.prop"))
+        assert args["_envelope"]["session_token"] == "act_v1.prop"
 
     def test_existing_envelope_preserved_on_injection(self):
         args = _inject(
             {"_envelope": {"prior": "keep", "session_id": "old"}},
-            _fed_env(session_token="sct_v1.new"),
+            _fed_env(session_token="act_v1.new"),
         )
         e = args["_envelope"]
         assert e["prior"] == "keep"
-        assert e["session_token"] == "sct_v1.new"
+        assert e["session_token"] == "act_v1.new"
         assert e["session_id"] == "SEAL-test"  # federation wins
 
 
@@ -84,7 +84,7 @@ class TestSCTInjectionPropagation:
 
 class TestCrossOrganAuthorityParity:
     def test_observe_only_to_geox(self):
-        env = _fed_env(authority="OBSERVE_ONLY", session_token="sct_v1.o")
+        env = _fed_env(authority="OBSERVE_ONLY", session_token="act_v1.o")
         assert env["session"]["authority"] == "OBSERVE_ONLY"
         rt = env["caller"]["authority_state"]["runtime_grant"]
         assert rt["mutation_allowed"] is False
@@ -93,7 +93,7 @@ class TestCrossOrganAuthorityParity:
     def test_observe_only_to_wealth(self):
         env = _fed_env(
             authority="OBSERVE_ONLY",
-            session_token="sct_v1.w",
+            session_token="act_v1.w",
             target_organ="WEALTH",
             target_tool="capital_diagnose",
         )
@@ -102,14 +102,14 @@ class TestCrossOrganAuthorityParity:
     def test_observe_only_to_well(self):
         env = _fed_env(
             authority="OBSERVE_ONLY",
-            session_token="sct_v1.wl",
+            session_token="act_v1.wl",
             target_organ="WELL",
             target_tool="well_classify_substrate",
         )
         assert env["session"]["authority"] == "OBSERVE_ONLY"
 
     def test_full_session_propagates_full_to_organ(self):
-        env = _fed_env(authority="FULL", session_token="sct_v1.full")
+        env = _fed_env(authority="FULL", session_token="act_v1.full")
         assert env["session"]["authority"] == "FULL"
 
 
@@ -118,7 +118,7 @@ class TestCrossOrganAuthorityParity:
 
 class TestNoOrganGateLaxityEscape:
     def test_observe_only_cannot_escalate_via_organ_route(self):
-        env = _fed_env(authority="OBSERVE_ONLY", session_token="sct_v1.blocked")
+        env = _fed_env(authority="OBSERVE_ONLY", session_token="act_v1.blocked")
         args = _inject({"authority_ceiling": "FULL", "authority_band": "FULL"}, env)
         fed = args["_envelope"]["__federation_envelope"]
         assert fed["session"]["authority"] == "OBSERVE_ONLY", (
@@ -132,7 +132,7 @@ class TestNoOrganGateLaxityEscape:
             actor_id="blocked-agent",
             identity_verified=True,
             session_id="SEAL-blocked",
-            session_token="sct_v1.blocked",
+            session_token="act_v1.blocked",
             authority="OBSERVE_ONLY",
             source_tool="arif_route",
             target_organ="WEALTH",

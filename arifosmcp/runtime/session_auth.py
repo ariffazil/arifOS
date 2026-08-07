@@ -164,7 +164,7 @@ def validate_session(
 
     # ── SCT-first standing (inhabit path) ─────────────────────────────────────
     try:
-        from arifosmcp.runtime.sct import resolve_standing
+        from arifosmcp.runtime.act_token import resolve_standing
 
         standing = resolve_standing(
             session_token=session_token,

@@ -193,7 +193,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     _stok = _lookup("session_token")
     _jwt_av = None
     _jwt_auth = None
-    if _stok and isinstance(_stok, str) and _stok.startswith("sct_v1."):
+    if _stok and isinstance(_stok, str) and _stok.startswith("act_v1."):
         try:
             import base64 as _b64
             import json as _json

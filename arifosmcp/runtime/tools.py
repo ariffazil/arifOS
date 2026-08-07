@@ -2722,7 +2722,7 @@ def _compute_canonical_verdict(
         if isinstance(result_payload, dict)
         else None
     )
-    if _sct_raw and isinstance(_sct_raw, str) and _sct_raw.startswith("sct_v1."):
+    if _sct_raw and isinstance(_sct_raw, str) and _sct_raw.startswith("act_v1."):
         try:
             import base64, json as _json
 
@@ -3737,11 +3737,11 @@ def _attach_sct_continuity(
     if not payload:
         return
     try:
-        from arifosmcp.runtime.sct import (
+        from arifosmcp.runtime.act_token import (
             _claims_to_standing,
             compute_authority_delta,
         )
-        from arifosmcp.runtime.sct import (
+        from arifosmcp.runtime.act_token import (
             attach_continuity as _sct_attach,
         )
 
@@ -4495,7 +4495,7 @@ def _enforce_nine_signal(
             if (
                 _sct_fallback
                 and isinstance(_sct_fallback, str)
-                and _sct_fallback.startswith("sct_v1.")
+                and _sct_fallback.startswith("act_v1.")
             ):
                 try:
                     import base64, json as _json_sct
@@ -4791,7 +4791,7 @@ def _enforce_nine_signal(
         _runtime_auth = "OBSERVE_ONLY"
         _sct_authority_resolved = False
         try:
-            from arifosmcp.runtime.sct import verify_sct as _verify_sct_envelope
+            from arifosmcp.runtime.act_token import verify_sct as _verify_sct_envelope
 
             _tok_for_auth = (
                 isinstance(result_payload, dict) and result_payload.get("session_token")
@@ -5200,7 +5200,7 @@ def _enforce_nine_signal(
                 _sess_tok = out.get("session_token") or envelope.get("session_token")
                 _sess_id = envelope.get("session_id") or out.get("session_id", "")
                 # Prefer SCT claims.sid (authoritative wire id)
-                if isinstance(_sess_tok, str) and _sess_tok.startswith("sct_v1."):
+                if isinstance(_sess_tok, str) and _sess_tok.startswith("act_v1."):
                     try:
                         import base64 as _b64
                         import json as _json
@@ -9366,8 +9366,8 @@ def _arif_session_init(
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
     session_token: str | None = None,
-    #   Federation SCT token. For mode=validate, may carry sct_v1.* when hosts
-    #   refuse to overload session_id. AAA federation_sct.py dual-sends both.
+    #   Federation SCT token. For mode=validate, may carry act_v1.* when hosts
+    #   refuse to overload session_id. AAA federation_act.py dual-sends both.
     auth_context: dict[str, Any] | None = None,
     #   T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP+registry promotion channel.
     #   Caller-supplied; cross-checked against DID registry before elevation.
@@ -10857,9 +10857,9 @@ def _arif_session_init(
         # P0 2026-07-17: federation_sct wire contract.
         # AAA (and organs) call arif_init(mode=validate, session_id=<SCT token>).
         # That is intentional overload: validate mode accepts either:
-        #   (a) sct_v1.* / arifos.v1.* capability token → crypto verify via verify_sct
+        #   (a) act_v1.* / arifos.v1.* capability token → crypto verify via verify_sct
         #   (b) SEAL-* session id → session-store liveness check
-        # Response shape required by AAA governance/federation_sct.py:
+        # Response shape required by AAA governance/federation_act.py:
         #   {"valid": bool, "claims": {...}, "error": str|None}
         #
         # Prefer token-shaped values from session_token param, payload, or session_id.
@@ -10868,7 +10868,7 @@ def _arif_session_init(
             _sct_arg = payload.get("session_token") or payload.get("sct")
         _candidate = session_id
         for _cand in (_sct_arg, session_id):
-            if _cand and (str(_cand).startswith("sct_v1.") or str(_cand).startswith("arifos.v1.")):
+            if _cand and (str(_cand).startswith("act_v1.") or str(_cand).startswith("arifos.v1.")):
                 _candidate = _cand
                 break
         session_id = _candidate
@@ -10884,9 +10884,9 @@ def _arif_session_init(
 
         _sid_str = str(session_id)
         _recv_prefix = _sid_str[:24]
-        _token_like = _sid_str.startswith("sct_v1.") or _sid_str.startswith("arifos.v1.")
+        _token_like = _sid_str.startswith("act_v1.") or _sid_str.startswith("arifos.v1.")
         if _token_like:
-            from arifosmcp.runtime.sct import verify_sct
+            from arifosmcp.runtime.act_token import verify_sct
 
             claims = verify_sct(_sid_str, expected_actor=actor_id)
             if not claims:
@@ -19502,7 +19502,7 @@ def _arif_vault_seal(
         if mode == "seal" and floors and floors.get("F13") in ("SOVEREIGN_ACK", "ACK"):
             _sct_auth_level = "OBSERVE_ONLY"
             try:
-                from arifosmcp.runtime.sct import verify_sct as _sv
+                from arifosmcp.runtime.act_token import verify_sct as _sv
 
                 _sess_obj = _SESSIONS.get(session_id, {}) if session_id else {}
                 _sct_tok = _sess_obj.get("session_token") or _sess_obj.get("sct_token")
@@ -24893,7 +24893,7 @@ def verify_and_inject_token(
         session_id = kwargs.get("session_id")
         # Accept raw token passed as session_id (both wire formats)
         if session_id and (
-            str(session_id).startswith("sct_v1.") or str(session_id).startswith("arifos.v1.")
+            str(session_id).startswith("act_v1.") or str(session_id).startswith("arifos.v1.")
         ):
             token = session_id
 
@@ -24901,7 +24901,7 @@ def verify_and_inject_token(
         return True, None, None
 
     try:
-        from arifosmcp.runtime.sct import (
+        from arifosmcp.runtime.act_token import (
             resolve_standing,
             verify_sct,
         )

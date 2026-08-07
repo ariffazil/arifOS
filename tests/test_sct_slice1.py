@@ -17,7 +17,7 @@ import asyncio
 import time
 from typing import Any
 
-from arifosmcp.runtime.sct import (
+from arifosmcp.runtime.act_token import (
     UNMEASURED,
     mint_sct,
     resolve_standing,
@@ -52,7 +52,7 @@ def test_mint_verify_roundtrip():
         av=True,
         allowed=["arif_observe", "arif_act", "arif_forge"],
     )
-    assert token.startswith("sct_v1.")
+    assert token.startswith("act_v1.")
     assert claims["apex"]["G"] == UNMEASURED
     assert "arif_act" not in claims["allowed"]
     assert "arif_forge" in claims["allowed"]
@@ -88,7 +88,7 @@ def test_project_light_emits_token_and_unmeasured_apex():
         actor_verified=True,
         authority_override="LIMITED_MUTATE",
     )
-    assert header.get("session_token", "").startswith("sct_v1.")
+    assert header.get("session_token", "").startswith("act_v1.")
     apex = header.get("apex_scalars") or {}
     assert apex.get("G") == UNMEASURED
     assert apex.get("C_dark") == UNMEASURED
@@ -132,7 +132,7 @@ def test_init_triage_observe_with_token_after_store_delete():
     header = r.result
     sid = header["session_id"]
     token = header.get("session_token")
-    assert token and token.startswith("sct_v1."), f"missing token: {header.keys()}"
+    assert token and token.startswith("act_v1."), f"missing token: {header.keys()}"
     assert header.get("apex_scalars", {}).get("G") == UNMEASURED
 
     # Delete store row — token alone must carry standing
@@ -200,7 +200,7 @@ def test_unmeasured_apex_helper():
 
 
 def test_derive_verbs_no_arif_act():
-    from arifosmcp.runtime.sct import derive_verbs
+    from arifosmcp.runtime.act_token import derive_verbs
 
     for band in ("OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN"):
         verbs = derive_verbs(band)
@@ -210,7 +210,7 @@ def test_derive_verbs_no_arif_act():
 
 
 def test_apply_caveats_never_widens():
-    from arifosmcp.runtime.sct import apply_caveats, mint_sct
+    from arifosmcp.runtime.act_token import apply_caveats, mint_sct
 
     _tok, claims = mint_sct(
         sid="SEAL-cav", actor="a", auth="LIMITED_MUTATE", av=True
@@ -241,7 +241,7 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
     header = r.result
     sid = header["session_id"]
     token = header["session_token"]
-    assert token.startswith("sct_v1.")
+    assert token.startswith("act_v1.")
     assert header["apex_scalars"]["G"] == UNMEASURED
     assert not token.startswith("arifos.v1")
 
@@ -331,7 +331,7 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
         # critique may echo token when standing valid
         assert cr_dict.get("session_token") in (token, None) or str(
             cr_dict.get("session_token") or ""
-        ).startswith("sct_v1."), cr_dict
+        ).startswith("act_v1."), cr_dict
 
         # ── judge scan (lightweight deterministic path) ──────────────────────
         judge_out = await arif_judge(
@@ -366,4 +366,4 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
     asyncio.run(_async_block())
 
     # No dual arifos.v1 mint in path
-    assert token.startswith("sct_v1.")
+    assert token.startswith("act_v1.")

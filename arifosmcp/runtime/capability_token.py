@@ -1,7 +1,7 @@
 """
 capability_token.py — THIN FACADE (Spine P0, 2026-07-09)
 
-Canonical wire format is **sct_v1** via `arifosmcp.runtime.sct`.
+Canonical wire format is **sct_v1** via `arifosmcp.runtime.act`.
 This module re-exports useful helpers and never dual-mints `arifos.v1`.
 
 Do not add a second birth path here. Merge new features into sct.py.
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.sct import (
+from arifosmcp.runtime.act_token import (
     AUTHORITY_VERBS,
     AuthorityDelta,
     compute_authority_delta,
@@ -21,7 +21,7 @@ from arifosmcp.runtime.sct import (
     unmeasured_apex,
     verify_sct,
 )
-from arifosmcp.runtime.sct import (
+from arifosmcp.runtime.act_token import (
     apply_caveats as _apply_caveats_claims,
 )
 

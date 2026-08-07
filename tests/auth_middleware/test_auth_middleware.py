@@ -32,7 +32,7 @@ from arifosmcp.auth_middleware import (
 @pytest.fixture
 def valid_sct_token() -> str:
     return (
-        "sct_v1.eyJhY3RvciI6InRlc3QtYWdlbnQiLC"
+        "act_v1.eyJhY3RvciI6InRlc3QtYWdlbnQiLC"
         "JzaWQiOiJURVNULXNlc3Npb24iLCJhdXRoIj"
         "oiTElNSVRFRF9NVVRBVEUiLCJleHAiOjk5OTk5OTk5OTl9.dummy_hmac"
     )

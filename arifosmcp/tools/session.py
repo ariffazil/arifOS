@@ -576,7 +576,7 @@ def _project_light(
         _authority = authority_override
     else:
         # Spine P0: identity band only at birth — no invented G → VOID theater
-        from arifosmcp.runtime.sct import identity_band_authority
+        from arifosmcp.runtime.act_token import identity_band_authority
 
         _authority = identity_band_authority(
             actor_verified=bool(actor_verified),
@@ -809,7 +809,7 @@ def _project_light(
     # is not cryptographically verified, we skip the mint and surface a
     # challenge nonce so the caller can re-attest sovereign key.
     try:
-        from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
+        from arifosmcp.runtime.act_token import mint_sct, unmeasured_apex
 
         if not actor_verified:
             out["session_token"] = None
@@ -2178,10 +2178,10 @@ def arif_init(
             authority_level = "ANONYMOUS"
 
         identity_verified = False
-        # Intercept sct_v1. token strings provided as a session nonce to execute Option A.1 (Symmetric Key Sync)
-        if nonce and (str(nonce).startswith("sct_v1.") or str(nonce).startswith("arifos.v1.")):
+        # Intercept act_v1. token strings provided as a session nonce to execute Option A.1 (Symmetric Key Sync)
+        if nonce and (str(nonce).startswith("act_v1.") or str(nonce).startswith("arifos.v1.")):
             try:
-                from arifosmcp.runtime.sct import verify_sct
+                from arifosmcp.runtime.act_token import verify_sct
 
                 _claims = verify_sct(nonce, expected_actor=actor_id)
                 if _claims:
@@ -2539,7 +2539,7 @@ def arif_init(
                     pass
 
         # ── Birth authority: identity band only (Spine P0, Workstream 1) ──
-        from arifosmcp.runtime.sct import compute_authority_state, identity_band_authority
+        from arifosmcp.runtime.act_token import compute_authority_state, identity_band_authority
 
         _is_signed_principal = (
             identity_verified
@@ -3442,7 +3442,7 @@ def arif_init(
             _sct_arg = payload.get("session_token") or payload.get("sct")
         _candidate = session_id
         for _cand in (_sct_arg, session_id):
-            if _cand and (str(_cand).startswith("sct_v1.") or str(_cand).startswith("arifos.v1.")):
+            if _cand and (str(_cand).startswith("act_v1.") or str(_cand).startswith("arifos.v1.")):
                 _candidate = _cand
                 break
         target_sid = _candidate
@@ -3461,9 +3461,9 @@ def arif_init(
             )
 
         _sid_str = str(target_sid)
-        _token_like = _sid_str.startswith("sct_v1.") or _sid_str.startswith("arifos.v1.")
+        _token_like = _sid_str.startswith("act_v1.") or _sid_str.startswith("arifos.v1.")
         if _token_like:
-            from arifosmcp.runtime.sct import verify_sct
+            from arifosmcp.runtime.act_token import verify_sct
 
             claims = verify_sct(_sid_str, expected_actor=actor_id)
             if not claims:

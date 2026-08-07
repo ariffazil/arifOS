@@ -34,7 +34,7 @@ from arifosmcp.runtime.a_rif.ssrf_guard import validate_url_safety
 from arifosmcp.runtime.build import get_build_info
 from arifosmcp.runtime.mcp_util import call_mcp_tool
 from arifosmcp.runtime.optional_deps import aiofiles
-from arifosmcp.runtime.sct import resolve_standing
+from arifosmcp.runtime.act_token import resolve_standing
 from arifosmcp.server import mcp as _fast_mcp
 
 from .agent_card_v2 import get_arifOS_agent_card, get_axos_summary

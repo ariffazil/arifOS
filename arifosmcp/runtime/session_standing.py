@@ -611,7 +611,7 @@ def _allowed_verbs_for_band(band: str) -> list[str]:
     # OBSERVE_ONLY includes arif_seal for safe modes only; mode=seal still HOLD'd
     # inside arif_seal by effect_class IRREVERSIBLE.
     try:
-        from arifosmcp.runtime.sct import derive_verbs
+        from arifosmcp.runtime.act_token import derive_verbs
 
         return derive_verbs(band)
     except Exception:
@@ -904,7 +904,7 @@ def _sync_authority_surfaces_from_standing(
     # challenge nonce for sovereign key re-attestation, not a bypass token.
     if standing.session_id and standing.session_id != "anonymous" and verified:
         try:
-            from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
+            from arifosmcp.runtime.act_token import mint_sct, unmeasured_apex
 
             # W-09 (2026-08-05): Compute live APEX from tool_calls DB
             # before minting the SCT. Done here (not in mint_sct) to

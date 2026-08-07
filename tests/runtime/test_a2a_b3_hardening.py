@@ -100,7 +100,7 @@ def a2a_client(mock_mcp):
 
 
 def _mint_sct(actor: str = "arif", auth: str = "LIMITED_MUTATE", sid: str = "sess-b3"):
-    from arifosmcp.runtime.sct import mint_sct
+    from arifosmcp.runtime.act_token import mint_sct
 
     token, claims = mint_sct(
         sid=sid,
@@ -162,7 +162,7 @@ class TestTaskAuth:
                 "client_agent_id": "anybody",
                 "messages": [{"role": "user", "content": "ping"}],
             },
-            headers={"Authorization": "Bearer sct_v1.not.a.token.deadbeef"},
+            headers={"Authorization": "Bearer act_v1.not.a.token.deadbeef"},
         )
         assert r.status_code == 401
         assert "L11 AUTH" in r.text
@@ -342,7 +342,7 @@ class TestOwnershipEnforcement:
         client, _server, _mock, task_id, _owner = owner_task
         r = client.get(
             f"/status/{task_id}",
-            headers=_bearer("sct_v1.garbage.deadbeef"),
+            headers=_bearer("act_v1.garbage.deadbeef"),
         )
         assert r.status_code == 401
 
@@ -367,7 +367,7 @@ class TestOwnershipEnforcement:
         client, _server, _mock, task_id, _owner = owner_task
         r = client.post(
             f"/cancel/{task_id}",
-            headers=_bearer("sct_v1.garbage.deadbeef"),
+            headers=_bearer("act_v1.garbage.deadbeef"),
         )
         assert r.status_code == 401
 
@@ -439,7 +439,7 @@ class TestExecuteSealOnly:
         r = client.post(
             "/execute",
             json={"query": "ping"},
-            headers=_bearer("sct_v1.bogus.deadbeef"),
+            headers=_bearer("act_v1.bogus.deadbeef"),
         )
         assert r.status_code == 401
 
@@ -548,18 +548,18 @@ class TestHelpers:
     def test_extract_sct_token_bearer(self):
         from arifosmcp.runtime.a2a.server import _extract_sct_token
 
-        assert _extract_sct_token("Bearer sct_v1.x.y", None) == "sct_v1.x.y"
-        assert _extract_sct_token("bearer sct_v1.x.y", None) == "sct_v1.x.y"
+        assert _extract_sct_token("Bearer act_v1.x.y", None) == "act_v1.x.y"
+        assert _extract_sct_token("bearer act_v1.x.y", None) == "act_v1.x.y"
 
     def test_extract_sct_token_header_fallback(self):
         from arifosmcp.runtime.a2a.server import _extract_sct_token
 
-        assert _extract_sct_token(None, "sct_v1.a.b") == "sct_v1.a.b"
+        assert _extract_sct_token(None, "act_v1.a.b") == "act_v1.a.b"
 
     def test_extract_sct_token_bearer_wins(self):
         from arifosmcp.runtime.a2a.server import _extract_sct_token
 
-        assert _extract_sct_token("Bearer sct_v1.x.y", "sct_v1.a.b") == "sct_v1.x.y"
+        assert _extract_sct_token("Bearer act_v1.x.y", "act_v1.a.b") == "act_v1.x.y"
 
     def test_extract_sct_token_missing(self):
         from arifosmcp.runtime.a2a.server import _extract_sct_token
