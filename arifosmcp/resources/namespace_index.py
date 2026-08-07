@@ -44,6 +44,43 @@ from fastmcp import FastMCP
 # corpus/   wisdom, ATLAS333, tree777, memory, ontology   append-only
 # ───────────────────────────────────────────────────────────────────────────
 
+# ── CACHE POLICY (§16 — derived from MCP spec ttlMs / cacheScope) ──
+# Every resource SHOULD declare caching hints. The protocol gives us
+# ttlMs (freshness) and cacheScope (public/private). change_rate is
+# the geometric primitive — cache policy is the derived field.
+CACHE_POLICY: dict[str, dict[str, Any]] = {
+    "amendment": {
+        "ttl_ms": 86400000,
+        "cache_scope": "public",
+        "rationale": "24h — constitutions don't change mid-session",
+    },
+    "per-call": {
+        "ttl_ms": 0,
+        "cache_scope": "private",
+        "rationale": "no cache — state changes every call",
+    },
+    "generated": {
+        "ttl_ms": 300000,
+        "cache_scope": "public",
+        "rationale": "5min — regenerated on source change, can stale",
+    },
+    "rare": {
+        "ttl_ms": 86400000,
+        "cache_scope": "private",
+        "rationale": "24h — sovereign identity, not public",
+    },
+    "versioned": {
+        "ttl_ms": 3600000,
+        "cache_scope": "public",
+        "rationale": "1h — version bumps are deliberate",
+    },
+    "append-only": {
+        "ttl_ms": 3600000,
+        "cache_scope": "public",
+        "rationale": "1h — new entries appended, existing stable",
+    },
+}
+
 INDEX_ENTRIES: list[dict[str, Any]] = [
     # ═══ law/ — amendment only, F13 ack ═══
     {
@@ -589,6 +626,15 @@ def build_index() -> str:
     # Composite H
     H = round((redundancy * 0.35 + grammar_variance * 0.25 + orphan_rate * 0.20) / 0.80, 3)
 
+    # ── INJECT CACHE POLICY (§16 — derived from change_rate) ──
+    enriched_entries = []
+    for e in INDEX_ENTRIES:
+        enriched = dict(e)
+        policy = CACHE_POLICY.get(e["change_rate"], CACHE_POLICY["versioned"])
+        enriched["ttl_ms"] = policy["ttl_ms"]
+        enriched["cache_scope"] = policy["cache_scope"]
+        enriched_entries.append(enriched)
+
     # Plane distribution
     plane_dist: dict[str, int] = {}
     for e in INDEX_ENTRIES:
@@ -600,7 +646,7 @@ def build_index() -> str:
     # excluding dynamic timestamps). This proves the index hasn't drifted.
     stable_content = json.dumps(
         {
-            "resources": INDEX_ENTRIES,
+            "resources": enriched_entries,
             "architecture_planes": sorted(plane_dist.keys()),
             "migration_rules": [
                 "1. Delete nothing.",
@@ -635,6 +681,8 @@ def build_index() -> str:
                 "audience": ["assistant"],
                 "priority": 1.0,
                 "lastModified": generated_at,
+                "cacheScope": "public",
+                "ttlMsHint": 3600000,
             },
         },
         "entropy": {
@@ -682,6 +730,19 @@ def build_index() -> str:
             },
             "orthogonality_rule": "Planes separated by change rate. Nothing per-call sits next to something per-amendment.",
             "fractal_rule": "Every plane: index · subject · subject/attestation. Learn one, navigate all.",
+            "caching": {
+                "description": "MCP §16 — every resource SHOULD declare ttlMs + cacheScope. Derived from change_rate (the geometric primitive).",
+                "policy": {
+                    "amendment": CACHE_POLICY["amendment"],
+                    "per-call": CACHE_POLICY["per-call"],
+                    "generated": CACHE_POLICY["generated"],
+                    "rare": CACHE_POLICY["rare"],
+                    "versioned": CACHE_POLICY["versioned"],
+                    "append-only": CACHE_POLICY["append-only"],
+                },
+                "progressive_discovery": "Load arifos://index (ttl=1h, public). Navigate plane. Read only needed resources. Cache per policy above.",
+                "subscription_hint": "Subscribe to resources/listChanged for plane-level awareness. Per-resource subscriptions for state/ resources (per-call, no cache).",
+            },
         },
         "attestation_gap": {
             "resources_with_attestation": sum(1 for e in INDEX_ENTRIES if e["has_attestation"]),
@@ -705,7 +766,7 @@ def build_index() -> str:
             "5. Deprecate old URIs (keep serving, add deprecation header).",
             "6. Remove old URIs only when zero callers remain (90-day window).",
         ],
-        "resources": INDEX_ENTRIES,
+        "resources": enriched_entries,
     }
 
     return json.dumps(result, indent=2, ensure_ascii=False)
