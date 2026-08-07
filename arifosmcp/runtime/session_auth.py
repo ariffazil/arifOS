@@ -61,6 +61,12 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "claude-code": "operator",
     "deepseek": "operator",
     "kimi": "operator",
+    # F13 T3 directive 2026-08-07: sot-cron — Federation SOT/Drift cron.
+    # DID registered at /opt/arifos/secrets/did-registry.json (did:arif:sot-cron).
+    # Ed25519 keypair at /opt/arifos/secrets/did_sotcron_*.key.
+    # authority.py DID gate validates against the registry for FULL authority.
+    "sot-cron": "operator",
+    "sotcron": "operator",
 }
 
 
