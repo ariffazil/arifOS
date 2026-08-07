@@ -344,7 +344,7 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
                 sct_actor = (claims.get("actor") or "").strip()
                 if sct_actor:
                     req.actor_id = sct_actor
-                    req.actor_source = "sct_claims"
+                    req.actor_source = "act_claims"
         except Exception:
             pass
 

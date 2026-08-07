@@ -11,7 +11,7 @@ import pytest
 from starlette.applications import Starlette
 
 from arifosmcp.runtime import ingress_middleware as ingress
-from arifosmcp.runtime import sct
+from arifosmcp.runtime import act_token as sct
 from arifosmcp.runtime.forge_preflight import g4_validate_sealed_forge_plan
 from arifosmcp.schemas.federation_envelope import (
     AuthorityEnvelope,
@@ -43,25 +43,27 @@ def test_hermes_promotion_requires_localhost_and_constant_time_token(
 
     monkeypatch.setattr(ingress, "_is_localhost_caller", lambda: True)
     envelope = _legacy_envelope()
-    assert ingress._try_promote_local_service(
-        envelope, {"service_token": token}, "arif_forge"
-    ) is True
+    assert (
+        ingress._try_promote_local_service(envelope, {"service_token": token}, "arif_forge") is True
+    )
     assert envelope.legacy_wrap is False
     assert envelope.actor_verification == "delegated"
 
     monkeypatch.setattr(ingress, "_is_localhost_caller", lambda: False)
     envelope = _legacy_envelope()
-    assert ingress._try_promote_local_service(
-        envelope, {"service_token": token}, "arif_forge"
-    ) is False
+    assert (
+        ingress._try_promote_local_service(envelope, {"service_token": token}, "arif_forge")
+        is False
+    )
     assert envelope.legacy_wrap is True
     assert envelope.actor_id == "Hermes@af-forge"
 
     monkeypatch.setattr(ingress, "_is_localhost_caller", lambda: True)
     envelope = _legacy_envelope()
-    assert ingress._try_promote_local_service(
-        envelope, {"service_token": "x" * 32}, "arif_forge"
-    ) is False
+    assert (
+        ingress._try_promote_local_service(envelope, {"service_token": "x" * 32}, "arif_forge")
+        is False
+    )
     assert envelope.legacy_wrap is True
     assert envelope.actor_verification != "delegated"
 
@@ -132,6 +134,7 @@ async def test_rest_gate_available_allows_dispatch_after_gate_pass(
 
     assert response.status_code == 200
     assert response.json()["result"] == {"status": "OK"}
+
 
 def test_g4_dispatch_validation_passes_with_available_dependencies() -> None:
     valid, reasons = g4_validate_sealed_forge_plan(

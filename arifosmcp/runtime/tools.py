@@ -21558,6 +21558,9 @@ async def _arif_forge_execute_tool(
     vault_entry_id: str | None = None,
     plan_id: str | None = None,
     arif_ack_id: str | None = None,
+    ack_irreversible: bool = False,
+    seal_verdict_id: str | None = None,
+    approved_action_hash: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
@@ -21602,6 +21605,15 @@ async def _arif_forge_execute_tool(
     """
     # HARDENED TEETH: One Skill + One Tool enforcement. Verdict loop is the ONLY path.
     # This is called in the kernel for every forge path. Non-bypassable.
+    # ── ACT v2 consent schema alignment (2026-08-07 audit) ─────────────
+    # The MCP schema advertises seal_verdict_id + approved_action_hash
+    # (from arif_judge SEAL + arif_seal) and ack_irreversible (F1 ack).
+    # Alias them into the internal chain fields so the advertised consent
+    # interface is actually read by the runtime — no unexpected_kwargs.
+    if seal_verdict_id and not constitutional_chain_id:
+        constitutional_chain_id = seal_verdict_id
+    if approved_action_hash and not judge_state_hash:
+        judge_state_hash = approved_action_hash
     session_ctx = {
         "verdict_geometry": {"trace_id": judge_state_hash or vault_entry_id},
         "restraint_flags": [],
