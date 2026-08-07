@@ -33,14 +33,21 @@ logger = logging.getLogger(__name__)
 
 SCT_PREFIX = "sct_v1"
 SCT_VERSION = 1
-DEFAULT_TTL_SECONDS = 3600
+DEFAULT_TTL_SECONDS = 28800  # 8h — agentic autonomous sessions need headroom (was 3600)
 UNMEASURED = "UNMEASURED"
 
 VALID_AUTH = frozenset(
-    {"OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN", "OPERATOR", "ANONYMOUS",
-     # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE tier.
-     # Verified automation identity — scoped vault-write only.
-     "SYSTEM_CRON_WRITE"}
+    {
+        "OBSERVE_ONLY",
+        "LIMITED_MUTATE",
+        "FULL",
+        "SOVEREIGN",
+        "OPERATOR",
+        "ANONYMOUS",
+        # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE tier.
+        # Verified automation identity — scoped vault-write only.
+        "SYSTEM_CRON_WRITE",
+    }
 )
 
 # Metabolic verbs by authority band (no arif_act — public surface uses arif_forge)
@@ -108,11 +115,13 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
 }
 
 _AUTH_ORDER = {
-    "OBSERVE_ONLY": 0, "LIMITED_MUTATE": 1,
+    "OBSERVE_ONLY": 0,
+    "LIMITED_MUTATE": 1,
     # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE ranks between
     # LIMITED_MUTATE and FULL. It can be granted but cannot escalate higher.
     "SYSTEM_CRON_WRITE": 1.5,
-    "FULL": 2, "SOVEREIGN": 3,
+    "FULL": 2,
+    "SOVEREIGN": 3,
 }
 
 _FALLBACK_SECRET = secrets.token_bytes(32)
