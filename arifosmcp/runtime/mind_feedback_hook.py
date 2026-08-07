@@ -381,7 +381,10 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
         if hasattr(packet, "synthesis") and packet.synthesis:
             syn = packet.synthesis
             conf = getattr(syn, "confidence", {})
-            overall = conf.get("overall_confidence", 0.5) if isinstance(conf, dict) else 0.5
+            # STAB-2026-08-07b: default of 0.5 was a fabricated medium-confidence.
+            # When overall_confidence is absent, return None (UNMEASURED) rather
+            # than inventing 0.5 that downstream interprets as STRONG.
+            overall = conf.get("overall_confidence", None) if isinstance(conf, dict) else None
             tracker.after_layer(
                 "synthesize",
                 getattr(syn, "bounded_answer", str(syn)[:200]),

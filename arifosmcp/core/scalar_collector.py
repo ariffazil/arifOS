@@ -348,9 +348,12 @@ class ScalarCollector:
         if not math.isfinite(ratio):
             return ScalarMeasurement.unmeasured()
         ratio = max(0.0, min(1.0, ratio))
+        # STAB-2026-08-07b: confidence=0.65 was a fabricated number. The ratio was
+        # measured, but the CONFIDENCE in that measurement was not — derive it or
+        # return UNMEASURED rather than inventing 0.65.
         return ScalarMeasurement.measured(
             value=ratio,
-            confidence=0.65,
+            confidence=None,
             source=f"session.shadow_vars/total_session_vars ({shadow:.0f}/{total:.0f})",
         )
 
