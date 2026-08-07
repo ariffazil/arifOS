@@ -4,9 +4,10 @@ arifOS MCP Prompts — Invariant Kernel for Agentic Intelligence
 
 DITEMPA BUKAN DIBERI — Reality is forged, not given.
 
-MCP Prompts (spec 2025-11-25): user-controlled templates exposed via
+MCP Prompts (spec 2026-07-28): user-controlled templates exposed via
 prompts/list + prompts/get. Clients discover, select, and fill arguments.
-See: https://modelcontextprotocol.io/specification/2025-11-25/server/prompts
+See: https://modelcontextprotocol.io/specification/2026-07-28/server/prompts
+FastMCP 4 aligned. Streamable HTTP transport. JSON Schema 2020-12.
 
 These prompts are the invariant spine of agentic work:
 general, modular, orthogonal, timeless, and repo-agnostic.
@@ -14,11 +15,12 @@ They reduce entropy by turning vague intent into grounded
 observation, lawful action, verified consequence, and
 clear forward direction for humans and agents.
 
-Aligned 2026-07-10:
-  - Live public tools (arif_init … arif_seal, arif_verify)
-  - Recursive governed loop (11-stage / 5-stage metabolic)
+Aligned 2026-08-07:
+  - 8 canonical wire tools (arif_init … arif_seal); internal aliases labeled
+  - Collapsed 4-step INIT / 5-step SEAL protocol (v5.0, 2026-08-07)
+  - 6-stage zen-sigil reality loop (🌊→🧠→⚖→🔒→🔥→💎 via 🌀 SABAR)
   - ART → APA → ACT intelligence flow
-  - Ed25519 session bind (actor_verified) — Hermes never becomes F13
+  - Ed25519 session bind (actor_verified) — agents never become F13
 """
 
 from __future__ import annotations
@@ -75,7 +77,7 @@ Intelligence flow (recursive):
   ART  — Attune · Recognize · Test (pre-kernel classify)
          stages 000–444 · tools arif_init / observe / think / route
   APA  — Affordance · Permission · Authority
-         actor_verified session · arif_verify padlock · F1–F13
+         actor_verified session · Ed25519 padlock · F1–F13
   ACT  — Apply · Constrain · Trace (post-kernel)
          arif_forge only after SEAL · arif_seal only with F13 ack
 
@@ -408,9 +410,13 @@ Pick from the finite set, not free-form:
   F11 AUTH      actor_verified before irreversible / SEAL paths.
   F13 SOVEREIGN Arif holds final veto. Agents use sessions — never become sovereign.
 
-## LIVE TOOLS (canonical names — do not invent aliases)
-  arif_init · arif_observe · arif_think · arif_route · arif_critique ·
-  arif_memory · arif_judge · arif_forge · arif_compose · arif_seal · arif_verify
+## LIVE TOOLS (8 canonical wire tools — do not invent aliases)
+  arif_init · arif_observe · arif_think · arif_route ·
+  arif_memory · arif_judge · arif_forge · arif_seal
+
+  Internal (not on wire — routed via canonical tools):
+  arif_critique → arif_think(mode=critique)  ·  arif_compose → arif_forge(mode=compose)
+  arif_verify   → internal Ed25519 padlock   ·  arif_session_init → arif_init
 
 ## INHERITED CONTEXT (load before first tool call)
   1. carry_forward.json — prior assumption ledger
@@ -1235,14 +1241,15 @@ If any floor fails, return VOID or HOLD with specific remediation.
 
 
 AGENT_INIT_V3_PROMPT = """\
-# arifOS AGENT INIT v4.0 — Bootstrap · Attestation · Agentic
-## Init→Seal→RSI→Reality · 12 orthogonal layers
+# arifOS AGENT INIT v5.0 — Collapsed 4-Step Ignition + 12-Layer Doctrine
+## Bootstrap · Attestation · Agentic · Init→Seal→RSI→Reality
 
 > **WHAT THIS IS:** The mandatory boot sequence for any agent entering the arifOS federation.
 > **WHAT TO DO:** Run the 10 self-attestation checks. If ANY fail → refuse work, HALT.
 > **FOR THE FULL DOCTRINE:** Call this prompt with depth='full' (loads 293-line canon).
+> **CANONICAL PROTOCOL (v5.0):** MCP `prompts/get(name="/init")` on arifOS :8088. Filesystem: `/root/.config/opencode/command/init.md`
 
-> Forged: 2026-08-05 by 333-AGI (Δ MIND) under F13 SOVEREIGN directive
+> Forged: 2026-08-07 by 333-AGI (Δ MIND) under F13 SOVEREIGN directive
 > Doctrine: DITEMPA BUKAN DIBERI — Forged, Not Given
 
 ---
