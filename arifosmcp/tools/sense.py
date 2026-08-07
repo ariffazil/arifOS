@@ -1301,6 +1301,11 @@ def arif_observe(
                 "partition": partition_mode,
                 "source": _source,
             },
+            # STAB-2026-08-07f: pass computed value to _ok() — otherwise
+            # _ok() defaults to 0.0, fabricating entropy even when handler
+            # correctly emitted None. Honoring doctrine: 'half-built is
+            # worse than absent.' Pass None when not measured.
+            delta_S=round(ds, 6) if ds is not None else None,
         )
     if mode == "vitals":
         # ZEN FIX (2026-07-30): Read REAL system vitals from /proc, not hardcoded fake data.
