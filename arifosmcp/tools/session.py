@@ -652,8 +652,26 @@ def _project_light(
     _seal_allowed = _seal_granted and not _drift
     _substrate_state = "DEGRADED" if _drift else "HEALTHY"
 
+    # ── WAJIB 3: Single canonical effective_state (2026-08-07) ──
+    # Consolidates the 5-field authority scatter (authority, authority_band,
+    # authority_scope, authority_mode in session_birth, nested authority
+    # runtime_grant) into ONE canonical field. The old fields remain as
+    # deprecated aliases for backward compatibility.
+    # See: arifosmcp/runtime/effective_state.py
+    _effective_state = {
+        "actor_verified": actor_verified,
+        "authority_band": _authority,
+        "mutation_allowed": _mutation_allowed,
+        "seal_allowed": _seal_allowed,
+        "substrate_state": _substrate_state,
+        "derived_from": "session_capability_token_v1",
+        "computed_at": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime(_now_ts)),
+    }
+
     out = {
-        # GATING
+        # ── WAJIB 3 canonical authority (single source — see above) ──
+        "effective_state": _effective_state,
+        # GATING (deprecated aliases — prefer effective_state)
         "session_id": sid,
         "actor_id": actor_id,
         "actor_claimed": _actor_claimed,
