@@ -90,22 +90,49 @@ def get_vault_proof() -> dict[str, Any]:
          that may have been cached or hand-edited.
       4. If verified=False, chain_integrity is broken → 999-CLAIM-001 falsified.
     """
-    now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    now = datetime.now(UTC)
+    now_iso = now.isoformat().replace("+00:00", "Z")
     v = _run_verify()
+
+    # ── Predicate gate: verified must be false when there is no last seal ──
+    # Chain structural integrity (no broken hash links) is necessary but not
+    # sufficient. A chain with zero gaps and null last_seal has no provable
+    # recent activity — asserting verified=true is a silent false positive.
+    verified_structural = v.get("verified", False)
+    last_seal_ts = v.get("head_timestamp")
+    verified = verified_structural and last_seal_ts is not None
+
+    # Staleness: surface-level flag if last seal is older than 7 days
+    chain_staleness_hours: float | None = None
+    if last_seal_ts is not None:
+        try:
+            if isinstance(last_seal_ts, str):
+                last_dt = datetime.fromisoformat(last_seal_ts.replace("Z", "+00:00"))
+                chain_staleness_hours = round((now - last_dt).total_seconds() / 3600, 1)
+        except (ValueError, TypeError):
+            pass
+
+    violation_reasons: list[str] = []
+    if verified_structural and last_seal_ts is None:
+        violation_reasons.append("last_seal_null: chain has no dated seal entry")
+    if chain_staleness_hours is not None and chain_staleness_hours > 168:
+        violation_reasons.append(f"stale: last seal {chain_staleness_hours}h ago (>168h)")
 
     return {
         # ── Core proof (the one line that matters) ────────────────────────
         "head": v.get("head_hash"),
         "head_seq": v.get("head_seq"),
         # ── Integrity ─────────────────────────────────────────────────────
-        "verified": v.get("verified", False),
+        "verified": verified,
         "chain_status": v.get("status", "unknown"),
         "gap_count": v.get("gap_count", 0),
         "canonical_entries": v.get("canonical_entries", 0),
         # ── Metadata ──────────────────────────────────────────────────────
-        "last_seal": v.get("head_timestamp"),
+        "last_seal": last_seal_ts,
         "last_actor": v.get("head_actor"),
-        "verified_at": now,
+        "verified_at": now_iso,
+        "chain_staleness_hours": chain_staleness_hours,
+        "violation_reasons": violation_reasons,
         "public": True,
         "vault": "VAULT999",
         "constitution": "F1–F13",
