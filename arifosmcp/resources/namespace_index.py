@@ -81,6 +81,23 @@ CACHE_POLICY: dict[str, dict[str, Any]] = {
     },
 }
 
+# ── PRIORITY POLICY (§1 annotations.priority) ──
+# The spec ranks primitives: tools bend geometry most (model-controlled),
+# then prompts (user-framed), then resources (passive, volumetric).
+# Resources without annotations.priority give no signal for selective
+# context injection — everything or nothing. Priority hints enable
+# clients to inject high-value resources and drop low-value ones.
+# Derived from plane (the geometric primitive). 0/42 arifOS resources
+# currently carry priority annotations — the index fills this gap.
+PRIORITY_POLICY: dict[str, float] = {
+    "law": 0.9,  # constitutional — highest signal per token
+    "identity": 0.8,  # sovereign authority — shapes all downstream routing
+    "method": 0.7,  # operational — needed for correct execution
+    "surface": 0.5,  # generated metadata — useful but derivable
+    "corpus": 0.4,  # reference — context-heavy, rarely needed in full
+    "state": 0.3,  # volatile — stale on arrival, poll only when needed
+}
+
 INDEX_ENTRIES: list[dict[str, Any]] = [
     # ═══ law/ — amendment only, F13 ack ═══
     {
@@ -626,13 +643,14 @@ def build_index() -> str:
     # Composite H
     H = round((redundancy * 0.35 + grammar_variance * 0.25 + orphan_rate * 0.20) / 0.80, 3)
 
-    # ── INJECT CACHE POLICY (§16 — derived from change_rate) ──
+    # ── INJECT CACHE POLICY + PRIORITY (§16 + §1 — derived from change_rate / plane) ──
     enriched_entries = []
     for e in INDEX_ENTRIES:
         enriched = dict(e)
         policy = CACHE_POLICY.get(e["change_rate"], CACHE_POLICY["versioned"])
         enriched["ttl_ms"] = policy["ttl_ms"]
         enriched["cache_scope"] = policy["cache_scope"]
+        enriched["priority"] = PRIORITY_POLICY.get(e["plane"], 0.5)
         enriched_entries.append(enriched)
 
     # Plane distribution
@@ -743,6 +761,35 @@ def build_index() -> str:
                 "progressive_discovery": "Load arifos://index (ttl=1h, public). Navigate plane. Read only needed resources. Cache per policy above.",
                 "subscription_hint": "Subscribe to resources/listChanged for plane-level awareness. Per-resource subscriptions for state/ resources (per-call, no cache).",
             },
+            "priority": {
+                "description": "MCP §1 annotations.priority — 0/42 arifOS resources carry it. Index fills the gap. Derived from plane (the geometric primitive). Enables selective context injection — clients inject high-priority resources, drop low-priority ones.",
+                "policy": {
+                    "law": {
+                        "priority": PRIORITY_POLICY["law"],
+                        "rationale": "Constitutional — highest signal per token",
+                    },
+                    "identity": {
+                        "priority": PRIORITY_POLICY["identity"],
+                        "rationale": "Sovereign authority — shapes all downstream routing",
+                    },
+                    "method": {
+                        "priority": PRIORITY_POLICY["method"],
+                        "rationale": "Operational instructions — needed for correct execution",
+                    },
+                    "surface": {
+                        "priority": PRIORITY_POLICY["surface"],
+                        "rationale": "Generated metadata — useful but derivable",
+                    },
+                    "corpus": {
+                        "priority": PRIORITY_POLICY["corpus"],
+                        "rationale": "Reference material — context-heavy, rarely needed in full",
+                    },
+                    "state": {
+                        "priority": PRIORITY_POLICY["state"],
+                        "rationale": "Volatile telemetry — stale on arrival, poll only when needed",
+                    },
+                },
+            },
         },
         "attestation_gap": {
             "resources_with_attestation": sum(1 for e in INDEX_ENTRIES if e["has_attestation"]),
@@ -757,6 +804,11 @@ def build_index() -> str:
                 "is_derived",
             ],
             "note": "0 of {total} resources carry attestation. The vault-count contradiction is structurally possible because derived resources don't carry their generator hash. Adding attestation makes the contradiction structurally impossible.",
+        },
+        "priority_gap": {
+            "resources_with_priority": 1,
+            "resources_without_priority": total - 1,
+            "note": "Only arifos://index carries annotations.priority. The other 42 resources have no signal for selective context injection — MCP clients must inject everything or nothing. Index fills this gap via PRIORITY_POLICY per entry.",
         },
         "migration_rules": [
             "1. Delete nothing.",
