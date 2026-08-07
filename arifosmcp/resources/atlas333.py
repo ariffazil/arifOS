@@ -436,25 +436,27 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     registered.append("arifos://atlas333/scar/{id}")
 
-    # ── arifos://atlas333/seal/head — VAULT999 chain head (OPERATIONAL — KEPT) ──
+    # ── arifos://atlas333/seal/head — DEPRECATED ALIAS → arifos://vault/head ──
+    # Pipeline stage: ALIAS (2026-08-07). Canonical is arifos://vault/head.
+    # This resource now delegates to the canonical source and adds deprecation metadata.
+    # Consumers should migrate to arifos://vault/head.
+    # Sunset: 2027-02-07 (6 months).
 
     @mcp.resource("arifos://atlas333/seal/head")
     async def seal_head() -> str:
-        """Current VAULT999 chain head (cache-friendly, read-only)."""
-        try:
-            import pathlib
+        """DEPRECATED. Use arifos://vault/head instead."""
+        from arifosmcp.resources.alignment_gap import _get_vault_head_text  # noqa: PLC0415
 
-            head_path = pathlib.Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
-            if head_path.exists():
-                return head_path.read_text()
-            return json.dumps(
-                {
-                    "status": "not_found",
-                    "note": "seal_chain_head.json not found at expected path.",
-                }
-            )
-        except Exception as exc:
-            return json.dumps({"error": f"Cannot read seal chain head: {exc}"})
+        canonical = _get_vault_head_text()
+        deprecation = {
+            "status": "deprecated",
+            "canonical": "arifos://vault/head",
+            "aliased_from": "arifos://atlas333/seal/head",
+            "deprecated_at": "2026-08-07",
+            "sunset_after": "2027-02-07",
+            "note": "This resource is an alias. Content below is from the canonical source.",
+        }
+        return json.dumps(deprecation, indent=2) + "\n\n" + canonical
 
     registered.append("arifos://atlas333/seal/head")
 
