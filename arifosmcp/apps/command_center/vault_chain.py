@@ -215,6 +215,9 @@ def verify_chain(
         # payload_hash AND prev_hash are flagged as UNLINKED gaps.
         # Entries with prev_hash but no payload_hash are legacy-partial
         # (logged as warning, not fatal).
+        if not isinstance(entry, dict):
+            unlinked.append(f"Line {i + 1}: non-dict entry — type={type(entry).__name__}")
+            continue
         has_payload = "payload_hash" in entry
         has_prev = bool(entry.get("prev_hash"))
         if not has_payload:
