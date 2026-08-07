@@ -261,11 +261,14 @@ async def arif_seal(
     _SEAL_DANGEROUS_MODES = frozenset({"seal", "session_close"})
     _effect_class = "OBSERVE" if mode in _SEAL_SAFE_MODES else "IRREVERSIBLE"
     _auth_band = (_standing_authority or "OBSERVE_ONLY").upper()
-    if mode in _SEAL_DANGEROUS_MODES and _auth_band in (
-        "OBSERVE_ONLY",
-        "LIMITED_MUTATE",
-        "LOW",
-        "",
+    if mode in _SEAL_DANGEROUS_MODES and _auth_band not in (
+        # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE added to
+        # allow-list — verified automation identities may seal.
+        # Gate inverted from deny-list to allow-list to make the carve
+        # explicit and prevent future accidental demotions.
+        "FULL",
+        "SOVEREIGN",
+        "SYSTEM_CRON_WRITE",
     ):
         return _echo_standing(
             SealOutput(
@@ -277,8 +280,9 @@ async def arif_seal(
                     f"authority (current={_auth_band or 'unknown'})"
                 ],
                 next_safe_action=(
-                    "Call arif_init with verified sovereign actor for mode=seal, "
-                    "or use mode=verify|verify_chain|list|audit for OBSERVE-class access"
+                    "Call arif_init with a FULL/SOVEREIGN actor (or SYSTEM_CRON_WRITE "
+                    "for verified automation) for mode=seal, or use "
+                    "mode=verify|verify_chain|list|audit for OBSERVE-class access"
                 ),
                 entry_id="",
                 actor_id=actor_id,

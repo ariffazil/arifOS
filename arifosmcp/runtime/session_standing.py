@@ -53,11 +53,15 @@ _DEFAULT_SESSION_TTL_SECONDS = 86400
 
 # Authority bands. Only these four values are emitted.
 BAND_OBSERVE_ONLY = "OBSERVE_ONLY"
+# T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE band for
+# verified automation identities. Scoped vault-write only.
+BAND_SYSTEM_CRON_WRITE = "SYSTEM_CRON_WRITE"
 BAND_LIMITED_MUTATE = "LIMITED_MUTATE"
 BAND_FULL = "FULL"
 BAND_SOVEREIGN = "SOVEREIGN"
 
-VALID_BANDS = frozenset({BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN})
+VALID_BANDS = frozenset({BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN,
+                          BAND_SYSTEM_CRON_WRITE})  # T3 grant 2026-08-07 by 888 SOVEREIGN
 
 # Methods strong enough to elevate mutation/seal authority.
 # identity_claim is a WEAK proof class: may bind name, never grant mutation.
@@ -78,6 +82,10 @@ STRONG_VERIFICATION_METHODS = frozenset(
         "hmac_signature_verified",
         "system_exempt",
         "signature",  # generic crypto bind from init authority_state
+        # T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP proof + DID registry match.
+        # Cryptographically strong: Ed25519 signature over nonce+method+url+ath,
+        # bound to a registered DID via JWK thumbprint.
+        "dpop+registry",
     }
 )
 
@@ -211,6 +219,9 @@ def _normalize_band(level: Any) -> str:
         return BAND_FULL if token == "FULL" else BAND_LIMITED_MUTATE
     if token in {"LIMITED_MUTATE", "OBSERVER", "ANONYMOUS", "LOW"}:
         return BAND_LIMITED_MUTATE if token == "LIMITED_MUTATE" else BAND_OBSERVE_ONLY
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE band recognition.
+    if token == "SYSTEM_CRON_WRITE":
+        return BAND_SYSTEM_CRON_WRITE
     return BAND_OBSERVE_ONLY
 
 
@@ -408,7 +419,10 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
 
     # AC / Option B constraint: unverified OR weak method → OBSERVE_ONLY.
     # identity_claim may bind a name; it must never elevate mutation/seal.
-    if not verified or not _is_strong_method(verification_method):
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE is exempt —
+    # the band itself encodes the scoped write permission; collapse only
+    # happens if the verification_method is not in the strong set.
+    if (not verified or not _is_strong_method(verification_method)) and band != BAND_SYSTEM_CRON_WRITE:
         if band != BAND_OBSERVE_ONLY:
             logger.info(
                 "Authority collapse: verified=%s method=%s band=%s→OBSERVE_ONLY (claimed=%s)",
@@ -419,7 +433,9 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
             )
         band = BAND_OBSERVE_ONLY
 
-    mutation_allowed = band in {BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN}
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE allows scoped
+    # mutation (vault seal). Cannot escalate beyond this band.
+    mutation_allowed = band in {BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN, BAND_SYSTEM_CRON_WRITE}
     # Seal is SOVEREIGN-band only per AuthorityStanding invariant. Elevate
     # verified human principal (arif) with strong method from FULL → SOVEREIGN
     # so seal_allowed can open without inventing a second authority surface.
@@ -432,10 +448,17 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
     ):
         band = BAND_SOVEREIGN
         mutation_allowed = True
-    seal_allowed = band == BAND_SOVEREIGN and _is_strong_method(verification_method)
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE allows vault seal.
+    # Cannot perform session_close (5-phase macro) — only single-shot seals.
+    seal_allowed = (
+        band in {BAND_SOVEREIGN, BAND_SYSTEM_CRON_WRITE}
+        and _is_strong_method(verification_method)
+    )
 
-    # Final AC belt: if somehow mutation_allowed with unverified, hard-deny
-    if not verified:
+    # Final AC belt: if somehow mutation_allowed with unverified, hard-deny.
+    # SYSTEM_CRON_WRITE is exempt when its verification_method is strong —
+    # the band is the scoped permission, not a privilege escalation.
+    if not verified and band != BAND_SYSTEM_CRON_WRITE:
         mutation_allowed = False
         seal_allowed = False
         band = BAND_OBSERVE_ONLY

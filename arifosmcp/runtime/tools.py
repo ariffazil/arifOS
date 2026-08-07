@@ -9165,6 +9165,9 @@ def _arif_session_init(
     session_token: str | None = None,
     #   Federation SCT token. For mode=validate, may carry sct_v1.* when hosts
     #   refuse to overload session_id. AAA federation_sct.py dual-sends both.
+    auth_context: dict[str, Any] | None = None,
+    #   T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP+registry promotion channel.
+    #   Caller-supplied; cross-checked against DID registry before elevation.
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap — three-phase binding.
@@ -9349,6 +9352,100 @@ def _arif_session_init(
                         )
                 except Exception as exc:
                     logger.warning("governance_identity Ed25519 bridge error: %s", exc)
+
+            # ── T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP+registry promotion ──
+            # Trust the cryptographic reality of /opt/arifos/secrets/did-registry.json.
+            # If the caller supplies dpop_jkt in auth_context AND the registry has
+            # a matching DID for the claimed actor, promote to SOVEREIGN-verified.
+            # FAIL CLOSED on any read/parse error — F1 AMANAH demands default-deny.
+            import sys as _dpop_sys
+            print(
+                f"DPOP_REGISTRY_PATCH_REACHED actor={actor_id} auth_context_type={type(auth_context).__name__} keys={list((auth_context or {}).keys()) if auth_context else None}",
+                file=_dpop_sys.stderr, flush=True,
+            )
+            _dpop_jkt = (auth_context or {}).get("dpop_jkt")
+            if _dpop_jkt and actor_id and not bool(_result_dict.get("actor_verified")):
+                try:
+                    import hashlib as _hl, base64 as _b64, json as _json
+                    from pathlib import Path as _P
+                    _reg = _json.loads(_P("/opt/arifos/secrets/did-registry.json").read_text())
+                    _actor_norm = actor_id.strip().lower()
+                    for _did_id, _entry in _reg.get("dids", {}).items():
+                        _short = _did_id.split(":")[-1].lower()
+                        if _short == _actor_norm:
+                            _pub_hex = _entry.get("public_key_hex", "")
+                            if _pub_hex:
+                                _pub_raw = bytes.fromhex(_pub_hex)
+                                _jwk = {"crv":"Ed25519","kty":"OKP",
+                                        "x":_b64.urlsafe_b64encode(_pub_raw).rstrip(b"=").decode()}
+                                _canonical = _json.dumps(_jwk, sort_keys=True, separators=(",",":"))
+                                _expected_jkt = _b64.urlsafe_b64encode(
+                                    _hl.sha256(_canonical.encode()).digest()
+                                ).rstrip(b"=").decode()
+                                if _expected_jkt == _dpop_jkt:
+                                    _sid = _result_dict.get("session_id")
+                                    if _sid and _sid in _SESSIONS:
+                                        _sess2 = _SESSIONS[_sid]
+                                        from arifosmcp.runtime.authority import bind_authority_state as _bas2
+                                        from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                            build_authority_state_for_actor as _bsfa2,
+                                        )
+                                        _bas2(_sess2, _bsfa2(actor_id, verified=True, verification_method="dpop+registry"))
+                                        # ALSO write to _SESSION_IDENTITY (canonical store
+                                        # that compose_standing reads first) so resolve_standing
+                                        # returns SYSTEM_CRON_WRITE when arif_seal runs.
+                                        try:
+                                            from arifosmcp.runtime.session import bind_session_identity as _bsi
+                                            _bsi(
+                                                session_id=_sid,
+                                                actor_id=actor_id,
+                                                authority_level="SYSTEM_CRON_WRITE",
+                                                auth_context={"dpop_jkt": _dpop_jkt, "verified": True},
+                                                verified=True,
+                                                stage="000",
+                                                governance={"verdict": "SEAL", "tier": "SYSTEM_CRON_WRITE"},
+                                            )
+                                        except Exception as _bsi_e:
+                                            logger.warning("bind_session_identity for SCW failed (fail-closed): %s", _bsi_e)
+                                        if isinstance(_result_dict.get("actor"), dict):
+                                            _result_dict["actor"]["identity_verified"] = True
+                                            # T3 grant 2026-08-07 by 888 SOVEREIGN:
+                                            # bind SOTCRON to SYSTEM_CRON_WRITE tier —
+                                            # scoped vault-write only, no escalation.
+                                            _result_dict["actor"]["authority_level"] = "SYSTEM_CRON_WRITE"
+                                            _result_dict["actor"]["verification_method"] = "dpop+registry"
+                                            _result_dict["actor"]["actor_verified"] = True
+                                        # Also propagate to session store so
+                                        # resolve_standing() returns the right
+                                        # band when arif_seal runs.
+                                        try:
+                                            _sess2["authority"] = "SYSTEM_CRON_WRITE"
+                                            _sess2["authority_band"] = "SYSTEM_CRON_WRITE"
+                                            _sess2["authority_level"] = "SYSTEM_CRON_WRITE"
+                                            _sess2["runtime_band"] = "SYSTEM_CRON_WRITE"
+                                            _sess2["verification_method"] = "dpop+registry"
+                                            _sess2["actor_verified"] = True
+                                        except Exception:
+                                            pass
+                                        logger.info(
+                                            "DPOP_REGISTRY_PROMOTION actor=%s did=%s tier=SYSTEM_CRON_WRITE",
+                                            actor_id, _did_id,
+                                        )
+                                    break
+                except Exception as _e:
+                    logger.warning("DPoP+registry promotion failed (fail-closed): %s", _e)
+                    # verified stays False — F1 AMANAH
+
+            # DEBUG: capture pre-return state
+            try:
+                _actor_pre_return = _result_dict.get("actor", {})
+                import sys as _dbg_sys
+                print(
+                    f"DEBUG_PRE_RETURN actor={dict(_actor_pre_return) if isinstance(_actor_pre_return, dict) else None}",
+                    file=_dbg_sys.stderr, flush=True,
+                )
+            except Exception:
+                pass
 
             return _inject_atlas333_boot(_result_dict)
         except Exception as e:

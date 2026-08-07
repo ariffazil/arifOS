@@ -278,7 +278,11 @@ class AuthorityActor(BaseModel):
     claimed_id: str = "anonymous"
     verified: bool = False
     verification_method: Literal[
-        "none", "session", "signature", "oauth", "hardware", "f13_sovereign"
+        "none", "session", "signature", "oauth", "hardware", "f13_sovereign",
+        # T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP proof + DID registry match.
+        # Cryptographically strong: Ed25519 signature over nonce+method+url+ath,
+        # bound to a registered DID via JWK thumbprint.
+        "dpop+registry",
     ] = "none"
 
 

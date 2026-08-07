@@ -101,6 +101,13 @@ class InitAnchorRequest(BaseRequest):
         default=True,
         description="This session/tool path must pass the full constitutional verdict loop (F1-F13 judge + seal + receipt) before acting.",
     )
+    # T3 grant 2026-08-07 by 888 SOVEREIGN: open DPoP+registry promotion channel.
+    # Caller-supplied; the tool cross-checks dpop_jkt against the DID registry
+    # before promoting verified=True. Fail-closed on mismatch — F1 AMANAH.
+    auth_context: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Auth context for DPoP+registry promotion (e.g. {dpop_jkt: '...'}).",
+    )
 
     @field_validator("actor_id")
     @classmethod
