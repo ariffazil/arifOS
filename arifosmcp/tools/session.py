@@ -1394,6 +1394,14 @@ def arif_init(
                     )
     # ── END F12 INJECTION GATE ─────────────────────────────────────────────
 
+    # F12 BLUE-TEAM HARDENING (2026-08-08): sanitize actor_id against
+    # log-injection before identity resolution. Strip non-printable/control
+    # chars so attacker-supplied newlines cannot forge audit lines.
+    if actor_id:
+        actor_id = (
+            ("".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[:120])
+            or None
+        )
     _canonical_actor_id: str | None = None
     if actor_id:
         try:
