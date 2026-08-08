@@ -160,7 +160,7 @@ def _compute_block_summary(thoughts: list[dict], block_id: str = "") -> dict:
         text = t.get("text", "")
         if text:
             all_claims.append(text[:200])
-        conf = t.get("confidence", 0.5)
+        conf = t.get("confidence") or 0.5
         if isinstance(conf, (int, float)):
             confidences.append(float(conf))
 
@@ -1106,9 +1106,9 @@ def arif_think(
             kwargs.setdefault("h_witness", 0.0)
             kwargs.setdefault("ext_witness", 0.0)
         inputs = PrimitiveInputs(**kwargs)
-        gate_h = float(ctx.get("gate_h", 0.04))  # F7 band mid
-        gate_delta_s = float(ctx.get("gate_delta_s", 0.0))
-        gate_w3 = float(ctx.get("gate_w3", 1.0))
+        gate_h = float(ctx.get("gate_h") or 0.04)  # F7 band mid
+        gate_delta_s = float(ctx.get("gate_delta_s") or 0.0)
+        gate_w3 = float(ctx.get("gate_w3") or 1.0)
         result = compute_apex(
             inputs,
             gate_h=gate_h,

@@ -652,11 +652,16 @@ def calculate_entropy_budget(
 ) -> EntropyBudget:
     if not isinstance(assumptions, list):
         assumptions = []
+    # F2-fidelity fix (MCP-PROBE-2026-08-08): remove dead branch that called
+    # float(None). When confidence is None, branch below already recalculates
+    # it from ambiguity_score; the redundant third branch triggered
+    # `float() argument must be a string or a real number, not 'NoneType'`
+    # when both confidence=None and kwargs.confidence=None — see
+    # /root/forge_work/2026-08-08-mcp-probe/R3-PROBE-COVERAGE-2026-08-08.json
+    # (M5 manufactured-claim correction; journalctl root cause).
     if isinstance(confidence, int | float) and confidence > 1.0:
         confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
     elif confidence is None:
-        confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
-    elif kwargs.get("confidence") is None and float(confidence) == 1.0:
         confidence = max(0.1, min(1.0, 1.0 - float(ambiguity_score)))
     if delta_s is None:
         delta_s = kwargs.get("delta_s")
