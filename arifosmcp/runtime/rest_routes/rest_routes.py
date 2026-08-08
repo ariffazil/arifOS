@@ -2580,6 +2580,36 @@ def _probe_vault999_health() -> str:
     return "unreachable"
 
 
+def _get_vault_sealer_breaker_state() -> dict[str, Any]:
+    """F2-fidelity fix (MCP-PROBE-2026-08-08): expose vault_sealer circuit-breaker
+    state in /health. Returns whether the breaker is open, when it will close,
+    and how many failures are in the current 60s window. See R3 M5 root cause.
+    """
+    try:
+        from arifosmcp.runtime.vault_sealer import (
+            _breaker_open_until,
+            _fail_timestamps,
+            _CB_OPEN_DURATION_S,
+            _CB_FAIL_THRESHOLD,
+            _CB_WINDOW_S,
+        )
+        import time as _t
+
+        now = _t.time()
+        recent = [t for t in _fail_timestamps if t > now - _CB_WINDOW_S]
+        is_open = now < _breaker_open_until
+        return {
+            "state": "open" if is_open else "closed",
+            "open_until": _breaker_open_until if is_open else None,
+            "retry_after_s": max(0.0, _breaker_open_until - now) if is_open else 0.0,
+            "recent_failures": len(recent),
+            "fail_threshold": _CB_FAIL_THRESHOLD,
+            "open_duration_s": _CB_OPEN_DURATION_S,
+        }
+    except Exception as e:
+        return {"state": "unknown", "error": str(e)}
+
+
 def _probe_provider_status() -> dict[str, Any]:
     """Lightweight provider diagnostics — no secrets, no API keys."""
     import os as _os_probe
@@ -3243,10 +3273,14 @@ def register_rest_routes(
             "graphiti_enabled": graphiti_enabled,
             # ── Token pressure telemetry (Phase 1.A — additive, F1 reversible) ──
             "token_pressure": _token_pressure_payload,
-            # ── Canonical 7-field health schema (federation convention) ───
+            # Canonical 7-field health schema (federation convention) ───
             # arifOS is the law engine. final_authority is always ARIF.
             "final_authority": "ARIF",
             "vault999_health": _vault_health,
+            # F2-fidelity fix (MCP-PROBE-2026-08-08): expose vault_sealer
+            # circuit-breaker state so consumers can see when audit-receipt
+            # writer is being short-circuited. See R3 M5 root cause.
+            "vault_sealer_breaker": _get_vault_sealer_breaker_state(),
             "agent_id": "arifos",
             "identity_marker": "arifos-sovereign-runtime",
             "identity_source": "identity.toml",
@@ -3492,9 +3526,16 @@ def register_rest_routes(
             "full",
             "yes",
         )
+        # F2-fidelity fix (MCP-PROBE-2026-08-08): keep `tool_count_semantics`
+        # in the default /health payload so consumers can resolve the apparent
+        # contradiction between tools_loaded=8 and tools_registry_size=62.
+        # The semantics legend is the difference between "drift" and "by design
+        # with 11 internal tiers including aliases". Stripping it caused the
+        # probe to flag C1-C4 as contradictions when they're documented tier
+        # structure. See R2-CONTRADICTION-REGISTER-2026-08-08.json.
         if not _detail:
             payload = dict(payload)
-            payload.pop("tool_count_semantics", None)
+            # payload.pop("tool_count_semantics", None)  # LEGACY STRIP — disabled 2026-08-08
             payload.pop("known_gaps", None)
             payload.pop("source_of_truth", None)
             # software_release already compact via get_runtime_attestation(detail=False)
