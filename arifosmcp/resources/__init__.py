@@ -488,7 +488,6 @@ CANONICAL_RESOURCES = (
     "skill://index",
     # Structural anchors
     "arifos://index",
-    "arifos://trinity",
     "arifos://affordances",
 )  # REMOVED 2026-08-08 (48 → 30):
 #   arifos://resources/index, arifos://resources/audit, arifos://atlas-repo,
