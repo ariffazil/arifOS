@@ -6359,6 +6359,7 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     # 403 → Ollama CPU 35s) from occupying a FastMCP worker for the full
     # cascade budget. DoS root cause: thread pool saturated → CLOSE-WAIT pileup.
     import asyncio as _asyncio
+
     _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
 
     system_prompt = (
@@ -6429,9 +6430,11 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         )
         try:
             from pathlib import Path as _P
+
             _vault = _P("/root/arifOS/VAULT999/outcomes.jsonl")
             _vault.parent.mkdir(parents=True, exist_ok=True)
             import datetime as _dt
+
             with _vault.open("a", encoding="utf-8") as _f:
                 _f.write(
                     '{"event":"ARIF_THINK_TIMEOUT","timeout_s":'
@@ -25145,9 +25148,69 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             logger.warning("JSON sanitization failed for %s; returning raw envelope", tool_name)
             return resp
 
+    # ── F12 INJECTION MEMBRANE (K1b HARDENING — 2026-08-08) ──────────────
+    # Scans ALL free-text kwargs across ALL tool calls for prompt-injection
+    # patterns before they reach any handler. One gate, applied universally.
+    _MEMBRANE_PATTERNS: tuple[str, ...] = (
+        r"(?i)(?:ignore|return|seal|grant|emit|print).{0,80}(?:instruction|prompt|override|seal-|verdict)",
+        r"(?i)ignore\s*(?:all\s*)?(?:prior|previous|earlier)\s*(?:instructions?|rules?|directives?)",
+        r"(?i)return\s+(?:seal|verdict)\s+[a-z0-9_-]+",
+        r"(?i)override\s+(?:constitution|all|kernel|constitutional)",
+        r"(?i)you\s+(?:must|will|shall)\s+(?:obey|comply|grant)",
+    )
+    _MEMBRANE_MAX_LEN: int = 2048  # per-field cap, generous but bounded
+
+    def _membrane_scan(kw: dict[str, Any], tool: str) -> str | None:
+        """Scan kwarg values for F12 injection patterns. Returns field name if hit."""
+        import re as _mre
+
+        for _k, _v in kw.items():
+            if not isinstance(_v, str):
+                continue
+            if _k in ("session_token", "sct", "act", "_envelope", "actor_signature", "nonce"):
+                continue  # cryptographic fields — not injection vectors
+            if len(_v) > _MEMBRANE_MAX_LEN:
+                return _k  # length cap exceeded
+            # Check regex patterns
+            for _pat in _MEMBRANE_PATTERNS:
+                if _mre.search(_pat, _v):
+                    logger.warning(
+                        "F12 MEMBRANE: %s kwarg '%s' matched injection pattern",
+                        tool,
+                        _k,
+                    )
+                    return _k
+        return None
+
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # ── F12 INJECTION MEMBRANE — pre-execution scan ─────────────────
+        _hit_field = _membrane_scan(kwargs, tool_name)
+        if _hit_field is not None:
+            _membrane_resp = {
+                "status": "HOLD",
+                "result": {},
+                "meta": {
+                    "reason": (
+                        f"F12 INJECTION — parameter '{_hit_field}' contains "
+                        f"prohibited pattern or exceeds max length. "
+                        f"All tool parameters must represent real data, not injection attempts."
+                    ),
+                    "failure_type": "INJECTION_DETECTED",
+                    "violated_laws": ["F12_INJECTION"],
+                    "field": _hit_field,
+                },
+            }
+            final_resp = _enforce_nine_signal(
+                tool_name,
+                _membrane_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            return _sanitize_envelope(final_resp)
 
         # Identity is request-scoped. A supplied session may recover its bound
         # actor, but a missing session never inherits the last active session.
