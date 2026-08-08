@@ -179,7 +179,7 @@ prove:
 	@echo ""
 	@echo "--- 5. make reality-replay ---"; make reality-replay 2>&1 || echo "FAIL"
 	@echo ""
-	@echo "--- 6. vault999-verify ---"; python scripts/vault999_status.py 2>&1 || echo "FAIL"
+	@echo "--- 6. vault999-verify ---"; python scripts/verify_vault_chain.py 2>&1 | tee reports/vault999-verify.json || echo "FAIL"
 	@echo ""
 	@echo "--- Generating proof pack ---"; \
 	PROOF_FILE="reports/ARIFOS_PROOF_PACK_$$(date +%Y-%m-%d).md"; \
@@ -192,7 +192,7 @@ prove:
 	  echo ""; \
 	  echo "## Security Audit"; echo "(See security-audit output above)"; \
 	  echo ""; \
-	  echo "## VAULT999 Chain"; python scripts/vault999_status.py 2>&1 | head -20; \
+	  echo "## VAULT999 Chain"; python scripts/verify_vault_chain.py --summary 2>&1 || python scripts/verify_vault_chain.py 2>&1 | head -20; \
 			} > "$$PROOF_FILE"; \
 			echo "Proof pack: $$PROOF_FILE"
 
