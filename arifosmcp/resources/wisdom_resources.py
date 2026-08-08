@@ -5,12 +5,12 @@ Exposes the provenance-typed quote registry as MCP resources.
 Resources are read-only. Quotes are resources, not tools.
 
 Resource URIs:
-  arifos://wisdom/quotes/all              — All quotes
+  arifos://wisdom/quotes/all              — All quotes (includes disputed, doctrine, prohibited-uses)
   arifos://wisdom/quotes/by-floor/{fid}   — Filter by constitutional floor
   arifos://wisdom/quotes/by-tradition/{t} — Filter by tradition
-  arifos://wisdom/quotes/disputed         — Disputed attribution quotes
-  arifos://wisdom/quotes/arifos-doctrine  — arifOS doctrine entries
-  arifos://wisdom/quotes/prohibited-uses  — Prohibited use patterns
+  arifos://wisdom/fingerprint/{quote_id}  — APEX fingerprint (Layer B)
+  arifos://wisdom/canon-status/{quote_id} — Canon-status tier (Layer C)
+  arifos://wisdom/contract                — Federation contract for wisdom namespace
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -27,9 +27,6 @@ from ..runtime.quote_registry import (
     G_DEPLOY_THRESHOLD,  # Layer A
     compute_apex_fingerprint,  # Layer A
     compute_canon_status,  # Layer C
-    get_disputed_quotes,
-    get_doctrine,
-    get_prohibited_uses,
     get_quotes_by_floor,
     get_quotes_by_tradition,
     load_registry,
@@ -120,34 +117,10 @@ def register_wisdom_resources(mcp) -> list[str]:
 
     registered.append("arifos://wisdom/quotes/by-tradition/{tradition}")
 
-    # ── Disputed ────────────────────────────────────────────────────────────
-    @mcp.resource("arifos://wisdom/quotes/disputed")
-    def wisdom_quotes_disputed() -> str:
-        """Return all quotes with disputed attribution."""
-        result = get_disputed_quotes()
-        return json.dumps({"count": len(result), "quotes": result}, indent=2, ensure_ascii=False)
-
-    registered.append("arifos://wisdom/quotes/disputed")
-
-    # ── Doctrine ────────────────────────────────────────────────────────────
-    @mcp.resource("arifos://wisdom/quotes/arifos-doctrine")
-    def wisdom_doctrine() -> str:
-        """Return arifOS doctrine entries (separated from inherited quotations)."""
-        result = get_doctrine()
-        return json.dumps({"count": len(result), "doctrine": result}, indent=2, ensure_ascii=False)
-
-    registered.append("arifos://wisdom/quotes/arifos-doctrine")
-
-    # ── Prohibited uses ─────────────────────────────────────────────────────
-    @mcp.resource("arifos://wisdom/quotes/prohibited-uses")
-    def wisdom_prohibited_uses() -> str:
-        """Return all prohibited use patterns for quotations."""
-        result = get_prohibited_uses()
-        return json.dumps(
-            {"count": len(result), "prohibited_uses": result}, indent=2, ensure_ascii=False
-        )
-
-    registered.append("arifos://wisdom/quotes/prohibited-uses")
+    # ── REMOVED 2026-08-08 (merged into wisdom/quotes/all): ────────────────
+    #   arifos://wisdom/quotes/disputed        — data in quotes/all
+    #   arifos://wisdom/quotes/arifos-doctrine  — data in quotes/all
+    #   arifos://wisdom/quotes/prohibited-uses  — data in quotes/all
 
     # ── Layer B: APEX fingerprint namespace ────────────────────────────────
     @mcp.resource("arifos://wisdom/fingerprint/{quote_id}")
@@ -282,9 +255,6 @@ def register_wisdom_resources(mcp) -> list[str]:
                     "arifos://wisdom/quotes/{quote_id}",
                     "arifos://wisdom/quotes/by-floor/{floor_id}",
                     "arifos://wisdom/quotes/by-tradition/{tradition}",
-                    "arifos://wisdom/quotes/disputed",
-                    "arifos://wisdom/quotes/arifos-doctrine",
-                    "arifos://wisdom/quotes/prohibited-uses",
                     "arifos://wisdom/fingerprint/{quote_id}",
                     "arifos://wisdom/canon-status/{quote_id}",
                     "arifos://wisdom/contract",

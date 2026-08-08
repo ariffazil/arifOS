@@ -11,6 +11,11 @@ Every arifOS MCP resource must:
   - Not overlap with tool or prompt surfaces (unless intentional)
 
 DITEMPA BUKAN DIBERI — Bound by execution, not by string.
+
+2026-08-08: Surface reduced 48 → 30. Resources/index alias, seal-readiness,
+mcp-alignment, mcp/surface-map, atlas333/{seal/head,zones,organs,thresholds,
+activation/rules,quote/list}, wisdom/{disputed,prohibited-uses,arifos-doctrine}
+and the dynamic-number index family all deregistered.
 """
 
 from __future__ import annotations
@@ -25,24 +30,57 @@ import pytest
 # If a resource is added or removed from the canonical surface, edit THIS
 # constant AND the resource file AND ratify via 888.
 
-EXPECTED_CANONICAL_RESOURCES: frozenset[str] = frozenset(
+# Text-based resources (canonical surface — 30 total)
+_TEXT_RESOURCE_KEYS: frozenset[str] = frozenset(
     {
         "arifos://doctrine",
         "arifos://trinity",
         "arifos://schema",
         "arifos://civilization",
-        "arifos://seal-readiness",
         "arifos://jurisdiction",
         "arifos://identity",
         "arifos://memory",
         "arifos://vitals",
         "arifos://bootstrap",
         "arifos://human/metabolized",
-        "tree777://index",
-        "runner://policy/v1",
-        "arif://tools/discovery",
+        "arifos://epistemic",
+        "arifos://loop-engineering",
+        "arifos://floors",
+        "arifos://refusal-surface",
+        "arifos://reality/state",
+        "arifos://vault/head",
+        "arifos://quickstart",
+        "arifos://wisdom/contract",
     }
 )
+
+# Resource URIs that have no text-based TEXT constant (handlers/sources-of-truth
+# elsewhere: index, paradox, flow, geometry, scar, etc.)
+_NON_TEXT_RESOURCE_KEYS: frozenset[str] = frozenset(
+    {
+        "arifos://carry-forward",
+        "arifos://flow-state",
+        "arifos://init/agent_init",
+        "arifos://index",
+        "arifos://affordances",
+        "arifos://atlas333/index",
+        "arifos://atlas333/paradox/list",
+        "arifos://atlas333/geometry",
+        "arifos://atlas333/flow",
+        "arifos://wisdom/quotes/all",
+        "tree777://index",
+        "skill://index",
+    }
+)
+
+# Dropped from surface 2026-08-08 (must NOT appear in either frozenset):
+#   arifos://seal-readiness, arifos://mcp-alignment, arifos://mcp/surface-map,
+#   arifos://resources/index, arifos://atlas-repo, arifos://aaa-index,
+#   arifos://a-forge-index, arifos://vault999-index,
+#   arifos://atlas333/{seal/head,zones,organs,thresholds,activation/rules,quote/list},
+#   arifos://wisdom/quotes/{disputed,prohibited-uses,arifos-doctrine}
+
+EXPECTED_CANONICAL_RESOURCES: frozenset[str] = _TEXT_RESOURCE_KEYS | _NON_TEXT_RESOURCE_KEYS
 
 # Source file mapping — every canonical URI maps to its generator file
 CANONICAL_RESOURCE_FILES: dict[str, str] = {
@@ -50,15 +88,29 @@ CANONICAL_RESOURCE_FILES: dict[str, str] = {
     "arifos://trinity": "trinity.py",
     "arifos://schema": "schema.py",
     "arifos://civilization": "civilization.py",
-    "arifos://seal-readiness": "seal_readiness.py",
     "arifos://jurisdiction": "jurisdiction.py",
     "arifos://identity": "identity.py",
     "arifos://memory": "memory.py",
     "arifos://vitals": "vitals.py",
     "arifos://bootstrap": "bootstrap.py",
     "arifos://human/metabolized": "human_context.py",
+    "arifos://epistemic": "alignment_gap.py",
+    "arifos://loop-engineering": "loop_engineering.py",
+    "arifos://floors": "alignment_gap.py",
+    "arifos://refusal-surface": "refusal_surface.py",
+    "arifos://reality/state": "reality_state.py",
+    "arifos://vault/head": "alignment_gap.py",
+    "arifos://quickstart": "quickstart.py",
+    "arifos://wisdom/contract": "wisdom_resources.py",
+    "arifos://index": "namespace_index.py",
+    "arifos://affordances": "alignment_gap.py",
+    "arifos://atlas333/index": "atlas333.py",
+    "arifos://atlas333/paradox/list": "atlas333.py",
+    "arifos://atlas333/geometry": "atlas333.py",
+    "arifos://atlas333/flow": "atlas333.py",
     "tree777://index": "tree777.py",
-    "runner://policy/v1": "runner.py",
+    # NOTE: skill://index is a documented target (no handler module yet);
+    # it is included in EXPECTED_CANONICAL_RESOURCES but has no source file.
 }
 
 # Text-based resources have a _TEXT constant and must carry ---arifos_meta
@@ -67,7 +119,6 @@ TEXT_BASED_RESOURCE_VARS: dict[str, str] = {
     "arifos://trinity": "TRINITY_TEXT",
     "arifos://schema": "SCHEMA_TEXT",
     "arifos://civilization": "CIVILIZATION_TEXT",
-    "arifos://seal-readiness": "SEAL_TEXT",
     "arifos://jurisdiction": "JURISDICTION_TEXT",
     "arifos://identity": "IDENTITY_TEXT",
     "arifos://memory": "MEMORY_TEXT",
@@ -79,14 +130,14 @@ RESOURCE_DIR = Path(__file__).resolve().parents[2] / "arifosmcp" / "resources"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Test 1: Exactly 13 canonical resources, set is locked.
+# Test 1: Exactly 30 canonical resources, set is locked.
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_canonical_resources_count_is_13():
-    """The constitutional resource surface is exactly 13 URIs."""
-    assert len(EXPECTED_CANONICAL_RESOURCES) == 14, (
-        f"EXPECTED_CANONICAL_RESOURCES must be exactly 14 (added discovery for surface); "
+def test_canonical_resources_count_is_30():
+    """The constitutional resource surface is exactly 30 URIs (2026-08-08: 48 → 30)."""
+    assert len(EXPECTED_CANONICAL_RESOURCES) == 30, (
+        f"EXPECTED_CANONICAL_RESOURCES must be exactly 30; "
         f"got {len(EXPECTED_CANONICAL_RESOURCES)}. "
         f"To change, edit this constant AND obtain explicit 888 ratification."
     )
@@ -208,9 +259,9 @@ def test_resource_uri_is_valid(uri):
     assert "://" in uri, f"Resource URI '{uri}' must contain '://' (scheme separator)"
 
     scheme = uri.split("://")[0]
-    assert scheme in ("arifos", "tree777", "runner", "arif"), (
+    assert scheme in ("arifos", "tree777", "runner", "arif", "skill"), (
         f"Resource URI '{uri}' uses unknown scheme '{scheme}'. "
-        f"Allowed schemes: arifos, tree777, runner, arif"
+        f"Allowed schemes: arifos, tree777, runner, arif, skill"
     )
 
     assert " " not in uri, f"Resource URI '{uri}' contains a space"
@@ -283,22 +334,16 @@ def test_resource_content_hashes_are_stable():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Test 7: All URIs in SUPPLEMENTAL_RESOURCES are registered.
+# Test 7: SUPPLEMENTAL_RESOURCES is empty (catalog-of-catalog removed 2026-06-28,
+# full consolidation 2026-08-08 — no remaining supplemental class).
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_supplemental_resources_exist_in_init():
-    """SUPPLEMENTAL_RESOURCES must be properly imported and registered."""
+def test_supplemental_resources_is_empty():
+    """SUPPLEMENTAL_RESOURCES must be empty after 2026-08-08 consolidation."""
     from arifosmcp.resources import SUPPLEMENTAL_RESOURCES  # noqa: PLC0415
 
-    assert len(SUPPLEMENTAL_RESOURCES) == 2, (
-        f"SUPPLEMENTAL_RESOURCES must have exactly 2 entries; "
-        f"got {len(SUPPLEMENTAL_RESOURCES)}: {SUPPLEMENTAL_RESOURCES}"
-    )
-
-    assert "arifos://mcp-alignment" in SUPPLEMENTAL_RESOURCES, (
-        "SUPPLEMENTAL_RESOURCES missing arifos://mcp-alignment"
-    )
-    assert "arifos://resources/index" in SUPPLEMENTAL_RESOURCES, (
-        "SUPPLEMENTAL_RESOURCES missing arifos://resources/index"
+    assert SUPPLEMENTAL_RESOURCES == (), (
+        f"SUPPLEMENTAL_RESOURCES must be empty after 2026-08-08 consolidation; "
+        f"got {SUPPLEMENTAL_RESOURCES}. Re-promote by explicit 888 ratification."
     )
