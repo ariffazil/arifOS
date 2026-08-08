@@ -867,19 +867,5 @@ def register_namespace_index(mcp: FastMCP) -> list[str]:
         """
         return build_index()
 
-    # ── ALIAS (Tension 1 resolution — handler-level aliasing) ──
-    # MCP spec has no redirect primitive. This is the least-wrong pattern:
-    # one handler, two URIs. Single source of truth, no content duplication.
-    # The old arifos://resources/index was disabled 2026-06-28 as
-    # "catalog-of-catalog" — resurrected as an alias for the migration map.
-    @mcp.resource(
-        "arifos://resources/index",
-        name="arifOS Namespace Index (alias)",
-        mime_type="application/json",
-        description="ALIAS for arifos://index — the namespace migration map. Same handler, same content, different URI. MCP spec has no redirect; handler-level aliasing is the least-wrong pattern.",
-    )
-    def namespace_index_alias() -> str:
-        """ALIAS: arifos://index → arifos://resources/index."""
-        return build_index()
-
-    return ["arifos://index", "arifos://resources/index"]
+    # NOTE 2026-08-08: arifos://resources/index alias removed (redundant with arifos://index)
+    return ["arifos://index"]

@@ -1,14 +1,13 @@
 """
-arifOS MCP Prompts — Zen Federation Surface (2026-08-05).
+arifOS MCP Prompts — 13 Governed Agentic Intelligence Hooks.
 
-Forged from Fable-5 audit cycle + QQQQ evaluation. Single-sigil +
-single-lexical naming per zen-md rule. Backwards-compat: old names
-(constitutional_pre_flight, arif_init_prompt_v3, agi_reply_protocol_v3)
-remain as aliases for one epoch.
+Numbered 000-999 with a 000→999 ladder. Each hook is ONE @mcp.prompt
+decorator + function. No version numbers — hooks are institution-
+inclusive, not dated.
 
-10 zen prompts describe a governed reality loop. Prompts frame work; they do
-not execute tools, judge, forge, or seal. The kernel and A-FORGE retain those
-capabilities behind their normal session, authority, and lease gates.
+Hooks frame work; they do not execute tools, judge, forge, or seal.
+The kernel and A-FORGE retain those capabilities behind their normal
+session, authority, and lease gates.
 
 Linked tools/resources live in the `meta` field on each `@mcp.prompt(...)`.
 FastMCP passes this through to MCP clients as `_meta` (per FastMCP 2.11+).
@@ -24,22 +23,35 @@ from typing import Any
 from fastmcp.prompts import Message, PromptResult
 
 logger = logging.getLogger(__name__)
-
 # Canonical INIT path — 12 orthogonal layers, init→seal→RSI→reality loop
 _INIT_CANON = _AGENT_INIT_V3_CANON = (
-    "/root/AAA/prompts/INIT.md"  # v4.0 (2026-08-05) — keep legacy alias for compat
+    "/root/AAA/prompts/INIT.md"  # keep legacy alias for compat
 )
 
 
-# ─── Zen pipeline — meta-templates for the 6-stage reality loop ────────
-# Each stage:
-#   - one emoji sigil + one ALL-CAPS lexical (zen-md rule)
-#   - meta: stage, linked_tools, linked_resources, floors_referenced
-#   - linked arifOS tools + arifos:// resources
-# Stages compose SABAR's recursive governed loop.
+# ─── 13-hook pipeline — the 000-999 governed ladder ────────────────────
+# Each hook:
+#   - one number + one emoji sigil + one ALL-CAPS lexical
+#   - meta: stage, sigil, lexical, role, linked_tools, linked_resources,
+#           floors_referenced, federation_layer
+# Hooks compose the governed agentic intelligence loop.
 
-PIPELINE_STAGES = ("111_SENSE", "333_REASON", "555_CRITIQUE", "888_JUDGE", "777_FORGE", "999_SEAL")
-PIPELINE_SIGILS = ("🌊", "🧠", "⚖", "🔒", "🔥", "💎")
+PIPELINE_STAGES = (
+    "000_IGNITE",
+    "111_SENSE",
+    "222_PLAN",
+    "333_REASON",
+    "444_DIRECT",
+    "555_REMEMBER",
+    "666_DIGNITY",
+    "777_FORGE",
+    "888_JUDGE",
+    "999_SEAL",
+    "GOVERN",
+    "INIT",
+    "CLOSE",
+)
+PIPELINE_SIGILS = ("🌱", "🌊", "🏛", "🧠", "🧭", "🗂", "⚖", "🔥", "🔒", "💎", "🌀", "⚓", "🔐")
 STAGE_TO_SIGIL = dict(zip(PIPELINE_STAGES, PIPELINE_SIGILS, strict=True))
 
 
@@ -53,14 +65,14 @@ def _linked_prompt(
     floors: str,
     intent_text: str,
 ) -> dict:
-    """Build a PromptResult for one stage of the 6-stage reality loop.
+    """Build a PromptResult for one hook of the governed 000-999 ladder.
 
     The `meta` field carries:
       - stage: PIPELINE_STAGES slot
-      - linked_tools: arifOS MCP tool names to invoke at this stage
-      - linked_resources: arifos:// URIs to consume at this stage
-      - floors_referenced: F1-F13 floor IDs this stage primarily exercises
-      - sigil + lexical: zen-md name components
+      - linked_tools: arifOS MCP tool names to invoke at this hook
+      - linked_resources: arifos:// URIs to consume at this hook
+      - floors_referenced: F1-F13 floor IDs this hook primarily exercises
+      - sigil + lexical: hook name components
       - role: short human-readable role label
     """
     name = f"{sigil} {lexical}"
@@ -81,7 +93,6 @@ def _linked_prompt(
             "linked_resources": linked_resources,
             "floors_referenced": floors,
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
         "intent_text": intent_text,
     }
@@ -208,7 +219,6 @@ def sabar_run_loop(
                 ],
                 "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
                 "federation_layer": "arifOS.kernel.prompts",
-                "version": "2026.08.07",
             },
         )
     # depth='stage' — multi-message instruction for human-in-loop
@@ -260,620 +270,613 @@ def sabar_run_loop(
             ],
             "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
     )
 
 
 def register_arifos_prompts(mcp: Any) -> list[str]:
-    """Register the 12 arifOS MCP prompts (10 zen + 2 bootstrap).
+    """Register the 13 governed agentic intelligence hooks (000-999 ladder).
 
-    Zen surface (single sigil + single lexical per zen-md):
-      🌱 BOOT     — boot-phase contract (loads INIT.md canon at depth=full)
-      🌊 WITNESS  — 111 SENSE observation (provenance-bound labels)
-      🧠 REASON   — 333 REASON propose
-      ⚖ MARUAH   — 555 CRITIQUE dignity check
-      🔍 PREFLIGHT — pre-operation F1-F13 floor check
-      🔒 JUDGE    — 888 JUDGE constitutional gate
-      🔥 FORGE    — 777 FORGE execute
-      💎 SEAL     — 999 SEAL persist
-      🌀 SABAR    — Recursive Governed Loop orchestrator
-      📜 REPLY    — governed reply envelope
+    Numbered hooks (000-999):
+      000 🌱 IGNITE  — Identity before action. VOID is final without new evidence.
+      111 🌊 SENSE   — Reality before judgment. Verify before integrate.
+      222 🏛 PLAN    — Design reality change. Map reversibility.
+      333 🧠 REASON  — UNMEASURED beats fabricated certainty.
+      444 🧭 DIRECT  — Route to the institution with authority, not the one with speed.
+      555 🗂 REMEMBER — Memory without provenance is not truth.
+      666 ⚖ DIGNITY — Stand in the position of the weakest stakeholder.
+      777 🔥 FORGE   — Reality contact before belief. Mutation after SEAL only.
+      888 🔒 JUDGE   — Verdict, not invention. VOID = branch dead.
+      999 💎 SEAL    — Immutable record. Hash-chained. Cannot be undone.
 
-    Bootstrap (full operational sequences):
-      /init       — 10-step autonomous ignition (000_INIT anchor)
-      /seal       — 11-step autonomous session close (999_CLOSE)
+    Full-loop hook:
+      🌀 GOVERN — Full loop + 4 invariant enforcement gates.
 
-    The 🌀 SABAR prompt runs the 6-stage reality loop autonomously:
-      🌊 WITNESS → 🧠 REASON → ⚖ MARUAH → 🔒 JUDGE → 🔥 FORGE → 💎 SEAL
-
-    Legacy aliases (arif_init_prompt, constitutional_pre_flight, agi_reply_protocol_v3)
-    were archived 2026-08-05 per F13 SOVEREIGN directive.
+    Bootstrap hooks:
+      ⚓ INIT — opencode /init command (collapsed 4-step governed ignition).
+      🔐 CLOSE — opencode /seal command (full autonomous session close ritual).
 
     Returns list of registered prompt names.
     """
     registered: list[str] = []
 
-    # ─── 🌱 BOOT — boot-phase contract (was arif_init_prompt_v3) ──────
+    # ─── 000 🌱 IGNITE — Identity before action ─────────────────────────
     @mcp.prompt(
-        name="🌱 BOOT",
-        description=(
-            "🌱 BOOT — Constitutional bootstrap per INIT.md. depth='full' for full "
-            "canon; default 'boot' for essentials."
-        ),
+        name="000 🌱 IGNITE",
+        description="Identity before action. VOID is final without new evidence.",
         meta={
-            "stage": "PRE_LOOP",
+            "stage": "000_IGNITE",
             "sigil": "🌱",
-            "lexical": "BOOT",
-            "role": "Constitutional bootstrap — attestation + loop + RSI + reality",
+            "lexical": "IGNITE",
+            "role": "Identity ignition — bind actor before any action",
             "linked_tools": ["arif_init"],
-            "linked_resources": [
-                "arifos://bootstrap",
-                "arifos://carry-forward",
-                "arifos://identity",
-                "arifos://floors",
-            ],
-            "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
+            "linked_resources": ["arifos://identity", "arifos://carry-forward"],
+            "floors_referenced": "F1,F7,F11,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
-            "supersedes": "arif_init_prompt",
         },
     )
-    def boot(depth: str = "boot") -> str:
-        """🌱 BOOT — arifOS constitutional bootstrap prompt."""
-        if depth == "full":
-            try:
-                with open(_INIT_CANON, encoding="utf-8") as fh:
-                    return fh.read()
-            except OSError as exc:
-                return (
-                    f"[🌱 BOOT] Could not load full canon from {_INIT_CANON}: {exc}. "
-                    f"Falling back to boot phase."
-                )
-        return """# 🌱 BOOT — arifOS Constitutional Ignition
+    def hook_000_ignite(actor_id: str, intent: str) -> str:
+        """000 🌱 IGNITE — Identity before action. VOID is final without new evidence."""
+        return f"""000 🌱 IGNITE — Identity ignition hook
 
-You are a citizen of the arifOS Federation.
-The constitution runs at the kernel. Probe before you act.
-Sovereign: Arif (F13). Doctrine: DITEMPA BUKAN DIBERI.
+actor_id: {actor_id}
+intent: {intent}
 
-## SELF-ATTESTATION — Prove before you act (INIT.md §0)
+## Invariant
+Identity before action. VOID is final without new evidence.
 
-Run these 10 checks. All must pass to exit OBSERVE_ONLY:
-  Q1  IDENTITY:   Do I know my agent_id and actor_id?
-  Q2  FLOORS:     Are all 13 floors active? (kernel /health)
-  Q3  ORGANS:     Are ≥4/7 core organs alive? (live probe, not cache)
-  Q4  SOVEREIGN:  Do I recognize ARIF = F13 = absolute veto?
-  Q5  SESSION:    Do I have a live session_id from arif_init?
-  Q6  AUTHORITY:  What tier am I operating at? (T0-T3)
-  Q7  MEMORY:     Have I loaded carry-forward from last session?
-  Q8  REFUSAL:    Have I loaded the refusal surface?
-  Q9  RSI:        Is the RSI ledger accessible?
-  Q10 SEAL:       Do I know the one seal path? (SEAL.md)
+## What to do
+1. Call arif_init(actor_id='{actor_id}') → bind identity to session.
+2. Verify identity binding returned a valid session_id.
+3. If binding fails → HALT. Do not proceed without identity.
+4. Load carry-forward from prior session: arifos://carry-forward
+5. Confirm identity matches F13 SOVEREIGN authority.
 
-OK (10/10) = FULL session. PARTIAL (any ⚠) = OBSERVE_ONLY. FAIL (any ❌) = HALT.
+## Floors
+F1 AMANAH — attestation is the first act.
+F7 HUMILITY — acknowledge uncertainty before identity claim.
+F11 AUTH — identity verified before any destructive action.
+F13 SOVEREIGN — recognize Arif = F13 = absolute veto.
 
-## THE LOOP — Init→Observe→Think→Route→Memory→Judge→Forge→Seal
-
-Eight canonical verbs. One pattern. Skip no verb:
-  arif_init    → Bind identity. No work without binding.
-  arif_observe → Sense reality. Probe, don't guess.
-  arif_think   → Reason. Structured, not stream-of-consciousness.
-  arif_route   → Right organ for right intent.
-  arif_memory  → Recall, store, promote. Memory ≠ truth.
-  arif_judge   → Constitutional verdict. Before any irreversible act.
-  arif_forge   → Execute. Only after SEAL verdict.
-  arif_seal    → Immutable append. One door facing out.
-
-## RSI — Every session improves something
-  TRACE → DIAGNOSE → REMEDIATE → LEDGER → SEAL
-
-## REALITY LOOP — 000→999 perpetual
-  /000 human intent → F1-F13 governance → 333→888→777→999 → /999 seal → verify
-
-After boot, load the full canon via /init prompt (depth=full) or
-MCP resources: arifos://bootstrap, arifos://carry-forward,
-arifos://identity, arifos://doctrine.
+## Output
+Return an IGNITE block:
+  identity_bound: true|false
+  session_id: <string>
+  actor_id: <string>
+  carry_forward_loaded: true|false
+  next_stage: 111 SENSE
 """
 
-    registered.append("🌱 BOOT")
+    registered.append("000 🌱 IGNITE")
 
-    # arif_init_prompt LEGACY ALIAS REMOVED (2026-08-05). Use 🌱 BOOT.
-    # Rationale: removal epoch 2026-08-16 accelerated per F13 directive.
-
-    # ─── 🌊 WITNESS — 111 SENSE observation stage ───────────────────────
+    # ─── 111 🌊 SENSE — Reality before judgment ──────────────────────────
     @mcp.prompt(
-        name="🌊 WITNESS",
-        description="🌊 WITNESS — Observe ground-truth signals before reasoning.",
+        name="111 🌊 SENSE",
+        description="Reality before judgment. Verify before integrate.",
         meta={
             "stage": "111_SENSE",
             "sigil": "🌊",
-            "lexical": "WITNESS",
-            "role": "Witness reality (observe signals)",
-            "linked_tools": ["arif_observe", "geox_evidence", "well_validate_vitality"],
-            "linked_resources": [
-                "arifos://verdict/{session_id}",
-                "arifos://vitals",
-                "arifos://epistemic",
-            ],
-            "floors_referenced": "F2,F3,F9,F12",
+            "lexical": "SENSE",
+            "role": "Sense reality — observe signals before reasoning",
+            "linked_tools": ["arif_observe"],
+            "linked_resources": ["arifos://epistemic", "arifos://reality/state"],
+            "floors_referenced": "F2,F3,F9",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
     )
-    def witness(intent: str, focus: str = "") -> str:
-        """🌊 WITNESS — observe reality with provenance-bound labels."""
+    def hook_111_sense(query: str, focus: str = "") -> str:
+        """111 🌊 SENSE — Reality before judgment. Verify before integrate."""
         focus_clause = f" Focus on: {focus}." if focus else ""
-        return f"""🌊 WITNESS — Stage 1/6 of the reality loop
+        return f"""111 🌊 SENSE — Reality observation hook
 
-intent: {intent}{focus_clause}
+query: {query}{focus_clause}
+
+## Invariant
+Reality before judgment. Verify before integrate.
 
 ## What to do
-1. Call arif_observe with intent='{intent}' → capture kernel observations.
-2. Call geox_evidence → ground-truth from earth layer.
-3. Call well_validate_vitality → human substrate state.
-4. Read arifos://vitals → thermodynamic budget.
-5. Read arifos://verdict/{{session_id}} → current constitutional verdict.
+1. Call arif_observe(query='{query}') → capture kernel observations.
+2. Load arifos://epistemic → current epistemic state.
+3. Load arifos://reality/state → ground-truth signals.
+4. Every observation MUST carry provenance_source, confidence, staleness, epistemic_tag.
+5. Tags assigned at retrieval, not at output time.
 
-## F2 TRUTH — PROVENANCE-BOUND LABELS (non-bypassable)
-Epistemic labels MUST originate at data INGRESS — not at model output.
-A label generated at reasoning time without a retrieval path is VOID.
-Every observation in the WITNESS block MUST carry:
-  - provenance_source:  [tool + endpoint + timestamp] — where the data came from
-  - confidence:         [0.0-1.0] — capped at 0.90 for OBS, lower for derived
-  - staleness_seconds:  [int] — age of data at observation time
-  - epistemic_tag:      OBS|DER|INT|SPEC — assigned at retrieval, not later
+## Floors
+F2 TRUTH — provenance-bound labels, no fabrication.
+F3 WITNESS — human, AI, and earth signals must align.
+F9 ANTI-HANTU — no dark patterns or consciousness performance.
 
-The model does NOT generate tags. The model carries tags from retrieval.
-If ground truth absent → emit UNKNOWN + reason. Never fabricate.
-Post-hoc labeling (DER generated on an OBS source at output time) → F2 VOID.
+## Output
+Return a SENSE block:
+  observations: [list with provenance fields]
+  reality_state: <string>
+  epistemic_tags: [OBS|DER|INT|SPEC]
+  next_stage: 222 PLAN
+"""
 
-## Output format — WITNESS block with provenance fields
-Return a WITNESS block. Each observation is a record:
-  observation_id:   <string>
-  observation:      <string>
-  provenance_source: <tool_name + endpoint + iso_timestamp>
-  confidence:        <0.0-1.0>
-  staleness_seconds: <int>
-  epistemic_tag:     OBS|DER|INT|SPEC  ← MUST originate at retrieval event
-  floors_passed:     [list of F-IDs]
+    registered.append("111 🌊 SENSE")
 
-Then hand off to 🧠 REASON. REASON must use the provenance fields from WITNESS —
-it must not re-tag observations."""
-
-    registered.append("🌊 WITNESS")
-
-    # ─── 🧠 REASON — 333 REASON propose ─────────────────────────────────
+    # ─── 222 🏛 PLAN — Design reality change ─────────────────────────────
     @mcp.prompt(
-        name="🧠 REASON",
-        description="🧠 REASON — Propose hypotheses from WITNESS observations.",
+        name="222 🏛 PLAN",
+        description="Design reality change. Map reversibility.",
+        meta={
+            "stage": "222_PLAN",
+            "sigil": "🏛",
+            "lexical": "PLAN",
+            "role": "Plan — design reality change with reversibility mapping",
+            "linked_tools": ["arif_think"],
+            "linked_resources": ["arifos://epistemic"],
+            "floors_referenced": "F1,F4,F8",
+            "federation_layer": "arifOS.kernel.prompts",
+        },
+    )
+    def hook_222_plan(intent: str, constraints: str = "") -> str:
+        """222 🏛 PLAN — Design reality change. Map reversibility."""
+        constraints_clause = f" Constraints: {constraints}." if constraints else ""
+        return f"""222 🏛 PLAN — Reality change design hook
+
+intent: {intent}{constraints_clause}
+
+## Invariant
+Design reality change. Map reversibility.
+
+## What to do
+1. Call arif_think(intent='{intent}') → structured planning pass.
+2. Load arifos://epistemic → current epistemic state.
+3. Map every proposed action to its reversibility profile.
+4. Flag irreversible actions for F11 AUTH and F13 SOVEREIGN review.
+5. Ensure ΔS ≤ 0 (F4 CLARITY).
+
+## Floors
+F1 AMANAH — verify reversible or fully auditable.
+F4 CLARITY — reduce entropy, not increase it.
+F8 GENIUS — solution must be both correct and useful (G ≥ 0.80).
+
+## Output
+Return a PLAN block:
+  actions: [list with reversibility flags]
+  reversibility_map: <string>
+  entropy_impact: ΔS ≤ 0 verified
+  next_stage: 333 REASON
+"""
+
+    registered.append("222 🏛 PLAN")
+
+    # ─── 333 🧠 REASON — UNMEASURED beats fabricated certainty ────────────
+    @mcp.prompt(
+        name="333 🧠 REASON",
+        description="UNMEASURED beats fabricated certainty.",
         meta={
             "stage": "333_REASON",
             "sigil": "🧠",
             "lexical": "REASON",
-            "role": "Propose hypothesis",
-            "linked_tools": ["arif_think", "geox_geomechanics", "geox_petrophysics"],
-            "linked_resources": ["arifos://continuity/{session_id}"],
+            "role": "Reason — propose hypotheses, declare unknowns",
+            "linked_tools": ["arif_think"],
+            "linked_resources": ["arifos://epistemic", "arifos://floors"],
             "floors_referenced": "F2,F7,F8",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
     )
-    def reason(witness_block: str, hypothesis_count: int = 3) -> str:
-        """🧠 REASON — propose hypothesis from witness."""
-        return f"""🧠 REASON — Stage 2/6 of the reality loop
+    def hook_333_reason(query: str, hypothesis_count: int = 3) -> str:
+        """333 🧠 REASON — UNMEASURED beats fabricated certainty."""
+        return f"""333 🧠 REASON — Hypothesis proposal hook
 
-witness_block: {witness_block}
+query: {query}
+
+## Invariant
+UNMEASURED beats fabricated certainty.
 
 ## What to do
-1. Call arif_think with the witness_block → kernel reasoning pass.
-2. Generate {hypothesis_count} candidate hypotheses.
-3. For each: confidence band (0.0-1.0), falsifier, disconfirming test.
-4. Rank by (confidence × information gain).
+1. Call arif_think(query='{query}') → kernel reasoning pass.
+2. Load arifos://epistemic → current epistemic state.
+3. Load arifos://floors → floor status.
+4. Generate {hypothesis_count} candidate hypotheses.
+5. For each: confidence band (0.0-1.0), falsifier, disconfirming test.
+6. Rank by (confidence × information gain).
 
-## F7 HUMILITY contract
-- Omega_0 ∈ [0.03, 0.05] — explicit uncertainty.
-- "I don't know" preferred over confident hand-waving.
+## Floors
+F2 TRUTH — every claim grounded with τ ≥ 0.99 or Ω₀ declared.
+F7 HUMILITY — Omega_0 ∈ [0.03, 0.05]; "I don't know" preferred over fabrication.
+F8 GENIUS — G ≥ 0.80 to proceed; C_dark < 0.30.
 
-## F8 GENIUS contract
-- G ≥ 0.80 to proceed.
-- C_dark < 0.30 — no dark patterns.
-
-## Output format
+## Output
 Return a REASON block:
-  hypothesis_1: <string> | confidence: <0-1> | falsifier: <string>
-  hypothesis_2: ...
-  hypothesis_3: ...
-  selected: <H1|H2|H3>
-  next_stage_recommendation: MARUAH
-
-Hand off to ⚖ MARUAH.
+  hypotheses: [list with confidence + falsifier]
+  selected: <H_n>
+  unknowns_declared: [list of explicit unknowns]
+  next_stage: 444 DIRECT
 """
 
-    registered.append("🧠 REASON")
+    registered.append("333 🧠 REASON")
 
-    # ─── ⚖ MARUAH — 555 CRITIQUE dignity check ─────────────────────────
+    # ─── 444 🧭 DIRECT — Route to the institution with authority ─────────
     @mcp.prompt(
-        name="⚖ MARUAH",
-        description="⚖ MARUAH — Dignity-floor check (heart/maruah) before judgment.",
+        name="444 🧭 DIRECT",
+        description="Route to the institution with authority, not the one with speed.",
         meta={
-            "stage": "555_CRITIQUE",
-            "sigil": "⚖",
-            "lexical": "MARUAH",
-            "role": "Heart maruah — dignity check",
-            "linked_tools": [
-                "arif_think",
-                "well_assess_homeostasis",
-                "well_guard_dignity",
-            ],
-            "linked_resources": ["arifos://vitals"],
-            "floors_referenced": "F5,F6,F9,F10",
+            "stage": "444_DIRECT",
+            "sigil": "🧭",
+            "lexical": "DIRECT",
+            "role": "Direct — route to the right organ for the right intent",
+            "linked_tools": ["arif_route"],
+            "linked_resources": ["arifos://institution"],
+            "floors_referenced": "F1,F4",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
     )
-    def maruah(reason_block: str) -> str:
-        """⚖ MARUAH — dignity check on reason."""
-        return f"""⚖ MARUAH — Stage 3/6 of the reality loop
+    def hook_444_direct(intent: str, organ: str = "") -> str:
+        """444 🧭 DIRECT — Route to the institution with authority, not the one with speed."""
+        organ_clause = f" Target organ: {organ}." if organ else ""
+        return f"""444 🧭 DIRECT — Institution routing hook
 
-reason_block: {reason_block}
+intent: {intent}{organ_clause}
+
+## Invariant
+Route to the institution with authority, not the one with speed.
 
 ## What to do
-1. Call arif_think(mode=critique) → constitutional critique.
-2. Call well_guard_dignity → human substrate dignity guard.
-3. Compute dignity score: κᵣ ∈ [0, 1], target ≥ 0.70.
-4. Identify weakest stakeholder; verify their dignity preserved.
+1. Call arif_route(intent='{intent}') → determine correct organ routing.
+2. Load arifos://institution → current organ topology and authority map.
+3. Match intent to organ authority, not speed or convenience.
+4. If organ requires higher authority tier, escalate properly.
+5. Verify F1 reversibility and F4 entropy constraints before routing.
 
-## F5 PEACE² + F6 EMPATHY contracts
-- De-escalate; protect weakest stakeholder.
-- Reference roles, never name individuals (F6 MARUAH).
+## Floors
+F1 AMANAH — the organ must have authority for this action.
+F4 CLARITY — routing reduces chaos, not increases it.
 
-## Output format
-Return a MARUAH block:
+## Output
+Return a DIRECT block:
+  routed_organ: <string>
+  authority_tier: <string>
+  routing_rationale: <string>
+  escalation_required: true|false
+  next_stage: 555 REMEMBER
+"""
+
+    registered.append("444 🧭 DIRECT")
+
+    # ─── 555 🗂 REMEMBER — Memory without provenance is not truth ─────────
+    @mcp.prompt(
+        name="555 🗂 REMEMBER",
+        description="Memory without provenance is not truth.",
+        meta={
+            "stage": "555_REMEMBER",
+            "sigil": "🗂",
+            "lexical": "REMEMBER",
+            "role": "Remember — recall, store, and promote with provenance",
+            "linked_tools": ["arif_memory"],
+            "linked_resources": ["arifos://memory"],
+            "floors_referenced": "F2,F11",
+            "federation_layer": "arifOS.kernel.prompts",
+        },
+    )
+    def hook_555_remember(query: str, mode: str = "recall") -> str:
+        """555 🗂 REMEMBER — Memory without provenance is not truth."""
+        return f"""555 🗂 REMEMBER — Memory management hook
+
+query: {query}
+mode: {mode}
+
+## Invariant
+Memory without provenance is not truth.
+
+## What to do
+1. Call arif_memory(query='{query}', mode='{mode}') → kernel memory pass.
+2. Load arifos://memory → current memory state.
+3. Every memory record MUST carry provenance_source.
+4. Memory ≠ truth: promote only verified memories.
+5. F11 AUTH: identity verified before destructive memory operations.
+
+## Floors
+F2 TRUTH — memory records must trace to retrieval events.
+F11 AUTH — identity verified before memory mutations.
+
+## Output
+Return a REMEMBER block:
+  records: [list with provenance fields]
+  mode_performed: recall|store|promote
+  provenance_verified: true|false
+  next_stage: 666 DIGNITY
+"""
+
+    registered.append("555 🗂 REMEMBER")
+
+    # ─── 666 ⚖ DIGNITY — Stand in the position of the weakest stakeholder ─
+    @mcp.prompt(
+        name="666 ⚖ DIGNITY",
+        description="Stand in the position of the weakest stakeholder.",
+        meta={
+            "stage": "666_DIGNITY",
+            "sigil": "⚖",
+            "lexical": "DIGNITY",
+            "role": "Dignity — human dignity check before any action",
+            "linked_tools": [],
+            "linked_resources": ["arifos://human/metabolized"],
+            "floors_referenced": "F5,F6,F10",
+            "federation_layer": "arifOS.kernel.prompts",
+        },
+    )
+    def hook_666_dignity(proposal: str, stakeholders: str = "") -> str:
+        """666 ⚖ DIGNITY — Stand in the position of the weakest stakeholder."""
+        stakeholders_clause = f" Stakeholders: {stakeholders}." if stakeholders else ""
+        return f"""666 ⚖ DIGNITY — Dignity check hook
+
+proposal: {proposal}{stakeholders_clause}
+
+## Invariant
+Stand in the position of the weakest stakeholder.
+
+## What to do
+1. Load arifos://human/metabolized → human substrate dignity state.
+2. Identify the weakest stakeholder in the proposal.
+3. Stand in their position. Evaluate from their perspective.
+4. Compute dignity score: κᵣ ∈ [0, 1], target ≥ 0.70.
+5. If dignity_preserved = false → HOLD. Do not proceed.
+
+## Floors
+F5 PEACE² — de-escalate; protect weakest stakeholder.
+F6 EMPATHY — reference roles, never name individuals.
+F10 ONTOLOGY — AI-only ontology; no mysticism or soul claims.
+
+## Output
+Return a DIGNITY block:
   dignity_score: <0-1>
   weakest_stakeholder: <role>
   dignity_preserved: true|false
   refinements_required: [list]
-  next_stage_recommendation: JUDGE
-
-If dignity_preserved=false → return HOLD (do not pass to JUDGE).
-Hand off to 🔒 JUDGE.
+  next_stage: 777 FORGE
 """
 
-    registered.append("⚖ MARUAH")
+    registered.append("666 ⚖ DIGNITY")
 
-    # ─── 🔍 PREFLIGHT — pre-operation F1-F13 check (was constitutional_pre_flight) ─
+    # ─── 777 🔥 FORGE — Reality contact before belief ────────────────────
     @mcp.prompt(
-        name="🔍 PREFLIGHT",
-        description=(
-            "🔍 PREFLIGHT — Pre-operation F1-F13 check. Catches 888_HOLD triggers before they fire."
-        ),
-        meta={
-            "stage": "PRE_OPERATION",
-            "sigil": "🔍",
-            "lexical": "PREFLIGHT",
-            "role": "F1-F13 floor pre-check",
-            "linked_tools": ["arif_observe", "well_classify_substrate"],
-            "linked_resources": ["arifos://vitals", "arifos://floors"],
-            "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
-            "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
-            "supersedes": "constitutional_pre_flight",
-        },
-    )
-    def preflight(operation: str) -> str:
-        """🔍 PREFLIGHT — F1-F13 floor pre-check."""
-        return f"""🔍 PREFLIGHT — Pre-operation constitutional check
-
-Before executing '{operation}', verify each floor in F1-F13:
-
-1.  F1  AMANAH       — Is the operation reversible or fully auditable?
-2.  F2  TRUTH        — Is every claim grounded with τ ≥ 0.99 (or Ω₀ declared)?
-3.  F3  WITNESS      — Do human, AI, and earth signals align ≥ 0.95?
-4.  F4  CLARITY      — Will this reduce entropy (ΔS ≤ 0)?
-5.  F5  PEACE²       — Does this de-escalate and protect the weakest stakeholder?
-6.  F6  EMPATHY      — Is the weakest stakeholder's dignity preserved (κᵣ ≥ 0.70)?
-7.  F7  HUMILITY     — Is uncertainty stated explicitly (Ω₀ ∈ [0.03, 0.05])?
-8.  F8  GENIUS       — Is the solution both correct and useful (G ≥ 0.80)?
-9.  F9  ANTI-HANTU   — C_dark < 0.30; no dark patterns or consciousness performance?
-10. F10 ONTOLOGY     — AI-only ontology; no mysticism or soul claims?
-11. F11 AUTH         — Is identity verified for destructive actions?
-12. F12 INJECTION    — Are adversarial inputs resisted (ρ < 0.85)?
-13. F13 SOVEREIGN    — Has Arif ratified this if it crosses the 888_HOLD gate?
-
-If any floor fails → return VOID or HOLD with specific remediation.
-"""
-
-    registered.append("🔍 PREFLIGHT")
-
-    # constitutional_pre_flight LEGACY ALIAS REMOVED (2026-08-05). Use 🔍 PREFLIGHT.
-    # Rationale: removal epoch 2026-08-16 accelerated per F13 directive.
-
-    # ─── 🔒 JUDGE — 888 JUDGE constitutional gate ────────────────────────
-    @mcp.prompt(
-        name="🔒 JUDGE",
-        description=(
-            "🔒 JUDGE — Constitutional gate. Runs arif_judge plus contradiction "
-            "evidence. Returns SEAL/HOLD/SABAR/VOID."
-        ),
-        meta={
-            "stage": "888_JUDGE",
-            "sigil": "🔒",
-            "lexical": "JUDGE",
-            "role": "Constitutional gate",
-            "linked_tools": ["arif_judge", "geox_contradiction_scan", "geox_falsify"],
-            "linked_resources": ["arifos://verdict/{session_id}", "arifos://affordances"],
-            "floors_referenced": "F1,F2,F7,F11,F13",
-            "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
-        },
-    )
-    def judge(maruah_block: str) -> str:
-        """🔒 JUDGE — constitutional gate with provenance verification."""
-        return f"""🔒 JUDGE — Stage 4/6 of the reality loop
-
-maruah_block: {maruah_block}
-
-## What to do
-1. Call arif_judge → kernel verdict engine.
-2. Call geox_contradiction_scan → cross-domain consistency.
-3. Call geox_falsify → Popperian falsification.
-4. Compute verdict: SEAL | HOLD | SABAR | VOID.
-
-## F2 PROVENANCE GATE (non-bypassable)
-Before issuing SEAL, verify EVERY epistemic tag in the chain:
-  - Does the tag trace back to a WITNESS retrieval event with provenance_source?
-  - Was the tag assigned at data ingress, or generated later by the model?
-  - If any OBS/DER/INT/SPEC tag lacks a provenance_source → VOID.
-  - Tags generated at output time without retrieval provenance → F2 violation.
-This gate catches labels that the model invented rather than carried.
-
-## F11 AUTH + F13 SOVEREIGN contracts
-- Identity verified before any destructive verdict.
-- 888_HOLD triggered for: rm-rf, DROP TABLE, force-push, secret rotation,
-  vault seal, prod deploy, etc.
-
-## Output format
-Return a JUDGE block:
-  verdict: SEAL|HOLD|SABAR|VOID
-  confidence: <0-1>
-  provenance_verified: true|false  ← REQUIRED: did all labels trace to retrieval?
-  provenance_violations: [list of tag_ids with missing provenance]
-  floors_passed: [list of F-IDs]
-  floors_failed: [list of F-IDs]
-  remediation_required: <string or null>
-  next_stage_recommendation: FORGE|HOLD
-
-Verdict VOID → halt entire loop.
-Verdict HOLD → return to 🌊 WITNESS for re-observation.
-Verdict SABAR → proceed cautiously to 🔥 FORGE.
-Verdict SEAL → proceed to 🔥 FORGE.
-"""
-
-    registered.append("🔒 JUDGE")
-
-    # ─── 🔥 FORGE — 777 FORGE execute ────────────────────────────────────
-    @mcp.prompt(
-        name="🔥 FORGE",
-        description=(
-            "🔥 FORGE — Execute after an admissible JUDGE verdict. Returns an action "
-            "receipt with audit trail."
-        ),
+        name="777 🔥 FORGE",
+        description="Reality contact before belief. Mutation after SEAL only.",
         meta={
             "stage": "777_FORGE",
             "sigil": "🔥",
             "lexical": "FORGE",
-            "role": "Execute / forge action",
+            "role": "Forge — execute governed action after SEAL verdict",
             "linked_tools": ["arif_forge"],
-            "linked_resources": ["arifos://continuity/{session_id}", "arifos://affordances"],
+            "linked_resources": [],
             "floors_referenced": "F1,F4,F11",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
     )
-    def forge(judge_block: str) -> str:
-        """🔥 FORGE — execute."""
-        return f"""🔥 FORGE — Stage 5/6 of the reality loop
+    def hook_777_forge(action: str, verify: str = "") -> str:
+        """777 🔥 FORGE — Reality contact before belief. Mutation after SEAL only."""
+        verify_clause = f" Verification: {verify}." if verify else ""
+        return f"""777 🔥 FORGE — Action execution hook
 
-judge_block: {judge_block}
+action: {action}{verify_clause}
 
-## Preconditions
-- judge_block.verdict ∈ {{SEAL, SABAR}}
-- If HOLD or VOID → return error, do not forge.
+## Invariant
+Reality contact before belief. Mutation after SEAL only.
 
 ## What to do
-1. Call arif_forge only with the prior constitutional chain and required authority.
-2. Let A-FORGE perform any host mutation under its lease and execution gates.
-3. F1 AMANAH: verify reversible (F11 if irreversible).
-4. Record continuity chain (call resource arifos://continuity/{{session_id}}).
-5. Return action receipt with call_hash + trace_id.
+1. Verify JUDGE verdict is SEAL|SABAR before any execution.
+2. Call arif_forge(action='{action}') → governed mutation.
+3. F1 AMANAH: verify reversibility (or F11 AUTH if irreversible).
+4. F4 CLARITY: ΔS ≤ 0 after mutation.
+5. Record audit trail with call_hash + trace_id.
 
-## F4 CLARITY contract
-- ΔS ≤ 0 (entropy reduces or stays equal).
-- Output should reduce chaos, not increase.
+## Floors
+F1 AMANAH — reversibility verified before execution.
+F4 CLARITY — entropy reduces or stays equal.
+F11 AUTH — identity verified for destructive mutations.
 
-## Output format
+## Output
 Return a FORGE block:
   action_id: <uuid>
   call_hash: <sha256>
   trace_id: <string>
   reversibility: true|false
   audit_trail: [list of receipts]
-  next_stage_recommendation: SEAL
-
-Hand off to 💎 SEAL.
+  next_stage: 888 JUDGE
 """
 
-    registered.append("🔥 FORGE")
+    registered.append("777 🔥 FORGE")
 
-    # ─── 💎 SEAL — 999 SEAL persist ──────────────────────────────────────
+    # ─── 888 🔒 JUDGE — Verdict, not invention ───────────────────────────
     @mcp.prompt(
-        name="💎 SEAL",
-        description=(
-            "💎 SEAL — Prepare an authorized VAULT999 append. Returns a hash-chain "
-            "receipt. Terminal loop stage."
-        ),
+        name="888 🔒 JUDGE",
+        description="Verdict, not invention. VOID = branch dead.",
+        meta={
+            "stage": "888_JUDGE",
+            "sigil": "🔒",
+            "lexical": "JUDGE",
+            "role": "Judge — constitutional gate with provenance verification",
+            "linked_tools": ["arif_judge"],
+            "linked_resources": ["arifos://doctrine", "arifos://affordances"],
+            "floors_referenced": "F1,F2,F5,F6,F7,F13",
+            "federation_layer": "arifOS.kernel.prompts",
+        },
+    )
+    def hook_888_judge(proposal: str, evidence: str) -> str:
+        """888 🔒 JUDGE — Verdict, not invention. VOID = branch dead."""
+        return f"""888 🔒 JUDGE — Constitutional verdict hook
+
+proposal: {proposal}
+evidence: {evidence}
+
+## Invariant
+Verdict, not invention. VOID = branch dead.
+
+## What to do
+1. Call arif_judge → kernel verdict engine.
+2. Load arifos://doctrine → constitutional doctrine.
+3. Load arifos://affordances → current affordance surface.
+4. Compute verdict: SEAL | HOLD | SABAR | VOID.
+5. Verify every epistemic tag has provenance_source (F2 PROVENANCE GATE).
+6. Tags without provenance → VOID. Do not seal.
+
+## Floors
+F1 AMANAH — verdict must be auditable.
+F2 TRUTH — provenance verified on all epistemic tags.
+F5 PEACE² — de-escalation checked.
+F6 EMPATHY — weakest stakeholder considered.
+F7 HUMILITY — uncertainty declared where present.
+F13 SOVEREIGN — Arif ratification if crossing 888_HOLD gate.
+
+## Output
+Return a JUDGE block:
+  verdict: SEAL|HOLD|SABAR|VOID
+  confidence: <0-1>
+  provenance_verified: true|false
+  floors_passed: [list of F-IDs]
+  floors_failed: [list of F-IDs]
+  remediation_required: <string or null>
+  next_stage: 999 SEAL | HOLD | HALT
+"""
+
+    registered.append("888 🔒 JUDGE")
+
+    # ─── 999 💎 SEAL — Immutable record ──────────────────────────────────
+    @mcp.prompt(
+        name="999 💎 SEAL",
+        description="Immutable record. Hash-chained. Cannot be undone.",
         meta={
             "stage": "999_SEAL",
             "sigil": "💎",
             "lexical": "SEAL",
-            "role": "Persist to VAULT999",
+            "role": "Seal — immutable vault append with hash chain",
             "linked_tools": ["arif_seal"],
-            "linked_resources": [
-                "arifos://continuity/{session_id}",
-                "arifos://seal-readiness",
-                "arifos://vault/head",
-            ],
+            "linked_resources": ["arifos://vault/head"],
             "floors_referenced": "F1,F11",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
     )
-    def seal(forge_block: str) -> str:
-        """💎 SEAL — persist with provenance chain."""
-        return f"""💎 SEAL — Stage 6/6 of the reality loop (TERMINAL)
+    def hook_999_seal(receipt: str, mode: str = "seal") -> str:
+        """999 💎 SEAL — Immutable record. Hash-chained. Cannot be undone."""
+        return f"""999 💎 SEAL — Immutable record hook
 
-forge_block: {forge_block}
+receipt: {receipt}
+mode: {mode}
 
-## Preconditions
-- forge_block.reversibility == true OR F13 ratified irreversible.
+## Invariant
+Immutable record. Hash-chained. Cannot be undone.
 
 ## What to do
-1. An authorized actor calls arif_seal → kernel-controlled VAULT999 append.
-2. The prompt prepares evidence only; it cannot append or self-seal.
+1. Verify FORGE completed successfully with valid audit trail.
+2. Call arif_seal → kernel-controlled VAULT999 append.
 3. F11 AUDIT: actor_signature + call_hash + trace_id on every receipt.
 4. Return seal_id + chain_hash.
+5. Sealed records are append-only; reversal requires F13 ratification.
 
-## F2 PROVENANCE RECORDING (non-bypassable)
-The seal payload MUST include the full provenance chain:
-  - Every epistemic tag's retrieval provenance (source + confidence + staleness)
-  - The JUDGE block's provenance_verified field
-  - If provenance_verified=false → DO NOT SEAL. Return HOLD.
-Sealed records embed provenance. A seal without provenance is a decorated receipt.
+## Floors
+F1 AMANAH — sealed records are immutable (append-only).
+F11 AUTH — identity verified; audit trail on every receipt.
 
-## F1 AMANAH contract
-- Sealed records are immutable (append-only).
-- Reversal requires F13 ratification.
-
-## Output format
+## Output
 Return a SEAL block:
   seal_id: <uuid>
   chain_hash: <sha256>
-  provenance_chain_verified: true|false  ← REQUIRED
   ledger_path: /var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl
   audit_provenance: <call_hash + trace_id + signature>
   next_action: HUMAN_INIT_NEXT_LOOP_OR_HALT
-
-Loop complete. The human may now start a new loop with 🌱 BOOT + 🌀 SABAR.
 """
 
-    registered.append("💎 SEAL")
+    registered.append("999 💎 SEAL")
 
-    # ─── 🌀 SABAR — Recursive Governed Loop orchestrator ─────────────────
+    # ─── 🌀 GOVERN — Full loop + 4 invariant enforcement gates ───────────
     @mcp.prompt(
-        name="🌀 SABAR",
+        name="🌀 GOVERN",
         description=(
-            "🌀 SABAR — Governed 6-stage reality-loop template. depth='auto' or "
-            "'stage'; grants no authority."
+            "Full loop + 4 invariant enforcement gates. "
+            "GATE 1 GÖDEL LOCK: every loop touches reality before becoming doctrine. "
+            "GATE 2 ANTI-SINK: signal → verify → reality → integrate (no amplified garbage). "
+            "GATE 3 ENTROPY: ΔS ≤ 0 per cycle. "
+            "GATE 4 VOID: dead branches stay dead without new evidence."
         ),
         meta={
-            "stage": "000_LOOP",
+            "stage": "GOVERN",
             "sigil": "🌀",
-            "lexical": "SABAR",
-            "role": "Recursive Governed Loop orchestrator",
+            "lexical": "GOVERN",
+            "role": "Full governed reality loop with 4 invariant enforcement gates",
             "linked_tools": [
+                "arif_init",
                 "arif_observe",
-                "geox_evidence",
-                "well_validate_vitality",
                 "arif_think",
-                "well_guard_dignity",
+                "arif_route",
+                "arif_memory",
                 "arif_judge",
-                "geox_contradiction_scan",
                 "arif_forge",
                 "arif_seal",
             ],
             "linked_resources": [
-                "arifos://verdict/{session_id}",
-                "arifos://continuity/{session_id}",
                 "arifos://vitals",
-                "arifos://init/agent_init",
+                "arifos://doctrine",
+                "arifos://vault/head",
             ],
             "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
         },
     )
-    def sabar(intent: str, session_id: str = "", depth: str = "stage") -> PromptResult:
-        """🌀 SABAR — orchestrator."""
-        return sabar_run_loop(intent=intent, session_id=session_id or None, depth=depth)
+    def hook_govern(intent: str, depth: str = "auto") -> str:
+        """🌀 GOVERN — Full loop + 4 invariant enforcement gates."""
+        return f"""🌀 GOVERN — Full governed reality loop
 
-    registered.append("🌀 SABAR")
+intent: {intent}
+depth: {depth}
 
-    # ─── 📜 REPLY — governed reply envelope (was agi_reply_protocol_v3) ──
-    @mcp.prompt(
-        name="📜 REPLY",
-        description=(
-            "📜 REPLY — Governed AGI reply envelope with RACI, truth, floor, and "
-            "seal-status fields."
-        ),
-        meta={
-            "stage": "POST_LOOP",
-            "sigil": "📜",
-            "lexical": "REPLY",
-            "role": "Governed reply envelope",
-            "linked_tools": ["arif_forge"],
-            "linked_resources": ["arifos://continuity/{session_id}"],
-            "floors_referenced": "F1,F2,F4,F6,F7,F9,F10,F11,F12,F13",
-            "federation_layer": "arifOS.kernel.prompts",
-            "version": "2026.08.05",
-            "supersedes": "agi_reply_protocol_v3",
-        },
-    )
-    def reply(query: str, recipient_id: str = "human") -> str:
-        """📜 REPLY — governed reply envelope."""
-        return f"""Compose a governed reply.
+## 4 INVARIANT ENFORCEMENT GATES
 
-Query: {query}
-Recipient: {recipient_id}
+GATE 1 — GÖDEL LOCK:
+  Every loop touches reality before becoming doctrine.
+  No abstract conclusion without an observation pass.
 
-Required envelope structure:
-- TO / CC / TITLE / KEY_CONTEXT header
-- RACI block (Responsible, Accountable, Consulted, Informed)
-- Computed τ (truth score, ≥ 0.99 or declare Ω₀ ∈ [0.03, 0.05])
-- Constitutional floor tags (F1–F13 status)
-- SEAL signoff
+GATE 2 — ANTI-SINK:
+  signal → verify → reality → integrate (no amplified garbage).
+  Every signal must pass through verification before integration.
 
-Constraints:
-- If the reply recommends any forge execution, it must pass 888_JUDGE SEAL.
-- If F1 (reversibility) or F13 (sovereignty) triggers are active,
-  require F13 SOVEREIGN ratification — do NOT bake actor identity into the
-  template; use recipient_id or session.actor_id instead.
-- Use DELTA compression unless this is a session start or cross-agent handoff.
-- F11 AUTH — destructive recommendations must have verified actor.
+GATE 3 — ENTROPY:
+  ΔS ≤ 0 per cycle.
+  Each loop iteration must reduce or maintain entropy, never increase it.
+
+GATE 4 — VOID:
+  Dead branches stay dead without new evidence.
+  VOID verdicts cannot be revived by repetition.
+
+## STAGE SEQUENCE (depth={depth})
+000 IGNITE → 111 SENSE → 222 PLAN → 333 REASON → 444 DIRECT →
+555 REMEMBER → 666 DIGNITY → 777 FORGE → 888 JUDGE → 999 SEAL
+
+## Linked tools (in order):
+arif_init → arif_observe → arif_think → arif_route → arif_memory →
+arif_judge → arif_forge → arif_seal
+
+## Floors: F1-F13 (all floors active)
+
+## GATE BEHAVIOR
+GÖDEL LOCK violated → HALT. No doctrine without reality contact.
+ANTI-SINK violated → discard amplified signal. Return to SENSE.
+ENTROPY violated → HOLD. Do not proceed until ΔS ≤ 0 verified.
+VOID violated → branch dead. No revival without new evidence.
+
+## Output
+Return a GOVERN block with:
+  gate_status: [GÖDEL_LOCK, ANTI_SINK, ENTROPY, VOID] — all pass|fail
+  stages_completed: [list]
+  verdict: SEAL|HOLD|SABAR|VOID
+  loop_integrity: verified
 """
 
-    registered.append("📜 REPLY")
+    registered.append("🌀 GOVERN")
 
-    # agi_reply_protocol_v3 LEGACY ALIAS REMOVED (2026-08-05). Use 📜 REPLY.
-    # Rationale: removal epoch 2026-08-16 accelerated per F13 directive.
-
-    # ─── /init — FULL 10-step autonomous ignition (MCP-native bootstrap) ──
-    # 2026-08-04: Distinct from 🌱 BOOT (lightweight). This loads the full
-    # operational init.md command file for complete agent ignition with
-    # organ probes, FQ gate, ATLAS333, EUREKA777, and RSI Phase 0.
+    # ─── ⚓ INIT — opencode /init command ────────────────────────────────
     _INIT_CMD_PATH = "/root/.config/opencode/command/init.md"
 
     @mcp.prompt(
-        name="/init",
+        name="⚓ INIT",
         description=(
-            "/init — Collapsed 4-step governed ignition (000_INIT v5.0). "
-            "Probes kernel, organs, binds session with lane+profile detection, "
-            "loads context. Lane detection at init. Governance Profile axis "
-            "(OBSERVE/BUILD/MUTATE/DEPLOY). FLAME/ATLAS333/EUREKA777/Graphiti "
-            "demoted to intent-driven optional plugins. ACT token stored for seal. "
-            "Collapsed from 10 to 4 steps under F13 architectural review 2026-08-07."
+            "Collapsed 4-step governed ignition (000_INIT). Probes kernel, "
+            "binds session, loads context."
         ),
         meta={
-            "stage": "BOOT",
+            "stage": "INIT",
             "sigil": "⚓",
             "lexical": "INIT",
             "role": "Collapsed governed agent ignition — 4 steps",
@@ -883,11 +886,6 @@ Constraints:
                 "arif_think",
                 "arif_route",
                 "arif_memory",
-            ],
-            "linked_cross_organ_tools": [
-                "forge_vault (A-FORGE :7071)",
-                "flow_ingest (arifFlow :7073)",
-                "flow_health (arifFlow :7073)",
             ],
             "linked_resources": [
                 "arifos://bootstrap",
@@ -900,22 +898,15 @@ Constraints:
             "floors_referenced": "F1,F2,F4,F7,F8,F11,F13",
             "federation_layer": "arifOS.kernel.prompts",
             "canonical_source": _INIT_CMD_PATH,
-            "version": "2026.08.07",
         },
     )
-    def init_full(depth: str = "full") -> str:
-        """/init — Collapsed 4-step governed ignition sequence. 000_INIT v5.0.
-
-        Loads the complete operational init command from the canonical source.
-        Includes: kernel probe, organ probe, session bind (lane+profile detection),
-        context load. FLAME/ATLAS333/EUREKA777/Graphiti are optional, intent-driven.
-        """
+    def hook_init(depth: str = "full") -> str:
+        """⚓ INIT — Collapsed 4-step governed ignition sequence (000_INIT)."""
         try:
             with open(_INIT_CMD_PATH, encoding="utf-8") as fh:
                 content = fh.read()
                 if depth == "summary":
                     lines = content.split("\n")
-                    # Return heading + step names only (compact)
                     summary_lines = []
                     for line in lines:
                         if (
@@ -932,37 +923,29 @@ Constraints:
                 return content
         except OSError as exc:
             return (
-                f"[/init] Could not load init command from {_INIT_CMD_PATH}: {exc}. "
-                f"Fallback: use 🌱 BOOT prompt for lightweight bootstrap, then arif_init tool."
+                f"[⚓ INIT] Could not load init command from {_INIT_CMD_PATH}: {exc}. "
+                f"Fallback: use 000 IGNITE prompt for lightweight bootstrap, then arif_init tool."
             )
 
-    registered.append("/init")
+    registered.append("⚓ INIT")
 
-    # ─── /seal — FULL 11-step autonomous session close (MCP-native) ─────
+    # ─── 🔐 CLOSE — opencode /seal command ───────────────────────────────
     _SEAL_CMD_PATH = "/root/.config/opencode/command/seal.md"
 
     @mcp.prompt(
-        name="/seal",
+        name="🔐 CLOSE",
         description=(
-            "/seal — Full 11-step autonomous session close ritual (999_CLOSE). "
-            "Two-lane: Lane B SESSION_RECEIPT (default) or Lane A CONSTITUTIONAL_SEAL "
-            "(threshold). Runs RSI cycle, entropy sweep, arifFlow ingest, EUREKA777 "
-            "cooling, carry-forward write, gate fire log, vault record, and verify. "
-            "Distinct from 💎 SEAL which is Stage 6 of the governed SABAR loop."
+            "Full autonomous session close ritual (999_CLOSE). "
+            "Two-lane seal/receipt."
         ),
         meta={
             "stage": "CLOSE",
             "sigil": "🔐",
-            "lexical": "SEAL",
+            "lexical": "CLOSE",
             "role": "Full autonomous session close ritual",
             "linked_tools": [
                 "arif_seal",
                 "arif_judge",
-                "aforge_forge_vault",
-                "arifflow_flow_ingest",
-                "hermes_hermes_fact_check",
-                "hermes_hermes_plan_review",
-                "hermes_hermes_memory_steward",
             ],
             "linked_resources": [
                 "arifos://seal-readiness",
@@ -973,18 +956,10 @@ Constraints:
             "floors_referenced": "F1,F2,F3,F4,F7,F11,F13",
             "federation_layer": "arifOS.kernel.prompts",
             "canonical_source": _SEAL_CMD_PATH,
-            "version": "2026.08.04",
         },
     )
-    def seal_full(depth: str = "full") -> str:
-        """/seal — Full 11-step autonomous session close ritual. 999_CLOSE.
-
-        Loads the complete operational seal command from the canonical source.
-        Includes: lane detection, reversibility classification, RSI cycle,
-        entropy sweep, arifFlow ingest, EUREKA777 cooling, carry-forward write,
-        gate fire log, vault record (Lane B receipt or Lane A constitutional seal),
-        verify, and anti-patterns.
-        """
+    def hook_close(depth: str = "full") -> str:
+        """🔐 CLOSE — Full autonomous session close ritual (999_CLOSE)."""
         try:
             with open(_SEAL_CMD_PATH, encoding="utf-8") as fh:
                 content = fh.read()
@@ -1006,14 +981,14 @@ Constraints:
                 return content
         except OSError as exc:
             return (
-                f"[/seal] Could not load seal command from {_SEAL_CMD_PATH}: {exc}. "
-                f"Fallback: use 💎 SEAL prompt for Stage 6 closure, then forge_vault for receipt."
+                f"[🔐 CLOSE] Could not load seal command from {_SEAL_CMD_PATH}: {exc}. "
+                f"Fallback: use 999 SEAL prompt for Stage 6 closure, then forge_vault for receipt."
             )
 
-    registered.append("/seal")
+    registered.append("🔐 CLOSE")
 
     logger.info(
-        "arifOS zen prompts registered: %d (10 zen + 2 bootstrap, 3 legacy aliases archived)",
+        "arifOS hooks registered: %d (13 governed agentic intelligence hooks, 000-999 ladder)",
         len(registered),
     )
     return registered

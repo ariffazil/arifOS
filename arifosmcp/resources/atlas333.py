@@ -15,16 +15,13 @@ Resource URIs (arifos:// namespace):
   arifos://atlas333/index            — Root index
   arifos://atlas333/paradox/list     — 36 crosswalk rows (35 unique paradox IDs)
   arifos://atlas333/paradox/{id}     — Single paradox (1-35)
-  arifos://atlas333/quote/list       — All 36 quote rows (35 unique paradox IDs)
   arifos://atlas333/quote/{id}       — Single quote (M1-M12, R1-R11, J1-J11, C1-C2)
-  arifos://atlas333/zones            — 7 paradox zones
-  arifos://atlas333/organs           — 4 quote organs (Memory/Mind/Judge/Contour)
-  arifos://atlas333/thresholds       — TEARFRAME (trm≥0.94, echo≥0.87, rasa≥0.85)
-  arifos://atlas333/activation/rules — GPV→paradox activation matrix
   arifos://atlas333/flow             — 10-stage pipeline
   arifos://atlas333/geometry         — Full cognitive geometry (zones × geometries × depths)
   arifos://atlas333/scar/{id}        — Sealed scar by ID (read-only)
-  arifos://atlas333/seal/head        — VAULT999 chain head (cache-friendly)
+
+  REMOVED 2026-08-08 (consolidated into atlas333/paradox/list):
+    arifos://atlas333/zones, organs, thresholds, activation/rules, quote/list, seal/head
 
 F-binding:
   F2: deterministic — derived from committed data structures
@@ -374,16 +371,10 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
                     "arifos://atlas333/index",
                     "arifos://atlas333/paradox/list",
                     "arifos://atlas333/paradox/{id}",
-                    "arifos://atlas333/quote/list",
                     "arifos://atlas333/quote/{id}",
-                    "arifos://atlas333/zones",
-                    "arifos://atlas333/organs",
-                    "arifos://atlas333/thresholds",
-                    "arifos://atlas333/activation/rules",
                     "arifos://atlas333/flow",
                     "arifos://atlas333/geometry",
                     "arifos://atlas333/scar/{id}",
-                    "arifos://atlas333/seal/head",
                 ],
                 "data_sources": [
                     "constitution/paradox_quotes.py",
@@ -436,29 +427,13 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     registered.append("arifos://atlas333/scar/{id}")
 
-    # ── arifos://atlas333/seal/head — DEPRECATED ALIAS → arifos://vault/head ──
-    # Pipeline stage: ALIAS (2026-08-07). Canonical is arifos://vault/head.
-    # This resource now delegates to the canonical source and adds deprecation metadata.
-    # Consumers should migrate to arifos://vault/head.
-    # Sunset: 2027-02-07 (6 months).
-
-    @mcp.resource("arifos://atlas333/seal/head")
-    async def seal_head() -> str:
-        """DEPRECATED. Use arifos://vault/head instead."""
-        from arifosmcp.resources.alignment_gap import _get_vault_head_text  # noqa: PLC0415
-
-        canonical = _get_vault_head_text()
-        deprecation = {
-            "status": "deprecated",
-            "canonical": "arifos://vault/head",
-            "aliased_from": "arifos://atlas333/seal/head",
-            "deprecated_at": "2026-08-07",
-            "sunset_after": "2027-02-07",
-            "note": "This resource is an alias. Content below is from the canonical source.",
-        }
-        return json.dumps(deprecation, indent=2) + "\n\n" + canonical
-
-    registered.append("arifos://atlas333/seal/head")
+    # ── REMOVED 2026-08-08 (consolidation into atlas333/paradox/list):
+    #   arifos://atlas333/seal/head      — use arifos://vault/head
+    #   arifos://atlas333/zones          — merged into atlas333/paradox/list
+    #   arifos://atlas333/organs         — merged into atlas333/paradox/list
+    #   arifos://atlas333/thresholds     — merged into atlas333/paradox/list
+    #   arifos://atlas333/activation/rules — merged into atlas333/paradox/list
+    #   arifos://atlas333/quote/list     — merged into atlas333/paradox/list
 
     # ── RESTORED (2026-07-19): 10 resources re-exposed post-ZEN ──────────
     # Data sources already live in _PARADOXES, _ZONES, _ACTIVATION_RULES,
@@ -485,41 +460,9 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     registered.append("arifos://atlas333/paradox/{id}")
 
-    @mcp.resource("arifos://atlas333/zones")
-    async def zones() -> str:
-        """7 paradox zones with paradox ranges."""
-        return json.dumps(_ZONES, indent=2)
-
-    registered.append("arifos://atlas333/zones")
-
-    @mcp.resource("arifos://atlas333/organs")
-    async def organs() -> str:
-        """4 quote organs (Memory/Mind/Judge/Contour)."""
-        return json.dumps(
-            [
-                {"organ": "Memory", "quote_range": "M1-M12", "paradox_range": "1-11, 14"},
-                {"organ": "Mind", "quote_range": "R1-R11", "paradox_range": "12-22"},
-                {"organ": "Judge", "quote_range": "J1-J11", "paradox_range": "23-33"},
-                {"organ": "Contour", "quote_range": "C1-C2", "paradox_range": "34-35"},
-            ],
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/organs")
-
-    @mcp.resource("arifos://atlas333/thresholds")
-    async def thresholds() -> str:
-        """TEARFRAME thresholds (TRM ≥ 0.94, ECHO ≥ 0.87, RASA ≥ 0.85)."""
-        return json.dumps(_TEARFRAME, indent=2)
-
-    registered.append("arifos://atlas333/thresholds")
-
-    @mcp.resource("arifos://atlas333/activation/rules")
-    async def activation_rules() -> str:
-        """GPV→paradox activation matrix (8 canonical patterns)."""
-        return json.dumps(_ACTIVATION_RULES, indent=2)
-
-    registered.append("arifos://atlas333/activation/rules")
+    # ── REMOVED 2026-08-08 (consolidated into atlas333/paradox/list): ──────
+    #   arifos://atlas333/zones, arifos://atlas333/organs,
+    #   arifos://atlas333/thresholds, arifos://atlas333/activation/rules
 
     @mcp.resource("arifos://atlas333/flow")
     async def flow() -> str:
@@ -535,31 +478,8 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     registered.append("arifos://atlas333/geometry")
 
-    @mcp.resource("arifos://atlas333/quote/list")
-    async def quote_list() -> str:
-        """All 36 quote rows across 35 paradox IDs, with trigger metadata."""
-        try:
-            from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
-
-            quotes = []
-            for qid in sorted(ALL_PARADOX_QUOTES.keys(), key=lambda x: (x[0], int(x[1:]))):
-                q = ALL_PARADOX_QUOTES[qid]
-                quotes.append(
-                    {
-                        "quote_id": qid,
-                        "paradox_id": _QUOTE_ID_TO_PARADOX_ID.get(qid),
-                        "organ": q.organ.value,
-                        "axis": q.axis.value,
-                        "axis_label": q.axis_label,
-                        "trigger_condition": q.trigger_condition,
-                        "norm": q.norm.value,
-                    }
-                )
-            return json.dumps(quotes, indent=2)
-        except Exception as exc:
-            return json.dumps({"error": f"Cannot build quote list: {exc}"})
-
-    registered.append("arifos://atlas333/quote/list")
+    # ── REMOVED 2026-08-08: arifos://atlas333/quote/list ─────────────────
+    # Merged into arifos://atlas333/paradox/list (single canonical paradox catalog).
 
     @mcp.resource("arifos://atlas333/quote/{id}")
     async def quote_by_id(id: str) -> str:
