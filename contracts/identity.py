@@ -333,6 +333,14 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "default_tier": "AGENT",
         "aliases": ["SOTCRON", "sot-cron", "sotcron"],
     },
+    # 2026-08-08 333-AGI: OPENCLAW — Telegram bridge gateway (HARNESS).
+    # Identity unified from 4-way key fragmentation to single canonical Ed25519 key.
+    # Operator tier (can observe/route/execute, cannot judge/seal).
+    "OPENCLAW": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "OPERATOR",
+        "aliases": ["openclaw", "OpenClaw", "openclaw-gateway"],
+    },
 }
 
 
