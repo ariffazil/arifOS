@@ -18,10 +18,24 @@ import hashlib
 import json
 import logging
 import os
+import time
 from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("arifosmcp.vault_sealer")
+
+# F2-fidelity fix (MCP-PROBE-2026-08-08): circuit-breaker for the audit-receipt
+# writer. The :5001 endpoint can return 500 during cascading upstream failures;
+# without a breaker, every consequential tool call queues a 10s httpx timeout,
+# which stacks into a 11-minute hang observed in journalctl on 2026-08-08.
+# After 3 consecutive failures within 60s, the breaker opens for 30s and
+# write_audit_receipt returns immediately with {"sealed": False, "circuit_open":
+# True} — preserving best-effort semantics without blocking the request thread.
+_CB_FAIL_THRESHOLD = 3
+_CB_WINDOW_S = 60.0
+_CB_OPEN_DURATION_S = 30.0
+_fail_timestamps: list[float] = []
+_breaker_open_until: float = 0.0
 
 # Tools whose successful execution represents a consequential state transition
 CONSEQUENTIAL_TOOLS: set[str] = {
@@ -135,6 +149,17 @@ async def write_audit_receipt(
         "created_at": datetime.now(UTC).isoformat(),
     }
 
+    # F2-fidelity fix (MCP-PROBE-2026-08-08): short-circuit if breaker is open
+    global _breaker_open_until, _fail_timestamps
+    now = time.time()
+    if now < _breaker_open_until:
+        return {
+            "sealed": False,
+            "error": "vault_writer circuit breaker open",
+            "circuit_open": True,
+            "retry_after": _breaker_open_until - now,
+        }
+
     try:
         import httpx
 
@@ -158,6 +183,16 @@ async def write_audit_receipt(
                 "chain_hash": data.get("chain_hash"),
             }
     except Exception as e:
+        # F2-fidelity fix (MCP-PROBE-2026-08-08): record failure; trip breaker
+        # after 3 consecutive failures within 60s. See R3 M5 root cause.
+        _fail_timestamps.append(time.time())
+        _fail_timestamps = [t for t in _fail_timestamps if t > now - _CB_WINDOW_S]
+        if len(_fail_timestamps) >= _CB_FAIL_THRESHOLD:
+            _breaker_open_until = now + _CB_OPEN_DURATION_S
+            logger.warning(
+                f"[vault_sealer] circuit breaker OPEN for {_CB_OPEN_DURATION_S}s "
+                f"after {len(_fail_timestamps)} failures in {_CB_WINDOW_S}s window"
+            )
         logger.warning(f"[vault_sealer] failed to write audit receipt for {tool_name}: {e}")
         return {"sealed": False, "error": str(e)}
 
