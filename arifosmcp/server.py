@@ -2441,6 +2441,38 @@ async def horizon_health(request: Request) -> JSONResponse:
     else:
         aggregate = "degraded"
 
+    # Blue-team DoS fix (2026-08-08): thread-pool liveness probe. The 2026-08-08
+    # incident showed the process alive while 34 worker threads were all blocked
+    # on a slow LLM cascade (TokenRouter 403 → Ollama 35s). Process liveness is
+    # not enough. If active/capacity > 0.8, force degraded so the LB / AAA can
+    # shed load before the pool saturates further.
+    thread_pool: dict[str, Any] = {"status": "unknown"}
+    try:
+        import asyncio as _aio
+        _loop = _aio.get_running_loop()
+        # asyncio's default ThreadPoolExecutor (used by FastMCP sync handlers).
+        _exec = getattr(_loop, "_default_executor", None)
+        if _exec is not None and hasattr(_exec, "_max_workers"):
+            _max = int(_exec._max_workers)
+            # _threads is a private set of active Thread objects.
+            _active = len(getattr(_exec, "_threads", set()) or [])
+            _ratio = (_active / _max) if _max > 0 else 0.0
+            thread_pool = {
+                "status": "ok" if _ratio < 0.8 else "saturated",
+                "active": _active,
+                "capacity": _max,
+                "ratio": round(_ratio, 3),
+                "threshold": 0.8,
+                "probe": "asyncio._default_executor",
+            }
+            if _ratio >= 0.8 and aggregate == "healthy":
+                aggregate = "degraded"
+                thread_pool["action"] = "force_degraded_due_to_thread_pool_saturation"
+        else:
+            thread_pool = {"status": "unknown", "reason": "no_default_executor"}
+    except Exception as _tp_err:
+        thread_pool = {"status": "unknown", "reason": f"probe_failed:{type(_tp_err).__name__}"}
+
     return JSONResponse(
         {
             "status": aggregate,
@@ -2450,6 +2482,7 @@ async def horizon_health(request: Request) -> JSONResponse:
                 "transport": transport,
                 "kernel": kernel,
                 "floors": floors,
+                "thread_pool": thread_pool,
             },
             "_honesty_note": (
                 "Top-level status is the WORST of transport/kernel/floors. "
@@ -4017,7 +4050,17 @@ def main() -> None:
 
         port = int(os.getenv("ARIFOS_PORT", "8088"))
         host = os.getenv("ARIFOS_HOST", "127.0.0.1")
-        uvicorn.run(app, host=host, port=port, log_level="info")  # nosec B104
+        # Blue-team DoS fix (2026-08-08): cap concurrency + backlog.
+        max_concurrency = int(os.getenv("ARIFOS_HTTP_MAX_CONCURRENCY", "64"))
+        backlog = int(os.getenv("ARIFOS_HTTP_BACKLOG", "128"))
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level="info",  # nosec B104
+            limit_concurrency=max_concurrency if max_concurrency > 0 else None,
+            backlog=backlog if backlog > 0 else None,
+        )
     else:
         # ── stdio transport: MCP client via pipe ─────────────────────────
         # Claude Desktop config:
