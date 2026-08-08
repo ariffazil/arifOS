@@ -441,9 +441,16 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
             except Exception:
                 auth = AuthorityTier.LOW  # was MEDIUM — degrade gracefully
 
+    # F12 BLUE-TEAM HARDENING (2026-08-08): sanitize actor_id/raw_tool before
+    # the print path to block log-injection. Attacker-supplied newlines or
+    # control chars must not be able to forge audit lines.
+    def _safe_audit(s):
+        return "".join(c for c in str(s) if c.isprintable() and c not in "\r\n").strip()[:120] or "<empty>"
+
     print(
-        f"[KERNEL_AUTHORITY] actor={req.actor_id} actor_source={req.actor_source} "
-        f"verified={verified} session={bool(req.session_id)} raw_tool={req.raw_tool_name} "
+        f"[KERNEL_AUTHORITY] actor={_safe_audit(req.actor_id)} "
+        f"actor_source={req.actor_source} verified={verified} "
+        f"session={bool(req.session_id)} raw_tool={_safe_audit(req.raw_tool_name)} "
         f"-> {auth.value}",
         flush=True,
     )

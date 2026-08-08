@@ -9461,8 +9461,11 @@ def _arif_session_init(
     # ── PRE-SESSION LANE DISPATCHER (Ω-PATCH 2026-06-13, F13 ratified) ─────
     import logging as _atl_logger
 
+    # F12 BLUE-TEAM HARDENING (2026-08-08): sanitize actor_id before logging
+    # to block log-injection (newlines/control chars forging audit lines).
+    _atl_actor_safe = "".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[:120] or "<empty>"
     _atl_logger.getLogger("arifosmcp.atlas333").info(
-        f"[ATLAS333] _arif_session_init called: mode={mode}, actor_id={actor_id}"
+        f"[ATLAS333] _arif_session_init called: mode={mode}, actor_id={_atl_actor_safe}"
     )
     # Constitutional rule (locked by Arif 2026-06-13):
     #   "Pre-session functions may create identity context.
@@ -9605,8 +9608,12 @@ def _arif_session_init(
             # FAIL CLOSED on any read/parse error — F1 AMANAH demands default-deny.
             import sys as _dpop_sys
 
+            # F12 BLUE-TEAM HARDENING (2026-08-08): sanitize actor_id before
+            # entering any log/print sink to block log-injection (newlines/control
+            # chars forging audit lines). Matches session.py entry-point sanitizer.
+            _dpop_actor_safe = "".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[:120] or "<empty>"
             print(
-                f"DPOP_REGISTRY_PATCH_REACHED actor={actor_id} auth_context_type={type(auth_context).__name__} keys={list((auth_context or {}).keys()) if auth_context else None}",
+                f"DPOP_REGISTRY_PATCH_REACHED actor={_dpop_actor_safe} auth_context_type={type(auth_context).__name__} keys={list((auth_context or {}).keys()) if auth_context else None}",
                 file=_dpop_sys.stderr,
                 flush=True,
             )
