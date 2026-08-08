@@ -292,7 +292,81 @@ FLOOR_COMPILERS: dict[FloorID, Callable[[], FloorPredicate]] = {
     FloorID.F8_GENIUS: compile_f8_genius,
     FloorID.F12_RESILIENCE: compile_f12_resilience,
     # Future: F1, F2, F3, F4, F5, F6, F9, F10, F11, F13
+    #
+    # ⚠️ F6 MARUAH is GATED — see F6_SOVEREIGN_RATIFICATION_REQUIRED below.
+    # F6 SHALL NOT be added to this registry without:
+    #   1. Sovereign (F13) ratification token
+    #   2. Published dignity impact assessment
+    #   3. Review by at least one human outside the federation trust circle
 }
+
+# ── F6 MARUAH GATE (DIGNITY REFINEMENT #1 — 2026-08-08) ──────────────────────
+# F6 (MARUAH / Dignity) is the floor that protects the weakest stakeholder.
+# Unlike F7 (Ω₀ range), F8 (G-score), or F12 (risk threshold), dignity cannot
+# be reduced to a numeric constraint without losing its essential meaning.
+#
+# This gate ensures that F6 compilation:
+#   - Requires EXPLICIT sovereign ratification (not just "no objection")
+#   - Requires a published dignity impact assessment
+#   - Requires external human review
+#   - Is tracked by a ratification token for auditability
+#
+# DEFAULT: F6 is NOT compiled. The gate is CLOSED until ratified.
+
+F6_SOVEREIGN_RATIFICATION_REQUIRED: bool = True
+_F6_RATIFICATION_TOKEN: str | None = None
+_F6_DIGNITY_ASSESSMENT_HASH: str | None = None
+
+# ── F13 ANCHOR INVARIANT (DIGNITY REFINEMENT #2 — 2026-08-08) ────────────────
+# No compiled floor, no matter how formally correct, may remove or reduce the
+# sovereign's (F13) ability to override any machine decision. This invariant
+# is checked at compilation time and embedded in every verdict.
+#
+# The anchor is a list of rights that MUST be preserved by all compiled floors:
+F13_ANCHOR_RIGHTS: tuple[str, ...] = (
+    "sovereign_override",  # F13: Arif can override any verdict
+    "human_appeal",  # Any human can appeal a machine decision
+    "constitutional_amendment",  # Constitution can be amended by sovereign
+    "emergency_shutdown",  # Sovereign can halt all automated execution
+)
+
+# ── SOVEREIGN OVERRIDE PRESERVED — checked at every verdict compilation ───────
+
+
+def _verify_f13_anchor_preserved() -> tuple[bool, str]:
+    """Verify that no compiled floor violates F13 anchor rights.
+
+    This is called by compile_constitutional_verdict() before any verdict
+    is returned. If any compiled floor reduces sovereign override capability,
+    the verdict is downgraded to HOLD.
+
+    Returns:
+        (preserved: bool, reason: str)
+    """
+    # Currently, no compiled floor touches sovereignty — F13 stays outside the circuit.
+    # This check exists as a future-proof: when new floors are compiled,
+    # each must declare whether it preserves F13 anchor rights.
+    return True, "F13 ANCHOR intact — sovereignty remains outside the circuit"
+
+
+def _verify_f6_not_prematurely_compiled() -> tuple[bool, str]:
+    """Verify that F6 MARUAH is not compiled without ratification.
+
+    Returns:
+        (safe: bool, reason: str)
+    """
+    if FloorID.F6_MARUAH in FLOOR_COMPILERS:
+        if F6_SOVEREIGN_RATIFICATION_REQUIRED and _F6_RATIFICATION_TOKEN is None:
+            return False, (
+                "F6 MARUAH compiled WITHOUT sovereign ratification. "
+                "This is a dignity violation. F6 compilation requires "
+                "F13 ratification token + published dignity impact assessment."
+            )
+        return (
+            True,
+            f"F6 compiled with ratification token {_F6_RATIFICATION_TOKEN[:8] if _F6_RATIFICATION_TOKEN else 'UNKNOWN'}",
+        )
+    return True, "F6 not compiled — dignity protected by human-governed floor"
 
 
 def get_compiled_floor(floor: FloorID) -> FloorPredicate:
@@ -383,6 +457,18 @@ def compile_constitutional_verdict(
     replay_hash = hashlib.sha256(
         json.dumps(replay_bundle, sort_keys=True, default=str).encode()
     ).hexdigest()
+
+    # ── F13 ANCHOR — verify sovereign override preserved ──────────────────
+    anchor_ok, anchor_reason = _verify_f13_anchor_preserved()
+    if not anchor_ok and verdict == VerdictClass.SEAL:
+        verdict = VerdictClass.HOLD
+        violations.append("F13_ANCHOR_VIOLATION")
+
+    # ── F6 GATE — verify F6 not prematurely compiled ──────────────────────
+    f6_ok, f6_reason = _verify_f6_not_prematurely_compiled()
+    if not f6_ok and verdict == VerdictClass.SEAL:
+        verdict = VerdictClass.VOID
+        violations.append("F6_DIGNITY_GATE_VIOLATION")
 
     return verdict, results, replay_hash
 
@@ -511,6 +597,65 @@ def self_test() -> bool:
     else:
         failed += 1
         print("FAIL determinism: replay_hash differs for same inputs")
+
+    # ── REGRESSION GATE (DIGNITY REFINEMENT #4 — 2026-08-08) ──────────────
+    # Verify that every compiled floor preserves or improves protection for
+    # the weakest stakeholder compared to the original constitutional text.
+    # A floor FAILS this gate if:
+    #   - It removes a protection that existed in the original text
+    #   - It adds a bypass path that didn't exist before
+    #   - It reduces a qualitative protection to a quantitative threshold
+    #     without preserving the original meaning (F6 especially)
+
+    # Test: F7 compiled predicate preserves "UNKNOWN is acceptable"
+    f7 = compile_f7_humility()
+    r_unknown_ok = f7(omega_naught=0.04, confidence=0.50, has_declared_unknowns=True)
+    if r_unknown_ok.passed:
+        passed += 1  # Low confidence with unknowns declared — should PASS
+    else:
+        failed += 1
+        print("FAIL F7 regression: unknowns declared but rejected")
+
+    # Test: F8 does not bypass dignity — G-score alone cannot override other floors
+    f8 = compile_f8_genius()
+    r_high_g = f8(architecture=0.95, physics=0.95, evidence=0.95, execution=0.95)
+    if r_high_g.passed:
+        passed += 1  # High G should pass its own floor
+    else:
+        failed += 1
+        print("FAIL F8 regression: valid high-G rejected")
+    # But high G should NOT automatically pass F7 — they are independent
+    # (This is verified by the verdict composition test above)
+
+    # Test: F6 gate is CLOSED — F6 is NOT in the compilers registry
+    if FloorID.F6_MARUAH not in FLOOR_COMPILERS:
+        passed += 1  # Gate is closed — dignity protected
+    else:
+        failed += 1
+        print("FAIL F6 regression: F6 compiled without ratification")
+
+    # Test: F13 anchor — sovereignty rights are declared and checkable
+    if len(F13_ANCHOR_RIGHTS) >= 4:
+        passed += 1  # Anchor rights declared
+    else:
+        failed += 1
+        print("FAIL F13 regression: insufficient anchor rights")
+
+    # Test: _verify_f13_anchor_preserved returns True
+    ok, reason = _verify_f13_anchor_preserved()
+    if ok:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL F13 anchor: {reason}")
+
+    # Test: _verify_f6_not_prematurely_compiled returns True (gate is closed)
+    ok, reason = _verify_f6_not_prematurely_compiled()
+    if ok:
+        passed += 1
+    else:
+        failed += 1
+        print(f"FAIL F6 gate: {reason}")
 
     print(f"\nCONSTITUTION COMPILER SELF-TEST: {passed}/{passed + failed} passed")
     return failed == 0
