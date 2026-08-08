@@ -445,8 +445,9 @@ from .wisdom_resources import register_wisdom_resources
 # REMOVED 2026-08-08 imports (resources deregistered):
 # from .mcp_alignment import register_mcp_alignment   # arifos://mcp-alignment
 # from .resources_index import register_resources_index  # arifos://resources/index + /audit
-# from .seal_readiness import register_seal_readiness  # arifos://seal-readiness
 # from .surface_map import register_surface_map       # arifos://mcp/surface-map
+from .institution import register_institution        # arifos://institution (added 2026-08-08)
+from .seal_readiness import register_seal_readiness  # arifos://seal-readiness (re-enable 2026-08-08)
 
 CANONICAL_RESOURCES = (
     # IDENTITY chamber
@@ -458,6 +459,9 @@ CANONICAL_RESOURCES = (
     "arifos://refusal-surface",
     "arifos://jurisdiction",
     "arifos://civilization",
+    "arifos://trinity",
+    "arifos://seal-readiness",
+    "arifos://institution",
     # STATE chamber
     "arifos://vitals",
     "arifos://carry-forward",
@@ -555,6 +559,8 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_floor_template(mcp))
     registered.extend(register_refusal_surface(mcp))
     registered.extend(register_trinity(mcp))
+    registered.extend(register_seal_readiness(mcp))
+    registered.extend(register_institution(mcp))
     registered.extend(register_schema(mcp))
     registered.extend(register_civilization(mcp))
     # REMOVED 2026-08-08 — arifos://seal-readiness (concept merged into doctrine):

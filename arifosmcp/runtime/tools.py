@@ -6354,6 +6354,13 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         call_llm,
     )
 
+    # ARIF_THINK_TIMEOUT_S (2026-08-08, blue-team DoS fix): hard 5s wall-clock
+    # cap on _synthesize_async. Prevents a slow LLM cascade (e.g. TokenRouter
+    # 403 → Ollama CPU 35s) from occupying a FastMCP worker for the full
+    # cascade budget. DoS root cause: thread pool saturated → CLOSE-WAIT pileup.
+    import asyncio as _asyncio
+    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+
     system_prompt = (
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
         "Perform bounded constitutional reasoning on the query.\n"
@@ -6387,12 +6394,17 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     }
 
     try:
-        envelope = await call_llm(
-            system=system_prompt,
-            user=user_prompt,
-            response_schema=schema,
-            temperature=0.25,
-            max_tokens=800,  # P0 fix: 400→800 — MiniMax M3 reasoning produces 500-700 token JSON
+        envelope = await _asyncio.wait_for(
+            call_llm(
+                system=system_prompt,
+                user=user_prompt,
+                response_schema=schema,
+                temperature=0.25,
+                max_tokens=800,  # P0 fix: 400→800 — MiniMax M3 reasoning produces 500-700 token JSON
+                tool_origin="arif_think",
+                mode=reasoning_mode,
+            ),
+            timeout=_ARIF_THINK_TIMEOUT_S,
         )
         parsed = envelope.parsed_output
 
@@ -6405,6 +6417,33 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
 
     except LLMUnavailableError as e:
         logger.warning("_synthesize_async LLM unavailable: %s", e)
+    except _asyncio.TimeoutError as e:
+        # Blue-team DoS fix (2026-08-08): record hard timeout to VAULT999 so
+        # the operator can correlate slow-provider incidents with thread-pool
+        # saturation. This is the receipt that proves the 5s cap fired.
+        logger.warning(
+            "_synthesize_async HARD TIMEOUT after %.1fs — likely slow cascade "
+            "(e.g. TokenRouter 403 → Ollama CPU fallback). Reasoning thread "
+            "released back to FastMCP pool.",
+            _ARIF_THINK_TIMEOUT_S,
+        )
+        try:
+            from pathlib import Path as _P
+            _vault = _P("/root/arifOS/VAULT999/outcomes.jsonl")
+            _vault.parent.mkdir(parents=True, exist_ok=True)
+            import datetime as _dt
+            with _vault.open("a", encoding="utf-8") as _f:
+                _f.write(
+                    '{"event":"ARIF_THINK_TIMEOUT","timeout_s":'
+                    + str(_ARIF_THINK_TIMEOUT_S)
+                    + ',"mode":"'
+                    + reasoning_mode
+                    + '","ts":"'
+                    + _dt.datetime.now(_dt.timezone.utc).isoformat()
+                    + '"}\n'
+                )
+        except Exception as _ve:
+            logger.debug("VAULT999 timeout receipt write failed: %s", _ve)
     except Exception as e:
         logger.warning("_synthesize_async failed (%s): %s", type(e).__name__, e)
 

@@ -780,7 +780,21 @@ def main() -> None:
 
         from .server import app  # type: ignore[import]
 
-        uvicorn.run(app, host=host, port=port, log_level="info")
+        # Blue-team DoS fix (2026-08-08): cap concurrency + request queue.
+        # ARIFOS_HTTP_MAX_CONCURRENCY defaults to 64 workers + 128 queued.
+        # Excess requests get 503 immediately (uvicorn's default behaviour) so
+        # a slow LLM cascade (TokenRouter 403 → Ollama 35s) cannot saturate
+        # the thread pool. Rollback: set env var to 0 (no cap).
+        max_concurrency = int(os.getenv("ARIFOS_HTTP_MAX_CONCURRENCY", "64"))
+        backlog = int(os.getenv("ARIFOS_HTTP_BACKLOG", "128"))
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level="info",
+            limit_concurrency=max_concurrency if max_concurrency > 0 else None,
+            backlog=backlog if backlog > 0 else None,
+        )
         return
 
     if mode == "stdio":

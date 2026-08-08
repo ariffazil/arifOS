@@ -691,6 +691,27 @@ async def _call_tokenrouter(
 
     if response.status_code != 200:
         logger.warning("TokenRouter HTTP %s: %s", response.status_code, response.text[:200])
+        # Blue-team DoS fix (2026-08-08): 402/403/quota-exhausted responses
+        # MUST NOT cascade through the 30s budget. Open the circuit breaker
+        # for 10× the normal cooldown (1200s) and raise immediately so the
+        # cascade skips remaining providers. Without this, a quota exhaustion
+        # ($-0.037) burned the full 30s cascade per call → thread pool
+        # saturation → CLOSE-WAIT pileup → DoS.
+        if response.status_code in (402, 403):
+            import time as _t
+            _state = _circuit_state.get("tokenrouter", {"failures": 0, "open_until": 0})
+            _state["failures"] = max(_state["failures"], CB_FAIL_THRESHOLD)
+            _state["open_until"] = _t.monotonic() + (CB_COOLDOWN_SECONDS * 10)
+            _circuit_state["tokenrouter"] = _state
+            logger.warning(
+                "TokenRouter %s — circuit OPEN for %ds (quota/quota-exhausted)",
+                response.status_code,
+                CB_COOLDOWN_SECONDS * 10,
+            )
+            raise LLMUnavailableError(
+                f"TokenRouter HTTP {response.status_code} — quota exhausted; "
+                f"circuit opened for {CB_COOLDOWN_SECONDS * 10}s. Skipping cascade."
+            )
         raise LLMUnavailableError(f"TokenRouter HTTP {response.status_code}")
 
     try:
