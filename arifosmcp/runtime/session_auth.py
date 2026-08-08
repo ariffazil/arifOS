@@ -71,6 +71,11 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     # authority.py DID gate validates against the registry for FULL authority.
     "sot-cron": "operator",
     "sotcron": "operator",
+    # F13 2026-08-08: openclaw — Telegram bridge gateway. Exempt from Ed25519
+    # requirement for MCP bootstrap (operator cap). Key reconciled from 4-way
+    # fragmentation to canonical device.json Ed25519 keypair.
+    # DID: did:arif:openclaw · auth/keys/openclaw_private.key
+    "openclaw": "operator",
 }
 
 

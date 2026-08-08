@@ -1792,8 +1792,12 @@ def arif_init(
                 _al = normalize_actor_id(actor_id) or (
                     actor_id.lower().strip() if actor_id else None
                 )
-                if _al and _al in _ED25519_EXEMPT_SYSTEM_ACTORS:
-                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al]
+                # Case-insensitive lookup (2026-08-08 333-AGI): normalize_actor_id
+                # returns uppercase canonical (e.g. "OPENCLAW") but exempt dict keys
+                # are lowercase. Lowercase both sides.
+                _al_lower = _al.lower().strip() if _al else None
+                if _al_lower and _al_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al_lower]
                     if _exempt_level == "sovereign":
                         _light_actor_verified = True
                         _light_band = "FULL"
@@ -1839,6 +1843,15 @@ def arif_init(
                             bind_authority_state(sess, _av_state)
                         except Exception:
                             pass
+                        # FIX 2026-08-08 333-AGI: operator exempt path was setting
+                        # _light_actor_verified (local) but not sess["actor_verified"].
+                        # Sovereign path at L1816 does both — operator path didn't.
+                        # Gap: downstream standing projection reads sess["actor_verified"].
+                        sess["signature_verified"] = True
+                        sess["verified"] = True
+                        sess["actor_verified"] = True
+                        sess["verification_method"] = "session"
+                        sess["evidence_ref"] = f"session://{actor_id}/exempt"
                         sess["agent_class"] = "AGENT"
                         sess["authority"] = "LIMITED_MUTATE"
                         logger.info(
