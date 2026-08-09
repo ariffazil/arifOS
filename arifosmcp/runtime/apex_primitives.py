@@ -190,7 +190,12 @@ def compute_apex_from_metrics(window_seconds: int = 604800) -> dict[str, Any]:
             #   Low evidence compliance → high humility mass → G_seal damped.
             # W3 = tri-witness strength = scar feedback Φ (1 - repeated failure).
             #   Witness agreement measured as: failures don't repeat.
-            "W3": PHI,
+            # P0 2026-08-09 v2 (OPENCLAW): W3 must NOT be PHI.
+            # PHI is scar pressure (repeated-failure feedback) — not tri-witness.
+            # Canonical W3 = ∛(H×AI×Ext) needs live witness channels, which
+            # tool-call metrics do not carry. Computed in rest_routes from
+            # resolved_witness. Here: honest None, never an inflated proxy.
+            "W3": None,
             "h": round(1.0 - P, 4) if P is not None else None,
             "window_seconds": window_seconds,
             "sample_size": n,

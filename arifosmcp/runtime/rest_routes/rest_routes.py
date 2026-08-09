@@ -1154,14 +1154,25 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 "value": val,
                 "status": "MEASURED" if val is not None else "UNMEASURED",
             }
-        # W3 + h wired from live data (2026-08-09) — humility mass + witness
-        # strength derived from the same tool-call metrics as G/C_dark.
-        for scalar in ("W3", "h"):
-            val = _apex.get(scalar)
-            apex_scalars[scalar] = {
-                "value": val,
-                "status": "MEASURED" if val is not None else "UNMEASURED",
-            }
+        # W3 — canonical Nash tri-witness ∛(H×AI×Ext) from LIVE witness channels
+        # (resolved_witness: human/ai/earth). Zero in any channel → UNMEASURED.
+        # Never inflate from tool metrics — PHI is scar pressure, not witness.
+        _hw = float(resolved_witness.get("human", 0.0) or 0.0)
+        _aw = float(resolved_witness.get("ai", 0.0) or 0.0)
+        _ew = float(resolved_witness.get("earth", 0.0) or 0.0)
+        _w3_val = None
+        if _hw > 0 and _aw > 0 and _ew > 0:
+            _w3_val = round((_hw * _aw * _ew) ** (1.0 / 3.0), 4)
+        apex_scalars["W3"] = {
+            "value": _w3_val,
+            "status": "MEASURED" if _w3_val is not None else "UNMEASURED",
+        }
+        # h — humility mass = evidence gap (1 - P), from tool-call metrics
+        _h_val = _apex.get("h")
+        apex_scalars["h"] = {
+            "value": _h_val,
+            "status": "MEASURED" if _h_val is not None else "UNMEASURED",
+        }
         # Derive QDF
         g_val = _apex.get("G", 0.0) or 0.0
         c_val = _apex.get("C_dark", 0.0) or 0.0
