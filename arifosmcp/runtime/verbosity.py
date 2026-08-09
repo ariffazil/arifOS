@@ -289,6 +289,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "next_action",
         "receipt_state",
         "floor_passed",
+        "delta_S",
         "result",
         "organs",
         "organs_alive",

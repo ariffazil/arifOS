@@ -1,7 +1,7 @@
 <!-- SOT-MANIFEST
-federation_release: v2026.08.05
-last_verified: 2026-08-05T20:30:00Z
-live_commit: 303cb8ad8 (W-12 canonical G formula — 4-factor geometric mean)
+federation_release: v2026.08.09
+last_verified: 2026-08-09T10:00:05Z
+live_commit: c4cc9a4 (institutional density + trust edge)
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 total_declared_tools: 48 (includes diagnostics, internal modes, aliases)
@@ -27,6 +27,17 @@ authorization: F13 Ed25519 challenge-response — canonical binding, Redis repla
 **arifOS** is the constitutional governance kernel of the arifOS Federation — an agentic intelligence institution forged on VPS af-forge. It is not an LLM wrapper. It is not an agent framework. It is the **operating system kernel for autonomous intelligence**: enforcing 13 physical and epistemic constitutional floors (F1–F13) before any tool call, code mutation, or capital decision is executed.
 
 ---
+
+
+## Institutional density (kernel)
+
+Trust edge (2026-08-09): public VIP → OBSERVE_ONLY; `mutation_allowed` last-writer from
+`effective_verdict`; guest `GUEST-*`; F13 spoof fail-closed; interceptor HOLD as JSON.
+
+MAP·ATLAS·ECHO bridge (wiring only): `arifosmcp/geometry/metrics_bridge.py` ·
+`arifos://atlas333/metrics` — **35 paradoxes immutable**.
+
+See AAA governance: `HOLY8_FOUR_LAYER_LANGUAGE.md` · `HERMES_DNA.md`.
 
 ## 🏛️ The Body Is Complete
 
