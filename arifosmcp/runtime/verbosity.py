@@ -305,6 +305,16 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "warnings",
     )
     for field in _SEMANTIC_PRESERVED_FIELDS:
+        # P0 2026-08-09 A3: delta_S key must ALWAYS be present after trim.
+        # - measured 0.0 is real (must survive; truthiness would drop it)
+        # - unmeasured → explicit null (caller: key present = honest UNKNOWN)
+        if field == "delta_S":
+            value = response.get("delta_S")
+            if value is None and isinstance(response.get("result"), dict):
+                value = response["result"].get("delta_S")
+            # Always emit key: None when unmeasured (never swallow)
+            minimal[field] = value
+            continue
         value = _lookup(field)
         if value is not None:
             # G4: drop empty epistemic lists — null-noise is not evidence
