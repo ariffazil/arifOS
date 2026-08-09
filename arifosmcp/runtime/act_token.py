@@ -522,9 +522,8 @@ def mint_sct(
     # Normalizing them to "arif" inside the minted claim silently rewrites the
     # identity that arif_init just bound — a name changing without reason is
     # dishonesty. Only natural-language / greeting variants collapse.
-    _canonical_forms = {"arif", "arif-fazil", "ariffazil", "arif_fazil"}
     _raw_lower = (actor or "").strip().lower()
-    if _raw_lower in _canonical_forms:
+    if _raw_lower in _CANONICAL_SOVEREIGN_FORMS:
         normalized_actor = _raw_lower
     else:
         normalized_actor = normalize_actor_id(actor) or (actor or "anonymous")
@@ -560,6 +559,22 @@ def mint_sct(
     sig = _sign(payload_b64)
     token = f"{ACT_PREFIX}.{payload_b64}.{sig}"
     return token, claims
+
+
+# STAB-2026-08-09 v3 (OPENCLAW): canonical sovereign registry forms are
+# machine identities — preserved EXACTLY in minted claims. Comparisons use
+# a symmetric key so arif == arif-fazil == ariffazil == arif_fazil.
+_CANONICAL_SOVEREIGN_FORMS: frozenset[str] = frozenset(
+    {"arif", "arif-fazil", "ariffazil", "arif_fazil"}
+)
+
+
+def _sovereign_comparison_key(actor: str | None) -> str:
+    """Map sovereign registry forms to one comparison key (identity preserved)."""
+    _norm = (actor or "").strip().lower()
+    if _norm in _CANONICAL_SOVEREIGN_FORMS:
+        return "arif"
+    return _norm
 
 
 def verify_sct(
@@ -660,11 +675,13 @@ def verify_sct(
         # claim is already normalized at mint time; we normalize the
         # expected_actor here for defense-in-depth (handles tokens minted
         # by older kernels or by organs that do not normalize themselves).
-        from arifosmcp.runtime.governance_identity import normalize_actor_id
-
         if claim_actor:
-            _expected_norm = normalize_actor_id(expected_actor) or expected_actor
-            if claim_actor != _expected_norm:
+            # STAB-2026-08-09 v3: symmetric sovereign comparison. The claim
+            # preserves the claimed registry form; expected_actor may arrive
+            # pre-normalized. Compare via sovereign key — never one-sided.
+            if _sovereign_comparison_key(claim_actor) != _sovereign_comparison_key(
+                expected_actor
+            ):
                 return None
 
     return claims
