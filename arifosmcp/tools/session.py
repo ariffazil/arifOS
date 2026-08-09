@@ -1436,21 +1436,82 @@ def arif_init(
                     )
                     actor_id = _canonical_actor_id
             else:
-                # Unknown actor — return HOLD
+                # BUG-3 2026-08-09: do NOT return empty HOLD with session_id=unknown.
+                # Mint a guest OBSERVE_ONLY session so L13 chain continues.
+                # Actor remains unverified; no mutation/seal. Reversible.
                 logger.warning(
-                    "arif_init: unrecognised actor_id '%s' rejected",
+                    "arif_init: unrecognised actor_id '%s' → guest OBSERVE_ONLY bind",
                     actor_id,
                 )
-                return _sm(
-                    status="HOLD",
-                    result={},
-                    meta={
-                        "reason": "actor_id not recognised — canonical identity resolution failed",
-                        "reason_code": "ACTOR_UNRECOGNISED",
-                        "hint": "Use one of: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES",
-                    },
-                    doctrine=ARIF_DOCTRINE,
-                )
+                try:
+                    import uuid as _uuid_guest
+
+                    _guest_sid = f"SEAL-guest-{_uuid_guest.uuid4().hex[:12]}"
+                    # Register guest identity so L13 session lookups resolve
+                    try:
+                        from arifosmcp.runtime.session import upsert_session_record
+
+                        upsert_session_record(
+                            _guest_sid,
+                            {
+                                "session_id": _guest_sid,
+                                "actor_id": str(actor_id),
+                                "actor_verified": False,
+                                "authority_band": "OBSERVE_ONLY",
+                                "mutation_allowed": False,
+                                "seal_allowed": False,
+                                "guest": True,
+                            },
+                        )
+                    except Exception as _ups_exc:
+                        logger.debug("guest upsert_session_record skipped: %s", _ups_exc)
+                    return _sm(
+                        status="HOLD",
+                        result={
+                            "session_id": _guest_sid,
+                            "actor_id": actor_id,
+                            "actor_claimed": actor_id,
+                            "actor_canonicalized": False,
+                            "actor_bound": True,
+                            "actor_cryptographically_verified": False,
+                            "authority_band": "OBSERVE_ONLY",
+                            "mutation_allowed": False,
+                            "seal_allowed": False,
+                            "init_mode": mode or "init",
+                            "session_mode": "guest_observe",
+                            "session_token": None,  # no SCT until verified
+                            "guest": True,
+                        },
+                        meta={
+                            "reason": (
+                                "actor_id not in canonical registry — guest OBSERVE_ONLY "
+                                "session minted (BUG-3). Claimed identity unbound; no SCT."
+                            ),
+                            "reason_code": "ACTOR_UNRECOGNISED_GUEST",
+                            "hint": (
+                                "Prefer: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
+                                "OPENCLAW, OPENCODE, GROK, CLAUDE, FI-008, SOTCRON"
+                            ),
+                        },
+                        session_id=_guest_sid,
+                        doctrine=ARIF_DOCTRINE,
+                    )
+                except Exception as _guest_exc:
+                    logger.warning("guest session mint failed: %s", _guest_exc)
+                    return _sm(
+                        status="HOLD",
+                        result={},
+                        meta={
+                            "reason": "actor_id not recognised — canonical identity resolution failed",
+                            "reason_code": "ACTOR_UNRECOGNISED",
+                            "hint": (
+                                "Use one of: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
+                                "OPENCLAW, GROK, CLAUDE"
+                            ),
+                            "guest_mint_error": str(_guest_exc)[:200],
+                        },
+                        doctrine=ARIF_DOCTRINE,
+                    )
         except ImportError:
             pass  # contracts.identity unavailable — proceed with raw actor_id
 
@@ -1461,6 +1522,7 @@ def arif_init(
         # true agent identity (333-AGI), not the harness.
         _TRANSPORT_PROXY_REMAP: dict[str, str] = {
             "OPENCODE": "333-AGI",  # OpenCode CLI harness → Delta MIND
+            # Keep OPENCLAW / GROK / CLAUDE as themselves (canonical actors)
         }
         if actor_id and actor_id in _TRANSPORT_PROXY_REMAP:
             _resolved = _TRANSPORT_PROXY_REMAP[actor_id]

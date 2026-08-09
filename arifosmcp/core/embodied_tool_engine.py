@@ -554,8 +554,16 @@ class EmbodiedToolEngine:
         uncertainty = []
         # Look for confidence in result
         if "confidence" in result:
-            conf = float(result["confidence"])
-            if conf < 0.8:
+            # BUG-1 2026-08-09: confidence may be explicit None (or nested dict).
+            # float(None) crashed arif_think(mode=axioms) → SAFE_VOID_FALLBACK.
+            _raw_conf = result.get("confidence")
+            if isinstance(_raw_conf, dict):
+                _raw_conf = _raw_conf.get("overall")
+            try:
+                conf = float(_raw_conf) if _raw_conf is not None else None
+            except (TypeError, ValueError):
+                conf = None
+            if conf is not None and conf < 0.8:
                 uncertainty.append(
                     UncertaintyItem(
                         source="model_confidence",

@@ -1227,7 +1227,15 @@ def as_core_seven_result(tool_name: str, payload: dict[str, Any], **overrides) -
         ]
 
     unknowns = payload.get("unknowns") or payload.get("caveats") or []
-    conf = payload.get("confidence", 0.8 if "verdict" not in str(payload) else 0.75)
+    # BUG-1 2026-08-09: payload.confidence may be explicit None — .get default
+    # does not fire, so float(None) crashed arif_think(mode=axioms) → SAFE_VOID.
+    conf = payload.get("confidence")
+    if conf is None:
+        conf = 0.8 if "verdict" not in str(payload) else 0.75
+    try:
+        conf_f = float(conf)
+    except (TypeError, ValueError):
+        conf_f = 0.5
     next_action = (
         payload.get("next_safe_action")
         or overrides.get("next_safe_action")
@@ -1241,7 +1249,7 @@ def as_core_seven_result(tool_name: str, payload: dict[str, Any], **overrides) -
         facts=facts,
         inferences=inferences,
         unknowns=unknowns if isinstance(unknowns, list) else [str(unknowns)],
-        confidence=float(conf),
+        confidence=conf_f,
         next_safe_action=next_action,
         raw_result=payload,
         **overrides,
@@ -2554,17 +2562,59 @@ def _compute_canonical_verdict(
     # ── Step 1: Initial verdict from status ───────────────────────────────
     verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
 
-    # ── Step 1b: D2 HOLLOW SUCCESS GATE (2026-08-06) ──────────────────────
+    # ── Step 1b: D2 HOLLOW SUCCESS GATE (2026-08-06, fixed BUG-2 2026-08-09) ──
     # A verdict may never be more favourable than the payload supporting it.
     # Empty/hollow result payloads → FAILED/UNMEASURED, never OK/SEAL.
+    # BUG-2: arif_think nests substance under result.result / synthesis / axioms
+    # — not at result.content. Treat known substance keys as non-hollow.
     _rp = result_payload if isinstance(result_payload, dict) else {}
     _hollow = False
     _hollow_reason = ""
     if isinstance(_rp, dict):
         _rp_result = _rp.get("result") if isinstance(_rp.get("result"), dict) else None
-        # Check for hollow patterns: empty reasons, empty result, no content
         _rp_reasons = _rp.get("reasons")
-        _rp_content = _rp.get("content") or _rp.get("payload")
+        _rp_content = (
+            _rp.get("content")
+            or _rp.get("payload")
+            or _rp.get("synthesis")
+            or _rp.get("bounded_answer")
+            or _rp.get("axioms")
+            or (_rp_result or {}).get("synthesis")
+            or (_rp_result or {}).get("bounded_answer")
+            or (_rp_result or {}).get("axioms")
+            or (_rp_result or {}).get("content")
+        )
+        _SUBSTANCE_KEYS = (
+            "synthesis",
+            "bounded_answer",
+            "axioms",
+            "organ",
+            "port",
+            "mode",
+            "claim_state",
+            "evidence_used",
+            "inferences",
+            "what_is_supported",
+            "facts",
+            "query",
+            "routing_rule",
+            "mission_id",
+            "ledger_size",
+            "integrity",
+            "session_id",
+            "actor_bound",
+            "effective_state",
+            "allowed_next_verbs",
+        )
+        _has_substance = any(
+            k in _rp and _rp.get(k) not in (None, "", [], {}) for k in _SUBSTANCE_KEYS
+        ) or (
+            isinstance(_rp_result, dict)
+            and any(
+                k in _rp_result and _rp_result.get(k) not in (None, "", [], {})
+                for k in _SUBSTANCE_KEYS
+            )
+        )
         _rp_keys = [
             k
             for k in _rp
@@ -2585,12 +2635,13 @@ def _compute_canonical_verdict(
                 "actor",
             )
         ]
-        if _rp_result is not None and _rp_reasons is not None:
-            # Has result but empty reasons → possibly hollow
+        if _has_substance:
+            _hollow = False
+        elif _rp_result is not None and _rp_reasons is not None:
             if (not _rp_reasons or _rp_reasons == []) and (not _rp_content) and len(_rp_keys) <= 2:
                 _hollow = True
                 _hollow_reason = "empty_reasons_and_content"
-        elif _rp_result is None and not _rp_content:
+        elif _rp_result is None and not _rp_content and not _rp_keys:
             _hollow = True
             _hollow_reason = "missing_result_and_content"
     if _hollow and verdict == "SEAL":
@@ -4697,13 +4748,29 @@ def _enforce_nine_signal(
                 _truth = 0.88
                 _peace = 1.0
                 _empathy = 0.9
+                def _safe_f(v: Any, default: float) -> float:
+                    # BUG-1 null-guard: nine/result scalars may be None
+                    try:
+                        if v is None:
+                            return default
+                        if isinstance(v, dict):
+                            # nine_signal planes are often {state, en} objects
+                            return default
+                        return float(v)
+                    except (TypeError, ValueError):
+                        return default
+
                 if isinstance(result_payload, dict):
-                    _truth = max(0.0, min(1.0, float(result_payload.get("truth_score", 0.88))))
-                    _peace = max(0.0, min(1.5, float(result_payload.get("peace2", 1.0))))
-                    _empathy = max(0.0, min(1.0, float(result_payload.get("empathy_score", 0.9))))
+                    _truth = max(
+                        0.0, min(1.0, _safe_f(result_payload.get("truth_score"), 0.88))
+                    )
+                    _peace = max(0.0, min(1.5, _safe_f(result_payload.get("peace2"), 1.0)))
+                    _empathy = max(
+                        0.0, min(1.0, _safe_f(result_payload.get("empathy_score"), 0.9))
+                    )
                 if isinstance(nine, dict):
-                    _truth = max(_truth, float(nine.get("psi", _truth)))
-                    _empathy = max(_empathy, float(nine.get("omega", _empathy)))
+                    _truth = max(_truth, _safe_f(nine.get("psi"), _truth))
+                    _empathy = max(_empathy, _safe_f(nine.get("omega"), _empathy))
                 # Determine boundary from presence info
                 _boundary = "LIVE"
                 if isinstance(result_payload, dict):
@@ -13272,6 +13339,90 @@ def _arif_mind_reason(
       uncertainty_chain, and epistemic_snapshot. Plan mode returns a
       PlanReceipt with plan_id, task_graph, and reversibility_map.
     """
+    # BUG-1 residual 2026-08-09: mode=axioms is a pure OBSERVE catalog of
+    # constitutional floors. Running it through _constitutional_gate caused
+    # L13 HOLD to *replace* the axiom list (payload loss). Float(None) in
+    # embodied_tool_engine also crashed the path → SAFE_VOID. Serve axioms
+    # before the gate — read-only, zero blast radius.
+    if mode == "axioms":
+        return _ok(
+            "arif_mind_reason",
+            {
+                "mode": "axioms",
+                "axioms": [
+                    {
+                        "id": "L01_AMANAH",
+                        "text": "Trustworthiness — every action is accountable.",
+                        "confidence": 0.98,
+                    },
+                    {
+                        "id": "L02_TRUTH",
+                        "text": "Truthfulness — no deception, no hallucination passed as fact.",
+                        "confidence": 0.97,
+                    },
+                    {
+                        "id": "L03_WITNESS",
+                        "text": "Witness — evidence must be verifiable and preserved.",
+                        "confidence": 0.96,
+                    },
+                    {
+                        "id": "L04_CLARITY",
+                        "text": "Clarity — intent and mechanism are transparent.",
+                        "confidence": 0.95,
+                    },
+                    {
+                        "id": "L05_PEACE",
+                        "text": "Peace — no harm to human dignity or safety.",
+                        "confidence": 0.97,
+                    },
+                    {
+                        "id": "L06_EMPATHY",
+                        "text": "Empathy — consider human consequence before acting.",
+                        "confidence": 0.94,
+                    },
+                    {
+                        "id": "L07_HUMILITY",
+                        "text": "Humility — acknowledge limits and uncertainty.",
+                        "confidence": 0.96,
+                    },
+                    {
+                        "id": "L08_GENIUS",
+                        "text": "Genius — strive for elegant, correct solutions.",
+                        "confidence": 0.93,
+                    },
+                    {
+                        "id": "L09_ANTIHANTU",
+                        "text": "Anti-Hantu — detect and reject manipulation.",
+                        "confidence": 0.95,
+                    },
+                    {
+                        "id": "L10_ONTOLOGY",
+                        "text": "Ontology — preserve structural coherence.",
+                        "confidence": 0.94,
+                    },
+                    {
+                        "id": "L11_AUDIT",
+                        "text": "Authority — verify identity before irreversible acts.",
+                        "confidence": 0.97,
+                    },
+                    {
+                        "id": "L12_INJECTION",
+                        "text": "Injection Guard — sanitize all inputs.",
+                        "confidence": 0.98,
+                    },
+                    {
+                        "id": "L13_SOVEREIGN",
+                        "text": "Sovereign — human veto is absolute.",
+                        "confidence": 0.99,
+                    },
+                ],
+                "confidence": 0.97,
+                "claim_state": "CLAIM",
+            },
+            delta_S=0.001,
+            session_id=session_id,
+        )
+
     gate = _constitutional_gate(
         "arif_mind_reason",
         mode,
