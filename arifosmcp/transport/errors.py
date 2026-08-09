@@ -149,7 +149,7 @@ def protocol_mismatch(
         protocol_versions_supported=["2026-07-28", "2025-11-25", "2025-03-26", "2024-11-05"],
         expected_shape="2025-11-25",
         received_shape=client_version,
-        jsonrpc_code=-32022,  # MCP 2026-07-28 §Versioning: spec-mandated error code
+        jsonrpc_code=-32022,  # MCP 2026-07-28 UnsupportedProtocolVersionError
         retryable=True,
         next_probe="arif_initialize_probe",
     )
