@@ -14,6 +14,12 @@ F2: read computed state file or recompute via map-atlas-echo — no fabrication.
 F8: read-only bridge; does not mutate paradox catalog.
 F4: single module, structured output.
 
+Future (post noise-floor): ECHO honest_observations may read Kabarkan/PG
+tool traces — not manual ledgers alone. FREEZE: do not auto-mutate paradox
+content from Kabarkan; tension weights only after calibration.
+Double helix: ECHO=right strand agent learning; SCAR=left strand human.
+See /root/AAA/governance/DOUBLE_HELIX_ECHO_SCAR.md
+
 DITEMPA BUKAN DIBERI — 2026-08-09
 """
 from __future__ import annotations
