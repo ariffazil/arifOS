@@ -63,6 +63,7 @@ def test_compose_default_is_hold_fail_closed():
     env = verdict_to_envelope(effective)
     assert set(env.keys()) == {
         "status", "effective_verdict", "reason_code", "next_action",
+        "execution_state", "status_scope",
     }
 
 
