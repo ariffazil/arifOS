@@ -1474,141 +1474,125 @@ def arif_init(
 
     _canonical_actor_id: str | None = None
     if actor_id:
-        # STAB-2026-08-09 v3 (OPENCLAW): canonical sovereign registry forms
-        # (arif / arif-fazil / ariffazil / arif_fazil) are machine identities —
-        # preserve the EXACT claimed form through init → session → ACT mint.
-        # NLP collapse (greetings, "ARIF FAZIL" etc) applies only to
-        # natural-language variants, never registry identities.
         try:
-            from arifosmcp.runtime.act_token import _CANONICAL_SOVEREIGN_FORMS
+            from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+            _normalized = normalize_actor_id(actor_id)
+            if _normalized and _normalized != actor_id:
+                logger.info(
+                    "arif_init: actor_id normalized '%s' → '%s'",
+                    actor_id,
+                    _normalized,
+                )
+                actor_id = _normalized
         except ImportError:
-            _CANONICAL_SOVEREIGN_FORMS = frozenset(
-                {"arif", "arif-fazil", "ariffazil", "arif_fazil"}
-            )
-        _aid_lower = (actor_id or "").strip().lower()
-        _is_canonical_form = _aid_lower in _CANONICAL_SOVEREIGN_FORMS
-
-        if not _is_canonical_form:
-            try:
-                from arifosmcp.runtime.governance_identity import normalize_actor_id
-
-                _normalized = normalize_actor_id(actor_id)
-                if _normalized and _normalized != actor_id:
-                    logger.info(
-                        "arif_init: actor_id normalized '%s' → '%s'",
-                        actor_id,
-                        _normalized,
-                    )
-                    actor_id = _normalized
-            except ImportError:
-                pass  # governance_identity unavailable — proceed with raw
+            pass  # governance_identity unavailable — proceed with raw
 
         # ── CANONICAL IDENTITY RESOLUTION (P0-RT — 2026-07-19) ──
         # Map arif → ARIF, forge → FORGE, hermes → HERMES.
         # Normalization does NOT imply verification.
         # REJECTED identities return HOLD with ACTOR_UNRECOGNISED.
-        if not _is_canonical_form:
-            try:
-                from contracts.identity import normalize_actor_identity
+        try:
+            from contracts.identity import normalize_actor_identity
 
-                _canon = normalize_actor_identity(actor_id)
-                if _canon.get("normalized"):
-                    _canonical_actor_id = str(_canon["normalized"])
-                    if _canonical_actor_id != actor_id:
-                        logger.info(
-                            "arif_init: canonical identity '%s' → '%s'",
-                            actor_id,
-                            _canonical_actor_id,
-                        )
-                        actor_id = _canonical_actor_id
-                else:
-                    # BUG-3 2026-08-09: do NOT return empty HOLD with session_id=unknown.
-                    # Mint a guest OBSERVE_ONLY session so L13 chain continues.
-                    # Actor remains unverified; no mutation/seal. Reversible.
-                    logger.warning(
-                        "arif_init: unrecognised actor_id '%s' → guest OBSERVE_ONLY bind",
+            _canon = normalize_actor_identity(actor_id)
+            if _canon.get("normalized"):
+                _canonical_actor_id = str(_canon["normalized"])
+                if _canonical_actor_id != actor_id:
+                    logger.info(
+                        "arif_init: canonical identity '%s' → '%s'",
                         actor_id,
+                        _canonical_actor_id,
                     )
+                    actor_id = _canonical_actor_id
+            else:
+                # BUG-3 2026-08-09: do NOT return empty HOLD with session_id=unknown.
+                # Mint a guest OBSERVE_ONLY session so L13 chain continues.
+                # Actor remains unverified; no mutation/seal. Reversible.
+                logger.warning(
+                    "arif_init: unrecognised actor_id '%s' → guest OBSERVE_ONLY bind",
+                    actor_id,
+                )
+                try:
+                    import uuid as _uuid_guest
+
+                    # Guest IDs must NOT use SEAL- prefix (cosmetic Gödel trap, vault7 P2)
+                    _guest_sid = f"GUEST-{_uuid_guest.uuid4().hex[:12]}"
+                    # Register guest identity so L13 session lookups resolve
                     try:
-                        import uuid as _uuid_guest
-    
-                        # Guest IDs must NOT use SEAL- prefix (cosmetic Gödel trap, vault7 P2)
-                        _guest_sid = f"GUEST-{_uuid_guest.uuid4().hex[:12]}"
-                        # Register guest identity so L13 session lookups resolve
-                        try:
-                            from arifosmcp.runtime.session import upsert_session_record
-    
-                            upsert_session_record(
-                                _guest_sid,
-                                {
-                                    "session_id": _guest_sid,
-                                    "actor_id": str(actor_id),
-                                    "actor_verified": False,
-                                    "authority_band": "OBSERVE_ONLY",
-                                    "mutation_allowed": False,
-                                    "seal_allowed": False,
-                                    "guest": True,
-                                },
-                            )
-                        except Exception as _ups_exc:
-                            logger.debug("guest upsert_session_record skipped: %s", _ups_exc)
-                        return _sm(
-                            status="HOLD",
-                            result={
+                        from arifosmcp.runtime.session import upsert_session_record
+
+                        upsert_session_record(
+                            _guest_sid,
+                            {
                                 "session_id": _guest_sid,
-                                "actor_id": actor_id,
-                                "actor_claimed": actor_id,
-                                "actor_canonicalized": False,
-                                "actor_bound": True,
-                                "actor_cryptographically_verified": False,
+                                "actor_id": str(actor_id),
+                                "actor_verified": False,
                                 "authority_band": "OBSERVE_ONLY",
                                 "mutation_allowed": False,
                                 "seal_allowed": False,
-                                "effective_state": {
-                                    "actor_verified": False,
-                                    "authority_band": "OBSERVE_ONLY",
-                                    "mutation_allowed": False,
-                                    "seal_allowed": False,
-                                    "substrate_state": "HEALTHY",
-                                    "derived_from": "guest_observe",
-                                },
-                                "init_mode": mode or "init",
-                                "session_mode": "guest_observe",
-                                "session_token": None,  # no SCT until verified
                                 "guest": True,
                             },
-                            meta={
-                                "reason": (
-                                    "actor_id not in canonical registry — guest OBSERVE_ONLY "
-                                    "session minted (BUG-3). Claimed identity unbound; no SCT."
-                                ),
-                                "reason_code": "ACTOR_UNRECOGNISED_GUEST",
-                                "hint": (
-                                    "Prefer: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
-                                    "OPENCLAW, OPENCODE, GROK, CLAUDE, FI-008, SOTCRON"
-                                ),
-                            },
-                            session_id=_guest_sid,
-                            doctrine=ARIF_DOCTRINE,
                         )
-                    except Exception as _guest_exc:
-                        logger.warning("guest session mint failed: %s", _guest_exc)
-                        return _sm(
-                            status="HOLD",
-                            result={},
-                            meta={
-                                "reason": "actor_id not recognised — canonical identity resolution failed",
-                                "reason_code": "ACTOR_UNRECOGNISED",
-                                "hint": (
-                                    "Use one of: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
-                                    "OPENCLAW, GROK, CLAUDE"
-                                ),
-                                "guest_mint_error": str(_guest_exc)[:200],
+                    except Exception as _ups_exc:
+                        logger.debug("guest upsert_session_record skipped: %s", _ups_exc)
+                    return _sm(
+                        status="HOLD",
+                        result={
+                            "session_id": _guest_sid,
+                            "actor_id": actor_id,
+                            "actor_claimed": actor_id,
+                            "actor_canonicalized": False,
+                            "actor_bound": True,
+                            "actor_cryptographically_verified": False,
+                            "authority_band": "OBSERVE_ONLY",
+                            "mutation_allowed": False,
+                            "seal_allowed": False,
+                            "effective_state": {
+                                "actor_verified": False,
+                                "authority_band": "OBSERVE_ONLY",
+                                "mutation_allowed": False,
+                                "seal_allowed": False,
+                                "substrate_state": "HEALTHY",
+                                "derived_from": "guest_observe",
                             },
-                            doctrine=ARIF_DOCTRINE,
-                        )
-            except ImportError:
-                pass  # contracts.identity unavailable — proceed with raw actor_id
+                            "init_mode": mode or "init",
+                            "session_mode": "guest_observe",
+                            "session_token": None,  # no SCT until verified
+                            "guest": True,
+                        },
+                        meta={
+                            "reason": (
+                                "actor_id not in canonical registry — guest OBSERVE_ONLY "
+                                "session minted (BUG-3). Claimed identity unbound; no SCT."
+                            ),
+                            "reason_code": "ACTOR_UNRECOGNISED_GUEST",
+                            "hint": (
+                                "Prefer: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
+                                "OPENCLAW, OPENCODE, GROK, CLAUDE, FI-008, SOTCRON"
+                            ),
+                        },
+                        session_id=_guest_sid,
+                        doctrine=ARIF_DOCTRINE,
+                    )
+                except Exception as _guest_exc:
+                    logger.warning("guest session mint failed: %s", _guest_exc)
+                    return _sm(
+                        status="HOLD",
+                        result={},
+                        meta={
+                            "reason": "actor_id not recognised — canonical identity resolution failed",
+                            "reason_code": "ACTOR_UNRECOGNISED",
+                            "hint": (
+                                "Use one of: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
+                                "OPENCLAW, GROK, CLAUDE"
+                            ),
+                            "guest_mint_error": str(_guest_exc)[:200],
+                        },
+                        doctrine=ARIF_DOCTRINE,
+                    )
+        except ImportError:
+            pass  # contracts.identity unavailable — proceed with raw actor_id
 
         # ── TRANSPORT PROXY IDENTITY REMAP (2026-07-31) ──
         # When OpenCode's MCP proxy forwards a call to arifOS, it injects
