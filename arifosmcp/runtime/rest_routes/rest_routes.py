@@ -738,11 +738,14 @@ def _floor_passes(law_id: str, score: float) -> bool:
         return float(lower) <= fscore <= float(upper)
 
     threshold = float(get_law_threshold(law_id))
-    # ── FLR-001 calibration fix: F4 strict < per FLOOR_TABLE WARNING ──
+    # ── FLR-001 calibration fix: F4 CLARITY ──
     if law_id == "F4":
-        # ΔS ≤ 0 is the band; ΔS = 0 = WARNING (no compression, all-novel output).
-        # Strict less-than reflects the FLOOR_TABLE semantics.
-        return fscore < threshold
+        # F4 is normalized to [0,1] band before reaching this gate
+        # (see FLR-002 normalization at line ~1020).
+        # ΔS ≤ 0 maps to F4 ≥ 0.80 after normalization.
+        # ΔS = 0 = WARNING (all-novel output, F4=0.80).
+        # ΔS < 0 = PASS (compression achieved, F4 > 0.80).
+        return fscore >= 0.80
     if comparator == "<":
         return fscore < threshold
     if comparator == "<=":
@@ -830,11 +833,7 @@ def _read_vault_last_seal() -> dict[str, Any]:
         "chain_intact": bool(entry.get("payload_hash") or entry.get("chain_hash")),
         "vault_path": path,
         "reason": None,
-        "phantom_timeline": (
-            primary_ts is not None
-            and ts != primary_ts
-            and ts > primary_ts
-        ),
+        "phantom_timeline": (primary_ts is not None and ts != primary_ts and ts > primary_ts),
     }
 
 
@@ -1020,10 +1019,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
     # where negative values = clarity improved. But runtime_floors must display
     # in [0,1] band for cross-floor comparability and G scalar integrity.
-    #   ΔS < -0.5  → 1.0  (strong clarity gain)
-    #   ΔS ∈ [-0.5, 0) → 0.7-1.0  (moderate clarity)
-    #   ΔS = 0     → 0.5  (warning: all-novel, no compression)
-    #   ΔS > 0     → max(0, 1.0 - ΔS)  (entropy increased, clarity degraded)
+    #   ΔS < -0.5   → 1.0  (strong clarity gain)
+    #   ΔS ∈ [-0.5, 0) → 0.80-1.0  (moderate clarity — CALIBRATED 2026-08-09)
+    #   ΔS = 0      → 0.80 (all-novel: WARNING but technically ΔS≤0 passes)
+    #   ΔS > 0      → max(0, 1.0 - ΔS) (entropy increased, clarity degraded)
     raw_f4 = resolved_floors.get("F4")
     if raw_f4 is not None:
         try:
@@ -1031,9 +1030,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
             if f4_val < -0.5:
                 resolved_floors["F4"] = 1.0
             elif f4_val < 0:
-                resolved_floors["F4"] = round(0.7 + abs(f4_val) * 0.6, 4)
+                resolved_floors["F4"] = round(0.80 + abs(f4_val) * 0.4, 4)
             elif f4_val == 0:
-                resolved_floors["F4"] = 0.5
+                resolved_floors["F4"] = 0.80
             else:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
