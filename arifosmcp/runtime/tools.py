@@ -4905,10 +4905,10 @@ def _enforce_nine_signal(
             or _output_policy_for_verdict(
                 verdict if verdict in ("SEAL", "HOLD", "VOID", "SABAR", "DRY_RUN") else "HOLD"
             ),
-            # Fix 2026-07-06: status_scope clarifies what "OK" means.
-            # status="OK" = transport/liveness. output_policy = capability.
-            # Agents MUST check output_policy before trusting status.
-            "status_scope": "transport" if status == "OK" else "capability",
+            # P0 2026-08-09 G1: status_scope=execution — status means tool
+            # finished (completed/blocked), not governance. Agents read
+            # effective_verdict / output_policy for authority.
+            "status_scope": "execution",
             "nine_signal": nine,
             "reasons": reasons,
             # Audit 2026-07-09: stop pasting full schema (decision_thresholds /
@@ -14262,9 +14262,13 @@ async def _arif_mind_reason_tool(
         # Instead of importing a non-existent module, call _synthesize_async directly
         # which already wraps call_llm with the correct constitutional prompt and schema.
         try:
+            # P0 2026-08-09 G3: outer budget must match ARIF_THINK_TIMEOUT_S
+            # (default 5s). HEART_TIMEOUT_MS=60s was leaving agents waiting
+            # 28–38s when LLM cascade stalled despite inner 5s cap.
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
             synthesis = await asyncio.wait_for(
                 _synthesize_async(query or "", reasoning_mode=mode),
-                timeout=_TIMEOUT_MS / 1000.0,
+                timeout=_think_budget_s,
             )
             # Build result from real LLM synthesis
             result = {
@@ -14287,10 +14291,14 @@ async def _arif_mind_reason_tool(
                 },
             }
         except TimeoutError:
-            logger.warning("333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+            logger.warning(
+                "333_MIND timeout after %.1fs — SAFE_VOID fallback",
+                _think_budget_s,
+            )
             return _safe_void_fallback(
                 "arif_mind_reason",
-                f"LLM timeout after {_TIMEOUT_MS}ms",
+                f"LLM timeout after {_think_budget_s}s",
                 session_id=session_id,
                 actor_id=actor_id,
             )

@@ -174,7 +174,13 @@ def test_next_action_is_canonical_per_verdict():
     assert compose_effective_verdict(HOLD_888).next_action == NEXT_888_HOLD
 
 
-def test_status_completed_for_seal_and_sabar_pending_for_hold_blocked_for_void():
+def test_status_completed_for_finished_calls_including_hold_observe():
+    """P0 G1 2026-08-09: status = execution finished, not governance.
+
+    HOLD / OBSERVE_ONLY / 888_HOLD still complete the tool call.
+    effective_verdict carries the restraint signal; status must not stay
+    pending after a finished handler (agent re-call loops).
+    """
     from arifosmcp.runtime.verdict import (
         HOLD,
         HOLD_888,
@@ -183,7 +189,6 @@ def test_status_completed_for_seal_and_sabar_pending_for_hold_blocked_for_void()
         SEAL,
         STATUS_BLOCKED,
         STATUS_COMPLETED,
-        STATUS_PENDING,
         VOID,
         compose_effective_verdict,
     )
@@ -191,9 +196,13 @@ def test_status_completed_for_seal_and_sabar_pending_for_hold_blocked_for_void()
     assert compose_effective_verdict(SEAL).status == STATUS_COMPLETED
     assert compose_effective_verdict(SABAR).status == STATUS_COMPLETED
     assert compose_effective_verdict(VOID).status == STATUS_BLOCKED
-    assert compose_effective_verdict(HOLD).status == STATUS_PENDING
-    assert compose_effective_verdict(HOLD_888).status == STATUS_PENDING
-    assert compose_effective_verdict(OBSERVE_ONLY).status == STATUS_PENDING
+    assert compose_effective_verdict(HOLD).status == STATUS_COMPLETED
+    assert compose_effective_verdict(HOLD_888).status == STATUS_COMPLETED
+    assert compose_effective_verdict(OBSERVE_ONLY).status == STATUS_COMPLETED
+    # execution_state axis
+    assert compose_effective_verdict(HOLD).execution_state == "COMPLETED"
+    assert compose_effective_verdict(VOID).execution_state == "FAILED"
+    assert compose_effective_verdict(SEAL).execution_state == "COMPLETED"
 
 
 # ── Wrapper helper: strip legacy verdict fields, attach canonical ──────────

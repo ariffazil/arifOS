@@ -50,12 +50,18 @@ CANONICAL_VERDICTS = frozenset({OBSERVE_ONLY, SEAL, SABAR, VOID, HOLD, HOLD_888}
 
 
 # Status values. Closed taxonomy.
+# P0 2026-08-09 (G1): status = *tool execution* outcome, NOT governance.
+# effective_verdict carries SEAL/HOLD/VOID. Agents were reading status=pending
+# on completed HOLD/OBSERVE responses as "tool still running" → re-call loops.
 STATUS_COMPLETED = "completed"
+STATUS_OK = "ok"  # schema alias of completed (response.envelope.schema.json)
 STATUS_FAILED = "failed"
 STATUS_BLOCKED = "blocked"
-STATUS_PENDING = "pending"
+STATUS_PENDING = "pending"  # ONLY for true async / not-yet-finished work
 
-CANONICAL_STATUSES = frozenset({STATUS_COMPLETED, STATUS_FAILED, STATUS_BLOCKED, STATUS_PENDING})
+CANONICAL_STATUSES = frozenset(
+    {STATUS_COMPLETED, STATUS_OK, STATUS_FAILED, STATUS_BLOCKED, STATUS_PENDING}
+)
 
 
 # Legacy verdict tokens emitted by tools prior to Epoch 1.
@@ -129,15 +135,27 @@ NEXT_ACTION_BY_VERDICT: dict[str, str] = {
 }
 
 
-# Status per verdict. Successful verdicts complete; blocking ones block;
-# awaiting-input ones stay pending.
+# Status per verdict = did the tool *finish executing*?
+# Governance restraint (HOLD / OBSERVE_ONLY) is expressed via effective_verdict
+# + next_action, never by leaving status=pending after a completed call.
 _STATUS_BY_VERDICT: dict[str, str] = {
     SEAL: STATUS_COMPLETED,
     SABAR: STATUS_COMPLETED,
-    HOLD: STATUS_PENDING,
-    HOLD_888: STATUS_PENDING,
-    OBSERVE_ONLY: STATUS_PENDING,
+    HOLD: STATUS_COMPLETED,
+    HOLD_888: STATUS_COMPLETED,
+    OBSERVE_ONLY: STATUS_COMPLETED,
     VOID: STATUS_BLOCKED,
+}
+
+# execution_state axis (schema v2) — lifecycle of the requested action.
+# Distinct from status (transport/execution ok) and effective_verdict (governance).
+_EXECUTION_STATE_BY_VERDICT: dict[str, str] = {
+    SEAL: "COMPLETED",
+    SABAR: "COMPLETED",
+    HOLD: "COMPLETED",  # tool finished; next_action may still be AWAIT_INPUT
+    HOLD_888: "COMPLETED",
+    OBSERVE_ONLY: "COMPLETED",
+    VOID: "FAILED",
 }
 
 
@@ -147,6 +165,7 @@ class EffectiveVerdict:
     verdict: str
     reason_code: str
     next_action: str
+    execution_state: str = "COMPLETED"
     state_version: int = VERDICT_STATE_VERSION
 
 
@@ -222,26 +241,32 @@ def compose_effective_verdict(
     reason_code = explicit_reason or REASON_BY_VERDICT[canonical]
     next_action = NEXT_ACTION_BY_VERDICT[canonical]
     status = _STATUS_BY_VERDICT[canonical]
+    execution_state = _EXECUTION_STATE_BY_VERDICT[canonical]
 
     return EffectiveVerdict(
         status=status,
         verdict=canonical,
         reason_code=reason_code,
         next_action=next_action,
+        execution_state=execution_state,
         state_version=VERDICT_STATE_VERSION,
     )
 
 
 def verdict_to_envelope(effective: EffectiveVerdict) -> dict[str, Any]:
-    """Serialize the EffectiveVerdict into the audit-spec envelope.
+    """Serialize the EffectiveVerdict into the agent-facing envelope.
 
-    Exactly four fields. Nothing else.
+    status = execution finished?  (completed | blocked | failed | pending)
+    effective_verdict = governance (SEAL | HOLD | …)
+    execution_state = lifecycle axis (COMPLETED | FAILED | …)
     """
     return {
         "status": effective.status,
         "effective_verdict": effective.verdict,
         "reason_code": effective.reason_code,
         "next_action": effective.next_action,
+        "execution_state": effective.execution_state,
+        "status_scope": "execution",
     }
 
 
@@ -326,6 +351,16 @@ def attach_effective_verdict(
     response["effective_verdict"] = effective.verdict
     response["reason_code"] = effective.reason_code
     response["next_action"] = effective.next_action
+    response["execution_state"] = effective.execution_state
+    response["status_scope"] = "execution"
+    # P0 G1: never leave status=pending after a completed tool call unless
+    # the handler explicitly set async pending. Governance HOLD is not pending.
+    if (
+        str(response.get("status", "")).lower() == "pending"
+        and effective.execution_state == "COMPLETED"
+        and response.get("result") is not None
+    ):
+        response["status"] = STATUS_COMPLETED
     # STAB-2026-08-07b: this is the LAST writer of effective_verdict.
     # Re-derive floor_passed HERE so it cannot disagree with the verdict
     # that just landed. effective_verdict in {HOLD, VOID, 888_HOLD} → False.

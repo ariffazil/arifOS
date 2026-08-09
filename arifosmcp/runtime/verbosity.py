@@ -268,6 +268,9 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     #
     # The whole point of `minimal` is to drop *verbose* metadata (atlas333 boot,
     # work_contract, full SCT, etc.), NOT the semantic payload itself.
+    # P0 2026-08-09 (G2): minimal = control plane + evidence payload only.
+    # Drop high-entropy decorative blocks (nine_signal, standing, affordance…).
+    # Keep result + facts/inferences when non-empty (F2 metabolic utility).
     _SEMANTIC_PRESERVED_FIELDS = (
         "facts",
         "inferences",
@@ -275,64 +278,105 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "unknowns",
         "do_not_conclude",
         "confidence",
-        "metacognition",
         "constitutional_check",
         "risk",
-        # 2026-08-02: External audit (Claude Opus) — minimal verbosity
-        # must not silently drop constitutional verdict fields.
-        # A lazy client reading minimal sees no DENY without these.
         "substrate",
         "substrate_gate",
         "effective_verdict",
-        "canonical_verdict",
+        "execution_state",
+        "status_scope",
+        "reason_code",
+        "next_action",
         "receipt_state",
         "floor_passed",
-        # 2026-08-04 audit: metabolic payload MUST survive minimal trim.
-        # arif_observe returned status=OK + organs live via direct call, but
-        # MCP minimal strip left only control-plane → agents saw pending/empty.
         "result",
         "organs",
         "organs_alive",
         "organs_total",
-        "verdicts",
-        "nine_signal",
         "reasons",
-        "apex_scalars",
-        "standing",
         "authority",
         "allowed_next_verbs",
-        "runtime_grant",
-        "session_birth",
         "mutation_allowed",
         "seal_allowed",
-        "affordance_contract",
+        "can_continue_observing",
+        "can_mutate",
+        "can_claim_success",
+        "warnings",
     )
     for field in _SEMANTIC_PRESERVED_FIELDS:
         value = _lookup(field)
         if value is not None:
+            # G4: drop empty epistemic lists — null-noise is not evidence
+            if isinstance(value, (list, dict, str)) and not value:
+                continue
             minimal[field] = value
 
-    # 2026-08-04 audit: do not emit status=pending for completed OBSERVE work.
-    # pending + empty result is Mode 3 (narrate HOLD while tool already ran).
+    # G4: if facts missing/empty but result has content, synthesize OBS facts
+    _facts = minimal.get("facts")
+    if not _facts:
+        _res = minimal.get("result") if isinstance(minimal.get("result"), dict) else {}
+        _synth: list[str] = []
+        if isinstance(_res, dict) and _res:
+            for k in (
+                "session_id",
+                "organ",
+                "port",
+                "status",
+                "routing_rule",
+                "mode",
+                "init_mode",
+                "authority_scope",
+                "ledger_size",
+                "integrity",
+                "bounded_answer",
+                "synthesis",
+            ):
+                if k in _res and _res[k] not in (None, "", [], {}):
+                    _synth.append(f"{k}={_res[k]!s}"[:160])
+            if _res.get("actor_bound") is True:
+                _synth.append("actor_bound=true")
+            if _res.get("session_id"):
+                _synth.insert(0, f"session bound: {_res.get('session_id')}")
+        if _synth:
+            minimal["facts"] = _synth[:12]
+        elif "facts" in minimal:
+            minimal.pop("facts", None)
+
+    # P0 G1: status=pending must not mean "tool finished under HOLD".
+    # All 8 canonical tools: if execution finished, status=completed.
     _st = str(minimal.get("status") or "").lower()
     _tool = str(minimal.get("tool") or response.get("tool") or "")
     _cc = minimal.get("constitutional_check") or {}
-    if _st == "pending" and _tool in (
-        "arif_observe",
-        "arif_think",
-        "arif_route",
-        "arif_init",
-    ):
-        # Prefer original response status when it was OK/completed
+    _exec = str(
+        minimal.get("execution_state") or response.get("execution_state") or ""
+    ).upper()
+    if _st == "pending":
         _orig = str(response.get("status") or "").upper()
-        if _orig in ("OK", "COMPLETED", "SEAL"):
-            minimal["status"] = "completed" if _orig != "OK" else "OK"
-            if str(minimal.get("verdict")).lower() == "pending":
-                minimal["verdict"] = response.get("verdict") or "SEAL"
+        if _orig in ("OK", "COMPLETED", "SEAL", "COMPLETED") or _exec == "COMPLETED":
+            minimal["status"] = "completed"
+        elif _tool.startswith("arif_") and (
+            minimal.get("result") is not None or response.get("result") is not None
+        ):
+            # Tool returned a result payload → execution finished
+            minimal["status"] = "completed"
         elif _cc.get("floor_passed") and not _cc.get("hold_required"):
-            minimal["status"] = "OK"
-            if str(minimal.get("verdict")).lower() == "pending":
-                minimal["verdict"] = "SEAL"
+            minimal["status"] = "completed"
+    # Prefer effective_verdict over legacy status-as-verdict
+    if not minimal.get("effective_verdict"):
+        _ev = response.get("effective_verdict") or response.get("verdict")
+        if _ev:
+            minimal["effective_verdict"] = _ev
+    if str(minimal.get("verdict") or "").lower() == "pending":
+        minimal["verdict"] = (
+            minimal.get("effective_verdict") or response.get("verdict") or "HOLD"
+        )
+    # Ensure execution_state present
+    if not minimal.get("execution_state"):
+        if str(minimal.get("status")).lower() in ("completed", "ok"):
+            minimal["execution_state"] = "COMPLETED"
+        elif str(minimal.get("status")).lower() in ("blocked", "failed", "error"):
+            minimal["execution_state"] = "FAILED"
+    minimal.setdefault("status_scope", "execution")
 
     # W-03: deployment drift is a hard floor — never re-green to SEAL/PROCEED.
     def _has_drift(d: dict) -> bool:
@@ -396,11 +440,16 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             minimal["effective_verdict"] = "HOLD"
             minimal["canonical_verdict"] = "DENY"
 
-    # F11 SAFETY NET: verify required fields are present
-    required = ["verdict", "session_id", "actor", "call_hash"]
-    if not all(minimal.get(k) for k in required):
-        # F11 BREACH PREVENTION — fail closed
-        return response  # return untrimmed
+    # F11 SAFETY NET: audit fields must survive. If call_hash missing, keep
+    # trimmed form with whatever we have — returning full 12KB response was
+    # worse entropy than a compact envelope missing one optional field.
+    # Require only actor + (session_id OR call_hash) for identity anchor.
+    if not minimal.get("actor"):
+        return response  # true fail-closed
+    if not (minimal.get("session_id") or minimal.get("call_hash")):
+        # Still return minimal if tool/status present — partial audit better
+        # than full bloat; mark incomplete for F11 consumers.
+        minimal["_audit_incomplete"] = True
 
     return minimal
 

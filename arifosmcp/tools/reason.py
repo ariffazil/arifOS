@@ -875,13 +875,16 @@ def _build_delta_bundle(
     return bundle
 
 
-def _run_reasoning_sync(coro: Any, timeout: float = 35.0) -> Any:
+def _run_reasoning_sync(coro: Any, timeout: float = 5.0) -> Any:
     """Run coroutine in sync context, including when caller already has an active event loop.
 
-    L13 TIMEOUT_SAFE: Hard timeout prevents indefinite hangs when LLM backends stall.
-    Default 35s covers the full cascade budget: TokenRouter(10s) + MiniMax(20s) + buffer.
-    Previous 70s was excessive — frozen event loop for 70s = effective outage.
+    L13 TIMEOUT_SAFE / P0 G3 2026-08-09: default 5s matches ARIF_THINK_TIMEOUT_S.
+    Previous 35s left agents waiting while cascade stalled. Prefer fast template
+    fallback over multi-provider thrash.
     """
+    import os as _os
+
+    timeout = float(_os.getenv("ARIF_THINK_TIMEOUT_S", str(timeout)))
     try:
         asyncio.get_running_loop()
     except RuntimeError:
