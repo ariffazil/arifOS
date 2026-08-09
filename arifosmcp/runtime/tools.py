@@ -5369,6 +5369,37 @@ def _enforce_nine_signal(
             _stamp_arif_init_deterministic(envelope)
             apply_deployment_drift_floor(envelope)
 
+        # STAB-2026-08-09c: last-writer after authority envelope attach.
+        # WS1 authority can claim seal_allowed=True (OPENCLAW exempt SOVEREIGN)
+        # even when outer status=HOLD (UNAUTHORIZED_VERB). Force mut/seal false
+        # and materialize effective_verdict for JSON clients.
+        try:
+            _force_hold_mutation_fields(envelope)
+        except Exception:
+            # Helper defined later in module; at request time it exists.
+            # Fail-soft: never break tool return.
+            try:
+                _st = str(envelope.get("status") or "").upper()
+                _vd = envelope.get("verdict")
+                if isinstance(_vd, dict):
+                    _vd = str(_vd.get("state") or "")
+                _vd = str(_vd or "").upper()
+                if "HOLD" in _st or "HOLD" in _vd or "VOID" in _st or "BLOCKED" in _st:
+                    envelope["effective_verdict"] = (
+                        "VOID" if ("VOID" in _st or "BLOCKED" in _st) else "HOLD"
+                    )
+                    envelope["mutation_allowed"] = False
+                    envelope["seal_allowed"] = False
+                    envelope["can_mutate"] = False
+                    _auth = envelope.get("authority")
+                    if isinstance(_auth, dict):
+                        _auth["mutation_allowed"] = False
+                        _auth["seal_allowed"] = False
+                        _auth["may_mutate"] = False
+                        _auth["may_seal"] = False
+            except Exception:
+                pass
+
         return envelope
 
         # ── APEX Runtime Governance Envelope (APEX-MCP-001) ───────────────
@@ -25341,6 +25372,12 @@ def verify_and_inject_token(
                 "status": "HOLD",
                 "tool": tool_name,
                 "verdict": {"state": "HOLD", "dominant_reason": standing.reason},
+                "effective_verdict": "HOLD",
+                "mutation_allowed": False,
+                "seal_allowed": False,
+                "can_mutate": False,
+                "hold_required": True,
+                "reason_code": "TOKEN_INVALID",
                 "result": None,
                 "sesat": True,
                 "sesat_event": {
@@ -25375,6 +25412,12 @@ def verify_and_inject_token(
                     "state": "HOLD",
                     "dominant_reason": f"Tool '{tool_name}' not in token allowed verbs",
                 },
+                "effective_verdict": "HOLD",
+                "mutation_allowed": False,
+                "seal_allowed": False,
+                "can_mutate": False,
+                "hold_required": True,
+                "reason_code": "UNAUTHORIZED_VERB",
                 "result": None,
                 "sesat": True,
                 "sesat_event": {
