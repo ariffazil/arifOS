@@ -298,7 +298,11 @@ def _read_well_substrate() -> dict[str, Any]:
     if state is None:
         return {"status": "unavailable", "coupled_verdict": "CAUTION", "source": "all_paths_failed"}
 
-    well_score = float(state.get("well_score", 50.0))
+    _ws = state.get("well_score", 50.0)
+    try:
+        well_score = 50.0 if _ws is None else float(_ws)
+    except (TypeError, ValueError):
+        well_score = 50.0
     floors_violated: list = state.get("floors_violated", []) or []
     metrics: dict = state.get("metrics") or {}
     truth_status: str = state.get("truth_status", "UNVERIFIED")
