@@ -630,7 +630,7 @@ def resolve_actor_public_key(actor_id: str) -> ed25519.Ed25519PublicKey | None:
     aid = _normalize_actor(actor_id)
     if not aid:
         return None
-    if aid in ("arif", "888", "ariffazil"):
+    if aid.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil"):
         p = Path(_PUBLIC_KEY_PATH)
         if p.is_file():
             key = _load_pem_public(p.read_bytes())
@@ -814,8 +814,8 @@ def verify_init_identity(
                     f"{aid_norm}:{constitution_hash}:{nonce}".encode(),
                 )
             )
-        for alias in ("arif", "ariffazil", "888"):
-            if aid_norm in ("arif", "ariffazil", "888") and alias != aid_norm:
+        for alias in ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888"):
+            if aid_norm in ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888") and alias != aid_norm:
                 payloads.append(
                     (
                         f"alias_{alias}_constitution_nonce",
@@ -857,7 +857,7 @@ def verify_init_identity(
 
 def classify_actor_band(actor_id: str, signature_verified: bool) -> dict[str, Any]:
     aid = _normalize_actor(actor_id)
-    is_sovereign_principal = aid in ("arif", "888", "ariffazil")
+    is_sovereign_principal = aid.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
     if not signature_verified:
         return {
             "actor_verified": False,

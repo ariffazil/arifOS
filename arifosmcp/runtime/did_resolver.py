@@ -100,7 +100,7 @@ def _resolve_did_arifos(did: str) -> dict[str, Any] | None:
         return None
 
     # Normalize actor name
-    if actor_id in ("arif", "000-SALAM", "sovereign"):
+    if actor_id.lower().strip() in ("arif", "000-salam", "sovereign", "ariffazil", "arif-fazil", "arif_fazil", "888"):
         key_path = "/root/AAA/IDENTITY/keys/arif_public.pem"
     else:
         key_path = f"/root/AAA/IDENTITY/keys/{actor_id}_public.pem"
