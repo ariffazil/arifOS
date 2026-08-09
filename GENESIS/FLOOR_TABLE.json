@@ -44,9 +44,9 @@
     {
       "id": "F2",
       "name": "TRUTH",
-      "rule": "P(truth) ≥ 0.99. Cheap claims = VOID. Evidence carries epistemic label from OBS / DER / INT / SPEC.",
+      "rule": "P(truth) ≥ 0.99. Cheap claims = VOID. Evidence carries epistemic label from OBS / DER / INT / SPEC / SYN / RECYCLED_SYN. SYN and RECYCLED_SYN are terminal labels — they NEVER upgrade to OBS/DER regardless of republication count.",
       "color": "#00FF41",
-      "epistemic_label_form": ["OBS", "DER", "INT", "SPEC"],
+      "epistemic_label_form": ["OBS", "DER", "INT", "SPEC", "SYN", "RECYCLED_SYN"],
       "epistemic_band_form": ["CLAIM", "PLAUSIBLE", "ESTIMATE", "UNKNOWN"],
       "operator": "P(truth)",
       "sealed_range": {"min": 0.99, "max": 1.0}
@@ -98,11 +98,13 @@
     {
       "id": "F7",
       "name": "HUMILITY",
-      "rule": "No fake certainty. Ω₀ ∈ [0.03, 0.05]. Confidence cap = 1 − Ω₀ ∈ [0.95, 0.97].",
+      "rule": "No fake certainty. Ω₀ ∈ [0.03, 0.05] as UNCERTAINTY FLOOR — minimum residual doubt, NOT a confidence ceiling. System may reach high confidence but MUST maintain Ω₀ doubt. Derived confidence cap = 1 − Ω₀ ∈ [0.95, 0.97].",
       "color": "#A855F7",
-      "operator": "Ω₀",
+      "operator": "Ω₀ (uncertainty floor)",
       "sealed_range": {"min": 0.03, "max": 0.05},
       "derived_confidence_cap": {"min": 0.95, "max": 0.97},
+      "doctrine_note": "Ω₀ is the UNCERTAINTY FLOOR, not confidence cap. A floor is a minimum — the system MUST maintain at least 0.03 doubt. A cap is a maximum — the system MUST NOT exceed 0.97 confidence. Both are true. The floor is the constitutional invariant; the cap is derived from it. F7 forges the floor; the cap follows. 2026-08-09 F13 clarification.",
+      "why_floor_not_cap": "An uncertainty floor keeps the correction pathway open. If you cap confidence at 0.90, the system stops at '90% sure.' If you floor uncertainty at 0.03, the system can reach 99% confidence but must still ask: 'What would falsify this?' The difference is the difference between a wall and a door.",
       "deprecated_strings": [
         "Confidence cap 0.90",
         "STEWARDSHIP",
@@ -166,7 +168,9 @@
       {"label": "OBS",   "band": "CLAIM",     "definition": "Direct observation / official source / API response", "supports_seal": true,  "compression_mode": "LIT",     "compression_analogue": "LIT(b) — new evidence, no back-reference. Raw byte emitted into stream."},
       {"label": "DER",   "band": "PLAUSIBLE", "definition": "Derived from OBS with documented chain",              "supports_seal": true,  "compression_mode": "REF",     "compression_analogue": "REF(d, ℓ) — back-reference to existing VAULT999 entry. Provenance preserved."},
       {"label": "INT",   "band": "ESTIMATE",  "definition": "Interpretive synthesis across multiple sources",     "supports_seal": true,  "compression_mode": "REF+Δ",   "compression_analogue": "REF(d, ℓ) + delta filter. Interpretation = transformed back-reference (x[i] = x[i] - x[i-1])."},
-      {"label": "SPEC",  "band": "UNKNOWN",   "definition": "Speculation, no falsifiable anchor",                 "supports_seal": false, "compression_mode": "MARKOV",  "compression_analogue": "Markov chain prediction, range-coded output. P(next_bit | last_N_bits) without dictionary anchor."}
+      {"label": "SPEC",  "band": "UNKNOWN",   "definition": "Speculation, no falsifiable anchor",                 "supports_seal": false, "compression_mode": "MARKOV",  "compression_analogue": "Markov chain prediction, range-coded output. P(next_bit | last_N_bits) without dictionary anchor."},
+      {"label": "SYN",   "band": "SYNTHETIC", "definition": "AI-generated, unverified. TERMINAL — never upgrades to OBS/DER regardless of republication count.", "supports_seal": false, "compression_mode": "SYN", "compression_analogue": "Synthetic token with provenance flag. May be cached but never treated as dictionary entry."},
+      {"label": "RECYCLED_SYN", "band": "RECYCLED", "definition": "Human-published content originating from AI output. TERMINAL — lineage is synthetic regardless of human republication.", "supports_seal": false, "compression_mode": "SYN+R", "compression_analogue": "Recycled synthetic — provenance laundering detected. Compressed with lossy flag; cannot reconstruct to OBS."}
     ],
     "user_natural_mapping": {
       "OBS":  "CLAIM",
