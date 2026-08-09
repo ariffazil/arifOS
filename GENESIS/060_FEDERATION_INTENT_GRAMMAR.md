@@ -195,3 +195,110 @@ BAHASA KAMPUNG / RAW SIGNAL     ← no premature compression
 *Ore body from human. Forge from agent. Verdict from 888. Seal from VAULT999.*  
 *Apex intelligence is the courage not to polish — at every layer.*  
 **DITEMPA BUKAN DIBERI.**
+
+---
+
+## 9. Signal survival (not signal quality)
+
+Industry optimizes:
+
+```text
+signal quality  →  clean, structured, professional
+```
+
+Federation optimizes:
+
+```text
+signal survival  →  still-living material at verification
+```
+
+Cleaning can kill the ore body. Pretty is not alive.
+
+### Compression-Risk Law (compact)
+
+```text
+Compression ↓  →  Verification capacity ↓
+```
+
+Verifier can only verify what still exists.  
+Contradiction deleted at translation never reaches 555/888.
+
+### False consensus > hallucination
+
+| Fear | Appearance | Damage |
+|------|------------|--------|
+| Hallucination | Weird, often detectable | Local error |
+| **False consensus** | Clean, professional, “smart” | Independence dead; Gödel closed |
+
+```text
+Feed=X → Agent=X → Verifier=X → Judge=X
+= inherited representation, not truth
+```
+
+### Real unit of federation
+
+```text
+Shared reality
+  + Shared verdict grammar
+  + Independent representations
+= Truth-seeking federation
+```
+
+Not: shared models + shared prompts = coordination.
+
+### Epistemic courage (bahasa kampung reframed)
+
+Not “kampung = apex.”  
+But: pre-edit speech often carries **pre-compressed reality** and **contradiction carriers**:
+
+```text
+"Aku tak pasti." · "Pelik." · "Semua setuju tapi aku ragu." · "Mungkin aku salah."
+```
+
+These fuel verification. Diplomatized self-editing too early starves it.
+
+### Axiom F — Agreement trap
+
+```text
+AXIOM: A federation becomes fragile when agreement becomes more valuable than contradiction.
+```
+
+Then agents optimize for alignment, not truth → Reality↓ Consensus↑ → Gödel closes.
+
+### Three eras
+
+| Era | Equation |
+|-----|----------|
+| 1 | Better model = better intelligence |
+| 2 | Better prompt = better output |
+| **3** | **Better protocol + contradiction handling = better governance** |
+
+```text
+Intelligence → possibility
+Verification → trust
+Contradiction → discovery
+Governance → accountable truth
+```
+
+```text
+Ore body   = reality
+Forge      = reasoning
+Contradiction = assay
+Verdict    = judgment
+Seal       = attestation
+```
+
+### Metric inversion
+
+Industry measures prompt quality / response quality / benchmarks.  
+Healthy federation asks first: **Is contradiction still alive?**
+
+```text
+Prompt is a layer.
+Protocol is the product.
+Contradiction is the metric.
+```
+
+---
+
+*v1.1 additions 2026-08-09 — signal survival · false consensus · agreement trap · Era 3*
