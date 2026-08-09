@@ -1962,8 +1962,20 @@ def arif_init(
                     # Issue challenge nonce
                     _challenge_nonce = issue_actor_challenge(actor_id)
 
-                    # Auto-sign with local Ed25519 key
-                    _auto_sig = _auto_sign_nonce(actor_id, _challenge_nonce)
+                    # STAB-2026-08-09: never auto-sign for proxied/public traffic
+                    from arifosmcp.runtime.request_trust import auto_sign_allowed
+                    if not auto_sign_allowed():
+                        _auto_sig = None
+                        logger.info(
+                            "auto-sign denied for %s trust=%s (public/proxied or disabled)",
+                            actor_id,
+                            __import__(
+                                "arifosmcp.runtime.request_trust", fromlist=["get_request_trust"]
+                            ).get_request_trust(),
+                        )
+                    else:
+                        # Auto-sign with local Ed25519 key (true loopback only)
+                        _auto_sig = _auto_sign_nonce(actor_id, _challenge_nonce)
 
                     if _auto_sig:
                         _ok, _reason = verify_init_identity(
@@ -2030,8 +2042,15 @@ def arif_init(
                 # are lowercase. Lowercase both sides.
                 _al_lower = _al.lower().strip() if _al else None
                 if _al_lower and _al_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                    from arifosmcp.runtime.request_trust import auto_sign_allowed
+
                     _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al_lower]
-                    if _exempt_level == "sovereign":
+                    if not auto_sign_allowed():
+                        logger.info(
+                            "light-mode exempt elevation denied for %s (public/proxied)",
+                            actor_id,
+                        )
+                    elif _exempt_level == "sovereign":
                         # Only true sovereign exempt (if any remain) — still FULL
                         _light_actor_verified = True
                         _light_band = "FULL"
@@ -2061,7 +2080,7 @@ def arif_init(
                             actor_id,
                         )
                     else:
-                        # STAB-2026-08-09: operator exempt → LIMITED_MUTATE not FULL
+                        # STAB-2026-08-09: operator exempt → LIMITED_MUTATE, local only
                         _light_actor_verified = True
                         _light_band = "LIMITED_MUTATE"
                         _light_agent_class = "AGENT"
@@ -2085,8 +2104,8 @@ def arif_init(
                         sess["signature_verified"] = True
                         sess["verified"] = True
                         sess["actor_verified"] = True
-                        sess["verification_method"] = "session"
-                        sess["evidence_ref"] = f"session://{actor_id}/exempt"
+                        sess["verification_method"] = "system_exempt_local"
+                        sess["evidence_ref"] = f"session://{actor_id}/exempt_local"
                         sess["agent_class"] = "AGENT"
                         sess["authority"] = "LIMITED_MUTATE"
                         sess["actor_band"] = "LIMITED_MUTATE"
@@ -2618,8 +2637,17 @@ def arif_init(
                 # Issue challenge — succeeds for registered + exempt actors
                 _challenge_nonce = issue_actor_challenge(actor_id)
 
-                # Auto-sign with local Ed25519 key
-                _auto_sig = _auto_sign_nonce(actor_id, _challenge_nonce)
+                # STAB-2026-08-09: no auto-sign for public/proxied callers
+                from arifosmcp.runtime.request_trust import auto_sign_allowed
+
+                if not auto_sign_allowed():
+                    _auto_sig = None
+                    logger.info(
+                        "init auto-sign denied for %s (public/proxied or disabled)",
+                        actor_id,
+                    )
+                else:
+                    _auto_sig = _auto_sign_nonce(actor_id, _challenge_nonce)
 
                 if _auto_sig:
                     logger.info("DEBUG-KC8: mode=init auto-sign got _auto_sig, verifying")
@@ -2695,8 +2723,17 @@ def arif_init(
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
 
                 if actor_lower and actor_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
-                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
-                    if _exempt_level == "sovereign":
+                    from arifosmcp.runtime.request_trust import auto_sign_allowed
+
+                    # Name-only exempt elevation ONLY on true local loopback.
+                    # Public/proxied callers claiming OPENCLAW/OPENCODE get OBSERVE_ONLY.
+                    if not auto_sign_allowed():
+                        logger.info(
+                            "system_exempt elevation denied for %s (public/proxied) — OBSERVE_ONLY",
+                            actor_id,
+                        )
+                        # fall through without identity_verified
+                    elif _exempt_level == "sovereign":
                         identity_verified = True
                         sess["verified"] = True
                         sess["verification_method"] = "system_exempt"
@@ -2724,10 +2761,11 @@ def arif_init(
                         )
                     else:
                         # STAB-2026-08-09: operator exempt → LIMITED_MUTATE (not FULL)
+                        # and ONLY when true local loopback (auto_sign_allowed).
                         identity_verified = True
                         sess["verified"] = True
-                        sess["verification_method"] = "system_exempt"
-                        sess["evidence_ref"] = f"system_exempt://{actor_lower}"
+                        sess["verification_method"] = "system_exempt_local"
+                        sess["evidence_ref"] = f"system_exempt_local://{actor_lower}"
                         try:
                             from arifosmcp.runtime.authority import bind_authority_state
                             from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
@@ -2735,7 +2773,7 @@ def arif_init(
                             )
 
                             _av_state = build_authority_state_for_actor(
-                                actor_id, verified=True, verification_method="system_exempt"
+                                actor_id, verified=True, verification_method="system_exempt_local"
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
@@ -2744,7 +2782,7 @@ def arif_init(
                         sess["actor_band"] = "LIMITED_MUTATE"
                         sess["authority"] = "LIMITED_MUTATE"
                         logger.info(
-                            "Auto-granted LIMITED_MUTATE for %s (Ed25519 exempt, %s)",
+                            "Auto-granted LIMITED_MUTATE for %s (local exempt, %s)",
                             actor_id,
                             _exempt_level,
                         )

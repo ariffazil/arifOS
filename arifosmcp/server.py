@@ -279,6 +279,38 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
             return JSONResponse({"status": "void", "action": "HALT"}, status_code=500)
 
 
+class RequestTrustMiddleware(BaseHTTPMiddleware):
+    """STAB-2026-08-09: classify LOCAL_LOOPBACK vs PROXIED for auto-sign gate.
+
+    Cloudflare → Caddy → 127.0.0.1:8088 looks local at the TCP layer. Proxy
+    headers mark the request as external so VIP actor names cannot elevate
+    via kernel auto-sign with host keys.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        try:
+            from arifosmcp.runtime.request_trust import set_request_trust
+
+            peer = ""
+            if request.client is not None:
+                peer = request.client.host or ""
+            headers = request.headers
+            proxied = bool(
+                headers.get("cf-connecting-ip")
+                or headers.get("CF-Connecting-IP")
+                or headers.get("x-forwarded-for")
+                or headers.get("X-Forwarded-For")
+                or headers.get("x-real-ip")
+                or headers.get("X-Real-IP")
+                or headers.get("x-forwarded-proto")
+                or headers.get("X-Forwarded-Proto")
+            )
+            set_request_trust(peer=peer, proxied=proxied)
+        except Exception:
+            pass
+        return await call_next(request)
+
+
 class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
     """
     PHOENIX-73C: Reject GET requests to /mcp in stateless HTTP mode.
@@ -2638,6 +2670,8 @@ if app:
     # any other middleware touches the request. FAIL-CLOSED: 502 if organ down.
     # Must be added FIRST so it runs OUTERMOST (Starlette LIFO middleware order).
     app.add_middleware(OrganProxyMiddleware)
+    # Trust class for auto-sign / VIP name elevation (vault7 trust push)
+    app.add_middleware(RequestTrustMiddleware)
 
     app.add_middleware(OriginValidationMiddleware)
     app.add_middleware(DPoPAuthMiddleware)
