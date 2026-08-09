@@ -2595,6 +2595,8 @@ def _compute_canonical_verdict(
             "evidence_used",
             "inferences",
             "what_is_supported",
+            "what_remains_unknown",
+            "what_is_not_supported",
             "facts",
             "query",
             "routing_rule",
@@ -2605,6 +2607,8 @@ def _compute_canonical_verdict(
             "actor_bound",
             "effective_state",
             "allowed_next_verbs",
+            "degraded_state",
+            "confidence",
         )
         _has_substance = any(
             k in _rp and _rp.get(k) not in (None, "", [], {}) for k in _SUBSTANCE_KEYS
@@ -5157,6 +5161,25 @@ def _enforce_nine_signal(
         # claim_state, reasoning_verdict, evidence_used, inferences,
         # counterarguments, missing_evidence, confidence (object), next_safe_action.
         if tool_name == "arif_think" and isinstance(result_payload, dict):
+            # Flatten nested result.result (BUG-2 path) so clients see axioms/
+            # synthesis/query at one depth.
+            _nested = result_payload.get("result")
+            if isinstance(_nested, dict):
+                for _fk in (
+                    "axioms",
+                    "synthesis",
+                    "bounded_answer",
+                    "query",
+                    "mode",
+                    "what_is_supported",
+                    "what_is_not_supported",
+                    "what_remains_unknown",
+                    "confidence",
+                    "claim_state",
+                    "degraded_state",
+                ):
+                    if _fk in _nested and _fk not in result_payload:
+                        result_payload[_fk] = _nested[_fk]
             if "claim_state" not in result_payload:
                 _v = (verdict or "").upper()
                 if _v == "SEAL":
@@ -5172,6 +5195,9 @@ def _enforce_nine_signal(
                 _ev = list(_ev.keys())
             elif not isinstance(_ev, list):
                 _ev = []
+            # Promote axioms list as evidence when present
+            if not _ev and isinstance(result_payload.get("axioms"), list):
+                _ev = [a.get("id", str(a)) for a in result_payload["axioms"] if isinstance(a, dict)]
             result_payload["evidence_used"] = _ev
             result_payload.setdefault("inferences", result_payload.get("reasoning_trace", []))
             result_payload.setdefault("counterarguments", [])
@@ -5197,13 +5223,17 @@ def _enforce_nine_signal(
             ):
                 _c = _target.get("confidence")
                 if _c is not None and not isinstance(_c, dict):
+                    try:
+                        _cf = float(_c)
+                    except (TypeError, ValueError):
+                        _cf = 0.5
                     _target["confidence"] = {
-                        "overall": float(_c) if isinstance(_c, (int, float)) else 0.5,
+                        "overall": _cf,
                         "label": (
                             "high"
-                            if (isinstance(_c, (int, float)) and _c >= 0.7)
+                            if _cf >= 0.7
                             else "low"
-                            if (isinstance(_c, (int, float)) and _c < 0.4)
+                            if _cf < 0.4
                             else "medium"
                         ),
                     }
@@ -14444,15 +14474,33 @@ async def _arif_mind_reason_tool(
         except TimeoutError:
             _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
             logger.warning(
-                "333_MIND timeout after %.1fs — SAFE_VOID fallback",
+                "333_MIND timeout after %.1fs — degraded substance fallback (not SAFE_VOID)",
                 _think_budget_s,
             )
-            return _safe_void_fallback(
-                "arif_mind_reason",
-                f"LLM timeout after {_think_budget_s}s",
-                session_id=session_id,
-                actor_id=actor_id,
-            )
+            # BUG-2 residual: SAFE_VOID emptied payload → hollow_success_gate.
+            # Return degraded but substantive result so gate sees query/unknowns.
+            result = {
+                "status": "OK",
+                "tool": "arif_mind_reason",
+                "verdict": "HOLD",
+                "result": {
+                    "mode": mode,
+                    "query": query,
+                    "synthesis": "",
+                    "confidence": 0.10,
+                    "what_is_supported": [],
+                    "what_is_not_supported": [],
+                    "what_remains_unknown": [
+                        f"LLM timeout after {_think_budget_s}s — template-only path",
+                        "REASONING_EMPTY — no live synthesis",
+                    ],
+                    "claim_state": "UNKNOWN",
+                    "confidence_provenance": "UNMEASURED",
+                    "degraded_state": DEGRADED_REASONING_STATES.get(
+                        "DEGRADED_TIMEOUT", "DEGRADED_TIMEOUT"
+                    ),
+                },
+            }
         except Exception as _exc:
             logger.warning(
                 "333_MIND cognitive module unavailable (%s); rule fallback active",
