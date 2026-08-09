@@ -122,6 +122,35 @@ def _compute_amanah(entry: EurekaLedgerEntry) -> float:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+def _institutional_metrics_context() -> dict[str, Any]:
+    """Attach MAP·ATLAS·ECHO as read-only context for delta classification.
+
+    Wiring only (2026-08-09): does not change ACCEPT/REJECT rules by itself.
+    Surfaces institutional density so eureka deltas can be audited against
+    live telemetry. Paradox catalog remains immutable.
+    """
+    try:
+        from arifosmcp.geometry.metrics_bridge import (
+            load_institutional_metrics,
+            map_calibrate_top_k,
+            echo_tension_weights,
+        )
+
+        m = load_institutional_metrics(recompute=False)
+        return {
+            "MAP": m.get("MAP"),
+            "ATLAS": m.get("ATLAS"),
+            "ECHO": m.get("ECHO"),
+            "HERMES": m.get("HERMES"),
+            "map_calibration": map_calibrate_top_k(5, m),
+            "echo_p2_weight": echo_tension_weights(m).get("p2_weight"),
+            "epistemic": m.get("_epistemic"),
+            "note": "context only — TEARFRAME gates unchanged; paradox text immutable",
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {"epistemic": "UNMEASURED", "error": str(exc)}
+
+
 def classify_delta(entry: EurekaLedgerEntry) -> tuple[DeltaClassification, dict[str, Any]]:
     """Classify a eureka entry's proposed delta.
 
@@ -144,6 +173,8 @@ def classify_delta(entry: EurekaLedgerEntry) -> tuple[DeltaClassification, dict[
         "paradox_axis_count": len(entry.paradox_axis_ids),
         "evidence_count": len(entry.evidence_for_a) + len(entry.evidence_for_b),
         "witness_count": len(entry.witnesses),
+        # Institutional metrics bridge (read-only context)
+        "institutional_metrics": _institutional_metrics_context(),
     }
 
     # Gate 1 (HARD): Must have paradox axes

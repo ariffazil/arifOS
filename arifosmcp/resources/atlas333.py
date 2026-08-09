@@ -19,6 +19,8 @@ Resource URIs (arifos:// namespace):
   arifos://atlas333/flow             — 10-stage pipeline
   arifos://atlas333/geometry         — Full cognitive geometry (zones × geometries × depths)
   arifos://atlas333/scar/{id}        — Sealed scar by ID (read-only)
+  arifos://atlas333/metrics          — MAP·ATLAS·ECHO institutional metrics
+                                       (wiring input; paradox content immutable)
 
   REMOVED 2026-08-08 (consolidated into atlas333/paradox/list):
     arifos://atlas333/zones, organs, thresholds, activation/rules, quote/list, seal/head
@@ -375,13 +377,19 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
                     "arifos://atlas333/flow",
                     "arifos://atlas333/geometry",
                     "arifos://atlas333/scar/{id}",
+                    "arifos://atlas333/metrics",
                 ],
                 "data_sources": [
                     "constitution/paradox_quotes.py",
                     "core/shared/atlas.py",
                     "core/shared/types.py",
                     "core/shared/ATLAS333_EVERGREEN.md",
+                    "AAA/state/map_atlas_echo.json (metrics bridge)",
                 ],
+                "disambiguation": {
+                    "ATLAS333": "35 paradoxes · cognitive geometry",
+                    "ATLAS_metric": "governance telemetry (MAP·ATLAS·ECHO)",
+                },
                 "seal": "DITEMPA BUKAN DIBERI",
             },
             indent=2,
@@ -426,6 +434,36 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
             return json.dumps({"error": f"Cannot read scar: {exc}"})
 
     registered.append("arifos://atlas333/scar/{id}")
+
+    # ── arifos://atlas333/metrics — MAP·ATLAS·ECHO wiring input (2026-08-09)
+    # Read-only. Deterministic. Does NOT mutate the 35 paradoxes.
+
+    @mcp.resource("arifos://atlas333/metrics")
+    async def atlas333_metrics() -> str:
+        """Institutional MAP·ATLAS·ECHO as ATLAS333 geometry input.
+
+        Wiring layer only (F2/F8):
+          MAP  → paradox selection density (top_k calibration)
+          ECHO → live tension weights (P2 heats on memory visibility)
+          ATLAS metric → judge-axis heat when governance compression low
+
+        ATLAS333 content (35 paradoxes) is immutable compression artifact.
+        """
+        try:
+            from arifosmcp.geometry.metrics_bridge import metrics_resource_payload
+
+            return json.dumps(metrics_resource_payload(recompute=False), indent=2, default=str)
+        except Exception as exc:
+            return json.dumps(
+                {
+                    "uri": "arifos://atlas333/metrics",
+                    "error": str(exc),
+                    "epistemic": "UNMEASURED",
+                    "note": "Run map-atlas-echo --write then re-read",
+                }
+            )
+
+    registered.append("arifos://atlas333/metrics")
 
     # ── REMOVED 2026-08-08 (consolidation into atlas333/paradox/list):
     #   arifos://atlas333/seal/head      — use arifos://vault/head

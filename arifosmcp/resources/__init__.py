@@ -386,6 +386,11 @@ _RESOURCE_PROVENANCE: dict[str, dict[str, Any]] = {
         "staleness": "refresh_on_deploy",
         "evidence_layer": "cognitive_geometry",
     },
+    "arifos://atlas333/metrics": {
+        "source": "map_atlas_echo + metrics_bridge",
+        "kind": "institutional_telemetry",
+        "note": "MAP·ATLAS·ECHO wiring into ATLAS333; paradox content immutable",
+    },
     "arifos://atlas333/geometry": {
         "source": "atlas333_cognitive_geometry",
         "truth_level": 3,
@@ -481,6 +486,7 @@ CANONICAL_RESOURCES = (
     "arifos://atlas333/paradox/list",
     "arifos://atlas333/geometry",
     "arifos://atlas333/flow",
+    "arifos://atlas333/metrics",
     "arifos://wisdom/contract",
     "arifos://wisdom/quotes/all",
     # DOORS chamber
