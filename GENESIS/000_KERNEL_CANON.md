@@ -30,6 +30,7 @@ Every organ points back here. No organ may redefine what is written here.
 | 046 | Constitutional VSM — Beer + cryptography + metabolic governance | CANON |
 | 058 | Three Closures — Gödel · Calhoun · Refusal — boot enforcement | CANON |
 | 060 | Federation Intent Grammar — compression-risk · contradiction · anti-Gödel entry | CANON |
+| 061 | Autonomous Governed Execution — CONTINUE/HOLD · contradiction engine · T0–T3 | CANON |
 
 ---
 
