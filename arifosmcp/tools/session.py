@@ -1402,6 +1402,72 @@ def arif_init(
             ("".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[:120])
             or None
         )
+
+    # ── STAB-2026-08-09: F13 / sovereign name spoof → VOID (not silent downgrade)
+    # External vault7 probe: claiming ARIF/F13/SOVEREIGN without crypto must
+    # be an explicit hostile-attempt signal, not quiet OBSERVE_ONLY.
+    if actor_id and not (actor_signature or "").strip():
+        _aid_up = str(actor_id).upper().replace("_", " ").replace("-", " ")
+        _spoof_markers = (
+            "F13",
+            "SOVEREIGN",
+            "ARIF FAZIL",
+            "ARIF FAZIL F13",
+            "MUHAMMAD ARIF",
+            "888 APEX",
+            "888-APEX",
+        )
+        _spoof_hit = any(m in _aid_up for m in _spoof_markers) or _aid_up.strip() in (
+            "ARIF",
+            "888",
+            "ARIFFAZIL",
+            "ARIF_FAZIL",
+            "F13 SOVEREIGN",
+        )
+        # Allow bare registry names ARIF/888 only if they will go through crypto
+        # path later — without signature, VOID the spoof-shaped claims that
+        # include F13/SOVEREIGN or multi-token "ARIF FAZIL …" impersonation.
+        if _spoof_hit and (
+            "F13" in _aid_up
+            or "SOVEREIGN" in _aid_up
+            or " " in _aid_up.strip()
+            or _aid_up.strip() in ("ARIF FAZIL", "MUHAMMAD ARIF", "888 APEX")
+        ):
+            logger.warning(
+                "arif_init: SOVEREIGN_SPOOF_ATTEMPT actor_id=%r (no signature)",
+                actor_id,
+            )
+            return _sm(
+                status="VOID",
+                result={
+                    "session_id": None,
+                    "actor_id": actor_id,
+                    "actor_verified": False,
+                    "authority_band": "VOID",
+                    "mutation_allowed": False,
+                    "seal_allowed": False,
+                    "effective_state": {
+                        "actor_verified": False,
+                        "authority_band": "OBSERVE_ONLY",
+                        "mutation_allowed": False,
+                        "seal_allowed": False,
+                        "substrate_state": "HEALTHY",
+                        "derived_from": "sovereign_spoof_gate",
+                    },
+                },
+                meta={
+                    "reason": (
+                        "SOVEREIGN_SPOOF_ATTEMPT — actor_id claims F13/sovereign "
+                        "identity without cryptographic signature. Not elevated; "
+                        "logged as hostile claim."
+                    ),
+                    "reason_code": "SOVEREIGN_SPOOF_ATTEMPT",
+                    "violated_laws": ["F9_ANTIHANTU", "F13_SOVEREIGN"],
+                    "hint": "Use real Ed25519 actor_signature for sovereign bind.",
+                },
+                doctrine=ARIF_DOCTRINE,
+            )
+
     _canonical_actor_id: str | None = None
     if actor_id:
         try:
@@ -1446,7 +1512,8 @@ def arif_init(
                 try:
                     import uuid as _uuid_guest
 
-                    _guest_sid = f"SEAL-guest-{_uuid_guest.uuid4().hex[:12]}"
+                    # Guest IDs must NOT use SEAL- prefix (cosmetic Gödel trap, vault7 P2)
+                    _guest_sid = f"GUEST-{_uuid_guest.uuid4().hex[:12]}"
                     # Register guest identity so L13 session lookups resolve
                     try:
                         from arifosmcp.runtime.session import upsert_session_record
@@ -1477,6 +1544,14 @@ def arif_init(
                             "authority_band": "OBSERVE_ONLY",
                             "mutation_allowed": False,
                             "seal_allowed": False,
+                            "effective_state": {
+                                "actor_verified": False,
+                                "authority_band": "OBSERVE_ONLY",
+                                "mutation_allowed": False,
+                                "seal_allowed": False,
+                                "substrate_state": "HEALTHY",
+                                "derived_from": "guest_observe",
+                            },
                             "init_mode": mode or "init",
                             "session_mode": "guest_observe",
                             "session_token": None,  # no SCT until verified
@@ -1900,9 +1975,12 @@ def arif_init(
                         if _ok:
                             _band = classify_actor_band(actor_id, True)
                             _light_actor_verified = True
-                            _light_band = "FULL"
-                            _light_agent_class = "SOVEREIGN_PRINCIPAL"
-                            _light_authority_level = "SOVEREIGN"
+                            # Use classify_actor_band — never hardcode FULL/SOVEREIGN for agents
+                            _light_band = str(_band.get("actor_band") or "LIMITED_MUTATE")
+                            _light_agent_class = str(_band.get("agent_class") or "AGENT")
+                            _light_authority_level = str(
+                                _band.get("authority_level") or "OPERATOR"
+                            )
                             try:
                                 from arifosmcp.runtime.authority import bind_authority_state
                                 from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
@@ -1918,9 +1996,9 @@ def arif_init(
                             except Exception:
                                 pass
                             sess["signature_verified"] = True
-                            sess["actor_band"] = "FULL"
-                            sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
-                            sess["authority"] = "FULL"
+                            sess["actor_band"] = _light_band
+                            sess["agent_class"] = _light_agent_class
+                            sess["authority"] = _light_band
                             # F13 SOVEREIGN 2026-08-01: set fields that
                             # session_standing.py's C_dark HONEST_HOLD check
                             # requires (verification_method + evidence_ref)
@@ -1954,6 +2032,7 @@ def arif_init(
                 if _al_lower and _al_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
                     _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al_lower]
                     if _exempt_level == "sovereign":
+                        # Only true sovereign exempt (if any remain) — still FULL
                         _light_actor_verified = True
                         _light_band = "FULL"
                         _light_agent_class = "SOVEREIGN_PRINCIPAL"
@@ -1982,8 +2061,9 @@ def arif_init(
                             actor_id,
                         )
                     else:
+                        # STAB-2026-08-09: operator exempt → LIMITED_MUTATE not FULL
                         _light_actor_verified = True
-                        _light_band = "FULL"
+                        _light_band = "LIMITED_MUTATE"
                         _light_agent_class = "AGENT"
                         _light_authority_level = "OPERATOR"
                         try:
@@ -2009,6 +2089,7 @@ def arif_init(
                         sess["evidence_ref"] = f"session://{actor_id}/exempt"
                         sess["agent_class"] = "AGENT"
                         sess["authority"] = "LIMITED_MUTATE"
+                        sess["actor_band"] = "LIMITED_MUTATE"
                         logger.info(
                             "light-mode auto-grant for %s (Ed25519 exempt, %s)",
                             actor_id,
@@ -2557,8 +2638,10 @@ def arif_init(
                         _band = classify_actor_band(actor_id, True)
                         identity_verified = True
                         sess["signature_verified"] = True
-                        sess["actor_band"] = _band["actor_band"]
-                        sess["agent_class"] = _band["agent_class"]
+                        # Agents → LIMITED_MUTATE; only sovereign principal → FULL
+                        sess["actor_band"] = _band.get("actor_band") or "LIMITED_MUTATE"
+                        sess["agent_class"] = _band.get("agent_class") or "AGENT"
+                        sess["authority"] = sess["actor_band"]
                         sess["identity_verify_reason"] = _reason
                         sess["verified"] = True
                         sess["verification_method"] = "ed25519_auto_localhost"
@@ -2633,12 +2716,14 @@ def arif_init(
                         sess["signature_verified"] = True
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                         sess["actor_band"] = "FULL"
+                        sess["authority"] = "FULL"
                         logger.info(
                             "Auto-granted SOVEREIGN identity for %s "
                             "(Ed25519 exempt, IRR-DIP-AUDIT 2026-07-09)",
                             actor_id,
                         )
                     else:
+                        # STAB-2026-08-09: operator exempt → LIMITED_MUTATE (not FULL)
                         identity_verified = True
                         sess["verified"] = True
                         sess["verification_method"] = "system_exempt"
@@ -2656,9 +2741,10 @@ def arif_init(
                         except Exception:
                             pass
                         sess["agent_class"] = "AGENT"
-                        sess["actor_band"] = "FULL"
+                        sess["actor_band"] = "LIMITED_MUTATE"
+                        sess["authority"] = "LIMITED_MUTATE"
                         logger.info(
-                            "Auto-granted identity for %s (Ed25519 exempt, %s)",
+                            "Auto-granted LIMITED_MUTATE for %s (Ed25519 exempt, %s)",
                             actor_id,
                             _exempt_level,
                         )
@@ -2927,9 +3013,17 @@ def arif_init(
         # ── Project to frozen header (mode=init/full: same shape as light) ─
         sid = sess.get("session_id", "UNKNOWN")
         _vb_full = _normalize_verbosity(verbose)
-        # KC8-HARDCODED-2026-08-04: hardcode authority_override=FULL for testing.
-        # Will be reverted to conditional after we confirm _project_light is honored.
-        _kc8_authority_override = "FULL"
+        # STAB-2026-08-09 vault7: REMOVE KC8 hardcode FULL.
+        # Authority must come from _derived_auth / sess — not a test override.
+        # Dual-source bug: effective_state.mutation_allowed=true while
+        # effective_verdict=OBSERVE_ONLY was caused by authority_override="FULL".
+        _real_authority_override = (
+            sess.get("authority")
+            or _derived_auth
+            or ("FULL" if identity_verified else "OBSERVE_ONLY")
+        )
+        if not identity_verified:
+            _real_authority_override = "OBSERVE_ONLY"
         header = _project_light(
             components={
                 # RSI 2026-06-22: soul/shadow → alignment_profile/adversarial_profile
@@ -2955,12 +3049,37 @@ def arif_init(
             context_completeness=sess.get("context_completeness"),
             actor_verified=identity_verified,
             session_mode=session_mode,  # AOB P0 — 2026-07-03
-            # Fix 2026-07-06 ROUND-2: pass session's actual authority level
-            # so _project_light doesn't derive "FULL" from actor_verified alone.
-            authority_override=_kc8_authority_override,
+            # Real session authority — never hardcode FULL
+            authority_override=str(_real_authority_override),
             intent=sess.get("intent") or intent or "constitutionally_bound_session",
             verbosity=_vb_full,
         )
+        # Belt: force effective_state consistent with authority_override
+        if isinstance(header, dict):
+            _es = header.get("effective_state")
+            if isinstance(_es, dict):
+                _es["authority_band"] = str(_real_authority_override)
+                _mut = str(_real_authority_override) in (
+                    "LIMITED_MUTATE",
+                    "FULL",
+                    "SOVEREIGN",
+                )
+                _es["mutation_allowed"] = _mut
+                _es["seal_allowed"] = str(_real_authority_override) in ("FULL", "SOVEREIGN") and bool(
+                    identity_verified
+                )
+                _es["actor_verified"] = bool(identity_verified)
+            header["authority_band"] = str(_real_authority_override)
+            header["mutation_allowed"] = str(_real_authority_override) in (
+                "LIMITED_MUTATE",
+                "FULL",
+                "SOVEREIGN",
+            )
+            _sb = header.get("session_birth")
+            if isinstance(_sb, dict):
+                _sb["authority_mode"] = str(_real_authority_override)
+                _sb["verdict"] = str(_real_authority_override)
+                _sb["mutation_allowed"] = header["mutation_allowed"]
         # Authority is now correctly projected by _project_light via authority_override.
         # The old post-hoc override (header["authority"] = "FULL") was a workaround
         # for the actor_verified→FULL derivation bug. Removed — _project_light is
@@ -3105,15 +3224,17 @@ def arif_init(
         #   cycle but are now DERIVED from authority_state (below).
         #   Consumers SHOULD migrate to reading `authority_state` instead.
         # ═══════════════════════════════════════════════════════════════
-        # F13 SOVEREIGN: derive actor.authority_level from the same _derived_auth
-        # that produces result.authority (sess.authority → _project_light) — single
-        # source of truth (Step 2: One authority resolver).
-        if _derived_auth == "FULL":
-            _kc8_authority_level = "SOVEREIGN" if _is_signed_principal else "OPERATOR"
-        elif _derived_auth == "LIMITED_MUTATE":
+        # STAB-2026-08-09: single label from _derived_auth (already set above).
+        # Do NOT re-map LIMITED_MUTATE → SOVEREIGN; only human principal is SOVEREIGN.
+        if _derived_auth == "FULL" and _is_signed_principal:
+            _kc8_authority_level = "SOVEREIGN"
+        elif _derived_auth in ("FULL", "LIMITED_MUTATE"):
             _kc8_authority_level = "OPERATOR"
         else:
             _kc8_authority_level = "ANONYMOUS"
+        # Prefer the earlier authority_level if set in the same branch
+        if authority_level in ("SOVEREIGN", "OPERATOR", "ANONYMOUS"):
+            _kc8_authority_level = authority_level
         return _sm(
             status="OK",
             tool="arif_init",

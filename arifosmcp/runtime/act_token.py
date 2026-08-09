@@ -225,12 +225,18 @@ def identity_band_authority(
     signature_verified: bool = False,
     is_sovereign_principal: bool = False,
 ) -> str:
-    """Birth authority without measured apex — identity only, no G theater."""
+    """Birth authority without measured apex — identity only, no G theater.
+
+    STAB-2026-08-09: verified non-sovereign agents are LIMITED_MUTATE, not FULL.
+    FULL was over-granted and produced dual-source envelopes (authority_band=FULL
+    while effective_verdict stayed OBSERVE_ONLY for unverified paths).
+    """
     if not actor_verified:
         return "OBSERVE_ONLY"
     if signature_verified and is_sovereign_principal:
         return "FULL"  # measured apex still required for SOVEREIGN theater
-    return "FULL"
+    # Verified harness/agent — mutate reversible, not constitutional FULL seal band
+    return "LIMITED_MUTATE"
 
 
 @dataclass
