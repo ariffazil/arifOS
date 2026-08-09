@@ -2443,6 +2443,10 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
     inner_truth = result_payload.get("truth_verdict")
     inner_reasoning = result_payload.get("reasoning_verdict")
     inner_status = result_payload.get("status")
+    # A1 2026-08-09: Server tools post-A1 emit 'verdict' not 'status' in inner
+    # payload. Check both fields so renamed verdicts are not silently dropped
+    # from the degradation scanner.
+    inner_verdict_direct = result_payload.get("verdict")
     inner_confidence = None
     if isinstance(result_payload.get("confidence"), dict):
         inner_confidence = result_payload["confidence"].get("overall_confidence")
@@ -2457,6 +2461,8 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
         found.append(f"inner reasoning_verdict={inner_reasoning}")
     if inner_status in ("HOLD", "FAIL", "SABAR"):
         found.append(f"inner status={inner_status}")
+    if inner_verdict_direct in ("HOLD", "FAIL", "SABAR", "VOID"):
+        found.append(f"inner verdict={inner_verdict_direct}")
     if inner_confidence is not None and inner_confidence < 0.5:
         found.append(f"inner confidence={inner_confidence:.2f}")
 
@@ -9463,7 +9469,10 @@ def _arif_session_init(
 
     # F12 BLUE-TEAM HARDENING (2026-08-08): sanitize actor_id before logging
     # to block log-injection (newlines/control chars forging audit lines).
-    _atl_actor_safe = "".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[:120] or "<empty>"
+    _atl_actor_safe = (
+        "".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[:120]
+        or "<empty>"
+    )
     _atl_logger.getLogger("arifosmcp.atlas333").info(
         f"[ATLAS333] _arif_session_init called: mode={mode}, actor_id={_atl_actor_safe}"
     )
@@ -9611,7 +9620,12 @@ def _arif_session_init(
             # F12 BLUE-TEAM HARDENING (2026-08-08): sanitize actor_id before
             # entering any log/print sink to block log-injection (newlines/control
             # chars forging audit lines). Matches session.py entry-point sanitizer.
-            _dpop_actor_safe = "".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[:120] or "<empty>"
+            _dpop_actor_safe = (
+                "".join(c for c in str(actor_id) if c.isprintable() and c not in "\r\n").strip()[
+                    :120
+                ]
+                or "<empty>"
+            )
             print(
                 f"DPOP_REGISTRY_PATCH_REACHED actor={_dpop_actor_safe} auth_context_type={type(auth_context).__name__} keys={list((auth_context or {}).keys()) if auth_context else None}",
                 file=_dpop_sys.stderr,
