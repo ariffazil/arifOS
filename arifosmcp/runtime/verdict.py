@@ -424,9 +424,9 @@ def attach_effective_verdict(
             or ""
         ).upper()
         if force is False or band in ("OBSERVE_ONLY", "VOID", "ANONYMOUS", ""):
-            if "mutation_allowed" in d:
-                d["mutation_allowed"] = False
-            if "seal_allowed" in d and force is False:
+            # Always write the field — clients must not see missing = ambiguous
+            d["mutation_allowed"] = False
+            if force is False:
                 d["seal_allowed"] = False
         es = d.get("effective_state")
         if isinstance(es, dict):
@@ -437,10 +437,11 @@ def attach_effective_verdict(
                     es["seal_allowed"] = False
             elif eband in ("LIMITED_MUTATE", "FULL", "SOVEREIGN", "MUTATE"):
                 es["mutation_allowed"] = True
-        # nested session_birth
-        sb = d.get("session_birth")
-        if isinstance(sb, dict):
-            _sync_mut(sb, force=force)
+        # nested session_birth / result
+        for nest in ("session_birth", "result"):
+            nested = d.get(nest)
+            if isinstance(nested, dict):
+                _sync_mut(nested, force=force)
 
     if _force_mut is False:
         _sync_mut(response, force=False)
@@ -450,11 +451,7 @@ def attach_effective_verdict(
         standing = response.get("standing")
         if isinstance(standing, dict):
             auth = standing.get("authority")
-            if isinstance(auth, dict) and auth.get("band") in (
-                None,
-                "OBSERVE_ONLY",
-                "VOID",
-            ):
+            if isinstance(auth, dict):
                 auth["mutation_allowed"] = False
                 auth["seal_allowed"] = False
 

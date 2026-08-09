@@ -73,6 +73,84 @@ def _result_code_from_tool_result(result: Any) -> str:
         return "UNK"
 
 
+def _interceptor_hold_tool_result(
+    *,
+    decision: Any,
+    tool_name: str,
+    bare_prefix: str,
+) -> Any:
+    """STAB-2026-08-09: interceptor HOLD/DENY as JSON envelope + structuredContent.
+
+    Bare ``888_HOLD: …`` text made JSON clients report empty/unparseable forge
+    results (vault7 −1). Always emit parseable JSON in content[0].text and
+    structuredContent for dual-Accept MCP clients.
+    """
+    from mcp.types import TextContent
+
+    try:
+        from fastmcp.server.middleware.middleware import ToolResult  # type: ignore
+    except Exception:
+        from mcp.types import CallToolResult as ToolResult  # type: ignore
+
+    auth = (
+        decision.authority_tier.value
+        if getattr(decision, "authority_tier", None)
+        else "LOW"
+    )
+    actor = getattr(decision, "actor_id", None) or "anonymous"
+    cap = getattr(decision, "capability_id", None) or "unknown"
+    reason = getattr(decision, "reason", None) or "constitutional gate"
+    vraw = getattr(decision, "verdict", None)
+    vstr = vraw.value if hasattr(vraw, "value") else str(vraw or "HOLD")
+    eff = "HOLD" if "HOLD" in str(vstr).upper() or "888" in str(vstr).upper() else "VOID"
+    if "DENY" in str(vstr).upper() or "QUARANTINE" in str(vstr).upper():
+        eff = "VOID"
+
+    envelope = {
+        "status": "completed",
+        "tool": tool_name,
+        "verdict": "completed",
+        "effective_verdict": eff,
+        "execution_state": "COMPLETED",
+        "status_scope": "execution",
+        "reason_code": "BLOCKED_BY_FLOOR" if eff == "VOID" else "888_HOLD",
+        "hold_required": True,
+        "mutation_allowed": False,
+        "seal_allowed": False,
+        "actor": {"actor_id": actor, "authority_tier": auth},
+        "capability_id": cap,
+        "reasons": [f"{bare_prefix}: {reason}"],
+        "facts": [
+            f"capability={cap}",
+            f"authority_current={auth}",
+            f"interceptor_verdict={vstr}",
+        ],
+        "next_action": "AWAIT_SOVEREIGN" if "888" in bare_prefix or eff == "HOLD" else "HALT",
+        "can_continue_observing": True,
+        "can_mutate": False,
+        "can_claim_success": False,
+        "human_readable": (
+            f"{bare_prefix}: {reason}\n\n"
+            f"Capability: {cap}\n"
+            f"Actor: {actor}\n"
+            f"Authority: {auth}\n"
+            f"{'This action requires SOVEREIGN (Arif/888) approval.' if '888' in bare_prefix else ''}"
+        ).strip(),
+        "effective_state": {
+            "authority_band": "OBSERVE_ONLY",
+            "mutation_allowed": False,
+            "seal_allowed": False,
+            "actor_verified": False,
+            "derived_from": "kernel_interceptor",
+        },
+    }
+    return ToolResult(
+        is_error=True,
+        content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
+        structuredContent=envelope,
+    )
+
+
 def _nine_signal_for_severity(severity: str) -> dict[str, Any]:
     """Map denial severity to appropriate nine_signal.
 
@@ -1273,44 +1351,20 @@ if IS_FASTMCP_3:
                             logger.warning(
                                 f"KERNEL INTERCEPTOR: {decision.verdict.value} for {tool_name}: {decision.reason}"
                             )
-                            from mcp.types import TextContent
-
-                            return ToolResult(
-                                is_error=True,
-                                content=[
-                                    TextContent(
-                                        type="text",
-                                        text=(
-                                            f"KERNEL_{decision.verdict.value}: {decision.reason}\n\n"
-                                            f"Capability: {decision.capability_id or 'unknown'}\n"
-                                            f"Actor: {decision.actor_id or 'anonymous'}\n"
-                                            f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}"
-                                        ),
-                                    )
-                                ],
+                            return _interceptor_hold_tool_result(
+                                decision=decision,
+                                tool_name=tool_name,
+                                bare_prefix=f"KERNEL_{decision.verdict.value}",
                             )
 
                         if decision.verdict == AdmissibilityVerdict.HOLD_888:
                             logger.warning(
                                 f"KERNEL INTERCEPTOR: 888_HOLD for {tool_name}: {decision.reason}"
                             )
-                            from mcp.types import TextContent
-
-                            verdict = "HOLD"
-                            return ToolResult(
-                                is_error=True,
-                                content=[
-                                    TextContent(
-                                        type="text",
-                                        text=(
-                                            f"888_HOLD: {decision.reason}\n\n"
-                                            f"Capability: {decision.capability_id or 'unknown'}\n"
-                                            f"Actor: {decision.actor_id or 'anonymous'}\n"
-                                            f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}\n\n"
-                                            f"This action requires SOVEREIGN (Arif/888) approval."
-                                        ),
-                                    )
-                                ],
+                            return _interceptor_hold_tool_result(
+                                decision=decision,
+                                tool_name=tool_name,
+                                bare_prefix="888_HOLD",
                             )
 
                         # ADMIT_READ / ADMIT_SIMULATE / ADMIT_MUTATE — proceed
