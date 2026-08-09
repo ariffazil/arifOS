@@ -29,6 +29,7 @@ Every organ points back here. No organ may redefine what is written here.
 | 045 | Three-Layer Separation — OS / Runtime / Constitutional kernels | CANON |
 | 046 | Constitutional VSM — Beer + cryptography + metabolic governance | CANON |
 | 058 | Three Closures — Gödel · Calhoun · Refusal — boot enforcement | CANON |
+| 060 | Federation Intent Grammar — compression-risk · contradiction · anti-Gödel entry | CANON |
 
 ---
 
