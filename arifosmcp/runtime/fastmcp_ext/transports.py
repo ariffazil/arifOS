@@ -505,18 +505,10 @@ class ConstitutionalErrorMiddleware:
 def _build_http_middleware() -> list[Middleware]:
     middleware: list[Middleware] = []
 
-    # Add default Accept header for universal compatibility (must be first)
-    middleware.append(Middleware(AgnosticAcceptMiddleware))
-    middleware.append(Middleware(ConstitutionalJWTAuthMiddleware))
-    middleware.append(Middleware(SovereignIdentityMiddleware))
-
-    # Catch arifOS errors early
-    middleware.append(Middleware(ConstitutionalErrorMiddleware))
-
-    allowed_hosts = _split_csv("ARIFOS_ALLOWED_HOSTS", "*")
-    if allowed_hosts != ["*"]:
-        middleware.append(Middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts))
-
+    # CORS MUST be outermost (first) so browser OPTIONS preflight
+    # gets handled before auth middleware intercepts it.
+    # Fixes: MCPJam browser CORS 400 on internal endpoint.
+    # Previously CORSMiddleware was innermost — auth intercepted OPTIONS.
     if _env_truthy("ARIFOS_ENABLE_CORS", True):
         allowed_origins = _split_csv(
             "ARIFOS_ALLOWED_ORIGINS",
@@ -558,6 +550,18 @@ def _build_http_middleware() -> list[Middleware]:
                 allow_credentials=False,
             )
         )
+
+    # Add default Accept header for universal compatibility
+    middleware.append(Middleware(AgnosticAcceptMiddleware))
+    middleware.append(Middleware(ConstitutionalJWTAuthMiddleware))
+    middleware.append(Middleware(SovereignIdentityMiddleware))
+
+    # Catch arifOS errors early
+    middleware.append(Middleware(ConstitutionalErrorMiddleware))
+
+    allowed_hosts = _split_csv("ARIFOS_ALLOWED_HOSTS", "*")
+    if allowed_hosts != ["*"]:
+        middleware.append(Middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts))
 
     if _env_truthy("ARIFOS_HTTP_BODY_LIMIT_ENABLED", True):
         max_body = int(os.getenv("ARIFOS_HTTP_MAX_BODY_BYTES", "1048576"))
