@@ -24663,6 +24663,16 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 response = trim_for_verbosity(response, level)
             except Exception:
                 pass
+            # STAB-2026-08-09: after trim, force mutation field on HOLD/VOID/OBSERVE
+            try:
+                if isinstance(response, dict):
+                    _ev = str(response.get("effective_verdict") or "").upper()
+                    if _ev in ("HOLD", "VOID", "888_HOLD", "OBSERVE_ONLY", "SABAR"):
+                        response["mutation_allowed"] = False
+                        response["seal_allowed"] = False
+                        response.setdefault("can_mutate", False)
+            except Exception:
+                pass
             return response
 
         return _async_wrapped
@@ -24701,6 +24711,15 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
             level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
             response = trim_for_verbosity(response, level)
+        except Exception:
+            pass
+        try:
+            if isinstance(response, dict):
+                _ev = str(response.get("effective_verdict") or "").upper()
+                if _ev in ("HOLD", "VOID", "888_HOLD", "OBSERVE_ONLY", "SABAR"):
+                    response["mutation_allowed"] = False
+                    response["seal_allowed"] = False
+                    response.setdefault("can_mutate", False)
         except Exception:
             pass
         return response
