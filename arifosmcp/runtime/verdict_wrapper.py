@@ -111,7 +111,10 @@ def forge_verdict(
     # status=ERROR is a failed execution regardless of constitutional verdict.
     _inner_ok = bool(payload.get("ok", True)) if isinstance(payload, dict) else True
     _inner_errors = bool(payload.get("errors")) if isinstance(payload, dict) else False
-    _inner_status_is_error = isinstance(payload, dict) and payload.get("status", "") == "ERROR"
+    # A1 2026-08-09: Check both 'status' and 'verdict' — post-A1 tools emit 'verdict'.
+    _inner_status_is_error = isinstance(payload, dict) and (
+        payload.get("status", "") == "ERROR" or payload.get("verdict", "") == "ERROR"
+    )
     _is_actual_failure = (
         (code == VerdictCode.VOID) or (not _inner_ok) or _inner_errors or _inner_status_is_error
     )
