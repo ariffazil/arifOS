@@ -400,6 +400,64 @@ def attach_effective_verdict(
                 f"failed_floors={list(_ff)}"
             )
         cc["_derivation"] = "attach_effective_verdict:last_writer"
+
+    # STAB-2026-08-09: single source for mutation_allowed — derived from
+    # effective_verdict (and authority band if present). Never leave
+    # OBSERVE_ONLY/HOLD/VOID with mutation_allowed=true in any nest.
+    _ev_u = str(effective.verdict or "").upper()
+    _mut_ok = _ev_u in ("SEAL", "SABAR", "FULL", "LIMITED_MUTATE", "OK", "APPROVED")
+    # Conservative: only SEAL with non-observe authority allows mutation flags
+    # downstream. HOLD/VOID/OBSERVE_ONLY force false everywhere.
+    if _ev_u in ("HOLD", "VOID", "888_HOLD", "OBSERVE_ONLY", "SABAR"):
+        _force_mut = False
+    else:
+        # SEAL-ish verdict still needs non-OBSERVE band if present
+        _force_mut = None  # leave existing unless observe band found
+
+    def _sync_mut(d: dict, *, force: bool | None) -> None:
+        if not isinstance(d, dict):
+            return
+        band = str(
+            d.get("authority_band")
+            or d.get("authority_mode")
+            or d.get("authority")
+            or ""
+        ).upper()
+        if force is False or band in ("OBSERVE_ONLY", "VOID", "ANONYMOUS", ""):
+            if "mutation_allowed" in d:
+                d["mutation_allowed"] = False
+            if "seal_allowed" in d and force is False:
+                d["seal_allowed"] = False
+        es = d.get("effective_state")
+        if isinstance(es, dict):
+            eband = str(es.get("authority_band") or "").upper()
+            if force is False or eband in ("OBSERVE_ONLY", "VOID", "ANONYMOUS", ""):
+                es["mutation_allowed"] = False
+                if force is False:
+                    es["seal_allowed"] = False
+            elif eband in ("LIMITED_MUTATE", "FULL", "SOVEREIGN", "MUTATE"):
+                es["mutation_allowed"] = True
+        # nested session_birth
+        sb = d.get("session_birth")
+        if isinstance(sb, dict):
+            _sync_mut(sb, force=force)
+
+    if _force_mut is False:
+        _sync_mut(response, force=False)
+        res = response.get("result")
+        if isinstance(res, dict):
+            _sync_mut(res, force=False)
+        standing = response.get("standing")
+        if isinstance(standing, dict):
+            auth = standing.get("authority")
+            if isinstance(auth, dict) and auth.get("band") in (
+                None,
+                "OBSERVE_ONLY",
+                "VOID",
+            ):
+                auth["mutation_allowed"] = False
+                auth["seal_allowed"] = False
+
     return response
 
 
