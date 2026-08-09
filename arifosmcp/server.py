@@ -96,6 +96,26 @@ from fastmcp import FastMCP  # noqa: E402
 from mcp import McpError  # noqa: E402
 from mcp.server.fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
 from mcp.types import ErrorData  # noqa: E402
+
+
+# ── MCP 2026-07-28 compliance: inject resultType into collection responses ──
+# The 2026-07-28 protocol revision requires resultType in tools/list, resources/list,
+# prompts/list. The MCP SDK's ListToolsResult doesn't include it natively.
+# Patch model_dump to inject it. (MCPJam compliance fix — 2026-08-09)
+try:
+    from mcp.types import ListToolsResult as _LTR
+
+    _orig_ltr_dump = _LTR.model_dump
+
+    def _ltr_dump_with_resulttype(self, *a, **kw):
+        d = _orig_ltr_dump(self, *a, **kw)
+        if "resultType" not in d:
+            d["resultType"] = "complete"
+        return d
+
+    _LTR.model_dump = _ltr_dump_with_resulttype
+except Exception:
+    pass  # Non-critical — MCPJam may show warning but server works
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
@@ -2665,6 +2685,7 @@ if app:
     )
     from arifosmcp.transport import AirlockASGIMiddleware
     from arifosmcp.transport.organ_proxy import OrganProxyMiddleware
+    from arifosmcp.transport.resulttype_asgi import ResultTypeASGIMiddleware
 
     # OrganProxy runs FIRST — intercepts X-Arifos-Organ-Target header before
     # any other middleware touches the request. FAIL-CLOSED: 502 if organ down.
@@ -2677,6 +2698,8 @@ if app:
     app.add_middleware(DPoPAuthMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
+    # MCP 2026-07-28: inject resultType into tools/list responses (MCPJam compliance)
+    app.add_middleware(ResultTypeASGIMiddleware)
     # CORS: env-driven allowed origins. Default: federation domains only.
     # Set ARIFOS_CORS_ORIGINS=* for development only.
     _cors_raw = os.getenv("ARIFOS_CORS_ORIGINS", "").strip()
@@ -2691,8 +2714,10 @@ if app:
             "https://mcp.arif-fazil.com",
             "https://aaa.arif-fazil.com",
             "http://localhost:3001",
+            "http://localhost:6274",
             "http://localhost:8088",
             "http://127.0.0.1:3001",
+            "http://127.0.0.1:6274",
             "http://127.0.0.1:8088",
         ]
     app.add_middleware(
