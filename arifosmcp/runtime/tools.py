@@ -24570,6 +24570,122 @@ except ImportError as _rule14_err:
 # _RUNTIME_DIAGNOSTIC_HANDLERS, with a post-process decorator that runs
 # `attach_canonical` on every response. Identity and verdict collapse to
 # one canonical composer pair; drift is structurally impossible.
+
+
+def _force_hold_mutation_fields(response: Any) -> Any:
+    """STAB-2026-08-09c: last-writer mut/seal sync after verbosity trim.
+
+    Dual-truth residual (vault7 edge): forge HOLD envelopes sometimes had
+    status=HOLD but missing top-level effective_verdict + mutation_allowed,
+    while authority.seal_allowed stayed True from legacy envelope. Clients
+    that only read top-level fields saw ambiguity.
+
+    Rules:
+    - HOLD/VOID/blocked/observe → mutation_allowed=false, seal_allowed=false
+    - Always materialize effective_verdict when status is holdish
+    - Sync nested authority / effective_state / constitutional_check
+    """
+    if not isinstance(response, dict):
+        return response
+
+    def _as_upper(val: Any) -> str:
+        if val is None:
+            return ""
+        if isinstance(val, dict):
+            return str(
+                val.get("state")
+                or val.get("verdict")
+                or val.get("dominant_reason")
+                or ""
+            ).upper()
+        return str(val).upper()
+
+    status_u = _as_upper(response.get("status"))
+    ev_u = _as_upper(response.get("effective_verdict"))
+    verdict_u = _as_upper(response.get("verdict"))
+    rc_u = _as_upper(response.get("reason_code"))
+    output_u = _as_upper(response.get("output_policy"))
+
+    holdish_tokens = (
+        "HOLD",
+        "VOID",
+        "888_HOLD",
+        "OBSERVE_ONLY",
+        "SABAR",
+        "BLOCKED",
+        "DENY",
+        "UNAUTHORIZED",
+    )
+    blob = " ".join((status_u, ev_u, verdict_u, rc_u, output_u))
+    is_holdish = any(tok in blob for tok in holdish_tokens)
+    # Also treat explicit may_mutate/mutation_allowed=false + non-SEAL as holdish
+    # when status is not a cheerful completed SEAL path.
+    if not is_holdish:
+        auth = response.get("authority")
+        if isinstance(auth, dict):
+            if auth.get("mutation_allowed") is False or auth.get("may_mutate") is False:
+                if status_u not in ("COMPLETED", "SEAL", "OK", "APPROVED", "SAFE"):
+                    # Don't force on healthy completed observe replies that
+                    # legitimately have mut=false with completed status.
+                    if status_u in ("HOLD", "BLOCKED", "ERROR", "DENIED") or "HOLD" in verdict_u:
+                        is_holdish = True
+
+    if not is_holdish:
+        return response
+
+    # Normalize effective_verdict
+    if "VOID" in blob or "BLOCKED" in status_u or "DENY" in blob:
+        response["effective_verdict"] = "VOID"
+    elif "SABAR" in blob:
+        response["effective_verdict"] = "SABAR"
+    elif "OBSERVE_ONLY" in blob and "HOLD" not in blob:
+        response["effective_verdict"] = "OBSERVE_ONLY"
+    else:
+        response["effective_verdict"] = "HOLD"
+
+    response["mutation_allowed"] = False
+    response["seal_allowed"] = False
+    response["can_mutate"] = False
+    response.setdefault("hold_required", True)
+
+    auth = response.get("authority")
+    if isinstance(auth, dict):
+        auth["mutation_allowed"] = False
+        auth["seal_allowed"] = False
+        auth["may_mutate"] = False
+        auth["may_seal"] = False
+
+    es = response.get("effective_state")
+    if isinstance(es, dict):
+        es["mutation_allowed"] = False
+        es["seal_allowed"] = False
+
+    cc = response.get("constitutional_check")
+    if isinstance(cc, dict):
+        cc["hold_required"] = True
+        if not cc.get("hold_reason"):
+            cc["hold_reason"] = (
+                f"outer_verdict={response.get('effective_verdict')}"
+            )
+
+    # Nested result / session_birth
+    for nest_key in ("result", "session_birth", "standing"):
+        nested = response.get(nest_key)
+        if isinstance(nested, dict):
+            if "mutation_allowed" in nested or nest_key in ("session_birth", "result"):
+                nested["mutation_allowed"] = False
+            if "seal_allowed" in nested or nest_key in ("session_birth",):
+                nested["seal_allowed"] = False
+            nauth = nested.get("authority")
+            if isinstance(nauth, dict):
+                nauth["mutation_allowed"] = False
+                nauth["seal_allowed"] = False
+                nauth["may_mutate"] = False
+                nauth["may_seal"] = False
+
+    return response
+
+
 def _wrap_with_canonical_normalization(handler, tool_name):
     """Epoch 1 canonical normalization. Applied to every canonical/diagnostic
     handler at registration time. Reversible: delete this block and the
@@ -24663,14 +24779,9 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 response = trim_for_verbosity(response, level)
             except Exception:
                 pass
-            # STAB-2026-08-09: after trim, force mutation field on HOLD/VOID/OBSERVE
+            # STAB-2026-08-09c: last-writer mut/seal sync after trim
             try:
-                if isinstance(response, dict):
-                    _ev = str(response.get("effective_verdict") or "").upper()
-                    if _ev in ("HOLD", "VOID", "888_HOLD", "OBSERVE_ONLY", "SABAR"):
-                        response["mutation_allowed"] = False
-                        response["seal_allowed"] = False
-                        response.setdefault("can_mutate", False)
+                _force_hold_mutation_fields(response)
             except Exception:
                 pass
             return response
@@ -24714,12 +24825,7 @@ def _wrap_with_canonical_normalization(handler, tool_name):
         except Exception:
             pass
         try:
-            if isinstance(response, dict):
-                _ev = str(response.get("effective_verdict") or "").upper()
-                if _ev in ("HOLD", "VOID", "888_HOLD", "OBSERVE_ONLY", "SABAR"):
-                    response["mutation_allowed"] = False
-                    response["seal_allowed"] = False
-                    response.setdefault("can_mutate", False)
+            _force_hold_mutation_fields(response)
         except Exception:
             pass
         return response
