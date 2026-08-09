@@ -273,7 +273,29 @@ def trace_graph(paradox_ids: list) -> dict:
 
 
 def activate(text: str, top_k: int = 5, use_graph: bool = True) -> dict:
-    """Full LΘΦ activation pipeline"""
+    """Full LΘΦ activation pipeline
+
+    Wiring (2026-08-09): MAP·ATLAS·ECHO institutional metrics calibrate
+    density (MAP→top_k) and live tension weights (ECHO→axis heat).
+    Paradox *content* is never rewritten — compression artifact stays stable.
+    """
+
+    # ── Institutional metrics bridge (wiring layer only) ──────────────
+    metrics = None
+    map_cal = {"top_k": top_k, "rule": "metrics_unavailable", "delta": 0}
+    try:
+        from arifosmcp.geometry.metrics_bridge import (
+            apply_tension_to_paradoxes,
+            load_institutional_metrics,
+            map_calibrate_top_k,
+        )
+
+        metrics = load_institutional_metrics(recompute=False)
+        map_cal = map_calibrate_top_k(base_k=top_k, metrics=metrics)
+        top_k = int(map_cal.get("top_k") or top_k)
+    except Exception as _mb_exc:  # noqa: BLE001
+        apply_tension_to_paradoxes = None  # type: ignore
+        metrics = {"_error": str(_mb_exc), "_epistemic": "UNMEASURED"}
 
     lane_result = L_lane_classify(text)
     lane = lane_result["lane"]
@@ -291,6 +313,10 @@ def activate(text: str, top_k: int = 5, use_graph: bool = True) -> dict:
 
     paradoxes = search_qdrant(text, top_k=top_k)
 
+    # ECHO → live tension re-rank (P2 heats when memory visibility poor)
+    if apply_tension_to_paradoxes is not None and paradoxes:
+        paradoxes = apply_tension_to_paradoxes(paradoxes, metrics)
+
     # Graph layer: trace relationships between paradoxes
     graph = {}
     if use_graph and paradoxes and "error" not in paradoxes[0]:
@@ -302,8 +328,11 @@ def activate(text: str, top_k: int = 5, use_graph: bool = True) -> dict:
         context_injection = "## ATLAS333 — Active Paradoxes\n\n"
         context_injection += "Navigate BETWEEN these poles, don't pick one:\n\n"
         for p in paradoxes:
+            tw = p.get("tension_weight")
+            live = " ⚡live" if p.get("tension_live") else ""
+            tw_s = f" tension×{tw}" if tw is not None else ""
             context_injection += (
-                f"- **{p['paradox_id']} {p['title']}** [{p['cluster']}]\n"
+                f"- **{p['paradox_id']} {p['title']}** [{p['cluster']}]{live}{tw_s}\n"
                 f"  Poles: {p['poles']}\n"
                 f"  {p['description']}\n"
                 f'  *"{p["quote"]}"*\n\n'
@@ -311,6 +340,12 @@ def activate(text: str, top_k: int = 5, use_graph: bool = True) -> dict:
         # Append graph topology if available
         if graph.get("topology_note"):
             context_injection += graph["topology_note"]
+        # MAP/ECHO calibration note (wiring, not content)
+        if map_cal.get("rule"):
+            context_injection += (
+                f"\n_Calibration:_ MAP→{map_cal.get('rule')} "
+                f"(top_k={top_k}). ECHO heats axes; paradox text immutable.\n"
+            )
 
     result = {
         "query": text[:200],
@@ -321,6 +356,17 @@ def activate(text: str, top_k: int = 5, use_graph: bool = True) -> dict:
         "graph": graph,
         "context_injection": context_injection,
         "instruction": "Think IN the tension between these poles. Navigate.",
+        "institutional_metrics": {
+            "MAP": (metrics or {}).get("MAP"),
+            "ATLAS": (metrics or {}).get("ATLAS"),
+            "ECHO": (metrics or {}).get("ECHO"),
+            "HERMES": (metrics or {}).get("HERMES"),
+            "epistemic": (metrics or {}).get("_epistemic"),
+        },
+        "calibration": {
+            "map_to_top_k": map_cal,
+            "note": "Wiring layer only — 35 paradox definitions unchanged",
+        },
     }
 
     if graph.get("edge_count", 0) > 0:

@@ -30,4 +30,25 @@ Agent thinks IN the tension, not FROM a rule
 
 ## MCP Resource
 
-`arifos://atlas333/activation/rules` on arifOS :8088
+`arifos://atlas333/activation/rules` on arifOS :8088 (merged into paradox/list)
+
+## Institutional metrics bridge (2026-08-09) — wiring only
+
+Two distinct ATLAS concepts:
+
+| Name | Plane |
+|------|--------|
+| **ATLAS333** | 35 paradoxes · cognitive geometry · 333 substrate |
+| **ATLAS metric** | Authority-to-Landscape · governance telemetry |
+
+```
+MAP  → top_k density (low MAP = more paradoxes; high MAP = fewer)
+ECHO → tension weights (P2 Remember/Forget heats on memory visibility)
+ATLAS metric → judge-axis heat when governance compression low
+```
+
+Paradox **content** immutable. Metrics are **signals**.
+
+- Resource: `arifos://atlas333/metrics` (F2 deterministic, F8 read-only)
+- Code: `arifosmcp/geometry/metrics_bridge.py`
+- Activation: `core/shared/atlas333_activate.py`
