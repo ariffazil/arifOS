@@ -184,6 +184,14 @@ def compute_apex_from_metrics(window_seconds: int = 604800) -> dict[str, Any]:
             "Phi": PHI,
             "G": G,
             "C_dark": C_dark,
+            # P0 2026-08-09: W3 + h wired from live metrics (was UNMEASURED).
+            # h = humility/uncertainty mass = evidence gap (1 - P).
+            #   High evidence compliance → low humility mass → G_seal un-damped.
+            #   Low evidence compliance → high humility mass → G_seal damped.
+            # W3 = tri-witness strength = scar feedback Φ (1 - repeated failure).
+            #   Witness agreement measured as: failures don't repeat.
+            "W3": PHI,
+            "h": round(1.0 - P, 4) if P is not None else None,
             "window_seconds": window_seconds,
             "sample_size": n,
             "breakdown": {

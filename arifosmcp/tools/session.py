@@ -1407,12 +1407,16 @@ def arif_init(
     # External vault7 probe: claiming ARIF/F13/SOVEREIGN without crypto must
     # be an explicit hostile-attempt signal, not quiet OBSERVE_ONLY.
     if actor_id and not (actor_signature or "").strip():
-        _aid_up = str(actor_id).upper().replace("_", " ").replace("-", " ")
+        # STAB-2026-08-09 v2 (2026-08-09): keep hyphens AND underscores intact.
+        # "arif-fazil" / "arif_fazil" are canonical sovereign registry forms
+        # (did:web:arif-fazil.com, identity table variants) — NOT impersonation.
+        # Only space-separated natural-language multi-token claims
+        # ("ARIF FAZIL", "MUHAMMAD ARIF", "F13 SOVEREIGN") are spoof-shaped.
+        _aid_up = str(actor_id).upper().strip()
         _spoof_markers = (
             "F13",
             "SOVEREIGN",
             "ARIF FAZIL",
-            "ARIF FAZIL F13",
             "MUHAMMAD ARIF",
             "888 APEX",
             "888-APEX",
@@ -1431,7 +1435,7 @@ def arif_init(
             "F13" in _aid_up
             or "SOVEREIGN" in _aid_up
             or " " in _aid_up.strip()
-            or _aid_up.strip() in ("ARIF FAZIL", "MUHAMMAD ARIF", "888 APEX")
+            or _aid_up.strip() in ("ARIF FAZIL", "MUHAMMAD ARIF", "888 APEX", "888-APEX")
         ):
             logger.warning(
                 "arif_init: SOVEREIGN_SPOOF_ATTEMPT actor_id=%r (no signature)",

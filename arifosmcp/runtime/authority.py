@@ -567,7 +567,7 @@ def authority_envelope_for_session(
     # Path (b) supports MCP agents that verify via session binding rather than
     # Ed25519 signature. The session store's authority field was already set by
     # bind_authority_state which performed its own verification.
-    _known_sovereign = actor_key in ("arif", "888", "ariffazil", "arif_fazil")
+    _known_sovereign = actor_key in ("arif", "888", "ariffazil", "arif_fazil", "arif-fazil")
     # DID registry dynamic validation — F13 T3 directive 2026-08-07.
     # Actors registered in the federation DID registry are verified organs
     # entitled to OPERATOR authority with FULL mutation band.

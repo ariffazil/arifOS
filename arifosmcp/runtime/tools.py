@@ -4937,7 +4937,7 @@ def _enforce_nine_signal(
             "SOVEREIGN"
             if (
                 actor_verified_flag
-                and (resolved_actor_id or "").lower() in ("arif", "888", "ariffazil")
+                and (resolved_actor_id or "").lower() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
             )
             else "OPERATOR"
         )
@@ -7287,7 +7287,7 @@ def _new_session(
 
     # /000: Derive principal from sovereign_id or fallback to actor_id
     _principal = sovereign_id or (
-        actor_id if actor_id and actor_id.lower().strip() in ("arif", "888") else None
+        actor_id if actor_id and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil") else None
     )
     _delegation = delegation_mode or (
         "delegated" if sovereign_id and actor_id and actor_id != sovereign_id else "direct"
@@ -7397,7 +7397,7 @@ def _new_session(
             session_id=sid,
             actor_id=actor_id or "anonymous",
             authority_level=(
-                "sovereign" if actor_id == "arif" else ("operator" if actor_id else "anonymous")
+                "sovereign" if actor_id and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil") else ("operator" if actor_id else "anonymous")
             ),
             auth_context={"source": "arif_session_init", "mode": "init"},
             stage="000",

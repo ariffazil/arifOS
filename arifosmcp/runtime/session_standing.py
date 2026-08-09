@@ -455,7 +455,7 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
         verified
         and _is_strong_method(verification_method)
         and band == BAND_FULL
-        and _claimed_norm in ("arif", "ariffazil", "888")
+        and _claimed_norm in ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888")
     ):
         band = BAND_SOVEREIGN
         mutation_allowed = True

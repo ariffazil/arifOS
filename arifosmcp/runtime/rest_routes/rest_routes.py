@@ -1154,9 +1154,14 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 "value": val,
                 "status": "MEASURED" if val is not None else "UNMEASURED",
             }
-        # W3 and h are not yet wired from live data — mark UNMEASURED
+        # W3 + h wired from live data (2026-08-09) — humility mass + witness
+        # strength derived from the same tool-call metrics as G/C_dark.
         for scalar in ("W3", "h"):
-            apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
+            val = _apex.get(scalar)
+            apex_scalars[scalar] = {
+                "value": val,
+                "status": "MEASURED" if val is not None else "UNMEASURED",
+            }
         # Derive QDF
         g_val = _apex.get("G", 0.0) or 0.0
         c_val = _apex.get("C_dark", 0.0) or 0.0

@@ -1478,7 +1478,7 @@ def recall_constitutional(
 
     # F13 SOVEREIGN — protect sovereignty (highest priority)
     if "F13" in floor_constraints:
-        if actor_id and actor_id not in ("ARIF", "arif", "888", "sovereign"):
+        if actor_id and actor_id.lower().strip() not in ("arif", "888", "sovereign", "ariffazil", "arif-fazil", "arif_fazil"):
             violation = (
                 "F13 SOVEREIGN: This memory is sovereign-protected. "
                 "Only the sovereign may recall with full access."

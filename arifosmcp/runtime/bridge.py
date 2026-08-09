@@ -131,7 +131,7 @@ def _resolve_claimed_actor_id(payload: dict[str, Any]) -> str:
 
     # Canonicalize arif-related IDs by removing separators
     claim_lower = claim.lower()
-    if claim_lower == "arif":
+    if claim_lower in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil"):
         return "ariffazil"
     if (
         "arif" in claim_lower
