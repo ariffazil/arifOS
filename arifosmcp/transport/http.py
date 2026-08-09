@@ -17,7 +17,7 @@ from arifosmcp.server import GlobalPanicMiddleware, mcp
 def create_http_app():
     """Create and configure the HTTP ASGI app with gateway endpoints."""
     # Match production server.py: session IDs + JSON-RPC POST bodies.
-    app = mcp.http_app(stateless_http=False, json_response=True)
+    app = mcp.http_app(stateless_http=True, json_response=True)
 
     app.add_middleware(GlobalPanicMiddleware)
     app.add_middleware(

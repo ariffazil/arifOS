@@ -2674,11 +2674,20 @@ if app:
             "Content-Type",
             "MCP-Session-Id",
             "MCP-Protocol-Version",
+            "Mcp-Method",
+            "Mcp-Name",
+            "Mcp-Param-*",
             "X-Requested-With",
             "X-Arifos-User-Id",
             "X-Arifos-Sovereign-Sig",
         ],
-        expose_headers=["MCP-Session-Id", "MCP-Protocol-Version", "X-DPoP-Status"],
+        expose_headers=[
+            "MCP-Session-Id",
+            "MCP-Protocol-Version",
+            "Mcp-Method",
+            "Mcp-Name",
+            "X-DPoP-Status",
+        ],
         allow_credentials=False,
     )
 

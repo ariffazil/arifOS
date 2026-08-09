@@ -3,40 +3,35 @@ arifosmcp/runtime/mcp_transport_bridge.py
 ════════════════════════════════════════
 MCP Transport → arifOS Kernel Bridge
 
-Bridges the 2025-11-25 MCP Streamable HTTP transport layer into the
-arifOS constitutional kernel. Ensures every tool call inherits the
-MCP session identity (MCP-Session-Id header) as arifOS session_id.
+Bridges dual-era MCP Streamable HTTP into the arifOS constitutional kernel:
 
-MCP Spec Compliance (2025-11-25):
-  § Session Management — MCP-Session-Id header flows to tool context
-  § Protocol Version  — MCP-Protocol-Version header validated
-  § Origin Security   — Inherited from OriginValidationMiddleware
+  • 2025-11-25 — stateful Streamable HTTP (initialize + Mcp-Session-Id)
+  • 2026-07-28 — stateless MCP (SEP-2567/2575): no transport sessions,
+    per-request _meta, server/discover, Mcp-Method/Mcp-Name headers
 
-Architecture:
-  MCP HTTP Request
-    → MCP-Session-Id header
-    → FastMCP session manager
-    → This bridge middleware
-    → arifOS session_enforcer
-    → arifOS tool handler (with valid session_id)
+Refs:
+  https://modelcontextprotocol.io/specification/2026-07-28/changelog
+  https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http
+  https://gofastmcp.com/getting-started/whats-new (FastMCP 4 dual-era)
 
 F1 AMANAH: Additive, never mutates kernel state.
 F2 TRUTH: Session ID sourced from verified MCP header, never fabricated.
-F11 AUTH: Missing MCP-Session-Id → HOLD for governed tools.
+F11 AUTH: Missing MCP-Session-Id → HOLD for governed tools (legacy era only).
 F13 SOVEREIGN: Human sessions require explicit actor binding.
 
-DITEMPA BUKAN DIBERI — Forged 2026-06-12 by Omega (Ω)
+DITEMPA BUKAN DIBERI — Forged 2026-06-12 by Omega (Ω); dual-era 2026-08-09
 """
 
 from __future__ import annotations
 
 import contextvars
+import json
 import logging
 from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 logger = logging.getLogger("arifosmcp.transport_bridge")
 
@@ -68,12 +63,12 @@ LATEST_PROTOCOL_VERSION = "2026-07-28"
 
 class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
     """
-    Validate MCP-Protocol-Version header per 2025-11-25 spec.
+    Dual-era protocol gate (2025-11-25 + 2026-07-28).
 
-    Per spec § Protocol Version Header:
-    - Client MUST include MCP-Protocol-Version on all requests after initialize
-    - If missing and no other way to identify version, assume 2025-03-26
-    - If invalid/unsupported, respond 400 Bad Request
+    - Validate MCP-Protocol-Version when present
+    - On 2026-07-28: serve server/discover, enforce Mcp-Method header match
+      (HeaderMismatch -32020 per SEP-2243), skip session requirements
+    - On 2025-11-25: legacy initialize handshake continues via FastMCP
     """
 
     async def dispatch(self, request: Request, call_next):
@@ -81,21 +76,26 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
         if not request.url.path.startswith("/mcp"):
             return await call_next(request)
 
-        # Skip validation for initialize request (version negotiation)
+        # Skip validation for DELETE (legacy session teardown — ignored in 2026-07-28)
         if request.method == "DELETE":
             return await call_next(request)
 
-        version = request.headers.get("MCP-Protocol-Version", "").strip()
+        version = (
+            request.headers.get("MCP-Protocol-Version", "")
+            or request.headers.get("mcp-protocol-version", "")
+        ).strip()
 
         if version and version not in SUPPORTED_PROTOCOL_VERSIONS:
+            # Spec 2026-07-28: UnsupportedProtocolVersionError → -32022
             return JSONResponse(
                 {
                     "jsonrpc": "2.0",
+                    "id": None,
                     "error": {
-                        "code": -32602,
-                        "message": f"Unsupported MCP-Protocol-Version: {version}",
+                        "code": -32022,
+                        "message": f"UnsupportedProtocolVersion: {version}",
                         "data": {
-                            "supported": sorted(SUPPORTED_PROTOCOL_VERSIONS),
+                            "supported": sorted(SUPPORTED_PROTOCOL_VERSIONS, reverse=True),
                             "latest": LATEST_PROTOCOL_VERSION,
                         },
                     },
@@ -103,7 +103,98 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 status_code=400,
             )
 
+        # ── 2026-07-28 stateless intercepts (read body once, re-inject) ──
+        if request.method == "POST" and version == "2026-07-28":
+            body_bytes = await request.body()
+            try:
+                body = json.loads(body_bytes.decode("utf-8") or "{}")
+            except Exception:
+                body = {}
+
+            # Re-inject body for downstream (Starlette consumes receive once)
+            async def _receive() -> dict[str, Any]:
+                return {"type": "http.request", "body": body_bytes, "more_body": False}
+
+            request = Request(request.scope, _receive)
+
+            method = body.get("method") if isinstance(body, dict) else None
+            req_id = body.get("id") if isinstance(body, dict) else None
+            mcp_method = (
+                request.headers.get("Mcp-Method") or request.headers.get("mcp-method") or ""
+            ).strip()
+
+            # HeaderMismatch: Mcp-Method MUST match body method when both present
+            if mcp_method and method and mcp_method != method:
+                return JSONResponse(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "error": {
+                            "code": -32020,
+                            "message": (
+                                f"HeaderMismatch: Mcp-Method '{mcp_method}' "
+                                f"does not match body method '{method}'"
+                            ),
+                        },
+                    },
+                    status_code=400,
+                )
+
+            # server/discover — MUST for 2026-07-28 (SEP-2575)
+            if method == "server/discover":
+                return JSONResponse(self._discover_result(req_id))
+
+            # Cache for airlock / tools
+            request.state.mcp_protocol_version = "2026-07-28"
+            request.state.mcp_stateless = True
+
+        elif version:
+            request.state.mcp_protocol_version = version
+            request.state.mcp_stateless = version == "2026-07-28"
+
         return await call_next(request)
+
+    @staticmethod
+    def _discover_result(req_id: Any) -> dict[str, Any]:
+        """Build server/discover result per 2026-07-28 Discovery spec."""
+        try:
+            from arifosmcp.runtime.public_surface import public_tool_names
+
+            tools_cap: dict[str, Any] = {"listChanged": True}
+            _ = public_tool_names  # surface exists
+        except Exception:
+            tools_cap = {"listChanged": True}
+
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "resultType": "complete",
+                "supportedVersions": sorted(SUPPORTED_PROTOCOL_VERSIONS, reverse=True),
+                "capabilities": {
+                    "tools": tools_cap,
+                    "resources": {"listChanged": True, "subscribe": False},
+                    "prompts": {"listChanged": True},
+                    "extensions": {"io.modelcontextprotocol/ui": {}},
+                },
+                "instructions": (
+                    "arifOS constitutional kernel. Dual-era MCP: "
+                    "2026-07-28 (stateless, preferred) and 2025-11-25 (stateful). "
+                    "Boot: server/discover → tools/list → arif_init (app session/SCT). "
+                    "Governance session is independent of transport session."
+                ),
+                "ttlMs": 3_600_000,
+                "cacheScope": "public",
+                "_meta": {
+                    "io.modelcontextprotocol/serverInfo": {
+                        "name": "ARIFOS MCP",
+                        "version": "kanon-2026.08.09",
+                        "websiteUrl": "https://mcp.arif-fazil.com",
+                    },
+                    "io.modelcontextprotocol/protocolVersion": LATEST_PROTOCOL_VERSION,
+                },
+            },
+        }
 
 
 # ═══════════════════════════════════════════════════════════════
