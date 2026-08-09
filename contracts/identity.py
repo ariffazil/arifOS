@@ -339,7 +339,25 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     "OPENCLAW": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "OPERATOR",
-        "aliases": ["openclaw", "OpenClaw", "openclaw-gateway"],
+        "aliases": [
+            "openclaw",
+            "OpenClaw",
+            "openclaw-gateway",
+            "openclaw-audit",
+            "openclaw-bot",
+            "AGI_ASI_bot",
+        ],
+    },
+    # 2026-08-09: Grok Build harness (FI-007) + Claude Code for MCP testing agents
+    "GROK": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["grok", "grok-build", "FI-007", "fi-007", "gap-audit", "p0-verify"],
+    },
+    "CLAUDE": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["claude", "claude-code", "anthropic"],
     },
 }
 
