@@ -516,7 +516,18 @@ def mint_sct(
     # organ validators expect, and the federation rejects the call.
     from arifosmcp.runtime.governance_identity import normalize_actor_id
 
-    normalized_actor = normalize_actor_id(actor) or (actor or "anonymous")
+    # STAB-2026-08-09 v3 (OPENCLAW): preserve canonical sovereign registry forms
+    # exactly. "arif-fazil" / "arif_fazil" / "ariffazil" are machine-canonical
+    # (did:web:arif-fazil.com registry + identity table variants, per c4cc9a429).
+    # Normalizing them to "arif" inside the minted claim silently rewrites the
+    # identity that arif_init just bound — a name changing without reason is
+    # dishonesty. Only natural-language / greeting variants collapse.
+    _canonical_forms = {"arif", "arif-fazil", "ariffazil", "arif_fazil"}
+    _raw_lower = (actor or "").strip().lower()
+    if _raw_lower in _canonical_forms:
+        normalized_actor = _raw_lower
+    else:
+        normalized_actor = normalize_actor_id(actor) or (actor or "anonymous")
 
     claims: dict[str, Any] = {
         "act_v": ACT_VERSION,
