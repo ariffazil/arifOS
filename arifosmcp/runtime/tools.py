@@ -171,6 +171,13 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
         # W-02 FIX: authority_scope must not claim SOVEREIGN when mutation is blocked
         if "authority_scope" in d and d.get("mutation_allowed", True) is False:
             d["authority_scope"] = "OBSERVE_ONLY"
+        # STAB-2026-08-09: nested effective_state must match
+        es = d.get("effective_state")
+        if isinstance(es, dict):
+            es["mutation_allowed"] = False
+            es["seal_allowed"] = False
+            if es.get("authority_band") in ("FULL", "SOVEREIGN", "LIMITED_MUTATE", "MUTATE"):
+                es["authority_band"] = "OBSERVE_ONLY"
 
     def _force_verdict_keys(d: dict[str, Any]) -> None:
         # Always set floors under drift — do not wait for a SEAL already present
@@ -266,6 +273,10 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
         rc = res.get("clarity_contract")
         if isinstance(rc, dict):
             _force_no_mutate(rc)
+        # Nested effective_state (also handled inside _force_no_mutate)
+        es = res.get("effective_state")
+        if isinstance(es, dict):
+            _force_no_mutate(es)
         # action verdicts that claim APPROVED under drift
         verdicts = res.get("verdicts") if isinstance(res.get("verdicts"), dict) else {}
         action = verdicts.get("action") if isinstance(verdicts.get("action"), dict) else {}
