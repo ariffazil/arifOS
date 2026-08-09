@@ -66,8 +66,15 @@ def get_biological_readiness() -> dict[str, Any]:
         with open(WELL_STATE_PATH) as f:
             state = json.load(f)
 
-        score = state.get("well_score", 50.0)
-        violations = state.get("floors_violated", [])
+        raw_score = state.get("well_score", 50.0)
+        # Null-safe: well_score may be explicit null in state.json
+        try:
+            score = 50.0 if raw_score is None else float(raw_score)
+        except (TypeError, ValueError):
+            score = 50.0
+        violations = state.get("floors_violated") or []
+        if not isinstance(violations, list):
+            violations = []
 
         # Readiness logic (mirrors WELL/server.py:well_readiness)
         if violations:
