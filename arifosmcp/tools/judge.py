@@ -1569,14 +1569,18 @@ async def arif_judge(
         except Exception as _marker_exc:
             logger.debug("T1 marker non-fatal: %s", _marker_exc)
 
+        # P0 2026-08-09 G1: status = execution finished, not governance.
+        # HOLD/OBSERVE_ONLY still complete the tool call; effective_verdict
+        # carries the restraint signal.
         _STABLE_VERDICT_TO_STATUS: dict[str, str] = {
             "SEAL": "completed",
             "SABAR": "completed",
-            "HOLD": "pending",
-            "HOLD_888": "pending",
-            "OBSERVE_ONLY": "pending",
+            "HOLD": "completed",
+            "HOLD_888": "completed",
+            "OBSERVE_ONLY": "completed",
             "VOID": "blocked",
         }
+
         # ── T1: Apply classifier override on the verdict field ─────────
         # The classifier integration (Gate 6, real code above) spoke first.
         # If it signaled a clear gate, that signal propagates to the verdict.

@@ -98,13 +98,13 @@ def _extract_internal_telemetry(response: dict[str, Any]) -> str:
         if sv and str(sv).upper() in _INTERNAL_VERDICTS_4CLASS:
             return str(sv).upper()
 
-    # Check status for fallback (last resort)
-    status = response.get("status", "")
-    if status == "blocked":
+    # Check status for fallback (last resort).
+    # P0 G1: status=pending no longer means HOLD — only blocked/failed map.
+    status = str(response.get("status", "")).lower()
+    if status in ("blocked", "failed", "error"):
         return "VOID"
-    if status == "completed":
-        return "SEAL"
-    if status == "pending":
+    if status in ("completed", "ok"):
+        # Prefer existing effective_verdict if present; else HOLD (unknown)
         return "HOLD"
 
     return "HOLD"
@@ -272,15 +272,43 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
     # Now: HOLD → "AWAITING_INPUT" directly from effective_verdict.
     # Preserves 4-class fidelity: SEAL/SABAR/VOID/HOLD/HOLD_888/OBSERVE_ONLY
     _internal_verdict = _extract_internal_telemetry(response)
+    # P0 2026-08-09 G1: execution_state = did the tool finish?
+    # AWAITING_INPUT / AWAITING_IDENTITY belong in next_action + effective_verdict,
+    # not as a fake "still running" lifecycle when the handler already returned.
     _EXECUTION_STATE_FROM_VERDICT = {
         "SEAL": "COMPLETED",
-        "SABAR": "RUNNING",  # SABAR → proceed cautiously to FORGE
+        "SABAR": "COMPLETED",
         "VOID": "FAILED",
-        "HOLD": "AWAITING_INPUT",  # Closes Lifecycle Clobber
-        "HOLD_888": "BLOCKED",  # sovereign 888 veto
-        "OBSERVE_ONLY": "AWAITING_IDENTITY",
+        "HOLD": "COMPLETED",
+        "HOLD_888": "COMPLETED",
+        "OBSERVE_ONLY": "COMPLETED",
     }
-    execution_state = _EXECUTION_STATE_FROM_VERDICT.get(_internal_verdict, "UNKNOWN")
+    # Prefer explicit execution_state from response if already set correctly
+    _pre = str(response.get("execution_state") or "").upper()
+    if _pre in (
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED",
+        "RUNNING",
+        "READY",
+        "NOT_REQUESTED",
+        "AWAITING_INPUT",
+        "BLOCKED",
+        "AWAITING_IDENTITY",
+    ):
+        # Normalize legacy AWAITING_* → COMPLETED when a result payload exists
+        if _pre in ("AWAITING_INPUT", "AWAITING_IDENTITY", "BLOCKED") and (
+            response.get("result") is not None
+            or str(response.get("status") or "").lower()
+            in ("ok", "completed", "pending")
+        ):
+            execution_state = (
+                "FAILED" if _internal_verdict == "VOID" else "COMPLETED"
+            )
+        else:
+            execution_state = _pre if _pre not in ("AWAITING_INPUT", "AWAITING_IDENTITY") else "COMPLETED"
+    else:
+        execution_state = _EXECUTION_STATE_FROM_VERDICT.get(_internal_verdict, "COMPLETED")
 
     # Extract V2 fields from existing response
     canonical_verdict = _extract_canonical_verdict(response)
