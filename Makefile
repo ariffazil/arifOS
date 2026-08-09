@@ -72,8 +72,9 @@ deploy-local:
 		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
 		--exclude='node_modules' --exclude='build' --exclude='.mypy_cache' \
 		$(DIR)/ /opt/arifos/app/; \
-	chmod -R u+rwX,go+rX /opt/arifos/app/arifosmcp/; \
-	chmod 644 /opt/arifos/app/.env; \
+	chown -R ariffazil:arifos /opt/arifos/app/ 2>/dev/null; \
+	chmod -R u+rwX,go+rX /opt/arifos/app/; \
+	chmod 640 /opt/arifos/app/.env 2>/dev/null; \
 	chown arifos:arifos /opt/arifos/app/.env 2>/dev/null; \
 	echo "$$GIT_SHA" > /opt/arifos/app/.git_commit; \
 	echo "Restarting arifOS bare-metal service..."; \
