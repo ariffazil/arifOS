@@ -4697,9 +4697,9 @@ schedule==1.2.2 \
     --hash=sha256:15fe9c75fe5fd9b9627f3f19cc0ef1420508f9f9a46f45cd0769ef75ede5f0b7 \
     --hash=sha256:5bef4a2a0183abf44046ae0d164cadcac21b1db011bdd8102e4a0c1e91e06a7d
     # via vectorbt
-scikit-base==0.13.2 \
-    --hash=sha256:0a67063c0323b9521ede91cfcc87ce097126de5f9d5367abed6e76ff97a0eda5 \
-    --hash=sha256:c78245064754781b17062ab183a03bc12b36163b9e5f2cfcb6f29f749be4b266
+scikit-base==1.1.0 \
+    --hash=sha256:4be3284f193e7fda6c95d278d202a1cde7f23cb76ef540d922c73a41f63353c4 \
+    --hash=sha256:568195e85a695762ca522e477971f86c835760335b959b1c22d958d1d5277de6
     # via pyportfolioopt
 scikit-learn==1.9.0 \
     --hash=sha256:051075bda8b7aab87b1906ab3d4740a1e1224a19d7b3781a576736edc94e76aa \
