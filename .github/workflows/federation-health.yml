@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   dashboard:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🌐 Federation Health Dashboard
     runs-on: ubuntu-latest
     steps:

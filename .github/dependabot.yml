@@ -1,51 +1,88 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS — Dependabot configuration
+# Forged 2026-08-10 — F13 verdict, CI governance repair
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Resolver authority: pyproject.toml + uv.lock (PEP 621 + PEP 735).
+# `requirements.txt` is informational drift only — it is NOT maintained by
+# Dependabot and is NOT the source of truth for installation.
+#
+# Per F13 directive (2026-08-10):
+#   - Root ecosystem switched pip → uv. Dependabot updates uv.lock based on
+#     pyproject.toml constraints. uv.lock is the resolver authority.
+#   - Constitutional packages (protobuf, cryptography, fastmcp-slim, caio,
+#     sentence-transformers) are KEPT UN-GROUPED — one PR per package, easy
+#     to bisect, no combinatorial ambiguity. They are NOT placed under
+#     `ignore:` (would lose visibility). Auto-merge is BLOCKED for them via
+#     .github/workflows/auto-merge-dependabot.yml (constitutional package
+#     denylist check) — regardless of semver patch/minor/major.
+#   - Cooldown default-days: 3 prevents back-to-back cascading bumps when
+#     pip resolves transitive constraints.
+#   - Open-pull-requests-limit: 5 prevents cognitive flood (root cause of
+#     the 10-PR pile-up that triggered this CI governance repair).
+#
+# References:
+#   - https://docs.github.com/en/code-security/dependabot/working-with-dependabot
+#   - https://docs.github.com/en/code-security/reference/supply-chain-security/troubleshoot-dependabot/dependabot-on-actions
+#   - https://docs.astral.sh/uv/guides/integration/dependency-bots/#dependabot
+# ═══════════════════════════════════════════════════════════════════════════
+
 version: 2
 
 updates:
-  # ── Python dependencies ─────────────────────────────────────
-  - package-ecosystem: "pip"
+  # ── Python dependencies (root: pyproject.toml + uv.lock) ─────────────────
+  - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Kuala_Lumpur"
-    open-pull-requests-limit: 10
+    # Cooldown: 3-day default debounces cascading transitive bumps.
+    cooldown:
+      default-days: 3
+    # Cap concurrent open PRs at 5 — keeps review surface manageable.
+    open-pull-requests-limit: 5
     labels:
       - "deps"
       - "dependencies"
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    # Groups — only safe-to-batch, test/build/runtime-adjacent packages.
+    # Constitutional packages are INTENTIONALLY NOT GROUPED — see header.
     groups:
-      # Batch all scientific/ML packages together — same risk tier
-      ml-stack:
+      test-stack:
         patterns:
-          - "numpy"
-          - "transformers"
-          - "sentence-transformers"
-          - "torch*"
-          - "scikit-learn"
-      # Batch agentic/MCP runtime packages
-      agentic-runtime:
+          - "pytest*"
+          - "greenlet"
+          - "coverage"
+          - "hypothesis"
+      mcp-stack:
         patterns:
           - "fastmcp"
-          - "langfuse"
-          - "opentelemetry*"
-      # Batch HTTP/async packages
+          - "fastmcp-slim"
+          - "fastmcp-*"
+      ml-stack:
+        patterns:
+          - "sentence-transformers"
+          - "transformers"
+          - "torch*"
+          - "scikit-learn"
       network-stack:
         patterns:
-          - "aiohttp"
           - "httpx"
-          - "starlette"
-          - "uvicorn"
-      # Batch security packages
-      security-stack:
-        patterns:
-          - "cryptography"
-          - "pyjwt"
-          - "python-jose"
+          - "aiohttp"
+          - "requests"
+          - "urllib3"
+      # NOTE: `protobuf`, `cryptography`, `caio`, `fastmcp-slim` are NOT in any
+      # group. Each produces its own single-package PR. Auto-merge for these
+      # is BLOCKED at .github/workflows/auto-merge-dependabot.yml.
+    # INTENTIONALLY no top-level `ignore:` block — losing visibility is worse
+    # than review noise. Constitutional packages are gated at auto-merge time,
+    # not at PR-creation time.
 
-  # ── GitHub Actions versions ──────────────────────────────────
+  # ── GitHub Actions versions ──────────────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -61,12 +98,10 @@ updates:
       prefix: "chore(actions)"
       include: "scope"
     groups:
-      # Batch all GitHub first-party actions
       github-actions-official:
         patterns:
           - "actions/*"
           - "github/*"
-      # Batch all third-party Actions
       third-party-actions:
         patterns:
           - "*"

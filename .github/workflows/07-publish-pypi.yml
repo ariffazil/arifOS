@@ -24,9 +24,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: Build and publish arifos
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v7
 

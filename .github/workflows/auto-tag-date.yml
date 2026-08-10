@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   tag:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

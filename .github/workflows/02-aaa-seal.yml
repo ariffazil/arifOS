@@ -26,10 +26,10 @@ concurrency:
   cancel-in-progress: true
 jobs:
   seal-check:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🔍 AAA Structural Audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -42,7 +42,8 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install deps
-        run: pip install -e ".[dev]" 2>/dev/null || pip install -e . 2>/dev/null || pip install fastmcp pydantic
+        run: pip install -e ".[dev]" 2>/dev/null || pip install -e . 2>/dev/null
+          || pip install fastmcp pydantic
 
       - name: AAA directory integrity
         run: |

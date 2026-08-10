@@ -1,5 +1,24 @@
 name: Auto-merge Dependabot PRs
 
+# Forged 2026-08-10 — F13 verdict, CI governance repair.
+#
+# Trust domain:
+#   - Trigger: pull_request on Dependabot-opened PRs
+#   - Privileges: contents:write, pull-requests:write
+#   - Actions: label + auto-merge eligible patch/minor bumps
+#
+# Constitutional package denylist (F13 directive):
+#   These packages touch wire contracts, cryptography, or agent runtime —
+#   they MUST NOT auto-merge regardless of semver type. They get the
+#   `needs-human-arif` label and are blocked from auto-merge even if the
+#   semver bump is patch/minor. F13 review is the only merge path.
+#
+# Why keep these un-grouped (in dependabot.yml) AND blocked here:
+#   - Un-grouped: each constitutional bump produces a focused, reviewable PR
+#     (no combinatorial ambiguity with unrelated deps).
+#   - Blocked here: even an un-grouped patch bump (e.g. fastmcp-slim 3.4.4→3.4.6)
+#     does not auto-merge — F13 reviews the unprivileged probe artifact first.
+
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
@@ -11,6 +30,11 @@ permissions:
 concurrency:
   group: auto-merge-${{ github.event.pull_request.number }}
   cancel-in-progress: true
+
+# Constitutional packages that F13 must always review. Patch/minor bumps on
+# these do NOT auto-merge.
+env:
+  CONSTITUTIONAL_DEPS: "protobuf cryptography fastmcp fastmcp-slim caio sentence-transformers pynacl blake3"
 
 jobs:
   auto-merge:
@@ -38,6 +62,24 @@ jobs:
             echo "⛔ automation-freeze label present — skipping auto-merge"
           fi
 
+      - name: Detect constitutional packages in this PR
+        id: constitutional
+        env:
+          DEP_NAMES: ${{ steps.metadata.outputs.dependency-names }}
+        run: |
+          CONST="$CONSTITUTIONAL_DEPS"
+          FOUND=""
+          for dep in $CONST; do
+            # dependency-names is a comma-separated string; match exact tokens
+            if echo ",$DEP_NAMES," | grep -qE ",${dep}(,|$)"; then
+              FOUND="$FOUND $dep"
+            fi
+          done
+          echo "found=${FOUND:-none}" >> "$GITHUB_OUTPUT"
+          if [ -n "$FOUND" ]; then
+            echo "🚨 Constitutional deps present: $FOUND — auto-merge blocked"
+          fi
+
       - name: Label major bumps as needs-human-arif
         if: steps.metadata.outputs.update-type == 'version-update:semver-major'
         env:
@@ -50,9 +92,28 @@ jobs:
             --add-label "deploy-risk"
           echo "🚨 Major version bump — labelled needs-human-arif + deploy-risk"
 
+      - name: Label constitutional packages (any semver) as needs-human-arif
+        if: steps.constitutional.outputs.found != 'none'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr edit "$PR_NUMBER" --repo "$REPO" \
+            --add-label "needs-human-arif" \
+            --add-label "deploy-risk" \
+            --remove-label "safe-automerge" 2>/dev/null || true
+          echo "🚨 Constitutional deps present: ${{ steps.constitutional.outputs.found }} — needs-human-arif + deploy-risk"
+
       - name: Auto-merge patch and minor updates
+        # Block auto-merge when ANY of these is true:
+        #   - automation-freeze label present
+        #   - constitutional package in diff (F13 directive, regardless of semver)
+        #   - not a patch/minor bump
         if: |
-          steps.freeze.outputs.frozen != 'true' && (
+          steps.freeze.outputs.frozen != 'true' &&
+          steps.constitutional.outputs.found == 'none' &&
+          (
             steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
             steps.metadata.outputs.update-type == 'version-update:semver-minor'
           )

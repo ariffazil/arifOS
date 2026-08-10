@@ -37,6 +37,7 @@ env:
 
 jobs:
   conformance:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🔌 MCP Spec Compliance
     runs-on: ubuntu-latest
     timeout-minutes: 20

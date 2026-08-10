@@ -17,6 +17,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validate-routing:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR head
