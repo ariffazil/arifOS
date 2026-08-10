@@ -1764,9 +1764,9 @@ httpx2==2.3.0 \
     --hash=sha256:227e7c41d95a76d4077a52640564132777215fc3394e07b66a3116c33d668fa9 \
     --hash=sha256:6f393663bdf6dbe7fe90118e3eb5b2bd024a675cae0390ac08cec9198812d8b7
     # via genai-prices
-huggingface-hub==1.16.1 \
-    --hash=sha256:64340de934b9ce37857ef85a82de72f5629e8a270f9119eabb12bf495eb53c22 \
-    --hash=sha256:7f1dc4c5ec21aed69be630ad0c3378616be16f3de1a47b141c0e812965d9c832
+huggingface-hub==1.26.1 \
+    --hash=sha256:7c28860777594ac679233f571552d0e46df34ed4e4239e844190fad3ca05e4cd \
+    --hash=sha256:d8676e4ec96c1e481a22a93232bd86d73bbac643fb767399aefaeaa503890fb0
     # via
     #   pydantic-ai-slim
     #   sentence-transformers
