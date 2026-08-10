@@ -4947,9 +4947,9 @@ sqlalchemy==2.0.51 \
     # via
     #   alembic
     #   arifos
-sse-starlette==3.4.6 \
-    --hash=sha256:56217ab4c9a9f9c5db7b21e08732d3e7c2b807f45231ad23de0551a24c4a41f6 \
-    --hash=sha256:725f8a1bd6d26ae1b2c9610c0ef5065dfdd496f3988d28adcf8c4b49dc25c627
+sse-starlette==3.4.8 \
+    --hash=sha256:6e82314c786709a3cd9520f2285cf9fff90e181e598e8a357b0cf80f66afba0d \
+    --hash=sha256:ed89ffbb75cbf78a5fe2f2109cd584792ee7f9dfac96f791db546df8f15f3f9c
     # via
     #   arifos
     #   mcp
