@@ -20,6 +20,7 @@ concurrency:
 
 jobs:
   measure:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "ΔS Φ Ψ Ω"
     runs-on: ubuntu-latest
     steps:
