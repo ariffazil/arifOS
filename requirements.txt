@@ -4938,9 +4938,9 @@ segyio==1.9.14 \
     --hash=sha256:f7f7add046d9338b1af4d922220c9dc120f72ff7961213f3f79d8025426d547f \
     --hash=sha256:ffb815f07ac8779ca8351f4f2fa178cc976cc96429c5f12b380d2d6b99c1f2b3
     # via arifos
-sentence-transformers==5.6.1 \
-    --hash=sha256:16af5d682ef66672b076d58599a23905800e850ec2bfb1865938306bf684ad72 \
-    --hash=sha256:cefbb17b6325a982a4732c8c49fb013375392687049d1de3d435c4b04060680b
+sentence-transformers==5.7.0 \
+    --hash=sha256:b78141da3d8137e70d965866e2ca43190b9266f3d4d8752e250ded75e7136730 \
+    --hash=sha256:fd8c8fc35e6323631dff9f3760969ebf7980dc3cfda0ab1354bc6a774cc0e5d8
     # via arifos
 setuptools==69.5.1 \
     --hash=sha256:6c1fccdac05a97e598fb0ae3bbed5904ccb317337a51139dcd51453611bbb987 \
