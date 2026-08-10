@@ -12,9 +12,9 @@ on:
 
 jobs:
   drift-monitor:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     env:
       CANON_SPEC_VERSION: "v2026.07.APEX"
 
@@ -37,5 +37,6 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        run: python .github/scripts/drift_monitor.py --supabase-write --alert --json
+        run: python .github/scripts/drift_monitor.py --supabase-write --alert 
+          --json
         continue-on-error: true

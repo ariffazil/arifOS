@@ -9,10 +9,28 @@ This package provides:
 - otel_tracer.py: OTel tracer init + span helpers
 - agent_trace_schema.py: Agent-specific trace schema
 - risk_event_schema.py: Risk event telemetry (for arifOS risk floor)
+- three_phase.py: 3-phase contract wrapper for non-MCP execution paths
+  (Lane B SESSION_RECEIPT — adopted 2026-08-10, see
+   /root/AAA/governance/AAA_3PHASE_OBSERVABILITY.md)
 """
 
 from .agent_trace_schema import AgentTraceSchema
 from .otel_tracer import OTelTracer, init_tracer
 from .risk_event_schema import RiskEvent
+from .three_phase import (
+    AAAGuardResult,
+    AAAExecutionGuard,
+    AAAFlowEngine,
+    FlowReceiptProxy,
+)
 
-__all__ = ["OTelTracer", "init_tracer", "AgentTraceSchema", "RiskEvent"]
+__all__ = [
+    "OTelTracer",
+    "init_tracer",
+    "AgentTraceSchema",
+    "RiskEvent",
+    "AAAGuardResult",
+    "AAAExecutionGuard",
+    "AAAFlowEngine",
+    "FlowReceiptProxy",
+]
