@@ -1163,9 +1163,9 @@ fastavro==1.12.2 ; sys_platform != 'emscripten' \
     --hash=sha256:e367a84c9133018e0a3bc822abe78d7f1f9a6092991a0ec409468cf4ef260282 \
     --hash=sha256:f604ba83498e209fff4c7ecc5063a39421dc538dace694bc592f9f338254f3dc
     # via cohere
-fastmcp==3.4.5 \
-    --hash=sha256:5d3d438eb2917e63e6faf53e8cb8fe26d887ec3232f848093a4eecad7fa34861 \
-    --hash=sha256:a95f2bc876bef42e8b50f7872f24f3f2fe3b1d37408c734e8b9d9e03014b72d3
+fastmcp==3.4.6 \
+    --hash=sha256:2287938da8364ad7071bec2d2393af6ae10fd4e836f06f506569f1456cc87eb4 \
+    --hash=sha256:2a29967be9f68cdd1b4cefb413ede74f83adefd923919a37aaac3611eccdd749
     # via
     #   arifos
     #   pydantic-ai-slim
