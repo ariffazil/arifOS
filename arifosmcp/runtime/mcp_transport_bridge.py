@@ -103,13 +103,22 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 status_code=400,
             )
 
-        # ── 2026-07-28 stateless intercepts (read body once, re-inject) ──
-        if request.method == "POST" and version == "2026-07-28":
+        # ── server/discover — version-independent (auto-mode clients probe first) ──
+        # SEP-2575: server/discover MUST work without prior version negotiation.
+        # Clients in "auto" mode probe server/discover to discover supported versions
+        # BEFORE sending MCP-Protocol-Version. This intercept handles that case.
+        if request.method == "POST":
             body_bytes = await request.body()
             try:
                 body = json.loads(body_bytes.decode("utf-8") or "{}")
             except Exception:
                 body = {}
+
+            method = body.get("method") if isinstance(body, dict) else None
+            req_id = body.get("id") if isinstance(body, dict) else None
+
+            if method == "server/discover":
+                return JSONResponse(self._discover_result(req_id))
 
             # Re-inject body for downstream (Starlette consumes receive once)
             async def _receive() -> dict[str, Any]:
@@ -117,40 +126,35 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
 
             request = Request(request.scope, _receive)
 
-            method = body.get("method") if isinstance(body, dict) else None
-            req_id = body.get("id") if isinstance(body, dict) else None
-            mcp_method = (
-                request.headers.get("Mcp-Method") or request.headers.get("mcp-method") or ""
-            ).strip()
+            # ── 2026-07-28 stateless intercepts ──
+            if version == "2026-07-28":
+                mcp_method = (
+                    request.headers.get("Mcp-Method") or request.headers.get("mcp-method") or ""
+                ).strip()
 
-            # HeaderMismatch: Mcp-Method MUST match body method when both present
-            if mcp_method and method and mcp_method != method:
-                return JSONResponse(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": req_id,
-                        "error": {
-                            "code": -32020,
-                            "message": (
-                                f"HeaderMismatch: Mcp-Method '{mcp_method}' "
-                                f"does not match body method '{method}'"
-                            ),
+                # HeaderMismatch: Mcp-Method MUST match body method when both present
+                if mcp_method and method and mcp_method != method:
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": -32020,
+                                "message": (
+                                    f"HeaderMismatch: Mcp-Method '{mcp_method}' "
+                                    f"does not match body method '{method}'"
+                                ),
+                            },
                         },
-                    },
-                    status_code=400,
-                )
+                        status_code=400,
+                    )
 
-            # server/discover — MUST for 2026-07-28 (SEP-2575)
-            if method == "server/discover":
-                return JSONResponse(self._discover_result(req_id))
-
-            # Cache for airlock / tools
-            request.state.mcp_protocol_version = "2026-07-28"
-            request.state.mcp_stateless = True
-
-        elif version:
-            request.state.mcp_protocol_version = version
-            request.state.mcp_stateless = version == "2026-07-28"
+                # Cache for airlock / tools
+                request.state.mcp_protocol_version = "2026-07-28"
+                request.state.mcp_stateless = True
+            elif version:
+                request.state.mcp_protocol_version = version
+                request.state.mcp_stateless = False
 
         return await call_next(request)
 

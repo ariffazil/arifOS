@@ -155,14 +155,35 @@ def _floors_to_vector(floors: FloorScores) -> np.ndarray:
     Extract the 13 canonical floor scores as a numpy float64 vector.
 
     Boolean floors (L10, L11) are coerced: True → 1.0, False → 0.0.
-    F7 (humility) is kept as-is — the narrow [0.03, 0.05] band is the
-    constitutional signal, not noise to be normalized away.
+
+    F7 (humility) compliance mapping — FIX 2026-08-10:
+      F7=0.04 raw is a constitutional setpoint (Ω₀ uncertainty floor), NOT a
+      compliance score. In raw form it is a 96%-outlier in the PCA feature
+      space, causing the projected A-dial to land at the normalization minimum
+      (0.0) and Nash-collapse G via geometric_mean's any-zero rule.
+      Compliance = 1.0 if in-band [0.03, 0.05], else degraded proportionally.
+
+    F9 (anti-hantu / C_dark) compliance mapping — FIX 2026-08-10:
+      F9 stores C_dark (shadow mass, 0.0 = no shadow = fully compliant).
+      Compliance = 1.0 - C_dark. Passing the raw 0.0 is correct but
+      consistently maps to a second outlier in PCA; explicit inversion keeps
+      the vector semantically uniform (all components = compliance, not risk).
     """
     values: list[float] = []
     for field in _FLOOR_VECTOR_FIELDS:
         raw = getattr(floors, field)
         if isinstance(raw, bool):
             values.append(1.0 if raw else 0.0)
+        elif field == "f7_humility":
+            # Compliance: 1.0 if in constitutional band [0.03, 0.05]
+            f7 = float(raw)
+            if 0.03 <= f7 <= 0.05:
+                values.append(1.0)
+            else:
+                values.append(max(0.0, 1.0 - min(abs(f7 - 0.04) * 10, 1.0)))
+        elif field == "f9_anti_hantu":
+            # Compliance: lower C_dark = higher compliance (invert)
+            values.append(max(0.0, 1.0 - float(raw)))
         else:
             values.append(float(raw))
     return np.array(values, dtype=np.float64)
@@ -600,7 +621,10 @@ def calculate_genius(
 
     # Canonical G = (A · P · E · X)^(1/4) — 4-factor Nash Bargaining Product
     # Constitutional target per Arif's directive. No Φ, no H.
-    final_g = geometric_mean([akal, presence, energy, exploration])
+    # Apply 0.01 floor to each dial (matches apex_primitives pattern) so that
+    # a PCA normalization edge (dial exactly at min → 0.0) does not zero-collapse G.
+    _dial_floored = [max(0.01, d) for d in [akal, presence, energy, exploration]]
+    final_g = geometric_mean(_dial_floored)
 
     # Determine derivation method
     _, pca_meta = _compute_pca_dials(floors, history)
