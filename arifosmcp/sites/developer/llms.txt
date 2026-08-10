@@ -1,6 +1,6 @@
 # arifOS — Constitutional AI Governance Kernel
-> Auto-generated from live tool and resource registries. Hash: 533da735865c2a06
-> Total MCP: 65 Tools | 25 Resources | Status: OPERATIONAL
+> Auto-generated from live tool and resource registries. Hash: c19847d1a74a6d37
+> Total MCP: 65 Tools | 42 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
 > Version: v2026.07.24-ZEN-SURVIVAL · MCP Protocol: 2025-11-25
 > Verdict grammar: SEAL / HOLD / SABAR / VOID
@@ -132,22 +132,39 @@ All resources carry an explicit `truth_level` under the arifOS truth hierarchy:
 ### Registered arifOS MCP Resources
 | URI | Family | Linked Floors | Description |
 |-----|--------|---------------|-------------|
+| `arifos://affordances` | canonical |  |  |
+| `arifos://atlas333/flow` | canonical |  |  |
+| `arifos://atlas333/geometry` | canonical |  |  |
 | `arifos://atlas333/index` | canonical |  |  |
+| `arifos://atlas333/metrics` | canonical |  |  |
+| `arifos://atlas333/paradox/list` | canonical |  |  |
 | `arifos://bootstrap` | canonical | F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13 | Complete federation knowledge-graph bootstrap context. Full world-model in one call. v2026.06.14. |
+| `arifos://carry-forward` | canonical |  |  |
 | `arifos://civilization` | canonical | F1, F10 | Seven federation organs, three intelligence strata, constitutional boundaries, entropy responsibility model. |
 | `arifos://doctrine` | canonical | F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13 | Immutable 13-floor constitution (F1–F13). All tools and agents operate within these floors. |
+| `arifos://epistemic` | canonical |  |  |
+| `arifos://floors` | canonical |  |  |
+| `arifos://flow-state` | canonical |  |  |
 | `arifos://human/metabolized` | canonical | F1, F6, F9, F13 | Metabolized sovereign context — compact human intelligence. The nutrient, not the full testimony. |
 | `arifos://identity` | canonical | F1, F13 | Sovereign identity manifest bound from identity.toml. Root of accountability — all attestation chains begin here. |
+| `arifos://index` | canonical |  |  |
+| `arifos://init/agent_init` | canonical |  |  |
+| `arifos://institution` | canonical |  |  |
 | `arifos://jurisdiction` | canonical | F11, F13 | Five autonomy bands (GREEN→BLACK), CapabilityGrant registry, jurisdiction rules. |
 | `arifos://loop-engineering` | canonical |  |  |
-| `arifos://mcp-alignment` | canonical |  |  |
-| `arifos://mcp/surface-map` | canonical |  |  |
 | `arifos://memory` | canonical | F2, F6, F12 | Six-layer memory architecture: L1 ephemeral → L6 immutable (VAULT999). Memory ≠ truth without provenance. |
 | `arifos://quickstart` | canonical |  |  |
+| `arifos://reality/state` | canonical |  |  |
+| `arifos://refusal-surface` | canonical |  |  |
 | `arifos://schema` | canonical | F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13 | Complete canonical blueprint of the arifOS MCP surface — tools, Trinity lanes, floors, separation of powers. |
 | `arifos://seal-readiness` | canonical | F2, F12 | Vault integrity report, five disambiguated seal types, seven-floor seal gate, non-seal verdicts. |
 | `arifos://trinity` | canonical | F1, F4, F7, F13 | AAA Trinity lane architecture: AGI(111) proposes, ASI(444) judges, APEX(888) authorizes, FORGE(010) executes, 999 seals. |
+| `arifos://vault/head` | canonical |  |  |
 | `arifos://vitals` | canonical | F8 | Constitutional vitals reference — metric definitions, green/yellow/red thresholds. For LIVE values use arif_measure. |
+| `arifos://wisdom/contract` | canonical |  |  |
+| `arifos://wisdom/quotes/all` | canonical |  |  |
+| `skill://index` | canonical |  |  |
+| `tree777://index` | canonical |  | TREE777 wiki full index — all skills, concepts, and scars in the canonical knowledge graph. |
 | `arifos://boundaries/domain/{domain_id}` | embodied | F2, F8, F11 | Domain boundary definition by domain identifier. |
 | `arifos://witness/log/{filter}` | embodied | F2, F8, F11 | Witness log entries filtered by criteria. |
 | `arifos://witness/stats/{period}` | embodied | F2, F8, F11 | Witness statistics aggregated by time period. |
@@ -245,7 +262,7 @@ Tool counts outside arifOS are dynamic observations, not constants. Probe them a
 ## Verification
 - tools/list count should match total (65)
 - canonical_tools + operational_tools == tools_exposed_via_mcp
-- Manifest hash: 533da735865c2a06
+- Manifest hash: c19847d1a74a6d37
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-08-07T16:53:33.519797+00:00 ---
+--- Auto-generated 2026-08-10T07:00:29.626550+00:00 ---

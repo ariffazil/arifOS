@@ -32,8 +32,8 @@ permissions:
 
 jobs:
   trigger-autofix:
-    name: "🔍 Check & Autofix"
     if: github.event.workflow_run.conclusion == 'failure'
+    name: "🔍 Check & Autofix"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
