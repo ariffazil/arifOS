@@ -5767,9 +5767,9 @@ xarray==2026.7.0 \
     #   arviz-base
     #   arviz-stats
     #   xarray-einstats
-xarray-einstats==0.10.0 \
-    --hash=sha256:d432a363fc8f09baad164f9826dc711551c684b9abd8098c1b961d18663a627d \
-    --hash=sha256:fa3169b46cee29092db820d8bbc203148bada4fc970ee75e62cbf3dd7c5a8945
+xarray-einstats==0.11.0 \
+    --hash=sha256:69f48a60f62151d40c49fd6d9a6dc0b970aecef2813a33209e4dcde897fca48b \
+    --hash=sha256:9dc8372aeb5db233054ddde4e57cbbcd1eee6c2e1b6bbe85863881c09b4421b3
     # via arviz-stats
 xlsxwriter==3.2.9 \
     --hash=sha256:254b1c37a368c444eac6e2f867405cc9e461b0ed97a3233b2ac1e574efb4140c \
