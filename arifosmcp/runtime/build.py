@@ -371,7 +371,7 @@ def get_build_info() -> dict[str, Any]:
             "(doctrine, vitals, schema, session, forge), and eliminated identity confusion."
         ),
         # MCP protocol compatibility
-        "protocol_version": "2025-11-25",
+        "protocol_version": "2026-07-28",
         "supported_protocol_versions": ["2026-07-28", "2025-11-25", "2025-03-26", "2024-11-05"],
         # Governance layer
         "governance_version": "registry-1.3.0",
