@@ -100,8 +100,8 @@ from mcp.types import ErrorData  # noqa: E402
 
 # ── MCP 2026-07-28 compliance: inject resultType into collection responses ──
 # The 2026-07-28 protocol revision requires resultType in tools/list, resources/list,
-# prompts/list. The MCP SDK's ListToolsResult doesn't include it natively.
-# Patch model_dump to inject it. (MCPJam compliance fix — 2026-08-09)
+# prompts/list. The MCP SDK collection result types don't include it natively.
+# Patch model_dump on each to inject it. (MCPJam compliance fix — 2026-08-09)
 try:
     from mcp.types import ListToolsResult as _LTR
 
@@ -116,6 +116,36 @@ try:
     _LTR.model_dump = _ltr_dump_with_resulttype
 except Exception:
     pass  # Non-critical — MCPJam may show warning but server works
+
+try:
+    from mcp.types import ListResourcesResult as _LRR
+
+    _orig_lrr_dump = _LRR.model_dump
+
+    def _lrr_dump_with_resulttype(self, *a, **kw):
+        d = _orig_lrr_dump(self, *a, **kw)
+        if "resultType" not in d:
+            d["resultType"] = "complete"
+        return d
+
+    _LRR.model_dump = _lrr_dump_with_resulttype
+except Exception:
+    pass
+
+try:
+    from mcp.types import ListPromptsResult as _LPR
+
+    _orig_lpr_dump = _LPR.model_dump
+
+    def _lpr_dump_with_resulttype(self, *a, **kw):
+        d = _orig_lpr_dump(self, *a, **kw)
+        if "resultType" not in d:
+            d["resultType"] = "complete"
+        return d
+
+    _LPR.model_dump = _lpr_dump_with_resulttype
+except Exception:
+    pass
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
@@ -2501,6 +2531,7 @@ async def horizon_health(request: Request) -> JSONResponse:
     thread_pool: dict[str, Any] = {"status": "unknown"}
     try:
         import asyncio as _aio
+
         _loop = _aio.get_running_loop()
         # asyncio's default ThreadPoolExecutor (used by FastMCP sync handlers).
         _exec = getattr(_loop, "_default_executor", None)
@@ -2536,6 +2567,7 @@ async def horizon_health(request: Request) -> JSONResponse:
                 "floors": floors,
                 "thread_pool": thread_pool,
             },
+            "mcp_protocol_versions_supported": ["2026-07-28", "2025-11-25", "2024-11-05"],
             "_honesty_note": (
                 "Top-level status is the WORST of transport/kernel/floors. "
                 "Inspect `signals.*` for per-layer truth. "
@@ -2731,7 +2763,7 @@ if app:
             "DPoP",
             "Content-Language",
             "Content-Type",
-            "MCP-Session-Id",
+            "MCP-Session-Id",  # deprecated in 2026-07-28; kept for 2025-11-25 backward compat
             "MCP-Protocol-Version",
             "Mcp-Method",
             "Mcp-Name",
@@ -2741,7 +2773,7 @@ if app:
             "X-Arifos-Sovereign-Sig",
         ],
         expose_headers=[
-            "MCP-Session-Id",
+            "MCP-Session-Id",  # deprecated in 2026-07-28; kept for 2025-11-25 backward compat
             "MCP-Protocol-Version",
             "Mcp-Method",
             "Mcp-Name",
@@ -2800,7 +2832,7 @@ if app:
 
         return JSONResponse(
             {
-                "protocol_versions_supported": ["2025-11-25", "2024-11-05"],
+                "protocol_versions_supported": ["2026-07-28", "2025-11-25", "2024-11-05"],
                 "tools_count": 13,
                 "dialect_registry": list(DIALECT_REGISTRY.keys()),
                 "airlock": "v0.1",
