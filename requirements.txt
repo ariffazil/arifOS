@@ -2919,9 +2919,10 @@ nvidia-cuda-cupti==13.3.75 ; sys_platform == 'linux' \
     --hash=sha256:79f5a8c55378a998427d6974b1d85ec91ef684035d016b3fb3b85006914f94f0 \
     --hash=sha256:a969cc446c44db612e417bd0af722cfad9009c027dabd4ed255262c0e9a9a3d2
     # via cuda-toolkit
-nvidia-cuda-nvrtc==13.0.88 ; sys_platform == 'linux' \
-    --hash=sha256:ad9b6d2ead2435f11cbb6868809d2adeeee302e9bb94bcf0539c7a40d80e8575 \
-    --hash=sha256:d27f20a0ca67a4bb34268a5e951033496c5b74870b868bacd046b1b8e0c3267b
+nvidia-cuda-nvrtc==13.3.33 ; sys_platform == 'linux' \
+    --hash=sha256:7b05ecda494c6dabc44231a608b060a71008a730d9dfda932cc508e6d29159e0 \
+    --hash=sha256:7d2af818851c0c224d5f92221e9226e51ee23c236df4b51f9194563979c888be \
+    --hash=sha256:82530788b8c6164a54d3fd9ae8bcca8893d397c4aeb998861982a03bbe41e204
     # via
     #   cuda-toolkit
     #   nvidia-cublas
