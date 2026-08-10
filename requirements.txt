@@ -5355,9 +5355,9 @@ tqdm==4.67.3 \
     #   transformers
     #   vectorbt
     #   welly
-trafilatura==2.0.0 \
-    --hash=sha256:77eb5d1e993747f6f20938e1de2d840020719735690c840b9a1024803a4cd51d \
-    --hash=sha256:ceb7094a6ecc97e72fea73c7dba36714c5c5b577b6470e4520dca893706d6247
+trafilatura==2.2.0 \
+    --hash=sha256:8c2cabb84066465228d03183fb698ce0b1245b81c58140b8ae0de57fddf3aae7 \
+    --hash=sha256:ac43592a6201264dfc4f9c361cbe3eb3fea96e54437010a159d5e7365360ed98
     # via arifos
 traitlets==5.15.1 \
     --hash=sha256:770a53705f84b81ac107e83a1b3328ff2dae16094d8fc3cfc004e4b22dfd8e92 \
