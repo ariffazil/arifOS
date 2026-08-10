@@ -108,6 +108,12 @@ ERR_HEADER_MISMATCH = -32020       # Mcp-Method header != body method
 ERR_MISSING_CLIENT_CAP = -32021   # MissingRequiredClientCapability
 ERR_UNSUPPORTED_VERSION = -32022  # UnsupportedProtocolVersion
 
+# ── G14: MCP 2026-07-28 JSON-RPC error codes ──
+# SEP-2243/2575: standard error codes for stateless MCP
+ERR_HEADER_MISMATCH = -32020       # Mcp-Method header != body method
+ERR_MISSING_CLIENT_CAP = -32021   # MissingRequiredClientCapability
+ERR_UNSUPPORTED_VERSION = -32022  # UnsupportedProtocolVersion
+
 # ═══════════════════════════════════════════════════════════════
 # MCP PROTOCOL VERSION MIDDLEWARE
 # ═══════════════════════════════════════════════════════════════
