@@ -1169,9 +1169,9 @@ fastmcp==3.4.5 \
     # via
     #   arifos
     #   pydantic-ai-slim
-fastmcp-slim==3.4.4 \
-    --hash=sha256:9d3a6327b9ee835188eb7323fc3b5d4cd061631b48da8ece56794bb538972505 \
-    --hash=sha256:dcaa3e0be2127d7eacdce592c2ef0039204923dc0ec396454615cb4a3275b078
+fastmcp-slim==3.4.6 \
+    --hash=sha256:3e08e6acb03523a47aa17f4d2ab9943e648a41e20b24084da491a732c46dffdc \
+    --hash=sha256:6a1e6e42c697ba90abcb1be617a26947d07316f13c6fa138ae7b0de24558e32c
     # via fastmcp
 fastuuid==0.14.0 \
     --hash=sha256:09098762aad4f8da3a888eb9ae01c84430c907a297b97166b8abc07b640f2995 \
