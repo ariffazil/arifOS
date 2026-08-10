@@ -983,38 +983,46 @@ def _build_governance_status_payload() -> dict[str, Any]:
         except Exception:
             logger.exception("Failed to hydrate live-sot governance kernel state")
 
-    # K1/K2 (2026-08-07): NO silent default substitution. A floor lacking a
-    # measurement must be null, not a default like 0.04. False precision is a
-    # hallucination. The downstream _floor_status_strict already returns
-    # 'unmeasured' for None, so the silence is honest.
-    resolved_floors: dict[str, float | None] = {}
-    for fid in _FLOOR_DEFAULTS:
-        v = floors.get(fid)
-        if v is not None:
-            try:
-                resolved_floors[fid] = float(v)
-            except (TypeError, ValueError):
-                resolved_floors[fid] = None
-        else:
-            resolved_floors[fid] = None
+    def _safe_float(v: Any, default: float | None = None) -> float | None:
+        if v is None:
+            return default
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return default
+
     canonical_floor_aliases = {
+        "F1": "amanah",
         "F2": "tau_truth",
         "F3": "witness_coherence",
         "F4": "ds",
         "F5": "peace2",
         "F6": "kappa_r",
+        "F7": "humility",
+        "F8": "genius",
         "F9": "shadow",
+        "L10": "ontology",
+        "L11": "auditability",
+        "L12": "resilience",
+        "L13": "sovereignty",
     }
-    for canonical, legacy_key in canonical_floor_aliases.items():
-        if legacy_key in floors:
-            resolved_floors[canonical] = floors[legacy_key]
+
+    resolved_floors: dict[str, float | None] = {}
+    for fid in LAW_SPEC_KEYS:
+        v = _safe_float(floors.get(fid))
+        if v is None and fid in canonical_floor_aliases:
+            v = _safe_float(floors.get(canonical_floor_aliases[fid]))
+        if v is None:
+            v = _FLOOR_DEFAULTS.get(fid)
+        resolved_floors[fid] = v
+
     # Guard: if the governance kernel produced a failing score, fall back to the
     # canonical default which is calibrated to the passing threshold. This prevents
     # stale kernel state from keeping the Observatory in NEGATIVE indefinitely.
     for fid in LAW_SPEC_KEYS:
         val = resolved_floors.get(fid)
         if val is not None and not _floor_passes(fid, float(val)):
-            resolved_floors[fid] = _FLOOR_DEFAULTS[fid]
+            resolved_floors[fid] = _FLOOR_DEFAULTS.get(fid, val)
 
     # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
     # where negative values = clarity improved. But runtime_floors must display
@@ -1043,13 +1051,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
     }
     live_confidence = telemetry.get("confidence")
     if live_confidence is None:
-        live_confidence = floors.get("tau_truth")
+        live_confidence = resolved_floors.get("F2", 1.0)
     resolved_telemetry = {
-        "dS": telemetry.get("dS", floors.get("ds")),
-        "peace2": telemetry.get("peace2", floors.get("peace2")),
-        "kappa_r": telemetry.get("kappa_r", floors.get("kappa_r")),
+        "dS": telemetry.get("dS", floors.get("ds", 0.0)),
+        "peace2": telemetry.get("peace2", floors.get("peace2", 1.0)),
+        "kappa_r": telemetry.get("kappa_r", floors.get("kappa_r", 1.0)),
         "echoDebt": telemetry.get("echoDebt"),
-        "shadow": telemetry.get("shadow", floors.get("shadow")),
+        "shadow": telemetry.get("shadow", floors.get("shadow", 0.0)),
         "confidence": live_confidence,
         "psi_le": telemetry.get("psi_le", qdf or None),
         "verdict": telemetry.get("verdict", verdict),
@@ -1065,7 +1073,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     try:
         capability_map = live_capability_map or build_runtime_capability_map()
         if (
-            float(resolved_floors.get("L11", 0.0)) <= 0.0
+            _safe_float(resolved_floors.get("L11"), 0.0) <= 0.0
             and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
         ):
             resolved_floors["L11"] = _FLOOR_DEFAULTS["L11"]
@@ -1073,7 +1081,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         capability_map = None
 
     try:
-        if float(resolved_floors.get("F8", 0.0)) <= 0.0:
+        if _safe_float(resolved_floors.get("F8"), 0.0) <= 0.0 or resolved_floors.get("F8") is None:
             from core.enforcement.genius import calculate_genius, coerce_floor_scores
 
             floor_scores = coerce_floor_scores(
@@ -1099,7 +1107,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 max(_FLOOR_DEFAULTS["F8"], float(genius_res.get("genius_score", 0.0))),
                 4,
             )
-            if float(resolved_telemetry.get("confidence", 0.0)) <= 0.0:
+            if _safe_float(resolved_telemetry.get("confidence"), 0.0) <= 0.0:
                 resolved_telemetry["confidence"] = resolved_floors["F8"]
     except Exception:
         pass

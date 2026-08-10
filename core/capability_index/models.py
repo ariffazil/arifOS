@@ -24,8 +24,24 @@ class CapabilityRecord(BaseModel):
     epistemic_tag: str = Field(
         default="CLAIM", description="Evidence quality: CLAIM | PLAUSIBLE | HYPOTHESIS | ESTIMATE"
     )
+    action_class: str = Field(
+        default="OBSERVE", description="Constitutional class: OBSERVE | GOVERN | MUTATE | SEAL"
+    )
+    effective_class: str = Field(
+        default="OBSERVE", description="Effective action class after organ ceiling enforcement"
+    )
+    risk_tier: str = Field(
+        default="low", description="Risk tier: low | medium | high"
+    )
+    authority_ceiling: str = Field(
+        default="UNBOUNDED", description="Organ authority ceiling"
+    )
 
     def to_embedding_text(self) -> str:
         """Flatten into a single string for the embedding model."""
         tags_str = " ".join(self.tags)
-        return f"{self.tool_name}. {self.description}. Tags: {tags_str}."
+        return (
+            f"{self.tool_name} ({self.server}). {self.description}. "
+            f"Class: {self.effective_class}. Tags: {tags_str}."
+        )
+
