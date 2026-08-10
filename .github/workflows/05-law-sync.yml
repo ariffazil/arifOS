@@ -16,6 +16,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   sync:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 📜 Sync to Constitutional Gist
     runs-on: ubuntu-latest
     timeout-minutes: 3

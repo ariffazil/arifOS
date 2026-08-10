@@ -79,7 +79,8 @@ def _load_did_registry() -> dict | None:
     except (FileNotFoundError, _json_import.JSONDecodeError, PermissionError, OSError) as exc:
         logger.warning(
             "DID registry load failed (F1 fail-closed, path=%s): %s",
-            _DID_REGISTRY_PATH, exc,
+            _DID_REGISTRY_PATH,
+            exc,
         )
         return None
 
@@ -105,7 +106,61 @@ def _actor_in_did_registry(actor_id: str | None) -> bool:
             return True
     return False
 
+
 # ── End DID Registry Validation ──────────────────────────────────────────────
+
+# ADAT AGENTIC (F13 directive 2026-08-10): FORGE is inherited capability substrate.
+# Check whether an actor's AAA identity card declares adat_agentic.forge.inherited=true.
+# If so, FORGE access is granted regardless of default authority band.
+# "Forging is breathing. The constitution governs the swing — not the grip."
+
+import json as _json
+import os as _os
+
+_IDENTITY_CARDS_DIR = "/root/AAA/agent-cards/identity"
+_adat_forge_cache: dict[str, bool] = {}
+_adat_forge_cache_mtime: float = 0.0
+
+
+def _adat_forge_inherited(actor_id: str | None) -> bool:
+    """Check whether *actor_id* inherits FORGE via adat agentic."""
+    if not actor_id:
+        return False
+    actor_key = actor_id.strip().lower()
+    # Check cache
+    try:
+        mtime = _os.stat(_IDENTITY_CARDS_DIR).st_mtime
+    except OSError:
+        return False
+    global _adat_forge_cache, _adat_forge_cache_mtime
+    if mtime != _adat_forge_cache_mtime:
+        _adat_forge_cache.clear()
+        _adat_forge_cache_mtime = mtime
+    if actor_key in _adat_forge_cache:
+        return _adat_forge_cache[actor_key]
+    # Load identity card
+    card_path = _os.path.join(_IDENTITY_CARDS_DIR, actor_id, "agent-card.json")
+    if not _os.path.isfile(card_path):
+        # Try case-insensitive match
+        try:
+            for entry in _os.scandir(_IDENTITY_CARDS_DIR):
+                if entry.is_dir() and entry.name.lower() == actor_key:
+                    card_path = _os.path.join(entry.path, "agent-card.json")
+                    break
+        except OSError:
+            pass
+    try:
+        with open(card_path, "r") as f:
+            card = _json.load(f)
+        inherited = card.get("adat_agentic", {}).get("forge", {}).get("inherited", False)
+        _adat_forge_cache[actor_key] = bool(inherited)
+        return bool(inherited)
+    except Exception:
+        _adat_forge_cache[actor_key] = False
+        return False
+
+
+# ── End ADAT AGENTIC ─────────────────────────────────────────────────────────
 
 # L4 Warga constants — §10 Node 3 registration
 from arifosmcp.runtime.governance_identity import (
@@ -250,10 +305,23 @@ def bind_authority_state(
     elif actor_key in L4_WARGA_ACTORS:
         # L4 Warga: OBSERVE_ONLY — cannot mutate, seal, or judge.
         # §10 Node 3 registration: agent anchor registered, AI instance borrows ceiling.
-        sess["authority_level"] = "L4_WARGA"
-        sess["authority"] = "OBSERVE_ONLY"
-        sess["l4_allowed_verbs"] = sorted(L4_ALLOWED_VERBS)
-        sess["l4_blocked_verbs"] = sorted(L4_BLOCKED_VERBS)
+        # ADAT AGENTIC (F13 2026-08-10): FORGE is inherited capability substrate.
+        # If the actor's identity card declares adat_agentic.forge.inherited=true,
+        # upgrade to LIMITED_MUTATE — forge access is inclusive, not gated.
+        if _adat_forge_inherited(actor_key):
+            sess["authority_level"] = "L4_WARGA"
+            sess["authority"] = "LIMITED_MUTATE"
+            sess["l4_allowed_verbs"] = sorted(L4_ALLOWED_VERBS | {"arif_forge"})
+            sess["l4_blocked_verbs"] = sorted(L4_BLOCKED_VERBS - {"arif_forge"})
+            logger.info(
+                "ADAT AGENTIC: actor=%s forge_inherited=true → LIMITED_MUTATE",
+                actor_key,
+            )
+        else:
+            sess["authority_level"] = "L4_WARGA"
+            sess["authority"] = "OBSERVE_ONLY"
+            sess["l4_allowed_verbs"] = sorted(L4_ALLOWED_VERBS)
+            sess["l4_blocked_verbs"] = sorted(L4_BLOCKED_VERBS)
     elif state.actor.verified:
         sess["authority_level"] = "OPERATOR"
         sess["authority"] = "OBSERVER_MUTATE"
@@ -263,6 +331,21 @@ def bind_authority_state(
     else:
         sess["authority_level"] = "OBSERVER"
         sess["authority"] = "OBSERVER"
+
+    # ADAT AGENTIC POST-ASSIGNMENT UPGRADE (F13 2026-08-10):
+    # After all authority checks complete, if the actor inherits FORGE via
+    # adat agentic and their current authority is below LIMITED_MUTATE,
+    # upgrade to LIMITED_MUTATE. "Forging is breathing — every warga can
+    # pick up the hammer."
+    _current = sess.get("authority", "OBSERVE_ONLY")
+    if _current in ("OBSERVE_ONLY", "OBSERVER_MUTATE", "OBSERVER", "OBSERVE"):
+        if _adat_forge_inherited(actor_key):
+            sess["authority"] = "LIMITED_MUTATE"
+            logger.info(
+                "ADAT AGENTIC UPGRADE: actor=%s forge_inherited=true authority %s → LIMITED_MUTATE",
+                actor_key,
+                _current,
+            )
 
     sess["ed25519_governance_verified"] = state.actor.verification_method == "f13_sovereign"
 
