@@ -24,6 +24,7 @@ concurrency:
 
 jobs:
   chain-verify:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "🔏 Hash-Chain Verify"
     runs-on: ubuntu-latest
     steps:

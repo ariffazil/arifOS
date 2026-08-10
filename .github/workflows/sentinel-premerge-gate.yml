@@ -24,6 +24,7 @@ concurrency:
 jobs:
   # ─── Question 1: Did critical paths change? ───────────────────────────
   q1-critical-paths:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "Q1 — Critical Paths"
     runs-on: ubuntu-latest
     outputs:
@@ -75,6 +76,7 @@ jobs:
 
   # ─── Question 2: README ↔ registry ↔ code drift? ──────────────────────
   q2-sot-drift:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "Q2 — README SOT Drift"
     runs-on: ubuntu-latest
     steps:
@@ -177,6 +179,7 @@ jobs:
 
   # ─── Question 3: Invariant violations? ────────────────────────────────
   q3-invariants:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "Q3 — Invariants"
     runs-on: ubuntu-latest
     steps:
@@ -221,6 +224,7 @@ jobs:
 
   # ─── Question 4: arifos.yml Constitutional Manifest ───────────────────
   q4-manifest:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "Q4 — Constitutional Manifest"
     runs-on: ubuntu-latest
     outputs:
@@ -278,11 +282,11 @@ jobs:
 
   # ─── Final Gate: PASS or BLOCK ─────────────────────────────────────────
   gate:
+    if: (always()) && (github.actor != 'dependabot[bot]' && github.actor != 
+      'app/dependabot')
     name: "🛡️ Sentinel Verdict"
     runs-on: ubuntu-latest
     needs: [q1-critical-paths, q2-sot-drift, q3-invariants, q4-manifest]
-    if: always()
-
     steps:
       - name: Compute verdict
         id: verdict
