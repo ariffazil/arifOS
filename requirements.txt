@@ -3318,9 +3318,9 @@ pandas==3.0.3 \
     #   welly
     #   xarray
     #   yfinance
-pandera==0.32.0 \
-    --hash=sha256:070c705eafbcfb4dd2ce494154d4bc0ce6d2b8e02a95ae15234040683bbab1f5 \
-    --hash=sha256:b8488704d80ed7fc0a812b0a8123e2028903e90e8ec5c31f880894c8e94786b3
+pandera==0.32.1 \
+    --hash=sha256:1a17a3ffa906174d19207715f4f082ec3db3709647927ad8c095c147d74d8454 \
+    --hash=sha256:72ecd74226847abf0f0437c05f7f10cc8368e306d88a2acc78fa93762c5a0a02
     # via arifos
 parso==0.8.7 \
     --hash=sha256:a8926eb2a1b915486941fdbd31e86a4baf88fe8c210f25f2f35ecec5b574ca1c \
