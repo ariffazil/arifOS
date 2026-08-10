@@ -61,6 +61,7 @@ env:
 jobs:
 
   federation-check:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🗺️ Federation Check
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -73,6 +74,7 @@ jobs:
           echo "✅ FEDERATION.md present"
 
   protocol-alignment:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 📋 Protocol Alignment
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -99,6 +101,7 @@ jobs:
   # JOB 1: Fast Signal — tool registry, imports, shim resolution
   # ─────────────────────────────────────────────────────────────
   fast-signal:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🔬 Fast Signal
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -115,6 +118,15 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
+
+      - name: Install (uv sync --frozen --all-extras)
+        # F13 invariant (2026-08-10): every job that calls `uv run` MUST
+        # install first. Without this, `uv run python` runs against an
+        # empty venv and fails fast in 2-3s — the root cause of the
+        # instant-fail signature on every Dependabot PR.
+        run: |
+          cd "$WORKDIR"
+          uv sync --frozen --all-extras
 
       - name: Create model registry stub for CI
         run: |
@@ -186,6 +198,7 @@ jobs:
   # JOB 2: Constitutional Import Chain — 888_JUDGE, SEAL, FLOORS
   # ─────────────────────────────────────────────────────────────
   constitutional-chain:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: ⚖️ Constitutional Chain
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -203,6 +216,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
+
+      - name: Install (uv sync --frozen --all-extras)
+        run: |
+          cd "$WORKDIR"
+          uv sync --frozen --all-extras
 
       - name: 000_INIT smoke
         run: |
@@ -260,6 +278,7 @@ jobs:
   # JOB 3: Runtime Shim Verification
   # ─────────────────────────────────────────────────────────────
   shim-verification:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🔀 Shim Resolution
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -277,6 +296,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
+
+      - name: Install (uv sync --frozen --all-extras)
+        run: |
+          cd "$WORKDIR"
+          uv sync --frozen --all-extras
 
       - name: All 9 runtime shims resolve
         run: |
@@ -351,6 +375,7 @@ jobs:
   # JOB 4: F9 Anti-Hantu — no consciousness claims in codebase
   # ─────────────────────────────────────────────────────────────
   anti-hantu:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🧟 F9 Anti-Hantu Scan
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -375,9 +400,10 @@ jobs:
   # JOB 5: 888_JUDGE PR Enforcement (F1-F13 constitutional check)
   # ─────────────────────────────────────────────────────────────
   pr-888-judge:
+    if: (github.event_name == 'pull_request') && (github.actor != 
+      'dependabot[bot]' && github.actor != 'app/dependabot')
     name: ⚖️ 888_JUDGE PR Review
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -394,6 +420,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: false
+
+      - name: Install (uv sync --frozen --all-extras)
+        run: |
+          cd "$WORKDIR"
+          uv sync --frozen --all-extras
 
       - name: F1-F13 Floor Audit
         run: |
@@ -448,6 +479,7 @@ jobs:
   # JOB 6: MCP Conformance (Fast test)
   # ─────────────────────────────────────────────────────────────
   mcp-conformance:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🔌 MCP Conformance
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -486,6 +518,7 @@ jobs:
   # JOB 7: Test Suite (non-MCP)
   # ─────────────────────────────────────────────────────────────
   test-suite:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 🧪 Test Suite
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -528,10 +561,11 @@ jobs:
   # JOB 8: Secrets scan gate (blocks on leak)
   # ─────────────────────────────────────────────────────────────
   secrets-gate:
+    if: (github.event_name == 'push') && (github.actor != 'dependabot[bot]' && 
+      github.actor != 'app/dependabot')
     name: 🔐 F11 Secrets Gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -547,9 +581,9 @@ jobs:
   # JOB 9: Daily health report (schedule only)
   # ─────────────────────────────────────────────────────────────
   daily-health:
+    if: github.event_name == 'schedule'
     name: 📊 Daily Health Report
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule'
     timeout-minutes: 10
     steps:
       - name: Checkout

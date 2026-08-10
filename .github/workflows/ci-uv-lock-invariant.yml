@@ -1,0 +1,85 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# uv lockfile invariant — F13 verdict, CI governance repair
+# Forged 2026-08-10
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Per F13 directive (2026-08-10):
+#   - pyproject.toml + uv.lock are the SOLE resolver authority for Python deps.
+#   - `uv lock --check` asserts uv.lock is consistent with pyproject.toml.
+#   - `uv sync --frozen` asserts the lockfile installs cleanly.
+#   - Both invariants run on every PR + push to main + manual dispatch.
+#
+# This is a HARD invariant — failure blocks. The intent is to catch resolver
+# drift (e.g. someone manually edits requirements.txt without regenerating
+# uv.lock) BEFORE it propagates into the build/runtime.
+#
+# Trigger scope: maintainer PRs, push to main, and Dependabot PRs — all of them
+# must hold the lockfile invariant. Privileged governance assertions are
+# gated separately in the existing privileged workflows.
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: uv lockfile invariant
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uv-invariant-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lockfile-invariant:
+    name: uv lock --check && uv sync --frozen
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+          version: "0.7.x"
+
+      - name: Hard invariant — uv lock --check
+        run: |
+          set -euo pipefail
+          echo "═══ F13 invariant: uv.lock consistent with pyproject.toml ═══"
+          uv lock --check
+          echo "✅ uv.lock is consistent with pyproject.toml"
+
+      - name: Hard invariant — uv sync --frozen
+        run: |
+          set -euo pipefail
+          echo "═══ F13 invariant: frozen sync resolves cleanly ═══"
+          uv sync --frozen
+          echo "✅ uv sync --frozen resolved cleanly"
+
+      - name: Record lockfile SHA-256
+        id: lockhash
+        run: |
+          sha=$(sha256sum uv.lock | awk '{print $1}')
+          echo "lock_sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "uv.lock SHA-256: $sha"
+
+      - name: Report
+        if: always()
+        run: |
+          echo "## uv lockfile invariant"
+          echo ""
+          echo "- ref: \`${{ github.ref }}\`"
+          echo "- head_sha: \`${{ github.sha }}\`"
+          echo "- lock_sha256: \`${{ steps.lockhash.outputs.lock_sha256 }}\`"
+          echo ""
+          echo "Verdict: this job's exit code (0 = invariant holds)."

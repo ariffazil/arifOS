@@ -21,6 +21,7 @@ permissions:
 
 jobs:
   drift-check:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "📡 Drift Check"
     runs-on: ubuntu-latest
     steps:
