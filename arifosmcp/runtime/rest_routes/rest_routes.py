@@ -1024,6 +1024,32 @@ def _build_governance_status_payload() -> dict[str, Any]:
         if val is not None and not _floor_passes(fid, float(val)):
             resolved_floors[fid] = _FLOOR_DEFAULTS.get(fid, val)
 
+    # F1 AMANAH — live arifFLOW FQ probe (FLR-F1-FQ, 2026-08-10)
+    # φFQ: 1.0 if FQ∈[1,3]; FQ/3.0 if FQ∈[0.5,1); 0.0 if FQ<0.5; min(1,3/FQ) if FQ>3.
+    # Falls back silently to _FLOOR_DEFAULTS['F1'] (0.50) if arifFLOW unreachable.
+    try:
+        import json as _json
+        import urllib.request as _ureq
+
+        with _ureq.urlopen(  # noqa: S310
+            "http://127.0.0.1:7073/health", timeout=1.5
+        ) as _resp:
+            _fq_data = _json.loads(_resp.read())
+        _fq_quotient = float(_fq_data["fq"]["quotient"])
+        if 1.0 <= _fq_quotient <= 3.0:
+            _phi_fq = 1.0
+        elif 0.5 <= _fq_quotient < 1.0:
+            _phi_fq = _fq_quotient / 3.0
+        elif _fq_quotient < 0.5:
+            _phi_fq = 0.0
+        else:  # quotient > 3.0
+            _phi_fq = min(1.0, 3.0 / _fq_quotient)
+        _phi_fq = round(_phi_fq, 4)
+        if _phi_fq > float(resolved_floors.get("F1") or 0.0):
+            resolved_floors["F1"] = _phi_fq
+    except Exception:
+        pass  # F1 AMANAH: silently keep default on any probe failure
+
     # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
     # where negative values = clarity improved. But runtime_floors must display
     # in [0,1] band for cross-floor comparability and G scalar integrity.
