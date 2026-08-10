@@ -51,9 +51,13 @@ concurrency:
 jobs:
   verify-dependency-update:
     name: verify-dependency-update
-    # Match both the GitHub-documented identity and the legacy app/ login.
-    # `dependabot[bot]` is the canonical current identity per GitHub docs.
-    if: github.actor == 'dependabot[bot]' || github.actor == 'app/dependabot'
+    # Gate on the PR AUTHOR, not the workflow actor. When a maintainer calls
+    # `update-branch` or comments on a Dependabot PR, `github.actor` becomes
+    # the maintainer, not Dependabot. The PR's author (`user.login`) is the
+    # stable identity for Dependabot PRs and the only reliable gate.
+    if: |
+      github.event.pull_request.user.login == 'dependabot[bot]' ||
+      github.event.pull_request.user.login == 'app/dependabot'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
