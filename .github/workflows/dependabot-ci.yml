@@ -1,0 +1,149 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Dependabot CI — Unprivileged gate for dependency-only PRs
+# Forged 2026-08-10 — F13 verdict, binding CI governance repair
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Trust domain:
+#   - Trigger: pull_request on main
+#   - Actor: dependabot[bot] (GitHub-documented identity) and app/dependabot
+#   - Privileges: contents: read ONLY — no secrets, no write, no PR mutation
+#   - Actions: observe + report. Does NOT comment, label, attest, or merge.
+#
+# Why this exists:
+#   The privileged CI gates (External Witness, Sentinel Q2/Q3/Q4, F11 Gitleaks
+#   history, Surface Gate live probe, Repo Routing trailer, Constitutional
+#   Floor Gate) are designed for human-authored PRs with attestations. They
+#   cannot fire for Dependabot. Without a separate gate, Dependabot PRs get
+#   all-red check rolls AND the test cascade is SKIPPED — no trustworthy
+#   regression evidence either way.
+#
+# What this does:
+#   1. uv sync --frozen    (lockfile-frozen install — no resolution drift)
+#   2. ruff check src tests
+#   3. pytest tests/ -q   (unprivileged test gate — secrets-free subset)
+#   4. dependency_probes.py (hermetic SHA-bound probes — see SKILL.md)
+#
+# What this does NOT do:
+#   - No gh pr comment, no --add-label, no --auto-merge
+#   - No secret access — Dependabot PRs are fork-equivalent at the secret level
+#   - No privileged governance assertion (handled by separate maintainer path)
+#
+# References:
+#   https://docs.github.com/en/code-security/reference/supply-chain-security/troubleshoot-dependabot/dependabot-on-actions
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: Dependabot CI
+
+on:
+  pull_request:
+    branches: [main]
+
+# Token model: Dependabot PRs receive a read-only GITHUB_TOKEN with NO access
+# to repository secrets. We deliberately request only `contents: read` so
+# even an accidental upgrade path has no write surface.
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify-dependency-update:
+    name: verify-dependency-update
+    # Match both the GitHub-documented identity and the legacy app/ login.
+    # `dependabot[bot]` is the canonical current identity per GitHub docs.
+    if: github.actor == 'dependabot[bot]' || github.actor == 'app/dependabot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PYTHONUNBUFFERED: "1"
+      PROBE_ARTIFACT_DIR: forge_work/probes/${{ github.event.pull_request.base.ref }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+
+    steps:
+      - name: Checkout PR head (read-only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+          version: "0.7.x"
+
+      - name: Hard invariant — uv lock consistency
+        run: |
+          set -euo pipefail
+          uv lock --check
+          echo "✅ uv.lock is consistent with pyproject.toml"
+
+      - name: Hard invariant — uv sync frozen
+        run: |
+          set -euo pipefail
+          uv sync --frozen
+          echo "✅ Frozen sync OK — lockfile is the resolver authority"
+
+      - name: Record lockfile SHA-256
+        id: lockhash
+        run: |
+          sha=$(sha256sum uv.lock | awk '{print $1}')
+          echo "lock_sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "uv.lock SHA-256: $sha"
+
+      - name: Lint (ruff)
+        run: uv run ruff check src tests --output-format concise || true
+        # Non-blocking: lint drift on a lockfile-only PR is informational, not
+        # a regression. Surface in probe artifact for human triage.
+
+      - name: Test suite — frozen install subset
+        run: |
+          set -euo pipefail
+          # Use the same frozen set that main CI uses, EXCLUDING tests that
+          # touch live MCP endpoints, secrets, or network (those are governed
+          # by the privileged suite — they cannot run on a Dependabot token).
+          uv run pytest tests/ -q \
+            --ignore=tests/test_mcp_inspector.py \
+            --ignore=tests/test_a2a.py \
+            --ignore=tests/constitutional \
+            --ignore=tests/e2e \
+            --ignore=tests/e3e \
+            --ignore=tests/integration \
+            -m "not constitutional and not integration" \
+            --tb=short -q 2>&1 | tail -40
+        # Last -q wins (tail-friendly). Real verdict is the exit code.
+
+      - name: Hermetic dependency probes
+        run: |
+          set -euo pipefail
+          mkdir -p "$PROBE_ARTIFACT_DIR"
+          uv run python scripts/dependency_probes.py \
+            --head-sha "$PR_HEAD_SHA" \
+            --lock-sha256 "${{ steps.lockhash.outputs.lock_sha256 }}" \
+            --pr-number "$PR_NUMBER" \
+            --output "$PROBE_ARTIFACT_DIR/${PR_HEAD_SHA}.json"
+
+      - name: Upload probe evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependabot-probe-${{ github.event.pull_request.number }}
+          path: forge_work/probes/${{ github.event.pull_request.base.ref }}/${{ github.event.pull_request.head.sha }}.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Dependabot CI — ${{ github.event.pull_request.title }}"
+          echo ""
+          echo "- Head SHA: \`${{ github.event.pull_request.head.sha }}\`"
+          echo "- Lockfile SHA-256: \`${{ steps.lockhash.outputs.lock_sha256 }}\`"
+          echo "- Actor: \`${{ github.actor }}\`"
+          echo ""
+          echo "Verdict is the **job exit code**, not this summary."
+          echo "Probe artifact uploaded; review with maintainer path before merge."
