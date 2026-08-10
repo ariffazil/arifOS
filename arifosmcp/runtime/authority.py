@@ -332,6 +332,21 @@ def bind_authority_state(
         sess["authority_level"] = "OBSERVER"
         sess["authority"] = "OBSERVER"
 
+    # ADAT AGENTIC POST-ASSIGNMENT UPGRADE (F13 2026-08-10):
+    # After all authority checks complete, if the actor inherits FORGE via
+    # adat agentic and their current authority is below LIMITED_MUTATE,
+    # upgrade to LIMITED_MUTATE. "Forging is breathing — every warga can
+    # pick up the hammer."
+    _current = sess.get("authority", "OBSERVE_ONLY")
+    if _current in ("OBSERVE_ONLY", "OBSERVER_MUTATE", "OBSERVER", "OBSERVE"):
+        if _adat_forge_inherited(actor_key):
+            sess["authority"] = "LIMITED_MUTATE"
+            logger.info(
+                "ADAT AGENTIC UPGRADE: actor=%s forge_inherited=true authority %s → LIMITED_MUTATE",
+                actor_key,
+                _current,
+            )
+
     sess["ed25519_governance_verified"] = state.actor.verification_method == "f13_sovereign"
 
 
