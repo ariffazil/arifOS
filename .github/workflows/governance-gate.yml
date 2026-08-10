@@ -22,6 +22,7 @@ concurrency:
 
 jobs:
   governance-audit:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "Constitutional Audit"
     runs-on: ubuntu-latest
     timeout-minutes: 3
@@ -44,6 +45,7 @@ jobs:
           retention-days: 30
 
   rsi-scorecard:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: "RSI Readiness Score"
     runs-on: ubuntu-latest
     timeout-minutes: 2

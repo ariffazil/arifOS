@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   hygiene:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: 📊 Automation Health Digest
     runs-on: ubuntu-latest
     steps:
