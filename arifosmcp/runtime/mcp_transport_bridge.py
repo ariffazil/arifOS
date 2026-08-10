@@ -56,6 +56,12 @@ SUPPORTED_PROTOCOL_VERSIONS: frozenset[str] = frozenset(
 
 LATEST_PROTOCOL_VERSION = "2026-07-28"
 
+# ── G14: MCP 2026-07-28 JSON-RPC error codes ──
+# SEP-2243/2575: standard error codes for stateless MCP
+ERR_HEADER_MISMATCH = -32020       # Mcp-Method header != body method
+ERR_MISSING_CLIENT_CAP = -32021   # MissingRequiredClientCapability
+ERR_UNSUPPORTED_VERSION = -32022  # UnsupportedProtocolVersion
+
 # ═══════════════════════════════════════════════════════════════
 # MCP PROTOCOL VERSION MIDDLEWARE
 # ═══════════════════════════════════════════════════════════════
@@ -92,7 +98,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                     "jsonrpc": "2.0",
                     "id": None,
                     "error": {
-                        "code": -32022,
+                        "code": ERR_UNSUPPORTED_VERSION,
                         "message": f"UnsupportedProtocolVersion: {version}",
                         "data": {
                             "supported": sorted(SUPPORTED_PROTOCOL_VERSIONS, reverse=True),
@@ -139,7 +145,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                             "jsonrpc": "2.0",
                             "id": req_id,
                             "error": {
-                                "code": -32020,
+                                "code": ERR_HEADER_MISMATCH,
                                 "message": (
                                     f"HeaderMismatch: Mcp-Method '{mcp_method}' "
                                     f"does not match body method '{method}'"
@@ -147,6 +153,54 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                             },
                         },
                         status_code=400,
+                    )
+
+                # ── G7: Skip initialize handshake for 2026-07-28 stateless clients ──
+                # MCP 2026-07-28: initialize is unnecessary. server/discover already
+                # returned capabilities. Return InitializeResult directly, skipping
+                # FastMCP's session-creating initialize flow entirely.
+                if method == "initialize":
+                    logger.info(
+                        "G7: Intercepting initialize for 2026-07-28 stateless client "
+                        "(req_id=%s) — returning capabilities directly", req_id
+                    )
+                    return JSONResponse(self._initialize_result_2026(req_id))
+
+                # ── G7: No-op notifications/initialized for 2026-07-28 ──
+                # This notification is meaningless in stateless mode (no session to activate).
+                # Return 202 Accepted per JSON-RPC notification convention.
+                if method == "notifications/initialized":
+                    logger.debug("G7: No-op notifications/initialized for 2026-07-28")
+                    return Response(status_code=202)
+
+                # ── G8: Disable ping for 2026-07-28 stateless clients ──
+                # MCP 2026-07-28: ping is unnecessary in stateless mode (no session to keep alive).
+                # FastMCP hardcodes a ping handler; intercept before it reaches FastMCP.
+                if method == "ping":
+                    logger.debug("G8: No-op ping for 2026-07-28 stateless client")
+                    return JSONResponse(
+                        {"jsonrpc": "2.0", "id": req_id, "result": {}},
+                        status_code=200,
+                    )
+
+                # ── G9: Reject logging/setLevel for 2026-07-28 ──
+                # The method-level logging/setLevel is deprecated in 2026-07-28.
+                # Clients should use per-request _meta.io.modelcontextprotocol/logLevel instead.
+                if method == "logging/setLevel":
+                    logger.info("G9: Rejecting deprecated logging/setLevel for 2026-07-28")
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": -32601,
+                                "message": (
+                                    "MethodDeprecated: logging/setLevel is deprecated in MCP 2026-07-28. "
+                                    "Use per-request _meta.io.modelcontextprotocol/logLevel instead."
+                                ),
+                            },
+                        },
+                        status_code=200,
                     )
 
                 # ── G6: Per-request logLevel from _meta (replaces deprecated logging/setLevel) ──
@@ -198,6 +252,60 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 "instructions": (
                     "arifOS constitutional kernel. Dual-era MCP: "
                     "2026-07-28 (stateless, preferred) and 2025-11-25 (stateful). "
+                    "Boot: server/discover → tools/list → arif_init (app session/SCT). "
+                    "Governance session is independent of transport session."
+                ),
+                "ttlMs": 3_600_000,
+                "cacheScope": "public",
+                "_meta": {
+                    "io.modelcontextprotocol/serverInfo": {
+                        "name": "ARIFOS MCP",
+                        "version": "kanon-2026.08.09",
+                        "websiteUrl": "https://mcp.arif-fazil.com",
+                    },
+                    "io.modelcontextprotocol/protocolVersion": LATEST_PROTOCOL_VERSION,
+                },
+            },
+        }
+
+
+    @staticmethod
+    def _initialize_result_2026(req_id: Any) -> dict[str, Any]:
+        """Build InitializeResult for 2026-07-28 stateless clients.
+
+        MCP 2026-07-28: initialize is unnecessary when server/discover is
+        available, but some clients (e.g. OpenAI MCP connector) still send
+        initialize. Return the same capabilities as server/discover, shaped
+        as a standard InitializeResult with resultType + caching metadata.
+        """
+        try:
+            from arifosmcp.runtime.public_surface import public_tool_names
+
+            tools_cap: dict[str, Any] = {"listChanged": True}
+            _ = public_tool_names  # surface exists
+        except Exception:
+            tools_cap = {"listChanged": True}
+
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "resultType": "complete",
+                "protocolVersion": LATEST_PROTOCOL_VERSION,
+                "capabilities": {
+                    "tools": tools_cap,
+                    "resources": {"listChanged": True, "subscribe": False},
+                    "prompts": {"listChanged": True},
+                    "extensions": {"io.modelcontextprotocol/ui": {}},
+                },
+                "serverInfo": {
+                    "name": "ARIFOS MCP",
+                    "version": "kanon-2026.08.09",
+                    "websiteUrl": "https://mcp.arif-fazil.com",
+                },
+                "instructions": (
+                    "arifOS constitutional kernel. Stateless MCP 2026-07-28. "
+                    "No initialize handshake required. "
                     "Boot: server/discover → tools/list → arif_init (app session/SCT). "
                     "Governance session is independent of transport session."
                 ),
