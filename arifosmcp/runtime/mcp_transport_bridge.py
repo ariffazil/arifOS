@@ -149,6 +149,20 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                         status_code=400,
                     )
 
+                # ── G6: Per-request logLevel from _meta (replaces deprecated logging/setLevel) ──
+                # MCP 2026-07-28: client sends io.modelcontextprotocol/logLevel in
+                # request _meta. Extract and set as request-scoped attribute.
+                _meta = (
+                    body.get("params", {}).get("_meta")
+                    if isinstance(body.get("params"), dict)
+                    else None
+                )
+                if isinstance(_meta, dict):
+                    _log_level = _meta.get("io.modelcontextprotocol/logLevel")
+                    if isinstance(_log_level, str):
+                        request.state.mcp_log_level = _log_level.upper()
+                        logger.debug("Per-request logLevel=%s from _meta", _log_level)
+
                 # Cache for airlock / tools
                 request.state.mcp_protocol_version = "2026-07-28"
                 request.state.mcp_stateless = True
