@@ -438,6 +438,14 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         "https://*.sharepoint.com",
         "https://*.onedrive.com",
         "https://*.live.com",
+        # MCPJam Inspector — official MCP dev tool
+        "https://app.mcpjam.com",
+        "https://mcpjam.com",
+        "https://*.mcpjam.com",
+        "http://localhost",
+        "https://localhost",
+        "http://127.0.0.1",
+        "https://127.0.0.1",
     )
 
     @classmethod
