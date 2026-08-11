@@ -84,12 +84,22 @@ VAULT999 = tulang 💀          (bones — the structure)
 
 ---
 
-## 🔄 The 8 Canonical Verbs
+## 🔄 The 8 Canonical Verbs — Inner Loop
 
-```
-[000] arif_init ──> [111] arif_observe ──> [333] arif_think ──> [444] arif_route
-                                                                     │
-[999] arif_seal <── [777] arif_forge <── [888] arif_judge <── [555] arif_memory
+```mermaid
+flowchart LR
+    I000["000 arif_init<br/>identity, SCT token"] --> I111["111 arif_observe<br/>evidence, ΔS"]
+    I111 --> I333["333 arif_think<br/>F2 truth · F7 humility"]
+    I333 --> I444["444 arif_route<br/>dispatch to organs"]
+    I444 --> I555["555 arif_memory<br/>L1–L6 provenance"]
+    I555 --> I888{"888 arif_judge<br/>SEAL · HOLD · SABAR · VOID"}
+    I888 -->|SEAL| I777["777 arif_forge<br/>authorize A-FORGE mutation"]
+    I888 -->|HOLD/SABAR/VOID| I000
+    I777 --> I999["999 arif_seal<br/>VAULT999 anchor"]
+    I999 -.->|next intent| I000
+
+    classDef here fill:#0a7b83,color:#fff,stroke:#063f43,stroke-width:2px
+    class I888 here
 ```
 
 | Stage | Verb | Function | Governance Duty |
@@ -102,6 +112,48 @@ VAULT999 = tulang 💀          (bones — the structure)
 | **888** | `arif_judge` | Constitutional verdict | SEAL · HOLD · SABAR · VOID |
 | **777** | `arif_forge` | Execution gate | Authorizes mutation via A-FORGE (requires SEAL) |
 | **999** | `arif_seal` | Immutable anchor | Appends proof to VAULT999 |
+
+---
+
+## 🌐 Federation — Outer Loop
+
+The kernel's inner loop (above) runs once per intent. The outer loop is the federation-wide
+cycle that inner loop's `444 arif_route` and `777 arif_forge` steps plug into — the whole
+linked state, one diagram:
+
+```mermaid
+flowchart TB
+    ARIF["👑 ARIF — F13 SOVEREIGN<br/>purpose, irreversible consent, final veto"]
+    ARIFOS["⚖️ arifOS :8088<br/>judges — never executes"]
+    AAA["🏛️ AAA :3001<br/>routes & displays — never adjudicates"]
+    GEOX["🌍 GEOX :8081<br/>earth evidence"]
+    WEALTH["💰 WEALTH :18082<br/>capital evidence"]
+    WELL["🫀 WELL :18083<br/>vitality mirror"]
+    FORGE["⚒️ A-FORGE :7071/72<br/>executes — only after SEAL"]
+    VAULT["💀 VAULT999<br/>immutable seal chain"]
+
+    ARIF -->|purpose, veto| ARIFOS
+    ARIFOS -->|444 route| AAA
+    AAA --> GEOX
+    AAA --> WEALTH
+    AAA --> WELL
+    GEOX -->|evidence| ARIFOS
+    WEALTH -->|evidence| ARIFOS
+    WELL -->|readiness mirror| ARIFOS
+    ARIFOS -->|888 SEAL/HOLD/VOID → 777 forge| FORGE
+    FORGE -->|999 receipt| VAULT
+    VAULT -->|immutable record| ARIF
+
+    classDef here fill:#0a7b83,color:#fff,stroke:#063f43,stroke-width:2px
+    class ARIFOS here
+```
+
+**Linked state — every organ's own README carries this same diagram, highlighting itself:**
+[A-FORGE](https://github.com/ariffazil/A-FORGE#-federation--outer-loop) ·
+[GEOX](https://github.com/ariffazil/GEOX#-federation--outer-loop) ·
+[WEALTH](https://github.com/ariffazil/WEALTH#-federation--outer-loop) ·
+[WELL](https://github.com/ariffazil/WELL#-federation--outer-loop) ·
+full contract: [`FEDERATION_CONTRACT.md`](./FEDERATION_CONTRACT.md)
 
 ---
 
