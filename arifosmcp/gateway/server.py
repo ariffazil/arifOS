@@ -1299,7 +1299,7 @@ async def _schema_handler(request: Request):
     """Protocol and capability advertisement."""
     return JSONResponse(
         {
-            "protocol_versions_supported": ["2025-11-25", "2025-03-26"],
+            "protocol_versions_supported": ["2026-07-28", "2025-11-25", "2025-03-26", "2024-11-05"],
             "tools_count": 19,
             "organs": list(UPSTREAM_ORGANS.keys()),
             "DITEMPA_BUKAN_DIBERI": True,

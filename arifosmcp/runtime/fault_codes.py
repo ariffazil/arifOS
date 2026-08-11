@@ -328,12 +328,15 @@ ARIF_JSONRPC_ERROR_MAP: dict[str, int] = {
 }
 
 _MCP_SPEC_VERSION = (
-    "2025-11-25"  # fixed 2026-06-28: was "2025-06-18" (bogus — not a real spec version)
+    "2026-07-28"
 )
 _MCP_SUPPORTED_VERSIONS = (
+    "2026-07-28",
     "2025-11-25",
     "2025-03-26",
-)  # aligned with public_surface.py MCP_SPEC_VERSIONS_SUPPORTED
+    "2024-11-05",
+)
+  # aligned with public_surface.py MCP_SPEC_VERSIONS_SUPPORTED
 
 
 def build_transport_error_envelope(
