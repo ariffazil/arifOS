@@ -57,6 +57,7 @@ class GapClass(StrEnum):
     HISTORICAL_LINK_GAP = "HISTORICAL_LINK_GAP"
     HISTORICAL_CORRUPT_LINE = "HISTORICAL_CORRUPT_LINE"
     HISTORICAL_MISSING_FIELDS = "HISTORICAL_MISSING_FIELDS"
+    CANONICAL_MISSING_FIELDS = "CANONICAL_MISSING_FIELDS"  # P0-VAULT999-INTEGRITY (2026-08-11)
     HASH_MISMATCH = "HASH_MISMATCH"
     CHAIN_BREAK = "CHAIN_BREAK"
     DUPLICATE_RECEIPT = "DUPLICATE_RECEIPT"
@@ -610,6 +611,36 @@ def verify_chain(
                         got_prev=None,
                         seq=seq,
                         detail="missing prev_hash and this_hash",
+                    )
+                )
+
+        # P0-VAULT999-INTEGRITY (2026-08-11): A canonical entry that lacks
+        # the foundational identity fields (id, timestamp, actor_id) is
+        # structurally present but forensically meaningless. Per Claude
+        # external report: "VAULT999 integrity check is BLIND to null
+        # entries" — this check was previously a silent false positive
+        # because line 500's duplicate-receipt-id check is skipped when
+        # rid is None. Now flagged as CANONICAL_MISSING_FIELDS.
+        if canon:
+            _missing: list[str] = []
+            if not entry.get("id") and not entry.get("receipt_id"):
+                _missing.append("id/receipt_id")
+            if not entry.get("timestamp") and not entry.get("timestamp_iso"):
+                _missing.append("timestamp")
+            if not entry.get("actor_id"):
+                _missing.append("actor_id")
+            if _missing:
+                gc = GapClass.CANONICAL_MISSING_FIELDS
+                classes[gc] = classes.get(gc, 0) + 1
+                gaps.append(
+                    GapRecord(
+                        index=parseable_index,
+                        line_no=pl.line_no,
+                        gap_class=gc,
+                        expected_prev=prev_hash,
+                        got_prev=prev_h,
+                        seq=seq,
+                        detail=f"canonical entry missing fields: {','.join(_missing)}",
                     )
                 )
 
