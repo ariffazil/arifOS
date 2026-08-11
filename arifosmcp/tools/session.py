@@ -911,6 +911,28 @@ def _project_light(
                 "diversity": "PARTIAL" if actor_verified else "NONE",
             },
         )
+        # Layer 5e (2026-08-11): surface verification_method + evidence_ref
+        # to the unified session record when DID consultation (Layer 5b/5c)
+        # was the proof path. This satisfies the HONEST_HOLD gate requirement
+        # that these fields be non-null when actor_verified=True.
+        if actor_verified:
+            try:
+                _did_meta = _claims.get("did_entry_kid") or _claims.get("did_organ_id")
+                if _did_meta:
+                    out["verification_path"] = out.get("verification_path", "did_registry")
+                    out["verification_method"] = "did_registry"
+                    # evidence_ref format: did://<kid> (W3C DID URI)
+                    # _did_meta may be "did:arif:arifos" or just "arifos"
+                    _kid_for_uri = _did_meta
+                    if _kid_for_uri.startswith("did:"):
+                        _kid_for_uri = _kid_for_uri[4:]  # strip leading "did:" for clean URI
+                    out["evidence_ref"] = f"did://{_kid_for_uri}"
+                    # Also surface in the ACT claims for downstream
+                    if isinstance(_claims, dict):
+                        _claims["verification_method"] = "did_registry"
+                        _claims["evidence_ref"] = f"did://{_kid_for_uri}"
+            except Exception:
+                pass
         out["session_token"] = _token
         out["apex_scalars"] = dict(_apex)
         out["standing_source"] = "act"
