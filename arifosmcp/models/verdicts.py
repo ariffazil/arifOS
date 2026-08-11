@@ -1,12 +1,18 @@
 """
 arifOS v2.0 — Canonical Verdict Enumerations (v1.0 ratified 2026-07-07)
 ═══════════════════════════════════════════════════════════════════════════
-Defines the FIVE primary seals (SEAL, HOLD, SABAR, PARTIAL, VOID), the 14 canonical
-qualified substates, the 13 constitutional floors, and the metabolic telemetry schemas.
+Defines the FIVE primary seals (SEAL, HOLD, SABAR, PARTIAL, VOID), the 16 canonical
+qualified substates (added WORK_DONE + WAITING_FOR_WITNESS for P4 — ARIFOS::CLOSURE_RECOVERY::v1),
+the 13 constitutional floors, and the metabolic telemetry schemas.
 
 5-state monotonic lattice (canon):
     VOID > HOLD > SABAR > PARTIAL > SEAL
     (most restrictive ─────────► least restrictive)
+
+P4 (2026-08-11) — SEAL_PENDING_RECOVERABLE substates:
+    WORK_DONE           — agent work complete, awaiting witness confirmation
+    WAITING_FOR_WITNESS — witness gated; awaiting external/human ack
+    Both precede SEAL; neither blocks autonomous recovery via fail_soft.
 
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE · canon anchored at /root/A-FORGE/proto/verdict/
 """
@@ -42,11 +48,21 @@ class SealType(StrEnum):
 class VerdictState(StrEnum):
     """
     Detailed verdict states within the canonical seals.
+
+    P4 (2026-08-11) — Added WORK_DONE + WAITING_FOR_WITNESS as canonical
+    SEAL_PENDING_RECOVERABLE substates. Doctrine ref: ARIFOS::CLOSURE_RECOVERY::v1
+    Audit found 242+ sessions stuck because SEAL was the only "done" state.
+    WORK_DONE captures "agent finished work, awaiting witness confirmation";
+    WAITING_FOR_WITNESS captures "witness gating blocked, await human/ext ack."
     """
 
     # SEAL substates
     SEAL_CANONICAL = "SEAL_CANONICAL"  # High confidence, full compliance
     SEAL_QUALIFIED = "SEAL_QUALIFIED"  # Compliant with noted assumptions
+
+    # SEAL_PENDING_RECOVERABLE substates (P4 — ARIFOS::CLOSURE_RECOVERY::v1)
+    WORK_DONE = "WORK_DONE"  # Agent work finished; awaiting witness confirmation
+    WAITING_FOR_WITNESS = "WAITING_FOR_WITNESS"  # Witness gating blocked; await human/ext ack
 
     # HOLD substates
     HOLD_888 = "HOLD_888"  # Human Architect intervention required
@@ -422,7 +438,6 @@ class RuntimeStatus(StrEnum):
     TIMEOUT = "TIMEOUT"  # Tool exceeded its time budget
     RETRY = "RETRY"  # Transient failure — caller should retry
     HOLD = "HOLD"  # Tool blocked by constitutional gate (NOT governance verdict — transport block)
-
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
