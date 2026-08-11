@@ -55,6 +55,52 @@ SUPPORTED_PROTOCOL_VERSIONS: frozenset[str] = frozenset(
 )
 
 LATEST_PROTOCOL_VERSION = "2026-07-28"
+# Keep legacy initialize clients on a version supported by the public SDKs.
+INTEROP_PROTOCOL_VERSION = "2025-11-25"
+
+
+def negotiate_initialize_protocol(client_version: Any) -> str | None:
+    """Choose a protocol version that the client can consume.
+
+    The modern stateless dialect does not require initialize, but clients that
+    still perform the handshake must receive a version from the intersection
+    of the client and server capabilities. Never advertise the 2026 dialect to
+    a legacy client that requested an older version.
+    """
+    if not isinstance(client_version, str) or not client_version.strip():
+        return None
+    requested = client_version.strip()
+    if requested in SUPPORTED_PROTOCOL_VERSIONS:
+        return requested
+    return INTEROP_PROTOCOL_VERSION
+
+
+def _rewrite_initialize_protocol(response: Response, protocol_version: str) -> Response:
+    """Rewrite a JSON initialize response while preserving transport headers."""
+    body = getattr(response, "body", None)
+    if not body:
+        return response
+    try:
+        payload = json.loads(body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return response
+
+    result = payload.get("result") if isinstance(payload, dict) else None
+    if not isinstance(result, dict):
+        return response
+    result["protocolVersion"] = protocol_version
+
+    headers = {
+        key: value
+        for key, value in response.headers.items()
+        if key.lower() != "content-length"
+    }
+    return JSONResponse(
+        payload,
+        status_code=response.status_code,
+        headers=headers,
+        media_type=response.media_type,
+    )
 
 # ── G14: MCP 2026-07-28 JSON-RPC error codes ──
 # SEP-2243/2575: standard error codes for stateless MCP
@@ -114,6 +160,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
         # Clients in "auto" mode probe server/discover to discover supported versions
         # BEFORE sending MCP-Protocol-Version. This intercept handles that case.
         if request.method == "POST":
+            method: str | None = None
             body_bytes = await request.body()
             try:
                 body = json.loads(body_bytes.decode("utf-8") or "{}")
@@ -224,7 +271,14 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 request.state.mcp_protocol_version = version
                 request.state.mcp_stateless = False
 
-        return await call_next(request)
+        response = await call_next(request)
+        if method == "initialize" and version != LATEST_PROTOCOL_VERSION:
+            params = body.get("params") if isinstance(body, dict) else None
+            requested = params.get("protocolVersion") if isinstance(params, dict) else None
+            negotiated = negotiate_initialize_protocol(requested)
+            if negotiated:
+                response = _rewrite_initialize_protocol(response, negotiated)
+        return response
 
     @staticmethod
     def _discover_result(req_id: Any) -> dict[str, Any]:
