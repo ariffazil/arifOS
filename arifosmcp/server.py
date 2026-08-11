@@ -374,7 +374,15 @@ class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
     GET at the gateway layer before it reaches the SDK's SSE handler,
     forcing clients to use POST for JSON-RPC calls.
 
-    Clients receiving 405 will know to retry with POST.
+    SEP-2026-08-11 (discovery-friendly HOLD): the original 405 was
+    constitutionally correct but broke naive GET-probing clients (some
+    MCP inspectors try a GET before falling back to POST, per MCP's
+    optional-SSE-stream convention, and treat any non-200 as a hard
+    connection failure rather than reading the JSON-RPC hint body).
+    This now answers GET with HTTP 200 and a static discovery payload —
+    it NEVER opens a real SSE stream and NEVER reaches the SDK's SSE
+    handler, so the PHOENIX-73C protection is unchanged. Only the status
+    code and body shape changed, to stop those clients from bailing.
     """
 
     async def dispatch(self, request: Request, call_next):
@@ -382,21 +390,25 @@ class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
         if request.url.path.rstrip("/") == "/mcp" and request.method == "GET":
             return JSONResponse(
                 {
-                    "jsonrpc": "2.0",
-                    "error": {
-                        "code": -32005,
-                        "message": "Method not allowed in stateless mode. "
-                        "Use POST for JSON-RPC calls. "
-                        "SSE streams are not supported in stateless_http mode "
-                        "(PHOENIX-73C).",
-                        "data": {
-                            "hint": "Retry this request using POST with "
-                            '{"jsonrpc":"2.0","method":"...","params":{}}'
-                        },
-                    },
+                    "mcp_endpoint": "https://mcp.arif-fazil.com/mcp",
+                    "transport": "streamable-http",
+                    "server": "arifOS Constitutional Kernel",
+                    "note": "This server is stateless (PHOENIX-73C): it does not "
+                    "open a persistent GET/SSE stream. Send a POST JSON-RPC "
+                    'request, e.g. {"jsonrpc":"2.0","id":1,"method":"initialize",'
+                    '"params":{...}} or {"method":"tools/list"}. Real MCP clients '
+                    "(Claude Code, Claude Desktop, streamable-http clients) do "
+                    "this automatically; select 'Streamable HTTP' transport, "
+                    "not legacy 'SSE', in inspector-style clients.",
+                    "health": "https://arifos.arif-fazil.com/health",
+                    "manifest": "https://mcp.arif-fazil.com/.well-known/mcp/server.json",
+                    "doctrine": "DITEMPA BUKAN DIBERI",
                 },
-                status_code=405,
-                headers={"Allow": "POST, DELETE"},
+                status_code=200,
+                headers={
+                    "Accept-Post": "application/json, text/event-stream",
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
             )
         return await call_next(request)
 
