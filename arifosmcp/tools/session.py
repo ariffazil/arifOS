@@ -809,8 +809,44 @@ def _project_light(
     # on `actor_verified` (cryptographic identity proven). If the actor
     # is not cryptographically verified, we skip the mint and surface a
     # challenge nonce so the caller can re-attest sovereign key.
+    #
+    # Layer 6 (identity-fix-6, 2026-08-11): ACT issuance for DID-verified
+    # canonical actors. If `actor_verified` is False but the actor is
+    # canonically known AND has a registered DID, consult the registry
+    # as an alternative proof of identity (per Layer 5b identity matrix).
+    # This is the path that UNBLOCKS forge_vault Lane B sealing for
+    # canonical actors (kimi-code/FI-008, ARIF, FORGE, AAAGW, etc.)
+    # without requiring a separate EdDSA signature in the init request.
     try:
         from arifosmcp.runtime.act_token import mint_sct, unmeasured_apex
+
+        _did_consulted: bool = False
+        _did_verified: bool = False
+        if not actor_verified and actor_id:
+            try:
+                from contracts.identity import normalize_actor_identity
+
+                _canon = normalize_actor_identity(actor_id)
+                if _canon.get("normalized") and _canon.get("did_consulted"):
+                    if _canon.get("verification_state") == "VERIFIED":
+                        _did_consulted = True
+                        _did_verified = True
+                        actor_verified = True  # elevate to mint path
+                        out["actor_cryptographically_verified"] = True
+                        out["verification_path"] = "did_registry"
+                        logger.info(
+                            "arif_init: actor '%s' elevated to verified via DID registry "
+                            "(state=%s, did_key=%s)",
+                            actor_id,
+                            _canon.get("verification_state"),
+                            _canon.get("did_entry", {}).get("public_key_hex", "n/a")[:12]
+                            if _canon.get("did_entry")
+                            else "n/a",
+                        )
+            except ImportError:
+                pass
+            except Exception as _did_exc:
+                logger.debug("DID consultation during mint failed: %s", _did_exc)
 
         if not actor_verified:
             out["session_token"] = None
@@ -1968,6 +2004,7 @@ def arif_init(
 
                     # STAB-2026-08-09: never auto-sign for proxied/public traffic
                     from arifosmcp.runtime.request_trust import auto_sign_allowed
+
                     if not auto_sign_allowed():
                         _auto_sig = None
                         logger.info(
@@ -1994,9 +2031,7 @@ def arif_init(
                             # Use classify_actor_band — never hardcode FULL/SOVEREIGN for agents
                             _light_band = str(_band.get("actor_band") or "LIMITED_MUTATE")
                             _light_agent_class = str(_band.get("agent_class") or "AGENT")
-                            _light_authority_level = str(
-                                _band.get("authority_level") or "OPERATOR"
-                            )
+                            _light_authority_level = str(_band.get("authority_level") or "OPERATOR")
                             try:
                                 from arifosmcp.runtime.authority import bind_authority_state
                                 from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
@@ -3107,9 +3142,10 @@ def arif_init(
                     "SOVEREIGN",
                 )
                 _es["mutation_allowed"] = _mut
-                _es["seal_allowed"] = str(_real_authority_override) in ("FULL", "SOVEREIGN") and bool(
-                    identity_verified
-                )
+                _es["seal_allowed"] = str(_real_authority_override) in (
+                    "FULL",
+                    "SOVEREIGN",
+                ) and bool(identity_verified)
                 _es["actor_verified"] = bool(identity_verified)
             header["authority_band"] = str(_real_authority_override)
             header["mutation_allowed"] = str(_real_authority_override) in (
