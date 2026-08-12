@@ -3,7 +3,7 @@ arifOS Inclusive Topology / Anti-Sink Diagnostics
 ═══════════════════════════════════════════════════════════════════════════════
 
 Reversible runtime MCP tools for detecting extractive topology and
-behavioral sink risk.
+governance drift risk.
 
 Tools:
   - institutional_drift_check: Evaluates federation state for extractive drift.

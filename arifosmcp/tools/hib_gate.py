@@ -1,5 +1,5 @@
 """
-arifosmcp/tools/prl_gate.py — PRL Phase 1: Dual-Gate Precedent Retrieval
+arifosmcp/tools/hib_gate.py — HIB Phase 1: Dual-Gate Precedent Retrieval
 
 GATE 1: Geometric Intuition — cosine similarity search with tau >= 0.95
 GATE 2: Structural Hard-Filter — Qdrant payload filter on blast_radius
@@ -20,9 +20,9 @@ from arifosmcp.intelligence.embeddings import embed
 
 logger = logging.getLogger(__name__)
 
-PRL_COLLECTION = "arifos_precedent"
-PRL_VECTOR_DIM = 1024
-PRL_SCORE_THRESHOLD = 0.95
+HIB_COLLECTION = "arifos_precedent"
+HIB_VECTOR_DIM = 1024
+HIB_SCORE_THRESHOLD = 0.95
 
 _BLAST_RADIUS_HIERARCHY: dict[str, int] = {
     "L1_LOCAL": 1,
@@ -47,13 +47,13 @@ def _get_qdrant() -> Any:
         _QDRANT_CLIENT = client
         return client
     except Exception as exc:
-        logger.debug("Qdrant unreachable for PRL gate: %s", exc)
+        logger.debug("Qdrant unreachable for HIB gate: %s", exc)
         return None
 
 
 @dataclass
 class PrecedentResult:
-    """Result of a PRL precedent query.
+    """Result of a HIB precedent query.
 
     Attributes:
         matched: Whether any precedent matched above the tau threshold
@@ -77,7 +77,7 @@ def query_precedent(
     current_blast_radius: str = "L2_SYSTEM",
     top_k: int = 3,
 ) -> PrecedentResult:
-    """Search the PRL precedent index for geometrically similar past seals.
+    """Search the HIB precedent index for geometrically similar past seals.
 
     DUAL-GATE architecture:
       GATE 1: Cosine similarity >= 0.95 threshold
@@ -93,7 +93,7 @@ def query_precedent(
     """
     client = _get_qdrant()
     if client is None:
-        logger.warning("PRL gate: Qdrant unavailable — returning no precedent")
+        logger.warning("HIB gate: Qdrant unavailable — returning no precedent")
         return PrecedentResult(
             matched=False,
             hold_for_sovereign=False,
@@ -102,14 +102,14 @@ def query_precedent(
     # Check if collection exists
     try:
         existing = {c.name for c in client.get_collections().collections}
-        if PRL_COLLECTION not in existing:
-            logger.info("PRL gate: collection '%s' does not exist yet", PRL_COLLECTION)
+        if HIB_COLLECTION not in existing:
+            logger.info("HIB gate: collection '%s' does not exist yet", HIB_COLLECTION)
             return PrecedentResult(
                 matched=False,
                 hold_for_sovereign=False,
             )
     except Exception as exc:
-        logger.warning("PRL gate: collection check failed: %s", exc)
+        logger.warning("HIB gate: collection check failed: %s", exc)
         return PrecedentResult(matched=False, hold_for_sovereign=False)
 
     # Determine acceptable blast radius levels for GATE 2
@@ -125,7 +125,7 @@ def query_precedent(
             MatchAny,
         )  # noqa: PLC0415
 
-        vector = embed(query_text, dim=PRL_VECTOR_DIM)
+        vector = embed(query_text, dim=HIB_VECTOR_DIM)
 
         # GATE 2: Payload filter on blast_radius
         payload_filter = Filter(
@@ -138,15 +138,15 @@ def query_precedent(
         )
 
         results = client.query_points(
-            collection_name=PRL_COLLECTION,
+            collection_name=HIB_COLLECTION,
             query=vector,
             query_filter=payload_filter,
             limit=top_k,
-            score_threshold=PRL_SCORE_THRESHOLD,
+            score_threshold=HIB_SCORE_THRESHOLD,
             with_payload=True,
         ).points
     except Exception as exc:
-        logger.error("PRL gate: Qdrant search failed: %s", exc)
+        logger.error("HIB gate: Qdrant search failed: %s", exc)
         return PrecedentResult(matched=False, hold_for_sovereign=False)
 
     # Process results
@@ -158,7 +158,7 @@ def query_precedent(
         score = float(getattr(pt, "score", 0.0))
         if score > tau_max:
             tau_max = score
-        if score >= PRL_SCORE_THRESHOLD:
+        if score >= HIB_SCORE_THRESHOLD:
             gate1_passed = True
         payload = pt.payload or {}
         precedents.append(
@@ -188,11 +188,11 @@ def query_precedent(
     )
 
 
-def prl_precheck(
+def hib_precheck(
     query_text: str,
     blast_radius: str = "L2_SYSTEM",
 ) -> dict[str, Any]:
-    """Pre-flight PRL check before executing a governed action.
+    """Pre-flight HIB check before executing a governed action.
 
     Called before arif_judge to surface binding precedent.
     If precedent matches, the action is geometrically bound —
@@ -234,19 +234,19 @@ def prl_precheck(
     }
 
 
-def inject_prl_constraint(
+def inject_hib_constraint(
     precheck_result: dict[str, Any],
     query_text: str = "",
     blast_radius: str = "L2_SYSTEM",
 ) -> str:
-    """Format PRL precedent as an F9-compliant constraint block.
+    """Format HIB precedent as an F9-compliant constraint block.
 
     Suitable for injection into the arif_judge reasoning chain.
     Provides geometric binding without claiming authority —
     precedents are evidence, not verdicts.
 
     Args:
-        precheck_result: Output from prl_precheck()
+        precheck_result: Output from hib_precheck()
         query_text: The original query (for context)
         blast_radius: Current blast radius classification
 
@@ -271,7 +271,7 @@ def inject_prl_constraint(
         f"Query: {query_text[:200]}{'...' if len(query_text) > 200 else ''}",
         f"Blast radius: {blast_radius}",
         f"τ: {tau_max:.4f}",
-        f"Threshold: {PRL_SCORE_THRESHOLD}",
+        f"Threshold: {HIB_SCORE_THRESHOLD}",
         "",
     ]
 
@@ -298,8 +298,8 @@ def inject_prl_constraint(
 __all__ = [
     "PrecedentResult",
     "query_precedent",
-    "prl_precheck",
-    "inject_prl_constraint",
-    "PRL_COLLECTION",
-    "PRL_SCORE_THRESHOLD",
+    "hib_precheck",
+    "inject_hib_constraint",
+    "HIB_COLLECTION",
+    "HIB_SCORE_THRESHOLD",
 ]

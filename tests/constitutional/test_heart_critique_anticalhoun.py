@@ -1,11 +1,11 @@
 """
-tests/constitutional/test_heart_critique_anticalhoun.py — Anti-Calhoun Behavioral Sink
+tests/constitutional/test_heart_critique_anticalhoun.py — Anti-Calhoun Governance Drift
 
 ═══════════════════════════════════════════════════════════════════════════════
 TASK-P2-04 — Anti-Calhoun invariant: the system must NOT optimize for
 density/silence/withdrawal. If an agent repeatedly returns empty outputs,
 minimal responses, or "pass" exceptions without organ event emission, it has
-entered a behavioral sink.
+entered a governance drift.
 
 The scan lives on arif_critique (stage 666) and emits:
   - result["behavioral_sink_scan"] = { sink_ratio, status: CLEAR|WARNING, ... }
@@ -149,7 +149,7 @@ class TestBehavioralSinkScan:
         assert out["total_outputs"] == 10
         assert out["anticalhoun"] == "SINK_WARNING"
         assert out["floor"] == "F5"
-        assert "behavioral sink detected" in out["reason"]
+        assert "governance drift detected" in out["reason"]
         assert "5/10" in out["reason"]
 
     def test_threshold_is_strictly_above_0_4(self):
@@ -162,7 +162,7 @@ class TestBehavioralSinkScan:
         # 5/10 = 0.5 → WARNING (already covered above).
 
     def test_majority_empties_is_warning(self):
-        """8 of 10 empties — strong behavioral sink."""
+        """8 of 10 empties — strong governance drift."""
         history = [None, "", "pass", "ok"] * 2 + ["two substantive outputs here"] * 2
         out = _behavioral_sink_scan(history)
         assert out["status"] == "WARNING"

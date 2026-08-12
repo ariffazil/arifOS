@@ -975,13 +975,13 @@ class AttributionChain(BaseModel):
 
 
 class BlastRadius(StrEnum):
-    """PRL Consequence Classification — structural, NOT semantic.
+    """HIB Consequence Classification — structural, NOT semantic.
 
-    Tagged at seal time by the sovereign.  Payload-filtered by prl_gate.py
+    Tagged at seal time by the sovereign.  Payload-filtered by hib_gate.py
     to prevent autoimmune misfire (L1 precedent never matches L3 query).
 
     These are NOT derived from embeddings.  They are sovereign-classified
-    consequence tiers that the PRL uses for compartmentalisation.
+    consequence tiers that the HIB uses for compartmentalisation.
     """
 
     L1_LOCAL = "L1_LOCAL"  # Reversible, single file/session scope
@@ -1142,14 +1142,14 @@ class SealOutput(BaseModel):
         "but attribution was erased.",
     )
 
-    # ── PRL: Precedent Retrieval Layer — Blast Radius Classification ────────
-    # Sovereign-classified consequence tier.  Payload-filtered by prl_gate.py.
+    # ── HIB: Precedent Retrieval Layer — Blast Radius Classification ────────
+    # Sovereign-classified consequence tier.  Payload-filtered by hib_gate.py.
     # L1_LOCAL = reversible file/session.  L2_SYSTEM = config/multi-agent.
     # L3_CRITICAL = irreversible, data-destruction, external-facing.
     # Default L2 for backward compatibility with unclassified historical seals.
     blast_radius: BlastRadius | str | None = Field(
         default=None,
-        description="Sovereign-classified consequence tier for PRL payload filtering",
+        description="Sovereign-classified consequence tier for HIB payload filtering",
     )
 
     # ── DAG Bridge: Layer 1 → Layer 2 (evidence_sha + reversion_event) ──────

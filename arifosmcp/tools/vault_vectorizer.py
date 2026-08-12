@@ -1,5 +1,5 @@
 """
-arifosmcp/tools/vault_vectorizer.py — PRL Phase 1: Vector Index for VAULT999
+arifosmcp/tools/vault_vectorizer.py — HIB Phase 1: Vector Index for VAULT999
 
 Precedent Retrieval Layer: Every seal becomes a 1024-dim vector in Qdrant.
 Payload-filtered by blast_radius for compartmentalised precedent matching.
@@ -21,8 +21,8 @@ from arifosmcp.intelligence.embeddings import embed
 
 logger = logging.getLogger(__name__)
 
-PRL_COLLECTION = "arifos_precedent"
-PRL_VECTOR_DIM = 1024
+HIB_COLLECTION = "arifos_precedent"
+HIB_VECTOR_DIM = 1024
 
 _QDRANT_CLIENT: Any = None
 
@@ -41,7 +41,7 @@ def _get_qdrant() -> Any:
         _QDRANT_CLIENT = client
         return client
     except Exception as exc:
-        logger.debug("Qdrant unreachable for PRL: %s", exc)
+        logger.debug("Qdrant unreachable for HIB: %s", exc)
         return None
 
 
@@ -54,22 +54,22 @@ def _ensure_collection() -> bool:
         from qdrant_client.models import Distance, VectorParams  # noqa: PLC0415
 
         existing = {c.name for c in client.get_collections().collections}
-        if PRL_COLLECTION not in existing:
+        if HIB_COLLECTION not in existing:
             client.create_collection(
-                collection_name=PRL_COLLECTION,
+                collection_name=HIB_COLLECTION,
                 vectors_config=VectorParams(
-                    size=PRL_VECTOR_DIM,
+                    size=HIB_VECTOR_DIM,
                     distance=Distance.COSINE,
                 ),
             )
             logger.info(
-                "Created Qdrant PRL collection: %s (%d-dim COSINE)",
-                PRL_COLLECTION,
-                PRL_VECTOR_DIM,
+                "Created Qdrant HIB collection: %s (%d-dim COSINE)",
+                HIB_COLLECTION,
+                HIB_VECTOR_DIM,
             )
         return True
     except Exception as exc:
-        logger.error("Failed to ensure PRL collection: %s", exc)
+        logger.error("Failed to ensure HIB collection: %s", exc)
         return False
 
 
@@ -88,14 +88,14 @@ def vectorize_seal(
     Args:
         entry_id: VAULT999 entry ID for this seal
         payload_text: Human-readable seal payload (judged content)
-        blast_radius: PRL consequence tier (L1_LOCAL | L2_SYSTEM | L3_CRITICAL)
+        blast_radius: HIB consequence tier (L1_LOCAL | L2_SYSTEM | L3_CRITICAL)
         session_id: Governing session ID
 
     Returns:
         True if vector was stored, False if Qdrant was unreachable
     """
     if not _ensure_collection():
-        logger.warning("PRL: Qdrant unavailable — seal %s not indexed", entry_id)
+        logger.warning("HIB: Qdrant unavailable — seal %s not indexed", entry_id)
         return False
 
     client = _get_qdrant()
@@ -107,11 +107,11 @@ def vectorize_seal(
 
         # Build semantic summary for embedding
         summary_text = f"[ENTRY_ID:{entry_id}] [BLAST_RADIUS:{blast_radius}] {payload_text[:500]}"
-        vector = embed(summary_text, dim=PRL_VECTOR_DIM)
+        vector = embed(summary_text, dim=HIB_VECTOR_DIM)
         timestamp = datetime.now(UTC).isoformat()
 
         client.upsert(
-            collection_name=PRL_COLLECTION,
+            collection_name=HIB_COLLECTION,
             points=[
                 PointStruct(
                     id=entry_id,
@@ -127,14 +127,14 @@ def vectorize_seal(
             ],
         )
         logger.info(
-            "PRL: vectorized seal %s (blast_radius=%s, %d chars)",
+            "HIB: vectorized seal %s (blast_radius=%s, %d chars)",
             entry_id,
             blast_radius,
             len(payload_text),
         )
         return True
     except Exception as exc:
-        logger.error("PRL: vectorize_seal failed for %s: %s", entry_id, exc)
+        logger.error("HIB: vectorize_seal failed for %s: %s", entry_id, exc)
         return False
 
 
@@ -164,7 +164,7 @@ def _embed_with_retry(text: str, dim: int, max_retries: int = 4) -> list[float]:
             if attempt < max_retries:
                 wait = 2 ** (attempt + 1)  # 2, 4, 8, 16 seconds
                 logger.warning(
-                    "PRL embed retry %d/%d after %.1fs: %s",
+                    "HIB embed retry %d/%d after %.1fs: %s",
                     attempt + 1,
                     max_retries,
                     wait,
@@ -178,7 +178,7 @@ def _infer_category(action: str, metadata: dict[str, Any] | None = None) -> str:
     """Derive a domain category from the action string using structural heuristics.
 
     This allows sparse historical seals (which lack explicit category tags)
-    to be enriched with meaningful domain classifications for PRL matching.
+    to be enriched with meaningful domain classifications for HIB matching.
     """
     meta = metadata or {}
     action_lower = str(action).lower()
@@ -196,10 +196,10 @@ def _infer_category(action: str, metadata: dict[str, Any] | None = None) -> str:
     ):
         return "database.vector_index"
 
-    # EMD / PRL patterns
+    # EMD / HIB patterns
     if any(
         kw in action_lower
-        for kw in ("emd", "prl", "gate", "precedent", "encode", "metabolize", "intercept")
+        for kw in ("emd", "hib", "gate", "precedent", "encode", "metabolize", "intercept")
     ):
         return "architecture.emd_pipeline"
 
@@ -229,7 +229,7 @@ def _infer_category(action: str, metadata: dict[str, Any] | None = None) -> str:
 
     # Fallback: check metadata for hints
     tool_name = str(meta.get("tool_name", "")).lower()
-    if "prl" in tool_name or "gate" in tool_name:
+    if "hib" in tool_name or "gate" in tool_name:
         return "architecture.emd_pipeline"
     if "vector" in tool_name or "qdrant" in tool_name:
         return "database.vector_index"
@@ -316,7 +316,7 @@ def _build_enriched_payload(
     """Build the enhanced Qdrant payload with derived semantic fields.
 
     The original seal data is preserved under 'raw_payload'. Derived fields
-    (enriched_category, derived_semantic_text, is_derived) allow prl_gate.py
+    (enriched_category, derived_semantic_text, is_derived) allow hib_gate.py
     to inject high-density context into the EMD pipeline.
     """
     payload = entry.get("payload", {})
@@ -362,7 +362,7 @@ def backfill_historical(
     batch_cooldown: float = 3.0,
     show_progress: bool = True,
 ) -> dict[str, Any]:
-    """Read existing VAULT999 entries and index them into the PRL Qdrant collection.
+    """Read existing VAULT999 entries and index them into the HIB Qdrant collection.
 
     Processes entries in batches with cooldown between batches to avoid
     overwhelming local Ollama embedding queues.  Uses exponential-backoff
@@ -439,7 +439,7 @@ def backfill_historical(
                     except json.JSONDecodeError:
                         continue
         except Exception as exc:
-            logger.warning("PRL backfill: failed to read %s: %s", source_path, exc)
+            logger.warning("HIB backfill: failed to read %s: %s", source_path, exc)
 
     if not entries:
         return {
@@ -456,7 +456,7 @@ def backfill_historical(
     try:
         existing_ids: set[str] = set()
         scroll_result = client.scroll(
-            collection_name=PRL_COLLECTION,
+            collection_name=HIB_COLLECTION,
             limit=10_000,
             with_payload=False,
             with_vectors=False,
@@ -483,7 +483,7 @@ def backfill_historical(
 
         if show_progress:
             print(
-                f"\r[PRL BACKFILL] batch {batch_idx + 1}/{batch_count} "
+                f"\r[HIB BACKFILL] batch {batch_idx + 1}/{batch_count} "
                 f"({batch_start + 1}-{batch_end} of {total_entries}) "
                 f"| indexed={indexed} skipped={skipped} errors={errors}",
                 end="",
@@ -522,11 +522,11 @@ def backfill_historical(
             )
             try:
                 # Embed the DERIVED SEMANTIC DOCUMENT, not the raw JSON
-                vector = _embed_with_retry(derived_text, dim=PRL_VECTOR_DIM)
+                vector = _embed_with_retry(derived_text, dim=HIB_VECTOR_DIM)
 
                 timestamp = datetime.now(UTC).isoformat()
                 client.upsert(
-                    collection_name=PRL_COLLECTION,
+                    collection_name=HIB_COLLECTION,
                     points=[
                         PointStruct(
                             id=qdrant_point_id,
@@ -538,7 +538,7 @@ def backfill_historical(
                 indexed += 1
                 existing_ids.add(qdrant_point_id)
             except Exception as exc:
-                logger.error("PRL backfill: failed for %s: %s", entry_id, exc)
+                logger.error("HIB backfill: failed for %s: %s", entry_id, exc)
                 errors += 1
 
         # Cooldown between batches — lets Ollama queue clear
@@ -550,7 +550,7 @@ def backfill_historical(
     if show_progress:
         print()  # newline after progress line
         print(
-            f"[PRL BACKFILL] DONE: {indexed} indexed, {skipped} skipped, "
+            f"[HIB BACKFILL] DONE: {indexed} indexed, {skipped} skipped, "
             f"{errors} errors of {total_entries} total "
             f"in {elapsed:.1f}s ({batch_count} batches)"
         )
@@ -566,13 +566,13 @@ def backfill_historical(
     }
 
 
-def prl_post_seal_hook(
+def hib_post_seal_hook(
     entry_id: str,
     payload: str,
     blast_radius: str = "L2_SYSTEM",
     session_id: str | None = None,
 ) -> bool:
-    """Post-seal hook: vectorize the seal payload into the PRL index.
+    """Post-seal hook: vectorize the seal payload into the HIB index.
 
     Called from vault.py after every successful arif_seal.
     Non-fatal — seal already succeeded.
@@ -588,6 +588,6 @@ def prl_post_seal_hook(
 __all__ = [
     "vectorize_seal",
     "backfill_historical",
-    "prl_post_seal_hook",
-    "PRL_COLLECTION",
+    "hib_post_seal_hook",
+    "HIB_COLLECTION",
 ]

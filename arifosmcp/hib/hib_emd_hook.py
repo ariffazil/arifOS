@@ -1,20 +1,20 @@
 """
-prl_emd_hook.py — PRL → EMD Stack Integration Hook
+hib_emd_hook.py — HIB → EMD Stack Integration Hook
 ═══════════════════════════════════════════════════
 
-Lightweight, non-invasive hook that injects PRL precedent constraints
+Lightweight, non-invasive hook that injects HIB precedent constraints
 into the arif_think reasoning pipeline.
 
 Usage (inside arif_think mode=reason):
-    from arifosmcp.prl.prl_emd_hook import prl_pre_reason_check
+    from arifosmcp.hib.hib_emd_hook import hib_pre_reason_check
 
-    constraints = await prl_pre_reason_check(query=query, actor_id=actor_id)
+    constraints = await hib_pre_reason_check(query=query, actor_id=actor_id)
     if constraints:
         # Inject into reasoning prompt as structural constraints
         prompt = constraints + "\\n\\n" + prompt
 
 Design principles:
-  - Non-fatal: PRL failure never blocks reasoning
+  - Non-fatal: HIB failure never blocks reasoning
   - Async: Qdrant call is non-blocking in the pipeline
   - F9-compliant: Constraints are structural, not "memories"
   - Low blast radius: Import-time only, no monkey-patching
@@ -30,16 +30,16 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────
-PRL_EMD_CHECK_ENABLED = True  # Master kill-switch for PRL in EMD pipeline
+HIB_EMD_CHECK_ENABLED = True  # Master kill-switch for HIB in EMD pipeline
 
 
-async def prl_pre_reason_check(
+async def hib_pre_reason_check(
     query: str,
     blast_radius: str | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """Run PRL precedent check before arif_think reasoning.
+    """Run HIB precedent check before arif_think reasoning.
 
     Call this from arif_think(mode=reason) BEFORE the LLM reasoning step.
 
@@ -51,16 +51,16 @@ async def prl_pre_reason_check(
 
     Returns:
         {
-            "verdict": "PRL_MATCH" | "PRL_NONE" | "PRL_OMEGA0_HOLD" | "PRL_ERROR",
+            "verdict": "HIB_MATCH" | "HIB_NONE" | "HIB_OMEGA0_HOLD" | "HIB_ERROR",
             "constraint_block": str | None,       # Formatted for prompt injection
-            "constraints": list[PrlConstraint],   # Raw constraint objects
+            "constraints": list[HibConstraint],   # Raw constraint objects
             "query_blast_radius": str,
             "search_ms": float,
             "omega0_triggered": bool,
         }
     """
     result: dict[str, Any] = {
-        "verdict": "PRL_NONE",
+        "verdict": "HIB_NONE",
         "constraint_block": None,
         "constraints": [],
         "query_blast_radius": blast_radius or "L2_SYSTEM",
@@ -70,13 +70,13 @@ async def prl_pre_reason_check(
         "error": "",
     }
 
-    if not PRL_EMD_CHECK_ENABLED:
+    if not HIB_EMD_CHECK_ENABLED:
         return result
 
     try:
-        from arifosmcp.prl import PrlGate
+        from arifosmcp.hib import HibGate
 
-        gate = PrlGate()
+        gate = HibGate()
         gate_result = await gate.interrogate(
             query_text=query,
             blast_radius=blast_radius,
@@ -106,43 +106,43 @@ async def prl_pre_reason_check(
             ]
 
             logger.info(
-                "PRL matched %d precedent(s) for query (τ≥0.95, blast_radius=%s)",
+                "HIB matched %d precedent(s) for query (blast_radius=%s)",
                 len(gate_result.constraints),
                 result["query_blast_radius"],
             )
 
         elif gate_result.omega0_triggered:
             logger.warning(
-                "PRL Ω₀ triggered — geometric match but contextual ambiguity: %s",
+                "HIB Ω₀ triggered — geometric match but contextual ambiguity: %s",
                 gate_result.omega0_reason,
             )
 
     except ImportError:
-        logger.debug("PRL not available — skipping pre-reason check")
-        result["verdict"] = "PRL_NONE"
-        result["error"] = "PRL not imported"
+        logger.debug("HIB not available — skipping pre-reason check")
+        result["verdict"] = "HIB_NONE"
+        result["error"] = "HIB not imported"
     except Exception as exc:
-        logger.error("PRL pre-reason check failed: %s", exc)
-        result["verdict"] = "PRL_ERROR"
+        logger.error("HIB pre-reason check failed: %s", exc)
+        result["verdict"] = "HIB_ERROR"
         result["error"] = str(exc)[:200]
 
     return result
 
 
-def prl_pre_reason_check_sync(
+def hib_pre_reason_check_sync(
     query: str,
     blast_radius: str | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """Synchronous wrapper for prl_pre_reason_check.
+    """Synchronous wrapper for hib_pre_reason_check.
 
     Use when the caller is not async (e.g., CLI tools, test harnesses).
     """
     import asyncio
 
     return asyncio.run(
-        prl_pre_reason_check(
+        hib_pre_reason_check(
             query=query,
             blast_radius=blast_radius,
             actor_id=actor_id,

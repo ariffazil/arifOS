@@ -1,14 +1,14 @@
 """
-prl_gate.py — PRL Dual-Gate: Cold Geometric Law Enforcement
+hib_gate.py — HIB Dual-Gate: Cold Geometric Law Enforcement
 ═══════════════════════════════════════════════════════════════
 
 Intercepts queries before the reasoning pipeline and enforces sovereign
 precedents via a Dual-Gate architecture:
 
-  Gate 1: Payload-Filtered Cosine Search (τ ≥ 0.95)
+  Gate 1: Payload-Filtered Cosine Search (τ ≥ HIB_TAU_THRESHOLD)
     - Only matches precedents with the SAME blast_radius classification
     - L1 queries never see L3 precedents (autoimmune prevention)
-    - Cosine similarity ≥ 0.95 required for precedent injection
+    - Cosine similarity ≥ τ required for precedent injection (default 0.35)
 
   Gate 2: Ω₀ Contextual Ambiguity Failsafe
     - If precedent passes Gate 1 but EMD VALIDATE detects contextual
@@ -31,7 +31,7 @@ from typing import Any, Literal
 from .vault_vectorizer import (
     BLAST_RADIUS_VALUES,
     DEFAULT_BLAST_RADIUS,
-    PRL_TAU_THRESHOLD,
+    HIB_TAU_THRESHOLD,
     PrecedentVectorizer,
 )
 
@@ -40,15 +40,15 @@ logger = logging.getLogger(__name__)
 # ── Gate Result Types ──────────────────────────────────────────────────────
 
 GateVerdict = Literal[
-    "PRL_MATCH",  # Precedent found and constraint injected
-    "PRL_NONE",  # No matching precedent — proceed normally
-    "PRL_OMEGA0_HOLD",  # Ω₀ exception — geometric match but contextual ambiguity
-    "PRL_ERROR",  # Infrastructure failure — Qdrant unreachable, etc.
+    "HIB_MATCH",  # Precedent found and constraint injected
+    "HIB_NONE",  # No matching precedent — proceed normally
+    "HIB_OMEGA0_HOLD",  # Ω₀ exception — geometric match but contextual ambiguity
+    "HIB_ERROR",  # Infrastructure failure — Qdrant unreachable, etc.
 ]
 
 
 @dataclass
-class PrlConstraint:
+class HibConstraint:
     """A binding precedent constraint injected before reasoning.
 
     The agent does NOT choose to follow this.  It is structurally injected
@@ -70,17 +70,17 @@ class PrlConstraint:
         This is a structural constraint, not a memory.
         """
         return (
-            f"[PRL CONSTRAINT — τ={self.cosine_score:.4f}]\n"
+            f"[HIB CONSTRAINT — τ={self.cosine_score:.4f}]\n"
             f"BLAST RADIUS: {self.blast_radius}\n"
             f"PRECEDENT: {self.seal_id} (sealed {self.timestamp})\n"
             f"GOVERNING RULE: {self.constraint_text}\n"
-            f"[/PRL CONSTRAINT]\n"
+            f"[/HIB CONSTRAINT]\n"
         )
 
 
 @dataclass
-class PrlGateResult:
-    """Complete PRL gate output.
+class HibGateResult:
+    """Complete HIB gate output.
 
     verdict: What the gate decided
     constraints: Precedents that bind the current operation
@@ -88,8 +88,8 @@ class PrlGateResult:
     query_blast_radius: The classified blast radius for this query
     """
 
-    verdict: GateVerdict = "PRL_NONE"
-    constraints: list[PrlConstraint] = field(default_factory=list)
+    verdict: GateVerdict = "HIB_NONE"
+    constraints: list[HibConstraint] = field(default_factory=list)
     omega0_triggered: bool = False
     omega0_reason: str = ""
     query_blast_radius: str = DEFAULT_BLAST_RADIUS
@@ -143,7 +143,7 @@ def classify_blast_radius(query_text: str) -> str:
     This is a FAST pre-classification — the sovereign can override at seal time.
     NOT derived from embeddings.  Pattern-matched against known consequence keywords.
 
-    Used by the EMD Stack before querying PRL, so the payload filter is
+    Used by the EMD Stack before querying HIB, so the payload filter is
     computed BEFORE the vector search.
     """
     query_lower = query_text.lower()
@@ -212,20 +212,20 @@ def _detect_omega0_ambiguity(query_text: str, constraint_text: str) -> tuple[boo
     return False, ""
 
 
-# ── PRL Gate — Public API ──────────────────────────────────────────────────
+# ── HIB Gate — Public API ──────────────────────────────────────────────────
 
 
-class PrlGate:
+class HibGate:
     """Dual-Gate precedent enforcement for arifOS reasoning pipeline.
 
     Usage::
 
-        gate = PrlGate()
+        gate = HibGate()
         result = await gate.interrogate(query_text="deploy migration to prod")
-        if result.verdict == "PRL_MATCH":
+        if result.verdict == "HIB_MATCH":
             # Inject result.constraints into agent prompt BEFORE reasoning
             pass
-        elif result.verdict == "PRL_OMEGA0_HOLD":
+        elif result.verdict == "HIB_OMEGA0_HOLD":
             # Hold for sovereign review
             pass
     """
@@ -237,24 +237,24 @@ class PrlGate:
         self,
         query_text: str,
         blast_radius: str | None = None,
-        tau_threshold: float = PRL_TAU_THRESHOLD,
+        tau_threshold: float = HIB_TAU_THRESHOLD,
         limit: int = 3,
         enable_omega0: bool = True,
-    ) -> PrlGateResult:
+    ) -> HibGateResult:
         """Run the Dual-Gate precedent check.
 
         Args:
             query_text: The natural language query / intent to match
             blast_radius: Override auto-classified blast radius.
                           If None, classify_blast_radius(query_text) is used.
-            tau_threshold: Minimum cosine similarity (default 0.95)
+            tau_threshold: Minimum cosine similarity (default: HIB_TAU_THRESHOLD = 0.35)
             limit: Maximum precedents to return
             enable_omega0: Whether to run Ω₀ ambiguity detection
 
-        Returns PrlGateResult with verdict and any binding constraints.
+        Returns HibGateResult with verdict and any binding constraints.
         """
         t0 = datetime.now(UTC)
-        result = PrlGateResult()
+        result = HibGateResult()
 
         # Step 1: Classify blast radius for this query
         if blast_radius and blast_radius in BLAST_RADIUS_VALUES:
@@ -271,8 +271,8 @@ class PrlGate:
                 limit=limit,
             )
         except Exception as exc:
-            logger.error("PRL search failed: %s", exc)
-            result.verdict = "PRL_ERROR"
+            logger.error("HIB search failed: %s", exc)
+            result.verdict = "HIB_ERROR"
             result.error = str(exc)[:200]
             result.search_ms = (datetime.now(UTC) - t0).total_seconds() * 1000
             return result
@@ -288,7 +288,7 @@ class PrlGate:
                 )
                 if matches:
                     logger.info(
-                        "PRL fallback: blast_radius=%s had 0 matches, unfiltered found %d",
+                        "HIB fallback: blast_radius=%s had 0 matches, unfiltered found %d",
                         result.query_blast_radius, len(matches),
                     )
             except Exception:
@@ -297,13 +297,17 @@ class PrlGate:
         result.match_count = len(matches)
 
         if not matches:
-            result.verdict = "PRL_NONE"
+            result.verdict = "HIB_NONE"
             result.search_ms = (datetime.now(UTC) - t0).total_seconds() * 1000
             return result
 
-        # Step 3: Convert matches to constraints
+        # Step 3: Convert matches to constraints (skip empty/ghost matches)
         for match in matches:
-            constraint = PrlConstraint(
+            # Skip ghost points — matches with no meaningful content
+            if not match.get("seal_id") and not match.get("payload_summary"):
+                continue
+
+            constraint = HibConstraint(
                 seal_id=match.get("seal_id", ""),
                 blast_radius=match.get("blast_radius", ""),
                 timestamp=match.get("timestamp", ""),
@@ -324,13 +328,40 @@ class PrlGate:
 
             result.constraints.append(constraint)
 
+        # Step 4b: If all matches were ghosts, retry unfiltered
+        if not result.constraints and not result.omega0_triggered:
+            try:
+                fallback_matches = self.vectorizer.search(
+                    query_text=query_text,
+                    blast_radius=None,
+                    score_threshold=tau_threshold,
+                    limit=limit,
+                )
+                for match in fallback_matches:
+                    if not match.get("seal_id") and not match.get("payload_summary"):
+                        continue
+                    constraint = HibConstraint(
+                        seal_id=match.get("seal_id", ""),
+                        blast_radius=match.get("blast_radius", ""),
+                        timestamp=match.get("timestamp", ""),
+                        verdict=match.get("verdict", "SEAL"),
+                        constraint_text=match.get("payload_summary", ""),
+                        cosine_score=match.get("score", 0.0),
+                        source_line=match.get("vault_line", 0),
+                    )
+                    result.constraints.append(constraint)
+                if result.constraints:
+                    logger.info("HIB ghost fallback: found %d valid matches unfiltered", len(result.constraints))
+            except Exception:
+                pass  # fallback is best-effort
+
         # Step 5: Final verdict
         if result.omega0_triggered and not result.constraints:
-            result.verdict = "PRL_OMEGA0_HOLD"
+            result.verdict = "HIB_OMEGA0_HOLD"
         elif result.constraints:
-            result.verdict = "PRL_MATCH"
+            result.verdict = "HIB_MATCH"
         else:
-            result.verdict = "PRL_NONE"
+            result.verdict = "HIB_NONE"
 
         result.search_ms = (datetime.now(UTC) - t0).total_seconds() * 1000
         return result
@@ -339,10 +370,10 @@ class PrlGate:
         self,
         query_text: str,
         blast_radius: str | None = None,
-        tau_threshold: float = PRL_TAU_THRESHOLD,
+        tau_threshold: float = HIB_TAU_THRESHOLD,
         limit: int = 3,
         enable_omega0: bool = True,
-    ) -> PrlGateResult:
+    ) -> HibGateResult:
         """Synchronous wrapper for interrogate().
 
         Use when the caller cannot await (e.g., non-async tool handlers).
@@ -393,7 +424,7 @@ class PrlGate:
                 "status": "OK",
                 "collection": stats.get("collection", ""),
                 "point_count": stats.get("point_count", 0),
-                "tau_threshold": PRL_TAU_THRESHOLD,
+                "tau_threshold": HIB_TAU_THRESHOLD,
             }
         except Exception as exc:
             return {"status": "DOWN", "error": str(exc)[:200]}

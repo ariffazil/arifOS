@@ -9,7 +9,7 @@ intent is reviewable in PRs — they are NOT installed into
 
 | File | Purpose |
 |---|---|
-| `01-clear-execstartpost.conf` | Clears any inherited `ExecStartPost=` directive from the upstream `arifos.service`.  Used by the 2026-07-22 PRL/recovery refactor to retire the in-service auto-registration path. |
+| `01-clear-execstartpost.conf` | Clears any inherited `ExecStartPost=` directive from the upstream `arifos.service`.  Used by the 2026-07-22 HIB/recovery refactor to retire the in-service auto-registration path. |
 
 ## Install (operator-only, F13)
 

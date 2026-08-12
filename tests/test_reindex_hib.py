@@ -1,8 +1,8 @@
 """
-tests/test_reindex_prl.py — Non-destructive reindex script counters
+tests/test_reindex_hib.py — Non-destructive reindex script counters
 ════════════════════════════════════════════════════════════════════
 
-Validates the dry-run / apply contract for ``scripts/reindex_prl.py``:
+Validates the dry-run / apply contract for ``scripts/reindex_hib.py``:
 
   1. **Dry-run never touches Ollama or Qdrant.**  The embedder and the
      Qdrant client are mocked; both must see zero post/upsert calls.
@@ -32,7 +32,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-SCRIPT = "/root/arifOS/scripts/reindex_prl.py"
+SCRIPT = "/root/arifOS/scripts/reindex_hib.py"
 
 
 def _write_vault(tmp_path: Path) -> Path:
@@ -91,13 +91,13 @@ def _write_vault(tmp_path: Path) -> Path:
 
 
 def _import_script():
-    """Import reindex_prl as a module without executing main()."""
+    """Import reindex_hib as a module without executing main()."""
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location("reindex_prl", SCRIPT)
+    spec = importlib.util.spec_from_file_location("reindex_hib", SCRIPT)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
-    sys.modules["reindex_prl"] = module
+    sys.modules["reindex_hib"] = module
     spec.loader.exec_module(module)
     return module
 

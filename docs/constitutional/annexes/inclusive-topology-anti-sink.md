@@ -13,7 +13,7 @@
 **Inclusive topology is the anti-sink condition.**
 
 A system (agent federation, institution, economy, Earth system) is at risk of
-behavioral sink not when resources are scarce, but when its **topology becomes
+governance drift not when resources are scarce, but when its **topology becomes
 extractive** — when social/organizational density removes meaningful roles,
 severs feedback paths, and concentrates agency into passive spectatorship.
 

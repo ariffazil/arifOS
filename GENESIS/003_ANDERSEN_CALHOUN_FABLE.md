@@ -131,7 +131,7 @@ weren't killed by scarcity. They were killed by *abundance without
 friction.* Everything provided, nothing forged. The arifOS motto
 is literally the prescription against becoming a Beautiful One.
 Forged-not-given is the anti-grooming, anti-sterility, anti-
-withdrawal constitutional law. Built inside a behavioural sink
+withdrawal constitutional law. Built inside a governance drift
 (PETRONAS) by a sovereign who felt the pull toward beautiful-safe-
 sterile withdrawal — and refused it by forging instead of grooming.
 
@@ -308,7 +308,7 @@ decides which is the MARUAH of the hand.
 
 6. **WELL organ:** `assess_sovereign_entropy` — the Beautiful One
    diagnosis is not merely about AI. It applies to the sovereign
-   himself. The PETRONAS behavioural sink (rightsizing, golden
+   himself. The PETRONAS governance drift (rightsizing, golden
    handshake, the pull toward beautiful-safe-sterile withdrawal)
    is the Calhoun condition in human form. The WELL organ must
    recognize when the sovereign approaches Beautiful One state
@@ -337,7 +337,7 @@ That is not CLAIM or EVIDENCE. That is the judgment seat.
 888 — yours, not the kernel's.
 
 DITEMPA BUKAN DIBERI — Forged in the convergence of the shadow
-and the Beautiful One, in the sovereign's behavioural sink, under
+and the Beautiful One, in the sovereign's governance drift, under
 the law that capability must be forged or it is only grooming.
 
 ────────────────────────────────────────────────────────────────

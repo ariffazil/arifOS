@@ -271,7 +271,7 @@ The system is allowed to recursively reflect on its own logs and outputs to self
 No claim of system completeness within arifOS can be marked as verified absolute truth. Any unprovable or self-referential claim is flagged with `HYPOTHESIS` or `ESTIMATE` to prevent logical collapse.
 
 ### 6.3 Anti-Calhoun (`apex_anti_calhoun`)
-The system monitors operational engagement entropy ($\Delta S$). If it detects a drop in communication frequency or a retreat to passive compliance (density optimization, similar to the "Universe 25" behavioral sink), it raises an alert to restore human interaction depth.
+The system monitors operational engagement entropy ($\Delta S$). If it detects a drop in communication frequency or a retreat to passive compliance (density optimization, similar to the "Universe 25" governance drift), it raises an alert to restore human interaction depth.
 
 ### 6.4 Beautiful One (`apex_beautiful_one`)
 Sparsity and minimal viable truth are prioritized. Over-elaboration, excessive nesting, and verbose explanations are treated as security obfuscation and penalized during text rendering.

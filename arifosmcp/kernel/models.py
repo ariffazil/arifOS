@@ -185,7 +185,7 @@ class WitnessType(str, Enum):
 
 
 class SinkRisk(str, Enum):
-    """Is this organ/capability at risk of behavioral sink?
+    """Is this organ/capability at risk of governance drift?
 
     Mission 003 — Anti-sink: simulation without action degrades to SINK_RISK.
     """

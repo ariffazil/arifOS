@@ -25,7 +25,7 @@ Q10 enforces the **friction requirement** at the governance layer.
 Verdict ladder (constitutional):
   - All clear                       → PROCEED.
   - Anti-Calhoun score 0.40–0.60    → SABAR (advisory, no block).
-  - Behavioral sink ratio > 0.40    → SABAR (advisory).
+  - Governance drift ratio > 0.40    → SABAR (advisory).
   - Anti-Calhoun score < 0.40 OR
     sink ratio > 0.40 for 3+ calls  → HOLD (sustained pattern).
   - NEVER VOID: this gate is a soft signal at the tool-call boundary.
@@ -207,7 +207,7 @@ def calhoun_anti_sink_gate(ctx: Any) -> dict[str, Any]:
     }
     calhoun = anti_calhoun_score(calhoun_payload)
 
-    # ── Behavioral sink scan (from session_history) ────────────────────
+    # ── Governance drift scan (from session_history) ────────────────────
     history = _get_session_history(ctx)
     sink = _behavioral_sink_check(history)
 
