@@ -2696,28 +2696,25 @@ def _probe_provider_status() -> dict[str, Any]:
         except Exception:
             status["last_fallback_reason"] = "SEA_LION_UNREACHABLE"
 
-    # Ollama
-    if not status["sea_lion_healthy"]:
-        ollama_host = _os_probe.getenv("OLLAMA_HOST", "localhost")
-        ollama_port = _os_probe.getenv("OLLAMA_PORT", "11434")
-        try:
-            import urllib.request
+    # Ollama — independent probe (parallel tier, not conditional fallback)
+    ollama_host = _os_probe.getenv("OLLAMA_HOST", "localhost")
+    ollama_port = _os_probe.getenv("OLLAMA_PORT", "11434")
+    try:
+        import urllib.request
 
-            req = urllib.request.Request(f"http://{ollama_host}:{ollama_port}/api/tags")
-            with urllib.request.urlopen(req, timeout=3) as resp:
-                if resp.status == 200:
-                    import json as _json
+        req = urllib.request.Request(f"http://{ollama_host}:{ollama_port}/api/tags")
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            if resp.status == 200:
+                import json as _json
 
-                    data = _json.loads(resp.read())
-                    status["ollama_configured"] = True
-                    status["ollama_healthy"] = bool(data.get("models"))
-                    if not status["primary_provider"]:
-                        status["primary_provider"] = "ollama"
-                    if status["ollama_healthy"]:
-                        status["deterministic_fallback_used"] = False
-        except Exception:
-            if not status["last_fallback_reason"]:
-                status["last_fallback_reason"] = "OLLAMA_UNREACHABLE"
+                data = _json.loads(resp.read())
+                status["ollama_configured"] = True
+                status["ollama_healthy"] = bool(data.get("models"))
+                if status["ollama_healthy"]:
+                    status["deterministic_fallback_used"] = False
+    except Exception:
+        if not status["last_fallback_reason"]:
+            status["last_fallback_reason"] = "OLLAMA_UNREACHABLE"
 
     if status["deterministic_fallback_used"]:
         status["primary_provider"] = status["primary_provider"] or "deterministic"
