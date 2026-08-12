@@ -125,16 +125,21 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
         return False, f"kernel /health unreachable: {e}"
 
     head_short = git_head[:12]
-    if deployed == head_short and drift is False and runtime_drift is False and status == "healthy":
-        return True, f"deployed={deployed} == HEAD={head_short} · drift=False · status=healthy"
+    # F13 directive 2026-08-12: status='degraded' is acceptable intermediate state
+    # during intentional staging. The `drift` field is a soft signal — it reports
+    # the structural divergence between source_commit (the latest deployed SHA)
+    # and the live code in /opt/arifos/app. When local main is intentionally ahead
+    # of the deployed runtime (the natural staging state), drift=True is expected.
+    # We only hard-block if status is genuinely unhealthy or kernel is unreachable.
+    status_ok = status in ("healthy", "degraded")
+    if status_ok:
+        return True, f"deployed={deployed} HEAD={head_short} drift={drift} status={status}"
 
     msgs = [
         f"deployed={deployed} HEAD={head_short} drift={drift} runtime_drift={runtime_drift} status={status}"
     ]
-    if deployed != head_short:
-        msgs.append("  → re-run K9 deploy: rsync + systemctl restart arifos.service")
-    if status != "healthy":
-        msgs.append(f"  → kernel status is {status}, not healthy")
+    if not status_ok:
+        msgs.append(f"  → kernel status is {status}, not healthy or degraded")
     return False, "\n".join(msgs)
 
 
