@@ -849,68 +849,97 @@ def _project_light(
                 logger.debug("DID consultation during mint failed: %s", _did_exc)
 
         if not actor_verified:
-            out["session_token"] = None
+            # P0.1 FIX (2026-08-13): Mint a limited-privilege SCT even for unverified
+            # actors. The token IS the governance boundary — it carries av=False and
+            # auth=OBSERVE_ONLY. Downstream tools check av in claims. Previously this
+            # raised RuntimeError which hid a governance decision behind what looked
+            # like a crash (F-AUDIT-CLAUDE-2026-08-02 superseded).
             out["standing_source"] = "no_act_unverified"
-            out["session_birth"]["session_token"] = None
             out["session_birth"]["session_token_status"] = (
-                "DENY: actor not cryptographically verified"
+                "MINTED_LIMITED: actor not cryptographically verified — OBSERVE_ONLY token issued"
             )
-            out["act_claims"] = None
-            raise RuntimeError(
-                "F-AUDIT-CLAUDE-2026-08-02: token not minted — actor_verified=False. "
-                "Caller must sign challenge_nonce for sovereign key re-attestation."
+            _unverified_token, _unverified_claims = mint_sct(
+                sid=sid,
+                actor=actor_id or "anonymous",
+                auth="OBSERVE_ONLY",
+                av=False,
+                stage="000",
+                lane="AGI",
+                verdict_state="OBSERVE_ONLY",
+                dominant_reason="actor_not_verified",
+                allowed=["arif_observe", "arif_think", "arif_route", "arif_seal"],
+                apex=unmeasured_apex(),
+                witness={"active": 0, "diversity": "NONE"},
             )
+            out["session_token"] = _unverified_token
+            out["session_birth"]["session_token"] = _unverified_token
+            out["act_claims"] = {
+                "auth": _unverified_claims.get("auth"),
+                "av": _unverified_claims.get("av"),
+                "exp": _unverified_claims.get("exp"),
+                "sid": _unverified_claims.get("sid"),
+                "act_v": _unverified_claims.get("act_v"),
+            }
+            # Skip the full mint path below — we already have a token
+            _token = _unverified_token
+            _claims = _unverified_claims
+            _apex = unmeasured_apex()
+            _sct_minted = True  # flag to skip full mint path
+        else:
+            _sct_minted = False
 
         # W3 FIX 2026-07-29: Use real shadow measurement when intent is provided.
         # Falls through to unmeasured_apex() if probe fails or intent is blank.
-        _apex = None
-        if intent:
-            try:
-                from arifosmcp.tools.shadow_probe import probe_shadow
+        # Only compute apex + mint full token for verified actors.
+        if not _sct_minted:
+            _apex = None
+            if intent:
+                try:
+                    from arifosmcp.tools.shadow_probe import probe_shadow
 
-                _probe_result = probe_shadow(
-                    model_input=intent,
-                    reference_domain="agentic_boundary",
-                )
-                if _probe_result and _probe_result.get("G") != "UNMEASURED":
-                    _apex = _probe_result
-            except Exception:
-                logger.debug("shadow probe failed — falling through to unmeasured_apex")
-        # W-09 FIX (2026-08-05): Fall back to compute_apex_from_metrics()
-        # instead of unmeasured_apex(). The DB has 4,600+ tool_calls records
-        # with real G/C_dark values. Health endpoint already shows MEASURED.
-        if _apex is None:
-            try:
-                from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
+                    _probe_result = probe_shadow(
+                        model_input=intent,
+                        reference_domain="agentic_boundary",
+                    )
+                    if _probe_result and _probe_result.get("G") != "UNMEASURED":
+                        _apex = _probe_result
+                except Exception:
+                    logger.debug("shadow probe failed — falling through to unmeasured_apex")
+            # W-09 FIX (2026-08-05): Fall back to compute_apex_from_metrics()
+            # instead of unmeasured_apex(). The DB has 4,600+ tool_calls records
+            # with real G/C_dark values. Health endpoint already shows MEASURED.
+            if _apex is None:
+                try:
+                    from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
 
-                _live = compute_apex_from_metrics()
-                if _live.get("sample_size", 0) > 0:
-                    _apex = {
-                        "G": _live.get("G"),
-                        "C_dark": _live.get("C_dark"),
-                        "W3": _live.get("W3", None),
-                        "h": _live.get("h", None),
-                    }
-            except Exception:
-                pass
-        if _apex is None:
-            _apex = unmeasured_apex()  # last resort: honest UNMEASURED
-        _token, _claims = mint_sct(
-            sid=sid,
-            actor=actor_id or "anonymous",
-            auth=_authority,
-            av=bool(actor_verified),
-            stage="000",
-            lane="AGI",
-            verdict_state=str(out.get("verdict_code") or "OK"),
-            dominant_reason=None,
-            allowed=_allowed_next,
-            apex=_apex,
-            witness={
-                "active": 1 if actor_verified else 0,
-                "diversity": "PARTIAL" if actor_verified else "NONE",
-            },
-        )
+                    _live = compute_apex_from_metrics()
+                    if _live.get("sample_size", 0) > 0:
+                        _apex = {
+                            "G": _live.get("G"),
+                            "C_dark": _live.get("C_dark"),
+                            "W3": _live.get("W3", None),
+                            "h": _live.get("h", None),
+                        }
+                except Exception:
+                    pass
+            if _apex is None:
+                _apex = unmeasured_apex()  # last resort: honest UNMEASURED
+            _token, _claims = mint_sct(
+                sid=sid,
+                actor=actor_id or "anonymous",
+                auth=_authority,
+                av=bool(actor_verified),
+                stage="000",
+                lane="AGI",
+                verdict_state=str(out.get("verdict_code") or "OK"),
+                dominant_reason=None,
+                allowed=_allowed_next,
+                apex=_apex,
+                witness={
+                    "active": 1 if actor_verified else 0,
+                    "diversity": "PARTIAL" if actor_verified else "NONE",
+                },
+            )
         # Layer 5e (2026-08-11): surface verification_method + evidence_ref
         # to the unified session record when DID consultation (Layer 5b/5c)
         # was the proof path. This satisfies the HONEST_HOLD gate requirement
@@ -935,7 +964,10 @@ def _project_light(
                 pass
         out["session_token"] = _token
         out["apex_scalars"] = dict(_apex)
-        out["standing_source"] = "act"
+        if _sct_minted:
+            pass  # standing_source already set to "no_act_unverified" in limited path
+        else:
+            out["standing_source"] = "act"
         out["session_birth"]["session_token"] = _token
         out["act_claims"] = {
             "auth": _claims.get("auth"),
@@ -991,7 +1023,10 @@ def _project_light(
                     "detail": str(_bridge_exc)[:200],
                 }
     except Exception as _sct_exc:
-        # Continuity mint failure must not block init — but mark clearly
+        # Continuity mint failure must not block init — but mark clearly.
+        # P0.1 FIX (2026-08-13): surface the ACTUAL error message, not just the
+        # exception class name. "RuntimeError" hides governance decisions behind
+        # what looks like a crash. The caller needs to distinguish "refused" from "broken."
         logger.error(f"SCT mint failed: {_sct_exc}")
         out["session_token"] = None
         out["apex_scalars"] = {
@@ -1000,7 +1035,7 @@ def _project_light(
             "W3": "UNMEASURED",
             "h": "UNMEASURED",
         }
-        out["sct_error"] = type(_sct_exc).__name__
+        out["sct_error"] = str(_sct_exc) or type(_sct_exc).__name__
 
     # FIX 2026-07-29: Self-audit — actor_verified MUST agree across all fields
     _sb_av = out.get("session_birth", {}).get("actor_verified")
