@@ -309,11 +309,6 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "default_tier": "AGENT",
         "aliases": ["opencode", "OpenCode", "opencode-333", "333-agi", "333"],
     },
-    "codex": {
-        "sovereign_id": "ARIF_FAZIL",
-        "default_tier": "AGENT",
-        "aliases": ["codex", "codex-cli", "FI-005", "FI-005-codex-cli"],
-    },
     # F1 AMANAH · Tier-A identity registration (calibration session 2026-08-01).
     # Fingerprint a1d4971c986c1642 · Ed25519 public key at
     # /root/AAA/IDENTITY/keys/FI-008_public.pem.
@@ -358,6 +353,21 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
         "aliases": ["claude", "claude-code", "anthropic"],
+    },
+    "QWEN": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["qwen", "qwen-code", "FI-003", "fi-003"],
+    },
+    "KIMI": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["kimi", "kimi-code", "FI-008", "fi-008"],
+    },
+    "CODEX": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["codex", "codex-cli", "FI-005", "fi-005"],
     },
 }
 

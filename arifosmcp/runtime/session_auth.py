@@ -79,6 +79,25 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     # F13 2026-08-12: qwen-code — FI-003 coding harness. Exempt from Ed25519
     # requirement for MCP bootstrap (operator cap). Same class as other FIs.
     "qwen-code": "operator",
+    # F13 2026-08-12: codex — FI-005 (OpenAI). Same class as other FIs.
+    "codex": "operator",
+    # F13 2026-08-12: copilot — FI-006. GitHub Copilot CLI bridge.
+    "copilot": "operator",
+    "copilot-cli": "operator",
+    # F13 2026-08-12: gemini-cli — Google Gemini CLI.
+    "gemini-cli": "operator",
+    # F13 2026-08-12: grok — FI-007. xAI grok-build + grok aliases.
+    "grok": "operator",
+    "grok-build": "operator",
+    # F13 2026-08-12: agy — FI-004 (antigravity) CLI bridge.
+    "agy": "operator",
+    # F13 2026-08-12: aider — auxiliary coding harness (auxiliary).
+    "aider": "operator",
+    # F13 2026-08-12: continue-cli — auxiliary coding harness.
+    "continue-cli": "operator",
+    # F13 2026-08-12: mesa-test-agent — federation test persona.
+    "mesa-test-agent": "operator",
+    "333-agi": "sovereign",
 }
 
 
