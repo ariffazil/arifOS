@@ -671,6 +671,8 @@ def arif_route(
         mission_payload = None
 
     target_organ = _route_intent_to_organ(intent, organ)
+    if mission_payload:
+        mission_payload["primary_organ"] = target_organ.upper()
     intent_map = _load_intent_map()
     # G15 FIX (2026-07-04): normalize organ lookup key so "A-FORGE" → "a_forge"
     # matches the YAML key. Previously hyphens caused A-FORGE route to miss config
