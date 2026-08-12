@@ -1,10 +1,12 @@
 {
-  "version": "1.0.0",
-  "agent_count": 21,
+  "version": "1.1.0",
+  "agent_count": 14,
+  "last_sweep": "2026-08-12T22:47Z \u2014 FI numbers assigned, folder entries removed",
+  "federation_geometry": {},
   "agents": {
     "agent-zero": {
       "agent_id": "agent-zero",
-      "actor_id": "agent-zero/FI-???",
+      "actor_id": "agent-zero/FI-009",
       "pubkey_hex": "4831f418215463166eaf1c0daad067740417ec4a9095ec499b7949058b2044d8",
       "fingerprint": "d26c9290f8c27b95a5da7217cbd0f46e",
       "capabilities": [
@@ -13,11 +15,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.267606+00:00"
+      "created_at": "2026-07-29T13:55:07.267606+00:00",
+      "fi_id": "FI-009"
     },
     "agentic-trading-companion": {
       "agent_id": "agentic-trading-companion",
-      "actor_id": "agentic-trading-companion/FI-???",
+      "actor_id": "agentic-trading-companion/FI-010",
       "pubkey_hex": "d84b489329e731d4cbc2c7ce07ad9fb4274e299ff853384594cb4cd72ddbd598",
       "fingerprint": "3dd72cd7e4c180b994e42b3654d34ceb",
       "capabilities": [
@@ -27,11 +30,12 @@
       ],
       "max_blast_radius": "T2",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.268036+00:00"
+      "created_at": "2026-07-29T13:55:07.268036+00:00",
+      "fi_id": "FI-010"
     },
     "decisions": {
       "agent_id": "decisions",
-      "actor_id": "decisions/FI-???",
+      "actor_id": "decisions/FI-011",
       "pubkey_hex": "60c1d52073b6c8f20718e7094515d0882163b2b1c6f3e04d5aef342f290460a7",
       "fingerprint": "917f4a31888088a2989c65c1f57b90b6",
       "capabilities": [
@@ -40,11 +44,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.268840+00:00"
+      "created_at": "2026-07-29T13:55:07.268840+00:00",
+      "fi_id": "FI-011"
     },
     "333-AGI": {
       "agent_id": "333-AGI",
-      "actor_id": "333-AGI/FI-???",
+      "actor_id": "333-AGI/FI-002",
       "pubkey_hex": "ad611fe4ef35178fd7bd400ed6b64c863ec953eba4196cda42a7e9c95881f555",
       "fingerprint": "981e66207a39cfb6efc8b94523e7a35a",
       "capabilities": [
@@ -54,11 +59,12 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.263397+00:00",
-      "needs_keygen": false
+      "needs_keygen": false,
+      "fi_id": "FI-002"
     },
     "openclaw": {
       "agent_id": "openclaw",
-      "actor_id": "openclaw/FI-???",
+      "actor_id": "openclaw/FI-017",
       "pubkey_hex": "6c232cbe23b8414b25e07a981ac0530e784bc02665f209ab9fa46a8ea72bbd2c",
       "fingerprint": "d34446ad0908b3f58b6b57031ea4153d",
       "capabilities": [
@@ -69,63 +75,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.272023+00:00"
-    },
-    "_docs": {
-      "agent_id": "_docs",
-      "actor_id": "_docs/FI-???",
-      "pubkey_hex": "fdf9f40b943397ff1de2715189b95f543fc587fff738c691fb7bb9509c24d478",
-      "fingerprint": "8f3db36b51eeb8fcdfeaad6cbe5cc692",
-      "capabilities": [
-        "OBSERVE",
-        "REASON"
-      ],
-      "max_blast_radius": "T1",
-      "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.266671+00:00"
-    },
-    "_lanes": {
-      "agent_id": "_lanes",
-      "actor_id": "_lanes/FI-???",
-      "pubkey_hex": "4822463884624d4b42c8ad20a80b6b9ef485a1204382b9b2f00e952e420a26e6",
-      "fingerprint": "730848f28639ae4037b95246c60d8531",
-      "capabilities": [
-        "OBSERVE",
-        "REASON"
-      ],
-      "max_blast_radius": "T1",
-      "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.267349+00:00"
-    },
-    "agent_cards": {
-      "agent_id": "agent_cards",
-      "actor_id": "agent_cards/FI-???",
-      "pubkey_hex": "6f73c0f758f9f151b7b84e227df90187588f132119138b3de5943796844da369",
-      "fingerprint": "71cdc7c8edb0ff9a784f71b552d38eb3",
-      "capabilities": [
-        "OBSERVE",
-        "REASON"
-      ],
-      "max_blast_radius": "T1",
-      "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.267827+00:00"
-    },
-    "_external": {
-      "agent_id": "_external",
-      "actor_id": "_external/FI-???",
-      "pubkey_hex": "b3e8851a614330649df965154670c783fa2b06a39244b680fc4b1075c40d70ff",
-      "fingerprint": "e9e5b1e43dd7d1f3692959155e2d421e",
-      "capabilities": [
-        "OBSERVE",
-        "REASON"
-      ],
-      "max_blast_radius": "T1",
-      "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.267076+00:00"
+      "created_at": "2026-07-29T13:55:07.272023+00:00",
+      "fi_id": "FI-017"
     },
     "main": {
       "agent_id": "main",
-      "actor_id": "main/FI-???",
+      "actor_id": "main/FI-024",
       "pubkey_hex": "89f7c7732a98d9a5d0d384cb4540099794c1a73cff0381e7f49712c2c0be2495",
       "fingerprint": "db49ebf41ca41fdd95c4efc85b382b65",
       "capabilities": [
@@ -135,11 +90,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.270104+00:00"
+      "created_at": "2026-07-29T13:55:07.270104+00:00",
+      "fi_id": "FI-024"
     },
     "opencode": {
       "agent_id": "opencode",
-      "actor_id": "opencode/FI-???",
+      "actor_id": "opencode/FI-018",
       "pubkey_hex": "ad611fe4ef35178fd7bd400ed6b64c863ec953eba4196cda42a7e9c95881f555",
       "fingerprint": "981e66207a39cfb6efc8b94523e7a35a",
       "capabilities": [
@@ -154,11 +110,12 @@
       "max_blast_radius": "T2",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.275889+00:00",
-      "needs_keygen": false
+      "needs_keygen": false,
+      "fi_id": "FI-018"
     },
     "warga": {
       "agent_id": "warga",
-      "actor_id": "warga/FI-???",
+      "actor_id": "warga/FI-020",
       "pubkey_hex": "29ce5cbaccaa0f1c2da59bbe7ed4fd41d2ac780355cfa70f240daea9ff2e00e1",
       "fingerprint": "08b334c8eb81ba18b4f0514c1a3c2f0c",
       "capabilities": [
@@ -167,11 +124,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.278615+00:00"
+      "created_at": "2026-07-29T13:55:07.278615+00:00",
+      "fi_id": "FI-020"
     },
     "777-forge": {
       "agent_id": "777-forge",
-      "actor_id": "777-forge/FI-???",
+      "actor_id": "777-forge/FI-004",
       "pubkey_hex": "ccc731bc8c93ec0192611635ea5520ea5ca96844bfe59d4fa7101278026dd987",
       "fingerprint": "da0048a80249dead98942edd067b5039",
       "capabilities": [
@@ -180,11 +138,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.265318+00:00"
+      "created_at": "2026-07-29T13:55:07.265318+00:00",
+      "fi_id": "FI-004"
     },
     "hermes-asi": {
       "agent_id": "hermes-asi",
-      "actor_id": "hermes-asi/FI-???",
+      "actor_id": "hermes-asi/FI-014",
       "pubkey_hex": "a1b7808227d5610fcec9c902eae9e82ff140850eea4cc5a3c4e09d76d1db2add",
       "fingerprint": "f26fea82633eaa1d6eb8676c76b8bc85",
       "capabilities": [
@@ -195,37 +154,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.269277+00:00"
-    },
-    "protocols": {
-      "agent_id": "protocols",
-      "actor_id": "protocols/FI-???",
-      "pubkey_hex": "2c8649e0dffb7ce6b6bdcf2003904ec83e9c68c2b284e1622299fdca4a355e63",
-      "fingerprint": "d10415b9a0e23d5b281bfa6802966eb2",
-      "capabilities": [
-        "OBSERVE",
-        "REASON"
-      ],
-      "max_blast_radius": "T1",
-      "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.277961+00:00"
-    },
-    "_brief": {
-      "agent_id": "_brief",
-      "actor_id": "_brief/FI-???",
-      "pubkey_hex": "588875642c76a0e9e34a68a54914ddddb6dbf2c1899209d76e92cea98e08b4d3",
-      "fingerprint": "49b2c85f372947def4794f9467748df4",
-      "capabilities": [
-        "OBSERVE",
-        "REASON"
-      ],
-      "max_blast_radius": "T1",
-      "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.266204+00:00"
+      "created_at": "2026-07-29T13:55:07.269277+00:00",
+      "fi_id": "FI-014"
     },
     "888-APEX": {
       "agent_id": "888-APEX",
-      "actor_id": "888-APEX/FI-???",
+      "actor_id": "888-APEX/FI-005",
       "pubkey_hex": "265ed0cb679499e4f73a2637a186cffb79db46a560e205c96e6583baf307e111",
       "fingerprint": "f84786ad7b386cf451a81bc329c4283d",
       "capabilities": [
@@ -234,11 +168,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.265860+00:00"
+      "created_at": "2026-07-29T13:55:07.265860+00:00",
+      "fi_id": "FI-005"
     },
     "makcikgpt": {
       "agent_id": "makcikgpt",
-      "actor_id": "makcikgpt/FI-???",
+      "actor_id": "makcikgpt/FI-016",
       "pubkey_hex": "39a6e9845834423edd82d688475f3aa7696e0ea4ea7aa1c6a75e3da3d091bb0c",
       "fingerprint": "5aa6defbb5d109ef12f31be56f63fabe",
       "capabilities": [
@@ -247,11 +182,12 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.271136+00:00"
+      "created_at": "2026-07-29T13:55:07.271136+00:00",
+      "fi_id": "FI-016"
     },
     "prospect-maturation": {
       "agent_id": "prospect-maturation",
-      "actor_id": "prospect-maturation/FI-???",
+      "actor_id": "prospect-maturation/FI-019",
       "pubkey_hex": "b3fcde76bab5256fe91f4d8b407ce4e99fe8e62a265e18c715b6fa25656410ea",
       "fingerprint": "ec0b3a3f902037e227ce302749ef5d62",
       "capabilities": [
@@ -261,11 +197,12 @@
       ],
       "max_blast_radius": "T2",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.277252+00:00"
+      "created_at": "2026-07-29T13:55:07.277252+00:00",
+      "fi_id": "FI-019"
     },
     "555-ASI": {
       "agent_id": "555-ASI",
-      "actor_id": "555-ASI/FI-???",
+      "actor_id": "555-ASI/FI-003",
       "pubkey_hex": "324a98da552c914c13f98b2f43881c09b04562fd35985e196ef3779435fd42dc",
       "fingerprint": "d7fbb894248919e26d418c6181e6b224",
       "capabilities": [
@@ -274,20 +211,8 @@
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.264883+00:00"
-    },
-    "skills": {
-      "agent_id": "skills",
-      "actor_id": "skills/FI-???",
-      "pubkey_hex": "3b9c42afb6f8814f49a75f19443fda78b4866ef9bc0917aad4f8763e4e3b0715",
-      "fingerprint": "98340bc15c1b249bb99f3b5599be43b4",
-      "capabilities": [
-        "OBSERVE",
-        "REASON"
-      ],
-      "max_blast_radius": "T1",
-      "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.278359+00:00"
+      "created_at": "2026-07-29T13:55:07.264883+00:00",
+      "fi_id": "FI-003"
     }
   }
 }
