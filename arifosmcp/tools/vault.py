@@ -174,7 +174,7 @@ async def arif_seal(
     999_VAULT: Immutable ledger anchoring.
 
     Args:
-        blast_radius: PRL consequence classification (L1_LOCAL | L2_SYSTEM | L3_CRITICAL).
+        blast_radius: HIB consequence classification (L1_LOCAL | L2_SYSTEM | L3_CRITICAL).
             L1_LOCAL = reversible, single file/session scope.
             L2_SYSTEM = modifies config, multi-agent state.
             L3_CRITICAL = irreversible, data destruction, external-facing.
@@ -1055,26 +1055,26 @@ async def arif_seal(
             result["meta"] = result.get("meta", {})
             result["meta"]["l3_sync"] = {"synced": False, "error": str(_l3e)[:200]}
 
-    # ── PRL Phase 1: Post-seal vectorization into precedent index ─────────
-    # After every successful seal, vectorize the payload into the PRL
+    # ── HIB Phase 1: Post-seal vectorization into precedent index ─────────
+    # After every successful seal, vectorize the payload into the HIB
     # Qdrant collection for future precedent retrieval.
     # Non-fatal — seal already succeeded; index failure is logged.
     if result.get("verdict") == "SEAL" and session_id:
         try:
-            from arifosmcp.tools.vault_vectorizer import prl_post_seal_hook as _prl_hook
+            from arifosmcp.tools.vault_vectorizer import hib_post_seal_hook as _hib_hook
 
-            _prl_hook(
+            _hib_hook(
                 entry_id=str(result.get("entry_id", "")),
                 payload=payload,
                 blast_radius=blast_radius,
                 session_id=session_id,
             )
             result["meta"] = result.get("meta", {})
-            result["meta"]["prl_vectorized"] = True
-        except Exception as _prl_e:
+            result["meta"]["hib_vectorized"] = True
+        except Exception as _hib_e:
             result["meta"] = result.get("meta", {})
-            result["meta"]["prl_vectorized"] = False
-            result["meta"]["prl_vectorize_error"] = str(_prl_e)[:200]
+            result["meta"]["hib_vectorized"] = False
+            result["meta"]["hib_vectorize_error"] = str(_hib_e)[:200]
 
     # ── DAG Bridge: inject evidence_sha + reversion_event into seal ──────
     if evidence_sha:
@@ -1082,7 +1082,7 @@ async def arif_seal(
     if reversion_event:
         result["reversion_event"] = reversion_event
 
-    # ── PRL: inject blast_radius into seal for payload filtering ─────────
+    # ── HIB: inject blast_radius into seal for payload filtering ─────────
     result["blast_radius"] = blast_radius
 
     # ── DAG Bridge L2→L3: post-seal auto-index into semantic layer ──────

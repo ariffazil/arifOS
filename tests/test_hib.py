@@ -1,12 +1,12 @@
 """
-tests/prl — Precedent Retrieval Layer test suite
+tests/hib — Precedent Retrieval Layer test suite
 ══════════════════════════════════════════════════
 
 Tests for:
   - BlastRadius enum and sealing
   - Blast radius classification heuristics
   - Ω₀ ambiguity detection
-  - PrlGateResult and PrlConstraint formatting
+  - HibGateResult and HibConstraint formatting
   - vault_vectorizer integration (smoke test only — requires Qdrant)
   - arif_seal blast_radius passthrough
 
@@ -43,7 +43,7 @@ class TestBlastRadiusClassification:
     """Heuristic blast radius classification for query pre-filtering."""
 
     def test_l3_critical_keywords(self) -> None:
-        from arifosmcp.prl.prl_gate import classify_blast_radius
+        from arifosmcp.hib.hib_gate import classify_blast_radius
 
         # Irreversible / destructive operations → L3
         assert classify_blast_radius("drop production database table") == "L3_CRITICAL"
@@ -53,7 +53,7 @@ class TestBlastRadiusClassification:
         assert classify_blast_radius("perform secret rotation") == "L3_CRITICAL"
 
     def test_l2_system_keywords(self) -> None:
-        from arifosmcp.prl.prl_gate import classify_blast_radius
+        from arifosmcp.hib.hib_gate import classify_blast_radius
 
         # Config / multi-agent operations → L2
         assert classify_blast_radius("deploy new microservice") == "L2_SYSTEM"
@@ -62,7 +62,7 @@ class TestBlastRadiusClassification:
         assert classify_blast_radius("refactor authentication module") == "L2_SYSTEM"
 
     def test_l1_local_default(self) -> None:
-        from arifosmcp.prl.prl_gate import classify_blast_radius
+        from arifosmcp.hib.hib_gate import classify_blast_radius
 
         # Everything else → L1
         assert classify_blast_radius("read a file") == "L1_LOCAL"
@@ -70,7 +70,7 @@ class TestBlastRadiusClassification:
         assert classify_blast_radius("what is the weather") == "L1_LOCAL"
 
     def test_case_insensitive(self) -> None:
-        from arifosmcp.prl.prl_gate import classify_blast_radius
+        from arifosmcp.hib.hib_gate import classify_blast_radius
 
         assert classify_blast_radius("DROP TABLE users") == "L3_CRITICAL"
         assert classify_blast_radius("Deploy TO PRODUCTION") == "L2_SYSTEM"
@@ -80,7 +80,7 @@ class TestOmega0Detection:
     """Ω₀ contextual ambiguity failsafe."""
 
     def test_ambiguity_signals_trigger(self) -> None:
-        from arifosmcp.prl.prl_gate import _detect_omega0_ambiguity
+        from arifosmcp.hib.hib_gate import _detect_omega0_ambiguity
 
         triggered, reason = _detect_omega0_ambiguity(
             query_text="delete the production database however we might need a backup first",
@@ -90,7 +90,7 @@ class TestOmega0Detection:
         assert "however" in reason.lower() or "delete" in reason.lower()
 
     def test_short_constraint_triggers(self) -> None:
-        from arifosmcp.prl.prl_gate import _detect_omega0_ambiguity
+        from arifosmcp.hib.hib_gate import _detect_omega0_ambiguity
 
         triggered, reason = _detect_omega0_ambiguity(
             query_text="deploy the new microservice architecture across all 12 nodes in the Kubernetes cluster with rolling update strategy",
@@ -100,7 +100,7 @@ class TestOmega0Detection:
         assert "short" in reason.lower()
 
     def test_clear_match_no_trigger(self) -> None:
-        from arifosmcp.prl.prl_gate import _detect_omega0_ambiguity
+        from arifosmcp.hib.hib_gate import _detect_omega0_ambiguity
 
         triggered, reason = _detect_omega0_ambiguity(
             query_text="deploy the authentication service to production",
@@ -109,13 +109,13 @@ class TestOmega0Detection:
         assert triggered is False
 
 
-class TestPrlConstraint:
-    """PrlConstraint prompt formatting."""
+class TestHibConstraint:
+    """HibConstraint prompt formatting."""
 
     def test_to_prompt_block(self) -> None:
-        from arifosmcp.prl import PrlConstraint
+        from arifosmcp.hib import HibConstraint
 
-        c = PrlConstraint(
+        c = HibConstraint(
             seal_id="seal_abc123",
             blast_radius="L3_CRITICAL",
             timestamp="2026-07-20T12:00:00Z",
@@ -125,22 +125,22 @@ class TestPrlConstraint:
         )
 
         block = c.to_prompt_block()
-        assert "PRL CONSTRAINT" in block
+        assert "HIB CONSTRAINT" in block
         assert "τ=0.9700" in block
         assert "L3_CRITICAL" in block
         assert "seal_abc123" in block
         assert "Never delete production data" in block
-        assert "[/PRL CONSTRAINT]" in block
+        assert "[/HIB CONSTRAINT]" in block
 
     def test_multiple_constraints_concat(self) -> None:
-        from arifosmcp.prl import PrlConstraint
+        from arifosmcp.hib import HibConstraint
 
-        c1 = PrlConstraint(
+        c1 = HibConstraint(
             seal_id="seal_1", blast_radius="L2_SYSTEM",
             timestamp="2026-01-01", verdict="SEAL",
             constraint_text="Rule 1", cosine_score=0.96,
         )
-        c2 = PrlConstraint(
+        c2 = HibConstraint(
             seal_id="seal_2", blast_radius="L2_SYSTEM",
             timestamp="2026-02-01", verdict="SEAL",
             constraint_text="Rule 2", cosine_score=0.98,
@@ -150,28 +150,28 @@ class TestPrlConstraint:
         combined = "\n".join(blocks)
         assert "Rule 1" in combined
         assert "Rule 2" in combined
-        assert combined.count("[PRL CONSTRAINT") == 2  # Opening tags only
+        assert combined.count("[HIB CONSTRAINT") == 2  # Opening tags only
 
 
-class TestPrlGateResult:
-    """PrlGateResult defaults and transitions."""
+class TestHibGateResult:
+    """HibGateResult defaults and transitions."""
 
     def test_default_state(self) -> None:
-        from arifosmcp.prl import PrlGateResult
+        from arifosmcp.hib import HibGateResult
 
-        r = PrlGateResult()
-        assert r.verdict == "PRL_NONE"
+        r = HibGateResult()
+        assert r.verdict == "HIB_NONE"
         assert r.constraints == []
         assert r.omega0_triggered is False
         assert r.match_count == 0
 
     def test_match_state(self) -> None:
-        from arifosmcp.prl import PrlGateResult, PrlConstraint
+        from arifosmcp.hib import HibGateResult, HibConstraint
 
-        r = PrlGateResult(
-            verdict="PRL_MATCH",
+        r = HibGateResult(
+            verdict="HIB_MATCH",
             constraints=[
-                PrlConstraint(
+                HibConstraint(
                     seal_id="x", blast_radius="L1_LOCAL",
                     timestamp="", verdict="SEAL",
                     constraint_text="test", cosine_score=0.97,
@@ -179,19 +179,19 @@ class TestPrlGateResult:
             ],
             match_count=1,
         )
-        assert r.verdict == "PRL_MATCH"
+        assert r.verdict == "HIB_MATCH"
         assert len(r.constraints) == 1
         assert r.constraints[0].cosine_score == 0.97
 
     def test_omega0_hold(self) -> None:
-        from arifosmcp.prl import PrlGateResult
+        from arifosmcp.hib import HibGateResult
 
-        r = PrlGateResult(
-            verdict="PRL_OMEGA0_HOLD",
+        r = HibGateResult(
+            verdict="HIB_OMEGA0_HOLD",
             omega0_triggered=True,
             omega0_reason="Contextual ambiguity detected",
         )
-        assert r.verdict == "PRL_OMEGA0_HOLD"
+        assert r.verdict == "HIB_OMEGA0_HOLD"
         assert r.constraints == []  # No constraints injected on Ω₀
 
 
@@ -200,7 +200,7 @@ class TestVaultVectorizerSmoke:
 
     @pytest.mark.skip(reason="Requires Qdrant running on localhost:6333")
     def test_create_collection(self) -> None:
-        from arifosmcp.prl import PrecedentVectorizer
+        from arifosmcp.hib import PrecedentVectorizer
 
         v = PrecedentVectorizer()
         v.create_collection(recreate=True)
@@ -209,7 +209,7 @@ class TestVaultVectorizerSmoke:
 
     @pytest.mark.skip(reason="Requires Qdrant running on localhost:6333")
     def test_index_and_search_single_entry(self) -> None:
-        from arifosmcp.prl import PrecedentVectorizer
+        from arifosmcp.hib import PrecedentVectorizer
 
         v = PrecedentVectorizer()
         v.create_collection(recreate=True)

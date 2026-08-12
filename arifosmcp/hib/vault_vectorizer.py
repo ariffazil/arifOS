@@ -1,5 +1,5 @@
 """
-vault_vectorizer.py — PRL: VAULT999 → Qdrant Vector Index (P6 Enriched)
+vault_vectorizer.py — HIB: VAULT999 → Qdrant Vector Index (P6 Enriched)
 ══════════════════════════════════════════════════════════════════════════
 
 Reads VAULT999 outcomes.jsonl, builds semantically dense derived documents
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 COLLECTION_NAME = "arifos_precedent"
 VECTOR_SIZE = 1024  # BAAI/bge-m3
 EMBEDDING_MODEL = "BAAI/bge-m3"
-PRL_TAU_THRESHOLD = 0.35
+HIB_TAU_THRESHOLD = 0.35
 
 _VAULT_PATH = os.getenv(
     "VAULT999_SEAL_CHAIN",
@@ -78,9 +78,9 @@ _CATEGORY_RULES: list[tuple[str, str, str]] = [
     (r"judge|verdict|hold|sabar|void|adjudicate", "governance.judge", "Constitutional verdicts"),
     (r"seal|vault|ledger|999|immutable|chain", "governance.seal_chain", "VAULT999 operations"),
     (
-        r"prl|emd|precedent.?retriev|gate.?intercept",
+        r"hib|emd|precedent.?retriev|gate.?intercept",
         "architecture.emd_pipeline",
-        "EMD/PRL pipeline",
+        "EMD/HIB pipeline",
     ),
     (r"session|init|boot|ignite|wake", "governance.session", "Session lifecycle"),
     (r"telegram|hermes|bot|message|chat", "infrastructure.communication", "Hermes/Telegram"),
@@ -336,7 +336,7 @@ class PrecedentVectorizer:
         self,
         query_text: str,
         blast_radius: str | None = None,
-        score_threshold: float = PRL_TAU_THRESHOLD,
+        score_threshold: float = HIB_TAU_THRESHOLD,
         limit: int = 5,
     ) -> list[dict[str, Any]]:
         encoder = self._get_encoder()
@@ -357,7 +357,7 @@ class PrecedentVectorizer:
                 score_threshold=score_threshold,
             )
         except Exception as exc:
-            logger.error("PRL search failed: %s", exc)
+            logger.error("HIB search failed: %s", exc)
             return []
         results = []
         for point in response.points:
@@ -369,7 +369,7 @@ class PrecedentVectorizer:
                     "enriched_category": point.payload.get("enriched_category", ""),
                     "verdict": point.payload.get("verdict", ""),
                     "timestamp": point.payload.get("timestamp", ""),
-                    "payload_summary": point.payload.get("payload_summary", "")[:256],
+                    "payload_summary": (point.payload.get("payload_summary") or point.payload.get("derived_semantic_text", ""))[:256],
                     "session_id": point.payload.get("session_id", ""),
                 }
             )
@@ -382,7 +382,7 @@ class PrecedentVectorizer:
                 "vector_size": VECTOR_SIZE,
                 "model": EMBEDDING_MODEL,
                 "point_count": self.client.count(collection_name=COLLECTION_NAME).count,
-                "tau_threshold": PRL_TAU_THRESHOLD,
+                "tau_threshold": HIB_TAU_THRESHOLD,
             }
         except Exception as exc:
             return {"error": str(exc), "collection": COLLECTION_NAME}

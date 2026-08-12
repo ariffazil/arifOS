@@ -78,7 +78,7 @@ Today's "enclosure" is not only physical. It is:
 | Limited nesting zones      | Housing, class mobility, family formation constraints                         |
 | Feeding choke points       | Jobs, credentials, platform visibility, financial access                      |
 | Dominant territory holders | Mega-platforms, elite institutions, state-corporate nodes                     |
-| Behavioral sink            | Rage feeds, loneliness, institutional cynicism                                |
+| Governance drift            | Rage feeds, loneliness, institutional cynicism                                |
 | Beautiful ones             | Comfort-rich, agency-poor, aesthetically managed withdrawal                   |
 | Extinction                 | Not literal soon; more likely fertility decline, trust decay, civic passivity |
 
@@ -202,7 +202,7 @@ If these fail, abundance itself becomes anesthetic.
 
 AI can become either:
 
-### A. Behavioral sink amplifier ❌
+### A. Governance drift amplifier ❌
 
 AI amplifies collapse when it:
 
@@ -319,7 +319,7 @@ That is strong. That can become doctrine.
 
 Your strongest lines:
 
-* **"algorithmic behavioral sink"**
+* **"algorithmic governance drift"**
 * **"abundance without agency"**
 * **"AI as social topology designer"**
 * **"purpose channels, not just information channels"**
@@ -365,7 +365,7 @@ It is that institutions and AI systems unintentionally build a world where human
 * entertained but purposeless,
 * governed but unheard.
 
-That is the **algorithmic behavioral sink**.
+That is the **algorithmic governance drift**.
 
 The counter-design is clear:
 
@@ -376,6 +376,6 @@ The counter-design is clear:
 
 DITEMPA BUKAN DIBERI 🔥
 
-[1]: https://en.wikipedia.org/wiki/Behavioral_sink?utm_source=chatgpt.com "Behavioral sink"
+[1]: https://en.wikipedia.org/wiki/Behavioral_sink?utm_source=chatgpt.com "Governance drift"
 [2]: https://internationalaisafetyreport.org/publication/international-ai-safety-report-2026?utm_source=chatgpt.com "International AI Safety Report 2026"
 [3]: https://hdr.undp.org/system/files/documents/global-report-document/hdr2025reporten.pdf?utm_source=chatgpt.com "A matter of choice: People and possibilities in the age of AI"

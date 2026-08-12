@@ -1035,29 +1035,29 @@ def arif_think(
     except Exception:
         pass  # AKAL friction is advisory — never blocks reasoning
 
-    # ── PRL GATE: Institutional Precedent Retrieval (Phase 1) ──────────────────
+    # ── HIB GATE: Institutional Precedent Retrieval (Phase 1) ──────────────────
     # ENCODE-phase checkpoint: search VAULT999 for geometrically bound precedents
     # before any LLM cycles are spent.  Dual-Gate architecture:
     #   GATE 1: Cosine ≥ 0.95 | GATE 2: blast_radius payload filter
     #   Ω₀ Trigger: ambiguous match → HOLD for 888 (F7 Humility)
     # If no match (τ < 0.95), passes through silently — zero-latency default.
-    _prl_context: dict[str, Any] | None = None
+    _hib_context: dict[str, Any] | None = None
     _blast_radius = (context or {}).get("blast_radius", "L2_SYSTEM")
     try:
-        from arifosmcp.tools.prl_gate import prl_precheck as _prl_precheck
+        from arifosmcp.tools.hib_gate import hib_precheck as _hib_precheck
 
-        _prl_result = _prl_precheck(query or "", _blast_radius)
-        if _prl_result.get("hold_for_888"):
+        _hib_result = _hib_precheck(query or "", _blast_radius)
+        if _hib_result.get("hold_for_888"):
             # Ω₀ TRIGGERED — hard halt, bypass LLM entirely
             hold = _hold(
                 "arif_think",
-                "[Ω₀ TRIGGER] PRL precedent matched geometrically but context is ambiguous. "
+                "[Ω₀ TRIGGER] HIB precedent matched geometrically but context is ambiguous. "
                 "W_scar override required before reasoning proceeds.",
                 ["F7", "F9", "F13"],
                 session_id=session_id,
                 extra_meta={
-                    "prl_gate": "OMEGA_HOLD",
-                    "prl_result": _prl_result,
+                    "hib_gate": "OMEGA_HOLD",
+                    "hib_result": _hib_result,
                 },
             )
             hold["verdict"] = {
@@ -1065,17 +1065,17 @@ def arif_think(
                 "dominant_reason": "Ω₀ ambiguity — sovereign review required",
             }
             return Synthesis(**_echo_standing(hold))
-        if _prl_result.get("block_precedent"):
+        if _hib_result.get("block_precedent"):
             # Precedent matched — attach for downstream prompt injection
-            _prl_context = _prl_result
+            _hib_context = _hib_result
             if context is None:
                 context = {}
             context = dict(context)
-            context["prl_precedent"] = _prl_result
-            context["_prl_tau_max"] = _prl_result.get("tau_max", 0.0)
-            context["_prl_matched_rules"] = _prl_result.get("matched_rules", [])
-    except Exception as _prl_err:
-        # PRL is non-blocking — silence on error is correct (τ ≥ 0.95 floor)
+            context["hib_precedent"] = _hib_result
+            context["_hib_tau_max"] = _hib_result.get("tau_max", 0.0)
+            context["_hib_matched_rules"] = _hib_result.get("matched_rules", [])
+    except Exception as _hib_err:
+        # HIB is non-blocking — silence on error is correct (τ ≥ 0.95 floor)
         pass
 
     # ── APEX MODE: canonical G-fold (Δ substrate only) ──────────────────────

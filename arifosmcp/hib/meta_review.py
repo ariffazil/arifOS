@@ -25,7 +25,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from typing import Any
 
-REPORT_PATH = os.path.expanduser("~/.local/share/arifos/prl/review_required.json")
+REPORT_PATH = os.path.expanduser("~/.local/share/arifos/hib/review_required.json")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 COLLECTION = "arifos_precedent"
 ANOMALY_THRESHOLD = 0.70  # Cosine threshold for "same cluster"
@@ -173,7 +173,7 @@ def generate_report(points: list[dict], anomalies: list[dict]) -> dict:
 
     return {
         "meta": {
-            "tool": "prl_meta_precedent_review",
+            "tool": "hib_meta_precedent_review",
             "phase": "2",
             "generated_at": datetime.now(UTC).isoformat(),
             "total_points": len(points),
@@ -196,7 +196,7 @@ def generate_report(points: list[dict], anomalies: list[dict]) -> dict:
 
 
 def main():
-    print(f"[{datetime.now(UTC).isoformat()}] PRL Phase 2: Meta-Precedent Review")
+    print(f"[{datetime.now(UTC).isoformat()}] HIB Phase 2: Meta-Precedent Review")
 
     points = load_all_points()
     if not points:

@@ -929,7 +929,7 @@ CRITIQUE_SCHEMA = {
         "behavioral_sink_scan": {
             "type": "object",
             "description": (
-                "Anti-Calhoun behavioral sink detection (P2-04). "
+                "Anti-Calhoun governance drift detection (P2-04). "
                 "Counts empty/minimal outputs in the supplied session_history. "
                 "SOFT signal (F5 PEACE) — SABAR, never escalates action verdict."
             ),
@@ -1729,7 +1729,7 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
     }
 
 
-# ── Anti-Calhoun Behavioral Sink Scan (P2-04, 2026-07-15) ────────────────────
+# ── Anti-Calhoun Governance Drift Scan (P2-04, 2026-07-15) ────────────────────
 # Calhoun (1842) projected civilizational decline via silence and withdrawal —
 # the system that optimizes for "pass" / empty output / no event emission.
 # Anti-Calhoun invariant: an agent must NOT trend toward density or silence.
@@ -1801,7 +1801,7 @@ def _is_empty_output(out: Any) -> bool:
 
 
 def _behavioral_sink_scan(session_history: list[Any] | None) -> dict[str, Any]:
-    """Anti-Calhoun behavioral sink detection (P2-04, gate F5+F6, 2026-07-15).
+    """Anti-Calhoun governance drift detection (P2-04, gate F5+F6, 2026-07-15).
 
     Detects when an agent's recent tool outputs trend toward empty/minimal —
     the Calhoun pattern. Counts (not infers) empty outputs from
@@ -1848,7 +1848,7 @@ def _behavioral_sink_scan(session_history: list[Any] | None) -> dict[str, Any]:
             "reason": (
                 f"Agent producing >40% empty/minimal outputs "
                 f"({empty_count}/{total}, sink_ratio={sink_ratio:.2f}) "
-                f"— behavioral sink detected"
+                f"— governance drift detected"
             ),
         }
     return {
@@ -1910,7 +1910,7 @@ async def arif_critique(
         fractal_auto: If True, automatically run fractal recursion for
                       critique mode when risk_tier >= AMBER.
         session_history: Optional list of last N tool outputs for the
-                         Anti-Calhoun behavioral sink scan (P2-04). When
+                         Anti-Calhoun governance drift scan (P2-04). When
                          ``>40%`` of outputs are empty/minimal, the scan
                          returns ``WARNING`` with a risk entry surfaced
                          under ``risks_found``. SOFT signal — never VOID.
@@ -2202,7 +2202,7 @@ async def arif_critique(
     if _arif_substrate is not None:
         result.setdefault("meta", {})["arif_substrate"] = _arif_substrate
 
-    # ── Anti-Calhoun behavioral sink scan (P2-04, 2026-07-15) ──────────────
+    # ── Anti-Calhoun governance drift scan (P2-04, 2026-07-15) ──────────────
     # SOFT signal (F5 PEACE). SABAR — never escalates to VOID.
     # Attaches scan summary to result and adds risk entry when WARNING.
     sink_scan = _behavioral_sink_scan(session_history)

@@ -46,7 +46,7 @@ or aesthetic coherence as sufficient indicators of flourishing.
 
 ## 1. Definitions
 
-### 1.1 Behavioral Sink
+### 1.1 Governance Drift
 
 A degraded system state where agents remain materially supported but socially,
 psychologically, or institutionally dysfunctional.
@@ -464,7 +464,7 @@ and escalates to human review.
 >
 > A system that feeds, entertains, automates, and pacifies humans while removing
 > role, dignity, judgment, and responsibility is not intelligent governance.
-> It is a behavioral sink.
+> It is a governance drift.
 >
 > Intelligence must increase the human capacity to see, judge, repair, steward,
 > and remain answerable to reality.

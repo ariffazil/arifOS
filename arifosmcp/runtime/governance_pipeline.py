@@ -1998,7 +1998,7 @@ class GovernancePipeline:
     # GATE 5.2: CALHOUN CLOSURE (Q10 — anti-sink / friction requirement)
     # ═══════════════════════════════════════════════════════════════════════
     # GENESIS/058 §1 Q10: at least one UNSOLVED problem + arena where the
-    # agent CAN fail. Composes anti_calhoun_score + behavioral sink scan +
+    # agent CAN fail. Composes anti_calhoun_score + governance drift scan +
     # FQ overheat window. Observation tools always pass (the anti-sink needs
     # to be able to observe its own arena).
     def _gate_calhoun_closure(self, ctx: ToolCallContext) -> GateResult:

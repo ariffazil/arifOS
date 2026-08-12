@@ -857,7 +857,7 @@ def _check_policy_floors(
 
     # FLOOR 10-A (Anti-sink — Global SINK_CRITICAL threshold):
     # System-level guard: if any session has simulated >100 times with zero
-    # actions, the entire system is at risk of behavioral sink.
+    # actions, the entire system is at risk of governance drift.
     # This is NOT per-capability — it's per-session, system-wide.
     sim_count = req.raw_arguments.get("_simulation_count", 0)
     action_count = req.raw_arguments.get("_action_count", 0)
@@ -867,7 +867,7 @@ def _check_policy_floors(
                 verdict=AdmissibilityVerdict.HOLD_888,
                 reason=(
                     f"ANTI-SINK SINK_CRITICAL: {sim_count} simulations with zero actions "
-                    f"across this session. The system is at risk of behavioral sink — "
+                    f"across this session. The system is at risk of governance drift — "
                     f"a beautiful corpse. Either perform a bounded action or log a formal "
                     f"refusal to VAULT999. This HOLD is the kernel's dead-man switch."
                 ),

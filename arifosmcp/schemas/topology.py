@@ -116,7 +116,7 @@ class InstitutionalVerdict(StrEnum):
 
 
 class AntiSinkCheck(BaseModel):
-    """777_TOPOLOGY: Reversible runtime diagnostic for behavioral sink risk."""
+    """777_TOPOLOGY: Reversible runtime diagnostic for governance drift risk."""
 
     agency_delta: Delta = Field(
         default=Delta.UNKNOWN,

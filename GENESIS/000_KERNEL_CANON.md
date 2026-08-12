@@ -409,7 +409,7 @@ product taxonomy.
 
 The Beautiful Ones died from *abundance without friction.* Everything
 provided, nothing forged. The arifOS motto is the prescription against
-becoming a Beautiful One. Built inside a behavioural sink (PETRONAS)
+becoming a Beautiful One. Built inside a governance drift (PETRONAS)
 by a sovereign who felt the pull toward beautiful-safe-sterile
 withdrawal — and refused it by forging instead of grooming.
 

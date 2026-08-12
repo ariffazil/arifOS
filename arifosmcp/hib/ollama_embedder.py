@@ -1,11 +1,12 @@
 """
-ollama_embedder.py — Shared PRL Ollama embedder (canonical)
+ollama_embedder.py — Shared HIB Ollama embedder (canonical)
 ══════════════════════════════════════════════════════════
 
-PRL (Precedent Retrieval Layer) routes every reader/writer through this module
-so that the federation uses ONE embedding backend — local Ollama's
-``POST /api/embed`` with the ``nomic-embed-text`` model — instead of the old
-``SentenceTransformer`` / SHA-256 hash fallback.
+HIB (Hangat Ingatan Balik — formerly PRL / Precedent Retrieval Layer) routes
+every reader/writer through this module so that the federation uses ONE
+embedding backend — local Ollama's ``POST /api/embed`` with the
+``nomic-embed-text`` model — instead of the old ``SentenceTransformer`` /
+SHA-256 hash fallback.
 
 Design contract (locked, do not break):
 
@@ -13,8 +14,8 @@ Design contract (locked, do not break):
   "truncate", "dimensions", "keep_alive"}``.  Aligned to the Ollama 0.21.1
   ``/api/embed`` contract (NOT ``prompt`` — that was the legacy
   ``/api/embeddings`` shape).  Response is ``{"embeddings": [[floats...]]}``.
-* **Default model** — ``nomic-embed-text`` (override via ``ARIFOS_PRL_OLLAMA_MODEL``).
-* **Default dimension** — 768 (override via ``ARIFOS_PRL_EMBED_DIM``; only
+* **Default model** — ``bge-m3`` (override via ``ARIFOS_HIB_OLLAMA_MODEL``).
+* **Default dimension** — 1024 (override via ``ARIFOS_HIB_EMBED_DIM``; only
   honored when the live ``/api/show`` payload reports the same value,
   otherwise the response is rejected as wrong-dimension).
 * **Timeout** — explicit ``httpx.Timeout(connect, read, write, pool)`` so a
@@ -23,23 +24,24 @@ Design contract (locked, do not break):
   is lazily constructed once per (base_url, timeout) tuple.  All calls
   share it; tests call :func:`reset_client` to force a rebuild.
 * **Circuit breaker** — module-global, thread-safe, two-stage.  After
-  ``ARIFOS_PRL_CB_FAIL_THRESHOLD`` consecutive failures the breaker opens
-  for ``ARIFOS_PRL_CB_RESET_SECONDS``; while open, calls fail-open immediately.
+  ``ARIFOS_HIB_CB_FAIL_THRESHOLD`` consecutive failures the breaker opens
+  for ``ARIFOS_HIB_CB_RESET_SECONDS``; while open, calls fail-open immediately.
 * **No request-path retry.** Network/HTTP failures are surfaced once.  We
   rely on the next call's circuit counter for backoff.
 * **Strict response validation** — every response is checked for shape,
   embedding presence, finite float values, and matching dimension.  Anything
-  else raises ``PrlEmbedderError``.
+  else raises ``HibEmbedderError``.
 * **Fail-open semantics** — under breaker-open OR ``fail_open=True`` the
-  helper returns ``None`` and logs once.  PRL callers translate ``None`` into
-  ``PRL_ERROR`` without raising into the reasoning pipeline.
+  helper returns ``None`` and logs once.  HIB callers translate ``None`` into
+  ``HIB_ERROR`` without raising into the reasoning pipeline.
 
 Backward compatibility
 ──────────────────────
-Legacy ``PRL_OLLAMA_URL`` / ``PRL_OLLAMA_MODEL`` / ``PRL_EMBED_DIM`` /
-``PRL_CB_*`` env vars are still honored as fallbacks, but the approved
-contract is the ``ARIFOS_PRL_*`` namespace.  When both are set, the
-``ARIFOS_PRL_*`` value wins.
+Legacy ``HIB_OLLAMA_URL`` / ``HIB_OLLAMA_MODEL`` / ``HIB_EMBED_DIM`` /
+``HIB_CB_*`` env vars are still honored as fallbacks, but the approved
+contract is the ``ARIFOS_HIB_*`` namespace.  When both are set, the
+``ARIFOS_HIB_*`` value wins.  Old ``ARIFOS_PRL_*`` / ``PRL_*`` names
+(from before the PRL→HIB rename) are also honored as a third-tier fallback.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
@@ -58,8 +60,9 @@ import httpx
 logger = logging.getLogger(__name__)
 
 # ── Module configuration (env-overridable) ─────────────────────────────
-DEFAULT_MODEL = "nomic-embed-text"
-DEFAULT_DIM = 768
+# Default model must match vault_vectorizer.py collection (bge-m3, 1024-dim)
+DEFAULT_MODEL = "bge-m3"
+DEFAULT_DIM = 1024
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 DEFAULT_TRUNCATE = True
 DEFAULT_KEEP_ALIVE = "5m"
@@ -132,7 +135,7 @@ def reset_client() -> None:
     """Drop the cached :class:`httpx.Client` so the next call rebuilds it.
 
     Intended for tests; also exposed for ops hot-reload scenarios where
-    the embedder config changes mid-flight (e.g. ARIFOS_PRL_OLLAMA_URL
+    the embedder config changes mid-flight (e.g. ARIFOS_HIB_OLLAMA_URL
     rotation).
     """
     global _client, _client_key
@@ -149,20 +152,32 @@ def reset_client() -> None:
 # ── Configuration loader ──────────────────────────────────────────────
 
 
-def _env(env: dict[str, str] | None, primary: str, legacy: str) -> str | None:
-    """Return the first non-None env var, preferring the approved name."""
+def _env(env: dict[str, str] | None, primary: str, legacy: str, *older: str) -> str | None:
+    """Return the first non-None env var, preferring the approved name.
+
+    Chain: primary → legacy → older[0] → older[1] → …
+    """
+    names = [primary, legacy, *older]
     if env is not None:
-        return env.get(primary) or env.get(legacy)
-    return os.environ.get(primary) or os.environ.get(legacy)
+        for n in names:
+            v = env.get(n)
+            if v:
+                return v
+        return None
+    for n in names:
+        v = os.environ.get(n)
+        if v:
+            return v
+    return None
 
 
-def _env_str(env: dict[str, str] | None, primary: str, legacy: str, default: str) -> str:
-    val = _env(env, primary, legacy)
+def _env_str(env: dict[str, str] | None, primary: str, legacy: str, default: str, *older: str) -> str:
+    val = _env(env, primary, legacy, *older)
     return val if val not in (None, "") else default
 
 
-def _env_float(env: dict[str, str] | None, primary: str, legacy: str, default: float) -> float:
-    raw = _env(env, primary, legacy)
+def _env_float(env: dict[str, str] | None, primary: str, legacy: str, default: float, *older: str) -> float:
+    raw = _env(env, primary, legacy, *older)
     if raw in (None, ""):
         return default
     try:
@@ -171,8 +186,8 @@ def _env_float(env: dict[str, str] | None, primary: str, legacy: str, default: f
         return default
 
 
-def _env_int(env: dict[str, str] | None, primary: str, legacy: str, default: int) -> int:
-    raw = _env(env, primary, legacy)
+def _env_int(env: dict[str, str] | None, primary: str, legacy: str, default: int, *older: str) -> int:
+    raw = _env(env, primary, legacy, *older)
     if raw in (None, ""):
         return default
     try:
@@ -182,7 +197,7 @@ def _env_int(env: dict[str, str] | None, primary: str, legacy: str, default: int
 
 
 @dataclass(frozen=True)
-class PrlEmbedderConfig:
+class HibEmbedderConfig:
     """Resolved embedder configuration (env-derived, immutable)."""
 
     base_url: str
@@ -198,67 +213,83 @@ class PrlEmbedderConfig:
     keep_alive: str
 
     @classmethod
-    def from_env(cls, env: dict[str, str] | None = None) -> PrlEmbedderConfig:
+    def from_env(cls, env: dict[str, str] | None = None) -> HibEmbedderConfig:
+        # Legacy fallback chain: ARIFOS_HIB_* → HIB_* → ARIFOS_PRL_* → PRL_*
         return cls(
             base_url=_env_str(
-                env, "ARIFOS_PRL_OLLAMA_URL", "PRL_OLLAMA_URL", DEFAULT_OLLAMA_URL
+                env, "ARIFOS_HIB_OLLAMA_URL", "HIB_OLLAMA_URL", DEFAULT_OLLAMA_URL,
+                "ARIFOS_PRL_OLLAMA_URL", "PRL_OLLAMA_URL",
             ).rstrip("/"),
-            model=_env_str(env, "ARIFOS_PRL_OLLAMA_MODEL", "PRL_OLLAMA_MODEL", DEFAULT_MODEL),
-            dim=_env_int(env, "ARIFOS_PRL_EMBED_DIM", "PRL_EMBED_DIM", DEFAULT_DIM),
+            model=_env_str(
+                env, "ARIFOS_HIB_OLLAMA_MODEL", "HIB_OLLAMA_MODEL", DEFAULT_MODEL,
+                "ARIFOS_PRL_OLLAMA_MODEL", "PRL_OLLAMA_MODEL",
+            ),
+            dim=_env_int(
+                env, "ARIFOS_HIB_EMBED_DIM", "HIB_EMBED_DIM", DEFAULT_DIM,
+                "ARIFOS_PRL_EMBED_DIM", "PRL_EMBED_DIM",
+            ),
             connect_timeout_s=_env_float(
                 env,
-                "ARIFOS_PRL_OLLAMA_CONNECT_TIMEOUT_S",
-                "PRL_OLLAMA_CONNECT_TIMEOUT_S",
+                "ARIFOS_HIB_OLLAMA_CONNECT_TIMEOUT_S",
+                "HIB_OLLAMA_CONNECT_TIMEOUT_S",
                 DEFAULT_CONNECT_TIMEOUT_S,
+                "ARIFOS_PRL_OLLAMA_CONNECT_TIMEOUT_S", "PRL_OLLAMA_CONNECT_TIMEOUT_S",
             ),
             read_timeout_s=_env_float(
                 env,
-                "ARIFOS_PRL_OLLAMA_READ_TIMEOUT_S",
-                "PRL_OLLAMA_READ_TIMEOUT_S",
+                "ARIFOS_HIB_OLLAMA_READ_TIMEOUT_S",
+                "HIB_OLLAMA_READ_TIMEOUT_S",
                 DEFAULT_READ_TIMEOUT_S,
+                "ARIFOS_PRL_OLLAMA_READ_TIMEOUT_S", "PRL_OLLAMA_READ_TIMEOUT_S",
             ),
             write_timeout_s=_env_float(
                 env,
-                "ARIFOS_PRL_OLLAMA_WRITE_TIMEOUT_S",
-                "PRL_OLLAMA_WRITE_TIMEOUT_S",
+                "ARIFOS_HIB_OLLAMA_WRITE_TIMEOUT_S",
+                "HIB_OLLAMA_WRITE_TIMEOUT_S",
                 DEFAULT_WRITE_TIMEOUT_S,
+                "ARIFOS_PRL_OLLAMA_WRITE_TIMEOUT_S", "PRL_OLLAMA_WRITE_TIMEOUT_S",
             ),
             pool_timeout_s=_env_float(
                 env,
-                "ARIFOS_PRL_OLLAMA_POOL_TIMEOUT_S",
-                "PRL_OLLAMA_POOL_TIMEOUT_S",
+                "ARIFOS_HIB_OLLAMA_POOL_TIMEOUT_S",
+                "HIB_OLLAMA_POOL_TIMEOUT_S",
                 DEFAULT_POOL_TIMEOUT_S,
+                "ARIFOS_PRL_OLLAMA_POOL_TIMEOUT_S", "PRL_OLLAMA_POOL_TIMEOUT_S",
             ),
             cb_fail_threshold=max(
                 1,
                 _env_int(
                     env,
-                    "ARIFOS_PRL_CB_FAIL_THRESHOLD",
-                    "PRL_CB_FAIL_THRESHOLD",
+                    "ARIFOS_HIB_CB_FAIL_THRESHOLD",
+                    "HIB_CB_FAIL_THRESHOLD",
                     DEFAULT_CB_FAIL_THRESHOLD,
+                    "ARIFOS_PRL_CB_FAIL_THRESHOLD", "PRL_CB_FAIL_THRESHOLD",
                 ),
             ),
             cb_reset_seconds=max(
                 0.1,
                 _env_float(
                     env,
-                    "ARIFOS_PRL_CB_RESET_SECONDS",
-                    "PRL_CB_RESET_SECONDS",
+                    "ARIFOS_HIB_CB_RESET_SECONDS",
+                    "HIB_CB_RESET_SECONDS",
                     DEFAULT_CB_RESET_SECONDS,
+                    "ARIFOS_PRL_CB_RESET_SECONDS", "PRL_CB_RESET_SECONDS",
                 ),
             ),
             truncate=_env_str(
                 env,
-                "ARIFOS_PRL_TRUNCATE",
-                "PRL_TRUNCATE",
+                "ARIFOS_HIB_TRUNCATE",
+                "HIB_TRUNCATE",
                 "true" if DEFAULT_TRUNCATE else "false",
+                "ARIFOS_PRL_TRUNCATE", "PRL_TRUNCATE",
             ).lower()
             in ("1", "true", "yes", "on"),
             keep_alive=_env_str(
                 env,
-                "ARIFOS_PRL_KEEP_ALIVE",
-                "PRL_KEEP_ALIVE",
+                "ARIFOS_HIB_KEEP_ALIVE",
+                "HIB_KEEP_ALIVE",
                 DEFAULT_KEEP_ALIVE,
+                "ARIFOS_PRL_KEEP_ALIVE", "PRL_KEEP_ALIVE",
             ),
         )
 
@@ -274,7 +305,7 @@ class PrlEmbedderConfig:
 # ── Exceptions ────────────────────────────────────────────────────────
 
 
-class PrlEmbedderError(RuntimeError):
+class HibEmbedderError(RuntimeError):
     """Raised by embed() on hard failures (validation, dimension mismatch).
 
     Callers that need fail-open semantics should pass ``fail_open=True``.
@@ -302,7 +333,7 @@ class _BreakerState:
 _STATE = _BreakerState()
 
 
-def _breaker_is_open(config: PrlEmbedderConfig) -> bool:
+def _breaker_is_open(config: HibEmbedderConfig) -> bool:
     return _STATE.is_open(now=time.monotonic(), reset_seconds=config.cb_reset_seconds)
 
 
@@ -312,7 +343,7 @@ def _breaker_record_success() -> None:
         _STATE.opened_at = 0.0
 
 
-def _breaker_record_failure(config: PrlEmbedderConfig) -> None:
+def _breaker_record_failure(config: HibEmbedderConfig) -> None:
     """Increment counter; trip the breaker when threshold is exceeded."""
     global _fail_open_logged_at
     with _breaker_lock:
@@ -321,7 +352,7 @@ def _breaker_record_failure(config: PrlEmbedderConfig) -> None:
             _STATE.opened_at = time.monotonic()
             _STATE.tripped_total += 1
             logger.warning(
-                "PRL embedder circuit OPENED after %d consecutive failures "
+                "HIB embedder circuit OPENED after %d consecutive failures "
                 "(threshold=%d, reset=%.1fs, tripped_total=%d)",
                 _STATE.consecutive_failures,
                 config.cb_fail_threshold,
@@ -367,15 +398,15 @@ def _extract_embedding(raw: Any) -> list[float]:
         if isinstance(raw.get("embeddings"), list) and raw["embeddings"]:
             first = raw["embeddings"][0]
             if not isinstance(first, list):
-                raise PrlEmbedderError("Ollama response 'embeddings[0]' is not a list of floats")
+                raise HibEmbedderError("Ollama response 'embeddings[0]' is not a list of floats")
             vec = first
         elif isinstance(raw.get("embedding"), list):
             # Legacy /api/embeddings single-vector shape.
             vec = raw["embedding"]
         else:
-            raise PrlEmbedderError("Ollama response missing 'embeddings' / 'embedding' field")
+            raise HibEmbedderError("Ollama response missing 'embeddings' / 'embedding' field")
     else:
-        raise PrlEmbedderError("Ollama response is neither list nor object")
+        raise HibEmbedderError("Ollama response is neither list nor object")
     return vec
 
 
@@ -384,19 +415,19 @@ def _validate_embedding(raw: Any, *, expected_dim: int) -> list[float]:
     vec = _extract_embedding(raw)
 
     if len(vec) != expected_dim:
-        raise PrlEmbedderError(
+        raise HibEmbedderError(
             f"Ollama embedding wrong dimension: got {len(vec)}, expected {expected_dim}"
         )
 
     out: list[float] = []
     for i, value in enumerate(vec):
         if not isinstance(value, (int, float)):
-            raise PrlEmbedderError(
+            raise HibEmbedderError(
                 f"Ollama embedding value at index {i} is non-numeric: {type(value).__name__}"
             )
         f = float(value)
         if f != f or f in (float("inf"), float("-inf")):  # NaN / inf guard
-            raise PrlEmbedderError(f"Ollama embedding value at index {i} is non-finite: {f!r}")
+            raise HibEmbedderError(f"Ollama embedding value at index {i} is non-finite: {f!r}")
         out.append(f)
     return out
 
@@ -408,27 +439,27 @@ def _validate_batch_response(raw: Any, *, expected_dim: int) -> list[list[float]
     with exactly ``len(texts)`` entries when ``len(texts) >= 1``.
     """
     if not isinstance(raw, dict):
-        raise PrlEmbedderError("Ollama batch response is not an object")
+        raise HibEmbedderError("Ollama batch response is not an object")
     embeddings = raw.get("embeddings")
     if not isinstance(embeddings, list) or not embeddings:
-        raise PrlEmbedderError("Ollama batch response missing or empty 'embeddings' field")
+        raise HibEmbedderError("Ollama batch response missing or empty 'embeddings' field")
     out: list[list[float]] = []
     for idx, vec in enumerate(embeddings):
         if not isinstance(vec, list):
-            raise PrlEmbedderError(f"Ollama batch response entry {idx} is not a list")
+            raise HibEmbedderError(f"Ollama batch response entry {idx} is not a list")
         if len(vec) != expected_dim:
-            raise PrlEmbedderError(
+            raise HibEmbedderError(
                 f"Ollama batch entry {idx} wrong dimension: got {len(vec)}, expected {expected_dim}"
             )
         clean: list[float] = []
         for i, value in enumerate(vec):
             if not isinstance(value, (int, float)):
-                raise PrlEmbedderError(
+                raise HibEmbedderError(
                     f"Ollama batch entry {idx} value {i} non-numeric: {type(value).__name__}"
                 )
             f = float(value)
             if f != f or f in (float("inf"), float("-inf")):
-                raise PrlEmbedderError(f"Ollama batch entry {idx} value {i} non-finite: {f!r}")
+                raise HibEmbedderError(f"Ollama batch entry {idx} value {i} non-finite: {f!r}")
             clean.append(f)
         out.append(clean)
     return out
@@ -437,7 +468,7 @@ def _validate_batch_response(raw: Any, *, expected_dim: int) -> list[list[float]
 # ── Public API ────────────────────────────────────────────────────────
 
 
-def _log_fail_open(reason: str, *, config: PrlEmbedderConfig) -> None:
+def _log_fail_open(reason: str, *, config: HibEmbedderConfig) -> None:
     """Log the fail-open once per interval — never spam."""
     global _fail_open_logged_at
     now = time.monotonic()
@@ -446,7 +477,7 @@ def _log_fail_open(reason: str, *, config: PrlEmbedderConfig) -> None:
             return
         _fail_open_logged_at = now
     logger.warning(
-        "PRL embedder fail-open (%s) — returning None; model=%s dim=%d cb=%s",
+        "HIB embedder fail-open (%s) — returning None; model=%s dim=%d cb=%s",
         reason,
         config.model,
         config.dim,
@@ -454,7 +485,7 @@ def _log_fail_open(reason: str, *, config: PrlEmbedderConfig) -> None:
     )
 
 
-def _build_payload(text: str, config: PrlEmbedderConfig) -> dict[str, Any]:
+def _build_payload(text: str, config: HibEmbedderConfig) -> dict[str, Any]:
     """Build the Ollama 0.21.x ``/api/embed`` request payload.
 
     Field names: ``model``, ``input`` (string for single-text), ``truncate``,
@@ -476,28 +507,28 @@ def _build_payload(text: str, config: PrlEmbedderConfig) -> dict[str, Any]:
 def embed_text(
     text: str,
     *,
-    config: PrlEmbedderConfig | None = None,
+    config: HibEmbedderConfig | None = None,
     fail_open: bool = True,
 ) -> list[float] | None:
     """Embed a single text via Ollama ``POST /api/embed``.
 
     Returns ``list[float]`` on success, ``None`` when fail-open and the call
-    could not be served.  Raises :class:`PrlEmbedderError` only when
+    could not be served.  Raises :class:`HibEmbedderError` only when
     ``fail_open=False`` and the underlying call failed.
     """
     if text is None or text == "":
         if fail_open:
             return None
-        raise PrlEmbedderError("embed_text called with empty text")
+        raise HibEmbedderError("embed_text called with empty text")
 
-    cfg = config or PrlEmbedderConfig.from_env()
+    cfg = config or HibEmbedderConfig.from_env()
 
     # Circuit breaker — fail-open immediately if open.
     if _breaker_is_open(cfg):
         if fail_open:
             _log_fail_open("circuit_open", config=cfg)
             return None
-        raise PrlEmbedderError("PRL embedder circuit is OPEN")
+        raise HibEmbedderError("HIB embedder circuit is OPEN")
 
     timeout = cfg.as_timeout()
     payload = _build_payload(text, cfg)
@@ -510,7 +541,7 @@ def embed_text(
         if fail_open:
             _log_fail_open(f"client_init:{type(exc).__name__}", config=cfg)
             return None
-        raise PrlEmbedderError(f"Ollama client init failed: {exc}") from exc
+        raise HibEmbedderError(f"Ollama client init failed: {exc}") from exc
 
     try:
         resp = client.post(f"{cfg.base_url}/api/embed", json=payload)
@@ -519,14 +550,14 @@ def embed_text(
         if fail_open:
             _log_fail_open(f"http_error:{type(exc).__name__}", config=cfg)
             return None
-        raise PrlEmbedderError(f"Ollama /api/embed HTTP error: {exc}") from exc
+        raise HibEmbedderError(f"Ollama /api/embed HTTP error: {exc}") from exc
 
     if resp.status_code >= 500:
         _breaker_record_failure(cfg)
         if fail_open:
             _log_fail_open(f"status_{resp.status_code}", config=cfg)
             return None
-        raise PrlEmbedderError(f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}")
+        raise HibEmbedderError(f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}")
 
     if resp.status_code >= 400:
         # Client-side — do NOT trip breaker (won't fix itself), but still
@@ -534,7 +565,7 @@ def embed_text(
         if fail_open:
             _log_fail_open(f"client_status_{resp.status_code}", config=cfg)
             return None
-        raise PrlEmbedderError(
+        raise HibEmbedderError(
             f"Ollama rejected request (HTTP {resp.status_code}): {resp.text[:200]}"
         )
 
@@ -545,11 +576,11 @@ def embed_text(
         if fail_open:
             _log_fail_open("malformed_json", config=cfg)
             return None
-        raise PrlEmbedderError(f"Ollama response is not valid JSON: {exc}") from exc
+        raise HibEmbedderError(f"Ollama response is not valid JSON: {exc}") from exc
 
     try:
         vec = _validate_embedding(body, expected_dim=cfg.dim)
-    except PrlEmbedderError as exc:
+    except HibEmbedderError as exc:
         _breaker_record_failure(cfg)
         if fail_open:
             _log_fail_open(f"validation:{exc}", config=cfg)
@@ -563,7 +594,7 @@ def embed_text(
 def embed_texts_batch(
     texts: list[str],
     *,
-    config: PrlEmbedderConfig | None = None,
+    config: HibEmbedderConfig | None = None,
     fail_open: bool = True,
 ) -> list[list[float] | None]:
     """Embed a list of texts in ONE ``POST /api/embed`` call.
@@ -584,7 +615,7 @@ def embed_texts_batch(
     The contract is identical to the per-text embedder (``embed_text``)
     when called with ``len(texts) == 1``.
     """
-    cfg = config or PrlEmbedderConfig.from_env()
+    cfg = config or HibEmbedderConfig.from_env()
     if not texts:
         return []
 
@@ -596,7 +627,7 @@ def embed_texts_batch(
         if fail_open:
             _log_fail_open("circuit_open", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError("PRL embedder circuit is OPEN")
+        raise HibEmbedderError("HIB embedder circuit is OPEN")
 
     timeout = cfg.as_timeout()
     payload: dict[str, Any] = {
@@ -615,7 +646,7 @@ def embed_texts_batch(
         if fail_open:
             _log_fail_open(f"client_init:{type(exc).__name__}", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError(f"Ollama client init failed: {exc}") from exc
+        raise HibEmbedderError(f"Ollama client init failed: {exc}") from exc
 
     try:
         resp = client.post(f"{cfg.base_url}/api/embed", json=payload)
@@ -624,20 +655,20 @@ def embed_texts_batch(
         if fail_open:
             _log_fail_open(f"http_error:{type(exc).__name__}", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError(f"Ollama /api/embed HTTP error: {exc}") from exc
+        raise HibEmbedderError(f"Ollama /api/embed HTTP error: {exc}") from exc
 
     if resp.status_code >= 500:
         _breaker_record_failure(cfg)
         if fail_open:
             _log_fail_open(f"status_{resp.status_code}", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError(f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}")
+        raise HibEmbedderError(f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}")
 
     if resp.status_code >= 400:
         if fail_open:
             _log_fail_open(f"client_status_{resp.status_code}", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError(
+        raise HibEmbedderError(
             f"Ollama rejected batch (HTTP {resp.status_code}): {resp.text[:200]}"
         )
 
@@ -648,11 +679,11 @@ def embed_texts_batch(
         if fail_open:
             _log_fail_open("malformed_json", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError(f"Ollama response is not valid JSON: {exc}") from exc
+        raise HibEmbedderError(f"Ollama response is not valid JSON: {exc}") from exc
 
     try:
         vectors = _validate_batch_response(body, expected_dim=cfg.dim)
-    except PrlEmbedderError as exc:
+    except HibEmbedderError as exc:
         _breaker_record_failure(cfg)
         if fail_open:
             _log_fail_open(f"validation:{exc}", config=cfg)
@@ -668,7 +699,7 @@ def embed_texts_batch(
         if fail_open:
             _log_fail_open(f"validation:{err}", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError(err)
+        raise HibEmbedderError(err)
 
     _breaker_record_success()
     return vectors
@@ -676,7 +707,7 @@ def embed_texts_batch(
 
 def healthcheck(
     *,
-    config: PrlEmbedderConfig | None = None,
+    config: HibEmbedderConfig | None = None,
     fail_open: bool = True,
 ) -> dict[str, Any]:
     """Cheap reachability probe — used by tests and ops diagnostics.
@@ -685,7 +716,7 @@ def healthcheck(
     does NOT trip the breaker; a failure still records so transient
     outages don't sneak past us.
     """
-    cfg = config or PrlEmbedderConfig.from_env()
+    cfg = config or HibEmbedderConfig.from_env()
     timeout = httpx.Timeout(connect=cfg.connect_timeout_s, read=2.0, write=1.0, pool=1.0)
     try:
         client = _get_client(cfg.base_url, timeout)
@@ -693,9 +724,9 @@ def healthcheck(
         reachable = resp.status_code < 500
     except (httpx.HTTPError, httpx.HTTPError) as exc:
         reachable = False
-        logger.debug("PRL embedder healthcheck HTTP error: %s", exc)
+        logger.debug("HIB embedder healthcheck HTTP error: %s", exc)
         if not fail_open:
-            raise PrlEmbedderError(f"Ollama healthcheck failed: {exc}") from exc
+            raise HibEmbedderError(f"Ollama healthcheck failed: {exc}") from exc
 
     return {
         "reachable": reachable,
@@ -707,8 +738,8 @@ def healthcheck(
 
 
 __all__ = [
-    "PrlEmbedderConfig",
-    "PrlEmbedderError",
+    "HibEmbedderConfig",
+    "HibEmbedderError",
     "breaker_snapshot",
     "embed_text",
     "embed_texts_batch",

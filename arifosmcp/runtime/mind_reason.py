@@ -345,20 +345,22 @@ Provide structured reasoning as a witness.
 Cite L02 (Truth), L07 (Humility), L08 (Genius).
 Distinguish CLAIM from FACT."""
 
-    # ── PRL Phase 1: Precedent Retrieval Layer — Institutional Memory Fetch ──
+    # ── HIB Phase 1: Precedent Retrieval Layer — Institutional Memory Fetch ──
     # Inject cold geometric precedent constraints BEFORE LLM reasoning.
-    # Non-fatal — PRL unavailability degrades gracefully to standard reasoning.
+    # Non-fatal — HIB unavailability degrades gracefully to standard reasoning.
     # F9-compliant: constraints are structural, not "memories."
-    prl_constraint_block: str | None = None
+    hib_constraint_block: str | None = None
+    hib_override_applied = False
+    hib_override_reason = None
     try:
-        from arifosmcp.prl.prl_emd_hook import prl_pre_reason_check
+        from arifosmcp.hib.hib_emd_hook import hib_pre_reason_check
 
-        _prl_result = await prl_pre_reason_check(
+        _hib_result = await hib_pre_reason_check(
             query=query,
             session_id=session_id,
             actor_id=actor_id,
         )
-        if _prl_result.get("omega0_triggered"):
+        if _hib_result.get("omega0_triggered"):
             # Ω₀ TRIGGER: geometric match but contextual ambiguity → F1 HOLD
             return {
                 "status": "HOLD",
@@ -369,21 +371,21 @@ Distinguish CLAIM from FACT."""
                     "but consequence context is ambiguous. "
                     "W_scar override required from 888 SOVEREIGN."
                 ),
-                "prl_verdict": "PRL_OMEGA0_HOLD",
-                "prl_query_blast_radius": _prl_result.get("query_blast_radius", ""),
-                "prl_match_count": len(_prl_result.get("constraints", [])),
+                "hib_verdict": "HIB_OMEGA0_HOLD",
+                "hib_query_blast_radius": _hib_result.get("query_blast_radius", ""),
+                "hib_match_count": len(_hib_result.get("constraints", [])),
                 "timestamp": timestamp,
                 "session_id": session_id,
                 "actor_id": actor_id or "anonymous",
             }
-        elif _prl_result.get("constraint_block"):
-            prl_constraint_block = _prl_result["constraint_block"]
+        elif _hib_result.get("constraint_block"):
+            hib_constraint_block = _hib_result["constraint_block"]
     except Exception:
-        pass  # PRL unavailable → standard reasoning
+        pass  # HIB unavailable → standard reasoning
 
-    # ── Inject PRL precedent at end of user_prompt (recency-bias hardening) ─
-    if prl_constraint_block:
-        user_prompt += f"\n\n{prl_constraint_block}"
+    # ── Inject HIB precedent at end of user_prompt (recency-bias hardening) ─
+    if hib_constraint_block:
+        user_prompt += f"\n\n{hib_constraint_block}"
 
     # ── LLM Inference with 777_WITNESS Envelope ───────────────────────────────────
     # DDD-20260611: bumped max_tokens 200→2000. M3 with thinking enabled
@@ -456,6 +458,44 @@ Distinguish CLAIM from FACT."""
         # ── LLM Path - Extract from Envelope ─────────────────────────────────────
         parsed_output = envelope.parsed_output
         status = parsed_output.get("status", "HOLD")
+
+        # ── HIB Constraint Verifier — Post-LLM Governance Gate ──────────────────
+        # This is where advisory becomes governance.
+        # If HIB constraints exist and LLM proposes action that violates them,
+        # override to HOLD regardless of LLM verdict.
+        # Path B (persuasion) → Path A (governance) upgrade.
+        hib_override_applied = False
+        hib_override_reason = None
+        if hib_constraint_block and status != "HOLD":
+            # Check if any constraint requires HOLD/verification
+            # Simple heuristic: if constraint contains "validation", "verification",
+            # "review", "approval", or blast_radius is L2/L3, require HOLD
+            constraint_lower = hib_constraint_block.lower()
+            requires_verification = any(
+                keyword in constraint_lower
+                for keyword in ["validation", "verification", "review", "approval", "required"]
+            )
+            high_risk = "l2_system" in constraint_lower or "l3_critical" in constraint_lower
+            
+            if requires_verification or high_risk:
+                # LLM proposed action but constraint requires verification
+                # Override to HOLD — this is governance, not persuasion
+                hib_override_applied = True
+                hib_override_reason = (
+                    f"HIB Constraint Verifier: LLM proposed {status} but precedent "
+                    f"requires verification/validation. Overriding to HOLD."
+                )
+                status = "HOLD"
+                parsed_output["status"] = "HOLD"
+                parsed_output["synthesis"] = (
+                    f"[HIB OVERRIDE] {parsed_output.get('synthesis', '')}\n\n"
+                    f"Constraint Verifier: Precedent requires verification. "
+                    f"LLM verdict ({status}) overridden to HOLD."
+                )
+                logger.warning(
+                    "HIB Constraint Verifier: Overrode LLM verdict %s → HOLD",
+                    status,
+                )
 
         # Internal Integrity Check
         conf = parsed_output.get("confidence", {"overall_confidence": 0.5})
@@ -540,6 +580,12 @@ Distinguish CLAIM from FACT."""
         "_witness": witness,
         "_llm_tier": llm_tier or "unavailable",
         "_llm_available": llm_available,
+        # HIB Constraint Verifier metadata
+        "_hib_constraint_verifier": {
+            "override_applied": hib_override_applied,
+            "override_reason": hib_override_reason,
+            "constraint_present": bool(hib_constraint_block),
+        },
     }
 
     # ── Attach 777_WITNESS envelope metadata ───────────────────────────────────

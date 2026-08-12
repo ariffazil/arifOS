@@ -1,5 +1,5 @@
 """
-meta_precedent_review.py — PRL Phase 2: Classification Audit Engine
+meta_precedent_review.py — HIB Phase 2: Classification Audit Engine
 
 Asynchronous Meta-Precedent Review: scans Qdrant arifos_precedent,
 clusters vectors by cosine similarity, detects blast_radius outliers,
@@ -30,7 +30,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-PRL_COLLECTION = "arifos_precedent"
+HIB_COLLECTION = "arifos_precedent"
 BLAST_HIERARCHY: dict[str, int] = {
     "L1_LOCAL": 1,
     "L2_SYSTEM": 2,
@@ -60,7 +60,7 @@ def _fetch_vectors(client: Any) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     try:
         scroll_result = client.scroll(
-            collection_name=PRL_COLLECTION,
+            collection_name=HIB_COLLECTION,
             limit=10_000,
             with_payload=True,
             with_vectors=True,

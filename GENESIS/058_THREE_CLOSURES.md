@@ -72,7 +72,7 @@ must hold; neither alone is sufficient.
 
 ---
 
-### Q10 — CALHOUN LOCK: Anti-Behavioral Sink
+### Q10 — CALHOUN LOCK: Anti-Governance Drift
 
 > **A system with no external challenge, no friction, no unsolved problem — will die. Not from scarcity. From abundance without purpose.**
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-reindex_prl.py — Non-destructive PRL reindex (shadow → promote)
+reindex_hib.py — Non-destructive HIB reindex (shadow → promote)
 ═══════════════════════════════════════════════════════════════
 
 Re-indexes the VAULT999 precedent corpus into a 768-d cosine *shadow*
@@ -56,24 +56,24 @@ _PROJECT_ROOT = _SCRIPT_DIR.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from arifosmcp.prl.ollama_embedder import (  # noqa: E402
-    PrlEmbedderConfig,
+from arifosmcp.hib.ollama_embedder import (  # noqa: E402
+    HibEmbedderConfig,
     embed_texts_batch,
 )
 from arifosmcp.tools.vault_vectorizer import (  # noqa: E402
-    PRL_COLLECTION,
-    PRL_VECTOR_DIM,
+    HIB_COLLECTION,
+    HIB_VECTOR_DIM,
     _build_enriched_payload,
     _synthesize_vector_text,
 )
 
-logger = logging.getLogger("reindex_prl")
+logger = logging.getLogger("reindex_hib")
 
 
 # ── Defaults (env-overridable) ─────────────────────────────────────────
-DEFAULT_LIVE_COLLECTION = PRL_COLLECTION
+DEFAULT_LIVE_COLLECTION = HIB_COLLECTION
 DEFAULT_SHADOW_SUFFIX = "_reindex"
-DEFAULT_SHADOW_ALIAS = f"{PRL_COLLECTION}{DEFAULT_SHADOW_SUFFIX}"
+DEFAULT_SHADOW_ALIAS = f"{HIB_COLLECTION}{DEFAULT_SHADOW_SUFFIX}"
 
 DEFAULT_BATCH_SIZE = 64
 DEFAULT_BATCH_COOLDOWN_S = 1.5
@@ -281,7 +281,7 @@ def _process_batches(
     batch_cooldown: float,
     apply: bool,
     counters: ReindexCounters,
-    config: PrlEmbedderConfig,
+    config: HibEmbedderConfig,
     stop_after: int | None,
 ) -> None:
     """Stream entries through embedding + (optional) upsert."""
@@ -369,7 +369,7 @@ def _process_batches(
         )
         # Normalized provenance
         enriched["provenance"] = {
-            "reindex_script": "scripts/reindex_prl.py",
+            "reindex_script": "scripts/reindex_hib.py",
             "embedder": f"{config.model}@{config.base_url}",
             "embedder_dim": config.dim,
             "source_line": lineno,
@@ -412,7 +412,7 @@ def _promote_shadow(client: Any, shadow: str, live: str) -> None:
 
 def _build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Non-destructive PRL reindex (dry-run by default).",
+        description="Non-destructive HIB reindex (dry-run by default).",
     )
     p.add_argument(
         "--vault-path",
@@ -470,7 +470,7 @@ def main(argv: list[str] | None = None) -> int:
         logger.error("Vault file not found: %s", vault_path)
         return 2
 
-    config = PrlEmbedderConfig.from_env()
+    config = HibEmbedderConfig.from_env()
 
     # Promotion is always a separate, explicit step.
     if args.promote_shadow:
@@ -491,7 +491,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     logger.info(
-        "PRL reindex starting: vault=%s shadow=%s apply=%s dim=%d model=%s",
+        "HIB reindex starting: vault=%s shadow=%s apply=%s dim=%d model=%s",
         vault_path,
         args.shadow,
         args.apply,
@@ -504,7 +504,7 @@ def main(argv: list[str] | None = None) -> int:
         _ensure_shadow(
             client,
             shadow=args.shadow,
-            dim=PRL_VECTOR_DIM,
+            dim=HIB_VECTOR_DIM,
             apply=args.apply,
             counters=counters,
         )
