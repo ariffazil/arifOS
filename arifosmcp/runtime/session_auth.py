@@ -65,6 +65,13 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "claude-code": "operator",
     "deepseek": "operator",
     "kimi": "operator",
+    # P0.1b FIX (2026-08-13): qwen/qwen-code — FI-003 Qwen Code.
+    # Was the ONLY canonical FI agent missing from this list, causing
+    # actor_verified=False and sct_error="RuntimeError" on every arif_init.
+    # Identity registry (contracts/identity.py:357) and agent_identities.json
+    # both define qwen-code with ed25519_exempt, but this dict was never updated.
+    "qwen": "operator",
+    "qwen-code": "operator",
     # F13 T3 directive 2026-08-07: sot-cron — Federation SOT/Drift cron.
     # DID registered at /opt/arifos/secrets/did-registry.json (did:arif:sot-cron).
     # Ed25519 keypair at /opt/arifos/secrets/did_sotcron_*.key.
