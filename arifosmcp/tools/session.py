@@ -2410,11 +2410,16 @@ def arif_init(
             "ariffazil": "ariffazil",
             "888": "888",
         }
-        if actor_id not in _SOVEREIGN_MAP:
+        # Registered federation agents (with Ed25519 identity.json) can also
+        # request challenges. Sovereign actors get escalated bands; agents
+        # get their registered capability ceiling.
+        from arifosmcp.runtime.crypto_auth import is_registered_actor as _is_reg
+
+        if actor_id not in _SOVEREIGN_MAP and not _is_reg(actor_id):
             return _make_init_hold(
                 reason=(
-                    f"crypto auth challenge is only available for verified sovereign actors. "
-                    f"actor_id={actor_id!r} is not in the sovereign identity map."
+                    f"crypto auth challenge is only available for verified sovereign actors "
+                    f"or registered federation agents. actor_id={actor_id!r} is neither."
                 ),
                 failure_type=INIT_FAILURE_TYPE["jurisdiction_mismatch"],
                 mode="challenge",

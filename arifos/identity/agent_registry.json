@@ -45,15 +45,16 @@
     "333-AGI": {
       "agent_id": "333-AGI",
       "actor_id": "333-AGI/FI-???",
-      "pubkey_hex": "86bec65fdf674ec753c801aac9686d4e5274dec2751e8726e44d8253d6b883f6",
-      "fingerprint": "1a6fad984a5842afe1cf407fd20ffdbb",
+      "pubkey_hex": "ad611fe4ef35178fd7bd400ed6b64c863ec953eba4196cda42a7e9c95881f555",
+      "fingerprint": "981e66207a39cfb6efc8b94523e7a35a",
       "capabilities": [
         "OBSERVE",
         "REASON"
       ],
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.263397+00:00"
+      "created_at": "2026-07-29T13:55:07.263397+00:00",
+      "needs_keygen": false
     },
     "openclaw": {
       "agent_id": "openclaw",
@@ -139,8 +140,8 @@
     "opencode": {
       "agent_id": "opencode",
       "actor_id": "opencode/FI-???",
-      "pubkey_hex": "88c0ee8f68fe10a1a82232187621a0a1a15787f9969d5cdabd2e880a95ba597f",
-      "fingerprint": "2783c2bdce1688c8daefed41362fe85d",
+      "pubkey_hex": "ad611fe4ef35178fd7bd400ed6b64c863ec953eba4196cda42a7e9c95881f555",
+      "fingerprint": "981e66207a39cfb6efc8b94523e7a35a",
       "capabilities": [
         "OBSERVE",
         "REASON",
@@ -152,7 +153,8 @@
       ],
       "max_blast_radius": "T2",
       "bound_to": "arif-fazil/F13",
-      "created_at": "2026-07-29T13:55:07.275889+00:00"
+      "created_at": "2026-07-29T13:55:07.275889+00:00",
+      "needs_keygen": false
     },
     "warga": {
       "agent_id": "warga",

@@ -1,0 +1,96 @@
+{
+  "$schema": "../schemas/amendment.v1.json",
+  "amendment_id": "AMD-2026-08-12-001",
+  "version": "1.0.0",
+
+  "scar_origin": {
+    "vault_id": "V999_SABAH_001",
+    "scar_type": "CONSTITUTIONAL_SCAR",
+    "sealed_at": "2026-08-12T20:58:26+08:00",
+    "sealed_by": "333-AGI",
+    "witnessed_by": ["888-ARIF", "arifOS_Primary_Metabolizer"],
+    "scar_pressure": 0.82,
+    "fingerprint": "epistemic_drift:unverified_P50_as_P90:sabah_basin",
+    "detection_method": "forge_scar_scan + arif_judge"
+  },
+
+  "diagnosis": {
+    "error_mode": "epistemic_drift",
+    "description": "Agent treated unverified P50 reserve estimate as P90 actionable truth. The agent lacked a floor-level gate distinguishing 'computed estimate' from 'witnessed fact' in subsurface workflows.",
+    "entropy_delta": "+1.4",
+    "failed_floors": ["F2", "F8"],
+    "blast_radius": "HIGH — irreversible drilling commitment downstream"
+  },
+
+  "ratification": {
+    "reaffirmation_count": 3,
+    "reaffirmations": [
+      {
+        "date": "2026-08-12T21:00:00+08:00",
+        "actor": "333-AGI",
+        "evidence": "Cross-validated against CMAG ECS framework: epistemic_integrity degradation pattern matches unconstrained agent behavior"
+      },
+      {
+        "date": "2026-08-12T21:15:00+08:00",
+        "actor": "555-ASI",
+        "evidence": "GEOX claim engine confirms: no tri-witness attestation existed for the P50 estimate at time of use"
+      },
+      {
+        "date": "2026-08-12T21:30:00+08:00",
+        "actor": "888-APEX",
+        "evidence": "Constitutional review: F2 violation (unlabeled estimate) + F8 violation (G < 0.80 for high-stakes action)"
+      }
+    ],
+    "sovereign_ratification": {
+      "ratified_by": "888-ARIF (F13 SOVEREIGN)",
+      "ratified_at": "2026-08-12T22:00:00+08:00",
+      "signature": "F13_SEAL_AMD-2026-08-12-001",
+      "ack_irreversible": true
+    }
+  },
+
+  "floor_amendments": [
+    {
+      "target_floor": "F2",
+      "amendment_type": "rule_extension",
+      "operation": "append_sub_rule",
+      "field": "sub_rules",
+      "value": {
+        "id": "F2.SR-001",
+        "name": "SUBSURFACE_EPISTEMIC_GATE",
+        "rule": "All subsurface data classified 'PROSPECT' must carry epistemic label ≥ DER with explicit witness_count ≥ 2 before use in economic baseline generation. P50 ≠ P90: reserve estimates must state their confidence band in the claim itself, not just in metadata.",
+        "enforcement_point": "geox_geox_prospect + geox_geox_petrophysics",
+        "operator": "witness_count ≥ 2 AND epistemic_label ∈ {OBS, DER}",
+        "sealed_range": {"min": 2, "max": null},
+        "source_scar": "V999_SABAH_001",
+        "forged": "2026-08-12"
+      }
+    },
+    {
+      "target_floor": "F8",
+      "amendment_type": "rule_extension",
+      "operation": "append_sub_rule",
+      "field": "sub_rules",
+      "value": {
+        "id": "F8.SR-001",
+        "name": "PROSPECT_DOUBLE_GATE",
+        "rule": "Prospect evaluation with downstream irreversible commitment (drilling, lease, fiscal) requires F8/F11 double gate: G ≥ 0.80 AND full audit trail with constitutional_chain_id. Single-gate G pass is insufficient for irreversible subsurface actions.",
+        "enforcement_point": "geox_geox_prospect(mode=evaluate) + arif_judge(action_tier=high)",
+        "operator": "G ≥ 0.80 AND cc_id IS NOT NULL",
+        "sealed_range": {"min": 0.80, "max": 1.0},
+        "source_scar": "V999_SABAH_001",
+        "forged": "2026-08-12"
+      }
+    }
+  ],
+
+  "status": "ENFORCED_IMMUTABLE",
+
+  "provenance_chain": {
+    "scar_vault_id": "V999_SABAH_001",
+    "amendment_id": "AMD-2026-08-12-001",
+    "floor_table_version_before": "1.0.0",
+    "floor_table_version_after": "1.0.1",
+    "constitutional_chain_id": "cc_sabah_20260812"
+  }
+}
