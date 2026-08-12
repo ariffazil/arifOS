@@ -277,6 +277,23 @@ class PrlGate:
             result.search_ms = (datetime.now(UTC) - t0).total_seconds() * 1000
             return result
 
+        # Step 2b: Fallback — if blast_radius filter yields nothing, retry unfiltered
+        if not matches:
+            try:
+                matches = self.vectorizer.search(
+                    query_text=query_text,
+                    blast_radius=None,
+                    score_threshold=tau_threshold,
+                    limit=limit,
+                )
+                if matches:
+                    logger.info(
+                        "PRL fallback: blast_radius=%s had 0 matches, unfiltered found %d",
+                        result.query_blast_radius, len(matches),
+                    )
+            except Exception:
+                pass  # fallback is best-effort
+
         result.match_count = len(matches)
 
         if not matches:
