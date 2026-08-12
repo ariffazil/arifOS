@@ -1,10 +1,12 @@
 # arifOS — Constitutional AI Governance Kernel
-> Auto-generated from live tool and resource registries. Hash: c19847d1a74a6d37
+> Auto-generated from live tool and resource registries. Regenerated 2026-08-12T22:32Z from live :8088/health (FI-008).
 > Total MCP: 65 Tools | 42 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
-> Version: v2026.07.24-ZEN-SURVIVAL · MCP Protocol: 2025-11-25
+> Version: v2026.08.01 · Source↔Built↔Deployed MATCH @ 4a7adaf312ab · MCP Protocol: 2025-11-25
 > Verdict grammar: SEAL / HOLD / SABAR / VOID
 > Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class
+
+> **Master wiki:** see `/root/llms.txt` (Karpathy-style federation LLM wiki, regenerated 2026-08-12). This file is the organ-specific view of arifOS kernel only.
 
 ## Canonical Kernel Tools (8 exposed via /tools/list)
 The live MCP gateway exposes 8 canonical kernel verbs. The internal constitutional_map has more entries (legacy, internal-only, or filtered by server). The 8 below are the only ones visible to agents at https://mcp.arif-fazil.com/mcp:
