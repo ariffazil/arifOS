@@ -76,6 +76,9 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     # fragmentation to canonical device.json Ed25519 keypair.
     # DID: did:arif:openclaw · auth/keys/openclaw_private.key
     "openclaw": "operator",
+    # F13 2026-08-12: qwen-code — FI-003 coding harness. Exempt from Ed25519
+    # requirement for MCP bootstrap (operator cap). Same class as other FIs.
+    "qwen-code": "operator",
 }
 
 
