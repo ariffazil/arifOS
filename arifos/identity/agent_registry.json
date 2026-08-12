@@ -1,14 +1,14 @@
 {
-  "version": "1.1.0",
-  "agent_count": 14,
-  "last_sweep": "2026-08-12T22:47Z \u2014 FI numbers assigned, folder entries removed",
+  "version": "1.2.0",
+  "agent_count": 19,
+  "last_sweep": "2026-08-12T22:59Z \u2014 fingerprint sync: 14 entries updated, 5 added (32-char SHA-256)",
   "federation_geometry": {},
   "agents": {
     "agent-zero": {
       "agent_id": "agent-zero",
       "actor_id": "agent-zero/FI-009",
-      "pubkey_hex": "4831f418215463166eaf1c0daad067740417ec4a9095ec499b7949058b2044d8",
-      "fingerprint": "d26c9290f8c27b95a5da7217cbd0f46e",
+      "pubkey_hex": "7fc6918e8a068886cd1184a40dec25799145bc4de5bf44e5ab6c7ead3719dafc",
+      "fingerprint": "326ecb1deb546b05e2f95e66c594847b",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -16,13 +16,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.267606+00:00",
-      "fi_id": "FI-009"
+      "fi_id": "FI-009",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "agentic-trading-companion": {
       "agent_id": "agentic-trading-companion",
       "actor_id": "agentic-trading-companion/FI-010",
-      "pubkey_hex": "d84b489329e731d4cbc2c7ce07ad9fb4274e299ff853384594cb4cd72ddbd598",
-      "fingerprint": "3dd72cd7e4c180b994e42b3654d34ceb",
+      "pubkey_hex": "6f631c8991ed29114738a17a5d52efa82266418fede0d6f828d2eb240b6cea9b",
+      "fingerprint": "51918062b18fbbe5bf725db105d32c67",
       "capabilities": [
         "OBSERVE",
         "REASON",
@@ -31,13 +33,15 @@
       "max_blast_radius": "T2",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.268036+00:00",
-      "fi_id": "FI-010"
+      "fi_id": "FI-010",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "decisions": {
       "agent_id": "decisions",
       "actor_id": "decisions/FI-011",
-      "pubkey_hex": "60c1d52073b6c8f20718e7094515d0882163b2b1c6f3e04d5aef342f290460a7",
-      "fingerprint": "917f4a31888088a2989c65c1f57b90b6",
+      "pubkey_hex": "d5e0145326e22b31bdd2e2af15f7f09a6038ce193cace2732ac34ceab21bc398",
+      "fingerprint": "3c169bf237406e6df332c59d6308904e",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -45,13 +49,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.268840+00:00",
-      "fi_id": "FI-011"
+      "fi_id": "FI-011",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "333-AGI": {
       "agent_id": "333-AGI",
       "actor_id": "333-AGI/FI-002",
-      "pubkey_hex": "ad611fe4ef35178fd7bd400ed6b64c863ec953eba4196cda42a7e9c95881f555",
-      "fingerprint": "981e66207a39cfb6efc8b94523e7a35a",
+      "pubkey_hex": "b4dc368224acf81b93e7dcfebf341e35f66b91c8398a95a79657bed7cba91b03",
+      "fingerprint": "dedbd4ac7311bf8911c244edcf2fa385",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -60,13 +66,14 @@
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.263397+00:00",
       "needs_keygen": false,
-      "fi_id": "FI-002"
+      "fi_id": "FI-002",
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "openclaw": {
       "agent_id": "openclaw",
       "actor_id": "openclaw/FI-017",
-      "pubkey_hex": "6c232cbe23b8414b25e07a981ac0530e784bc02665f209ab9fa46a8ea72bbd2c",
-      "fingerprint": "d34446ad0908b3f58b6b57031ea4153d",
+      "pubkey_hex": "133462bdb96b4ee83f485b11aa1fe5e3e9d9381c7f91555394dd0101a03728af",
+      "fingerprint": "a161ae73c59b755f862ae2e8b80a83cd",
       "capabilities": [
         "OBSERVE",
         "REASON",
@@ -76,13 +83,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.272023+00:00",
-      "fi_id": "FI-017"
+      "fi_id": "FI-017",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "main": {
       "agent_id": "main",
       "actor_id": "main/FI-024",
-      "pubkey_hex": "89f7c7732a98d9a5d0d384cb4540099794c1a73cff0381e7f49712c2c0be2495",
-      "fingerprint": "db49ebf41ca41fdd95c4efc85b382b65",
+      "pubkey_hex": "ebd5b6bc190d146a68e65dc28997b377eadd5dc1f3c6453417c63b9ada1dd3a2",
+      "fingerprint": "21e0b28f858e78ba86470c00f398595d",
       "capabilities": [
         "OBSERVE",
         "REASON",
@@ -91,13 +100,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.270104+00:00",
-      "fi_id": "FI-024"
+      "fi_id": "FI-024",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "opencode": {
       "agent_id": "opencode",
       "actor_id": "opencode/FI-018",
-      "pubkey_hex": "ad611fe4ef35178fd7bd400ed6b64c863ec953eba4196cda42a7e9c95881f555",
-      "fingerprint": "981e66207a39cfb6efc8b94523e7a35a",
+      "pubkey_hex": "ca9609603e00849b8a80f75779be7e7fcaf991f31962e9e25296e95e88b68649",
+      "fingerprint": "7bf8635b162127c9053796ff8d19a81f",
       "capabilities": [
         "OBSERVE",
         "REASON",
@@ -111,13 +122,14 @@
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.275889+00:00",
       "needs_keygen": false,
-      "fi_id": "FI-018"
+      "fi_id": "FI-018",
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "warga": {
       "agent_id": "warga",
       "actor_id": "warga/FI-020",
-      "pubkey_hex": "29ce5cbaccaa0f1c2da59bbe7ed4fd41d2ac780355cfa70f240daea9ff2e00e1",
-      "fingerprint": "08b334c8eb81ba18b4f0514c1a3c2f0c",
+      "pubkey_hex": "8b5b87f71362556b8bba74c57cea82bfa2eaf1dd9840f037372204e9497f12ae",
+      "fingerprint": "717713ade4d363cd5c1060f4b6991a3a",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -125,13 +137,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.278615+00:00",
-      "fi_id": "FI-020"
+      "fi_id": "FI-020",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "777-forge": {
       "agent_id": "777-forge",
       "actor_id": "777-forge/FI-004",
-      "pubkey_hex": "ccc731bc8c93ec0192611635ea5520ea5ca96844bfe59d4fa7101278026dd987",
-      "fingerprint": "da0048a80249dead98942edd067b5039",
+      "pubkey_hex": "fd98d50865108140514cc1e7ed00ac6769b728e2f21124e1b844f251174fef13",
+      "fingerprint": "c0758fa0c0577022e2a3aee3399938d5",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -139,13 +153,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.265318+00:00",
-      "fi_id": "FI-004"
+      "fi_id": "FI-004",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "hermes-asi": {
       "agent_id": "hermes-asi",
       "actor_id": "hermes-asi/FI-014",
-      "pubkey_hex": "a1b7808227d5610fcec9c902eae9e82ff140850eea4cc5a3c4e09d76d1db2add",
-      "fingerprint": "f26fea82633eaa1d6eb8676c76b8bc85",
+      "pubkey_hex": "0775872a5c14888bb4715cff267ace79ca01d1caaf7d7907bd9a703892653980",
+      "fingerprint": "da11a8d86944a563a0195a23af2f41da",
       "capabilities": [
         "OBSERVE",
         "REASON",
@@ -155,13 +171,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.269277+00:00",
-      "fi_id": "FI-014"
+      "fi_id": "FI-014",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "888-APEX": {
       "agent_id": "888-APEX",
       "actor_id": "888-APEX/FI-005",
-      "pubkey_hex": "265ed0cb679499e4f73a2637a186cffb79db46a560e205c96e6583baf307e111",
-      "fingerprint": "f84786ad7b386cf451a81bc329c4283d",
+      "pubkey_hex": "ed289ca0614455f3b552c1a8aaf99637d03cba2ad62ca7ae8747d3b797e551d8",
+      "fingerprint": "4efd20a3cb9f05e0ce680b746ad6614a",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -169,13 +187,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.265860+00:00",
-      "fi_id": "FI-005"
+      "fi_id": "FI-005",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "makcikgpt": {
       "agent_id": "makcikgpt",
       "actor_id": "makcikgpt/FI-016",
-      "pubkey_hex": "39a6e9845834423edd82d688475f3aa7696e0ea4ea7aa1c6a75e3da3d091bb0c",
-      "fingerprint": "5aa6defbb5d109ef12f31be56f63fabe",
+      "pubkey_hex": "9e013f2f6c823178be1fc765e691d674e63c8eb9eecf144749636dc8a89a5e39",
+      "fingerprint": "3d9c14ba095322a09a44b1717d36265b",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -183,13 +203,15 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.271136+00:00",
-      "fi_id": "FI-016"
+      "fi_id": "FI-016",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "prospect-maturation": {
       "agent_id": "prospect-maturation",
       "actor_id": "prospect-maturation/FI-019",
-      "pubkey_hex": "b3fcde76bab5256fe91f4d8b407ce4e99fe8e62a265e18c715b6fa25656410ea",
-      "fingerprint": "ec0b3a3f902037e227ce302749ef5d62",
+      "pubkey_hex": "c36b3b4975db92adba9cfdf8c4f842b91ae642c2960dc5f262515aadcdd7f8d6",
+      "fingerprint": "bc44ac134cc07ea567c261987e48146f",
       "capabilities": [
         "OBSERVE",
         "REASON",
@@ -198,13 +220,15 @@
       "max_blast_radius": "T2",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.277252+00:00",
-      "fi_id": "FI-019"
+      "fi_id": "FI-019",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     },
     "555-ASI": {
       "agent_id": "555-ASI",
       "actor_id": "555-ASI/FI-003",
-      "pubkey_hex": "324a98da552c914c13f98b2f43881c09b04562fd35985e196ef3779435fd42dc",
-      "fingerprint": "d7fbb894248919e26d418c6181e6b224",
+      "pubkey_hex": "aa8f8d33451731570a4ac89dd4d45ca59684594ba8145c71b484b065cef49de0",
+      "fingerprint": "48d4921e1cc759c7318b3e98df7fe0d3",
       "capabilities": [
         "OBSERVE",
         "REASON"
@@ -212,7 +236,102 @@
       "max_blast_radius": "T1",
       "bound_to": "arif-fazil/F13",
       "created_at": "2026-07-29T13:55:07.264883+00:00",
-      "fi_id": "FI-003"
+      "fi_id": "FI-003",
+      "needs_keygen": false,
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
+    },
+    "FI-008": {
+      "agent_id": "FI-008",
+      "actor_id": "FI-008/FI-008",
+      "pubkey_hex": "59f70d6ec4921092ed9474c9414770e2629bf91708533fa9684bfe0302484ce7",
+      "fingerprint": "0da6b87594e6aac7c88319c0c8fbd7fb",
+      "capabilities": [
+        "OBSERVE",
+        "REASON",
+        "ROUTE",
+        "SEAL",
+        "FORGE"
+      ],
+      "max_blast_radius": "T1",
+      "bound_to": "arif-fazil/F13",
+      "created_at": "2026-08-12T22:58:44+08:00",
+      "needs_keygen": false,
+      "fi_id": "FI-008",
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
+    },
+    "arif": {
+      "agent_id": "arif",
+      "actor_id": "arif/FI-001",
+      "pubkey_hex": "6aec521dd3b0caf3beb3efec458ccaf5982f1a3f26e7b358ce66d8d74aacbd5e",
+      "fingerprint": "497fa8c1c0561eecaad6d99a81060793",
+      "capabilities": [
+        "OBSERVE",
+        "REASON",
+        "ROUTE",
+        "JUDGE",
+        "SEAL",
+        "FORGE",
+        "APEX"
+      ],
+      "max_blast_radius": "T3",
+      "bound_to": "arif-fazil/F13",
+      "created_at": "2026-08-12T22:58:44+08:00",
+      "needs_keygen": false,
+      "fi_id": "FI-001",
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
+    },
+    "hermes": {
+      "agent_id": "hermes",
+      "actor_id": "hermes/FI-013",
+      "pubkey_hex": "a7b87ee7b2030928142d90a17475d997adef0a6ee6dce37408d4b95b41ff4933",
+      "fingerprint": "05d3d90a8e02b0755433420c76583f35",
+      "capabilities": [
+        "OBSERVE",
+        "RECEIPT",
+        "ROUTE"
+      ],
+      "max_blast_radius": "T1",
+      "bound_to": "arif-fazil/F13",
+      "created_at": "2026-08-12T22:58:44+08:00",
+      "needs_keygen": false,
+      "fi_id": "FI-013",
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
+    },
+    "mesa-test-agent": {
+      "agent_id": "mesa-test-agent",
+      "actor_id": "mesa-test-agent/FI-025",
+      "pubkey_hex": "4f4afc2dc2fb342819302361edbd5843af99b9bd3401553655e7425989f15e30",
+      "fingerprint": "086153302b81950df2021a1217141615",
+      "capabilities": [
+        "OBSERVE",
+        "REASON"
+      ],
+      "max_blast_radius": "T1",
+      "bound_to": "AAA",
+      "created_at": "2026-08-12T22:58:44+08:00",
+      "needs_keygen": false,
+      "fi_id": "FI-025",
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
+    },
+    "meta-test-agent": {
+      "agent_id": "meta-test-agent",
+      "actor_id": "meta-test-agent/FI-026",
+      "pubkey_hex": "53a5de1589be69f138962842a2e40a1fc7514e5d7c2c26434a0975197a512617",
+      "fingerprint": "9442cc6ee0d909363c7e32ffcd5a1da6",
+      "capabilities": [
+        "OBSERVE",
+        "REASON"
+      ],
+      "max_blast_radius": "T1",
+      "bound_to": "AAA",
+      "created_at": "2026-08-12T22:58:44+08:00",
+      "needs_keygen": false,
+      "fi_id": "FI-026",
+      "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
     }
-  }
+  },
+  "last_fingerprint_sync": "2026-08-12T22:58:44+08:00",
+  "fingerprint_sync_method": "Re-derived pubkey_hex + sha256 from actual PEM files (Ed25519 SPKI)",
+  "fingerprint_sync_session": "hermes-arif-20260812-0005",
+  "fingerprint_sync_verified_by": "FI-008 (Kimi Code CLI) under F13 SOVEREIGN ratification"
 }
