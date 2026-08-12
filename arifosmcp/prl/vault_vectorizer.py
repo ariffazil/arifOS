@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 COLLECTION_NAME = "arifos_precedent"
 VECTOR_SIZE = 1024  # BAAI/bge-m3
 EMBEDDING_MODEL = "BAAI/bge-m3"
-PRL_TAU_THRESHOLD = 0.95
+PRL_TAU_THRESHOLD = 0.35
 
 _VAULT_PATH = os.getenv(
     "VAULT999_SEAL_CHAIN",
