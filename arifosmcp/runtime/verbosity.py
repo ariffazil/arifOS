@@ -451,6 +451,69 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             minimal["effective_verdict"] = "HOLD"
             minimal["canonical_verdict"] = "DENY"
 
+    # CONTRACT RESTORATION (2026-08-14, E9 audit): the advertised outputSchema
+    # (public_registry.py) requires result/meta/timestamp/output_policy/
+    # nine_signal/reasons on every response, but the minimal projection built
+    # its envelope from scratch and dropped them — validating MCP clients
+    # rejected every minimal response. Emit honest minimal forms here, AFTER
+    # verdict resolution so derived values reflect the final effective_verdict.
+    # Derived values are marked (reason=derived_from_verdict); never presented
+    # as measured (F2).
+    if not isinstance(minimal.get("result"), dict):
+        _res_src = response.get("result")
+        minimal["result"] = _res_src if isinstance(_res_src, dict) else {}
+    if not isinstance(minimal.get("reasons"), list):
+        minimal["reasons"] = []
+    if not isinstance(minimal.get("meta"), dict):
+        _meta_src = response.get("meta")
+        minimal["meta"] = _meta_src if isinstance(_meta_src, dict) else {}
+    if not minimal.get("timestamp"):
+        _ts = _lookup("timestamp")
+        if not _ts:
+            from datetime import datetime, timezone
+
+            _ts = datetime.now(timezone.utc).isoformat()
+        minimal["timestamp"] = _ts
+    if not minimal.get("output_policy"):
+        minimal["output_policy"] = _lookup("output_policy") or "minimal"
+    if not isinstance(minimal.get("nine_signal"), dict):
+        _ns_src = response.get("nine_signal")
+        _ov = _ns_src.get("overall") if isinstance(_ns_src, dict) else None
+        if isinstance(_ov, dict) and _ov.get("state") and _ov.get("en"):
+            # Compact carry: source nine_signal exists — keep overall only.
+            _carried = {
+                "state": str(_ov["state"]),
+                "en": str(_ov["en"]),
+                **({"reason": str(_ov["reason"])} if _ov.get("reason") else {}),
+            }
+            # W-03: drift is a hard floor — a green source nine_signal must
+            # not survive when the final verdict is HOLD (drift override above
+            # ran before this block, so guard here too).
+            _ev_carry = str(minimal.get("effective_verdict") or "").upper()
+            if _ev_carry in ("HOLD", "VOID") and _carried["state"] in ("SELAMAT", "SAFE"):
+                _carried = {
+                    "state": "RETAK",
+                    "en": "HOLDING",
+                    "reason": _carried.get("reason") or "verdict_floor_override",
+                }
+            minimal["nine_signal"] = {"overall": _carried}
+        else:
+            # No measured nine_signal in source — derive a declared projection
+            # from the final verdict (same mapping precedent as the drift
+            # override above) or admit UNKNOWN. Never fabricate a measurement.
+            _ev9 = str(
+                minimal.get("effective_verdict") or minimal.get("verdict") or ""
+            ).upper()
+            if _ev9 in ("SEAL", "PROCEED", "OK", "COMPLETED"):
+                _st9, _en9 = "SELAMAT", "SAFE"
+            elif _ev9 in ("HOLD", "VOID", "SABAR"):
+                _st9, _en9 = "RETAK", "HOLDING"
+            else:
+                _st9, _en9 = "UNKNOWN", "UNMEASURED"
+            minimal["nine_signal"] = {
+                "overall": {"state": _st9, "en": _en9, "reason": "derived_from_verdict"}
+            }
+
     # F11 SAFETY NET: audit fields must survive. If call_hash missing, keep
     # trimmed form with whatever we have — returning full 12KB response was
     # worse entropy than a compact envelope missing one optional field.

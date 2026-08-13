@@ -336,7 +336,10 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
             "tool": {"const": name},
             "result": _tool_result_schema(name),
             "meta": {"type": "object", "additionalProperties": True},
-            "delta_S": {"type": "number"},
+            # Producer doctrine (verbosity.py, F2): delta_S is ALWAYS emitted;
+            # explicit null = honest UNKNOWN (unmeasured). 2026-08-14 E9 audit:
+            # schema must accept that null instead of rejecting the envelope.
+            "delta_S": {"anyOf": [{"type": "number"}, {"type": "null"}]},
             "timestamp": {"type": "string"},
             "session_id": {"anyOf": [{"type": "string"}, {"type": "null"}]},
             "actor_id": {"anyOf": [{"type": "string"}, {"type": "null"}]},
