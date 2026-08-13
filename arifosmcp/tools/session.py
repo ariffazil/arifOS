@@ -2826,6 +2826,10 @@ def arif_init(
                 if actor_lower and actor_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
                     from arifosmcp.runtime.request_trust import auto_sign_allowed
 
+                    # Assign _exempt_level before use (mirrors light-mode path line ~2143).
+                    # Without this, the elif below raises UnboundLocalError.
+                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
+
                     # Name-only exempt elevation ONLY on true local loopback.
                     # Public/proxied callers claiming OPENCLAW/OPENCODE get OBSERVE_ONLY.
                     if not auto_sign_allowed():
