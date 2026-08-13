@@ -165,8 +165,13 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
         # SEP-2575: server/discover MUST work without prior version negotiation.
         # Clients in "auto" mode probe server/discover to discover supported versions
         # BEFORE sending MCP-Protocol-Version. This intercept handles that case.
+        # Initialize for ALL methods — the post-dispatch initialize check below
+        # reads method/body unconditionally; without this, GET /mcp (SSE listen
+        # stream) crashed with UnboundLocalError (96 tracebacks/24h, E9 audit).
+        method: str | None = None
+        body: dict[str, Any] = {}
+        req_id: Any = None
         if request.method == "POST":
-            method: str | None = None
             body_bytes = await request.body()
             try:
                 body = json.loads(body_bytes.decode("utf-8") or "{}")
