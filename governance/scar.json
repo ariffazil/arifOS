@@ -1,10 +1,10 @@
 {
   "_doctrine": "DITEMPA BUKAN DIBERI",
-  "_file": "arifOS SCAR LAW Registry — machine-actionable failure memory",
+  "_file": "arifOS SCAR LAW Registry \u2014 machine-actionable failure memory",
   "_forged": "2026-07-28",
   "_forged_by": "OpenCode (FI-001) under F13 directive",
-  "_closes_gap": "AUDIT-2026-07-27-01 — scar.json was decorative, now SCAR LAW compliant",
-  "_spec": "APEX v36Ω SCAR LAW: errors are metabolized into constitutional constraints. Pain = ΔS spike. Learning = cooling. F1 AMANAH: scars are immutable once sealed.",
+  "_closes_gap": "AUDIT-2026-07-27-01 \u2014 scar.json was decorative, now SCAR LAW compliant",
+  "_spec": "APEX v36\u03a9 SCAR LAW: errors are metabolized into constitutional constraints. Pain = \u0394S spike. Learning = cooling. F1 AMANAH: scars are immutable once sealed.",
   "scars": [
     {
       "scar_id": "SCAR_001",
@@ -26,10 +26,10 @@
       "scar_id": "SCAR_002",
       "failure_mode": "HIGH_STAKES_CALIBRATION",
       "severity": "HIGH",
-      "scar_pressure": 0.80,
+      "scar_pressure": 0.8,
       "domain": "professional",
       "detection_method": "direct_experience",
-      "constraint_imposed": "Zero-failures record requires calibrated humility in subsurface decisions. Ω₀ ∈ [0.03, 0.05] mandatory.",
+      "constraint_imposed": "Zero-failures record requires calibrated humility in subsurface decisions. \u03a9\u2080 \u2208 [0.03, 0.05] mandatory.",
       "sealed_by": "arif (F13)",
       "sealed_date": "2026-06-15",
       "fingerprint": "sha256:professional-pressure-scar-002",
@@ -45,15 +45,25 @@
       "scar_pressure": 0.85,
       "domain": "deployment",
       "detection_method": "incident_postmortem_2026_07_04",
-      "constraint_imposed": "Never claim LIVE without all 5 deploy steps verified by external HTTP probe. Source tree (/root/<organ>) ≠ live kernel (/opt/<organ>/app). ENFORCED by INVARIANTS #13 + Three-Tense Contract (COMMITTED ≠ DEPLOYED ≠ VERIFIED).",
+      "constraint_imposed": "Never claim LIVE without all 5 deploy steps verified by external HTTP probe. Source tree (/root/<organ>) \u2260 live kernel (/opt/<organ>/app). ENFORCED by INVARIANTS #13 + Three-Tense Contract (COMMITTED \u2260 DEPLOYED \u2260 VERIFIED).",
       "sealed_by": "opencode (333-AGI)",
       "sealed_date": "2026-07-04",
       "fingerprint": "sha256:deployment-theater-scar-003",
-      "human_description": "Three incidents on 2026-07-04: changes claimed LIVE without external HTTP verification. Root cause: dev tree ≠ live kernel. Fix: INVARIANTS #13 + Three-Tense Contract.",
+      "human_description": "Three incidents on 2026-07-04: changes claimed LIVE without external HTTP verification. Root cause: dev tree \u2260 live kernel. Fix: INVARIANTS #13 + Three-Tense Contract.",
       "f1_amanah": true,
       "f2_truth": true,
       "f11_audit": true,
-      "metabolized": true
+      "metabolized": true,
+      "skill_artifact": "FORGE-deploy-probe-gate",
+      "skill_path": "/root/.kimi-code/skills/FORGE-deploy-probe-gate/",
+      "w1_pipeline": "REGISTERED",
+      "w1_date": "2026-08-13",
+      "test_evidence": "Detected THEATER in 6/7 organs \u2014 script correctly prevents false deployment claims",
+      "forge_evaluate": {
+        "G": 0.622,
+        "verdict": "REVIEW",
+        "C_dark": 0.016
+      }
     },
     {
       "scar_id": "SCAR_004",
@@ -70,24 +80,24 @@
       "f2_truth": true,
       "f11_audit": true,
       "metabolized": false,
-      "resolution_status": "OPEN — needs code refactor"
+      "resolution_status": "OPEN \u2014 needs code refactor"
     },
     {
       "scar_id": "SCAR_005",
       "failure_mode": "SCT_P1_3_REGRESSION",
       "severity": "HIGH",
-      "scar_pressure": 0.70,
+      "scar_pressure": 0.7,
       "domain": "session",
       "detection_method": "forge_vault_block_2026_07_25",
       "constraint_imposed": "forge_vault blocked by SCT_GATE (SCT_INVALID) when called from stateless HTTP. Fallback: direct outcomes.jsonl append with sovereign authorization. Fix: wire session_token propagation through MCP transport layer.",
       "sealed_by": "opencode (FI-001)",
       "sealed_date": "2026-07-28",
       "fingerprint": "sha256:sct-p1-3-regression-scar-005",
-      "human_description": "P1.3 regression — forge_vault blocked by SCT gate. session_token null in stateless HTTP path. Sovereign-authorized fallback used.",
+      "human_description": "P1.3 regression \u2014 forge_vault blocked by SCT gate. session_token null in stateless HTTP path. Sovereign-authorized fallback used.",
       "f1_amanah": true,
       "f11_audit": true,
       "metabolized": false,
-      "resolution_status": "OPEN — needs SCT propagation fix"
+      "resolution_status": "OPEN \u2014 needs SCT propagation fix"
     }
   ],
   "scar_metabolism": {
