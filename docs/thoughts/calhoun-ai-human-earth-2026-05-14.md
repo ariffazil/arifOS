@@ -339,7 +339,7 @@ Avoid overstating these:
 | "Modern humans are becoming the beautiful ones" | Too broad, moralistic               |
 | "Declining fertility proves Calhoun"            | Too simplistic                      |
 | "AI causes meaning collapse"                    | AI is amplifier, not sole cause     |
-| "Cities are behavioral sinks"                   | False; design and governance matter |
+| "Cities are governance drift patterns"            | False; design and governance matter |
 | "Universe-25 predicts humanity"                 | Scientifically weak if literal      |
 
 Better wording:
