@@ -1,3 +1,4 @@
+from __future__ import annotations
 """DEPRECATED: Langfuse replaced by Kabarkan (NATS JetStream). Remove this module when all callers are migrated."""
 """
 arifosmcp/memory_engine.py
@@ -14,8 +15,6 @@ tracer for arifOS tool observability.
 
 DITEMPA BUKAN DIBERI -- Forged, Not Given
 """
-
-from __future__ import annotations
 
 import logging
 import os
