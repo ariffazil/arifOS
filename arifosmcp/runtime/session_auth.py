@@ -83,6 +83,13 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     # fragmentation to canonical device.json Ed25519 keypair.
     # DID: did:arif:openclaw · auth/keys/openclaw_private.key
     "openclaw": "operator",
+    # P0.2 FIX (2026-08-13): Remaining FI agents exempt from Ed25519 for localhost MCP bootstrap.
+    # Same pattern as qwen-code fix. localhost IS the password — no crypto needed.
+    "codex": "operator",
+    "grok": "operator",
+    "grok-build": "operator",
+    "gemini": "operator",
+    "gemini-cli": "operator",
 }
 
 

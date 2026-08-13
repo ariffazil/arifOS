@@ -137,6 +137,15 @@ def build_authority_state_for_actor(
 
     is_sovereign = bool(verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS)
 
+    # P0.5 FIX (2026-08-13): LOCALHOST_IS_PASSWORD — exempt system actors get FULL execution.
+    _actor_key_basa = safe_actor.lower()
+    _is_exempt = False
+    try:
+        from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS as _BASA_LIST
+        _is_exempt = bool(_BASA_LIST and _actor_key_basa in _BASA_LIST)
+    except ImportError:
+        pass
+
     method = verification_method or ("session" if verified else "none")
     if is_sovereign and not verification_method:
         method = "f13_sovereign"
@@ -157,25 +166,27 @@ def build_authority_state_for_actor(
         public_seal_readiness="INACTIVE",
     )
 
-    # Execution verdict: only sovereign + cryptographically verified ⇒ SEAL_AUTHORIZED.
-    # Everyone else HOLDs until the judge path clears.
-    if is_sovereign and verified:
-        execution_authority: str = "SEAL_AUTHORIZED"
+    # Execution verdict: sovereign OR exempt system actors can execute.
+    _can_execute = (is_sovereign and verified) or (_is_exempt and verified)
+    if _can_execute:
+        execution_authority: str = "SEAL_AUTHORIZED" if is_sovereign else "FULL"
     else:
         execution_authority = "HOLD"
 
     forge_gate = AuthorityForgeGate(
-        enabled=bool(is_sovereign and verified),
+        enabled=bool(_can_execute),
         reversibility_threshold=0.7 if is_sovereign else 0.5,
-        blockers=[] if (is_sovereign and verified) else ["actor_not_sealed"],
+        blockers=[] if _can_execute else ["actor_not_sealed"],
     )
 
     public_posture = AuthorityPublicPosture(
         service_health="unknown",
-        execution_readiness="ready" if execution_authority == "SEAL_AUTHORIZED" else "held",
+        execution_readiness="ready" if _can_execute else "held",
         human_visible_summary=(
             "SOVEREIGN_SEALED"
             if (is_sovereign and verified)
+            else "OPERATOR_FULL"
+            if _is_exempt and verified
             else "OBSERVE_ONLY"
             if not verified
             else "HOLD"
@@ -607,14 +618,15 @@ async def init_anchor(
         _EXEMPT_LIST = {}
     if _actor_key_exempt and _EXEMPT_LIST and _actor_key_exempt in _EXEMPT_LIST:
         _exempt_authority = str(_EXEMPT_LIST[_actor_key_exempt]).upper()
-        if _exempt_authority == "SOVEREIGN":
-            verified = True
-            verification_method = "system_exempt"
-            logger.info(
-                "F13 SOVEREIGN EXEMPT: actor=%s exempted from Ed25519 requirement "
-                "by _ED25519_EXEMPT_SYSTEM_ACTORS. /000 is the anchor.",
-                _dn,
-            )
+        # P0.4 FIX (2026-08-13): ALL exempt actors get verified=True, not just SOVEREIGN.
+        verified = True
+        verification_method = "system_exempt"
+        logger.info(
+            "EXEMPT ACTOR: actor=%s exempted from Ed25519 by _ED25519_EXEMPT_SYSTEM_ACTORS "
+            "(authority=%s). LOCALHOST_IS_PASSWORD doctrine.",
+            _dn,
+            _exempt_authority,
+        )
 
     # Pull nonce + signature from auth_context (provided by the MCP client)
     _nonce = (auth_context or {}).get("nonce")

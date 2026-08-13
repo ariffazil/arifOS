@@ -208,6 +208,17 @@ def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: b
             actor_id,
         )
         return runtime_band
+    # P0.3 FIX (2026-08-13): LOCALHOST_IS_PASSWORD — Ed25519-exempt system actors
+    # bypass the boot gate. The boot gate returns PARTIAL during init (Q1/Q3 are
+    # inherently chicken-and-egg: no session_id exists yet DURING init). This
+    # demoted every exempt FI agent to OBSERVE_ONLY after every kernel restart.
+    # Exempt actors are already trusted by the LOCALHOST_IS_PASSWORD doctrine.
+    try:
+        from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS as _BGA
+        if _BGA and actor_id.lower() in _BGA:
+            return runtime_band
+    except ImportError:
+        pass
     from arifosmcp.runtime.boot_attestation import boot_state_for_authority_grade
 
     gate = boot_state_for_authority_grade(runtime_band)
