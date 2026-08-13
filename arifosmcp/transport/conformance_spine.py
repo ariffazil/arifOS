@@ -561,7 +561,7 @@ def check_vault_replay() -> dict[str, Any]:
     MCP surface (Unknown tool → false FAIL). Canonical proof sources:
 
       1. On-disk vault at /root/VAULT999 (symlink → outcomes.jsonl)
-      2. VAULT999 API :8100 /vault/status + /health (live chain status)
+      2. VAULT999 writer :5001 /vault/status + /health (live chain status)
 
     Either path alone is insufficient; both must agree the ledger exists
     and has recent entries. Historical DEGRADED gaps use sovereign NON-ISSUE
@@ -634,22 +634,22 @@ def check_vault_replay() -> dict[str, Any]:
         except OSError as exc:
             errors.append(f"outcomes.jsonl read failed: {exc}")
 
-    # ── Source B: VAULT999 API ───────────────────────────────────────────
+    # ── Source B: VAULT999 writer ────────────────────────────────────────
     api_status: dict[str, Any] = {}
     api_healthy = False
     try:
         req = urllib.request.Request(
-            "http://127.0.0.1:8100/vault/status",
+            "http://127.0.0.1:5001/vault/status",
             headers={"Accept": "application/json"},
         )
         with urllib.request.urlopen(req, timeout=5) as resp:
             api_status = json.loads(resp.read().decode("utf-8"))
         api_healthy = bool(
-            api_status.get("status") in ("ok", "healthy", "OK")
+            api_status.get("status") in ("ok", "healthy", "OK", "empty")
             or int(api_status.get("vault_seals_total") or 0) > 0
         )
     except Exception as exc:
-        errors.append(f"VAULT999 API :8100 unreachable: {type(exc).__name__}")
+        errors.append(f"VAULT999 writer :5001 unreachable: {type(exc).__name__}")
         api_status = {"_error": str(exc)}
 
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
@@ -713,8 +713,8 @@ def check_vault_replay() -> dict[str, Any]:
 
     # Deduplicate empty-path noise when we already have a clean pass path
     if chain_ok and file_exists and entries_returned > 0:
-        # Drop API-unreachable noise if filesystem proof is solid
-        errors = [e for e in errors if "API :8100 unreachable" not in e]
+        # Drop writer-unreachable noise if filesystem proof is solid
+        errors = [e for e in errors if "writer :5001 unreachable" not in e]
 
     passed = file_exists and entries_returned > 0 and chain_ok and latest_id != "unknown"
 

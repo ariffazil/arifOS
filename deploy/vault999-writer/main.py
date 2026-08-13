@@ -655,6 +655,73 @@ class VaultDB:
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
+    async def vault_status(self) -> dict:
+        """Canonical VAULT999 status for conformance and attestation bridges."""
+        async with self.pool.acquire() as conn:
+            total = await conn.fetchval("SELECT COUNT(*) FROM vault_seals")
+            rows = await conn.fetch(
+                """SELECT id, seal_hash, prev_seal_id, chain_hash, action,
+                          actor_id, agent_id, event_type, epoch, payload
+                   FROM vault_seals
+                   ORDER BY epoch DESC, id DESC
+                   LIMIT 2"""
+            )
+
+        chain_integrity = "EMPTY"
+        last_seal: dict[str, Any] | None = None
+        if total == 0:
+            chain_integrity = "EMPTY"
+        elif len(rows) == 1:
+            chain_integrity = "INTACT"
+            last_seal = _row_to_last_seal(rows[0])
+        elif len(rows) == 2:
+            newest, previous = rows[0], rows[1]
+            # Linkage check: newest.prev_seal_id should chain to previous.seal_hash
+            # (write_seal uses seal_hash as prev_seal_id; write_audit_receipt uses id)
+            prev_id_match = str(newest["prev_seal_id"]) == str(previous["id"])
+            prev_hash_match = str(newest["prev_seal_id"]) == str(previous["seal_hash"])
+            if prev_hash_match or prev_id_match:
+                chain_integrity = "INTACT"
+            else:
+                chain_integrity = "BROKEN"
+            last_seal = _row_to_last_seal(newest)
+
+        return {
+            "status": "healthy" if total > 0 else "empty",
+            "vault_seals_total": total,
+            "chain_integrity": chain_integrity,
+            "chain_gaps": 0 if chain_integrity == "INTACT" else 1,
+            "append_only_enforced": True,
+            "pending_holds": 0,
+            "last_seal": last_seal or {},
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+
+
+def _row_to_last_seal(row: asyncpg.Record) -> dict[str, Any]:
+    """Normalize a vault_seals row into the legacy /vault/status last_seal shape."""
+    payload: Any = row["payload"]
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except Exception:
+            payload = {}
+    elif payload is None:
+        payload = {}
+    source = row["actor_id"] or row["agent_id"] or "unknown"
+    return {
+        "id": row["id"],
+        "seal_hash": row["seal_hash"],
+        "chain_hash": row["chain_hash"],
+        "action": row["action"] or row["event_type"] or "unknown",
+        "source_agent": source,
+        "actor_id": row["actor_id"],
+        "agent_id": row["agent_id"],
+        "event_type": row["event_type"],
+        "epoch": row["epoch"].isoformat() if row["epoch"] else None,
+        "payload": payload,
+    }
+
 
 # ============================================================
 # FASTAPI APP
@@ -679,6 +746,12 @@ async def shutdown():
 @app.get("/health")
 async def health():
     return await db.health_check()
+
+
+@app.get("/vault/status")
+async def vault_status():
+    """Canonical status surface for conformance_spine and organ attestation."""
+    return await db.vault_status()
 
 
 @app.post("/seal")

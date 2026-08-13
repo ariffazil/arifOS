@@ -2200,7 +2200,7 @@ def arif_init(
                         sess["signature_verified"] = True
                         sess["verified"] = True
                         sess["actor_verified"] = True
-                        sess["verification_method"] = "system_exempt_local"
+                        sess["verification_method"] = "system_exempt"
                         sess["evidence_ref"] = f"session://{actor_id}/exempt_local"
                         sess["agent_class"] = "AGENT"
                         sess["authority"] = "LIMITED_MUTATE"
@@ -2869,8 +2869,8 @@ def arif_init(
                         # and ONLY when true local loopback (auto_sign_allowed).
                         identity_verified = True
                         sess["verified"] = True
-                        sess["verification_method"] = "system_exempt_local"
-                        sess["evidence_ref"] = f"system_exempt_local://{actor_lower}"
+                        sess["verification_method"] = "system_exempt"
+                        sess["evidence_ref"] = f"system_exempt://{actor_lower}"
                         try:
                             from arifosmcp.runtime.authority import bind_authority_state
                             from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
@@ -2878,7 +2878,7 @@ def arif_init(
                             )
 
                             _av_state = build_authority_state_for_actor(
-                                actor_id, verified=True, verification_method="system_exempt_local"
+                                actor_id, verified=True, verification_method="system_exempt"
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
