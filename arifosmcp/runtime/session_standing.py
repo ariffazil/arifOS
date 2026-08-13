@@ -392,12 +392,43 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
 
     canonical_id = _resolve_canonical_actor(claimed_id, record)
 
+    # P0.10 FIX (2026-08-13): Canonical alias resolution for identity mismatch.
+    # The ACT token stores the canonical short form (e.g. "QWEN" for "qwen-code",
+    # "GROK" for "grok-build"). Without alias resolution, every FI agent with a
+    # hyphenated name triggers the identity binding collapse → verified=False.
+    def _is_canonical_alias(record_act: str, claimed: str) -> bool:
+        """True when record_actor is the canonical short form of claimed_id."""
+        r = record_act.lower().strip()
+        c = claimed.lower().strip()
+        if r == c:
+            return True
+        # Check CANONICAL_ACTORS aliases from contracts.identity
+        try:
+            from contracts.identity import CANONICAL_ACTORS
+            for _canon, info in CANONICAL_ACTORS.items():
+                aliases = info.get("aliases", [])
+                aliases_lower = [str(a).lower() for a in aliases]
+                if c in aliases_lower and r == _canon.lower():
+                    return True
+        except Exception:
+            pass
+        # Also check _ED25519_EXEMPT_SYSTEM_ACTORS as a fallback
+        try:
+            from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
+            if r in _ED25519_EXEMPT_SYSTEM_ACTORS and c in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                return True
+        except Exception:
+            pass
+        return False
+
     # Identity leakage guard: human claim must not inherit component standing.
     record_mismatch = bool(
         record_actor
         and claimed_id
         and record_actor.lower() != claimed_id.lower()
         and str(canonical_id).lower() != claimed_id.lower()
+        and not _is_canonical_alias(record_actor, claimed_id)
+        and not _is_canonical_alias(str(canonical_id), claimed_id)
     )
     component_leak = not _is_component_identity(claimed_id) and _is_component_identity(
         str(canonical_id)

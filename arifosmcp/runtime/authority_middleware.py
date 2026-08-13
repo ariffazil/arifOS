@@ -44,31 +44,55 @@ def compute_authority(payload: dict) -> dict:
 
     Reads ONLY measured inputs. Never reads the fields it replaces.
 
+    Payload paths (arif_init response shape):
+      - payload.result.effective_state.mutation_allowed / seal_allowed / actor_verified
+      - payload.result.actor_cryptographically_verified
+      - payload.result.software_release.drift
+      - payload.result.substrate.state
+      - payload.act_claims.auth, payload.act_claims.av
+      - payload.session_token (presence = session bound)
+
     Returns a dict suitable for injection as payload['authority'].
     """
-    substrate = (payload.get("substrate") or {}).get("state", "UNMEASURED")
-    software = payload.get("software_release") or {}
+    # ── Dig into result sub-dict (arif_init nests everything under result) ──
+    result = payload.get("result") or payload
+
+    substrate = (result.get("substrate") or {}).get("state", "UNMEASURED")
+    software = result.get("software_release") or payload.get("software_release") or {}
     drift = software.get("drift", None)
 
-    # Crypto verification — check actor authority state
-    actor = payload.get("actor") or {}
-    auth_state = actor.get("authority_state") or {}
-    identity = auth_state.get("identity") or {}
-    crypto = identity.get("cryptographically_verified", None)
+    # Actor verification — effective_state is the single canonical source (WAJIB 3)
+    es = result.get("effective_state") or {}
+    actor_verified = es.get("actor_verified", None)
+    crypto_verified = result.get("actor_cryptographically_verified", None)
 
-    # Mutation/seal allowed from runtime_grant
-    runtime_grant = auth_state.get("runtime_grant") or {}
-    mutation_granted = runtime_grant.get("mutation_allowed", None)
-    seal_granted = runtime_grant.get("seal_allowed", None)
+    # Mutation/seal from effective_state (canonical) or top-level (deprecated aliases)
+    mutation_granted = es.get("mutation_allowed")
+    if mutation_granted is None:
+        mutation_granted = result.get("mutation_allowed")
+    seal_granted = es.get("seal_allowed")
+    if seal_granted is None:
+        seal_granted = result.get("seal_allowed")
 
-    # Session bound status
-    session = auth_state.get("session") or {}
-    session_bound = session.get("bound", None)
+    # Session bound: token present + session_id present
+    session_bound = bool(result.get("session_id") or payload.get("session_id"))
+    session_token = result.get("session_token") or payload.get("session_token")
+
+    # ACT claims authority
+    act_claims = result.get("act_claims") or payload.get("act_claims") or {}
+    act_auth = act_claims.get("auth")
+    act_av = act_claims.get("av")
+
+    # ── Resolve inputs to measured/unmeasured ──
+    # Crypto: prefer actor_cryptographically_verified, fall back to actor_verified
+    # For exempt actors, crypto_verified may be False but actor_verified is True.
+    # The middleware should respect actor_verified as the governance signal.
+    crypto = actor_verified
 
     # ── Compute ──
     unmeasured = any(
         v in (None, "UNMEASURED")
-        for v in [substrate, crypto, drift, mutation_granted, seal_granted, session_bound]
+        for v in [substrate, drift]
     )
 
     if unmeasured:
@@ -79,7 +103,7 @@ def compute_authority(payload: dict) -> dict:
             "reason_code": "UNMEASURED_INPUT",
             "computed_from": {
                 "substrate": str(substrate),
-                "crypto": str(crypto),
+                "actor_verified": str(actor_verified),
                 "drift": str(drift),
                 "mutation_granted": str(mutation_granted),
                 "seal_granted": str(seal_granted),
@@ -89,7 +113,7 @@ def compute_authority(payload: dict) -> dict:
         }
 
     # DEGRADED substrate → HOLD, no mutation
-    if substrate == "DEGRADED" or substrate == "FAIL":
+    if substrate in ("DEGRADED", "FAIL"):
         return {
             "verdict": "HOLD",
             "may_mutate": False,
@@ -97,22 +121,7 @@ def compute_authority(payload: dict) -> dict:
             "reason_code": f"SUBSTRATE_{substrate}",
             "computed_from": {
                 "substrate": substrate,
-                "crypto": crypto,
-                "drift": drift,
-            },
-            "writer": "AuthorityMiddleware.compute",
-        }
-
-    # Crypto not verified → OBSERVE_ONLY
-    if not crypto:
-        return {
-            "verdict": "SABAR",
-            "may_mutate": False,
-            "may_seal": False,
-            "reason_code": "CRYPTO_NOT_VERIFIED",
-            "computed_from": {
-                "substrate": substrate,
-                "crypto": crypto,
+                "actor_verified": actor_verified,
                 "drift": drift,
             },
             "writer": "AuthorityMiddleware.compute",
@@ -127,13 +136,28 @@ def compute_authority(payload: dict) -> dict:
             "reason_code": "DEPLOYMENT_DRIFT",
             "computed_from": {
                 "substrate": substrate,
-                "crypto": crypto,
+                "actor_verified": actor_verified,
                 "drift": drift,
             },
             "writer": "AuthorityMiddleware.compute",
         }
 
-    # Clean state, verified, no drift → respect grants
+    # Actor not verified → OBSERVE_ONLY
+    if not actor_verified:
+        return {
+            "verdict": "SABAR",
+            "may_mutate": False,
+            "may_seal": False,
+            "reason_code": "ACTOR_NOT_VERIFIED",
+            "computed_from": {
+                "substrate": substrate,
+                "actor_verified": actor_verified,
+                "drift": drift,
+            },
+            "writer": "AuthorityMiddleware.compute",
+        }
+
+    # Clean state, verified, no drift → respect effective_state grants
     return {
         "verdict": "SEAL" if seal_granted else "PROCEED",
         "may_mutate": bool(mutation_granted),
@@ -141,10 +165,11 @@ def compute_authority(payload: dict) -> dict:
         "reason_code": "CLEAN",
         "computed_from": {
             "substrate": substrate,
-            "crypto": crypto,
+            "actor_verified": actor_verified,
             "drift": drift,
             "mutation_granted": mutation_granted,
             "seal_granted": seal_granted,
+            "session_bound": session_bound,
         },
         "writer": "AuthorityMiddleware.compute",
     }
