@@ -1,21 +1,18 @@
 
 
 <!-- SOT-MANIFEST
-federation_release: v2026.08.09
-last_verified: 2026-08-10T12:10:00Z
-live_commit: c4cc9a4 (institutional density + trust edge)
 federation_release: v2026.08.11
-last_verified: 2026-08-11T23:22:00Z
-live_commit: b59e547 (institutional density + musyawarah gate + 2026-07-28 handshake)
-live_port: 8088 (healthy)
+last_verified: 2026-08-14T20:42:54Z
+live_commit: 6b7286b1e (syntax fix: __future__ import before docstring in memory_engine.py)
+live_port: 8088 (degraded — runtime_drift detected, deploy pending)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 total_declared_tools: 48 (includes diagnostics, internal modes, aliases)
 floors_active: 13 (F1–F13)
 federation_schema: 2.0.0
 organs: 7 live (arifOS:8088, A-FORGE:7071, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073)
-owner_summary: GREEN (vault_healthy, no_runtime_drift, no_contract_drift)
+owner_summary: YELLOW (vault_healthy, runtime_drift, no_contract_drift)
 truth_rule: live :8088/health + tools/list beat any static count in prose
-authorization: F13 Ed25519 challenge-response — canonical binding, Redis replay protection, A-FORGE structural gate, AAA approval card
+authorization: F13 *** challenge-response — canonical binding, Redis replay protection, A-FORGE structural gate, AAA approval card
 -->
 
 # ⚖️ arifOS — Constitutional AI Kernel & AGI Substrate
@@ -23,7 +20,6 @@ authorization: F13 Ed25519 challenge-response — canonical binding, Redis repla
 [![Unified CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions)
 [![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions)
 [![⚖️ KERNEL](https://img.shields.io/badge/%E2%9A%96%EF%B8%8F%20KERNEL-8%20Canonical%20Tools-0a7b83)](https://mcp.arif-fazil.com/mcp)
-[![Federation](https://img.shields.io/badge/Federation-v2026.08.09-0a7b83)](https://arifos.arif-fazil.com)
 [![Federation](https://img.shields.io/badge/Federation-v2026.08.11-0a7b83)](https://arifos.arif-fazil.com)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](./LICENSE)
 
