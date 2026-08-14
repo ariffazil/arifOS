@@ -91,7 +91,14 @@ class ResultTypeASGIMiddleware:
 
                 more_body = message.get("more_body", False)
                 if not more_body and response_body:
-                    _inject_all(bytes(response_body), method, response_body)
+                    # _inject_all's contract expects `out` pre-cleared; without
+                    # the snapshot+clear the injected doc is appended after the
+                    # original, yielding two concatenated JSON-RPC documents.
+                    raw = bytes(response_body)
+                    response_body.clear()
+                    _inject_all(raw, method, response_body)
+                    if not response_body:
+                        response_body.extend(raw)
 
                     # Update content-length
                     new_headers = []

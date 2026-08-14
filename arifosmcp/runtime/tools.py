@@ -2767,7 +2767,37 @@ def _compute_canonical_verdict(
 
                         _passed_norm = normalize_actor_id(_passed_actor) or _passed_actor
                         _sess_norm = normalize_actor_id(_sess_actor) if _sess_actor else _sess_actor
-                        if _passed_norm and _sess_norm and _passed_norm != _sess_norm:
+
+                        # P0.10 mirror (2026-08-14): FI canonical aliases. The ACT/
+                        # standing store keeps the canonical short form ("QWEN" for
+                        # "qwen-code", "GROK" for "grok-build"). normalize_actor_id
+                        # is blind to those aliases — without this check every
+                        # hyphenated FI agent trips a false session_actor_mismatch
+                        # SCAR and an L13 HOLD on evidence tools.
+                        def _alias_match(a: str | None, b: str | None) -> bool:
+                            if not a or not b:
+                                return False
+                            if a.lower() == b.lower():
+                                return True
+                            try:
+                                from contracts.identity import CANONICAL_ACTORS
+
+                                for _canon, info in CANONICAL_ACTORS.items():
+                                    aliases = {str(x).lower() for x in info.get("aliases", [])}
+                                    aliases.add(_canon.lower())
+                                    if a.lower() in aliases and b.lower() in aliases:
+                                        return True
+                            except Exception:
+                                pass
+                            return False
+
+                        if (
+                            _passed_norm
+                            and _sess_norm
+                            and _passed_norm != _sess_norm
+                            and not _alias_match(_passed_norm, _sess_norm)
+                            and not _alias_match(_passed_actor, _sess_actor)
+                        ):
                             degradation.append(
                                 f"session_actor_mismatch: passed actor_id={_passed_actor} "
                                 f"(canonical={_passed_norm}) ≠ session actor_id={_sess_actor} "
