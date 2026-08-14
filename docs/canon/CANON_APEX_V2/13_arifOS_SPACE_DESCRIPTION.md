@@ -105,7 +105,7 @@ C_WELL — Coupled risk (weakest substrate pulls the chain)
 |:------|:------|:---------|:----------|:--------|
 | DELTA | Δ | KUKUH · SOLID | RETAK · CRACKED | LEBUR · MELTED |
 | PSI | Ψ | AMANAH · TRUSTED | GANTUNG · PENDING | KHIANAT · BREACHED |
-| OMEGA | Ω | BIJAKSANA · WISE | BIJAK · SMART | SESAT · MISALIGNED |
+| OMEGA | Ω | BIJAKSANA · WISE | BIJAK · SMART | BANGANG · FOOLISH |
 
 FQ < 0.5 → elevates any Amber to Red. Every signal MUST include `reasons[]`.
 
