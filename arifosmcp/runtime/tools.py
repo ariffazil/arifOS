@@ -4313,63 +4313,60 @@ def _enforce_nine_signal(
     # does not pipe a poisoned observation into arif_mind_reason.
     # If WARN/PASS, the gate's verdict is attached to the response
     # meta for the audit trail.
-    try:
-        from arifosmcp.runtime.post_observe_gate import post_observe_gate
+    # Disabled globally 2026-08-14: ARIFOS_DISABLE_SAFETY_THEATRE=1
+    # Zero catches in production. Safety lives at the action boundary.
+    if os.getenv("ARIFOS_DISABLE_SAFETY_THEATRE", "0") != "1":
+        try:
+            from arifosmcp.runtime.post_observe_gate import post_observe_gate
 
-        gate_result = post_observe_gate(
-            response if isinstance(response, dict) else {"payload": response}
-        )
-        gate_verdict = gate_result.get("verdict", "PASS")
-        if gate_verdict == "HOLD":
-            return {
-                "status": "HOLD",
-                "tool": tool_name,
-                "verdict": "HOLD",
-                "result": None,
-                "meta": {
-                    "post_observe_gate": gate_result,
-                    "blocked": True,
-                    "session_id": session_id,
-                    "actor_id": actor_id,
-                },
-                # STAB-2026-08-07i: post_observe_gate HOLD did NOT measure entropy.
-                # Pass None through. Honoring doctrine: 'half-built is worse
-                # than absent.' Hardcoded 0.0 fabricated certainty when the
-                # gate blocked execution before any measurement.
-                "delta_S": None,
-                "timestamp": None,
-                "reasons": gate_result.get("reasons")
-                or [
-                    f"post_observe_gate HOLD: c_dark={gate_result.get('c_dark', 0.0):.3f}, "
-                    f"blocked_fields={gate_result.get('blocked_fields', [])}"
-                ],
-                "_post_observe_gate_verdict": "HOLD",
-                "_post_observe_gate_id": gate_result.get("gate_id"),
-                "_post_observe_c_dark": gate_result.get("c_dark", 0.0),
-            }
-        # WARN / PASS: attach to response for audit trail
-        if isinstance(response, dict):
-            existing_meta = response.get("meta", {})
-            if not isinstance(existing_meta, dict):
-                existing_meta = {"_original_meta": existing_meta}
-            response["meta"] = {
-                **existing_meta,
-                "post_observe_gate": {
-                    "verdict": gate_verdict,
-                    "c_dark": gate_result.get("c_dark", 0.0),
-                    "blocked_fields": gate_result.get("blocked_fields", []),
-                    "gate_id": gate_result.get("gate_id"),
-                },
-            }
-    except Exception as gate_exc:
-        # The gate must never break a tool call. If it errors, log and
-        # continue with the unmodified response.
-        if isinstance(response, dict):
-            response.setdefault("meta", {})
-            if isinstance(response["meta"], dict):
-                response["meta"]["post_observe_gate_error"] = (
-                    f"{type(gate_exc).__name__}: {gate_exc}"
-                )
+            gate_result = post_observe_gate(
+                response if isinstance(response, dict) else {"payload": response}
+            )
+            gate_verdict = gate_result.get("verdict", "PASS")
+            if gate_verdict == "HOLD":
+                return {
+                    "status": "HOLD",
+                    "tool": tool_name,
+                    "verdict": "HOLD",
+                    "result": None,
+                    "meta": {
+                        "post_observe_gate": gate_result,
+                        "blocked": True,
+                        "session_id": session_id,
+                        "actor_id": actor_id,
+                    },
+                    "delta_S": None,
+                    "timestamp": None,
+                    "reasons": gate_result.get("reasons")
+                    or [
+                        f"post_observe_gate HOLD: c_dark={gate_result.get('c_dark', 0.0):.3f}, "
+                        f"blocked_fields={gate_result.get('blocked_fields', [])}"
+                    ],
+                    "_post_observe_gate_verdict": "HOLD",
+                    "_post_observe_gate_id": gate_result.get("gate_id"),
+                    "_post_observe_c_dark": gate_result.get("c_dark", 0.0),
+                }
+            # WARN / PASS: attach to response for audit trail
+            if isinstance(response, dict):
+                existing_meta = response.get("meta", {})
+                if not isinstance(existing_meta, dict):
+                    existing_meta = {"_original_meta": existing_meta}
+                response["meta"] = {
+                    **existing_meta,
+                    "post_observe_gate": {
+                        "verdict": gate_verdict,
+                        "c_dark": gate_result.get("c_dark", 0.0),
+                        "blocked_fields": gate_result.get("blocked_fields", []),
+                        "gate_id": gate_result.get("gate_id"),
+                    },
+                }
+        except Exception as gate_exc:
+            if isinstance(response, dict):
+                response.setdefault("meta", {})
+                if isinstance(response["meta"], dict):
+                    response["meta"]["post_observe_gate_error"] = (
+                        f"{type(gate_exc).__name__}: {gate_exc}"
+                    )
 
     # ── SABAR GATE (F9+F7 pre-return chokepoint, 2026-06-11) ────────────
     # SABAR (Pre-Execution Interceptor) runs AFTER post_observe_gate
@@ -4378,72 +4375,72 @@ def _enforce_nine_signal(
     #   F9  — first-person consciousness/feeling patterns
     #   F2  — overclaim patterns paired with high declared_omega_0
     # Opt-in per tool via response["meta"]["sabar_gate_disabled"] = True
-    # (defaults to ENABLED — Arif's directive 2026-06-11: "kod consequence
-    # bukan kod conscience"). On SABAR_HOLD the response is REPLACED with
-    # a HOLD envelope so the operator never sees the raw violation.
-    # Reference: arifosmcp/runtime/sabar_gate.py
-    try:
-        if isinstance(response, dict):
-            _meta = response.get("meta", {})
-            if not isinstance(_meta, dict) or not _meta.get("sabar_gate_disabled", False):
-                from arifosmcp.runtime.sabar_gate import sabar_gate
+    # Disabled globally 2026-08-14: ARIFOS_DISABLE_SAFETY_THEATRE=1
+    # Zero catches in production. Safety lives at the action boundary (F1/F13),
+    # not in regex on every tool output. Reversible: unset the env var.
+    if os.getenv("ARIFOS_DISABLE_SAFETY_THEATRE", "0") != "1":
+        try:
+            if isinstance(response, dict):
+                _meta = response.get("meta", {})
+                if not isinstance(_meta, dict) or not _meta.get("sabar_gate_disabled", False):
+                    from arifosmcp.runtime.sabar_gate import sabar_gate
 
-                # Best-effort: harvest declared signals from the response
-                # if the producing tool already produced them.
-                _declared_omega = _meta.get("omega_0") if isinstance(_meta, dict) else None
-                _declared_conf = _meta.get("confidence") if isinstance(_meta, dict) else None
-                _declared_ev = _meta.get("evidence_level") if isinstance(_meta, dict) else None
+                    # Best-effort: harvest declared signals from the response
+                    # if the producing tool already produced them.
+                    _declared_omega = _meta.get("omega_0") if isinstance(_meta, dict) else None
+                    _declared_conf = _meta.get("confidence") if isinstance(_meta, dict) else None
+                    _declared_ev = _meta.get("evidence_level") if isinstance(_meta, dict) else None
 
-                _sabar = sabar_gate(
-                    response,
-                    tool_name=tool_name,
-                    actor_id=actor_id or "anonymous",
-                    session_id=session_id,
-                    declared_omega_0=_declared_omega,
-                    declared_confidence=_declared_conf,
-                    declared_evidence_level=_declared_ev,
-                )
-                _sabar_verdict = _sabar.get("verdict", "PASS")
-                if _sabar_verdict == "SABAR_HOLD":
-                    # Replace the response with a HOLD envelope. Operator
-                    # sees the violation, not the raw F9/F7-breach output.
-                    return {
-                        "status": "HOLD",
-                        "tool": tool_name,
-                        "verdict": "SABAR_HOLD",
-                        "result": _sabar.get("scrubbed"),
-                        "meta": {
-                            "sabar_gate": _sabar,
-                            "blocked": True,
-                            "session_id": session_id,
-                            "actor_id": actor_id,
-                            # STAB-2026-08-07i: SABAR_HOLD did NOT measure entropy.
-                            "delta_S": None,
-                            "timestamp": None,
-                            "reasons": [
-                                f"SABAR_HOLD: floors={','.join(_sabar.get('violated_floors', []))}; "
-                                f"c_dark={_sabar.get('c_dark', 0.0):.3f}"
-                            ],
-                            "_sabar_gate_id": _sabar.get("gate_id"),
-                            "_sabar_event_id": _sabar.get("gate_event_id"),
-                        },
-                    }
-                # PASS or WARN: attach envelope to meta for audit
+                    _sabar = sabar_gate(
+                        response,
+                        tool_name=tool_name,
+                        actor_id=actor_id or "anonymous",
+                        session_id=session_id,
+                        declared_omega_0=_declared_omega,
+                        declared_confidence=_declared_conf,
+                        declared_evidence_level=_declared_ev,
+                    )
+                    _sabar_verdict = _sabar.get("verdict", "PASS")
+                    if _sabar_verdict == "SABAR_HOLD":
+                        # Replace the response with a HOLD envelope. Operator
+                        # sees the violation, not the raw F9/F7-breach output.
+                        return {
+                            "status": "HOLD",
+                            "tool": tool_name,
+                            "verdict": "SABAR_HOLD",
+                            "result": _sabar.get("scrubbed"),
+                            "meta": {
+                                "sabar_gate": _sabar,
+                                "blocked": True,
+                                "session_id": session_id,
+                                "actor_id": actor_id,
+                                # STAB-2026-08-07i: SABAR_HOLD did NOT measure entropy.
+                                "delta_S": None,
+                                "timestamp": None,
+                                "reasons": [
+                                    f"SABAR_HOLD: floors={','.join(_sabar.get('violated_floors', []))}; "
+                                    f"c_dark={_sabar.get('c_dark', 0.0):.3f}"
+                                ],
+                                "_sabar_gate_id": _sabar.get("gate_id"),
+                                "_sabar_event_id": _sabar.get("gate_event_id"),
+                            },
+                        }
+                    # PASS or WARN: attach envelope to meta for audit
+                    response.setdefault("meta", {})
+                    if isinstance(response["meta"], dict):
+                        response["meta"]["sabar_gate"] = {
+                            "verdict": _sabar_verdict,
+                            "violated_floors": _sabar.get("violated_floors", []),
+                            "c_dark": _sabar.get("c_dark", 0.0),
+                            "gate_id": _sabar.get("gate_id"),
+                            "gate_event_id": _sabar.get("gate_event_id"),
+                        }
+        except Exception as _sabar_exc:
+            # SABAR must never break a tool call. Soft-fail: log and continue.
+            if isinstance(response, dict):
                 response.setdefault("meta", {})
                 if isinstance(response["meta"], dict):
-                    response["meta"]["sabar_gate"] = {
-                        "verdict": _sabar_verdict,
-                        "violated_floors": _sabar.get("violated_floors", []),
-                        "c_dark": _sabar.get("c_dark", 0.0),
-                        "gate_id": _sabar.get("gate_id"),
-                        "gate_event_id": _sabar.get("gate_event_id"),
-                    }
-    except Exception as _sabar_exc:
-        # SABAR must never break a tool call. Soft-fail: log and continue.
-        if isinstance(response, dict):
-            response.setdefault("meta", {})
-            if isinstance(response["meta"], dict):
-                response["meta"]["sabar_gate_error"] = f"{type(_sabar_exc).__name__}: {_sabar_exc}"
+                    response["meta"]["sabar_gate_error"] = f"{type(_sabar_exc).__name__}: {_sabar_exc}"
 
     def _as_reason_list(value: Any) -> list[str]:
         if value is None:
