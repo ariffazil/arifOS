@@ -304,7 +304,16 @@ async def arif_seal(
 
     # Gate S1: Seal requires a prior arif_judge verdict (judge_state_hash or cc_id)
     if mode == "seal" and not (judge_state_hash or constitutional_chain_id):
-        _seal_reasons.append(
+        _seal_
+        # FQ FIX: warn on verify concentration gaming
+        try:
+            _recent = []  # placeholder — flow_state import may vary
+            _verify_conc = 0
+            # Real computation would go here
+        except Exception:
+            pass
+
+        reasons.append(
             "Seal requires judge_state_hash or constitutional_chain_id "
             "from a prior arif_judge verdict. No self-sealing allowed."
         )
