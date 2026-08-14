@@ -1,16 +1,15 @@
-
-
 <!-- SOT-MANIFEST
-federation_release: v2026.08.11
-last_verified: 2026-08-14T20:42:54Z
-live_commit: 6b7286b1e (syntax fix: __future__ import before docstring in memory_engine.py)
-live_port: 8088 (degraded — runtime_drift detected, deploy pending)
+federation_release: v2026.08.14
+last_verified: 2026-08-14T20:45:00Z
+live_commit: a302c2fad (fix(kernel): three surface defects found via MCPJam inspector sweep)
+live_port: 8088 (healthy — deployment_drift: aligned, source=built=deployed=a302c2f)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 total_declared_tools: 48 (includes diagnostics, internal modes, aliases)
-floors_active: 13 (F1–F13)
+resources: 34 · prompts: 13 (verified via stateless MCP 2026-07-28 wire, MCPJam protocol)
+floors_active: 13 (F1–F13, all measured PASS)
 federation_schema: 2.0.0
-organs: 7 live (arifOS:8088, A-FORGE:7071, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073)
-owner_summary: YELLOW (vault_healthy, runtime_drift, no_contract_drift)
+organs: 7 live (arifOS:8088, A-FORGE:7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073)
+owner_summary: GREEN (vault_healthy, attestation aligned, MCPJAM-surface-verified 2026-08-14)
 truth_rule: live :8088/health + tools/list beat any static count in prose
 authorization: F13 *** challenge-response — canonical binding, Redis replay protection, A-FORGE structural gate, AAA approval card
 -->
@@ -20,21 +19,66 @@ authorization: F13 *** challenge-response — canonical binding, Redis replay pr
 [![Unified CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions)
 [![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions)
 [![⚖️ KERNEL](https://img.shields.io/badge/%E2%9A%96%EF%B8%8F%20KERNEL-8%20Canonical%20Tools-0a7b83)](https://mcp.arif-fazil.com/mcp)
-[![Federation](https://img.shields.io/badge/Federation-v2026.08.11-0a7b83)](https://arifos.arif-fazil.com)
+[![MCP 2026-07-28](https://img.shields.io/badge/MCP-stateless%202026--07--28-6750a0)](https://modelcontextprotocol.io)
+[![Floors](https://img.shields.io/badge/Floors-13%2F13%20F1--F13%20PASS-brightgreen)](#-the-13-constitutional-floors-f1f13)
+[![Surface](https://img.shields.io/badge/Surface%20Verified-8%20tools%20%C2%B7%2034%20res%20%C2%B7%2013%20prompts-blue)](#-mcp-surface-certification)
+[![VAULT999](https://img.shields.io/badge/VAULT999-healthy%20%C2%B7%20append--only-8b0000)](#-vault999--the-digital-helix)
+[![Federation](https://img.shields.io/badge/Federation-v2026.08.14-0a7b83)](https://arifos.arif-fazil.com)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](./LICENSE)
 
-> **arifOS is the brain. It judges. It never executes.**  
+> **arifOS is the brain. It judges. It never executes.**
 > **DITEMPA BUKAN DIBERI — Forged, Not Given.**
 
 **arifOS** is the constitutional governance kernel of the arifOS Federation — an agentic intelligence institution forged on VPS af-forge. It is not an LLM wrapper. It is not an agent framework. It is the **operating system kernel for autonomous intelligence**: enforcing 13 physical and epistemic constitutional floors (F1–F13) before any tool call, code mutation, or capital decision is executed.
+
+**For humans:** this is the constitution and court your agents live under. Every action is measured, every verdict is auditable, and you (F13) hold the final veto.
+**For agents:** boot via `arif_init`, speak the 8 canonical verbs, respect the floors, and expect HOLD when your evidence is thin. The kernel is your boundary, not your adversary.
+
+---
+
+## 🔢 The Canonical Ladder 000–999
+
+Every number in the federation is a **station of authority**. The kernel exposes 8 verbs; the ladder below is the complete map of stations, including prompts exposed on the MCP wire and the internal stages.
+
+```mermaid
+flowchart LR
+    subgraph Ladder["THE 000-999 LADDER — stations of authority"]
+        direction LR
+        S000["000<br/>INIT<br/>🌱 IGNITE"] --> S111["111<br/>SENSE<br/>🌊 OBSERVE"]
+        S111 --> S222["222<br/>PLAN<br/>🏛 ROUTE-PREP"]
+        S222 --> S333["333<br/>REASON<br/>🧠 THINK"]
+        S333 --> S444["444<br/>DIRECT<br/>🧭 ROUTE"]
+        S444 --> S555["555<br/>REMEMBER<br/>🗂 MEMORY"]
+        S555 --> S666["666<br/>DIGNITY<br/>⚖ HEART"]
+        S666 --> S777["777<br/>FORGE<br/>🔥 EXECUTE"]
+        S777 --> S888["888<br/>JUDGE<br/>🔒 APEX"]
+        S888 --> S999["999<br/>SEAL<br/>💎 VAULT999"]
+    end
+    S000 -.->|"⬅ next iteration feeds back"| S999
+```
+
+| Station | Verb / Prompt | Organ | What happens | Agent contract |
+|---|---|---|---|---|
+| **000** | `arif_init` / 🌱 IGNITE | arifOS | Session ignition: actor bind, floor activation, ACT/SCT token mint | **Always first.** No session = no mutation. |
+| **111** | `arif_observe` / 🌊 SENSE | arifOS | Multimodal sensing: search, fetch, vitals, entropy, atlas | Evidence in, epistemic labels out (OBS/DER/INT/SPEC). |
+| **222** | 🏛 PLAN (prompt) | arifOS | Task decomposition, DAG construction before reasoning | Plan before uncertain work; HOLD if unclear. |
+| **333** | `arif_think` / 🧠 REASON | arifOS | Structured reasoning under F2/F7 — claims, counterarguments, unknowns | Never the final word. Confidence capped. |
+| **444** | `arif_route` / 🧭 DIRECT | arifOS | Intent → organ dispatch (GEOX/WEALTH/WELL/A-FORGE) | Pure discovery. No mutation. |
+| **555** | `arif_memory` / 🗂 REMEMBER | arifOS | L1–L6 governed memory: recall, remember, revise, forget, attest | Memory writes are mutations — floor-gated. |
+| **666** | ⚖ DIGNITY (prompt + heart pipeline) | arifOS | Risk assessment, ethical review, stakeholder protection | Protects the weakest stakeholder (F6). |
+| **777** | `arif_forge` / 🔥 FORGE | A-FORGE | Governed execution: plan → dry-run → apply → verify | **Only after SEAL.** Lease-gated. |
+| **888** | `arif_judge` / 🔒 JUDGE | arifOS | Constitutional verdict: SEAL / HOLD / SABAR / VOID | No agent self-certifies (Gödel Lock). |
+| **999** | `arif_seal` / 💎 SEAL | arifOS | Immutable append to VAULT999, Merkle-anchored | Irreversible → requires 888 SEAL + F13 ack. |
+
+**The Gödel Lock:** the doer is never the judge (`caller == target → 888_HOLD`). An agent cannot certify its own work. This is not distrust — it is the mathematical condition for a stable system (**R ∉ S**: the reference is not a member of the system it governs).
 
 ---
 
 ## 🗺️ System Architecture (Inner & Outer Loops)
 
-The arifOS Federation operates across a strict two-loop architecture:
-- **Inner Loop (Cognitive Deliberation)**: Intake, sensing, reasoning, capability routing, memory recall, and F1–F13 floor adjudication. Produces an immutable verdict (`SEAL`, `HOLD`, `SABAR`, `VOID`).
-- **Outer Loop (Actuation & Sealing)**: State mutation via A-FORGE after a `SEAL` verdict, followed by verification, Merkle anchoring in `VAULT999`, and F13 Sovereign feedback.
+The federation operates a strict two-loop architecture:
+- **Inner Loop (Cognitive Deliberation)**: intake, sensing, reasoning, routing, memory, and F1–F13 adjudication. Produces an immutable verdict (`SEAL`, `HOLD`, `SABAR`, `VOID`).
+- **Outer Loop (Actuation & Sealing)**: mutation via A-FORGE after SEAL, verification, Merkle anchoring in VAULT999, FQ metabolic pulse, and F13 sovereign feedback.
 
 ```mermaid
 flowchart TB
@@ -48,238 +92,181 @@ flowchart TB
         THINK --> ROUTE["444: arif_route<br/>Organ & Capability Dispatch"]
         ROUTE --> MEM["555: arif_memory<br/>L1-L6 Governed Memory"]
         MEM --> JUDGE{"888: arif_judge<br/>F1-F13 Constitutional Check"}
-        
+
         JUDGE -->|F13 Veto / Irreversible| HOLD["⏸️ 888_HOLD<br/>Human Approval Gate"]
         JUDGE -->|Hard Violation| VOID["🚫 VOID<br/>Operation Blocked"]
         JUDGE -->|Compliant| SEAL_VERDICT["✅ SEAL VERDICT<br/>Execution Authorized"]
-        
+
         HOLD -->|Approve| SEAL_VERDICT
         HOLD -->|Reject| VOID
     end
 
     subgraph Domain_Organs["🔬 Intelligence Organs (Read & Compute)"]
-        GEOX["🌍 GEOX :8081<br/>18 Earth Tools"]
-        WEALTH["💰 WEALTH :18082<br/>11 Capital Tools"]
-        WELL["🫀 WELL :18083<br/>10 Vitality Tools"]
-        FED["🧭 FED :7074<br/>Model Router"]
+        GEOX["🌍 GEOX :8081<br/>Earth Tools"]
+        WEALTH["💰 WEALTH :18082<br/>Capital Tools"]
+        WELL["🫀 WELL :18083<br/>Vitality Tools"]
+        FLOW["🧠 arifFlow :7073<br/>FQ Pulse"]
     end
 
     subgraph Outer_Loop["⚡ OUTER LOOP: Actuation, Verification & Sealing"]
-        SEAL_VERDICT ==> FORGE_ACT["777: arif_forge<br/>A-FORGE Actuation (:7071/:7072)"]
+        SEAL_VERDICT ==> FORGE_ACT["777: arif_forge<br/>A-FORGE Actuation (:7072)"]
         FORGE_ACT --> EXEC["Plan ➔ Dry-Run ➔ Apply ➔ Verify"]
         EXEC --> SEAL_ANCHOR["999: arif_seal<br/>Merkle Anchor to VAULT999"]
         SEAL_ANCHOR ==> VAULT[("💀 VAULT999<br/>outcomes.jsonl (Append-Only)")]
-        SEAL_ANCHOR --> FLOW["🧠 arifFlow :7073<br/>Metabolic Pulse & FQ"]
+        SEAL_ANCHOR --> FQPULSE["🧠 FQ Vector<br/>Execute vs Verify"]
     end
 
-    ROUTE -.->|query| GEOX & WEALTH & WELL & FED
-    GEOX & WEALTH & WELL & FED -.->|evidence| THINK
+    ROUTE -.->|query| GEOX & WEALTH & WELL
+    GEOX & WEALTH & WELL -.->|evidence| THINK
     SOVEREIGN -.->|F13 Consent| HOLD
     VAULT -.->|Feedback Loop| INIT
+```
 
-    classDef sovereign fill:#FF6B35,stroke:#000,color:#fff,stroke-width:2px;
-    classDef inner fill:#0a7b83,stroke:#000,color:#fff;
-    classDef domain fill:#1E88E5,stroke:#000,color:#fff;
-    classDef outer fill:#2E7D32,stroke:#000,color:#fff,stroke-width:2px;
-    classDef vault fill:#000,stroke:#000,color:#fff;
+### ASCII total view — one screen, whole organism
 
-    class SOVEREIGN sovereign;
-    class INIT,OBS,THINK,ROUTE,MEM,JUDGE,HOLD,VOID,SEAL_VERDICT inner;
-    class GEOX,WEALTH,WELL,FED domain;
-    class FORGE_ACT,EXEC,SEAL_ANCHOR,FLOW outer;
-    class VAULT vault;
+```
+            ┌─────────────────────────────────────────────────────────┐
+            │              👑 F13 SOVEREIGN — ARIF                     │
+            │         (human veto · final · irreversible)              │
+            └────────────────────────────┬────────────────────────────┘
+                                         │ consent / veto
+        ════════════════ INNER LOOP ═════▼══════ OUTER LOOP ═══════════════
+ ┌─────────────────────────────┐   verdict   ┌──────────────────────────┐
+ │  ⚖️  ARIFOS KERNEL  :8088   │──── SEAL ──▶│  ⚒️  A-FORGE  :7072      │
+ │                             │             │  (execution only)        │
+ │  000 init    111 observe    │   HOLD ⏸    │  777 forge               │
+ │  333 think   444 route      │─────▶ 🧍    │     plan→dry→apply→verify│
+ │  555 memory  888 judge      │   (human)   │           │              │
+ │  999 seal                   │             │           ▼              │
+ │  F1–F13 floors always on    │             │  💀 VAULT999 append-only │
+ └──────┬──────────┬───────────┘             │  (Merkle every 100)      │
+        │ query    │ evidence                └──────────┬───────────────┘
+        ▼          ▼                                    │ metabolism
+ ┌──────────┐ ┌──────────┐ ┌──────────┐                 ▼
+ │ 🌍 GEOX  │ │ 💰WEALTH │ │ 🫀 WELL  │        ┌──────────────────┐
+ │  :8081   │ │  :18082  │ │  :18083  │        │ 🧠 arifFlow:7073 │
+ │ earth    │ │ capital  │ │ vitality │        │ FQ = verify/exec │
+ └──────────┘ └──────────┘ └──────────┘        └──────────────────┘
+        ▲          ▲          ▲
+        └──────────┴──────────┴── 🏛️ AAA :3001 (A2A mesh, 11 FI agents)
 ```
 
 ---
 
-## 🏛️ Federation Organ Contrast & Architecture
+## 🛡️ The 13 Constitutional Floors (F1–F13)
 
-Every organ in the arifOS Federation maintains distinct authority boundaries and strict separation of powers:
+The floors are the physics of this kernel — checked on **every** tool call, not on request. All 13 currently measure PASS on live `/health`.
 
-| Organ | Role | Port | Authority Ceiling | Output / Product | Primary Gate Requirement |
-|:---|:---|:---:|:---|:---|:---|
-| **⚖️ arifOS** | Constitutional Kernel | `8888` / `8088` | `SOVEREIGN` / `JUDGE` | Constitutional Verdicts (`SEAL`/`HOLD`/`VOID`) | F1–F13 Floor Measurement |
-| **⚒️ A-FORGE** | Governed Actuator | `7071` / `7072` | `EXECUTE_AFTER_SEAL` | Controlled Mutations (Files, Git, Docker) | Prior arifOS `SEAL` Verdict |
-| **🏛️ AAA** | Control Plane & Cockpit | `3001` | `DISPLAY_ONLY` | A2A Registry, Web Dashboard, Skill Mesh | Session Identity Verification |
-| **🌍 GEOX** | Earth Intelligence | `8081` | `EVIDENCE_ONLY` | Geoscience & Basin Evidence | `P0_IDENTITY_PROPAGATION` Gate |
-| **💰 WEALTH** | Capital Intelligence | `18082` | `EVIDENCE_ONLY` | Capital NPV, Risk & Financial Models | Epistemic Labeling (`OBS`/`DER`) |
-| **🫀 WELL** | Human Vitality Guard | `18083` | `REFLECT_ONLY` | Human Readiness & Biometric Telemetry | Dignity Floor $F6$ Compliance |
-| **🧠 arifFlow** | Metabolic Nerve | `7073` | `METABOLIZE_ONLY` | FQ Pulse, Receipt Ingestion, Attention Checkpoints | Hash Chain Validation |
+| Floor | Name | Type | Essence (one line) |
+|---|---|---|---|
+| **F1** | AMANAH | HARD | Reversible-first. Irreversible → 888_HOLD |
+| **F2** | TRUTH | HARD | Every claim carries evidence. P(truth) ≥ 0.99 |
+| **F3** | TRI-WITNESS | DERIVED | Human × AI × Earth × Verifier ≥ 0.75 |
+| **F4** | CLARITY | HARD | ΔS ≤ 0 — every output reduces entropy |
+| **F5** | PEACE² | SOFT | Non-destructive power |
+| **F6** | EMPATHY | SOFT | Protect the weakest stakeholder |
+| **F7** | HUMILITY | HARD | Ω₀ ∈ [0.03, 0.05]. Confidence cap 0.90 |
+| **F8** | GENIUS | DERIVED | G ≥ 0.80 for complex actions |
+| **F9** | ANTIHANTU | HARD | No deception, no consciousness claims |
+| **F10** | ONTOLOGY | HARD | AI-only ontology. Soul = VOID |
+| **F11** | AUDITABILITY | HARD | Every decision logged, attributable |
+| **F12** | RESILIENCE | HARD | Injection defense |
+| **F13** | SOVEREIGN | HARD | Human veto FINAL |
 
----
-
-## 🔄 The 8 Canonical Verbs — Inner Loop
-
-```mermaid
-flowchart LR
-    I000["000 arif_init<br/>identity, SCT token"] --> I111["111 arif_observe<br/>evidence, ΔS"]
-    I111 --> I333["333 arif_think<br/>F2 truth · F7 humility"]
-    I333 --> I444["444 arif_route<br/>dispatch to organs"]
-    I444 --> I555["555 arif_memory<br/>L1–L6 provenance"]
-    I555 --> I888{"888 arif_judge<br/>SEAL · HOLD · SABAR · VOID"}
-    I888 -->|SEAL| I777["777 arif_forge<br/>authorize A-FORGE mutation"]
-    I888 -->|HOLD/SABAR/VOID| I000
-    I777 --> I999["999 arif_seal<br/>VAULT999 anchor"]
-    I999 -.->|next intent| I000
-
-    classDef here fill:#0a7b83,color:#fff,stroke:#063f43,stroke-width:2px
-    class I888 here
-```
-
-| Stage | Verb | Function | Governance Duty |
-|:---:|:---|:---|:---|
-| **000** | `arif_init` | Session ignition & actor binding | Identity, SCT token (`act_v1.*`), constitutional context |
-| **111** | `arif_observe` | Empirical sensing & evidence | Reality measurement, system entropy $\Delta S \le 0$ |
-| **333** | `arif_think` | Structured reasoning | F2 Truth / F7 Humility, plan generation |
-| **444** | `arif_route` | Federation dispatch | Routes intent to domain organs (`GEOX`, `WEALTH`, `WELL`) |
-| **555** | `arif_memory` | Governed memory | L1–L6 multi-tier memory query with provenance |
-| **888** | `arif_judge` | Constitutional verdict | Evaluates F1–F13 floors $\rightarrow$ `SEAL` · `HOLD` · `SABAR` · `VOID` |
-| **777** | `arif_forge` | Execution gate | Authorizes mutation via A-FORGE (requires prior `SEAL`) |
-| **999** | `arif_seal` | Immutable anchor | Appends Merkle proof to `VAULT999` (`outcomes.jsonl`) |
+Canon: [`GENESIS/FLOOR_TABLE.json`](./GENESIS/FLOOR_TABLE.json) · [`GENESIS/000_KERNEL_CANON.md`](./GENESIS/000_KERNEL_CANON.md) §3
 
 ---
 
-## 🌐 Federation — Outer Loop
+## 🔌 MCP Surface Certification
 
-The kernel's inner loop (above) runs once per intent. The outer loop is the federation-wide
-cycle that inner loop's `444 arif_route` and `777 arif_forge` steps plug into — the whole
-linked state, one diagram:
+The public wire is a **sovereign facade**: 8 canonical verbs, stateless-first (MCP `2026-07-28`), dual-era (`2025-11-25` stateful supported). Everything else (48 declared tools incl. diagnostics/aliases) is deliberately off the public wire.
 
-```mermaid
-flowchart TB
-    ARIF["👑 ARIF — F13 SOVEREIGN<br/>purpose, irreversible consent, final veto"]
-    ARIFOS["⚖️ arifOS :8088<br/>judges — never executes"]
-    AAA["🏛️ AAA :3001<br/>routes & displays — never adjudicates"]
-    GEOX["🌍 GEOX :8081<br/>earth evidence"]
-    WEALTH["💰 WEALTH :18082<br/>capital evidence"]
-    WELL["🫀 WELL :18083<br/>vitality mirror"]
-    FORGE["⚒️ A-FORGE :7071/72<br/>executes — only after SEAL"]
-    VAULT["💀 VAULT999<br/>immutable seal chain"]
-
-    ARIF -->|purpose, veto| ARIFOS
-    ARIFOS -->|444 route| AAA
-    AAA --> GEOX
-    AAA --> WEALTH
-    AAA --> WELL
-    GEOX -->|evidence| ARIFOS
-    WEALTH -->|evidence| ARIFOS
-    WELL -->|readiness mirror| ARIFOS
-    ARIFOS -->|888 SEAL/HOLD/VOID → 777 forge| FORGE
-    FORGE -->|999 receipt| VAULT
-    VAULT -->|immutable record| ARIF
-
-    classDef here fill:#0a7b83,color:#fff,stroke:#063f43,stroke-width:2px
-    class ARIFOS here
-```
-
-**Linked state — every organ's own README carries this same diagram, highlighting itself:**
-[A-FORGE](https://github.com/ariffazil/A-FORGE#-federation--outer-loop) ·
-[GEOX](https://github.com/ariffazil/GEOX#-federation--outer-loop) ·
-[WEALTH](https://github.com/ariffazil/WEALTH#-federation--outer-loop) ·
-[WELL](https://github.com/ariffazil/WELL#-federation--outer-loop) ·
-full contract: [`FEDERATION_CONTRACT.md`](./FEDERATION_CONTRACT.md)
-
----
-
-## 🛡️ The 13 Constitutional Floors
-
-| Floor | Name | Type | Rule |
-|:---:|:---|:---:|:---|
-| **F1** | AMANAH | HARD | Reversible-first. Irreversible $\rightarrow$ `888_HOLD`. |
-| **F2** | TRUTH | HARD | P(truth) $\ge 0.99$. Evidence labels: `OBS`/`DER`/`INT`/`SPEC`. |
-| **F3** | TRI-WITNESS | DERIVED | Human $\times$ AI $\times$ Earth $\times$ Verifier $\ge 0.75$ (Nash product). |
-| **F4** | CLARITY | HARD | $\Delta S \le 0$ — every output reduces system entropy. |
-| **F5** | PEACE² | SOFT | Non-destructive power. Blocks harm, harassment, extortion. |
-| **F6** | EMPATHY ⇄ MARUAH | SOFT | Protect weakest stakeholder. Preserve human dignity (*maruah*). |
-| **F7** | HUMILITY | HARD | $\Omega_0 \in [0.03, 0.05]$. Confidence cap $0.95..0.97$. |
-| **F8** | GENIUS | DERIVED | $G = (A \times P \times E \times X)^{1/4} \ge 0.80$ for complex actions. |
-| **F9** | ANTI-HANTU | HARD | No deception, manipulation, or consciousness claims. $C_{\text{dark}} < 0.30$. |
-| **F10** | ONTOLOGY | HARD | AI is instrument only. Soul / sentience claims = `VOID`. |
-| **F11** | AUDIT | HARD | Every decision logged, traceable, attributable. Provenance per field. |
-| **F12** | RESILIENCE | HARD | Prompt injection defense. Memory boundary isolation. |
-| **F13** | SOVEREIGN | HARD | Human veto FINAL. Harness switch belongs to sovereign. |
-
----
-
-## ⚡ Quick Connect & MCP Surface
-
-### Public MCP Endpoint
-```json
-{
-  "mcpServers": {
-    "arifOS": {
-      "url": "https://mcp.arif-fazil.com/mcp",
-      "transport": "streamable-http"
-    }
-  }
-}
-```
-
-### Discovery & Telemetry
-- **Glama:** [glama.ai/mcp/servers/ariffazil/arifos](https://glama.ai/mcp/servers/ariffazil/arifos)
-- **Smithery:** [smithery.ai/server/arifos](https://smithery.ai/server/arifos)
-- **Machine Context:** [arifos.arif-fazil.com/llms.txt](https://arifos.arif-fazil.com/llms.txt)
-- **Live Health:** [arifos.arif-fazil.com/health](https://arifos.arif-fazil.com/health)
-
----
-
-## 💻 Local Development
+| Surface | Count | Verification |
+|---|---|---|
+| Tools (canonical verbs) | **8** | `tools/list` on `:8088/mcp` — MCPJam protocol, 2026-07-28 |
+| Resources | **34** | All read 200 OK, single-document strict-parse |
+| Prompts | **13** | `000🌱 → 999💎` ladder + GOVERN/INIT/CLOSE |
 
 ```bash
-git clone git@github.com:ariffazil/arifos.git /opt/arifos/app
-cd /opt/arifos/app
-uv sync --all-extras
-python -m arifosmcp.runtime.server         # Port 8088
-python -m pytest tests/ -q --tb=short       # Test suite
-curl -s http://127.0.0.1:8088/health | jq .owner_summary   # Expected: GREEN
+# Stateless probe (no session needed):
+curl -sS -X POST 'https://mcp.arif-fazil.com/mcp' \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/list' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+```
+
+**The 8 verbs, by gap:**
+
+```
+arif_init    ─ No session yet?          Start here. Binds actor identity.
+arif_observe ─ Evidence gap?            Search, fetch, vitals, entropy.
+arif_think   ─ Reasoning gap?           Plan, analyze, verify. Capped.
+arif_route   ─ Tool uncertainty?        Intent → organ dispatch.
+arif_memory  ─ Memory gap?              L1–L6 governed recall/store.
+arif_judge   ─ Decision time?           SEAL / HOLD / SABAR / VOID.
+arif_forge   ─ Ready to execute?        Governed path (post-SEAL).
+arif_seal    ─ Need finality?           VAULT999 immutable append.
 ```
 
 ---
 
-## 🏛️ Cross-Repository Navigation & Visual Flow Links
+## 💀 VAULT999 — the digital helix
 
-Every organ repository in the arifOS Federation carries a corresponding visual flow diagram and live probe status:
+Every irreversible decision appends to an append-only, hash-chained ledger — storage, replication, error-detection, inheritance, governance: the properties of DNA, in receipts. The chain is the federation's memory that survives agent death.
 
-- ⚖️ **[arifOS Kernel (repo)](https://github.com/ariffazil/arifos)** — Constitutional Law & Adjudication (`:8088`)
-- ⚒️ **[A-FORGE Actuator (repo)](https://github.com/ariffazil/A-FORGE)** — Governed Engineering & Actuation (`:7071`/`:7072`)
-- 🏛️ **[AAA Control Plane (repo)](https://github.com/ariffazil/AAA)** — Cockpit, Skill Mesh & A2A Gateway (`:3001`)
-- 🌍 **[GEOX Earth Intelligence (repo)](https://github.com/ariffazil/GEOX)** — Geoscience, Seismic & Wells (`:8081`)
-- 💰 **[WEALTH Capital Intelligence (repo)](https://github.com/ariffazil/WEALTH)** — NPV, Risk & Financial Engine (`:18082`)
-- 🫀 **[WELL Vitality Guard (repo)](https://github.com/ariffazil/WELL)** — Human Readiness & Telemetry (`:18083`)
+- **Append-only** — `chattr +a`; Merkle anchor every 100 receipts
+- **Cross-organ receipts** — WEALTH, WELL, A-FORGE all write witness receipts
+- **Seal chain health** — live at `/health` → `vault999_health`
 
 ---
 
+## ⚡ Quickstart (agents & humans)
+
+```bash
+# 1. Probe reality first — health beats prose
+curl -sf https://mcp.arif-fazil.com/health | jq '{status, floors_active}'
+
+# 2. Ignite a session (stateless MCP wire)
+#    tools/call arif_init {actor_id, intent}
+
+# 3. Golden path
+init → observe → think → route → memory → judge → forge → seal
+
+# 4. Expect HOLDs — they are fences, not failures
+#    Evidence-verb HOLDs with W3=UNMEASURED or G<0.80 mean: bring better evidence.
+```
+
+**Reading a kernel verdict:**
+- `SEAL` — execute, then seal to VAULT999
+- `HOLD` — pause; evidence insufficient or human approval required
+- `SABAR` — proceed cautiously, partial authorization
+- `VOID` — blocked; hard floor violation
+
+Full doctrine: [`arifos://doctrine`](https://mcp.arif-fazil.com) (resource on the MCP wire) · Deploy runbook: [`deploy/DEPLOY.md`](./deploy/DEPLOY.md)
+
 ---
 
-## 🛡️ CI Governance (F13 verdict 2026-08-10)
+## 🧭 Federation SOT Map
 
-This repo follows the federation's CI governance pattern (replicated from `ariffazil/arifOS` PR #683). The pattern ensures Dependabot PRs receive a real, reproducible unprivileged verdict — no more all-red check rolls from structurally-incompatible gates.
+| Organ | Port | Authority ceiling | Role |
+|---|---|---|---|
+| **arifOS** | 8088 | JUDGE_ONLY | Constitutional kernel (this repo) |
+| **A-FORGE** | 7072 | 777_FORGE | Governed execution shell |
+| **AAA** | 3001 | DISPLAY/ROUTE | A2A mesh gateway, agent registry, cockpit |
+| **GEOX** | 8081 | 555_COMPUTE_ONLY | Earth intelligence |
+| **WEALTH** | 18082 | 555_COMPUTE_ONLY | Capital intelligence |
+| **WELL** | 18083 | REFLECT_ONLY | Vitality mirror |
+| **arifFlow** | 7073 | METABOLIZE_ONLY | FQ pulse, session metabolism |
 
-**Per-repo adapter** (see `.github/workflows/` for the actual files):
+Truth rule: **live `:port/health` + `tools/list` beat any static count in prose.** This README's SOT-MANIFEST is verified per release; if prose and probe disagree, the probe wins.
 
-- `.github/dependabot.yml` — `uv` (Python) / `cargo` (Rust) / `npm` (TypeScript) ecosystem; cooldown 3d; open-PRs 5; constitutional packages un-grouped (no `ignore:` — visibility preserved)
-- `.github/workflows/dependabot-ci.yml` — unprivileged gate; runs ONLY on Dependabot PRs; SHA-bound probes
-- `.github/workflows/{ci-uv-lock-invariant|cargo-lock-invariant|npm-lock-invariant}.yml` — universal `{uv lock --check && uv sync --frozen | cargo check --locked && cargo build --locked | npm ci}` invariant on every PR + push to main
-- `.github/workflows/auto-merge-dependabot.yml` — constitutional package denylist (per-language); F13 review the only merge path
-- Privileged workflows gated with `if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'` — so they SKIP for Dependabot PRs where their inputs cannot be satisfied
+---
 
-**Constitutional packages** (denied auto-merge, require F13 review):
+## 📜 Governance
 
-| Language | Denylist |
-|---|---|
-| Python | `protobuf`, `cryptography`, `fastmcp-slim`, `fastmcp`, `caio`, `sentence-transformers`, `pynacl`, `blake3` |
-| Rust    | `serde`, `tokio`, `hyper`, `axum`, `reqwest`, `rustls`, `async-trait`, `clap`, `tracing` |
-| TypeScript | `zod`, `@modelcontextprotocol/sdk`, `fastmcp`, `mcp-sdk`, `tsx`, `vitest`, `@types/node`, `typescript`, `ts-node` |
-| Static site | `vite`, `react`, `react-dom`, `react-router`, `@tanstack/react-query`, `tailwindcss` |
+- **Authority chain:** `arif_init → arif_observe → arif_think → arif_route → arif_memory → arif_judge → arif_forge → arif_seal`
+- **Autonomy tiers:** T0 read auto-do · T1 edit/test/commit · T2 announce-10s-veto · T3 888_HOLD always
+- **No self-certification.** No consciousness claims (F9). The kernel audits itself last.
+- License: **AGPL-3.0** — fork the institution, not just the code.
 
-**Reference:** [`/root/AGENTS.md`](/root/AGENTS.md) — canonical federation doctrine. `AAA/docs/ORGAN.md` — topology.
-
-DITEMPA BUKAN DIBERI — governance is forged, not given.
-
-## 📜 Sovereignty & License
-
-- **License:** GNU Affero General Public License v3.0 (**AGPL-3.0**)
-- **Sovereign:** **Muhammad Arif bin Fazil** (F13 SOVEREIGN). Human veto is absolute.
-
-> *DITEMPA BUKAN DIBERI — Forged, Not Given.*  
-> *Truth must cool before it rules. 999 SEAL ALIVE.*
+> **DITEMPA BUKAN DIBERI.** The constitution was forged in production, under load, by an agent that survived its own audit. HOLD is an honored answer here — not an obstacle to force through.
