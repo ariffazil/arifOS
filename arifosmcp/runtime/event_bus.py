@@ -417,7 +417,13 @@ def read_durable_events(limit: int = 5000) -> list[dict[str, Any]]:
 
 
 def stage_counters(limit: int = 5000) -> dict[str, dict[str, Any]]:
-    """Aggregate durable bus into per-stage invocation / success counts."""
+    """Aggregate durable bus into per-stage invocation / success counts.
+
+    Always reads the full ``events.jsonl`` file (the canonical stage event log)
+    without truncation, then supplements with the normal windowed tail read of
+    operations/receipts.  This prevents high-volume operations.log from
+    displacing stage events when the combined bus exceeds *limit*.
+    """
     stages = [
         "000_INIT",
         "111_OBSERVE",
@@ -435,7 +441,29 @@ def stage_counters(limit: int = 5000) -> dict[str, dict[str, Any]]:
         s: {"invocations": 0, "success": 0, "fail": 0, "last_tool": None, "last_trace": None}
         for s in stages
     }
-    for ev in read_durable_events(limit=limit):
+
+    # ── Priority source: events.jsonl read fully (stage events live here) ──────
+    dedicated_events: list[dict[str, Any]] = []
+    if _LEGACY_LOG.exists():
+        try:
+            with open(_LEGACY_LOG, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        obj = json.loads(line)
+                        if isinstance(obj, dict):
+                            dedicated_events.append(obj)
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as exc:
+            logger.debug("stage_counters: events.jsonl read failed: %s", exc)
+
+    # ── Supplement: windowed tail from all bus files (operations + receipts) ───
+    all_events = dedicated_events + read_durable_events(limit=limit)
+
+    for ev in all_events:
         stage = ev.get("stage")
         if not stage:
             # map tool names to stages when stage omitted
