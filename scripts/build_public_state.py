@@ -17,6 +17,9 @@ from typing import Any
 SNAPSHOT_LATEST = Path("/root/.arifos/observatory/snapshots/snapshot_latest.json")
 OUT_RUNTIME = Path("/root/.arifos/observatory/public-state.json")
 OUT_WEBROOT = Path("/var/www/html/arifos/public-state.json")
+OUT_WEBROOT_WELLKNOWN = Path(
+    "/var/www/html/arifos/.well-known/public-state.json"
+)  # FIX-1 mirror 2026-08-14: observatory.js fallback surface
 PROOF_JSON = Path("/var/www/html/mcp/proof/index.json")
 MCP_HEALTH_URL = "http://127.0.0.1:8088/health"
 ORGAN_PORTS = {
@@ -327,9 +330,7 @@ def _override_floors_with_canonical(
     return out
 
 
-def _override_verdict_with_canonical(
-    gov: dict[str, Any], extras: dict[str, Any]
-) -> dict[str, Any]:
+def _override_verdict_with_canonical(gov: dict[str, Any], extras: dict[str, Any]) -> dict[str, Any]:
     """T1.4 — replace the snapshot's parser verdict (UNKNOWN) with the kernel
     canonical_verdict (e.g. SYUBHAH, SABAR, SEAL, HOLD) so the renderer
     displays the truth instead of "HOLD (raw UNKNOWN)".
@@ -602,7 +603,8 @@ def project_public_state(
     )
     normalized_findings = normalize_findings(all_findings)
     open_normalized = [
-        f for f in normalized_findings
+        f
+        for f in normalized_findings
         if isinstance(f, dict) and str(f.get("status", "")).upper() == "OPEN"
     ]
     # Recompute by_severity from the normalized list so summary fields agree
@@ -713,7 +715,9 @@ def project_public_state(
             "last_check_at": extra.get("drift_last_check_at"),
             "overall_status": extra.get("drift_overall_status"),
             "age_seconds": extra.get("drift_age_seconds"),
-            "source": extra.get("drift_source", "/root/.local/share/arifos/vault999/drift_log.jsonl"),
+            "source": extra.get(
+                "drift_source", "/root/.local/share/arifos/vault999/drift_log.jsonl"
+            ),
         },
         # ── Chain integrity (T1.5): sanitized card from /seal/verify.
         # Sensitive fields (ledger_path, failure_classes) are operator-only.
@@ -855,7 +859,9 @@ def project_public_state(
 
 PUBLIC_STATE_SCHEMA = "arifos.public-state.v1"
 PUBLIC_STATE_OBSERVATORY_V1_ALIAS = "observatory.v1"  # backward-compat hint
-PUBLIC_STATE_EVIDENCE_CLASS = "reported"  # default class; renderer treats lower trust than observatory.v1
+PUBLIC_STATE_EVIDENCE_CLASS = (
+    "reported"  # default class; renderer treats lower trust than observatory.v1
+)
 ORGAN_ID_ALIASES: dict[str, str] = {
     "arifos_kernel": "arifos",
     "arifos-kernel": "arifos",
@@ -978,17 +984,13 @@ def _normalize_finding(
         receipt = raw["envelope"].get("receipt")
 
     severity_value = raw.get("severity") or raw.get("severity_level") or "LOW"
-    state_token = raw.get("state") or raw.get("evidence_state") or (
-        "observed" if source else "unknown"
+    state_token = (
+        raw.get("state") or raw.get("evidence_state") or ("observed" if source else "unknown")
     )
     status_token = raw.get("status") or "OPEN"
     category_token = raw.get("category") or raw.get("class") or "GENERAL"
     description_token = (
-        raw.get("description")
-        or raw.get("summary")
-        or raw.get("title")
-        or raw.get("message")
-        or ""
+        raw.get("description") or raw.get("summary") or raw.get("title") or raw.get("message") or ""
     )
 
     finding_id = (
@@ -1003,8 +1005,10 @@ def _normalize_finding(
     upstream_organ = raw.get("organ_id") or raw.get("organ")
     normalized_organ = stable_organ_id(upstream_organ or organ_id)
 
-    raw_evidence_url = raw.get("evidence_url") or raw.get("url") or (
-        f"https://arifos.arif-fazil.com/findings/{finding_id}" if finding_id else None
+    raw_evidence_url = (
+        raw.get("evidence_url")
+        or raw.get("url")
+        or (f"https://arifos.arif-fazil.com/findings/{finding_id}" if finding_id else None)
     )
 
     return {
@@ -1020,7 +1024,8 @@ def _normalize_finding(
         "evidence": evidence_links or None,
         "timestamp": str(timestamp) if timestamp else None,
         "confidence": (
-            confidence_float if confidence_float is not None and 0.0 <= confidence_float <= 1.0
+            confidence_float
+            if confidence_float is not None and 0.0 <= confidence_float <= 1.0
             else None
         ),
         "source": str(source) if source else None,
@@ -1103,8 +1108,10 @@ def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, 
         organ_id = row_organ_hint
     else:
         organ_id = "unknown"
-    label = row.get("organ") or row.get("label") or (
-        ORGAN_META.get(organ_id, {}).get("label") if organ_id != "unknown" else "UNKNOWN"
+    label = (
+        row.get("organ")
+        or row.get("label")
+        or (ORGAN_META.get(organ_id, {}).get("label") if organ_id != "unknown" else "UNKNOWN")
     )
     transport = row.get("transport") or row.get("state") or "UNKNOWN"
     confidence = row.get("confidence")
@@ -1129,7 +1136,8 @@ def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, 
         "last_observed": last_observed,
         "timestamp": last_observed,
         "confidence": (
-            confidence_float if confidence_float is not None and 0.0 <= confidence_float <= 1.0
+            confidence_float
+            if confidence_float is not None and 0.0 <= confidence_float <= 1.0
             else None
         ),
         "source": row.get("source") or "127.0.0.1 tcp probe",
@@ -1152,7 +1160,7 @@ def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, 
 def write_public_state(state: dict[str, Any]) -> list[Path]:
     encoded = json.dumps(state, indent=2, ensure_ascii=False) + "\n"
     written: list[Path] = []
-    for path in (OUT_RUNTIME, OUT_WEBROOT):
+    for path in (OUT_RUNTIME, OUT_WEBROOT, OUT_WEBROOT_WELLKNOWN):
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(encoded, encoding="utf-8")
@@ -1176,11 +1184,25 @@ def collect_extras() -> dict[str, Any]:
     aaa = probe_url("http://127.0.0.1:3001/health", timeout=2.0)
     if aaa.get("state") == "PRESENT":
         apex = aaa.get("data", {}).get("apex_scalars") or {}
-        extras["apex_G"] = apex.get("G", {}).get("value") if isinstance(apex.get("G"), dict) else apex.get("G")
-        extras["apex_C_dark"] = apex.get("C_dark", {}).get("value") if isinstance(apex.get("C_dark"), dict) else apex.get("C_dark")
-        extras["apex_W3"] = apex.get("W3", {}).get("value") if isinstance(apex.get("W3"), dict) else apex.get("W3")
-        extras["apex_h"] = apex.get("h", {}).get("value") if isinstance(apex.get("h"), dict) else apex.get("h")
-        extras["apex_QDF"] = apex.get("QDF", {}).get("value") if isinstance(apex.get("QDF"), dict) else apex.get("QDF")
+        extras["apex_G"] = (
+            apex.get("G", {}).get("value") if isinstance(apex.get("G"), dict) else apex.get("G")
+        )
+        extras["apex_C_dark"] = (
+            apex.get("C_dark", {}).get("value")
+            if isinstance(apex.get("C_dark"), dict)
+            else apex.get("C_dark")
+        )
+        extras["apex_W3"] = (
+            apex.get("W3", {}).get("value") if isinstance(apex.get("W3"), dict) else apex.get("W3")
+        )
+        extras["apex_h"] = (
+            apex.get("h", {}).get("value") if isinstance(apex.get("h"), dict) else apex.get("h")
+        )
+        extras["apex_QDF"] = (
+            apex.get("QDF", {}).get("value")
+            if isinstance(apex.get("QDF"), dict)
+            else apex.get("QDF")
+        )
         extras["apex_source"] = "aaa:3001/health"
         extras["apex_observed_at"] = observed_at
 
@@ -1243,15 +1265,20 @@ def collect_extras() -> dict[str, Any]:
                     ts = rec.get("timestamp") or rec.get("checked_at")
                     payload = rec.get("payload") or {}
                     extras["drift_last_check_at"] = ts
-                    extras["drift_overall_status"] = payload.get("overall_drift") or rec.get("status")
+                    extras["drift_overall_status"] = payload.get("overall_drift") or rec.get(
+                        "status"
+                    )
                     if ts:
                         try:
                             from datetime import datetime, timezone
+
                             ts_clean = ts.replace("Z", "+00:00") if isinstance(ts, str) else ts
                             dt = datetime.fromisoformat(ts_clean)
                             if dt.tzinfo is None:
                                 dt = dt.replace(tzinfo=timezone.utc)
-                            extras["drift_age_seconds"] = int((datetime.now(timezone.utc) - dt).total_seconds())
+                            extras["drift_age_seconds"] = int(
+                                (datetime.now(timezone.utc) - dt).total_seconds()
+                            )
                         except Exception:
                             extras["drift_age_seconds"] = None
                 except Exception:
@@ -1283,16 +1310,21 @@ def collect_extras() -> dict[str, Any]:
         # 9-signal + canonical_verdict live inside arif_observe (MCP JSON-RPC).
         # Call it directly so the public-state carries the kernel's real verdict.
         try:
-            payload = json.dumps({
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "tools/call",
-                "params": {"name": "arif_observe", "arguments": {"mode": "identity"}},
-            }).encode("utf-8")
+            payload = json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/call",
+                    "params": {"name": "arif_observe", "arguments": {"mode": "identity"}},
+                }
+            ).encode("utf-8")
             req = urllib.request.Request(
                 "http://127.0.0.1:8088/mcp",
                 data=payload,
-                headers={"Content-Type": "application/json", "Accept": "application/json, text/event-stream"},
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             with urllib.request.urlopen(req, timeout=4.0) as resp:
                 raw = resp.read().decode("utf-8", errors="replace")
@@ -1326,9 +1358,9 @@ def collect_extras() -> dict[str, Any]:
                     extras["kernel_next_safe_action"] = meta.get("next_safe_action")
                     # The witness reason is also surfaced in evidence_reference of action
                     action = (inner.get("verdicts") or {}).get("action") or {}
-                    extras["kernel_canonical_verdict"] = (
-                        action.get("evidence_reference", "").replace("canonical_verdict=", "")
-                    )
+                    extras["kernel_canonical_verdict"] = action.get(
+                        "evidence_reference", ""
+                    ).replace("canonical_verdict=", "")
                     extras["kernel_source"] = "arifOS:8088/mcp tools/call arif_observe"
         except Exception as exc:
             extras["kernel_error"] = f"{type(exc).__name__}:{str(exc)[:80]}"

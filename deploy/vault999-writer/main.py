@@ -28,6 +28,7 @@ except ImportError:
 import asyncpg
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Phase 1: Ed25519 signature verification for sovereign ratification
