@@ -1279,6 +1279,12 @@ async def arif_judge(
                     "matched_rules": _precedent_advisory.get("matched_rules", []),
                     "advisory_only": True,
                 }
+            else:
+                _intercept_meta["precedent"] = {
+                    "queried": True,
+                    "matched": False,
+                    "advisory_only": True,
+                }
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
