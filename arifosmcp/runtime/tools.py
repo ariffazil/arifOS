@@ -8506,6 +8506,8 @@ def _ok(
     delta_S: float = 0.0,
     session_id: str | None = None,
     provider: str | None = None,
+    hold_required: bool = False,
+    hold_reason: str | None = None,
 ) -> dict[str, Any]:
     """Wrapped success response with non-mutating meta and optional context witness.
 
@@ -8736,8 +8738,16 @@ def _ok(
     # was zero" signal even when entropy was never measured.
     if isinstance(result, dict) and "delta_S" in result:
         delta_S = result["delta_S"]
+    # F4 ENTROPY GATE (2026-08-15): hold_required downgrades OK → HOLD.
+    # entropy_dS mode passes hold_required=True when contradictions detected.
+    # Previously crashed with TypeError → VOID fallback → delta_S lost.
+    _status = "HOLD" if hold_required else "OK"
+    _output_policy = "DOMAIN_HOLD" if hold_required else "DOMAIN_SEAL"
+    if hold_required:
+        nine_signal = _nine_signal_from_status("HOLD")
+        nine_signal = _annotate_nine_signal(nine_signal, _domain_for_tool(tool))
     response = {
-        "status": "OK",
+        "status": _status,
         "tool": tool,
         "result": result,
         "meta": meta_payload,
@@ -8750,13 +8760,21 @@ def _ok(
         "session_id": session_id,
         "actor_id": actor_id,
         "actor_verified": actor_verified,
-        "output_policy": "DOMAIN_SEAL",
+        "output_policy": _output_policy,
         "nine_signal": nine_signal,
-        "reasons": [
-            "Reversible operation — no irreversible state change",
-            f"tool={tool}",
-            f"delta_S={delta_S} within reversible thermodynamic bounds",
-        ],
+        "reasons": (
+            [
+                hold_reason or "Constitutional gate activated",
+                f"tool={tool}",
+                f"delta_S={delta_S} — entropy violation requires HOLD",
+            ]
+            if hold_required
+            else [
+                "Reversible operation — no irreversible state change",
+                f"tool={tool}",
+                f"delta_S={delta_S} within reversible thermodynamic bounds",
+            ]
+        ),
     }
     # Metacognitive guarantee on the direct _ok path too (for tools that bypass the outer wrapper)
     try:
