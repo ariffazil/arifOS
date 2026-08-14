@@ -2825,9 +2825,15 @@ def arif_init(
         # already exempts these actors (ACCEPTED RISK — IRR-DIP-AUDIT 2026-07-09).
         # "forge" = internal executor (LIMITED_MUTATE). "arif" = sovereign (FULL).
         if not identity_verified and actor_id:
-            actor_lower = normalize_actor_id(actor_id) or (
+            # P0.7 FIX (2026-08-15): normalize_actor_id returns UPPERCASE canonical
+            # form (e.g. "QWEN" for "qwen-code") but _ED25519_EXEMPT_SYSTEM_ACTORS
+            # has lowercase keys. Light-mode path at line 2148 already does
+            # .lower().strip() — init-mode path was missing it. Case-sensitive
+            # dict lookup failed → every exempt FI agent stayed OBSERVE_ONLY.
+            _raw_lower = normalize_actor_id(actor_id) or (
                 actor_id.lower().strip() if actor_id else None
             )
+            actor_lower = _raw_lower.lower().strip() if _raw_lower else None
             # Import the exempt set from session_auth (single source of truth)
             try:
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
