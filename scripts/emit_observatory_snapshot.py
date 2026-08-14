@@ -71,6 +71,51 @@ def _maybe_publish() -> None:
     print(f"  verification_url: {receipt['verification_url']}", file=sys.stderr)
 
 
+def _emit_chain_health() -> None:
+    """FIX-2 (2026-08-14): measure seal-chain health via the kernel verify
+    endpoint and publish it as a companion artifact next to the snapshot.
+
+    The chain file itself is NEVER rewritten (F1 append-only discipline).
+    This reads the kernel's own walk (corrupt lines + gaps) and, separately,
+    drops a dated quarantine report beside the chain so the damage is
+    documented without silent repair.
+    """
+    import urllib.request
+
+    url = "http://127.0.0.1:8088/api/observatory/v1/seal/verify"
+    try:
+        with urllib.request.urlopen(url, timeout=5) as resp:
+            health = json.loads(resp.read().decode("utf-8"))
+    except Exception as exc:
+        print(f"  chain-health: FAILED to reach kernel verify ({exc})", file=sys.stderr)
+        return
+    health["measured_at"] = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+
+    SNAP_DIR.mkdir(parents=True, exist_ok=True)
+    (SNAP_DIR / "chain_health_latest.json").write_text(
+        json.dumps(health, indent=2, default=str), encoding="utf-8"
+    )
+    chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+    if chain_path.exists():
+        report_path = chain_path.parent / "seal_chain.quarantine-report.json"
+        if not report_path.exists():
+            report_path.write_text(
+                json.dumps(health, indent=2, default=str), encoding="utf-8"
+            )
+            print(f"  chain-health: wrote one-time quarantine report {report_path}", file=sys.stderr)
+    target = os.environ.get("OBSERVATORY_PUBLISH_TARGET", "").strip() or None
+    if target:
+        out = Path(target) / "observatory-chain-health.json"
+        tmp = out.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(health, indent=2, default=str), encoding="utf-8")
+        tmp.replace(out)
+        print(
+            f"  chain-health: {health.get('status')} entries={health.get('entries')} "
+            f"corrupt={health.get('corrupt_lines')} gaps={len(health.get('gaps') or [])} -> {out}",
+            file=sys.stderr,
+        )
+
+
 def main() -> int:
     SNAP_DIR.mkdir(parents=True, exist_ok=True)
     print("=== arifOS Observatory Emitter — generating signed snapshot ===", file=sys.stderr)
@@ -97,6 +142,7 @@ def main() -> int:
             file=sys.stderr,
         )
     _maybe_publish()
+    _emit_chain_health()
     return 0
 
 
