@@ -7,9 +7,9 @@ whole system. NEW module — does not modify boot hooks (F1 reversible).
 
 LOCKS:
   L1 Gödel      — no self-certification; reality final auditor.
-                    (wraps existing godel_lock_gate.godel_lock_gate(ctx))
+                     (wraps existing godel_lock_gate.godel_lock_gate(ctx))
   L2 Calhoun    — NEW: BOTH ratio poles (fossilisation verify:exec, burn exec:verify).
-                    NOT the WEALTH market calhoun. This is the institutional sink guard.
+                     NOT the WEALTH market calhoun. This is the institutional sink guard.
   L3 Helix      — NEW: judge-before-seal chain check. No seal without a prior judge.
   L4 RSI Flow   — NEW: verification must be banked into the ledger (memory flow).
 
@@ -17,7 +17,21 @@ Design: pure, deterministic core (ratio poles, chain check) so the arithmetic is
 unit-testable and can never silently drift (Calhoun determinism == the SOT rule).
 Gödel coupling is lazy/try-import so the module degrades cleanly without the ctx.
 
-DITEMPA BUKAN DIBERI · forged in flow, not in drift.
+AMENDMENTS v2 (2026-08-14, F13 directive "execute all autonomously forge all to seal"
+— post governance-lock review, 6-finding amendment set):
+  #1 SUSTAIN + HYSTERESIS — Lock 2 HOLDs only when a pole is held across K>=2
+     consecutive observation windows OR >= SUSTAIN_SECONDS (30 min). Single-window
+     breach → WARN (receipt, not block). Release only below RELEASE_RATIO (2.8),
+     creating a 2.8–3.0 deadband so the gate cannot flap at the 3.0 operating point.
+  #3 HONEST LOCKS — absent evidence is VACUOUS (None), never a silent True.
+     godel without ctx → None; helix chain without events → None. all_pass ignores
+     VACUOUS (does not block) but every verdict string reports it honestly.
+  #5 VECTOR-FIRST LOCK 2 — the gating signal is arifFlow's vector `diagnosis`
+     (VERIFICATION/EXECUTION DOMINANCE), NOT the deprecated scalar ratio. Scalar
+     poles survive only as divergence evidence + hysteresis release input.
+
+The engine stays PURE (no I/O, no clock) — sustain state and time are injected
+by helix_wiring (the I/O layer). DITEMPA BUKAN DIBERI · forged in flow, not in drift.
 """
 
 from __future__ import annotations
@@ -35,6 +49,11 @@ from typing import Any, Dict, List, Optional
 # cold-start noise (mirrors kernel FQ sample-window behaviour).
 RATIO_LIMIT: float = 3.0
 MIN_TOTAL: int = 6
+
+# Amendment #1 — sustain + hysteresis geometry.
+SUSTAIN_WINDOWS: int = 2  # K consecutive pole windows before HOLD
+SUSTAIN_SECONDS: float = 1800.0  # 30 min time floor (seals are sporadic observers)
+RELEASE_RATIO: float = 2.8  # hysteresis: clear a HOLD only below this
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -92,6 +111,117 @@ def compute_sink_poles(
     return {"fossilisation": fossilisation, "burn": burn}
 
 
+def dominant_ratio(
+    execute: int,
+    verify: int,
+    min_total: int = MIN_TOTAL,
+) -> Optional[float]:
+    """Scalar dominance magnitude in the dominant direction (>= 1.0), or None
+    when totals are too small to be meaningful. Pure hysteresis input (Amendment #1)."""
+    if execute + verify < min_total:
+        return None
+    if execute <= 0 or verify <= 0:
+        return float("inf") if (execute + verify) > 0 else None
+    return max(verify / execute, execute / verify)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LOCK 2 (Amendment #5) — VECTOR POLES: the diagnosis IS the signal
+# ─────────────────────────────────────────────────────────────────────────────
+VECTOR_FOSSILISATION = "VERIFICATION DOMINANCE"
+VECTOR_BURN = "EXECUTION DOMINANCE"
+
+
+def vector_poles(diagnosis: Optional[str]) -> Dict[str, Any]:
+    """Map arifFlow's vector diagnosis onto sink poles. PURE.
+
+    Returns {"poles": {fossilisation, burn}, "measured": bool}.
+    Absent/empty diagnosis → measured=False (VACUOUS — wiring fails open)."""
+    if not isinstance(diagnosis, str) or not diagnosis.strip():
+        return {"poles": {"fossilisation": False, "burn": False}, "measured": False}
+    d = diagnosis.strip().upper()
+    return {
+        "poles": {
+            "fossilisation": d == VECTOR_FOSSILISATION,
+            "burn": d == VECTOR_BURN,
+        },
+        "measured": True,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LOCK 2 (Amendment #1) — SUSTAIN + HYSTERESIS EVALUATION (PURE)
+# ─────────────────────────────────────────────────────────────────────────────
+def evaluate_lock2(
+    *,
+    pole_now: bool,
+    held_previous: bool = False,
+    consecutive_windows: int = 0,
+    pole_age_s: float = 0.0,
+    dominant_ratio_now: Optional[float] = None,
+    ratio_limit: float = RATIO_LIMIT,
+    release_ratio: float = RELEASE_RATIO,
+    sustain_windows: int = SUSTAIN_WINDOWS,
+    sustain_seconds: float = SUSTAIN_SECONDS,
+) -> Dict[str, Any]:
+    """Three-level Lock 2 verdict: PASS / WARN / HOLD. PURE — no clock, no I/O.
+
+    - pole_now sustained (K windows OR time floor)      → HOLD
+    - pole_now single window                            → WARN (receipt, not block)
+    - held_previous, pole cleared, ratio < release      → PASS (release)
+    - held_previous, pole cleared, ratio in deadband    → HOLD (stay held — no flap)
+    - held_previous, pole still held                    → HOLD (sustains automatically)
+    - no pole, not held                                 → PASS
+    """
+    if pole_now:
+        sustained = consecutive_windows >= sustain_windows or pole_age_s >= sustain_seconds
+        verdict = "HOLD" if sustained else "WARN"
+        return {
+            "verdict": verdict,
+            "held": verdict == "HOLD",
+            "consecutive_windows": consecutive_windows,
+            "pole_age_s": pole_age_s,
+            "release": False,
+            "deadband": False,
+            "sustain_windows": sustain_windows,
+            "sustain_seconds": sustain_seconds,
+        }
+    if held_previous:
+        # Release needs positive counter-evidence, not mere absence of the pole:
+        # vector primary (pole cleared) AND scalar out of the deadband.
+        if dominant_ratio_now is None or dominant_ratio_now < release_ratio:
+            return {
+                "verdict": "PASS",
+                "held": False,
+                "release": True,
+                "deadband": False,
+                "consecutive_windows": 0,
+                "pole_age_s": 0.0,
+                "sustain_windows": sustain_windows,
+                "sustain_seconds": sustain_seconds,
+            }
+        return {
+            "verdict": "HOLD",
+            "held": True,
+            "release": False,
+            "deadband": True,
+            "consecutive_windows": consecutive_windows,
+            "pole_age_s": pole_age_s,
+            "sustain_windows": sustain_windows,
+            "sustain_seconds": sustain_seconds,
+        }
+    return {
+        "verdict": "PASS",
+        "held": False,
+        "release": False,
+        "deadband": False,
+        "consecutive_windows": 0,
+        "pole_age_s": 0.0,
+        "sustain_windows": sustain_windows,
+        "sustain_seconds": sustain_seconds,
+    }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # LOCK 3 — HELIX CHAIN CHECK (PURE): judge-before-seal
 # ─────────────────────────────────────────────────────────────────────────────
@@ -147,6 +277,8 @@ def godel_wrap(ctx: Optional[Any] = None) -> bool:
 
     ctx = the governance context object. Without ctx we return True (vacuously
     satisfied) but flag it — the caller is expected to pass ctx in production.
+    Amendment #3: honest callers treat the no-ctx path as VACUOUS (None) at the
+    wiring layer; this pure wrap keeps its legacy bool contract for run_helix.
     """
     if ctx is None:
         return True  # advisory: caller must wire real ctx in the kernel path
@@ -174,7 +306,13 @@ def run_helix(
     ratio_limit: float = RATIO_LIMIT,
     min_total: int = MIN_TOTAL,
 ) -> HelixVerdict:
-    """Compose all four locks into a single governance verdict."""
+    """Compose all four locks into a single governance verdict.
+
+    NOTE (v2): run_helix retains the legacy single-window scalar Lock 2 for
+    pure/arithmetic consumers. The LIVE seal path (helix_wiring.pre_seal)
+    composes Lock 2 via evaluate_lock2 + vector_poles instead — vector-first,
+    sustained, hysteretic. Do not report both as the same signal.
+    """
     poles = compute_sink_poles(execute, verify, ratio_limit, min_total)
     skipped_low = (execute + verify) < min_total
 
@@ -222,6 +360,64 @@ def _selftest() -> int:
         compute_sink_poles(1, 1, min_total=6),
         {"fossilisation": False, "burn": False},
     )
+    # dominant_ratio (Amendment #1 hysteresis input)
+    check("dominant_ratio low-total None", dominant_ratio(1, 1), None)
+    dr = dominant_ratio(17, 49)
+    check("dominant_ratio 49/17 ~2.88", round(dr, 2) if dr is not None else None, 2.88)
+    check("dominant_ratio burn inf", dominant_ratio(10, 0), float("inf"))
+    # vector_poles (Amendment #5)
+    check(
+        "vector fossilisation",
+        vector_poles("VERIFICATION DOMINANCE"),
+        {"poles": {"fossilisation": True, "burn": False}, "measured": True},
+    )
+    check(
+        "vector burn",
+        vector_poles("EXECUTION DOMINANCE"),
+        {"poles": {"fossilisation": False, "burn": True}, "measured": True},
+    )
+    check(
+        "vector balanced",
+        vector_poles("BALANCED")["poles"],
+        {"fossilisation": False, "burn": False},
+    )
+    check("vector absent unmeasured", vector_poles(None)["measured"], False)
+    # evaluate_lock2 (Amendment #1)
+    check(
+        "single-window breach → WARN",
+        evaluate_lock2(pole_now=True, consecutive_windows=1)["verdict"],
+        "WARN",
+    )
+    check(
+        "sustained K=2 → HOLD",
+        evaluate_lock2(pole_now=True, consecutive_windows=2)["verdict"],
+        "HOLD",
+    )
+    check(
+        "time floor 30min → HOLD",
+        evaluate_lock2(pole_now=True, consecutive_windows=1, pole_age_s=1801.0)["verdict"],
+        "HOLD",
+    )
+    check(
+        "release below 2.8 → PASS",
+        evaluate_lock2(pole_now=False, held_previous=True, dominant_ratio_now=2.5)["verdict"],
+        "PASS",
+    )
+    check(
+        "deadband 2.9 stays HOLD",
+        evaluate_lock2(pole_now=False, held_previous=True, dominant_ratio_now=2.9)["verdict"],
+        "HOLD",
+    )
+    check(
+        "deadband release flag",
+        evaluate_lock2(pole_now=False, held_previous=True, dominant_ratio_now=2.5)["release"],
+        True,
+    )
+    check(
+        "no pole fresh → PASS",
+        evaluate_lock2(pole_now=False)["verdict"],
+        "PASS",
+    )
     # L3 helix
     check("seal needs judge", helix_chain_check(["seal"]), False)
     check("judge then seal ok", helix_chain_check(["judge", "seal"]), True)
@@ -229,7 +425,7 @@ def _selftest() -> int:
     # L4 rsiflow
     check("unbanked verify fails", rsi_flow_check([{"type": "verify", "banked": False}]), False)
     check("banked verify ok", rsi_flow_check([{"type": "verify", "banked": True}]), True)
-    # integration
+    # integration (legacy scalar path retained)
     v = run_helix(5, 5, ["judge", "seal"], [{"type": "verify", "banked": True}])
     check("all_pass (healthy)", v.all_pass, True)
     v2 = run_helix(10, 1, ["judge", "seal"], [{"type": "verify", "banked": True}])
