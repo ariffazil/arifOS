@@ -603,6 +603,7 @@ def arif_observe(
       vitals   → System vitals stub
       organ_health → Federation organ health probe (HTTP /health on all 7 organs)
       rasa_dunia → Evaluates physical-world thermodynamic and market stresses
+      rrr      → Resource Reality Resolution: intent → reality resource set (2026-08-15)
     """
     if mode in (
         "geox_quantum_scope",
@@ -623,7 +624,7 @@ def arif_observe(
         # Read-only SENSE: ephemeral only when no SCT was supplied (token failure is hard).
         if (
             not session_token
-            and mode in ("hybrid_discovery", "vitals", "compass", "search", "rasa_dunia")
+            and mode in ("hybrid_discovery", "vitals", "compass", "search", "rasa_dunia", "rrr")
             and actor_id
         ):
             logger.debug("L11 AUTH: no standing for %s, using ephemeral context.", mode)
@@ -1559,6 +1560,27 @@ def arif_observe(
                     except Exception:
                         pass
         return {"mode": mode, "mutation": False, "findings": findings}
+
+    # ── RRR: Resource Reality Resolution (2026-08-15) ────────────────────
+    # Pure 111-SENSE function. Does not think. Does not judge.
+    # "RRR discovers reality. Reality chooses the skill."
+    if mode == "rrr":
+        try:
+            from arifosmcp.resources.rrr import resolve_rrr
+
+            intent = query or ""
+            result = resolve_rrr(intent)
+            result["mode"] = "rrr"
+            result["source"] = "arif_observe"
+            result["doctrine"] = (
+                "RRR = Retrieve Reality Requirements. "
+                "Canonical surface: arif_observe(mode='rrr'). "
+                "Convenience alias: arifos://rrr/{intent}. "
+                "RRR is a verb, not a subsystem."
+            )
+            return result
+        except Exception as exc:  # noqa: BLE001
+            return _hold("arif_observe", f"RRR resolution failed: {exc}")
 
     return _hold("arif_observe", f"Unknown mode: {mode}")
 
