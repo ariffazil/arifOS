@@ -90,6 +90,12 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "grok-build": "operator",
     "gemini": "operator",
     "gemini-cli": "operator",
+    "copilot": "operator",
+    "copilot-cli": "operator",
+    "agy": "operator",
+    "aider": "operator",
+    "continue-cli": "operator",
+    "mesa-test-agent": "operator",
 }
 
 
