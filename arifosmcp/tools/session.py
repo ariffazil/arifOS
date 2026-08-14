@@ -897,26 +897,16 @@ def _project_light(
         # Only compute apex + mint full token for verified actors.
         if not _sct_minted:
             _apex = None
-            if intent:
-                try:
-                    from arifosmcp.tools.shadow_probe import probe_shadow
-
-                    _probe_result = probe_shadow(
-                        model_input=intent,
-                        reference_domain="agentic_boundary",
-                    )
-                    if _probe_result and _probe_result.get("G") != "UNMEASURED":
-                        _apex = _probe_result
-                except Exception:
-                    logger.debug("shadow probe failed — falling through to unmeasured_apex")
-            # W-09 FIX (2026-08-05): Fall back to compute_apex_from_metrics()
-            # instead of unmeasured_apex(). The DB has 4,600+ tool_calls records
-            # with real G/C_dark values. Health endpoint already shows MEASURED.
+            # P0.8 FIX (2026-08-15): Removed dead shadow_probe import.
+            # arifosmcp.tools.shadow_probe does not exist — import always
+            # failed silently. Replaced with direct compute_apex_from_metrics
+            # call with actor-scoped filtering for verified actors.
             if _apex is None:
                 try:
                     from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
 
-                    _live = compute_apex_from_metrics()
+                    # Actor-scoped: verified actors get their OWN history
+                    _live = compute_apex_from_metrics(actor_id=actor_id)
                     if _live.get("sample_size", 0) > 0:
                         _apex = {
                             "G": _live.get("G"),
@@ -973,6 +963,26 @@ def _project_light(
                 pass
         out["session_token"] = _token
         out["apex_scalars"] = dict(_apex)
+        # P0.8 (2026-08-15): kernel_baseline — federation-wide reference.
+        # NOT this session's score. Agents can use it for soft decisions
+        # but cannot claim it as their own G. Honest separation between
+        # "what I've measured" (apex_scalars) and "what the federation
+        # looks like" (kernel_baseline).
+        try:
+            from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics as _kb_compute
+
+            _global = _kb_compute()  # no actor_id → global
+            out["kernel_baseline"] = {
+                "G": _global.get("G"),
+                "C_dark": _global.get("C_dark"),
+                "W3": _global.get("W3"),
+                "h": _global.get("h"),
+                "sample_size": _global.get("sample_size", 0),
+                "window_seconds": _global.get("window_seconds", 0),
+                "note": "Federation-wide reference. Not this session's score.",
+            }
+        except Exception:
+            pass
         if _sct_minted:
             pass  # standing_source already set to "no_act_unverified" in limited path
         else:
