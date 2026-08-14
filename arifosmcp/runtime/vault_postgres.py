@@ -341,6 +341,41 @@ async def seal_to_vault(
     payload: dict[str, Any] | None = None,
     risk_tier: str = "medium",
 ) -> SealResult:
+    # ── Helix Lock Gate (2026-08-14, F1 reversible) ──
+    # Terminal seals (stage 999, mode=SEAL/SABAR) pass through the 4-lock
+    # helix pre_seal composition. If all_pass=False and bridges are available
+    # → HOLD (block seal, return error). If bridges are unavailable → log
+    # warning and proceed (don't lock out seals on infra failure).
+    # Rollback: cp vault_postgres.py.pre-helix-wire vault_postgres.py
+    if verdict in ("SEAL", "SABAR") and stage == "999":
+        try:
+            from arifosmcp.constitution.helix_wiring import pre_seal as _helix_pre_seal
+
+            _helix = _helix_pre_seal(events=[], ctx=None)
+            _locks = _helix.get("locks", {})
+            if not _helix.get("all_pass"):
+                _fq_available = _helix.get("live", {}).get("fq", {}).get("available", False)
+                _rsi_available = _helix.get("live", {}).get("rsi", {}).get("available", False)
+                if _fq_available or _rsi_available:
+                    return SealResult(
+                        success=False,
+                        event_id="",
+                        chain_hash="",
+                        error=(
+                            f"HELIX_HOLD: pre_seal all_pass=False "
+                            f"— locks={_locks} "
+                            f"sink={_helix.get('sink_poles', {})}"
+                        ),
+                    )
+                else:
+                    logger.warning(
+                        f"HELIX_WARN: bridges unavailable, seal proceeds — locks={_locks}"
+                    )
+        except ImportError:
+            pass  # helix_wiring not installed — gate gracefully absent
+        except Exception as exc:
+            logger.warning(f"HELIX_ERROR: pre_seal exception — {exc}")
+
     mgr = get_vault_manager()
     event = VaultEvent(
         event_type=event_type,
