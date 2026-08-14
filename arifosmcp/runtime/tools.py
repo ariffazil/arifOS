@@ -12202,6 +12202,21 @@ def _arif_sense_observe(
         # signature — phantom references that crashed every entropy_dS call
         # with NameError (surfaced as SAFE_VOID_FALLBACK, delta_S=null).
         _input_text = str(query or "").lower()
+        # K-series doctrine (STAB-2026-08-07e/f/i): no input = no measurement.
+        # delta_S=None (unmeasured), never a fabricated 0.0. A REAL 0.0 is
+        # only lawful when non-empty input was actually scanned and zero
+        # contradictions were found.
+        if not _input_text.strip():
+            return _ok(
+                "arif_sense_observe",
+                {
+                    "delta_S": None,
+                    "trend": "unmeasured",
+                    "source": "entropy_dS_no_input",
+                    "note": "No input text to measure — None is honest absence, not zero.",
+                },
+                delta_S=None,
+            )
         _contradictions = 0
         # Detect self-contradiction patterns: "both X and Y" where X/Y negate
         _contradiction_patterns = [
