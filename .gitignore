@@ -291,3 +291,4 @@ claude_desktop_config.json
 audits/
 deploy/rollback/
 C:
+.git_commit
