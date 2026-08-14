@@ -152,7 +152,10 @@ _STATUS_BY_VERDICT: dict[str, str] = {
 _EXECUTION_STATE_BY_VERDICT: dict[str, str] = {
     SEAL: "COMPLETED",
     SABAR: "COMPLETED",
-    HOLD: "COMPLETED",  # tool finished; next_action may still be AWAIT_INPUT
+    HOLD: "AWAIT_INPUT",  # KRT-2026-08-15 P1: refused action never completes.
+    # Tool transport finished (status=completed) but the *action* was refused
+    # by governance. execution_state=COMPLETED on a HOLD made receipts read
+    # as success to status-only consumers (FORGE-RECEIPT-DISHONEST).
     HOLD_888: "COMPLETED",
     OBSERVE_ONLY: "COMPLETED",
     VOID: "FAILED",
