@@ -504,7 +504,7 @@ def resolve_rrr(intent: str) -> dict[str, Any]:
             },
             "notice": RRR_DEFAULT.get("notice", ""),
             "doctrine": (
-                "RRR = Retrieve Reality Requirements. "
+                "RRR = Resource Reality Resolution. "
                 "No intent match found — probe reality directly."
             ),
         }
@@ -557,7 +557,7 @@ def resolve_rrr(intent: str) -> dict[str, Any]:
             "resource_count": resource_count,
         },
         "doctrine": (
-            "RRR = Retrieve Reality Requirements. "
+            "RRR = Resource Reality Resolution. "
             "RRR discovers. RRR does not think. RRR does not judge. "
             "Reality chooses the skill. The skill should not choose reality."
         ),
