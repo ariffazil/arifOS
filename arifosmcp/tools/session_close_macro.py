@@ -242,6 +242,87 @@ def _get_ecology_snapshot() -> dict[str, int]:
     return {"HOT": 0, "WARM": 0, "COLD": 0, "UNKNOWN": 0}
 
 
+def check_skill_drift(
+    skill_name: str,
+    *,
+    skills_root: Path = SKILLS_ROOT,
+) -> dict[str, Any]:
+    """Per-skill drift check — verify references in a loaded skill still exist.
+
+    Call after loading any SKILL.md to detect stale file paths, dead ports,
+    or missing tool references. Returns structured drift report.
+
+    OBSERVE-class. No mutations. ~1ms per skill.
+
+    Doctrine (2026-08-15):
+      "A skill is a hypothesis about reality. Drift-on-load detects when
+      the hypothesis no longer matches reality."
+    """
+    import time as _time
+
+    skill_dir = skills_root / skill_name
+    skill_md = skill_dir / "SKILL.md"
+    now = _time.time()
+
+    result: dict[str, Any] = {
+        "skill": skill_name,
+        "drift_detected": False,
+        "broken_paths": [],
+        "age_days": 0,
+        "stale": False,
+        "completeness": "UNKNOWN",
+    }
+
+    if not skill_dir.exists():
+        result["error"] = "skill_directory_not_found"
+        result["drift_detected"] = True
+        return result
+
+    if not skill_md.exists():
+        result["error"] = "skill_md_missing"
+        result["completeness"] = "STUB"
+        result["drift_detected"] = True
+        return result
+
+    try:
+        stat = skill_md.stat()
+        result["age_days"] = round((now - stat.st_mtime) / 86400, 1)
+        result["stale"] = result["age_days"] > SKILL_STALE_DAYS
+
+        content = skill_md.read_text(encoding="utf-8", errors="replace")
+        lines = content.splitlines()
+        line_count = len(lines)
+
+        if line_count >= 50:
+            result["completeness"] = "COMPLETE"
+        elif line_count >= 10:
+            result["completeness"] = "PARTIAL"
+        else:
+            result["completeness"] = "STUB"
+
+        # Scan for /root/ path references
+        refs = re.findall(r"/root/[A-Za-z0-9_./-]+", content)
+        broken: list[str] = []
+        checked: set[str] = set()
+        for ref in refs:
+            ref_clean = ref.rstrip(".,;:)")
+            if ref_clean in checked:
+                continue
+            checked.add(ref_clean)
+            if not Path(ref_clean).exists():
+                broken.append(ref_clean)
+
+        result["broken_paths"] = broken[:20]
+        result["refs_checked"] = len(checked)
+        result["drift_detected"] = bool(broken) or result["stale"]
+
+    except Exception as exc:  # noqa: BLE001
+        result["error"] = str(exc)[:200]
+        result["drift_detected"] = True
+
+    return result
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # STAGE 1 — Refactor SOT (append session eurekas to BOOT_EUREKA.md)
 # ═════════════════════════════════════════════════════════════════════════════
@@ -794,6 +875,7 @@ async def run_session_close_macro(
 __all__ = [
     "probe_organ_health",
     "probe_skill_health",
+    "check_skill_drift",
     "synthesize_session_eurekas",
     "append_to_boot_eureka",
     "validate_sot_integrity",
