@@ -2,10 +2,14 @@
 completion_governor.py — TAMAT GOVERNOR · the Constitutional Completion Law as code.
 
 Canon: F13 SOVEREIGN directive 2026-08-14 (sovereign's own analysis, verbatim):
-    "If additional verification cannot change the decision,
-     and execution is reversible,
-     then execution is mandatory before session close.
-     Deferral requires an explicit blocker, not mere uncertainty."
+    L5 (Completion, trilogi I): "If additional verification cannot change the
+     decision, and execution is reversible, then execution is mandatory
+     before session close. Deferral requires an explicit blocker, not mere
+     uncertainty."
+    L6 (Abandonment, trilogi II): "Stop executing when execution cannot
+     change reality meaningfully. The most intelligent system does not
+     complete all tasks — it aggressively abandons most. KILL must carry a
+     reason receipt; without a receipt it is laziness, not judgment."
 
 THE DUALITY (this module is the mirror of surface_breaker.py):
 
@@ -18,6 +22,22 @@ THE DUALITY (this module is the mirror of surface_breaker.py):
     epistemic gradient is flat — more observations are entropy, not safety.
     One law stops pathological persistence; the other stops pathological
     deferral. Together they bracket the verify/execute axis completely.
+
+v2 (trilogi II) — THE TWIN GOVERNOR. Anti-deferral (right side: invariant +
+reversible + valuable → EXECUTE_NOW) is now paired with anti-completion-
+addiction (left side: exists-but-worthless → KILL_NOW, receipt mandatory).
+Completion addicts finish tasks BECAUSE the tasks exist; the left gate kills
+the task BECAUSE it does not deserve to. The intelligence is in the
+discarding; the receipt is the proof it was intelligence and not laziness.
+
+DISCRIMINATOR PRINCIPLE (trilogi II): "unfinished" is observationally
+identical from outside for laziness, over-verification, and rational
+abandonment. ONLY receipts differentiate. Every non-DONE terminal requires:
+    SEAL    → execution evidence  (Gate 3, no self-attestation)
+    HOLD    → hold_reason         (what authority is it waiting for?)
+    BLOCKED → blocker_id          (external cause, owned)
+    VOID    → kill_reason         (rational abandonment, receipted)
+No receipt = laziness. The receipt IS the intelligence.
 
 EUREKA BASIS (sovereign's log, 2026-08-14):
     E1  Completion threshold > confidence threshold. Confidence asymptotes
@@ -165,6 +185,13 @@ class TaskState:
     reversible: bool = True  # F1 axis
     requires_human_authority: bool = False  # T3 axis
     blocker_id: Optional[str] = None  # REQUIRED iff state == BLOCKED
+    hold_reason: Optional[str] = None  # REQUIRED iff state == HOLD (v2) —
+    # what authority is it waiting for?
+    kill_reason: Optional[str] = None  # REQUIRED iff state == VOID — the KILL
+    # receipt. "Tanpa resit = kemalasan."
+    reality_value: str = "UNASSESSED"  # UNASSESSED | WORTH_EXECUTING |
+    # NOT_WORTH_EXISTING — set by the ART
+    # layer (selector), consumed at Gate 0
     verdicts: List[VerdictEvent] = field(default_factory=list)
     execution_evidence: List[str] = field(default_factory=list)  # Gate 3
     external_dependencies: bool = False  # deferral-cost axis (env drift)
@@ -186,6 +213,9 @@ class TaskState:
             reversible=bool(d.get("reversible", True)),
             requires_human_authority=bool(d.get("requires_human_authority", False)),
             blocker_id=d.get("blocker_id"),
+            hold_reason=d.get("hold_reason"),
+            kill_reason=d.get("kill_reason"),
+            reality_value=str(d.get("reality_value", "UNASSESSED")).upper(),
             verdicts=[VerdictEvent.from_dict(v) for v in d.get("verdicts", [])],
             execution_evidence=[str(e) for e in d.get("execution_evidence", [])],
             external_dependencies=bool(d.get("external_dependencies", False)),
@@ -287,16 +317,67 @@ class ClosureGovernor:
                 invariance=task.invariance(),
                 deferral_cost=cost,
             )
-        if task.state in ("HOLD", "VOID"):
+        if task.state == "HOLD":
+            if not task.hold_reason:
+                return ClosureVerdict(
+                    task_id=task.task_id,
+                    action="HOLD_REASON_REQUIRED",
+                    reason=(
+                        "HOLD without hold_reason — an authority gate must "
+                        "name what it is waiting for (discriminator: no "
+                        "receipt = laziness, not judgment)"
+                    ),
+                    invariance=task.invariance(),
+                    deferral_cost=cost,
+                )
             return ClosureVerdict(
                 task_id=task.task_id,
                 action="TERMINAL",
-                reason=f"terminal state {task.state}",
+                reason=f"hold: {task.hold_reason}",
+                invariance=task.invariance(),
+                deferral_cost="none",
+            )
+        if task.state == "VOID":
+            if not task.kill_reason:
+                return ClosureVerdict(
+                    task_id=task.task_id,
+                    action="KILL_RECEIPT_REQUIRED",
+                    reason=(
+                        "KILL without kill_reason — rational abandonment must "
+                        "be receipted; an unreceipted kill is laziness "
+                        "(Completion Law v2, L6)"
+                    ),
+                    invariance=task.invariance(),
+                    deferral_cost=cost,
+                )
+            return ClosureVerdict(
+                task_id=task.task_id,
+                action="TERMINAL",
+                reason=f"killed: {task.kill_reason}",
                 invariance=task.invariance(),
                 deferral_cost="none",
             )
 
         # ── ACTIVE tasks: the law lives here ──────────────────────────────
+
+        # Gate 0 — existence (L6: does this work deserve reality at all?)
+        # Precedes the invariance gate deliberately: no amount of verification
+        # earns execution for work that does not deserve to exist. This is the
+        # anti-completion-addiction gate — the left side of the twin governor.
+        if task.reality_value == "NOT_WORTH_EXISTING":
+            return ClosureVerdict(
+                task_id=task.task_id,
+                action="KILL_NOW",
+                reason=(
+                    "task judged not-worth-existing — execution cannot change "
+                    "reality meaningfully; kill it NOW and file the "
+                    "kill_reason receipt (L6: intelligence is in the "
+                    "discarding, the receipt proves it wasn't laziness)"
+                ),
+                invariance=task.invariance(),
+                deferral_cost=cost,
+            )
+
         inv = task.invariance()
 
         # Gate 1 — can new evidence still change the decision?
@@ -356,10 +437,13 @@ class ClosureGovernor:
 BLOCKING_ACTIONS = frozenset(
     {
         "EXECUTE_NOW",
+        "KILL_NOW",
         "HOLD_T3",
         "HOLD_F1_IRREVERSIBLE",
         "SEAL_REJECTED_NO_EVIDENCE",
         "BLOCKER_REQUIRED",
+        "KILL_RECEIPT_REQUIRED",
+        "HOLD_REASON_REQUIRED",
     }
 )
 
@@ -450,6 +534,9 @@ def _selftest() -> int:
         reversible: bool = True,
         requires_human_authority: bool = False,
         blocker_id: Optional[str] = None,
+        hold_reason: Optional[str] = None,
+        kill_reason: Optional[str] = None,
+        reality_value: str = "UNASSESSED",
         verdicts: Optional[List[VerdictEvent]] = None,
         execution_evidence: Optional[List[str]] = None,
         external_dependencies: bool = False,
@@ -463,6 +550,9 @@ def _selftest() -> int:
             reversible=reversible,
             requires_human_authority=requires_human_authority,
             blocker_id=blocker_id,
+            hold_reason=hold_reason,
+            kill_reason=kill_reason,
+            reality_value=reality_value,
             verdicts=verdicts if verdicts is not None else [],
             execution_evidence=(execution_evidence if execution_evidence is not None else []),
             external_dependencies=external_dependencies,
@@ -558,12 +648,17 @@ def _selftest() -> int:
     )
     check("audit blocks dangling work", rep13["may_close"], False)
 
-    # 14. closure audit passes when all terminal
+    # 14. closure audit passes when all terminal — v2: every non-DONE
+    #     terminal carries its receipt (discriminator: no receipt = laziness)
     rep14 = audit_session(
         [
             task(task_id="done", state="SEAL", execution_evidence=["receipt#1"]),
-            task(task_id="gated", state="HOLD"),
-            task(task_id="dropped", state="VOID"),
+            task(task_id="gated", state="HOLD", hold_reason="T3: sovereign ratification pending"),
+            task(
+                task_id="dropped",
+                state="VOID",
+                kill_reason="superseded by governor v2; value below threshold",
+            ),
             task(task_id="waiting", state="BLOCKED", blocker_id="BLK-1"),
         ]
     )
@@ -602,6 +697,73 @@ def _selftest() -> int:
     #     (an unobserved task has no invariance claim — observe first)
     r18 = gov.classify(task(verdicts=[]))
     check("no evidence no execution", r18.action, "VERIFY")
+
+    # ── v2: twin governor + discriminator (trilogi II) ───────────────────
+
+    # 19. VOID without kill_reason → rejected ("tanpa resit = kemalasan")
+    r19 = gov.classify(task(state="VOID", kill_reason=None))
+    check("kill without receipt rejected", r19.action, "KILL_RECEIPT_REQUIRED")
+
+    # 20. VOID with kill_reason → terminal (rational abandonment, receipted)
+    r20 = gov.classify(
+        task(
+            state="VOID",
+            kill_reason="superseded by b909aa506; value below threshold",
+        )
+    )
+    check("receipted kill terminal", r20.action, "TERMINAL")
+
+    # 21. HOLD without hold_reason → rejected (authority gate must name its wait)
+    r21 = gov.classify(task(state="HOLD", hold_reason=None))
+    check("hold without reason rejected", r21.action, "HOLD_REASON_REQUIRED")
+
+    # 22. Gate 0 precedes everything: worthless task → KILL_NOW even when it
+    #     would otherwise be EXECUTE_NOW (invariant + reversible + valuable)
+    r22 = gov.classify(
+        task(
+            reality_value="NOT_WORTH_EXISTING",
+            verdicts=[V("PASS", "linter"), V("PASS", "pytest"), V("PASS", "arif_judge")],
+        )
+    )
+    check("gate 0 kills before execute", r22.action, "KILL_NOW")
+
+    # 23. KILL_NOW is dangling at close — abandonment must happen, not linger
+    rep23 = audit_session([task(task_id="zombie", reality_value="NOT_WORTH_EXISTING")])
+    check("kill-now blocks closure", rep23["may_close"], False)
+
+    # 24. THE DISCRIMINATOR: two "unfinished" tasks, identical from outside.
+    #     Only the receipt differentiates rational abandonment from laziness.
+    rep24 = audit_session(
+        [
+            task(
+                task_id="rational",
+                state="VOID",
+                kill_reason="scope cancelled by F13 directive 2026-08-14",
+            ),
+            task(task_id="lazy", state="VOID", kill_reason=None),
+        ]
+    )
+    dangling24 = [d["task_id"] for d in rep24["dangling"]]
+    check("discriminator catches only the receiptless", dangling24, ["lazy"])
+
+    # 25. WORTH_EXECUTING flows through the normal gates (no regression)
+    r25 = gov.classify(
+        task(
+            reality_value="WORTH_EXECUTING",
+            verdicts=[V("PASS", "linter"), V("PASS", "pytest"), V("PASS", "arif_judge")],
+        )
+    )
+    check("worth-executing still executes", r25.action, "EXECUTE_NOW")
+
+    # 26. existence precedes epistemics: worthless task → KILL_NOW even when
+    #     verdicts are NOT invariant (don't verify work that shouldn't exist)
+    r26 = gov.classify(
+        task(
+            reality_value="NOT_WORTH_EXISTING",
+            verdicts=[V("FAIL", "pytest"), V("PASS", "pytest")],
+        )
+    )
+    check("worthless skips verification", r26.action, "KILL_NOW")
 
     print(
         f"\nCOMPLETION GOVERNOR SELF-TEST: "
