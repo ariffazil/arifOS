@@ -104,6 +104,145 @@ def probe_organ_health(timeout_s: float = 3.0) -> dict[str, Any]:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# SKILL HEALTH PROBE (2026-08-15 — Arif doctrine: "seal emits skill health")
+# ═════════════════════════════════════════════════════════════════════════════
+
+SKILLS_ROOT = Path("/root/AAA/skills")
+SKILL_STALE_DAYS = 30
+
+
+def probe_skill_health(
+    *,
+    skills_root: Path = SKILLS_ROOT,
+    stale_days: int = SKILL_STALE_DAYS,
+    max_ref_checks: int = 50,
+) -> dict[str, Any]:
+    """Scan skill catalog for staleness, completeness, and broken references.
+
+    OBSERVE-class. No mutations. Returns structured health dict for seal meta.
+
+    Doctrine (2026-08-15):
+      Skill = optional hypothesis. Verification = mandatory.
+      Every seal must emit skill health so the sovereign sees reality.
+    """
+    import time as _time
+
+    now = _time.time()
+    stale_threshold = now - (stale_days * 86400)
+
+    total = 0
+    complete = 0
+    stub = 0
+    quarantined = 0
+    archived = 0
+    stale = 0
+    broken_refs: list[str] = []
+    ecology_summary: dict[str, int] = {"HOT": 0, "WARM": 0, "COLD": 0, "UNKNOWN": 0}
+
+    if not skills_root.exists():
+        return {
+            "skills_root": str(skills_root),
+            "error": "skills_root_not_found",
+            "total": 0,
+        }
+
+    for skill_dir in skills_root.iterdir():
+        if not skill_dir.is_dir():
+            continue
+
+        skill_name = skill_dir.name
+        skill_md = skill_dir / "SKILL.md"
+
+        total += 1
+
+        # Quarantine / archive detection
+        if ".quarantine" in skill_name:
+            quarantined += 1
+            continue
+        if ".archive" in skill_name or ".hermes" in skill_name:
+            archived += 1
+            continue
+
+        if not skill_md.exists():
+            stub += 1
+            continue
+
+        try:
+            stat = skill_md.stat()
+            line_count = 0
+            content_sample = ""
+
+            # Read content for completeness + broken-ref check (capped)
+            try:
+                content = skill_md.read_text(encoding="utf-8", errors="replace")
+                lines = content.splitlines()
+                line_count = len(lines)
+                # Sample first 200 lines for broken ref scan
+                if len(broken_refs) < max_ref_checks:
+                    content_sample = "\n".join(lines[:200])
+            except Exception:  # noqa: BLE001
+                pass
+
+            # Completeness
+            if line_count >= 50:
+                complete += 1
+            else:
+                stub += 1
+
+            # Staleness (mtime)
+            if stat.st_mtime < stale_threshold:
+                stale += 1
+
+            # Broken reference check — scan for /root/ paths
+            if content_sample and len(broken_refs) < max_ref_checks:
+                import re as _re
+
+                refs = _re.findall(r"/root/[A-Za-z0-9_./-]+", content_sample)
+                for ref in refs[:5]:  # max 5 refs per skill
+                    ref_clean = ref.rstrip(".,;:)")
+                    if not Path(ref_clean).exists():
+                        broken_refs.append(f"{skill_name}:{ref_clean}")
+                        if len(broken_refs) >= max_ref_checks:
+                            break
+        except Exception:  # noqa: BLE001 — probe must never raise
+            stub += 1
+
+    # Try to get ecology state from intent_retriever (non-fatal)
+    try:
+        from arifosmcp.tools.session_close_macro import _get_ecology_snapshot
+
+        ecology_summary = _get_ecology_snapshot()
+    except Exception:  # noqa: BLE001
+        pass
+
+    health_pct = (complete / total * 100) if total > 0 else 0
+    stale_pct = (stale / total * 100) if total > 0 else 0
+
+    return {
+        "skills_root": str(skills_root),
+        "total": total,
+        "complete": complete,
+        "stub": stub,
+        "quarantined": quarantined,
+        "archived": archived,
+        "stale_count": stale,
+        "stale_pct": round(stale_pct, 1),
+        "health_pct": round(health_pct, 1),
+        "broken_refs": broken_refs[:10],
+        "broken_ref_count": len(broken_refs),
+        "ecology_summary": ecology_summary,
+        "stale_threshold_days": stale_days,
+    }
+
+
+def _get_ecology_snapshot() -> dict[str, int]:
+    """Pull ecology state from intent_retriever Qdrant. Non-fatal stub."""
+    # Ecology tracking lives in /root/AAA/scripts/intent_retriever.py
+    # This is a best-effort bridge — returns UNKNOWN if unavailable.
+    return {"HOT": 0, "WARM": 0, "COLD": 0, "UNKNOWN": 0}
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # STAGE 1 — Refactor SOT (append session eurekas to BOOT_EUREKA.md)
 # ═════════════════════════════════════════════════════════════════════════════
 
@@ -654,6 +793,7 @@ async def run_session_close_macro(
 
 __all__ = [
     "probe_organ_health",
+    "probe_skill_health",
     "synthesize_session_eurekas",
     "append_to_boot_eureka",
     "validate_sot_integrity",
@@ -663,4 +803,5 @@ __all__ = [
     "run_session_close_macro",
     "ATLAS333_COLLECTION",
     "BOOT_EUREKA_PATH",
+    "SKILLS_ROOT",
 ]

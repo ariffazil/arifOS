@@ -455,16 +455,24 @@ async def arif_seal(
     # See arifosmcp/tools/session_close_macro.py
     _is_session_close = mode == "session_close"
     _organ_health: dict[str, Any] | None = None
+    _skill_health: dict[str, Any] | None = None
     _macro_pre: dict[str, Any] | None = None
     if _is_session_close:
         from arifosmcp.tools.session_close_macro import (
             probe_organ_health as _probe_organs,
+            probe_skill_health as _probe_skills,
             run_pre_seal_stages as _run_pre_seal,
         )
 
         _health = _probe_organs()
         _organ_health = _health.get("organs") or {}
         _dead_organs: list[str] = list(_health.get("dead") or [])
+
+        # Skill health probe — OBSERVE-class, non-fatal, always runs
+        try:
+            _skill_health = _probe_skills()
+        except Exception as _sh_exc:  # noqa: BLE001
+            _skill_health = {"error": str(_sh_exc)[:200]}
 
         if _dead_organs:
             return _echo_standing(
@@ -485,6 +493,7 @@ async def arif_seal(
                         "organs_alive": _health.get("alive_count", 0),
                         "organs_total": _health.get("total", 0),
                         "dead_organs": _dead_organs,
+                        "skill_health": _skill_health,
                         "macro": "arif_session_close_macro",
                     },
                 )
@@ -1196,6 +1205,7 @@ async def arif_seal(
                     "alive": sum(1 for o in (_organ_health or {}).values() if o.get("alive")),
                     "total": len(_organ_health or {}),
                 },
+                "0b_skill_health": _skill_health,
                 "1_sot_refactor": (_macro_pre or {}).get("stage_1_sot_refactor"),
                 "2_sot_verify": (_macro_pre or {}).get("stage_2_sot_verify"),
                 "3_atlas333": (_macro_pre or {}).get("stage_3_atlas333"),
