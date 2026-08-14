@@ -779,7 +779,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_memory": {
         "name": "arif_memory",
-        "description": "KERNEL memory governor — L1–L6 governed semantic recall, storage, and persistence.",
+        "description": "KERNEL 555 · Memory governor — L1–L6 governed semantic recall, storage, and persistence.",
         "access": "authenticated",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
