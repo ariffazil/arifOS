@@ -897,7 +897,13 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                     independent=False,
                 ),
             }
-        verdict = gov.get("verdict", "UNKNOWN")
+        verdict = gov.get("verdict")
+        if not verdict:
+            # WS2 (2026-07-12): /health deliberately carries NO top-level verdict —
+            # substrate signal ≠ execution readiness; constitutional verdicts are
+            # rendered per-action via arif_judge. Absence is doctrine, not a
+            # measurement failure. Label honestly instead of UNKNOWN (FIX-3).
+            verdict = "PER_ACTION"
     except Exception as exc:
         logger.warning("governance_block failure: %s", exc)
         verdict = "UNKNOWN"
@@ -933,6 +939,16 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         confidence=0.9,
         observation_method=_OBS_METHOD_SELF_REPORTED,
         independent=False,
+    )
+    out["verdict_reason"] = _pf(
+        "WS2: no standing verdict by doctrine — constitutional verdicts render per-action via arif_judge"
+        if verdict == "PER_ACTION"
+        else "kernel-reported verdict",
+        source="WS2 doctrine 2026-07-12",
+        state="reported",
+        confidence=0.99,
+        observation_method=_OBS_METHOD_REGISTRY,
+        independent=True,
     )
 
     # Decomposition — never collapse into a single green badge.
