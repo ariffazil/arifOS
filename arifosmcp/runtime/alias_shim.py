@@ -207,12 +207,23 @@ def register_new_canonical_tools(
         ),
     }
 
+    # P13 FIX (2026-08-15): inject deterministic MCP annotations from
+    # constitutional_map._TOOL_ANNOTATIONS. Without this, conformant clients
+    # see zero readOnlyHint/destructiveHint and default to maximum caution.
+    try:
+        from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS as _P13_ANN
+    except ImportError:
+        _P13_ANN = {}
+
     for new_name, (handler, legacy_target) in new_to_legacy.items():
         if handler is None:
             logger.warning(f"alias_shim: no handler for {new_name} (legacy: {legacy_target})")
             continue
         wrapped = _make_canonical_wrapper(handler, new_name, legacy_target)
         try:
+            _ann = dict(_P13_ANN.get(new_name) or {})
+            # Strip internal derivation metadata before exposing on wire
+            _ann.pop("_derived_from", None)
             mcp.tool(
                 name=new_name,
                 description=(
@@ -221,6 +232,7 @@ def register_new_canonical_tools(
                     f"Calls {legacy_target} internally with same args."
                 ),
                 tags={"canonical", "new-name", "phase2-shim"},
+                annotations=_ann if _ann else None,
             )(wrapped)
             registered.append(new_name)
             logger.info(f"alias_shim: registered {new_name} → {legacy_target}")
