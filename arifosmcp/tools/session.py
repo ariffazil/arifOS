@@ -928,6 +928,11 @@ def _project_light(
                     pass
             if _apex is None:
                 _apex = unmeasured_apex()  # last resort: honest UNMEASURED
+            # P0 FIX (2026-08-14): mint capabilities from AUTHORITY_VERBS (the
+            # single source in act_token.py), not from _allowed_next — that list
+            # is a next-verb UI hint and omits arif_memory/arif_init for
+            # LIMITED_MUTATE, silently stripping constitutional verbs from the
+            # ACT. Only ephemeral_eval keeps its restricted set.
             _token, _claims = mint_sct(
                 sid=sid,
                 actor=actor_id or "anonymous",
@@ -937,7 +942,7 @@ def _project_light(
                 lane="AGI",
                 verdict_state=str(out.get("verdict_code") or "OK"),
                 dominant_reason=None,
-                allowed=_allowed_next,
+                allowed=_allowed_next if _is_ephemeral else None,
                 apex=_apex,
                 witness={
                     "active": 1 if actor_verified else 0,
