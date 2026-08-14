@@ -405,11 +405,20 @@ def enforce_restraint_and_verdict(
         and tool_name not in _LOOP_FREE
         and not str(tool_name).startswith("arif_init")
     ):
+        _vlr_hold = _hold(
+            tool_name,
+            "VERDICT_LOOP_REQUIRED: One Tool (Verdict Loop With Memory) — arif_judge + arif_seal required before execution",
+            ["L04"],
+            extra_meta={"restraint_applied": True, "next": "Call arif_judge then arif_seal"},
+        )
         return {
             "decision": "HOLD",
             "reason": "VERDICT_LOOP_REQUIRED: One Tool (Verdict Loop With Memory) — arif_judge + arif_seal required before execution",
             "restraint_applied": True,
             "next": "Call arif_judge then arif_seal",
+            # KRT-2026-08-15 P2c: surface the instrumented envelope so callers
+            # can see BLOCKED + can_claim_success=false instead of a bare dict.
+            "hold_envelope": _vlr_hold,
         }
 
     # One Skill wired in
@@ -3735,6 +3744,10 @@ def _constitutional_gate(
         return None
 
     # Map core verdict to tool response
+    # KRT-2026-08-15 P3 (revised): this gate runs PRE-execution — no
+    # measurements exist yet, so delta_s stays None (honest unmeasured).
+    # The P2 envelope (BLOCKED / can_claim_success=false) is what stops
+    # status-readers from mistaking refusal for success.
     return _hold(
         tool_name,
         f"Constitutional {verdict.verdict}: {', '.join(verdict.floors.violated_laws)}",
@@ -8177,6 +8190,11 @@ def build_standard_mcp_result(
         "search",
         "vitals",
         "organ_health",
+        # KRT-2026-08-15: entropy_dS is a read-only measurement (contradiction
+        # density over caller-supplied text). The confidence gate was holding
+        # it pre-measurement, then reporting delta_S=null — the gate killed
+        # the sensor it was gating. Exempt like every other observe mode.
+        "entropy_dS",
     )
     _conf_hold = band == "HOLD" and not _is_observe_class
     # STAB-2026-08-07: UNMEASURED is not "HOLD" — it is absence of measurement.
@@ -8877,6 +8895,7 @@ def _hold(
     floors: list[str] | None = None,
     extra_meta: dict[str, Any] | None = None,
     session_id: str | None = None,
+    delta_s: float | None = None,
 ) -> dict[str, Any]:
     """Constitutional HOLD — blocks execution, requires refinement or human intervention."""
     reasons = [reason] if reason else []
@@ -8977,11 +8996,16 @@ def _hold(
         "tool": tool,
         "result": {},
         "meta": meta,
-        # STAB-2026-08-07g: hold path did NOT measure entropy.
-        # Pass None through. Honoring doctrine: 'half-built is worse
-        # than absent.' Earlier hardcoded 0.0 — fabricating certainty
-        # when the kernel blocked execution before any measurement.
-        "delta_S": None,
+        # KRT-2026-08-15 P2: a refused action must never read as success.
+        # status=HOLD (not completed) + lifecycle BLOCKED + explicit flags.
+        "execution_state": "BLOCKED",
+        "can_claim_success": False,
+        "can_mutate": False,
+        # KRT-2026-08-15 P2b: measurement precedes verdict. If entropy WAS
+        # measured before the HOLD fired (e.g. entropy_dS mode), the verdict
+        # must not erase the measurement. None only when never measured.
+        # (STAB-2026-08-07g doctrine preserved: never fabricate.)
+        "delta_S": delta_s,
         "timestamp": timestamp,
         "call_hash": call_hash,
         "trace_id": _hold_trace_id,
