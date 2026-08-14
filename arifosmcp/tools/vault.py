@@ -192,6 +192,34 @@ async def arif_seal(
     """
     # ── SCT standing (Spine P0) ──
     _standing_token = session_token
+
+    def _echo_standing(out: SealOutput) -> SealOutput:
+        """Echo next-hop SCT continuity onto a direct SealOutput.
+
+        P0 FIX (2026-08-14): defined BEFORE first use. Previously defined at
+        line ~423 but called at the L11 SCT gate below — any SCT-invalid call
+        raised UnboundLocalError, surfaced as SAFE_VOID_FALLBACK and masking
+        the real auth verdict.
+        """
+        if not _standing_token:
+            return out
+        data = out.model_dump(mode="json")
+        data["session_token"] = _standing_token
+        data["standing_source"] = _standing_source or "sct"
+        if _standing_apex is not None:
+            data["apex_scalars"] = _standing_apex
+        data["authority"] = _standing_authority or "OBSERVE_ONLY"
+        data["actor_verified"] = _standing_actor_verified
+        if _standing_delta is not None:
+            data["authority_delta"] = _standing_delta
+        res = data.get("result")
+        if isinstance(res, dict):
+            res.setdefault("session_token", _standing_token)
+            res.setdefault("standing_source", _standing_source or "sct")
+            if _standing_apex is not None:
+                res.setdefault("apex_scalars", _standing_apex)
+        return SealOutput(**data)
+
     _standing_source = None
     _standing_apex: dict[str, Any] | None = None
     _standing_actor_verified = False
@@ -420,26 +448,7 @@ async def arif_seal(
             meta={"gate": "hard_deterministic", "llm_consulted": False, "zend": "2026-07-30"},
         )
 
-    def _echo_standing(out: SealOutput) -> SealOutput:
-        """Echo next-hop SCT continuity onto a direct SealOutput."""
-        if not _standing_token:
-            return out
-        data = out.model_dump(mode="json")
-        data["session_token"] = _standing_token
-        data["standing_source"] = _standing_source or "sct"
-        if _standing_apex is not None:
-            data["apex_scalars"] = _standing_apex
-        data["authority"] = _standing_authority or "OBSERVE_ONLY"
-        data["actor_verified"] = _standing_actor_verified
-        if _standing_delta is not None:
-            data["authority_delta"] = _standing_delta
-        res = data.get("result")
-        if isinstance(res, dict):
-            res.setdefault("session_token", _standing_token)
-            res.setdefault("standing_source", _standing_source or "sct")
-            if _standing_apex is not None:
-                res.setdefault("apex_scalars", _standing_apex)
-        return SealOutput(**data)
+    # (_echo_standing defined above at SCT standing block — P0 2026-08-14)
 
     # ── EUREKA 5-PHASE MACRO: session_close (forged 2026-07-30) ─────────────
     # Single callable unit — stages 0→1→2→3 pre-seal, vault write (4), git (5).
