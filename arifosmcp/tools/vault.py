@@ -377,6 +377,20 @@ async def arif_seal(
                                 f"Seal requires FQ∈[1,3] or f13_override=True "
                                 f"(GENESIS/059 §4). Pause, run verification, let FQ settle."
                             )
+                    # Verification dominance check: high FQ from one actor
+                    # pumping Barrier/Verify pulses is gaming, not health.
+                    _exec = int(_fq_raw.get("execute_count", 0) or 0)
+                    _verify = int(_fq_raw.get("verify_count", 0) or 0)
+                    _total_steps = _exec + _verify
+                    if _total_steps > 10 and _exec > 0:
+                        _verify_pct = _verify / _total_steps * 100
+                        if _verify_pct > 80:
+                            _seal_reasons.append(
+                                f"FQ diagnosis: VERIFICATION DOMINANCE "
+                                f"({_verify_pct:.0f}% verify, {_exec}E/{_verify}V). "
+                                f"Scalar FQ={_fq_val:.2f} is inflated by automated "
+                                f"heartbeat pulses, not real audit work."
+                            )
         except Exception as _fq_exc:
             # FQ probe failure is non-fatal but logged
             logger.warning("FQ gate probe failed: %s", _fq_exc)
