@@ -1265,6 +1265,36 @@ async def arif_judge(
                 _code = VerdictCode.SEAL
             else:
                 _code = VerdictCode.VOID if _v_str == "VOID" else VerdictCode.HOLD
+
+            # ── P0-1: evidence postcondition on intercept promotions ──────────
+            # ALLOW→SEAL promotions must not pass on session state alone.
+            _ipc_report = None
+            try:
+                from arifosmcp.runtime.judge_postcondition import (
+                    check_judge_postcondition as _cjpc_intercept,
+                )
+
+                _ipc_report = _cjpc_intercept(
+                    mode=mode,
+                    candidate=candidate,
+                    evidence=evidence,
+                    verdict_str=str(_code),
+                    effective_verdict=_v_str,
+                )
+                if (
+                    _code == VerdictCode.SEAL
+                    and _ipc_report.get("applied")
+                    and _ipc_report.get("verdict") != "SEAL"
+                ):
+                    _code = (
+                        VerdictCode.HOLD
+                        if _ipc_report.get("verdict") == "HOLD"
+                        else VerdictCode.SABAR
+                    )
+                    _v_str = str(_code)
+            except Exception as _pc_int_exc:  # noqa: BLE001 — never break a verdict
+                logger.warning("P0-1 intercept postcondition non-fatal: %s", _pc_int_exc)
+
             _cc_id = _intercept_res.get("constitutional_chain_id") or (
                 _intercept_res.get("output") or {}
             ).get("constitutional_chain_id")
@@ -1280,6 +1310,11 @@ async def arif_judge(
                     "F13 sovereign_receipt present — confirms passed intercept "
                     "(ALLOW/OK→SEAL or SEAL retained); HOLD is never rewritten."
                 )
+            if _ipc_report is not None and _ipc_report.get("applied"):
+                _reasons.append(
+                    f"P0-1 {_ipc_report.get('reason_code')}: "
+                    f"missing {_ipc_report.get('missing_evidence')}"
+                )
             _intercept_meta = {
                 "kernel_intercept": _intercept_res,
                 "reversibility_level": _rev_param,
@@ -1288,6 +1323,7 @@ async def arif_judge(
                 "state_hash": _jsh,
                 "judge_state_hash": _jsh,
                 "f13_promoted_allow_to_seal": bool(_code == VerdictCode.SEAL and _has_f13),
+                "judge_postcondition": _ipc_report,
             }
             if _precedent_advisory is not None:
                 _intercept_meta["precedent"] = {
@@ -1731,6 +1767,46 @@ async def arif_judge(
         except Exception as _cmp_exc:
             # Fail-closed: never let the composer crash the worker.
             logger.warning("T2 canonical composer forced fail-closed fallback: %s", _cmp_exc)
+
+        # ── P0-1: judge evidence postcondition (GEOX 80fc80fd pattern) ──────
+        # State-echo closes here: a verdict of record must cite the evidence
+        # it was drawn from. Session state alone can no longer carry SEAL.
+        try:
+            from arifosmcp.runtime.judge_postcondition import (
+                check_judge_postcondition as _cjpc_main,
+            )
+
+            _pc_report_main = _cjpc_main(
+                mode=mode,
+                candidate=candidate,
+                evidence=evidence,
+                verdict_str=str(getattr(out, "verdict", "") or ""),
+                effective_verdict=str(getattr(out, "effective_verdict", "") or ""),
+            )
+            if _pc_report_main.get("applied") and _pc_report_main.get("verdict"):
+                _pc_v = _pc_report_main["verdict"]
+                try:
+                    _pc_code = VerdictCode(_pc_v)
+                except Exception:
+                    _pc_code = VerdictCode.HOLD
+                out = out.model_copy(
+                    update={
+                        "verdict": _pc_code,
+                        "effective_verdict": _pc_v,
+                        "reason_code": _pc_report_main.get("reason_code")
+                        or getattr(out, "reason_code", None),
+                    }
+                )
+            out = out.model_copy(
+                update={
+                    "meta": {
+                        **(out.meta or {}),
+                        "judge_postcondition": _pc_report_main,
+                    }
+                }
+            )
+        except Exception as _pc_main_exc:  # noqa: BLE001 — never break a verdict
+            logger.warning("P0-1 judge postcondition non-fatal: %s", _pc_main_exc)
 
         if not _standing_token:
             # Still inject status even without token
