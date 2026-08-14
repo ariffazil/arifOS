@@ -222,8 +222,19 @@ def _extract_can_mutate(canonical_verdict: str, authority_scope: str) -> bool:
 def _extract_can_claim_success(
     canonical_verdict: str,
     execution_state: str,
+    response: dict[str, Any] | None = None,
 ) -> bool:
-    """Derive success claim permission."""
+    """Derive success claim permission.
+
+    INVARIANT: can_claim_success MUST BE FALSE under HOLD, DENY, VOID, FAILED,
+    or when hold_required is True.
+    """
+    if canonical_verdict in ("DENY", "VOID", "HOLD", "HOLD_888"):
+        return False
+    if execution_state in ("FAILED", "BLOCKED", "CANCELLED"):
+        return False
+    if response and (response.get("hold_required") is True or response.get("effective_verdict") in ("HOLD", "VOID", "HOLD_888")):
+        return False
     if canonical_verdict == "PROCEED" and execution_state == "COMPLETED":
         return True
     return False
@@ -319,7 +330,7 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
 
     # Set permission flags
     can_mutate = _extract_can_mutate(canonical_verdict, authority_scope)
-    can_claim_success = _extract_can_claim_success(canonical_verdict, execution_state)
+    can_claim_success = _extract_can_claim_success(canonical_verdict, execution_state, response)
 
     # Build the V2 envelope. Add as top-level fields directly
     # (the existing response already has 'status', 'result', 'meta' etc.)
