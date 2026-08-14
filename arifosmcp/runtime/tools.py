@@ -3743,6 +3743,38 @@ def _constitutional_gate(
     if verdict.verdict == "SEAL":
         return None
 
+    # KRT-2026-08-15 F2: OBSERVE-class calls are sensors, not actions.
+    # The 13-floor core evaluates evidence/witness/confidence that only exist
+    # AFTER measurement. A pre-measurement hard block kills the sensor it
+    # gates — entropy_dS returned delta_S=null because the measurement never
+    # ran (probe 2026-08-15: trivial query "load" → HOLD L02,L03,L07,L08).
+    # Doctrine: "OBSERVE is free" (AUTH Law 1). Mutating classes and
+    # decision-shaping modes (plan_approve, judge, forge, seal) stay gated.
+    # Floor evaluation still runs above; its result remains visible via the
+    # envelope's constitutional_check layer downstream.
+    _OBSERVE_CLASS_MODES: frozenset[str] = frozenset(
+        {
+            "observe",
+            "init",
+            "sense",
+            "search",
+            "fetch",
+            "ingest",
+            "vitals",
+            "organ_health",
+            "entropy_dS",
+            "compass",
+            "atlas",
+            "recall",
+            "reason",
+            "reflect",
+            "wonder",
+            "axioms",
+        }
+    )
+    if mode in _OBSERVE_CLASS_MODES:
+        return None
+
     # Map core verdict to tool response
     # KRT-2026-08-15 P3 (revised): this gate runs PRE-execution — no
     # measurements exist yet, so delta_s stays None (honest unmeasured).
@@ -12166,7 +12198,10 @@ def _arif_sense_observe(
         # F4: ΔS ≤ 0 means the input must reduce entropy, not increase it.
         import re as _re
 
-        _input_text = str(frame or subject or query or "").lower()
+        # KRT-2026-08-15 F2b: `frame`/`subject` are not in this function's
+        # signature — phantom references that crashed every entropy_dS call
+        # with NameError (surfaced as SAFE_VOID_FALLBACK, delta_S=null).
+        _input_text = str(query or "").lower()
         _contradictions = 0
         # Detect self-contradiction patterns: "both X and Y" where X/Y negate
         _contradiction_patterns = [
@@ -20484,24 +20519,85 @@ def _arif_vault_seal(
             ):
                 irreversibility_chain.append(
                     {
-                        "id": entry.get("id") or entry.get("decision_id"),
+                        # KRT-2026-08-15 F4: v2 schema uses event_id /
+                        # sealed_at / prev_seal_id — without these fallbacks
+                        # every v2 entry showed id:null/timestamp:null/
+                        # depends_on:null while integrity read "OK".
+                        "id": entry.get("id")
+                        or entry.get("event_id")
+                        or entry.get("decision_id"),
                         "type": entry_type,
                         "timestamp": entry.get("timestamp")
                         or entry.get("sealed_at")
+                        or entry.get("issued_at_utc")
                         or entry.get("timestamp_decision"),
                         "session_id": entry.get("session_id"),
                         "actor_id": entry.get("actor_id") or entry.get("signed_by"),
                         "irreversible": True,
                         "depends_on": entry.get("constitutional_chain_id")
+                        or entry.get("prev_seal_id")
                         or entry.get("prev_leaf"),
                     }
                 )
+
+        # KRT-2026-08-15 F4: REAL chain audit replaces hardcoded "OK".
+        # arif_seal(verify) previously reported integrity:"OK" as a literal
+        # while the public /999/verify endpoint (canonical_vault_chain over
+        # VAULT999_DIR) reported gaps-found — the LEDGER-SPLIT-BRAIN failure
+        # mode: two endpoints, two truths. Now both read the same audit, and
+        # unlinked (id/timestamp/depends_on null) entries fail integrity here
+        # too. An immutable ledger that reports OK on a broken chain is the
+        # most dangerous surface in the federation — never fabricate green.
+        _unlinked = sum(
+            1
+            for e in irreversibility_chain
+            if e["id"] is None or e["timestamp"] is None or e["depends_on"] is None
+        )
+        _audit: dict[str, Any] = {"available": False}
+        _chain_ok = False
+        try:
+            from arifosmcp.runtime.canonical_vault_chain import verify_chain as _vc
+
+            # Same vault as the public /999/verify endpoint
+            # (rest_routes/vault_verify.py:22). Env override is for tests.
+            _vault_dir = (
+                os.environ.get("VAULT999_VERIFY_DIR")
+                or "/root/.local/share/arifos/vault999"
+            )
+            _res = _vc(_vault_dir, scope="canonical")
+            _audit = {
+                "available": True,
+                "vault_dir": str(_vault_dir),
+                "scope": "canonical",
+                "verified": bool(getattr(_res, "verified", False)),
+                "status": str(getattr(getattr(_res, "status", None), "value", getattr(_res, "status", ""))),
+                "entries": getattr(_res, "entries", None),
+                "canonical_entries": getattr(_res, "canonical_entries", None),
+                "head_hash": getattr(_res, "head_hash", None),
+                "gap_count": len(getattr(_res, "gaps", []) or []),
+                "failure_classes": {
+                    str(getattr(k, "value", k)): v
+                    for k, v in (getattr(_res, "failure_classes", {}) or {}).items()
+                },
+            }
+            _chain_ok = _audit["verified"]
+        except Exception as _exc:  # noqa: BLE001 — audit failure = NOT ok
+            _audit = {"available": False, "error": f"{type(_exc).__name__}: {_exc}"}
+            _chain_ok = False
+
+        _integrity = "OK" if (_chain_ok and _unlinked == 0) else "GAPS_FOUND"
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
                 result={
                     "ledger_size": len(_VAULT_LEDGER),
-                    "integrity": "OK",
+                    "integrity": _integrity,
+                    "integrity_detail": {
+                        "canonical_chain_verified": _chain_ok,
+                        "unlinked_seal_entries": _unlinked,
+                        "rule": "integrity=OK requires canonical chain verified AND zero unlinked seal entries",
+                    },
+                    "canonical_audit": _audit,
                     "irreversibility_chain": irreversibility_chain[-20:],  # last 20
                     "chain_length": len(irreversibility_chain),
                     "note": "All entries in irreversibility_chain are permanent. No rollback possible.",

@@ -211,7 +211,16 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     call_hash = _lookup("call_hash")
     trace_id = _lookup("trace_id")
     signature = _lookup("signature")
-    verdict = _lookup("verdict") or response.get("status", "SEAL")
+    # KRT-2026-08-15 F1b: verdict slot must carry GOVERNANCE, not execution.
+    # attach_effective_verdict runs before this trim and strips legacy
+    # "verdict", so the old fallback (response.get("status")) copied
+    # "completed" into the verdict slot — FORGE-RECEIPT-DISHONEST.
+    # Priority: canonical effective_verdict > legacy verdict > status.
+    verdict = (
+        _lookup("effective_verdict")
+        or _lookup("verdict")
+        or response.get("status", "SEAL")
+    )
 
     # Unified actor block
     authority_level = "OBSERVER"
