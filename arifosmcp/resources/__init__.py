@@ -453,6 +453,7 @@ from .wisdom_resources import register_wisdom_resources
 # from .surface_map import register_surface_map       # arifos://mcp/surface-map
 from .institution import register_institution        # arifos://institution (added 2026-08-08)
 from .seal_readiness import register_seal_readiness  # arifos://seal-readiness (re-enable 2026-08-08)
+from .rrr import register_rrr_resources              # arifos://rrr/{intent}, skill-health, skill-drift (2026-08-15)
 
 CANONICAL_RESOURCES = (
     # IDENTITY chamber
@@ -525,6 +526,10 @@ EMBODIED_RESOURCES = (
     "arifos://witness/log/{filter}",  # AI reads its own sealed audit trail
     "arifos://witness/stats/{period}",  # witness statistics
     "arifos://boundaries/domain/{domain_id}",  # domain policy per organ — AI needs this
+    # RRR — Resource Reality Resolution (added 2026-08-15)
+    "arifos://rrr/{intent}",  # RRR — intent → reality resource set
+    "arifos://skill-health",  # catalog-wide skill health scan
+    "arifos://skill-drift/{skill_name}",  # per-skill drift check
 )
 
 EVIDENCE_RESOURCES = (
@@ -596,6 +601,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     # REMOVED 2026-08-08 — arifos://mcp/surface-map (duplicate of arifos://schema):
     # registered.extend(register_surface_map(mcp))
     registered.extend(register_wisdom_resources(mcp))
+    registered.extend(register_rrr_resources(mcp))  # RRR + skill-health + skill-drift (2026-08-15)
     registered.extend(alignment_gap.register_alignment_gap_resources(mcp))
     if _atlas333_attach:
         registered.extend(_atlas333_attach(mcp))
