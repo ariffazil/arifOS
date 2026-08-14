@@ -5084,7 +5084,7 @@ def register_rest_routes(
     @route("/.well-known/oauth-protected-resource", methods=["GET"])
     @route("/.well-known/oauth-protected-resource/mcp", methods=["GET"])
     async def oauth_protected_resource(request: Request) -> Response:
-        """OAuth 2.0 Protected Resource Metadata (RFC 8707).
+        """OAuth 2.0 Protected Resource Metadata (RFC 9728).
 
         Spec-compliant MCP clients fetch this first to discover the
         authorization server before starting the auth code flow.

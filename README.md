@@ -29,6 +29,11 @@ authorization: F13 *** challenge-response — canonical binding, Redis replay pr
 > **arifOS is the brain. It judges. It never executes.**
 > **DITEMPA BUKAN DIBERI — Forged, Not Given.**
 
+<!-- RULE-5 First Fold -->
+> **What?** Constitutional governance kernel — 8 canonical MCP verbs enforcing F1-F13 before any tool call.
+> **Why?** Ungoverned AI is a liability; every action needs a constitutional floor.
+> **Care?** For humans — this is your constitution and court. For agents — boot via `arif_init`.
+
 **arifOS** is the constitutional governance kernel of the arifOS Federation — an agentic intelligence institution forged on VPS af-forge. It is not an LLM wrapper. It is not an agent framework. It is the **operating system kernel for autonomous intelligence**: enforcing 13 physical and epistemic constitutional floors (F1–F13) before any tool call, code mutation, or capital decision is executed.
 
 **For humans:** this is the constitution and court your agents live under. Every action is measured, every verdict is auditable, and you (F13) hold the final veto.
