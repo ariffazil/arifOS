@@ -23,7 +23,7 @@ Alert without evidence = noise.
 |:------|:------|:-------|:---------|:----------|:--------|
 | DELTA | Δ | Body / Infra | KUKUH · SOLID | RETAK · CRACKED | LEBUR · MELTED |
 | PSI | Ψ | Governance | AMANAH · TRUSTED | GANTUNG · PENDING | KHIANAT · BREACHED |
-| OMEGA | Ω | Intelligence | BIJAKSANA · WISE | BIJAK · SMART | SESAT · MISALIGNED |
+| OMEGA | Ω | Intelligence | BIJAKSANA · WISE | BIJAK · SMART | BANGANG · FOOLISH |
 
 ## FQ Dimension (v2026.07)
 
@@ -51,7 +51,7 @@ FQ = Σ(cost_execute) / Σ(cost_verify + cost_preceding_verify)
 ### OMEGA (Intelligence)
 - **BIJAKSANA · WISE:** All 3 lanes AGI/ASI/APEX aligned, ATLAS333 integrated
 - **BIJAK · SMART:** Lanes operational, partial alignment, known gaps
-- **SESAT · MISALIGNED:** Lane collapse, agent self-authorizing, C_dark > 0.30
+- **BANGANG · FOOLISH:** Lane collapse, agent self-authorizing, C_dark > 0.30, or persistent mispricing of reality (confident + wrong). Historical alias: SESAT · MISALIGNED (E17, 2026-04-23, archived) — runtime has always emitted BANGANG.
 
 ## Emission Rules
 

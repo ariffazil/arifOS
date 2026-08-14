@@ -265,19 +265,20 @@ def nine_signal_from_session(
         psi_state, psi_en = "SYUBHAH", "DOUBTFUL"
 
     # ── OMEGA (Intelligence) ──
+    # 2026-08-14 calibration fix (double audit: FI-003 + external Copilot):
+    # Ω measures pricing discipline, not claimed certainty. Raw confidence is
+    # unwitnessed — it cannot earn BIJAKSANA on this path (WAJIB #74: never
+    # let unearned certainty wear the bijaksana label) and honest low
+    # confidence is humility (F7), not foolishness. The unwitnessed ceiling
+    # is BIJAK (WAJIB #30: locally smart, not fully governed). BIJAKSANA
+    # here requires kernel-witnessed adjudication (status SEAL/OK).
     if confidence is not None:
-        if confidence >= 0.85:
-            omega_state, omega_en = "BIJAKSANA", "WISE"
-        elif confidence >= 0.60:
-            omega_state, omega_en = "BIJAK", "SMART"
-        else:
-            omega_state, omega_en = "BANGANG", "FOOLISH"
+        omega_state, omega_en = "BIJAK", "SMART"
+        omega_basis = "unwitnessed_confidence"
     else:
-        # Default based on status
+        omega_basis = "status"
         if status in ("OK", "SEAL"):
             omega_state, omega_en = "BIJAKSANA", "WISE"
-        elif status in ("HOLD", "SABAR", "DEGRADED"):
-            omega_state, omega_en = "BIJAK", "SMART"
         else:
             omega_state, omega_en = "BIJAK", "SMART"
 
@@ -300,7 +301,12 @@ def nine_signal_from_session(
     return _build_nine_signal(
         {"plane": "machine_physical_state", "state": delta_state, "en": delta_en},
         {"plane": "governance_integrity", "state": psi_state, "en": psi_en},
-        {"plane": "intelligence_discipline", "state": omega_state, "en": omega_en},
+        {
+            "plane": "intelligence_discipline",
+            "state": omega_state,
+            "en": omega_en,
+            "basis": omega_basis,
+        },
         {"state": overall_state, "en": overall_en},
     )
 
