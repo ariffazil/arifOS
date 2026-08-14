@@ -116,7 +116,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_heart_critique": ("[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."),
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
-        "KERNEL memory governor — L1–L6 governed semantic recall, storage, and persistence."
+        "KERNEL 555 · Memory governor — L1–L6 governed semantic recall, storage, and persistence."
     ),
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
@@ -506,16 +506,16 @@ def _lazy_public_prompt_specs() -> tuple[Any, ...]:
     global _LAZY_PROMPT_SPECS
     if _LAZY_PROMPT_SPECS is None:
         _LAZY_PROMPT_SPECS = tuple(
-    SimpleNamespace(
-        name=spec["name"],
-        description=spec["description"],
-        arguments=[],
-        input_schema=spec.get("input_schema", {}),
-        default_tools=spec.get("default_tools", []),
-        tool_choice=spec.get("tool_choice", "auto"),
-    )
-    for spec in V2_PROMPT_SPECS
-    )
+            SimpleNamespace(
+                name=spec["name"],
+                description=spec["description"],
+                arguments=[],
+                input_schema=spec.get("input_schema", {}),
+                default_tools=spec.get("default_tools", []),
+                tool_choice=spec.get("tool_choice", "auto"),
+            )
+            for spec in V2_PROMPT_SPECS
+        )
     return _LAZY_PROMPT_SPECS
 
 
