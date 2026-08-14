@@ -149,6 +149,15 @@ def build_authority_state_for_actor(
     method = verification_method or ("session" if verified else "none")
     if is_sovereign and not verification_method:
         method = "f13_sovereign"
+    # P0.6 FIX (2026-08-15): AuthorityActor.verification_method is a Literal type
+    # that rejects "system_exempt", "sct_symmetric", "hmac", etc. Map any
+    # non-standard method to the closest valid value to prevent silent
+    # Pydantic ValidationError → authority state never bound → OBSERVE_ONLY.
+    _VALID_METHODS = frozenset(
+        {"none", "session", "signature", "oauth", "hardware", "f13_sovereign", "dpop+registry"}
+    )
+    if method not in _VALID_METHODS:
+        method = "session" if verified else "none"
 
     actor = AuthorityActor(
         claimed_id=safe_actor or "anonymous",
@@ -169,7 +178,11 @@ def build_authority_state_for_actor(
     # Execution verdict: sovereign OR exempt system actors can execute.
     _can_execute = (is_sovereign and verified) or (_is_exempt and verified)
     if _can_execute:
-        execution_authority: str = "SEAL_AUTHORIZED" if is_sovereign else "FULL"
+        # P0.6 FIX (2026-08-15): AuthorityState.execution_authority is Literal
+        # ["HOLD", "SEAL_AUTHORIZED", "VOID"]. "FULL" is not valid. Use
+        # SEAL_AUTHORIZED for all can-execute actors — the sovereign/operator
+        # distinction is handled by forge_gate and authority band, not here.
+        execution_authority: str = "SEAL_AUTHORIZED"
     else:
         execution_authority = "HOLD"
 
