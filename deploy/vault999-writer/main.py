@@ -353,8 +353,9 @@ class VaultDB:
                    ORDER BY epoch DESC LIMIT 1
                    FOR UPDATE"""
             )
-            # prev_seal_id is VARCHAR in DB — cast to string
-            prev_seal_id = str(prev_row["id"]) if prev_row else None
+            # prev_seal_id stores seal_hash (TEXT) — trigger matches on seal_hash
+            # (fixed 2026-08-14: was str(prev_row["id"]), which the trigger rejects)
+            prev_seal_id = prev_row["seal_hash"] if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
 
             created_at = (
@@ -364,7 +365,7 @@ class VaultDB:
 
             payload = dict(req.payload)
             seal_hash = compute_seal_hash(prev_chain_hash, req.action, created_at, payload)
-            chain_hash = compute_chain_hash(prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash)
+            chain_hash = None  # pass NULL — DB trigger computes SHA256(prev_chain||payload||actor)
 
             row = await conn.fetchrow(
                 """
@@ -423,7 +424,9 @@ class VaultDB:
                 """SELECT id, seal_hash, chain_hash FROM vault_seals
                    ORDER BY epoch DESC LIMIT 1"""
             )
-            prev_seal_id: str | None = str(prev_row["id"]) if prev_row else None
+            # prev_seal_id stores seal_hash (TEXT) — trigger matches on seal_hash
+            # (fixed 2026-08-14: was str(prev_row["id"]), which the trigger rejects)
+            prev_seal_id: str | None = prev_row["seal_hash"] if prev_row else None
             prev_seal_hash: str | None = prev_row["seal_hash"] if prev_row else None
 
             created_at = (
@@ -433,7 +436,7 @@ class VaultDB:
 
             payload = dict(req.payload)
             seal_hash = compute_seal_hash(prev_chain_hash, req.action, created_at, payload)
-            chain_hash = compute_chain_hash(prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash)
+            chain_hash = None  # pass NULL — DB trigger computes SHA256(prev_chain||payload||actor)
 
             # Column order in vault_seals table (Supabase):
             # 1=id(SERIAL), 2=record_id(UUID), 3=seal_hash, 4=prev_seal_id,
