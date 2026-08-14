@@ -1573,7 +1573,7 @@ def arif_observe(
             result["mode"] = "rrr"
             result["source"] = "arif_observe"
             result["doctrine"] = (
-                "RRR = Retrieve Reality Requirements. "
+                "RRR = Resource Reality Resolution. "
                 "Canonical surface: arif_observe(mode='rrr'). "
                 "Convenience alias: arifos://rrr/{intent}. "
                 "RRR is a verb, not a subsystem."
