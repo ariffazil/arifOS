@@ -1263,6 +1263,22 @@ async def arif_judge(
                     "F13 sovereign_receipt present — confirms passed intercept "
                     "(ALLOW/OK→SEAL or SEAL retained); HOLD is never rewritten."
                 )
+            _intercept_meta = {
+                "kernel_intercept": _intercept_res,
+                "reversibility_level": _rev_param,
+                "action_class": action_class or reversibility_level,
+                "constitutional_chain_id": _cc_id,
+                "state_hash": _jsh,
+                "judge_state_hash": _jsh,
+                "f13_promoted_allow_to_seal": bool(_code == VerdictCode.SEAL and _has_f13),
+            }
+            if _precedent_advisory is not None:
+                _intercept_meta["precedent"] = {
+                    "queried": True,
+                    "tau_max": _precedent_advisory.get("tau_max", 0.0),
+                    "matched_rules": _precedent_advisory.get("matched_rules", []),
+                    "advisory_only": True,
+                }
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
@@ -1272,15 +1288,7 @@ async def arif_judge(
                     if _code == VerdictCode.SEAL
                     else _intercept_res.get("next_safe_action", "Execute or review per verdict")
                 ),
-                meta={
-                    "kernel_intercept": _intercept_res,
-                    "reversibility_level": _rev_param,
-                    "action_class": action_class or reversibility_level,
-                    "constitutional_chain_id": _cc_id,
-                    "state_hash": _jsh,
-                    "judge_state_hash": _jsh,
-                    "f13_promoted_allow_to_seal": bool(_code == VerdictCode.SEAL and _has_f13),
-                },
+                meta=_intercept_meta,
             )
         except Exception as _int_err:
             logger.warning("Kernel intercept delegation failed: %s", _int_err)
@@ -1587,6 +1595,23 @@ async def arif_judge(
         FIX #4: status is always set based on verdict.
         """
         import hashlib
+
+        # ── HIB PRECEDENT SURFACING (scar→skill wire) ──────────────────
+        # Attach advisory precedent to every judge output path. Non-blocking.
+        if _precedent_advisory is not None:
+            try:
+                _prev_meta = {
+                    "queried": True,
+                    "tau_max": _precedent_advisory.get("tau_max", 0.0),
+                    "matched_rules": _precedent_advisory.get("matched_rules", []),
+                    "advisory_only": True,
+                }
+                if hasattr(out, "model_copy"):
+                    _existing_meta = out.meta or {}
+                    _existing_meta["precedent"] = _prev_meta
+                    out = out.model_copy(update={"meta": _existing_meta})
+            except Exception:
+                pass  # Never let precedent surfacing break a verdict
 
         # ── T1 marker: verify execution path (wrapped so a ValueError on
         # invalid verdict string doesn't break the canonical composer below)
@@ -3240,6 +3265,18 @@ async def arif_judge(
 
                 result["quad_witness"] = W_4(h, a, e, v)
                 result["witness_breakdown"] = {"human": h, "ai": a, "earth": e, "verifier": v}
+
+    # ── HIB PRECEDENT SURFACING (scar→skill wire) ──────────────────────────
+    # Attach advisory precedent to every judge output. Judge decides; precedent informs.
+    if _precedent_advisory and isinstance(result, dict):
+        result.setdefault("precedent", {
+            "queried": True,
+            "tau_max": _precedent_advisory.get("tau_max", 0.0),
+            "matched_rules": _precedent_advisory.get("matched_rules", []),
+            "advisory_only": True,
+        })
+    elif isinstance(result, dict):
+        result.setdefault("precedent", {"queried": True, "matched": False})
 
     try:
         return _echo_standing(VerdictOutput(**result))

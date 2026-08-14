@@ -3270,12 +3270,30 @@ def register_rest_routes(
         _floors_total = get_floor_count()
 
         _layer_health = {
-            "constitutional": "healthy" if _floors_pass_count == _floors_total else "degraded",
-            "runtime": "healthy" if not _code_runtime_drift else "degraded",
-            "registry": "degraded" if contract_drift_val else "healthy",
-            "deployment_attestation": "drift" if _sr_drift else "aligned",
-            "vault": _vault_health,
-            "infra": "normal",
+            "constitutional": {
+                "status": "healthy" if _floors_pass_count == _floors_total else "degraded",
+                "floors_active": get_floor_count(),
+                "floors_target": 13,
+                "vault999": _vault_health,
+            },
+            "runtime": {
+                "status": "healthy" if not _code_runtime_drift else "degraded",
+                "source_commit": _drift.get("source_commit"),
+                "built_commit": _drift.get("built_commit"),
+                "runtime_matches_build": _drift.get("runtime_matches_build", True),
+                "deployment_attestation": "drift" if _sr_drift else "aligned",
+            },
+            "registry": {
+                "status": "degraded" if contract_drift_val else "healthy",
+                "registry_size": len(tool_registry),
+                "declared_tools": _exposed + _diagnostic,
+                "exposed_tools": _exposed,
+                "note": "registry_size includes aliases; diagnostic_tools not on public wire",
+            },
+            "infra": {
+                "status": "unknown",
+                "probe_endpoint": "/ready",
+            },
         }
 
         payload = {
@@ -3329,6 +3347,7 @@ def register_rest_routes(
                 "total_declared_tools": "public wire + diagnostic declared surface",
                 "operational_tools": "proven_live_count — durable SUCCESS within 24h (not merely invocable)",
                 "callable_public": "public wire tools that are declared+registered+exposed",
+                "_design_note": "registry_size > declared > exposed is BY DESIGN. Aliases inflate registry. Diagnostic tools not on public wire.",
             },
             "tool_manifest_url": "https://arifos.arif-fazil.com/tools.json",
             "tool_manifest_hash": "auto-generated",
