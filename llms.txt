@@ -26,10 +26,10 @@ The live MCP gateway exposes 8 canonical kernel verbs. The internal constitution
 > The `tools_loaded` field on `GET https://mcp.arif-fazil.com/health` is the single-witness attestation; re-run before any external publish.
 
 ## Docs
-- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)
-- [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context
-- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping
-- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles
+- [AGENTS.md](https://arif-fazil.com/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)
+- [CLAUDE.md](https://arif-fazil.com/CLAUDE.md): Operating instructions for Claude-family harnesses
+- [MCP Observatory](https://arif-fazil.com/arifos/): Live constitutional state — floor measurements, verdict decomposition, vault witness
+> Internal docs (CONTEXT.md, MCP-RESOURCES-MAP.md, INVARIANTS.md) are not publicly served. Entry contract: AGENTS.md above.
 
 ## MCP Tools — Complete Surface (federation aggregate)
 Across the federation (arifOS kernel + GEOX + WEALTH + WELL + A-FORGE + AAA + ChatGPT-shim + diagnostic): 65 MCP tools total. 25 constitutional_map entries (23 unique arif_* keys) of which the live gateway at https://mcp.arif-fazil.com/mcp exposes 8 via tools/list. 40 operational support tools across the federation.
