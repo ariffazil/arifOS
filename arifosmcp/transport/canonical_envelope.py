@@ -41,6 +41,51 @@ class ActionClass(str, Enum):
     def __hash__(self) -> int:
         return hash(self.value)
 
+    # ── K-1: OBSERVE-class detection ──────────────────────────────────
+    # Observation must be config-independent. OBSERVE-class tools resolve
+    # config at build time or carry safe defaults. Missing governance config
+    # must never block observation (D-1 invariant).
+
+    _OBSERVE_CLASSES = frozenset({"read", "query", "probe"})
+
+    @property
+    def is_observe(self) -> bool:
+        """True if this action class is observation-only (no mutation config dependency)."""
+        return self.value in self._OBSERVE_CLASSES
+
+    @property
+    def is_mutate(self) -> bool:
+        """True if this action class performs state mutation."""
+        return self.value in {"write", "mutate", "irreversible", "forge"}
+
+    # ── K-3: MCP annotation mapping ──────────────────────────────────
+    # Unannotated tools are illegible. Spec-honoring clients treat them with
+    # maximum caution. This mapping projects action_class onto the MCP
+    # hint annotation surface (D-3 invariant).
+
+    def to_mcp_annotations(self) -> dict[str, bool]:
+        """Return MCP tool annotation hints derived from action_class.
+
+        Mapping (D-3 spec):
+          OBSERVE       → readOnlyHint: true
+          WRITE         → readOnlyHint: false, destructiveHint: false
+          MUTATE/FORGE  → readOnlyHint: false, destructiveHint: false, idempotentHint: true
+          IRREVERSIBLE  → readOnlyHint: false, destructiveHint: true, idempotentHint: false
+          GOVERN/QUERY/PROBE → readOnlyHint: true
+          UNKNOWN       → {} (no annotations — forces maximum caution, correctly)
+        """
+        _MAP: dict[str, dict[str, bool]] = {
+            "read":         {"readOnlyHint": True},
+            "query":        {"readOnlyHint": True},
+            "probe":        {"readOnlyHint": True},
+            "govern":       {"readOnlyHint": True},
+            "write":        {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True},
+            "mutate":       {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True},
+            "forge":        {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True},
+            "irreversible": {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False},
+        }
+        return dict(_MAP.get(self.value, {}))
+
 
 class AuthLevel(str, Enum):
     NONE = "none"

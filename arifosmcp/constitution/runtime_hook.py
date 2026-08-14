@@ -14,6 +14,7 @@ from . import (
     GODEL_AXIOMS,
     get_axiom,
 )
+from .degradation_policy import asymmetric_degrade, OBSERVE_CLASSES
 
 
 class GodelLockViolation(Exception):
@@ -25,6 +26,43 @@ class GodelLockViolation(Exception):
         self.verdict = verdict
         self.reason = reason
         super().__init__(f"G[{axiom_id}] {axiom_name} violation: {reason} (verdict={verdict})")
+
+
+def check_degradation(
+    action_class: str,
+    governance_healthy: bool = True,
+    failed_component: str = "",
+    failure_mode: str = "",
+) -> dict[str, Any]:
+    """K-2: Asymmetric degradation pre-check.
+
+    Runs BEFORE the Gödel Lock. When a governance component is unhealthy,
+    this decides whether the tool should proceed (observe-class) or be
+    denied (mutate-class).
+
+    The thermodynamic safety principle: freeze mutation before observation.
+
+    Returns:
+        {"ok": True}  — proceed (observe-class survives degradation)
+        {"ok": False, "reason": str} — deny (mutate-class blocked)
+        {"ok": True, "degraded": True} — proceed with degradation notice
+    """
+    if governance_healthy:
+        return {"ok": True}
+
+    verdict = asymmetric_degrade(action_class, failed_component, failure_mode)
+    if verdict.is_allowed:
+        return {
+            "ok": True,
+            "degraded": True,
+            "degradation_action": verdict.action,
+            "reason": verdict.detail,
+        }
+    return {
+        "ok": False,
+        "reason": verdict.detail,
+        "degradation_action": verdict.action,
+    }
 
 
 def check_godel_lock(

@@ -181,6 +181,32 @@ this table, that surface page is wrong.
 | GEOX claim workflow | accept SPEC as SEAL-worthy |
 | arifOS kernel | emit a confidence value above 0.97; emit F6 to public layer as MARUAH |
 
+### 3.5 Surface Projection Invariants (Forged 2026-08-15)
+
+> **Meta-principle:** The interface IS the governance. Governance in kernel
+> code but not projected onto the MCP tool surface is invisible to agents.
+> Every floor must be visible and enforceable at the interface boundary.
+>
+> **Origin:** A-FORGE Remediation Directives D-1..D-8 (SEAL-5066ea4a7fb2449e).
+> Eight structural invariants extracted and deployed as kernel code.
+
+| ID | Invariant | Floor | Rule |
+|----|-----------|-------|------|
+| K-1 | Observation Config-Independence | F12 | OBSERVE-class tools must not depend on MUTATE config files. Missing config → permissive-read, never deny-all. |
+| K-2 | Asymmetric Degradation | F1/F12 | Governance component failure → OBSERVE permitted, MUTATE blocked. Freeze mutation before observation. |
+| K-3 | Annotation Legibility Contract | F4 | Every exported tool MUST carry MCP annotations consistent with its action_class. Unannotated = illegible. |
+| K-4 | Execution Singularity | Gödel | One canonical execution entrypoint per organ. Multiple entrypoints = governance ambiguity. Stages are internal. |
+| K-5 | Shadow Kernel Test | R∉S | No organ computes verdicts locally. Tool emitting SEAL/HOLD/VOID/G-score without routing through :8088 = Iron Rule violation. |
+| K-6 | Prediction-Before-Execution | F2/F7 | Every MUTATE tool requires prediction field. Gap = world model training signal. Tracked as kernel health metric. |
+| K-7 | Schema Weight Tax | F4 | Repeated governance fields across tools = negative compression. Server-minted handles or collapsed context object required. |
+| K-8 | Migration Deprecation Window | F1 | Interface changes require one full epoch deprecation. Old name aliases to new, emits notice in _meta. No big-bang surface changes. |
+
+**Code deployment:**
+- K-1, K-3: `arifosmcp/transport/canonical_envelope.py` — `ActionClass.is_observe`, `ActionClass.to_mcp_annotations()`
+- K-2, K-5: `arifosmcp/constitution/degradation_policy.py` — `asymmetric_degrade()`, `shadow_kernel_test()`
+- K-2 wired: `arifosmcp/constitution/runtime_hook.py` — `check_degradation()` pre-check before Gödel Lock
+- K-4, K-6, K-7, K-8: this section (canon doctrine, organ-level implementation)
+
 ---
 
 ## 4. The 000→999 Pipeline
