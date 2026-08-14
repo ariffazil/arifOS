@@ -108,7 +108,10 @@ def ledger_precheck() -> dict[str, Any]:
     try:
         from arifosmcp.runtime.seal_chain import validate_seal_chain
 
-        report = validate_seal_chain()
+        try:
+            report = validate_seal_chain(seal_id="head")
+        except TypeError:
+            report = validate_seal_chain("head")
         if isinstance(report, dict):
             return {
                 "available": True,
@@ -118,7 +121,7 @@ def ledger_precheck() -> dict[str, Any]:
             }
         return {"available": True, "verified": None}
     except Exception as exc:  # noqa: BLE001 — advisory path must never throw
-        return {"available": False, "error": str(exc)}
+        return {"available": False, "error": str(exc)[:200]}
 
 
 def check_judge_postcondition(
