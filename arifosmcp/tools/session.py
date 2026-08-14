@@ -647,6 +647,10 @@ def _project_light(
     _drift = _sw.get("drift", False)
     if _drift:
         degraded.append("kernel_drift")
+        _sw["_freshness_warning"] = (
+            "built_commit in this token is from install time and may be stale. "
+            "Check live /health endpoint for current runtime attestation."
+        )
     _mutation_granted = bool(_is_full_authority or _is_limited)
     _mutation_allowed = _mutation_granted and not _drift
     _seal_granted = bool(actor_verified and _is_full_authority)

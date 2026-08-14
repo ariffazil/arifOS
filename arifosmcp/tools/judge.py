@@ -1176,6 +1176,36 @@ async def arif_judge(
             },
         )
 
+    # ── HIB PRECEDENT RETRIEVAL (scar→skill wire, 2026-08-14) ──────────────
+    # Judge queries institutional memory before adjudication. Non-blocking:
+    # if Qdrant is down or no match, proceeds silently. If a matching HOLD
+    # precedent is found, it is attached as advisory evidence — judge still
+    # decides, but now WITH memory. Closes: Vault → Qdrant → HIB → Judge.
+    _precedent_advisory: dict[str, Any] | None = None
+    try:
+        from arifosmcp.tools.hib_gate import hib_precheck
+
+        _query_text = " ".join(filter(None, [
+            candidate or "",
+            seal_purpose or "",
+            action_class or reversibility_level or "",
+            domain or "",
+        ]))
+        if _query_text.strip():
+            _hib = hib_precheck(
+                _query_text,
+                blast_radius or "L2_SYSTEM",
+            )
+            if _hib.get("block_precedent"):
+                _precedent_advisory = _hib
+                logger.info(
+                    "HIB precedent matched in judge: tau=%s rules=%s",
+                    _hib.get("tau_max", 0),
+                    _hib.get("matched_rules", []),
+                )
+    except Exception:
+        pass  # Non-blocking — judge proceeds without precedent on any failure
+
     # Delegate to kernel intercept classification if reversibility_level/action_class provided
     _rev_param = reversibility_level or action_class
     if _rev_param and str(_rev_param).strip():

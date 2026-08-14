@@ -3232,8 +3232,56 @@ def register_rest_routes(
         # F1 AMANAH violation. The rule per build.py:166:
         #   "Deployment must refuse to report healthy when drift is true."
         _degraded = runtime_drift_val or contract_drift_val
+
+        # ── Health clarity (2026-08-14): explain WHY status is degraded ──
+        _code_runtime_drift = bool(_drift.get("runtime_drift", False))
+        degraded_reasons: list[dict[str, str]] = []
+        if _sr_drift:
+            degraded_reasons.append({
+                "layer": "deployment_attestation",
+                "field": "software_release.drift",
+                "value": "true",
+                "severity": "warning",
+                "explanation": "source_commit != built_commit in runtime attestation (SOT drift, not code drift)",
+            })
+        if _code_runtime_drift:
+            degraded_reasons.append({
+                "layer": "runtime",
+                "field": "runtime_drift",
+                "value": "true",
+                "severity": "critical",
+                "explanation": "Live running code does not match deployed commit",
+            })
+        if contract_drift_val:
+            degraded_reasons.append({
+                "layer": "registry",
+                "field": "contract_drift",
+                "value": "true",
+                "severity": "warning",
+                "explanation": "Tool contract schemas have drift",
+            })
+
+        # ── Health clarity (2026-08-14): per-layer health classification ──
+        _floors_scores = thermo.get("floors", {})
+        _floors_pass_count = sum(
+            1 for _fid, _sc in _floors_scores.items()
+            if _floor_status_strict(_fid, _sc) == _FLOOR_STATUS_PASS
+        )
+        _floors_total = get_floor_count()
+
+        _layer_health = {
+            "constitutional": "healthy" if _floors_pass_count == _floors_total else "degraded",
+            "runtime": "healthy" if not _code_runtime_drift else "degraded",
+            "registry": "degraded" if contract_drift_val else "healthy",
+            "deployment_attestation": "drift" if _sr_drift else "aligned",
+            "vault": _vault_health,
+            "infra": "normal",
+        }
+
         payload = {
             "status": "degraded" if _degraded else "healthy",
+            "degraded_reasons": degraded_reasons,
+            "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
             "identity_hash": identity_hash,
             # ── Federation enum schema version (federation-wide handshake) ──
@@ -3425,7 +3473,8 @@ def register_rest_routes(
                     ["vault_unavailable_or_degraded"]
                     if _vault_health != "healthy"
                     else ["vault_healthy"]
-                    + (["runtime_drift"] if runtime_drift_val else [])
+                    + (["code_runtime_drift"] if _code_runtime_drift else [])
+                    + (["deployment_attestation_drift"] if _sr_drift else [])
                     + (["contract_drift"] if contract_drift_val else [])
                     + ([f"c_dark_elevated_{c_dark_val:.3f}"] if c_dark_val >= 0.30 else [])
                 ),
