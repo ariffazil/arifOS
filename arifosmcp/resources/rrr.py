@@ -376,6 +376,84 @@ RRR_DEFAULT: dict[str, Any] = {
 # ═════════════════════════════════════════════════════════════════════════════
 
 
+def _probe_candidate_skills(
+    skill_names: list[str],
+    *,
+    all_skills: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Probe each candidate skill for drift. Returns enriched skill list.
+
+    W1 — RRR_HEALTH: candidate skills carry observed reality state.
+    A candidate skill is never returned without an attached health tag.
+
+    For drifted skills, finds healthy alternatives from all_skills pool
+    that share the same intent class.
+    """
+    try:
+        from arifosmcp.tools.session_close_macro import check_skill_drift
+    except ImportError:
+        return [{"name": s, "drift": None, "reason": "probe_unavailable"} for s in skill_names]
+
+    results: list[dict[str, Any]] = []
+    healthy_skills: list[str] = []
+
+    for name in skill_names:
+        try:
+            drift = check_skill_drift(name)
+            is_drifted = drift.get("drift_detected", False)
+            entry: dict[str, Any] = {
+                "name": name,
+                "drift": is_drifted,
+                "completeness": drift.get("completeness", "UNKNOWN"),
+                "age_days": drift.get("age_days", 0),
+            }
+            if is_drifted:
+                entry["broken_paths"] = drift.get("broken_paths", [])[:3]
+                entry["broken_count"] = drift.get("broken_count", len(drift.get("broken_paths", [])))
+            if not is_drifted:
+                healthy_skills.append(name)
+            results.append(entry)
+        except Exception:  # noqa: BLE001 — probe must never block RRR
+            results.append({"name": name, "drift": None, "reason": "probe_error"})
+
+    # For drifted skills, find healthy alternatives
+    if all_skills:
+        for entry in results:
+            if entry.get("drift") is True:
+                alternatives = [
+                    s for s in all_skills
+                    if s != entry["name"] and s not in skill_names
+                ]
+                # Probe up to 3 alternatives
+                healthy_alts: list[str] = []
+                for alt in alternatives[:3]:
+                    try:
+                        alt_drift = check_skill_drift(alt)
+                        if not alt_drift.get("drift_detected", False):
+                            healthy_alts.append(alt)
+                    except Exception:  # noqa: BLE001
+                        pass
+                if healthy_alts:
+                    entry["alternatives"] = healthy_alts
+
+    return results
+
+
+def _collect_all_skills_for_capability(capabilities: list[str]) -> list[str]:
+    """Collect skill names from the same intent classes that share capabilities.
+
+    Lightweight: scans RRR_INTENT_MAP for entries sharing any capability
+    with the current match. Returns deduplicated skill name pool.
+    """
+    pool: set[str] = set()
+    cap_set = set(capabilities)
+    for entry in RRR_INTENT_MAP:
+        entry_caps = set(entry.get("capabilities", []))
+        if cap_set & entry_caps:  # any overlap
+            pool.update(entry.get("skills", []))
+    return sorted(pool)
+
+
 def resolve_rrr(intent: str) -> dict[str, Any]:
     """Resolve intent to resource reality requirements.
 
@@ -462,7 +540,12 @@ def resolve_rrr(intent: str) -> dict[str, Any]:
             "external": best_match.get("evidence_external", []),
         },
         "candidate_capabilities": best_match.get("capabilities", []),
-        "candidate_skills": best_match.get("skills", []),
+        "candidate_skills": _probe_candidate_skills(
+            best_match.get("skills", []),
+            all_skills=_collect_all_skills_for_capability(
+                best_match.get("capabilities", [])
+            ),
+        ),
         "toolchain": best_match.get("tools", []),
         "constraints": best_match.get("constraints", []),
         "outputs_expected": best_match.get("outputs_expected", []),
