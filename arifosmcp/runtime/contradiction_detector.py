@@ -253,4 +253,18 @@ class ContradictionDetector(Middleware):
                 f"PHASE4_STRIP: {tool_name} — ZERO fields stripped. sc keys: {list(sc.keys())[:10]}\n"
             )
 
+        # KRT-2026-08-15 F1b: after dedupe, RE-EMIT the canonical governance
+        # verdict from the sole source of truth (the authority block).
+        # Stripping effective_verdict without re-emitting left the wire with
+        # only execution-valued fields (status/verdict="completed") — a HOLD
+        # read as success to any caller not inspecting `authority` (the
+        # FORGE-RECEIPT-DISHONEST / VERDICT-FORK failure mode). One field,
+        # one writer: authority.verdict.
+        sc["effective_verdict"] = authority_verdict
+        sc["execution_state"] = {
+            "VOID": "FAILED",
+            "HOLD": "AWAIT_INPUT",
+            "888_HOLD": "AWAIT_SOVEREIGN",
+        }.get(str(authority_verdict).upper(), "COMPLETED")
+
         return result
