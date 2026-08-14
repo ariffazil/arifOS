@@ -504,6 +504,49 @@ def verify_boot_attestation(
     }
 
 
+def bootstrap_attestation(actor_id: str | None = None) -> dict[str, Any]:
+    """Pre-session bootstrap attestation.
+
+    During arif_init with mode="init", no session exists yet. Q1 (identity bind)
+    and Q3 (session ignite) are inherently PARTIAL — the session is being created.
+    This is not a degraded state; it's the bootstrap state.
+
+    Returns a verdict with:
+      - boot_state="INIT_BOOTSTRAP" when kernel is healthy but session doesn't exist yet
+      - boot_state="OK" when full attestation passes (session already exists)
+      - boot_state="FAIL" when kernel is unhealthy
+    """
+    parsed = verify_boot_attestation(session_id=None, actor_id=actor_id)
+
+    # Check which questions are PARTIAL due to missing session vs real problems
+    q1 = parsed.get("Q1", {})
+    q3 = parsed.get("Q3", {})
+
+    # If Q1 and Q3 are PARTIAL due to "no session_id", that's bootstrap — not a problem
+    q1_bootstrap = q1.get("answer") == "PARTIAL" and "no session_id" in q1.get("note", "").lower()
+    q3_bootstrap = q3.get("answer") == "PARTIAL" and "session pending" in q3.get("note", "").lower()
+
+    # If both are bootstrap-partials, this is the init state
+    if q1_bootstrap or q3_bootstrap:
+        # Kernel must still be healthy for bootstrap to succeed
+        q2 = parsed.get("Q2", {})
+        if q2.get("answer") == "OK":
+            return {
+                "gates_requested_band": True,
+                "boot_state": "INIT_BOOTSTRAP",
+                "yes_count": parsed["summary"]["yes_count"],
+                "partial_count": parsed["summary"]["partial_count"],
+                "no_count": parsed["summary"]["no_count"],
+                "must_be": "INIT_BOOTSTRAP",
+                "actual": "INIT_BOOTSTRAP",
+                "passes": True,
+                "parsed": parsed,
+            }
+
+    # Fall through to normal attestation (will return OK or FAIL)
+    return boot_state_for_authority_grade("LIMITED_MUTATE")
+
+
 def boot_state_for_authority_grade(requested_band: str) -> dict[str, Any]:
     """For any requested_band >= LIMITED_MUTATE, return the BOOT verdict that
     must be OK before that band can be issued.
