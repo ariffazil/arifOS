@@ -173,6 +173,9 @@ def _build_index() -> dict[str, Any]:
 
     index = {
         "uri": "tree777://index",
+        "schema_version": "1.0-DEPRECATED",
+        "canonical_owner": "tree777 MCP service v2.0 (port 18077, AAA/mcp/tree777/server.py)",
+        "supersession": "Superseded by tree777-service v2.0 index: semantic slugs, sha256/size metadata, coverage warnings, no host paths. Retained as alias for one deprecation window per DECISION_TREE777_GO_2026-08-14. Prefer wiki_search/wiki_read tools on port 18077.",
         "wiki_root": str(WIKI_ROOT),
         "total_skills": len(skills),
         "total_concepts": len(concepts),

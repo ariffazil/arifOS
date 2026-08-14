@@ -574,7 +574,9 @@ def arif_observe(
     mode: str = "search",
     query: str | None = None,
     url: str | None = None,
-    layers: list[str] | None = None,
+    layers: list[str]
+    | str
+    | None = None,  # BRIDGE-COMPAT: JSON-string tolerated (SCAR_JUDGE_EVIDENCE_BRIDGE)
     actor_id: str | None = None,
     session_id: str | None = None,
     session_token: str | None = None,
@@ -668,6 +670,7 @@ def arif_observe(
         # Z5 REALITY ANCHOR — persist hash-verified evidence to disk (non-blocking)
         try:
             from arifosmcp.core.reality_anchors import persist_evidence
+
             _ev = persist_evidence(
                 result if isinstance(result, dict) else {"raw": str(result)[:500]},
                 source=f"arif_observe.{mode}",
@@ -1267,6 +1270,7 @@ def arif_observe(
         # not random.uniform placeholder. Samples system activity and
         # computes entropy of the load distribution.
         import math as _math
+
         _samples: list[float] = []
         try:
             with open("/proc/loadavg") as _f:

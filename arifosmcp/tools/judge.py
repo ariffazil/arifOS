@@ -1038,7 +1038,9 @@ async def arif_judge(
     niat_params: dict[str, Any] | None = None,
     context_source: str | None = None,
     sovereign_receipt: str | None = None,
-    evidence: dict[str, Any] | None = None,
+    evidence: dict[str, Any]
+    | str
+    | None = None,  # BRIDGE-COMPAT: JSON-string tolerated, coerced below (SCAR_JUDGE_EVIDENCE_BRIDGE)
     # ── F13 challenge authorization params (public MCP wrapper chain) ──
     actor_signature: str | None = None,
     nonce: str | None = None,
@@ -1069,6 +1071,20 @@ async def arif_judge(
             action_tier: "standard" | "sovereign" | "c4" | "c5".
     ...
     """
+
+    # ── BRIDGE COMPAT (SCAR_JUDGE_EVIDENCE_BRIDGE 2026-08-14) ──────────────
+    # Some MCP clients (opencode adapter vs anyOf schemas) stringify composite
+    # args before transport. Tolerant parse: coerce JSON-string evidence back
+    # to dict before any gate runs. Traces: trc-38afbd13ee55, TRACE-d12a4a3ca6bd.
+    if isinstance(evidence, str):
+        try:
+            import json as _json_bridge
+
+            _ev_parsed = _json_bridge.loads(evidence)
+            if isinstance(_ev_parsed, dict):
+                evidence = _ev_parsed
+        except (ValueError, TypeError):
+            pass  # leave as-is; empty-evidence gate then HOLDs honestly
 
     # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any LLM call ──
     # Per ChatGPT forensic: arif_judge must not wait 45s for LLM to decide
@@ -1102,9 +1118,7 @@ async def arif_judge(
             _ev_hash = evidence.get("evidence_hash")
             _ev_in_band = evidence.get("in_band") is True
             _ev_content_keys = [
-                k
-                for k in evidence.keys()
-                if k not in ("evidence_hash", "in_band", "source")
+                k for k in evidence.keys() if k not in ("evidence_hash", "in_band", "source")
             ]
             if _ev_content_keys and not _ev_hash and not _ev_in_band:
                 _hard_reasons.append(
@@ -1124,9 +1138,7 @@ async def arif_judge(
                         "Payload mutated in transit. Reject."
                     )
         except Exception:
-            _hard_reasons.append(
-                "EVIDENCE_HASH_UNVERIFIABLE: Rule #6 — hash computation failed."
-            )
+            _hard_reasons.append("EVIDENCE_HASH_UNVERIFIABLE: Rule #6 — hash computation failed.")
 
     # Gate 1: Caller identity required for judgment
     if not actor_id and not session_id:
@@ -1185,12 +1197,17 @@ async def arif_judge(
     try:
         from arifosmcp.tools.hib_gate import hib_precheck
 
-        _query_text = " ".join(filter(None, [
-            candidate or "",
-            seal_purpose or "",
-            action_class or reversibility_level or "",
-            domain or "",
-        ]))
+        _query_text = " ".join(
+            filter(
+                None,
+                [
+                    candidate or "",
+                    seal_purpose or "",
+                    action_class or reversibility_level or "",
+                    domain or "",
+                ],
+            )
+        )
         if _query_text.strip():
             _hib = hib_precheck(
                 _query_text,
@@ -3275,12 +3292,15 @@ async def arif_judge(
     # ── HIB PRECEDENT SURFACING (scar→skill wire) ──────────────────────────
     # Attach advisory precedent to every judge output. Judge decides; precedent informs.
     if _precedent_advisory and isinstance(result, dict):
-        result.setdefault("precedent", {
-            "queried": True,
-            "tau_max": _precedent_advisory.get("tau_max", 0.0),
-            "matched_rules": _precedent_advisory.get("matched_rules", []),
-            "advisory_only": True,
-        })
+        result.setdefault(
+            "precedent",
+            {
+                "queried": True,
+                "tau_max": _precedent_advisory.get("tau_max", 0.0),
+                "matched_rules": _precedent_advisory.get("matched_rules", []),
+                "advisory_only": True,
+            },
+        )
     elif isinstance(result, dict):
         result.setdefault("precedent", {"queried": True, "matched": False})
 
