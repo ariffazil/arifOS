@@ -236,10 +236,39 @@ def probe_skill_health(
 
 
 def _get_ecology_snapshot() -> dict[str, int]:
-    """Pull ecology state from intent_retriever Qdrant. Non-fatal stub."""
-    # Ecology tracking lives in /root/AAA/scripts/intent_retriever.py
-    # This is a best-effort bridge — returns UNKNOWN if unavailable.
-    return {"HOT": 0, "WARM": 0, "COLD": 0, "UNKNOWN": 0}
+    """Pull ecology state from intent_retriever Qdrant collection.
+
+    Queries arifos_skill_mesh for ecology_state distribution.
+    Pure HTTP — no sentence_transformers dependency.
+    Returns {"HOT": N, "WARM": N, "COLD": N, "UNKNOWN": N}.
+    """
+    import urllib.request
+    import urllib.error
+
+    ecology: dict[str, int] = {"HOT": 0, "WARM": 0, "COLD": 0, "UNKNOWN": 0}
+    qdrant_url = os.getenv("QDRANT_URL", "http://127.0.0.1:6333")
+    collection = "arifos_skill_mesh"
+
+    try:
+        # Scroll all points to get ecology states (collection is small, ~8-200 points)
+        url = f"{qdrant_url}/collections/{collection}/points/scroll"
+        body = json.dumps({"limit": 500, "with_payload": {"include": ["ecology_state"]}})
+        req = urllib.request.Request(
+            url, data=body.encode(), headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read())
+
+        for point in data.get("result", {}).get("points", []):
+            state = point.get("payload", {}).get("ecology_state", "UNKNOWN")
+            if state in ecology:
+                ecology[state] += 1
+            else:
+                ecology["UNKNOWN"] += 1
+    except Exception:  # noqa: BLE001 — ecology is best-effort, never blocks seal
+        pass
+
+    return ecology
 
 
 def check_skill_drift(
