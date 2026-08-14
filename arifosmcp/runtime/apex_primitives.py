@@ -104,7 +104,10 @@ def record_tool_call(
         logger.debug("apex record_tool_call failed for %s: %s", tool_name, e)
 
 
-def compute_apex_from_metrics(window_seconds: int = 604800) -> dict[str, Any]:
+def compute_apex_from_metrics(
+    window_seconds: int = 604800,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
     """Compute APEX primitives from recent tool call metrics.
 
     Returns dict with A, P, E, X, Φ, G, C_dark, W3, plus breakdown.
@@ -113,16 +116,22 @@ def compute_apex_from_metrics(window_seconds: int = 604800) -> dict[str, Any]:
     UNMEASURED on cold start because only ~10 records existed in that window.
     7-day window captures ~6-7K records with meaningful signal.
     Adjusts for empty data (returns UNMEASURED defaults).
+
+    P0.8 FIX (2026-08-15): actor_id filter. When provided, only tool calls
+    from that actor are included. Returns actor-scoped G/C_dark/h instead
+    of federation-wide population average. Without actor_id, returns global.
     """
     try:
         conn = _get_db()
         cutoff = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - window_seconds))
-        rows = conn.execute(
-            """SELECT success, has_evidence, within_lease, dry_run_first,
+        query = """SELECT success, has_evidence, within_lease, dry_run_first,
                       reversible, failure_code
-               FROM tool_calls WHERE timestamp >= ?""",
-            (cutoff,),
-        ).fetchall()
+               FROM tool_calls WHERE timestamp >= ?"""
+        params: list = [cutoff]
+        if actor_id:
+            query += " AND actor_id = ?"
+            params.append(actor_id)
+        rows = conn.execute(query, params).fetchall()
         conn.close()
 
         n = len(rows)
