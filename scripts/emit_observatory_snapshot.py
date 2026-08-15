@@ -117,17 +117,27 @@ def _emit_chain_health() -> None:
 
 
 def main() -> int:
-    SNAP_DIR.mkdir(parents=True, exist_ok=True)
+    snap_dir = SNAP_DIR
+    try:
+        snap_dir.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        snap_dir = Path("/tmp/arifos/observatory/snapshots")
+        snap_dir.mkdir(parents=True, exist_ok=True)
+    
     print("=== arifOS Observatory Emitter — generating signed snapshot ===", file=sys.stderr)
     snap = build_observatory()
     snap_id = str(snap["snapshot_id"])
-    out_path = SNAP_DIR / f"{snap_id}.json"
-    latest_path = SNAP_DIR / "snapshot_latest.json"
+    out_path = snap_dir / f"{snap_id}.json"
+    latest_path = snap_dir / "snapshot_latest.json"
     encoded = json.dumps(snap, indent=2, default=str)
-    out_path.write_text(encoded, encoding="utf-8")
-    latest_path.write_text(encoded, encoding="utf-8")
-    print(f"  wrote {out_path}", file=sys.stderr)
-    print(f"  wrote {latest_path}", file=sys.stderr)
+    try:
+        out_path.write_text(encoded, encoding="utf-8")
+        latest_path.write_text(encoded, encoding="utf-8")
+        print(f"  wrote {out_path}", file=sys.stderr)
+        print(f"  wrote {latest_path}", file=sys.stderr)
+    except Exception as exc:
+        print(f"  snapshot write warning: {exc}", file=sys.stderr)
+
     signature = snap.get("signature") if isinstance(snap.get("signature"), dict) else {}
     print(f"  signature.state: {signature.get('state')}", file=sys.stderr)
     print(f"  signature.key_id: {signature.get('key_id')}", file=sys.stderr)
@@ -141,8 +151,27 @@ def main() -> int:
             f"{finding.get('status')} | {str(finding.get('evidence'))[:80]}",
             file=sys.stderr,
         )
-    _maybe_publish()
-    _emit_chain_health()
+    
+    # Direct write to publish target if specified
+    target = os.environ.get("OBSERVATORY_PUBLISH_TARGET", "").strip()
+    if target:
+        try:
+            target_p = Path(target)
+            target_p.mkdir(parents=True, exist_ok=True)
+            (target_p / "observatory.json").write_text(encoded, encoding="utf-8")
+            (target_p / "observatory-snapshot-latest.json").write_text(encoded, encoding="utf-8")
+            print(f"  direct published to {target_p}/observatory.json", file=sys.stderr)
+        except Exception as exc:
+            print(f"  direct publish error: {exc}", file=sys.stderr)
+
+    try:
+        _maybe_publish()
+    except Exception as exc:
+        print(f"  _maybe_publish warning: {exc}", file=sys.stderr)
+    try:
+        _emit_chain_health()
+    except Exception as exc:
+        print(f"  _emit_chain_health warning: {exc}", file=sys.stderr)
     return 0
 
 
