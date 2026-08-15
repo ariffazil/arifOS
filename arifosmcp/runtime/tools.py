@@ -25847,6 +25847,47 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
             return _sanitize_envelope(final_resp)
 
+        # ── SESSION POLICY CLAMP (2026-08-15, F13 Go on Shadow Mode) ──────────
+        # The session's OWN agent_policy binds its authority ceiling. Display
+        # registers (shadow) become runtime law here — not prompt text.
+        try:
+            from arifosmcp.runtime.session_policy import session_policy_clamp
+
+            _clamp_action = "OBSERVE"
+            try:
+                from arifosmcp.runtime.pre_execution_gate import CANONICAL_TOOL_MANIFEST
+
+                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+                if _manifest_entry is not None:
+                    _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
+            except Exception:
+                pass
+            _clamp = session_policy_clamp(
+                kwargs.get("session_id"), tool_name, _clamp_action
+            )
+            if _clamp is not None:
+                _clamp_resp = {
+                    "status": "HOLD",
+                    "result": {},
+                    "meta": {
+                        "reason": _clamp["reason"],
+                        "failure_type": "SESSION_POLICY_CLAMP",
+                        "violated_laws": _clamp["violations"],
+                        "blocked_action_class": _clamp.get("blocked_action_class"),
+                    },
+                }
+                final_resp = _enforce_nine_signal(
+                    tool_name,
+                    _clamp_resp,
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id"),
+                )
+                _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+                return _sanitize_envelope(final_resp)
+        except ImportError:
+            pass
+        # ── end SESSION POLICY CLAMP ──────────────────────────────────────────
+
         # Unwrap akal/judge middleware to get the inner handler's signature
         _inner_handler = handler
         while hasattr(_inner_handler, "__wrapped__"):
@@ -26170,6 +26211,47 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
             _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
             return _sanitize_envelope(final_resp)
+
+        # ── SESSION POLICY CLAMP (2026-08-15, F13 Go on Shadow Mode) ──────────
+        # The session's OWN agent_policy binds its authority ceiling. Display
+        # registers (shadow) become runtime law here — not prompt text.
+        try:
+            from arifosmcp.runtime.session_policy import session_policy_clamp
+
+            _clamp_action = "OBSERVE"
+            try:
+                from arifosmcp.runtime.pre_execution_gate import CANONICAL_TOOL_MANIFEST
+
+                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+                if _manifest_entry is not None:
+                    _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
+            except Exception:
+                pass
+            _clamp = session_policy_clamp(
+                kwargs.get("session_id"), tool_name, _clamp_action
+            )
+            if _clamp is not None:
+                _clamp_resp = {
+                    "status": "HOLD",
+                    "result": {},
+                    "meta": {
+                        "reason": _clamp["reason"],
+                        "failure_type": "SESSION_POLICY_CLAMP",
+                        "violated_laws": _clamp["violations"],
+                        "blocked_action_class": _clamp.get("blocked_action_class"),
+                    },
+                }
+                final_resp = _enforce_nine_signal(
+                    tool_name,
+                    _clamp_resp,
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id"),
+                )
+                _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+                return _sanitize_envelope(final_resp)
+        except ImportError:
+            pass
+        # ── end SESSION POLICY CLAMP ──────────────────────────────────────────
 
         # Unwrap akal/judge middleware to get the inner handler's signature
         _inner_handler = handler
