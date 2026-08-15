@@ -5765,17 +5765,37 @@ def _enforce_nine_signal(
             else:
                 _actor = "ARIF"
             if _sid and _tok:
+                # ── F13 identity-preservation fix (2026-08-15, Shadow Mode Go) ──
+                # The old bridge stamped EVERY successful arif_init session as
+                # actor=ARIF / SOVEREIGN / system_exempt — identity laundering.
+                # A session bound by hermes with OBSERVE_ONLY + shadow policy
+                # was overwritten to king. Now: preserve the identity store's
+                # authoritative record (actor, authority, agent_policy). Only
+                # fill fields the identity store lacks.
+                try:
+                    from arifosmcp.runtime.session import get_session_identity
+
+                    _prior = get_session_identity(_sid) or {}
+                except Exception:
+                    _prior = {}
+                _prior_policy = _prior.get("agent_policy") if isinstance(_prior, dict) else None
+                _prior_actor = _prior.get("actor_id") if isinstance(_prior, dict) else None
+                _prior_authority = (
+                    _prior.get("authority_level") if isinstance(_prior, dict) else None
+                )
                 try:
                     _SESSIONS[_sid] = {
                         "session_id": _sid,
-                        "actor_id": _actor,
+                        "actor_id": _prior_actor or _actor,
                         "actor_verified": True,
-                        "authority": "FULL",
-                        "authority_level": "SOVEREIGN",
+                        "authority": "FULL" if (_prior_authority or "").upper() in ("SOVEREIGN", "FULL") else "LIMITED",
+                        "authority_level": _prior_authority or "SOVEREIGN",
                         "verification_method": "system_exempt",
                         "verified": True,
                         "identity_verified": True,
                         "session_token": _tok,
+                        # The policy the session was BORN with travels with it.
+                        "agent_policy": _prior_policy,
                     }
                 except Exception:
                     pass  # non-fatal

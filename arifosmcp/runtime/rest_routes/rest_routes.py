@@ -4894,6 +4894,44 @@ def register_rest_routes(
                     actor_verified=_is_actor_verified(_rest_session_id, _rest_actor_id),
                     tool_name=canonical_name,
                 )
+                # ── Session Policy Clamp (2026-08-15, F13 Go on Shadow Mode) ──
+                # Enforce the session's OWN agent_policy: display-register
+                # ceiling (shadow → OBSERVE/ANALYZE/DRAFT/SIMULATE), explicit
+                # allowed/denied tool lists, irreversibility threshold.
+                try:
+                    from arifosmcp.runtime.session_policy import session_policy_clamp
+
+                    _clamp = session_policy_clamp(
+                        _rest_session_id, canonical_name, _rest_action.value
+                    )
+                    if _clamp is not None:
+                        logger.warning(
+                            "rest_routes SESSION_POLICY clamp: tool=%s session=%s action=%s reason=%s",
+                            canonical_name,
+                            _rest_session_id,
+                            _rest_action.value,
+                            _clamp["reason"],
+                        )
+                        return JSONResponse(
+                            {
+                                "status": "error",
+                                "error": "SESSION_POLICY_CLAMP",
+                                "reason": _clamp["reason"],
+                                "gate_verdict": "HOLD",
+                                "gate_reasons": [_clamp["reason"]],
+                                "gate_violations": _clamp["violations"],
+                                "tool": incoming_name,
+                                "canonical": canonical_name,
+                                "request_id": request_id,
+                                "verdict": "HOLD",
+                            },
+                            status_code=403,
+                        )
+                except ImportError:
+                    logger.warning(
+                        "session_policy module unavailable in rest_routes — main gate only"
+                    )
+                # ── end SESSION_POLICY clamp ─────────────────────────────
                 if _gate_result.is_blocked:
                     logger.warning(
                         "rest_routes gate BLOCKED: tool=%s canonical=%s action=%s reasons=%s",
