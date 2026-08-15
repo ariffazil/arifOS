@@ -25674,6 +25674,14 @@ def verify_and_inject_token(
         from arifosmcp.runtime.tools import _SESSIONS
 
         if sid:
+            # ── F13 policy preservation (2026-08-15, Shadow Mode Go) ──────────
+            # The SCT token carries identity claims but NOT agent_policy.
+            # Reconstruction used to drop the policy the session was BORN
+            # with, silently un-binding display-register ceilings between
+            # calls. Preserve it from the existing store record.
+            _existing_rec = _SESSIONS.get(sid) or {}
+            if isinstance(_existing_rec, dict) and _existing_rec.get("agent_policy"):
+                sess_reconstructed["agent_policy"] = _existing_rec["agent_policy"]
             _SESSIONS[sid] = sess_reconstructed
 
         kwargs["session_id"] = sid or kwargs.get("session_id")
