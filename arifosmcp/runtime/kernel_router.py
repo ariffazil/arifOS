@@ -306,6 +306,45 @@ class HardenedKernelRouter:
                 tool_name=canonical_name,
             )
 
+            # ── Session Policy Clamp (2026-08-15, F13 Go on Shadow Mode) ──
+            # The session's OWN agent_policy binds its authority ceiling.
+            # Display registers (shadow) become runtime law here, not prose.
+            try:
+                from arifosmcp.runtime.session_policy import session_policy_clamp
+
+                _clamp = session_policy_clamp(session_id, canonical_name, action_class.value)
+                if _clamp is not None:
+                    logger.warning(
+                        "kernel_router SESSION_POLICY clamp: tool=%s session=%s action=%s reason=%s",
+                        canonical_name,
+                        session_id,
+                        action_class.value,
+                        _clamp["reason"],
+                    )
+                    return RuntimeEnvelope(
+                        tool=tool_name,
+                        stage="555_ROUTE",
+                        status=RuntimeStatus.ERROR,
+                        verdict=Verdict.HOLD,
+                        session_id=session_id,
+                        payload={
+                            "ok": False,
+                            "error": "SESSION_POLICY_CLAMP",
+                            "gate_verdict": "HOLD",
+                            "gate_reasons": [_clamp["reason"]],
+                            "gate_violations": _clamp["violations"],
+                            "tool_name": tool_name,
+                            "canonical_name": canonical_name,
+                            "action_class": action_class.value,
+                            "query": query,
+                        },
+                    )
+            except ImportError:
+                logger.warning(
+                    "session_policy module unavailable — proceeding with main gate only"
+                )
+            # ── end SESSION_POLICY clamp ─────────────────────────────────
+
             if gate_result.is_blocked:
                 logger.warning(
                     "kernel_router gate BLOCKED: tool=%s canonical=%s action=%s reasons=%s",
