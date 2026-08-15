@@ -81,6 +81,11 @@ def _is_self_certifying(ctx: Any) -> tuple[bool, str]:
     Returns (is_self_certifying, reason). For SEAL-bound judge/seal calls,
     if the actor_id is the same as the target actor_id, the seal is
     self-referential and must be blocked.
+
+    Extended (Gödel-Future, Lineage-as-Self): F3 TRI-WITNESS extension.
+    Heritage: 04_DOCTRINES/f14_godel_future.md (rejected F14, absorbed into F3).
+    If dreamer lineage intersects verifier lineage, the call is also
+    self-certifying — even if actor_id differs. 5-line gate extension.
     """
     tool = str(getattr(ctx, "tool_name", "") or "")
     if tool not in SELF_CERTIFYING_TOOLS:
@@ -99,6 +104,14 @@ def _is_self_certifying(ctx: Any) -> tuple[bool, str]:
     )
     if target and str(target).strip().lower() == caller:
         return True, f"Q9b self-certification: actor='{caller}' matches target='{target}'"
+
+    # ── Gödel-Future (Lineage-as-Self): F3 TRI-WITNESS extension — 5 lines ──
+    # If dreamer lineage intersects verifier lineage, foreign witness required.
+    l_d = set(params.get("lineage_reflection", []) or [])
+    l_v = set(params.get("lineage_verifier", []) or [])
+    if l_d and l_v and (l_d & l_v):
+        return True, f"Gödel-Future: lineage intersection {l_d & l_v}"
+
     return False, ""
 
 

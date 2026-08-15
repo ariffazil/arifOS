@@ -295,9 +295,9 @@ def _exposed_tools(server_json: dict[str, Any] | None) -> set[str]:
 
 def _load_test_cache() -> dict[str, dict[str, Any]]:
     """Read the per-tool test cache from disk. Returns {} on miss/error."""
-    if not TEST_CACHE_PATH.exists():
-        return {}
     try:
+        if not TEST_CACHE_PATH.exists():
+            return {}
         with open(TEST_CACHE_PATH, encoding="utf-8") as fh:
             data = json.load(fh)
         return data if isinstance(data, dict) else {}
