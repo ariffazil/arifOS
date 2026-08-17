@@ -87,6 +87,8 @@ def session_policy_clamp(
     session_id: str | None,
     tool_name: str,
     action_class: str,
+    *,
+    tool_mode: str = "",
 ) -> dict[str, Any] | None:
     """Enforce the session-bound agent_policy for this call.
 
@@ -94,6 +96,11 @@ def session_policy_clamp(
     Returns a clamp dict {"reason", "violations", "blocked_action_class"}
     when the session's own policy forbids this tool/action — the caller MUST
     convert that into a HOLD verdict.
+
+    When *tool_mode* is provided, the irreversibility-threshold check resolves
+    the action class per-mode from CANONICAL_TOOL_MANIFEST (Layer 6 effect
+    typing).  This prevents safe read-only modes (e.g. arif_seal mode=verify)
+    from being gated as IRREVERSIBLE.
     """
     sid = (session_id or "").strip()
     if not sid or tool_name in _IGNITION_EXEMPT:
@@ -105,6 +112,29 @@ def session_policy_clamp(
         # UNKNOWN action classes are handled by the main gate (fail-closed
         # there); no policy opinion needed here.
         return None
+
+    # ── Layer 6 mode-resolution for threshold check ──────────────────────
+    # When a tool_mode is given, resolve the manifest's per-mode action
+    # class so the threshold check uses the mode-resolved rank, not the
+    # tool-level default.  e.g. arif_seal mode=verify → OBSERVE (rank 1.0),
+    # not IRREVERSIBLE (rank 6.0).
+    threshold_rank = rank
+    if tool_mode:
+        try:
+            from arifosmcp.runtime.pre_execution_gate import (
+                CANONICAL_TOOL_MANIFEST,
+                resolve_action_class_for_mode,
+            )
+            from arifosmcp.schemas.kernel_envelope import ActionClass as _AC
+
+            _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+            if _manifest_entry is not None:
+                _resolved = resolve_action_class_for_mode(
+                    tool_name, tool_mode, _manifest_entry.action_class
+                )
+                threshold_rank = _RANK.get(_resolved.value, rank)
+        except Exception:
+            pass  # fallback to tool-level rank
 
     rec = _lookup_session(sid)
     if not rec:
@@ -157,15 +187,17 @@ def session_policy_clamp(
         }
 
     # ── Irreversibility threshold (mutation ladder only) ────────────────
-    if rank >= 4.0:
+    # Uses threshold_rank (mode-resolved) so read-only modes of dangerous
+    # tools (e.g. arif_seal mode=verify) pass the threshold gate.
+    if threshold_rank >= 4.0:
         try:
             threshold = float(policy.get("irreversibility_threshold"))
         except (TypeError, ValueError):
             threshold = None
-        if threshold is not None and (rank / 6.0) > threshold + 1e-9:
+        if threshold is not None and (threshold_rank / 6.0) > threshold + 1e-9:
             return {
                 "reason": (
-                    f"SESSION_POLICY: action '{action}' (rank {rank:.0f}/6) exceeds "
+                    f"SESSION_POLICY: action '{action}' (rank {threshold_rank:.0f}/6) exceeds "
                     f"this session's irreversibility_threshold {threshold:.2f}"
                 ),
                 "violations": ["F1_AMANAH — session irreversibility threshold"],

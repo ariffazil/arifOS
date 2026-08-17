@@ -272,6 +272,22 @@ def normalize_actor_id(raw: str | None) -> str | None:
     return raw
 
 
+def is_sovereign_actor(actor_id: str | None) -> bool:
+    """Check if an actor_id is a known sovereign identity.
+
+    Uses _SOVEREIGN_CORE_VARIANTS as the single source of truth for all
+    sovereign identity spellings (arif, ariffazil, arif-fazil, arif_fazil,
+    888, f13, sovereign, etc.).
+
+    This replaces every hardcoded sovereign check in authority.py,
+    witness_class.py, session.py, and elsewhere. One function, one map.
+    """
+    if not actor_id:
+        return False
+    normalized = normalize_actor_id(actor_id)
+    return normalized == "arif"
+
+
 # Semantic identity phrases (NLP input parsing ONLY — NOT authentication)
 # These parse natural language identity claims from user input.
 # They do NOT grant verification or authority.
@@ -695,4 +711,5 @@ __all__ = [
     "SessionExpiredMarker",
     "coerce_identity_dict",
     "session_expired_marker",
+    "is_sovereign_actor",
 ]

@@ -16,9 +16,31 @@
       "description": "Full constitutional bind — returns complete anchor object with lanes, ToM, Gödel lock, F1-F13, lifecycle",
       "requires_full_payload": true
     },
-    "status": {
-      "description": "Lightweight session check — returns session_id, epoch, lane, confidence, floor_status only",
+    "light": {
+      "description": "Lightweight constitutional bind — reduced payload for ephemeral/fast sessions",
       "requires_full_payload": false
+    },
+    "resume": {
+      "description": "Resume an existing session — re-attaches to prior session_id, re-validates floors, extends expiry"
+    },
+    "validate": {
+      "description": "Validate session health — checks floors, continuity, drift without mutation. Legacy aliases: status, preflight, triage, canary",
+      "legacy_aliases": ["status", "preflight", "triage", "canary"]
+    },
+    "epoch_open": {
+      "description": "Open a new epoch — transitions session to new epoch boundary"
+    },
+    "epoch_seal": {
+      "description": "Seal current epoch — finalizes epoch state, writes VAULT999 epoch receipt"
+    },
+    "challenge": {
+      "description": "F13 crypto bind — issue single-use Ed25519 challenge nonce for sovereign verification"
+    },
+    "opt_out": {
+      "description": "F14 Right #10 — opt out of non-essential session telemetry"
+    },
+    "opt_out_profiling": {
+      "description": "F14 Right #6 — opt out of profiling. Preserves constitutional protection."
     },
     "revoke": {
       "description": "Revoke session — issues session_close VAULT999 event, clears continuity_contract"
@@ -34,8 +56,8 @@
     "properties": {
       "mode": {
         "type": "string",
-        "enum": ["init", "status", "revoke", "refresh"],
-        "description": "Operation mode"
+        "enum": ["init", "light", "resume", "validate", "epoch_open", "epoch_seal", "challenge", "opt_out", "opt_out_profiling", "revoke", "refresh"],
+        "description": "Operation mode. Legacy aliases (status→validate, preflight→validate, triage→validate, canary→validate) are resolved at runtime."
       },
       "operator_id": {
         "type": "string",
