@@ -122,50 +122,55 @@ class TestForgeDryRun:
 
 
 class TestArifForgeExecuteV2:
-    def test_rejects_query_mode(self):
-        result = arif_forge_execute(mode="query", actor_id="test_actor")
+    # NOTE: arif_forge (aliased as arif_forge_execute) has been `async def`
+    # since 879208e7c (2026-06-22); these tests predate that and were never
+    # updated to await it, so they exercised a coroutine object instead of
+    # a result — pytest_asyncio's asyncio_mode="auto" runs `async def test_*`
+    # without extra markers.
+    async def test_rejects_query_mode(self):
+        result = await arif_forge_execute(mode="query", actor_id="test_actor")
         assert result.status == "HOLD"
         assert result.meta["error_code"] == ForgeErrorCode.E_FORGE_MODE_NOT_ALLOWED
 
-    def test_rejects_recall_mode(self):
-        result = arif_forge_execute(mode="recall", actor_id="test_actor")
+    async def test_rejects_recall_mode(self):
+        result = await arif_forge_execute(mode="recall", actor_id="test_actor")
         assert result.status == "HOLD"
         assert result.meta["error_code"] == ForgeErrorCode.E_FORGE_MODE_NOT_ALLOWED
 
-    def test_rejects_dry_run_mode(self):
-        result = arif_forge_execute(mode="dry_run", actor_id="test_actor")
+    async def test_rejects_dry_run_mode(self):
+        result = await arif_forge_execute(mode="dry_run", actor_id="test_actor")
         assert result.status == "HOLD"
         assert result.meta["error_code"] == ForgeErrorCode.E_FORGE_MODE_NOT_ALLOWED
 
-    def test_allows_engineer_mode(self):
+    async def test_allows_engineer_mode(self):
         # engineer requires plan_id, so this should fail for that reason
-        result = arif_forge_execute(
+        result = await arif_forge_execute(
             mode="engineer", manifest="test", actor_id="test_actor", judge_state_hash="abc123"
         )
         assert result.status == "HOLD"
         assert result.meta["error_code"] == ForgeErrorCode.E_SYNTHESIS_EMPTY
 
-    def test_requires_judge_state_hash_for_write(self):
-        result = arif_forge_execute(mode="write", manifest="test", actor_id="test_actor")
+    async def test_requires_judge_state_hash_for_write(self):
+        result = await arif_forge_execute(mode="write", manifest="test", actor_id="test_actor")
         assert result.status == "HOLD"
         assert result.meta["error_code"] == ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED
 
-    def test_requires_plan_id_for_engineer(self):
-        result = arif_forge_execute(
+    async def test_requires_plan_id_for_engineer(self):
+        result = await arif_forge_execute(
             mode="engineer", manifest="test", actor_id="test_actor", judge_state_hash="abc123"
         )
         assert result.status == "HOLD"
         assert result.meta["error_code"] == ForgeErrorCode.E_SYNTHESIS_EMPTY
 
-    def test_requires_plan_id_for_write(self):
-        result = arif_forge_execute(
+    async def test_requires_plan_id_for_write(self):
+        result = await arif_forge_execute(
             mode="write", manifest="test", actor_id="test_actor", judge_state_hash="abc123"
         )
         assert result.status == "HOLD"
         assert result.meta["error_code"] == ForgeErrorCode.E_SYNTHESIS_EMPTY
 
-    def test_exact_error_codes_not_vague_strings(self):
-        result = arif_forge_execute(mode="query", actor_id="test_actor")
+    async def test_exact_error_codes_not_vague_strings(self):
+        result = await arif_forge_execute(mode="query", actor_id="test_actor")
         assert "error_code" in result.meta
         assert result.meta["error_code"].startswith("E_")
         assert result.meta["error_code"] != "HOLD"  # not a vague string
