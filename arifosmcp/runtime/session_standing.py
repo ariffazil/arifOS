@@ -680,6 +680,8 @@ def _allowed_verbs_for_band(band: str) -> list[str]:
             "arif_observe",
             "arif_think",
             "arif_route",
+            "arif_memory",
+            "arif_judge",
             "arif_seal",
         ]
 

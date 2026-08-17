@@ -145,12 +145,14 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         ).hexdigest()
     )
 
-    built_commit = _read_git_head("/root/arifOS/.git")
+    # built_commit is THIS process's install stamp, not a sibling checkout.
+    # Reading /root/arifOS/.git while the service runs from /opt/arifos/app
+    # made software_release.drift=true on SOT-only label mismatch (P1.2).
+    # Constitutional HOLD is for code drift (runtime_matches_build=false).
+    built_commit = source_commit
     deployed_commit = source_commit
 
     drift = False
-    if source_commit != "unknown" and built_commit != "unknown":
-        drift = source_commit[:7] != built_commit[:7]
 
     surface_hash = _compute_tool_surface_hash()
 

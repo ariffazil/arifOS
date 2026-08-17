@@ -2668,11 +2668,19 @@ def _compute_canonical_verdict(
         elif _rp_result is None and not _rp_content and not _rp_keys:
             _hollow = True
             _hollow_reason = "missing_result_and_content"
-    if _hollow and verdict == "SEAL":
-        verdict = "UNMEASURED"
+    if _hollow:
+        if verdict == "SEAL":
+            verdict = "UNMEASURED"
         degradation.append(
-            f"hollow_success_gate: {_hollow_reason} — empty payload cannot support SEAL verdict"
+            f"hollow_success_gate: {_hollow_reason} — empty payload is UNMEASURED, not a silent mind"
         )
+        if isinstance(_rp, dict):
+            _rp.setdefault("implementation", "UNMEASURED")
+            _rp.setdefault("evidence_used", [])
+            _rp.setdefault(
+                "note",
+                "UNMEASURED-not-implemented — hollow reason payload cannot support success",
+            )
 
     # ── Step 2: Sub-gate verdicts ─────────────────────────────────────────
     _meta = meta if isinstance(meta, dict) else {}
@@ -13949,6 +13957,13 @@ def _arif_mind_reason(
         )
 
     if mode == "reason":
+        if not (query or "").strip():
+            return _hold(
+                "arif_mind_reason",
+                "UNMEASURED-not-implemented: mode=reason requires a non-empty query; refusing silent empty mind",
+                [],
+                session_id=session_id,
+            )
         # ── Deterministic constitutional breach scan (LLM-independent) ──
         scan = _constitutional_reasoning_scan(query)
         if scan["breach_detected"]:

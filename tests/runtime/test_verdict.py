@@ -325,8 +325,7 @@ def test_attach_passes_through_non_dicts():
 
 
 def test_attach_replaces_prior_effective_verdict():
-    """Idempotence: calling attach twice on the same dict replaces the prior verdict,
-    but the second call does not leave residue from the first (no field growth)."""
+    """Worse verdict dominates: SEAL then VOID stays VOID; field set does not grow."""
     from arifosmcp.runtime.verdict import attach_effective_verdict
 
     base = {"tool": "arif_init"}
@@ -338,6 +337,35 @@ def test_attach_replaces_prior_effective_verdict():
     canonical_keys_first = set(r1.keys())
     canonical_keys_second = set(r2.keys())
     assert canonical_keys_first == canonical_keys_second
+
+
+def test_attach_degraded_dominates_keeps_hold_over_sabar():
+    """P1.3: last-writer SABAR must not overwrite a prior HOLD."""
+    from arifosmcp.runtime.verdict import attach_effective_verdict
+
+    out = attach_effective_verdict(
+        {
+            "tool": "arif_init",
+            "effective_verdict": "HOLD",
+            "constitutional_check": {},
+        },
+        inner_verdict="SABAR",
+    )
+    assert out["effective_verdict"] == "HOLD"
+    assert out.get("constitutional_check", {}).get("_derivation") == (
+        "attach_effective_verdict:degraded_dominates"
+    )
+
+
+def test_attach_degraded_substrate_blocks_seal():
+    """P1.3: vitals SEAL cannot win while substrate is DEGRADED."""
+    from arifosmcp.runtime.verdict import attach_effective_verdict
+
+    out = attach_effective_verdict(
+        {"tool": "arif_observe", "substrate": {"state": "DEGRADED", "drift": True}},
+        inner_verdict="SEAL",
+    )
+    assert out["effective_verdict"] == "HOLD"
 
 
 def test_state_version_is_one():
