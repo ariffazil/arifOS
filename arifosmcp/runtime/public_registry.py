@@ -264,7 +264,10 @@ _NINE_SIGNAL_SCHEMA = {
                 "state": {"type": "string"},
                 "en": {"type": "string"},
             },
-            "required": ["state", "en"],
+            # P0 schema-fix 2026-08-17: state+en are producer-side best-effort
+            # signals. Forcing them required broke MCP validation when the
+            # kernel emits a derived projection (verbosity=minimal, OBSERVE_ONLY,
+            # unmeasured). Schema is lenient; kernel still emits them when measured.
         },
     },
 }
@@ -343,6 +346,13 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
             "timestamp": {"type": "string"},
             "session_id": {"anyOf": [{"type": "string"}, {"type": "null"}]},
             "actor_id": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            # P0 schema-fix 2026-08-17: output_policy / nine_signal.overall.state+en
+            # are producer-side best-effort signals. They CAN be absent when the
+            # kernel is OBSERVE_ONLY or when verbosity=minimal strips decorative
+            # blocks. Forcing them required previously caused MCP clients to
+            # reject every response (the bug that broke arif_init). Schema is
+            # now lenient: if present, must be the right type; if absent, the
+            # response is still valid (callers fall back to verdict/status).
             "output_policy": {"type": "string"},
             "nine_signal": _NINE_SIGNAL_SCHEMA,
             "reasons": {"type": "array", "items": {"type": "string"}},
@@ -368,7 +378,10 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
             "result",
             "meta",
             "timestamp",
-            "output_policy",
+            # output_policy + nine_signal + reasons are producer-side signals.
+            # They are emitted when the kernel is SEAL/HOLD/etc., but may be
+            # absent for OBSERVE_ONLY / minimal-verbosity paths. Forcing them
+            # required broke arif_init on 2026-08-17 — see git log.
             "nine_signal",
             "reasons",
         ],
