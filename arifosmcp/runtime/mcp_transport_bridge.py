@@ -49,6 +49,9 @@ SUPPORTED_PROTOCOL_VERSIONS: frozenset[str] = frozenset(
     {
         "2026-07-28",  # P1 STATELESS (2026-08-01): Stateless MCP 2.0 — SEP-2243 header routing
         "2025-11-25",
+        "2025-06-18",  # BUGFIX (2026-08-11): missing real spec version — every client that
+                       # sends MCP-Protocol-Version: 2025-06-18 (Claude Desktop's connector
+                       # included) hard-rejected with -32022 before reaching any other logic.
         "2025-03-26",
         "2024-11-05",
     }

@@ -17,10 +17,13 @@ from arifosmcp.runtime.mcp_transport_bridge import (
 def test_supported_client_version_is_echoed():
     assert negotiate_initialize_protocol("2025-11-25") == "2025-11-25"
     assert negotiate_initialize_protocol("2025-03-26") == "2025-03-26"
+    # BUGFIX (2026-08-11): 2025-06-18 is a real, published MCP spec version —
+    # clients sending it (Claude Desktop's connector included) must be echoed
+    # back directly, not hard-rejected before reaching any other kernel logic.
+    assert negotiate_initialize_protocol("2025-06-18") == "2025-06-18"
 
 
 def test_unknown_client_version_uses_legacy_interop_version():
-    assert negotiate_initialize_protocol("2025-06-18") == INTEROP_PROTOCOL_VERSION
     assert negotiate_initialize_protocol("future-version") == INTEROP_PROTOCOL_VERSION
 
 
