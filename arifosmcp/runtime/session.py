@@ -294,7 +294,7 @@ def _verify_session_token(token: str) -> dict[str, Any] | None:
 # Explicit verified identities only — no guessable aliases
 # Blind spot 3 amendment: moved from hardcoded function logic to explicit map
 _SOVEREIGN_IDENTITY_MAP: dict[str, str] = {
-    "ariffazil": "ariffazil",
+    "ariffazil": "arif",
 }
 _VALID_ACTOR_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\.]{1,64}$")
 
@@ -1535,7 +1535,7 @@ def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) ->
 
     aid_normalized = aid.lower().replace("_", "-") if aid else ""
     dname_normalized = dname.lower().replace("_", "-") if dname else ""
-    alias_map = {"arif-fazil": "ariffazil"}
+    alias_map = {"arif-fazil": "arif"}
 
     # Precedence: actor_id first
     if aid_normalized and aid_normalized != "anonymous":

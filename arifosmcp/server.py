@@ -47,7 +47,10 @@ from dotenv import load_dotenv  # noqa: E402
 
 _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
 if os.path.exists(_env_path):
-    load_dotenv(_env_path, override=False)  # systemd EnvironmentFile wins
+    try:
+        load_dotenv(_env_path, override=False)  # systemd EnvironmentFile wins
+    except (PermissionError, OSError):
+        pass
 
 # A3A 2026-07-30: prompts/get missing required args → JSON-RPC -32602
 try:

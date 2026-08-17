@@ -653,7 +653,7 @@ def authority_envelope_for_session(
         runtime_band = "FULL" if state.is_sealed() else "OBSERVE_ONLY"
     actor_key = (state.actor.claimed_id or "").strip().lower()
     # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
-    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS, is_sovereign_actor
 
     _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
     # SOVEREIGN if: (a) verified key in SOVEREIGN_KEY_IDS, OR
@@ -661,7 +661,7 @@ def authority_envelope_for_session(
     # Path (b) supports MCP agents that verify via session binding rather than
     # Ed25519 signature. The session store's authority field was already set by
     # bind_authority_state which performed its own verification.
-    _known_sovereign = actor_key in ("arif", "888", "ariffazil", "arif_fazil", "arif-fazil")
+    _known_sovereign = is_sovereign_actor(actor_key)
     # DID registry dynamic validation — F13 T3 directive 2026-08-07.
     # Actors registered in the federation DID registry are verified organs
     # entitled to OPERATOR authority with FULL mutation band.

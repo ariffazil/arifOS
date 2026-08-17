@@ -1,7 +1,7 @@
 # ATLAS333 — Cognitive Geometry Bundle
 
 > OKF bundle for the arifOS federation's cognitive geometry engine.
-> 35 paradoxes across 4 clusters + 5 APEX governance dials.
+> 40 paradoxes across 5 clusters + 5 APEX governance dials.
 
 ## How to use this bundle
 
@@ -16,6 +16,7 @@
 - [Mind](clusters/mind.md) — P12-P22: How to Think, What Not to Conclude
 - [Judge](clusters/judge.md) — P23-P33: How to Decide, When to Hold
 - [Contour](clusters/contour.md) — P34-P35: Root Outruns Kernel · Positive ≠ Closed
+- [Humanity](clusters/humanity.md) — P36-P40: The 5 Dimensions of Human Responsibility
 
 ## APEX Dials
 

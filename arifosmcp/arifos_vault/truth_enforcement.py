@@ -441,6 +441,26 @@ def _build_arif_claim_gate() -> Any | None:
             irreversible=irreversible,
         )
 
+    @_mcp.tool(annotations={"readOnlyHint": True})
+    async def arif_epoch_gate(
+        parent_seal_hash: str | None = None,
+        current_head_hash: str = "",
+    ) -> dict[str, Any]:
+        """
+        Merkle Epoch Lock gate for anti-race condition sealing (Eureka 3).
+        Validates that the agent's observed parent hash matches VAULT999 HEAD.
+        """
+        from arifosmcp.runtime.kernel_hardening_eurekas import check_merkle_epoch_lock
+        verdict = check_merkle_epoch_lock(parent_seal_hash, current_head_hash)
+        return {
+            "status": verdict.status,
+            "code": verdict.code,
+            "expected_parent_hash": verdict.expected_parent_hash,
+            "current_head_hash": verdict.current_head_hash,
+            "message": verdict.message,
+            "allowed": verdict.status == "PASS",
+        }
+
     return _mcp
 
 

@@ -35,6 +35,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+# ── Nine-Signal wiring (P0 schema-fix 2026-08-17) ─────────────────────────────
+# The hardening EUREKAS (F2 addendum + L10 ONTOLOGY) require every kernel
+# response to carry `output_policy` and `nine_signal.overall.{state,en}`.
+# attach_effective_verdict is the LAST WRITER of the canonical verdict envelope,
+# so it must close the envelope by injecting nine_signal + output_policy.
+# Previously this was missing — every arif_init / arif_observe / arif_think /
+# arif_route / arif_memory / arif_judge / arif_seal call returned a payload
+# missing these required fields, causing the MCP client to reject the response
+# with "data must have required property 'output_policy'". Surgical fix.
+from arifosmcp.tools.nine_signal import (  # noqa: E402
+    inject_nine_signal as _inject_nine_signal,
+    output_policy_for_verdict as _output_policy_for_verdict,
+)
+
 # Schema version. Bump when the canonical shape changes.
 VERDICT_STATE_VERSION = 1
 
@@ -356,6 +370,11 @@ def attach_effective_verdict(
     response["next_action"] = effective.next_action
     response["execution_state"] = effective.execution_state
     response["status_scope"] = "execution"
+    # P0 schema-fix 2026-08-17: close the envelope with nine_signal + output_policy
+    # before downstream mutation_allowed sync. Pass effective.verdict (not status)
+    # so output_policy_for_verdict maps SEAL→DOMAIN_SEAL, HOLD→DOMAIN_HOLD,
+    # VOID/SABAR→DOMAIN_VOID, OBSERVE_ONLY→DOMAIN_OBSERVE_ONLY.
+    response.update(_inject_nine_signal(response, status=effective.verdict))
     # P0 G1: never leave status=pending after a completed tool call unless
     # the handler explicitly set async pending. Governance HOLD is not pending.
     if (
