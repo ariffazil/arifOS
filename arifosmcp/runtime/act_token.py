@@ -64,6 +64,10 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_observe",
         "arif_think",
         "arif_route",
+        # Read-only memory/judge: recall + validate. Write/decide modes
+        # still HOLD inside the tools (P1.5 Holy 8 vs SCT contrast).
+        "arif_memory",
+        "arif_judge",
         # arif_seal allowed ONLY for safe modes (verify/list/audit/…) —
         # mode=seal is blocked inside arif_seal by effect typing (Layer 6).
         "arif_seal",

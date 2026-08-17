@@ -38,7 +38,8 @@ from typing import Any
 # ── Nine-Signal wiring (P0 schema-fix 2026-08-17) ─────────────────────────────
 # The hardening EUREKAS (F2 addendum + L10 ONTOLOGY) require every kernel
 # response to carry `output_policy` and `nine_signal.overall.{state,en}`.
-# attach_effective_verdict is the LAST WRITER of the canonical verdict envelope,
+# attach_effective_verdict is the envelope closer. Worse verdict dominates;
+# it must not overwrite HOLD/VOID with a later SABAR/SEAL (P1.3).
 # so it must close the envelope by injecting nine_signal + output_policy.
 # Previously this was missing — every arif_init / arif_observe / arif_think /
 # arif_route / arif_memory / arif_judge / arif_seal call returned a payload
@@ -341,6 +342,24 @@ def _strip_legacy_verdict(response: dict[str, Any]) -> None:
                 result_meta.pop(key, None)
 
 
+# Lower rank = worse / more degraded. Outer effective_verdict is min(gates).
+_VERDICT_RANK: dict[str, int] = {
+    HOLD_888: 0,
+    VOID: 1,
+    HOLD: 2,
+    OBSERVE_ONLY: 3,
+    SABAR: 4,
+    SEAL: 5,
+}
+
+
+def _worse_verdict(left: str | None, right: str | None) -> str:
+    """Return the more degraded of two verdict tokens."""
+    a = _normalize_verdict(left)
+    b = _normalize_verdict(right)
+    return a if _VERDICT_RANK.get(a, 2) <= _VERDICT_RANK.get(b, 2) else b
+
+
 def attach_effective_verdict(
     response: Any,
     *,
@@ -359,6 +378,18 @@ def attach_effective_verdict(
     if not isinstance(response, dict):
         return response
     _strip_legacy_verdict(response)
+    existing = response.get("effective_verdict")
+    if isinstance(existing, str) and existing.strip():
+        inner_verdict = _worse_verdict(existing, inner_verdict)
+    sub = response.get("substrate")
+    if not isinstance(sub, dict):
+        res = response.get("result")
+        sub = res.get("substrate") if isinstance(res, dict) else {}
+    if isinstance(sub, dict) and (
+        str(sub.get("state", "")).upper() == "DEGRADED" or sub.get("drift") is True
+    ):
+        # Degraded substrate cannot surface as SEAL (P1.3).
+        inner_verdict = _worse_verdict(inner_verdict, HOLD)
     effective = compose_effective_verdict(
         inner_verdict=inner_verdict,
         session_authority_band=session_authority_band,
@@ -421,7 +452,7 @@ def attach_effective_verdict(
                 f"STAB-2026-08-07b canonical: effective_verdict={_ev} "
                 f"failed_floors={list(_ff)}"
             )
-        cc["_derivation"] = "attach_effective_verdict:last_writer"
+        cc["_derivation"] = "attach_effective_verdict:degraded_dominates"
 
     # STAB-2026-08-09: single source for mutation_allowed — derived from
     # effective_verdict (and authority band if present). Never leave
