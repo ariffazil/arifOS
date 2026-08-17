@@ -1401,7 +1401,12 @@ def pre_execution_gate(
     # ── Gate 4: ACT verification (identity propagation) ─────────────
     # Every action with a session_token must carry a cryptographically valid ACT.
     # This ensures identity binding survives the kernel→organ bridge.
-    _sct = (envelope.session_token or "").strip()
+    # BUGFIX (2026-08-17): KernelEnvelope has no top-level session_token field
+    # (model_config extra="forbid") — the token travels in payload, per the
+    # same pattern used in authority_middleware.py, tools_internal.py, tools.py,
+    # and session.py. The old `envelope.session_token` access raised
+    # AttributeError on every call that reached this gate, so Gate 4 never ran.
+    _sct = (envelope.payload.get("session_token") or envelope.payload.get("sct") or "").strip()
     if _sct:
         try:
             from arifosmcp.runtime.act_token import verify_token
