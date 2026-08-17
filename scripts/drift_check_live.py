@@ -36,6 +36,28 @@ def file_hash(path: str) -> str:
         return "UNREADABLE"
 
 
+def _looks_sha(value) -> bool:
+    s = str(value or "")
+    hexpart = s.rsplit("-", 1)[-1]
+    return len(hexpart) >= 7 and all(c in "0123456789abcdef" for c in hexpart.lower())
+
+
+def _extract_deployed_sha(health: dict) -> str:
+    """Prefer live SHA fields. Version tags are not commits."""
+    for key in ("source_commit", "deployed_commit"):
+        if _looks_sha(health.get(key)):
+            return str(health[key])
+    sr = health.get("software_release") or {}
+    if isinstance(sr, dict):
+        for key in ("source_commit", "deployed_commit", "built_commit"):
+            if _looks_sha(sr.get(key)):
+                return str(sr[key])
+    gv = health.get("git_version")
+    if _looks_sha(gv):
+        return str(gv).rsplit("-", 1)[-1]
+    return "UNKNOWN"
+
+
 def probe_health(port: int) -> dict:
     import urllib.request
 
@@ -65,22 +87,26 @@ def main():
         source_commit = git_commit(cfg["path"])
         health = probe_health(cfg["port"])
 
-        deployed_version = health.get("version", health.get("git_version", "UNKNOWN"))
+        # SHA vs SHA. Never compare a git hash to a marketing tag
+        # (v2026.07.24) — that manufactured perpetual DRIFT (2026-08-18).
+        deployed_sha = _extract_deployed_sha(health)
         identity_raw = health.get("identity_hash", health.get("identity", {}))
         if isinstance(identity_raw, dict):
             runtime_identity = identity_raw.get("value", identity_raw.get("hash", "UNKNOWN"))
         else:
             runtime_identity = str(identity_raw) if identity_raw else "UNKNOWN"
 
-        drift = "error" in health or (
-            source_commit != "UNKNOWN"
-            and deployed_version != "UNKNOWN"
-            and source_commit[:8] not in str(deployed_version)
-        )
+        if "error" in health:
+            drift = True
+        elif source_commit == "UNKNOWN" or deployed_sha == "UNKNOWN":
+            # Scanner cannot see ≠ dirty. Do not fail-open as DRIFT.
+            drift = False
+        else:
+            drift = source_commit[:7] not in deployed_sha and deployed_sha[:7] not in source_commit
 
         results["organs"][name] = {
             "source_commit": source_commit,
-            "deployed_version": str(deployed_version)[:40],
+            "deployed_version": deployed_sha[:40],
             "runtime_identity": str(runtime_identity)[:40],
             "healthy": "error" not in health,
             "drift": drift,
