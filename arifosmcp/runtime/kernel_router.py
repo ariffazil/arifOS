@@ -312,7 +312,11 @@ class HardenedKernelRouter:
             try:
                 from arifosmcp.runtime.session_policy import session_policy_clamp
 
-                _clamp = session_policy_clamp(session_id, canonical_name, action_class.value)
+                _tool_mode = (context.get("payload") or {}).get("mode", "")
+                _clamp = session_policy_clamp(
+                    session_id, canonical_name, action_class.value,
+                    tool_mode=str(_tool_mode),
+                )
                 if _clamp is not None:
                     logger.warning(
                         "kernel_router SESSION_POLICY clamp: tool=%s session=%s action=%s reason=%s",

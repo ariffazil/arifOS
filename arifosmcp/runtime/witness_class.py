@@ -112,8 +112,14 @@ def classify_witness_position(
     safer than the reverse, because the SEALS chain will hold them
     to a higher standard.
     """
-    if ctx.actor_id and ctx.actor_id.lower() in {"arif", "arif-fazil", "ariffazil", "888"}:
-        return WitnessPosition.HUMAN
+    try:
+        from arifosmcp.runtime.governance_identity import is_sovereign_actor
+
+        if ctx.actor_id and is_sovereign_actor(ctx.actor_id):
+            return WitnessPosition.HUMAN
+    except Exception:
+        if ctx.actor_id and ctx.actor_id.lower() in {"arif", "arif-fazil", "ariffazil", "888"}:
+            return WitnessPosition.HUMAN
 
     if ctx.tool_name and ctx.target_name and ctx.tool_name == ctx.target_name:
         return WitnessPosition.SELF

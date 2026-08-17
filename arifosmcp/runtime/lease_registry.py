@@ -165,15 +165,23 @@ _LEASE_LOCK = threading.Lock()
 # Default lease TTL in seconds
 _DEFAULT_LEASE_TTL_SECONDS = 300
 
-# Action class ordering for escalation checks
+# Action class ordering for escalation checks (including T0-T3 Autonomy Tier aliases)
 _ACTION_CLASS_ORDER = {
     "OBSERVE": 0,
+    "T0": 0,
+    "T0_READ_ONLY": 0,
     "REASON": 1,
     "CRITIQUE": 2,
     "DRY_RUN": 3,
+    "T1.5": 3,
     "MUTATE": 4,
+    "T1": 4,
+    "EXECUTE_REVERSIBLE": 4,
     "EXTERNAL": 5,
+    "T2": 5,
+    "EXECUTE_HIGH_IMPACT": 5,
     "IRREVERSIBLE": 6,
+    "T3": 6,
 }
 
 # Organs that may receive a lease. A-FORGE may request, but only arifOS mints.
@@ -217,10 +225,29 @@ def issue_lease(
     sovereign: str = "ARIF_FAZIL",
     max_uses: int | None = None,
     lease_id: str | None = None,
+    model_id: str | None = None,
 ) -> LeaseRecord:
-    """Issue a new bounded authority lease."""
+    """Issue a new bounded authority lease.
+    
+    EUREKA 1 (Model Floor Gate): If model_id is provided and its capability
+    benchmark is below the mutation threshold, clamp max_action_class to OBSERVE/T0.
+    """
     if not _allowed_organ(organ_id):
         raise ValueError(f"organ_id '{organ_id}' is not eligible for lease issuance")
+        
+    if model_id:
+        try:
+            from arifosmcp.runtime.kernel_hardening_eurekas import clamp_model_autonomy
+            clamp_res = clamp_model_autonomy(model_id, max_action_class)
+            if clamp_res.demoted:
+                logger.warning(
+                    f"[lease_registry] Eureka 1 Model Floor clamped action class for model '{model_id}': "
+                    f"{max_action_class} -> {clamp_res.clamped_tier}"
+                )
+                max_action_class = clamp_res.clamped_tier
+        except Exception as _e:
+            logger.debug(f"[lease_registry] model clamp check skipped: {_e}")
+
     if max_action_class not in _ACTION_CLASS_ORDER:
         raise ValueError(f"unknown action_class '{max_action_class}'")
     if max_uses is not None and max_uses < 1:
@@ -427,6 +454,7 @@ def arif_lease_issue(
     forbidden: list[str] | None = None,
     session_id: str | None = None,
     max_uses: int | None = None,
+    model_id: str | None = None,
 ) -> dict[str, Any]:
     """Issue a bounded authority lease to an organ/agent."""
     # F13: irreversible leases require human ack
@@ -447,6 +475,7 @@ def arif_lease_issue(
             ttl_seconds=ttl_seconds,
             forbidden=forbidden,
             max_uses=max_uses,
+            model_id=model_id,
         )
     except ValueError as e:
         return {

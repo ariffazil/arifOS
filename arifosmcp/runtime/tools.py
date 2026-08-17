@@ -5065,6 +5065,10 @@ def _enforce_nine_signal(
             "status_scope": "execution",
             "nine_signal": nine,
             "reasons": reasons,
+            # FIX-4 (2026-08-16): Propagate failed_floors from inner response
+            # through the envelope. _ok() sets this when F4 entropy gate fires;
+            # the dual-truth fix merges it into constitutional_check.failed_floors.
+            "failed_floors": out.get("failed_floors") or [],
             # Audit 2026-07-09: stop pasting full schema (decision_thresholds /
             # agency / full_affordance) on every hop — one referenced contract.
             "affordance_ref": f"arifos://tools/affordance/{tool_name}",
@@ -5192,6 +5196,13 @@ def _enforce_nine_signal(
                     "DENIED",
                 )
                 _is_degraded = _substrate_state in ("DEGRADED", "FAIL")
+                # FIX-4 (2026-08-16): Preserve pre-existing failed_floors from
+                # _ok() or tool handler (e.g. F4 entropy gate). The reason-token
+                # scan above only matches F0/F1/L0/L1 text — it misses F4.
+                # Read from TOP-LEVEL envelope field (set by _coerce_public_envelope),
+                # NOT from constitutional_check (which was set by enrichment with []).
+                _pre_existing_ff = envelope.get("failed_floors") or []
+                _failed_floors = sorted(set(_failed_floors + _pre_existing_ff))
                 # STAB-2026-08-08j: FLOOR_HONESTY.
                 # floor_passed is None (unmeasured) unless floors actually
                 # failed. No silent True/False.
@@ -8811,8 +8822,12 @@ def _ok(
     # F4 ENTROPY GATE (2026-08-15): hold_required downgrades OK → HOLD.
     # entropy_dS mode passes hold_required=True when contradictions detected.
     # Previously crashed with TypeError → VOID fallback → delta_S lost.
+    # FIX-4 (2026-08-16): propagate F4 into failed_floors + constitutional_check
+    # so verdict.py has a non-empty floor failure to record. Without this,
+    # HOLD fires but failed_floors=[], floor_passed=None — circular unmeasured.
     _status = "HOLD" if hold_required else "OK"
     _output_policy = "DOMAIN_HOLD" if hold_required else "DOMAIN_SEAL"
+    _f4_failed_floors = ["F4"] if hold_required else []
     if hold_required:
         nine_signal = _nine_signal_from_status("HOLD")
         nine_signal = _annotate_nine_signal(nine_signal, _domain_for_tool(tool))
@@ -8832,11 +8847,12 @@ def _ok(
         "actor_verified": actor_verified,
         "output_policy": _output_policy,
         "nine_signal": nine_signal,
+        "failed_floors": _f4_failed_floors,
         "reasons": (
             [
                 hold_reason or "Constitutional gate activated",
                 f"tool={tool}",
-                f"delta_S={delta_S} — entropy violation requires HOLD",
+                f"delta_S={delta_S} — F4 entropy violation requires HOLD",
             ]
             if hold_required
             else [
@@ -8876,6 +8892,26 @@ def _ok(
             pass
     except Exception:
         pass
+    # FIX-4 (2026-08-16): When F4 entropy gate fires, update constitutional_check
+    # so verdict.py sees the floor failure. The metacognitive guarantee above may
+    # have injected a confidence-based constitutional_check that doesn't know about
+    # the F4 violation. We must not let the confidence gate's hold_required=False
+    # override the F4 gate's hold_required=True.
+    if hold_required:
+        _cc = response.get("constitutional_check")
+        if isinstance(_cc, dict):
+            _cc["hold_required"] = True
+            _existing_ff = _cc.get("failed_floors") or []
+            _cc["failed_floors"] = sorted(set(_existing_ff + ["F4"]))
+            if not _cc.get("hold_reason"):
+                _cc["hold_reason"] = hold_reason or "F4 entropy violation"
+        else:
+            response["constitutional_check"] = {
+                "hold_required": True,
+                "failed_floors": ["F4"],
+                "hold_reason": hold_reason or "F4 entropy violation",
+                "floor_passed": False,
+            }
     return _enforce_nine_signal(
         tool,
         response,
@@ -25871,7 +25907,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             except Exception:
                 pass
             _clamp = session_policy_clamp(
-                kwargs.get("session_id"), tool_name, _clamp_action
+                kwargs.get("session_id"), tool_name, _clamp_action,
+                tool_mode=str(kwargs.get("mode", "")),
             )
             if _clamp is not None:
                 _clamp_resp = {
@@ -26236,7 +26273,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             except Exception:
                 pass
             _clamp = session_policy_clamp(
-                kwargs.get("session_id"), tool_name, _clamp_action
+                kwargs.get("session_id"), tool_name, _clamp_action,
+                tool_mode=str(kwargs.get("mode", "")),
             )
             if _clamp is not None:
                 _clamp_resp = {
