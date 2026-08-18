@@ -287,3 +287,7 @@ drift-check:
 substrate-loop-test:
 	@echo "Running End-to-End AGI Substrate Loop Test..."
 	pytest benchmarks/loops/test_restrain_authorize_act_observe_learn.py -v
+
+# Idempotency key rollback (F1 AMANAH)
+rollback-arif-memory-idempotency:
+	bash scripts/rollback-arif-memory-idempotency.sh

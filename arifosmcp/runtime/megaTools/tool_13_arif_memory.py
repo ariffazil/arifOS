@@ -303,6 +303,8 @@ async def arif_memory(
         payload["query"] = query
     if session_token:
         payload["session_token"] = session_token
+    if idempotency_key:
+        payload["idempotency_key"] = idempotency_key
 
     # ── 0. Resolve legacy mode if needed ──
     if mode and mode not in ARIF_MEMORY_MODES:
