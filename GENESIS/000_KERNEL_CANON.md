@@ -55,13 +55,13 @@ Arif (F13 SOVEREIGN — human, final veto)
          │
     arifOS (Ω — constitutional kernel)
     ├── F1-F13 floor enforcement
-    ├── 888 JUDGE (verdict engine)
+    ├── 666 JUDGE (verdict engine)
     ├── 999 VAULT (immutable ledger)
          │
     ┌────┼────┬────────┬────────┬────────┐
     │    │    │        │        │        │
   GEOX  WEALTH  WELL   AAA     A-FORGE  APEX
-  Earth Capital Human  Cockpit  Forge   888 Judge
+  Earth Capital Human  Cockpit  Forge   666 Judge
   8081  18082  18083   3001     7071    3002
 ```
 
@@ -221,7 +221,7 @@ this table, that surface page is wrong.
 600 — arif_heart_critique    → Ethical risk assessment
 700 — arif_gateway_connect   → Bridge to other agents
 800 — arif_ops_measure       → Health + thermodynamics
-888 — arif_judge_deliberate  → Constitutional verdict
+666 — arif_judge_deliberate  → Constitutional verdict
 900 — arif_forge_execute     → Execute approved action
 999 — arif_vault_seal        → Seal to immutable ledger
 ```
@@ -237,7 +237,7 @@ Arif (F13 SOVEREIGN)
   → arifOS kernel (F1-F13 floors)
     → Domain organ advisory (GEOX / WEALTH / WELL)
       → AAA cockpit (display + queue)
-        → A-FORGE execution (gated by 888 JUDGE)
+        → A-FORGE execution (gated by 666 JUDGE)
           → VAULT999 seal (immutable record)
 ```
 
@@ -294,7 +294,7 @@ arifOS, ART, and ACT provide the **governance boundary** for tools.
 | Execution craft | — | ACT: staging, canary, dry-run, compensation |
 | Human checkpoints | — | ACT: human-in-loop patterns, 888 HOLD |
 | Irreversible audit | — | VAULT999: immutable hash-chained ledger |
-| Law enforcement | — | Kernel: F1-F13 floors, 888 JUDGE |
+| Law enforcement | — | Kernel: F1-F13 floors, 666 JUDGE |
 
 **One sentence:** MCP makes tools *callable*. arifOS makes tools *governed*.
 ART makes tools *wise*. ACT makes wisdom *executable*. Together they convert
@@ -616,7 +616,7 @@ These constants live in `arifosmcp/runtime/self_mod_lock.py` and are enforced by
 
 ### Firewall rule
 
-> **No agent may hold both the ASI skill (recursive self-improvement) and the ASI tool (live self-modification substrate) without an F13-leased, 888-judged, VAULT999-traced execution path.**
+> **No agent may hold both the ASI skill (recursive self-improvement) and the ASI tool (live self-modification substrate) without an F13-leased, 666-judged, VAULT999-traced execution path.**
 
 The AGI may use the tool substrate outwardly — code, APIs, data, environment control. The moment it turns those tools inward on its own kernel, weights, reasoning architecture, or goals, it crosses into ASI_TIER and the HOLD fires.
 

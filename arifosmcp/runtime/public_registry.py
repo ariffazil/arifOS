@@ -121,7 +121,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
-        "KERNEL 888 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration."
+        "KERNEL 666 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration."
     ),
     "arif_judge_deliberate": ("[alias/internal → arif_judge] Prefer public arif_judge."),
     # ── 777 FORGE ───────────────────────────────────────────────────────────
