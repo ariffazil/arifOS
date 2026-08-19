@@ -128,7 +128,7 @@ tools:
     name: arif_judge
     stage: '666'
     description: >
-      KERNEL 888 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.
+      KERNEL 666 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.
     risk_tier: critical
     floors:
       - L01_AMANAH

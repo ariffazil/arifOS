@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+title: "arifOS: Constitutional AI Kernel and AGI Substrate"
+message: "If you use arifOS in research, please cite it as follows."
+type: software
+authors:
+  - family-names: "Fazil"
+    given-names: "Muhammad Arif"
+abstract: >
+  arifOS is a constitutional governance kernel for AI agents, implemented as a
+  Model Context Protocol (MCP) server. It enforces 13 constitutional floors
+  (F1–F13) before any tool call, code mutation, or capital decision, returning
+  auditable verdicts (SEAL, HOLD, SABAR, VOID). The kernel separates judgment
+  from execution: the agent that acts cannot certify its own action (Gödel Lock).
+  Irreversible decisions are recorded in an append-only, Merkle-anchored ledger
+  (VAULT999).
+keywords:
+  - ai-governance
+  - agent-safety
+  - constitutional-ai
+  - model-context-protocol
+  - mcp-server
+  - human-in-the-loop
+  - policy-engine
+  - audit-trail
+  - autonomous-agents
+  - separation-of-duties
+  - ai-security
+license: AGPL-3.0
+repository-code: "https://github.com/ariffazil/arifOS"
+url: "https://mcp.arif-fazil.com"
+version: "2026.08.19"
+date-released: "2026-08-19"
