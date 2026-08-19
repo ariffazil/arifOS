@@ -197,7 +197,7 @@ wealth = [
     "arviz>=1.2.0",
     "mesa>=3.5.1",
     "pydantic-ai>=0.0.14",
-    "langgraph>=0.2.0",
+    "langgraph>=0.2.0,<0.3",
 ]
 well = []  # WELL is kernel-only; its substrate deps are covered by the mandatory tier
 aaa = [
