@@ -432,16 +432,38 @@ class TestFloorHonesty:
             assert count <= 3, f"Impossible witness count: {count}"
 
     def test_failed_floors_list_not_empty_on_hold(self):
-        """When verdict is HOLD/RETAK, failed_floors list should not be empty."""
+        """When verdict is HOLD/RETAK, floor accounting must be honest.
+
+        STAB-2026-08-08j FLOOR_HONESTY contract: a HOLD may originate from
+        identity/authority gating (e.g. anonymous session) rather than a
+        measured floor failure. In that case failed_floors is legitimately
+        empty, but the runtime MUST declare the measurement state:
+        floor_passed=None + _floor_measurement='unmeasured'. A HOLD with
+        empty failed_floors AND a claimed measurement is a dual-truth leak.
+        """
         sc = init_session()
         cc = sc.get("constitutional_check", {})
         verdict = sc.get("verdict", "")
         failed = cc.get("failed_floors", [])
         if verdict in ("HOLD", "RETAK", "VOID"):
-            assert len(failed) > 0, (
-                f"Verdict={verdict} but failed_floors is empty — "
-                "can't reconcile HOLD with no floor failures"
-            )
+            if len(failed) == 0:
+                measurement = cc.get("_floor_measurement", "")
+                assert cc.get("floor_passed") is None, (
+                    f"Verdict={verdict}, failed_floors empty, but floor_passed="
+                    f"{cc.get('floor_passed')} — claimed a measurement that "
+                    "didn't happen"
+                )
+                assert measurement == "unmeasured", (
+                    f"Verdict={verdict}, failed_floors empty, but "
+                    f"_floor_measurement={measurement!r} — HOLD without "
+                    "measured floors must be declared 'unmeasured'"
+                )
+            else:
+                assert cc.get("floor_passed") is False, (
+                    f"failed_floors={failed} but floor_passed="
+                    f"{cc.get('floor_passed')} — floors failed must set "
+                    "floor_passed=False"
+                )
 
     def test_g_score_not_exposed_to_anonymous(self):
         """G score should be absent or None for anonymous/unauth sessions."""
