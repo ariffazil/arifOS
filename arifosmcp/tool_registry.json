@@ -60,6 +60,7 @@
     "arif_judge_deliberate",
     "arif_kernel_intercept",
     "arif_measure",
+    "arif_telegram_send",
     "arif_triage"
   ],
   "diagnostic_order": [
@@ -2388,6 +2389,51 @@
         "rationale": "Kernel runtime self-telemetry. CPU, mem, disk, topology, drift. NOT human/machine vitality (WELL owns that).",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
+    },
+    "arif_telegram_send": {
+      "stage": "777",
+      "lane": "AGI",
+      "floors": [
+        "L01",
+        "L02",
+        "L04",
+        "L11",
+        "L12",
+        "L13"
+      ],
+      "risk_tier": "critical",
+      "irreversible": true,
+      "access": "internal_only",
+      "requires_auth": true,
+      "modes": [
+        "send"
+      ],
+      "eureka_insight": "F12 RESILIENCE: Hermes-only caller scope. F1 AMANAH: first call per session requires explicit ack_irreversible=true. Telegram messages cannot be recalled after delivery.",
+      "tier": "internal",
+      "namespace": "arif_* (Hermes-only internal supporting alias)",
+      "tags": [
+        "internal",
+        "non-public",
+        "hermes-only",
+        "chat-actuator"
+      ],
+      "public_exposed": false,
+      "affordance_contract": {
+        "action_class": "MUTATE",
+        "risk_tier": "CRITICAL",
+        "blast_radius": "EXTERNAL",
+        "reversibility": 0.0,
+        "requires_lease": false,
+        "autonomy_floor": "FULL_AUTO",
+        "rationale": "Outbound Telegram message via Bot API. Cannot un-send. C5_IRREVERSIBLE. Hermes session gate at tool layer; allowlist at bridge layer.",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      },
+      "tested": false,
+      "status": "registered",
+      "forged": "2026-08-20",
+      "forged_by": "Claude session linked-juggling-pillow",
+      "forged_for": "Arif 'hantar kat telegram' → governed outbound path",
+      "design_record": "/root/.claude/projects/-root/memory/forge-telegram-send-design-2026-08-20.md"
     }
   },
   "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",
@@ -2395,7 +2441,7 @@
     "regenerated_at": "2026-07-19T19:10:00Z",
     "source": "constitutional_map.CANONICAL_TOOLS + P1-absorption-reconcile",
     "public_count": 8,
-    "absorbed_count": 6
+    "absorbed_count": 7
   },
   "_smoke_test": {
     "run_at": "2026-07-17T10:14Z",
