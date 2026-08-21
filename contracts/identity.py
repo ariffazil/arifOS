@@ -374,6 +374,19 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "default_tier": "AGENT",
         "aliases": ["gemini", "gemini-cli", "FI-004", "fi-004"],
     },
+    # 2026-08-21 Seal C fix (Hermes AAA-lane audit): I-ARIF — the sovereign's
+    # own model agent and the ratified single writer for arif_memory
+    # (mode=consolidate). Was missing from all three identity surfaces
+    # (contracts.identity, session_auth exempt list, agent_identities.json),
+    # so the boot gate demoted it to OBSERVE_ONLY on every call and the
+    # Seal C consolidation path was structurally unreachable. Tier OPERATOR:
+    # observe/route/execute + memory writes, but no judge/seal (those stay
+    # with ARIF/SOVEREIGN per F13).
+    "I_ARIF": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "OPERATOR",
+        "aliases": ["i-arif", "i_arif", "iarif", "I-ARIF"],
+    },
 }
 
 

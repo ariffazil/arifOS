@@ -3644,6 +3644,44 @@ if app:
 
     app.add_route("/kernel/authority-probe", kernel_authority_probe, methods=["GET"])
 
+    # ── GET /sessions/lookup — in-process session identity lookup ──
+    # Forged 2026-08-21 (boot-gate ghost-route incident): Q1 of the T3a BOOT
+    # attestation (boot_attestation._answer_q1_identity_bind) constructs this
+    # URL for server-side identity binding, but the route was never
+    # registered — every lookup 404'd in the kernel journal. This is the
+    # missing door. Read-only: resolves a session_id against the unified
+    # in-process session store and returns its bound actor identity.
+    async def sessions_lookup(request: Request) -> JSONResponse:
+        """GET /sessions/lookup?session_id=... — resolve session → actor.
+
+        Returns 200 {session_id, actor_id, canonical_actor_id, verified_actor_id}
+        for a bound session, 404 {error: "session_not_found"} otherwise.
+        Localhost-only surface like /health; no authority grant implied.
+        """
+        session_id = request.query_params.get("session_id", "").strip()
+        if not session_id:
+            return JSONResponse({"error": "session_id query parameter required"}, status_code=400)
+        from arifosmcp.runtime.tools import _SESSIONS  # deferred, in-process store
+
+        sess = _SESSIONS.get(session_id)
+        if not isinstance(sess, dict) or not sess:
+            return JSONResponse(
+                {"error": "session_not_found", "session_id": session_id},
+                status_code=404,
+            )
+        return JSONResponse(
+            {
+                "session_id": session_id,
+                "actor_id": sess.get("actor_id") or sess.get("claimed_id") or "",
+                "canonical_actor_id": sess.get("canonical_actor_id") or "",
+                "verified_actor_id": sess.get("verified_actor_id") or "",
+                "bound": True,
+            },
+            status_code=200,
+        )
+
+    app.add_route("/sessions/lookup", sessions_lookup, methods=["GET"])
+
     # ── POST /kernel/identity/verify — Ed25519 challenge response (read-only check) ──
     # Forged 2026-07-10: Hermes Identity Verification Flow v1.
     # Verifies signature over "{actor_id}:{constitution_hash}:{nonce}" without mutating host

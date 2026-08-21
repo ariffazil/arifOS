@@ -38,7 +38,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import json as _json
+import os as _os
 import time as _time_module
+import uuid as _uuid
 from typing import Any
 
 from arifosmcp.paradox import build_organ_anchors, register_organ
@@ -716,6 +719,56 @@ def _compute_memory_confidence(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+# ══ Seal C — Single-Writer Memory (Write-Lock CQRS, ratified F13 2026-08-19) ══
+# i-ARIF is the SOLE WRITER to long-term memory core. Labor agents are READ-ONLY;
+# their store/learn/update attempts land in a proposal buffer that i-ARIF
+# metabolizes via mode=consolidate. No work is lost (ΔS ≤ 0) — proposals are
+# durable and drained as first-class writes through the full constitutional
+# chain (F10 scan + floors unchanged).
+_SEAL_C_WRITER_MODES = frozenset({"store", "import", "learn", "update"})
+_SEAL_C_DEFAULT_WRITERS = frozenset({"i-arif", "arif", "i_arif"})
+_SEAL_C_PROPOSAL_DIR = _os.path.join(
+    _os.path.expanduser("~"), ".local", "share", "arifos", "memory_proposals"
+)
+
+
+def _seal_c_writers() -> frozenset[str]:
+    """Writer allowlist — F13 can widen via ARIF_MEMORY_WRITERS env without code edits."""
+    extra = _os.environ.get("ARIF_MEMORY_WRITERS", "")
+    if not extra:
+        return _SEAL_C_DEFAULT_WRITERS
+    return _SEAL_C_DEFAULT_WRITERS | frozenset(
+        w.strip().lower() for w in extra.split(",") if w.strip()
+    )
+
+
+def _seal_c_buffer_proposal(
+    mode: str,
+    actor_id: str | None,
+    session_id: str | None,
+    content: Any,
+    query: str | None,
+    tags: list[str] | None,
+    tier: str | None,
+) -> str:
+    """Durably buffer a labor-agent write intent as a proposal (never rejected)."""
+    _os.makedirs(_SEAL_C_PROPOSAL_DIR, exist_ok=True)
+    proposal = {
+        "proposal_id": f"prop-{_uuid.uuid4().hex[:12]}",
+        "ts": _time_module.strftime("%Y-%m-%dT%H:%M:%SZ", _time_module.gmtime()),
+        "requested_mode": mode,
+        "actor_id": actor_id or "anonymous",
+        "session_id": session_id,
+        "content": content if content is not None else query,
+        "tags": tags or [],
+        "tier": tier,
+    }
+    path = _os.path.join(_SEAL_C_PROPOSAL_DIR, f"{proposal['proposal_id']}.json")
+    with open(path, "w", encoding="utf-8") as fh:
+        _json.dump(proposal, fh, ensure_ascii=False, indent=1)
+    return proposal["proposal_id"]
+
+
 def arif_memory_recall(
     mode: str = "recall",
     query: str | None = None,
@@ -810,6 +863,30 @@ def arif_memory_recall(
                 "L11 AUTH: actor_id is mandatory (WAJIB) for mutation operations.",
                 ["L11"],
             )
+
+    # ── Seal C — Single-Writer Write-Lock CQRS (F13-ratified 2026-08-19) ────
+    # Labor-agent writes (store/import/learn/update) are buffered as durable
+    # proposals, not executed. i-ARIF (allowlist, ARIF_MEMORY_WRITERS env
+    # extensible) drains them via mode=consolidate. No work lost, no reject.
+    if mode in _SEAL_C_WRITER_MODES and (actor_id or "").lower() not in _seal_c_writers():
+        proposal_id = _seal_c_buffer_proposal(
+            mode, actor_id, session_id, content, query, tags, tier
+        )
+        return _ok(
+            "arif_memory_recall",
+            {
+                "status": "STORED_AS_PROPOSAL",
+                "proposal_id": proposal_id,
+                "reason": (
+                    "Seal C single-writer: '%s' is read-only on the memory core. "
+                    "Write intent buffered durably; i-ARIF metabolizes via "
+                    "mode=consolidate." % (actor_id or "anonymous")
+                ),
+                "buffer_path": _SEAL_C_PROPOSAL_DIR,
+                "note": "proposals_pending=True",
+            },
+            meta={"seal": "C", "actor_id": actor_id},
+        )
 
     # ── P0-01a Pre-Execution Floor Gate (F1 / F11 / F13) ──────────────────
     # Hooks BEFORE check_laws() so the gate verdict carries specific floor
@@ -1135,6 +1212,75 @@ def arif_memory_recall(
         return _hold("arif_memory_recall", "recall mode requires memory_id or query")
 
     # ── store (v4 — unified: standard, quarantine, import, graph_store) ─────
+    # ── Seal C: consolidate — i-ARIF drains the proposal buffer ────────────
+    # Sole-writer metabolism: each durable proposal is re-submitted through
+    # the FULL constitutional chain (F10 scan + floors + store path) as if
+    # the original actor had writer rights — but attributed transparently
+    # (provenance = original proposer, writer = i-ARIF).
+    if mode == "consolidate":
+        if (actor_id or "").lower() not in _seal_c_writers():
+            return _hold(
+                "arif_memory_recall",
+                "Seal C: only the single writer (i-ARIF) may consolidate proposals.",
+                ["F11"],
+            )
+        if not _os.path.isdir(_SEAL_C_PROPOSAL_DIR):
+            return _ok(
+                "arif_memory_recall",
+                {"status": "NOTHING_TO_CONSOLIDATE", "consolidated": 0},
+            )
+        files = sorted(
+            f for f in _os.listdir(_SEAL_C_PROPOSAL_DIR) if f.endswith(".json")
+        )
+        limit_n = int(limit) if isinstance(limit, int) and limit > 0 else 20
+        results, drained = [], 0
+        for fname in files[:limit_n]:
+            fpath = _os.path.join(_SEAL_C_PROPOSAL_DIR, fname)
+            try:
+                with open(fpath, encoding="utf-8") as fh:
+                    prop = _json.load(fh)
+            except Exception as e:  # corrupted proposal — keep on disk, flag
+                results.append({"file": fname, "status": "SKIPPED_CORRUPT", "error": str(e)})
+                continue
+            inner = arif_memory_recall(
+                mode=str(prop.get("requested_mode", "store")),
+                content=prop.get("content"),
+                memory_id=prop.get("memory_id"),
+                session_id=prop.get("session_id") or session_id,
+                actor_id=actor_id,  # writer = i-ARIF; proposer kept in tags
+                tags=(prop.get("tags") or []) + [f"proposer:{prop.get('actor_id', 'unknown')}"],
+                tier=prop.get("tier"),
+            )
+            ok_flag = isinstance(inner, dict) and inner.get("status") in (
+                "completed",
+                "ok",
+            )
+            status_txt = (
+                inner.get("status")
+                if isinstance(inner, dict)
+                else str(inner)[:60]
+            )
+            results.append(
+                {"proposal_id": prop.get("proposal_id", fname), "status": status_txt or "done"}
+            )
+            if ok_flag or (isinstance(inner, dict) and inner.get("verdict") == "SEAL"):
+                try:
+                    _os.remove(fpath)
+                    drained += 1
+                except OSError:
+                    pass
+        return _ok(
+            "arif_memory_recall",
+            {
+                "status": "CONSOLIDATED",
+                "consolidated": drained,
+                "examined": len(results),
+                "results": results,
+                "remaining": max(0, len(files) - len(results)),
+            },
+            meta={"seal": "C", "writer": actor_id},
+        )
+
     if mode == "store":
         # ── 666_MEMORY v2: graph store (plan → FalkorDB + Qdrant) ──
         if _original_mode in ("graph_store",) or plan_object:

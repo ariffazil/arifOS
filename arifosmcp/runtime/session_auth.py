@@ -96,6 +96,19 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "aider": "operator",
     "continue-cli": "operator",
     "mesa-test-agent": "operator",
+    # Seal C FIX (2026-08-21, Hermes AAA-lane audit): i-arif is the ratified
+    # single writer for arif_memory (mode=consolidate). Without operator
+    # exemption, the boot gate (Q1/Q3 chicken-and-egg PARTIAL) demotes i-ARIF
+    # to OBSERVE_ONLY on every request — the consolidation path is structurally
+    # unreachable and the Seal C proposal buffer can never drain. Same pattern
+    # and authority chain as P0.1b (qwen-code) and P0.2 (FI agents) fixes.
+    "i-arif": "operator",
+    "i_arif": "operator",
+    # P0.4 FIX (2026-08-21, boot-gate Q5 clamp incident): 333-agi (OpenCode
+    # FI-001) arrives ed25519-VERIFIED (journal: verification_method=ed25519)
+    # yet was demoted OBSERVE_ONLY by the T3a boot gate — absent here while
+    # every other CLI runtime is listed. Operator cap; judge/seal via SCT.
+    "333-agi": "operator",
 }
 
 
