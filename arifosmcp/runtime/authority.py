@@ -213,10 +213,26 @@ def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: b
     # inherently chicken-and-egg: no session_id exists yet DURING init). This
     # demoted every exempt FI agent to OBSERVE_ONLY after every kernel restart.
     # Exempt actors are already trusted by the LOCALHOST_IS_PASSWORD doctrine.
+    #
+    # Seal C audit (2026-08-21, Hermes AAA-lane): the raw claimed_id may be an
+    # ALIAS (333-AGI → OPENCODE, i-arif → I_ARIF). The exempt list holds
+    # canonical names, so alias-bearing sessions never matched and were demoted
+    # despite being trusted actors. Normalize through contracts.identity first;
+    # check both raw and canonical forms.
     try:
         from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS as _BGA
-        if _BGA and actor_id.lower() in _BGA:
-            return runtime_band
+        if _BGA:
+            _raw_key = actor_id.strip().lower()
+            if _raw_key in _BGA:
+                return runtime_band
+            try:
+                from contracts.identity import normalize_actor_identity
+
+                _canon = normalize_actor_identity(actor_id).get("normalized")
+                if _canon and str(_canon).lower() in _BGA:
+                    return runtime_band
+            except ImportError:
+                pass
     except ImportError:
         pass
     from arifosmcp.runtime.boot_attestation import boot_state_for_authority_grade

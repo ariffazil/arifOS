@@ -123,6 +123,16 @@ def _file_read(path: str) -> str:
         return ""
 
 
+def _file_readable(path: str) -> bool:
+    """Seal C audit (2026-08-21): distinguish 'identity not on file' from
+    'cannot read file due to permissions'. Fail-closed in both cases."""
+    try:
+        with open(path):
+            return True
+    except OSError:
+        return False
+
+
 def _answer_q1_identity_bind(session_id: str | None) -> EvidencedAnswer:
     """Q1: Is there a server-side bound actor_id for the given session?"""
     if not session_id:
@@ -350,7 +360,20 @@ def _answer_q5_sovereign_recognize(
     name_match = ("Muhammad Arif bin Fazil" in combined or "Arif" in toml_text) and (
         "F13" in toml_text or "sovereign" in toml_text.lower()
     )
-    if name_match:
+    # 2026-08-21 boot-gate fix: substrate-anchor fallback. The kernel service
+    # runs as an unprivileged service user which (by PII-masking design)
+    # cannot read the mode-600 legal-name file. The canonical identity.toml
+    # declares sovereign authority structurally (authority = "F13_SOVEREIGN",
+    # sovereign_page anchor) — recognize that as sovereign-substrate evidence.
+    # PARTIAL only, same as name-match: substrate presence never grants YES.
+    # Root cause of the 2026-08-21 04:16 system-wide OBSERVE_ONLY clamp:
+    # Q5 flipped NO in the service context → boot_state FAIL → every
+    # non-exempt actor demoted. Repro: root → PARTIAL, service user → NO.
+    substrate_anchor = 'authority = "F13_SOVEREIGN"' in toml_text or "sovereign_page" in toml_text
+    if name_match or substrate_anchor:
+        anchor_note = (
+            "SUBSTRATE-ANCHOR MATCH" if substrate_anchor and not name_match else "NAME-MATCH ONLY"
+        )
         return EvidencedAnswer(
             q="Q5",
             answer="PARTIAL",
@@ -361,11 +384,16 @@ def _answer_q5_sovereign_recognize(
             issuer="identity_toml",
             fresh_at=_now_iso(),
             note=(
-                "NAME-MATCH ONLY. Per governance_identity.py:44, name-match does "
-                "NOT grant sovereign authority. Provide actor_signature + nonce "
+                f"{anchor_note}. Per governance_identity.py:44, substrate presence "
+                "does NOT grant sovereign authority. Provide actor_signature + nonce "
                 "for cryptographic YES."
             ),
         )
+    # Seal C audit (2026-08-21): when PII file is unreadable (service user
+    # cannot read root:root 0600), the NO is a read-permission artifact,
+    # not an identity verdict. Fail-closed answer preserved; journal now
+    # distinguishes "identity not on file" from "cannot read file".
+    pii_unreadable = not pii_text and not _file_readable("/root/.secrets/sovereign_identity.toml")
     return EvidencedAnswer(
         q="Q5",
         answer="NO",
@@ -373,6 +401,12 @@ def _answer_q5_sovereign_recognize(
         evidence_ref="",
         issuer="identity_toml",
         fresh_at=_now_iso(),
+        note=(
+            "PII file unreadable by this process (root:root 0600) — "
+            "NO is a read-permission artifact, not an identity verdict"
+            if pii_unreadable
+            else ""
+        ),
     )
 
 
