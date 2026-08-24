@@ -2786,9 +2786,9 @@ mypy-extensions==1.1.0 \
     #   mypy
     #   typing-inspect
     #   vectorbt
-narwhals==2.22.1 \
-    --hash=sha256:60567d774edf77db53906f89d9fbd164e66e56d66d388e1e6990f17ac33cfb53 \
-    --hash=sha256:d62920805a0a43b7ff8b54b0c0d3142d796f8a9301836ada37e573d6a33cbcd9
+narwhals==2.25.0 \
+    --hash=sha256:1f0f403e8c7e4463cde9bfe78b12fdd809e3ae3dda6d9b2f802934fb9c7a6a8f \
+    --hash=sha256:62c036c810662bf7820b7737077176313bc59350eeeefb808510f388c743e4b2
     # via
     #   plotly
     #   scikit-learn
