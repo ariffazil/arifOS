@@ -508,21 +508,13 @@ def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | 
             from arifosmcp.runtime.tools import _SESSIONS
 
             sess = _SESSIONS.get(sid) or {}
-            if not aid:
-                cand = sess.get("actor_id") or sess.get("canonical_actor_id")
-                if cand and cand not in _ANON:
-                    aid = str(cand)
+            cand = sess.get("actor_id") or sess.get("canonical_actor_id")
+            if cand and cand not in _ANON:
+                aid = str(cand)
         except Exception:
             pass
-    # P0 invariant: no raw actor value escapes this function unnormalized.
-    if aid is not None:
-        try:
-            _norm = normalize_actor_id(aid)
-            if _norm:
-                aid = _norm
-        except Exception:
-            # Fail-soft: lowercase fallback rather than crash the kernel.
-            aid = aid.lower()
+    if aid is None and actor_id is not None and actor_id not in _ANON:
+        aid = actor_id
     return aid, sid
 
 

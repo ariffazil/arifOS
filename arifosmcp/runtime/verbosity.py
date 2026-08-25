@@ -166,21 +166,29 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         # Unknown verbosity value — fail closed, return standard
         return response
 
-    # Helper: field lookup that searches top-level, then result, then meta.
+    # Helper: field lookup that searches top-level, then result, meta, and standing.
     # Many kernel responses put call_hash / trace_id inside result or meta,
-    # not at the top level.
+    # or identity inside standing.
     def _lookup(*keys: str) -> Any:
         for k in keys:
             v = response.get(k)
             if v:
                 return v
-        for nested_key in ("result", "meta"):
+        for nested_key in ("result", "meta", "standing"):
             nested = response.get(nested_key)
             if isinstance(nested, dict):
                 for k in keys:
                     v = nested.get(k)
                     if v:
                         return v
+                if nested_key == "standing":
+                    for sub in ("actor", "authority"):
+                        sub_dict = nested.get(sub)
+                        if isinstance(sub_dict, dict):
+                            for k in keys:
+                                v = sub_dict.get(k)
+                                if v:
+                                    return v
         return None
 
     actor_id = _lookup("actor_id") or "anonymous"
@@ -251,6 +259,11 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "verdict": verdict,
         "actor": unified_actor,
         "session_id": session_id,
+        "actor_id": actor_id,
+        "autonomy_band": authority_level,
+        "band": authority_level,
+        "authority": authority_level,
+        "actor_verified": actor_verified,
         "call_hash": call_hash,
         "trace_id": trace_id,
         "signature": signature,
@@ -529,10 +542,17 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     # Require only actor + (session_id OR call_hash) for identity anchor.
     if not minimal.get("actor"):
         return response  # true fail-closed
-    if not (minimal.get("session_id") or minimal.get("call_hash")):
-        # Still return minimal if tool/status present — partial audit better
-        # than full bloat; mark incomplete for F11 consumers.
-        minimal["_audit_incomplete"] = True
+    try:
+        from arifosmcp.runtime.act_token import echo_canonical_session
+
+        minimal = echo_canonical_session(
+            minimal,
+            session_id=session_id,
+            actor_id=actor_id,
+            autonomy_band=authority_level,
+        )
+    except Exception:
+        pass
 
     return minimal
 

@@ -864,6 +864,21 @@ class VerdictOutput(BaseModel):
         default=None,
         description="Authority delta between token band and tool requirement",
     )
+    # ── LLM Deliberation Lane ──
+    llm_consulted: bool = Field(
+        default=False,
+        description="Whether LLM deliberation lane was consulted during judgment",
+    )
+
+    # ── Canonical Session Envelope Fields ──
+    session_id: str | None = Field(default=None, description="Canonical session identifier")
+    actor_id: str | None = Field(default=None, description="Canonical actor identifier")
+    autonomy_band: str | None = Field(default=None, description="Canonical autonomy band")
+    band: str | None = Field(default=None, description="Canonical autonomy band alias")
+    session_token: str | None = Field(default=None, description="Canonical session capability token")
+    actor_cryptographically_verified: bool | None = Field(
+        default=None, description="Whether the actor signature was cryptographically verified"
+    )
 
     timestamp: str | None = None
 
