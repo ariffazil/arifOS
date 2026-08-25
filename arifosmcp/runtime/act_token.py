@@ -68,10 +68,10 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         # still HOLD inside the tools (P1.5 Holy 8 vs SCT contrast).
         "arif_memory",
         "arif_judge",
-        # arif_seal allowed ONLY for safe modes (verify/list/audit/…) —
-        # mode=seal is blocked inside arif_seal by effect typing (Layer 6).
-        "arif_seal",
-    ],
+        # arif_seal REMOVED from anonymous band 2026-08-25 (DIR-E0 ship,
+        # F11 hole closure): unverified actors never reach Lane A, not even
+        # safe modes. Verified bands regain it via E1 ed25519 bind.
+        ],
     "LIMITED_MUTATE": [
         "arif_init",
         "arif_observe",
@@ -986,17 +986,202 @@ def attach_continuity(response: dict[str, Any], standing: Standing) -> dict[str,
     if standing.session_token:
         response["session_token"] = standing.session_token
     if standing.session_id:
-        response.setdefault("session_id", standing.session_id)
-    response.setdefault("authority", standing.authority)
-    response.setdefault("actor_verified", standing.actor_verified)
+        response["session_id"] = standing.session_id
+    response["authority"] = standing.authority
+    response["autonomy_band"] = standing.authority
+    response["band"] = standing.authority
+    response["actor_verified"] = standing.actor_verified
     response.setdefault("apex_scalars", dict(standing.apex))
     response.setdefault("standing_source", standing.source)
     if standing.authority_delta is not None:
         response["authority_delta"] = standing.authority_delta
     # Put token in result blob too if present
     result = response.get("result")
-    if isinstance(result, dict) and standing.session_token:
-        result.setdefault("session_token", standing.session_token)
+    if isinstance(result, dict):
+        if standing.session_token:
+            result["session_token"] = standing.session_token
+        if standing.session_id:
+            result["session_id"] = standing.session_id
+        result["authority"] = standing.authority
+        result["autonomy_band"] = standing.authority
+        result["band"] = standing.authority
+        result["actor_verified"] = standing.actor_verified
         result.setdefault("apex_scalars", dict(standing.apex))
         result.setdefault("standing_source", standing.source)
     return response
+
+
+def echo_canonical_session(
+    response: Any,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    session_token: str | None = None,
+    autonomy_band: str | None = None,
+    actor_cryptographically_verified: bool | None = None,
+) -> Any:
+    """
+    Echo the one canonical session envelope onto any tool response dict or Pydantic model.
+    Guarantees: session_id == token.sid == every verb echo.
+    All 8 verbs return identical id, actor, band; band changes only via explicit re-init.
+    """
+    resolved_sid = session_id
+    resolved_actor = actor_id
+    resolved_band = autonomy_band
+    resolved_token = session_token
+    actor_verified = False
+    crypto_verified = False
+
+    # 1. Resolve token if provided
+    if session_token:
+        try:
+            payload = verify_sct(session_token)
+            if isinstance(payload, dict):
+                if not resolved_sid:
+                    resolved_sid = payload.get("sid")
+                if not resolved_actor or resolved_actor == "anonymous":
+                    resolved_actor = payload.get("actor")
+                if not resolved_band:
+                    resolved_band = payload.get("auth")
+                actor_verified = bool(payload.get("av", False))
+                crypto_verified = bool(payload.get("crypto_verified", actor_verified))
+                resolved_token = session_token
+        except Exception:
+            pass
+
+    # 2. Resolve active session / in-memory session if needed
+    if not resolved_sid:
+        try:
+            from arifosmcp.runtime.session import get_active_session
+            resolved_sid = get_active_session()
+        except Exception:
+            pass
+
+    if resolved_sid:
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+            sess = _SESSIONS.get(resolved_sid)
+            if sess and isinstance(sess, dict):
+                if not resolved_actor or resolved_actor == "anonymous":
+                    resolved_actor = sess.get("actor_id") or resolved_actor
+                if not resolved_band or resolved_band == "OBSERVE_ONLY":
+                    resolved_band = (
+                        sess.get("authority_band")
+                        or sess.get("authority")
+                        or sess.get("actor_band")
+                        or resolved_band
+                    )
+                if not resolved_token:
+                    resolved_token = sess.get("session_token")
+                if sess.get("actor_verified") is not None:
+                    actor_verified = bool(sess.get("actor_verified"))
+                if sess.get("signature_verified") is not None:
+                    crypto_verified = bool(sess.get("signature_verified"))
+                elif sess.get("actor_cryptographically_verified") is not None:
+                    crypto_verified = bool(sess.get("actor_cryptographically_verified"))
+        except Exception:
+            pass
+
+    # 3. Resolve from _SESSION_IDENTITY registry if needed
+    if resolved_sid and not actor_verified:
+        try:
+            from arifosmcp.runtime.session import get_session_identity
+            ident = get_session_identity(resolved_sid)
+            if ident:
+                if (not resolved_actor or resolved_actor == "anonymous") and getattr(ident, "actor_id", None):
+                    resolved_actor = ident.actor_id
+                if getattr(ident, "verified", False):
+                    actor_verified = True
+                auth_ctx = getattr(ident, "auth_context", {}) or {}
+                if auth_ctx.get("signature_verified") or auth_ctx.get("verified"):
+                    crypto_verified = True
+        except Exception:
+            pass
+
+    if not resolved_sid:
+        resolved_sid = "anonymous-session"
+    if not resolved_actor:
+        resolved_actor = "anonymous"
+    if not resolved_band:
+        resolved_band = "OBSERVE_ONLY"
+
+    band_str = str(resolved_band).upper()
+    if band_str not in (
+        "OBSERVE_ONLY",
+        "LIMITED_MUTATE",
+        "FULL",
+        "SOVEREIGN",
+        "ORANGE",
+        "YELLOW",
+        "GREEN",
+        "RED",
+    ):
+        band_str = "OBSERVE_ONLY"
+
+    if actor_cryptographically_verified is not None:
+        crypto_verified = bool(actor_cryptographically_verified)
+
+    if isinstance(response, dict):
+        response["session_id"] = resolved_sid
+        response["actor_id"] = resolved_actor
+        response["autonomy_band"] = band_str
+        response["band"] = band_str
+        response["authority"] = band_str
+        if resolved_token:
+            response["session_token"] = resolved_token
+        response["actor_verified"] = actor_verified
+        response["actor_cryptographically_verified"] = crypto_verified
+
+        res = response.get("result")
+        if isinstance(res, dict):
+            res["session_id"] = resolved_sid
+            res["actor_id"] = resolved_actor
+            res["autonomy_band"] = band_str
+            res["band"] = band_str
+            res["authority"] = band_str
+            if resolved_token:
+                res["session_token"] = resolved_token
+            res["actor_verified"] = actor_verified
+            res["actor_cryptographically_verified"] = crypto_verified
+        return response
+
+    elif hasattr(response, "model_copy"):
+        updates: dict[str, Any] = {}
+        if hasattr(response, "session_id"):
+            updates["session_id"] = resolved_sid
+        if hasattr(response, "actor_id"):
+            updates["actor_id"] = resolved_actor
+        if hasattr(response, "autonomy_band"):
+            updates["autonomy_band"] = band_str
+        if hasattr(response, "session_token") and resolved_token:
+            updates["session_token"] = resolved_token
+        if hasattr(response, "actor_verified"):
+            updates["actor_verified"] = actor_verified
+        if hasattr(response, "actor_cryptographically_verified"):
+            updates["actor_cryptographically_verified"] = crypto_verified
+
+        if hasattr(response, "result") and isinstance(response.result, dict):
+            res_copy = dict(response.result)
+            res_copy["session_id"] = resolved_sid
+            res_copy["actor_id"] = resolved_actor
+            res_copy["autonomy_band"] = band_str
+            res_copy["band"] = band_str
+            res_copy["authority"] = band_str
+            if resolved_token:
+                res_copy["session_token"] = resolved_token
+            res_copy["actor_verified"] = actor_verified
+            res_copy["actor_cryptographically_verified"] = crypto_verified
+            updates["result"] = res_copy
+
+        if updates:
+            try:
+                response = response.model_copy(update=updates)
+            except Exception:
+                for k, v in updates.items():
+                    try:
+                        setattr(response, k, v)
+                    except Exception:
+                        pass
+        return response
+
+    return response
+
