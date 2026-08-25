@@ -473,6 +473,17 @@ class AuditBlock(BaseModel):
     trace_id: str | None = Field(
         default=None, description="Distributed trace identifier across organs"
     )
+    # Evidence Gate × arifFlow witness. These are non-sealing audit metadata:
+    # arifFlow remains the receipt/flow writer; arifOS remains the authority.
+    evidence_verdict: str | None = Field(
+        default=None, description="Aggregated ART evidence verdict"
+    )
+    evidence_gates: dict[str, Any] = Field(
+        default_factory=dict, description="Per-gate ART evidence results"
+    )
+    evidence_flow_receipts: dict[str, Any] = Field(
+        default_factory=dict, description="Receipt IDs returned by arifFlow"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

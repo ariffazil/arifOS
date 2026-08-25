@@ -318,6 +318,65 @@ def _art_reflex_check(
     except Exception as _e:
         logger.debug("ART 2.0 prediction error (non-blocking): %s", _e)
 
+    # ── ART × arifFlow evidence gates ─────────────────────────────
+    # These questions belong to J-space and run before ART emits PROCEED to
+    # ACT. The kernel decides the verdict; arifFlow records the three
+    # evidence receipts and FQ contribution.
+    if art_result.verdict == ArtVerdict.PROCEED:
+        try:
+            from arifosmcp.runtime.art_evidence_gate import (
+                EvidenceVerdict,
+                run_art_evidence_gates,
+            )
+
+            evidence_result = run_art_evidence_gates(
+                tool_name=envelope.organ.tool_name or "unknown",
+                action_class=requested_action.value,
+                is_reversible=(
+                    manifest_entry.is_reversible if manifest_entry else False
+                ),
+                session_id=envelope.kernel.session_id,
+                actor_id=envelope.kernel.actor_id or "anonymous",
+                payload=payload,
+                canonical_tool=manifest_entry is not None,
+            )
+            receipt_ids = {}
+            for gate_name, receipt in evidence_result.receipts.items():
+                receipt_id = receipt.get("receipt_id")
+                if receipt_id:
+                    receipt_ids[gate_name] = receipt_id
+            envelope.audit.evidence_verdict = evidence_result.verdict.value
+            envelope.audit.evidence_gates = evidence_result.gates
+            envelope.audit.evidence_flow_receipts = receipt_ids
+            if evidence_result.verdict in (
+                EvidenceVerdict.INSUFFICIENT,
+                EvidenceVerdict.INCONSISTENT,
+            ):
+                receipt_ids = []
+                for gate_name, receipt in evidence_result.receipts.items():
+                    receipt_id = receipt.get("receipt_id")
+                    if receipt_id:
+                        receipt_ids.append(f"{gate_name}:{receipt_id}")
+                receipt_line = f" receipts={','.join(receipt_ids)}" if receipt_ids else ""
+                return GateResult(
+                    envelope=envelope,
+                    verdict=GateVerdict.HOLD,
+                    reasons=[
+                        f"ART evidence gate held: {evidence_result.verdict.value}{receipt_line}"
+                    ],
+                    violations=[f"ART_EVIDENCE_{evidence_result.verdict.value}"],
+                    blocked_action_class=requested_action,
+                    required_human_ack=(
+                        requested_action
+                        in (ActionClass.IRREVERSIBLE, ActionClass.EXTERNAL_SIDE_EFFECT)
+                    ),
+                )
+        except Exception as _evidence_error:
+            # Evidence infrastructure failure must not manufacture a
+            # positive authorization. Existing ART behavior is preserved,
+            # but the failure is visible in logs for repair.
+            logger.error("ART × arifFlow evidence gate failed: %s", _evidence_error)
+
     # PROCEED → continue to next gate
     if art_result.verdict == ArtVerdict.PROCEED:
         return None
