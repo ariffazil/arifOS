@@ -400,6 +400,99 @@ def compute_quad_witness(
     )
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Blast Radius & Witness Policy Binding (P1-8)
+# ──────────────────────────────────────────────────────────────────────
+
+
+class BlastRadiusClass(str, Enum):
+    """Blast radius classification for actions across the federation."""
+
+    READ_ONLY = "READ_ONLY"  # No mutation, pure inspection (observe, think, route)
+    EPHEMERAL = "EPHEMERAL"  # Reversible local cache/working memory mutation
+    PERSISTENT = "PERSISTENT"  # Filesystem mutation, build, code changes (forge)
+    CRITICAL_SEAL = "CRITICAL_SEAL"  # Ledger write, sovereign decree, vault sealing
+
+
+@dataclass(frozen=True)
+class WitnessRequirement:
+    """Witness requirement specification derived from blast radius."""
+
+    blast_radius: BlastRadiusClass
+    min_witness_count: int
+    required_positions: tuple[WitnessPosition, ...]
+    requires_crypto_verification: bool
+    requires_prior_judge_chain: bool
+
+
+def classify_blast_radius(
+    tool_name: str,
+    mode: str | None = None,
+    payload: Any = None,
+) -> BlastRadiusClass:
+    """Classify the blast radius of a verb invocation based on impact, not just tool name."""
+    t_name = (tool_name or "").lower()
+    m_name = (mode or "").lower()
+
+    if "seal" in t_name or m_name in ("seal", "commit", "session_close"):
+        return BlastRadiusClass.CRITICAL_SEAL
+
+    if "forge" in t_name:
+        if m_name in ("dry_run", "query", "recall", "diagnose"):
+            return BlastRadiusClass.READ_ONLY
+        return BlastRadiusClass.PERSISTENT
+
+    if "memory" in t_name:
+        if m_name in ("search", "recall", "query", "diagnose"):
+            return BlastRadiusClass.READ_ONLY
+        if m_name in ("forget", "attest"):
+            return BlastRadiusClass.CRITICAL_SEAL
+        return BlastRadiusClass.EPHEMERAL
+
+    if "judge" in t_name:
+        return BlastRadiusClass.CRITICAL_SEAL
+
+    return BlastRadiusClass.READ_ONLY
+
+
+def derive_witness_policy_for_blast_radius(
+    blast_radius: BlastRadiusClass,
+) -> WitnessRequirement:
+    """Derive witness policy from blast radius class."""
+    if blast_radius == BlastRadiusClass.CRITICAL_SEAL:
+        return WitnessRequirement(
+            blast_radius=blast_radius,
+            min_witness_count=3,
+            required_positions=(WitnessPosition.INTERNAL, WitnessPosition.HUMAN),
+            requires_crypto_verification=True,
+            requires_prior_judge_chain=True,
+        )
+    elif blast_radius == BlastRadiusClass.PERSISTENT:
+        return WitnessRequirement(
+            blast_radius=blast_radius,
+            min_witness_count=2,
+            required_positions=(WitnessPosition.INTERNAL,),
+            requires_crypto_verification=False,
+            requires_prior_judge_chain=True,
+        )
+    elif blast_radius == BlastRadiusClass.EPHEMERAL:
+        return WitnessRequirement(
+            blast_radius=blast_radius,
+            min_witness_count=1,
+            required_positions=(WitnessPosition.SELF, WitnessPosition.INTERNAL),
+            requires_crypto_verification=False,
+            requires_prior_judge_chain=False,
+        )
+    else:  # READ_ONLY
+        return WitnessRequirement(
+            blast_radius=blast_radius,
+            min_witness_count=1,
+            required_positions=(WitnessPosition.SELF,),
+            requires_crypto_verification=False,
+            requires_prior_judge_chain=False,
+        )
+
+
 __all__ = [
     "WitnessPosition",
     "ReceiptContext",
@@ -412,4 +505,8 @@ __all__ = [
     "NarrativeSealRejection",
     "reject_narrative_seal",
     "NARRATIVE_SEAL_PATTERNS",
+    "BlastRadiusClass",
+    "WitnessRequirement",
+    "classify_blast_radius",
+    "derive_witness_policy_for_blast_radius",
 ]

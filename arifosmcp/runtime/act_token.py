@@ -1170,8 +1170,16 @@ def echo_canonical_session(
         response["authority"] = band_str
         if resolved_token:
             response["session_token"] = resolved_token
+            try:
+                _payload = verify_sct(resolved_token)
+                if isinstance(_payload, dict):
+                    response["act_claims"] = _payload
+            except Exception:
+                pass
         response["actor_verified"] = actor_verified
         response["actor_cryptographically_verified"] = crypto_verified
+        if "allowed_next_verbs" not in response or not response.get("allowed_next_verbs"):
+            response["allowed_next_verbs"] = derive_verbs(band_str)
 
         res = response.get("result")
         if isinstance(res, dict):
@@ -1182,8 +1190,12 @@ def echo_canonical_session(
             res["authority"] = band_str
             if resolved_token:
                 res["session_token"] = resolved_token
+                if "act_claims" in response:
+                    res["act_claims"] = response["act_claims"]
             res["actor_verified"] = actor_verified
             res["actor_cryptographically_verified"] = crypto_verified
+            if "allowed_next_verbs" not in res or not res.get("allowed_next_verbs"):
+                res["allowed_next_verbs"] = derive_verbs(band_str)
         return response
 
     elif hasattr(response, "model_copy"):
