@@ -206,7 +206,7 @@ def _generate_embedding(text: str) -> list[float]:
         response = httpx.post(
             f"{_OLLAMA_URL}/api/embeddings",
             json={"model": _EMBEDDING_MODEL, "prompt": text},
-            timeout=2.0,
+            timeout=10.0,
         )
     except Exception as exc:
         # ConnectionError, TimeoutError, OSError, httpx.HTTPError …
