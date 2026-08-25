@@ -452,6 +452,15 @@ def verify_claim(
             "source_status": status.value,
         }
 
+    if status is SourceRetrievalStatus.PARTIAL:
+        return {
+            "verdict": ClaimVerification.UNKNOWN.value,
+            "claim": claim,
+            "source_id": source.get("source_id"),
+            "reason": "partial_source_not_admissible",
+            "source_status": status.value,
+        }
+
     content_hash = str(source["content_hash_sha256"])
     if not re.fullmatch(r"sha256:[0-9a-f]{64}", content_hash):
         return {
@@ -621,6 +630,95 @@ def _check_keyword_overlap(
     )
 
 
+def verify_claims(
+    claims: list[str],
+    source_cards: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Verify decomposed material claims against source cards.
+
+    A claim is counted as supported only when at least one full source card
+    directly contains the claim's material predicates/quantities. A source
+    error, partial source, or missing provenance returns UNKNOWN. A source
+    passage that does not entail the claim returns UNSUPPORTED.
+    """
+
+    records: list[dict[str, Any]] = []
+    if not claims:
+        return {
+            "verdict": "UNKNOWN",
+            "verified": 0,
+            "total": 0,
+            "coverage_ratio": 0.0,
+            "records": records,
+        }
+
+    for claim in claims:
+        candidates = []
+        for source in source_cards:
+            source_id = str(source.get("source_id", ""))
+            result = verify_claim(claim, source)
+            candidates.append(
+                {
+                    "claim": claim,
+                    "source_id": result.get("source_id") or source_id,
+                    "verdict": result.get("verdict", "unknown"),
+                    "reason": result.get("reason", "unknown"),
+                    "source_status": result.get("source_status"),
+                }
+            )
+        supported = any(
+            item["verdict"] == ClaimVerification.SUPPORTED.value for item in candidates
+        )
+        contradicted = any(
+            item["verdict"] == ClaimVerification.CONTRADICTED.value for item in candidates
+        )
+        unknown = all(
+            item["verdict"] == ClaimVerification.UNKNOWN.value for item in candidates
+        ) if candidates else True
+        if contradicted:
+            verdict = ClaimVerification.CONTRADICTED
+        elif supported:
+            verdict = ClaimVerification.SUPPORTED
+        elif unknown:
+            verdict = ClaimVerification.UNKNOWN
+        else:
+            verdict = ClaimVerification.UNSUPPORTED
+        records.append(
+            {
+                "claim": claim,
+                "verdict": verdict.value,
+                "candidate_results": candidates,
+            }
+        )
+
+    verified = sum(
+        record["verdict"] == ClaimVerification.SUPPORTED.value for record in records
+    )
+    contradicted = sum(
+        record["verdict"] == ClaimVerification.CONTRADICTED.value for record in records
+    )
+    unknown = sum(
+        record["verdict"] == ClaimVerification.UNKNOWN.value for record in records
+    )
+    return {
+        "verdict": (
+            "SUPPORTED"
+            if verified == len(records)
+            else "CONTRADICTED"
+            if contradicted
+            else "UNKNOWN"
+            if unknown
+            else "PARTIALLY_SUPPORTED"
+        ),
+        "verified": verified,
+        "total": len(records),
+        "contradicted": contradicted,
+        "unknown": unknown,
+        "coverage_ratio": round(verified / len(records), 3),
+        "records": records,
+    }
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # GATE 3: SELFCHECK RE-SAMPLE (async hook)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -714,6 +812,7 @@ def gate_envelope(
     prompt: str = "",
     tool_origin: str = "",
     evidence_set: list[str] | None = None,
+    source_cards: list[dict[str, Any]] | None = None,
 ) -> EvidenceGateResult:
     """Run Gate 1 + Gate 2 and return complete result.
 
@@ -735,14 +834,44 @@ def gate_envelope(
             # Use prompt as proxy evidence (better than nothing)
             coverage = check_evidence_coverage(claim_texts, [prompt])
 
+        # Claim-level source verification is orthogonal to semantic coverage.
+        # If source cards are supplied, a material claim cannot be counted as
+        # verified without a full source card and direct passage entailment.
+        claim_verification = verify_claims(claim_texts, source_cards or [])
+        if source_cards and claim_verification["total"]:
+            if claim_verification["contradicted"]:
+                claim_verified = 0
+            elif claim_verification["unknown"] == claim_verification["total"]:
+                claim_verified = 0
+            else:
+                claim_verified = claim_verification["verified"]
+            claim_denominator = claim_verification["total"]
+        else:
+            claim_verified = 0
+            claim_denominator = claim_verification["total"] if source_cards else 0
+
         # Compute material-claim coverage (Defect 3 fix)
         if coverage and decomp.material_claims > 0:
             coverage_ratio = coverage.coverage_ratio
         else:
             coverage_ratio = 0.0
 
+        # A source card verification is a hard floor for material claims: no
+        # semantic similarity can turn an unsupported claim into a verified one.
+        if source_cards and decomp.material_claims > 0:
+            if claim_verification["contradicted"]:
+                verdict = EvidenceVerdict.INSUFFICIENT_EVIDENCE
+            elif claim_verified / claim_denominator >= 0.70:
+                coverage_ratio = min(coverage_ratio, claim_verified / claim_denominator)
+            else:
+                verdict = EvidenceVerdict.INSUFFICIENT_EVIDENCE
+            claim_verified = 0
+            claim_denominator = 0
+
         # Determine verdict (Defect 5 fix)
-        if coverage_ratio >= COVERAGE_THRESHOLD_PROCEED:
+        if verdict is not None and verdict == EvidenceVerdict.INSUFFICIENT_EVIDENCE:
+            pass
+        elif coverage_ratio >= COVERAGE_THRESHOLD_PROCEED:
             verdict = EvidenceVerdict.PROCEED
         elif coverage_ratio >= COVERAGE_THRESHOLD_WARN:
             verdict = EvidenceVerdict.WARN
