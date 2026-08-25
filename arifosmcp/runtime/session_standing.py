@@ -645,9 +645,9 @@ def _allowed_verbs_for_band(band: str) -> list[str]:
 
     The full public surface must be reachable under SOVEREIGN/FULL.
     """
-    # Single source: AUTHORITY_VERBS in sct.py (Layer 6 effect typing 2026-07-30).
-    # OBSERVE_ONLY includes arif_seal for safe modes only; mode=seal still HOLD'd
-    # inside arif_seal by effect_class IRREVERSIBLE.
+    # Single source: AUTHORITY_VERBS in act_token.py (Layer 6 effect typing 2026-07-30).
+    # OBSERVE_NO arif_seal since DIR-E0 2026-08-25 (F11): anonymous band never
+    # reaches Lane A, not even safe modes. Verified bands regain seal via E1 bind.
     try:
         from arifosmcp.runtime.act_token import derive_verbs
 
@@ -681,9 +681,7 @@ def _allowed_verbs_for_band(band: str) -> list[str]:
             "arif_think",
             "arif_route",
             "arif_memory",
-            "arif_judge",
-            "arif_seal",
-        ]
+            "arif_judge",        ]
 
 
 def _sync_authority_surfaces_from_standing_dict(
