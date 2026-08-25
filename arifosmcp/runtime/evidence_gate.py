@@ -349,6 +349,148 @@ def decompose(text: str) -> DecompositionResult:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# CLAIM / SOURCE VERIFICATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _normalise_source_text(text: str) -> str:
+    return " ".join(text.split()).strip()
+
+
+def _source_contains_claim(source_text: str, claim_text: str) -> bool:
+    """Conservative exact-span support check for the first verifier layer.
+
+    This is deliberately not a semantic fact checker. It returns true only
+    when a material predicate or quantity from the claim appears in the
+    source passage. A semantic embedding may still be used as a separate
+    coverage signal.
+    """
+
+    source = _normalise_source_text(source_text).casefold()
+    claim = _normalise_source_text(claim_text).casefold()
+    if not source or not claim:
+        return False
+
+    material_tokens = [
+        token
+        for token in re.findall(r"[a-z0-9][a-z0-9%._-]{2,}", claim)
+        if token not in {
+            "the", "this", "that", "with", "from", "have", "has", "had",
+            "and", "but", "for", "are", "was", "were", "will", "would",
+        }
+    ]
+    if not material_tokens:
+        return False
+
+    # Numeric claims are checked with a tolerant numeric token, while the
+    # remaining tokens still need to be present. This avoids treating a topic
+    # match ("Reddit API changes") as support for "Reddit lost 40%".
+    matched = 0
+    for token in material_tokens:
+        token = token.strip(".,")
+        if token in source:
+            matched += 1
+            continue
+        if token.endswith("%"):
+            try:
+                numeric = float(token[:-1])
+                if f"{numeric:g}" in source:
+                    matched += 1
+            except ValueError:
+                pass
+    return matched / len(material_tokens) >= 0.8
+
+
+def verify_claim(
+    claim: str,
+    source: dict[str, Any],
+) -> dict[str, Any]:
+    """Verify one claim against one source card.
+
+    This function is intentionally conservative and deterministic. A source
+    card must be full, have a URL, a SHA-256 content hash, a timestamp, a
+    provider, and an exact passage. Full content is checked for direct
+    predicate/quantity overlap; it does not establish external truth by
+    itself.
+    """
+
+    required = (
+        "status",
+        "url",
+        "content_hash_sha256",
+        "retrieved_at",
+        "provider",
+        "exact_passage",
+    )
+    missing = [key for key in required if not source.get(key)]
+    if missing:
+        return {
+            "verdict": ClaimVerification.UNKNOWN.value,
+            "claim": claim,
+            "source_id": source.get("source_id"),
+            "reason": f"missing_source_fields:{','.join(missing)}",
+            "source_status": source.get("status"),
+        }
+
+    try:
+        status = SourceRetrievalStatus(str(source["status"]).lower())
+    except ValueError:
+        return {
+            "verdict": ClaimVerification.UNKNOWN.value,
+            "claim": claim,
+            "source_id": source.get("source_id"),
+            "reason": "invalid_source_status",
+            "source_status": source.get("status"),
+        }
+
+    if status is SourceRetrievalStatus.ERROR:
+        return {
+            "verdict": ClaimVerification.UNKNOWN.value,
+            "claim": claim,
+            "source_id": source.get("source_id"),
+            "reason": "source_error",
+            "source_status": status.value,
+        }
+
+    content_hash = str(source["content_hash_sha256"])
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", content_hash):
+        return {
+            "verdict": ClaimVerification.UNKNOWN.value,
+            "claim": claim,
+            "source_id": source.get("source_id"),
+            "reason": "invalid_content_hash",
+            "source_status": status.value,
+        }
+
+    try:
+        datetime.fromisoformat(str(source["retrieved_at"]).replace("Z", "+00:00"))
+    except ValueError:
+        return {
+            "verdict": ClaimVerification.UNKNOWN.value,
+            "claim": claim,
+            "source_id": source.get("source_id"),
+            "reason": "invalid_retrieved_at",
+            "source_status": status.value,
+        }
+
+    passage = str(source["exact_passage"])
+    if _source_contains_claim(passage, claim):
+        result = ClaimVerification.SUPPORTED.value
+    else:
+        result = ClaimVerification.UNSUPPORTED.value
+
+    return {
+        "verdict": result,
+        "claim": claim,
+        "source_id": source.get("source_id"),
+        "source_status": status.value,
+        "provider": source.get("provider"),
+        "content_hash_sha256": content_hash,
+        "reason": "direct_span_check" if result == ClaimVerification.SUPPORTED.value else "claim_not_entailed_by_exact_passage",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # GATE 2: EVIDENCE COVERAGE (semantic similarity via Ollama)
 # ═══════════════════════════════════════════════════════════════════════════════
 
