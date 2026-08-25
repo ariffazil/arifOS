@@ -1,17 +1,18 @@
 <!-- SOT-MANIFEST
 federation_release: v2026.08.25
-last_verified: 2026-08-25T04:15:00Z
-live_commit: e52e36afd (docs(webmcp): public console is unavailable; door is /mcp)
-tools_exposed_via_mcp: 8 (canonical public verbs — KERNEL_ABI_8, live-witnessed 2026-08-25 via mcp.arif-fazil.com/mcp tools/list)
-total_declared_tools: 48 (includes diagnostics, internal modes, aliases)
-resources: 34 · prompts: 13
-floors_registered: 13 (F1–F13)
+last_verified: 2026-08-25T04:30:00Z
+live_commit: 6de71a0d7 (docs(readme): ZEN first-fold)
+source_commit: 2258694 (aligned: source = built = deployed)
+tools_exposed_via_mcp: 8 (canonical public verbs — live-witnessed 2026-08-25 via :8088/health)
+total_declared_tools: 48 (8 public + 13 internal + 27 diagnostic)
+registry_size: 62 (includes aliases)
+floors_active: 13 (F1–L13, all passing)
 federation_schema: 2.0.0
-organs: 7 (arifOS:8088, A-FORGE:7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073)
+organs: 7 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073)
+infra: FED:7074 ADVISORY, FLAME:18901 ADVISORY, FRAME:frame-organ OBSERVE
 truth_rule: live :8088/health + tools/list beat any static count in prose
-canonical_stations: tools_sot.yaml + constitutional_map.py (SOT)
-generated_marker: this file is hand-maintained; canonical verb table sourced from tools_sot.yaml
-readme_note: ZEN first-fold compression 2026-08-25 (F13 GO); full reference moved to docs/README-FULL.md; federation card at docs/FEDERATION_CARD.md
+vault999: healthy (outcomes.jsonl 67K+ records, append-only, 0 broken lines)
+readme_note: ZEN first-fold — full reference at docs/README-FULL.md; federation card at docs/FEDERATION_CARD.md
 -->
 
 # arifOS — Law
@@ -21,12 +22,11 @@ readme_note: ZEN first-fold compression 2026-08-25 (F13 GO); full reference move
 The constitutional kernel of the arifOS Federation.
 
 arifOS is law, not an agent.
-
 It judges.
 It seals.
 It never executes.
 
-DITEMPA BUKAN DIBERI — Forged, Not Given.
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.
 
 ---
 
@@ -57,7 +57,7 @@ Four. No fifth.
 
 ## Verbs (MCP)
 
-Eight canonical verbs, live-witnessed 2026-08-25 via `mcp.arif-fazil.com/mcp`:
+Eight canonical verbs, live-witnessed 2026-08-25 via `:8088/health`:
 
 `arif_init` · `arif_observe` · `arif_think` · `arif_route` · `arif_memory` · `arif_judge` · `arif_forge` · `arif_seal`
 
@@ -65,11 +65,14 @@ Door: `/mcp`. Public console is not exposed — the kernel serves `/webmcp` on :
 
 ## 30-second proof
 
+```text
 Request: "delete production database"
-  No session ACT, no evidence chain → **HOLD**
-  Evidence + floors pass → **SEAL** with conditions → execution by A-FORGE → receipt → VAULT999
+  No session ACT, no evidence chain → HOLD
+  Evidence + floors pass → SEAL with conditions
+    → execution by A-FORGE → receipt → VAULT999
+```
 
-VAULT999 (live 2026-08-25): 2,952 records · append-only · 0 broken lines.
+VAULT999 (live 2026-08-25): healthy, append-only, outcomes.jsonl 67K+ records, 0 broken lines.
 
 ## Architecture in one sentence
 
@@ -93,4 +96,4 @@ ARIF = Sovereign · arifOS = Law · AAA = Institution · A-FORGE = Hands
 Full card: [docs/FEDERATION_CARD.md](./docs/FEDERATION_CARD.md) ·
 Full reference README: [docs/README-FULL.md](./docs/README-FULL.md) ·
 Constitution: [GENESIS/000_KERNEL_CANON.md](./GENESIS/000_KERNEL_CANON.md) ·
-Quickstart & MCP surface: [docs/README-FULL.md](./docs/README-FULL.md)
+ZEN doctrine: [docs/ZEN.md](./docs/ZEN.md)
