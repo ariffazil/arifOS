@@ -1821,7 +1821,7 @@ Domain: MCP / Constitutional Tool Gateway
 - Health: https://arifos.arif-fazil.com/health
 - Tools JSON: https://mcp.arif-fazil.com/tools
 - Server Info: https://mcp.arif-fazil.com/.well-known/mcp/server.json
-- WebMCP Console: https://mcp.arif-fazil.com/webmcp/
+- WebMCP Console: UNAVAILABLE (public /webmcp* not proxied; use https://mcp.arif-fazil.com/mcp)
 
 ## Getting Started
 
@@ -7222,12 +7222,13 @@ def register_rest_routes(
                     },
                     "webmcp_version": "1.0",
                     "endpoints": {
-                        "console": f"{base}/webmcp",
-                        "sdk": f"{base}/webmcp/sdk.js",
-                        "tools": f"{base}/webmcp/tools.json",
-                        "init": f"{base}/webmcp/init",
+                        "mcp": "https://mcp.arif-fazil.com/mcp",
                     },
-                    "description": "Browser-native governed interface for arifOS MCP.",
+                    "console": {
+                        "status": "unavailable",
+                        "reason": "public /webmcp* is not proxied; kernel serves /webmcp locally on :8088 only",
+                    },
+                    "description": "MCP door is live. Public HTML WebMCP console is not exposed.",
                 }
             )
         except Exception:
