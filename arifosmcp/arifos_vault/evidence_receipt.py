@@ -22,13 +22,26 @@ from pydantic import BaseModel, Field
 
 
 class Witness(BaseModel):
-    """Single witness of a claim."""
+    """Single witness of a claim with an auditable source receipt."""
 
     witness_type: str  # "human" | "ai" | "earth"
     witness_id: str  # arif | FORGE-000Ω | well_id | basin_name | etc.
     witness_attestation: str  # SEAL | SABAR | HOLD | VOID
     timestamp: str
     notes: str = ""
+    # Provenance is intentionally non-optional for new constitutional claims.
+    # Older receipts may omit it; the legacy predicate remains available.
+    witness_receipt_ref: str | None = None
+    source_uri: str | None = None
+    independent: bool | None = None
+
+    def has_provenance(self) -> bool:
+        return bool(
+            self.witness_receipt_ref
+            and self.witness_receipt_ref.startswith("sha256:")
+            and self.source_uri
+            and self.independent is True
+        )
 
 
 class EvidenceReceipt(BaseModel):
@@ -47,8 +60,13 @@ class EvidenceReceipt(BaseModel):
 
     def is_tri_witnessed(self) -> bool:
         types = {w.witness_type for w in self.witnesses}
-        return types >= {"human", "ai", "earth"}
+        return types >= {"human", "ai", "earth"} and all(
+            w.has_provenance() for w in self.witnesses
+        )
 
     def missing_witnesses(self) -> list[str]:
         types = {w.witness_type for w in self.witnesses}
-        return [t for t in ("human", "ai", "earth") if t not in types]
+        missing = [t for t in ("human", "ai", "earth") if t not in types]
+        if any(not w.has_provenance() for w in self.witnesses):
+            missing.append("witness_provenance")
+        return missing
