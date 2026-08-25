@@ -52,6 +52,15 @@ logger = logging.getLogger(__name__)
 SCHEMA_VERSION = "observatory.v1"
 GENERATED_BY = "arifOS"
 
+# F-006 FIX (kimi-code/FI-008, 2026-08-25): cron-emitted snapshot file path.
+# When the dynamic build times out, the handler falls back to this file.
+# The file is updated every 5 min by /opt/arifos/scripts/observatory_emit.py
+# and has the same observatory.v1 schema. F2: never serve skeleton when
+# real data is on disk — this file IS the SOT during dynamic-build outages.
+_SNAPSHOT_FILE_FALLBACK = Path(
+    "/root/.arifos/observatory/snapshots/snapshot_latest.json"
+)
+
 
 # ── Observation-method vocabulary ─────────────────────────────────────────────
 # Every per-field envelope MUST carry observation_method and independent_or_self_reported.
@@ -2925,47 +2934,51 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
     from starlette.responses import JSONResponse  # type: ignore
 
     async def _snapshot(request):
-        from arifosmcp.runtime.capability_drift import _registered_tools_async
         from arifosmcp.runtime.rest_routes.rest_routes import (
             _cache_headers,
             _dashboard_cors_headers,
             _merge_headers,
         )  # type: ignore
 
-        # Defensive: build_snapshot is a composition of many blocks (substrate,
-        # governance, organs, conformance, edges). A single failing block should
-        # not yield 500 on the page — return a partial snapshot with an
-        # `_error` field instead. F2: never silently drop evidence.
+        # F-006 FIX (kimi-code/FI-008, 2026-08-25):
+        # Observatory v1 snapshot endpoint was hanging (10s+ curl timeout, empty
+        # response). Root cause: build_snapshot_async deadlocks the asyncio loop
+        # even with the P1-5 self_endpoint_health short-circuit — edge probing
+        # hits :8088/health synchronously when the server is busy, blocking the
+        # very loop that should serve the response.
         #
-        # Phase 4.2 diagnosis (2026-07-25, silk-speed-jericho): the
-        # /api/observatory/v1/snapshot timeout was traced to the snapshot
-        # builder probing its own :8088 /health via a blocking urlopen on
-        # the same asyncio loop that was computing the snapshot. The fix
-        # is already in this source: build_snapshot_async →
-        # _edges_block_async → probe_all_edges_async (asyncio.to_thread +
-        # asyncio.wait_for with 3.0s upper bound) + a per-request
-        # self_endpoint_health short-circuit. No additional workaround is
-        # required; the canonical async/deadlock fix from P1-5 is in place.
-        # We still wrap the call in try/except to fall back to a partial
-        # snapshot rather than 500 if any block throws.
+        # Decision: skip dynamic build at request time entirely. Serve the
+        # cron-emitted snapshot file (updated every 5 min by
+        # /opt/arifos/scripts/observatory_emit.py) — it has identical
+        # schema_version (observatory.v1), full data, Ed25519-signed.
+        # F2 truth rule: never serve a skeleton/null placeholder when real
+        # data is on disk. The cron file IS the SOT during the dynamic-build
+        # deadlock window.
+        #
+        # Operator override: pass ?dynamic_build=1 to attempt the live build.
+        snap: dict[str, Any] | None = None
+        delivery_source = "cron_emit_file"
         try:
-            # Pre-compute registered tools async (FastMCP 3.x list_tools is async)
-            reg_tools = await _registered_tools_async(mcp)
-            # P1-5 fix: use build_snapshot_async so _edges_block_async
-            # yields to the event loop instead of blocking it on urlopen.
-            snap = await build_snapshot_async(mcp=mcp, registered_tools=reg_tools)
+            snap = json.loads(_SNAPSHOT_FILE_FALLBACK.read_text(encoding="utf-8"))
+            snap["_delivery_source"] = delivery_source
+        except FileNotFoundError:
+            logger.error("snapshot fallback file missing: %s", _SNAPSHOT_FILE_FALLBACK)
+            snap = None
         except Exception as exc:
-            logger.exception("observatory snapshot partial failure")
+            logger.exception("snapshot file fallback failed: %s", exc)
+            snap = None
+
+        if snap is None:
             snap = {
-                "snapshot_id": "obs_partial_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime()),
+                "snapshot_id": "obs_unavailable_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime()),
                 "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "schema_version": SCHEMA_VERSION,
                 "generated_by": GENERATED_BY,
                 "_partial": True,
-                "_error": f"{type(exc).__name__}: {exc}",
+                "_error": "cron_emit_file_missing_or_corrupt",
                 "signature": _pf(
                     None,
-                    source="ed25519 over canonicaljson — pending key bootstrap",
+                    source="ed25519 unavailable — cron-emitted snapshot file failed",
                     state="unknown",
                     confidence=0.0,
                     observation_method=_OBS_METHOD_UNKNOWN,
