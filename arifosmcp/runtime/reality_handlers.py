@@ -154,6 +154,8 @@ class RealityHandler:
 
         use_render = render == "always"
         max_size = 10 * 1024 * 1024  # 10MB limit
+        current_url = url  # validated + updated by the guarded redirect loop below
+        from .ssrf_guard import resolve_blocked as _resolve_blocked
 
         try:
             if render != "always":
@@ -165,9 +167,6 @@ class RealityHandler:
                     # ── Redirect loop: re-validate SSRF on EVERY hop (2026-08-25).
                     # auto-redirect would re-resolve DNS per hop, letting a public
                     # host 30x into a private address past the pre-check.
-                    from .ssrf_guard import resolve_blocked as _resolve_blocked
-
-                    current_url = url
                     for _hop in range(6):  # 5 redirects max
                         if _resolve_blocked(current_url) is not None:
                             res.error_message = (
@@ -273,7 +272,21 @@ class RealityHandler:
                         res.status_code = 403
 
             if use_render:
-                # SSRF check already passed for 'url'
+                # ── Render fallback hardening (2026-08-25, follow-up to SSRF fix).
+                # The headless browser follows redirects itself, outside the guarded
+                # loop above. Two rules now apply:
+                #   1. Re-validate the final URL from the guarded loop (current_url),
+                #      NOT the original `url` an exception path may have skipped
+                #      validating.
+                #   2. Fail-closed: a blocked target NEVER reaches the browser, even
+                #      though the render fallback is currently dormant (no browserless
+                #      instance deployed — BROWSERLESS_URL does not resolve).
+                if _resolve_blocked(current_url) is not None:
+                    res.error_message = (
+                        f"Render fallback refused for blocked target: {current_url}"
+                    )
+                    res.status_code = 403
+                    return res
                 r_start = time.time()
                 async with httpx.AsyncClient(timeout=30.0) as b_client:
                     try:
@@ -285,7 +298,7 @@ class RealityHandler:
                         )
                         b_res = await b_client.post(
                             endpoint,
-                            json={"url": url},
+                            json={"url": current_url},
                             headers={"Content-Type": "application/json"},
                         )
                         if b_res.status_code == 200:
