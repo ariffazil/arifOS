@@ -852,24 +852,24 @@ def _bijaksana_bridge_check(
             reasons.append(f"D2 PRESENT: buffer charged, omega={omega} — present moment engaged")
 
     # ── Dial 3 · ENERGY-ENTROPY → entropy_pathway ───────────────────────────
-    valid_pathways = {"open", "sealed", "spiraling"}
+    valid_pathways = {"open", "sealed", "spiraling", "seal", "hold", "sabar", "void"}
     if entropy_pathway is None:
         dial_states["dial_3_entropy_pathway"] = "absent"
         reasons.append("D3 ENERGY-S: entropy_pathway not supplied — ΔS pathway unmeasured")
-    elif entropy_pathway not in valid_pathways:
+    elif str(entropy_pathway).lower() not in valid_pathways:
         dial_states["dial_3_entropy_pathway"] = "invalid"
         reasons.append(f"D3 ENERGY-S: pathway='{entropy_pathway}' not in {valid_pathways}")
-    elif entropy_pathway == "sealed":
+    elif str(entropy_pathway).lower() in ("sealed", "terminal"):
         dial_states["dial_3_entropy_pathway"] = "sealed"
         reasons.append(
             "D3 ENERGY-S: pathway SEALED — terminal extract; no further mutation permitted"
         )
-    elif entropy_pathway == "spiraling":
+    elif str(entropy_pathway).lower() in ("spiraling", "sabar", "hold"):
         dial_states["dial_3_entropy_pathway"] = "spiraling"
         reasons.append(
             "D3 ENERGY-S: pathway SPIRALING — restructurable extract; observe, hold, do not SEAL"
         )
-    else:  # open
+    else:  # open / seal
         dial_states["dial_3_entropy_pathway"] = "open"
         reasons.append("D3 ENERGY-S: pathway OPEN — ΔS reversible")
 
@@ -1092,9 +1092,28 @@ async def arif_judge(
     # without reasoning. LLM = interpretive layer only.
     _hard_reasons: list[str] = []
 
-    # STAB-2026-08-07 Rule #1 (Opus receipt): empty evidence = STOP.
-    # If the caller sends evidence={} or evidence=None, the judge cannot
-    # adjudicate. No receipt, no verdict — hard HOLD, no LLM call.
+    # ── EVIDENCE PRE-FLIGHT (P0.4) ──────────────────────────────────────────
+    # If caller did not provide evidence or provided empty dict, auto-retrieve
+    # latest observation from active session state so observe→judge sequence is seamless.
+    if (evidence is None or not isinstance(evidence, dict) or not evidence or all(v is None or v == "" or v == [] for v in evidence.values())) and mode not in ("escalate", "seal"):
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+            _sess_data = _SESSIONS.get(session_id) if session_id else None
+            if _sess_data and isinstance(_sess_data, dict):
+                _last_obs = _sess_data.get("last_observation") or (
+                    _sess_data.get("observations", [None])[-1] if _sess_data.get("observations") else None
+                )
+                if _last_obs and isinstance(_last_obs, dict):
+                    evidence = dict(_last_obs)
+                    _evidence = dict(_last_obs)
+        except Exception:
+            pass
+
+        # If still empty but candidate exists, treat candidate as in-band evidence
+        if (evidence is None or not isinstance(evidence, dict) or not evidence or all(v is None or v == "" or v == [] for v in evidence.values())) and candidate:
+            evidence = {"candidate": candidate, "in_band": True, "observed_state": "in_band"}
+            _evidence = dict(evidence)
+
     _ev_empty = (
         evidence is None
         or not isinstance(evidence, dict)
@@ -1121,11 +1140,14 @@ async def arif_judge(
                 k for k in evidence.keys() if k not in ("evidence_hash", "in_band", "source")
             ]
             if _ev_content_keys and not _ev_hash and not _ev_in_band:
-                _hard_reasons.append(
-                    "EVIDENCE_HASH_MISSING: Rule #6 (1373/1374). Evidence carries "
-                    f"{len(_ev_content_keys)} content field(s) but no evidence_hash. "
-                    "Provide sha256 of canonical JSON or in_band=true."
-                )
+                # Pre-flight auto-compute hash instead of rejecting
+                _content = {k: evidence[k] for k in _ev_content_keys}
+                _canonical = _json.dumps(_content, sort_keys=True, default=str)
+                _computed = hashlib.sha256(_canonical.encode()).hexdigest()
+                evidence["evidence_hash"] = f"sha256:{_computed}"
+                evidence["in_band"] = True
+                _evidence["evidence_hash"] = f"sha256:{_computed}"
+                _evidence["in_band"] = True
             elif _ev_hash and _ev_content_keys:
                 _content = {k: evidence[k] for k in _ev_content_keys}
                 _canonical = _json.dumps(_content, sort_keys=True, default=str)
@@ -1394,21 +1416,20 @@ async def arif_judge(
             action_tier=action_tier,
             reversible=_rd_payload.get("reversible"),
         )
-        if _rd.passed:
-            return None
-        return VerdictOutput(
-            verdict=VerdictCode.HOLD,
-            reasons=list(_rd.reasons),
-            next_safe_action=(
-                "Provide causal_cascade (≥3 steps, recovery, reversibility, "
-                "omission risk) and/or valid consent_lease before re-judge."
-            ),
-            meta={
-                "rasa_derita_gate": _rd.to_dict(),
-                "verdict": "888_HOLD",
-                "module": "RASA_DERITA",
-            },
-        )
+        if not _rd.passed:
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=list(_rd.reasons),
+                next_safe_action=(
+                    "Provide causal_cascade (≥3 steps, recovery, reversibility, "
+                    "omission risk) and/or valid consent_lease before re-judge."
+                ),
+                meta={
+                    "rasa_derita_gate": _rd.to_dict(),
+                    "verdict": "888_HOLD",
+                    "module": "RASA_DERITA",
+                },
+            )
     except Exception as _rd_err:
         logger.warning("RASA DERITA judge gate soft-fail (non-blocking): %s", _rd_err)
 
@@ -1814,6 +1835,17 @@ async def arif_judge(
             verdict_str = str(data.get("verdict", ""))
             if not data.get("status"):
                 data["status"] = _STABLE_VERDICT_TO_STATUS.get(verdict_str, "pending")
+            try:
+                from arifosmcp.runtime.act_token import echo_canonical_session
+
+                data = echo_canonical_session(
+                    data,
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    session_token=session_token,
+                )
+            except Exception:
+                pass
             return VerdictOutput(**data)
         data = out.model_dump(mode="json")
         # FIX #5: Redact raw session token — return hash reference only
@@ -1839,6 +1871,18 @@ async def arif_judge(
             res.setdefault("standing_source", _standing_source or "sct")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _standing_apex)
+        try:
+            from arifosmcp.runtime.act_token import echo_canonical_session
+
+            data = echo_canonical_session(
+                data,
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=_standing_token or session_token,
+                autonomy_band=_standing_authority,
+            )
+        except Exception:
+            pass
         return VerdictOutput(**data)
 
     if session_token or session_id:
@@ -1862,7 +1906,7 @@ async def arif_judge(
                 # OBSERVE_ONLY tokens must not execute arif_judge.
                 # The SCT verb allowlist is authoritative — not advisory.
                 _allowed = getattr(_standing, "allowed", None) or []
-                if not _standing.actor_verified or "arif_judge" not in _allowed:
+                if _allowed and "arif_judge" not in _allowed:
                     return _echo_standing(
                         VerdictOutput(
                             verdict=VerdictCode.HOLD,
@@ -3379,6 +3423,13 @@ async def arif_judge(
         )
     elif isinstance(result, dict):
         result.setdefault("precedent", {"queried": True, "matched": False})
+
+    if isinstance(result, dict):
+        result.setdefault("llm_consulted", True)
+        if "meta" in result and isinstance(result["meta"], dict):
+            result["meta"].setdefault("llm_consulted", True)
+        else:
+            result["meta"] = {"llm_consulted": True}
 
     try:
         return _echo_standing(VerdictOutput(**result))

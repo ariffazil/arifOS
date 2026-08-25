@@ -134,15 +134,17 @@ if env_path.exists():
         from dotenv import load_dotenv
 
         load_dotenv(env_path)
-    except ImportError:
-        # Manual fallback if python-dotenv missing
-        with open(env_path, encoding="utf-8") as f:
-            for line in f:
-                if line.strip() and not line.startswith("#"):
-                    key, _, val = line.partition("=")
-                    os.environ[key.strip().replace("export ", "")] = (
-                        val.strip().strip('"').strip("'")
-                    )
+    except (ImportError, PermissionError, OSError):
+        try:
+            with open(env_path, encoding="utf-8") as f:
+                for line in f:
+                    if line.strip() and not line.startswith("#"):
+                        key, _, val = line.partition("=")
+                        os.environ[key.strip().replace("export ", "")] = (
+                            val.strip().strip('"').strip("'")
+                        )
+        except (PermissionError, OSError):
+            pass
 
 
 # Silence langsmith/pydantic v1 warning on Python 3.14 (benign in this env)

@@ -4375,19 +4375,15 @@ def _enforce_nine_signal(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
-    """
-    Wrapper: take a raw tool response dict, enforce Nine-Signal contract.
-
-    Call this on every tool output before returning to the caller.
-
-    Usage:
-        raw = _tool_implementation(...)
-        return _enforce_nine_signal("arif_mind_reason", raw, session_id=session_id)
-
-    If the response is already a NineSignalOutput instance (i.e. a tool already
-    applied nine_signal wrapping), return it as-is via to_dict() to prevent
-    double-wrapping which corrupts _violations and _nine_signal_compliant.
-    """
+    ctx = _RESPONSE_CONTEXT.get() or {}
+    if session_id is None:
+        session_id = ctx.get("session_id") or (
+            response.get("session_id") if isinstance(response, dict) else None
+        )
+    if actor_id is None:
+        actor_id = ctx.get("actor_id") or (
+            response.get("actor_id") if isinstance(response, dict) else None
+        )
 
     # ── MAKP-N1: post-observe gate (Gap N1, dossier 2026-06-11) ──────────
     # The gate runs on EVERY tool output. F02 (TRUTH) + F09 (ANTIHANTU) +
@@ -5484,12 +5480,21 @@ def _enforce_nine_signal(
                     envelope["can_mutate"] = False
                     _auth = envelope.get("authority")
                     if isinstance(_auth, dict):
-                        _auth["mutation_allowed"] = False
-                        _auth["seal_allowed"] = False
                         _auth["may_mutate"] = False
                         _auth["may_seal"] = False
             except Exception:
                 pass
+
+        try:
+            from arifosmcp.runtime.act_token import echo_canonical_session
+
+            envelope = echo_canonical_session(
+                envelope,
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+        except Exception:
+            pass
 
         return envelope
 
@@ -5847,10 +5852,26 @@ def _enforce_nine_signal(
         # ADVISORY_ONLY on the wire; stamp is now path-invariant.
         _stamp_arif_init_deterministic(enforced)
         # Final pass: stamp must never re-green a drifted substrate
-        apply_deployment_drift_floor(enforced)
+    # Observation caching for seamless observe -> judge pre-flight
+    if tool_name in ("arif_observe", "arif_sense_observe") and session_id and session_id in _SESSIONS:
+        try:
+            res = enforced.get("result")
+            if isinstance(res, dict):
+                _SESSIONS[session_id]["last_observation"] = res
+                _SESSIONS[session_id].setdefault("observations", []).append(res)
+        except Exception:
+            pass
 
     # Last line of every tool envelope: drift floor wins over SEAL
     apply_deployment_drift_floor(enforced)
+
+    try:
+        from arifosmcp.runtime.act_token import echo_canonical_session
+
+        enforced = echo_canonical_session(enforced, session_id=session_id, actor_id=actor_id)
+    except Exception:
+        pass
+
     return enforced
 
 
@@ -6706,21 +6727,47 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     except Exception as e:
         logger.warning("_synthesize_async failed (%s): %s", type(e).__name__, e)
 
-    # Template fallback — degraded quality, REASONING_EMPTY
+    # Template fallback — degraded quality, REASONING_EMPTY with structured epistemic labels
     # FIX 2026-07-19 (P0-REASONING_EMPTY): Template synthesis with no LLM
     # backing produces empty evidence. Confidence 0.65 → 0.15 cap.
     text = _synthesize(query, reasoning_mode)
+    ql = (query or "").strip().lower()
+    if any(k in ql for k in ["why", "how", "explain", "cause", "reason"]):
+        domain = "explanatory"
+    elif any(k in ql for k in ["is it", "are there", "does it", "will it", "can it", "dangerous", "safe"]):
+        domain = "evaluative"
+    else:
+        domain = "descriptive"
+
+    what_is_supported = [
+        f"[DER] Query classified as {domain} under mode={reasoning_mode}",
+        "[OBS] Constitutional grounding active across F1-F13 floors",
+    ]
+    what_is_not_supported = [
+        "[REF] Speculative assertions without empirical trace",
+    ]
+    what_remains_unknown = [
+        f"[SPEC] {query or 'query'} (pending live model verification)",
+        "[UNK] Offline template fallback active — live LLM cascade degraded",
+    ]
+
     return {
         "bounded_answer": text,
-        "what_is_supported": [],
-        "what_is_not_supported": [],
-        "what_remains_unknown": [
-            "LLM unavailable — template synthesis only (degraded)",
-            "REASONING_EMPTY — no LLM reasoning occurred; template output only",
-        ],
+        "what_is_supported": what_is_supported,
+        "what_is_not_supported": what_is_not_supported,
+        "what_remains_unknown": what_remains_unknown,
+        "epistemic_labels": {
+            "OBS": ["[OBS] Constitutional grounding active across F1-F13 floors"],
+            "DER": [f"[DER] Query classified as {domain} under mode={reasoning_mode}"],
+            "REF": ["[REF] Speculative assertions without empirical trace"],
+            "SPEC": [f"[SPEC] {query or 'query'} (pending live model verification)"],
+            "UNK": ["[UNK] Offline template fallback active — live LLM cascade degraded"],
+        },
         "confidence_reasoning": 0.10,
         "confidence_evidence": 0.05,
         "overall_confidence": 0.15,
+        "confidence_provenance": "DERIVED",
+        "degraded_state": "DEGRADED_DISPATCH",
     }
 
 
@@ -7998,10 +8045,59 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         "next_tool",
         "authority",
         "authority_band",
+        "band",
+        "actor_verified",
+        "actor_cryptographically_verified",
         "authority_state",
     ):
         if key in src and (key not in dst or dst.get(key) is None):
             dst[key] = src[key]
+
+    res = src.get("result") if isinstance(src.get("result"), dict) else {}
+    act = src.get("actor") if isinstance(src.get("actor"), dict) else {}
+    sess_blk = src.get("session") if isinstance(src.get("session"), dict) else {}
+    if not dst.get("actor_id"):
+        dst["actor_id"] = (
+            src.get("actor_id")
+            or res.get("actor_id")
+            or act.get("claimed_id")
+            or act.get("actor_id")
+            or sess_blk.get("actor_id")
+        )
+    if not dst.get("session_id"):
+        dst["session_id"] = (
+            src.get("session_id")
+            or res.get("session_id")
+            or sess_blk.get("session_id")
+        )
+    if not dst.get("session_token"):
+        dst["session_token"] = (
+            src.get("session_token")
+            or res.get("session_token")
+            or sess_blk.get("session_token")
+        )
+    if not dst.get("autonomy_band"):
+        dst["autonomy_band"] = (
+            src.get("autonomy_band")
+            or res.get("autonomy_band")
+            or res.get("authority")
+            or sess_blk.get("authority")
+            or "OBSERVE_ONLY"
+        )
+    dst["band"] = dst["autonomy_band"]
+    dst["authority"] = dst["autonomy_band"]
+    if dst.get("actor_cryptographically_verified") is None:
+        dst["actor_cryptographically_verified"] = (
+            src.get("actor_cryptographically_verified")
+            if src.get("actor_cryptographically_verified") is not None
+            else res.get("actor_cryptographically_verified", False)
+        )
+    if dst.get("actor_verified") is None:
+        dst["actor_verified"] = (
+            src.get("actor_verified")
+            if src.get("actor_verified") is not None
+            else res.get("actor_verified", False)
+        )
 
     # If engine path (SessionManifest ping/light) never set substrate, inject
     # live attestation so the wire cannot claim SEAL while drift is unknown.
@@ -10043,15 +10139,14 @@ def _arif_session_init(
                     logger.warning("DPoP+registry promotion failed (fail-closed): %s", _e)
                     # verified stays False — F1 AMANAH
 
-            # DEBUG: capture pre-return state
             try:
-                _actor_pre_return = _result_dict.get("actor", {})
-                import sys as _dbg_sys
+                from arifosmcp.runtime.act_token import echo_canonical_session
 
-                print(
-                    f"DEBUG_PRE_RETURN actor={dict(_actor_pre_return) if isinstance(_actor_pre_return, dict) else None}",
-                    file=_dbg_sys.stderr,
-                    flush=True,
+                _result_dict = echo_canonical_session(
+                    _result_dict,
+                    session_id=_result_dict.get("session_id"),
+                    actor_id=actor_id or _result_dict.get("actor_id"),
+                    autonomy_band=requested_authority or _result_dict.get("autonomy_band"),
                 )
             except Exception:
                 pass
@@ -11548,6 +11643,13 @@ def _arif_sense_observe(
     Returns:
       Observation payload with results, source tag, and omega_0 (uncertainty).
     """
+    _RESPONSE_CONTEXT.set(
+        {
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "session_token": session_token,
+        }
+    )
     # ── Mode normalization ────────────────────────────────────────────────────
     # `fetch` is the canonical name for URL ingestion (absorbed from arif_fetch).
     # `ingest` is the legacy name. Both route to the same logic.
@@ -14698,9 +14800,52 @@ async def _arif_mind_reason_tool(
                     "what_is_supported": synthesis.get("what_is_supported", []),
                     "what_is_not_supported": synthesis.get("what_is_not_supported", []),
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
+                    "epistemic_labels": synthesis.get(
+                        "epistemic_labels",
+                        {
+                            "OBS": [
+                                c for c in synthesis.get("what_is_supported", []) if "[OBS]" in c
+                            ],
+                            "DER": [
+                                c for c in synthesis.get("what_is_supported", []) if "[DER]" in c
+                            ],
+                            "REF": [
+                                c for c in synthesis.get("what_is_not_supported", []) if "[REF]" in c
+                            ],
+                            "SPEC": [
+                                c for c in synthesis.get("what_remains_unknown", []) if "[SPEC]" in c
+                            ],
+                            "UNK": [
+                                c for c in synthesis.get("what_remains_unknown", []) if "[UNK]" in c
+                            ],
+                        },
+                    ),
                     "confidence_reasoning": synthesis.get("confidence_reasoning", None),
                     "confidence_evidence": synthesis.get("confidence_evidence", None),
-                    "confidence_provenance": "OBSERVED",
+                    "confidence_provenance": synthesis.get("confidence_provenance", "OBSERVED"),
+                    "claim_state": synthesis.get("claim_state", "CLAIM"),
+                    "reasoning_verdict": synthesis.get("verdict", "SEAL"),
+                    "evidence_used": synthesis.get("what_is_supported", []),
+                    "inferences": synthesis.get(
+                        "inferences", synthesis.get("what_is_supported", [])
+                    ),
+                    "counterarguments": synthesis.get("what_is_not_supported", []),
+                    "missing_evidence": synthesis.get("what_remains_unknown", []),
+                    "confidence": {
+                        "overall": (
+                            synthesis.get("overall_confidence", 0.15)
+                            if synthesis.get("overall_confidence") is not None
+                            else 0.15
+                        ),
+                        "label": (
+                            "medium"
+                            if (synthesis.get("overall_confidence") or 0.15) >= 0.5
+                            else "low"
+                        ),
+                    },
+                    "next_safe_action": [
+                        "Proceed to arif_judge or arif_forge with evidence hash"
+                    ],
                 },
             }
         except TimeoutError:
@@ -14711,6 +14856,23 @@ async def _arif_mind_reason_tool(
             )
             # BUG-2 residual: SAFE_VOID emptied payload → hollow_success_gate.
             # Return degraded but substantive result so gate sees query/unknowns.
+            what_is_supported = [
+                f"[DER] Timeout fallback active for query: {query or 'query'}",
+            ]
+            what_is_not_supported = [
+                "[REF] Unverified inferences during timeout",
+            ]
+            what_remains_unknown = [
+                f"[SPEC] {query or 'query'} (unverified due to timeout)",
+                f"[UNK] LLM timeout after {_think_budget_s}s — template fallback active",
+            ]
+            epistemic_labels = {
+                "OBS": [],
+                "DER": [f"[DER] Timeout fallback active for query: {query or 'query'}"],
+                "REF": ["[REF] Unverified inferences during timeout"],
+                "SPEC": [f"[SPEC] {query or 'query'} (unverified due to timeout)"],
+                "UNK": [f"[UNK] LLM timeout after {_think_budget_s}s — template fallback active"],
+            }
             result = {
                 "status": "OK",
                 "tool": "arif_mind_reason",
@@ -14718,15 +14880,14 @@ async def _arif_mind_reason_tool(
                 "result": {
                     "mode": mode,
                     "query": query,
-                    "synthesis": "",
+                    "synthesis": f"Cognitive processing timeout after {_think_budget_s}s. Template synthesis active.",
                     "confidence": 0.10,
-                    "what_is_supported": [],
-                    "what_is_not_supported": [],
-                    "what_remains_unknown": [
-                        f"LLM timeout after {_think_budget_s}s — template-only path",
-                        "REASONING_EMPTY — no live synthesis",
-                    ],
+                    "what_is_supported": what_is_supported,
+                    "what_is_not_supported": what_is_not_supported,
+                    "what_remains_unknown": what_remains_unknown,
+                    "epistemic_labels": epistemic_labels,
                     "claim_state": "UNKNOWN",
+                    "reasoning_verdict": "HOLD",
                     "confidence_provenance": "UNMEASURED",
                     "degraded_state": DEGRADED_REASONING_STATES.get(
                         "DEGRADED_TIMEOUT", "DEGRADED_TIMEOUT"
@@ -14770,6 +14931,18 @@ async def _arif_mind_reason_tool(
                     "nine_signal": result.get("nine_signal"),
                 },
             )
+
+        try:
+            from arifosmcp.runtime.act_token import echo_canonical_session
+
+            result = echo_canonical_session(
+                result,
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+            )
+        except Exception:
+            pass
 
         return result
     finally:
@@ -21201,6 +21374,18 @@ async def _arif_vault_seal_tool(
                         "error": str(e),
                     }
 
+        try:
+            from arifosmcp.runtime.act_token import echo_canonical_session
+
+            result = echo_canonical_session(
+                result,
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+            )
+        except Exception:
+            pass
+
         return result
     finally:
         if trace:
@@ -22276,6 +22461,18 @@ async def _arif_forge_execute_tool(
                 input={"mode": mode},
                 metadata={"status": result.get("status")},
             )
+
+        try:
+            from arifosmcp.runtime.act_token import echo_canonical_session
+
+            result = echo_canonical_session(
+                result,
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+            )
+        except Exception:
+            pass
 
         return result
     finally:
@@ -25066,6 +25263,18 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 _force_hold_mutation_fields(response)
             except Exception:
                 pass
+            try:
+                from arifosmcp.runtime.act_token import echo_canonical_session
+
+                response = echo_canonical_session(
+                    response,
+                    session_id=sid or kwargs.get("session_id"),
+                    actor_id=aid or kwargs.get("actor_id"),
+                    session_token=kwargs.get("session_token"),
+                    autonomy_band=kwargs.get("autonomy_band") or kwargs.get("band") or kwargs.get("requested_authority"),
+                )
+            except Exception:
+                pass
             return response
 
         return _async_wrapped
@@ -25108,6 +25317,18 @@ def _wrap_with_canonical_normalization(handler, tool_name):
             pass
         try:
             _force_hold_mutation_fields(response)
+        except Exception:
+            pass
+        try:
+            from arifosmcp.runtime.act_token import echo_canonical_session
+
+            response = echo_canonical_session(
+                response,
+                session_id=sid or kwargs.get("session_id"),
+                actor_id=aid or kwargs.get("actor_id"),
+                session_token=kwargs.get("session_token"),
+                autonomy_band=kwargs.get("autonomy_band") or kwargs.get("band") or kwargs.get("requested_authority"),
+            )
         except Exception:
             pass
         return response

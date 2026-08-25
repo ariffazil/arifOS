@@ -1030,21 +1030,63 @@ def echo_canonical_session(
     resolved_token = session_token
     actor_verified = False
     crypto_verified = False
+    # 0. Harvest existing fields from response if present
+    if isinstance(response, dict):
+        if not resolved_sid:
+            resolved_sid = response.get("session_id")
+            if not resolved_sid and isinstance(response.get("result"), dict):
+                resolved_sid = response["result"].get("session_id")
+        if not resolved_actor or resolved_actor == "anonymous":
+            _cand_actor = response.get("actor_id")
+            if not _cand_actor:
+                if isinstance(response.get("actor"), dict):
+                    _cand_actor = (
+                        response["actor"].get("actor_id")
+                        or response["actor"].get("claimed_id")
+                        or response["actor"].get("id")
+                        or response["actor"].get("actor")
+                    )
+                elif isinstance(response.get("actor"), str):
+                    _cand_actor = response.get("actor")
+            if not _cand_actor and isinstance(response.get("result"), dict):
+                _cand_actor = (
+                    response["result"].get("actor_id")
+                    or response["result"].get("claimed_id")
+                    or response["result"].get("actor")
+                )
+            if _cand_actor and _cand_actor != "anonymous":
+                resolved_actor = _cand_actor
+        if not resolved_token:
+            resolved_token = response.get("session_token")
+        if not resolved_band or resolved_band == "OBSERVE_ONLY":
+            resolved_band = response.get("autonomy_band") or response.get("band") or response.get("authority")
+    elif hasattr(response, "session_id"):
+        if not resolved_sid:
+            resolved_sid = getattr(response, "session_id", None)
+        if not resolved_actor or resolved_actor == "anonymous":
+            resolved_actor = getattr(response, "actor_id", None)
+        if not resolved_token:
+            resolved_token = getattr(response, "session_token", None)
+        if not resolved_band or resolved_band == "OBSERVE_ONLY":
+            resolved_band = getattr(response, "autonomy_band", None) or getattr(response, "band", None)
 
     # 1. Resolve token if provided
-    if session_token:
+    if resolved_token or session_token:
+        _tok = session_token or resolved_token
         try:
-            payload = verify_sct(session_token)
+            payload = verify_sct(_tok)
             if isinstance(payload, dict):
                 if not resolved_sid:
                     resolved_sid = payload.get("sid")
                 if not resolved_actor or resolved_actor == "anonymous":
-                    resolved_actor = payload.get("actor")
+                    _p_actor = payload.get("actor")
+                    if _p_actor and _p_actor != "anonymous":
+                        resolved_actor = _p_actor
                 if not resolved_band:
                     resolved_band = payload.get("auth")
                 actor_verified = bool(payload.get("av", False))
                 crypto_verified = bool(payload.get("crypto_verified", actor_verified))
-                resolved_token = session_token
+                resolved_token = _tok
         except Exception:
             pass
 

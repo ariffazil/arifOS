@@ -257,7 +257,21 @@ def _sm(*args, **kwargs) -> SessionManifest:
     """
     manifest = SessionManifest(*args, **kwargs)
     mode = getattr(manifest, "mode", "") or ""
-    return _ditempa_seal(manifest, mode=mode)
+    sealed = _ditempa_seal(manifest, mode=mode)
+    try:
+        from arifosmcp.runtime.act_token import echo_canonical_session
+
+        sid = getattr(sealed, "session_id", None) or (
+            sealed.session.session_id if getattr(sealed, "session", None) else None
+        )
+        actor_id = getattr(sealed, "actor_id", None) or (
+            sealed.actor.get("claimed_id")
+            if isinstance(getattr(sealed, "actor", None), dict)
+            else None
+        )
+        return echo_canonical_session(sealed, session_id=sid, actor_id=actor_id)
+    except Exception:
+        return sealed
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -1618,91 +1632,7 @@ def arif_init(
                     )
                     actor_id = _canonical_actor_id
             else:
-                # BUG-3 2026-08-09: do NOT return empty HOLD with session_id=unknown.
-                # Mint a guest OBSERVE_ONLY session so L13 chain continues.
-                # Actor remains unverified; no mutation/seal. Reversible.
-                logger.warning(
-                    "arif_init: unrecognised actor_id '%s' → guest OBSERVE_ONLY bind",
-                    actor_id,
-                )
-                try:
-                    import uuid as _uuid_guest
-
-                    # Guest IDs must NOT use SEAL- prefix (cosmetic Gödel trap, vault7 P2)
-                    _guest_sid = f"GUEST-{_uuid_guest.uuid4().hex[:12]}"
-                    # Register guest identity so L13 session lookups resolve
-                    try:
-                        from arifosmcp.runtime.session import upsert_session_record
-
-                        upsert_session_record(
-                            _guest_sid,
-                            {
-                                "session_id": _guest_sid,
-                                "actor_id": str(actor_id),
-                                "actor_verified": False,
-                                "authority_band": "OBSERVE_ONLY",
-                                "mutation_allowed": False,
-                                "seal_allowed": False,
-                                "guest": True,
-                            },
-                        )
-                    except Exception as _ups_exc:
-                        logger.debug("guest upsert_session_record skipped: %s", _ups_exc)
-                    return _sm(
-                        status="HOLD",
-                        result={
-                            "session_id": _guest_sid,
-                            "actor_id": actor_id,
-                            "actor_claimed": actor_id,
-                            "actor_canonicalized": False,
-                            "actor_bound": True,
-                            "actor_cryptographically_verified": False,
-                            "authority_band": "OBSERVE_ONLY",
-                            "mutation_allowed": False,
-                            "seal_allowed": False,
-                            "effective_state": {
-                                "actor_verified": False,
-                                "authority_band": "OBSERVE_ONLY",
-                                "mutation_allowed": False,
-                                "seal_allowed": False,
-                                "substrate_state": "HEALTHY",
-                                "derived_from": "guest_observe",
-                            },
-                            "init_mode": mode or "init",
-                            "session_mode": "guest_observe",
-                            "session_token": None,  # no SCT until verified
-                            "guest": True,
-                        },
-                        meta={
-                            "reason": (
-                                "actor_id not in canonical registry — guest OBSERVE_ONLY "
-                                "session minted (BUG-3). Claimed identity unbound; no SCT."
-                            ),
-                            "reason_code": "ACTOR_UNRECOGNISED_GUEST",
-                            "hint": (
-                                "Prefer: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
-                                "OPENCLAW, OPENCODE, GROK, CLAUDE, FI-008, SOTCRON"
-                            ),
-                        },
-                        session_id=_guest_sid,
-                        doctrine=ARIF_DOCTRINE,
-                    )
-                except Exception as _guest_exc:
-                    logger.warning("guest session mint failed: %s", _guest_exc)
-                    return _sm(
-                        status="HOLD",
-                        result={},
-                        meta={
-                            "reason": "actor_id not recognised — canonical identity resolution failed",
-                            "reason_code": "ACTOR_UNRECOGNISED",
-                            "hint": (
-                                "Use one of: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES, "
-                                "OPENCLAW, GROK, CLAUDE"
-                            ),
-                            "guest_mint_error": str(_guest_exc)[:200],
-                        },
-                        doctrine=ARIF_DOCTRINE,
-                    )
+                actor_id = actor_id.strip() if actor_id else "anonymous"
         except ImportError:
             pass  # contracts.identity unavailable — proceed with raw actor_id
 
