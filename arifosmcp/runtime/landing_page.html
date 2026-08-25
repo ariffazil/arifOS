@@ -1760,8 +1760,8 @@
       <!-- WebMCP -->
       <div class="protocol-card">
         <div class="protocol-card-header">
-          <h3>WebMCP — Browser SDK</h3>
-          <p>Web-facing governed interface: browser-native tool invocation, SDK manifest, and console surface.</p>
+          <h3>WebMCP — not publicly exposed</h3>
+          <p>Public HTML console is not proxied. Discovery at /.well-known/webmcp. Door is /mcp. Kernel serves /webmcp on :8088 only.</p>
         </div>
         <div class="protocol-card-body">
           <ul class="endpoint-list">
@@ -1769,28 +1769,28 @@
               <span class="method-badge method-GET">GET</span>
               <div>
                 <div class="endpoint-path">/.well-known/webmcp</div>
-                <div class="endpoint-desc">WebMCP discovery document — protocol version, endpoints, SDK links.</div>
+                <div class="endpoint-desc">Discovery. Public console.status = unavailable. MCP door is /mcp.</div>
               </div>
             </li>
             <li class="endpoint-item">
               <span class="method-badge method-GET">GET</span>
               <div>
                 <div class="endpoint-path">/webmcp</div>
-                <div class="endpoint-desc">Interactive governed console — browser-accessible tool playground.</div>
+                <div class="endpoint-desc">Local kernel console on :8088 only. Public /webmcp* is not proxied (HTTP 404).</div>
               </div>
             </li>
             <li class="endpoint-item">
               <span class="method-badge method-GET">GET</span>
               <div>
                 <div class="endpoint-path">/webmcp/sdk.js</div>
-                <div class="endpoint-desc">Browser SDK — drop-in script for web apps to connect to arifOS MCP.</div>
+                <div class="endpoint-desc">Local kernel asset on :8088. Not a public door.</div>
               </div>
             </li>
             <li class="endpoint-item">
               <span class="method-badge method-GET">GET</span>
               <div>
                 <div class="endpoint-path">/webmcp/tools.json</div>
-                <div class="endpoint-desc">Machine-readable tool registry for SDK consumers.</div>
+                <div class="endpoint-desc">Local kernel asset on :8088. Public tool list is MCP tools/list on /mcp.</div>
               </div>
             </li>
             <li class="endpoint-item">
@@ -2051,7 +2051,7 @@
     <h2 class="section-title">Glossary</h2>
     <div class="glossary-grid">
       <div class="glossary-item"><span class="glossary-term">MCP</span><span class="glossary-def">Model Context Protocol — JSON-RPC 2.0 standard for AI tool/resource/prompt discovery. The protocol arifOS exposes at POST /mcp.</span></div>
-      <div class="glossary-item"><span class="glossary-term">WebMCP</span><span class="glossary-def">Browser-native MCP variant. Drop-in JS SDK at /webmcp/sdk.js. Enables web apps to call arifOS tools directly from browser JavaScript.</span></div>
+      <div class="glossary-item"><span class="glossary-term">WebMCP</span><span class="glossary-def">Three different things share this name. Public door is /mcp. Public HTML console is not exposed. Kernel /webmcp is local :8088 only.</span></div>
       <div class="glossary-item"><span class="glossary-term">888_HOLD</span><span class="glossary-def">arifOS human-veto gate. Any action tagged irreversible triggers a HOLD — requiring explicit human sovereign approval before execution proceeds.</span></div>
       <div class="glossary-item"><span class="glossary-term">VAULT999</span><span class="glossary-def">SHA-256–based immutable audit ledger. Every SEAL-verdict action is committed with timestamp, session ID, and floor chain hash. Tamper-evident, append-only.</span></div>
       <div class="glossary-item"><span class="glossary-term">ΔΩΨ</span><span class="glossary-def">arifOS trinity symbol: Discernment (Δ), Empathy (Ω), Authority (Ψ). The philosophical calibration layer behind every governance decision.</span></div>
