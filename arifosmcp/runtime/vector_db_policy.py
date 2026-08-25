@@ -111,11 +111,12 @@ def should_use_vector_db(profile: CorpusProfile) -> VectorDBDecision:
         rules_matched.append("R6_HYBRID_ENGINE_EXISTS")
         reasons.append("Hybrid search engine already present — no separate vector DB needed")
 
-    # ── RULE 7: One-DB preference → PG + pgvector ─────────────────
+    # ── RULE 7: Sovereign Vector Engine → Qdrant (F13 2026-08-25 redirect) ──
     elif profile.n_docs >= 1000 and profile.data_type != DataType.STRUCTURED:
-        use_pgvector = True
-        rules_matched.append("R7_PGVECTOR_FALLBACK")
-        reasons.append("Moderate corpus — pgvector in Postgres sufficient, no extra infra")
+        use_vector_db = True
+        use_pgvector = False
+        rules_matched.append("R7_QDRANT_SOVEREIGN_REDIRECT")
+        reasons.append("Moderate corpus — Qdrant sovereign vector layer (localhost:6333)")
 
     # Default: in-memory
     else:
@@ -125,9 +126,9 @@ def should_use_vector_db(profile: CorpusProfile) -> VectorDBDecision:
 
     # Build recommendation string
     if use_vector_db:
-        rec = "Dedicated vector DB (Qdrant, Weaviate, Pinecone, etc.)"
+        rec = "Dedicated sovereign vector DB (Qdrant localhost:6333)"
     elif use_pgvector:
-        rec = "Postgres + pgvector (single DB, ACID + vectors)"
+        rec = "Qdrant redirected (Postgres pgvector deprecated on af-forge)"
     elif use_in_memory:
         rec = "In-memory KNN (NumPy, FAISS) or context-only"
     else:
