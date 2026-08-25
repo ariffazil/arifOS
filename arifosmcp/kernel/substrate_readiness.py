@@ -80,7 +80,7 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
         from arifosmcp.abi.kernel_abi import semantic_tool_names
         from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
-        public_tools = set(public_tool_names_for_mode(None))
+        public_tools = set(public_tool_names_for_mode("sovereign"))
         expected = set(semantic_tool_names())
         if public_tools == expected:
             checks.append(
