@@ -237,7 +237,7 @@ Machine-readable surfaces:
 |---|---|---|
 | arifOS | 8088 | Constitutional kernel (this repo) |
 | A-FORGE | 7072 | Governed execution |
-| AAA | 3001 | A2A mesh gateway |
+| AAA | 3001 | DISPLAY_ONLY cockpit + A2A gateway (never judges, never executes) |
 | GEOX | 8081 | Earth intelligence |
 | WEALTH | 18082 | Capital intelligence |
 | WELL | 18083 | Vitality mirror |
