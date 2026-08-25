@@ -131,29 +131,15 @@ class RealityHandler:
         return "HTTP_5XX"
 
     def _is_safe_url(self, url: str) -> bool:
-        """Simple check to prevent SSRF (local/private IPs)."""
-        try:
-            parsed = urlparse(url)
-            if parsed.scheme not in ("http", "https"):
-                return False
+        """SSRF guard — delegated to the shared resolve-then-verify module.
 
-            host = parsed.hostname
-            if not host:
-                return False
+        Replaces the string-prefix regex (2026-08-25): it missed non-dotted
+        IP notations (integer/hex/octal) and 0.0.0.0. The shared guard also
+        resolves DNS so every address the socket would use is verified.
+        """
+        from .ssrf_guard import resolve_blocked
 
-            # Block localhost and common private ranges
-            # This is a basic heuristic for defense-in-depth
-            if re.match(
-                r"^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|169\.254\.)",
-                host,
-            ):
-                return False
-            if host in ("localhost", "local", "loopback"):
-                return False
-
-            return True
-        except Exception:
-            return False
+        return resolve_blocked(url) is None
 
     async def fetch_url(self, url: str, render: str = "auto", policy: Any = None) -> FetchResult:
         timings = {"dns": 0.0, "connect": 0.0, "ttfb": 0.0, "total": 0.0}
@@ -171,88 +157,120 @@ class RealityHandler:
 
         try:
             if render != "always":
-                async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+                # follow_redirects=True re-resolves DNS at each hop — a
+                # public host can 30x to 127.0.0.1 and bypass the pre-check.
+                # Redirects are handled explicitly below instead.
+                async with httpx.AsyncClient(timeout=15.0, follow_redirects=False) as client:
                     h_start = time.time()
-                    try:
-                        # Use stream to enforce MAX_CONTENT_LENGTH before reading everything
-                        async with client.stream(
-                            "GET",
-                            url,
-                            headers={
-                                "User-Agent": "Mozilla/5.0 arifOS/2026.03.13 (RealityCompass/v2-hardened)",  # noqa: E501
-                                "Accept": (
-                                    "text/html,application/xhtml+xml,"
-                                    "application/xml;q=0.9,*/*;q=0.8"
-                                ),
-                                "Cache-Control": "no-cache",
-                            },
-                        ) as response:
-                            timings["total"] = (time.time() - h_start) * 1000
+                    # ── Redirect loop: re-validate SSRF on EVERY hop (2026-08-25).
+                    # auto-redirect would re-resolve DNS per hop, letting a public
+                    # host 30x into a private address past the pre-check.
+                    from .ssrf_guard import resolve_blocked as _resolve_blocked
 
-                            res.status_code = response.status_code
-                            res.content_type = response.headers.get("content-type")
-                            res.headers_subset = {
-                                k: v
-                                for k, v in response.headers.items()
-                                if k.lower()
-                                in [
-                                    "server",
-                                    "cache-control",
-                                    "x-cache",
-                                    "cf-ray",
-                                    "content-encoding",
-                                ]
-                            }
-                            res.final_url = str(response.url)
-                            res.redirects = len(response.history)
+                    current_url = url
+                    for _hop in range(6):  # 5 redirects max
+                        if _resolve_blocked(current_url) is not None:
+                            res.error_message = (
+                                f"Redirect to private/blocked target refused: {current_url}"
+                            )
+                            res.status_code = 403
+                            break
+                        try:
+                            # Use stream to enforce MAX_CONTENT_LENGTH before reading everything
+                            async with client.stream(
+                                "GET",
+                                current_url,
+                                headers={
+                                    "User-Agent": "Mozilla/5.0 arifOS/2026.03.13 (RealityCompass/v2-hardened)",  # noqa: E501
+                                    "Accept": (
+                                        "text/html,application/xhtml+xml,"
+                                        "application/xml;q=0.9,*/*;q=0.8"
+                                    ),
+                                    "Cache-Control": "no-cache",
+                                },
+                            ) as response:
+                                timings["total"] = (time.time() - h_start) * 1000
 
-                            if response.status_code >= 400:
-                                if response.status_code in [403, 429] and render == "auto":
-                                    use_render = True
-                                    res.error_message = (
-                                        f"HTTP {response.status_code} -> triggering render fallback"
+                                redirect_loc = (
+                                    response.headers.get("location")
+                                    if response.status_code in (301, 302, 303, 307, 308)
+                                    else None
+                                )
+                                if redirect_loc:
+                                    current_url = str(
+                                        httpx.URL(current_url).join(redirect_loc)
                                     )
-                                else:
-                                    # Still want to read some error body
-                                    chunks = []
-                                    count = 0
-                                    async for chunk in response.aiter_text():
-                                        chunks.append(chunk)
-                                        count += len(chunk)
-                                        if count > 200:
-                                            break
-                                    res.error_message = (
-                                        f"HTTP {response.status_code}: {''.join(chunks)[:200]}"
-                                    )
-                                    res.status_code = response.status_code
-                            else:
-                                # Check content-length header if present
-                                cl = response.headers.get("content-length")
-                                if cl and int(cl) > max_size:
-                                    res.error_message = f"Content length {cl} exceeds limit"
-                                    res.status_code = 413
-                                    return res
+                                    continue
 
-                                chunks = []
-                                bytes_read = 0
-                                async for chunk in response.aiter_text():
-                                    chunks.append(chunk)
-                                    bytes_read += len(chunk)
-                                    if bytes_read > max_size:
+                                res.status_code = response.status_code
+                                res.content_type = response.headers.get("content-type")
+                                res.headers_subset = {
+                                    k: v
+                                    for k, v in response.headers.items()
+                                    if k.lower()
+                                    in [
+                                        "server",
+                                        "cache-control",
+                                        "x-cache",
+                                        "cf-ray",
+                                        "content-encoding",
+                                    ]
+                                }
+                                res.final_url = str(response.url)
+                                res.redirects = _hop  # redirects followed to reach this response
+
+                                if response.status_code >= 400:
+                                    if response.status_code in [403, 429] and render == "auto":
+                                        use_render = True
                                         res.error_message = (
-                                            f"Response body exceeds {max_size} bytes"
+                                            f"HTTP {response.status_code} -> triggering render fallback"
                                         )
+                                    else:
+                                        # Still want to read some error body
+                                        chunks = []
+                                        count = 0
+                                        async for chunk in response.aiter_text():
+                                            chunks.append(chunk)
+                                            count += len(chunk)
+                                            if count > 200:
+                                                break
+                                        res.error_message = (
+                                            f"HTTP {response.status_code}: {''.join(chunks)[:200]}"
+                                        )
+                                        res.status_code = response.status_code
+                                else:
+                                    # Check content-length header if present
+                                    cl = response.headers.get("content-length")
+                                    if cl and int(cl) > max_size:
+                                        res.error_message = f"Content length {cl} exceeds limit"
                                         res.status_code = 413
                                         return res
 
-                                full_text = "".join(chunks)
-                                res.raw_content = full_text
-                                res.content_length = len(full_text)
-                    except Exception as inner_e:
-                        res.exception_class = inner_e.__class__.__name__
-                        res.error_message = str(inner_e)
-                        if render == "auto":
-                            use_render = True
+                                    chunks = []
+                                    bytes_read = 0
+                                    async for chunk in response.aiter_text():
+                                        chunks.append(chunk)
+                                        bytes_read += len(chunk)
+                                        if bytes_read > max_size:
+                                            res.error_message = (
+                                                f"Response body exceeds {max_size} bytes"
+                                            )
+                                            res.status_code = 413
+                                            return res
+
+                                    full_text = "".join(chunks)
+                                    res.raw_content = full_text
+                                    res.content_length = len(full_text)
+                                break
+                        except Exception as inner_e:
+                            res.exception_class = inner_e.__class__.__name__
+                            res.error_message = str(inner_e)
+                            if render == "auto":
+                                use_render = True
+                            break
+                    else:
+                        res.error_message = "Too many redirects (limit 5)"
+                        res.status_code = 403
 
             if use_render:
                 # SSRF check already passed for 'url'

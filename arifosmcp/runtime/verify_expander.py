@@ -47,12 +47,16 @@ class ExpansionResult:
 
 
 def _is_safe_url(url: str) -> bool:
+    from .ssrf_guard import resolve_blocked
+
     if not url or len(url) > MAX_CONTENT_BYTES:
         return False
     for scheme in BLOCKED_SCHEMES:
         if url.lower().startswith(scheme):
             return False
-    return True
+    # SSRF guard (2026-08-25): previously only scheme prefixes were checked —
+    # private IPs (including non-dotted notations) were never blocked here.
+    return resolve_blocked(url) is None
 
 
 async def verify_url(url: str, timeout: float = 10.0) -> VerifyResult:

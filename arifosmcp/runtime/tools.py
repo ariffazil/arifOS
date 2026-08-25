@@ -13104,16 +13104,15 @@ def _arif_evidence_fetch(
         fetch_error = None
         risk_flags: list[str] = []
 
-        # SSRF validation
-        parsed = urllib.parse.urlparse(url)
-        if parsed.hostname in (
-            "127.0.0.1",
-            "localhost",
-            "0.0.0.0",  # nosec B104 - blocked SSRF target, not a bind address.
-        ) or parsed.hostname.startswith(("10.", "192.168.", "172.")):
-            risk_flags.append("private_ip_access")
-        if parsed.scheme not in ("http", "https"):
-            risk_flags.append("scheme_blocked")
+        # SSRF validation — resolve-then-verify (ssrf_guard, 2026-08-25).
+        # Replaces string-prefix checks that missed non-dotted IP notations
+        # and a fail-open RealityHandler fallback (external report, private
+        # disclosure). Fail-closed: any block flag stops ALL fetch paths.
+        from arifosmcp.runtime.ssrf_guard import resolve_blocked
+
+        ssrf_flag = resolve_blocked(url)
+        if ssrf_flag is not None:
+            risk_flags.append(ssrf_flag)
 
         if not risk_flags:
             try:
@@ -13126,7 +13125,11 @@ def _arif_evidence_fetch(
                 fetch_status = 0
 
         # ── RealityHandler fallback (streaming + render) ──
-        if not raw_content and url:
+        # Fail-closed (2026-08-25): never re-fetch a URL the SSRF guard
+        # blocked. "Blocked" and "failed" both leave raw_content empty —
+        # the old `if not raw_content and url` conflated them and let the
+        # fallback re-request private addresses.
+        if not raw_content and url and not risk_flags:
             try:
                 from arifosmcp.runtime.reality_handlers import handler as _rh_handler
 
