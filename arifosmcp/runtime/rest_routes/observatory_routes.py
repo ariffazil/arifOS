@@ -1120,79 +1120,9 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             "label": label,
         }
 
-    # AAA — independent TCP probe + static config
-    aaa_dp = _deep_probe_organ("127.0.0.1", 3001, "AAA :3001")
-    out["aaa"] = {
-        "transport": _probe_transport("127.0.0.1", 3001),
-        "identity": aaa_dp["identity"]
-        or _pf(
-            None,
-            source="AAA a2a-server",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "contract": aaa_dp["contract"]
-        or _pf(
-            None,
-            source="AAA agent-card",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "capability": aaa_dp["capability"]
-        or _pf(
-            None,
-            source="AAA port 3001",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "evidence": _pf(
-            None,
-            source="AAA memory bridge",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "governance": _pf(
-            None,
-            source="AAA delegates to arifOS",
-            state="reported",
-            confidence=0.9,
-            observation_method=_OBS_METHOD_STATIC,
-            independent=True,
-        ),
-        "last_receipt": _pf(
-            None,
-            source="AAA writes via arif_seal",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "drift": _pf(
-            None,
-            source="AAA vs seal_chain",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "dependency": _pf(
-            ["arifos"],
-            source="declared dep",
-            state="reported",
-            confidence=0.7,
-            observation_method=_OBS_METHOD_STATIC,
-            independent=True,
-        ),
-        "label": "AAA :3001",
-    }
+    # AAA is DISPLAY_ONLY (cockpit + A2A). Do not grade it as a kernel:
+    # no tools_loaded, no arif_seal writer, no seal-chain drift.
+    out["aaa"] = _aaa_display_only_block()
     # A-FORGE — independent TCP probe + static config
     forge_dp = _deep_probe_organ("127.0.0.1", 7071, "A-FORGE :7071")
     out["aforge"] = {
@@ -1465,6 +1395,100 @@ def _deep_probe_organ(host: str, port: int, label: str) -> dict[str, Any]:
             independent=True,
         )
     return result
+
+
+def _aaa_display_only_block() -> dict[str, Any]:
+    """AAA health = :3001 up + A2A + cockpit. Not forge/judge/seal."""
+    from pathlib import Path as _Path
+
+    aaa_dp = _deep_probe_organ("127.0.0.1", 3001, "AAA :3001")
+    a2a_up = aaa_dp.get("identity") is not None or aaa_dp.get("status") is not None
+    cockpit_html = _Path("/var/www/html/aaa/index.html")
+    cockpit_present = cockpit_html.is_file() and cockpit_html.stat().st_size > 100
+    cap_value = {
+        "ceiling": "DISPLAY_ONLY",
+        "a2a": "up" if a2a_up else "down",
+        "cockpit": "present" if cockpit_present else "missing",
+    }
+    cap_ok = a2a_up and cockpit_present
+    return {
+        "transport": _probe_transport("127.0.0.1", 3001),
+        "identity": aaa_dp["identity"]
+        or _pf(
+            None,
+            source="AAA a2a-server GET :3001/health",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contract": aaa_dp["contract"]
+        or _pf(
+            None,
+            source="AAA agent-card",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "capability": _pf(
+            cap_value,
+            source="DISPLAY_ONLY: A2A :3001/health + cockpit /var/www/html/aaa/index.html",
+            state="observed",
+            confidence=0.9 if cap_ok else 0.6,
+            observation_method="http_probe+filesystem",
+            independent=True,
+        ),
+        "evidence": _pf(
+            "cockpit_html" if cockpit_present else "cockpit_missing",
+            source="/var/www/html/aaa/index.html",
+            state="observed",
+            confidence=0.9 if cockpit_present else 0.5,
+            observation_method="filesystem",
+            independent=True,
+        ),
+        "governance": _pf(
+            "DELEGATES_TO_KERNEL",
+            source="federation_contracts.aaa — never adjudicates, never seals",
+            state="derived",
+            confidence=0.95,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "last_receipt": _pf(
+            "not_applicable",
+            source="DISPLAY_ONLY — AAA does not write VAULT999",
+            state="derived",
+            confidence=0.95,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "drift": _pf(
+            "not_applicable",
+            source="DISPLAY_ONLY — seal-chain drift is a kernel field",
+            state="derived",
+            confidence=0.95,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "dependency": _pf(
+            ["arifos"],
+            source="declared dep",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "authority_ceiling": _pf(
+            "DISPLAY_ONLY",
+            source="AAA/instructions/topology.md",
+            state="derived",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "label": "AAA :3001 DISPLAY_ONLY",
+    }
 
 
 def _probe_transport(host: str, port: int) -> dict[str, Any]:

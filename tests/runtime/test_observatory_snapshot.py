@@ -257,6 +257,19 @@ def test_build_snapshot_organs_covers_seven(stub_mcp) -> None:
         assert required in organs, f"organs block missing {required}"
 
 
+def test_aaa_organ_is_display_only(stub_mcp) -> None:
+    """AAA is glass+router. Observatory must not grade it as a kernel."""
+    aaa = build_snapshot(mcp=stub_mcp)["organs"]["aaa"]
+    cap = aaa["capability"]["value"]
+    assert isinstance(cap, dict), cap
+    assert cap.get("ceiling") == "DISPLAY_ONLY"
+    assert aaa["governance"]["value"] == "DELEGATES_TO_KERNEL"
+    assert aaa["last_receipt"]["value"] == "not_applicable"
+    assert "arif_seal" not in str(aaa["last_receipt"].get("source", ""))
+    assert aaa["drift"]["value"] == "not_applicable"
+    assert aaa["authority_ceiling"]["value"] == "DISPLAY_ONLY"
+
+
 # ── HTTP route surface (live ASGI round-trip) ─────────────────────────────────
 def test_snapshot_endpoint_returns_200_with_envelope(fresh_observatory_app) -> None:
     client = SyncASGIClient(fresh_observatory_app)
