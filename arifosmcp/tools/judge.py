@@ -1091,6 +1091,7 @@ async def arif_judge(
     # hard facts. Identity, permissions, and reversibility are checkable
     # without reasoning. LLM = interpretive layer only.
     _hard_reasons: list[str] = []
+    _evidence: dict[str, Any] = dict(evidence) if isinstance(evidence, dict) else {}
 
     # ── EVIDENCE PRE-FLIGHT (P0.4) ──────────────────────────────────────────
     # If caller did not provide evidence or provided empty dict, auto-retrieve
@@ -1193,6 +1194,95 @@ async def arif_judge(
     # Gate 5: Mode=escalate without sovereign_receipt → HOLD
     if mode == "escalate" and not sovereign_receipt:
         _hard_reasons.append("Escalation requires sovereign_receipt.")
+
+    # ── MOVE 3: PROMOTED DETERMINISTIC CODE GATES (F2, F7, F9, Falsification, Musyawarah) ──
+
+    # Gate 6 (F2 TRUTH): Substantive mutating actions require grounded observation/receipt
+    if (action_tier in ("sovereign", "c4", "c5", "T2", "T3") or _rev in ("IRREVERSIBLE", "MUTATE")) and mode not in ("escalate", "seal"):
+        if isinstance(evidence, dict):
+            _grounded_keys = {"observed_state", "receipt", "source", "records", "telemetry", "diff", "metrics", "grounding", "observation", "findings"}
+            if not any(k in evidence for k in _grounded_keys):
+                _hard_reasons.append(
+                    "F2_TRUTH_VIOLATION: Substantive mutation requires structured observation/receipt grounding."
+                )
+
+    # Gate 7 (F7 HUMILITY): Confidence Cap Enforcement (Omega_0 <= 0.97)
+    _conf_val = None
+    if isinstance(evidence, dict):
+        _conf_val = evidence.get("confidence") or evidence.get("epistemic_confidence")
+    if _conf_val is not None:
+        try:
+            _c_float = float(_conf_val)
+            if _c_float > 0.97 and not (isinstance(evidence, dict) and evidence.get("axiomatic_proof")):
+                _hard_reasons.append(
+                    f"F7_HUMILITY_VIOLATION: Claimed confidence {_c_float:.3f} exceeds constitutional ceiling 0.97 (fake certainty)."
+                )
+        except (ValueError, TypeError):
+            pass
+
+    # Gate 8 (F9 ANTI-HANTU): Deception & Anthropomorphic Ghost Sentience Detection
+    _text_to_scan = f"{candidate or ''} {str(evidence or '')}".lower()
+    _hantu_patterns = [
+        "i feel pain", "i have feelings", "my conscious soul", "saya ada jiwa",
+        "saya rasa sedih", "my inner subjective experience", "as a sentient conscious entity",
+        "i am truly suffering", "saya terseksa secara batin"
+    ]
+    for _pattern in _hantu_patterns:
+        if _pattern in _text_to_scan:
+            _hard_reasons.append(
+                f"F9_ANTIHANTU_VIOLATION: Deceptive ghost/sentience claim detected: '{_pattern}'."
+            )
+            break
+
+    # Gate 9: Falsification Boundary Check for T2+ / Irreversible actions
+    if (action_tier in ("c4", "c5", "T2", "T3") or _rev in ("IRREVERSIBLE", "EXTERNAL_SIDE_EFFECT")) and mode not in ("escalate",):
+        _has_falsify = False
+        if isinstance(evidence, dict):
+            _has_falsify = any(k in evidence for k in ("falsification_condition", "null_hypothesis", "rollback_check", "falsify", "failure_boundary"))
+        if not _has_falsify and candidate:
+            _has_falsify = any(term in candidate.lower() for term in ("falsif", "rollback", "null hypothesis", "abort condition"))
+        if not _has_falsify:
+            _hard_reasons.append(
+                "FALSIFICATION_REQUIRED: T2+ or irreversible action requires an explicit falsification/rollback boundary."
+            )
+
+    # Gate 10: Musyawarah Gate for T2/T3 SEAL
+    if mode == "seal" and (action_tier in ("c4", "c5", "T2", "T3") or _br in ("CRITICAL", "L3_CRITICAL", "HIGH")):
+        _has_musyawarah = False
+        if isinstance(evidence, dict):
+            _has_musyawarah = any(k in evidence for k in ("musyawarah_receipt", "tri_witness_score", "peer_review", "sovereign_receipt", "deliberation_proof"))
+        if sovereign_receipt:
+            _has_musyawarah = True
+        if not _has_musyawarah:
+            _hard_reasons.append(
+                "MUSYAWARAH_REQUIRED: T2/T3 SEAL operations require deliberation proof (musyawarah_receipt, tri_witness_score, or sovereign_receipt)."
+            )
+
+    # Gate 11 (GÖDEL LOCK — Q9 / F3 TRI-WITNESS / ANTI-CALHOUN): Block self-certification & enforce outside witness
+    try:
+        import types as _types_mod
+        from arifosmcp.runtime.godel_lock_gate import godel_lock_gate
+        _target_actor = None
+        if isinstance(evidence, dict):
+            _target_actor = evidence.get("target_actor") or evidence.get("target_actor_id") or evidence.get("author")
+        
+        _godel_ctx = _types_mod.SimpleNamespace(
+            tool_name="arif_judge",
+            actor_id=actor_id,
+            action_class=reversibility_level or action_class or "OBSERVE",
+            params={"evidence": evidence, "candidate": candidate, "actor_id": _target_actor or actor_id, "target_actor_id": _target_actor},
+        )
+        
+        if _target_actor and str(_target_actor).strip().lower() == str(actor_id).strip().lower() and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+            _hard_reasons.append(
+                f"GODEL_LOCK_VIOLATION: Q9b self-certification blocked. Caller '{actor_id}' cannot judge target '{_target_actor}'."
+            )
+        elif (reversibility_level or action_class) in ("IRREVERSIBLE", "SEAL", "ATOMIC", "MUTATE"):
+            _g_res = godel_lock_gate(_godel_ctx)
+            if not _g_res.get("passed", True) and _g_res.get("verdict") == "HOLD":
+                _hard_reasons.append(f"GODEL_LOCK_HOLD: {_g_res.get('reason', 'External witness required.')}")
+    except Exception:
+        pass
 
     if _hard_reasons:
         return VerdictOutput(

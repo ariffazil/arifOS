@@ -47,7 +47,7 @@ from arifosmcp.runtime.model import RuntimeEnvelope
 logger = logging.getLogger(__name__)
 
 
-# ── 8 federated modes (v5.1 — audit/JITU added 2026-07-07) ─────────────
+# ── 9 federated modes (v5.2 — metabolize/6-class added) ─────────────
 
 ARIF_MEMORY_MODES = (
     "recall",
@@ -59,6 +59,7 @@ ARIF_MEMORY_MODES = (
     "forget",
     "audit",
     "score_prediction",
+    "metabolize",
 )
 
 # Mode → action class
@@ -68,6 +69,7 @@ MODE_ACTION_CLASS = {
     "attest": "OBSERVE",
     "audit": "OBSERVE",
     "score_prediction": "OBSERVE",
+    "metabolize": "EXECUTE_REVERSIBLE",
     "remember": "EXECUTE_REVERSIBLE",
     "promote": "EXECUTE_HIGH_IMPACT",
     "revise": "EXECUTE_HIGH_IMPACT",
@@ -81,6 +83,7 @@ MODE_PRE_FLOORS = {
     "attest": ("L02", "L11", "L12"),
     "audit": ("L02", "L09", "L11", "L12"),
     "score_prediction": ("L01", "L02", "L12"),
+    "metabolize": ("L01", "L02", "L08", "L11", "L12"),
     "remember": ("L01", "L02", "L08", "L11", "L12"),
     "promote": ("L01", "L02", "L04", "L07", "L11", "L12"),
     "revise": ("L01", "L02", "L04", "L09", "L11", "L12"),
@@ -94,6 +97,7 @@ MODE_REQUIRES_LEASE = {
     "attest": False,
     "audit": False,
     "score_prediction": False,
+    "metabolize": False,
     "remember": True,
     "promote": True,
     "revise": True,
@@ -107,6 +111,7 @@ MODE_REQUIRES_HUMAN_ACK = {
     "attest": False,
     "audit": False,
     "score_prediction": False,
+    "metabolize": False,
     "remember": False,
     "promote": False,
     "revise": False,
@@ -447,13 +452,14 @@ async def arif_memory(
     # Day 3.5 added: remember (handles L4 write without embedding dependency)
     # Day 4 polish: inspect (direct Postgres lookup for UUID queries)
     # Day 5 (2026-07-07): audit — JITU contradiction engine
-    # Day 6 (2026-07-21): score_prediction — ECHO/PaW prediction-observation feedback
-    if mode in ("remember", "promote", "forget", "attest", "inspect", "audit", "score_prediction"):
+    # Day 7 (2026-08-25): metabolize — Unified 6-class L1-L5 closed loop metabolism
+    if mode in ("remember", "promote", "forget", "attest", "inspect", "audit", "score_prediction", "metabolize"):
         from arifosmcp.runtime.memory_handlers_v5 import (
             _handle_attest,
             _handle_audit,
             _handle_forget,
             _handle_inspect,
+            _handle_metabolize,
             _handle_promote,
             _handle_remember,
         )
@@ -466,6 +472,7 @@ async def arif_memory(
             "inspect": _handle_inspect,
             "audit": _handle_audit,
             "score_prediction": _handle_score_prediction,
+            "metabolize": _handle_metabolize,
         }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)

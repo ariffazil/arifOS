@@ -1153,6 +1153,8 @@ __all__ = [
     "_handle_attest",
     "_handle_inspect",
     "_handle_audit",
+    "_handle_remember",
+    "_handle_metabolize",
 ]
 
 
@@ -1490,3 +1492,162 @@ async def _handle_audit(payload: dict, ctx: Any) -> dict:
         )
 
     return result
+
+
+# ────────────────────────────────────────────────────────────────────────
+# _handle_metabolize — Unified 6-Class L1-L5 Closed Loop Metabolism
+# ────────────────────────────────────────────────────────────────────────
+# SPEC (2026-08-25):
+#   Executes the closed-loop L1-L5 metabolism cycle:
+#     Classify -> Promote -> Carry (Persist L2) -> Receipt (L5) -> Helix (Quality Gate)
+#
+#   Input:
+#     payload['action']              : str (run | classify | promote | carry | helix | status)
+#     payload['target']              : str | dict (session_id | transcript path | inline session data)
+#     payload['classification']      : dict | None (for promote/carry actions)
+#
+#   6-Class Taxonomy:
+#     - NOISE   : Routine queries, no state change (dropped, Delta S <= 0)
+#     - EPISODE : New context, not reusable as a skill
+#     - SKILL   : Reusable workflow (auto-draft -> canonical on reuse >= 2)
+#     - GATE    : Failure pattern to block via judge / proposed_gates
+#     - LEDGER  : State mutation requiring cryptographic receipt
+#     - SCAR    : Failure that taught a lesson (pain retained)
+#
+#   Returns: dict with verdict SEAL/HOLD and payload receipt
+# ────────────────────────────────────────────────────────────────────────
+
+
+async def _handle_metabolize(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
+    """Unified 6-class metabolism handler bridging metabolize.py into arif_memory."""
+    import sys
+    from pathlib import Path
+
+    # Try importing from scripts.metabolize or dynamically loading /root/scripts/metabolize.py
+    try:
+        if "/root/scripts" not in sys.path:
+            sys.path.insert(0, "/root/scripts")
+        import metabolize as _metabolize_mod
+    except ImportError:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("metabolize", "/root/scripts/metabolize.py")
+        if spec and spec.loader:
+            _metabolize_mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(_metabolize_mod)
+        else:
+            _metabolize_mod = None
+
+    if _metabolize_mod is None:
+        return {
+            "mode": "metabolize",
+            "verdict": "SABAR",
+            "payload": {"error": "metabolize module not found at /root/scripts/metabolize.py"},
+        }
+
+    action = payload.get("action", "run")
+    target = payload.get("target") or payload.get("session_id") or payload.get("query") or "active_session"
+    classification_data = payload.get("classification")
+
+    try:
+        if action == "status":
+            st = _metabolize_mod.show_status()
+            return {
+                "mode": "metabolize",
+                "verdict": "SEAL",
+                "payload": {
+                    "action": "status",
+                    "status": st,
+                    "note": "Metabolism state inspected.",
+                },
+            }
+
+        elif action == "classify":
+            sess = _metabolize_mod._read_session(target if isinstance(target, str) else json.dumps(target))
+            c_res = _metabolize_mod.classify_session(sess)
+            return {
+                "mode": "metabolize",
+                "verdict": "SEAL",
+                "payload": {
+                    "action": "classify",
+                    "classification": c_res,
+                    "note": f"Classified as {c_res.get('classification')}",
+                },
+            }
+
+        elif action == "promote":
+            c_data = classification_data or (
+                _metabolize_mod._read_session(target) if isinstance(target, str) else target
+            )
+            p_res = _metabolize_mod.promote_classification(c_data)
+            return {
+                "mode": "metabolize",
+                "verdict": "SEAL",
+                "payload": {
+                    "action": "promote",
+                    "promotion": p_res,
+                    "note": f"Promoted to {p_res.get('destination')}",
+                },
+            }
+
+        elif action == "carry":
+            c_data = classification_data or (
+                _metabolize_mod._read_session(target) if isinstance(target, str) else target
+            )
+            carry_res = _metabolize_mod.update_carry_forward(c_data)
+            return {
+                "mode": "metabolize",
+                "verdict": "SEAL",
+                "payload": {
+                    "action": "carry",
+                    "carry_forward": carry_res,
+                    "note": "L2 carry_forward.json updated.",
+                },
+            }
+
+        elif action == "helix":
+            h_res = _metabolize_mod.run_helix_gate()
+            return {
+                "mode": "metabolize",
+                "verdict": "SEAL",
+                "payload": {
+                    "action": "helix",
+                    "helix": h_res,
+                    "note": f"Helix quality gate executed: {h_res.get('status')}",
+                },
+            }
+
+        else:  # action == "run" (one-shot end-to-end)
+            sess = _metabolize_mod._read_session(target if isinstance(target, str) else json.dumps(target))
+            c_res = _metabolize_mod.classify_session(sess)
+            p_res = _metabolize_mod.promote_classification(c_res)
+            carry_res = _metabolize_mod.update_carry_forward(c_res)
+            h_res = _metabolize_mod.run_helix_gate()
+
+            return {
+                "mode": "metabolize",
+                "verdict": "SEAL",
+                "payload": {
+                    "action": "run",
+                    "status": "METABOLIZED_AND_SEALED",
+                    "classification": c_res,
+                    "promotion": p_res,
+                    "carry_forward": carry_res,
+                    "helix": h_res,
+                    "delta_s": "DECREASING (<= 0)",
+                    "note": f"Metabolized: {c_res.get('classification')} -> {p_res.get('destination')}",
+                },
+            }
+
+    except Exception as exc:
+        logger.exception(f"[METABOLIZE] handler failed: {exc}")
+        return {
+            "mode": "metabolize",
+            "verdict": "SABAR",
+            "payload": {
+                "action": action,
+                "error": str(exc),
+                "note": f"Metabolism handler error: {exc}",
+            },
+        }
+
