@@ -81,7 +81,10 @@ CLAIM_VERBS = re.compile(
     r'should|must|requires|produces|contains|shows|demonstrates|'
     r'indicates|suggests|confirms|proves|reveals|exhibits|'
     r'implements|supports|enables|prevents|blocks|creates|'
-    r'increases|decreases|improves|reduces|affects|causes)\b',
+    r'increases|decreases|improves|reduces|affects|causes|'
+    r'announces|announced|announce|report|reports|reported|states|stated|'
+    r'declares|declared|lost|lose|loses|charging|charges|charged|'
+    r'gained|gains|reached|reaches|increased|decreased)\b',
     re.IGNORECASE,
 )
 
@@ -422,6 +425,16 @@ def verify_claim(
         "provider",
         "exact_passage",
     )
+    independent = source.get("independent_witness")
+    abstention = source.get("documented_abstention")
+    if not isinstance(independent, bool) and not abstention:
+        return {
+            "verdict": ClaimVerification.UNKNOWN.value,
+            "claim": claim,
+            "source_id": source.get("source_id"),
+            "reason": "missing_independent_witness_or_documented_abstention",
+            "source_status": source.get("status"),
+        }
     missing = [key for key in required if not source.get(key)]
     if missing:
         return {
@@ -485,6 +498,22 @@ def verify_claim(
     passage = str(source["exact_passage"])
     if _source_contains_claim(passage, claim):
         result = ClaimVerification.SUPPORTED.value
+    elif any(
+        marker in passage.casefold()
+        for marker in (
+            "remained stable",
+            "no increase",
+            "did not increase",
+            "did not gain",
+            "did not lose",
+            "no loss",
+            "declined",
+        )
+    ) and any(
+        marker in claim.casefold()
+        for marker in ("gained ", "lost ", "increased ", "reduced ")
+    ):
+        result = ClaimVerification.CONTRADICTED.value
     else:
         result = ClaimVerification.UNSUPPORTED.value
 
@@ -495,7 +524,13 @@ def verify_claim(
         "source_status": status.value,
         "provider": source.get("provider"),
         "content_hash_sha256": content_hash,
-        "reason": "direct_span_check" if result == ClaimVerification.SUPPORTED.value else "claim_not_entailed_by_exact_passage",
+        "reason": (
+            "direct_span_check"
+            if result == ClaimVerification.SUPPORTED.value
+            else "explicit_contradiction"
+            if result == ClaimVerification.CONTRADICTED.value
+            else "claim_not_entailed_by_exact_passage"
+        ),
     }
 
 
@@ -828,6 +863,7 @@ def gate_envelope(
         coverage = None
         claim_texts = [a.text for a in decomp.atoms]
 
+        verdict: EvidenceVerdict = EvidenceVerdict.HOLD
         if evidence_set:
             coverage = check_evidence_coverage(claim_texts, evidence_set)
         elif prompt:
@@ -869,7 +905,7 @@ def gate_envelope(
             claim_denominator = 0
 
         # Determine verdict (Defect 5 fix)
-        if verdict is not None and verdict == EvidenceVerdict.INSUFFICIENT_EVIDENCE:
+        if verdict == EvidenceVerdict.INSUFFICIENT_EVIDENCE:
             pass
         elif coverage_ratio >= COVERAGE_THRESHOLD_PROCEED:
             verdict = EvidenceVerdict.PROCEED
@@ -926,6 +962,15 @@ def gate_envelope(
             "upgraded_to": upgraded,
             "human_decision_required": human_decision_required,
             "gate_version": "2.0.0",
+            "claim_verification": {
+                "verdict": claim_verification.get("verdict", "UNKNOWN"),
+                "verified": claim_verification.get("verified", 0),
+                "total": claim_verification.get("total", 0),
+                "contradicted": claim_verification.get("contradicted", 0),
+                "unknown": claim_verification.get("unknown", 0),
+                "coverage_ratio": claim_verification.get("coverage_ratio", 0.0),
+                "records": claim_verification.get("records", []),
+            },
         }
 
         return EvidenceGateResult(

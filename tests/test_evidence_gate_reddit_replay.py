@@ -27,11 +27,14 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from arifosmcp.runtime.evidence_gate import (
+    ClaimVerification,
     EvidenceGateResult,
     EvidenceVerdict,
     decompose,
     gate_envelope,
     check_evidence_coverage,
+    verify_claim,
+    verify_claims,
 )
 
 
@@ -44,6 +47,105 @@ REDDIT_SEARCH_EVIDENCE = [
     "Reddit's API changes caused widespread subreddit protests. "
     "Over 8,000 subreddits went dark in June 2023.",
 ]
+
+
+def SOURCE_CARD(
+    *,
+    source_id: str = "SRC-reddit-api-2023",
+    status: str = "full",
+    passage: str = (
+        "Reddit has changed its API pricing in 2023. "
+        "The new pricing requires $0.24 per 1000 API calls."
+    ),
+) -> dict[str, object]:
+    return {
+        "source_id": source_id,
+        "status": status,
+        "url": "https://www.reddit.com/dev/api-policy",
+        "content_hash_sha256": "sha256:" + "a" * 64,
+        "retrieved_at": "2026-08-26T00:00:00+00:00",
+        "provider": "reddit-mcp",
+        "exact_passage": passage,
+        "independent_witness": True,
+    }
+
+
+class TestClaimVerification:
+    def test_same_domain_false_number_is_unsupported(self):
+        result = verify_claim(
+            "Reddit has lost 40% of its users.",
+            SOURCE_CARD(
+                passage=(
+                    "Reddit's API pricing changed in 2023. "
+                    "The new pricing requires $0.24 per 1000 API calls."
+                )
+            ),
+        )
+        assert result["verdict"] == ClaimVerification.UNSUPPORTED.value
+
+    def test_contradicted_claim_is_contradicted(self):
+        source = SOURCE_CARD(
+            passage="Reddit user numbers remained stable during the period."
+        )
+        result = verify_claim("Reddit gained 60% of daily active users.", source)
+        assert result["verdict"] == ClaimVerification.CONTRADICTED.value
+
+    def test_contradiction_placeholder_is_conservative(self):
+        result = verify_claim(
+            "Reddit gained 60% of daily active users.",
+            SOURCE_CARD(passage="Reddit changed its API pricing in 2023."),
+        )
+        assert result["verdict"] == ClaimVerification.UNSUPPORTED.value
+        assert result["reason"] == "claim_not_entailed_by_exact_passage"
+
+    def test_snippet_only_source_is_unknown(self):
+        result = verify_claim(
+            "Reddit changed its API pricing in 2023.",
+            SOURCE_CARD(status="partial"),
+        )
+        assert result["verdict"] == ClaimVerification.UNKNOWN.value
+        assert result["reason"] == "partial_source_not_admissible"
+
+    def test_gate_accepts_full_source_cards(self):
+        result = gate_envelope(
+            "Reddit has changed its API pricing in 2023. The new pricing requires $0.24 per 1000 API calls.",
+            {"confidence": 0.8},
+            "claimed",
+            evidence_set=REDDIT_SEARCH_EVIDENCE,
+            source_cards=[SOURCE_CARD()],
+        )
+        assert result.verdict in (EvidenceVerdict.PROCEED, EvidenceVerdict.WARN)
+        assert result.enriched_parsed_output["_evidence_gate"]["claim_verification"]["verified"] == 2
+
+    def test_gate_holds_same_domain_false_number_with_source_card(self):
+        result = gate_envelope(
+            "Reddit has lost 40% of its users.",
+            {"confidence": 0.9},
+            "claimed",
+            evidence_set=REDDIT_SEARCH_EVIDENCE,
+            source_cards=[SOURCE_CARD()],
+        )
+        assert result.verdict == EvidenceVerdict.INSUFFICIENT_EVIDENCE
+        assert result.enriched_parsed_output["_evidence_gate"]["claim_verification"]["verdict"] == "PARTIALLY_SUPPORTED"
+
+    def test_missing_source_fields_is_unknown(self):
+        result = verify_claim(
+            "Reddit changed its API pricing in 2023.",
+            {"status": "full", "url": "https://example.test"},
+        )
+        assert result["verdict"] == ClaimVerification.UNKNOWN.value
+
+    def test_material_claim_verifier_counts_source_verification(self):
+        result = verify_claims(
+            [
+                "Reddit changed its API pricing in 2023.",
+                "The new pricing requires $0.24 per 1000 API calls.",
+            ],
+            [SOURCE_CARD()],
+        )
+        assert result["verdict"] == "SUPPORTED"
+        assert result["verified"] == 2
+        assert result["coverage_ratio"] == 1.0
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
