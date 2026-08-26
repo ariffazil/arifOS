@@ -295,7 +295,7 @@ def resolve_tokenrouter_model(
         if any(k in t for k in ("emv", "npv", "compute", "irr", "fiscal", "runway")):
             return "deepseek-v4-flash"  # cost/fast deterministic math
         if any(k in t for k in ("risk", "asym", "asymmetry", "scenario")):
-            return "deepseek-reasoner"  # quality deep on asymmetric
+            return "deepseek-v4-pro"  # quality deep on asymmetric (reasoner alias retired 2026-08-27)
         if any(k in t for k in ("market", "latency", "real-time", "fx", "price")):
             return "glm-5-turbo"  # latency mode (fast agentic)
         return "deepseek-v4-flash"  # default cost for capital compute

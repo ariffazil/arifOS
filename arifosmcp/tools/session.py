@@ -2280,6 +2280,40 @@ def arif_init(
                 header["genesis_status"] = f"error: {_g_exc}"
             header["genesis_status"] = _genesis_status
 
+        # ── WIRE 1 (F13 2026-08-27): Agent Card → Init binding ────────────────
+        # Every agent starts with its identity card loaded from
+        # /root/AAA/agent-cards/identity/<actor_id>/agent-card.json (schema v2.2.0).
+        # Fail-soft: card load never breaks init. Surfaces card id/name/role;
+        # full card materializes only on verbosity=full (heavy block).
+        _agent_card_status = "not_loaded"
+        try:
+            import json as _ac_json
+
+            _ac_actor = _canonical_actor_id or actor_id
+            _ac_path = f"/root/AAA/agent-cards/identity/{_ac_actor}/agent-card.json"
+            if os.path.isfile(_ac_path):
+                with open(_ac_path) as _ac_f:
+                    _ac = _ac_json.load(_ac_f)
+                _ac_payload = {
+                    "card_id": _ac.get("id") or _ac.get("card_id") or _ac_actor,
+                    "name": _ac.get("name") or _ac.get("agent_name") or _ac_actor,
+                    "role": _ac.get("emd_role") or _ac.get("role") or _ac.get("class"),
+                    "version": _ac.get("schemaVersion") or _ac.get("version"),
+                }
+                # full card materializes in full mode only (heavy block)
+                if _verbosity == "full":
+                    _ac_payload["full"] = _ac
+                header["agent_card"] = _ac_payload
+                _agent_card_status = "loaded"
+                sess["agent_card_id"] = _ac_payload["card_id"]
+            else:
+                header["agent_card"] = {"status": "not_found", "actor_id": _ac_actor}
+                _agent_card_status = "not_found"
+        except Exception as _ac_exc:
+            header["agent_card"] = {"status": f"error: {_ac_exc}"}
+            _agent_card_status = "error"
+        header["agent_card_status"] = _agent_card_status
+
         _light_sovereign = sess.get("sovereign_id")
         _light_delegation = sess.get("delegation_mode", "direct")
         _light_auth = sess.get("authority", _light_band) or "OBSERVE_ONLY"
