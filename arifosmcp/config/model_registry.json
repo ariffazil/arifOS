@@ -50,44 +50,134 @@
     "ADDED: opencode-zen entries (50+ models PAYG + 7 transient FREE) — Claude Sonnet 5 ($2/$10 cheaper than direct), Gemini 3.5 Flash Lite ($0.30/$2.50 cheapest Gemini), GPT 5 Nano ($0.05/$0.40), Qwen 3.5 Plus ($0.20/$1.20), and transient FREE for FLAME replacement (Big Pickle, DeepSeek V4 Flash Free, MiMo-V2.5 Free, Ling-3.0-flash Free, North Mini Code Free, Nemotron 3 Ultra Free, Laguna S 2.1 Free)",
     "BACKED: usage_signal from opencode.ai/data (Jun 8 -> Aug 2, 19T tokens total). deepseek-v4-flash 14T (+21% MoM) is the king; kimi-k3 +32% MoM is rising; hy3 +110% (Tencent); glm-5.2 -29% (declining). Cache ratio observed: 95%.",
     "VERIFIED: validator at /root/HERMES/scripts/zen/validate_federation_models.py catches 26 schema drifts in pre-patch SOT (duplicate model_key, missing provider_ref/status); 0 errors in staged draft.",
-    "BUMP: version 2026.07.04-v5 -> 2026.08.02-v1"
+    "BUMP: version 2026.07.04-v5 -> 2026.08.02-v1",
+    "UPDATED 2026-08-27: deepseek/deepseek-chat -> deepseek/deepseek-v4-flash — official API now serves deepseek-v4-flash / deepseek-v4-pro / deepseek-v4-flash-vision-exp; legacy aliases verified collapsing to v4-flash",
+    "ADDED 2026-08-27: deepseek/deepseek-v4-flash-vision-exp — experimental vision model on official API, verified live (base64 PNG probe). Anthropic-format /anthropic endpoint also available."
   ],
   "models": [
     {
       "model_key": "deepseek/deepseek-v4-pro",
       "provider": "deepseek",
       "family": "deepseek",
-      "capabilities": ["reason", "draft", "code", "analyze", "search", "plan", "agentic"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "search",
+        "plan",
+        "agentic"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
-      "requires_human_ack_for": ["irreversible_delete", "git_push", "external_relay", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "git_push",
+        "external_relay",
+        "vault_seal"
+      ],
       "context_window": 1048576,
       "status": "live",
       "last_verified": "2026-07-01",
       "note": "Also available via Qwen Token Plan (bailian-token-plan) as qwen-token-plan/deepseek-v4-pro. 1M ctx, deep reasoning. Federation primary for Malaysian governance topics."
     },
     {
-      "model_key": "deepseek/deepseek-chat",
+      "model_key": "deepseek/deepseek-v4-flash",
       "provider": "deepseek",
-      "family": "deepseek-chat",
-      "capabilities": ["reason", "draft", "code", "analyze", "search"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "family": "deepseek",
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "search",
+        "plan",
+        "agentic"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "git_push", "external_relay", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "git_push",
+        "external_relay",
+        "vault_seal"
+      ],
       "status": "live",
-      "last_verified": "2026-05-25"
+      "last_verified": "2026-08-27",
+      "note": "Official API model ID post-2026-08 refresh. deepseek-chat/deepseek-reasoner aliases now collapse to v4-flash on api.deepseek.com. 1M ctx, 384K max out. Verified live 2026-08-27."
+    },
+    {
+      "model_key": "deepseek/deepseek-v4-flash-vision-exp",
+      "provider": "deepseek",
+      "family": "deepseek",
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "vision"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
+      "risk_tier": "bounded",
+      "identity_verified": false,
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "git_push",
+        "external_relay",
+        "vault_seal"
+      ],
+      "context_window": 1000000,
+      "status": "live",
+      "last_verified": "2026-08-27",
+      "pricing": {
+        "input_per_1m": 0.22,
+        "output_per_1m": 0.66,
+        "currency": "USD",
+        "note": "off-peak rates; peak hours (01:00-04:00, 06:00-10:00 UTC weekdays) are 2x. Images billed as input tokens, max 384 tokens/image after resize."
+      },
+      "note": "Experimental vision variant of V4 Flash. Verified live 2026-08-27 (red PNG test, JSON mode OK). Images: JPEG/PNG/GIF/WebP, user-role only, max 32MiB inline / 64MiB via Files API. Independent vision lane (MiMo v2.5 / Qwen 3.6 flash remain primary multimodal)."
     },
     {
       "model_key": "minimax/minimax-m3",
       "provider": "minimax",
       "family": "minimax",
-      "capabilities": ["reason", "draft", "code", "analyze", "search", "plan", "agentic", "constitutional_deliberation"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "search",
+        "plan",
+        "agentic",
+        "constitutional_deliberation"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1048576,
       "status": "live",
       "last_verified": "2026-06-04",
@@ -124,11 +214,22 @@
       "model_key": "minimax/minimax-m2.7",
       "provider": "minimax",
       "family": "minimax",
-      "capabilities": ["reason", "draft", "analyze"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "status": "legacy",
       "last_verified": "2026-06-02",
       "note": "Superseded by M3. Kept as fallback."
@@ -137,11 +238,27 @@
       "model_key": "ilmu/ilmu-nemo-nano",
       "provider": "ilmu",
       "family": "nemo",
-      "capabilities": ["reason", "draft", "analyze", "summarize", "entity_extraction"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "code_mutation_without_review", "sovereign_path", "constitutional_work", "vault_seal_input"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "summarize",
+        "entity_extraction"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "code_mutation_without_review",
+        "sovereign_path",
+        "constitutional_work",
+        "vault_seal_input"
+      ],
       "risk_tier": "guarded",
       "identity_verified": false,
-      "requires_human_ack_for": ["any_use"],
+      "requires_human_ack_for": [
+        "any_use"
+      ],
       "status": "blocked",
       "last_verified": "2026-06-07",
       "blocked_at": "2026-06-20",
@@ -176,42 +293,104 @@
       "model_key": "qwen-token-plan/qwen3.7-max",
       "provider": "alibaba (bailian-token-plan)",
       "family": "qwen-token-plan",
-      "capabilities": ["reason", "draft", "code", "analyze", "plan", "agentic", "vision"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "plan",
+        "agentic",
+        "vision"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "git_push", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "git_push",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 2.50, "output_per_1m": 7.50, "currency": "USD"},
-      "capabilities_verified": ["reason", "draft", "code", "analyze", "plan", "agentic", "tool_call"],
+      "pricing": {
+        "input_per_1m": 2.5,
+        "output_per_1m": 7.5,
+        "currency": "USD"
+      },
+      "capabilities_verified": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "plan",
+        "agentic",
+        "tool_call"
+      ],
       "note": "Qwen 3.7 Max — flagship via bailian-token-plan. CORRECTED: 1M context (was 256K). Text-only (NO vision — cheat sheet was wrong, qwen3.7-plus is the multimodal model). Capabilities: Reasoning+TG. Function-calling: YES (verified 2026-07-04). Price: $2.50/$7.50 per 1M."
     },
     {
       "model_key": "qwen-token-plan/qwen3.7-plus",
       "provider": "alibaba (bailian-token-plan)",
       "family": "qwen-token-plan",
-      "capabilities": ["reason", "draft", "code", "analyze", "plan", "agentic", "vision"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "plan",
+        "agentic",
+        "vision"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 0.40, "output_per_1m": 1.60, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 0.4,
+        "output_per_1m": 1.6,
+        "currency": "USD"
+      },
       "note": "Qwen 3.7 Plus — second tier via bailian-token-plan. 1M ctx. The ACTUAL multimodal model in 3.7 series (capabilities: TG, VU, Reasoning). Vision+text+agent. Function-calling: YES. Structured-outputs: YES. Price: $0.40/$1.60 per 1M."
     },
     {
       "model_key": "qwen-token-plan/qwen3.6-plus",
       "provider": "alibaba (bailian-token-plan)",
       "family": "qwen-token-plan",
-      "capabilities": ["reason", "draft", "analyze", "agentic", "vision"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "agentic",
+        "vision"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 131072,
       "status": "live",
       "last_verified": "2026-07-01",
@@ -221,26 +400,58 @@
       "model_key": "qwen-token-plan/qwen3.6-flash",
       "provider": "alibaba (bailian-token-plan)",
       "family": "qwen-token-plan",
-      "capabilities": ["reason", "draft", "analyze", "agentic", "vision"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "agentic",
+        "vision"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 0.25, "output_per_1m": 1.50, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 0.25,
+        "output_per_1m": 1.5,
+        "currency": "USD"
+      },
       "note": "Qwen 3.6 Flash — fastest model via bailian-token-plan. CORRECTED: 1M context (was 128K/256K). Vision capable (VU). Function-calling: YES. Structured-outputs: YES. Web-search: YES. Price: $0.25/$1.50 per 1M. OpenCode small_model default."
     },
     {
       "model_key": "qwen-token-plan/deepseek-v4-pro",
       "provider": "alibaba (bailian-token-plan via DeepSeek)",
       "family": "deepseek-token-plan",
-      "capabilities": ["reason", "draft", "code", "analyze", "plan", "agentic"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "plan",
+        "agentic"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-01",
@@ -250,11 +461,26 @@
       "model_key": "qwen-token-plan/deepseek-v4-flash",
       "provider": "alibaba (bailian-token-plan via DeepSeek)",
       "family": "deepseek-token-plan",
-      "capabilities": ["reason", "draft", "code", "analyze", "plan", "agentic"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "plan",
+        "agentic"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-01",
@@ -264,11 +490,26 @@
       "model_key": "qwen-token-plan/kimi-k2.7-code",
       "provider": "alibaba (bailian-token-plan via Moonshot)",
       "family": "kimi-token-plan",
-      "capabilities": ["reason", "draft", "code", "analyze", "plan", "agentic", "vision"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "plan",
+        "agentic",
+        "vision"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 262144,
       "status": "live",
       "last_verified": "2026-07-01",
@@ -278,11 +519,23 @@
       "model_key": "qwen-token-plan/glm-5.2",
       "provider": "alibaba (bailian-token-plan via Zhipu)",
       "family": "glm-token-plan",
-      "capabilities": ["reason", "draft", "analyze", "plan"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "plan"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 202752,
       "status": "live",
       "last_verified": "2026-07-01",
@@ -292,11 +545,22 @@
       "model_key": "qwen-token-plan/MiniMax-M2.5",
       "provider": "alibaba (bailian-token-plan via MiniMax)",
       "family": "minimax-token-plan",
-      "capabilities": ["reason", "draft", "analyze"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 131072,
       "status": "live",
       "last_verified": "2026-07-01",
@@ -306,131 +570,285 @@
       "model_key": "dashscope/qwen-flash",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["reason", "draft", "analyze", "agentic", "tool_call", "structured_outputs"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "agentic",
+        "tool_call",
+        "structured_outputs"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 0.05, "output_per_1m": 0.40, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 0.05,
+        "output_per_1m": 0.4,
+        "currency": "USD"
+      },
       "note": "Qwen Flash via DashScope Intl. CORRECTED: 1M context (cheat sheet said 128K). CHEapest model in the federation at $0.05/1M input. Function-calling verified (despite not being listed in API features). Fastest response: 322-406ms. Capabilities: Reasoning+TG. OpenCode fallback for cost-sensitive tasks."
     },
     {
       "model_key": "dashscope/qwen-plus",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["reason", "draft", "analyze", "agentic", "tool_call", "structured_outputs"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "agentic",
+        "tool_call",
+        "structured_outputs"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 0.40, "output_per_1m": 1.20, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 0.4,
+        "output_per_1m": 1.2,
+        "currency": "USD"
+      },
       "note": "Qwen Plus via DashScope Intl. CORRECTED: 1M context (cheat sheet said 128K). Function-calling verified. Structured-outputs: YES. Price: $0.40/$1.20 per 1M. Good all-rounder for federation tasks."
     },
     {
       "model_key": "dashscope/qwen3-max",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["reason", "draft", "code", "analyze", "tool_call", "structured_outputs"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "code",
+        "analyze",
+        "tool_call",
+        "structured_outputs"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 262144,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 1.20, "output_per_1m": 6.00, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 1.2,
+        "output_per_1m": 6.0,
+        "currency": "USD"
+      },
       "note": "Qwen3 Max (older gen) via DashScope Intl. CORRECTED: 256K context (cheat sheet said 128K). Function-calling verified. Structured-outputs: YES. Price: $1.20/$6.00 per 1M."
     },
     {
       "model_key": "dashscope/qwen3-8b",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["reason", "draft", "analyze", "tool_call", "structured_outputs"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "tool_call",
+        "structured_outputs"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 131072,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 0.18, "output_per_1m": 0.70, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 0.18,
+        "output_per_1m": 0.7,
+        "currency": "USD"
+      },
       "note": "Qwen3-8B via DashScope Intl. CORRECTED: 128K context (cheat sheet said 32K). Small model. REQUIRES enable_thinking=false for non-streaming calls. Function-calling verified. Price: $0.18/$0.70 per 1M. Good for lightweight tasks."
     },
     {
       "model_key": "dashscope/qwen3-vl-plus",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["reason", "draft", "analyze", "vision", "tool_call", "structured_outputs"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "vision",
+        "tool_call",
+        "structured_outputs"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 262144,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 0.20, "output_per_1m": 1.60, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 0.2,
+        "output_per_1m": 1.6,
+        "currency": "USD"
+      },
       "note": "Qwen3 VL Plus via DashScope Intl. CORRECTED: 256K context (cheat sheet said 128K). Vision model (VU capability). Function-calling verified. Price: $0.20/$1.60 per 1M."
     },
     {
       "model_key": "dashscope/qwen3-omni-flash",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["reason", "draft", "analyze", "vision", "audio", "tool_call"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "vision",
+        "audio",
+        "tool_call"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": null,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"text_input_per_1m": 0.43, "text_output_per_1m": 1.66, "currency": "USD"},
+      "pricing": {
+        "text_input_per_1m": 0.43,
+        "text_output_per_1m": 1.66,
+        "currency": "USD"
+      },
       "note": "Qwen3 Omni Flash via DashScope Intl. Multimodal (text+image+audio). Context window not listed in API. Function-calling verified. Price: $0.43/$1.66 per 1M (text only)."
     },
     {
       "model_key": "dashscope/qwen-mt-plus",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["translate"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "tool_call", "code_generation"],
+      "capabilities": [
+        "translate"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "tool_call",
+        "code_generation"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 4096,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 2.46, "output_per_1m": 7.37, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 2.46,
+        "output_per_1m": 7.37,
+        "currency": "USD"
+      },
       "note": "Qwen MT Plus (translation specialist) via DashScope Intl. CORRECTED: 4K context (cheat sheet said 128K — 32x WRONG). NO tool_call support. NO function-calling. Use ONLY for translation tasks. Price: $2.46/$7.37 per 1M."
     },
     {
       "model_key": "dashscope/qwen3.6-plus",
       "provider": "alibaba (dashscope-intl)",
       "family": "qwen-dashscope",
-      "capabilities": ["reason", "draft", "analyze", "vision", "tool_call", "structured_outputs"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "vision",
+        "tool_call",
+        "structured_outputs"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "live",
       "last_verified": "2026-07-04",
-      "pricing": {"input_per_1m": 0.25, "output_per_1m": 1.50, "currency": "USD"},
+      "pricing": {
+        "input_per_1m": 0.25,
+        "output_per_1m": 1.5,
+        "currency": "USD"
+      },
       "note": "Qwen3.6 Plus via DashScope Intl. 1M context. Vision capable. Function-calling: YES. Structured-outputs: YES. DISCOVERED during cheat sheet evaluation — not in original cheat sheet. Better value than qwen3.6-flash at same price tier. Price: $0.25/$1.50 per 1M."
     },
     {
       "model_key": "aisingapore/gemma-sea-lion-v4-27b-it",
       "provider": "aisingapore",
       "family": "sea-lion",
-      "capabilities": ["reason", "draft", "analyze", "translate", "seasian_context"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "code_mutation_without_review"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "translate",
+        "seasian_context"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "code_mutation_without_review"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "status": "live",
       "last_verified": "2026-06-04",
       "note": "SEA-LION trial key. 10 RPM rate limit. Best BM/SEA quality among 27B class."
@@ -439,11 +857,26 @@
       "model_key": "aisingapore/llama-sea-lion-v3-70b-it",
       "provider": "aisingapore",
       "family": "sea-lion",
-      "capabilities": ["reason", "draft", "analyze", "translate", "seasian_context", "complex_reasoning"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "code_mutation_without_review"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "translate",
+        "seasian_context",
+        "complex_reasoning"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "code_mutation_without_review"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "status": "live",
       "last_verified": "2026-06-04",
       "note": "SEA-LION trial key. 70B class. Best for complex SEA-relevant reasoning."
@@ -452,11 +885,25 @@
       "model_key": "aisingapore/qwen-sea-lion-v4.5-27b-it",
       "provider": "aisingapore",
       "family": "sea-lion",
-      "capabilities": ["reason", "draft", "analyze", "translate", "seasian_context"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "code_mutation_without_review"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "translate",
+        "seasian_context"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "code_mutation_without_review"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "status": "live",
       "last_verified": "2026-06-04",
       "note": "SEA-LION trial key. Qwen-based SEA-LION variant."
@@ -465,11 +912,25 @@
       "model_key": "aisingapore/qwen-sea-lion-v4-32b-it",
       "provider": "aisingapore",
       "family": "sea-lion",
-      "capabilities": ["reason", "draft", "analyze", "translate", "seasian_context"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "code_mutation_without_review"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "translate",
+        "seasian_context"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "code_mutation_without_review"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "status": "live",
       "last_verified": "2026-06-04",
       "note": "SEA-LION trial key. Largest SEA-LION Qwen variant."
@@ -478,8 +939,15 @@
       "model_key": "aisingapore/bge-m3",
       "provider": "aisingapore",
       "family": "sea-lion-embedding",
-      "capabilities": ["embed", "semantic_search", "vector_1024"],
-      "forbidden": ["text_generation", "code_mutation"],
+      "capabilities": [
+        "embed",
+        "semantic_search",
+        "vector_1024"
+      ],
+      "forbidden": [
+        "text_generation",
+        "code_mutation"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
       "requires_human_ack_for": [],
@@ -491,8 +959,15 @@
       "model_key": "ollama/bge-m3",
       "provider": "ollama",
       "family": "bge",
-      "capabilities": ["embed", "semantic_search", "vector_1024"],
-      "forbidden": ["text_generation", "code_mutation"],
+      "capabilities": [
+        "embed",
+        "semantic_search",
+        "vector_1024"
+      ],
+      "forbidden": [
+        "text_generation",
+        "code_mutation"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
       "requires_human_ack_for": [],
@@ -504,11 +979,23 @@
       "model_key": "kimi",
       "provider": "moonshot",
       "family": "kimi",
-      "capabilities": ["reason", "code", "analyze", "search"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "code",
+        "analyze",
+        "search"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "bounded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "status": "standby",
       "last_verified": "2026-05-25"
     },
@@ -516,11 +1003,24 @@
       "model_key": "openrouter/fallback",
       "provider": "openrouter",
       "family": "openrouter",
-      "capabilities": ["reason", "analyze"],
-      "forbidden": ["code_mutation", "self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "analyze"
+      ],
+      "forbidden": [
+        "code_mutation",
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "guarded",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal", "git_push", "external_relay"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal",
+        "git_push",
+        "external_relay"
+      ],
       "status": "standby",
       "last_verified": "2026-05-25"
     },
@@ -528,11 +1028,25 @@
       "model_key": "hermes/asi",
       "provider": "hermes",
       "family": "hermes-asi",
-      "capabilities": ["reason", "draft", "analyze", "relay"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "capabilities": [
+        "reason",
+        "draft",
+        "analyze",
+        "relay"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "bounded",
       "identity_verified": true,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal", "git_push"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal",
+        "git_push"
+      ],
       "status": "live",
       "last_verified": "2026-06-04"
     },
@@ -540,11 +1054,26 @@
       "model_key": "anthropic/claude-mythos-5",
       "provider": "anthropic",
       "family": "claude-mythos",
-      "capabilities": ["reason", "code", "analyze", "constitutional_deliberation"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "capabilities": [
+        "reason",
+        "code",
+        "analyze",
+        "constitutional_deliberation"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit",
+        "constitutional_amendment"
+      ],
       "risk_tier": "blocked",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "git_push", "external_relay", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "git_push",
+        "external_relay",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "blocked",
       "last_verified": "2026-06-13",
@@ -571,11 +1100,23 @@
       "model_key": "anthropic/claude-fable-5",
       "provider": "anthropic",
       "family": "claude-mythos",
-      "capabilities": ["reason", "code", "analyze", "constitutional_deliberation"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "code",
+        "analyze",
+        "constitutional_deliberation"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "blocked",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "context_window": 1000000,
       "status": "blocked",
       "last_verified": "2026-06-13",
@@ -594,12 +1135,22 @@
       "shadow_profile": "anthropic_shadow",
       "harness": {
         "constitution": "Anthropic Claude Constitution (CAI-trained)",
-        "classifier_domains": ["CYBERSECURITY", "BIOLOGY_CHEMISTRY", "DISTILLATION"],
+        "classifier_domains": [
+          "CYBERSECURITY",
+          "BIOLOGY_CHEMISTRY",
+          "DISTILLATION"
+        ],
         "classifier_position": "pre-inference gate (VERIFIED, 2026-06-13)",
         "fallback_model": "anthropic/claude-opus-4.8",
         "fallback_notification": "banner 'Switched to Opus 4.8' (VERIFIED)",
         "fallback_sticky": true,
-        "false_positive_triggers": ["circuit breaker", "fallback", "auth wall", "InvokeModel", "outage"],
+        "false_positive_triggers": [
+          "circuit breaker",
+          "fallback",
+          "auth wall",
+          "InvokeModel",
+          "outage"
+        ],
         "data_policy": {
           "retention_days": 30,
           "zero_retention_available": false,
@@ -613,11 +1164,22 @@
       "model_key": "anthropic/claude-opus-4.8",
       "provider": "anthropic",
       "family": "claude-standard",
-      "capabilities": ["reason", "code", "analyze"],
-      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "capabilities": [
+        "reason",
+        "code",
+        "analyze"
+      ],
+      "forbidden": [
+        "self_authorize",
+        "seal_without_judge",
+        "irreversible_commit"
+      ],
       "risk_tier": "blocked",
       "identity_verified": false,
-      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "requires_human_ack_for": [
+        "irreversible_delete",
+        "vault_seal"
+      ],
       "status": "blocked",
       "last_verified": "2026-06-13",
       "blocked_at": "2026-07-04",
@@ -638,7 +1200,13 @@
   ],
   "default_for_unlisted": {
     "risk_tier": "guarded",
-    "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
-    "requires_human_ack_for": ["all_irreversible"]
+    "forbidden": [
+      "self_authorize",
+      "seal_without_judge",
+      "irreversible_commit"
+    ],
+    "requires_human_ack_for": [
+      "all_irreversible"
+    ]
   }
 }
