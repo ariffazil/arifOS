@@ -2926,10 +2926,15 @@ def arif_init(
         # aspiration. Without this guard, every MCP call to arif_init defaulted
         # requested_authority=OBSERVE_ONLY, downgrading sovereigns to OBSERVE_ONLY
         # even after auto-sign proved identity.
+        # C3 FIX (2026-08-26): also exempt verified non-sovereign actors.
+        # The default requested_authority="OBSERVE_ONLY" should only cap
+        # UNVERIFIED actors, not override identity_band_authority() for
+        # verified FI agents that passed Ed25519 challenge.
         if (
             requested_authority
             and requested_authority == "OBSERVE_ONLY"
             and not _is_signed_principal
+            and not identity_verified
         ):
             _derived_auth = "OBSERVE_ONLY"
         logger.info(
