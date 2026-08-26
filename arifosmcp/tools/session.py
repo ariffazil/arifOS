@@ -2287,11 +2287,12 @@ def arif_init(
         # full card materializes only on verbosity=full (heavy block).
         _agent_card_status = "not_loaded"
         try:
+            import os as _os
             import json as _ac_json
 
             _ac_actor = _canonical_actor_id or actor_id
             _ac_path = f"/root/AAA/agent-cards/identity/{_ac_actor}/agent-card.json"
-            if os.path.isfile(_ac_path):
+            if _os.path.isfile(_ac_path):
                 with open(_ac_path) as _ac_f:
                     _ac = _ac_json.load(_ac_f)
                 _ac_payload = {
