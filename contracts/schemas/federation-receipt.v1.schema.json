@@ -107,6 +107,26 @@
     },
     "source_manifest_hash": {
       "type": "string"
+    },
+    "harness_metadata": {
+      "type": "object",
+      "description": "ETCSOVG harness fingerprint — links this receipt to a specific harness configuration (arxiv 2605.23950)",
+      "properties": {
+        "h_fingerprint": {
+          "type": "string",
+          "description": "SHA256-first-8 of canonical harness config"
+        },
+        "h_tools": {
+          "type": "string",
+          "enum": ["full", "mcp-core", "minimal", "none"]
+        },
+        "h_gov": {
+          "type": "string",
+          "description": "tier:permission_mode (e.g. 333:yolo)"
+        }
+      },
+      "required": ["h_fingerprint"],
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
