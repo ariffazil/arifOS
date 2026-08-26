@@ -468,6 +468,19 @@ class FederationEnvelope(BaseModel):
     )
     # ───────────────────────────────────────────────────────────────────────
 
+    # ── ETCSOVG Harness Identity (arxiv 2605.23950) ──────────────────────
+    # Links this envelope to a specific harness configuration.
+    # Full hcsvog lookup via harness_profiles registry keyed by this fingerprint.
+    harness_fingerprint: str | None = Field(
+        default=None,
+        description=(
+            "ETCSOVG harness config fingerprint (SHA256-first-8). "
+            "Links this envelope to a specific harness configuration. "
+            "Full hcsvog lookup via harness_profiles registry."
+        ),
+    )
+    # ───────────────────────────────────────────────────────────────────────
+
     # Transition mode flag
     legacy_wrap: bool = Field(
         default=False,
