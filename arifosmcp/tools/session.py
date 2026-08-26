@@ -2315,6 +2315,46 @@ def arif_init(
             _agent_card_status = "error"
         header["agent_card_status"] = _agent_card_status
 
+        # ── WIRE 3 (F13 2026-08-27): Memory auto-recall at init ──────────────
+        # Fail-soft memory recall (limit=3) so previous-session context is
+        # available without bloating init. memory_store.search returns [] / a
+        # dict on any failure or absent backend, so this never breaks init.
+        # Compact preview only (count + titles) — full content stays in recall.
+        _memory_preview = {"status": "skipped"}
+        if intent:
+            try:
+                from arifosmcp.runtime.memory_store import search as _mem_search
+
+                _mem = _mem_search(query=intent, actor_id=actor_id or None, limit=3)
+                _mres = []
+                if isinstance(_mem, dict):
+                    _mres = _mem.get("results") or _mem.get("items") or []
+                elif isinstance(_mem, list):
+                    _mres = _mem
+                # each result may be (score, entry) tuple or a dict
+                _titles = []
+                for _r in list(_mres)[:3]:
+                    _entry = _r
+                    if isinstance(_r, (tuple, list)) and len(_r) == 2:
+                        _entry = _r[1]
+                    if isinstance(_entry, dict):
+                        _titles.append(
+                            _entry.get("title")
+                            or _entry.get("summary")
+                            or _entry.get("memory_id")
+                            or _entry.get("id")
+                        )
+                    else:
+                        _titles.append(str(_entry))
+                _memory_preview = {
+                    "status": "loaded" if _mres else "empty",
+                    "count": len(list(_mres)),
+                    "items": [t for t in _titles if t],
+                }
+            except Exception as _mem_exc:
+                _memory_preview = {"status": "error", "detail": str(_mem_exc)[:80]}
+            header["memory_preview"] = _memory_preview
+
         _light_sovereign = sess.get("sovereign_id")
         _light_delegation = sess.get("delegation_mode", "direct")
         _light_auth = sess.get("authority", _light_band) or "OBSERVE_ONLY"
