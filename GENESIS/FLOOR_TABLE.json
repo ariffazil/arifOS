@@ -39,6 +39,38 @@
           "threshold": 0.05,
           "role": "marginal saturation check — necessary but NOT sufficient"
         }
+      },
+      "receipt_protocol": {
+        "version": "1.0.0",
+        "forged_at": "2026-08-27",
+        "forged_by_session": "ARIFOS BEHAVIOUR SINK REMEDIATION T1+T2+T3",
+        "ratified_by": "Arif (F13 SOVEREIGN)",
+        "doctrine_ref": "/root/arifOS/static/arifos/floors/F01_AMANAH.md",
+        "enforcer_tool": "arifOS/arifosmcp/tools/judge.py Gate 2a + arifOS/arifosmcp/core/reversibility_engine.py",
+        "engines_in_force": [
+          "WIRE 4 (provenance binding at judge entry)",
+          "WIRE 5 (shell-aware command pre-emption)"
+        ],
+        "rule": "Every arif_judge invocation MUST attach evidence.f1_engine_receipt containing engine_called, engine_reversibility, engine_verdict, engine_reason, agent_claimed, mismatch. The ReversibilityEngine is the sole classifier; agent narrative reversibility_level is provenance only.",
+        "forbidden": "Free-text narration of F1 refusal without engine receipt. F10 ONTOLOGY ghost-authority + F2 TRUTH unrecepted claim. Both inversions of GENESIS/059 reality-vote doctrine (reality has irrevocable vote).",
+        "audit_field": "evidence.f1_engine_receipt",
+        "fail_soft": "Engine import failure falls through to legacy Gate 2 (actor_signature requirement). Reversible-first covenant preserved without kernel outage.",
+        "shell_extensions": {
+          "R0_safe_observation": ["ls", "cat", "head", "tail", "grep", "find", "pwd", "whoami", "ps", "env", "file", "stat", "wc", "date", "uname", "hostname", "du", "df", "free", "uptime", "w", "who", "id", "groups", "test", "true", "false", "which", "whereis", "type", "echo", "printf", "tree", "git status", "git diff", "git log", "git show", "docker ps", "docker images"],
+          "R2_partial_mutation": ["mutating verbs without force flag", "sed -i (in-place text edit)", "find -delete", "unknown binary (fail-closed)", "any output redirection (>, >>, fd-redirect)", "any command substitution ($() or backticks)", "state-mutating git subcommand (commit, reset, etc.)"],
+          "R4_irreversible": ["destructive verb with recursion + force flag combo", "git push with force flag", "docker run/exec/rm/rmi/stop/kill/restart/pull/build"]
+        },
+        "reversible": true,
+        "rollback_one_shot": "git revert cfa0771b4 d94c4d935",
+        "wires_committed": {
+          "WIRE_4_engine_provenance": "d94c4d935",
+          "WIRE_5_shell_aware_preemption": "cfa0771b4"
+        },
+        "test_coverage": {
+          "F1_provenance_tests": 4,
+          "T2_shell_classifier_tests": 8,
+          "total_passing": 12
+        }
       }
     },
     {
