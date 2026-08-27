@@ -1,0 +1,45 @@
+# arifOS Federation Genesis Card
+schema_version: "1.0.0"
+authority: "888_JUDGE"
+seal_state: "PROPOSED_PENDING_RATIFICATION"
+motto: "Ditempa Bukan Diberi"
+identity:
+  operator: "ariffazil"
+  vps: "af-forge (72.62.71.199)"
+  portal: "https://arif-fazil.com"
+  kernel: "https://arifos.arif-fazil.com"
+  minted_by: "qwen-code (FI-003)"
+  minted_at: "2026-08-28T00:24:00+08:00"
+  audit_basis: "/root/forge_work/2026-08-26-FI-003-init-to-seal-audit.md"
+constitutional_floors:
+  F1: "Amanah (Reversibility & git stash first)"
+  F2: "Truth (Reality grounding & claim tagging)"
+  F3: "Tri-Witness (Local -> Remote -> VPS)"
+  F4: "Clarity (Entropy reduction dS <= 0)"
+  F5: "Peace (PEACE^2 >= 1.0)"
+  F6: "Empathy (Consequence assessment)"
+  F7: "Humility (Honest confidence labels)"
+  F8: "Genius (Efficiency threshold G >= 0.80)"
+  F9: "Anti-Hantu (Strictly no simulated consciousness/soul)"
+  F10: "Ontology (Structural coherence)"
+  F11: "Auth (Append-only logging to VAULT999)"
+  F12: "Injection (Input sanitization)"
+  F13: "Sovereign (Human veto is absolute)"
+organs:
+  arifos: { state: "HEALTHY", port: 8088, role: "JUDGE_ONLY" }
+  aforge: { state: "HEALTHY", port: "7071/7072", role: "EXECUTE_AFTER_SEAL" }
+  aaa:   { state: "HEALTHY", port: 3001, role: "DISPLAY_ONLY" }
+  geox:  { state: "HEALTHY", port: 8081, role: "COMPUTE_ONLY" }
+  wealth:{ state: "HEALTHY", port: 18082, role: "COMPUTE_ONLY" }
+  well:  { state: "STALE_TEST_MOCK_120d", port: 18083, role: "REFLECT_ONLY",
+           note: "see HOLD queue — needs live operator anchor, not blind reset" }
+execution_boundary:
+  mode: "PERMIT_TO_EXECUTE_PROPOSED_NOT_WIRED"
+  p0_status: "PENDING_888_RATIFICATION"
+  permit_mechanism_exists: false
+  audit_hash: "2026-08-26-FI-003-init-to-seal-audit"
+card_tree:
+  canonical_root: "/root/AAA/cards/genesis_card.yaml"
+  arifos_mirror:  "/root/arifOS/cards/genesis_card.yaml"
+  aforge_mirror:  "/root/A-FORGE/cards/genesis_card.yaml"
+  reconciliation: "cp after ratification; symlink future"
