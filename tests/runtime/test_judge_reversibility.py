@@ -207,3 +207,143 @@ class TestF1EngineProvenance:
             "Detection failure: agent's IRREVERSIBLE claim against trivial engine "
             "result must trip mismatch=True so audit can flag the theatre."
         )
+
+
+class TestT2ShellCommandClassifier:
+    """T2 (Forged 2026-08-27 · WIRE 5) — shell-aware pre-emption.
+
+    Default base class for `bash` is PARTIAL — the behaviour-sink source.
+    Shell analyzer overrides with deterministic token-based classification:
+      R0 (TRIVIAL): ls, cat, head, tail, grep, find (no -delete), pwd, etc.
+      R2 (PARTIAL): sed -i, mv, cp, chmod, find -delete, unknown binary,
+                    any command with redirection (>, >>) or subshell ($()).
+      R4 (IRREVERSIBLE): rm -r/-rf, git push --force, dangerous docker rm,
+                          git reset/rebase/merge subcommands.
+
+    Forged to comply with Arif's T2 spec (2026-08-27).
+    """
+
+    def test_safe_observation_returns_trivial_no_hold(self):
+        """SPEC: `ls /tmp` ⇒ R0 (TRIVIAL, no HOLD)."""
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        verdict = classify_action("bash", {"command": "ls /tmp"})
+        assert verdict["reversibility"] == "trivial", (
+            f"`ls /tmp` should classify trivial, got {verdict['reversibility']}. "
+            f"Reason: {verdict.get('reason')}"
+        )
+        assert verdict["may_proceed"] is True, "Trivial reversibility must permit"
+        assert verdict["verdict"] == "SEAL", (
+            f"Trivial must SEAL, not HOLD. Got verdict={verdict.get('verdict')}"
+        )
+
+    def test_chain_with_rm_rf_escalates_to_irreversible(self):
+        """SPEC: `ls /tmp && rm -rf /` ⇒ escalated to IRREVERSIBLE (HOLD).
+
+        Any mutating verb in the chain escalates the whole command. The
+        -rf/-fr flag on `rm` is the trigger for IRREVERSIBLE escalation.
+        """
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        # rm -rf triggers IRREVERSIBLE escalation regardless of chain position.
+        verdict = classify_action("bash", {"command": "ls /tmp && rm -rf /"})
+        assert verdict["reversibility"] == "irreversible", (
+            f"`rm -rf` in chain must escalate to IRREVERSIBLE. "
+            f"Got reversibility={verdict.get('reversibility')}, "
+            f"reason={verdict.get('reason')}"
+        )
+        # F1 HOLD is the canonical verdict for IRREVERSIBLE/CRITICAL.
+        assert verdict["verdict"] == "HOLD", (
+            "IRREVERSIBLE chain must return HOLD verdict (888 ceremony). "
+            f"Got verdict={verdict.get('verdict')}"
+        )
+        assert verdict["requires_arif_approval"] is True
+
+    def test_output_redirection_always_partial(self):
+        """SPEC: `cat log.txt > out.txt` ⇒ R2 (PARTIAL/HOLD), regardless of
+        source command being read-only. Output redirection is file write.
+        """
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        for redirect in (" > out.txt", " >> out.txt", " 2>&1 | tee log", " > /tmp/x"):
+            verdict = classify_action("bash", {"command": f"cat log.txt{redirect}"})
+            assert verdict["reversibility"] in ("partial", "irreversible"), (
+                f"Redirection `{redirect.strip()}` must classify as non-trivial. "
+                f"Got {verdict.get('reversibility')} ({verdict.get('reason')})"
+            )
+            assert verdict["verdict"] in ("HOLD",), (
+                f"Redirection must HOLD. Got verdict={verdict.get('verdict')}"
+            )
+
+    def test_read_only_pipe_chain_remains_trivial(self):
+        """`ls /tmp | grep foo` — pure observability pipeline ⇒ TRIVIAL.
+
+        Validates the pipeline defense: read-only segments chained together
+        remain read-only. No escalation triggered by `|`.
+        """
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        verdict = classify_action("bash", {"command": "ls /tmp | grep foo"})
+        assert verdict["reversibility"] == "trivial", (
+            f"Pure read-only pipe must stay trivial. Got {verdict.get('reversibility')} "
+            f"({verdict.get('reason')})"
+        )
+
+    def test_sed_inplace_escalates_partial(self):
+        """Forged invariant: `sed -i` performs in-place file modification ⇒ PARTIAL."""
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        # -i alone
+        v1 = classify_action("bash", {"command": "sed -i s/foo/bar file.txt"})
+        # -i.bak (GNU sed backup-suffix)
+        v2 = classify_action("bash", {"command": "sed -i.bak s/foo/bar file.txt"})
+        # Read-only sed (no -i) ⇒ trivial
+        v3 = classify_action("bash", {"command": "sed s/foo/bar file.txt"})
+
+        assert v1["reversibility"] in ("partial", "irreversible"), (
+            f"sed -i should escalate. Got {v1['reversibility']}"
+        )
+        assert v2["reversibility"] in ("partial", "irreversible"), (
+            f"sed -i.bak should escalate. Got {v2['reversibility']}"
+        )
+        assert v3["reversibility"] == "trivial", (
+            f"Read-only sed should stay trivial. Got {v3['reversibility']}"
+        )
+
+    def test_unknown_binary_fail_closed_to_partial(self):
+        """Forged invariant: unknown binary ⇒ PARTIAL (fail-closed default).
+
+        Prevents agents from sneaking novel destructive commands past
+        an allow-list by inventing new binary names.
+        """
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        verdict = classify_action("bash", {"command": "tilda_floof_xyz /tmp"})
+        assert verdict["reversibility"] == "partial", (
+            f"Unknown binary must default to PARTIAL. Got {verdict.get('reversibility')}"
+        )
+        assert "unknown" in verdict.get("reason", "").lower(), (
+            f"F11 audit shape should expose 'unknown' to operator. "
+            f"Reason was: {verdict.get('reason')}"
+        )
+
+    def test_chain_with_mutation_at_end_escalates(self):
+        """`ls /tmp && touch x.txt` — final mutating verb escalates whole chain.
+
+        Validates: chain-defense is total, not first-segment-only.
+        """
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        verdict = classify_action("bash", {"command": "ls /tmp && touch x.txt"})
+        assert verdict["reversibility"] in ("partial", "irreversible"), (
+            f"Mixed chain must escalate on mutation. Got {verdict.get('reversibility')}"
+        )
+
+    def test_git_push_force_irreversible(self):
+        """`git push --force` ⇒ IRREVERSIBLE — destructive to remote."""
+        from arifosmcp.core.reversibility_engine import classify_action
+
+        verdict = classify_action("bash", {"command": "git push --force origin main"})
+        assert verdict["reversibility"] == "irreversible", (
+            f"`git push --force` must be IRREVERSIBLE. Got {verdict.get('reversibility')}"
+        )
