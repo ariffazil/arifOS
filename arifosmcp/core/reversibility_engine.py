@@ -17,6 +17,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import re
+import shlex
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -143,6 +144,470 @@ _CRITICAL_PATTERNS = [
 ]
 
 
+# ────────────────────────────────────────────────────────────────────────
+# T2 — Shell command classifier (Forged 2026-08-27 · WIRE 5)
+# ────────────────────────────────────────────────────────────────────────
+# Splits shell commands by chain operators, classifies each segment by its
+# first token, and aggregates to a single reversibility verdict.
+#
+# Failure-mode design (Forged, response to T2 spec by Arif):
+#   - Output redirection (>, >>, 2>, etc.) is ALWAYS PARTIAL — never ignored.
+#   - Command substitution ($(), backticks) is ALWAYS PARTIAL — captures
+#     can be re-used to mutate, fail-closed to be safe.
+#   - Unknown binary ⇒ PARTIAL — explicit fail-closed default per spec.
+#   - Any mutating verb in a chain escalates the WHOLE command.
+#   - Read-only segments chained together remain TRIVIAL.
+#
+# This is the SOLE mutability classification for bash/sh/zsh tool calls.
+# It supersedes the generic regex pass below for shell contexts.
+
+_R0_SHELL_COMMANDS: frozenset[str] = frozenset(
+    {
+        # Pure observability — no filesystem, no process state, no network
+        "ls",
+        "cat",
+        "head",
+        "tail",
+        "grep",
+        "egrep",
+        "fgrep",
+        "rg",
+        "find",  # plain find — see _analyze_shell_command for -delete guard
+        "pwd",
+        "whoami",
+        "ps",
+        "env",
+        "file",
+        "stat",
+        "wc",
+        "date",
+        "uname",
+        "hostname",
+        "du",
+        "df",
+        "free",
+        "uptime",
+        "w",
+        "who",
+        "id",
+        "groups",
+        "test",
+        "true",
+        "false",
+        "which",
+        "whereis",
+        "type",
+        "echo",
+        "printf",
+        "tree",
+    }
+)
+
+_R2_SHELL_COMMANDS: frozenset[str] = frozenset(
+    {
+        # Mutating commands — PARTIAL by default, escalates on -rf / --force
+        "rm",
+        "mv",
+        "cp",
+        "chmod",
+        "chown",
+        "chgrp",
+        "dd",
+        "pkill",
+        "kill",
+        "shutdown",
+        "reboot",
+        "halt",
+        "iptables",
+        "ufw",
+        "firewall-cmd",
+        "route",
+        "useradd",
+        "userdel",
+        "usermod",
+        "groupadd",
+        "groupdel",
+        "crontab",
+        "at",
+        "batch",
+        "mount",
+        "umount",
+        "ln",
+        "tee",
+        "touch",
+        "mkdir",
+        "rmdir",
+        "truncate",
+        "fdisk",
+        "mkfs",
+        "mkswap",
+    }
+)
+
+# sed/awk: read-only by default, mutating only with -i / inplace
+_RW_TEXT_COMMANDS: frozenset[str] = frozenset({"sed", "awk"})
+
+_GIT_SAFE_SUBCMDS: frozenset[str] = frozenset(
+    {
+        "status",
+        "diff",
+        "log",
+        "show",
+        "remote",
+        "branch",
+        "rev-parse",
+        "config",
+        "tag",
+        "stash list",
+    }
+)
+_GIT_DANGEROUS_SUBCMDS: frozenset[str] = frozenset(
+    {
+        "push",
+        "commit",
+        "reset",
+        "rebase",
+        "merge",
+        "checkout",
+        "clean",
+        "init",
+        "add",
+        "rm",
+        "mv",
+        "restore",
+    }
+)
+
+_DOCKER_SAFE_SUBCMDS: frozenset[str] = frozenset(
+    {
+        "ps",
+        "images",
+        "logs",
+        "inspect",
+        "stats",
+        "version",
+        "info",
+        "network ls",
+        "volume ls",
+        "system df",
+    }
+)
+_DOCKER_DANGEROUS_SUBCMDS: frozenset[str] = frozenset(
+    {
+        "run",
+        "exec",
+        "rm",
+        "rmi",
+        "stop",
+        "kill",
+        "restart",
+        "pull",
+        "build",
+        "compose up",
+        "compose down",
+        "system prune",
+    }
+)
+
+# Regex patterns — order in code matches evaluation order
+_REDIRECTION_RE = re.compile(r"(?:>|>>|2>|1>|2>&1|1>&2|<\()")
+_CHAIN_RE = re.compile(r"&{1,2}|\|{1,2}|;")
+_SUBSHELL_RE = re.compile(r"\$\(|\`")
+# -i as standalone token, or -i.bak style backup-suffix
+_INPLACE_FLAG_RE = re.compile(r"(?:^|\s)-i(?:\b|\.\w+)")
+_INPLACE_AWK_RE = re.compile(r"-i\s+inplace|--inplace")
+# Force / destructive flags
+_FORCE_FLAG_RE = re.compile(r"(?:^|\s)(?:-{1,2}[fF]+(?:\b|=)|--force(?:\b|=))")
+_RECURSIVE_FLAG_RE = re.compile(r"(?:^|\s)(?:-r|--recursive)(?:\b|=)")
+
+
+def _shell_extract_command(params: dict[str, Any]) -> str | None:
+    """Extract command string from a tool-call param dict.
+
+    Tries a few conventional keys; returns None if absent or non-string.
+    """
+    if not isinstance(params, dict):
+        return None
+    for key in ("command", "cmd", "script", "argv"):
+        val = params.get(key)
+        if isinstance(val, str) and val.strip():
+            return val
+        # argv-as-list is a different surface; engine doesn't tokenize lists yet.
+    return None
+
+
+def _shell_tokenize(command: str) -> list[list[str]]:
+    """Split command on chain operators; return token-list per segment.
+
+    Quoted strings are preserved via shlex.split. Comments are stripped.
+    Malformed input falls back to whitespace split on the offending segment.
+    """
+    segments = _CHAIN_RE.split(command)
+    out: list[list[str]] = []
+    for raw in segments:
+        seg = raw.strip()
+        if not seg:
+            continue
+        try:
+            toks = shlex.split(seg, comments=True)
+        except ValueError:
+            toks = seg.split()
+        if toks:
+            out.append(toks)
+    return out
+
+
+def _analyze_shell_command(command: str) -> ReversibilityVerdict:
+    """Classify a shell command. Pure function — no I/O.
+
+    Order of precedence (most-restrictive wins):
+      CRITICAL  > IRREVERSIBLE > PARTIAL > TRIVIAL
+    Redirection / subshell / destructive flag checks run before per-segment
+    analysis so the highest-impact signal is captured first.
+
+    Returned verdict's `matched_patterns` lists what triggered the call, in
+    audit order. `reasoning` is a flat list of human-readable strings.
+    """
+    reasoning: list[str] = []
+    matched: list[str] = []
+
+    # 1. Redirection ⇒ PARTIAL (writes to file / fd)
+    if _REDIRECTION_RE.search(command):
+        matched.append("output redirection")
+        reasoning.append("Output redirection detected (> / >> / fd-redirect) — file write")
+        return ReversibilityVerdict(
+            reversibility_class=ReversibilityClass.PARTIAL,
+            requires_888_hold=False,
+            requires_explicit_ack=False,
+            rollback_method="restore from backup or undo the write",
+            reversal_window_seconds=300.0,
+            blast_radius_estimate="LOW",
+            reasoning=reasoning,
+            matched_patterns=matched,
+        )
+
+    # 2. Command substitution ⇒ PARTIAL (captures may then write downstream)
+    if _SUBSHELL_RE.search(command):
+        matched.append("command substitution")
+        reasoning.append("Command substitution $() or backticks detected — context-dependent write")
+        return ReversibilityVerdict(
+            reversibility_class=ReversibilityClass.PARTIAL,
+            requires_888_hold=False,
+            requires_explicit_ack=False,
+            rollback_method="review captured output before any commit",
+            reversal_window_seconds=300.0,
+            blast_radius_estimate="LOW",
+            reasoning=reasoning,
+            matched_patterns=matched,
+        )
+
+    # 3. Per-segment analysis
+    segments = _shell_tokenize(command)
+    for toks in segments:
+        binary = toks[0]
+        binary_name = binary.rsplit("/", 1)[-1].lower()
+        seg_text = " ".join(toks)
+        args_text = seg_text[len(binary) :].strip() if seg_text.startswith(binary) else seg_text
+
+        # 3a. git subcommand routing
+        if binary_name == "git":
+            sub = toks[1].lower() if len(toks) > 1 else ""
+            subcmd_match = re.match(r"--?[a-z-]+", sub) if sub else None
+            # Detect `git push --force` / `--force-with-lease` as IRREVERSIBLE
+            if sub == "push" and _FORCE_FLAG_RE.search(args_text):
+                matched.append("git push --force")
+                reasoning.append("`git push --force` is destructive; escalate to IRREVERSIBLE")
+                return ReversibilityVerdict(
+                    reversibility_class=ReversibilityClass.IRREVERSIBLE,
+                    requires_888_hold=True,
+                    requires_explicit_ack=True,
+                    rollback_method="recovery depends on remote state",
+                    reversal_window_seconds=0.0,
+                    blast_radius_estimate="HIGH",
+                    reasoning=reasoning,
+                    matched_patterns=matched,
+                )
+            if sub in _GIT_DANGEROUS_SUBCMDS:
+                matched.append(f"git {sub or '(none)'}")
+                reasoning.append(f"`git {sub}` mutates repository state — escalate to IRREVERSIBLE")
+                return ReversibilityVerdict(
+                    reversibility_class=ReversibilityClass.IRREVERSIBLE,
+                    requires_888_hold=True,
+                    requires_explicit_ack=True,
+                    rollback_method="git reset / reflog / remote cooperation",
+                    reversal_window_seconds=0.0,
+                    blast_radius_estimate="MEDIUM",
+                    reasoning=reasoning,
+                    matched_patterns=matched,
+                )
+            if sub in _GIT_SAFE_SUBCMDS or sub == "" or subcmd_match:
+                # Safe git subcommand, with-options, or empty — keep scanning.
+                continue
+            # Unknown git subcommand — fail-closed to IRREVERSIBLE
+            matched.append(f"git {sub or '(none)'}")
+            reasoning.append(
+                f"`git {sub or '(none)'}` subcommand unknown — fail-closed to IRREVERSIBLE"
+            )
+            return ReversibilityVerdict(
+                reversibility_class=ReversibilityClass.IRREVERSIBLE,
+                requires_888_hold=True,
+                requires_explicit_ack=True,
+                rollback_method="manual review",
+                reversal_window_seconds=0.0,
+                blast_radius_estimate="MEDIUM",
+                reasoning=reasoning,
+                matched_patterns=matched,
+            )
+
+        # 3b. docker subcommand routing
+        if binary_name == "docker":
+            sub = toks[1].lower() if len(toks) > 1 else ""
+            if sub in _DOCKER_DANGEROUS_SUBCMDS:
+                matched.append(f"docker {sub}")
+                reasoning.append(f"`docker {sub}` mutates container state")
+                return ReversibilityVerdict(
+                    reversibility_class=ReversibilityClass.IRREVERSIBLE,
+                    requires_888_hold=True,
+                    requires_explicit_ack=True,
+                    rollback_method=f"docker {sub} reverse (recreate/restore)",
+                    reversal_window_seconds=0.0,
+                    blast_radius_estimate="MEDIUM",
+                    reasoning=reasoning,
+                    matched_patterns=matched,
+                )
+            if sub in _DOCKER_SAFE_SUBCMDS or sub in ("image", "container", "volume"):
+                continue
+            matched.append(f"docker {sub or '(none)'}")
+            reasoning.append(f"`docker {sub or '(none)'}` subcommand unknown — fail-closed")
+            return ReversibilityVerdict(
+                reversibility_class=ReversibilityClass.PARTIAL,
+                requires_888_hold=False,
+                requires_explicit_ack=False,
+                rollback_method="manual review",
+                reversal_window_seconds=300.0,
+                blast_radius_estimate="MEDIUM",
+                reasoning=reasoning,
+                matched_patterns=matched,
+            )
+
+        # 3c. sed / awk — read-only unless -i / inplace
+        if binary_name in _RW_TEXT_COMMANDS:
+            if binary_name == "sed" and _INPLACE_FLAG_RE.search(args_text):
+                matched.append("sed -i")
+                reasoning.append("`sed -i` performs in-place file modification")
+                return ReversibilityVerdict(
+                    reversibility_class=ReversibilityClass.PARTIAL,
+                    requires_888_hold=False,
+                    requires_explicit_ack=False,
+                    rollback_method="restore from VCS or backup",
+                    reversal_window_seconds=300.0,
+                    blast_radius_estimate="MEDIUM",
+                    reasoning=reasoning,
+                    matched_patterns=matched,
+                )
+            if binary_name == "awk" and (
+                _INPLACE_FLAG_RE.search(args_text) or _INPLACE_AWK_RE.search(args_text)
+            ):
+                matched.append("awk -i inplace")
+                reasoning.append("`awk -i inplace` performs in-place file modification")
+                return ReversibilityVerdict(
+                    reversibility_class=ReversibilityClass.PARTIAL,
+                    requires_888_hold=False,
+                    requires_explicit_ack=False,
+                    rollback_method="restore from VCS or backup",
+                    reversal_window_seconds=300.0,
+                    blast_radius_estimate="MEDIUM",
+                    reasoning=reasoning,
+                    matched_patterns=matched,
+                )
+            # Plain sed/awk ⇒ read-only stream edit
+            continue
+
+        # 3d. find with -delete flag ⇒ PARTIAL
+        if binary_name == "find":
+            if "-delete" in toks[1:]:
+                matched.append("find -delete")
+                reasoning.append("`find -delete` removes files matching criteria")
+                return ReversibilityVerdict(
+                    reversibility_class=ReversibilityClass.PARTIAL,
+                    requires_888_hold=False,
+                    requires_explicit_ack=False,
+                    rollback_method="restore from backup",
+                    reversal_window_seconds=300.0,
+                    blast_radius_estimate="MEDIUM",
+                    reasoning=reasoning,
+                    matched_patterns=matched,
+                )
+            continue  # plain find is R0
+
+        # 3e. Destructive command with force/recursive flag ⇒ IRREVERSIBLE
+        if binary_name in _R2_SHELL_COMMANDS:
+            if binary_name == "rm" and (
+                re.search(r"(?:^|\s)-r[fR]?[\b\s]", args_text)
+                or re.search(r"(?:^|\s)-[fF]r[\b\s]", args_text)
+                or _RECURSIVE_FLAG_RE.search(args_text)
+                and _FORCE_FLAG_RE.search(args_text)
+            ):
+                matched.append("rm -r/-rf/-fr (recursive+force)")
+                reasoning.append("`rm` with recursive + force — escalate to IRREVERSIBLE")
+                return ReversibilityVerdict(
+                    reversibility_class=ReversibilityClass.IRREVERSIBLE,
+                    requires_888_hold=True,
+                    requires_explicit_ack=True,
+                    rollback_method=None,
+                    reversal_window_seconds=0.0,
+                    blast_radius_estimate="HIGH",
+                    reasoning=reasoning,
+                    matched_patterns=matched,
+                )
+            matched.append(f"{binary_name} (mutating)")
+            reasoning.append(f"`{binary_name}` is a known mutating command")
+            return ReversibilityVerdict(
+                reversibility_class=ReversibilityClass.PARTIAL,
+                requires_888_hold=False,
+                requires_explicit_ack=False,
+                rollback_method="undo via filesystem checkpoint or git",
+                reversal_window_seconds=300.0,
+                blast_radius_estimate="MEDIUM",
+                reasoning=reasoning,
+                matched_patterns=matched,
+            )
+
+        # 3f. R0 whitelist
+        if binary_name in _R0_SHELL_COMMANDS:
+            continue
+
+        # 3g. Unknown binary — fail-closed to PARTIAL (spec)
+        matched.append(f"unknown binary: {binary_name}")
+        reasoning.append(
+            f"Unknown binary `{binary_name}` is not on R0 whitelist — fail-closed to PARTIAL"
+        )
+        return ReversibilityVerdict(
+            reversibility_class=ReversibilityClass.PARTIAL,
+            requires_888_hold=False,
+            requires_explicit_ack=False,
+            rollback_method="manual review",
+            reversal_window_seconds=300.0,
+            blast_radius_estimate="MEDIUM",
+            reasoning=reasoning,
+            matched_patterns=matched,
+        )
+
+    # All segments were R0 and no redirection/subshell found.
+    matched.append("read-only command chain")
+    reasoning.append("All segments are read-only; no mutation detected")
+    return ReversibilityVerdict(
+        reversibility_class=ReversibilityClass.TRIVIAL,
+        requires_888_hold=False,
+        requires_explicit_ack=False,
+        rollback_method=None,
+        reversal_window_seconds=None,
+        blast_radius_estimate="LOW",
+        reasoning=reasoning,
+        matched_patterns=matched,
+    )
+
+
 @dataclass
 class ReversibilityVerdict:
     """Result of reversibility assessment."""
@@ -219,6 +684,18 @@ class ReversibilityEngine:
         # Flatten params for pattern matching
         params_str = json_dumps_frozensafe(params).lower()
         full_text = f"{tool_id} {params_str}".lower()
+
+        # ── T2 (Forged 2026-08-27 · WIRE 5) ────────────────────────────────
+        # Shell-aware pre-emption: for shell-language tool ids with an
+        # extractable command string, defer entirely to the deterministic
+        # shell analyzer. Regex pass below would over-classify (e.g. tag
+        # plain `ls /tmp` as PARTIAL via default base class) or miss
+        # redirections entirely.
+        if tool_id.lower() in ("bash", "sh", "zsh", "ksh", "csh", "tcsh", "fish"):
+            cmd = _shell_extract_command(params or {})
+            if cmd:
+                return _analyze_shell_command(cmd)
+        # ── end T2 hook ───────────────────────────────────────────────────
 
         # Check critical first
         for pattern_re in self._critical_re:
