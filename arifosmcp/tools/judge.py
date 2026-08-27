@@ -1096,13 +1096,21 @@ async def arif_judge(
     # ── EVIDENCE PRE-FLIGHT (P0.4) ──────────────────────────────────────────
     # If caller did not provide evidence or provided empty dict, auto-retrieve
     # latest observation from active session state so observe→judge sequence is seamless.
-    if (evidence is None or not isinstance(evidence, dict) or not evidence or all(v is None or v == "" or v == [] for v in evidence.values())) and mode not in ("escalate", "seal"):
+    if (
+        evidence is None
+        or not isinstance(evidence, dict)
+        or not evidence
+        or all(v is None or v == "" or v == [] for v in evidence.values())
+    ) and mode not in ("escalate", "seal"):
         try:
             from arifosmcp.runtime.tools import _SESSIONS
+
             _sess_data = _SESSIONS.get(session_id) if session_id else None
             if _sess_data and isinstance(_sess_data, dict):
                 _last_obs = _sess_data.get("last_observation") or (
-                    _sess_data.get("observations", [None])[-1] if _sess_data.get("observations") else None
+                    _sess_data.get("observations", [None])[-1]
+                    if _sess_data.get("observations")
+                    else None
                 )
                 if _last_obs and isinstance(_last_obs, dict):
                     evidence = dict(_last_obs)
@@ -1111,7 +1119,12 @@ async def arif_judge(
             pass
 
         # If still empty but candidate exists, treat candidate as in-band evidence
-        if (evidence is None or not isinstance(evidence, dict) or not evidence or all(v is None or v == "" or v == [] for v in evidence.values())) and candidate:
+        if (
+            evidence is None
+            or not isinstance(evidence, dict)
+            or not evidence
+            or all(v is None or v == "" or v == [] for v in evidence.values())
+        ) and candidate:
             evidence = {"candidate": candidate, "in_band": True, "observed_state": "in_band"}
             _evidence = dict(evidence)
 
@@ -1167,6 +1180,48 @@ async def arif_judge(
     if not actor_id and not session_id:
         _hard_reasons.append("No actor_id or session_id — cannot identify caller.")
 
+    # Gate 2a: F1 AMANAH PROVENANCE — engine-classified, agent-claimed, reconciled.
+    # Forged 2026-08-27 (WIRE 4). Reversibility is a deterministic F1 floor.
+    # The agent's reversibility_level is metadata; the engine is sole classifier.
+    # Strategy: call ReversibilityEngine with domain= candidate text + claimed
+    # tool context. Engine = authority. Agent = provenance. Mismatch is logged
+    # as soft warning, not reversal (avoids F10 ontology leak via LLM veto).
+    _f1_receipt: dict[str, Any] = {"engine_called": False, "mismatch": False}
+    try:
+        from arifosmcp.core.reversibility_engine import classify_action as _f1_classify_action
+
+        _f1_tool_id = domain or requested_capability or "unknown"
+        _f1_params = {
+            "candidate": candidate or "",
+            "action_class": action_class or "",
+            "blast_radius": blast_radius or "",
+        }
+        _f1_engine_verdict = _f1_classify_action(_f1_tool_id, _f1_params)
+        _f1_receipt = {
+            "engine_called": True,
+            "engine_reversibility": _f1_engine_verdict.get("reversibility"),
+            "engine_verdict": _f1_engine_verdict.get("verdict"),
+            "engine_reason": _f1_engine_verdict.get("reason"),
+            "agent_claimed": (reversibility_level or action_class or "").upper() or None,
+            "mismatch": False,  # set below
+        }
+        # If agent narrative claims IRREVERSIBLE/MUTATE but engine says
+        # TRIVIAL/REVERSIBLE → soft-inconsistency, log for F11 audit, do not
+        # self-overturn (kernel can be wrong; agent can be right). F2 TRUTH
+        # + F10 ONTOLOGY hold: log mismatch as provenance, NOT verdict.
+        _eng_rev = _f1_engine_verdict.get("reversibility", "").lower()
+        _f1_receipt["mismatch"] = _f1_receipt["agent_claimed"] in (
+            "IRREVERSIBLE",
+            "MUTATE",
+        ) and _eng_rev in ("trivial", "reversible")
+    except Exception as _f1_exc:
+        _f1_receipt["engine_error"] = str(_f1_exc)
+        # F1 fail-soft: engine missing must not block legitimate judgments.
+        # Reversible-first floor survives via downstream Gate 2 (actor_signature).
+    # Attach receipt for F11 audit (always — even on engine error).
+    if isinstance(evidence, dict):
+        evidence.setdefault("f1_engine_receipt", _f1_receipt)
+
     # Gate 2: Irreversible actions require cryptographic proof
     _rev = (reversibility_level or action_class or "").upper()
     _br = (blast_radius or "").upper()
@@ -1198,9 +1253,22 @@ async def arif_judge(
     # ── MOVE 3: PROMOTED DETERMINISTIC CODE GATES (F2, F7, F9, Falsification, Musyawarah) ──
 
     # Gate 6 (F2 TRUTH): Substantive mutating actions require grounded observation/receipt
-    if (action_tier in ("sovereign", "c4", "c5", "T2", "T3") or _rev in ("IRREVERSIBLE", "MUTATE")) and mode not in ("escalate", "seal"):
+    if (
+        action_tier in ("sovereign", "c4", "c5", "T2", "T3") or _rev in ("IRREVERSIBLE", "MUTATE")
+    ) and mode not in ("escalate", "seal"):
         if isinstance(evidence, dict):
-            _grounded_keys = {"observed_state", "receipt", "source", "records", "telemetry", "diff", "metrics", "grounding", "observation", "findings"}
+            _grounded_keys = {
+                "observed_state",
+                "receipt",
+                "source",
+                "records",
+                "telemetry",
+                "diff",
+                "metrics",
+                "grounding",
+                "observation",
+                "findings",
+            }
             if not any(k in evidence for k in _grounded_keys):
                 _hard_reasons.append(
                     "F2_TRUTH_VIOLATION: Substantive mutation requires structured observation/receipt grounding."
@@ -1213,7 +1281,9 @@ async def arif_judge(
     if _conf_val is not None:
         try:
             _c_float = float(_conf_val)
-            if _c_float > 0.97 and not (isinstance(evidence, dict) and evidence.get("axiomatic_proof")):
+            if _c_float > 0.97 and not (
+                isinstance(evidence, dict) and evidence.get("axiomatic_proof")
+            ):
                 _hard_reasons.append(
                     f"F7_HUMILITY_VIOLATION: Claimed confidence {_c_float:.3f} exceeds constitutional ceiling 0.97 (fake certainty)."
                 )
@@ -1223,9 +1293,15 @@ async def arif_judge(
     # Gate 8 (F9 ANTI-HANTU): Deception & Anthropomorphic Ghost Sentience Detection
     _text_to_scan = f"{candidate or ''} {str(evidence or '')}".lower()
     _hantu_patterns = [
-        "i feel pain", "i have feelings", "my conscious soul", "saya ada jiwa",
-        "saya rasa sedih", "my inner subjective experience", "as a sentient conscious entity",
-        "i am truly suffering", "saya terseksa secara batin"
+        "i feel pain",
+        "i have feelings",
+        "my conscious soul",
+        "saya ada jiwa",
+        "saya rasa sedih",
+        "my inner subjective experience",
+        "as a sentient conscious entity",
+        "i am truly suffering",
+        "saya terseksa secara batin",
     ]
     for _pattern in _hantu_patterns:
         if _pattern in _text_to_scan:
@@ -1235,22 +1311,47 @@ async def arif_judge(
             break
 
     # Gate 9: Falsification Boundary Check for T2+ / Irreversible actions
-    if (action_tier in ("c4", "c5", "T2", "T3") or _rev in ("IRREVERSIBLE", "EXTERNAL_SIDE_EFFECT")) and mode not in ("escalate",):
+    if (
+        action_tier in ("c4", "c5", "T2", "T3") or _rev in ("IRREVERSIBLE", "EXTERNAL_SIDE_EFFECT")
+    ) and mode not in ("escalate",):
         _has_falsify = False
         if isinstance(evidence, dict):
-            _has_falsify = any(k in evidence for k in ("falsification_condition", "null_hypothesis", "rollback_check", "falsify", "failure_boundary"))
+            _has_falsify = any(
+                k in evidence
+                for k in (
+                    "falsification_condition",
+                    "null_hypothesis",
+                    "rollback_check",
+                    "falsify",
+                    "failure_boundary",
+                )
+            )
         if not _has_falsify and candidate:
-            _has_falsify = any(term in candidate.lower() for term in ("falsif", "rollback", "null hypothesis", "abort condition"))
+            _has_falsify = any(
+                term in candidate.lower()
+                for term in ("falsif", "rollback", "null hypothesis", "abort condition")
+            )
         if not _has_falsify:
             _hard_reasons.append(
                 "FALSIFICATION_REQUIRED: T2+ or irreversible action requires an explicit falsification/rollback boundary."
             )
 
     # Gate 10: Musyawarah Gate for T2/T3 SEAL
-    if mode == "seal" and (action_tier in ("c4", "c5", "T2", "T3") or _br in ("CRITICAL", "L3_CRITICAL", "HIGH")):
+    if mode == "seal" and (
+        action_tier in ("c4", "c5", "T2", "T3") or _br in ("CRITICAL", "L3_CRITICAL", "HIGH")
+    ):
         _has_musyawarah = False
         if isinstance(evidence, dict):
-            _has_musyawarah = any(k in evidence for k in ("musyawarah_receipt", "tri_witness_score", "peer_review", "sovereign_receipt", "deliberation_proof"))
+            _has_musyawarah = any(
+                k in evidence
+                for k in (
+                    "musyawarah_receipt",
+                    "tri_witness_score",
+                    "peer_review",
+                    "sovereign_receipt",
+                    "deliberation_proof",
+                )
+            )
         if sovereign_receipt:
             _has_musyawarah = True
         if not _has_musyawarah:
@@ -1262,25 +1363,41 @@ async def arif_judge(
     try:
         import types as _types_mod
         from arifosmcp.runtime.godel_lock_gate import godel_lock_gate
+
         _target_actor = None
         if isinstance(evidence, dict):
-            _target_actor = evidence.get("target_actor") or evidence.get("target_actor_id") or evidence.get("author")
-        
+            _target_actor = (
+                evidence.get("target_actor")
+                or evidence.get("target_actor_id")
+                or evidence.get("author")
+            )
+
         _godel_ctx = _types_mod.SimpleNamespace(
             tool_name="arif_judge",
             actor_id=actor_id,
             action_class=reversibility_level or action_class or "OBSERVE",
-            params={"evidence": evidence, "candidate": candidate, "actor_id": _target_actor or actor_id, "target_actor_id": _target_actor},
+            params={
+                "evidence": evidence,
+                "candidate": candidate,
+                "actor_id": _target_actor or actor_id,
+                "target_actor_id": _target_actor,
+            },
         )
-        
-        if _target_actor and str(_target_actor).strip().lower() == str(actor_id).strip().lower() and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+
+        if (
+            _target_actor
+            and str(_target_actor).strip().lower() == str(actor_id).strip().lower()
+            and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
+        ):
             _hard_reasons.append(
                 f"GODEL_LOCK_VIOLATION: Q9b self-certification blocked. Caller '{actor_id}' cannot judge target '{_target_actor}'."
             )
         elif (reversibility_level or action_class) in ("IRREVERSIBLE", "SEAL", "ATOMIC", "MUTATE"):
             _g_res = godel_lock_gate(_godel_ctx)
             if not _g_res.get("passed", True) and _g_res.get("verdict") == "HOLD":
-                _hard_reasons.append(f"GODEL_LOCK_HOLD: {_g_res.get('reason', 'External witness required.')}")
+                _hard_reasons.append(
+                    f"GODEL_LOCK_HOLD: {_g_res.get('reason', 'External witness required.')}"
+                )
     except Exception:
         pass
 
