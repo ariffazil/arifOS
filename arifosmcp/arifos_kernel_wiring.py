@@ -16,6 +16,7 @@ from __future__ import annotations
 import os
 
 from .arifos_policy import OPABridge, PolicyInput, PolicyVerdict
+from .abi.kernel_abi import evaluate_governance
 
 # OPA endpoint per ADR-001 (localhost)
 OPA_DEFAULT = os.environ.get("ARIFOS_OPA_ENDPOINT", "http://127.0.0.1:8181")
@@ -32,7 +33,11 @@ async def evaluate_tool_dispatch(
     policy_path: str | None = None,
 ) -> PolicyVerdict:
     """
-    Evaluate an OPA policy for a tool dispatch decision.
+    Evaluate governance + OPA policy for a tool dispatch decision.
+
+    Flow:
+    1. Governance pre-filter (kernel_abi.evaluate_governance) — BLOCKED/HOLD/APPROVED
+    2. If governance APPROVED → OPA policy evaluation
 
     Returns a PolicyVerdict. The caller (arif_kernel_route) decides whether
     to proceed based on `recommendation`:
@@ -40,6 +45,38 @@ async def evaluate_tool_dispatch(
     - DENY: refuse (override is True, so sovereign can still proceed)
     - SABAR: ask for human review
     """
+    # ── Governance pre-filter (runs BEFORE OPA) ──
+    is_write = action_class in ("MATERIAL", "IRREVERSIBLE")
+    gov_verdict = evaluate_governance(
+        capability_id=tool,
+        invoking_role=actor_id,
+        is_write_operation=is_write,
+    )
+
+    if gov_verdict["verdict"] == "BLOCKED":
+        try:
+            from .abi.kernel_abi import _write_audit_event
+            _write_audit_event(gov_verdict, session_id=session_id)
+        except Exception:
+            pass  # Audit must never crash governance
+        return PolicyVerdict(
+            recommendation="DENY",
+            reason=gov_verdict["reason"],
+            override=False,
+        )
+    if gov_verdict["verdict"] == "REQUIRES_HOLD":
+        try:
+            from .abi.kernel_abi import _write_audit_event
+            _write_audit_event(gov_verdict, session_id=session_id)
+        except Exception:
+            pass  # Audit must never crash governance
+        return PolicyVerdict(
+            recommendation="SABAR",
+            reason=gov_verdict["reason"],
+            override=False,
+        )
+
+    # ── Governance APPROVED → proceed to OPA evaluation ──
     bridge = OPABridge(endpoint=opa_endpoint or OPA_DEFAULT)
     inp = PolicyInput(
         actor_id=actor_id,
