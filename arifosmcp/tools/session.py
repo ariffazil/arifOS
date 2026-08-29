@@ -2252,17 +2252,18 @@ def arif_init(
         _assert_no_static_inline(header, verbose=_verbosity)
 
         # ── v42.0: Genesis Card Binding (AAA warga ignition) ────────────
-        # A5 2026-07-27: gated behind verbosity=full (heavy block, seal path only)
-        if _verbosity == "full":
-            _genesis_card_path = "/root/AAA/registries/genesis/genesis_card.yaml"
-            _genesis_status = "not_loaded"
-            try:
-                import yaml as _g_yaml  # type: ignore
+        # Fail-soft: genesis card loaded to bind immutable genesis hash to session
+        _genesis_card_path = "/root/AAA/registries/genesis/genesis_card.yaml"
+        _genesis_status = "not_loaded"
+        try:
+            import yaml as _g_yaml  # type: ignore
+            import os as _g_os
 
+            if _g_os.path.isfile(_genesis_card_path):
                 with open(_genesis_card_path) as _gf:
                     _gc = _g_yaml.safe_load(_gf)
                 _g_hash = _gc.get("content_hash_sha256", "")
-                header["genesis"] = {
+                _g_payload = {
                     "id": _gc.get("id"),
                     "title": _gc.get("title"),
                     "url": _gc.get("url"),
@@ -2272,38 +2273,75 @@ def arif_init(
                     "motto": _gc.get("motto", "DITEMPA BUKAN DIBERI"),
                     "sections_count": len(_gc.get("sections", [])),
                 }
+                if _verbosity == "full":
+                    _g_payload["sections"] = _gc.get("sections", [])
+                header["genesis"] = _g_payload
                 sess["genesis_card_hash"] = _g_hash
                 _genesis_status = "loaded"
-            except FileNotFoundError:
-                header["genesis_status"] = "not_found"
-            except Exception as _g_exc:
-                header["genesis_status"] = f"error: {_g_exc}"
-            header["genesis_status"] = _genesis_status
+            else:
+                _genesis_status = "not_found"
+        except Exception as _g_exc:
+            header["genesis_status"] = f"error: {_g_exc}"
+            _genesis_status = "error"
+        header["genesis_status"] = _genesis_status
 
-        # ── WIRE 1 (F13 2026-08-27): Agent Card → Init binding ────────────────
-        # Every agent starts with its identity card loaded from
-        # /root/AAA/agent-cards/identity/<actor_id>/agent-card.json (schema v2.2.0).
-        # Fail-soft: card load never breaks init. Surfaces card id/name/role;
-        # full card materializes only on verbosity=full (heavy block).
+        # ── WIRE 1 (F13 2026-08-27): Multi-Tree Agent Card → Init binding ─────
+        # Every agent starts with its identity card loaded from canonical A2A tree
+        # or legacy directories (schema v2.2.0). Fail-soft.
         _agent_card_status = "not_loaded"
         try:
             import os as _os
             import json as _ac_json
 
             _ac_actor = _canonical_actor_id or actor_id
-            _ac_path = f"/root/AAA/agent-cards/identity/{_ac_actor}/agent-card.json"
-            if _os.path.isfile(_ac_path):
-                with open(_ac_path) as _ac_f:
-                    _ac = _ac_json.load(_ac_f)
+            _actor_candidates = [_ac_actor, _ac_actor.lower(), _ac_actor.upper()]
+            _fi_alias_map = {
+                "fi-001": "claude-code",
+                "fi-002": "opencode",
+                "fi-003": "qwen-code",
+                "fi-004": "codex",
+                "fi-005": "openclaw",
+                "fi-006": "antigravity",
+                "fi-007": "grok-build",
+                "fi-008": "kimi-code",
+            }
+            if _ac_actor.lower() in _fi_alias_map:
+                _actor_candidates.append(_fi_alias_map[_ac_actor.lower()])
+
+            _card_found = None
+            _card_path_found = None
+            for _cand in _actor_candidates:
+                _search_paths = [
+                    f"/root/AAA/a2a-server/agent-cards/identity/{_cand}.json",
+                    f"/root/AAA/a2a-server/agent-cards/harnesses/{_cand}.json",
+                    f"/root/AAA/a2a-server/agent-cards/organs/{_cand}.json",
+                    f"/root/AAA/a2a-server/agent-cards/extensions/{_cand}.json",
+                    f"/root/AAA/a2a-server/agent-cards/roles/{_cand}.json",
+                    f"/root/AAA/a2a-server/agent-cards/forge/{_cand}.json",
+                    f"/root/AAA/agent-cards/identity/{_cand}/agent-card.json",
+                    f"/root/AAA/agent-cards/organs/{_cand}/agent-card.json",
+                    f"/root/AAA/agent-cards/extensions/{_cand}/agent-card.json",
+                    f"/root/AAA/agent-cards/pillars/{_cand}/agent-card.json",
+                ]
+                for _sp in _search_paths:
+                    if _os.path.isfile(_sp):
+                        with open(_sp) as _ac_f:
+                            _card_found = _ac_json.load(_ac_f)
+                            _card_path_found = _sp
+                            break
+                if _card_found:
+                    break
+
+            if _card_found:
                 _ac_payload = {
-                    "card_id": _ac.get("id") or _ac.get("card_id") or _ac_actor,
-                    "name": _ac.get("name") or _ac.get("agent_name") or _ac_actor,
-                    "role": _ac.get("emd_role") or _ac.get("role") or _ac.get("class"),
-                    "version": _ac.get("schemaVersion") or _ac.get("version"),
+                    "card_id": _card_found.get("id") or _card_found.get("card_id") or _ac_actor,
+                    "name": _card_found.get("name") or _card_found.get("agent_name") or _ac_actor,
+                    "role": _card_found.get("emd_role") or _card_found.get("role") or _card_found.get("class"),
+                    "version": _card_found.get("schemaVersion") or _card_found.get("version"),
+                    "source_path": _card_path_found,
                 }
-                # full card materializes in full mode only (heavy block)
                 if _verbosity == "full":
-                    _ac_payload["full"] = _ac
+                    _ac_payload["full"] = _card_found
                 header["agent_card"] = _ac_payload
                 _agent_card_status = "loaded"
                 sess["agent_card_id"] = _ac_payload["card_id"]
