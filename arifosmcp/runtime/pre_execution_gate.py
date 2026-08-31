@@ -38,6 +38,7 @@ DITEMPA BUKAN DIBERI — The gate is forged, not given.
 from __future__ import annotations
 
 import logging
+import os
 import time
 
 try:
@@ -714,10 +715,34 @@ def _asi_firewall_check(
         None if AGI_TIER (proceed to next gate).
         GateResult(HOLD) if ASI_TIER detected.
 
-    Fails open: if classifier unavailable, returns None.
+    G4 HARDENING (2026-08-30, Fasa 1 Kernel Immutable Floor): FAIL-CLOSED.
+    Previously failed open (classifier unavailable → allow). An unavailable
+    classifier must never widen the authority path. Non-observe actions HOLD
+    with F13 escalation; OBSERVE/ANALYZE proceed with a logged warning (the
+    safely-representable downgrade, mirroring ART DEFAULT_OBSERVE semantics).
     """
     if not _ASI_FIREWALL_AVAILABLE:
-        return None
+        if requested_action in (ActionClass.OBSERVE, ActionClass.ANALYZE):
+            logger.warning(
+                "ASI firewall classifier unavailable — OBSERVE/ANALYZE proceeding "
+                "with warning (fail-closed applies to mutation classes only)"
+            )
+            return None
+        logger.warning(
+            "ASI firewall classifier unavailable — FAIL-CLOSED: holding %s action",
+            requested_action.value,
+        )
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[
+                "ASI firewall classifier unavailable — fail-closed per F1 AMANAH "
+                "(mutation-class actions cannot proceed without the ASI screen)"
+            ],
+            violations=["ASI_FIREWALL_UNAVAILABLE"],
+            blocked_action_class=requested_action,
+            required_human_ack=True,
+        )
 
     tool_name = envelope.organ.tool_name or ""
     params = getattr(envelope, "payload", {}) or {}
@@ -1346,6 +1371,57 @@ def pre_execution_gate(
             blocked_action_class=ActionClass.UNKNOWN,
         )
 
+    # ── Gate 1.5: Kernel enforcement-freeze attestation (G7, 2026-08-30) ─
+    # Runs BEFORE every other check: if the enforcement code itself drifted,
+    # no downstream gate can be trusted. Self-computed (caller-independent).
+    # Mutating classes only — read paths keep zero added latency.
+    # Pin via deploy (kernel_freeze --pin); drift HOLDs under enforcement.
+    if ActionClass.is_mutating(requested_action):
+        try:
+            from arifosmcp.runtime.kernel_freeze import check_freeze
+
+            freeze = check_freeze()
+            if freeze["drift"]:
+                if freeze["enforced"]:
+                    return GateResult(
+                        envelope=envelope,
+                        verdict=GateVerdict.HOLD,
+                        reasons=[
+                            "Kernel enforcement-freeze drift: running enforcement "
+                            "modules differ from the pinned release digest — "
+                            "mutation refused until repinned (deploy) or investigated"
+                        ],
+                        violations=["KERNEL_FREEZE_DRIFT", "F11_AUDIT"],
+                        blocked_action_class=requested_action,
+                        required_human_ack=True,
+                    )
+                logger.warning(
+                    "KERNEL_FREEZE_DRIFT (warn mode): digest %s… != pin %s… — "
+                    "mutation classes proceed; enforcement is OFF",
+                    str(freeze.get("digest"))[:12],
+                    str(freeze.get("pinned"))[:12],
+                )
+        except Exception as freeze_err:  # noqa: BLE001
+            # Attestation failure must never widen authority, only narrow it:
+            # if enforcement is on, an unreadable freeze state holds mutations.
+            if os.environ.get("ARIFOS_KERNEL_FREEZE_ENFORCE", "").strip().lower() in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            ):
+                return GateResult(
+                    envelope=envelope,
+                    verdict=GateVerdict.HOLD,
+                    reasons=[
+                        "Kernel freeze attestation unavailable while enforcement "
+                        f"is ON — fail-closed: {freeze_err}"
+                    ],
+                    violations=["KERNEL_FREEZE_UNAVAILABLE"],
+                    blocked_action_class=requested_action,
+                )
+            logger.warning("kernel freeze check skipped (unavailable): %s", freeze_err)
+
     # ── Gate 2: Tool manifest check ───────────────────────────────────
     tool_name = envelope.organ.tool_name
     # Resolve SDK long-name aliases to canonical short names before manifest lookup
@@ -1595,6 +1671,10 @@ def pre_execution_gate(
                 violations=["F11_AUDIT — invalid constitution hash"],
                 blocked_action_class=requested_action,
             )
+
+    # ── Gate 8.5: (moved to Gate 1.5 — freeze attestation must precede every
+    #    other check: if the enforcement code itself drifted, no downstream
+    #    gate can be trusted) ─────────────────────────────────────────────
 
     # ── Gate 9: Runtime drift ─────────────────────────────────────────
     if drift_report is not None:
