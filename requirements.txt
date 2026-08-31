@@ -1562,9 +1562,9 @@ griffelib==2.0.2 \
     # via
     #   fastmcp-slim
     #   pydantic-ai-slim
-groq==1.4.0 \
-    --hash=sha256:09b1ed51408c6969a11ef1a4dfe44d42ec975b5f1510e5de3f3dab56e22dffc6 \
-    --hash=sha256:99a3bcd57c71538f69cf11c75cdae91598983d2681b9a14008636a018c4b6d17
+groq==1.7.0 \
+    --hash=sha256:cb1518f823423d4e52445859eb7d2918a927794cec12f8d5e50d9161e3690fc8 \
+    --hash=sha256:d582dbb3f071b92ca339baba83af9f57ba6f46a51c34b04565d7cb9badb2785b
     # via pydantic-ai-slim
 grpcio==1.83.0 \
     --hash=sha256:009667eaf3dcd5224c713589cdc98e7ca4ed0ff0b61132c6b276e930eb83a2df \
