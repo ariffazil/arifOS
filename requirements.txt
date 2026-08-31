@@ -1180,9 +1180,9 @@ etuples==0.3.10 \
     # via
     #   minikanren
     #   pytensor
-exa-py==2.16.2 \
-    --hash=sha256:51285f76c82c62e91c59147c49e1b3c121f9431c8e1ea99d7465374dbed131e8 \
-    --hash=sha256:e2eed571874edabe2276cee8a66640ef9ce50301e0a66f58383a570864b9d5ea
+exa-py==2.19.0 \
+    --hash=sha256:d8f684d04d086a343a1f067b59715819030201ce2508470868c21186ee6541d7 \
+    --hash=sha256:ee061bad0fe65597d23a4964d2263702f3faec3934f8631b0dc030063cc00dd5
     # via arifos
 exceptiongroup==1.3.1 \
     --hash=sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219 \
