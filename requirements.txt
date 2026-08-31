@@ -3101,9 +3101,10 @@ nvidia-nvshmem-cu13==3.7.2 ; sys_platform == 'linux' \
     --hash=sha256:0e748308b9e0a8a8d81859353f3e6c98fbe85a85f652a915a2ba60149a0bd124 \
     --hash=sha256:b9a4f843c62b5dded8ad33fd6d220e007dcd39f06cee549292f5ba14ce4c235c
     # via torch
-nvidia-nvtx==13.0.85 ; sys_platform == 'linux' \
-    --hash=sha256:4936d1d6780fbe68db454f5e72a42ff64d1fd6397df9f363ae786930fd5c1cd4 \
-    --hash=sha256:cb7780edb6b14107373c835bf8b72e7a178bac7367e23da7acb108f973f157a6
+nvidia-nvtx==13.3.29 ; sys_platform == 'linux' \
+    --hash=sha256:4e4f307012748c093dd3d28a0bb0f3da954857754dd79a4e6d2d38790730b64e \
+    --hash=sha256:c54976009b1e86846ee66ab129daae522a25d698971cb074b66e5e7e133a58f0 \
+    --hash=sha256:ee6f2cfcfb5dc037cc40894186c9142a2f9bc25b2ea8fc2d57b51974d777d1bc
     # via cuda-toolkit
 oauthlib==3.3.1 \
     --hash=sha256:0f0f8aa759826a193cf66c12ea1af1637f87b9b4622d46e866952bb022e538c9 \
