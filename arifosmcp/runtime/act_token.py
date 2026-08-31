@@ -467,9 +467,16 @@ def _b64url_decode(s: str) -> bytes:
 
 
 def _sign(payload_b64: str) -> str:
-    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()[
-        :16
-    ]
+    """Full 256-bit HMAC-SHA256 signature (G2, Fasa 1, 2026-08-30).
+
+    Previously truncated to 16 hex chars (64-bit) — TODO P0.2 acknowledged in
+    code. All newly minted tokens now carry the full 64-hex signature.
+    Verifiers dual-accept: 64-char sig → full compare; 16-char sig → legacy
+    compare (compat window until legacy tokens expire per TTL).
+    """
+    return hmac.new(
+        _get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256
+    ).hexdigest()
 
 
 def mint_sct(
@@ -632,11 +639,17 @@ def verify_sct(
         return None
 
     try:
-        expected = _sign(payload_b64)
+        expected_full = _sign(payload_b64)
     except RuntimeError:
         return None
-    if not hmac.compare_digest(expected, sig):
-        return None
+    # G2 dual-length verification (2026-08-30): full 64-hex for new tokens,
+    # legacy 16-hex window for tokens minted before the upgrade (TTL-bounded).
+    if len(sig) == 64:
+        if not hmac.compare_digest(expected_full, sig):
+            return None
+    else:
+        if not hmac.compare_digest(expected_full[:16], sig[:16]):
+            return None
 
     try:
         raw = _b64url_decode(payload_b64)

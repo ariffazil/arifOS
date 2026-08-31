@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
+import hmac
 import json
 import os
 import threading
@@ -49,6 +50,76 @@ LOCK_FILENAME = "seal_chain.append.lock"
 CANONICAL_EPOCH_ID = "F004-CANONICAL-2026-07-17"
 
 GENESIS_PREV_HASH = "genesis"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VAULT999-SIG (G1, Fasa 1 Kernel Immutable Floor, 2026-08-30)
+# ═══════════════════════════════════════════════════════════════════════════════
+# The F-004 chain is hash-LINKED but was not AUTHENTICATED: append_receipt
+# accepted signature="" and verify_chain never checked it (SIGNATURE_FAIL /
+# WRONG_KEY were defined but never raised). Anyone with write access to
+# seal_chain.jsonl could rewrite history self-consistently.
+#
+# VAULT999-SIG closes that: every canonical receipt appended while a vault
+# HMAC key is configured is signed (full HMAC-SHA256, 256-bit) over its
+# receipt_hash. verify_chain re-checks every signed entry and — after the
+# first signed entry (the VAULT-SIG-1 cutover point) — flags unsigned
+# canonical entries. Historical entries are NEVER rewritten ("gaps are
+# classified, never rewritten").
+#
+# Activation ladder (F1: reversible-by-git until enforced):
+#   ARIFOS_VAULT_HMAC_KEY / ARIFOS_VAULT_HMAC_KEY_FILE — key material.
+#     Absent → signing disabled (dev/local), enforcement impossible.
+#   ARIFOS_VAULT_SIG_ENFORCE=1 — 888_HOLD-gated production posture:
+#     - append without a key FAILS CLOSED (SIG_ENFORCE_NO_KEY);
+#     - unsigned canonical entries after the cutover seq are SIGNATURE_FAIL
+#       gaps (chain goes red). Default (unset) = warn mode: signed entries
+#       are still verified; unsigned post-cutover entries are counted in
+#       `unsigned_after_cutover` (auditor-visible, chain stays green).
+#
+# Independent audit path: tools/audit_verify.py verifies a COPY of the chain
+# offline with the same key — no trust in the running system required.
+SIG_EPOCH_ID = "VAULT-SIG-1"
+SIG_KEY_ID = "vault-hmac-1"
+SIG_PREFIX = "hmac-sha256:"
+
+
+def _vault_hmac_key() -> bytes | None:
+    """Vault signing key from env or key file. None → signing unavailable."""
+    secret = os.environ.get("ARIFOS_VAULT_HMAC_KEY")
+    if not secret:
+        secret_file = os.environ.get("ARIFOS_VAULT_HMAC_KEY_FILE")
+        if secret_file:
+            try:
+                secret = Path(secret_file).read_text(encoding="utf-8").strip()
+            except OSError:
+                secret = None
+    return secret.encode("utf-8") if secret else None
+
+
+def _sig_enforce() -> bool:
+    return os.environ.get("ARIFOS_VAULT_SIG_ENFORCE", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _sign_receipt_hash(receipt_hash: str, key: bytes) -> str:
+    """Full 256-bit HMAC-SHA256 over the receipt_hash string."""
+    return SIG_PREFIX + hmac.new(
+        key, receipt_hash.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+
+def _verify_receipt_signature(
+    receipt_hash: str, signature: str, key: bytes
+) -> bool:
+    """Constant-time comparison of the expected vs recorded signature."""
+    if not signature.startswith(SIG_PREFIX):
+        return False
+    expected = _sign_receipt_hash(receipt_hash, key)
+    return hmac.compare_digest(signature, expected)
 
 
 class GapClass(StrEnum):
@@ -121,6 +192,8 @@ class ReceiptEnvelope:
     software_release: str
     signature: str
     epoch_id: str = CANONICAL_EPOCH_ID
+    # VAULT999-SIG: which key signed `signature` ("" = unsigned/historical).
+    sig_key_id: str = ""
     # Wire aliases for observatory / legacy readers
     seq: int | None = None
     prev_hash: str | None = None
@@ -377,6 +450,12 @@ class VerifyResult:
     canonical_entries: int = 0
     historical_entries: int = 0
     failure_classes: dict[str, int] = field(default_factory=dict)
+    # VAULT999-SIG (G1) auditor summary
+    signed_entries: int = 0
+    signed_unverifiable: int = 0
+    unsigned_after_cutover: int = 0
+    cutover_seq: Any = None
+    sig_enforce: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -394,6 +473,13 @@ class VerifyResult:
             "failure_classes": self.failure_classes,
             # F-004: never claim green when gaps exist
             "chain_verified": self.verified,
+            # VAULT999-SIG
+            "sig_epoch": SIG_EPOCH_ID,
+            "signed_entries": self.signed_entries,
+            "signed_unverifiable": self.signed_unverifiable,
+            "unsigned_after_cutover": self.unsigned_after_cutover,
+            "cutover_seq": self.cutover_seq,
+            "sig_enforce": self.sig_enforce,
         }
 
 
@@ -443,6 +529,13 @@ def verify_chain(
     last_entry: dict[str, Any] | None = None
     parseable_index = -1
     scope_canonical = scope == "canonical"
+    # VAULT999-SIG (G1) walk state
+    _sig_key = _vault_hmac_key()
+    _sig_enforce_on = _sig_enforce()
+    signed_ok = 0
+    signed_unverifiable = 0
+    signed_seqs: list[int] = []
+    unsigned_records: list[tuple[int, int, Any]] = []
 
     for pl in lines:
         if pl.corrupt or pl.entry is None:
@@ -680,12 +773,90 @@ def verify_chain(
                     )
                 )
 
+        # ── VAULT999-SIG (G1): signature check + cutover tracking ──────
+        if canon:
+            _sig = str(entry.get("signature") or "")
+            _skid = str(entry.get("sig_key_id") or "")
+            if _skid:
+                if _skid != SIG_KEY_ID:
+                    gc = GapClass.WRONG_KEY
+                    classes[gc] = classes.get(gc, 0) + 1
+                    gaps.append(
+                        GapRecord(
+                            index=parseable_index,
+                            line_no=pl.line_no,
+                            gap_class=gc,
+                            expected_prev=None,
+                            got_prev=_skid,
+                            seq=seq,
+                            detail=f"unknown sig_key_id '{_skid}' (expected '{SIG_KEY_ID}')",
+                        )
+                    )
+                elif _sig_key is not None:
+                    if _verify_receipt_signature(
+                        str(entry.get("receipt_hash") or ""), _sig, _sig_key
+                    ):
+                        signed_ok += 1
+                    else:
+                        gc = GapClass.SIGNATURE_FAIL
+                        classes[gc] = classes.get(gc, 0) + 1
+                        gaps.append(
+                            GapRecord(
+                                index=parseable_index,
+                                line_no=pl.line_no,
+                                gap_class=gc,
+                                expected_prev=None,
+                                got_prev=_sig[: len(SIG_PREFIX) + 12],
+                                seq=seq,
+                                detail="HMAC-SHA256 signature mismatch on receipt_hash",
+                            )
+                        )
+                else:
+                    # Signed entry but no key available to this verifier —
+                    # auditor must supply the key (see tools/audit_verify.py).
+                    signed_unverifiable += 1
+                if isinstance(seq, int):
+                    signed_seqs.append(seq)
+            else:
+                unsigned_records.append(
+                    (parseable_index, pl.line_no, seq)
+                )
+
         if this_h:
             prev_hash = this_h
             prev_was_canonical = canon
 
     head_seq = entry_sequence(last_entry) if last_entry else None
     head_hash = entry_this_hash(last_entry) if last_entry else None
+
+    # ── VAULT999-SIG cutover analysis ─────────────────────────────────
+    # Cutover = lowest sequence among signed canonical entries. Canonical
+    # entries AFTER that point must be signed: unsigned → SIGNATURE_FAIL in
+    # enforce mode (chain red), counted (green-preserving) in warn mode.
+    cutover_seq = min(signed_seqs) if signed_seqs else None
+    unsigned_after_cutover = 0
+    if cutover_seq is not None:
+        for _idx, _lno, _seq in unsigned_records:
+            _post = isinstance(_seq, int) and _seq > cutover_seq
+            if _post and _sig_enforce_on:
+                gc = GapClass.SIGNATURE_FAIL
+                classes[gc] = classes.get(gc, 0) + 1
+                gaps.append(
+                    GapRecord(
+                        index=_idx,
+                        line_no=_lno,
+                        gap_class=gc,
+                        expected_prev=None,
+                        got_prev=None,
+                        seq=_seq,
+                        detail=(
+                            f"unsigned canonical entry after {SIG_EPOCH_ID} "
+                            f"cutover (seq {cutover_seq}) in enforce mode"
+                        ),
+                    )
+                )
+            elif _post:
+                unsigned_after_cutover += 1
 
     # Empty file with only empties → valid genesis
     if entries == 0 and (corrupt == 0 or scope_canonical):
@@ -726,6 +897,12 @@ def verify_chain(
         canonical_entries=canonical_n,
         historical_entries=historical_n,
         failure_classes=classes,
+        # VAULT999-SIG (G1)
+        signed_entries=signed_ok,
+        signed_unverifiable=signed_unverifiable,
+        unsigned_after_cutover=unsigned_after_cutover,
+        cutover_seq=cutover_seq,
+        sig_enforce=_sig_enforce_on,
     )
 
 
@@ -1064,6 +1241,26 @@ def append_receipt(
             body["idempotency_key"] = idempotency_key
         receipt_hash = compute_receipt_hash(body)
 
+        # ── VAULT999-SIG (G1): authenticate the receipt ──────────────────
+        # Caller-supplied `signature` values (e.g. the legacy "verified"
+        # placeholder in tools.py arif_seal path) are OVERIDDEN by the real
+        # HMAC whenever a vault key is configured. Zero caller changes.
+        _sig_key = _vault_hmac_key()
+        sig_key_id = ""
+        if _sig_key is not None:
+            signature = _sign_receipt_hash(receipt_hash, _sig_key)
+            sig_key_id = SIG_KEY_ID
+        elif _sig_enforce():
+            return AppendResult(
+                ok=False,
+                receipt=None,
+                failure_class="SIG_ENFORCE_NO_KEY",
+                detail=(
+                    "ARIFOS_VAULT_SIG_ENFORCE=1 but no ARIFOS_VAULT_HMAC_KEY "
+                    "configured — unsigned append refused (fail-closed)"
+                ),
+            )
+
         # ── Idempotency check (GAP #2 fix, 2026-08-03) ──
         if idempotency_key and p.chain.exists():
             for pl in parse_chain_lines(p.chain):
@@ -1096,6 +1293,7 @@ def append_receipt(
             software_release=software_release or "",
             signature=signature or "",
             epoch_id=CANONICAL_EPOCH_ID,
+            sig_key_id=sig_key_id,
             verdict=verdict,
             idempotency_key=idempotency_key,
         )
@@ -1158,6 +1356,9 @@ def heads_agreement(vault_dir: Path | str | None = None) -> dict[str, Any]:
 
 __all__ = [
     "CANONICAL_EPOCH_ID",
+    "SIG_EPOCH_ID",
+    "SIG_KEY_ID",
+    "SIG_PREFIX",
     "GapClass",
     "VerifyStatus",
     "ReceiptEnvelope",
