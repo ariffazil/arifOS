@@ -5,8 +5,8 @@ resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.14' and sys_platform != 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'win32'",
-    "python_full_version < '3.13' and sys_platform == 'win32'",
     "python_full_version == '3.13.*' and sys_platform != 'win32'",
+    "python_full_version < '3.13' and sys_platform == 'win32'",
     "python_full_version < '3.13' and sys_platform != 'win32'",
 ]
 
@@ -2087,7 +2087,7 @@ wheels = [
 
 [[package]]
 name = "exa-py"
-version = "2.16.2"
+version = "2.19.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpcore" },
@@ -2098,9 +2098,9 @@ dependencies = [
     { name = "requests" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3f/fa/4929c8ccc971ec2eec2195d7eb301c657ee2b679a28c94340ff18556add7/exa_py-2.16.2.tar.gz", hash = "sha256:e2eed571874edabe2276cee8a66640ef9ce50301e0a66f58383a570864b9d5ea", size = 63566, upload-time = "2026-07-27T18:44:06.045Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f0/26/94897ec74c7edeb9424a85c592263fa951b0ba313ea84bf657ced9c07e14/exa_py-2.19.0.tar.gz", hash = "sha256:d8f684d04d086a343a1f067b59715819030201ce2508470868c21186ee6541d7", size = 79089, upload-time = "2026-08-27T00:47:24.791Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7f/7a/5e88efa68682378643431c6e88be9c420bde3677b23810fb4c45fa43915b/exa_py-2.16.2-py3-none-any.whl", hash = "sha256:51285f76c82c62e91c59147c49e1b3c121f9431c8e1ea99d7465374dbed131e8", size = 86912, upload-time = "2026-07-27T18:44:04.866Z" },
+    { url = "https://files.pythonhosted.org/packages/68/c0/56e337880bf2430b4092cb3c2d86094776b04bd311b60b121d6ae0fe9156/exa_py-2.19.0-py3-none-any.whl", hash = "sha256:ee061bad0fe65597d23a4964d2263702f3faec3934f8631b0dc030063cc00dd5", size = 108818, upload-time = "2026-08-27T00:47:23.573Z" },
 ]
 
 [[package]]
