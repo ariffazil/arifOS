@@ -225,9 +225,9 @@ arviz-plots==1.2.0 \
     --hash=sha256:2e16ed95ce6d6fbb171d60f7300f50c520ebeeb132be7539591a018076f66f16 \
     --hash=sha256:e1f462aa0ac02fb957aabcae2cfcbee9bc089a029c94dab83fa2ed02d02098f3
     # via arviz
-arviz-stats==1.2.0 \
-    --hash=sha256:f9084addeb1abdbab6e9816f0a063118bc4ff7c48ce9141a4dad20b0e41410ae \
-    --hash=sha256:fc49e6e75f4fce953987a9bf17dc39950e1f12e7cd73f865257e5d1b6a5ee114
+arviz-stats==1.3.1 \
+    --hash=sha256:5fc601c714e96de02a5b2834ba56bc5df359443e34b01cdc6363d51bc349c964 \
+    --hash=sha256:dd76ef6a1ce389643002517fab358deaa5ebd4f42de2549b4621c874b2f48684
     # via
     #   arviz
     #   arviz-plots
