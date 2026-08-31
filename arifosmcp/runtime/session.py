@@ -240,10 +240,14 @@ def _get_signing_secret() -> bytes:
 
 
 def _sign_session_payload(payload: dict[str, Any]) -> str:
-    """Generate a signed base64 token for distributed continuity."""
+    """Generate a signed base64 token for distributed continuity.
+
+    G2 (Fasa 1, 2026-08-30): full 256-bit HMAC-SHA256 — the [:16] truncation
+    (64-bit) is retired at the issuer. Verifiers dual-accept by length.
+    """
     dump = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     b64_payload = base64.urlsafe_b64encode(dump.encode()).decode().rstrip("=")
-    sig = hmac.new(_get_signing_secret(), b64_payload.encode(), hashlib.sha256).hexdigest()[:16]
+    sig = hmac.new(_get_signing_secret(), b64_payload.encode(), hashlib.sha256).hexdigest()
     return f"{b64_payload}.{sig}"
 
 
@@ -257,11 +261,18 @@ def _verify_session_token(token: str) -> dict[str, Any] | None:
         if "." not in token:
             return None
         b64_payload, sig = token.split(".", 1)
-        expected_sig = hmac.new(
+        expected_full = hmac.new(
             _get_signing_secret(), b64_payload.encode(), hashlib.sha256
-        ).hexdigest()[:16]
-        if not hmac.compare_digest(sig, expected_sig):
-            return None
+        ).hexdigest()
+        # G2 dual-length verification (2026-08-30): new tokens carry the full
+        # 64-hex signature (256-bit); legacy tokens (pre-upgrade, TTL-bounded)
+        # carry 16 hex chars — compare on the corresponding length only.
+        if len(sig) == 64:
+            if not hmac.compare_digest(sig, expected_full):
+                return None
+        else:
+            if not hmac.compare_digest(sig, expected_full[:16]):
+                return None
 
         # Add padding back
         missing_padding = len(b64_payload) % 4
