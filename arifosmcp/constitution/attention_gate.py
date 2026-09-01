@@ -96,7 +96,7 @@ DEFER_TTL_SWEEPS: int = 3  # deferrals expire — attention debt cannot hide
 SEVERITIES = ("info", "warn", "error", "critical")
 DUTY_BOUND_TAGS = ("floor", "scar", "incident", "drift", "security")
 
-# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending) ─────────────
+# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01) ─────────────
 # ACR floor for escalation: if an output would burn sovereign attention
 # with compression below the floor, it does NOT reach 888 — it auto-passes
 # to the safe-state path instead. Attention is the numéraire; the gate is
@@ -210,6 +210,55 @@ class AttentionGate:
         self.window = window
         self.seen: List[str] = []  # signature history
         self.last_severity: Dict[str, str] = {}  # signature → last severity
+
+    def should_escalate(
+        self,
+        verdict: AttentionVerdict,
+        *,
+        delta_reality: float = 0.0,
+        attention_minutes: float = 0.0,
+        acr_floor: float = ACR_ESCALATION_FLOOR,
+    ) -> dict[str, Any]:
+        """LAW_ZEN_ATTENTION escalation filter — the gate as attenuator.
+
+        Every verdict bound for 888 passes through ACR first. Low-compression
+        attention burn (ACR < floor) auto-passes to the safe-state path with
+        a receipt — the sovereign is NOT woken for noise. Sovereign-bound and
+        duty-bound signals always escalate (F6/F13 — their channel bypasses
+        every filter).
+
+        Returns:
+            {"escalate": bool, "acr": float, "action": "ESCALATE"|"AUTO_SAFE_STATE"}
+        """
+        if verdict.action.startswith("ADMIT") and (
+            verdict.reality_value == "WORTH_EXECUTING"
+        ):
+            # sovereign/duty channels already admitted as WORTH_EXECUTING
+            return {
+                "escalate": True,
+                "acr": DEFAULT_ACR,
+                "action": "ESCALATE",
+                "receipt": "duty/sovereign channel — attention is theirs by law (F6/F13)",
+            }
+        acr = _acr_from(delta_reality, attention_minutes)
+        if acr < acr_floor:
+            return {
+                "escalate": False,
+                "acr": round(acr, 4),
+                "action": "AUTO_SAFE_STATE",
+                "receipt": (
+                    f"ACR={acr:.4f} < {acr_floor} — attention burn "
+                    f"({attention_minutes:.2f} min) exceeds reality gain; "
+                    "auto-pass to safe-state, sovereign not woken "
+                    "(LAW_ZEN_ATTENTION)"
+                ),
+            }
+        return {
+            "escalate": True,
+            "acr": round(acr, 4),
+            "action": "ESCALATE",
+            "receipt": "compression ratio acceptable — escalation justified",
+        }
 
     def observe(
         self,
@@ -336,7 +385,7 @@ class AttentionGate:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ACR SUPPRESSOR — LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending)
+# ACR SUPPRESSOR — LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01)
 # ─────────────────────────────────────────────────────────────────────────────
 # The Agentic Attention Paradox: ex-post HITL approval dumps verification
 # cost onto inelastic sovereign attention. The suppressor is the exit-side

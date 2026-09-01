@@ -403,11 +403,10 @@ This kernel spec may be amended only by:
 
 ---
 
-## XVII. LAW_ZEN_ATTENTION — Attention Compression Ratio (PROPOSAL, 2026-09-01)
+## XVII. LAW_ZEN_ATTENTION — Attention Compression Ratio (RATIFIED 2026-09-01)
 
-> **Status: PROPOSAL — pending F13 ratification per §XV amendment procedure.**
-> Not canon until sealed. Kernel wiring is additive, flag-gated
-> (`ZEN_ATTENTION_ENFORCE=False`), and measure-only.
+> **Status: RATIFIED — fire-word "Now execute all" delivered by F13 SOVEREIGN
+> 2026-09-01. Kernel enforcement live (`ZEN_ATTENTION_ENFORCE=True`).**
 
 The Agentic Attention Paradox: synthetic execution (L_s) is elastic with
 MC→0; sovereign attention (H_a) is strictly inelastic (biological ceiling,
@@ -436,7 +435,8 @@ rollback receipt + invariant proof → auto-seal, no approval prompt),
 `runtime/forge_preflight.py` K-Gate (R(a)≥0.85 + rollback recipe → G10
 ack bypass), `runtime/consequence_gate.py` reversibility sandbox (recipe
 inside sandbox → PASS without 888), `runtime/mind_feedback_hook.py` +
-`runtime/mind_state.py` Ha/ACR in MIND summary. All measure-only until F13.
+`runtime/mind_state.py` Ha/ACR in MIND summary. RATIFIED 2026-09-01 by
+F13 fire-word — enforcement live, approval theatre deprecated by canon.
 
 ---
 

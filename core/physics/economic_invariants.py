@@ -1020,13 +1020,14 @@ def run_emergence_layer(
 
 
 # ═══════════════════════════════════════════════════════
-# ATTENTION INVARIANT — LAW_ZEN_ATTENTION (DRAFT, 2026-09-01)
+# ATTENTION INVARIANT — LAW_ZEN_ATTENTION (RATIFIED 2026-09-01)
 #
 # The Agentic Attention Paradox: synthetic execution (L_s) is elastic,
 # sovereign attention (H_a) is strictly inelastic. HITL ex-post approval
 # dumps verification cost onto H_a — unpriced cognitive externality.
 # The kernel's numéraire is therefore ACR (Attention Compression Ratio),
-# not throughput. Pure arithmetic: callers supply measured values.
+# not throughput. Ratified by F13 fire-word 2026-09-01 — enforcement
+# live. Pure arithmetic: callers supply measured values.
 # ═══════════════════════════════════════════════════════
 
 
@@ -1048,7 +1049,7 @@ def check_attention_compression_ratio(
     acr_floor: float = 0.10,
 ) -> dict[str, Any]:
     """
-    I14 (DRAFT — TIER 5): Attention Compression Ratio.
+    I14 (RATIFIED — TIER 5): Attention Compression Ratio.
 
         ACR = ΔReality_accepted / ΔAttention_minutes_burned
 
@@ -1087,7 +1088,7 @@ def check_attention_compression_ratio(
         "passed": True,
         "acr": round(acr, 4),
         "floor": acr_floor,
-        "tier": "DRAFT — TIER 5 (Attention Economics) — pending F13 ratification",
+        "tier": "RATIFIED — TIER 5 (Attention Economics) — F13 2026-09-01",
     }
 
 
