@@ -1615,6 +1615,14 @@ class GovernancePipeline:
                 caller_is_principal=caller_is_principal,
                 caller_has_lease=caller_has_lease,
                 session_id=session_id,
+                # LAW_ZEN_ATTENTION auto-seal proofs (F13 RATIFIED 2026-09-01):
+                # callers attach a compiled rollback receipt + ex-ante invariant
+                # proof; gate_1_5 promotes qualified SABAR → AUTO-SEAL.
+                has_rollback_receipt=bool(
+                    getattr(ctx, "has_rollback_receipt", False)
+                    or getattr(ctx, "rollback_recipe", None)
+                ),
+                has_invariant_proof=bool(getattr(ctx, "has_invariant_proof", False)),
             )
         except Exception as e:
             logger.warning(f"E7 gate evaluation failed: {e}")
