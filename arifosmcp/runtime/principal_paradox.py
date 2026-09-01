@@ -616,6 +616,11 @@ def gate_1_5_principal_paradox(
     caller_has_lease: bool = False,
     session_id: str = "",
     prior_override_count: int | None = None,
+    # LAW_ZEN_ATTENTION auto-seal inputs (F13 RATIFIED 2026-09-01 — "execute all"):
+    # a compiled rollback receipt + ex-ante invariant proof promote a
+    # would-be SABAR to AUTONOMOUS_INVARIANT_SEAL (zero sovereign attention).
+    has_rollback_receipt: bool = False,
+    has_invariant_proof: bool = False,
 ) -> dict[str, Any]:
     """
     Governance Pipeline Gate 1.5 — Principal Paradox.
@@ -650,6 +655,31 @@ def gate_1_5_principal_paradox(
         }
 
     if tier == AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED.value:
+        # ── LAW_ZEN_ATTENTION auto-seal promotion (F13 RATIFIED 2026-09-01) ──
+        # The attention paradox: sovereign approval is an inelastic resource.
+        # Where deterministic proof exists (compiled rollback receipt +
+        # ex-ante invariant proof) inside the reversible sandbox, the
+        # approval prompt is replaced by mechanism — zero attention spent.
+        # HIGH/ATOMIC never qualify (guard inside autonomous_invariant_seal).
+        seal_check = autonomous_invariant_seal(
+            risk_tier,
+            reversibility,
+            has_rollback_receipt=has_rollback_receipt,
+            has_invariant_proof=has_invariant_proof,
+        )
+        if seal_check["qualifies"]:
+            return {
+                "gate": "1.5_PRINCIPAL_PARADOX",
+                "verdict": "PROCEED",
+                "autonomy_tier": seal_check["tier"],
+                "rationale": rationale + f" | AUTO-SEAL: {seal_check['reason']}",
+                "envelope": envelope,
+                "violated_laws": [],
+                "reasons": [],
+                "principal_approval_required": False,
+                "auto_sealed": True,
+                "auto_seal_reason": seal_check["reason"],
+            }
         return {
             "gate": "1.5_PRINCIPAL_PARADOX",
             "verdict": "SABAR",

@@ -172,6 +172,15 @@ def run_swarm_ignition(
         from arifosmcp.boot.entropy_governor import get_entropy_governor
 
         gov = get_entropy_governor()
+        # LAW_ZEN_ATTENTION (F13 RATIFIED 2026-09-01 — "execute all"):
+        # stale, reversible open loops auto-close with receipt BEFORE the
+        # session-close entropy measurement. Sovereign attention is never
+        # spent on tickets the kernel can close itself; duty-bound loops
+        # (F1-F13, scar, security) always escalate — never auto-resolved.
+        try:
+            auto_closed = gov.close_stale_loops(manifest)
+        except Exception as _ac_exc:
+            auto_closed = [{"action": "DEGRADED", "reason": str(_ac_exc)}]
         entropy_after = gov.measure(manifest)
 
         manifest["session_close"] = {
@@ -179,6 +188,7 @@ def run_swarm_ignition(
             "entropy_delta": "measured_at_boot",
             "entropy_score": entropy_after.to_dict(),
             "open_loop_count": len(gov.open_loop_register(manifest)),
+            "auto_closed_loops": auto_closed,
             "next_safe_action": gov.choose_next_action(manifest, entropy_after).get(
                 "action", "OBSERVE_ONLY"
             ),
