@@ -97,6 +97,7 @@ class BlastRadius(StrEnum):
 
 class AutonomyTier(StrEnum):
     FULL_AUTO = "FULL_AUTO"
+    AUTONOMOUS_INVARIANT_SEAL = "AUTONOMOUS_INVARIANT_SEAL"
     PROPOSE_ONLY = "PROPOSE_ONLY"
     PRINCIPAL_APPROVAL_REQUIRED = "PRINCIPAL_APPROVAL_REQUIRED"
     HOLD = "HOLD"
@@ -220,6 +221,90 @@ AUTONOMY_CONTRACTION = [
     (RiskTier.ATOMIC, BlastRadius.INFRASTRUCTURE, 0.0, AutonomyTier.HOLD),
     (RiskTier.ATOMIC, BlastRadius.CIVILIZATIONAL, 0.0, AutonomyTier.HOLD),
 ]
+
+# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending) ─────────────
+# YOLO-inside-a-sandbox: approval prompts are attention entropy. When a
+# deterministic invariant proof + rollback receipt exists, the kernel
+# auto-seals without touching the sovereign's channel. The approval prompt
+# is a UI event, not the scarce resource — sovereign attention is.
+AUTONOMOUS_INVARIANT_SEAL_MIN_REVERSIBILITY = 0.70
+ROLLBACK_RECEIPT_REQUIRED = True  # AUTONOMOUS_INVARIANT_SEAL demands a receipt
+
+
+def autonomous_invariant_seal(
+    risk_tier: str,
+    reversibility: float,
+    *,
+    has_rollback_receipt: bool = False,
+    has_invariant_proof: bool = False,
+) -> dict[str, Any]:
+    """Deterministic auto-seal check — replaces the approval prompt for
+    LOW/MEDIUM actions with reversibility >= 0.70.
+
+    An action may auto-seal (AUTONOMOUS_INVARIANT_SEAL) iff:
+      - reversibility R(a) >= 0.70 (reversible sandbox)
+      - deterministic rollback receipt compiled (VAULT999-ready)
+      - invariant proof attached (ex-ante mechanism design, not ex-post review)
+
+    HIGH/ATOMIC tiers NEVER qualify — the approval prompt only survives
+    where the blast radius exceeds the sandbox (F1 AMANAH / F13 SOVEREIGN).
+
+    Returns:
+        {"qualifies": bool, "tier": str, "reason": str}
+    """
+    try:
+        risk = RiskTier(risk_tier)
+    except ValueError:
+        return {
+            "qualifies": False,
+            "tier": AutonomyTier.HOLD.value,
+            "reason": f"invalid risk_tier={risk_tier} — cannot auto-seal unknown risk",
+        }
+
+    if risk in (RiskTier.HIGH, RiskTier.ATOMIC):
+        return {
+            "qualifies": False,
+            "tier": AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED.value,
+            "reason": (
+                f"{risk.value} tier exceeds the reversible sandbox — "
+                "sovereign approval required (F1/F13)"
+            ),
+        }
+
+    if reversibility < AUTONOMOUS_INVARIANT_SEAL_MIN_REVERSIBILITY:
+        return {
+            "qualifies": False,
+            "tier": AutonomyTier.PROPOSE_ONLY.value,
+            "reason": (
+                f"R(a)={reversibility:.2f} < "
+                f"{AUTONOMOUS_INVARIANT_SEAL_MIN_REVERSIBILITY} — "
+                "outside the reversible sandbox, propose only"
+            ),
+        }
+
+    if ROLLBACK_RECEIPT_REQUIRED and not has_rollback_receipt:
+        return {
+            "qualifies": False,
+            "tier": AutonomyTier.PROPOSE_ONLY.value,
+            "reason": "reversible but missing deterministic rollback receipt — cannot auto-seal",
+        }
+
+    if not has_invariant_proof:
+        return {
+            "qualifies": False,
+            "tier": AutonomyTier.PROPOSE_ONLY.value,
+            "reason": "reversible + receipt but missing invariant proof — ex-ante proof required",
+        }
+
+    return {
+        "qualifies": True,
+        "tier": AutonomyTier.AUTONOMOUS_INVARIANT_SEAL.value,
+        "reason": (
+            f"R(a)={reversibility:.2f} >= {AUTONOMOUS_INVARIANT_SEAL_MIN_REVERSIBILITY}, "
+            "rollback receipt + invariant proof attached — auto-seal, "
+            "zero sovereign attention (LAW_ZEN_ATTENTION)"
+        ),
+    }
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -397,6 +482,7 @@ def _downgrade_tier(tier: AutonomyTier) -> AutonomyTier:
     """Downgrade autonomy by one step."""
     order = [
         AutonomyTier.FULL_AUTO,
+        AutonomyTier.AUTONOMOUS_INVARIANT_SEAL,
         AutonomyTier.PROPOSE_ONLY,
         AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED,
         AutonomyTier.HOLD,

@@ -102,6 +102,13 @@ class ApexDecisionField:
     tpcp_passed: bool = True
     governance_score: GovernanceScore | None = None
     evidence: dict[str, object] = field(default_factory=dict)
+    # ── LAW_ZEN_ATTENTION vectors (2026-09-01, additive — F13 pending) ──
+    # Ha: expected sovereign attention cost in minutes (0 = no human burn).
+    # Phi_scar: expected scar-creation risk ∈ [0, 1] (irreversible exposure).
+    # ACR: Attention Compression Ratio = ΔReality / ΔAttention (None if Ha = 0).
+    ha_attention_minutes: float = 0.0
+    phi_scar_burden: float = 0.0
+    acr: float | None = None
 
     def energy(self) -> float:
         """Compute Epoch 34 G = Q * V * Psi * Phi with bounded components."""
@@ -167,6 +174,10 @@ class ApexDecisionAssessment:
                 "cce_passed": self.field.cce_passed,
                 "scar_constraints_applied": self.field.scar_constraints_applied,
                 "tpcp_passed": self.field.tpcp_passed,
+                # LAW_ZEN_ATTENTION vectors (additive, F13 pending)
+                "ha_attention_minutes": self.field.ha_attention_minutes,
+                "phi_scar_burden": self.field.phi_scar_burden,
+                "acr": self.field.acr,
                 "governance_components": {
                     "a_akal_clarity": governance_score.a_akal_clarity,
                     "p_present_stability": governance_score.p_present_stability,
@@ -189,6 +200,9 @@ DEFAULT_G36_PARTIAL_THRESHOLD = 0.50
 DEFAULT_C_DARK_SAFE_CEILING = 0.30
 DEFAULT_C_DARK_SABAR_CEILING = 0.60
 DEFAULT_C_DARK_VOID_CEILING = 0.80
+# ── LAW_ZEN_ATTENTION defaults (2026-09-01, additive — F13 pending) ──
+DEFAULT_ACR_FLOOR = 0.10  # min reality-gain per sovereign attention-minute
+DEFAULT_PHI_SCAR_CEILING = 0.30  # expected scar-creation risk ceiling
 
 
 def assess_apex_decision_field(
@@ -203,6 +217,8 @@ def assess_apex_decision_field(
     c_dark_safe_ceiling: float = DEFAULT_C_DARK_SAFE_CEILING,
     c_dark_sabar_ceiling: float = DEFAULT_C_DARK_SABAR_CEILING,
     c_dark_void_ceiling: float = DEFAULT_C_DARK_VOID_CEILING,
+    acr_floor: float = DEFAULT_ACR_FLOOR,
+    phi_scar_ceiling: float = DEFAULT_PHI_SCAR_CEILING,
 ) -> ApexDecisionAssessment:
     """
     Assess whether a generated capability can accumulate execution energy.
@@ -245,6 +261,15 @@ def assess_apex_decision_field(
         elif c_dark > c_dark_safe_ceiling:
             reasons.append("C_DARK_REVIEW_RANGE")
 
+    # ── LAW_ZEN_ATTENTION (additive, F13 pending) ────────────────────
+    # No sovereign attention shall be spent unless expected entropy
+    # reduction exceeds expected scar creation.
+    if field.ha_attention_minutes > 0:
+        if field.acr is not None and field.acr < acr_floor:
+            reasons.append("ATTENTION_ACR_BELOW_FLOOR")
+        if field.phi_scar_burden > phi_scar_ceiling:
+            reasons.append("ATTENTION_SCAR_RISK_EXCEEDED")
+
     void_reasons = {
         "CCE_SELF_AUDIT_FAILED",
         "SCAR_CONSTRAINTS_NOT_APPLIED",
@@ -274,6 +299,8 @@ def assess_apex_decision_field(
             "c_dark_safe_ceiling": c_dark_safe_ceiling,
             "c_dark_sabar_ceiling": c_dark_sabar_ceiling,
             "c_dark_void_ceiling": c_dark_void_ceiling,
+            "acr_floor": acr_floor,
+            "phi_scar_ceiling": phi_scar_ceiling,
         },
         field=field,
     )
