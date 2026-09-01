@@ -89,7 +89,7 @@ ENTROPY_DIMENSIONS = {
     },
 }
 
-# ── LAW_ZEN_ATTENTION constants (2026-09-01, additive — F13 pending) ──
+# ── LAW_ZEN_ATTENTION constants (2026-09-01, additive — F13 RATIFIED 2026-09-01) ──
 LOOP_TTL_SWEEPS = 3  # open loop survives 3 sweeps before auto-handling
 DUTY_LOOP_TAGS = (
     "FLOOR",
@@ -397,7 +397,7 @@ class EntropyGovernor:
 
         return loops
 
-    # ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending) ──────────
+    # ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01) ──────────
     # Every unresolved issue generates future attention debt (E2/E3/E9).
     # Default behavior flips from "keep open for later" to AUTO-RESOLVE /
     # AUTO-ARCHIVE with receipt. Sovereign attention is never spent on
@@ -482,7 +482,7 @@ class EntropyGovernor:
 
     # ── Private scoring functions ──────────────────────────────────
 
-    # LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending):
+    # LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01):
     # Every unresolved loop is future attention debt. Triage deterministically:
     # low-risk reversible loops AUTO-CLOSE on the most reversible path,
     # stale-but-harmless loops AUTO-ARCHIVE with receipt, and only genuinely
@@ -544,7 +544,7 @@ class EntropyGovernor:
             "dispositions": dispositions,
             "escalations": escalations,
             "attention_saved_estimate_min": round(attention_saved, 1),
-            "law": "LAW_ZEN_ATTENTION (draft, F13 pending)",
+            "law": "LAW_ZEN_ATTENTION (draft, F13 RATIFIED 2026-09-01)",
         }
 
     def _score_uncertainty(self, state: dict[str, Any]) -> int:

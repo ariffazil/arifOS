@@ -102,7 +102,7 @@ class ApexDecisionField:
     tpcp_passed: bool = True
     governance_score: GovernanceScore | None = None
     evidence: dict[str, object] = field(default_factory=dict)
-    # ── LAW_ZEN_ATTENTION vectors (2026-09-01, additive — F13 pending) ──
+    # ── LAW_ZEN_ATTENTION vectors (2026-09-01, additive — F13 RATIFIED 2026-09-01) ──
     # Ha: expected sovereign attention cost in minutes (0 = no human burn).
     # Phi_scar: expected scar-creation risk ∈ [0, 1] (irreversible exposure).
     # ACR: Attention Compression Ratio = ΔReality / ΔAttention (None if Ha = 0).
@@ -174,7 +174,7 @@ class ApexDecisionAssessment:
                 "cce_passed": self.field.cce_passed,
                 "scar_constraints_applied": self.field.scar_constraints_applied,
                 "tpcp_passed": self.field.tpcp_passed,
-                # LAW_ZEN_ATTENTION vectors (additive, F13 pending)
+                # LAW_ZEN_ATTENTION vectors (additive, F13 RATIFIED 2026-09-01)
                 "ha_attention_minutes": self.field.ha_attention_minutes,
                 "phi_scar_burden": self.field.phi_scar_burden,
                 "acr": self.field.acr,
@@ -200,7 +200,7 @@ DEFAULT_G36_PARTIAL_THRESHOLD = 0.50
 DEFAULT_C_DARK_SAFE_CEILING = 0.30
 DEFAULT_C_DARK_SABAR_CEILING = 0.60
 DEFAULT_C_DARK_VOID_CEILING = 0.80
-# ── LAW_ZEN_ATTENTION defaults (2026-09-01, additive — F13 pending) ──
+# ── LAW_ZEN_ATTENTION defaults (2026-09-01, additive — F13 RATIFIED 2026-09-01) ──
 DEFAULT_ACR_FLOOR = 0.10  # min reality-gain per sovereign attention-minute
 DEFAULT_PHI_SCAR_CEILING = 0.30  # expected scar-creation risk ceiling
 
@@ -261,7 +261,7 @@ def assess_apex_decision_field(
         elif c_dark > c_dark_safe_ceiling:
             reasons.append("C_DARK_REVIEW_RANGE")
 
-    # ── LAW_ZEN_ATTENTION (additive, F13 pending) ────────────────────
+    # ── LAW_ZEN_ATTENTION (additive, F13 RATIFIED 2026-09-01) ────────────────────
     # No sovereign attention shall be spent unless expected entropy
     # reduction exceeds expected scar creation.
     if field.ha_attention_minutes > 0:
