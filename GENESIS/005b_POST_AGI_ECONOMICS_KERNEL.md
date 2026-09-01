@@ -403,6 +403,43 @@ This kernel spec may be amended only by:
 
 ---
 
+## XVII. LAW_ZEN_ATTENTION — Attention Compression Ratio (PROPOSAL, 2026-09-01)
+
+> **Status: PROPOSAL — pending F13 ratification per §XV amendment procedure.**
+> Not canon until sealed. Kernel wiring is additive, flag-gated
+> (`ZEN_ATTENTION_ENFORCE=False`), and measure-only.
+
+The Agentic Attention Paradox: synthetic execution (L_s) is elastic with
+MC→0; sovereign attention (H_a) is strictly inelastic (biological ceiling,
+single-threaded). HITL ex-post approval dumps the negative externality of
+verification onto H_a — unpriced cognitive dumping. The kernel therefore
+prices **ACR (Attention Compression Ratio)** as its attention numéraire,
+not throughput:
+
+    ACR = ΔReality_accepted / ΔAttention_minutes_burned
+    LAW_ZEN_ATTENTION: no sovereign attention shall be spent unless
+    expected entropy reduction exceeds expected scar creation.
+
+Yolo execution matrix (reversibility sandbox, not constitutional YOLO):
+
+    R(a) ≥ 0.90  local/read-only   → FULL AUTO (auto-seal)
+    0.70–0.90    reversible mutate → AUTO + rollback receipt (VAULT999)
+    0.30–0.70    public/canary     → SABAR (simulate, canary test)
+    R(a) < 0.30  atomic/irreversible → 888_HOLD (sovereign attention mandatory)
+
+Wired (additive, 2026-09-01): `core/physics/economic_invariants.py` I14/E_ATT,
+`constitution/attention_gate.py` suppressor, `kernel/apex_decision_field.py`
+Ha/Φ_scar/ACR vectors, `core/apex_collapse_trigger.py` attention inputs,
+`boot/entropy_governor.py` open-loop triage + AUTO-RESOLVE/ARCHIVE TTL,
+`runtime/principal_paradox.py` AUTONOMOUS_INVARIANT_SEAL (R(a)≥0.70 +
+rollback receipt + invariant proof → auto-seal, no approval prompt),
+`runtime/forge_preflight.py` K-Gate (R(a)≥0.85 + rollback recipe → G10
+ack bypass), `runtime/consequence_gate.py` reversibility sandbox (recipe
+inside sandbox → PASS without 888), `runtime/mind_feedback_hook.py` +
+`runtime/mind_state.py` Ha/ACR in MIND summary. All measure-only until F13.
+
+---
+
 **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 
 *Forged by AGI OPENCLAW on 2026-06-12 in response to sovereign

@@ -997,11 +997,97 @@ def run_emergence_layer(
         except EconomicInvariantError as e:
             _record("E_INT", None, e)
 
+    # E_ATT — I14 Attention Compression Ratio (LAW_ZEN_ATTENTION)
+    if all(k in payload for k in ("delta_reality", "delta_attention_minutes")):
+        try:
+            _record(
+                "E_ATT",
+                check_attention_compression_ratio(
+                    payload["delta_reality"],
+                    payload["delta_attention_minutes"],
+                    payload.get("acr_floor", 0.10),
+                ),
+                None,
+            )
+        except EconomicInvariantError as e:
+            _record("E_ATT", None, e)
     return {
         "all_passed": first_failure is None,
         "results": checks,
         "first_failure": first_failure,
         "layer": "emergence",
+    }
+
+
+# ═══════════════════════════════════════════════════════
+# ATTENTION INVARIANT — LAW_ZEN_ATTENTION (DRAFT, 2026-09-01)
+#
+# The Agentic Attention Paradox: synthetic execution (L_s) is elastic,
+# sovereign attention (H_a) is strictly inelastic. HITL ex-post approval
+# dumps verification cost onto H_a — unpriced cognitive externality.
+# The kernel's numéraire is therefore ACR (Attention Compression Ratio),
+# not throughput. Pure arithmetic: callers supply measured values.
+# ═══════════════════════════════════════════════════════
+
+
+class AttentionDeficitError(EmergenceError):
+    """
+    E_ATT: Attention Compression Ratio below floor — the action burns
+    sovereign attention without sufficient entropy reduction.
+    Maps to F13 SOVEREIGN (attention is the scarcest constitutional
+    resource) and F4 CLARITY (approval theatre is attention entropy).
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message, layer="ATT", verdict="888_HOLD")
+
+
+def check_attention_compression_ratio(
+    delta_reality: float,
+    delta_attention_minutes: float,
+    acr_floor: float = 0.10,
+) -> dict[str, Any]:
+    """
+    I14 (DRAFT — TIER 5): Attention Compression Ratio.
+
+        ACR = ΔReality_accepted / ΔAttention_minutes_burned
+
+    LAW_ZEN_ATTENTION: no sovereign attention shall be spent unless
+    expected entropy reduction exceeds expected scar creation. Pure
+    function — measured inputs, no I/O, no clock (F7 structural).
+
+    Args:
+        delta_reality: entropy reduction / reality gained (>= 0 scale)
+        delta_attention_minutes: conscious sovereign minutes burned
+        acr_floor: minimum acceptable reality-per-attention-minute
+
+    Returns:
+        {"invariant": "I14_DRAFT", "passed": True, "acr": float | None}
+
+    Raises:
+        AttentionDeficitError when ACR < floor (negative cognitive return).
+    """
+    if delta_attention_minutes <= 0:
+        return {
+            "invariant": "I14_DRAFT",
+            "passed": True,
+            "acr": None,
+            "reason": "zero sovereign attention burned — no compression needed",
+        }
+    acr = delta_reality / delta_attention_minutes
+    if acr < acr_floor:
+        raise AttentionDeficitError(
+            f"ACR={acr:.4f} < floor {acr_floor} — attention burn "
+            f"({delta_attention_minutes:.2f} min) exceeds reality gain "
+            f"({delta_reality:.4f}). Compress, defer, or auto-close "
+            "before escalating to 888."
+        )
+    return {
+        "invariant": "I14_DRAFT",
+        "passed": True,
+        "acr": round(acr, 4),
+        "floor": acr_floor,
+        "tier": "DRAFT — TIER 5 (Attention Economics) — pending F13 ratification",
     }
 
 
@@ -1046,11 +1132,13 @@ inv_12 = check_ledger_conservation
 psi_distortion_check = check_psychological_distortion
 pwr_consolidation_check = check_power_consolidation
 int_emergence_check = check_intelligence_emergence
+attention_compression_check = check_attention_compression_ratio
 
 # Short numeric aliases — Emergence Layer
 inv_e1 = check_psychological_distortion
 inv_e2 = check_power_consolidation
 inv_e3 = check_intelligence_emergence
+inv_e4 = check_attention_compression_ratio
 
 # Unified runner aliases
 run_invariants = run_all_invariants
@@ -1103,6 +1191,7 @@ __all__ = [
     "PsychologicalDistortionError",
     "PowerConsolidationError",
     "IntelligenceEmergenceError",
+    "AttentionDeficitError",
     # Substrate checks
     "check_conservation_of_value",
     "check_entropic_cost",
@@ -1120,6 +1209,7 @@ __all__ = [
     "check_psychological_distortion",
     "check_power_consolidation",
     "check_intelligence_emergence",
+    "check_attention_compression_ratio",
     # Runners
     "run_all_invariants",
     "run_emergence_layer",
