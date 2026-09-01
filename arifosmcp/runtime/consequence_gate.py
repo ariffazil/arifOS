@@ -60,7 +60,7 @@ def evaluate_consequence(action: dict[str, Any], caller: str = "333_agent") -> C
     """
     Evaluate an action through the P40 Consequence & Sovereignty Gate.
 
-    LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending):
+    LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01):
       An irreversible-classified action with a deterministic rollback
       recipe inside the reversible sandbox (R(a) >= 0.85) no longer
       demands sovereign attention — the recipe IS the ex-ante mechanism

@@ -222,7 +222,7 @@ AUTONOMY_CONTRACTION = [
     (RiskTier.ATOMIC, BlastRadius.CIVILIZATIONAL, 0.0, AutonomyTier.HOLD),
 ]
 
-# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending) ─────────────
+# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01) ─────────────
 # YOLO-inside-a-sandbox: approval prompts are attention entropy. When a
 # deterministic invariant proof + rollback receipt exists, the kernel
 # auto-seals without touching the sovereign's channel. The approval prompt

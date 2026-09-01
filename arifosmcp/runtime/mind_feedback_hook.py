@@ -249,6 +249,14 @@ class MindFeedbackTracker:
             "malu_index": self.state.malu_index,
             "duration_s": (datetime.now(UTC) - self._started_at).total_seconds(),
             "similar_tasks_found": len(self.state.similar_task_refs),
+            # ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01) ──
+            # First link of the transmission line: every reasoning request
+            # records how much sovereign attention it would burn and what
+            # compression ratio it achieved. ACR < floor → downstream gates
+            # (attention_gate, collapse_trigger) auto-compress instead of
+            # escalating to 888. Attention is the numéraire, not a side note.
+            "ha_attention_minutes": self.state.attention_minutes_burned,
+            "acr": self.state.attention_compression_ratio,
         }
 
         logger.info(

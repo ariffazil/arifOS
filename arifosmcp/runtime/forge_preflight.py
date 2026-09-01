@@ -761,7 +761,7 @@ def stage_10_human_acknowledgement_check(
     """
     G10 + adversarial: Verify human acknowledgment is present and valid.
 
-    LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending):
+    LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01):
       When a deterministic reversibility score and rollback recipe are
       provided (K-Gate), the kernel recomputes whether human ack is truly
       required. Reversible actions inside the sandbox (R(a) >= 0.85 with a
