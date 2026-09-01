@@ -95,6 +95,14 @@ B_CORRECTED_SEAL_THRESHOLD = 0.40  # B|Φ must be ≥ 0.40 for SEAL
 DIAL_FLOOR = 0.20  # any dial below this → VOID
 GRADIENT_SABAR_THRESHOLD = 0.50  # ∂S > 0.5 → SABAR (gather evidence)
 
+# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 ratification pending) ──
+# "No sovereign attention shall be spent unless expected entropy reduction
+#  exceeds expected scar creation." Attention is the inelastic numéraire;
+#  approval theatre is unpriced cognitive dumping onto H_a.
+ACR_FLOOR = 0.10  # min ΔReality per sovereign attention-minute
+PHI_SCAR_CEILING = 0.30  # expected scar-creation risk ceiling
+ZEN_ATTENTION_ENFORCE = False  # Phase 1: measure only — F13 opens the gate
+
 # PHASE 1 FEATURE FLAG
 COLLAPSE_TRIGGER_ENFORCE = False  # Phase 1: observe-only
 
@@ -171,6 +179,9 @@ class APEXState:
     domain: str = "general"
     session_id: str = ""
     actor_id: str = ""
+    # ── LAW_ZEN_ATTENTION vectors (2026-09-01, additive — F13 pending) ──
+    ha_attention_minutes: float = 0.0  # expected sovereign attention burn
+    acr: float | None = None  # Attention Compression Ratio (None if Ha=0)
 
 
 @dataclass
@@ -189,6 +200,10 @@ class CollapseVerdict:
     enforce: bool = False  # Phase 1: False
     timestamp: float = field(default_factory=time.time)
     receipt_hash: str = ""
+    # ── LAW_ZEN_ATTENTION vectors (2026-09-01, additive — F13 pending) ──
+    ha_attention_minutes: float = 0.0  # expected sovereign attention burn
+    phi_scar_burden: float = 0.0  # expected scar-creation risk ∈ [0,1]
+    acr: float | None = None  # ΔReality / ΔAttention (None if Ha = 0)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -495,6 +510,10 @@ def collapse(
     session_id: str = "",
     actor_id: str = "",
     enforce: bool | None = None,
+    # ── LAW_ZEN_ATTENTION inputs (additive, F13 pending) ──
+    ha_attention_minutes: float = 0.0,
+    phi_scar_burden: float = 0.0,
+    delta_reality: float = 0.0,
 ) -> CollapseVerdict:
     """
     APEX COLLAPSE TRIGGER — Measurement-Theoretic Intelligence.
@@ -597,6 +616,27 @@ def collapse(
         verdict = VerdictCode.SEAL
         reason = f"All dials green: B|Φ={B_phi:.3f}, C_dark={c_dark:.3f}, ∂S={gradient:.3f}"
 
+    # ── LAW_ZEN_ATTENTION (additive, F13 pending) ────────────────────
+    # No sovereign attention shall be spent unless expected entropy
+    # reduction exceeds expected scar creation. When enforced, a would-be
+    # SEAL that burns attention below the ACR floor collapses to HOLD.
+    acr_value: float | None = None
+    zen_reason = ""
+    if ha_attention_minutes > 0:
+        acr_value = delta_reality / ha_attention_minutes
+        if acr_value < ACR_FLOOR:
+            zen_reason = (
+                f"ACR={acr_value:.4f} < {ACR_FLOOR} — attention burn "
+                f"({ha_attention_minutes:.2f} min) exceeds reality gain"
+            )
+        elif phi_scar_burden > PHI_SCAR_CEILING:
+            zen_reason = (
+                f"Scar risk {phi_scar_burden:.2f} > ceiling {PHI_SCAR_CEILING}"
+            )
+    if zen_reason and ZEN_ATTENTION_ENFORCE and verdict == VerdictCode.SEAL:
+        verdict = VerdictCode.HOLD
+        reason = f"LAW_ZEN_ATTENTION HOLD: {zen_reason}"
+
     # ── Phase 1 override: observe-only, never block ──────────────────────
     if not enforce:
         reason = f"[Phase 1 OBSERVE-ONLY] Would be {verdict.value}: {reason}"
@@ -619,6 +659,10 @@ def collapse(
         "tool_name": tool_name,
         "domain": domain,
         "enforce": enforce,
+        # LAW_ZEN_ATTENTION vectors (additive, F13 pending)
+        "ha_attention_minutes": round(ha_attention_minutes, 4),
+        "phi_scar_burden": round(phi_scar_burden, 4),
+        "acr": round(acr_value, 4) if acr_value is not None else None,
         "timestamp": time.time(),
     }
     receipt_hash = hashlib.sha256(json.dumps(receipt_data, sort_keys=True).encode()).hexdigest()[
@@ -637,6 +681,9 @@ def collapse(
         phase="OBSERVE_ONLY" if not enforce else "ENFORCEMENT",
         enforce=enforce,
         timestamp=time.time(),
+        ha_attention_minutes=ha_attention_minutes,
+        phi_scar_burden=phi_scar_burden,
+        acr=acr_value,
         receipt_hash=receipt_hash,
     )
 

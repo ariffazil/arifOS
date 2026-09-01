@@ -96,6 +96,25 @@ DEFER_TTL_SWEEPS: int = 3  # deferrals expire — attention debt cannot hide
 SEVERITIES = ("info", "warn", "error", "critical")
 DUTY_BOUND_TAGS = ("floor", "scar", "incident", "drift", "security")
 
+# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending) ─────────────
+# ACR floor for escalation: if an output would burn sovereign attention
+# with compression below the floor, it does NOT reach 888 — it auto-passes
+# to the safe-state path instead. Attention is the numéraire; the gate is
+# an attenuator, not a popup box.
+ACR_ESCALATION_FLOOR: float = 0.10  # min ΔReality per attention-minute
+DEFAULT_ACR = 1.0  # assumption when no attention burn is measured
+
+
+def _acr_from(
+    delta_reality: float = 0.0,
+    attention_minutes: float = 0.0,
+) -> float:
+    """ACR = ΔReality / ΔAttention. Zero attention burn → no compression
+    needed → assume healthy (the action never touches the sovereign)."""
+    if attention_minutes <= 0:
+        return DEFAULT_ACR
+    return delta_reality / attention_minutes
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SIGNAL SIGNATURE — same normalization discipline as surface_breaker
@@ -314,6 +333,74 @@ class AttentionGate:
             ),
             gradient=grad,
         )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ACR SUPPRESSOR — LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending)
+# ─────────────────────────────────────────────────────────────────────────────
+# The Agentic Attention Paradox: ex-post HITL approval dumps verification
+# cost onto inelastic sovereign attention. The suppressor is the exit-side
+# twin of the admission gate — it decides whether an ADMITTED signal may
+# interrupt the sovereign at all. Default state: SILENCE. Pure arithmetic:
+# ACR = ΔReality / ΔAttention_minutes. Sovereign/duty channels bypass.
+DEFAULT_ACR_MIN = 0.10  # min reality-gain per sovereign attention-minute
+
+
+def suppress_or_surface(
+    signal: Signal,
+    delta_reality: float,
+    delta_attention_minutes: float,
+    acr_min: float = DEFAULT_ACR_MIN,
+) -> Dict[str, Any]:
+    """
+    Exit-side attention filter for an already-admitted signal.
+
+    LAW_ZEN_ATTENTION: no sovereign attention shall be spent unless expected
+    entropy reduction exceeds expected scar creation. If ACR < floor, the
+    signal is suppressed to silent safe-state (SILENCE) with a receipt —
+    it is NOT dropped without trace (F11). Sovereign-bound and duty-bound
+    signals ALWAYS surface (F6 MARUAH / F13 SOVEREIGN).
+
+    Args:
+        signal: the admitted Signal (sovereign/duty binding respected)
+        delta_reality: expected entropy reduction / reality gain (>= 0)
+        delta_attention_minutes: expected sovereign attention burn
+        acr_min: minimum acceptable reality-per-attention-minute
+
+    Returns:
+        {"surface": bool, "acr": float | None, "receipt": str}
+    """
+    if signal.sovereign_bound or signal.duty_bound:
+        return {
+            "surface": True,
+            "acr": None,
+            "receipt": "sovereign/duty-bound — bypasses suppression (F13/F6)",
+        }
+
+    if delta_attention_minutes <= 0:
+        return {
+            "surface": True,
+            "acr": None,
+            "receipt": "zero sovereign attention cost — surfaces by default",
+        }
+
+    acr = delta_reality / delta_attention_minutes
+    if acr >= acr_min:
+        return {
+            "surface": True,
+            "acr": round(acr, 4),
+            "receipt": f"ACR={acr:.4f} ≥ floor {acr_min} — worth sovereign attention",
+        }
+
+    return {
+        "surface": False,
+        "acr": round(acr, 4),
+        "receipt": (
+            f"ACR={acr:.4f} < floor {acr_min} — suppressed to silent safe-state; "
+            "attention burn exceeds reality gain (LAW_ZEN_ATTENTION). "
+            "Receipt filed: ignoring ≠ negligence (F11)."
+        ),
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

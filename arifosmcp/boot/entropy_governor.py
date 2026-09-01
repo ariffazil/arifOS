@@ -89,6 +89,24 @@ ENTROPY_DIMENSIONS = {
     },
 }
 
+# ── LAW_ZEN_ATTENTION constants (2026-09-01, additive — F13 pending) ──
+LOOP_TTL_SWEEPS = 3  # open loop survives 3 sweeps before auto-handling
+DUTY_LOOP_TAGS = (
+    "FLOOR",
+    "SCAR",
+    "INCIDENT",
+    "DRIFT",
+    "SECURITY",
+    "VAULT",
+    "CONSTITUTION",
+    "888",
+)  # sovereign channel — never auto-resolved
+
+
+def _loop_age_sweeps(loop: dict[str, Any]) -> int:
+    """Sweeps a loop has survived while open (defaults 0 if unknown)."""
+    return int(loop.get("age_sweeps", loop.get("defer_age", 0)) or 0)
+
 
 @dataclass
 class EntropyScore:
@@ -379,7 +397,155 @@ class EntropyGovernor:
 
         return loops
 
+    # ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending) ──────────
+    # Every unresolved issue generates future attention debt (E2/E3/E9).
+    # Default behavior flips from "keep open for later" to AUTO-RESOLVE /
+    # AUTO-ARCHIVE with receipt. Sovereign attention is never spent on
+    # tickets that could have been closed by the kernel.
+
+    def auto_resolve_loop(
+        self,
+        loop: dict[str, Any],
+        *,
+        reversibility: float = 0.9,
+        ttl_sweeps: int = LOOP_TTL_SWEEPS,
+        receipt: str = "",
+    ) -> dict[str, Any]:
+        """Resolve or archive a stale open loop with a receipt.
+
+        Rules (LAW_ZEN_ATTENTION + F1 AMANAH):
+          - reversibility >= 0.85 → AUTO-RESOLVE (kernel picks most
+            reversible path, receipt filed — no sovereign attention).
+          - otherwise → AUTO-DEFER with TTL (loop survives to another
+            sweep; attention debt cannot hide, but also cannot preempt).
+          - any loop whose type is a constitutional duty (F1-F13, scar,
+            security) is NEVER auto-resolved here — that is the
+            sovereign's channel (F6/F13).
+
+        Returns a resolution receipt dict (F11 AUDIT).
+        """
+        loop_type = str(loop.get("type", "")).upper()
+        if any(tag in loop_type for tag in DUTY_LOOP_TAGS):
+            return {
+                "loop_id": loop.get("loop_id"),
+                "action": "ESCALATE_KEEP_OPEN",
+                "receipt": "duty-bound loop — sovereign channel, never auto-resolved (F6/F13)",
+            }
+
+        if reversibility >= 0.85:
+            return {
+                "loop_id": loop.get("loop_id"),
+                "action": "AUTO_RESOLVE",
+                "receipt": (
+                    receipt
+                    or (
+                        f"stale loop resolved by kernel: R(a)={reversibility:.2f} >= 0.85, "
+                        "most-reversible path chosen, receipt filed (LAW_ZEN_ATTENTION)"
+                    )
+                ),
+                "ttl_elapsed_sweeps": ttl_sweeps,
+            }
+
+        return {
+            "loop_id": loop.get("loop_id"),
+            "action": "AUTO_DEFER",
+            "receipt": (
+                f"loop retained: R(a)={reversibility:.2f} < 0.85 — "
+                "attention debt tracked, deferral cannot hide (TTL on next sweep)"
+            ),
+        }
+
+    def close_stale_loops(
+        self,
+        state: dict[str, Any],
+        *,
+        ttl_sweeps: int = LOOP_TTL_SWEEPS,
+    ) -> list[dict[str, Any]]:
+        """Auto-close every stale, reversible open loop — zero sovereign burn.
+
+        Mirrors the entropy governor's purpose: after this session, Arif
+        has FEWER open loops, not more. Returns resolution receipts.
+        """
+        receipts: list[dict[str, Any]] = []
+        for loop in self.open_loop_register(state):
+            # Only stale loops (age >= TTL) are auto-handled.
+            loop_age = loop.get("status", "open")
+            if loop_age == "open" and _loop_age_sweeps(loop) >= ttl_sweeps:
+                receipts.append(
+                    self.auto_resolve_loop(
+                        loop,
+                        reversibility=loop.get("reversibility", 0.9),
+                        ttl_sweeps=ttl_sweeps,
+                    )
+                )
+        return receipts
+
     # ── Private scoring functions ──────────────────────────────────
+
+    # LAW_ZEN_ATTENTION (2026-09-01, additive — F13 pending):
+    # Every unresolved loop is future attention debt. Triage deterministically:
+    # low-risk reversible loops AUTO-CLOSE on the most reversible path,
+    # stale-but-harmless loops AUTO-ARCHIVE with receipt, and only genuinely
+    # irreversible/unknown-risk loops escalate to the sovereign.
+    LOOP_DISPOSITION = "loop_disposition"
+
+    def triage_open_loops(self, state: dict[str, Any]) -> dict[str, Any]:
+        """
+        Assign a deterministic disposition to every open loop.
+
+        Rules (reversibility-first, never destroys):
+          risk low    → AUTO_CLOSE on most reversible path
+          risk medium → AUTO_DEFER with TTL receipt (one sweep, then re-triage)
+          risk high   → AUTO_ARCHIVE (frozen, receipt filed) unless irreversible
+          irreversible exposure → ESCALATE_888 (sovereign attention required)
+
+        Returns {"dispositions": [...], "attention_saved_estimate_min", "escalations": n}.
+        Pure advisory — no side effects (F1 reversible by construction).
+        """
+        loops = self.open_loop_register(state)
+        dispositions: list[dict[str, Any]] = []
+        escalations = 0
+        attention_saved = 0.0
+
+        for loop in loops:
+            risk = str(loop.get("risk", "medium")).lower()
+            loop_type = str(loop.get("type", ""))
+            irreversible = loop_type in ("VAULT999_UNSEALED",) and risk == "high"
+            irreversible = irreversible or risk == "critical"
+
+            if irreversible:
+                disp = "ESCALATE_888"
+                escalations += 1
+            elif risk == "low":
+                disp = "AUTO_CLOSE"
+                attention_saved += 2.0
+            elif risk == "medium":
+                disp = "AUTO_DEFER"
+                attention_saved += 1.0
+            else:
+                disp = "AUTO_ARCHIVE"
+                attention_saved += 1.5
+
+            dispositions.append(
+                {
+                    "loop_id": loop.get("loop_id"),
+                    "type": loop_type,
+                    "risk": risk,
+                    "disposition": disp,
+                    "receipt": (
+                        f"{disp}: deterministic triage under LAW_ZEN_ATTENTION — "
+                        "open loops are future attention debt; disposition logged, "
+                        "nothing destroyed (F1)."
+                    ),
+                }
+            )
+
+        return {
+            "dispositions": dispositions,
+            "escalations": escalations,
+            "attention_saved_estimate_min": round(attention_saved, 1),
+            "law": "LAW_ZEN_ATTENTION (draft, F13 pending)",
+        }
 
     def _score_uncertainty(self, state: dict[str, Any]) -> int:
         score = 0
