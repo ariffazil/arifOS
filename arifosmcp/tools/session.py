@@ -876,6 +876,22 @@ def _project_light(
             out["session_birth"]["session_token_status"] = (
                 "MINTED_LIMITED: actor not cryptographically verified — OBSERVE_ONLY token issued"
             )
+            # ESCALATION-OFFER (2026-09-04): make the prove-lane discoverable from
+            # the refusal itself — an unsigned claim must not read as "no binding exists".
+            out["identity_escalation"] = {
+                "status": "OFFERED",
+                "reason": "actor identity is self-asserted — OBSERVE_ONLY token issued",
+                "bind_path": (
+                    "arif_init with actor_signature (Ed25519 over the challenge "
+                    "nonce), or crypto_auth.issue_authorization_challenge -> sign "
+                    "canonical challenge via sovereign signing lane "
+                    "(localhost:18900) -> crypto_auth.verify_authorization_challenge"
+                ),
+                "on_success": (
+                    "actor_cryptographically_verified=true — full token mint path "
+                    "and authority bands unlock"
+                ),
+            }
             _unverified_token, _unverified_claims = mint_sct(
                 sid=sid,
                 actor=actor_id or "anonymous",
