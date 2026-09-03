@@ -1,10 +1,10 @@
 """
 capability_token.py — THIN FACADE (Spine P0, 2026-07-09)
 
-Canonical wire format is **sct_v1** via `arifosmcp.runtime.act`.
+Canonical wire format is **act_v1** via `arifosmcp.runtime.act_token`.
 This module re-exports useful helpers and never dual-mints `arifos.v1`.
 
-Do not add a second birth path here. Merge new features into sct.py.
+Do not add a second birth path here. Merge new features into act_token.py.
 """
 
 from __future__ import annotations
@@ -17,9 +17,9 @@ from arifosmcp.runtime.act_token import (
     compute_authority_delta,
     derive_authority,
     derive_verbs,
-    mint_sct,
+    mint_act,
     unmeasured_apex,
-    verify_sct,
+    verify_act,
 )
 from arifosmcp.runtime.act_token import (
     apply_caveats as _apply_caveats_claims,
@@ -80,7 +80,7 @@ def build_session_token(
     ttl_seconds: int = 3600,
     **_kwargs: Any,
 ) -> str:
-    """Build **sct_v1** token. Apex numbers only if real floats; else UNMEASURED."""
+    """Build **act_v1** token. Apex numbers only if real floats; else UNMEASURED."""
     apex = unmeasured_apex()
     for key, val in (("G", G), ("C_dark", C_dark), ("W3", W3), ("h", h)):
         if isinstance(val, (int, float)) and val is not None:
@@ -104,7 +104,7 @@ def build_session_token(
     # produces the canonical 4-factor geometric mean (A·P·E·X)^(1/4).
     # A 0.0625 = 0.5^4 phantom can no longer originate here.
 
-    token, _claims = mint_sct(
+    token, _claims = mint_act(
         sid=session_id,
         actor=actor_id or "anonymous",
         auth=authority,
@@ -122,11 +122,11 @@ def build_session_token(
 
 
 def sign_token(payload: Any) -> str:
-    """Legacy name — if dict claims, mint sct_v1; if string, return as-is."""
+    """Legacy name — if dict claims, mint act_v1; if string, return as-is."""
     if isinstance(payload, str):
         return payload
     if isinstance(payload, dict):
-        token, _ = mint_sct(
+        token, _ = mint_act(
             sid=str(payload.get("sid") or payload.get("sub") or ""),
             actor=str(payload.get("actor") or payload.get("act") or "anonymous"),
             auth=str(payload.get("auth") or "OBSERVE_ONLY"),
@@ -139,12 +139,12 @@ def sign_token(payload: Any) -> str:
 
 
 def verify_token(token: str) -> dict | None:
-    """Return normalized sct claims dict, or None."""
-    return verify_sct(token)
+    """Return normalized ACT claims dict, or None."""
+    return verify_act(token)
 
 
 def verify_token_or_raise(token: str) -> dict:
-    claims = verify_sct(token)
+    claims = verify_act(token)
     if claims is None:
         raise TokenInvalidError(token)
     return claims

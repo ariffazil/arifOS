@@ -6,7 +6,7 @@ Structural validation (JSON Schema) + honest semantic checks.
 Semantic honesty:
   - session_identifier_present: non-empty session_id only (NOT liveness)
   - session_id format enforced by schema (SEAL-<16hex>)
-  - session_token is optional sct_v1.* (schema)
+  - session_token is optional act_v1.* (schema; legacy sct_v1.* dual-accepted)
   - retry_bound: attempt <= max_attempts (NOT full idempotency)
   - idempotency: stateful check via IdempotencyStore interface + Memory test double
   - payload_hash: FCJ-v1 (see contracts/schemas/CANONICAL_JSON.md) — not full RFC 8785

@@ -304,8 +304,8 @@ def _extract_envelope(response: dict[str, Any]) -> dict[str, Any]:
 def _parse_sct_expiry(token: str | None) -> float | None:
     """Best-effort parse of act_v1.* JWT exp claim. Returns seconds-until-expiry.
 
-    sct_v1 is a JWT-prefixed token (signature after a dot). Decoding base64
-    payload is non-trivial cryptographically; we only need the `exp` claim.
+    act_v1 (and legacy sct_v1) are JWT-prefixed tokens (signature after a dot).
+    Decoding base64 payload is non-trivial cryptographically; we only need the `exp` claim.
     Returns None if exp cannot be parsed.
     """
     if not token or not token.startswith("act_v1."):

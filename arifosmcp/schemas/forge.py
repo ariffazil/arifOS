@@ -246,10 +246,10 @@ class ForgeOutput(BaseModel):
     # Constitutional health signal (delta/psi/omega/overall)
     nine_signal: dict[str, Any] | None = Field(default=None)
 
-    # ── Spine P0: SCT continuity echo ───────────────────────────────────────
+    # ── Spine P0: ACT continuity echo ───────────────────────────────────────
     session_token: str | None = Field(
         default=None,
-        description="Signed session capability token (sct_v1) for next-hop continuity",
+        description="Signed Arif's Capability Token (act_v1) for next-hop continuity (legacy sct_v1 accepted)",
     )
     standing_source: str | None = Field(
         default=None,
