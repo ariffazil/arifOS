@@ -5460,6 +5460,7 @@ def _enforce_nine_signal(
             if isinstance(out, dict):
                 _preserve_arif_init_truth(out, envelope)
             _stamp_arif_init_deterministic(envelope)
+            _reconcile_legacy_aliases_with_token(envelope)
             apply_deployment_drift_floor(envelope)
 
         # STAB-2026-08-09c: last-writer after authority envelope attach.
@@ -8104,6 +8105,8 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
             if src.get("actor_verified") is not None
             else res.get("actor_verified", False)
         )
+    # LEGACY-LABEL TRUTH (2026-09-04): token claims win over store flags.
+    _reconcile_legacy_aliases_with_token(dst)
 
     # If engine path (SessionManifest ping/light) never set substrate, inject
     # live attestation so the wire cannot claim SEAL while drift is unknown.
@@ -8186,6 +8189,36 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
     # Always re-run drift floor after preserve (idempotent)
     apply_deployment_drift_floor(dst)
     return dst
+
+
+def _reconcile_legacy_aliases_with_token(dst: dict[str, Any]) -> None:
+    """LEGACY-LABEL TRUTH (2026-09-04): flat aliases autonomy_band/band/
+    authority/actor_verified must mirror the session token when one exists.
+    The token (act_v1 claims) is immutable and authoritative; the session
+    store's system_exempt bridge stamps verified=True for any *bound* session,
+    and a bound-but-unverified session must never reach the wire as
+    FULL/crypto-verified in flat fields (actor_cryptographically_verified and
+    effective_state remain the precise fields)."""
+    _st = dst.get("session_token")
+    if not (isinstance(_st, str) and _st.startswith("act_v1.")):
+        return
+    try:
+        import base64 as _b64
+        import json as _json
+
+        _part = _st.split(".", 2)[1]
+        _part += "=" * (4 - len(_part) % 4)
+        _claims = _json.loads(_b64.urlsafe_b64decode(_part))
+    except Exception:
+        return
+    _tauth = _claims.get("auth")
+    if isinstance(_tauth, str) and _tauth:
+        dst["autonomy_band"] = _tauth
+        dst["band"] = _tauth
+        dst["authority"] = _tauth
+    _tav = _claims.get("av")
+    if _tav is not None:
+        dst["actor_verified"] = bool(_tav)
 
 
 def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
