@@ -414,7 +414,7 @@ def check_session_starts() -> dict[str, Any]:
       - The extracted inner result (for status)
       - The top-level parsed dict (for session_id / session_token)
     A valid session has either a real session_id (not 'unknown')
-    or a session_token (sct_v1).
+    or a session_token (act_v1; legacy sct_v1 accepted).
     """
     session_id = _get_session()
     t0 = time.monotonic()

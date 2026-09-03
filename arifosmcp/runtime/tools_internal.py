@@ -488,9 +488,9 @@ async def _wrap_call(
     )
     if token:
         try:
-            from arifosmcp.runtime.act_token import resolve_standing, verify_sct
+            from arifosmcp.runtime.act_token import resolve_standing, verify_act
 
-            claims = verify_sct(token)
+            claims = verify_act(token)
             if claims:
                 session_id = str(claims.get("sid") or session_id)
                 payload["session_id"] = session_id
