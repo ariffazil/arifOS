@@ -5,7 +5,7 @@
   "trace_id": "trace-20260723-abc123",
   "hop_index": 0,
   "session_id": "SEAL-bee1b3fd3ebd4ae4",
-  "session_token": "sct_v1.example.not-a-real-jwt",
+  "session_token": "act_v1.example.not-a-real-jwt",
   "actor_id": "arif",
   "source_organ": "A-FORGE",
   "destination_organ": "arifOS",

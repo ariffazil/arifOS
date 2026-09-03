@@ -4955,19 +4955,19 @@ def _enforce_nine_signal(
         if _audit_invocation_count is None:
             _audit_invocation_count = 0
         # PHASE A BIRTH-FIX (2026-07-10): SCT token is PRIMARY source of truth
-        # for runtime_authority. If SCT token is present and valid, its authority
+        # for runtime_authority. If ACT token is present and valid, its authority
         # is the single source — no fallback chain can override it.
-        # Legacy path: if no SCT token, fall back to session store lookup.
+        # Legacy path: if no ACT token, fall back to session store lookup.
         _runtime_auth = "OBSERVE_ONLY"
         _sct_authority_resolved = False
         try:
-            from arifosmcp.runtime.act_token import verify_sct as _verify_sct_envelope
+            from arifosmcp.runtime.act_token import verify_act as _verify_act_envelope
 
             _tok_for_auth = (
                 isinstance(result_payload, dict) and result_payload.get("session_token")
             ) or out.get("session_token")
             if isinstance(_tok_for_auth, str) and _tok_for_auth:
-                _claims = _verify_sct_envelope(_tok_for_auth)
+                _claims = _verify_act_envelope(_tok_for_auth)
                 if isinstance(_claims, dict):
                     _sct_auth = _claims.get("auth")
                     if _sct_auth and _sct_auth != "OBSERVE_ONLY":
@@ -11324,20 +11324,20 @@ def _arif_session_init(
         )
 
     if normalized_mode == "validate":
-        # P0 2026-07-17: federation_sct wire contract.
-        # AAA (and organs) call arif_init(mode=validate, session_id=<SCT token>).
+        # P0 2026-07-17: federation ACT wire contract.
+        # AAA (and organs) call arif_init(mode=validate, session_id=<ACT token>).
         # That is intentional overload: validate mode accepts either:
-        #   (a) act_v1.* / arifos.v1.* capability token → crypto verify via verify_sct
+        #   (a) act_v1.* / arifos.v1.* capability token → crypto verify via verify_act
         #   (b) SEAL-* session id → session-store liveness check
         # Response shape required by AAA governance/federation_act.py:
         #   {"valid": bool, "claims": {...}, "error": str|None}
         #
         # Prefer token-shaped values from session_token param, payload, or session_id.
-        _sct_arg = session_token
-        if not _sct_arg and isinstance(payload, dict):
-            _sct_arg = payload.get("session_token") or payload.get("sct")
+        _act_arg = session_token
+        if not _act_arg and isinstance(payload, dict):
+            _act_arg = payload.get("session_token") or payload.get("sct")
         _candidate = session_id
-        for _cand in (_sct_arg, session_id):
+        for _cand in (_act_arg, session_id):
             if _cand and (str(_cand).startswith("act_v1.") or str(_cand).startswith("arifos.v1.")):
                 _candidate = _cand
                 break
@@ -11347,7 +11347,7 @@ def _arif_session_init(
             return {
                 "valid": False,
                 "claims": None,
-                "error": "session_id required for validate (pass SCT token or SEAL session id)",
+                "error": "session_id required for validate (pass ACT token or SEAL session id)",
                 "session_valid": False,
                 "verification": _proof_spine_validate_summary(),
             }
@@ -11356,16 +11356,16 @@ def _arif_session_init(
         _recv_prefix = _sid_str[:24]
         _token_like = _sid_str.startswith("act_v1.") or _sid_str.startswith("arifos.v1.")
         if _token_like:
-            from arifosmcp.runtime.act_token import verify_sct
+            from arifosmcp.runtime.act_token import verify_act
 
-            claims = verify_sct(_sid_str, expected_actor=actor_id)
+            claims = verify_act(_sid_str, expected_actor=actor_id)
             if not claims:
                 return {
                     "valid": False,
                     "claims": None,
-                    "error": "SCT signature/expiry/actor verification failed",
+                    "error": "ACT signature/expiry/actor verification failed",
                     "session_valid": False,
-                    "validation_path": "verify_sct",
+                    "validation_path": "verify_act",
                     "received_prefix": _recv_prefix,
                 }
             return {
@@ -11374,7 +11374,7 @@ def _arif_session_init(
                 "error": None,
                 "session_id": claims.get("sid"),
                 "session_valid": True,
-                "validation_path": "verify_sct",
+                "validation_path": "verify_act",
                 "actor": claims.get("actor"),
                 "authority": claims.get("auth"),
                 "received_prefix": _recv_prefix,
@@ -20188,14 +20188,14 @@ def _arif_vault_seal(
         if mode == "seal" and floors and floors.get("F13") in ("SOVEREIGN_ACK", "ACK"):
             _sct_auth_level = "OBSERVE_ONLY"
             try:
-                from arifosmcp.runtime.act_token import verify_sct as _sv
+                from arifosmcp.runtime.act_token import verify_act as _va
 
                 _sess_obj = _SESSIONS.get(session_id, {}) if session_id else {}
-                _sct_tok = _sess_obj.get("session_token") or _sess_obj.get("sct_token")
-                if _sct_tok:
-                    _sct_claims = _sv(_sct_tok)
-                    if isinstance(_sct_claims, dict):
-                        _sct_auth_level = str(_sct_claims.get("auth", "OBSERVE_ONLY"))
+                _act_tok = _sess_obj.get("session_token") or _sess_obj.get("sct_token")
+                if _act_tok:
+                    _act_claims = _va(_act_tok)
+                    if isinstance(_act_claims, dict):
+                        _sct_auth_level = str(_act_claims.get("auth", "OBSERVE_ONLY"))
             except Exception:
                 pass
             if _sct_auth_level == "FULL":
@@ -25815,7 +25815,7 @@ def _inject_envelope_into_kwargs(
 def verify_and_inject_token(
     kwargs: dict[str, Any], tool_name: str
 ) -> tuple[bool, dict[str, Any] | None, dict[str, Any] | None]:
-    """Verify session capability token (sct_v1 canonical; arifos.v1 verify-only legacy).
+    """Verify Arif's Capability Token (act_v1 canonical; legacy sct_v1 + arifos.v1 verify-only).
 
     If valid, rehydrates session dict into _SESSIONS (store = optional cache).
     Returns (success, error_response_dict, claims_dict).
@@ -25835,14 +25835,14 @@ def verify_and_inject_token(
     try:
         from arifosmcp.runtime.act_token import (
             resolve_standing,
-            verify_sct,
+            verify_act,
         )
 
         actor_hint = kwargs.get("actor_id")
-        claims = verify_sct(token, expected_actor=actor_hint if actor_hint else None)
+        claims = verify_act(token, expected_actor=actor_hint if actor_hint else None)
         if claims is None and actor_hint:
             # Retry without actor pin (caller may pass wrong actor; token is truth)
-            claims = verify_sct(token, expected_actor=None)
+            claims = verify_act(token, expected_actor=None)
         if claims is None:
             standing = resolve_standing(
                 session_token=token,
