@@ -8200,6 +8200,14 @@ def _reconcile_legacy_aliases_with_token(dst: dict[str, Any]) -> None:
     FULL/crypto-verified in flat fields (actor_cryptographically_verified and
     effective_state remain the precise fields)."""
     _st = dst.get("session_token")
+    try:
+        logger.info(
+            "legacy-reconcile: fired token_present=%s av_source=%s",
+            bool(_st),
+            getattr(dst.get("act_claims") or {}, "get", lambda _k: None)("av"),
+        )
+    except Exception:
+        pass
     if not (isinstance(_st, str) and _st.startswith("act_v1.")):
         return
     try:
@@ -8531,7 +8539,9 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         if tool == "arif_init":
             # A1: preserve substrate before stamp (pre-existing envelope path)
             _preserve_arif_init_truth(payload, payload)
-            return _stamp_arif_init_deterministic(payload)
+            _stamped = _stamp_arif_init_deterministic(payload)
+            _reconcile_legacy_aliases_with_token(_stamped)
+            return _stamped
         return payload
 
     # 2026-08-04 333-AGI: arif_init verified bypass.
@@ -8560,7 +8570,9 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         # A1 + G8 (2026-08-05): preserve engine truth then floor SEAL-over-drift.
         # build_standard_mcp_result invents verdict="SEAL" and drops substrate.
         _preserve_arif_init_truth(payload, _built)
-        return _stamp_arif_init_deterministic(_built)
+        _stamped = _stamp_arif_init_deterministic(_built)
+        _reconcile_legacy_aliases_with_token(_stamped)
+        return _stamped
 
     # Derive basics — check routing-specific confidence before default
     # Fix: arif_route stores routing_confidence in result.source_of_truth;
