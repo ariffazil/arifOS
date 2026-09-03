@@ -479,7 +479,7 @@ def _sign(payload_b64: str) -> str:
     ).hexdigest()
 
 
-def mint_sct(
+def mint_act(
     *,
     sid: str,
     actor: str,
@@ -496,7 +496,7 @@ def mint_sct(
     kid: str = "default",
 ) -> tuple[str, dict[str, Any]]:
     """
-    Mint a signed session capability token.
+    Mint a signed Arif's Capability Token (ACT).
 
     Returns (token_string, claims_dict).
     apex values must be numbers or UNMEASURED — never fabricate scores.
@@ -573,14 +573,14 @@ def mint_sct(
     return token, claims
 
 
-def verify_sct(
+def verify_act(
     token: str | None,
     *,
     expected_actor: str | None = None,
     now: float | None = None,
 ) -> dict[str, Any] | None:
     """
-    Verify SCT signature + exp. Returns claims dict or None.
+    Verify ACT signature + exp. Returns claims dict or None.
 
     Does not consult the session store.
     """
@@ -685,6 +685,11 @@ def verify_sct(
                 return None
 
     return claims
+
+
+# SCT-era legacy aliases — dual-accept window (remove at migration close)
+mint_sct = mint_act
+verify_sct = verify_act
 
 
 @dataclass
@@ -799,7 +804,7 @@ def refresh_sct_if_needed(
     if remaining > ttl * half_life_ratio:
         return token, claims, None
 
-    new_token, new_claims = mint_sct(
+    new_token, new_claims = mint_act(
         sid=str(claims.get("sid") or ""),
         actor=str(claims.get("actor") or "anonymous"),
         auth=str(claims.get("auth") or "OBSERVE_ONLY"),
@@ -827,7 +832,7 @@ def mint_from_session_record(sess: dict[str, Any]) -> tuple[str, dict[str, Any]]
     allowed = sess.get("allowed_next_verbs")
     if not isinstance(allowed, list):
         allowed = None
-    return mint_sct(
+    return mint_act(
         sid=sid,
         actor=actor,
         auth=auth,
@@ -862,7 +867,7 @@ def resolve_standing(
     """
     # ── 1. Capability token path ──────────────────────────────────────────
     if session_token:
-        claims = verify_sct(session_token, expected_actor=actor_id)
+        claims = verify_act(session_token, expected_actor=actor_id)
         if claims is None:
             # Distinguish expiry vs bad sig when possible
             raw_claims = None
@@ -1087,7 +1092,7 @@ def echo_canonical_session(
     if resolved_token or session_token:
         _tok = session_token or resolved_token
         try:
-            payload = verify_sct(_tok)
+            payload = verify_act(_tok)
             if isinstance(payload, dict):
                 if not resolved_sid:
                     resolved_sid = payload.get("sid")
@@ -1184,7 +1189,7 @@ def echo_canonical_session(
         if resolved_token:
             response["session_token"] = resolved_token
             try:
-                _payload = verify_sct(resolved_token)
+                _payload = verify_act(resolved_token)
                 if isinstance(_payload, dict):
                     response["act_claims"] = _payload
             except Exception:
