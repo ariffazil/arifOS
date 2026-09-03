@@ -470,6 +470,33 @@ def _answer_q7_rsi_path_clear() -> EvidencedAnswer:
     )
 
 
+def _probe_executor_attached() -> dict[str, Any]:
+    """Q8 (informational, F13 2026-09-02): arifOS judges; it must not assume
+    execution exists. Probe the downstream executor (A-FORGE).
+
+    NEVER counted in boot_state — a detached executor must not demote the
+    kernel's authority grade (T3a lesson: PARTIAL boot states caused wrongful
+    FULL→OBSERVE_ONLY demotions). This field reports; it does not gate.
+    """
+    import json as _json
+    import urllib.request as _ureq
+
+    endpoint = "http://127.0.0.1:7071/health"
+    try:
+        with _ureq.urlopen(endpoint, timeout=1.5) as resp:  # noqa: S310
+            attached = resp.status == 200
+        note = "A-FORGE reachable" if attached else "A-FORGE unhealthy"
+    except Exception as exc:
+        attached = False
+        note = f"A-FORGE unreachable ({type(exc).__name__})"
+    return {
+        "executor": "A-FORGE",
+        "endpoint": endpoint,
+        "attached": attached,
+        "note": note,
+    }
+
+
 def verify_boot_attestation(
     session_id: str | None = None,
     *,
@@ -528,6 +555,8 @@ def verify_boot_attestation(
         "Q5": q5.to_dict(),
         "Q6": q6.to_dict(),
         "Q7": q7.to_dict(),
+        # Informational (F13 2026-09-02): never counted in summary/boot_state.
+        "executor_attached": _probe_executor_attached(),
         "summary": {
             "yes_count": yes,
             "partial_count": partial,
