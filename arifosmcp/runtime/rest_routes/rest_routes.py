@@ -1016,13 +1016,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
             v = _FLOOR_DEFAULTS.get(fid)
         resolved_floors[fid] = v
 
-    # Guard: if the governance kernel produced a failing score, fall back to the
-    # canonical default which is calibrated to the passing threshold. This prevents
-    # stale kernel state from keeping the Observatory in NEGATIVE indefinitely.
-    for fid in LAW_SPEC_KEYS:
-        val = resolved_floors.get(fid)
-        if val is not None and not _floor_passes(fid, float(val)):
-            resolved_floors[fid] = _FLOOR_DEFAULTS.get(fid, val)
+    # F2 TRUTH (ZEN 2026-09-02, F13 'audit this and zen all'): display the
+    # measured score. The previous guard overwrote failing floor scores with
+    # defaults "calibrated to the passing threshold" — cosmetic alignment that
+    # hid real signal (F7=0.04, F9=0.0, L12=0.425 were being masked in this
+    # view). Removed. Staleness belongs in freshness metadata, never in
+    # rewriting the measurement itself.
 
     # F1 AMANAH — live arifFLOW FQ probe (FLR-F1-FQ, 2026-08-10)
     # φFQ: 1.0 if FQ∈[1,3]; FQ/3.0 if FQ∈[0.5,1); 0.0 if FQ<0.5; min(1,3/FQ) if FQ>3.
@@ -3301,6 +3300,12 @@ def register_rest_routes(
             "degraded_reasons": degraded_reasons,
             "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
+            # ZEN 2026-09-02 (F13 'audit this and zen all'): the import path is
+            # the runtime truth. Deploy markers once said "aligned" while the
+            # service imported a stale venv site-packages copy (79 paths behind
+            # source). Expose the path so any auditor can hash-compare it
+            # against source without trusting labels.
+            "runtime_import_path": __import__("arifosmcp").__file__,
             "identity_hash": identity_hash,
             # ── Federation enum schema version (federation-wide handshake) ──
             # Bump FEDERATION_ENUMS_SCHEMA_VERSION in the canonical file when
@@ -7018,7 +7023,15 @@ def register_rest_routes(
         arguments[] schema per MCP spec §Prompts.
         """
         try:
-            mcp_prompts = await mcp.list_prompts()
+            # ZEN 2026-09-02: positional-swap fix — the `mcp` param receives the
+            # StarletteWithLifespan ASGI app (server.py passes `app` first), which
+            # has no list_prompts. The real FastMCP instance arrives as
+            # `fastmcp_instance`. Resolve before listing.
+            _fmcp = fastmcp_instance if fastmcp_instance is not None else mcp
+            try:
+                mcp_prompts = await _fmcp.list_prompts(run_middleware=False)
+            except TypeError:
+                mcp_prompts = await _fmcp.list_prompts()
             prompts_list = []
             for p in mcp_prompts:
                 raw_args = getattr(p, "arguments", []) or []
@@ -7050,13 +7063,22 @@ def register_rest_routes(
                 }
             )
         except Exception:
+            logger.exception("REST /prompts listing failed")
             return _rest_error("Failed to list prompts", status_code=500)
 
     @route("/prompts/{prompt_name:path}", methods=["GET"])
     async def get_prompt(request: Request, prompt_name: str) -> Response:
         """Get a prompt template by name."""
         try:
-            mcp_prompts = await mcp.list_prompts()
+            # ZEN 2026-09-02: positional-swap fix — the `mcp` param receives the
+            # StarletteWithLifespan ASGI app (server.py passes `app` first), which
+            # has no list_prompts. The real FastMCP instance arrives as
+            # `fastmcp_instance`. Resolve before listing.
+            _fmcp = fastmcp_instance if fastmcp_instance is not None else mcp
+            try:
+                mcp_prompts = await _fmcp.list_prompts(run_middleware=False)
+            except TypeError:
+                mcp_prompts = await _fmcp.list_prompts()
             for p in mcp_prompts:
                 if p.name == prompt_name or p.name == f"arifos.{prompt_name}":
                     return JSONResponse(
