@@ -215,6 +215,11 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             pass
     if not actor_verified and _jwt_av is True:
         actor_verified = True
+    # LEGACY-LABEL TRUTH (2026-09-04): the token is authoritative both ways.
+    # A bound-but-unverified session carries av=False — the legacy lookup can
+    # surface the store's bound-flag (true); that must not read as verified.
+    elif _jwt_av is False:
+        actor_verified = False
     session_id = _lookup("session_id")
     call_hash = _lookup("call_hash")
     trace_id = _lookup("trace_id")
