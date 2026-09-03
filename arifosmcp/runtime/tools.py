@@ -2629,6 +2629,9 @@ def _compute_canonical_verdict(
             "allowed_next_verbs",
             "degraded_state",
             "confidence",
+            "receipt",
+            "verdicts",
+            "effective_verdict",
         )
         _has_substance = any(
             k in _rp and _rp.get(k) not in (None, "", [], {}) for k in _SUBSTANCE_KEYS
@@ -4600,8 +4603,11 @@ def _enforce_nine_signal(
             "philosophical_anchor",
             "actor",
         }
-        if isinstance(out.get("result"), dict):
-            result_payload = dict(out["result"])
+        # D5 fix (2026-09-03): empty result dict starved the hollow gate —
+        # envelope substance (receipt/verdicts) is real payload, fall through.
+        _out_result_dict = out.get("result")
+        if isinstance(_out_result_dict, dict) and _out_result_dict:
+            result_payload = dict(_out_result_dict)
         else:
             result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
 
