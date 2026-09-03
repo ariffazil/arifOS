@@ -434,7 +434,7 @@ def classify_tool(
         # Mode-aware downgrade: read-only modes of IRREVERSIBLE tools
         if mode and passport.action_class in (ActionClass.ATOMIC, ActionClass.IRREVERSIBLE):
             _READ_ONLY_MODES = {
-                "arif_seal": {"verify", "chain", "list", "chain_status", "audit"},
+                "arif_seal": {"verify", "chain", "list", "chain_status", "audit", "ledger", "changelog"},
             }
             read_only = _READ_ONLY_MODES.get(name, set())
             if mode.lower() in read_only:
