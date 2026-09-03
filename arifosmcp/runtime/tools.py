@@ -26153,6 +26153,22 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:
                 pass
+            # D4 mode-awareness (2026-09-03): read-only modes of IRREVERSIBLE
+            # tools are downgraded to OBSERVE at ingress by the canonical
+            # classifier. The clamp must consult the same classifier —
+            # otherwise it re-gates what ingress already cleared, and the
+            # hollow gate then fires on the clamped empty payload.
+            _clamp_mode = str(kwargs.get("mode") or "")
+            if _clamp_mode:
+                try:
+                    from arifosmcp.core.enforcement.risk_classifier import (
+                        classify_tool as _classify_for_clamp,
+                    )
+
+                    _clamp_rp = _classify_for_clamp(tool_name, mode=_clamp_mode)
+                    _clamp_action = getattr(_clamp_rp.action_class, "value", _clamp_action)
+                except Exception:
+                    pass
             _clamp = session_policy_clamp(
                 kwargs.get("session_id"), tool_name, _clamp_action,
                 tool_mode=str(kwargs.get("mode", "")),
@@ -26519,6 +26535,22 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:
                 pass
+            # D4 mode-awareness (2026-09-03): read-only modes of IRREVERSIBLE
+            # tools are downgraded to OBSERVE at ingress by the canonical
+            # classifier. The clamp must consult the same classifier —
+            # otherwise it re-gates what ingress already cleared, and the
+            # hollow gate then fires on the clamped empty payload.
+            _clamp_mode = str(kwargs.get("mode") or "")
+            if _clamp_mode:
+                try:
+                    from arifosmcp.core.enforcement.risk_classifier import (
+                        classify_tool as _classify_for_clamp,
+                    )
+
+                    _clamp_rp = _classify_for_clamp(tool_name, mode=_clamp_mode)
+                    _clamp_action = getattr(_clamp_rp.action_class, "value", _clamp_action)
+                except Exception:
+                    pass
             _clamp = session_policy_clamp(
                 kwargs.get("session_id"), tool_name, _clamp_action,
                 tool_mode=str(kwargs.get("mode", "")),
