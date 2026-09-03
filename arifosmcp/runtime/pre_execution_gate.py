@@ -989,6 +989,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
             "chain",
             "chain_status",
             "audit",
+            "ledger",  # seal-chain listing — read-only (D4, 2026-09-03)
+            "changelog",  # sealed change history — read-only (D4, 2026-09-03)
             "dry_run",
             "seal_card",
             "render",
