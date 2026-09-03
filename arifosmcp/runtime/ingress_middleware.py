@@ -1113,6 +1113,46 @@ if IS_FASTMCP_3:
                     envelope_session_id = envelope.session_id
                     envelope_agent_id = envelope.agent_id
 
+                    # ── SESSION-TOKEN ADOPTION (F11 session-chain fix, 2026-09-03) ──
+                    # A verified act_v1/sct_v1 token in tool arguments carries
+                    # actor + sid claims. Adopt them when the envelope would
+                    # otherwise be anonymous/unknown — the anonymous gate stays
+                    # fully intact for token-less callers.
+                    _args_token = (msg.arguments or {}).get("session_token")
+                    if (
+                        isinstance(_args_token, str)
+                        and _args_token.startswith(("act_v1.", "sct_v1."))
+                        and (
+                            envelope.actor_id in (None, "", "anonymous")
+                            or envelope.session_id in (None, "", "unknown")
+                        )
+                    ):
+                        try:
+                            from arifosmcp.runtime.capability_token import (
+                                verify_token as _verify_act_token,
+                            )
+
+                            _act_claims = _verify_act_token(_args_token)
+                            if isinstance(_act_claims, dict) and _act_claims.get("av"):
+                                if envelope.actor_id in (None, "", "anonymous"):
+                                    envelope.actor_id = str(
+                                        _act_claims.get("actor") or envelope.actor_id
+                                    )
+                                if envelope.session_id in (None, "", "unknown"):
+                                    envelope.session_id = str(
+                                        _act_claims.get("sid") or envelope.session_id
+                                    )
+                                envelope_session_id = envelope.session_id
+                                logger.info(
+                                    "Ingress session-token adoption: actor=%s sid=%s",
+                                    envelope.actor_id,
+                                    envelope.session_id,
+                                )
+                        except Exception as _adopt_err:
+                            logger.debug(
+                                "Ingress token adoption skipped: %s", _adopt_err
+                            )
+
                     # ── FORGE SCOPE GATE (v3: ToolScoper integration) ──────────────
                     # When forge_scope is non-empty, only tools on the allowlist pass.
                     # This is the arifOS-side of the A-FORGE ToolScoper bridge.
