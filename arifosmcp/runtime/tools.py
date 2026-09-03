@@ -9845,7 +9845,9 @@ def _arif_session_init(
       epoch_seal  — Seal the current epoch, writing Epoch Seal JSON to vault.
 
     Parameters:
-      mode              — init | light | resume | validate | epoch_open | epoch_seal
+      mode              — init | light | resume | validate | canary | preflight |
+                        triage | epoch_open | epoch_seal | opt_out | opt_out_profiling
+                        (full mode grammar: GET /charter/arif_init)
       actor_id          — Sovereign actor identifier (required for init)
       ack_irreversible  — Explicit human ack for irreversible operations (F1 Amanah)
       session_id        — Existing session UUID (required for resume/validate/epoch_*)
