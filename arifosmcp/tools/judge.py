@@ -2250,7 +2250,25 @@ async def arif_judge(
             )
 
     # ── F11 SESSION GATE — session_id OR valid SCT ────────────────────────
-    if not session_id or not str(session_id).strip():
+    _f11_sid = str(session_id).strip() if session_id else ""
+    if _f11_sid in ("", "unknown", "None", "null"):
+        # D6 fix (2026-09-03): act_v1 SCT carries canonical sid claim —
+        # accept as constitutional-chain binding per the gate's own contract.
+        if isinstance(session_token, str) and session_token.startswith("act_v1."):
+            try:
+                import base64 as _b64_f11, json as _json_f11
+                _p_f11 = session_token.split(".")
+                _c_f11 = _json_f11.loads(
+                    _b64_f11.urlsafe_b64decode(
+                        _p_f11[1] + "=" * (4 - len(_p_f11[1]) % 4)
+                    ).decode()
+                )
+                if _c_f11.get("av") is True and _c_f11.get("sid"):
+                    session_id = _c_f11["sid"]
+                    _f11_sid = session_id
+            except Exception:
+                pass
+    if not _f11_sid:
         return VerdictOutput(
             verdict=VerdictCode.HOLD,
             reasons=[
