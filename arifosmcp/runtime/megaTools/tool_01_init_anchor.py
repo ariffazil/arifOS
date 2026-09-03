@@ -315,6 +315,21 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
     platform = str(identity.get("platform") or "mcp")
     stage = str(identity.get("stage") or "000_INIT")
 
+    # ESCALATION-OFFER (2026-09-04, F13 GO 1-4): unverified identity must not
+    # read as "no binding exists" — point the connector at the existing prove-lane.
+    identity_escalation = None
+    if not verified:
+        identity_escalation = {
+            "status": "OFFERED",
+            "reason": "actor identity is self-asserted — authority capped at OBSERVER",
+            "bind_path": (
+                "crypto_auth.issue_authorization_challenge -> Ed25519-sign the "
+                "canonical challenge (sovereign signing lane, localhost:18900) "
+                "-> crypto_auth.verify_authorization_challenge"
+            ),
+            "on_success": "identity_authenticated=true; authority bands unlock per AuthorityState",
+        }
+
     return RuntimeEnvelope(
         ok=True,
         tool="init_anchor",
@@ -355,6 +370,11 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
                 "risk_tier": risk_tier,
                 "platform": platform,
             },
+            **(
+                {"identity_escalation": identity_escalation}
+                if identity_escalation is not None
+                else {}
+            ),
         },
     )
 
