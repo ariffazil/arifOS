@@ -777,6 +777,58 @@ def verify_actor_signature(actor_id: str, nonce: str, signature_b64: str) -> boo
     return ok
 
 
+_SOVEREIGN_ALIAS_TUPLE = ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888")
+
+
+def _canonical_payloads(
+    actor_id: str,
+    nonce: str,
+    constitution_hash: str | None = None,
+) -> list[tuple[str, bytes]]:
+    """P0 FIX 2026-09-04 (FI-008): SINGLE SOURCE of canonical Ed25519 payload
+    formats. Used by verify_init_identity AND sovereign_verify
+    .compute_verified_key_id so the verifier and the key-id deriver can
+    never drift.
+
+    Sovereign alias coverage on the PLAIN nonce payloads: the ABI layer may
+    normalize actor_id to uppercase (e.g. "ARIF") while callers sign with any
+    sovereign variant ("ariffazil:<nonce>"). Previously aliases were only
+    tried for constitution-prefixed payloads, so a plain "{alias}:{nonce}"
+    signature failed with ed25519_signature_invalid even though the key was
+    correct — the LIMITED_MUTATE root cause #2.
+    """
+    payloads: list[tuple[str, bytes]] = [("actor_nonce", f"{actor_id}:{nonce}".encode())]
+    aid_norm = _normalize_actor(actor_id)
+    if aid_norm != actor_id:
+        payloads.append(("actor_norm_nonce", f"{aid_norm}:{nonce}".encode()))
+    if aid_norm in _SOVEREIGN_ALIAS_TUPLE:
+        for alias in _SOVEREIGN_ALIAS_TUPLE:
+            if alias not in (actor_id, aid_norm):
+                payloads.append(
+                    (f"alias_{alias}_nonce", f"{alias}:{nonce}".encode())
+                )
+    if constitution_hash:
+        payloads.append(
+            ("actor_constitution_nonce", f"{actor_id}:{constitution_hash}:{nonce}".encode())
+        )
+        if aid_norm != actor_id:
+            payloads.append(
+                (
+                    "actor_norm_constitution_nonce",
+                    f"{aid_norm}:{constitution_hash}:{nonce}".encode(),
+                )
+            )
+        for alias in _SOVEREIGN_ALIAS_TUPLE:
+            if aid_norm in _SOVEREIGN_ALIAS_TUPLE and alias != aid_norm and alias != actor_id:
+                payloads.append(
+                    (
+                        f"alias_{alias}_constitution_nonce",
+                        f"{alias}:{constitution_hash}:{nonce}".encode(),
+                    )
+                )
+    return payloads
+
+
 def verify_init_identity(
     actor_id: str,
     nonce: str,
@@ -799,29 +851,7 @@ def verify_init_identity(
         signature_bytes = base64.b64decode(signature_b64)
     except Exception:
         return False, "signature_b64_invalid"
-    payloads: list[tuple[str, bytes]] = [("actor_nonce", f"{actor_id}:{nonce}".encode())]
-    aid_norm = _normalize_actor(actor_id)
-    if aid_norm != actor_id:
-        payloads.append(("actor_norm_nonce", f"{aid_norm}:{nonce}".encode()))
-    if constitution_hash:
-        payloads.append(
-            ("actor_constitution_nonce", f"{actor_id}:{constitution_hash}:{nonce}".encode())
-        )
-        if aid_norm != actor_id:
-            payloads.append(
-                (
-                    "actor_norm_constitution_nonce",
-                    f"{aid_norm}:{constitution_hash}:{nonce}".encode(),
-                )
-            )
-        for alias in ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888"):
-            if aid_norm in ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888") and alias != aid_norm:
-                payloads.append(
-                    (
-                        f"alias_{alias}_constitution_nonce",
-                        f"{alias}:{constitution_hash}:{nonce}".encode(),
-                    )
-                )
+    payloads = _canonical_payloads(actor_id, nonce, constitution_hash)
     matched_payload = None
     for label, message_bytes in payloads:
         try:
