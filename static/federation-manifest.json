@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-09-04T22:11:27Z",
+  "generated": "2026-09-04T22:15:19Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=degraded, WEALTH=healthy, WELL=degraded, AAA=degraded, A-FORGE=healthy. arifOS v2026.08.01 (b242b42). 106 tools live across 3/6 organs.",
-  "note": "All numbers from live /health probe at 2026-09-04T22:11:27Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=degraded, WEALTH=healthy, WELL=degraded, AAA=degraded, A-FORGE=healthy. arifOS v2026.08.01 (8a44817). 106 tools live across 3/6 organs.",
+  "note": "All numbers from live /health probe at 2026-09-04T22:15:19Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -63,7 +63,7 @@
         "tools": 48,
         "release": "v2026.08.01",
         "version": "v2026.08.01",
-        "commit": "b242b42",
+        "commit": "8a44817",
         "canonical_tools": 8,
         "diagnostic_tools": 40,
         "tools_exposed_mcp": 8,
