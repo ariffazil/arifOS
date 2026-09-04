@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Vision Scene Contract",
+  "description": "Declarative scene specification for image generation and quality gating",
+  "type": "object",
+  "required": ["request_id", "intent", "scene_contract"],
+  "properties": {
+    "request_id": { "type": "string", "pattern": "^vis_[a-z0-9_]+$" },
+    "intent": { "type": "string", "enum": ["vibe", "precise_scene", "controlled", "repair"] },
+    "classification": { "type": "string", "enum": ["synthetic_non_documentary", "concept_art", "factual_memory", "identity_bearing"], "default": "synthetic_non_documentary" },
+    "scene_contract": {
+      "type": "object",
+      "properties": {
+        "subject_count": { "type": "integer", "minimum": 0, "default": 0 },
+        "subject": { "type": "string", "default": "" },
+        "action": {
+          "type": "object",
+          "properties": {
+            "verb": { "type": "string" },
+            "actor": { "type": "string" },
+            "tool": { "type": "string" },
+            "target": { "type": "string" },
+            "required_relation": { "type": "string" }
+          }
+        },
+        "required_objects": { "type": "array", "items": { "type": "string" } },
+        "setting": { "type": "string" },
+        "camera": { "type": "string" },
+        "negative_constraints": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "properties": {
+        "max_generation_candidates": { "type": "integer", "minimum": 1, "maximum": 4, "default": 1 },
+        "max_analysis_calls": { "type": "integer", "minimum": 0, "maximum": 3, "default": 1 },
+        "max_generation_cost_usd": { "type": "number", "minimum": 0, "default": 0.0 },
+        "max_retries": { "type": "integer", "minimum": 0, "maximum": 1, "default": 0 }
+      }
+    },
+    "publication": {
+      "type": "object",
+      "properties": {
+        "external_publish": { "type": "boolean", "default": false },
+        "human_approval_required": { "type": "boolean", "default": true }
+      }
+    }
+  }
+}
