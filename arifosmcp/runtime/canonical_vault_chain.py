@@ -145,6 +145,11 @@ class VerifyStatus(StrEnum):
     GAPS_FOUND = "gaps-found"
     NO_CHAIN = "no-chain"
     ERROR = "error"
+    # P0-1 (888 audit 2026-09-05): chain green scoped to current epoch.
+    # Historical gaps are classified + HMAC-bound by EPOCH_ATTESTATION.json —
+    # never rewritten (F1). F-004 preserved: any gap at/after epoch start,
+    # head mismatch, digest mismatch, or tampered attestation → gaps-found.
+    EPOCH_CLEAN = "epoch-clean"
 
 
 # ── Envelope ─────────────────────────────────────────────────────
@@ -456,6 +461,8 @@ class VerifyResult:
     unsigned_after_cutover: int = 0
     cutover_seq: Any = None
     sig_enforce: bool = False
+    # P0-1 epoch attestation
+    epoch: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -480,6 +487,8 @@ class VerifyResult:
             "unsigned_after_cutover": self.unsigned_after_cutover,
             "cutover_seq": self.cutover_seq,
             "sig_enforce": self.sig_enforce,
+            # P0-1: epoch scope info when status=epoch-clean
+            "epoch": self.epoch,
         }
 
 
@@ -529,6 +538,8 @@ def verify_chain(
     last_entry: dict[str, Any] | None = None
     parseable_index = -1
     scope_canonical = scope == "canonical"
+    # P0-1: all entry hashes (anchor presence check for epoch attestation)
+    all_entry_hashes: set[str | None] = set()
     # VAULT999-SIG (G1) walk state
     _sig_key = _vault_hmac_key()
     _sig_enforce_on = _sig_enforce()
@@ -575,7 +586,14 @@ def verify_chain(
         this_h = entry_this_hash(entry)
         prev_h = entry_prev_hash(entry)
         seq = entry_sequence(entry)
-        rid = entry.get("receipt_id") or entry.get("id")
+        rid = (
+            entry.get("receipt_id")
+            or entry.get("id")
+            or entry.get("decision_reference")
+            or entry.get("operation_id")
+        )
+        if this_h:
+            all_entry_hashes.add(this_h)
 
         # First canonical entry after historical: prev may be genesis (epoch open) — allowed
         if (
@@ -730,7 +748,12 @@ def verify_chain(
         # rid is None. Now flagged as CANONICAL_MISSING_FIELDS.
         if canon:
             _missing: list[str] = []
-            if not entry.get("id") and not entry.get("receipt_id"):
+            if not (
+                entry.get("id")
+                or entry.get("receipt_id")
+                or entry.get("decision_reference")
+                or entry.get("operation_id")
+            ):
                 _missing.append("id/receipt_id")
             if not entry.get("timestamp") and not entry.get("timestamp_iso"):
                 _missing.append("timestamp")
@@ -885,6 +908,35 @@ def verify_chain(
         else (VerifyStatus.GAPS_FOUND if gaps else VerifyStatus.ERROR)
     )
 
+    # ── P0-1 (888 audit 2026-09-05): epoch-clean scoping ─────────────
+    # Only when NOT otherwise verified: a valid attestation that binds every
+    # gap to pre-epoch history upgrades the result to epoch-clean. F-004
+    # preserved — verified=True here is explicitly epoch-scoped (epoch dict
+    # present), never a genesis-to-head claim.
+    epoch_info: dict[str, Any] | None = None
+    if gaps and entries > 0:
+        epoch_info = _maybe_epoch_clean(p.vault_dir, gaps, all_entry_hashes)
+        if epoch_info is not None:
+            return VerifyResult(
+                verified=True,
+                status=VerifyStatus.EPOCH_CLEAN,
+                entries=entries,
+                corrupt_lines=0 if scope_canonical else corrupt,
+                gaps=gaps,
+                head_seq=head_seq,
+                head_hash=head_hash,
+                ledger_path=str(p.chain),
+                canonical_entries=canonical_n,
+                historical_entries=historical_n,
+                failure_classes=classes,
+                signed_entries=signed_ok,
+                signed_unverifiable=signed_unverifiable,
+                unsigned_after_cutover=unsigned_after_cutover,
+                cutover_seq=cutover_seq,
+                sig_enforce=_sig_enforce_on,
+                epoch=epoch_info,
+            )
+
     return VerifyResult(
         verified=verified,
         status=status,
@@ -904,6 +956,129 @@ def verify_chain(
         cutover_seq=cutover_seq,
         sig_enforce=_sig_enforce_on,
     )
+
+
+# ── P0-1: Epoch-boundary attestation (888 audit 2026-09-05) ─────────
+#
+# The strong sovereignty claim is continuity from a provable point forward,
+# never a fabricated genesis-to-head story. Historical gaps stay classified
+# and HMAC-bound in EPOCH_ATTESTATION.json; the chain keeps growing and the
+# anchor hash stays valid inside it. Any NEW gap at/after epoch start, any
+# drift in the bound gap set, or any tampering with the attestation itself
+# → status falls back to gaps-found (F-004 preserved).
+
+ATTESTATION_FILENAME = "EPOCH_ATTESTATION.json"
+_ATTEST_HMAC_PREFIX = "vhmac:"
+
+
+def _attestation_gap_digest(gaps: list[GapRecord]) -> str:
+    fps = sorted(f"{g.line_no}|{g.gap_class}" for g in gaps)
+    return hashlib.sha256("\n".join(fps).encode("utf-8")).hexdigest()
+
+
+def _attestation_hmac(doc: dict[str, Any]) -> str | None:
+    key = _vault_hmac_key()
+    if key is None:
+        return None
+    body = {k: v for k, v in doc.items() if k != "attestation_hmac"}
+    canonical = json.dumps(body, sort_keys=True, ensure_ascii=False, default=str)
+    return _ATTEST_HMAC_PREFIX + hmac.new(key, canonical.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def build_epoch_attestation(
+    vault_dir: Path | str | None = None,
+    authority: str = "F13 sovereign directive 2026-09-05 (888 audit P0-1)",
+) -> dict[str, Any] | None:
+    """Classify + HMAC-bind current historical gaps into an epoch attestation.
+
+    Returns None when there is nothing to attest (chain already gapless).
+    Never mutates the chain (F1: gaps are classified, never rewritten).
+    """
+    res = verify_chain(vault_dir, scope="full")
+    if not res.gaps:
+        return None
+    epoch_start = max((g.line_no or 0) for g in res.gaps) + 1
+    doc: dict[str, Any] = {
+        "attestation_type": "EPOCH_BOUNDARY_ATTESTATION",
+        "authority": authority,
+        "sealed_at": datetime.now(UTC).isoformat(),
+        "epoch_start_line_no": epoch_start,
+        "historical_gap_count": len(res.gaps),
+        "historical_gap_digest": _attestation_gap_digest(res.gaps),
+        "gap_class_summary": res.failure_classes,
+        "anchor_hash": res.head_hash,
+        "claim": (
+            "Continuity asserted from epoch_start_line_no to anchor_hash; historical "
+            "gaps classified and bound, never rewritten (F1). New gaps at/after epoch "
+            "start, drift in the bound set, or tampering invalidate this attestation."
+        ),
+    }
+    sig = _attestation_hmac(doc)
+    if sig is None:
+        doc["attestation_hmac"] = None
+        doc["hmac_note"] = "vault hmac key unavailable — attestation UNBOUND, verifier will reject"
+    else:
+        doc["attestation_hmac"] = sig
+    p = paths_for(vault_dir)
+    p.vault_dir.mkdir(parents=True, exist_ok=True)
+    (p.vault_dir / ATTESTATION_FILENAME).write_text(
+        json.dumps(doc, indent=1, ensure_ascii=False, default=str), encoding="utf-8"
+    )
+    return doc
+
+
+def _validate_epoch_attestation(
+    att: Any,
+    gaps: list[GapRecord],
+    anchor_hashes: set[str | None],
+) -> tuple[bool, str, dict[str, Any]]:
+    if not isinstance(att, dict):
+        return False, "attestation not an object", {}
+    sig = att.get("attestation_hmac")
+    if not isinstance(sig, str) or not sig.startswith(_ATTEST_HMAC_PREFIX):
+        return False, "attestation hmac missing/unbound", {}
+    expected = _attestation_hmac(att)
+    if expected is None or not hmac.compare_digest(sig, expected):
+        return False, "attestation hmac mismatch (tampered)", {}
+    epoch_start = att.get("epoch_start_line_no")
+    if not isinstance(epoch_start, int) or epoch_start <= 0:
+        return False, "bad epoch_start_line_no", {}
+    hist = [g for g in gaps if (g.line_no or 0) < epoch_start]
+    if len(hist) != att.get("historical_gap_count"):
+        return False, "historical gap count drift since attestation", {}
+    if _attestation_gap_digest(hist) != att.get("historical_gap_digest"):
+        return False, "historical gap digest drift since attestation", {}
+    if any((g.line_no or 0) >= epoch_start for g in gaps):
+        return False, "new gap exists at/after epoch start", {}
+    anchor = normalize_hash(att.get("anchor_hash"))
+    if not anchor or anchor not in {normalize_hash(h) for h in anchor_hashes if h}:
+        return False, "anchor hash not present in chain", {}
+    epoch = {
+        "epoch_start_line_no": epoch_start,
+        "historical_gap_count": len(hist),
+        "anchor_hash": att.get("anchor_hash"),
+        "attested_at": att.get("sealed_at"),
+        "authority": att.get("authority"),
+        "scope": "continuity epoch_start→head; historical gaps classified+bound",
+    }
+    return True, "ok", epoch
+
+
+def _maybe_epoch_clean(
+    vault_dir: Path,
+    gaps: list[GapRecord],
+    anchor_hashes: set[str | None],
+) -> dict[str, Any] | None:
+    """Return epoch info dict if a valid attestation scopes all gaps to history."""
+    att_path = vault_dir / ATTESTATION_FILENAME
+    if not att_path.is_file():
+        return None
+    try:
+        att = json.loads(att_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    ok, _reason, epoch = _validate_epoch_attestation(att, gaps, anchor_hashes)
+    return epoch if ok else None
 
 
 # ── Replay ───────────────────────────────────────────────────────
@@ -1369,4 +1544,43 @@ __all__ = [
     "heads_agreement",
     "compute_receipt_hash",
     "paths_for",
+    "build_epoch_attestation",
+    "ATTESTATION_FILENAME",
 ]
+
+
+if __name__ == "__main__":
+    import argparse
+    import sys as _sys
+
+    ap = argparse.ArgumentParser(description="VAULT999 canonical chain tools (P0-1)")
+    ap.add_argument("command", choices=["verify", "attest"])
+    ap.add_argument("--vault-dir", default=None)
+    args = ap.parse_args()
+
+    if args.command == "verify":
+        r = verify_chain(args.vault_dir, scope="full")
+        d = r.to_dict()
+        print(json.dumps(d, indent=1, ensure_ascii=False, default=str))
+        _sys.exit(0 if d.get("chain_verified") else 1)
+
+    if args.command == "attest":
+        doc = build_epoch_attestation(args.vault_dir)
+        if doc is None:
+            print("nothing to attest — chain gapless")
+        else:
+            r = verify_chain(args.vault_dir, scope="full")
+            print(
+                json.dumps(
+                    {
+                        "attestation_written": str(paths_for(args.vault_dir).vault_dir / ATTESTATION_FILENAME),
+                        "epoch_start_line_no": doc.get("epoch_start_line_no"),
+                        "historical_gap_count": doc.get("historical_gap_count"),
+                        "post_attest_status": str(r.status),
+                        "note": "post_attest_status reflects PRE-attestation verify cache; re-run verify to see epoch-clean",
+                    },
+                    indent=1,
+                )
+            )
+            r2 = verify_chain(args.vault_dir, scope="full")
+            print("verify after attest:", str(r2.status), "| epoch:", json.dumps(r2.epoch, default=str) if r2.epoch else None)
