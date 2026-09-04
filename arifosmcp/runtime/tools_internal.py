@@ -1700,6 +1700,17 @@ async def engineering_memory_dispatch_impl(
             # F2 TRUTH: detect false-SUCCESS (Qdrant returns K results even when nothing matches)
             # FIX 2026-09-05 (bug #2): score gate is fail-closed (None ≠ admitted)
             usable = [r for r in budgeted_results if _memory_content_str(r.get("content", "")).strip() and _score_admits(r)]
+            # P1 telemetry (888 audit 2026-09-05): never load-bearing
+            try:
+                from arifosmcp.runtime.memory_telemetry import record_recall
+
+                record_recall(
+                    query, results, usable,
+                    reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
+                    backend="qdrant",
+                )
+            except Exception:
+                pass
             if not usable:
                 return RuntimeEnvelope(
                     ok=True,
@@ -1778,6 +1789,17 @@ async def engineering_memory_dispatch_impl(
                         usable.append(r)
                     else:
                         r["content"] = coerced  # keep candidates readable for not-found diagnostics
+                # P1 telemetry (888 audit 2026-09-05): never load-bearing
+                try:
+                    from arifosmcp.runtime.memory_telemetry import record_recall
+
+                    record_recall(
+                        query, results, usable,
+                        reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
+                        backend="qdrant",
+                    )
+                except Exception:
+                    pass
                 if not usable:
                     return RuntimeEnvelope(
                         ok=True,

@@ -147,7 +147,10 @@ SECRETS.md
 state/
 # Federation audit runtime state
 objective_state.json
-memory/
+# FIX 2026-09-05: anchored — was 'memory/' which swallowed SOURCE dirs
+# (arifosmcp/hexagon/memory, arifosmcp/memory, core/organs/memory, ...)
+# Intent = root runtime data dir only.
+/memory/
 .openclaw/
 
 # Operator scratch / bootstrap noise
