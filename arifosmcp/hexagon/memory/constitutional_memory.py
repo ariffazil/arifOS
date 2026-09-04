@@ -4,9 +4,11 @@ Production-grade Qdrant-backed memory engine.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+import hashlib
 import logging
+import os
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -44,7 +46,9 @@ class MemoryEntry:
     source: str = "unknown"
     source_agent: str = "unknown"
     timestamp: datetime = field(default_factory=datetime.now)
-    score: float = 1.0
+    # FIX 2026-09-05 (bug #2): score may be None = retrieval signal unavailable.
+    # Never coerce None to 0.0 — that fabricates a known-bad signal (F2/F9).
+    score: float | None = 1.0
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -100,9 +104,19 @@ class ConstitutionalMemoryStore:
         return True, memory_id, None
 
     async def vector_query(self, query: str, limit: int = 5, **kwargs) -> list[MemoryEntry]:
-        """Query Qdrant for similar memory entries."""
+        """Query Qdrant for similar memory entries.
+
+        FIX 2026-09-05 (bug #2, scar_1788553451571 follow-up): map res.score —
+        it exists on every query_points hit (verified live: 0.5289/0.8967 etc.)
+        and was previously discarded with score=0.0 ("needs mapping" — it
+        doesn't). Fail closed: missing score → None, never 0.0. Attach
+        retrieval provenance (F2/F3/F4) so downstream policy can audit the
+        signal instead of trusting a constant.
+        """
         client = _get_qdrant_client()
         vector = _generate_embedding(query)
+        query_hash = hashlib.sha256(query.encode("utf-8")).hexdigest()[:16]
+        embedding_model = os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest")
 
         results = client.query_points(
             collection_name=_QDRANT_COLLECTION, query=vector, limit=limit
@@ -110,12 +124,21 @@ class ConstitutionalMemoryStore:
 
         entries = []
         for res in results:
+            payload = res.payload or {}
+            raw_score = getattr(res, "score", None)
+            meta = dict(payload.get("metadata", {}) or {})
+            meta["score_raw"] = raw_score
+            meta["score_metric"] = "cosine"
+            meta["collection"] = _QDRANT_COLLECTION
+            meta["embedding_model"] = embedding_model
+            meta["query_hash"] = query_hash
+            meta["retrieved_at"] = datetime.now(timezone.utc).isoformat()
             entries.append(
                 MemoryEntry(
-                    content=res.payload.get("content", ""),
+                    content=payload.get("content", ""),
                     id=str(res.id),
-                    score=0.0,  # query_points score is nested or needs mapping
-                    metadata=res.payload.get("metadata", {}),
+                    score=float(raw_score) if raw_score is not None else None,
+                    metadata=meta,
                 )
             )
         return entries
