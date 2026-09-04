@@ -863,6 +863,9 @@ def bind_session_identity(
     now = _utcnow()
     canonical_actor_id = _resolve_canonical_actor(actor_id, None)
     verified_flag = bool(verified if verified is not None else auth_context.get("verified", False))
+    if not actor_id or str(actor_id).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", ""):
+        verified_flag = False
+        authority_level = "OBSERVE_ONLY"
 
     actual_session_id = session_id
     if sign:

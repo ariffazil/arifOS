@@ -1187,26 +1187,28 @@ def echo_canonical_session(
 
     if not resolved_sid:
         resolved_sid = "anonymous-session"
-    if not resolved_actor:
+    if not resolved_actor or str(resolved_actor).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", ""):
         resolved_actor = "anonymous"
-    if not resolved_band:
-        resolved_band = "OBSERVE_ONLY"
-
-    band_str = str(resolved_band).upper()
-    if band_str not in (
-        "OBSERVE_ONLY",
-        "LIMITED_MUTATE",
-        "FULL",
-        "SOVEREIGN",
-        "ORANGE",
-        "YELLOW",
-        "GREEN",
-        "RED",
-    ):
+        actor_verified = False
+        crypto_verified = False
         band_str = "OBSERVE_ONLY"
-
-    if actor_cryptographically_verified is not None:
-        crypto_verified = bool(actor_cryptographically_verified)
+    else:
+        if not resolved_band:
+            resolved_band = "OBSERVE_ONLY"
+        band_str = str(resolved_band).upper()
+        if band_str not in (
+            "OBSERVE_ONLY",
+            "LIMITED_MUTATE",
+            "FULL",
+            "SOVEREIGN",
+            "ORANGE",
+            "YELLOW",
+            "GREEN",
+            "RED",
+        ):
+            band_str = "OBSERVE_ONLY"
+        if actor_cryptographically_verified is not None:
+            crypto_verified = bool(actor_cryptographically_verified)
 
     if isinstance(response, dict):
         response["session_id"] = resolved_sid

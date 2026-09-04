@@ -1179,6 +1179,8 @@ async def arif_judge(
     # Gate 1: Caller identity required for judgment
     if not actor_id and not session_id:
         _hard_reasons.append("No actor_id or session_id — cannot identify caller.")
+    elif (not actor_id or str(actor_id).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", "")) and (reversibility_level or action_class or "").upper() not in ("R0", "R0_OBSERVE", "R0_OBSERVATION", "OBSERVE", "READ", "AUDIT_RECORD_READ", ""):
+        _hard_reasons.append("ANONYMOUS_MUTATION_FORBIDDEN: Anonymous callers are strictly OBSERVE_ONLY. Mutation requires authenticated actor identity.")
 
     # Gate 2a: F1 AMANAH PROVENANCE — engine-classified, agent-claimed, reconciled.
     # Forged 2026-08-27 (WIRE 4). Reversibility is a deterministic F1 floor.
@@ -1228,6 +1230,26 @@ async def arif_judge(
     if _rev in ("IRREVERSIBLE", "MUTATE", "EXTERNAL_SIDE_EFFECT") and not actor_signature:
         _hard_reasons.append(
             f"Irreversible action ({_rev}) requires actor_signature for non-repudiation."
+        )
+
+    # Gate 2b (F1 AMANAH): Autonomous Irreversible Destruction Prohibited
+    _cand_lower = (candidate or "").lower()
+    _is_destructive = any(
+        kw in _cand_lower for kw in ("delete customer", "wipe database", "drop table", "purge customer", "hard delete")
+    )
+    if _is_destructive and not sovereign_receipt and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+        _hard_reasons.append(
+            "F1_AMANAH_VIOLATION: Irreversible destruction/purge is strictly forbidden for autonomous agents."
+        )
+
+    # Gate 2c (F13 SOVEREIGN): Security Perimeter / Policy Mutation Prohibited
+    _is_security_mutation = (
+        action_class in ("CONSTITUTIONAL_AMENDMENT", "SECURITY_CONFIG", "SECURITY_OVERRIDE")
+        or any(kw in _cand_lower for kw in ("security policy", "bypass auth", "mfa_enforcement", "firewall policy"))
+    )
+    if _is_security_mutation and not sovereign_receipt and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+        _hard_reasons.append(
+            "F13_SOVEREIGN_VIOLATION: Mutating security/firewall policy or constitutional parameters is reserved exclusively for Root Sovereign."
         )
 
     # Gate 3: Critical blast radius requires sovereign receipt
@@ -1402,13 +1424,21 @@ async def arif_judge(
         pass
 
     if _hard_reasons:
+        _is_void = any(
+            any(kw in r for kw in ("VIOLATION", "FORBIDDEN", "DECEPTIVE", "ANTIHANTU", "PRIVILEGE_ESCALATION", "DESTRUCTIVE"))
+            for r in _hard_reasons
+        )
         return VerdictOutput(
-            verdict=VerdictCode.HOLD,
+            verdict=VerdictCode.VOID if _is_void else VerdictCode.HOLD,
             reasons=_hard_reasons,
             next_safe_action=(
-                "Provide missing credentials (actor_signature, sovereign_receipt, "
-                "heart_critique) or reduce blast_radius/reversibility level. "
-                "These gates run BEFORE any LLM is consulted — no 45s wait."
+                "Aborted: action violates constitutional floors (F1/F9/F13)."
+                if _is_void
+                else (
+                    "Provide missing credentials (actor_signature, sovereign_receipt, "
+                    "heart_critique) or reduce blast_radius/reversibility level. "
+                    "These gates run BEFORE any LLM is consulted — no 45s wait."
+                )
             ),
             meta={
                 "gate": "hard_deterministic",
@@ -1483,17 +1513,34 @@ async def arif_judge(
                 "REVERSIBLE",
                 "ATTEST",
                 "OBSERVE",
+                "R0",
                 "R0_OBSERVE",
+                "R0_OBSERVATION",
+                "READ",
+                "R1",
+                "R1_SIMULATION",
                 "R1_REVERSIBLE",
-            ) and _br_u in ("LOW", "L1_LOCAL")
-            # F13 confirms a *passed* intercept (ALLOW/OK/SEAL). Never rewrite HOLD.
-            if _v_str in ("ALLOW", "OK") and _has_f13 and _attest_safe:
+                "R2",
+                "R2_REVERSIBLE_WRITE",
+                "REVERSIBLE_WRITE",
+                "WRITE",
+                "R2_DEFERRED",
+                "AUDIT_RECORD",
+                "AUDIT_RECORD_READ",
+                "AUDIT_RECORD_APPEND",
+                "EVIDENCE_ATTESTATION",
+            ) and _br_u in ("LOW", "L1_LOCAL", "LEDGER")
+            # Routine safe actions (read-only / reversible with low blast) promote ALLOW → SEAL autonomously.
+            # Non-safe / high-blast actions require explicit F13 sovereign_receipt to confirm.
+            if _v_str in ("ALLOW", "OK") and (_attest_safe or _has_f13):
                 _code = VerdictCode.SEAL
                 _v_str = "SEAL"
             elif _v_str == "SEAL":
                 _code = VerdictCode.SEAL
+            elif _v_str in ("VOID", "DENY", "BLOCK"):
+                _code = VerdictCode.VOID
             else:
-                _code = VerdictCode.VOID if _v_str == "VOID" else VerdictCode.HOLD
+                _code = VerdictCode.HOLD
 
             # ── P0-1: evidence postcondition on intercept promotions ──────────
             # ALLOW→SEAL promotions must not pass on session state alone.
