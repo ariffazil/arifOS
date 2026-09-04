@@ -277,6 +277,12 @@ class AuthorityActor(BaseModel):
 
     claimed_id: str = "anonymous"
     verified: bool = False
+    # P0 FIX 2026-09-04 (FI-008, F13 "auto go"): canonical key fingerprint
+    # ("ed25519:sha256:<hex16>") of the public key that VERIFIED the actor's
+    # signature. bind_authority_state matches this against SOVEREIGN_KEY_IDS
+    # (SECURITY P0 2026-07-12). Without it, verified=True alone only ever
+    # reaches OPERATOR/OBSERVER_MUTATE — the LIMITED_MUTATE bug.
+    verified_key_id: str | None = None
     verification_method: Literal[
         "none", "session", "signature", "oauth", "hardware", "f13_sovereign",
         # T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP proof + DID registry match.
