@@ -186,3 +186,57 @@ def test_mixed_none_and_real_score_admits_only_scored(monkeypatch):
     assert p.get("found") is True
     assert p.get("count") == 1
     assert p["results"][0]["content"] == "scored"
+
+
+# ── POLICY 2026-09-05 (888): text-schema fallback — 57 dossier points ──────
+
+
+def _text_point(pid, score, subject, text):
+    return SimpleNamespace(
+        id=pid,
+        score=score,
+        payload={"subject": subject, "text": text, "category": "dossier", "ts": "2026-08-11"},
+    )
+
+
+def test_text_schema_point_served_via_fallback(monkeypatch):
+    pts = [
+        _text_point("d1", 0.62, "Sovereign Decrees", "Full text of sovereign decree number four"),
+        _point("c1", 0.40, "ordinary content point"),
+    ]
+    monkeypatch.setattr(cm, "_get_qdrant_client", lambda: _FakeQdrantClient(pts))
+    monkeypatch.setattr(cm, "_generate_embedding", lambda t: [0.1] * 8)
+    store = ConstitutionalMemoryStore()
+    entries = asyncio.run(store.vector_query("sovereign decree"))
+    d = entries[0]
+    assert d.metadata["content_source"] == "text_fallback"
+    assert "[Sovereign Decrees]" in d.content and "decree number four" in d.content
+    assert d.score == 0.62
+    assert entries[1].metadata["content_source"] == "content"
+
+
+def test_text_fallback_survives_dispatch_gate(monkeypatch):
+    from arifosmcp.runtime import tools_internal as ti2
+    from arifosmcp.hexagon.memory.constitutional_memory import MemoryEntry as ME
+
+    entry = ME(content="[Dossier] sample dossier text", id="d1", score=0.6,
+               metadata={"content_source": "text_fallback"})
+    monkeypatch.setattr(ti2, "_constitutional_memory_store", _FakeStore([entry]))
+    env = asyncio.run(
+        engineering_memory_dispatch_impl(
+            mode="query", payload={"query": "dossier"},
+            auth_context=None, risk_tier="low", dry_run=False, ctx=None,
+        )
+    )
+    p = getattr(env, "payload", None) or {}
+    assert p.get("found") is True
+    assert p["results"][0]["metadata"]["content_source"] == "text_fallback"
+
+
+def test_absent_content_and_no_text_yields_empty_not_crash(monkeypatch):
+    pts = [SimpleNamespace(id="z", score=0.7, payload={"category": "orphan"})]
+    monkeypatch.setattr(cm, "_get_qdrant_client", lambda: _FakeQdrantClient(pts))
+    monkeypatch.setattr(cm, "_generate_embedding", lambda t: [0.1] * 8)
+    entries = asyncio.run(ConstitutionalMemoryStore().vector_query("q"))
+    assert entries[0].content == ""
+    assert entries[0].metadata["content_source"] == "content"  # no fallback fired
