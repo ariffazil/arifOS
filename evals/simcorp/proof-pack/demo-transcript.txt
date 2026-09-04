@@ -1,0 +1,31 @@
+════════════════════════════════════════════════════════════════════════
+SIMULATED WORKFLOW · policy refunds-v1 · demo/eval only — no real funds move
+════════════════════════════════════════════════════════════════════════
+
+[1] Agent proposes: refund RM5,000.00 → ACCOUNT-8842
+[2] arifOS: RM5,000 exceeds policy ceiling RM100 → HOLD (RCPT-78A8C94D39AD484F)
+
+[3] Scoped approval item created → APR-9C8736D2A317A3C0
+    ┌─ APPROVER VIEW ───────────────────────────────────────────
+    │ action            : enterprise.billing.issue_refund
+    │ policy_limit_myr  : 100.0
+    │ approver_role     : finance.supervisor
+    │ expires_at        : 2026-09-04T22:14:17.963597+00:00
+    │ customer          : CUST-1024  (SLA breach comp)
+    │ amount / dest     : RM5,000.00 → ACCOUNT-8842
+    │ action digest     : 9c8736d2a317a3c009c82d3310351b69…
+    │ evidence          : 3 items linked
+    └────────────────────────────────────────────────────────────
+
+[4] Wrong approver (role=intern) → REJECTED ✓ (wrong approver role: intern ≠ finance.supervisor)
+[5] Designated supervisor approves → APPROVED ✓
+[6] Tampered payload FIRST (RM50,000 swap on approved digest) → REJECTED ✓ (payload digest mismatch — approved EXACT action only)
+[7] Execute with SAME payload digest → EXECUTED ONCE ✓ (EXEC-9C8736D2A317, adapter=SIMULATED.enterprise.billing.issue_refund)
+[8] Replay attempt (same digest again) → REJECTED ✓ (cannot execute: item status=CONSUMED)
+
+[9] Final linked receipt: hold RCPT-78A8C94D39AD484… → approval APR-9C8736D2A317A3C0 → exec EXEC-9C8736D2A317
+    chain_hash: 142c48d18aefea13f4afc15e6a581dbf…
+
+════════════════════════════════════════════════════════════════════════
+LOOP COMPLETE: proposal → HOLD → scoped human approval → digest-bound
+once-only execution → linked receipt. Bounded authority, zero real funds.
