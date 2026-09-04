@@ -1509,7 +1509,9 @@ async def arif_judge(
             _br_u = str(blast_radius or "").upper()
             _has_f13 = bool(sovereign_receipt and str(sovereign_receipt).strip())
             # Explicit only — empty rev/blast must not default to "safe".
-            _attest_safe = _rev_u in (
+            _safe_revs = (
+                "TRIVIAL",
+                "QUERY",
                 "REVERSIBLE",
                 "ATTEST",
                 "OBSERVE",
@@ -1529,6 +1531,17 @@ async def arif_judge(
                 "AUDIT_RECORD_READ",
                 "AUDIT_RECORD_APPEND",
                 "EVIDENCE_ATTESTATION",
+            )
+            _safe_actions = (
+                "OBSERVE",
+                "READ",
+                "QUERY",
+                "AUDIT_RECORD",
+                "AUDIT_RECORD_READ",
+            )
+            _attest_safe = (
+                _rev_u in _safe_revs
+                or str(action_class or "").upper() in _safe_actions
             ) and _br_u in ("LOW", "L1_LOCAL", "LEDGER")
             # Routine safe actions (read-only / reversible with low blast) promote ALLOW → SEAL autonomously.
             # Non-safe / high-blast actions require explicit F13 sovereign_receipt to confirm.
@@ -1660,6 +1673,8 @@ async def arif_judge(
                 str(reversibility_level).upper() in (
                     "FULL",
                     "REVERSIBLE",
+                    "TRIVIAL",
+                    "QUERY",
                     "L0",
                     "L1",
                     "LOW",
