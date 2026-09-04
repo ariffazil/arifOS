@@ -177,7 +177,7 @@ def compute_verified_key_id(
         return None
     try:
         from arifosmcp.runtime.crypto_auth import (
-            _normalize_actor,
+            _canonical_payloads,
             resolve_actor_public_key,
         )
 
@@ -188,15 +188,11 @@ def compute_verified_key_id(
             sig_bytes = base64.b64decode(actor_signature)
         except Exception:
             return None
-        payloads = [f"{actor_id}:{nonce}".encode()]
-        aid_norm = _normalize_actor(actor_id)
-        if aid_norm != actor_id:
-            payloads.append(f"{aid_norm}:{nonce}".encode())
-        if constitution_hash:
-            payloads.append(f"{actor_id}:{constitution_hash}:{nonce}".encode())
-            if aid_norm != actor_id:
-                payloads.append(f"{aid_norm}:{constitution_hash}:{nonce}".encode())
-        for msg in payloads:
+        # Shared payload source with verify_init_identity — sovereign alias
+        # variants included, so a signature over "ariffazil:<nonce>" derives
+        # its key id even when the caller passes "ARIF"/"arif".
+        payloads = _canonical_payloads(actor_id, nonce, constitution_hash)
+        for _label, msg in payloads:
             try:
                 pubkey.verify(sig_bytes, msg)
                 raw = pubkey.public_bytes_raw()
