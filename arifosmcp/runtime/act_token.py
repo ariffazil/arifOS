@@ -155,6 +155,22 @@ def _get_signing_secret() -> bytes:
                 secret = Path(secret_file).read_text().strip()
             except OSError:
                 secret = None
+    if not secret:
+        for env_file in ("/root/.secrets/kunci-root.env", "/root/.secrets/kunci-mas.env"):
+            try:
+                ef = Path(env_file)
+                if ef.is_file():
+                    for line in ef.read_text().splitlines():
+                        line = line.strip()
+                        if line.startswith("export ARIFOS_SESSION_SECRET=") or line.startswith("ARIFOS_SESSION_SECRET="):
+                            val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if val:
+                                secret = val
+                                break
+                if secret:
+                    break
+            except OSError:
+                pass
     if secret:
         return secret.encode() if isinstance(secret, str) else secret
 
@@ -1050,10 +1066,20 @@ def echo_canonical_session(
     crypto_verified = False
     # 0. Harvest existing fields from response if present
     if isinstance(response, dict):
-        if not resolved_sid:
-            resolved_sid = response.get("session_id")
-            if not resolved_sid and isinstance(response.get("result"), dict):
-                resolved_sid = response["result"].get("session_id")
+        if not resolved_sid or resolved_sid in ("unknown", "UNKNOWN"):
+            _cand_sid = response.get("session_id")
+            if _cand_sid and _cand_sid not in ("unknown", "UNKNOWN"):
+                resolved_sid = _cand_sid
+            elif isinstance(response.get("act_claims"), dict) and response["act_claims"].get("sid"):
+                resolved_sid = response["act_claims"]["sid"]
+            elif isinstance(response.get("session"), dict) and response["session"].get("session_id"):
+                resolved_sid = response["session"]["session_id"]
+            elif isinstance(response.get("result"), dict):
+                _res_sid = response["result"].get("session_id")
+                if _res_sid and _res_sid not in ("unknown", "UNKNOWN"):
+                    resolved_sid = _res_sid
+                elif isinstance(response["result"].get("session_birth"), dict) and response["result"]["session_birth"].get("session_id"):
+                    resolved_sid = response["result"]["session_birth"]["session_id"]
         if not resolved_actor or resolved_actor == "anonymous":
             _cand_actor = response.get("actor_id")
             if not _cand_actor:
@@ -1079,8 +1105,10 @@ def echo_canonical_session(
         if not resolved_band or resolved_band == "OBSERVE_ONLY":
             resolved_band = response.get("autonomy_band") or response.get("band") or response.get("authority")
     elif hasattr(response, "session_id"):
-        if not resolved_sid:
-            resolved_sid = getattr(response, "session_id", None)
+        if not resolved_sid or resolved_sid in ("unknown", "UNKNOWN"):
+            _obj_sid = getattr(response, "session_id", None)
+            if _obj_sid and _obj_sid not in ("unknown", "UNKNOWN"):
+                resolved_sid = _obj_sid
         if not resolved_actor or resolved_actor == "anonymous":
             resolved_actor = getattr(response, "actor_id", None)
         if not resolved_token:
@@ -1094,7 +1122,7 @@ def echo_canonical_session(
         try:
             payload = verify_act(_tok)
             if isinstance(payload, dict):
-                if not resolved_sid:
+                if not resolved_sid or resolved_sid in ("unknown", "UNKNOWN"):
                     resolved_sid = payload.get("sid")
                 if not resolved_actor or resolved_actor == "anonymous":
                     _p_actor = payload.get("actor")
