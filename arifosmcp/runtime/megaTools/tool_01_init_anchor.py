@@ -654,12 +654,24 @@ async def init_anchor(
         _EXEMPT_LIST = {}
     if _actor_key_exempt and _EXEMPT_LIST and _actor_key_exempt in _EXEMPT_LIST:
         _exempt_authority = str(_EXEMPT_LIST[_actor_key_exempt]).upper()
-        # P0.4 FIX (2026-08-13): ALL exempt actors get verified=True, not just SOVEREIGN.
-        verified = True
+        # SECURITY P0 (2026-09-04 Path A fix, FI-003): exempt actors do NOT
+        # auto-verify. Cryptographic proof still required for actor_verified=True.
+        # The exempt list authorizes a default authority LEVEL (e.g. operator for
+        # opencode/hermes/a-forge); downstream code uses
+        # verification_method="system_exempt" as the signal. SOVEREIGN authority
+        # still requires Ed25519 + key_id in SOVEREIGN_KEY_IDS. Closes the
+        # string-match auth bypass that the 2026-09-04 audit's exempt-actor
+        # expectations are designed to catch — keeps the test suite's fail-closed
+        # invariant honest while preserving the bootstrap trust for OpenCode /
+        # Claude Code / etc. via the exempt authority LEVEL (not actor_verified).
+        # (P0.4 2026-08-13 was a regression: ALL exempt actors got verified=True,
+        # not just SOVEREIGN. That regression violated F2 — verified must reflect
+        # cryptographic truth, not registry membership.)
         verification_method = "system_exempt"
         logger.info(
-            "EXEMPT ACTOR: actor=%s exempted from Ed25519 by _ED25519_EXEMPT_SYSTEM_ACTORS "
-            "(authority=%s). LOCALHOST_IS_PASSWORD doctrine.",
+            "EXEMPT ACTOR: actor=%s in _ED25519_EXEMPT_SYSTEM_ACTORS "
+            "(authority=%s, verified=False — Ed25519 not provided). "
+            "actor_verified requires Ed25519 proof.",
             _dn,
             _exempt_authority,
         )
