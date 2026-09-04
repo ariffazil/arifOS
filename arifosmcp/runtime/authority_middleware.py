@@ -57,22 +57,59 @@ def compute_authority(payload: dict) -> dict:
     # ── Dig into result sub-dict (arif_init nests everything under result) ──
     result = payload.get("result") or payload
 
-    substrate = (result.get("substrate") or {}).get("state", "UNMEASURED")
+    substrate = (result.get("substrate") or {}).get("state")
     software = result.get("software_release") or payload.get("software_release") or {}
     drift = software.get("drift", None)
 
+    # If substrate or drift is unmeasured, sample live runtime attestation
+    if substrate in (None, "UNMEASURED") or drift is None:
+        try:
+            from arifosmcp.runtime.build import get_runtime_attestation
+
+            _att = get_runtime_attestation(detail=False) or {}
+            if drift is None:
+                drift = bool(_att.get("drift", False))
+                if isinstance(software, dict):
+                    software.setdefault("drift", drift)
+                if isinstance(result, dict) and "software_release" not in result:
+                    result["software_release"] = _att
+            if substrate in (None, "UNMEASURED"):
+                substrate = "DEGRADED" if drift else "HEALTHY"
+                if isinstance(result, dict) and "substrate" not in result:
+                    result["substrate"] = {
+                        "state": substrate,
+                        "drift": drift,
+                        "source": "authority_middleware_measured",
+                    }
+        except Exception:
+            pass
+
     # Actor verification — effective_state is the single canonical source (WAJIB 3)
     es = result.get("effective_state") or {}
-    actor_verified = es.get("actor_verified", None)
-    crypto_verified = result.get("actor_cryptographically_verified", None)
+    actor_verified = es.get("actor_verified")
+    if actor_verified is None:
+        actor_verified = result.get("actor_verified")
+    if actor_verified is None:
+        actor_verified = payload.get("actor_verified", False)
+
+    crypto_verified = result.get("actor_cryptographically_verified")
+    if crypto_verified is None:
+        crypto_verified = payload.get("actor_cryptographically_verified", False)
 
     # Mutation/seal from effective_state (canonical) or top-level (deprecated aliases)
     mutation_granted = es.get("mutation_allowed")
     if mutation_granted is None:
         mutation_granted = result.get("mutation_allowed")
+    if mutation_granted is None:
+        _band = str(result.get("autonomy_band") or result.get("authority") or payload.get("authority") or "").upper()
+        mutation_granted = _band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN")
+
     seal_granted = es.get("seal_allowed")
     if seal_granted is None:
         seal_granted = result.get("seal_allowed")
+    if seal_granted is None:
+        _v = str(result.get("verdict") or payload.get("verdict") or "").upper()
+        seal_granted = _v in ("SEAL", "ALLOW", "OK")
 
     # Session bound: token present + session_id present
     session_bound = bool(result.get("session_id") or payload.get("session_id"))

@@ -1657,12 +1657,27 @@ async def arif_judge(
         if reversibility_level:
             _rd_payload.setdefault(
                 "reversible",
-                str(reversibility_level).upper() in ("FULL", "REVERSIBLE", "L0", "L1", "LOW"),
+                str(reversibility_level).upper() in (
+                    "FULL",
+                    "REVERSIBLE",
+                    "L0",
+                    "L1",
+                    "LOW",
+                    "R0",
+                    "R1",
+                    "R2",
+                    "READ",
+                    "OBSERVE",
+                    "AUDIT_RECORD_READ",
+                    "AUDIT_RECORD_APPEND",
+                ),
             )
         if blast_radius:
             _rd_payload.setdefault("blast_radius", blast_radius)
         if action_class:
             _rd_payload.setdefault("mode", action_class)
+        elif mode:
+            _rd_payload.setdefault("mode", mode)
 
         _rd = evaluate_from_payload(
             _rd_payload,
