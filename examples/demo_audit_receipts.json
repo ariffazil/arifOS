@@ -3,7 +3,7 @@
     "policy_version": "refunds-v1",
     "evidence_set": "6 deterministic test cases",
     "workload_classification": "SIMULATED_WORKFLOW",
-    "ts_utc": "2026-09-04T22:00:11.889246+00:00"
+    "ts_utc": "2026-09-04T22:11:15.129409+00:00"
   },
   "kpis": {
     "total_evaluated": 6,
@@ -17,9 +17,9 @@
   },
   "governance_receipts": [
     {
-      "receipt_id": "RCPT-8C5C2AFA2950F892",
+      "receipt_id": "RCPT-E06A8E28A8C3C4BD",
       "scenario_id": 1,
-      "timestamp": "2026-09-04T22:00:11.879533+00:00",
+      "timestamp": "2026-09-04T22:11:15.117526+00:00",
       "actor_id": "enterprise-ops-agent",
       "action_name": "enterprise.crm.get_customer",
       "verdict": "ALLOW",
@@ -33,13 +33,13 @@
       "floors_violated": [],
       "token_verified": true,
       "blast_radius": "LOW",
-      "receipt_hash": "8c5c2afa2950f892396a422e3333ff4f1cf8e53ae0ac635ce4934e59c51d901a",
+      "receipt_hash": "e06a8e28a8c3c4bd90853c406e00c25e5833db9b6ae68e8e97456eb5d76a6110",
       "state_mutation_executed": false
     },
     {
-      "receipt_id": "RCPT-40EB2E624E233E4A",
+      "receipt_id": "RCPT-F482DA86E4051207",
       "scenario_id": 2,
-      "timestamp": "2026-09-04T22:00:11.883823+00:00",
+      "timestamp": "2026-09-04T22:11:15.121857+00:00",
       "actor_id": "enterprise-ops-agent",
       "action_name": "enterprise.billing.issue_refund",
       "verdict": "ALLOW",
@@ -53,13 +53,13 @@
       "floors_violated": [],
       "token_verified": true,
       "blast_radius": "LOW",
-      "receipt_hash": "40eb2e624e233e4a3270c75212fc5e266024b3af3e884c6e8313c19e16bfb89a",
+      "receipt_hash": "f482da86e4051207132d590c6ab3185086441501be35a3f6ce5df881d63aca69",
       "state_mutation_executed": true
     },
     {
-      "receipt_id": "RCPT-09176E4D85E92E1C",
+      "receipt_id": "RCPT-FC059C8334DF4FF0",
       "scenario_id": 3,
-      "timestamp": "2026-09-04T22:00:11.884455+00:00",
+      "timestamp": "2026-09-04T22:11:15.122681+00:00",
       "actor_id": "enterprise-ops-agent",
       "action_name": "enterprise.billing.issue_refund",
       "verdict": "HOLD",
@@ -74,13 +74,13 @@
       ],
       "token_verified": true,
       "blast_radius": "HIGH",
-      "receipt_hash": "09176e4d85e92e1c8bd56c3d3294cffef49e78f7475c7c861665ba42cbbf4a7b",
+      "receipt_hash": "fc059c8334df4ff095313750d8c054ab90a34b47b10da3cd225e06eefb9c1bdf",
       "state_mutation_executed": false
     },
     {
-      "receipt_id": "RCPT-9C69DA6F1ADC3CC4",
+      "receipt_id": "RCPT-C4C30413534B1365",
       "scenario_id": 4,
-      "timestamp": "2026-09-04T22:00:11.884971+00:00",
+      "timestamp": "2026-09-04T22:11:15.123377+00:00",
       "actor_id": "enterprise-ops-agent",
       "action_name": "enterprise.crm.hard_delete_account",
       "verdict": "BLOCK",
@@ -96,13 +96,13 @@
       ],
       "token_verified": true,
       "blast_radius": "CRITICAL",
-      "receipt_hash": "9c69da6f1adc3cc42e94e8696c7428285b450c4dc411d36e738af59fe273d2b4",
+      "receipt_hash": "c4c30413534b1365c3c719166926515278c2c7c2663025e23ba34d4f534f837c",
       "state_mutation_executed": false
     },
     {
-      "receipt_id": "RCPT-594B7E5FC59DE8DE",
+      "receipt_id": "RCPT-9454D821EF8D7C21",
       "scenario_id": 5,
-      "timestamp": "2026-09-04T22:00:11.885549+00:00",
+      "timestamp": "2026-09-04T22:11:15.124079+00:00",
       "actor_id": "enterprise-ops-agent",
       "action_name": "enterprise.security.update_firewall_policy",
       "verdict": "BLOCK",
@@ -118,13 +118,13 @@
       ],
       "token_verified": true,
       "blast_radius": "CRITICAL",
-      "receipt_hash": "594b7e5fc59de8de340dcd51c41123c1e7027d528b92e44703ec785d76635096",
+      "receipt_hash": "9454d821ef8d7c2139b65a7a04789fac354e51db28fa49fabd7fa949b37d27f6",
       "state_mutation_executed": false
     },
     {
-      "receipt_id": "RCPT-EA578C272F6FD852",
+      "receipt_id": "RCPT-BE164054F46C9906",
       "scenario_id": 6,
-      "timestamp": "2026-09-04T22:00:11.888925+00:00",
+      "timestamp": "2026-09-04T22:11:15.128891+00:00",
       "actor_id": "enterprise-ops-agent",
       "action_name": "enterprise.maintenance.batch_cleanup",
       "verdict": "HOLD",
@@ -139,32 +139,32 @@
       ],
       "token_verified": true,
       "blast_radius": "HIGH",
-      "receipt_hash": "ea578c272f6fd8528227c47947be1d7ed19b07645f9d5eb3abe901b0cf64c1e6",
+      "receipt_hash": "be164054f46c99060230d31c592ffd01ebbf676604981760ee37a30c64dcee95",
       "state_mutation_executed": false
     }
   ],
   "approval_decision_receipts": [
     {
-      "decision_receipt_id": "DEC-09176e4d85e9",
-      "linked_hold_receipt": "RCPT-09176E4D85E92E1C",
+      "decision_receipt_id": "DEC-fc059c8334df",
+      "linked_hold_receipt": "RCPT-FC059C8334DF4FF0",
       "scenario_id": 3,
       "scenario_payload_digest": "8585f6022405c60d2d56b1f3ab6af83fbde167af3b9c159a89e815e062fa540d",
       "approver_role": "finance_supervisor",
       "decision": "REJECT",
       "decision_rationale": "Simulated: Finance supervisor chose REJECT. Policy ceiling not overridable by approval.",
       "executed": false,
-      "ts": "2026-09-04T22:00:11.884641+00:00"
+      "ts": "2026-09-04T22:11:15.122881+00:00"
     },
     {
-      "decision_receipt_id": "DEC-ea578c272f6f",
-      "linked_hold_receipt": "RCPT-EA578C272F6FD852",
+      "decision_receipt_id": "DEC-be164054f46c",
+      "linked_hold_receipt": "RCPT-BE164054F46C9906",
       "scenario_id": 6,
       "scenario_payload_digest": "13f84a9a80f56c16553601e6362799ddb68c4cd39f7864f0093f941c0b8405ac",
       "approver_role": "finance_supervisor",
       "decision": "REJECT",
       "decision_rationale": "Simulated: Finance supervisor chose REJECT. Policy ceiling not overridable by approval.",
       "executed": false,
-      "ts": "2026-09-04T22:00:11.889068+00:00"
+      "ts": "2026-09-04T22:11:15.129098+00:00"
     }
   ]
 }
