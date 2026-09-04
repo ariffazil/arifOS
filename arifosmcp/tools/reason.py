@@ -907,7 +907,7 @@ def _run_reasoning_sync(coro: Any, timeout: float = 5.0) -> Any:
         # Thread still running after timeout — LLM backend stalled
         raise LLMUnavailableError(
             f"Reasoning backend timeout after {timeout}s — "
-            "SEA-LION unreachable or Ollama CPU inference too slow"
+            "FED-FEDERATION unreachable or Ollama CPU inference too slow"
         )
 
     if error:

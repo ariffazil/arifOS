@@ -79,8 +79,8 @@ async def _fake_call_llm_dict_confidence(*args, **kwargs):
     from datetime import datetime, timezone
 
     return LLMOutputEnvelope(
-        provider="sea_lion",
-        model="aisingapore/Qwen-SEA-LION-v4-32B-IT",  # pragma: allowlist secret
+        provider="fed_federation",
+        model="aisingapore/Qwen-FED-FEDERATION-v4-32B-IT",  # pragma: allowlist secret
         tool_origin="333_REASON",
         mode="reason",
         raw_output='{"status": "REASONED", "synthesis": "MIND_OK", "confidence": {"overall_confidence": 0.85}}',

@@ -2,7 +2,7 @@
 arifosmcp/runtime/mind_reason.py - 333 MIND LLM-Powered Reasoning
 
 Wires arif_think through call_llm() for constitutional LLM inference.
-Tier 1: SEA-LION (api.sea-lion.ai)
+Tier 1: FED-FEDERATION (api.fed-federation.ai)
 Tier 2: Ollama local fallback
 Tier 3: Deterministic fallback (original logic from tools/mind_reason.py)
 

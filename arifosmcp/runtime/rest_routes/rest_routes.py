@@ -2673,12 +2673,12 @@ def _probe_provider_status() -> dict[str, Any]:
         "last_fallback_reason": None,
     }
 
-    # SEA-LION
-    sea_key = _os_probe.getenv("SEA_LION_API_KEY")
-    sea_url = _os_probe.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
+    # FED-FEDERATION
+    sea_key = _os_probe.getenv("FED_PROXY_API_KEY")
+    sea_url = _os_probe.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
     if sea_key:
         status["sea_lion_configured"] = True
-        status["primary_provider"] = "sea_lion"
+        status["primary_provider"] = "fed_federation"
         try:
             import urllib.request
             import ssl as _ssl
@@ -2730,7 +2730,7 @@ def _probe_provider_status() -> dict[str, Any]:
 # synchronous urllib probes directly on the event loop —
 #   _probe_langfuse_tracing()  → external HTTPS (jp.cloud.langfuse.com)
 #   _probe_vault999_health()   → 2 × 2s local urlopen
-#   _probe_provider_status()   → external HTTPS (SEA-LION 5s + Ollama 3s)
+#   _probe_provider_status()   → external HTTPS (FED-FEDERATION 5s + Ollama 3s)
 # Worst case ~15s total event-loop freeze per /health call, observed live via
 # py-spy (MainThread stuck in ssl.do_handshake under health→_probe_provider_status).
 # Strategy: TTL cache (60s) + refresh in a worker thread (asyncio.to_thread).
@@ -4498,7 +4498,7 @@ def register_rest_routes(
         Returns a layered topology map:
           Layer 0: Infrastructure  (Postgres, Redis, Qdrant, Vault999)
           Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Apex)
-          Layer 2: AI Providers     (Ollama, SEA-LION, Langfuse, Supabase)
+          Layer 2: AI Providers     (Ollama, FED-FEDERATION, Langfuse, Supabase)
           Layer 3: Edge / Routing   (Caddy, Cloudflare)
         Each entry: name, type, host, port, status, latency_ms, version (if available).
         """
@@ -4525,7 +4525,7 @@ def register_rest_routes(
         ]
 
         # --- Layer 2: AI / External ---
-        sea_lion_base = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
+        sea_lion_base = os.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
         langfuse_base = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
 
         external_tasks = [
@@ -4629,7 +4629,7 @@ def register_rest_routes(
 
         external_layer = [
             build_component("Ollama", "llm", "ollama", 11434, external_results[0]),
-            build_component("SEA-LION", "llm", "api.sea-lion.ai", 443, external_results[1]),
+            build_component("FED-FEDERATION", "llm", "api.fed-federation.ai", 443, external_results[1]),
             build_component(
                 "Langfuse",
                 "observability",
