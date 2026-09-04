@@ -1342,6 +1342,47 @@ def _memory_content_str(content: Any) -> str:
         return str(content)
 
 
+# FIX 2026-09-05 (bug #2): retrieval signal must be real, auditable, fail-closed.
+_MEMORY_MIN_SCORE = 0.1
+
+
+def _score_admits(r: dict) -> bool:
+    """Relevance gate. None score = signal unavailable → fail closed (never None>=x TypeError,
+    never fabricated 0.0)."""
+    s = r.get("score")
+    return isinstance(s, (int, float)) and s >= _MEMORY_MIN_SCORE
+
+
+def _memory_not_found_payload(query: str, candidates: list[dict], backend: str, note: str) -> dict:
+    """Honest not-found envelope (F2/F4/F9): distinguish WHY nothing was admitted.
+
+    Taxonomy (888 audit 2026-09-05):
+      NO_VECTOR_HITS        — backend returned zero candidates
+      SCORE_UNAVAILABLE     — candidates exist but retrieval signal missing (fail closed)
+      NO_HITS_ABOVE_THRESHOLD — candidates + scores exist, all below policy floor
+    """
+    scores = [c.get("score") for c in candidates if isinstance(c.get("score"), (int, float))]
+    if not candidates:
+        reason = "NO_VECTOR_HITS"
+    elif any(c.get("score") is None for c in candidates):
+        reason = "SCORE_UNAVAILABLE"
+    else:
+        reason = "NO_HITS_ABOVE_THRESHOLD"
+    return {
+        "results": [],
+        "count": 0,
+        "query": query,
+        "found": False,
+        "backend": backend,
+        "reason": reason,
+        "candidate_count": len(candidates),
+        "threshold": _MEMORY_MIN_SCORE,
+        "top_score_raw": max(scores) if scores else None,
+        "content_coerced_count": sum(1 for c in candidates if c.get("content_coerced")),
+        "note": note,
+    }
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 0 FIX: Hardened engineering_memory with filesystem error handling
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1638,7 +1679,10 @@ async def engineering_memory_dispatch_impl(
             budgeted_results = []
             for r in results:
                 # FIX 2026-09-05: coerce legacy non-str content before len()/slice
-                r["content"] = _memory_content_str(r.get("content", ""))
+                original = r.get("content", "")
+                r["content"] = _memory_content_str(original)
+                if not isinstance(original, str):
+                    r["content_coerced"] = True
                 content_len = len(r["content"])
                 if content_len <= budget_remaining:
                     budgeted_results.append(r)
@@ -1654,12 +1698,8 @@ async def engineering_memory_dispatch_impl(
                     break
 
             # F2 TRUTH: detect false-SUCCESS (Qdrant returns K results even when nothing matches)
-            usable = [
-                r
-                for r in budgeted_results
-                if _memory_content_str(r.get("content", "")).strip()
-                and r.get("score", 0) >= 0.1
-            ]
+            # FIX 2026-09-05 (bug #2): score gate is fail-closed (None ≠ admitted)
+            usable = [r for r in budgeted_results if _memory_content_str(r.get("content", "")).strip() and _score_admits(r)]
             if not usable:
                 return RuntimeEnvelope(
                     ok=True,
@@ -1668,14 +1708,12 @@ async def engineering_memory_dispatch_impl(
                     stage="555m_MEMORY",
                     verdict=Verdict.SABAR,
                     status=RuntimeStatus.SUCCESS,
-                    payload={
-                        "results": [],
-                        "count": 0,
-                        "query": query,
-                        "found": False,
-                        "backend": "qdrant",
-                        "note": "F2 TRUTH: No memories matched query with usable confidence",
-                    },
+                    payload=_memory_not_found_payload(
+                        query,
+                        results,
+                        "qdrant",
+                        "F2 TRUTH: No memories matched query with usable confidence",
+                    ),
                 )
 
             return RuntimeEnvelope(
@@ -1727,12 +1765,19 @@ async def engineering_memory_dispatch_impl(
                 # F2 TRUTH: detect false-SUCCESS — Qdrant returns K results even when nothing matches
                 # FIX 2026-09-05: legacy points may hold dict/list content — coerce BEFORE the
                 # filter AND in-place, so admitted results always carry str content (no raw dict leak).
+                # FIX 2026-09-05 (bug #2): score gate fail-closed (None ≠ admitted); coercion flagged
+                # on every candidate BEFORE mutation so provenance survives.
                 usable = []
                 for r in results:
-                    coerced = _memory_content_str(r.get("content", ""))
-                    if coerced.strip() and r.get("score", 0) >= 0.1:
+                    original = r.get("content", "")
+                    coerced = _memory_content_str(original)
+                    if not isinstance(original, str):
+                        r["content_coerced"] = True
+                    if coerced.strip() and _score_admits(r):
                         r["content"] = coerced
                         usable.append(r)
+                    else:
+                        r["content"] = coerced  # keep candidates readable for not-found diagnostics
                 if not usable:
                     return RuntimeEnvelope(
                         ok=True,
@@ -1741,14 +1786,12 @@ async def engineering_memory_dispatch_impl(
                         stage="555m_MEMORY",
                         verdict=Verdict.SABAR,
                         status=RuntimeStatus.SUCCESS,
-                        payload={
-                            "results": [],
-                            "count": 0,
-                            "query": query,
-                            "found": False,
-                            "backend": "qdrant",
-                            "note": "F2 TRUTH: No memories matched query with usable confidence",
-                        },
+                        payload=_memory_not_found_payload(
+                            query,
+                            results,
+                            "qdrant",
+                            "F2 TRUTH: No memories matched query with usable confidence",
+                        ),
                     )
                 return RuntimeEnvelope(
                     ok=True,
@@ -1763,6 +1806,8 @@ async def engineering_memory_dispatch_impl(
                         "query": query,
                         "found": True,
                         "backend": "qdrant",
+                        "threshold": _MEMORY_MIN_SCORE,
+                        "content_coerced_count": sum(1 for r in usable if r.get("content_coerced")),
                         "note": "mode='query' is alias for 'vector_query'",
                     },
                 )
