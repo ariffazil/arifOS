@@ -135,3 +135,32 @@ def test_llm_surface_contains_no_biometric_material(svc):
     d = {"decision": r.decision, "assurance": r.assurance, "reason_code": r.reason_code,
          "assertion_id": r.assertion_id, "expires_at": r.expires_at}
     assert "similarity" not in d and "embedding" not in d and "score" not in d
+
+
+# ── F13 option-3 (2026-09-05): multi-baseline max-K + measured band ────────
+
+
+def test_multibaseline_max_over_conditions(tmp_path, monkeypatch):
+    monkeypatch.setenv("ARIFOS_BIOMETRIC_ENROLL_TOKEN", "t")
+    s = FaceVerifyService(vault_dir=tmp_path / "mb", config={"t_accept": 0.42, "t_reject": 0.25})
+    indoor = [1.0] + [0.05] * 127
+    outdoor = [0.05] * 64 + [1.0] + [0.05] * 63   # syarat berbeza, orang sama
+    s.enroll("x", indoor, "c", sovereign_token="t")
+    s.enroll("x", outdoor, "c", sovereign_token="t")
+    probe_indoor = [0.98] + [0.06] * 127
+    probe_outdoor = [0.06] * 64 + [0.97] + [0.06] * 63
+    a = dict(claimed_subject_id="x", purpose="session_unlock", session_id="S",
+             device_id="D", liveness="UNTESTED", quality=_q())
+    r1 = s.verify(capture_nonce="mb1", embedding=probe_indoor, **a)
+    r2 = s.verify(capture_nonce="mb2", embedding=probe_outdoor, **a)
+    assert r1.decision == "PASS" and r2.decision == "PASS", \
+        "max-K mestilah angkat kedua-dua syarat (0.47-era false-reject dilepaskan)"
+
+
+def test_multibaseline_cap_five(tmp_path, monkeypatch):
+    monkeypatch.setenv("ARIFOS_BIOMETRIC_ENROLL_TOKEN", "t")
+    s = FaceVerifyService(vault_dir=tmp_path / "cap")
+    for i in range(7):
+        s.enroll("x", [float(i)] + [0.1] * 127, "c", sovereign_token="t")
+    v = s._load()
+    assert len(v["subjects"]["x"]["templates"]) == 5
