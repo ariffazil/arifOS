@@ -2789,6 +2789,24 @@ def arif_init(
                     sess["actor_band"] = _band["actor_band"]
                     sess["agent_class"] = _band["agent_class"]
                     sess["identity_verify_reason"] = _reason
+                    # P0 FIX 2026-09-04 (FI-008, F13 "auto go"): a
+                    # cryptographically VERIFIED sovereign principal must not
+                    # remain on the no-policy DEFAULT_DENY session policy
+                    # (irreversibility_threshold 0.0). That default exists for
+                    # unverified callers; with Ed25519 proof the policy is
+                    # DERIVED from verified identity — sovereign gets
+                    # CRITICAL-tier threshold so arif_seal (rank 6/6) is not
+                    # SESSION_POLICY_CLAMPed. This kills the last HOLD layer
+                    # on the sovereign seal path.
+                    if identity_verified and _band.get("is_sovereign_principal"):
+                        _pol = dict(sess.get("agent_policy") or {})
+                        _pol["agent_role"] = "sovereign"
+                        _pol["irreversibility_threshold"] = 1.0
+                        _pol["note"] = (
+                            "sovereign policy derived from Ed25519 verified "
+                            "identity (F13) — supersedes DEFAULT_DENY"
+                        )
+                        sess["agent_policy"] = _pol
                     # F13 standing truth: verified=true requires method+evidence
                     # (session_standing C_dark HONEST_HOLD otherwise collapses band)
                     if identity_verified:
