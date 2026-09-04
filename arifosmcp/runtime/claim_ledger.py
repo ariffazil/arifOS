@@ -417,6 +417,164 @@ def query_claims(
     }
 
 
+def import_from_geox_claim(
+    geox_claim: dict[str, Any],
+    ledger_id: str,
+) -> dict[str, Any]:
+    """
+    Import a GEOX ClaimEnvelope into the claim ledger.
+
+    Converts GEOX claim format to claim ledger format with falsification path.
+
+    Args:
+        geox_claim: GEOX ClaimEnvelope dict
+        ledger_id: Target ledger ID
+
+    Returns:
+        dict with import status
+    """
+    # Extract fields from GEOX claim
+    claim_id = geox_claim.get("id", "")
+    title = geox_claim.get("title", "")
+    statement = geox_claim.get("statement", "")
+    domain = geox_claim.get("domain", "general")
+    confidence = geox_claim.get("confidence_score", 0.5)
+    evidence_for = geox_claim.get("evidence_for", [])
+    evidence_against = geox_claim.get("evidence_against", [])
+
+    # Map GEOX domain to claim ledger domain
+    domain_map = {
+        "stratigraphy": "GEOX",
+        "structure": "GEOX",
+        "petrophysics": "GEOX",
+        "seismic": "GEOX",
+        "geochemistry": "GEOX",
+        "geomechanics": "GEOX",
+        "thermal": "GEOX",
+        "pressure": "GEOX",
+        "prospect": "GEOX",
+        "resource": "GEOX",
+        "basin": "GEOX",
+        "general": "GEOX",
+    }
+    mapped_domain = domain_map.get(domain, "GEOX")
+
+    # Map GEOX status to claim ledger status
+    status_map = {
+        "draft": "proposed",
+        "proposed": "proposed",
+        "evidence_gathering": "proposed",
+        "under_review": "proposed",
+        "accepted": "validated",
+        "challenged": "challenged",
+        "revised": "proposed",
+        "rejected": "falsified",
+        "superseded": "falsified",
+        "retracted": "falsified",
+        "sealed": "sealed",
+    }
+    geox_status = geox_claim.get("status", "draft")
+    mapped_status = status_map.get(geox_status, "proposed")
+
+    # Build counterargument from evidence_against
+    counterargument_parts = []
+    for ev in evidence_against:
+        desc = ev.get("description", ev.get("title", ""))
+        if desc:
+            counterargument_parts.append(desc)
+    counterargument = (
+        "; ".join(counterargument_parts)
+        if counterargument_parts
+        else "No counter-evidence provided"
+    )
+
+    # Build source documents from evidence_for
+    source_documents = []
+    for ev in evidence_for:
+        source_documents.append(
+            {
+                "title": ev.get("title", ev.get("description", "")),
+                "url": ev.get("url", ""),
+                "page": ev.get("page", ""),
+            }
+        )
+
+    # Build evidence refs
+    evidence_refs = [ev.get("id", "") for ev in evidence_for + evidence_against if ev.get("id")]
+
+    # Add claim to ledger
+    result = add_claim(
+        ledger_id=ledger_id,
+        claim_id=f"GEOX-{claim_id}",
+        claim_text=statement or title,
+        classification="OBS" if confidence > 0.8 else "DER" if confidence > 0.6 else "INT",
+        confidence=confidence,
+        counterargument=counterargument,
+        source_documents=source_documents,
+        domain=mapped_domain,
+        evidence_refs=evidence_refs,
+    )
+
+    return result
+
+
+def export_to_geox_claim(
+    ledger_id: str,
+    claim_id: str,
+) -> dict[str, Any]:
+    """
+    Export a claim ledger entry to GEOX ClaimEnvelope format.
+
+    Args:
+        ledger_id: Source ledger ID
+        claim_id: Claim ID to export
+
+    Returns:
+        dict in GEOX ClaimEnvelope format
+    """
+    ledger = _load_ledger(ledger_id)
+    if not ledger:
+        return {"status": "error", "reason": f"Ledger {ledger_id} not found"}
+
+    claim = next((c for c in ledger["claims"] if c["claim_id"] == claim_id), None)
+    if not claim:
+        return {"status": "error", "reason": f"Claim {claim_id} not found"}
+
+    # Map claim ledger status to GEOX status
+    status_map = {
+        "proposed": "proposed",
+        "validated": "accepted",
+        "challenged": "challenged",
+        "falsified": "rejected",
+        "sealed": "sealed",
+    }
+
+    # Build evidence_for from source_documents
+    evidence_for = []
+    for doc in claim.get("source_documents", []):
+        evidence_for.append(
+            {
+                "title": doc.get("title", ""),
+                "url": doc.get("url", ""),
+                "page": doc.get("page", ""),
+            }
+        )
+
+    return {
+        "id": claim_id.replace("GEOX-", ""),
+        "title": claim.get("claim_text", "")[:200],
+        "statement": claim.get("claim_text", ""),
+        "domain": "general",
+        "status": status_map.get(claim.get("status", "proposed"), "proposed"),
+        "confidence_score": claim.get("confidence", 0.5),
+        "evidence_for": evidence_for,
+        "evidence_against": [],
+        "author": claim.get("domain", ""),
+        "created_at": claim.get("last_verified", ""),
+        "tags": [],
+    }
+
+
 def run_claim_ledger(
     mode: str,
     ledger_id: str | None = None,
@@ -453,6 +611,8 @@ def run_claim_ledger(
       seal     — Seal a claim to VAULT999 (irreversible)
       attach   — Attach evidence to an existing claim
       query    — Query claims by domain, status, classification
+      import_geox — Import a GEOX ClaimEnvelope into the ledger
+      export_geox — Export a claim to GEOX ClaimEnvelope format
     """
     if mode == "create":
         if not ledger_id:
@@ -565,8 +725,30 @@ def run_claim_ledger(
             max_confidence=max_confidence,
         )
 
+    elif mode == "import_geox":
+        if not ledger_id or not source_documents:
+            return {
+                "status": "error",
+                "reason": "ledger_id and source_documents (GEOX claim) required for import_geox mode",
+            }
+        return import_from_geox_claim(
+            geox_claim=source_documents[0] if source_documents else {},
+            ledger_id=ledger_id,
+        )
+
+    elif mode == "export_geox":
+        if not ledger_id or not claim_id:
+            return {
+                "status": "error",
+                "reason": "ledger_id and claim_id required for export_geox mode",
+            }
+        return export_to_geox_claim(
+            ledger_id=ledger_id,
+            claim_id=claim_id,
+        )
+
     else:
         return {
             "status": "error",
-            "reason": f"Unknown mode: {mode}. Use: create, validate, challenge, seal, attach, query",
+            "reason": f"Unknown mode: {mode}. Use: create, add, validate, challenge, seal, attach, query, import_geox, export_geox",
         }
