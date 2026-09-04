@@ -165,13 +165,13 @@ class FaceVerifyService:
         if not embedding or len(embedding) < 8:
             return {"ok": False, "error": "invalid embedding"}
         v = self._load()
-        v["subjects"][subject_id] = {
-            "template": embedding,
-            "enrolled_at": _now().isoformat(),
-            "consent": consent_note,
-            "samples": v["subjects"].get(subject_id, {}).get("samples", 0) + 1,
-            "revoked": False,
-        }
+        sub = v["subjects"].get(subject_id, {"templates": [], "revoked": False})
+        sub.setdefault("templates", []).append(embedding)
+        sub["templates"] = sub["templates"][-5:]  # cap 5 baselines
+        sub["enrolled_at"] = _now().isoformat()
+        sub["consent"] = consent_note
+        sub["samples"] = sub.get("samples", 0) + 1
+        v["subjects"][subject_id] = sub
         self._save(v)
         self._audit({"event": "ENROLL", "subject": subject_id, "consent": consent_note,
                      "samples": v["subjects"][subject_id]["samples"]})
@@ -251,7 +251,9 @@ class FaceVerifyService:
                          "decision": "FAIL", "reason": "BELOW_THRESHOLD"})
             return self._fin("FAIL", "LOW", "BELOW_THRESHOLD")
 
-        score = _cos(embedding, sub["template"])
+        templates = sub.get("templates") or ([sub["template"]] if sub.get("template") else [])
+        # multi-baseline: match = MAX cosine over enrolled conditions (lighting/angle/card)
+        score = max((_cos(embedding, t) for t in templates), default=-1.0)
         t_a, t_r = self.cfg["t_accept"], self.cfg["t_reject"]
         if score >= t_a:
             aid = "fva_" + hashlib.sha256(
