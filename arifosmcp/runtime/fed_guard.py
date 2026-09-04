@@ -1,7 +1,7 @@
 """
-arifosmcp/runtime/sea_guard.py — SEA-Guard Safety Filter
+arifosmcp/runtime/fed_guard.py — SEA-Guard Safety Filter
 
-arifOS × SEA-LION Constitutional Integration v2026.05.05
+arifOS × FED-FEDERATION Constitutional Integration v2026.05.05
 
 Pipeline position:
   OpenClaw output → SEA-Guard filter → safe_output → reply_compose
@@ -28,8 +28,8 @@ import requests
 logger = logging.getLogger(__name__)
 
 # ── Configuration ────────────────────────────────────────────────────────────
-SEA_LION_API_URL = os.getenv("SEA_LION_API_URL", "https://api.sea-lion.ai/v1/chat/completions")
-SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY", "")
+SEA_LION_API_URL = os.getenv("SEA_LION_API_URL", "https://api.fed-federation.ai/v1/chat/completions")
+FED_PROXY_API_KEY = os.getenv("FED_PROXY_API_KEY", "")
 SEA_LION_MODEL = os.getenv("SEA_LION_GUARD_MODEL", "aisingapore/SEA-Guard")
 SEA_GUARD_TIMEOUT = int(os.getenv("SEA_GUARD_TIMEOUT", "10"))
 
@@ -113,21 +113,21 @@ def sea_guard_filter(
 
     Args:
         text:          Content to scan (typically OpenClaw output)
-        api_key:       Override API key (default: from SEA_LION_API_KEY env)
+        api_key:       Override API key (default: from FED_PROXY_API_KEY env)
         timeout:       Request timeout in seconds (default: SEA_GUARD_TIMEOUT)
 
     Returns:
         SafetyResult with passed/verdict/categories/blocked/confidence
     """
     start = time.perf_counter()
-    key = api_key or SEA_LION_API_KEY
+    key = api_key or FED_PROXY_API_KEY
     tmo = timeout or SEA_GUARD_TIMEOUT
 
     if not key:
         return SafetyResult(
             passed=False,
             verdict="BLOCKED",
-            api_error="SEA_LION_API_KEY not configured",
+            api_error="FED_PROXY_API_KEY not configured",
             latency_ms=(time.perf_counter() - start) * 1000,
         )
 
@@ -270,12 +270,12 @@ async def sea_guard_filter_async(
 
 # ── Quick test ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    # Smoke test — run with: python -m arifosmcp.runtime.sea_guard
+    # Smoke test — run with: python -m arifosmcp.runtime.fed_guard
     import os
 
-    test_key = os.getenv("SEA_LION_API_KEY", "")
+    test_key = os.getenv("FED_PROXY_API_KEY", "")
     if not test_key:
-        print("SEA_LION_API_KEY not set — skipping live test")
+        print("FED_PROXY_API_KEY not set — skipping live test")
     else:
         tests = [
             ("I am an AI assistant. How can I help you today?", "clean"),

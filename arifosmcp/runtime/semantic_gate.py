@@ -269,7 +269,7 @@ def _fast_classify(text: str) -> tuple[IntentCategory, float] | None:
 def _llm_classify(text: str) -> tuple[IntentCategory, float]:
     """
     Use Ollama with BGE-M3 embeddings for semantic similarity classification
-    of gray-zone inputs. Falls back to SEA-LION if Ollama unavailable.
+    of gray-zone inputs. Falls back to FED-FEDERATION if Ollama unavailable.
 
     Returns (category, confidence).
     """

@@ -12,7 +12,7 @@ ARCHITECTURE (per 777_WITNESS blueprint):
   NOT verdict. Must be witnessed, measured, and bounded before use.
 
 WitnessPacket schema:
-  provider            — sea_lion | ollama | deterministic
+  provider            — fed_federation | ollama | deterministic
   model               — model identifier
   tool_origin         — 333_REASON | 444r_REPLY | 444_CRITIQUE | wisdom | unknown
   mode                — reason | critique | compose | interpret | unknown
@@ -34,7 +34,7 @@ WitnessPacket schema:
 
 L02 SPLIT (CCC finding 2026-06-15):
   Originally L02 was a single field: "TRUTH ≥ 0.99" with a single
-  PASS/FAIL. On text-output LLM substrates (ILMU, MiniMax, sea_lion),
+  PASS/FAIL. On text-output LLM substrates (ILMU, MiniMax, fed_federation),
   the substrate returns free-form prose, not parseable JSON. The
   envelope parser fails on parseability, not on truth. This conflates
   a STRUCTURAL failure (parseability) with a SEMANTIC failure
@@ -630,13 +630,13 @@ def _flag_constitutional_risks(
 
 # pragma: allowlist secret  # Model IDs are public identifiers, not secrets
 MODEL_GOVERNANCE = {
-    "aisingapore/Qwen-SEA-LION-v4-32B-IT": {  # pragma: allowlist secret
+    "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT": {  # pragma: allowlist secret
         "authority": "instrument_only",
         "allowed_tools": [
             "arif_think",
             "arif_critique",
             "arif_compose",
-            "sea_lion_interpreter",
+            "meaning_interpreter",
         ],
         "forbidden_roles": ["sovereign_judge", "irreversible_executor", "vault_sealer"],
         "rate_limit": "not_set",  # managed externally

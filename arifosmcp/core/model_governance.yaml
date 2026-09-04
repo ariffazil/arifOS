@@ -9,8 +9,8 @@
 
 models:
 
-  # ── Tier 1: SEA-LION (Primary sovereign model, remote) ──────────────────────
-  aisingapore/Qwen-SEA-LION-v4-32B-IT:
+  # ── Tier 1: FED-FEDERATION (Primary sovereign model, remote) ──────────────────────
+  aisingapore/Qwen-FED-FEDERATION-v4-32B-IT:
     provider: AI Singapore
     role: reasoning_witness
     authority: instrument_only        # F13: LLM can never be sovereign
@@ -18,7 +18,7 @@ models:
       - arif_think             # reasoning tool
       - arif_critique          # risk critique tool
       - arif_compose           # language shaping tool
-      - sea_lion_interpreter         # SEA-LION-specific tool
+      - meaning_interpreter         # FED-FEDERATION-specific tool
     forbidden_roles:
       - sovereign_judge             # never adjudicate (F888_JUDGE is ASI/APEX)
       - irreversible_executor        # never forge without human (F1/F13)
@@ -49,7 +49,7 @@ models:
       - vault_sealer
     rate_limit: 10_req_per_min
     fallback:
-      - aisingapore/Qwen-SEA-LION-v4-32B-IT
+      - aisingapore/Qwen-FED-FEDERATION-v4-32B-IT
       - ollama:qwen2.5:7b
       - deterministic
     output_required:
@@ -74,7 +74,7 @@ models:
     rate_limit: 30_req_per_min
     fallback:
       - deepseek/deepseek-v4-pro
-      - aisingapore/Qwen-SEA-LION-v4-32B-IT
+      - aisingapore/Qwen-FED-FEDERATION-v4-32B-IT
       - deterministic
     output_required:
       - schema_valid
@@ -100,7 +100,7 @@ models:
     rate_limit: 20_req_per_min
     fallback:
       - moonshot/kimi/kimi-k1.5
-      - aisingapore/Qwen-SEA-LION-v4-32B-IT
+      - aisingapore/Qwen-FED-FEDERATION-v4-32B-IT
       - deterministic
     output_required:
       - schema_valid
