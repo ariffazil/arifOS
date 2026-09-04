@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifos://schema/audio.invoke/v1/input",
+  "title": "audio.invoke — Input Schema (v1)",
+  "description": "Provider-neutral MCP tool for governed audio analysis. One entry point for transcription, classification, diarization, acoustic event detection, and structured audio reasoning across the arifOS federation.",
+  "type": "object",
+  "required": ["artifact_refs", "task"],
+  "properties": {
+    "artifact_refs": {
+      "type": "array",
+      "description": "One or more audio/voice/video artifacts to analyse. Each entry carries an expected MIME type and a content-addressable reference.",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["uri", "expected_mime_type"],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "description": "Content-addressable or signed URI for the artifact (file://, data:, signed https://, or local /root/... path for trusted agents)."
+          },
+          "expected_mime_type": {
+            "type": "string",
+            "enum": [
+              "audio/wav",
+              "audio/mpeg",
+              "audio/ogg",
+              "audio/opus",
+              "audio/flac",
+              "audio/aac",
+              "audio/mp4",
+              "audio/webm",
+              "audio/x-m4a",
+              "video/mp4",
+              "video/webm",
+              "video/quicktime",
+              "video/x-matroska"
+            ],
+            "description": "Expected MIME type for the artifact. Video types are accepted; the audio track will be extracted for analysis."
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "description": "Optional SHA-256 hex digest for integrity verification before processing."
+          },
+          "time_range": {
+            "type": "object",
+            "description": "Process only this time window of the artifact.",
+            "properties": {
+              "start_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Start offset in milliseconds (inclusive)."
+              },
+              "end_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "End offset in milliseconds (exclusive). Must be >= start_ms."
+              }
+            },
+            "required": ["start_ms", "end_ms"],
+            "additionalProperties": false
+          },
+          "channel_selector": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["all", "mono_mix"],
+                "description": "'all' — keep discrete channels; 'mono_mix' — downmix to mono."
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "description": "Zero-based channel indices to keep (e.g., [0] = left only)."
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "task": {
+      "type": "string",
+      "description": "Primary analysis task for the audio artifact(s).",
+      "enum": [
+        "transcribe",
+        "classify",
+        "diarize",
+        "detect_events",
+        "reason",
+        "summarize",
+        "translate"
+      ]
+    },
+    "language_hint": {
+      "type": "string",
+      "description": "Hint for ASR language detection (BCP 47 tag, e.g., 'ms-MY', 'en-US', 'zh-CN'). Provider uses this as a preference, not a hard constraint.",
+      "maxLength": 20
+    },
+    "target_language": {
+      "type": "string",
+      "description": "Target language for translation tasks (BCP 47 tag). Required when task='translate'.",
+      "maxLength": 20
+    },
+    "output_mode": {
+      "type": "string",
+      "enum": ["full", "summary", "segments_only", "structured_only"],
+      "default": "full",
+      "description": "Controls the verbosity and shape of the output. 'full' returns all fields; 'summary' collapses transcript to a paragraph; 'segments_only' returns only transcript/diarization arrays; 'structured_only' returns structured_data + provenance without natural-language answer."
+    },
+    "risk_tier": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "default": "medium",
+      "description": "Constitutional risk classification. 'critical' forces human_review_required=true regardless of confidence. Governs provider selection and policy checks."
+    },
+    "constraints": {
+      "type": "object",
+      "description": "Operational constraints on processing.",
+      "properties": {
+        "max_cost_usd": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Maximum acceptable cost in USD for this request. If routing would exceed this, return a budget_exceeded error."
+        },
+        "max_latency_ms": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Maximum acceptable end-to-end latency. Providers that cannot meet this are skipped."
+        },
+        "external_provider": {
+          "type": "string",
+          "description": "Force a specific provider (e.g., 'dashscope/qwen-audio-3.0-asr-flash', 'local/faster-whisper'). If unavailable, return provider_unavailable. Omit for automatic routing via federation SOT."
+        },
+        "retain_transcript": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, the raw transcript is persisted to the federation audit log. Default false (transcript is ephemeral, only the answer/observations persist)."
+        },
+        "redact_sensitive": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, PII, credentials, and financial identifiers detected in the transcript are redacted before inclusion in the output."
+        }
+      },
+      "additionalProperties": false
+    },
+    "trace_id": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{32}$",
+      "description": "Optional 128-bit trace ID (32 hex chars) for cross-request correlation. If omitted, the server generates one."
+    },
+    "dry_run": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, validate inputs, resolve routing, and return estimated cost/latency without processing the artifact. No provider calls are made."
+    }
+  },
+  "additionalProperties": false
+}
