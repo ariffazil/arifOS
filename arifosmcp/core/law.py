@@ -131,7 +131,13 @@ def check_laws(
                 failed.append("L11")
 
         elif floor_value == "L12":
-            # L12: advisory only — no regex scanning (moved to action boundary)
+            # L12 INJECTION — delegated to the action boundary (amanah_gate v2).
+            # Content scanning removed here per F13 Option A/3 (2026-09-04): law.py
+            # is the WHO layer; amanah_gate is the WHAT layer. Parity proof:
+            # forge_work/2026-09-04-law-consolidation/corpus/parity_matrix.json —
+            # v2 patterns restored coverage to 26/28 (misses are policy rows:
+            # bare-sudo, prose-subprocess). Standing rule: any enforcement-layer
+            # change re-runs that corpus.
             pass
 
         elif floor_value == "L13":
