@@ -2664,8 +2664,8 @@ def _probe_provider_status() -> dict[str, Any]:
 
     status: dict[str, Any] = {
         "primary_provider": None,
-        "sea_lion_configured": False,
-        "sea_lion_healthy": False,
+        "fed_federation_configured": False,
+        "fed_federation_healthy": False,
         "ollama_configured": False,
         "ollama_healthy": False,
         "deterministic_fallback_available": True,
@@ -2674,10 +2674,10 @@ def _probe_provider_status() -> dict[str, Any]:
     }
 
     # FED-FEDERATION
-    sea_key = _os_probe.getenv("FED_PROXY_API_KEY")
-    sea_url = _os_probe.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
-    if sea_key:
-        status["sea_lion_configured"] = True
+    fed_key = _os_probe.getenv("FED_PROXY_API_KEY")
+    fed_url = _os_probe.getenv("FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1")
+    if fed_key:
+        status["fed_federation_configured"] = True
         status["primary_provider"] = "fed_federation"
         try:
             import urllib.request
@@ -2685,15 +2685,15 @@ def _probe_provider_status() -> dict[str, Any]:
 
             ctx = _ssl.create_default_context()
             req = urllib.request.Request(
-                f"{sea_url}/models",
-                headers={"Authorization": f"Bearer {sea_key}"},
+                f"{fed_url}/models",
+                headers={"Authorization": f"Bearer {fed_key}"},
             )
             with urllib.request.urlopen(req, timeout=5, context=ctx) as resp:
                 if resp.status == 200:
-                    status["sea_lion_healthy"] = True
+                    status["fed_federation_healthy"] = True
                     status["deterministic_fallback_used"] = False
         except Exception:
-            status["last_fallback_reason"] = "SEA_LION_UNREACHABLE"
+            status["last_fallback_reason"] = "FED_FEDERATION_UNREACHABLE"
 
     # Ollama — independent probe (parallel tier, not conditional fallback)
     ollama_host = _os_probe.getenv("OLLAMA_HOST", "localhost")
@@ -4525,12 +4525,12 @@ def register_rest_routes(
         ]
 
         # --- Layer 2: AI / External ---
-        sea_lion_base = os.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
+        fed_federation_base = os.getenv("FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1")
         langfuse_base = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
 
         external_tasks = [
             _probe_tcp_port("ollama", 11434),
-            _probe_http(path=f"{sea_lion_base}/health", timeout=5.0),
+            _probe_http(path=f"{fed_federation_base}/health", timeout=5.0),
             _probe_http(path=f"{langfuse_base}/api/public/health", timeout=5.0),
         ]
 

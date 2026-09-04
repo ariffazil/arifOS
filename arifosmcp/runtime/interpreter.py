@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 # ── Configuration ────────────────────────────────────────────────────────────
 API_KEY = os.getenv("FED_PROXY_API_KEY")
-BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
-MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
+BASE_URL = os.getenv("FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1")
+MODEL = os.getenv("FED_FEDERATION_MEANING_MODEL", "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
 
 # Safety fallback prompt when API is unavailable
 FALLBACK_PROMPT_ENABLED = True
@@ -113,7 +113,7 @@ OUTPUT SCHEMA (strict JSON):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-async def interpret_with_sea_lion(
+async def interpret_with_fed_federation(
     event: str,
     state: dict[str, Any],
     judgment: dict[str, Any],
@@ -373,7 +373,7 @@ def fallback_interpret(
 
 
 __all__ = [
-    "interpret_with_sea_lion",
+    "interpret_with_fed_federation",
     "fallback_interpret",
     "InterpretationError",
 ]

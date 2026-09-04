@@ -25,7 +25,7 @@ from .context_safety import validate_interpretation_safety
 from .interpreter import (
     InterpretationError,
     fallback_interpret,
-    interpret_with_sea_lion,
+    interpret_with_fed_federation,
 )
 from .quote_ledger import get_quote_by_id, load_quote_ledger
 from .quote_retriever import retrieve_witnesses
@@ -143,17 +143,17 @@ async def arifos_context_witness(
         }
 
     # ── 3. FED-FEDERATION interpretation (or fallback) ──
-    sea_lion_ok = False
+    fed_federation_ok = False
     interpretation: dict[str, Any] | None = None
     try:
-        interpretation = await interpret_with_sea_lion(
+        interpretation = await interpret_with_fed_federation(
             event=event,
             state=state,
             judgment=judgment,
             candidate_quotes=candidates,
             language=language,
         )
-        sea_lion_ok = True
+        fed_federation_ok = True
     except InterpretationError as exc:
         logger.warning(
             "FED-FEDERATION interpretation failed (%s); falling back to deterministic mode.",
@@ -162,7 +162,7 @@ async def arifos_context_witness(
     except Exception as exc:
         logger.error("Unexpected error during FED-FEDERATION call: %s", exc)
 
-    if not sea_lion_ok or interpretation is None:
+    if not fed_federation_ok or interpretation is None:
         interpretation = fallback_interpret(
             event=event,
             state=state,
@@ -227,7 +227,7 @@ async def arifos_context_witness(
     }
 
     # ── 7. Emit structured response ──
-    status = "ok" if sea_lion_ok else "partial"
+    status = "ok" if fed_federation_ok else "partial"
     # If risk_level is irreversible, downgrade to partial as a signal
     if risk_level == "irreversible":
         status = "partial"

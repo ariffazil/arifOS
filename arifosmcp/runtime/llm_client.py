@@ -251,8 +251,8 @@ ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
 
 # FED-FEDERATION — remote fallback before local Ollama and deterministic rules.
 FED_PROXY_API_KEY = os.getenv("FED_PROXY_API_KEY")
-SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
-SEA_LION_MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
+FED_FEDERATION_BASE_URL = os.getenv("FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1")
+FED_FEDERATION_MODEL = os.getenv("FED_FEDERATION_MEANING_MODEL", "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
 
 
 def resolve_tokenrouter_model(
@@ -554,7 +554,7 @@ def _validate_schema(parsed: dict[str, Any], required_fields: set[str]) -> None:
 # ── Core LLM Call Helpers ─────────────────────────────────────────────────────
 
 
-async def _call_sea_lion(
+async def _call_fed_federation(
     system: str,
     user: str,
     response_schema: dict[str, Any] | None,
@@ -562,10 +562,7 @@ async def _call_sea_lion(
     max_tokens: int = 1200,
 ) -> tuple[str, dict[str, Any]]:
     """
-    LEGACY — call FED-FEDERATION chat completions API.
-
-    Replaced by _call_minimax (M3) as Tier 1 on 2026-06-02.
-    Retained for potential future reactivation — not in current cascade.
+    Call FED-FEDERATION chat completions API.
 
     Returns (raw_output_str, parsed_output_dict).
     The raw_output is preserved for envelope integrity hashing.
@@ -578,7 +575,7 @@ async def _call_sea_lion(
         messages.append({"role": "user", "content": user})
 
     payload = {
-        "model": SEA_LION_MODEL,
+        "model": FED_FEDERATION_MODEL,
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": temperature,
@@ -587,7 +584,7 @@ async def _call_sea_lion(
     try:
         async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
             response = await client.post(
-                f"{SEA_LION_BASE_URL}/chat/completions",
+                f"{FED_FEDERATION_BASE_URL}/chat/completions",
                 headers={
                     "Authorization": f"Bearer {FED_PROXY_API_KEY}",
                     "Content-Type": "application/json",
@@ -2366,7 +2363,7 @@ async def call_llm(
     if not _cb_is_open("fed_federation"):
         try:
             t0 = time.monotonic()
-            raw_output, parsed = await _call_sea_lion(
+            raw_output, parsed = await _call_fed_federation(
                 system, user, response_schema, temperature, max_tokens
             )
             _cb_record_success("fed_federation")
@@ -2374,7 +2371,7 @@ async def call_llm(
                 raw_output,
                 parsed,
                 "fed_federation",
-                SEA_LION_MODEL,
+                FED_FEDERATION_MODEL,
                 tool_origin,
                 mode,
                 combined_prompt,
@@ -2472,7 +2469,7 @@ async def check_provider_health() -> dict[str, Any]:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 r = await client.get(
-                    f"{SEA_LION_BASE_URL}/models",
+                    f"{FED_FEDERATION_BASE_URL}/models",
                     headers={"Authorization": f"Bearer {FED_PROXY_API_KEY}"},
                 )
                 if r.status_code in (200, 401):
