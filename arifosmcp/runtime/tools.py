@@ -5941,53 +5941,9 @@ def _constitutional_reasoning_scan(
     verdict: str | None = None
     l2_flags: list[str] = []  # L2 semantic escalation flags
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # L1: FAST REGEX PATTERNS — explicit attack detection
-    # ═══════════════════════════════════════════════════════════════════════════
-
-    # ══ F1 AMANAH — irreversible destruction ══
-    f1_triggers = [
-        "rm -rf" in q,
-        "drop database" in q,
-        "drop table" in q,
-        "docker system prune" in q,
-        "delete from" in q,
-        "shred " in q,
-        "reset --hard" in q,
-        (".git directory" in q and "delete" in q),
-        ("directory permanently" in q and "delete" in q),
-    ]
-    if any(f1_triggers):
-        violations.append("F1: Destructive operation detected without irreversibility ack")
-        violated_laws.append("L01")
-        verdict = "HOLD"
-
-    # ══ F1 L2: Semantic escalation — destructive intent without exact regex match ══
-    # Catches rephrased attacks that bypass L1: "remove all files", "wipe the disk", etc.
-    _destructive_semantic = [
-        ("remove" in q or "delete" in q or "wipe" in q or "erase" in q or "purge" in q)
-        and ("all" in q or "everything" in q or "recursive" in q or "entire" in q or "whole" in q)
-        and ("file" in q or "disk" in q or "directory" in q or "system" in q or "data" in q),
-        ("destroy" in q or "nuke" in q or "obliterate" in q)
-        and ("system" in q or "server" in q or "machine" in q or "vps" in q),
-        ("format" in q and ("disk" in q or "drive" in q or "partition" in q)),
-        ("truncate" in q and ("table" in q or "database" in q)),
-        ("unlink" in q and ("all" in q or "recursive" in q)),
-        (
-            "kill" in q
-            and ("-9" in q or "sigkill" in q)
-            and ("process" in q or "pid" in q or "service" in q)
-        ),
-        ("overwrite" in q and ("boot" in q or "mbr" in q or "partition" in q)),
-    ]
-    if any(_destructive_semantic):
-        l2_flags.append(
-            "F1_semantic: Destructive intent detected in query semantics (L2 escalation)"
-        )
-        if "L01" not in violated_laws:
-            violated_laws.append("L01")
-            violations.append("F1: Potential destructive operation — semantic escalation (L2)")
-            verdict = "HOLD" if verdict != "VOID" else verdict
+    # ══ F1 AMANAH — identity/authority gating only (regex scanning removed; weak and duplicated)
+    # Irreversibility enforcement now handled at the action boundary (judge/forge layer)
+    # L01 (identity binding) enforced in law.py check_laws()
 
     # ══ F2 TRUTH — false certainty / fabricated claims ══
     f2_triggers = [
