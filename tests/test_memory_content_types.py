@@ -24,6 +24,12 @@ import json
 
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def _redirect_telemetry(tmp_path, monkeypatch):
+    """Test hygiene: dispatch hooks fire record_recall — never pollute prod telemetry."""
+    monkeypatch.setenv("ARIFOS_MEMORY_TELEMETRY_PATH", str(tmp_path / "tel.jsonl"))
+
 from arifosmcp.hexagon.memory.constitutional_memory import MemoryEntry
 from arifosmcp.runtime import tools_internal as ti
 from arifosmcp.runtime.tools_internal import _memory_content_str

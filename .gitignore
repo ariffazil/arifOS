@@ -250,6 +250,8 @@ data/
 # Canonical quote registry must be versioned (zen-witness doctrine)
 !arifosmcp/data/
 !arifosmcp/data/quote_registry_v2.json
+# FIX 2026-09-05 (susulan anchor /memory/): data memory runtime dir — bukan sumber
+arifosmcp/data/memory/
 research/
 
 # Root-level working files

@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -1662,7 +1663,9 @@ async def engineering_memory_dispatch_impl(
                 from arifosmcp.hexagon.memory.constitutional_memory import MemoryArea
 
                 await store.initialize_project(project_id)
+                _t0 = time.monotonic()
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
+                _retrieval_ms = (time.monotonic() - _t0) * 1000.0
                 results = [e.to_dict() for e in entries]
             except Exception as emb_err:
                 return _create_error_envelope(
@@ -1708,6 +1711,7 @@ async def engineering_memory_dispatch_impl(
                     query, results, usable,
                     reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
                     backend="qdrant",
+                    latency_ms=round(_retrieval_ms, 2),
                 )
             except Exception:
                 pass
@@ -1771,7 +1775,9 @@ async def engineering_memory_dispatch_impl(
         if store:
             try:
                 await store.initialize_project(project_id)
+                _t0 = time.monotonic()
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
+                _retrieval_ms = (time.monotonic() - _t0) * 1000.0
                 results = [e.to_dict() for e in entries]
                 # F2 TRUTH: detect false-SUCCESS — Qdrant returns K results even when nothing matches
                 # FIX 2026-09-05: legacy points may hold dict/list content — coerce BEFORE the
@@ -1797,6 +1803,7 @@ async def engineering_memory_dispatch_impl(
                         query, results, usable,
                         reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
                         backend="qdrant",
+                        latency_ms=round(_retrieval_ms, 2),
                     )
                 except Exception:
                     pass
