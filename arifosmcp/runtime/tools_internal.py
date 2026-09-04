@@ -1322,6 +1322,26 @@ def _get_constitutional_memory_store():
     return _constitutional_memory_store
 
 
+def _memory_content_str(content: Any) -> str:
+    """Coerce stored memory content to str.
+
+    FIX 2026-09-05 (FI-008): legacy Qdrant points may hold dict/list payloads in
+    `content`. One poisoned point crashed every recall with
+    ``'dict' object has no attribute 'strip'`` (tools_internal.py:1706). Coerce
+    defensively — never assume str. F2 TRUTH: surfaced, not silently dropped.
+    """
+    if isinstance(content, str):
+        return content
+    if content is None:
+        return ""
+    try:
+        import json as _json
+
+        return _json.dumps(content, ensure_ascii=False, default=str)
+    except Exception:
+        return str(content)
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 0 FIX: Hardened engineering_memory with filesystem error handling
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1617,7 +1637,9 @@ async def engineering_memory_dispatch_impl(
             budget_remaining = context_budget
             budgeted_results = []
             for r in results:
-                content_len = len(r.get("content", ""))
+                # FIX 2026-09-05: coerce legacy non-str content before len()/slice
+                r["content"] = _memory_content_str(r.get("content", ""))
+                content_len = len(r["content"])
                 if content_len <= budget_remaining:
                     budgeted_results.append(r)
                     budget_remaining -= content_len
@@ -1635,7 +1657,8 @@ async def engineering_memory_dispatch_impl(
             usable = [
                 r
                 for r in budgeted_results
-                if r.get("content", "").strip() and r.get("score", 0) >= 0.1
+                if _memory_content_str(r.get("content", "")).strip()
+                and r.get("score", 0) >= 0.1
             ]
             if not usable:
                 return RuntimeEnvelope(
@@ -1702,8 +1725,12 @@ async def engineering_memory_dispatch_impl(
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
                 results = [e.to_dict() for e in entries]
                 # F2 TRUTH: detect false-SUCCESS — Qdrant returns K results even when nothing matches
+                # FIX 2026-09-05: legacy points may hold dict content — coerce before .strip()
                 usable = [
-                    r for r in results if r.get("content", "").strip() and r.get("score", 0) >= 0.1
+                    r
+                    for r in results
+                    if _memory_content_str(r.get("content", "")).strip()
+                    and r.get("score", 0) >= 0.1
                 ]
                 if not usable:
                     return RuntimeEnvelope(
