@@ -1725,13 +1725,14 @@ async def engineering_memory_dispatch_impl(
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
                 results = [e.to_dict() for e in entries]
                 # F2 TRUTH: detect false-SUCCESS — Qdrant returns K results even when nothing matches
-                # FIX 2026-09-05: legacy points may hold dict content — coerce before .strip()
-                usable = [
-                    r
-                    for r in results
-                    if _memory_content_str(r.get("content", "")).strip()
-                    and r.get("score", 0) >= 0.1
-                ]
+                # FIX 2026-09-05: legacy points may hold dict/list content — coerce BEFORE the
+                # filter AND in-place, so admitted results always carry str content (no raw dict leak).
+                usable = []
+                for r in results:
+                    coerced = _memory_content_str(r.get("content", ""))
+                    if coerced.strip() and r.get("score", 0) >= 0.1:
+                        r["content"] = coerced
+                        usable.append(r)
                 if not usable:
                     return RuntimeEnvelope(
                         ok=True,
