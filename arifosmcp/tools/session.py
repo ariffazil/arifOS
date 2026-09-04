@@ -2743,6 +2743,33 @@ def arif_init(
                     _band = classify_actor_band(actor_id, _ok)
                     identity_verified = bool(_band["actor_verified"])
                     sess["signature_verified"] = bool(_band["signature_verified"])
+                    # P0 FIX 2026-09-04 (FI-008, F13 "auto go"): derive the
+                    # canonical verified_key_id from the same pubkey the
+                    # verifier resolved, fail-closed, and carry it into the
+                    # authority bind so bind_authority_state can match
+                    # SOVEREIGN_KEY_IDS (SECURITY P0 2026-07-12). Without it
+                    # every verified init binds without a key id and the
+                    # sovereign lands on OPERATOR/LIMITED_MUTATE.
+                    _vkid: str | None = None
+                    if identity_verified:
+                        try:
+                            from arifosmcp.runtime.sovereign_verify import (
+                                compute_verified_key_id,
+                            )
+
+                            _vkid = compute_verified_key_id(
+                                actor_id,
+                                nonce,
+                                actor_signature,
+                                CONSTITUTION_HASH,
+                            )
+                            if _vkid:
+                                sess["verified_key_id"] = _vkid
+                        except Exception as _vkid_exc:
+                            logger.warning(
+                                "init-mode verified_key_id derivation failed: %s",
+                                _vkid_exc,
+                            )
                     # SINGLE SETTER: bind_authority_state replaces direct sess["actor_verified"] write
                     try:
                         from arifosmcp.runtime.authority import bind_authority_state
@@ -2754,6 +2781,7 @@ def arif_init(
                             actor_id,
                             verified=bool(identity_verified),
                             verification_method="signature" if identity_verified else "none",
+                            verified_key_id=_vkid,
                         )
                         bind_authority_state(sess, _av_state)
                     except Exception:
@@ -2778,9 +2806,14 @@ def arif_init(
                         if isinstance(sess.get("auth_context"), dict):
                             sess["auth_context"]["verification_method"] = "ed25519"
                             sess["auth_context"]["auth_method"] = "ed25519"
-                            sess["auth_context"]["verified_key_id"] = (
-                                "sha256:c843960f8c85d625bd0e8dc563beba331b4cfe6d0c08f71c2e6da80eb58b8c6a"
-                            )
+                            # P0 FIX 2026-09-04: was a HARDCODED unrelated
+                            # sha256 digest (F2 fabrication — claimed a key id
+                            # nobody derived). Record the real derived
+                            # fingerprint, or nothing.
+                            if _vkid:
+                                sess["auth_context"]["verified_key_id"] = _vkid
+                            else:
+                                sess["auth_context"].pop("verified_key_id", None)
                     logger.info(
                         "init-mode identity bind actor=%s verified=%s band=%s class=%s reason=%s",
                         actor_id,
