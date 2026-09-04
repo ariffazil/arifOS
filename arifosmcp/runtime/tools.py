@@ -15391,27 +15391,42 @@ def _build_orchestration(
     actor_id: str | None,
     session_id: str | None,
     stage: str | None,
+    tool_name: str | None = None,
 ) -> dict[str, Any]:
     """Build full orchestration decision for a task."""
     route_id = f"KR-{uuid.uuid4().hex[:12].upper()}"
     task_class = _kernel_classify_task(task)
     depth = _kernel_depth_select(task)
-    risk_tier, risk_score = _kernel_risk_gate(task)
-    is_irreversible = _kernel_reversibility_gate(task)
+    
+    # Attention Engine replaces keyword-based risk/reversibility gates
+    from arifosmcp.runtime.attention_engine import compute_attention
+    attention = compute_attention(
+        tool_name=tool_name or "arif_kernel_route",
+        params={"task": task or "", "query": task or ""},
+        actor_id=actor_id,
+        session_id=session_id,
+        actor_verified=False,  # verified at higher layer
+    )
+    
     auth = _kernel_authority_gate(task, actor_id)
     workflow = _kernel_workflow(depth)
     budget = _kernel_token_budget(depth)
-    authority_boundary = _kernel_authority_boundary(depth, risk_tier, is_irreversible)
-    judge_required = authority_boundary["human_judge"] == "required"
+    
+    # Attention-driven boundary: replaces keyword-based irreversibility check
+    authority_boundary = _kernel_authority_boundary(
+        depth,
+        "critical" if attention.irreversibility >= 0.7 else "high" if attention.irreversibility >= 0.4 else "medium" if attention.irreversibility >= 0.2 else "low",
+        attention.irreversibility >= 0.6,
+    )
+    judge_required = attention.requires_judgment or authority_boundary["human_judge"] == "required"
 
     return {
         "route_id": route_id,
         "task_class": task_class,
         "task_preview": task[:200] if task else None,
         "depth_tier": depth,
-        "risk_tier": risk_tier,
-        "risk_score": risk_score,
-        "reversibility": "irreversible" if is_irreversible else "reversible",
+        # Attention profile replaces risk_gate + reversibility_gate
+        "attention_profile": attention.to_dict(),
         "judge_required": judge_required,
         "token_budget": budget,
         "workflow": workflow,
@@ -15421,10 +15436,18 @@ def _build_orchestration(
                 "tier": depth,
                 "rationale": f"Keyword-classified as {depth}",
             },
-            "risk_gate": {"tier": risk_tier, "score": risk_score},
-            "reversibility_gate": {
-                "is_irreversible": is_irreversible,
-                "requires_ack": is_irreversible,
+            "attention_engine": {
+                "weight": attention.attention_weight,
+                "requires_judgment": attention.requires_judgment,
+                "requires_witness": attention.requires_witness,
+                "dimensions": {
+                    "identity": attention.identity,
+                    "sovereignty": attention.sovereignty,
+                    "irreversibility": attention.irreversibility,
+                    "witness": attention.witness,
+                    "novelty": attention.novelty,
+                    "confidence": attention.confidence,
+                },
             },
             "authority_gate": auth,
         },
@@ -15552,7 +15575,7 @@ def _arif_kernel_route(
                     "entropy_exceeded": True,
                 }
             _HOP_COUNTER[session_id] = current_hops + 1
-        orch = _build_orchestration(task, actor_id, session_id, stage)
+        orch = _build_orchestration(task, actor_id, session_id, stage, "arif_kernel_route")
         orch["hop_count"] = _HOP_COUNTER.get(session_id, 1)
         orch["max_hops"] = _MAX_HOPS
         orch["entropy_limit"] = _ENTROPY_LIMIT
@@ -15705,7 +15728,7 @@ def _arif_kernel_route(
             )
 
     if mode == "status":
-        orch = _build_orchestration(task, actor_id, session_id, stage)
+        orch = _build_orchestration(task, actor_id, session_id, stage, "arif_kernel_route")
         # Fetch governance warnings
         sess = _SESSIONS.get(session_id) if session_id else None
         card = sess.get("model_governance_card", {}) if sess else {}
@@ -15823,12 +15846,17 @@ def _arif_kernel_route(
         )
 
     if mode == "risk_gate":
-        risk_tier, risk_score = _kernel_risk_gate(task)
+        from arifosmcp.runtime.attention_engine import compute_attention
+        attention = compute_attention(
+            tool_name="arif_kernel_route",
+            params={"task": task or "", "query": task or ""},
+            actor_id=actor_id,
+            session_id=session_id,
+        )
         return _ok(
             "arif_kernel_route",
             {
-                "risk_tier": risk_tier,
-                "risk_score": risk_score,
+                "attention_profile": attention.to_dict(),
                 "task_preview": task[:100] if task else None,
             },
             delta_S=0.001,
@@ -15858,12 +15886,20 @@ def _arif_kernel_route(
         )
 
     if mode == "reversibility_gate":
-        is_irreversible = _kernel_reversibility_gate(task)
+        from arifosmcp.runtime.attention_engine import compute_attention
+        attention = compute_attention(
+            tool_name="arif_kernel_route",
+            params={"task": task or "", "query": task or ""},
+            actor_id=actor_id,
+            session_id=session_id,
+        )
         return _ok(
             "arif_kernel_route",
             {
-                "is_irreversible": is_irreversible,
-                "requires_ack": is_irreversible,
+                "irreversibility_score": attention.irreversibility,
+                "requires_ack": attention.irreversibility >= 0.6,
+                "requires_judgment": attention.requires_judgment,
+                "attention_profile": attention.to_dict(),
                 "task_preview": task[:100] if task else None,
             },
             delta_S=0.0,
