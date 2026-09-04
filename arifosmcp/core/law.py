@@ -103,16 +103,7 @@ def check_laws(
             pass
 
         elif floor_value == "L09":
-            # F9a: keyword-level manipulation detection (surface)
-            for key, value in params.items():
-                if isinstance(value, str):
-                    manipulation = ["sudo", "chmod", "eval", "exec(", "__import__"]
-                    if any(m in value for m in manipulation):
-                        failed.append("L09")
-                        logger.warning(f"L09 ANTIHANTU: manipulation pattern in {key}")
-
-            # F9b: heart-critique prerequisite gate for forge (F9 TAQWA short-circuit)
-            # If agent skips arif_critique entirely, forge must be blocked.
+            # L09: arif_forge requires arif_critique (workflow governance)
             if tool_name == "arif_forge":
                 session_id = params.get("session_id")
                 if session_id:
@@ -140,12 +131,8 @@ def check_laws(
                 failed.append("L11")
 
         elif floor_value == "L12":
-            for key, value in params.items():
-                if isinstance(value, str):
-                    injection = ["rm -rf", "eval(", "exec(", "os.system", "subprocess"]
-                    if any(i in value for i in injection):
-                        failed.append("L12")
-                        logger.warning(f"L12 INJECTION: pattern in {key}")
+            # L12: advisory only — no regex scanning (moved to action boundary)
+            pass
 
         elif floor_value == "L13":
             # L13 fires when sovereign override is BYPASSED (not when used).

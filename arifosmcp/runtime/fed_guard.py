@@ -28,10 +28,10 @@ import requests
 logger = logging.getLogger(__name__)
 
 # ── Configuration ────────────────────────────────────────────────────────────
-SEA_LION_API_URL = os.getenv("SEA_LION_API_URL", "https://api.fed-federation.ai/v1/chat/completions")
+FED_FEDERATION_API_URL = os.getenv("FED_FEDERATION_API_URL", "https://api.fed-federation.ai/v1/chat/completions")
 FED_PROXY_API_KEY = os.getenv("FED_PROXY_API_KEY", "")
-SEA_LION_MODEL = os.getenv("SEA_LION_GUARD_MODEL", "aisingapore/SEA-Guard")
-SEA_GUARD_TIMEOUT = int(os.getenv("SEA_GUARD_TIMEOUT", "10"))
+FED_GUARD_MODEL = os.getenv("FED_GUARD_MODEL", "aisingapore/SEA-Guard")
+FED_GUARD_TIMEOUT = int(os.getenv("FED_GUARD_TIMEOUT", "10"))
 
 # ── Categories ────────────────────────────────────────────────────────────────
 SAFETY_CATEGORIES = [
@@ -121,7 +121,7 @@ def sea_guard_filter(
     """
     start = time.perf_counter()
     key = api_key or FED_PROXY_API_KEY
-    tmo = timeout or SEA_GUARD_TIMEOUT
+    tmo = timeout or FED_GUARD_TIMEOUT
 
     if not key:
         return SafetyResult(
@@ -154,7 +154,7 @@ def sea_guard_filter(
     )
 
     payload = {
-        "model": SEA_LION_MODEL,
+        "model": FED_GUARD_MODEL,
         "messages": [{"role": "user", "content": analysis_prompt}],
         "max_tokens": 8,  # Just one word
         "temperature": 0.0,  # Deterministic
@@ -167,7 +167,7 @@ def sea_guard_filter(
 
     try:
         response = requests.post(
-            SEA_LION_API_URL,
+            FED_FEDERATION_API_URL,
             headers=headers,
             json=payload,
             timeout=tmo,
