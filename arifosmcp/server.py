@@ -69,7 +69,7 @@ except Exception:
 _entropy_integrity_path = "/root/entropy-integrity"
 _llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
 if _llm_client is not None:
-    _llm_client.SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")  # pyright: ignore[reportAttributeAccessIssue]
+    _llm_client.FED_PROXY_API_KEY = os.getenv("FED_PROXY_API_KEY")  # pyright: ignore[reportAttributeAccessIssue]
 
 # Fix sys.path so arifOS packages resolve correctly inside Docker
 _apply_path_priority()
@@ -80,7 +80,7 @@ def _log_llm_provider_health() -> None:
     """Log redacted LLM provider source at startup — never the secret value."""
     _logger = logging.getLogger("arifosmcp")
     providers = {
-        "SEA_LION_API_KEY": os.getenv("SEA_LION_API_KEY"),
+        "FED_PROXY_API_KEY": os.getenv("FED_PROXY_API_KEY"),
         "OLLAMA_BASE_URL": os.getenv("OLLAMA_BASE_URL"),
     }
     for name, val in providers.items():
@@ -284,7 +284,7 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
                             "reason_code": "JUDGE_UNAVAILABLE",
                             "reasons": [
                                 "TOOL_TIMEOUT: arifOS tool exceeded 45s budget. "
-                                "The upstream LLM cascade (TokenRouter → MiniMax → SEA-LION → Ollama) "
+                                "The upstream LLM cascade (TokenRouter → MiniMax → FED-FEDERATION → Ollama) "
                                 "is likely degraded. This is a constitutional HOLD — "
                                 "execution is blocked until the reasoning backend recovers."
                             ],
@@ -294,7 +294,7 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
                             "next_safe_action": (
                                 "Wait 60s and retry. If the error persists, check "
                                 "arifOS logs: journalctl -u arifos --since '2 min ago'. "
-                                "The model may be rate-limited or the SEA-LION API may be degraded."
+                                "The model may be rate-limited or the FED-FEDERATION API may be degraded."
                             ),
                         },
                     },

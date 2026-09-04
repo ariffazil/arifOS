@@ -1,7 +1,7 @@
 """
-arifosmcp/runtime/sea_lion_interpreter.py — SEA-LION Meaning Interpreter
+arifosmcp/runtime/meaning_interpreter.py — FED-FEDERATION Meaning Interpreter
 
-SEA-LION is strictly an interpreter of approved quotes.
+FED-FEDERATION is strictly an interpreter of approved quotes.
 It may NOT invent quotes, authors, or alter text.
 It selects ONE quote from the supplied candidate list and interprets it.
 
@@ -20,9 +20,9 @@ import httpx
 logger = logging.getLogger(__name__)
 
 # ── Configuration ────────────────────────────────────────────────────────────
-API_KEY = os.getenv("SEA_LION_API_KEY")
-BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
-MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-SEA-LION-v4-32B-IT")
+API_KEY = os.getenv("FED_PROXY_API_KEY")
+BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
+MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
 
 # Safety fallback prompt when API is unavailable
 FALLBACK_PROMPT_ENABLED = True
@@ -44,7 +44,7 @@ def _build_interpreter_prompt(
     candidate_quotes: list[dict[str, Any]],
     language: str = "en",
 ) -> str:
-    """Build the strict constitutional prompt for SEA-LION."""
+    """Build the strict constitutional prompt for FED-FEDERATION."""
 
     candidate_block = json.dumps(
         [
@@ -120,12 +120,12 @@ async def interpret_with_sea_lion(
     candidate_quotes: list[dict[str, Any]],
     language: str = "en",
 ) -> dict[str, Any]:
-    """Send candidate quotes to SEA-LION and return structured interpretation.
+    """Send candidate quotes to FED-FEDERATION and return structured interpretation.
 
     If the API is unavailable or returns invalid JSON, raises InterpretationError.
     """
     if not API_KEY:
-        raise InterpretationError("SEA_LION_API_KEY not configured")
+        raise InterpretationError("FED_PROXY_API_KEY not configured")
 
     if not candidate_quotes:
         raise InterpretationError("No candidate quotes provided to interpreter")
@@ -148,19 +148,19 @@ async def interpret_with_sea_lion(
                 },
             )
     except Exception as exc:
-        logger.error("SEA-LION API transport error: %s", exc)
-        raise InterpretationError(f"SEA-LION API transport error: {exc}") from exc
+        logger.error("FED-FEDERATION API transport error: %s", exc)
+        raise InterpretationError(f"FED-FEDERATION API transport error: {exc}") from exc
 
     if response.status_code != 200:
-        logger.error("SEA-LION API HTTP %s: %s", response.status_code, response.text)
-        raise InterpretationError(f"SEA-LION API HTTP {response.status_code}")
+        logger.error("FED-FEDERATION API HTTP %s: %s", response.status_code, response.text)
+        raise InterpretationError(f"FED-FEDERATION API HTTP {response.status_code}")
 
     try:
         payload = response.json()
         content = payload["choices"][0]["message"]["content"]
     except Exception as exc:
-        logger.error("SEA-LION API response parse error: %s", exc)
-        raise InterpretationError(f"SEA-LION response parse error: {exc}") from exc
+        logger.error("FED-FEDERATION API response parse error: %s", exc)
+        raise InterpretationError(f"FED-FEDERATION response parse error: {exc}") from exc
 
     # Strip markdown fences if present
     content = content.strip()
@@ -175,8 +175,8 @@ async def interpret_with_sea_lion(
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as exc:
-        logger.error("SEA-LION returned invalid JSON: %s", content[:500])
-        raise InterpretationError(f"SEA-LION returned invalid JSON: {exc}") from exc
+        logger.error("FED-FEDERATION returned invalid JSON: %s", content[:500])
+        raise InterpretationError(f"FED-FEDERATION returned invalid JSON: {exc}") from exc
 
     # Minimal schema check
     required_top = {
@@ -192,16 +192,16 @@ async def interpret_with_sea_lion(
     }
     missing = required_top - set(parsed.keys())
     if missing:
-        raise InterpretationError(f"SEA-LION output missing fields: {sorted(missing)}")
+        raise InterpretationError(f"FED-FEDERATION output missing fields: {sorted(missing)}")
 
     alignment = parsed.get("arifos_alignment") or {}
     for key in ("physics", "math", "linguistic"):
         if not isinstance(alignment.get(key), str):
             raise InterpretationError(
-                f"SEA-LION output arifos_alignment.{key} missing or not string"
+                f"FED-FEDERATION output arifos_alignment.{key} missing or not string"
             )
 
-    logger.debug("SEA-LION selected quote %s", parsed.get("selected_quote_id"))
+    logger.debug("FED-FEDERATION selected quote %s", parsed.get("selected_quote_id"))
     return parsed
 
 
@@ -318,7 +318,7 @@ def fallback_interpret(
     risk_level: str = "medium",
     language: str = "en",
 ) -> dict[str, Any]:
-    """Deterministic fallback when SEA-LION is unavailable.
+    """Deterministic fallback when FED-FEDERATION is unavailable.
 
     Selects the highest-priority candidate and generates a generic but
     schema-compliant interpretation.  This preserves pipeline continuity
@@ -364,7 +364,7 @@ def fallback_interpret(
         "decision_boundary": decision_boundary,
         "human_decision_required": is_high_risk,
         "recommended_action": recommended_action,
-        "uncertainty": ["SEA-LION API unavailable; using deterministic fallback."],
+        "uncertainty": ["FED-FEDERATION API unavailable; using deterministic fallback."],
         "safety_notes": [
             "Fallback interpretation lacks LLM nuance.",
             "Review recommended if stakes are high.",

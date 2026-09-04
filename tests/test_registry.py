@@ -213,7 +213,7 @@ class TestModelFiles:
         data = load_json(model_file)
         stem = model_file.stem
         # Skip aisingapore embedding/safety models (different schema)
-        if stem in ("bge-m3", "sea-guard", "sea-lion-e5-embedding-600m"):
+        if stem in ("bge-m3", "sea-guard", "fed-federation-e5-embedding-600m"):
             return
         for field in self.MODEL_REQUIRED:
             assert field in data, f"{model_file}: missing field '{field}'"

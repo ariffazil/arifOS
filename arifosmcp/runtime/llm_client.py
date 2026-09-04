@@ -120,7 +120,7 @@ CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
 CEREBRAS_BASE_URL = os.getenv("CEREBRAS_BASE_URL", "https://api.cerebras.ai/v1")
 CEREBRAS_MODEL = os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
 
-# Ollama — local text-generation fallback after SEA-LION.
+# Ollama — local text-generation fallback after FED-FEDERATION.
 # bge-m3 embedding use remains independent of this guarded fallback path.
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
@@ -249,10 +249,10 @@ ILMU_API_KEY = os.getenv("ILMU_API_KEY")
 ILMU_BASE_URL = os.getenv("ILMU_BASE_URL", "https://api.ilmu.ai/v1")
 ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
 
-# SEA-LION — remote fallback before local Ollama and deterministic rules.
-SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")
-SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
-SEA_LION_MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-SEA-LION-v4-32B-IT")
+# FED-FEDERATION — remote fallback before local Ollama and deterministic rules.
+FED_PROXY_API_KEY = os.getenv("FED_PROXY_API_KEY")
+SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.fed-federation.ai/v1")
+SEA_LION_MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
 
 
 def resolve_tokenrouter_model(
@@ -415,7 +415,7 @@ def _repair_truncated_json(
 ) -> dict[str, Any] | None:
     """Attempt to repair truncated/incomplete JSON from LLM output.
 
-    LLMs (especially via slower tiers like SEA-LION) often truncate complex
+    LLMs (especially via slower tiers like FED-FEDERATION) often truncate complex
     structured JSON at the max_tokens boundary. This function attempts to
     salvage partial results by closing unterminated strings, objects, and arrays.
 
@@ -562,7 +562,7 @@ async def _call_sea_lion(
     max_tokens: int = 1200,
 ) -> tuple[str, dict[str, Any]]:
     """
-    LEGACY — call SEA-LION chat completions API.
+    LEGACY — call FED-FEDERATION chat completions API.
 
     Replaced by _call_minimax (M3) as Tier 1 on 2026-06-02.
     Retained for potential future reactivation — not in current cascade.
@@ -570,8 +570,8 @@ async def _call_sea_lion(
     Returns (raw_output_str, parsed_output_dict).
     The raw_output is preserved for envelope integrity hashing.
     """
-    if not SEA_LION_API_KEY:
-        raise LLMUnavailableError("SEA_LION_API_KEY not configured")
+    if not FED_PROXY_API_KEY:
+        raise LLMUnavailableError("FED_PROXY_API_KEY not configured")
 
     messages = [{"role": "system", "content": system}]
     if user:
@@ -589,27 +589,27 @@ async def _call_sea_lion(
             response = await client.post(
                 f"{SEA_LION_BASE_URL}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {SEA_LION_API_KEY}",
+                    "Authorization": f"Bearer {FED_PROXY_API_KEY}",
                     "Content-Type": "application/json",
                 },
                 json=payload,
             )
     except Exception as exc:
-        logger.warning("SEA-LION transport error: %s", exc)
-        raise LLMUnavailableError(f"SEA-LION transport error: {exc}") from exc
+        logger.warning("FED-FEDERATION transport error: %s", exc)
+        raise LLMUnavailableError(f"FED-FEDERATION transport error: {exc}") from exc
 
     if response.status_code != 200:
-        logger.warning("SEA-LION HTTP %s: %s", response.status_code, response.text[:200])
-        raise LLMUnavailableError(f"SEA-LION HTTP {response.status_code}")
+        logger.warning("FED-FEDERATION HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"FED-FEDERATION HTTP {response.status_code}")
 
     try:
         data = response.json()
         msg = data["choices"][0]["message"]
-        # SEA-LION v4 returns reasoning_content instead of content for some models
+        # FED-FEDERATION v4 returns reasoning_content instead of content for some models
         content = msg.get("content") or msg.get("reasoning_content", "")
     except Exception as exc:
-        logger.warning("SEA-LION parse error: %s", exc)
-        raise LLMUnavailableError(f"SEA-LION response parse error: {exc}") from exc
+        logger.warning("FED-FEDERATION parse error: %s", exc)
+        raise LLMUnavailableError(f"FED-FEDERATION response parse error: {exc}") from exc
 
     raw_output = _strip_markdown(content)
 
@@ -619,24 +619,24 @@ async def _call_sea_lion(
         # Attempt to repair truncated JSON before giving up
         repaired = _repair_truncated_json(raw_output)
         if repaired is not None:
-            logger.info("SEA-LION JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+            logger.info("FED-FEDERATION JSON repaired after truncation (keys: %s)", list(repaired.keys()))
             parsed = repaired
             raw_output = json.dumps(repaired)  # Align raw with repaired for hash integrity
         else:
             logger.warning(
-                "SEA-LION returned invalid JSON, wrapping plain text: %s", raw_output[:200]
+                "FED-FEDERATION returned invalid JSON, wrapping plain text: %s", raw_output[:200]
             )
             parsed = {"reasoning": raw_output, "answer": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
-            f"SEA-LION output must be a JSON object, got {type(parsed).__name__}"
+            f"FED-FEDERATION output must be a JSON object, got {type(parsed).__name__}"
         )
 
     if not parsed:
-        raise LLMUnavailableError("SEA-LION returned empty JSON object")
+        raise LLMUnavailableError("FED-FEDERATION returned empty JSON object")
 
-    logger.debug("SEA-LION inference complete")
+    logger.debug("FED-FEDERATION inference complete")
     return raw_output, parsed
 
 
@@ -980,7 +980,7 @@ async def _call_minimax(
             # the raw output into reasoning/answer so the kernel envelope can
             # surface the LLM's actual response. The constitutional wrapper
             # (F1-F13) will then metabolize the *real* M3 text, not a generic
-            # "unable to parse" placeholder. This mirrors the SEA-LION parser
+            # "unable to parse" placeholder. This mirrors the FED-FEDERATION parser
             # pattern at line 237-238. The L02 envelope is still issued
             # (status=HOLD, verdict=HOLD) so the kernel's downstream contract
             # is preserved — the difference is that the *raw LLM text* is now
@@ -1455,7 +1455,7 @@ async def _call_ollama(
     try:
         # L13 TIMEOUT_SAFE: CPU inference on 7B model is ~2 tok/s.
         # 15s allows ~30 tokens — enough for structured JSON stub.
-        # Longer prompts should use SEA-LION (GPU-accelerated API).
+        # Longer prompts should use FED-FEDERATION (GPU-accelerated API).
         # Previously 50s; reduced 2026-06-13 to prevent Ollama from
         # blocking faster upstream providers in the cascade.
         async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
@@ -2052,11 +2052,11 @@ async def call_llm(
     constitutional_role: str | None = None,
 ) -> LLMOutputEnvelope:
     """
-    Call TokenRouter (Tier 0 primary) → remote providers → SEA-LION → Ollama → rules.
+    Call TokenRouter (Tier 0 primary) → remote providers → FED-FEDERATION → Ollama → rules.
 
     APEX Theory applied (per pasted spec):
     - TokenRouter as unified gateway for redundancy (survives single provider failure).
-    - The final SEA-LION/Ollama/rule tail guarantees a valid governed HOLD on outage.
+    - The final FED-FEDERATION/Ollama/rule tail guarantees a valid governed HOLD on outage.
     - Organ/task-specific routing (quality/cost/latency modes):
       GEOX: petrophysics=DeepSeek V4 Pro (1M), quick basin=Flash (cost), seismic=GLM 5.1 (spatial)
       WEALTH: EMV/NPV=cost fast, risk=quality deep, market=latency
@@ -2362,18 +2362,18 @@ async def call_llm(
     if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
         return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
 
-    # Tier 2 — SEA-LION v4 (GPU-accelerated, third voice in trinity)
-    if not _cb_is_open("sea_lion"):
+    # Tier 2 — FED-FEDERATION v4 (GPU-accelerated, third voice in trinity)
+    if not _cb_is_open("fed_federation"):
         try:
             t0 = time.monotonic()
             raw_output, parsed = await _call_sea_lion(
                 system, user, response_schema, temperature, max_tokens
             )
-            _cb_record_success("sea_lion")
+            _cb_record_success("fed_federation")
             return _make_envelope(
                 raw_output,
                 parsed,
-                "sea_lion",
+                "fed_federation",
                 SEA_LION_MODEL,
                 tool_origin,
                 mode,
@@ -2383,7 +2383,7 @@ async def call_llm(
                 trace_recursion_depth,
             )
         except LLMUnavailableError:
-            _cb_record_failure("sea_lion")
+            _cb_record_failure("fed_federation")
     if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
         return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
 
@@ -2421,7 +2421,7 @@ async def call_llm(
             "groq",
             "gemini",
             "cerebras",
-            "sea_lion",
+            "fed_federation",
         ]
         if _cb_is_open(p) or p in ("tokenrouter",)
     ]  # tokenrouter always tried
@@ -2465,23 +2465,23 @@ async def check_provider_health() -> dict[str, Any]:
             status["primary"] = "unreachable"
             status["errors"].append(f"MiniMax M3: {exc}")
 
-    # Check SEA-LION v4 (Tier 2 — reactivated fallback)
-    if not SEA_LION_API_KEY:
-        status["sea_lion"] = "unconfigured"
+    # Check FED-FEDERATION v4 (Tier 2 — reactivated fallback)
+    if not FED_PROXY_API_KEY:
+        status["fed_federation"] = "unconfigured"
     else:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 r = await client.get(
                     f"{SEA_LION_BASE_URL}/models",
-                    headers={"Authorization": f"Bearer {SEA_LION_API_KEY}"},
+                    headers={"Authorization": f"Bearer {FED_PROXY_API_KEY}"},
                 )
                 if r.status_code in (200, 401):
-                    status["sea_lion"] = "reachable"
+                    status["fed_federation"] = "reachable"
                 else:
-                    status["sea_lion"] = f"http_{r.status_code}"
+                    status["fed_federation"] = f"http_{r.status_code}"
         except Exception as exc:
-            status["sea_lion"] = "unreachable"
-            status["errors"].append(f"SEA-LION: {exc}")
+            status["fed_federation"] = "unreachable"
+            status["errors"].append(f"FED-FEDERATION: {exc}")
 
     # Check Ollama. Embeddings are production-enabled independently from the
     # opt-in CPU text fallback, so report their readiness separately.
@@ -2531,15 +2531,15 @@ async def check_provider_health() -> dict[str, Any]:
             status["mimo"] = "unreachable"
             status["errors"].append(f"MiMo: {exc}")
 
-    # Determine active provider (match cascade: M3 → MiMo → SEA-LION, then
+    # Determine active provider (match cascade: M3 → MiMo → FED-FEDERATION, then
     # Ollama only when its CPU text path was explicitly enabled).
     # ILMU BLOCKED per FFF 2026-06-15 — not in cascade
     if status["primary"] == "reachable":
         status["active_provider"] = "minimax"
     elif status.get("mimo") == "reachable":
         status["active_provider"] = "mimo"
-    elif status.get("sea_lion") == "reachable":
-        status["active_provider"] = "sea_lion"
+    elif status.get("fed_federation") == "reachable":
+        status["active_provider"] = "fed_federation"
     elif status.get("ilmu") == "reachable":
         status["active_provider"] = "ilmu_blocked_fff"
         status["ilmu_status"] = "BLOCKED per FFF 2026-06-15 — not in cascade"

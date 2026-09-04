@@ -38,7 +38,7 @@ async def embodied_mind_reason_handler(
     """
     333_REASON: + reason — Symbolic reasoning kernel.
 
-    Routes cognitive modes through LLM inference (SEA-LION → Ollama → rule fallback).
+    Routes cognitive modes through LLM inference (FED-FEDERATION → Ollama → rule fallback).
     Structural modes (plan, plan_review, plan_approve, axioms) are deterministic.
     Cognitive modes (reason, reflect, verify, critique, debate, socratic) use LLM.
 
