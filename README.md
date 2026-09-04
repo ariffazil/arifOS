@@ -15,85 +15,157 @@ vault999: healthy (outcomes.jsonl 67K+ records, append-only, 0 broken lines)
 readme_note: ZEN first-fold — full reference at docs/README-FULL.md; federation card at docs/FEDERATION_CARD.md
 -->
 
-# arifOS — Law
+# arifOS — Constitutional AI Governance Kernel
 
-## Judge before acting. Never act.
+> **Separates judgment from execution for regulated AI deployment.**
 
-The constitutional kernel of the arifOS Federation.
+Enterprises deploying AI at scale face a critical gap: agents that act are also certifying their own actions. Without an independent authority to evaluate proposals against safety, compliance, and policy constraints before execution, organizations risk regulatory violations, data breaches, and untraceable decisions. arifOS solves this by acting as a constitutional judge — evaluating every consequential AI action against 13 immutable policy floors and returning a verdict **before** any execution occurs.
 
-arifOS is law, not an agent.
-It judges.
-It seals.
-It never executes.
-
-**DITEMPA BUKAN DIBERI** — Forged, Not Given.
+**Forged, Not Given.**
 
 ---
 
-## Every action, three questions
+## Architecture
 
-Every consequential action must answer:
-
-1. Who **performs** it?
-2. Who **approved** it?
-3. Who **witnessed** it?
-
-arifOS answers the second — and only the second.
-
-Execution belongs to A-FORGE.
-Routing belongs to AAA.
-Authority belongs to the sovereign.
-
-> **The agent that acts is not allowed to certify its own action.**
-
-## Verdicts
-
-Four. No fifth.
-
-- **SEAL** — authorized under stated conditions
-- **HOLD** — insufficient evidence, or human approval required
-- **SABAR** — proceed cautiously, partial authorization
-- **VOID** — blocked by a constitutional floor
-
-## Verbs (MCP)
-
-Eight canonical verbs, live-witnessed 2026-08-25 via `:8088/health`:
-
-`arif_init` · `arif_observe` · `arif_think` · `arif_route` · `arif_memory` · `arif_judge` · `arif_forge` · `arif_seal`
-
-Door: `/mcp`. Public console is not exposed — the kernel serves `/webmcp` on :8088 locally only.
-
-## 30-second proof
-
-```text
-Request: "delete production database"
-  No session ACT, no evidence chain → HOLD
-  Evidence + floors pass → SEAL with conditions
-    → execution by A-FORGE → receipt → VAULT999
+```
+                    ┌─────────────────────────────────────────┐
+                    │           arifOS Kernel (:8088)         │
+                    │  ┌───────────────────────────────────┐  │
+  User Intent ─────▶│  │  13 Constitutional Floors (F1-F13) │  │──▶ SEAL / HOLD / SABAR / VOID
+                    │  │  State Observation & Gap Detection │  │
+                    │  │  VAULT999 Append-Only Ledger       │  │
+                    │  └───────────────────────────────────┘  │
+                    └─────────────┬───────────────────────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              │                   │                   │
+              ▼                   ▼                   ▼
+     ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+     │   SEAL       │    │   HOLD       │    │   VOID       │
+     │              │    │              │    │              │
+     │  A-FORGE     │    │  Human Review│    │  Blocked     │
+     │  Executes    │    │  Approves    │    │  by Floor    │
+     └──────┬───────┘    └──────────────┘    └──────────────┘
+            │
+            ▼
+     ┌──────────────┐
+     │  VAULT999    │  67K+ immutable records
+     │  Audit Log   │  append-only, zero gaps
+     └──────────────┘
 ```
 
-VAULT999 (live 2026-08-25): healthy, append-only, outcomes.jsonl 67K+ records, 0 broken lines.
+**The judge never executes. The executor never certifies.**
 
-## Architecture in one sentence
+---
 
-**The judge never executes; the executor never certifies.**
+## Quick Start
 
-```mermaid
-flowchart LR
-    Intent[Intent] --> Judge[arifOS]
-    Judge -->|SEAL| Forge[A-FORGE]
-    Forge --> Receipt[Receipt]
-    Receipt --> Vault[VAULT999]
-    Judge -->|HOLD| Human[Human Review]
+### Docker
+
+```bash
+docker run -d --name arifos \
+  -p 8088:8088 \
+  -v $(pwd)/data:/app/data \
+  arifos/kernel:latest
 ```
 
-## Federation card
+### Health Check
 
-ARIF = Sovereign · arifOS = Law · AAA = Institution · A-FORGE = Hands
+```bash
+curl http://localhost:8088/health
+```
+
+### MCP Connection
+
+```bash
+# Connect via MCP endpoint
+mcp connect http://localhost:8088/mcp
+```
+
+---
+
+## Core Features
+
+### 13 Constitutional Floors (F1–F13)
+
+Every proposal is evaluated against a chain of 13 policy constraints spanning safety, reversibility, scope, authority, evidence, and governance. A single floor failure produces a **VOID** verdict — no action proceeds until the constraint is resolved.
+
+### Four Verdict Types
+
+| Verdict | Meaning |
+|---------|---------|
+| **SEAL** | Authorized under stated conditions |
+| **HOLD** | Insufficient evidence or human approval required |
+| **SABAR** | Proceed with caution — partial authorization |
+| **VOID** | Blocked by a constitutional floor |
+
+### VAULT999 — Immutable Audit Ledger
+
+Every verdict, evidence chain, and execution receipt is recorded in VAULT999 — an append-only JSONL ledger currently holding 67,000+ records with zero broken lines. Designed for compliance auditing, forensic review, and regulatory proof of governance.
+
+### MCP Interface
+
+The kernel exposes 8 MCP verbs over `/mcp` (and `/webmcp` locally on :8088). No public console — programmatic access only.
+
+---
+
+## Federation Topology
+
+The arifOS Federation comprises 7 organs, each with a distinct responsibility:
+
+| Organ | Port | Responsibility |
+|-------|------|----------------|
+| **arifOS** | :8088 | Law — constitutional judgment |
+| **AAA** | :3001 | Routing — intelligence & task orchestration |
+| **A-FORGE** | :7071/:7072 | Execution — hands that build and act |
+| **GEOX** | :8081 | Earth sciences — geospatial reasoning |
+| **WEALTH** | :18082 | Capital management — financial operations |
+| **WELL** | :18083 | Biometric & health — vitality monitoring |
+| **arifFlow** | :7073 | Orchestration — workflow coordination |
 
 **ARIF vetoes. arifOS judges. AAA routes. A-FORGE executes.**
 
-Full card: [docs/FEDERATION_CARD.md](./docs/FEDERATION_CARD.md) ·
-Full reference README: [docs/README-FULL.md](./docs/README-FULL.md) ·
-Constitution: [GENESIS/000_KERNEL_CANON.md](./GENESIS/000_KERNEL_CANON.md) ·
-ZEN doctrine: [docs/ZEN.md](./docs/ZEN.md)
+---
+
+## MCP Verbs Reference
+
+| Verb | Purpose |
+|------|---------|
+| `arif_init` | Establish session context, actor identity, and constraints |
+| `arif_observe` | State observation & gap detection — inspect current conditions |
+| `arif_think` | Constitutional reasoning against floors before judgment |
+| `arif_route` | Route intent to the appropriate federation organ |
+| `arif_memory` | Query and manage institutional memory |
+| `arif_judge` | Evaluate a proposal and return a verdict (SEAL/HOLD/SABAR/VOID) |
+| `arif_forge` | Dispatch authorized actions to A-FORGE for execution |
+| `arif_seal` | Seal a completed action chain with full evidence and receipt |
+
+---
+
+## Sister Repositories
+
+| Repository | Description |
+|------------|-------------|
+| [AAA](https://github.com/arif-os/AAA) | Intelligence, routing, and multi-agent orchestration |
+| [A-FORGE](https://github.com/arif-os/A-FORGE) | Execution engine — containerized task execution |
+| [GEOX](https://github.com/arif-os/GEOX) | Geospatial and earth sciences reasoning organ |
+| [WEALTH](https://github.com/arif-os/WEALTH) | Capital management and financial operations organ |
+| [WELL](https://github.com/arif-os/WELL) | Biometric monitoring and health management organ |
+| [arifFlow](https://github.com/arif-os/arifFlow) | Workflow orchestration and pipeline management |
+
+---
+
+## Documentation
+
+- [Federation Card](./docs/FEDERATION_CARD.md) — Full organ topology and relationships
+- [Full README Reference](./docs/README-FULL.md) — Complete feature documentation
+- [Constitution](./GENESIS/000_KERNEL_CANON.md) — Constitutional floors and doctrine
+- [ZEN Doctrine](./docs/ZEN.md) — Governance philosophy and design principles
+
+---
+
+## License
+
+**AGPL-3.0** — This software is licensed under the GNU Affero General Public License v3.0. See [LICENSE](./LICENSE) for details.
+
+When deployed over a network, the complete source code must be made available to all users interacting with the service, consistent with AGPL-3.0 terms.
