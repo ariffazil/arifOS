@@ -163,6 +163,9 @@ def build_authority_state_for_actor(
         claimed_id=safe_actor or "anonymous",
         verified=bool(verified),
         verification_method=method,  # type: ignore[arg-type]
+        # P0 FIX 2026-09-04: carry the verified key fingerprint into the
+        # canonical state so bind_authority_state can match SOVEREIGN_KEY_IDS.
+        verified_key_id=verified_key_id,
     )
 
     # Init-time seals: only ``kernel_seal_awareness`` is ACTIVE for known sovereign;

@@ -20,6 +20,7 @@
       "properties": {
         "claimed_id": { "type": "string" },
         "verified": { "type": "boolean" },
+        "verified_key_id": { "type": ["string", "null"] },
         "verification_method": {
           "enum": ["none", "session", "signature", "oauth", "hardware", "f13_sovereign"]
         }
