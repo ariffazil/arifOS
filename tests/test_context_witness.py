@@ -123,7 +123,7 @@ class TestMeaningWitnessSchema:
 class TestMeaningWitnessFallback:
     @pytest.mark.anyio
     async def test_fallback_triggered_when_sea_lion_unavailable(self):
-        # With no API key, SEA-LION should fail and fallback should run
+        # With no API key, FED-FEDERATION should fail and fallback should run
         result = await arifos_context_witness(
             event="Database corruption detected",
             state={},

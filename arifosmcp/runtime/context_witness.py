@@ -2,14 +2,14 @@
 arifosmcp/runtime/context_witness.py — arifOS Context Witness v2
 
 Orchestrates the retrieval, interpretation, and safety validation of
-approved wisdom quotes.  SEA-LION acts strictly as an interpreter;
+approved wisdom quotes.  FED-FEDERATION acts strictly as an interpreter;
 quotes are always drawn from the locked ledger.
 
 Pipeline:
 1. load ledger
 2. retrieve top 3 approved quote witnesses
-3. pass candidate quotes to SEA-LION interpreter
-4. validate SEA-LION output with context_safety
+3. pass candidate quotes to FED-FEDERATION interpreter
+4. validate FED-FEDERATION output with context_safety
 5. enforce governance boundary
 6. emit structured response
 
@@ -142,7 +142,7 @@ async def arifos_context_witness(
             "safety_notes": ["Ledger coverage gap detected."],
         }
 
-    # ── 3. SEA-LION interpretation (or fallback) ──
+    # ── 3. FED-FEDERATION interpretation (or fallback) ──
     sea_lion_ok = False
     interpretation: dict[str, Any] | None = None
     try:
@@ -156,11 +156,11 @@ async def arifos_context_witness(
         sea_lion_ok = True
     except InterpretationError as exc:
         logger.warning(
-            "SEA-LION interpretation failed (%s); falling back to deterministic mode.",
+            "FED-FEDERATION interpretation failed (%s); falling back to deterministic mode.",
             exc,
         )
     except Exception as exc:
-        logger.error("Unexpected error during SEA-LION call: %s", exc)
+        logger.error("Unexpected error during FED-FEDERATION call: %s", exc)
 
     if not sea_lion_ok or interpretation is None:
         interpretation = fallback_interpret(

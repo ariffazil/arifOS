@@ -6617,14 +6617,14 @@ def _context_restore_summary(
     }
 
 
-# ── Async LLM Synthesis (SEA-LION → Ollama → template fallback) ───────────────
+# ── Async LLM Synthesis (FED-FEDERATION → Ollama → template fallback) ───────────────
 # Replaces _synthesize in reason/reflect/verify/critique/debate/socratic modes.
 # F7 Humility: confidence capped at 0.85.
 
 
 async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     """
-    Async constitutional synthesis via SEA-LION → Ollama → template fallback.
+    Async constitutional synthesis via FED-FEDERATION → Ollama → template fallback.
 
     Returns dict with keys:
       bounded_answer, what_is_supported, what_is_not_supported,
@@ -14780,7 +14780,7 @@ async def _arif_mind_reason_tool(
     Structural modes (plan, plan_review, plan_approve, axioms) are
     deterministic and go directly to _arif_mind_reason. Cognitive modes
     (reason, reflect, verify, critique, debate, socratic) route through
-    runtime.mind_reason which provides SEA-LION → Ollama → rule fallback.
+    runtime.mind_reason which provides FED-FEDERATION → Ollama → rule fallback.
 
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
@@ -14808,7 +14808,7 @@ async def _arif_mind_reason_tool(
         # modes that have instant deterministic sync handlers in
         # _arif_mind_reason (threat_engine.classify, axioms dict, plan
         # registry). Only reason | debate | socratic | metabolize genuinely
-        # require the LLM inference pipeline (v2 / SEA-LION / Ollama).
+        # require the LLM inference pipeline (v2 / FED-FEDERATION / Ollama).
         #
         # P0 FIX (2026-07-19, Fable5): reflect | verify | critique
         # were ALSO excluded, causing all three to produce template-synthesized
@@ -14858,7 +14858,7 @@ async def _arif_mind_reason_tool(
                 await trace.span("result", input=result)
             return result
 
-        # Cognitive modes: delegate to LLM (TokenRouter → MiniMax → MiMo → SEA-LION → Ollama → template)
+        # Cognitive modes: delegate to LLM (TokenRouter → MiniMax → MiMo → FED-FEDERATION → Ollama → template)
         # L13: Deterministic timeout — no dead zones allowed
         # P0 FIX 2026-07-19: arifosmcp.runtime.mind_reason module does not exist.
         # Instead of importing a non-existent module, call _synthesize_async directly
@@ -16237,7 +16237,7 @@ async def _arif_reply_compose_tool(
     """
     444r_REPLY async tool — routes all modes through LLM-aware reply_compose module.
 
-    SEA-LION → Ollama → deterministic fallback (same pattern as 333_MIND / 666_HEART).
+    FED-FEDERATION → Ollama → deterministic fallback (same pattern as 333_MIND / 666_HEART).
     The LLM actually composes/rewrites the message rather than echoing it back.
     """
     trace = None
@@ -17197,7 +17197,7 @@ async def _arif_heart_critique(
     """
     666_HEART: Ethical critique, risk assessment, and empathy scan.
 
-    Tier 1: SEA-LION LLM inference
+    Tier 1: FED-FEDERATION LLM inference
     Tier 2: Ollama local fallback
     Tier 3: Deterministic keyword-based fallback
 
@@ -18290,7 +18290,7 @@ def _arif_ops_measure(
                 "tokens_estimated": tokens,
                 "cost_usd": cost_usd,
                 "currency": "USD",
-                "model": "sea_lion",
+                "model": "fed_federation",
             },
             delta_S=0.0,
         )

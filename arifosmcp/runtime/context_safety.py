@@ -1,7 +1,7 @@
 """
 arifosmcp/runtime/context_safety.py — Context Witness Safety Gate
 
-Fail-closed validator for SEA-LION interpretation output.
+Fail-closed validator for FED-FEDERATION interpretation output.
 Does NOT silently rewrite hallucinated output.
 Does NOT allow unauthorized quotes.
 
@@ -23,7 +23,7 @@ def validate_interpretation_safety(
     candidate_quotes: list[dict[str, Any]],
     risk_level: str = "medium",
 ) -> dict[str, Any]:
-    """Validate a SEA-LION interpretation against safety rules.
+    """Validate a FED-FEDERATION interpretation against safety rules.
 
     Returns a dict:
     {
