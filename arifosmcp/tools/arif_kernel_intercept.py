@@ -332,6 +332,11 @@ async def _arif_kernel_intercept(
 
     _rev_raw = (reversibility_level or action_class or "").strip().upper()
     _REV_ALIASES = {
+        "TRIVIAL": "R0",
+        "QUERY": "R0",
+        "ATOMIC": "R4",
+        "ADMIN_CONFIG": "R5",
+        "MUTATE": "R2",
         "R0": "R0",
         "R0_OBSERVATION": "R0",
         "OBSERVATION": "R0",
@@ -405,7 +410,7 @@ async def _arif_kernel_intercept(
             "why_this_tool": "Kernel cannot classify unknown reversibility",
             "next_safe_action": base["next_safe_action"],
         }
-        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
+        _sct_emit_if_wired(tool=requested_capability, decision=unknown_output.decision,
                            reason_code="CLASSIFICATION_HOLD", actor_id=actor,
                            action_class=action_class or _rev_raw, require_sct=bool(authority_token))
         return base

@@ -194,7 +194,52 @@ def compute_authority(payload: dict) -> dict:
             "writer": "AuthorityMiddleware.compute",
         }
 
-    # Clean state, verified, no drift → respect effective_state grants
+    # Respect underlying tool governance verdict if it held or blocked!
+    _tool_v = str(result.get("verdict") or payload.get("verdict") or "").upper()
+    if _tool_v in ("HOLD", "888_HOLD"):
+        return {
+            "verdict": "HOLD",
+            "may_mutate": False,
+            "may_seal": False,
+            "reason_code": result.get("reason_code") or "TOOL_HOLD",
+            "computed_from": {
+                "substrate": substrate,
+                "actor_verified": actor_verified,
+                "drift": drift,
+                "tool_verdict": _tool_v,
+            },
+            "writer": "AuthorityMiddleware.compute",
+        }
+    if _tool_v in ("VOID", "DENY", "BLOCK"):
+        return {
+            "verdict": "VOID",
+            "may_mutate": False,
+            "may_seal": False,
+            "reason_code": result.get("reason_code") or "TOOL_VOID",
+            "computed_from": {
+                "substrate": substrate,
+                "actor_verified": actor_verified,
+                "drift": drift,
+                "tool_verdict": _tool_v,
+            },
+            "writer": "AuthorityMiddleware.compute",
+        }
+    if _tool_v in ("SABAR",):
+        return {
+            "verdict": "SABAR",
+            "may_mutate": False,
+            "may_seal": False,
+            "reason_code": result.get("reason_code") or "TOOL_SABAR",
+            "computed_from": {
+                "substrate": substrate,
+                "actor_verified": actor_verified,
+                "drift": drift,
+                "tool_verdict": _tool_v,
+            },
+            "writer": "AuthorityMiddleware.compute",
+        }
+
+    # Clean state, verified, no drift, tool passed → respect effective_state grants
     return {
         "verdict": "SEAL" if seal_granted else "PROCEED",
         "may_mutate": bool(mutation_granted),
