@@ -19,6 +19,7 @@ Authority levels:
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import logging
@@ -149,6 +150,62 @@ def _load_public_key():
         return None
     except Exception as exc:
         logger.error("Failed to load sovereign public key: %s", exc)
+        return None
+
+
+def compute_verified_key_id(
+    actor_id: str,
+    nonce: str,
+    actor_signature: str,
+    constitution_hash: str | None = None,
+) -> str | None:
+    """P0 FIX 2026-09-04 (FI-008, F13 "auto go"): canonical key fingerprint
+    for a signature that has ALREADY passed Ed25519 verification.
+
+    Derives ``ed25519:sha256:<hex16>`` from the SAME public key the verifier
+    resolves (``crypto_auth.resolve_actor_public_key`` — no drift), and only
+    returns a fingerprint when this function can itself re-verify the
+    signature over the canonical payload formats. Fail-closed: any failure
+    returns None, which yields a non-sovereign bind rather than a false one.
+
+    This closes the LIMITED_MUTATE bug: init set identity_verified=True but
+    never derived verified_key_id, so bind_authority_state could never match
+    SOVEREIGN_KEY_IDS (SECURITY P0 2026-07-12) and the sovereign landed on
+    OPERATOR/OBSERVER_MUTATE.
+    """
+    if not actor_id or not nonce or not actor_signature:
+        return None
+    try:
+        from arifosmcp.runtime.crypto_auth import (
+            _normalize_actor,
+            resolve_actor_public_key,
+        )
+
+        pubkey = resolve_actor_public_key(actor_id)
+        if pubkey is None:
+            return None
+        try:
+            sig_bytes = base64.b64decode(actor_signature)
+        except Exception:
+            return None
+        payloads = [f"{actor_id}:{nonce}".encode()]
+        aid_norm = _normalize_actor(actor_id)
+        if aid_norm != actor_id:
+            payloads.append(f"{aid_norm}:{nonce}".encode())
+        if constitution_hash:
+            payloads.append(f"{actor_id}:{constitution_hash}:{nonce}".encode())
+            if aid_norm != actor_id:
+                payloads.append(f"{aid_norm}:{constitution_hash}:{nonce}".encode())
+        for msg in payloads:
+            try:
+                pubkey.verify(sig_bytes, msg)
+                raw = pubkey.public_bytes_raw()
+                return f"ed25519:sha256:{hashlib.sha256(raw).hexdigest()[:16]}"
+            except Exception:
+                continue
+        return None
+    except Exception as exc:
+        logger.warning("compute_verified_key_id failed: %s", exc)
         return None
 
 

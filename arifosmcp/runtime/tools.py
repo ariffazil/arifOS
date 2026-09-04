@@ -10539,15 +10539,46 @@ def _arif_session_init(
             from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
                 build_authority_state_for_actor,
             )
+            from arifosmcp.runtime.sovereign_verify import compute_verified_key_id
+
+            # P0 FIX 2026-09-04 (FI-008, F13 "auto go"): Ed25519→FULL bridge.
+            # identity_verified alone never granted SOVEREIGN because
+            # bind_authority_state matches verified_key_id against
+            # SOVEREIGN_KEY_IDS (SECURITY P0 2026-07-12). Derive the key
+            # fingerprint from the same public key the verifier resolved
+            # (fail-closed: None on any failure). The previous in-flight edit
+            # called an undefined _compute_ed25519_key_id → NameError was
+            # swallowed below → bind never ran at all.
+            _verified_key_id: str | None = None
+            if identity_verified and actor_signature and nonce:
+                _verified_key_id = compute_verified_key_id(
+                    actor_id or "anonymous",
+                    nonce,
+                    actor_signature,
+                    constitution_hash,
+                )
+                if _verified_key_id:
+                    sess["verified_key_id"] = _verified_key_id
+                    logger.info(
+                        "Ed25519 verified_key_id derived — actor=%s key=%s",
+                        actor_id,
+                        _verified_key_id,
+                    )
 
             _bind_state = build_authority_state_for_actor(
                 actor_id or "anonymous",
                 verified=bool(identity_verified),
                 verification_method="signature" if identity_verified else "none",
+                verified_key_id=_verified_key_id,
             )
             bind_authority_state(sess, _bind_state)
-        except Exception:
-            pass
+        except Exception as exc:  # never break init, but NEVER silently swallow
+            logger.warning(
+                "authority bind failed at init (actor=%s): %s: %s",
+                actor_id,
+                type(exc).__name__,
+                exc,
+            )
         sess["constitution_bound"] = constitution_bound
 
         # P3 Fix: Initialize thermodynamic budget for the new session
