@@ -127,15 +127,27 @@ class ConstitutionalMemoryStore:
             payload = res.payload or {}
             raw_score = getattr(res, "score", None)
             meta = dict(payload.get("metadata", {}) or {})
+            # POLICY 2026-09-05 (888 decision): text-schema fallback — 57/99 dossier/canon
+            # points carry 'text'/'subject' instead of 'content' and were invisible to
+            # recall. Fallback exposes them; provenance records which family served the hit.
+            content = payload.get("content")
+            content_source = "content"
+            if content is None or (isinstance(content, str) and not content.strip()):
+                text = payload.get("text")
+                if isinstance(text, str) and text.strip():
+                    subject = payload.get("subject")
+                    content = f"[{subject}] {text}" if isinstance(subject, str) and subject else text
+                    content_source = "text_fallback"
             meta["score_raw"] = raw_score
             meta["score_metric"] = "cosine"
             meta["collection"] = _QDRANT_COLLECTION
             meta["embedding_model"] = embedding_model
             meta["query_hash"] = query_hash
             meta["retrieved_at"] = datetime.now(timezone.utc).isoformat()
+            meta["content_source"] = content_source
             entries.append(
                 MemoryEntry(
-                    content=payload.get("content", ""),
+                    content=content if content is not None else "",
                     id=str(res.id),
                     score=float(raw_score) if raw_score is not None else None,
                     metadata=meta,
