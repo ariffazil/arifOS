@@ -105,6 +105,15 @@ jobs:
         # a regression. Surface in probe artifact for human triage.
 
       - name: Test suite — frozen install subset
+        # ARIFOS_SKIP_PROTOCOL_SENTINEL=1 — the protocol sentinel probes the
+        # LIVE kernel at :8088. Dependabot CI runs unprivileged on a stock
+        # GitHub runner with no kernel, so the sentinel aborts pytest at
+        # collection time (exit 4) and this job has been red since inception
+        # (20/20 runs). Same escape hatch floor_gate.yml already uses.
+        # Protocol drift coverage for PRs is carried by the lockfile
+        # invariant + hermetic probes below, not by a live-kernel sentinel.
+        env:
+          ARIFOS_SKIP_PROTOCOL_SENTINEL: "1"
         run: |
           set -euo pipefail
           # Use the same frozen set that main CI uses, EXCLUDING tests that
