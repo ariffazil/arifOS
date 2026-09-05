@@ -4564,9 +4564,9 @@ pydantic-core==2.48.0 \
     # via
     #   cohere
     #   pydantic
-pydantic-evals==1.94.0 \
-    --hash=sha256:067b337d5553e159e5a86622e44b0087c4aa364fb4455cd0fe6be57a73e4aad2 \
-    --hash=sha256:ff89018dd0c8fb9dbd5e7841dc944791b663c9282ede3151762c3a420a047343
+pydantic-evals==2.37.0 \
+    --hash=sha256:4863a02d7a8a9aa4a351106a5542d13ceb4e63740dfe24626dfffa2811795ce4 \
+    --hash=sha256:f787f1d4ce6155c46f948a314079ba7dbf404d4b0edd5101bfa83a5be633847b
     # via pydantic-ai-slim
 pydantic-graph==2.21.0 \
     --hash=sha256:28e68554a6b9df8c9b12cc337d492f4c00156a4d67f041a866af2913c73a2b99 \
