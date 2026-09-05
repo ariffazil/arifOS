@@ -5752,9 +5752,9 @@ striplog==0.9.2 \
     # via
     #   arifos
     #   welly
-structlog==25.5.0 \
-    --hash=sha256:098522a3bebed9153d4570c6d0288abf80a031dfdb2048d59a49e9dc2190fc98 \
-    --hash=sha256:a8453e9b9e636ec59bd9e79bbd4a72f025981b3ba0f5837aebf48f02f37a7f9f
+structlog==26.1.0 \
+    --hash=sha256:e081a26d6c373e6d201eca24eede26d8ffab07f88f477822e679183428d3d91e \
+    --hash=sha256:f63a716cbd1b1291cf7661de7794b455acfa4c43c5bcf1630e6ad5ddc1adb3b7
     # via arifos
 supabase==2.31.0 \
     --hash=sha256:25f2a99207a75f2d9377e2332783b4389cf56b02cbebdaf0c1743112dcbb704e \
