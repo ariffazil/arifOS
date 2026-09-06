@@ -134,7 +134,11 @@ class ScalarMeasurement:
         """
         if value is None or not math.isfinite(float(value)):
             return cls.unmeasured()
-        if not (0.0 <= confidence <= 1.0):
+        if confidence is None:
+            confidence = 0.85  # direct ratio measurement default confidence
+        elif not math.isfinite(float(confidence)):
+            confidence = 0.0
+        elif not (0.0 <= float(confidence) <= 1.0):
             # F7 HUMILITY cap — confidence > 1.0 is non-physical.
             confidence = min(max(float(confidence), 0.0), 1.0)
         return cls(value=float(value), confidence=float(confidence), source=str(source))
