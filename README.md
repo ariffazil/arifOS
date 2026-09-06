@@ -1,6 +1,6 @@
 <!-- SOT-MANIFEST
 federation_release: v2026.08.25
-last_verified: 2026-08-25T04:30:00Z
+last_verified: 2026-09-06T14:22:44Z
 live_commit: 6de71a0d7 (docs(readme): ZEN first-fold)
 source_commit: 2258694 (aligned: source = built = deployed)
 tools_exposed_via_mcp: 8 (canonical public verbs — live-witnessed 2026-08-25 via :8088/health)
@@ -9,7 +9,7 @@ registry_size: 62 (includes aliases)
 floors_active: 13 (F1–L13, all passing)
 federation_schema: 2.0.0
 organs: 7 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073)
-infra: FED:7074 ADVISORY, FLAME:18901 ADVISORY, FRAME:frame-organ OBSERVE
+infra: FED:7074 ADVISORY, FRAME:frame-organ OBSERVE (FLAME decommissioned 2026-09-04 — F13 ack 2026-09-06)
 truth_rule: live :8088/health + tools/list beat any static count in prose
 vault999: healthy (outcomes.jsonl 67K+ records, append-only, 0 broken lines)
 readme_note: ZEN first-fold — full reference at docs/README-FULL.md; federation card at docs/FEDERATION_CARD.md
@@ -96,7 +96,7 @@ Every proposal is evaluated against a chain of 13 policy constraints spanning sa
 |---------|---------|
 | **SEAL** | Authorized under stated conditions |
 | **HOLD** | Insufficient evidence or human approval required |
-| **SABAR** | Proceed with caution — partial authorization |
+| **SABAR** | Not yet — reality has not finished speaking; time will produce the evidence. Patience, not partial approval. Distinct from HOLD |
 | **VOID** | Blocked by a constitutional floor |
 
 ### VAULT999 — Immutable Audit Ledger
@@ -146,12 +146,12 @@ The arifOS Federation comprises 7 organs, each with a distinct responsibility:
 
 | Repository | Description |
 |------------|-------------|
-| [AAA](https://github.com/arif-os/AAA) | Intelligence, routing, and multi-agent orchestration |
-| [A-FORGE](https://github.com/arif-os/A-FORGE) | Execution engine — containerized task execution |
-| [GEOX](https://github.com/arif-os/GEOX) | Geospatial and earth sciences reasoning organ |
-| [WEALTH](https://github.com/arif-os/WEALTH) | Capital management and financial operations organ |
-| [WELL](https://github.com/arif-os/WELL) | Biometric monitoring and health management organ |
-| [arifFlow](https://github.com/arif-os/arifFlow) | Workflow orchestration and pipeline management |
+| [AAA](https://github.com/ariffazil/AAA) | Intelligence, routing, and multi-agent orchestration |
+| [A-FORGE](https://github.com/ariffazil/A-FORGE) | Execution engine — containerized task execution |
+| [GEOX](https://github.com/ariffazil/GEOX) | Geospatial and earth sciences reasoning organ |
+| [WEALTH](https://github.com/ariffazil/WEALTH) | Capital management and financial operations organ |
+| [WELL](https://github.com/ariffazil/WELL) | Biometric monitoring and health management organ |
+| [arifFlow](https://github.com/ariffazil/arifFlow) | Workflow orchestration and pipeline management |
 
 ---
 
