@@ -875,12 +875,11 @@ def _build_delta_bundle(
     return bundle
 
 
-def _run_reasoning_sync(coro: Any, timeout: float = 5.0) -> Any:
+def _run_reasoning_sync(coro: Any, timeout: float = 55.0) -> Any:
     """Run coroutine in sync context, including when caller already has an active event loop.
 
-    L13 TIMEOUT_SAFE / P0 G3 2026-08-09: default 5s matches ARIF_THINK_TIMEOUT_S.
-    Previous 35s left agents waiting while cascade stalled. Prefer fast template
-    fallback over multi-provider thrash.
+    L13 TIMEOUT_SAFE: default 55s allows frontier reasoner token generation while preventing hangs.
+    Prefer fast fallback over multi-provider thrash.
     """
     import os as _os
 
@@ -1299,7 +1298,45 @@ def arif_think(
         actor_id=actor_id,
     )
 
-    reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
+    try:
+        reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
+    except Exception as exc:
+        reason_result = {
+            "status": "HOLD",
+            "claim_state": "UNKNOWN",
+            "synthesis": f"[REASONING_UNAVAILABLE] {exc}",
+            "reasoning": {
+                "observed_inputs": [query or ""],
+                "inferences": [],
+                "counterarguments": [],
+                "missing_evidence": [f"Reasoning backend unavailable: {exc}"],
+            },
+            "confidence": {
+                "reasoning_confidence": 0.0,
+                "evidence_confidence": 0.0,
+                "overall_confidence": 0.0,
+                "label": "unmeasured",
+            },
+            "uncertainty": [
+                {
+                    "type": "REASONING_UNAVAILABLE",
+                    "detail": str(exc),
+                    "dependency": "llm_backend",
+                    "evidence": "backend_timeout_or_unreachable",
+                    "retryable": True,
+                }
+            ],
+            "degraded": True,
+            "llm_available": False,
+            "_llm_available": False,
+            "degraded_state": {
+                "code": "REASONING_UNAVAILABLE",
+                "verdict": "HOLD",
+                "dependency": "llm_backend",
+                "evidence": str(exc),
+                "retryable": True,
+            },
+        }
 
     # If v2 metabolic mode, handle the nested mind_packet structure
     if mode == "metabolize" and "mind_packet" in reason_result:
@@ -1427,7 +1464,7 @@ def arif_think(
                     ),
                     "label": str(raw_conf.get("label", "low")),
                 },
-                reason_result.get("_llm_available", True),
+                reason_result.get("llm_available", reason_result.get("_llm_available", True)),
                 reason_result.get("degraded", False),
                 bool(context and context.get("degraded")),
             ),
@@ -1437,12 +1474,13 @@ def arif_think(
             "next_actions": reason_result.get("next_safe_action", [])
             if isinstance(reason_result.get("next_safe_action"), list)
             else [],
+            "degraded_state": reason_result.get("degraded_state"),
         },
         "governance_check": {
             "floors_checked": list(floor_check.get("checked_laws", [])),
             "floors_violated": list(floor_check.get("violated_laws", [])),
-            "verdict": "PASS" if floor_verdict == "SEAL" else "HOLD",
-            "reason": "All floors passed" if floor_verdict == "SEAL" else floor_reason,
+            "verdict": "HOLD" if reason_result.get("degraded_state") else ("PASS" if floor_verdict == "SEAL" else "HOLD"),
+            "reason": (f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}" if reason_result.get("degraded_state") else ("All floors passed" if floor_verdict == "SEAL" else floor_reason)),
         },
         "truth_verdict": {
             "sealed": False,
@@ -1455,13 +1493,16 @@ def arif_think(
         "called_from_kernel": _called_from_kernel,
         "invocation_count": _invocation_count,
     }
+    if reason_result.get("degraded_state"):
+        bundle["degraded_state"] = reason_result["degraded_state"]
 
-    if floor_verdict != "SEAL":
+    if floor_verdict != "SEAL" or reason_result.get("degraded_state"):
+        eff_reason = (f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}" if reason_result.get("degraded_state") else floor_reason)
         hold_env = _hold(
             "arif_think",
-            floor_reason,
+            eff_reason,
             floors=list(floor_check.get("violated_laws", [])),
-            extra_meta={"floor_verdict": floor_verdict},
+            extra_meta={"floor_verdict": floor_verdict, "degraded_state": reason_result.get("degraded_state")},
             session_id=session_id,
         )
         hold_env["result"] = bundle
