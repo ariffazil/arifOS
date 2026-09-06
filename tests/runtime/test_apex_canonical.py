@@ -245,7 +245,9 @@ class TestCanonicalFormula(unittest.TestCase):
         self.assertEqual(compute_G(1.0, 0.0, 1.0, 1.0, 1.0), 0.0)
         self.assertEqual(compute_G(1.0, 1.0, 0.0, 1.0, 1.0), 0.0)
         self.assertEqual(compute_G(1.0, 1.0, 1.0, 0.0, 1.0), 0.0)
-        self.assertEqual(compute_G(1.0, 1.0, 1.0, 1.0, 0.0), 0.0)
+        # Zero witness collapses quick_verdict to VOID
+        verdict, _ = quick_verdict(1.0, 1.0, 1.0, 1.0, 0.0)
+        self.assertEqual(verdict, Verdict.VOID)
 
     def test_multiplicative(self):
         """G is the geometric mean of A·P·E·X (4 factors, F8 GENIUS canonical).
@@ -298,12 +300,8 @@ class TestVerdictMatrix(unittest.TestCase):
     def test_sabar_partial(self):
         """G ≥ 0.50 but < 0.80 → SABAR."""
         # Need G between 0.50 and 0.80 with C_dark < 0.30
-        verdict, _ = quick_verdict(0.9, 0.9, 0.9, 0.9, 0.9)
-        G = 0.9 ** 5
-        if G >= 0.80:
-            self.assertEqual(verdict, Verdict.SEAL)
-        else:
-            self.assertEqual(verdict, Verdict.SABAR)
+        verdict, _ = quick_verdict(0.65, 0.65, 0.65, 0.65, 0.8)
+        self.assertEqual(verdict, Verdict.SABAR)
 
 
 class TestFullPipeline(unittest.TestCase):
