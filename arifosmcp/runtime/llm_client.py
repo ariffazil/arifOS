@@ -252,7 +252,11 @@ ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
 # FED-FEDERATION — remote fallback before local Ollama and deterministic rules.
 FED_PROXY_API_KEY = os.getenv("FED_PROXY_API_KEY")
 FED_FEDERATION_BASE_URL = os.getenv("FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1")
-FED_FEDERATION_MODEL = os.getenv("FED_FEDERATION_MEANING_MODEL", "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
+if "4013" in FED_FEDERATION_BASE_URL:
+    FED_FEDERATION_BASE_URL = FED_FEDERATION_BASE_URL.replace("4013", "4000")
+FED_FEDERATION_MODEL = os.getenv("FED_FEDERATION_MEANING_MODEL", "deepseek-v4-flash")
+if FED_FEDERATION_MODEL in ("aisingapore/Qwen-FED-FEDERATION-v4-32B-IT", ""):
+    FED_FEDERATION_MODEL = "deepseek-v4-flash"
 
 
 def resolve_tokenrouter_model(
@@ -1940,9 +1944,11 @@ async def _call_deepseek_direct(
         "max_tokens": max_tokens,
         "temperature": temperature,
     }
+    if response_schema:
+        payload["response_format"] = {"type": "json_object"}
 
     try:
-        async with httpx.AsyncClient(timeout=45.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{DEEPSEEK_BASE_URL}/chat/completions",
                 headers={
@@ -2009,13 +2015,16 @@ async def _call_constitutional_seat_channel(
     """
     errors: list[str] = []
 
-    try:
-        raw, parsed = await _call_tokenrouter(
-            system, user, response_schema, temperature, max_tokens, model=model
-        )
-        return raw, parsed, "tokenrouter"
-    except LLMUnavailableError as exc:
-        errors.append(f"tokenrouter:{exc}")
+    if not _cb_is_open("tokenrouter"):
+        try:
+            raw, parsed = await _call_tokenrouter(
+                system, user, response_schema, temperature, max_tokens, model=model
+            )
+            return raw, parsed, "tokenrouter"
+        except LLMUnavailableError as exc:
+            errors.append(f"tokenrouter:{exc}")
+    else:
+        errors.append("tokenrouter:circuit_open")
 
     if _is_deepseek_seat(model):
         try:

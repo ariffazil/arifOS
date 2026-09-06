@@ -6594,13 +6594,11 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         call_llm,
     )
 
-    # ARIF_THINK_TIMEOUT_S (2026-08-08, blue-team DoS fix): hard 5s wall-clock
-    # cap on _synthesize_async. Prevents a slow LLM cascade (e.g. TokenRouter
-    # 403 → Ollama CPU 35s) from occupying a FastMCP worker for the full
-    # cascade budget. DoS root cause: thread pool saturated → CLOSE-WAIT pileup.
+    # ARIF_THINK_TIMEOUT_S (2026-08-08, blue-team DoS fix, updated 2026-09-07): 35s wall-clock
+    # cap on _synthesize_async. Accommodates reasoning models emitting reasoning tokens.
     import asyncio as _asyncio
 
-    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
 
     system_prompt = (
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
@@ -14820,10 +14818,8 @@ async def _arif_mind_reason_tool(
         # Instead of importing a non-existent module, call _synthesize_async directly
         # which already wraps call_llm with the correct constitutional prompt and schema.
         try:
-            # P0 2026-08-09 G3: outer budget must match ARIF_THINK_TIMEOUT_S
-            # (default 5s). HEART_TIMEOUT_MS=60s was leaving agents waiting
-            # 28–38s when LLM cascade stalled despite inner 5s cap.
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+            # P0 2026-08-09 G3 / 2026-09-07: outer budget must match ARIF_THINK_TIMEOUT_S (default 35s)
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
             synthesis = await asyncio.wait_for(
                 _synthesize_async(query or "", reasoning_mode=mode),
                 timeout=_think_budget_s,
@@ -14892,7 +14888,7 @@ async def _arif_mind_reason_tool(
                 },
             }
         except TimeoutError:
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
             logger.warning(
                 "333_MIND timeout after %.1fs — degraded substance fallback (not SAFE_VOID)",
                 _think_budget_s,

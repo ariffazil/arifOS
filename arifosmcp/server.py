@@ -272,7 +272,8 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.url.path.rstrip("/") == "/mcp" and request.method == "POST":
             try:
-                return await asyncio.wait_for(call_next(request), timeout=45.0)
+                _mcp_timeout = float(os.getenv("FAST_MCP_TIMEOUT_S", "75.0"))
+                return await asyncio.wait_for(call_next(request), timeout=_mcp_timeout)
             except TimeoutError:
                 return JSONResponse(
                     {
@@ -283,7 +284,7 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
                             "verdict": "HOLD",
                             "reason_code": "JUDGE_UNAVAILABLE",
                             "reasons": [
-                                "TOOL_TIMEOUT: arifOS tool exceeded 45s budget. "
+                                "TOOL_TIMEOUT: arifOS tool exceeded execution budget. "
                                 "The upstream LLM cascade (TokenRouter → MiniMax → FED-FEDERATION → Ollama) "
                                 "is likely degraded. This is a constitutional HOLD — "
                                 "execution is blocked until the reasoning backend recovers."

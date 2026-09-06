@@ -455,9 +455,11 @@ Distinguish CLAIM from FACT."""
         witness = _build_witness_statement(None)
         reasoning_mode = _status_to_reasoning_mode(status)
     else:
-        # ── LLM Path - Extract from Envelope ─────────────────────────────────────
-        parsed_output = envelope.parsed_output
-        status = parsed_output.get("status", "HOLD")
+        parsed_output = dict(envelope.parsed_output) if isinstance(envelope.parsed_output, dict) else {}
+        status = parsed_output.get("status", "REASONED")
+        parsed_output.setdefault("status", status)
+        parsed_output.setdefault("claim_state", "INFERENCE")
+        parsed_output.setdefault("synthesis", parsed_output.get("answer") or f"{mode} reasoning complete")
 
         # ── HIB Constraint Verifier — Post-LLM Governance Gate ──────────────────
         # This is where advisory becomes governance.
@@ -580,6 +582,7 @@ Distinguish CLAIM from FACT."""
         "_witness": witness,
         "_llm_tier": llm_tier or "unavailable",
         "_llm_available": llm_available,
+        "llm_available": llm_available,
         # HIB Constraint Verifier metadata
         "_hib_constraint_verifier": {
             "override_applied": hib_override_applied,

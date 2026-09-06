@@ -401,13 +401,61 @@ def _estimate_dial_X(domain: str, authority_level: str = "standard") -> float:
 def _estimate_scar_burden(actor_id: str = "", session_id: str = "") -> float:
     """Φ — cumulative scar burden from constitutional memory.
 
-    Phase 1: heuristic (0.0 for new sessions).
-    Phase 2+: wired to arif_memory scar chain.
+    Phase 2: wired to live runtime scar index and sealed records.
+    Weights each sealed scar by severity and scar_pressure.
+    Returns bounded Φ in [0.0, PHI_MAX].
     """
-    # Phase 1: heuristic — low scar for new sessions, moderate for established
-    if session_id:
-        return 0.05  # minimal scar for established sessions
-    return 0.0
+    if not session_id:
+        return 0.0
+
+    import os
+    import json
+
+    scar_paths = [
+        "/root/A-FORGE/.runtime/scars/index.json",
+        "/root/arifOS/static/scar.json",
+    ]
+
+    total_phi = 0.05
+    seen_ids = set()
+
+    severity_weights = {
+        "CRITICAL": 0.35,
+        "HIGH": 0.20,
+        "MEDIUM": 0.10,
+        "LOW": 0.05,
+    }
+
+    for path in scar_paths:
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                items = data.values() if isinstance(data, dict) else (data if isinstance(data, list) else [])
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    sid = item.get("scar_id") or item.get("fingerprint")
+                    if sid and sid in seen_ids:
+                        continue
+                    if sid:
+                        seen_ids.add(sid)
+
+                    sev = str(item.get("severity", "MEDIUM")).upper()
+                    weight = severity_weights.get(sev, 0.10)
+                    pressure = item.get("scar_pressure", 0.5)
+                    try:
+                        pressure = float(pressure)
+                    except (ValueError, TypeError):
+                        pressure = 0.5
+
+                    # Accumulate burden scaled into APEX parameter space (cooldown baseline)
+                    total_phi += weight * pressure * 0.015
+        except Exception:
+            continue
+
+    return min(float(total_phi), PHI_MAX)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
