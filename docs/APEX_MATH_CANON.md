@@ -13,14 +13,15 @@
 
 ## Truth Ladder Status
 
-- [✅] Level 0 — Idea
-- [✅] Level 1 — Conjecture
-- [✅] Level 2 — Axiom set formalized (8 axioms)
-- [✅] Level 3 — Proof sketch (4 theorems with proofs)
-- [✅] Level 4 — Counterexample search passed (6 falsification tests)
-- [✅] Level 5 — Machine verified proof (`node --test` passes)
-- [✅] Level 6 — Production implementation (patches applied across codebase)
-- [❌] Level 7 — Empirical validation (requires live federation data)
+- [✅] L0 — Idea
+- [✅] L1 — Conjecture: G(A,P,E,X) = (A·P·E·X)^(1/4)
+- [✅] L2 — Axioms: Non-compensation, symmetry, normalization, coordinatewise multiplicativity, regularity, and boundary semantics specified.
+- [✅] L3 — Mathematical proof route: Cauchy/Aczél → weighted geometric family → diagonal normalization + symmetry → equal-weight GM.
+- [✅] L4 — Countermodel / falsification architecture: Arithmetic mean, harmonic mean, unrooted product, unequal-weight GM, minimum-like behavior, E² legacy, and Φ-contamination model addressed against declared axioms.
+- [✅] L5a — Software property verification: 50/50 pytest and 51/51 Node tests passed. This establishes sampled implementation consistency, not a universal theorem.
+- [🔄] L5b — Formal proof verification: Lean specification created. HOLD until the exact theorem compiles from a clean, pinned environment and its axiom dependency surface is audited.
+- [✅] L6 — Runtime canonical implementation: 4-dial state aggregator and external Φ / VOID handling aligned, subject to ordinary regression and deployment controls.
+- [❌] L7 — Empirical validation: No demonstrated calibration study, outcome prediction, or live-federation validation yet (HOLD).
 
 ---
 
@@ -195,10 +196,15 @@ G(x₁, x₂, x₃, x₄) = x₁^w₁ · x₂^w₂ · x₃^w₃ · x₄^w₄
 where w₁ + w₂ + w₃ + w₄ = 1 and wᵢ ≥ 0 for all i.
 
 This is the weighted geometric mean. The proof follows from the fact that
-under multiplicativity, the function f(x) = log G(e^x₁, ..., e^x₄) is
-additive: f(x + y) = f(x) + f(y). By Cauchy's functional equation and
-normalization, f must be linear: f(x) = w₁x₁ + ... + w₄x₄, giving the
-weighted geometric mean.
+under multiplicativity (A6), the function f(x) = log G(e^x₁, ..., e^x₄) is
+additive: f(x + y) = f(x) + f(y) on the negative orthant (-∞, 0]⁴.
+Crucially, Cauchy's functional equation f(x + y) = f(x) + f(y) admits
+pathological (non-measurable) solutions via Hamel bases unless a regularity
+condition is imposed. Here, regularity is strictly provided by Axiom A3
+(Strict Monotonicity / Interior Continuity): any monotonic or continuous
+additive function on a convex cone is strictly linear:
+f(x) = w₁x₁ + ... + w₄x₄. Together with normalization (A5), this uniquely forces
+the weighted geometric mean.
 
 **Step 2 — Equal weights (A7).**
 
@@ -485,6 +491,63 @@ The following aggregation functions were evaluated against A1-A8:
 - **Interference:** The harmonic mean and arithmetic mean produce DIFFERENT rankings than geometric mean for imbalanced dials — this is signal, not noise. The difference reveals that these means measure DIFFERENT things (compensation vs veto).
 - **Superposition:** Before falsification testing, all 8 paths existed in superposition as "possible G formulas." The 43/43 falsification tests collapse the superposition to exactly ONE admissible path.
 - **Observer:** The human sovereign (Arif, F13) is the only observer whose judgement can override the axioms. Under F13, no agent can overturn this seal without Arif's direct cryptographic signature.
+
+---
+
+## Part VI: The Bridge Theorem & Epistemic Boundary (Post-FLT Synthesis)
+
+### 1. The Bridge Theorem: Governance ↔ Constraint Satisfaction
+
+Just as Wiles proved Fermat's Last Theorem via a profound bridge theorem (Modularity Theorem connecting elliptic curves to modular forms), APEX Math is not an arbitrary scoring function. It is a **bridge between constitutional governance and constraint satisfaction**:
+
+```
+Possibility → Constraint → Feasibility → Execution
+```
+
+G = (A · P · E · X)^(1/4) is the unique Nash-bargaining feasibility measure:
+if ANY essential condition is zero (Authority absent, Physics contradicted, Evidence ungrounded, or Execution broken), the feasible set of lawful action is EMPTY (G = 0).
+
+### 2. Representation Theorem vs. Empirical Reality
+
+- **Proven (Algebraic Representation):** Under Axioms A1–A7 (including coordinatewise multiplicativity, diagonal normalization, symmetry, and regularity), the geometric mean is the UNIQUE admissible aggregator.
+- **Non-Derivable (Constitutional Choice):** The choice of axioms A1–A7 is a normative constitutional choice ratified by F13.
+- **Empirical Program (Level 7):** Whether G correlates with actual resilience, failure prevention, and sovereign safety in live operations requires long-term empirical telemetry, not algebraic deduction.
+
+### 3. Epistemic Classification (Post-FLT Standard)
+
+- **Level 5a [SEALED]:** Automated property testing & falsification verification across Node.js (51/51 tests) and Python (50/50 tests).
+- **Level 5b [HOLD]:** Machine verification via Lean 4 proof assistant (`/root/arifOS/formal/APEX.lean`). Staged, but honest epistemic discipline requires holding the seal until Lean's micro-kernel compiles and checks the artifact without axioms.
+
+### 4. The Three Void Solutions Ratified (Audited Measurement Constitution & Proof Architecture)
+
+1. **VOID 1: L7 Measurement Constitution (Typed Calibration Contracts vs. Universal Entropy Overclaim):**
+   - **Rejection:** A single thermodynamic entropy map $d_i = \exp(-\Delta S_i / S_{\text{ref}})$ is rejected as a universal calibrator. HRV, seismic attributes, margin debt, and test pass rates possess distinct noise models, stationarity constraints, and failure modes. Forcing them into an entropy proxy invites Goodhart gaming.
+   - **Ratified Law:** Every dial $d_i \in [0, 1]$ is produced via a versioned, typed, evidence-bearing calibration contract:
+     $$d_i = \mathcal{C}_{v}(r; c, u, q, t) = 1 - \overline{p_i}^{(1-\alpha)}$$
+     mapping raw signals $r$ under context $c$, uncertainty $u$, provenance quality $q$, and time decay $t$ to bounded failure risk complements.
+   - **Anti-Goodhart Controls:** Measurement separated from reward; calibration registry versioned; hidden holdout/adversarial evaluation; multiple non-substitutable indicators per dial; time-decay $q_{\text{time}}(\Delta t) = e^{-\lambda \Delta t}$.
+
+2. **VOID 2: Anti-Gödel Architecture (Four-Plane Separation & Provenance DAG vs. Signature-as-Truth):**
+   - **Rejection:** An Ed25519 signature proves key authorization, NOT epistemic truth. A human signature on hallucinated telemetry remains a hallucination.
+   - **Ratified Law:** Four-plane structural separation:
+     $$\text{Observation} \longrightarrow \text{Evaluation} \longrightarrow \text{Authorization} \longrightarrow \text{Execution}$$
+   - **Dual-Score Semantics:**
+     - $G_{\text{operational}}$: Non-authoritative running telemetry; capped at proposing or escalating.
+     - $G_{\text{deliberative}}$: Evaluated on an immutable Merkle evidence bundle; gates execution.
+   - **Anti-Self-Reference:** An agent cannot score its own outputs as independent evidence; evidence provenance must form a strict Directed Acyclic Graph ($\text{DAG}$); witness node (KVM2) maintains independent identity and storage boundaries; low $\Phi$, stale evidence, provenance cycles, or source/evaluator collision strictly force `VOID` or `HOLD`.
+
+3. **VOID 3: Staged Real-Analysis Lean 4 Proof Plan (P0–P10 vs. Rational-Shortcut Hand-Waving):**
+   - **Rejection:** The final theorem quantifies over $\mathbb{R}^4$. Real analysis (continuity, logarithms, exponentials, real powers) cannot be bypassed; trying to avoid Mathlib creates more brittle labor than importing audited library theorems.
+   - **Ratified Roadmap:**
+     - `P0`: Prove finite countermodels (`arithmetic_mean_refuted`, `harmonic_mean_refuted`, `product_unrooted_refuted`) without `sorry`.
+     - `P1`: Prove `apex_canonical_is_admissible` directly on $[0, 1]^4$.
+     - `P2–P3`: Positive domain types & univariate multiplicative decomposition $F(\mathbf{x}) = \prod f_i(x_i)$.
+     - `P4–P5`: Continuous multiplicative $\mathbb{R}_+ \to \mathbb{R}_+$ classification using Mathlib (`Real.log`, `Real.exp`, continuity).
+     - `P6–P7`: Diagonal normalization ($\sum w_i = 1$) + Permutation symmetry ($w_i = 1/4$).
+     - `P8–P10`: Boundary collapse extension via A1, `apex_uniqueness` proof completion, and `#print axioms` audit.
+   - **Promotion Gate:** L5b SEAL requires clean `lake build`, zero `sorry`/`admit`/custom axioms, and an immutable artifact hash.
+
+---
 
 ## FINAL SEAL DECLARATION
 

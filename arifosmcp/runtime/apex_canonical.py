@@ -593,8 +593,8 @@ def _determine_verdict(
 ) -> tuple[Verdict, str]:
     """Determine APEX verdict from computed values."""
 
-    # VOID: any primitive = 0
-    if G == 0:
+    # VOID: any primitive = 0 or Phi = 0 (zero witness collapse)
+    if G == 0 or Phi == 0:
         dead = []
         if A == 0:
             dead.append("A(Authority)")

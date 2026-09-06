@@ -1086,6 +1086,7 @@ def arif_think(
         from arifosmcp.runtime.apex_canonical import (
             APEX_EQUATION,
             APEX_SHADOW,
+            FalsifiablePrediction,
             PrimitiveInputs,
             compute_apex,
         )
@@ -1112,11 +1113,23 @@ def arif_think(
         gate_h = float(ctx.get("gate_h") or 0.04)  # F7 band mid
         gate_delta_s = float(ctx.get("gate_delta_s") or 0.0)
         gate_w3 = float(ctx.get("gate_w3") or 1.0)
+        pred = ctx.get("prediction")
+        if isinstance(pred, dict):
+            prediction = FalsifiablePrediction(**pred)
+        elif isinstance(pred, FalsifiablePrediction):
+            prediction = pred
+        else:
+            prediction = FalsifiablePrediction(
+                claim=str(query or "arif_think apex mode observation"),
+                falsifier="downstream execution or measurement contradicts apex observation",
+                deadline="2026-12-31",
+            )
         result = compute_apex(
             inputs,
             gate_h=gate_h,
             gate_delta_s=gate_delta_s,
             gate_w3=gate_w3,
+            prediction=prediction,
         )
         apex_dict = result.to_dict()
         # Session-derived scalars: evidence only. Not authority. Not persisted as truth.
