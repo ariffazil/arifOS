@@ -3852,9 +3852,9 @@ pydantic-evals==2.22.0 \
     --hash=sha256:19d51db9b419b14303ae92c7e416452eb3aed358000ea8365a011bde6d5f67bf \
     --hash=sha256:ff59d93cf794ed5e3fd84ad7e76c9ca03362e1169834d77bb84da110e65f9278
     # via pydantic-ai-slim
-pydantic-graph==2.22.0 \
-    --hash=sha256:1350e63b1af5cea421aba7ed996af5d853b5b1da3c92b7cf7439d558bda4c8dd \
-    --hash=sha256:26663839b426114834e3b9047ae6620c2a0a88cdefe67e63a3074d378ff9ed8a
+pydantic-graph==2.38.0 \
+    --hash=sha256:00f5f0e6cb7b3126a394fe4c64f175f1c0d587acea075238c3678d9464bd5f58 \
+    --hash=sha256:3ecab71ba43b754c016ee0d84eeb472089cfaebbfca9116a77596c4f350f9920
     # via pydantic-ai-slim
 pydantic-settings==2.14.2 \
     --hash=sha256:a20c97b37910b6550d5ea50fbcc2d4187defe58cd57070b73863d069419c9440 \
