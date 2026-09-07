@@ -26,6 +26,19 @@
         "required_objects": { "type": "array", "items": { "type": "string" } },
         "setting": { "type": "string" },
         "camera": { "type": "string" },
+        "physique_topography": {
+          "type": "object",
+          "description": "5-layer human physique topography & Stratum S somatic state parameters",
+          "properties": {
+            "somatotype": { "type": "object" },
+            "skeletal_framework": { "type": "object" },
+            "muscular_topography": { "type": "object" },
+            "dense_surface_topology": { "type": "object" },
+            "photometric_micro_topography": { "type": "object" },
+            "temporal_physiology": { "type": "object" },
+            "somatic_state": { "type": "object" }
+          }
+        },
         "negative_constraints": { "type": "array", "items": { "type": "string" } }
       }
     },

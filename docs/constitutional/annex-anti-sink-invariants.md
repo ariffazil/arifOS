@@ -5,8 +5,9 @@ valid_from: 2026-05-22
 valid_until: 2026-07-14
 confidence: high
 scope: arifOS Constitutional Federation
-epistemic_status: draft_v1_merged
-requires: 888_JUDGE review before SEAL
+epistemic_status: ratified_f13
+ratified_date: 2026-09-08T00:50:01+08:00
+requires: 999_SEAL (anti-sink telemetry wiring pending)
 prepared_by: Constitutional Clerk (777 FORGE) + Perplexity Co-Architect
 -->
 
