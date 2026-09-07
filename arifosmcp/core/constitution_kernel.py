@@ -307,12 +307,29 @@ class ConstitutionKernel:
             plan_id=params.get("plan_id"),
             session_registry=params.get("session_registry", set()),
             plan_registry=params.get("plan_registry", set()),
+            # ── X-016 (2026-09-08): map caller substance so the evaluator
+            # scores the real action, not an empty context.
+            candidate=params.get("candidate"),
+            evidence=params.get("evidence"),
+            verification_surface=params.get("verification_surface"),
+            auth_token=params.get("auth_token"),
+            signature_verified=params.get("signature_verified"),
         )
         verdict = self.evaluate(context)
+        floor_reasons = verdict.floors.floor_reasons if verdict.floors else {}
+        violated = verdict.floors.violated_laws if verdict.floors else []
+        primary_reason = "; ".join(
+            f"{law}: {floor_reasons[law]}" for law in violated if law in floor_reasons
+        ) or (floor_reasons.get("__verdict__", "") if isinstance(floor_reasons, dict) else "")
         return {
             "passed": verdict.verdict in ("SEAL", "OK"),
-            "violated_laws": verdict.floors.violated_laws if verdict.floors else [],
+            "violated_laws": violated,
             "threat_score": verdict.threat.confidence if verdict.threat else 0.0,
+            # X-016: surface floor_reasons — the wrapper previously printed a
+            # default "Floor breach" because the bridge dropped all reasons.
+            "reason": primary_reason,
+            "floor_reasons": floor_reasons,
+            "state_hash": verdict.state_hash,
         }
 
     def evaluate(self, context: ActionContext) -> ConstitutionalVerdict:

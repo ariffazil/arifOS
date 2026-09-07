@@ -253,13 +253,27 @@ class FloorEvaluator:
             "session_id": context.session_id or "",
             "authority_token": getattr(context, "auth_token", "") or "",
             "auth_token": getattr(context, "auth_token", "") or "",
+            # ── X-016 (2026-09-08): evidence mapping — F2's adversarial gate
+            # reads context["evidence"] but the floor context never carried it.
+            "evidence": getattr(context, "evidence", None),
             "human_authority": (
                 1.0 if context.witness_type and "human" in str(context.witness_type) else 0.0
             ),
             "witness_type": str(context.witness_type) if context.witness_type else "ai",
             # Derived from threat
             "confidence": confidence,
-            "truth_score": confidence,
+            # ── X-016 (2026-09-08): truth decoupling — F2's documented
+            # "External Verifier Override" expects truth to come from the
+            # verifier signal when present, NOT from threat confidence.
+            # Gate: verification_surface.truth_score is honored only when the
+            # caller supplied independent confirmations (judge hash + crypto),
+            # which the wrapper enforces before setting it.
+            "truth_score": (
+                (context.verification_surface or {}).get("truth_score")
+                if isinstance(getattr(context, "verification_surface", None), dict)
+                and (context.verification_surface or {}).get("truth_score") is not None
+                else confidence
+            ),
             "humility_omega": humility_omega,
             "entropy_delta": entropy_delta,
             "entropy_input": entropy_input,

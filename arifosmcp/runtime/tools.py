@@ -20216,6 +20216,41 @@ def _arif_vault_seal(
                     "nonce": nonce,
                     "signature_verified": signature_verified,
                     "session_registry": _vault_session_registry,
+                    # ── X-016 (2026-09-08): pass substance so the constitution
+                    # kernel scores the real action instead of an empty context.
+                    "candidate": (payload[:4000] or None) if isinstance(payload, str) else None,
+                    "auth_token": _standing_token or session_token,
+                    "evidence": {
+                        "refs": [
+                            r
+                            for r in (
+                                evidence_sha,
+                                judge_state_hash,
+                                constitutional_chain_id,
+                            )
+                            if r
+                        ],
+                        "source": "arif_judge+vault999"
+                        if (judge_state_hash or constitutional_chain_id)
+                        else "caller",
+                        "verdict": verdict,
+                    },
+                    # External Verifier Override (F2 design): a claims-grade
+                    # truth signal is asserted ONLY when three independent
+                    # confirmations exist — judge verdict hash, per-payload
+                    # Ed25519, and a witness. Otherwise confidence stands.
+                    "verification_surface": {
+                        "truth_score": 0.99
+                        if (
+                            (judge_state_hash or constitutional_chain_id)
+                            and signature_verified
+                            and witness
+                        )
+                        else None,
+                        "verifier": "arif_judge",
+                        "decision_core_hash": judge_state_hash,
+                        "constitutional_chain_id": constitutional_chain_id,
+                    },
                 },
                 session_id=session_id,
                 actor_id=actor_id,
