@@ -37,7 +37,24 @@ UNCERTAINTY_ORDER: dict[UncertaintyTag, int] = {
 
 # ── 2. Verdicts ────────────────────────────────
 
-Verdict = Literal["SEAL", "SABAR", "HOLD", "VOID"]
+# SEAL: canonical ratified
+# SABAR: honest sub-threshold (declared without self-deception)
+# HOLD: judgment suspended pending more evidence
+# VOID: invalid mathematical/constitutional conclusion
+# UNRESOLVED: computational limit (timeout, solver UNKNOWN, resource exhaustion) —
+#             distinct a VOID. (EUREKA J-20, ratified 888-APEX 2026-09-07.)
+#             Routes to FORMAL_STATUS_UNRESOLVED per truth ladder L0-L6.
+Verdict = Literal["SEAL", "SABAR", "HOLD", "VOID", "UNRESOLVED"]
+
+
+# ── 2b. Anomaly Status (EUREKA J-32, ratified 888-APEX 2026-09-07) ────────
+
+# Track anomaly lifecycle in measurement envelopes.
+# none:      no anomaly observed
+# pending:   anomaly candidate detected, under investigation
+# confirmed: anomaly verified, quarantine active
+# resolved:  anomaly resolved, model updated or accepted as chronic
+AnomalyStatus = Literal["none", "pending", "confirmed", "resolved"]
 
 
 # ── 3. Phases ──────────────────────────────────
