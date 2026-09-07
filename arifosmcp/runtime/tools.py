@@ -20218,13 +20218,14 @@ def _arif_vault_seal(
                     "session_registry": _vault_session_registry,
                     # ── X-016 (2026-09-08): pass substance so the constitution
                     # kernel scores the real action instead of an empty context.
+                    # NOTE: this wrapper is a lossy funnel — witness/verdict/
+                    # evidence_sha/session_token are dropped by the tool layer
+                    # before reaching here; only what remains in scope is passed.
                     "candidate": (payload[:4000] or None) if isinstance(payload, str) else None,
-                    "auth_token": session_token,
                     "evidence": {
                         "refs": [
                             r
                             for r in (
-                                evidence_sha,
                                 judge_state_hash,
                                 constitutional_chain_id,
                             )
@@ -20233,18 +20234,18 @@ def _arif_vault_seal(
                         "source": "arif_judge+vault999"
                         if (judge_state_hash or constitutional_chain_id)
                         else "caller",
-                        "verdict": verdict,
                     },
                     # External Verifier Override (F2 design): a claims-grade
-                    # truth signal is asserted ONLY when three independent
+                    # truth signal is asserted ONLY when independent
                     # confirmations exist — judge verdict hash, per-payload
-                    # Ed25519, and a witness. Otherwise confidence stands.
+                    # Ed25519, and a human witness type. Otherwise confidence
+                    # stands.
                     "verification_surface": {
                         "truth_score": 0.99
                         if (
                             (judge_state_hash or constitutional_chain_id)
                             and signature_verified
-                            and witness
+                            and "human" in str(witness_type)
                         )
                         else None,
                         "verifier": "arif_judge",
