@@ -57,6 +57,58 @@ Verdict = Literal["SEAL", "SABAR", "HOLD", "VOID", "UNRESOLVED"]
 AnomalyStatus = Literal["none", "pending", "confirmed", "resolved"]
 
 
+# ── 2c. Truth Level (EUREKA J-27, ratified 888-APEX 2026-09-07) ──────────
+
+# Truth ladder (TRUTH-LADDER-L0-L6-2026-09-07.md).
+# L0:    Syntax validity
+# L1:    Type validity
+# L2:    Formal/arithmetic validity (bounded computation)
+# L3a:   Formal-model conformance (∂f/∂x correct on declared formula)
+# L3b:   Semantic-model adequacy (formula matches stated objective) — NOT a math question
+# L4:    Empirical correspondence (inputs reflect the world)
+# L5:    Decision admissibility (governance + reversibility + cost)
+# L6:    Human ratification (F13 SOVEREIGN)
+#
+# arif_seal MUST block if truth_level < L5.
+TruthLevel = Literal["L0", "L1", "L2", "L3a", "L3b", "L4", "L5", "L6"]
+
+
+# ── 2d. APEX Frame (EUREKA J-29, ratified 888-APEX 2026-09-07) ──────────
+
+# Frame metadata for any APEX score record.
+# A score without frame is an incomplete claim.
+# See APEX_FRAME_ANOMALY_DOCTRINE-2026-09-07.md for full doctrine.
+ApexFrameId = str  # e.g., "AAA-governance-v3"
+ApexSubject = str  # agent / actor / system being measured
+ApexWindow = str  # ISO-8601 observation window, e.g., "2026-09-07T08:00+08/2026-09-07T09:00+08"
+ApexFormulaVersion = str  # e.g., "APEX-G-v3"
+ApexPolicyVersion = str  # e.g., "arifos-policy-2026-09"
+ApexDataProvenance = str  # URI / hash / reference to input sources
+
+
+# ── 2e. Evidence Kind (EUREKA J-23, ratified 888-APEX 2026-09-07) ──────
+
+# Replacement taxonomy for the legacy `evidence_class: observed | derived |
+# reported | unknown` field. Future code paths should populate this instead.
+# Legacy values remain accepted for backward compat.
+EvidenceKind = Literal[
+    "ExactRational",  # exact rational number
+    "AlgebraicReal",  # exact algebraic with isolating interval
+    "CertifiedInterval",  # interval with explicit lower/upper bounds
+    "SymbolicExpression",  # symbolic (SymPy, etc.)
+    "FloatingEstimate",  # IEEE float — approx, with known precision
+    "MonteCarloEstimate",  # MC-derived estimate (stochastic)
+    "EmpiricalMeasurement",  # from real-world observation
+    "HeuristicScore",  # from heuristic / model output (no formal basis)
+    "SolverUnknown",  # from solver UNKNOWN / timeout / resource exhaustion
+    # legacy values (deprecated — emit new taxonomy, keep parseable):
+    "observed",
+    "derived",
+    "reported",
+    "unknown",
+]
+
+
 # ── 3. Phases ──────────────────────────────────
 
 Phase = Literal[0, 111, 333, 555, 777, 888, 900, 999]
