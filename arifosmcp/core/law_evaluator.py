@@ -200,7 +200,18 @@ class FloorEvaluator:
         """
         # Derive thermodynamic fields that floor classes need but ActionContext
         # doesn't directly expose. Derived conservatively from threat properties.
-        confidence = threat.confidence if threat.confidence is not None else 0.96
+        # ── X-016 (2026-09-08): ThreatEngine.classify() sets confidence to
+        # "1.0 if threats else 0.0" — that field means threat-detection
+        # certainty, NOT claim-truth confidence. Reading it as truth inverted
+        # the semantics for CLEAN actions: no threats → truth/confidence 0.0
+        # → Ω₀=1.0, E=0, clarity≈0.1 — an unsatisfiable gauntlet for any
+        # clean irreversible action. A clean assessment (zero threats) gets
+        # the standard 0.96 baseline; threat-bearing assessments keep their
+        # engine confidence.
+        if threat.confidence is not None and getattr(threat, "threats", None):
+            confidence = threat.confidence
+        else:
+            confidence = 0.96
         irreversibility = threat.irreversibility.value if threat.irreversibility else 0
 
         # F2: entropy_delta derived from Landauer bound heuristic.
