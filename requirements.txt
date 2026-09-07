@@ -3441,9 +3441,9 @@ propcache==0.5.2 \
     # via
     #   aiohttp
     #   yarl
-proto-plus==1.28.2 \
-    --hash=sha256:26d843eb99c1e32fdf1d20ff0faae56607f7748fe774acf9ecd5cfe6c6472501 \
-    --hash=sha256:b874236fcac2358f601e4330bcb76cb8b89c851303ccf4078408b3d4774d1c52
+proto-plus==1.28.4 \
+    --hash=sha256:4b01341272f8a348db3f003b6143109f83ab43091019d5181b3fcdf500ab32aa \
+    --hash=sha256:5ff7ecad828e032a491fcb86947801768e32237f99dd049b649965b892ae9a63
     # via google-api-core
 protobuf==7.35.1 \
     --hash=sha256:11d6b0ec246892d85215b0a13ca6e0233cf5284b68f0ac02646427f4ff88a799 \
