@@ -20219,7 +20219,7 @@ def _arif_vault_seal(
                     # ── X-016 (2026-09-08): pass substance so the constitution
                     # kernel scores the real action instead of an empty context.
                     "candidate": (payload[:4000] or None) if isinstance(payload, str) else None,
-                    "auth_token": _standing_token or session_token,
+                    "auth_token": session_token,
                     "evidence": {
                         "refs": [
                             r
