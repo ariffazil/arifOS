@@ -1,0 +1,45 @@
+# FQ Policy Contract (DRAFT — RATIFICATION_REQUIRED: ARIF / F13)
+# Gap origin: FLOW_UNIFICATION_PLAN P1.6 — FQ thresholds existed only as hardcoded
+# values in arifFlow + A-FORGE. This contract makes arifOS the policy owner.
+# Compiled 2026-09-07 by kimi-code/FI-008 from LIVE runtime evidence (contrast audit).
+
+schema_version: 1
+status: DRAFT_AWAITING_F13
+
+policy:
+  formula_version: qg.v0.3.1-vector          # sealed 2026-08-14, spec QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD
+  formula_hash: sha256:arifflow-fq-v2.1-2026-08-05
+  thresholds:
+    healthy_min: 0.5                          # scalar FQ >= 0.5 = normal flow
+    observe_only_below: 0.5                   # FQ < 0.5 -> actor restricted to OBSERVE_ONLY
+    risk_class_floors:                        # per-receipt required FQ (live arifFlow invariants)
+      T0: 0.1
+      T1: 0.3
+      T2: 0.5
+      T3: 1.0
+  verdicts: [FLOWING, CAUTION, STUCK, BURNING, UNKNOWN]
+
+enforcement:
+  - plane: arifFlow                           # daemon :7073
+    mechanism: per-actor hold/throttle at /ingest; invariant cycle every 10s
+  - plane: A-FORGE                            # check_verdict.ts
+    mechanism: gateToolByFq FQ_GATE_THRESHOLD=0.50, fail-closed (null FQ -> 0.0 -> HOLD MUTATE)
+
+escalation:
+  - trigger: consecutive_exec_no_verify >= 5
+    action: HELD (observed live 2026-09-07: 333-AGI, qwen-code)
+  - trigger: vector diagnosis GOVERNANCE_COLLAPSE (g-dimension pathological)
+    action: report to arifOS :8088 for 888 review (observed live 2026-09-07)
+
+ratification:
+  required: ARIF (F13)
+  notes: >
+    Thresholds are documented FROM live runtime values, not invented. If ratified,
+    arifFlow receipt.rs and A-FORGE check_verdict.ts become implementations of THIS
+    contract; any threshold change must amend this file under SEAL. Vector FQ
+    (qg.v0.3.1) supersedes scalar FQ as health indicator; scalar kept as gate floor.
+
+provenance:
+  compiled_by: kimi-code/FI-008
+  evidence: /root/AAA/reports/audit-2026-09-07-flow-integration-contrast.md
+  date: 2026-09-07
