@@ -5729,9 +5729,9 @@ yarl==1.24.5 \
     #   storage3
     #   supabase
     #   supabase-functions
-yfinance==1.5.2 \
-    --hash=sha256:197fc03485c246547a5a9184956c60150ea33b6f740d877e02a97f123d5cd2b9 \
-    --hash=sha256:5935d457fc62cf2f7e9bf1b2d019a8fec8fb0072f58a095eb53740b70a6a06ed
+yfinance==1.7.0 \
+    --hash=sha256:442f780d13d3e52fefa6c721c2c9bfee321078c1987d6585ec193b5c24382f8a \
+    --hash=sha256:91281ecd1f71069a37155ff8653aff2d3085f3492bd8721f18b70955da62911a
     # via arifos
 zipp==4.1.0 \
     --hash=sha256:25ad4e16390cd314347dd8f1de67a2ac538ae658ed4ab9db16029c07c188e97f \
