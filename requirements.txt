@@ -175,9 +175,9 @@ arviz==1.2.0 \
     # via
     #   arifos
     #   pymc
-arviz-base==1.2.0 \
-    --hash=sha256:a3f7023b665823068ff4b973bb6205eacc65f3c0a446cc099d7e5326b50f1ffc \
-    --hash=sha256:be06f9c15c53a951a971bef697e6b0a68497aae4d1670be065dd8f0482e9efca
+arviz-base==1.3.0 \
+    --hash=sha256:285fe0ac413f515d1962644b471d916327446d58247ae7f331043b1bed5a4d5b \
+    --hash=sha256:9f3d66353434ee81db78cb54fe00efd74ae2fc5519d20c593dd2dceae8f247b7
     # via
     #   arviz
     #   arviz-plots
