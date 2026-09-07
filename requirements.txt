@@ -2156,9 +2156,9 @@ llvmlite==0.47.0 \
     --hash=sha256:f6725179b89f03b17dabe236ff3422cb8291b4c1bf40af152826dfd34e350ae8 \
     --hash=sha256:fa1cbd800edd3b20bc141521f7fd45a6185a5b84109aa6855134e81397ffe72b
     # via numba
-logfire==4.39.0 \
-    --hash=sha256:7291ae695a145c21b4fa9baea2ffaf42b23c79a08e1f3edcef5a4cad41867a0d \
-    --hash=sha256:e6046e03ce45098c15a9dbf42ced8b95dfcb60cc1f3600a6250c8f515755be5f
+logfire==4.41.0 \
+    --hash=sha256:3806fba60389d57c38a12a88135a7c7bf9d0fca09325094517e976b29b5b9d33 \
+    --hash=sha256:5bae36637aef81eeee6bfa5d764bf3cff0755af613a4888fd0ae4a656cd2451e
     # via pydantic-ai-slim
 logfire-api==4.39.0 \
     --hash=sha256:1e885f95c37d58cdb927bbc6baea4f4a7c13066f6b3019758627d4dc442643d0 \
