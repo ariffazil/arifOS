@@ -81,6 +81,20 @@ class ActionContext(BaseModel):
         default=None,
         description="VerificationSurface: canonical claim + evidence + verifier info",
     )
+    # ── X-016 (2026-09-08): substance mapping — the wrapper previously starved
+    # the evaluator of witness/evidence/signature data, scoring an empty context.
+    evidence: dict[str, Any] | None = Field(
+        default=None,
+        description="Structured evidence with refs (F2 adversarial gate contract)",
+    )
+    auth_token: str | None = Field(
+        default=None,
+        description="Session capability token (act_v1/sct_v1) — lifts F3 human witness 0.7→1.0",
+    )
+    signature_verified: bool | None = Field(
+        default=None,
+        description="Per-payload Ed25519 verification result from the calling wrapper",
+    )
 
     @field_validator("url")
     @classmethod

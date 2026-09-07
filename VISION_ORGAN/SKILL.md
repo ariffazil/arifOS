@@ -40,6 +40,8 @@ Never returns aesthetic score — only structural compliance.
 - `LOCALE_GENERIC` — setting not matching contract
 - `COMPOSITION_CROP_FAIL` — required elements cropped out
 - `ANATOMY_FAIL` — malformed hands, limbs, or faces
+- `PROPORTION_FAIL` — violation of head canon (8-head/7.5-head) or impossible limb ratios
+- `TOPOGRAPHY_DISCONTINUITY` — floating muscle insertions, unnatural skin folds, or plastic airbrushing
 - `TEXT_WATERMARK` — unwanted text or branding
 
 ## Usage
