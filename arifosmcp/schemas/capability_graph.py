@@ -23,6 +23,48 @@ from arifosmcp.schemas.authority_context import AuthorityContext
 
 GradeVerdict = Literal["MATCH", "PARTIAL", "NONE"]
 
+# Identity Continuity — Constitutional Primitive (Ratified 2026-09-08)
+# Ratified under F1 AMANAH · F3 WITNESS · F6 MARUAH · F11 AUDIT · F13 SOVEREIGN
+# Doctrine: /root/AAA/instructions/identity-continuity.md
+IdentitySupportLevel = Literal[
+    "NONE",  # Capability produces / consumes identity-irrelevant artifacts (T2I archetype)
+    "REFERENCE",  # Capability can condition against existing identity_card (I2I subject_ref)
+    "BINDING_T1",  # Capability writes Tier-1 biometric witness (face / voice)
+    "BINDING_T2",  # Capability writes temporal witness (cross-session continuity)
+    "BINDING_T3",  # Constitutional — substrate-invariant, witness-of-witnesses (F1-F13)
+]
+
+# Operation tiers (ICL-3.0, ratified 2026-09-08 by 333-AGI on F13 SOVEREIGN signal).
+# Each tier sets its OWN floor for admin / biometric / constitutional planes.
+# Identity Exists ≠ Identity Verified For This Operation (Arif architectural review 2026-09-08).
+IdentityOperationTier = Literal[
+    "C0",  # OBSERVE — read-only, memory recall, audit (admin only)
+    "C1",  # IDENTITY_BOUND_METADATA — address, tag, relate (admin only)
+    "C2",  # SAFE_GENERATION — text, voice without biometric claim (admin only)
+    "C3",  # BIOMETRIC_GENERATION — I2I subject_ref, face-conditioned gen (admin + biometric)
+    "C4",  # PUBLIC_ATTRIBUTION — public image claiming to be actor (admin + biometric + constitutional)
+    "C5",  # DEEPFAKE_GRADE — irreversible public claim, deepfake threshold (full quorum)
+]
+
+OPERATION_TIER_THRESHOLDS: dict[str, dict[str, float]] = {
+    # tier        admin_min  biometric_min  constitutional_min
+    "C0": {"admin_min": 0.30, "biometric_min": 0.0, "constitutional_min": 0.0},
+    "C1": {"admin_min": 0.50, "biometric_min": 0.0, "constitutional_min": 0.0},
+    "C2": {"admin_min": 0.65, "biometric_min": 0.0, "constitutional_min": 0.0},
+    "C3": {"admin_min": 0.65, "biometric_min": 0.50, "constitutional_min": 0.0},
+    "C4": {"admin_min": 0.80, "biometric_min": 0.65, "constitutional_min": 0.30},
+    "C5": {"admin_min": 0.90, "biometric_min": 0.80, "constitutional_min": 0.50},
+}
+
+WitnessKind = Literal[
+    "W1_face",  # Biometric: face signature (InsightFace buffalo_l)
+    "W2_voice",  # Biometric: voice signature (mimo/MiniMax)
+    "W3_name",  # Administrative: handle binding
+    "W4_history",  # Administrative: VAULT999 + arif_memory L1-L6
+    "W5_relations",  # Administrative: relations graph
+    "W6_scar_ledger",  # Constitutional: failure continuity
+]
+
 
 @dataclass
 class Capability:
@@ -40,6 +82,74 @@ class Capability:
     idempotency: str
     receipt_policy: str
     constitutional_floors: list[str]
+    # Identity Continuity (2026-09-08) — additive, defaults to NONE
+    identity_support: IdentitySupportLevel = "NONE"
+    identity_witnesses_used: list[WitnessKind] = field(default_factory=list)
+    identity_witnesses_written: list[WitnessKind] = field(default_factory=list)
+
+
+@dataclass
+class IdentityContinuityCheck:
+    """Constitutional identity continuity verification (quorum result).
+
+    Quum rule (ICL-1.5): Identity Strength = ∛(W_bio × W_admin × W_const) ≥ 0.50.
+    No single witness carries authority (ICL-1.1).
+
+    Architectural refinement (ICL-3.0, ratified 2026-09-08):
+        Identity Exists ≠ Identity Verified For This Operation.
+        Existence = admin layer (W3 + W4) — F13 ratifies.
+        Verification = operation-class-specific witness thresholds.
+    """
+
+    actor_handle: str
+    intent: str
+    identity_card_ref: str | None  # path to /root/AAA/registry/identity_cards/<actor>.yaml
+    witness_set: dict[str, float] = field(default_factory=dict)
+    biometric_min: float = 0.0
+    admin_min: float = 0.0
+    constitutional_min: float = 0.0
+    geometric_mean: float = 0.0
+    quorum_passed: bool = False
+    single_witness_authority: bool = False  # always False — constitutional law
+    verdict: GradeVerdict = "NONE"
+    rationale: str = ""
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    # ICL-3.0 operation-tier fields (additive)
+    identity_exists: bool = False
+    operation_class: IdentityOperationTier = "C2"
+    tier_admin_pass: bool = False
+    tier_biometric_pass: bool = False
+    tier_constitutional_pass: bool = False
+    tier_passed: bool = False
+
+    def compute_quorum(self) -> None:
+        """Recompute geometric mean across three planes.
+
+        W_biometric = √(W1 × W2)
+        W_admin     = ∛(W3 × W4 × W5)
+        W_const     = W6
+        Identity    = ∛(W_bio × W_admin × W_const)
+        """
+        w1 = self.witness_set.get("W1_face", 0.0)
+        w2 = self.witness_set.get("W2_voice", 0.0)
+        w3 = self.witness_set.get("W3_name", 0.0)
+        w4 = self.witness_set.get("W4_history", 0.0)
+        w5 = self.witness_set.get("W5_relations", 0.0)
+        w6 = self.witness_set.get("W6_scar_ledger", 0.0)
+
+        w_bio = (w1 * w2) ** 0.5
+        w_admin = (w3 * w4 * w5) ** (1 / 3) if (w3 + w4 + w5) > 0 else 0.0
+        w_const = w6
+
+        if w_bio == 0 or w_admin == 0 or w_const == 0:
+            self.geometric_mean = 0.0
+        else:
+            self.geometric_mean = (w_bio * w_admin * w_const) ** (1 / 3)
+
+        self.quorum_passed = self.geometric_mean >= 0.50 and self.single_witness_authority is False
+        self.verdict = (
+            "MATCH" if self.quorum_passed else "PARTIAL" if self.geometric_mean >= 0.30 else "NONE"
+        )
 
 
 @dataclass
@@ -208,6 +318,147 @@ class CapabilityGraph:
                 matches.append(best)
 
         return ResolveResult(intent=intent, matches=matches, best_match=best)
+
+    # ========================================================================
+    # Identity Continuity — Constitutional Primitive (Ratified 2026-09-08)
+    # Doctrine: /root/AAA/instructions/identity-continuity.md
+    # ICL-1.1: NO SINGLE WITNESS CARRIES AUTHORITY.
+    # ICL-1.5: Identity quorum = ∛(W_bio × W_admin × W_const) ≥ 0.50.
+    # ========================================================================
+
+    def identity_continuity_check(
+        self,
+        actor_handle: str,
+        intent: str,
+        named_actor: bool = True,
+        identity_card_path: str | None = None,
+        operation_class: IdentityOperationTier = "C2",
+    ) -> IdentityContinuityCheck:
+        """Resolve identity continuity for a named actor.
+
+        Routing law: T2I is FORBIDDEN at C3+. Lower tiers allow admin-only.
+
+        Architectural principle (ICL-3.0, ratified 2026-09-08):
+            Identity EXISTS ≠ Identity VERIFIED for operation.
+            Existence = admin layer (W3 + W4) — F13 ratifies.
+            Verification = operation-class-specific witness thresholds.
+
+        Args:
+            actor_handle: canonical handle (e.g. 'syed_khairuddin')
+            intent: user intent string
+            named_actor: True if a real human actor is named
+            identity_card_path: optional explicit path to identity_card.yaml
+            operation_class: tier C0 (OBSERVE) → C5 (DEEPFAKE_PUBLIC)
+
+        Returns:
+            IdentityContinuityCheck with witness_set, geometric_mean, verdict,
+            plus identity_exists (binary) + operation_class tier + tier-specific
+            quorum_passed (operation_class vs tier_thresholds).
+        """
+        if identity_card_path is None:
+            identity_card_path = f"/root/AAA/registry/identity_cards/{actor_handle}.yaml"
+
+        # Default witness_set (admin layer always ON for ratified actors)
+        witness_set: dict[str, float] = {
+            "W1_face": 0.0,  # default OFF — biometric enrollment required
+            "W2_voice": 0.0,  # default OFF
+            "W3_name": 1.0,  # administrative — always ON if actor ratified
+            "W4_history": 1.0,  # always ON if SOUL.md exists
+            "W5_relations": 0.85,  # default ON if relations declared
+            "W6_scar_ledger": 0.0,  # OFF until first scar sealed
+        }
+
+        rationale_parts: list[str] = []
+
+        # Try to load identity_card.yaml if it exists
+        card_path = Path(identity_card_path)
+        if card_path.exists():
+            try:
+                import yaml
+
+                with card_path.open() as f:
+                    card = yaml.safe_load(f)
+                w = card.get("identity", {}).get("witness_set", {})
+                for k in witness_set:
+                    if k in w:
+                        witness_set[k] = float(w[k].get("confidence", witness_set[k]))
+                rationale_parts.append(f"identity_card.yaml loaded from {identity_card_path}")
+            except Exception as e:  # noqa: BLE001
+                rationale_parts.append(f"identity_card.yaml read error: {e!s}")
+        else:
+            rationale_parts.append(
+                f"identity_card.yaml not found at {identity_card_path} — defaults apply"
+            )
+
+        # ICL-3.1: Identity EXISTS = admin layer satisfied
+        # W3_name + W4_history both active → actor exists (administrative truth)
+        identity_exists = (
+            witness_set.get("W3_name", 0.0) >= 0.50 and witness_set.get("W4_history", 0.0) >= 0.50
+        )
+
+        # ICL-1.1 enforcement: never allow single-witness authority
+        check = IdentityContinuityCheck(
+            actor_handle=actor_handle,
+            intent=intent,
+            identity_card_ref=identity_card_path if card_path.exists() else None,
+            witness_set=witness_set,
+            single_witness_authority=False,  # ICL-1.1 — constitutional law
+            rationale=" | ".join(rationale_parts) or "default witness set, no card loaded",
+        )
+        check.compute_quorum()
+
+        # ICL-3.2: Operation-class-specific quorum thresholds
+        # Each tier sets its OWN floor for admin / biometric / constitutional
+        tier_thresholds = OPERATION_TIER_THRESHOLDS[operation_class]
+
+        # Check per-tier requirements
+        admin_min = tier_thresholds["admin_min"]
+        biometric_min = tier_thresholds["biometric_min"]
+        constitutional_min = tier_thresholds["constitutional_min"]
+
+        w_bio = (witness_set["W1_face"] * witness_set["W2_voice"]) ** 0.5
+        w_admin = (
+            witness_set["W3_name"] * witness_set["W4_history"] * witness_set["W5_relations"]
+        ) ** (1 / 3)
+        w_const = witness_set["W6_scar_ledger"]
+
+        tier_admin_pass = w_admin >= admin_min
+        tier_biometric_pass = w_bio >= biometric_min if biometric_min > 0 else True
+        tier_constitutional_pass = w_const >= constitutional_min if constitutional_min > 0 else True
+
+        # ICL-3.3: Tier verdict = tier_admin ∧ tier_biometric ∧ tier_constitutional
+        tier_passed = tier_admin_pass and tier_biometric_pass and tier_constitutional_pass
+
+        # Attach tier information
+        check.operation_class = operation_class
+        check.tier_admin_pass = tier_admin_pass
+        check.tier_biometric_pass = tier_biometric_pass
+        check.tier_constitutional_pass = tier_constitutional_pass
+        check.tier_passed = tier_passed
+        check.identity_exists = identity_exists
+
+        # Legacy quorum_passed: highest tier (C5) only — used for SEAL gating
+        check.quorum_passed = OPERATION_TIER_THRESHOLDS["C5"]["admin_min"] <= w_admin
+
+        # Routing rationale
+        if not identity_exists:
+            check.rationale += (
+                f" | IDENTITY_DOES_NOT_EXIST: W3={witness_set['W3_name']:.2f} or "
+                f"W4={witness_set['W4_history']:.2f} < 0.50 — actor not ratified"
+            )
+        elif named_actor:
+            tier_rationale = (
+                f"OPERATION={operation_class} | "
+                f"admin_min={admin_min:.2f} (pass={tier_admin_pass}) | "
+                f"biometric_min={biometric_min:.2f} (pass={tier_biometric_pass}) | "
+                f"constitutional_min={constitutional_min:.2f} (pass={tier_constitutional_pass})"
+            )
+            if tier_passed:
+                check.rationale += f" | IDENTITY_VERIFIED: {tier_rationale}"
+            else:
+                check.rationale += f" | IDENTITY_VERIFICATION_FAILED: {tier_rationale}"
+
+        return check
 
     def authorize(self, match: CapabilityMatch, authority: AuthorityContext) -> AuthorizeResult:
         """Check whether the given authority context may execute this capability.
