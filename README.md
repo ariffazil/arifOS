@@ -1,13 +1,13 @@
 <!-- SOT-MANIFEST
-federation_release: v2026.08.25
-last_verified: 2026-09-09T12:00:00+08:00
-live_commit: 6de71a0d7 (docs(readme): ZEN first-fold)
-source_commit: 2258694
+federation_release: v2026.09.10
+last_verified: 2026-09-10T18:00:00+08:00
+live_commit: d99d5c1a4 (seal: Arrow 1 + capability evolution session artifacts)
+source_commit: d99d5c1a4
 tools_exposed_via_mcp: 8 (canonical public verbs)
 floors_active: 13 (F1–F13, all passing)
 federation_schema: 2.0.0
-organs: 7 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073)
-vault999: healthy (67K+ records, append-only, 0 broken lines)
+organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
+vault999: healthy (119K+ records, append-only, 0 broken lines)
 truth_rule: live :8088/health + tools/list beat any static count in prose
 --->
 
@@ -67,7 +67,7 @@ pip install arifos
 
 ```bash
 # Start the MCP server
-arifos serve --port 8088
+python -m arifosmcp.serve --port 8088
 
 # Check health
 curl http://localhost:8088/health
@@ -135,27 +135,30 @@ Every proposal passes through 13 policy constraints. A single floor failure prod
 
 ### VAULT999 — Audit Ledger
 
-Every verdict, evidence chain, and execution receipt is recorded in VAULT999 — an append-only JSONL ledger with 67,000+ records. Designed for compliance auditing, forensic review, and governance proof.
+Every verdict, evidence chain, and execution receipt is recorded in VAULT999 — an append-only JSONL ledger with 119,000+ records. Designed for compliance auditing, forensic review, and governance proof.
 
 ---
 
 ## Architecture
 
 ```
-arifOS Federation — 7 Organs
+arifOS Federation — 10 Organs
 
 arifOS (:8088)     Constitutional judgment kernel
-AAA (:3001)        Identity, routing, agent orchestration
-A-FORGE (:7071)    Execution after authorization
+AAA (:3001)        Intelligence routing, state plane, skill catalog
+A-FORGE (:7071/7072) Execution after authorization
 GEOX (:8081)       Earth sciences domain evidence
 WEALTH (:18082)    Capital and financial intelligence
 WELL (:18083)      Human and machine vitality observation
-arifFlow (:7073)   Workflow orchestration
+arifFlow (:7073)   Metabolic ledger daemon (FQ monitoring, receipt ingestion)
+FED (:7074)        Federation routing gateway (multi-provider LLM)
+FRAME (:18085)     Independent observer, drift detection, evidence gathering
+i-ARIF (:18095)    Seal B synthesis engine
 
-ARIF vetoes. arifOS judges. AAA routes. A-FORGE executes.
+ARIF vetoes. arifOS judges. AAA routes. A-FORGE executes. FRAME witnesses. FED routes.
 ```
 
-arifOS is the kernel. The other organs are supporting infrastructure. GEOX is the primary reference implementation, demonstrating governance in high-consequence, uncertainty-heavy workflows.
+arifOS is the kernel. The other organs are supporting infrastructure. GEOX is the primary reference implementation, demonstrating governance in high-consequence, uncertainty-heavy workflows. FRAME is the independent observer — its output is evidence, never a verdict.
 
 ---
 
@@ -183,12 +186,12 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP:
 | GitHub repository | Public, AGPL-3.0, active commits (September 2026) |
 | PyPI package | `pip install arifos`, version 1!2026.8.2 |
 | Live health endpoint | `curl localhost:8088/health` — returns structured JSON |
-| MCP interface | 8 tools, Streamable HTTP, schema-validated |
-| VAULT999 ledger | 67K+ append-only records |
+| MCP interface | 8 tools, Streamable HTTP (protocol 2024-11-05), schema-validated |
+| VAULT999 ledger | 119K+ append-only records |
 | Floor enforcement | 13 floors active, all passing in current deployment |
-| Source-build-deploy alignment | Verified (commit 606f5ac) |
+| Source-build-deploy alignment | Verified (commit d99d5c1a4) |
 | GEOX reference implementation | Geoscience uncertainty workflows |
-| Federation architecture | 7 organs with defined boundaries |
+| Federation architecture | 10 organs with defined boundaries |
 
 ## What Is Not Yet Proven
 
@@ -249,16 +252,16 @@ python -m arifosmcp.serve --port 8088
 
 ```
 arifOS/
-├── arifosmcp/          # Core kernel package
+├── arifosmcp/          # Core kernel package (1228 Python files)
 │   ├── abi/            # Capability registry and floor definitions
 │   ├── constitution/   # Constitutional floor implementations
 │   ├── kernel/         # Core judgment engine
-│   └── vault/          # VAULT999 ledger implementation
-├── tests/              # Test suite
+│   └── VAULT999/       # VAULT999 ledger implementation
+├── tests/              # Test suite (476 test files)
 ├── docs/               # Documentation
 │   ├── START_HERE.md   # External reader entry point
 │   └── ...
-└── pyproject.toml      # Package metadata
+└── pyproject.toml      # Package metadata (v1!2026.8.2)
 ```
 
 ---
@@ -267,12 +270,15 @@ arifOS/
 
 | Repository | Purpose |
 |------------|---------|
-| [AAA](https://github.com/ariffazil/AAA) | Identity, routing, multi-agent orchestration |
+| [AAA](https://github.com/ariffazil/AAA) | Intelligence routing, state plane, skill catalog, A2A gateway |
 | [A-FORGE](https://github.com/ariffazil/A-FORGE) | Execution engine after authorization |
 | [GEOX](https://github.com/ariffazil/GEOX) | Earth sciences domain evidence |
 | [WEALTH](https://github.com/ariffazil/WEALTH) | Capital and financial intelligence |
 | [WELL](https://github.com/ariffazil/WELL) | Human and machine vitality observation |
-| [arifFlow](https://github.com/ariffazil/arifFlow) | Workflow orchestration |
+| [arifFlow](https://github.com/ariffazil/arifFlow) | Metabolic ledger daemon — FQ monitoring, receipt ingestion |
+| [FED](https://github.com/ariffazil/fed) | Federation routing gateway (multi-provider LLM via LiteLLM) |
+| [FRAME](https://github.com/ariffazil/frame) | Independent observer — drift detection, evidence gathering |
+| [i-ARIF](https://github.com/ariffazil/i-arif) | Seal B synthesis engine |
 
 ---
 
