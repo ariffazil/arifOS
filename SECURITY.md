@@ -1,46 +1,102 @@
-# Security Policy
+# Security — arifOS
 
-## Supported Versions
+## Threat Model
 
-The arifOS Federation operates on a rolling release model. The latest commit on
-`main` across all organs is the supported version.
+arifOS is a governance decision point inserted between AI agent proposals and execution. Its security model addresses three primary threat classes:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| `main`  | :white_check_mark: |
-| Other   | :x:                |
+### 1. Agent Bypass
+**Threat:** An AI agent attempts to execute an action without passing through arifOS judgment.
 
-## Reporting a Vulnerability
+**Mitigation:** arifOS exposes MCP tools that are the only path to governed execution. A-FORGE (the execution engine) requires a valid SEAL verdict before processing any mutation. The judge never executes; the executor never certifies.
 
-We take security seriously. arifOS runs infrastructure that handles governance,
-audit trails, and potentially sensitive biometric and financial data.
+**Status:** Architecturally enforced. Not independently penetration-tested.
 
-**Please do NOT open a public issue for security vulnerabilities.**
+### 2. Floor Evasion
+**Threat:** A crafted proposal bypasses one or more constitutional floors (F1-F13).
 
-Instead:
-1. Contact the maintainers directly at **arifbfazil@gmail.com**
-2. Include a description of the vulnerability, steps to reproduce, and potential impact.
-3. We will acknowledge receipt within 48 hours and provide a timeline for resolution.
+**Mitigation:** All 13 floors are evaluated sequentially. A single floor failure produces VOID. Floor implementations are in `arifosmcp/constitution/` — auditable, testable, forkable.
 
-## Security Architecture
+**Status:** Self-tested. No adversarial bypass testing published.
 
-- **Localhost-first**: Core services (Postgres, Redis, Qdrant, Ollama, NATS) bind
-  `127.0.0.1` with no auth — firewalled by UFW, not exposed to the public internet.
-- **Constitutional gates**: Every action passes through F1–F13 constitutional floors
-  before execution. Unauthorized mutations are blocked by design.
-- **Immutable audit ledger**: VAULT999 maintains an append-only record of all
-  sealed outcomes (67K+ records, 0 broken lines).
-- **Separation of powers**: The judge (arifOS kernel) never executes. The executor
-  (A-FORGE) never self-certifies. No single component can act and approve itself.
+### 3. Ledger Tampering
+**Threat:** VAULT999 audit records are modified after creation.
 
-## Known Security Boundaries
+**Mitigation:** VAULT999 is append-only JSONL with hash chaining. Records include previous record hash, creating a tamper-evident chain.
 
-- All federation communication occurs over a private Tailscale mesh (`100.64.0.0/24`).
-- Reverse proxy (Caddy) handles TLS termination and rate limiting.
-- Secrets are stored in `/root/.secrets/kunci-root.env` with `mode 600` — never
-  committed to git, never exposed in logs.
+**Status:** Append-only enforced in code. Cryptographic integrity not independently verified. Zero-knowledge proof (ZKPC) is deferred.
 
-## Acknowledgments
+---
 
-We welcome responsible disclosure and will credit reporters who follow our
-coordinated disclosure process.
+## Known Gaps
+
+| Gap | Severity | Status |
+|-----|----------|--------|
+| No independent penetration test | HIGH | Open |
+| No SBOM (Software Bill of Materials) | HIGH | Open |
+| No signed releases | MEDIUM | Open |
+| Request authentication/rate limiting not independently verified | HIGH | Partially addressed in internal audit |
+| Development credentials may be present in dependencies | MEDIUM | Needs audit |
+| Docker compose isolation not independently verified | MEDIUM | Needs audit |
+| No reproducible build attestation | MEDIUM | Open |
+| VAULT999 hash chain not independently verified | LOW | Open |
+| ZKPC (zero-knowledge proof of constitution) deferred | LOW | Design stage |
+| No CVE disclosure history | INFO | No known CVEs |
+
+## What Has Been Tested
+
+- Internal code audit (April 2026) — identified gaps above
+- Self-authored test suite — covers core judgment paths
+- Live health endpoint — verifies floor status, deployment alignment
+- Source-build-deploy alignment check — commit-level verification
+
+## What Has NOT Been Tested
+
+- Adversarial prompt injection against floors
+- MCP protocol fuzzing
+- Supply chain dependency audit
+- Third-party penetration test
+- Enterprise deployment scenario testing
+- Comparative benchmark against alternative governance frameworks
+
+---
+
+## Disclosure Policy
+
+If you discover a security vulnerability in arifOS:
+
+1. **Do not** open a public GitHub issue
+2. Email: arifbfazil@gmail.com with:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact assessment
+3. You will receive acknowledgment within 72 hours
+4. A fix will be developed and released
+5. Credit will be given in release notes (unless you prefer anonymity)
+
+---
+
+## Scope
+
+**In scope:**
+- arifOS kernel (arifosmcp/)
+- MCP endpoint security
+- VAULT999 ledger integrity
+- Floor enforcement logic
+- A-FORGE execution authorization
+
+**Out of scope:**
+- AI model behavior (arifOS does not run models)
+- Network infrastructure (VPS, DNS, TLS)
+- Third-party dependencies (report upstream)
+- Social engineering attacks
+
+---
+
+## Security Contact
+
+Muhammad Arif bin Fazil
+arifbfazil@gmail.com
+
+---
+
+**Last updated:** September 2026
