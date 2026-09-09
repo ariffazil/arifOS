@@ -60,6 +60,12 @@ ARIF_MEMORY_MODES = (
     "audit",
     "score_prediction",
     "metabolize",
+    # Phase 4 — federation memory bridge (Hermes-as-bridge, dual-layer SOUL.md/Mem0)
+    # OBSERVE class — vector-search Qdrant federation_memory_patterns.
+    # Routes non-Hermes agents (OpenClaw, Kimi, Claude) to Hermes's SOUL.md reflection
+    # without flattening identity to facts.
+    "federation_query",
+    "federation_sync",
 )
 
 # Mode → action class
@@ -74,6 +80,9 @@ MODE_ACTION_CLASS = {
     "promote": "EXECUTE_HIGH_IMPACT",
     "revise": "EXECUTE_HIGH_IMPACT",
     "forget": "IRREVERSIBLE",
+    # Phase 4 — federation memory bridge
+    "federation_query": "OBSERVE",
+    "federation_sync": "EXECUTE_REVERSIBLE",
 }
 
 # Mode → required pre-floors (must all pass before mode executes)
@@ -88,6 +97,9 @@ MODE_PRE_FLOORS = {
     "promote": ("L01", "L02", "L04", "L07", "L11", "L12"),
     "revise": ("L01", "L02", "L04", "L09", "L11", "L12"),
     "forget": ("L01", "L02", "L04", "L09", "L11", "L12", "L13"),
+    # Phase 4 — federation memory bridge
+    "federation_query": ("L02", "L11", "L12"),
+    "federation_sync": ("L01", "L02", "L08", "L11", "L12"),
 }
 
 # Mode → required lease?
@@ -102,6 +114,8 @@ MODE_REQUIRES_LEASE = {
     "promote": True,
     "revise": True,
     "forget": True,
+    "federation_query": False,
+    "federation_sync": True,  # sync mutates Qdrant
 }
 
 # Mode → required human ack?
@@ -116,6 +130,8 @@ MODE_REQUIRES_HUMAN_ACK = {
     "promote": False,
     "revise": False,
     "forget": True,  # L13 SOVEREIGN mandatory
+    "federation_query": False,
+    "federation_sync": False,  # reversible — just re-read SOUL.md
 }
 
 
@@ -453,27 +469,45 @@ async def arif_memory(
     # Day 4 polish: inspect (direct Postgres lookup for UUID queries)
     # Day 5 (2026-07-07): audit — JITU contradiction engine
     # Day 7 (2026-08-25): metabolize — Unified 6-class L1-L5 closed loop metabolism
-    if mode in ("remember", "promote", "forget", "attest", "inspect", "audit", "score_prediction", "metabolize"):
-        from arifosmcp.runtime.memory_handlers_v5 import (
-            _handle_attest,
-            _handle_audit,
-            _handle_forget,
-            _handle_inspect,
-            _handle_metabolize,
-            _handle_promote,
-            _handle_remember,
-        )
+    # Phase 4 (2026-09-10): federation_query / federation_sync — Hermes-as-bridge
+    # Routes non-Hermes agents to SOUL.md reflection in Qdrant. Single API surface.
+    if mode in (
+        "remember",
+        "promote",
+        "forget",
+        "attest",
+        "inspect",
+        "audit",
+        "score_prediction",
+        "metabolize",
+        "federation_query",
+        "federation_sync",
+    ):
+        if mode == "federation_query":
+            handler = _handle_federation_query
+        elif mode == "federation_sync":
+            handler = _handle_federation_sync
+        else:
+            from arifosmcp.runtime.memory_handlers_v5 import (
+                _handle_attest,
+                _handle_audit,
+                _handle_forget,
+                _handle_inspect,
+                _handle_metabolize,
+                _handle_promote,
+                _handle_remember,
+            )
 
-        handler = {
-            "remember": _handle_remember,
-            "promote": _handle_promote,
-            "forget": _handle_forget,
-            "attest": _handle_attest,
-            "inspect": _handle_inspect,
-            "audit": _handle_audit,
-            "score_prediction": _handle_score_prediction,
-            "metabolize": _handle_metabolize,
-        }[mode]
+            handler = {
+                "remember": _handle_remember,
+                "promote": _handle_promote,
+                "forget": _handle_forget,
+                "attest": _handle_attest,
+                "inspect": _handle_inspect,
+                "audit": _handle_audit,
+                "score_prediction": _handle_score_prediction,
+                "metabolize": _handle_metabolize,
+            }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)
             return _echo_standing(_wrap_result(res_dict, mode=mode, session_id=session_id))
@@ -606,6 +640,150 @@ async def _handle_forget(payload: dict, ctx: Any) -> dict:
         "verdict": "SABAR",
         "payload": {"note": "forget handler — Day 3 implementation (L13 SOVEREIGN)"},
     }
+
+
+async def _handle_federation_query(payload: dict, ctx: Any) -> dict:
+    """Phase 4 — Federation memory bridge query (Hermes-as-bridge).
+
+    Routes non-Hermes agents (OpenClaw, Kimi, Claude) to SOUL.md reflection
+    in Qdrant without flattening identity to facts. Single API surface.
+
+    F1 AMANAH: SOUL.md remains canonical. Qdrant is a queryable reflection.
+    F2 TRUTH: deterministic embedding, no LLM fabrication.
+    F11 AUDIT: every query emits a receipt.
+
+    Payload:
+      query (str, required) — natural-language question
+      lens (str, optional) — default/workload/family/doctrine
+      top_k (int, optional, default=3)
+    """
+    import os
+    import subprocess
+    import sys
+
+    query_text = str(payload.get("query") or payload.get("question") or "").strip()
+    if not query_text:
+        return {
+            "mode": "federation_query",
+            "verdict": "SABAR",
+            "payload": {"note": "federation_query requires payload.query (or .question)"},
+        }
+
+    lens = payload.get("lens")  # None = all lenses
+    top_k = int(payload.get("top_k") or 3)
+
+    # Subprocess into the bridge (zero coupling, no shared imports)
+    script = "/root/scripts/federation_memory_bridge.py"
+    args = [sys.executable, script, "query", query_text, "--top-k", str(top_k)]
+    if lens:
+        args.extend(["--lens", str(lens)])
+
+    try:
+        proc = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            env=os.environ.copy(),
+        )
+        if proc.returncode != 0:
+            return {
+                "mode": "federation_query",
+                "verdict": "SABAR",
+                "payload": {
+                    "note": "bridge subprocess failed",
+                    "stderr": proc.stderr[:500],
+                    "returncode": proc.returncode,
+                },
+            }
+        # Parse JSON output
+        import json as _json
+
+        bridge_result = _json.loads(proc.stdout)
+        return {
+            "mode": "federation_query",
+            "verdict": "SEAL" if bridge_result.get("result_count", 0) > 0 else "SABAR",
+            "payload": {
+                "note": "federation memory bridge query",
+                "question": query_text,
+                "lens": lens,
+                "result_count": bridge_result.get("result_count", 0),
+                "results": bridge_result.get("results", []),
+                "elapsed_ms": bridge_result.get("elapsed_ms", 0),
+                "source": "Qdrant federation_memory_patterns (SOUL.md reflection)",
+                "federation_memory_version": bridge_result.get("federation_memory_version", "V1.0"),
+            },
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "mode": "federation_query",
+            "verdict": "SABAR",
+            "payload": {"note": "bridge subprocess timeout (10s)"},
+        }
+    except Exception as exc:
+        return {
+            "mode": "federation_query",
+            "verdict": "SABAR",
+            "payload": {"note": f"bridge error: {exc}"},
+        }
+
+
+async def _handle_federation_sync(payload: dict, ctx: Any) -> dict:
+    """Phase 4 — Federation memory bridge sync (Hermes-as-bridge).
+
+    Reads SOUL.md(s), extracts patterns, pushes to Qdrant. Reversible — re-read
+    SOUL.md and push again to recover state. Requires lease_id (mutation).
+
+    Payload:
+      lens (str, optional) — default/workload/family/doctrine
+    """
+    import os
+    import subprocess
+    import sys
+
+    lens = payload.get("lens") or "default"
+
+    args = [sys.executable, "/root/scripts/federation_memory_bridge.py", "sync", "--lens", lens]
+    try:
+        proc = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            env=os.environ.copy(),
+        )
+        if proc.returncode != 0:
+            return {
+                "mode": "federation_sync",
+                "verdict": "SABAR",
+                "payload": {
+                    "note": "bridge sync failed",
+                    "stderr": proc.stderr[:500],
+                },
+            }
+        import json as _json
+
+        bridge_result = _json.loads(proc.stdout)
+        return {
+            "mode": "federation_sync",
+            "verdict": "SEAL" if bridge_result.get("status") == "OK" else "SABAR",
+            "payload": {
+                "note": "federation memory bridge sync",
+                "lens": lens,
+                "patterns_extracted": bridge_result.get("patterns_extracted", 0),
+                "patterns_pushed": bridge_result.get("patterns_pushed", 0),
+                "patterns_failed": bridge_result.get("patterns_failed", 0),
+                "elapsed_ms": bridge_result.get("elapsed_ms", 0),
+                "sources_read": bridge_result.get("sources_read", []),
+                "federation_memory_version": bridge_result.get("federation_memory_version", "V1.0"),
+            },
+        }
+    except Exception as exc:
+        return {
+            "mode": "federation_sync",
+            "verdict": "SABAR",
+            "payload": {"note": f"bridge sync error: {exc}"},
+        }
 
 
 async def _handle_score_prediction(payload: dict, ctx: Any) -> dict:

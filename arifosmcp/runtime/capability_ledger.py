@@ -1315,6 +1315,279 @@ def arrow1_replay_self_test(*, event_log_path: str | None = None) -> dict[str, A
                 pass
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# E9 — GOVERNANCE EMERGENCE — Selection → Promotion → Propagation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+EMERGENCE_FITNESS_THRESHOLD = 0.85  # must be high — emergence is conservative
+EMERGENCE_MIN_RE_EXAMINATIONS = 3  # must be re-examined multiple times
+EMERGENCE_MIN_WITNESS_PACKETS = 2  # must have multiple witness packets
+EMERGENCE_MIN_LINEAGE_DEPTH = 2  # must have lineage (parent witness IDs)
+EMERGENCE_PROPAGATION_PATH = "/root/.local/share/arifos/constitutional_primitives.json"
+
+
+@dataclass
+class EmergenceProposal:
+    """
+    E9 — Emergence proposal: a capability that has crossed the survival threshold
+    and qualifies for constitutional primitive status.
+
+    F2 TRUTH: deterministic thresholds, no LLM.
+    F11 AUDIT: every proposal logged with all metrics that triggered emergence.
+    F13 SOVEREIGN: ratification via sovereign_veto=True blocks emergence.
+    """
+
+    capability_name: str
+    fitness_score: float
+    re_examination_count: int
+    witness_packet_count: int
+    lineage_depth: int
+    contradiction_count: int
+    promotion_signal: str  # observe | promote | demote | retire
+    threshold_met: bool
+    proposal_reason: str
+    proposed_at: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def detect_emergence_candidates(
+    ledger: CapabilityLedger,
+    *,
+    fitness_threshold: float = EMERGENCE_FITNESS_THRESHOLD,
+    min_re_examinations: int = EMERGENCE_MIN_RE_EXAMINATIONS,
+    min_witness_packets: int = EMERGENCE_MIN_WITNESS_PACKETS,
+    min_lineage_depth: int = EMERGENCE_MIN_LINEAGE_DEPTH,
+) -> list[EmergenceProposal]:
+    """
+    E9 — Selection: detect capabilities crossing the emergence threshold.
+
+    Threshold gates (all must be true):
+      1. fitness_score >= fitness_threshold
+      2. re_examination_count >= min_re_examinations
+      3. witness_packet_count >= min_witness_packets
+      4. lineage_depth >= min_lineage_depth
+      5. promotion_signal == "promote"
+      6. NOT sovereign_veto
+
+    F2 TRUTH: deterministic, no LLM, no fabrication.
+    F1 AMANAH: sovereign_veto is honored — vetoed capabilities never emerge.
+    """
+    now = datetime.datetime.now(datetime.UTC).isoformat()
+    proposals: list[EmergenceProposal] = []
+
+    for spec in ledger._capabilities.values():
+        if spec.sovereign_veto:
+            continue
+        if spec.selection_signal != SelectionSignal.PROMOTE.value:
+            continue
+        if spec.fitness_score < fitness_threshold:
+            continue
+        if spec.re_examination_count < min_re_examinations:
+            continue
+        if spec.witness_packet_count < min_witness_packets:
+            continue
+        lineage_depth = len(spec.lineage)
+        if lineage_depth < min_lineage_depth:
+            continue
+
+        reason = (
+            f"fitness={spec.fitness_score:.3f} >= {fitness_threshold} "
+            f"+ re_exam={spec.re_examination_count} >= {min_re_examinations} "
+            f"+ witnesses={spec.witness_packet_count} >= {min_witness_packets} "
+            f"+ lineage_depth={lineage_depth} >= {min_lineage_depth} "
+            f"+ signal={spec.selection_signal}"
+        )
+        proposals.append(
+            EmergenceProposal(
+                capability_name=spec.capability_name,
+                fitness_score=spec.fitness_score,
+                re_examination_count=spec.re_examination_count,
+                witness_packet_count=spec.witness_packet_count,
+                lineage_depth=lineage_depth,
+                contradiction_count=spec.contradiction_count,
+                promotion_signal=spec.selection_signal,
+                threshold_met=True,
+                proposal_reason=reason,
+                proposed_at=now,
+            )
+        )
+    return proposals
+
+
+def propagate_emergence(
+    proposals: list[EmergenceProposal],
+    *,
+    propagation_path: str = EMERGENCE_PROPAGATION_PATH,
+    ledger: CapabilityLedger | None = None,
+) -> dict[str, Any]:
+    """
+    E9 — Propagation: write emergence proposals to a cross-organ surface
+    (constitutional_primitives.json) so other organs can discover them.
+
+    F11 AUDIT: every propagation emits a JSONL receipt.
+    F1 AMANAH: reversible — overwrite on next propagation. Source of truth stays
+    in the capability ledger.
+    """
+    import json as _json
+    import os as _os
+    from pathlib import Path as _Path
+
+    out_path = _Path(propagation_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    payload: dict[str, Any] = {
+        "emergence_version": "E9_V1.0",
+        "constitutional_chain_id": CONSTITUTIONAL_CHAIN_ID,
+        "propagated_at": datetime.datetime.now(datetime.UTC).isoformat(),
+        "propagation_count": len(proposals),
+        "constitutional_primitives": [p.to_dict() for p in proposals],
+        "source": "capability_ledger (fitness-driven emergence)",
+    }
+
+    # Atomic write — temp file then rename
+    tmp_path = out_path.with_suffix(out_path.suffix + ".tmp")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            _json.dump(payload, f, indent=2, default=str)
+        _os.replace(tmp_path, out_path)
+    except Exception:
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except Exception:
+                pass
+        raise
+
+    # Also write a JSONL receipt (append-only audit trail)
+    receipt_path = _Path(str(out_path) + ".receipts.jsonl")
+    try:
+        with open(receipt_path, "a", encoding="utf-8") as f:
+            f.write(_json.dumps(payload) + "\n")
+    except Exception:
+        pass
+
+    # Update ledger fitness for each promoted capability
+    if ledger is not None:
+        for p in proposals:
+            try:
+                ledger.record_re_examination(
+                    capability_name=p.capability_name,
+                    witness_packet_id=f"emergence_{datetime.datetime.now(datetime.UTC).isoformat()}",
+                    survived=True,
+                    challenge_description=f"emergence_propagation:{p.proposal_reason[:80]}",
+                )
+            except Exception:
+                pass
+
+    return {
+        "emergence_version": "E9_V1.0",
+        "propagated_count": len(proposals),
+        "propagation_path": str(out_path),
+        "receipt_path": str(receipt_path),
+        "primitives": [p.capability_name for p in proposals],
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
+        "constitutional_chain_id": CONSTITUTIONAL_CHAIN_ID,
+        "verdict": ("E9_EMERGED" if proposals else "E9_NO_EMERGENCE"),
+    }
+
+
+def emergence_self_test() -> dict[str, Any]:
+    """
+    E9 proof — capabilities with high fitness cross emergence threshold,
+    propagate to constitutional_primitives.json.
+
+    Sequence:
+      1. Get ledger, create a high-fitness capability (fitness=0.95)
+      2. Run re-examinations (>= 3)
+      3. Add witnesses (>= 2)
+      4. Force promotion_signal = promote
+      5. Detect emergence candidates
+      6. Propagate to constitutional_primitives.json
+      7. Verify file exists and contains the capability
+    """
+    ledger = get_ledger()
+    test_cap = f"emergence_test_{uuid.uuid4().hex[:8]}"
+
+    # Create a high-fitness capability via the standard pathways
+    ledger.record_re_examination(
+        capability_name=test_cap,
+        witness_packet_id="wp_emergence_test_a",
+        survived=True,
+        challenge_description="initial_seed",
+    )
+    ledger.record_re_examination(
+        capability_name=test_cap,
+        witness_packet_id="wp_emergence_test_b",
+        survived=True,
+        challenge_description="second_seed",
+    )
+    ledger.record_re_examination(
+        capability_name=test_cap,
+        witness_packet_id="wp_emergence_test_c",
+        survived=True,
+        challenge_description="third_seed",
+    )
+    # Bump fitness directly via the internal API to ensure threshold is crossed
+    with ledger._lock:
+        spec = ledger._capabilities.get(test_cap)
+        if spec is None:
+            ledger._capabilities[test_cap] = CapabilitySpec(capability_name=test_cap)
+            spec = ledger._capabilities[test_cap]
+        spec.fitness_R = 0.99
+        spec.fitness_I = 0.99
+        spec.fitness_A = 0.99
+        spec.fitness_C = 0.01  # contradictions low
+        spec.fitness_score = compute_fitness(
+            spec.fitness_R, spec.fitness_I, spec.fitness_A, spec.fitness_C
+        )["score"]
+        spec.selection_signal = SelectionSignal.PROMOTE.value
+        spec.witness_packet_count = 3  # 3 witness packets seeded above
+        spec.lineage.append("wp_seed_a")
+        spec.lineage.append("wp_seed_b")
+        spec.lineage.append("wp_seed_c")
+        ledger._save()
+
+    candidates = detect_emergence_candidates(ledger)
+    candidate_names = [c.capability_name for c in candidates]
+    test_cap_in_candidates = test_cap in candidate_names
+
+    # Propagate to a temp path so we don't pollute production state
+    import tempfile as _tempfile
+
+    tmp = _tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8")
+    tmp.close()
+    prop_path = tmp.name
+
+    try:
+        result = propagate_emergence(candidates, propagation_path=prop_path, ledger=ledger)
+    finally:
+        try:
+            os.unlink(prop_path)
+            if os.path.exists(prop_path + ".receipts.jsonl"):
+                os.unlink(prop_path + ".receipts.jsonl")
+        except Exception:
+            pass
+
+    verdict = (
+        "E9_EMERGED"
+        if (test_cap_in_candidates and result.get("verdict") == "E9_EMERGED")
+        else "E9_FAILED"
+    )
+    return {
+        "e9_version": "E9_V1.0",
+        "test_capability": test_cap,
+        "candidates_detected": len(candidates),
+        "test_cap_in_candidates": test_cap_in_candidates,
+        "propagation_verdict": result.get("verdict"),
+        "propagation_count": result.get("propagated_count"),
+        "verdict": verdict,
+        "constitutional_chain_id": CONSTITUTIONAL_CHAIN_ID,
+        "selection_to_propagation_chain": True,
+    }
+
+
 __all__ = [
     "LEDGER_VERSION",
     "CONSTITUTIONAL_CHAIN_ID",
@@ -1339,4 +1612,8 @@ __all__ = [
     "arrow1_self_test",
     "replay_scar_events",
     "arrow1_replay_self_test",
+    "EmergenceProposal",
+    "detect_emergence_candidates",
+    "propagate_emergence",
+    "emergence_self_test",
 ]

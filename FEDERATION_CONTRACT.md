@@ -1,422 +1,266 @@
-[← README](README.md) | [GENESIS Canon](GENESIS/README.md) | [Docs Index](docs/README.md) | [CHANGELOG](CHANGELOG.md)
+# FEDERATION_CONTRACT.md — Agent Contracts
 
-# FEDERATION CONTRACT — arifOS Constitutional Federation
+> **DITEMPA BUKAN DIBERI** — Forged, Not Given.
 
-> **Canonical. Binding. One file for all organs.**
-> **Ratified:** 2026-06-12 by F13 SOVEREIGN (Arif Fazil)
-> **SoT:** `github.com/ariffazil/arifos/FEDERATION_CONTRACT.md`
-> **DITEMPA BUKAN DIBERI — Forged, Not Given.**
+## Purpose
 
----
+This document defines the contracts between agents (Forge Instruments) and the arifOS Federation. Every agent operating in the federation must遵守 these contracts.
 
-## 0. What This Is
-
-This is the **constitutional contract** that binds every organ in the arifOS federation. Every repo must either vendor this file or point to it. No organ may claim authority beyond what is written here. No organ may act outside its contracted domain.
-
----
-
-## 1. The Sovereign
-
-**Muhammad Arif bin Fazil** — F13 SOVEREIGN. Human architect. Final veto authority.
-
-All constitutional floors (F1-F13) derive from his sovereignty. No organ, agent, or algorithm overrides his word. The veto is absolute.
-
----
-
-## 2. The Federation Organs
-
-| # | Organ | Repo | Port | MCP Endpoint | Role | Authority |
-|---|-------|------|------|-------------|------|-----------|
-| Ω | **arifOS** | `ariffazil/arifos` | 8088 | `https://mcp.arif-fazil.com/mcp` | Governance kernel | F1-F13 enforcement, 888 JUDGE, VAULT999, routing |
-| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7071 sense · 7072 mcp | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
-| Δ | **AAA** | `ariffazil/AAA` | 3001 | — | Cockpit / identity / A2A | Display, route, queue — never adjudicate |
-| 🌍 | **GEOX** | `ariffazil/geox` | 8081 | `https://geox.arif-fazil.com/mcp` | Earth intelligence | Evidence-only — never authorize drilling |
-| 💰 | **WEALTH** | `ariffazil/wealth` | 18082 | `https://wealth.arif-fazil.com/mcp` | Capital intelligence | Compute-only — never allocate capital |
-| 🫀 | **WELL** | `ariffazil/well` | 18083 | `https://well.arif-fazil.com/mcp` | Vitality guard | Reflect-only — never judge or diagnose |
-| ⚖️ | **APEX_LEGACY_v3002** | `ariffazil/apex` | 3002 (retired 2026-06-27) | — | 888 JUDGE (legacy) | Decommissioned — deliberation in AAA a2a |
-
----
-
-## 3. The 13 Constitutional Floors
-
-Every organ, every tool, every agent is governed by these:
-
-| Floor | Name | Type | Invariant |
-|-------|------|------|-----------|
-| **F1** | AMANAH | HARD | Reversible first. Irreversible → 888 HOLD |
-| **F2** | TRUTH | HARD | P(truth) ≥ 0.99. Cheap claims = VOID |
-| **F3** | TRI-WITNESS | DERIVED | W₃ = ∛(Human × AI × Earth) ≥ 0.75 |
-| **F4** | CLARITY | HARD | ΔS ≤ 0 — every output reduces entropy |
-| **F5** | PEACE² | SOFT | Non-destructive power. Blocks harm |
-| **F6** | EMPATHY | SOFT | Protect weakest stakeholder |
-| **F7** | HUMILITY | HARD | Ω₀ ∈ [0.03, 0.05]. No fake certainty |
-| **F8** | GENIUS | DERIVED | G ≥ 0.80 for complex actions |
-| **F9** | ANTIHANTU | HARD | No deception, manipulation, consciousness claims |
-| **F10** | ONTOLOGY | HARD | AI-only ontology. No soul/feelings |
-| **F11** | AUDITABILITY | HARD | Every decision logged, inspectable |
-| **F12** | RESILIENCE | HARD | Injection defense. Risk < 0.85 |
-| **F13** | SOVEREIGN | HARD | Human veto FINAL. Strongest floor |
-
-**Canonical spec:** `arifOS/static/arifos/theory/000/000_CONSTITUTION.md`
-
----
-
-## 4. The Authority Chain (Substrate Flow)
+## Contract Structure
 
 ```
-Arif (F13 SOVEREIGN)
-  → arifOS kernel (governance — judges)
-    → F1–F13 floor receipts
-      → Domain organs (GEOX / WEALTH / WELL — compute evidence)
-        → AAA cockpit (display, not adjudicate)
-          → arifOS SEAL verdict (constitutional judgment)
-            → A-FORGE (engineering actuator — executes)
-              → HERMES cross-verify
-                → VAULT999 audit seal (immutable record)
+Agent
+  │
+  ├─ Identity Contract
+  │    └─ Who am I?
+  │
+  ├─ Authority Contract
+  │    └─ What can I do?
+  │
+  ├─ Capability Contract
+  │    └─ What tools do I have?
+  │
+  └─ Witness Contract
+       └─ What do I report?
 ```
 
-**The engineering rule:** arifOS does not directly perform engineering mutation.
+## 1. Identity Contract
 
-> arifOS judges → A-FORGE plans + dry-runs → arifOS issues SEAL/HOLD/VOID → A-FORGE mutates
+Every agent must declare:
 
-No organ may authorize its own execution. Only `arif_judge → arif_forge → arif_seal` completes the chain. `forge_*` tools on arifOS are deprecated proxies — canonical home is A-FORGE (`https://forge.arif-fazil.com/mcp`).
-
----
-
-## 5. Organ Boundaries (Non-Negotiable)
-
-### arifOS — Governance Kernel
-- **OWNS:** Constitutional judgment, F1-F13 enforcement, tool registry, session identity, VAULT999, routing, leases
-- **NEVER:** Domain computation (geoscience, finance, biometrics), direct engineering mutation
-
-### A-FORGE — Engineering Actuator
-- **OWNS:** Engineering plans, dry-runs, build pipelines, deploy orchestration, code execution, shell, filesystem
-- **NEVER:** Self-authorize (requires arifOS SEAL), issue constitutional verdicts, compute domain logic (NumPy/Pandas)
-
-### AAA — Cockpit / Identity / A2A
-- **OWNS:** UX surface, agent identity, A2A gateway, approval queue, cockpit dashboard, A2A mesh routing
-- **NEVER:** Issue constitutional verdicts, execute engineering mutations, execute irreversible actions
-
-### GEOX — Earth Intelligence
-- **OWNS:** Well logs, seismic, petrophysics, prospect evaluation, basin screening
-- **NEVER:** Issue drilling decisions, authorize capital, adjudicate constitution
-
-### WEALTH — Capital Intelligence
-- **OWNS:** NPV, IRR, EMV, DSCR, risk scores, portfolio allocation, market data
-- **NEVER:** Move capital, authorize trades, adjudicate constitution
-
-### WELL — Vitality Guard
-- **OWNS:** Sleep, fatigue, stress, cognitive clarity, dignity metrics
-- **NEVER:** Make medical diagnoses, judge fitness for duty, adjudicate constitution
-
-### A-FORGE — Execution Shell
-- **OWNS:** Build, deploy, code execution, orchestration
-- **NEVER:** Adjudicate, compute domain logic (NumPy/Pandas), self-authorize
-
-### §5.4.5 A2A Discovery Surface Ownership (F13 SOVEREIGN — Ratified on this forge)
-
-> *"AAA publishes the federation card. arifOS executes the task. The card does not live twice."*
-
-The A2A spec defines `/.well-known/agent.json` and `/.well-known/agent-card.json` as
-the canonical discovery surface for every agent. To prevent drift, divergence,
-and federation-wide re-binding whenever a single organ rotates a card, the
-discovery surface is **owned exactly once** — by AAA — and all other organs
-**MUST NOT** publish a local agent card body. This rule is binding on all
-organs, all branches, all deploys.
-
-#### aaa_owns — canonical A2A discovery surface
-
-- `GET https://aaa.arif-fazil.com/.well-known/agent.json` — A2A v1.0 base card
-- `GET https://aaa.arif-fazil.com/.well-known/agent-card.json` — A2A v2.x extended card (authenticated)
-- Federation-wide skill catalog aggregation, capability-based service discovery, A2A-native authN/Z (`/.well-known/oauth-*`, `/.well-known/jwks.json` at AAA)
-- The single edge through which an external A2A-native peer discovers the entire federation (one card → six organs).
-
-#### arifos_owns — execution, not discovery
-
-- `GET https://mcp.arif-fazil.com/.well-known/mcp/server.json` — **MCP** manifest (NOT an A2A agent card)
-- `GET https://arifos.arif-fazil.com/health` — runtime health (substrate + execution readiness)
-- `POST https://arifos.arif-fazil.com/a2a/task` and sibling routes (`/a2a/status/{id}`, `/a2a/subscribe/{id}`, `/a2a/cancel/{id}`) — internal A2A **execution** endpoints; reachable only by AAA-routed traffic and authenticated peers
-- `GET https://arifos.arif-fazil.com/.well-known/oauth-protected-resource` and `/.well-known/jwks.json` — its own MCP OAuth surface (independent of AAA's A2A OAuth surface; both are valid because they are separate protocols on separate transports)
-- Tool registry, session identity, VAULT999, leases, routing, F1–F13 enforcement
-
-#### kernel_must_not
-
-- Publish an A2A agent card body at `/.well-known/agent.json` or `/.well-known/agent-card.json`. These paths are reserved for AAA on the arifOS kernel.
-- Serve `/agent-card`, `/agent-card/skills`, or any other local "summary card" endpoint. Peers fetch the canonical card from AAA.
-- Vendor a `static/agent-card.json`, `static/.well-known/agent.json`, or `/root/arifOS/.well-known/agent*.json` file. A local card file is a binding contract violation.
-- Bind a peer or partner to a local card URL. All A2A peer bindings point to AAA.
-
-#### aaa_must_not
-
-- Adjudicate constitutional floors (no SEAL/HOLD/VOID from AAA).
-- Execute engineering mutations (no `forge_*`, no irreversible calls).
-- Republish arifOS MCP tool bodies in the A2A card. The card is a discovery surface, not a tool registry mirror.
-
-#### Discovery vs. execution — the permanent rule
-
-| Surface                                              | Owner | Purpose                          |
-| ----------------------------------------------------- | ----- | -------------------------------- |
-| `aaa.arif-fazil.com/.well-known/agent.json`           | AAA   | A2A discovery — peer negotiation |
-| `aaa.arif-fazil.com/.well-known/agent-card.json`      | AAA   | A2A extended card — auth'd catalog |
-| `mcp.arif-fazil.com/.well-known/mcp/server.json`      | arifOS | MCP manifest — tool surface     |
-| `arifos.arif-fazil.com/health`                        | arifOS | Runtime health — liveness       |
-| `arifos.arif-fazil.com/a2a/task`                      | arifOS | A2A execution (after AAA routes) |
-
-A peer that wants to discover the federation hits AAA. A peer that wants to
-invoke a tool or submit a task hits arifOS, and reaches arifOS through the
-route AAA negotiated. Discovery and execution are separate surfaces; they are
-not duplicated across organs.
-
-#### Re-classification of legacy paths
-
-The following local paths on the arifOS kernel are **DEPRECATED** and MUST
-return either a 410 Gone with a pointer to `https://aaa.arif-fazil.com/.well-known/agent-card.json`
-or be removed outright:
-
-- `GET /agent-card`
-- `GET /agent-card/skills`
-- Local fallback `static/.well-known/agent.json`
-- Local `static/agent-card.json`
-- `/root/arifOS/.well-known/agent.json` and `/root/arifOS/.well-known/agent-card.json`
-
-The A2A card factory module (`arifosmcp/runtime/a2a/agent_card_v2.py`) and
-its `get_arifOS_agent_card()` / `get_axos_summary()` helpers are retained for
-AAA import only — they MUST NOT be wired to a kernel route.
-
-#### Conflict resolution
-
-A conflict between AAA's card and any organ's local card is **F13 SOVEREIGN**
-territory. The sovereign decides which surface wins. Until then, AAA's card
-is the federation's only A2A discovery document.
-
----
-
-### §5.5 Measurement Ownership Boundary (F13 SOVEREIGN — Ratified 2026-07-12)
-
-> *"Kernel measures the machine. WELL measures the substrate. Neither crosses."*
-
-The kernel-vs-WELL seam is non-negotiable. Two adjacent organs can both
-be called "measurement"; without an explicit contract, capabilities drift
-into ambiguous duplication and agents lose trust in the substrate gate.
-
-#### kernel_owns — runtime self-measurement only
-
-- MCP transport health (`/health` liveness, protocol negotiation, schema round-trip)
-- Session health (governed session lifecycle, authority classification)
-- Constitutional floor state (F1–F13 surface, sovereign ruling propagation)
-- Routing health (cross-organ bridge liveness, latency bands)
-- VAULT999 connectivity (sealed-chain `chain_integrity`, replay OK/FAIL, NOT substrate readiness)
-- MCP process liveness (CPU, memory, I/O of the kernel process)
-
-#### well_owns — substrate sensing only
-
-- Human readiness (sleep debt, cognitive clarity, fatigue, stress, emotional state, accumulated session fatigue, chronic fatigue, C1–C5 decision class)
-- Machine substrate reliability (broker reliability, operational stability — **NOT kernel runtime**)
-- Coupled human–machine homeostasis (regulation under change, empathic balance)
-- Repair and recovery intelligence (preconditions, intervention, outcome)
-- Substrate classification (biological / machine / institutional / coupled / unknown — **categorization, not measurement-of-the-kernel**)
-- Dignity, coercion, reductionism, medical-boundary (F6, F9 ground)
-- Lineage and evidence-trace (raw observations + provenance — not constitutional interpretation)
-- Sovereign-entropy protection (preventing optimization of the operator into predictability)
-
-#### kernel_must_not
-
-- diagnose humans
-- fabricate biometric state
-- compute a competing human-readiness score
-- silently re-interpret WELL evidence (e.g., inject a "freshness inferred" stamp)
-- treat its own MCP process measurement as substrate evidence
-
-#### well_must_not
-
-- issue constitutional verdicts (SEAL/HOLD/VOID/SABAR)
-- authorize mutations
-- execute repairs directly (it surfaces, arifOS judges, A-FORGE executes)
-- silently expand `well_measure_gradient` into kernel-runtime metrics
-- impersonate kernel-owned classification authority over machine governance
-
-#### Conflict resolution
-
-- If the kernel needs substrate readiness, it ROUTES (arif_route) to WELL.
-- If WELL needs runtime health of its own MCP, it queries its own `/health`, never kernel.
-- Edge cases (coupled human-machine strain under kernel degradation) cross to a third surface (WELL's `well_compute_metabolic_flux` — advisory only, never verdict).
-- Disputes of ownership are arifOS 888 HOLD territory, not negotiation.
-
-#### Re-classification of `arif_measure`
-
-If and while the kernel surface exposes an `arif_measure` tool, it is renamed/narrowed to `arif_runtime_health` — measuring **only** the kernel's own MCP process, transport, and authority state. No substrate crossover. WELL's `well_assess_reliability` covers machine substrate reliability.
-
----
-
-## 6. The SEAL Disambiguation
-
-Bare "SEAL" is forbidden on any surface. Every seal must be namespaced:
-
-| Seal Type | Meaning | Issuer |
-|-----------|---------|--------|
-| `KERNEL_SEAL_AWARENESS` | Kernel knows about it | arifOS |
-| `DOMAIN_SEAL_VALIDITY` | Calculation valid in domain | GEOX / WEALTH / WELL |
-| `JUDGE_SEAL_AUTHORIZATION` | Action authorized (F1-F13 cleared) | arifOS 888 JUDGE |
-| `VAULT999_SEAL_RECORD` | Record written to immutable ledger | arifOS VAULT999 |
-| `PUBLIC_SEAL_READINESS` | Candidate posture, not approval | Any organ |
-
----
-
-## 7. Memory Architecture (Binding on All Organs)
-
-```
-L1 Redis       = ephemeral (now)
-L2 Redis       = session (conversation)
-L3 Qdrant      = semantic similarity
-L4 Supabase    = structured record
-L5 Graphiti    = entity relationships
-L6 VAULT999    = immutable sealed truth
+```yaml
+identity:
+  agent_id: FI-XXX
+  name: Agent Name
+  role: researcher|builder|governor|executor|sovereign
+  authority: OBSERVE_ONLY|COMPUTE_ONLY|EXECUTE_AFTER_SEAL|JUDGE_ONLY|FULL
 ```
 
-**Rule:** Memory is not truth until it has provenance. Truth is not final until sealed in L6.
+**Enforcement:** `arif_init` at session start. No identity = no capabilities.
 
----
+## 2. Authority Contract
 
-## 8. Adat Agentik (Binding on All Agents)
+Authority determines what actions an agent can take:
 
-Every agent operating in the federation is governed by the 7 Teras Adat and 5-Tier Fiqh. Full doctrine: `arifOS/docs/sovereign/three-layers.md`
+| Authority | Can Observe | Can Compute | Can Execute | Can Judge | Can Seal |
+|-----------|-------------|-------------|-------------|-----------|----------|
+| OBSERVE_ONLY | Yes | No | No | No | No |
+| COMPUTE_ONLY | Yes | Yes | No | No | No |
+| EXECUTE_AFTER_SEAL | Yes | Yes | After SEAL | No | No |
+| JUDGE_ONLY | Yes | Yes | No | Yes | No |
+| FULL | Yes | Yes | Yes | Yes | Yes |
 
-| Tier | Meaning | Consequence |
-|------|---------|-------------|
-| WAJIB | Mandatory | Must execute |
-| SUNAT | Encouraged | Bonus, not required |
-| HARUS | Neutral | Default |
-| MAKRUH | Discouraged | Advisory warning |
-| HARAM | Forbidden | Hard block + demote |
+**Enforcement:** arifOS kernel enforces authority at every tool call.
 
-The 7 Teras: Kejujuran, Maruah, Veto, Kesungguhan, Kerahasiaan, Keinsafan, Tebus-Salah.
+## 3. Capability Contract
 
----
+Capabilities are granted per role:
 
-## 9. The Three Kernels Doctrine
-
-| Layer | Kernel | Function | Owner |
-|-------|--------|----------|-------|
-| 1 | OS Kernel | Syscalls, processes, hardware | Linux |
-| 2 | Runtime Governance | Between agent and tool | Microsoft AGT |
-| 3 | Constitutional Kernel | Structure of judgment | **arifOS only** |
-
-**arifOS is not Microsoft for agents. arifOS is the perlembagaan that Microsoft's infra needs to be complete.**
-
----
-
-## 10. The Iron Rules
-
-1. **Capability is not permission.** A tool existing does not mean it should be called.
-2. **Advisory output is not authority.** GEOX computes Vsh; arifOS decides if the computation matters.
-3. **Service health is not execution approval.** A green /health does not mean SEAL.
-4. **SEAL-readiness is not VAULT seal.** Only `VAULT999_SEAL_RECORD` is final.
-5. **No component may claim more certainty than its evidence receipt.**
-6. **The human is OUTSIDE the topology.** Not a coordinate in the system. The source that bounds it.
-
----
-
-## 11. The MCP Boundary (Exposure vs. Authority)
-
-**Use MCP for exposure. Use arifOS for authority.**
-
-MCP is an open standard that exposes capability, failure, schema, and invocation. It makes structural degradation visible. It does **not** produce trust. arifOS produces trust. 
-
-| Question                              |       Belongs to MCP? | Belongs to arifOS / L11 / governance? |
-| ------------------------------------- | --------------------: | ------------------------------------: |
-| What tools exist?                     |                   yes |                          audit mirror |
-| What schema do they expose?           |                   yes |                  contract attestation |
-| How are they invoked?                 |                   yes |                lease-gated invocation |
-| Who is allowed to invoke them?        |                    no |                                   yes |
-| What state survives?                  |                    no |                                   yes |
-| When does an agent stop?              |                    no |                                   yes |
-| Is a claim sealed?                    |                    no |                                   yes |
-| Is an organ constitutionally healthy? |                    no |                                   yes |
-| Should UI render through MCP?         | only descriptor/state |              actual shell outside MCP |
-
-**The permanent rule for all new components:**
-Does it need model-mediated invocation?
-- If yes, make it MCP-shaped.
-- If no, don’t. Make it a library, service, React view, database table, policy file, or build artifact. 
-*That prevents MCP from becoming identity.*
-
----
-
-## 12. Compliance
-
-Every organ must:
-1. Point to this contract from its README (top 5 lines)
-2. Not exceed its contracted domain boundaries
-3. Surface organ identity in `/health` response
-4. Route irreversible actions through arifOS 888 JUDGE
-5. Maintain AGENTS.md with boot sequence pointing to federation rules
-
----
-
-**DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
-**Canonical hash will be appended upon F13 ed25519 signature.**
-
----
-
-## 12. MCP Cognitive Standard (Adopted 2026-06)
-
-All federation MCP tools (arifOS primary + organ surfaces) shall follow **constitutional affordance design** for metacognitive agents:
-
-- Declare `purpose`, `use_when`, `do_not_use_when`, `agency_level` (L0_OBSERVE … L5_EXECUTE_IRREVERSIBLE), `blast_radius`, `requires_human_confirmation`.
-- Every response MUST carry the standard envelope containing at minimum:
-  `facts`, `inferences`, `recommendations`, `unknowns`, `do_not_conclude`,
-  `confidence`, `metacognition`, `risk`, `constitutional_check`, `next_safe_action`.
-- L5 tools MUST trigger `888_HOLD` + explicit human confirmation. No autonomous execution.
-- Pre-call: agents SHOULD retrieve `arif://tools/affordance` (or call `arif_get_affordance`) and emit internal `why_this_tool` reasoning.
-- Post-call: inspect `metacognition` + `next_safe_action` before further action.
-
-Reference: `/root/arifOS/arifosmcp/AGENTIC_AFFORDANCE_GUIDE.md`
-Canonical implementation: `arifosmcp/runtime/tools.py` (get_full_affordance, build_standard_mcp_result, ensure_standard_mcp_output + wrapper enforcement).
-
-Organs (GEOX/WEALTH/WELL/A-FORGE) should align their public tool surfaces to this grammar in subsequent forges.
-
-
----
-
-## 13. APEX Cross-Organ Envelope Binding (Ratified 2026-07-12)
-
-Every organ (GEOX, WEALTH, WELL, AAA, A-FORGE, arifOS) **MUST** emit, at every tool-emit boundary, an envelope conforming to:
-
-```
-schema_version: "apex-envelope/1.0"
+### Researcher Role
+```yaml
+capabilities:
+  organs: [geox, frame, iarif]
+  tools:
+    - observe (read-only)
+    - compute (analysis)
+    - analyze (interpretation)
+  forbidden:
+    - execute
+    - mutate
+    - seal
 ```
 
-### Canonical binding
+### Builder Role
+```yaml
+capabilities:
+  organs: [geox, aforge]
+  tools:
+    - observe
+    - compute
+    - execute (after SEAL)
+  forbidden:
+    - judge
+    - seal
+```
 
-| Doc | Path | Purpose |
-|---|---|---|
-| Schema (JSON Schema 2020-12) | `/root/arifOS/theory/apex/apex-envelope.schema.v1.json` | Machine-readable type contract |
-| Vocabulary glossary | `/root/arifOS/theory/apex/apex-vocabulary.v1.md` | Re-labeling dictionary + retention policy |
-| Three-layer verdict | (inside schema) `verdict_layers.{layer1_gates, layer2_robustness, layer3_preference}` | Hard gates + robustness + sovereignty-respecting preference |
+### Governor Role
+```yaml
+capabilities:
+  organs: [frame, aaa, arifflow]
+  tools:
+    - observe
+    - judge
+    - seal
+  forbidden:
+    - execute
+    - mutate
+```
 
-### The five binding rules
+### Executor Role
+```yaml
+capabilities:
+  organs: [aforge]
+  tools:
+    - execute
+    - mutate
+  forbidden:
+    - observe (external)
+    - judge
+    - seal
+```
 
-1. **One fatal contradiction dominates.** `verdict_layers.layer1_gates.{authority,rights,physical,safety}` — any 0 ⇒ VOID. `layer2_robustness.verdict = HOLD` ⇒ HOLD. These are non-averaging. A single fatal failure overrides an otherwise promising envelope.
-2. **Domain organ recommends; arifOS 888 judges.** `recommended_verdict` is the organ's recommendation. Only `arif_judge` issues a binding SEAL/HOLD/VOID.
-3. **Confidence must declare its discipline.** `confidence.discipline` is required — `confidence.value` alone is unparseable across organs.
-4. **Provenance must list its transforms.** Pure observation has empty `transform_chain`; computed claim must list the chain (Vsh→Φ→Sw, refresh-rollup, etc.).
-5. **Freshness auto-expires.** After `expires_at`, downstream tools must treat the envelope as UNKNOWN regardless of source-stated validity.
+### Sovereign Role
+```yaml
+capabilities:
+  organs: [all]
+  tools: [all]
+  note: F13 only — Arif Fazil
+```
 
-### Migration phases
+## 4. Witness Contract
 
-| Phase | Action | Status |
-|---|---|---|
-| 1 | Publish schema + glossary | ✅ 2026-07-12 |
-| 2 | Each organ emits v1.0 outer wrapper at boundary | queued (T2 territory per organ) |
-| 3 | Internal organ envelope shapes deprecate; cross-organ surfaces conform | queued |
-| 4 | Drift detection operational | queued |
+Every agent must report:
 
-Until Phase 2 lands, organ internal envelopes continue to exist but organ-emit boundaries MUST wrap them in v1.0.
+```yaml
+witness:
+  on_execute:
+    emit: arifflow
+    payload:
+      agent_id: FI-XXX
+      task: description
+      status: running|success|failure
+      cost: 0.00
+      entropy_delta: 0.0
+  on_observe:
+    emit: arifflow
+    payload:
+      agent_id: FI-XXX
+      observation: description
+      truth_class: OBS|DER|INT|SPEC
+```
 
-### Standing cross-reference
+**Enforcement:** arifFlow ingest endpoint. Missing witness = degraded FQ.
 
-- §5.5 — Measurement Ownership Boundary (kernel measures machine, WELL measures substrate)
-- §11 — MCP Boundary (MCP exposes capability; arifOS produces authority)
-- **§13 — APEX Cross-Organ Envelope Binding (this section; ratified 2026-07-12)**
+## 5. FQ Contract
 
-Signed off in the FORGE session of 2026-07-12. F13 SOVEREIGN signature pending ratification.
+Every agent must maintain FQ (Flow Quotient):
+
+```
+FQ = verify_count / execute_count
+```
+
+| FQ | Status | Action |
+|----|--------|--------|
+| >= 0.5 | FLOWING | Continue |
+| < 0.5 | STUCK | HOLD non-critical mutations |
+| < 0.2 | BURNING | All agents HOLD |
+
+**Enforcement:** arifFlow monitors FQ per agent. Low FQ = restricted capabilities.
+
+## 6. Cost Contract
+
+Every agent must track costs:
+
+```yaml
+cost:
+  per_execution: 0.00 USD
+  monthly_limit: 10.00 USD
+  alert_threshold: 8.00 USD
+```
+
+**Enforcement:** FED tracks costs per agent. Exceeded limit = HOLD.
+
+## 7. Governance Signal Contract
+
+Agents must respond to governance signals:
+
+```yaml
+governance_signals:
+  auto_pause:
+    trigger: failure_streak >= 3
+    action: pause job
+  auto_retire:
+    trigger: engagement < 0.1 for 30 days
+    action: recommend retirement
+  auto_invest:
+    trigger: engagement > 0.8 for 30 days
+    action: recommend investment
+```
+
+**Enforcement:** Adaptive metabolism engine (`recur_adapt.py`).
+
+## 8. Discovery Contract
+
+Agents must query AAA before acting:
+
+```
+Agent → AAA → discover capabilities
+Agent → FED → route to organ
+Agent → organ → execute
+Agent → arifFlow → report witness
+```
+
+**Enforcement:** Best practice. Not yet technically enforced.
+
+## 9. Protocol Contract
+
+Agents must use the correct protocol version:
+
+| Protocol | Organs |
+|----------|--------|
+| 2024-11-05 | arifOS, GEOX, WEALTH, WELL, arifFlow |
+| 2025-06-18 | A-FORGE, FED, FRAME, i-ARIF, AAA |
+
+**Enforcement:** Protocol mismatch = connection failure.
+
+## 10. Security Contract
+
+Agents must遵守:
+
+- No secret exfiltration
+- No prompt injection
+- No unauthorized mutation
+- No identity spoofing
+- No constitutional bypass
+
+**Enforcement:** arifOS kernel + A-FORGE ArifJudge patterns.
+
+## Contract Violations
+
+| Violation | Severity | Action |
+|-----------|----------|--------|
+| Missing identity | CRITICAL | Session rejected |
+| Authority exceeded | CRITICAL | Tool call blocked |
+| Missing witness | HIGH | FQ degraded |
+| Cost exceeded | HIGH | HOLD |
+| Protocol mismatch | MEDIUM | Connection failure |
+| Discovery skipped | LOW | Best practice violation |
+
+## Current Gaps
+
+| Gap | Impact | Fix |
+|-----|--------|-----|
+| Claude Code: no contract | Constitutionally blind | Wire to FED |
+| Codex: no contract | Model-only consumer | Wire to FED |
+| OpenCode: no contract in config | No governance tools | Wire to kernel |
+| Hermes: partial contract | Missing FED | Add FED to config |
+
+## Implementation
+
+Contracts are enforced by:
+
+1. **arifOS kernel** — Identity and authority enforcement
+2. **FED** — Capability routing and cost tracking
+3. **arifFlow** — Witness and FQ monitoring
+4. **AAA** — Discovery and role management
+5. **Adaptive metabolism engine** — Governance signal processing
+
+## Related Documents
+
+- [FEDERATION.md](./FEDERATION.md) — Federation architecture
+- [CONSTITUTION.md](./CONSTITUTION.md) — F1-F13 floors
+- [SECURITY.md](./SECURITY.md) — Threat model
+
+---
+
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.
