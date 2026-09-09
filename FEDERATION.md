@@ -1,83 +1,188 @@
-# Federation Contract v2 — arifOS
+# FEDERATION.md — arifOS Federation Architecture
 
-> SOT: 2026-07-25 | seal_seq: fed-phase-7-zen
-> Authority: F13 SOVEREIGN — Muhammad Arif bin Fazil
-> Canonical location: /root/FEDERATION_CONTRACT.md
-> role: ROOT
-> layer: L1
-> mcp: arif_* — 6 public tools via https://arifos.arif-fazil.com/mcp
+> **DITEMPA BUKAN DIBERI** — Forged, Not Given.
 
----
+## Overview
 
-## 1. Federation Identity
-
-The **arifOS Federation** is a governed intelligence system comprising 7 core organs, 31 GitHub repositories, and a single sovereign (Arif, F13). It operates on a single VPS (72.62.71.199) with Cloudflare Tunnel + Caddy ingress.
-
-**Governing principle:** No organ may seal without arifOS. No organ may self-authorize mutation.
-
----
-
-## 2. Organs — Authority Boundaries
-
-| Organ | Role | Port | MCP Prefix | Permissions |
-|-------|------|------|-----------|-------------|
-| **arifOS** | Constitutional kernel | 8088 | `arif_*` | Judges, seals, routes. NEVER executes. |
-| **A-FORGE** | Execution shell | 7071/7072 | `forge_*` | Executes after SEAL. NEVER adjudicates. |
-| **AAA** | Cockpit + A2A | 3001 | — | Routes, displays. NEVER adjudicates. |
-| **GEOX** | Earth intelligence | 8081 | `geox_*` | Computes earth evidence. NEVER decides. |
-| **WEALTH** | Capital intelligence | 18082 | `capital_*` | Computes capital math. NEVER allocates. |
-| **WELL** | Vitality guard | 18083 | `well_*` | Reflects readiness. NEVER diagnoses. |
-| **HERMES** | Multi-modal bridge | Telegram | — | Routes signals. NEVER adjudicates. |
-
----
-
-## 3. Authority Chain
+The arifOS Federation is a constitutional multi-agent system where governance is separated from execution. Agents propose, the kernel judges, humans approve, and A-FORGE executes. Every action produces a receipt in VAULT999.
 
 ```
-Human Intent → arif_init (000) → arif_observe (111) → arif_think (333)
-→ arif_route (444) → [domain organ computes] → arif_judge (888)
-→ SEAL/HOLD/SABAR/VOID → arif_forge (777) → A-FORGE executes
-→ arif_seal (999) → VAULT999 records
+                    ARIF (F13 SOVEREIGN)
+                           │
+                           ▼
+                    Constitutional Kernel
+                         (:8088)
+                           │
+           ┌───────────────┼───────────────┐
+           │               │               │
+           ▼               ▼               ▼
+      Capability       Discovery        State
+        Plane           Plane           Plane
+           │               │               │
+           ▼               ▼               ▼
+         FED              AAA          arifFlow
+        (:7074)         (:3001)        (:7073)
+           │               │               │
+     ┌─────┴─────┐         │               │
+     │           │         │               │
+     ▼           ▼         ▼               ▼
+  Agents     Organs    Registry        Receipts
 ```
 
-No link may be skipped. No organ may self-authorize.
+## Three Planes
+
+### 1. Capability Plane (FED :7074)
+
+FED is the canonical MCP gateway. All agents connect to FED, and FED routes to organs.
+
+**Why FED as gateway:**
+- Single connection point for all agents
+- Dynamic routing based on intent
+- Provider management and fallback
+- Cost tracking per agent
+
+**Current state:** FED requires dual Accept headers (`application/json, text/event-stream`). Some agents don't send these.
+
+**Target state:**
+```
+Agent → FED → GEOX/WEALTH/WELL/A-FORGE/etc.
+```
+
+### 2. Discovery Plane (AAA :3001)
+
+AAA is the cockpit control plane. It exposes:
+
+- `resource://capabilities` — what tools exist
+- `resource://agents` — who can use them
+- `resource://mcp_servers` — where they live
+- `resource://roles` — what each role can see
+
+**All agents query AAA first** to discover what's available.
+
+### 3. State Plane (arifFlow :7073)
+
+arifFlow is the metabolic ledger daemon. It exposes:
+
+- `resource://receipts` — what happened
+- `resource://active_agents` — who's running
+- `resource://active_tasks` — what's being done
+- `resource://governance_signals` — what the system learned
+- `resource://federation_health` — overall health
+
+**All agents emit state to arifFlow.** This creates the witness layer.
+
+## Organs
+
+| Organ | Port | Role | Authority |
+|-------|------|------|-----------|
+| arifOS | :8088 | Governance | JUDGE_ONLY |
+| A-FORGE | :7071/:7072 | Execution | EXECUTE_AFTER_SEAL |
+| GEOX | :8081 | Spatial | COMPUTE_ONLY |
+| WEALTH | :18082 | Economic | COMPUTE_ONLY |
+| WELL | :18083 | Wellbeing | REFLECT_ONLY |
+| FRAME | :18085 | Witness | OBSERVE_ONLY |
+| i-ARIF | :18095 | Synthesis | COMPUTE_ONLY |
+| FED | :7074 | Gateway | ROUTING_ONLY |
+| AAA | :3001 | Discovery | DISPLAY_ONLY |
+| arifFlow | :7073 | State | METABOLIZE_ONLY |
+
+## Forge Instruments (Agents)
+
+| Agent | ID | Role | MCP Access |
+|-------|-----|------|------------|
+| OpenCode | FI-001 | Sovereign | Full (via FED) |
+| Claude Code | FI-002 | Researcher | NONE (gap) |
+| Qwen Code | FI-003 | Builder | Full (via HTTP) |
+| Codex | FI-005 | Executor | NONE (gap) |
+| Kimi Code | FI-008 | Builder | Full (via HTTP) |
+| Hermes | hermes-prime | Governor | Partial (missing FED) |
+
+## Role-Based Visibility
+
+Roles determine what organs an agent can see:
+
+| Role | Organs | Capabilities |
+|------|--------|--------------|
+| Researcher | GEOX, FRAME, i-ARIF | observe, compute, analyze |
+| Builder | GEOX, A-FORGE | observe, compute, execute |
+| Governor | FRAME, AAA, arifFlow | observe, judge, seal |
+| Executor | A-FORGE | execute, mutate |
+| Sovereign | All | All |
+
+## Constitutional Chain
+
+```
+Agent proposes
+      ↓
+arif_judge (:8088)
+      ↓
+┌─────┴─────┐
+│           │
+SEAL       HOLD
+│           │
+▼           ▼
+A-FORGE    Human
+executes   decides
+│           │
+▼           ▼
+Receipt    Decision
+in VAULT999 recorded
+```
+
+## Key Doctrines
+
+### Identity Before Action
+Every session starts with `arif_init` — binding actor identity before any operation.
+
+### Inventory Before Mutation
+Every mutation requires evidence. The agent must observe before it can act.
+
+### Executor Never Certifies
+A-FORGE executes. It never judges. The kernel judges. Separation of powers.
+
+### Witness Never Governs
+FRAME observes. It never decides. The kernel decides. Separation of powers.
+
+### Localhost Trust Model
+All services bind `127.0.0.1` with no authentication. UFW blocks external access. Within the machine, trust is implicit.
+
+## Gaps (Current)
+
+| Gap | Severity | Fix |
+|-----|----------|-----|
+| Claude Code has ZERO MCP | CRITICAL | Wire to FED |
+| Codex has ZERO MCP | CRITICAL | Wire to FED |
+| OpenCode has zero MCP in config | CRITICAL | Wire to kernel |
+| FED requires dual Accept headers | HIGH | Document or fix |
+| arifFlow REST only | HIGH | Use stdio bridge |
+| Hermes missing FED | MEDIUM | Add FED to config |
+
+## Protocol Versions
+
+| Protocol | Organs |
+|----------|--------|
+| 2024-11-05 | arifOS, GEOX, WEALTH, WELL, arifFlow |
+| 2025-06-18 | A-FORGE, FED, FRAME, i-ARIF, AAA |
+
+**Note:** Protocol upgrade (2024-11-05 to 2025-06-18) is deferred. Discovery debt > Protocol debt today.
+
+## Canonical Registry
+
+The single source of truth for all MCP servers is:
+
+```
+/root/AAA/registry/mcp-servers.yaml
+```
+
+All other configs are derived from this file.
+
+## Related Documents
+
+- [CONSTITUTION.md](./CONSTITUTION.md) — F1-F13 floors
+- [FEDERATION_CONTRACT.md](./FEDERATION_CONTRACT.md) — Agent contracts
+- [SECURITY.md](./SECURITY.md) — Threat model
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — Contribution guidelines
 
 ---
 
-## 4. Cross-Organ API Contracts
-
-### 4.1 MCP Transport
-- All organs expose MCP via `https://<organ>.arif-fazil.com/mcp`
-- Unified gateway: `https://mcp.arif-fazil.com/mcp`
-- Tool naming: organ prefix enforced (`arif_*`, `forge_*`, `geox_*`, `capital_*`, `well_*`)
-
-### 4.2 A2A Protocol (AAA :3001)
-- Agent discovery: `/.well-known/agent-card.json` on every organ
-- Agent cards registered in `AAA/registries/AAA_AGENTS_REGISTRY.json`
-- Protocol version: 1.0
-
-### 4.3 Health Standard
-- Every organ MUST expose `GET /health` returning JSON with at minimum: `status`, `identity_hash`, `federation_geometry`
-- Federation health sweep: `/root/Makefile` health target
-
-### 4.4 Secrets
-- Single source: `/root/.secrets/vault.env` (143 env vars)
-- Never hardcode, never commit, never paste in chat
-
-### 4.5 VAULT999
-- Append-only, hash-chained, at `/root/arifOS/VAULT999/outcomes.jsonl`
-- Write only via `arif_seal` (999)
-- Never edit, never rewrite
-
----
-
-## 5. CI/CD Standards
-
-- Every organ runs `gitleaks` secret scanning
-- Every organ has a CI badge in README
-- Every organ uses date-stamp tags (`vYYYY.MM.DD`)
-- Conventional commits with organ prefix: `[FORGE]`, `[ZEN]`, `[REPAIR]`, `[AUDIT]`
-
----
-
-*DITEMPA BUKAN DIBERI — This contract is forged from live state, not written from memory.*
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.
