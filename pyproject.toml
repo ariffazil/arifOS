@@ -8,33 +8,23 @@ version = "1!2026.8.2"
 #   Domain coverage: [geox] [wealth] [well] [aaa] [io] [search] [google] [db] [heavy] [observe]
 #   Floor alignment: canonical matrix 2026-06-19 across all organs
 # 2026.06.11 — previous release (arifosmcp on PyPI)
-description = "mcp-name: io.github.ariffazil/arifos | .ariffazil/arifos | arifOS v1!2026.7.26 — Constitutional AI Governance Kernel. 8 kernel ABI capabilities → 6 public tools (arif_verb_noun, generated from arifosmcp/abi/capability_registry.json), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport. Kernel substrate for AGI/ASI federation."
+description = "Open-source governance decision point for AI agent actions. Evaluates proposed actions against constitutional policy floors (F1-F13) and returns SEAL/HOLD/SABAR/VOID verdicts before execution. 8 MCP tools, append-only audit ledger (VAULT999), Streamable HTTP transport. Designed for regulated AI deployment."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 keywords = [
-    # Core Concepts
+    # Core
     "ai-governance",
     "ai-safety",
-    "constitutional-ai",
-    "ai-filter",
     "ai-guardrails",
-    # TEACH Framework
-    "truth-detection",
-    "empathy",
-    "reversibility",
-    "clarity",
-    "humility",
-    # v52.5 Features
-    "atlas-333",
-    "smart-routing",
-    "888-hold",
-    "crisis-detection",
+    "constitutional-ai",
+    "policy-engine",
     # Architecture
-    "trinity-architecture",
-    "agi-asi-apex",
-    "tri-witness",
+    "agent-governance",
+    "decision-point",
+    "audit-ledger",
+    "verdict-engine",
     # MCP Integration
     "mcp",
     "mcp-server",
@@ -42,31 +32,27 @@ keywords = [
     # Platforms
     "chatgpt",
     "claude",
-    "claude-desktop",
-    "cursor-ide",
-    "gemini",
+    "cursor",
     "llm",
     # Technical
-    "hallucination-prevention",
-    "immutable-ledger",
-    "merkle-audit",
-    "thermodynamic-governance",
+    "append-only-ledger",
+    "evidence-chain",
+    "hitl",
 ]
 authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [
     { name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Information Technology",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Monitoring",
