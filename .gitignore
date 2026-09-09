@@ -297,3 +297,6 @@ audits/
 deploy/rollback/
 C:
 .git_commit
+
+# sandbox kit — not tracked
+termux-agentic/
