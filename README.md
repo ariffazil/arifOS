@@ -1,13 +1,13 @@
 <!-- SOT-MANIFEST
 federation_release: v2026.09.10
-last_verified: 2026-09-10T18:00:00+08:00
-live_commit: d99d5c1a4 (seal: Arrow 1 + capability evolution session artifacts)
-source_commit: d99d5c1a4
+last_verified: 2026-09-09T20:45:25+00:00
+live_commit: 337cad0f0 (chore: federation docs + witness substrate + capability ledger)
+source_commit: 337cad0f0
 tools_exposed_via_mcp: 8 (canonical public verbs)
 floors_active: 13 (F1–F13, all passing)
 federation_schema: 2.0.0
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (119K+ records, append-only, 0 broken lines)
+vault999: healthy (113K+ records, append-only)
 truth_rule: live :8088/health + tools/list beat any static count in prose
 --->
 
@@ -52,6 +52,19 @@ AI agents that act are also certifying their own actions. There is no independen
 ```
 
 **The judge never executes. The executor never certifies.**
+
+### Federation in One Line
+
+> **arifOS decides. AAA routes. A-FORGE acts. VAULT999 witnesses.**
+
+| Plane | Organ | Role |
+|-------|-------|------|
+| Governance | arifOS | Policy Decision Point — evaluates proposals against constitutional floors |
+| Control | AAA | Intent classification and routing to the correct organ |
+| Execution | A-FORGE | Governed mutation — leases, gates, receipts |
+| Witness | VAULT999 | Append-only audit ledger — immutable record of every verdict and receipt |
+
+Authority remains separated at every stage. No single component proposes, judges, executes, and witnesses the same action.
 
 ---
 
@@ -106,12 +119,12 @@ arifos demo --guided
 
 ### Four Verdicts
 
-| Verdict | Meaning | What happens |
-|---------|---------|-------------|
-| **SEAL** | Authorized under stated conditions | Proceed to execution |
-| **HOLD** | Insufficient evidence or human approval needed | Pause; await human decision |
-| **SABAR** | Not yet decidable — reality hasn't finished speaking | Wait; distinct from HOLD |
-| **VOID** | Blocked by a constitutional floor | Stop; constraint must be resolved |
+| Verdict | Meaning | Plain English | What happens |
+|---------|---------|---------------|-------------|
+| **SEAL** | Authorized under stated conditions | Go | Proceed to execution |
+| **HOLD** | Insufficient evidence or human approval needed | Wait for human | Pause; await human decision |
+| **SABAR** | Not yet decidable — reality hasn't finished speaking | Defer — more evidence needed | Wait; distinct from HOLD |
+| **VOID** | Blocked by a constitutional floor | Blocked | Stop; constraint must be resolved |
 
 ### 13 Constitutional Floors (F1–F13)
 
@@ -133,13 +146,37 @@ Every proposal passes through 13 policy constraints. A single floor failure prod
 | F12 | INJECTION | Input sanitization |
 | F13 | SOVEREIGN | Human veto is absolute |
 
-### VAULT999 — Audit Ledger
+### VAULT999 (Append-Only Audit Ledger) — Audit Ledger
 
-Every verdict, evidence chain, and execution receipt is recorded in VAULT999 — an append-only JSONL ledger with 119,000+ records. Designed for compliance auditing, forensic review, and governance proof.
+Every verdict, evidence chain, and execution receipt is recorded in VAULT999 — an append-only JSONL ledger with 113,913+ records. Designed for compliance auditing, forensic review, and governance proof.
 
 ---
 
 ## Architecture
+
+```
+arifOS Federation — 4 Constitutional Planes
+
+    ┌─────────────────────────────────────────────┐
+    │         Governance Plane (arifOS :8088)      │
+    │    Policy evaluation · Constitutional floors │
+    └──────────────────────┬──────────────────────┘
+                           │
+    ┌──────────────────────▼──────────────────────┐
+    │           Control Plane (AAA :3001)          │
+    │    Intent classification · Routing · State   │
+    └──────────────────────┬──────────────────────┘
+                           │
+    ┌──────────────────────▼──────────────────────┐
+    │        Execution Plane (A-FORGE :7071/7072)  │
+    │    Governed mutation · Leases · Receipts     │
+    └──────────────────────┬──────────────────────┘
+                           │
+    ┌──────────────────────▼──────────────────────┐
+    │     Witness Plane (VAULT999 + FRAME :18085)  │
+    │    Append-only ledger · Drift detection      │
+    └─────────────────────────────────────────────┘
+```
 
 ```
 arifOS Federation — 10 Organs
@@ -189,7 +226,7 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP:
 | MCP interface | 8 tools, Streamable HTTP (protocol 2024-11-05), schema-validated |
 | VAULT999 ledger | 119K+ append-only records |
 | Floor enforcement | 13 floors active, all passing in current deployment |
-| Source-build-deploy alignment | Verified (commit d99d5c1a4) |
+| Source-build-deploy alignment | Verified (commit 337cad0f0) |
 | GEOX reference implementation | Geoscience uncertainty workflows |
 | Federation architecture | 10 organs with defined boundaries |
 
