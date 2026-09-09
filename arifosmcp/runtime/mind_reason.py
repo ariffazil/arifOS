@@ -455,11 +455,15 @@ Distinguish CLAIM from FACT."""
         witness = _build_witness_statement(None)
         reasoning_mode = _status_to_reasoning_mode(status)
     else:
-        parsed_output = dict(envelope.parsed_output) if isinstance(envelope.parsed_output, dict) else {}
+        parsed_output = (
+            dict(envelope.parsed_output) if isinstance(envelope.parsed_output, dict) else {}
+        )
         status = parsed_output.get("status", "REASONED")
         parsed_output.setdefault("status", status)
         parsed_output.setdefault("claim_state", "INFERENCE")
-        parsed_output.setdefault("synthesis", parsed_output.get("answer") or f"{mode} reasoning complete")
+        parsed_output.setdefault(
+            "synthesis", parsed_output.get("answer") or f"{mode} reasoning complete"
+        )
 
         # ── HIB Constraint Verifier — Post-LLM Governance Gate ──────────────────
         # This is where advisory becomes governance.
@@ -478,7 +482,7 @@ Distinguish CLAIM from FACT."""
                 for keyword in ["validation", "verification", "review", "approval", "required"]
             )
             high_risk = "l2_system" in constraint_lower or "l3_critical" in constraint_lower
-            
+
             if requires_verification or high_risk:
                 # LLM proposed action but constraint requires verification
                 # Override to HOLD — this is governance, not persuasion
@@ -979,9 +983,123 @@ async def arif_mind_claim_attest(
 async def arif_mind_contradict_scan(
     claims: list[str], evidence: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
-    """Scan for contradictions between claims and evidence."""
-    # This would use a specialized prompt or logic
-    return []  # Placeholder
+    """
+    E5 contradiction_scan — wired to live ledger (was placeholder, killed 2026-09-10).
+
+    For each (claim, evidence) pair, run a deterministic contradiction check
+    (detect_contradiction_in_witnesses). If detected, record the contradiction
+    on the capability ledger so the auto-cycle can metabolize it.
+
+    F2 TRUTH: deterministic, no LLM, no fabrication of contradictions.
+    F11 AUDIT: every detected contradiction is recorded with witness IDs.
+    Returns list of contradiction records (empty list if none detected).
+    """
+    from arifosmcp.runtime.capability_ledger import (
+        detect_contradiction_in_witnesses,
+        get_ledger,
+    )
+
+    ledger = get_ledger()
+    detected: list[dict[str, Any]] = []
+
+    # Pair each claim with each evidence item; also pair claims with each other
+    # (claim-vs-claim catches intra-narrative divergence).
+    pairs: list[tuple[dict[str, Any], dict[str, Any], str]] = []
+
+    for i, claim in enumerate(claims):
+        claim_witness = {
+            "witness_packet_id": f"claim_{i}_{abs(hash(claim)) % 10**8:08x}",
+            "claim": claim,
+        }
+        for j, ev in enumerate(evidence or []):
+            ev_witness = {
+                "witness_packet_id": f"evidence_{j}_{abs(hash(str(ev))) % 10**8:08x}",
+                "claim": str(
+                    ev.get("claim")
+                    or ev.get("synthesis")
+                    or ev.get("text")
+                    or ev.get("content")
+                    or ""
+                ),
+                "verdict": ev.get("verdict") or ev.get("status") or "",
+            }
+            pairs.append((claim_witness, ev_witness, "claim_vs_evidence"))
+
+    # Claim-vs-claim pairs (within first 8 claims to bound work)
+    bounded_claims = claims[:8]
+    for i in range(len(bounded_claims)):
+        for j in range(i + 1, len(bounded_claims)):
+            a = {
+                "witness_packet_id": f"claim_{i}_{abs(hash(bounded_claims[i])) % 10**8:08x}",
+                "claim": bounded_claims[i],
+            }
+            b = {
+                "witness_packet_id": f"claim_{j}_{abs(hash(bounded_claims[j])) % 10**8:08x}",
+                "claim": bounded_claims[j],
+            }
+            pairs.append((a, b, "claim_vs_claim"))
+
+    # Evidence-vs-evidence pairs — captures verdict_divergence (e.g. SEAL vs VOID)
+    bounded_evidence = (evidence or [])[:8]
+    for i in range(len(bounded_evidence)):
+        for j in range(i + 1, len(bounded_evidence)):
+            a = {
+                "witness_packet_id": f"evidence_{i}_{abs(hash(str(bounded_evidence[i]))) % 10**8:08x}",
+                "claim": str(
+                    bounded_evidence[i].get("claim")
+                    or bounded_evidence[i].get("synthesis")
+                    or bounded_evidence[i].get("text")
+                    or ""
+                ),
+                "verdict": bounded_evidence[i].get("verdict")
+                or bounded_evidence[i].get("status")
+                or "",
+            }
+            b = {
+                "witness_packet_id": f"evidence_{j}_{abs(hash(str(bounded_evidence[j]))) % 10**8:08x}",
+                "claim": str(
+                    bounded_evidence[j].get("claim")
+                    or bounded_evidence[j].get("synthesis")
+                    or bounded_evidence[j].get("text")
+                    or ""
+                ),
+                "verdict": bounded_evidence[j].get("verdict")
+                or bounded_evidence[j].get("status")
+                or "",
+            }
+            pairs.append((a, b, "evidence_vs_evidence"))
+
+    for w_a, w_b, pair_kind in pairs:
+        detection = detect_contradiction_in_witnesses(w_a, w_b)
+        if not detection.get("detected"):
+            continue
+        # Record on the ledger — preserves contradiction as an asset (E5).
+        record = {
+            "pair_kind": pair_kind,
+            "kind": detection.get("kind", "unknown"),
+            "witness_a_id": w_a.get("witness_packet_id"),
+            "witness_b_id": w_b.get("witness_packet_id"),
+            "claim_a": (w_a.get("claim") or "")[:240],
+            "claim_b": (w_b.get("claim") or "")[:240],
+            "detection": detection,
+            "recorded_at": "auto",
+        }
+        try:
+            ledger.record_contradiction(
+                capability_name=f"mind_contradict_scan.{pair_kind}",
+                witness_a_id=record["witness_a_id"],
+                witness_b_id=record["witness_b_id"],
+                claim_a=record["claim_a"],
+                claim_b=record["claim_b"],
+                conflict_type=record["kind"],
+            )
+            record["recorded"] = True
+        except Exception as exc:  # pragma: no cover — record failure is non-fatal
+            record["recorded"] = False
+            record["record_error"] = str(exc)
+        detected.append(record)
+
+    return detected
 
 
 async def arif_mind_handoff_prepare(session_id: str, target_organ: str) -> dict[str, Any]:
