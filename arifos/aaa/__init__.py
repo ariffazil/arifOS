@@ -6,7 +6,7 @@ CLIENT ONLY. Speaks LF A2A v1.0 JSON-RPC to http://localhost:3001/a2a
 
 Card discovery works without auth:
 - HTTP: GET /.well-known/agent-card.json (gateway card)
-- Local: /root/AAA/AGENT_INDEX.json (full identity roster) when on-host
+- Local: /root/AAA/a2a/registry/agents.yaml (canonical registry, YAML)
 
 Usage::
 
@@ -25,7 +25,6 @@ from __future__ import annotations
 import itertools
 import json
 import os
-from pathlib import Path
 from typing import Any
 
 import httpx
@@ -33,7 +32,9 @@ import httpx
 DEFAULT_URL = os.environ.get("AAA_A2A_URL", "http://localhost:3001/a2a")
 DEFAULT_BASE = DEFAULT_URL.rsplit("/a2a", 1)[0]
 A2A_VERSION = "1.0"
-LOCAL_AGENT_INDEX = Path("/root/AAA/AGENT_INDEX.json")
+# AGENT_INDEX.json tombstoned 2026-09-08 — superseded by a2a/registry/agents.yaml (YAML).
+# cards() now reads the gateway card only; canonical roster resolution is
+# paths_resolver.CANON_AGENT_CARD_PATHS (planned).
 
 __all__ = ["A2AClient", "cards", "gateway_card", "DEFAULT_URL"]
 
@@ -80,15 +81,10 @@ def gateway_card(base_url: str = DEFAULT_BASE) -> dict:
 
 
 def cards() -> list[dict]:
-    """Return distinct agent identities.
+    """Return distinct agent identities via the gateway card.
 
-    On-host: reads /root/AAA/AGENT_INDEX.json (full roster).
-    Off-host fallback: returns [gateway_card()] only.
+    AGENT_INDEX.json tombstoned 2026-09-08 (superseded by
+    a2a/registry/agents.yaml — YAML, not JSON, so not parsed here).
+    Canonical roster resolution: paths_resolver.CANON_AGENT_CARD_PATHS (planned).
     """
-    if LOCAL_AGENT_INDEX.exists():
-        index = json.loads(LOCAL_AGENT_INDEX.read_text())
-        agents = index.get("agents") or index.get("entries") or []
-        if isinstance(agents, dict):
-            agents = list(agents.values())
-        return agents
     return [gateway_card()]
