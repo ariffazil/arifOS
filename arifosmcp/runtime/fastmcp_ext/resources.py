@@ -8,8 +8,10 @@ INIT prompt resources make agent bootstrap files discoverable via MCP (F4 CLARIT
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+from datetime import UTC
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -164,27 +166,63 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     # ── carry-forward resource (session state continuity) ─────────────────
     _CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
+    # Writer lanes diverge (FI agents write .local/share, Hermes writes
+    # .hermes + AAA/docs). Serve the FRESHEST lane and stamp provenance so
+    # agents never boot on a stale generation because they read a different
+    # lane than the last writer (2026-09-12 flow audit: kernel served a
+    # 14h-stale copy while fresher copies existed on other lanes).
+    _CARRY_FORWARD_CANDIDATES = (
+        _CARRY_FORWARD_PATH,
+        "/root/.hermes/carry_forward.json",
+        "/root/AAA/docs/carry_forward.json",
+    )
 
     @mcp.resource(
         "arifos://carry-forward",
         description=(
             "Live session carry-forward state. Returns prior session ID, completed tasks, "
             "open 888_HOLD loops, entropy delta, cooling status, and successor pointer. "
-            "This is the MCP-native equivalent of reading carry_forward.json from filesystem. "
-            "Essential for agent continuity — load at session start instead of FS reads."
+            "Serves the freshest carry_forward.json across writer lanes, stamped with "
+            "_served_from + _served_mtime_utc. Essential for agent continuity — load at "
+            "session start instead of FS reads."
         ),
     )
     async def get_carry_forward() -> str:
-        """Return current carry-forward.json contents."""
-        try:
-            with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
-                return fh.read()
-        except FileNotFoundError:
+        """Return freshest carry-forward.json across writer lanes."""
+        best_path = None
+        best_mtime = -1.0
+        for path in _CARRY_FORWARD_CANDIDATES:
+            try:
+                mtime = os.path.getmtime(path)
+            except OSError:
+                continue
+            if mtime > best_mtime:
+                best_path, best_mtime = path, mtime
+        if best_path is None:
             return (
                 '{"error":"carry_forward.json not found","note":"No prior session state available"}'
             )
+        try:
+            with open(best_path, encoding="utf-8") as fh:
+                raw = fh.read()
+            try:
+                doc = json.loads(raw)
+            except ValueError:
+                logging.warning(
+                    "carry-forward %s is not valid JSON; serving raw", best_path
+                )
+                return raw
+            if isinstance(doc, dict):
+                from datetime import datetime as _dt
+
+                doc["_served_from"] = best_path
+                doc["_served_mtime_utc"] = _dt.fromtimestamp(
+                    best_mtime, UTC
+                ).isoformat()
+                return json.dumps(doc, ensure_ascii=False, indent=2)
+            return raw
         except Exception as exc:
-            return f'{{"error":"{exc}"}}'
+            return f'{{"error":"{exc}","served_from":"{best_path}"}}'
 
     registered.append("arifos://carry-forward")
 
