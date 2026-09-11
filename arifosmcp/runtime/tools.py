@@ -19068,6 +19068,18 @@ def _arif_judge_deliberate(
             # The caller (or upstream) should treat this as a partial/invalid candidate.
             pass
 
+    _declared_irrev = 0
+    try:
+        _rl = str(((contract_c_kwargs or {}).get("reversibility_level")) or "").lower()
+        _declared_irrev = {
+            "reversible": 0, "none": 0,
+            "low": 1, "semi_irreversible": 1,
+            "high": 2, "irreversible": 2,
+            "critical": 3, "catastrophic": 3,
+        }.get(_rl, 0)
+    except Exception:
+        _declared_irrev = 0
+
     ctx = ActionContext(
         tool_name="arif_judge_deliberate",
         mode=mode,
@@ -19082,6 +19094,7 @@ def _arif_judge_deliberate(
         audit_entropy=_audit_entropy,
         wealth_score=_wealth_score,
         verification_surface=_verification_surface,
+        declared_irreversibility=_declared_irrev or None,
     )
 
     verdict = _CORE.evaluate(ctx)
@@ -19794,6 +19807,10 @@ async def _arif_judge_deliberate_tool(
             evidence_receipt=evidence_receipt,
             claimed_evidence_level=claimed_evidence_level,
             measurement=measurement,
+            contract_c_kwargs=contract_c_kwargs,
+            verification_surface=verification_surface,
+            audit_entropy=audit_entropy,
+            wealth_score=wealth_score,
         )
 
         if trace:

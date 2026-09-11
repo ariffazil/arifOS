@@ -63,6 +63,15 @@ class ActionContext(BaseModel):
     url: str | None = None
     target_agent: str | None = None
     ack_irreversible: bool = False
+    # X-018 (2026-09-12): caller-declared irreversibility FLOOR (0-3).
+    # Threat classification may raise it, never lower it. Without this,
+    # benign irreversible actions (e.g. ledger append seals) classify as
+    # REVERSIBLE — no threat keywords — making the vault seal rank check
+    # mathematically unpassable for clean seals.
+    declared_irreversibility: int | None = Field(
+        default=None,
+        description="Caller-declared irreversibility floor (0=none 1=low 2=high/irreversible 3=critical)",
+    )
     witness_type: WitnessType = WitnessType.AI
     plan_id: str | None = None
     session_registry: set[str] = Field(default_factory=set, exclude=True)
