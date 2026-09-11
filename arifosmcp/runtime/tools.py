@@ -9507,6 +9507,55 @@ def _build_judge_contract(
     return contract
 
 
+def _issue_judge_seal_contract(
+    *,
+    candidate: str | None,
+    session_id: str | None,
+    actor_id: str | None,
+    constitutional_chain_id: str | None,
+    irreversibility_level: IrreversibilityLevel,
+    delta_s: float,
+    g_score: float,
+    epistemic_snapshot: dict[str, Any] | None,
+    floor_compliance: ConstitutionalCompliance,
+) -> JudgeSealContract:
+    """Sovereign-bypass seal contract — synthesize + register a judge packet
+    when F13 ack + FULL SCT authorize a seal without a prior judge call.
+    Restored 2026-09-12 (FI-003): the vault seal call site imported this name
+    but no definition existed in either tree — the sovereign seal lane was
+    severed at the ImportError."""
+    law_results = (
+        getattr(floor_compliance, "law_results", None)
+        if floor_compliance is not None
+        else None
+    )
+    contract = JudgeSealContract(
+        constitutional_chain_id=constitutional_chain_id or uuid.uuid4().hex[:16],
+        state_hash="",
+        session_id=session_id,
+        actor_id=actor_id,
+        candidate=candidate,
+        verdict="SEAL",
+        irreversibility_level=irreversibility_level.value,
+        delta_s=delta_s,
+        g_score=g_score,
+        epistemic_snapshot=epistemic_snapshot or {},
+        law_results=law_results or {},
+        timestamp=_now(),
+    )
+    state_hash = _stable_hash(contract.model_dump(mode="json", exclude={"state_hash"}))
+    if not state_hash or not isinstance(state_hash, str):
+        raise RuntimeError(
+            "F1 AMANAH: sovereign seal contract produced empty/invalid state_hash — "
+            "refusing to register an unverifiable packet. F2 TRUTH."
+        )
+    contract = contract.model_copy(update={"state_hash": state_hash})
+    packet = contract.model_dump(mode="json")
+    _JUDGE_STATE_REGISTRY[contract.state_hash] = packet
+    _JUDGE_CHAIN_REGISTRY[contract.constitutional_chain_id] = packet
+    return contract
+
+
 def _resolve_judge_contract(
     *,
     constitutional_chain_id: str | None,
@@ -20364,7 +20413,10 @@ def _arif_vault_seal(
                 session_id=session_id or "sov_bypass",
                 actor_id=actor_id or "ariffazil",
                 constitutional_chain_id=f"SOV-{uuid.uuid4().hex[:12]}",
-                irreversibility_level=IrreversibilityLevel.REVERSIBLE,
+                # VAULT999 append is irreversible by construction; a
+                # REVERSIBLE synthetic contract would trip the rank check
+                # against required_level below (fixed 2026-09-12 FI-003).
+                irreversibility_level=IrreversibilityLevel.IRREVERSIBLE,
                 delta_s=0.001,
                 g_score=0.95,
                 epistemic_snapshot={},
