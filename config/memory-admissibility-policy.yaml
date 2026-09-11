@@ -1,0 +1,84 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Memory Admissibility Policy — SRO v1 read gate (federation SOT)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Origin: SRO schema unification 2026-09-12 (99/99 arifos_memory points SRO v1,
+# backup qdrant_arifos_memory_backup_20260912.json) + external verdict
+# GO_MEMORY_RETRIEVAL_POLICY_GATE (ARIF-Perplexity witness, 2026-09-12).
+#
+# The WRITE side is governed by arifosmcp/memory/policies.py (L1-L6 promotion,
+# Memory Promotion Gate). This file governs the READ side: which stored
+# memories may be recalled, in which mode, and with what labels. Every memory
+# client in the federation — kernel vector layer, memory_store.search,
+# cognitive_recall, A-FORGE forge_memory, future S4 temporal ingestion —
+# consumes THIS file so admissibility semantics never fork.
+#
+# SRO schema location on a Qdrant point: payload.sro
+#   sro_version: 1
+#   supersession: {supersedes, superseded_by, supersession_reason, supersession_date}
+#   expiry: {expires_at, review_by, status}   # ACTIVE | STALE | EXPIRED | SUPERSEDED
+#   calibration: {confidence_at_creation, outcome_observed, outcome_date, calibration_error}
+#   sro_migrated_at: ISO-8601
+#
+# Uniform schema ≠ uniform truth: an EXPIRED record is structurally valid and
+# still not admissible for operational recall. This policy is the boundary
+# between those two statements.
+#
+# Loader: arifosmcp/memory/admissibility.py (env override MEMORY_ADMISSIBILITY_POLICY)
+#
+# DITEMPA BUKAN DIBERI ⚒️
+
+api_version: arifos.memory_admissibility.v1
+policy_version: 1
+ratified: "2026-09-12"
+sro_schema_version: 1
+
+status_vocabulary:
+  - ACTIVE      # currently valid
+  - STALE       # past review_by, not yet expired — re-review candidate
+  - EXPIRED     # validity window closed — historical recall only
+  - SUPERSEDED  # replaced by a successor record — lineage traversal only
+
+# Writer boundary: fresh SRO blocks are stamped with these validity windows
+# (days) keyed by epistemic truth class. Mirrors scripts/sro_schema_migration.py.
+expiry_defaults_days:
+  OBS: 365
+  DER: 180
+  INT: 90
+  SPEC: 30
+
+temporal:
+  # ACTIVE + expires_at < now → effective EXPIRED. Status fields can lie
+  # (temporal drift); time cannot. Applies in every mode.
+  enforce_expires_at: true
+
+modes:
+  default:
+    # Operational recall — the only mode agents get implicitly.
+    # EXPIRED/SUPERSEDED/STALE are excluded, the exclusion is counted and
+    # surfaced with reason codes, never dropped silently (Void Guard).
+    description: "Currently-valid memory only."
+    admit_statuses: [ACTIVE]
+    permit_superseded: false
+    min_confidence: null   # null = disabled until calibration data matures; if set, 0..1
+
+  historical:
+    # Explicit historical inquiry — caller must name this mode.
+    # Permits EXPIRED/SUPERSEDED/STALE; every non-ACTIVE record is labelled.
+    description: "Explicit historical mode — old records permitted, always labelled."
+    admit_statuses: [ACTIVE, STALE, EXPIRED, SUPERSEDED]
+    permit_superseded: true
+    min_confidence: null
+    label: HISTORICAL
+
+refusal:
+  silent: false   # Void Guard — excluded counts + reason codes always surfaced
+  reason_codes:
+    - MODE_UNKNOWN           # caller asked for a mode this policy does not define
+    - SRO_MISSING            # point predates SRO or came from an ungated writer
+    - SRO_VERSION_MISMATCH   # point carries a schema version this policy cannot interpret
+    - MALFORMED_SRO          # sro block present but structurally broken
+    - STATUS_NOT_ADMISSIBLE  # effective status not in the mode's admit list
+    - EXPIRED_BY_TIME        # status says ACTIVE, expires_at says otherwise
+    - SUPERSEDED             # supersession chain points to a successor
+    - LOW_CONFIDENCE         # calibration below the mode threshold
