@@ -598,6 +598,18 @@ def _project_light(
             signature_verified=signature_verified,
             is_sovereign_principal=is_sovereign_principal,
         )
+    # ── FQ Metabolic Cap (fq_policy.yaml F13_RATIFIED 2026-09-12) ──────
+    # Same session-birth rule as the persistent path: STUCK/BURNING below
+    # the 0.5 floor caps the band at OBSERVE_ONLY. Must run BEFORE the
+    # _is_full_authority/_is_limited booleans so downstream verbs inherit
+    # the capped authority, not the pre-cap one.
+    from arifosmcp.runtime.fq_gate import metabolic_cap
+
+    _authority, _fq_state = metabolic_cap(
+        actor_id,
+        _authority,
+        is_sovereign_principal=bool(is_sovereign_principal),
+    )
     _is_ephemeral = session_mode == "ephemeral_eval"
     # Fix 2026-07-06 ROUND-2: allowed_next_verbs gated by actual authority,
     # not just actor_verified boolean. FULL/SOVEREIGN → all verbs.
@@ -700,6 +712,7 @@ def _project_light(
         "actor_cryptographically_verified": _actor_crypto,
         "authority": _authority,
         "authority_band": _authority,
+        "metabolic_state": _fq_state,
         "mutation_allowed": _mutation_allowed,
         "seal_allowed": _seal_allowed,
         # ── AOB P0: Machine enforcement envelope ──
@@ -3136,6 +3149,22 @@ def arif_init(
             _derived_auth,
             _derived_auth,
         )
+        # ── FQ Metabolic Cap (fq_policy.yaml F13_RATIFIED 2026-09-12) ──────
+        # Session-birth enforcement of the observe_only_below floor: an actor
+        # whose execution outruns verification (STUCK/BURNING below 0.5) is
+        # capped at OBSERVE_ONLY until receipts rebalance. Mirrors A-FORGE
+        # gateToolByFq; sovereigns exempt; unknown actors not punished (F9);
+        # arifFlow outage does not brick sessions (executor gate stays the
+        # fail-closed layer). Applies AFTER all identity derivation so the
+        # cap is the final authority word — standing/band/verbs inherit it.
+        from arifosmcp.runtime.fq_gate import metabolic_cap
+
+        _derived_auth, _fq_state = metabolic_cap(
+            actor_id,
+            _derived_auth,
+            is_sovereign_principal=bool(_is_signed_principal),
+        )
+        sess["metabolic_state"] = _fq_state
         sess["authority"] = _derived_auth
         if _derived_auth == "FULL":
             sess["verdict"] = "OK"

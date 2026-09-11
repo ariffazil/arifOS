@@ -4,7 +4,7 @@
 # Compiled 2026-09-07 by kimi-code/FI-008 from LIVE runtime evidence (contrast audit).
 
 schema_version: 1
-status: DRAFT_AWAITING_F13
+status: F13_RATIFIED_CHAT (2026-09-12 — "ratify + wire"; ratified from DRAFT_AWAITING_F13 compiled 2026-09-07)
 
 policy:
   formula_version: qg.v0.3.1-vector          # sealed 2026-08-14, spec QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD
@@ -24,6 +24,10 @@ enforcement:
     mechanism: per-actor hold/throttle at /ingest; invariant cycle every 10s
   - plane: A-FORGE                            # check_verdict.ts
     mechanism: gateToolByFq FQ_GATE_THRESHOLD=0.50, fail-closed (null FQ -> 0.0 -> HOLD MUTATE)
+  - plane: arifOS kernel                      # runtime/fq_gate.py (wired 2026-09-12, "ratify + wire")
+    mechanism: metabolic_cap at arif_init birth — session capped OBSERVE_ONLY when actor lane
+    is STUCK/BURNING below floor; sovereigns exempt; unknown actors not punished (F9);
+    arifFlow outage does not brick sessions (executor gate remains the fail-closed layer)
 
 escalation:
   - trigger: consecutive_exec_no_verify >= 5
