@@ -215,6 +215,152 @@ def allow_legacy_spec_for_tests():
         del os.environ["ARIFOS_ALLOW_LEGACY_SPEC"]
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# VAULT999 TEST ISOLATION GUARD — added 2026-09-11 (Hermes)
+#
+# ROOT CAUSE of ledger contamination, witnessed not inferred:
+#   /root/VAULT999/SEALED_EVENTS.jsonl (kernel-owned, FROZEN v1 per
+#   scripts/vault_mirror_sync.py FROZEN_V1_LEDGER) contains 1,180 records —
+#   88.3% of its 1,336 JSON records — whose session_id is a test fixture:
+#   SESS-123 (273), SESS-1 (155), SESS-REAL (153), SESS-FAKE (147),
+#   SESS-ID-ONLY (147), SESS-NATURAL (147), session-test-120 (120), test-* …
+#   Provenance: tests/archive/legacy_arifos_v1/test_zkpc_v2.py resolves the
+#   ledger via `_999_vault.VAULT999_FILE` and writes real seal records during
+#   the run. 19 fixture-like sessions, 1,180 records.
+#
+#   Consequence: the production audit ledger is majority test noise, which is
+#   why the F13-ratified tally found 959 unlinked entries. Per the F13
+#   Option-1 ruling (2026-09-11) legacy entries are NOT mutated — remediation is
+#   classification overlay only. So the forward fix is PREVENTION: tests must
+#   never be able to reach a production ledger again.
+#
+# This guard redirects the vault path env vars to a session tmp dir and fails
+# loudly if anything resolves a production ledger path while tests are running.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_PRODUCTION_LEDGER_MARKERS = (
+    "/root/VAULT999/",
+    "/root/arifOS/VAULT999/",
+    "/var/lib/arifos/vault",
+)
+
+_VAULT_ENV_VARS = ("VAULT999_PATH", "ARIFOS_VAULT", "ARIFOS_VAULT_PATH")
+
+
+def _is_production_path(p) -> bool:
+    s = str(p)
+    return any(marker in s for marker in _PRODUCTION_LEDGER_MARKERS)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def isolate_vault999_from_production(tmp_path_factory):
+    """Redirect vault writes away from the production ledger; fail loud on leak.
+
+    Isolation over discipline: an env redirect is deterministic, whereas telling
+    tests "please don't touch prod" is exactly the exhortation-shaped control
+    that METR measured as ineffective (reward hacking 80% -> 70% when merely
+    asked not to cheat). Structure works, exhortation does not.
+
+    Enforcement has two layers:
+      1. IMMEDIATE — the write raises AssertionError at the call site. This is
+         the real refusal and it is what makes the guard able to say NO.
+      2. SESSION-END — leaks that were NOT deliberate probes are reported to a
+         file and raised at teardown, so an accidental leak can never be silent.
+
+    A test that deliberately provokes layer 1 must wrap the attempt in
+    `deliberate_violation()`; otherwise its (expected, blocked) attempt would be
+    misread as an accidental leak and fail the whole session.
+    """
+    sandbox = tmp_path_factory.mktemp("vault999_sandbox")
+    ledger = sandbox / "SEALED_EVENTS_v2.jsonl"
+    report = sandbox / "isolation_leaks.txt"
+
+    saved = {k: os.environ.get(k) for k in _VAULT_ENV_VARS}
+    os.environ["VAULT999_PATH"] = str(ledger)
+    os.environ["ARIFOS_VAULT"] = str(sandbox)
+
+    # Deliberate-probe bookkeeping: only UNEXPECTED leaks fail the session.
+    _state["expected"] = 0
+    leaks: list[str] = []
+
+    real_open = Path.open
+
+    def guarded_open(self, *args, **kwargs):  # noqa: ANN001, ANN002
+        mode = str(args[0]) if args else str(kwargs.get("mode", "r"))
+        if ("w" in mode or "a" in mode or "+" in mode) and _is_production_path(self):
+            entry = f"WRITE to production ledger: {self}"
+            _state["blocked"] += 1
+            if _state["expected"] == 0:
+                leaks.append(entry)  # nobody declared this probe -> unexpected
+            with real_open(report, "a", encoding="utf-8") as rf:
+                rf.write(entry + "\n")
+            raise AssertionError(
+                "VAULT999 TEST ISOLATION VIOLATION — attempted write to "
+                f"production ledger {self}. Redirect writes to VAULT999_PATH "
+                "(session sandbox) instead. See conftest guard header."
+            )
+        return real_open(self, *args, **kwargs)
+
+    Path.open = guarded_open  # type: ignore[assignment]
+    try:
+        yield {
+            "sandbox": sandbox,
+            "ledger": ledger,
+            "leak_report": report,
+            # Tests MUST take these from the fixture, never `from conftest import`:
+            # re-importing conftest creates a SECOND module object with its own
+            # _state, so a test's deliberate_violation() increments a different
+            # counter than the guard reads — the guard then looks like it never
+            # fired. Witnessed 2026-09-11: 2 failed / 1 teardown error.
+            "deliberate_violation": deliberate_violation,
+            "is_production_path": _is_production_path,
+            "state": _state,
+        }
+    finally:
+        Path.open = real_open  # type: ignore[assignment]
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        if leaks:
+            # F2/F11: an unexpected leak is never left silent.
+            raise AssertionError(f"VAULT999 isolation leaks: {leaks[:5]}")
+
+
+class deliberate_violation:
+    """Declare that the enclosed block intentionally provokes the guard.
+
+    Usage in a test that exists to prove the guard can refuse:
+
+        with probe := deliberate_violation():
+            ...
+        assert probe.blocked()
+
+    Without this, a blocked-but-expected attempt is indistinguishable from an
+    accidental production leak.
+    """
+
+    def __enter__(self):
+        _state["expected"] += 1
+        self._start = _state["blocked"]
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        _state["expected"] -= 1
+        # The guard is SUPPOSED to raise inside this block; swallow it.
+        if exc_type is AssertionError and "ISOLATION VIOLATION" in str(exc):
+            return True
+        return False
+
+    def blocked(self) -> bool:
+        return _state["blocked"] > self._start
+
+
+# Mutable guard state shared by the fixture and deliberate_violation.
+_state: dict = {"blocked": 0, "expected": 0}
+
+
 @pytest.fixture(scope="session", autouse=True)
 def mock_well_state_for_tests(tmp_path_factory):
     """Provide a healthy WELL mirror state so biological readiness gate passes.
