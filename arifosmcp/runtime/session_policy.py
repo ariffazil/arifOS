@@ -49,7 +49,11 @@ _SHADOW_CEILING = frozenset({"OBSERVE", "ANALYZE", "DRAFT", "SIMULATE"})
 
 # Tools exempt from clamping: the ignition verb itself must always run,
 # otherwise a session could never be established or inspected.
-_IGNITION_EXEMPT = frozenset({"arif_init"})
+# arif_seal is exempt because the governance chain (arif_judge → SEAL verdict
+# with constitutional_chain_id) is the real authorization — the session
+# irreversibility threshold should not block the constitutional obligation
+# to seal after a judge verdict. The judge already evaluated F1-F13.
+_IGNITION_EXEMPT = frozenset({"arif_init", "arif_seal"})
 
 
 def _lookup_session(session_id: str) -> dict[str, Any] | None:
@@ -171,11 +175,9 @@ def session_policy_clamp(
         }
 
     # ── Display-register ceiling (shadow mode) ──────────────────────────
-    register = str(
-        policy.get("display_register")
-        or policy.get("policy_mode")
-        or ""
-    ).strip().lower()
+    register = (
+        str(policy.get("display_register") or policy.get("policy_mode") or "").strip().lower()
+    )
     if register == "shadow" and action not in _SHADOW_CEILING:
         return {
             "reason": (

@@ -1144,6 +1144,25 @@ def store(
         }
 
     canonical_status = "committed" if pg_ok else "non-canonical"
+
+    # ── SRO Propagation (fire-and-forget) ──────────────────────────────
+    # When an SRO is created, propagate to federation agents via A2A gateway.
+    # Non-blocking: failures are logged but don't fail the store.
+    sro_block = payload.get("sro")
+    if isinstance(sro_block, dict) and sro_block.get("sro_version") and qdrant_ok:
+        try:
+            from arifosmcp.memory.sro_propagation import propagate_created
+
+            propagate_created(
+                agent_id=actor_id or "unknown",
+                claim_id=memory_id,
+                jurisdiction=sro_block.get("jurisdiction"),
+                confidence=sro_block.get("calibration", {}).get("confidence_at_creation"),
+                truth_class=payload.get("truth_class"),
+            )
+        except Exception as exc:
+            logger.debug("SRO propagation skipped: %s", exc)
+
     return {
         "stored": True,
         "memory_id": memory_id,
@@ -1491,7 +1510,14 @@ def recall_constitutional(
 
     # F13 SOVEREIGN — protect sovereignty (highest priority)
     if "F13" in floor_constraints:
-        if actor_id and actor_id.lower().strip() not in ("arif", "888", "sovereign", "ariffazil", "arif-fazil", "arif_fazil"):
+        if actor_id and actor_id.lower().strip() not in (
+            "arif",
+            "888",
+            "sovereign",
+            "ariffazil",
+            "arif-fazil",
+            "arif_fazil",
+        ):
             violation = (
                 "F13 SOVEREIGN: This memory is sovereign-protected. "
                 "Only the sovereign may recall with full access."
