@@ -471,6 +471,106 @@ def _spec_for_name(name: str) -> Any:
                 "_envelope": {"default": None, "title": "Envelope"},
             },
         }
+    if lookup_name == "arif_memory":
+        # Public facade: expose only core params. Mode-specific fields
+        # (content, structured, truth_class, etc.) go through payload dict.
+        # The actual _arif_memory_v5_router still accepts all 59 via **kwargs.
+        # Schema-only change — behavior unchanged. (888-APEX SEAL 2026-09-12)
+        input_schema = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "default": "recall",
+                    "enum": [
+                        "recall",
+                        "inspect",
+                        "attest",
+                        "remember",
+                        "promote",
+                        "revise",
+                        "forget",
+                        "audit",
+                        "score_prediction",
+                        "metabolize",
+                        "federation_query",
+                        "federation_sync",
+                    ],
+                    "description": "Operation mode: recall, inspect, attest, remember, promote, revise, forget, audit, etc.",
+                },
+                "query": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Semantic search query (recall/audit).",
+                },
+                "memory_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Target memory UUID (inspect/promote/revise/forget).",
+                },
+                "content": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Text body for remember mode.",
+                },
+                "tier": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Memory tier L1–L6.",
+                },
+                "to_tier": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Destination tier for promote.",
+                },
+                "new_content": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Replacement content for revise.",
+                },
+                "human_approval": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Explicit human approval for promote/forget gates.",
+                },
+                "payload": {
+                    "anyOf": [{"type": "object"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Mode-specific params dict (truth_class, provenance, structured, etc.).",
+                },
+                "session_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Governing session.",
+                },
+                "session_token": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "SCT from arif_init.",
+                },
+                "actor_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Calling actor (F11 attribution).",
+                },
+                "lease_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Governed lease ID.",
+                },
+                "idempotency_key": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Idempotency key for write operations.",
+                },
+                "trace_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "Trace ID for audit.",
+                },
+            },
+        }
     return SimpleNamespace(
         name=name,
         description=runtime_contract.get(
