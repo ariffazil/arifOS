@@ -371,11 +371,15 @@ class ConstitutionKernel:
         # L13 SOVEREIGN: Mandatory physiological gate before any SEAL.
         # This prevents autonomous action when the operator is degraded.
         try:
-            well_state_path = "/root/WELL/state.json"
-            # Note: In production container, this path must be mounted.
-            # If missing, we fallback to a safe 'STABLE' assumption unless in strict mode.
+            # L13 reads the live organ state when wired (arifos.service drop-in
+            # well-state.conf, 2026-09-12); /root/WELL/state.json remains the
+            # compat default for environments without the FHS promotion.
             import json
             import os
+
+            well_state_path = os.environ.get(
+                "WELL_STATE_PATH", "/root/WELL/state.json"
+            )
 
             if os.path.exists(well_state_path):
                 with open(well_state_path) as f:
@@ -423,35 +427,63 @@ class ConstitutionKernel:
                     )
 
                 if readiness < 40:  # Threshold per doctrinal move
-                    from arifosmcp.core.authority_gate import AuthorityProof
-                    from arifosmcp.core.law_evaluator import LawResult
-                    from arifosmcp.core.threat_engine import (
-                        IrreversibilityLevel,
-                        ThreatAssessment,
+                    # F13 waiver path (2026-09-12, "waive the WELL fixture for
+                    # lane A"): a RECORDED governance override in well_state
+                    # (f13_well_waiver: active/scope/marker/expires_utc).
+                    # Score unchanged and visible; the waiver is witnessed in
+                    # state.json + ritual.log markers + the seal witness block.
+                    # Same semantics as well_bridge.apply_metabolic_constraints.
+                    _waiver = well_state.get("f13_well_waiver") or {}
+                    _now_iso = __import__("datetime").datetime.now(
+                        __import__("datetime").timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    _waiver_active = (
+                        isinstance(_waiver, dict)
+                        and bool(_waiver.get("active"))
+                        and _waiver.get("scope") in ("lane_a", "all")
+                        and (
+                            not _waiver.get("expires_utc")
+                            or str(_waiver.get("expires_utc")) >= _now_iso
+                        )
                     )
+                    if _waiver_active:
+                        # Sovereign waiver recorded — suppress ONLY this floor's
+                        # HOLD. Do NOT return early: the full constitutional
+                        # evaluation (Step 0 onward, all 13 floors) must still
+                        # run. The waiver trail lives in state.json + markers +
+                        # the seal witness block; this gate just stops
+                        # false-blocking on a known-bad fixture.
+                        pass
+                    else:
+                        from arifosmcp.core.authority_gate import AuthorityProof
+                        from arifosmcp.core.law_evaluator import LawResult
+                        from arifosmcp.core.threat_engine import (
+                            IrreversibilityLevel,
+                            ThreatAssessment,
+                        )
 
-                    threat = ThreatAssessment(
-                        threats=[],
-                        overall_confidence=1.0,
-                        irreversibility=IrreversibilityLevel.NONE,
-                        category=None,
-                    )
-                    floors = LawResult(
-                        verdict="HOLD",
-                        violated_laws=["L13"],
-                        floor_reasons={
-                            "L13": f"Operator readiness {readiness} below constitutional floor (40)"
-                        },
-                    )
-                    authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
-                    return ConstitutionalVerdict(
-                        status="HOLD",
-                        verdict="HOLD",
-                        threat=threat,
-                        floors=floors,
-                        authority=authority,
-                        irreversibility=IrreversibilityLevel.NONE,
-                    )
+                        threat = ThreatAssessment(
+                            threats=[],
+                            overall_confidence=1.0,
+                            irreversibility=IrreversibilityLevel.NONE,
+                            category=None,
+                        )
+                        floors = LawResult(
+                            verdict="HOLD",
+                            violated_laws=["L13"],
+                            floor_reasons={
+                                "L13": f"Operator readiness {readiness} below constitutional floor (40)"
+                            },
+                        )
+                        authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
+                        return ConstitutionalVerdict(
+                            status="HOLD",
+                            verdict="HOLD",
+                            threat=threat,
+                            floors=floors,
+                            authority=authority,
+                            irreversibility=IrreversibilityLevel.NONE,
+                        )
         except Exception:
             # We do not block on well-mirror errors to prevent deadlocks,
             # but we log the friction.
