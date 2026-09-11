@@ -21,6 +21,14 @@ import os
 import time
 import uuid
 
+from arifosmcp.memory.admissibility import (
+    AdmissibilityDecision,
+    compute_sro_block,
+    evaluate,
+    load_policy,
+    summarize_exclusions,
+)
+
 logger = logging.getLogger(__name__)
 
 # Qdrant configuration — prefer QDRANT_URL (set in docker-compose), fallback to host/port
@@ -354,6 +362,8 @@ async def vector_store(
         return {"ok": False, "error": f"L10 EMBEDDING: {exc}", "embedding_unavailable": True}
     point_id = str(uuid.uuid4())
     content_hash = _compute_content_hash(content)
+    truth_class = metadata.get("truth_class") if isinstance(metadata, dict) else None
+    sro = compute_sro_block(truth_class=truth_class, confidence=truth_score)
     payload = {
         "content": content,
         "content_hash": content_hash,
@@ -365,6 +375,7 @@ async def vector_store(
             "actor_id": actor_id,
             "timestamp": time.time(),
         },
+        "sro": sro,
     }
     try:
         client = _get_qdrant_client()
@@ -389,6 +400,8 @@ async def vector_store(
         "ontology_class": ontology["ontology_class"],
         "truth_score": truth_score,
         "vector_size": len(vector),
+        "sro_version": sro["sro_version"],
+        "expires_at": sro["expiry"]["expires_at"],
     }
 
 
@@ -398,9 +411,16 @@ async def vector_query(
     session_id: str = "",
     actor_id: str = "",
     filters: dict | None = None,
+    recall_mode: str = "default",
     **kwargs,
 ) -> dict:
-    """Query vector memory with L10/F2 constitutional filtering.
+    """Query vector memory with L10/F2 constitutional filtering + SRO read gate.
+
+    recall_mode="default" returns only currently-admissible memory (SRO
+    ACTIVE, not expired by time, not superseded). recall_mode="historical"
+    also returns EXPIRED/SUPERSEDED/STALE records, each labelled
+    admissibility_label="HISTORICAL". Refusals are counted with reason codes
+    in the response's admissibility block — never dropped silently.
 
     On Qdrant-unreachable failure (any point in the connection-establish
     / query path), returns a SABAR verdict via `_sabar_qdrant_unreachable`
@@ -453,20 +473,32 @@ async def vector_query(
         # "no-match" success.
         logger.warning(f"Qdrant unavailable for vector_query search: {exc}")
         return _sabar_qdrant_unreachable(exc, op="vector_query")
+    policy = load_policy()
+    decisions: list[AdmissibilityDecision] = []
     filtered_results = []
     for hit in hits:
         md = hit.payload.get("metadata", {})
-        if md.get("truth_score", 0.0) >= _F2_TRUTH_THRESHOLD:
-            filtered_results.append(
-                {
-                    "point_id": hit.id,
-                    "score": hit.score,
-                    "content": hit.payload.get("content", "")[:500],
-                    "content_hash": hit.payload.get("content_hash"),
-                    "metadata": md,
-                }
-            )
-    logger.info(f"Vector query: '{query[:50]}...' → {len(filtered_results)} results")
+        if md.get("truth_score", 0.0) < _F2_TRUTH_THRESHOLD:
+            continue
+        decision = evaluate(hit.payload, policy, mode=recall_mode)
+        decisions.append(decision)
+        if not decision.admitted:
+            continue
+        entry = {
+            "point_id": hit.id,
+            "score": hit.score,
+            "content": hit.payload.get("content", "")[:500],
+            "content_hash": hit.payload.get("content_hash"),
+            "metadata": md,
+        }
+        if decision.label:
+            entry["admissibility_label"] = decision.label
+        filtered_results.append(entry)
+    refused = summarize_exclusions(decisions)
+    logger.info(
+        f"Vector query: '{query[:50]}...' → {len(filtered_results)} admitted, "
+        f"{sum(refused.values())} refused {refused or '{}'} (mode={recall_mode})"
+    )
     return {
         "ok": True,
         "query": query,
@@ -474,6 +506,13 @@ async def vector_query(
         "total_hits": len(hits),
         "filtered_hits": len(filtered_results),
         "f2_threshold": _F2_TRUTH_THRESHOLD,
+        "admissibility": {
+            "mode": recall_mode,
+            "policy_version": policy.get("policy_version"),
+            "admitted": len(filtered_results),
+            "refused": refused,
+            "silent": False,
+        },
     }
 
 
