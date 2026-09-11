@@ -1,0 +1,56 @@
+{
+  "api_version": "arifos.memory_admissibility.v1",
+  "policy_version": 1,
+  "ratified": "2026-09-12",
+  "sro_schema_version": 1,
+  "status_vocabulary": [
+    "ACTIVE",
+    "STALE",
+    "EXPIRED",
+    "SUPERSEDED"
+  ],
+  "expiry_defaults_days": {
+    "OBS": 365,
+    "DER": 180,
+    "INT": 90,
+    "SPEC": 30
+  },
+  "temporal": {
+    "enforce_expires_at": true
+  },
+  "modes": {
+    "default": {
+      "description": "Currently-valid memory only.",
+      "admit_statuses": [
+        "ACTIVE"
+      ],
+      "permit_superseded": false,
+      "min_confidence": null
+    },
+    "historical": {
+      "description": "Explicit historical mode \u2014 old records permitted, always labelled.",
+      "admit_statuses": [
+        "ACTIVE",
+        "STALE",
+        "EXPIRED",
+        "SUPERSEDED"
+      ],
+      "permit_superseded": true,
+      "min_confidence": null,
+      "label": "HISTORICAL"
+    }
+  },
+  "refusal": {
+    "silent": false,
+    "reason_codes": [
+      "MODE_UNKNOWN",
+      "SRO_MISSING",
+      "SRO_VERSION_MISMATCH",
+      "MALFORMED_SRO",
+      "STATUS_NOT_ADMISSIBLE",
+      "EXPIRED_BY_TIME",
+      "SUPERSEDED",
+      "LOW_CONFIDENCE"
+    ]
+  }
+}

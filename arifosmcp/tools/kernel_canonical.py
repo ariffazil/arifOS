@@ -655,14 +655,15 @@ def arif_route(
         else:
             _plan = classify_mission(intent or "investigate")
         mission_payload = plan_to_dict(_plan)
-        # If caller did not pin an organ, prefer mission primary organ
-        if not organ and mission_payload.get("primary_organ"):
-            organ = str(mission_payload["primary_organ"])
+        # If caller did not pin an organ, resolve organ from intent first.
+        # Fall back to mission primary_organ only if intent-based routing defaults to arifOS.
     except Exception as _mission_err:
         logger.debug("arif_route mission binding soft-fail: %s", _mission_err)
         mission_payload = None
 
     target_organ = _route_intent_to_organ(intent, organ)
+    if target_organ == "arifOS" and mission_payload and mission_payload.get("primary_organ"):
+        target_organ = str(mission_payload["primary_organ"])
     if mission_payload:
         mission_payload["primary_organ"] = target_organ.upper()
     intent_map = _load_intent_map()

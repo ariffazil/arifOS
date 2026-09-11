@@ -61,6 +61,7 @@ DITEMPA BUKAN DIBERI -- Forged, Not Given
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -76,7 +77,7 @@ logger = logging.getLogger(__name__)
 _MIN_EVIDENCE_CONFIDENCE: float = 0.30
 
 # Minimum semantic similarity score (Qdrant score threshold)
-_MIN_RETRIEVAL_SCORE: float = 0.45
+_MIN_RETRIEVAL_SCORE: float = float(os.getenv("ARIFOS_MIN_RETRIEVAL_SCORE", "0.25"))
 
 # Staleness threshold in days (for temporal_marker = active but old)
 _STALE_THRESHOLD_DAYS: int = 90

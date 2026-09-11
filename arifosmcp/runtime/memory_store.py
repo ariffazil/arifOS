@@ -49,6 +49,8 @@ from typing import Any
 
 import asyncpg  # noqa: E402, PLC0415
 
+from arifosmcp.memory.admissibility import compute_sro_block, evaluate, load_policy
+
 logger = logging.getLogger(__name__)
 
 # P3: Retrieval trace accumulator (per-call, consumed by search return)
@@ -149,10 +151,10 @@ _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/agent/memory"))
 _INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
 _LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
 
-_QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
-_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory_v2")
+_QDRANT_URL = os.getenv("QDRANT_URL", "http://127.0.0.1:6333")
+_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest")
+_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 # ADR-010: L4 canonical store is LOCAL Postgres (port 5432), not Supabase pooler.
 # ARIFOS_MEMORY_POSTGRES_URL was pointing to Supabase, causing recall failures.
 # Priority: POSTGRES_URL (local) > ARIFOS_MEMORY_POSTGRES_URL (env).
@@ -962,6 +964,11 @@ def store(
         "flow_key": flow_key or "",
     }
 
+    # SRO v1 stamp — writer boundary (config/memory-admissibility-policy.yaml).
+    # Every new Qdrant point is born admissible-shaped: status, expiry window,
+    # calibration slots. Unknown truth class defaults to INT per policy SOT.
+    payload["sro"] = compute_sro_block(truth_class=payload.get("truth_class"))
+
     # If resolution was SUPERSEDE or ESCALATE, update Phoenix state accordingly
     phoenix_override_state = None
     if f4_result.resolution == "escalate":
@@ -1237,6 +1244,7 @@ def recall(memory_id: str) -> dict[str, Any] | None:
             "session_id": p.get("session_id"),
             "summary": p.get("summary"),
             "content_hash": p.get("content_hash"),
+            "sro": p.get("sro"),
             "created_at": p.get("created_at"),
             "tier": p.get("tier", TIER_CANONICAL),
             "point_id": point_id,
@@ -1693,6 +1701,15 @@ def search(
     idx = _index_read()
     results: list[tuple[float, dict[str, Any]]] = []
 
+    # SRO v1 read gate (config/memory-admissibility-policy.yaml) — refusals
+    # are counted with reason codes and surfaced in _retrieval_trace, never
+    # dropped silently. include_historical=True maps to the policy's
+    # historical mode (EXPIRED/SUPERSEDED admitted, each labelled).
+    sro_policy = load_policy()
+    sro_mode = "historical" if include_historical else "default"
+    sro_refused: dict[str, int] = {}
+    sro_refused_pids: set[str] = set()
+
     if query and query.strip():
         try:
             from qdrant_client.models import (  # noqa: PLC0415
@@ -1718,10 +1735,6 @@ def search(
             if entity_filter:
                 filter_conditions.append(
                     FieldCondition(key="entity_tags", match=MatchAny(any=entity_filter))
-                )
-            if not include_historical:
-                filter_conditions.append(
-                    FieldCondition(key="temporal_marker", match=MatchValue(value="active"))
                 )
 
             qdrant_filter = Filter(must=filter_conditions) if filter_conditions else None
@@ -1771,12 +1784,21 @@ def search(
                 for rank, hit in enumerate(pts):
                     p = hit.payload or {}
                     pid = str(hit.id)
+                    if pid in sro_refused_pids:
+                        continue
                     rrf_scores[pid] = rrf_scores.get(pid, 0.0) + weight / (RRF_K + rank + 1)
                     if pid not in dedup_map:
+                        decision = evaluate(p, sro_policy, mode=sro_mode)
+                        if not decision.admitted:
+                            sro_refused_pids.add(pid)
+                            sro_refused[decision.reason_code] = (
+                                sro_refused.get(decision.reason_code, 0) + 1
+                            )
+                            continue
                         temporal_marker = p.get("temporal_marker", "unknown")
                         dedup_map[pid] = {
                             "memory_id": p.get("memory_id") or pid,
-                            "content": p.get("content"),
+                            "content": p.get("content") or p.get("summary") or p.get("title") or "",
                             "mode": p.get("mode"),
                             "tags": p.get("tags", []),
                             "actor_id": p.get("actor_id"),
@@ -1800,7 +1822,11 @@ def search(
                             "superseded_at": p.get("superseded_at"),
                             "extraction_metadata": p.get("extraction_metadata"),
                             "constitutional": p.get("constitutional"),
+                            "sro": p.get("sro"),
+                            "truth_class": p.get("truth_class"),
                         }
+                        if decision.label:
+                            dedup_map[pid]["admissibility_label"] = decision.label
                     else:
                         dedup_map[pid]["rrf_score"] = rrf_scores[pid]
 
@@ -1817,6 +1843,13 @@ def search(
                 "sparse_candidates": len(sparse_resp.points) if sparse_resp else 0,
                 "fused_total": len(fused),
                 "query_prefix": query[:80],
+            }
+            # SRO read gate witness — refusals counted, never silent (Void Guard)
+            _retrieval_trace["sro_gate"] = {
+                "mode": sro_mode,
+                "policy_version": sro_policy.get("policy_version"),
+                "admitted": len(fused),
+                "refused": dict(sro_refused),
             }
             results = [(r["rrf_score"], r) for r in fused]
 
@@ -1843,6 +1876,19 @@ def search(
                 temporal_marker = record.get("temporal_marker", "unknown")
                 if not include_historical and temporal_marker == "historical":
                     continue
+                # SRO read gate — records from the migrated Qdrant collection
+                # carry payload.sro and are gated; PG/legacy lineages without
+                # an SRO block predate the contract and pass (progressive scope)
+                record_sro = record.get("sro")
+                if isinstance(record_sro, dict):
+                    decision = evaluate({"sro": record_sro}, sro_policy, mode=sro_mode)
+                    if not decision.admitted:
+                        sro_refused[decision.reason_code] = (
+                            sro_refused.get(decision.reason_code, 0) + 1
+                        )
+                        continue
+                    if decision.label:
+                        record["admissibility_label"] = decision.label
                 results.append((1.0, record))
 
     results.sort(key=lambda x: x[0], reverse=True)
