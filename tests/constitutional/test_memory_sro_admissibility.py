@@ -343,3 +343,116 @@ def test_vector_query_unknown_mode_fails_closed_everywhere(monkeypatch):
     assert result["ok"] is True  # the query itself is fine
     assert result["results"] == []
     assert result["admissibility"]["refused"] == {"MODE_UNKNOWN": 4}
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 5. Policy JSON twin — A-FORGE (TS) consumes this; drift is fatal there
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_policy_json_twin_matches_yaml_sot():
+    """The JSON twin is the machine projection consumed by the A-FORGE
+    forge_memory gate (A-FORGE pins no YAML parser). If someone edits the
+    YAML SOT without regenerating the twin, the TS gate silently enforces
+    the OLD policy — this test makes that drift loud."""
+    import json
+
+    import yaml
+
+    repo_root = Path(__file__).resolve().parents[2]
+    pol = yaml.safe_load((repo_root / "config" / "memory-admissibility-policy.yaml").read_text())
+    twin = json.loads((repo_root / "config" / "memory-admissibility-policy.json").read_text())
+    assert twin == pol, (
+        "config/memory-admissibility-policy.json is stale vs the YAML SOT — "
+        "regenerate: python3 -c \"import yaml,json; "
+        "json.dump(yaml.safe_load(open('config/memory-admissibility-policy.yaml')), "
+        "open('config/memory-admissibility-policy.json','w'), indent=2)\""
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 6. memory_store.search — the 555 tool path (hybrid dense+sparse + RRF)
+# ─────────────────────────────────────────────────────────────────────
+
+
+class _FakeSearchReport:
+    total_candidates = 0
+    flagged = 0
+    blocked = 0
+    escalated = 0
+    governance = []
+
+    def as_dict(self):
+        return {"total_candidates": self.total_candidates}
+
+
+def _install_fake_memory_store_backend(monkeypatch, payloads):
+    from arifosmcp.runtime import memory_store as ms
+
+    points = [
+        _FakeHit(
+            f"pid-{i}",
+            {"memory_id": f"m-{i}", "content": c[:60], "summary": c,
+             "temporal_marker": "active", "sro": s},
+        )
+        for i, (c, s) in enumerate(payloads)
+    ]
+
+    class _FakeSearchClient:
+        def query_points(self, **kwargs):
+            return _FakeQueryResponse(points)
+
+    monkeypatch.setattr(ms, "_load_memory_policies", lambda: None)
+    monkeypatch.setattr(ms, "_ensure_dir", lambda: None)
+    monkeypatch.setattr(ms, "_index_read", lambda: {})
+    monkeypatch.setattr(ms, "_get_qdrant_client", lambda: _FakeSearchClient())
+    monkeypatch.setattr(ms, "_generate_embedding", lambda text: [0.1] * 1024)
+    monkeypatch.setattr(ms, "_generate_sparse_embedding", lambda text: {"indices": [], "values": []})
+    # integrate_with_search_results is a lazy module global (bound by
+    # _load_memory_policies, which is patched out above) — bind the fake directly.
+    monkeypatch.setattr(
+        ms,
+        "integrate_with_search_results",
+        lambda **kw: (kw["raw_results"], _FakeSearchReport()),
+        raising=False,
+    )
+    return ms
+
+
+def _search_points():
+    return [
+        ("current federation fact with sro active", _sro("ACTIVE", _FUTURE)),
+        ("may 2026 legacy artifact expired", _sro("EXPIRED")),
+        ("old doctrine superseded by successor", _sro("ACTIVE", _FUTURE, superseded_by="m-3")),
+        ("status lies active but clock says past", _sro("ACTIVE", _PAST)),
+    ]
+
+
+def test_memory_store_search_default_mode_refuses_expired(monkeypatch):
+    ms = _install_fake_memory_store_backend(monkeypatch, _search_points())
+    out = ms.search(query="federation", actor_id="fi003", limit=10)
+
+    assert [r["memory_id"] for r in out["results"]] == ["m-0"]
+    gate = out["_retrieval_trace"]["sro_gate"]
+    assert gate["mode"] == "default"
+    assert gate["admitted"] == 1
+    assert gate["refused"] == {
+        "STATUS_NOT_ADMISSIBLE": 1,
+        "SUPERSEDED": 1,
+        "EXPIRED_BY_TIME": 1,
+    }
+
+
+def test_memory_store_search_historical_mode_labels_non_active(monkeypatch):
+    ms = _install_fake_memory_store_backend(monkeypatch, _search_points())
+    out = ms.search(query="federation", actor_id="fi003", limit=10, include_historical=True)
+
+    assert len(out["results"]) == 4
+    labels = {r["memory_id"]: r.get("admissibility_label") for r in out["results"]}
+    assert labels == {
+        "m-0": None,
+        "m-1": "HISTORICAL",
+        "m-2": "HISTORICAL",
+        "m-3": "HISTORICAL",
+    }
+    assert out["_retrieval_trace"]["sro_gate"]["refused"] == {}
