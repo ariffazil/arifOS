@@ -116,6 +116,11 @@ def enforce_memory_routing(tier: str, content: dict, actor: str) -> bool:
 # gates the load; the names themselves are placeholders until first call.
 
 _policies_loaded: bool = False
+integrate_with_search_results: Any = None
+f4_write_path_hook: Any = None
+is_tri_witness_complete: Any = None
+phoenix_summary: Any = None
+_phoenix_entry: Any = None
 
 
 def _load_memory_policies() -> None:

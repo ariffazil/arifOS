@@ -28,7 +28,11 @@ def test_empty_usable_recall_hold_preserves_quarantine_diagnostics(monkeypatch):
         },
     )
 
-    result = memory.arif_memory_recall(query="missing evidence")
+    result = memory.arif_memory_recall(
+        query="missing evidence",
+        session_id="test-session",
+        actor_id="arif",
+    )
 
     assert result["status"] == "HOLD"
     assert result["meta"]["count"] == 0
