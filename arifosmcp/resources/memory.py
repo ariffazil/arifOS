@@ -15,7 +15,7 @@ MEMORY_TEXT = """\
 resource_class: architecture
 authority_level: SOVEREIGN_CANON
 owner: ARIF_FAZIL
-version: 2026.06.21
+version: 2026.09.12
 mutation_allowed: false
 requires_actor_verified: true
 requires_session: true
@@ -23,7 +23,7 @@ lease_required: false
 blast_radius: LOW
 evidence_level: CANONICAL
 staleness_policy: fail_closed
-last_attested: 2026-06-22T00:00:00Z
+last_attested: 2026-09-12T05:45:00Z
 truth_level: 1
 ---end_arifos_meta
 
@@ -34,7 +34,7 @@ arifOS Memory — 6-Layer Architecture
 │  L2 Redis        → session thread / conversation          │
 │  L3 Qdrant       → fuzzy similarity / "what feels like?" │
 │  L4 Supabase     → official structured record              │
-│  L5 Graphiti     → relationships / "connected to what?"   │
+│  L5 (RETIRED)    → Graphiti deprecated → L3 Qdrant + L4   │
 │  L6 VAULT999     → immutable sealed / "what is final?"    │
 │  AAA             → display layer for Arif                  │
 └──────────────────────────────────────────────────────────┘
@@ -57,9 +57,9 @@ DISCIPLINES:
     Official structured record. Domain tables, tool calls, receipts.
     Tool: arif_memory_recall(mode=recall, tier=L4)
 
-  L5 — RELATIONSHIPS (Graphiti + FalkorDB)
-    Entity graph. "Who is connected to what?"
-    Tool: arif_memory_recall(mode=recall, tier=L5)
+  L5 — RETIRED (Graphiti + FalkorDB, tombstoned 2026-09-04)
+    Relationship graph deprecated; replaced by L3 Qdrant + L4 Postgres.
+    Tool: none — do not probe :8000.
 
   L6 — IMMUTABLE (VAULT999, append-only hash-chained)
     Final sealed truth. Cannot be modified, only appended.
@@ -81,7 +81,7 @@ def register_memory(mcp: FastMCP) -> list[str]:
         name="Memory Architecture (L1–L6)",
         description=(
             "The six-layer memory architecture: L1 ephemeral (Redis), L2 session (Redis), "
-            "L3 semantic (Qdrant/BGE-M3), L4 structured (Supabase), L5 relationships (Graphiti), "
+            "L3 semantic (Qdrant/BGE-M3), L4 structured (Supabase), L5 retired (Graphiti, → L3/L4), "
             "L6 immutable (VAULT999). Memory does not become truth until it has provenance. "
             "Truth does not become final until sealed."
         ),
