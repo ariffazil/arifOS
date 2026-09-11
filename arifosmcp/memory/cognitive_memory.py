@@ -270,7 +270,17 @@ def graph_query(
 
     # ── Qdrant semantic search ──
     qdrant = _get_qdrant()
+    decisions: list[Any] = []
+    summarize_exclusions_fn = None
     if qdrant and query:
+        try:
+            from arifosmcp.memory.admissibility import evaluate, load_policy, summarize_exclusions
+            policy = load_policy()
+            summarize_exclusions_fn = summarize_exclusions
+        except Exception:
+            policy = None
+            evaluate = None
+
         try:
             from arifosmcp.runtime.memory_store import _get_embedding
             embedding = _get_embedding(query[:500]) if callable(_get_embedding) else None
@@ -286,15 +296,32 @@ def graph_query(
                         {"key": "task_type", "match": {"value": task_type}},
                     ]},
                 )
+                recall_mode = kwargs.get("mode", "default")
                 for hit in qdrant_results:
                     payload = hit.payload or {}
-                    results.append({
-                        "plan_id": hit.id,
-                        "task_type": payload.get("task_type", ""),
-                        "query": payload.get("query", "")[:200],
-                        "score": getattr(hit, "score", 0.0),
-                        "source": "qdrant",
-                    })
+                    if evaluate and policy:
+                        decision = evaluate(payload, policy, mode=recall_mode)
+                        decisions.append(decision)
+                        if not decision.admitted:
+                            continue
+                        entry = {
+                            "plan_id": hit.id,
+                            "task_type": payload.get("task_type", ""),
+                            "query": payload.get("query", "")[:200],
+                            "score": getattr(hit, "score", 0.0),
+                            "source": "qdrant",
+                        }
+                        if decision.label:
+                            entry["admissibility_label"] = decision.label
+                        results.append(entry)
+                    else:
+                        results.append({
+                            "plan_id": hit.id,
+                            "task_type": payload.get("task_type", ""),
+                            "query": payload.get("query", "")[:200],
+                            "score": getattr(hit, "score", 0.0),
+                            "source": "qdrant",
+                        })
         except Exception as exc:
             logger.warning(f"Qdrant search failed (non-fatal): {exc}")
 
@@ -306,7 +333,7 @@ def graph_query(
             seen.add(r["plan_id"])
             unique.append(r)
 
-    return {
+    response = {
         "ok": True,
         "mode": "graph_query",
         "query": query,
@@ -314,6 +341,14 @@ def graph_query(
         "total": len(unique),
         "sources": list(set(r["source"] for r in unique)),
     }
+    if decisions and summarize_exclusions_fn:
+        response["admissibility"] = {
+            "mode": kwargs.get("mode", "default"),
+            "admitted": len([d for d in decisions if getattr(d, "admitted", False)]),
+            "refused": summarize_exclusions_fn(decisions),
+            "silent": False,
+        }
+    return response
 
 
 def graph_get(
