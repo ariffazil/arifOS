@@ -620,31 +620,19 @@ def _project_light(
     # alias only and must not leak into allowed_next_verbs (registry contract).
     _is_full_authority = _authority in ("FULL", "SOVEREIGN")
     _is_limited = _authority in ("LIMITED_MUTATE",)
+    # FIX 2026-09-12 P0 (verb-list drift): derive allowed_next_verbs from the SAME
+    # source the token mint uses (AUTHORITY_VERBS via derive_verbs), not a hardcoded
+    # branch that drifted. The 2026-08-14 P0 fix changed the mint (allowed=None →
+    # derive_verbs) but left this response serializer on the stale list → init
+    # advertised 4 verbs while the token carried 6 (Hermes/555 probe 2026-09-12).
+    # Ephemeral keeps its sandbox list — the mint also uses _allowed_next for
+    # ephemeral (line ~992), so the two stay consistent by construction.
+    from arifosmcp.runtime.act_token import derive_verbs
+
     if _is_ephemeral:
         _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_seal"]
-    elif _is_full_authority:
-        _allowed_next = [
-            "arif_observe",
-            "arif_think",
-            "arif_route",
-            "arif_memory",
-            "arif_judge",
-            "arif_forge",
-            "arif_seal",
-        ]
-    elif _is_limited:
-        _allowed_next = [
-            "arif_observe",
-            "arif_think",
-            "arif_route",
-            "arif_judge",
-            "arif_forge",
-            "arif_seal",  # safe modes only; mode=seal HOLD via L6 in vault.py
-        ]
     else:
-        # OBSERVE_ONLY: seal verb permitted for OBSERVE modes (verify/list/audit…)
-        # mode=seal still IRREVERSIBLE and HOLD'd inside arif_seal (Layer 6).
-        _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_seal"]
+        _allowed_next = derive_verbs(_authority)
 
     # Fix 2026-07-08: intent is an explicit param — never read free variable `sess`
     # (NameError blocked light bootstrap → all tools stayed anonymous).
@@ -2379,7 +2367,9 @@ def arif_init(
                 _ac_payload = {
                     "card_id": _card_found.get("id") or _card_found.get("card_id") or _ac_actor,
                     "name": _card_found.get("name") or _card_found.get("agent_name") or _ac_actor,
-                    "role": _card_found.get("emd_role") or _card_found.get("role") or _card_found.get("class"),
+                    "role": _card_found.get("emd_role")
+                    or _card_found.get("role")
+                    or _card_found.get("class"),
                     "version": _card_found.get("schemaVersion") or _card_found.get("version"),
                     "source_path": _card_path_found,
                 }
