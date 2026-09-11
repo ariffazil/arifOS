@@ -338,6 +338,38 @@ class FloorEvaluator:
         return cache[key]
 
     @classmethod
+    def _active_floor_waiver(cls, floor_label: str) -> dict | None:
+        """Return the active F13 waiver dict for a floor label, or None.
+
+        Registry: /root/.local/share/arifos/floor_waivers.json — kernel-owned
+        governance file. Waiver validity: active=true, matching floor label,
+        not expired (ISO-8601 UTC string compare). Missing/unreadable file
+        or any error → None (no waiver — fail-closed normal operation).
+        """
+        try:
+            import json as _json
+            from pathlib import Path as _Path
+
+            reg = _Path("/root/.local/share/arifos/floor_waivers.json")
+            if not reg.exists():
+                return None
+            waivers = _json.loads(reg.read_text(encoding="utf-8"))
+            if not isinstance(waivers, dict):
+                return None
+            w = waivers.get(floor_label)
+            if not isinstance(w, dict) or not w.get("active"):
+                return None
+            import datetime as _dt
+
+            _now = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            exp = str(w.get("expires_utc") or "")
+            if exp and exp < _now:
+                return None
+            return w
+        except Exception:
+            return None
+
+    @classmethod
     def _check_floor(
         cls,
         floor_class: type,
@@ -358,8 +390,22 @@ class FloorEvaluator:
             instance = cls._lazy_floor(floor_class, {floor_class.__name__: None})
             r = instance.check(fc)
             if not r.passed:
-                failed.append(floor_label)
-                reasons[floor_label] = r.reason
+                # F13 floor-waiver path (2026-09-12): a RECORDED sovereign
+                # waiver in /root/.local/share/arifos/floor_waivers.json
+                # converts this floor's failure to a waived-pass. The waiver
+                # marker rides in the reason string — the failure value stays
+                # visible; only the blocking is suppressed. Scope + expiry
+                # enforced; missing file = no waivers (fail-closed normal).
+                _w = cls._active_floor_waiver(floor_label)
+                if _w is not None:
+                    reasons[floor_label] = (
+                        f"{r.reason} — WAIVED by F13 (marker={_w.get('marker', '?')}, "
+                        f"expires={_w.get('expires_utc', '?')}); value unchanged, "
+                        "blocking suppressed"
+                    )
+                else:
+                    failed.append(floor_label)
+                    reasons[floor_label] = r.reason
             elif floor_label not in failed:
                 reasons[floor_label] = r.reason
         except Exception as e:
