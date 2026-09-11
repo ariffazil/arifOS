@@ -1,9 +1,19 @@
 """
-flame_client — FLAME Free-Loop HTTP Client for arifOS Kernel
-═══════════════════════════════════════════════════════════════
+flame_client — DEPRECATED 2026-09-11 (FLAME decommissioned 2026-09-04)
+═══════════════════════════════════════════════════════════════════════
 
-Lightweight client for FLAME API (:18901). Duplicated from GEOX pattern
-per F1 AMANAH — tight coupling between organs is forbidden.
+DEPRECATION NOTICE
+------------------
+FLAME (Free-Loop AI Model Engine, :18901) was retired by sovereign decision
+on 2026-09-04. The replacement substrate is `litellm-federation` at :7074
+(FED FLAME FRAME v2). See:
+  - A-FORGE commit 6df34922: `chore(submodules): remove retired flame submodule`
+  - /root/backups/_CANONICAL/FLAME-retired-20260904/ (F1 AMANAH archive)
+  - arifOS upgrade backlog 2026-09-11 (audit: SOT drift cleanup, P0)
+
+This module is kept for import-compat. All calls now return None
+(graceful degradation per architectural rule #2 below). Production callers
+MUST migrate to the FED gateway or a domain-specific arifOS tool.
 
 Architectural rules (Arif-ratified 2026-07-25):
   1. Strict timeout (8s) — never hang the kernel waiting for FLAME
@@ -12,11 +22,11 @@ Architectural rules (Arif-ratified 2026-07-25):
   4. ADVISORY authority — output tagged for F2 truth verification
   5. Prompt constraint — system prompt enforces fact-only extraction
 
-Usage:
+Usage (LEGACY ONLY):
     from arifosmcp.tools.flame_client import flame_synthesize_search
 
     result = flame_synthesize_search(query, raw_results)
-    # Returns dict with ok, synthesis, provenance
+    # Returns None — module is deprecated. Migrate to FED gateway.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
@@ -33,7 +43,12 @@ logger = logging.getLogger("arifos.flame_client")
 
 # ── Config ───────────────────────────────────────────────────────────────
 
-FLAME_API_BASE = "http://127.0.0.1:18901"
+# DEPRECATED 2026-09-11: FLAME_API_BASE set to empty so all calls fail
+# loudly with URLError and trigger the graceful-degradation path. This is
+# the existing failure mode (FLAME :18901 has been down since 2026-09-04);
+# we are making it explicit instead of misleading. Replace this module
+# with a FED-gateway caller when migration is scheduled.
+FLAME_API_BASE = ""
 DEFAULT_TIMEOUT_S = 8  # Strict: never hang kernel
 MAX_BODY_CHARS = 8000
 
@@ -57,6 +72,10 @@ def _flame_post(
 ) -> dict[str, Any] | None:
     """POST to FLAME API with graceful degradation.
 
+    DEPRECATED 2026-09-11: When FLAME_API_BASE is empty (deprecation active),
+    bail out before urlopen() to avoid ValueError on unparseable URL and to
+    avoid the buggy URLError handler below that touches HTTPError-only attrs.
+
     Args:
         endpoint: API path like '/completions'
         payload: JSON-serialisable dict — self-contained
@@ -65,12 +84,20 @@ def _flame_post(
     Returns:
         Parsed JSON dict, or None on any failure.
     """
+    # DEPRECATED 2026-09-11 — FLAME retired. Bail out before any urlparse /
+    # urlopen so callers get the documented graceful-None contract.
+    if not FLAME_API_BASE:
+        logger.debug(
+            "flame_client: FLAME_API_BASE empty (deprecated 2026-09-11) — returning None for %s",
+            endpoint,
+        )
+        return None
     url = f"{FLAME_API_BASE}{endpoint}"
     body = json.dumps(payload).encode("utf-8")
 
     if len(body) > MAX_BODY_CHARS * 4:
         logger.warning("flame_client: payload too large (%d bytes), truncating", len(body))
-        body = body[:MAX_BODY_CHARS * 4]
+        body = body[: MAX_BODY_CHARS * 4]
 
     req = Request(
         url,
@@ -202,7 +229,7 @@ def flame_synthesize_search(
         if content.startswith("<think>"):
             end = content.find("</think>")
             if end != -1:
-                content = content[end + 8:].strip()
+                content = content[end + 8 :].strip()
 
         return {
             "ok": True,
