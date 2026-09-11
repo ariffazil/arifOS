@@ -254,6 +254,32 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
     ):
         classification["contradicted"] = True
 
+    # ── SRO v1 Admissibility Integration (2026-09-12) ─────────────
+    sro_data = record.get("sro")
+    if sro_data and isinstance(sro_data, dict):
+        try:
+            import sys
+            if "/root/AAA/contracts/memory" not in sys.path:
+                sys.path.insert(0, "/root/AAA/contracts/memory")
+            from admissibility_gate import MemoryAdmissibilityGate
+            _gate = MemoryAdmissibilityGate()
+            _recall_mode = "historical_lineage" if record.get("_recall_mode") == "historical" else "operational_default"
+            _eval = _gate.evaluate(record, mode=_recall_mode)
+            record["_sro_admissibility"] = _eval
+            if not _eval.get("admissible", True):
+                classification["quarantined"] = True
+                record["usable"] = False
+                record["_quarantine"] = {
+                    "quarantined": True,
+                    "reason": _eval.get("reason", "Excluded by SRO admissibility gate"),
+                    "code": _eval.get("code", "SRO_EXCLUDED"),
+                    "original_tier": record.get("tier", "unknown"),
+                    "action": f"Excluded by SRO v1 Admissibility Gate ({_eval.get('code')}).",
+                }
+                record["tier"] = "quarantine"
+        except Exception:
+            pass
+
     record["classification"] = classification
     record["can_treat_as_proof"] = classification["verified"] and not classification["contradicted"]
     record["provenance"] = (
@@ -1061,6 +1087,7 @@ def arif_memory_recall(
                     ),
                     context,
                 )
+            record["_recall_mode"] = "historical" if (scope == "historical" or context == "historical") else "operational_default"
             record = _classify_recall_result(record)
             # Filter by provenance requirement
             if require_provenance and record.get("provenance") not in ("verified", "sealed"):
@@ -1084,7 +1111,7 @@ def arif_memory_recall(
         if query:
             search_result = _memory_search(
                 query=query,
-                session_id=session_id,
+                session_id=session_id if (scope == "session" or context == "session") else None,
                 actor_id=actor_id,
                 limit=limit,
             )
@@ -1099,6 +1126,7 @@ def arif_memory_recall(
             usable_hits = []
             quarantined_hits = []
             for r in results:
+                r["_recall_mode"] = "historical" if (scope == "historical" or context == "historical") else "operational_default"
                 r = _classify_recall_result(r)
                 all_classified.append(r)
                 if min_confidence > 0 and r.get("score", 0.0) < min_confidence:
@@ -1119,6 +1147,7 @@ def arif_memory_recall(
                     "_governance": r.get("_governance"),
                     "_constructed_text": r.get("_constructed_text", False),
                     "_quarantine": r.get("_quarantine"),
+                    "_sro_admissibility": r.get("_sro_admissibility"),
                 }
                 if r.get("usable", True) and not r.get("_constructed_text"):
                     usable_hits.append(hit)

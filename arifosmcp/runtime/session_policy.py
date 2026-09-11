@@ -190,10 +190,21 @@ def session_policy_clamp(
     # Uses threshold_rank (mode-resolved) so read-only modes of dangerous
     # tools (e.g. arif_seal mode=verify) pass the threshold gate.
     if threshold_rank >= 4.0:
-        try:
-            threshold = float(policy.get("irreversibility_threshold"))
-        except (TypeError, ValueError):
-            threshold = None
+        raw_t = policy.get("irreversibility_threshold")
+        if isinstance(raw_t, str):
+            _THRESH_MAP = {
+                "none": 0.0,
+                "reversible": 0.35,
+                "partial": 0.67,
+                "irreversible": 0.85,
+                "critical": 1.0,
+            }
+            threshold = _THRESH_MAP.get(raw_t.strip().lower())
+        else:
+            try:
+                threshold = float(raw_t) if raw_t is not None else None
+            except (TypeError, ValueError):
+                threshold = None
         if threshold is not None and (threshold_rank / 6.0) > threshold + 1e-9:
             return {
                 "reason": (
