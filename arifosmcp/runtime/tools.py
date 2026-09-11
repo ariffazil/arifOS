@@ -18439,6 +18439,7 @@ def _judge_evidence_sufficiency(
 def _arif_judge_deliberate(
     mode: str = "judge",
     candidate: str | None = None,
+    candidate_ref: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
@@ -18540,7 +18541,15 @@ def _arif_judge_deliberate(
         verify_candidate_for_authority,
     )
 
-    _fw_candidate_ref = candidate  # may be candidate_ref string or None
+    # X-017 (2026-09-12): candidate_ref is the STORE REFERENCE param — the
+    # firewall below must key on it, never on the candidate TEXT. The old
+    # `_fw_candidate_ref = candidate` stuffed raw text into the store lookup,
+    # UNKNOWN_CANDIDATE-firewalling EVERY text-candidate judge call (sixth
+    # label-truth emitter; reproduced identically 2026-09-08 + 2026-09-12).
+    # Text candidates without a ref are "normal governance work" per
+    # verify_candidate_for_authority's own None-path; the secondary
+    # string-detect gate below still screens raw strings for wonder leakage.
+    _fw_candidate_ref = candidate_ref  # store reference only — never the text
     if _fw_candidate_ref is not None and isinstance(_fw_candidate_ref, str):
         _store_verdict = verify_candidate_for_authority(
             _fw_candidate_ref,
@@ -19577,6 +19586,7 @@ def _arif_judge_deliberate(
 async def _arif_judge_deliberate_tool(
     mode: str = "judge",
     candidate: str | None = None,
+    candidate_ref: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
     session_token: str | None = None,
@@ -19728,6 +19738,7 @@ async def _arif_judge_deliberate_tool(
         result = _arif_judge_deliberate(
             mode=mode,
             candidate=candidate,
+            candidate_ref=candidate_ref,
             session_id=session_id,
             actor_id=actor_id,
             constitutional_chain_id=constitutional_chain_id,
