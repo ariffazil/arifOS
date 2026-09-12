@@ -147,8 +147,8 @@ def run_all() -> bool:
     results["C4_no_auth"] = "PASS"
 
     # C5: Φ is a verdict gate, not a dial — Φ=0 → VOID regardless of G
-    _, verdict_ok = quick_verdict(0.85, 0.7, 0.7, 0.7, 0.7)
-    _, verdict_void = quick_verdict(0.85, 0.7, 0.7, 0.7, 0.0)
+    verdict_ok, _ = quick_verdict(0.85, 0.7, 0.7, 0.7, 0.7)
+    verdict_void, _ = quick_verdict(0.85, 0.7, 0.7, 0.7, 0.0)
     assert verdict_ok != Verdict.VOID
     assert verdict_void == Verdict.VOID
     results["C5_phi_gate"] = "PASS"
