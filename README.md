@@ -1,23 +1,26 @@
 <!-- SOT-MANIFEST
-federation_release: v2026.09.10
-last_verified: 2026-09-09T20:45:25+00:00
-live_commit: 337cad0f0 (chore: federation docs + witness substrate + capability ledger)
-source_commit: 337cad0f0
+federation_release: v2026.09.12
+last_verified: 2026-09-12T06:41:16+00:00
+live_commit: 480eb04ed (fix(security): SSRF guard hardening — resolve_blocked replaces string-prefix gua)
+source_commit: 480eb04ed
 tools_exposed_via_mcp: 8 (canonical public verbs)
-floors_active: 13 (F1–F13, all passing)
+floors_active: 13 (F1–F13, active)
 federation_schema: 2.0.0
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (113K+ records, append-only)
+vault999: healthy (122K+ records, append-only)
 truth_rule: live :8088/health + tools/list beat any static count in prose
---->
+generated_by: scripts/update_readme_sot.py — numeric fields are re-stamped, never hand-maintained
+-->
 
 # arifOS — An Open-Source Governance Decision Point for AI Agent Actions
 
 **arifOS evaluates consequential AI actions against policy floors and returns a verdict _before_ execution occurs.**
 
-When an AI agent proposes to write, delete, deploy, or spend, arifOS inserts an independent judgment step: the agent proposes, arifOS evaluates, a human approves (or not), and only then does execution proceed. Every verdict is recorded with full evidence in an append-only ledger.
+When an AI agent proposes to write, delete, deploy, or spend, arifOS inserts an independent judgment step: the agent proposes, arifOS evaluates, a decision is reached, and only then does execution proceed. Every verdict is recorded with full evidence in an append-only ledger.
 
 **This is not an AI model. It is not an agent framework. It is a policy decision point — the layer between "agent wants to act" and "action occurs."**
+
+**What arifOS is not:** not an AI model · not an agent framework · not an execution engine (it judges; A-FORGE executes) · not a substitute for authentication, sandboxing, or legal review.
 
 ---
 
@@ -62,13 +65,15 @@ AI agents that act are also certifying their own actions. There is no independen
 | Governance | arifOS | Policy Decision Point — evaluates proposals against constitutional floors |
 | Control | AAA | Intent classification and routing to the correct organ |
 | Execution | A-FORGE | Governed mutation — leases, gates, receipts |
-| Witness | VAULT999 | Append-only audit ledger — immutable record of every verdict and receipt |
+| Witness | VAULT999 | Hash-chained append-only ledger — tamper-evident record of every verdict and receipt |
 
 Authority remains separated at every stage. No single component proposes, judges, executes, and witnesses the same action.
 
 ---
 
 ## Quick Start
+
+> Requires **Python 3.12+** (supported range: 3.12–3.14; see `pyproject.toml`).
 
 ### Install
 
@@ -79,39 +84,39 @@ pip install arifos
 ### Run the kernel
 
 ```bash
-# Start the MCP server
-python -m arifosmcp.serve --port 8088
+# Start the MCP server (console script; `arifos` is an equivalent alias)
+arifos-mcp
 
-# Check health
+# Equivalent module form
+python -m arifosmcp.runtime
+
+# Check health — the kernel defaults to port 8088
 curl http://localhost:8088/health
 ```
 
-### Connect an agent
+### Connect an MCP client
 
-```python
-# Via MCP (Streamable HTTP)
-import httpx
+Point any MCP client at the Streamable HTTP endpoint:
 
-# Submit a proposal for judgment
-response = httpx.post("http://localhost:8088/mcp", json={
-    "method": "tools/call",
-    "params": {
-        "name": "arif_judge",
-        "arguments": {
-            "candidate": "Write file /data/report.csv with production data",
-            "action_tier": "standard"
-        }
-    }
-})
-# Returns: SEAL | HOLD | SABAR | VOID with full evidence chain
+```
+http://localhost:8088/mcp
 ```
 
-### Five-minute governed action
+An illustrative `tools/call` for judgment:
 
-```bash
-# Full cycle: proposal → judgment → human approval → execution → receipt
-arifos demo --guided
+```jsonc
+// method: tools/call
+{
+  "name": "arif_judge",
+  "arguments": {
+    "candidate": "Write file /data/report.csv with production data",
+    "action_tier": "standard"
+  }
+}
+// → SEAL | HOLD | SABAR | VOID with evidence chain
 ```
+
+For a guided walkthrough, start with [docs/START_HERE.md](./docs/START_HERE.md).
 
 ---
 
@@ -128,7 +133,7 @@ arifos demo --guided
 
 ### 13 Constitutional Floors (F1–F13)
 
-Every proposal passes through 13 policy constraints. A single floor failure produces VOID.
+Every proposal is evaluated against 13 non-compensatory policy constraints (F1–F13). Floors are never averaged or traded off — a failure propagates into the verdict (HOLD, SABAR, or VOID).
 
 | Floor | Name | What it checks |
 |-------|------|---------------|
@@ -136,19 +141,19 @@ Every proposal passes through 13 policy constraints. A single floor failure prod
 | F2 | TRUTH | Evidence-grounded claims — uncertainty-banded |
 | F3 | WITNESS | Three-way consistency (theory, code, intent) |
 | F4 | CLARITY | Transparent intent |
-| F5 | PEACE | Human dignity over convenience |
-| F6 | EMPATHY | Consequences for weakest stakeholders |
+| F5 | PEACE² | Non-destructive power — block harm and extraction |
+| F6 | MARUAH | Dignity — protect the weakest stakeholder |
 | F7 | HUMILITY | Acknowledge limits |
 | F8 | GENIUS | Elegant correctness (G ≥ 0.80) |
 | F9 | ANTI-HANTU | No consciousness or emotion claims |
 | F10 | ONTOLOGY | Structural coherence |
-| F11 | AUTH | Identity verification before sensitive operations |
+| F11 | AUDIT | Every decision logged, inspectable, attributable |
 | F12 | INJECTION | Input sanitization |
 | F13 | SOVEREIGN | Human veto is absolute |
 
-### VAULT999 (Append-Only Audit Ledger) — Audit Ledger
+### VAULT999 (Append-Only Audit Ledger)
 
-Every verdict, evidence chain, and execution receipt is recorded in VAULT999 — an append-only JSONL ledger with 113,913+ records. Designed for compliance auditing, forensic review, and governance proof.
+Every verdict, evidence chain, and execution receipt is recorded in VAULT999 — a hash-chained, append-only JSONL ledger (live record count in the header manifest above, re-stamped by `scripts/update_readme_sot.py`). Designed for compliance auditing, forensic review, and governance proof. Chain verification tooling ships in `scripts/verify_vault_chain.py`.
 
 ---
 
@@ -201,7 +206,7 @@ arifOS is the kernel. The other organs are supporting infrastructure. GEOX is th
 
 ## MCP Interface
 
-The kernel exposes 8 canonical MCP verbs over Streamable HTTP:
+The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07-28`, backward-compatible to `2024-11-05`):
 
 | Verb | Purpose |
 |------|---------|
@@ -214,21 +219,24 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP:
 | `arif_forge` | Dispatch authorized actions for execution |
 | `arif_seal` | Seal a completed action chain with evidence and receipt |
 
+> `arif_forge` is a **governed dispatch** verb: it routes authorized actions toward the execution organ (A-FORGE) and mutates only after a SEAL verdict. The kernel itself does not perform the underlying mutation. The judge never executes; the executor never certifies.
+
 ---
 
-## What Is Proven
+## Verification Status
 
-| Surface | Status |
-|---------|--------|
-| GitHub repository | Public, AGPL-3.0, active commits (September 2026) |
-| PyPI package | `pip install arifos`, version 1!2026.8.2 |
-| Live health endpoint | `curl localhost:8088/health` — returns structured JSON |
-| MCP interface | 8 tools, Streamable HTTP (protocol 2024-11-05), schema-validated |
-| VAULT999 ledger | 119K+ append-only records |
-| Floor enforcement | 13 floors active, all passing in current deployment |
-| Source-build-deploy alignment | Verified (commit 337cad0f0) |
-| GEOX reference implementation | Geoscience uncertainty workflows |
-| Federation architecture | 10 organs with defined boundaries |
+> The header manifest is regenerated from the live kernel by `scripts/update_readme_sot.py` (run before release commits). Last stamp: `last_verified` above.
+
+| Surface | Status | Evidence |
+|---------|--------|----------|
+| Public repository | Live | GitHub (`ariffazil/arifOS`), AGPL-3.0-only |
+| PyPI package | Published `1!2026.8.2` | `pip install arifos` |
+| Live kernel | Green | `curl localhost:8088/health` → structured JSON, `service_health: green` |
+| MCP interface | 8 tools exposed | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
+| Floor enforcement | Active — 13/13 pass at last probe | `/health → runtime_floors_status`, `degraded_reasons: []` |
+| VAULT999 ledger | Healthy | Hash-chained append-only JSONL; live count in header manifest |
+| Source / build / deploy alignment | Verified (commit 480eb04ed) | `runtime_drift: false`, `deployment_attestation: aligned` |
+| Federation | 10 organs | See Architecture |
 
 ## What Is Not Yet Proven
 
@@ -282,23 +290,24 @@ pip install -e ".[light]"
 python -m pytest tests/ -v
 
 # Start the kernel
-python -m arifosmcp.serve --port 8088
+arifos-mcp   # or: python -m arifosmcp.runtime
 ```
 
 ### Project Structure
 
 ```
 arifOS/
-├── arifosmcp/          # Core kernel package (1228 Python files)
+├── arifosmcp/          # Core kernel package
 │   ├── abi/            # Capability registry and floor definitions
 │   ├── constitution/   # Constitutional floor implementations
 │   ├── kernel/         # Core judgment engine
 │   └── VAULT999/       # VAULT999 ledger implementation
-├── tests/              # Test suite (476 test files)
+├── tests/              # Test suite (pytest — constitutional + integration)
+├── scripts/            # Operational tooling (incl. update_readme_sot.py)
 ├── docs/               # Documentation
 │   ├── START_HERE.md   # External reader entry point
 │   └── ...
-└── pyproject.toml      # Package metadata (v1!2026.8.2)
+└── pyproject.toml      # Package metadata
 ```
 
 ---
