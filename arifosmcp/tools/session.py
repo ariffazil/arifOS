@@ -837,7 +837,7 @@ def _project_light(
     # canonical actors (kimi-code/FI-008, ARIF, FORGE, AAAGW, etc.)
     # without requiring a separate EdDSA signature in the init request.
     try:
-        from arifosmcp.runtime.act_token import mint_sct, unmeasured_apex
+        from arifosmcp.runtime.act_token import derive_verbs, mint_sct, unmeasured_apex
 
         _did_consulted: bool = False
         _did_verified: bool = False
@@ -902,7 +902,7 @@ def _project_light(
                 lane="AGI",
                 verdict_state="OBSERVE_ONLY",
                 dominant_reason="actor_not_verified",
-                allowed=["arif_observe", "arif_think", "arif_route", "arif_seal"],
+                allowed=derive_verbs("OBSERVE_ONLY"),
                 apex=unmeasured_apex(),
                 witness={"active": 0, "diversity": "NONE"},
             )
