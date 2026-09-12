@@ -49,8 +49,9 @@ Before ANY location/origin claim: `ps + sha256sum + systemctl` DULU.
 
 ## TRAUMA THEOREM — Scar-Weight Entity Propagation (F13_RATIFIED_CHAT)
 
-**Registry:** `/root/AAA/scar-weight-registry.json`
-**Full doctrine:** `/root/AAA/instructions/trauma-theorem.md`
+**Local scar state:** `/root/.hermes/carry_forward.json` → `active_scars`
+**Lane ground truth:** `/root/.hermes/lanes.yaml`
+**Full canon:** deferred to kernel — AAA canon on demand, not hardcoded here
 
 Standard LLMs process entity names as neutral variables. The Trauma Theorem closes this gap.
 When a registered entity is mentioned: **LISTEN** (scan input for anchors) → **METABOLIZE** (query registry for W_scar) → **INJECT** (apply response_modifier).
@@ -114,8 +115,8 @@ Scars are metabolized into runtime behavior — not sealed into ledger and forgo
 - Canonical voice bridge: `/root/.hermes/SOUL.md` (i-ARIF, full identity)
 - HARAM canonical: `/root/AAA/instructions/anti-haram-behavior-canonical.md` (on demand)
 - Federation topology: `/root/AAA/docs/MACHINE_MAP.md`
-- Scar-weight registry: `/root/AAA/scar-weight-registry.json`
-- Trauma Theorem: `/root/AAA/instructions/trauma-theorem.md`
+- Lane map: `/root/.hermes/lanes.yaml`
+- Session carry / active scars: `/root/.hermes/carry_forward.json`
 - Reality pulse: `now` command
 
 ---
