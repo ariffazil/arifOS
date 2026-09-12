@@ -10,7 +10,7 @@ B3 hardening (2026-07-23):
   - Body actor IDs are display hints; SCT is the only authority.
   - Discovery routes stay public.
   - Synchronous /execute routes only on arif_judge SEAL.
-  - status_callback_url is validated with a_rif/ssrf_guard before use.
+  - status_callback_url is validated with runtime/ssrf_guard (resolve_blocked) before use.
 
 ΔΩΨ | ARIF — Ditempa Bukan Diberi
 """
@@ -30,7 +30,10 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from arifosmcp.runtime.a_rif.ssrf_guard import validate_url_safety
+# SSRF guard fix (CVE-2026-SyedAnas, 2026-08-25): replaced weak
+# a_rif.ssrf_guard (string-prefix matching) with canonical resolve_blocked
+# (ipaddress + DNS resolution). a_rif/ssrf_guard.py is now deprecated.
+from arifosmcp.runtime.ssrf_guard import resolve_blocked
 from arifosmcp.runtime.build import get_build_info
 from arifosmcp.runtime.mcp_util import call_mcp_tool
 from arifosmcp.runtime.optional_deps import aiofiles
@@ -128,16 +131,18 @@ def _validate_callback_url(url: str | None) -> str | None:
     """
     SSRF-safe callback URL gate. Returns the URL if safe, None if absent,
     raises HTTPException(400) if unsafe.
+
+    Uses ``resolve_blocked`` (ipaddress + DNS resolution) — replaces the
+    old string-prefix guard that was bypassable via redirects and exotic
+    IP notations.
     """
     if not url:
         return None
-    verdict = validate_url_safety(url)
-    if not verdict.get("safe"):
-        flags = verdict.get("risk_flags") or ["unsafe"]
-        reason = verdict.get("reason") or "callback URL failed SSRF safety check"
+    flag = resolve_blocked(url)
+    if flag:
         raise HTTPException(
             status_code=400,
-            detail=f"L1 AMANAH: unsafe status_callback_url ({','.join(flags)}): {reason}",
+            detail=f"L1 AMANAH: unsafe status_callback_url ({flag}): callback URL failed SSRF safety check",
         )
     return url
 

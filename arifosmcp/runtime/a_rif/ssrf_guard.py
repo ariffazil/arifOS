@@ -1,10 +1,12 @@
 """
-arifosmcp/runtime/a_rif/ssrf_guard.py — URL Safety Validation
+DEPRECATED (2026-08-25): This module is superseded by arifosmcp.runtime.ssrf_guard.
+String-prefix matching cannot detect hex/octal/IPv6 IP notations (e.g.
+http://2130706433/ = 127.0.0.1, http://0x7f.0.0.1/, http://[::1]/).
+All callers MUST migrate to resolve_blocked() from arifosmcp.runtime.ssrf_guard.
+This file is retained only for backward compatibility — do not add new imports.
 ═════════════════════════════════════════════════════════════
 
-Blocks internal/private network access from fetch operations.
-
-DITEMPA BUKAN DIBERI — Forged, Not Given
+arifosmcp/runtime/a_rif/ssrf_guard.py — URL Safety Validation
 """
 
 from __future__ import annotations

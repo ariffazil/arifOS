@@ -9,6 +9,7 @@ import logging
 import os
 import re
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 import httpx
 
@@ -72,16 +73,59 @@ async def verify_url(url: str, timeout: float = 10.0) -> VerifyResult:
             error="URL failed safety checks",
         )
     try:
-        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-            resp = await client.head(url)
+        # SSRF redirect guard (CVE-2026-SyedAnas, 2026-08-25): follow_redirects=True
+        # re-resolves DNS per hop — a public host can 30x to 127.0.0.1 and bypass
+        # the pre-check above. Redirects are handled explicitly with SSRF re-check.
+        from .ssrf_guard import resolve_blocked as _ssrf_resolve
+
+        current_url = url
+        final_resp = None
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
+            for _hop in range(6):  # 5 redirects max
+                if _ssrf_resolve(current_url) is not None:
+                    return VerifyResult(
+                        url=url,
+                        is_safe=True,
+                        is_reachable=False,
+                        status_code=None,
+                        content_type=None,
+                        content_length=None,
+                        final_url=None,
+                        error=f"Redirect to blocked target refused: {current_url}",
+                    )
+                resp = await client.head(current_url)
+                if resp.is_redirect:
+                    location = resp.headers.get("location", "")
+                    if not location:
+                        break
+                    # Resolve relative redirects against the current URL.
+                    if location.startswith(("http://", "https://")):
+                        current_url = location
+                    else:
+                        parsed_cur = urlparse(current_url)
+                        current_url = f"{parsed_cur.scheme}://{parsed_cur.netloc}{location}"
+                    continue
+                final_resp = resp
+                break
+            if final_resp is None:
+                return VerifyResult(
+                    url=url,
+                    is_safe=True,
+                    is_reachable=False,
+                    status_code=None,
+                    content_type=None,
+                    content_length=None,
+                    final_url=None,
+                    error="No final response after redirect chain",
+                )
             return VerifyResult(
                 url=url,
                 is_safe=True,
                 is_reachable=True,
-                status_code=resp.status_code,
-                content_type=resp.headers.get("content-type", ""),
-                content_length=int(resp.headers.get("content-length", 0) or 0),
-                final_url=str(resp.url),
+                status_code=final_resp.status_code,
+                content_type=final_resp.headers.get("content-type", ""),
+                content_length=int(final_resp.headers.get("content-length", 0) or 0),
+                final_url=str(final_resp.url),
                 error=None,
             )
     except Exception as e:

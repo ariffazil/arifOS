@@ -11319,6 +11319,15 @@ def _arif_session_init(
 
                     _live_url = _genesis_card.get("url", "")
                     if _live_url:
+                        # SSRF guard (CVE-2026-SyedAnas, 2026-08-25):
+                        # Genesis card URL was fetched without SSRF validation.
+                        # urlopen follows redirects and resolves DNS internally,
+                        # so a malicious genesis_card.yaml could exfil to private IPs.
+                        from arifosmcp.runtime.ssrf_guard import resolve_blocked as _ssrf_check
+
+                        _ssrf_flag = _ssrf_check(_live_url)
+                        if _ssrf_flag:
+                            raise ValueError(f"SSRF blocked: {_ssrf_flag}")
                         with urllib.request.urlopen(_live_url, timeout=3) as _resp:
                             _live_content = _resp.read()
                         _live_hash = hashlib.sha256(_live_content).hexdigest()
