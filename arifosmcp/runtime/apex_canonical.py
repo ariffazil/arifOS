@@ -6,7 +6,7 @@ The ONE governance function for the arifOS federation.
 
 G_raw  = A · P · E · X               ← veto semantic (Nash bargaining product)
 G      = (A · P · E · X)^(1/4)        ← F8 GENIUS canonical (4-factor geo-mean)
-Φ      = scar pressure gate           ← SEPARATE, NOT a 5th G dial
+triWitness      = witness verdict gate           ← SEPARATE, NOT a 5th G dial
 C_dark = A · (1-P) · (1-X)           ← shadow term (hallucination bound)
 dS/dt  ≤ 0                           ← conservation law (thermodynamic)
 
@@ -19,7 +19,7 @@ Seven Axioms:
   3. Nash bargaining — G = ∏ p_i because veto = multiplicative gate
   4. Shadow — C_dark = A·(1-P)·(1-X) < 0.30
   5. Conservation — dS/dt ≤ 0
-  6. Tri-witness — Φ = ∛(H·AI·Ext) ≥ 0.70
+  6. Tri-witness — triWitness = ∛(H·AI·Ext) ≥ 0.70
   7. F13 veto — only sovereign overrides G
 
 APEX-2026-08-01 Reform: FalsifiablePrediction binding (888 SEAL 2026-08-01)
@@ -67,7 +67,7 @@ TOTAL_FLOORS = 13
 # HISTORICAL NOTE — PRE-V3 ONLY. Before commit 303cb8ad8 (2026-08-05), legacy
 # compatibility paths referenced a five-factor product G = A·P·E·X·Φ.
 # That is NOT canonical and must not describe runtime governance.
-# Canonical APEX V3: G = (A·P·E·X)^(1/4); Φ is a separate verdict gate (Φ==0 → VOID).
+# Canonical APEX V3: G = (A·P·E·X)^(1/4); triWitness is a separate verdict gate (triWitness==0 → VOID).
 APEX_EQUATION = "G = (A · P · E · X)^(1/4)"
 APEX_SHADOW = "C_dark = A · (1-P) · (1-X)"
 APEX_CONSERVATION = "dS/dt ≤ 0"
@@ -244,29 +244,29 @@ def compute_X(
     return clamp(step_ratio * consequence_stability)
 
 
-def compute_Phi(
+def compute_tri_witness(
     h_witness: float = 0.0,
     ai_witness: float = 0.0,
     ext_witness: float = 0.0,
 ) -> float:
     """
-    Φ — Witness (Tri-Witness)
+    triWitness — Witness (Tri-Witness)
 
-    Φ = ∛(H · AI · Ext)
+    triWitness = ∛(H · AI · Ext)
 
     Measurement Law:
       - H = human witness (WELL vitality, dignity, somatic signals)
       - AI = internal witness (arifOS judge, floors, lineage)
       - Ext = external witness (AAA, civilizational mesh)
-      - If any witness = 0 → Φ = 0
-      - If witness conflict → Φ = min(H, AI, Ext)
+      - If any witness = 0 → triWitness = 0
+      - If witness conflict → triWitness = min(H, AI, Ext)
     """
     # Clamp each witness to [0, 1]
     h = clamp(h_witness)
     ai = clamp(ai_witness)
     ext = clamp(ext_witness)
 
-    # Any zero collapses Φ
+    # Any zero collapses triWitness
     if h == 0 or ai == 0 or ext == 0:
         return 0.0
 
@@ -310,7 +310,7 @@ class PrimitiveInputs:
     delta_s_t: float = 0.0
     forge_evaluate_passed: bool = True
 
-    # Φ — Witness
+    # triWitness — Witness
     h_witness: float = 0.0
     ai_witness: float = 0.0
     ext_witness: float = 0.0
@@ -384,7 +384,7 @@ class APEXResult:
     P: float
     E: float
     X: float
-    Phi: float
+    tri_witness: float
 
     # Core formula
     G: float
@@ -411,6 +411,7 @@ class APEXResult:
     shadow: str = APEX_SHADOW
     conservation: str = APEX_CONSERVATION
     timestamp: str = ""
+    verdict_namespace: str = "apex.constitutional.v3"
 
     def __post_init__(self) -> None:
         # Falsifiability check — fail-loud for APEX-2026-08-01 records.
@@ -424,7 +425,7 @@ class APEXResult:
                 "P": round(self.P, 4),
                 "E": round(self.E, 4),
                 "X": round(self.X, 4),
-                "Phi": round(self.Phi, 4),
+                "tri_witness": round(self.tri_witness, 4),
             },
             "G": round(self.G, 4),
             "C_dark": round(self.C_dark, 4),
@@ -444,6 +445,7 @@ class APEXResult:
             "conservation": self.conservation,
             "is_falsifiable": self.is_falsifiable,
             "timestamp": self.timestamp or datetime.now(UTC).isoformat(),
+            "verdict_namespace": self.verdict_namespace,
         }
         if self.prediction is not None:
             result["prediction"] = self.prediction.to_dict()
@@ -517,7 +519,7 @@ def compute_apex(
         forge_evaluate_passed=inputs.forge_evaluate_passed,
     )
 
-    Phi = compute_Phi(
+    tri_witness = compute_tri_witness(
         h_witness=inputs.h_witness,
         ai_witness=inputs.ai_witness,
         ext_witness=inputs.ext_witness,
@@ -525,7 +527,7 @@ def compute_apex(
 
     # ═══ THE CANONICAL FORMULA ═══
     # F8 GENIUS canonical: G = (A·P·E·X)^(1/4). 4 factors, geometric mean.
-    # 2026-08-05 W-12 FIX: Φ is scar pressure (separate gate per A2 canonic),
+    # 2026-08-05 W-12 FIX: triWitness is the witness gate (separate per A2 canonic),
     # NOT a 5th G dial. Adding it to the product changed Nash bargaining
     # geometry and silently penalized every score for having a 5th factor.
     G = (A * P * E * X) ** (1 / 4)
@@ -556,21 +558,21 @@ def compute_apex(
     # 5. Conservation — dS/dt checked
     if dS_dt <= 0:
         axioms += 1
-    # 6. Tri-witness — Φ computed from three witnesses
+    # 6. Tri-witness — triWitness computed from three witnesses
     if inputs.h_witness > 0 and inputs.ai_witness > 0 and inputs.ext_witness > 0:
         axioms += 1
     # 7. F13 veto — sovereign_override is available
     axioms += 1  # always structurally present
 
     # ═══ VERDICT ═══
-    verdict, reason = _determine_verdict(G, C_dark, dS_dt, A, P, E, X, Phi)
+    verdict, reason = _determine_verdict(G, C_dark, dS_dt, A, P, E, X, tri_witness)
 
     return APEXResult(
         A=A,
         P=P,
         E=E,
         X=X,
-        Phi=Phi,
+        tri_witness=tri_witness,
         G=G,
         C_dark=C_dark,
         dS_dt=dS_dt,
@@ -593,12 +595,12 @@ def _determine_verdict(
     P: float,
     E: float,
     X: float,
-    Phi: float,
+    tri_witness: float,
 ) -> tuple[Verdict, str]:
     """Determine APEX verdict from computed values."""
 
-    # VOID: any primitive = 0 or Phi = 0 (zero witness collapse)
-    if G == 0 or Phi == 0:
+    # VOID: any primitive = 0 or tri_witness = 0 (zero witness collapse)
+    if G == 0 or tri_witness == 0:
         dead = []
         if A == 0:
             dead.append("A(Authority)")
@@ -608,8 +610,8 @@ def _determine_verdict(
             dead.append("E(Evidence)")
         if X == 0:
             dead.append("X(Execution)")
-        if Phi == 0:
-            dead.append("Φ(Witness)")
+        if tri_witness == 0:
+            dead.append("triWitness(Witness)")
         return Verdict.VOID, f"Intelligence collapsed: {', '.join(dead)} = 0"
 
     # HOLD: C_dark too high
@@ -640,10 +642,10 @@ def _determine_verdict(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def compute_G(A: float, P: float, E: float, X: float, Phi: float) -> float:
+def compute_G(A: float, P: float, E: float, X: float, tri_witness: float) -> float:
     """Quick G computation from pre-computed primitives.
 
-    Canonical F8 GENIUS: G = (A·P·E·X)^(1/4). Φ is accepted for backward
+    Canonical F8 GENIUS: G = (A·P·E·X)^(1/4). triWitness is accepted for backward
     compatibility but excluded from the geometric mean — it is scar pressure
     (separate gate per A2 canonic), not a 5th G dial.
     """
@@ -656,11 +658,14 @@ def compute_C_dark(A: float, P: float, X: float) -> float:
     return clamp(A) * (1 - clamp(P)) * (1 - clamp(X))
 
 
-def quick_verdict(A: float, P: float, E: float, X: float, Phi: float) -> tuple[Verdict, str]:
+compute_Phi = compute_tri_witness  # LEGACY alias (retired bare-Φ, D-05, 2026-09-12)
+
+
+def quick_verdict(A: float, P: float, E: float, X: float, tri_witness: float) -> tuple[Verdict, str]:
     """Quick verdict from pre-computed primitives."""
-    G = compute_G(A, P, E, X, Phi)
+    G = compute_G(A, P, E, X, tri_witness)
     C_dark = compute_C_dark(A, P, X)
-    return _determine_verdict(G, C_dark, 0.0, A, P, E, X, Phi)
+    return _determine_verdict(G, C_dark, 0.0, A, P, E, X, tri_witness)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
