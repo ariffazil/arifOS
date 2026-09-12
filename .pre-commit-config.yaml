@@ -130,6 +130,43 @@ repos:
         pass_filenames: false
         files: '(arifosmcp/abi/capability_registry\.json|smithery\.yaml|mcp-arifos\.json|static/\.well-known/mcp/server\.json)'
 
+      - id: bare-phi-governance-guard
+        name: D-05 Φ Governance Guard (bare Φ/phi prohibited in governance paths)
+        entry: >-
+          python -c "
+          import sys, re;
+          OK = {'HISTORICAL_PRE_V3','LEGACY_COMPATIBILITY_ONLY','NOT_CANONICAL_RUNTIME',
+                'phiScar','textToGPV','phiTextToGPV','entropyBuffer','phiEntropyBuffer',
+                'paradoxConductance','phiParadox','compute_Phi','compute_phi',
+                '_phi','phi_P','phi_p','phiFQ','phiZ','phiE','Phi_P','Phi_p'};
+          fails=[];
+          for p in sys.argv[1:]:
+            txt=open(p).read();
+            if any(k in txt for k in ('HISTORICAL_PRE_V3','LEGACY_COMPATIBILITY_ONLY')):
+              continue;
+            for i,line in enumerate(txt.split('\n'),1):
+              stripped=line.lstrip();
+              if stripped.startswith('#') or stripped.startswith('//') or stripped.startswith('*'):
+                continue;
+              for m in re.finditer(r'\b(phi|Phi)\b', line):
+                start=max(0,m.start()-40); end=min(len(line),m.end()+40);
+                ctx=line[start:end];
+                if any(k in ctx for k in OK): continue;
+                if 'paradox' in ctx.lower() or 'atlas' in ctx.lower() or 'entropy' in ctx.lower():
+                  continue;
+                fails.append(f'{p}:{i}: bare {m.group()} in governance path: {ctx.strip()[:80]}');
+          if fails:
+            print('D-05 Φ GUARD: bare Φ/phi found in governance paths:');
+            [print(f'  {f}') for f in fails];
+            print('Use qualified names: scarPressure, textToGPV, entropyBuffer, paradoxConductance');
+            print('Or mark file: HISTORICAL_PRE_V3 / LEGACY_COMPATIBILITY_ONLY');
+            sys.exit(1);
+          sys.exit(0);
+          "
+        language: system
+        types: [python, ts, json, yaml]
+        files: '(governance|enforcement|runtime/apex_canonical|runtime/apex_c_dark|judgment|laws)\.'
+
 # Configuration for specific tools
 default_language_version:
   python: python3.13
