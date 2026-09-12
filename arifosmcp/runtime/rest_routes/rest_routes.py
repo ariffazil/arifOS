@@ -3546,7 +3546,7 @@ def register_rest_routes(
             },
             # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
             # Computed from live tool call metrics over 24h window.
-            # G = A·P·E·X·Φ (canonical 5-primitive). Zero anywhere = collapse.
+            # G = (A·P·E·X)^(1/4) (canonical 4-factor). Zero anywhere = collapse.
             # C_dark = A·(1-P)·(1-X) — the "Bangang Detector".
             "apex_scalars": thermo.get("apex_scalars", {}),
             # T7 — federation contract conformance. arifOS was missing this

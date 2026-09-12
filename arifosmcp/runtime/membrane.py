@@ -66,7 +66,7 @@ class MeasurementPacket:
     """
 
     # ── APEX primitives (computed by A-FORGE) ──
-    G: float = 0.0  # A·P·E·X·Φ — intelligence quality
+    G: float = 0.0  # (A·P·E·X)^(1/4) — canonical 4-factor intelligence quality
     C_dark: float = 0.0  # A·(1-P)·(1-X) — hallucination detector
     W3: float = 0.0  # ∛(H×AI×Ext) — witness consensus
     malu_total: float = 0.0  # accumulated failure pressure

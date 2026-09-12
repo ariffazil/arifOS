@@ -206,7 +206,7 @@ def compute_agentic_intelligence(
             zero.append(msg)
 
     # F8 floor-check helper only — NOT the canonical G-fold.
-    # Canonical G: arif_think(mode='apex') → apex_canonical (A·P·E·X·Φ).
+    # Canonical G: arif_think(mode='apex') → apex_canonical (A·P·E·X)^(1/4).
     genius: float | None = None
     if genius_components:
         # Local F8 check form (A × P × X × E²) × (1−h) — not kernel G

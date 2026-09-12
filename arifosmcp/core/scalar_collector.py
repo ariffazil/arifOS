@@ -228,7 +228,7 @@ class ScalarCollector:
         # kappa_r, psi_le — to keep the arithmetic notation readable.
         """G-fold — ONLY from arif_think(mode='apex') / apex_canonical.
 
-        AAA scalar physics: G is the Nash product A·P·E·X·Φ derived per
+        AAA scalar physics: G is the Nash product (A·P·E·X)^(1/4) derived per
         session. It is NEVER confidence, NEVER a stored primitive.
 
         Source path (strict order):
