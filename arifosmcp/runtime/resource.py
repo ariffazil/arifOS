@@ -164,15 +164,25 @@ async def read_resource_content(uri: str) -> str:
         )
 
     if uri == "arifos://carry-forward":
+        # 8A 2026-09-12: owner-declared path (OWNER-RATIFICATION-2026-09-12),
+        # schema-gated, typed errors — completes the phantom-fallback removal.
         from pathlib import Path
 
-        for p in (
-            Path("/root/.local/share/arifos/carry_forward.json"),
-            Path("/root/carry_forward.json"),
-        ):
-            if p.is_file():
-                return p.read_text(encoding="utf-8")
-        return json.dumps({"error": "carry_forward.json not found", "uri": uri})
+        p = Path("/root/.local/share/arifos/carry_forward.json")
+        try:
+            raw = p.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            return json.dumps({"error": "not_found", "uri": uri, "canonical_path": str(p)})
+        except OSError as exc:
+            return json.dumps({"error": "unreadable", "uri": uri, "detail": str(exc)})
+        try:
+            doc = json.loads(raw)
+        except ValueError:
+            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v2", "found": "invalid-json"})
+        if not isinstance(doc, dict) or doc.get("schema") != "arifos.carry_forward.v2":
+            found = type(doc).__name__ if not isinstance(doc, dict) else doc.get("schema", "schema-less dict")
+            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v2", "found": found})
+        return json.dumps(doc, ensure_ascii=False, indent=2)
 
     if uri == "arifos://flow-state":
         from pathlib import Path
