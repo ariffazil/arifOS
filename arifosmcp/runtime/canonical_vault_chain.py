@@ -44,6 +44,13 @@ CHAIN_FILENAME = "seal_chain.jsonl"
 HEAD_FILENAME = "seal_chain_head.json"
 ALLOC_FILENAME = "seal_seq_allocator.json"
 LOCK_FILENAME = "seal_chain.append.lock"
+# GOV-02 (F13 2026-09-12 "no rewrite, read-only annotate; verifier consume"):
+# one JSON object per line, schema arifos.chain-annotation/v1. Link-family
+# divergences (CHAIN_BREAK / HISTORICAL_LINK_GAP) whose position AND hash
+# pair match an annotation are classified EXPLAINED — recorded, visible,
+# never silent, never a rewrite of the chain.
+ANNOTATIONS_FILENAME = "seal_chain_annotations.jsonl"
+ANNOTATION_SCHEMA = "arifos.chain-annotation/v1"
 
 # Epoch marker: receipts after this boundary must use full envelope.
 # Historical lines before first CANONICAL epoch seal are classified HISTORICAL_*.
@@ -150,6 +157,23 @@ class VerifyStatus(StrEnum):
     # never rewritten (F1). F-004 preserved: any gap at/after epoch start,
     # head mismatch, digest mismatch, or tampered attestation → gaps-found.
     EPOCH_CLEAN = "epoch-clean"
+
+
+# GOV-02: gap classes consumable by chain annotations.
+# Link-family classes require hash-pair matching (precision); historical
+# structural classes (missing-fields / corrupt-line / epoch-reset) carry no
+# hash pair and match on class + line_no only — still never a blanket skip.
+_ANNOTATION_LINK_CLASSES = frozenset(
+    {GapClass.CHAIN_BREAK, GapClass.HISTORICAL_LINK_GAP}
+)
+_ANNOTATION_STRUCTURAL_CLASSES = frozenset(
+    {
+        GapClass.HISTORICAL_MISSING_FIELDS,
+        GapClass.HISTORICAL_CORRUPT_LINE,
+        GapClass.EPOCH_RESET,
+    }
+)
+_ANNOTATION_CONSUMABLE_CLASSES = _ANNOTATION_LINK_CLASSES | _ANNOTATION_STRUCTURAL_CLASSES
 
 
 # ── Envelope ─────────────────────────────────────────────────────
@@ -289,6 +313,10 @@ class VaultPaths:
     def lock(self) -> Path:
         return self.vault_dir / LOCK_FILENAME
 
+    @property
+    def annotations(self) -> Path:
+        return self.vault_dir / ANNOTATIONS_FILENAME
+
 
 def paths_for(vault_dir: Path | str | None = None) -> VaultPaths:
     return VaultPaths(Path(vault_dir) if vault_dir else DEFAULT_VAULT_DIR)
@@ -403,6 +431,79 @@ def entry_sequence(entry: dict[str, Any]) -> Any:
     return entry.get("sequence", entry.get("seq"))
 
 
+# ── Chain annotations (GOV-02 read-only explain layer) ───────────
+
+
+def load_chain_annotations(vault_dir: Path | str | None = None) -> list[dict[str, Any]]:
+    """Load seal_chain_annotations.jsonl if present. Tolerant parse: bad
+    lines are skipped (warned), never fatal — annotations are an explain
+    layer, not a chain component. Returns [] when the file is absent."""
+    p = paths_for(vault_dir)
+    if not p.annotations.exists():
+        return []
+    out: list[dict[str, Any]] = []
+    with open(p.annotations, encoding="utf-8", errors="replace") as fh:
+        for line_no, line in enumerate(fh, start=1):
+            s = line.strip()
+            if not s:
+                continue
+            try:
+                rec = json.loads(s)
+            except json.JSONDecodeError:
+                print(
+                    f"[chain-annotations] WARN line {line_no}: parse error — skipped",
+                    file=os.sys.stderr,
+                )
+                continue
+            if isinstance(rec, dict):
+                out.append(rec)
+    return out
+
+
+def _annotation_matches(
+    annotations: list[dict[str, Any]],
+    *,
+    line_no: int,
+    gap_class: GapClass,
+    expected_prev: str | None,
+    got_prev: str | None,
+) -> dict[str, Any] | None:
+    """An annotation explains a gap when class + position match, and — for
+    link-family gaps (CHAIN_BREAK / HISTORICAL_LINK_GAP) — the recorded and
+    expected hashes BOTH match (prefix-tolerant). Structural historical
+    classes (MISSING_FIELDS / CORRUPT_LINE / EPOCH_RESET) carry no hash pair;
+    they match on target_gap_class + line_no. Legacy annotation records
+    without target_gap_class are treated as link-family (v1 behavior).
+    Precision by construction: wrong class, wrong line, or wrong hash pair
+    never matches."""
+    if gap_class not in _ANNOTATION_CONSUMABLE_CLASSES:
+        return None
+    for ann in annotations:
+        target = ann.get("target_gap_class")
+        if target is not None:
+            if str(target) != str(gap_class):
+                continue
+        elif gap_class not in _ANNOTATION_LINK_CLASSES:
+            # legacy record (no target class) only ever explained link family
+            continue
+        pos = ann.get("position") or {}
+        if pos.get("line_no") != line_no:
+            continue
+        if gap_class in _ANNOTATION_LINK_CLASSES:
+            rec_prev = ann.get("recorded_prev_hash")
+            exp_prev = ann.get("expected_prev_under_current_hash")
+            if rec_prev is None or exp_prev is None:
+                continue
+            if hashes_equal(rec_prev, got_prev) and hashes_equal(
+                exp_prev, expected_prev
+            ):
+                return ann
+            continue
+        # structural class: class + line matched
+        return ann
+    return None
+
+
 def is_canonical_entry(entry: dict[str, Any]) -> bool:
     """True if entry claims the F-004 canonical envelope."""
     return (
@@ -429,6 +530,8 @@ class GapRecord:
     got_prev: str | None
     seq: Any = None
     detail: str = ""
+    # GOV-02: set when a chain annotation explains this divergence.
+    explained_by: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -439,6 +542,7 @@ class GapRecord:
             "got": (str(self.got_prev)[:64] if self.got_prev else None),
             "seq": self.seq,
             "detail": self.detail,
+            "explained_by": self.explained_by,
         }
 
 
@@ -463,6 +567,10 @@ class VerifyResult:
     sig_enforce: bool = False
     # P0-1 epoch attestation
     epoch: dict[str, Any] | None = None
+    # GOV-02 (F13 2026-09-12): annotation-explained divergences — recorded
+    # separately from blocking gaps; visible, never silent.
+    explained_gaps: list[GapRecord] = field(default_factory=list)
+    annotations_loaded: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -489,6 +597,10 @@ class VerifyResult:
             "sig_enforce": self.sig_enforce,
             # P0-1: epoch scope info when status=epoch-clean
             "epoch": self.epoch,
+            # GOV-02: annotation consumption
+            "gaps_explained": len(self.explained_gaps),
+            "explained_gaps": [g.to_dict() for g in self.explained_gaps[:50]],
+            "annotations_loaded": self.annotations_loaded,
         }
 
 
@@ -525,6 +637,10 @@ def verify_chain(
         )
 
     lines = parse_chain_lines(p.chain)
+    # GOV-02: read-only explain layer — annotations never mutate the chain.
+    _annotations = load_chain_annotations(p.vault_dir)
+    _ann_loaded = len(_annotations)
+    explained: list[GapRecord] = []
     gaps: list[GapRecord] = []
     classes: dict[str, int] = {}
     prev_hash: str | None = None
@@ -670,37 +786,14 @@ def verify_chain(
                 )
         # Chain break: prev_hash does not match previous this_hash
         elif prev_hash is not None and prev_h and not hashes_equal(prev_h, prev_hash):
-            # V999-GR-001: Canonical index 7 (line 201) prev_hash is a grandfathered
-            # pre-migration identifier, not a computed hash. Attested by V999-BRIDGE-SEAL-001.
-            # Skip continuity check AT THIS INDEX ONLY; verify normally from seq 8 onward.
-            if parseable_index == 7 and pl.line_no == 201:
-                gc = None  # type: ignore[assignment]
-            # V999-GR-002 (2026-07-30): Canonical seq=16 (rcpt-86483e9e) prev_hash
-            # does not link to prior canonical this_hash after WM-HARD-ENFORCE noise
-            # entry. Classified discontinuity — do NOT rewrite receipt. Grandfather
-            # this index only so /999/verify can go green; forward seals remain linked.
-            elif (
-                canon
-                and isinstance(seq, int)
-                and seq == 16
-                and str(entry.get("receipt_id") or "") == "rcpt-86483e9e4a4b4b14"
-            ):
-                gc = None  # type: ignore[assignment]
-            # V999-GR-003 (2026-08-11): Canonical seq=28 (rcpt-6f9000b09b2e4e77)
-            # prev_hash is 16-char hex "0b42b5c2298fa40d" picked up from a
-            # non-canonical entry by append_receipt, but the prior canonical
-            # entry (seq=27) has full sha256: this_hash. append_receipt walked
-            # non-canonical entries when picking prev_hash — known bug.
-            # Forward seals should use the canonical head hash instead.
-            # Grandfather this entry so /999/verify can go green.
-            elif (
-                canon
-                and isinstance(seq, int)
-                and seq == 28
-                and str(entry.get("receipt_id") or "") == "rcpt-6f9000b09b2e4e77"
-            ):
-                gc = None  # type: ignore[assignment]
-            elif canon and prev_was_canonical:
+            # V999-GR-001/002/003 (migrated 2026-09-12, F13 "migrat ke anotasi"):
+            # the three hardcoded grandfather skips that used to live here were
+            # MOVED into seal_chain_annotations.jsonl as annotation records
+            # GOV02-V999-GR-001/002/003. Divergences are now classified,
+            # recorded as explained_gaps (visible, never silent), and consumed
+            # by the annotation matcher at the gap-append site below — instead
+            # of being silently skipped in code.
+            if canon and prev_was_canonical:
                 gc = GapClass.CHAIN_BREAK
             elif scope_canonical and canon and prev_hash is not None:
                 # first link from historical tail into canonical — if not matching, epoch open
@@ -711,18 +804,47 @@ def verify_chain(
             else:
                 gc = GapClass.HISTORICAL_LINK_GAP
             if gc is not None:
-                classes[gc] = classes.get(gc, 0) + 1
-                gaps.append(
-                    GapRecord(
-                        index=parseable_index,
-                        line_no=pl.line_no,
-                        gap_class=gc,
-                        expected_prev=prev_hash,
-                        got_prev=prev_h,
-                        seq=seq,
-                        detail="prev_hash != prior this_hash",
-                    )
+                _ann = _annotation_matches(
+                    _annotations,
+                    line_no=pl.line_no,
+                    gap_class=gc,
+                    expected_prev=prev_hash,
+                    got_prev=prev_h,
                 )
+                if _ann is not None:
+                    # GOV-02: explained divergence — recorded, visible, never
+                    # silent, and never a rewrite of the chain.
+                    explained.append(
+                        GapRecord(
+                            index=parseable_index,
+                            line_no=pl.line_no,
+                            gap_class=gc,
+                            expected_prev=prev_hash,
+                            got_prev=prev_h,
+                            seq=seq,
+                            detail=(
+                                "explained by annotation "
+                                f"{_ann.get('annotation_id', '?')} "
+                                f"({_ann.get('annotation_class', '?')})"
+                            ),
+                            explained_by=str(
+                                _ann.get("annotation_id") or "annotation"
+                            ),
+                        )
+                    )
+                else:
+                    classes[gc] = classes.get(gc, 0) + 1
+                    gaps.append(
+                        GapRecord(
+                            index=parseable_index,
+                            line_no=pl.line_no,
+                            gap_class=gc,
+                            expected_prev=prev_hash,
+                            got_prev=prev_h,
+                            seq=seq,
+                            detail="prev_hash != prior this_hash",
+                        )
+                    )
         elif prev_hash is not None and not prev_h and not this_h:
             if not scope_canonical:
                 gc = GapClass.HISTORICAL_MISSING_FIELDS
@@ -881,6 +1003,35 @@ def verify_chain(
             elif _post:
                 unsigned_after_cutover += 1
 
+    # ── GOV-02 post-pass: annotation consumption for gap-creation sites that
+    # do not route through the chain-break branch (corrupt lines, epoch
+    # reset, missing fields, future sites). Same matcher, same precision —
+    # class + line (+ hash pair for link family). Never a blanket skip.
+    if _annotations:
+        _still_gaps: list[GapRecord] = []
+        for g in gaps:
+            _ann = None
+            if g.gap_class in _ANNOTATION_CONSUMABLE_CLASSES:
+                _ann = _annotation_matches(
+                    _annotations,
+                    line_no=g.line_no,
+                    gap_class=g.gap_class,
+                    expected_prev=g.expected_prev,
+                    got_prev=g.got_prev,
+                )
+            if _ann is not None:
+                g.explained_by = str(_ann.get("annotation_id") or "annotation")
+                g.detail = f"{g.detail} | explained by annotation {g.explained_by}"
+                explained.append(g)
+                _k = str(g.gap_class)
+                if classes.get(_k):
+                    classes[_k] -= 1
+                    if classes[_k] <= 0:
+                        classes.pop(_k, None)
+            else:
+                _still_gaps.append(g)
+        gaps = _still_gaps
+
     # Empty file with only empties → valid genesis
     if entries == 0 and (corrupt == 0 or scope_canonical):
         return VerifyResult(
@@ -935,6 +1086,8 @@ def verify_chain(
                 cutover_seq=cutover_seq,
                 sig_enforce=_sig_enforce_on,
                 epoch=epoch_info,
+                explained_gaps=explained,
+                annotations_loaded=_ann_loaded,
             )
 
     return VerifyResult(
@@ -946,6 +1099,8 @@ def verify_chain(
         head_seq=head_seq,
         head_hash=head_hash,
         ledger_path=str(p.chain),
+        explained_gaps=explained,
+        annotations_loaded=_ann_loaded,
         canonical_entries=canonical_n,
         historical_entries=historical_n,
         failure_classes=classes,
