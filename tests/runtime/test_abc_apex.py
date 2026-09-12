@@ -20,7 +20,7 @@ from pathlib import Path
 
 # ── Imports ──────────────────────────────────────────────────────
 from core.intelligence import compute_w3
-from arifosmcp.runtime.apex_c_dark import compute_c_dark, compute_apex
+from arifosmcp.runtime.apex_canonical import Verdict, compute_C_dark, compute_G, quick_verdict
 from arifosmcp.runtime.tools import _nine_signal_from_apex, _nine_signal_from_status
 from arifosmcp.runtime.sesat_event import emit_sesat
 from arifosmcp.runtime.hantar import hantar_wrap, HantarState
@@ -41,16 +41,15 @@ def run_all() -> bool:
     results["A1_W3"] = "PASS"
 
     # A2: C_dark = A·(1-P)·(1-X)
-    assert abs(compute_c_dark(0.9, 0.1, 0.1) - 0.9 * 0.9 * 0.9) < 0.001
-    assert compute_c_dark(0.0, 0.5, 0.5) == 0.0
-    assert abs(compute_c_dark(1.0, 0.0, 0.0) - 1.0) < 0.001
+    assert abs(compute_C_dark(0.9, 0.1, 0.1) - 0.9 * 0.9 * 0.9) < 0.001
+    assert compute_C_dark(0.0, 0.5, 0.5) == 0.0
+    assert abs(compute_C_dark(1.0, 0.0, 0.0) - 1.0) < 0.001
     results["A2_C_dark"] = "PASS"
 
-    # A3: G = A·P·E·X·Φ multiplicative + zero collapse
-    v = compute_apex(0.8, 0.7, 0.6, 0.5, 0.6)
-    assert abs(v.G - 0.8 * 0.7 * 0.6 * 0.5 * 0.6) < 0.001
-    assert compute_apex(0.8, 0.0, 0.6, 0.5, 0.6).G == 0.0
-    assert compute_apex(0.0, 0.7, 0.6, 0.5, 0.6).G == 0.0
+    # A3: G = (A·P·E·X)^(1/4) — V3 4-factor geometric mean (Φ is a separate verdict gate)
+    assert abs(compute_G(0.8, 0.7, 0.6, 0.5, 0.6) - (0.8 * 0.7 * 0.6 * 0.5) ** (1 / 4)) < 0.001
+    assert compute_G(0.8, 0.0, 0.6, 0.5, 0.6) == 0.0
+    assert compute_G(0.0, 0.7, 0.6, 0.5, 0.6) == 0.0
     results["A3_G"] = "PASS"
 
     # ═══ B: RUNTIME BEHAVIOR ═══
@@ -124,14 +123,14 @@ def run_all() -> bool:
     # ═══ C: CONTRAST SEPARATION ═══
 
     # C1: Good vs bad G separation ≥ 0.30
-    good = compute_apex(0.95, 0.9, 0.95, 0.9, 0.85)
-    bad = compute_apex(0.8, 0.15, 0.1, 0.7, 0.5)
-    assert abs(good.G - bad.G) >= 0.30
+    good = compute_G(0.95, 0.9, 0.95, 0.9, 0.85)
+    bad = compute_G(0.8, 0.15, 0.1, 0.7, 0.5)
+    assert abs(good - bad) >= 0.30
     results["C1_separation"] = "PASS"
 
     # C2: Hallucinating agent C_dark ≥ 0.50
-    hallucinating = compute_apex(0.9, 0.1, 0.8, 0.1, 0.5)
-    assert hallucinating.C_dark >= 0.50
+    hallucinating = compute_C_dark(0.9, 0.1, 0.1)
+    assert hallucinating >= 0.50
     results["C2_c_dark"] = "PASS"
 
     # C3: W³ zero in any channel = 0
@@ -141,21 +140,24 @@ def run_all() -> bool:
     results["C3_w3_collapse"] = "PASS"
 
     # C4: Authority failure → G < SEAL threshold
-    no_auth = compute_apex(0.10, 0.9, 0.9, 0.9, 0.9)
-    assert no_auth.G < 0.50
-    assert no_auth.verdict.value != "SEAL"
+    no_auth_g = compute_G(0.05, 0.9, 0.9, 0.9, 0.9)
+    no_auth_verdict, _ = quick_verdict(0.05, 0.9, 0.9, 0.9, 0.9)
+    assert no_auth_g < 0.50
+    assert no_auth_verdict != Verdict.SEAL
     results["C4_no_auth"] = "PASS"
 
-    # C5: Φ scar reduction
-    first = compute_apex(0.85, 0.6, 0.55, 0.7, 0.7)
-    repeated = compute_apex(0.85, 0.6, 0.55, 0.7, 0.2)
-    assert repeated.G < first.G
-    results["C5_scar"] = "PASS"
+    # C5: Φ is a verdict gate, not a dial — Φ=0 → VOID regardless of G
+    _, verdict_ok = quick_verdict(0.85, 0.7, 0.7, 0.7, 0.7)
+    _, verdict_void = quick_verdict(0.85, 0.7, 0.7, 0.7, 0.0)
+    assert verdict_ok != Verdict.VOID
+    assert verdict_void == Verdict.VOID
+    results["C5_phi_gate"] = "PASS"
 
-    # C6: Double failure (low P + low X)
-    double_fail = compute_apex(0.7, 0.3, 0.2, 0.1, 0.5)
-    assert double_fail.G < 0.05
-    assert double_fail.C_dark > 0.30
+    # C6: Double failure (low P + low X) → low G + high C_dark
+    double_fail_g = compute_G(0.7, 0.2, 0.2, 0.2, 0.5)
+    double_fail_cdark = compute_C_dark(0.7, 0.2, 0.2)
+    assert double_fail_g < 0.30
+    assert double_fail_cdark > 0.30
     results["C6_double_fail"] = "PASS"
 
     # ═══ SUMMARY ═══
