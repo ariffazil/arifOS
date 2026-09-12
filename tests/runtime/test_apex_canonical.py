@@ -3,7 +3,7 @@ Tests for APEX Verification Pipeline — Canonical Runtime
 
 Verifies:
   - Each primitive measurement law
-  - G = A · P · E · X · Φ computation
+  - G = (A · P · E · X)^(1/4) computation (Φ is a separate verdict gate)
   - C_dark = A · (1-P) · (1-X) shadow term
   - Verdict matrix (SEAL/SABAR/HOLD/VOID)
   - Axiom enforcement
@@ -232,7 +232,7 @@ class TestComputePhi(unittest.TestCase):
 
 
 class TestCanonicalFormula(unittest.TestCase):
-    """Test G = A · P · E · X · Φ and C_dark."""
+    """Test G = (A · P · E · X)^(1/4) and C_dark."""
 
     def test_perfect_intelligence(self):
         """All primitives = 1.0 → G = 1.0, C_dark = 0.0."""
@@ -266,6 +266,13 @@ class TestCanonicalFormula(unittest.TestCase):
         expected = (a * p * e * x) ** (1 / 4)
         self.assertAlmostEqual(compute_G(a, p, e, x, 0.0), expected)
         self.assertAlmostEqual(compute_G(a, p, e, x, 1.0), expected)  # Phi=1 also same
+
+    def test_v3_invariant_phi_gate_not_dial(self):
+        """V3 invariant: ∂G/∂Φ = 0 (Φ-independent score) and Φ=0 → VOID (gate, not factor)."""
+        a, p, e, x = 0.8, 0.9, 0.7, 0.6
+        self.assertEqual(compute_G(a, p, e, x, 0.0), compute_G(a, p, e, x, 1.0))
+        verdict, _ = quick_verdict(a, p, e, x, 0.0)
+        self.assertEqual(verdict, Verdict.VOID)
 
     def test_shadow_term(self):
         """C_dark = A · (1-P) · (1-X)."""

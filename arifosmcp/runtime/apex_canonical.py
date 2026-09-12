@@ -15,7 +15,7 @@ Supersedes: apex_c_dark.py (deprecated 2026-07-11)
 
 Seven Axioms:
   1. Multiplicativity — zero in any primitive collapses G
-  2. Five-sufficient — three pairs + one witness = minimal complete
+  2. Four-dial V3 — G=(A·P·E·X)^(1/4)  (HISTORICAL: pre-V3 "five-sufficient" superseded by W-12 fix)
   3. Nash bargaining — G = ∏ p_i because veto = multiplicative gate
   4. Shadow — C_dark = A·(1-P)·(1-X) < 0.30
   5. Conservation — dS/dt ≤ 0
@@ -64,7 +64,11 @@ APEX_HUMILITY_FLOOR = 0.15
 TOTAL_FLOORS = 13
 
 # APEX Equation identifier
-APEX_EQUATION = "G = A · P · E · X · Φ"
+# HISTORICAL NOTE — PRE-V3 ONLY. Before commit 303cb8ad8 (2026-08-05), legacy
+# compatibility paths referenced a five-factor product G = A·P·E·X·Φ.
+# That is NOT canonical and must not describe runtime governance.
+# Canonical APEX V3: G = (A·P·E·X)^(1/4); Φ is a separate verdict gate (Φ==0 → VOID).
+APEX_EQUATION = "G = (A · P · E · X)^(1/4)"
 APEX_SHADOW = "C_dark = A · (1-P) · (1-X)"
 APEX_CONSERVATION = "dS/dt ≤ 0"
 
@@ -460,7 +464,7 @@ def compute_apex(
     """
     Compute the canonical APEX score.
 
-    G_raw  = A · P · E · X · Φ
+    G      = (A · P · E · X)^(1/4)  # canonical V3 (HISTORICAL: pre-V3 G_raw = A·P·E·X·Φ)
     C_dark = A · (1-P) · (1-X)
     dS/dt  ≤ 0
 
@@ -543,7 +547,7 @@ def compute_apex(
     axioms = 0
     # 1. Multiplicativity — G is multiplicative (structural, always satisfied)
     axioms += 1
-    # 2. Five-sufficient — we have exactly 5 primitives
+    # 2. Four-dial V3 (HISTORICAL: pre-V3 "five-sufficient" superseded by W-12 fix)
     axioms += 1
     # 3. Nash bargaining — product form used (structural)
     axioms += 1
