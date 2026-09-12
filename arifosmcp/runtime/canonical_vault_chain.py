@@ -761,37 +761,14 @@ def verify_chain(
                 )
         # Chain break: prev_hash does not match previous this_hash
         elif prev_hash is not None and prev_h and not hashes_equal(prev_h, prev_hash):
-            # V999-GR-001: Canonical index 7 (line 201) prev_hash is a grandfathered
-            # pre-migration identifier, not a computed hash. Attested by V999-BRIDGE-SEAL-001.
-            # Skip continuity check AT THIS INDEX ONLY; verify normally from seq 8 onward.
-            if parseable_index == 7 and pl.line_no == 201:
-                gc = None  # type: ignore[assignment]
-            # V999-GR-002 (2026-07-30): Canonical seq=16 (rcpt-86483e9e) prev_hash
-            # does not link to prior canonical this_hash after WM-HARD-ENFORCE noise
-            # entry. Classified discontinuity — do NOT rewrite receipt. Grandfather
-            # this index only so /999/verify can go green; forward seals remain linked.
-            elif (
-                canon
-                and isinstance(seq, int)
-                and seq == 16
-                and str(entry.get("receipt_id") or "") == "rcpt-86483e9e4a4b4b14"
-            ):
-                gc = None  # type: ignore[assignment]
-            # V999-GR-003 (2026-08-11): Canonical seq=28 (rcpt-6f9000b09b2e4e77)
-            # prev_hash is 16-char hex "0b42b5c2298fa40d" picked up from a
-            # non-canonical entry by append_receipt, but the prior canonical
-            # entry (seq=27) has full sha256: this_hash. append_receipt walked
-            # non-canonical entries when picking prev_hash — known bug.
-            # Forward seals should use the canonical head hash instead.
-            # Grandfather this entry so /999/verify can go green.
-            elif (
-                canon
-                and isinstance(seq, int)
-                and seq == 28
-                and str(entry.get("receipt_id") or "") == "rcpt-6f9000b09b2e4e77"
-            ):
-                gc = None  # type: ignore[assignment]
-            elif canon and prev_was_canonical:
+            # V999-GR-001/002/003 (migrated 2026-09-12, F13 "migrat ke anotasi"):
+            # the three hardcoded grandfather skips that used to live here were
+            # MOVED into seal_chain_annotations.jsonl as annotation records
+            # GOV02-V999-GR-001/002/003. Divergences are now classified,
+            # recorded as explained_gaps (visible, never silent), and consumed
+            # by the annotation matcher at the gap-append site below — instead
+            # of being silently skipped in code.
+            if canon and prev_was_canonical:
                 gc = GapClass.CHAIN_BREAK
             elif scope_canonical and canon and prev_hash is not None:
                 # first link from historical tail into canonical — if not matching, epoch open
