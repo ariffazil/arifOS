@@ -165,64 +165,52 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     registered.append("arifos://init/agent_init")
 
     # ── carry-forward resource (session state continuity) ─────────────────
+    # 8A REVISED 2026-09-12: Single canonical path, schema-gated.
+    # Prior mtime-max across .local/share + .hermes + AAA/docs picked the
+    # wrong semantic object (V2: mtime_as_authority). Now: owner-declared
+    # path only, schema == arifos.carry_forward.v2 required.
     _CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
-    # Writer lanes diverge (FI agents write .local/share, Hermes writes
-    # .hermes + AAA/docs). Serve the FRESHEST lane and stamp provenance so
-    # agents never boot on a stale generation because they read a different
-    # lane than the last writer (2026-09-12 flow audit: kernel served a
-    # 14h-stale copy while fresher copies existed on other lanes).
-    _CARRY_FORWARD_CANDIDATES = (
-        _CARRY_FORWARD_PATH,
-        "/root/.hermes/carry_forward.json",
-        "/root/AAA/docs/carry_forward.json",
-    )
+    _CARRY_FORWARD_SCHEMA = "arifos.carry_forward.v2"
 
     @mcp.resource(
         "arifos://carry-forward",
         description=(
-            "Live session carry-forward state. Returns prior session ID, completed tasks, "
-            "open 888_HOLD loops, entropy delta, cooling status, and successor pointer. "
-            "Serves the freshest carry_forward.json across writer lanes, stamped with "
-            "_served_from + _served_mtime_utc. Essential for agent continuity — load at "
-            "session start instead of FS reads."
+            "Live session carry-forward state (v2 generational). Returns prior session "
+            "ID, completed tasks, open 888_HOLD loops, entropy delta, cooling status, "
+            "and successor pointer. Schema-gated: only serves arifos.carry_forward.v2. "
+            "Essential for agent continuity — load at session start."
         ),
     )
     async def get_carry_forward() -> str:
-        """Return freshest carry-forward.json across writer lanes."""
-        best_path = None
-        best_mtime = -1.0
-        for path in _CARRY_FORWARD_CANDIDATES:
-            try:
-                mtime = os.path.getmtime(path)
-            except OSError:
-                continue
-            if mtime > best_mtime:
-                best_path, best_mtime = path, mtime
-        if best_path is None:
-            return (
-                '{"error":"carry_forward.json not found","note":"No prior session state available"}'
-            )
+        """Return canonical carry-forward.json — owner-declared path, schema-gated."""
+        # Gate 1: file exists
         try:
-            with open(best_path, encoding="utf-8") as fh:
+            stat = os.stat(_CARRY_FORWARD_PATH)
+        except OSError:
+            return '{"error":"not_found","uri":"arifos://carry-forward","note":"Canonical carry_forward.json absent"}'
+        # Gate 2: readable
+        try:
+            with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
                 raw = fh.read()
-            try:
-                doc = json.loads(raw)
-            except ValueError:
-                logging.warning(
-                    "carry-forward %s is not valid JSON; serving raw", best_path
-                )
-                return raw
-            if isinstance(doc, dict):
-                from datetime import datetime as _dt
-
-                doc["_served_from"] = best_path
-                doc["_served_mtime_utc"] = _dt.fromtimestamp(
-                    best_mtime, UTC
-                ).isoformat()
-                return json.dumps(doc, ensure_ascii=False, indent=2)
-            return raw
         except Exception as exc:
-            return f'{{"error":"{exc}","served_from":"{best_path}"}}'
+            return json.dumps({"error": "unreadable", "uri": "arifos://carry-forward", "detail": str(exc)})
+        # Gate 3: valid JSON
+        try:
+            doc = json.loads(raw)
+        except ValueError:
+            return json.dumps({"error": "unreadable", "uri": "arifos://carry-forward", "detail": "Not valid JSON"})
+        # Gate 4: dict type
+        if not isinstance(doc, dict):
+            return json.dumps({"error": "contract_mismatch", "uri": "arifos://carry-forward", "detail": f"Expected dict, got {type(doc).__name__}"})
+        # Gate 5: schema contract
+        actual_schema = doc.get("schema", "NONE")
+        if actual_schema != _CARRY_FORWARD_SCHEMA:
+            return json.dumps({"error": "contract_mismatch", "uri": "arifos://carry-forward", "detail": f"Expected schema {_CARRY_FORWARD_SCHEMA}, got {actual_schema}"})
+        # All gates passed — stamp provenance and serve
+        from datetime import datetime as _dt
+        doc["_served_from"] = _CARRY_FORWARD_PATH
+        doc["_served_mtime_utc"] = _dt.fromtimestamp(stat.st_mtime, UTC).isoformat()
+        return json.dumps(doc, ensure_ascii=False, indent=2)
 
     registered.append("arifos://carry-forward")
 
