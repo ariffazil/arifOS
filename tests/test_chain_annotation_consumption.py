@@ -137,3 +137,64 @@ def test_load_annotations_tolerates_bad_lines(tmp_path):
     anns = load_chain_annotations(tmp_path)
     assert len(anns) == 1
     assert anns[0]["annotation_id"] == "ANN-OK"
+
+
+def _append_hashless_legacy(vault) -> None:
+    """Non-canonical entry with no prev/this hash → HISTORICAL_MISSING_FIELDS."""
+    with open(vault / CHAIN_FILENAME, "a", encoding="utf-8") as fh:
+        fh.write(
+            json.dumps({"seq": "legacy-note-1", "actor": "old-writer", "verdict": "SEAL"})
+            + "\n"
+        )
+
+
+def test_structural_gap_explained_by_class_and_line(tmp_path):
+    h1 = _hash(1)
+    _append_entry(tmp_path, 1, "genesis", h1)
+    _append_hashless_legacy(tmp_path)  # line 2 → HISTORICAL_MISSING_FIELDS
+
+    r0 = verify_chain(tmp_path)
+    assert any(
+        g.gap_class == GapClass.HISTORICAL_MISSING_FIELDS for g in r0.gaps
+    ), "baseline: hashless legacy entry gaps before annotation"
+
+    _write_annotation(
+        tmp_path,
+        {
+            "schema": "arifos.chain-annotation/v1",
+            "annotation_id": "ANN-STRUCT-001",
+            "annotation_class": "HISTORICAL_CLASSIFIED_HISTORICAL_MISSING_FIELDS",
+            "target_gap_class": "HISTORICAL_MISSING_FIELDS",
+            "position": {"line_no": 2},
+            "authority": "test",
+        },
+    )
+    r = verify_chain(tmp_path)
+    assert r.annotations_loaded == 1
+    assert len(r.explained_gaps) == 1
+    assert r.explained_gaps[0].explained_by == "ANN-STRUCT-001"
+    assert r.gaps == []
+    assert r.verified, "structural historical gap explained by class+line must verify"
+
+
+def test_structural_wrong_class_never_matches(tmp_path):
+    h1 = _hash(1)
+    _append_entry(tmp_path, 1, "genesis", h1)
+    _append_hashless_legacy(tmp_path)  # line 2 → HISTORICAL_MISSING_FIELDS
+    _write_annotation(
+        tmp_path,
+        {
+            "schema": "arifos.chain-annotation/v1",
+            "annotation_id": "ANN-WRONG-CLASS",
+            "annotation_class": "MISLABELED",
+            "target_gap_class": "EPOCH_RESET",  # wrong class for this gap
+            "position": {"line_no": 2},
+            "authority": "test",
+        },
+    )
+    r = verify_chain(tmp_path)
+    assert r.explained_gaps == []
+    assert any(
+        g.gap_class == GapClass.HISTORICAL_MISSING_FIELDS for g in r.gaps
+    )
+    assert not r.verified

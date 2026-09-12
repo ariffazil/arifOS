@@ -159,10 +159,21 @@ class VerifyStatus(StrEnum):
     EPOCH_CLEAN = "epoch-clean"
 
 
-# GOV-02: link-family classes consumable by chain annotations.
+# GOV-02: gap classes consumable by chain annotations.
+# Link-family classes require hash-pair matching (precision); historical
+# structural classes (missing-fields / corrupt-line / epoch-reset) carry no
+# hash pair and match on class + line_no only — still never a blanket skip.
 _ANNOTATION_LINK_CLASSES = frozenset(
     {GapClass.CHAIN_BREAK, GapClass.HISTORICAL_LINK_GAP}
 )
+_ANNOTATION_STRUCTURAL_CLASSES = frozenset(
+    {
+        GapClass.HISTORICAL_MISSING_FIELDS,
+        GapClass.HISTORICAL_CORRUPT_LINE,
+        GapClass.EPOCH_RESET,
+    }
+)
+_ANNOTATION_CONSUMABLE_CLASSES = _ANNOTATION_LINK_CLASSES | _ANNOTATION_STRUCTURAL_CLASSES
 
 
 # ── Envelope ─────────────────────────────────────────────────────
@@ -457,25 +468,39 @@ def _annotation_matches(
     expected_prev: str | None,
     got_prev: str | None,
 ) -> dict[str, Any] | None:
-    """An annotation explains a gap ONLY when all of:
-    - the gap is a link-family divergence (CHAIN_BREAK / HISTORICAL_LINK_GAP);
-    - position.line_no matches exactly;
-    - the recorded_prev_hash matches the gap's got_prev AND the
-      expected_prev_under_current_hash matches the gap's expected_prev
-      (hashes_equal prefix tolerance).
-    Precision by construction: a wrong hash pair or wrong line never matches."""
-    if gap_class not in _ANNOTATION_LINK_CLASSES:
+    """An annotation explains a gap when class + position match, and — for
+    link-family gaps (CHAIN_BREAK / HISTORICAL_LINK_GAP) — the recorded and
+    expected hashes BOTH match (prefix-tolerant). Structural historical
+    classes (MISSING_FIELDS / CORRUPT_LINE / EPOCH_RESET) carry no hash pair;
+    they match on target_gap_class + line_no. Legacy annotation records
+    without target_gap_class are treated as link-family (v1 behavior).
+    Precision by construction: wrong class, wrong line, or wrong hash pair
+    never matches."""
+    if gap_class not in _ANNOTATION_CONSUMABLE_CLASSES:
         return None
     for ann in annotations:
+        target = ann.get("target_gap_class")
+        if target is not None:
+            if str(target) != str(gap_class):
+                continue
+        elif gap_class not in _ANNOTATION_LINK_CLASSES:
+            # legacy record (no target class) only ever explained link family
+            continue
         pos = ann.get("position") or {}
         if pos.get("line_no") != line_no:
             continue
-        rec_prev = ann.get("recorded_prev_hash")
-        exp_prev = ann.get("expected_prev_under_current_hash")
-        if rec_prev is None or exp_prev is None:
+        if gap_class in _ANNOTATION_LINK_CLASSES:
+            rec_prev = ann.get("recorded_prev_hash")
+            exp_prev = ann.get("expected_prev_under_current_hash")
+            if rec_prev is None or exp_prev is None:
+                continue
+            if hashes_equal(rec_prev, got_prev) and hashes_equal(
+                exp_prev, expected_prev
+            ):
+                return ann
             continue
-        if hashes_equal(rec_prev, got_prev) and hashes_equal(exp_prev, expected_prev):
-            return ann
+        # structural class: class + line matched
+        return ann
     return None
 
 
@@ -977,6 +1002,35 @@ def verify_chain(
                 )
             elif _post:
                 unsigned_after_cutover += 1
+
+    # ── GOV-02 post-pass: annotation consumption for gap-creation sites that
+    # do not route through the chain-break branch (corrupt lines, epoch
+    # reset, missing fields, future sites). Same matcher, same precision —
+    # class + line (+ hash pair for link family). Never a blanket skip.
+    if _annotations:
+        _still_gaps: list[GapRecord] = []
+        for g in gaps:
+            _ann = None
+            if g.gap_class in _ANNOTATION_CONSUMABLE_CLASSES:
+                _ann = _annotation_matches(
+                    _annotations,
+                    line_no=g.line_no,
+                    gap_class=g.gap_class,
+                    expected_prev=g.expected_prev,
+                    got_prev=g.got_prev,
+                )
+            if _ann is not None:
+                g.explained_by = str(_ann.get("annotation_id") or "annotation")
+                g.detail = f"{g.detail} | explained by annotation {g.explained_by}"
+                explained.append(g)
+                _k = str(g.gap_class)
+                if classes.get(_k):
+                    classes[_k] -= 1
+                    if classes[_k] <= 0:
+                        classes.pop(_k, None)
+            else:
+                _still_gaps.append(g)
+        gaps = _still_gaps
 
     # Empty file with only empties → valid genesis
     if entries == 0 and (corrupt == 0 or scope_canonical):
