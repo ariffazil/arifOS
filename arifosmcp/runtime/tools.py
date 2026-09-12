@@ -26039,11 +26039,42 @@ def verify_and_inject_token(
                 actor_id=actor_hint,
                 tool=tool_name,
             )
+            deny_reason = standing.reason
+            if not standing.valid and kwargs.get("session_id"):
+                # TRANSCRIPTION-RESCUE (2026-09-12): ACT tokens relayed through
+                # agent context windows corrupt single characters; HMAC correctly
+                # rejects them. The no-token path already grants identical
+                # authority via the session store, so when the store independently
+                # validates the same session_id + actor, rescue instead of
+                # hard-denying. Suspected corruption is stamped, never silent.
+                standing = resolve_standing(
+                    session_token=None,
+                    session_id=kwargs.get("session_id"),
+                    actor_id=actor_hint,
+                    tool=tool_name,
+                )
+                if standing.valid and standing.claims:
+                    claims = standing.claims
+                    kwargs["_act_relay_rescue"] = True
+                    logger.warning(
+                        "ACT transcription-rescue: sig invalid but session store "
+                        "validated sid=%s actor=%s (authority identical to no-token "
+                        "path); proceeding with rescue stamp",
+                        kwargs.get("session_id"),
+                        actor_hint,
+                    )
+        if claims is None:
+            import hashlib as _hashlib
+
             token_prefix = token[:30] if token else "(none)"
+            token_len = len(token) if token else 0
+            token_sha8 = (
+                _hashlib.sha256(token.encode("utf-8")).hexdigest()[:8] if token else None
+            )
             err_resp = {
                 "status": "HOLD",
                 "tool": tool_name,
-                "verdict": {"state": "HOLD", "dominant_reason": standing.reason},
+                "verdict": {"state": "HOLD", "dominant_reason": deny_reason},
                 "effective_verdict": "HOLD",
                 "mutation_allowed": False,
                 "seal_allowed": False,
@@ -26058,13 +26089,17 @@ def verify_and_inject_token(
                     "malu_delta": 0.05,
                     "tebus_required": "re-authenticate via arif_init",
                     "token_prefix": token_prefix,
-                    "reason": standing.reason,
+                    "token_len": token_len,
+                    "token_sha8": token_sha8,
+                    "reason": deny_reason,
                 },
                 "type": "TOKEN_INVALID",
                 "malu_delta": 0.05,
                 "tebus_required": "re-authenticate via arif_init",
                 "token_prefix": token_prefix,
-                "reasons": [standing.reason or f"Session token invalid. Prefix: {token_prefix}..."],
+                "token_len": token_len,
+                "token_sha8": token_sha8,
+                "reasons": [deny_reason or f"Session token invalid. Prefix: {token_prefix}..."],
             }
             return False, err_resp, None
 
