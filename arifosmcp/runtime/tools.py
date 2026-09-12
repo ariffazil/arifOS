@@ -4179,7 +4179,7 @@ def _nine_signal_from_apex(  # noqa: F811
             "en": omega_en,
             "G": round(G, 4),
             "C_dark": round(C_dark, 4),
-            "formula": "G = A·P·E·X·Φ",
+            "formula": "G = (A·P·E·X)^(1/4)",
             "computed": True,
         },
         "overall": {"state": overall_state, "en": overall_en},
@@ -18205,7 +18205,7 @@ def _arif_ops_measure(
 
         # system_health_score: CPU/memory/disk health proxy [0, 1]
         # NOT APEX G — this is infrastructure health, not intelligence quality.
-        # APEX G = A·P·E·X·Φ is computed separately via apex_c_dark.compute_apex()
+        # APEX G = (A·P·E·X)^(1/4) is computed via apex_canonical.compute_apex()
         # See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
         system_health_score = max(0.0, 1.0 - (cpu_val + mem_val + disk_val) / 300.0)
         g_score = (
@@ -18239,7 +18239,7 @@ def _arif_ops_measure(
                 "membrane_note": (
                     "INFRASTRUCTURE TELEMETRY — NOT APEX. "
                     "g_score = CPU/mem/disk health proxy. "
-                    "APEX G = A·P·E·X·Φ is computed by A-FORGE, not kernel. "
+                    "APEX G = (A·P·E·X)^(1/4) is computed by apex_canonical (kernel). "
                     "See MEMBRANE-01/04. This field will be removed when "
                     "A-FORGE MeasurementPacket ingress is fully wired."
                 ),
@@ -18280,7 +18280,7 @@ def _arif_ops_measure(
                 "mem": round(mem, 1),
                 "disk": round(disk, 1),
                 "telemetry_source": "live_metrics",
-                "membrane_note": "Kernel returns telemetry. A-FORGE computes G = A·P·E·X·Φ.",
+                "membrane_note": "Kernel returns telemetry. Canonical G = (A·P·E·X)^(1/4) via apex_canonical.",
             },
             delta_S=0.0,
         )

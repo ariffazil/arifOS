@@ -380,7 +380,8 @@ def compute_apex(
     X = max(0.0, min(1.0, cross_domain))
     Phi = max(0.0, min(1.0, integration))
 
-    # The APEX Formula: G = A · P · E · X · Φ
+    # LEGACY_PRE_V3 — NOT CANONICAL. Deprecated 5-factor unrooted product
+    # (A·P·E·X·Φ). Canonical V3 G = (A·P·E·X)^(1/4) lives in apex_canonical.py.
     G = A * P * E * X * Phi
 
     # The Shadow Term: C_dark = A · (1-P) · (1-X)

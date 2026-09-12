@@ -717,11 +717,17 @@ def apex_mcp_handler(params: dict[str, Any]) -> dict[str, Any]:
         entropy_rate=params.get("entropy_rate", 0.0),
     )
 
+    prediction = FalsifiablePrediction(
+        claim=params.get("claim"),
+        falsifier=params.get("falsifier"),
+        deadline=params.get("deadline"),
+    )
     result = compute_apex(
         inputs,
         gate_h=params.get("gate_h", 0.0),
         gate_delta_s=params.get("gate_delta_s", 0.0),
         gate_w3=params.get("gate_w3", 1.0),
+        prediction=prediction,
     )
 
     return result.to_dict()
