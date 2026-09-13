@@ -31,8 +31,8 @@ CONTRACT:
         intercepted=True, hold=True  → return UNMEASURED HOLD envelope.
         intercepted=True, hold=False → serve graph-backed results.
 
-  Deliberately stdlib-only at import time (urllib probe, lazy L5GraphReader)
-  so it stays unit-testable in isolation.
+  Deliberately stdlib-only (urllib probe + urllib recall) so it stays
+  unit-testable in complete isolation — no arifosmcp imports at all.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -90,24 +90,47 @@ def _health_ok(health: Any) -> bool:
     return str(health).strip().lower() == "healthy"
 
 
+def _graph_recall(query: str, top_k: int = 5) -> list[dict[str, Any]]:
+    """Episode recall via l5-search-api /search/semantic.
+
+    R1 (2026-09-13): replaces L5GraphReader.find_similar_tasks, which searched
+    Task nodes only — every forge-written Episode was invisible to graph
+    recall. Returns episodes incl. provenance (actor_id, session_id,
+    memory_id, created_at). min_score floor kept low (0.3): the gate wants
+    recall + ranking; relevance ordering comes back in `score`.
+    """
+    base = os.environ.get("GRAPHITI_MCP_URL", "http://localhost:8001").rstrip("/")
+    body = json.dumps({"query": query, "max_results": top_k, "min_score": 0.3}).encode()
+    req = urllib.request.Request(
+        f"{base}/search/semantic",
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=5) as resp:
+        payload = json.loads(resp.read().decode())
+    out = []
+    for r in payload.get("results", []):
+        if not isinstance(r, dict):
+            continue
+        out.append(
+            {
+                "name": r.get("name", ""),
+                "summary": r.get("summary", ""),
+                "memory_id": r.get("memory_id", ""),
+                "actor_id": r.get("actor_id", ""),
+                "session_id": r.get("session_id", ""),
+                "created_at": r.get("created_at", ""),
+                "score": r.get("score"),
+                "provenance": "falkordb-graph",
+            }
+        )
+    return out
+
+
 def graph_tier_gate(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Gate a graph-tier memory request. See module docstring for contract."""
     base = {"mode": mode}
-
-    # Lazy import: keeps this module unit-testable and import-cycle-free.
-    try:
-        from arifosmcp.runtime.l5_graph_read import L5GraphReader
-    except Exception as exc:  # ImportError or anything the module raises on load
-        return {
-            "intercepted": True,
-            "hold": True,
-            "payload": {
-                **base,
-                "error": "GRAPH_BACKEND_UNAVAILABLE",
-                "measurement_status": "UNMEASURED",
-                "message": f"Graph read module failed to import: {exc}. {_UNMEASURED_NOTE}",
-            },
-        }
 
     health = _probe_graph_health()
     if not _health_ok(health):
@@ -123,15 +146,14 @@ def graph_tier_gate(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
             },
         }
 
-    # Backend healthy → serve graph-backed results with provenance.
+    # Backend healthy → serve graph-backed episode recall with provenance.
+    query_text = str(payload.get("query") or payload.get("goal") or "")
     try:
-        reader = L5GraphReader()
-        goal = str(payload.get("query") or payload.get("goal") or "")
-        try:
-            top_k = int(payload.get("top_k") or 5)
-        except (TypeError, ValueError):
-            top_k = 5
-        results = reader.find_similar_tasks(goal=goal or "*", top_k=top_k)
+        top_k = int(payload.get("top_k") or 5)
+    except (TypeError, ValueError):
+        top_k = 5
+    try:
+        results = _graph_recall(query_text, top_k)
         return {
             "intercepted": True,
             "hold": False,
