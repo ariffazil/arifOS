@@ -1,15 +1,17 @@
 <!-- SOT-MANIFEST
-federation_release: v2026.09.12
-last_verified: 2026-09-12T06:41:16+00:00
-live_commit: 480eb04ed (fix(security): SSRF guard hardening — resolve_blocked replaces string-prefix gua)
-source_commit: 480eb04ed
+federation_release: v2026.09.13
+last_verified: 2026-09-13T06:32:45+00:00
+live_commit: 4f4554597 (feat(memory): enforce canonical admissibility gate and sanctuary denylist)
+source_commit: 4f4554597
 tools_exposed_via_mcp: 8 (canonical public verbs)
 floors_active: 13 (F1–F13, active)
 federation_schema: 2.0.0
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (122K+ records, append-only)
+vault999: healthy (155K+ records, append-only)
+apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
 truth_rule: live :8088/health + tools/list beat any static count in prose
 generated_by: scripts/update_readme_sot.py — numeric fields are re-stamped, never hand-maintained
+holds: Merkle signing lane · WELL biometrics · medical purge (Pilihan A)
 -->
 
 # arifOS — An Open-Source Governance Decision Point for AI Agent Actions
@@ -235,7 +237,7 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 | MCP interface | 8 tools exposed | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
 | Floor enforcement | Active — 13/13 pass at last probe | `/health → runtime_floors_status`, `degraded_reasons: []` |
 | VAULT999 ledger | Healthy | Hash-chained append-only JSONL; live count in header manifest |
-| Source / build / deploy alignment | Verified (commit 480eb04ed) | `runtime_drift: false`, `deployment_attestation: aligned` |
+| Source / build / deploy alignment | Verified (commit 4f4554597) | `runtime_drift: false`, `deployment_attestation: aligned` |
 | Federation | 10 organs | See Architecture |
 
 ## What Is Not Yet Proven
