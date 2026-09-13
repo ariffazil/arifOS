@@ -157,17 +157,55 @@ Now extract from the following memory text:
 def _generate_deterministic_uuid(
     actor_id: str | None,
     session_id: str | None,
-    timestamp: str,
+    memory_id: str,
     content_hash: str,
 ) -> str:
     """Generate a deterministic UUIDv4-like string from attestation fields.
 
     Using BLAKE2b-128 so the same memory always hashes to the same graph node.
+
+    F1 FIX 2026-09-13 (session SEAL-64d8d16afb864e0d): the seed previously
+    included the wall-clock `timestamp`, which guaranteed a FRESH uuid on
+    every re-forge of the same memory — MERGE could never match, so replays
+    duplicated episodes (reproduced in acceptance A2: replay Δnodes=+6).
+    Identity is now the memory lineage (memory_id + content_hash); the
+    wall-clock remains a node PROPERTY (created_at = learned-at), not identity.
     """
-    seed = f"{actor_id or 'anonymous'}:{session_id or 'none'}:{timestamp}:{content_hash}"
+    seed = f"{actor_id or 'anonymous'}:{session_id or 'none'}:{memory_id}:{content_hash}"
     digest = hashlib.blake2b(seed.encode(), digest_size=16).hexdigest()
     # Format as UUID: 8-4-4-4-12
     return f"{digest[:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}"
+
+
+def _episode_exists(episode_uuid: str) -> bool:
+    """F1 idempotency short-circuit: is this episode UUID already in the graph?
+
+    Probes FalkorDB only (primary substrate). uuid is hex+dash — no injection
+    surface. Any failure → False (fail open to the normal MERGE path, which is
+    itself idempotent by uuid once the substrate routing runs).
+    """
+    try:
+        import redis as _redis
+
+        r = _redis.Redis(
+            host=_FALKORDB_HOST,
+            port=_FALKORDB_PORT,
+            socket_connect_timeout=2,
+            socket_timeout=3,
+        )
+        res = r.execute_command(
+            "GRAPH.RO_QUERY",
+            _FALKORDB_GRAPH,
+            f"MATCH (e:Episode {{uuid: '{episode_uuid}'}}) RETURN count(e)",
+        )
+        node = res[1] if isinstance(res, (list, tuple)) and len(res) > 1 else None
+        while isinstance(node, (list, tuple)):
+            if not node:
+                return False
+            node = node[0]
+        return int(node) > 0
+    except Exception:
+        return False
 
 
 def _call_ollama_extract(
@@ -279,7 +317,16 @@ def _build_cypher(
     # Sanitize helper (string literals only — variable names use a separate
     # collision-resistant mapping).
     def _s(v: str) -> str:
-        return v.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+        # F2 FIX 2026-09-13 (session SEAL-64d8d16afb864e0d): single quotes were
+        # NOT escaped, but all property literals are single-quoted — any
+        # apostrophe in content (e.g. "Claude's") broke the whole Cypher
+        # statement (reproduced in acceptance test A1b: cypher_failed).
+        return (
+            v.replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace('"', '\\"')
+            .replace("\n", "\\n")
+        )
 
     def _var_token(name: str) -> str:
         """Sanitize a name for use as a Cypher variable token."""
@@ -330,7 +377,19 @@ def _build_cypher(
         "created_at": datetime.now(UTC).isoformat(),
         "forge_source": "l5_sovereign_forge",
     }
-    ep_props.update(result.episode_properties)
+    # F2 FIX 2026-09-13 (session SEAL-64d8d16afb864e0d): the LLM extractor's
+    # episode_properties may echo keys the kernel sets authoritatively —
+    # observed live: extractor wrote actor "FI-008" into BOTH session_id and
+    # actor_id, overwriting kernel provenance (accept-ep1 dump). Untrusted
+    # extraction must never overwrite kernel-set provenance keys.
+    _RESERVED_EPISODE_PROPS = frozenset(ep_props)
+    ep_props.update(
+        {
+            k: v
+            for k, v in result.episode_properties.items()
+            if k not in _RESERVED_EPISODE_PROPS
+        }
+    )
     prop_str = ", ".join(f"e.{_s(k)} = '{_s(str(v))}'" for k, v in ep_props.items())
     lines.append(f'MERGE (e:Episode {{uuid: "{_s(episode_uuid)}"}})')
     lines.append(f"ON CREATE SET {prop_str}")
@@ -361,13 +420,18 @@ def _build_cypher(
         lines.append(f"ON MATCH SET {e_prop_str}")
 
     # Edges
-    for edge in result.edges:
+    for edge_idx, edge in enumerate(result.edges):
         rel = edge.relation
         if not rel.replace("_", "").isalnum() and not rel.isidentifier():
             # F2 guardrail: relation labels in FalkorDB must be valid identifiers.
             # Skip this edge (and log) rather than emit invalid Cypher.
             logger.warning("L5: dropping edge with invalid relation label: %r", rel)
             continue
+        # F2 FIX 2026-09-13: unique edge variable per MERGE. Reusing `r` across
+        # multiple edges in one statement triggered FalkorDB
+        # "The bound variable 'r' can't be redeclared in a MERGE clause"
+        # (reproduced in acceptance test A1a: cypher_failed).
+        evar = f"rel_{edge_idx}"
         # Resolve source / target through the registry
         if edge.source in var_registry:
             src_node = var_registry[edge.source]
@@ -399,12 +463,12 @@ def _build_cypher(
             )
 
         edge_prop_str = (
-            ", ".join(f"r.{_s(k)} = '{_s(str(v))}'" for k, v in edge.properties.items())
+            ", ".join(f"{evar}.{_s(k)} = '{_s(str(v))}'" for k, v in edge.properties.items())
             if edge.properties
-            else "r.forge_ts = timestamp()"
+            else f"{evar}.forge_ts = timestamp()"
         )
         lines.append(
-            f"MERGE ({src_node})-[r:{rel}]->({tgt_node})"
+            f"MERGE ({src_node})-[{evar}:{rel}]->({tgt_node})"
             f" ON CREATE SET {edge_prop_str}"
             f" ON MATCH SET {edge_prop_str}"
         )
@@ -687,15 +751,26 @@ def forge_l5(
 
     start_ts = time.time()
     _content_hash = content_hash or hashlib.blake2b(content.encode(), digest_size=16).hexdigest()
-    _timestamp = datetime.now(UTC).isoformat()
 
-    # 1. Deterministic UUID (F1 idempotency)
+    # 1. Deterministic UUID (F1 idempotency — memory lineage, not wall clock)
     episode_uuid = _generate_deterministic_uuid(
         actor_id=actor_id,
         session_id=session_id,
-        timestamp=_timestamp,
+        memory_id=memory_id,
         content_hash=_content_hash,
     )
+
+    # 1b. F1 short-circuit: if this episode already exists, do NOT re-run the
+    # Ollama extraction (saves ~50s and guarantees zero replay duplicates —
+    # extraction variance can never fork the episode node).
+    if _episode_exists(episode_uuid):
+        return {
+            "federation_leg": "L5",
+            "status": "already_forged",
+            "memory_id": memory_id,
+            "episode_uuid": episode_uuid,
+            "elapsed_ms": round((time.time() - start_ts) * 1000, 2),
+        }
 
     # 2. LLM extraction (F2 truth guardrails)
     extraction = _call_ollama_extract(content)
@@ -874,7 +949,7 @@ def forge_l5_async(
 
     def _worker():
         try:
-            forge_l5(
+            result = forge_l5(
                 memory_id=memory_id,
                 content=content,
                 summary=summary,
@@ -886,8 +961,10 @@ def forge_l5_async(
                 l4_row_id=l4_row_id,
                 content_hash=content_hash,
             )
+            _persist_l5_status(memory_id, result)
         except Exception as exc:
-            logger.warning("L5 async worker failed: %s", exc)
+            logger.warning("L5 async worker failed for %s: %s", memory_id, exc)
+            _persist_l5_status(memory_id, {"status": f"error:{type(exc).__name__}"})
 
     _run_in_thread(_worker)
     return {
@@ -896,3 +973,38 @@ def forge_l5_async(
         "memory_id": memory_id,
         "mode": "background_thread",
     }
+
+
+def _persist_l5_status(memory_id: str, result: dict[str, Any] | None) -> None:
+    """F2 loudness (2026-09-13): persist the FINAL L5 forge outcome into the
+    memory JSON index so inspect/audit can see L5_SKIPPED / L5 errors instead
+    of a permanent 'queued_async'. Fire-and-forget is fine; silent is not.
+
+    Lazy import of memory_store (never at module load) avoids an import cycle:
+    memory_store calls forge_l5_async from inside store(), not at import time.
+    """
+    if not memory_id:
+        return
+    status = result.get("status", "unknown") if isinstance(result, dict) else "unknown"
+    reason = result.get("reason") if isinstance(result, dict) else None
+    try:
+        from arifosmcp.runtime import memory_store as _ms
+
+        idx = _ms._index_read()
+        entry = idx.get(memory_id)
+        if entry is not None:
+            entry["l5_status"] = status
+            if reason:
+                entry["l5_reason"] = reason
+            entry["l5_finalized_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            _ms._index_write(idx)
+            logger.info("L5 final status persisted for %s: %s", memory_id, status)
+    except Exception as exc:
+        # Persistence is best-effort; the log line below is the floor guarantee.
+        logger.warning(
+            "L5 final status=%s (reason=%s) for memory %s — index persist failed: %s",
+            status,
+            reason,
+            memory_id,
+            exc,
+        )
