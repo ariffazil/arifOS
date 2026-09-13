@@ -1423,6 +1423,27 @@ async def engineering_memory_dispatch_impl(
             verdict=Verdict.VOID,
         )
 
+    # ── F2/VOID-GUARD (2026-09-13, session SEAL-64d8d16afb864e0d) ─────────────
+    # Reproduced defect (external probe + FI-008): tier="L5" / backend="graph"
+    # was accepted by the surface, then silently answered from Qdrant with
+    # SUCCESS. Void Guard: "no data" ≠ "all clear". Graph-tier requests are
+    # gated BEFORE any vector fallback: backend down → UNMEASURED HOLD;
+    # backend up → graph-backed answer with provenance.
+    from arifosmcp.runtime.graph_tier_gate import graph_tier_gate, wants_graph_tier
+
+    if wants_graph_tier(payload):
+        _gate = graph_tier_gate(mode, payload)
+        if _gate.get("intercepted"):
+            return RuntimeEnvelope(
+                ok=True,
+                tool="engineering_memory",
+                session_id=session_id,
+                stage="555m_MEMORY",
+                verdict=Verdict.SABAR if _gate.get("hold") else Verdict.SEAL,
+                status=RuntimeStatus.HOLD if _gate.get("hold") else RuntimeStatus.SUCCESS,
+                payload=_gate["payload"],
+            )
+
     store = _get_constitutional_memory_store()
 
     if not store and mode in ("vector_forget", "vector_store", "vector_query"):
