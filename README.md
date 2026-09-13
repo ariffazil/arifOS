@@ -16,6 +16,11 @@ holds: Merkle signing lane · WELL biometrics · medical purge (Pilihan A)
 
 # arifOS — An Open-Source Governance Decision Point for AI Agent Actions
 
+[![Security Audit: Grade A](https://img.shields.io/badge/Security_Audit-Grade_A-2ECC71?style=flat-square)](https://mcp.arif-fazil.com/proof/)
+[![MCP Compliance: 148 Rules](https://img.shields.io/badge/MCP_Scanners-148_Rules_Passed-d4a853?style=flat-square)](https://mcp.arif-fazil.com/proof/)
+[![Status: Operational](https://img.shields.io/badge/MCP_Gateway-Operational-blue?style=flat-square)](https://mcp.arif-fazil.com/health)
+[![Sovereign Boundary: F13](https://img.shields.io/badge/Sovereignty-F13_Enforced-critical?style=flat-square)](https://arif-fazil.com/governance/)
+
 **arifOS evaluates consequential AI actions against policy floors and returns a verdict _before_ execution occurs.**
 
 When an AI agent proposes to write, delete, deploy, or spend, arifOS inserts an independent judgment step: the agent proposes, arifOS evaluates, a decision is reached, and only then does execution proceed. Every verdict is recorded with full evidence in an append-only ledger.
