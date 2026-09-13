@@ -304,6 +304,8 @@ def _build_cypher(
     l3_point_id: str | None,
     l4_row_id: str | None,
     lineage: dict[str, Any] | None = None,
+    supersedes_memory_id: str | None = None,
+    supersede_reason: str | None = None,
 ) -> str:
     """Construct a single atomic Cypher MERGE statement.
 
@@ -488,6 +490,26 @@ def _build_cypher(
             f" ON CREATE SET {edge_prop_str}"
             f" ON MATCH SET {edge_prop_str}"
         )
+
+    # ── R4-minimal: belief death (invalidation, never deletion) ─────────────
+    # No new node types: one SUPERSEDES edge + superseded_by back-pointer.
+    # Death requires a witness (actor/session on the edge), a queryable
+    # reason, and leaves the corpse intact for reconstruct-at-prior-seq.
+    if supersedes_memory_id and supersedes_memory_id != memory_id:
+        sup_props = (
+            f"sup.reason = '{_s(supersede_reason or 'not_stated')}', "
+            f"sup.actor_id = '{_s(actor_id or '')}', "
+            f"sup.session_id = '{_s(session_id or '')}', "
+            f"sup.superseded_at = timestamp()"
+        )
+        if lineage and lineage.get("seq") is not None:
+            sup_props += f", sup.belief_seq = {lineage['seq']}"
+        lines.append(
+            f"WITH e MATCH (old:Episode {{memory_id: '{_s(supersedes_memory_id)}'}}) "
+            f"MERGE (e)-[sup:SUPERSEDES]->(old) "
+            f"ON CREATE SET {sup_props} ON MATCH SET {sup_props}"
+        )
+        lines.append(f"SET old.superseded_by = '{_s(episode_uuid)}'")
 
     lines.append("RETURN e.uuid AS episode_uuid, count(e) AS episode_count")
     return " ".join(lines)
@@ -801,10 +823,16 @@ def forge_l5(
     l3_point_id: str | None = None,
     l4_row_id: str | None = None,
     content_hash: str | None = None,
+    supersedes_memory_id: str | None = None,
+    supersede_reason: str | None = None,
 ) -> dict[str, Any]:
     """Sovereign L5 forge — Ollama → Pydantic → Cypher → FalkorDB.
 
     Fire-and-forget. NEVER raises. Returns status dict.
+    R4-minimal (2026-09-13): if supersedes_memory_id is set, the new belief
+    SUPERSEDES the referenced belief — invalidation, never deletion. Death is
+    witnessed (actor/session on the SUPERSEDES edge), reasoned (queryable
+    reason), and reversible-in-history (reconstruction at prior seq intact).
     """
     if not _L5_ENABLED:
         return {"federation_leg": "L5", "status": "disabled", "memory_id": memory_id}
@@ -851,6 +879,13 @@ def forge_l5(
         }
 
     # 3. Cypher generation (F1 MERGE idempotency)
+    if supersedes_memory_id and supersedes_memory_id == memory_id:
+        return {
+            "federation_leg": "L5",
+            "status": "supersede_refused",
+            "reason": "self_supersede",
+            "memory_id": memory_id,
+        }
     cypher = _build_cypher(
         result=extraction,
         episode_uuid=episode_uuid,
@@ -862,6 +897,8 @@ def forge_l5(
         l3_point_id=l3_point_id,
         l4_row_id=l4_row_id,
         lineage=lineage,
+        supersedes_memory_id=supersedes_memory_id,
+        supersede_reason=supersede_reason,
     )
 
     # 4. FalkorDB injection
@@ -876,6 +913,7 @@ def forge_l5(
 
     return {
         "lineage": lineage,
+        "supersedes": supersedes_memory_id or None,
         "federation_leg": "L5",
         "status": "forged" if ok else "cypher_failed",
         "memory_id": memory_id,
@@ -995,6 +1033,8 @@ def forge_l5_async(
     l3_point_id: str | None = None,
     l4_row_id: str | None = None,
     content_hash: str | None = None,
+    supersedes_memory_id: str | None = None,
+    supersede_reason: str | None = None,
 ) -> dict[str, Any]:
     """Async L5 forge — schedules extraction in background thread.
 
@@ -1014,6 +1054,8 @@ def forge_l5_async(
             l3_point_id=l3_point_id,
             l4_row_id=l4_row_id,
             content_hash=content_hash,
+            supersedes_memory_id=supersedes_memory_id,
+            supersede_reason=supersede_reason,
         )
 
     def _worker():
@@ -1029,6 +1071,8 @@ def forge_l5_async(
                 l3_point_id=l3_point_id,
                 l4_row_id=l4_row_id,
                 content_hash=content_hash,
+                supersedes_memory_id=supersedes_memory_id,
+                supersede_reason=supersede_reason,
             )
             _persist_l5_status(memory_id, result)
         except Exception as exc:
