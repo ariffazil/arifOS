@@ -57,6 +57,16 @@ def wants_graph_tier(payload: Any) -> bool:
     return tier in _GRAPH_TIERS or backend in _GRAPH_BACKENDS
 
 
+def _health_ok(health: Any) -> bool:
+    """l5_health_check() returns either a string ('healthy'/'degraded') or a
+    dict ({'status': 'healthy', 'l5_enabled': ...}). Observed live 2026-09-13:
+    dict shape — a naive `!= 'healthy'` string compare failed CLOSED even when
+    the backend was up (safe direction, wrong behaviour). Normalize both."""
+    if isinstance(health, dict):
+        return str(health.get("status", "")).strip().lower() == "healthy"
+    return str(health).strip().lower() == "healthy"
+
+
 def graph_tier_gate(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Gate a graph-tier memory request. See module docstring for contract."""
     base = {"mode": mode}
@@ -90,7 +100,7 @@ def graph_tier_gate(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
             },
         }
 
-    if health != "healthy":
+    if not _health_ok(health):
         return {
             "intercepted": True,
             "hold": True,

@@ -110,6 +110,20 @@ def test_gate_health_probe_exception_returns_unmeasured(monkeypatch):
 # ── gate: backend UP → graph-backed answer with provenance ───────────────────
 
 
+def test_gate_healthy_dict_shaped_health_serves_graph(monkeypatch):
+    """Live-observed 2026-09-13: l5_health_check() returns a dict, not a str.
+    A naive string compare failed closed on a HEALTHY backend."""
+    episodes = [{"task_id": "t9", "goal": "x", "provenance": "graphiti_l5"}]
+    _install_fake_l5(monkeypatch, health="irrelevant-unused")
+    import arifosmcp.runtime.l5_graph_read as l5mod  # the fake
+
+    l5mod.l5_health_check = lambda: {"status": "healthy", "l5_enabled": True}  # type: ignore[attr-defined]
+    res = graph_tier_gate("query", {"tier": "L5"})
+    assert res["intercepted"] is True and res["hold"] is False
+    assert res["payload"]["measurement_status"] == "MEASURED"
+    assert res["payload"]["count"] == 1
+
+
 def test_gate_healthy_serves_graph_results(monkeypatch):
     episodes = [
         {
