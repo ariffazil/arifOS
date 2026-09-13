@@ -254,14 +254,11 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
     ):
         classification["contradicted"] = True
 
-    # ── SRO v1 Admissibility Integration (2026-09-12) ─────────────
+    # ── SRO v1 Admissibility Integration (2026-09-12 / Converged 2026-09-13) ─
     sro_data = record.get("sro")
     if sro_data and isinstance(sro_data, dict):
         try:
-            import sys
-            if "/root/AAA/contracts/memory" not in sys.path:
-                sys.path.insert(0, "/root/AAA/contracts/memory")
-            from admissibility_gate import MemoryAdmissibilityGate
+            from arifosmcp.memory.admissibility import MemoryAdmissibilityGate
             _gate = MemoryAdmissibilityGate()
             _recall_mode = "historical_lineage" if record.get("_recall_mode") == "historical" else "operational_default"
             _eval = _gate.evaluate(record, mode=_recall_mode)

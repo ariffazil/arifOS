@@ -49,6 +49,22 @@ logger = logging.getLogger(__name__)
 
 POLICY_PATH = Path(__file__).resolve().parents[2] / "config" / "memory-admissibility-policy.yaml"
 ENV_OVERRIDE = "MEMORY_ADMISSIBILITY_POLICY"
+SANCTUARY_DENYLIST_PATH = Path(__file__).resolve().parents[2] / "config" / "memory-sanctuary-denylist.json"
+
+
+def _sanctuary_denied_ids() -> set[str]:
+    """Point IDs that must never be operationally recalled. IDs only — no payloads."""
+    p = Path(os.environ.get("MEMORY_SANCTUARY_DENYLIST", SANCTUARY_DENYLIST_PATH))
+    if not p.is_file():
+        return set()
+    try:
+        import json
+        data = json.loads(p.read_text())
+        ids = data.get("denied_ids") if isinstance(data, dict) else data
+        return {str(x) for x in (ids or [])}
+    except Exception:
+        logger.error("sanctuary denylist unreadable; fail-closed empty set would open the door — treating as deny-all-unknown")
+        return set()
 
 # Fail-safe defaults — identical semantics to the shipped YAML default mode.
 # Used ONLY when the policy file is missing or unparseable, so recall degrades
@@ -275,3 +291,171 @@ def summarize_exclusions(decisions: list[AdmissibilityDecision]) -> dict[str, in
         if not d.admitted and d.reason_code:
             counts[d.reason_code] = counts.get(d.reason_code, 0) + 1
     return counts
+
+
+class MemoryAdmissibilityGate:
+    """Canonical Unified Memory Admissibility Gate.
+
+    Bridges arifOS runtime and AAA contract specifications.
+    Single Source of Truth (SOT) for both operational and historical modes.
+    """
+
+    CONFIDENCE_FLOORS = {"OBS": 0.90, "DER": 0.75, "INT": 0.65, "SPEC": 0.50}
+
+    def __init__(self, policy_path: str | Path | None = None):
+        self.policy_path = policy_path
+        self.policy = load_policy(policy_path)
+
+    def evaluate(
+        self,
+        point: dict[str, Any],
+        mode: str = "operational_default",
+        current_time: datetime | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate a single memory point against SRO v1 admissibility rules.
+
+        Supported Modes:
+          - 'operational_default' (or 'default'): Operational recall.
+          - 'historical_lineage' (or 'historical'): Audit, forensics, evolution.
+        """
+        now = current_time or datetime.now(UTC)
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=UTC)
+
+        payload = point.get("payload", {}) if isinstance(point, dict) and "payload" in point else point
+        point_id = point.get("id", payload.get("memory_id", "unknown")) if isinstance(point, dict) else "unknown"
+
+        if str(point_id) in _sanctuary_denied_ids():
+            return {
+                "admissible": False,
+                "point_id": point_id,
+                "code": "EXCLUDED_SANCTUARY",
+                "reason": "Point is on the sanctuary denylist (F9). No payload in this receipt.",
+                "mode": mode,
+                "effective_status": "QUARANTINED",
+            }
+
+        # Validate SRO block existence and version
+        sro = payload.get("sro") if isinstance(payload, dict) else None
+        if not isinstance(sro, dict) or sro.get("sro_version") != self.policy.get("sro_schema_version", 1):
+            return {
+                "admissible": False,
+                "point_id": point_id,
+                "code": "EXCLUDED_SCHEMA_INVALID",
+                "reason": "Point does not conform to SRO v1 contract (missing sro or sro_version != 1).",
+                "mode": mode,
+                "effective_status": "UNKNOWN",
+            }
+
+        expiry_dict = sro.get("expiry") or {}
+        raw_status = expiry_dict.get("status", "ACTIVE")
+        expires_at_str = expiry_dict.get("expires_at")
+        review_by_str = expiry_dict.get("review_by")
+
+        # Resolve temporal expiry
+        effective_status = raw_status
+        is_temporally_expired = False
+        if expires_at_str:
+            exp_dt = _parse_iso(expires_at_str)
+            if exp_dt and now > exp_dt:
+                effective_status = "EXPIRED"
+                is_temporally_expired = True
+
+        # Resolve supersession
+        supersession_dict = sro.get("supersession") or {}
+        superseded_by = supersession_dict.get("superseded_by")
+        if superseded_by or raw_status == "SUPERSEDED":
+            effective_status = "SUPERSEDED"
+
+        # Resolve staleness warning
+        warning = None
+        if effective_status == "ACTIVE" and review_by_str:
+            rev_dt = _parse_iso(review_by_str)
+            if rev_dt and now > rev_dt:
+                effective_status = "STALE"
+                warning = "MEMORY_STALE_REVIEW_REQUIRED"
+
+        # Map modes
+        norm_mode = mode
+        if mode in ("operational_default", "default"):
+            norm_mode = "operational_default"
+        elif mode in ("historical_lineage", "historical"):
+            norm_mode = "historical_lineage"
+        else:
+            return {
+                "admissible": False,
+                "point_id": point_id,
+                "code": "INVALID_MODE",
+                "reason": f"Unknown query mode '{mode}'.",
+                "mode": mode,
+                "effective_status": effective_status,
+            }
+
+        if norm_mode == "operational_default":
+            if effective_status == "EXPIRED":
+                return {
+                    "admissible": False,
+                    "point_id": point_id,
+                    "code": "EXCLUDED_EXPIRED",
+                    "reason": f"Memory has expired (status={raw_status}, past_date={is_temporally_expired}).",
+                    "mode": mode,
+                    "effective_status": effective_status,
+                }
+
+            if effective_status == "SUPERSEDED":
+                return {
+                    "admissible": False,
+                    "point_id": point_id,
+                    "code": "EXCLUDED_SUPERSEDED",
+                    "reason": f"Memory superseded by successor claim {superseded_by}.",
+                    "mode": mode,
+                    "effective_status": effective_status,
+                    "superseded_by": superseded_by,
+                }
+
+            # Confidence floor check
+            truth_class_data = payload.get("truth_class", {}) if isinstance(payload, dict) else {}
+            tc = (
+                truth_class_data.get("class", "INT")
+                if isinstance(truth_class_data, dict)
+                else str(truth_class_data or "INT")
+            )
+            confidence = (
+                truth_class_data.get("confidence")
+                if isinstance(truth_class_data, dict)
+                else None
+            )
+            floor = self.CONFIDENCE_FLOORS.get(tc, 0.65)
+
+            if confidence is not None and confidence < floor:
+                return {
+                    "admissible": False,
+                    "point_id": point_id,
+                    "code": "EXCLUDED_LOW_CONFIDENCE",
+                    "reason": f"Confidence {confidence} below required floor {floor} for truth class {tc}.",
+                    "mode": mode,
+                    "effective_status": effective_status,
+                }
+
+            return {
+                "admissible": True,
+                "point_id": point_id,
+                "code": "ADMISSIBLE",
+                "reason": "Memory satisfies SRO v1 operational admissibility gate.",
+                "mode": mode,
+                "effective_status": effective_status,
+                "warning": warning,
+            }
+
+        # Historical lineage mode
+        return {
+            "admissible": True,
+            "point_id": point_id,
+            "code": "ADMISSIBLE_HISTORICAL",
+            "reason": "Admissible under historical audit mode with lineage markers.",
+            "mode": mode,
+            "effective_status": effective_status,
+            "superseded_by": superseded_by,
+            "historical_banner": "RETRIEVED_UNDER_HISTORICAL_AUDIT_MODE_NOT_OPERATIONAL_FACT",
+        }
+
