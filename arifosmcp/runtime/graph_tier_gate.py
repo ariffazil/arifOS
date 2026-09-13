@@ -8,6 +8,14 @@ DEFECT (reproduced twice — external Claude probe + FI-008, same session):
   parameters, then silently answered from the Qdrant vector store and reported
   SUCCESS. Two silent-failure paths in one surface.
 
+DEFECT-2 (reproduced live 2026-09-13, down-branch test):
+  l5_graph_read.l5_health_check() reports "healthy" when the HTTP transport to
+  l5-search-api succeeds — even when the body says
+  {'status':'degraded','falkordb':'disconnected'}. The gate then answered
+  MEASURED over a stopped FalkorDB. A measurement surface reporting success
+  over a store it didn't query. The gate therefore probes the /health BODY
+  itself and requires body.status == 'healthy'.
+
 LAW (Witness-First / Void Guard):
   "No data" ≠ "All clear". "No data" = "Cannot witness."
   A graph-tier request whose backend is down must return UNMEASURED — never
@@ -23,15 +31,18 @@ CONTRACT:
         intercepted=True, hold=True  → return UNMEASURED HOLD envelope.
         intercepted=True, hold=False → serve graph-backed results.
 
-  This module is deliberately dependency-light (stdlib only at import time;
-  l5_graph_read imported lazily) so it stays unit-testable in isolation.
+  Deliberately stdlib-only at import time (urllib probe, lazy L5GraphReader)
+  so it stays unit-testable in isolation.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
+import json
 import logging
+import os
+import urllib.request
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -57,11 +68,23 @@ def wants_graph_tier(payload: Any) -> bool:
     return tier in _GRAPH_TIERS or backend in _GRAPH_BACKENDS
 
 
+def _probe_graph_health() -> dict[str, Any]:
+    """Probe the l5-search-api /health BODY — transport success is not health.
+
+    Returns the parsed body dict on HTTP success, or a degraded dict on any
+    failure. Callers decide health via _health_ok().
+    """
+    base = os.environ.get("GRAPHITI_MCP_URL", "http://localhost:8001").rstrip("/")
+    try:
+        with urllib.request.urlopen(f"{base}/health", timeout=3) as resp:
+            body = json.loads(resp.read().decode())
+        return body if isinstance(body, dict) else {"status": "degraded", "error": "non-dict body"}
+    except Exception as exc:
+        return {"status": "degraded", "error": str(exc)}
+
+
 def _health_ok(health: Any) -> bool:
-    """l5_health_check() returns either a string ('healthy'/'degraded') or a
-    dict ({'status': 'healthy', 'l5_enabled': ...}). Observed live 2026-09-13:
-    dict shape — a naive `!= 'healthy'` string compare failed CLOSED even when
-    the backend was up (safe direction, wrong behaviour). Normalize both."""
+    """Accept both str ('healthy'/'degraded') and dict ({'status': ...}) shapes."""
     if isinstance(health, dict):
         return str(health.get("status", "")).strip().lower() == "healthy"
     return str(health).strip().lower() == "healthy"
@@ -73,7 +96,7 @@ def graph_tier_gate(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
 
     # Lazy import: keeps this module unit-testable and import-cycle-free.
     try:
-        from arifosmcp.runtime.l5_graph_read import L5GraphReader, l5_health_check
+        from arifosmcp.runtime.l5_graph_read import L5GraphReader
     except Exception as exc:  # ImportError or anything the module raises on load
         return {
             "intercepted": True,
@@ -86,20 +109,7 @@ def graph_tier_gate(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
             },
         }
 
-    try:
-        health = l5_health_check()
-    except Exception as exc:
-        return {
-            "intercepted": True,
-            "hold": True,
-            "payload": {
-                **base,
-                "error": "GRAPH_BACKEND_UNAVAILABLE",
-                "measurement_status": "UNMEASURED",
-                "message": f"Graph health probe raised: {exc}. {_UNMEASURED_NOTE}",
-            },
-        }
-
+    health = _probe_graph_health()
     if not _health_ok(health):
         return {
             "intercepted": True,
