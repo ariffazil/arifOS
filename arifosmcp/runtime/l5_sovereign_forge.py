@@ -477,6 +477,12 @@ def _build_cypher(
         # "reconstruct state at seq N" a single filterable traversal.
         if lineage and lineage.get("seq") is not None:
             edge_prop_str += f", {evar}.belief_seq = {lineage['seq']}"
+        # R2b (P1 requirement 5): edges carry WHO asserted the relation —
+        # provenance on relations, not just on episodes.
+        edge_prop_str += (
+            f", {evar}.actor_id = '{_s(actor_id or '')}'"
+            f", {evar}.session_id = '{_s(session_id or '')}'"
+        )
         lines.append(
             f"MERGE ({src_node})-[{evar}:{rel}]->({tgt_node})"
             f" ON CREATE SET {edge_prop_str}"
