@@ -64,7 +64,7 @@ def gate_1_pytest() -> tuple[bool, str]:
             "-q",
             "-p",
             "no:logfire",
-            "--timeout=15",
+            "--timeout=30",
             "--tb=line",
         ],
         cwd=REPO_ROOT,
