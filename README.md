@@ -24,6 +24,14 @@ When an AI agent proposes to write, delete, deploy, or spend, arifOS inserts an 
 
 **What arifOS is not:** not an AI model · not an agent framework · not an execution engine (it judges; A-FORGE executes) · not a substitute for authentication, sandboxing, or legal review.
 
+| Audience | What you get |
+|---|---|
+| **Human** | A quiet veto: the agent proposes, the kernel records a verdict, you stay sovereign |
+| **Agent / A2A** | MCP tools + receipts. You do not get the keys. Protocol: A2A v1.0 (not v1.2) |
+| **Institution** | Policy floors F1–F13, VAULT999 audit trail, model-vendor independence |
+
+Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [GEOX](https://github.com/ariffazil/GEOX) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [AAA](https://github.com/ariffazil/AAA)
+
 ---
 
 ## The Problem
