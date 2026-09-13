@@ -31,6 +31,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given [ΔΩΨ | ARIF]
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import math
@@ -217,6 +218,61 @@ class BeliefUpdater:
         )
 
 
+# ── Belief lineage linkage (Reality Graph L2 join, 2026-09-13) ────────────────
+# Additive: every audited belief event now carries id/seq/prev_hash/entry_hash
+# + vault_seq_anchor (nearest canonical seal-chain seq). Historical entries
+# (pre-linkage) remain unmodified — gaps are classified, never rewritten (F-004).
+# Supersession-append: a changed belief is a NEW linked entry, never an edit.
+
+_SEAL_HEAD_FILE = os.path.join(
+    os.getenv("ARIFOS_CANONICAL_VAULT_DIR", "/root/.local/share/arifos/vault999"),
+    "seal_chain_head.json",
+)
+
+
+def _belief_chain_tail() -> tuple[str | None, int, bool]:
+    """Return (last_entry_hash, last_seq, file_nonempty) of the belief audit chain."""
+    try:
+        with open(_AUDIT_LOG, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fsize = fh.tell()
+            if fsize == 0:
+                return None, 0, False
+            buf = b""
+            read = 0
+            while fsize - read > 0 and buf.count(b"\n") < 2 and read < 16384:
+                step = min(4096, fsize - read)
+                fh.seek(fsize - read - step)
+                buf = fh.read(step) + buf
+                read += step
+            lines = [ln for ln in buf.decode("utf-8", "replace").splitlines() if ln.strip()]
+            if not lines:
+                return None, 0, True
+            last = json.loads(lines[-1])
+            return last.get("entry_hash"), int(last.get("seq", 0)), True
+    except (OSError, ValueError, json.JSONDecodeError):
+        return None, 0, False
+
+
+def _seal_head_seq() -> int | None:
+    """Nearest canonical seal-chain seq at belief-write time (anchor only)."""
+    try:
+        with open(_SEAL_HEAD_FILE, encoding="utf-8") as fh:
+            head = json.load(fh)
+        for src in (head, head.get("head") if isinstance(head.get("head"), dict) else {}):
+            for key in ("seq", "seq_num", "sequence"):
+                if key in src:
+                    return int(src[key])
+    except (OSError, ValueError, TypeError):
+        pass
+    return None
+
+
+def _hash_belief_entry(entry: dict, prev_hash: str | None) -> str:
+    payload = json.dumps(entry, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256((str(prev_hash) + "|" + payload).encode("utf-8")).hexdigest()
+
+
 # ── BeliefRegistry ────────────────────────────────────────────────────────────
 
 
@@ -314,14 +370,30 @@ class BeliefRegistry:
                 logger.error("BeliefRegistry.save failed for %s: %s", state.actor_id, exc)
 
     def _audit(self, state: BeliefState, event_type: str) -> None:
-        """Append belief update to VAULT999 audit trail (SEALED_EVENTS.jsonl)."""
-        entry = {
+        """Append belief update to VAULT999 audit trail (SEALED_EVENTS.jsonl).
+
+        Reality Graph L2 join (2026-09-13): entries carry hash linkage
+        (seq/prev_hash/entry_hash) + vault_seq_anchor to the canonical seal
+        chain — belief lineage becomes reconstructible by traversal.
+        """
+        prev_hash, prev_seq, had_tail = _belief_chain_tail()
+        entry: dict = {
             "event_type": event_type,
             "event_id": uuid.uuid4().hex,
             "timestamp": datetime.now(UTC).isoformat(),
             "actor_id": state.actor_id,
             "belief_snapshot": state.to_dict(),
+            "seq": (prev_seq if prev_hash else 0) + 1,
+            "prev_hash": prev_hash or "genesis-belief-chain-2026-09-13",
+            "vault_seq_anchor": _seal_head_seq(),
+            "linkage": "live",
         }
+        if had_tail and not prev_hash:
+            entry["linkage_note"] = "first_linked_entry_after_legacy_tail"
+        entry["entry_hash"] = _hash_belief_entry(
+            {k: v for k, v in entry.items() if k != "entry_hash"},
+            entry["prev_hash"],
+        )
         try:
             with open(_AUDIT_LOG, "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(entry) + "\n")
