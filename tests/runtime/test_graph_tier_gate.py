@@ -114,7 +114,7 @@ def test_gate_healthy_dict_shaped_health_serves_graph(monkeypatch):
     """Live-observed 2026-09-13: l5_health_check() returns a dict, not a str.
     A naive string compare failed closed on a HEALTHY backend."""
     episodes = [{"task_id": "t9", "goal": "x", "provenance": "graphiti_l5"}]
-    _install_fake_l5(monkeypatch, health="irrelevant-unused")
+    _install_fake_l5(monkeypatch, health="irrelevant-unused", episodes=episodes)
     import arifosmcp.runtime.l5_graph_read as l5mod  # the fake
 
     l5mod.l5_health_check = lambda: {"status": "healthy", "l5_enabled": True}  # type: ignore[attr-defined]
