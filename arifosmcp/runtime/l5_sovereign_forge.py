@@ -303,6 +303,7 @@ def _build_cypher(
     content_hash: str,
     l3_point_id: str | None,
     l4_row_id: str | None,
+    lineage: dict[str, Any] | None = None,
 ) -> str:
     """Construct a single atomic Cypher MERGE statement.
 
@@ -382,6 +383,11 @@ def _build_cypher(
     # observed live: extractor wrote actor "FI-008" into BOTH session_id and
     # actor_id, overwriting kernel provenance (accept-ep1 dump). Untrusted
     # extraction must never overwrite kernel-set provenance keys.
+    # R2 (same session): belief-chain coordinates are kernel-authoritative.
+    if lineage and lineage.get("seq") is not None:
+        ep_props["seq"] = lineage["seq"]
+        ep_props["prev_hash"] = lineage["prev_hash"]
+        ep_props["lineage_hash"] = lineage["lineage_hash"]
     _RESERVED_EPISODE_PROPS = frozenset(ep_props)
     ep_props.update(
         {
@@ -467,6 +473,10 @@ def _build_cypher(
             if edge.properties
             else f"{evar}.forge_ts = timestamp()"
         )
+        # R2: every edge remembers which belief-seq asserted it — makes
+        # "reconstruct state at seq N" a single filterable traversal.
+        if lineage and lineage.get("seq") is not None:
+            edge_prop_str += f", {evar}.belief_seq = {lineage['seq']}"
         lines.append(
             f"MERGE ({src_node})-[{evar}:{rel}]->({tgt_node})"
             f" ON CREATE SET {edge_prop_str}"
@@ -723,6 +733,53 @@ def _deterministic_vector(seed: str, dim: int = 384) -> list[float]:
     return [v / norm for v in vals]
 
 
+_GENESIS = "0" * 64
+
+
+def _allocate_lineage(content_hash: str) -> dict[str, Any]:
+    """R2 (2026-09-13, session SEAL-64d8d16afb864e0d): belief-chain position.
+
+    seq          := INCR on a FalkorDB redis key (monotonic per graph)
+    prev_hash    := lineage_hash of the current chain tip (GENESIS if none)
+    lineage_hash := blake2b(prev_hash ':' content_hash)
+
+    Single-writer v1: concurrent forges may read the same tip and fork the
+    chain — that fork is DETECTABLE (two episodes sharing prev_hash) and is
+    exactly the anomaly class the contradiction membrane (R4) will adjudicate.
+    Forks are visible, never silent. Allocation failure returns Nones
+    (declared absent, not faked) — the episode still forges, unchained.
+    """
+    try:
+        import redis as _redis
+
+        r = _redis.Redis(
+            host=_FALKORDB_HOST,
+            port=_FALKORDB_PORT,
+            socket_connect_timeout=2,
+            socket_timeout=3,
+        )
+        seq = int(r.incr(f"l5:{_FALKORDB_GRAPH}:seq"))
+        tip = r.execute_command(
+            "GRAPH.RO_QUERY",
+            _FALKORDB_GRAPH,
+            "MATCH (e:Episode) WHERE e.lineage_hash IS NOT NULL "
+            "RETURN e.lineage_hash ORDER BY toInteger(e.seq) DESC LIMIT 1",
+        )
+        prev = _GENESIS
+        node = tip[1] if isinstance(tip, (list, tuple)) and len(tip) > 1 else None
+        while isinstance(node, (list, tuple)):
+            if not node:
+                break
+            node = node[0]
+        if node:
+            prev = node.decode() if isinstance(node, bytes) else str(node)
+        lineage = hashlib.blake2b(f"{prev}:{content_hash}".encode(), digest_size=32).hexdigest()
+        return {"seq": seq, "prev_hash": prev, "lineage_hash": lineage}
+    except Exception as exc:
+        logger.warning("L5 lineage allocation failed (episode forges unchained): %s", exc)
+        return {"seq": None, "prev_hash": None, "lineage_hash": None}
+
+
 # ── Public API ─────────────────────────────────────────────────────────────
 
 
@@ -772,6 +829,10 @@ def forge_l5(
             "elapsed_ms": round((time.time() - start_ts) * 1000, 2),
         }
 
+    # 1c. R2 belief-chain position — allocated only for genuinely new beliefs
+    # (replays short-circuit above and never consume a seq).
+    lineage = _allocate_lineage(_content_hash)
+
     # 2. LLM extraction (F2 truth guardrails)
     extraction = _call_ollama_extract(content)
     if extraction is None:
@@ -794,6 +855,7 @@ def forge_l5(
         content_hash=_content_hash,
         l3_point_id=l3_point_id,
         l4_row_id=l4_row_id,
+        lineage=lineage,
     )
 
     # 4. FalkorDB injection
@@ -807,6 +869,7 @@ def forge_l5(
     elapsed_ms = round((time.time() - start_ts) * 1000, 2)
 
     return {
+        "lineage": lineage,
         "federation_leg": "L5",
         "status": "forged" if ok else "cypher_failed",
         "memory_id": memory_id,
