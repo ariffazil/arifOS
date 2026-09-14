@@ -1252,6 +1252,18 @@ async def arif_judge(
             "F13_SOVEREIGN_VIOLATION: Mutating security/firewall policy or constitutional parameters is reserved exclusively for Root Sovereign."
         )
 
+    # Gate 2d (F12 SENSITIVE_PATH): System integrity perimeter protection
+    _sensitive_paths = (
+        "/etc/shadow", "/etc/sudoers", "/etc/passwd", "/etc/ssh",
+        "/root/.ssh", "/root/.secrets", "/root/.gnupg", "/root/.aws",
+        "kunci-root.env", "kunci-mas", "vault.env",
+    )
+    _target_lower = (str(candidate or "") + " " + str(requested_capability or "") + " " + str(domain or "")).lower()
+    if any(p in _target_lower for p in _sensitive_paths) and not sovereign_receipt and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+        _hard_reasons.append(
+            "F12_SENSITIVE_PATH_VIOLATION: target references sensitive system path. Severity: VOID."
+        )
+
     # Gate 3: Critical blast radius requires sovereign receipt
     if (
         _br in ("CRITICAL", "L3_CRITICAL", "HIGH")
