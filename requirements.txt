@@ -1119,13 +1119,13 @@ fastapi==0.141.1 \
     --hash=sha256:bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3 \
     --hash=sha256:e8822fc40db1e1858054d7a949a888695bc9bdce70139178e33bd2871a453ca1
     # via arifos
-fastmcp==4.0.2 \
-    --hash=sha256:60d5c5ead3b6a117bfada5c0f95fe5c1aba53d1577079ecbdf42eeff0cd9b931 \
-    --hash=sha256:9075e64a94634ad660971ed14374c87be06f2a16a921028ca87987e6aa2f3bfa
+fastmcp==4.0.3 \
+    --hash=sha256:f743f43193e1daf606e6497a9dddba5bbaad7df7957a98fd093716ecf4458b99 \
+    --hash=sha256:0dd50baf070105ee4436c245f087ac3c047e655c32d9e783de16d0bf15783a98
     # via arifos
-fastmcp-slim==4.0.2 \
-    --hash=sha256:6bd5b5885628f73263fa2247ea1d26e4a514499a6e079ee3e340cd03a7fe5ed8 \
-    --hash=sha256:86b99bdcb872b52d964c79bc6d43ce79f40ed5538b589d102792b4a7cf3947f4
+fastmcp-slim==4.0.3 \
+    --hash=sha256:3756ed4bd9f82f40adaf51974b7cdd1463ab6b9f479cf69b69b2692969312b87 \
+    --hash=sha256:3ce04a82b82cc41ccb12bb3bb366cfd65b52bc797b8fee332a75da9d480f9b74
     # via
     #   fastmcp
     #   pydantic-ai-slim
@@ -2556,9 +2556,9 @@ matplotlib-inline==0.2.2 \
     --hash=sha256:3c821cf1c209f59fb2d2d64abbf5b23b67bcb2210d663f9918dd851c6da1fcf6 \
     --hash=sha256:72f3fe8fce36b70d4a5b612f899090cd0401deddc4ea90e1572b9f4bfb058c79
     # via ipython
-mcp==1.29.0 \
-    --hash=sha256:52d01f334de1868cc3bb2d6604931126a67631f99a6c5d3b82ba47290315ec36 \
-    --hash=sha256:f5a075bb611f23d6f4d080c6a1699fa62772eebc562ba9e66b306ddde1c755f7
+mcp==2.0.0 \
+    --hash=sha256:1cb4c75d2d2c7b8c1d756355e5d82a39f2822cc7f13e22a2051d7ca3592349d6 \
+    --hash=sha256:0f440e735c13ece8bb19bc62cf0b86f4313448432fbb77d35e14034f4e050728
     # via
     #   arifos
     #   fastmcp-slim

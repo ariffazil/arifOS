@@ -96,8 +96,16 @@ _log_llm_provider_health()
 
 import fastmcp  # noqa: E002,E402
 from fastmcp import FastMCP  # noqa: E402
-from mcp import McpError  # noqa: E402
-from mcp.server.fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
+try:
+    from mcp import McpError  # noqa: E402
+except ImportError:
+    # mcp 2.0.0 renamed McpError → MCPError
+    from mcp import MCPError as McpError  # noqa: E402
+try:
+    from mcp.server.fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
+except ImportError:
+    # mcp 2.0.0 / fastmcp 4.x: standalone fastmcp.prompts.base
+    from fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
 from mcp.types import ErrorData  # noqa: E402
 
 
