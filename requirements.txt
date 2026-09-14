@@ -2049,9 +2049,9 @@ langgraph==0.2.76 \
     --hash=sha256:076b8b5d2fc5a9761c46a7618430cfa5c978a8012257c43cbc127b27e0fd7872 \
     --hash=sha256:688f8dcd9b6797ba78384599e0de944773000c75156ad1e186490e99e89fa5c0
     # via arifos
-langgraph-checkpoint==2.1.2 \
-    --hash=sha256:112e9d067a6eff8937caf198421b1ffba8d9207193f14ac6f89930c1260c06f9 \
-    --hash=sha256:911ebffb069fd01775d4b5184c04aaafc2962fcdf50cf49d524cd4367c4d0c60
+langgraph-checkpoint==4.2.0 \
+    --hash=sha256:0547fd228935a0b758865de3a3d6d7a2537c308895d0f9ab092ce9151b5da942 \
+    --hash=sha256:51a593b6bee684b0818e5d6e58e28ab340c6db7794575056ce7bd1b746a84ed7
     # via langgraph
 langgraph-sdk==0.1.74 \
     --hash=sha256:3a265c3757fe0048adad4391d10486db63ef7aa5a2cbd22da22d4503554cb890 \
