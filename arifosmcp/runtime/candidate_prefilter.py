@@ -43,7 +43,8 @@ SPAM_PATTERNS: list[re.Pattern[str]] = [
 ]
 
 ADULT_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"(?i)\b(adult|nsfw|porn|x-rated)\b"),
+    # F13 decree 2026-09-14: removed blunt adult keyword block.
+    # Contextual governance replaces pattern-matched censorship.
 ]
 
 
