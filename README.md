@@ -79,8 +79,8 @@ AI agents that act are also certifying their own actions. There is no independen
 
 | Plane | Organ | Role |
 |-------|-------|------|
-| Governance | arifOS | Policy Decision Point — evaluates proposals against constitutional floors |
-| Control | AAA | Intent classification and routing to the correct organ |
+| Authority | arifOS | Constitutional judgment — evaluates proposals against F1–F13 floors |
+| Attention | AAA | Reality compression + routing — what matters reaches the right organ |
 | Execution | A-FORGE | Governed mutation — leases, gates, receipts |
 | Witness | VAULT999 | Hash-chained append-only ledger — tamper-evident record of every verdict and receipt |
 
@@ -180,13 +180,13 @@ Every verdict, evidence chain, and execution receipt is recorded in VAULT999 —
 arifOS Federation — 4 Constitutional Planes
 
     ┌─────────────────────────────────────────────┐
-    │         Governance Plane (arifOS :8088)      │
-    │    Policy evaluation · Constitutional floors │
+    │          Authority Plane (arifOS :8088)      │
+    │    Constitutional judgment · F1–F13 floors   │
     └──────────────────────┬──────────────────────┘
                            │
     ┌──────────────────────▼──────────────────────┐
-    │           Control Plane (AAA :3001)          │
-    │    Intent classification · Routing · State   │
+    │          Attention Plane (AAA :3001)         │
+    │    Reality compression · Routing · State     │
     └──────────────────────┬──────────────────────┘
                            │
     ┌──────────────────────▼──────────────────────┐
