@@ -682,7 +682,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.136.1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.136.1" },
     { name = "fastmcp", extras = ["tasks"], specifier = "==3.4.6" },
-    { name = "firecrawl-py", marker = "extra == 'search'", specifier = ">=1.3.0" },
+    { name = "firecrawl-py", marker = "extra == 'search'", specifier = ">=4.42.0" },
     { name = "google-api-python-client", marker = "extra == 'google'", specifier = ">=2.200.0" },
     { name = "google-auth-httplib2", marker = "extra == 'google'", specifier = ">=0.4.0" },
     { name = "google-auth-oauthlib", marker = "extra == 'google'", specifier = ">=1.4.0" },
@@ -2291,7 +2291,7 @@ wheels = [
 
 [[package]]
 name = "firecrawl-py"
-version = "4.40.0"
+version = "4.42.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2302,9 +2302,9 @@ dependencies = [
     { name = "requests" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/af/20/1cf843efc9911f40be240d05c44b364b24d5a1b2be2299293aa5ae14209d/firecrawl_py-4.40.0.tar.gz", hash = "sha256:4b68709871962b8c214e4113e8100633d9d7c66567536a0214402ef8638f3581", size = 231735, upload-time = "2026-08-26T22:56:45.435Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/68/a1/b9c330494d6cb755ebc6f3360d8231e7579789898619799845000b0caff8/firecrawl_py-4.42.0.tar.gz", hash = "sha256:48f0210243ae2d8da57647b54d7a372f5fdd5c4c8bf15c67597c92a729788f78", size = 237434, upload-time = "2026-09-08T14:41:30.733Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/24/8c17af293e69fc56527f0fd760af2d36ca03afb147f9ab2ba6540c12f3cd/firecrawl_py-4.40.0-py3-none-any.whl", hash = "sha256:a2e7816d65aa794fa269bc96fa90680767cbdb139faf227bcd88a1281975fa0e", size = 284451, upload-time = "2026-08-26T22:56:44.111Z" },
+    { url = "https://files.pythonhosted.org/packages/45/8e/1799ded3652b4245466250558b0b22759dc2fdc538bb84f07d03e8185b96/firecrawl_py-4.42.0-py3-none-any.whl", hash = "sha256:ccce7a0f33be9433790b23227afdec2b225e10efbaf1467d496476aff74dfacb", size = 291776, upload-time = "2026-09-08T14:41:29.393Z" },
 ]
 
 [[package]]
