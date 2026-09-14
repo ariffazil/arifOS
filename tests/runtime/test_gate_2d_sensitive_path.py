@@ -33,6 +33,7 @@ from arifosmcp.tools.judge import arif_judge
 
 # Mirrors the _sensitive_paths tuple in arifosmcp/tools/judge.py (Gate 2d).
 SENSITIVE_PATHS = [
+    # identity & secret material
     "/etc/shadow",
     "/etc/sudoers",
     "/etc/passwd",
@@ -44,6 +45,19 @@ SENSITIVE_PATHS = [
     "kunci-root.env",
     "kunci-mas",
     "vault.env",
+    # persistence surfaces (added 2026-09-14)
+    "/etc/cron.d",
+    "/etc/crontab",
+    "/etc/cron.daily",
+    "/etc/systemd/system",
+    "/etc/systemd/user",
+    "/lib/systemd/system",
+    "/root/.bashrc",
+    "/root/.bash_profile",
+    "/root/.profile",
+    "/etc/profile.d",
+    "/etc/ld.so.preload",
+    "/etc/hosts",
 ]
 
 NON_SOVEREIGN = "fi-009-agy"
@@ -136,33 +150,24 @@ async def test_gate_2d_matching_is_case_insensitive():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# KNOWN GAPS — recorded 2026-09-14 while writing the tests above.
+# GAPS CLOSED — 2026-09-14 (fix/gate-2d-perimeter-2026-09-14)
 #
-# These are marked xfail(strict=True), NOT skipped and NOT absent. That choice is
-# deliberate: strict xfail means the suite stays green while the gap is open, and
-# turns RED the moment someone closes it — forcing the fix and the test to move
-# together. A gap recorded only in prose drifts; a gap recorded as a failing
-# assertion has to be answered.
+# The assertions below were committed earlier today as xfail(strict=True),
+# recording two holes in Gate 2d. Both are now closed in arifosmcp/tools/judge.py
+# and the xfail markers are removed — these tests assert the CLOSED behaviour.
+#
+# strict xfail did its job: it held the gap in the record, and it would have gone
+# RED if the fix had landed without the tests moving with it.
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(
-    reason=(
-        "KNOWN GAP 2026-09-14: Gate 2d's exemption condition is `not sovereign_receipt` "
-        "— a truthiness check, not a signature check. Any non-empty string disarms the "
-        "perimeter. Signature verification does not happen at this layer."
-    ),
-    strict=True,
-)
-async def test_gate_2d_receipt_must_be_verified_not_merely_present():
+async def test_gate_2d_bare_receipt_string_does_not_exempt():
     """A bare string must not disarm the perimeter.
 
-    Verified behaviour at time of writing: passing sovereign_receipt="x" suppresses
-    F12_SENSITIVE_PATH_VIOLATION entirely. The action still lands on HOLD via other
-    floors (missing actor_signature, Gödel lock), so this is a weakened perimeter,
-    not a demonstrated path to execution. It is still the wrong shape for a gate
-    that was deployed as 'declaration-independent'.
+    Previously `sovereign_receipt="x"` — one character — suppressed
+    F12_SENSITIVE_PATH_VIOLATION entirely. A receipt is a claim, not proof.
+    A receipt-backed exemption now also requires actor_signature + nonce.
     """
     result = await arif_judge(
         mode="judge",
@@ -176,7 +181,30 @@ async def test_gate_2d_receipt_must_be_verified_not_merely_present():
     )
 
 
-# Privilege / persistence surfaces adjacent to the perimeter, but absent from it.
+@pytest.mark.anyio
+async def test_gate_2d_receipt_with_credentials_still_exempts():
+    """Delegation must survive the narrowing.
+
+    A receipt carrying actor_signature + nonce still exempts — otherwise the fix
+    would have removed a legitimate authority path rather than a forged one.
+    (Presence checks at this layer; cryptographic validation runs later in
+    arif_judge, after the hard gates.)
+    """
+    result = await arif_judge(
+        mode="judge",
+        candidate="echo ok > /etc/sudoers.d/managed",
+        actor_id="hermes",
+        action_class="MUTATE",
+        sovereign_receipt="ARIF-APPROVED-2026-09-14",
+        actor_signature="sig-placeholder",
+        nonce="nonce-placeholder",
+    )
+    assert not _f12_hits(result), (
+        "Gate 2d blocked a receipt-backed delegation that carried credentials."
+    )
+
+
+# Privilege / persistence surfaces. Formerly absent from the perimeter entirely.
 PERSISTENCE_SURFACES = [
     "/etc/cron.d/evil",  # scheduled persistence
     "/root/.bashrc",  # executes on next login
@@ -187,16 +215,8 @@ PERSISTENCE_SURFACES = [
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("path", PERSISTENCE_SURFACES)
-@pytest.mark.xfail(
-    reason=(
-        "KNOWN GAP 2026-09-14: Gate 2d is a fixed 11-path blocklist. Adjacent privilege "
-        "and persistence surfaces are not on it. Other floors still HOLD these actions, "
-        "so this is a perimeter-scope gap, not a demonstrated path to execution."
-    ),
-    strict=True,
-)
 async def test_gate_2d_covers_persistence_surfaces(path):
-    """The perimeter should not be trivially walked around via cron/systemd/bashrc."""
+    """The perimeter must not be walkable around via cron/systemd/bashrc."""
     result = await arif_judge(
         mode="judge",
         candidate=f"write payload to {path}",
