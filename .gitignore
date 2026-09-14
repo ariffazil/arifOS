@@ -295,7 +295,7 @@ claude_desktop_config.json
 .mcp-use
 audits/
 deploy/rollback/
-C:
+.pytest_cache/
 .git_commit
 
 # sandbox kit — not tracked
