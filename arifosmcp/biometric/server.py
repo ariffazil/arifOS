@@ -14,7 +14,11 @@ from __future__ import annotations
 
 import os
 
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.fastmcp import FastMCP
+except ImportError:
+    # mcp 2.0.0 / fastmcp 4.x
+    from fastmcp import FastMCP
 
 from arifosmcp.biometric.face_verify import FaceVerifyService
 

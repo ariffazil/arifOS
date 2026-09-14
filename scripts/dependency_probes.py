@@ -320,6 +320,8 @@ def probe_fastmcp() -> ProbeResult:
     name = "fastmcp"
     try:
         from mcp.server.fastmcp import FastMCP  # canonical FastMCP entry
+    except ImportError:
+        from fastmcp import FastMCP  # mcp 2.0.0 / fastmcp 4.x
     except Exception as e:
         return ProbeResult(
             name=name,
