@@ -1253,13 +1253,47 @@ async def arif_judge(
         )
 
     # Gate 2d (F12 SENSITIVE_PATH): System integrity perimeter protection
+    #
+    # Widened 2026-09-14. The original 11-path list covered secret and identity
+    # material but none of the PERSISTENCE surfaces. Every one of those is an
+    # equivalent route to system integrity: /root/.bashrc executes on next login,
+    # /etc/cron.d schedules persistence, /etc/systemd/system installs a service,
+    # /etc/ld.so.preload injects into every binary. A perimeter that guards the
+    # crown jewels but not the door is not a perimeter.
+    #
+    # Exemption narrowed 2026-09-14. This gate previously exempted any caller
+    # holding a non-empty `sovereign_receipt` STRING. A receipt is a claim, not
+    # proof: one character ("x") disarmed the perimeter completely. A lone
+    # receipt string no longer exempts — a receipt-backed exemption must also
+    # carry actor_signature + nonce credentials.
+    #
+    # HONEST LIMIT: these remain presence checks at this layer. Cryptographic
+    # validation of actor_signature runs later in this function, after the hard
+    # gates, so Gate 2d cannot consume its result. Narrowing further — to
+    # verified-signature-only — changes WHO may act on system paths and is an
+    # F13 sovereignty decision, not an engineering one. Flagged, not taken.
     _sensitive_paths = (
+        # identity & secret material (original)
         "/etc/shadow", "/etc/sudoers", "/etc/passwd", "/etc/ssh",
         "/root/.ssh", "/root/.secrets", "/root/.gnupg", "/root/.aws",
         "kunci-root.env", "kunci-mas", "vault.env",
+        # persistence surfaces (added 2026-09-14)
+        "/etc/cron.d", "/etc/crontab", "/etc/cron.daily",
+        "/etc/systemd/system", "/etc/systemd/user", "/lib/systemd/system",
+        "/root/.bashrc", "/root/.bash_profile", "/root/.profile",
+        "/etc/profile.d", "/etc/ld.so.preload", "/etc/hosts",
     )
     _target_lower = (str(candidate or "") + " " + str(requested_capability or "") + " " + str(domain or "")).lower()
-    if any(p in _target_lower for p in _sensitive_paths) and not sovereign_receipt and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+    _sovereign_actor_2d = str(actor_id).strip().lower() in ("sovereign", "f13", "arif")
+    # A receipt string alone is not authority — require credentials alongside it.
+    _receipt_exempt_2d = bool(
+        sovereign_receipt and str(sovereign_receipt).strip() and actor_signature and nonce
+    )
+    if (
+        any(p in _target_lower for p in _sensitive_paths)
+        and not _sovereign_actor_2d
+        and not _receipt_exempt_2d
+    ):
         _hard_reasons.append(
             "F12_SENSITIVE_PATH_VIOLATION: target references sensitive system path. Severity: VOID."
         )
