@@ -63,7 +63,7 @@ jobs:
 
     env:
       PYTHONUNBUFFERED: "1"
-      PROBE_ARTIFACT_DIR: forge_work/probes/${{ github.event.pull_request.base.ref }}
+      PROBE_ARTIFACT_DIR: workspace/forge_work/probes/${{ github.event.pull_request.base.ref }}
       PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
 
@@ -145,7 +145,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: dependabot-probe-${{ github.event.pull_request.number }}
-          path: forge_work/probes/${{ github.event.pull_request.base.ref }}/${{ github.event.pull_request.head.sha }}.json
+          path: workspace/forge_work/probes/${{ github.event.pull_request.base.ref }}/${{ github.event.pull_request.head.sha }}.json
           retention-days: 30
           if-no-files-found: warn
 
