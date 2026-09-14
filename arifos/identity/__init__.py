@@ -26,5 +26,27 @@ Forged: 2026-07-29 — DITEMPA BUKAN DIBERI
 
 from .agent_identity import AgentIdentity
 from .identity_registry import IdentityRegistry
+from .identity_resolver import (
+    GuardResult,
+    IdentityHold,
+    Verdict,
+    assert_clear,
+    guard,
+    identity_bound,
+    load_registry,
+    resolve,
+)
 
-__all__ = ["AgentIdentity", "IdentityRegistry"]
+__all__ = [
+    "AgentIdentity",
+    "IdentityRegistry",
+    # Identity interceptor gate — SCAR-2026-09-15-001 (kata nama am vs khas)
+    "GuardResult",
+    "IdentityHold",
+    "Verdict",
+    "assert_clear",
+    "guard",
+    "identity_bound",
+    "load_registry",
+    "resolve",
+]
