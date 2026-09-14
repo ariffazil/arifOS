@@ -13,6 +13,6 @@ asyncpg>=0.31.0
 langfuse>=4.14.3
 numpy>=2.5.0
 qdrant-client>=1.18.0
-google-api-python-client>=2.160.0
+google-api-python-client>=2.200.0
 google-auth-httplib2>=0.4.0
 google-auth-oauthlib>=1.4.0

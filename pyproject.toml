@@ -145,7 +145,7 @@ search = [
     "tldextract>=5.3.1",
 ]
 google = [
-    "google-api-python-client>=2.160.0",
+    "google-api-python-client>=2.200.0",
     "google-auth-httplib2>=0.4.0",
     "google-auth-oauthlib>=1.4.0",
     "google-genai>=0.1.0",
