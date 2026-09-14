@@ -217,7 +217,7 @@ dev = [
     "ruff>=0.15.18",
     "mypy>=2.1.0",
     "httpx>=0.28.1",
-    "hypothesis>=6.155.7",
+    "hypothesis>=6.168.0",
     "python-lsp-server>=1.11.0",
     "aiohttp>=3.9.0",
 ]
