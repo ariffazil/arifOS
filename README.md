@@ -1,6 +1,6 @@
 <!-- SOT-MANIFEST
 federation_release: v2026.09.13
-last_verified: 2026-09-13T06:32:45+00:00
+last_verified: 2026-09-14T08:45:00+00:00
 live_commit: 4f4554597 (feat(memory): enforce canonical admissibility gate and sanctuary denylist)
 source_commit: 4f4554597
 tools_exposed_via_mcp: 8 (canonical public verbs)
@@ -14,20 +14,22 @@ generated_by: scripts/update_readme_sot.py — numeric fields are re-stamped, ne
 holds: Merkle signing lane · WELL biometrics · medical purge (Pilihan A)
 -->
 
-# arifOS — An Open-Source Governance Decision Point for AI Agent Actions
+# arifOS — The Authority Plane of the arifOS Federation
 
 [![Security Audit: Grade A](https://img.shields.io/badge/Security_Audit-Grade_A-2ECC71?style=flat-square)](https://mcp.arif-fazil.com/proof/)
 [![MCP Compliance: 148 Rules](https://img.shields.io/badge/MCP_Scanners-148_Rules_Passed-d4a853?style=flat-square)](https://mcp.arif-fazil.com/proof/)
 [![Status: Operational](https://img.shields.io/badge/MCP_Gateway-Operational-blue?style=flat-square)](https://mcp.arif-fazil.com/health)
 [![Sovereign Boundary: F13](https://img.shields.io/badge/Sovereignty-F13_Enforced-critical?style=flat-square)](https://arif-fazil.com/governance/)
 
-**arifOS evaluates consequential AI actions against policy floors and returns a verdict _before_ execution occurs.**
+**arifOS evaluates consequential AI actions against constitutional floors and returns an independent verdict _before_ execution occurs.**
 
-When an AI agent proposes to write, delete, deploy, or spend, arifOS inserts an independent judgment step: the agent proposes, arifOS evaluates, a decision is reached, and only then does execution proceed. Every verdict is recorded with full evidence in an append-only ledger.
+When an AI agent proposes to write, delete, deploy, or spend, arifOS inserts a constitutional judgment step: the agent proposes, arifOS evaluates against F1–F13 floors, a verdict is reached, and only then does execution proceed. Every verdict is recorded with full evidence in an append-only ledger.
 
-**This is not an AI model. It is not an agent framework. It is a policy decision point — the layer between "agent wants to act" and "action occurs."**
+In a world where intelligence is abundant, authority becomes the scarce resource. arifOS exists to ensure that judgment remains independent from execution.
 
-**What arifOS is not:** not an AI model · not an agent framework · not an execution engine (it judges; A-FORGE executes) · not a substitute for authentication, sandboxing, or legal review.
+**This is not an AI model. It is not an agent framework. It is a constitutional authority system — the layer between "agent wants to act" and "action is permitted."**
+
+**What arifOS is not:** not an AI model · not an agent framework · not an execution engine (A-FORGE executes) · not an attention plane (AAA compresses reality) · not a witness (arifFlow records) · not a substitute for authentication, sandboxing, or legal review.
 
 | Audience | What you get |
 |---|---|
