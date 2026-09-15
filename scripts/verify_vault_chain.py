@@ -81,11 +81,18 @@ CHAIN_LEDGERS: list[dict[str, Any]] = [
         "leaf_field": "merkle_leaf",
         # OBSERVED genesis markers in v1 file: "", "GENESIS", and absent (None).
         "genesis_prev_values": {"", "GENESIS"},
+        # Frozen append-only history: breaks inside it are permanent recorded
+        # facts (no correction loop exists for a frozen ledger). They are
+        # reported in full (F2) but excluded from the actionable verdict.
+        "frozen_historical": True,
     },
     {
-        # v2 (active canonical ledger, as of epoch split 2026-06-02).
-        "name": "SEALED_EVENTS_v2.jsonl (v2, active canonical)",
+        # v2 (retired ledger — superseded by v3 vault999.jsonl; file absent
+        # by design on seat and in checkouts. Kept in the walk so that if a
+        # v2 file ever reappears, its chain is still verified).
+        "name": "SEALED_EVENTS_v2.jsonl (v2, retired — superseded by v3)",
         "path": VAULT / "SEALED_EVENTS_v2.jsonl",
+        "optional": True,
         "seq_field": "id",
         "prev_field": "prev_leaf",
         "chain_field": "chain_hash",
@@ -179,6 +186,7 @@ def verify_ledger(spec: dict[str, Any], declared_breaks: int | None) -> dict[str
         "broken_links": [],
         "parse_errors": 0,
         "declared_lineage_breaks": declared_breaks,
+        "historical_frozen": bool(spec.get("frozen_historical")),
         "status": "UNREADABLE",
     }
 
@@ -203,7 +211,10 @@ def verify_ledger(spec: dict[str, Any], declared_breaks: int | None) -> dict[str
         return report
 
     if not path.is_file():
-        report["status"] = "MISSING"
+        # Retired/optional ledgers (superseded schemas) are legitimately absent
+        # from both fresh checkouts and the live seat. Their absence is a
+        # NOT_PRESENT annotation, not an integrity failure.
+        report["status"] = "NOT_PRESENT" if spec.get("optional") else "MISSING"
         return report
 
     seq_field = spec["seq_field"]
@@ -432,10 +443,13 @@ def main(argv: list[str]) -> int:
             declared_breaks = _declared_lineage_breaks(state, "v2")
         reports.append(verify_ledger(spec, declared_breaks))
 
-    # Aggregate with an honest overall verdict. INTACT = no broken links anywhere.
+    # Aggregate with an honest overall verdict. INTACT = no broken links in any
+    # ACTIVE ledger. Frozen-historical ledgers report their breaks in full but
+    # cannot be repaired (append-only, retired epoch) — degrading the gate on
+    # them permanently would be noise without a correction loop.
     overall = "INTACT"
     for r in reports:
-        if r["status"] in ("BROKEN", "UNREADABLE", "MISSING"):
+        if r["status"] in ("BROKEN", "UNREADABLE", "MISSING") and not r.get("historical_frozen"):
             overall = "DEGRADED"
             break
         if r["status"] == "NON_CHAIN":
@@ -454,6 +468,10 @@ def main(argv: list[str]) -> int:
         "epoch_state_present": bool(state) and "_state_file_unreadable" not in state,
         "ledgers": reports,
         "overall": overall,
+        "overall_scope": (
+            "active ledgers only (v1 breaks reported as frozen-historical facts; "
+            "retired/optional ledgers annotated NOT_PRESENT when absent)"
+        ),
     }
 
     # Stdout: pretty-printed (for human review).
