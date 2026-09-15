@@ -27,12 +27,10 @@ jobs:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: Build and publish arifos
     runs-on: ubuntu-latest
-    # OIDC test matrix EXHAUSTED 2026-09-16 (4 shapes, all invalid-publisher,
-    # claims verified exact): the pypi.org registration does not match any
-    # token shape this workflow can produce — F13 eyes needed on the
-    # registration (project page / workflow filename). Token lane restored
-    # until then. To retry OIDC: drop password, set attestations: true,
-    # keep environment: pypi (env exists since 2026-02-10, protected branches).
+    # OIDC round 3 (2026-09-16): F13 re-verified the pypi.org registration.
+    # Flip-back recipe if this fails again: remove this line, restore
+    # password + attestations: false in the publish step.
+    environment: pypi
     steps:
       - uses: actions/checkout@v7
 
@@ -51,11 +49,10 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          # 2026-09-16 — TOKEN LANE (working). OIDC matrix exhausted, see
-          # job-level comment. Flip back when the pypi.org registration
-          # matches: drop password, attestations: true, environment: pypi.
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          attestations: false
+          # OIDC TRUSTED PUBLISHING — round 3, registration re-verified by F13.
+          # Rollback: restore `password: ${{ secrets.PYPI_API_TOKEN }}` +
+          # `attestations: false` and remove the job-level environment line.
+          attestations: true
 
   sbom:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
