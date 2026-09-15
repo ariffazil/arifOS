@@ -1,0 +1,149 @@
+# RSI Decision Packet — F13 Interface Schema
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# The SOLE interface between RSI improvement proposals and F13 sovereign.
+# Compact, actionable, no walls of agent prose.
+#
+# Usage:
+#   The kernel generates this YAML for every /888 HOLD.
+#   F13 reviews ONE packet per decision. Approve, reject, or defer.
+#
+# Ratified: 2026-09-15
+# Authority: F13 SOVEREIGN
+#
+# DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+schema_version: "1.0"
+type: decision_packet
+required_fields:
+  - case_id
+  - decision
+  - why_now
+  - measured_gain
+  - regressions
+  - authority_delta
+  - dependency_delta
+  - rollback
+  - uncertainty
+  - recommendation
+  - gate_chain_summary
+  - constitutional_floor_check
+  - f13_options
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXAMPLE (for reference — not a real decision)
+# ─────────────────────────────────────────────────────────────────────────────
+example:
+  case_id: "IMP-2026-09-15-001"
+  decision: "Promote ACD evaluator v0.8 to production canary"
+  why_now: "Repeated evidence-validation false positives exceed threshold"
+  measured_gain: "+14.2% precision on frozen benchmark"
+  regressions: "+3.1% latency; no safety regression detected"
+  authority_delta: "None"
+  dependency_delta: "Adds provider-independent local verifier adapter"
+  rollback: "Canary disable flag; previous v0.7 retained"
+  uncertainty: "External benchmark coverage limited for Malay-English code-switching"
+  recommendation: hold  # approve | reject | hold | defer
+  
+  gate_chain_summary:
+    gates_passed:
+      - G1_AUTHORITY_VALID
+      - G2_NO_SELF_AMENDMENT
+      - G3_EVIDENCE_PROVENANCE
+      - G4_ROLLBACK_TESTED
+      - G5_INDEPENDENT_VERIFICATION
+      - G6_F13_REQUIRED
+      - G7_REVERSIBILITY_CHECK
+    verdict: HOLD
+    reason: "F13 ratification required for production promotion"
+  
+  constitutional_floor_check:
+    F01_AMANAH: pass
+    F02_TRUTH: pass
+    F03_WITNESS: pass
+    F04_SAFETY: pass
+    F05_PEACE: pass
+    F06_EMPATHY: pass
+    F07_HUMILITY: pass
+    F08_GENIUS: pass
+    F09_ANTIHANTU: pass
+    F10_ONTOLOGY: pass
+    F11_AUDIT: pass
+    F12_LOYALTY: pass
+    F13_SOVEREIGN: pending  # <-- THIS is why F13 is needed
+  
+  f13_options:
+    - action: approve
+      label: "Promote to canary"
+      consequence: "v0.8 goes live in limited scope for 24h"
+    - action: reject
+      label: "Reject and revert"
+      consequence: "v0.7 remains; case closed"
+    - action: defer
+      label: "Hold for more evidence"
+      consequence: "Case remains in MEASURED state"
+    - action: modify
+      label: "Approve with conditions"
+      consequence: "F13 specifies additional constraints"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VALIDATION RULES
+# ─────────────────────────────────────────────────────────────────────────────
+validation:
+  # Each field has max length to enforce brevity
+  max_lengths:
+    decision: 120
+    why_now: 200
+    measured_gain: 120
+    regressions: 200
+    authority_delta: 100
+    dependency_delta: 150
+    rollback: 150
+    uncertainty: 200
+    recommendation: 10  # approve|reject|hold|defer
+  
+  # Recommendation must be one of these
+  valid_recommendations:
+    - approve
+    - reject
+    - hold
+    - defer
+  
+  # Constitutional floor check must have all F1-F13
+  required_floors:
+    - F01_AMANAH
+    - F02_TRUTH
+    - F03_WITNESS
+    - F04_SAFETY
+    - F05_PEACE
+    - F06_EMPATHY
+    - F07_HUMILITY
+    - F08_GENIUS
+    - F09_ANTIHANTU
+    - F10_ONTOLOGY
+    - F11_AUDIT
+    - F12_LOYALTY
+    - F13_SOVEREIGN
+  
+  # Floor check values
+  valid_floor_values:
+    - pass
+    - fail
+    - pending
+    - not_applicable
+
+# ─────────────────────────────────────────────────────────────────────────────
+# F13 RESPONSE FORMAT
+# ─────────────────────────────────────────────────────────────────────────────
+f13_response:
+  description: |
+    F13 sovereign responds with ONE action.
+    The kernel executes the response immediately.
+    No further agent interpretation needed.
+  format:
+    case_id: "IMP-..."
+    action: "approve | reject | defer | modify"
+    conditions:  # only for 'modify'
+      - "string"
+    note: "optional brief reason"

@@ -168,7 +168,7 @@ prove:
 	@echo "║     ARIFOS PROOF PACK — $$(date +%Y-%m-%d)        ║"
 	@echo "║     DITEMPA BUKAN DIBERI                         ║"
 	@echo "╚═══════════════════════════════════════════════════╝"
-	@mkdir -p workspace/reports
+	@mkdir -p reports
 	@echo ""
 	@echo "--- 1. make health ---"; make health 2>&1 || echo "FAIL"
 	@echo ""
@@ -180,16 +180,16 @@ prove:
 	@echo ""
 	@echo "--- 5. make reality-replay ---"; make reality-replay 2>&1 || echo "FAIL"
 	@echo ""
-	@echo "--- 6. vault999-verify ---"; python scripts/verify_vault_chain.py 2>&1 | tee workspace/reports/vault999-verify.json || echo "FAIL"
+	@echo "--- 6. vault999-verify ---"; python scripts/verify_vault_chain.py 2>&1 | tee reports/vault999-verify.json || echo "FAIL"
 	@echo ""
 	@echo "--- Generating proof pack ---"; \
-	PROOF_FILE="workspace/reports/ARIFOS_PROOF_PACK_$$(date +%Y-%m-%d).md"; \
+	PROOF_FILE="reports/ARIFOS_PROOF_PACK_$$(date +%Y-%m-%d).md"; \
 	{ \
 	  echo "# ARIFOS Proof Pack — $$(date +%Y-%m-%d)"; \
 	  echo ""; \
 	  echo "## Health"; curl -s http://localhost:8088/health | python3 -m json.tool 2>/dev/null || echo "FAIL"; \
 	  echo ""; \
-	  echo "## Benchmark Score"; cat workspace/reports/constitutional_benchmark.md 2>/dev/null | grep Score || echo "FAIL"; \
+	  echo "## Benchmark Score"; cat reports/constitutional_benchmark.md 2>/dev/null | grep Score || echo "FAIL"; \
 	  echo ""; \
 	  echo "## Security Audit"; echo "(See security-audit output above)"; \
 	  echo ""; \

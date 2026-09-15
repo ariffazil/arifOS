@@ -1140,7 +1140,8 @@ def arif_think(
             "P": apex_dict["primitives"]["P"],
             "E": apex_dict["primitives"]["E"],
             "X": apex_dict["primitives"]["X"],
-            "Phi": apex_dict["primitives"]["Phi"],
+            "Phi": apex_dict["primitives"].get("tri_witness", apex_dict["primitives"].get("Phi", 0.0)),
+            "tri_witness": apex_dict["primitives"].get("tri_witness", 0.0),
             "G_seal": apex_dict["gate_layer"]["G_seal"],
             "equation": APEX_EQUATION,
             "shadow": APEX_SHADOW,
@@ -1183,12 +1184,18 @@ def arif_think(
                 "equation": APEX_EQUATION,
                 "G": apex_scalars["G"],
                 "C_dark": apex_scalars["C_dark"],
+                "dS_dt": apex_scalars["dS_dt"],
+                "verdict": apex_dict["verdict"],
             },
         }
         env = _ok("arif_think", bundle)
         env["apex_scalars"] = apex_scalars
+        env["verdict"] = apex_dict["verdict"]
         if isinstance(env.get("result"), dict):
             env["result"]["apex_scalars"] = apex_scalars
+            env["result"]["g_fold"] = bundle["g_fold"]
+            env["result"]["reasoning_output"] = bundle["reasoning_output"]
+            env["result"]["effective_verdict"] = apex_dict["verdict"]
         return Synthesis(**_echo_standing(env))
 
     # ── CONVERGE MODE: recursive convergence loop with marginal gain collapse ──
