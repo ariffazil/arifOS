@@ -115,6 +115,33 @@ def update_readme_sot(dry_run: bool = False) -> dict:
         changes["source_commit"] = (old_source.group(), new_source)
         content = content.replace(old_source.group(), new_source)
 
+    # Patch built_commit + deployment_drift_status from LIVE kernel health
+    # (2026-09-15 M5: these fields were previously never re-stamped — the
+    # README claimed stale commits until someone hand-patched them.)
+    release = health.get("software_release", {})
+    built = release.get("built_commit")
+    if built:
+        built_short = built.split()[0][:12]
+        old_built = re.search(r"built_commit: .*", content)
+        new_built = f"built_commit: {built_short}"
+        if old_built and old_built.group() != new_built:
+            changes["built_commit"] = (old_built.group(), new_built)
+            content = content.replace(old_built.group(), new_built)
+
+    drift = release.get("drift")
+    if drift is not None:
+        drift_word = "aligned" if not drift else "drift_detected"
+        drift_detail = (
+            f"source = built = deployed (drift: {str(drift).lower()})"
+            if not drift
+            else f"source != deployed (drift: true) — run deploy-release.sh"
+        )
+        old_drift = re.search(r"deployment_drift_status: .*", content)
+        new_drift = f"deployment_drift_status: {drift_word} ({drift_detail})"
+        if old_drift and old_drift.group() != new_drift:
+            changes["deployment_drift_status"] = (old_drift.group(), new_drift)
+            content = content.replace(old_drift.group(), new_drift)
+
     # Patch last_verified
     old_ts = re.search(r"last_verified: .*", content)
     new_ts = f"last_verified: {now_iso}"
