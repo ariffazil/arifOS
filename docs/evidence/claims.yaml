@@ -1,0 +1,68 @@
+version: "1.0"
+last_updated: "2026-09-16"
+claims:
+  - id: CLAIM-001
+    claim: "arifOS implements governed MCP execution"
+    status: partial
+    evidence:
+      - artifact: "06-mcp-conformance.yml"
+        commit: "latest"
+        result: "CI passes"
+      - artifact: "conformance-report.json"
+        path: "docs/evidence/conformance-report.json"
+    limitations:
+      - "Results not published externally"
+      - "Per-tool schema validation deferred"
+    owner: human
+    last_verified: "2026-09-15"
+  - id: CLAIM-002
+    claim: "arifOS has sovereign observability"
+    status: partial
+    evidence:
+      - artifact: "observability.observations table"
+        path: "201,495 rows in Postgres"
+      - artifact: "arifFlow FQ vector"
+        path: ":7073/health"
+    limitations:
+      - "trace_id correlation: 0% (P0-B bug, fixing)"
+      - "parent_span_id: 0% (fixing)"
+      - "telemetry/log endpoint: 404 (FIXED 2026-09-16)"
+    owner: human
+    last_verified: "2026-09-16"
+  - id: CLAIM-003
+    claim: "arifOS generates CycloneDX SBOM"
+    status: verified
+    evidence:
+      - artifact: "arifos_sbom.py"
+        path: "arifosmcp/arifos_sbom.py"
+      - artifact: "07-publish-pypi.yml sbom job"
+        path: ".github/workflows/07-publish-pypi.yml"
+    limitations:
+      - "No CVE scan (Phase 2)"
+      - "No signed releases yet"
+    owner: human
+    last_verified: "2026-09-15"
+  - id: CLAIM-004
+    claim: "arifOS has independent observer (FRAME)"
+    status: verified
+    evidence:
+      - artifact: "frame-organ.service"
+        path: ":18085"
+        result: "7 chambers active"
+    limitations:
+      - "FRAME is health/drift poller, not request-path tracer"
+    owner: human
+    last_verified: "2026-09-15"
+  - id: CLAIM-005
+    claim: "arifOS has constitutional governance (F1-F13)"
+    status: verified
+    evidence:
+      - artifact: "arif_judge"
+        path: "kernel :8088"
+      - artifact: "ADVERSARIAL_SPEC_EXTERNAL.md"
+        path: "AAA/docs/"
+    limitations:
+      - "No independent external audit"
+      - "4 unfixed P0/P1 crypto gaps in pre-audit"
+    owner: human
+    last_verified: "2026-09-15"

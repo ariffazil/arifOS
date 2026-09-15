@@ -1,0 +1,24 @@
+{
+  "project": "arifOS",
+  "protocol": "MCP",
+  "spec_version": "2025-11-25",
+  "runner_version": "internal-conformance-v1",
+  "commit": "7fb6b9b5d39d3181626adc47a2629d939dc823ec",
+  "generated_at": "2026-09-15T16:16:16Z",
+  "result": "PARTIAL",
+  "tests": {
+    "transport_parse": "PASS",
+    "jsonrpc_handshake": "PASS",
+    "registry_compliance": "PASS",
+    "abi_drift_guard": "PASS",
+    "per_tool_schema_validation": "DEFERRED"
+  },
+  "limitations": [
+    "Results not published externally — CI artifact only",
+    "Per-tool schema validation deferred",
+    "A2A conformance not tested (SSE streaming P2)"
+  ],
+  "ci_workflow": ".github/workflows/06-mcp-conformance.yml",
+  "abi_workflow": ".github/workflows/federation-abi-conformance.yml",
+  "notes": "Generated as part of gap closure on 2026-09-16. This is an internal evidence artifact — not an external audit."
+}

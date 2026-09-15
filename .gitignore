@@ -160,6 +160,7 @@ skills/github-readme-dynamic/
 
 # Runtime evidence outputs (not source)
 evidence/
+!docs/evidence/
 *.zkey
 zkp_artifacts/
 arifos.egg-info/

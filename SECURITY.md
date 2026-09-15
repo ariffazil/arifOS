@@ -32,15 +32,19 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 | Gap | Severity | Status |
 |-----|----------|--------|
 | No independent penetration test | HIGH | Open |
-| No SBOM (Software Bill of Materials) | HIGH | Open |
+| SBOM — no CVE scan, no signing | HIGH | Partial — CycloneDX generator exists (`arifosmcp/arifos_sbom.py`; `sbom` job in `07-publish-pypi.yml` attaches SBOM to releases) |
 | No signed releases | MEDIUM | Open |
+| MCP conformance not independently certified | MEDIUM | Partial — CI workflow `06-mcp-conformance.yml` gates pushes to main and PRs touching the kernel surface; ABI drift guard passes |
 | Request authentication/rate limiting not independently verified | HIGH | Partially addressed in internal audit |
 | Development credentials may be present in dependencies | MEDIUM | Needs audit |
 | Docker compose isolation not independently verified | MEDIUM | Needs audit |
 | No reproducible build attestation | MEDIUM | Open |
+| Observability — trace propagation fix in progress | MEDIUM | Partial — sovereign Postgres backend exists; arifFlow, FRAME, and Kabarkan live; trace propagation not yet complete |
 | VAULT999 hash chain not independently verified | LOW | Open |
 | ZKPC (zero-knowledge proof of constitution) deferred | LOW | Design stage |
 | No CVE disclosure history | INFO | No known CVEs |
+
+**Status labels:** Open = no work started · Partial = infrastructure exists but not complete · Verified = independently tested · Complete = fully operational with evidence.
 
 ## What Has Been Tested
 
