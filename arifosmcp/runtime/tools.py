@@ -4522,7 +4522,9 @@ def _enforce_nine_signal(
             if isinstance(response, dict):
                 response.setdefault("meta", {})
                 if isinstance(response["meta"], dict):
-                    response["meta"]["sabar_gate_error"] = f"{type(_sabar_exc).__name__}: {_sabar_exc}"
+                    response["meta"]["sabar_gate_error"] = (
+                        f"{type(_sabar_exc).__name__}: {_sabar_exc}"
+                    )
 
     def _as_reason_list(value: Any) -> list[str]:
         if value is None:
@@ -4845,6 +4847,7 @@ def _enforce_nine_signal(
                 _truth = 0.88
                 _peace = 1.0
                 _empathy = 0.9
+
                 def _safe_f(v: Any, default: float) -> float:
                     # BUG-1 null-guard: nine/result scalars may be None
                     try:
@@ -4858,13 +4861,9 @@ def _enforce_nine_signal(
                         return default
 
                 if isinstance(result_payload, dict):
-                    _truth = max(
-                        0.0, min(1.0, _safe_f(result_payload.get("truth_score"), 0.88))
-                    )
+                    _truth = max(0.0, min(1.0, _safe_f(result_payload.get("truth_score"), 0.88)))
                     _peace = max(0.0, min(1.5, _safe_f(result_payload.get("peace2"), 1.0)))
-                    _empathy = max(
-                        0.0, min(1.0, _safe_f(result_payload.get("empathy_score"), 0.9))
-                    )
+                    _empathy = max(0.0, min(1.0, _safe_f(result_payload.get("empathy_score"), 0.9)))
                 if isinstance(nine, dict):
                     _truth = max(_truth, _safe_f(nine.get("psi"), _truth))
                     _empathy = max(_empathy, _safe_f(nine.get("omega"), _empathy))
@@ -5019,7 +5018,8 @@ def _enforce_nine_signal(
             "SOVEREIGN"
             if (
                 actor_verified_flag
-                and (resolved_actor_id or "").lower() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+                and (resolved_actor_id or "").lower()
+                in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
             )
             else "OPERATOR"
         )
@@ -5333,13 +5333,7 @@ def _enforce_nine_signal(
                         _cf = 0.5
                     _target["confidence"] = {
                         "overall": _cf,
-                        "label": (
-                            "high"
-                            if _cf >= 0.7
-                            else "low"
-                            if _cf < 0.4
-                            else "medium"
-                        ),
+                        "label": ("high" if _cf >= 0.7 else "low" if _cf < 0.4 else "medium"),
                     }
 
         # ── DEGRADED RESPONSE PREFIX (Phase 1, 2026-06-21) ──────────────
@@ -5819,7 +5813,9 @@ def _enforce_nine_signal(
                         "session_id": _sid,
                         "actor_id": _prior_actor or _actor,
                         "actor_verified": True,
-                        "authority": "FULL" if (_prior_authority or "").upper() in ("SOVEREIGN", "FULL") else "LIMITED",
+                        "authority": "FULL"
+                        if (_prior_authority or "").upper() in ("SOVEREIGN", "FULL")
+                        else "LIMITED",
                         "authority_level": _prior_authority or "SOVEREIGN",
                         "verification_method": "system_exempt",
                         "verified": True,
@@ -5860,7 +5856,11 @@ def _enforce_nine_signal(
         _stamp_arif_init_deterministic(enforced)
         # Final pass: stamp must never re-green a drifted substrate
     # Observation caching for seamless observe -> judge pre-flight
-    if tool_name in ("arif_observe", "arif_sense_observe") and session_id and session_id in _SESSIONS:
+    if (
+        tool_name in ("arif_observe", "arif_sense_observe")
+        and session_id
+        and session_id in _SESSIONS
+    ):
         try:
             res = enforced.get("result")
             if isinstance(res, dict):
@@ -6695,7 +6695,9 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     ql = (query or "").strip().lower()
     if any(k in ql for k in ["why", "how", "explain", "cause", "reason"]):
         domain = "explanatory"
-    elif any(k in ql for k in ["is it", "are there", "does it", "will it", "can it", "dangerous", "safe"]):
+    elif any(
+        k in ql for k in ["is it", "are there", "does it", "will it", "can it", "dangerous", "safe"]
+    ):
         domain = "evaluative"
     else:
         domain = "descriptive"
@@ -7406,7 +7408,10 @@ def _new_session(
 
     # /000: Derive principal from sovereign_id or fallback to actor_id
     _principal = sovereign_id or (
-        actor_id if actor_id and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil") else None
+        actor_id
+        if actor_id
+        and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+        else None
     )
     _delegation = delegation_mode or (
         "delegated" if sovereign_id and actor_id and actor_id != sovereign_id else "direct"
@@ -7516,7 +7521,11 @@ def _new_session(
             session_id=sid,
             actor_id=actor_id or "anonymous",
             authority_level=(
-                "sovereign" if actor_id and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil") else ("operator" if actor_id else "anonymous")
+                "sovereign"
+                if actor_id
+                and actor_id.lower().strip()
+                in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+                else ("operator" if actor_id else "anonymous")
             ),
             auth_context={"source": "arif_session_init", "mode": "init"},
             stage="000",
@@ -8027,15 +8036,11 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         )
     if not dst.get("session_id"):
         dst["session_id"] = (
-            src.get("session_id")
-            or res.get("session_id")
-            or sess_blk.get("session_id")
+            src.get("session_id") or res.get("session_id") or sess_blk.get("session_id")
         )
     if not dst.get("session_token"):
         dst["session_token"] = (
-            src.get("session_token")
-            or res.get("session_token")
-            or sess_blk.get("session_token")
+            src.get("session_token") or res.get("session_token") or sess_blk.get("session_token")
         )
     if not dst.get("autonomy_band"):
         dst["autonomy_band"] = (
@@ -9525,9 +9530,7 @@ def _issue_judge_seal_contract(
     but no definition existed in either tree — the sovereign seal lane was
     severed at the ImportError."""
     law_results = (
-        getattr(floor_compliance, "law_results", None)
-        if floor_compliance is not None
-        else None
+        getattr(floor_compliance, "law_results", None) if floor_compliance is not None else None
     )
     contract = JudgeSealContract(
         constitutional_chain_id=constitutional_chain_id or uuid.uuid4().hex[:16],
@@ -14907,10 +14910,14 @@ async def _arif_mind_reason_tool(
                                 c for c in synthesis.get("what_is_supported", []) if "[DER]" in c
                             ],
                             "REF": [
-                                c for c in synthesis.get("what_is_not_supported", []) if "[REF]" in c
+                                c
+                                for c in synthesis.get("what_is_not_supported", [])
+                                if "[REF]" in c
                             ],
                             "SPEC": [
-                                c for c in synthesis.get("what_remains_unknown", []) if "[SPEC]" in c
+                                c
+                                for c in synthesis.get("what_remains_unknown", [])
+                                if "[SPEC]" in c
                             ],
                             "UNK": [
                                 c for c in synthesis.get("what_remains_unknown", []) if "[UNK]" in c
@@ -14940,9 +14947,7 @@ async def _arif_mind_reason_tool(
                             else "low"
                         ),
                     },
-                    "next_safe_action": [
-                        "Proceed to arif_judge or arif_forge with evidence hash"
-                    ],
+                    "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
                 },
             }
         except TimeoutError:
@@ -15451,9 +15456,10 @@ def _build_orchestration(
     route_id = f"KR-{uuid.uuid4().hex[:12].upper()}"
     task_class = _kernel_classify_task(task)
     depth = _kernel_depth_select(task)
-    
+
     # Attention Engine replaces keyword-based risk/reversibility gates
     from arifosmcp.runtime.attention_engine import compute_attention
+
     attention = compute_attention(
         tool_name=tool_name or "arif_kernel_route",
         params={"task": task or "", "query": task or ""},
@@ -15461,15 +15467,21 @@ def _build_orchestration(
         session_id=session_id,
         actor_verified=False,  # verified at higher layer
     )
-    
+
     auth = _kernel_authority_gate(task, actor_id)
     workflow = _kernel_workflow(depth)
     budget = _kernel_token_budget(depth)
-    
+
     # Attention-driven boundary: replaces keyword-based irreversibility check
     authority_boundary = _kernel_authority_boundary(
         depth,
-        "critical" if attention.irreversibility >= 0.7 else "high" if attention.irreversibility >= 0.4 else "medium" if attention.irreversibility >= 0.2 else "low",
+        "critical"
+        if attention.irreversibility >= 0.7
+        else "high"
+        if attention.irreversibility >= 0.4
+        else "medium"
+        if attention.irreversibility >= 0.2
+        else "low",
         attention.irreversibility >= 0.6,
     )
     judge_required = attention.requires_judgment or authority_boundary["human_judge"] == "required"
@@ -15901,6 +15913,7 @@ def _arif_kernel_route(
 
     if mode == "risk_gate":
         from arifosmcp.runtime.attention_engine import compute_attention
+
         attention = compute_attention(
             tool_name="arif_kernel_route",
             params={"task": task or "", "query": task or ""},
@@ -15941,6 +15954,7 @@ def _arif_kernel_route(
 
     if mode == "reversibility_gate":
         from arifosmcp.runtime.attention_engine import compute_attention
+
         attention = compute_attention(
             tool_name="arif_kernel_route",
             params={"task": task or "", "query": task or ""},
@@ -19081,10 +19095,14 @@ def _arif_judge_deliberate(
     try:
         _rl = str(((contract_c_kwargs or {}).get("reversibility_level")) or "").lower()
         _declared_irrev = {
-            "reversible": 0, "none": 0,
-            "low": 1, "semi_irreversible": 1,
-            "high": 2, "irreversible": 2,
-            "critical": 3, "catastrophic": 3,
+            "reversible": 0,
+            "none": 0,
+            "low": 1,
+            "semi_irreversible": 1,
+            "high": 2,
+            "irreversible": 2,
+            "critical": 3,
+            "catastrophic": 3,
         }.get(_rl, 0)
     except Exception:
         _declared_irrev = 0
@@ -20982,9 +21000,7 @@ def _arif_vault_seal(
                         # sealed_at / prev_seal_id — without these fallbacks
                         # every v2 entry showed id:null/timestamp:null/
                         # depends_on:null while integrity read "OK".
-                        "id": entry.get("id")
-                        or entry.get("event_id")
-                        or entry.get("decision_id"),
+                        "id": entry.get("id") or entry.get("event_id") or entry.get("decision_id"),
                         "type": entry_type,
                         "timestamp": entry.get("timestamp")
                         or entry.get("sealed_at")
@@ -21020,8 +21036,7 @@ def _arif_vault_seal(
             # Same vault as the public /999/verify endpoint
             # (rest_routes/vault_verify.py:22). Env override is for tests.
             _vault_dir = (
-                os.environ.get("VAULT999_VERIFY_DIR")
-                or "/root/.local/share/arifos/vault999"
+                os.environ.get("VAULT999_VERIFY_DIR") or "/root/.local/share/arifos/vault999"
             )
             _res = _vc(_vault_dir, scope="canonical")
             _audit = {
@@ -21029,7 +21044,9 @@ def _arif_vault_seal(
                 "vault_dir": str(_vault_dir),
                 "scope": "canonical",
                 "verified": bool(getattr(_res, "verified", False)),
-                "status": str(getattr(getattr(_res, "status", None), "value", getattr(_res, "status", ""))),
+                "status": str(
+                    getattr(getattr(_res, "status", None), "value", getattr(_res, "status", ""))
+                ),
                 "entries": getattr(_res, "entries", None),
                 "canonical_entries": getattr(_res, "canonical_entries", None),
                 "head_hash": getattr(_res, "head_hash", None),
@@ -25272,10 +25289,7 @@ def _force_hold_mutation_fields(response: Any) -> Any:
             return ""
         if isinstance(val, dict):
             return str(
-                val.get("state")
-                or val.get("verdict")
-                or val.get("dominant_reason")
-                or ""
+                val.get("state") or val.get("verdict") or val.get("dominant_reason") or ""
             ).upper()
         return str(val).upper()
 
@@ -25343,9 +25357,7 @@ def _force_hold_mutation_fields(response: Any) -> Any:
     if isinstance(cc, dict):
         cc["hold_required"] = True
         if not cc.get("hold_reason"):
-            cc["hold_reason"] = (
-                f"outer_verdict={response.get('effective_verdict')}"
-            )
+            cc["hold_reason"] = f"outer_verdict={response.get('effective_verdict')}"
 
     # Nested result / session_birth
     for nest_key in ("result", "session_birth", "standing"):
@@ -25424,25 +25436,34 @@ def _wrap_with_canonical_normalization(handler, tool_name):
         async def _async_wrapped(*args, **kwargs):
             import time as _time
 
-            _start_t = _time.time()
-            response = await handler(*args, **kwargs)
-            _latency_ms = (_time.time() - _start_t) * 1000.0
-            # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────
-            try:
-                from arifosmcp.runtime.telemetry import trace_tool_call
+            # P0-B Wave 1: dispatcher = trusted ingress. Every governed call
+            # gets a root span (parent=None); nested governed calls inside
+            # the handler become children; the dispatcher's own telemetry
+            # record reads this context → one causal graph per request.
+            from arifosmcp.arifos_observability.trace_context import span as _tspan
 
-                trace_tool_call(
-                    tool_name=tool_name,
-                    arguments={k: v for k, v in kwargs.items() if k != "session_token"},
-                    result=response
-                    if isinstance(response, dict)
-                    else {"result": str(response)[:500]},
-                    session_id=kwargs.get("session_id"),
-                    actor_id=kwargs.get("actor_id") or "unknown",
-                    latency_ms=_latency_ms,
-                )
-            except Exception:
-                pass
+            _start_t = _time.time()
+            with _tspan(
+                tool_name, actor_id=kwargs.get("actor_id"), act_sid=kwargs.get("session_id")
+            ):
+                response = await handler(*args, **kwargs)
+                _latency_ms = (_time.time() - _start_t) * 1000.0
+                # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────
+                try:
+                    from arifosmcp.runtime.telemetry import trace_tool_call
+
+                    trace_tool_call(
+                        tool_name=tool_name,
+                        arguments={k: v for k, v in kwargs.items() if k != "session_token"},
+                        result=response
+                        if isinstance(response, dict)
+                        else {"result": str(response)[:500]},
+                        session_id=kwargs.get("session_id"),
+                        actor_id=kwargs.get("actor_id") or "unknown",
+                        latency_ms=_latency_ms,
+                    )
+                except Exception:
+                    pass
             # ────────────────────────────────────────────────────────────────
             try:
                 body = response if isinstance(response, dict) else {"result": response}
@@ -25471,7 +25492,9 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                     session_id=sid or kwargs.get("session_id"),
                     actor_id=aid or kwargs.get("actor_id"),
                     session_token=kwargs.get("session_token"),
-                    autonomy_band=kwargs.get("autonomy_band") or kwargs.get("band") or kwargs.get("requested_authority"),
+                    autonomy_band=kwargs.get("autonomy_band")
+                    or kwargs.get("band")
+                    or kwargs.get("requested_authority"),
                 )
             except Exception:
                 pass
@@ -25483,23 +25506,29 @@ def _wrap_with_canonical_normalization(handler, tool_name):
     def _sync_wrapped(*args, **kwargs):
         import time as _time
 
-        _start_t = _time.time()
-        response = handler(*args, **kwargs)
-        _latency_ms = (_time.time() - _start_t) * 1000.0
-        # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────────
-        try:
-            from arifosmcp.runtime.telemetry import trace_tool_call
+        # P0-B Wave 1: same ambient root span for the sync dispatch path.
+        from arifosmcp.arifos_observability.trace_context import span as _tspan
 
-            trace_tool_call(
-                tool_name=tool_name,
-                arguments={k: v for k, v in kwargs.items() if k != "session_token"},
-                result=response if isinstance(response, dict) else {"result": str(response)[:500]},
-                session_id=kwargs.get("session_id"),
-                actor_id=kwargs.get("actor_id") or "unknown",
-                latency_ms=_latency_ms,
-            )
-        except Exception:
-            pass
+        _start_t = _time.time()
+        with _tspan(tool_name, actor_id=kwargs.get("actor_id"), act_sid=kwargs.get("session_id")):
+            response = handler(*args, **kwargs)
+            _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────────
+            try:
+                from arifosmcp.runtime.telemetry import trace_tool_call
+
+                trace_tool_call(
+                    tool_name=tool_name,
+                    arguments={k: v for k, v in kwargs.items() if k != "session_token"},
+                    result=response
+                    if isinstance(response, dict)
+                    else {"result": str(response)[:500]},
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id") or "unknown",
+                    latency_ms=_latency_ms,
+                )
+            except Exception:
+                pass
         # ────────────────────────────────────────────────────────────────────
         try:
             body = response if isinstance(response, dict) else {"result": response}
@@ -25527,7 +25556,9 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 session_id=sid or kwargs.get("session_id"),
                 actor_id=aid or kwargs.get("actor_id"),
                 session_token=kwargs.get("session_token"),
-                autonomy_band=kwargs.get("autonomy_band") or kwargs.get("band") or kwargs.get("requested_authority"),
+                autonomy_band=kwargs.get("autonomy_band")
+                or kwargs.get("band")
+                or kwargs.get("requested_authority"),
             )
         except Exception:
             pass
@@ -26068,9 +26099,7 @@ def verify_and_inject_token(
 
             token_prefix = token[:30] if token else "(none)"
             token_len = len(token) if token else 0
-            token_sha8 = (
-                _hashlib.sha256(token.encode("utf-8")).hexdigest()[:8] if token else None
-            )
+            token_sha8 = _hashlib.sha256(token.encode("utf-8")).hexdigest()[:8] if token else None
             err_resp = {
                 "status": "HOLD",
                 "tool": tool_name,
@@ -26394,7 +26423,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 except Exception:
                     pass
             _clamp = session_policy_clamp(
-                kwargs.get("session_id"), tool_name, _clamp_action,
+                kwargs.get("session_id"),
+                tool_name,
+                _clamp_action,
                 tool_mode=str(kwargs.get("mode", "")),
             )
             if _clamp is not None:
@@ -26776,7 +26807,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 except Exception:
                     pass
             _clamp = session_policy_clamp(
-                kwargs.get("session_id"), tool_name, _clamp_action,
+                kwargs.get("session_id"),
+                tool_name,
+                _clamp_action,
                 tool_mode=str(kwargs.get("mode", "")),
             )
             if _clamp is not None:

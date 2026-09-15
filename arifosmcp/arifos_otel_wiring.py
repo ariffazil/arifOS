@@ -17,6 +17,7 @@ from functools import wraps
 from typing import Any
 
 from .arifos_observability.otel_tracer import OTelTracer, init_tracer
+from .arifos_observability.trace_context import span as ambient_span
 
 # Module-level tracer (initialized lazily)
 _tracer: OTelTracer | None = None
@@ -48,8 +49,12 @@ def tool_span(tool_name: str, attributes: dict[str, Any] | None = None):
     }
     if attributes:
         attrs.update(attributes)
-    with tracer.span(tool_name, attrs):
-        yield
+    # P0-B Wave 1: ambient context so nested governed calls and the
+    # dispatcher's post-handler record share one causal graph. The
+    # outermost span on the governed path becomes the root (parent=None).
+    with ambient_span(tool_name):
+        with tracer.span(tool_name, attrs):
+            yield
 
 
 def trace_tool(tool_name: str | None = None):
@@ -79,7 +84,9 @@ def trace_tool(tool_name: str | None = None):
             ):
                 return func(*args, **kwargs)
 
-        if inspect.iscoroutinefunction(func):  # CO_COROUTINE (0x80) — was 0x100 (CO_ITERABLE_COROUTINE), wrong bit
+        if inspect.iscoroutinefunction(
+            func
+        ):  # CO_COROUTINE (0x80) — was 0x100 (CO_ITERABLE_COROUTINE), wrong bit
             return async_wrapper
         return sync_wrapper
 

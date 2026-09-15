@@ -825,12 +825,23 @@ def arif_route(
     # Vector #7 (2026-07-20): SCT propagation — session_token was previously dropped
     # here, breaking cross-organ authority parity. GEOX/WEALTH/WELL received no SCT
     # and defaulted to OBSERVE_ONLY regardless of the caller's actual session authority.
+    # P0-B fix (2026-09-16): trace_id must be a UUID for the typed receiver — the
+    # old `trace_{ms}_{actor}` template silently failed UUID parsing downstream
+    # and broke correlation (distinct(trace_id) ≈ row count). Prefer the ambient
+    # governed trace; fall back to a fresh UUID4. Never a prefixed template.
+    try:
+        from arifosmcp.arifos_observability.trace_context import current as _tcur
+
+        _tctx = _tcur()
+        _bridge_trace_id = str(_tctx.trace_id) if _tctx else str(__import__("uuid").uuid4())
+    except Exception:
+        _bridge_trace_id = str(__import__("uuid").uuid4())
     _envelope = {
         "session_id": session_id,
         "session_token": session_token,
         "constitutional_chain_id": session_id or "cc-none",
         "actor_id": actor_id,
-        "trace_id": f"trace_{int(__import__('time').time() * 1000)}_{actor_id or 'anon'}",
+        "trace_id": _bridge_trace_id,
     }
     call_args = dict(arguments or {})
     # Force envelope identity — do not let stale null envelope win
