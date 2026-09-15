@@ -17,12 +17,21 @@ set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SELF_DIR/.." && pwd)"
-VENV_PYTHON="/opt/arifos/venv/bin/python"
-VENV_PIP="/opt/arifos/venv/bin/pip"
-VENV_SITE_PKG="$(cd / && "$VENV_PYTHON" -c 'from pathlib import Path; import arifosmcp; print(str(Path(arifosmcp.__file__).parent))' 2>/dev/null || echo "/opt/arifos/venv/lib/python3.12/site-packages/arifosmcp")"
+# ONE_ORIGIN (2026-09-16): the production venv lives at
+# /opt/arifos/current/venv — the ONLY legal runtime origin. Legacy
+# /opt/arifos/venv is a compat symlink for sibling services.
+ACTIVE_VENV="/opt/arifos/current/venv"
+VENV_PYTHON="$ACTIVE_VENV/bin/python"
+VENV_PIP="$ACTIVE_VENV/bin/pip"
 SERVICE_NAME="arifos.service"
 RELEASE_DIR="/opt/arifos/releases"
+STAMP_FILE="$RELEASE_DIR/deployed-commit"
 BUILD_DIR="/tmp/arifos-build-$$"
+
+# Real site-packages ROOT (sysconfig), not the arifosmcp package dir —
+# the 2026-09-16 audit found the old cleanup computed the package dir,
+# so editable/.pth removal had been a silent no-op for weeks.
+SITE_PKG_ROOT="$(cd / && "$VENV_PYTHON" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])' 2>/dev/null || echo "$ACTIVE_VENV/lib/python3.13/site-packages")"
 
 GIT_COMMIT="$(cd "$REPO_DIR" && git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown")"
 BUILD_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -72,48 +81,61 @@ else
 fi
 echo ""
 
-# ── Step 3: Install wheel into production venv ────────────────────────
-echo "--- Step 3: Install wheel into /opt/arifos/venv ---"
+# ── Step 3: Install wheel into the active release venv ───────────────
+echo "--- Step 3: Install wheel into $ACTIVE_VENV ---"
 mkdir -p "$RELEASE_DIR"
 cp "$WHEEL_FILE" "$RELEASE_DIR/"
 
-# Uninstall old version first if present
-"$VENV_PIP" uninstall -y arifos 2>/dev/null || true
-
-# Remove any editable install artifacts from the venv (PEP 660 .pth files)
-# These redirect imports to /root/arifOS source, defeating the wheel install
-rm -f "$VENV_SITE_PKG/arifos-core.pth" 2>/dev/null || true
-rm -f "$VENV_SITE_PKG/__editable__.arifos-"*.pth 2>/dev/null || true
-rm -f "$VENV_SITE_PKG/__editable___arifos_"*.py 2>/dev/null || true
-
-# Install fresh wheel (force to override any editable residue)
-"$VENV_PIP" install --force-reinstall --no-deps "$WHEEL_FILE" 2>&1
-
-echo "  ✅ Wheel installed (editable artifacts removed)"
-echo ""
-
-# ── Step 3.5: Sync runtime tree to /opt/arifos/app ───────────────────
-echo "--- Step 3.5: Sync runtime tree to /opt/arifos/app ---"
-# REALITY (2026-09-16): the service imports arifosmcp from
-# WorkingDirectory=/opt/arifos/app — cwd shadows the venv on sys.path.
-# Until Fasa 2 flips ExecStart to venv-only imports, this tree MUST
-# track the repo or source edits are invisible to the running kernel
-# (the 2026-08-13 four-restart-cycle scar). Sync every deploy.
-RSYNC_BIN="$(command -v rsync || true)"
-_sync_tree() { # src_dir dst_dir
-	if [ -n "$RSYNC_BIN" ]; then
-		"$RSYNC_BIN" -a --delete --exclude '__pycache__/' --exclude '.git_commit' "$1/" "$2/"
-	else
-		rm -rf "$2" && cp -a "$1" "$2"
+# ONE_ORIGIN seed (first run only): build the active venv from the legacy
+# venv's dependencies — WITHOUT the arifos lineage, stale dist-infos
+# (1!2026.8.2 / 1!2026.9.2), or editable finder artifacts. Fresh venv has
+# correct shebangs; deps arrive by copy so no network resolution.
+if [ ! -x "$VENV_PYTHON" ]; then
+	echo "  Seeding $ACTIVE_VENV from legacy /opt/arifos/venv ..."
+	LEGACY_SP="$(ls -d /opt/arifos/venv/lib/python*/site-packages 2>/dev/null | head -1 || true)"
+	python3 -m venv "$ACTIVE_VENV"
+	if [ -n "$LEGACY_SP" ]; then
+		NEW_SP="$ACTIVE_VENV/lib/$(basename "$(dirname "$LEGACY_SP")")/site-packages"
+		rsync -a \
+			--exclude 'arifosmcp/' \
+			--exclude 'core/' \
+			--exclude 'arifos/' \
+			--exclude 'arifos-*.dist-info/' \
+			--exclude '__editable__*' \
+			--exclude '~*' \
+			"$LEGACY_SP/" "$NEW_SP/"
 	fi
-}
-_sync_tree "$REPO_DIR/arifosmcp" /opt/arifos/app/arifosmcp
-_sync_tree "$REPO_DIR/core"      /opt/arifos/app/core
-_sync_tree "$REPO_DIR/arifos"    /opt/arifos/app/arifos
-_sync_tree "$REPO_DIR/config"    /opt/arifos/app/config
-cp "$REPO_DIR/tools_sot.yaml"  /opt/arifos/app/tools_sot.yaml
-cp "$REPO_DIR/pyproject.toml"  /opt/arifos/app/pyproject.toml
-echo "  ✅ App tree synced to source ($GIT_COMMIT)"
+	echo "  ✅ Active venv seeded"
+fi
+
+SITE_PKG_ROOT="$(cd / && "$VENV_PYTHON" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
+
+# Purge every arifos lineage artifact at site-packages ROOT (the old
+# script computed the arifosmcp package dir — cleanup was a no-op).
+"$VENV_PIP" uninstall -y arifos arifosmcp 2>/dev/null || true
+rm -rf "$SITE_PKG_ROOT/arifosmcp" "$SITE_PKG_ROOT/core" "$SITE_PKG_ROOT/arifos"
+rm -rf "$SITE_PKG_ROOT"/arifos-*.dist-info "$SITE_PKG_ROOT"/arifosmcp-*.dist-info
+rm -f "$SITE_PKG_ROOT/arifos-core.pth" "$SITE_PKG_ROOT"/__editable__.arifos-*.pth \
+	"$SITE_PKG_ROOT"/__editable___arifos_*.py
+
+# Install fresh wheel — the ONLY arifos distribution in the active venv
+"$VENV_PIP" install --no-deps "$WHEEL_FILE" 2>&1
+
+# Axis C gate: exactly one arifos distribution, zero editable installs
+ARIFOS_DIST_COUNT=$(ls -d "$SITE_PKG_ROOT"/arifos-*.dist-info 2>/dev/null | wc -l)
+EDITABLE_COUNT=$(ls "$SITE_PKG_ROOT"/__editable__.arifos-* 2>/dev/null | wc -l)
+if [ "$ARIFOS_DIST_COUNT" -ne 1 ] || [ "$EDITABLE_COUNT" -ne 0 ]; then
+	echo "❌ ONE-ORIGIN GATE: dist_count=$ARIFOS_DIST_COUNT editable=$EDITABLE_COUNT"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
+echo "  ✅ Wheel installed (single distribution, zero editables)"
+
+# Host identity config: /etc/arifos/identity.toml (root:root 0644)
+install -d -m 0755 -o root -g root /etc/arifos
+install -m 0644 -o root -g root "$REPO_DIR/identity.toml" /etc/arifos/identity.toml
+echo "  ✅ identity.toml → /etc/arifos/identity.toml"
+echo ""
 
 # Wheel content gate: exactly three legal roots, nothing else ships.
 WHEEL_ROOTS=$(unzip -l "$RELEASE_DIR/$WHEEL_NAME" 2>/dev/null | awk '{print $4}' \
@@ -127,22 +149,23 @@ case "$WHEEL_ROOTS" in
 esac
 echo "  ✅ Wheel roots: $WHEEL_ROOTS"
 
-# ── Step 4: Verify import path ───────────────────────────────────────
-echo "--- Step 4: Verify import path resolution ---"
+# ── Step 4: Verify import path (ONE_ORIGIN axis A) ───────────────────
+echo "--- Step 4: Verify import origin ---"
 IMPORT_PATH=$(cd / && "$VENV_PYTHON" -c "
-import arifosmcp.runtime.build as b
+import arifosmcp
 from pathlib import Path
-print(Path(b.__file__).resolve())
+print(Path(arifosmcp.__file__).resolve())
 " 2>/dev/null || echo "ERROR")
 
-echo "  Import path: $IMPORT_PATH"
+echo "  Import origin: $IMPORT_PATH"
 
-# Path must be inside /opt/arifos/venv, NOT global
-if echo "$IMPORT_PATH" | grep -q "/opt/arifos/venv"; then
-	echo "  ✅ Import path is inside production venv"
+# Axis A: origin must be inside the ACTIVE release venv — nothing else
+# (no app tree, no global, no editable) may serve the kernel.
+if echo "$IMPORT_PATH" | grep -q "^$ACTIVE_VENV"; then
+	echo "  ✅ Runtime origin is the active release venv"
 else
-	echo "  ❌ Import path is NOT inside production venv"
-	echo "     Run: $VENV_PYTHON -c \"import arifosmcp; print(arifosmcp.__file__)\""
+	echo "  ❌ ONE-ORIGIN GATE: import origin outside $ACTIVE_VENV"
+	echo "     Origin: $IMPORT_PATH"
 	rm -rf "$BUILD_DIR"
 	exit 1
 fi
@@ -217,11 +240,12 @@ cat >"$MANIFEST_FILE" <<MANIFEST_EOF
 }
 MANIFEST_EOF
 
-# Also write to deployment stamp
-echo "$GIT_COMMIT" >/opt/arifos/app/.git_commit
+# Deployment stamp: ONE stable path (build.py + reconciler read this).
+# No legacy /opt/arifos/app stamp — that tree is retired by ONE_ORIGIN.
+echo "$GIT_COMMIT" >"$STAMP_FILE"
 
 echo "  Manifest: $MANIFEST_FILE"
-echo "  Deployment stamp: /opt/arifos/app/.git_commit = $GIT_COMMIT"
+echo "  Deployment stamp: $STAMP_FILE = $GIT_COMMIT"
 echo ""
 
 # ── Step 6: Restart service ──────────────────────────────────────────

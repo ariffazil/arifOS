@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "1!2026.9.4"
+version = "1!2026.9.5"
 
 # 2026.06.19 — Packaging Unification (FORGE SEAL)
 #   Package rename: arifosmcp → arifos (MCP is transport, not identity)
@@ -306,6 +306,9 @@ exclude = [
     "**/*.json",
     "**/*.html",
     "**/*.toml",
+    "**/*.txt",
+    "**/*.js",
+    "**/*.css",
     "spec/*.yaml",
     "spec/*.json",
     "spec/*.md",

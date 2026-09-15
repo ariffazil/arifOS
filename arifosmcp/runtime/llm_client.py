@@ -1615,10 +1615,24 @@ CONSTITUTIONAL_ROLES_GATED: frozenset[str] = frozenset({"666_JUDGE", "999_SEAL"}
 
 _DEFAULT_AGENT_MODEL_MAP_PATH = "/root/AAA/registries/models/AGENT_MODEL_MAP.json"
 
-# VAULT999 operational ledger path (mirrors arifosmcp/runtime/tools.py:23411).
-# Resolved relative to the arifOS package root (parents[2] of this file).
+# VAULT999 operational ledger path.
+# ONE_ORIGIN (2026-09-16): under wheel-only origin the package root is
+# site-packages (read-only) — the runtime append below would silently fail.
+# Env override first, then the host state dir, legacy repo path last.
 _ARIFOS_ROOT = Path(__file__).resolve().parents[2]
-_VAULT_OUTCOMES_PATH = _ARIFOS_ROOT / "VAULT999" / "outcomes.jsonl"
+
+
+def _default_outcomes_path() -> Path:
+    explicit = os.getenv("ARIFOS_VAULT_OUTCOMES_PATH")
+    if explicit:
+        return Path(explicit)
+    vault_dir = os.getenv("ARIFOS_VAULT_DIR")
+    if vault_dir:
+        return Path(vault_dir) / "outcomes.jsonl"
+    return _ARIFOS_ROOT / "VAULT999" / "outcomes.jsonl"
+
+
+_VAULT_OUTCOMES_PATH = _default_outcomes_path()
 
 
 def _agent_model_map_path() -> str:
