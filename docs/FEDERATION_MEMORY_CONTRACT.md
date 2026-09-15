@@ -62,7 +62,7 @@ succeed for `stored=True`.**
 |---|---|---|---|---|
 | **L3** | Qdrant | `http://localhost:6333` (`arifos_memory` coll.) | semantic vector + payload | blocks `stored=True` |
 | **L4** | Supabase | `aws-1-ap-southeast-1.pooler.supabase.com:6543` (`memory_store` table) | durable row + cross-refs | warn + continue |
-| **L5** | Graphiti | `http://localhost:8000/mcp` (group_id=`af_forge`) | entity graph + relations | fire-and-forget |
+| **L5** | Graphiti | `http://127.0.0.1:18412/mcp (observed 2026-09-16 by R-WELL; host-network container)` (group_id=`af_forge`) | entity graph + relations | fire-and-forget |
 
 ### L3 (Qdrant) — required
 - Embedding model: `bge-m3` (1024-dim) via Ollama
@@ -232,11 +232,11 @@ psql "$(grep ARIFOS_MEMORY_POSTGRES_URL /etc/arifos/arifos.env | cut -d= -f2- | 
 
 # L5 health
 curl -s http://localhost:8000/health
-curl -s -X POST http://localhost:8000/mcp \
+curl -s -X POST http://127.0.0.1:18412/mcp (observed 2026-09-16 by R-WELL; host-network container) \
   -H "Content-Type: application/json" -H "Accept: text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}' \
   -D /tmp/h && \
-  curl -s -X POST http://localhost:8000/mcp \
+  curl -s -X POST http://127.0.0.1:18412/mcp (observed 2026-09-16 by R-WELL; host-network container) \
     -H "Content-Type: application/json" -H "Accept: text/event-stream" \
     -H "mcp-session-id: $(grep -i mcp-session-id /tmp/h | awk '{print $2}' | tr -d \\r)" \
     -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_status","arguments":{}}}'
