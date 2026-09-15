@@ -97,9 +97,10 @@ def test_graphiti_three_dimensions_independent_when_ml_disabled(monkeypatch):
 
     assert sr["graphiti_embedding_runtime"] == "unverified"
     assert sr["graphiti_semantic_floor"] == "disabled"
-    # Transport and storage are reported independently
-    assert sr["graphiti_transport"] in ("healthy", "degraded")
-    assert sr["graphiti_storage"] in ("healthy", "degraded")
+    # Transport and storage are reported independently. Post-retirement
+    # (888 command 2026-09-04) the disabled state reads retired_888.
+    assert sr["graphiti_transport"] in ("healthy", "degraded", "retired_888")
+    assert sr["graphiti_storage"] in ("healthy", "degraded", "retired_888")
 
 
 def test_graphiti_semantic_floor_holds_when_ml_enabled_but_deps_missing(
@@ -174,7 +175,7 @@ def test_graphiti_embedding_not_collapsed_to_transport(monkeypatch):
 
     law_audit._probe_ml_embedding_runtime.cache_clear()
     law_audit._load_sbert_runtime.cache_clear()
-    # Force graphiti probe to return False (degraded transport)
+    # Force graphiti probe to return False (retired/disabled transport)
     monkeypatch.setattr(
         "arifosmcp.runtime.rest_routes.rest_routes._probe_graphiti_enabled",
         lambda: False,
@@ -184,7 +185,8 @@ def test_graphiti_embedding_not_collapsed_to_transport(monkeypatch):
     if sr is None:
         pytest.skip("/health not reachable in test env")
 
-    assert sr["graphiti_transport"] == "degraded"
-    assert sr["graphiti_storage"] == "degraded"
+    # retired_888 since the 2026-09-04 retirement (was "degraded")
+    assert sr["graphiti_transport"] == "retired_888"
+    assert sr["graphiti_storage"] == "retired_888"
     # Embedding is independent of transport status
     assert sr["graphiti_embedding_runtime"] == "unverified"

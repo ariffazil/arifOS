@@ -19,7 +19,7 @@ apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F1
 truth_rule: live :8088/health + tools/list beat any static count in prose
 generated_by: scripts/update_readme_sot.py — numeric fields are re-stamped, never hand-maintained
 holds: Merkle signing lane · WELL biometrics · medical purge (Pilihan A)
-seal_readiness_gaps: graphiti_read=degraded, semantic_floor=disabled, langfuse=NOT_WIRED
+seal_readiness_gaps: graphiti=RETIRED_888(2026-09-04) · semantic_floor=off_by_choice(ARIFOS_ML_FLOORS=0) · langfuse=SOVEREIGN_CUTOVER→kabarkan(live)
 -->
 
 # arifOS — The Authority Plane of the arifOS Federation

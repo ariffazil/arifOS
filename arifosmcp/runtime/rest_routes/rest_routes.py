@@ -3420,8 +3420,11 @@ def register_rest_routes(
                 #               ARIFOS_ML_FLOORS — graphiti may be live
                 #               while ML floors are off (and vice versa).
                 #   - semantic_floor: tied to ML toggle (the actual gate)
-                "graphiti_transport": "healthy" if graphiti_enabled else "degraded",
-                "graphiti_storage": "healthy" if graphiti_enabled else "degraded",
+                # L5 Graphiti RETIRED by 888 Sovereign command 2026-09-04
+                # (FEDERATION_MEMORY_CONTRACT.md — worker neutralized, do-not-
+                # auto-wake). Disabled state is retirement, not degradation.
+                "graphiti_transport": "healthy" if graphiti_enabled else "retired_888",
+                "graphiti_storage": "healthy" if graphiti_enabled else "retired_888",
                 "graphiti_embedding_runtime": (
                     "unverified"
                 ),  # Decoupled from ARIFOS_ML_FLOORS — flips to
@@ -3439,13 +3442,20 @@ def register_rest_routes(
                 "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
                 "runtime_drift": runtime_drift_val,
                 "contract_drift": contract_drift_val,
-                "graphiti_read": "degraded" if not graphiti_enabled else "healthy",
+                "graphiti_read": "retired_888" if not graphiti_enabled else "healthy",
                 "semantic_floor": (
                     "enabled"
                     if ml_runtime["ml_runtime_ready"]
                     else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
                 ),
-                "langfuse_traces": _langfuse.get("status", "unknown"),
+                # Kabarkan sovereign cutover 2026-09 (99-kabarkan-sovereign.conf):
+                # OBSERVABILITY_BACKEND=arifos stops Langfuse dual-write. NOT_WIRED
+                # was the pre-cutover framing; the plane is Kabarkan (NATS + PG).
+                "langfuse_traces": (
+                    "sovereign_cutover_kabarkan"
+                    if os.getenv("OBSERVABILITY_BACKEND", "").lower() == "arifos"
+                    else _langfuse.get("status", "unknown")
+                ),
             },
             "known_gaps": _compute_known_gaps(
                 langfuse_tracing=_langfuse,
