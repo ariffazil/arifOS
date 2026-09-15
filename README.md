@@ -1,17 +1,25 @@
 <!-- SOT-MANIFEST
-federation_release: v2026.09.13
-last_verified: 2026-09-14T08:45:00+00:00
-live_commit: 4f4554597 (feat(memory): enforce canonical admissibility gate and sanctuary denylist)
-source_commit: 4f4554597
+kernel_release: v2026.08.01
+pypi_version: 1!2026.8.2
+last_verified: 2026-09-15T08:45:00+00:00
+live_commit: 38a474c16 (fix(observability): organ self-labeling at birth)
+source_commit: 38a474c1655e
+built_commit: 30c7c8ff4b26
+deployment_drift_status: drift_detected (wheel built from 30c7c8ff, deployed 38a474c)
 tools_exposed_via_mcp: 8 (canonical public verbs)
-floors_active: 13 (F1–F13, active)
+tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
+floors_active: 13 (F1–F9 + L10–L13, all pass)
 federation_schema: 2.0.0
+mcp_protocol: 2026-07-28 (back-compat: 2025-11-25, 2025-03-26, 2024-11-05)
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (155K+ records, append-only)
+vault999: healthy (append-only, hash-chained JSONL)
+contract_status: 8/8 schemas complete, contract_drift: false
+tool_manifest_url: https://arifos.arif-fazil.com/tools.json
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
 truth_rule: live :8088/health + tools/list beat any static count in prose
 generated_by: scripts/update_readme_sot.py — numeric fields are re-stamped, never hand-maintained
 holds: Merkle signing lane · WELL biometrics · medical purge (Pilihan A)
+seal_readiness_gaps: graphiti_read=degraded, semantic_floor=disabled, langfuse=NOT_WIRED
 -->
 
 # arifOS — The Authority Plane of the arifOS Federation
@@ -20,6 +28,12 @@ holds: Merkle signing lane · WELL biometrics · medical purge (Pilihan A)
 [![MCP Compliance: 148 Rules](https://img.shields.io/badge/MCP_Scanners-148_Rules_Passed-d4a853?style=flat-square)](https://mcp.arif-fazil.com/proof/)
 [![Status: Operational](https://img.shields.io/badge/MCP_Gateway-Operational-blue?style=flat-square)](https://mcp.arif-fazil.com/health)
 [![Sovereign Boundary: F13](https://img.shields.io/badge/Sovereignty-F13_Enforced-critical?style=flat-square)](https://arif-fazil.com/governance/)
+[![MCP Conformance](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/06-mcp-conformance.yml?label=MCP_Conformance&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/06-mcp-conformance.yml)
+[![Vault Integrity](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/07-vault-integrity.yml?label=Vault_Integrity&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/07-vault-integrity.yml)
+[![Floor Gate](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/floor_gate.yml?label=Floor_Gate&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/floor_gate.yml)
+[![Governance](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/governance-gate.yml?label=Governance&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/governance-gate.yml)
+[![Runtime Drift](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/08-runtime-drift.yml?label=Runtime_Drift&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/08-runtime-drift.yml)
+[![External Witness](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/external-witness.yml?label=External_Witness&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/external-witness.yml)
 
 **arifOS evaluates consequential AI actions against constitutional floors and returns an independent verdict _before_ execution occurs.**
 
@@ -36,6 +50,9 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 | **Human** | A quiet veto: the agent proposes, the kernel records a verdict, you stay sovereign |
 | **Agent / A2A** | MCP tools + receipts. You do not get the keys. Protocol: A2A v1.0 (not v1.2) |
 | **Institution** | Policy floors F1–F13, VAULT999 audit trail, model-vendor independence |
+| **Indexer / Search** | Structured metadata, [`llms.txt`](./llms.txt), [tools.json](https://arifos.arif-fazil.com/tools.json), [`CITATION.cff`](./CITATION.cff) |
+| **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, schema-validated contracts |
+| **Robot / Automation** | CI gates (conformance, vault-integrity, drift), [`Makefile`](./Makefile) targets, [`Dockerfile`](./Dockerfile) |
 
 Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [GEOX](https://github.com/ariffazil/GEOX) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [AAA](https://github.com/ariffazil/AAA)
 
@@ -92,10 +109,25 @@ Authority remains separated at every stage. No single component proposes, judges
 
 > Requires **Python 3.12+** (supported range: 3.12–3.14; see `pyproject.toml`).
 
+> **Versioning:** Two version schemes coexist. The **kernel release** (`v2026.08.01`) tracks the running service identity. The **PyPI package** (`1!2026.8.2`) uses epoch versioning (`1!`) to outrank legacy releases. They advance independently — the kernel release is the operational truth.
+
 ### Install
 
 ```bash
 pip install arifos
+```
+
+### Install (Docker)
+
+```bash
+pip install arifos
+```
+
+### Install (Docker)
+
+```bash
+docker build -t arifos .
+docker run -p 8088:8088 --env-file .env.docker arifos
 ```
 
 ### Run the kernel
@@ -135,6 +167,26 @@ An illustrative `tools/call` for judgment:
 // → SEAL | HOLD | SABAR | VOID with evidence chain
 ```
 
+### Session Flow (agents start here)
+
+The kernel requires session initialization before judgment. The canonical flow:
+
+```jsonc
+// Step 1: Initialize session — establishes actor identity and authority
+{ "name": "arif_init", "arguments": { "actor_id": "my-agent", "requested_authority": "OBSERVE_ONLY" } }
+// → session_id, session_token, floors bound
+
+// Step 2: Judge a proposal — returns verdict + evidence chain
+{ "name": "arif_judge", "arguments": { "candidate": "Deploy v2.1 to production", "action_tier": "standard" } }
+// → SEAL | HOLD | SABAR | VOID with constitutional_chain_id
+
+// Step 3: Seal (only after SEAL verdict) — records receipt in VAULT999
+{ "name": "arif_seal", "arguments": { "payload": "Deployed v2.1", "constitutional_chain_id": "<from judge>" } }
+// → receipt_id, hash chain link
+```
+
+> **Verb numbering:** The kernel verbs follow a deliberate 000→999 progression: `arif_init` (000), `arif_observe` (111), `arif_think` (333), `arif_route` (444), `arif_memory` (555), `arif_judge` (666), `arif_forge` (777), `arif_seal` (999). Each number encodes the constitutional stage: ignition → sense → reason → route → recall → judgment → execution → sealing.
+
 For a guided walkthrough, start with [docs/START_HERE.md](./docs/START_HERE.md).
 
 ---
@@ -154,21 +206,21 @@ For a guided walkthrough, start with [docs/START_HERE.md](./docs/START_HERE.md).
 
 Every proposal is evaluated against 13 non-compensatory policy constraints (F1–F13). Floors are never averaged or traded off — a failure propagates into the verdict (HOLD, SABAR, or VOID).
 
-| Floor | Name | What it checks |
-|-------|------|---------------|
-| F1 | AMANAH | Reversibility — no irreversible action without consent |
-| F2 | TRUTH | Evidence-grounded claims — uncertainty-banded |
-| F3 | WITNESS | Three-way consistency (theory, code, intent) |
-| F4 | CLARITY | Transparent intent |
-| F5 | PEACE² | Non-destructive power — block harm and extraction |
-| F6 | MARUAH | Dignity — protect the weakest stakeholder |
-| F7 | HUMILITY | Acknowledge limits |
-| F8 | GENIUS | Elegant correctness (G ≥ 0.80) |
-| F9 | ANTI-HANTU | No consciousness or emotion claims |
-| F10 | ONTOLOGY | Structural coherence |
-| F11 | AUDIT | Every decision logged, inspectable, attributable |
-| F12 | INJECTION | Input sanitization |
-| F13 | SOVEREIGN | Human veto is absolute |
+| Floor | Name | What it checks | Polarity |
+|-------|------|---------------|----------|
+| F1 | AMANAH | Reversibility — no irreversible action without consent | Higher = better |
+| F2 | TRUTH | Evidence-grounded claims — uncertainty-banded | Higher = better |
+| F3 | WITNESS | Three-way consistency (theory, code, intent) | Higher = better |
+| F4 | CLARITY | Transparent intent | Higher = better |
+| F5 | PEACE² | Non-destructive power — block harm and extraction | Higher = better |
+| F6 | MARUAH | Dignity — protect the weakest stakeholder | Higher = better |
+| F7 | HUMILITY | Acknowledge limits | **Lower = better** (0.04 = very humble) |
+| F8 | GENIUS | Elegant correctness (G ≥ 0.80) | Higher = better |
+| F9 | ANTI-HANTU | No consciousness or emotion claims | **Lower = better** (0.0 = zero claims) |
+| F10 | ONTOLOGY | Structural coherence | Higher = better |
+| F11 | AUDIT | Every decision logged, inspectable, attributable | Higher = better |
+| F12 | INJECTION | Input sanitization | **Lower = better** (lower = less injection surface) |
+| F13 | SOVEREIGN | Human veto is absolute | Higher = better |
 
 ### VAULT999 (Append-Only Audit Ledger)
 
@@ -225,18 +277,18 @@ arifOS is the kernel. The other organs are supporting infrastructure. GEOX is th
 
 ## MCP Interface
 
-The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07-28`, backward-compatible to `2024-11-05`):
+The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07-28`, backward-compatible to `2024-11-05`, `2025-03-26`, `2025-11-25`):
 
-| Verb | Purpose |
-|------|---------|
-| `arif_init` | Establish session context and actor identity |
-| `arif_observe` | State observation and gap detection |
-| `arif_think` | Constitutional reasoning against floors |
-| `arif_route` | Route intent to the appropriate federation organ |
-| `arif_memory` | Query and manage institutional memory |
-| `arif_judge` | Evaluate a proposal and return a verdict |
-| `arif_forge` | Dispatch authorized actions for execution |
-| `arif_seal` | Seal a completed action chain with evidence and receipt |
+| Stage | Verb | Purpose |
+|-------|------|---------|
+| 000 | `arif_init` | Establish session context and actor identity |
+| 111 | `arif_observe` | State observation and gap detection |
+| 333 | `arif_think` | Constitutional reasoning against floors |
+| 444 | `arif_route` | Route intent to the appropriate federation organ |
+| 555 | `arif_memory` | Query and manage institutional memory |
+| 666 | `arif_judge` | Evaluate a proposal and return a verdict |
+| 777 | `arif_forge` | Dispatch authorized actions for execution |
+| 999 | `arif_seal` | Seal a completed action chain with evidence and receipt |
 
 > `arif_forge` is a **governed dispatch** verb: it routes authorized actions toward the execution organ (A-FORGE) and mutates only after a SEAL verdict. The kernel itself does not perform the underlying mutation. The judge never executes; the executor never certifies.
 
@@ -248,26 +300,31 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 
 | Surface | Status | Evidence |
 |---------|--------|----------|
-| Public repository | Live | GitHub (`ariffazil/arifOS`), AGPL-3.0-only |
-| PyPI package | Published `1!2026.8.2` | `pip install arifos` |
-| Live kernel | Green | `curl localhost:8088/health` → structured JSON, `service_health: green` |
-| MCP interface | 8 tools exposed | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
-| Floor enforcement | Active — 13/13 pass at last probe | `/health → runtime_floors_status`, `degraded_reasons: []` |
-| VAULT999 ledger | Healthy | Hash-chained append-only JSONL; live count in header manifest |
-| Source / build / deploy alignment | Verified (commit 4f4554597) | `runtime_drift: false`, `deployment_attestation: aligned` |
-| Federation | 10 organs | See Architecture |
+| Public repository | Live | GitHub [`ariffazil/arifOS`](https://github.com/ariffazil/arifOS), AGPL-3.0-only |
+| PyPI package | Published `1!2026.8.2` | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
+| Live kernel | Service green, status degraded (deployment drift) | `curl localhost:8088/health` → `service_health: green`, `deployment_drift_status: drift_detected` |
+| MCP interface | 8 canonical tools / 25 internal superset | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
+| Floor enforcement | Active — 13/13 pass | `/health → runtime_floors_status` — all pass (F7=0.04, F9=0.0, F12=0.425 are lower-is-better) |
+| VAULT999 ledger | Healthy | Hash-chained append-only JSONL; chain verification in `scripts/verify_vault_chain.py` |
+| Source / build / deploy | Drift detected | `source_commit: 38a474c`, `built_commit: 30c7c8ff` — wheel needs rebuild from HEAD |
+| Contract schema | 8/8 complete, no drift | `contract_status.tool_count: 8`, `contract_drift: false` |
+| Federation | 10 organs | See [Architecture](#architecture) |
+| Machine-readable | Live | [tools.json](https://arifos.arif-fazil.com/tools.json) (36 KB), [llms.txt](./llms.txt), [CITATION.cff](./CITATION.cff) |
 
 ## What Is Not Yet Proven
 
-| Gap | Risk |
-|-----|------|
-| Independent security audit | Adversarial bypass testing not published |
-| Third-party evaluation | No external reviewer has published findings |
-| Reproducible demo by strangers | Onboarding path not independently tested |
-| Enterprise deployment | No production customer reference |
-| Standards conformance | MCP/A2A conformance tests not published |
-| SBOM and signed releases | Supply chain integrity unverified externally |
-| Comparative benchmark | No published comparison against alternative frameworks |
+| Gap | Risk | Status |
+|-----|------|--------|
+| Independent security audit | Adversarial bypass testing not published | Open |
+| Third-party evaluation | No external reviewer has published findings | Open |
+| Reproducible demo by strangers | Onboarding path not independently tested | Open |
+| Enterprise deployment | No production customer reference | Open |
+| Standards conformance | MCP/A2A conformance tests not published | CI workflows exist (`06-mcp-conformance.yml`), results not published |
+| SBOM and signed releases | Supply chain integrity unverified externally | Open |
+| Comparative benchmark | No published comparison against alternative frameworks | Open |
+| Semantic layer (Graphiti) | `graphiti_read: degraded` — knowledge graph not fully wired | Operational gap |
+| Observability (Langfuse) | `langfuse_traces: NOT_WIRED` — no distributed tracing | Operational gap |
+| Deployment drift | Wheel built from `30c7c8ff`, kernel running `38a474c` — needs rebuild | **Actionable: `make build && make deploy`** |
 
 See [SECURITY.md](./SECURITY.md) for the threat model, known gaps, and disclosure policy.
 
@@ -308,9 +365,14 @@ pip install -e ".[light]"
 # Run tests
 python -m pytest tests/ -v
 
+# Health check (all 10 federation surfaces)
+make health
+
 # Start the kernel
 arifos-mcp   # or: python -m arifosmcp.runtime
 ```
+
+See [`CODEOWNERS`](./CODEOWNERS) for sovereign ownership of automation surfaces. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contribution guidelines.
 
 ### Project Structure
 
