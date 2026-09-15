@@ -37,16 +37,16 @@ echo ""
 echo "--- Step 1: Build immutable wheel ---"
 cd "$REPO_DIR"
 python -m build --wheel --outdir "$BUILD_DIR" 2>&1 || {
-    echo "ERROR: build failed"
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "ERROR: build failed"
+	rm -rf "$BUILD_DIR"
+	exit 1
 }
 
 WHEEL_FILE="$(ls "$BUILD_DIR"/*.whl 2>/dev/null | head -1)"
 if [ -z "$WHEEL_FILE" ]; then
-    echo "ERROR: no wheel produced"
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "ERROR: no wheel produced"
+	rm -rf "$BUILD_DIR"
+	exit 1
 fi
 WHEEL_HASH="$(sha256sum "$WHEEL_FILE" | cut -d' ' -f1)"
 WHEEL_NAME="$(basename "$WHEEL_FILE")"
@@ -59,12 +59,12 @@ echo "--- Step 2: Remove stale global install ---"
 # Remove from global site-packages (python3.13 dist-packages)
 GLOBAL_SITE_PKG="$(python3 -c 'import site; print([p for p in site.getsitepackages() if "dist-packages" in p][0])' 2>/dev/null || echo "")"
 if [ -n "$GLOBAL_SITE_PKG" ] && [ -d "$GLOBAL_SITE_PKG/arifosmcp" ]; then
-    echo "  Removing: $GLOBAL_SITE_PKG/arifosmcp"
-    rm -rf "$GLOBAL_SITE_PKG/arifosmcp"
-    rm -f "$GLOBAL_SITE_PKG/arifos-"*.dist-info 2>/dev/null || true
-    echo "  ✅ Global install removed"
+	echo "  Removing: $GLOBAL_SITE_PKG/arifosmcp"
+	rm -rf "$GLOBAL_SITE_PKG/arifosmcp"
+	rm -f "$GLOBAL_SITE_PKG/arifos-"*.dist-info 2>/dev/null || true
+	echo "  ✅ Global install removed"
 else
-    echo "  No global install found"
+	echo "  No global install found"
 fi
 echo ""
 
@@ -100,19 +100,19 @@ echo "  Import path: $IMPORT_PATH"
 
 # Path must be inside /opt/arifos/venv, NOT global
 if echo "$IMPORT_PATH" | grep -q "/opt/arifos/venv"; then
-    echo "  ✅ Import path is inside production venv"
+	echo "  ✅ Import path is inside production venv"
 else
-    echo "  ❌ Import path is NOT inside production venv"
-    echo "     Run: $VENV_PYTHON -c \"import arifosmcp; print(arifosmcp.__file__)\""
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "  ❌ Import path is NOT inside production venv"
+	echo "     Run: $VENV_PYTHON -c \"import arifosmcp; print(arifosmcp.__file__)\""
+	rm -rf "$BUILD_DIR"
+	exit 1
 fi
 echo ""
 
 # ── Step 5: Write release manifest ───────────────────────────────────
 echo "--- Step 5: Write release manifest ---"
 MANIFEST_FILE="$RELEASE_DIR/release-manifest.json"
-cat > "$MANIFEST_FILE" <<MANIFEST_EOF
+cat >"$MANIFEST_FILE" <<MANIFEST_EOF
 {
   "release": 1,
   "name": "Runtime Truth",
@@ -126,7 +126,7 @@ cat > "$MANIFEST_FILE" <<MANIFEST_EOF
 MANIFEST_EOF
 
 # Also write to deployment stamp
-echo "$GIT_COMMIT" > /opt/arifos/app/.git_commit
+echo "$GIT_COMMIT" >/opt/arifos/app/.git_commit
 
 echo "  Manifest: $MANIFEST_FILE"
 echo "  Deployment stamp: /opt/arifos/app/.git_commit = $GIT_COMMIT"
@@ -136,24 +136,24 @@ echo ""
 echo "--- Step 6: Restart arifOS service ---"
 systemctl daemon-reload 2>/dev/null || true
 systemctl restart "$SERVICE_NAME" 2>&1 || {
-    echo "WARNING: restart failed, attempting manually"
-    pkill -f "arifosmcp.runtime" 2>/dev/null || true
+	echo "WARNING: restart failed, attempting manually"
+	pkill -f "arifosmcp.runtime" 2>/dev/null || true
 }
 
 echo "  Waiting for service to become healthy..."
 for i in $(seq 1 30); do
-    STATUS=$(curl -s -m 2 http://localhost:8088/health 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
-    if [ "$STATUS" = "healthy" ]; then
-        echo "  ✅ Kernel healthy after ${i}s"
-        break
-    fi
-    if [ "$i" -eq 30 ]; then
-        echo "  ❌ Kernel did not become healthy"
-        systemctl status "$SERVICE_NAME" --no-pager 2>&1 | tail -20
-        rm -rf "$BUILD_DIR"
-        exit 1
-    fi
-    sleep 2
+	STATUS=$(curl -s -m 2 http://localhost:8088/health 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
+	if [ "$STATUS" = "healthy" ]; then
+		echo "  ✅ Kernel healthy after ${i}s"
+		break
+	fi
+	if [ "$i" -eq 30 ]; then
+		echo "  ❌ Kernel did not become healthy"
+		systemctl status "$SERVICE_NAME" --no-pager 2>&1 | tail -20
+		rm -rf "$BUILD_DIR"
+		exit 1
+	fi
+	sleep 2
 done
 echo ""
 
@@ -170,9 +170,9 @@ echo "  Expected commit: $GIT_COMMIT"
 echo "  Runtime commit:  $RUNTIME_COMMIT"
 
 if [ "$RUNTIME_COMMIT" = "$GIT_COMMIT" ]; then
-    echo "  ✅ Runtime aligned with source"
+	echo "  ✅ Runtime aligned with source"
 else
-    echo "  ⚠️  Runtime commit differs — deploy stamp may need update"
+	echo "  ⚠️  Runtime commit differs — deploy stamp may need update"
 fi
 echo ""
 
@@ -209,20 +209,32 @@ with open('$REPO_DIR/arifosmcp/abi/policy_registry.json') as f:
 pa_caps = set(pr['profiles']['public_agent']['capabilities'])
 print(f'Policy public_agent ({len(pa_caps)}): {sorted(pa_caps)}')
 
-# All three must be consistent
-if abi_tools != pa_caps:
-    print(f'MISMATCH: ABI tools != policy caps')
-    print(f'  ABI - Policy: {abi_tools - pa_caps}')
-    print(f'  Policy - ABI: {pa_caps - abi_tools}')
+# All three must be consistent.
+# Fixed 2026-09-15 (333-AGI): the gate compared raw ABI TOOL names against
+# policy CAPABILITY ids — different namespaces, so it could never pass.
+# Correct invariant: policy caps, mapped through capability_registry to
+# provider tool names, must equal the ABI profile's tool names, and every
+# policy cap must exist in the capability registry.
+by_id = {c['capability_id']: c for c in cr['capabilities']}
+unknown_caps = pa_caps - set(by_id)
+pa_tools = set(by_id[c]['provider']['tool'] for c in pa_caps if c in by_id)
+
+if unknown_caps:
+    print(f'MISMATCH: policy caps missing from capability registry: {sorted(unknown_caps)}')
+    sys.exit(1)
+if abi_tools != pa_tools:
+    print(f'MISMATCH: ABI tools != policy caps mapped to tools')
+    print(f'  ABI - Policy(tools): {abi_tools - pa_tools}')
+    print(f'  Policy(tools) - ABI: {pa_tools - abi_tools}')
     sys.exit(1)
 
 print('✅ Canon gate: ABI, capability, and policy registries consistent')
 " 2>&1) || {
-    echo "ERROR: Canon gate failed — surface inconsistency detected"
-    echo "$CANON_RESULT"
-    echo "Aborting deploy. Fix the ABI registries before deploying."
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "ERROR: Canon gate failed — surface inconsistency detected"
+	echo "$CANON_RESULT"
+	echo "Aborting deploy. Fix the ABI registries before deploying."
+	rm -rf "$BUILD_DIR"
+	exit 1
 }
 echo "$CANON_RESULT"
 echo ""
