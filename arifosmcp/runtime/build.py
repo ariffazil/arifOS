@@ -96,21 +96,18 @@ def _full_deployed_commit() -> str:
 
 
 def _full_built_commit() -> str:
-    """Return the built commit SHA from installed wheel metadata."""
+    """Return the built commit SHA from installed release manifest."""
     env_commit = os.getenv("ARIFOS_BUILT_COMMIT", "").strip()
     if env_commit:
         return env_commit
-    candidates = sorted(
-        Path("/opt/arifos/venv/lib").glob("python*/site-packages/arifos-*.dist-info/METADATA")
-    )
-    if candidates:
+    release_manifest = Path("/opt/arifos/releases/release-manifest.json")
+    if release_manifest.exists():
         try:
-            for line in candidates[-1].read_text().splitlines():
-                if line.startswith("live_commit:") or line.startswith("source_commit:"):
-                    parts = line.split(":", 1)
-                    if len(parts) == 2 and parts[1].strip():
-                        return parts[1].strip().split()[0]
-        except OSError:
+            data = json.loads(release_manifest.read_text())
+            commit = data.get("git_commit")
+            if commit and len(commit) >= 7:
+                return commit
+        except Exception:
             pass
     return _full_deployed_commit()
 
