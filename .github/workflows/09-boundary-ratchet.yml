@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install grimp
-        run: pip install grimp
+        run: pip install import-linter
       - name: Run boundary ratchet
         env:
           PYTHONPATH: ${{ github.workspace }}
