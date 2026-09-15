@@ -31,6 +31,7 @@ from typing import Any
 
 logger = logging.getLogger("arifos.judge")
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
 from arifosmcp.constitution.derita_payload import (
     resolve_derita_stakes,
@@ -1024,6 +1025,7 @@ def _apply_bijaksana_advisory(result: Any, advisory: dict[str, Any]) -> None:
     # else: BRIDGE_PROCEED → advisory recorded, verdict untouched
 
 
+@trace_tool("arif_judge")
 async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,

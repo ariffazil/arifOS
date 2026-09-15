@@ -9,6 +9,7 @@ The 13 canonical arifOS tools should use this when invoked.
 
 from __future__ import annotations
 
+import inspect
 import time
 from collections.abc import Callable
 from contextlib import contextmanager
@@ -78,7 +79,7 @@ def trace_tool(tool_name: str | None = None):
             ):
                 return func(*args, **kwargs)
 
-        if hasattr(func, "__code__") and func.__code__.co_flags & 0x100:  # CO_COROUTINE
+        if inspect.iscoroutinefunction(func):  # CO_COROUTINE (0x80) — was 0x100 (CO_ITERABLE_COROUTINE), wrong bit
             return async_wrapper
         return sync_wrapper
 

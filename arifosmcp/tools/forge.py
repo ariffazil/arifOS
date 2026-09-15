@@ -17,6 +17,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _add_floor_compat, _arif_forge
 from arifosmcp.schemas.forge import ForgeErrorCode, ForgeManifest, ForgeOutput, ManifestStatus
@@ -135,6 +136,7 @@ _ATOMIC_MODES = {"commit", "deploy"}
 _FORGE_MUTATE_ATOMIC = _MUTATE_MODES | _ATOMIC_MODES
 
 
+@trace_tool("arif_forge")
 async def arif_forge(
     mode: str = "engineer",
     manifest: str = "",

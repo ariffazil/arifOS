@@ -17,6 +17,7 @@ import time as _time
 logger = logging.getLogger(__name__)
 
 # ── Enforcement Envelope (AOB P0 — 2026-07-03) ──
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.schemas.enforcement_envelope import (
     make_ephemeral_envelope,
 )
@@ -1386,6 +1387,7 @@ from arifosmcp.schemas.session import (
 )
 
 
+@trace_tool("arif_init")
 def arif_init(
     mode: str = "init",
     actor_id: str | None = None,
