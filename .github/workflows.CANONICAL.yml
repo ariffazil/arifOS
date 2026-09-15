@@ -150,13 +150,17 @@ canonical_workflows:
     risk: medium
     can_deploy: false
 
+  - filename: bijaksana-ci.yml
+    purpose: BIJAKSANA Φ gate — wisdom/heuristic quality checks per push
+    runs_on: [push main, pull_request main]
+    required_check: BIJAKSANA
+    risk: low
+    can_deploy: false
+
 # ================================================================
 # DELETED WORKFLOWS (2026-06-30 audit)
 # ================================================================
 deleted_workflows:
-  - filename: bijaksana-ci.yml
-    reason: Absorbed into agentic-ci.yml Lane 2 across all organs
-    deleted: "2026-06-30"
   - filename: ci.yml
     reason: Superseded by agentic-ci.yml Lane 1 (Standard CI) across all organs
     deleted: "2026-06-30"
@@ -171,8 +175,6 @@ deleted_workflows:
 forbidden_workflow_patterns:
   - pattern: ci.yml
     reason: Superseded by agentic-ci.yml (2026-06-30)
-  - pattern: bijaksana-ci.yml
-    reason: Absorbed into agentic-ci.yml Lane 2 (2026-06-30)
   - pattern: ci-unified.yml
     reason: Replaced by 01-unified-ci.yml
   - pattern: live_tests.yml
