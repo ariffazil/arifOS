@@ -20,24 +20,30 @@ jobs:
         run: |
           set -euo pipefail
 
-          README_COMMIT=$(grep 'live_commit:' README.md | head -1 | awk '{print $2}')
+          # Stamp flow: update_readme_sot.py stamps at HEAD, the stamped README
+          # rides the NEXT commit. live_commit == HEAD is impossible by
+          # construction (fixed point); the checkable invariant is
+          # live_commit == HEAD~1 (or == HEAD when the stamp commit itself is HEAD).
+          README_COMMIT=$(grep 'live_commit:' README.md | head -1 | awk '{print $2}' | cut -c1-7)
           GIT_HEAD=$(git rev-parse --short=7 HEAD)
+          GIT_HEAD_PREV=$(git rev-parse --short=7 HEAD~1)
 
           echo "README live_commit: $README_COMMIT"
           echo "git HEAD:           $GIT_HEAD"
+          echo "git HEAD~1:         $GIT_HEAD_PREV"
 
-          if [ "$README_COMMIT" != "$GIT_HEAD" ]; then
+          if [ "$README_COMMIT" != "$GIT_HEAD" ] && [ "$README_COMMIT" != "$GIT_HEAD_PREV" ]; then
             echo ""
             echo "❌ SOT MANIFEST DRIFT DETECTED"
             echo "   README claims: $README_COMMIT"
-            echo "   Reality:       $GIT_HEAD"
+            echo "   Reality:       $GIT_HEAD or $GIT_HEAD_PREV"
             echo ""
-            echo "Fix: update live_commit in README.md SOT-MANIFEST header"
-            echo "     to match the current git HEAD before pushing."
+            echo "Fix: run scripts/update_readme_sot.py at current HEAD and commit"
+            echo "     the stamped README so it rides the next commit."
             exit 1
           fi
 
-          echo "✅ SOT-manifest consistent: README live_commit == git HEAD"
+          echo "✅ SOT-manifest consistent: README live_commit matches git HEAD lineage"
 
       - name: Verify SOT-manifest last_verified is recent
         run: |

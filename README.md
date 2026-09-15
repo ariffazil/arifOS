@@ -1,9 +1,9 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.8.2
-last_verified: 2026-09-15T14:54:34+00:00
-live_commit: 2b3215b72 (AMENDMENT-6::REGISTER_LAW — C15/C16 proposed as F6b (awaiting F13 floor ratifica)
-source_commit: 2b3215b72
+last_verified: 2026-09-15T15:02:31+00:00
+live_commit: 167f48631 (docs(sot): hash-agnostic drift wording — stamp row survives redeploy cycles)
+source_commit: 167f48631
 built_commit: 2b3215b7248e
 deployment_drift_status: aligned (source = built = deployed, drift: false — redeployed from HEAD via deploy-release.sh)
 tools_exposed_via_mcp: 8 (canonical public verbs)
