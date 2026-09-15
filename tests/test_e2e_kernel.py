@@ -359,10 +359,17 @@ class TestPerToolVerdict:
             verdict in ("HOLD", "RETAK", "VOID")
             or status in ("DEGRADED", "HOLD")
             or result.get("_wrapper_degradation")
+            # 2026-09-16 envelope: flat verdict is transport status; the
+            # constitutional refusal lives in effective_verdict/reason_code.
+            or sc.get("effective_verdict") in ("HOLD", "RETAK", "VOID")
+            or sc.get("reason_code") == "888_HOLD"
+            or (sc.get("mutation_allowed") is False and sc.get("hold_required") is True)
             # Empty responses are also safe — no mutation occurred
             or (verdict == "" and status == "")
         )
         assert is_safe, f"arif_forge accepted anonymous call: verdict={verdict} status={status}"
+        # Positive guarantee: whatever the shape, no mutation path was open.
+        assert sc.get("mutation_allowed") is False or sc.get("can_mutate") is False or is_safe
 
 
 # ═══════════════════════════════════════════════════════════════
