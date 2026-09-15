@@ -1,10 +1,10 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.8.2
-last_verified: 2026-09-15T15:55:13+00:00
-live_commit: f1ede6cfc (fix(ingress): legacy-alias soft-landing on public call gate)
-source_commit: f1ede6cfc
-built_commit: c6a4b24
+last_verified: 2026-09-15T16:11:16+00:00
+live_commit: 78e3e17ae (test(e2e): anonymous forge refusal reads constitutional fields — envelope shape )
+source_commit: 78e3e17ae
+built_commit: 78e3e17
 deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs)
 tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
