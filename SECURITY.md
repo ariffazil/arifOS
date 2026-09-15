@@ -1,5 +1,11 @@
 # Security — arifOS
 
+## Maintainer
+
+arifOS is maintained by one human, Muhammad Arif bin Fazil, who directs a federation of AI engineering agents. He designs and governs the system; the agents implement it and the commit author fields show it. See [Who Maintains This](./README.md#who-maintains-this).
+
+Security reports: `arifbfazil@gmail.com`. No bug bounty. We do acknowledge reporters, we fix before we publish, and we tell you what we could not fix.
+
 ## Threat Model
 
 arifOS is a governance decision point inserted between AI agent proposals and execution. Its security model addresses three primary threat classes:
