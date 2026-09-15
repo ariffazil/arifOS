@@ -64,6 +64,22 @@ def _sha256_file(path: Path) -> str | None:
         return None
 
 
+DEPLOYED_COMMIT_STAMP = Path("/opt/arifos/releases/deployed-commit")
+_LEGACY_APP_STAMP = Path("/opt/arifos/app/.git_commit")
+
+
+def _read_commit_stamp() -> str:
+    """Deployed commit: stable release stamp → legacy app stamp."""
+    for stamp in (DEPLOYED_COMMIT_STAMP, _LEGACY_APP_STAMP):
+        try:
+            value = stamp.read_text().strip()
+            if len(value) >= 7:
+                return value
+        except OSError:
+            pass
+    return "unknown"
+
+
 def _full_source_commit() -> str:
     """Return the source repository commit (git HEAD)."""
     git_head = Path("/root/arifOS/.git/HEAD")
@@ -78,26 +94,13 @@ def _full_source_commit() -> str:
     except OSError:
         pass
     # Fallback to deployed stamp if source git repo is unavailable (e.g. isolated container)
-    stamp = Path("/opt/arifos/app/.git_commit")
-    try:
-        value = stamp.read_text().strip()
-        if len(value) >= 7:
-            return value
-    except OSError:
-        pass
-    return "unknown"
+    value = _read_commit_stamp()
+    return value if value != "unknown" else "unknown"
 
 
 def _full_deployed_commit() -> str:
-    """Return the deployed commit SHA running in /opt/arifos/app."""
-    stamp = Path("/opt/arifos/app/.git_commit")
-    try:
-        value = stamp.read_text().strip()
-        if len(value) >= 7:
-            return value
-    except OSError:
-        pass
-    return "unknown"
+    """Return the deployed commit SHA (release stamp → legacy app stamp)."""
+    return _read_commit_stamp()
 
 
 def _full_built_commit() -> str:
@@ -157,6 +160,31 @@ def _compute_tool_surface_hash() -> str:
         return "unavailable"
 
 
+ACTIVE_VENV_ROOT = os.environ.get("ARIFOS_ACTIVE_VENV_ROOT", "/opt/arifos/current/venv")
+
+
+def _runtime_origin() -> str:
+    """Physical import origin of the live arifosmcp package (ONE_ORIGIN axis A)."""
+    try:
+        import arifosmcp
+
+        return str(Path(arifosmcp.__file__).resolve())
+    except Exception:
+        return "unknown"
+
+
+def _origin_ok() -> bool:
+    """True when the live package origin is the active release venv (wheel origin).
+
+    Enforcement is opt-in via ARIFOS_ENFORCE_ORIGIN=1 (set by the production
+    unit drop-in) so dev checkouts and test environments never false-drift.
+    """
+    if os.getenv("ARIFOS_ENFORCE_ORIGIN", "").strip() != "1":
+        return True
+    origin = _runtime_origin()
+    return origin != "unknown" and origin.startswith(str(Path(ACTIVE_VENV_ROOT).resolve()) + "/")
+
+
 def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     """Public, machine-readable binding from release to this live process.
 
@@ -195,6 +223,15 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         if not (built_commit.startswith(deployed_commit[:7]) or deployed_commit.startswith(built_commit[:7])):
             drift = True
 
+    # ONE_ORIGIN (2026-09-16): drift must also fire when the live package
+    # origin is not the active release venv — the runtime executing from any
+    # other tree (cwd shadow, editable finder, stale app copy) is drift,
+    # whatever the stamps say.
+    runtime_import_path = _runtime_origin()
+    origin_ok = _origin_ok()
+    if not origin_ok:
+        drift = True
+
     surface_hash = _compute_tool_surface_hash()
 
     release_id = os.getenv("ARIFOS_RELEASE_ID", "").strip() or (
@@ -210,6 +247,10 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "runtime_manifest_hash": runtime_manifest_hash,
         "surface_hash": surface_hash,
         "canon": canon_attestation(),
+        "runtime_import_path": runtime_import_path,
+        "origin_ok": origin_ok,
+        "active_venv_root": ACTIVE_VENV_ROOT,
+        "origin_enforced": os.getenv("ARIFOS_ENFORCE_ORIGIN", "").strip() == "1",
         "service_pid": os.getpid(),
         "service_started_at": PROCESS_STARTED_AT,
         "critical_module_hash_count": len(critical_module_hashes),
@@ -222,10 +263,12 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "payload_mode": "detail",
         "critical_module_hashes": critical_module_hashes,
         "deployment_invariant": {
-            "rule": "source_commit == built_commit == deployed_commit == health_commit",
+            "rule": "source_commit == built_commit == deployed_commit == health_commit AND runtime origin == active venv",
             "source_commit": source_commit,
             "built_commit": built_commit,
             "deployed_commit": deployed_commit,
+            "runtime_import_path": runtime_import_path,
+            "origin_ok": origin_ok,
             "drift": drift,
             "note": "Deployment must refuse to report healthy when drift is true.",
         },
