@@ -50,12 +50,17 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          # TRUSTED PUBLISHER ACTIVE (F13 registered 2026-09-16) — OIDC only,
-          # zero keys. PEP 740 attestations signed by GitHub's Sigstore issuer.
-          # NOTE: environment lives at JOB level above (not an action input).
-          # Rollback: restore `password: ${{ secrets.PYPI_API_TOKEN }}` here
-          # and delete the job-level environment line.
-          attestations: true
+          # 2026-09-16 — REVERTED TO API TOKEN LANE.
+          # OIDC trusted-publishing failed 4x with `invalid-publisher`
+          # (claim `environment: MISSING` vs the registration on pypi.org),
+          # so the release path is blocked until the PyPI-side registration
+          # is reconciled. Token lane = the lane that published every
+          # release up to 1!2026.8.2. SHA256-pinned packages are still
+          # uploaded; attestations require OIDC, so they stay off here.
+          # To re-activate OIDC: fix the trusted publisher on pypi.org,
+          # then restore `attestations: true` and drop `password:`.
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          attestations: false
 
   sbom:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
