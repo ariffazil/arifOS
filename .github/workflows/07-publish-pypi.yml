@@ -27,6 +27,9 @@ jobs:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: Build and publish arifos
     runs-on: ubuntu-latest
+    # Job-level environment — the OIDC token must carry the environment claim
+    # to match the PyPI trusted-publisher registration (env: pypi).
+    environment: pypi
     steps:
       - uses: actions/checkout@v7
 
@@ -47,9 +50,9 @@ jobs:
           packages-dir: dist/
           # TRUSTED PUBLISHER ACTIVE (F13 registered 2026-09-16) — OIDC only,
           # zero keys. PEP 740 attestations signed by GitHub's Sigstore issuer.
-          # Rollback: restore `password: ${{ secrets.PYPI_API_TOKEN }}` and
-          # remove the two lines below (token still in repo secrets).
-          environment: pypi
+          # NOTE: environment lives at JOB level above (not an action input).
+          # Rollback: restore `password: ${{ secrets.PYPI_API_TOKEN }}` here
+          # and delete the job-level environment line.
           attestations: true
 
   sbom:
@@ -65,6 +68,7 @@ jobs:
         run: pip install uv && uv sync
       - name: Generate CycloneDX SBOM
         run: |
+          mkdir -p dist
           uv run python -c "from arifosmcp.arifos_sbom import generate_arifos_sbom, export_sbom_to_file as x; x(generate_arifos_sbom(), 'dist/arifos-sbom.cdx.json')"
           python3 -c "import json; d=json.load(open('dist/arifos-sbom.cdx.json')); print('SBOM components:', len(d.get('components', [])))"
       - name: Upload SBOM artifact
