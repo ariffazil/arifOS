@@ -37,7 +37,7 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 
 | Gap | Severity | Status |
 |-----|----------|--------|
-| No independent penetration test | HIGH | Open |
+| No independent penetration test | HIGH | In progress — one external researcher reviewing since 2026-08-25 (private disclosure; fix released in `1!2026.9.1`). No independent audit report published yet |
 | SBOM — no CVE scan, no signing | HIGH | Partial — CycloneDX generator exists (`arifosmcp/arifos_sbom.py`; `sbom` job in `07-publish-pypi.yml` attaches SBOM to releases) |
 | No signed releases | MEDIUM | Open |
 | MCP conformance not independently certified | MEDIUM | Partial — CI workflow `06-mcp-conformance.yml` gates pushes to main and PRs touching the kernel surface; ABI drift guard passes |
@@ -48,7 +48,7 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 | Observability — trace propagation fix in progress | MEDIUM | Partial — sovereign Postgres backend exists; arifFlow, FRAME, and Kabarkan live; trace propagation not yet complete |
 | VAULT999 hash chain not independently verified | LOW | Open |
 | ZKPC (zero-knowledge proof of constitution) deferred | LOW | Design stage |
-| No CVE disclosure history | INFO | No known CVEs |
+| CVE disclosure history | INFO | One privately reported finding accepted, fixed and released in `1!2026.9.1` (2026-09-15); the reporter is filing it with MITRE. No CVE assigned yet |
 
 **Status labels:** Open = no work started · Partial = infrastructure exists but not complete · Verified = independently tested · Complete = fully operational with evidence.
 
@@ -58,6 +58,7 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 - Self-authored test suite — covers core judgment paths
 - Live health endpoint — verifies floor status, deployment alignment
 - Source-build-deploy alignment check — commit-level verification
+- External private disclosure (2026-08-25) — a researcher traced the fetch surface by reading the code and reported a fail-open SSRF path without standing the substrate up. We reproduced it live rather than accept the reading alone, fixed it the same day (commits `285a956d8`, `e2759cf4b`, `22586943f`), and re-ran a blocked-target matrix against both the source tree and the published `1!2026.9.1` artifact — local, link-local (including the cloud metadata address), reserved, non-dotted IP notations, IPv4-mapped IPv6, and non-HTTP schemes all refused; public hosts still resolve
 
 ## What Has NOT Been Tested
 
@@ -67,6 +68,14 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 - Third-party penetration test
 - Enterprise deployment scenario testing
 - Comparative benchmark against alternative governance frameworks
+
+---
+
+## Disclosure History
+
+| Date | Surface | Reported by | Outcome |
+|------|---------|-------------|---------|
+| 2026-08-25 | `arif_fetch` / fetch fallback (SSRF, fail-open) | Syed Anas Mohiuddin (private report) | Confirmed, fixed same day, released in `1!2026.9.1`. Reporter of record; filing with MITRE. Residual accepted and documented in `arifosmcp/runtime/ssrf_guard.py` (DNS-rebinding TOCTOU — resolve-at-check vs resolve-at-connect) |
 
 ---
 
@@ -109,4 +118,4 @@ arifbfazil@gmail.com
 
 ---
 
-**Last updated:** September 2026
+**Last updated:** 16 September 2026

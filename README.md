@@ -301,7 +301,7 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 | Surface | Status | Evidence |
 |---------|--------|----------|
 | Public repository | Live | GitHub [`ariffazil/arifOS`](https://github.com/ariffazil/arifOS), AGPL-3.0-only |
-| PyPI package | Published `1!2026.8.2` | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
+| PyPI package | Published `1!2026.9.1` (2026-09-15) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
 | Live kernel | Service green, status healthy | `curl localhost:8088/health` → `service_health: green`, `deployment_drift_status: aligned` |
 | MCP interface | 8 canonical tools / 25 internal superset | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
 | Floor enforcement | Active — 13/13 pass | `/health → runtime_floors_status` — all pass (F7=0.04, F9=0.0, F12=0.425 are lower-is-better) |
@@ -315,12 +315,12 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 
 | Gap | Risk | Status |
 |-----|------|--------|
-| Independent security audit | Adversarial bypass testing not published | Open |
-| Third-party evaluation | No external reviewer has published findings | Open |
+| Independent security audit | Adversarial bypass testing not published | In progress — an external researcher has been reviewing the fetch surface since 2026-08-25 (private disclosure; fix released in `1!2026.9.1`). No independent audit report published yet |
+| Third-party evaluation | No external reviewer has published findings | In progress — one external review under way since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | Open |
 | Enterprise deployment | No production customer reference | Open |
 | Standards conformance | MCP/A2A conformance results not published externally | CI workflow `06-mcp-conformance.yml` exists; ABI artifact drift fixed 2026-09-15 (`sync_kernel_abi.py --check` passes); results not published |
-| SBOM and signed releases | Supply chain integrity unverified externally | Open — internal CycloneDX generator exists (`arifosmcp/arifos_sbom.py`); no publish/sign step in `07-publish-pypi.yml` |
+| SBOM and signed releases | Supply chain integrity unverified externally | Partial — CycloneDX generator (`arifosmcp/arifos_sbom.py`) and an `sbom` job in `07-publish-pypi.yml` that attaches the SBOM to releases; no signing, no CVE scan |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
 | Semantic layer (Graphiti) | `graphiti_read: degraded` — knowledge graph not fully wired | Operational gap |
 | Observability (Langfuse) | `langfuse_traces: NOT_WIRED` — no distributed tracing | Operational gap |
