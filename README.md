@@ -1,6 +1,6 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
-pypi_version: 1!2026.8.2
+pypi_version: 1!2026.9.1
 last_verified: 2026-09-15T16:11:16+00:00
 live_commit: 78e3e17ae (test(e2e): anonymous forge refusal reads constitutional fields — envelope shape )
 source_commit: 78e3e17ae
@@ -109,7 +109,7 @@ Authority remains separated at every stage. No single component proposes, judges
 
 > Requires **Python 3.12+** (supported range: 3.12–3.14; see `pyproject.toml`).
 
-> **Versioning:** Two version schemes coexist. The **kernel release** (`v2026.08.01`) tracks the running service identity. The **PyPI package** (`1!2026.8.2`) uses epoch versioning (`1!`) to outrank legacy releases. They advance independently — the kernel release is the operational truth.
+> **Versioning:** Two version schemes coexist. The **kernel release** (`v2026.08.01`) tracks the running service identity. The **PyPI package** (`1!2026.9.1`) uses epoch versioning (`1!`) to outrank legacy releases. They advance independently — the kernel release is the operational truth.
 
 ### Install
 
