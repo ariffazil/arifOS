@@ -105,8 +105,12 @@ CHAIN_LEDGERS: list[dict[str, Any]] = [
         # chain inside entry["chain"] = {prev_entry_hash, entry_hash, ...}.
         # Older rows may carry neither — those are flat legacy rows, not
         # broken chain entries. The walk distinguishes these.
+        # The live ledger exists only on the seat (untracked runtime state);
+        # a fresh checkout never carries it. Absent → NOT_PRESENT annotation;
+        # present (the seat) → walked with full strictness.
         "name": "vault999.jsonl (live, mixed nested/flat ledger v3)",
         "path": VAULT / "vault999.jsonl",
+        "optional": True,
         "seq_field": "session_id",
         "nested_chain": True,
         "flat_chain_field": "chain_hash",

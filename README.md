@@ -1,9 +1,9 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.8.2
-last_verified: 2026-09-15T15:11:12+00:00
-live_commit: 02d9ba9b5 (fix(ci): vault chain verifier — derive repo path from script location)
-source_commit: 02d9ba9b5
+last_verified: 2026-09-15T15:17:29+00:00
+live_commit: 53557414a (fix(ci): vault verifier truthful verdict — v2 retired, v1 frozen-historical)
+source_commit: 53557414a
 built_commit: 2b3215b7248e
 deployment_drift_status: aligned (source = built = deployed, drift: false — redeployed from HEAD via deploy-release.sh)
 tools_exposed_via_mcp: 8 (canonical public verbs)
