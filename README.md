@@ -1,10 +1,10 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.9.1
-last_verified: 2026-09-15T16:11:16+00:00
-live_commit: 78e3e17ae (test(e2e): anonymous forge refusal reads constitutional fields — envelope shape )
-source_commit: 78e3e17ae
-built_commit: 78e3e17
+last_verified: 2026-09-15T17:12:08+00:00
+live_commit: 963a7be78 (feat(otel): wire @trace_tool to all 8 canonical kernel tools + fix async dispatc)
+source_commit: 963a7be78
+built_commit: 963a7be
 deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs)
 tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
@@ -12,7 +12,7 @@ floors_active: 13 (F1–F9 + L10–L13, all pass)
 federation_schema: 2.0.0
 mcp_protocol: 2026-07-28 (back-compat: 2025-11-25, 2025-03-26, 2024-11-05)
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (200K+ records, append-only)
+vault999: healthy (201K+ records, append-only)
 contract_status: 8/8 schemas complete, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
@@ -319,11 +319,11 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 | Third-party evaluation | No external reviewer has published findings | In progress — one external review under way since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | Open |
 | Enterprise deployment | No production customer reference | Open |
-| Standards conformance | MCP/A2A conformance results not published externally | CI workflow `06-mcp-conformance.yml` exists; ABI artifact drift fixed 2026-09-15 (`sync_kernel_abi.py --check` passes); results not published |
+| Standards conformance | MCP/A2A conformance results not published externally | Partial — CI workflow `06-mcp-conformance.yml` exists; ABI artifact drift fixed 2026-09-15 (`sync_kernel_abi.py --check` passes); [conformance report](docs/evidence/conformance-report.json) generated; results not published externally |
 | SBOM and signed releases | Supply chain integrity unverified externally | Partial — CycloneDX generator (`arifosmcp/arifos_sbom.py`) and an `sbom` job in `07-publish-pypi.yml` that attaches the SBOM to releases; no signing, no CVE scan |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
 | Semantic layer (Graphiti) | `graphiti_read: degraded` — knowledge graph not fully wired | Operational gap |
-| Observability (Langfuse) | `langfuse_traces: NOT_WIRED` — no distributed tracing | Operational gap |
+| Observability | Distributed tracing partially wired | Partial — sovereign Postgres backend active (`OBSERVABILITY_BACKEND=dual`); arifFlow FlowReceipt v1 adapter live; trace propagation parameters added; `@trace_tool` OTel spans on all 8 canonical tools; caller-side trace context wiring in progress |
 
 See [SECURITY.md](./SECURITY.md) for the threat model, known gaps, and disclosure policy.
 
