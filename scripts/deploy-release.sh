@@ -122,8 +122,9 @@ rm -f "$SITE_PKG_ROOT/arifos-core.pth" "$SITE_PKG_ROOT"/__editable__.arifos-*.pt
 "$VENV_PIP" install --no-deps "$WHEEL_FILE" 2>&1
 
 # Axis C gate: exactly one arifos distribution, zero editable installs
-ARIFOS_DIST_COUNT=$(ls -d "$SITE_PKG_ROOT"/arifos-*.dist-info 2>/dev/null | wc -l)
-EDITABLE_COUNT=$(ls "$SITE_PKG_ROOT"/__editable__.arifos-* 2>/dev/null | wc -l)
+# (|| true: empty glob is a PASS condition, not an ls error)
+ARIFOS_DIST_COUNT=$( { ls -d "$SITE_PKG_ROOT"/arifos-*.dist-info 2>/dev/null || true; } | wc -l)
+EDITABLE_COUNT=$( { ls "$SITE_PKG_ROOT"/__editable__.arifos-* 2>/dev/null || true; } | wc -l)
 if [ "$ARIFOS_DIST_COUNT" -ne 1 ] || [ "$EDITABLE_COUNT" -ne 0 ]; then
 	echo "❌ ONE-ORIGIN GATE: dist_count=$ARIFOS_DIST_COUNT editable=$EDITABLE_COUNT"
 	rm -rf "$BUILD_DIR"
