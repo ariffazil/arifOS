@@ -31,6 +31,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from arifosmcp.schemas.change_authority import ChangeAuthorityClass
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ACTION CLASSES — the seven irreducible permission levels
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -97,6 +99,269 @@ class ActionClass(StrEnum):
             cls.IRREVERSIBLE: 6,
         }
         return order.get(granted, -1) >= order.get(requested, 999)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPROVEMENT PHASE — RSI lifecycle for recursive self-improvement
+# ═══════════════════════════════════════════════════════════════════════════════
+# Orthogonal to ActionClass (risk ladder) and ChangeAuthorityClass (significance).
+# ActionClass answers "how dangerous?"; ImprovementPhase answers "what lifecycle stage?".
+# Source spec: AAA/governance/AAA-RECURSIVE-IMPROVEMENT-STATE-MACHINE.md
+# Formal spec target: TLA+ ConstitutionalKernel module.
+
+
+class ImprovementPhase(StrEnum):
+    """Lifecycle phase of an improvement case.
+
+    Maps to the RSI state machine (12 states + 3 terminal).
+    Orthogonal to ActionClass: a DRAFT action can be in CHALLENGED phase,
+    and an IRREVERSIBLE action can be in DRAFT phase.
+
+    Transitions follow the formal spec — see _VALID_TRANSITIONS below.
+    Invalid transitions = HOLD (fail-closed).
+    """
+
+    # Autonomous loop (left side of state machine)
+    DRAFT = "DRAFT"  # proposal created, no evidence yet
+    EVIDENCED = "EVIDENCED"  # baseline + evidence refs complete
+    CHALLENGED = "CHALLENGED"  # independent verifier assigned
+    SANDBOXED = "SANDBOXED"  # tested in isolation, no production access
+    MEASURED = "MEASURED"  # outcome measured against pre-registered metrics
+
+    # Sovereign gate (right side of state machine)
+    HELD = "HELD"  # awaiting F13 human ratification (888_HOLD)
+    RATED = "RATIFIED"  # F13 approved, ready for limited deployment
+
+    # Deployment
+    ACTIVE_CANARY = "ACTIVE_CANARY"  # time-bound, narrow scope, auto-quarantine
+    ACTIVE = "ACTIVE"  # sustained performance confirmed
+
+    # Terminal states (first-class failure paths)
+    REJECTED = "REJECTED"  # failed verification or floor check
+    REVERTED = "REVERTED"  # rolled back after activation
+    QUARANTINED = "QUARANTINED"  # isolated pending investigation
+    EXPIRED = "EXPIRED"  # time-bound validity lapsed
+
+    # Non-terminal holds
+    OBSERVE = "OBSERVE"  # gather evidence before starting
+    ROLLBACK = "ROLLBACK"  # explicit rollback authorization
+
+
+# Valid phase transitions (fail-closed: missing = forbidden).
+# Agent must check before requesting lifecycle advancement.
+_VALID_PHASE_TRANSITIONS: dict[ImprovementPhase, set[ImprovementPhase]] = {
+    ImprovementPhase.OBSERVE: {ImprovementPhase.DRAFT},
+    ImprovementPhase.DRAFT: {ImprovementPhase.EVIDENCED, ImprovementPhase.REJECTED},
+    ImprovementPhase.EVIDENCED: {
+        ImprovementPhase.CHALLENGED,
+        ImprovementPhase.HELD,
+        ImprovementPhase.REJECTED,
+    },
+    ImprovementPhase.CHALLENGED: {
+        ImprovementPhase.SANDBOXED,
+        ImprovementPhase.REJECTED,
+    },
+    ImprovementPhase.SANDBOXED: {
+        ImprovementPhase.MEASURED,
+        ImprovementPhase.REJECTED,
+        ImprovementPhase.ROLLBACK,
+    },
+    ImprovementPhase.MEASURED: {
+        ImprovementPhase.HELD,
+        ImprovementPhase.RATED,
+        ImprovementPhase.REJECTED,
+    },
+    ImprovementPhase.HELD: {ImprovementPhase.RATED, ImprovementPhase.REJECTED},
+    ImprovementPhase.RATED: {
+        ImprovementPhase.ACTIVE_CANARY,
+        ImprovementPhase.REJECTED,
+    },
+    ImprovementPhase.ACTIVE_CANARY: {
+        ImprovementPhase.ACTIVE,
+        ImprovementPhase.REVERTED,
+        ImprovementPhase.QUARANTINED,
+    },
+    ImprovementPhase.ACTIVE: {
+        ImprovementPhase.REVERTED,
+        ImprovementPhase.QUARANTINED,
+    },
+    # Recovery paths
+    ImprovementPhase.ROLLBACK: {ImprovementPhase.OBSERVE, ImprovementPhase.DRAFT},
+    ImprovementPhase.QUARANTINED: {ImprovementPhase.ACTIVE, ImprovementPhase.REVERTED},
+    ImprovementPhase.EXPIRED: {ImprovementPhase.OBSERVE},
+}
+
+
+def is_valid_phase_transition(
+    current: ImprovementPhase, target: ImprovementPhase
+) -> bool:
+    """Check whether a lifecycle transition is permitted. Fail-closed."""
+    allowed = _VALID_PHASE_TRANSITIONS.get(current)
+    if allowed is None:
+        return False
+    return target in allowed
+
+
+def requires_f13_for_phase_transition(
+    current: ImprovementPhase, target: ImprovementPhase
+) -> bool:
+    """Phase transitions that require sovereign approval."""
+    f13_transitions = {
+        (ImprovementPhase.MEASURED, ImprovementPhase.HELD),
+        (ImprovementPhase.HELD, ImprovementPhase.RATED),
+        (ImprovementPhase.RATED, ImprovementPhase.ACTIVE_CANARY),
+    }
+    return (current, target) in f13_transitions
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IMPROVEMENT ROLE — separation of powers for RSI
+# ═══════════════════════════════════════════════════════════════════════════════
+# Planner ≠ Forger ≠ Verifier ≠ Recorder ≠ Governor.
+# No single agent may hold all five on the same improvement case.
+# This is the institutional analog of separation of powers.
+
+
+class ImprovementRole(StrEnum):
+    """Functional role in the improvement lifecycle.
+
+    Orthogonal to ConstitutionalRole (SOVEREIGN/OPERATOR/ANONYMOUS) and
+    to RuntimeGrantLevel (OBSERVE_ONLY/LIMITED_MUTATE/FULL).
+
+    Enforcement: arif_judge MUST verify that for any improvement case,
+    proposer ≠ verifier and executor ≠ audit_writer.
+    The governor (kernel) is always the constitution, never an agent.
+    """
+
+    PLANNER = "PLANNER"  # diagnoses gap, proposes improvement
+    FORGER = "FORGER"  # implements in sandbox, produces candidate
+    VERIFIER = "VERIFIER"  # independent evaluation, adversarial challenge
+    RECORDER = "RECORDER"  # writes receipts, maintains audit trail
+    GOVERNOR = "GOVERNOR"  # constitutional evaluation (always = kernel)
+    SOVEREIGN = "SOVEREIGN"  # F13 human approval
+
+
+def assert_role_separation(
+    proposer: str,
+    verifier: str,
+    executor: str,
+    audit_writer: str,
+) -> list[str]:
+    """Check RSI role separation invariants. Returns list of violations.
+
+    Invariant: proposer ≠ verifier, verifier ≠ audit_writer,
+    executor ≠ audit_writer. Empty list = all clear.
+    """
+    violations: list[str] = []
+    if proposer == verifier:
+        violations.append(
+            f"ROLE_COLLISION: proposer={proposer} == verifier={verifier}"
+        )
+    if verifier == audit_writer:
+        violations.append(
+            f"ROLE_COLLISION: verifier={verifier} == audit_writer={audit_writer}"
+        )
+    if executor == audit_writer:
+        violations.append(
+            f"ROLE_COLLISION: executor={executor} == audit_writer={audit_writer}"
+        )
+    return violations
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# F13 DECISION PACKET — compact sovereign approval surface
+# ═══════════════════════════════════════════════════════════════════════════════
+# The kernel must present F13 with a compact, structured packet —
+# not a wall of agent prose. Sovereign can accept/reject/defer in one glance.
+
+
+class F13DecisionPacket(BaseModel):
+    """Compact decision packet for sovereign ratification.
+
+    Replaces the verbose VerdictOutput (20+ nested models) with the
+    minimum information F13 needs to make an informed decision.
+
+    Every field is one line or one value. No nested objects.
+    """
+
+    proposal_id: str = Field(description="Unique improvement case identifier")
+    action_class: ActionClass = Field(
+        description="Risk level of the action (from canonical ActionClass ladder)"
+    )
+    change_authority: ChangeAuthorityClass = Field(
+        description="Constitutional significance (C0-C5)"
+    )
+    phase_from: ImprovementPhase = Field(
+        description="Current lifecycle phase"
+    )
+    phase_to: ImprovementPhase = Field(
+        description="Requested lifecycle phase"
+    )
+
+    # What changed (one-line each)
+    measured_gain: str = Field(description="Quantified improvement, one line")
+    measured_regression: str = Field(
+        default="none detected", description="Quantified regression, one line"
+    )
+
+    # What shifts
+    authority_delta: str = Field(
+        default="none",
+        description="What permissions change (one line, 'none' if unchanged)",
+    )
+    dependency_delta: str = Field(
+        default="none",
+        description="What new dependencies are added (one line)",
+    )
+    opacity_delta: str = Field(
+        default="none",
+        description="What becomes harder to audit (one line)",
+    )
+
+    # Rollback
+    rollback_status: str = Field(
+        default="not_tested",
+        description="Rollback readiness: 'tested' | 'not_tested' | 'no_path'",
+    )
+
+    # Floor compliance
+    floor_check: dict[str, str] = Field(
+        default_factory=dict,
+        description="Per-floor result: {'F1': 'PASS', 'F13': 'HOLD', ...}",
+    )
+
+    # Recommendation
+    recommendation: str = Field(
+        default="HOLD",
+        description="Agent recommendation: 'PROMOTE' | 'HOLD' | 'REJECT'",
+    )
+
+    # Evidence binding
+    evidence_hash: str = Field(
+        default="",
+        description="SHA256 of evidence bundle (content-addressed)",
+    )
+
+    # Separation proof
+    proposer_id: str = Field(default="", description="Who proposed this improvement")
+    verifier_id: str = Field(
+        default="", description="Who independently verified (must differ from proposer)"
+    )
+
+    created_at: str = Field(
+        default="", description="ISO8601 UTC timestamp of packet creation"
+    )
+
+
+# Re-export for convenience — these are the RSI kernel schema types
+RSI_SCHEMA_TYPES = (
+    "ImprovementPhase",
+    "ImprovementRole",
+    "F13DecisionPacket",
+    "is_valid_phase_transition",
+    "requires_f13_for_phase_transition",
+    "assert_role_separation",
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

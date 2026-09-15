@@ -27,6 +27,14 @@ from arifosmcp.core.threat_engine import (
     ThreatCategory,
     ThreatEngine,
 )
+from arifosmcp.schemas.kernel_envelope import (
+    ActionClass,
+    F13DecisionPacket,
+    ImprovementPhase,
+    ImprovementRole,
+    is_valid_phase_transition,
+    requires_f13_for_phase_transition,
+)
 
 __all__ = [
     "ActionContext",
@@ -105,6 +113,30 @@ class ActionContext(BaseModel):
         description="Per-payload Ed25519 verification result from the calling wrapper",
     )
 
+    # ── RSI improvement lifecycle (2026-09-15) ─────────────────────────────
+    # Orthogonal to action risk: ActionClass answers "how dangerous?",
+    # improvement_phase answers "what lifecycle stage is this improvement at?"
+    improvement_phase: ImprovementPhase | None = Field(
+        default=None,
+        description="RSI lifecycle phase (if this action is part of an improvement case)",
+    )
+    improvement_case_id: str | None = Field(
+        default=None,
+        description="Unique identifier for the improvement case",
+    )
+    improvement_action_class: ActionClass | None = Field(
+        default=None,
+        description="Risk classification for the improvement action (from ActionClass ladder)",
+    )
+    proposer_id: str | None = Field(
+        default=None,
+        description="Agent that proposed this improvement (for role separation check)",
+    )
+    verifier_id: str | None = Field(
+        default=None,
+        description="Agent that independently verified (must differ from proposer)",
+    )
+
     @field_validator("url")
     @classmethod
     def _validate_url_scheme(cls, v: str | None) -> str | None:
@@ -129,6 +161,15 @@ class ConstitutionalVerdict(BaseModel):
     irreversibility: IrreversibilityLevel
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     state_hash: str = Field(default="")
+    # ── RSI improvement lifecycle (2026-09-15) ─────────────────────────────
+    improvement_phase: ImprovementPhase | None = Field(
+        default=None,
+        description="RSI lifecycle phase carried from ActionContext (if present)",
+    )
+    improvement_case_id: str | None = Field(
+        default=None,
+        description="Improvement case identifier (if present)",
+    )
 
     def model_post_init(self, __context: Any) -> None:
         if not self.state_hash:
@@ -571,7 +612,72 @@ class ConstitutionKernel:
             floors=floors,
             authority=authority,
             irreversibility=threat.irreversibility,
+            improvement_phase=context.improvement_phase,
+            improvement_case_id=context.improvement_case_id,
         )
+
+        # ── RSI improvement lifecycle gate (2026-09-15) ────────────────────
+        # If this action is part of an improvement case, enforce additional
+        # constitutional gates BEFORE the verdict is final.
+        # These gates are ADDITIVE — a constitutional HOLD stays HOLD even
+        # if the RSI gate would pass. But an RSI gate failure overrides
+        # an otherwise-OK verdict to HOLD.
+        if context.improvement_phase is not None and verdict in ("SEAL", "OK"):
+            rsi_reasons: list[str] = []
+
+            # Gate 1: Role separation — proposer ≠ verifier
+            if context.proposer_id and context.verifier_id:
+                if context.proposer_id == context.verifier_id:
+                    rsi_reasons.append(
+                        f"RSI_ROLE_COLLISION: proposer={context.proposer_id} == verifier={context.verifier_id}"
+                    )
+            elif context.improvement_phase not in (
+                ImprovementPhase.OBSERVE,
+                ImprovementPhase.DRAFT,
+            ):
+                # After DRAFT phase, both proposer and verifier must be declared
+                rsi_reasons.append(
+                    "RSI_IDENTITY_MISSING: proposer_id and verifier_id required after DRAFT phase"
+                )
+
+            # Gate 2: CONSTITUTE-level actions always require HELD state
+            if context.improvement_action_class == ActionClass.IRREVERSIBLE:
+                if context.improvement_phase not in (
+                    ImprovementPhase.HELD,
+                    ImprovementPhase.RATED,
+                    ImprovementPhase.ACTIVE_CANARY,
+                    ImprovementPhase.ACTIVE,
+                ):
+                    rsi_reasons.append(
+                        f"RSI_CONSTITUTE_GATE: IRREVERSIBLE action in {context.improvement_phase.value} "
+                        f"phase requires HELD (F13 approval) first"
+                    )
+
+            # Gate 3: Independent verification required for PROMOTE-level actions
+            if context.improvement_action_class in (
+                ActionClass.MUTATE,
+                ActionClass.EXTERNAL_SIDE_EFFECT,
+            ):
+                if context.improvement_phase in (
+                    ImprovementPhase.DRAFT,
+                    ImprovementPhase.EVIDENCED,
+                ):
+                    rsi_reasons.append(
+                        f"RSI_PROMOTE_GATE: {context.improvement_action_class.value} action "
+                        f"in {context.improvement_phase.value} phase requires CHALLENGED "
+                        f"(independent verification) first"
+                    )
+
+            # Apply RSI gate — override to HOLD if any violations
+            if rsi_reasons:
+                v.status = "HOLD"
+                v.verdict = "HOLD"
+                v.authority = AuthorityProof(
+                    authorized=False,
+                    requires_human=True,
+                    reason="; ".join(rsi_reasons),
+                )
+
         try:
             from arifosmcp.runtime.event_bus import emit_event_sync
 
