@@ -1,0 +1,35 @@
+# Boundary Ratchet — architecture contracts with fail-on-NEW doctrine
+# Known violations live in boundary/EXCEPTIONS-LEDGER.json (with expiry).
+# CI fails only on NEW contract-edge violations or EXPIRED exceptions.
+# Forged 2026-09-16 by 333-AGI per sovereign code-intel directive (Phase 2).
+
+name: 🧱 Boundary Ratchet
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'arifosmcp/**'
+      - 'boundary/**'
+      - '.github/workflows/09-boundary-ratchet.yml'
+  pull_request:
+    paths:
+      - 'arifosmcp/**'
+      - 'boundary/**'
+      - '.github/workflows/09-boundary-ratchet.yml'
+
+jobs:
+  ratchet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install grimp
+        run: pip install grimp
+      - name: Run boundary ratchet
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python boundary/boundary_ratchet.py --repo-root .

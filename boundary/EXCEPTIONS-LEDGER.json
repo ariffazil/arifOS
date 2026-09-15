@@ -1,0 +1,22 @@
+{
+  "schema": "arifos.boundary-exceptions.v1",
+  "policy": "Ratchet: CI fails on NEW violations and on EXPIRED entries. Extending expiry is a deliberate ledger edit (visible in diff). Removing fixed entries shrinks debt.",
+  "default_expiry_days": 90,
+  "forged": "2026-09-16",
+  "forged_by": "333-AGI",
+  "violations": [
+    {
+      "id": "EX-ARIFOS-002-001",
+      "contract": "arifos-boundary-002",
+      "path": "arifosmcp.transport -> arifosmcp.runtime",
+      "detail": "conformance_spine.py:1026 lazy-imports private singleton _ARIFOS_INGRESS_INSTANCE",
+      "discovered": "2026-09-16",
+      "expires": "2026-12-15",
+      "owner_note": "Fix: expose a public accessor on runtime or move ingress probe to a conformance hook registered from runtime side."
+    }
+  ],
+  "observations_non_gating": [
+    "mutual import: arifosmcp runtime bridge.py <-> tools_internal.py (1 pair; refactor = 888_HOLD territory)",
+    "hidden live hub: core/physics/economic_invariants.py co-changes with boot/constitution/core/kernel modules (archive classification corrected: core/physics is LIVE shared code)"
+  ]
+}
