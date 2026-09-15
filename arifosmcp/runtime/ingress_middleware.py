@@ -92,11 +92,7 @@ def _interceptor_hold_tool_result(
     except Exception:
         from mcp.types import CallToolResult as ToolResult  # type: ignore
 
-    auth = (
-        decision.authority_tier.value
-        if getattr(decision, "authority_tier", None)
-        else "LOW"
-    )
+    auth = decision.authority_tier.value if getattr(decision, "authority_tier", None) else "LOW"
     actor = getattr(decision, "actor_id", None) or "anonymous"
     cap = getattr(decision, "capability_id", None) or "unknown"
     reason = getattr(decision, "reason", None) or "constitutional gate"
@@ -147,7 +143,7 @@ def _interceptor_hold_tool_result(
     return ToolResult(
         is_error=True,
         content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
-        structuredContent=envelope,
+        structured_content=envelope,
     )
 
 
@@ -1149,9 +1145,7 @@ if IS_FASTMCP_3:
                                     envelope.session_id,
                                 )
                         except Exception as _adopt_err:
-                            logger.debug(
-                                "Ingress token adoption skipped: %s", _adopt_err
-                            )
+                            logger.debug("Ingress token adoption skipped: %s", _adopt_err)
 
                     # ── FORGE SCOPE GATE (v3: ToolScoper integration) ──────────────
                     # When forge_scope is non-empty, only tools on the allowlist pass.
