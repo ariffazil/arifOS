@@ -60,7 +60,9 @@ from pathlib import Path
 from typing import Any
 
 # ─── Locate the fossil layer ──────────────────────────────────────────────────
-REPO = Path("/root/arifOS")
+# Derive from script location so the verifier runs anywhere the repo is
+# checked out (CI runners see /home/runner/work/...; the seat sees /root).
+REPO = Path(__file__).resolve().parent.parent
 VAULT = REPO / "VAULT999"
 
 
