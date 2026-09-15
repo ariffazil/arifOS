@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "1!2026.9.3"
+version = "1!2026.9.4"
 
 # 2026.06.19 — Packaging Unification (FORGE SEAL)
 #   Package rename: arifosmcp → arifos (MCP is transport, not identity)
@@ -275,11 +275,16 @@ aclip-cai  = "arifosmcp.intelligence.cli:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
+# Wheel roots (2026-09-16 hygiene): exactly three top-level packages ship.
+#   arifosmcp — kernel runtime
+#   arifos    — Phase 3 identity/consent namespace (intentional, keep)
+#   core      — load-bearing legacy root (session.py imports core.shared.types);
+#               consolidation into arifosmcp/ is Phase 3, NOT a wheel-time change.
+# REMOVED: "scripts*" (70 dev files shipped in wheel — nothing imports scripts.*),
+#          "mcp_server*" (dir does not exist in repo).
 include = [
-    "scripts*",
     "arifos*",      # Phase 3: renamed from arifosmcp
     "arifosmcp*",   # Phase 2: still present until Phase 3 git mv
-    "mcp_server*",
     "core*",
 ]
 exclude = [
@@ -291,8 +296,20 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"*" = ["spec/*.yaml", "spec/*.json"]
-"arifosmcp" = ["sites/apex-dashboard/*.html", "registry/*.yaml"]
+# 2026-09-16: recursive globs — godel_lock.yaml (constitution/), abi/*.json,
+# charters, schemas, agent cards etc. are runtime-read assets. Previous
+# wheels only worked because stale build/lib smuggled them in; clean builds
+# exposed the undeclared dependency (import-time FileNotFoundError).
+"*" = [
+    "**/*.yaml",
+    "**/*.yml",
+    "**/*.json",
+    "**/*.html",
+    "**/*.toml",
+    "spec/*.yaml",
+    "spec/*.json",
+    "spec/*.md",
+]
 
 [tool.setuptools.data-files]
 "spec" = ["spec/**/*.json", "spec/**/*.yaml", "spec/**/*.md"]
