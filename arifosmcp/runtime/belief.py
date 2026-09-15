@@ -45,8 +45,30 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # ── Storage path ─────────────────────────────────────────────────────────────
-# VAULT999 is the canonical persistence volume. Falls back to /tmp for stdio.
-_VAULT_DIR = os.getenv("ARIFOS_VAULT_DIR", "/usr/src/app/VAULT999")
+# VAULT999 is the canonical persistence volume. Falls back safely if path is read-only.
+def _resolve_vault_dir() -> str:
+    candidates = [
+        os.getenv("ARIFOS_VAULT_DIR"),
+        os.getenv("ARIFOS_CANONICAL_VAULT_DIR"),
+        "/root/.local/share/arifos/vault999",
+        "/var/lib/arifos/vault999",
+        "/tmp/arifos_vault999",
+    ]
+    for c in candidates:
+        if not c:
+            continue
+        try:
+            os.makedirs(c, exist_ok=True)
+            test_file = os.path.join(c, ".write_test")
+            with open(test_file, "a") as f:
+                pass
+            os.remove(test_file)
+            return c
+        except (OSError, PermissionError):
+            continue
+    return "/tmp"
+
+_VAULT_DIR = _resolve_vault_dir()
 _DB_PATH = os.path.join(_VAULT_DIR, "belief_registry.db")
 _AUDIT_LOG = os.path.join(_VAULT_DIR, "SEALED_EVENTS.jsonl")
 
@@ -419,6 +441,95 @@ class BeliefRegistry:
             except Exception as exc:
                 logger.warning("BeliefRegistry.purge_expired failed: %s", exc)
                 return 0
+
+    def get_belief_history(
+        self,
+        actor_id: str | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Read verifiable belief history from audit chain (newest first)."""
+        if not os.path.exists(_AUDIT_LOG):
+            return []
+        entries: list[dict[str, Any]] = []
+        try:
+            with open(_AUDIT_LOG, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        if actor_id is None or entry.get("actor_id") == actor_id:
+                            entries.append(entry)
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as exc:
+            logger.warning("BeliefRegistry.get_belief_history read failed: %s", exc)
+            return []
+        entries.reverse()
+        return entries[:limit]
+
+    def get_belief_at_seq(self, seq: int) -> dict[str, Any] | None:
+        """Fetch exact belief state entry at specified sequence number."""
+        if not os.path.exists(_AUDIT_LOG):
+            return None
+        try:
+            with open(_AUDIT_LOG, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        if entry.get("seq") == seq:
+                            return entry
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as exc:
+            logger.warning("BeliefRegistry.get_belief_at_seq read failed: %s", exc)
+        return None
+
+    def verify_belief_chain(self) -> dict[str, Any]:
+        """Verify cryptographic integrity of belief revision chain."""
+        if not os.path.exists(_AUDIT_LOG):
+            return {"valid": True, "entries_count": 0, "status": "EMPTY"}
+        entries: list[dict[str, Any]] = []
+        try:
+            with open(_AUDIT_LOG, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entries.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        return {"valid": False, "error": "CORRUPT_JSON_LINE"}
+        except Exception as exc:
+            return {"valid": False, "error": str(exc)}
+
+        if not entries:
+            return {"valid": True, "entries_count": 0, "status": "EMPTY"}
+
+        gaps: list[dict[str, Any]] = []
+        for i, entry in enumerate(entries):
+            expected_prev = entries[i - 1].get("entry_hash") if i > 0 else (entry.get("prev_hash") or "genesis-belief-chain-2026-09-13")
+            actual_prev = entry.get("prev_hash")
+            if i > 0 and actual_prev != expected_prev:
+                gaps.append({"seq": entry.get("seq"), "expected_prev": expected_prev, "actual_prev": actual_prev})
+            computed_hash = _hash_belief_entry(
+                {k: v for k, v in entry.items() if k != "entry_hash"},
+                entry.get("prev_hash"),
+            )
+            if entry.get("entry_hash") and computed_hash != entry.get("entry_hash"):
+                gaps.append({"seq": entry.get("seq"), "error": "HASH_MISMATCH", "computed": computed_hash, "declared": entry.get("entry_hash")})
+
+        return {
+            "valid": len(gaps) == 0,
+            "entries_count": len(entries),
+            "head_seq": entries[-1].get("seq") if entries else 0,
+            "head_hash": entries[-1].get("entry_hash") if entries else None,
+            "gaps": gaps,
+        }
 
 
 # ── Module-level singleton ────────────────────────────────────────────────────
