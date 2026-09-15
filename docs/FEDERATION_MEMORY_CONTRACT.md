@@ -231,7 +231,7 @@ psql "$(grep ARIFOS_MEMORY_POSTGRES_URL /etc/arifos/arifos.env | cut -d= -f2- | 
   -c "SELECT count(*), max(recorded_at) FROM memory_store;"
 
 # L5 health
-curl -s http://localhost:8000/health
+curl -s http://127.0.0.1:18412/health
 curl -s -X POST http://127.0.0.1:18412/mcp (observed 2026-09-16 by R-WELL; host-network container) \
   -H "Content-Type: application/json" -H "Accept: text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"probe","version":"0"}}}' \
