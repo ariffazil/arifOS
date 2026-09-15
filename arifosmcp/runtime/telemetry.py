@@ -228,6 +228,43 @@ def _hash_payload(data: Any) -> str:
 _ARIFLOW_TELEMETRY_URL = os.getenv("ARIFLOW_TELEMETRY_URL", "http://127.0.0.1:7073/telemetry/log")
 _ARIFLOW_TELEMETRY_ENABLED = os.getenv("ARIFLOW_TELEMETRY_ENABLED", "true").lower() == "true"
 
+# ── Organ self-labeling (E4/G-09 fix, 2026-09-15) ────────────────────────────
+# Observation rows must label their emitting organ FROM BIRTH, not retroactively.
+# Prior behavior: 100% of rows hard-labelled "arifOS" regardless of origin organ.
+_ORGAN_ALIASES = {
+    "ARIFOS": "arifOS",
+    "GEOX": "GEOX",
+    "WEALTH": "WEALTH",
+    "WELL": "WELL",
+    "A-FORGE": "A-FORGE",
+    "AFORGE": "A-FORGE",
+    "AAA": "AAA",
+    "FRAME": "FRAME",
+    "ARIFFLOW": "arifFlow",
+    "ARIF-FLOW": "arifFlow",
+    # Trinity agents act under the AAA control plane
+    "333-AGI": "AAA",
+    "555-ASI": "AAA",
+    "888-APEX": "AAA",
+}
+
+
+def _derive_organ(actor_id: str | None) -> str:
+    """Derive the emitting organ for a telemetry record.
+
+    Priority: ARIFOS_ORGAN_ID env (per-service injection) > actor_id prefix map
+    > legacy default "arifOS". Conservative: unknown actors keep the legacy
+    label so no downstream consumer breaks (F1).
+    """
+    env_organ = os.getenv("ARIFOS_ORGAN_ID")
+    if env_organ:
+        return env_organ
+    if actor_id:
+        head = actor_id.split("/")[0].split(":")[0].strip().upper()
+        if head in _ORGAN_ALIASES:
+            return _ORGAN_ALIASES[head]
+    return "arifOS"
+
 
 def _forward_to_arifflow(
     tool_name: str,
@@ -252,7 +289,7 @@ def _forward_to_arifflow(
 
         payload: dict[str, Any] = {
             "band": "GOVERNANCE" if verdict.upper() in ("HOLD", "VOID", "SABAR") else "OPERATIONAL",
-            "organ": "arifOS",
+            "organ": _derive_organ(actor_id),
             "agent_id": f"arifos:{actor_id[:32]}" if actor_id else None,
             "session_id": session_id,
             "tool_name": tool_name,
@@ -472,7 +509,7 @@ class Telemetry:
                     session_id=session_id,
                     actor_id=actor_id or "unknown",
                     tool_name=tool,
-                    organ_id="arifOS",
+                    organ_id=_derive_organ(actor_id),
                     verdict_class=verdict.upper(),
                     delta_s=delta_s,
                     reasons=reasons or [],
@@ -496,7 +533,7 @@ class Telemetry:
                     session_id=session_id,
                     actor_id=actor_id or "unknown",
                     tool_name=tool,
-                    organ_id="arifOS",
+                    organ_id=_derive_organ(actor_id),
                     verdict_class=verdict.upper(),
                     delta_s=delta_s,
                     reasons=reasons or [],
