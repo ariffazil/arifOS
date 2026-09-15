@@ -46,3 +46,38 @@ jobs:
         with:
           packages-dir: dist/
           password: ${{ secrets.PYPI_API_TOKEN }}
+        # ── TRUSTED PUBLISHER UPGRADE (F13 one-click, then flip 3 lines) ──────────
+        # 1. pypi.org → project "arifos" → Publishing → Add Trusted Publisher:
+        #    repo ariffazil/arifOS · workflow 07-publish-pypi.yml · environment pypi
+        # 2. Create GitHub environment "pypi" (Settings → Environments).
+        # 3. Then REPLACE `password:` above with:
+        #        environment: pypi
+        #        attestations: true
+        #    (PEP 740 provenance, zero keys — fits "sovereign never touches crypto")
+
+  sbom:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
+    name: CycloneDX SBOM (attach to release)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install uv and sync
+        run: pip install uv && uv sync
+      - name: Generate CycloneDX SBOM
+        run: |
+          uv run python -c "from arifosmcp.arifos_sbom import generate_arifos_sbom, export_sbom_to_file as x; x(generate_arifos_sbom(), 'dist/arifos-sbom.cdx.json')"
+          python3 -c "import json; d=json.load(open('dist/arifos-sbom.cdx.json')); print('SBOM components:', len(d.get('components', [])))"
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: dist/arifos-sbom.cdx.json
+      - name: Attach to latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(gh release list --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null || true)
+          if [ -n "$TAG" ]; then gh release upload "$TAG" dist/arifos-sbom.cdx.json --clobber && echo "attached to $TAG"; else echo "no release yet — artifact uploaded only"; fi
