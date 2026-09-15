@@ -70,7 +70,9 @@ jobs:
       - name: Validate FEDERATION.md exists
         run: |
           set -o pipefail
-          test -f FEDERATION.md || (echo "❌ Missing FEDERATION.md" && exit 1)
+          # Canonical since 2026-09-14: docs/FEDERATION.md (root copy archived
+          # to docs/archive/ during root entropy reduction).
+          test -f docs/FEDERATION.md || (echo "❌ Missing docs/FEDERATION.md" && exit 1)
           echo "✅ FEDERATION.md present"
 
   protocol-alignment:
@@ -92,10 +94,11 @@ jobs:
       - name: Validate FEDERATION.md structure
         run: |
           set -o pipefail
-          grep -q "role: ROOT" FEDERATION.md || (echo "❌ Missing role: ROOT in FEDERATION.md" && exit 1)
-          grep -q "layer: L1" FEDERATION.md || (echo "❌ Missing layer: L1 in FEDERATION.md" && exit 1)
-          grep -q "mcp:" FEDERATION.md || (echo "❌ Missing mcp: section in FEDERATION.md" && exit 1)
-          echo "✅ arifOS FEDERATION.md valid — L1 ROOT"
+          grep -q "arifOS Federation Architecture" docs/FEDERATION.md || (echo "❌ Missing title in docs/FEDERATION.md" && exit 1)
+          grep -q "CANONICAL SOURCE" docs/FEDERATION.md || (echo "❌ Missing CANONICAL SOURCE declaration" && exit 1)
+          grep -q "## Constitutional Planes" docs/FEDERATION.md || (echo "❌ Missing Constitutional Planes section" && exit 1)
+          grep -q "## Core Organs (10)" docs/FEDERATION.md || (echo "❌ Missing Core Organs section" && exit 1)
+          echo "✅ arifOS FEDERATION.md valid — canonical structure"
 
   # ─────────────────────────────────────────────────────────────
   # JOB 1: Fast Signal — tool registry, imports, shim resolution
