@@ -1,18 +1,18 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.8.2
-last_verified: 2026-09-15T08:45:00+00:00
-live_commit: 38a474c16 (fix(observability): organ self-labeling at birth)
-source_commit: 38a474c1655e
-built_commit: 30c7c8ff4b26
-deployment_drift_status: drift_detected (wheel built from 30c7c8ff, deployed 38a474c)
+last_verified: 2026-09-15T14:54:34+00:00
+live_commit: 2b3215b72 (AMENDMENT-6::REGISTER_LAW — C15/C16 proposed as F6b (awaiting F13 floor ratifica)
+source_commit: 2b3215b72
+built_commit: 2b3215b7248e
+deployment_drift_status: aligned (source = built = deployed = 2b3215b, drift: false)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
 floors_active: 13 (F1–F9 + L10–L13, all pass)
 federation_schema: 2.0.0
 mcp_protocol: 2026-07-28 (back-compat: 2025-11-25, 2025-03-26, 2024-11-05)
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (append-only, hash-chained JSONL)
+vault999: healthy (199K+ records, append-only)
 contract_status: 8/8 schemas complete, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
@@ -302,11 +302,11 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 |---------|--------|----------|
 | Public repository | Live | GitHub [`ariffazil/arifOS`](https://github.com/ariffazil/arifOS), AGPL-3.0-only |
 | PyPI package | Published `1!2026.8.2` | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
-| Live kernel | Service green, status degraded (deployment drift) | `curl localhost:8088/health` → `service_health: green`, `deployment_drift_status: drift_detected` |
+| Live kernel | Service green, status healthy | `curl localhost:8088/health` → `service_health: green`, `deployment_drift_status: aligned` |
 | MCP interface | 8 canonical tools / 25 internal superset | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
 | Floor enforcement | Active — 13/13 pass | `/health → runtime_floors_status` — all pass (F7=0.04, F9=0.0, F12=0.425 are lower-is-better) |
 | VAULT999 ledger | Healthy | Hash-chained append-only JSONL; chain verification in `scripts/verify_vault_chain.py` |
-| Source / build / deploy | Drift detected | `source_commit: 38a474c`, `built_commit: 30c7c8ff` — wheel needs rebuild from HEAD |
+| Source / build / deploy | Aligned — no drift | `source_commit = built_commit = deployed_commit = 2b3215b` (redeployed 2026-09-15 via `scripts/deploy-release.sh`) |
 | Contract schema | 8/8 complete, no drift | `contract_status.tool_count: 8`, `contract_drift: false` |
 | Federation | 10 organs | See [Architecture](#architecture) |
 | Machine-readable | Live | [tools.json](https://arifos.arif-fazil.com/tools.json) (36 KB), [llms.txt](./llms.txt), [CITATION.cff](./CITATION.cff) |
@@ -319,12 +319,11 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 | Third-party evaluation | No external reviewer has published findings | Open |
 | Reproducible demo by strangers | Onboarding path not independently tested | Open |
 | Enterprise deployment | No production customer reference | Open |
-| Standards conformance | MCP/A2A conformance tests not published | CI workflows exist (`06-mcp-conformance.yml`), results not published |
-| SBOM and signed releases | Supply chain integrity unverified externally | Open |
+| Standards conformance | MCP/A2A conformance results not published externally | CI workflow `06-mcp-conformance.yml` exists; ABI artifact drift fixed 2026-09-15 (`sync_kernel_abi.py --check` passes); results not published |
+| SBOM and signed releases | Supply chain integrity unverified externally | Open — internal CycloneDX generator exists (`arifosmcp/arifos_sbom.py`); no publish/sign step in `07-publish-pypi.yml` |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
 | Semantic layer (Graphiti) | `graphiti_read: degraded` — knowledge graph not fully wired | Operational gap |
 | Observability (Langfuse) | `langfuse_traces: NOT_WIRED` — no distributed tracing | Operational gap |
-| Deployment drift | Wheel built from `30c7c8ff`, kernel running `38a474c` — needs rebuild | **Actionable: `make build && make deploy`** |
 
 See [SECURITY.md](./SECURITY.md) for the threat model, known gaps, and disclosure policy.
 
