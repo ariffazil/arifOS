@@ -60,7 +60,19 @@ def _sha256_file(path: Path) -> str | None:
 
 
 def _full_source_commit() -> str:
-    """Return the deployed full commit when available; never invent padding."""
+    """Return the source repository commit (git HEAD)."""
+    git_head = Path("/root/arifOS/.git/HEAD")
+    try:
+        value = git_head.read_text().strip()
+        if value.startswith("ref: "):
+            ref = Path("/root/arifOS/.git") / value[5:]
+            if ref.exists():
+                return ref.read_text().strip()
+        if len(value) >= 7:
+            return value
+    except OSError:
+        pass
+    # Fallback to deployed stamp if source git repo is unavailable (e.g. isolated container)
     stamp = Path("/opt/arifos/app/.git_commit")
     try:
         value = stamp.read_text().strip()
@@ -68,17 +80,39 @@ def _full_source_commit() -> str:
             return value
     except OSError:
         pass
-    git_head = Path("/root/arifOS/.git/HEAD")
+    return "unknown"
+
+
+def _full_deployed_commit() -> str:
+    """Return the deployed commit SHA running in /opt/arifos/app."""
+    stamp = Path("/opt/arifos/app/.git_commit")
     try:
-        value = git_head.read_text().strip()
-        if value.startswith("ref: "):
-            ref = Path("/root/arifOS/.git") / value[5:]
-            return ref.read_text().strip()
+        value = stamp.read_text().strip()
         if len(value) >= 7:
             return value
     except OSError:
         pass
     return "unknown"
+
+
+def _full_built_commit() -> str:
+    """Return the built commit SHA from installed wheel metadata."""
+    env_commit = os.getenv("ARIFOS_BUILT_COMMIT", "").strip()
+    if env_commit:
+        return env_commit
+    candidates = sorted(
+        Path("/opt/arifos/venv/lib").glob("python*/site-packages/arifos-*.dist-info/METADATA")
+    )
+    if candidates:
+        try:
+            for line in candidates[-1].read_text().splitlines():
+                if line.startswith("live_commit:") or line.startswith("source_commit:"):
+                    parts = line.split(":", 1)
+                    if len(parts) == 2 and parts[1].strip():
+                        return parts[1].strip().split()[0]
+        except OSError:
+            pass
+    return _full_deployed_commit()
 
 
 def _installation_manifest_hash() -> str | None:
@@ -129,6 +163,9 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     (or /health?detail=1). Target success payload tax < 2 KB on compact path.
     """
     source_commit = _full_source_commit()
+    deployed_commit = _full_deployed_commit()
+    built_commit = _full_built_commit()
+
     critical_module_hashes = {
         rel: digest for rel in _CRITICAL_MODULES if (digest := _sha256_file(ROOT / rel)) is not None
     }
@@ -145,14 +182,16 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         ).hexdigest()
     )
 
-    # built_commit is THIS process's install stamp, not a sibling checkout.
-    # Reading /root/arifOS/.git while the service runs from /opt/arifos/app
-    # made software_release.drift=true on SOT-only label mismatch (P1.2).
-    # Constitutional HOLD is for code drift (runtime_matches_build=false).
-    built_commit = source_commit
-    deployed_commit = source_commit
-
+    # Truthful drift calculation:
+    # Drift is True if source repo HEAD != deployed code stamp,
+    # or if built package metadata != deployed code stamp.
     drift = False
+    if source_commit != "unknown" and deployed_commit != "unknown":
+        if not (source_commit.startswith(deployed_commit[:7]) or deployed_commit.startswith(source_commit[:7])):
+            drift = True
+    if built_commit != "unknown" and deployed_commit != "unknown":
+        if not (built_commit.startswith(deployed_commit[:7]) or deployed_commit.startswith(built_commit[:7])):
+            drift = True
 
     surface_hash = _compute_tool_surface_hash()
 
