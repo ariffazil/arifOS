@@ -31,6 +31,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.core.federation_contracts import validate_organ_output
 from arifosmcp.federation.federation_envelope import (
     attach_degraded_claim,
@@ -518,6 +519,7 @@ def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | 
     return aid, sid
 
 
+@trace_tool("arif_route")
 def arif_route(
     intent: str | None = None,
     organ: str | None = None,

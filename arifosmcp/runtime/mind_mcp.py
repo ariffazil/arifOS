@@ -37,6 +37,7 @@ from arifosmcp.runtime.mind_reason import (
 )
 from arifosmcp.runtime.witness_substrate import produce_witness, WITNESS_SUBSTRATE_VERSION
 from arifosmcp.runtime.capability_ledger import get_ledger, LEDGER_VERSION
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.schemas.mind_metabolism import MindRequest
 
 # Create FastMCP server for MIND
@@ -48,6 +49,7 @@ mcp = FastMCP("arifOS-Mind")
 
 
 @mcp.tool()
+@trace_tool("arif_think")
 async def arif_think(
     query: str, session_id: str | None = None, mode: str = "metabolize"
 ) -> dict[str, Any]:

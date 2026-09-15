@@ -16,6 +16,7 @@ import logging
 import hashlib
 from typing import Any, Literal
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.models.verdicts import Verdict
 
 # Sync core accepts ack_irreversible. Async MCP wrapper (_arif_seal /
@@ -121,6 +122,7 @@ def _tag_session_close_epistemic(
     return _json.dumps(body, ensure_ascii=False)
 
 
+@trace_tool("arif_seal")
 async def arif_seal(
     mode: Literal[
         "seal",

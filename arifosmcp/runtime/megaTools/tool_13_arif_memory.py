@@ -42,6 +42,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.runtime.model import RuntimeEnvelope
 
 logger = logging.getLogger(__name__)
@@ -183,6 +184,7 @@ def resolve_legacy_mode(legacy: str) -> str | None:
 # ── The dispatcher entry point ─────────────────────────────────────────────
 
 
+@trace_tool("arif_memory")
 async def arif_memory(
     mode: str | None = None,
     payload: dict[str, Any] | None = None,
