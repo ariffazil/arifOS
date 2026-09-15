@@ -5,7 +5,7 @@ last_verified: 2026-09-15T14:54:34+00:00
 live_commit: 2b3215b72 (AMENDMENT-6::REGISTER_LAW — C15/C16 proposed as F6b (awaiting F13 floor ratifica)
 source_commit: 2b3215b72
 built_commit: 2b3215b7248e
-deployment_drift_status: aligned (source = built = deployed = 2b3215b, drift: false)
+deployment_drift_status: aligned (source = built = deployed, drift: false — redeployed from HEAD via deploy-release.sh)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
 floors_active: 13 (F1–F9 + L10–L13, all pass)
@@ -306,7 +306,7 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 | MCP interface | 8 canonical tools / 25 internal superset | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
 | Floor enforcement | Active — 13/13 pass | `/health → runtime_floors_status` — all pass (F7=0.04, F9=0.0, F12=0.425 are lower-is-better) |
 | VAULT999 ledger | Healthy | Hash-chained append-only JSONL; chain verification in `scripts/verify_vault_chain.py` |
-| Source / build / deploy | Aligned — no drift | `source_commit = built_commit = deployed_commit = 2b3215b` (redeployed 2026-09-15 via `scripts/deploy-release.sh`) |
+| Source / build / deploy | Aligned — no drift | `source_commit = built_commit = deployed_commit` (verify: `curl localhost:8088/health` → `drift: false`; redeployed 2026-09-15 via `scripts/deploy-release.sh`) |
 | Contract schema | 8/8 complete, no drift | `contract_status.tool_count: 8`, `contract_drift: false` |
 | Federation | 10 organs | See [Architecture](#architecture) |
 | Machine-readable | Live | [tools.json](https://arifos.arif-fazil.com/tools.json) (36 KB), [llms.txt](./llms.txt), [CITATION.cff](./CITATION.cff) |
