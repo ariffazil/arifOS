@@ -1025,6 +1025,56 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 
     query = payload.get("query") or payload.get("memory_id") or ""
 
+    # ── Belief / Lineage Reader (Reality Graph L2 Join) ──
+    if (
+        payload.get("target") in ("belief", "belief_chain", "lineage")
+        or payload.get("kind") in ("belief", "belief_chain", "lineage")
+        or (isinstance(query, str) and (query.lower().startswith("belief") or query.lower() in ("lineage", "belief_chain")))
+        or payload.get("seq") is not None
+        or payload.get("verify_belief")
+    ):
+        from arifosmcp.runtime.belief import get_registry
+        reg = get_registry()
+        if payload.get("seq") is not None:
+            entry = reg.get_belief_at_seq(int(payload["seq"]))
+            if entry:
+                return {
+                    "ok": True,
+                    "verdict": "SEAL",
+                    "payload": {
+                        "mode": "belief_seq",
+                        "seq": int(payload["seq"]),
+                        "entry": entry,
+                        "source": "belief_chain",
+                    },
+                }
+            return {
+                "ok": False,
+                "verdict": "SABAR",
+                "payload": {"error": "NOT_FOUND", "message": f"Belief entry at seq {payload['seq']} not found"},
+            }
+        if payload.get("verify") or payload.get("verify_belief") or query in ("belief_verify", "belief_chain"):
+            res = reg.verify_belief_chain()
+            return {
+                "ok": res.get("valid", False),
+                "verdict": "SEAL" if res.get("valid") else "SABAR",
+                "payload": res,
+            }
+        actor = payload.get("actor_id")
+        limit = int(payload.get("limit", 50))
+        history = reg.get_belief_history(actor_id=actor, limit=limit)
+        return {
+            "ok": True,
+            "verdict": "SEAL",
+            "payload": {
+                "mode": "belief_history",
+                "actor_id": actor,
+                "count": len(history),
+                "history": history,
+                "source": "belief_chain",
+            },
+        }
+
     # Check if query looks like a UUID
     uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     if re.match(uuid_pattern, query, re.I):

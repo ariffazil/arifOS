@@ -538,9 +538,15 @@ def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
 
     constitution_hash = get_constitution_hash()
 
-    # B1: Derive the matching public key from the signer's private key.
-    # Falls back to actor registry resolution if derivation fails (backward compat).
-    signer_public_key_pem = get_sovereign_public_key_pem()
+    # B1: Derive the matching public key from the signer's private key ONLY for sovereign actors.
+    # For federated actors (claude-code, etc.), pass public_key_pem=None so that
+    # verify_sovereign_signature delegates to resolve_actor_public_key(actor_id).
+    _aid_norm = actor_id.lower().strip()
+    signer_public_key_pem = (
+        get_sovereign_public_key_pem()
+        if (_aid_norm in PROTECTED_SOVEREIGN_IDS or _aid_norm in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil"))
+        else None
+    )
 
     verified, reason = verify_sovereign_signature(
         actor_id=actor_id,

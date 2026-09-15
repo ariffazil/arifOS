@@ -641,33 +641,53 @@ def resolve_actor_public_key(actor_id: str) -> ed25519.Ed25519PublicKey | None:
             key = _load_pem_public(p2.read_bytes())
             if key:
                 return key
-    for name in (f"{aid}_public.pem", f"{actor_id}_public.pem", f"{aid}.pem"):
-        p = _AAA_KEYS / name
-        if p.is_file():
-            key = _load_pem_public(p.read_bytes())
-            if key:
-                return key
-    for base in (_AFORGE_KEYS / aid, _AFORGE_KEYS / actor_id):
-        if not base.is_dir():
-            continue
-        for p in sorted(base.glob("*public*.pem")) + sorted(base.glob("*.pem")):
-            if "private" in p.name.lower():
+    # Collect candidate names including aliases from canonical identity contracts
+    candidates = [aid, actor_id]
+    try:
+        from contracts.identity import CANONICAL_ACTORS
+        for canon_name, data in CANONICAL_ACTORS.items():
+            if canon_name.lower() == aid or aid in [a.lower() for a in data.get("aliases", [])]:
+                candidates.extend(data.get("aliases", []))
+                candidates.append(canon_name)
+    except Exception:
+        pass
+    candidate_ids: list[str] = []
+    for c in candidates:
+        if c and c not in candidate_ids:
+            candidate_ids.append(c)
+
+    for cid in candidate_ids:
+        for name in (f"{cid}_public.pem", f"{cid}.pem"):
+            p = _AAA_KEYS / name
+            if p.is_file():
+                key = _load_pem_public(p.read_bytes())
+                if key:
+                    return key
+
+    for cid in candidate_ids:
+        for base in (_AFORGE_KEYS / cid, _AFORGE_KEYS / cid.lower()):
+            if not base.is_dir():
                 continue
-            key = _load_pem_public(p.read_bytes())
-            if key:
-                return key
+            for p in sorted(base.glob("*public*.pem")) + sorted(base.glob("*.pem")):
+                if "private" in p.name.lower():
+                    continue
+                key = _load_pem_public(p.read_bytes())
+                if key:
+                    return key
+
     if _AGENT_REGISTRY.is_file():
         try:
             reg = json.loads(_AGENT_REGISTRY.read_text(encoding="utf-8"))
-            entry = reg.get(actor_id) or reg.get(aid)
-            if entry:
-                proof = entry.get("identity_proof") or {}
-                if isinstance(proof, dict) and proof.get("type") == "ed25519":
-                    pem = proof.get("public_key_pem")
-                    if pem:
-                        key = _load_pem_public(pem.encode() if isinstance(pem, str) else pem)
-                        if key:
-                            return key
+            for cid in candidate_ids:
+                entry = reg.get(cid)
+                if entry:
+                    proof = entry.get("identity_proof") or {}
+                    if isinstance(proof, dict) and proof.get("type") == "ed25519":
+                        pem = proof.get("public_key_pem")
+                        if pem:
+                            key = _load_pem_public(pem.encode() if isinstance(pem, str) else pem)
+                            if key:
+                                return key
         except Exception as exc:
             logger.warning("agent_identities load failed: %s", exc)
     for reg_path in _DID_REGISTRY_CANDIDATES:

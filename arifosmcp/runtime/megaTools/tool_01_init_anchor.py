@@ -692,21 +692,19 @@ async def init_anchor(
                 verification_method = "ed25519"
                 # SECURITY P0: key_id is the SHA256 fingerprint of the public
                 # key bytes used for verification. Sovereign authority binds
+                # SECURITY P0: key_id is the SHA256 fingerprint of the public
+                # key bytes used for verification. Sovereign authority binds
                 # to this fingerprint, never to the actor_id string.
                 try:
-                    import hashlib
-
                     from arifosmcp.runtime.sovereign_verify import (
-                        _PUBKEY_CANDIDATES,
+                        compute_verified_key_id,
                     )
 
-                    for _pk_path in _PUBKEY_CANDIDATES:
-                        if _pk_path and _pk_path.exists():
-                            verified_key_id = (
-                                "ed25519:sha256:"
-                                + hashlib.sha256(_pk_path.read_bytes()).hexdigest()[:16]
-                            )
-                            break
+                    verified_key_id = compute_verified_key_id(
+                        actor_id=_dn,
+                        nonce=_nonce,
+                        actor_signature=_actor_signature,
+                    )
                 except Exception:
                     verified_key_id = None
         except Exception as _e:
