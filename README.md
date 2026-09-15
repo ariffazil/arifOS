@@ -1,9 +1,9 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.8.2
-last_verified: 2026-09-15T15:02:31+00:00
-live_commit: 167f48631 (docs(sot): hash-agnostic drift wording — stamp row survives redeploy cycles)
-source_commit: 167f48631
+last_verified: 2026-09-15T15:04:50+00:00
+live_commit: 204e3e090 (fix(ci): sot-manifest-check fixed-point flaw — accept HEAD~1 lineage)
+source_commit: 204e3e090
 built_commit: 2b3215b7248e
 deployment_drift_status: aligned (source = built = deployed, drift: false — redeployed from HEAD via deploy-release.sh)
 tools_exposed_via_mcp: 8 (canonical public verbs)
