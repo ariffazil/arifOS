@@ -45,9 +45,14 @@ from typing import Any
 
 import yaml
 
+from arifosmcp.canon import canon_aware_path
+
 logger = logging.getLogger(__name__)
 
-POLICY_PATH = Path(__file__).resolve().parents[2] / "config" / "memory-admissibility-policy.yaml"
+POLICY_PATH = canon_aware_path(
+    "memory-admissibility-policy.yaml",
+    Path(__file__).resolve().parents[2] / "config" / "memory-admissibility-policy.yaml",
+)
 ENV_OVERRIDE = "MEMORY_ADMISSIBILITY_POLICY"
 SANCTUARY_DENYLIST_PATH = Path(__file__).resolve().parents[2] / "config" / "memory-sanctuary-denylist.json"
 
@@ -114,14 +119,20 @@ def load_policy(path: str | Path | None = None) -> dict[str, Any]:
     """Load the admissibility policy YAML.
 
     Resolution order: explicit path → MEMORY_ADMISSIBILITY_POLICY env →
-    in-repo config/memory-admissibility-policy.yaml. On missing/unparseable
-    file, logs loudly and returns the fail-safe default policy (same
+    /etc/arifos/canon (when ARIFOS_CANON_DIR is active) → in-repo
+    config/memory-admissibility-policy.yaml. Canon resolution happens at
+    CALL time, not import time — a canon deployment takes effect on the
+    next recall without a kernel restart. On missing/unparseable file,
+    logs loudly and returns the fail-safe default policy (same
     semantics as the shipped default mode). Recall never raises from policy
     IO; it degrades strict.
     """
     if path is None:
         env = os.environ.get(ENV_OVERRIDE)
-        path = Path(env) if env else POLICY_PATH
+        default = canon_aware_path(
+            "memory-admissibility-policy.yaml", POLICY_PATH
+        )
+        path = Path(env) if env else default
     p = Path(path)
     try:
         raw = yaml.safe_load(p.read_text(encoding="utf-8"))

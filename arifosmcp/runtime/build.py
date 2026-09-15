@@ -14,6 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.canon import canon_attestation
 from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +50,10 @@ _CRITICAL_MODULES = (
     "arifosmcp/runtime/kernel/judge.py",
     "arifosmcp/tools/forge.py",
     "arifosmcp/tools/judge.py",
+    # FHS canon plane (2026-09-16): /etc/arifos/canon resolution is an
+    # authority path — a silent swap here would redefine ratified policy.
+    "arifosmcp/canon.py",
+    "arifosmcp/memory/admissibility.py",
 )
 
 
@@ -204,6 +209,7 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "wheel_hash": wheel_hash,
         "runtime_manifest_hash": runtime_manifest_hash,
         "surface_hash": surface_hash,
+        "canon": canon_attestation(),
         "service_pid": os.getpid(),
         "service_started_at": PROCESS_STARTED_AT,
         "critical_module_hash_count": len(critical_module_hashes),

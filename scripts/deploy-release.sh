@@ -36,6 +36,10 @@ echo ""
 # ── Step 1: Build wheel ──────────────────────────────────────────────
 echo "--- Step 1: Build immutable wheel ---"
 cd "$REPO_DIR"
+# 2026-09-16: stale build/lib + egg-info poison every wheel — scripts/
+# shipped for months because a cached copy lived in build/lib even after
+# pyproject include-list hygiene. Clean before every build.
+rm -rf build arifos.egg-info
 python -m build --wheel --outdir "$BUILD_DIR" 2>&1 || {
 	echo "ERROR: build failed"
 	rm -rf "$BUILD_DIR"
@@ -88,6 +92,41 @@ rm -f "$VENV_SITE_PKG/__editable___arifos_"*.py 2>/dev/null || true
 echo "  ✅ Wheel installed (editable artifacts removed)"
 echo ""
 
+# ── Step 3.5: Sync runtime tree to /opt/arifos/app ───────────────────
+echo "--- Step 3.5: Sync runtime tree to /opt/arifos/app ---"
+# REALITY (2026-09-16): the service imports arifosmcp from
+# WorkingDirectory=/opt/arifos/app — cwd shadows the venv on sys.path.
+# Until Fasa 2 flips ExecStart to venv-only imports, this tree MUST
+# track the repo or source edits are invisible to the running kernel
+# (the 2026-08-13 four-restart-cycle scar). Sync every deploy.
+RSYNC_BIN="$(command -v rsync || true)"
+_sync_tree() { # src_dir dst_dir
+	if [ -n "$RSYNC_BIN" ]; then
+		"$RSYNC_BIN" -a --delete --exclude '__pycache__/' --exclude '.git_commit' "$1/" "$2/"
+	else
+		rm -rf "$2" && cp -a "$1" "$2"
+	fi
+}
+_sync_tree "$REPO_DIR/arifosmcp" /opt/arifos/app/arifosmcp
+_sync_tree "$REPO_DIR/core"      /opt/arifos/app/core
+_sync_tree "$REPO_DIR/arifos"    /opt/arifos/app/arifos
+_sync_tree "$REPO_DIR/config"    /opt/arifos/app/config
+cp "$REPO_DIR/tools_sot.yaml"  /opt/arifos/app/tools_sot.yaml
+cp "$REPO_DIR/pyproject.toml"  /opt/arifos/app/pyproject.toml
+echo "  ✅ App tree synced to source ($GIT_COMMIT)"
+
+# Wheel content gate: exactly three legal roots, nothing else ships.
+WHEEL_ROOTS=$(unzip -l "$RELEASE_DIR/$WHEEL_NAME" 2>/dev/null | awk '{print $4}' \
+	| grep -v '^$' | grep -v 'dist-info' | cut -d/ -f1 | sort -u | tr '\n' ' ')
+case "$WHEEL_ROOTS" in
+	*"scripts"*|*"tests"*|*"archive"*|*"mcp_server"*)
+		echo "❌ WHEEL GATE: illegal package root shipped: $WHEEL_ROOTS"
+		rm -rf "$BUILD_DIR"
+		exit 1
+		;;
+esac
+echo "  ✅ Wheel roots: $WHEEL_ROOTS"
+
 # ── Step 4: Verify import path ───────────────────────────────────────
 echo "--- Step 4: Verify import path resolution ---"
 IMPORT_PATH=$(cd / && "$VENV_PYTHON" -c "
@@ -109,6 +148,57 @@ else
 fi
 echo ""
 
+# ── Step 5-pre: Deploy canon package to /etc/arifos/canon ────────────
+echo "--- Step 5-pre: Deploy canon package to /etc/arifos/canon ---"
+# FHS formalization (2026-09-16): ratified authority lives at /etc — a
+# DIFFERENT change cadence from code releases. Canon files are root-owned,
+# 0644; the service reads but can never write them (drop-in 02-fhs-canon).
+# Generated projections (tools_sot.yaml, capability_registry.json) are NOT
+# canon — they stay code-shipped; hashes ride the release manifest only.
+CANON_DIR_FHS="/etc/arifos/canon"
+install -d -m 0755 -o root -g root "$CANON_DIR_FHS/charter"
+install -m 0644 -o root -g root "$REPO_DIR/config/sovereignty.charter.json" \
+    "$CANON_DIR_FHS/sovereignty.charter.json"
+install -m 0644 -o root -g root "$REPO_DIR/config/charter/kernel.charter.yaml" \
+    "$CANON_DIR_FHS/charter/kernel.charter.yaml"
+install -m 0644 -o root -g root "$REPO_DIR/config/memory-admissibility-policy.yaml" \
+    "$CANON_DIR_FHS/memory-admissibility-policy.yaml"
+CANON_VERSION="$(date -u +%Y.%m.%d)-${GIT_COMMIT}"
+CANON_MANIFEST_SHA=$("$VENV_PYTHON" - "$CANON_DIR_FHS" "$CANON_VERSION" "$GIT_COMMIT" <<'PYEOF'
+import hashlib, json, sys
+from pathlib import Path
+
+canon_dir, version, commit = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+names = [
+    "sovereignty.charter.json",
+    "charter/kernel.charter.yaml",
+    "memory-admissibility-policy.yaml",
+]
+files = []
+for name in names:
+    p = canon_dir / name
+    if p.is_file():
+        files.append({"name": name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()})
+    else:
+        sys.exit(f"canon file missing after install: {p}")
+manifest = {
+    "canon_version": version,
+    "ratified_by": "F13",
+    "source_commit": commit,
+    "files": files,
+}
+raw = json.dumps(manifest, sort_keys=True, separators=(",", ":"))
+(canon_dir / "canon-release.json").write_text(raw + "\n", encoding="utf-8")
+print("sha256:" + hashlib.sha256(raw.encode()).hexdigest())
+PYEOF
+) || {
+	echo "ERROR: canon package generation failed"
+	rm -rf "$BUILD_DIR"
+	exit 1
+}
+echo "  ✅ Canon deployed: $CANON_VERSION (manifest $CANON_MANIFEST_SHA)"
+echo ""
+
 # ── Step 5: Write release manifest ───────────────────────────────────
 echo "--- Step 5: Write release manifest ---"
 MANIFEST_FILE="$RELEASE_DIR/release-manifest.json"
@@ -120,6 +210,8 @@ cat >"$MANIFEST_FILE" <<MANIFEST_EOF
   "build_timestamp": "$BUILD_TS",
   "wheel_name": "$WHEEL_NAME",
   "wheel_sha256": "$WHEEL_HASH",
+  "canon_version": "$CANON_VERSION",
+  "canon_manifest_sha256": "$CANON_MANIFEST_SHA",
   "imported_from": "$IMPORT_PATH",
   "venv_python": "$VENV_PYTHON"
 }
