@@ -1510,7 +1510,22 @@ if IS_FASTMCP_3:
                             }
                         )
 
-                    result = await call_next(context)
+                    # P0-B Wave 1: the MCP ingress dispatcher is the trusted
+                    # ingress — open the root trace span around the handler so
+                    # nested governed emissions become children of one causal
+                    # graph, and the finally-block record carries the root IDs.
+                    from arifosmcp.arifos_observability.trace_context import (
+                        span as _trace_span,
+                    )
+
+                    _actor = getattr(envelope, "actor_id", None)
+                    _sess = getattr(envelope, "session_id", None)
+                    with _trace_span(
+                        tool_name,
+                        actor_id=str(_actor) if _actor and _actor != "anonymous" else None,
+                        act_sid=str(_sess) if _sess and _sess != "unknown" else None,
+                    ) as _ingress_tctx:
+                        result = await call_next(context)
 
                     if result:
                         if hasattr(result, "structured_content") and isinstance(
@@ -1545,6 +1560,17 @@ if IS_FASTMCP_3:
                                 result.structured_content, dict
                             ):
                                 _resp_dict = {**result.structured_content, **_resp_dict}
+                            # P0-B: explicit root IDs — guard against unbound
+                            # when the failure happened before the span opened.
+                            _extra_trace: dict[str, Any] = {}
+                            try:
+                                if _ingress_tctx is not None:
+                                    _extra_trace = {
+                                        "trace_id": str(_ingress_tctx.trace_id),
+                                        "span_id": str(_ingress_tctx.span_id),
+                                    }
+                            except NameError:
+                                pass
                             trace_tool_call(
                                 tool_name=tool_name,
                                 arguments=dict(msg.arguments or {}),
@@ -1554,6 +1580,7 @@ if IS_FASTMCP_3:
                                 else None,
                                 actor_id=envelope_agent_id,
                                 latency_ms=float(elapsed_ms),
+                                **_extra_trace,
                             )
                         except Exception:
                             pass
