@@ -45,15 +45,12 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          password: ${{ secrets.PYPI_API_TOKEN }}
-        # ── TRUSTED PUBLISHER UPGRADE (F13 one-click, then flip 3 lines) ──────────
-        # 1. pypi.org → project "arifos" → Publishing → Add Trusted Publisher:
-        #    repo ariffazil/arifOS · workflow 07-publish-pypi.yml · environment pypi
-        # 2. Create GitHub environment "pypi" (Settings → Environments).
-        # 3. Then REPLACE `password:` above with:
-        #        environment: pypi
-        #        attestations: true
-        #    (PEP 740 provenance, zero keys — fits "sovereign never touches crypto")
+          # TRUSTED PUBLISHER ACTIVE (F13 registered 2026-09-16) — OIDC only,
+          # zero keys. PEP 740 attestations signed by GitHub's Sigstore issuer.
+          # Rollback: restore `password: ${{ secrets.PYPI_API_TOKEN }}` and
+          # remove the two lines below (token still in repo secrets).
+          environment: pypi
+          attestations: true
 
   sbom:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
