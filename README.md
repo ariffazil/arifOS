@@ -100,6 +100,8 @@ pip install arifos
 
 ### Run the kernel
 
+ARIF = Sovereign · arifOS = Law (Authority Plane) · AAA = Institution (Attention Plane) · A-FORGE = Hands (Execution Plane)
+
 ```bash
 # Start the MCP server (console script; `arifos` is an equivalent alias)
 arifos-mcp
