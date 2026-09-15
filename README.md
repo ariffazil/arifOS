@@ -427,6 +427,16 @@ See [docs/evidence/](docs/evidence/) for the full claim registry and evidence in
 
 ---
 
+## Who Maintains This
+
+One human, and the agents he directs.
+
+I am a geologist, not a programmer. I did not write this codebase and I do not read it line by line. What I do is point at where the problem is — and the agents in my federation solve it, inside the constitution and the review gates I set, with the commit trail to show who ran what.
+
+Read the commits if you want to check that claim: the author fields are agent handles, not aliases of mine. That is the deliberate shape of this project, not a detail being hidden. It also sets the honest expectation — the design and the judgment are mine, the implementation is theirs, and where the two disagree, the bug is mine to answer for.
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
