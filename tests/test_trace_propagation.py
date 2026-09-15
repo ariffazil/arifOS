@@ -74,7 +74,8 @@ def test_act_sid_is_metadata_not_trace_identity():
 def test_invalid_trace_id_rejected_visibly(caplog):
     from arifosmcp.runtime.telemetry import trace_tool_call
 
-    with caplog.at_level(logging.WARNING, logger="arifos.telemetry"):
+    # exact emitter logger (root propagation alone made this fragile — ASI audit)
+    with caplog.at_level(logging.WARNING, logger="arifosmcp.runtime.telemetry"):
         trace_tool_call(
             tool_name="unit_test",
             arguments={},

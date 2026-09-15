@@ -608,7 +608,13 @@ class Telemetry:
             try:
                 _trace = _UUID(trace_id) if isinstance(trace_id, str) else trace_id
             except (ValueError, AttributeError):
-                pass
+                # P0-B fail-visible: direct record_tool_call callers must not
+                # silently lose invalid context either (ASI audit 2026-09-16).
+                logger.warning(
+                    "trace_context_rejected: invalid trace_id=%r — dropped, not "
+                    "silently replaced (P0-B fail-visible)",
+                    trace_id,
+                )
         if span_id:
             try:
                 _span = _UUID(span_id) if isinstance(span_id, str) else span_id
