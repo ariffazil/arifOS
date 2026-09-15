@@ -1,9 +1,9 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.8.2
-last_verified: 2026-09-15T15:37:51+00:00
-live_commit: 5f9b5aa1f (fix(kernel): passport for arif_judge_deliberate — judge-family verb was escaping)
-source_commit: 5f9b5aa1f
+last_verified: 2026-09-15T15:43:02+00:00
+live_commit: 79c3686f3 (fix(ci): canonicalize bijaksana-ci — registry stale since 2026-06-30 consolidati)
+source_commit: 79c3686f3
 built_commit: 2b3215b7248e
 deployment_drift_status: aligned (source = built = deployed, drift: false — redeployed from HEAD via deploy-release.sh)
 tools_exposed_via_mcp: 8 (canonical public verbs)
