@@ -1049,6 +1049,22 @@ if IS_FASTMCP_3:
                         from mcp.types import TextContent
 
                         _canonical = ", ".join(sorted(_public_allowed))
+                        # Soft-landing for legacy names: if the caller used a
+                        # documented-but-internal alias (docs carry 260+ legacy
+                        # mentions), name its canonical verb instead of a bare
+                        # rejection — external agents retry correctly.
+                        _redirect = ""
+                        try:
+                            from arifosmcp.runtime.tools import _ALIAS_TO_CANON
+
+                            _mapped = _ALIAS_TO_CANON.get(tool_name)
+                            if _mapped and _mapped in _public_allowed:
+                                _redirect = (
+                                    f" '{tool_name}' is a legacy alias → "
+                                    f"call '{_mapped}' with the same intent."
+                                )
+                        except Exception:
+                            pass
                         logger.info(
                             "Public surface HOLD: tools/call name=%s not in public list "
                             "(list==callable enforcement)",
@@ -1061,7 +1077,7 @@ if IS_FASTMCP_3:
                                     type="text",
                                     text=(
                                         f"Unknown tool: '{tool_name}'. "
-                                        f"Not on canonical public surface. "
+                                        f"Not on canonical public surface.{_redirect} "
                                         f"Callable tools: {_canonical}. "
                                         f"Diagnostics (arif_canary etc.) require "
                                         f"ARIFOS_MCP_EXPOSE_DEV_TOOLS=true and a "
