@@ -296,8 +296,11 @@ def _build_arifflow_receipt(
 
     # Map verdict to floor_verdict
     _floor_map = {
-        "PASS": "Pass", "OK": "Pass", "SEAL": "Pass",
-        "CAUTION": "Caution", "SABAR": "Caution",
+        "PASS": "Pass",
+        "OK": "Pass",
+        "SEAL": "Pass",
+        "CAUTION": "Caution",
+        "SABAR": "Caution",
         "HOLD": "Hold",
         "VOID": "Void",
     }
@@ -310,8 +313,15 @@ def _build_arifflow_receipt(
     payload = {}
     if metadata:
         # Only include safe fields — no raw prompts, secrets, or tool bodies
-        for key in ("verdict", "delta_s", "reasons", "next_safe_action",
-                     "input_hash", "output_hash", "vault_receipt"):
+        for key in (
+            "verdict",
+            "delta_s",
+            "reasons",
+            "next_safe_action",
+            "input_hash",
+            "output_hash",
+            "vault_receipt",
+        ):
             if key in metadata:
                 payload[key] = metadata[key]
 
@@ -374,8 +384,7 @@ def _forward_to_arifflow(
                 return "DELIVERED"
             else:
                 logger.debug(
-                    f"[Telemetry] arifFlow /ingest returned {resp.status_code}: "
-                    f"{resp.text[:200]}"
+                    f"[Telemetry] arifFlow /ingest returned {resp.status_code}: {resp.text[:200]}"
                 )
                 return f"FAILED_HTTP_{resp.status_code}"
     except httpx.ConnectError:
@@ -588,31 +597,36 @@ class Telemetry:
         # ── Kabarkan NATS (fire-and-forget stream) ─────────────────────
         # Uses ObservationRecord model so the worker always receives
         # a consistent schema with observation_id, trace_id, span_id etc.
+        # P0-B Wave 1: parse caller trace context ONCE, hoisted above the
+        # NATS guard — the local (Postgres) backend reuses the parsed
+        # values, so NATS-down can no longer NameError the local path into
+        # silent record loss (same silent-loss disease as P0-A).
+        from uuid import UUID as _UUID
+
+        _trace = _span = _parent = None
+        if trace_id:
+            try:
+                _trace = _UUID(trace_id) if isinstance(trace_id, str) else trace_id
+            except (ValueError, AttributeError):
+                pass
+        if span_id:
+            try:
+                _span = _UUID(span_id) if isinstance(span_id, str) else span_id
+            except (ValueError, AttributeError):
+                pass
+        if parent_span_id:
+            try:
+                _parent = (
+                    _UUID(parent_span_id) if isinstance(parent_span_id, str) else parent_span_id
+                )
+            except (ValueError, AttributeError):
+                pass
+
         _nats = _get_nats()
         if _nats:
             try:
                 input_hash = _hash_payload(_redact(input_data)) if input_data else None
                 output_hash = _hash_payload(output_data) if output_data else None
-                # FIX 2026-09-16 P0-B: propagate caller trace context instead of minting fresh UUID
-                from uuid import UUID as _UUID
-                _trace = None
-                _span = None
-                _parent = None
-                if trace_id:
-                    try:
-                        _trace = _UUID(trace_id) if isinstance(trace_id, str) else trace_id
-                    except (ValueError, AttributeError):
-                        pass
-                if span_id:
-                    try:
-                        _span = _UUID(span_id) if isinstance(span_id, str) else span_id
-                    except (ValueError, AttributeError):
-                        pass
-                if parent_span_id:
-                    try:
-                        _parent = _UUID(parent_span_id) if isinstance(parent_span_id, str) else parent_span_id
-                    except (ValueError, AttributeError):
-                        pass
 
                 record = ObservationRecord(
                     **({"trace_id": _trace} if _trace else {}),
@@ -693,7 +707,9 @@ class Telemetry:
             metadata=_redact(ariflow_meta),
         )
 
-        logger.debug(f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency} ariflow={_delivery_state}")
+        logger.debug(
+            f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency} ariflow={_delivery_state}"
+        )
 
     def record_floor_breach(self, floor: str, tool: str) -> None:
         if _METRICS_ENABLED and "floor_breaches" in self._counters:
@@ -742,6 +758,51 @@ def trace_tool_call(
     - vault_receipt if present
     - trace_id, span_id, parent_span_id (for distributed tracing)
     """
+    # ── P0-B Wave 1 (2026-09-16): caller-side propagation ─────────────
+    # Explicit caller-supplied IDs WIN over ambient context. When absent,
+    # fall back to the ambient trace set by the dispatcher root span
+    # (runtime/tools.py) so every governed record shares one causal graph.
+    # Invalid IDs are rejected VISIBLY — never silently replaced. The
+    # silent UUID-parse drop was the exact P0-B failure mechanism.
+    if trace_id is None or span_id is None or parent_span_id is None:
+        try:
+            from arifosmcp.arifos_observability.trace_context import (
+                current as _tcur,
+            )
+
+            _ctx = _tcur()
+            if _ctx is not None:
+                if trace_id is None:
+                    trace_id = str(_ctx.trace_id)
+                if span_id is None:
+                    span_id = str(_ctx.span_id)
+                if parent_span_id is None and _ctx.parent_span_id is not None:
+                    parent_span_id = str(_ctx.parent_span_id)
+        except Exception:  # ambient context is best-effort, never load-bearing
+            pass
+    from uuid import UUID as _UUID
+
+    for _fname, _fval in (
+        ("trace_id", trace_id),
+        ("span_id", span_id),
+        ("parent_span_id", parent_span_id),
+    ):
+        if _fval is not None:
+            try:
+                _UUID(str(_fval))
+            except (ValueError, AttributeError, TypeError):
+                logger.warning(
+                    "trace_context_rejected: invalid %s=%r — dropped, not "
+                    "silently replaced (P0-B fail-visible)",
+                    _fname,
+                    _fval,
+                )
+                if _fname == "trace_id":
+                    trace_id = None
+                elif _fname == "span_id":
+                    span_id = None
+                else:
+                    parent_span_id = None
     status = (
         result.get("status")
         or result.get("verdict")
