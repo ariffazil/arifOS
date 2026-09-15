@@ -244,6 +244,18 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
+    "arif_judge_deliberate": RiskPassport(
+        # Extended multi-witness deliberation variant of arif_judge — same
+        # doctrine as the 2026-06-13 ATOMIC → OBSERVE downgrade: advisory
+        # verdict output, no direct state mutation. Without this passport
+        # the verb silently fell to the permissive T0 default, letting a
+        # judge-family verb escape classification.
+        tier=RiskTier.T3,
+        action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
+    ),
     "arif_seal": RiskPassport(
         tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
