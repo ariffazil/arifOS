@@ -755,7 +755,12 @@ mcp = FastMCP(
 # ═══════════════════════════════════════════════════════════════════════════
 if Path is not None:
     try:
-        _skill_root = Path("/root/.agents/skills")
+        # ONE_ORIGIN (2026-09-16): skill docs at ARIFOS_SKILL_ROOT —
+        # production serves /etc/arifos/skills (the service user cannot
+        # traverse /root at 0710; reads were failing long before hardening).
+        import os as _os
+
+        _skill_root = Path(_os.environ.get("ARIFOS_SKILL_ROOT", "/root/.agents/skills"))
         if _skill_root.exists():
             import json as _json
 
@@ -809,7 +814,23 @@ if Path is not None:
                 "Use skill://index first to discover available skills.",
             )
             def skill_by_name_resource(name: str) -> str:
-                _path = _skill_root / name / "SKILL.md"
+                # Path traversal guard (external report, Syed Anas Mohiuddin,
+                # 2026-09-15, finding #2): `name` came from the URL path template
+                # with no validation at all, so `..%2F` walked out of the skill
+                # root — any directory holding a file literally named SKILL.md
+                # was readable. Reproduced: name="../../../../root/.secrets"
+                # resolves to /root/.secrets/SKILL.md.
+                #
+                # Containment check, not a character blocklist: compare the
+                # resolved path against the resolved root so symlinks and
+                # exotic encodings are covered too.
+                _root_res = _skill_root.resolve()
+                _path = (_skill_root / name / "SKILL.md").resolve()
+                if _root_res not in _path.parents or _path.name != "SKILL.md":
+                    raise ValueError(
+                        f"Skill name rejected: {name!r} escapes the skill root "
+                        "(external report 2026-09-15)"
+                    )
                 if not _path.is_file():
                     raise FileNotFoundError(f"Skill not found: {name}")
                 return _path.read_text()

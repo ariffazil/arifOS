@@ -41,10 +41,17 @@ PUSAKA: dict[str, str] = {
     "estate_manifest": "/root/AAA/contracts/ESTATE_MANIFEST.yaml",
     "vault999": "/root/VAULT999/",
     "openclaw_spec": "OpenClaw gateway spec 2026-06-21",
-    "art_skill": "/root/.agents/skills/ART/SKILL.md",
-    "art_cross_domain": "/root/.agents/skills/ART/references/v3-cross-domain-hardening.md",
     "seal": "DITEMPA BUKAN DIBERI",
 }
+
+# ONE_ORIGIN (2026-09-16): skill docs live at ARIFOS_SKILL_ROOT (default
+# /etc/arifos/skills in production; legacy /root/.agents/skills unreadable
+# by the service user — /root is 0710).
+import os as _os
+
+_SKILL_ROOT = _os.environ.get("ARIFOS_SKILL_ROOT", "/root/.agents/skills")
+for _k in ("art_skill", "art_cross_domain"):
+    PUSAKA[_k] = PUSAKA[_k].replace("/root/.agents/skills", _SKILL_ROOT)
 
 
 # ═══════════════════════════════════════════════════════════════════════
