@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """boundary_ratchet — fail-on-NEW architecture boundary gate (F4/F11).
 
-Design: reads contracts from boundary/.importlinter (INI), evaluates them
-DIRECTLY via grimp (no CLI output parsing), diffs against EXCEPTIONS-LEDGER.json.
+Reads contracts from boundary/.importlinter (INI), evaluates via import-linter
+CLI (handles multi-root-packages), diffs against EXCEPTIONS-LEDGER.json.
 
-Ratchet doctrine (AAA/domain-atlas/code-intel/INDEX.md):
+Ratchet doctrine (AAA/domain-atlas/code-intel/RATIFICATION-2026-09-16.md):
   - CI fails ONLY on NEW contract-edge violations or EXPIRED ledger entries.
   - Ledger expiry auto-tightens; extending is a deliberate, diff-visible edit.
   - Violation identity = contract-level edge (source_pkg -> forbidden_pkg),
-    immune to line-number churn.
+    parsed from the stable header line "X is not allowed to import Y:".
 
 Usage:
-  python3 boundary/boundary_ratchet.py            # repo root = cwd
+  python3 boundary/boundary_ratchet.py [--repo-root DIR] [--config PATH]
 Exit: 0 pass / 1 new-or-expired / 2 tooling error.
-Deps: grimp (pip install grimp).
+Deps: import-linter (pip install import-linter).
 """
 
 import argparse
@@ -21,9 +21,11 @@ import configparser
 import datetime
 import json
 import pathlib
+import re
+import subprocess
 import sys
 
-import grimp
+HEADER_RE = re.compile(r"^([\w.]+) is not allowed to import ([\w.]+):")
 
 
 def load_contracts(cfg_path: pathlib.Path) -> tuple[list[str], list[dict]]:
@@ -39,7 +41,6 @@ def load_contracts(cfg_path: pathlib.Path) -> tuple[list[str], list[dict]]:
         contracts.append(
             {
                 "id": section.split(":", 2)[2],
-                "type": c.get("type", "forbidden"),
                 "sources": [s.strip() for s in c["source_modules"].split()],
                 "forbidden": [s.strip() for s in c["forbidden_modules"].split()],
             }
@@ -47,33 +48,19 @@ def load_contracts(cfg_path: pathlib.Path) -> tuple[list[str], list[dict]]:
     return root_packages, contracts
 
 
-def evaluate(root_packages: list[str], contracts: list[dict]) -> dict[str, list]:
-    graphs = {p: grimp.build_graph(p) for p in root_packages}
-    violated: dict[str, list] = {}
-    for c in contracts:
-        edges = []
-        for src in c["sources"]:
-            for dst in c["forbidden"]:
-                for pkg, g in graphs.items():
-                    if not (
-                        pkg == src
-                        or pkg in src
-                        or src in pkg
-                        or pkg == dst
-                        or pkg in dst
-                        or dst in pkg
-                    ):
-                        continue
-                    try:
-                        chains = g.find_shortest_chains(src, dst)
-                    except (ValueError, KeyError):
-                        continue
-                    if chains:
-                        chain = sorted(chains)[0]
-                        edges.append({"edge": f"{src} -> {dst}", "chain": list(chain)})
-        if edges:
-            violated[c["id"]] = edges
-    return violated
+def run_lint(cfg: pathlib.Path, repo_root: pathlib.Path) -> tuple[int, list[str]]:
+    proc = subprocess.run(
+        ["lint-imports", "--config", str(cfg), "--no-cache"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    edges: list[str] = []
+    for line in (proc.stdout + "\n" + proc.stderr).splitlines():
+        m = HEADER_RE.match(line.strip())
+        if m:
+            edges.append(f"{m.group(1)} -> {m.group(2)}")
+    return proc.returncode, sorted(set(edges))
 
 
 def main() -> int:
@@ -83,39 +70,55 @@ def main() -> int:
     args = ap.parse_args()
     root = args.repo_root.resolve()
     cfg = (args.config or root / "boundary" / ".importlinter").resolve()
-    here = cfg.parent
-    ledger_path = here / "EXCEPTIONS-LEDGER.json"
+    ledger_path = cfg.parent / "EXCEPTIONS-LEDGER.json"
 
     try:
         root_packages, contracts = load_contracts(cfg)
-        current = evaluate(root_packages, contracts)
     except Exception as e:
-        print(f"BOUNDARY RATCHET: TOOLING ERROR: {e}")
+        print(f"BOUNDARY RATCHET: TOOLING ERROR (config): {e}")
         return 2
 
-    ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {"violations": []}
+    proc_rc, current_edges = run_lint(cfg, root)
+    src_of = {}
+    for c in contracts:
+        for s in c["sources"]:
+            src_of[s] = c["id"]
+    current: dict[str, list[str]] = {}
+    for edge in current_edges:
+        src = edge.split(" -> ")[0]
+        cid = src_of.get(src)
+        if cid is None:
+            for s, c_id in src_of.items():
+                if src == s or src.startswith(s + "."):
+                    cid = c_id
+                    break
+        if cid:
+            current.setdefault(cid, []).append(edge)
+
+    try:
+        ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {"violations": []}
+    except json.JSONDecodeError as e:
+        print(f"BOUNDARY RATCHET: TOOLING ERROR (ledger json): {e}")
+        return 2
     allowed = {v["contract"] + "|" + v["path"]: v["expires"] for v in ledger.get("violations", [])}
 
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
-    new_v, expired_v, kept_edges = [], [], []
+    new_v, expired_v, kept = [], [], []
+    current_keys = set()
     for cid, edges in current.items():
         for e in edges:
-            key = f"{cid}|{e['edge']}"
+            key = f"{cid}|{e}"
+            current_keys.add(key)
             if key not in allowed:
-                new_v.append((key, e["chain"]))
+                new_v.append(key)
             elif allowed[key] < today:
                 expired_v.append(key)
             else:
-                kept_edges.append(key)
-    stale = [
-        k
-        for k in allowed
-        if k.split("|")[0] not in current
-        or not any(f"{cid}|{e['edge']}" == k for cid in current for e in current[cid])
-    ]
+                kept.append(key)
+    stale = [k for k in allowed if k not in current_keys]
 
-    for k, chain in new_v:
-        print(f"NEW VIOLATION: {k}\n  chain: {' -> '.join(chain)}")
+    for k in new_v:
+        print(f"NEW VIOLATION: {k}")
     for k in expired_v:
         print(f"EXPIRED EXCEPTION (now failing): {k}")
     for k in stale:
@@ -123,11 +126,11 @@ def main() -> int:
 
     if new_v or expired_v:
         print(
-            f"BOUNDARY RATCHET: FAIL ({len(new_v)} new, {len(expired_v)} expired, {len(kept_edges)} known)"
+            f"BOUNDARY RATCHET: FAIL ({len(new_v)} new, {len(expired_v)} expired, {len(kept)} known)"
         )
         return 1
     print(
-        f"BOUNDARY RATCHET: PASS ({len(kept_edges)} known violations under exception, {len(stale)} stale ledger)"
+        f"BOUNDARY RATCHET: PASS ({len(kept)} known violations under exception, {len(stale)} stale ledger)"
     )
     return 0
 
