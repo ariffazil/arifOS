@@ -1,11 +1,11 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.8.2
-last_verified: 2026-09-15T15:43:02+00:00
-live_commit: 79c3686f3 (fix(ci): canonicalize bijaksana-ci — registry stale since 2026-06-30 consolidati)
-source_commit: 79c3686f3
-built_commit: 2b3215b7248e
-deployment_drift_status: aligned (source = built = deployed, drift: false — redeployed from HEAD via deploy-release.sh)
+last_verified: 2026-09-15T15:55:13+00:00
+live_commit: f1ede6cfc (fix(ingress): legacy-alias soft-landing on public call gate)
+source_commit: f1ede6cfc
+built_commit: c6a4b24
+deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs)
 tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
 floors_active: 13 (F1–F9 + L10–L13, all pass)
