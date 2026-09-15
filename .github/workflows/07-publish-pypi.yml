@@ -27,9 +27,11 @@ jobs:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: Build and publish arifos
     runs-on: ubuntu-latest
-    # Job-level environment — the OIDC token must carry the environment claim
-    # to match the PyPI trusted-publisher registration (env: pypi).
-    environment: pypi
+    # NOTE: environment claim must EXACTLY match the PyPI trusted-publisher
+    # registration. 2026-09-16: registration appears to have environment BLANK,
+    # so the job-level environment line is removed (claim-absent matches blank).
+    # If F13 later sets environment=pypi on pypi.org, re-add:
+    #   environment: pypi
     steps:
       - uses: actions/checkout@v7
 
@@ -59,6 +61,8 @@ jobs:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: CycloneDX SBOM (attach to release)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # release asset upload (403 with workflow-level read)
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
