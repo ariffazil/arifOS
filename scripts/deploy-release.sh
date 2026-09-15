@@ -136,6 +136,28 @@ echo "  ✅ Wheel installed (single distribution, zero editables)"
 install -d -m 0755 -o root -g root /etc/arifos
 install -m 0644 -o root -g root "$REPO_DIR/identity.toml" /etc/arifos/identity.toml
 echo "  ✅ identity.toml → /etc/arifos/identity.toml"
+
+# ── Step 3.6: Venv self-containment gate ─────────────────────────────
+# ONE_ORIGIN dep closure (2026-09-16): the venv must be self-contained —
+# no kernel import may resolve from system dist-packages. The legacy venv
+# silently leaned on /usr/local + /usr/lib for ~40 packages (incl. numpy,
+# cryptography, asyncpg) since forever.
+DEP_LEAN=$(cd / && env -i "$VENV_PYTHON" -c "
+import sys, json
+import arifosmcp.runtime.__main__
+import arifosmcp.runtime.tools
+import arifosmcp.runtime.rest_routes.rest_routes
+lean = sorted({n.split('.')[0] for n, m in list(sys.modules.items())
+    if (f := getattr(m, '__file__', None)) and 'dist-packages' in f
+    and '$ACTIVE_VENV' not in f})
+print(json.dumps(lean))
+" 2>/dev/null || echo '["SCAN_FAILED"]')
+if [ "$DEP_LEAN" != "[]" ]; then
+	echo "❌ DEP-CLOSURE GATE: venv not self-contained: $DEP_LEAN"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
+echo "  ✅ Venv self-contained (zero system-lean imports)"
 echo ""
 
 # Wheel content gate: exactly three legal roots, nothing else ships.
