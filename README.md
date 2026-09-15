@@ -408,6 +408,25 @@ arifOS/
 
 ---
 
+## Evidence & Trust
+
+arifOS publishes verifiable evidence for its claims. Every public claim links to an artifact that can be independently regenerated.
+
+| Claim | Evidence | Status |
+|---|---|---|
+| MCP Conformance | [CI Workflow](.github/workflows/06-mcp-conformance.yml) | Partial — CI passes, results not published externally |
+| ABI Stability | [Drift Guard](scripts/sync_kernel_abi.py) | Verified — `--check` passes |
+| SBOM | [Generator](arifosmcp/arifos_sbom.py) | Partial — CycloneDX generated, no CVE scan |
+| Observability | [Telemetry](arifosmcp/runtime/telemetry.py) | Partial — sovereign Postgres + arifFlow + FRAME live |
+| Governance | [Adversarial Spec](../AAA/docs/ADVERSARIAL_SPEC_EXTERNAL.md) | Partial — spec ready, no external audit |
+| Quickstart | [Guide](docs/QUICKSTART.md) | Exists — not independently validated |
+
+See [docs/evidence/](docs/evidence/) for the full claim registry and evidence index.
+
+> **Honesty principle:** We publish what passed, what failed, and what remains unknown. We do not claim maturity beyond our evidence.
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.

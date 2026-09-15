@@ -21,7 +21,7 @@ from arifosmcp.runtime.observability import ObservationRecord
 logger = logging.getLogger(__name__)
 
 _METRICS_ENABLED = os.getenv("ARIFOS_METRICS_ENABLED", "true").lower() == "true"
-_OBSERVABILITY_BACKEND = os.getenv("OBSERVABILITY_BACKEND", "langfuse").lower()
+_OBSERVABILITY_BACKEND = os.getenv("OBSERVABILITY_BACKEND", "dual").lower()
 
 _lf_client: Any = None
 _local_backend: Any = None
@@ -225,7 +225,9 @@ def _hash_payload(data: Any) -> str:
 # Never blocks the kernel tool path — silent on failure.
 # arifFlow is the canonical federation telemetry sink.
 
-_ARIFLOW_TELEMETRY_URL = os.getenv("ARIFLOW_TELEMETRY_URL", "http://127.0.0.1:7073/telemetry/log")
+# FIX 2026-09-16 P0-A: /telemetry/log returns 404 — arifFlow only serves /ingest.
+# The previous default silently lost every tool-call telemetry event.
+_ARIFLOW_TELEMETRY_URL = os.getenv("ARIFLOW_TELEMETRY_URL", "http://127.0.0.1:7073/ingest")
 _ARIFLOW_TELEMETRY_ENABLED = os.getenv("ARIFLOW_TELEMETRY_ENABLED", "true").lower() == "true"
 
 # ── Organ self-labeling (E4/G-09 fix, 2026-09-15) ────────────────────────────
@@ -266,6 +268,78 @@ def _derive_organ(actor_id: str | None) -> str:
     return "arifOS"
 
 
+def _build_arifflow_receipt(
+    tool_name: str,
+    verdict: str,
+    latency_ms: float | None,
+    session_id: str | None,
+    actor_id: str | None,
+    metadata: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Map arifOS telemetry to arifFlow FlowReceipt v1 schema.
+
+    Spec: /root/arifFlow/spec/FLOW_RECEIPT_v1.md
+    Only required fields are populated; optional fields default to None/[].
+    """
+    from uuid import uuid4
+
+    # Map verdict to step_type
+    _verdict_upper = (verdict or "OK").upper()
+    if _verdict_upper in ("HOLD", "VOID"):
+        step_type = "Cool"
+    elif _verdict_upper == "SEAL":
+        step_type = "Seal"
+    elif _verdict_upper == "SABAR":
+        step_type = "Verify"
+    else:
+        step_type = "Execute"
+
+    # Map verdict to floor_verdict
+    _floor_map = {
+        "PASS": "Pass", "OK": "Pass", "SEAL": "Pass",
+        "CAUTION": "Caution", "SABAR": "Caution",
+        "HOLD": "Hold",
+        "VOID": "Void",
+    }
+    floor_verdict = _floor_map.get(_verdict_upper, "Pass")
+
+    # Convert latency_ms to cost_ns
+    cost_ns = int(latency_ms * 1_000_000) if latency_ms else 0
+
+    # Build payload from metadata (redacted)
+    payload = {}
+    if metadata:
+        # Only include safe fields — no raw prompts, secrets, or tool bodies
+        for key in ("verdict", "delta_s", "reasons", "next_safe_action",
+                     "input_hash", "output_hash", "vault_receipt"):
+            if key in metadata:
+                payload[key] = metadata[key]
+
+    return {
+        "receipt_id": str(uuid4()),
+        "previous_receipt_hash": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "actor_id": f"arifos:{actor_id[:32]}" if actor_id else "arifos:unknown",
+        "session_id": session_id or "",
+        "session_token": None,
+        "step_type": step_type,
+        "topology_id": None,
+        "lane_id": None,
+        "step_number": 0,
+        "routed_organ": _derive_organ(actor_id),
+        "parent_receipt_ids": [],
+        "cost_ns": cost_ns,
+        "preceding_verify_cost_ns": None,
+        "epistemic_label": "OBS",
+        "floor_verdict": floor_verdict,
+        "cooling_decision": "None",
+        "tri_witness_votes": None,
+        "merkle_root": None,
+        "merkle_inclusion_proof": None,
+        "payload": payload or None,
+    }
+
+
 def _forward_to_arifflow(
     tool_name: str,
     verdict: str,
@@ -273,34 +347,44 @@ def _forward_to_arifflow(
     session_id: str | None,
     actor_id: str | None,
     metadata: dict[str, Any] | None,
-) -> None:
-    """Forward telemetry event to arifFlow — fire-and-forget.
+) -> str:
+    """Forward telemetry event to arifFlow as FlowReceipt v1.
 
-    arifFlow is the federation's canonical receipt gravity well.
-    Local sinks (Langfuse, NATS, Postgres) remain primary — this is
-    an additional witness stream, not a replacement.
+    Returns delivery state: DELIVERED | FAILED_<reason> | DISABLED_BY_POLICY
+    Non-blocking for kernel execution; evidence state is never silent.
     """
     if not _ARIFLOW_TELEMETRY_ENABLED:
-        return
-    try:
-        import json as _json
+        return "DISABLED_BY_POLICY"
 
+    try:
         import httpx
 
-        payload: dict[str, Any] = {
-            "band": "GOVERNANCE" if verdict.upper() in ("HOLD", "VOID", "SABAR") else "OPERATIONAL",
-            "organ": _derive_organ(actor_id),
-            "agent_id": f"arifos:{actor_id[:32]}" if actor_id else None,
-            "session_id": session_id,
-            "tool_name": tool_name,
-            "latency_ms": latency_ms,
-            "success": verdict.upper() not in ("VOID", "HOLD"),
-            "metadata": metadata or {},
-        }
+        receipt = _build_arifflow_receipt(
+            tool_name=tool_name,
+            verdict=verdict,
+            latency_ms=latency_ms,
+            session_id=session_id,
+            actor_id=actor_id,
+            metadata=metadata,
+        )
+
         with httpx.Client(timeout=3.0) as client:
-            client.post(_ARIFLOW_TELEMETRY_URL, json=payload)
-    except Exception:
-        pass  # fire-and-forget — never block the kernel
+            resp = client.post(_ARIFLOW_TELEMETRY_URL, json=receipt)
+            if resp.status_code < 400:
+                return "DELIVERED"
+            else:
+                logger.debug(
+                    f"[Telemetry] arifFlow /ingest returned {resp.status_code}: "
+                    f"{resp.text[:200]}"
+                )
+                return f"FAILED_HTTP_{resp.status_code}"
+    except httpx.ConnectError:
+        return "FAILED_CONNECT"
+    except httpx.TimeoutException:
+        return "FAILED_TIMEOUT"
+    except Exception as e:
+        logger.debug(f"[Telemetry] arifFlow forward failed: {e}")
+        return f"FAILED_{type(e).__name__}"
 
 
 # ── ACT Token Filter (F12/F11 CRITICAL — 2026-07-25, updated 2026-08-07) ──
@@ -460,6 +544,10 @@ class Telemetry:
         vault_receipt: str | None = None,
         reasons: list[str] | None = None,
         next_safe_action: str | None = None,
+        # FIX 2026-09-16 P0-B: trace propagation — accept caller context
+        trace_id: str | None = None,
+        span_id: str | None = None,
+        parent_span_id: str | None = None,
     ) -> None:
         # F12/F11 CRITICAL: Sanitize session_id — hash any act_v1.* tokens
         # before they reach Langfuse, Kabarkan NATS, or Postgres sinks
@@ -505,7 +593,31 @@ class Telemetry:
             try:
                 input_hash = _hash_payload(_redact(input_data)) if input_data else None
                 output_hash = _hash_payload(output_data) if output_data else None
+                # FIX 2026-09-16 P0-B: propagate caller trace context instead of minting fresh UUID
+                from uuid import UUID as _UUID
+                _trace = None
+                _span = None
+                _parent = None
+                if trace_id:
+                    try:
+                        _trace = _UUID(trace_id) if isinstance(trace_id, str) else trace_id
+                    except (ValueError, AttributeError):
+                        pass
+                if span_id:
+                    try:
+                        _span = _UUID(span_id) if isinstance(span_id, str) else span_id
+                    except (ValueError, AttributeError):
+                        pass
+                if parent_span_id:
+                    try:
+                        _parent = _UUID(parent_span_id) if isinstance(parent_span_id, str) else parent_span_id
+                    except (ValueError, AttributeError):
+                        pass
+
                 record = ObservationRecord(
+                    **({"trace_id": _trace} if _trace else {}),
+                    **({"span_id": _span} if _span else {}),
+                    **({"parent_span_id": _parent} if _parent else {}),
                     session_id=session_id,
                     actor_id=actor_id or "unknown",
                     tool_name=tool,
@@ -529,7 +641,11 @@ class Telemetry:
             try:
                 input_hash = _hash_payload(_redact(input_data)) if input_data else None
                 output_hash = _hash_payload(output_data) if output_data else None
+                # FIX 2026-09-16 P0-B: same trace propagation for local backend
                 record = ObservationRecord(
+                    **({"trace_id": _trace} if _trace else {}),
+                    **({"span_id": _span} if _span else {}),
+                    **({"parent_span_id": _parent} if _parent else {}),
                     session_id=session_id,
                     actor_id=actor_id or "unknown",
                     tool_name=tool,
@@ -568,7 +684,7 @@ class Telemetry:
                 ariflow_meta.update(metadata)
         except Exception:
             ariflow_meta = {}
-        _forward_to_arifflow(
+        _delivery_state = _forward_to_arifflow(
             tool_name=tool,
             verdict=verdict,
             latency_ms=latency * 1000.0 if latency else None,
@@ -577,7 +693,7 @@ class Telemetry:
             metadata=_redact(ariflow_meta),
         )
 
-        logger.debug(f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency}")
+        logger.debug(f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency} ariflow={_delivery_state}")
 
     def record_floor_breach(self, floor: str, tool: str) -> None:
         if _METRICS_ENABLED and "floor_breaches" in self._counters:
@@ -609,9 +725,13 @@ def trace_tool_call(
     session_id: str | None,
     actor_id: str,
     latency_ms: float,
+    # FIX 2026-09-16 P0-B: accept caller trace context
+    trace_id: str | None = None,
+    span_id: str | None = None,
+    parent_span_id: str | None = None,
 ) -> None:
     """
-    Primary entry point for Langfuse tracing of arifOS tool calls.
+    Primary entry point for tracing arifOS tool calls.
 
     Wraps a tool invocation with full metadata including:
     - session_id, actor_id, tool name
@@ -620,6 +740,7 @@ def trace_tool_call(
     - status derived from result['status'] or result.get('verdict')
     - reasons[], next_safe_action
     - vault_receipt if present
+    - trace_id, span_id, parent_span_id (for distributed tracing)
     """
     status = (
         result.get("status")
@@ -643,4 +764,8 @@ def trace_tool_call(
         next_safe_action=next_action,
         vault_receipt=vault_receipt,
         delta_s=0.0,
+        # FIX 2026-09-16 P0-B: propagate trace context
+        trace_id=trace_id,
+        span_id=span_id,
+        parent_span_id=parent_span_id,
     )
