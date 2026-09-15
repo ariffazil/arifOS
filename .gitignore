@@ -300,7 +300,3 @@ deploy/rollback/
 
 # sandbox kit — not tracked
 termux-agentic/
-.ua/
-.megamemory/
-.audit/
-.collab/

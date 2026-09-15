@@ -343,16 +343,21 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 logger.warning(f"333_MIND memory store failed: {exc}")
 
         else:
-            # Legacy v1 path
-            context = params.get("context", {})
+            # Canonical reasoning & APEX/converge/reflect path
+            context = dict(params.get("context", {}) or {})
             if session_id:
                 context["session_id"] = session_id
+            session_token = params.get("session_token")
+            if session_token:
+                context["session_token"] = session_token
 
             result = _mind_reason_kernel(
                 mode=mode,
                 query=query,
                 actor_id=actor_id,
                 context=context,
+                session_id=session_id,
+                session_token=session_token,
             )
 
         # Handle both Pydantic models (MindResponse) and plain dicts (legacy v1)
