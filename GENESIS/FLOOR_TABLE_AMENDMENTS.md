@@ -192,7 +192,7 @@ least legible party. That makes it HOLD-eligible, not advisory.
 ### Rationale
 Measured 2026-09-16: 1,568 rename events in the canonical skill tree propagated zero times to the harness tree; 7 capabilities were deleted silently with no error and no log line. A broken symlink is not a crash — it is a quiet capability delete. The inverse (declaring a capability down without probing an owned resource) is the same F2 failure.
 
-**Awaiting: F13 SOVEREIGN ratification**
+**RATIFIED — F13 chat seal 2026-09-16** (`ARIF: "u execute all and seal all"`). Doctrine-layer binding via rendered canon; kernel `FLOOR_TABLE.json` untouched (F1–F13).
 
 ---
 
@@ -213,7 +213,7 @@ Measured 2026-09-16: 1,568 rename events in the canonical skill tree propagated 
 ### Rationale
 This is the onar gate — the only failure mode in the skills system that is not recoverable. BANGANG and PHANTOM are embarrassments; a capability that resolves, executes, and drives an irreversible real-world side effect with no declared authority is a catastrophe. Governing capability without declaring consequence is governance in name only.
 
-**Awaiting: F13 SOVEREIGN ratification**
+**RATIFIED — F13 chat seal 2026-09-16** (`ARIF: "u execute all and seal all"`). Doctrine-layer binding via rendered canon; kernel `FLOOR_TABLE.json` untouched (F1–F13).
 
 ---
 
@@ -234,7 +234,7 @@ This is the onar gate — the only failure mode in the skills system that is not
 ### Rationale
 F13 sovereign instrument 2026-09-16: *"aku benci HERMES tanya aku soalan yang dia sendiri boleh solved"*. Attention is the one resource the institution cannot manufacture (W₈₈₈). An agent asking a solvable question trades the sovereign's scarcest asset for its own comfort — always a loss. Extends `human-attention-membrane.md` from routing law to falsifiable gate.
 
-**Awaiting: F13 SOVEREIGN ratification**
+**RATIFIED — F13 chat seal 2026-09-16** (`ARIF: "u execute all and seal all"`). Doctrine-layer binding via rendered canon; kernel `FLOOR_TABLE.json` untouched (F1–F13).
 
 ## Amendment 17: SYMBOL TRUTH
 
@@ -260,7 +260,7 @@ surfaces months later as two agents reading the same symbol differently. A linte
 and passes. The only question that protects meaning is *"does T1 mean the same thing to every agent?"*
 Collision register: `/root/AAA/canon/SYMBOL_TABLE.json`.
 
-**Awaiting: F13 SOVEREIGN ratification**
+**RATIFIED — F13 chat seal 2026-09-16** (`ARIF: "u execute all and seal all"`). Doctrine-layer binding via rendered canon; kernel `FLOOR_TABLE.json` untouched (F1–F13).
 
 ---
 
