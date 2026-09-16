@@ -51,6 +51,10 @@ THERMO_*.md
 MCP_WEB_*.md
 LANDING_PAGE_*.md
 TOOLS_FLOORS_*.md
+*-report.json
+repo-inventory.json
+surface-evidence.json
+release-closure-plan.md
 nosetests.xml
 coverage.xml
 *.cover

@@ -1,0 +1,295 @@
+# kernel-sot.yaml — SINGLE SEMANTIC SOURCE OF TRUTH (KERNEL_SSOT)
+#
+# F13 RATIFIED 2026-09-16 (sovereign token: "seal it and forge agentically autonomously")
+# 888-APEX verdicts adopted wholesale. This file is the ONLY authoritative semantic
+# description of the arifOS kernel. All agent-visible and developer-visible projections
+# (MCP manifest, JSON schemas, router, charter, OpenAPI, Docker labels, docs tables,
+# alias map, test fixtures, llms.txt) MUST be generated from this file.
+#
+# DO NOT HAND-EDIT the generated projections. Edit THIS file, then regenerate.
+# Registry hash (sha256 of canonical sections) computed by
+# scripts/semantic_closure_scanner.py and must match at runtime (I6 drift gate).
+#
+# CANONICAL VERB FORM = UNDERSCORED: arif_init, arif_observe, arif_think, arif_route,
+#   arif_memory, arif_judge, arif_forge, arif_seal.  (Matches runtime tools/list + ACT.)
+
+kernel:
+  name: arifOS
+  abi_version: "1.0.0"
+  semantic_revision: "2026.09"
+  registry_hash_algorithm: sha256
+  ratified_by: F13
+  ratified_at: "2026-09-16"
+  prior_sot: "arifosmcp/constitutional_map.py -> tools_sot.yaml (M3-codegen)"
+  prior_sot_status: "absorbed as generation input; no longer a parallel authority"
+
+# ── OBSERVED DRIFT (evidence captured 2026-09-16, ChatGPT connector audit #2) ──────
+observed_drift:
+  finding: "public-surface/runtime-surface contract mismatch (F10/F11)"
+  surfaces:
+    - path: "arifosmcp/abi/capability_registry.json"
+      state: "19 arif_* provider.tool bindings; 11 point to stale noun_verb names"
+      read_by: "kernel_abi.py:167 (daemon-read)"
+    - path: "AAA/arifos_kernel/abi/capability_registry.json"
+      state: "mirror copy, same 19-name drift"
+      read_by: "duplicate registry (should be a symlink/pointer)"
+    - path: "static/llms.txt (+ llms.txt, static/constitutional.llms.txt, static/llms-full.txt)"
+      state: "60+ arif_* names advertised; includes noun_verb + internal verbs"
+      read_by: "served live at /llms.txt (rest_routes.py:6646) — ChatGPT connector source"
+  root_cause: "noun_verb -> verb alias map EXISTS (pre_execution_gate.py:783, tools.py:1154)
+                but is NOT wired into public dispatch -> 'Unknown tool'"
+
+# ── RATIFIED RESOLUTIONS (the six constitutional conflicts, now closed) ──────────
+resolutions:
+  tri_witness:
+    floor: 0.75          # enforced authorization floor (CONSENSUS)
+    ceiling: 0.95        # aspirational high-confidence ceiling; NOT a competing gate
+    note: "0.70 is peace2/anomaly threshold, NOT a witness threshold"
+  genius_equation:
+    primitives: [A, P, E, X]
+    correction_terms: [Phi]      # Phi = scar pressure; NOT a 5th primitive
+    note: "one mathematical ontology; one schema"
+  kernel_abi:
+    count: 8
+    note: "8 canonical public verbs. Historical 9/13/19/24 counts are HISTORICAL only."
+  f14:
+    disposition: FOLD_INTO_L12_INJECTION
+    note: "protection preserved; label F14 retired. Fold MUST be verified before tombstone."
+  stage_numbering:
+    judge: 666
+    note: "666=JUDGE (F13 RATIFIED 2026-07-31). 888=COMPOSE retired; compose is a mode."
+    memory: 555
+    critique: "MODE of arif_think (NOT a stage). Resolves prior CRITIQUE=555 collision."
+  verdict_lattice:
+    direction: "ascending_authority"
+    ordered: [VOID, HOLD, SABAR, PARTIAL, SEAL]
+    terminal: [VOID, HOLD, SEAL]
+    retryable: [SABAR]
+    transport_aliases: [ALLOW, DENY, PROCEED, DEGRADED, OBSERVE_ONLY, PAUSED,
+                        RECORD_SEAL, ACTION_AUTHORIZATION_SEAL]
+    note: "transport/UI aliases are NOT constitutional verdicts"
+
+# ── LIFECYCLE (constitutional state machine; distinct from capability ABI) ───────
+lifecycle:
+  states: [INIT, OBSERVE, THINK, JUDGE, ACT, SEAL]
+  transitions:
+    INIT:    [OBSERVE, SEAL]
+    OBSERVE: [THINK, JUDGE, SEAL]
+    THINK:   [JUDGE, OBSERVE, SEAL]
+    JUDGE:   [ACT, OBSERVE, THINK, SEAL]
+    ACT:     [SEAL, OBSERVE, JUDGE]
+    SEAL:    []
+
+# ── CAPABILITY ABI (8 canonical verbs — underscored, matching runtime) ────────────
+capabilities:
+  arif_init:
+    stage: '000'
+    lifecycle_states: [INIT]
+    mutation_class: SESSION_BOUNDARY
+    authority: VERIFIED_ACTOR
+    handler: arifosmcp/runtime/megaTools/tool_01_init_anchor.py
+    modes: [init, light, resume, validate, canary, preflight, triage,
+            epoch_open, epoch_seal, opt_out, opt_out_profiling]
+
+  arif_observe:
+    stage: '111'
+    lifecycle_states: [INIT, OBSERVE, THINK, JUDGE, ACT]
+    mutation_class: READ_ONLY
+    authority: SCOPED_LEASE
+    handler: arifosmcp/runtime/tools.py
+    modes: [search, fetch, hybrid_discovery, ingest, compass, atlas, entropy_dS, vitals]
+
+  arif_think:
+    stage: '333'
+    lifecycle_states: [OBSERVE, THINK, JUDGE]
+    mutation_class: READ_ONLY
+    authority: SCOPED_LEASE
+    handler: arifosmcp/runtime/tools.py
+    modes: [reason, reflect, verify, axioms, plan, plan_review, plan_approve,
+            refactor_plan, metabolize, simulate, wonder, atlas, critique]
+
+  arif_route:
+    stage: '444'
+    lifecycle_states: [INIT, OBSERVE, THINK, JUDGE, ACT]
+    mutation_class: NONE
+    authority: KERNEL_INTERNAL
+    handler: arifosmcp/router.py
+    modes: [route, bridge]
+
+  arif_memory:
+    stage: '555'
+    lifecycle_states: [OBSERVE, THINK, JUDGE, ACT]
+    mutation_class: GOVERNED_MEMORY
+    authority: POLICY_BOUND
+    handler: arifosmcp/runtime/megaTools/tool_13_arif_memory.py
+    modes: [recall, inspect, attest, remember, promote, revise, forget, audit]
+
+  arif_judge:
+    stage: '666'
+    lifecycle_states: [OBSERVE, THINK, JUDGE, ACT]
+    mutation_class: GOVERNANCE_RECORD
+    authority: VERIFIED_ACTOR
+    handler: arifosmcp/runtime/tools.py
+    modes: [intercept, judge, validate, hold, escalate]
+
+  arif_forge:
+    stage: '777'
+    lifecycle_states: [ACT]
+    mutation_class: REVERSIBLE_ACTION
+    authority: JUDGED_LEASE
+    irreversible: false
+    requires_judge_seal: true
+    handler: arifosmcp/runtime/tools.py
+    modes: [engineer, query, write, generate, commit, recall, dry_run]
+
+  arif_seal:
+    stage: '999'
+    lifecycle_states: [SEAL]
+    mutation_class: IRREVERSIBLE_ATTESTATION
+    authority: F13_BOUND
+    irreversible: true
+    requires_judge_seal: true
+    requires_actor_auth: true
+    requires_human_confirmation: true
+    handler: arifosmcp/runtime/tools.py
+    modes: [seal, verify, ledger, changelog, audit, session_close]
+
+# ── ALIAS POLICY (exactly three states) ──────────────────────────────────────────
+#   canonical   -> executes
+#   deprecated  -> resolves once, emits migration warning + telemetry
+#   tombstoned  -> fails closed with replacement guidance
+aliases:
+  deprecated:
+    # non-underscored legacy forms
+    arifjudgedeliberate: arif_judge
+    arifvaultseal: arif_seal
+    arifforgeexecute: arif_forge
+    arifkernelroute: arif_route
+    arifmemoryrecall: arif_memory
+    # underscored noun_verb forms (the ACTUAL drifted ABI registry + llms.txt surface)
+    arif_session_init: arif_init        # mode=init
+    arif_sense_observe: arif_observe    # mode=observe
+    arif_mind_reason: arif_think        # mode=reason
+    arif_heart_critique: arif_think     # mode=critique
+    arif_judge_deliberate: arif_judge   # mode=deliberate
+    arif_forge_execute: arif_forge      # mode=engineer
+    arif_memory_recall: arif_memory     # mode=recall
+    arif_vault_seal: arif_seal          # mode=seal
+    arif_reply_compose: arif_forge      # compose absorbed into forge
+    arif_critique: arif_think           # mode=critique
+    arif_compose: arif_forge            # absorbed
+    arif_bridge_connect: arif_route     # mode=bridge
+    arif_fetch: arif_observe            # mode=fetch
+    arif_evidence_fetch: arif_observe   # mode=fetch
+  tombstones:
+    - ariftriage          # mode of arif_init / arif_route, not a tool
+    - ariffetch           # absorbed into arif_observe
+    - arifcritique        # absorbed into arif_think
+    - arifcompose         # absorbed into arif_forge
+    - arifbridgeconnect   # absorbed into arif_route
+    - arif_stage          # phantom verb in ACT identity layer; no handler exists
+  internal:
+    # legitimate internal verbs — MUST NOT be advertised as public ABI
+    # (these leaked into llms.txt; they are not public capabilities)
+    note: "leaked-into-advertisement internal verbs (lease/attest/heartbeat/probe/etc.)"
+    examples:
+      - arif_ping
+      - arif_heartbeat
+      - arif_measure
+      - arif_challenge
+      - arif_canary
+      - arif_commit
+      - arif_vault_query
+      - arif_lease_issue
+      - arif_lease_revoke
+      - arif_lease_inspect
+      - arif_os_attest
+      - arif_organ_attest
+      - arif_gate_judge
+      - arif_j_gate
+      - arif_kernel_intercept
+
+# ── SURFACE PROJECTION (visibility model — critical correction, 2026-09-16) ───────
+# ABI != Advertised Surface != Internal Runtime.
+# `visibility` is a TYPED, GENERATED classification (not prose), so llms.txt leakage
+# cannot recur. The exact public/gated split is a CONSTITUTIONAL decision — the
+# assignment below is PROPOSED, pending F13 ratification.
+surface_projection:
+  visibility_types: [public, gated, internal, deprecated, tombstoned]
+  proposed_public:
+    - arif_init
+    - arif_observe
+    - arif_think
+    - arif_route
+    - arif_memory
+    - arif_judge
+  proposed_gated:
+    arif_forge:
+      authority: JUDGED_LEASE
+      requires_f13: false
+      requires_human_confirmation: conditional
+    arif_seal:
+      authority: F13_BOUND
+      requires_f13: true
+      requires_human_confirmation: true
+  internal_operations:        # typed; advertise:false; never in /tools/list or llms.txt
+    - { name: arif_heartbeat,     invocation: kernel_only, advertise: false }
+    - { name: arif_ping,          invocation: kernel_only, advertise: false }
+    - { name: arif_measure,       invocation: kernel_only, advertise: false }
+    - { name: arif_challenge,     invocation: kernel_only, advertise: false }
+    - { name: arif_canary,        invocation: kernel_only, advertise: false }
+    - { name: arif_commit,        invocation: kernel_only, advertise: false }
+    - { name: arif_vault_query,   invocation: kernel_only, advertise: false }
+    - { name: arif_lease_issue,   invocation: kernel_only, advertise: false }
+    - { name: arif_lease_revoke,  invocation: kernel_only, advertise: false }
+    - { name: arif_lease_inspect, invocation: kernel_only, advertise: false }
+    - { name: arif_os_attest,     invocation: kernel_only, advertise: false }
+    - { name: arif_organ_attest,  invocation: kernel_only, advertise: false }
+    - { name: arif_gate_judge,    invocation: kernel_only, advertise: false }
+    - { name: arif_j_gate,        invocation: kernel_only, advertise: false }
+    - { name: arif_kernel_intercept, invocation: kernel_only, advertise: false }
+  ratification_status: "PROPOSED — public/gated split pending F13"
+
+# ── ENTROPY / CLOSURE LAW ─────────────────────────────────────────────────────────
+# Exists(x) iff R(x)&S(x)&H(x)&A(x)&L(x)&T(x)&W(x)&Q(x)&D(x)
+#   R=registered  S=schema  H=handler  A=authorization  L=lifecycle-permission
+#   T=telemetry  W=ledger/receipt  Q=test  D=documentation
+closure_chain: [Registry, Schema, Handler, Authorization, LifecyclePermission,
+                Telemetry, LedgerReceipt, Test, Documentation]
+
+entropy:
+  metric:
+    Hk: "w_s*N_synonyms + w_o*N_orphans + w_d*N_dead_paths + w_c*N_canon_conflicts + w_m*N_manifest_drift + w_b*N_bypass_paths + w_a*N_authority_conflicts"
+  hard_gate:
+    authority_conflicts: "N_authority_conflicts > 0 => VERDICT = HOLD (non-compensable)"
+  release_gates:
+    N_synonyms: 0
+    N_orphans: 0
+    N_dead_paths: 0
+    N_canon_conflicts: 0
+    N_manifest_drift: 0
+    N_bypass_paths: 0
+    N_authority_conflicts: 0
+  surface_integrity_gate:
+    # MAXIMAL-path conformance (ChatGPT audit #2 -> first-class invariant)
+    invariant: "advertised_surface_hash == executable_surface_hash"
+    on_mismatch: "SURFACE_DRIFT -> OBSERVE_ONLY -> 888_HOLD -> no FORGE -> no 999"
+
+# ── GENERATION TARGETS (all derived from this file; never hand-maintained) ───────
+generation:
+  outputs:
+    - mcp_manifest          # MCP tool declarations + JSON schemas
+    - runtime_registry      # tool router / dispatcher tables
+    - capability_registry   # abi/capability_registry.json (provider.tool -> canonical)
+    - llms_txt              # llms.txt / static/llms.txt / constitutional.llms.txt
+    - authority_matrix      # capability -> authority signature
+    - contract_tests        # schema/contract test fixtures
+    - documentation         # docs tables
+    - telemetry_dictionary  # event name -> canonical tool mapping
+    - compatibility_report  # deprecated/tombstoned/internal alias status
+  embed_in_every_output:
+    - abi_version
+    - semantic_revision
+    - registry_hash
+    - generated_at
+    - source_commit

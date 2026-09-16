@@ -1,0 +1,99 @@
+# fhs-map.yaml — DEPLOYMENT / FHS LAYER (ratified model 2026-09-16)
+#
+# Repo Constitution (names/ownership at dev time)  -->  Package  -->  FHS (placement/
+# permissions/persistence at deploy time)  -->  Runtime Attestation.
+# This file is the deployment-side twin of kernel-sot.yaml (the semantic side).
+# STATUS: RATIFIED DESIGN — NOT EXECUTED. 888 HOLD on all filesystem/ownership/unit/
+# wheel changes until the controlled deploy protocol + F13 at activation/restart.
+
+two_layer_model:
+  dev_git_layer:      "Repo namespace constitution — what may exist/be-named/import"
+  deploy_host_layer:  "FHS + systemd — where code/config/state/runtime may live"
+
+# ── FHS TARGET LAYOUT (verified live: /etc, /var/lib, /run ALREADY EXIST) ─────────
+fhs_layout:
+  /opt/arifos:            "installed release (wheel + venv), read-only"
+  /opt/arifos/releases:   "immutable per-release metadata"
+  /etc/arifos:            "host config/canon, root-owned, runtime read-only"
+  /etc/arifos/canon:      "ratified canon package (separate cadence from code)"
+  /var/lib/arifos:        "persistent mutable state (memory, receipts, ledger)"
+  /var/lib/arifos/generated: "derived surfaces — regenerator only, runtime-verified"
+  /var/lib/arifos/vault999:  "append-only hash-chained ledger (dedicated writer)"
+  /var/spool/arifos/proposals: "awaiting Judge/F13 decision (queue semantics)"
+  /run/arifos:            "ephemeral tmpfs (PID, sockets, lease caches)"
+  /var/log/arifos:        "rotated logs (journald preferred)"
+
+# ── CANON RELEASE MANIFEST (separate canon cadence from code cadence) ─────────────
+canon_release:
+  canon_version: "2026.09.16-r1"
+  semantic_revision: "2026.09"
+  registry_hash: "<sha256-of-kernel-sot.yaml>"
+  lifecycle_hash: "<sha256>"
+  authority_matrix_hash: "<sha256>"
+  ratification_receipt: "vault999://..."
+  ratified_by: "F13"
+  approved_at: "2026-09-16T...Z"
+
+# ── DEPLOY / KERNEL INTEGRITY HASH (six terms) ───────────────────────────────────
+integrity:
+  kernel_hash_terms:
+    - source_commit
+    - wheel_hash
+    - release_manifest_hash
+    - canon_hash
+    - generated_surface_hash
+    - runtime_surface_hash
+  equality_conditions:
+    - "CanonHash(boot) == CanonHash(attested)"
+    - "SurfaceHash(generated) == SurfaceHash(advertised) == SurfaceHash(runtime)"
+  on_mismatch: "OBSERVE_ONLY + 888 HOLD + FORGE=DENY + SEAL=DENY"
+
+# ── PACKAGING RULES (wheel = sole production code artifact) ──────────────────────
+packaging:
+  pipeline: "git -> clean checkout -> tests+conformance -> build wheel -> SHA256 ->
+             install isolated venv -> release manifest -> deploy canon -> generate
+             surfaces -> boot attestation -> start"
+  exclude_from_wheel:
+    - archive/
+    - 00_legacy_materials/
+    - experiments/
+    - tooling/
+    - tests/
+    - docs/
+    - evidence/
+    - scripts/
+    - "*.bak"
+    - "*.pre-forged*"
+    - "*.copy"
+    - "*_v2.py"
+  post_wheel_gate:
+    - "enumerate modules; reject archive/legacy/experiment/tooling"
+    - "reject entropy suffixes"
+    - "reject duplicate runtime package roots"
+    - "verify exactly one arifosmcp package origin"
+  one_import_origin:
+    must_resolve: "/opt/arifos/venv/.../site-packages/arifosmcp/"
+    never_resolve: ["/root/arifOS/", "/root/arifOS/arifosmcp/", "/opt/arifos/app/", "/usr/local/lib (old editable)"]
+    enforcement: "PYTHONNOUSERSITE=1; PYTHONPATH=; no editable installs; no source bind mounts"
+
+# ── SECURITY BOUNDARY (privilege geometry) ────────────────────────────────────────
+security:
+  read: [/opt/arifos, /etc/arifos, /var/lib/arifos, /run/arifos]
+  write: [/var/lib/arifos/generated, /var/lib/arifos/receipts, /var/lib/arifos/memory,
+          /var/lib/arifos/vault999, /var/spool/arifos/proposals, /run/arifos]
+  never_write: [/opt/arifos, /etc/arifos/canon, /root/arifOS, /usr, /bin, /etc/systemd/system]
+  systemd_hardening:
+    - ProtectSystem=strict
+    - ProtectHome=yes        # /root/arifOS unavailable to service = proof of wheel-only prod
+    - NoNewPrivileges=yes
+    - MemoryDenyWriteExecute=yes
+    - ReadOnlyPaths=/opt/arifos /etc/arifos
+    - ReadWritePaths=/var/lib/arifos /var/spool/arifos/proposals /run/arifos
+    - CapabilityBoundingSet=  # empty
+    - StateDirectory=arifos  RuntimeDirectory=arifos  ConfigurationDirectory=arifos
+
+# ── STATUS ────────────────────────────────────────────────────────────────────────
+status:
+  design: RATIFIED
+  execution: "888 HOLD — filesystem/ownership/unit/wheel/restart are externally
+              state-changing; require controlled deploy protocol + F13 at activation"
