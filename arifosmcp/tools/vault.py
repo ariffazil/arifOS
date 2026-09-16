@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import logging
 import hashlib
+import re
 from typing import Any, Literal
 
 from arifosmcp.arifos_otel_wiring import trace_tool
@@ -316,8 +317,12 @@ async def arif_seal(
         #   sovereign claim without binding -> HOLD (impersonation wall)
         # A presented-but-invalid token is worse than none: HOLD.
         _rb_verify = "self_reported"
+        # GO6-F1: normalize separators so no spelling of the sovereign name
+        # slips the wall (space/dash/underscore collapse; includes full name).
+        _rb_norm = re.sub(r"[\s_-]+", "", str(_rb_actor)).upper()
         _rb_sovereign_names = {
-            "ARIF", "888", "ARIFFAZIL", "ARIF-FAZIL", "ARIF_FAZIL", "F13",
+            "ARIF", "888", "ARIFFAZIL", "F13", "MUHAMMADARIFBINFAZIL",
+            "SOVEREIGN",
         }
         if session_token:
             from arifosmcp.runtime.act_token import verify_act
@@ -337,7 +342,7 @@ async def arif_seal(
             _rb_actor = _rb_claims.get("actor") or _rb_actor
             _rb_session = _rb_claims.get("sid") or _rb_session
             _rb_verify = "sct_bound"
-        elif str(_rb_actor).strip().upper() in _rb_sovereign_names:
+        elif _rb_norm in _rb_sovereign_names:
             return {
                 "status": "OK",
                 "tool": "arif_seal",
@@ -380,10 +385,13 @@ async def arif_seal(
             f"lane_b_receipt:{nonce}:{_rb_verify}" if nonce else f"lane_b_receipt:{_rb_verify}"
         )
         if nonce:
+            # GO6-F3: dedupe key is the nonce prefix alone — the verification
+            # suffix (sct_bound/self_reported) must not split the replay class.
+            _rb_dedupe_key = f"lane_b_receipt:{nonce}:"
             try:
                 with open(_rb_vault_path) as _rf:
                     for _line in _rf:
-                        if _rb_ref in _line:
+                        if _rb_dedupe_key in _line:
                             return {
                                 "status": "OK",
                                 "tool": "arif_seal",
