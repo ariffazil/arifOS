@@ -52,6 +52,7 @@ jobs:
       - name: Run federation organism verifier
         id: probe
         run: |
+          mkdir -p artifacts
           python3 reports/federation-organism-2026-09-17/verify_federation_organism.py \
             > artifacts/federation-organism.txt 2>&1
           cat artifacts/federation-organism.txt
