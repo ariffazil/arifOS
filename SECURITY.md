@@ -48,7 +48,9 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 | Observability — trace propagation fix in progress | MEDIUM | Partial — sovereign Postgres backend exists; arifFlow, FRAME, and Kabarkan live; trace propagation not yet complete |
 | VAULT999 hash chain not independently verified | LOW | Open |
 | ZKPC (zero-knowledge proof of constitution) deferred | LOW | Design stage |
-| CVE disclosure history | INFO | One privately reported finding accepted, fixed and released in `1!2026.9.1` (2026-09-15); the reporter is filing it with MITRE. No CVE assigned yet |
+| Cypher injection via unescaped property key (`arifosmcp/runtime/l5_sovereign_forge.py:401,425,474`) — LLM-extracted property keys reach the query builder unvalidated; a crafted key can append `DETACH DELETE n` and wipe the graph | HIGH | Open — fix is a key whitelist (`^[A-Za-z_][A-Za-z0-9_]*$`) before `_s(k)`, same pattern already used for edge labels |
+| Path traversal via fastmcp decode-after-match (`arifosmcp/resources/atlas333.py:410`, `arifosmcp/server.py:815`) — upstream fastmcp 3.3.1 matches URI templates before `unquote()`, so `%2F` bypasses the `[^/]+` segment guard | MEDIUM | Open — fix is post-unquote path validation + containment check before filesystem access; root cause reported upstream to fastmcp |
+| CVE disclosure history | INFO | One privately reported finding accepted, fixed and released in `1!2026.9.1` (2026-09-15); the reporter is filing it with MITRE. No CVE assigned yet. A second report (2026-09-15/16, same reporter) found the two open issues above in `1!2026.9.1` — see Disclosure History |
 
 **Status labels:** Open = no work started · Partial = infrastructure exists but not complete · Verified = independently tested · Complete = fully operational with evidence.
 
@@ -76,6 +78,7 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 | Date | Surface | Reported by | Outcome |
 |------|---------|-------------|---------|
 | 2026-08-25 | `arif_fetch` / fetch fallback (SSRF, fail-open) | Syed Anas Mohiuddin (private report) | Confirmed, fixed same day, released in `1!2026.9.1`. Reporter of record; filing with MITRE. Residual accepted and documented in `arifosmcp/runtime/ssrf_guard.py` (DNS-rebinding TOCTOU — resolve-at-check vs resolve-at-connect) |
+| 2026-09-15/16 | `l5_sovereign_forge.py` Cypher injection (graph wipe via unvalidated LLM-extracted property key) + fastmcp decode-after-match path traversal (`atlas333.py`, `server.py`) — mcp-safeguard scan of `1!2026.9.1`, 117 raw findings manually triaged to 2 confirmed real issues (105 refuted as noise) | Syed Anas Mohiuddin (private report) | Both confirmed by source-level trace. Cypher injection: HIGH, fix pending (key whitelist). Path traversal: MEDIUM, root cause is upstream fastmcp; arifOS-side mitigation (post-unquote validation) pending, upstream report pending |
 
 ---
 
@@ -118,4 +121,4 @@ arifbfazil@gmail.com
 
 ---
 
-**Last updated:** 16 September 2026
+**Last updated:** 17 September 2026

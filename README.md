@@ -24,7 +24,7 @@ seal_readiness_gaps: graphiti=RETIRED_888(2026-09-04) · semantic_floor=off_by_c
 
 # arifOS — The Authority Plane of the arifOS Federation
 
-[![Security Audit: Grade A](https://img.shields.io/badge/Security_Audit-Grade_A-2ECC71?style=flat-square)](https://mcp.arif-fazil.com/proof/)
+[![Security Audit: In Progress](https://img.shields.io/badge/Security_Audit-In_Progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![MCP Compliance: 148 Rules](https://img.shields.io/badge/MCP_Scanners-148_Rules_Passed-d4a853?style=flat-square)](https://mcp.arif-fazil.com/proof/)
 [![Status: Operational](https://img.shields.io/badge/MCP_Gateway-Operational-blue?style=flat-square)](https://mcp.arif-fazil.com/health)
 [![Sovereign Boundary: F13](https://img.shields.io/badge/Sovereignty-F13_Enforced-critical?style=flat-square)](https://arif-fazil.com/governance/)
@@ -112,12 +112,6 @@ Authority remains separated at every stage. No single component proposes, judges
 > **Versioning:** Two version schemes coexist. The **kernel release** (`v2026.08.01`) tracks the running service identity. The **PyPI package** (`1!2026.9.1`) uses epoch versioning (`1!`) to outrank legacy releases. They advance independently — the kernel release is the operational truth.
 
 ### Install
-
-```bash
-pip install arifos
-```
-
-### Install (Docker)
 
 ```bash
 pip install arifos
@@ -315,7 +309,7 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 
 | Gap | Risk | Status |
 |-----|------|--------|
-| Independent security audit | Adversarial bypass testing not published | In progress — an external researcher has been reviewing the fetch surface since 2026-08-25 (private disclosure; fix released in `1!2026.9.1`). No independent audit report published yet |
+| Independent security audit | Adversarial bypass testing not published | In progress — external researcher reviewing since 2026-08-25. First finding (fetch-surface SSRF) fixed, released in `1!2026.9.1`. A second scan (2026-09-15/16, mcp-safeguard against `1!2026.9.1`) found 2 confirmed issues, still open: Cypher injection (graph wipe risk, HIGH) and a fastmcp path-traversal bug (MEDIUM). See [SECURITY.md](./SECURITY.md#known-gaps) |
 | Third-party evaluation | No external reviewer has published findings | In progress — one external review under way since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | Open |
 | Enterprise deployment | No production customer reference | Open |
