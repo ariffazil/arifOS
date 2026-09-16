@@ -330,6 +330,34 @@ async def arif_seal(
             _rb_os.environ.get("ARIFOS_VAULT_DIR", "/root/VAULT999"),
             "receipts_v2.jsonl",
         )
+        # D1 fix (enforcement-coverage audit 2026-09-16): Amanah-Replay checks
+        # nonce PRESENCE but never absorbs — same nonce double-appended in live
+        # probe (counters 1,2). Dedupe here: embed the nonce in the receipt's
+        # judge_verdict_ref and refuse a second append for a seen nonce.
+        # O(n) scan per receipt — acceptable at current ledger sizes; index
+        # when receipts exceed ~10k lines.
+        _rb_ref = f"lane_b_receipt:{nonce}" if nonce else "lane_b_receipt"
+        if nonce:
+            try:
+                with open(_rb_vault_path) as _rf:
+                    for _line in _rf:
+                        if _rb_ref in _line:
+                            return {
+                                "status": "OK",
+                                "tool": "arif_seal",
+                                "mode": "receipt",
+                                "verdict": "RECEIPT",
+                                "result": {
+                                    "sealed": True,
+                                    "replayed": True,
+                                    "lane": "B",
+                                },
+                                "reasons": [
+                                    "Nonce already present — replay absorbed, no second append."
+                                ],
+                            }
+            except FileNotFoundError:
+                pass
         try:
             _rb_receipt = create_and_seal_receipt(
                 session_id=_rb_session,
@@ -345,7 +373,7 @@ async def arif_seal(
                 floors_violated=[],
                 decision_class="C2_STANDARD",
                 witness_count=1,
-                judge_verdict_ref="lane_b_receipt",
+                judge_verdict_ref=_rb_ref,
                 vault_path=_rb_vault_path,
             )
             return {
