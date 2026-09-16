@@ -5159,6 +5159,56 @@ def _enforce_nine_signal(
             envelope.setdefault("constitutional_check", enriched.get("constitutional_check", {}))
             envelope.setdefault("risk", enriched.get("risk", {}))
 
+            # ── FREE-TEXT VOCABULARY GATE (F13 GO 3, 2026-09-16) ────────────
+            # Wires arifosmcp.runtime.authority_gate.validate_free_text_
+            # vocabulary (forged 2026-06-06, Royal Decree incident) into the
+            # response envelope. AGI-lane (000-777) outputs may not emit
+            # verdict vocabulary or governance theatre as final form without
+            # a real seal hash; 888 may; 999 needs one. Advisory flag always;
+            # a verdict-shaped AGI response (SEAL/VOID/SABAR) carrying
+            # violations is forced to HOLD — it refuses to render as a
+            # sealed document. Non-verdict responses keep flowing with the
+            # flag (e.g. search results quoting documents ABOUT verdicts).
+            try:
+                from arifosmcp.runtime.authority_gate import (
+                    validate_free_text_vocabulary,
+                )
+
+                _vg_lane = "999" if tool_name == "arif_seal" else (
+                    "888" if tool_name == "arif_judge" else "333"
+                )
+                _vg_result = envelope.get("result") if isinstance(envelope.get("result"), dict) else {}
+                # Real 999 hashes only — call_hash rides every envelope and
+                # would mislabel every AGI violation as a "smuggled seal".
+                _vg_has_seal_hash = bool(
+                    _vg_result.get("chain_hash")
+                    or _vg_result.get("seal_hash")
+                    or _vg_result.get("receipt_hash")
+                )
+                _vg_text = str(envelope.get("reasons") or "") + " " + str(_vg_result)[:4000]
+                _vg_violations = validate_free_text_vocabulary(
+                    _vg_text, lane=_vg_lane, has_seal_hash=_vg_has_seal_hash
+                )
+                if _vg_violations:
+                    envelope["vocabulary_gate"] = {
+                        "lane": _vg_lane,
+                        "violations": _vg_violations,
+                        "note": "F13 GO 3 free-text boundary (Royal-Decree shape)",
+                    }
+                    _vg_verdict = str(
+                        envelope.get("effective_verdict") or envelope.get("verdict") or ""
+                    ).upper()
+                    if _vg_lane not in ("888", "999") and _vg_verdict in ("SEAL", "VOID", "SABAR"):
+                        envelope["verdict"] = "HOLD"
+                        envelope["effective_verdict"] = "HOLD"
+                        envelope["reasons"] = [
+                            "FREE_TEXT_GATE: AGI-lane response carries verdict "
+                            "vocabulary/governance theatre without a seal hash — "
+                            "refused to render as sealed. " + "; ".join(_vg_violations)
+                        ] + list(envelope.get("reasons") or [])
+            except Exception as _vg_exc:  # noqa: BLE001
+                logger.debug("vocabulary gate skipped: %s", _vg_exc)
+
             # STAB-2026-08-07: Constitutional-check dual-truth fix.
             # The inner path computes constitutional_check from confidence/agency_level
             # alone. The outer envelope has the canonical verdict + failed_floors +
