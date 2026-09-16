@@ -1,18 +1,18 @@
 <!-- SOT-MANIFEST
 kernel_release: v2026.08.01
 pypi_version: 1!2026.9.1
-last_verified: 2026-09-15T17:12:08+00:00
-live_commit: 963a7be78 (feat(otel): wire @trace_tool to all 8 canonical kernel tools + fix async dispatc)
-source_commit: 963a7be78
-built_commit: 963a7be
-deployment_drift_status: aligned (source = built = deployed (drift: false))
+last_verified: 2026-09-16T16:59:25+00:00
+live_commit: 93526c15f (fix(capability_index): D4 data-quality — classify seed at source, canonical serv)
+source_commit: 93526c15f
+built_commit: 24f1a4f
+deployment_drift_status: drift_detected (source != deployed (drift: true) — run deploy-release.sh)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
 floors_active: 13 (F1–F9 + L10–L13, all pass)
 federation_schema: 2.0.0
 mcp_protocol: 2026-07-28 (back-compat: 2025-11-25, 2025-03-26, 2024-11-05)
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (201K+ records, append-only)
+vault999: healthy (205K+ records, append-only)
 contract_status: 8/8 schemas complete, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides

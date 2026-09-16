@@ -263,7 +263,7 @@ wheels = [
 
 [[package]]
 name = "arifos"
-version = "1!2026.9.3"
+version = "1!2026.9.6"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
@@ -681,7 +681,7 @@ requires-dist = [
     { name = "exa-py", marker = "extra == 'search'", specifier = ">=2.14.0" },
     { name = "fastapi", specifier = ">=0.136.1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.136.1" },
-    { name = "fastmcp", extras = ["tasks"], specifier = ">=4.0.0" },
+    { name = "fastmcp", extras = ["tasks"], specifier = ">=3.4.6" },
     { name = "firecrawl-py", marker = "extra == 'search'", specifier = ">=4.42.0" },
     { name = "google-api-python-client", marker = "extra == 'google'", specifier = ">=2.200.0" },
     { name = "google-auth-httplib2", marker = "extra == 'google'", specifier = ">=0.4.0" },
