@@ -691,7 +691,9 @@ def _check_policy_floors(
                 normalized_request=req.model_dump(),
                 graph_version=graph.version.version_id,
             )
-    if capability.mutation_class != MutationClass.NONE and authority != AuthorityTier.SOVEREIGN:
+    # GO6-F2: use the mode-EFFECTIVE mutation class — read/presentation
+    # arif_seal modes are NONE; raw capability class over-blocked reads.
+    if _eff_mutation != MutationClass.NONE and authority != AuthorityTier.SOVEREIGN:
         _protected_trees = (
             "/root/AAA/governance",
             "/root/AAA/canon",
