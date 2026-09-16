@@ -316,6 +316,15 @@ else
 fi
 echo ""
 
+# ── Step 8: G1 release attestation (fail-soft) ───────────────────────
+echo "--- Step 8: Release provenance attestation ---"
+if "$VENV_PYTHON" "$REPO_DIR/scripts/emit_release_attestation.py" --emit 2>&1; then
+	echo "  ✅ Attestation sealed to ledger"
+else
+	echo "  ⚠️  Attestation emission failed — deploy NOT rolled back (fail-soft); investigate /opt/arifos/releases/attestations/"
+fi
+echo ""
+
 # ── Cleanup ──────────────────────────────────────────────────────────
 rm -rf "$BUILD_DIR"
 echo "═══ Release 1 deploy complete ═══"
