@@ -108,11 +108,21 @@ def _effective_arif_seal_flags(
         "audit",  # PUBLIC full audit
     }
     presentation_modes = {"seal_card", "render"}
+    # Lane B observational record modes (2026-09-16 fix): autonomous
+    # institutional receipts — daily SessionEnd hooks append these from
+    # LOW-authority verified actors. Doctrine: SEAL (Lane A, constitutional
+    # verdict, sovereign-gated) != RECEIPT (Lane B, autonomous record).
+    # Blanket-gating them starved VAULT999 silently for weeks (hook errors
+    # piped to /dev/null; zero vault writes witnessed 2026-09-16).
+    # mode=seal and mode=session_close stay fully gated.
+    lane_b_modes = {"receipt"}
 
     if mode in read_modes:
         return (AuthorityTier.LOW, False, False, MutationClass.NONE)
     if mode in presentation_modes:
         return (AuthorityTier.MEDIUM, False, False, MutationClass.NONE)
+    if mode in lane_b_modes:
+        return (AuthorityTier.LOW, False, False, MutationClass.NONE)
     # Default: actual seal write — keep declared gate
     return (
         capability.authority_required,

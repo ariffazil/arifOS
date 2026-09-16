@@ -136,6 +136,7 @@ async def arif_seal(
         "chain_status",  # Public chain head + last N entries
         "audit",  # Full audit report with receipts
         "session_close",  # Autonomous 5-phase session seal (EUREKA 2026-07-30)
+        "receipt",  # Lane B autonomous institutional record (2026-09-16)
     ] = "seal",
     # 999_SEAL NOTE (F13, 2026-07-24):
     # arif_seal is deterministic — it appends the prior arif_judge verdict to
@@ -291,6 +292,86 @@ async def arif_seal(
     _SEAL_DANGEROUS_MODES = frozenset({"seal", "session_close"})
     _effect_class = "OBSERVE" if mode in _SEAL_SAFE_MODES else "IRREVERSIBLE"
     _auth_band = (_standing_authority or "OBSERVE_ONLY").upper()
+
+    # ── Lane B RECEIPT (2026-09-16): autonomous institutional record append ──
+    # Doctrine (seal-discipline): SEAL (Lane A, constitutional verdict,
+    # sovereign-gated) != RECEIPT (Lane B, autonomous observational record).
+    # Daily SessionEnd hooks call mode=receipt; the mode previously did not
+    # exist and every call died at the interceptor — VAULT999 starved
+    # silently (zero writes witnessed 2026-09-16). Appends a hash-chained
+    # VaultReceipt via the standard machinery. No E1 token, no FQ gate,
+    # no f13_override — receipts are records, not powers.
+    if mode == "receipt":
+        from arifosmcp.core.vault_receipt import (
+            create_and_seal_receipt,
+            resolve_receipt_identity,
+        )
+
+        _rb_actor = actor_id or "unknown"
+        _rb_session = session_id or "anonymous"
+        try:
+            _rsid, _ractor = resolve_receipt_identity(
+                session_id=_rb_session, actor_id=_rb_actor
+            )
+            if _rsid:
+                _rb_session = _rsid
+            if _ractor:
+                _rb_actor = _ractor
+        except Exception:
+            pass
+        _rb_intent = (payload or "session receipt (no payload)")[:2000]
+        _rb_hash = hashlib.sha256(_rb_intent.encode()).hexdigest()
+        # Service runs as user `arifos` with ARIFOS_VAULT_DIR=/var/lib/arifos/vault;
+        # vault_receipt.SessionChain defaults to /root/VAULT999 (root-only write).
+        # Respect the env so receipts land in the service's writable ledger.
+        import os as _rb_os
+
+        _rb_vault_path = _rb_os.path.join(
+            _rb_os.environ.get("ARIFOS_VAULT_DIR", "/root/VAULT999"),
+            "receipts_v2.jsonl",
+        )
+        try:
+            _rb_receipt = create_and_seal_receipt(
+                session_id=_rb_session,
+                actor_id=_rb_actor,
+                organ_id=_rb_actor,
+                intent_summary=_rb_intent,
+                intent_hash=_rb_hash,
+                requested_authority="OBSERVE_ONLY",
+                pre_state_hash="",
+                decision="RECEIPT",
+                verdict_hash=hashlib.sha256(b"RECEIPT-LANE-B").hexdigest(),
+                floors_evaluated=["F13"],
+                floors_violated=[],
+                decision_class="C2_STANDARD",
+                witness_count=1,
+                judge_verdict_ref="lane_b_receipt",
+                vault_path=_rb_vault_path,
+            )
+            return {
+                "status": "OK",
+                "tool": "arif_seal",
+                "mode": "receipt",
+                "verdict": "RECEIPT",
+                "result": {
+                    "sealed": True,
+                    "receipt_id": getattr(_rb_receipt, "receipt_id", None),
+                    "receipt_hash": getattr(_rb_receipt, "receipt_hash", None),
+                    "lane": "B",
+                },
+                "reasons": [
+                    "Lane B institutional receipt appended (autonomous, non-constitutional)."
+                ],
+            }
+        except Exception as _rbe:  # noqa: BLE001
+            return {
+                "status": "OK",
+                "tool": "arif_seal",
+                "mode": "receipt",
+                "verdict": "HOLD",
+                "reasons": [f"receipt append failed: {_rbe}"],
+            }
+
     if mode in _SEAL_DANGEROUS_MODES and _auth_band not in (
         # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE added to
         # allow-list — verified automation identities may seal.
@@ -919,15 +1000,19 @@ async def arif_seal(
         # Delegate to canonical vault_registry — thread-safe, dual-write to VAULT999
         from arifosmcp.runtime.vault_registry import issue_seal
 
+        # 2026-09-16 fix: issue_seal's first param is shell_command (the
+        # bound string), with an optional payload_hash. Both prior call
+        # shapes (payload=/command=) raised TypeError and the E1 token was
+        # silently skipped on every sovereign seal.
         try:
-            _seal_token_value = issue_seal(payload=payload, actor_id=actor_id)
-        except TypeError:
-            # Compatibility across issue_seal signatures
-            try:
-                _seal_token_value = issue_seal(command=payload, actor_id=actor_id)  # type: ignore[call-arg]
-            except Exception as _ise:  # noqa: BLE001
-                logger.warning("issue_seal failed: %s", _ise)
-                _seal_token_value = None
+            _seal_token_value = issue_seal(
+                shell_command=payload,
+                actor_id=actor_id,
+                payload_hash=_payload_hash,
+            )
+        except Exception as _ise:  # noqa: BLE001
+            logger.warning("issue_seal failed: %s", _ise)
+            _seal_token_value = None
         result["seal_token"] = _seal_token_value
         result["payload_hash"] = f"sha256:{_payload_hash}"
         result["meta"] = result.get("meta", {})
