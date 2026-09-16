@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+import uuid
 from datetime import UTC, datetime
 from typing import Any
 
@@ -110,11 +111,17 @@ def vectorize_seal(
         vector = _embed_sync(summary_text, dim=HIB_VECTOR_DIM)
         timestamp = datetime.now(UTC).isoformat()
 
+        # Qdrant point IDs must be UUID or unsigned int — raw hex entry_ids
+        # 400 (Format error). Same uuid5 scheme as the backfill path so a
+        # live-seal write and a later backfill of the same entry converge on
+        # the same point (idempotent upsert).
+        qdrant_point_id = str(uuid.uuid5(uuid.NAMESPACE_OID, f"vault999:{entry_id}"))
+
         client.upsert(
             collection_name=HIB_COLLECTION,
             points=[
                 PointStruct(
-                    id=entry_id,
+                    id=qdrant_point_id,
                     vector=vector,
                     payload={
                         "entry_id": entry_id,
