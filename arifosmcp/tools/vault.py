@@ -787,6 +787,61 @@ async def arif_seal(
     # Lower-entropy way to expose vault verification: arif_seal mode=verify_chain
     # delegates to arif_vault_verify (read-only chain verifier). This keeps the
     # kernel ABI at 8 tools — vault.verify is a MODE of arif_seal, not a new tool.
+    if mode == "chain_status":
+        # GO7-R1 (2026-09-16): public chain head + last N entries — the mode
+        # was in the Literal + safe-set since 2026-07-18 but never had a
+        # handler branch; calls fell through to "Unknown mode" (fail-closed,
+        # surfaced when the GO6-F2 fix unmasked the interceptor over-block).
+        import os as _cs_os
+
+        _cs_path = _cs_os.path.join(
+            _cs_os.environ.get("ARIFOS_VAULT_DIR", "/root/VAULT999"),
+            "receipts_v2.jsonl",
+        )
+        _cs_entries: list[dict[str, Any]] = []
+        _cs_head = ""
+        try:
+            with open(_cs_path) as _cs_f:
+                _cs_lines = [ln for ln in _cs_f if ln.strip()]
+            for _ln in _cs_lines[-5:]:
+                try:
+                    _e = json.loads(_ln)
+                    _cs_entries.append(
+                        {
+                            "receipt_id": _e.get("receipt_id"),
+                            "ts": _e.get("ts"),
+                            "actor_id": _e.get("actor_id"),
+                            "decision": _e.get("decision"),
+                            "receipt_hash": str(_e.get("receipt_hash"))[:16],
+                            "judge_verdict_ref": _e.get("judge_verdict_ref"),
+                        }
+                    )
+                except json.JSONDecodeError:
+                    continue
+            if _cs_lines:
+                try:
+                    _cs_head = json.loads(_cs_lines[-1]).get("receipt_hash", "")
+                except json.JSONDecodeError:
+                    _cs_head = ""
+        except FileNotFoundError:
+            _cs_entries = []
+        return _echo_standing(
+            SealOutput(
+                mode=mode,
+                verdict=Verdict.SEAL if _cs_head else Verdict.HOLD,
+                status="OK",
+                entry_id="",
+                actor_id=actor_id,
+                meta={
+                    "gate": "PUBLIC_CHAIN_STATUS",
+                    "ledger": _cs_path,
+                    "chain_head": _cs_head,
+                    "total_entries": len(_cs_lines) if _cs_entries else 0,
+                    "last_entries": _cs_entries,
+                },
+            )
+        )
+
     if mode == "verify_chain":
         from arifosmcp.tools.vault import arif_vault_verify as _vault_verify_fn
 
