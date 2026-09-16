@@ -696,3 +696,27 @@ SEED_CAPABILITIES: list[CapabilityRecord] = [
         epistemic_tag="PLAUSIBLE",
     ),
 ]
+
+# ── Classification pass (D4, F13 "bina D4" 2026-09-17) ──
+# Seed literals deliberately carry no classification fields (pydantic default
+# = OBSERVE). The constitutional SOT for classification is the policy engine
+# (AAA governance classification_policy.yaml), so applying it here keeps the
+# store's seed-fallback path from ever serving unclassified records — proven
+# load-bearing when the registry JSON went missing and the resolver saw
+# arif_forge_execute as OBSERVE-eager. Mirrors indexer.py Source 3.
+import sys as _sys
+
+if "/root" not in _sys.path:
+    _sys.path.insert(0, "/root")
+try:
+    from AAA.governance.classifier import ClassificationEngine as _ClassificationEngine
+
+    _engine = _ClassificationEngine()
+    for _rec in SEED_CAPABILITIES:
+        _c = _engine.classify_tool(_rec.tool_name, _rec.server)
+        _rec.action_class = _c["action_class"]
+        _rec.effective_class = _c["effective_class"]
+        _rec.authority_ceiling = _c["authority_ceiling"]
+    SEED_CLASSIFIED = True
+except Exception:  # classifier unreachable: defaults stand, flagged for callers
+    SEED_CLASSIFIED = False

@@ -21,6 +21,7 @@ import hashlib
 import json
 import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -49,6 +50,18 @@ class CapabilityIndexer:
         self.store = store or CapabilityStore()
         self.classifier = ClassificationEngine()
 
+    @staticmethod
+    def canonical_server(server: str) -> str:
+        """Canonical organ identity (D4 alias pass, 2026-09-17).
+
+        Sources disagree on casing (seed 'arifOS'/'WEALTH'/'WELL' vs live
+        'arifos'/'wealth'/'well') — same organ, two identities, duplicate-SOT
+        smell. Federation convention is lowercase. Existing consumers are
+        case-insensitive (store._apply_filters lowercases both sides), so this
+        is a safe unification at the single ingestion chokepoint.
+        """
+        return server.strip().lower()
+
     def discover_tools(self) -> List[CapabilityRecord]:
         """Harvest tools across all federation sources."""
         tools_by_id: Dict[str, CapabilityRecord] = {}
@@ -60,7 +73,7 @@ class CapabilityIndexer:
                     data = json.load(f)
                     for t in data.get("tools", []):
                         name = t.get("name") or t.get("id") or t.get("tool_name")
-                        server = t.get("server", "unknown")
+                        server = self.canonical_server(t.get("server", "unknown"))
                         desc = t.get("description", "")
                         tags = t.get("tags", [])
                         epistemic = t.get("epistemic_tag", "CLAIM")
@@ -87,7 +100,7 @@ class CapabilityIndexer:
             for server_dir in MCP_DIR.iterdir():
                 if not server_dir.is_dir():
                     continue
-                server_name = server_dir.name
+                server_name = self.canonical_server(server_dir.name)
                 for schema_file in server_dir.glob("*.json"):
                     tool_name = schema_file.stem
                     try:
@@ -116,6 +129,7 @@ class CapabilityIndexer:
         try:
             from capability_index.seed import SEED_CAPABILITIES
             for rec in SEED_CAPABILITIES:
+                rec.server = self.canonical_server(rec.server)
                 key = f"{rec.server}:{rec.tool_name}"
                 if key not in tools_by_id:
                     classification = self.classifier.classify_tool(rec.tool_name, rec.server)
@@ -151,7 +165,7 @@ class CapabilityIndexer:
             "$schema": "arifOS/AAA-capability-index/v2.0.0",
             "protocol": "MCP",
             "protocolVersion": "2026-07-28",
-            "forgedAt": "2026-08-10T06:00:00Z",
+            "forgedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "total_tools": len(sorted_records),
             "digest": self.compute_digest(sorted_records),
             "servers": servers_list,
@@ -188,12 +202,15 @@ class CapabilityIndexer:
         # Update registry JSON
         self.sync_to_registry_json(records)
 
-        # Upsert into vector store
+        # Upsert into vector store (claim == measurement: the return value is
+        # the truth, not the absence of an exception)
         try:
             self.store.create_collection(recreate=False)
-            self.store.upsert(records)
-            logger.info("Successfully reindexed %d tools into Qdrant store", len(records))
-            upsert_ok = True
+            upsert_ok = bool(self.store.upsert(records))
+            if upsert_ok:
+                logger.info("Successfully reindexed %d tools into Qdrant store", len(records))
+            else:
+                logger.warning("Vector store upsert did not complete — local fallback only")
         except Exception as e:
             logger.warning("Vector store upsert deferred or offline: %s", e)
             upsert_ok = False
@@ -203,7 +220,7 @@ class CapabilityIndexer:
         new_state = {
             "digest": current_digest,
             "tool_count": len(records),
-            "reindexed_at": "2026-08-10T06:00:00Z",
+            "reindexed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "vector_store_ok": upsert_ok,
         }
         with open(STATE_FILE, "w", encoding="utf-8") as sf:
