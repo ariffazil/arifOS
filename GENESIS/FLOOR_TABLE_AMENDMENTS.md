@@ -174,3 +174,110 @@ least legible party. That makes it HOLD-eligible, not advisory.
 *Amendment 6 proposed: 2026-09-15 by HERMES (F13-directed, ARIF dm)*
 *Doctrine: `/root/AAA/instructions/register-as-channel.md` — F13_RATIFIED_CHAT*
 *Awaiting: F13 SOVEREIGN floor ratification (kernel wiring — detection is debt until it can say NO)*
+
+## Amendment 14: CAPABILITY TRUTH
+
+```json
+{
+  "id": "C17",
+  "name": "CAPABILITY TRUTH",
+  "rule": "A capability may only be declared absent after an inventory sweep plus alternate-lane test, and present only if the artifact resolves now. Phantom absence and ghost capability are one defect: the index and the disk disagree and nothing measures it.",
+  "detection": "compare declared capability set against live resolution of every artifact path; flag asymmetries in both directions",
+  "failure_verdict": "HOLD",
+  "related_floors": ["F2", "F4", "F11"],
+  "doctrine_ref": "/root/AAA/instructions/agi-asi-skills-fundamentals.md#law-2"
+}
+```
+
+### Rationale
+Measured 2026-09-16: 1,568 rename events in the canonical skill tree propagated zero times to the harness tree; 7 capabilities were deleted silently with no error and no log line. A broken symlink is not a crash — it is a quiet capability delete. The inverse (declaring a capability down without probing an owned resource) is the same F2 failure.
+
+**Awaiting: F13 SOVEREIGN ratification**
+
+---
+
+## Amendment 15: CONSEQUENCE CLASS
+
+```json
+{
+  "id": "C18",
+  "name": "CONSEQUENCE CLASS",
+  "rule": "Every capability that touches reality declares its side-effect class, blast radius, reversibility, authority tier and may-not list. No consequence class, no execution.",
+  "detection": "any skill with a side effect on an external surface (send, publish, spend, delete, mutate-shared) must carry the five fields; absence blocks execution",
+  "failure_verdict": "HOLD",
+  "related_floors": ["F1", "F4", "F11", "F13"],
+  "doctrine_ref": "/root/AAA/instructions/agi-asi-skills-fundamentals.md#law-4"
+}
+```
+
+### Rationale
+This is the onar gate — the only failure mode in the skills system that is not recoverable. BANGANG and PHANTOM are embarrassments; a capability that resolves, executes, and drives an irreversible real-world side effect with no declared authority is a catastrophe. Governing capability without declaring consequence is governance in name only.
+
+**Awaiting: F13 SOVEREIGN ratification**
+
+---
+
+## Amendment 16: RESOLVE BEFORE ASK
+
+```json
+{
+  "id": "C19",
+  "name": "RESOLVE BEFORE ASK",
+  "rule": "Uncertainty is dispatched inward (probe, read, doctrine, musyawarah), never upward. Only money, irreversible mutation, external comms and canonical records reach the sovereign — binary and batched. A solvable question asked is an attention transfer the agent was authorised to absorb.",
+  "detection": "interactive prompts and AskUserQuestion surfaces must resolve to one of the four sovereign classes; all others are routing bugs",
+  "failure_verdict": "HOLD",
+  "related_floors": ["F4", "F7", "F13"],
+  "doctrine_ref": "/root/AAA/instructions/agi-asi-skills-fundamentals.md#law-1"
+}
+```
+
+### Rationale
+F13 sovereign instrument 2026-09-16: *"aku benci HERMES tanya aku soalan yang dia sendiri boleh solved"*. Attention is the one resource the institution cannot manufacture (W₈₈₈). An agent asking a solvable question trades the sovereign's scarcest asset for its own comfort — always a loss. Extends `human-attention-membrane.md` from routing law to falsifiable gate.
+
+**Awaiting: F13 SOVEREIGN ratification**
+
+## Amendment 17: SYMBOL TRUTH
+
+```json
+{
+  "id": "C20",
+  "name": "SYMBOL TRUTH",
+  "rule": "Do not import or invent notation before namespace verification. A symbol that already carries meaning in this federation must never be redefined; a new axis must not be minted over a live prefix. Import the concept in neutral words and map it to existing canon symbols.",
+  "detection": "run /root/scripts/symbol-probe.py on any external artifact, taxonomy, benchmark or architectural map before encoding any part of it; exit 1 on a FATAL collision",
+  "failure_verdict": "HOLD",
+  "related_floors": ["F2", "F4", "F11"],
+  "doctrine_ref": "/root/AAA/instructions/agi-asi-skills-fundamentals.md#annex-c"
+}
+```
+
+### Rationale
+Two external artifacts in one session each proposed notation colliding with ratified, enforced symbols.
+The first used `R0–R5` for authority tiers (already consequence domains). The second, after self-correcting
+`R`, proposed `T0–T3` and `W0–W4` — colliding with the live autonomy tiers (67 skills carry
+`autonomy_tier: T1`) and the attention-waste classes (sole enforcement authority). Both artifacts were
+**conceptually sound and notationally destructive**: no test fails, no folder looks wrong, and the damage
+surfaces months later as two agents reading the same symbol differently. A linter asks *"does T1 exist?"*
+and passes. The only question that protects meaning is *"does T1 mean the same thing to every agent?"*
+Collision register: `/root/AAA/canon/SYMBOL_TABLE.json`.
+
+**Awaiting: F13 SOVEREIGN ratification**
+
+---
+
+## Symbol namespace — standing rule (companion to C20, not a floor)
+
+`SYMBOL_TABLE.json` is the live namespace. Before minting or importing notation:
+
+```
+1. extract every symbol, axis, tier, band, label, acronym, numeric scale
+2. probe each against SYMBOL_TABLE.json  (python3 /root/scripts/symbol-probe.py <artifact>)
+3. symbol exists            -> do not redefine it
+4. concept valid, symbol collides -> import the CONCEPT, drop the NOTATION
+5. existing owner found     -> patch the owner; do not create a duplicate
+6. layout conflicts with the derived index -> reject the layout
+7. record the accepted delta, the rejected collision, and the reason
+```
+
+`R` = consequence domain · `T` = authority tier · `C` = constitutional floor · `F` = kernel floor ·
+`W1–W6` = attention-waste class · `W888` = sovereign attention cost.
+**Reserved, never reused: F1–F13, C1–C20, Φ.**
