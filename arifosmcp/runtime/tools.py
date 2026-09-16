@@ -26207,11 +26207,36 @@ def verify_and_inject_token(
         allowed = list(claims.get("allowed") or [])
         # Kernel birth/resume always allowed; empty allowed → band-only later
         _always = {"arif_init", "arif_session_init"}
+        # GO 5 (2026-09-16): mode-aware carve for the verb allowlist —
+        # Lane B / read-only arif_seal modes pass at any band; write modes
+        # (seal, session_close) remain governed by the token's verb list.
+        # Mode-level authority still applies downstream (interceptor Floors
+        # 4.5–7 mode-classify arif_seal; the receipt branch binds
+        # attribution). This relaxes only the coarse tool-level gate.
+        _seal_lane_b_or_read = (
+            tool_name == "arif_seal"
+            and str(kwargs.get("mode", "seal")).lower()
+            in {
+                "receipt",
+                "verify",
+                "chain",
+                "list",
+                "dry_run",
+                "verify_chain",
+                "chain_status",
+                "audit",
+                "seal_card",
+                "render",
+                "changelog",
+                "ledger",
+            }
+        )
         if (
             tool_name not in _always
             and allowed
             and tool_name not in allowed
             and not tool_name.startswith("forge_")
+            and not _seal_lane_b_or_read
         ):
             err_resp = {
                 "status": "HOLD",
