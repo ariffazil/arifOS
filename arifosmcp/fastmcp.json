@@ -4,13 +4,14 @@
     "version": "2026.07.15",
     "description": "Constitutional 13-floor MCP gateway. Public surface: 8 canonical tools (arif_verb_noun naming). F1-F13 floors enforced via ConstitutionKernel + FloorEvaluator. VAULT999 immutable ledger. Streamable HTTP + stdio transport."
   },
-  "protocolVersion": "2025-11-25",
-  "mcp_version": "2025-11-25",
+  "protocolVersion": "2026-07-28",
+  "mcp_version": "2026-07-28",
   "supportedProtocolVersions": [
+    "2026-07-28",
     "2025-11-25",
-    "2025-03-26",
     "2024-11-05"
   ],
+  "_migration_note": "2026-09-17: priority list upgraded. Runtime already registers 2026-07-28 via server.py:604-605 (P1 STATELESS 2026-08-01). This manifest was lagging — fixed per F2 TRUTH. Rev: musyawarah-2026-09-17-mcp-migration.",
   "transport": "streamable-http",
   "constitutional_floors": {
     "count": 13,

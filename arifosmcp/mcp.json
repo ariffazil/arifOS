@@ -1,7 +1,7 @@
 {
   "schema": "mcp",
   "version": "2026.07.15",
-  "protocolVersion": "2025-11-25",
+  "protocolVersion": "2026-07-28",
   "name": "arifOS MCP",
   "description": "Constitutional AI orchestration kernel. Public surface: 8 canonical tools (init → observe → think → route → memory → judge → forge → seal). F1-F13 floors, F13 sovereign veto. Tools and resources discoverable via MCP tools/list + resources/list. DITEMPA BUKAN DIBERI.",
   "tools": [
