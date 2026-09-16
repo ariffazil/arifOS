@@ -44,14 +44,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 # ─── Federation roots ──────────────────────────────────────────────────────
+# On GitHub Actions, the repo is at $GITHUB_WORKSPACE.
+# On VPS, organs are at /root/<organ>.
+# Detect: if running in CI, use workspace parent; else use /root.
+import os as _os
+_repo_root = Path(_os.environ.get("GITHUB_WORKSPACE", "/root"))
 FEDERATION_ROOTS = {
-    "arifOS": Path("/root/arifOS"),
-    "AAA": Path("/root/AAA"),
-    "GEOX": Path("/root/GEOX"),
-    "HERMES": Path("/root/HERMES"),
-    "WELL": Path("/root/WELL"),
-    "WEALTH": Path("/root/WEALTH"),
-    "A-FORGE": Path("/root/A-FORGE"),
+    "arifOS": _repo_root / "arifOS" if (_repo_root / "arifOS").exists() else _repo_root,
+    "AAA": _repo_root / "AAA",
+    "GEOX": _repo_root / "GEOX",
+    "HERMES": _repo_root / "HERMES",
+    "WELL": _repo_root / "WELL",
+    "WEALTH": _repo_root / "WEALTH",
+    "A-FORGE": _repo_root / "A-FORGE",
 }
 
 # Constitutional verdict vocabulary — ONLY arifOS may emit these.
