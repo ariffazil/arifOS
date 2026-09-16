@@ -4759,7 +4759,7 @@ def _enforce_nine_signal(
         if verdict == "SEAL" and not reasons:
             reasons = [
                 "Reversible operation verified",
-                "Constitutional floors passed",
+                "No failed floors reported",
                 "No irreversible state change",
             ]
         if verdict not in ("SEAL", "OBSERVE_ONLY") and not reasons:
@@ -5631,7 +5631,7 @@ def _enforce_nine_signal(
             if verdict == "SEAL" and not reasons:
                 reasons = [
                     "Reversible operation verified",
-                    "Constitutional floors passed",
+                    "No failed floors reported",
                     "No irreversible state change",
                 ]
             out = dict(response)
@@ -8343,11 +8343,20 @@ def build_standard_mcp_result(
         band_note = DECISION_THRESHOLDS["confidence_above_0_85"]
 
     afford = get_full_affordance(tool)
-    is_l5 = "L5" in str(afford.get("agency_level", ""))
+    # K5 (STAB-2026-09-16): read modes must not inherit the tool's L5 default.
+    # mode_agency_levels is the per-mode truth when the affordance declares it.
+    _mode_levels = afford.get("mode_agency_levels") or {}
+    _effective_agency = _mode_levels.get(mode, afford.get("agency_level", ""))
+    is_l5 = "L5" in str(_effective_agency)
     human_req = afford.get("requires_human_confirmation", False) or is_l5
 
+    # K5: "mode_dependent" is a registry placeholder, never a risk value.
+    _blast = afford.get("blast_radius", "low")
+    if _blast == "mode_dependent":
+        _blast = "high" if is_l5 else "low"
+
     risk = {
-        "blast_radius": afford.get("blast_radius", "low"),
+        "blast_radius": _blast,
         "reversibility": "irreversible"
         if afford.get("side_effect", "").startswith("append") or is_l5
         else "reversible",
@@ -8707,6 +8716,13 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         or "Review result. If confidence low, gather more evidence via observe or domain organ."
     )
 
+    # K5 (STAB-2026-09-16): seal read modes carry mode inside result{}; resolve
+    # it so build_standard_mcp_result does not default to "observe" and
+    # re-inherit the tool-level L5 agency.
+    _payload_mode = payload.get("mode")
+    if _payload_mode is None and isinstance(payload.get("result"), dict):
+        _payload_mode = payload["result"].get("mode")
+
     return build_standard_mcp_result(
         tool=tool,
         facts=facts if isinstance(facts, list) else [str(facts)],
@@ -8714,7 +8730,7 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         confidence=conf,
         next_safe_action=next_act,
         raw_result=payload.get("result", payload),
-        mode=payload.get("mode", "observe"),
+        mode=_payload_mode or "observe",
     )
 
 
@@ -21125,6 +21141,9 @@ def _arif_vault_seal(
             SealOutput(
                 status="OK",
                 result={
+                    # K5 (STAB-2026-09-16): echo mode so the envelope resolves
+                    # read-mode risk instead of the tool-level L5 default.
+                    "mode": "verify",
                     "ledger_size": len(_VAULT_LEDGER),
                     "integrity": _integrity,
                     "integrity_detail": {
