@@ -21417,6 +21417,28 @@ async def _arif_vault_seal_tool(
       SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
       session_close adds meta.session_close with stages 0–5 receipt.
     """
+    # ── MCP DOOR: receipt → tools.vault.arif_seal (Lane B record, 2026-09-16) ─
+    # Autonomous institutional receipt append — no judge packet, no elicitation,
+    # no irreversible ack. Interceptor classifies mode=receipt LOW (lane_b_modes);
+    # vault.py appends a hash-chained VaultReceipt via create_and_seal_receipt.
+    # Doctrine: SEAL (Lane A, constitutional) != RECEIPT (Lane B, record).
+    if mode == "receipt":
+        from arifosmcp.tools.vault import arif_seal as _canonical_receipt
+
+        out = await _canonical_receipt(
+            mode="receipt",
+            payload=payload or "",
+            session_id=session_id,
+            session_token=session_token,
+            actor_id=actor_id,
+            actor_signature=actor_signature,
+            nonce=nonce,
+            seal_purpose=seal_purpose or "RECORD",
+        )
+        if hasattr(out, "model_dump"):
+            return out.model_dump(mode="json")
+        return dict(out) if out is not None else {"status": "HOLD", "verdict": "HOLD"}
+
     # ── MCP DOOR: session_close → tools.vault.arif_seal (5-phase macro) ─────
     # Critical: do NOT call sync _arif_vault_seal here — that path lacks the
     # organ-health gate, BOOT_EUREKA append, atlas333 vectorize, and git sync.

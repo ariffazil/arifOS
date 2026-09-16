@@ -107,7 +107,7 @@ def vectorize_seal(
 
         # Build semantic summary for embedding
         summary_text = f"[ENTRY_ID:{entry_id}] [BLAST_RADIUS:{blast_radius}] {payload_text[:500]}"
-        vector = embed(summary_text, dim=HIB_VECTOR_DIM)
+        vector = _embed_sync(summary_text, dim=HIB_VECTOR_DIM)
         timestamp = datetime.now(UTC).isoformat()
 
         client.upsert(
@@ -138,6 +138,30 @@ def vectorize_seal(
         return False
 
 
+def _embed_sync(text: str, dim: int) -> list[float]:
+    """Sync bridge to the async embed() chain (2026-09-16 fix).
+
+    embed() is async (dashscope → ollama → hash fallback). vectorize_seal
+    is called synchronously from vault.py — sometimes inside a running
+    event loop (arif_seal is async). asyncio.run() would raise there, so
+    the embedding runs on a worker thread with its own loop. Falls back
+    to the deterministic hash embed on any failure — the HIB index stays
+    populated even when the semantic backend is down.
+    """
+    try:
+        import asyncio
+        import concurrent.futures
+
+        def _run() -> list[float]:
+            return asyncio.run(embed(text, dim=dim))
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _pool:
+            return _pool.submit(_run).result(timeout=120)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("HIB _embed_sync fell back to hash embed: %s", exc)
+        return embed_hash(text, dim=dim)
+
+
 def _embed_with_retry(text: str, dim: int, max_retries: int = 4) -> list[float]:
     """Embed text with exponential backoff retry for Ollama timeouts.
 
@@ -158,7 +182,7 @@ def _embed_with_retry(text: str, dim: int, max_retries: int = 4) -> list[float]:
     last_error: Exception | None = None
     for attempt in range(max_retries + 1):
         try:
-            return embed(text, dim=dim)
+            return _embed_sync(text, dim=dim)
         except Exception as exc:
             last_error = exc
             if attempt < max_retries:
