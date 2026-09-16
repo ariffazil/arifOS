@@ -197,6 +197,62 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                     request.headers.get("Mcp-Name") or request.headers.get("mcp-name") or ""
                 ).strip()
 
+                # ── G0.7 version coherence ──
+                # MCP-Protocol-Version header MUST equal _meta protocolVersion
+                # when both present (SEP-2243: one request, one interpretation —
+                # header and body must never claim different dialects).
+                _params = body.get("params") if isinstance(body, dict) else None
+                _meta = _params.get("_meta") if isinstance(_params, dict) else None
+                _meta_ver = (
+                    _meta.get("io.modelcontextprotocol/protocolVersion")
+                    if isinstance(_meta, dict)
+                    else None
+                )
+                if _meta_ver and _meta_ver != version:
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": ERR_HEADER_MISMATCH,
+                                "message": (
+                                    f"HeaderMismatch: MCP-Protocol-Version '{version}' "
+                                    f"!= _meta protocolVersion '{_meta_ver}'"
+                                ),
+                            },
+                        },
+                        status_code=400,
+                    )
+
+                # ── G0.7 Mcp-Param-* mirror equality (tools/call) ──
+                # Annotated argument mirrors (x-mcp-header) must agree with body
+                # arguments — gateway routing one value while the body executes
+                # another is the confused-deputy class.
+                if method == "tools/call" and isinstance(body, dict):
+                    _args = (_params or {}).get("arguments")
+                    _args = _args if isinstance(_args, dict) else {}
+                    for _h_name, _h_val in request.headers.items():
+                        if not _h_name.lower().startswith("mcp-param-"):
+                            continue
+                        _arg_name = _h_name.lower()[len("mcp-param-"):]
+                        _body_val = _args.get(_arg_name)
+                        if _body_val is None or str(_body_val) != _h_val:
+                            return JSONResponse(
+                                {
+                                    "jsonrpc": "2.0",
+                                    "id": req_id,
+                                    "error": {
+                                        "code": ERR_HEADER_MISMATCH,
+                                        "message": (
+                                            f"HeaderMismatch: Mcp-Param-{_arg_name} "
+                                            f"'{_h_val}' does not match body "
+                                            f"arguments.{_arg_name}={_body_val!r}"
+                                        ),
+                                    },
+                                },
+                                status_code=400,
+                            )
+
                 # HeaderMismatch: Mcp-Method MUST match body method when both present
                 if mcp_method and method and mcp_method != method:
                     return JSONResponse(
@@ -236,17 +292,21 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                             status_code=400,
                         )
 
-                # ── Fail-closed modern envelope (2026-09-17) ──
+                # ── Fail-closed modern envelope (2026-09-17) + G0.7 ratchet ──
                 # SCAR: the prior check fired only when header AND body method were
                 # both present, so omitting Mcp-Method/Mcp-Name bypassed validation
                 # entirely — gateway and kernel could interpret one request two
                 # ways (external AGI-substrate audit + live probe, confirmed at
-                # mcp_transport_bridge.py:203). Interpretation must be singular:
-                # for state-changing calls the modern envelope is REQUIRED.
-                # ARIFOS_MCP_ENVELOPE_STRICT=0 restores the lenient behavior
-                # (emergency compatibility only — mismatch checks above stay on).
+                # mcp_transport_bridge.py:203). Interpretation must be singular.
+                # G0.7 RATCHET: Mcp-Method is now required for ALL routed methods
+                # on the 2026-07-28 path (notifications/* exempt; server/discover
+                # early-returns above). Justified by measured production traffic:
+                # zero transition-window warnings between the 03:03 deploy and
+                # the ratchet — no legitimate federation client omits it.
+                # ARIFOS_MCP_ENVELOPE_STRICT=0 restores lenient mode (emergency
+                # compatibility only — mismatch checks above stay on).
                 strict_envelope = os.getenv("ARIFOS_MCP_ENVELOPE_STRICT", "1") != "0"
-                if strict_envelope and method == "tools/call":
+                if strict_envelope and method and not str(method).startswith("notifications/"):
                     if not mcp_method:
                         return JSONResponse(
                             {
@@ -256,13 +316,14 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                                     "code": ERR_HEADER_MISMATCH,
                                     "message": (
                                         "HeaderMismatch: Mcp-Method header is required "
-                                        "for tools/call on MCP 2026-07-28 (fail-closed)"
+                                        "on MCP 2026-07-28 requests (G0.7 ratchet, "
+                                        "fail-closed)"
                                     ),
                                 },
                             },
                             status_code=400,
                         )
-                    if not mcp_name:
+                    if method == "tools/call" and not mcp_name:
                         return JSONResponse(
                             {
                                 "jsonrpc": "2.0",
@@ -277,13 +338,12 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                             },
                             status_code=400,
                         )
-                elif not mcp_method and method and not str(method).startswith("notifications/"):
-                    # Transition window: non-mutation methods may still omit
-                    # headers. Log so the ratchet to required-for-all is driven by
-                    # measured production traffic, not guesswork.
+                elif not strict_envelope and not mcp_method and method and not str(method).startswith("notifications/"):
+                    # Lenient mode (kill-switch): log omissions so re-ratcheting
+                    # is driven by measured traffic, not guesswork.
                     logger.warning(
                         "MCP 2026-07-28: request without Mcp-Method header "
-                        "(method=%s, path=%s) — transition-window pass",
+                        "(method=%s, path=%s) — lenient-mode pass",
                         method,
                         request.url.path,
                     )

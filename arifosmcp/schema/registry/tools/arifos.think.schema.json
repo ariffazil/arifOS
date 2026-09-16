@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "333 Think · Mind",
+  "description": "KERNEL 333 · Mind — structured reasoning under F2/F7 with OBS/DER/INT/SPEC labels.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "mode": {
+      "default": "reason",
+      "type": "string",
+      "enum": [
+        "reason",
+        "reflect",
+        "verify",
+        "axioms",
+        "plan",
+        "plan_review",
+        "plan_approve",
+        "refactor_plan",
+        "metabolize",
+        "simulate",
+        "wonder",
+        "atlas"
+      ]
+    },
+    "query": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "session_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "actor_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "session_token": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "plan_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "witness_type": {
+      "default": "ai",
+      "type": "string"
+    },
+    "_envelope": {
+      "default": null,
+      "title": "Envelope"
+    }
+  }
+}

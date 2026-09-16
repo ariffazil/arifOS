@@ -136,11 +136,128 @@ def test_valid_modern_envelope_reaches_kernel():
     assert state["reached"] is True
 
 
-def test_readonly_method_without_headers_transition_window_passes():
-    """tools/list without headers: warn + pass (ratchet driven by prod logs)."""
+def test_readonly_method_without_headers_ratchet_rejects():
+    """G0.7 ratchet: Mcp-Method required for ALL routed modern methods.
+
+    Justified by production evidence: zero transition-window warnings
+    between the 2026-09-17 03:03 deploy and the ratchet.
+    """
     req = _make_request(
         {"jsonrpc": "2.0", "id": 42, "method": "tools/list", "params": {}},
         [(b"mcp-protocol-version", MODERN)],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    _assert_rejected(response, state)
+
+
+def test_readonly_method_without_headers_lenient_mode_passes():
+    """Kill-switch: lenient mode still passes headerless non-mutations."""
+    req = _make_request(
+        {"jsonrpc": "2.0", "id": 42, "method": "tools/list", "params": {}},
+        [(b"mcp-protocol-version", MODERN)],
+    )
+    call_next, state = _downstream_reached()
+    with patch.dict(os.environ, {"ARIFOS_MCP_ENVELOPE_STRICT": "0"}):
+        response = _run(req, call_next)
+    assert response.status_code == 200
+    assert state["reached"] is True
+
+
+def test_notification_without_headers_exempt():
+    """notifications/* are exempt from the Mcp-Method requirement.
+
+    G7 intercepts notifications/initialized and answers 202 directly —
+    downstream (FastMCP session logic) is never reached, by design.
+    """
+    req = _make_request(
+        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+        [(b"mcp-protocol-version", MODERN)],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert response.status_code == 202
+    assert state["reached"] is False  # G7 no-op short-circuit
+
+
+def test_version_coherence_header_meta_mismatch_rejected():
+    body = {
+        "jsonrpc": "2.0", "id": 43, "method": "tools/list",
+        "params": {"_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2025-11-25",
+            "io.modelcontextprotocol/clientCapabilities": {},
+        }},
+    }
+    req = _make_request(
+        body,
+        [(b"mcp-protocol-version", MODERN), (b"mcp-method", b"tools/list")],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    _assert_rejected(response, state)
+    assert "_meta" in json.loads(response.body)["error"]["message"]
+
+
+def test_version_coherence_equal_passes():
+    body = {
+        "jsonrpc": "2.0", "id": 44, "method": "tools/list",
+        "params": {"_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+            "io.modelcontextprotocol/clientCapabilities": {},
+        }},
+    }
+    req = _make_request(
+        body,
+        [(b"mcp-protocol-version", MODERN), (b"mcp-method", b"tools/list")],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert response.status_code == 200
+    assert state["reached"] is True
+
+
+def test_mcp_param_mirror_mismatch_rejected():
+    req = _make_request(
+        _tools_call_body("arif_init"),
+        [
+            (b"mcp-protocol-version", MODERN),
+            (b"mcp-method", b"tools/call"),
+            (b"mcp-name", b"arif_init"),
+            (b"mcp-param-actor_id", b"someone-else"),
+        ],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    _assert_rejected(response, state)
+    assert "Mcp-Param-actor_id" in json.loads(response.body)["error"]["message"]
+
+
+def test_mcp_param_mirror_extra_header_without_body_arg_rejected():
+    req = _make_request(
+        _tools_call_body("arif_init"),
+        [
+            (b"mcp-protocol-version", MODERN),
+            (b"mcp-method", b"tools/call"),
+            (b"mcp-name", b"arif_init"),
+            (b"mcp-param-nonexistent", b"x"),
+        ],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    _assert_rejected(response, state)
+
+
+def test_mcp_param_mirror_equal_passes():
+    body = _tools_call_body("arif_init")
+    body["params"]["arguments"] = {"actor_id": "arif"}
+    req = _make_request(
+        body,
+        [
+            (b"mcp-protocol-version", MODERN),
+            (b"mcp-method", b"tools/call"),
+            (b"mcp-name", b"arif_init"),
+            (b"mcp-param-actor_id", b"arif"),
+        ],
     )
     call_next, state = _downstream_reached()
     response = _run(req, call_next)
