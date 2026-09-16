@@ -5284,7 +5284,7 @@ def _enforce_nine_signal(
                 envelope["constitutional_check"] = {
                     "floor_passed": _fp,
                     "_floor_measurement": "measured" if _floors_checked_here else "unmeasured",
-                    "hold_required": _is_hold or bool(_failed_floors),
+                    "hold_required": _is_hold or bool(_failed_floors) or not _floors_checked_here,
                     "hold_reason": (
                         "outer_verdict=" + _outer_verdict
                         if _is_hold
