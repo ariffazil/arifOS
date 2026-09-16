@@ -37,7 +37,9 @@
       "arif_think"
     ],
     "tool_manifest_sha256": "sha256:271a15190668b53b84622084458ec99e10ee0de36e126c1e59649b3e1edffc82",
-    "tool_manifest_url": "https://mcp.arif-fazil.com/mcp"
+    "tool_manifest_url": "https://mcp.arif-fazil.com/mcp",
+    "semantic_capability_hash": "sha256:ba38174a23c515c1935289caede8d7515dc5c061a43819b2688ca0648746d255",
+    "capability_hash_algorithm": "RFC8785-JCS + SHA256 over sorted semantic records"
   },
   "contract_version": "1.0.0",
   "forbidden_actions": [
