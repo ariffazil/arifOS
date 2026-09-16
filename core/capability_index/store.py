@@ -204,3 +204,22 @@ class CapabilityStore:
             except Exception:
                 pass
         return len(self._load_local_records())
+
+    def list_records(self) -> list[CapabilityRecord]:
+        """All indexed capability records (public read for the resolver).
+
+        Preference order mirrors the store's own fallback chain:
+        Qdrant (if live) → registry JSON → seed. Read-only.
+        """
+        if self.client:
+            try:
+                response = self.client.scroll(
+                    collection_name=COLLECTION_NAME,
+                    limit=512,
+                    with_payload=True,
+                )
+                points, _ = response if isinstance(response, tuple) else (response, None)
+                return [CapabilityRecord(**p.payload) for p in points]
+            except Exception as e:
+                logger.debug("Qdrant scroll failed, using local records: %s", e)
+        return list(self._load_local_records())
