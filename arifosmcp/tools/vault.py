@@ -309,16 +309,56 @@ async def arif_seal(
 
         _rb_actor = actor_id or "unknown"
         _rb_session = session_id or "anonymous"
-        try:
-            _rsid, _ractor = resolve_receipt_identity(
-                session_id=_rb_session, actor_id=_rb_actor
-            )
-            if _rsid:
-                _rb_session = _rsid
-            if _ractor:
-                _rb_actor = _ractor
-        except Exception:
-            pass
+        # D2 fix (F13 GO 4, 2026-09-16): attribution binding — the recorded
+        # actor derives from a kernel-verified credential when present:
+        #   session_token (ACT/SCT) -> verify_act() claims -> sct_bound
+        #   no credential            -> claimed actor, labeled self_reported
+        #   sovereign claim without binding -> HOLD (impersonation wall)
+        # A presented-but-invalid token is worse than none: HOLD.
+        _rb_verify = "self_reported"
+        _rb_sovereign_names = {
+            "ARIF", "888", "ARIFFAZIL", "ARIF-FAZIL", "ARIF_FAZIL", "F13",
+        }
+        if session_token:
+            from arifosmcp.runtime.act_token import verify_act
+
+            _rb_claims = verify_act(session_token)
+            if not _rb_claims:
+                return {
+                    "status": "OK",
+                    "tool": "arif_seal",
+                    "mode": "receipt",
+                    "verdict": "HOLD",
+                    "reasons": [
+                        "receipt refused: presented session_token failed "
+                        "verification — unbound credential is worse than none"
+                    ],
+                }
+            _rb_actor = _rb_claims.get("actor") or _rb_actor
+            _rb_session = _rb_claims.get("sid") or _rb_session
+            _rb_verify = "sct_bound"
+        elif str(_rb_actor).strip().upper() in _rb_sovereign_names:
+            return {
+                "status": "OK",
+                "tool": "arif_seal",
+                "mode": "receipt",
+                "verdict": "HOLD",
+                "reasons": [
+                    "receipt refused: sovereign identity claimed without a "
+                    "verified credential (D2 attribution wall, F13 GO 4)"
+                ],
+            }
+        else:
+            try:
+                _rsid, _ractor = resolve_receipt_identity(
+                    session_id=_rb_session, actor_id=_rb_actor
+                )
+                if _rsid:
+                    _rb_session = _rsid
+                if _ractor:
+                    _rb_actor = _ractor
+            except Exception:
+                pass
         _rb_intent = (payload or "session receipt (no payload)")[:2000]
         _rb_hash = hashlib.sha256(_rb_intent.encode()).hexdigest()
         # Service runs as user `arifos` with ARIFOS_VAULT_DIR=/var/lib/arifos/vault;
@@ -336,7 +376,9 @@ async def arif_seal(
         # judge_verdict_ref and refuse a second append for a seen nonce.
         # O(n) scan per receipt — acceptable at current ledger sizes; index
         # when receipts exceed ~10k lines.
-        _rb_ref = f"lane_b_receipt:{nonce}" if nonce else "lane_b_receipt"
+        _rb_ref = (
+            f"lane_b_receipt:{nonce}:{_rb_verify}" if nonce else f"lane_b_receipt:{_rb_verify}"
+        )
         if nonce:
             try:
                 with open(_rb_vault_path) as _rf:
