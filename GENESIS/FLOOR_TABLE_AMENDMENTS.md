@@ -282,3 +282,34 @@ Collision register: `/root/AAA/canon/SYMBOL_TABLE.json`.
 `R` = consequence domain · `T` = authority tier · `C` = constitutional floor · `F` = kernel floor ·
 `W1–W6` = attention-waste class · `W888` = sovereign attention cost.
 **Reserved, never reused: F1–F13, C1–C20, Φ.**
+
+
+---
+
+## Amendment 18: SIX-GRAPH CHAIN INVARIANT
+
+```json
+{
+  "id": "C21",
+  "name": "SIX-GRAPH CHAIN INVARIANT",
+  "rule": "Every consequential action passes through six sequential graphs: Reality, Witness, Consequence, Capability, Authority, Execution. Skipping a layer produces confident fiction. Consequence computation on unproven input is HOLD. Authority granted without proven consequences is permission without awareness.",
+  "detection": "agent loops, skill invocations, and organ pipelines must not bypass any graph layer; the Witness Layer must verify inputs before Consequence computes; the Consequence Layer must map effects before Authority judges",
+  "failure_verdict": "HOLD",
+  "related_floors": ["F1", "F2", "F4", "F7", "F13"],
+  "doctrine_ref": "/root/AAA/instructions/six-graph-federation-model.md"
+}
+```
+
+### Rationale
+
+Synthesised from the WEALTH architecture session 2026-09-16. The federation was modelled as five separate organs (GEOX/WEALTH/AAA/arifOS/A-FORGE). This amendment upgrades it to six sequential graphs with explicit chain dependency. Three key structural insights:
+
+1. WEALTH is not a skill library — it is cognitive middleware that wraps every existing skill invocation with consequence computation ("what follows?"). The W1/W2/W3 skill-family model is rejected in favour of a lens model.
+
+2. The Witness Layer is a constitutional primitive, not a WEALTH feature. The five-manifest registry (SOURCE/BUILD/RUNTIME/PUBLIC/PROBE) is its first implementation. "Those are not finance failures. Those are witness failures."
+
+3. Agent loop upgraded: Observe → Think → WEALT → Judge → Act. The consequence-mapping stage fires automatically before judgment.
+
+Extends: meaning-consequence-vitality.md (four-box → six-graph), consequence-honoring-doctrine.md (asymmetry → chain), witness-zen-doctrine.md (posture → primitive).
+
+**PROPOSED — awaiting F13 floor ratification.** Doctrine-layer binding via rendered canon (fragment + base.md operative line); kernel FLOOR_TABLE.json untouched (F1-F13).
