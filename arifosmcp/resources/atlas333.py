@@ -405,7 +405,17 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
         try:
             import pathlib
 
-            scar_path = pathlib.Path("/root/.local/share/arifos/vault999") / "scars" / f"{id}.json"
+            # Path traversal guard (external report, Syed Anas Mohiuddin,
+            # 2026-09-15, finding #2): `id` is a URL-path parameter used directly
+            # as a filename, so `../` walked out of the scars directory. Contain
+            # it by resolving and comparing against the resolved root.
+            _scars_root = pathlib.Path("/root/.local/share/arifos/vault999/scars").resolve()
+            scar_path = (_scars_root / f"{id}.json").resolve()
+            if _scars_root not in scar_path.parents:
+                raise ValueError(
+                    f"Scar id rejected: {id!r} escapes the scars directory "
+                    "(external report 2026-09-15)"
+                )
             if scar_path.exists():
                 return scar_path.read_text()
             # Try in-memory scar store

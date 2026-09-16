@@ -66,11 +66,12 @@ def _sha256_file(path: Path) -> str | None:
 
 DEPLOYED_COMMIT_STAMP = Path("/opt/arifos/releases/deployed-commit")
 _LEGACY_APP_STAMP = Path("/opt/arifos/app/.git_commit")
+_REPO_COMMIT_STAMP = Path("/root/arifOS/.git_commit")
 
 
 def _read_commit_stamp() -> str:
-    """Deployed commit: stable release stamp → legacy app stamp."""
-    for stamp in (DEPLOYED_COMMIT_STAMP, _LEGACY_APP_STAMP):
+    """Deployed commit: stable release stamp → legacy app stamp → repo stamp."""
+    for stamp in (DEPLOYED_COMMIT_STAMP, _LEGACY_APP_STAMP, _REPO_COMMIT_STAMP):
         try:
             value = stamp.read_text().strip()
             if len(value) >= 7:
@@ -287,16 +288,10 @@ def _git_sha_short() -> str:
     4. Canonical repo .git/HEAD fallback
     5. Fallback "unknown"
     """
-    # 1. Native Bare-Metal deployment stamp (highest priority)
-    _stamp_path = "/opt/arifos/app/.git_commit"
-    if os.path.exists(_stamp_path):
-        try:
-            with open(_stamp_path) as f:
-                content = f.read().strip()
-                if len(content) >= 7:
-                    return content[:7]
-        except Exception:
-            pass
+    # 1. Native Bare-Metal deployment stamp (highest priority: deployed-commit → legacy app → repo)
+    _stamp = _read_commit_stamp()
+    if _stamp != "unknown":
+        return _stamp[:7]
 
     # 2. Image-baked env (legacy docker)
     for env_key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
