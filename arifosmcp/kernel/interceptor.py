@@ -700,7 +700,15 @@ def _check_policy_floors(
             "/root/arifOS/GENESIS",
         )
         _arg_str = str(req.arguments or {})
-        if any(_p in _arg_str for _p in _protected_trees):
+        # GO7-R3: path-BOUNDARY match — a bare substring held superstrings
+        # like /root/AAA/canonical. The tree must end at /, quote, whitespace,
+        # or end-of-string.
+        import re as _re_mod
+
+        if any(
+            _re_mod.search(_re_mod.escape(_p) + r"(?=[/\"'\s]|$)", _arg_str)
+            for _p in _protected_trees
+        ):
             _ack = (
                 isinstance(_gate_env, dict)
                 and _gate_env.get("requires_human_ack") is True

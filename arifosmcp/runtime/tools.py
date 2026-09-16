@@ -5185,7 +5185,16 @@ def _enforce_nine_signal(
                     or _vg_result.get("seal_hash")
                     or _vg_result.get("receipt_hash")
                 )
-                _vg_text = str(envelope.get("reasons") or "") + " " + str(_vg_result)[:4000]
+                # GO7-R2: scan HUMAN-FACING text only — reasons plus explicit
+                # narrative fields. str(result) wholesale made any nested
+                # verdict-shaped JSON (e.g. '"verdict": "HOLD"' echoes) trip
+                # the advisory flag; the Royal-Decree target lives in prose.
+                _vg_text_fields = [str(envelope.get("reasons") or "")]
+                for _vg_key in ("summary", "message", "note", "detail", "text"):
+                    _vg_v = _vg_result.get(_vg_key) if isinstance(_vg_result, dict) else None
+                    if isinstance(_vg_v, str):
+                        _vg_text_fields.append(_vg_v)
+                _vg_text = " ".join(_vg_text_fields)[:6000]
                 _vg_violations = validate_free_text_vocabulary(
                     _vg_text, lane=_vg_lane, has_seal_hash=_vg_has_seal_hash
                 )
