@@ -1,39 +1,39 @@
 {
-  "capability_hash": "sha256:ba38174a23c515c1935289caede8d7515dc5c061a43819b2688ca0648746d255",
+  "capability_hash": "sha256:8822a4d25bc4a7c0b2a7fe9d37497a1aafbac9a87c0982140ed9b56e90a960d3",
   "algorithm": "RFC8785-JCS + SHA256 over sorted semantic records",
   "record_count": 8,
   "records": [
     {
       "name": "arif_forge",
-      "record_sha256": "sha256:4f264f5cc0e91678735f29dcb9788101d30c15601081eeea6361dc7986a93d9d"
+      "record_sha256": "sha256:5c3f6ee8fa119e5c8e4d055ebd4e05541e7674bc22be690df60d6cfaabb24858"
     },
     {
       "name": "arif_init",
-      "record_sha256": "sha256:0e85aba888506c9f224f4b14f7a3ac65f6564c8718ee3106e210a2fba024ac28"
+      "record_sha256": "sha256:aedeb21bb80746ec6e179ea60344fc143366afb9d756a724551cf9e65adc2dcb"
     },
     {
       "name": "arif_judge",
-      "record_sha256": "sha256:e19b73d736ecee99888420f12beb132c55b19addea162a61bc33b145e75a8ff5"
+      "record_sha256": "sha256:daedbac7eb85490f32fab95f28065cf3521d497368f317eb6f82db0c79bc4c75"
     },
     {
       "name": "arif_memory",
-      "record_sha256": "sha256:c7f9a922134751204fea2ca85527518769dacee64d976e9460609f62883f1a25"
+      "record_sha256": "sha256:e09fa32b03712c641b785ccacd94c0cdf59d7fcf0a5fde4482076aea4fec1621"
     },
     {
       "name": "arif_observe",
-      "record_sha256": "sha256:ac6d58c5b3bda51a70d9a048971d7519cf2ffb89b2115bd77d27acbddb48bb41"
+      "record_sha256": "sha256:358bd7d4b6a9a66fcdbcfec358ddaf2ba263267e5fd11206fc933244a6085b22"
     },
     {
       "name": "arif_route",
-      "record_sha256": "sha256:d99f190568d38e35777c9391a554bbdb91b3ef5b72cc29e8f91764eb21702559"
+      "record_sha256": "sha256:16099305288ed7e33a05082c245f7d8360172094a908da552c90a7b6b9c43ce0"
     },
     {
       "name": "arif_seal",
-      "record_sha256": "sha256:ce5130d7d74c65c7fb97d5495dd099e5f9bc4f3bd52fde7de4567da99b9a16b8"
+      "record_sha256": "sha256:9e841d6208d0451ed1f8ea29e3bc58eb5d5f70d69f7558343ccc047d616fdf68"
     },
     {
       "name": "arif_think",
-      "record_sha256": "sha256:e53b97c86c03c7b1a7891228465637a1d0da460d91ac8b2a11454a27a96b69d4"
+      "record_sha256": "sha256:eaabb64a0adee6a218be11a2617074949c4e9fe7e21aaed9a8c01b111a54ab2c"
     }
   ],
   "excluded_by_design": [
