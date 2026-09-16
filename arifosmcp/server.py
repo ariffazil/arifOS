@@ -633,15 +633,19 @@ def _resolve_git_commit() -> str:
     was unbound because subprocess git rev-parse fails when CWD is not a git repo.
     """
     # 1. Bare-metal deployment stamp (written by deploy scripts)
-    _stamp_path = "/opt/arifos/app/.git_commit"
-    if os.path.exists(_stamp_path):
-        try:
-            with open(_stamp_path) as f:
-                content = f.read().strip()
-                if len(content) >= 7:
-                    return content[:7]
-        except Exception:
-            pass
+    for _stamp_path in (
+        "/opt/arifos/releases/deployed-commit",
+        "/opt/arifos/app/.git_commit",
+        "/root/arifOS/.git_commit",
+    ):
+        if os.path.exists(_stamp_path):
+            try:
+                with open(_stamp_path) as f:
+                    content = f.read().strip()
+                    if len(content) >= 7:
+                        return content[:7]
+            except Exception:
+                pass
     # 2. Environment variables
     for _key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
         _val = os.environ.get(_key, "").strip()

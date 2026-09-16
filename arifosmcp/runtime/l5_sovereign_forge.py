@@ -33,6 +33,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 from datetime import UTC, datetime
 from typing import Any
@@ -331,6 +332,27 @@ def _build_cypher(
             .replace("\n", "\\n")
         )
 
+    # Property KEYS are identifiers, never literals: they are interpolated
+    # UNQUOTED (`e.{key} = '...'`), so escaping quotes inside them is not
+    # enough. Keys arrive from result.episode_properties / ent.properties /
+    # edge.properties, i.e. from an LLM's JSON extraction of raw memory text —
+    # attacker-influenced by any prompt injection that reaches that text.
+    # External report (Syed Anas Mohiuddin, 2026-09-15, finding #1): a crafted
+    # key closed the clause and appended `MATCH (n) DETACH DELETE n`, wiping the
+    # graph. Reproduced: key "x MATCH (n) DETACH DELETE n //" reached the query
+    # unquoted. Whitelist, do not sanitize — same shape as the edge-label check.
+    _KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+    def _prop_key(k: str) -> str:
+        """Return a safe Cypher property key or raise — never silently mangle."""
+        key = str(k)
+        if not _KEY_RE.match(key):
+            raise ValueError(
+                f"unsafe Cypher property key rejected: {key[:60]!r} — keys must "
+                "match ^[A-Za-z_][A-Za-z0-9_]*$ (external report 2026-09-15)"
+            )
+        return key
+
     def _var_token(name: str) -> str:
         """Sanitize a name for use as a Cypher variable token."""
         out = []
@@ -398,7 +420,7 @@ def _build_cypher(
             if k not in _RESERVED_EPISODE_PROPS
         }
     )
-    prop_str = ", ".join(f"e.{_s(k)} = '{_s(str(v))}'" for k, v in ep_props.items())
+    prop_str = ", ".join(f"e.{_prop_key(k)} = '{_s(str(v))}'" for k, v in ep_props.items())
     lines.append(f'MERGE (e:Episode {{uuid: "{_s(episode_uuid)}"}})')
     lines.append(f"ON CREATE SET {prop_str}")
     lines.append(f"ON MATCH SET {prop_str}")
@@ -422,7 +444,7 @@ def _build_cypher(
             "role": ent.role or "",
         }
         e_props.update(ent.properties)
-        e_prop_str = ", ".join(f"{var}.{_s(k)} = '{_s(str(v))}'" for k, v in e_props.items())
+        e_prop_str = ", ".join(f"{var}.{_prop_key(k)} = '{_s(str(v))}'" for k, v in e_props.items())
         lines.append(f'MERGE ({var}:Entity {{uuid: "{_s(ent_uuid)}"}})')
         lines.append(f"ON CREATE SET {e_prop_str}")
         lines.append(f"ON MATCH SET {e_prop_str}")
@@ -471,7 +493,7 @@ def _build_cypher(
             )
 
         edge_prop_str = (
-            ", ".join(f"{evar}.{_s(k)} = '{_s(str(v))}'" for k, v in edge.properties.items())
+            ", ".join(f"{evar}.{_prop_key(k)} = '{_s(str(v))}'" for k, v in edge.properties.items())
             if edge.properties
             else f"{evar}.forge_ts = timestamp()"
         )

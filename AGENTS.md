@@ -11,3 +11,11 @@ This organ operates under the arifOS Federation. For constitutional floors (F1-F
 For session-start probes, action-tier expansions, conflict resolution, and the autonomy goal — read `/root/AAA/AGENTS-AUTONOMY.md` first.
 
 DITEMPA BUKAN DIBERI ⚒️
+
+## APEX-ZEN Alignment (canonical)
+> **Governance chain:** BUILD → VERIFY → JUDGE → SEAL → ACT → WITNESS
+> **Invariant:** CAPABILITY ≠ AUTHORITY
+> **Doctrine:** Govern capabilities, not implementations.
+> **Canonical ref:** `/root/AAA/canon/APEX-ZEN-CANONICAL-COMPRESSION.md`
+> **Motto:** DITEMPA BUKAN DIBERI ⚒️
+

@@ -2530,8 +2530,12 @@ def _compute_runtime_drift() -> dict[str, Any]:
     build_commit = BUILD_INFO.get("build", {}).get("commit", "unknown")
     live_commit = "unknown"
 
-    # ── 1) Canonical deployment marker (written by make deploy-local) ──
-    for commit_file in ["/opt/arifos/app/.git_commit", "/root/arifOS/.git_commit"]:
+    # ── 1) Canonical deployment marker (written by deploy-release.sh / make deploy-local) ──
+    for commit_file in [
+        "/opt/arifos/releases/deployed-commit",
+        "/opt/arifos/app/.git_commit",
+        "/root/arifOS/.git_commit",
+    ]:
         try:
             if os.path.exists(commit_file):
                 with open(commit_file) as f:
