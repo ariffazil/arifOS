@@ -204,6 +204,7 @@ Measured 2026-09-16: 1,568 rename events in the canonical skill tree propagated 
   "name": "CONSEQUENCE CLASS",
   "rule": "Every capability that touches reality declares its side-effect class, blast radius, reversibility, authority tier and may-not list. No consequence class, no execution.",
   "detection": "any skill with a side effect on an external surface (send, publish, spend, delete, mutate-shared) must carry the five fields; absence blocks execution",
+  "consent_receipt": "an external write (send/post/pay/delete/publish) additionally requires a receipt binding: who approved · exact content hash · account/platform · who is affected · when · one-time or standing · retraction path. The receipt uses the EXISTING claim-ledger lane — register the exact artifact (sha256) with claim_artifact_register, record the approval with claim_record (locator = platform/account, source_ref = approval instrument). No new ledger, no new symbol. No receipt, no external write.",
   "failure_verdict": "HOLD",
   "related_floors": ["F1", "F4", "F11", "F13"],
   "doctrine_ref": "/root/AAA/instructions/agi-asi-skills-fundamentals.md#law-4"
