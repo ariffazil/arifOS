@@ -12,6 +12,10 @@ import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 
 from arifosmcp.server import GlobalPanicMiddleware, mcp
+from arifosmcp.runtime.mcp_transport_bridge import (
+    MCPSessionBridgeMiddleware,
+    MCPProtocolVersionMiddleware,
+)
 
 
 def create_http_app():
@@ -19,7 +23,13 @@ def create_http_app():
     # Match production server.py: session IDs + JSON-RPC POST bodies.
     app = mcp.http_app(stateless_http=True, json_response=True)
 
+    # Complete mediation (2026-09-17): this entrypoint previously shipped with
+    # NO protocol middleware — every header check in mcp_transport_bridge could
+    # be bypassed by targeting transport/http.py instead of server.py. Both
+    # entrypoints now run the same validation stack.
     app.add_middleware(GlobalPanicMiddleware)
+    app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
+    app.add_middleware(MCPProtocolVersionMiddleware)  # Fail-closed modern envelope validation
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
