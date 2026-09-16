@@ -27,6 +27,7 @@ from __future__ import annotations
 import contextvars
 import json
 import logging
+import os
 from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -198,6 +199,9 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 mcp_method = (
                     request.headers.get("Mcp-Method") or request.headers.get("mcp-method") or ""
                 ).strip()
+                mcp_name = (
+                    request.headers.get("Mcp-Name") or request.headers.get("mcp-name") or ""
+                ).strip()
 
                 # HeaderMismatch: Mcp-Method MUST match body method when both present
                 if mcp_method and method and mcp_method != method:
@@ -214,6 +218,80 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                             },
                         },
                         status_code=400,
+                    )
+
+                # HeaderMismatch: Mcp-Name MUST match body params.name when both present
+                # (confused-deputy guard: gateway must not route one tool while the
+                # body executes another — SEP-2243 header/body equality.)
+                if mcp_name and isinstance(body, dict):
+                    params = body.get("params")
+                    body_name = params.get("name") if isinstance(params, dict) else None
+                    if isinstance(body_name, str) and mcp_name != body_name:
+                        return JSONResponse(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": req_id,
+                                "error": {
+                                    "code": ERR_HEADER_MISMATCH,
+                                    "message": (
+                                        f"HeaderMismatch: Mcp-Name '{mcp_name}' "
+                                        f"does not match body params.name '{body_name}'"
+                                    ),
+                                },
+                            },
+                            status_code=400,
+                        )
+
+                # ── Fail-closed modern envelope (2026-09-17) ──
+                # SCAR: the prior check fired only when header AND body method were
+                # both present, so omitting Mcp-Method/Mcp-Name bypassed validation
+                # entirely — gateway and kernel could interpret one request two
+                # ways (external AGI-substrate audit + live probe, confirmed at
+                # mcp_transport_bridge.py:203). Interpretation must be singular:
+                # for state-changing calls the modern envelope is REQUIRED.
+                # ARIFOS_MCP_ENVELOPE_STRICT=0 restores the lenient behavior
+                # (emergency compatibility only — mismatch checks above stay on).
+                strict_envelope = os.getenv("ARIFOS_MCP_ENVELOPE_STRICT", "1") != "0"
+                if strict_envelope and method == "tools/call":
+                    if not mcp_method:
+                        return JSONResponse(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": req_id,
+                                "error": {
+                                    "code": ERR_HEADER_MISMATCH,
+                                    "message": (
+                                        "HeaderMismatch: Mcp-Method header is required "
+                                        "for tools/call on MCP 2026-07-28 (fail-closed)"
+                                    ),
+                                },
+                            },
+                            status_code=400,
+                        )
+                    if not mcp_name:
+                        return JSONResponse(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": req_id,
+                                "error": {
+                                    "code": ERR_HEADER_MISMATCH,
+                                    "message": (
+                                        "HeaderMismatch: Mcp-Name header is required "
+                                        "for tools/call on MCP 2026-07-28 (fail-closed)"
+                                    ),
+                                },
+                            },
+                            status_code=400,
+                        )
+                elif not mcp_method and method and not str(method).startswith("notifications/"):
+                    # Transition window: non-mutation methods may still omit
+                    # headers. Log so the ratchet to required-for-all is driven by
+                    # measured production traffic, not guesswork.
+                    logger.warning(
+                        "MCP 2026-07-28: request without Mcp-Method header "
+                        "(method=%s, path=%s) — transition-window pass",
+                        method,
+                        request.url.path,
                     )
 
                 # ── G7: Skip initialize handshake for 2026-07-28 stateless clients ──
