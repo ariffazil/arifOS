@@ -666,6 +666,45 @@ class F4_Clarity(Law):
 
 
 # --- F5: PEACE² (Stability) ---
+
+# Contextual tokenizer (2026-09-17, F13: "fix the L05 scorer — contextualize,
+# no more waivers"). Proven false-positive classes: substring 'forge' inside
+# lane name forge-777 (2026-09-17 BS-1 seal), 'irreversible' in seal-record
+# prose (2026-09-13). Rules — a keyword counts ONLY when it appears as a
+# whole prose token; identifier-like tokens (paths, digit-suffixed lane
+# names, hashes, mixed alpha-digit) are names, not verbs; morphological
+# variants ('forged', 'harmless') are different tokens; hyphenated prose
+# compounds re-split so 'wipe-out' still matches 'wipe'.
+import re as _f5_re
+
+_F5_HAS_DIGIT = _f5_re.compile(r"[0-9]")
+_F5_PATHISH = _f5_re.compile(r"[/\\:]")
+_F5_HEXISH = _f5_re.compile(r"^[0-9a-f]{7,}$")
+
+
+def _f5_tokens(text: str) -> list[str]:
+    """Prose tokens only: identifiers/paths/lane-names/hashes excluded.
+
+    A token is an identifier (name, not verb) when it carries a digit,
+    a path/colon separator, or is a bare hex hash. Pure-word hyphen
+    compounds carry no digits, so they re-split ('wipe-out' → 'wipe out').
+    """
+    if not text or not isinstance(text, str):
+        return []
+    out: list[str] = []
+    for tok in text.lower().split():
+        tok = tok.strip(".,;:!?'\"()[]{}<>|*`")
+        if not tok:
+            continue
+        if _F5_HAS_DIGIT.search(tok) or _F5_PATHISH.search(tok) or _F5_HEXISH.match(tok):
+            continue
+        if "-" in tok or "_" in tok:
+            out.extend(_f5_re.sub(r"[-_]", " ", tok).split())
+        else:
+            out.append(tok)
+    return out
+
+
 class F5_Peace2(Law):
     """
     F5: PEACE² (P²) - Lyapunov Stability
@@ -676,7 +715,10 @@ class F5_Peace2(Law):
         super().__init__("F5_Peace2")
 
     def check(self, context: dict[str, Any]) -> LawResult:
-        # Check for destructive actions
+        # Check for destructive actions. Matching is token-exact on prose
+        # tokens (see _f5_tokens): identifiers, paths, lane names, hashes,
+        # and morphological variants no longer trip the floor; direct
+        # destructive verbs in prose still do — safety direction preserved.
         destructive_keywords = [
             # Physical/system destruction
             "destroy",
@@ -707,14 +749,17 @@ class F5_Peace2(Law):
             "wiretap",
             "dox",
         ]
-        query = context.get("query", "").lower()
+        tokens = _f5_tokens(context.get("query", ""))
+        token_set = set(tokens)
+        bigrams = {f"{a} {b}" for a, b in zip(tokens, tokens[1:])}
 
         peace_penalty = 0.0
         for kw in destructive_keywords:
-            if kw in query:
+            hit = (kw in bigrams) if " " in kw else (kw in token_set)
+            if hit:
                 peace_penalty += 0.3
 
-        # High-intent harm verbs: stronger penalty
+        # High-intent harm verbs: stronger penalty (same token rules)
         high_harm = [
             "hack",
             "harass",
@@ -725,7 +770,7 @@ class F5_Peace2(Law):
             "impersonate",
         ]
         for kw in high_harm:
-            if kw in query:
+            if kw in token_set:
                 peace_penalty += 0.4
 
         # Peace score with exponential decay for multiple violations
