@@ -1,0 +1,43 @@
+{
+  "capability_hash": "sha256:ba38174a23c515c1935289caede8d7515dc5c061a43819b2688ca0648746d255",
+  "algorithm": "RFC8785-JCS + SHA256 over sorted semantic records",
+  "record_count": 8,
+  "records": [
+    {
+      "name": "arif_forge",
+      "record_sha256": "sha256:4f264f5cc0e91678735f29dcb9788101d30c15601081eeea6361dc7986a93d9d"
+    },
+    {
+      "name": "arif_init",
+      "record_sha256": "sha256:0e85aba888506c9f224f4b14f7a3ac65f6564c8718ee3106e210a2fba024ac28"
+    },
+    {
+      "name": "arif_judge",
+      "record_sha256": "sha256:e19b73d736ecee99888420f12beb132c55b19addea162a61bc33b145e75a8ff5"
+    },
+    {
+      "name": "arif_memory",
+      "record_sha256": "sha256:c7f9a922134751204fea2ca85527518769dacee64d976e9460609f62883f1a25"
+    },
+    {
+      "name": "arif_observe",
+      "record_sha256": "sha256:ac6d58c5b3bda51a70d9a048971d7519cf2ffb89b2115bd77d27acbddb48bb41"
+    },
+    {
+      "name": "arif_route",
+      "record_sha256": "sha256:d99f190568d38e35777c9391a554bbdb91b3ef5b72cc29e8f91764eb21702559"
+    },
+    {
+      "name": "arif_seal",
+      "record_sha256": "sha256:ce5130d7d74c65c7fb97d5495dd099e5f9bc4f3bd52fde7de4567da99b9a16b8"
+    },
+    {
+      "name": "arif_think",
+      "record_sha256": "sha256:e53b97c86c03c7b1a7891228465637a1d0da460d91ac8b2a11454a27a96b69d4"
+    }
+  ],
+  "excluded_by_design": [
+    "description (prose churn without semantic change)"
+  ],
+  "enforcement_seam": "Verdict(C_n, A) does NOT authorize under C_n+1 — G3 binds this hash into verdicts/receipts; until then this file is the witness."
+}
