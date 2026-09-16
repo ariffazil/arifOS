@@ -1138,6 +1138,29 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
 }
 
 
+# Legacy alias → canonical verb (module-level so ingress_middleware's
+# soft-landing redirect can import it; was function-local inside
+# get_full_affordance until 2026-09-16 — import failed silently, redirect
+# never fired, alias callers got a bare "Unknown tool" rejection).
+_ALIAS_TO_CANON: dict[str, str] = {
+    "arif_mind_reason": "arif_think",
+    "arif_act": "arif_forge",
+    "arif_fetch": "arif_observe",
+    "arif_search": "arif_observe",
+    "arif_explore": "arif_observe",
+    "arif_sense_observe": "arif_observe",
+    "arif_evidence_fetch": "arif_observe",
+    "arif_bridge_connect": "arif_route",
+    "arif_memory_recall": "arif_memory",
+    "arif_judge_deliberate": "arif_judge",
+    "arif_reply_compose": "arif_think",
+    "arif_vault_seal": "arif_seal",
+    "arif_session_init": "arif_init",
+    "arif_triage": "arif_init",
+    "arif_delegate": "arif_route",
+}
+
+
 def get_full_affordance(tool_name: str) -> dict[str, Any]:
     """Return the complete cognitive + power affordance contract for an agent.
 
@@ -1149,24 +1172,8 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
     """
     from arifosmcp.resources.tool_discovery_resource import TOOL_DISCOVERY
 
-    # Orphan kill: never leave arif_mind_reason as undeclared purpose
-    _ALIAS_TO_CANON = {
-        "arif_mind_reason": "arif_think",
-        "arif_act": "arif_forge",
-        "arif_fetch": "arif_observe",
-        "arif_search": "arif_observe",
-        "arif_explore": "arif_observe",
-        "arif_sense_observe": "arif_observe",
-        "arif_evidence_fetch": "arif_observe",
-        "arif_bridge_connect": "arif_route",
-        "arif_memory_recall": "arif_memory",
-        "arif_judge_deliberate": "arif_judge",
-        "arif_reply_compose": "arif_think",
-        "arif_vault_seal": "arif_seal",
-        "arif_session_init": "arif_init",
-        "arif_triage": "arif_init",
-        "arif_delegate": "arif_route",
-    }
+    # Orphan kill: never leave arif_mind_reason as undeclared purpose.
+    # _ALIAS_TO_CANON now lives at module level (shared with ingress_middleware).
     lookup = _ALIAS_TO_CANON.get(tool_name, tool_name)
     purpose = dict(
         TOOL_PURPOSE_CONTRACTS.get(lookup)
@@ -5174,10 +5181,14 @@ def _enforce_nine_signal(
                     validate_free_text_vocabulary,
                 )
 
-                _vg_lane = "999" if tool_name == "arif_seal" else (
-                    "888" if tool_name == "arif_judge" else "333"
+                _vg_lane = (
+                    "999"
+                    if tool_name == "arif_seal"
+                    else ("888" if tool_name == "arif_judge" else "333")
                 )
-                _vg_result = envelope.get("result") if isinstance(envelope.get("result"), dict) else {}
+                _vg_result = (
+                    envelope.get("result") if isinstance(envelope.get("result"), dict) else {}
+                )
                 # Real 999 hashes only — call_hash rides every envelope and
                 # would mislabel every AGI violation as a "smuggled seal".
                 _vg_has_seal_hash = bool(
@@ -26241,24 +26252,22 @@ def verify_and_inject_token(
         # Mode-level authority still applies downstream (interceptor Floors
         # 4.5–7 mode-classify arif_seal; the receipt branch binds
         # attribution). This relaxes only the coarse tool-level gate.
-        _seal_lane_b_or_read = (
-            tool_name == "arif_seal"
-            and str(kwargs.get("mode", "seal")).lower()
-            in {
-                "receipt",
-                "verify",
-                "chain",
-                "list",
-                "dry_run",
-                "verify_chain",
-                "chain_status",
-                "audit",
-                "seal_card",
-                "render",
-                "changelog",
-                "ledger",
-            }
-        )
+        _seal_lane_b_or_read = tool_name == "arif_seal" and str(
+            kwargs.get("mode", "seal")
+        ).lower() in {
+            "receipt",
+            "verify",
+            "chain",
+            "list",
+            "dry_run",
+            "verify_chain",
+            "chain_status",
+            "audit",
+            "seal_card",
+            "render",
+            "changelog",
+            "ledger",
+        }
         if (
             tool_name not in _always
             and allowed
