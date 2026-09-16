@@ -73,6 +73,8 @@ EXCLUDE_PATTERNS = [
     "/venv/",
     "/site-packages/",
     ".bak",
+    "verify_federation_organism.py",  # exclude self-scan
+    "i8_triage/",                     # triage docs are analysis, not code
 ]
 
 
