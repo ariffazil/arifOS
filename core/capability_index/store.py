@@ -96,8 +96,9 @@ class CapabilityStore:
         except Exception as e:
             logger.warning("Qdrant collection creation skipped: %s", e)
 
-    def upsert(self, records: Sequence[CapabilityRecord]) -> None:
-        """Embed and store capability records."""
+    def upsert(self, records: Sequence[CapabilityRecord]) -> bool:
+        """Embed and store capability records. Returns True only if the
+        vector store actually accepted them (claim == measurement)."""
         self._cached_records = list(records)
         encoder = self._get_encoder()
         if encoder is not None:
@@ -105,10 +106,13 @@ class CapabilityStore:
             self._cached_embeddings = np.array(encoder.encode(texts, show_progress_bar=False))
 
         if not self.client:
-            return
+            return False
 
         try:
             from qdrant_client.models import PointStruct
+            if self._cached_embeddings is None:
+                logger.warning("Qdrant upsert skipped: no embeddings available")
+                return False
             points = [
                 PointStruct(
                     id=idx,
@@ -119,8 +123,10 @@ class CapabilityStore:
             ]
             self.client.upsert(collection_name=COLLECTION_NAME, points=points)
             logger.info("Upserted %d capabilities into %s", len(points), COLLECTION_NAME)
+            return True
         except Exception as e:
             logger.warning("Qdrant upsert failed (operating in local fallback mode): %s", e)
+            return False
 
     def search(
         self,
@@ -209,7 +215,10 @@ class CapabilityStore:
         """All indexed capability records (public read for the resolver).
 
         Preference order mirrors the store's own fallback chain:
-        Qdrant (if live) → registry JSON → seed. Read-only.
+        Qdrant (if live AND populated) → registry JSON → seed. An empty
+        remote collection is indistinguishable from "not populated yet"
+        (e.g. embeddings offline) — it is NOT an authoritative zero, so we
+        fall back to local records rather than serving the resolver nothing.
         """
         if self.client:
             try:
@@ -219,7 +228,9 @@ class CapabilityStore:
                     with_payload=True,
                 )
                 points, _ = response if isinstance(response, tuple) else (response, None)
-                return [CapabilityRecord(**p.payload) for p in points]
+                if points:
+                    return [CapabilityRecord(**p.payload) for p in points]
+                logger.info("Qdrant collection empty — falling back to local records")
             except Exception as e:
                 logger.debug("Qdrant scroll failed, using local records: %s", e)
         return list(self._load_local_records())
