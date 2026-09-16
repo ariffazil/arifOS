@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "111 Observe · Sense Reality",
+  "description": "KERNEL 111 · Sense reality into evidence with epistemic tags and uncertainty bounds.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "mode": {
+      "default": "search",
+      "type": "string",
+      "enum": [
+        "search",
+        "fetch",
+        "hybrid_discovery",
+        "ingest",
+        "compass",
+        "atlas",
+        "entropy_dS",
+        "vitals"
+      ]
+    },
+    "query": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "session_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "actor_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "session_token": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "layers": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "result_limit": {
+      "default": 10,
+      "type": "integer"
+    },
+    "_envelope": {
+      "default": null,
+      "title": "Envelope"
+    }
+  }
+}
