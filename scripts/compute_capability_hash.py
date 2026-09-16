@@ -33,6 +33,8 @@ from pathlib import Path
 import rfc8785
 import yaml
 
+from arifosmcp.core.axis_map import VERB_AXES
+
 REPO = Path(__file__).resolve().parent.parent
 TOOLS_SOT = REPO / "tools_sot.yaml"
 SCHEMA_DIR = REPO / "arifosmcp" / "schema" / "registry" / "tools"
@@ -66,10 +68,13 @@ def build_records() -> list[dict]:
     for t in tools:
         short = t["name"].replace("arif_", "")
         sp = _schema_path(short)
+        axes = VERB_AXES[t["name"]]
         rec = {
             "canonical_name": t["name"],
             "kind": KIND,
             "public": PUBLIC,
+            "metabolic_stage": axes["metabolic_stage"],
+            "governance_tier": axes["governance_tier"],
             "stage": str(t.get("stage", "")),
             "risk_tier": str(t.get("risk_tier", "")),
             "floors": sorted(str(f) for f in (t.get("floors") or [])),
