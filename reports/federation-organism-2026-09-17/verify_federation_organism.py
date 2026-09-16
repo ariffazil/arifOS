@@ -454,13 +454,16 @@ def rule_i8_specialist_vocabulary_isolation(organ: str, root: Path, report: Fede
 
 def probe_organ(organ: str, root: Path, report: FederationReport) -> None:
     if not root.exists():
+        # On CI, only arifOS is checked out — missing organs are expected.
+        # On VPS, missing organs are a real problem.
+        is_ci = bool(_os.environ.get("GITHUB_WORKSPACE"))
         report.findings.append(Finding(
             rule="FED::organ_missing",
-            severity="CRITICAL",
+            severity="LOW" if is_ci else "CRITICAL",
             organ=organ,
-            file=str(root.relative_to(Path("/root"))),
+            file=str(root),
             line=0,
-            message=f"Organ root does not exist: {root}",
+            message=f"Organ root does not exist: {root}" + (" (CI: expected)" if is_ci else ""),
             evidence=str(root),
         ))
         return
