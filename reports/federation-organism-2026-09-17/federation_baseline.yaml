@@ -1,0 +1,52 @@
+# Federation Organism Baseline
+# Cycle: federation-organism-2026-09-17
+# Reference: ARIFOS::M365_COPILOT_KERNEL::v1.1
+#
+# This file freezes the current finding counts as the regression baseline.
+# The CI gate fails closed only when counts INCREASE vs this baseline.
+# Counts may decrease (real fixes are celebrated) or stay equal.
+# Counts may not increase silently.
+#
+# To re-baseline after intentional fixes:
+#   python3 verify_federation_organism.py --quiet > baseline_run.txt
+#   python3 -c "import re; t=open('baseline_run.txt').read(); print(open('federation_baseline.yaml').read())" # then update values
+#
+# Update this file ONLY through sovereign-ratified change. CI will diff.
+
+baseline:
+  cycle: federation-organism-2026-09-17
+  frozen_at: "2026-09-17"
+  organs_probed: 7
+  counts:
+    critical: 0
+    high: 360
+    medium: 360
+    low: 0
+  total: 720
+  verdict: HOLD
+  health: DEGRADED
+
+# Per-rule expected maxima (any single rule may not exceed these)
+# These allow individual fixes to reduce counts without bumping the baseline.
+per_rule_max:
+  I1::surface_contract_exists: 5
+  I2::tools_yaml_consistency: 10
+  I3::session_id_canonical: 0       # must remain zero; this is the critical fix
+  I4::aforge_action_hash: 5
+  I5::specialist_no_constitutional_verdict: 400
+  I6::well_backpressure_signal: 5
+  I7::stale_premise_unknown: 50
+  I8::specialist_vocabulary_isolation: 400
+
+# I3 is hard-pinned to 0 — session_id fallback must not be reintroduced.
+# Any non-zero I3 count fails the build.
+hard_zero:
+  - I3::session_id_canonical
+
+# CI policy
+ci_policy:
+  fail_on_critical: true
+  fail_on_high_regression: true    # high count may not increase vs baseline
+  fail_on_medium_regression: false  # medium count tracked but not gating
+  fail_on_hard_zero_violation: true # I3 specifically
+  artifact_path: artifacts/federation-organism.txt
