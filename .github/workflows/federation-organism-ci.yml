@@ -1,0 +1,110 @@
+# Federation Organism CI Gate
+#
+# Cycle: federation-organism-2026-09-17
+# Reference: ARIFOS::M365_COPILOT_KERNEL::v1.1
+#
+# This workflow enforces the FEDERATION_ORGANISM_INVARIANT as a regression
+# gate. It does NOT block on the existing 720 findings (they are witnessed,
+# not yet fixed). It DOES block on:
+#   - any new critical finding (must stay at 0)
+#   - any I3 violation (session_id=_default must stay at 0)
+#   - any regression that pushes high count above baseline
+#
+# Per sovereign constraint, baseline freeze is in federation_baseline.yaml.
+# Re-baselining requires explicit sovereign ratification via PR review.
+
+name: Federation Organism Gate
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - 'arifOS/**'
+      - 'GEOX/**'
+      - 'WEALTH/**'
+      - 'WELL/**'
+      - 'HERMES/**'
+      - 'AAA/**'
+      - 'A-FORGE/**'
+      - '.github/workflows/federation-organism-ci.yml'
+      - 'reports/federation-organism-2026-09-17/**'
+  pull_request:
+    branches: [main, master, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  federation-organism:
+    name: Federation Organism Invariant
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run federation organism verifier
+        id: probe
+        run: |
+          python3 reports/federation-organism-2026-09-17/verify_federation_organism.py \
+            > artifacts/federation-organism.txt 2>&1
+          cat artifacts/federation-organism.txt
+
+      - name: Parse counts
+        id: parse
+        run: |
+          TEXT=$(cat artifacts/federation-organism.txt)
+          CRITICAL=$(echo "$TEXT" | grep -oE 'critical=[0-9]+' | head -1 | cut -d= -f2)
+          HIGH=$(echo "$TEXT" | grep -oE 'high=[0-9]+' | head -1 | cut -d= -f2)
+          MEDIUM=$(echo "$TEXT" | grep -oE 'medium=[0-9]+' | head -1 | cut -d= -f2)
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "medium=$MEDIUM" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: federation-organism-report
+          path: artifacts/federation-organism.txt
+          retention-days: 30
+
+      # ── GATES ───────────────────────────────────────────────────────────
+
+      - name: Gate 1 — critical must remain zero
+        if: steps.parse.outputs.critical != '0'
+        run: |
+          echo "::error title=Federation organism critical regression::Critical finding count is ${{ steps.parse.outputs.critical }}; baseline is 0. Any new critical is a fail-closed event."
+          exit 1
+
+      - name: Gate 2 — I3 hard-zero (session_id fallback must not return)
+        run: |
+          python3 reports/federation-organism-2026-09-17/verify_federation_organism.py 2>&1 \
+            | grep -E "I3::session_id_canonical" > /tmp/i3.txt || true
+          COUNT=$(grep -c "I3::" /tmp/i3.txt || echo 0)
+          if [ "$COUNT" -gt 0 ]; then
+            cat /tmp/i3.txt
+            echo "::error title=I3 violation::session_id falls back to _default is forbidden. See federation_baseline.yaml hard_zero."
+            exit 1
+          fi
+
+      - name: Gate 3 — high count may not exceed baseline
+        run: |
+          BASELINE_HIGH=$(grep -A 1 "counts:" reports/federation-organism-2026-09-17/federation_baseline.yaml | grep "high:" | awk '{print $2}')
+          CURRENT_HIGH=${{ steps.parse.outputs.high }}
+          echo "Baseline high: $BASELINE_HIGH; current high: $CURRENT_HIGH"
+          if [ "$CURRENT_HIGH" -gt "$BASELINE_HIGH" ]; then
+            echo "::error title=High count regression::High findings increased from $BASELINE_HIGH to $CURRENT_HIGH. Sovereign re-baseline required."
+            exit 1
+          fi
+
+      - name: Gate 4 — witness receipt (non-blocking summary)
+        if: always()
+        run: |
+          echo "### Federation Organism Report" >> $GITHUB_STEP_SUMMARY
+          cat artifacts/federation-organism.txt >> $GITHUB_STEP_SUMMARY
