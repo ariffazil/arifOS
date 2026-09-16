@@ -140,6 +140,19 @@ def _interceptor_hold_tool_result(
             "derived_from": "kernel_interceptor",
         },
     }
+
+    # G2c (2026-09-17): every HOLD names its class + legal resolution lane.
+    # Anti-collapse at the gate — a blocked agent that knows its lane does
+    # not improvise (K-02 scar). Fail-soft: classification never alters the
+    # verdict, it annotates it.
+    try:
+        from arifosmcp.core.hold_resolution import as_dict, classify_hold
+
+        envelope["hold_resolution"] = as_dict(
+            classify_hold(reason, tool=tool_name, authority=auth)
+        )
+    except Exception:
+        pass
     return ToolResult(
         is_error=True,
         content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
