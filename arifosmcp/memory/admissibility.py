@@ -99,6 +99,58 @@ _FAILSAFE_POLICY: dict[str, Any] = {
 
 _VALID_TRUTH_CLASSES = {"OBS", "DER", "INT", "SPEC"}
 
+# ── Truth-class vocabulary normalisation (federation SOT) ────────────────────
+# Measured 2026-09-18: the ONLY live payload token in arifos_memory is
+# `DERIVATION`, and it matched no enum anywhere in the tree. Because
+# compute_sro_block coerced any unrecognised label to INT, the three classified
+# points received INT's 90-day window instead of DER's 180 — the class-keyed
+# expiry ladder was INERT at the only place that writes.
+#
+# A canonical NAME is not a canonical VOCABULARY. This map is the difference:
+# every observed variant across the federation resolves to one of the four
+# canonical classes. Extend it here (or in the policy YAML's
+# `truth_class_aliases`) rather than teaching downstream code a new synonym.
+_TRUTH_CLASS_ALIASES: dict[str, str] = {
+    # canonical passthrough
+    "OBS": "OBS",
+    "DER": "DER",
+    "INT": "INT",
+    "SPEC": "SPEC",
+    # observed / evidence-shaped variants
+    "OBSERVED": "OBS",
+    "OBSERVATION": "OBS",
+    "OBSERVED_EVIDENCE": "OBS",
+    # derived variants
+    "DERIVED": "DER",
+    "DERIVATION": "DER",
+    # interpretation / inference variants
+    "INTERPRETATION": "INT",
+    "INFERRED": "INT",
+    "HYPOTHESIS": "INT",
+    "ESTIMATED": "INT",
+    # speculation variants
+    "SPECULATION": "SPEC",
+    "SPECULATIVE": "SPEC",
+}
+
+# Deliberately NOT aliased: `SOVEREIGN_TESTIMONY` (substrate_loader.py:39). It
+# targets `arif_human_substrate`, which is absent from the live collection set,
+# and giving sovereign testimony a numeric expiry/weight is a constitutional
+# judgement — not an engineering default. It stays unrecognised on purpose.
+
+
+def normalise_truth_class(label: Any) -> str | None:
+    """Map any observed truth-class token onto one of the canonical four.
+
+    Returns the canonical class, or ``None`` when the token is unrecognised or
+    absent. Callers decide the fallback; this function never guesses.
+    """
+    if isinstance(label, dict):
+        label = label.get("class")
+    if not isinstance(label, str):
+        return None
+    return _TRUTH_CLASS_ALIASES.get(label.strip().upper())
+
 
 @dataclass(frozen=True)
 class AdmissibilityDecision:
@@ -184,10 +236,21 @@ def compute_sro_block(
     pol = policy if policy is not None else load_policy()
     now = now or datetime.now(UTC)
 
-    label = truth_class.get("class") if isinstance(truth_class, dict) else truth_class
-    days_map = pol.get("expiry_defaults_days", _FAILSAFE_POLICY["expiry_defaults_days"])
-    if label not in _VALID_TRUTH_CLASSES:
+    raw_label = truth_class.get("class") if isinstance(truth_class, dict) else truth_class
+    label = normalise_truth_class(raw_label)
+    if label is None:
+        if raw_label not in (None, ""):
+            # Shadow acknowledged, never silent (Void Guard): an unrecognised
+            # token used to be coerced with no trace, which is how a present
+            # class got discarded and mis-stamped with INT's window for weeks.
+            logger.warning(
+                "SRO: unrecognised truth_class %r coerced to INT (90-day window). "
+                "Add it to _TRUTH_CLASS_ALIASES / the policy's truth_class_aliases, "
+                "or the class-keyed expiry ladder silently mis-stamps.",
+                raw_label,
+            )
         label = "INT"
+    days_map = pol.get("expiry_defaults_days", _FAILSAFE_POLICY["expiry_defaults_days"])
     expires_at = now + timedelta(days=int(days_map.get(label, 90)))
     review_by = expires_at - timedelta(days=30)
 
