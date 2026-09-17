@@ -434,11 +434,39 @@ def _evaluate_single_memory(
         )
 
     # ── 4. EVIDENCE CONFIDENCE ───────────────────────────────────────────────
-    evidence_confidence = mem.get("phoenix_psi_utility", 0.5)
-    f2_truth = mem.get("f2_truth_confidence", 0.5)
-    confidence = max(evidence_confidence, f2_truth)
+    # FIXED 2026-09-18 (A4): this branch used to read `f2_truth_confidence`, a key
+    # `memory_store.py` never writes (verified: zero occurrences). It therefore
+    # always resolved to its 0.5 fallback, and `max(x, 0.5) >= 0.5 > 0.30` ALWAYS —
+    # so the low-evidence BLOCK was unreachable on the Qdrant search path. The gate
+    # was reading a fabricated prior and reporting it as evidence.
+    #
+    # It now reads the confidence that actually exists: the SRO calibration stamped
+    # at write time, else the record's own `confidence`.
+    #
+    # MEASURED BEFORE CHANGING (2026-09-18, arifos_memory, all 40 points):
+    #   · `confidence_at_creation` present: 0/40
+    #   · `confidence` present: 3/40 (value 0.9)
+    #   · `phoenix_psi_utility` present: 9/40, and its value is **0** — an unset
+    #     slot, NOT a measured zero-confidence.
+    # A naive fix that fell through to `phoenix_psi_utility` would have BLOCKED
+    # those 9 points — every ACTIVE (recallable) point in the collection, i.e.
+    # 100% of live recall. Hence: psi_utility is deliberately NOT used as a
+    # confidence fallback, and an ABSENT confidence SKIPS the floor rather than
+    # defaulting to a constant. That matches the policy's own stance —
+    # `min_confidence: null` = "disabled until calibration data matures".
+    #
+    # Net behaviour today: unchanged (0 blocked). The difference is that the skip
+    # is now named rather than masked by a constant that looked like evidence.
+    _mem_d = mem if isinstance(mem, dict) else {}
+    _sro = _mem_d.get("sro")
+    _calib = _sro.get("calibration") if isinstance(_sro, dict) else {}
+    if not isinstance(_calib, dict):
+        _calib = {}
+    confidence = _calib.get("confidence_at_creation")
+    if confidence is None:
+        confidence = _mem_d.get("confidence")
 
-    if confidence < _MIN_EVIDENCE_CONFIDENCE:
+    if confidence is not None and confidence < _MIN_EVIDENCE_CONFIDENCE:
         return RetrievalGuardResult(
             memory_id=memory_id,
             verdict=RetrievalVerdict.BLOCK,

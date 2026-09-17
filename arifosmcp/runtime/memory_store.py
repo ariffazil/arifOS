@@ -1170,7 +1170,21 @@ def store(
     # SRO v1 stamp — writer boundary (config/memory-admissibility-policy.yaml).
     # Every new Qdrant point is born admissible-shaped: status, expiry window,
     # calibration slots. Unknown truth class defaults to INT per policy SOT.
-    payload["sro"] = compute_sro_block(truth_class=payload.get("truth_class"))
+    #
+    # FIXED 2026-09-18 (A1): this line used to read `payload.get("truth_class")`
+    # while the payload carries `epistemic_class`. The class was present and
+    # silently DISCARDED exactly where it decides the expiry window — measured:
+    # the live `DERIVATION` points got INT's 90-day TTL instead of DER's 180.
+    # One name, one owner: accept either shape on input, persist
+    # `epistemic_class` as canonical (it is the name phi_witness derives
+    # truth_class FROM — storing the derived name would mint a second key).
+    _epistemic_class = payload.get("epistemic_class") or payload.get("truth_class")
+    if _epistemic_class:
+        payload["epistemic_class"] = _epistemic_class
+    payload["sro"] = compute_sro_block(
+        truth_class=_epistemic_class,
+        confidence=payload.get("confidence"),
+    )
 
     # If resolution was SUPERSEDE or ESCALATE, update Phoenix state accordingly
     phoenix_override_state = None
@@ -1356,7 +1370,7 @@ def store(
                 claim_id=memory_id,
                 jurisdiction=sro_block.get("jurisdiction"),
                 confidence=sro_block.get("calibration", {}).get("confidence_at_creation"),
-                truth_class=payload.get("truth_class"),
+                truth_class=payload.get("epistemic_class") or payload.get("truth_class"),
             )
         except Exception as exc:
             logger.debug("SRO propagation skipped: %s", exc)
@@ -2067,6 +2081,12 @@ def search(
                             "constitutional": p.get("constitutional"),
                             "sro": p.get("sro"),
                             "truth_class": p.get("truth_class"),
+                            # FIXED 2026-09-18 (A1 read side): the live payload
+                            # name is `epistemic_class`; `truth_class` is a
+                            # derived view that no payload ever stored, so this
+                            # sibling read was always None. `truth_class` is kept
+                            # for the legacy shape.
+                            "epistemic_class": p.get("epistemic_class") or p.get("truth_class"),
                         }
                         if decision.label:
                             dedup_map[pid]["admissibility_label"] = decision.label
