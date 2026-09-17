@@ -1884,3 +1884,33 @@ async def _handle_metabolize(payload: dict[str, Any], ctx: Any) -> dict[str, Any
             },
         }
 
+
+async def _handle_reconcile(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
+    """Execute background reality-veto periodic reconciliation pass (P1-MEM-001).
+
+    Discovers active claims with registered probe contracts, checks against
+    fresh reality, applies reality veto when contradicted, and synchronizes
+    PostgreSQL, Qdrant, and audit records.
+    """
+    from arifosmcp.runtime.memory_reconciler import MemoryReconciler
+
+    dry_run = payload.get("dry_run", False)
+    limit = payload.get("limit", 100)
+    trace_id = payload.get("trace_id") or getattr(ctx, "trace_id", None)
+    objective_id = payload.get("objective_id", "obj-memory-homeostasis")
+
+    reconciler = MemoryReconciler(dry_run=dry_run)
+    report = await reconciler.run(limit=limit, trace_id=trace_id, objective_id=objective_id)
+    return {
+        "mode": "reconcile",
+        "verdict": "RECEIPT",
+        "payload": {
+            "status": "RECONCILED",
+            "report": report,
+            "dry_run": dry_run,
+        },
+        "trace_id": report.get("trace_id"),
+        "objective_id": objective_id,
+    }
+
+

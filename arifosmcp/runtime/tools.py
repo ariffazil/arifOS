@@ -3787,6 +3787,7 @@ def _constitutional_gate(
             "inspect",
             "audit",
             "attest",
+            "reconcile",
             "score_prediction",
             "federation_query",
             "reason",
@@ -18228,6 +18229,14 @@ def _arif_ops_measure(
       geometry  — Runtime geometry hygiene: signal/noise, KV pressure,
                   dead-branch count, context-rot warnings, non-blocking
                   recommendation. Eureka 4 (Phase 1, measure only).
+      frame_health    — FRAME organ status (chambers, baseline info).
+      frame_probe     — FRAME live organ health snapshot (all organs up/down).
+      frame_drift     — FRAME drift detection (live state vs baselines).
+      frame_baseline  — FRAME full baseline data (organs + floors).
+      frame_trend     — FRAME federation trend over time window.
+      frame_report    — FRAME institutional health report (daily/weekly).
+      frame_verify    — FRAME RSI monotonicity verification (trend integrity).
+      (FRAME modes delegate to frame-organ.service :18085 — independent witness.)
 
     Parameters:
       mode       — health | vitals | cost | predict | topology | drift
@@ -18261,6 +18270,57 @@ def _arif_ops_measure(
 
         payload = compute_geometry_health(session_id=session_id)
         return _ok("arif_ops_measure", payload, delta_S=0.0)
+
+    # ── FRAME proxy modes — Independent Epistemic Observatory ────────────────
+    # Read-only observational probes to frame-organ.service :18085.
+    # Bypass constitutional gate (same as stack_health/budget/geometry).
+    # FRAME is independent: separate process, separate failure domain.
+    # Authority: OBSERVATIONAL_ONLY. See APEX-ZEN-FRAME-ARCHITECTURE.md
+    _FRAME_MODES = {
+        "frame_health": "/health",
+        "frame_probe": "/frame/probe",
+        "frame_drift": "/frame/drift",
+        "frame_baseline": "/frame/baseline",
+        "frame_report": "/frame/report",
+        "frame_verify": "/frame/rsi-verify",
+        "frame_trend": "/frame/trend",
+    }
+    if mode in _FRAME_MODES:
+        import urllib.request
+        import json as _json
+
+        _FRAME_PORT = 18085
+        _FRAME_TIMEOUT = 15
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{_FRAME_PORT}{_FRAME_MODES[mode]}",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=_FRAME_TIMEOUT) as resp:
+                frame_data = _json.loads(resp.read().decode())
+            return _ok(
+                "arif_ops_measure",
+                frame_data,
+                meta={
+                    "mode": mode,
+                    "source": "frame-organ",
+                    "frame_port": _FRAME_PORT,
+                    "authority": "OBSERVATIONAL_ONLY",
+                },
+                delta_S=0.0,
+            )
+        except Exception as exc:
+            return _ok(
+                "arif_ops_measure",
+                {
+                    "status": "FRAME_UNREACHABLE",
+                    "mode": mode,
+                    "error": str(exc)[:200],
+                    "frame_port": _FRAME_PORT,
+                },
+                meta={"mode": mode, "source": "frame-organ-unreachable"},
+                delta_S=0.0,
+            )
 
     gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
     if gate is not None:

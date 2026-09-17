@@ -43,7 +43,7 @@ import logging
 import os
 import re
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -278,31 +278,37 @@ async def _pg_write(
 
         conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
+            final_metadata = dict(metadata or {})
+            if value_anchor:
+                final_metadata["value_anchor"] = value_anchor
+            if floor_constraint:
+                final_metadata["floor_constraint"] = floor_constraint
+            if care_provenance:
+                final_metadata["care_provenance"] = care_provenance
+
+            rec_at = recorded_at or datetime.now(UTC)
+            val_at = valid_at or rec_at
+
             await conn.execute(
                 """
                 INSERT INTO memory_store
                     (id, tier, text, metadata, qdrant_id, session_id,
                      entity_tags, distillation_status, distillation_metadata,
-                     valid_at, recorded_at,
-                     value_anchor, floor_constraint, care_provenance)
-                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb, $10, $11,
-                        $12, $13, $14)
+                     valid_at, recorded_at)
+                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb, $10, $11)
                 ON CONFLICT (id) DO NOTHING
                 """,
                 memory_id,
                 tier,
                 text,
-                json.dumps(metadata, default=str),
+                json.dumps(final_metadata, default=str),
                 qdrant_id,
                 session_id,
                 entity_tags,
                 distillation_status,
                 (json.dumps(distillation_metadata, default=str) if distillation_metadata else None),
-                valid_at,
-                recorded_at,
-                value_anchor or [],
-                floor_constraint or [],
-                care_provenance,
+                val_at,
+                rec_at,
             )
             return True
         finally:
@@ -349,18 +355,21 @@ async def _pg_supersede(
         conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
             status_val = "revoked" if resolution_kind == "retract" else "superseded"
-            result = await conn.execute(
+            row = await conn.fetchrow(
                 """
                 UPDATE memory_store
-                SET metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(
-                    'status', $3::text,
-                    'superseded_by', $2::text,
-                    'superseded_at', now()::text,
-                    'supersession_reason', $4::text,
-                    'resolution_kind', $5::text
-                ),
-                deleted_at = now()
+                SET superseded_by = $2::uuid,
+                    superseded_at = now(),
+                    deleted_at = now(),
+                    metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(
+                        'status', $3::text,
+                        'superseded_by', $2::text,
+                        'superseded_at', now()::text,
+                        'supersession_reason', $4::text,
+                        'resolution_kind', $5::text
+                    )
                 WHERE id = $1::uuid AND deleted_at IS NULL
+                RETURNING qdrant_id
                 """,
                 old_memory_id,
                 new_memory_id,
@@ -368,7 +377,45 @@ async def _pg_supersede(
                 reason,
                 resolution_kind,
             )
-            return result != "UPDATE 0"
+            success = row is not None
+            if success:
+                # Synchronize Qdrant payload if vector index exists (P1-MEM-002)
+                try:
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    update_payload = {
+                        "active": False,
+                        "status": status_val,
+                        "superseded_by": str(new_memory_id),
+                        "superseded_at": now_iso,
+                        "supersession_reason": reason,
+                        "resolution_kind": resolution_kind,
+                    }
+                    client = _get_qdrant_client()
+                    q_id = str(row["qdrant_id"]) if row and row["qdrant_id"] else None
+                    if q_id:
+                        try:
+                            client.set_payload(
+                                collection_name=_QDRANT_COLLECTION,
+                                payload=update_payload,
+                                points=[q_id],
+                            )
+                        except Exception:
+                            pass
+                    # Also match by memory_id payload filter in case point_id differs
+                    from qdrant_client.models import FieldCondition, Filter, MatchValue  # noqa: PLC0415
+                    try:
+                        client.set_payload(
+                            collection_name=_QDRANT_COLLECTION,
+                            payload=update_payload,
+                            points=Filter(
+                                must=[FieldCondition(key="memory_id", match=MatchValue(value=str(old_memory_id)))]
+                            ),
+                        )
+                    except Exception:
+                        pass
+                except Exception as q_exc:
+                    logger.debug("Qdrant payload sync on supersede: %s", q_exc)
+            return success
         finally:
             await conn.close()
     except Exception as exc:
@@ -1919,7 +1966,18 @@ def search(
                     FieldCondition(key="entity_tags", match=MatchAny(any=entity_filter))
                 )
 
-            qdrant_filter = Filter(must=filter_conditions) if filter_conditions else None
+            must_not_conditions: list[Condition] = []
+            if not include_historical:
+                must_not_conditions.append(FieldCondition(key="active", match=MatchValue(value=False)))
+                must_not_conditions.append(
+                    FieldCondition(key="status", match=MatchAny(any=["superseded", "revoked"]))
+                )
+
+            qdrant_filter = (
+                Filter(must=filter_conditions, must_not=must_not_conditions)
+                if (filter_conditions or must_not_conditions)
+                else None
+            )
 
             # P1: Hybrid dense+sparse query with RRF fusion
             dense_vec = _generate_embedding(query)
@@ -1968,6 +2026,9 @@ def search(
                     pid = str(hit.id)
                     if pid in sro_refused_pids:
                         continue
+                    if not include_historical:
+                        if p.get("active") is False or p.get("status") in ("superseded", "revoked") or p.get("superseded_by"):
+                            continue
                     rrf_scores[pid] = rrf_scores.get(pid, 0.0) + weight / (RRF_K + rank + 1)
                     if pid not in dedup_map:
                         decision = evaluate(p, sro_policy, mode=sro_mode)

@@ -61,6 +61,7 @@ ARIF_MEMORY_MODES = (
     "audit",
     "score_prediction",
     "metabolize",
+    "reconcile",
     # Phase 4 — federation memory bridge (Hermes-as-bridge, dual-layer SOUL.md/Mem0)
     # OBSERVE class — vector-search Qdrant federation_memory_patterns.
     # Routes non-Hermes agents (OpenClaw, Kimi, Claude) to Hermes's SOUL.md reflection
@@ -76,6 +77,7 @@ MODE_ACTION_CLASS = {
     "attest": "OBSERVE",
     "audit": "OBSERVE",
     "score_prediction": "OBSERVE",
+    "reconcile": "OBSERVE",
     "metabolize": "EXECUTE_REVERSIBLE",
     "remember": "EXECUTE_REVERSIBLE",
     "promote": "EXECUTE_HIGH_IMPACT",
@@ -93,6 +95,7 @@ MODE_PRE_FLOORS = {
     "attest": ("L02", "L11", "L12"),
     "audit": ("L02", "L09", "L11", "L12"),
     "score_prediction": ("L01", "L02", "L12"),
+    "reconcile": ("L02", "L12"),
     "metabolize": ("L01", "L02", "L08", "L11", "L12"),
     "remember": ("L01", "L02", "L08", "L11", "L12"),
     "promote": ("L01", "L02", "L04", "L07", "L11", "L12"),
@@ -498,6 +501,7 @@ async def arif_memory(
                 _handle_inspect,
                 _handle_metabolize,
                 _handle_promote,
+                _handle_reconcile,
                 _handle_remember,
                 _handle_revise,
             )
@@ -512,6 +516,7 @@ async def arif_memory(
                 "audit": _handle_audit,
                 "score_prediction": _handle_score_prediction,
                 "metabolize": _handle_metabolize,
+                "reconcile": _handle_reconcile,
             }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)
