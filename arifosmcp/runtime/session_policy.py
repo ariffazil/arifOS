@@ -161,8 +161,19 @@ def session_policy_clamp(
     canonical = tool.split(".")[-1]
 
     # ── Explicit tool lists ─────────────────────────────────────────────
+    # STEP 4 (2026-09-18): alias-normalize both sides — denying 'arif_forge'
+    # must also deny its SDK long-name 'arif_forge_execute' (security).
+    try:
+        from arifosmcp.runtime.pre_execution_gate import _SDK_LONG_NAME_ALIASES as _ALIAS
+
+        _tool_norm = _ALIAS.get(canonical, canonical)
+    except Exception:
+        _ALIAS = {}
+        _tool_norm = canonical
+
     denied = _as_str_list(policy.get("denied_tools"))
-    if denied and (tool in denied or canonical in denied):
+    denied_norm = {_ALIAS.get(d, d) for d in denied}
+    if denied and (tool in denied or canonical in denied or _tool_norm in denied_norm):
         return {
             "reason": (
                 f"SESSION_POLICY: tool '{tool}' is denied by this session's "
@@ -173,7 +184,13 @@ def session_policy_clamp(
         }
 
     allowed = _as_str_list(policy.get("allowed_tools"))
-    if allowed and tool not in allowed and canonical not in allowed:
+    allowed_norm = {_ALIAS.get(a, a) for a in allowed}
+    if (
+        allowed
+        and tool not in allowed
+        and canonical not in allowed
+        and _tool_norm not in allowed_norm
+    ):
         return {
             "reason": (
                 f"SESSION_POLICY: tool '{tool}' is not in this session's "
