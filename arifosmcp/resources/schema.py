@@ -58,7 +58,7 @@ Tools (8 canonical — capability-registered, wire-exposed):
 
   MEMORY:
     555   arif_memory    — Constitutional memory gate (F1/F2/F4/F9/F11/F13)
-                            Modes: recall, inspect, attest, remember, promote, revise, forget, audit
+                            Modes: recall, inspect, attest, remember, promote, revise, forget, audit, metabolize
                             Capability: memory.govern
 
   JUDGMENT:
