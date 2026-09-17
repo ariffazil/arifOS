@@ -1493,10 +1493,44 @@ try:
     _GHOST_ALIASES: dict[str, str] = {
         "arif_kernel_intercept": "arif_judge",
         "arifos_kernel_intercept": "arif_judge",
+        # SESAT extension 2026-09-18 (333-AGI, P0 capability truth):
+        # Legacy names must resolve server-side per PUBLIC_SURFACE_CANON.md
+        # ("Legacy tool names resolve server-side and never appear in
+        # discovery"). Public facade stays KERNEL_ABI_8; retired names
+        # advertised by old clients/docs get a deprecation redirect
+        # instead of "Unknown tool". Targets are ABI8 verbs only.
+        "arif_kernel_route": "arif_route",
+        "arif_memory_recall": "arif_memory",
+        "arif_mind_reason": "arif_think",
+        "arif_sense_observe": "arif_observe",
+        "arif_evidence_fetch": "arif_observe",
+        "arif_fetch": "arif_observe",
+        "arif_explore": "arif_observe",
+        "arif_reply_compose": "arif_think",
+        "arif_heart_critique": "arif_think",
+        "arif_judge_deliberate": "arif_judge",
+        "arif_forge_execute": "arif_forge",
+        "arif_vault_seal": "arif_seal",
+        "arif_ops_measure": "arif_measure",
+        "arif_stack_health_probe": "arif_measure",
+        "arif_bridge": "arif_route",
+        "arif_bridge_connect": "arif_route",
     }
     for _ghost_name, _canonical_target in _GHOST_ALIASES.items():
         _ghost_fn = _CTH_ALIAS.get(_ghost_name) or _CTH_ALIAS.get(_canonical_target)
-        if _ghost_fn is not None:
+        if _ghost_fn is None:
+            logger.warning(
+                f"Deprecation alias skipped (no handler): {_ghost_name} → {_canonical_target}"
+            )
+            continue
+        _ghost_read_only = _canonical_target in {
+            "arif_judge",
+            "arif_route",
+            "arif_observe",
+            "arif_think",
+            "arif_memory",
+        }
+        try:
             _ghost_wrapped = _wrap_handler(_ghost_fn, _ghost_name)
             mcp.tool(
                 name=_ghost_name,
@@ -1507,11 +1541,15 @@ try:
                 ),
                 tags={"deprecated", "alias"},
                 annotations={
-                    "readOnlyHint": True,
+                    "readOnlyHint": _ghost_read_only,
                     "destructiveHint": False,
                 },
             )(_ghost_wrapped)
             logger.info(f"Deprecation alias registered: {_ghost_name} → {_canonical_target}")
+        except Exception as _ghost_exc:
+            logger.warning(
+                f"Deprecation alias registration failed: {_ghost_name} → {_canonical_target}: {_ghost_exc}"
+            )
 
     # ── arif_triage: DEPRECATED public name (2026-07-09 audit) ─────────────
     # Canonical path: arif_init(mode=preflight|triage). Thin wrapper only —
