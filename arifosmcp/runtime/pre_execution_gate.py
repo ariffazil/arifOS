@@ -333,9 +333,7 @@ def _art_reflex_check(
             evidence_result = run_art_evidence_gates(
                 tool_name=envelope.organ.tool_name or "unknown",
                 action_class=requested_action.value,
-                is_reversible=(
-                    manifest_entry.is_reversible if manifest_entry else False
-                ),
+                is_reversible=(manifest_entry.is_reversible if manifest_entry else False),
                 session_id=envelope.kernel.session_id,
                 actor_id=envelope.kernel.actor_id or "anonymous",
                 payload=payload,
@@ -1974,6 +1972,7 @@ def quick_gate(
     lease_id: str | None = None,
     f13_sovereign_ack_id: str | None = None,
     tool_name: str = "",
+    tool_mode: str = "",
     constitution_hash: str = "",
 ) -> GateResult:
     """A minimal gate check for callers without a full envelope.
@@ -2005,7 +2004,7 @@ def quick_gate(
         ),
     )
 
-    return pre_execution_gate(envelope, action_class)
+    return pre_execution_gate(envelope, action_class, tool_mode=tool_mode)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

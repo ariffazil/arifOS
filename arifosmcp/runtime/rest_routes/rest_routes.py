@@ -3260,34 +3260,41 @@ def register_rest_routes(
         _code_runtime_drift = bool(_drift.get("runtime_drift", False))
         degraded_reasons: list[dict[str, str]] = []
         if _sr_drift:
-            degraded_reasons.append({
-                "layer": "deployment_attestation",
-                "field": "software_release.drift",
-                "value": "true",
-                "severity": "warning",
-                "explanation": "source_commit != built_commit in runtime attestation (SOT drift, not code drift)",
-            })
+            degraded_reasons.append(
+                {
+                    "layer": "deployment_attestation",
+                    "field": "software_release.drift",
+                    "value": "true",
+                    "severity": "warning",
+                    "explanation": "source_commit != built_commit in runtime attestation (SOT drift, not code drift)",
+                }
+            )
         if _code_runtime_drift:
-            degraded_reasons.append({
-                "layer": "runtime",
-                "field": "runtime_drift",
-                "value": "true",
-                "severity": "critical",
-                "explanation": "Live running code does not match deployed commit",
-            })
+            degraded_reasons.append(
+                {
+                    "layer": "runtime",
+                    "field": "runtime_drift",
+                    "value": "true",
+                    "severity": "critical",
+                    "explanation": "Live running code does not match deployed commit",
+                }
+            )
         if contract_drift_val:
-            degraded_reasons.append({
-                "layer": "registry",
-                "field": "contract_drift",
-                "value": "true",
-                "severity": "warning",
-                "explanation": "Tool contract schemas have drift",
-            })
+            degraded_reasons.append(
+                {
+                    "layer": "registry",
+                    "field": "contract_drift",
+                    "value": "true",
+                    "severity": "warning",
+                    "explanation": "Tool contract schemas have drift",
+                }
+            )
 
         # ── Health clarity (2026-08-14): per-layer health classification ──
         _floors_scores = thermo.get("floors", {})
         _floors_pass_count = sum(
-            1 for _fid, _sc in _floors_scores.items()
+            1
+            for _fid, _sc in _floors_scores.items()
             if _floor_status_strict(_fid, _sc) == _FLOOR_STATUS_PASS
         )
         _floors_total = get_floor_count()
@@ -4661,7 +4668,9 @@ def register_rest_routes(
         ]
 
         # --- Layer 2: AI / External ---
-        fed_federation_base = os.getenv("FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1")
+        fed_federation_base = os.getenv(
+            "FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1"
+        )
         langfuse_base = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
 
         external_tasks = [
@@ -4765,7 +4774,9 @@ def register_rest_routes(
 
         external_layer = [
             build_component("Ollama", "llm", "ollama", 11434, external_results[0]),
-            build_component("FED-FEDERATION", "llm", "api.fed-federation.ai", 443, external_results[1]),
+            build_component(
+                "FED-FEDERATION", "llm", "api.fed-federation.ai", 443, external_results[1]
+            ),
             build_component(
                 "Langfuse",
                 "observability",
@@ -5023,6 +5034,12 @@ def register_rest_routes(
                 from arifosmcp.runtime.tools import _is_actor_verified
 
                 _rest_action = _rest_action_class(canonical_name, body)
+                # STEP 4 (2026-09-18): thread the call's mode into the gate +
+                # clamp so per-mode authority resolution runs (query/recall/
+                # dry_run -> OBSERVE; engineer/commit -> MUTATE). Without this,
+                # multi-mode tools hit the no-mode anti-downgrade branch
+                # (ForgedClassificationError) on read-only calls.
+                _rest_mode = str(body.get("mode") or "")
                 # P0 single-writer discipline (2026-07-04): route through canonical
                 # _is_actor_verified(session_id, actor_id) instead of the prior
                 # hardcoded True shortcut. Single-sovereign federation is a
@@ -5034,6 +5051,7 @@ def register_rest_routes(
                     action_class=_rest_action,
                     actor_verified=_is_actor_verified(_rest_session_id, _rest_actor_id),
                     tool_name=canonical_name,
+                    tool_mode=_rest_mode,
                 )
                 # ── Session Policy Clamp (2026-08-15, F13 Go on Shadow Mode) ──
                 # Enforce the session's OWN agent_policy: display-register
@@ -5043,7 +5061,7 @@ def register_rest_routes(
                     from arifosmcp.runtime.session_policy import session_policy_clamp
 
                     _clamp = session_policy_clamp(
-                        _rest_session_id, canonical_name, _rest_action.value
+                        _rest_session_id, canonical_name, _rest_action.value, tool_mode=_rest_mode
                     )
                     if _clamp is not None:
                         logger.warning(
