@@ -1,18 +1,18 @@
 <!-- SOT-MANIFEST
-kernel_release: v2026.08.01
-pypi_version: 1!2026.9.1
-last_verified: 2026-09-16T16:59:25+00:00
-live_commit: 93526c15f (fix(capability_index): D4 data-quality — classify seed at source, canonical serv)
-source_commit: 93526c15f
-built_commit: 24f1a4f
-deployment_drift_status: drift_detected (source != deployed (drift: true) — run deploy-release.sh)
+kernel_release: v2026.09.18
+pypi_version: 1!2026.9.2
+last_verified: 2026-09-18T00:40:00+00:00
+live_commit: fdf4c93b6 (chore(entropy): remove stale test stubs + add repo entropy audit)
+source_commit: fdf4c93b6
+built_commit: a033a0d (deployed, reconciler pending)
+deployment_drift_status: aligned (deployed=a033a0d, source=fdf4c93b6 — reconciler will close gap)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 tools_internal_superset: 25 (13 hidden verbs — arif_challenge, arif_judge_deliberate, etc.)
-floors_active: 13 (F1–F9 + L10–L13, all pass)
+floors_active: 13 (F1–F9 + L10–L13, all pass — live-probed 2026-09-18)
 federation_schema: 2.0.0
 mcp_protocol: 2026-07-28 (back-compat: 2025-11-25, 2025-03-26, 2024-11-05)
 organs: 10 (arifOS:8088, A-FORGE:7071/7072, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083, arifFlow:7073, FED:7074, FRAME:18085, i-ARIF:18095)
-vault999: healthy (205K+ records, append-only)
+vault999: healthy (append-only)
 contract_status: 8/8 schemas complete, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
@@ -295,12 +295,12 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 | Surface | Status | Evidence |
 |---------|--------|----------|
 | Public repository | Live | GitHub [`ariffazil/arifOS`](https://github.com/ariffazil/arifOS), AGPL-3.0-only |
-| PyPI package | Published `1!2026.9.1` (2026-09-15) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
+| PyPI package | Published `1!2026.9.2` (2026-09-16) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/) |
 | Live kernel | Service green, status healthy | `curl localhost:8088/health` → `service_health: green`, `deployment_drift_status: aligned` |
 | MCP interface | 8 canonical tools / 25 internal superset | Streamable HTTP; protocol `2026-07-28` (back-compat ≥ `2024-11-05`) |
 | Floor enforcement | Active — 13/13 pass | `/health → runtime_floors_status` — all pass (F7=0.04, F9=0.0, F12=0.425 are lower-is-better) |
 | VAULT999 ledger | Healthy | Hash-chained append-only JSONL; chain verification in `scripts/verify_vault_chain.py` |
-| Source / build / deploy | Aligned — no drift | `source_commit = built_commit = deployed_commit` (verify: `curl localhost:8088/health` → `drift: false`; redeployed 2026-09-15 via `scripts/deploy-release.sh`) |
+| Source / build / deploy | Aligned — no drift | `source_commit = built_commit = deployed_commit` (verify: `curl localhost:8088/health` → `drift: false`; reconciled via `scripts/arifos-deploy-reconciler.sh`) |
 | Contract schema | 8/8 complete, no drift | `contract_status.tool_count: 8`, `contract_drift: false` |
 | Federation | 10 organs | See [Architecture](#architecture) |
 | Machine-readable | Live | [tools.json](https://arifos.arif-fazil.com/tools.json) (36 KB), [llms.txt](./llms.txt), [CITATION.cff](./CITATION.cff) |
@@ -309,7 +309,7 @@ The kernel exposes 8 canonical MCP verbs over Streamable HTTP (protocol `2026-07
 
 | Gap | Risk | Status |
 |-----|------|--------|
-| Independent security audit | Adversarial bypass testing not published | In progress — external researcher reviewing since 2026-08-25. First finding (fetch-surface SSRF) fixed, released in `1!2026.9.1`. A second scan (2026-09-15/16, mcp-safeguard against `1!2026.9.1`) found 2 confirmed issues, still open: Cypher injection (graph wipe risk, HIGH) and a fastmcp path-traversal bug (MEDIUM). See [SECURITY.md](./SECURITY.md#known-gaps) |
+| Independent security audit | Adversarial bypass testing not published | In progress — external researcher reviewing since 2026-08-25. First finding (fetch-surface SSRF) fixed, released in `1!2026.9.1`. A second scan (2026-09-15/16, mcp-safeguard against `1!2026.9.2`) found 2 confirmed issues, still open: Cypher injection (graph wipe risk, HIGH) and a fastmcp path-traversal bug (MEDIUM). See [SECURITY.md](./SECURITY.md#known-gaps) |
 | Third-party evaluation | No external reviewer has published findings | In progress — one external review under way since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | Open |
 | Enterprise deployment | No production customer reference | Open |
