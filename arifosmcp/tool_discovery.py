@@ -240,7 +240,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
             "Promote this to long-term memory",
         ],
         category="memory",
-        modes=["recall", "inspect", "attest", "remember", "promote", "revise", "forget"],
+        modes=["recall", "inspect", "attest", "remember", "promote", "revise", "forget", "audit", "metabolize"],
     ),
     # ── JUDGMENT & SEALING ─────────────────────────────────────────────────────
     "arif_judge": ArifToolDiscovery(

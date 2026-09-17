@@ -175,7 +175,7 @@ CORE_NINE: list[str] = [
     "arif_observe",  # 111 — Sense reality. Modes: search, fetch, ingest, vitals, atlas
     "arif_think",  # 333 — Cognitive engine. Modes: reason, plan, reflect, verify, critique
     "arif_route",  # 444 — Route intent to organ. Modes: route, bridge, triage
-    "arif_memory",  # 555 — Memory governor. Modes: recall, inspect, attest, remember, promote, revise, forget, audit
+    "arif_memory",  # 555 — Memory governor. Modes: recall, inspect, attest, remember, promote, revise, forget, audit, metabolize
     "arif_judge",  # 666 — Constitutional verdict. SEAL/HOLD/SABAR/VOID
     "arif_forge",  # 777 — Guarded execution. Modes: engineer, query, write, generate, commit
     "arif_seal",  # 999 — Append to VAULT999. Modes: seal, verify, ledger
@@ -186,7 +186,7 @@ CORE_NINE_WITH_ENGINE = {
     "arif_observe": "arif_observe (modes: search, fetch, ingest, vitals, atlas)",
     "arif_think": "arif_think (modes: reason, plan, reflect, verify, critique, simulate, wonder)",
     "arif_route": "arif_route (no modes — routing is the only operation)",
-    "arif_memory": "arif_memory (modes: recall, inspect, attest, remember, promote, revise, forget, audit)",
+    "arif_memory": "arif_memory (modes: recall, inspect, attest, remember, promote, revise, forget, audit, metabolize)",
     "arif_judge": "arif_judge (kernel: arif_kernel_intercept)",
     "arif_forge": "arif_forge (modes: engineer, query, write, generate, commit; arif_act is internal alias)",
     "arif_seal": "arif_seal (modes: seal, verify, session_close, ledger, audit; VAULT999 seal anchor)",
@@ -803,6 +803,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "revise",
             "forget",
             "audit",
+            "metabolize",
         ],
         "eureka_insight": (
             "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). "
