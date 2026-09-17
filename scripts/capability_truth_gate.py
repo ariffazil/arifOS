@@ -51,6 +51,28 @@ def _ghosts_from_server(server_src: str) -> dict[str, str]:
     return {}
 
 
+def _mode_evidence_scan(registry: dict) -> dict:
+    """Warning-level scan: every advertised mode should appear as a string
+    somewhere in the package. Absence = strong smell of a ghost mode (the
+    'audit'-class defect), but delegation/metaprogramming make absence weak
+    evidence — so this warns, it never fails the gate."""
+    pkg = REPO / "arifosmcp"
+    corpus: list[str] = []
+    for path in pkg.rglob("*.py"):
+        try:
+            corpus.append(path.read_text(encoding="utf-8", errors="ignore"))
+        except Exception:  # noqa: BLE001
+            continue
+    blob = "\n".join(corpus)
+    out: dict = {"zero_evidence": [], "checked_modes": 0, "scanned_files": len(corpus)}
+    for name, spec in registry.items():
+        for mode in spec.get("modes") or []:
+            out["checked_modes"] += 1
+            if f'"{mode}"' not in blob and f"'{mode}'" not in blob:
+                out["zero_evidence"].append(f"{name}.{mode}")
+    return out
+
+
 def main() -> int:
     sys.path.insert(0, str(REPO))
     try:
@@ -121,6 +143,15 @@ def main() -> int:
     if alias_conflicts:
         violations.append(f"alias_conflicts: {alias_conflicts}")
 
+    # 5. mode-evidence scan (warning-level, never build-breaking) — every
+    # advertised mode should appear as an implementation string somewhere in
+    # the package. Zero-evidence = strong smell (the 'audit'-class ghost).
+    mode_evidence = _mode_evidence_scan(registry)
+    for item in mode_evidence["zero_evidence"]:
+        warnings.append(
+            f"mode-evidence: {item} — no implementation string found (advertised, unverified)"
+        )
+
     verdict = "PASS" if not violations else "FAIL"
     out = {
         "gate": "capability_truth_gate",
@@ -138,6 +169,7 @@ def main() -> int:
             "declared_universes": declared_universes,
             "ghost_aliases": len(ghosts),
             "alias_conflicts": alias_conflicts,
+            "mode_evidence": mode_evidence,
         },
     }
     print(json.dumps(out, indent=2, ensure_ascii=False))
