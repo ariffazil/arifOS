@@ -476,6 +476,7 @@ async def arif_memory(
     if mode in (
         "remember",
         "promote",
+        "revise",
         "forget",
         "attest",
         "inspect",
@@ -498,11 +499,13 @@ async def arif_memory(
                 _handle_metabolize,
                 _handle_promote,
                 _handle_remember,
+                _handle_revise,
             )
 
             handler = {
                 "remember": _handle_remember,
                 "promote": _handle_promote,
+                "revise": _handle_revise,
                 "forget": _handle_forget,
                 "attest": _handle_attest,
                 "inspect": _handle_inspect,

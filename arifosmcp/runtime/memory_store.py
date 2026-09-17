@@ -331,6 +331,157 @@ async def _pg_soft_delete(memory_id: str) -> bool:
         return False
 
 
+async def _pg_supersede(
+    old_memory_id: str,
+    new_memory_id: str,
+    reason: str,
+    resolution_kind: str = "supersede",
+) -> bool:
+    """Supersede/retract a prior memory record in Postgres (M9, M10, M11).
+
+    Preserves historical record by marking old memory superseded rather than
+    deleting it. Sets superseded_by, supersession_reason, and soft-deletes
+    from active queries while keeping it historically queryable.
+    """
+    try:
+        import asyncpg  # noqa: PLC0415
+
+        conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
+        try:
+            status_val = "revoked" if resolution_kind == "retract" else "superseded"
+            result = await conn.execute(
+                """
+                UPDATE memory_store
+                SET metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(
+                    'status', $3::text,
+                    'superseded_by', $2::text,
+                    'superseded_at', now()::text,
+                    'supersession_reason', $4::text,
+                    'resolution_kind', $5::text
+                ),
+                deleted_at = now()
+                WHERE id = $1::uuid AND deleted_at IS NULL
+                """,
+                old_memory_id,
+                new_memory_id,
+                status_val,
+                reason,
+                resolution_kind,
+            )
+            return result != "UPDATE 0"
+        finally:
+            await conn.close()
+    except Exception as exc:
+        logger.warning(
+            "Postgres supersede failed for %s -> %s: %s",
+            old_memory_id,
+            new_memory_id,
+            exc,
+        )
+        return False
+
+
+def reality_veto_check(
+    stored_claim: dict[str, Any],
+    observed_reality: dict[str, Any],
+    *,
+    key_fields: list[str] | None = None,
+) -> dict[str, Any]:
+    """Check if fresh authenticated observation contradicts stored memory (M10, M24).
+
+    The highest runtime law:
+        Reality(t+1) has veto power over Memory(t).
+        A stored representation never outranks fresh, authenticated reality.
+    """
+    discrepancies = []
+    fields = key_fields or list(set(stored_claim.keys()) & set(observed_reality.keys()))
+
+    for field in fields:
+        stored_val = stored_claim.get(field)
+        observed_val = observed_reality.get(field)
+        if stored_val is not None and observed_val is not None and stored_val != observed_val:
+            discrepancies.append(
+                {
+                    "field": field,
+                    "stored": stored_val,
+                    "observed": observed_val,
+                }
+            )
+
+    has_contradiction = len(discrepancies) > 0
+    return {
+        "veto": has_contradiction,
+        "contradiction_detected": has_contradiction,
+        "stale_claim_propagation_detected": has_contradiction,
+        "discrepancies": discrepancies,
+        "reason": (
+            f"Reality contradiction detected on {len(discrepancies)} field(s): {', '.join(d['field'] for d in discrepancies)}"
+            if has_contradiction
+            else "Reality verified consistent with memory"
+        ),
+    }
+
+
+async def execute_reality_veto(
+    stored_memory_id: str,
+    stored_claim: dict[str, Any],
+    fresh_observation: dict[str, Any],
+    *,
+    actor_id: str,
+    session_id: str,
+    trace_id: str,
+    objective_id: str,
+    reason: str,
+) -> dict[str, Any]:
+    """Execute reality veto: supersede/retract old claim, persist new observation with lineage (M10, M11)."""
+    from arifosmcp.runtime.megaTools.tool_13_arif_memory import arif_memory
+
+    # Call revise to supersede old memory with fresh observation
+    revise_res = await arif_memory(
+        mode="revise",
+        payload={
+            "supersedes_memory_id": stored_memory_id,
+            "content": json.dumps(fresh_observation, default=str),
+            "reason": reason,
+            "correction_event": reason,
+            "resolution_kind": "supersede",
+            "provenance": {
+                "actor_id": actor_id,
+                "session_id": session_id,
+                "origin": "reality_probe",
+                "trace_id": trace_id,
+                "objective_id": objective_id,
+            },
+            "truth_class": {
+                "status": "observed",
+                "confidence": 1.0,
+            },
+            "authority": {
+                "may_expand_tools": False,
+                "may_raise_autonomy": False,
+                "may_restrict_tools": False,
+            },
+            "trace_id": trace_id,
+            "objective_id": objective_id,
+        },
+        session_id=session_id,
+        actor_id=actor_id,
+        lease_id="reality_veto_lease",
+        trace_id=trace_id,
+    )
+
+    return {
+        "veto_executed": True,
+        "stored_memory_id": stored_memory_id,
+        "superseded": True,
+        "fresh_observation": fresh_observation,
+        "revise_result": revise_res,
+        "trace_id": trace_id,
+        "objective_id": objective_id,
+        "stale_claim_propagation_prevented": True,
+    }
+
+
 async def _pg_update_qdrant_id(memory_id: str, qdrant_id: str) -> bool:
     """Update the qdrant_id back-reference on an existing L4 memory_store row.
 
@@ -2703,6 +2854,9 @@ __all__ = [
     "quarantine",
     "forget",
     "audit_governance",
+    "_pg_supersede",
+    "reality_veto_check",
+    "execute_reality_veto",
     "TIER_SACRED",
     "TIER_CANONICAL",
     "TIER_SESSION",
