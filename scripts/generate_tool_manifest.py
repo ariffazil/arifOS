@@ -161,7 +161,7 @@ def generate_llms_txt() -> str:
         ("arif_think", "333", "Structured reasoning under F2/F7"),
         ("arif_route", "444", "Intent-to-organ dispatch across GEOX/WEALTH/WELL/A-FORGE"),
         ("arif_memory", "mem", "Governed L1–L6 semantic recall"),
-        ("arif_judge", "888", "Constitutional verdict — SEAL/HOLD/SABAR/VOID"),
+        ("arif_judge", "666", "Constitutional verdict — SEAL/HOLD/SABAR/VOID"),
         ("arif_forge", "777", "Execution gate via A-FORGE — mutates ONLY after SEAL"),
         ("arif_seal", "999", "VAULT999 immutable append"),
     ]
