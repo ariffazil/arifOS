@@ -24332,15 +24332,15 @@ async def _arif_memory_v5_router(
     if gate is not None:
         return gate
 
-    v5_native_modes = {
-        "recall",
-        "inspect",
-        "attest",
-        "remember",
-        "promote",
-        "revise",
-        "forget",
-    }
+    # Capability-truth 2026-09-18 (333-AGI): routing derives from the v5
+    # dispatch table (ARIF_MEMORY_MODES) — single source of truth. The previous
+    # hand-copied literal was missing 'audit' (implemented + advertised in
+    # constitutional_map, never routed). Derive; never re-type.
+    from arifosmcp.runtime.megaTools.tool_13_arif_memory import (
+        ARIF_MEMORY_MODES as _V5_MEMORY_MODES,
+    )
+
+    v5_native_modes = frozenset(_V5_MEMORY_MODES)
 
     if mode in v5_native_modes:
         # Translate kwargs → payload dict (Day 4 polish — propagate ALL v5 fields)
@@ -24482,6 +24482,20 @@ async def _arif_memory_v5_router(
         metadata=metadata,
         tier=tier,
     )
+
+
+# ── Capability-truth 2026-09-18 (333-AGI): declared dispatch universe ──────
+# register_tools filters advertised enums to a subset of this set, so the
+# schema physically cannot list a mode this handler lacks. Legacy modes stay
+# callable back-compat but unadvertised — discovery shows the routed v5 set.
+try:  # cycle-safe: megaTools module-level deps exclude runtime.tools
+    from arifosmcp.runtime.megaTools.tool_13_arif_memory import (
+        ARIF_MEMORY_MODES as _ARIF_MEMORY_DISPATCH_MODES,
+    )
+
+    _arif_memory_v5_router.__dispatch_modes__ = frozenset(_ARIF_MEMORY_DISPATCH_MODES)
+except Exception:  # pragma: no cover — guard degrades to no-filter
+    logger.warning("capability-truth: arif_memory dispatch universe undeclared", exc_info=True)
 
 
 from arifosmcp.runtime.vault_registry import (
@@ -27750,6 +27764,19 @@ def register_tools(
             _spec = _registry.get(name)
             if _spec:
                 _modes = _spec.get("modes", [])
+                # Capability-truth guard 2026-09-18 (333-AGI): never advertise a
+                # mode the handler cannot dispatch (declared via __dispatch_modes__;
+                # undeclared handlers pass through unchanged).
+                _universe = getattr(handler, "__dispatch_modes__", None)
+                if _universe is not None:
+                    _dropped_modes = sorted(m for m in _modes if m not in _universe)
+                    if _dropped_modes:
+                        logger.warning(
+                            "MODE ENUM GUARD %s: advertised-but-not-dispatchable dropped: %s",
+                            name,
+                            _dropped_modes,
+                        )
+                    _modes = [m for m in _modes if m in _universe]
                 try:
                     _provider = getattr(mcp, "_local_provider", None)
                     if _provider is not None:
