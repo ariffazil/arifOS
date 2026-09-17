@@ -3731,6 +3731,82 @@ def register_rest_routes(
             },
         )
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # FRAME PROXY — Independent Epistemic Observatory
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Lightweight HTTP proxy to frame-organ.service :18085.
+    # No auth required — FRAME is OBSERVE_ONLY, read-only, internal.
+    # Agents call arifOS:8088/frame/{mode} instead of FRAME:18086 directly.
+    # APEX-ZEN: cognitive surface collapse, runtime independence preserved.
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    _FRAME_ENDPOINTS = {
+        "health": "/health",
+        "probe": "/frame/probe",
+        "drift": "/frame/drift",
+        "baseline": "/frame/baseline",
+        "trend": "/frame/trend",
+        "report": "/frame/report",
+        "verify": "/frame/rsi-verify",
+    }
+    _FRAME_PORT = 18085
+    _FRAME_TIMEOUT = 15
+
+    @route("/frame/{mode:path}", methods=["GET"])
+    async def frame_proxy(request: Request) -> Response:
+        """Proxy to FRAME organ — independent epistemic witness.
+
+        Modes: health, probe, drift, baseline, trend, report, verify.
+        Returns FRAME's OBSERVATIONAL_ONLY payload unchanged.
+        FRAME unreachable → graceful FRAME_UNREACHABLE response.
+        """
+        import urllib.request
+        import json
+
+        mode = request.path_params.get("mode", "health")
+        endpoint = _FRAME_ENDPOINTS.get(mode)
+        if not endpoint:
+            return JSONResponse(
+                {
+                    "error": f"Unknown FRAME mode: {mode}",
+                    "available_modes": list(_FRAME_ENDPOINTS.keys()),
+                },
+                status_code=404,
+            )
+
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{_FRAME_PORT}{endpoint}",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=_FRAME_TIMEOUT) as resp:
+                frame_data = json.loads(resp.read().decode())
+            frame_data["_proxy"] = {
+                "source": "frame-organ",
+                "via": "arifos-frame-proxy",
+                "authority": "OBSERVATIONAL_ONLY",
+            }
+            return JSONResponse(frame_data)
+        except urllib.error.URLError as exc:
+            return JSONResponse(
+                {
+                    "status": "FRAME_UNREACHABLE",
+                    "mode": mode,
+                    "error": str(exc)[:200],
+                    "frame_port": _FRAME_PORT,
+                },
+                status_code=503,
+            )
+        except Exception as exc:
+            return JSONResponse(
+                {
+                    "status": "FRAME_PROXY_ERROR",
+                    "mode": mode,
+                    "error": str(exc)[:200],
+                },
+                status_code=500,
+            )
+
     @route("/identity", methods=["GET"])
     async def identity(request: Request) -> Response:
         """Canonical identity endpoint — returns machine-readable identity from identity.toml.

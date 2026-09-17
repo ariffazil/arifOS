@@ -937,7 +937,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "INTERNAL: Kernel *runtime* health only (process, transport, topology, "
             "resource metrics). NOT human readiness or coupled vitality — those are "
             "WELL (well_validate_vitality). Alias intent: arif_runtime_health. "
-            "Boundary: AAA/docs/MEASUREMENT_BOUNDARY_CONTRACT.md."
+            "Boundary: AAA/docs/MEASUREMENT_BOUNDARY_CONTRACT.md. "
+            "FRAME modes (frame_health/probe/drift/baseline/trend/report/verify) "
+            "delegate to frame-organ.service :18085 — independent epistemic witness."
         ),
         "access": "internal_only",
         "stage": ToolStage.OBSERVE,
@@ -952,6 +954,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "genius",
             "topology",
             "drift",
+            "frame_health",
+            "frame_probe",
+            "frame_drift",
+            "frame_baseline",
+            "frame_trend",
+            "frame_report",
+            "frame_verify",
         ],
         "eureka_insight": (
             "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. "
