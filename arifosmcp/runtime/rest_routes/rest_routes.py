@@ -2675,6 +2675,9 @@ def _probe_provider_status() -> dict[str, Any]:
         "deterministic_fallback_available": True,
         "deterministic_fallback_used": True,
         "last_fallback_reason": None,
+        # ZD3 fix: explicit cognitive tier for the watchdog (2026-09-17)
+        "cognitive_tier": "DEGRADED_COGNITIVE_TIER",
+        "fallback_acknowledged": False,
     }
 
     # FED-FEDERATION
@@ -2696,8 +2699,13 @@ def _probe_provider_status() -> dict[str, Any]:
                 if resp.status == 200:
                     status["fed_federation_healthy"] = True
                     status["deterministic_fallback_used"] = False
+                    # ZD3: explicit tier declaration (no silent fallback)
+                    status["cognitive_tier"] = "FEDERATED"
+                    status["fallback_acknowledged"] = True
         except Exception:
             status["last_fallback_reason"] = "FED_FEDERATION_UNREACHABLE"
+            # ZD3: explicit degradation — never silent
+            status["cognitive_tier"] = "DEGRADED_COGNITIVE_TIER"
 
     # Ollama — independent probe (parallel tier, not conditional fallback)
     ollama_host = _os_probe.getenv("OLLAMA_HOST", "localhost")
@@ -2715,6 +2723,11 @@ def _probe_provider_status() -> dict[str, Any]:
                 status["ollama_healthy"] = bool(data.get("models"))
                 if status["ollama_healthy"]:
                     status["deterministic_fallback_used"] = False
+                    if status.get("fed_federation_healthy"):
+                        status["cognitive_tier"] = "FEDERATED"
+                    else:
+                        status["cognitive_tier"] = "LOCAL_OLLAMA"
+                    status["fallback_acknowledged"] = True
     except Exception:
         if not status["last_fallback_reason"]:
             status["last_fallback_reason"] = "OLLAMA_UNREACHABLE"
@@ -2723,6 +2736,13 @@ def _probe_provider_status() -> dict[str, Any]:
         status["primary_provider"] = status["primary_provider"] or "deterministic"
         if not status["last_fallback_reason"]:
             status["last_fallback_reason"] = "ALL_PROVIDERS_UNAVAILABLE"
+        # ZD3: explicit degradation — never silent
+        if status["cognitive_tier"] == "DEGRADED_COGNITIVE_TIER":
+            status["cognitive_tier"] = "DETERMINISTIC_ONLY"
+
+    # ZD3 final guard: if we fell back without acknowledgment, raise explicitly
+    if not status["fallback_acknowledged"] and status["deterministic_fallback_used"]:
+        status["cognitive_tier"] = "DEGRADED_COGNITIVE_TIER"
 
     return status
 
@@ -3299,6 +3319,41 @@ def register_rest_routes(
             },
         }
 
+        # ZD-3: Pre-compute provider status so we can check for cognitive downgrade
+        _provider_status = await _cached_offloaded_probe(
+            "provider_status",
+            _probe_provider_status,
+            fallback={
+                "primary_provider": None,
+                "deterministic_fallback_available": True,
+                "deterministic_fallback_used": True,
+                "last_fallback_reason": "PROBE_WARMING",
+            },
+        )
+
+        # ZD-3: Detect silent cognitive downgrade
+        _fed_unreachable = (
+            _provider_status.get("last_fallback_reason")
+            and _provider_status["last_fallback_reason"] not in ("PROBE_WARMING",)
+            and _provider_status.get("deterministic_fallback_used", False)
+        )
+        if _fed_unreachable:
+            _degraded = True
+            degraded_reasons = degraded_reasons + [
+                {
+                    "layer": "provider_fallback",
+                    "field": "cognitive_tier",
+                    "value": _provider_status["last_fallback_reason"],
+                    "severity": "warning",
+                    "explanation": (
+                        "Primary LLM provider unreachable. System running on "
+                        "reduced cognitive capacity (local/deterministic fallback). "
+                        "Prompt injections and logical manipulations are easier to "
+                        "pull off on smaller models."
+                    ),
+                }
+            ]
+
         payload = {
             "status": "degraded" if _degraded else "healthy",
             "degraded_reasons": degraded_reasons,
@@ -3472,16 +3527,7 @@ def register_rest_routes(
                 build_runtime_capability_map,
                 fallback={"note": "capability probe offloaded; no cache yet"},
             ),
-            "provider_status": await _cached_offloaded_probe(
-                "provider_status",
-                _probe_provider_status,
-                fallback={
-                    "primary_provider": None,
-                    "deterministic_fallback_available": True,
-                    "deterministic_fallback_used": True,
-                    "last_fallback_reason": "PROBE_WARMING",
-                },
-            ),
+            "provider_status": _provider_status,
             "timestamp": datetime.now(UTC).isoformat(),
             # ── Freshness & Owner Summary (Phase 2 Hardening) ─────────────────
             # Freshness: answers "can you trust my current state?"
