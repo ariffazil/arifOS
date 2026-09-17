@@ -384,6 +384,188 @@ def _sabar_remember(note: str) -> dict[str, Any]:
     }
 
 
+# ────────────────────────────────────────────────────────────────────────
+# _handle_revise — Supersede a prior memory with fresh truth (M9, M10, M11)
+# ────────────────────────────────────────────────────────────────────────
+async def _handle_revise(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
+    """Supersede/retract an existing memory and persist replacement.
+
+    Invariants (M9, M10, M11, M12):
+      - Historical truth is preserved: old memory is NOT deleted; marked superseded.
+      - supersedes_memory_id is required.
+      - new memory carries supersedes_id = old_memory_id.
+      - old memory metadata gets superseded_by = new_memory_id and supersession_reason.
+      - causal trace (objective_id, trace_id, actor_id) preserved across hops.
+      - memory authority remains asymmetric (may_expand_tools=False, may_raise_autonomy=False).
+    """
+    import uuid as _uuid
+    from arifosmcp.runtime.memory_store import (
+        _content_hash,
+        _pg_write,
+        _pg_supersede,
+        _summarize,
+    )
+    from arifosmcp.schemas import TruthClass, tier_allowed
+
+    supersedes_memory_id = payload.get("supersedes_memory_id")
+    if not supersedes_memory_id:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": "B5: supersedes_memory_id required for revise"},
+        }
+
+    content = payload.get("new_content") or payload.get("content")
+    if not content:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": "revise: content/new_content required"},
+        }
+
+    correction_event = (
+        payload.get("correction_event")
+        or payload.get("reason")
+        or "Superseded by fresh evidence"
+    )
+    resolution_kind = payload.get("resolution_kind", "supersede")
+
+    provenance = payload.get("provenance") or {}
+    actor_id = provenance.get("actor_id")
+    if not actor_id:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": "revise: provenance.actor_id required (F11)"},
+        }
+
+    trace_id = payload.get("trace_id") or provenance.get("trace_id") or "tr_canonical"
+    objective_id = payload.get("objective_id") or provenance.get("objective_id") or "obj_canonical"
+
+    truth_class_dict = payload.get("new_truth_class") or payload.get("truth_class") or {}
+    if isinstance(truth_class_dict, str):
+        truth_class_dict = {"status": truth_class_dict, "confidence": 0.9}
+
+    tc_status = truth_class_dict.get("status", "observed")
+    try:
+        tc = TruthClass(tc_status)
+    except ValueError:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": f"revise: invalid truth_class.status='{tc_status}'"},
+        }
+
+    tier_hint = payload.get("tier_hint", "L3")
+    if not tier_allowed(tc, tier_hint):
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {
+                "note": f"revise: truth_class={tc_status} not allowed at tier={tier_hint}"
+            },
+        }
+
+    # Asymmetric Memory Authority: hard-locked to false
+    memory_authority = payload.get("authority") or {}
+    memory_authority["may_expand_tools"] = False
+    memory_authority["may_raise_autonomy"] = False
+
+    new_memory_id = str(_uuid.uuid4())
+    content_hash = _content_hash(content)
+    summary = _summarize(content)
+    confidence = float(truth_class_dict.get("confidence", 0.9))
+    uncertainty_band = float(truth_class_dict.get("uncertainty_band", 0.05))
+
+    metadata = {
+        "memory_class": payload.get("memory_class", "episodic"),
+        "truth_class": tc_status,
+        "confidence": confidence,
+        "uncertainty_band": uncertainty_band,
+        "provenance": {
+            **provenance,
+            "trace_id": trace_id,
+            "objective_id": objective_id,
+        },
+        "source_receipts": payload.get("source_receipts", []),
+        "policy": payload.get("policy", {}),
+        "content_hash": content_hash,
+        "summary": summary,
+        "tier_hint": tier_hint,
+        "supersedes_id": supersedes_memory_id,
+        "supersedes_memory_id": supersedes_memory_id,
+        "correction_event": correction_event,
+        "resolution_kind": resolution_kind,
+        "supersedes_chain": [supersedes_memory_id],
+        "trace_id": trace_id,
+        "objective_id": objective_id,
+        "schema_version": 7,
+        "authority": memory_authority,
+        "decision_lifecycle": payload.get("decision_lifecycle", {}),
+    }
+
+    session_id = provenance.get("session_id") or "anon"
+    valid_at = _utc_now()
+
+    # Step 1: Mark old memory superseded
+    await _pg_supersede(
+        old_memory_id=supersedes_memory_id,
+        new_memory_id=new_memory_id,
+        reason=correction_event,
+        resolution_kind=resolution_kind,
+    )
+
+    # Step 2: Insert new memory
+    try:
+        ok = await _pg_write(
+            memory_id=new_memory_id,
+            tier=tier_hint,
+            text=content,
+            metadata=metadata,
+            qdrant_id=None,
+            session_id=session_id,
+            entity_tags=[],
+            distillation_status="pending",
+            distillation_metadata={"embedding_status": "pending"},
+            valid_at=valid_at,
+            recorded_at=valid_at,
+        )
+    except Exception as exc:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": f"revise: L4 write failed: {exc}"},
+        }
+
+    receipt = {
+        "receipt_id": f"rcp_rev_{new_memory_id[:8]}",
+        "receipt_kind": "revision",
+        "mode": "revise",
+        "memory_id": new_memory_id,
+        "supersedes_id": supersedes_memory_id,
+        "correction_event": correction_event,
+        "resolution_kind": resolution_kind,
+        "content_hash": content_hash,
+        "trace_id": trace_id,
+        "objective_id": objective_id,
+        "operation_at": valid_at.isoformat(),
+    }
+
+    return {
+        "mode": "revise",
+        "verdict": "SEAL",
+        "payload": {
+            "note": f"Memory '{supersedes_memory_id}' {resolution_kind}d by '{new_memory_id}'",
+            "memory_id": new_memory_id,
+            "supersedes_memory_id": supersedes_memory_id,
+            "resolution_kind": resolution_kind,
+            "revision_receipt": receipt,
+            "trace_id": trace_id,
+            "objective_id": objective_id,
+        },
+    }
+
+
 async def _check_idempotency(idempotency_key: str) -> str | None:
     """Check if a memory with this idempotency_key already exists in L4.
 
@@ -1204,6 +1386,7 @@ __all__ = [
     "_handle_inspect",
     "_handle_audit",
     "_handle_remember",
+    "_handle_revise",
     "_handle_metabolize",
 ]
 

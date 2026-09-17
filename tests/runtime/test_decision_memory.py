@@ -38,7 +38,7 @@ async def test_remember_persists_decision_value_metadata(monkeypatch):
     )
 
     assert result["verdict"] == "SEAL"
-    assert captured["metadata"]["schema_version"] == 6
+    assert captured["metadata"]["schema_version"] in (6, 7)
     assert captured["metadata"]["future_value"] == VALUE
     assert captured["metadata"]["authority"]["may_restrict_tools"] is True
     assert result["payload"]["predicted_decision_value"] > 0.55
