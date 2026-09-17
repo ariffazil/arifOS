@@ -13,7 +13,7 @@ the Wire makes misbehavior structurally impossible.
   ↓
 arif_judge — Kernel :8088 — SEAL/HOLD/VOID
   ↓
-Layer 3: Reasoning — F4 Monitor + Circuit Breaker
+Layer 3: Reasoning — F4 Monitor + CB detectors (JITU = single brake)
   ↓
 Layer 2: Runtime — Ghost JSON/ENV + dep-check
   ↓
@@ -67,18 +67,21 @@ arif-dependency-check
 
 | Tool | Max | Action |
 |---|---|---|
-| `arif-circuit-breaker` | 2 attempts | LOCK + 888_HOLD on action loop |
 | `arif-f4-monitor` | 3 cycles (no state change) | F4 VIOLATION, AUTOHOLD |
 
-Both write to `/var/run/arifos_f4_state.json` and `/var/log/arifos_*.log`.
+Writes to `/var/run/arifos_f4_state.json` and `/var/log/arifos_*.log`.
+
+`arif-circuit-breaker` retired 2026-09-18 — CB detectors may *report*; they never *halt*.
+The single brake is JITU (`/root/AAA/federation/kernel/jitu.py`): only F13 trips it, every trip receipted.
 
 ## Tool Index
 
 | Tool | Mode | Purpose |
 |---|---|---|
 | `arif-dependency-check` | (default) | Cross-organ dep validation, exit 0/1 |
-| `arif-circuit-breaker` | `record` / `status` / `reset` | Anti-loop guard, lock after 2 fails |
 | `arif-f4-monitor` | `check` / `status` / `reset` | Reasoning entropy cap |
+
+> `arif-circuit-breaker` retired 2026-09-18 — the single brake is JITU (F13). See `core/paradox/circuit_breakers.py` header.
 
 ## Installation
 
@@ -90,7 +93,6 @@ make wire-uninstall        # reverses cleanly
 
 # Manual (when Makefile not available)
 sudo install -m 0755 scripts/wire/arif-dependency-check /usr/local/bin/
-sudo install -m 0755 scripts/wire/arif-circuit-breaker   /usr/local/bin/
 sudo install -m 0755 scripts/wire/arif-f4-monitor        /usr/local/bin/
 sudo install -m 0644 scripts/wire/configs/organ_dependencies.json /etc/arifos/
 ```

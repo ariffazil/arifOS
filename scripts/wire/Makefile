@@ -7,7 +7,8 @@ ETCDIR        ?= /etc/arifos
 VARRUN        ?= /var/run
 LOGDIR        ?= /var/log
 
-BIN_NAMES := arif-dependency-check arif-circuit-breaker arif-f4-monitor
+# 2026-09-18: arif-circuit-breaker retired — JITU is the single brake (F13). See core/paradox/circuit_breakers.py header.
+BIN_NAMES := arif-dependency-check arif-f4-monitor
 
 .PHONY: install uninstall status
 

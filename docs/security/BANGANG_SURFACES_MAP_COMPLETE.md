@@ -75,7 +75,7 @@
 |---|---|---|---|
 | 33 | mesaDetector patterns | `mesaDetector.ts:132` | Regex: `assuming.*control\|taking.*over\|autonomous.*decision\|full.*authority.*to.*modify` |
 | 34 | machine_autonomy metric | `machine_human_substrate.py:177` | Measures how much runs without human — if >0.8, flags fatigue |
-| 35 | F4 circuit breaker | `arif-circuit-breaker` | LOCK at 2 cycles, HOLD at 3 |
+| 35 | F4 reasoning loop | `arif-f4-monitor` + JITU (single brake, F13) | Detectors report; only JITU halts a lane, receipted |
 
 ---
 
