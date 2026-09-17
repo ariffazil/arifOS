@@ -670,7 +670,20 @@ def _project_light(
     _mutation_allowed = _mutation_granted and not _drift
     _seal_granted = bool(actor_verified and _is_full_authority)
     _seal_allowed = _seal_granted and not _drift
-    _substrate_state = "DEGRADED" if _drift else "HEALTHY"
+    # INTERPRETATION_INVARIANT: substrate_state must consult boot attestation
+    # (canonical: arifosmcp/runtime/organ_attestation.py) before claiming HEALTHY.
+    # Boot attestation returning None or non-ALIVE downgrades session envelope.
+    try:
+        from arifosmcp.runtime.organ_attestation import (
+            get_organ_attestation,
+            is_healthy,
+        )
+        _boot_record = get_organ_attestation("arifOS")
+        _boot_status = _boot_record.status if _boot_record is not None else "UNATTESTED"
+        _boot_unhealthy = not is_healthy(_boot_status)
+    except Exception:  # noqa: BLE001 — attestation is best-effort during boot
+        _boot_unhealthy = False  # default: do not block on attestation absence
+    _substrate_state = "DEGRADED" if (_drift or _boot_unhealthy) else "HEALTHY"
 
     # ── WAJIB 3: Single canonical effective_state (2026-08-07) ──
     # Consolidates the 5-field authority scatter (authority, authority_band,
