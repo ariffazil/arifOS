@@ -699,6 +699,15 @@ def _project_light(
         "substrate_state": _substrate_state,
         "derived_from": "session_capability_token_v1",
         "computed_at": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime(_now_ts)),
+        # APEX-777: session_authority_state separates session gate from organ health.
+        # substrate_state = deployment drift / organ health.
+        # session_authority_state = why THIS session is restricted.
+        "session_authority_state": (
+            "DEPLOYMENT_DRIFT" if _drift
+            else "BOOT_ATTESTATION_FAILED" if _boot_unhealthy
+            else "ACTOR_NOT_VERIFIED" if not actor_verified
+            else "VERIFIED"
+        ),
     }
 
     out = {
