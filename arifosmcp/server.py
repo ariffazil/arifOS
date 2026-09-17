@@ -1531,7 +1531,18 @@ try:
             "arif_memory",
         }
         try:
-            _ghost_wrapped = _wrap_handler(_ghost_fn, _ghost_name)
+            # T11-CONTRACT-RECONCILIATION (2026-09-18, BIJAKSANA compile):
+            # Public advertised schema passes `mode=...` but internal arif_route
+            # rejects unknown kwargs. Wrap the alias to silently drop `mode` and
+            # let the canonical handler run. Applies to: arif_kernel_route,
+            # arif_bridge_connect, arif_bridge.
+            _base_fn = _ghost_fn
+
+            async def _mode_compat_alias(*args, __fn=_base_fn, **kwargs):
+                kwargs.pop("mode", None)  # drop mode — internal rejects
+                return await __fn(*args, **kwargs)
+
+            _ghost_wrapped = _wrap_handler(_mode_compat_alias, _ghost_name)
             mcp.tool(
                 name=_ghost_name,
                 description=(
@@ -1717,8 +1728,21 @@ try:
                 for p in _sig.parameters.values()
             )
             if not _has_var_args:
+                # T11-CONTRACT-RECONCILIATION (2026-09-18, BIJAKSANA compile):
+                # Wrap handler with mode→organ+tool_name translation. Public advertised
+                # schema passes `mode='discover'|'route'|'status'|'stage'|...` but the
+                # internal arif_bridge_connect requires `organ` + `tool_name`. Map
+                # `mode='discover'` to defaults so the alias no longer 422s.
+                async def _gateway_alias_adapter(*args, **kwargs):
+                    _mode = kwargs.pop("mode", "discover")
+                    if "organ" not in kwargs:
+                        kwargs["organ"] = "ARIFOS"
+                    if "tool_name" not in kwargs:
+                        kwargs["tool_name"] = f"_mode_{_mode}"
+                    return await _gateway_handler(*args, **kwargs)
+
                 _SDK_ALIAS_REGISTRATIONS.append(
-                    ("arif_gateway_connect", _gateway_handler, "arif_bridge_connect")
+                    ("arif_gateway_connect", _gateway_alias_adapter, "arif_bridge_connect")
                 )
             else:
                 logger.warning(

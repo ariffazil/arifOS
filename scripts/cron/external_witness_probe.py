@@ -17,7 +17,14 @@ for name, url in SURFACES.items():
         req = urllib.request.Request(url, headers={"User-Agent": "arifOS-witness-probe/1.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
-            results[name] = {"status": resp.status, "healthy": data.get("status") in ("healthy", "ok", "green"), "ts": time.time()}
+            # 2026-09-18: schema-aware surface check. Organs report {"status": ...};
+            # VAULT999 /999/verify reports {"verified": true, "chain_status": "verified"}.
+            ok = data.get("status") in ("healthy", "ok", "green", "degraded")
+            if not ok and data.get("chain_status") is not None:
+                ok = data.get("chain_status") == "verified" and data.get("verified") is not False
+            if not ok and data.get("verified") is True:
+                ok = True
+            results[name] = {"status": resp.status, "healthy": bool(ok), "ts": time.time()}
     except Exception as e:
         results[name] = {"status": 0, "healthy": False, "error": str(e), "ts": time.time()}
 
