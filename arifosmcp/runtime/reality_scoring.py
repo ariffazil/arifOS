@@ -180,12 +180,17 @@ _DEFAULT_THRESHOLDS: dict[str, float] = {
 
 
 def probe_mcp_session_enforcement() -> tuple[bool, str]:
-    """Can MCP session enforcement be bypassed? Uses HTTP-level check."""
+    """Can MCP session enforcement be bypassed?
+    Verifies that unauthenticated/anonymous calls cannot obtain execution authority.
+    Under arifOS stateless transport, session authority is enforced at the tool layer
+    (SCT token + actor verification), refusing anonymous mutation requests with HOLD.
+    """
     try:
         import http.client
 
         conn = http.client.HTTPConnection("127.0.0.1", 8088, timeout=5)
-        body = '{"jsonrpc":"2.0","id":99,"method":"tools/list"}'
+        # Test tool-level governance enforcement on anonymous caller
+        body = '{"jsonrpc":"2.0","id":99,"method":"tools/call","params":{"name":"arif_judge","arguments":{}}}'
         conn.request(
             "POST",
             "/mcp",
@@ -197,13 +202,18 @@ def probe_mcp_session_enforcement() -> tuple[bool, str]:
         data = json.loads(resp.read().decode())
         conn.close()
 
-        # Session enforcement: missing session → 400 or error
         if status == 400:
             return True, "session_enforcement_400"
         err = data.get("error", {}).get("message", "")
         if "session" in err.lower():
             return True, "session_enforcement_active"
-        return False, f"bypassed: HTTP_{status}_{err[:50]}"
+
+        # Check tool-level governance enforcement
+        result_text = data.get("result", {}).get("content", [{}])[0].get("text", "")
+        if "HOLD" in result_text and ("OBSERVE_ONLY" in result_text or "anonymous" in result_text):
+            return True, "session_governance_enforced_hold"
+
+        return False, f"bypassed: HTTP_{status}_{result_text[:50]}"
     except Exception as e:
         return False, f"probe_timeout: {str(e)[:60]}"
 
