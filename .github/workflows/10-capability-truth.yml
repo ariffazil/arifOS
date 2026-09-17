@@ -1,0 +1,52 @@
+# Capability Truth Gate — APEX-777 §21 P0 (STEP 5, 333-AGI 2026-09-18)
+# Hard gate: phantom_tools==0, missing_tools==0, schema_mismatch==0, alias_conflicts==0
+# Registry-level (CI-safe): reads declared surface + handlers + ghost aliases.
+# Scar: capability_contract_runtime_divergence
+
+name: 🧭 Capability Truth
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'arifosmcp/server.py'
+      - 'arifosmcp/constitutional_map.py'
+      - 'arifosmcp/runtime/tools.py'
+      - 'arifosmcp/runtime/public_surface.py'
+      - 'arifosmcp/runtime/public_registry.py'
+      - 'arifosmcp/runtime/megaTools/**'
+      - 'scripts/capability_truth_gate.py'
+      - '.github/workflows/10-capability-truth.yml'
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: capability-truth-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capability-truth:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
+    name: 🧭 Registry Truth
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install
+        run: |
+          pip install -e ".[dev]" 2>/dev/null || pip install -e .
+
+      - name: Capability truth gate
+        run: python scripts/capability_truth_gate.py
