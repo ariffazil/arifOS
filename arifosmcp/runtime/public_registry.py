@@ -492,12 +492,9 @@ def _spec_for_name(name: str) -> Any:
                         "revise",
                         "forget",
                         "audit",
-                        "score_prediction",
                         "metabolize",
-                        "federation_query",
-                        "federation_sync",
                     ],
-                    "description": "Operation mode: recall, inspect, attest, remember, promote, revise, forget, audit, etc.",
+                    "description": "Operation mode: recall, inspect, attest, remember, promote, revise, forget, audit, metabolize.",
                 },
                 "query": {
                     "anyOf": [{"type": "string"}, {"type": "null"}],
