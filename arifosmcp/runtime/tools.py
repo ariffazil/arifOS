@@ -22785,7 +22785,24 @@ async def _arif_forge_execute_tool(
     if session_id:
         # placeholder: real impl would load full geometry + flags
         pass
-    v = enforce_restraint_and_verdict(session_ctx, "arif_forge_execute", "EXECUTE_HIGH_IMPACT")
+    # STEP 4 (2026-09-18): restraint follows the MODE — read-only modes
+    # (query/recall/dry_run) are observation and do not require the verdict
+    # loop; dangerous modes keep EXECUTE_HIGH_IMPACT.
+    _forge_action = "EXECUTE_HIGH_IMPACT"
+    try:
+        from arifosmcp.runtime.pre_execution_gate import (
+            CANONICAL_TOOL_MANIFEST as _CTM2,
+            resolve_action_class_for_mode as _rmode,
+        )
+
+        _e2 = _CTM2.get("arif_forge")
+        if _e2 is not None and mode:
+            _rc2 = _rmode("arif_forge", str(mode), _e2.action_class)
+            if str(getattr(_rc2, "value", _rc2)).upper() == "OBSERVE":
+                _forge_action = "OBSERVE"
+    except Exception:
+        pass
+    v = enforce_restraint_and_verdict(session_ctx, "arif_forge_execute", _forge_action)
     if v["decision"] != "PROCEED":
         return {
             "status": v["decision"],
