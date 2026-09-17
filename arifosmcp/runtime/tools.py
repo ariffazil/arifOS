@@ -3609,7 +3609,28 @@ def _constitutional_gate(
             "arif_vault_seal",
         }
     )
+    # STEP 4 (2026-09-18): authority follows the MODE, not the namespace.
+    # Safe read-only modes (query/recall/dry_run) of Tier-3 tools resolve to
+    # OBSERVE via the canonical manifest — reads do not require SEAL/sovereign.
+    _tier3_mode_safe = False
     if tool_name in _TIER_3_IRREVERSIBLE_TOOLS:
+        try:
+            from arifosmcp.runtime.pre_execution_gate import (
+                CANONICAL_TOOL_MANIFEST as _CTM,
+                _SDK_LONG_NAME_ALIASES as _ALIASES,
+                resolve_action_class_for_mode as _resolve_mode,
+            )
+
+            _canon = _ALIASES.get(tool_name, tool_name)
+            _entry = _CTM.get(_canon)
+            if _entry is not None and mode:
+                _resolved_cls = _resolve_mode(_canon, str(mode), _entry.action_class)
+                _tier3_mode_safe = (
+                    str(getattr(_resolved_cls, "value", _resolved_cls)).upper() == "OBSERVE"
+                )
+        except Exception:
+            _tier3_mode_safe = False
+    if tool_name in _TIER_3_IRREVERSIBLE_TOOLS and not _tier3_mode_safe:
         has_prior_seal = bool(constitutional_chain_id)
         sess = _SESSIONS.get(session_id) if session_id else None
         # F1 FIX 2026-07-19: Read canonical authority_state (WS1) instead of legacy sess["authority_level"]
@@ -26612,9 +26633,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             _clamp_action = "OBSERVE"
             try:
-                from arifosmcp.runtime.pre_execution_gate import CANONICAL_TOOL_MANIFEST
+                from arifosmcp.runtime.pre_execution_gate import (
+                    CANONICAL_TOOL_MANIFEST,
+                    _SDK_LONG_NAME_ALIASES,
+                )
 
-                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(
+                    _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+                )
                 if _manifest_entry is not None:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:
@@ -26996,9 +27022,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             _clamp_action = "OBSERVE"
             try:
-                from arifosmcp.runtime.pre_execution_gate import CANONICAL_TOOL_MANIFEST
+                from arifosmcp.runtime.pre_execution_gate import (
+                    CANONICAL_TOOL_MANIFEST,
+                    _SDK_LONG_NAME_ALIASES,
+                )
 
-                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(
+                    _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+                )
                 if _manifest_entry is not None:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:

@@ -131,10 +131,19 @@ def session_policy_clamp(
             )
             from arifosmcp.schemas.kernel_envelope import ActionClass as _AC
 
-            _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+            # STEP 4 fix (2026-09-18): normalize SDK long-name aliases before
+            # the manifest lookup — arif_forge_execute → arif_forge. Without
+            # this, aliased tools skipped per-mode resolution and safe modes
+            # (query/recall/dry_run) were gated at the tool-level MUTATE rank.
+            from arifosmcp.runtime.pre_execution_gate import (
+                _SDK_LONG_NAME_ALIASES,
+            )
+
+            _canonical_tool = _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+            _manifest_entry = CANONICAL_TOOL_MANIFEST.get(_canonical_tool)
             if _manifest_entry is not None:
                 _resolved = resolve_action_class_for_mode(
-                    tool_name, tool_mode, _manifest_entry.action_class
+                    _canonical_tool, tool_mode, _manifest_entry.action_class
                 )
                 threshold_rank = _RANK.get(_resolved.value, rank)
         except Exception:
