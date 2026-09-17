@@ -1,0 +1,447 @@
+{
+  "repo_id": "arifOS",
+  "branch": "main",
+  "git_sha": "a033a0dab37ff0b71b53c23847454afd4430fb6f",
+  "timestamp": "2026-09-17T16:28:49Z",
+  "evidence_window": {
+    "git_history_days": 180,
+    "runtime_receipt_days": 90
+  },
+  "summary": {
+    "total_files_scanned": 10871,
+    "candidates": 18,
+    "keep": 3,
+    "investigate": 2,
+    "deprecate": 2,
+    "archive": 3,
+    "delete_candidate": 0,
+    "hold": 8
+  },
+  "candidates": [
+    {
+      "path_or_symbol": "core/cooling_ledger.py",
+      "class": "duplicate_implementation",
+      "disposition": "DEPRECATE",
+      "confidence": 0.92,
+      "evidence": {
+        "static_references": ["arifosmcp/cooling_ledger.py (462 lines, real implementation)"],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-07-17",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "unknown",
+        "external_consumer": "no",
+        "data_migration": false
+      },
+      "notes": "8-line stub class vs 462-line real implementation in arifosmcp/. Same filename, same class name (CoolingLedger). The core/ version is a dead skeleton — never imported by arifosmcp/."
+    },
+    {
+      "path_or_symbol": "arifosmcp/.arifos/adam_agent.py",
+      "class": "dead_code",
+      "disposition": "INVESTIGATE",
+      "confidence": 0.75,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "unknown",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "unknown",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Zero references in arifosmcp/, core/, or server.py. Name does not match any known agent. Could be dynamically loaded — INVESTIGATE before action."
+    },
+    {
+      "path_or_symbol": ".arifos/autoresearch.py",
+      "class": "dead_code",
+      "disposition": "INVESTIGATE",
+      "confidence": 0.70,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "unknown",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "unknown",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Zero references in arifosmcp/, core/, or server.py. Could be dynamically loaded or CLI-invoked."
+    },
+    {
+      "path_or_symbol": ".arifos/REAlITY_LAWS.md",
+      "class": "duplicate_implementation",
+      "disposition": "ARCHIVE",
+      "confidence": 0.88,
+      "evidence": {
+        "static_references": [".arifos/REALITY_LAWS.md (450 lines, different content)"],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "unknown",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Filename typo: REAlITY_LAWS.md (693 lines) vs REALITY_LAWS.md (450 lines). DIFF shows completely different content — not a simple rename. One is 'REALITY LAWS — The Foundation', other is 'Foundation of the Universe: The Invariants'. Two competing documents; likely one should be canonical and the other archived."
+    },
+    {
+      "path_or_symbol": "arifOS_park/deep_research_stub_server.py",
+      "class": "orphaned_artifact",
+      "disposition": "ARCHIVE",
+      "confidence": 0.85,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "unknown",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "no",
+        "data_migration": false
+      },
+      "notes": "Single file in a 'park' directory. Not imported, not in Makefile, not in Dockerfile. 'Parked' stub server for deep research — dormant."
+    },
+    {
+      "path_or_symbol": "00_legacy_materials/",
+      "class": "orphaned_artifact",
+      "disposition": "ARCHIVE",
+      "confidence": 0.90,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "unknown",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "no",
+        "data_migration": true
+      },
+      "notes": "Contains only ARCHIVE_METADATA.json. Main legacy content already in archive/00_legacy_materials/. Double-nesting — top-level 00_legacy_materials/ is a shell."
+    },
+    {
+      "path_or_symbol": ".opencode/SPRINT-2026-05-03-DRIFT-LEDGER-CLOSURE.md",
+      "class": "orphaned_artifact",
+      "disposition": "DEPRECATE",
+      "confidence": 0.85,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-07-17",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "no",
+        "data_migration": false
+      },
+      "notes": "Sprint traces from May 2026 (137 days old). OpenCode agent artifacts. Not referenced by any code or config. node_modules/ also present in .opencode/ — local tool state."
+    },
+    {
+      "path_or_symbol": ".opencode/SPRINT-TRACE-SPINE-IMPL.md",
+      "class": "orphaned_artifact",
+      "disposition": "DEPRECATE",
+      "confidence": 0.85,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-07-17",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "no",
+        "data_migration": false
+      },
+      "notes": "Same cohort as above. Sprint trace from May 2026."
+    },
+    {
+      "path_or_symbol": ".collab/COLLAB.md",
+      "class": "orphaned_artifact",
+      "disposition": "INVESTIGATE",
+      "confidence": 0.75,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "unknown",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "unknown",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Zero references in codebase. Collaboration configuration file — may be consumed by tooling not visible in source."
+    },
+    {
+      "path_or_symbol": "organ.yaml",
+      "class": "documentation_drift",
+      "disposition": "HOLD",
+      "confidence": 0.95,
+      "evidence": {
+        "static_references": ["/root/AAA/organ.yaml (superseding file)"],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-07-26",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "unknown",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Self-declared superseded: 'This file is superseded by: /root/AAA/organ.yaml'. 98 bytes. Points to external canonical copy. HOLD until topology files are consolidated."
+    },
+    {
+      "path_or_symbol": "HISTORICAL_NOTICE.md",
+      "class": "governance_debris",
+      "disposition": "HOLD",
+      "confidence": 0.70,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-09-10",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Historical notice file. May serve as legal/governance notice. HOLD — not safe to remove without confirming purpose."
+    },
+    {
+      "path_or_symbol": "smithery.yaml",
+      "class": "contract_drift",
+      "disposition": "HOLD",
+      "confidence": 0.80,
+      "evidence": {
+        "static_references": ["scripts/sync_kernel_abi.py (generator)"],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-09-15",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "yes",
+        "data_migration": false
+      },
+      "notes": "Auto-generated by sync_kernel_abi.py. Version pinned at 2026.07.24 — stale if ABI changed since. External consumers (Smithery registry) may depend on it. HOLD."
+    },
+    {
+      "path_or_symbol": "risk_leash.yaml",
+      "class": "governance_debris",
+      "disposition": "HOLD",
+      "confidence": 0.65,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-07-17",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "unknown",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Version 2026.05.14-v1. May be consumed by 777_FORGE or 888_JUDGE runtime gates. 64 days old. HOLD — verify if consumed at runtime before any action."
+    },
+    {
+      "path_or_symbol": "top-level report JSONs (8 files)",
+      "class": "governance_debris",
+      "disposition": "HOLD",
+      "confidence": 0.85,
+      "evidence": {
+        "static_references": [
+          "surface-evidence.json → scripts/gen_surface_evidence.py",
+          "semantic-closure-report.json → scripts/semantic_closure_scanner.py",
+          "runtime-attestation-gap-report.json → scripts/deployment_boundary_closure.py",
+          "reachability-report.json → scripts/reachability_analysis.py",
+          "repo-inventory.json → scripts (generator unknown)",
+          "package-origin-report.json → scripts (generator unknown)",
+          "import-origin-report.json → scripts (generator unknown)",
+          "execution-roots-report.json → scripts (generator unknown)",
+          "build-info.json → .gitignore line 309"
+        ],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-09-16",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "Ephemeral audit outputs, each generated by a specific script. Git-tracked but .gitignore has '*-report.json' pattern (suggests intent to exclude). build-info.json explicitly gitignored. HOLD — confirm if they should be git-ignored."
+    },
+    {
+      "path_or_symbol": "VISION_ORGAN/",
+      "class": "runtime_dead_path",
+      "disposition": "HOLD",
+      "confidence": 0.60,
+      "evidence": {
+        "static_references": ["arifosmcp/mission_router.py (1 reference)"],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-09-08",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "unknown",
+        "external_consumer": "unknown",
+        "data_migration": false
+      },
+      "notes": "15 files, 1 reference in mission_router.py. Recently touched (Sep 8). HOLD — may be actively developed vision organ code."
+    },
+    {
+      "path_or_symbol": "formal/",
+      "class": "runtime_dead_path",
+      "disposition": "KEEP",
+      "confidence": 0.90,
+      "evidence": {
+        "static_references": ["formal/APEX.lean", "formal/lakefile.lean", "formal/lean-toolchain"],
+        "registry_references": [],
+        "ci_references": [".github/workflows/apex-lean.yml"],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-09-06",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "no",
+        "data_migration": false
+      },
+      "notes": "Lean 4 formal verification package for APEX theorem. Status: Level 5b PENDING. Has CI workflow. Intentionally staged — not dead, awaiting Lean kernel build."
+    },
+    {
+      "path_or_symbol": "GENESIS/",
+      "class": "governance_debris",
+      "disposition": "KEEP",
+      "confidence": 0.95,
+      "evidence": {
+        "static_references": [],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-09-16",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "no",
+        "data_migration": false
+      },
+      "notes": "Constitutional genesis documents (18 .md + 1 .json + amendments). Active — last changed Sep 16 (SIX-GRAPH-AMENDMENT-18). Canonical origin material. KEEP."
+    },
+    {
+      "path_or_symbol": "npm-wrapper/",
+      "class": "contract_drift",
+      "disposition": "KEEP",
+      "confidence": 0.70,
+      "evidence": {
+        "static_references": ["npm-wrapper/package.json", "npm-wrapper/bin/connect.js"],
+        "registry_references": [],
+        "ci_references": [],
+        "runtime_receipts": [],
+        "git_last_changed": "2026-07-17",
+        "tests": []
+      },
+      "risk": {
+        "dynamic_loading": "no",
+        "external_consumer": "yes",
+        "data_migration": false
+      },
+      "notes": "NPM wrapper for arifOS MCP (arifos-connect CLI). Version 2026.7.17 — drift from pyproject.toml 1!2026.9.6. Not referenced in Makefile/Dockerfile but published to npm registry. KEEP but flag version drift."
+    }
+  ],
+  "mcp_tool_audit": {
+    "declared_no_handler": [],
+    "handler_no_declaration": [],
+    "schema_mismatches": [],
+    "capability_duplicates": [
+      {
+        "tool": "cooling_ledger",
+        "locations": ["core/cooling_ledger.py (stub, 8 lines)", "arifosmcp/cooling_ledger.py (real, 462 lines)"],
+        "verdict": "DEPRECATE core/ version"
+      }
+    ],
+    "never_observed": [],
+    "write_misclassified_as_read": [],
+    "no_owner_or_policy": [],
+    "docs_only": []
+  },
+  "local_filesystem_debris": {
+    "note": "These are NOT git-tracked. Local filesystem only. Safe to clean without repo mutation.",
+    "categories": {
+      "backup_files": {
+        "count": 34,
+        "total_size_estimate": "~2MB",
+        "locations": [
+          "arifosmcp/server.py.bak-20260916-042418-trav (195KB)",
+          "arifosmcp/runtime/*.bak-* (8 files)",
+          "arifosmcp/tools/*.bak-* (6 files)",
+          "arifosmcp/geometry/*.bak (1 file)",
+          "scripts/*.bak (1 file)",
+          "arifos/identity/*.bak (3 files)",
+          "VAULT999/bak-archive/*.bak (5 files)",
+          "docs/agents/*.bak (1 file)",
+          "memory/*.bak (1 file)",
+          "contracts/*.bak (1 file)",
+          "tests/*.stale (2 files)"
+        ]
+      },
+      "build_directory": {
+        "size": "26MB",
+        "contents": "pip build artifacts (bdist.linux-x86_64 + lib/)",
+        "git_tracked": false,
+        "safe_to_clean": true
+      },
+      "venv_directory": {
+        "size": "264MB",
+        "note": "Normal for this project's dependency set. Not debris."
+      }
+    }
+  },
+  "unknowns": [
+    "arifosmcp/.arifos/adam_agent.py — purpose unknown, zero references",
+    ".arifos/autoresearch.py — purpose unknown, zero references",
+    ".collab/COLLAB.md — purpose unknown, zero references",
+    "4 top-level report JSONs whose generator scripts were not identified (repo-inventory.json, package-origin-report.json, import-origin-report.json, execution-roots-report.json)"
+  ],
+  "verdict": "READ_ONLY_AUDIT_COMPLETE"
+}
