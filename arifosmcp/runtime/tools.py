@@ -127,41 +127,309 @@ _SEALISH = frozenset(
 )
 
 
-def _payload_has_deployment_drift(payload: dict[str, Any]) -> bool:
-    """True if any known location reports deployment/kernel drift."""
-    if not isinstance(payload, dict):
-        return False
-    spots: list[dict[str, Any]] = [payload]
+# ── EVIDENCE HIERARCHY FOR THE DEPLOYMENT-DRIFT FLOOR ───────────────────────
+# 2026-09-18 · lane B receipt KERNEL-DUAL-TRUTH-FIX-2026-09-18 (NOT F13-sealed)
+#
+# Binding doctrine: RAW OBSERVATION > MEASURED FACT > DERIVED STATE >
+# REASON CODE > NARRATIVE LABEL. A DERIVED state label must never outrank a
+# MEASURED fact carried in the same payload.
+#
+# DEFECT REPAIRED: the previous predicate returned True on
+# `substrate.state == "DEGRADED"` even when a MEASURED `drift is False` sat
+# beside it in the same object, and the floor then stamped
+# reason_code="DEPLOYMENT_DRIFT" — a specific-sounding label nothing had
+# measured. The label's actual producer is a boot-attestation failure, not
+# drift (see arifosmcp/tools/session.py:
+#   `_substrate_state = "DEGRADED" if (_drift or _boot_unhealthy) else "HEALTHY"`).
+# Net effect was a control whose enforcement was not backed by the
+# measurement it claimed to make: every seal blocked, citing a drift the
+# same payload measured as absent.
+#
+# Tiers used below:
+#   MEASURED — explicit boolean drift facts (`*.drift`), plus `degraded[]`
+#              entries naming drift (written only from a measured drift read:
+#              session.py appends "kernel_drift" iff `_drift` is True, and
+#              _preserve_arif_init_truth gates the same way).
+#   DERIVED  — `substrate.state`, a label computed from other signals.
+#
+# Rules:
+#   R1. Any MEASURED drift=true  → floor fires; cause DEPLOYMENT_DRIFT (real).
+#   R2. No drift measurement anywhere, but a DERIVED DEGRADED label → floor
+#       fires fail-closed; cause SUBSTRATE_DEGRADED_UNATTRIBUTED (honest:
+#       the label is real, its attribution is missing).
+#   R3. DERIVED DEGRADED contradicted by a MEASURED drift=false → floor does
+#       NOT fire; the contradiction is recorded, never silently dropped.
+#   R4. No drift evidence at all → floor does not fire (unchanged).
+#
+# A safety gate is never weakened: R1 and R2 both keep the floor closed, and
+# the reason code a caller receives is now always something that was
+# measured (or an explicit "unmeasured" sentinel) — never a defaulted label.
+_MEASURED_DRIFT_FIELDS: tuple[tuple[str, str], ...] = (
+    ("substrate", "drift"),
+    ("software_release", "drift"),
+    ("software_release.deployment_invariant", "drift"),
+)
+_DERIVED_DEGRADED_TOKENS: tuple[str, ...] = ("DEGRADED", "FAIL")
+_DRIFT_NEXT_ACTION_BY_CAUSE: dict[str, str] = {
+    "DEPLOYMENT_DRIFT": "RECONCILE_SOURCE_BUILT_DEPLOYED",
+    "SUBSTRATE_DEGRADED_UNATTRIBUTED": "MEASURE_SUBSTRATE_DEGRADATION_CAUSE",
+}
+
+
+def _drift_spots(payload: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    """Known payload locations that may carry drift evidence."""
+    spots: list[tuple[str, dict[str, Any]]] = [("envelope", payload)]
     res = payload.get("result")
     if isinstance(res, dict):
-        spots.append(res)
-    for d in spots:
+        spots.append(("result", res))
+    return spots
+
+
+def _derive_degradation_cause_from_spots(
+    spots: list[tuple[str, dict[str, Any]]],
+) -> dict[str, Any] | None:
+    """Recover the kernel's own stated cause for a DEGRADED substrate label.
+
+    session.py already distinguishes WHY the substrate is degraded in
+    `effective_state.session_authority_state` (DEPLOYMENT_DRIFT /
+    BOOT_ATTESTATION_FAILED / ACTOR_NOT_VERIFIED). Reading it back is how the
+    floor can name a cause it actually measured instead of defaulting to a
+    drift label.
+    """
+    for loc, d in spots:
+        if not isinstance(d, dict):
+            continue
+        for container_key in ("effective_state", "effective"):
+            node = d.get(container_key)
+            if isinstance(node, dict) and node.get("session_authority_state"):
+                return {
+                    "location": f"{loc}.{container_key}",
+                    "field": "session_authority_state",
+                    "value": str(node["session_authority_state"]),
+                }
+        cc = d.get("constitutional_check")
+        if isinstance(cc, dict) and cc.get("substrate_state"):
+            return {
+                "location": f"{loc}.constitutional_check",
+                "field": "substrate_state",
+                "value": str(cc["substrate_state"]),
+            }
+    return None
+
+
+def _derive_degradation_cause(payload: dict[str, Any]) -> dict[str, Any] | None:
+    return _derive_degradation_cause_from_spots(_drift_spots(payload))
+
+
+def _measure_drift_from_spots(
+    spots: list[tuple[str, dict[str, Any]]],
+) -> dict[str, Any]:
+    """Apply the evidence hierarchy to drift evidence found at `spots`."""
+    measured: list[dict[str, Any]] = []
+    derived: list[dict[str, Any]] = []
+
+    for loc, d in spots:
+        if not isinstance(d, dict):
+            continue
         sub = d.get("substrate") if isinstance(d.get("substrate"), dict) else {}
-        if sub.get("state") == "DEGRADED" or sub.get("drift") is True:
-            return True
         sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
-        if sw.get("drift") is True:
-            return True
         inv = (
             sw.get("deployment_invariant")
             if isinstance(sw.get("deployment_invariant"), dict)
             else {}
         )
-        if inv.get("drift") is True:
-            return True
+        for prefix, node in (
+            ("substrate", sub),
+            ("software_release", sw),
+            ("software_release.deployment_invariant", inv),
+        ):
+            if isinstance(node, dict) and isinstance(node.get("drift"), bool):
+                measured.append(
+                    {
+                        "location": loc,
+                        "field": f"{prefix}.drift",
+                        "value": node["drift"],
+                        "tier": "MEASURED",
+                    }
+                )
         deg = d.get("degraded")
-        if isinstance(deg, list) and any("drift" in str(x).lower() for x in deg):
-            return True
-    return False
+        if isinstance(deg, list):
+            for entry in deg:
+                if "drift" in str(entry).lower():
+                    measured.append(
+                        {
+                            "location": loc,
+                            "field": "degraded[]",
+                            "value": str(entry),
+                            "tier": "MEASURED",
+                        }
+                    )
+        if isinstance(sub, dict) and "state" in sub:
+            derived.append(
+                {
+                    "location": loc,
+                    "field": "substrate.state",
+                    "value": str(sub.get("state")),
+                    "tier": "DERIVED",
+                }
+            )
+
+    measured_true = [
+        f for f in measured if f["value"] is True or f["field"] == "degraded[]"
+    ]
+    measured_false = [f for f in measured if f["value"] is False]
+    derived_degraded = [
+        label
+        for label in derived
+        if str(label["value"]).upper() in _DERIVED_DEGRADED_TOKENS
+    ]
+
+    out: dict[str, Any] = {
+        "fired": False,
+        "evidence_tier": "NONE",
+        "cause": None,
+        "location": None,
+        "field": None,
+        "value": None,
+        "measured_facts": measured,
+        "derived_labels": derived,
+        "superseded": [],
+        "derived_degradation_cause": None,
+        "rationale": "no drift evidence present",
+    }
+
+    if measured_true:
+        hit = measured_true[0]
+        out.update(
+            fired=True,
+            evidence_tier="MEASURED_FACT",
+            cause="DEPLOYMENT_DRIFT",
+            location=hit["location"],
+            field=hit["field"],
+            value=hit["value"],
+            rationale=(
+                f"MEASURED drift=true at {hit['location']}.{hit['field']}"
+                f"={hit['value']}"
+            ),
+        )
+        return out
+
+    if derived_degraded and not measured_false:
+        hit = derived_degraded[0]
+        out.update(
+            fired=True,
+            evidence_tier="DERIVED_STATE_UNCONTRADICTED",
+            cause="SUBSTRATE_DEGRADED_UNATTRIBUTED",
+            location=hit["location"],
+            field=hit["field"],
+            value=hit["value"],
+            derived_degradation_cause=_derive_degradation_cause_from_spots(spots),
+            rationale=(
+                "no drift measurement present; DERIVED label "
+                f"{hit['location']}.{hit['field']}={hit['value']} stands "
+                "uncontradicted — fail-closed"
+            ),
+        )
+        return out
+
+    if derived_degraded and measured_false:
+        out["superseded"] = [
+            {
+                "derived_label": label,
+                "overridden_by": fact,
+                "rule": "MEASURED_FACT > DERIVED_STATE",
+            }
+            for label in derived_degraded
+            for fact in measured_false
+        ]
+        out["derived_degradation_cause"] = _derive_degradation_cause_from_spots(spots)
+        out["rationale"] = (
+            f"DERIVED label {derived_degraded[0]['location']}."
+            f"{derived_degraded[0]['field']}={derived_degraded[0]['value']} "
+            f"overridden by MEASURED {measured_false[0]['location']}."
+            f"{measured_false[0]['field']}={measured_false[0]['value']} — "
+            "deployment-drift floor withheld (evidence hierarchy)"
+        )
+        return out
+
+    return out
+
+
+def _measure_deployment_drift(payload: Any) -> dict[str, Any]:
+    """Measure deployment drift under the explicit evidence hierarchy.
+
+    Single measurement source for the drift floor across the kernel. Never
+    names a specific cause that was not measured.
+    """
+    if not isinstance(payload, dict):
+        return {
+            "fired": False,
+            "evidence_tier": "NONE",
+            "cause": None,
+            "location": None,
+            "field": None,
+            "value": None,
+            "measured_facts": [],
+            "derived_labels": [],
+            "superseded": [],
+            "derived_degradation_cause": None,
+            "rationale": "payload is not a dict — no evidence surface",
+        }
+    return _measure_drift_from_spots(_drift_spots(payload))
+
+
+def _payload_has_deployment_drift(payload: dict[str, Any]) -> bool:
+    """True iff the drift floor is warranted under the evidence hierarchy.
+
+    Thin predicate over _measure_deployment_drift() so existing callers keep
+    their call shape. The superseded logic fired on the DERIVED
+    `substrate.state` label even when a MEASURED `drift=False` sat beside it
+    in the same object.
+    """
+    return bool(_measure_deployment_drift(payload).get("fired"))
+
+
+def _drift_reason_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
+    """Auditable 'which payload location, which field' record for a firing."""
+    return {
+        "cause": evidence.get("cause") or "REASON_UNMEASURED",
+        "evidence_tier": evidence.get("evidence_tier"),
+        "location": evidence.get("location"),
+        "field": evidence.get("field"),
+        "value": evidence.get("value"),
+        "chain": (
+            f"{evidence.get('location')}.{evidence.get('field')}"
+            f"={evidence.get('value')}"
+        ),
+        "measured_facts": evidence.get("measured_facts", []),
+        "derived_labels": evidence.get("derived_labels", []),
+        "superseded": evidence.get("superseded", []),
+        "derived_degradation_cause": evidence.get("derived_degradation_cause"),
+        "rationale": evidence.get("rationale"),
+        "hierarchy": (
+            "RAW_OBSERVATION > MEASURED_FACT > DERIVED_STATE > REASON_CODE "
+            "> NARRATIVE_LABEL"
+        ),
+    }
 
 
 def apply_deployment_drift_floor(payload: Any) -> Any:
     """Collapse cheerful-corpse + authority-fork under deployment drift.
 
     Mutates dict payload in place. Safe to call multiple times.
+
+    Fires only on MEASURED drift, or on an uncontradicted DERIVED DEGRADED
+    label (fail-closed). Every firing records WHICH payload location and
+    WHICH field produced it, and stamps a cause that was actually measured —
+    never a defaulted label. See _measure_deployment_drift for the hierarchy.
     """
-    if not isinstance(payload, dict) or not _payload_has_deployment_drift(payload):
+    if not isinstance(payload, dict):
         return payload
+    _drift_evidence = _measure_deployment_drift(payload)
+    if not _drift_evidence.get("fired"):
+        return payload
+    _evidence_record = _drift_reason_evidence(_drift_evidence)
+    _cause = _evidence_record["cause"]
 
     def _force_no_mutate(d: dict[str, Any]) -> None:
         if "mutation_allowed" in d:
@@ -221,8 +489,14 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
         # Ensure status is not pure celebration under drift
         if str(d.get("status", "")).lower() in ("completed", "ok", "healthy"):
             d["status"] = "degraded"
-        d["reason_code"] = d.get("reason_code") or "DEPLOYMENT_DRIFT"
-        d["next_action"] = d.get("next_action") or "RECONCILE_SOURCE_BUILT_DEPLOYED"
+        # MEASURED, never defaulted (2026-09-18): the cause is read from the
+        # drift measurement, not from a hard-coded label. A caller can only
+        # see a specific cause name here if that cause was actually measured.
+        d["reason_code"] = d.get("reason_code") or _cause
+        d["reason_evidence"] = dict(_evidence_record)
+        d["next_action"] = d.get("next_action") or _DRIFT_NEXT_ACTION_BY_CAUSE.get(
+            _cause, "RECONCILE_SUBSTRATE_STATE"
+        )
 
     def _force_nine(d: dict[str, Any]) -> None:
         ns = d.get("nine_signal")
@@ -233,7 +507,7 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
             ns["overall"] = {
                 "state": "RETAK",
                 "en": "HOLDING",
-                "reason": "deployment_drift",
+                "reason": str(_cause).lower(),
             }
         elif isinstance(overall, str) and overall.upper() in ("SELAMAT", "SAFE"):
             ns["overall"] = "RETAK"
@@ -295,20 +569,26 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
     )
     if sub_scope.get("state") in ("PASS", "HEALTHY", ""):
         sub_scope["state"] = "DEGRADED"
-        sub_scope["evidence_reference"] = sub_scope.get("evidence_reference") or "deployment_drift"
+        sub_scope["evidence_reference"] = (
+            sub_scope.get("evidence_reference") or str(_cause).lower()
+        )
         sub_scope["issuer"] = sub_scope.get("issuer") or "arifos_conformance"
         verdicts_top["substrate"] = sub_scope
         payload["verdicts"] = verdicts_top
 
     # Surface prefix for agents
     prefix = payload.get("response_prefix") or ""
-    if "DRIFT" not in str(prefix).upper():
+    if str(_cause).upper() not in str(prefix).upper():
         payload["response_prefix"] = (
-            "⚠️ DRIFT DETECTED — substrate DEGRADED. mutation_allowed=false. "
+            f"⚠️ {_cause} — substrate DEGRADED (evidence: "
+            f"{_evidence_record['chain']}). mutation_allowed=false. "
             "Headline cannot be SEAL/SAFE. " + str(prefix)
         )
 
     payload["_drift_floor_applied"] = True
+    # Requirement (c): the block states WHICH location and WHICH field
+    # produced it, so a HOLD is auditable instead of a bare label.
+    payload["drift_floor_evidence"] = dict(_evidence_record)
     return payload
 
 
@@ -8200,19 +8480,13 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         sw = src["software_release"]
         dst["software_release"] = sw
 
-    drifted = (
-        sub.get("state") == "DEGRADED"
-        or sub.get("drift") is True
-        or sw.get("drift") is True
-        or (
-            isinstance(dst.get("degraded"), list)
-            and any("drift" in str(x).lower() for x in dst["degraded"])
-        )
-        or (
-            isinstance(src.get("degraded"), list)
-            and any("drift" in str(x).lower() for x in src["degraded"])
-        )
+    # EVIDENCE HIERARCHY (2026-09-18, lane B receipt): pooled measurement over
+    # the wire envelope AND the engine source, so a MEASURED drift=false in
+    # either outranks a DERIVED `substrate.state == "DEGRADED"` in the other.
+    _preserve_drift_evidence = _measure_drift_from_spots(
+        _drift_spots(dst) + ([("engine_source", src)] if isinstance(src, dict) else [])
     )
+    drifted = bool(_preserve_drift_evidence.get("fired"))
     if drifted:
         # Monotonic floor — never SEAL / OK celebration over degraded substrate
         dst["verdict"] = "DEGRADED"
@@ -8222,7 +8496,11 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         dst["seal_allowed"] = False
         if str(dst.get("status", "")).lower() in ("ok", "completed", "healthy", "seal"):
             dst["status"] = "degraded"
-        dst["reason_code"] = dst.get("reason_code") or "DEPLOYMENT_DRIFT"
+        # MEASURED, never defaulted (2026-09-18).
+        dst["reason_code"] = dst.get("reason_code") or (
+            _preserve_drift_evidence.get("cause") or "REASON_UNMEASURED"
+        )
+        dst["reason_evidence"] = _drift_reason_evidence(_preserve_drift_evidence)
         # Annotate geometry if present
         geom = dst.get("verdict_geometry")
         if isinstance(geom, dict):
