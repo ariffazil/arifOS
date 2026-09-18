@@ -96,6 +96,7 @@ _log_llm_provider_health()
 
 import fastmcp  # noqa: E002,E402
 from fastmcp import FastMCP  # noqa: E402
+
 try:
     from mcp import McpError  # noqa: E402
 except ImportError:
@@ -702,6 +703,11 @@ mcp = FastMCP(
     website_url="https://mcp.arif-fazil.com",
     # MCP logging: SEP-2577 deprecated — FastMCP may still declare logging; no expansion.
     client_log_level="warning",
+    # MCP spec 2026-07-28 compliance: declare listChanged + subscribe capabilities
+    experimental_capabilities={
+        "resources": {"listChanged": True, "subscribe": True},
+        "prompts": {"listChanged": True},
+    },
     instructions=(
         "arifOS — Constitutional AI orchestration kernel. F1-F13 governed.\n\n"
         "═══ AGENT BOOT SEQUENCE (MCP-NATIVE) ═══\n"
@@ -741,7 +747,7 @@ mcp = FastMCP(
         "  Templates: arifos://verdict/{sid}, continuity/{sid}, floor/{fid}, vault/{type}\n"
         "  Skills: skill://index, skill://{name}/SKILL.md\n"
         "  Wisdom: arifos://wisdom/quotes/*, arifos://wisdom/contract\n"
-        "Key prompts: /init (ignition), /seal (close), 🌱 BOOT (lightweight), 🌀 SABAR (governed loop).\n"
+        "Key prompts: /init (ignition), /seal (close), 000 🌱 IGNITE (identity), 🌀 GOVERN (governed loop).\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
@@ -2038,6 +2044,16 @@ try:
                 logger.warning("Resource/prompt registration issue: %s", _err)
     except Exception as _rp_err:
         logger.warning("Explicit resources+prompts registration failed: %s", _rp_err)
+
+    # MCP spec 2026-07-28 compliance: enrich resources with title + annotations
+    try:
+        from arifosmcp.resources import enrich_resource_metadata
+
+        _enriched = enrich_resource_metadata(mcp)
+        if _enriched:
+            logger.info("Enriched %d resources with title + annotations (MCP spec compliance)", _enriched)
+    except Exception as _enrich_err:
+        logger.warning("Resource metadata enrichment failed: %s", _enrich_err)
 
     # Default HTTP tools/list must reflect the canonical public facade exactly.
     # 2026-07-17: list filter alone is insufficient — call path also gated in

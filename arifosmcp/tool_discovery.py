@@ -38,6 +38,10 @@ class ArifToolDiscovery:
     # Fresh clients should prefer the canonical `name` over any entry here.
     # Added 2026-07-04 — default [] for back-compat with older entries.
     deprecated_aliases: list[str] | None = None
+    # APEX-777 ZEN CLOSURE — public vs internal discovery. Only expose=True
+    # entries are advertised as canonical discovery; internal/absorbed tools
+    # remain resolvable but never appear in the canonical surface.
+    expose: bool = True
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -428,6 +432,55 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# APEX-777 ZEN CLOSURE — derive public modes + expose flag from the canonical
+# owner (arifosmcp.constitutional_map.CANONICAL_TOOLS). This registry keeps its
+# hand-written LLM prose (use_when / examples / keywords) but the mode ABI and
+# the deprecated-alias table are DERIVED, not copied. Internal/absorbed tools
+# are demoted to expose=False so they never appear in canonical discovery.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Internal / absorbed tools — resolvable for back-compat, never canonical.
+INTERNAL_TOOLS: frozenset[str] = frozenset(
+    {
+        "arif_explore",
+        "arif_fetch",
+        "arif_critique",
+        "arif_triage",
+        "arif_bridge_connect",
+        "arif_measure",
+        "arif_canary",
+        "arif_conformance_report",
+        "arif_compose",
+        "arif_kernel_intercept",
+        "arif_vault_query",
+    }
+)
+
+
+def _reconcile_with_canonical() -> None:
+    """One-time module-load derivation: public modes + aliases follow the owner."""
+    from dataclasses import replace
+
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS
+
+    for name, td in list(ARIF_TOOL_DISCOVERY.items()):
+        if name in INTERNAL_TOOLS:
+            ARIF_TOOL_DISCOVERY[name] = replace(td, expose=False)
+            continue
+        spec = CANONICAL_TOOLS.get(name)
+        if spec is not None:
+            ARIF_TOOL_DISCOVERY[name] = replace(
+                td,
+                modes=list(spec.get("modes", [])),
+                deprecated_aliases=list(spec.get("deprecated_aliases", [])),
+                expose=bool(spec.get("expose", True)),
+            )
+
+
+_reconcile_with_canonical()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # DISCOVERY API
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -559,7 +612,7 @@ def format_all_discoveries_for_llm() -> str:
 
 
 def get_tool_discovery_resource() -> dict[str, Any]:
-    """Return tool discovery as MCP resource for LLMs."""
+    """Return tool discovery as MCP resource for LLMs (canonical public surface only)."""
     return {
         "uri": "arif://tools/discovery",
         "name": "arifOS Tool Discovery",
@@ -579,6 +632,7 @@ def get_tool_discovery_resource() -> dict[str, Any]:
                     "modes": td.modes,
                 }
                 for td in ARIF_TOOL_DISCOVERY.values()
+                if td.expose
             ]
         },
     }

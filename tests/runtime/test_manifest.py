@@ -71,7 +71,9 @@ def test_gather_runtime_manifest_collects_from_mcp_lists():
     """Runtime manifest is built from real MCP list operations, not registries."""
     from arifosmcp.runtime.manifest import gather_runtime_manifest
 
-    def _mcp(method: str, params: dict[str, Any] | None = None, timeout: float = 5.0) -> dict[str, Any]:
+    def _mcp(
+        method: str, params: dict[str, Any] | None = None, timeout: float = 5.0
+    ) -> dict[str, Any]:
         if method == "initialize":
             return {
                 "jsonrpc": "2.0",
@@ -82,25 +84,32 @@ def test_gather_runtime_manifest_collects_from_mcp_lists():
                 },
             }
         if method == "tools/list":
-            return {"jsonrpc": "2.0", "id": 1,
-                    "result": {"tools": [{"name": "arif_init"}, {"name": "arif_seal"}]}}
+            return {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {"tools": [{"name": "arif_init"}, {"name": "arif_seal"}]},
+            }
         if method == "resources/list":
-            return {"jsonrpc": "2.0", "id": 1,
-                    "result": {"resources": [{"uri": "arifos://session/test"}]}}
+            return {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {"resources": [{"uri": "arifos://session/test"}]},
+            }
         if method == "resources/templates/list":
-            return {"jsonrpc": "2.0", "id": 1,
-                    "result": {"resourceTemplates": []}}
+            return {"jsonrpc": "2.0", "id": 1, "result": {"resourceTemplates": []}}
         if method == "prompts/list":
-            return {"jsonrpc": "2.0", "id": 1,
-                    "result": {"prompts": [{"name": "🌱 BOOT"}]}}
+            return {"jsonrpc": "2.0", "id": 1, "result": {"prompts": [{"name": "000 🌱 IGNITE"}]}}
         return {"jsonrpc": "2.0", "id": 1, "result": {}}
 
-    with patch(
-        "arifosmcp.runtime.manifest._kernel_reachable",
-        return_value=True,
-    ), patch(
-        "arifosmcp.runtime.manifest._mcp_post",
-        side_effect=_mcp,
+    with (
+        patch(
+            "arifosmcp.runtime.manifest._kernel_reachable",
+            return_value=True,
+        ),
+        patch(
+            "arifosmcp.runtime.manifest._mcp_post",
+            side_effect=_mcp,
+        ),
     ):
         runtime = gather_runtime_manifest()
 
@@ -108,7 +117,7 @@ def test_gather_runtime_manifest_collects_from_mcp_lists():
     assert "arif_init" in runtime.tool_names
     assert "arif_seal" in runtime.tool_names
     assert "arifos://session/test" in runtime.resource_uris
-    assert "🌱 BOOT" in runtime.prompt_names
+    assert "000 🌱 IGNITE" in runtime.prompt_names
     assert runtime.source_commit == "85f165d"
 
 
@@ -129,7 +138,7 @@ def test_compare_aligned_when_build_and_runtime_match():
         tool_names=("arif_init", "arif_seal"),
         resource_uris=("arifos://session/x",),
         resource_templates=(),
-        prompt_names=("🌱 BOOT",),
+        prompt_names=("000 🌱 IGNITE",),
         schemas_hash="s",
         constitution_hash="c",
         generated_at="2026-07-17T00:00:00Z",
@@ -138,7 +147,7 @@ def test_compare_aligned_when_build_and_runtime_match():
         tool_names=("arif_init", "arif_seal"),
         resource_uris=("arifos://session/x",),
         resource_templates=(),
-        prompt_names=("🌱 BOOT",),
+        prompt_names=("000 🌱 IGNITE",),
         source_commit="abc1234",
         kernel_url="http://127.0.0.1:8088",
         gathered_at="2026-07-17T00:00:01Z",
@@ -157,15 +166,20 @@ def test_compare_drift_when_tool_names_differ():
     )
 
     build = BuildManifest(
-        source_commit="x", build_hash="h",
+        source_commit="x",
+        build_hash="h",
         tool_names=("arif_init", "arif_seal", "arif_obsolete"),
-        resource_uris=(), resource_templates=(),
-        prompt_names=(), schemas_hash="s", constitution_hash="c",
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
+        schemas_hash="s",
+        constitution_hash="c",
         generated_at="2026-07-17T00:00:00Z",
     )
     runtime = RuntimeManifest(
         tool_names=("arif_init", "arif_seal"),
-        resource_uris=(), resource_templates=(),
+        resource_uris=(),
+        resource_templates=(),
         prompt_names=(),
         source_commit="x",
         kernel_url="http://127.0.0.1:8088",
@@ -189,15 +203,21 @@ def test_compare_drift_when_runtime_has_extra_tool():
     )
 
     build = BuildManifest(
-        source_commit="x", build_hash="h",
+        source_commit="x",
+        build_hash="h",
         tool_names=("arif_init",),
-        resource_uris=(), resource_templates=(), prompt_names=(),
-        schemas_hash="s", constitution_hash="c",
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
+        schemas_hash="s",
+        constitution_hash="c",
         generated_at="2026-07-17T00:00:00Z",
     )
     runtime = RuntimeManifest(
         tool_names=("arif_init", "arif_ghost"),
-        resource_uris=(), resource_templates=(), prompt_names=(),
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
         source_commit="x",
         kernel_url="http://127.0.0.1:8088",
         gathered_at="2026-07-17T00:00:01Z",
@@ -217,9 +237,14 @@ def test_compare_unknown_when_runtime_unreachable():
     )
 
     build = BuildManifest(
-        source_commit="x", build_hash="h",
-        tool_names=(), resource_uris=(), resource_templates=(), prompt_names=(),
-        schemas_hash="s", constitution_hash="c",
+        source_commit="x",
+        build_hash="h",
+        tool_names=(),
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
+        schemas_hash="s",
+        constitution_hash="c",
         generated_at="2026-07-17T00:00:00Z",
     )
     report = compare_manifests(build, None)
@@ -236,13 +261,21 @@ def test_compare_drift_on_source_commit_mismatch():
     )
 
     build = BuildManifest(
-        source_commit="abc1234", build_hash="h",
-        tool_names=(), resource_uris=(), resource_templates=(), prompt_names=(),
-        schemas_hash="s", constitution_hash="c",
+        source_commit="abc1234",
+        build_hash="h",
+        tool_names=(),
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
+        schemas_hash="s",
+        constitution_hash="c",
         generated_at="2026-07-17T00:00:00Z",
     )
     runtime = RuntimeManifest(
-        tool_names=(), resource_uris=(), resource_templates=(), prompt_names=(),
+        tool_names=(),
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
         source_commit="def5678",
         kernel_url="http://127.0.0.1:8088",
         gathered_at="2026-07-17T00:00:01Z",
@@ -263,13 +296,21 @@ def test_drift_report_serializable_to_dict():
     )
 
     build = BuildManifest(
-        source_commit="x", build_hash="h",
-        tool_names=(), resource_uris=(), resource_templates=(), prompt_names=(),
-        schemas_hash="s", constitution_hash="c",
+        source_commit="x",
+        build_hash="h",
+        tool_names=(),
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
+        schemas_hash="s",
+        constitution_hash="c",
         generated_at="2026-07-17T00:00:00Z",
     )
     runtime = RuntimeManifest(
-        tool_names=(), resource_uris=(), resource_templates=(), prompt_names=(),
+        tool_names=(),
+        resource_uris=(),
+        resource_templates=(),
+        prompt_names=(),
         source_commit="x",
         kernel_url="http://127.0.0.1:8088",
         gathered_at="2026-07-17T00:00:01Z",

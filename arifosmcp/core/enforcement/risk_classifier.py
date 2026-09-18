@@ -424,6 +424,12 @@ def classify_tool(
     Mode-aware: read-only modes of multi-mode tools are downgraded to OBSERVE.
     """
     name = tool_name.lower()
+    # APEX-777 ZEN CLOSURE — normalize SDK-alias (arifos_ prefix) to the
+    # canonical name before lookup, so aliases never change authority.
+    # F11: aliases must never increase authority. F13: no mutation authority
+    # acquired through compatibility paths.
+    if name.startswith("arifos_arif_"):
+        name = name[len("arifos_"):]
     desc = (tool_description or "").lower()
     combined = name + " " + desc
 
@@ -447,6 +453,10 @@ def classify_tool(
         if mode and passport.action_class in (ActionClass.ATOMIC, ActionClass.IRREVERSIBLE):
             _READ_ONLY_MODES = {
                 "arif_seal": {"verify", "chain", "list", "chain_status", "audit", "ledger", "changelog"},
+                # APEX-777 ZEN CLOSURE — arif_forge query/recall are pure
+                # observation (inspect state / recall prior artifact); they
+                # must never carry the T5 ATOMIC mutation class.
+                "arif_forge": {"query", "recall"},
             }
             read_only = _READ_ONLY_MODES.get(name, set())
             if mode.lower() in read_only:

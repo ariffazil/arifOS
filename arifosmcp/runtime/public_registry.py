@@ -11,7 +11,7 @@ from fastmcp.tools import FunctionTool
 from pydantic import TypeAdapter
 
 from arifosmcp.abi.kernel_abi import capability_ids, normalize_profile, validate_abi
-from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, _TOOL_OUTPUT_SCHEMAS
 from arifosmcp.registry import get_prompt_specs_for_charter as _get_prompt_specs_for_charter
 
 from .public_surface import (
@@ -483,18 +483,14 @@ def _spec_for_name(name: str) -> Any:
                 "mode": {
                     "type": "string",
                     "default": "recall",
-                    "enum": [
-                        "recall",
-                        "inspect",
-                        "attest",
-                        "remember",
-                        "promote",
-                        "revise",
-                        "forget",
-                        "audit",
-                        "metabolize",
-                    ],
-                    "description": "Operation mode: recall, inspect, attest, remember, promote, revise, forget, audit, metabolize.",
+                    # APEX-777 ZEN CLOSURE — public mode enum DERIVED from the
+                    # canonical owner (constitutional_map.CANONICAL_TOOLS).
+                    "enum": list(CANONICAL_TOOLS["arif_memory"]["modes"]),
+                    "description": (
+                        "Operation mode: "
+                        + ", ".join(CANONICAL_TOOLS["arif_memory"]["modes"])
+                        + "."
+                    ),
                 },
                 "query": {
                     "anyOf": [{"type": "string"}, {"type": "null"}],

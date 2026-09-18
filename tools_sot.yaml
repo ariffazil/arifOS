@@ -96,15 +96,12 @@ tools:
       - L04_CLARITY
       - L10_ONTOLOGY
       - L11_AUDIT
-    modes:
-      - route
-      - bridge
 
   - id: arif_memory
     name: arif_memory
     stage: '555'
     description: >
-      KERNEL memory governor — L1–L6 governed semantic recall, storage, and persistence.
+      KERNEL 555 · Memory governor — L1–L6 governed semantic recall, storage, and persistence.
     risk_tier: medium
     floors:
       - L01_AMANAH
@@ -123,12 +120,13 @@ tools:
       - revise
       - forget
       - audit
+      - metabolize
 
   - id: arif_judge
     name: arif_judge
     stage: '666'
     description: >
-      KERNEL 666 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.
+      KERNEL 888 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.
     risk_tier: critical
     floors:
       - L01_AMANAH

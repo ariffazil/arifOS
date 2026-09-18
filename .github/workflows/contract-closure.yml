@@ -1,0 +1,70 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Contract Closure — single runtime/contract drift monitor (APEX-777 ZEN)
+#
+# Replaces (retired → .github/workflows/_retired/):
+#   - drift-monitor.yml   (CANON_APEX_V2 — superseded canon, ghost pkg)
+#   - 08-runtime-drift.yml (SSH SHA drift, never green — see issue #803)
+#
+# Collapses drift observability onto ONE instrument:
+#   scripts/contract_closure.py verify --local
+# which fails (exit 1) when:
+#   * a phantom tool appears
+#   * a public mode disappears
+#   * a connector/runtime contract hash diverges
+#   * an alias bypasses policy (authority falsification pair)
+#   * the canonical count changes without an epoch change
+#
+# `--local` checks repo-side surfaces only (constitutional_map OWNER vs
+# tool_charter / tool_discovery / tools_sot.yaml + authority probe). The
+# full runtime check (live tools/list at localhost:8088) runs on the VPS
+# post-restart via `scripts/contract_closure.py verify` / `receipt`.
+# ═══════════════════════════════════════════════════════════════════════════
+name: "Contract Closure"
+
+on:
+  schedule:
+    - cron: "13 2 * * *"  # 02:13 UTC daily (anti-herd minute, not :00/:30)
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "arifosmcp/**"
+      - "tools_sot.yaml"
+      - "scripts/contract_closure.py"
+      - "scripts/gen_tools_sot.py"
+  pull_request:
+    paths:
+      - "arifosmcp/**"
+      - "tools_sot.yaml"
+      - "scripts/contract_closure.py"
+      - "scripts/gen_tools_sot.py"
+
+permissions:
+  contents: read
+
+jobs:
+  contract-verify:
+    name: "Contract drift verify (repo-side)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install minimal deps
+        run: |
+          python -m pip install --upgrade pip
+          # Only needs the arifosmcp modules the instrument imports:
+          # constitutional_map, tool_charter, tool_discovery,
+          # core/enforcement/risk_classifier (schemas). Install the package
+          # in editable mode; it is cheap and keeps imports honest.
+          pip install -e . || pip install -e . --no-deps
+
+      - name: Drift verify (contract closure)
+        run: python3 scripts/contract_closure.py verify --local
+
+      - name: Golden receipt (repo-side)
+        run: python3 scripts/contract_closure.py receipt --local

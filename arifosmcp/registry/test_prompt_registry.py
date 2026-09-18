@@ -17,32 +17,18 @@ from pathlib import Path
 # Make sure we can import the package under test
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from arifosmcp.prompts import CANONICAL_PROMPTS
 from arifosmcp.registry import (
     get_prompt_specs_for_charter,
     get_registry,
     reload_registry,
 )
 
-# ═══ Expected values — anchored to arifosmcp/prompts/__init__.py:180 ═════
-
-EXPECTED_CANONICAL_SEQUENCE = (
-    "🌱 BOOT",
-    "🌊 WITNESS",
-    "🧠 REASON",
-    "⚖ MARUAH",
-    "🔍 PREFLIGHT",
-    "🔒 JUDGE",
-    "🔥 FORGE",
-    "💎 SEAL",
-    "🌀 SABAR",
-    "📜 REPLY",
-)
-
-# Post-zen-consolidation: sigil names are canonical.
-# The 555_critique/666_judge numeric aliases remain registered as legacy
-# but are no longer in the canonical sequence.
-EXPECTED_555_IS_CRITIQUE = False  # Numeric aliases removed from sequence
-EXPECTED_666_IS_JUDGE = False
+# ═══ Expected values — anchored to arifosmcp/prompts/__init__.py::CANONICAL_PROMPTS ═══
+# Single truth: the runtime tuple. This test observes reality, it does not
+# assert an obsolete canon.
+EXPECTED_CANONICAL_SEQUENCE = CANONICAL_PROMPTS
+EXPECTED_PROMPT_COUNT = len(CANONICAL_PROMPTS)
 
 
 # ═══ Test runner ══════════════════════════════════════════════════════════════
@@ -64,20 +50,20 @@ def test_canonical_sequence_correct() -> bool:
             print("  ⚠️  555/666 SWAP DETECTED — the bug class is back!")
         return False
 
-    # Verify zen sigil prompts are present and correctly ordered
-    spec_maruah = registry.get("⚖ MARUAH")
-    spec_judge = registry.get("🔒 JUDGE")
+    # Verify numbered hooks are present and correctly named
+    spec_plan = registry.get("222 🏛 PLAN")
+    spec_judge = registry.get("888 🔒 JUDGE")
 
-    if "maruah" not in spec_maruah.id.lower():
-        print(f"  ❌ FAIL — ⚖ MARUAH missing or wrong id: {spec_maruah.id}")
+    if "plan" not in spec_plan.id.lower():
+        print(f"  ❌ FAIL — 222 🏛 PLAN missing or wrong id: {spec_plan.id}")
         return False
     if "judge" not in spec_judge.id.lower():
-        print(f"  ❌ FAIL — 🔒 JUDGE missing or wrong id: {spec_judge.id}")
+        print(f"  ❌ FAIL — 888 🔒 JUDGE missing or wrong id: {spec_judge.id}")
         return False
 
-    print("  ✅ PASS — sequence correct (zen sigil)")
-    print(f"     ⚖ MARUAH={spec_maruah.id} ({spec_maruah.semantic_name})")
-    print(f"     🔒 JUDGE={spec_judge.id} ({spec_judge.semantic_name})")
+    print("  ✅ PASS — sequence correct (numbered ladder)")
+    print(f"     222 🏛 PLAN={spec_plan.id} ({spec_plan.semantic_name})")
+    print(f"     888 🔒 JUDGE={spec_judge.id} ({spec_judge.semantic_name})")
     return True
 
 
@@ -88,37 +74,37 @@ def test_sha256_stability() -> bool:
     print("=" * 70)
     reg1 = get_registry()
     sha1 = reg1.registry_sha256
-    spec_sha_maruah_1 = reg1.get("⚖ MARUAH").sha256
-    spec_sha_judge_1 = reg1.get("🔒 JUDGE").sha256
+    spec_sha_plan_1 = reg1.get("222 🏛 PLAN").sha256
+    spec_sha_judge_1 = reg1.get("888 🔒 JUDGE").sha256
 
     # Reload — same data on disk → same SHA
     reg2 = reload_registry()
     sha2 = reg2.registry_sha256
-    spec_sha_maruah_2 = reg2.get("⚖ MARUAH").sha256
-    spec_sha_judge_2 = reg2.get("🔒 JUDGE").sha256
+    spec_sha_plan_2 = reg2.get("222 🏛 PLAN").sha256
+    spec_sha_judge_2 = reg2.get("888 🔒 JUDGE").sha256
 
     if sha1 != sha2:
         print("  ❌ FAIL — registry SHA changed across reloads")
         print(f"     {sha1} vs {sha2}")
         return False
-    if spec_sha_maruah_1 != spec_sha_maruah_2 or spec_sha_judge_1 != spec_sha_judge_2:
+    if spec_sha_plan_1 != spec_sha_plan_2 or spec_sha_judge_1 != spec_sha_judge_2:
         print("  ❌ FAIL — spec SHA changed across reloads")
         return False
 
     print("  ✅ PASS — SHA stable across reloads")
     print(f"     registry_sha: {sha1[:16]}...")
-    print(f"     ⚖ MARUAH: {spec_sha_maruah_1[:16]}...")
-    print(f"     🔒 JUDGE:    {spec_sha_judge_1[:16]}...")
+    print(f"     222 🏛 PLAN: {spec_sha_plan_1[:16]}...")
+    print(f"     888 🔒 JUDGE: {spec_sha_judge_1[:16]}...")
     return True
 
 
 def test_all_canonical_prompts_present() -> bool:
-    """Verify all 10 canonical zen sigil prompts are present."""
+    """Verify all canonical prompts are present."""
     print("=" * 70)
     print("TEST 3: all_canonical_prompts_present")
     print("=" * 70)
     registry = get_registry()
-    expected_count = 10
+    expected_count = EXPECTED_PROMPT_COUNT
     actual_count = len(registry.specs)
 
     if actual_count != expected_count:
@@ -141,8 +127,8 @@ def test_charter_adapter_compat() -> bool:
     print("=" * 70)
     specs = get_prompt_specs_for_charter()
 
-    if len(specs) != 10:
-        print(f"  ❌ FAIL — expected 10 specs, got {len(specs)}")
+    if len(specs) != EXPECTED_PROMPT_COUNT:
+        print(f"  ❌ FAIL — expected {EXPECTED_PROMPT_COUNT} specs, got {len(specs)}")
         return False
 
     required_keys = {"name", "description", "input_schema", "default_tools", "tool_choice"}
@@ -219,7 +205,7 @@ def test_input_schema_valid_json_schema_shape() -> bool:
             print(f"     {pid}: {reason}")
         return False
 
-    print("  ✅ PASS — all 8 input schemas are valid JSON Schema object types")
+    print("  ✅ PASS — all input schemas are valid JSON Schema object types")
     return True
 
 

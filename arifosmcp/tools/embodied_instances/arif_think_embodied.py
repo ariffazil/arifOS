@@ -134,6 +134,10 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 "verdict": "CLAIM",
                 "result": {
                     "query": query,
+                    # RED-013: carry the bound identity into the inner result so the
+                    # envelope wrapper cannot fall back to actor="anonymous".
+                    "actor_id": actor_id,
+                    "session_id": session_id,
                     "synthesis": synthesis.get("bounded_answer", ""),
                     # STAB-2026-08-07b: default of 0.65 was a fabricated number.
                     # When synthesis omits overall_confidence, return None (UNMEASURED)
