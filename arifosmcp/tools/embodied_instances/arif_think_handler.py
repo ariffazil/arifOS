@@ -66,7 +66,7 @@ async def embodied_mind_reason_handler(
             st = resolve_standing(
                 session_token=session_token,
                 actor_id=actor_id,
-                allow_store=True,
+                allow_store=False,
             )
             if st.valid and st.session_id:
                 session_id = st.session_id

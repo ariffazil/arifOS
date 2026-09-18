@@ -128,6 +128,7 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
     # ─── 000 🌱 IGNITE — Identity before action ─────────────────────────
     @mcp.prompt(
         name="000 🌱 IGNITE",
+        title="000 — Identity Ignition",
         description="Identity before action. VOID is final without new evidence.",
         meta={
             "stage": "000_IGNITE",
@@ -177,6 +178,7 @@ Return an IGNITE block:
     # ─── 111 🌊 SENSE — Reality before judgment ──────────────────────────
     @mcp.prompt(
         name="111 🌊 SENSE",
+        title="111 — Reality Sensing",
         description="Reality before judgment. Verify before integrate.",
         meta={
             "stage": "111_SENSE",
@@ -224,6 +226,7 @@ Return a SENSE block:
     # ─── 222 🏛 PLAN — Design reality change ─────────────────────────────
     @mcp.prompt(
         name="222 🏛 PLAN",
+        title="222 — Reality Change Design",
         description="Design reality change. Map reversibility.",
         meta={
             "stage": "222_PLAN",
@@ -271,6 +274,7 @@ Return a PLAN block:
     # ─── 333 🧠 REASON — UNMEASURED beats fabricated certainty ────────────
     @mcp.prompt(
         name="333 🧠 REASON",
+        title="333 — Hypothesis Reasoning",
         description="UNMEASURED beats fabricated certainty.",
         meta={
             "stage": "333_REASON",
@@ -318,6 +322,7 @@ Return a REASON block:
     # ─── 444 🧭 DIRECT — Route to the institution with authority ─────────
     @mcp.prompt(
         name="444 🧭 DIRECT",
+        title="444 — Organ Routing",
         description="Route to the institution with authority, not the one with speed.",
         meta={
             "stage": "444_DIRECT",
@@ -365,6 +370,7 @@ Return a DIRECT block:
     # ─── 555 🗂 REMEMBER — Memory without provenance is not truth ─────────
     @mcp.prompt(
         name="555 🗂 REMEMBER",
+        title="555 — Memory Governance",
         description="Memory without provenance is not truth.",
         meta={
             "stage": "555_REMEMBER",
@@ -411,6 +417,7 @@ Return a REMEMBER block:
     # ─── 666 ⚖ DIGNITY — Stand in the position of the weakest stakeholder ─
     @mcp.prompt(
         name="666 ⚖ DIGNITY",
+        title="666 — Dignity Check",
         description="Stand in the position of the weakest stakeholder.",
         meta={
             "stage": "666_DIGNITY",
@@ -459,6 +466,7 @@ Return a DIGNITY block:
     # ─── 777 🔥 FORGE — Reality contact before belief ────────────────────
     @mcp.prompt(
         name="777 🔥 FORGE",
+        title="777 — Governed Execution",
         description="Reality contact before belief. Mutation after SEAL only.",
         meta={
             "stage": "777_FORGE",
@@ -508,6 +516,7 @@ Return a FORGE block:
     # ─── 888 🔒 JUDGE — Verdict, not invention ───────────────────────────
     @mcp.prompt(
         name="888 🔒 JUDGE",
+        title="888 — Constitutional Verdict",
         description="Verdict, not invention. VOID = branch dead.",
         meta={
             "stage": "888_JUDGE",
@@ -562,6 +571,7 @@ Return a JUDGE block:
     # ─── 999 💎 SEAL — Immutable record ──────────────────────────────────
     @mcp.prompt(
         name="999 💎 SEAL",
+        title="999 — Immutable Record",
         description="Immutable record. Hash-chained. Cannot be undone.",
         meta={
             "stage": "999_SEAL",
@@ -609,6 +619,7 @@ Return a SEAL block:
     # ─── 🌀 GOVERN — Full loop + 4 invariant enforcement gates ───────────
     @mcp.prompt(
         name="🌀 GOVERN",
+        title="Governed Reality Loop",
         description=(
             "Full loop + 4 invariant enforcement gates. "
             "GATE 1 GÖDEL LOCK: every loop touches reality before becoming doctrine. "
@@ -696,6 +707,7 @@ Return a GOVERN block with:
 
     @mcp.prompt(
         name="⚓ INIT",
+        title="Session Ignition",
         description=(
             "Collapsed 4-step governed ignition (000_INIT). Probes kernel, "
             "binds session, loads context."
@@ -759,6 +771,7 @@ Return a GOVERN block with:
 
     @mcp.prompt(
         name="🔐 CLOSE",
+        title="Session Close Ritual",
         description=(
             "Full autonomous session close ritual (999_CLOSE). "
             "Two-lane seal/receipt."

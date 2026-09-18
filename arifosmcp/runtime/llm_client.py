@@ -606,8 +606,8 @@ async def _call_fed_federation(
     try:
         data = response.json()
         msg = data["choices"][0]["message"]
-        # FED-FEDERATION v4 returns reasoning_content instead of content for some models
-        content = msg.get("content") or msg.get("reasoning_content", "")
+        # F11 AUTH: never substitute reasoning_content (model CoT) as the answer.
+        content = msg.get("content") or ""
     except Exception as exc:
         logger.warning("FED-FEDERATION parse error: %s", exc)
         raise LLMUnavailableError(f"FED-FEDERATION response parse error: {exc}") from exc
@@ -627,7 +627,7 @@ async def _call_fed_federation(
             logger.warning(
                 "FED-FEDERATION returned invalid JSON, wrapping plain text: %s", raw_output[:200]
             )
-            parsed = {"reasoning": raw_output, "answer": raw_output}
+            parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -718,7 +718,7 @@ async def _call_tokenrouter(
     try:
         data = response.json()
         msg = data["choices"][0]["message"]
-        content = msg.get("content", "") or msg.get("reasoning_content", "")
+        content = msg.get("content", "")
     except Exception as exc:
         logger.warning("TokenRouter parse error: %s", exc)
         raise LLMUnavailableError(f"TokenRouter response parse error: {exc}") from exc
@@ -741,7 +741,7 @@ async def _call_tokenrouter(
                 "TokenRouter returned invalid JSON, wrapping plain text: %s",
                 raw_output[:200],
             )
-            parsed = {"reasoning": raw_output, "answer": raw_output}
+            parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -831,7 +831,7 @@ async def _call_flame(
             parsed = repaired
             raw_output = json.dumps(repaired)
         else:
-            parsed = {"reasoning": raw_output, "answer": raw_output}
+            parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -996,7 +996,6 @@ async def _call_minimax(
                 "verdict": "HOLD",
                 "reason": "llm_schema_violation",
                 "reasoning": raw_output,
-                "answer": raw_output,
                 "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
             }
 
@@ -1084,7 +1083,6 @@ async def _call_groq(
                 "verdict": "HOLD",
                 "reason": "llm_schema_violation",
                 "reasoning": raw_output,
-                "answer": raw_output,
                 "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
             }
 
@@ -1171,7 +1169,6 @@ async def _call_gemini(
                 "verdict": "HOLD",
                 "reason": "llm_schema_violation",
                 "reasoning": raw_output,
-                "answer": raw_output,
                 "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
             }
 
@@ -1257,7 +1254,6 @@ async def _call_cerebras(
                 "verdict": "HOLD",
                 "reason": "llm_schema_violation",
                 "reasoning": raw_output,
-                "answer": raw_output,
             }
 
     if not isinstance(parsed, dict):
@@ -1322,7 +1318,7 @@ async def _call_mimo(
     try:
         data = response.json()
         msg = data["choices"][0]["message"]
-        content = msg.get("content", "") or msg.get("reasoning_content", "")
+        content = msg.get("content", "")
     except Exception as exc:
         logger.warning("MiMo parse error: %s", exc)
         raise LLMUnavailableError(f"MiMo response parse error: {exc}") from exc
@@ -1339,7 +1335,7 @@ async def _call_mimo(
             raw_output = json.dumps(repaired)
         else:
             logger.warning("MiMo returned invalid JSON, wrapping plain text: %s", raw_output[:200])
-            parsed = {"reasoning": raw_output, "answer": raw_output}
+            parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(f"MiMo output must be a JSON object, got {type(parsed).__name__}")
@@ -1415,7 +1411,7 @@ async def _call_azure(
         logger.warning(
             "Azure OpenAI returned invalid JSON, wrapping plain text: %s", raw_output[:200]
         )
-        parsed = {"reasoning": raw_output, "answer": raw_output}
+        parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -1480,7 +1476,7 @@ async def _call_ollama(
             try:
                 parsed = json.loads(raw_output)
                 if not isinstance(parsed, dict):
-                    parsed = {"reasoning": raw_output, "answer": raw_output}
+                    parsed = {"reasoning": raw_output}
             except json.JSONDecodeError:
                 repaired = _repair_truncated_json(raw_output)
                 if repaired is not None:
@@ -1490,14 +1486,14 @@ async def _call_ollama(
                     parsed = repaired
                     raw_output = json.dumps(repaired)
                 else:
-                    parsed = {"reasoning": raw_output, "answer": raw_output}
+                    parsed = {"reasoning": raw_output}
         elif isinstance(parsed, dict) and "message" in parsed:
             content = parsed["message"].get("content", "")
             raw_output = _strip_markdown(content)
             try:
                 parsed = json.loads(raw_output)
                 if not isinstance(parsed, dict):
-                    parsed = {"reasoning": raw_output, "answer": raw_output}
+                    parsed = {"reasoning": raw_output}
             except json.JSONDecodeError:
                 repaired = _repair_truncated_json(raw_output)
                 if repaired is not None:
@@ -1507,7 +1503,7 @@ async def _call_ollama(
                     parsed = repaired
                     raw_output = json.dumps(repaired)
                 else:
-                    parsed = {"reasoning": raw_output, "answer": raw_output}
+                    parsed = {"reasoning": raw_output}
         else:
             raw_output = _strip_markdown(json.dumps(parsed))
     except Exception as exc:
@@ -1574,7 +1570,7 @@ async def _call_ilmu(
     try:
         data = response.json()
         msg = data["choices"][0]["message"]
-        content = msg.get("content", "") or msg.get("reasoning_content", "")
+        content = msg.get("content", "")
     except Exception as exc:
         logger.warning("ILMU parse error: %s", exc)
         raise LLMUnavailableError(f"ILMU response parse error: {exc}") from exc
@@ -1585,7 +1581,7 @@ async def _call_ilmu(
         parsed = json.loads(raw_output)
     except json.JSONDecodeError:
         logger.warning("ILMU returned invalid JSON, wrapping plain text: %s", raw_output[:200])
-        parsed = {"reasoning": raw_output, "answer": raw_output}
+        parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(f"ILMU output must be a JSON object, got {type(parsed).__name__}")
@@ -1984,7 +1980,7 @@ async def _call_deepseek_direct(
     try:
         data = response.json()
         msg = data["choices"][0]["message"]
-        content = msg.get("content", "") or msg.get("reasoning_content", "")
+        content = msg.get("content", "")
     except Exception as exc:
         raise LLMUnavailableError(f"DeepSeek direct parse error: {exc}") from exc
 
@@ -1997,7 +1993,7 @@ async def _call_deepseek_direct(
             parsed = repaired
             raw_output = json.dumps(repaired)
         else:
-            parsed = {"reasoning": raw_output, "answer": raw_output}
+            parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -2005,7 +2001,7 @@ async def _call_deepseek_direct(
         )
     if not parsed:
         # Empty content still yields a governed envelope payload
-        parsed = {"reasoning": raw_output or "", "answer": raw_output or "", "status": "OK"}
+        parsed = {"reasoning": raw_output or "", "status": "OK"}
         raw_output = json.dumps(parsed)
 
     logger.info("DeepSeek direct seat channel OK model=%s", short)

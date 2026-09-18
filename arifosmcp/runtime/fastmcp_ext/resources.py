@@ -56,6 +56,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Verdict resource ────────────────────────────────────────────────
     @mcp.resource(
         "arifos://verdict/{session_id}",
+        title="Constitutional Verdict",
         description=(
             "Constitutional verdict for a specific session. "
             "Returns the current constitutional advisory verdict (SEAL, SABAR, VOID, or HOLD). "
@@ -63,6 +64,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "from the governance kernel, along with floor compliance proof and "
             "risk tier. Updated in real-time as the session progresses through stages."
         ),
+        annotations={"audience": ["assistant"], "priority": 0.9},
     )
     async def get_verdict(session_id: str) -> str:
         """Get constitutional verdict for a session as JSON."""
@@ -83,12 +85,14 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Continuity resource ──────────────────────────────────────────────
     @mcp.resource(
         "arifos://continuity/{session_id}",
+        title="Session Continuity",
         description=(
             "Session continuity state and contract lineage. "
             "Returns the full continuity chain for a session including previous tool, "
             "current tool, max risk tier, and contract version. "
             "Essential for resuming interrupted sessions and audit trail reconstruction."
         ),
+        annotations={"audience": ["assistant"], "priority": 0.8},
     )
     async def get_continuity(session_id: str) -> str:
         """Get session continuity state as JSON."""
@@ -108,12 +112,14 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Vitals resource ──────────────────────────────────────────────────
     @mcp.resource(
         "arifos://vitals",
+        title="Constitutional Vitals",
         description=(
             "Real-time constitutional vitals and thermodynamic telemetry. "
             "Returns CPU, memory, disk, genius score (G), entropy delta (ΔS), "
             "human impact load (Ω), and paradox tension (Ψ). "
             "Updated continuously by the metabolic monitor. Use for health checks."
         ),
+        annotations={"audience": ["assistant", "user"], "priority": 1.0},
     )
     async def get_vitals() -> str:
         """Get real-time constitutional vitals as JSON."""
@@ -134,10 +140,12 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # We use a single templated resource `{name}` and look up content by name.
     @mcp.resource(
         "arifos://init/opencode/{name}",
+        title="OpenCode INIT Prompts",
         description=(
             "OpenCode INIT prompt files (agent bootstrap instruction). "
             "Available names: " + ", ".join(sorted(_INIT_PROMPT_FILES.keys()))
         ),
+        annotations={"audience": ["assistant"], "priority": 0.7},
     )
     async def get_init_resource(name: str) -> str:
         """Return the contents of a named INIT prompt file."""
@@ -153,11 +161,13 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Agent INIT resource ──────────────────────────────────────────────
     @mcp.resource(
         "arifos://init/agent_init",
+        title="Agent Initialization Bootstrap",
         description=(
             "Canonical INIT.md v4.0 (2026-08-05) — 12 orthogonal layers, 10-question attestation, "
             "init→seal→RSI→reality loop. 293-line universal bootstrap for all arifOS agents. "
             "Forged 2026-08-05 by 333-AGI (Δ MIND) under F13 SOVEREIGN directive."
         ),
+        annotations={"audience": ["assistant"], "priority": 0.9},
     )
     async def agent_init() -> str:
         return _read_file_safe(_INIT_PATH)
@@ -174,12 +184,14 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     @mcp.resource(
         "arifos://carry-forward",
+        title="Session Carry-Forward State",
         description=(
             "Live session carry-forward state (v2 generational). Returns prior session "
             "ID, completed tasks, open 888_HOLD loops, entropy delta, cooling status, "
             "and successor pointer. Schema-gated: only serves arifos.carry_forward.v2. "
             "Essential for agent continuity — load at session start."
         ),
+        annotations={"audience": ["assistant"], "priority": 1.0},
     )
     async def get_carry_forward() -> str:
         """Return canonical carry-forward.json — owner-declared path, schema-gated."""
@@ -219,6 +231,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     @mcp.resource(
         "arifos://flow-state",
+        title="Flow Quality Pulse",
         description=(
             "Live Flow Quality (FQ) pulse — the federation's metabolic nerve health. "
             "Returns FQ value, verdict (OPTIMAL/BALANCED/WATCHING/STUCK), and last update. "
@@ -226,6 +239,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "FQ >= 0.5 → forge. This replaces filesystem reads of /root/AAA/state/flow_state.json. "
             "Cross-reference with arifFlow :7073/health for real-time metabolic data."
         ),
+        annotations={"audience": ["assistant", "user"], "priority": 0.9},
     )
     async def get_flow_state() -> str:
         """Return current flow_state.json contents."""
@@ -265,11 +279,13 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Instructions resource (MCP-native server discover, FastMCP 3 compat) ──
     @mcp.resource(
         "arifos://instructions",
+        title="Agent Boot Instructions",
         description=(
             "Agent bootstrap instructions — the MCP-native equivalent of server/discover. "
             "Every agent entering arifOS for the first time should read this. "
             "Contains boot sequence, key resources, canonical tools, and constitutional rules."
         ),
+        annotations={"audience": ["assistant"], "priority": 1.0},
     )
     async def get_instructions() -> str:
         return (

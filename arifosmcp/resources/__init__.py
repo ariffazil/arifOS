@@ -606,3 +606,76 @@ def register_resources(mcp: FastMCP) -> list[str]:
     if _atlas333_attach:
         registered.extend(_atlas333_attach(mcp))
     return registered
+
+
+def enrich_resource_metadata(mcp: FastMCP) -> int:
+    """Post-registration enrichment: add title + annotations to resources missing them.
+
+    MCP spec 2026-07-28 compliance: resources SHOULD carry title (human-readable
+    display name) and annotations (audience, priority) for host-side filtering
+    and prioritization. This function patches resources that were registered
+    without these fields.
+
+    Returns number of resources patched.
+    """
+    patched = 0
+    try:
+        local_provider = mcp._local_provider
+        components = local_provider._components
+    except AttributeError:
+        logger.warning("Cannot access internal resource store for enrichment")
+        return 0
+
+    for key, comp in components.items():
+        if not hasattr(comp, "uri") or not hasattr(comp, "title"):
+            continue
+        uri = str(comp.uri) if comp.uri else ""
+
+        # Skip if title already set
+        if comp.title:
+            continue
+
+        # Derive title from URI
+        if uri in _RESOURCE_PROVENANCE:
+            # Use the URI's chamber/context for a meaningful title
+            title = uri.split("://")[-1].replace("/", " · ").replace("-", " ").title()
+            title = title.replace("{", "").replace("}", "")
+        else:
+            title = uri.split("://")[-1] if "://" in uri else uri
+            title = title.replace("/", " · ").replace("-", " ").title()
+
+        try:
+            comp.title = title
+            patched += 1
+        except Exception as exc:
+            logger.debug("Could not patch title for %s: %s", uri, exc)
+
+        # Add annotations if missing
+        if not comp.annotations:
+            from mcp.types import Annotations as McpAnnotations
+
+            # Derive audience and priority from provenance
+            prov = get_resource_provenance(uri)
+            if prov:
+                truth_level = prov.get("truth_level", 3)
+                # Map truth_level to priority (1=most important → 0.5; 7=least → 0.1)
+                priority = max(0.1, 1.0 - (truth_level - 1) * 0.15)
+                # Sovereign canon and human resources get user audience
+                if truth_level <= 2 or "human" in uri:
+                    audience = ["user", "assistant"]
+                else:
+                    audience = ["assistant"]
+            else:
+                priority = 0.5
+                audience = ["assistant"]
+
+            try:
+                comp.annotations = McpAnnotations(
+                    audience=audience, priority=priority
+                )
+            except Exception as exc:
+                logger.debug("Could not patch annotations for %s: %s", uri, exc)
+
+    if patched:
+        logger.info("Enriched %d resources with title + annotations", patched)
+    return patched
