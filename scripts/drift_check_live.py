@@ -74,7 +74,7 @@ def main():
     # Probe all organs
     organs = {
         "arifos": {"port": 8088, "path": "/root/arifOS"},
-        "geox": {"port": 8081, "path": "/root/GEOX"},
+        "geox": {"port": 8081, "path": "/opt/geox"},
         "aforge": {"port": 7071, "path": "/root/A-FORGE"},
         "aaa": {"port": 3001, "path": "/root/AAA"},
         "wealth": {"port": 18082, "path": "/root/WEALTH"},
