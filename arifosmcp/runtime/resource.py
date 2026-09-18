@@ -178,10 +178,10 @@ async def read_resource_content(uri: str) -> str:
         try:
             doc = json.loads(raw)
         except ValueError:
-            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v2", "found": "invalid-json"})
-        if not isinstance(doc, dict) or doc.get("schema") != "arifos.carry_forward.v2":
+            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v3", "found": "invalid-json"})
+        if not isinstance(doc, dict) or doc.get("schema") != "arifos.carry_forward.v3":
             found = type(doc).__name__ if not isinstance(doc, dict) else doc.get("schema", "schema-less dict")
-            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v2", "found": found})
+            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v3", "found": found})
         return json.dumps(doc, ensure_ascii=False, indent=2)
 
     if uri == "arifos://flow-state":
