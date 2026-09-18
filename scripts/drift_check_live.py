@@ -104,12 +104,31 @@ def main():
         else:
             drift = source_commit[:7] not in deployed_sha and deployed_sha[:7] not in source_commit
 
+        # RED-016 non-tautological check: a DIRTY source tree means the
+        # committed HEAD ≠ the code actually running (source-served organs) or
+        # undeployed source edits (build-deployed organs). HEAD-vs-HEAD alone
+        # is a tautology for source-served organs; dirty-tree detection is the
+        # real signal for them.
+        dirty_tree = False
+        try:
+            dirty_tree = bool(
+                subprocess.check_output(
+                    ["git", "-C", cfg["path"], "status", "--porcelain"],
+                    text=True, timeout=5,
+                ).strip()
+            )
+        except Exception:
+            pass
+        if dirty_tree:
+            drift = True
+
         results["organs"][name] = {
             "source_commit": source_commit,
             "deployed_version": deployed_sha[:40],
             "runtime_identity": str(runtime_identity)[:40],
             "healthy": "error" not in health,
             "drift": drift,
+            "dirty_tree": dirty_tree,
         }
         if drift:
             results["overall_drift"] = True
