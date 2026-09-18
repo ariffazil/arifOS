@@ -178,17 +178,17 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # 8A REVISED 2026-09-12: Single canonical path, schema-gated.
     # Prior mtime-max across .local/share + .hermes + AAA/docs picked the
     # wrong semantic object (V2: mtime_as_authority). Now: owner-declared
-    # path only, schema == arifos.carry_forward.v2 required.
+    # path only, schema == arifos.carry_forward.v3 required.
     _CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
-    _CARRY_FORWARD_SCHEMA = "arifos.carry_forward.v2"
+    _CARRY_FORWARD_SCHEMA = "arifos.carry_forward.v3"
 
     @mcp.resource(
         "arifos://carry-forward",
         title="Session Carry-Forward State",
         description=(
-            "Live session carry-forward state (v2 generational). Returns prior session "
-            "ID, completed tasks, open 888_HOLD loops, entropy delta, cooling status, "
-            "and successor pointer. Schema-gated: only serves arifos.carry_forward.v2. "
+            "Live session carry-forward state (v3 typed entries). Returns prior session "
+            "decisions, scars, open loops, eurekas, directives, and anchors. "
+            "Schema-gated: only serves arifos.carry_forward.v3. "
             "Essential for agent continuity — load at session start."
         ),
         annotations={"audience": ["assistant"], "priority": 1.0},
