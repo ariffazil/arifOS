@@ -417,23 +417,30 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     minimal.setdefault("status_scope", "execution")
 
     # W-03: deployment drift is a hard floor — never re-green to SEAL/PROCEED.
-    def _has_drift(d: dict) -> bool:
-        if not isinstance(d, dict):
-            return False
-        sub = d.get("substrate") if isinstance(d.get("substrate"), dict) else {}
-        if sub.get("state") == "DEGRADED" or sub.get("drift") is True:
-            return True
-        sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
-        if sw.get("drift") is True:
-            return True
-        deg = d.get("degraded")
-        if isinstance(deg, list) and any("drift" in str(x).lower() for x in deg):
-            return True
-        res = d.get("result") if isinstance(d.get("result"), dict) else {}
-        rsub = res.get("substrate") if isinstance(res.get("substrate"), dict) else {}
-        return rsub.get("state") == "DEGRADED" or rsub.get("drift") is True
+    # DUAL-TRUTH FIX (2026-09-18, lane B receipt): this used a private
+    # label-first check that gave a DERIVED `substrate.state == "DEGRADED"`
+    # the same weight as a MEASURED drift boolean. It now defers to the
+    # kernel's single measurement point under the evidence hierarchy
+    # (RAW_OBSERVATION > MEASURED_FACT > DERIVED_STATE > REASON_CODE >
+    # NARRATIVE_LABEL), so a measured drift=false outranks a stale derived
+    # label here too — and a measured drift=true still fires.
+    try:
+        from arifosmcp.runtime.tools import (
+            _drift_reason_evidence,
+            _drift_spots,
+            _measure_drift_from_spots,
+        )
 
-    _drift = _has_drift(minimal) or _has_drift(response if isinstance(response, dict) else {})
+        _verbosity_spots: list[tuple[str, dict]] = [("minimal", minimal)]
+        if isinstance(response, dict):
+            _verbosity_spots.extend(_drift_spots(response))
+        _verbosity_evidence = _measure_drift_from_spots(_verbosity_spots)
+    except Exception:  # pragma: no cover — trimming must never break the wire
+        _drift_reason_evidence = None  # type: ignore[assignment]
+        _verbosity_evidence = {"fired": False, "cause": None}
+
+    _drift = bool(_verbosity_evidence.get("fired"))
+    _drift_cause = _verbosity_evidence.get("cause") or "REASON_UNMEASURED"
 
     # Derive effective/canonical from constitutional_check — single resolver.
     # 2026-08-04 audit: floor_passed=true + hold_required=false must not
@@ -442,8 +449,18 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     if _drift:
         minimal["effective_verdict"] = "HOLD"
         minimal["canonical_verdict"] = "HOLD"
-        minimal["reason_code"] = minimal.get("reason_code") or "DEPLOYMENT_DRIFT"
-        minimal["next_action"] = minimal.get("next_action") or "RECONCILE_SOURCE_BUILT_DEPLOYED"
+        # MEASURED, never defaulted (2026-09-18).
+        minimal["reason_code"] = minimal.get("reason_code") or _drift_cause
+        if _drift_reason_evidence is not None:
+            try:
+                minimal["reason_evidence"] = _drift_reason_evidence(_verbosity_evidence)
+            except Exception:  # pragma: no cover
+                minimal["reason_evidence"] = {"cause": _drift_cause}
+        minimal["next_action"] = minimal.get("next_action") or (
+            "RECONCILE_SOURCE_BUILT_DEPLOYED"
+            if _drift_cause == "DEPLOYMENT_DRIFT"
+            else "MEASURE_SUBSTRATE_DEGRADATION_CAUSE"
+        )
         if str(minimal.get("status", "")).lower() in ("ok", "completed", "healthy"):
             minimal["status"] = "degraded"
         # Keep nine_signal honest if present
