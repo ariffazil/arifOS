@@ -26789,6 +26789,75 @@ def verify_and_inject_token(
         )
 
 
+# ═════════════════════════════════════════════════════════════════════════════
+# KITARAN Tuas 2 — SHARED INVOCATION TELEMETRY (wired 2026-09-19)
+# ═════════════════════════════════════════════════════════════════════════════
+# WHY: the 2026-09-19 KITARAN audit found only ONE organ (GEOX) kept a real
+# invocation log, so every ceremony/exercise measurement rested on a labelled
+# PROXY. arifOS emitted thousands of doctrine artifacts and never recorded
+# which one was actually used. This closes that measurement gap at the one
+# boundary every MCP tool invocation crosses: the handler call inside
+# _wrap_handler (register_tools wraps EVERY canonical tool with it; server.py
+# adds the rest — the FastMCP Middleware path is NOT attached under
+# fastmcp 4.x, so this wrapper, not ingress_middleware.on_call_tool, is live).
+#
+# PRIVACY (frozen contract): tool NAME + actor id ONLY. Never arguments,
+# never payloads, never message content. A tool name is MAP; an argument is
+# STORY.
+#
+# The shared module is NEVER vendored: /root/AAA/lib/invocation_log.py is
+# loaded by path so arifOS keeps exactly one copy of the contract and pays no
+# heavy `arifosmcp.__init__` import chain. Registering the module in
+# sys.modules BEFORE exec_module is required — the module carries postponed
+# annotations and would otherwise fail to exec.
+_INVOCATION_LOG_PATH = "/root/AAA/lib/invocation_log.py"
+
+
+def _record_invocation(
+    tool_name: str,
+    *,
+    actor_id: Any = None,
+    session_id: Any = None,
+    ok: bool = True,
+    duration_ms: float | None = None,
+    error: str | None = None,
+) -> None:
+    """Append one invocation receipt to the shared federation telemetry sink.
+
+    NEVER raises, NEVER blocks: telemetry that can break the thing it measures
+    is more dangerous than the disease it exists to cure (invocation_log
+    contract, frozen 2026-09-19). Every failure path here returns silently.
+    """
+    try:
+        import sys as _inv_sys
+
+        _mod = _inv_sys.modules.get("invocation_log")
+        if _mod is None:
+            import importlib.util as _importlib_util
+
+            _spec = _importlib_util.spec_from_file_location(
+                "invocation_log", _INVOCATION_LOG_PATH
+            )
+            if _spec is None or _spec.loader is None:
+                return
+            _mod = _importlib_util.module_from_spec(_spec)
+            # Register BEFORE exec_module: the module uses postponed
+            # annotations and needs its own __dict__ in sys.modules.
+            _inv_sys.modules["invocation_log"] = _mod
+            _spec.loader.exec_module(_mod)
+        _mod.log_invocation(
+            "arifOS",
+            tool_name,
+            actor_id=str(actor_id) if actor_id else None,
+            ok=ok,
+            duration_ms=duration_ms,
+            session_id=str(session_id) if session_id else None,
+            error=error,
+        )
+    except Exception:
+        pass  # telemetry must never break the tool call it measures
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """ "
         Wrap a handler so:
@@ -27027,6 +27096,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _start_t = _time.time()
             response = handler(*args, **_filtered)
             _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=True,
+                duration_ms=_latency_ms,
+            )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
                 from arifosmcp.runtime.telemetry import trace_tool_call
@@ -27088,6 +27165,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 pass
             # ────────────────────────────────────────────────────────────────
         except Exception as exc:
+            # ── KITARAN Tuas 2: failed invocation still counts (ok=False) ──
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=False,
+                error=type(exc).__name__,
+            )
             # ── Session A: Emit operation FAIL ────────────────────────────
             try:
                 from arifosmcp.runtime.event_bus import emit_operation as _eo
@@ -27385,6 +27470,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _start_t = _time.time()
             response = await handler(*args, **_filtered)
             _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=True,
+                duration_ms=_latency_ms,
+            )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
                 from arifosmcp.runtime.telemetry import trace_tool_call
@@ -27400,6 +27493,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             except Exception:
                 pass
         except Exception as exc:
+            # ── KITARAN Tuas 2: failed invocation still counts (ok=False) ──
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=False,
+                error=type(exc).__name__,
+            )
             msg = str(exc)
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)

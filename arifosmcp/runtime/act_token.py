@@ -577,7 +577,7 @@ def mint_act(
         "witness": witness
         or {
             "active": 1 if av else 0,
-            "diversity": "PARTIAL" if av else "NONE",
+            "diversity": "PARTIAL" if av else "UNKNOWN",
         },
         "allowed": allowed_list,
     }
