@@ -527,6 +527,117 @@ def _strip_nested_bloat(out: dict) -> None:
         birth.pop("vps_snapshot", None)
 
 
+# ── Session Contract v2 — Temporal Grounding Context (2026-09-19) ────────
+# Thin builder: reads carry_forward.temporal_root, checks freshness,
+# optionally refreshes via aaa-time. Returns a dict for the `temporal`
+# field of SessionManifest. Additive — old clients ignore it.
+_CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
+_CARRY_FORWARD_SCHEMA = "arifos.carry_forward.v3"
+_TEMPORAL_SCHEMA = "arifos.time.v1"
+_TEMPORAL_ANCHOR_TTL_S = 300
+_TEMPORAL_CLAIM_REFRESH_TTL_S = 60
+_AAA_TIME_CLI = "/usr/local/bin/aaa-time"
+
+
+def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
+    """Build the temporal grounding context for session contract v2.
+
+    Reads carry_forward.temporal_root if available and valid.
+    For non-light modes: if anchor is stale, calls aaa-time now.
+    Returns None if temporal context cannot be built at all.
+    """
+    import subprocess as _sp
+    from datetime import datetime as _dt, timezone as _tz
+
+    base: dict[str, Any] = {
+        "root_ref": "arifos://carry-forward/temporal_root",
+        "schema": _TEMPORAL_SCHEMA,
+        "timezone": "Asia/Kuala_Lumpur",
+        "anchor_ttl_s": _TEMPORAL_ANCHOR_TTL_S,
+        "claim_refresh_ttl_s": _TEMPORAL_CLAIM_REFRESH_TTL_S,
+        "provider": "aaa-time",
+        "on_stale": "CALL_PROVIDER",
+        "on_provider_failure": "RETURN_UNKNOWN",
+        "chron_is_clock_provider": False,
+    }
+
+    # ── Try reading carry_forward temporal_root ──
+    tr: dict[str, Any] | None = None
+    try:
+        import json as _json
+
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json.loads(fh.read())
+        if isinstance(doc, dict) and doc.get("schema") == _CARRY_FORWARD_SCHEMA:
+            raw_tr = doc.get("temporal_root")
+            if isinstance(raw_tr, dict) and raw_tr.get("schema") == _TEMPORAL_SCHEMA:
+                tr = raw_tr
+    except Exception:
+        pass
+
+    # ── Check freshness ──
+    anchor_fresh = False
+    anchor_age_ms = -1
+    if tr and tr.get("injected_at_utc"):
+        try:
+            injected = _dt.fromisoformat(
+                tr["injected_at_utc"].replace("Z", "+00:00")
+            )
+            age = _dt.now(_tz.utc) - injected
+            anchor_age_ms = int(age.total_seconds() * 1000)
+            anchor_fresh = age.total_seconds() <= _TEMPORAL_ANCHOR_TTL_S
+        except Exception:
+            pass
+
+    # ── If anchor is fresh, use it ──
+    if tr and anchor_fresh:
+        base["observed_at_utc"] = tr["observed_at_utc"]
+        base["clock_status"] = tr.get("clock_status", "OK")
+        base["anchor_source"] = "carry_forward.temporal_root"
+        base["anchor_age_ms"] = anchor_age_ms
+        base["status"] = "AVAILABLE"
+        return base
+
+    # ── If anchor is stale (or missing) and mode allows refresh ──
+    if mode != "light":
+        try:
+            result = _sp.run(
+                [_AAA_TIME_CLI, "now", "--format", "json"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0:
+                fresh = _json.loads(result.stdout)
+                if isinstance(fresh, dict) and fresh.get("schema") == _TEMPORAL_SCHEMA:
+                    base["observed_at_utc"] = fresh["observed_at_utc"]
+                    base["clock_status"] = fresh.get("clock_status", "OK")
+                    base["anchor_source"] = "aaa-time.now"
+                    base["anchor_age_ms"] = 0
+                    base["status"] = "REFRESHED"
+                    if tr:
+                        base["stale_anchor_observed_at_utc"] = tr.get("observed_at_utc")
+                        base["stale_anchor_age_ms"] = anchor_age_ms
+                    return base
+        except Exception:
+            pass
+
+    # ── Fallback: return what we have, even if stale ──
+    if tr:
+        base["observed_at_utc"] = tr.get("observed_at_utc")
+        base["clock_status"] = tr.get("clock_status", "UNKNOWN")
+        base["anchor_source"] = "carry_forward.temporal_root"
+        base["anchor_age_ms"] = anchor_age_ms
+        base["status"] = "STALE"
+        base["requires_refresh"] = True
+        return base
+
+    # ── Nothing available ──
+    base["observed_at_utc"] = None
+    base["clock_status"] = "UNAVAILABLE"
+    base["anchor_source"] = None
+    base["status"] = "UNAVAILABLE"
+    return base
+
+
 def _project_light(
     components: dict,
     sid: str,
@@ -2553,6 +2664,8 @@ def arif_init(
             session_id=sid,
             session_token=header.get("session_token"),
             doctrine=ARIF_DOCTRINE,
+            # Session Contract v2 — temporal grounding context (additive)
+            temporal=_build_temporal_context(mode="light"),
         )
 
     if mode == "challenge":
@@ -3628,6 +3741,8 @@ def arif_init(
             doctrine=ARIF_DOCTRINE,
             # Workstream 1: top-level authority_state for easy access
             authority_state=_auth_state,
+            # Session Contract v2 — temporal grounding context (additive)
+            temporal=_build_temporal_context(mode=mode),
         )
 
     # ── STATUS MODE ──────────────────────────────────────────
@@ -4012,6 +4127,8 @@ def arif_init(
                 "next_actions": _observe_only_next_actions(),
             },
             doctrine=ARIF_DOCTRINE,
+            # Session Contract v2 — temporal grounding context (additive)
+            temporal=_build_temporal_context(mode="birth"),
         )
 
     # ── HANDOVER MODE ────────────────────────────────────────
