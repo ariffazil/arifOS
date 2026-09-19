@@ -87,6 +87,15 @@ flowchart LR
     Judge -->|HOLD| Human[Human Review]
 ```
 
+## fastMCP
+
+- **Version**: `fastmcp==4.0.5` (pinned in `pyproject.toml`, `arifosmcp/requirements.txt`, `arifosmcp/requirements-lean.txt`).
+- **Date**: 2026-09-19 — bumped from `3.4.7` after live-witness recon.
+- **Compatibility path**: the legacy `IS_FASTMCP_3=False` shim is **eliminated** under 4.x. The kernel live path is now the single source of truth for MCP wiring.
+- **Default middleware (reattached on upgrade)**: `IngressTolerance` → `GovernancePipeline` → `ContradictionDetector` → `Authority` attach on the kernel live path by default. No opt-in flags required; downgrade to 3.x would re-introduce the legacy branching and is **not** supported on this branch.
+
+Rollback: revert the single commit that bumped the pin (see `/root/AAA/reports/mcp-upgrade-arifOS-2026-09-19.md`).
+
 ## Federation card
 
 ARIF = Sovereign · arifOS = Law · AAA = Institution · A-FORGE = Hands
