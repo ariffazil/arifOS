@@ -580,6 +580,16 @@ class SessionManifest(BaseModel):
         "Fields: fingerprint (sha256[:16]), iso8601, epoch_ms, myt, dow, iso_week. "
         "Al-'Asr 103:1-3 constitutional anchor.",
     )
+    # Session Contract v2 — Temporal Grounding Context (2026-09-19)
+    # Additive field. References carry_forward.temporal_root if available.
+    # Advisory when TEMPORAL_GROUNDING_ENFORCED is false (default).
+    # Does NOT replace temporal_root (genesis fingerprint) above.
+    temporal: dict[str, Any] | None = Field(
+        default=None,
+        description="Temporal grounding context — carry_forward temporal_root "
+        "reference, anchor freshness, provider reference, policy. "
+        "Schema: arifos.session.v2.temporal. Advisory unless enforced.",
+    )
     # Quranic Distillation Surface (FORGED 2026-08-02)
     # Surfaces the Al-Fatihah boot binding + Ayat al-Kursi enforcement on
     # every session manifest. Additive — fields missing-safe.
