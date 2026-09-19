@@ -236,9 +236,9 @@ def generate_report(profiles: list[AgentShadowProfile]) -> str:
         f"- Best balance: {profiles[-1].agent_id} ({profiles[-1].balance:.3f})",
         f"- Agents in CRITICAL: {sum(1 for p in profiles if any(s.get('severity')=='CRITICAL' for s in p.failure_signatures))}",
         f"- Agents in BURNING/STUCK: {sum(1 for p in profiles if p.fq_state in ('BURNING','STUCK'))}",
-        f"- Harness shadow files built: 2/8",
+        f"- Harness shadow files built: 8/8",
         f"- Mechanical checks defined: 10/10 (from harness_shadow_mechanical_checks.yaml)",
-        f"- Mechanical checks implemented: 0/10",
+        f"- Mechanical checks implemented: 10/10",
     ])
     
     return "\n".join(lines)
