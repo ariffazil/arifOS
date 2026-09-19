@@ -211,12 +211,194 @@ def _extract_reason_code(
 
 
 def _extract_can_mutate(canonical_verdict: str, authority_scope: str) -> bool:
-    """Derive mutate permission from verdict + scope."""
+    """Derive mutate permission from verdict + scope.
+
+    UNCHANGED (2026-09-19 claim_kernel wiring is additive and lives in
+    `_apply_mutation_justification_gate`, below). Authority answers WHO may
+    mutate; it does not answer WHAT KIND OF CLAIM is being used as the reason.
+    That second, orthogonal term is added at the envelope level so this
+    function's semantics stay frozen.
+    """
     if canonical_verdict in ("DENY", "VOID"):
         return False
     if canonical_verdict == "HOLD":
         return False
     return authority_scope in ("LIMITED_MUTATE", "FULL")
+
+
+# ── Justification-class gate (claim_kernel bridge, additive 2026-09-19) ─────
+# AuthorityGranted ∧ ScopeMatches ∧ TargetPermitted ∧ BoundaryActive says
+# nothing about the KIND of claim offered as the reason for the write. A
+# narrative may be published; it may never be the sole justification for a
+# mutation. This gate supplies that term and can only DOWNGRADE can_mutate.
+
+_CLAIM_TEXT_KEYS = ("claim_text", "justification", "intent_summary", "candidate")
+_CLAIM_CLASS_KEYS = ("claim_class", "declared_claim_class", "explanatory_class")
+
+
+def _extract_claim_justification(response: dict[str, Any]) -> dict[str, Any]:
+    """Find the justification text + declared class carried by a response.
+
+    Declaration paths, first hit wins (see core/claim_class_gate docstring):
+    top level → meta → result → result.evidence → evidence → session axis.
+    Absence is NOT an error here: the gate below fails closed on it.
+    """
+    meta_raw = response.get("meta")
+    meta: dict[str, Any] = meta_raw if isinstance(meta_raw, dict) else {}
+    result_raw = response.get("result")
+    result: dict[str, Any] = result_raw if isinstance(result_raw, dict) else {}
+    result_ev_raw = result.get("evidence")
+    result_evidence: dict[str, Any] = result_ev_raw if isinstance(result_ev_raw, dict) else {}
+    top_ev_raw = response.get("evidence")
+    top_evidence: dict[str, Any] = top_ev_raw if isinstance(top_ev_raw, dict) else {}
+    session_raw = response.get("session")
+    session: dict[str, Any] = session_raw if isinstance(session_raw, dict) else {}
+
+    declared: str | None = None
+    decl_source: str | None = None
+    for container, name in (
+        (response, "response"),
+        (meta, "response.meta"),
+        (result, "response.result"),
+        (result_evidence, "response.result.evidence"),
+        (top_evidence, "response.evidence"),
+        (session, "response.session"),
+    ):
+        for key in _CLAIM_CLASS_KEYS:
+            value = container.get(key)
+            if value:
+                declared = str(value)
+                decl_source = f"{name}.{key}"
+                break
+        if declared:
+            break
+
+    if not declared:
+        # Session epistemic axis (axis 2) — declared out-of-band at init/judge.
+        try:
+            from arifosmcp.core.epistemic_state import get_claim_class
+
+            session_id = (
+                response.get("session_id")
+                or result.get("session_id")
+                or session.get("session_id")
+            )
+            axis_value = get_claim_class(session_id) if session_id else None
+            if axis_value:
+                declared = axis_value
+                decl_source = "epistemic_state.claim_class"
+        except Exception:
+            pass
+
+    text: str = ""
+    text_source: str | None = None
+    for container, name in (
+        (meta, "response.meta"),
+        (result, "response.result"),
+        (result_evidence, "response.result.evidence"),
+        (top_evidence, "response.evidence"),
+        (response, "response"),
+    ):
+        for key in _CLAIM_TEXT_KEYS:
+            value = container.get(key)
+            if isinstance(value, str) and value.strip():
+                text = value
+                text_source = f"{name}.{key}"
+                break
+            if isinstance(value, dict) and value:
+                text = json.dumps(value, sort_keys=True, default=str)[:4000]
+                text_source = f"{name}.{key}(dict)"
+                break
+        if text:
+            break
+
+    if not text:
+        reasons = result.get("reasons") or response.get("reasons")
+        if isinstance(reasons, list) and reasons:
+            text = " | ".join(str(r) for r in reasons[:5])
+            text_source = "reasons[]"
+
+    return {
+        "text": text,
+        "declared": declared,
+        "class_source": decl_source,
+        "text_source": text_source,
+    }
+
+
+def _apply_mutation_justification_gate(
+    can_mutate: bool,
+    response: dict[str, Any],
+) -> tuple[bool, dict[str, Any]]:
+    """Add the missing term: justification class must be action-eligible.
+
+    MONOTONE-DOWNWARD BY CONSTRUCTION — returns the input unchanged when the
+    gate allows, and False when it denies. It can never grant can_mutate.
+
+    Returns (can_mutate, gate_receipt). Never raises.
+    """
+    justification = _extract_claim_justification(response)
+    session_id: str | None = None
+    for _candidate in (
+        response.get("session_id"),
+        (response.get("result") or {}).get("session_id")
+        if isinstance(response.get("result"), dict)
+        else None,
+        (response.get("session") or {}).get("session_id")
+        if isinstance(response.get("session"), dict)
+        else None,
+    ):
+        if isinstance(_candidate, str) and _candidate:
+            session_id = _candidate
+            break
+
+    try:
+        from arifosmcp.core.claim_class_gate import evaluate as _evaluate_claim_class
+
+        gate = _evaluate_claim_class(
+            justification["text"],
+            justification["declared"],
+            session_id=session_id,
+            source="v2_envelope.justification",
+        )
+    except Exception as exc:
+        # Import/shape failure must not silently OPEN the gate.
+        can_mutate = False
+        gate = {
+            "gate": "claim_class_gate/v1",
+            "kernel_available": False,
+            "eligible": False,
+            "allowed_for_mutation": False,
+            "declared": justification["declared"] or "UNCLASSIFIED",
+            "reasons": [
+                f"CLAIM_CLASS_GATE_UNAVAILABLE: {type(exc).__name__}: {exc}. Fail-closed."
+            ],
+        }
+
+    receipt = {
+        "gate": gate.get("gate", "claim_class_gate/v1"),
+        "claim_class": gate.get("class") or gate.get("declared") or "UNCLASSIFIED",
+        "inferred_class": gate.get("inferred"),
+        "agree": gate.get("agree"),
+        "eligible": bool(gate.get("allowed_for_mutation")),
+        "reasons": list(gate.get("reasons", []) or []),
+        "class_source": justification["class_source"],
+        "text_source": justification["text_source"],
+        "base_can_mutate": can_mutate,
+    }
+
+    if not can_mutate:
+        return can_mutate, receipt  # already denied upstream — nothing to add
+
+    if receipt["eligible"]:
+        return can_mutate, receipt
+
+    if not receipt["reasons"]:
+        receipt["reasons"] = [
+            "CLAIM_CLASS_GATE: verdict authorises a mutation but carries no "
+            "action-eligible claim_class. Publishable, not mutation-justifying."
+        ]
+    return False, receipt
 
 
 def _extract_can_claim_success(
@@ -330,6 +512,10 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
 
     # Set permission flags
     can_mutate = _extract_can_mutate(canonical_verdict, authority_scope)
+    # ── Justification-class term (additive 2026-09-19) ──────────────────────
+    # Authority says WHO may mutate. This adds WHAT KIND OF CLAIM is offered as
+    # the reason for the write. Monotone-downward: it can only deny.
+    can_mutate, _claim_class_gate = _apply_mutation_justification_gate(can_mutate, response)
     can_claim_success = _extract_can_claim_success(canonical_verdict, execution_state, response)
 
     # Build the V2 envelope. Add as top-level fields directly
@@ -348,8 +534,29 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
     envelope.setdefault("receipt_state", receipt_state)
     envelope.setdefault("execution_state", execution_state)
     envelope.setdefault("can_continue_observing", True)
-    envelope.setdefault("can_mutate", can_mutate)
+    # Justification-class denial is a hard downgrade: if the gate denied, the
+    # flag is written False even if a handler pre-set can_mutate=True.
+    if _claim_class_gate.get("base_can_mutate") and not _claim_class_gate.get("eligible"):
+        envelope["can_mutate"] = False
+    else:
+        envelope.setdefault("can_mutate", can_mutate)
     envelope.setdefault("can_claim_success", can_claim_success)
+    # ── Explanatory-class disclosure (additive 2026-09-19) ──────────────────
+    # Every canonical response now declares WHAT KIND OF CLAIM justified it,
+    # and whether that class is allowed to authorise a mutation.
+    envelope.setdefault("claim_class", _claim_class_gate.get("claim_class", "UNCLASSIFIED"))
+    envelope.setdefault("claim_class_verdict", _claim_class_gate)
+    envelope.setdefault(
+        "mutation_justification",
+        {
+            "allowed": bool(_claim_class_gate.get("eligible")),
+            "claim_class": _claim_class_gate.get("claim_class"),
+            "class_source": _claim_class_gate.get("class_source"),
+            "text_source": _claim_class_gate.get("text_source"),
+            "reasons": list(_claim_class_gate.get("reasons", []) or []),
+            "gate": _claim_class_gate.get("gate"),
+        },
+    )
 
     # Extract facts/inferences/unknowns if result has them
     result = response.get("result", {})

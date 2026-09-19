@@ -973,7 +973,7 @@ def _sync_authority_surfaces_from_standing(
                 apex=_apex,  # W-09: measured values from DB, or None for UNMEASURED
                 witness={
                     "active": 1 if verified else 0,
-                    "diversity": "PARTIAL" if verified else "NONE",
+                    "diversity": "PARTIAL" if verified else "UNKNOWN",
                 },
             )
             response["session_token"] = token

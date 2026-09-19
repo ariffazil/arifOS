@@ -1054,6 +1054,14 @@ async def arif_judge(
     action_class: str | None = None,
     requested_capability: str | None = None,
     domain: str | None = None,
+    # ── Explanatory-class axis (claim_kernel bridge, additive 2026-09-19) ──
+    # WHAT KIND OF CLAIM this verdict rests on: MEASURED | MECHANISM | PATTERN |
+    # NARRATIVE | UNCLASSIFIED. Only the first three may justify a mutation
+    # (AAA/lib/claim_kernel.ACTION_ELIGIBLE_CLASSES). Undeclared fails closed.
+    # This does NOT vote on the verdict — F1-F13 floors are untouched. It
+    # gates the *justification for mutation*, disclosed by the V2 envelope.
+    claim_class: str | None = None,
+    claim_text: str | None = None,
     # ── BIJAKSANA thermodynamic bridge (888 SEAL 2026-08-01) ──
     # Four-dial lens: AKAL→actor_B · PRESENT→actor_Phi · ENERGY-ENTROPY→entropy_pathway ·
     # EXPLORATION-AMANAH→verdict boundary. SABAR upgrade distinguishes restraint from
@@ -1225,6 +1233,14 @@ async def arif_judge(
     # Attach receipt for F11 audit (always — even on engine error).
     if isinstance(evidence, dict):
         evidence.setdefault("f1_engine_receipt", _f1_receipt)
+        # ── Explanatory-class axis (claim_kernel bridge, additive 2026-09-19) ──
+        # Carry the declared class inside evidence so it survives into the
+        # verdict result and the V2 envelope. Declaration is optional here;
+        # absence is resolved (fail-closed) by the mutation-justification gate.
+        if claim_class:
+            evidence.setdefault("claim_class", claim_class)
+        if claim_text:
+            evidence.setdefault("claim_text", claim_text)
 
     # Gate 2: Irreversible actions require cryptographic proof
     _rev = (reversibility_level or action_class or "").upper()
@@ -3274,6 +3290,64 @@ async def arif_judge(
                 result.reasons.extend(reasons)
         else:
             track_judge(overclaim=False, attested=(evidence_level != "L0"))
+
+    # ── EXPLANATORY-CLASS GATE (claim_kernel bridge, additive 2026-09-19) ───
+    # Records WHAT KIND OF CLAIM this verdict rests on and whether that class
+    # is action-eligible. It does NOT rewrite the verdict — F1-F13 floor
+    # semantics are untouched, and a NARRATIVE claim may still be published.
+    # The mutation-authorising consequence is enforced exactly once, at the V2
+    # envelope (`can_mutate`), which is the surface that authorises a write.
+    _claim_class_receipt: dict[str, Any] | None = None
+    try:
+        from arifosmcp.core.claim_class_gate import (
+            evaluate as _evaluate_claim_class_axis,
+        )
+
+        _cc_text = (
+            claim_text
+            or (_evidence.get("claim_text") if isinstance(_evidence, dict) else None)
+            or (candidate if isinstance(candidate, str) else None)
+            or (
+                json_lib.dumps(candidate, sort_keys=True, default=str)
+                if candidate
+                else None
+            )
+            or ""
+        )
+        _cc_declared = claim_class or (
+            _evidence.get("claim_class") if isinstance(_evidence, dict) else None
+        )
+        _claim_class_receipt = _evaluate_claim_class_axis(
+            str(_cc_text)[:4000],
+            _cc_declared,
+            session_id=session_id,
+            source="arif_judge.verdict",
+        )
+        if isinstance(result, dict):
+            result.setdefault("claim_class", _claim_class_receipt.get("class"))
+            _cc_meta = result.setdefault("meta", {})
+            if isinstance(_cc_meta, dict):
+                _cc_meta.setdefault("claim_class", _claim_class_receipt.get("class"))
+                # Pin the EXACT text the gate evaluated. Without this the V2
+                # envelope re-derives a justification text from whatever field
+                # it finds first and can evaluate a different string than the
+                # judge did — same verdict, two answers. One text, one answer.
+                _cc_meta.setdefault("claim_text", str(_cc_text)[:4000])
+                _cc_meta["claim_class_gate"] = _claim_class_receipt
+            _cc_is_seal = "SEAL" in str(result.get("verdict", ""))
+            if _cc_is_seal and not _claim_class_receipt.get("allowed_for_mutation"):
+                result.setdefault("reasons", []).append(
+                    "CLAIM_CLASS_GATE: verdict is SEAL but its justification class "
+                    f"({_claim_class_receipt.get('class')}) is not action-eligible. "
+                    "Publishable — not sufficient to justify a mutation on its own."
+                )
+    except Exception as _cc_exc:
+        # Fail-soft for the verdict (judgment must not break), fail-closed for
+        # mutation: an unevaluated justification denies can_mutate downstream.
+        if isinstance(result, dict):
+            result.setdefault("meta", {})["claim_class_gate_error"] = (
+                f"{type(_cc_exc).__name__}: {_cc_exc}"
+            )
 
     # ── SIMULATIVE DETECTION GATE (RSI EUREKA 2026-06-12, Forge #3) ──
     # F8 advisory: checks whether agent output is DESCRIBING or PERFORMING.

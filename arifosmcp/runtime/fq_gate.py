@@ -78,8 +78,7 @@ def metabolic_cap(
         state["verdict"] = "SOVEREIGN_EXEMPT" if is_sovereign_principal else "NO_ACTOR"
         return authority, state
     if authority not in ("FULL", "LIMITED_MUTATE", "SOVEREIGN"):
-        # Already OBSERVE_ONLY or unknown shape — nothing to cap.
-        state["verdict"] = "ALREADY_CAPPED"
+        # Already OBSERVE_ONLY or unknown shape — no measurement, no verdict.
         return authority, state
     try:
         with urllib.request.urlopen(ARIFFLOW_HEALTH_URL, timeout=timeout) as resp:

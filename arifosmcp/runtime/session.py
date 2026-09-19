@@ -306,6 +306,12 @@ def _verify_session_token(token: str) -> dict[str, Any] | None:
 # Blind spot 3 amendment: moved from hardcoded function logic to explicit map
 _SOVEREIGN_IDENTITY_MAP: dict[str, str] = {
     "ariffazil": "arif",
+    "arif_fazil": "arif",
+    "arif-fazil": "arif",
+    "arif": "arif",
+    "ARIF": "arif",
+    "ARIF_FAZIL": "arif",
+    "888": "arif",
 }
 _VALID_ACTOR_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\.]{1,64}$")
 

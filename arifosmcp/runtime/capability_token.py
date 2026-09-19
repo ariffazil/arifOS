@@ -72,7 +72,7 @@ def build_session_token(
     confidence: float = 0.0,
     authority: str = "OBSERVE_ONLY",
     verdict: str = "OK",
-    witness_diversity: str = "NONE",
+    witness_diversity: str = "UNKNOWN",
     witness_active: int = 0,
     witness_missing: list | None = None,
     alignment_loaded: bool = False,
@@ -114,7 +114,7 @@ def build_session_token(
         apex=apex,
         witness={
             "active": int(witness_active or 0),
-            "diversity": witness_diversity or "NONE",
+            "diversity": witness_diversity or "UNKNOWN",
         },
         ttl=int(ttl_seconds or 3600),
     )
