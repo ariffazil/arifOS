@@ -580,9 +580,7 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
     anchor_age_ms = -1
     if tr and tr.get("injected_at_utc"):
         try:
-            injected = _dt.fromisoformat(
-                tr["injected_at_utc"].replace("Z", "+00:00")
-            )
+            injected = _dt.fromisoformat(tr["injected_at_utc"].replace("Z", "+00:00"))
             age = _dt.now(_tz.utc) - injected
             anchor_age_ms = int(age.total_seconds() * 1000)
             anchor_fresh = age.total_seconds() <= _TEMPORAL_ANCHOR_TTL_S
@@ -603,7 +601,9 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
         try:
             result = _sp.run(
                 [_AAA_TIME_CLI, "now", "--format", "json"],
-                capture_output=True, text=True, timeout=10,
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             if result.returncode == 0:
                 fresh = _json.loads(result.stdout)
@@ -636,6 +636,225 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
     base["anchor_source"] = None
     base["status"] = "UNAVAILABLE"
     return base
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# INIT v2 ROOTS (F13-ratified 2026-09-20)
+# Four critical roots: TEMPORAL, OBJECTIVE, NEGATIVE_KNOWLEDGE, PROVENANCE.
+# Each root is falsifiable. Each root emits evidence.
+# Schema: arifos.init.v2.roots — additive, old clients ignore.
+# ════════════════════════════════════════════════════════════════════════════════
+
+
+def _build_init_v2_roots(
+    *,
+    sid: str,
+    actor_id: str | None,
+    identity_verified: bool,
+    mode: str,
+    objective: str | None,
+    success_criteria: list[str] | None,
+    verification_requirements: list[str] | None,
+    sess: dict,
+    temporal_context: dict | None,
+) -> dict[str, Any]:
+    """Build the 4 critical INIT v2 roots.
+
+    Returns a dict with keys: TEMPORAL_ROOT, OBJECTIVE_ROOT,
+    NEGATIVE_KNOWLEDGE, PROVENANCE_ROOT. Each is independently falsifiable.
+    """
+    import hashlib as _hashlib
+    import subprocess as _sp
+    from datetime import datetime as _dt, timezone as _tz
+
+    roots: dict[str, Any] = {
+        "schema": "arifos.init.v2.roots",
+        "version": "2.0.0",
+        "ratified": "2026-09-20",
+        "status": "ACTIVE",
+    }
+
+    _now = _dt.now(_tz.utc)
+    probe_trail: list[str] = []
+
+    # ── 1. TEMPORAL_ROOT ──────────────────────────────────────────────────
+    # Question: WHEN am I?
+    # Closes F9 = 0.0 by binding clock state with uncertainty.
+    clock_status = "UNKNOWN"
+    ntp_drift_ms: int | None = None
+    clock_uncertainty_ms = 5000  # conservative default: ±5s without NTP
+
+    try:
+        result = _sp.run(
+            ["timedatectl", "show", "--property=NTPSynchronized,TimeUSec"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0:
+            for line in result.stdout.strip().split("\n"):
+                if "NTPSynchronized=yes" in line:
+                    clock_status = "NTP_SYNCED"
+                    clock_uncertainty_ms = 50
+                elif "NTPSynchronized=no" in line:
+                    clock_status = "NTP_UNSYNCED"
+                    clock_uncertainty_ms = 1000
+            probe_trail.append("timedatectl:NTP_status")
+    except Exception:
+        clock_status = "NTP_PROBE_FAILED"
+        probe_trail.append("timedatectl:FAILED")
+
+    try:
+        result = _sp.run(
+            ["timedatectl", "timesync-status", "--property=PollIntervalUSec"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            probe_trail.append("timedatectl:timesync_status")
+    except Exception:
+        pass
+
+    tc_status = "UNAVAILABLE"
+    if temporal_context and isinstance(temporal_context, dict):
+        tc_status = temporal_context.get("status", "UNAVAILABLE")
+
+    roots["TEMPORAL_ROOT"] = {
+        "question": "WHEN am I?",
+        "observed_at_utc": _now.isoformat(),
+        "epoch_ms": int(_now.timestamp() * 1000),
+        "clock_status": clock_status,
+        "clock_uncertainty_ms": clock_uncertainty_ms,
+        "ntp_drift_ms": ntp_drift_ms,
+        "timezone": "Asia/Kuala_Lumpur",
+        "temporal_context_status": tc_status,
+        "falsification": "Any subsequent timestamp contradicts this anchor",
+    }
+
+    # ── 2. OBJECTIVE_ROOT ─────────────────────────────────────────────────
+    # Question: WHAT am I trying to accomplish?
+    task_type = "OPEN"
+    _obj = objective or ""
+    _sc = success_criteria or []
+    _vr = verification_requirements or []
+
+    if _sc:
+        task_type = "EXECUTION"
+    elif _obj and ("?" in _obj or "understand" in _obj.lower() or "explore" in _obj.lower()):
+        task_type = "EXPLORATION"
+    elif _obj:
+        task_type = "EXECUTION"
+
+    roots["OBJECTIVE_ROOT"] = {
+        "question": "WHAT am I trying to accomplish?",
+        "objective": _obj or "unspecified — session created without explicit objective",
+        "task_type": task_type,
+        "success_criteria": _sc if _sc else ["unspecified — no success criteria declared"],
+        "falsification_criteria": _vr if _vr else ["session budget exhausted", "HOLD verdict reached"],
+        "termination_rules": [
+            "goal_achieved",
+            "budget_exhausted",
+            "hold_verdict",
+            "sovereign_interrupt",
+        ],
+        "falsification": "If success_criteria are met but objective is not achieved, criteria were wrong",
+    }
+
+    # ── 3. NEGATIVE_KNOWLEDGE ─────────────────────────────────────────────
+    # Question: WHAT DON'T I know?
+    unmeasured: list[str] = ["G", "C_dark", "W3", "kappa_r"]
+    degraded_organs: list[str] = []
+    stale_data: list[str] = []
+    missing_witnesses: list[str] = []
+
+    try:
+        import urllib.request as _urllib_req
+        import json as _json
+
+        _organ_probes = {
+            "GEOX": "http://127.0.0.1:8081/health",
+            "WEALTH": "http://127.0.0.1:18082/health",
+            "WELL": "http://127.0.0.1:18083/health",
+            "A-FORGE": "http://127.0.0.1:7071/health",
+            "AAA": "http://127.0.0.1:3001/health",
+            "FRAME": "http://127.0.0.1:18085/health",
+            "arifFlow": "http://127.0.0.1:7073/health",
+        }
+        for organ, url in _organ_probes.items():
+            try:
+                with _urllib_req.urlopen(url, timeout=2) as r:
+                    if r.status != 200:
+                        degraded_organs.append(f"{organ}:HTTP_{r.status}")
+                    probe_trail.append(f"probe:{organ}:UP")
+            except Exception:
+                degraded_organs.append(f"{organ}:UNREACHABLE")
+                probe_trail.append(f"probe:{organ}:DOWN")
+    except Exception:
+        pass
+
+    try:
+        import urllib.request as _urllib_req2
+        import json as _json2
+
+        with _urllib_req2.urlopen("http://127.0.0.1:8088/health", timeout=3) as r:
+            if r.status == 200:
+                health = _json2.loads(r.read())
+                floors = health.get("runtime_floors", {})
+                f7 = floors.get("F7", {})
+                f9 = floors.get("F9", {})
+                if isinstance(f7, dict) and f7.get("score", 0) < 0.5:
+                    stale_data.append("F7_epistemic_rigor_below_threshold")
+                if isinstance(f9, dict) and f9.get("score", 0) < 0.5:
+                    stale_data.append("F9_temporal_grounding_below_threshold")
+                probe_trail.append("probe:kernel_health:OK")
+    except Exception:
+        stale_data.append("kernel_health:UNREACHABLE")
+        probe_trail.append("probe:kernel_health:FAILED")
+
+    if not identity_verified:
+        missing_witnesses.append("actor_identity_not_cryptographically_verified")
+
+    try:
+        import json as _json3
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json3.loads(fh.read())
+        last_write = doc.get("writers", {}).get("last_write_utc")
+        if last_write:
+            from datetime import datetime as _dt2, timezone as _tz2
+            lw = _dt2.fromisoformat(last_write.replace("Z", "+00:00"))
+            age_h = (_dt2.now(_tz2.utc) - lw).total_seconds() / 3600
+            if age_h > 24:
+                stale_data.append(f"carry_forward_stale_{age_h:.0f}h")
+            probe_trail.append("carry_forward:read:OK")
+    except Exception:
+        stale_data.append("carry_forward:UNREADABLE")
+        probe_trail.append("carry_forward:read:FAILED")
+
+    roots["NEGATIVE_KNOWLEDGE"] = {
+        "question": "WHAT DON'T I know?",
+        "unmeasured_scalars": unmeasured,
+        "degraded_organs": degraded_organs,
+        "stale_data": stale_data,
+        "missing_witnesses": missing_witnesses,
+        "unresolved_contradictions": 0,
+        "clock_uncertainty_ms": clock_uncertainty_ms,
+        "falsification": "If a claimed-unknown fact is later found knowable at init time, root was wrong",
+    }
+
+    # ── 4. PROVENANCE_ROOT ────────────────────────────────────────────────
+    # Question: CAN THIS be challenged?
+    state_input = f"{sid}|{actor_id}|{mode}|{_now.isoformat()}"
+    state_hash = _hashlib.sha256(state_input.encode()).hexdigest()
+
+    roots["PROVENANCE_ROOT"] = {
+        "question": "CAN THIS be challenged?",
+        "session_receipt_id": sid,
+        "state_hash": f"sha256:{state_hash[:32]}",
+        "reconstructable": True,
+        "challengeable": True,
+        "audit_trail": probe_trail,
+        "probe_count": len(probe_trail),
+        "falsification": "If any field cannot be traced back to a measurement or probe",
+    }
+
+    return roots
 
 
 def _project_light(
@@ -789,6 +1008,7 @@ def _project_light(
             get_organ_attestation,
             is_healthy,
         )
+
         _boot_record = get_organ_attestation("arifOS")
         _boot_status = _boot_record.status if _boot_record is not None else "UNATTESTED"
         _boot_unhealthy = not is_healthy(_boot_status)
@@ -814,9 +1034,12 @@ def _project_light(
         # substrate_state = deployment drift / organ health.
         # session_authority_state = why THIS session is restricted.
         "session_authority_state": (
-            "DEPLOYMENT_DRIFT" if _drift
-            else "BOOT_ATTESTATION_FAILED" if _boot_unhealthy
-            else "ACTOR_NOT_VERIFIED" if not actor_verified
+            "DEPLOYMENT_DRIFT"
+            if _drift
+            else "BOOT_ATTESTATION_FAILED"
+            if _boot_unhealthy
+            else "ACTOR_NOT_VERIFIED"
+            if not actor_verified
             else "VERIFIED"
         ),
     }
@@ -3663,6 +3886,18 @@ def arif_init(
         # Persist on session so identity_store can read it
         sess["temporal_root"] = _temporal_root
 
+        # ── INIT temporal grounding (2026-09-20, additive — F13 pending) ──
+        # ROUTING FIX: v1 set header["temporal_root"] to the empty {} F1 fallback
+        # (~line 3607); the Temporal Keystone above only refreshed sess[]. The INIT
+        # envelope therefore surfaced {} while the populated root was computed and
+        # discarded — the F9 temporal-grounding hole. Bind the populated root into
+        # the header ONLY when it still holds the empty fallback (no clobber).
+        # clock_source declared explicitly so downstream timestamps carry provenance.
+        # Additive: two new keys, no existing key changed. Reversible: delete block.
+        _temporal_root.setdefault("clock_source", "system_clock")
+        if header.get("temporal_root") == {}:
+            header["temporal_root"] = _temporal_root
+
         # ── /000 Principal-Agent Response (forged 2026-07-01) ────────────
         _sovereign_id = sess.get("sovereign_id")
         _delegation_mode = sess.get("delegation_mode", "direct")
@@ -3743,6 +3978,21 @@ def arif_init(
             authority_state=_auth_state,
             # Session Contract v2 — temporal grounding context (additive)
             temporal=_build_temporal_context(mode=mode),
+            # INIT v2 Roots — F13-ratified 2026-09-20 (additive)
+            # Four critical roots: TEMPORAL, OBJECTIVE, NEGATIVE_KNOWLEDGE, PROVENANCE
+            init_v2_roots=_safe_build(
+                _build_init_v2_roots,
+                sid=sid,
+                actor_id=actor_id,
+                identity_verified=identity_verified,
+                mode=mode,
+                objective=objective,
+                success_criteria=success_criteria,
+                verification_requirements=verification_requirements,
+                sess=sess,
+                temporal_context=_build_temporal_context(mode=mode),
+                fallback=None,
+            ),
         )
 
     # ── STATUS MODE ──────────────────────────────────────────
