@@ -65,6 +65,44 @@ from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 from core.shared.atlas import Φ
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# G-10 · JUDGE LATENCY CLASS — tier → budget binding
+# ═══════════════════════════════════════════════════════════════════════════════
+# 888 does not run a rule engine. It consults an LLM (`llm_consulted: true`) and
+# walks the full floor ladder L01–L10. Measured on the live kernel 2026-09-21
+# (session SEAL-11ecd272a1a44684): a COMPLETED deliberation took 207.35 ms.
+#
+# The binding was an inline local dict at the call site, and it mapped the
+# default tier to C2_STANDARD — a 200 ms ceiling enforced PREVENTIVELY
+# (asyncio.wait_for). So the coroutine was killed at the deadline and the
+# kernel published `SABAR`: a timeout wearing a verdict's clothes. Every caller
+# that omitted action_tier received that false verdict, and it survives as a
+# plausible-looking constitutional judgment in every receipt it touched.
+#
+# Two contradictions this fixes:
+#   1. `latency_budget.judge_with_budget` declares the conservative default
+#      explicitly — `LATENCY_BUDGETS.get(..., LATENCY_BUDGETS[C3_DEEP])`. This
+#      tool contradicted it, resolving unknown/default to the LEAST conservative
+#      class in the table. The tool was less conservative than its own library.
+#   2. An inline dict in a 3,949-line function cannot be imported or asserted
+#      against. An untestable constant is how a default drifts below the
+#      measured floor unnoticed.
+#
+# Invariant, pinned by tests/test_g10_judge_default_budget_regression.py:
+#   a tier whose path consults an LLM must never resolve to a rule-engine class
+#   (C0_AUTO / C1_FAST / C2_STANDARD), and every non-sovereign budget must be
+#   able to contain the measured deliberation.
+# Register: AAA/reports/ACT-LANE-DEFECT-REGISTER-2026-09-21.md
+JUDGE_DEFAULT_LATENCY_CLASS: LatencyDecisionClass = LatencyDecisionClass.C3_DEEP
+
+JUDGE_TIER_TO_LATENCY_CLASS: dict[str, LatencyDecisionClass] = {
+    "standard": LatencyDecisionClass.C3_DEEP,
+    "elevated": LatencyDecisionClass.C3_DEEP,
+    "sovereign": LatencyDecisionClass.C4_SOVEREIGN,
+    "c4": LatencyDecisionClass.C4_SOVEREIGN,
+    "c5": LatencyDecisionClass.C4_SOVEREIGN,
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # ECHO/PaW PREDICTION SCHEMA — L3 Gradient Injection Bridge
 # ═══════════════════════════════════════════════════════════════════════════════
 # Maps prediction keys to their canonical observation sources.
@@ -3186,16 +3224,17 @@ async def arif_judge(
 
     t_judge_start = time_module.monotonic()
 
-    # Map action_tier to LatencyDecisionClass for budget lookup
-    tier_to_class = {
-        "standard": LatencyDecisionClass.C2_STANDARD,
-        "elevated": LatencyDecisionClass.C3_DEEP,
-        "sovereign": LatencyDecisionClass.C4_SOVEREIGN,
-        "c4": LatencyDecisionClass.C4_SOVEREIGN,
-        "c5": LatencyDecisionClass.C4_SOVEREIGN,
-    }
-    decision_class_latency = tier_to_class.get(action_tier, LatencyDecisionClass.C2_STANDARD)
-    budget = LATENCY_BUDGETS.get(decision_class_latency)
+    # Map action_tier to LatencyDecisionClass for budget lookup.
+    # G-10: binding extracted to module level (JUDGE_TIER_TO_LATENCY_CLASS /
+    # JUDGE_DEFAULT_LATENCY_CLASS) so it is importable and assertable. Unknown
+    # tier now falls to the conservative default, matching
+    # latency_budget.judge_with_budget, instead of the rule-engine class.
+    decision_class_latency = JUDGE_TIER_TO_LATENCY_CLASS.get(
+        (action_tier or "").strip().lower(), JUDGE_DEFAULT_LATENCY_CLASS
+    )
+    budget = LATENCY_BUDGETS.get(
+        decision_class_latency, LATENCY_BUDGETS[JUDGE_DEFAULT_LATENCY_CLASS]
+    )
 
     # ── Preventive timeout (L1 fix) ──────────────────────────────────
     # C4_SOVEREIGN: unbounded — no timeout. Human deliberation has no SLA.
