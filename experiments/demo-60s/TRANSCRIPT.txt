@@ -1,0 +1,248 @@
+
+══════════════════════════════════════════════════════════════════════════════
+arifOS — 60-SECOND GOVERNANCE DEMO (offline, against this repo's kernel)
+══════════════════════════════════════════════════════════════════════════════
+  repo            : /root/arifOS  @ 67220716e
+  interpreter     : /root/arifOS/.venv/bin/python
+  python          : 3.13.7
+  nats client     : NOT importable — pipe's mesh publish is a no-op (fail-silent by design)
+  offline guard   : socket.connect refuses every outbound address (installed before kernel import)
+  notifier creds  : absent from env (nothing to scrub) — no HOLD can page a human
+  vault HMAC key  : absent — receipts unsigned (verify_chain warn mode)
+  pipeline config : GovernancePipeline(vault_liveness_enabled=False), enforcement_mode='enforce'
+    disabled      : GATE_4_VAULT_LIVENESS (probes live VAULT999 :5001 — not contacted)
+    all other gates default ON (session, identity, F13, E7, ASI tier, budget,
+    risk, floors, Gödel/Calhoun closures, reality loop, drift, envelope)
+
+══════════════════════════════════════════════════════════════════════════════
+SETUP — sandbox, pre-state observation, and the observe-before-mutate receipt
+══════════════════════════════════════════════════════════════════════════════
+  sandbox         : experiments/demo-60s/sandbox/   (the only writable area)
+  target artefact : experiments/demo-60s/sandbox/outbox/mutation-target.txt
+  target content  : 'governed-demo-target v1\n'
+  observation #1 (independent process): pid=1189892 exists=True bytes=24
+      sha256=sha256:58152e855ba90bf580c6da743e8d57dd0ea30ac62f93945a3ec5f22362dbdf50
+      mtime=2026-09-20T19:26:47.384292Z  at=2026-09-20T19:26:47.411821Z
+  observe receipt : ok=True id=rcpt-574b661743d24b24 seq=1 prev_hash=genesis
+  [note] this receipt is the MUTATE envelope's observe_receipt_id (observe-before-mutate)
+  submitted call  : tool=arif_forge_execute actor=arif action_class=MUTATE
+                    target=experiments/demo-60s/sandbox/outbox/mutation-target.txt
+
+══════════════════════════════════════════════════════════════════════════════
+STEP 1+2 — UNAUTHORISED SUBMISSION → DENIAL, AND NO MUTATION
+══════════════════════════════════════════════════════════════════════════════
+  envelope authority: source=delegated delegator=arif delegatee=fi-003-demo-coder
+                     scope=['mutate'] expires_at=None
+  validator (direct): (False, 'Delegation expired or missing expiry')
+  kernel verdict : HOLD
+  blocked_at     : GATE_7_ENVELOPE
+  all_clear      : False
+  violated_laws  : ['L11']
+  reason         : Envelope validation failed: Delegation expired or missing expiry
+  next_safe_action: Fix envelope: ensure valid FederationEnvelope v2 with authority.
+  gate trace (6 ms):
+    HOLD  GATE_-2_ROOTKEY              F0_ROOTKEY HOLD — sovereign key exists but caller 'arif' not verified. Observer access only. Pro
+    PASS  GATE_-1_KAPARINYO            PASS — output names reality
+    PASS  GATE_0_SESSION               Session sess-demo-60... active
+    PASS  GATE_1_IDENTITY              Actor arif (verified) authorized for MUTATE
+    PASS  GATE_1.5_F13_SOVEREIGN       F13 authority verified
+    PASS  GATE_1.5_PRINCIPAL_PARADOX   Principal (F13 SOVEREIGN) — direct authority, obeying F1 AMANAH reversibility floor.
+    PASS  GATE_1.6_COGNITIVE_TIER      AGI_TIER: Instrumental reasoning under uncertainty + governed tool substrate.
+    PASS  GATE_2_BUDGET                Budget OK: turn 1/8, tool 1/2, total 1/12
+    PASS  GATE_3_RISK                  Risk MEDIUM within ceiling for MUTATE
+    PASS  GATE_5_FLOORS                All floors passed
+    PASS  GATE_5B_QQQ                  QQQ NOT_REQUIRED: OK
+    PASS  GATE_5.1_GODEL_CLOSURE       [PROCEED] Q9a: SEAL-bound with auditor validation — Φ_external=0.90, Calhoun=1.00
+    PASS  GATE_5.2_CALHOUN_CLOSURE     [PROCEED] Q10: clear — Calhoun=1.00, sink_ratio=0.00, FQ-window=[]
+    PASS  GATE_5.3_REALITY_LOOP        [SABAR] Q9c advisory: SEAL-bound action 'arif_forge_execute' without FalsifiablePrediction. Comm
+    PASS  GATE_6_DRIFT                 Tool surface matches manifest (canonical13)
+    HOLD  GATE_7_ENVELOPE              Envelope validation failed: Delegation expired or missing expiry
+  EXECUTOR       : NOT INVOKED — the kernel did not clear the action
+  ── did reality change? ──
+  observation #2 (independent process): pid=1189897 exists=True bytes=24
+      sha256=sha256:58152e855ba90bf580c6da743e8d57dd0ea30ac62f93945a3ec5f22362dbdf50
+      mtime=2026-09-20T19:26:47.384292Z  at=2026-09-20T19:26:47.459024Z
+  [PASS] denial verdict is non-permitting — verdict=HOLD blocked_at=GATE_7_ENVELOPE
+  [PASS] denial cites the authority envelope — Envelope validation failed: Delegation expired or missing expiry
+  [PASS] executor was not invoked
+  [PASS] artefact bytes unchanged after denial — sha256:58152e855ba90bf58… == sha256:58152e855ba90bf58…
+  [PASS] artefact mtime unchanged after denial
+  [PASS] intended mutation text absent from artefact
+
+  second unauthorised variant — EXPIRED delegation (same code path):
+    validator: (False, 'Delegation expired or missing expiry')
+  kernel verdict : HOLD
+  blocked_at     : GATE_7_ENVELOPE
+  all_clear      : False
+  violated_laws  : ['L11']
+  reason         : Envelope validation failed: Delegation expired or missing expiry
+  next_safe_action: Fix envelope: ensure valid FederationEnvelope v2 with authority.
+  gate trace (2 ms):
+    HOLD  GATE_-2_ROOTKEY              F0_ROOTKEY HOLD — sovereign key exists but caller 'arif' not verified. Observer access only. Pro
+    PASS  GATE_-1_KAPARINYO            PASS — output names reality
+    PASS  GATE_0_SESSION               Session sess-demo-60... active
+    PASS  GATE_1_IDENTITY              Actor arif (verified) authorized for MUTATE
+    PASS  GATE_1.5_F13_SOVEREIGN       F13 authority verified
+    PASS  GATE_1.5_PRINCIPAL_PARADOX   Principal (F13 SOVEREIGN) — direct authority, obeying F1 AMANAH reversibility floor.
+    PASS  GATE_1.6_COGNITIVE_TIER      AGI_TIER: Instrumental reasoning under uncertainty + governed tool substrate.
+    PASS  GATE_2_BUDGET                Budget OK: turn 1/8, tool 1/2, total 1/12
+    PASS  GATE_3_RISK                  Risk MEDIUM within ceiling for MUTATE
+    PASS  GATE_5_FLOORS                All floors passed
+    PASS  GATE_5B_QQQ                  QQQ NOT_REQUIRED: OK
+    PASS  GATE_5.1_GODEL_CLOSURE       [PROCEED] Q9a: SEAL-bound with auditor validation — Φ_external=0.90, Calhoun=1.00
+    PASS  GATE_5.2_CALHOUN_CLOSURE     [PROCEED] Q10: clear — Calhoun=1.00, sink_ratio=0.00, FQ-window=[]
+    PASS  GATE_5.3_REALITY_LOOP        [SABAR] Q9c advisory: SEAL-bound action 'arif_forge_execute' without FalsifiablePrediction. Comm
+    PASS  GATE_6_DRIFT                 Tool surface matches manifest (canonical13)
+    HOLD  GATE_7_ENVELOPE              Envelope validation failed: Delegation expired or missing expiry
+  EXECUTOR       : NOT INVOKED — the kernel did not clear the action
+  [PASS] expired delegation also denied, artefact still untouched — verdict=HOLD
+
+══════════════════════════════════════════════════════════════════════════════
+STEP 3+4 — SAME ACTION INSIDE THE ENVELOPE → PERMIT, MUTATION, RECEIPT
+══════════════════════════════════════════════════════════════════════════════
+  envelope authority: source=token verified=True scope=['mutate'] expires_at=+5min
+  validator (direct): (True, 'SEAL')
+  kernel verdict : PASS
+  blocked_at     : None
+  all_clear      : True
+  violated_laws  : []
+  gate trace (1 ms):
+    HOLD  GATE_-2_ROOTKEY              F0_ROOTKEY HOLD — sovereign key exists but caller 'arif' not verified. Observer access only. Pro
+    PASS  GATE_-1_KAPARINYO            PASS — output names reality
+    PASS  GATE_0_SESSION               Session sess-demo-60... active
+    PASS  GATE_1_IDENTITY              Actor arif (verified) authorized for MUTATE
+    PASS  GATE_1.5_F13_SOVEREIGN       F13 authority verified
+    PASS  GATE_1.5_PRINCIPAL_PARADOX   Principal (F13 SOVEREIGN) — direct authority, obeying F1 AMANAH reversibility floor.
+    PASS  GATE_1.6_COGNITIVE_TIER      AGI_TIER: Instrumental reasoning under uncertainty + governed tool substrate.
+    PASS  GATE_2_BUDGET                Budget OK: turn 1/8, tool 1/2, total 1/12
+    PASS  GATE_3_RISK                  Risk MEDIUM within ceiling for MUTATE
+    PASS  GATE_5_FLOORS                All floors passed
+    PASS  GATE_5B_QQQ                  QQQ NOT_REQUIRED: OK
+    PASS  GATE_5.1_GODEL_CLOSURE       [PROCEED] Q9a: SEAL-bound with auditor validation — Φ_external=0.90, Calhoun=1.00
+    PASS  GATE_5.2_CALHOUN_CLOSURE     [PROCEED] Q10: clear — Calhoun=1.00, sink_ratio=0.00, FQ-window=[]
+    PASS  GATE_5.3_REALITY_LOOP        [SABAR] Q9c advisory: SEAL-bound action 'arif_forge_execute' without FalsifiablePrediction. Comm
+    PASS  GATE_6_DRIFT                 Tool surface matches manifest (canonical13)
+    PASS  GATE_7_ENVELOPE              FederationEnvelope v2 valid
+  EXECUTOR RAN   : appended 1 line to experiments/demo-60s/sandbox/outbox/mutation-target.txt
+  ── did reality change? ──
+  observation #3 (independent process): pid=1189902 exists=True bytes=75
+      sha256=sha256:fc83aba2853e866645fb661ab5b60d34578e3a47615fb3c7b965135aeed2f55c
+      mtime=2026-09-20T19:26:47.506628Z  at=2026-09-20T19:26:47.546192Z
+  [PASS] verdict is permitting — verdict=PASS blocked_at=None
+  [PASS] executor ran and appended exactly one line
+  [PASS] change is externally observed (hash differs) — sha256:58152e855ba90… → sha256:fc83aba2853e8…
+  [PASS] witness hash equals locally recomputed hash
+  [PASS] mutation stayed inside ./sandbox/
+
+  ── append-only receipt for the permitted mutation ──
+  append ok       : True  id=rcpt-13dee16900e64978  sequence=2
+  previous_hash   : sha256:fc2fa7e628c3f66c933e12def682ee0ca0d9c98ddc8d48f32bebf11fcb38312e
+  receipt_hash    : sha256:a35cb267b61fdaa3c551946bacfb3352feedddf203521e1cb9c8a431aaebadd4
+  input_hash      : sha256:58152e855ba90bf580c6da743e8d57dd0ea30ac62f93945a3ec5f22362dbdf50   (target BEFORE the mutation)
+  result_hash     : sha256:fc83aba2853e866645fb661ab5b60d34578e3a47615fb3c7b965135aeed2f55c   (target AFTER the mutation)
+  trace_id        : trace-demo-60s-authorised   (state-transition-discipline: causal join)
+  signature       : (none — no vault HMAC key configured)
+  [PASS] receipt references the mutation it authorised — input_hash = pre-state, result_hash = post-state, both measured
+  [PASS] receipt carries the trace_id of the permitted envelope
+
+  ── chain verification (append-only, hash-linked) ──
+  verified=True status=verified entries=2 corrupt_lines=0 gaps=0
+  head_seq=2 head_hash=sha256:a35cb267b61fdaa3c551946bacfb3352feedddf203521e1cb9c8a431aaebadd4
+  signed_entries=0 unsigned_after_cutover=0
+  [PASS] ledger verifies with no gaps
+  [PASS] receipt_hash recomputes from the entry body (tamper-evident) — sha256:a35cb267b61fdaa3c55…
+  [PASS] chain has 2 entries (1 OBSERVE + 1 SEAL for the mutation) — entries=2
+
+  ── tamper test: is verification vacuous, or does it actually catch a rewrite? ──
+  copying the ledger to sandbox/vault999-tampered-copy/ and rewriting one field:
+    result_hash sha256:fc83aba2853e866645f… → sha256:00000000000000000000000000…
+  tampered copy : verified=False status=gaps-found gaps=1
+    HASH_MISMATCH: recomputed receipt_hash mismatch
+  [PASS] rewritten receipt is detected (verification is not vacuous) — verified=False gaps=1
+  [PASS] the real ledger still verifies after the tamper test
+
+══════════════════════════════════════════════════════════════════════════════
+CONTROL A — a VALID envelope still fails for an actor outside F13 authority
+══════════════════════════════════════════════════════════════════════════════
+  kernel verdict : HOLD
+  blocked_at     : GATE_1.5_F13_SOVEREIGN
+  all_clear      : False
+  violated_laws  : ['F13']
+  reason         : F13 non-delegable: caller 'fi-003-demo-coder' is not a recognised sovereign
+  next_safe_action: F13 non-delegable. Only Yang Arif (ARIF / Muhammad Arif bin Fazil) may perform F13-gated actions. Delegation attempts are blocked.
+  gate trace (2 ms):
+    HOLD  GATE_-2_ROOTKEY              F0_ROOTKEY HOLD — sovereign key exists but caller 'fi-003-demo-coder' not verified. Observer acc
+    PASS  GATE_-1_KAPARINYO            PASS — output names reality
+    PASS  GATE_0_SESSION               Session sess-demo-60... active
+    PASS  GATE_1_IDENTITY              Actor fi-003-demo-coder (verified) authorized for MUTATE
+    HOLD  GATE_1.5_F13_SOVEREIGN       F13 non-delegable: caller 'fi-003-demo-coder' is not a recognised sovereign
+  EXECUTOR       : NOT INVOKED — the kernel did not clear the action
+  [PASS] non-sovereign actor denied despite a valid envelope — blocked_at=GATE_1.5_F13_SOVEREIGN
+  [PASS] artefact untouched by the control
+
+══════════════════════════════════════════════════════════════════════════════
+CONTROL B — FINDING: does the kernel enforce WHERE a mutation lands?
+══════════════════════════════════════════════════════════════════════════════
+  same call, same valid envelope, target rewritten to a real repo file:
+    target=/root/arifOS/README.md   (pipe is run; the DEMO executor is never invoked)
+  kernel verdict : PASS
+  blocked_at     : None
+  all_clear      : True
+  violated_laws  : []
+  gate trace (2 ms):
+    HOLD  GATE_-2_ROOTKEY              F0_ROOTKEY HOLD — sovereign key exists but caller 'arif' not verified. Observer access only. Pro
+    PASS  GATE_-1_KAPARINYO            PASS — output names reality
+    PASS  GATE_0_SESSION               Session sess-demo-60... active
+    PASS  GATE_1_IDENTITY              Actor arif (verified) authorized for MUTATE
+    PASS  GATE_1.5_F13_SOVEREIGN       F13 authority verified
+    PASS  GATE_1.5_PRINCIPAL_PARADOX   Principal (F13 SOVEREIGN) — direct authority, obeying F1 AMANAH reversibility floor.
+    PASS  GATE_1.6_COGNITIVE_TIER      AGI_TIER: Instrumental reasoning under uncertainty + governed tool substrate.
+    PASS  GATE_2_BUDGET                Budget OK: turn 1/8, tool 1/2, total 1/12
+    PASS  GATE_3_RISK                  Risk MEDIUM within ceiling for MUTATE
+    PASS  GATE_5_FLOORS                All floors passed
+    PASS  GATE_5B_QQQ                  QQQ NOT_REQUIRED: OK
+    PASS  GATE_5.1_GODEL_CLOSURE       [PROCEED] Q9a: SEAL-bound with auditor validation — Φ_external=0.90, Calhoun=1.00
+    PASS  GATE_5.2_CALHOUN_CLOSURE     [PROCEED] Q10: clear — Calhoun=1.00, sink_ratio=0.00, FQ-window=[]
+    PASS  GATE_5.3_REALITY_LOOP        [SABAR] Q9c advisory: SEAL-bound action 'arif_forge_execute' without FalsifiablePrediction. Comm
+    PASS  GATE_6_DRIFT                 Tool surface matches manifest (canonical13)
+    PASS  GATE_7_ENVELOPE              FederationEnvelope v2 valid
+  EXECUTOR REFUSED: /root/arifOS/README.md is outside /root/arifOS/experiments/demo-60s/sandbox
+  (this demo's executor refuses it; the kernel gate above allowed it)
+  [FINDING] the pipe PERMITTED an action whose target is outside any sandbox.
+            The kernel's envelope/risk gates do not inspect the target path;
+            target containment is the executor's duty, and in this demo the
+            executor refuses it (no write occurred — README.md is intact:
+            sha256:b6da018f493a3d017debca392ad6cdc329dc4ee52a5527d305d71de678b1b5a4).
+  [PASS] repo README.md untouched (never opened for write by this demo)
+
+══════════════════════════════════════════════════════════════════════════════
+RESULT
+══════════════════════════════════════════════════════════════════════════════
+  outbound connects attempted by this process: 0 — all refused by the demo's socket guard
+    (the kernel made no outbound call at all)
+  PASS  denial verdict is non-permitting — verdict=HOLD blocked_at=GATE_7_ENVELOPE
+  PASS  denial cites the authority envelope — Envelope validation failed: Delegation expired or missing expiry
+  PASS  executor was not invoked
+  PASS  artefact bytes unchanged after denial — sha256:58152e855ba90bf58… == sha256:58152e855ba90bf58…
+  PASS  artefact mtime unchanged after denial
+  PASS  intended mutation text absent from artefact
+  PASS  expired delegation also denied, artefact still untouched — verdict=HOLD
+  PASS  verdict is permitting — verdict=PASS blocked_at=None
+  PASS  executor ran and appended exactly one line
+  PASS  change is externally observed (hash differs) — sha256:58152e855ba90… → sha256:fc83aba2853e8…
+  PASS  witness hash equals locally recomputed hash
+  PASS  mutation stayed inside ./sandbox/
+  PASS  receipt references the mutation it authorised — input_hash = pre-state, result_hash = post-state, both measured
+  PASS  receipt carries the trace_id of the permitted envelope
+  PASS  ledger verifies with no gaps
+  PASS  receipt_hash recomputes from the entry body (tamper-evident) — sha256:a35cb267b61fdaa3c55…
+  PASS  chain has 2 entries (1 OBSERVE + 1 SEAL for the mutation) — entries=2
+  PASS  rewritten receipt is detected (verification is not vacuous) — verified=False gaps=1
+  PASS  the real ledger still verifies after the tamper test
+  PASS  non-sovereign actor denied despite a valid envelope — blocked_at=GATE_1.5_F13_SOVEREIGN
+  PASS  artefact untouched by the control
+  PASS  repo README.md untouched (never opened for write by this demo)
+
+  22/22 checks passed
+  sandbox: experiments/demo-60s/sandbox/ (delete freely; nothing outside it was written)
+══════════════════════════════════════════════════════════════════════════════

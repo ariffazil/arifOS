@@ -1,0 +1,4 @@
+# Runtime sandbox — every write this demo makes lands here.
+# Recreated from scratch on each run; nothing outside this directory is touched.
+sandbox/
+__pycache__/
