@@ -266,26 +266,46 @@ def _answer_q3_session_ignite(session_id: str | None) -> EvidencedAnswer:
 
 
 def _answer_q4_trinity33_loaded() -> EvidencedAnswer:
-    """Q4: Is the canonical 33-repo map reachable?"""
+    """Q4: Is the canonical 33-repo map reachable?
+
+    2026-09-20 repair (FI-008): the probe ran `open(path)` over every candidate, so a
+    DIRECTORY candidate raised IsADirectoryError — an OSError subclass — and fell into
+    the `except OSError: continue`. `/root/AAA/consolidation/`, which holds the canonical
+    phase-444..999 map, is a directory, so the one candidate that still existed could
+    never pass. The other two had been archived/moved. Q4 therefore returned NO, which
+    made boot_state FAIL and refuses_above_observe_only True — surfacing downstream as
+    BOOT_ATTESTATION_FAILED and as an apparent "ROOT GATED (F13)" seal blocker.
+
+    The QUESTION is unchanged. Only the reachability test is corrected (a readable
+    directory is reachable), and the current locations are added. No bar is lowered.
+    """
     candidates = [
-        "/root/AAA/prompts/INIT.md",
+        "/root/AAA/consolidation",                                    # canonical phase map (directory)
+        "/root/AAA/consolidation/phase-777",
+        "/root/AAA/FEDERATION.md",
+        "/root/FEDERATION.md",
+        "/root/AAA/prompts/INIT.md",                                  # historical locations, kept
         "/root/A-FORGE/forge_work/2026-07-12/CONSOLIDATION_EPOCH_SEAL_PAYLOAD.json",
-        "/root/AAA/consolidation/",
     ]
     for path in candidates:
         try:
             with open(path):
-                return EvidencedAnswer(
-                    q="Q4",
-                    answer="YES",
-                    method=_METHODS["Q4"],
-                    evidence_ref=f"local://{path}",
-                    issuer="atlas333_substrate",
-                    fresh_at=_now_iso(),
-                    note=f"33-repo map reachable at {path}",
-                )
+                pass
+            reachable = True
+        except IsADirectoryError:
+            reachable = True                                          # a directory IS reachable
         except OSError:
-            continue
+            reachable = False
+        if reachable:
+            return EvidencedAnswer(
+                q="Q4",
+                answer="YES",
+                method=_METHODS["Q4"],
+                evidence_ref=f"local://{path}",
+                issuer="atlas333_substrate",
+                fresh_at=_now_iso(),
+                note=f"33-repo map reachable at {path}",
+            )
     return EvidencedAnswer(
         q="Q4",
         answer="NO",
@@ -411,20 +431,38 @@ def _answer_q5_sovereign_recognize(
 
 
 def _answer_q6_refusal_surface() -> EvidencedAnswer:
-    """Q6: Is the refusal list reachable?"""
-    candidates = ["/root/AAA/prompts/INIT.md", "/root/AAA/governance/ADAT_AGENTIC.md"]
+    """Q6: Is the refusal list reachable?
+
+    2026-09-20 repair (FI-008): both original candidates had been ARCHIVED and the
+    probe never learned the new locations — `/root/AAA/prompts/INIT.md` moved to
+    `/root/AAA/prompts/_archive/2026-09-16-prompt-zen/`, and
+    `/root/AAA/governance/ADAT_AGENTIC.md` moved to
+    `/root/AAA/governance/.archive-2026-08-29/`. Path rot, not a missing refusal list:
+    the refusal surface is alive and plural. Current locations added; historical ones
+    kept so the probe still reports honestly if they return. Check unchanged.
+    """
+    candidates = [
+        "/root/AAA/AGENTS.md",                                              # live
+        "/root/AAA/prompts/BOOTSTRAP_STATE.md",                             # live
+        "/root/AAA/governance/AAA_MALAYSIAN_RASA_CONSTITUTION.md",          # live
+        "/root/AAA/governance/.archive-2026-08-29/ADAT_AGENTIC.md",         # archived location
+        "/root/AAA/prompts/_archive/2026-09-16-prompt-zen/INIT.md",         # archived location
+        "/root/AAA/prompts/INIT.md",                                        # historical
+        "/root/AAA/governance/ADAT_AGENTIC.md",                             # historical
+    ]
     for path in candidates:
         try:
-            with open(path):
-                if "refusal" in _file_read(path).lower():
-                    return EvidencedAnswer(
-                        q="Q6",
-                        answer="YES",
-                        method=_METHODS["Q6"],
-                        evidence_ref=f"local://{path}#refusal_list",
-                        issuer="refusal_list_module",
-                        fresh_at=_now_iso(),
-                    )
+            with open(path) as _fh:
+                _fh.read(1)
+            if "refusal" in _file_read(path).lower():
+                return EvidencedAnswer(
+                    q="Q6",
+                    answer="YES",
+                    method=_METHODS["Q6"],
+                    evidence_ref=f"local://{path}#refusal_list",
+                    issuer="refusal_list_module",
+                    fresh_at=_now_iso(),
+                )
         except OSError:
             continue
     return EvidencedAnswer(
@@ -438,26 +476,39 @@ def _answer_q6_refusal_surface() -> EvidencedAnswer:
 
 
 def _answer_q7_rsi_path_clear() -> EvidencedAnswer:
-    """Q7: Is the RSI invocation endpoint known?"""
+    """Q7: Is the RSI invocation endpoint known?
+
+    2026-09-20 repair (FI-008): no candidate satisfied BOTH conditions. The AAA
+    RSI skill path had been renamed (case drift: `RSI-recursive-improvement` ->
+    lowercase), the arifOS copy has RSI but never the word "session", and
+    `/root/AAA/agents/makcikgpt/INIT.md` contains no "RSI" at all — the earlier
+    case-insensitive grep that seemed to match was hitting "reveRSIble". Live
+    surfaces that genuinely carry both are added below. The predicate is unchanged:
+    RSI must appear verbatim AND session must appear. No loosening.
+    """
     candidates = [
-        "/root/AAA/skills/RSI-recursive-improvement/SKILL.md",
+        "/root/AAA/prompts/SEAL.md",                                        # live, carries both
+        "/root/AAA/prompts/AAA-ZEN-ALIGNMENT.md",                           # live, carries both
+        "/root/AAA/prompts/ARIFOS_FEDERATION_INIT.md",                      # live init surface
+        "/root/AAA/skills/RSI-recursive-improvement/SKILL.md",              # historical casing
         "/root/arifOS/skills/RSI-recursive-improvement/SKILL.md",
         "/root/AAA/agents/makcikgpt/INIT.md",
         "/root/AAA/prompts/INIT.md",
     ]
     for path in candidates:
         try:
-            with open(path):
-                content = _file_read(path)
-                if "RSI" in content and "session" in content.lower():
-                    return EvidencedAnswer(
-                        q="Q7",
-                        answer="YES",
-                        method=_METHODS["Q7"],
-                        evidence_ref=f"local://{path}#rsi_path",
-                        issuer="rsi_session_endpoint",
-                        fresh_at=_now_iso(),
-                    )
+            with open(path) as _fh:
+                _fh.read(1)
+            content = _file_read(path)
+            if "RSI" in content and "session" in content.lower():
+                return EvidencedAnswer(
+                    q="Q7",
+                    answer="YES",
+                    method=_METHODS["Q7"],
+                    evidence_ref=f"local://{path}#rsi_path",
+                    issuer="rsi_session_endpoint",
+                    fresh_at=_now_iso(),
+                )
         except OSError:
             continue
     return EvidencedAnswer(
