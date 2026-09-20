@@ -45,6 +45,11 @@ _MINIMAL_KEEP_TOP_LEVEL = {
     "signature",
     "_identity_consistency_applied",
     "_identity_drift_count",
+    # INIT v2 roots + temporal grounding context (2026-09-20, additive — F11/F9).
+    # Without these the 4 built roots and the temporal context were silently
+    # projected OUT of the envelope (built-then-dropped = F2 truth gap).
+    "temporal",
+    "init_v2_roots",
 }
 
 _MINIMAL_KEEP_RESULT = {
@@ -62,6 +67,9 @@ _MINIMAL_KEEP_RESULT = {
     "init_mode",
     "session_mode",
     "authority_scope",
+    # INIT v2 roots (2026-09-20, additive — surface where present).
+    "temporal",
+    "init_v2_roots",
 }
 
 # Fields STRIPPED in minimal mode (metadata, not evidence).
@@ -229,11 +237,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     # "verdict", so the old fallback (response.get("status")) copied
     # "completed" into the verdict slot — FORGE-RECEIPT-DISHONEST.
     # Priority: canonical effective_verdict > legacy verdict > status.
-    verdict = (
-        _lookup("effective_verdict")
-        or _lookup("verdict")
-        or response.get("status", "SEAL")
-    )
+    verdict = _lookup("effective_verdict") or _lookup("verdict") or response.get("status", "SEAL")
 
     # Unified actor block
     authority_level = "OBSERVER"
@@ -385,9 +389,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     _st = str(minimal.get("status") or "").lower()
     _tool = str(minimal.get("tool") or response.get("tool") or "")
     _cc = minimal.get("constitutional_check") or {}
-    _exec = str(
-        minimal.get("execution_state") or response.get("execution_state") or ""
-    ).upper()
+    _exec = str(minimal.get("execution_state") or response.get("execution_state") or "").upper()
     if _st == "pending":
         _orig = str(response.get("status") or "").upper()
         if _orig in ("OK", "COMPLETED", "SEAL", "COMPLETED") or _exec == "COMPLETED":
@@ -405,9 +407,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         if _ev:
             minimal["effective_verdict"] = _ev
     if str(minimal.get("verdict") or "").lower() == "pending":
-        minimal["verdict"] = (
-            minimal.get("effective_verdict") or response.get("verdict") or "HOLD"
-        )
+        minimal["verdict"] = minimal.get("effective_verdict") or response.get("verdict") or "HOLD"
     # Ensure execution_state present
     if not minimal.get("execution_state"):
         if str(minimal.get("status")).lower() in ("completed", "ok"):
@@ -545,9 +545,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             # No measured nine_signal in source — derive a declared projection
             # from the final verdict (same mapping precedent as the drift
             # override above) or admit UNKNOWN. Never fabricate a measurement.
-            _ev9 = str(
-                minimal.get("effective_verdict") or minimal.get("verdict") or ""
-            ).upper()
+            _ev9 = str(minimal.get("effective_verdict") or minimal.get("verdict") or "").upper()
             if _ev9 in ("SEAL", "PROCEED", "OK", "COMPLETED"):
                 _st9, _en9 = "SELAMAT", "SAFE"
             elif _ev9 in ("HOLD", "VOID", "SABAR"):

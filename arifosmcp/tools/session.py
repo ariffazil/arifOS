@@ -596,11 +596,12 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
         base["status"] = "AVAILABLE"
         return base
 
-    # ── If anchor is stale (or missing) and mode allows refresh ──
     if mode != "light":
         try:
+            import sys as _sys
+
             result = _sp.run(
-                [_AAA_TIME_CLI, "now", "--format", "json"],
+                [_sys.executable, _AAA_TIME_CLI, "now", "--format", "json"],
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -680,37 +681,67 @@ def _build_init_v2_roots(
     # ── 1. TEMPORAL_ROOT ──────────────────────────────────────────────────
     # Question: WHEN am I?
     # Closes F9 = 0.0 by binding clock state with uncertainty.
+    # L2 fix: use chronyc tracking (precise drift) + timedatectl status (sync flag)
     clock_status = "UNKNOWN"
-    ntp_drift_ms: int | None = None
+    ntp_drift_ms: float | None = None
     clock_uncertainty_ms = 5000  # conservative default: ±5s without NTP
+    ntp_source: str | None = None
+    ntp_stratum: int | None = None
 
+    # Primary: chronyc tracking — gives exact offset from NTP reference
     try:
         result = _sp.run(
-            ["timedatectl", "show", "--property=NTPSynchronized,TimeUSec"],
-            capture_output=True, text=True, timeout=5,
+            ["chronyc", "tracking"],
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if result.returncode == 0:
             for line in result.stdout.strip().split("\n"):
-                if "NTPSynchronized=yes" in line:
+                line_l = line.strip()
+                if "System time" in line_l and "seconds" in line_l:
+                    # "System time     : 0.000134506 seconds fast of NTP time"
+                    try:
+                        drift_s = float(line_l.split(":")[1].split("seconds")[0].strip())
+                        ntp_drift_ms = round(drift_s * 1000, 3)
+                        clock_status = "NTP_SYNCED"
+                        clock_uncertainty_ms = max(1, int(abs(ntp_drift_ms) * 2) + 1)
+                    except (ValueError, IndexError):
+                        pass
+                elif "Reference ID" in line_l:
+                    # "Reference ID    : B97DBE7B (ntp-nts-3.ps5.canonical.com)"
+                    ntp_source = line_l.split("(")[-1].rstrip(")") if "(" in line_l else None
+                elif "Stratum" in line_l:
+                    try:
+                        ntp_stratum = int(line_l.split(":")[1].strip())
+                    except (ValueError, IndexError):
+                        pass
+            if clock_status == "NTP_SYNCED":
+                probe_trail.append("chronyc:tracking:NTP_SYNCED")
+    except Exception:
+        probe_trail.append("chronyc:tracking:FAILED")
+
+    # Fallback: timedatectl status — sync flag only, no drift data
+    if clock_status == "UNKNOWN":
+        try:
+            result = _sp.run(
+                ["timedatectl", "status"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                output = result.stdout
+                if "synchronized: yes" in output.lower() or "NTPSynchronized=yes" in output:
                     clock_status = "NTP_SYNCED"
-                    clock_uncertainty_ms = 50
-                elif "NTPSynchronized=no" in line:
+                    clock_uncertainty_ms = 100
+                elif "synchronized: no" in output.lower() or "NTPSynchronized=no" in output:
                     clock_status = "NTP_UNSYNCED"
                     clock_uncertainty_ms = 1000
-            probe_trail.append("timedatectl:NTP_status")
-    except Exception:
-        clock_status = "NTP_PROBE_FAILED"
-        probe_trail.append("timedatectl:FAILED")
-
-    try:
-        result = _sp.run(
-            ["timedatectl", "timesync-status", "--property=PollIntervalUSec"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            probe_trail.append("timedatectl:timesync_status")
-    except Exception:
-        pass
+                probe_trail.append("timedatectl:status")
+        except Exception:
+            clock_status = "NTP_PROBE_FAILED"
+            probe_trail.append("timedatectl:FAILED")
 
     tc_status = "UNAVAILABLE"
     if temporal_context and isinstance(temporal_context, dict):
@@ -723,6 +754,8 @@ def _build_init_v2_roots(
         "clock_status": clock_status,
         "clock_uncertainty_ms": clock_uncertainty_ms,
         "ntp_drift_ms": ntp_drift_ms,
+        "ntp_source": ntp_source,
+        "ntp_stratum": ntp_stratum,
         "timezone": "Asia/Kuala_Lumpur",
         "temporal_context_status": tc_status,
         "falsification": "Any subsequent timestamp contradicts this anchor",
@@ -747,7 +780,9 @@ def _build_init_v2_roots(
         "objective": _obj or "unspecified — session created without explicit objective",
         "task_type": task_type,
         "success_criteria": _sc if _sc else ["unspecified — no success criteria declared"],
-        "falsification_criteria": _vr if _vr else ["session budget exhausted", "HOLD verdict reached"],
+        "falsification_criteria": _vr
+        if _vr
+        else ["session budget exhausted", "HOLD verdict reached"],
         "termination_rules": [
             "goal_achieved",
             "budget_exhausted",
@@ -813,11 +848,13 @@ def _build_init_v2_roots(
 
     try:
         import json as _json3
+
         with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
             doc = _json3.loads(fh.read())
         last_write = doc.get("writers", {}).get("last_write_utc")
         if last_write:
             from datetime import datetime as _dt2, timezone as _tz2
+
             lw = _dt2.fromisoformat(last_write.replace("Z", "+00:00"))
             age_h = (_dt2.now(_tz2.utc) - lw).total_seconds() / 3600
             if age_h > 24:
@@ -855,6 +892,117 @@ def _build_init_v2_roots(
     }
 
     return roots
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CARRY FORWARD INJECTION (L3 — F13-ratified 2026-09-20)
+# Injects generational memory into init so agents start with context.
+# Reads carry_forward.json: human_state, top entries, chron_briefing.
+# Additive — old clients ignore. Fails closed (returns None on any error).
+# ════════════════════════════════════════════════════════════════════════════════
+
+_CARRY_FORWARD_MAX_ENTRIES = 10
+
+
+def _build_carry_forward_context() -> dict[str, Any] | None:
+    """Build carry_forward context for injection into init response.
+
+    Returns a dict with: human_state, recent_entries, chron_briefing,
+    generation, writers. Returns None if carry_forward is unreadable.
+    """
+    import json as _json
+    from datetime import datetime as _dt, timezone as _tz
+
+    try:
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json.loads(fh.read())
+    except Exception:
+        return None
+
+    if not isinstance(doc, dict) or doc.get("schema") != _CARRY_FORWARD_SCHEMA:
+        return None
+
+    ctx: dict[str, Any] = {
+        "source": _CARRY_FORWARD_PATH,
+        "schema": _CARRY_FORWARD_SCHEMA,
+    }
+
+    # ── Generation metadata ──
+    gen = doc.get("generation")
+    if isinstance(gen, dict):
+        ctx["generation"] = {
+            "gen_id": gen.get("gen_id"),
+            "created_utc": gen.get("created_utc"),
+        }
+
+    # ── Writers (last write freshness) ──
+    writers = doc.get("writers")
+    if isinstance(writers, dict):
+        last_write = writers.get("last_write_utc")
+        ctx["last_writer"] = writers.get("last_writer")
+        ctx["last_write_utc"] = last_write
+        if last_write:
+            try:
+                lw = _dt.fromisoformat(last_write.replace("Z", "+00:00"))
+                age_h = (_dt.now(_tz.utc) - lw).total_seconds() / 3600
+                ctx["stale_hours"] = round(age_h, 1)
+                ctx["is_stale"] = age_h > 24
+            except Exception:
+                pass
+
+    # ── Human state ──
+    hs = doc.get("human_state")
+    if isinstance(hs, dict):
+        ctx["human_state"] = {
+            "last_seen_utc": hs.get("last_seen_utc"),
+            "current_focus": hs.get("current_focus"),
+            "energy_estimate": hs.get("energy_estimate"),
+            "sleep_state": hs.get("sleep_state"),
+            "mood_indicator": hs.get("mood_indicator"),
+        }
+
+    # ── Recent entries (top N by recency) ──
+    entries = doc.get("entries", [])
+    if isinstance(entries, list) and entries:
+        recent = []
+        for e in entries[-_CARRY_FORWARD_MAX_ENTRIES:]:
+            if isinstance(e, dict):
+                recent.append({
+                    "id": e.get("id"),
+                    "kind": e.get("kind"),
+                    "content": (e.get("content") or "")[:200],
+                    "agent": e.get("agent"),
+                })
+        ctx["recent_entries"] = recent
+        ctx["total_entry_count"] = len(entries)
+        # Entry kind summary
+        kinds: dict[str, int] = {}
+        for e in entries:
+            if isinstance(e, dict):
+                k = e.get("kind", "?")
+                kinds[k] = kinds.get(k, 0) + 1
+        ctx["entry_kinds"] = kinds
+
+    # ── Chron briefing (temporal predictions) ──
+    cb = doc.get("chron_briefing")
+    if isinstance(cb, dict):
+        preds = cb.get("predictions", {})
+        ctx["chron_briefing"] = {
+            "generated_utc": cb.get("generated_utc"),
+            "active_predictions": preds.get("active_count", 0),
+            "due_predictions": preds.get("due_count", 0),
+        }
+
+    # ── Open loops (entries with kind=open_loop) ──
+    open_loops = [e for e in entries if isinstance(e, dict) and e.get("kind") == "open_loop"]
+    if open_loops:
+        ctx["open_loop_count"] = len(open_loops)
+        ctx["top_open_loops"] = [
+            {"id": e.get("id"), "content": (e.get("content") or "")[:150]}
+            for e in open_loops[-5:]
+        ]
+
+    return ctx
 
 
 def _project_light(
@@ -1042,6 +1190,13 @@ def _project_light(
             if not actor_verified
             else "VERIFIED"
         ),
+        # ── Orthogonal State Ontology (2026-09-20 F13 Ratified) ──
+        "machine_state": "HEALTHY",
+        "runtime_state": "DRIFT" if _drift else "CONVERGED",
+        "identity_state": "VERIFIED" if actor_verified else "UNVERIFIED",
+        "witness_state": "FULL" if (actor_verified and _seal_allowed) else "ABSENT",
+        "authority_state": _authority,
+        "constitutional_state": "HOLD" if (not actor_verified or _drift or _boot_unhealthy) else "OPERATIONAL",
     }
 
     out = {
@@ -2889,6 +3044,23 @@ def arif_init(
             doctrine=ARIF_DOCTRINE,
             # Session Contract v2 — temporal grounding context (additive)
             temporal=_build_temporal_context(mode="light"),
+            # INIT v2 Roots last-mile wire (2026-09-20, additive — 333-AGI).
+            # The builder was threaded into only 1 of 3 arif_init return branches;
+            # the mode=init light path took this branch, so the 4 roots were built
+            # and dropped. Match the ~3980 principal-agent branch pattern.
+            init_v2_roots=_safe_build(
+                _build_init_v2_roots,
+                sid=sid,
+                actor_id=actor_id,
+                identity_verified=bool(sess.get("actor_verified", False)),
+                mode=mode,
+                objective=objective,
+                success_criteria=success_criteria,
+                verification_requirements=verification_requirements,
+                sess=sess,
+                temporal_context=_build_temporal_context(mode="light"),
+                fallback=None,
+            ),
         )
 
     if mode == "challenge":
@@ -3838,6 +4010,31 @@ def arif_init(
             verification_criteria=verification_requirements,
         )
 
+        # INIT v2 Roots — F13-ratified 2026-09-20 (additive)
+        # Injected into header (result dict) so it survives MCP pipeline.
+        _tc_for_roots = _build_temporal_context(mode=mode)
+        _v2_roots = _safe_build(
+            _build_init_v2_roots,
+            sid=sid,
+            actor_id=actor_id,
+            identity_verified=identity_verified,
+            mode=mode,
+            objective=objective,
+            success_criteria=success_criteria,
+            verification_requirements=verification_requirements,
+            sess=sess,
+            temporal_context=_tc_for_roots,
+            fallback=None,
+        )
+        if _v2_roots:
+            header["init_v2_roots"] = _v2_roots
+
+        # L3: Carry-forward injection — generational memory at init.
+        # Injects human_state, recent entries, chron_briefing, open loops.
+        _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
+        if _cf_ctx:
+            header["carry_forward"] = _cf_ctx
+
         # M5 payload diet: strip nested bloat from minimal verbosity
         # (must run AFTER all blocks assembled, not inside _project_light)
         if _normalize_verbosity(verbose) == "minimal":
@@ -3886,7 +4083,7 @@ def arif_init(
         # Persist on session so identity_store can read it
         sess["temporal_root"] = _temporal_root
 
-        # ── INIT temporal grounding (2026-09-20, additive — F13 pending) ──
+        # ── INIT temporal grounding (2026-09-20, additive — F13 RATIFIED) ──
         # ROUTING FIX: v1 set header["temporal_root"] to the empty {} F1 fallback
         # (~line 3607); the Temporal Keystone above only refreshed sess[]. The INIT
         # envelope therefore surfaced {} while the populated root was computed and
