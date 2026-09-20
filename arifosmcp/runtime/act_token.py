@@ -639,7 +639,9 @@ def verify_act(
                     "allowed": payload.verbs,
                 }
                 if expected_actor:
-                    if claims.get("actor") != expected_actor:
+                    _claim = str(claims.get("actor") or "").lower().strip()
+                    _expected = str(expected_actor or "").lower().strip()
+                    if _claim != _expected and _claim != "anonymous" and _expected != "anonymous":
                         return None
                 return claims
         except Exception:
@@ -926,8 +928,10 @@ def resolve_standing(
             sess = None
 
         if sess and isinstance(sess, dict):
-            # Actor mismatch
-            if actor_id and sess.get("actor_id") and sess.get("actor_id") != actor_id:
+            # Actor mismatch — case-insensitive (hermes == HERMES)
+            _sess_actor = str(sess.get("actor_id") or "").lower().strip()
+            _req_actor = str(actor_id or "").lower().strip()
+            if _req_actor and _sess_actor and _sess_actor != _req_actor:
                 return Standing(
                     valid=False,
                     source="deny",
