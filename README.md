@@ -22,7 +22,15 @@ holds: Merkle signing lane · WELL biometrics · medical purge (Pilihan A)
 seal_readiness_gaps: graphiti=RETIRED_888(2026-09-04) · semantic_floor=off_by_choice(ARIFOS_ML_FLOORS=0) · langfuse=SOVEREIGN_CUTOVER→kabarkan(live)
 -->
 
-# arifOS — The Authority Plane of the arifOS Federation
+# arifOS — an independent policy kernel for AI agents: judge before execute
+
+**What it is.** arifOS is an independent policy kernel for AI agents. When an agent proposes to write, delete, deploy, or spend, arifOS evaluates the proposal against 13 constitutional floors (F1–F13), returns an ordered, non-compensable verdict, and records the evidence in an append-only ledger — *before* execution occurs. 8 public MCP verbs, AGPL-3.0, live at `https://arifos.arif-fazil.com`.
+
+**Who it is for.** Operators of high-consequence technical systems where a wrong action is expensive and hard to reverse: subsurface and basin review, resource certification, geohazard assessment, safety-critical engineering. Not every startup. This buyer already produces falsifiable claims under audit, and already writes its own QC gates by hand.
+
+**What makes it different.** The governance ships inside a real reasoning domain. arifOS governs the Earth evidence produced by sister organ [GEOX](https://github.com/ariffazil/GEOX) — a live geoscience organ with 25 canonical MCP tools (`geox_well_qc`, `geox_basin`, `geox_prospect`, `geox_seismic_interpret`, `geox_claim`), running at `authority_ceiling: 555_COMPUTE_ONLY` and `domain_law: NATURAL_LAW`. GEOX computes physics-grounded evidence; it never adjudicates and never seals. arifOS holds the gavel. So the decisions this kernel governs are technical and checkable by an outsider, and what comes back is a receipt, not a policy document. Dated market map and buyer analysis: [`docs/positioning/POSITIONING-2026-09.md`](./docs/positioning/POSITIONING-2026-09.md).
+
+**Verdicts are ordered and non-compensable — VOID < HOLD < SABAR < PARTIAL < SEAL — and every one is written to an append-only ledger.**
 
 [![Security Audit: In Progress](https://img.shields.io/badge/Security_Audit-In_Progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![MCP Compliance: 148 Rules](https://img.shields.io/badge/MCP_Scanners-148_Rules_Passed-d4a853?style=flat-square)](https://mcp.arif-fazil.com/proof/)
@@ -35,11 +43,7 @@ seal_readiness_gaps: graphiti=RETIRED_888(2026-09-04) · semantic_floor=off_by_c
 [![Runtime Drift](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/08-runtime-drift.yml?label=Runtime_Drift&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/08-runtime-drift.yml)
 [![External Witness](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/external-witness.yml?label=External_Witness&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/external-witness.yml)
 
-**arifOS evaluates consequential AI actions against constitutional floors and returns an independent verdict _before_ execution occurs.**
-
-When an AI agent proposes to write, delete, deploy, or spend, arifOS inserts a constitutional judgment step: the agent proposes, arifOS evaluates against F1–F13 floors, a verdict is reached, and only then does execution proceed. Every verdict is recorded with full evidence in an append-only ledger.
-
-In a world where intelligence is abundant, authority becomes the scarce resource. arifOS exists to ensure that judgment remains independent from execution.
+In a world where intelligence is abundant, authority becomes the scarce resource. arifOS exists so that judgment stays independent from execution.
 
 **This is not an AI model. It is not an agent framework. It is a constitutional authority system — the layer between "agent wants to act" and "action is permitted."**
 
@@ -54,7 +58,9 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 | **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, schema-validated contracts |
 | **Robot / Automation** | CI gates (conformance, vault-integrity, drift), [`Makefile`](./Makefile) targets, [`Dockerfile`](./Dockerfile) |
 
-Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [GEOX](https://github.com/ariffazil/GEOX) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [AAA](https://github.com/ariffazil/AAA)
+Live: `https://arifos.arif-fazil.com` · MCP `:8088` · organ map: [GEOX](https://github.com/ariffazil/GEOX) (Earth evidence, `:8081`) · [A-FORGE](https://github.com/ariffazil/A-FORGE) (execution) · [AAA](https://github.com/ariffazil/AAA) (attention)
+
+Kernel `/health` observed **2026-09-20**: `floors_active 13/13` · `vault999: healthy` · `exposed_tools: 8` · `deployment_drift_status: aligned`. Verify with `curl https://arifos.arif-fazil.com/health` and `curl https://arifos.arif-fazil.com/tools.json` — live probes beat any count in this file.
 
 ---
 
