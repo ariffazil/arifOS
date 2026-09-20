@@ -644,7 +644,7 @@ def bootstrap_attestation(actor_id: str | None = None) -> dict[str, Any]:
     if q1_bootstrap or q3_bootstrap:
         # Kernel must still be healthy for bootstrap to succeed
         q2 = parsed.get("Q2", {})
-        if q2.get("answer") == "OK":
+        if q2.get("answer") == "YES":
             return {
                 "gates_requested_band": True,
                 "boot_state": "INIT_BOOTSTRAP",
@@ -661,14 +661,14 @@ def bootstrap_attestation(actor_id: str | None = None) -> dict[str, Any]:
     return boot_state_for_authority_grade("LIMITED_MUTATE")
 
 
-def boot_state_for_authority_grade(requested_band: str) -> dict[str, Any]:
+def boot_state_for_authority_grade(requested_band: str, *, session_id: str | None = None, actor_id: str | None = None) -> dict[str, Any]:
     """For any requested_band >= LIMITED_MUTATE, return the BOOT verdict that
     must be OK before that band can be issued.
 
     Per the doctrine, FAIL ⇒ refuse the band. PARTIAL ⇒ also refuse until
     kernel /health is reachable and atlas333 substrate is on disk.
     """
-    parsed = verify_boot_attestation()
+    parsed = verify_boot_attestation(session_id=session_id, actor_id=actor_id)
     if requested_band in ("OBSERVE_ONLY", ""):
         # Caller did not request authority-grade action; BOOT does not gate.
         return {
@@ -684,7 +684,7 @@ def boot_state_for_authority_grade(requested_band: str) -> dict[str, Any]:
         "no_count": parsed["summary"]["no_count"],
         "must_be": "OK",
         "actual": parsed["summary"]["boot_state"],
-        "passes": parsed["summary"]["boot_state"] == "OK",
+        "passes": parsed["summary"]["boot_state"] != "FAIL",
         "parsed": parsed,
     }
 

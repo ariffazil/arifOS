@@ -173,7 +173,7 @@ from arifosmcp.runtime.governance_identity import (
 _LEGACY_MIRROR_RETIREMENT_DATE = "2026-08-09"
 
 
-def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: bool = False) -> str:
+def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: bool = False, session_id: str | None = None) -> str:
     """T3a Item 3 (2026-07-17): refuse authority-grade band when server-side
     BOOT attestation is not OK.
 
@@ -237,7 +237,7 @@ def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: b
         pass
     from arifosmcp.runtime.boot_attestation import boot_state_for_authority_grade
 
-    gate = boot_state_for_authority_grade(runtime_band)
+    gate = boot_state_for_authority_grade(runtime_band, actor_id=actor_id, session_id=session_id)
     if gate.get("gates_requested_band") and not gate.get("passes"):
         logger.warning(
             "T3a Item 3: BOOT gate demoted runtime_band=%s -> OBSERVE_ONLY "
@@ -608,6 +608,7 @@ def authority_envelope_for_session(
                 runtime_band,
                 actor_id=actor_key,
                 identity_verified=(exempt_authority == "SOVEREIGN"),
+                session_id=session_id,
             )
             return {
                 "actor_verified": True,  # exempt actors are verified by definition
@@ -640,6 +641,7 @@ def authority_envelope_for_session(
             runtime_band,
             actor_id=actor_id or "",
             identity_verified=bool(actor_verified_flag),
+            session_id=session_id,
         )
         sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
@@ -697,6 +699,7 @@ def authority_envelope_for_session(
         runtime_band,
         actor_id=getattr(state.actor, "claimed_id", "") or "",
         identity_verified=bool(getattr(state.actor, "verified", False)),
+        session_id=session_id,
     )
     return {
         "actor_verified": bool(state.actor.verified),
