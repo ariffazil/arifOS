@@ -3361,6 +3361,14 @@ def register_rest_routes(
                 }
             ]
 
+        # 2026-09-21 (surface-consistency audit): hoisted out of the payload literal
+        # so `registry_truth` can cite registry-only evidence instead of a variable
+        # it shares with the software-release axis.
+        _surface_consistency = _get_surface_consistency()
+        _surface_consistency_verdict = str(
+            (_surface_consistency or {}).get("verdict") or "UNKNOWN"
+        )
+
         payload = {
             "status": "degraded" if _degraded else "healthy",
             "degraded_reasons": degraded_reasons,
@@ -3425,7 +3433,7 @@ def register_rest_routes(
             # ── FORGE 2: Surface Self-Consistency (2026-06-22) ─────────────
             # INVARIANT: H(sorted(canonical_tool_names)) must be identical
             # from every enumeration endpoint. Divergence → AMBER + F11.
-            "surface_consistency": _get_surface_consistency(),
+            "surface_consistency": _surface_consistency,
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
             "runtime_floors": thermo.get("floors", {}),
@@ -3447,13 +3455,40 @@ def register_rest_routes(
             ).schema_load_receipt(),
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
             "registry_truth": "VERIFIED"
-            if not contract_drift_val and not runtime_drift_val
+            if not contract_drift_val and _surface_consistency_verdict == "CONSISTENT"
             else "DRIFT_DETECTED",
+            # 2026-09-21 (surface-consistency audit): registry_truth used to read
+            # `runtime_drift_val`, which by then had been OR'd with the software
+            # release attestation — so a REGISTRY verdict red-flagged on a
+            # SOURCE-vs-BUILT signal. /health emitted registry_truth=DRIFT_DETECTED
+            # while its own surface_consistency block hashed six vantages to the
+            # same value with divergences=[]. Basis is now registry-only; the
+            # software-release axis has its own fields and is not laundered here.
+            "registry_truth_basis": (
+                "contract_drift + surface_consistency.verdict "
+                "(registry axis only; excludes software-release drift)"
+            ),
             "schema_hash": _compute_schema_hash(mcp, tool_registry),
             "critical_module_hashes": _compute_critical_module_hashes(),
             "contract_status": contracts,
             "contract_drift": contract_drift_val,
             **_drift,
+            # ── AXIS-QUALIFIED DRIFT (surface-consistency audit 2026-09-21) ──
+            # `**_drift` above re-emits runtime_drift from the RAW probe, shadowing
+            # the value OR'd with the software-release attestation (~line 3210).
+            # /health therefore carried runtime_drift=false inside a payload that
+            # simultaneously said deployment_drift_status="drift_detected" and
+            # registry_truth="DRIFT_DETECTED" — "narrate SAFE, arithmetic says
+            # drift", the same Mode-3 defect the 2026-08-04 note fixed one field
+            # over. Both axes are real; neither is left unqualified now:
+            #   runtime_drift       deployment integrity, EITHER axis (the consumer
+            #                       at /health's runtime_drift_vs_trinity check
+            #                       documents this field as "deployment integrity")
+            #   code_runtime_drift  live running code vs deployed commit  (critical)
+            #   source_build_drift  repo source vs built artifact        (SOT only)
+            "runtime_drift": runtime_drift_val,
+            "code_runtime_drift": _code_runtime_drift,
+            "source_build_drift": _sr_drift,
             "graphiti_enabled": graphiti_enabled,
             # ── Token pressure telemetry (Phase 1.A — additive, F1 reversible) ──
             "token_pressure": _token_pressure_payload,
