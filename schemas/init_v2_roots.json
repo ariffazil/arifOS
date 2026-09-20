@@ -1,0 +1,129 @@
+{
+  "schema": "arifos.init.v2.roots",
+  "version": "2.0.0-draft",
+  "ratified": "2026-09-20",
+  "status": "PROPOSED — requires F13 ratification",
+  "description": "arif_init v2 — 9 Roots. Genesis of a bounded reality. Each root is falsifiable. Each root emits evidence.",
+  "roots": {
+    "REALITY_ROOT": {
+      "question": "What evidence exists?",
+      "fields": {
+        "observed_at": {"type": "datetime", "note": "When was this snapshot taken?"},
+        "runtime_pid": {"type": "integer", "note": "Process ID of running kernel"},
+        "runtime_commit": {"type": "string", "note": "Git SHA of deployed code"},
+        "source_commit": {"type": "string", "note": "Git SHA of source code"},
+        "source_runtime_match": {"type": "boolean", "note": "Does source match runtime?"},
+        "organ_states": {"type": "map<organ, state>", "note": "Per-organ: UP/DOWN/DEGRADED/UNKNOWN"},
+        "organ_evidence_weights": {"type": "map<organ, float>", "note": "EvidenceWeight per organ probe"},
+        "network_state_ref": {"type": "string", "note": "Reference to network state snapshot"},
+        "measurement_hash": {"type": "string", "note": "SHA-256 of entire reality snapshot"},
+        "contradictions": {"type": "list<Contradiction>", "note": "First-class contradictions detected"}
+      },
+      "falsification": "Any organ probe returns different state than reported"
+    },
+    "EPISTEMIC_ROOT": {
+      "question": "What class of knowledge is each claim?",
+      "fields": {
+        "epistemic_types": {"type": "enum", "values": ["OBSERVED", "MEASURED", "DERIVED", "REMEMBERED", "REPORTED", "PREDICTED", "ASSUMED", "CONTESTED", "UNKNOWN", "NORMATIVE"]},
+        "evidence_weights": {"type": "map<string, float>", "note": "EvidenceWeight per claim in session context"},
+        "silent_conversion_violations": {"type": "integer", "note": "Count of H02/H21 violations detected in prior session"}
+      },
+      "falsification": "Any claim in session lacks epistemic type"
+    },
+    "TEMPORAL_ROOT": {
+      "question": "When, in what causal order, with what uncertainty?",
+      "fields": {
+        "now": {"type": "datetime", "note": "Best estimate of current time"},
+        "clock_source": {"type": "string", "note": "NTP/kernel/syscall"},
+        "clock_uncertainty_ms": {"type": "integer", "note": "Estimated clock uncertainty"},
+        "session_birth": {"type": "datetime", "note": "When this session was created"},
+        "previous_session": {"type": "string", "note": "Session ID of prior session"},
+        "epoch_id": {"type": "string", "note": "Current epoch identifier"},
+        "freshness_policy": {"type": "map<domain, string>", "note": "Max staleness per domain: runtime=seconds, markets=minutes, human_memory=contextual"},
+        "evidence_timestamps": {"type": "map<string, datetime>", "note": "When each piece of evidence was last measured"},
+        "causal_predecessor": {"type": "string", "note": "Previous INIT in causal chain"},
+        "deadline": {"type": "datetime|null", "note": "Session deadline if any"}
+      },
+      "falsification": "Any timestamp contradicts NTP source, or freshness_policy violated without disclosure"
+    },
+    "IDENTITY_ROOT": {
+      "question": "Who is making the request?",
+      "fields": {
+        "claimed_actor_id": {"type": "string"},
+        "canonical_actor_id": {"type": "string"},
+        "claim_recognized": {"type": "boolean"},
+        "cryptographically_verified": {"type": "boolean"},
+        "verification_method": {"type": "enum", "values": ["NONE", "SESSION", "TOKEN", "MTLS", "DPOP", "DID", "SOVEREIGN"]},
+        "verification_timestamp": {"type": "datetime"},
+        "did_registry_validated": {"type": "boolean"},
+        "identity_proof": {"type": "string", "note": "SHA-256 of binding or challenge nonce"}
+      },
+      "falsification": "any change to identity after binding without re-init"
+    },
+    "AUTHORITY_ROOT": {
+      "question": "What may this actor authorize?",
+      "fields": {
+        "band": {"type": "enum", "values": ["OBSERVE_ONLY", "LIMITED_MUTATE", "SOVEREIGN"]},
+        "per_capability_readiness": {"type": "map<string, string>", "note": "observe=READY, deploy=HOLD, etc."},
+        "mutation_allowed": {"type": "boolean", "note": "CANONICAL — single source of truth"},
+        "seal_allowed": {"type": "boolean", "note": "CANONICAL — single source of truth"},
+        "allowed_verbs": {"type": "list<string>"},
+        "authority_derivation": {"type": "string", "note": "How authority was derived (SCT, DID, sovereign)"},
+        "authority_expiry": {"type": "datetime"},
+        "reversibility_gradient": {"type": "map<string, float>", "note": "RequiredAuthority per action class"}
+      },
+      "falsification": "Any action executed outside per_capability_readiness READY scope"
+    },
+    "OBJECTIVE_ROOT": {
+      "question": "What outcome is sought, how uncertain is that interpretation?",
+      "fields": {
+        "task_type": {"type": "enum", "values": ["EXECUTION", "EXPLORATION", "CARE", "OBSERVATION", "OPEN"]},
+        "objective": {"type": "string", "note": "Natural language goal"},
+        "success_criteria": {"type": "list<string>", "note": "MANDATORY for EXECUTION type"},
+        "success_metric": {"type": "string", "note": "How reality tells us we succeeded"},
+        "falsification_criteria": {"type": "list<string>", "note": "What would make this session fail"},
+        "constraints": {"type": "list<string>", "note": "Safety limits, reversibility, blast radius"},
+        "budget": {"type": "object", "note": "tokens, time, compute, money, tool_calls, delegation_depth"},
+        "termination_rules": {"type": "list<string>", "note": "goal_achieved, budget_exhausted, contradiction_unresolved, human_decision_required, etc."},
+        "human_intent": {"type": "string|null", "note": "For CARE type: what the human actually wants"},
+        "consent_boundary": {"type": "string|null", "note": "For CARE type: what the human has consented to"}
+      },
+      "falsification": "Session claims success without matching success_criteria/metric, or violates termination_rules"
+    },
+    "CAPABILITY_ROOT": {
+      "question": "What actually works right now?",
+      "fields": {
+        "tools": {"type": "list<ToolCapability>", "note": "Per-tool: available, reachable, healthy, authorized, appropriate, side_effect, reversible, cost, freshness, evidence_weight"},
+        "mcp_servers": {"type": "map<string, string>", "note": "Per-server: UP/DOWN/DEGRADED"},
+        "fallback_chains": {"type": "map<string, list<string>>", "note": "Fallback paths when primary fails"},
+        "cost_per_tool": {"type": "map<string, float>", "note": "Estimated cost per tool invocation"},
+        "rate_limits": {"type": "map<string, string>", "note": "Per-provider rate limits"}
+      },
+      "falsification": "Any tool invoked that CapabilityRoot reports DOWN or UNHEALTHY"
+    },
+    "SAFETY_ROOT": {
+      "question": "What can be done, reversed, stopped, escalated?",
+      "fields": {
+        "reversibility_classes": {"type": "enum", "values": ["READ", "SIMULATE", "REVERSIBLE_WRITE", "BOUNDED_EXTERNAL_ACTION", "IRREVERSIBLE_ACTION", "SOVEREIGN_ACTION"]},
+        "blast_radius": {"type": "enum", "values": ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+        "escalation_paths": {"type": "map<string, string>", "note": "What triggers escalation to whom"},
+        "human_decision_required": {"type": "list<string>", "note": "Actions requiring F13 sovereign decision"},
+        "corrigibility_status": {"type": "object", "note": "interruptible, redirectable, revocable, inspectable"},
+        "recovery_procedures": {"type": "list<string>", "note": "Rollback/undo paths for each action class"}
+      },
+      "falsification": "Irreversible action executed without corresponding RequiredAuthority"
+    },
+    "PROVENANCE_ROOT": {
+      "question": "Can this entire state be reconstructed and challenged?",
+      "fields": {
+        "vault_chain_ref": {"type": "string", "note": "VAULT999 seal chain reference"},
+        "session_receipt_id": {"type": "string", "note": "Receipt for this init"},
+        "state_hash": {"type": "string", "note": "SHA-256 of entire init output"},
+        "reconstructable": {"type": "boolean", "note": "Can this init state be reconstructed from stored evidence?"},
+        "challengeable": {"type": "boolean", "note": "Can any claim in this init be independently verified?"},
+        "audit_trail": {"type": "list<string>", "note": "Trace of all probes and measurements that produced this init"}
+      },
+      "falsification": "Any field in init output cannot be traced back to a measurement or probe"
+    }
+  }
+}

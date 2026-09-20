@@ -1,0 +1,63 @@
+{
+  "schema": "arifos.negative_knowledge.v1",
+  "description": "Negative Knowledge Declaration — what the system does NOT know",
+  "ratified": "2026-09-20",
+  "status": "PROPOSED",
+  "principle": "An agent that doesn't know what it doesn't know is dangerous.",
+  "gate": "Gate 1: NEGATIVE KNOWLEDGE (v2 init)",
+  "categories": {
+    "unmeasured_scalars": {
+      "description": "APEX scalars that have not been measured this session",
+      "examples": ["G", "C_dark", "W3", "kappa_r"],
+      "action": "Must be declared UNKNOWN, never estimated without measurement"
+    },
+    "degraded_organs": {
+      "description": "Organs that returned DEGRADED or DOWN on probe",
+      "examples": ["GEOX:DEGRADED", "WELL:DOWN"],
+      "action": "Must be declared; actions routed to degraded organs are BLOCKED"
+    },
+    "unknown_human_state": {
+      "description": "Whether the human's current state can be read",
+      "boolean": true,
+      "action": "If true, escalate before making assumptions about human intent"
+    },
+    "unresolved_contradictions": {
+      "description": "Count of OPEN contradictions from prior sessions",
+      "integer": true,
+      "action": "Must be injected into session context; cannot be ignored"
+    },
+    "stale_data": {
+      "description": "Data older than its freshness_policy TTL",
+      "examples": ["state.json age > 300s", "memory recall > 24h"],
+      "action": "Must be labeled STALE; cannot be used as primary evidence"
+    },
+    "missing_witnesses": {
+      "description": "Claims that lack independent verification",
+      "examples": ["agent self-report of success", "unverified deployment claim"],
+      "action": "Must be labeled REPORTED, not MEASURED or OBSERVED"
+    },
+    "unverifiable_claims": {
+      "description": "Claims that cannot be falsified with current evidence",
+      "examples": ["human emotional state", "normative judgments"],
+      "action": "Must be labeled NORMATIVE or UNKNOWN; cannot be promoted to MEASURED"
+    },
+    "clock_uncertainty_ms": {
+      "description": "Estimated uncertainty in system clock",
+      "integer": true,
+      "action": "All timestamps must carry this uncertainty bound"
+    }
+  },
+  "output_schema": {
+    "type": "NegativeKnowledge",
+    "fields": {
+      "unmeasured_scalars": ["list of scalar names"],
+      "degraded_organs": ["list of organ:state strings"],
+      "unknown_human_state": "boolean",
+      "unresolved_contradictions": "integer",
+      "stale_data": ["list of stale data descriptions"],
+      "missing_witnesses": ["list of unwitnessed claim descriptions"],
+      "unverifiable_claims": ["list of unverifiable claim descriptions"],
+      "clock_uncertainty_ms": "integer"
+    }
+  }
+}
