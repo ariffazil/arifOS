@@ -1457,18 +1457,11 @@ async def _handle_audit(payload: dict, ctx: Any) -> dict:
     memory_scope = payload.get("memory_scope", {})
     actor_id = payload.get("actor_id", "unknown")
 
-    if not action.get("description"):
-        return {
-            "ok": False,
-            "verdict": "HOLD",
-            "payload": {
-                "error": "MISSING_ACTION",
-                "message": "audit requires action.description",
-                "jitu_fired": False,
-            },
-        }
-
-    action_desc = action["description"]
+    # 2026-09-20 FIX (Memory Audit Schema): action.description was a hidden
+    # required field that blocked read-only audit calls that legitimately carry
+    # no proposed action.  JITU contradiction checks only make sense when a
+    # description is present — skip them gracefully instead of rejecting.
+    action_desc = action.get("description", "")
     action_domain = action.get("domain", "general")
     action_reversibility = action.get("reversibility", "UNKNOWN")
     action_blast = action.get("blast_radius", "UNKNOWN")

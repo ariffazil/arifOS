@@ -3284,8 +3284,17 @@ def _compute_scoped_verdicts(
     # Derived from: status STALE/ERROR → DEGRADED, presence of degradation flags,
     # AND explicit substrate/software_release.drift (W-02: must not PASS when
     # top-level substrate.state is DEGRADED).
+    # 2026-09-20 FIX (Substrate≠Authority): Degradation signals issued by
+    # session_capability_token or identity_band reflect AUTHORITY state, not
+    # physical substrate health.  Filter them out before deriving substrate scope
+    # so that an anonymous actor does not mark the physical machine as DEGRADED.
+    _AUTH_ISSUERS = {"session_capability_token", "identity_band"}
+    _substrate_only_degradation = [
+        d for d in (degradation or [])
+        if not any(iss in str(d).lower() for iss in _AUTH_ISSUERS)
+    ]
     _is_healthy = status in ("OK", "SEAL")
-    _has_degradation = bool(degradation)
+    _has_degradation = bool(_substrate_only_degradation)
     _has_error = status in ("ERROR", "STALE", "TIMEOUT")
     _sub_out = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
     _sw_out = out.get("software_release") if isinstance(out.get("software_release"), dict) else {}
@@ -3318,15 +3327,15 @@ def _compute_scoped_verdicts(
             issuer="arifos_conformance",
             evidence_reference="deployment_drift"
             if (_sub_out.get("drift") or _sw_out.get("drift") or _rp_sub.get("drift"))
-            else "; ".join(degradation[:3])
-            if degradation
+            else "; ".join(_substrate_only_degradation[:3])
+            if _substrate_only_degradation
             else "substrate_degraded",
         )
     elif _has_degradation and not _is_healthy:
         vs.substrate = ScopeEvidence(
             state="DEGRADED",
             issuer="arifos_conformance",
-            evidence_reference="; ".join(degradation[:3]) if degradation else "",
+            evidence_reference="; ".join(_substrate_only_degradation[:3]) if _substrate_only_degradation else "",
         )
     elif _is_healthy and not _has_degradation:
         vs.substrate = ScopeEvidence(
@@ -5772,7 +5781,16 @@ def _enforce_nine_signal(
         # subsequent tool calls can find it via get_session().
         # Use effective_verdict from envelope (post-wrapping), not internal
         # verdict variable (which may have been downgraded by the wrapper).
-        if tool_name == "arif_init":
+        # 2026-09-20 FIX: validate/refresh/handover must NOT overwrite the
+        # bound actor — doing so destroys the original session binding.
+        # Only mode=init/full/light/challenge may write/update the store.
+        _arif_init_mode = (
+            str(out.get("mode") or "").lower()
+            if isinstance(out, dict)
+            else ""
+        )
+        _SESSION_WRITE_MODES = {"init", "full", "light", "challenge", ""}
+        if tool_name == "arif_init" and _arif_init_mode in _SESSION_WRITE_MODES:
             _eff_verdict = envelope.get("effective_verdict", verdict)
             if _eff_verdict == "SEAL":
                 _sess_tok = out.get("session_token") or envelope.get("session_token")
@@ -15088,13 +15106,36 @@ def _arif_mind_reason(
         )
     if mode == "verify":
         v = _KERNEL.threat_engine.classify(query or "")
+        # 2026-09-20 FIX (Think Verify evidence-binding invariant):
+        # The threat engine classify() call populates violations but never
+        # populates evidence_used.  Emitting SEAL with evidence_used=[] is a
+        # silent lie — the caller has no basis to trust the verdict.
+        # When no violations are detected AND no evidence was used, return HOLD
+        # with reason=INSUFFICIENT_EVIDENCE so the caller knows to escalate.
+        _violations = v.violations or []
+        _threats_tier = getattr(v, "tier", None)
+        from arifosmcp.kernel.threat import ThreatTier as _TT
+        if _violations:
+            # Threat detected — VOID is fully evidenced by the violations list.
+            _verify_verdict = "VOID"
+            _evidence = [str(viol) for viol in _violations]
+        elif v.confidence is not None and float(v.confidence) >= 0.7:
+            # High-confidence CLEAN — acceptable SEAL with confidence as evidence.
+            _verify_verdict = "SEAL"
+            _evidence = [f"threat_engine_confidence={v.confidence}"]
+        else:
+            # Low confidence, no violations — cannot certify SEAL.
+            _verify_verdict = "HOLD"
+            _evidence = []
         return _ok(
             "arif_mind_reason",
             {
                 "mode": "verify",
                 "query": query,
-                "verdict": "VOID" if v.tier == ThreatTier.VOID else "SEAL",
-                "threats_detected": v.violations,
+                "verdict": _verify_verdict,
+                "threats_detected": _violations,
+                "evidence_used": _evidence,
+                "invariant": "INSUFFICIENT_EVIDENCE" if not _evidence else None,
             },
             delta_S=0.002,
             session_id=session_id,
