@@ -65,6 +65,11 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "claude-code": "operator",
     "deepseek": "operator",
     "kimi": "operator",
+    # FIX 2026-09-20 (333-AGI, sovereign "fix all"): kimi-code — FI-008 Kimi Code.
+    # Was the canonical FI-008 actor missing from this list (same class as the
+    # qwen-code P0.1b gap below). Without it, kimi-code never matched the exempt
+    # list and was demoted OBSERVE_ONLY by the boot gate on every request.
+    "kimi-code": "operator",
     # P0.1b FIX (2026-08-13): qwen/qwen-code — FI-003 Qwen Code.
     # Was the ONLY canonical FI agent missing from this list, causing
     # actor_verified=False and sct_error="RuntimeError" on every arif_init.
