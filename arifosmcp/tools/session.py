@@ -774,6 +774,10 @@ def _build_init_v2_roots(
         task_type = "EXPLORATION"
     elif _obj:
         task_type = "EXECUTION"
+        if not _sc:
+            _sc = [f"objective_addressed: {_obj[:100]}", "no_irreversible_side_effects_without_f13", "receipt_emitted"]
+        if not _vr:
+            _vr = ["evidence_trace_available", "session_budget_not_exhausted"]
 
     roots["OBJECTIVE_ROOT"] = {
         "question": "WHAT am I trying to accomplish?",
@@ -877,13 +881,18 @@ def _build_init_v2_roots(
 
     # ── 4. PROVENANCE_ROOT ────────────────────────────────────────────────
     # Question: CAN THIS be challenged?
-    state_input = f"{sid}|{actor_id}|{mode}|{_now.isoformat()}"
-    state_hash = _hashlib.sha256(state_input.encode()).hexdigest()
+    # State hash is deterministically reconstructable from sid, actor_id, mode, observed_at_utc, and audit_trail
+    _obs_iso = _now.isoformat()
+    state_input = f"{sid}|{actor_id}|{mode}|{_obs_iso}|{','.join(probe_trail)}"
+    state_hash = f"sha256:{_hashlib.sha256(state_input.encode()).hexdigest()[:32]}"
 
     roots["PROVENANCE_ROOT"] = {
         "question": "CAN THIS be challenged?",
         "session_receipt_id": sid,
-        "state_hash": f"sha256:{state_hash[:32]}",
+        "actor_id": actor_id,
+        "mode": mode,
+        "state_hash": state_hash,
+        "observed_at_utc": _obs_iso,
         "reconstructable": True,
         "challengeable": True,
         "audit_trail": probe_trail,
@@ -892,6 +901,36 @@ def _build_init_v2_roots(
     }
 
     return roots
+
+
+def reconstruct_provenance_hash(
+    provenance_root: dict[str, Any] | None = None,
+    *,
+    sid: str | None = None,
+    actor_id: str | None = None,
+    mode: str | None = None,
+    observed_at_utc: str | None = None,
+    audit_trail: list[str] | None = None,
+) -> str:
+    """Deterministically reconstruct the PROVENANCE_ROOT state_hash.
+
+    Can be called either with the provenance_root dict directly:
+        reconstruct_provenance_hash(prov_dict)
+    or with keyword arguments.
+    Enforces that reconstructable=True is a falsifiable, verified guarantee.
+    """
+    import hashlib as _hl
+
+    if provenance_root and isinstance(provenance_root, dict):
+        sid = sid or provenance_root.get("session_receipt_id") or provenance_root.get("sid")
+        actor_id = actor_id or provenance_root.get("actor_id")
+        mode = mode or provenance_root.get("mode") or "init"
+        observed_at_utc = observed_at_utc or provenance_root.get("observed_at_utc")
+        audit_trail = audit_trail if audit_trail is not None else (provenance_root.get("audit_trail") or [])
+
+    trail_str = ",".join(audit_trail) if audit_trail else ""
+    state_input = f"{sid}|{actor_id}|{mode}|{observed_at_utc}|{trail_str}"
+    return f"sha256:{_hl.sha256(state_input.encode()).hexdigest()[:32]}"
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -1001,6 +1040,148 @@ def _build_carry_forward_context() -> dict[str, Any] | None:
             {"id": e.get("id"), "content": (e.get("content") or "")[:150]}
             for e in open_loops[-5:]
         ]
+
+    return ctx
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CHRON TEMPORAL CONTEXT (L4 — F13-ratified 2026-09-20)
+# Injects prediction/calibration state into init so agents know what the
+# institution expects and how accurate it has been. Reads from CHRON data
+# files directly (bypasses broken MCP structuredContent serialization).
+# ════════════════════════════════════════════════════════════════════════════════
+
+_CHRON_DATA_DIR = "/root/chron/data"
+_CHRON_DUE_SOON_DAYS = 7
+
+
+def _build_chron_temporal_context() -> dict[str, Any] | None:
+    """Build CHRON temporal context for injection into init response.
+
+    Returns predictions (active, due-soon), calibration stats, and
+    lessons count. Returns None if CHRON data is unreadable.
+    """
+    import json as _json
+    from datetime import datetime as _dt, timezone as _tz
+    from pathlib import Path
+
+    preds_path = Path(_CHRON_DATA_DIR) / "predictions.jsonl"
+    cal_path = Path(_CHRON_DATA_DIR) / "calibration.json"
+    verif_path = Path(_CHRON_DATA_DIR) / "verification_log.jsonl"
+    lessons_path = Path(_CHRON_DATA_DIR) / "lessons.jsonl"
+
+    # ── Load predictions ──
+    preds: list[dict] = []
+    try:
+        with open(preds_path, encoding="utf-8") as f:
+            preds = [_json.loads(line) for line in f if line.strip()]
+    except Exception:
+        return None
+
+    if not preds:
+        return None
+
+    now = _dt.now(_tz.utc)
+    ctx: dict[str, Any] = {
+        "source": "chron",
+        "data_dir": _CHRON_DATA_DIR,
+    }
+
+    # ── Active predictions ──
+    # A prediction is active if status=ACTIVE and not yet verified as CORRECT/INCORRECT
+    verified_ids: set[str] = set()
+    try:
+        with open(verif_path, encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    v = _json.loads(line)
+                    vid = v.get("prediction_id")
+                    verdict = v.get("verdict") or v.get("status", "")
+                    if vid and verdict in ("VERIFIED_CORRECT", "VERIFIED_INCORRECT"):
+                        verified_ids.add(vid)
+    except Exception:
+        pass
+
+    active = [p for p in preds if p.get("status") == "ACTIVE" and p.get("prediction_id") not in verified_ids]
+
+    ctx["total_predictions"] = len(preds)
+    ctx["active_count"] = len(active)
+    ctx["verified_count"] = len(verified_ids)
+
+    # ── Due-soon predictions (within _CHRON_DUE_SOON_DAYS) ──
+    due_soon: list[dict] = []
+    for p in active:
+        try:
+            va = p.get("verify_at", "")
+            if va:
+                due = _dt.fromisoformat(va.replace("Z", "+00:00"))
+                days = (due - now).total_seconds() / 86400
+                if 0 <= days <= _CHRON_DUE_SOON_DAYS:
+                    due_soon.append({
+                        "prediction_id": p.get("prediction_id"),
+                        "claim": (p.get("claim") or "")[:200],
+                        "confidence": p.get("confidence"),
+                        "verify_at": va,
+                        "days_until_due": round(days, 1),
+                        "domain": p.get("domain"),
+                    })
+        except Exception:
+            pass
+
+    due_soon.sort(key=lambda x: x.get("days_until_due", 999))
+    ctx["due_soon"] = due_soon
+    ctx["due_soon_count"] = len(due_soon)
+
+    # ── Upcoming predictions (next 30 days) ──
+    upcoming: list[dict] = []
+    for p in active:
+        try:
+            va = p.get("verify_at", "")
+            if va:
+                due = _dt.fromisoformat(va.replace("Z", "+00:00"))
+                days = (due - now).total_seconds() / 86400
+                if 0 < days <= 30 and days > _CHRON_DUE_SOON_DAYS:
+                    upcoming.append({
+                        "prediction_id": p.get("prediction_id"),
+                        "claim": (p.get("claim") or "")[:150],
+                        "confidence": p.get("confidence"),
+                        "days_until_due": round(days, 1),
+                    })
+        except Exception:
+            pass
+    upcoming.sort(key=lambda x: x.get("days_until_due", 999))
+    ctx["upcoming"] = upcoming[:5]
+
+    # ── Calibration ──
+    try:
+        with open(cal_path, encoding="utf-8") as f:
+            cal = _json.loads(f.read())
+        ctx["calibration"] = {
+            "total": cal.get("total", 0),
+            "correct": cal.get("correct", 0),
+            "incorrect": cal.get("incorrect", 0),
+            "accuracy": cal.get("accuracy"),
+            "mean_brier": cal.get("mean_brier"),
+            "unverifiable": cal.get("unverifiable", 0),
+        }
+    except Exception:
+        ctx["calibration"] = {"total": 0, "note": "calibration data unreadable"}
+
+    # ── Lessons ──
+    try:
+        with open(lessons_path, encoding="utf-8") as f:
+            lesson_count = sum(1 for line in f if line.strip())
+        ctx["lessons_count"] = lesson_count
+    except Exception:
+        ctx["lessons_count"] = 0
+
+    # ── Temporal summary ──
+    ctx["temporal_summary"] = (
+        f"{len(active)} active predictions, "
+        f"{len(due_soon)} due within {_CHRON_DUE_SOON_DAYS}d, "
+        f"{len(verified_ids)} verified, "
+        f"{ctx.get('lessons_count', 0)} lessons"
+    )
 
     return ctx
 
@@ -2269,7 +2450,8 @@ def arif_init(
 
     # ── NULL HANDLING FIX ──────────────────────────────────────
     # P0: Null actor_id should produce a clear error, not silent coercion
-    if actor_id is None:
+    # Exempt validate/ping/cleanup modes: validate resolves bound actor from session_id
+    if actor_id is None and mode not in ("validate", "ping", "cleanup"):
         return _sm(
             status="HOLD",
             result={},
@@ -2981,6 +3163,33 @@ def arif_init(
                     ),
                 }
 
+        # ── INIT v2 Roots & Hash ──────────────────────────────────────────
+        _tc_for_roots = _build_temporal_context(mode="light")
+        _v2_roots = _safe_build(
+            _build_init_v2_roots,
+            sid=sid,
+            actor_id=actor_id,
+            identity_verified=bool(sess.get("actor_verified", False)),
+            mode=mode,
+            objective=objective,
+            success_criteria=success_criteria,
+            verification_requirements=verification_requirements,
+            sess=sess,
+            temporal_context=_tc_for_roots,
+            fallback=None,
+        )
+        if _v2_roots:
+            import hashlib as _hl, json as _js
+
+            _roots_canonical = _js.dumps(_v2_roots, sort_keys=True, default=str)
+            _roots_hash = f"sha256:{_hl.sha256(_roots_canonical.encode('utf-8')).hexdigest()}"
+            header["init_v2_roots"] = _v2_roots
+            header["init_roots_hash"] = _roots_hash
+            header["genesis_state_hash"] = _roots_hash
+            sess["init_v2_roots"] = _v2_roots
+            sess["init_roots_hash"] = _roots_hash
+            sess["genesis_state_hash"] = _roots_hash
+
         # ── Persist session ──────────────────────────────────────────────
         # P0 MULTI-TENANT (2026-07-29): bind tenant_id to session record
         if tenant_id:
@@ -3044,23 +3253,7 @@ def arif_init(
             doctrine=ARIF_DOCTRINE,
             # Session Contract v2 — temporal grounding context (additive)
             temporal=_build_temporal_context(mode="light"),
-            # INIT v2 Roots last-mile wire (2026-09-20, additive — 333-AGI).
-            # The builder was threaded into only 1 of 3 arif_init return branches;
-            # the mode=init light path took this branch, so the 4 roots were built
-            # and dropped. Match the ~3980 principal-agent branch pattern.
-            init_v2_roots=_safe_build(
-                _build_init_v2_roots,
-                sid=sid,
-                actor_id=actor_id,
-                identity_verified=bool(sess.get("actor_verified", False)),
-                mode=mode,
-                objective=objective,
-                success_criteria=success_criteria,
-                verification_requirements=verification_requirements,
-                sess=sess,
-                temporal_context=_build_temporal_context(mode="light"),
-                fallback=None,
-            ),
+            init_v2_roots=_v2_roots,
         )
 
     if mode == "challenge":
@@ -4027,13 +4220,33 @@ def arif_init(
             fallback=None,
         )
         if _v2_roots:
+            import hashlib as _hl, json as _js
+
+            _roots_canonical = _js.dumps(_v2_roots, sort_keys=True, default=str)
+            _roots_hash = f"sha256:{_hl.sha256(_roots_canonical.encode('utf-8')).hexdigest()}"
             header["init_v2_roots"] = _v2_roots
+            header["init_roots_hash"] = _roots_hash
+            header["genesis_state_hash"] = _roots_hash
+            sess["init_v2_roots"] = _v2_roots
+            sess["init_roots_hash"] = _roots_hash
+            sess["genesis_state_hash"] = _roots_hash
+            try:
+                from arifosmcp.runtime.tools import _SESSIONS
+                _SESSIONS[sid] = sess
+            except Exception:
+                pass
 
         # L3: Carry-forward injection — generational memory at init.
         # Injects human_state, recent entries, chron_briefing, open loops.
         _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
         if _cf_ctx:
             header["carry_forward"] = _cf_ctx
+
+        # L4: CHRON temporal context — predictions, calibration, lessons.
+        # Injects active predictions, due-soon items, calibration stats.
+        _chron_ctx = _safe_build(_build_chron_temporal_context, fallback=None)
+        if _chron_ctx:
+            header["chron_temporal"] = _chron_ctx
 
         # M5 payload diet: strip nested bloat from minimal verbosity
         # (must run AFTER all blocks assembled, not inside _project_light)
@@ -4631,9 +4844,10 @@ def arif_init(
     if mode == "validate":
         from arifosmcp.runtime.tools import _SESSIONS
 
-        _sct_arg = session_token
-        if not _sct_arg and isinstance(payload, dict):
-            _sct_arg = payload.get("session_token") or payload.get("sct")
+        _sct_arg = locals().get("session_token")
+        _payload = locals().get("payload")
+        if not _sct_arg and isinstance(_payload, dict):
+            _sct_arg = _payload.get("session_token") or _payload.get("sct")
         _candidate = session_id
         for _cand in (_sct_arg, session_id):
             if _cand and (str(_cand).startswith("act_v1.") or str(_cand).startswith("arifos.v1.")):
@@ -4694,11 +4908,32 @@ def arif_init(
         # SEAL-* session store path
         _in_store = target_sid in _SESSIONS
         sess_data = _SESSIONS.get(target_sid, {})
+        bound_actor = sess_data.get("actor_id") or "arif"
+
+        # Check actor mismatch only if caller explicitly passed actor_id
+        if _in_store and actor_id:
+            from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+            _bound_norm = normalize_actor_id(bound_actor) or bound_actor.lower().strip()
+            _provided_norm = normalize_actor_id(actor_id) or actor_id.lower().strip()
+            if _bound_norm != _provided_norm and _bound_norm != "anonymous" and _provided_norm != "anonymous":
+                return _sm(
+                    status="HOLD",
+                    result={
+                        "valid": False,
+                        "session_valid": False,
+                        "claims": None,
+                        "error": f"actor_id mismatch: supplied '{actor_id}' does not match bound session actor '{bound_actor}'",
+                    },
+                    meta={"reason": "actor_id mismatch with bound session actor"},
+                    doctrine=ARIF_DOCTRINE,
+                )
+
         claims_data = (
             {
                 "act_v": 1,
                 "sid": target_sid,
-                "actor": sess_data.get("actor_id") or "arif",
+                "actor": bound_actor,
                 "auth": sess_data.get("authority", "OBSERVE_ONLY"),
                 "av": True,
                 "stage": sess_data.get("stage", "000"),
@@ -4708,18 +4943,35 @@ def arif_init(
             else None
         )
 
+        init_roots_hash = sess_data.get("init_roots_hash")
+        genesis_state_hash = sess_data.get("genesis_state_hash")
+        roots_verified = False
+        if _in_store and init_roots_hash and sess_data.get("init_v2_roots"):
+            import hashlib as _hl, json as _js
+
+            _cur_hash = f"sha256:{_hl.sha256(_js.dumps(sess_data['init_v2_roots'], sort_keys=True, default=str).encode('utf-8')).hexdigest()}"
+            roots_verified = (_cur_hash == init_roots_hash)
+
+        res_data = {
+            "valid": _in_store,
+            "session_valid": _in_store,
+            "claims": claims_data,
+            "error": None if _in_store else f"session_id not found or expired: {target_sid}",
+            "session_id": target_sid,
+            "actor": bound_actor if _in_store else None,
+            "validation_path": "session_store",
+            "init_roots_hash": init_roots_hash,
+            "genesis_state_hash": genesis_state_hash,
+            "roots_verified": roots_verified,
+            "verification": _collect_verify_telemetry(),
+        }
+        if _payload and isinstance(_payload, dict) and _payload.get("include_roots"):
+            res_data["init_v2_roots"] = sess_data.get("init_v2_roots")
+
         return _sm(
             status="OK" if _in_store else "HOLD",
             verdict="SEAL" if _in_store else "HOLD",
-            result={
-                "valid": _in_store,
-                "session_valid": _in_store,
-                "claims": claims_data,
-                "error": None if _in_store else f"session_id not found or expired: {target_sid}",
-                "session_id": target_sid,
-                "validation_path": "session_store",
-                "verification": _collect_verify_telemetry(),
-            },
+            result=res_data,
             session_id=target_sid if _in_store else None,
             doctrine=ARIF_DOCTRINE,
         )
