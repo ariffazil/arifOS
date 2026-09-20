@@ -173,6 +173,7 @@ def evaluate(
     claim_text: str | None,
     declared_class: str | None = None,
     *,
+    evidence: dict[str, Any] | None = None,
     session_id: str | None = None,
     source: str | None = None,
     record: bool = True,
@@ -208,13 +209,24 @@ def evaluate(
         result = _action_eligible(str(claim_text or ""), declared)  # type: ignore[misc]
         reasons = list(result.get("reasons", []) or [])
         eligible = bool(result.get("eligible", False))
+        # NEGATIVE_KNOWLEDGE Gate (Computational VOID_t)
+        try:
+            from arifosmcp.core.negative_knowledge_gate import evaluate_negative_knowledge
+            nk_res = evaluate_negative_knowledge(claim_text, declared, evidence=evidence)
+            if not nk_res["passed"]:
+                reasons.extend(nk_res["reasons"])
+                eligible = False
+                declared = nk_res["downgraded_class"]
+        except Exception:
+            pass
+
         out = {
             "gate": GATE_ID,
             "kernel_available": True,
             "kernel_error": None,
             "schema": result.get("schema", SCHEMA),
             "declared": declared,
-            "class": (result.get("class_verdict") or {}).get("declared", declared),
+            "class": (result.get("class_verdict") or {}).get("declared", declared) if eligible else declared,
             "inferred": (result.get("class_verdict") or {}).get("inferred"),
             "agree": (result.get("class_verdict") or {}).get("agree"),
             "has_baseline": (result.get("baseline_verdict") or {}).get("has_baseline"),
@@ -225,6 +237,8 @@ def evaluate(
             "baseline_verdict": result.get("baseline_verdict"),
             "source": source,
         }
+        if "nk_res" in locals() and not nk_res.get("passed"):
+            out["void_entry"] = nk_res.get("void_entry")
         if record and session_id:
             _record(session_id, out.get("class") or declared, claim_text, source)
         return out

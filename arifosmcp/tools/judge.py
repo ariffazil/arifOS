@@ -3320,6 +3320,7 @@ async def arif_judge(
         _claim_class_receipt = _evaluate_claim_class_axis(
             str(_cc_text)[:4000],
             _cc_declared,
+            evidence=_evidence if isinstance(_evidence, dict) else None,
             session_id=session_id,
             source="arif_judge.verdict",
         )
@@ -3334,6 +3335,8 @@ async def arif_judge(
                 # judge did — same verdict, two answers. One text, one answer.
                 _cc_meta.setdefault("claim_text", str(_cc_text)[:4000])
                 _cc_meta["claim_class_gate"] = _claim_class_receipt
+                if _claim_class_receipt.get("void_entry"):
+                    _cc_meta["void_t"] = _claim_class_receipt["void_entry"]
             _cc_is_seal = "SEAL" in str(result.get("verdict", ""))
             if _cc_is_seal and not _claim_class_receipt.get("allowed_for_mutation"):
                 result.setdefault("reasons", []).append(
