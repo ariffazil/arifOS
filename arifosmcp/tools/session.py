@@ -1340,7 +1340,12 @@ def _project_light(
 
         _boot_record = get_organ_attestation("arifOS")
         _boot_status = _boot_record.status if _boot_record is not None else "UNATTESTED"
-        _boot_unhealthy = not is_healthy(_boot_status)
+        # UNATTESTED = organ attestation not yet run (registry empty at init).
+        # This is "not yet measured", NOT "failed" — do not block the session on
+        # attestation ABSENCE (matches the except-branch intent below). Fixes the
+        # dual-truth DEGRADED-vs-HEALTHY + BOOT_ATTESTATION_FAILED on every init.
+        # A REAL degraded status still fails closed. F13 "fix all" 2026-09-20.
+        _boot_unhealthy = (_boot_status != "UNATTESTED") and (not is_healthy(_boot_status))
     except Exception:  # noqa: BLE001 — attestation is best-effort during boot
         _boot_unhealthy = False  # default: do not block on attestation absence
     _substrate_state = "DEGRADED" if (_drift or _boot_unhealthy) else "HEALTHY"
