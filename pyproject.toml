@@ -287,6 +287,7 @@ include = [
     "arifos*",      # Phase 3: renamed from arifosmcp
     "arifosmcp*",   # Phase 2: still present until Phase 3 git mv
     "core*",
+    "schemas*",     # INIT v2 schemas (F13-ratified 2026-09-20)
 ]
 exclude = [
     "*.tests",

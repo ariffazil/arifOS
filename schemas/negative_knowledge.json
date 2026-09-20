@@ -2,7 +2,7 @@
   "schema": "arifos.negative_knowledge.v1",
   "description": "Negative Knowledge Declaration — what the system does NOT know",
   "ratified": "2026-09-20",
-  "status": "PROPOSED",
+  "status": "F13_RATIFIED_SOVEREIGN",
   "principle": "An agent that doesn't know what it doesn't know is dangerous.",
   "gate": "Gate 1: NEGATIVE KNOWLEDGE (v2 init)",
   "categories": {
