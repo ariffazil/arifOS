@@ -1939,12 +1939,26 @@ class GovernancePipeline:
             )
 
         except ImportError:
-            # check_laws not available — soft pass
+            # FAIL-CLOSED: floor module unavailable = "13 floors active" would
+            # degrade silently into "floors not evaluated" while the pipeline
+            # still emits a pass-shaped result. GATE 5 is the PRIMARY floor
+            # gate — an unevaluated primary gate must HOLD, exactly as the
+            # sibling _gate_godel_closure does when its gate module is absent.
+            # DITEMPA 2026-09-21.
+            logger.warning(
+                "Floor module unavailable (check_laws import failed) — FAIL-CLOSED (HOLD)"
+            )
             return GateResult(
                 gate=Gate.FLOORS,
-                passed=True,
-                reason="check_laws not available — soft pass (degraded mode)",
+                passed=False,
+                reason="floor module unavailable — FAIL-CLOSED, floors not evaluated",
                 latency_ms=(time.perf_counter() - t0) * 1000,
+                metadata={
+                    "degraded": True,
+                    "floors_evaluated": False,
+                    "violated_laws": [],
+                    "output_policy": "HOLD",
+                },
             )
         except Exception as e:
             logger.warning(f"Floor check failed: {e}")
