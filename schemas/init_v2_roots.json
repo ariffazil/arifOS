@@ -1,8 +1,8 @@
 {
   "schema": "arifos.init.v2.roots",
-  "version": "2.0.0-draft",
+  "version": "2.0.0",
   "ratified": "2026-09-20",
-  "status": "PROPOSED — requires F13 ratification",
+  "status": "F13_RATIFIED_SOVEREIGN",
   "description": "arif_init v2 — 9 Roots. Genesis of a bounded reality. Each root is falsifiable. Each root emits evidence.",
   "roots": {
     "REALITY_ROOT": {

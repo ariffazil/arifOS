@@ -601,3 +601,13 @@ class SessionManifest(BaseModel):
         "fatihah_loaded, ayat_al_kursi_loaded, al_fatihah_functions_bound, "
         "ayat_al_kursi_properties_bound, runtime_heart_fingerprint.",
     )
+    # ── INIT v2 Roots (F13-ratified 2026-09-20) ──────────────────────────
+    # Four critical roots that close the TIME + OUTCOME + UNKNOWN + WITNESS
+    # gaps identified in the deep research synthesis. Additive — old clients
+    # ignore fields they don't recognize. Schema: arifos.init.v2.roots
+    init_v2_roots: dict[str, Any] | None = Field(
+        default=None,
+        description="INIT v2 root bindings — TEMPORAL, OBJECTIVE, NEGATIVE_KNOWLEDGE, "
+        "PROVENANCE. Each root is falsifiable and emits evidence. "
+        "Schema: arifos.init.v2.roots",
+    )

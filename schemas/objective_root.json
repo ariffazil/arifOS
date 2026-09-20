@@ -2,7 +2,7 @@
   "schema": "arifos.objective.root.v1",
   "description": "Objective Root — what outcome is sought, how uncertain is that interpretation?",
   "ratified": "2026-09-20",
-  "status": "PROPOSED",
+  "status": "F13_RATIFIED_SOVEREIGN",
   "task_types": {
     "EXECUTION": {
       "description": "Concrete goal with measurable success criteria",

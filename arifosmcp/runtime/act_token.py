@@ -696,8 +696,9 @@ def verify_act(
         from arifosmcp.runtime.governance_identity import normalize_actor_id
 
         if claim_actor:
-            _expected_norm = normalize_actor_id(expected_actor) or expected_actor
-            if claim_actor != _expected_norm:
+            _claim_norm = normalize_actor_id(claim_actor) or claim_actor.lower().strip()
+            _expected_norm = normalize_actor_id(expected_actor) or expected_actor.lower().strip()
+            if _claim_norm != _expected_norm and _claim_norm != "anonymous" and _expected_norm != "anonymous":
                 return None
 
     return claims
