@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-09-06T19:55:21Z",
+  "generated": "2026-09-20T11:16:54Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=healthy, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.08.01 (756fb73). 105 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-09-06T19:55:21Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=healthy, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.08.01 (abc22b9). 113 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-09-20T11:16:54Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -63,7 +63,7 @@
         "tools": 48,
         "release": "v2026.08.01",
         "version": "v2026.08.01",
-        "commit": "756fb73",
+        "commit": "abc22b9",
         "canonical_tools": 8,
         "diagnostic_tools": 40,
         "tools_exposed_mcp": 8,
@@ -80,9 +80,9 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 26,
+        "tools": 25,
         "version": "v2026.08.26",
-        "git_version": "geox-5bd693bc"
+        "git_version": "geox-d669605c"
       },
       "wealth": {
         "name": "WEALTH",
@@ -105,7 +105,7 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "degraded",
-        "tools": 31,
+        "tools": 40,
         "version": "v2026.07.24"
       },
       "aaa": {
