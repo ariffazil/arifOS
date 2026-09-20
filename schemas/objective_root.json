@@ -1,0 +1,58 @@
+{
+  "schema": "arifos.objective.root.v1",
+  "description": "Objective Root — what outcome is sought, how uncertain is that interpretation?",
+  "ratified": "2026-09-20",
+  "status": "PROPOSED",
+  "task_types": {
+    "EXECUTION": {
+      "description": "Concrete goal with measurable success criteria",
+      "required_fields": ["success_criteria", "success_metric", "falsification_criteria"],
+      "termination": ["goal_achieved", "budget_exhausted", "failure_persistent"],
+      "example": "reconcile deployed kernel with canonical source"
+    },
+    "EXPLORATION": {
+      "description": "Open question with uncertainty target and stopping rule",
+      "required_fields": ["question", "uncertainty_target", "stopping_rule"],
+      "termination": ["uncertainty_below_target", "stopping_rule_met", "budget_exhausted"],
+      "example": "understand why arif_think reports HEALTHY while drift=true"
+    },
+    "CARE": {
+      "description": "Human intent with consent boundary",
+      "required_fields": ["human_intent", "consent_boundary"],
+      "termination": ["human_decision_required", "consent_boundary_reached", "dignity_violation_detected"],
+      "example": "help Arif with Telegram session seal architecture"
+    },
+    "OBSERVATION": {
+      "description": "Measurement scope with freshness requirements",
+      "required_fields": ["measurement_scope", "freshness_requirements"],
+      "termination": ["all_measurements_collected", "budget_exhausted"],
+      "example": "survey all federation organs and report health"
+    },
+    "OPEN": {
+      "description": "Explicitly unresolved objective — learning mode",
+      "required_fields": ["question", "information_gain_threshold"],
+      "termination": ["information_gain_below_threshold", "budget_exhausted", "contradiction_unresolved"],
+      "example": "explore what future arif_init should be"
+    }
+  },
+  "objective_contract": {
+    "objective": "string — natural language goal",
+    "task_type": "enum — one of the 5 types above",
+    "success_criteria": ["list of concrete success conditions"],
+    "success_metric": "string — how reality tells us we succeeded",
+    "falsification_criteria": ["list of conditions that would make this session fail"],
+    "constraints": ["list of safety limits, reversibility, blast radius"],
+    "budget": {
+      "max_tokens": "integer",
+      "max_tool_calls": "integer",
+      "max_cost_usd": "float",
+      "max_seconds": "integer",
+      "max_delegations": "integer",
+      "max_delegation_depth": "integer"
+    },
+    "termination_rules": ["list of stop conditions"],
+    "human_intent": "string|null — for CARE type",
+    "consent_boundary": "string|null — for CARE type",
+    "rollback_procedure": "string — what to do if session fails"
+  }
+}
