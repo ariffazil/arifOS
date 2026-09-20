@@ -5,7 +5,8 @@
     "endpoint": "https://mcp.arif-fazil.com/mcp",
     "transport": "streamable-http"
   },
-  "generated_from": "arifosmcp/abi/capability_registry.json",
+  "floors_active": 13,
+  "generated_from": "github.com/ariffazil/arifOS :: arifosmcp/abi/capability_registry.json",
   "kernel_abi": {
     "capability_count": 8,
     "version": "2026.07.24"
@@ -14,6 +15,14 @@
   "server_info": {
     "description": "Six-tool public profile projected from the eight-capability platform-neutral Kernel ABI.",
     "name": "arifOS MCP"
+  },
+  "source_repository": "https://github.com/ariffazil/arifOS",
+  "surface_summary": "6-tool public_agent discovery profile; the live endpoint exposes 8 canonical verbs (arif_init -> arif_observe -> arif_think -> arif_route -> arif_memory -> arif_judge -> arif_forge -> arif_seal).",
+  "tool_count_semantics": {
+    "exposed_tool_count": 8,
+    "kernel_capability_count": 8,
+    "note": "public_tool_count is the public_agent discovery profile shipped in this manifest; exposed_tool_count is what the canonical endpoint returns from tools/list. Live /health + tools/list outrank any static count.",
+    "public_tool_count": 6
   },
   "tools": [
     {
@@ -52,5 +61,11 @@
       "semantic_hash": "sha256:b1c58a6eeeeacb8ed8dd771295c24aeb28649b8dd4b8c3aa251cf4cd6a759abd",
       "version": "1.0.0"
     }
-  ]
+  ],
+  "versions": {
+    "kernel_abi_version": "2026.07.24",
+    "kernel_release": "v2026.08.01",
+    "package_version": "1!2026.9.6",
+    "server_version": "2026.08.01"
+  }
 }
