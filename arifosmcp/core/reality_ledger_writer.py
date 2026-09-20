@@ -24,7 +24,20 @@ from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
-LEDGER_PATH = Path("/root/reality_ledger/reality_ledger.jsonl")
+# FHS canon (FI-008 repair, 2026-09-20). This module is called as a
+# post-action hook from the kernel, which runs as User=arifos under
+# ProtectHome=read-only (arifos.service.d/02-fhs-canon.conf). A /root path is
+# therefore unwritable and every write failed with "Permission denied"
+# (swallowed as non-blocking, so the Reality Ledger went silent).
+# Mutable ledger state lives under /var/lib/arifos — same pattern as
+# arifos.service.d/20-state-directory.conf (ARIFOS_WITNESS_DIR).
+# Override with ARIFOS_REALITY_LEDGER_PATH.
+LEDGER_PATH = Path(
+    os.getenv(
+        "ARIFOS_REALITY_LEDGER_PATH",
+        "/var/lib/arifos/reality_ledger/reality_ledger.jsonl",
+    )
+)
 
 
 def _read_last_hash() -> str:

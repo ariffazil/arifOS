@@ -12,6 +12,8 @@ tar -czf "$TARFILE" \
   /root/arifOS/GENESIS/ \
   /root/AAA/agents/ \
   /root/.local/share/arifos/ \
+  /var/lib/arifos/atlas333/ \
+  /var/lib/arifos/reality_ledger/ \
   /etc/cron.d/arifos-* \
   2>/dev/null
 find "$BACKUP_DIR" -name "federation-*.tar.gz" -mtime +30 -delete

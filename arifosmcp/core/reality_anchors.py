@@ -27,7 +27,17 @@ from typing import Any, Optional
 
 logger = logging.getLogger("arifos.reality_anchors")
 
-EVIDENCE_DIR = Path("/root/reality_ledger/evidence")
+# FHS canon (FI-008 repair, 2026-09-20). Same ProtectHome=read-only constraint
+# as reality_ledger_writer.py: a /root path is unwritable for User=arifos.
+# This mkdir() runs at IMPORT time, so an absent directory is an import-time
+# landmine rather than a swallowed warning — it must point at a writable path.
+# Override with ARIFOS_REALITY_EVIDENCE_DIR.
+EVIDENCE_DIR = Path(
+    os.getenv(
+        "ARIFOS_REALITY_EVIDENCE_DIR",
+        "/var/lib/arifos/reality_ledger/evidence",
+    )
+)
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Organ source paths for SHA drift detection
