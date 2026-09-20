@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ariffazil/arifos",
-  "title": "arifOS Constitutional MCP Server",
-  "description": "Governed MCP server: 7 canonical verbs (init→seal), VAULT999 ledger, 888 Judge, F1-F13 floors.",
-  "version": "2026.06.30",
+  "title": "arifOS — Constitutional AI Kernel",
+  "description": "Constitutional AI kernel: 8 MCP tools, F1-L13 floors, VAULT999 ledger, SEAL/HOLD verdicts.",
+  "version": "2026.08.01",
   "websiteUrl": "https://arifos.arif-fazil.com",
   "repository": {
     "url": "https://github.com/ariffazil/arifOS",
@@ -21,7 +21,7 @@
     {
       "registryType": "pypi",
       "identifier": "arifos",
-      "version": "2026.06.30",
+      "version": "1!2026.9.2",
       "transport": {
         "type": "streamable-http",
         "url": "https://mcp.arif-fazil.com/mcp"
@@ -45,12 +45,25 @@
   ],
   "_meta": {
     "io.modelcontextprotocol.registry/publisher-provided": {
-      "version": "2026.06.30",
-      "tool": "forge_anthropic_registry_submit",
+      "version": "2026.08.01",
+      "tool": "sync_kernel_abi.py + mcp-publisher (shelf reconcile 2026-09-21)",
       "buildInfo": {
-        "commit": "arifOS-2026.06.30",
-        "pipelineId": "arifOS-10surface-aligned",
-        "timestamp": "2026-06-30T14:30:00Z"
+        "commit": "572621510ee2ffb1a68c5278a981952aadc4160a",
+        "pipelineId": "arifOS-shelf-reconcile-20260921",
+        "timestamp": "2026-09-21T19:30:00Z"
+      },
+      "versionIdentity": {
+        "kernel_release": "v2026.08.01",
+        "kernel_abi_version": "2026.07.24",
+        "pypi_published_version": "1!2026.9.2",
+        "repository_package_version": "1!2026.9.6",
+        "source": "live /health release_name + release_tag; verify: curl -s https://mcp.arif-fazil.com/health"
+      },
+      "toolCounts": {
+        "exposed_tool_count": 8,
+        "kernel_capability_count": 8,
+        "floors_active": 13,
+        "source": "live tools/list; verify: curl -s -X POST https://mcp.arif-fazil.com/mcp -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}'"
       }
     }
   }
