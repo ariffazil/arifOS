@@ -688,35 +688,33 @@ def hermes_cross_verify(
             f"Do NOT add any text outside the JSON object."
         )
 
-        # Attempt cross-verify via available channels
-        # If OpenCode gateway is available, delegate
-        opencode_port = 18789  # OpenClaw gateway port
+        # TCP :18789 is the OpenClaw gateway (KVM4, DNAT on KVM8). Not OpenCode.
+        openclaw_port = 18789
         import socket
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2.0)
         try:
-            opencode_alive = sock.connect_ex(("127.0.0.1", opencode_port)) == 0
+            openclaw_alive = sock.connect_ex(("127.0.0.1", openclaw_port)) == 0
         except Exception:
-            opencode_alive = False
+            openclaw_alive = False
         finally:
             sock.close()
 
-        if opencode_alive:
+        if openclaw_alive:
             result["result"]["verdict"] = "INSUFFICIENT"
             result["result"]["confidence"] = 0.5
             result["result"]["evidence"] = []
             result["result"]["notes"] = [
-                "OpenCode gateway reachable but delegate_task not available in this context",
-                "Cross-verify requires Hermes to call delegate_task manually",
-                "Hermes should: epistemic_check → fact_check → delegate_task to OpenCode",
+                "OpenClaw gateway :18789 reachable (not OpenCode). DNAT 127.0.0.1→100.64.0.5.",
+                "This port is not a fact-check delegate. Use hermes_fact_check for local verification.",
             ]
         else:
             result["result"]["verdict"] = "INSUFFICIENT"
             result["result"]["confidence"] = 0.3
             result["result"]["evidence"] = []
             result["result"]["notes"] = [
-                "OpenCode gateway not reachable",
+                "OpenClaw gateway :18789 not reachable on loopback",
                 "Use hermes_fact_check for local verification",
             ]
     except Exception as e:
