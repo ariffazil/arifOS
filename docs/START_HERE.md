@@ -8,20 +8,20 @@
 Read the [README](../README.md) — it covers the problem, solution, architecture, and what is/isn't proven in one page.
 
 ### "I want to evaluate arifOS for my team"
-1. Read the [README](../README.md) for architecture overview
-2. Read [SECURITY.md](../SECURITY.md) for threat model and known gaps
-3. Run `pip install arifos && arifos demo --guided` for a five-minute governed action
+1. Read the [README](../README.md) for the architecture overview
+2. Read [SECURITY.md](../SECURITY.md) for the threat model and known gaps
+3. Run the five-minute walkthrough in [QUICKSTART.md](./QUICKSTART.md): install, run the kernel, run `python examples/enterprise_operations_demo.py` and read six verdicts
 4. Check the [live health endpoint](https://arifos.arif-fazil.com/health) for current status
 
 ### "I want to build with arifOS"
 1. Read the [README](../README.md) Quick Start section
-2. Read the MCP interface documentation in the README
-3. Connect to the kernel at `http://localhost:8088/mcp`
+2. Read [QUICKSTART.md](./QUICKSTART.md) for the verified `arif_init → arif_judge → arif_seal` flow
+3. Connect to the kernel at `http://localhost:8088/mcp` (protocol negotiates `2025-11-25`; 8 canonical verbs)
 4. See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines
 
 ### "I want to review arifOS as a security evaluator"
 1. Read [SECURITY.md](../SECURITY.md) — threat model, known gaps, disclosure policy
-2. Read the [README](../README.md) "What Is Proven" and "What Is Not Yet Proven" sections
+2. Read the [README](../README.md) "Verification Status" and "What Is Not Yet Proven" sections
 3. Check the [live health endpoint](https://arifos.arif-fazil.com/health)
 4. The kernel source is in `arifosmcp/` — constitutional floors are in `arifosmcp/constitution/`
 
