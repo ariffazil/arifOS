@@ -1371,9 +1371,9 @@ google-genai==2.17.0 \
     # via
     #   arifos
     #   pydantic-ai-slim
-googleapis-common-protos==1.75.0 \
-    --hash=sha256:53a062ff3c32552fbd62c11fe23768b78e4ddf0494d5e5fd97d3f4689c75fbbd \
-    --hash=sha256:961ed60399c457ceb0ee8f285a84c870aabc9c6a832b9d37bb281b5bebde43ed
+googleapis-common-protos==1.75.3 \
+    --hash=sha256:57c435ac2c68b108999b6db075d9053e4d7a936ba57b4a3d45667b1346f1738a \
+    --hash=sha256:a018d2bf098ca9fb6faa08d5bb780e2a2c2f73c566f069761331386c9596d3f2
     # via
     #   google-api-core
     #   opentelemetry-exporter-otlp-proto-grpc
