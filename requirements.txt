@@ -1189,9 +1189,9 @@ filelock==3.32.2 \
     #   pytensor
     #   tldextract
     #   torch
-firecrawl-py==4.42.0 \
-    --hash=sha256:48f0210243ae2d8da57647b54d7a372f5fdd5c4c8bf15c67597c92a729788f78 \
-    --hash=sha256:ccce7a0f33be9433790b23227afdec2b225e10efbaf1467d496476aff74dfacb
+firecrawl-py==4.43.0 \
+    --hash=sha256:05afb5639c6ffbe286f479dd998df4e31af8ee3246cb7d274f2d743447ef6b9c \
+    --hash=sha256:0d0a40234e8fc962aecbf228ab5ef9d2680530d6c37b0dc6e4e27b8d40ebcbcc
     # via arifos
 flatbuffers==25.12.19 \
     --hash=sha256:7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4
