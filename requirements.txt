@@ -2049,11 +2049,10 @@ lance-namespace-urllib3-client==0.9.0 \
     --hash=sha256:be819c8cffb1e460a3a504dbf52d1ca009560a48e7202b8c4279998e4adf9fe4 \
     --hash=sha256:cf796fa5307fa4dde91fe4bec2af28b90ba79191852d4394e8fe44276538e40f
     # via lance-namespace
-lancedb==0.36.0 \
-    --hash=sha256:20c382a7c4e86386d4c26ef35068db8871b6c9f43ec5c581391f926f5346ed2b \
-    --hash=sha256:5e2b5e42f34329c07cd1a9b0cb341609602dd5fe29b088c7537c84662444d52c \
-    --hash=sha256:ac434374c49e4a642190855fb3940591637efd4af4487c67ee28bd534abf2d6e \
-    --hash=sha256:e20bb817346a7db30212c7f67f623ee21d096a1f52cfe6c8dfc4c911b515480e
+lancedb==0.39.0 \
+    --hash=sha256:0b38bfc50c79dd55bb993388b55af7d757e1cd1a0d0bbdc9a49926aae8f1533c \
+    --hash=sha256:640dcde055e684f44c7aa2f79a345301862d7a6868076ee76d8a732296be00bb \
+    --hash=sha256:66d9e64d7d1b52955f913f673d8f40e6e2eeeadf80a93c2d1ec2abfc686e7141
     # via arifos
 langchain-core==0.3.86 \
     --hash=sha256:671cbc96a325fe47f7dbab421236ada2d437bc4bfad0038102264885d0b462e2 \
