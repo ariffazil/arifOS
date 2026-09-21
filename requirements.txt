@@ -2061,9 +2061,9 @@ langchain-core==0.3.86 \
     # via
     #   langgraph
     #   langgraph-checkpoint
-langgraph==0.2.76 \
-    --hash=sha256:076b8b5d2fc5a9761c46a7618430cfa5c978a8012257c43cbc127b27e0fd7872 \
-    --hash=sha256:688f8dcd9b6797ba78384599e0de944773000c75156ad1e186490e99e89fa5c0
+langgraph==1.2.11 \
+    --hash=sha256:8bab70de7b2d00b5300fb289bcf38d8b241400f3184c1e95e8ce706fb0e8686b \
+    --hash=sha256:9ecfe11e50d338b34b15cf4d8a442642de103e8ae6971320efba84e4542eb363
     # via arifos
 langgraph-checkpoint==2.1.2 \
     --hash=sha256:112e9d067a6eff8937caf198421b1ffba8d9207193f14ac6f89930c1260c06f9 \
