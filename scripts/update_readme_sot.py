@@ -83,6 +83,15 @@ def update_readme_sot(dry_run: bool = False) -> dict:
     commit = get_git_commit()
     commit_subject = get_git_commit_subject()
     health = get_health()
+    if not health:
+        # Witness-first: an unreachable kernel is NO DATA, not an "unknown" value to
+        # write over good data. Refuse rather than degrade the manifest.
+        print(
+            "ERROR: kernel /health unreachable — refusing to re-stamp the manifest "
+            "(no stale or 'unknown' values written).",
+            file=sys.stderr,
+        )
+        sys.exit(2)
     vault_count = count_vault_lines()
     now = datetime.now(UTC).astimezone(timezone.utc)
     now_iso = now.strftime("%Y-%m-%dT%H:%M:%S+00:00")
