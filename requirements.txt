@@ -2045,9 +2045,9 @@ lance-namespace==0.9.0 \
     --hash=sha256:f738b641cc615b17323baa4eb47900f184688739ee3d2ea9fe39396b9588e53d \
     --hash=sha256:f785ff10927e4ce0db69986576670fedd37f8a33521e8a4630c6be22db8061b2
     # via lancedb
-lance-namespace-urllib3-client==0.9.0 \
-    --hash=sha256:be819c8cffb1e460a3a504dbf52d1ca009560a48e7202b8c4279998e4adf9fe4 \
-    --hash=sha256:cf796fa5307fa4dde91fe4bec2af28b90ba79191852d4394e8fe44276538e40f
+lance-namespace-urllib3-client==0.13.0 \
+    --hash=sha256:1e8a79c6e4e6277033597fd76aa0e2f33d909ca1436c935936e9e569221f43ef \
+    --hash=sha256:fb361eb4f6c7f2d1f9e92809609657b73e38241393e9c4516e12d6b6ee643a0a
     # via lance-namespace
 lancedb==0.39.0 \
     --hash=sha256:0b38bfc50c79dd55bb993388b55af7d757e1cd1a0d0bbdc9a49926aae8f1533c \
