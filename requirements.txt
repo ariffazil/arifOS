@@ -2041,9 +2041,9 @@ kubernetes==36.0.3 \
     --hash=sha256:36993ed25ce59b789c9341473a228fcf268504a2fec7c2b2b1531d73072e5ce7 \
     --hash=sha256:8fde9241c4b298e6374a069dcf728359b4e72c2fb29489a975ba4e1c047cf10f
     # via chromadb
-lance-namespace==0.9.0 \
-    --hash=sha256:f738b641cc615b17323baa4eb47900f184688739ee3d2ea9fe39396b9588e53d \
-    --hash=sha256:f785ff10927e4ce0db69986576670fedd37f8a33521e8a4630c6be22db8061b2
+lance-namespace==0.13.0 \
+    --hash=sha256:24554a0997bdb39595c6e4cb3ac6722069f6cd3bd1a74e7acbba7bfaf774a40d \
+    --hash=sha256:438c7b17aef421c21c138196e715f2510d62f07e865372047f87c1e75e618c7a
     # via lancedb
 lance-namespace-urllib3-client==0.13.0 \
     --hash=sha256:1e8a79c6e4e6277033597fd76aa0e2f33d909ca1436c935936e9e569221f43ef \
