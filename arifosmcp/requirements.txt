@@ -1,6 +1,6 @@
 fastmcp>=4.0.0
 fastapi>=0.136.1
-uvicorn>=0.52.4
+uvicorn>=0.53.0
 pydantic>=2.13.4
 jsonschema>=4.0.0
 prometheus-client>=0.25.0
