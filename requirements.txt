@@ -4071,9 +4071,9 @@ pydantic-settings==2.14.2 \
     #   fastmcp-slim
     #   litellm
     #   mcp
-pydocket==0.23.1 \
-    --hash=sha256:136c1cc8b7aa7c4c08ea12431e966ae75eb093bb6ce6e0ac9db3391ba3d6034b \
-    --hash=sha256:3da279978fd0d07eb96d4119e1a213de61d6b4acd1792a28bc62e67f3e7e5929
+pydocket==0.25.2 \
+    --hash=sha256:1f6297883f9f615c65aacc622e07233137f491154251e3a8c8ec3cefb52ac7d0 \
+    --hash=sha256:ad3cc6a1045e1d979589d3543768da96fabc8711fbcdb1a06c54e6c6ac993766
     # via fastmcp-slim
 pyee==13.0.1 \
     --hash=sha256:0b931f7c14535667ed4c7e0d531716368715e860b988770fc7eb8578d1f67fc8 \
