@@ -1089,22 +1089,35 @@ def attach_canonical(
     if not inner_verdict and isinstance(response, dict):
         from arifosmcp.runtime.verdict import CANONICAL_VERDICTS as _cv
 
-        # zen may live at root meta OR (at attach time) only under
-        # result.meta — root meta is assembled later (observed live:
-        # fallback missed, effective composed from stale existing).
-        _res2 = response.get("result") if isinstance(response.get("result"), dict) else {}
-        _meta_candidates = []
-        if isinstance(response.get("meta"), dict):
-            _meta_candidates.append(response["meta"])
-        if isinstance(_res2.get("meta"), dict):
-            _meta_candidates.append(_res2["meta"])
-        for _mm in _meta_candidates:
-            _zc2 = _mm.get("zen_apex") if isinstance(_mm.get("zen_apex"), dict) else {}
-            _core2 = _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
-            _zv2 = str(_core2.get("verdict") or "").upper()
-            if _zv2 in _cv:
-                inner_verdict = _zv2
-                break
+        _r = response.get("result")
+        # LIVE JUDGE SHAPE (observed 2026-09-22): the handler returns a
+        # Pydantic VerdictOutput MODEL, so the wrapper builds
+        # body = {"result": MODEL} — dict-only checks see ZERO candidates,
+        # inner stays None, and effective composes from a stale existing
+        # (the manufactured flag's final cause). The model's own .verdict
+        # IS the post-gate judgment (seeded, governance-won) — best inner.
+        _model_v = getattr(_r, "verdict", None)
+        if _model_v is not None and str(_model_v).upper() in _cv:
+            inner_verdict = str(_model_v).upper()
+
+        # zen may live at root meta, result.meta (dict), or the model's
+        # .meta (attach-time assembly order varies — observed live).
+        if not inner_verdict:
+            _m_cands = []
+            if isinstance(response.get("meta"), dict):
+                _m_cands.append(response["meta"])
+            if isinstance(_r, dict) and isinstance(_r.get("meta"), dict):
+                _m_cands.append(_r["meta"])
+            _rm = getattr(_r, "meta", None)
+            if isinstance(_rm, dict):
+                _m_cands.append(_rm)
+            for _mm in _m_cands:
+                _zc2 = _mm.get("zen_apex") if isinstance(_mm.get("zen_apex"), dict) else {}
+                _core2 = _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
+                _zv2 = str(_core2.get("verdict") or "").upper()
+                if _zv2 in _cv:
+                    inner_verdict = _zv2
+                    break
 
     attach_canonical_standing(response, session_id=session_id, actor_id=actor_id)
     standing = response.get("standing") if isinstance(response, dict) else None
