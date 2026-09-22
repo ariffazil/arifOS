@@ -584,6 +584,19 @@ def _derive_safe_action(final: str, *, seal_allowed: bool) -> str:
     return _SAFE_ACTION_BY_VERDICT.get(final, _DEFAULT_SAFE_ACTION)
 
 
+# S4 axis carve-out (F13 FIX-S4, R1b 2026-09-22): session_birth.verdict
+# carries the AUTHORITY BAND by design (pinned by five tests:
+# birth.verdict == {OBSERVE_ONLY, LIMITED_MUTATE, FULL, ...}). Any non-OBSERVE
+# band is 'unknown' to the verdict vocabulary, so the closed-token check
+# fail-closed EVERY verified init to HOLD (live evidence:
+# UNKNOWN_VERDICT_TOKEN:result.session_birth.verdict=LIMITED_MUTATE).
+# This is the authority axis wearing a verdict-named key — path-scoped
+# exclusion; walker vigilance elsewhere is untouched. Long-term rename belongs
+# to the staged band-vs-judgment admissible-matrix ruling
+# (/root/forge_work/2026-09-22-S4-VERDICT-CHANNEL-CLOSURE.md).
+_NON_VERDICT_AXIS_PATHS_SUF = ("session_birth.verdict",)
+
+
 def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
     """Yield (path, raw_string) for every EXACT verdict-bearing key holding a
     non-null non-empty string. Null/absent means unset and is skipped — a
@@ -593,7 +606,8 @@ def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
         for key, value in node.items():
             child = f"{path}.{key}" if path else str(key)
             if key in _VERDICT_BEARING_KEYS and isinstance(value, str) and value.strip():
-                yield child, value
+                if not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF):
+                    yield child, value
             yield from _iter_verdict_bearing(value, child)
     elif isinstance(node, list):
         for index, value in enumerate(node):
