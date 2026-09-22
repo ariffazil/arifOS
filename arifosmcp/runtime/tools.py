@@ -3527,6 +3527,16 @@ _RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
     default=None,
 )
 
+# ── IRFAN advisory stewardship review (ARIF::SALAM::IRFAN::INIT::v0.1) ────
+# ADVISORY ONLY: holds the most recent Irfan review for THIS execution
+# context so response builders can attach it as metadata. It NEVER carries
+# or influences a kernel verdict (SEAL/SABAR/HOLD/VOID). Irfan emits only
+# CLEAR/CONCERN/ESCALATE as a stewardship recommendation.
+IRFAN_LAST_REVIEW: ContextVar[dict[str, Any] | None] = ContextVar(
+    "arifos_last_irfan_review",
+    default=None,
+)
+
 # ── Identity resolution: ingress context → kwargs → "unknown" ──────
 # F2 TRUTH: VAULT999 receipts must carry real identity, not "unknown".
 # The ingress middleware sets _RESPONSE_CONTEXT with actor_id/session_id
@@ -3861,6 +3871,43 @@ except Exception:
     minimax_bridge = None  # type: ignore
 
 
+def _resolve_irfan_action_shape(
+    tool_name: str, mode: str | None
+) -> tuple[str | None, str | None]:
+    """Best-effort (action_class, reversibility) resolution for the Irfan review.
+
+    Advisory-only: reads the canonical tool manifest and applies the
+    per-mode effect typing. Any failure yields (None, None) and the review
+    degrades honestly. NEVER used for enforcement.
+    """
+    try:
+        from arifosmcp.runtime.pre_execution_gate import (
+            _SDK_LONG_NAME_ALIASES as _IRFAN_ALIASES,
+            CANONICAL_TOOL_MANIFEST as _IRFAN_CTM,
+            resolve_action_class_for_mode as _irfan_resolve_mode,
+        )
+
+        canonical = _IRFAN_ALIASES.get(tool_name, tool_name)
+        entry = _IRFAN_CTM.get(canonical)
+        if entry is None or entry.action_class is None:
+            return None, None
+        resolved = entry.action_class
+        try:
+            resolved = _irfan_resolve_mode(canonical, str(mode or ""), entry.action_class)
+        except Exception:
+            resolved = entry.action_class  # manifest default on any resolution failure
+        name = str(getattr(resolved, "name", resolved)).upper()
+        if name == "IRREVERSIBLE":
+            reversibility = "irreversible"
+        elif name in ("MUTATE", "EXTERNAL_SIDE_EFFECT"):
+            reversibility = "mutating"
+        else:
+            reversibility = "reversible"
+        return name, reversibility
+    except Exception:
+        return None, None
+
+
 def _constitutional_gate(
     tool_name: str,
     mode: str,
@@ -3990,6 +4037,41 @@ def _constitutional_gate(
 
     _RESPONSE_CONTEXT.set({"actor_id": actor_id, "session_id": session_id})
     verdict = _CORE.evaluate(ctx)
+
+    # ── IRFAN advisory stewardship review (ARIF::SALAM::IRFAN::INIT::v0.1) ──
+    # ADVISORY ONLY. Computed AFTER the core verdict and NEVER fed back into
+    # it. Irfan emits CLEAR/CONCERN/ESCALATE as a stewardship recommendation;
+    # the gate verdict above remains the sole authority. Fail-open by design:
+    # an Irfan failure can never break the gate or alter any verdict.
+    try:
+        from arifosmcp.runtime.irfan_review import irfan_review_for_action
+
+        _irfan_action_class, _irfan_reversibility = _resolve_irfan_action_shape(
+            tool_name, mode
+        )
+        _irfan_payload: dict[str, Any] = {
+            "candidate": candidate,
+            "manifest": manifest,
+            "query": query,
+            "url": url,
+            "target_agent": target_agent,
+            "constitutional_chain_id": constitutional_chain_id,
+            "plan_id": plan_id,
+        }
+        IRFAN_LAST_REVIEW.set(
+            irfan_review_for_action(
+                tool_name=tool_name,
+                mode=mode,
+                actor_id=actor_id,
+                action_class=_irfan_action_class,
+                reversibility=_irfan_reversibility,
+                payload=_irfan_payload,
+                session_id=session_id,
+            )
+        )
+    except Exception:
+        # Advisory metadata only — the verdict above stands unchanged.
+        IRFAN_LAST_REVIEW.set(None)
 
     # ── Registry Tripwire Scan (v2 Deepening — Fix 4) ──
     if session_id and session_id in _SESSIONS:
@@ -9148,6 +9230,16 @@ def _ok(
 
     # Defensive shallow copy (L12 stewardship — never mutate caller's dict)
     meta_payload = {**(meta or {})}
+    # IRFAN advisory attachment (ARIF::SALAM::IRFAN::INIT::v0.1): stewardship
+    # recommendation metadata only. NEVER alters the verdict/status.
+    try:
+        _irfan_review = IRFAN_LAST_REVIEW.get()
+        if isinstance(_irfan_review, dict) and _irfan_review.get("context", {}).get(
+            "tool_name"
+        ) == tool:
+            meta_payload.setdefault("irfan_review", _irfan_review)
+    except Exception:
+        pass  # advisory — never blocks a success path
     from arifosmcp.runtime.context_witness import (
         build_internal_context_witness,
         should_emit_context_witness,
@@ -9556,6 +9648,16 @@ def _hold(
         session_id = response_ctx.get("session_id")
     actor_id = _actor_for_response(session_id, meta.get("actor_id"))
     meta.setdefault("actor_id", actor_id)
+    # IRFAN advisory attachment (ARIF::SALAM::IRFAN::INIT::v0.1): stewardship
+    # recommendation metadata only. NEVER alters the HOLD itself.
+    try:
+        _irfan_review = IRFAN_LAST_REVIEW.get()
+        if isinstance(_irfan_review, dict) and _irfan_review.get("context", {}).get(
+            "tool_name"
+        ) == tool:
+            meta.setdefault("irfan_review", _irfan_review)
+    except Exception:
+        pass  # advisory — never blocks a HOLD
     _add_floor_compat(meta)
     # SESAT integration: attach structured failure event to HOLD responses
     try:
