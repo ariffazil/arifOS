@@ -27651,6 +27651,20 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             _start_t = _time.time()
             response = await handler(*args, **_filtered)
+            # R-1d AWAIT TAG (F13 'ADD THE AWAIT TAG', 2026-09-23): what the
+            # outer layer ACTUALLY receives from the handler chain — the
+            # one-line window between the tagged inner return (trim/echo
+            # chain, HOLD) and _dict_from_response (whose input read SABAR).
+            # Decision rule: id == inner-chain id with SABAR ⇒ in-place
+            # mutator in the window; different id or non-dict type ⇒ the
+            # intermediate rebinding layer names itself here.
+            logger.warning(
+                "R1d outer-in: id=%s type=%s eff=%s verdict=%s",
+                hex(id(response))[-6:],
+                type(response).__name__,
+                (response.get("effective_verdict") or None) if isinstance(response, dict) else getattr(response, "effective_verdict", None),
+                (response.get("verdict") or None) if isinstance(response, dict) else getattr(response, "verdict", None),
+            )
             _latency_ms = (_time.time() - _start_t) * 1000.0
             # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
             _record_invocation(
