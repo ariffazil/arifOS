@@ -1131,6 +1131,17 @@ def attach_canonical(
                     inner_verdict = _zv2
                     break
 
+    # R-1d INNER TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23): the exact
+    # inner value the final attach composes with, plus the existing
+    # effective it merges over — the last unknown between the clean inner
+    # chain (598e80 HOLD) and the flag-stamping outer pass (SABAR).
+    logger.warning(
+        "R1d attach-inner: inner=%s existing_eff=%s result_type=%s",
+        inner_verdict or None,
+        (response.get("effective_verdict") or None) if isinstance(response, dict) else None,
+        type(response.get("result")).__name__ if isinstance(response, dict) else None,
+    )
+
     attach_canonical_standing(response, session_id=session_id, actor_id=actor_id)
     standing = response.get("standing") if isinstance(response, dict) else None
     band: str | None = None

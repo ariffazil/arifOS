@@ -27307,11 +27307,24 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
+        _r1d_in = _dict_from_response(response)
         final_resp = _enforce_nine_signal(
             tool_name,
-            _dict_from_response(response),
+            _r1d_in,
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
+        )
+        # R-1d FINAL_RESP TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23):
+        # birth bracket at the OUTER layer — coherent inner-HOLD goes in,
+        # newborn final_resp comes out. trim/echo already exonerated
+        # (598e80 chain clean); this catches the SABAR line exactly.
+        logger.warning(
+            "R1d final_resp: in_eff=%s in_verdict=%s -> out_id=%s out_eff=%s out_verdict=%s",
+            _r1d_in.get("effective_verdict") or None,
+            _r1d_in.get("verdict") or None,
+            hex(id(final_resp))[-6:],
+            final_resp.get("effective_verdict") or None if isinstance(final_resp, dict) else type(final_resp).__name__,
+            final_resp.get("verdict") or None if isinstance(final_resp, dict) else None,
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         # Epoch 1 / Items 1+3: canonical normalization. One call replaces
@@ -27623,11 +27636,24 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
+        _r1d_in = _dict_from_response(response)
         final_resp = _enforce_nine_signal(
             tool_name,
-            _dict_from_response(response),
+            _r1d_in,
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
+        )
+        # R-1d FINAL_RESP TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23):
+        # birth bracket at the OUTER layer — coherent inner-HOLD goes in,
+        # newborn final_resp comes out. trim/echo already exonerated
+        # (598e80 chain clean); this catches the SABAR line exactly.
+        logger.warning(
+            "R1d final_resp: in_eff=%s in_verdict=%s -> out_id=%s out_eff=%s out_verdict=%s",
+            _r1d_in.get("effective_verdict") or None,
+            _r1d_in.get("verdict") or None,
+            hex(id(final_resp))[-6:],
+            final_resp.get("effective_verdict") or None if isinstance(final_resp, dict) else type(final_resp).__name__,
+            final_resp.get("verdict") or None if isinstance(final_resp, dict) else None,
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         # Epoch 1 / Items 1+3: canonical normalization. One call replaces
