@@ -32,7 +32,9 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 # ── Nine-Signal wiring (P0 schema-fix 2026-08-17) ─────────────────────────────
@@ -508,12 +510,306 @@ def attach_effective_verdict(
                 auth["mutation_allowed"] = False
                 auth["seal_allowed"] = False
 
+    # Phase 0 (2026-09-22, F13): reconcile after every writer in this
+    # composer. The registration wrapper runs additional writers later and
+    # re-runs reconciliation at its own return; this call covers direct
+    # callers of attach_effective_verdict.
+    return reconcile_decision_contract(response)
+
+
+# ── Phase 0 (2026-09-22, F13 nine-point critique): decision-contract ────────
+# reconciliation — the last writer.
+#
+# Point #1: a two-field compare (verdict vs effective_verdict) is blind.
+# Live payload captured 2026-09-22: verdict == effective_verdict == HOLD
+# while meta.kernel_intercept.decision = ALLOW contradicted it. The walker
+# visits EVERY verdict-bearing key in the payload.
+# Point #3: closed token vocabulary — an unclassifiable token in a verdict
+# key is an inconsistency (fail-closed to HOLD), never a silent pass.
+# Point #4: EPISTEMIC vetoes — unmeasured floor presented as passed, a
+# MEASURED claim riding on derived/synthetic data, and
+# verdict_channel_integrity=False all force HOLD.
+# On ANY flag: effective_verdict := HOLD, authority fields forced off,
+# originals preserved (contradictions are evidence — Prime Invariant #7;
+# never normalized away).
+
+_VERDICT_BEARING_KEYS = frozenset(
+    {
+        "verdict",
+        "effective_verdict",
+        "canonical_verdict",
+        "verdict_code",
+        "reasoning_verdict",
+        "decision",
+        "sufficiency_verdict",
+    }
+)
+_KNOWN_VERDICT_TOKENS = frozenset(CANONICAL_VERDICTS) | frozenset(_LEGACY_VERDICT_MAP)
+# Receipt-era alias (schemas/transition_receipt.VerdictCode.OBSERVE) — known
+# but outside the six-class envelope taxonomy; normalized locally only.
+_RECONCILE_TOKEN_ALIASES = {"OBSERVE": OBSERVE_ONLY}
+_FLOOR_EVIDENCE_KEYS = (
+    "floors_invoked",
+    "law_results",
+    "failed_floors",
+    "violated_laws",
+)
+_DERIVED_DATA_MODES = frozenset(
+    {"derived", "synthetic", "simulated", "estimated", "interpolated", "assumed", "inferred"}
+)
+# Point #2 (crack #2): a restraint verdict must never point at a transition
+# action. Review 2026-09-22 widened the set beyond seal/forge/commit.
+_FORBIDDEN_IN_SAFE_ACTION = re.compile(
+    r"\b(seal|forge|commit|execute|deploy|send|transfer)", re.IGNORECASE
+)
+_RESTRAINT_VERDICTS = frozenset({HOLD, VOID, HOLD_888, OBSERVE_ONLY})
+_SAFE_ACTION_BY_VERDICT = {
+    HOLD: "Await input — effective_verdict=HOLD (reconciled)",
+    VOID: "Investigate — effective_verdict=VOID (reconciled)",
+    HOLD_888: "Await sovereign decision — effective_verdict=888_HOLD (reconciled)",
+    OBSERVE_ONLY: "Bind identity before any authority-bearing action",
+    SABAR: "Wait for the required evidence or authority, then reassess.",
+}
+_DEFAULT_SAFE_ACTION = "Hold the proposal and investigate the unresolved state."
+
+
+def _derive_safe_action(final: str, *, seal_allowed: bool) -> str:
+    """next_safe_action is DERIVED from reconciled state — never trusted
+    from the payload (review 2026-09-22 item 5). Even a reconciled SEAL only
+    points at requesting an external authority grant; it never authorizes."""
+    if final == SEAL and seal_allowed:
+        return "Request an external authority grant for the reconciled transaction."
+    if final == SEAL:
+        return _DEFAULT_SAFE_ACTION
+    return _SAFE_ACTION_BY_VERDICT.get(final, _DEFAULT_SAFE_ACTION)
+
+
+def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
+    """Yield (path, raw_string) for every EXACT verdict-bearing key holding a
+    non-null non-empty string. Null/absent means unset and is skipped — a
+    missing value is not a claim (prevents mass-HOLD on schema defaults).
+    Substring keys such as decision_thresholds are NOT matched."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            child = f"{path}.{key}" if path else str(key)
+            if key in _VERDICT_BEARING_KEYS and isinstance(value, str) and value.strip():
+                yield child, value
+            yield from _iter_verdict_bearing(value, child)
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            yield from _iter_verdict_bearing(value, f"{path}[{index}]")
+
+
+def _collect_epistemic_flags(node: Any, path: str = "") -> list[str]:
+    """EPISTEMIC veto conditions (F13 points #4a/#4b + channel integrity)."""
+    flags: list[str] = []
+    if isinstance(node, dict):
+        child = path or "<root>"
+        if node.get("floor_passed") is True and not any(
+            node.get(k) for k in _FLOOR_EVIDENCE_KEYS
+        ):
+            flags.append(f"EPISTEMIC_UNMEASURED_PASS:{child}")
+        if (
+            str(node.get("claim_class", "")).upper() == "MEASURED"
+            and str(node.get("data_mode", "")).lower() in _DERIVED_DATA_MODES
+        ):
+            flags.append(f"EPISTEMIC_LABEL_PROVENANCE_MISMATCH:{child}")
+        if node.get("verdict_channel_integrity") is False:
+            flags.append(f"EPISTEMIC_VERDICT_CHANNEL_INTEGRITY:{child}")
+        for key, value in node.items():
+            flags.extend(_collect_epistemic_flags(value, f"{child}.{key}"))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            flags.extend(_collect_epistemic_flags(value, f"{path}[{index}]"))
+    return flags
+
+
+def _disable_authority_fields(node: Any) -> None:
+    """Force every PRESENT authority flag to False, recursively. Never
+    invents flags where none existed (minimal surface)."""
+    if isinstance(node, dict):
+        for key in ("mutation_allowed", "seal_allowed"):
+            if key in node:
+                node[key] = False
+        for value in node.values():
+            _disable_authority_fields(value)
+    elif isinstance(node, list):
+        for value in node:
+            _disable_authority_fields(value)
+
+
+def reconcile_decision_contract(response: Any) -> Any:
+    """Walk every verdict-bearing field; one honest verdict or HOLD.
+
+    F13 Phase 0 (2026-09-22). Non-dict inputs pass through. Idempotent —
+    safe to run at every envelope-close point. Contradictions are preserved
+    in place: reconciliation ADDS the reconciled HOLD verdict plus the
+    machine-readable ``meta.reconciliation`` block; it never rewrites the
+    disagreeing fields into agreement. ``next_safe_action`` is derived from
+    the reconciled state — with authority off it may not point at
+    seal/forge/commit (crack #2).
+    """
+    if not isinstance(response, dict):
+        return response
+
+    claims: dict[str, str] = {}
+    raw_tokens: dict[str, str] = {}
+    unknown: dict[str, str] = {}
+    noncanonical: dict[str, str] = {}
+    for path, raw in _iter_verdict_bearing(response):
+        token = str(raw).strip()
+        upper = token.upper()
+        raw_tokens[path] = token
+        if upper in CANONICAL_VERDICTS:
+            claims[path] = upper
+        elif upper in _RECONCILE_TOKEN_ALIASES:
+            claims[path] = _RECONCILE_TOKEN_ALIASES[upper]
+        elif upper in _LEGACY_VERDICT_MAP:
+            # Legacy cross-layer translation (ALLOW, DEGRADED, PARTIAL, ...).
+            # Participates in divergence as its canonical value AND fails
+            # closed on its own: layer vocabulary is unratified until the
+            # vocabulary owners publish the admissible-combination matrix
+            # (review 2026-09-22 — "heterogeneous non-identical values
+            # fail closed"; raw ALLOW must never silently equal SEAL).
+            claims[path] = _normalize_verdict(token)
+            noncanonical[path] = token
+        else:
+            unknown[path] = token
+
+    flags: list[str] = []
+    for path, token in unknown.items():
+        flags.append(f"UNKNOWN_VERDICT_TOKEN:{path}={token}")
+    for path, token in noncanonical.items():
+        flags.append(
+            f"NONCANONICAL_VERDICT_TOKEN:{path}={token}->{claims.get(path)}"
+        )
+    if len(set(claims.values())) > 1:
+        detail = ",".join(f"{p}={v}" for p, v in sorted(claims.items()))
+        flags.append(f"VERDICT_FIELD_DIVERGENCE:{detail}")
+    flags.extend(_collect_epistemic_flags(response))
+
+    prior = str(response.get("effective_verdict") or response.get("verdict") or "")
+    if flags:
+        response["effective_verdict"] = HOLD
+        response["reason_code"] = REASON_HOLD
+        response["next_action"] = NEXT_HOLD
+        response["status"] = STATUS_COMPLETED
+        response["execution_state"] = "AWAIT_INPUT"
+        response["status_scope"] = "execution"
+        response["hold_required"] = True
+        reasons = response.get("reasons")
+        if not isinstance(reasons, list):
+            reasons = []
+            response["reasons"] = reasons
+        if not any(str(r).startswith("INCONSISTENT_STATE") for r in reasons):
+            reasons.insert(0, f"INCONSISTENT_STATE: {'; '.join(flags)}")
+        meta = response.get("meta")
+        if not isinstance(meta, dict):
+            meta = {}
+            response["meta"] = meta
+        meta["reconciliation"] = {
+            "inconsistent": True,
+            "reason": "INCONSISTENT_VERDICT_STATE",
+            "flags": flags,
+            "claims": claims,
+            "raw_tokens": raw_tokens,
+            "unknown_tokens": unknown,
+            "noncanonical_tokens": noncanonical,
+            "observed_effective_verdict": prior,
+            "reconciled_effective_verdict": HOLD,
+            # Review 2026-09-22: the reconciler JUDGES, it never authorizes.
+            # seal_eligible is a judgment-eligibility name; authority and
+            # execution stay off here by construction (the authority service
+            # is a separate, dependent PR).
+            "seal_eligible": False,
+            "authority_enabled": False,
+            "execution_enabled": False,
+            "reconciled_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+        cc = response.get("constitutional_check")
+        if isinstance(cc, dict):
+            cc["hold_required"] = True
+            cc["hold_reason"] = f"INCONSISTENT_STATE: {flags[0]}"
+        response["mutation_allowed"] = False
+        response["seal_allowed"] = False
+        _disable_authority_fields(response)
+    else:
+        # Honest hold_reason vocabulary: outer_verdict=... names the writer,
+        # not the reason. Rewrite to the canonical field pair.
+        cc = response.get("constitutional_check")
+        if isinstance(cc, dict) and str(cc.get("hold_reason") or "").startswith(
+            "outer_verdict="
+        ):
+            cc["hold_reason"] = (
+                f"effective_verdict={response.get('effective_verdict')} "
+                f"reason_code={response.get('reason_code')}"
+            )
+
+    # Point #2 (crack #2) — review 2026-09-22 item 5:
+    # - INCONSISTENT payload → supplied next_safe_action must NOT survive:
+    #   always derive from reconciled state; stash the supplied text in the
+    #   receipt (meta.reconciliation.supplied_next_safe_action) for audit.
+    # - CONSISTENT payload → handler-authored text is preserved (existing
+    #   kernel contracts deliberately author it: session preflight, cognitive
+    #   tier gate) but still passes the forbidden-terms guard when authority
+    #   is off. Full derive-always deferred pending the vocabulary-owner
+    #   decision — documented as a KNOWN LIMITATION in
+    #   /root/forge_work/2026-09-22-arifos-mcp-gui-requirements-path.md.
+    # Non-string next_safe_action values (structured tool pointers) are not
+    # free text and are never rewritten.
+    final = str(response.get("effective_verdict") or "")
+    seal_off = response.get("seal_allowed") is False
+    derived = _derive_safe_action(final, seal_allowed=not seal_off)
+    holders: list[tuple[str, dict]] = [("response", response)]
+    if isinstance(response.get("result"), dict):
+        holders.append(("result", response["result"]))
+    receipt = (response.get("meta") or {}).get("reconciliation")
+
+    def _stash(key: str, original: str) -> None:
+        if isinstance(receipt, dict):
+            receipt.setdefault("supplied_next_safe_action", {})[key] = original
+
+    for holder_name, holder in holders:
+        text = holder.get("next_safe_action")
+        if flags:
+            if isinstance(text, dict):
+                # Dict form ({action, tool, reason}) — preserve the shape,
+                # neutralize the instruction (fixture evidence: action read
+                # "Execute the capability..." on an authority-off HOLD).
+                old = text.get("action")
+                if isinstance(old, str) and old and old != derived:
+                    _stash(f"{holder_name}.action", old)
+                text["action"] = derived
+                text["reason"] = "derived from reconciled state (Phase 0)"
+            elif isinstance(text, str):
+                if text and text != derived:
+                    _stash(holder_name, text)
+                holder["next_safe_action"] = derived
+            else:
+                holder["next_safe_action"] = derived
+            continue
+        # Consistent payload: preserve handler text, guard forbidden terms.
+        if isinstance(text, str):
+            if (final in _RESTRAINT_VERDICTS or seal_off) and _FORBIDDEN_IN_SAFE_ACTION.search(
+                text
+            ):
+                holder["next_safe_action"] = derived
+        elif isinstance(text, dict):
+            old = text.get("action")
+            if (
+                isinstance(old, str)
+                and (final in _RESTRAINT_VERDICTS or seal_off)
+                and _FORBIDDEN_IN_SAFE_ACTION.search(old)
+            ):
+                text["action"] = derived
+
     return response
 
 
 __all__ = [
     "EffectiveVerdict",
     "VERDICT_STATE_VERSION",
+    "reconcile_decision_contract",
     "OBSERVE_ONLY",
     "SEAL",
     "SABAR",
