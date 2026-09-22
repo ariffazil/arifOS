@@ -26266,6 +26266,20 @@ def _apply_canonical_normalization_to_all_handlers():
             "canonical_normalization: wrapped %d canonical/diagnostic handlers",
             wrapped_count,
         )
+    # R-1e SNAPSHOT REFRESH (F13 sleep-cycle, 2026-09-23): the map exposed a
+    # permanent SECOND STACK — CANONICAL_TOOL_HANDLERS (line ~28525) is a
+    # COPY taken at import before this pass wraps the live store, so every
+    # in-process consumer via get_tool_handler (kernel_router, kernel_core,
+    # dispatcher) read RAW handlers with no trim/force/echo/reconcile repair
+    # ever. Rebind the snapshot AFTER wrapping so both lanes share the
+    # single repaired chain.
+    try:
+        globals()["CANONICAL_TOOL_HANDLERS"] = {
+            **_CANONICAL_HANDLERS,
+            **_RUNTIME_DIAGNOSTIC_HANDLERS,
+        }
+    except Exception as _snap_exc:
+        _log.warning("canonical snapshot refresh failed: %s", _snap_exc)
 
 
 # NOTE: the post-process call was moved to END-OF-FILE (see bottom of this
@@ -28347,6 +28361,20 @@ def register_tools(
                 preferred=(spec.description if spec is not None else None),
                 live_modes=None,  # modes belong in input_schema enum, not prose
             )
+            # R-1e SINGLE-CHAIN GUARANTEE (F13 sleep-cycle, 2026-09-23):
+            # the end-of-file A-pass alone did NOT prove sufficient — live
+            # identity evidence: handler wrapped=False fn=arif_judge<-arif_judge
+            # (B captured RAW) and outer-in was a VerdictOutput MODEL
+            # (SABAR/SEAL) that bypassed the repair chain entirely →
+            # manufactured VERDICT_FIELD_DIVERGENCE. Compose at REGISTER
+            # time, sentinel-idempotent: the FastMCP handle is now ALWAYS
+            # B(A(raw)) regardless of pass ordering.
+            if not getattr(handler, "_canonical_normalization_wrapped", False):
+                handler = _wrap_with_canonical_normalization(handler, name)
+                try:
+                    handler._canonical_normalization_wrapped = True
+                except Exception:
+                    pass
             wrapped = _wrap_handler(handler, name)
 
             # Compute canonical risk passport for this tool
