@@ -27655,15 +27655,20 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             # outer layer ACTUALLY receives from the handler chain — the
             # one-line window between the tagged inner return (trim/echo
             # chain, HOLD) and _dict_from_response (whose input read SABAR).
-            # Decision rule: id == inner-chain id with SABAR ⇒ in-place
-            # mutator in the window; different id or non-dict type ⇒ the
-            # intermediate rebinding layer names itself here.
+            # R-1e HANDLER IDENTITY (F13 'ADD HANDLER IDENTITY', 2026-09-23):
+            # wrapped=True ⇒ B captured an A-wrapped handle (intended single
+            # chain B(A(raw))); wrapped=False ⇒ B captured RAW (register ran
+            # before the end-of-file A-pass or an alias/snapshot path) =
+            # the dispatch split, R-1e cause (a). fn shows the wraps chain.
             logger.warning(
-                "R1d outer-in: id=%s type=%s eff=%s verdict=%s",
+                "R1d outer-in: id=%s type=%s eff=%s verdict=%s | handler id=%s wrapped=%s fn=%s",
                 hex(id(response))[-6:],
                 type(response).__name__,
                 (response.get("effective_verdict") or None) if isinstance(response, dict) else getattr(response, "effective_verdict", None),
                 (response.get("verdict") or None) if isinstance(response, dict) else getattr(response, "verdict", None),
+                hex(id(handler))[-6:],
+                bool(getattr(handler, "_canonical_normalization_wrapped", False)),
+                f"{getattr(handler, '__name__', '?')}<-{getattr(getattr(handler, '__wrapped__', None), '__name__', '-')}",
             )
             _latency_ms = (_time.time() - _start_t) * 1000.0
             # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
