@@ -1693,15 +1693,35 @@ async def arif_judge(
                     "matched": False,
                     "advisory_only": True,
                 }
+            # CRACK #7 (pasture-2026-09-22): never recommend arif_seal unless the
+            # identity envelope authorizes it. The intercept path produced SEAL
+            # but did not check identity. An autonomous agent reading
+            # `next_safe_action` would otherwise trigger irreversible seal
+            # even when the actor is OBSERVE_ONLY.
+            _seal_safe_action = (
+                "Proceed to arif_seal(ack_irreversible=true, "
+                "actor_signature=<ed25519>) with constitutional_chain_id + judge_state_hash"
+                if _code == VerdictCode.SEAL
+                else _intercept_res.get("next_safe_action", "Execute or review per verdict")
+            )
+            # Identity gate: if seal_allowed is False (the upstream identity
+            # envelope), swap the seal recommendation for an arif_init
+            # recommendation that will authorize seal. Never both.
+            _identity = _intercept_res.get("identity") or {}
+            _seal_allowed = bool(_identity.get("seal_allowed", False))
+            if (
+                _code == VerdictCode.SEAL
+                and not _seal_allowed
+            ):
+                _seal_safe_action = (
+                    "Identity is OBSERVE_ONLY; seal is not yet authorized. "
+                    "Run arif_init(actor_signature=<ed25519>, "
+                    "ack_irreversible=true) to unlock seal, then re-run arif_judge."
+                )
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
-                next_safe_action=(
-                    "Proceed to arif_seal(ack_irreversible=true) with "
-                    "constitutional_chain_id + judge_state_hash"
-                    if _code == VerdictCode.SEAL
-                    else _intercept_res.get("next_safe_action", "Execute or review per verdict")
-                ),
+                next_safe_action=_seal_safe_action,
                 meta=_intercept_meta,
             )
         except Exception as _int_err:
