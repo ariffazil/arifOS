@@ -289,9 +289,10 @@ def attach_zen_witness_to_result(
 
     try:
         verdict = _extract_verdict_str(result)
-        # R-1 evidence line (permanent): shows the exact freeze input on the
-        # live path — caught the HOLD-source across three judge paths 2026-09-22.
-        logger.info(
+        # R-1 evidence line: shows the exact freeze input on the live path —
+        # WARNING level deliberately (INFO is suppressed by the logger config;
+        # this caught the HOLD-source across three judge paths 2026-09-22).
+        logger.warning(
             "zen freeze input: verdict=%r present_keys=%s",
             verdict,
             [k for k in ("verdict", "effective_verdict", "action_risk_verdict") if k in result],
