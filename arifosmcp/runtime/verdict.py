@@ -698,10 +698,11 @@ def reconcile_decision_contract(response: Any) -> Any:
         import logging as _r1b_logging
 
         _r1b_logging.getLogger(__name__).warning(
-            "R1b super pass: final=%r has_verdict_key=%s has_effective=%s pc=%r pc_state=%s",
+            "R1b super pass: id=%r final=%r eff=%r has_verdict=%s pc=%r pc_state=%s",
+            hex(id(response))[-6:],
             _r1b_final,
+            str(response.get("effective_verdict") or "") or None,
             "verdict" in response,
-            "effective_verdict" in response,
             (_r1b_pc_dbg or {}).get("verdict") if isinstance(_r1b_pc_dbg, dict) else None,
             (_r1b_pc_dbg or {}).get("verdict_state") if isinstance(_r1b_pc_dbg, dict) else None,
         )
