@@ -3316,9 +3316,10 @@ def register_rest_routes(
             "registry": {
                 "status": "degraded" if contract_drift_val else "healthy",
                 "registry_size": len(tool_registry),
-                "declared_tools": _exposed + _diagnostic,
+                "declared_tools": _exposed,
                 "exposed_tools": _exposed,
-                "note": "registry_size includes aliases; diagnostic_tools not on public wire",
+                "diagnostic_tools": _diagnostic,
+                "note": "declared == exposed == callable surface; diagnostic_tools not on public wire; registry_size includes aliases",
             },
             "infra": {
                 "status": "unknown",
