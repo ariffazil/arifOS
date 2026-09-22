@@ -694,6 +694,17 @@ def reconcile_decision_contract(response: Any) -> Any:
             response.get("verdict") or response.get("effective_verdict") or ""
         ).upper()
         _r1b_meta = response.get("meta")
+        _r1b_pc_dbg = (_r1b_meta or {}).get("judge_postcondition") if isinstance(_r1b_meta, dict) else None
+        import logging as _r1b_logging
+
+        _r1b_logging.getLogger(__name__).warning(
+            "R1b super pass: final=%r has_verdict_key=%s has_effective=%s pc=%r pc_state=%s",
+            _r1b_final,
+            "verdict" in response,
+            "effective_verdict" in response,
+            (_r1b_pc_dbg or {}).get("verdict") if isinstance(_r1b_pc_dbg, dict) else None,
+            (_r1b_pc_dbg or {}).get("verdict_state") if isinstance(_r1b_pc_dbg, dict) else None,
+        )
         if _r1b_final and isinstance(_r1b_meta, dict):
             _r1b_pc = _r1b_meta.get("judge_postcondition")
             if isinstance(_r1b_pc, dict):
