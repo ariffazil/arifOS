@@ -24690,7 +24690,76 @@ async def _arif_memory_v5_router(
     # mutations — they write to long-term memory substrate that influences
     # future constitutional judgments. Must pass the same gate every other
     # canonical tool uses. P0-01 fix 2026-07-17.
-    gate = _constitutional_gate("arif_memory", mode, actor_id, session_id=session_id)
+    #
+    # KRT-2026-09-23 (skill-mesh federation): the gate previously measured an
+    # EMPTY context here (no candidate) — the declared measurement surface
+    # (content, truth_class, provenance, lease) was only assembled AFTER the
+    # gate — so pre-execution derivation failed BY CONSTRUCTION for every
+    # mutation payload: F2 truth_score fell back to the 0.96 clean baseline
+    # (< 0.99 claim threshold, law_evaluator._floor_context X-016) and F4 ΔS
+    # fell back to the fabricated +0.02 (entropy_output = confidence >
+    # entropy_input).
+    #
+    # Minimal fix: for SCT-VERIFIED sessions (server-bound session whose
+    # authority_state.actor.verified is true), pass a STRUCTURAL DECLARATION
+    # of the record into the gate as `candidate` so the evaluator measures
+    # the actual declaration instead of unmeasured defaults:
+    #   - F2: compact single-line JSON matches the axiomatic-declaration
+    #     pattern (`^\{.*\}$`) → declaration threshold 0.95. A memory record
+    #     is a self-declared structured statement, not a reality-claim; its
+    #     truth is post-hoc auditable (audit mode / JITU contradiction
+    #     engine) and its declared confidence stays enforceable downstream
+    #     (B3: confidence < 0.3 → SABAR).
+    #   - F4: query and response both derive from payload_text() → ΔS = 0
+    #     (honest identity — real entropy is measured on the receipt chain
+    #     after the write, not fabricated pre-execution).
+    #   - The payload BODY is deliberately NOT embedded: destructive-verb
+    #     prose floors (F5) and ontology guards (L10) are intent scanners for
+    #     the agent's utterance; stored content is DATA with a hash referent
+    #     (content_sha256) and remains fully auditable post-write.
+    # Unverified/unbound sessions keep candidate=None → unmeasured defaults
+    # → L02/L04 HOLD, exactly as before this fix. The L13 sovereign gate,
+    # the L11 session registry, and the OBSERVE-class exemption are untouched.
+    _gate_candidate: str | None = None
+    if mode in ("remember", "promote", "revise", "forget", "attest"):
+        _sess = _SESSIONS.get(session_id) if session_id else None
+        if _sess is not None:
+            try:
+                from arifosmcp.runtime.authority import read_authority_state as _read_auth
+
+                _session_verified = bool(_read_auth(_sess).actor.verified)
+            except Exception:
+                _session_verified = bool(_sess.get("identity_verified", False))
+            if _session_verified:
+                _decl_content = content if isinstance(content, str) else json.dumps(
+                    payload or {}, ensure_ascii=False, default=str
+                )
+                _decl_tc = truth_class if isinstance(truth_class, dict) else {}
+                _gate_candidate = json.dumps(
+                    {
+                        "record": "arif_memory_mutation_declaration",
+                        "mutation": mode,
+                        "memory_id": memory_id,
+                        "content_sha256": hashlib.sha256(
+                            _decl_content.encode("utf-8")
+                        ).hexdigest(),
+                        "content_bytes": len(_decl_content.encode("utf-8")),
+                        "truth_class_status": _decl_tc.get("status"),
+                        "truth_class_confidence": _decl_tc.get("confidence"),
+                        "provenance_actor": (
+                            provenance.get("actor_id")
+                            if isinstance(provenance, dict)
+                            else None
+                        ),
+                        "lease_id": lease_id,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+    gate = _constitutional_gate(
+        "arif_memory", mode, actor_id, session_id=session_id, candidate=_gate_candidate
+    )
     if gate is not None:
         return gate
 
