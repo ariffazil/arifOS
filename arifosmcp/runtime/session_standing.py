@@ -1102,9 +1102,13 @@ def attach_canonical(
         # Pydantic VerdictOutput MODEL, so the wrapper builds
         # body = {"result": MODEL} — dict-only checks see ZERO candidates,
         # inner stays None, and effective composes from a stale existing
-        # (the manufactured flag's final cause). The model's own .verdict
-        # IS the post-gate judgment (seeded, governance-won) — best inner.
+        # (the manufactured flag's final cause). The result's own verdict —
+        # model ATTRIBUTION or dict KEY — IS the post-gate judgment
+        # (seeded, governance-won): read BOTH shapes (live result may be
+        # dict after FastMCP coercion; getattr misses dict keys).
         _model_v = getattr(_r, "verdict", None)
+        if _model_v is None and isinstance(_r, dict):
+            _model_v = _r.get("verdict")
         if _model_v is not None and str(_model_v).upper() in _cv:
             inner_verdict = str(_model_v).upper()
 
