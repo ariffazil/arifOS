@@ -1667,12 +1667,16 @@ async def arif_judge(
                     check_judge_postcondition as _cjpc_intercept,
                 )
 
+                # S4 defer (F13 FIX-S4 2026-09-22): comparing the RAW intercept
+                # token (ALLOW/OK) against the mapped code (SEAL/HOLD) is a
+                # stage-invalid compare by construction — it reads integrity
+                # False on EVERY promotion. Final coherence = reconcile.
                 _ipc_report = _cjpc_intercept(
                     mode=mode,
                     candidate=candidate,
                     evidence=evidence,
                     verdict_str=str(_code),
-                    effective_verdict=_v_str,
+                    effective_verdict="",
                 )
                 if (
                     _code == VerdictCode.SEAL
@@ -2205,12 +2209,22 @@ async def arif_judge(
                 check_judge_postcondition as _cjpc_main,
             )
 
+            # S4 stage-valid integrity (F13 FIX-S4 2026-09-22): the envelope's
+            # pre-judgment effective_verdict compared against THIS judgment is
+            # a stage-invalid compare — it reads False whenever the judge
+            # legitimately disagrees with inherited state, which rewrote every
+            # genuine SEAL attempt to SABAR and made HOLD self-perpetuating
+            # (live evidence2026-09-22: SEAL → integrity False → SABAR →
+            # reconcile HOLD, forever). "effective must track verdict" is the
+            # LAST WRITER's invariant — reconcile_decision_contract owns final
+            # cross-key coherence (Phase-0 Point #4 still vetoes a truly-final
+            # mismatch there). Defer: pass no effective at this stage.
             _pc_report_main = _cjpc_main(
                 mode=mode,
                 candidate=candidate,
                 evidence=evidence,
                 verdict_str=str(getattr(out, "verdict", "") or ""),
-                effective_verdict=str(getattr(out, "effective_verdict", "") or ""),
+                effective_verdict="",
             )
             if _pc_report_main.get("applied") and _pc_report_main.get("verdict"):
                 _pc_v = _pc_report_main["verdict"]

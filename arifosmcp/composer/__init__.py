@@ -200,7 +200,17 @@ def _compress(input_data: ZenApexInput) -> str:
 
 
 def _extract_verdict_str(result: dict) -> str:
-    v = result.get("verdict") or result.get("action_risk_verdict") or "HOLD"
+    # S4 (F13 FIX-S4 2026-09-22): prefer the canonical last-writer field.
+    # Freezing the zen decision_core from `verdict` while the envelope's
+    # effective_verdict carried a different token manufactured
+    # VERDICT_FIELD_DIVERGENCE (live evidence2026-09-22: frozen
+    # core=HOLD beside root=SABAR → reconcile fail-closed HOLD).
+    v = (
+        result.get("effective_verdict")
+        or result.get("verdict")
+        or result.get("action_risk_verdict")
+        or "HOLD"
+    )
     if isinstance(v, dict):
         return str(v.get("state") or v.get("verdict") or "HOLD")
     return str(v)
