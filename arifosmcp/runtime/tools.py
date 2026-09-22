@@ -26255,6 +26255,15 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 response = reconcile_decision_contract(response)
             except Exception:
                 pass
+            # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+            # the TRUE last writer. Every verdict-bearing field must agree,
+            # or the envelope becomes HOLD/INCONSISTENT with authority off.
+            try:
+                from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+                response = reconcile_decision_contract(response)
+            except Exception:
+                pass
             return response
 
         return _async_wrapped
@@ -26329,6 +26338,14 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 hex(id(response))[-6:],
                 response.get("effective_verdict") or None,
             )
+        except Exception:
+            pass
+        # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+        # the TRUE last writer (sync path).
+        try:
+            from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+            response = reconcile_decision_contract(response)
         except Exception:
             pass
         # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
