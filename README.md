@@ -1,9 +1,9 @@
 <!-- SOT-MANIFEST
-last_verified: 2026-09-21T01:38:52+00:00
+last_verified: 2026-09-22T07:54:00+00:00
 kernel_release: v2026.08.01 (release_name from live /health) · canon version 2026.09.20-e8e6f93
 pypi_version: 1!2026.9.2 (published 2026-09-15T16:42Z) · repo tree 1!2026.9.6 (staged, not yet released)
-live_commit: e8e6f9335 (fix(judge): G-10 — default action_tier no longer budgets 888 as a rule engine)
-source_commit: e8e6f9335
+live_commit: 56f94a41d2 (fix(judge): crack #7 — never recommend arif_seal when seal_allowed=false (2026-09-22))
+source_commit: 56f94a41d2db6624d8b4dda611dcae5e2a6d618f
 built_commit: e8e6f93
 deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs — verified by live tools/list)
