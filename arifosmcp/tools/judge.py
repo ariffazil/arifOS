@@ -3711,8 +3711,18 @@ async def arif_judge(
 
                 try:
                     _seed_judgment = str(getattr(out, "verdict", "") or "")
+                    _out_defined = True
                 except NameError:
                     _seed_judgment = ""
+                    _out_defined = False
+                # R-1 evidence line (permanent): which branch ran, what the
+                # judgment was, what result carried before the seed.
+                logger.info(
+                    "R1 seed: out_defined=%s judgment=%r result_verdict_before=%r",
+                    _out_defined,
+                    _seed_judgment,
+                    result.get("verdict"),
+                )
                 if _seed_judgment:
                     _seed_rv(result, _seed_judgment)
             except Exception:
