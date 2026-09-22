@@ -161,14 +161,33 @@ def test_deferred_caller_integrity_is_none_not_false():
 # ── M3: frozen core tracks the canonical field ──────────────────────────────
 
 
-def test_extract_prefers_effective_verdict():
-    assert _extract_verdict_str({"effective_verdict": "SABAR", "verdict": "HOLD"}) == "SABAR"
-
-
-def test_extract_falls_back_to_verdict_then_absence():
-    assert _extract_verdict_str({"verdict": "HOLD"}) == "HOLD"
+def test_extract_is_stage_valid_at_freeze():
+    """R-1/M3c: stage-native judgment wins; interim effective is never frozen."""
+    # judgment present → judgment (effective at this stage is pre-wrapper interim)
+    assert _extract_verdict_str({"effective_verdict": "SABAR", "verdict": "HOLD"}) == "HOLD"
+    # interim effective ALONE → "" (absence of a stage-native judgment)
+    assert _extract_verdict_str({"effective_verdict": "SABAR"}) == ""
+    # heart-lineage tools: judgment lives in action_risk_verdict (canonical tokens)
+    assert _extract_verdict_str({"action_risk_verdict": "HOLD"}) == "HOLD"
     # absence is NOT a claim — never fabricate a verdict from nothing
     assert _extract_verdict_str({}) == ""
+
+
+def test_seed_result_verdict_fills_absent_and_gates_win():
+    from arifosmcp.composer import seed_result_verdict
+
+    # absent → filled from the postcondition-passed judgment (one lineage)
+    r: dict = {}
+    seed_result_verdict(r, "SABAR")
+    assert r["verdict"] == "SABAR"
+    # a governance gate wrote HOLD first → gate wins (fill-if-absent only)
+    g: dict = {"verdict": "HOLD"}
+    seed_result_verdict(g, "SABAR")
+    assert g["verdict"] == "HOLD"
+    # None counts as absent (the observed live judge shape)
+    n: dict = {"verdict": None}
+    seed_result_verdict(n, "SEAL")
+    assert n["verdict"] == "SEAL"
 
 
 # ── M1b: session_birth carries the AUTHORITY BAND, not a judgment ───────────

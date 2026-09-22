@@ -3695,6 +3695,17 @@ async def arif_judge(
             "Quotes triggered via GPV, formatted with motto + antithesis. "
             "Commentary only — floor gates remain primary enforcement."
         )
+        # R-1 single-writer (F13 FIX R-1, 2026-09-22): out carries the
+        # postcondition-passed judgment; result carries ALL governance gates.
+        # Seed result.verdict from the judgment (fill-if-absent — a gate that
+        # already wrote HOLD wins) BEFORE the freeze and the
+        # VerdictOutput(**result) return, so root == result == zen by
+        # construction instead of falling to the out-only early return or the
+        # None-forces-HOLD fallback that manufactured VERDICT_FIELD_DIVERGENCE.
+        if isinstance(result, dict):
+            from arifosmcp.composer import seed_result_verdict as _seed_rv
+
+            _seed_rv(result, str(getattr(out, "verdict", "") or ""))
         # Zen Apex: freeze DecisionCore + optional witness AFTER verdict.
         # Witness is presentation only — never mutates verdict/floors.
         try:
@@ -3937,7 +3948,11 @@ async def arif_judge(
         return _echo_standing(VerdictOutput(**result))
     except Exception:
         # Robust fallback for incomplete semantic outputs or plumbing during E2E (7-tool facade)
-        v = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
+        # R-1 (2026-09-22): None-safe — `result.get("verdict", "HOLD")` returns
+        # None when the key EXISTS as None, which then failed the tuple check
+        # and silently forced HOLD. Absence falls back; a real judgment never
+        # does (seed_result_verdict runs before this point).
+        v = (result.get("verdict") or "HOLD") if isinstance(result, dict) else "HOLD"
         if v not in ("SEAL", "SABAR", "VOID", "HOLD", "PARADOX_HOLD"):
             v = "HOLD"
         r = (
