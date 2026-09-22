@@ -1076,6 +1076,26 @@ def attach_canonical(
         elif _sc.get("seal_complete"):
             inner_verdict = "SEAL"
 
+    # R-1c (F13 FIX R-1b follow-through, 2026-09-22): on the judge path the
+    # root verdict lands AFTER every reconcile pass (journal evidence:
+    # has_verdict_key=False at all three sites) — attach then composed
+    # effective from a stale `existing` while the zen-frozen stage-final
+    # (the deliberation's OWN verdict, M3-fresh) held the truth:
+    # observed effective=SABAR(out-lineage) beside zen core=HOLD →
+    # manufactured VERDICT_FIELD_DIVERGENCE. Fall back to the zen-frozen
+    # stage-final so effective composes from the real judgment; the
+    # R-1b supersession pass then lawfully retires the postcond stage
+    # claim (degradation direction) and the walker sees one live truth.
+    if not inner_verdict and isinstance(response, dict):
+        from arifosmcp.runtime.verdict import CANONICAL_VERDICTS as _cv
+
+        _m2 = response.get("meta") if isinstance(response.get("meta"), dict) else {}
+        _zc2 = _m2.get("zen_apex") if isinstance(_m2.get("zen_apex"), dict) else {}
+        _core2 = _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
+        _zv2 = str(_core2.get("verdict") or "").upper()
+        if _zv2 in _cv:
+            inner_verdict = _zv2
+
     attach_canonical_standing(response, session_id=session_id, actor_id=actor_id)
     standing = response.get("standing") if isinstance(response, dict) else None
     band: str | None = None
