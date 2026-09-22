@@ -106,6 +106,51 @@ def test_boot_seeder_registered_at_startup():
     assert "organ-attest-seed" in src, "T3 boot seeder thread missing from main()"
 
 
+# ── self_bridge (the phantom module the config always declared) ─────────────
+
+
+def test_self_bridge_exists_and_is_the_configured_module():
+    """SEMANTIC_AUTHORITY: NAME ∩ CALL_PATH — the configured module resolves."""
+    import importlib
+
+    mod = importlib.import_module("arifosmcp.runtime.self_bridge")
+    assert callable(getattr(mod, "arifos_health_check"))
+    assert callable(getattr(mod, "list_arifos_tools"))
+
+
+def test_self_bridge_health_is_real_not_constant_green():
+    from arifosmcp.runtime.self_bridge import arifos_health_check
+
+    h = arifos_health_check()
+    assert h["status"] in ("healthy", "degraded")
+    assert h["failures"] == [], f"unexpected failures: {h['failures']}"
+    assert h["status"] == "healthy"
+    assert h["floors_active"] == 13
+    assert h["version"] not in ("", None)
+    assert h["source_commit"] not in ("", "unknown")
+
+
+def test_self_bridge_tools_nonempty():
+    from arifosmcp.runtime.self_bridge import list_arifos_tools
+
+    tools = list_arifos_tools()
+    assert tools, "empty tool surface would push attestation into PARTIAL_DEGRADED"
+    assert all("name" in t for t in tools)
+
+
+def test_end_to_end_attest_arifos_is_alive():
+    """The full T3 path: attest_organ('arifOS') must produce a passing record."""
+    import asyncio
+
+    from arifosmcp.runtime import organ_attestation as oa
+
+    asyncio.run(oa.attest_organ("arifOS"))
+    rec = oa.get_organ_attestation("arifOS")
+    assert rec is not None, "attest_organ wrote no record"
+    assert rec.status == "ALIVE", f"expected ALIVE, got {rec.status} ({rec.reason})"
+    assert oa.boot_gate_state("arifOS") == ("ALIVE", False)
+
+
 if __name__ == "__main__":  # pragma: no cover
     import pytest
 
