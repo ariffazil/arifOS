@@ -3702,10 +3702,21 @@ async def arif_judge(
         # VerdictOutput(**result) return, so root == result == zen by
         # construction instead of falling to the out-only early return or the
         # None-forces-HOLD fallback that manufactured VERDICT_FIELD_DIVERGENCE.
+        # F2 self-fix (2026-09-22): `out` is undefined on the result-only
+        # path (NameError → VOID fallback, observed live 22:07) — best-effort,
+        # path-safe; result-only paths already carry their own verdict.
         if isinstance(result, dict):
-            from arifosmcp.composer import seed_result_verdict as _seed_rv
+            try:
+                from arifosmcp.composer import seed_result_verdict as _seed_rv
 
-            _seed_rv(result, str(getattr(out, "verdict", "") or ""))
+                try:
+                    _seed_judgment = str(getattr(out, "verdict", "") or "")
+                except NameError:
+                    _seed_judgment = ""
+                if _seed_judgment:
+                    _seed_rv(result, _seed_judgment)
+            except Exception:
+                pass  # seed is best-effort — never break the verdict path
         # Zen Apex: freeze DecisionCore + optional witness AFTER verdict.
         # Witness is presentation only — never mutates verdict/floors.
         try:
