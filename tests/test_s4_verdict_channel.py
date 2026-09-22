@@ -276,6 +276,32 @@ def test_stage_claim_equal_is_not_marked():
     assert not any("VERDICT_FIELD_DIVERGENCE" in f for f in _flags(out)), _flags(out)
 
 
+def test_r1b_r1c_full_chain_on_live_shape():
+    """The exact live judge shape (root verdict absent at reconcile time,
+    stale effective from out-lineage, zen froze the deliberation final,
+    postcond holds its stage claim): attach composes effective from the
+    zen-frozen stage-final (R-1c fallback), the postcond claim retires
+    lawfully (R-1b, degradation direction, field untouched), and the
+    walker reports ONE live truth — flags empty."""
+    from arifosmcp.runtime.session_standing import attach_canonical
+
+    resp = {
+        "effective_verdict": "SABAR",  # stale out-lineage existing
+        "meta": {
+            "judge_postcondition": {"verdict": "SABAR"},
+            "zen_apex": {"decision_core": {"verdict": "HOLD"}},
+        },
+    }
+    out = attach_canonical(resp, session_id="s3", actor_id="FI-003")
+    pc = out["meta"]["judge_postcondition"]
+    flags = _flags(out)
+    assert out["effective_verdict"] == "HOLD"
+    assert pc["verdict"] == "SABAR", "Phase-0 law: stage history never rewritten"
+    assert pc["verdict_state"] == "SUPERSEDED"
+    assert pc["superseded_by_final_verdict"] == "HOLD"
+    assert not any("VERDICT_FIELD_DIVERGENCE" in f for f in flags), flags
+
+
 if __name__ == "__main__":  # pragma: no cover
     import pytest
 
