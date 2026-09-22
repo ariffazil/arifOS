@@ -26039,6 +26039,13 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
                 level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
                 response = trim_for_verbosity(response, level)
+                # R-1d TAG-1 (F13 'ADD THE TWO TAGS', 2026-09-23): trim-output
+                # id+eff — with the echo tag this brackets the SABAR-birth.
+                logger.warning(
+                    "R1d trim-out: id=%s eff=%s",
+                    hex(id(response))[-6:],
+                    response.get("effective_verdict") or None,
+                )
             except Exception:
                 pass
             # STAB-2026-08-09c: last-writer mut/seal sync after trim
@@ -26057,6 +26064,14 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                     autonomy_band=kwargs.get("autonomy_band")
                     or kwargs.get("band")
                     or kwargs.get("requested_authority"),
+                )
+                # R-1d TAG-2 (F13 'ADD THE TWO TAGS', 2026-09-23): echo-output
+                # id+eff — trim-out=HOLD + echo-out=SABAR ⇒ echo is the birth;
+                # trim-out=SABAR ⇒ trim projection is the birth.
+                logger.warning(
+                    "R1d echo-out: id=%s eff=%s",
+                    hex(id(response))[-6:],
+                    response.get("effective_verdict") or None,
                 )
             except Exception:
                 pass
@@ -26113,6 +26128,12 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
             level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
             response = trim_for_verbosity(response, level)
+            # R-1d TAG-1 (F13 'ADD THE TWO TAGS', 2026-09-23): sync-path trim tag.
+            logger.warning(
+                "R1d trim-out: id=%s eff=%s",
+                hex(id(response))[-6:],
+                response.get("effective_verdict") or None,
+            )
         except Exception:
             pass
         try:
@@ -26130,6 +26151,12 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 autonomy_band=kwargs.get("autonomy_band")
                 or kwargs.get("band")
                 or kwargs.get("requested_authority"),
+            )
+            # R-1d TAG-2 (F13 'ADD THE TWO TAGS', 2026-09-23): sync-path echo tag.
+            logger.warning(
+                "R1d echo-out: id=%s eff=%s",
+                hex(id(response))[-6:],
+                response.get("effective_verdict") or None,
             )
         except Exception:
             pass
