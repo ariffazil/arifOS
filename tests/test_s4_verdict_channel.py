@@ -302,6 +302,58 @@ def test_r1b_r1c_full_chain_on_live_shape():
     assert not any("VERDICT_FIELD_DIVERGENCE" in f for f in flags), flags
 
 
+# ── R-1d: trim may fill or degrade, never upgrade an attach-composed effective ─
+
+
+def test_r1d_trim_cannot_reset_attach_composed_hold():
+    """THE R-1d reset: floor-green branch used to overwrite attach's HOLD
+    with the raw unmerged verdict SABAR (an upgrade — unlawful direction)
+    between attach (tools.py:26023) and wrapper reconcile (:26131)."""
+    from arifosmcp.runtime.verbosity import trim_for_verbosity
+
+    resp = {
+        "effective_verdict": "HOLD",  # attach-composed (worse-merged inner)
+        "verdict": "SABAR",
+        "status": "completed",
+        "constitutional_check": {"floor_passed": True, "hold_required": False},
+        "result": {"verdict": "SABAR"},
+        "meta": {},
+    }
+    out = trim_for_verbosity(resp, "minimal")
+    assert out.get("effective_verdict") == "HOLD", (
+        "trim must not upgrade an attach-composed effective "
+        "(observed live reset HOLD->SABAR, journal 2026-09-22)"
+    )
+
+
+def test_r1d_trim_still_fills_when_absent():
+    from arifosmcp.runtime.verbosity import trim_for_verbosity
+
+    resp = {
+        "verdict": "SEAL",
+        "status": "completed",
+        "constitutional_check": {"floor_passed": True, "hold_required": False},
+        "result": {},
+    }
+    out = trim_for_verbosity(resp, "minimal")
+    assert out.get("effective_verdict") == "SEAL"  # fill path intact
+
+
+def test_r1d_trim_never_upgrades_void():
+    from arifosmcp.runtime.verbosity import trim_for_verbosity
+
+    resp = {
+        "effective_verdict": "VOID",
+        "verdict": "VOID",
+        "status": "completed",
+        "constitutional_check": {"floor_passed": False, "hold_required": True},
+        "result": {},
+    }
+    out = trim_for_verbosity(resp, "minimal")
+    assert out.get("effective_verdict") == "VOID"  # VOID is the worst rank
+
+
+
 if __name__ == "__main__":  # pragma: no cover
     import pytest
 
