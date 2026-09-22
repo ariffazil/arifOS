@@ -221,6 +221,61 @@ def test_true_unknown_carrier_still_vetoes():
     assert out.get("effective_verdict") == "HOLD"
 
 
+# ── R-1b: stage-claim supersession (claim-state doctrine, Phase-0 law kept) ─
+
+
+def test_stage_claim_supersession_resolves_cross_stage_flag_without_rewrite():
+    """postcond stage claim → SUPERSEDED (degradation direction only);
+    field NEVER rewritten; no cross-stage flag once effective is attach-final."""
+    resp = {
+        "verdict": "HOLD",
+        "effective_verdict": "HOLD",  # attach re-derives effective BEFORE reconcile
+        "meta": {
+            "judge_postcondition": {"verdict": "SABAR", "verdict_channel_integrity": None},
+            "zen_apex": {"decision_core": {"verdict": "HOLD"}},
+        },
+    }
+    out = reconcile_decision_contract(resp)
+    pc = out["meta"]["judge_postcondition"]
+    # Phase-0 law: the disagreeing field is NEVER rewritten
+    assert pc["verdict"] == "SABAR", "stage history must stay in place"
+    # claim-state doctrine: marked superseded (degradation direction: HOLD<=SABAR)
+    assert pc["verdict_state"] == "SUPERSEDED"
+    assert pc["superseded_by_final_verdict"] == "HOLD"
+    assert "superseded_note" in pc
+    # the cross-stage NOISE flag is gone; live verdict is the final
+    assert not any("VERDICT_FIELD_DIVERGENCE" in f for f in _flags(out)), _flags(out)
+    assert out.get("effective_verdict") == "HOLD"
+
+
+def test_upgrade_direction_stage_hold_never_supersedes():
+    """Stage HOLD vs final SEAL = dangerous smoothing — stays a LIVE veto
+    (Phase-0 nested-conflict doctrine, mirrored here for the R-1b guard)."""
+    resp = {
+        "verdict": "SEAL",
+        "effective_verdict": "SEAL",
+        "meta": {"judge_postcondition": {"verdict": "HOLD"}},
+    }
+    out = reconcile_decision_contract(resp)
+    pc = out["meta"]["judge_postcondition"]
+    assert "verdict_state" not in pc, "upgrade direction must never supersede"
+    assert pc["verdict"] == "HOLD"
+    assert out.get("effective_verdict") == "HOLD"  # veto intact
+    assert any("VERDICT_FIELD_DIVERGENCE" in f for f in _flags(out)), _flags(out)
+
+
+def test_stage_claim_equal_is_not_marked():
+    resp = {
+        "verdict": "SABAR",
+        "effective_verdict": "SABAR",
+        "meta": {"judge_postcondition": {"verdict": "SABAR"}},
+    }
+    out = reconcile_decision_contract(resp)
+    pc = out["meta"]["judge_postcondition"]
+    assert "verdict_state" not in pc, "equal claims are not superseded"
+    assert not any("VERDICT_FIELD_DIVERGENCE" in f for f in _flags(out)), _flags(out)
+
+
 if __name__ == "__main__":  # pragma: no cover
     import pytest
 

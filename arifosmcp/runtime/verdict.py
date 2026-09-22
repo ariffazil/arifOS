@@ -603,10 +603,16 @@ def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
     missing value is not a claim (prevents mass-HOLD on schema defaults).
     Substring keys such as decision_thresholds are NOT matched."""
     if isinstance(node, dict):
+        # R-1b (F13 FIX R-1b, 2026-09-22): a stage claim self-declared
+        # SUPERSEDED is excluded from LIVE divergence evaluation — claim-state
+        # doctrine (superseded is kept as history, never served as live
+        # evidence). The field itself stays untouched (Phase-0 law). Generic
+        # by marker, not by path: any bearing dict may declare it.
+        _stage_superseded = str(node.get("verdict_state") or "").upper() == "SUPERSEDED"
         for key, value in node.items():
             child = f"{path}.{key}" if path else str(key)
             if key in _VERDICT_BEARING_KEYS and isinstance(value, str) and value.strip():
-                if not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF):
+                if not _stage_superseded and not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF):
                     yield child, value
             yield from _iter_verdict_bearing(value, child)
     elif isinstance(node, list):
@@ -665,6 +671,50 @@ def reconcile_decision_contract(response: Any) -> Any:
     """
     if not isinstance(response, dict):
         return response
+
+    # R-1b stage-claim supersession (F13 FIX R-1b, 2026-09-22).
+    # A stage report whose value has been superseded by the FINAL envelope
+    # verdict self-declares here (claim-state doctrine: when the value
+    # changes, the old claim is SUPERSEDED — kept as history, never served
+    # as live evidence). The field itself is NEVER rewritten (Phase-0 law
+    # above: contradictions preserved in place) — only a state marker is
+    # ADDED, and _iter_verdict_bearing then excludes the marked claim from
+    # live divergence evaluation.
+    #
+    # LAWFUL ONLY IN THE DEGRADATION DIRECTION (rank: lower = worse):
+    #   final rank <= stage rank  → the transition can only make things
+    #   more conservative — safety preserved (observed: intercept-stage
+    #   postcond=SABAR superseded by deliberation final=HOLD).
+    # The UPGRADE direction (stage HOLD vs final SEAL) is the dangerous
+    # smoothing — it REMAINS a live contradiction and keeps vetoing
+    # (Phase-0 nested-conflict test pins exactly this).
+    # Idempotent: marker set once.
+    if isinstance(response, dict):
+        _r1b_final = str(
+            response.get("verdict") or response.get("effective_verdict") or ""
+        ).upper()
+        _r1b_meta = response.get("meta")
+        if _r1b_final and isinstance(_r1b_meta, dict):
+            _r1b_pc = _r1b_meta.get("judge_postcondition")
+            if isinstance(_r1b_pc, dict):
+                _r1b_pc_v = str(_r1b_pc.get("verdict") or "").upper()
+                _r1b_final_rank = _VERDICT_RANK.get(_r1b_final)
+                _r1b_stage_rank = _VERDICT_RANK.get(_r1b_pc_v)
+                if (
+                    _r1b_pc_v
+                    and _r1b_pc_v != _r1b_final
+                    and _r1b_final_rank is not None
+                    and _r1b_stage_rank is not None
+                    and _r1b_final_rank <= _r1b_stage_rank
+                    and _r1b_pc.get("verdict_state") != "SUPERSEDED"
+                ):
+                    _r1b_pc["verdict_state"] = "SUPERSEDED"
+                    _r1b_pc["superseded_by_final_verdict"] = _r1b_final
+                    _r1b_pc["superseded_note"] = (
+                        "stage-time claim kept as history (verdict untouched, "
+                        "Phase-0 law); degradation-direction transition only "
+                        "(final rank <= stage rank) — superseded != live"
+                    )
 
     claims: dict[str, str] = {}
     raw_tokens: dict[str, str] = {}
