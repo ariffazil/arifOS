@@ -3715,9 +3715,10 @@ async def arif_judge(
                 except NameError:
                     _seed_judgment = ""
                     _out_defined = False
-                # R-1 evidence line (permanent): which branch ran, what the
-                # judgment was, what result carried before the seed.
-                logger.info(
+                # R-1 evidence line: which branch ran, what the judgment was,
+                # what result carried before the seed. WARNING deliberately —
+                # INFO is suppressed by the logger config.
+                logger.warning(
                     "R1 seed: out_defined=%s judgment=%r result_verdict_before=%r",
                     _out_defined,
                     _seed_judgment,
