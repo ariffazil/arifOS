@@ -201,6 +201,24 @@ def check_judge_postcondition(
         report["ledger_precheck"] = ledger
         if ENFORCE_LEDGER_GATE and ledger.get("verified") is False:
             report["missing_evidence"].append("ledger_verified")
+        # S4 (F13 FIX-S4 2026-09-22): a stage-invalid integrity bit is
+        # superseded by the rewrite below. Keeping False would re-fire at
+        # reconcile time as a Point-#4 epistemic veto — HOLD became
+        # self-perpetuating because a judge could never clear inherited
+        # state. The conservative downgrade STILL fires for substantive
+        # evidence gaps (provenance / ledger / empty evidence via Rule #1);
+        # only the stale cross-stage comparison stops vetoing. Final
+        # cross-key coherence remains reconcile_decision_contract's job.
+        if (
+            report.get("verdict_channel_integrity") is False
+            and report["missing_evidence"]
+        ):
+            report["missing_evidence"] = [
+                m
+                for m in report["missing_evidence"]
+                if m != "verdict_channel_integrity"
+            ]
+            report["verdict_channel_integrity"] = None
         if report["missing_evidence"]:
             report.update(
                 {
