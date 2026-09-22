@@ -751,9 +751,17 @@ def _apply_authority_surface_values(
     # W-02 FIX (2026-08-05): If drift floor already force-set mutation_allowed=False
     # anywhere in the response, standing sync must not re-elevate it. The drift floor
     # is the authority on mutation capability; standing provides identity context only.
+    # R-1c model-safety (F13 FIX R-1b, 2026-09-22): on the live judge path
+    # result is a Pydantic VerdictOutput MODEL (body={"result": MODEL}) —
+    # `.get` on it raised AttributeError, the wrapper's try/except: pass
+    # silently skipped THE ENTIRE attach (inner fallback + effective
+    # compose) — the manufactured flag's true root cause across three
+    # deploy cycles today. Model-safe: dict .get AND attribute getattr.
+    _res_obj = response.get("result")
     _drift_capped = (
         response.get("mutation_allowed") is False
-        or response.get("result", {}).get("mutation_allowed") is False
+        or (isinstance(_res_obj, dict) and _res_obj.get("mutation_allowed") is False)
+        or getattr(_res_obj, "mutation_allowed", None) is False
     )
 
     # Top-level mirrors (if present)
