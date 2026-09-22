@@ -200,8 +200,11 @@ def test_status_completed_for_finished_calls_including_hold_observe():
     assert compose_effective_verdict(HOLD).status == STATUS_COMPLETED
     assert compose_effective_verdict(HOLD_888).status == STATUS_COMPLETED
     assert compose_effective_verdict(OBSERVE_ONLY).status == STATUS_COMPLETED
-    # execution_state axis
-    assert compose_effective_verdict(HOLD).execution_state == "COMPLETED"
+    # execution_state axis — KRT-2026-08-15 P1: a refused HOLD action never
+    # completes (FORGE-RECEIPT-DISHONEST); the status assertion above still
+    # records that the TOOL call finished. Aligned to verdict.py semantics
+    # 2026-09-22 Phase 0 (this line predating the axis was red on both trees).
+    assert compose_effective_verdict(HOLD).execution_state == "AWAIT_INPUT"
     assert compose_effective_verdict(VOID).execution_state == "FAILED"
     assert compose_effective_verdict(SEAL).execution_state == "COMPLETED"
 

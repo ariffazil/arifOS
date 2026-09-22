@@ -5120,11 +5120,16 @@ def _enforce_nine_signal(
                 )
 
                 fc = FailureCode.JALAN_KUASA if verdict == "VOID" else FailureCode.JALAN_BENAR
+                # Phase 0 (2026-09-22): quote the FINAL status vocabulary.
+                # The raw handler default "OK" read as success beside the
+                # envelope's blocked/completed (observed D5 contradiction);
+                # "OK" is only ever the schema alias of "completed".
+                _sesat_status = "completed" if str(status).upper() == "OK" else status
                 sesat = emit_sesat(
                     source_node=tool_name,
                     failure_code=fc.value,
                     failed_claim=f"{verdict}: {'; '.join(reasons[:3])}",
-                    observed_reality=f"verdict={verdict}, status={status}, "
+                    observed_reality=f"verdict={verdict}, status={_sesat_status}, "
                     f"action_scope={_action_state}, substrate_scope={_substrate_state}",
                     severity="YELLOW" if verdict in ("HOLD", "DEGRADED") else "RED",
                     lantai=[],
@@ -26045,6 +26050,15 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 )
             except Exception:
                 pass
+            # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+            # the TRUE last writer. Every verdict-bearing field must agree,
+            # or the envelope becomes HOLD/INCONSISTENT with authority off.
+            try:
+                from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+                response = reconcile_decision_contract(response)
+            except Exception:
+                pass
             return response
 
         return _async_wrapped
@@ -26107,6 +26121,14 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 or kwargs.get("band")
                 or kwargs.get("requested_authority"),
             )
+        except Exception:
+            pass
+        # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+        # the TRUE last writer (sync path).
+        try:
+            from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+            response = reconcile_decision_contract(response)
         except Exception:
             pass
         return response

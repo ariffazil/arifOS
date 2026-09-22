@@ -1,11 +1,11 @@
 <!-- SOT-MANIFEST
-last_verified: 2026-09-22T07:58:00+00:00
+last_verified: 2026-09-22T09:10:52+00:00
 kernel_release: v2026.08.01 (release_name from live /health) · canon version 2026.09.20-e8e6f93
 pypi_version: 1!2026.9.2 (published 2026-09-15T16:42Z) · repo tree 1!2026.9.6 (staged, not yet released)
-live_commit: c3d1c43 (fix(judge): crack #7 patch + follow-up stamp)
-source_commit: c3d1c43c5
-built_commit: e8e6f93
-deployment_drift_status: aligned (source = built = deployed (drift: false))
+live_commit: e5a2f312e (feat(judge): Phase 0 — payload-wide decision reconciliation (PR 1 judgment integ)
+source_commit: e5a2f312e
+built_commit: 4b4c7c8
+deployment_drift_status: drift_detected (source != deployed (drift: true) — run deploy-release.sh)
 tools_exposed_via_mcp: 8 (canonical public verbs — verified by live tools/list)
 tools_canonical_superset: 25 (8 exposed + 13 hidden verbs — arif_challenge, arif_judge_deliberate, …)
 tools_declared: 48 · registry_callables: 62 (includes aliases) · proven_live_24h: 3
@@ -13,7 +13,7 @@ floors_active: 13/13 measured pass (live-probed 2026-09-21; F7=0.04, F9=0.15, L1
 federation_schema: 2.0.0
 mcp_protocol: advertises 2026-07-28; live initialize and the internal conformance runner settle on 2025-11-25 (supported: 2026-07-28 · 2025-11-25 · 2025-03-26 · 2024-11-05)
 organs: 7 per the ratified organ table (FEDERATION_CONTRACT §2) + plane classes for boundary services (see Architecture)
-vault999: healthy (241K+ records, append-only)
+vault999: healthy (1K+ records, append-only)
 contract_status: 8/8 published schemas, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json (37,046 bytes, live)
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
