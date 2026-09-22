@@ -3327,6 +3327,54 @@ def register_rest_routes(
             },
         }
 
+        # ── H1.1: emit constitutional gauges from THIS handler's measured state ──
+        # record_constitutional_metrics() previously had ZERO live callers, so
+        # arifos_genius_score / arifos_entropy_delta / arifos_peace_squared /
+        # arifos_empathy_quotient (F8/ΔS/P²/κᵣ observability) never populated.
+        # Every value below is exactly what /health itself reports — nothing
+        # fabricated (F2). Provenance labels distinguish measured vs derived.
+        # Ω₀ (HUMILITY_BAND) is honestly SKIPPED here: no Ω₀-band value is
+        # computed on this path (the F7 floor score and the apex 'h'
+        # evidence-gap are different quantities, not Ω₀ ∈ [0.03, 0.05]).
+        try:
+            from arifosmcp.runtime.metrics import (
+                record_constitutional_metrics as _record_const_metrics,
+                record_w3 as _record_w3,
+            )
+
+            _apex_health = thermo.get("apex_scalars", {}) or {}
+            _health_telemetry = thermo.get("telemetry", {}) or {}
+            _const_metrics: dict[str, float] = {}
+            _const_provenance: dict[str, str] = {}
+            _g_snap = _apex_health.get("G") or {}
+            if _g_snap.get("status") == "MEASURED" and _g_snap.get("value") is not None:
+                _const_metrics["G"] = float(_g_snap["value"])
+                _const_provenance["G"] = "measured"
+            if _health_telemetry.get("dS") is not None:
+                _const_metrics["dS"] = float(_health_telemetry["dS"])
+                _const_provenance["dS"] = "derived"
+            if _health_telemetry.get("peace2") is not None:
+                _const_metrics["peace2"] = float(_health_telemetry["peace2"])
+                _const_provenance["peace2"] = "derived"
+            if _health_telemetry.get("kappa_r") is not None:
+                _const_metrics["kappa_r"] = float(_health_telemetry["kappa_r"])
+                _const_provenance["kappa_r"] = "derived"
+            if _const_metrics:
+                _record_const_metrics(
+                    session_id=str(thermo.get("session_id") or "health"),
+                    tool="health",
+                    metrics=_const_metrics,
+                    provenance_map=_const_provenance,
+                )
+            # W3 tri-witness histogram (F3) — only when the live witness
+            # channels actually measured it (any zero channel → UNMEASURED).
+            _w3_snap = _apex_health.get("W3") or {}
+            if _w3_snap.get("status") == "MEASURED" and _w3_snap.get("value") is not None:
+                _record_w3("health", float(_w3_snap["value"]))
+        except Exception:
+            # Metrics emission must never break /health.
+            pass
+
         # ZD-3: Pre-compute provider status so we can check for cognitive downgrade
         _provider_status = await _cached_offloaded_probe(
             "provider_status",
