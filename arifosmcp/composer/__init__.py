@@ -200,24 +200,39 @@ def _compress(input_data: ZenApexInput) -> str:
 
 
 def _extract_verdict_str(result: dict) -> str:
-    # S4 (F13 FIX-S4 2026-09-22): prefer the canonical last-writer field.
-    # Freezing the zen decision_core from `verdict` while the envelope's
-    # effective_verdict carried a different token manufactured
-    # VERDICT_FIELD_DIVERGENCE (live evidence2026-09-22: frozen
-    # core=HOLD beside root=SABAR → reconcile fail-closed HOLD).
-    # ABSENCE RETURNS "" — never fabricate a verdict from nothing. The old
-    # default "HOLD" froze a fabricated HOLD whenever neither key was set yet
-    # (stage-999 freeze runs before the wrapper attaches the envelope), which
-    # violated the walker's own doctrine: null/absent is not a claim.
+    # S4/R-1 stage-valid freeze input (F13 2026-09-22, refined M3 → M3c):
+    # the freeze runs BEFORE the wrapper attaches the envelope, so an
+    # effective_verdict present at this stage is INTERIM — reading it
+    # manufactured divergence (live: frozen core=HOLD beside a real SABAR).
+    # The stage-native judgment is `verdict` (seeded by seed_result_verdict
+    # from the postcondition-passed out-verdict; governance gates win because
+    # they write first). `action_risk_verdict` stays as the lineage fallback
+    # for tools whose judgment lives there (666 HEART — canonical tokens).
+    # ABSENCE → "" : never fabricate a verdict from nothing (walker doctrine:
+    # null/absent is not a claim).
     v = (
-        result.get("effective_verdict")
-        or result.get("verdict")
+        result.get("verdict")
         or result.get("action_risk_verdict")
         or ""
     )
     if isinstance(v, dict):
         return str(v.get("state") or v.get("verdict") or "")
     return str(v)
+
+
+def seed_result_verdict(result: dict, judgment_verdict: str) -> dict:
+    """R-1 single-writer (F13 FIX R-1, 2026-09-22).
+
+    The RESULT lineage carries ALL governance gates (overclaim, degradation,
+    floors); the postcondition-passed judgment lives on `out`. Seed
+    result.verdict from that judgment when no gate wrote one, so root
+    (VerdictOutput(**result)), zen, and the walker all read ONE lineage by
+    construction. Gates win (they write first — fill-if-absent only); None
+    counts as absent (the observed live shape).
+    """
+    if isinstance(result, dict) and not result.get("verdict") and judgment_verdict:
+        result["verdict"] = judgment_verdict
+    return result
 
 
 def _infer_tags(result: dict) -> list[str]:
