@@ -1089,12 +1089,22 @@ def attach_canonical(
     if not inner_verdict and isinstance(response, dict):
         from arifosmcp.runtime.verdict import CANONICAL_VERDICTS as _cv
 
-        _m2 = response.get("meta") if isinstance(response.get("meta"), dict) else {}
-        _zc2 = _m2.get("zen_apex") if isinstance(_m2.get("zen_apex"), dict) else {}
-        _core2 = _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
-        _zv2 = str(_core2.get("verdict") or "").upper()
-        if _zv2 in _cv:
-            inner_verdict = _zv2
+        # zen may live at root meta OR (at attach time) only under
+        # result.meta — root meta is assembled later (observed live:
+        # fallback missed, effective composed from stale existing).
+        _res2 = response.get("result") if isinstance(response.get("result"), dict) else {}
+        _meta_candidates = []
+        if isinstance(response.get("meta"), dict):
+            _meta_candidates.append(response["meta"])
+        if isinstance(_res2.get("meta"), dict):
+            _meta_candidates.append(_res2["meta"])
+        for _mm in _meta_candidates:
+            _zc2 = _mm.get("zen_apex") if isinstance(_mm.get("zen_apex"), dict) else {}
+            _core2 = _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
+            _zv2 = str(_core2.get("verdict") or "").upper()
+            if _zv2 in _cv:
+                inner_verdict = _zv2
+                break
 
     attach_canonical_standing(response, session_id=session_id, actor_id=actor_id)
     standing = response.get("standing") if isinstance(response, dict) else None
