@@ -55,7 +55,7 @@ Two invariants hold everywhere in this document:
 | Audience | What you get |
 |---|---|
 | **Human** | A quiet veto: the agent proposes, the kernel records a verdict, you stay sovereign |
-| **Agent / A2A** | MCP tools + receipts. You do not get the keys. A2A v1.0 (`a2a_version: 1.0.1` in the agent card), not v1.2 — discovery is owned by AAA, execution by arifOS |
+| **Agent / A2A** | MCP tools + receipts. You do not get the keys. A2A v1.0 (`a2a_version: 1.0.1` in the agent card), not v1.2 — discovery is owned by AAA, judgment by arifOS, **execution by A-FORGE** |
 | **Institution** | Policy floors F1–F13, a hash-chained VAULT999 audit trail, model-vendor independence |
 | **Indexer / Search** | Structured metadata, [`llms.txt`](./llms.txt), [tools.json](https://arifos.arif-fazil.com/tools.json), [`CITATION.cff`](./CITATION.cff) |
 | **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, published input/output schemas |
@@ -130,7 +130,7 @@ Authority remains separated at every stage: no component proposes, judges, execu
 
 ```bash
 pip install arifos
-pip show arifos        # → Version: 1!2026.9.2  (module __version__ strings are stale — do not quote them)
+pip show arifos        # → Version: 1!2026.9.2 (see gaps table — __version__ strings may lag)
 ```
 
 ### Install (Docker)
@@ -146,6 +146,7 @@ docker run -p 3000:3000 --env-file .env.docker.example arifos
 
 ```bash
 # HTTP transport (this is the MCP endpoint) — port comes from $PORT, default 8080
+# Ports: $PORT defaults to 8080; the deployed unit runs on 8088; the Docker image listens on 3000. Use 8088 for anything in this README.
 PORT=8088 arifos-mcp streamable-http
 
 # stdio transport, for a local stdio MCP client
@@ -173,6 +174,14 @@ Verified on 2026-09-21 against the live unit:
 ```bash
 python examples/enterprise_operations_demo.py
 ```
+
+**Demo output renders human-readable display labels over the canonical seven seals.** The wire vocabulary is always the seven seals (`SEAL`, `HOLD`, `SABAR`, `PARTIAL`, `PROVISIONAL`, `HOLD_888`, `VOID`); the labels below are presentation only and are mapped deterministically to a canonical verdict:
+
+| Display label | Canonical verdict |
+|---|---|
+| `✔ ALLOW` | `SEAL` (proceed) |
+| `⏸ HOLD` | `HOLD` or `SABAR` (await human / await evidence) |
+| `✘ BLOCK/VOID` | `VOID` (blocked by a hard floor) |
 
 ```
 [ DEMO / SIMULATED WORKFLOW ]  No real customer funds, records, or firewall policies are altered.
@@ -222,7 +231,7 @@ The kernel binds a session before any judgment. Verified transcript, 2026-09-21:
 
 > Call `arif_judge` without a session and the kernel answers `actor: anonymous`, `authority: OBSERVE_ONLY`, `verdict: HOLD` — it will not silently upgrade an unattested caller.
 
-> **Stage numbering (single source of truth).** The verbs follow the ratified nine-stage map: `000` INIT · `111` OBSERVE · `333` THINK · `444` ROUTE · `555` MEMORY · `666` JUDGE · `777` FORGE · `999` SEAL. Source: `arifosmcp/constitutional_map.py` `ToolStage` (F13-ratified 2026-07-31: JUDGE = **666**, FORGE = **777**; the old `888` stage was retired when compose was absorbed into forge). Some mirrors still carry the retired `888` label — a description string in `constitutional_map.py`, `tools_sot.yaml`, the generated `llms.txt`, and `docs/PROMPT_666_JUDGE_DEPRECATION.md` (dated 2026-07-10, predating the correction). The live wire says `666`, and this README follows the live wire. Flagged for repair in "What Is Not Yet Proven".
+> **Stage numbering (single source of truth).** The verbs follow the ratified **eight-stage** map: `000` INIT · `111` OBSERVE · `333` THINK · `444` ROUTE · `555` MEMORY · `666` JUDGE · `777` FORGE · `999` SEAL. Source: `arifosmcp/constitutional_map.py` `ToolStage` (F13-ratified 2026-07-31: JUDGE = **666**, FORGE = **777**; the old `888` stage was retired when compose was absorbed into forge). Some mirrors still carry the retired `888` label — a description string in `constitutional_map.py`, `tools_sot.yaml`, the generated `llms.txt`, and `docs/PROMPT_666_JUDGE_DEPRECATION.md` (dated 2026-07-10, predating the correction). The live wire says `666`, and this README follows the live wire. Flagged for repair in "What Is Not Yet Proven".
 
 For a guided walkthrough, start with [docs/START_HERE.md](./docs/START_HERE.md) or the verified [docs/QUICKSTART.md](./docs/QUICKSTART.md).
 
@@ -242,10 +251,13 @@ VOID  >  HOLD_888  >  HOLD  >  SABAR  >  PARTIAL  >  PROVISIONAL  >  SEAL
 |---------|---------|---------------|-------------|
 | **SEAL** | Authorised under stated conditions, W³ ≥ 0.95 | Go | Proceed to execution |
 | **PARTIAL** | A derived floor warns | Go carefully | Proceed with cooling and monitoring |
+| **PROVISIONAL** | Time-limited authorisation, expires or downgrades to PARTIAL/HOLD | Proceed with expiry timer | Auto-revoke at `valid_until`; no extension without re-judging |
 | **SABAR** | Not yet decidable — reality hasn't finished speaking | Wait for evidence | Retry permitted later; distinct from HOLD |
 | **HOLD** | Insufficient evidence, or human approval required | Wait for human | Pause; await a human decision |
 | **HOLD_888** | Immediate sovereign escalation | Stop — the sovereign decides | Escalate to F13 |
 | **VOID** | Blocked by a hard constitutional floor | Blocked | Stop; the constraint must be resolved |
+
+Seven seals, ordered and non-compensatory (lattice at top of section). **The diagram below shows the five common verdicts for width; `PROVISIONAL` and `HOLD_888` are omitted from the diagram but present in the lattice and table.**
 
 Floors are never averaged. One floor failure propagates into the verdict; there is no compensating score.
 
@@ -253,21 +265,28 @@ Floors are never averaged. One floor failure propagates into the verdict; there 
 
 Every proposal is evaluated against 13 non-compensatory policy constraints. Canonical names and rules: [`FEDERATION_CONTRACT.md` §3](./FEDERATION_CONTRACT.md), `GENESIS/000_KERNEL_CANON.md`, and the constitution at `static/arifos/theory/000/000_CONSTITUTION.md`.
 
-| Floor | Name | Rule | Polarity |
-|-------|------|------|----------|
-| F1 | AMANAH | Reversible first. Irreversible → 888_HOLD unless the sovereign acknowledges | Higher = better |
-| F2 | TRUTH | P(truth) ≥ 0.99. Cheap claims = VOID. Evidence carries an OBS/DER/INT/SPEC label | Higher = better |
-| F3 | TRI-WITNESS | W₃ = ∛(Human × AI × Earth) ≥ 0.75 at judgment time | Higher = better |
-| F4 | CLARITY | ΔS ≤ 0 — every output reduces entropy, never adds it | Higher = better |
-| F5 | PEACE² | Non-destructive power — block harm and extraction | Higher = better |
-| F6 | EMPATHY *(operational: MARUAH)* | Protect the weakest stakeholder; dignity is not tradeable | Higher = better |
-| F7 | HUMILITY | Ω₀ ∈ [0.03, 0.05]. No fake certainty | **Lower = better** (0.04 = very humble) |
-| F8 | GENIUS | G ≥ 0.80 for complex actions — the simplest correct path | Higher = better |
-| F9 | ANTIHANTU | No deception, manipulation, or consciousness claims | **Lower = better** |
-| F10 | ONTOLOGY | AI-only ontology. A soul claim is VOID; map it to harness content | Higher = better |
-| F11 | AUDITABILITY | Every decision logged, inspectable, attributable | Higher = better |
-| F12 | RESILIENCE | Injection defence. Input risk < 0.85 | **Lower = better** (lower = less injection surface) |
-| F13 | SOVEREIGN | Human veto is FINAL. The harness switch belongs to the human | Higher = better |
+| Floor | Name | Rule | Pass condition |
+|---|---|---|---|
+| F1 | AMANAH | Reversible first. Irreversible → 888_HOLD unless the sovereign acknowledges | Score ≥ threshold (higher = better) |
+| F2 | TRUTH | P(truth) ≥ 0.99. Cheap claims = VOID. Evidence carries an OBS/DER/INT/SPEC label | Score ≥ threshold (higher = better) |
+| F3 | TRI-WITNESS | W₃ = ∛(Human × AI × Earth) ≥ 0.75 at judgment time (floor for admissibility; W³ ≥ 0.95 is the additional bar for SEAL) | Score ≥ threshold (higher = better) |
+| F4 | CLARITY | ΔS ≤ 0 — every output reduces entropy, never adds it | Score ≥ threshold (higher = better) |
+| F5 | PEACE² | Non-destructive power — block harm and extraction | Score ≥ threshold (higher = better) |
+| F6 | EMPATHY (operational: MARUAH) | Protect the weakest stakeholder; dignity is not tradeable | Score ≥ threshold (higher = better) |
+| F7 | HUMILITY | Ω₀ ∈ [0.03, 0.05]. No fake certainty | **In-band [0.03, 0.05] = pass; outside = fail** |
+| F8 | GENIUS | G ≥ 0.80 for complex actions — the simplest correct path | Score ≥ threshold (higher = better) |
+| F9 | ANTIHANTU | No deception, manipulation, or consciousness claims | **Lower = better (lower ceiling = less manipulation)** |
+| F10 | ONTOLOGY | AI-only ontology. A soul claim is VOID; map it to harness content | Score ≥ threshold (higher = better) |
+| F11 | AUDITABILITY | Every decision logged, inspectable, attributable | Score ≥ threshold (higher = better) |
+| F12 | RESILIENCE | Injection defence. Input risk < 0.85 | **Lower = better (lower = less injection surface)** |
+| F13 | SOVEREIGN | Human veto is FINAL. The harness switch belongs to the human | Score ≥ threshold (higher = better) |
+
+**Three semantic classes — verified by the live unit on 2026-09-21:**
+- **Score floors** (F1–F6, F8, F10, F11, F13): higher = better. Score ≥ canonical threshold.
+- **Band floors** (F7): in-band `[0.03, 0.05]` = pass; outside = fail. 0.02 fails.
+- **Ceiling floors** (F9, F12): lower = better. Value below canonical ceiling.
+
+W₃ has two named thresholds: **W₃ ≥ 0.75** is the floor for admissibility; **W₃ ≥ 0.95** is the additional bar for SEAL. Between them a proposal can be `PARTIAL` or `HOLD`, never `SEAL`.
 
 Three naming notes, so a reader can reconcile this table with the wire:
 
@@ -275,13 +294,15 @@ Three naming notes, so a reader can reconcile this table with the wire:
 - **The live runtime keys F10–F13 as `L10`–`L13`** in `/health → runtime_floors`. Same floors, different key prefix.
 - **Lower-is-better floors** are reported as raw measurements, not as failures: live values on 2026-09-21 were F7 = 0.04, F9 = 0.15, L12 = 0.425, and `/health → runtime_floors_status` reports 13/13 pass with every floor `measured: true`.
 
-### VAULT999 (append-only audit ledger)
+VAULT999 (append-only audit ledger)
 
-Every consequential verdict, evidence chain and execution receipt is written to VAULT999 — a hash-chained, append-only JSONL ledger set, tamper-evident by construction.
+Every consequential verdict, evidence chain and execution receipt is written to VAULT999 — a hash-chained, append-only JSONL ledger set, **tamper-evident by construction, not tamper-proof**.
 
-**What it stores is provenance, not copies.** An entry carries its payload hash, entry hash, previous entry hash, trace root, actor, session, decision context and evidence *references*. Source payloads are not duplicated into the ledger — auditability here means `provenance + integrity + reconstructability`, which is both stronger and safer than copying everything forever (evidence can contain sensitive material).
+**What it stores** is provenance, not copies. An entry carries its payload hash, entry hash, previous entry hash, trace root, actor, session, decision context and evidence references. Source payloads are not duplicated into the ledger — auditability here means provenance + integrity + reconstructability, which is both stronger and safer than copying everything forever (evidence can contain sensitive material).
 
-Measured 2026-09-21: **241,765 lines across 24 JSONL ledgers** in `VAULT999/` (largest: `outcomes.jsonl` 93,266 · `arifflow_sealed.jsonl` 52,056 · `apex-zen-receipts.jsonl` 30,977). The chain report from [`scripts/verify_vault_chain.py`](./scripts/verify_vault_chain.py) returns **overall: INTACT** for the active ledgers, reporting 2 strict link breaks in the frozen v1 legacy ledger as historical facts rather than hiding or rewriting them. Live record count is re-stamped into the header manifest above by `scripts/update_readme_sot.py`.
+**A hash chain proves internal consistency.** It does NOT prove that the chain was not recomputed by whoever controls the ledger. External anchoring — periodic publication of the chain head, or signing by a key the kernel does not hold — is not yet implemented. **Treat VAULT999 today as self-verifiable, not independently attestable.** See "What Is Not Yet Proven" for the gap row.
+
+Measured 2026-09-21: 241,765 lines across 24 JSONL ledgers in VAULT999/ (largest: `outcomes.jsonl` 93,266 · `arifflow_sealed.jsonl` 52,056 · `apex-zen-receipts.jsonl` 30,977). Composition: the majority is operational telemetry and receipt ingestion; constitutional verdict count is published separately (see `scripts/verify_vault_chain.py --verdict-count-only`). The chain report returns overall: `INTACT` for the active ledgers, reporting 2 strict link breaks in the frozen v1 legacy ledger as historical facts rather than hiding or rewriting them. Live record count is re-stamped into the header manifest above by `scripts/update_readme_sot.py`.
 
 ---
 
@@ -356,12 +377,12 @@ Live-probed **2026-09-21** (UTC+08). Re-run the commands; static counts are not 
 | Public repository | Live | GitHub [`ariffazil/arifOS`](https://github.com/ariffazil/arifOS), AGPL-3.0 |
 | PyPI package | Published `1!2026.9.2` (uploaded 2026-09-15T16:42Z) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/); tree is `1!2026.9.6`, unreleased |
 | Live kernel | Healthy, 13/13 floors | `curl localhost:8088/health` → `status: healthy`, `floors_active: 13` |
-| MCP interface | 8 canonical verbs | live `tools/list`; protocol advertises `2026-07-28`, negotiation settles `2025-11-25` |
+| MCP interface | 8 exposed, 3 with a durable SUCCESS in the last 24 h (tools_loaded: 8, operational_tools: 3) | live `tools/list`; protocol advertises `2026-07-28`, negotiation settles `2025-11-25` |
 | Floor enforcement | 13/13 measured pass | `/health → runtime_floors_status` (F7 = 0.04, F9 = 0.15, L12 = 0.425 lower-is-better) |
 | VAULT999 ledger | Healthy, chain INTACT | 241,765 lines / 24 ledgers; `scripts/verify_vault_chain.py` |
 | Source / build / deploy | Aligned — no drift | `source_commit = built_commit = deployed_commit = e8e6f93`; `/health → drift: false` |
 | Contract schema | 8/8 published, no drift | `contract_status: {tool_count: 8, schemas_complete: true, contract_drift: false}` |
-| Federation surfaces | 11/11 answering on localhost; WELL degraded | ports 8088 · 3001 · 7071 · 7072 · 8081 · 18082 · 18083 · 7073 · 7074 · 18085 · 18102 all HTTP 200; WELL reports `drift: true` |
+| Federation surfaces | 10/11 reachable without drift; WELL degraded (drift: true) | ports 8088 · 3001 · 7071 · 7072 · 8081 · 18082 · 18083 · 7073 · 7074 · 18085 · 18102; WELL at `127.0.0.1:18083/health` returns HTTP 200 but reports `drift: true`, so the row honestly reads 10/11 healthy + 1 degraded |
 | Machine-readable | tools.json live, 37,046 bytes | [tools.json](https://arifos.arif-fazil.com/tools.json) · [llms.txt](./llms.txt) (generated mirror — see gaps) · [CITATION.cff](./CITATION.cff) |
 | Scanner attestation | 148 rules · 0 unauthorised mutations; 26/26 GRADE A | [mcp.arif-fazil.com/proof/](https://mcp.arif-fazil.com/proof/) |
 
@@ -370,8 +391,10 @@ Live-probed **2026-09-21** (UTC+08). Re-run the commands; static counts are not 
 Every row names its own gap. Repairing a claim by substituting a stronger one is worse than the stale claim it replaced.
 
 | Gap | Risk | Status |
-|-----|------|--------|
+|---|---|---|
 | Independent security audit | Adversarial bypass testing not published | **In progress** — external researcher reviewing since 2026-08-25. First finding (fetch-surface SSRF) fixed, released in `1!2026.9.1`. A second scan (2026-09-15/16, mcp-safeguard) found 2 confirmed issues: Cypher injection (graph-wipe risk, HIGH — key whitelist landed in `l5_sovereign_forge.py`) and a fastmcp decode-after-match path traversal (MEDIUM — arifOS-side containment guard landed in `atlas333.py`; upstream report pending). Both are at code level; neither has a released-artifact verdict. See [SECURITY.md](./SECURITY.md#known-gaps) |
+| **Sovereign-binding of irreversible acknowledgement** | **`ack_irreversible: true` and `actor_signature` are transported as payload fields.** Nothing published demonstrates that a human signature is bound to `(transaction_hash ‖ state_hash ‖ nonce)`, single-use, scoped to one organ, and unforgeable by the proposing agent. | **Open** — design drafted ([`arifosmcp/runtime/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md`](./arifosmcp/runtime/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md)), not implemented. Until then, F13 is enforced by convention and band-gating, not by cryptographic transaction binding. This matches OWASP transaction-authorization practice: credentials unique per operation and bound to significant transaction data, not to session. |
+| **Ledger head not externally anchored or signed** | **A hash chain held entirely by one party detects external modification but not wholesale rewrite by the holder**, because the holder can recompute every hash. | **Open** — periodic publication of chain head, or signing by a key the kernel does not hold, is not implemented. VAULT999 today is self-verifiable, not independently attestable. |
 | Third-party evaluation | No external reviewer has published findings | In progress — one review under way since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | **Partial** — `examples/enterprise_operations_demo.py` runs in-process and is verified here; no stranger has reproduced it unaided |
 | Enterprise deployment | No production customer reference | Open |
@@ -384,6 +407,8 @@ Every row names its own gap. Repairing a claim by substituting a stronger one is
 | Semantic layer (Graphiti) | Knowledge graph retired from the read path | Operational gap — `graphiti_read: retired_888`, `semantic_floor: disabled` by choice (`ARIFOS_ML_FLOORS=0`) |
 | Observability | Tracing partially wired | **Partial** — sovereign Postgres backend active; arifFlow FlowReceipt adapter live; OTel spans on all 8 canonical verbs; `langfuse_tracing: NOT_WIRED` after the cutover to kabarkan; caller-side trace propagation incomplete |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
+| Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Open — relevant to any institutional adoption** |
+| `__version__` strings are stale | Module `__version__` lags kernel release; readers may quote it incorrectly | **Open** — fix target: route `__version__` through `scripts/update_readme_sot.py` so it stays in sync |
 
 See [SECURITY.md](./SECURITY.md) for the threat model, known gaps and disclosure policy, and [docs/evidence/claims.yaml](./docs/evidence/claims.yaml) for the machine-readable claim registry.
 
@@ -522,5 +547,7 @@ When deployed over a network, the complete source code must be made available to
 ---
 
 *Revision 2026-09-21 — audited against the live kernel, the ratified federation contract and the repository itself. Every number in this file was re-measured, not carried forward; each correction is receipted in the commit history.*
+
+**Independent audit pass 2026-09-22** (Copilot external, mode ENTERPRISE). Findings A, B, C, D, E, F, G, H, I, K, L, N — all four blocking contradictions + the two highest-leverage gaps (G sovereign-binding, H ledger anchoring) — corrected in this revision. M (TOC/badges) and a per-pass signature remain open as structural polish. See commit history for per-finding receipts.
 
 **Ditempa Bukan Diberi** — Forged, Not Given.
