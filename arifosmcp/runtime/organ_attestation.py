@@ -526,6 +526,21 @@ def get_organ_attestation(organ_id: str) -> OrganAttestationRecord | None:
     return _ORGAN_REGISTRY.get(organ_id)
 
 
+def boot_gate_state(organ_id: str = "arifOS") -> tuple[str, bool]:
+    """T3 (F13 2026-09-22): attestation gate state for session envelopes.
+
+    Returns (status, blocks). Absence of a record is UNMEASURED — it does
+    NOT block. The old consumer ran ``not is_healthy("UNATTESTED")`` and
+    stamped BOOT_ATTESTATION_FAILED + substrate DEGRADED on every session
+    for a measurement that never happened (decision note
+    /root/work/F13-DECISION-T3-T6-2026-09-20.md, T3: absence → must-attest).
+    """
+    record = get_organ_attestation(organ_id)
+    if record is None:
+        return "UNATTESTED", False
+    return record.status, not is_healthy(record.status)
+
+
 def list_organ_attestations() -> dict[str, OrganAttestationRecord]:
     return dict(_ORGAN_REGISTRY)
 

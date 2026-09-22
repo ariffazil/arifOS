@@ -1332,17 +1332,17 @@ def _project_light(
     # INTERPRETATION_INVARIANT: substrate_state must consult boot attestation
     # (canonical: arifosmcp/runtime/organ_attestation.py) before claiming HEALTHY.
     # Boot attestation returning None or non-ALIVE downgrades session envelope.
+    # T3 (F13 2026-09-22): exception above means ABSENCE, and absence is
+    # UNMEASURED — it must not degrade the substrate or fail the join.
     try:
-        from arifosmcp.runtime.organ_attestation import (
-            get_organ_attestation,
-            is_healthy,
-        )
+        from arifosmcp.runtime.organ_attestation import boot_gate_state
 
-        _boot_record = get_organ_attestation("arifOS")
-        _boot_status = _boot_record.status if _boot_record is not None else "UNATTESTED"
-        _boot_unhealthy = not is_healthy(_boot_status)
+        _boot_status, _boot_unhealthy = boot_gate_state("arifOS")
+        _boot_missing = _boot_status == "UNATTESTED"
     except Exception:  # noqa: BLE001 — attestation is best-effort during boot
+        _boot_status = "UNATTESTED"
         _boot_unhealthy = False  # default: do not block on attestation absence
+        _boot_missing = True
     _substrate_state = "DEGRADED" if (_drift or _boot_unhealthy) else "HEALTHY"
 
     # ── WAJIB 3: Single canonical effective_state (2026-08-07) ──
@@ -1367,6 +1367,8 @@ def _project_light(
             if _drift
             else "BOOT_ATTESTATION_FAILED"
             if _boot_unhealthy
+            else "MUST_ATTEST"
+            if _boot_missing
             else "ACTOR_NOT_VERIFIED"
             if not actor_verified
             else "VERIFIED"

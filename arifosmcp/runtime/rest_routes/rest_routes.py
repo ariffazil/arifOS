@@ -3770,6 +3770,47 @@ def register_rest_routes(
             payload = dict(payload)
             payload["payload_mode"] = "detail"
 
+        # ── T6 verdict floor-guard (F13 A1 batch, 2026-09-22) ────────────
+        # SEAL-grade publication must not out-shout a canon floor breach.
+        # Thresholds are canon-grounded, NOT taken from any external paste:
+        #   W3 < 0.75 → HOLD band — APEX-REALITY-KERNEL.md L154 +
+        #                 W3-HYSTERESIS-DOCTRINE-2026-09-20 (any single
+        #                 measurement below 0.75 = fail-closed demotion)
+        #   G  < 0.80 → F08 GENIUS floor breach — CANON-FLOOR-INDEX-2026-09-20
+        # Observed breach (OBS 2026-09-22): verdict=SEAL beside
+        # G=0.4649 / W3=0.7439 — one payload, two truths (S4 family).
+        # Guard runs BEFORE the cache store so cached and ?nocache=1
+        # payloads agree. Fail-safe: never raises — telemetry must not
+        # break /health.
+        try:
+            _apex_pub = payload.get("apex_scalars") or {}
+            _g_pub = (_apex_pub.get("G") or {}).get("value")
+            _w_pub = (_apex_pub.get("W3") or {}).get("value")
+            _t6_breaches: list[str] = []
+            if isinstance(_g_pub, (int, float)) and not isinstance(_g_pub, bool) and _g_pub < 0.80:
+                _t6_breaches.append(
+                    f"F08_GENIUS: G={_g_pub:.4f} < 0.80 (CANON-FLOOR-INDEX-2026-09-20)"
+                )
+            if isinstance(_w_pub, (int, float)) and not isinstance(_w_pub, bool) and _w_pub < 0.75:
+                _t6_breaches.append(
+                    f"W3_HOLD_BAND: W3={_w_pub:.4f} < 0.75 (APEX-REALITY-KERNEL.md:154)"
+                )
+            _thermo_pub = payload.get("thermodynamic")
+            if (
+                isinstance(_thermo_pub, dict)
+                and _t6_breaches
+                and str(_thermo_pub.get("verdict") or "").upper() in ("SEAL", "888_SEAL")
+            ):
+                _thermo_pub["verdict"] = "HOLD"
+                _thermo_pub["verdict_floor_guard"] = {
+                    "guard": "T6_verdict_floor_guard_2026-09-22",
+                    "breaches": _t6_breaches,
+                    "original_verdict": "SEAL",
+                    "authority": "F13 A1 batch 2026-09-22 (thresholds canon-grounded)",
+                }
+        except Exception:
+            pass  # fail-safe: guard must never take down /health
+
         # ── RSI: Update cache ──
         # Cache compact only — detail bypasses shared cache pollution
         if not _detail:
