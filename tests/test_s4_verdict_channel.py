@@ -165,9 +165,41 @@ def test_extract_prefers_effective_verdict():
     assert _extract_verdict_str({"effective_verdict": "SABAR", "verdict": "HOLD"}) == "SABAR"
 
 
-def test_extract_falls_back_to_verdict_then_default():
+def test_extract_falls_back_to_verdict_then_absence():
     assert _extract_verdict_str({"verdict": "HOLD"}) == "HOLD"
-    assert _extract_verdict_str({}) == "HOLD"
+    # absence is NOT a claim — never fabricate a verdict from nothing
+    assert _extract_verdict_str({}) == ""
+
+
+# ── M1b: session_birth carries the AUTHORITY BAND, not a judgment ───────────
+
+
+def test_birth_band_path_is_an_axis_not_a_verdict_carrier():
+    """session_birth.verdict pins the band by design (5 tests) — carved out.
+
+    Live evidence: init flagged
+    UNKNOWN_VERDICT_TOKEN:result.session_birth.verdict=LIMITED_MUTATE —
+    any non-OBSERVE band is 'unknown' to the verdict vocabulary, so every
+    verified init fail-closed to HOLD.
+    """
+    resp = {
+        "effective_verdict": "SABAR",
+        "result": {"session_birth": {"verdict": "LIMITED_MUTATE", "authority_mode": "LIMITED_MUTATE"}},
+        "meta": {"judge_postcondition": {"verdict": "SABAR", "verdict_channel_integrity": True}},
+    }
+    out = reconcile_decision_contract(resp)
+    flags = _flags(out)
+    assert not any("UNKNOWN_VERDICT_TOKEN" in f for f in flags), flags
+    assert out.get("effective_verdict") == "SABAR", (out.get("effective_verdict"), flags)
+
+
+def test_true_unknown_carrier_still_vetoes():
+    """Carve-out is PATH-scoped: an unknown token on a generic verdict key still vetoes."""
+    resp = {"effective_verdict": "SABAR", "meta": {"odd": {"verdict": "TOTALLY_UNKNOWN"}}}
+    out = reconcile_decision_contract(resp)
+    flags = _flags(out)
+    assert any(f.startswith("UNKNOWN_VERDICT_TOKEN") for f in flags), flags
+    assert out.get("effective_verdict") == "HOLD"
 
 
 if __name__ == "__main__":  # pragma: no cover

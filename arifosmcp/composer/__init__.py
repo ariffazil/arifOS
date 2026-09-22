@@ -205,14 +205,18 @@ def _extract_verdict_str(result: dict) -> str:
     # effective_verdict carried a different token manufactured
     # VERDICT_FIELD_DIVERGENCE (live evidence2026-09-22: frozen
     # core=HOLD beside root=SABAR → reconcile fail-closed HOLD).
+    # ABSENCE RETURNS "" — never fabricate a verdict from nothing. The old
+    # default "HOLD" froze a fabricated HOLD whenever neither key was set yet
+    # (stage-999 freeze runs before the wrapper attaches the envelope), which
+    # violated the walker's own doctrine: null/absent is not a claim.
     v = (
         result.get("effective_verdict")
         or result.get("verdict")
         or result.get("action_risk_verdict")
-        or "HOLD"
+        or ""
     )
     if isinstance(v, dict):
-        return str(v.get("state") or v.get("verdict") or "HOLD")
+        return str(v.get("state") or v.get("verdict") or "")
     return str(v)
 
 
@@ -270,6 +274,15 @@ def attach_zen_witness_to_result(
 
     try:
         verdict = _extract_verdict_str(result)
+        if not verdict:
+            # S4 (F13 FIX-S4 2026-09-22): freeze stage runs BEFORE the wrapper
+            # attaches the envelope — if no verdict key exists yet, absence is
+            # not a claim. Skip the freeze honestly (same shape as the
+            # exception path below) instead of fabricating a HOLD core that
+            # manufacture-diverges against the later real verdict.
+            result.setdefault("meta", {})["zen_apex_error"] = "VERDICT_ABSENT_AT_FREEZE"
+            result.setdefault("meta", {})["quote_resolution_status"] = "UNAVAILABLE"
+            return result
         evidence = str(
             result.get("evidence_layer") or (result.get("meta") or {}).get("evidence_layer") or "L2"
         )
