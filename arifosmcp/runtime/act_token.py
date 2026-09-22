@@ -1231,7 +1231,19 @@ def echo_canonical_session(
                 pass
         response["actor_verified"] = actor_verified
         response["actor_cryptographically_verified"] = crypto_verified
-        if "allowed_next_verbs" not in response or not response.get("allowed_next_verbs"):
+        # S3 (2026-09-22): ONE field, ONE meaning. `allowed_next_verbs` answers
+        # "what may I do NEXT" — the session-state view. The band REPETOIRE is
+        # already carried by the signed token's act_claims.allowed (AUTHORITY_VERBS
+        # deliberately includes arif_seal at LIMITED_MUTATE for safe modes; mode=seal
+        # gates at L6 inside). Filling the root from the band table while the inner
+        # result carries a state-filtered list published two authorities for one
+        # field in the same envelope (S4 family: seal_allowed=false beside a root
+        # list advertising arif_seal). When the result already knows, echo it;
+        # the band fill remains only for responses with no state view.
+        _res_preview = response.get("result")
+        if isinstance(_res_preview, dict) and "allowed_next_verbs" in _res_preview:
+            response["allowed_next_verbs"] = list(_res_preview["allowed_next_verbs"] or [])
+        elif "allowed_next_verbs" not in response or not response.get("allowed_next_verbs"):
             response["allowed_next_verbs"] = derive_verbs(band_str)
 
         res = response.get("result")

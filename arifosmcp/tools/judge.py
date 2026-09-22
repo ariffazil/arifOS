@@ -65,6 +65,44 @@ from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 from core.shared.atlas import Φ
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# G-10 · JUDGE LATENCY CLASS — tier → budget binding
+# ═══════════════════════════════════════════════════════════════════════════════
+# 888 does not run a rule engine. It consults an LLM (`llm_consulted: true`) and
+# walks the full floor ladder L01–L10. Measured on the live kernel 2026-09-21
+# (session SEAL-11ecd272a1a44684): a COMPLETED deliberation took 207.35 ms.
+#
+# The binding was an inline local dict at the call site, and it mapped the
+# default tier to C2_STANDARD — a 200 ms ceiling enforced PREVENTIVELY
+# (asyncio.wait_for). So the coroutine was killed at the deadline and the
+# kernel published `SABAR`: a timeout wearing a verdict's clothes. Every caller
+# that omitted action_tier received that false verdict, and it survives as a
+# plausible-looking constitutional judgment in every receipt it touched.
+#
+# Two contradictions this fixes:
+#   1. `latency_budget.judge_with_budget` declares the conservative default
+#      explicitly — `LATENCY_BUDGETS.get(..., LATENCY_BUDGETS[C3_DEEP])`. This
+#      tool contradicted it, resolving unknown/default to the LEAST conservative
+#      class in the table. The tool was less conservative than its own library.
+#   2. An inline dict in a 3,949-line function cannot be imported or asserted
+#      against. An untestable constant is how a default drifts below the
+#      measured floor unnoticed.
+#
+# Invariant, pinned by tests/test_g10_judge_default_budget_regression.py:
+#   a tier whose path consults an LLM must never resolve to a rule-engine class
+#   (C0_AUTO / C1_FAST / C2_STANDARD), and every non-sovereign budget must be
+#   able to contain the measured deliberation.
+# Register: AAA/reports/ACT-LANE-DEFECT-REGISTER-2026-09-21.md
+JUDGE_DEFAULT_LATENCY_CLASS: LatencyDecisionClass = LatencyDecisionClass.C3_DEEP
+
+JUDGE_TIER_TO_LATENCY_CLASS: dict[str, LatencyDecisionClass] = {
+    "standard": LatencyDecisionClass.C3_DEEP,
+    "elevated": LatencyDecisionClass.C3_DEEP,
+    "sovereign": LatencyDecisionClass.C4_SOVEREIGN,
+    "c4": LatencyDecisionClass.C4_SOVEREIGN,
+    "c5": LatencyDecisionClass.C4_SOVEREIGN,
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # ECHO/PaW PREDICTION SCHEMA — L3 Gradient Injection Bridge
 # ═══════════════════════════════════════════════════════════════════════════════
 # Maps prediction keys to their canonical observation sources.
@@ -1629,12 +1667,16 @@ async def arif_judge(
                     check_judge_postcondition as _cjpc_intercept,
                 )
 
+                # S4 defer (F13 FIX-S4 2026-09-22): comparing the RAW intercept
+                # token (ALLOW/OK) against the mapped code (SEAL/HOLD) is a
+                # stage-invalid compare by construction — it reads integrity
+                # False on EVERY promotion. Final coherence = reconcile.
                 _ipc_report = _cjpc_intercept(
                     mode=mode,
                     candidate=candidate,
                     evidence=evidence,
                     verdict_str=str(_code),
-                    effective_verdict=_v_str,
+                    effective_verdict="",
                 )
                 if (
                     _code == VerdictCode.SEAL
@@ -2167,12 +2209,22 @@ async def arif_judge(
                 check_judge_postcondition as _cjpc_main,
             )
 
+            # S4 stage-valid integrity (F13 FIX-S4 2026-09-22): the envelope's
+            # pre-judgment effective_verdict compared against THIS judgment is
+            # a stage-invalid compare — it reads False whenever the judge
+            # legitimately disagrees with inherited state, which rewrote every
+            # genuine SEAL attempt to SABAR and made HOLD self-perpetuating
+            # (live evidence2026-09-22: SEAL → integrity False → SABAR →
+            # reconcile HOLD, forever). "effective must track verdict" is the
+            # LAST WRITER's invariant — reconcile_decision_contract owns final
+            # cross-key coherence (Phase-0 Point #4 still vetoes a truly-final
+            # mismatch there). Defer: pass no effective at this stage.
             _pc_report_main = _cjpc_main(
                 mode=mode,
                 candidate=candidate,
                 evidence=evidence,
                 verdict_str=str(getattr(out, "verdict", "") or ""),
-                effective_verdict=str(getattr(out, "effective_verdict", "") or ""),
+                effective_verdict="",
             )
             if _pc_report_main.get("applied") and _pc_report_main.get("verdict"):
                 _pc_v = _pc_report_main["verdict"]
@@ -3186,16 +3238,17 @@ async def arif_judge(
 
     t_judge_start = time_module.monotonic()
 
-    # Map action_tier to LatencyDecisionClass for budget lookup
-    tier_to_class = {
-        "standard": LatencyDecisionClass.C2_STANDARD,
-        "elevated": LatencyDecisionClass.C3_DEEP,
-        "sovereign": LatencyDecisionClass.C4_SOVEREIGN,
-        "c4": LatencyDecisionClass.C4_SOVEREIGN,
-        "c5": LatencyDecisionClass.C4_SOVEREIGN,
-    }
-    decision_class_latency = tier_to_class.get(action_tier, LatencyDecisionClass.C2_STANDARD)
-    budget = LATENCY_BUDGETS.get(decision_class_latency)
+    # Map action_tier to LatencyDecisionClass for budget lookup.
+    # G-10: binding extracted to module level (JUDGE_TIER_TO_LATENCY_CLASS /
+    # JUDGE_DEFAULT_LATENCY_CLASS) so it is importable and assertable. Unknown
+    # tier now falls to the conservative default, matching
+    # latency_budget.judge_with_budget, instead of the rule-engine class.
+    decision_class_latency = JUDGE_TIER_TO_LATENCY_CLASS.get(
+        (action_tier or "").strip().lower(), JUDGE_DEFAULT_LATENCY_CLASS
+    )
+    budget = LATENCY_BUDGETS.get(
+        decision_class_latency, LATENCY_BUDGETS[JUDGE_DEFAULT_LATENCY_CLASS]
+    )
 
     # ── Preventive timeout (L1 fix) ──────────────────────────────────
     # C4_SOVEREIGN: unbounded — no timeout. Human deliberation has no SLA.
@@ -3642,6 +3695,39 @@ async def arif_judge(
             "Quotes triggered via GPV, formatted with motto + antithesis. "
             "Commentary only — floor gates remain primary enforcement."
         )
+        # R-1 single-writer (F13 FIX R-1, 2026-09-22): out carries the
+        # postcondition-passed judgment; result carries ALL governance gates.
+        # Seed result.verdict from the judgment (fill-if-absent — a gate that
+        # already wrote HOLD wins) BEFORE the freeze and the
+        # VerdictOutput(**result) return, so root == result == zen by
+        # construction instead of falling to the out-only early return or the
+        # None-forces-HOLD fallback that manufactured VERDICT_FIELD_DIVERGENCE.
+        # F2 self-fix (2026-09-22): `out` is undefined on the result-only
+        # path (NameError → VOID fallback, observed live 22:07) — best-effort,
+        # path-safe; result-only paths already carry their own verdict.
+        if isinstance(result, dict):
+            try:
+                from arifosmcp.composer import seed_result_verdict as _seed_rv
+
+                try:
+                    _seed_judgment = str(getattr(out, "verdict", "") or "")
+                    _out_defined = True
+                except NameError:
+                    _seed_judgment = ""
+                    _out_defined = False
+                # R-1 evidence line: which branch ran, what the judgment was,
+                # what result carried before the seed. WARNING deliberately —
+                # INFO is suppressed by the logger config.
+                logger.warning(
+                    "R1 seed: out_defined=%s judgment=%r result_verdict_before=%r",
+                    _out_defined,
+                    _seed_judgment,
+                    result.get("verdict"),
+                )
+                if _seed_judgment:
+                    _seed_rv(result, _seed_judgment)
+            except Exception:
+                pass  # seed is best-effort — never break the verdict path
         # Zen Apex: freeze DecisionCore + optional witness AFTER verdict.
         # Witness is presentation only — never mutates verdict/floors.
         try:
@@ -3884,7 +3970,11 @@ async def arif_judge(
         return _echo_standing(VerdictOutput(**result))
     except Exception:
         # Robust fallback for incomplete semantic outputs or plumbing during E2E (7-tool facade)
-        v = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
+        # R-1 (2026-09-22): None-safe — `result.get("verdict", "HOLD")` returns
+        # None when the key EXISTS as None, which then failed the tuple check
+        # and silently forced HOLD. Absence falls back; a real judgment never
+        # does (seed_result_verdict runs before this point).
+        v = (result.get("verdict") or "HOLD") if isinstance(result, dict) else "HOLD"
         if v not in ("SEAL", "SABAR", "VOID", "HOLD", "PARADOX_HOLD"):
             v = "HOLD"
         r = (

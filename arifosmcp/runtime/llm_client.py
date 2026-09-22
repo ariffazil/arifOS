@@ -128,15 +128,6 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 # opt-in while retaining Ollama as the independent bge-m3 embedding backend.
 OLLAMA_TEXT_ENABLED = os.getenv("OLLAMA_TEXT_ENABLED", "false").lower() in {"1", "true", "yes"}
 
-# Tier 0.5 — FLAME free-loop (local Groq proxy, RM0, ZEN-fix 2026-07-30)
-# FLAME is a local OpenAI-compatible proxy that multiplexes Groq free-tier models.
-# Inserted as immediate fallback after TokenRouter failure to prevent cascade
-# from exceeding the 45s ToolTimeoutMiddleware budget.
-# No auth needed — localhost-only, UFW-gated.
-FLAME_BASE_URL = os.getenv("FLAME_BASE_URL", "http://localhost:18901/v1")
-FLAME_MODEL = os.getenv("FLAME_MODEL", "llama-3.3-70b-versatile")
-FLAME_TIMEOUT = 4.0  # ZEN: 4s max — FLAME typical 0.3-1s
-
 # ── ZEN CASCADE BUDGET (2026-07-30) ──────────────────────────────────────
 # Per ChatGPT forensic: one slow provider must not consume the entire kernel
 # budget and block faster providers. Every provider gets 3-4s individual
@@ -214,7 +205,7 @@ def _cascade_exhausted(
         "retryable": True,
         "next_safe_action": (
             "Recharge TokenRouter credit or wait for circuit breakers to cool "
-            f"({CB_COOLDOWN_SECONDS}s). FLAME (:18901) is the fastest recovery path."
+            f"({CB_COOLDOWN_SECONDS}s)."
         ),
         "confidence": 0.0,
     }
@@ -676,7 +667,7 @@ async def _call_tokenrouter(
     }
 
     try:
-        # ZEN FIX (2026-07-30): 3s timeout — fail aggressively so cascade reaches FLAME within 10s
+        # ZEN FIX (2026-07-30): 3s timeout — fail aggressively so the cascade reaches a fallback provider within 10s
         async with httpx.AsyncClient(timeout=3.0) as client:
             response = await client.post(
                 f"{TOKENROUTER_BASE_URL}/chat/completions",
@@ -752,93 +743,6 @@ async def _call_tokenrouter(
         raise LLMUnavailableError("TokenRouter returned empty JSON object")
 
     logger.debug("TokenRouter inference complete (model=%s)", effective_model)
-    return raw_output, parsed
-
-
-async def _call_flame(
-    system: str,
-    user: str,
-    response_schema: dict[str, Any] | None,
-    temperature: float,
-    max_tokens: int = 1200,
-    model: str | None = None,
-) -> tuple[str, dict[str, Any]]:
-    """
-    Tier 0.5 — FLAME free-loop (local Groq proxy, ZEN-fix 2026-07-30).
-
-    FLAME is a local OpenAI-compatible proxy at :18901 that multiplexes
-    Groq's free-tier models (llama-3.3-70b, qwen3.6-27b, etc.).
-    No API key needed — localhost-only, UFW-gated.
-
-    Inserted as immediate fallback after TokenRouter failure to prevent
-    the cascade from exceeding the 45s ToolTimeoutMiddleware budget.
-    Proven: 1s response time, Groq/Llama-3.3-70b backend.
-    """
-    effective_model = model or FLAME_MODEL
-
-    messages = [{"role": "system", "content": system}]
-    if user:
-        messages.append({"role": "user", "content": user})
-
-    payload: dict[str, Any] = {
-        "model": effective_model,
-        "messages": messages,
-        "max_tokens": max_tokens,
-        "temperature": temperature,
-    }
-
-    try:
-        async with httpx.AsyncClient(timeout=FLAME_TIMEOUT) as client:
-            response = await client.post(
-                f"{FLAME_BASE_URL}/chat/completions",
-                headers={"Content-Type": "application/json"},
-                json=payload,
-            )
-    except Exception as exc:
-        logger.warning("FLAME transport error: %s", exc)
-        raise LLMUnavailableError(f"FLAME transport error: {exc}") from exc
-
-    if response.status_code != 200:
-        logger.warning("FLAME HTTP %s: %s", response.status_code, response.text[:200])
-        raise LLMUnavailableError(f"FLAME HTTP {response.status_code}")
-
-    try:
-        data = response.json()
-        # FLAME returns custom format: {"content": "...", "ok": true, ...}
-        # NOT OpenAI-compatible {"choices": [...]}. Handle both.
-        if "content" in data:
-            content = data["content"]
-        elif "choices" in data:
-            content = data["choices"][0]["message"].get("content", "")
-        else:
-            raise LLMUnavailableError("FLAME: no 'content' or 'choices' in response")
-        if not data.get("ok", True):
-            logger.warning("FLAME returned ok=false: %s", data.get("error", "unknown"))
-            raise LLMUnavailableError(f"FLAME error: {data.get('error', 'unknown')}")
-    except LLMUnavailableError:
-        raise
-    except Exception as exc:
-        logger.warning("FLAME parse error: %s", exc)
-        raise LLMUnavailableError(f"FLAME response parse error: {exc}") from exc
-
-    raw_output = _strip_markdown(content)
-
-    try:
-        parsed = json.loads(raw_output)
-    except json.JSONDecodeError:
-        repaired = _repair_truncated_json(raw_output)
-        if repaired is not None:
-            parsed = repaired
-            raw_output = json.dumps(repaired)
-        else:
-            parsed = {"reasoning": raw_output}
-
-    if not isinstance(parsed, dict):
-        raise LLMUnavailableError(
-            f"FLAME output must be a JSON object, got {type(parsed).__name__}"
-        )
-
-    logger.debug("FLAME inference complete (model=%s, provider=groq)", effective_model)
     return raw_output, parsed
 
 
@@ -2225,34 +2129,6 @@ async def call_llm(
     if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
         return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
 
-    # Tier 0.5 — FLAME free-loop (local Groq proxy, ZEN-fix 2026-07-30)
-    # FLAME is proven working (1s response, Groq Llama-3.3-70b backend).
-    # Inserted BEFORE paid tiers so the cascade reaches a working backend
-    # within the 45s ToolTimeoutMiddleware budget.
-    if not _cb_is_open("flame"):
-        try:
-            t0 = time.monotonic()
-            raw_output, parsed = await _call_flame(
-                system, user, response_schema, temperature, max_tokens
-            )
-            _cb_record_success("flame")
-            return _make_envelope(
-                raw_output,
-                parsed,
-                "flame-groq",
-                FLAME_MODEL,
-                tool_origin,
-                mode,
-                combined_prompt,
-                (time.monotonic() - t0) * 1000,
-                response_schema,
-                trace_recursion_depth,
-            )
-        except LLMUnavailableError:
-            _cb_record_failure("flame")
-    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
-        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
-
     # Tier 1 — MiniMax M3 (frontier agentic model, best at structured JSON)
     if not _cb_is_open("minimax"):
         try:
@@ -2431,7 +2307,6 @@ async def call_llm(
         p
         for p in [
             "tokenrouter",
-            "flame",
             "minimax",
             "mimo",
             "groq",
