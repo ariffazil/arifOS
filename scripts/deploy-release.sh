@@ -36,6 +36,25 @@ SITE_PKG_ROOT="$(cd / && "$VENV_PYTHON" -c 'import sysconfig; print(sysconfig.ge
 GIT_COMMIT="$(cd "$REPO_DIR" && git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown")"
 BUILD_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
+# ── S5 deploy-honesty: dirty-tree capture (flag + record, NOT abort) ─
+# 2026-09-23: the git stamp is commit-only, but the wheel builds from the
+# WORKING TREE — concurrent lanes leave uncommitted deltas that ship in
+# the wheel while the stamp claims a clean commit (F2 omission hole).
+# Capture the dirty state BEFORE the build and record it in the manifest.
+GIT_DIRTY_FILES="$(git -C "$REPO_DIR" status --porcelain 2>/dev/null || true)"
+if [ -n "$GIT_DIRTY_FILES" ]; then
+	GIT_DIRTY="true"
+	GIT_DIRTY_COUNT="$(printf '%s\n' "$GIT_DIRTY_FILES" | wc -l | tr -d ' ')"
+	GIT_DIRTY_JSON="$(printf '%s\n' "$GIT_DIRTY_FILES" | python3 -c 'import sys, json; print(json.dumps([line[3:] for line in sys.stdin.read().splitlines()]))')"
+	echo "⚠️  WARNING: wheel built from DIRTY tree — git stamp is commit-only; content includes uncommitted deltas ($GIT_DIRTY_COUNT files):"
+	printf '%s\n' "$GIT_DIRTY_FILES"
+	echo ""
+else
+	GIT_DIRTY="false"
+	GIT_DIRTY_COUNT="0"
+	GIT_DIRTY_JSON="[]"
+fi
+
 echo "═══ arifOS Release 1 — Runtime Truth ═══"
 echo "  Source:     $REPO_DIR"
 echo "  Commit:     $GIT_COMMIT"
@@ -132,6 +151,47 @@ if [ "$ARIFOS_DIST_COUNT" -ne 1 ] || [ "$EDITABLE_COUNT" -ne 0 ]; then
 fi
 echo "  ✅ Wheel installed (single distribution, zero editables)"
 
+# ── S5 deploy-honesty: content-hash stamp (binary self-describes) ────
+# 2026-09-23: the commit stamp alone cannot prove what the wheel contains
+# (S5: no verifiable link between binary and commit). Hash the INSTALLED
+# package's .py files and stamp the digest into arifosmcp/__init__.py so
+# the deployed binary self-describes its actual content; the same digest
+# is recorded in release-manifest.json. Verify recipe: strip the
+# __content_sha256__ line from the installed __init__.py, re-run the
+# pipeline below, compare. (The stamp line cannot contain its own digest
+# — self-reference is cryptographically infeasible — hence the
+# documented exclusion rule.)
+PKG_DIR="$SITE_PKG_ROOT/arifosmcp"
+if [ ! -d "$PKG_DIR" ]; then
+	echo "❌ CONTENT-STAMP GATE: installed package missing: $PKG_DIR"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
+CONTENT_SHA256="$(find "$PKG_DIR" -name '*.py' -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)"
+if "$VENV_PYTHON" - "$PKG_DIR/__init__.py" "$CONTENT_SHA256" <<'STAMPEOF'
+import re, sys
+from pathlib import Path
+
+init_py, digest = Path(sys.argv[1]), sys.argv[2]
+text = init_py.read_text(encoding="utf-8")
+line = f'__content_sha256__ = "{digest}"'
+if re.search(r"^__content_sha256__\s*=.*$", text, flags=re.MULTILINE):
+    text = re.sub(r"^__content_sha256__\s*=.*$", line, text, count=1, flags=re.MULTILINE)
+else:
+    if not text.endswith("\n"):
+        text += "\n"
+    text += line + "\n"
+init_py.write_text(text, encoding="utf-8")
+STAMPEOF
+then
+	echo "  ✅ Content stamp: __content_sha256__ = $CONTENT_SHA256"
+else
+	echo "❌ CONTENT-STAMP GATE: failed to stamp $PKG_DIR/__init__.py"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
+echo ""
+
 # Host identity config: /etc/arifos/identity.toml (root:root 0644)
 install -d -m 0755 -o root -g root /etc/arifos
 install -m 0644 -o root -g root "$REPO_DIR/identity.toml" /etc/arifos/identity.toml
@@ -227,11 +287,26 @@ for name in names:
         files.append({"name": name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()})
     else:
         sys.exit(f"canon file missing after install: {p}")
+# Alpha-zen P7 (2026-09-22): the release train must reflect F13 ratifications
+# from the AAA canon corpus — hash them into the manifest so /etc/arifos/canon
+# staleness vs /root/AAA/canon is visible on every release.
+external = []
+aaa_canon_dir = Path("/root/AAA/canon")
+if aaa_canon_dir.is_dir():
+    import re as _re
+    for fp in sorted(aaa_canon_dir.glob("*.md")):
+        _m = _re.search(r"(\d{4}-\d{2}-\d{2})", fp.name)
+        external.append({
+            "name": fp.name,
+            "sha256": hashlib.sha256(fp.read_bytes()).hexdigest(),
+            "ratified_date": _m.group(1) if _m else None,
+        })
 manifest = {
     "canon_version": version,
     "ratified_by": "F13",
     "source_commit": commit,
     "files": files,
+    "external_ratified_canon": external,
 }
 raw = json.dumps(manifest, sort_keys=True, separators=(",", ":"))
 (canon_dir / "canon-release.json").write_text(raw + "\n", encoding="utf-8")
@@ -253,9 +328,12 @@ cat >"$MANIFEST_FILE" <<MANIFEST_EOF
   "release": 1,
   "name": "Runtime Truth",
   "git_commit": "$GIT_COMMIT",
+  "dirty": $GIT_DIRTY,
+  "dirty_files": $GIT_DIRTY_JSON,
   "build_timestamp": "$BUILD_TS",
   "wheel_name": "$WHEEL_NAME",
   "wheel_sha256": "$WHEEL_HASH",
+  "content_sha256": "$CONTENT_SHA256",
   "canon_version": "$CANON_VERSION",
   "canon_manifest_sha256": "$CANON_MANIFEST_SHA",
   "imported_from": "$IMPORT_PATH",
