@@ -751,9 +751,17 @@ def _apply_authority_surface_values(
     # W-02 FIX (2026-08-05): If drift floor already force-set mutation_allowed=False
     # anywhere in the response, standing sync must not re-elevate it. The drift floor
     # is the authority on mutation capability; standing provides identity context only.
+    # R-1c model-safety (F13 FIX R-1b, 2026-09-22): on the live judge path
+    # result is a Pydantic VerdictOutput MODEL (body={"result": MODEL}) —
+    # `.get` on it raised AttributeError, the wrapper's try/except: pass
+    # silently skipped THE ENTIRE attach (inner fallback + effective
+    # compose) — the manufactured flag's true root cause across three
+    # deploy cycles today. Model-safe: dict .get AND attribute getattr.
+    _res_obj = response.get("result")
     _drift_capped = (
         response.get("mutation_allowed") is False
-        or response.get("result", {}).get("mutation_allowed") is False
+        or (isinstance(_res_obj, dict) and _res_obj.get("mutation_allowed") is False)
+        or getattr(_res_obj, "mutation_allowed", None) is False
     )
 
     # Top-level mirrors (if present)
@@ -1075,6 +1083,64 @@ def attach_canonical(
             inner_verdict = _s4.get("verdict")
         elif _sc.get("seal_complete"):
             inner_verdict = "SEAL"
+
+    # R-1c (F13 FIX R-1b follow-through, 2026-09-22): on the judge path the
+    # root verdict lands AFTER every reconcile pass (journal evidence:
+    # has_verdict_key=False at all three sites) — attach then composed
+    # effective from a stale `existing` while the zen-frozen stage-final
+    # (the deliberation's OWN verdict, M3-fresh) held the truth:
+    # observed effective=SABAR(out-lineage) beside zen core=HOLD →
+    # manufactured VERDICT_FIELD_DIVERGENCE. Fall back to the zen-frozen
+    # stage-final so effective composes from the real judgment; the
+    # R-1b supersession pass then lawfully retires the postcond stage
+    # claim (degradation direction) and the walker sees one live truth.
+    if not inner_verdict and isinstance(response, dict):
+        from arifosmcp.runtime.verdict import CANONICAL_VERDICTS as _cv
+
+        _r = response.get("result")
+        # LIVE JUDGE SHAPE (observed 2026-09-22): the handler returns a
+        # Pydantic VerdictOutput MODEL, so the wrapper builds
+        # body = {"result": MODEL} — dict-only checks see ZERO candidates,
+        # inner stays None, and effective composes from a stale existing
+        # (the manufactured flag's final cause). The result's own verdict —
+        # model ATTRIBUTION or dict KEY — IS the post-gate judgment
+        # (seeded, governance-won): read BOTH shapes (live result may be
+        # dict after FastMCP coercion; getattr misses dict keys).
+        _model_v = getattr(_r, "verdict", None)
+        if _model_v is None and isinstance(_r, dict):
+            _model_v = _r.get("verdict")
+        if _model_v is not None and str(_model_v).upper() in _cv:
+            inner_verdict = str(_model_v).upper()
+
+        # zen may live at root meta, result.meta (dict), or the model's
+        # .meta (attach-time assembly order varies — observed live).
+        if not inner_verdict:
+            _m_cands = []
+            if isinstance(response.get("meta"), dict):
+                _m_cands.append(response["meta"])
+            if isinstance(_r, dict) and isinstance(_r.get("meta"), dict):
+                _m_cands.append(_r["meta"])
+            _rm = getattr(_r, "meta", None)
+            if isinstance(_rm, dict):
+                _m_cands.append(_rm)
+            for _mm in _m_cands:
+                _zc2 = _mm.get("zen_apex") if isinstance(_mm.get("zen_apex"), dict) else {}
+                _core2 = _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
+                _zv2 = str(_core2.get("verdict") or "").upper()
+                if _zv2 in _cv:
+                    inner_verdict = _zv2
+                    break
+
+    # R-1d INNER TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23): the exact
+    # inner value the final attach composes with, plus the existing
+    # effective it merges over — the last unknown between the clean inner
+    # chain (598e80 HOLD) and the flag-stamping outer pass (SABAR).
+    logger.warning(
+        "R1d attach-inner: inner=%s existing_eff=%s result_type=%s",
+        inner_verdict or None,
+        (response.get("effective_verdict") or None) if isinstance(response, dict) else None,
+        type(response.get("result")).__name__ if isinstance(response, dict) else None,
+    )
 
     attach_canonical_standing(response, session_id=session_id, actor_id=actor_id)
     standing = response.get("standing") if isinstance(response, dict) else None

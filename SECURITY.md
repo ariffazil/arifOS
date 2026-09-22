@@ -50,6 +50,7 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 | ZKPC (zero-knowledge proof of constitution) deferred | LOW | Design stage |
 | Cypher injection via unescaped property key (`arifosmcp/runtime/l5_sovereign_forge.py:401,425,474`) — LLM-extracted property keys reach the query builder unvalidated; a crafted key can append `DETACH DELETE n` and wipe the graph | HIGH | Open — fix is a key whitelist (`^[A-Za-z_][A-Za-z0-9_]*$`) before `_s(k)`, same pattern already used for edge labels |
 | Path traversal via fastmcp decode-after-match (`arifosmcp/resources/atlas333.py:410`, `arifosmcp/server.py:815`) — upstream fastmcp 3.3.1 matches URI templates before `unquote()`, so `%2F` bypasses the `[^/]+` segment guard | MEDIUM | Open — fix is post-unquote path validation + containment check before filesystem access; root cause reported upstream to fastmcp |
+| Path traversal in `sovereign://{file}` (`arifosmcp/resources/sovereign.py`) — third instance of the same decode-after-match class; the handler guarded only with a `.endswith(".md")` suffix, so an absolute path or `../` read any file outside the archive (reproduced: `_read_file("/etc/hostname")` → OK, `source: /etc/hostname`) | MEDIUM | Fixed in source 2026-09-22 — containment via `arifosmcp/runtime/path_guard.py` (single source of truth for the check); regression test `tests/core/test_sovereign_path_containment.py`. Not yet in a release |
 | CVE disclosure history | INFO | One privately reported finding accepted, fixed and released in `1!2026.9.1` (2026-09-15); the reporter is filing it with MITRE. No CVE assigned yet. A second report (2026-09-15/16, same reporter) found the two open issues above in `1!2026.9.1` — see Disclosure History |
 
 **Status labels:** Open = no work started · Partial = infrastructure exists but not complete · Verified = independently tested · Complete = fully operational with evidence.
@@ -121,4 +122,4 @@ arifbfazil@gmail.com
 
 ---
 
-**Last updated:** 17 September 2026
+**Last updated:** 22 September 2026

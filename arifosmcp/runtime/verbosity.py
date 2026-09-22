@@ -447,8 +447,18 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     # coexist with effective_verdict=HOLD / canonical=DENY (Mode 3).
     # 2026-08-04 W-03: drift must not be overpainted by floor_passed=true.
     if _drift:
-        minimal["effective_verdict"] = "HOLD"
-        minimal["canonical_verdict"] = "HOLD"
+        # R-1d single-writer (F13 FIX R-1d, 2026-09-22): attach_effective_
+        # verdict composed `effective` (worse-merged inner) BEFORE trim —
+        # trim may fill when absent or overwrite ONLY in the DEGRADATION
+        # direction (rank-new <= rank-current, lower=worse). Journal showed
+        # trim resetting an attach-composed HOLD to SABAR between attach
+        # (tools.py:26023) and wrapper reconcile (:26131) — the R-1d reset.
+        from arifosmcp.runtime.verdict import _VERDICT_RANK as _vrank
+
+        _cur_ev = str(minimal.get("effective_verdict") or "").upper()
+        if not _cur_ev or _vrank.get("HOLD", 2) <= _vrank.get(_cur_ev, 0):
+            minimal["effective_verdict"] = "HOLD"
+            minimal["canonical_verdict"] = "HOLD"
         # MEASURED, never defaulted (2026-09-18).
         minimal["reason_code"] = minimal.get("reason_code") or _drift_cause
         if _drift_reason_evidence is not None:
@@ -488,8 +498,19 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         _v = str(minimal.get("verdict") or response.get("verdict") or "").upper()
         if _v in ("SEAL", "OK", "COMPLETED", "SYUBHAH", "SABAR", ""):
             # SYUBHAH is epistemic doubt on content, not session DENY
-            minimal["effective_verdict"] = "SEAL" if _v in ("SEAL", "OK", "COMPLETED", "") else _v
-            minimal["canonical_verdict"] = "PROCEED"
+            # R-1d single-writer (F13 FIX R-1d, 2026-09-22): this branch used
+            # to OVERWRITE an attach-composed effective with the raw unmerged
+            # `_v` — observed resetting HOLD → SABAR (an UPGRADE, the unlawful
+            # direction) between attach and wrapper reconcile: the R-1d reset
+            # that survived every prior fix. Fill-if-absent, or degrade-only
+            # (rank-new <= rank-current); attach remains THE writer.
+            from arifosmcp.runtime.verdict import _VERDICT_RANK as _vrank2
+
+            _new_ev = "SEAL" if _v in ("SEAL", "OK", "COMPLETED", "") else _v
+            _cur_ev2 = str(minimal.get("effective_verdict") or "").upper()
+            if not _cur_ev2 or _vrank2.get(_new_ev, 9) <= _vrank2.get(_cur_ev2, 0):
+                minimal["effective_verdict"] = _new_ev
+                minimal["canonical_verdict"] = "PROCEED"
     elif isinstance(_cc, dict) and _cc.get("hold_required"):
         if minimal.get("effective_verdict") is None:
             minimal["effective_verdict"] = "HOLD"

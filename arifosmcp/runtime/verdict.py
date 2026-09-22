@@ -584,16 +584,36 @@ def _derive_safe_action(final: str, *, seal_allowed: bool) -> str:
     return _SAFE_ACTION_BY_VERDICT.get(final, _DEFAULT_SAFE_ACTION)
 
 
+# S4 axis carve-out (F13 FIX-S4, R1b 2026-09-22): session_birth.verdict
+# carries the AUTHORITY BAND by design (pinned by five tests:
+# birth.verdict == {OBSERVE_ONLY, LIMITED_MUTATE, FULL, ...}). Any non-OBSERVE
+# band is 'unknown' to the verdict vocabulary, so the closed-token check
+# fail-closed EVERY verified init to HOLD (live evidence:
+# UNKNOWN_VERDICT_TOKEN:result.session_birth.verdict=LIMITED_MUTATE).
+# This is the authority axis wearing a verdict-named key — path-scoped
+# exclusion; walker vigilance elsewhere is untouched. Long-term rename belongs
+# to the staged band-vs-judgment admissible-matrix ruling
+# (/root/forge_work/2026-09-22-S4-VERDICT-CHANNEL-CLOSURE.md).
+_NON_VERDICT_AXIS_PATHS_SUF = ("session_birth.verdict",)
+
+
 def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
     """Yield (path, raw_string) for every EXACT verdict-bearing key holding a
     non-null non-empty string. Null/absent means unset and is skipped — a
     missing value is not a claim (prevents mass-HOLD on schema defaults).
     Substring keys such as decision_thresholds are NOT matched."""
     if isinstance(node, dict):
+        # R-1b (F13 FIX R-1b, 2026-09-22): a stage claim self-declared
+        # SUPERSEDED is excluded from LIVE divergence evaluation — claim-state
+        # doctrine (superseded is kept as history, never served as live
+        # evidence). The field itself stays untouched (Phase-0 law). Generic
+        # by marker, not by path: any bearing dict may declare it.
+        _stage_superseded = str(node.get("verdict_state") or "").upper() == "SUPERSEDED"
         for key, value in node.items():
             child = f"{path}.{key}" if path else str(key)
             if key in _VERDICT_BEARING_KEYS and isinstance(value, str) and value.strip():
-                yield child, value
+                if not _stage_superseded and not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF):
+                    yield child, value
             yield from _iter_verdict_bearing(value, child)
     elif isinstance(node, list):
         for index, value in enumerate(node):
@@ -651,6 +671,62 @@ def reconcile_decision_contract(response: Any) -> Any:
     """
     if not isinstance(response, dict):
         return response
+
+    # R-1b stage-claim supersession (F13 FIX R-1b, 2026-09-22).
+    # A stage report whose value has been superseded by the FINAL envelope
+    # verdict self-declares here (claim-state doctrine: when the value
+    # changes, the old claim is SUPERSEDED — kept as history, never served
+    # as live evidence). The field itself is NEVER rewritten (Phase-0 law
+    # above: contradictions preserved in place) — only a state marker is
+    # ADDED, and _iter_verdict_bearing then excludes the marked claim from
+    # live divergence evaluation.
+    #
+    # LAWFUL ONLY IN THE DEGRADATION DIRECTION (rank: lower = worse):
+    #   final rank <= stage rank  → the transition can only make things
+    #   more conservative — safety preserved (observed: intercept-stage
+    #   postcond=SABAR superseded by deliberation final=HOLD).
+    # The UPGRADE direction (stage HOLD vs final SEAL) is the dangerous
+    # smoothing — it REMAINS a live contradiction and keeps vetoing
+    # (Phase-0 nested-conflict test pins exactly this).
+    # Idempotent: marker set once.
+    if isinstance(response, dict):
+        _r1b_final = str(
+            response.get("verdict") or response.get("effective_verdict") or ""
+        ).upper()
+        _r1b_meta = response.get("meta")
+        _r1b_pc_dbg = (_r1b_meta or {}).get("judge_postcondition") if isinstance(_r1b_meta, dict) else None
+        import logging as _r1b_logging
+
+        _r1b_logging.getLogger(__name__).warning(
+            "R1b super pass: id=%r final=%r eff=%r has_verdict=%s pc=%r pc_state=%s",
+            hex(id(response))[-6:],
+            _r1b_final,
+            str(response.get("effective_verdict") or "") or None,
+            "verdict" in response,
+            (_r1b_pc_dbg or {}).get("verdict") if isinstance(_r1b_pc_dbg, dict) else None,
+            (_r1b_pc_dbg or {}).get("verdict_state") if isinstance(_r1b_pc_dbg, dict) else None,
+        )
+        if _r1b_final and isinstance(_r1b_meta, dict):
+            _r1b_pc = _r1b_meta.get("judge_postcondition")
+            if isinstance(_r1b_pc, dict):
+                _r1b_pc_v = str(_r1b_pc.get("verdict") or "").upper()
+                _r1b_final_rank = _VERDICT_RANK.get(_r1b_final)
+                _r1b_stage_rank = _VERDICT_RANK.get(_r1b_pc_v)
+                if (
+                    _r1b_pc_v
+                    and _r1b_pc_v != _r1b_final
+                    and _r1b_final_rank is not None
+                    and _r1b_stage_rank is not None
+                    and _r1b_final_rank <= _r1b_stage_rank
+                    and _r1b_pc.get("verdict_state") != "SUPERSEDED"
+                ):
+                    _r1b_pc["verdict_state"] = "SUPERSEDED"
+                    _r1b_pc["superseded_by_final_verdict"] = _r1b_final
+                    _r1b_pc["superseded_note"] = (
+                        "stage-time claim kept as history (verdict untouched, "
+                        "Phase-0 law); degradation-direction transition only "
+                        "(final rank <= stage rank) — superseded != live"
+                    )
 
     claims: dict[str, str] = {}
     raw_tokens: dict[str, str] = {}
