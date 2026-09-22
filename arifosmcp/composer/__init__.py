@@ -289,6 +289,13 @@ def attach_zen_witness_to_result(
 
     try:
         verdict = _extract_verdict_str(result)
+        # R-1 evidence line (permanent): shows the exact freeze input on the
+        # live path — caught the HOLD-source across three judge paths 2026-09-22.
+        logger.info(
+            "zen freeze input: verdict=%r present_keys=%s",
+            verdict,
+            [k for k in ("verdict", "effective_verdict", "action_risk_verdict") if k in result],
+        )
         if not verdict:
             # S4 (F13 FIX-S4 2026-09-22): freeze stage runs BEFORE the wrapper
             # attaches the envelope — if no verdict key exists yet, absence is
