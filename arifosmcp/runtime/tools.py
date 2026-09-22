@@ -25879,7 +25879,17 @@ def _force_hold_mutation_fields(response: Any) -> Any:
         return response
 
     # Normalize effective_verdict
-    if "VOID" in blob or "BLOCKED" in status_u or "DENY" in blob:
+    # R-1d single-writer (F13 FIX R-1d, 2026-09-22): this function's OWN
+    # docstring contract is to MATERIALIZE effective when missing ("Always
+    # materialize effective_verdict when status is holdish") — it must
+    # never re-derive an EXISTING attach-composed value. Observed reset:
+    # the blob chain preferred raw SABAR-over-HOLD and overwrote the
+    # worse-merged HOLD between attach (tools.py:26023) and wrapper
+    # reconcile (:26131) — the R-1d delta that survived trim/echo guards.
+    # Materialize-only when absent; mutation/seal flag sync below unchanged.
+    if response.get("effective_verdict"):
+        pass  # attach remains THE writer of an existing effective
+    elif "VOID" in blob or "BLOCKED" in status_u or "DENY" in blob:
         response["effective_verdict"] = "VOID"
     elif "SABAR" in blob:
         response["effective_verdict"] = "SABAR"
