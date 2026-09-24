@@ -30,7 +30,7 @@ organs:
   aforge: { state: "HEALTHY", port: "7071/7072", role: "EXECUTE_AFTER_SEAL" }
   aaa:   { state: "HEALTHY", port: 3001, role: "DISPLAY_ONLY" }
   geox:  { state: "HEALTHY", port: 8081, role: "COMPUTE_ONLY" }
-  wealth:{ state: "HEALTHY", port: 18082, role: "COMPUTE_ONLY" }
+  wealth: { state: "HEALTHY", port: 18082, role: "COMPUTE_ONLY" }
   well:  { state: "STALE_TEST_MOCK_120d", port: 18083, role: "REFLECT_ONLY",
            note: "see HOLD queue — needs live operator anchor, not blind reset" }
 execution_boundary:
