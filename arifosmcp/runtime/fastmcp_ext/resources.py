@@ -67,18 +67,104 @@ def register_arifos_resources(mcp: Any) -> list[str]:
         annotations={"audience": ["assistant"], "priority": 0.9},
     )
     async def get_verdict(session_id: str) -> str:
-        """Get constitutional verdict for a session as JSON."""
-        try:
-            from core.governance_kernel import get_governance_kernel
+        """Constitutional verdict for a SPECIFIC session.
 
-            kernel = get_governance_kernel()
-            state = kernel.get_current_state() if hasattr(kernel, "get_current_state") else {}
-            verdict = state.get("verdict", "SEAL") if state else "SEAL"
-        except Exception:
-            verdict = "SEAL"
+        FIX 2026-09-24 (P0-1a, F13-directed): the previous handler ignored
+        session_id entirely (read global kernel state for ANY session),
+        defaulted missing state to "SEAL", and rendered exceptions as "SEAL"
+        — fail-OPEN on the most safety-critical read surface. Replaced with
+        session-scoped reads in honesty order, fail-CLOSED to UNKNOWN.
+        Absence of evidence is not SEAL (F2/F1).
+        """
         import json
+        from datetime import datetime, timezone
 
-        return json.dumps({"session_id": session_id, "verdict": verdict}, indent=2)
+        provenance = {
+            "session_id": session_id,
+            "queried_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        # Source 1: live session identity store (same reader session_standing uses)
+        try:
+            from arifosmcp.runtime.session import get_session_identity
+
+            record = get_session_identity(session_id)
+            verdict = None
+            if record:
+                verdict = record.get("verdict") or record.get("effective_verdict")
+            if verdict:
+                return json.dumps(
+                    {
+                        **provenance,
+                        "verdict": verdict,
+                        "source": "session_identity",
+                        "truth_class": "OBS",
+                    },
+                    indent=2,
+                )
+        except Exception:
+            pass
+
+        # Source 2: in-memory session store
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+
+            sess = _SESSIONS.get(session_id)
+            if sess:
+                verdict = sess.get("effective_verdict") or sess.get("verdict")
+                if verdict:
+                    return json.dumps(
+                        {
+                            **provenance,
+                            "verdict": verdict,
+                            "source": "session_store",
+                            "truth_class": "OBS",
+                        },
+                        indent=2,
+                    )
+        except Exception:
+            pass
+
+        # Source 3: sealed receipts (disk, append-only; per-session verdict record)
+        try:
+            import os
+
+            receipts_path = os.path.expanduser("~/.local/share/arifos/seal_receipts.jsonl")
+            if os.path.exists(receipts_path):
+                with open(receipts_path, "r", encoding="utf-8") as fh:
+                    for line in fh:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            entry = json.loads(line)
+                        except Exception:
+                            continue
+                        if entry.get("session_id") == session_id and entry.get("verdict"):
+                            return json.dumps(
+                                {
+                                    **provenance,
+                                    "verdict": entry["verdict"],
+                                    "source": "seal_receipts",
+                                    "seal_id": entry.get("seal_id"),
+                                    "truth_class": "OBS",
+                                },
+                                indent=2,
+                            )
+        except Exception:
+            pass
+
+        # FAIL CLOSED — unresolved session state is UNKNOWN, never SEAL
+        return json.dumps(
+            {
+                **provenance,
+                "verdict": "UNKNOWN",
+                "source": "unresolved",
+                "truth_class": "UNKNOWN",
+                "note": "session state unresolved; absence of evidence is not SEAL (fail-closed, P0-1a 2026-09-24)",
+            },
+            indent=2,
+        )
 
     registered.append("arifos://verdict/{session_id}")
 
@@ -205,21 +291,38 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
                 raw = fh.read()
         except Exception as exc:
-            return json.dumps({"error": "unreadable", "uri": "arifos://carry-forward", "detail": str(exc)})
+            return json.dumps(
+                {"error": "unreadable", "uri": "arifos://carry-forward", "detail": str(exc)}
+            )
         # Gate 3: valid JSON
         try:
             doc = json.loads(raw)
         except ValueError:
-            return json.dumps({"error": "unreadable", "uri": "arifos://carry-forward", "detail": "Not valid JSON"})
+            return json.dumps(
+                {"error": "unreadable", "uri": "arifos://carry-forward", "detail": "Not valid JSON"}
+            )
         # Gate 4: dict type
         if not isinstance(doc, dict):
-            return json.dumps({"error": "contract_mismatch", "uri": "arifos://carry-forward", "detail": f"Expected dict, got {type(doc).__name__}"})
+            return json.dumps(
+                {
+                    "error": "contract_mismatch",
+                    "uri": "arifos://carry-forward",
+                    "detail": f"Expected dict, got {type(doc).__name__}",
+                }
+            )
         # Gate 5: schema contract
         actual_schema = doc.get("schema", "NONE")
         if actual_schema != _CARRY_FORWARD_SCHEMA:
-            return json.dumps({"error": "contract_mismatch", "uri": "arifos://carry-forward", "detail": f"Expected schema {_CARRY_FORWARD_SCHEMA}, got {actual_schema}"})
+            return json.dumps(
+                {
+                    "error": "contract_mismatch",
+                    "uri": "arifos://carry-forward",
+                    "detail": f"Expected schema {_CARRY_FORWARD_SCHEMA}, got {actual_schema}",
+                }
+            )
         # All gates passed — stamp provenance and serve
         from datetime import datetime as _dt
+
         doc["_served_from"] = _CARRY_FORWARD_PATH
         doc["_served_mtime_utc"] = _dt.fromtimestamp(stat.st_mtime, UTC).isoformat()
         return json.dumps(doc, ensure_ascii=False, indent=2)
