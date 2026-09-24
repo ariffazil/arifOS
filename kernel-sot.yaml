@@ -60,6 +60,7 @@ resolutions:
     note: "666=JUDGE (F13 RATIFIED 2026-07-31). 888=COMPOSE retired; compose is a mode."
     memory: 555
     critique: "MODE of arif_think (NOT a stage). Resolves prior CRITIQUE=555 collision."
+    coordinate_law: "FATWA K1 (F13 2026-09-25): bare numerals here = STAGE ABI only. Tier lanes (333-AGI/555-ASI/888-APEX) and linkgraph (lg:*) are separate coordinate systems — AAA/instructions/namespace-fatwa-k1.md. JUDGE stage=666; judge ROLE=888-APEX. Not a contradiction."
   verdict_lattice:
     direction: "ascending_authority"
     ordered: [VOID, HOLD, SABAR, PARTIAL, SEAL]
