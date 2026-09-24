@@ -594,7 +594,17 @@ def _derive_safe_action(final: str, *, seal_allowed: bool) -> str:
 # exclusion; walker vigilance elsewhere is untouched. Long-term rename belongs
 # to the staged band-vs-judgment admissible-matrix ruling
 # (/root/forge_work/2026-09-22-S4-VERDICT-CHANNEL-CLOSURE.md).
-_NON_VERDICT_AXIS_PATHS_SUF = ("session_birth.verdict",)
+#
+# Same class, third instance (2026-09-25, live evidence during vault re-fire:
+# UNKNOWN_VERDICT_TOKEN:meta.irfan_review.verdict=CONCERN on every
+# action-tool response — read-only arif_observe vitals included). IRFAN v0.1
+# (c3957c007) attaches meta.irfan_review.verdict ∈ {CLEAR, CONCERN, ESCALATE}
+# by construction — _guard_advisory_output FORBIDS it from ever being a
+# kernel verdict — so every response carrying the review fail-closed to
+# HOLD/degraded_dominates, making all seals structurally impossible. The
+# axis is advisory stewardship wearing a verdict-named key; exclude the
+# path exactly like session_birth.verdict above.
+_NON_VERDICT_AXIS_PATHS_SUF = ("session_birth.verdict", "irfan_review.verdict")
 
 
 def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
