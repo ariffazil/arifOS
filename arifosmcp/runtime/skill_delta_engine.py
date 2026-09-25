@@ -100,6 +100,8 @@ class ActionRiskTier(StrEnum):
 
 
 # ── Backward-compatible alias ──────────────────────────────────────────
+# RiskClass = ActionRiskTier  # removed 2026-07-17 (commit 1b51e57c8) —
+# use ActionRiskTier directly.
 
 
 @dataclass(frozen=True)

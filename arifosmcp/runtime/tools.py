@@ -3527,6 +3527,16 @@ _RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
     default=None,
 )
 
+# ── IRFAN advisory stewardship review (ARIF::SALAM::IRFAN::INIT::v0.1) ────
+# ADVISORY ONLY: holds the most recent Irfan review for THIS execution
+# context so response builders can attach it as metadata. It NEVER carries
+# or influences a kernel verdict (SEAL/SABAR/HOLD/VOID). Irfan emits only
+# CLEAR/CONCERN/ESCALATE as a stewardship recommendation.
+IRFAN_LAST_REVIEW: ContextVar[dict[str, Any] | None] = ContextVar(
+    "arifos_last_irfan_review",
+    default=None,
+)
+
 # ── Identity resolution: ingress context → kwargs → "unknown" ──────
 # F2 TRUTH: VAULT999 receipts must carry real identity, not "unknown".
 # The ingress middleware sets _RESPONSE_CONTEXT with actor_id/session_id
@@ -3861,6 +3871,43 @@ except Exception:
     minimax_bridge = None  # type: ignore
 
 
+def _resolve_irfan_action_shape(
+    tool_name: str, mode: str | None
+) -> tuple[str | None, str | None]:
+    """Best-effort (action_class, reversibility) resolution for the Irfan review.
+
+    Advisory-only: reads the canonical tool manifest and applies the
+    per-mode effect typing. Any failure yields (None, None) and the review
+    degrades honestly. NEVER used for enforcement.
+    """
+    try:
+        from arifosmcp.runtime.pre_execution_gate import (
+            _SDK_LONG_NAME_ALIASES as _IRFAN_ALIASES,
+            CANONICAL_TOOL_MANIFEST as _IRFAN_CTM,
+            resolve_action_class_for_mode as _irfan_resolve_mode,
+        )
+
+        canonical = _IRFAN_ALIASES.get(tool_name, tool_name)
+        entry = _IRFAN_CTM.get(canonical)
+        if entry is None or entry.action_class is None:
+            return None, None
+        resolved = entry.action_class
+        try:
+            resolved = _irfan_resolve_mode(canonical, str(mode or ""), entry.action_class)
+        except Exception:
+            resolved = entry.action_class  # manifest default on any resolution failure
+        name = str(getattr(resolved, "name", resolved)).upper()
+        if name == "IRREVERSIBLE":
+            reversibility = "irreversible"
+        elif name in ("MUTATE", "EXTERNAL_SIDE_EFFECT"):
+            reversibility = "mutating"
+        else:
+            reversibility = "reversible"
+        return name, reversibility
+    except Exception:
+        return None, None
+
+
 def _constitutional_gate(
     tool_name: str,
     mode: str,
@@ -3990,6 +4037,41 @@ def _constitutional_gate(
 
     _RESPONSE_CONTEXT.set({"actor_id": actor_id, "session_id": session_id})
     verdict = _CORE.evaluate(ctx)
+
+    # ── IRFAN advisory stewardship review (ARIF::SALAM::IRFAN::INIT::v0.1) ──
+    # ADVISORY ONLY. Computed AFTER the core verdict and NEVER fed back into
+    # it. Irfan emits CLEAR/CONCERN/ESCALATE as a stewardship recommendation;
+    # the gate verdict above remains the sole authority. Fail-open by design:
+    # an Irfan failure can never break the gate or alter any verdict.
+    try:
+        from arifosmcp.runtime.irfan_review import irfan_review_for_action
+
+        _irfan_action_class, _irfan_reversibility = _resolve_irfan_action_shape(
+            tool_name, mode
+        )
+        _irfan_payload: dict[str, Any] = {
+            "candidate": candidate,
+            "manifest": manifest,
+            "query": query,
+            "url": url,
+            "target_agent": target_agent,
+            "constitutional_chain_id": constitutional_chain_id,
+            "plan_id": plan_id,
+        }
+        IRFAN_LAST_REVIEW.set(
+            irfan_review_for_action(
+                tool_name=tool_name,
+                mode=mode,
+                actor_id=actor_id,
+                action_class=_irfan_action_class,
+                reversibility=_irfan_reversibility,
+                payload=_irfan_payload,
+                session_id=session_id,
+            )
+        )
+    except Exception:
+        # Advisory metadata only — the verdict above stands unchanged.
+        IRFAN_LAST_REVIEW.set(None)
 
     # ── Registry Tripwire Scan (v2 Deepening — Fix 4) ──
     if session_id and session_id in _SESSIONS:
@@ -5120,11 +5202,16 @@ def _enforce_nine_signal(
                 )
 
                 fc = FailureCode.JALAN_KUASA if verdict == "VOID" else FailureCode.JALAN_BENAR
+                # Phase 0 (2026-09-22): quote the FINAL status vocabulary.
+                # The raw handler default "OK" read as success beside the
+                # envelope's blocked/completed (observed D5 contradiction);
+                # "OK" is only ever the schema alias of "completed".
+                _sesat_status = "completed" if str(status).upper() == "OK" else status
                 sesat = emit_sesat(
                     source_node=tool_name,
                     failure_code=fc.value,
                     failed_claim=f"{verdict}: {'; '.join(reasons[:3])}",
-                    observed_reality=f"verdict={verdict}, status={status}, "
+                    observed_reality=f"verdict={verdict}, status={_sesat_status}, "
                     f"action_scope={_action_state}, substrate_scope={_substrate_state}",
                     severity="YELLOW" if verdict in ("HOLD", "DEGRADED") else "RED",
                     lantai=[],
@@ -9143,6 +9230,16 @@ def _ok(
 
     # Defensive shallow copy (L12 stewardship — never mutate caller's dict)
     meta_payload = {**(meta or {})}
+    # IRFAN advisory attachment (ARIF::SALAM::IRFAN::INIT::v0.1): stewardship
+    # recommendation metadata only. NEVER alters the verdict/status.
+    try:
+        _irfan_review = IRFAN_LAST_REVIEW.get()
+        if isinstance(_irfan_review, dict) and _irfan_review.get("context", {}).get(
+            "tool_name"
+        ) == tool:
+            meta_payload.setdefault("irfan_review", _irfan_review)
+    except Exception:
+        pass  # advisory — never blocks a success path
     from arifosmcp.runtime.context_witness import (
         build_internal_context_witness,
         should_emit_context_witness,
@@ -9551,6 +9648,16 @@ def _hold(
         session_id = response_ctx.get("session_id")
     actor_id = _actor_for_response(session_id, meta.get("actor_id"))
     meta.setdefault("actor_id", actor_id)
+    # IRFAN advisory attachment (ARIF::SALAM::IRFAN::INIT::v0.1): stewardship
+    # recommendation metadata only. NEVER alters the HOLD itself.
+    try:
+        _irfan_review = IRFAN_LAST_REVIEW.get()
+        if isinstance(_irfan_review, dict) and _irfan_review.get("context", {}).get(
+            "tool_name"
+        ) == tool:
+            meta.setdefault("irfan_review", _irfan_review)
+    except Exception:
+        pass  # advisory — never blocks a HOLD
     _add_floor_compat(meta)
     # SESAT integration: attach structured failure event to HOLD responses
     try:
@@ -24685,7 +24792,76 @@ async def _arif_memory_v5_router(
     # mutations — they write to long-term memory substrate that influences
     # future constitutional judgments. Must pass the same gate every other
     # canonical tool uses. P0-01 fix 2026-07-17.
-    gate = _constitutional_gate("arif_memory", mode, actor_id, session_id=session_id)
+    #
+    # KRT-2026-09-23 (skill-mesh federation): the gate previously measured an
+    # EMPTY context here (no candidate) — the declared measurement surface
+    # (content, truth_class, provenance, lease) was only assembled AFTER the
+    # gate — so pre-execution derivation failed BY CONSTRUCTION for every
+    # mutation payload: F2 truth_score fell back to the 0.96 clean baseline
+    # (< 0.99 claim threshold, law_evaluator._floor_context X-016) and F4 ΔS
+    # fell back to the fabricated +0.02 (entropy_output = confidence >
+    # entropy_input).
+    #
+    # Minimal fix: for SCT-VERIFIED sessions (server-bound session whose
+    # authority_state.actor.verified is true), pass a STRUCTURAL DECLARATION
+    # of the record into the gate as `candidate` so the evaluator measures
+    # the actual declaration instead of unmeasured defaults:
+    #   - F2: compact single-line JSON matches the axiomatic-declaration
+    #     pattern (`^\{.*\}$`) → declaration threshold 0.95. A memory record
+    #     is a self-declared structured statement, not a reality-claim; its
+    #     truth is post-hoc auditable (audit mode / JITU contradiction
+    #     engine) and its declared confidence stays enforceable downstream
+    #     (B3: confidence < 0.3 → SABAR).
+    #   - F4: query and response both derive from payload_text() → ΔS = 0
+    #     (honest identity — real entropy is measured on the receipt chain
+    #     after the write, not fabricated pre-execution).
+    #   - The payload BODY is deliberately NOT embedded: destructive-verb
+    #     prose floors (F5) and ontology guards (L10) are intent scanners for
+    #     the agent's utterance; stored content is DATA with a hash referent
+    #     (content_sha256) and remains fully auditable post-write.
+    # Unverified/unbound sessions keep candidate=None → unmeasured defaults
+    # → L02/L04 HOLD, exactly as before this fix. The L13 sovereign gate,
+    # the L11 session registry, and the OBSERVE-class exemption are untouched.
+    _gate_candidate: str | None = None
+    if mode in ("remember", "promote", "revise", "forget", "attest"):
+        _sess = _SESSIONS.get(session_id) if session_id else None
+        if _sess is not None:
+            try:
+                from arifosmcp.runtime.authority import read_authority_state as _read_auth
+
+                _session_verified = bool(_read_auth(_sess).actor.verified)
+            except Exception:
+                _session_verified = bool(_sess.get("identity_verified", False))
+            if _session_verified:
+                _decl_content = content if isinstance(content, str) else json.dumps(
+                    payload or {}, ensure_ascii=False, default=str
+                )
+                _decl_tc = truth_class if isinstance(truth_class, dict) else {}
+                _gate_candidate = json.dumps(
+                    {
+                        "record": "arif_memory_mutation_declaration",
+                        "mutation": mode,
+                        "memory_id": memory_id,
+                        "content_sha256": hashlib.sha256(
+                            _decl_content.encode("utf-8")
+                        ).hexdigest(),
+                        "content_bytes": len(_decl_content.encode("utf-8")),
+                        "truth_class_status": _decl_tc.get("status"),
+                        "truth_class_confidence": _decl_tc.get("confidence"),
+                        "provenance_actor": (
+                            provenance.get("actor_id")
+                            if isinstance(provenance, dict)
+                            else None
+                        ),
+                        "lease_id": lease_id,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+    gate = _constitutional_gate(
+        "arif_memory", mode, actor_id, session_id=session_id, candidate=_gate_candidate
+    )
     if gate is not None:
         return gate
 
@@ -25874,7 +26050,17 @@ def _force_hold_mutation_fields(response: Any) -> Any:
         return response
 
     # Normalize effective_verdict
-    if "VOID" in blob or "BLOCKED" in status_u or "DENY" in blob:
+    # R-1d single-writer (F13 FIX R-1d, 2026-09-22): this function's OWN
+    # docstring contract is to MATERIALIZE effective when missing ("Always
+    # materialize effective_verdict when status is holdish") — it must
+    # never re-derive an EXISTING attach-composed value. Observed reset:
+    # the blob chain preferred raw SABAR-over-HOLD and overwrote the
+    # worse-merged HOLD between attach (tools.py:26023) and wrapper
+    # reconcile (:26131) — the R-1d delta that survived trim/echo guards.
+    # Materialize-only when absent; mutation/seal flag sync below unchanged.
+    if response.get("effective_verdict"):
+        pass  # attach remains THE writer of an existing effective
+    elif "VOID" in blob or "BLOCKED" in status_u or "DENY" in blob:
         response["effective_verdict"] = "VOID"
     elif "SABAR" in blob:
         response["effective_verdict"] = "SABAR"
@@ -26024,6 +26210,13 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
                 level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
                 response = trim_for_verbosity(response, level)
+                # R-1d TAG-1 (F13 'ADD THE TWO TAGS', 2026-09-23): trim-output
+                # id+eff — with the echo tag this brackets the SABAR-birth.
+                logger.warning(
+                    "R1d trim-out: id=%s eff=%s",
+                    hex(id(response))[-6:],
+                    response.get("effective_verdict") or None,
+                )
             except Exception:
                 pass
             # STAB-2026-08-09c: last-writer mut/seal sync after trim
@@ -26043,6 +26236,32 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                     or kwargs.get("band")
                     or kwargs.get("requested_authority"),
                 )
+                # R-1d TAG-2 (F13 'ADD THE TWO TAGS', 2026-09-23): echo-output
+                # id+eff — trim-out=HOLD + echo-out=SABAR ⇒ echo is the birth;
+                # trim-out=SABAR ⇒ trim projection is the birth.
+                logger.warning(
+                    "R1d echo-out: id=%s eff=%s",
+                    hex(id(response))[-6:],
+                    response.get("effective_verdict") or None,
+                )
+            except Exception:
+                pass
+            # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+            # the TRUE last writer. Every verdict-bearing field must agree,
+            # or the envelope becomes HOLD/INCONSISTENT with authority off.
+            try:
+                from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+                response = reconcile_decision_contract(response)
+            except Exception:
+                pass
+            # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+            # the TRUE last writer. Every verdict-bearing field must agree,
+            # or the envelope becomes HOLD/INCONSISTENT with authority off.
+            try:
+                from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+                response = reconcile_decision_contract(response)
             except Exception:
                 pass
             return response
@@ -26089,6 +26308,12 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
             level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
             response = trim_for_verbosity(response, level)
+            # R-1d TAG-1 (F13 'ADD THE TWO TAGS', 2026-09-23): sync-path trim tag.
+            logger.warning(
+                "R1d trim-out: id=%s eff=%s",
+                hex(id(response))[-6:],
+                response.get("effective_verdict") or None,
+            )
         except Exception:
             pass
         try:
@@ -26107,6 +26332,28 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 or kwargs.get("band")
                 or kwargs.get("requested_authority"),
             )
+            # R-1d TAG-2 (F13 'ADD THE TWO TAGS', 2026-09-23): sync-path echo tag.
+            logger.warning(
+                "R1d echo-out: id=%s eff=%s",
+                hex(id(response))[-6:],
+                response.get("effective_verdict") or None,
+            )
+        except Exception:
+            pass
+        # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+        # the TRUE last writer (sync path).
+        try:
+            from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+            response = reconcile_decision_contract(response)
+        except Exception:
+            pass
+        # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+        # the TRUE last writer (sync path).
+        try:
+            from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+            response = reconcile_decision_contract(response)
         except Exception:
             pass
         return response
@@ -26138,6 +26385,20 @@ def _apply_canonical_normalization_to_all_handlers():
             "canonical_normalization: wrapped %d canonical/diagnostic handlers",
             wrapped_count,
         )
+    # R-1e SNAPSHOT REFRESH (F13 sleep-cycle, 2026-09-23): the map exposed a
+    # permanent SECOND STACK — CANONICAL_TOOL_HANDLERS (line ~28525) is a
+    # COPY taken at import before this pass wraps the live store, so every
+    # in-process consumer via get_tool_handler (kernel_router, kernel_core,
+    # dispatcher) read RAW handlers with no trim/force/echo/reconcile repair
+    # ever. Rebind the snapshot AFTER wrapping so both lanes share the
+    # single repaired chain.
+    try:
+        globals()["CANONICAL_TOOL_HANDLERS"] = {
+            **_CANONICAL_HANDLERS,
+            **_RUNTIME_DIAGNOSTIC_HANDLERS,
+        }
+    except Exception as _snap_exc:
+        _log.warning("canonical snapshot refresh failed: %s", _snap_exc)
 
 
 # NOTE: the post-process call was moved to END-OF-FILE (see bottom of this
@@ -27248,11 +27509,24 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
+        _r1d_in = _dict_from_response(response)
         final_resp = _enforce_nine_signal(
             tool_name,
-            _dict_from_response(response),
+            _r1d_in,
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
+        )
+        # R-1d FINAL_RESP TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23):
+        # birth bracket at the OUTER layer — coherent inner-HOLD goes in,
+        # newborn final_resp comes out. trim/echo already exonerated
+        # (598e80 chain clean); this catches the SABAR line exactly.
+        logger.warning(
+            "R1d final_resp: in_eff=%s in_verdict=%s -> out_id=%s out_eff=%s out_verdict=%s",
+            _r1d_in.get("effective_verdict") or None,
+            _r1d_in.get("verdict") or None,
+            hex(id(final_resp))[-6:],
+            final_resp.get("effective_verdict") or None if isinstance(final_resp, dict) else type(final_resp).__name__,
+            final_resp.get("verdict") or None if isinstance(final_resp, dict) else None,
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         # Epoch 1 / Items 1+3: canonical normalization. One call replaces
@@ -27510,6 +27784,25 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             _start_t = _time.time()
             response = await handler(*args, **_filtered)
+            # R-1d AWAIT TAG (F13 'ADD THE AWAIT TAG', 2026-09-23): what the
+            # outer layer ACTUALLY receives from the handler chain — the
+            # one-line window between the tagged inner return (trim/echo
+            # chain, HOLD) and _dict_from_response (whose input read SABAR).
+            # R-1e HANDLER IDENTITY (F13 'ADD HANDLER IDENTITY', 2026-09-23):
+            # wrapped=True ⇒ B captured an A-wrapped handle (intended single
+            # chain B(A(raw))); wrapped=False ⇒ B captured RAW (register ran
+            # before the end-of-file A-pass or an alias/snapshot path) =
+            # the dispatch split, R-1e cause (a). fn shows the wraps chain.
+            logger.warning(
+                "R1d outer-in: id=%s type=%s eff=%s verdict=%s | handler id=%s wrapped=%s fn=%s",
+                hex(id(response))[-6:],
+                type(response).__name__,
+                (response.get("effective_verdict") or None) if isinstance(response, dict) else getattr(response, "effective_verdict", None),
+                (response.get("verdict") or None) if isinstance(response, dict) else getattr(response, "verdict", None),
+                hex(id(handler))[-6:],
+                bool(getattr(handler, "_canonical_normalization_wrapped", False)),
+                f"{getattr(handler, '__name__', '?')}<-{getattr(getattr(handler, '__wrapped__', None), '__name__', '-')}",
+            )
             _latency_ms = (_time.time() - _start_t) * 1000.0
             # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
             _record_invocation(
@@ -27564,11 +27857,24 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
+        _r1d_in = _dict_from_response(response)
         final_resp = _enforce_nine_signal(
             tool_name,
-            _dict_from_response(response),
+            _r1d_in,
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
+        )
+        # R-1d FINAL_RESP TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23):
+        # birth bracket at the OUTER layer — coherent inner-HOLD goes in,
+        # newborn final_resp comes out. trim/echo already exonerated
+        # (598e80 chain clean); this catches the SABAR line exactly.
+        logger.warning(
+            "R1d final_resp: in_eff=%s in_verdict=%s -> out_id=%s out_eff=%s out_verdict=%s",
+            _r1d_in.get("effective_verdict") or None,
+            _r1d_in.get("verdict") or None,
+            hex(id(final_resp))[-6:],
+            final_resp.get("effective_verdict") or None if isinstance(final_resp, dict) else type(final_resp).__name__,
+            final_resp.get("verdict") or None if isinstance(final_resp, dict) else None,
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         # Epoch 1 / Items 1+3: canonical normalization. One call replaces
@@ -28174,6 +28480,20 @@ def register_tools(
                 preferred=(spec.description if spec is not None else None),
                 live_modes=None,  # modes belong in input_schema enum, not prose
             )
+            # R-1e SINGLE-CHAIN GUARANTEE (F13 sleep-cycle, 2026-09-23):
+            # the end-of-file A-pass alone did NOT prove sufficient — live
+            # identity evidence: handler wrapped=False fn=arif_judge<-arif_judge
+            # (B captured RAW) and outer-in was a VerdictOutput MODEL
+            # (SABAR/SEAL) that bypassed the repair chain entirely →
+            # manufactured VERDICT_FIELD_DIVERGENCE. Compose at REGISTER
+            # time, sentinel-idempotent: the FastMCP handle is now ALWAYS
+            # B(A(raw)) regardless of pass ordering.
+            if not getattr(handler, "_canonical_normalization_wrapped", False):
+                handler = _wrap_with_canonical_normalization(handler, name)
+                try:
+                    handler._canonical_normalization_wrapped = True
+                except Exception:
+                    pass
             wrapped = _wrap_handler(handler, name)
 
             # Compute canonical risk passport for this tool

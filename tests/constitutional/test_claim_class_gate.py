@@ -288,5 +288,41 @@ def test_arif_judge_accepts_claim_class_declaration():
     assert params["claim_class"].default is None, "declaration must stay optional"
 
 
+# ── 8. B2 — one receipt, one class (coherence under unknown vocabulary) ──────
+# Defect pinned (e-a26871f2, observed 2026-09-20): the receipt echoed the raw
+# caller input in `class` (OBSERVATION) while claim_kernel had silently coerced
+# it to UNCLASSIFIED — so `class=OBSERVATION, agree=true` sat above reasons
+# reading "class=UNCLASSIFIED is not action-eligible". Two truths, one receipt.
+
+
+def test_receipt_class_never_contradicts_its_own_reasons():
+    verdict = ccg.evaluate("observation only, no measure", "OBSERVATION")
+    # audit truth preserved: what the caller actually declared stays visible
+    assert verdict["declared"] == "OBSERVATION"
+    # the kernel's class wins in the field reasons quote
+    assert verdict["class"] == "UNCLASSIFIED"
+    # the coercion is stated, not smoothed over
+    assert any("OBSERVATION" in r for r in verdict["reasons"])
+    # every reason of the form class=X must agree with the receipt's class
+    for reason in verdict["reasons"]:
+        if reason.startswith("class="):
+            assert f"class={verdict['class']}" in reason, reason
+
+
+def test_declared_and_class_agree_for_in_vocabulary_classes():
+    for cls, text in (("MEASURED", MEASURED_TEXT), ("NARRATIVE", NARRATIVE_TEXT)):
+        verdict = ccg.evaluate(text, cls)
+        assert verdict["class"] == cls
+        assert verdict["declared"] == cls
+
+
+def test_deny_shape_always_carries_class():
+    """The fail-closed path must publish the same field the judge quotes."""
+    import inspect as _inspect
+
+    src = _inspect.getsource(ccg._deny)
+    assert '"class": declared' in src
+
+
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-v"]))

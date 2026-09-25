@@ -159,6 +159,7 @@ def _deny(reasons: list[str], declared: str, **extra: Any) -> dict[str, Any]:
         "kernel_error": KERNEL_ERROR,
         "schema": SCHEMA,
         "declared": declared,
+        "class": declared,
         "eligible": False,
         "allowed_for_mutation": False,
         "reasons": reasons,
@@ -191,6 +192,9 @@ def evaluate(
     session epistemic state alongside reality_class.
     """
     declared = normalise_class(declared_class)
+    # Snapshot of the caller's declaration before the NK gate may reassign it —
+    # the vocabulary-coercion check below must judge what the CALLER sent.
+    declared_input = declared
 
     if not available():
         out = _deny(
@@ -220,13 +224,35 @@ def evaluate(
         except Exception:
             pass
 
+        # ── B2 · vocabulary coercion must be EXPLICIT (2026-09-22) ──────────
+        # claim_kernel's classify() silently normalises any class outside
+        # claim_kernel/v1 to UNCLASSIFIED. If this receipt echoes the raw input
+        # in `class` while its own `reasons` quote the kernel's coerced class,
+        # ONE receipt carries two truths (observed e-a26871f2, 2026-09-20:
+        # class=OBSERVATION beside "class=UNCLASSIFIED is not action-eligible").
+        # The kernel's class wins — the coercion is stated, never smoothed.
+        if declared_input not in CLAIM_CLASSES:
+            _kernel_class = (result.get("class_verdict") or {}).get(
+                "declared"
+            ) or UNCLASSIFIED
+            reasons.insert(
+                0,
+                f"DECLARED_CLASS_OUT_OF_VOCABULARY: {declared_input!r} is not in "
+                f"claim_kernel/v1 {list(CLAIM_CLASSES)} — classified as "
+                f"{_kernel_class} (fail-closed).",
+            )
+            resolved_class = _kernel_class
+        else:
+            # In-vocabulary: legacy semantics preserved — post-NK declared.
+            resolved_class = declared
+
         out = {
             "gate": GATE_ID,
             "kernel_available": True,
             "kernel_error": None,
             "schema": result.get("schema", SCHEMA),
             "declared": declared,
-            "class": (result.get("class_verdict") or {}).get("declared", declared) if eligible else declared,
+            "class": resolved_class,
             "inferred": (result.get("class_verdict") or {}).get("inferred"),
             "agree": (result.get("class_verdict") or {}).get("agree"),
             "has_baseline": (result.get("baseline_verdict") or {}).get("has_baseline"),

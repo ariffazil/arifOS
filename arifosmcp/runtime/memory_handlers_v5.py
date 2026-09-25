@@ -235,6 +235,11 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     try:
         from arifosmcp.memory.vector_memory_qdrant import vector_store as _vector_store
 
+        # kernel_seal (F13 ruling 2026-09-24): this code path runs ONLY after
+        # the L4 write succeeded (verdict=SEAL upstream) — the flag asserts
+        # that existing verdict into the L3 gate's distinct 0.95 trust band.
+        # It is provenance pass-through, not a new truth claim; verified=1.0
+        # remains reserved for external witnesses.
         _l3_result = await _vector_store(
             content=content,
             metadata={
@@ -246,6 +251,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                 "actor_id": actor_id,
                 "session_id": session_id,
                 "summary": summary,
+                "kernel_seal": True,
             },
             session_id=session_id,
             actor_id=actor_id,

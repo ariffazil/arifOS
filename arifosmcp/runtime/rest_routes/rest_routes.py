@@ -3316,15 +3316,64 @@ def register_rest_routes(
             "registry": {
                 "status": "degraded" if contract_drift_val else "healthy",
                 "registry_size": len(tool_registry),
-                "declared_tools": _exposed + _diagnostic,
+                "declared_tools": _exposed,
                 "exposed_tools": _exposed,
-                "note": "registry_size includes aliases; diagnostic_tools not on public wire",
+                "diagnostic_tools": _diagnostic,
+                "note": "declared == exposed == callable surface; diagnostic_tools not on public wire; registry_size includes aliases",
             },
             "infra": {
                 "status": "unknown",
                 "probe_endpoint": "/ready",
             },
         }
+
+        # ── H1.1: emit constitutional gauges from THIS handler's measured state ──
+        # record_constitutional_metrics() previously had ZERO live callers, so
+        # arifos_genius_score / arifos_entropy_delta / arifos_peace_squared /
+        # arifos_empathy_quotient (F8/ΔS/P²/κᵣ observability) never populated.
+        # Every value below is exactly what /health itself reports — nothing
+        # fabricated (F2). Provenance labels distinguish measured vs derived.
+        # Ω₀ (HUMILITY_BAND) is honestly SKIPPED here: no Ω₀-band value is
+        # computed on this path (the F7 floor score and the apex 'h'
+        # evidence-gap are different quantities, not Ω₀ ∈ [0.03, 0.05]).
+        try:
+            from arifosmcp.runtime.metrics import (
+                record_constitutional_metrics as _record_const_metrics,
+                record_w3 as _record_w3,
+            )
+
+            _apex_health = thermo.get("apex_scalars", {}) or {}
+            _health_telemetry = thermo.get("telemetry", {}) or {}
+            _const_metrics: dict[str, float] = {}
+            _const_provenance: dict[str, str] = {}
+            _g_snap = _apex_health.get("G") or {}
+            if _g_snap.get("status") == "MEASURED" and _g_snap.get("value") is not None:
+                _const_metrics["G"] = float(_g_snap["value"])
+                _const_provenance["G"] = "measured"
+            if _health_telemetry.get("dS") is not None:
+                _const_metrics["dS"] = float(_health_telemetry["dS"])
+                _const_provenance["dS"] = "derived"
+            if _health_telemetry.get("peace2") is not None:
+                _const_metrics["peace2"] = float(_health_telemetry["peace2"])
+                _const_provenance["peace2"] = "derived"
+            if _health_telemetry.get("kappa_r") is not None:
+                _const_metrics["kappa_r"] = float(_health_telemetry["kappa_r"])
+                _const_provenance["kappa_r"] = "derived"
+            if _const_metrics:
+                _record_const_metrics(
+                    session_id=str(thermo.get("session_id") or "health"),
+                    tool="health",
+                    metrics=_const_metrics,
+                    provenance_map=_const_provenance,
+                )
+            # W3 tri-witness histogram (F3) — only when the live witness
+            # channels actually measured it (any zero channel → UNMEASURED).
+            _w3_snap = _apex_health.get("W3") or {}
+            if _w3_snap.get("status") == "MEASURED" and _w3_snap.get("value") is not None:
+                _record_w3("health", float(_w3_snap["value"]))
+        except Exception:
+            # Metrics emission must never break /health.
+            pass
 
         # ZD-3: Pre-compute provider status so we can check for cognitive downgrade
         _provider_status = await _cached_offloaded_probe(
@@ -3804,6 +3853,47 @@ def register_rest_routes(
         else:
             payload = dict(payload)
             payload["payload_mode"] = "detail"
+
+        # ── T6 verdict floor-guard (F13 A1 batch, 2026-09-22) ────────────
+        # SEAL-grade publication must not out-shout a canon floor breach.
+        # Thresholds are canon-grounded, NOT taken from any external paste:
+        #   W3 < 0.75 → HOLD band — APEX-REALITY-KERNEL.md L154 +
+        #                 W3-HYSTERESIS-DOCTRINE-2026-09-20 (any single
+        #                 measurement below 0.75 = fail-closed demotion)
+        #   G  < 0.80 → F08 GENIUS floor breach — CANON-FLOOR-INDEX-2026-09-20
+        # Observed breach (OBS 2026-09-22): verdict=SEAL beside
+        # G=0.4649 / W3=0.7439 — one payload, two truths (S4 family).
+        # Guard runs BEFORE the cache store so cached and ?nocache=1
+        # payloads agree. Fail-safe: never raises — telemetry must not
+        # break /health.
+        try:
+            _apex_pub = payload.get("apex_scalars") or {}
+            _g_pub = (_apex_pub.get("G") or {}).get("value")
+            _w_pub = (_apex_pub.get("W3") or {}).get("value")
+            _t6_breaches: list[str] = []
+            if isinstance(_g_pub, (int, float)) and not isinstance(_g_pub, bool) and _g_pub < 0.80:
+                _t6_breaches.append(
+                    f"F08_GENIUS: G={_g_pub:.4f} < 0.80 (CANON-FLOOR-INDEX-2026-09-20)"
+                )
+            if isinstance(_w_pub, (int, float)) and not isinstance(_w_pub, bool) and _w_pub < 0.75:
+                _t6_breaches.append(
+                    f"W3_HOLD_BAND: W3={_w_pub:.4f} < 0.75 (APEX-REALITY-KERNEL.md:154)"
+                )
+            _thermo_pub = payload.get("thermodynamic")
+            if (
+                isinstance(_thermo_pub, dict)
+                and _t6_breaches
+                and str(_thermo_pub.get("verdict") or "").upper() in ("SEAL", "888_SEAL")
+            ):
+                _thermo_pub["verdict"] = "HOLD"
+                _thermo_pub["verdict_floor_guard"] = {
+                    "guard": "T6_verdict_floor_guard_2026-09-22",
+                    "breaches": _t6_breaches,
+                    "original_verdict": "SEAL",
+                    "authority": "F13 A1 batch 2026-09-22 (thresholds canon-grounded)",
+                }
+        except Exception:
+            pass  # fail-safe: guard must never take down /health
 
         # ── RSI: Update cache ──
         # Cache compact only — detail bypasses shared cache pollution

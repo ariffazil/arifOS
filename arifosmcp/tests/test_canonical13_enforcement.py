@@ -6,13 +6,17 @@ F13 SOVEREIGN binding (machine-enforced, not rasa-enforced):
 
 The arifOS public MCP surface is the constitution. Internal functions are the
 ministries. New capability goes into MODES inside existing tools, not into new
-public tools — unless 888 ratifies a surface expansion (e.g. entropy mesh 2026-07-12).
+public tools — unless 888 ratifies a surface expansion.
 
 This test fails CI if anyone — human, agent, or future code — adds a public
 MCP tool without explicit 888 (Arif) approval recorded in `EXPECTED_PUBLIC_TOOLS`.
 
-SOT 2026-07-12: public wire = 18 tools (metabolic 12 + entropy mesh 6).
-Matches public_surface.CANONICAL_12 / tools/list / GET /mcp tool_count.
+SOT 2026-09-24 (S4 canonical verb registry): public wire = 8 canonical verbs
+(KERNEL_ABI_8). Ratification trail: docs/CANONICAL-VERBS.md (S4, FastMCP
+authoritative), commits 64497a435 + 445761b94 (arifosd.py TOOLS frozen
+REFERENCE-ONLY; arif_act alias retired). Live :8088 wire serves exactly these
+8 tools. Prior SOT 2026-07-12 (18 tools: metabolic 12 + entropy mesh 6) is
+superseded; entropy-mesh verbs moved off the public wire.
 
 DITEMPA BUKAN DIBERI — Bound by execution, not by string.
 """
@@ -36,30 +40,19 @@ from arifosmcp.runtime.public_surface import (
 
 EXPECTED_PUBLIC_TOOLS: frozenset[str] = frozenset(
     {
-        # Metabolic path (12)
-        "arif_init",
-        "arif_observe",
-        "arif_think",
-        "arif_route",
-        "arif_bridge_connect",
-        "arif_critique",
-        "arif_memory",
-        "arif_judge",
-        "arif_forge",
-        "arif_compose",
-        "arif_seal",
-        "arif_verify",
-        # Entropy Integrity Mesh (6) — ratified 2026-07-12
-        "arif_entropy_observe",
-        "arif_j_state_assess",
-        "arif_correction_probe",
-        "arif_consequence_trace",
-        "arif_entropy_route",
-        "arif_j_gate",
+        # Canonical verbs — KERNEL_ABI_8 (S4, 2026-09-24; docs/CANONICAL-VERBS.md)
+        "arif_init",     # kernel 000
+        "arif_observe",  # kernel 111
+        "arif_think",    # kernel 333
+        "arif_route",    # kernel 444
+        "arif_memory",   # kernel 555
+        "arif_judge",    # kernel 666
+        "arif_forge",    # kernel 777
+        "arif_seal",     # kernel 999
     }
 )
 
-EXPECTED_PUBLIC_COUNT = 18
+EXPECTED_PUBLIC_COUNT = 8
 
 FORBIDDEN_PUBLIC_PREFIXES: tuple[str, ...] = (
     "arifos_",
@@ -78,8 +71,8 @@ FORBIDDEN_PUBLIC_PREFIXES: tuple[str, ...] = (
 )
 
 
-def test_public_surface_is_exactly_18():
-    """Public wire is exactly 18 tools (metabolic 12 + entropy 6)."""
+def test_public_surface_is_exactly_8():
+    """Public wire is exactly 8 canonical verbs (KERNEL_ABI_8, S4 2026-09-24)."""
     assert len(CANONICAL_12) == EXPECTED_PUBLIC_COUNT, (
         f"CANONICAL_12 must be exactly {EXPECTED_PUBLIC_COUNT}; got {len(CANONICAL_12)}. "
         f"To change, edit EXPECTED_PUBLIC_TOOLS AND obtain 888 ratification."
@@ -122,7 +115,6 @@ def test_canonical_tools_includes_internal_support():
         for name, spec in CANONICAL_TOOLS.items()
         if spec.get("access") == "internal_only" or not spec.get("expose", True)
     }
-    assert "arif_act" in internal
     assert "arif_triage" in internal
     assert not (internal & set(CANONICAL_12))
 
@@ -151,15 +143,21 @@ def test_diagnostic_tools_do_not_bleed_into_public_surface():
     assert not overlap, f"Diagnostic tools leaking into public surface: {sorted(overlap)}"
 
 
-def test_public_surface_modes_include_canonical_and_expanded():
-    """Allowed modes must include the preferred public mode and expanded operator mode."""
+def test_public_surface_modes_are_actor_scoped():
+    """Allowed modes are the actor-scope set (S4 redesign).
+
+    The old surface-modes (canonical13/expanded45 + deprecated aliases
+    canonical7/9/12) were replaced by actor scopes. See
+    arifosmcp/runtime/public_surface.py VALID_PUBLIC_SURFACE_MODES.
+    """
     modes = set(VALID_PUBLIC_SURFACE_MODES)
-    assert "canonical13" in modes
-    assert "expanded45" in modes
-    # deprecated aliases still map to canonical13
-    assert {"canonical7", "canonical9", "canonical12"}.issubset(modes) or modes >= {
-        "canonical13",
-        "expanded45",
+    assert modes == {
+        "public_agent",
+        "trusted_agent",
+        "operator",
+        "sovereign",
+        "executor",
+        "legacy",
     }
 
 
@@ -182,11 +180,13 @@ def test_every_public_tool_declares_floors(tool_name: str):
 def test_seal_is_irreversible_public_commitment_gate():
     """arif_seal is the public irreversible commitment gate.
 
-    arif_act is internal_only (execution after SEAL) — still irreversible but not public.
+    arif_act was retired from the surface entirely (S4, 2026-09-24 —
+    "arif_act alias retired", commit 64497a435); execution flows through
+    arif_forge under lease governance.
     """
     assert CANONICAL_TOOLS["arif_seal"].get("irreversible") is True
-    assert CANONICAL_TOOLS["arif_act"].get("access") == "internal_only"
-    assert CANONICAL_TOOLS["arif_act"].get("irreversible") is True
+    assert "arif_seal" in set(CANONICAL_12)
+    assert "arif_act" not in CANONICAL_TOOLS, "arif_act retired (S4); remove if resurfaced"
 
 
 def test_the_law_in_one_assertion():

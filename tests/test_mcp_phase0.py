@@ -2,6 +2,13 @@
 """
 Phase 0 MCP Protocol Test
 Tests the hardened tools via actual MCP protocol calls (like MCP Inspector would).
+
+RETIRED 2026-09-25: the Phase 0 hardened surface (arif_mind_reason,
+arif_memory_recall, arif_ops_measure) no longer exists. The canonical public
+wire is KERNEL_ABI_8 (docs/CANONICAL-VERBS.md, S4 2026-09-24), enforced by
+arifosmcp/tests/test_canonical13_enforcement.py and tested live by
+tests/test_mcp_inspector.py + tests/runtime/test_public_mcp_envelope.py.
+Kept for archaeology until the next archive sweep.
 """
 
 import os
@@ -9,6 +16,13 @@ import asyncio
 import json
 import sys
 import subprocess
+
+import pytest
+
+pytestmark = pytest.mark.skip(
+    reason="Phase 0 surface retired — canonical wire is KERNEL_ABI_8 "
+    "(docs/CANONICAL-VERBS.md, S4 2026-09-24); see test_canonical13_enforcement.py"
+)
 
 
 class MCPClient:

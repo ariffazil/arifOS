@@ -49,6 +49,11 @@ _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 
 # Constitutional thresholds
 _F2_TRUTH_THRESHOLD = 0.99
+# F13 ruling 2026-09-24 ("kernel_seal 0.95, executed sah!"): kernel-SEALed
+# content (L4 write passed constitutional floors, verdict=SEAL) forms a
+# DISTINCT trust band fixed at 0.95 — above raw content (<=0.90), below
+# external-witness verified=1.0. kernel_seal never implies verified.
+_KERNEL_SEAL_SCORE = 0.95
 _F10_ONTOLOGY_CHECK = True
 
 _qdrant_client = None
@@ -262,6 +267,11 @@ def _generate_embedding(text: str) -> list[float]:
 
 def _compute_truth_score(content: str, context: dict | None = None) -> float:
     """F2: Compute truth score τ ∈ [0,1]."""
+    # kernel_seal is a FIXED band (F13 ruling 2026-09-24): the flag means the
+    # L4 store already holds verdict=SEAL; the score is stamped 0.95 — it does
+    # not accumulate with content heuristics and never reaches verified=1.0.
+    if context and context.get("kernel_seal"):
+        return _KERNEL_SEAL_SCORE
     score = 0.0
     if content and len(content.strip()) > 0:
         score += 0.5
@@ -338,7 +348,13 @@ async def vector_store(
         return _sabar_qdrant_unreachable(exc, op="vector_store")
     metadata = metadata or {}
     truth_score = _compute_truth_score(content, metadata)
-    if truth_score < _F2_TRUTH_THRESHOLD:
+    # Gate: external-witness content passes at >= 0.99; kernel_seal content
+    # passes at its fixed 0.95 band (F13 ruling 2026-09-24). Everything
+    # below 0.95 is refused — raw remember-path content cannot self-elevate.
+    _kernel_sealed = bool(metadata.get("kernel_seal"))
+    if truth_score < _F2_TRUTH_THRESHOLD and not (
+        _kernel_sealed and truth_score == _KERNEL_SEAL_SCORE
+    ):
         return {
             "ok": False,
             "error": (

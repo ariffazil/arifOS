@@ -71,7 +71,7 @@ Used for **arifosmcp** when:
 ```bash
 git tag -a 2026.03.20-MCP-RUNTIME-FORGE -m "FORGE: Runtime stable
 - core/ organs aligned with 0_KERNEL/FLOORS
-- 13 MCP tools functional
+- 8 canonical MCP verbs functional (KERNEL_ABI_8)
 - Tests passing
 - Paired with MIND: 2026.03.20-APEX-SITE-SEAL
 
