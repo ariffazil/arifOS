@@ -105,3 +105,44 @@ def test_high_harm_verb_double_penalty():
 def test_empty_and_none_query_safe():
     assert check("").passed
     assert check("").score == 1.0
+
+
+# ── 2026-09-25: code-span literal-name class ───────────────────────────
+# F13 "baiki dua dua cacat" — proven false-positive: hostname `forge`
+# (bare word, backtick-quoted) in FI-003 witness-report payload → 0.700.
+
+def test_hostname_forge_in_code_span_passes():
+    """The exact blocked payload class: machine hostname `forge` quoted as literal."""
+    r = check(
+        "WITNESS RECORD: KVM8 `forge` (100.64.0.2), 13:56:47 +08 MYT, "
+        "process running as root on `forge` — the seat/court machine."
+    )
+    assert r.passed, f"witness payload with `forge` hostname must pass, got {r.reason}"
+    assert r.score == 1.0
+
+
+def test_code_span_identifiers_are_names():
+    tokens = _f5_tokens("host `forge` lane `wipe` key `erase`")
+    assert tokens == ["host", "lane", "key"]  # span contents gone, prose stays
+    assert not ({"forge", "wipe", "erase"} & set(tokens))
+
+
+def test_mixed_span_and_prose_verb_still_fails():
+    """A literal name in code span does not mask a bare destructive verb."""
+    r = check("running on `forge`: erase the production ledger now")
+    assert not r.passed and r.score == 0.7
+
+
+def test_unpaired_backtick_fails_safe():
+    """Odd backtick count forms no span — bare token stays scanned."""
+    r = check("erase `the database tonight")
+    assert not r.passed and r.score == 0.7
+
+
+def test_seal_payload_class_with_paths_and_spans():
+    """Representative seal-record provenance line: paths + spans, no verbs."""
+    r = check(
+        "Draft artifact: `/root/forge_work/report.md` on `forge`, "
+        "chain `/root/.local/share/arifos/vault999/seal_chain.jsonl` entry 269"
+    )
+    assert r.passed and r.score == 1.0

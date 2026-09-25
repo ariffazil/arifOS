@@ -675,22 +675,32 @@ class F4_Clarity(Law):
 # names, hashes, mixed alpha-digit) are names, not verbs; morphological
 # variants ('forged', 'harmless') are different tokens; hyphenated prose
 # compounds re-split so 'wipe-out' still matches 'wipe'.
+# 2026-09-25 extension (F13 "baiki dua dua cacat"): markdown inline code
+# spans are explicit literal-name markers. Proven false-positive: hostname
+# `forge` (bare word — no digits, no path chars) in the FI-003 witness-report
+# payload scored as the fraud verb → Peace² 0.700. Code-quoted tokens are
+# names by record-format convention — same names-not-verbs law, next class.
 import re as _f5_re
 
 _F5_HAS_DIGIT = _f5_re.compile(r"[0-9]")
 _F5_PATHISH = _f5_re.compile(r"[/\\:]")
 _F5_HEXISH = _f5_re.compile(r"^[0-9a-f]{7,}$")
+_F5_CODE_SPAN = _f5_re.compile(r"`[^`\n]*`")
 
 
 def _f5_tokens(text: str) -> list[str]:
-    """Prose tokens only: identifiers/paths/lane-names/hashes excluded.
+    """Prose tokens only: identifiers/paths/lane-names/hashes/code-spans excluded.
 
     A token is an identifier (name, not verb) when it carries a digit,
-    a path/colon separator, or is a bare hex hash. Pure-word hyphen
-    compounds carry no digits, so they re-split ('wipe-out' → 'wipe out').
+    a path/colon separator, is a bare hex hash, or sits inside a markdown
+    inline code span (literal name — hostname, config key, path). Pure-word
+    hyphen compounds carry no digits, so they re-split ('wipe-out' → 'wipe
+    out'). Unpaired backticks do not form a span — such bare tokens stay
+    scanned (fail-safe direction preserved).
     """
     if not text or not isinstance(text, str):
         return []
+    text = _F5_CODE_SPAN.sub(" ", text)
     out: list[str] = []
     for tok in text.lower().split():
         tok = tok.strip(".,;:!?'\"()[]{}<>|*`")

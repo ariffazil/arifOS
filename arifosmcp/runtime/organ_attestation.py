@@ -208,10 +208,11 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
             "/root/.local/share/arifos/vault999/vault_manifest.json",
             "/root/.local/share/arifos/vault999/identity_anchor.json",
             "/agent/vault999/vault_manifest.json",
-            # Legacy fallback — seal_chain.jsonl is mutable; here only as
-            # last resort so the probe never returns missing unless the
-            # entire vault is gone.
-            "/root/VAULT999/seal_chain.jsonl",
+            # Legacy twin /root/VAULT999/seal_chain.jsonl removed 2026-09-25
+            # (twin-chain repair, F13 "baiki dua dua cacat"): the repo chain
+            # is a closed CHAIN_REDIRECT tombstone; hashing it anchored organ
+            # identity to a dead file. Stage-0.2 completion (create
+            # vault_manifest.json) remains an open follow-up.
             "/root/.local/share/arifos/vault999/seal_chain.jsonl",
             "/agent/vault999/vault999.jsonl",
         ],
