@@ -25,13 +25,14 @@ enforcement:
   - plane: A-FORGE                            # check_verdict.ts
     mechanism: gateToolByFq FQ_GATE_THRESHOLD=0.50, fail-closed (null FQ -> 0.0 -> HOLD MUTATE)
   - plane: arifOS kernel                      # runtime/fq_gate.py (wired 2026-09-12, "ratify + wire")
-    mechanism: metabolic_cap at arif_init birth — session capped OBSERVE_ONLY when actor lane
-    is STUCK/BURNING below floor; sovereigns exempt; unknown actors not punished (F9);
-    arifFlow outage does not brick sessions (executor gate remains the fail-closed layer)
+    mechanism: >-
+      metabolic_cap at arif_init birth — session capped OBSERVE_ONLY when actor lane
+      is STUCK/BURNING below floor; sovereigns exempt; unknown actors not punished (F9);
+      arifFlow outage does not brick sessions (executor gate remains the fail-closed layer)
 
 escalation:
   - trigger: consecutive_exec_no_verify >= 5
-    action: HELD (observed live 2026-09-07: 333-AGI, qwen-code)
+    action: "HELD (observed live 2026-09-07: 333-AGI, qwen-code)"
   - trigger: vector diagnosis GOVERNANCE_COLLAPSE (g-dimension pathological)
     action: report to arifOS :8088 for 888 review (observed live 2026-09-07)
 

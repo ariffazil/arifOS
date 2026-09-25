@@ -65,33 +65,42 @@ def metabolic_cap(
     timeout: float = 2.0,
 ) -> tuple[str, dict]:
     """Return (possibly-capped authority, metabolic_state dict)."""
+    # S4 axis separation (F13 FIX-S4 2026-09-22): this dict is the FQ/metabolic
+    # axis, NOT the constitutional verdict channel. Its outcomes live under
+    # `fq_outcome` because the key name `verdict` made reconcile_decision_contract
+    # (walker: every verdict-bearing key) validate arifFlow/FQ tokens
+    # (UNKNOWN_ACTOR, UNREACHABLE, FLOWING, STUCK…) against CANONICAL_VERDICTS —
+    # a guaranteed UNKNOWN_VERDICT_TOKEN HOLD on every response embedding this
+    # state (live evidence2026-09-22: init poisoned by
+    # metabolic_state.verdict=UNKNOWN_ACTOR). Axes: verdict = SEAL/HOLD/SABAR/
+    # VOID/OBSERVE_ONLY/888_HOLD only; fq_outcome = this policy's vocabulary.
     state = {
         "actor_id": actor_id,
         "quotient": None,
-        "verdict": None,
+        "fq_outcome": None,
         "capped": False,
         "reason": None,
         "source": "arifFlow :7073/health",
         "policy": f"fq_policy.yaml F13_RATIFIED 2026-09-12 floor={FQ_OBSERVE_ONLY_BELOW}",
     }
     if not actor_id or is_sovereign_principal:
-        state["verdict"] = "SOVEREIGN_EXEMPT" if is_sovereign_principal else "NO_ACTOR"
+        state["fq_outcome"] = "SOVEREIGN_EXEMPT" if is_sovereign_principal else "NO_ACTOR"
         return authority, state
     if authority not in ("FULL", "LIMITED_MUTATE", "SOVEREIGN"):
-        # Already OBSERVE_ONLY or unknown shape — no measurement, no verdict.
+        # Already OBSERVE_ONLY or unknown shape — no measurement, no outcome.
         return authority, state
     try:
         with urllib.request.urlopen(ARIFFLOW_HEALTH_URL, timeout=timeout) as resp:
             health = json.loads(resp.read().decode("utf-8"))
     except Exception as exc:  # noqa: BLE001 — session-level gate must fail-open
-        state["verdict"] = "UNREACHABLE"
+        state["fq_outcome"] = "UNREACHABLE"
         state["reason"] = f"arifFlow health probe failed: {exc}"
         logger.warning("fq_gate: arifFlow unreachable (%s) — session cap skipped", exc)
         return authority, state
     per_actor = (health.get("fq") or {}).get("per_actor") or {}
     candidates = _candidate_lanes(per_actor, actor_id)
     if not candidates:
-        state["verdict"] = "UNKNOWN_ACTOR"
+        state["fq_outcome"] = "UNKNOWN_ACTOR"
         state["reason"] = "no receipts for this actor — absence of data is not guilt"
         return authority, state
     qualifying = []
@@ -100,11 +109,11 @@ def metabolic_cap(
         v = entry.get("verdict")
         if v in CAP_VERDICTS and isinstance(q, (int, float)) and q < FQ_OBSERVE_ONLY_BELOW:
             qualifying.append((lane, v, float(q)))
-    state["matched_lanes"] = {lane: {"verdict": e.get("verdict"), "quotient": e.get("quotient")} for lane, e in candidates}
+    state["matched_lanes"] = {lane: {"fq_outcome": e.get("verdict"), "quotient": e.get("quotient")} for lane, e in candidates}
     if qualifying:
         worst = min(qualifying, key=lambda t: t[2])
         state["quotient"] = worst[2]
-        state["verdict"] = worst[1]
+        state["fq_outcome"] = worst[1]
         state["capped"] = True
         lanes_txt = ", ".join(f"{lane} ({v}, FQ={round(q, 3)})" for lane, v, q in qualifying)
         state["reason"] = (
@@ -116,5 +125,5 @@ def metabolic_cap(
         return "OBSERVE_ONLY", state
     best = candidates[0]
     state["quotient"] = best[1].get("quotient")
-    state["verdict"] = best[1].get("verdict")
+    state["fq_outcome"] = best[1].get("verdict")
     return authority, state

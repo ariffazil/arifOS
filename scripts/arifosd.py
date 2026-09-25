@@ -1312,6 +1312,14 @@ class UnixSocketHandler(socketserver.StreamRequestHandler):
 # diagnostics (arif_apex_judge, arif_floor_status, arif_vault_integrity) are
 # removed from the public wire surface — call arif_route for routing or
 # arif_conformance_report on the FastMCP :8088 surface for diagnostics.
+# ─────────────────────────────────────────────────────────────────────
+# S8 CANONICAL RESOLUTION (2026-09-24, F13 stabilization S4):
+# REFERENCE-ONLY. The canonical verb-set authority is the FastMCP serve
+# surface (:8088): arif_init, arif_observe, arif_think, arif_route,
+# arif_memory, arif_judge, arif_forge, arif_seal (+ arif_stage).
+# arifosd.service is disabled since 2026-06-14 (F13 Option B tombstone).
+# Do NOT extend this list — update the FastMCP surface, never here.
+# ─────────────────────────────────────────────────────────────────────
 TOOLS = [
     {
         "name": "arif_init",

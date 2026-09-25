@@ -94,6 +94,15 @@ dependencies = [
     "qdrant-client>=1.18.0",
     "aiohttp>=3.13.5",
     "pynacl>=1.6.2",
+    # 2026-09-21: OpenTelemetry SDK is imported unconditionally on the mandatory
+    # import path (arifosmcp/arifos_observability/otel_tracer.py -> otel_wiring ->
+    # megaTools/__init__ -> arifosmcp/__init__). It was declared only in the
+    # [observe]/[observability] extras, so a clean `pip install arifos` installed
+    # fine but crashed at import with ModuleNotFoundError: No module named
+    # 'opentelemetry.sdk'. The package could never start. These two are the
+    # runtime floor, not an extra.
+    "opentelemetry-api>=1.42.1",
+    "opentelemetry-sdk>=1.42.1",
 ]
 
 [project.optional-dependencies]

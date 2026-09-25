@@ -1667,12 +1667,16 @@ async def arif_judge(
                     check_judge_postcondition as _cjpc_intercept,
                 )
 
+                # S4 defer (F13 FIX-S4 2026-09-22): comparing the RAW intercept
+                # token (ALLOW/OK) against the mapped code (SEAL/HOLD) is a
+                # stage-invalid compare by construction — it reads integrity
+                # False on EVERY promotion. Final coherence = reconcile.
                 _ipc_report = _cjpc_intercept(
                     mode=mode,
                     candidate=candidate,
                     evidence=evidence,
                     verdict_str=str(_code),
-                    effective_verdict=_v_str,
+                    effective_verdict="",
                 )
                 if (
                     _code == VerdictCode.SEAL
@@ -1731,15 +1735,35 @@ async def arif_judge(
                     "matched": False,
                     "advisory_only": True,
                 }
+            # CRACK #7 (pasture-2026-09-22): never recommend arif_seal unless the
+            # identity envelope authorizes it. The intercept path produced SEAL
+            # but did not check identity. An autonomous agent reading
+            # `next_safe_action` would otherwise trigger irreversible seal
+            # even when the actor is OBSERVE_ONLY.
+            _seal_safe_action = (
+                "Proceed to arif_seal(ack_irreversible=true, "
+                "actor_signature=<ed25519>) with constitutional_chain_id + judge_state_hash"
+                if _code == VerdictCode.SEAL
+                else _intercept_res.get("next_safe_action", "Execute or review per verdict")
+            )
+            # Identity gate: if seal_allowed is False (the upstream identity
+            # envelope), swap the seal recommendation for an arif_init
+            # recommendation that will authorize seal. Never both.
+            _identity = _intercept_res.get("identity") or {}
+            _seal_allowed = bool(_identity.get("seal_allowed", False))
+            if (
+                _code == VerdictCode.SEAL
+                and not _seal_allowed
+            ):
+                _seal_safe_action = (
+                    "Identity is OBSERVE_ONLY; seal is not yet authorized. "
+                    "Run arif_init(actor_signature=<ed25519>, "
+                    "ack_irreversible=true) to unlock seal, then re-run arif_judge."
+                )
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
-                next_safe_action=(
-                    "Proceed to arif_seal(ack_irreversible=true) with "
-                    "constitutional_chain_id + judge_state_hash"
-                    if _code == VerdictCode.SEAL
-                    else _intercept_res.get("next_safe_action", "Execute or review per verdict")
-                ),
+                next_safe_action=_seal_safe_action,
                 meta=_intercept_meta,
             )
         except Exception as _int_err:
@@ -2185,12 +2209,22 @@ async def arif_judge(
                 check_judge_postcondition as _cjpc_main,
             )
 
+            # S4 stage-valid integrity (F13 FIX-S4 2026-09-22): the envelope's
+            # pre-judgment effective_verdict compared against THIS judgment is
+            # a stage-invalid compare — it reads False whenever the judge
+            # legitimately disagrees with inherited state, which rewrote every
+            # genuine SEAL attempt to SABAR and made HOLD self-perpetuating
+            # (live evidence2026-09-22: SEAL → integrity False → SABAR →
+            # reconcile HOLD, forever). "effective must track verdict" is the
+            # LAST WRITER's invariant — reconcile_decision_contract owns final
+            # cross-key coherence (Phase-0 Point #4 still vetoes a truly-final
+            # mismatch there). Defer: pass no effective at this stage.
             _pc_report_main = _cjpc_main(
                 mode=mode,
                 candidate=candidate,
                 evidence=evidence,
                 verdict_str=str(getattr(out, "verdict", "") or ""),
-                effective_verdict=str(getattr(out, "effective_verdict", "") or ""),
+                effective_verdict="",
             )
             if _pc_report_main.get("applied") and _pc_report_main.get("verdict"):
                 _pc_v = _pc_report_main["verdict"]
@@ -3661,6 +3695,39 @@ async def arif_judge(
             "Quotes triggered via GPV, formatted with motto + antithesis. "
             "Commentary only — floor gates remain primary enforcement."
         )
+        # R-1 single-writer (F13 FIX R-1, 2026-09-22): out carries the
+        # postcondition-passed judgment; result carries ALL governance gates.
+        # Seed result.verdict from the judgment (fill-if-absent — a gate that
+        # already wrote HOLD wins) BEFORE the freeze and the
+        # VerdictOutput(**result) return, so root == result == zen by
+        # construction instead of falling to the out-only early return or the
+        # None-forces-HOLD fallback that manufactured VERDICT_FIELD_DIVERGENCE.
+        # F2 self-fix (2026-09-22): `out` is undefined on the result-only
+        # path (NameError → VOID fallback, observed live 22:07) — best-effort,
+        # path-safe; result-only paths already carry their own verdict.
+        if isinstance(result, dict):
+            try:
+                from arifosmcp.composer import seed_result_verdict as _seed_rv
+
+                try:
+                    _seed_judgment = str(getattr(out, "verdict", "") or "")
+                    _out_defined = True
+                except NameError:
+                    _seed_judgment = ""
+                    _out_defined = False
+                # R-1 evidence line: which branch ran, what the judgment was,
+                # what result carried before the seed. WARNING deliberately —
+                # INFO is suppressed by the logger config.
+                logger.warning(
+                    "R1 seed: out_defined=%s judgment=%r result_verdict_before=%r",
+                    _out_defined,
+                    _seed_judgment,
+                    result.get("verdict"),
+                )
+                if _seed_judgment:
+                    _seed_rv(result, _seed_judgment)
+            except Exception:
+                pass  # seed is best-effort — never break the verdict path
         # Zen Apex: freeze DecisionCore + optional witness AFTER verdict.
         # Witness is presentation only — never mutates verdict/floors.
         try:
@@ -3903,7 +3970,11 @@ async def arif_judge(
         return _echo_standing(VerdictOutput(**result))
     except Exception:
         # Robust fallback for incomplete semantic outputs or plumbing during E2E (7-tool facade)
-        v = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
+        # R-1 (2026-09-22): None-safe — `result.get("verdict", "HOLD")` returns
+        # None when the key EXISTS as None, which then failed the tuple check
+        # and silently forced HOLD. Absence falls back; a real judgment never
+        # does (seed_result_verdict runs before this point).
+        v = (result.get("verdict") or "HOLD") if isinstance(result, dict) else "HOLD"
         if v not in ("SEAL", "SABAR", "VOID", "HOLD", "PARADOX_HOLD"):
             v = "HOLD"
         r = (

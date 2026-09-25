@@ -68,8 +68,23 @@ SOVEREIGN_RESOURCES = tuple(f"sovereign://{key}" for key in _SOVEREIGN_FILES) + 
 
 
 def _read_file(filename: str) -> dict[str, Any]:
-    """Read a sovereign file and return a structured resource envelope."""
-    filepath = _STATIC_ROOT / filename
+    """Read a sovereign file and return a structured resource envelope.
+
+    Containment (2026-09-22): ``filename`` arrives from ``sovereign://{file}``
+    and may carry ``../`` past the URI segment (fastmcp matches before percent
+    decode). Resolve against ``_STATIC_ROOT`` and refuse any escape — the
+    ``.md`` suffix in the handler is a content-type convention, not a boundary.
+    """
+    from arifosmcp.runtime.path_guard import contained_path
+
+    try:
+        filepath = contained_path(_STATIC_ROOT, filename)
+    except ValueError:
+        return {
+            "status": "REJECTED",
+            "uri": f"sovereign://{filename}",
+            "reason": "filename escapes the sovereign archive (path containment)",
+        }
     if not filepath.exists():
         return {
             "status": "NOT_FOUND",
