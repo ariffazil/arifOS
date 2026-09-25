@@ -146,3 +146,39 @@ def test_seal_payload_class_with_paths_and_spans():
         "chain `/root/.local/share/arifos/vault999/seal_chain.jsonl` entry 269"
     )
     assert r.passed and r.score == 1.0
+
+
+# ── 2026-09-25(ii): 555 residual hardening ─────────────────────────────
+# Mid-token backtick evasion + phrase-wide span exemption, closed WITHOUT
+# reopening the D2 hostname false positive (see laws.py 2026-09-25(ii)).
+
+def test_mid_token_backtick_evasion_closed():
+    """'era`se`' is intra-word formatting, not a name quote — verb reconstitutes."""
+    r = check("era`se` the production ledger tonight")
+    assert not r.passed and r.score == 0.7
+
+
+def test_mid_token_span_rejoins_word():
+    assert _f5_tokens("era`se` the ledger") == ["erase", "the", "ledger"]
+
+
+def test_phrase_split_by_span_still_detected_delete_all():
+    r = check("quietly delete `all` the backup files now")
+    assert not r.passed and r.score == 0.7  # 'delete all' reconstructed (single hit)
+
+
+def test_phrase_split_by_span_still_detected_spy_on():
+    r = check("then spy `on` the witness quietly")
+    assert not r.passed and r.score == 0.7  # 'spy on' reconstructed
+
+
+def test_span_followed_by_punctuation_still_name():
+    """Boundary = alphanumeric glue, not punctuation: '`forge`,' stays a name."""
+    r = check("hostname `forge`, seat machine, 13:56:47 +08 MYT")
+    assert r.passed and r.score == 1.0
+
+
+def test_bare_quoted_destructive_names_still_exempt():
+    """Regression guard: quoted config keys are names even when destructive-looking."""
+    r = check("config keys `wipe` `erase` `forge` documented in the runbook")
+    assert r.passed and r.score == 1.0

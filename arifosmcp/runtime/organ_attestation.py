@@ -211,8 +211,11 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
             # Legacy twin /root/VAULT999/seal_chain.jsonl removed 2026-09-25
             # (twin-chain repair, F13 "baiki dua dua cacat"): the repo chain
             # is a closed CHAIN_REDIRECT tombstone; hashing it anchored organ
-            # identity to a dead file. Stage-0.2 completion (create
-            # vault_manifest.json) remains an open follow-up.
+            # identity to a dead file. Stage-0.2 completed 2026-09-25(ii):
+            # vault_manifest.json + identity_anchor.json declared in the
+            # canonical vault dir by scripts/declare_vault_manifest.py —
+            # stable self-declared identity; seal_chain.jsonl below stays
+            # audit material (mutates on every seal), not identity.
             "/root/.local/share/arifos/vault999/seal_chain.jsonl",
             "/agent/vault999/vault999.jsonl",
         ],
