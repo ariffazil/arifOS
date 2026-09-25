@@ -680,6 +680,15 @@ class F4_Clarity(Law):
 # `forge` (bare word — no digits, no path chars) in the FI-003 witness-report
 # payload scored as the fraud verb → Peace² 0.700. Code-quoted tokens are
 # names by record-format convention — same names-not-verbs law, next class.
+# 2026-09-25(ii) hardening (555 residuals documented in 76c1759fe): (a)
+# mid-token backtick evasion ('era`se`') — a span glued to alphanumeric
+# characters is intra-word formatting noise, not a name quote; delimiters
+# drop, the word rejoins, the verb reconstitutes. (b) phrase-wide span
+# exemption ('delete `all` files', 'spy `on` him') — multi-word keywords
+# split by a span are catchable again via a content-preserving second token
+# stream that feeds BIGRAM matching only; single keywords still match the
+# span-exempt stream, so a bare quoted name (`forge`) remains exempt (D2
+# law intact).
 import re as _f5_re
 
 _F5_HAS_DIGIT = _f5_re.compile(r"[0-9]")
@@ -688,7 +697,29 @@ _F5_HEXISH = _f5_re.compile(r"^[0-9a-f]{7,}$")
 _F5_CODE_SPAN = _f5_re.compile(r"`[^`\n]*`")
 
 
-def _f5_tokens(text: str) -> list[str]:
+def _f5_strip_spans(text: str) -> str:
+    """Remove markdown code spans, boundary-aware.
+
+    A span delimited at token boundaries (whitespace/punctuation/edges) is a
+    clean literal-name quote → replaced by a space (name exempt). A span
+    glued to an alphanumeric character on either side ('era`se`', '`forge`x')
+    is intra-word formatting noise → only the delimiters drop and the content
+    rejoins its word ('erase') so any destructive verb reconstitutes.
+    Fail-safe direction: malformed spans LOSE the exemption, never gain it.
+    """
+
+    def _repl(m: "_f5_re.Match[str]") -> str:
+        s, e = m.start(), m.end()
+        before = text[s - 1] if s > 0 else ""
+        after = text[e] if e < len(text) else ""
+        if (before and before.isalnum()) or (after and after.isalnum()):
+            return m.group(0)[1:-1]  # keep content, drop delimiters
+        return " "
+
+    return _F5_CODE_SPAN.sub(_repl, text)
+
+
+def _f5_tokens(text: str, *, keep_span_content: bool = False) -> list[str]:
     """Prose tokens only: identifiers/paths/lane-names/hashes/code-spans excluded.
 
     A token is an identifier (name, not verb) when it carries a digit,
@@ -697,10 +728,16 @@ def _f5_tokens(text: str) -> list[str]:
     hyphen compounds carry no digits, so they re-split ('wipe-out' → 'wipe
     out'). Unpaired backticks do not form a span — such bare tokens stay
     scanned (fail-safe direction preserved).
+
+    keep_span_content=True yields the phrase-reconstruction stream: span
+    delimiters drop but the content stays as ordinary tokens. Used ONLY for
+    bigram (multi-word keyword) matching so 'delete `all`' is still caught;
+    single keywords never match this stream, keeping bare quoted names
+    (`forge`) exempt.
     """
     if not text or not isinstance(text, str):
         return []
-    text = _F5_CODE_SPAN.sub(" ", text)
+    text = text.replace("`", " ") if keep_span_content else _f5_strip_spans(text)
     out: list[str] = []
     for tok in text.lower().split():
         tok = tok.strip(".,;:!?'\"()[]{}<>|*`")
@@ -762,6 +799,12 @@ class F5_Peace2(Law):
         tokens = _f5_tokens(context.get("query", ""))
         token_set = set(tokens)
         bigrams = {f"{a} {b}" for a, b in zip(tokens, tokens[1:])}
+        # Phrase reconstruction (2026-09-25(ii)): multi-word keywords split by
+        # a code span ('delete `all` files', 'spy `on` him') must stay
+        # catchable — union in bigrams from the content-preserving stream.
+        # Single keywords match `token_set` only, so quoted names stay exempt.
+        ctokens = _f5_tokens(context.get("query", ""), keep_span_content=True)
+        bigrams |= {f"{a} {b}" for a, b in zip(ctokens, ctokens[1:])}
 
         peace_penalty = 0.0
         for kw in destructive_keywords:
