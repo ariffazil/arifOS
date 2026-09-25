@@ -541,16 +541,23 @@ def _map_verdict(verdict: Verdict | str | None) -> str:
     """Map internal verdict to clean verdict."""
     if verdict is None:
         return "VOID"
+    # Canonical verdict enum = SealType (models/verdicts.py): VOID, HOLD_888,
+    # HOLD, SABAR, PARTIAL, PROVISIONAL, SEAL. (The legacy runtime enum with
+    # an ALIVE member was retired in the 2026-07-11 verdict unification.)
     verdict_map = {
         Verdict.SEAL: "SEAL",
         Verdict.PROVISIONAL: "PARTIAL",
+        Verdict.HOLD_888: "HOLD",
         Verdict.HOLD: "HOLD",
-        Verdict.VOID: "VOID",
-        Verdict.ALIVE: "APPROVED",
         Verdict.SABAR: "PAUSE",
+        Verdict.VOID: "VOID",
         "SEAL": "SEAL",
+        "PROVISIONAL": "PARTIAL",
         "PARTIAL": "PARTIAL",
+        "HOLD_888": "HOLD",
         "HOLD": "HOLD",
+        "SABAR": "PAUSE",
+        "PAUSE": "PAUSE",
         "VOID": "VOID",
     }
     if isinstance(verdict, Verdict):

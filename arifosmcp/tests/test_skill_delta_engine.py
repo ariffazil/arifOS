@@ -31,7 +31,7 @@ import pytest  # noqa: F401 — used implicitly via monkeypatch fixture typing
 
 from arifosmcp.runtime.skill_delta_engine import (
     ENGINE_VERSION,
-    RiskClass,
+    ActionRiskTier,
     _self_check,
     attach_to_event_bus,
     propose_skill_delta,
@@ -119,7 +119,7 @@ def test_diff_detects_weakened_gate():
 
     delta = proposal.proposed_changes[0]
     assert proposal.judge_required is True
-    assert proposal.risk_class in (RiskClass.HIGH, RiskClass.CRITICAL)
+    assert proposal.risk_class in (ActionRiskTier.HIGH, ActionRiskTier.CRITICAL)
     assert "human_ack_required" in delta.weakening_detected
     assert "external_anchor" in delta.weakening_detected
 
@@ -142,7 +142,7 @@ def test_extinct_skill_blocked():
 
     assert "dead_skill" in proposal.extinct_blockers
     assert proposal.resume_allowed is False
-    assert proposal.risk_class == RiskClass.CRITICAL
+    assert proposal.risk_class == ActionRiskTier.CRITICAL
 
 
 def test_cooling_blocks_runaway():

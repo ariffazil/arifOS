@@ -35,6 +35,19 @@ from arifosmcp.tools.verify_chain import verify_chain
 ARTIFACT_PATH = "/root/arifOS/arifosmcp/constitution/quranic_runtime_map.json"
 
 
+@pytest.fixture(autouse=True)
+def _test_signing_secret(monkeypatch):
+    """Provide a test-only ARIFOS_INTERNAL_SECRET.
+
+    tools/deliberate.py signs with a STUB signer (not production crypto_auth
+    Ed25519 — see external report 2026-09-15) and fails closed when the env
+    var is unset. Tests exercise the hash-chain logic, not the signer, so a
+    clearly-marked dummy secret is injected here. Production receipts must
+    still come from the real signer with the real secret.
+    """
+    monkeypatch.setenv("ARIFOS_INTERNAL_SECRET", "test-only-stub-secret-not-production")
+
+
 class TestDeliberationMint:
     def test_mint_returns_canonical_record(self):
         rec = mint_deliberation_receipt(
