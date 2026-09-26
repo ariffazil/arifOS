@@ -5,6 +5,7 @@
 # SEAL    : seal-20260523T055200-DITEMPA-BUKAN-DIBERI
 # EPOCH   : 2026-05-23T05:52:00+08:00
 # STAGE   : Stage B — Daemon Prototype (A-FORGE)
+# SOT STATUS: REFERENCE-ONLY (Historical Stage B prototype; live runtime is arifosmcp FastMCP :8088 with 8 canonical verbs)
 # Trinity : OPENCLAW Δ · Hermes Ω · APEX PRIME Ψ
 #
 # arifOS = constitutional framework + kernel architecture
