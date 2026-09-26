@@ -144,7 +144,15 @@ def _get_redis():
     global _redis_client, _REDIS_AVAILABLE
     if _redis_client is not None:
         return _redis_client
-    redis_url = os.getenv("ARIFOS_REDIS_URL", "redis://127.0.0.1:6379/0")
+    redis_url = os.getenv("ARIFOS_REDIS_URL")
+    if not redis_url:
+        redis_pw = os.getenv("REDIS_PASSWORD")
+        if redis_pw:
+            import urllib.parse
+            encoded_pw = urllib.parse.quote(redis_pw, safe="")
+            redis_url = f"redis://:{encoded_pw}@127.0.0.1:6379/0"
+        else:
+            redis_url = "redis://127.0.0.1:6379/0"
     try:
         import redis as _redis_mod
 
