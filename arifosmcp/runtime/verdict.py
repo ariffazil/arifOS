@@ -99,6 +99,8 @@ _LEGACY_VERDICT_MAP: dict[str, str] = {
     "BLOCKED": VOID,
     "PARTIAL": SABAR,
     "UNKNOWN": HOLD,
+    "SYUBHAH": HOLD,
+    "PASS": SEAL,
 }
 
 
@@ -604,7 +606,11 @@ def _derive_safe_action(final: str, *, seal_allowed: bool) -> str:
 # HOLD/degraded_dominates, making all seals structurally impossible. The
 # axis is advisory stewardship wearing a verdict-named key; exclude the
 # path exactly like session_birth.verdict above.
-_NON_VERDICT_AXIS_PATHS_SUF = ("session_birth.verdict", "irfan_review.verdict")
+_NON_VERDICT_AXIS_PATHS_SUF = (
+    "session_birth.verdict",
+    "irfan_review.verdict",
+    "governance_check.verdict",
+)
 
 
 def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
