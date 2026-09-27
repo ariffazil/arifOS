@@ -71,7 +71,7 @@ def run_all() -> bool:
             "en": "WISE",
             "G": 0.85,
             "C_dark": 0.05,
-            "formula": "G = A·P·E·X·Φ",
+            "formula": "G = (A·P·E·X)^(1/4)",
             "computed": True,
         },
         "overall": {"state": "SELAMAT", "en": "SAFE"},

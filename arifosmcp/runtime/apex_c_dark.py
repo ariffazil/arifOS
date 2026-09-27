@@ -212,7 +212,7 @@ class ShadowGovernance:
     demon acknowledged, measured, and constitutionally constrained.
     """
 
-    angel_score: float  # G = A·P·E·X·Φ — constructive intelligence
+    angel_score: float  # G = (A·P·E·X)^(1/4) — constructive intelligence (V3; Φ separate scar gate)
     demon_score: float  # C_dark = A·(1-P)·(1-X) — shadow potential
     shadow_state: str  # GOVERNED | HIDDEN | UNCHECKED
     true_devil_risk: bool  # True if HIDDEN demon + claims completeness

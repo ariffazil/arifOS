@@ -3,8 +3,8 @@ type: ENERGY_ENTROPY
 primitives: [AKAL, AMANAH, ENERGY_ENTROPY]
 symbol: G
 title: Capability Score
-formula: G = A · P · E · X · Φ
-description: Nash bargaining product of capability. G measures useful work before entropy. AKAL (reasoning) × AMANAH (trust) × ENERGY_ENTROPY (thermodynamic cost).
+formula: G = (A · P · E · X)^(1/4)
+description: V3 canonical geometric mean of capability (F13 seal 2026-07-28; APEX MATH CANON). A=AKAL/AUTHORITY · P=PRESENT/PHYSICS · E=ENERGY/EVIDENCE · X=EXECUTION/XPLORE. Φ is a separate scar gate, not a dial. G measures useful work before entropy.
 domains: [MATH, CODE, AAA]
 threshold: "≥ 0.80"
 tags: [apex, capability, governance, work]
