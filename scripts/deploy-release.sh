@@ -360,7 +360,7 @@ systemctl restart "$SERVICE_NAME" 2>&1 || {
 
 echo "  Waiting for service to become healthy..."
 for i in $(seq 1 30); do
-	STATUS=$(curl -s -m 2 "http://localhost:8088/health?nocache=1" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
+	STATUS=$(curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
 	if [ "$STATUS" = "healthy" ]; then
 		echo "  ✅ Kernel healthy after ${i}s"
 		break
