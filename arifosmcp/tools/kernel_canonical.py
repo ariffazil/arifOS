@@ -522,6 +522,7 @@ def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | 
 @trace_tool("arif_route")
 def arif_route(
     intent: str | None = None,
+    mode: str | None = "route",
     organ: str | None = None,
     task: str | None = None,
     actor_id: str | None = None,
@@ -532,12 +533,13 @@ def arif_route(
     mission_id: str | None = None,
     _envelope: Any = None,
     contract_c_kwargs: dict | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     Canonical routing entry point. Routes an intent to the correct organ.
 
-    RULE 14: Mode-first. This is ONE tool for all routing decisions.
-    The mode parameter does not exist here — routing is the only operation.
+    CONTRACT REALITY: Accepts mode='route' (default) or mode='bridge' per published
+    schema and tool charter, absorbing any forward-compat kwargs gracefully.
 
     Args:
         intent:        Natural-language description of what the user wants.

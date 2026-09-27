@@ -110,9 +110,9 @@ Absorbed Tools (modes on parent, not separate verbs):
   arif_critique       → arif_think(mode=critique)
   arif_compose        → arif_forge(mode=compose) [internal]
   arif_canary         → arif_init(mode=canary)
-  arif_triage         → arif_init(mode=triage) or arif_route(mode=triage)
+  arif_triage         → arif_init(mode=triage) or arif_route(intent=...) [W-05 FIX: no mode=]
   arif_fetch          → arif_observe(mode=fetch)
-  arif_bridge_connect → arif_route(mode=bridge)
+  arif_bridge_connect → arif_route(intent=..., organ_tool=...) [W-05 FIX: no mode=]
   arif_act            → arif_forge (internal alias)
 
 DITEMPA BUKAN DIBERI

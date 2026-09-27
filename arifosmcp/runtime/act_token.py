@@ -58,7 +58,7 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
     # init, observe, think, route, judge, forge, seal, memory
     # arif_critique → arif_think(mode=critique|redteam)
     # arif_compose → DELETED (agent composes own replies)
-    # arif_bridge_connect → arif_route(mode=bridge)
+    # arif_bridge_connect → arif_route(intent=..., organ_tool=...) [W-05 FIX: no mode param]
     "OBSERVE_ONLY": [
         "arif_init",
         "arif_observe",
