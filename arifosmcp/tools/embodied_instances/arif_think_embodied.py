@@ -141,6 +141,8 @@ class ArifMindReasonEmbodied(EmbodiedTool):
             result = {
                 "status": "OK",
                 "tool": "arif_mind_reason",
+                "session_id": session_id,
+                "actor_id": actor_id,
                 "verdict": synthesis.get("verdict", "CLAIM"),
                 "result": {
                     "query": query,
@@ -163,6 +165,13 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                     "confidence_provenance": "OBSERVED" if active_evidence else "INFERRED",
                 },
             }
+            if hasattr(result, "model_dump"):
+                return result.model_dump()
+            if hasattr(result, "dict"):
+                return result.dict()
+            if isinstance(result, dict):
+                return result
+            return {}
         else:
             from arifosmcp.runtime.tools import _arif_mind_reason
 

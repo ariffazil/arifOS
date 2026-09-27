@@ -968,6 +968,12 @@ def arif_think(
         except Exception:
             pass
 
+    _is_actor_verified = bool(
+        _standing_auth.get("actor_verified")
+        or _standing_auth.get("signature_verified")
+        or _standing_auth.get("crypto_verified")
+    )
+
     def _echo_standing(env: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(env, dict):
             return env
@@ -982,6 +988,11 @@ def arif_think(
                 env.setdefault("standing_source", _standing_source)
         if session_id:
             env.setdefault("session_id", session_id)
+            res = env.get("result")
+            if isinstance(res, dict):
+                res.setdefault("session_id", session_id)
+                if actor_id:
+                    res.setdefault("actor_id", actor_id)
         if _standing_auth:
             _auth = _standing_auth.get("authority")
             # Prefer band string when structured block present
@@ -1152,9 +1163,9 @@ def arif_think(
         }
         bundle = {
             "actor_authority": {
-                "verified": bool(actor_id and session_id),
+                "verified": _is_actor_verified,
                 "scope": "observe_only",
-                "note": "G-fold is advisory evidence. Only arif_judge may SEAL.",
+                "note": "G-fold is advisory evidence. Only arif_judge may SEAL." if not _is_actor_verified else "Actor identity verified. G-fold is advisory evidence.",
             },
             "reasoning_output": {
                 "claim_state": "DERIVED",
@@ -1220,7 +1231,7 @@ def arif_think(
         # Wrap report as Synthesis-compatible output
         bundle = {
             "actor_authority": {
-                "verified": bool(actor_id and context and context.get("session_id")),
+                "verified": _is_actor_verified,
                 "scope": "observe_only",
                 "note": "Convergence loop collapsed. Final answer is best current estimate, not sealed truth.",
             },
@@ -1361,9 +1372,9 @@ def arif_think(
         # truth_verdict.sealed is always false — only arif_judge/arif_seal can set it.
         bundle = {
             "actor_authority": {
-                "verified": bool(actor_id and session_id),
+                "verified": _is_actor_verified,
                 "scope": "observe_only",
-                "note": "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
+                "note": "Actor identity verified." if _is_actor_verified else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
             },
             "reasoning_output": {
                 "claim_state": str(packet.get("claim_state", "UNKNOWN")).upper(),
@@ -1404,7 +1415,7 @@ def arif_think(
             },
             "mind_routing": _routing["_mind_routing"],
         }
-        return Synthesis(**_echo_standing(_ok("arif_think", bundle)))
+        return Synthesis(**_echo_standing(_ok("arif_think", bundle, session_id=session_id)))
 
     # Floor check (Manual override check)
     floor_check = check_laws("arif_think", {"query": query or ""}, actor_id)
@@ -1446,9 +1457,9 @@ def arif_think(
     # truth_verdict.sealed = False — only arif_judge can set it.
     bundle = {
         "actor_authority": {
-            "verified": bool(actor_id and session_id),
+            "verified": _is_actor_verified,
             "scope": "observe_only",
-            "note": "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
+            "note": "Actor identity verified." if _is_actor_verified else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
         },
         "reasoning_output": {
             "claim_state": str(reason_result.get("claim_state", "UNKNOWN")).upper(),
@@ -1515,7 +1526,7 @@ def arif_think(
         hold_env["result"] = bundle
         return Synthesis(**_echo_standing(hold_env))
 
-    return Synthesis(**_echo_standing(_ok("arif_think", bundle)))
+    return Synthesis(**_echo_standing(_ok("arif_think", bundle, session_id=session_id)))
 
 
 # Backward compatibility aliases for regression tests & legacy callers
