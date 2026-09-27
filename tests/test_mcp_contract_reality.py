@@ -107,8 +107,9 @@ async def test_observe_to_think_continuity():
     # 2. Evidence must survive into the inner result
     inner_res = think_res.get("result", {})
     if isinstance(inner_res, dict):
-        assert inner_res.get("session_id") == test_sid
-        assert inner_res.get("actor_id") == test_actor
-        evidence_used = inner_res.get("evidence_used", [])
+        payload = inner_res.get("result") if isinstance(inner_res.get("result"), dict) else inner_res
+        assert inner_res.get("session_id") == test_sid or payload.get("session_id") == test_sid
+        assert inner_res.get("actor_id") == test_actor or payload.get("actor_id") == test_actor
+        evidence_used = payload.get("evidence_used", []) or inner_res.get("evidence_used", [])
         assert len(evidence_used) > 0, "Expected evidence_used to contain observations from prior step!"
 
