@@ -131,9 +131,19 @@ def test_unknown_band_does_not_silently_widen_to_mutable():
 
 
 @pytest.mark.skip(reason="T4-T8 (verdict-store validation, payload binding, single-use, "
-                         "self_deploy rejection) land with the authority-site map; the "
-                         "band gate preempts every external probe today — measured "
-                         "2026-09-27: all four fabricated-reference seals refused with "
-                         "\"not allowed for authority level 'OBSERVE_ONLY'\"")
+                         "self_deploy rejection) are NOT implemented: "
+                         "_resolve_judge_contract checks existence + hash/chain agreement "
+                         "only — no issuer-authority check, no payload digest, no "
+                         "consumption, no self_deploy refusal. Corrected 2026-09-27: the "
+                         "prior reason here (\"the band gate preempts every external "
+                         "probe\") was UNSOUND. The measured OBSERVE_ONLY refusals came "
+                         "from the ACT-token VERB gate (runtime/tools.py, reason_code "
+                         "UNAUTHORIZED_VERB — OBSERVE_ONLY has no arif_seal since "
+                         "2026-08-25), which says nothing about verdict validation. It is "
+                         "separately established that the drift floor and "
+                         "AuthorityMiddleware rewrite/adjudge the RESPONSE after "
+                         "call_next(), so live drift=true does NOT prove a seal cannot "
+                         "execute — it proves the response is not authoritative. "
+                         "External seal probes are inadmissible until that is settled.")
 def test_fabricated_verdict_reference_is_refused_for_the_right_reason():
     raise NotImplementedError
