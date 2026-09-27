@@ -414,6 +414,8 @@ def _run_minimal_stdio_server() -> None:
                 except OSError:
                     pass
             # No explicit shutdown signal — stay alive (late client may still connect).
+            # A closed pipe stays readable, so the select above returns at once.
+            select.select([], [], [], 1.0)
             continue
 
         raw = line.decode("utf-8", errors="replace").strip()
