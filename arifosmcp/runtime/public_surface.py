@@ -116,7 +116,7 @@ ZEN_ABSORBED: frozenset[str] = frozenset(
         "arif_act",  # → arif_forge (internal alias)
         "arif_fetch",  # → arif_observe(mode=fetch)
         "arif_critique",  # → arif_think(mode=critique)
-        "arif_bridge_connect",  # → arif_route(mode=bridge)
+        "arif_bridge_connect",  # → arif_route(intent=..., organ_tool=...) [W-05: no mode param]
     }
 )
 

@@ -98,8 +98,11 @@ async def embodied_mind_reason_handler(
 
     out = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
     # Echo continuity for ChatGPT / multi-call clients
-    if session_token and isinstance(out, dict):
-        out.setdefault("session_token", session_token)
+    if isinstance(out, dict):
+        if session_token:
+            out["session_token"] = session_token
         if session_id:
-            out.setdefault("session_id", session_id)
+            out["session_id"] = session_id
+        if actor_id and (not out.get("actor_id") or out.get("actor_id") == "anonymous"):
+            out["actor_id"] = actor_id
     return out

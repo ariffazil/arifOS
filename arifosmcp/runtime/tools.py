@@ -1318,9 +1318,9 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "canonical_public_name": "arif_observe",
     },
     "arif_bridge_connect": {
-        "purpose": "Connect to a federation organ. Canonical alias of arif_route(mode=bridge). Pure discovery — no mutation.",
-        "use_when": ["Prefer canonical mode arif_route(mode=bridge)"],
-        "do_not_use_when": ["Use canonical name arif_route(mode=bridge) for new code"],
+        "purpose": "Connect to a federation organ. Canonical alias of arif_route(intent=..., organ_tool=...) per W-05 FIX. Pure discovery — no mutation.",
+        "use_when": ["Prefer canonical call arif_route(intent=..., organ_tool=...)"],
+        "do_not_use_when": ["Use canonical name arif_route(intent=..., organ_tool=...) for new code (no mode= parameter; W-05 FIX)"],
         "authority_level": "advisory_only",
         "side_effect": "read_only",
         "blast_radius": "low",
@@ -7060,7 +7060,11 @@ def _context_restore_summary(
 # F7 Humility: confidence capped at 0.85.
 
 
-async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
+async def _synthesize_async(
+    query: str,
+    reasoning_mode: str,
+    evidence: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """
     Async constitutional synthesis via FED-FEDERATION → Ollama → template fallback.
 
@@ -7068,6 +7072,13 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
       bounded_answer, what_is_supported, what_is_not_supported,
       what_remains_unknown, confidence_reasoning, confidence_evidence,
       overall_confidence (capped at 0.85 per F7 Humility).
+
+    P0 FIX 2026-09-27 (composition continuity): accepts optional `evidence`
+    list (typically _SESSIONS[session_id]["observations"]) and threads it into
+    the LLM prompt as EVIDENCE BLOCK. The synthesis must GROUND claims in this
+    evidence; claims without supporting evidence are routed to
+    `what_is_not_supported` with an [UNGROUNDED] label, never fabricated into
+    `what_is_supported`. Empty/None evidence is passed through (no fabrication).
 
     Falls back to template _synthesize() on any LLM error — never raises.
     """
@@ -7087,6 +7098,12 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         "Perform bounded constitutional reasoning on the query.\n"
         "Ground every conclusion in L02 (Truth), L07 (Humility), L08 (Genius).\n"
         "Keep confidence ≤ 0.85 per L07 Humility calibration band.\n\n"
+        "EVIDENCE GROUNDING (F2 TRUTH, P0 2026-09-27): If an EVIDENCE BLOCK is\n"
+        "present in the user prompt, every claim in `what_is_supported` MUST be\n"
+        "traceable to an entry in that block. Claims without supporting evidence\n"
+        "MOVE to `what_is_not_supported` with an [UNGROUNDED] label. NEVER\n"
+        "fabricate evidence references. If the EVIDENCE BLOCK is empty or absent,\n"
+        "treat ALL claims as [UNGROUNDED] and lower overall_confidence accordingly.\n\n"
         "Return ONLY JSON with this exact structure:\n"
         "{\n"
         '  "bounded_answer": "one-sentence constitutional understanding",\n'
@@ -7098,7 +7115,20 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         '  "overall_confidence": 0.0-1.0 (must be ≤ 0.85)\n'
         "}"
     )
-    user_prompt = f"QUERY: {query}\nMODE: {reasoning_mode}"
+    # P0 FIX 2026-09-27: thread evidence into user prompt as EVIDENCE BLOCK.
+    if evidence:
+        # Cap evidence size to bound token cost; keep most recent first.
+        evidence_block_lines = ["EVIDENCE BLOCK (most recent first, capped at 10):"]
+        for i, ev in enumerate(evidence[:10]):
+            if not isinstance(ev, dict):
+                continue
+            label = ev.get("label") or ev.get("kind") or ev.get("type") or f"obs[{i}]"
+            content = ev.get("content") or ev.get("result") or ev.get("summary") or str(ev)[:200]
+            evidence_block_lines.append(f"- [{i}] {label}: {str(content)[:300]}")
+        evidence_block = "\n".join(evidence_block_lines)
+    else:
+        evidence_block = "EVIDENCE BLOCK: (empty — no observations recorded for this session yet)"
+    user_prompt = f"QUERY: {query}\nMODE: {reasoning_mode}\n\n{evidence_block}"
 
     schema = {
         "type": "object",
@@ -15420,8 +15450,18 @@ async def _arif_mind_reason_tool(
         try:
             # P0 2026-08-09 G3 / 2026-09-07: outer budget must match ARIF_THINK_TIMEOUT_S (default 35s)
             _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+            # P0 FIX 2026-09-27 (composition continuity): thread session observations
+            # into the synthesis prompt so THINK output can ground claims in
+            # OBSERVE evidence rather than fabricating references.
+            _active_evidence = None
+            try:
+                _sid_local = locals().get("session_id") or globals().get("_CURRENT_SESSION_ID")
+                if _sid_local and _sid_local in _SESSIONS:
+                    _active_evidence = _SESSIONS[_sid_local].get("observations") or None
+            except Exception:
+                _active_evidence = None  # never let evidence lookup break the think path
             synthesis = await asyncio.wait_for(
-                _synthesize_async(query or "", reasoning_mode=mode),
+                _synthesize_async(query or "", reasoning_mode=mode, evidence=_active_evidence),
                 timeout=_think_budget_s,
             )
             # Build result from real LLM synthesis
@@ -16219,7 +16259,15 @@ def _arif_kernel_route(
     if mode == "metabolize":
         # P0 FIX 2026-07-19: mind_reason module does not exist.
         # Route through the LLM client directly via _synthesize_async.
-        synthesis = _run_async(_synthesize_async(task or "", reasoning_mode="metabolize"))
+        # P0 FIX 2026-09-27 (composition continuity): thread session observations.
+        _active_evidence = None
+        try:
+            _sid_local = locals().get("session_id") or globals().get("_CURRENT_SESSION_ID")
+            if _sid_local and _sid_local in _SESSIONS:
+                _active_evidence = _SESSIONS[_sid_local].get("observations") or None
+        except Exception:
+            _active_evidence = None
+        synthesis = _run_async(_synthesize_async(task or "", reasoning_mode="metabolize", evidence=_active_evidence))
         return _ok(
             "arif_kernel_route",
             synthesis,
@@ -27200,8 +27248,13 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             return resp
 
     # ── F12 INJECTION MEMBRANE (K1b HARDENING — 2026-08-08) ──────────────
-    # Scans ALL free-text kwargs across ALL tool calls for prompt-injection
-    # patterns before they reach any handler. One gate, applied universally.
+    # Scans free-text kwargs on MUTATION tools for prompt-injection patterns
+    # before they reach any handler. PASSIVE READS (arif_observe,
+    # arif_memory in recall/audit mode, document search) are exempt because
+    # historical-audit vocabulary ("seal", "verdict", "override") is common
+    # prose in audit queries and is NOT an injection vector for read paths.
+    # Mutation tools that can change persistent state MUST remain gated.
+    # P0 FIX 2026-09-27 (composition continuity): gate tightened to mutation only.
     _MEMBRANE_PATTERNS: tuple[str, ...] = (
         r"(?i)(?:ignore|return|seal|grant|emit|print).{0,80}(?:instruction|prompt|override|seal-|verdict)",
         r"(?i)ignore\s*(?:all\s*)?(?:prior|previous|earlier)\s*(?:instructions?|rules?|directives?)",
@@ -27211,9 +27264,35 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     )
     _MEMBRANE_MAX_LEN: int = 2048  # per-field cap, generous but bounded
 
+    # Canonical mutation tool set. Single source of truth — used by both the
+    # F12 membrane gate and the runtime telemetry counter at line ~18384.
+    # Adding a new mutation tool? Update this set, NOT ad-hoc string compares.
+    _MUTATION_TOOLS: frozenset[str] = frozenset({
+        "arif_forge_execute",  # A-FORGE act
+        "arif_vault_seal",     # legacy alias
+        "arif_seal",           # 999 canonical
+        "arif_act",            # 900 canonical execution
+        "arif_commit",         # commit mutation
+        "arif_run",            # shell exec
+        "arif_exec",           # shell exec
+        "arif_sudo",           # shell exec
+        "arif_systemctl",      # systemd mutation
+        "arif_bridge_connect", # direct organ tool call
+    })
+
     def _membrane_scan(kw: dict[str, Any], tool: str) -> str | None:
-        """Scan kwarg values for F12 injection patterns. Returns field name if hit."""
+        """Scan kwarg values for F12 injection patterns. Returns field name if hit.
+        PASSIVE READ TOOLS: bypassed (return None). Only MUTATION_TOOLS are scanned.
+        """
         import re as _mre
+
+        # P0 FIX 2026-09-27 (composition continuity): the F12 lexical gate is
+        # ONLY meaningful for tools that can mutate persistent state. Passive
+        # reads (audit, recall, observe, search) legitimately contain words like
+        # "seal", "verdict", "override" in legitimate prose — gating them
+        # false-positives every audit query. Bypass for non-mutation tools.
+        if tool not in _MUTATION_TOOLS:
+            return None
 
         for _k, _v in kw.items():
             if not isinstance(_v, str):
