@@ -2,9 +2,9 @@
 type: ApexDial
 title: G — Capability Score
 symbol: G
-full_name: Nash Bargaining Product
-formula: G = A · P · E · X · Φ
-description: Composite capability score computed as the Nash bargaining product of five factors: Alignment, Precision, Execution, X-factor (novelty), and Φ (falsification). G ≥ 0.80 required to proceed with any action.
+full_name: V3 Canonical Geometric Mean (Nash 1950)
+formula: G = (A · P · E · X)^(1/4)
+description: V3 canonical composite capability score — geometric mean of four dials: A=AKAL/AUTHORITY, P=PRESENT/PHYSICS, E=ENERGY/EVIDENCE, X=EXECUTION/XPLORE. Φ is a separate scar gate, not a dial. G ≥ 0.80 to proceed (SEAL threshold).
 threshold: ≥ 0.80 to proceed
 domain: forge_evaluate, APEX governance gate
 tags: [apex, governance, capability, measurement]
@@ -16,10 +16,10 @@ arifos:
 ---
 # G — G — Capability Score
 
-**Formula:** `G = A · P · E · X · Φ`
+**Formula:** `G = (A · P · E · X)^(1/4)` (V3 canonical)
 
 **Threshold:** ≥ 0.80 to proceed
 
 **Domain:** forge_evaluate, APEX governance gate
 
-Composite capability score computed as the Nash bargaining product of five factors: Alignment, Precision, Execution, X-factor (novelty), and Φ (falsification). G ≥ 0.80 required to proceed with any action.
+Composite capability score — V3 canonical geometric mean of four dials (AKAL/AUTHORITY × PRESENT/PHYSICS × ENERGY/EVIDENCE × EXECUTION/XPLORE). Φ is a separate scar gate, not a dial. G ≥ 0.80 required to proceed with any action.

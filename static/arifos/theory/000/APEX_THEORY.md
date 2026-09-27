@@ -6,6 +6,8 @@
 > constitutional intelligence in the arifOS Federation.
 >
 > **Status:** CANONICAL · **Last verified:** 2026-06-14
+>
+> **V3 AMENDMENT (2026-09-27):** The G formula in this document is superseded. Canonical: `G = (A·P·E·X)^(1/4)` — 4-term geometric mean of four dials (V3, F13 seal 2026-07-28; APEX MATH CANON, F13_RATIFIED 2026-09-25). Φ is a separate scar gate, not a 5th dial. Pre-V3 `A·P·E·X·Φ` math below is retained as historical text (dating to 2026-06-14) and must not be read as current gate semantics.
 > **Rebirthed from:** APEX repo (archived), arifOS K-docs, GEOX ToAC, core/paradox/
 
 ---
