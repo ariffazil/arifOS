@@ -127,17 +127,29 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         if mode in COGNITIVE_MODES:
             from arifosmcp.runtime.tools import _synthesize_async
 
-            synthesis = await _synthesize_async(query or "", reasoning_mode=mode)
+            # Thread session observations and evidence into cognitive synthesis
+            active_evidence = params.get("evidence")
+            if not active_evidence and session_id:
+                try:
+                    from arifosmcp.runtime.tools import _SESSIONS
+                    if session_id in _SESSIONS:
+                        active_evidence = _SESSIONS[session_id].get("observations") or None
+                except Exception:
+                    active_evidence = None
+
+            synthesis = await _synthesize_async(query or "", reasoning_mode=mode, evidence=active_evidence)
             result = {
                 "status": "OK",
                 "tool": "arif_mind_reason",
-                "verdict": "CLAIM",
+                "verdict": synthesis.get("verdict", "CLAIM"),
                 "result": {
                     "query": query,
                     # RED-013: carry the bound identity into the inner result so the
                     # envelope wrapper cannot fall back to actor="anonymous".
                     "actor_id": actor_id,
                     "session_id": session_id,
+                    "evidence_used": active_evidence or [],
+                    "evidence_count": len(active_evidence) if active_evidence else 0,
                     "synthesis": synthesis.get("bounded_answer", ""),
                     # STAB-2026-08-07b: default of 0.65 was a fabricated number.
                     # When synthesis omits overall_confidence, return None (UNMEASURED)
@@ -148,7 +160,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
                     "confidence_reasoning": synthesis.get("confidence_reasoning"),
                     "confidence_evidence": synthesis.get("confidence_evidence"),
-                    "confidence_provenance": "OBSERVED",
+                    "confidence_provenance": "OBSERVED" if active_evidence else "INFERRED",
                 },
             }
         else:
