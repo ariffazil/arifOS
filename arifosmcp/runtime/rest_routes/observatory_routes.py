@@ -1282,8 +1282,10 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     }
     # arifFLOW — receipt gravity well + flow control plane (Z4 Forensic Trail Epoch)
     flow_dp = _deep_probe_organ("127.0.0.1", 7073, "arifFLOW :7073")
+    flow_fq = _probe_arifflow_fq()
     out["arifflow"] = {
         "transport": _probe_transport("127.0.0.1", 7073),
+        "fq_verdict": flow_fq,
         "identity": flow_dp["identity"]
         or _pf(
             None,
@@ -1353,6 +1355,50 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         "label": "arifFLOW :7073",
     }
     return out
+
+
+def _probe_arifflow_fq() -> Any:
+    """Measure arifFLOW's live Flow Quotient verdict from :7073/health.
+
+    Audit 2026-09-28: the FLOW PLANE rendered fq=receipts=chain 'unavailable'
+    while arifFLOW was live and tracking FQ (qg vector, 25 actors). The data
+    existed; nobody probed it. FQ is observational (FLOW_OBSERVES_NEVER_INTERPRETS)
+    — we surface verdict + diagnosis only, never a judgment.
+    """
+    import json as _json
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:7073/health", timeout=3.0) as resp:
+            data = _json.loads(resp.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return _pf(
+            None,
+            source="arifFLOW :7073/health→fq",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        )
+    fq = data.get("fq") if isinstance(data.get("fq"), dict) else {}
+    verdict = fq.get("legacy_verdict") or data.get("verdict")
+    diagnosis = fq.get("legacy_diagnosis") or data.get("diagnosis")
+    frame = fq.get("metric_frame") if isinstance(fq.get("metric_frame"), dict) else {}
+    value = {
+        "verdict": verdict,
+        "diagnosis": diagnosis,
+        "actors_tracked": frame.get("actors_tracked"),
+        "sample_size": frame.get("sample_size"),
+        "execute_count": fq.get("execute_count"),
+    }
+    return _pf(
+        value,
+        source="GET 127.0.0.1:7073/health→fq",
+        state="observed",
+        confidence=0.9,
+        observation_method="http_probe",
+        independent=True,
+    )
 
 
 def _deep_probe_organ(host: str, port: int, label: str) -> dict[str, Any]:
@@ -2573,8 +2619,20 @@ def build_snapshot(
     except Exception as exc:
         logger.warning("build_server_json failed: %s", exc)
 
+    # Wire truth for `exposed`: probe the running service directly. The cron
+    # emitter has no ARIFOS_PUBLIC_SURFACE_MODE and would otherwise score a
+    # config profile that does not match the live surface (audit 2026-09-28).
+    live_exposed: set[str] | None = None
+    try:
+        from arifosmcp.runtime.capability_drift import probe_live_wire_tools
+
+        live_exposed = probe_live_wire_tools()
+    except Exception as exc:
+        logger.debug("live wire probe failed (fallback to server_json): %s", exc)
+
     capabilities = compute_capability_matrix(
-        mcp=mcp, server_json=server_json, registered_tools=registered_tools
+        mcp=mcp, server_json=server_json, registered_tools=registered_tools,
+        live_exposed=live_exposed,
     )
     runtime_identity = _runtime_identity_block()
     capability_degraded = int(capabilities.get("degraded_count", 0) or 0)
@@ -2700,8 +2758,18 @@ async def build_snapshot_async(
     except Exception as exc:
         logger.warning("build_server_json failed: %s", exc)
 
+    # Wire truth for `exposed` — see the sibling build_snapshot call site.
+    live_exposed: set[str] | None = None
+    try:
+        from arifosmcp.runtime.capability_drift import probe_live_wire_tools
+
+        live_exposed = probe_live_wire_tools()
+    except Exception as exc:
+        logger.debug("live wire probe failed (fallback to server_json): %s", exc)
+
     capabilities = compute_capability_matrix(
-        mcp=mcp, server_json=server_json, registered_tools=registered_tools
+        mcp=mcp, server_json=server_json, registered_tools=registered_tools,
+        live_exposed=live_exposed,
     )
     runtime_identity = _runtime_identity_block()
     capability_degraded = int(capabilities.get("degraded_count", 0) or 0)
