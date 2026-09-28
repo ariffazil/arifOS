@@ -206,6 +206,12 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 _mv = _meta_probe.get("io.modelcontextprotocol/protocolVersion")
                 if isinstance(_mv, str):
                     meta_version = _mv.strip()
+            # Who to annotate, once the floor drops. The versionless population is
+            # only actionable if it is attributable, and clientInfo/User-Agent are
+            # the two identifiers a request carries without trusting a session.
+            _ci = _meta_probe.get("io.modelcontextprotocol/clientInfo") if isinstance(_meta_probe, dict) else None
+            caller_name = _ci.get("name") if isinstance(_ci, dict) else None
+            caller_id = caller_name or request.headers.get("user-agent") or "unknown"
 
             if meta_version and version and version != meta_version:
                 if version != LATEST_PROTOCOL_VERSION:
@@ -241,10 +247,11 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
             ):
                 if os.getenv("ARIFOS_MCP_REQUIRE_VERSION", "1") != "0":
                     logger.warning(
-                        "G10: rejecting versionless POST (method=%s path=%s) — no "
+                        "G10: rejecting versionless POST (method=%s path=%s caller=%s) — no "
                         "MCP-Protocol-Version header, no _meta protocolVersion, no session",
                         method,
                         request.url.path,
+                        caller_id,
                     )
                     return JSONResponse(
                         {
@@ -269,10 +276,11 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                         status_code=400,
                     )
                 logger.warning(
-                    "G10: versionless POST (method=%s path=%s) accepted under "
-                    "ARIFOS_MCP_REQUIRE_VERSION=0 — re-tighten using measured traffic",
+                    "G10: versionless POST (method=%s path=%s caller=%s) accepted under "
+                    "ARIFOS_MCP_REQUIRE_VERSION=0 — annotate this caller before re-tightening",
                     method,
                     request.url.path,
+                    caller_id,
                 )
 
             # ── 2026-07-28 stateless intercepts ──
