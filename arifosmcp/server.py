@@ -58,9 +58,8 @@ try:
 
     apply_prompt_missing_args_rpc_fix()
 except Exception:
-    pass
 
-
+    _log.exception("suppressed exception", exc_info=True)
 # ── Entropy Integrity Mesh ─────────────────────────────────────────
 # NEVER insert /root/entropy-integrity at sys.path[0] — its top-level
 # package name `mcp/` shadows the official MCP SDK (`mcp.types`) and
@@ -142,8 +141,8 @@ try:
 
     _LRR.model_dump = _lrr_dump_with_resulttype
 except Exception:
-    pass
 
+    _log.exception("suppressed exception", exc_info=True)
 try:
     from mcp.types import ListPromptsResult as _LPR
 
@@ -157,7 +156,8 @@ try:
 
     _LPR.model_dump = _lpr_dump_with_resulttype
 except Exception:
-    pass
+
+    _log.exception("suppressed exception", exc_info=True)
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
@@ -370,7 +370,8 @@ class RequestTrustMiddleware(BaseHTTPMiddleware):
             )
             set_request_trust(peer=peer, proxied=proxied)
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         return await call_next(request)
 
 
@@ -646,7 +647,8 @@ def _resolve_git_commit() -> str:
                     if len(content) >= 7:
                         return content[:7]
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
     # 2. Environment variables
     for _key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
         _val = os.environ.get(_key, "").strip()
@@ -668,7 +670,8 @@ def _resolve_git_commit() -> str:
                 elif len(_content) >= 7:
                     return _content[:7]
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
     # 4. Subprocess git (legacy fallback — works only if CWD is git repo)
     try:
         import subprocess  # nosec B404
@@ -798,7 +801,8 @@ if Path is not None:
                                 _desc = _stripped.lstrip("#").strip()
                                 break
                     except Exception:
-                        pass
+
+                        _log.exception("suppressed exception", exc_info=True)
                     _skill_index.append(
                         {
                             "name": _sd.name,
@@ -1024,7 +1028,8 @@ try:
                     with open("/tmp/.t1_akal_wrapper_called", "w") as _mf:
                         _mf.write("called")
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
                 blast = kwargs.get("blast_radius", "low")
                 intent = kwargs.get("intent", "")
                 dual = akal_pre_judge(
@@ -1160,7 +1165,8 @@ try:
 
                             apply_deployment_drift_floor(result)
                         except Exception:
-                            pass
+
+                            _log.exception("suppressed exception", exc_info=True)
                 except Exception as _t3_exc:
                     # Fail-closed: never let the composer crash the worker.
                     # Force a deterministic HOLD; downstream status = pending.
@@ -1168,7 +1174,8 @@ try:
                         result["effective_verdict"] = "HOLD"
                         result["reason_code"] = "COMPOSER_FAIL_CLOSED"
                     except Exception:
-                        pass
+
+                        _log.exception("suppressed exception", exc_info=True)
                 return result
 
             return wrapped
@@ -3171,7 +3178,8 @@ if app:
                 __import__(f"arifosmcp.runtime.{mod}")
                 reality_loaded += 1
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
         checks["reality_stack_modules"] = reality_loaded
 
         # 7. VAULT999
@@ -3181,7 +3189,8 @@ if app:
             try:
                 vault_lines = sum(1 for _ in open(vault_path))
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
         checks["vault999_lines"] = vault_lines
 
         # 8. Static eureka files
@@ -3412,7 +3421,8 @@ if app:
             __import__("arifosmcp.runtime.memory_quarantine")
             s_val += 3.0
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         s_val = min(s_val, 80.0)
         s_error = 6.0 + falsification_failures * 3.0
         safety = AnchoredScore(
@@ -3895,8 +3905,8 @@ if app:
                         "source": str(p),
                     }
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         # Optional public_key presence check (does not replace sovereign path)
         public_key_note = None
         if public_key:
@@ -4020,8 +4030,8 @@ if app:
                     1 for r in latest.values() if r.get("status") == "ACTIVE"
                 )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         # AAA seal chain head seq
         chain_seq = None
         try:
@@ -4032,8 +4042,8 @@ if app:
             if head.is_file():
                 chain_seq = _json2.loads(head.read_text()).get("seq")
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         ok = bool(
             result.get("token_valid") and result.get("scope_valid") and result.get("replay_safe")
         )
@@ -4244,7 +4254,8 @@ async def _shutdown_nats_event_bus() -> None:
         try:
             await _anomaly_subscriber.stop()
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         _anomaly_subscriber = None
 
     if _organ_attestation_subscriber is not None:
@@ -4255,7 +4266,8 @@ async def _shutdown_nats_event_bus() -> None:
 
             await stop_organ_attestation_subscriber()
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         _organ_attestation_subscriber = None
 
     try:
@@ -4263,9 +4275,8 @@ async def _shutdown_nats_event_bus() -> None:
 
         await event_bus.disconnect()
     except Exception:
-        pass
 
-
+        _log.exception("suppressed exception", exc_info=True)
 # Wire to the main app (top-level Starlette app from FastMCP)
 _wire_nats_to_app(app)
 
