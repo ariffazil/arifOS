@@ -909,8 +909,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
     try:
         drift = _compute_runtime_drift()
         drift_detected = drift.get("runtime_drift", False)
-        src = drift.get("source_commit", "") or ""
-        built = drift.get("built_commit", "") or ""
+        # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
+        src = drift.get("live_commit", "") or ""
+        built = drift.get("build_commit", "") or ""
         if drift_detected or (src and built and src != built):
             degradation_reasons.append(
                 f"deployment_drift: built={built[:12]}… ≠ source={src[:12]}…"
@@ -3308,8 +3309,8 @@ def register_rest_routes(
             },
             "runtime": {
                 "status": "healthy" if not _code_runtime_drift else "degraded",
-                "source_commit": _drift.get("source_commit"),
-                "built_commit": _drift.get("built_commit"),
+                "source_commit": _drift.get("live_commit"),
+                "built_commit": _drift.get("build_commit"),
                 "runtime_matches_build": _drift.get("runtime_matches_build", True),
                 "deployment_attestation": "drift" if _sr_drift else "aligned",
             },
@@ -3414,9 +3415,7 @@ def register_rest_routes(
         # so `registry_truth` can cite registry-only evidence instead of a variable
         # it shares with the software-release axis.
         _surface_consistency = _get_surface_consistency()
-        _surface_consistency_verdict = str(
-            (_surface_consistency or {}).get("verdict") or "UNKNOWN"
-        )
+        _surface_consistency_verdict = str((_surface_consistency or {}).get("verdict") or "UNKNOWN")
 
         payload = {
             "status": "degraded" if _degraded else "healthy",
@@ -5806,10 +5805,11 @@ def register_rest_routes(
         # P0-5: Deployment invariant check via _compute_runtime_drift()
         drift = _compute_runtime_drift()
         drift_detected = drift.get("runtime_drift", False)
-        src = drift.get("source_commit", "?") or "?"
-        built = drift.get("built_commit", "?") or "?"
-        deployed = drift.get("deployed_commit", "?") or "?"
-        deploy_ok = not drift_detected and src == built == deployed
+        # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
+        src = drift.get("live_commit", "?") or "?"
+        built = drift.get("build_commit", "?") or "?"
+        deployed = drift.get("live_commit", "?") or "?"
+        deploy_ok = not drift_detected and built != "?" and src == built
 
         # Composite verdict
         if selftest_verdict == "FAIL":
