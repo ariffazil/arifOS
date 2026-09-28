@@ -188,6 +188,93 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
 
             request = Request(request.scope, _receive)
 
+            # ── G10: reject requests that declare no protocol era ────────────────
+            # The 2026-07-28 revision removed the initialize handshake, so the
+            # request's own _meta.io.modelcontextprotocol/protocolVersion IS its
+            # identity. Era used to be read from the MCP-Protocol-Version header
+            # alone, so a POST declaring nothing was still served — measured on
+            # KVM8: a full tools/list returned to an anonymous, versionless request.
+            # Serving it means the kernel cannot state which dialect it answered,
+            # and two clients can then be correct against different semantics on the
+            # same endpoint.
+            # ARIFOS_MCP_REQUIRE_VERSION=0 restores accept-any behavior for
+            # emergency compatibility only (same convention as ENVELOPE_STRICT).
+            meta_version = ""
+            _params = body.get("params") if isinstance(body, dict) else None
+            _meta_probe = _params.get("_meta") if isinstance(_params, dict) else None
+            if isinstance(_meta_probe, dict):
+                _mv = _meta_probe.get("io.modelcontextprotocol/protocolVersion")
+                if isinstance(_mv, str):
+                    meta_version = _mv.strip()
+
+            if meta_version and version and version != meta_version:
+                if version != LATEST_PROTOCOL_VERSION:
+                    # The 2026-07-28 branch below already answers this case with
+                    # HeaderMismatch; this covers a legacy header paired with a
+                    # modern body claim, which no dialect can interpret coherently.
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": ERR_UNSUPPORTED_VERSION,
+                                "message": (
+                                    f"UnsupportedProtocolVersion: header '{version}' "
+                                    f"conflicts with _meta '{meta_version}'"
+                                ),
+                                "data": {
+                                    "supported": sorted(
+                                        SUPPORTED_PROTOCOL_VERSIONS, reverse=True
+                                    ),
+                                    "latest": LATEST_PROTOCOL_VERSION,
+                                },
+                            },
+                        },
+                        status_code=400,
+                    )
+
+            if (
+                not version
+                and not meta_version
+                and method not in ("initialize", "notifications/initialized")
+                and not request.headers.get("Mcp-Session-Id", "").strip()
+            ):
+                if os.getenv("ARIFOS_MCP_REQUIRE_VERSION", "1") != "0":
+                    logger.warning(
+                        "G10: rejecting versionless POST (method=%s path=%s) — no "
+                        "MCP-Protocol-Version header, no _meta protocolVersion, no session",
+                        method,
+                        request.url.path,
+                    )
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": ERR_UNSUPPORTED_VERSION,
+                                "message": (
+                                    "UnsupportedProtocolVersion: request declares no "
+                                    "protocol era. Send the MCP-Protocol-Version header "
+                                    "or params._meta['io.modelcontextprotocol/"
+                                    "protocolVersion']."
+                                ),
+                                "data": {
+                                    "supported": sorted(
+                                        SUPPORTED_PROTOCOL_VERSIONS, reverse=True
+                                    ),
+                                    "latest": LATEST_PROTOCOL_VERSION,
+                                },
+                            },
+                        },
+                        status_code=400,
+                    )
+                logger.warning(
+                    "G10: versionless POST (method=%s path=%s) accepted under "
+                    "ARIFOS_MCP_REQUIRE_VERSION=0 — re-tighten using measured traffic",
+                    method,
+                    request.url.path,
+                )
+
             # ── 2026-07-28 stateless intercepts ──
             if version == "2026-07-28":
                 mcp_method = (
