@@ -1135,13 +1135,13 @@ fastapi==0.141.1 \
     --hash=sha256:bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3 \
     --hash=sha256:e8822fc40db1e1858054d7a949a888695bc9bdce70139178e33bd2871a453ca1
     # via arifos
-fastmcp==3.4.6 \
-    --hash=sha256:2a29967be9f68cdd1b4cefb413ede74f83adefd923919a37aaac3611eccdd749 \
-    --hash=sha256:2287938da8364ad7071bec2d2393af6ae10fd4e836f06f506569f1456cc87eb4
+fastmcp==4.0.9 \
+    --hash=sha256:c2b54aafd59d2f68bbd251a2337797ae4b7fdf9b9cff41a0d9c4cc04f129c7e3 \
+    --hash=sha256:d4faffb9be2e51821a9a2f253caf9dc778257348d18029d2a92653c9306fec23
     # via arifos
-fastmcp-slim==3.4.6 \
-    --hash=sha256:3e08e6acb03523a47aa17f4d2ab9943e648a41e20b24084da491a732c46dffdc \
-    --hash=sha256:6a1e6e42c697ba90abcb1be617a26947d07316f13c6fa138ae7b0de24558e32c
+fastmcp-slim==4.0.9 \
+    --hash=sha256:ba01644465ffea16f60b1afe1b8976cc484c9ad948f92b4ec0455024e6c57ba3 \
+    --hash=sha256:ec2937b30be8eca91c253e396ce6169e6f91f3c6d6dfb40438868d5522462452
     # via
     #   fastmcp
     #   pydantic-ai-slim
