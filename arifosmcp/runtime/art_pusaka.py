@@ -49,9 +49,12 @@ PUSAKA: dict[str, str] = {
 # by the service user — /root is 0710).
 import os as _os
 
-_SKILL_ROOT = _os.environ.get("ARIFOS_SKILL_ROOT", "/root/.agents/skills")
+_SKILL_ROOT = _os.environ.get("ARIFOS_SKILL_ROOT", "/etc/arifos/skills")
 for _k in ("art_skill", "art_cross_domain"):
-    PUSAKA[_k] = PUSAKA[_k].replace("/root/.agents/skills", _SKILL_ROOT)
+    if (
+        _k in PUSAKA
+    ):  # guard: keys absent since ONE_ORIGIN refactor — module was import-broken (KeyError) while orphaned
+        PUSAKA[_k] = PUSAKA[_k].replace("/root/.agents/skills", _SKILL_ROOT)
 
 
 # ═══════════════════════════════════════════════════════════════════════
