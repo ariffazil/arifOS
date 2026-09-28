@@ -309,3 +309,123 @@ def test_transport_http_entrypoint_has_protocol_middleware():
     names = {m.cls.__name__ for m in app.user_middleware}
     assert "MCPProtocolVersionMiddleware" in names
     assert "MCPSessionBridgeMiddleware" in names
+
+
+# ── G10: unidentified requests must not be served (2026-09-28) ────────────────
+# SCAR: era was decided from MCP-Protocol-Version alone. A POST declaring neither
+# header nor params._meta['io.modelcontextprotocol/protocolVersion'] was served
+# anyway — measured on KVM8 :8088/mcp, a full tools/list came back to an
+# anonymous versionless request. With the handshake gone that declaration IS the
+# request's identity; answering it means the kernel cannot say which dialect it
+# spoke, and two clients can be correct against different semantics at once.
+
+ERR_UNSUPPORTED = -32022
+
+
+def _tools_list_body(with_meta: str | None = None) -> dict:
+    params: dict = {}
+    if with_meta:
+        params["_meta"] = {"io.modelcontextprotocol/protocolVersion": with_meta}
+    body = {"jsonrpc": "2.0", "id": 71, "method": "tools/list"}
+    if params:
+        body["params"] = params
+    return body
+
+
+def _error_code(response) -> int | None:
+    payload = json.loads(response.body.decode())
+    return payload.get("error", {}).get("code")
+
+
+def test_versionless_post_is_rejected():
+    req = _make_request(_tools_list_body(), [])
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert response.status_code == 400
+    assert _error_code(response) == ERR_UNSUPPORTED
+    assert state["reached"] is False, "unidentified request must not reach the kernel"
+
+
+def test_meta_declared_era_passes_without_header():
+    """A spec-correct modern client that omits the header is still served."""
+    req = _make_request(_tools_list_body("2026-07-28"), [])
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert response.status_code == 200
+    assert state["reached"] is True
+
+
+def test_legacy_header_conflicting_with_meta_is_rejected():
+    req = _make_request(
+        _tools_list_body("2026-07-28"),
+        [(b"mcp-protocol-version", b"2025-11-25")],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert response.status_code == 400
+    assert _error_code(response) == ERR_UNSUPPORTED
+    assert state["reached"] is False
+
+
+def test_modern_header_conflict_keeps_header_mismatch_code():
+    """G10 must not hijack the existing 2026-07-28 coherence answer (-32020)."""
+    req = _make_request(
+        _tools_list_body("2025-11-25"),
+        [(b"mcp-protocol-version", MODERN), (b"mcp-method", b"tools/list")],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert response.status_code == 400
+    assert _error_code(response) == ERR_HEADER_MISMATCH
+    assert state["reached"] is False
+
+
+def test_initialize_without_any_version_declaration_is_allowed():
+    """Legacy handshake entry stays legal — G10 closes only unidentified POSTs."""
+    body = {
+        "jsonrpc": "2.0",
+        "id": 72,
+        "method": "initialize",
+        "params": {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "legacy", "version": "0"}},
+    }
+    req = _make_request(body, [])
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert state["reached"] is True
+
+
+def test_session_id_supplies_context_without_version():
+    req = _make_request(
+        _tools_list_body(),
+        [(b"mcp-session-id", b"sess-abc123")],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert state["reached"] is True
+
+
+def test_g10_kill_switch_restores_accept_any():
+    req = _make_request(_tools_list_body(), [])
+    call_next, state = _downstream_reached()
+    with patch.dict(os.environ, {"ARIFOS_MCP_REQUIRE_VERSION": "0"}):
+        response = _run(req, call_next)
+    assert response.status_code == 200
+    assert state["reached"] is True
+
+
+def test_get_without_version_is_not_rejected():
+    """GET stays on the discovery/browser path; G10 is POST-scoped."""
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/mcp",
+        "headers": [(b"accept", b"text/event-stream")],
+    }
+
+    async def receive() -> dict:
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    req = Request(scope, receive)
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    assert state["reached"] is True
