@@ -27,7 +27,7 @@ EXAMPLE_GEOMETRIES: dict[str, dict[str, Any]] = {
         "agent_type": "orchestrator",
         "supervision_model": "subagents+worktree",
         "preferred_mcp": ["mcp-repo-read", "mcp-arifos-kernel", "arifos-canonical"],
-        "notes": "Parallel recon. Use narrow for 111/222, canonical for 666/888/999.",
+        "notes": "Parallel recon. Use narrow for kernel stages 111/222, canonical for kernel stages 666/888/999 (stage ABI per kernel-sot.yaml — FATWA K1: bare numerals here are STAGE coordinates, never lane/tier 333-AGI/555-ASI/888-APEX, never lg: linkgraph).",
         "floors_required": ["F1", "F4", "F11", "F13"],
     },
     "opencode-sovereign-shell": {
