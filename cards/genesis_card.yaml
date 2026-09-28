@@ -1,4 +1,10 @@
 # arifOS Federation Genesis Card
+# SOT (X-1 resolution, 2026-09-29 333-AGI): THIS file (/root/arifOS/cards/genesis_card.yaml) is the
+# single source of truth for the genesis card family. Copies at /root/A-FORGE-browser-poc/cards/
+# and /root/forge_work/sa-fix/cards/ are STALE MIRRORS (md5 fa9ba0c1… vs SOT 927d6808…) —
+# read-only references, never edit targets. Dual meaning (card family vs runtime surface
+# binding) settles here: this card = FAMILY identity; runtime surface binding lives in
+# organ registry (organs.yaml), not in this file.
 schema_version: "1.0.0"
 authority: "888_JUDGE"
 seal_state: "PROPOSED_PENDING_RATIFICATION"
