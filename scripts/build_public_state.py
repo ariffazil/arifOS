@@ -1210,8 +1210,12 @@ def collect_extras() -> dict[str, Any]:
     flow = probe_url("http://127.0.0.1:7073/health", timeout=2.0)
     if flow.get("state") == "PRESENT":
         fq = flow.get("data", {}).get("fq") or {}
+        # Daemon emits legacy_verdict/legacy_diagnosis (qg.v0.3.1-vector);
+        # bare verdict/quotient keys never existed — schema drift found
+        # 2026-09-28 (ariflow_fq rendered None despite a live daemon).
         extras["ariflow_fq_quotient"] = fq.get("quotient")
-        extras["ariflow_fq_verdict"] = fq.get("verdict")
+        extras["ariflow_fq_verdict"] = fq.get("verdict") or fq.get("legacy_verdict")
+        extras["ariflow_fq_diagnosis"] = fq.get("diagnosis") or fq.get("legacy_diagnosis")
         extras["ariflow_execute_count"] = fq.get("execute_count")
         extras["ariflow_verify_count"] = fq.get("verify_count")
         extras["ariflow_receipts"] = flow.get("data", {}).get("receipts")
