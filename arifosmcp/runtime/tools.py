@@ -104,9 +104,8 @@ def _unlock(handle: Any) -> None:
     try:
         handle.release()
     except Exception:
-        pass
 
-
+        _log.exception("suppressed exception", exc_info=True)
 # ── W-02 / W-03: Deployment-drift floor (2026-08-04) ─────────────────
 # INVARIANT: If substrate.drift or software_release.drift is true, the
 # payload must NOT claim SEAL/PROCEED/SELAMAT and must NOT claim
@@ -1491,7 +1490,8 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
         )
         full["action_class"] = resp_model.action_class
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     # Canonical blast_radius normalization
     if "blast_radius" not in full or full.get("blast_radius") in (None, "unknown"):
         full["blast_radius"] = power.get("expected_blast_radius", "LOW").lower()
@@ -2571,8 +2571,8 @@ def _get_affordance_contract(tool_name: str, mode: str | None = None) -> dict[st
                 "_note": "auto-generated affordance — tool is in public registry but missing from TOOL_AFFORDANCE_CONTRACTS",
             }
     except Exception:
-        pass
 
+        _log.exception("suppressed exception", exc_info=True)
     return {
         "action_class": "UNKNOWN",
         "mutation": "unknown",
@@ -3095,7 +3095,8 @@ def _compute_canonical_verdict(
                                     if a.lower() in aliases and b.lower() in aliases:
                                         return True
                             except Exception:
-                                pass
+
+                                _log.exception("suppressed exception", exc_info=True)
                             return False
 
                         if (
@@ -3118,8 +3119,8 @@ def _compute_canonical_verdict(
                                 f"≠ session actor_id={_sess_actor} for session={_session_id}"
                             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     # ── Step 5b: Actor verification (P0-3 identity gating) ───────────────
     # Uses session-derived authority, not per-tool args.
     # 2026-08-04 333-AGI: SCT sovereign bypass. When the response carries a
@@ -3143,7 +3144,8 @@ def _compute_canonical_verdict(
                 _claims = _json.loads(base64.urlsafe_b64decode(_raw))
                 _sct_sovereign = (_claims.get("auth") or "").upper() == "SOVEREIGN"
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
     if verdict == "SEAL" and _session_actor_verified is False:
         if _sct_sovereign:
             degradation.append(
@@ -4003,7 +4005,8 @@ def _constitutional_gate(
 
         _unified_session_registry.update(get_all_session_ids())
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     try:
         ctx = ActionContext(
             tool_name=tool_name,
@@ -4283,7 +4286,8 @@ def _actor_for_response(session_id: str | None = None, candidate: str | None = N
                     or "anonymous"
                 )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
     return "anonymous"
 
 
@@ -4332,9 +4336,8 @@ def _attach_sct_continuity(
         if actor and actor != "anonymous":
             final_resp.setdefault("actor_id", actor)
     except Exception:
-        pass
 
-
+        _log.exception("suppressed exception", exc_info=True)
 # ── Output Policy + Truth Band (DEPRECATED — import from tools/nine_signal.py) ──
 # Phase 5 extraction 2026-07-11. Kept for backward compat. Remove after verification.
 def _output_policy_for_verdict(verdict: str) -> str:  # noqa: F811
@@ -5041,7 +5044,8 @@ def _enforce_nine_signal(
                     if _identity and isinstance(_identity, dict):
                         _sess = dict(_identity)
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
             if _sess and isinstance(_sess, dict):
                 actor_verified_flag = bool(_sess.get("actor_verified", False))
         # D1 FIX (2026-08-06): SCT fallback when session store misses.
@@ -5071,7 +5075,8 @@ def _enforce_nine_signal(
                         if _claims.get("av") is True:
                             actor_verified_flag = True
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
         # Log per-tool claims for audit (advisory only, not used for gating)
         _tool_claimed_av = out.get("actor_verified")
         if _tool_claimed_av is not None and _tool_claimed_av != actor_verified_flag:
@@ -5966,8 +5971,8 @@ def _enforce_nine_signal(
                         _auth["may_mutate"] = False
                         _auth["may_seal"] = False
             except Exception:
-                pass
 
+                _log.exception("suppressed exception", exc_info=True)
         try:
             from arifosmcp.runtime.act_token import echo_canonical_session
 
@@ -5977,8 +5982,8 @@ def _enforce_nine_signal(
                 actor_id=actor_id,
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         return envelope
 
         # ── APEX Runtime Governance Envelope (APEX-MCP-001) ───────────────
@@ -6328,7 +6333,8 @@ def _enforce_nine_signal(
                         if hasattr(_standing, "authority"):
                             _sync_authority_surfaces_from_standing(enforced, _standing)
                     except Exception:
-                        pass
+
+                        _log.exception("suppressed exception", exc_info=True)
             apply_deployment_drift_floor(enforced)
 
         # ALWAYS stamp DETERMINISTIC for arif_init (bind is not inference).
@@ -6349,8 +6355,8 @@ def _enforce_nine_signal(
                 _SESSIONS[session_id]["last_observation"] = res
                 _SESSIONS[session_id].setdefault("observations", []).append(res)
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     # Last line of every tool envelope: drift floor wins over SEAL
     apply_deployment_drift_floor(enforced)
 
@@ -6359,8 +6365,8 @@ def _enforce_nine_signal(
 
         enforced = echo_canonical_session(enforced, session_id=session_id, actor_id=actor_id)
     except Exception:
-        pass
 
+        _log.exception("suppressed exception", exc_info=True)
     return enforced
 
 
@@ -7311,7 +7317,8 @@ def _json_default_pydantic(obj: Any) -> Any:
         try:
             return obj.model_dump()
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
     if hasattr(obj, "__getstate__"):
         return obj.__getstate__()
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
@@ -8097,7 +8104,8 @@ def get_session(session_id: str | None) -> dict[str, Any] | None:
         if result is not None:
             return result
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     # Iterative fallback: walk all sessions looking for partial match
     try:
         from arifosmcp.runtime.session import get_all_session_ids
@@ -8115,7 +8123,8 @@ def get_session(session_id: str | None) -> dict[str, Any] | None:
             ):
                 return dict(_rec)
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     return None
 
 
@@ -8600,8 +8609,8 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
             if _drift and not dst.get("degraded"):
                 dst["degraded"] = ["kernel_drift"]
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     # Keep structured init geometry if engine emitted a dict verdict
     if isinstance(src.get("verdict"), dict):
         dst["verdict_geometry"] = src["verdict"]
@@ -8676,7 +8685,8 @@ def _reconcile_legacy_aliases_with_token(dst: dict[str, Any]) -> None:
             getattr(dst.get("act_claims") or {}, "get", lambda _k: None)("av"),
         )
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     if not (isinstance(_st, str) and _st.startswith("act_v1.")):
         return
     try:
@@ -9308,7 +9318,8 @@ def _ok(
     try:
         result.setdefault("_affordance", get_full_affordance(tool))
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     trace_id = None
     if session_id and session_id in _SESSIONS:
         sess = _SESSIONS[session_id]
@@ -9539,7 +9550,8 @@ def _ok(
             )
             response["action_class"] = ar.action_class
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
     except Exception:
         pass
     # FIX-4 (2026-08-16): When F4 entropy gate fires, update constitutional_check
@@ -9592,7 +9604,8 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
         state = read_authority_state(sess)
         return bool(state.actor.verified)
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     # Fallback: check file-backed session store (matches live_kernel.py lookup)
     try:
         import json
@@ -9614,7 +9627,8 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
                     state = read_authority_state(sess)
                     return bool(state.actor.verified)
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     return False
 
 
@@ -10009,8 +10023,8 @@ def _require_session(
                     session_id=session_id,
                 )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     return sess, None
 
 
@@ -10733,7 +10747,8 @@ def _arif_session_init(
                                             _sess2["verification_method"] = "dpop+registry"
                                             _sess2["actor_verified"] = True
                                         except Exception:
-                                            pass
+
+                                            _log.exception("suppressed exception", exc_info=True)
                                         logger.info(
                                             "DPOP_REGISTRY_PROMOTION actor=%s did=%s tier=SYSTEM_CRON_WRITE",
                                             actor_id,
@@ -10754,8 +10769,8 @@ def _arif_session_init(
                     autonomy_band=requested_authority or _result_dict.get("autonomy_band"),
                 )
             except Exception:
-                pass
 
+                _log.exception("suppressed exception", exc_info=True)
             return _inject_atlas333_boot(_result_dict)
         except Exception as e:
             return _hold(
@@ -11382,7 +11397,8 @@ def _arif_session_init(
 
             store_ack["_SESSION_IDENTITY"] = session_exists(sid)
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         # EUREKA: Build embodied capability card
         import socket as _socket
 
@@ -12322,7 +12338,8 @@ def _arif_sense_observe(
 
                 _session_valid = session_exists(session_id)
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
     if session_id and not _session_valid:
         return _hold(
             "arif_sense_observe",
@@ -13132,7 +13149,8 @@ def _arif_sense_observe(
                 sh = store.store_source(source)
                 t["source_hash"] = sh
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             claims_stored.append(t)
         return _ok(
             "arif_sense_observe",
@@ -15383,8 +15401,8 @@ async def _arif_mind_reason_tool(
                 tags=["arifOS", "333_MIND", mode],
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     try:
         # Structural/deterministic modes — bypass LLM entirely.
         # P1 fix (2026-06-30, FORGE): reflect | verify | critique were
@@ -15623,8 +15641,8 @@ async def _arif_mind_reason_tool(
                 session_token=session_token,
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         return result
     finally:
         if trace:
@@ -16901,8 +16919,8 @@ async def _arif_reply_compose_tool(
                 tags=["arifOS", "444r_REPLY", mode],
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────
     # Short-circuit before gate because it is read-only and non-network.
     if mode == "repo_answer":
@@ -17039,7 +17057,8 @@ def _try_reformulate_query(query: str) -> str | None:
         if rewritten and len(rewritten) > 5 and rewritten.lower() != query.lower():
             return rewritten
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     return None
 
 
@@ -17293,8 +17312,8 @@ def _arif_memory_recall(
                             }
                         )
                 except Exception:
-                    pass
 
+                    _log.exception("suppressed exception", exc_info=True)
         return _ok(
             "arif_memory_recall",
             {
@@ -17484,8 +17503,8 @@ def _arif_memory_recall(
                     if _refd and _refd != weakest:
                         sub_questions = [_refd if s == weakest else s for s in sub_questions]
                 except Exception:
-                    pass
 
+                    _log.exception("suppressed exception", exc_info=True)
         # ── STATE 4: SYNTHESISE ─────────────────────────
         telemetry["states_visited"].append("SYNTHESISE")
 
@@ -17762,7 +17781,8 @@ def _arif_memory_recall(
                 retention_window_seconds=0,
             )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         return result
 
     # ── context ──────────────────────────────────────────────
@@ -17951,8 +17971,8 @@ async def _arif_heart_critique(
                 tags=["arifOS", "666_HEART", mode],
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     if mode == "deepnshadow":
         from arifosmcp.protocols.deepnshadow import adapter as _ds_adapter
 
@@ -20456,8 +20476,8 @@ async def _arif_judge_deliberate_tool(
                 tags=["arifOS", "888_JUDGE", mode],
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     try:
         # ── Benchmark/eval path (no human prompt; kernel-encoded governance) ──
         # REMOVED 2026-07-08: bench harness bypass for human elicitation.
@@ -20576,8 +20596,8 @@ async def _arif_judge_deliberate_tool(
                     i_cannot_explain=result.get("verdict") == "UNKNOWN",
                 )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         # APEX Phase 3: record governed-vs-baseline comparison
         try:
             from arifosmcp.runtime.governed_vs_baseline import (
@@ -20955,8 +20975,8 @@ def _arif_vault_seal(
 
                 _vault_session_registry.update(get_all_session_ids())
             except Exception:
-                pass
 
+                _log.exception("suppressed exception", exc_info=True)
             k_verdict = _KERNEL.evaluate_intent(
                 tool_name="arif_vault_seal",
                 params={
@@ -21047,7 +21067,8 @@ def _arif_vault_seal(
                     if isinstance(_act_claims, dict):
                         _sct_auth_level = str(_act_claims.get("auth", "OBSERVE_ONLY"))
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             if _sct_auth_level == "FULL":
                 _sov_bypass = True
                 _sov_bypass_reason = "F13_SOVEREIGN+FULL_SCT — seal_allowed via sovereign bypass"
@@ -21212,8 +21233,8 @@ def _arif_vault_seal(
                         auth_context={"source": "arif_vault_seal", "mode": "update"},
                     )
                 except Exception:
-                    pass
 
+                    _log.exception("suppressed exception", exc_info=True)
             drift_summary = {
                 "total_events": len(sess.get("drift_log", [])),
                 "event_types": list({e["event_type"] for e in sess.get("drift_log", [])}),
@@ -21262,7 +21283,8 @@ def _arif_vault_seal(
                 {"entry_id": entry_id, "type": "constitutional_seal"},
             )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         # F-004: canonical vault chain — single path, envelope, derived head.
         # Does NOT write to arifOS/VAULT999 dual-ledger; only share path.
         try:
@@ -21274,7 +21296,8 @@ def _arif_vault_seal(
             try:
                 _chain_sess_ctx = _SESSIONS.get(session_id) if session_id else None
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             _c_resolved_sid, _c_resolved_actor = _rrid(
                 session_id=session_id,
                 actor_id=actor_id,
@@ -22099,7 +22122,8 @@ async def _arif_vault_seal_tool(
             try:
                 await ctx.report_progress(10, 100, "session_close: organ health + SOT + vault")
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
         out = await _canonical_session_close(
             mode="session_close",
             payload=payload or "",
@@ -22119,7 +22143,8 @@ async def _arif_vault_seal_tool(
             try:
                 await ctx.report_progress(100, 100, "session_close: complete")
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
         if hasattr(out, "model_dump"):
             return out.model_dump(mode="json")
         return dict(out) if out is not None else {"status": "HOLD", "verdict": "HOLD"}
@@ -22138,8 +22163,8 @@ async def _arif_vault_seal_tool(
                 tags=["arifOS", "999_VAULT", mode],
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     try:
         # Verify mode is read-only — no irreversible ack needed
         if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit"):
@@ -22272,8 +22297,8 @@ async def _arif_vault_seal_tool(
                 session_token=session_token,
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         return result
     finally:
         if trace:
@@ -23275,7 +23300,8 @@ async def _arif_forge_execute_tool(
             if str(getattr(_rc2, "value", _rc2)).upper() == "OBSERVE":
                 _forge_action = "OBSERVE"
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     v = enforce_restraint_and_verdict(session_ctx, "arif_forge_execute", _forge_action)
     if v["decision"] != "PROCEED":
         return {
@@ -23300,8 +23326,8 @@ async def _arif_forge_execute_tool(
                 tags=["arifOS", "010_FORGE", mode],
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     has_prior_authority = bool(constitutional_chain_id or arif_ack_id)
     try:
         _, hold = await _elicit_irreversible_ack(
@@ -23377,8 +23403,8 @@ async def _arif_forge_execute_tool(
                 session_token=session_token,
             )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         return result
     finally:
         if trace:
@@ -23546,7 +23572,8 @@ def _arif_ping(
                 if kk in demo:
                     response.setdefault(kk, demo[kk])
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     return response
 
 
@@ -23954,7 +23981,8 @@ def _server_version() -> str:
         if version:
             return str(version)
     except Exception:
-        pass
+
+        _log.exception("suppressed exception", exc_info=True)
     return "v2026.06.12"
 
 
@@ -24357,8 +24385,8 @@ def _arif_version_echo(
 
         build_info = get_build_info()
     except Exception:
-        pass
 
+        _log.exception("suppressed exception", exc_info=True)
     response = _ok(
         "arif_version_echo",
         {
@@ -25678,7 +25706,8 @@ async def _arif_kernel_intercept_tool(
                 f"{intent}\n[extras: " + ", ".join(f"{k}={v!r}" for k, v in kwargs.items()) + "]"
             )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
     raw = await _arif_kernel_intercept(
         actor=actor,
         intent=intent,
@@ -25864,7 +25893,8 @@ async def _arif_act(
                 )
                 return enriched
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
         return forge_result
     except Exception as exc:
         return _hold(
@@ -26244,14 +26274,16 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                         latency_ms=_latency_ms,
                     )
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
             # ────────────────────────────────────────────────────────────────
             try:
                 body = response if isinstance(response, dict) else {"result": response}
                 sid, aid = _resolve_standing_ids(body, kwargs)
                 response = attach_canonical(body, session_id=sid, actor_id=aid)
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # Verbosity diet (P0-5 2026-07-25): trim canonical responses
             try:
                 from arifosmcp.runtime.verbosity import trim_for_verbosity
@@ -26266,12 +26298,14 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                     response.get("effective_verdict") or None,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # STAB-2026-08-09c: last-writer mut/seal sync after trim
             try:
                 _force_hold_mutation_fields(response)
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             try:
                 from arifosmcp.runtime.act_token import echo_canonical_session
 
@@ -26293,7 +26327,8 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                     response.get("effective_verdict") or None,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
             # the TRUE last writer. Every verdict-bearing field must agree,
             # or the envelope becomes HOLD/INCONSISTENT with authority off.
@@ -26302,7 +26337,8 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
                 response = reconcile_decision_contract(response)
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
             # the TRUE last writer. Every verdict-bearing field must agree,
             # or the envelope becomes HOLD/INCONSISTENT with authority off.
@@ -26311,7 +26347,8 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
                 response = reconcile_decision_contract(response)
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             return response
 
         return _async_wrapped
@@ -26342,14 +26379,16 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                     latency_ms=_latency_ms,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
         # ────────────────────────────────────────────────────────────────────
         try:
             body = response if isinstance(response, dict) else {"result": response}
             sid, aid = _resolve_standing_ids(body, kwargs)
             response = attach_canonical(body, session_id=sid, actor_id=aid)
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         # Verbosity diet (P0-5 2026-07-25): trim canonical responses
         try:
             from arifosmcp.runtime.verbosity import trim_for_verbosity
@@ -26363,11 +26402,13 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 response.get("effective_verdict") or None,
             )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         try:
             _force_hold_mutation_fields(response)
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         try:
             from arifosmcp.runtime.act_token import echo_canonical_session
 
@@ -26387,7 +26428,8 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 response.get("effective_verdict") or None,
             )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
         # the TRUE last writer (sync path).
         try:
@@ -26395,7 +26437,8 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
             response = reconcile_decision_contract(response)
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
         # the TRUE last writer (sync path).
         try:
@@ -26403,7 +26446,8 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
             response = reconcile_decision_contract(response)
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         return response
 
     return _sync_wrapped
@@ -27356,8 +27400,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 if _sess and _sess.get("actor_id"):
                     kwargs["actor_id"] = _sess["actor_id"]
             except Exception:
-                pass
 
+                _log.exception("suppressed exception", exc_info=True)
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
         if not ok:
@@ -27389,7 +27433,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 if _manifest_entry is not None:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # D4 mode-awareness (2026-09-03): read-only modes of IRREVERSIBLE
             # tools are downgraded to OBSERVE at ingress by the canonical
             # classifier. The clamp must consult the same classifier —
@@ -27405,7 +27450,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     _clamp_rp = _classify_for_clamp(tool_name, mode=_clamp_mode)
                     _clamp_action = getattr(_clamp_rp.action_class, "value", _clamp_action)
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
             _clamp = session_policy_clamp(
                 kwargs.get("session_id"),
                 tool_name,
@@ -27454,7 +27500,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=0.0,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # ── Session A: Emit operation STARTED ──────────────────────────
             from arifosmcp.runtime.event_bus import emit_operation
 
@@ -27498,7 +27545,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=_latency_ms,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # ── Session A: Emit operation SUCCESS + receipt ────────────────
             from arifosmcp.runtime.event_bus import emit_operation as _eo
             from arifosmcp.runtime.event_bus import emit_receipt as _er
@@ -27525,7 +27573,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
                 record_test_result(tool_name, passed=True)
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # ── Kabarkan telemetry (ATLAS333 valve) ────────────────────────
             try:
                 from arifosmcp.runtime.telemetry import trace_tool_call as _kabarkan_trace
@@ -27543,7 +27592,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=_latency,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # ────────────────────────────────────────────────────────────────
         except Exception as exc:
             # ── KITARAN Tuas 2: failed invocation still counts (ok=False) ──
@@ -27566,7 +27616,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     op_id=op_id,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # ───────────────────────────────────────────────────────────────
             msg = str(exc)
             if handler.__name__ in msg:
@@ -27695,7 +27746,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                             _last.get("payload_hash") or _last.get("chain_hash") or "GENESIS"
                         )
                     except Exception:
-                        pass
+
+                        _log.exception("suppressed exception", exc_info=True)
             _chain_hash = _hl.sha256(f"{_payload_hash}:{_prev_hash}".encode()).hexdigest()[:16]
             _outcome_entry["payload_hash"] = _payload_hash
             _outcome_entry["prev_hash"] = _prev_hash
@@ -27807,7 +27859,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 if _manifest_entry is not None:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             # D4 mode-awareness (2026-09-03): read-only modes of IRREVERSIBLE
             # tools are downgraded to OBSERVE at ingress by the canonical
             # classifier. The clamp must consult the same classifier —
@@ -27823,7 +27876,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     _clamp_rp = _classify_for_clamp(tool_name, mode=_clamp_mode)
                     _clamp_action = getattr(_clamp_rp.action_class, "value", _clamp_action)
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
             _clamp = session_policy_clamp(
                 kwargs.get("session_id"),
                 tool_name,
@@ -27904,7 +27958,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=_latency_ms,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
         except Exception as exc:
             # ── KITARAN Tuas 2: failed invocation still counts (ok=False) ──
             _record_invocation(
@@ -28014,7 +28069,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 latency_ms=_latency,
             )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
         try:
             from datetime import UTC as _UTC
@@ -28572,7 +28628,8 @@ def register_tools(
                 try:
                     handler._canonical_normalization_wrapped = True
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
             wrapped = _wrap_handler(handler, name)
 
             # Compute canonical risk passport for this tool

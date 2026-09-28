@@ -695,8 +695,8 @@ def _build_validate_result(
                 chain_entry = _stored_state
                 break
     except Exception:
-        pass
 
+        _log.exception("suppressed exception", exc_info=True)
     if not chain_entry:
         try:
             from arifosmcp.runtime.act_token import resolve_standing
@@ -710,8 +710,8 @@ def _build_validate_result(
             if standing.valid and standing.meta:
                 chain_entry = standing.meta.get("chain_entry")
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     checks["chain_valid"] = chain_entry is not None
     if not checks["chain_valid"]:
         reasons.append("E_VALIDATE_CHAIN_NOT_FOUND: constitutional_chain_id not in registry")
@@ -1164,8 +1164,8 @@ async def arif_judge(
                     evidence = dict(_last_obs)
                     _evidence = dict(_last_obs)
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
         # If still empty but candidate exists, treat candidate as in-band evidence
         if (
             evidence is None
@@ -1525,8 +1525,8 @@ async def arif_judge(
                     f"GODEL_LOCK_HOLD: {_g_res.get('reason', 'External witness required.')}"
                 )
     except Exception:
-        pass
 
+        _log.exception("suppressed exception", exc_info=True)
     if _hard_reasons:
         _is_void = any(
             any(kw in r for kw in ("VIOLATION", "FORBIDDEN", "DECEPTIVE", "ANTIHANTU", "PRIVILEGE_ESCALATION", "DESTRUCTIVE"))
@@ -2164,7 +2164,8 @@ async def arif_judge(
             try:
                 out = out.model_copy(update={"verdict": "HOLD"})
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             logger.warning("T1 classifier override forced fail-closed HOLD: %s", _ovr_exc)
 
         # ── T2: Canonical composer — produce the four-field envelope ──
@@ -2267,7 +2268,8 @@ async def arif_judge(
                     session_token=session_token,
                 )
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
             return VerdictOutput(**data)
         data = out.model_dump(mode="json")
         # FIX #5: Redact raw session token — return hash reference only
@@ -2304,7 +2306,8 @@ async def arif_judge(
                 autonomy_band=_standing_authority,
             )
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         return VerdictOutput(**data)
 
     if session_token or session_id:
@@ -2374,8 +2377,8 @@ async def arif_judge(
                     )
                 )
         except Exception:
-            pass
 
+            _log.exception("suppressed exception", exc_info=True)
     # ── F13 CHALLENGE AUTHORIZATION (public MCP wrapper chain) ─────────────
     # Every MCP caller now hits the same handler. Prefer HMAC-rootkey (same as
     # arif_init Telegram/F13 ritual path), then Ed25519 challenge-response.
@@ -2482,7 +2485,8 @@ async def arif_judge(
                     session_id = _c_f11["sid"]
                     _f11_sid = session_id
             except Exception:
-                pass
+
+                _log.exception("suppressed exception", exc_info=True)
     if not _f11_sid:
         return VerdictOutput(
             verdict=VerdictCode.HOLD,
@@ -3156,7 +3160,8 @@ async def arif_judge(
                         severity=_severity,
                     )
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
             except Exception:
                 # Persistence failed — do NOT increment counter. Counter is
                 # the audit witness for what actually happened.
@@ -3853,7 +3858,8 @@ async def arif_judge(
 
                     _sess_ctx_j = _gs_j(session_id) if session_id else None
                 except Exception:
-                    pass
+
+                    _log.exception("suppressed exception", exc_info=True)
                 _rsid_j, _ractor_j = resolve_receipt_identity(
                     session_id=session_id,
                     actor_id=actor_id,
@@ -3911,7 +3917,8 @@ async def arif_judge(
 
             _predictions = extract_prediction(result if isinstance(result, dict) else {})
         except Exception:
-            pass
+
+            _log.exception("suppressed exception", exc_info=True)
         write_reality_event(
             actor=str(_actor),
             event_type="arif_judge",
