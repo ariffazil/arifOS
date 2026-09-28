@@ -128,10 +128,11 @@ def _ready_envelope() -> dict[str, Any]:
 
         drift = _compute_runtime_drift()
         drift_detected = drift.get("runtime_drift", False)
-        src = drift.get("source_commit", "?") or "?"
-        built = drift.get("built_commit", "?") or "?"
-        deployed = drift.get("deployed_commit", "?") or "?"
-        deploy_ok = not drift_detected and src == built == deployed
+        # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit, not source_commit/built_commit/deployed_commit
+        src = drift.get("live_commit", "?") or "?"
+        built = drift.get("build_commit", "?") or "?"
+        deployed = drift.get("live_commit", "?") or "?"
+        deploy_ok = not drift_detected and built != "?" and src == built
         drift_info = {
             "ok": deploy_ok,
             "drift_detected": drift_detected,
