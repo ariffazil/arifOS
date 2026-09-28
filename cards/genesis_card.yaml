@@ -1,14 +1,29 @@
 # arifOS Federation Genesis Card
-# SOT (X-1 resolution, 2026-09-29 333-AGI): THIS file (/root/arifOS/cards/genesis_card.yaml) is the
-# single source of truth for the genesis card family. Copies at /root/A-FORGE-browser-poc/cards/
-# and /root/forge_work/sa-fix/cards/ are STALE MIRRORS (md5 fa9ba0c1… vs SOT 927d6808…) —
-# read-only references, never edit targets. Dual meaning (card family vs runtime surface
-# binding) settles here: this card = FAMILY identity; runtime surface binding lives in
-# organ registry (organs.yaml), not in this file.
+# SOT (X-1 resolution, 2026-09-29 333-AGI, commit b80b8bcf3): THIS file
+# (/root/arifOS/cards/genesis_card.yaml) is the single source of truth for the
+# genesis card family. Copies at /root/A-FORGE-browser-poc/cards/ and
+# /root/forge_work/sa-fix/cards/ are STALE MIRRORS — read-only references,
+# never edit targets. Dual meaning (card family vs runtime surface binding)
+# settles here: this card = FAMILY identity; runtime surface binding lives in
+# the organ registry (organs.yaml + federation/organ_taxonomy.json), not here.
+# Live mirrors (identical bytes): /root/AAA/cards/, /root/A-FORGE/cards/.
 schema_version: "1.0.0"
 authority: "888_JUDGE"
-seal_state: "PROPOSED_PENDING_RATIFICATION"
+seal_state: "F13_RATIFIED"
 motto: "Ditempa Bukan Diberi"
+card_class: "IDENTITY_AUTHORITY_GENESIS"
+ratification:
+  ratified_by: "F13 SOVEREIGN (Arif) — chat 'SAH' (Auto-Seal §2)"
+  ratified_at: "2026-09-29T00:56:03+08:00"
+  session: "SEAL-6500973529254712"
+  executor: "333-AGI"
+  scope: "Card identity + X-1 disambiguation only. execution_boundary permit mechanism NOT wired by this act (permit_mechanism_exists stays false)."
+scope_note: >-
+  X-1 RESOLVED (F13 SAH 2026-09-29): card-family identity/authority document.
+  Organ state fields are a frozen 2026-08-28 mint-time snapshot and MUST NOT be
+  consumed as runtime surface bindings — runtime truth = live /health probes +
+  organs.yaml (truth_rule: live_health_beats_file). Runtime consumers resolve
+  through the organ registry, never through this card.
 identity:
   operator: "ariffazil"
   vps: "af-forge (72.62.71.199)"
@@ -45,7 +60,8 @@ execution_boundary:
   permit_mechanism_exists: false
   audit_hash: "2026-08-26-FI-003-init-to-seal-audit"
 card_tree:
-  canonical_root: "/root/AAA/cards/genesis_card.yaml"
-  arifos_mirror:  "/root/arifOS/cards/genesis_card.yaml"
+  canonical_root: "/root/arifOS/cards/genesis_card.yaml"  # SOT per b80b8bcf3 (X-1)
+  aaa_mirror:     "/root/AAA/cards/genesis_card.yaml"
   aforge_mirror:  "/root/A-FORGE/cards/genesis_card.yaml"
-  reconciliation: "cp after ratification; symlink future"
+  stale_copies:   ["/root/A-FORGE-browser-poc/cards/", "/root/forge_work/sa-fix/cards/"]
+  reconciliation: "identical bytes across SOT + 2 live mirrors; sync on every ratified change"
