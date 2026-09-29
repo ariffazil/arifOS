@@ -3283,9 +3283,36 @@ def _compute_scoped_verdicts(
     # session_capability_token or identity_band reflect AUTHORITY state, not
     # physical substrate health.  Filter them out before deriving substrate scope
     # so that an anonymous actor does not mark the physical machine as DEGRADED.
-    _AUTH_ISSUERS = {"session_capability_token", "identity_band"}
+    # 2026-09-29 FIX (referential-integrity audit item #25): the exclusion set
+    # covered AUTHORITY issuers only. A VERDICT-scope note is equally not a
+    # physical substrate measurement — "verdict_monotonicity: HOLD -> RETAK
+    # (sub-signal floor dominates aggregate)", emitted by
+    # _compute_canonical_verdict and surfaced as _wrapper_degradation — but it
+    # survived the filter. Whenever the tool's own status was restricted (not
+    # OK/SEAL), that single token set _has_degradation=True and the substrate
+    # scope reported DEGRADED, which attach_effective_verdict then let dominate
+    # ("degraded_dominates"), forcing seal_allowed=false.
+    # Measured contradiction at 14:56Z and again at 15:06Z on a healthy kernel:
+    #   /health            -> status=healthy, degraded_reasons=[]
+    #   software_release   -> drift=False, source==built==deployed==bc4ad92
+    #   boot_gate_state('arifOS') -> ('UNATTESTED', False)  [i.e. NOT unhealthy]
+    #   arif_judge         -> substrate_state=DEGRADED, HOLD/RETAK
+    # Net effect: Lane A sealing (arif_judge -> arif_seal) was unreachable for
+    # every agent even after deployment drift was fully reconciled.
+    # This does NOT weaken the drift floor: real drift is caught by
+    # _substrate_degraded below (substrate.drift / software_release.drift /
+    # out["degraded"] entries containing "drift"), never by this token list.
+    # Regression test: tests/test_scoped_verdict_substrate_scope.py
+    _NON_SUBSTRATE_ISSUERS = {
+        "session_capability_token",
+        "identity_band",
+        "verdict_monotonicity",
+        "_compute_canonical_verdict",
+    }
     _substrate_only_degradation = [
-        d for d in (degradation or []) if not any(iss in str(d).lower() for iss in _AUTH_ISSUERS)
+        d
+        for d in (degradation or [])
+        if not any(iss in str(d).lower() for iss in _NON_SUBSTRATE_ISSUERS)
     ]
     _is_healthy = status in ("OK", "SEAL")
     _has_degradation = bool(_substrate_only_degradation)
