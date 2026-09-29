@@ -34,6 +34,8 @@ def _run_verify() -> dict[str, Any]:
     """Run canonical chain verify using the F-004 module. Never raises."""
     try:
         from arifosmcp.runtime.canonical_vault_chain import (
+            _sig_enforce,
+            _vault_hmac_key,
             derive_head,
             verify_chain,
         )
@@ -41,6 +43,23 @@ def _run_verify() -> dict[str, Any]:
         result = verify_chain(VAULT_DIR, scope="canonical")
         head = derive_head(VAULT_DIR)
 
+        # A gap without a stated reason is unfalsifiable: an auditor sees
+        # "gap_count: 2, violation_reasons: []" and cannot act on either.
+        gaps = [
+            {
+                "seq": g.seq,
+                "line": getattr(g, "line_no", None),
+                "class": str(g.gap_class),
+                "mechanism": getattr(g, "mechanism", None),
+                "detail": getattr(g, "detail", "") or "",
+            }
+            for g in result.gaps
+        ]
+
+        # verify_chain().head_seq is the last record's own sequence;
+        # derive_head()["seq"] is the count of canonical entries. Two
+        # different quantities shared one field name across the two public
+        # endpoints (44 vs 61 on the same chain), so publish both by name.
         return {
             "ok": True,
             "verified": result.verified,
@@ -50,8 +69,15 @@ def _run_verify() -> dict[str, Any]:
             "historical_entries": result.historical_entries,
             "corrupt_lines": result.corrupt_lines,
             "gap_count": len(result.gaps),
+            "gaps": gaps,
+            "posture": {
+                "hmac_key": "present" if _vault_hmac_key() else "absent",
+                "sig_enforce": "on" if _sig_enforce() else "warn",
+            },
             "head_hash": result.head_hash or head.get("hash"),
             "head_seq": result.head_seq if result.head_seq is not None else head.get("seq"),
+            "head_entry_seq": result.head_seq,
+            "head_count_seq": head.get("seq"),
             "head_actor": head.get("actor"),
             "head_timestamp": head.get("timestamp"),
             "failure_classes": result.failure_classes,
@@ -117,15 +143,33 @@ def get_vault_proof() -> dict[str, Any]:
         violation_reasons.append("last_seal_null: chain has no dated seal entry")
     if chain_staleness_hours is not None and chain_staleness_hours > 168:
         violation_reasons.append(f"stale: last seal {chain_staleness_hours}h ago (>168h)")
+    # Every published gap must carry its own reason. gap_count > 0 with an
+    # empty violation_reasons list tells an auditor the chain is broken and
+    # refuses to say where.
+    for g in v.get("gaps", []):
+        violation_reasons.append(
+            f"{g['class']}@seq{g['seq']} (line {g['line']}): {g['detail']}".strip()
+        )
 
     return {
         # ── Core proof (the one line that matters) ────────────────────────
         "head": v.get("head_hash"),
         "head_seq": v.get("head_seq"),
+        # head_seq is ambiguous by history: one endpoint stamps the last
+        # record's sequence, the other the count of canonical entries.
+        # Publish both quantities under unambiguous names so a witness can
+        # tell which number it is comparing.
+        "head_entry_seq": v.get("head_entry_seq"),
+        "head_count_seq": v.get("head_count_seq"),
         # ── Integrity ─────────────────────────────────────────────────────
         "verified": verified,
         "chain_status": v.get("status", "unknown"),
         "gap_count": v.get("gap_count", 0),
+        "gaps": v.get("gaps", []),
+        # verified=false under warn posture is a different claim from
+        # verified=false under enforce posture; the posture is part of the
+        # proof, not an implementation detail.
+        "verifier_posture": v.get("posture", {}),
         "canonical_entries": v.get("canonical_entries", 0),
         # ── Metadata ──────────────────────────────────────────────────────
         "last_seal": last_seal_ts,
