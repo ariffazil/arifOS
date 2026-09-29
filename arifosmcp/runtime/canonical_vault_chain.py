@@ -530,6 +530,10 @@ class GapRecord:
     got_prev: str | None
     seq: Any = None
     detail: str = ""
+    # Structured cause so a witness can separate an out-of-band append (a
+    # receipt assembled without append_receipt) from evidence that sealed
+    # history was rewritten. None = no distinct cause established.
+    mechanism: str | None = None
     # GOV-02: set when a chain annotation explains this divergence.
     explained_by: str | None = None
 
@@ -542,6 +546,7 @@ class GapRecord:
             "got": (str(self.got_prev)[:64] if self.got_prev else None),
             "seq": self.seq,
             "detail": self.detail,
+            "mechanism": self.mechanism,
             "explained_by": self.explained_by,
         }
 
@@ -906,6 +911,18 @@ def verify_chain(
             if not hashes_equal(expected, entry.get("receipt_hash")):
                 gc = GapClass.HASH_MISMATCH
                 classes[gc] = classes.get(gc, 0) + 1
+                # Name the mechanism when the record shows the one ordering
+                # that can never re-verify: an operation_id copied from the
+                # digest, which is only possible if the digest was computed
+                # before operation_id was set — i.e. the envelope was
+                # assembled outside append_receipt. This separates an
+                # out-of-band write from evidence that history was altered.
+                _rh = str(entry.get("receipt_hash") or "")
+                _rh_bare = _rh[7:] if _rh.startswith("sha256:") else _rh
+                _op = str(entry.get("operation_id") or "")
+                _mech = None
+                if _op and _rh_bare.startswith(_op):
+                    _mech = "OUT_OF_BAND_APPEND"
                 gaps.append(
                     GapRecord(
                         index=parseable_index,
@@ -914,7 +931,16 @@ def verify_chain(
                         expected_prev=expected,
                         got_prev=entry.get("receipt_hash"),
                         seq=seq,
-                        detail="recomputed receipt_hash mismatch",
+                        mechanism=_mech,
+                        detail=(
+                            "recomputed receipt_hash mismatch"
+                            + (
+                                " | operation_id is a prefix of its own "
+                                "receipt_hash (digest predates the field)"
+                                if _mech
+                                else ""
+                            )
+                        ),
                     )
                 )
 
