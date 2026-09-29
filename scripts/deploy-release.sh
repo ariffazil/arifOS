@@ -36,6 +36,15 @@ SITE_PKG_ROOT="$(cd / && "$VENV_PYTHON" -c 'import sysconfig; print(sysconfig.ge
 GIT_COMMIT="$(cd "$REPO_DIR" && git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown")"
 BUILD_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
+# ── Origin visibility (2026-09-29, audit item #16) ───────────────────
+# deploy-local guards HEAD == origin/main; this path did not, so a release
+# could be built from commits that exist only on this machine — making the
+# deployed artifact unreconstructable from the remote. Recorded, not blocked:
+# local-first deploy is legitimate practice here (the running ac054a5 build
+# was itself unpushed). Publishing is an F13 decision, not a deploy side effect.
+ORIGIN_COMMIT="$(cd "$REPO_DIR" && git rev-parse --short=7 origin/main 2>/dev/null || echo "unknown")"
+AHEAD_OF_ORIGIN="$(cd "$REPO_DIR" && git rev-list --count origin/main..HEAD 2>/dev/null || echo "-1")"
+
 # ── S5 deploy-honesty: dirty-tree capture (flag + record, NOT abort) ─
 # 2026-09-23: the git stamp is commit-only, but the wheel builds from the
 # WORKING TREE — concurrent lanes leave uncommitted deltas that ship in
@@ -53,6 +62,28 @@ else
 	GIT_DIRTY="false"
 	GIT_DIRTY_COUNT="0"
 	GIT_DIRTY_JSON="[]"
+fi
+
+# ── Step 0: CLEAN-TREE GATE (fail-closed) ────────────────────────────
+# 2026-09-29 (333-AGI, referential-integrity audit item #15/#16).
+# The capture above was flag-only: it recorded dirty=true and then built
+# anyway. That is how the ac054a5 production wheel came to contain four
+# uncommitted files — live code that existed in no commit, so the release
+# was identifiable only by content_sha256 and `source == built == deployed`
+# could never be truthfully asserted. Doctrine said "stamp honestly";
+# the institution needed "refuse to ship". Escape hatch is explicit and
+# leaves an audit line, because a dirty build is never the default path.
+if [ "$GIT_DIRTY" = "true" ] && [ "${DEPLOY_ALLOW_DIRTY:-0}" != "1" ]; then
+	echo "❌ 888_HOLD: refusing to build from a DIRTY tree ($GIT_DIRTY_COUNT uncommitted paths)."
+	echo "   A dirty build produces an artifact reproducible from no commit, which makes"
+	echo "   release_id a name that does not designate the running artifact (F2)."
+	printf '%s\n' "$GIT_DIRTY_FILES" | sed 's/^/     /'
+	echo "   Commit or stash the in-flight work first. If another lane owns it, wait for that lane."
+	echo "   Override (audited, discouraged): DEPLOY_ALLOW_DIRTY=1 $0"
+	exit 1
+fi
+if [ "$GIT_DIRTY" = "true" ]; then
+	echo "⚠️  DEPLOY_ALLOW_DIRTY=1 — building from a dirty tree by explicit override; manifest will record dirty=true"
 fi
 
 echo "═══ arifOS Release 1 — Runtime Truth ═══"
@@ -142,8 +173,8 @@ rm -f "$SITE_PKG_ROOT/arifos-core.pth" "$SITE_PKG_ROOT"/__editable__.arifos-*.pt
 
 # Axis C gate: exactly one arifos distribution, zero editable installs
 # (|| true: empty glob is a PASS condition, not an ls error)
-ARIFOS_DIST_COUNT=$( { ls -d "$SITE_PKG_ROOT"/arifos-*.dist-info 2>/dev/null || true; } | wc -l)
-EDITABLE_COUNT=$( { ls "$SITE_PKG_ROOT"/__editable__.arifos-* 2>/dev/null || true; } | wc -l)
+ARIFOS_DIST_COUNT=$({ ls -d "$SITE_PKG_ROOT"/arifos-*.dist-info 2>/dev/null || true; } | wc -l)
+EDITABLE_COUNT=$({ ls "$SITE_PKG_ROOT"/__editable__.arifos-* 2>/dev/null || true; } | wc -l)
 if [ "$ARIFOS_DIST_COUNT" -ne 1 ] || [ "$EDITABLE_COUNT" -ne 0 ]; then
 	echo "❌ ONE-ORIGIN GATE: dist_count=$ARIFOS_DIST_COUNT editable=$EDITABLE_COUNT"
 	rm -rf "$BUILD_DIR"
@@ -168,7 +199,7 @@ if [ ! -d "$PKG_DIR" ]; then
 	exit 1
 fi
 CONTENT_SHA256="$(find "$PKG_DIR" -name '*.py' -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)"
-if "$VENV_PYTHON" - "$PKG_DIR/__init__.py" "$CONTENT_SHA256" <<'STAMPEOF'
+if "$VENV_PYTHON" - "$PKG_DIR/__init__.py" "$CONTENT_SHA256" <<'STAMPEOF'; then
 import re, sys
 from pathlib import Path
 
@@ -183,7 +214,6 @@ else:
     text += line + "\n"
 init_py.write_text(text, encoding="utf-8")
 STAMPEOF
-then
 	echo "  ✅ Content stamp: __content_sha256__ = $CONTENT_SHA256"
 else
 	echo "❌ CONTENT-STAMP GATE: failed to stamp $PKG_DIR/__init__.py"
@@ -221,14 +251,14 @@ echo "  ✅ Venv self-contained (zero system-lean imports)"
 echo ""
 
 # Wheel content gate: exactly three legal roots, nothing else ships.
-WHEEL_ROOTS=$(unzip -l "$RELEASE_DIR/$WHEEL_NAME" 2>/dev/null | awk '{print $4}' \
-	| grep -v '^$' | grep -v 'dist-info' | cut -d/ -f1 | sort -u | tr '\n' ' ')
+WHEEL_ROOTS=$(unzip -l "$RELEASE_DIR/$WHEEL_NAME" 2>/dev/null | awk '{print $4}' |
+	grep -v '^$' | grep -v 'dist-info' | cut -d/ -f1 | sort -u | tr '\n' ' ')
 case "$WHEEL_ROOTS" in
-	*"scripts"*|*"tests"*|*"archive"*|*"mcp_server"*)
-		echo "❌ WHEEL GATE: illegal package root shipped: $WHEEL_ROOTS"
-		rm -rf "$BUILD_DIR"
-		exit 1
-		;;
+*"scripts"* | *"tests"* | *"archive"* | *"mcp_server"*)
+	echo "❌ WHEEL GATE: illegal package root shipped: $WHEEL_ROOTS"
+	rm -rf "$BUILD_DIR"
+	exit 1
+	;;
 esac
 echo "  ✅ Wheel roots: $WHEEL_ROOTS"
 
@@ -264,13 +294,14 @@ echo "--- Step 5-pre: Deploy canon package to /etc/arifos/canon ---"
 CANON_DIR_FHS="/etc/arifos/canon"
 install -d -m 0755 -o root -g root "$CANON_DIR_FHS/charter"
 install -m 0644 -o root -g root "$REPO_DIR/config/sovereignty.charter.json" \
-    "$CANON_DIR_FHS/sovereignty.charter.json"
+	"$CANON_DIR_FHS/sovereignty.charter.json"
 install -m 0644 -o root -g root "$REPO_DIR/config/charter/kernel.charter.yaml" \
-    "$CANON_DIR_FHS/charter/kernel.charter.yaml"
+	"$CANON_DIR_FHS/charter/kernel.charter.yaml"
 install -m 0644 -o root -g root "$REPO_DIR/config/memory-admissibility-policy.yaml" \
-    "$CANON_DIR_FHS/memory-admissibility-policy.yaml"
+	"$CANON_DIR_FHS/memory-admissibility-policy.yaml"
 CANON_VERSION="$(date -u +%Y.%m.%d)-${GIT_COMMIT}"
-CANON_MANIFEST_SHA=$("$VENV_PYTHON" - "$CANON_DIR_FHS" "$CANON_VERSION" "$GIT_COMMIT" <<'PYEOF'
+CANON_MANIFEST_SHA=$(
+	"$VENV_PYTHON" - "$CANON_DIR_FHS" "$CANON_VERSION" "$GIT_COMMIT" <<'PYEOF'
 import hashlib, json, sys
 from pathlib import Path
 
@@ -330,6 +361,8 @@ cat >"$MANIFEST_FILE" <<MANIFEST_EOF
   "git_commit": "$GIT_COMMIT",
   "dirty": $GIT_DIRTY,
   "dirty_files": $GIT_DIRTY_JSON,
+  "origin_main_commit": "$ORIGIN_COMMIT",
+  "ahead_of_origin": $AHEAD_OF_ORIGIN,
   "build_timestamp": "$BUILD_TS",
   "wheel_name": "$WHEEL_NAME",
   "wheel_sha256": "$WHEEL_HASH",
@@ -390,7 +423,17 @@ echo "  Runtime commit:  $RUNTIME_COMMIT"
 if [ "$RUNTIME_COMMIT" = "$GIT_COMMIT" ]; then
 	echo "  ✅ Runtime aligned with source"
 else
-	echo "  ⚠️  Runtime commit differs — deploy stamp may need update"
+	# 2026-09-29 (audit item #16): this was warn-only, so a deploy could
+	# complete with the running interpreter still importing a different
+	# commit than the stamp claimed. Fail closed instead.
+	echo "  ❌ 888_HOLD: runtime commit ($RUNTIME_COMMIT) != source commit ($GIT_COMMIT)"
+	echo "     The stamp would name an artifact that is not the one imported."
+	echo "     Rollback: $(cat /tmp/arifos_rollback_dir.txt 2>/dev/null || echo 'see /opt/arifos/releases/rollback-*')"
+	if [ "${DEPLOY_ALLOW_RUNTIME_MISMATCH:-0}" = "1" ]; then
+		echo "     DEPLOY_ALLOW_RUNTIME_MISMATCH=1 — continuing by explicit override (audited)"
+	else
+		exit 1
+	fi
 fi
 echo ""
 
@@ -410,6 +453,26 @@ echo "  Commit: $GIT_COMMIT"
 echo "  Wheel:  $WHEEL_NAME"
 echo "  Hash:   $WHEEL_HASH"
 echo "  DITEMPA BUKAN DIBERI"
+
+# ── Step 9: INDEPENDENT PROOF EXECUTOR (fail-closed) ─────────────────
+# 2026-09-29 (333-AGI, referential-integrity audit item #17).
+# verify_attestation.py existed, scored PASS/WARN/FAIL, and was called by
+# NOTHING — no Makefile target, no CI workflow, no deploy step. A verifier
+# with no caller is a name that creates the prior "attestation is verified"
+# while verifying nothing. Wiring it here makes the invariant continuous:
+#   declared = built = deployed = observed, from a clean tree, or the
+#   deploy reports failure instead of silently succeeding.
+echo ""
+echo "--- Step 9: Independent attestation proof (fail-closed) ---"
+if "$VENV_PYTHON" "$REPO_DIR/scripts/verify_attestation.py" --strict 2>&1; then
+	echo "  ✅ Attestation verified: PASS (declared == built == deployed == observed)"
+else
+	VERIFY_RC=$?
+	echo "  ❌ Attestation gate FAILED (rc=$VERIFY_RC). The artifact above IS live and healthy;"
+	echo "     the provenance invariant is not satisfied. Do not treat this deploy as sealed."
+	echo "     Investigate: /opt/arifos/releases/release-manifest.json + :8088/health software_release"
+	exit 1
+fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANON GATE: tools/list == capability_registry.json (surface consistency)
