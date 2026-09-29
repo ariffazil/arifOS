@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -33,6 +34,8 @@ from arifosmcp.kernel.apex_decision_field import (
     assess_apex_decision_field,
 )
 from arifosmcp.kernel.forge_scar_consult import consult_scar
+
+logger = logging.getLogger(__name__)
 
 
 class ForgeSkillVerdict(StrEnum):
