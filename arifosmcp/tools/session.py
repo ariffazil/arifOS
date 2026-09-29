@@ -217,7 +217,7 @@ def _ditempa_seal(manifest: SessionManifest, mode: str = "") -> SessionManifest:
             manifest.doctrine = f"{existing}\n\n— {DITEMPA_MOTTO} {state_emoji}"
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     return manifest
 
 
@@ -292,7 +292,7 @@ def _safe_dump(obj: Any) -> Any:
             return obj.model_dump()
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
     if isinstance(obj, dict):
         return obj
     if hasattr(obj, "__dict__"):
@@ -344,7 +344,7 @@ def _load_soul_shadow(model_key: str | None) -> tuple[dict, dict]:
         soul, shadow, _ = _load_model_registry(key)
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     return soul, shadow
 
 
@@ -576,7 +576,7 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
                 tr = raw_tr
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     # ── Check freshness ──
     anchor_fresh = False
     anchor_age_ms = -1
@@ -588,7 +588,7 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
             anchor_fresh = age.total_seconds() <= _TEMPORAL_ANCHOR_TTL_S
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
     # ── If anchor is fresh, use it ──
     if tr and anchor_fresh:
         base["observed_at_utc"] = tr["observed_at_utc"]
@@ -622,7 +622,7 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
                     return base
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
     # ── Fallback: return what we have, even if stale ──
     if tr:
         base["observed_at_utc"] = tr.get("observed_at_utc")
@@ -829,7 +829,7 @@ def _build_init_v2_roots(
                 probe_trail.append(f"probe:{organ}:DOWN")
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     try:
         import urllib.request as _urllib_req2
         import json as _json2
@@ -990,7 +990,7 @@ def _build_carry_forward_context() -> dict[str, Any] | None:
                 ctx["is_stale"] = age_h > 24
             except Exception:
 
-                _log.exception("suppressed exception", exc_info=True)
+                logger.exception("suppressed exception", exc_info=True)
     # ── Human state ──
     hs = doc.get("human_state")
     if isinstance(hs, dict):
@@ -1103,7 +1103,7 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
                         verified_ids.add(vid)
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     active = [p for p in preds if p.get("status") == "ACTIVE" and p.get("prediction_id") not in verified_ids]
 
     ctx["total_predictions"] = len(preds)
@@ -1129,7 +1129,7 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
                     })
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
     due_soon.sort(key=lambda x: x.get("days_until_due", 999))
     ctx["due_soon"] = due_soon
     ctx["due_soon_count"] = len(due_soon)
@@ -1151,7 +1151,7 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
                     })
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
     upcoming.sort(key=lambda x: x.get("days_until_due", 999))
     ctx["upcoming"] = upcoming[:5]
 
@@ -1645,7 +1645,7 @@ def _project_light(
                         }
                 except Exception:
 
-                    _log.exception("suppressed exception", exc_info=True)
+                    logger.exception("suppressed exception", exc_info=True)
             if _apex is None:
                 _apex = unmeasured_apex()  # fallback base structure
 
@@ -1705,7 +1705,7 @@ def _project_light(
                         _claims["evidence_ref"] = f"did://{_kid_for_uri}"
             except Exception:
 
-                _log.exception("suppressed exception", exc_info=True)
+                logger.exception("suppressed exception", exc_info=True)
         out["session_token"] = _token
         out["apex_scalars"] = dict(_apex)
         # P0.8 (2026-08-15): kernel_baseline — federation-wide reference.
@@ -1728,7 +1728,7 @@ def _project_light(
             }
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         if _sct_minted:
             pass  # standing_source already set to "no_act_unverified" in limited path
         else:
@@ -2047,7 +2047,7 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
                 result_soul = yaml.safe_load(f) or {}
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
     # Load shadow and extract floor posture
     if os.path.isfile(shadow_path):
         try:
@@ -2059,7 +2059,7 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
             result_posture = result_shadow.get("floor_posture", {})
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
     return result_soul, result_shadow, result_posture
 
 
@@ -2642,7 +2642,7 @@ def arif_init(
             well_ok = bool(_read_well_substrate())
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         # ── P0 WIRING (light mode): crypto bind + challenge (2026-07-10) ──
         # Wire_ArifInit_Signature_To_Session_v1: light mode MUST process
         # nonce+signature the same as init. No string-name auto-verify for
@@ -2685,7 +2685,7 @@ def arif_init(
                     bind_authority_state(sess, _av_state)
                 except Exception:
 
-                    _log.exception("suppressed exception", exc_info=True)
+                    logger.exception("suppressed exception", exc_info=True)
                 sess["signature_verified"] = bool(_band["signature_verified"])
                 sess["actor_band"] = _light_band
                 sess["agent_class"] = _light_agent_class
@@ -2713,7 +2713,7 @@ def arif_init(
                     bind_authority_state(sess, _av_state)
                 except Exception:
 
-                    _log.exception("suppressed exception", exc_info=True)
+                    logger.exception("suppressed exception", exc_info=True)
                 sess["signature_verified"] = False
         elif actor_id:
             # ── LOCALHOST AUTO-IDENTITY (Ed25519 Gap Fix — 2026-07-19) ──────
@@ -2788,7 +2788,7 @@ def arif_init(
                                 bind_authority_state(sess, _av_state)
                             except Exception:
 
-                                _log.exception("suppressed exception", exc_info=True)
+                                logger.exception("suppressed exception", exc_info=True)
                             sess["signature_verified"] = True
                             sess["actor_band"] = _light_band
                             sess["agent_class"] = _light_agent_class
@@ -2850,7 +2850,7 @@ def arif_init(
                             bind_authority_state(sess, _av_state)
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                         sess["signature_verified"] = True
                         sess["verified"] = True
                         sess["actor_verified"] = True
@@ -2880,7 +2880,7 @@ def arif_init(
                             bind_authority_state(sess, _av_state)
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                         # FIX 2026-08-08 333-AGI: operator exempt path was setting
                         # _light_actor_verified (local) but not sess["actor_verified"].
                         # Sovereign path at L1816 does both — operator path didn't.
@@ -2950,7 +2950,7 @@ def arif_init(
                                 bind_authority_state(sess, _av_state)
                             except Exception:
 
-                                _log.exception("suppressed exception", exc_info=True)
+                                logger.exception("suppressed exception", exc_info=True)
                             logger.info(
                                 "light-mode SOVEREIGN auto-grant for %s (signature challenge issued)",
                                 actor_id,
@@ -3223,7 +3223,7 @@ def arif_init(
                 set_active_session(sess["session_id"])
             except Exception:
 
-                _log.exception("suppressed exception", exc_info=True)
+                logger.exception("suppressed exception", exc_info=True)
         except Exception:
             pass
         return _sm(
@@ -3419,7 +3419,7 @@ def arif_init(
                         bind_authority_state(sess, _av_state)
                     except Exception:
 
-                        _log.exception("suppressed exception", exc_info=True)
+                        logger.exception("suppressed exception", exc_info=True)
                     logger.info("init-mode sct_symmetric verification successful for %s", actor_id)
             except Exception as _sct_exc:
                 logger.warning("init-mode sct_symmetric verification failed: %s", _sct_exc)
@@ -3472,7 +3472,7 @@ def arif_init(
                         bind_authority_state(sess, _av_state)
                     except Exception:
 
-                        _log.exception("suppressed exception", exc_info=True)
+                        logger.exception("suppressed exception", exc_info=True)
                     logger.info(
                         "init-mode HMAC-rootkey bind actor=%s reason=%s → FULL",
                         actor_id,
@@ -3545,7 +3545,7 @@ def arif_init(
                         bind_authority_state(sess, _av_state)
                     except Exception:
 
-                        _log.exception("suppressed exception", exc_info=True)
+                        logger.exception("suppressed exception", exc_info=True)
                     sess["actor_band"] = _band["actor_band"]
                     sess["agent_class"] = _band["agent_class"]
                     sess["identity_verify_reason"] = _reason
@@ -3686,7 +3686,7 @@ def arif_init(
                             bind_authority_state(sess, _av_state)
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                         logger.info(
                             "init-mode auto-identity: %s verified via localhost Ed25519 (%s) → %s",
                             actor_id,
@@ -3751,7 +3751,7 @@ def arif_init(
                             bind_authority_state(sess, _av_state)
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                         sess["signature_verified"] = True
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                         sess["actor_band"] = "FULL"
@@ -3780,7 +3780,7 @@ def arif_init(
                             bind_authority_state(sess, _av_state)
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                         sess["agent_class"] = "AGENT"
                         sess["actor_band"] = "LIMITED_MUTATE"
                         sess["authority"] = "LIMITED_MUTATE"
@@ -3832,7 +3832,7 @@ def arif_init(
                     bind_authority_state(sess, _av_state)
                 except Exception:
 
-                    _log.exception("suppressed exception", exc_info=True)
+                    logger.exception("suppressed exception", exc_info=True)
         # ── Birth authority: identity band only (Spine P0, Workstream 1) ──
         from arifosmcp.runtime.act_token import compute_authority_state, identity_band_authority
 
@@ -3962,7 +3962,7 @@ def arif_init(
             well_mirror_data = _read_well_substrate() or {}
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         context_receipt = _compute_context_completeness(
             actor_id=actor_id,
             identity_verified=identity_verified,
@@ -4166,7 +4166,7 @@ def arif_init(
                 set_active_session(sess["session_id"])
             except Exception:
 
-                _log.exception("suppressed exception", exc_info=True)
+                logger.exception("suppressed exception", exc_info=True)
             # F13: bind into canonical identity store used by compose_standing
             # (get_session_identity / _SESSION_IDENTITY — NOT tools._SESSIONS alone)
             try:
@@ -4211,7 +4211,7 @@ def arif_init(
                 logger.warning("bind_session_identity failed (non-fatal): %s", _bind_err)
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         from arifosmcp.runtime.work_spine import create_work_contract
 
         _temporal_root = {}  # APEX patch 2026-08-02: F1 fallback before Temporal Intelligence Keystone (line below) sets proper value
@@ -4258,7 +4258,7 @@ def arif_init(
                 _SESSIONS[sid] = sess
             except Exception:
 
-                _log.exception("suppressed exception", exc_info=True)
+                logger.exception("suppressed exception", exc_info=True)
         # L3: Carry-forward injection — generational memory at init.
         # Injects human_state, recent entries, chron_briefing, open loops.
         _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
@@ -4741,7 +4741,7 @@ def arif_init(
             _SESSIONS[sid] = sess
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         from arifosmcp.runtime.work_spine import create_work_contract
 
         work_receipt = create_work_contract(

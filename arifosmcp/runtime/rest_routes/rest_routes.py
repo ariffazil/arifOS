@@ -440,7 +440,7 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
                 break
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     # Fallback: when the kernel can't reach the docker socket (e.g. systemd
     # context where the service user is not in the `docker` group), probe
     # services via TCP. We try two host families:
@@ -1137,7 +1137,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 resolved_telemetry["confidence"] = resolved_floors["F8"]
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     # WS2 (2026-07-12): removed Observatory seal-readiness guard.
     # A green /health does NOT imply execution readiness. The previous
     # version force-overrode verdict to ``SEAL`` whenever all floors passed,
@@ -2331,7 +2331,7 @@ def _count_mcp_tools(fmcp: Any) -> int:
         return len(public_tool_names_for_mode())
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     return 9
 
 
@@ -2608,7 +2608,7 @@ def _probe_vault999_health() -> str:
                 return "healthy"
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     # 2. Legacy API (if ever revived)
     try:
         with urllib.request.urlopen("http://localhost:8100/health", timeout=2) as resp:
@@ -2617,7 +2617,7 @@ def _probe_vault999_health() -> str:
                 return "healthy"
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     # 3. FS-backed truth: seal_chain + head present + recent activity
     try:
         head_p = "/root/.local/share/arifos/vault999/seal_chain_head.json"
@@ -2630,7 +2630,7 @@ def _probe_vault999_health() -> str:
             return "degraded"  # exists but stale
     except Exception:
 
-        _log.exception("suppressed exception", exc_info=True)
+        logger.exception("suppressed exception", exc_info=True)
     return "unreachable"
 
 
@@ -4416,7 +4416,7 @@ def register_rest_routes(
             ) or None
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         return JSONResponse(
             {
                 # Core gauges — null if kernel telemetry unavailable
@@ -4634,7 +4634,7 @@ def register_rest_routes(
                                     result["tool_count"] = len(result["tools"])
                             except Exception:
 
-                                _log.exception("suppressed exception", exc_info=True)
+                                logger.exception("suppressed exception", exc_info=True)
                 except Exception:
                     pass
 
@@ -4897,7 +4897,7 @@ def register_rest_routes(
                     ollama_models = [m["name"] for m in r.json().get("models", [])]
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         external_layer = [
             build_component("Ollama", "llm", "ollama", 11434, external_results[0]),
             build_component(
@@ -5442,7 +5442,7 @@ def register_rest_routes(
                 return JSONResponse(jwks)
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         # Fallback: placeholder (dev mode only)
         return JSONResponse(
             {
@@ -5932,7 +5932,7 @@ def register_rest_routes(
                 write_public_state(state)
             except Exception:
 
-                _log.exception("suppressed exception", exc_info=True)
+                logger.exception("suppressed exception", exc_info=True)
             return JSONResponse(
                 state,
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
@@ -5986,7 +5986,7 @@ def register_rest_routes(
                             break
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                 except Exception:
                     pass
 
@@ -6193,7 +6193,7 @@ def register_rest_routes(
                 sot_source = "local:fallback"
             except Exception:
 
-                _log.exception("suppressed exception", exc_info=True)
+                logger.exception("suppressed exception", exc_info=True)
         # Full intended surface = canonical_order + diagnostic_order
         # (comparing only canonical_order vs ~50 live tools caused a permanent false HOLD)
         canonical_tools = main_registry.get("canonical_order", [])
@@ -6556,7 +6556,7 @@ def register_rest_routes(
                             entries.append(json.loads(line.strip()))
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                 except Exception as e:
                     logger.warning(f"Failed to read vault file: {e}")
 
@@ -6949,7 +6949,7 @@ def register_rest_routes(
                             mcp_tool_names.append(name)
         except Exception:
 
-            _log.exception("suppressed exception", exc_info=True)
+            logger.exception("suppressed exception", exc_info=True)
         lines = [
             "# arifOS MCP — Constitutional AI Gateway",
             f"Version: {BUILD_VERSION}",
@@ -8116,7 +8116,7 @@ setInterval(refreshSot, 30000);
                                         result["tools_count"] = len(tools_data["result"]["tools"])
                             except Exception:
 
-                                _log.exception("suppressed exception", exc_info=True)
+                                logger.exception("suppressed exception", exc_info=True)
                     else:
                         result["error"] = f"http_{resp.status_code}"
             except Exception as e:
@@ -8139,7 +8139,7 @@ setInterval(refreshSot, 30000);
                             result["data"] = resp.json()
                         except Exception:
 
-                            _log.exception("suppressed exception", exc_info=True)
+                            logger.exception("suppressed exception", exc_info=True)
                     else:
                         result["error"] = f"http_{resp.status_code}"
             except Exception as e:
@@ -8281,7 +8281,7 @@ setInterval(refreshSot, 30000);
                                         tools_count = len(td["result"]["tools"])
                             except Exception:
 
-                                _log.exception("suppressed exception", exc_info=True)
+                                logger.exception("suppressed exception", exc_info=True)
                             _svc_results["geox"] = {
                                 "status": "ok",
                                 "mcp_probe": "ok",
