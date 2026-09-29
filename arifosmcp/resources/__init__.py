@@ -491,7 +491,11 @@ CANONICAL_RESOURCES = (
     "arifos://wisdom/contract",
     "arifos://wisdom/quotes/all",
     # DOORS chamber
-    "tree777://index",
+    # REMOVED 2026-09-29 (F13 Order A — tree777 de-advertisement):
+    #   "tree777://index" — retired namespace. Service held 2026-08-14
+    #   (AAA/corpus/DECISION_TREE777_HOLD_2026-08-14.md), no successor service.
+    #   The live handler is retained in resources/tree777.py (access preserved);
+    #   this tuple governs ADVERTISEMENT only.
     "skill://index",
     # Structural anchors
     "arifos://index",
@@ -512,9 +516,15 @@ SUPPLEMENTAL_RESOURCES = (
 
 TREE777_RESOURCES = (
     # REMOVED 2026-06-28: tree777://index (meta, not domain data)
-    # Keep concepts/scars — these are domain knowledge (geology concepts, scars)
-    "tree777://concepts/{name}",
-    "tree777://scars/{name}",
+    # REMOVED 2026-09-29 (F13 Order A — namespace retired):
+    #   "tree777://concepts/{name}" — broken: resolved to a non-existent wiki path
+    #                                 (ERROR: File not found: AAA/wiki/concepts/*.md)
+    #   "tree777://scars/{name}"    — orphaned namespace; the tree777 service was held
+    #                                 2026-08-14 and has no successor.
+    # The CORPUS is retained and live: /root/AAA/wiki (see AAA/wiki/INDEX.md).
+    # ADVERTISEMENT != ACCESS: live handlers remain registered by
+    #   register_tree777_resources() below; this tuple governs only what the federated
+    #   resource catalog / llms.txt publish.
 )
 
 EMBODIED_RESOURCES = (

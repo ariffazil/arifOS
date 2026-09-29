@@ -191,6 +191,9 @@ def generate_llms_txt() -> str:
     lines.append(
         "- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles"
     )
+    lines.append(
+        "- [AAA/wiki/INDEX.md](file:///root/AAA/wiki/INDEX.md): Federation operational knowledge corpus — concepts, axioms, scars, entities. Owner of the retired `tree777://` namespace."
+    )
     lines.append("")
     lines.append("## MCP Tools — Complete Surface (federation aggregate)")
     lines.append(
