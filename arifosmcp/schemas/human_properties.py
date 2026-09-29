@@ -14,7 +14,7 @@ Humans are not entirely intelligence. They have:
 This schema makes these properties CONSTITUTIONAL SUBSTRATE
 that the kernel uses when enforcing floors.
 
-Source: scar-terrain-arif-fazil.md (SOVEREIGN_TESTIMONY)
+Source: AAA/wiki/SCAR_TERRAIN.md (SOVEREIGN_TESTIMONY; renamed from scar-terrain-arif-fazil.md)
 Governance: F2 (truth), F6 (dignity), F13 (sovereign)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.

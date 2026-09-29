@@ -50,7 +50,7 @@ class ScarSignature(BaseModel):
     """Inverse-weighted hash of activated scars in the drop's topology.
 
     The 11 scars + 4 shadows + 5 hollows are catalogued in
-    /root/AAA/wiki/scar-terrain-arif-fazil.md. Hollows are DO_NOT_FILL —
+    /root/AAA/wiki/SCAR_TERRAIN.md (renamed from scar-terrain-arif-fazil.md). Hollows are DO_NOT_FILL —
     this schema enforces that by limiting `activated` to a closed set.
     """
 

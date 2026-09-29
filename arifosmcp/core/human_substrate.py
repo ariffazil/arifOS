@@ -6,7 +6,7 @@ Loads the sovereign's scars, shadows, paradoxes, limits, constraints,
 and invariants into the kernel's floor enforcement.
 
 This is the bridge between:
-  - scar-terrain-arif-fazil.md (SOVEREIGN_TESTIMONY)
+  - AAA/wiki/SCAR_TERRAIN.md (SOVEREIGN_TESTIMONY; renamed from scar-terrain-arif-fazil.md)
   - arifosmcp/core/law.py (FLOOR ENFORCEMENT)
 
 When the kernel checks a floor, it now checks against the human's
@@ -60,7 +60,7 @@ def set_human_properties(props: HumanProperties) -> None:
 def _build_arif_properties() -> HumanProperties:
     """Build Arif Fazil's human properties from sovereign testimony.
 
-    Source: scar-terrain-arif-fazil.md (186 lines, SOVEREIGN_TESTIMONY)
+    Source: AAA/wiki/SCAR_TERRAIN.md (SOVEREIGN_TESTIMONY, ~186 lines at metabolization time)
     This is the METABOLIZED version — structured for kernel consumption.
     """
 
@@ -360,7 +360,8 @@ def _build_arif_properties() -> HumanProperties:
         shadow_count=len(shadows),
         hollow_count=5,
         grief_active=True,
-        source="sovereign-testimony:scar-terrain-arif-fazil.md",
+        source="sovereign-testimony:AAA/wiki/SCAR_TERRAIN.md",
+        source_alias="scar-terrain-arif-fazil.md (pre-rename, 2026-06-16 metabolization)",
         version="2026-06-16",
     )
 
