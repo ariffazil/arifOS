@@ -414,8 +414,10 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
             pass
         # Also check _ED25519_EXEMPT_SYSTEM_ACTORS as a fallback
         try:
-            from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
-            if r in _ED25519_EXEMPT_SYSTEM_ACTORS and c in _ED25519_EXEMPT_SYSTEM_ACTORS:
+            # 2026-09-30 (333-AGI): shared spelling-tolerant resolver, so a
+            # `name/FI-nnn` standing record still matches its bare canonical head.
+            from arifosmcp.runtime.session_auth import exempt_actor_band as _eab_ss
+            if _eab_ss(r) and _eab_ss(c):
                 return True
         except Exception:
             pass

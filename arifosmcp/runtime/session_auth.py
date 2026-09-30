@@ -123,6 +123,33 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
 }
 
 
+def exempt_actor_band(actor_id: str | None) -> str | None:
+    """Exempt-list authority band for an actor, tolerating the documented
+    `name/FI-nnn` lane-qualified spelling. Returns e.g. "operator", or None.
+
+    2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for all
+    AAA agents"): every caller did `actor.lower() in _ED25519_EXEMPT_SYSTEM_ACTORS`,
+    so an agent presenting the actor_id spelled in the MCP tool docs (e.g.
+    "kimi-code/FI-008") missed the list and was clamped to OBSERVE_ONLY while the
+    bare name beside it kept operator band -- a spelling-dependent authority cliff.
+    One resolver, shared by every lookup site.
+
+    This does NOT auto-verify: per the SECURITY P0 2026-09-04 Path A fix, exempt
+    membership authorizes an authority LEVEL only; actor_verified still requires
+    Ed25519 proof. Trust boundary is unchanged -- candidates come from the same
+    registry, so `nobody/FI-999` still resolves to None.
+    """
+    try:
+        from arifosmcp.contracts.identity import actor_lookup_candidates
+    except Exception:
+        return None
+    for cand in actor_lookup_candidates(actor_id):
+        band = _ED25519_EXEMPT_SYSTEM_ACTORS.get(cand)
+        if band:
+            return str(band)
+    return None
+
+
 def _resolve_authority_from_registry(actor_id: str | None) -> str:
     """
     Resolve authority level from agent_identities.json registry.
@@ -138,9 +165,11 @@ def _resolve_authority_from_registry(actor_id: str | None) -> str:
     # Hardcoded system actors — Ed25519 registry bootstrap exemption
     # Case-insensitive: external hosts may send "ARIF" or "Arif"
     if actor_id:
-        _key = actor_id.strip().lower()
-        if _key in _ED25519_EXEMPT_SYSTEM_ACTORS:
-            return _ED25519_EXEMPT_SYSTEM_ACTORS[_key]
+        # 2026-09-30 (333-AGI): shared resolver, so the documented `name/FI-nnn`
+        # lane-qualified spelling resolves to the same band as its bare head.
+        _band = exempt_actor_band(actor_id)
+        if _band:
+            return _band
 
     # Look up in registry
     if actor_id and _AGENT_IDENTITIES_PATH.exists():
@@ -392,7 +421,9 @@ def validate_session(
         # requirement. The exempt list declares these actors as bootstrap
         # principals that can claim their identity without cryptographic proof.
         sess_actor_key = sess_actor.strip().lower() if sess_actor else ""
-        if sess_actor_key in _ED25519_EXEMPT_SYSTEM_ACTORS:
+        # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
+        # membership test, which missed the documented `name/FI-nnn` form).
+        if exempt_actor_band(sess_actor):
             logger.info(
                 "T3a: Ed25519-exempt actor %s bypasses protected ID signature check",
                 sess_actor,

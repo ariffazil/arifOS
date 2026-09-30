@@ -121,34 +121,11 @@ def _actor_lookup_candidates(actor_key: str | None) -> list[str]:
     registries, so this widens spelling tolerance, not the trust boundary: a slash
     form resolves only if its head or tail already resolves on its own.
     """
-    keys: list[str] = []
-    raw = (actor_key or "").strip().lower()
-    if raw:
-        keys.append(raw)
-        if "/" in raw:
-            head, _, tail = raw.partition("/")
-            for part in (head.strip(), tail.strip()):
-                if part and part not in keys:
-                    keys.append(part)
-    try:
-        from arifosmcp.contracts.identity import (
-            CANONICAL_ACTORS,
-            normalize_actor_identity,
-        )
+    # 2026-09-30: single source of truth moved to contracts.identity so the
+    # session_auth exempt lookup and the init anchor share one resolver.
+    from arifosmcp.contracts.identity import actor_lookup_candidates
 
-        canon = normalize_actor_identity(actor_key).get("normalized")
-        if canon:
-            c = str(canon).lower()
-            if c not in keys:
-                keys.append(c)
-            for alias in (CANONICAL_ACTORS.get(canon, {}) or {}).get("aliases", []) or []:
-                if isinstance(alias, str):
-                    a = alias.strip().lower()
-                    if a and a not in keys:
-                        keys.append(a)
-    except Exception:
-        logger.exception("suppressed exception", exc_info=True)
-    return keys
+    return actor_lookup_candidates(actor_key)
 
 
 # ── End DID Registry Validation ──────────────────────────────────────────────
