@@ -56,6 +56,19 @@ _METHODS = {
 _KERNEL_HEALTH = "http://127.0.0.1:8088/health"
 _IDENTITY_TOML_PATH = "/opt/arifos/identity.toml"
 _IDENTITY_TOML_FALLBACK = "/root/arifOS/identity.toml"
+# 2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for all
+# AAA agents"): both paths above are DERIVED pointer stubs whose entire content is
+# "# This file is superseded by: /root/AAA/identity.toml". The Q5 reader below used
+# `_file_read(PATH) or _file_read(FALLBACK)`; the stub is NON-EMPTY, so the chain
+# short-circuited and the canonical payload was never read. Result: Q5=NO for every
+# actor without a live ed25519 proof -> boot_state=FAIL -> _apply_boot_gate demoted
+# LIMITED_MUTATE/FULL to OBSERVE_ONLY for all non-exempt actors. The federation kept
+# working only via _ED25519_EXEMPT_SYSTEM_ACTORS -- authority came from an exemption
+# list, not from attestation, and any NEW warga was silently capped (measured:
+# mcporter -> HOLD/OBSERVE_ONLY). Recurrence of the documented 2026-08-21 04:16
+# system-wide clamp, different proximate cause. A pointer that no consumer follows
+# is a payload loss, so the reader now follows it.
+_IDENTITY_TOML_CANONICAL = "/root/AAA/identity.toml"
 _VAULT_CHAIN_HEAD = "/root/.local/share/arifos/vault999/seal_chain_head.json"
 
 # F-007: hardcoded sovereign Ed25519 pubkey path.
@@ -131,6 +144,49 @@ def _file_readable(path: str) -> bool:
             return True
     except OSError:
         return False
+
+
+def _read_identity_toml_chain() -> tuple[str, dict[str, str]]:
+    """Read the identity.toml chain, FOLLOWING `superseded by:` pointers.
+
+    Returns (joined_text, {path: text}) for every readable candidate.
+
+    Why join instead of `or`: the DERIVED stubs are non-empty (they carry the
+    pointer comment), so an `or` chain stops at the stub and the canonical
+    payload is never seen -- that single short-circuit was the root cause of the
+    federation-wide OBSERVE_ONLY clamp (2026-09-30, see _IDENTITY_TOML_CANONICAL).
+
+    Fail-closed is preserved: this only widens WHICH canonical files are read, it
+    never grants YES. Q5 still returns PARTIAL at best without an ed25519 proof,
+    and a fully unreadable chain still yields NO.
+    """
+    texts: dict[str, str] = {}
+    queue = [_IDENTITY_TOML_PATH, _IDENTITY_TOML_FALLBACK, _IDENTITY_TOML_CANONICAL]
+    while queue:
+        path = queue.pop(0)
+        if not path or path in texts:
+            continue
+        text = _file_read(path)
+        if not text:
+            continue
+        texts[path] = text
+        # Follow one level of explicit supersession pointer per file.
+        for line in text.splitlines():
+            if "superseded by:" in line:
+                target = line.split("superseded by:", 1)[1].strip()
+                if target and target not in texts and target not in queue:
+                    queue.append(target)
+                break
+    return "\n".join(texts.values()), texts
+
+
+def _identity_anchor_path(texts: dict[str, str]) -> str:
+    """Name the file that actually CARRIES the sovereign anchor, not the stub that
+    merely points at it (F2 TRUTH: provenance over narrative)."""
+    for path, text in texts.items():
+        if "F13" in text or "Muhammad Arif bin Fazil" in text or "sovereign" in text.lower():
+            return path
+    return _IDENTITY_TOML_CANONICAL
 
 
 def _answer_q1_identity_bind(session_id: str | None) -> EvidencedAnswer:
@@ -374,7 +430,10 @@ def _answer_q5_sovereign_recognize(
         )
 
     # Legacy fallback — name-string match. Demoted from YES to PARTIAL.
-    toml_text = _file_read(_IDENTITY_TOML_PATH) or _file_read(_IDENTITY_TOML_FALLBACK)
+    # 2026-09-30: read the WHOLE chain and follow `superseded by:` pointers. The
+    # previous `or` chain short-circuited on the non-empty DERIVED stub, so the
+    # canonical payload was never seen and Q5 answered NO -> federation-wide clamp.
+    toml_text, toml_files = _read_identity_toml_chain()
     pii_text = _file_read("/root/.secrets/sovereign_identity.toml") or ""
     combined = toml_text + "\n" + pii_text
     name_match = ("Muhammad Arif bin Fazil" in combined or "Arif" in toml_text) and (
@@ -398,9 +457,7 @@ def _answer_q5_sovereign_recognize(
             q="Q5",
             answer="PARTIAL",
             method="identity_toml_f13",  # legacy label; PARTIAL not YES
-            evidence_ref=(
-                f"file://{_IDENTITY_TOML_PATH if _file_read(_IDENTITY_TOML_PATH) else _IDENTITY_TOML_FALLBACK}#owner"
-            ),
+            evidence_ref=f"file://{_identity_anchor_path(toml_files)}#owner",
             issuer="identity_toml",
             fresh_at=_now_iso(),
             note=(
@@ -663,10 +720,21 @@ def bootstrap_attestation(actor_id: str | None = None) -> dict[str, Any]:
 
 def boot_state_for_authority_grade(requested_band: str, *, session_id: str | None = None, actor_id: str | None = None) -> dict[str, Any]:
     """For any requested_band >= LIMITED_MUTATE, return the BOOT verdict that
-    must be OK before that band can be issued.
+    gates that band.
 
-    Per the doctrine, FAIL ⇒ refuse the band. PARTIAL ⇒ also refuse until
-    kernel /health is reachable and atlas333 substrate is on disk.
+    Contract (as shipped, and as the P0.3 2026-08-13 fix requires):
+      FAIL    -> refuse the band (some Q answered NO: a real integrity gap)
+      PARTIAL -> allow the band
+      OK      -> allow the band
+
+    The earlier docstring claimed "PARTIAL => also refuse". That was never what
+    `passes` computed (`boot_state != "FAIL"`), and it is not implementable:
+    during arif_init, Q1 (identity bind) and Q3 (session ignite) are inherently
+    PARTIAL because the session is still being minted, so refusing PARTIAL would
+    demote EVERY actor to OBSERVE_ONLY on every init -- the exact regression the
+    P0.3 fix closed. Corrected 2026-09-30 (333-AGI) after the Q5 pointer fix
+    exposed the contradiction: two tests were only passing because the live
+    system was stuck in FAIL. Gate behaviour is unchanged by this edit.
     """
     parsed = verify_boot_attestation(session_id=session_id, actor_id=actor_id)
     if requested_band in ("OBSERVE_ONLY", ""):
