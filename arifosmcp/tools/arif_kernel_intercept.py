@@ -103,6 +103,25 @@ except ImportError:
 # append (R2), and seal (R4). Split into three granular entries that map
 # to distinct reversibility classes. The upstream ActionClass enum mirrors
 # this split via AUDIT_RECORD_READ / AUDIT_RECORD_APPEND / AUDIT_SEAL aliases.
+
+
+def _resolve_judge_lane_model() -> str:
+    """BL11 (F13 SAH 2026-09-30): primary model of the judge lane (888-APEX)
+    from AAA's canonical AGENT_MODEL_MAP.json. Resolved once at import;
+    failure degrades to a loud 'unresolved' string, never silence."""
+    try:
+        with open("/root/AAA/registries/models/AGENT_MODEL_MAP.json", encoding="utf-8") as fh:
+            _doc = json.load(fh)
+        for _a in _doc.get("agents", []):
+            if _a.get("agent_id") == "888-APEX":
+                return _a.get("primary_model") or "unresolved"
+    except Exception:  # noqa: BLE001 — stamp degrades loudly, never breaks a verdict
+        pass
+    return "unresolved"
+
+
+_JUDGE_LANE_MODEL = _resolve_judge_lane_model()
+
 _ACTION_CLASS_POLICY = {
     "AUDIT_RECORD": {
         "seal_purpose": "RECORD",
@@ -415,9 +434,14 @@ async def _arif_kernel_intercept(
             "why_this_tool": "Kernel cannot classify unknown reversibility",
             "next_safe_action": base["next_safe_action"],
         }
-        _sct_emit_if_wired(tool=requested_capability, decision=unknown_output.decision,
-                           reason_code="CLASSIFICATION_HOLD", actor_id=actor,
-                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
+        _sct_emit_if_wired(
+            tool=requested_capability,
+            decision=unknown_output.decision,
+            reason_code="CLASSIFICATION_HOLD",
+            actor_id=actor,
+            action_class=action_class or _rev_raw,
+            require_sct=bool(authority_token),
+        )
         return base
 
     try:
@@ -544,8 +568,10 @@ async def _arif_kernel_intercept(
             base["next_safe_action"] = "Sign authorization_request with Ed25519 then resubmit"
             base["constitutional_check"] = {"hold_required": True, "floor": "F13"}
             _sct_emit_if_wired(
-                tool=requested_capability, decision=output.decision,
-                reason_code="F13_SOVEREIGN_REQUIRED", actor_id=actor,
+                tool=requested_capability,
+                decision=output.decision,
+                reason_code="F13_SOVEREIGN_REQUIRED",
+                actor_id=actor,
                 action_class=action_class or _rev_raw,
                 require_sct=bool(authority_token),
             )
@@ -570,9 +596,14 @@ async def _arif_kernel_intercept(
             "Gather cited evidence (arif_fetch or arif_observe) then re-submit to kernel_intercept"
         )
         base["metacognition"] = {"confidence": 0.95, "next_safe_action": base["next_safe_action"]}
-        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
-                           reason_code="F2_NO_EVIDENCE", actor_id=actor,
-                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
+        _sct_emit_if_wired(
+            tool=requested_capability,
+            decision=output.decision,
+            reason_code="F2_NO_EVIDENCE",
+            actor_id=actor,
+            action_class=action_class or _rev_raw,
+            require_sct=bool(authority_token),
+        )
         return base
 
     if t_state == TruthState.CONFLICT and not evidence:
@@ -592,9 +623,14 @@ async def _arif_kernel_intercept(
         base["affordance"] = target_aff
         base["next_safe_action"] = "Resolve contradiction with explicit evidence then re-intercept"
         base["metacognition"] = {"confidence": 0.85, "next_safe_action": base["next_safe_action"]}
-        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
-                           reason_code="F2_CONFLICT_NO_EVIDENCE", actor_id=actor,
-                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
+        _sct_emit_if_wired(
+            tool=requested_capability,
+            decision=output.decision,
+            reason_code="F2_CONFLICT_NO_EVIDENCE",
+            actor_id=actor,
+            action_class=action_class or _rev_raw,
+            require_sct=bool(authority_token),
+        )
         return base
 
     if (
@@ -619,9 +655,14 @@ async def _arif_kernel_intercept(
             "Attach evidence or downgrade epistemic_state before re-intercept"
         )
         base["metacognition"] = {"confidence": 0.80, "next_safe_action": base["next_safe_action"]}
-        _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
-                           reason_code="F2_HIGH_BLAST_NO_EVIDENCE", actor_id=actor,
-                           action_class=action_class or _rev_raw, require_sct=bool(authority_token))
+        _sct_emit_if_wired(
+            tool=requested_capability,
+            decision=output.decision,
+            reason_code="F2_HIGH_BLAST_NO_EVIDENCE",
+            actor_id=actor,
+            action_class=action_class or _rev_raw,
+            require_sct=bool(authority_token),
+        )
         return base
 
     if _has_measurement:
@@ -647,9 +688,14 @@ async def _arif_kernel_intercept(
                 "next_safe_action": base["next_safe_action"],
                 "measurement_used": True,
             }
-            _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
-                               reason_code="F9_C_DARK_ESCALATE", actor_id=actor,
-                               action_class=action_class or _rev_raw, require_sct=bool(authority_token))
+            _sct_emit_if_wired(
+                tool=requested_capability,
+                decision=output.decision,
+                reason_code="F9_C_DARK_ESCALATE",
+                actor_id=actor,
+                action_class=action_class or _rev_raw,
+                require_sct=bool(authority_token),
+            )
             return base
 
         if _G is not None and _G < 0.50:
@@ -674,9 +720,14 @@ async def _arif_kernel_intercept(
                 "next_safe_action": base["next_safe_action"],
                 "measurement_used": True,
             }
-            _sct_emit_if_wired(tool=requested_capability, decision=output.decision,
-                               reason_code="F8_G_ESCALATE", actor_id=actor,
-                               action_class=action_class or _rev_raw, require_sct=bool(authority_token))
+            _sct_emit_if_wired(
+                tool=requested_capability,
+                decision=output.decision,
+                reason_code="F8_G_ESCALATE",
+                actor_id=actor,
+                action_class=action_class or _rev_raw,
+                require_sct=bool(authority_token),
+            )
             return base
 
     # 3. Standard Allow
@@ -709,6 +760,10 @@ async def _arif_kernel_intercept(
         "actor_id": actor,
         "candidate_hash": _candidate_hash,
         "ack_irreversible": _ack_irreversible,
+        # BL11 (F13 SAH 2026-09-30): judge-lane model stamp — makes lane separation
+        # auditable at RUNTIME (not just config). Guarded by AAA CI test
+        # test_judge_builder_model_distinct.py on the config side.
+        "judge_model": _JUDGE_LANE_MODEL,
     }
     _judge_state_json = json.dumps(_judge_state, sort_keys=True, separators=(",", ":"))
     _judge_state_hash = hashlib.sha256(_judge_state_json.encode()).hexdigest()
