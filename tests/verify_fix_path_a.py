@@ -26,8 +26,47 @@ ACTOR_ID = "opencode-e2e-probe"
 TIMEOUT_S = 12
 
 
+_PATHA_SESSION: dict = {}
+
+
+def _kernel_session_id() -> str | None:
+    """Stateless-kernel contract: bind one light session; transport must carry it."""
+    if "sid" in _PATHA_SESSION:
+        return _PATHA_SESSION["sid"]
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "tools/call",
+        "params": {
+            "name": "arif_init",
+            "arguments": {"mode": "light", "actor_id": "path-a-detector"},
+        },
+    }
+    req = urllib.request.Request(
+        KERNEL_MCP_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        },
+    )
+    sid = None
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+        sc = (body.get("result") or {}).get("structuredContent") or {}
+        sid = sc.get("session_id") or (sc.get("result") or {}).get("session_id") or None
+    except Exception:
+        sid = None
+    _PATHA_SESSION["sid"] = sid
+    return sid
+
+
 def mcp_call(name: str, args: dict) -> dict:
     """Call arifOS MCP tool, return structuredContent."""
+    sid = None if name == "arif_init" else _kernel_session_id()
+    if sid:
+        args = {**args, "session_id": args.get("session_id") or sid}
     payload = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -35,13 +74,16 @@ def mcp_call(name: str, args: dict) -> dict:
         "params": {"name": name, "arguments": args},
     }
     data = json.dumps(payload).encode("utf-8")
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
+    if sid:
+        headers["mcp-session-id"] = sid
     req = urllib.request.Request(
         KERNEL_MCP_URL,
         data=data,
-        headers={
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream",
-        },
+        headers=headers,
     )
     with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
         body = json.loads(resp.read().decode("utf-8"))
