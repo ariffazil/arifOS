@@ -13,8 +13,10 @@ Data sources:
 
 Resource URIs (arifos:// namespace):
   arifos://atlas333/index            — Root index
-  arifos://atlas333/paradox/list     — 36 crosswalk rows (35 unique paradox IDs)
-  arifos://atlas333/paradox/{id}     — Single paradox (1-35)
+  arifos://atlas333/paradox/list     — 36 crosswalk rows (35 unique paradox IDs).
+#     SCOPE: canonical ATLAS333 = 40 paradoxes / 5 clusters (P36-P40 Humanity live in
+#     okf/atlas333/paradox/); this resource carries the P1-P35 crosswalk only.
+  arifos://atlas333/paradox/{id}     — Single paradox (1-35; resource scope — estate is 40)
   arifos://atlas333/quote/{id}       — Single quote (M1-M12, R1-R11, J1-J11, C1-C2)
   arifos://atlas333/flow             — 10-stage pipeline
   arifos://atlas333/geometry         — Full cognitive geometry (zones × geometries × depths)

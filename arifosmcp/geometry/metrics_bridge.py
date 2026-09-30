@@ -2,7 +2,7 @@
 metrics_bridge.py — Wire MAP · ATLAS · ECHO into ATLAS333 activation (not content).
 
 Two ATLAS entities (do not merge):
-  ATLAS333  = 35 paradoxes, cognitive geometry (333 reasoning substrate)
+  ATLAS333  = 40 paradoxes (5 clusters), cognitive geometry (333 reasoning substrate)
   ATLAS metric = Authority-to-Landscape compression (governance telemetry)
 
 Wiring only:
@@ -247,10 +247,10 @@ def metrics_resource_payload(*, recompute: bool = False) -> dict[str, Any]:
         "f_binding": {
             "F2": "deterministic from map_atlas_echo state or recompute",
             "F8": "read-only — no paradox mutation",
-            "F4": "wiring layer only; 35 paradoxes immutable",
+            "F4": "wiring layer only; 40 paradoxes immutable",
         },
         "disambiguation": {
-            "ATLAS333": "35 paradoxes · cognitive geometry · 333 substrate",
+            "ATLAS333": "40 paradoxes · cognitive geometry · 333 substrate",
             "ATLAS_metric": "Authority-to-Landscape · governance telemetry",
             "same_name": False,
             "connected_via": "this bridge",
