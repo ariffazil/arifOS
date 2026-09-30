@@ -779,6 +779,7 @@ async def _arif_kernel_intercept(
     base["requires_human_signature"] = _requires_f13
     base["authorized_execution"] = _authority_effect_resolved == "EXECUTION_GRANT"
     base["action_class"] = action_class or "AUDIT_RECORD"
+    base["judge_model"] = _JUDGE_LANE_MODEL  # BL11 echo — visible runtime audit stamp
     target_aff = get_full_affordance(requested_capability)
     base["affordance"] = target_aff
     base["agency_level"] = target_aff.get("agency_level")
