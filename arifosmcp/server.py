@@ -2979,7 +2979,11 @@ if app:
     async def _airlock_version(request):
         from starlette.responses import JSONResponse
 
-        return JSONResponse({"version": "v2026.05.05-SSCT", "airlock": "v0.1", "kernel": "arifOS"})
+        # VERSION derived from installed package metadata (single source of truth: pyproject.toml).
+        # Was hardcoded "v2026.05.05-SSCT" — a fourth scheme on one machine.
+        # F13 directive 2026-09-30: kill the drift class at the root.
+        from arifosmcp import __version__ as _kernel_version
+        return JSONResponse({"version": _kernel_version, "airlock": "v0.1", "kernel": "arifOS"})
 
     async def _airlock_probe(request):
         from starlette.responses import JSONResponse
