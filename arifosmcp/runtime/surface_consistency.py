@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 
@@ -185,9 +186,25 @@ def verify_surface_consistency() -> dict[str, Any]:
     # tool_registry.json contains the FULL kernel surface (18 tools).
     # This is an audit-only vantage when the active surface is narrower
     # than the full kernel set.
+    # 2026-09-30 (333-AGI): resolve the registry PACKAGE-RELATIVELY first — the same
+    # copy the running kernel loads (tools/health.py uses
+    # Path(__file__).resolve().parents[2] / "arifosmcp" / "tool_registry.json").
+    # The previous list hard-coded /opt/arifos/app first. That tree is written by
+    # scripts/deploy-to-runtime.sh, which is NOT the production deploy path —
+    # scripts/deploy-release.sh builds a wheel and installs it into
+    # /opt/arifos/current/venv, and /health confirms runtime_import_path resolves
+    # there. /opt/arifos/app was stale (tool_registry.json dated 2026-09-19,
+    # constitutional_map.py 2026-09-18), so this conformance check audited an
+    # abandoned copy and kept reporting registry_truth=DRIFT_DETECTED for a
+    # contradiction already fixed in the live registry (fbb29cfe4). A drift detector
+    # that reads a dead tree is worse than no detector: it cries wolf permanently and
+    # buries the real signal — the same failure mode as a validator that can never
+    # pass. The legacy path is kept LAST as a fallback so the vantage still reports
+    # when the package copy is unreadable.
     registry_paths = [
-        "/opt/arifos/app/arifosmcp/tool_registry.json",
+        str(Path(__file__).resolve().parents[1] / "tool_registry.json"),
         "/root/arifOS/arifosmcp/tool_registry.json",
+        "/opt/arifos/app/arifosmcp/tool_registry.json",
     ]
     reg_doc: dict[str, Any] | None = None
     for rp in registry_paths:
@@ -202,6 +219,13 @@ def verify_surface_consistency() -> dict[str, Any]:
                 reg_matches = (reg_hash == canonical_hash) and (len(reg_names) == canonical_count)
                 entry: dict[str, Any] = {
                     "source": f"tool_registry.json ({os.path.basename(os.path.dirname(rp))})",
+                    # 2026-09-30 (333-AGI): report WHICH copy was read. `source` alone
+                    # cannot distinguish them — every candidate lives in a directory
+                    # named "arifosmcp", so the label read identically for the live
+                    # package copy and for a stale /opt/arifos/app tree from 2026-09-19.
+                    # That ambiguity is precisely how a conformance check spent days
+                    # auditing an abandoned copy without anyone noticing.
+                    "path": rp,
                     "count": len(reg_names),
                     "hash": reg_hash,
                     "matches_canonical": reg_matches,
