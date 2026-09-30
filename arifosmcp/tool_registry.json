@@ -16,7 +16,7 @@
     "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
   "canonical_count": 8,
-  "internal_canonical_count": 6,
+  "internal_canonical_count": 5,
   "diagnostic_count": 40,
   "total_surface": 65,
   "tier_summary": {
@@ -56,12 +56,10 @@
   ],
   "internal_canonical_order": [
     "arif_act",
-    "arif_fetch",
     "arif_judge_deliberate",
     "arif_kernel_intercept",
     "arif_measure",
-    "arif_telegram_send",
-    "arif_triage"
+    "arif_telegram_send"
   ],
   "diagnostic_order": [
     "arif_canary",
