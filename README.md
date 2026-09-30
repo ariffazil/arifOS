@@ -1,11 +1,11 @@
 <!-- SOT-MANIFEST
-last_verified: 2026-09-22T09:10:52+00:00
+last_verified: 2026-09-30T07:43:02+00:00
 kernel_release: v2026.08.01 (release_name from live /health) · canon version 2026.09.20-e8e6f93
 pypi_version: 1!2026.9.2 (published 2026-09-15T16:42Z) · repo tree 1!2026.9.6 (staged, not yet released)
-live_commit: e5a2f312e (feat(judge): Phase 0 — payload-wide decision reconciliation (PR 1 judgment integ)
-source_commit: e5a2f312e
-built_commit: 4b4c7c8
-deployment_drift_status: drift_detected (source != deployed (drift: true) — run deploy-release.sh)
+live_commit: b7b6004de (docs(readme): audit-edit against live reality — structure, scoped counts, two ne)
+source_commit: b7b6004de
+built_commit: b7b6004
+deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs — verified by live tools/list)
 tools_canonical_superset: 25 (8 exposed + 13 hidden verbs — arif_challenge, arif_judge_deliberate, …)
 tools_declared: 48 · registry_callables: 62 (includes aliases) · proven_live_24h: 3
@@ -13,7 +13,7 @@ floors_active: 13/13 measured pass (live-probed 2026-09-21; F7=0.04, F9=0.15, L1
 federation_schema: 2.0.0
 mcp_protocol: advertises 2026-07-28; live initialize and the internal conformance runner settle on 2025-11-25 (supported: 2026-07-28 · 2025-11-25 · 2025-03-26 · 2024-11-05)
 organs: 7 per the ratified organ table (FEDERATION_CONTRACT §2) + plane classes for boundary services (see Architecture)
-vault999: healthy (1K+ records, append-only)
+vault999: healthy (342K+ records, append-only)
 contract_status: 8/8 published schemas, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json (37,046 bytes, live)
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
@@ -379,7 +379,7 @@ Live-probed **2026-09-21** (UTC+08); rows marked ↻ re-probed **2026-09-30**. R
 | Live kernel | Healthy, 13/13 floors | `curl localhost:8088/health` → `status: healthy`, `floors_active: 13` |
 | MCP interface | 8 exposed, 3 with a durable SUCCESS in the last 24 h (tools_loaded: 8, operational_tools: 3) | live `tools/list`; protocol advertises `2026-07-28`, negotiation settles `2025-11-25` |
 | Floor enforcement | 13/13 measured pass | `/health → runtime_floors_status` (F7 = 0.04, F9 = 0.15, L12 = 0.425 lower-is-better) |
-| VAULT999 ledger ↻ | Healthy, chain INTACT | `scripts/verify_vault_chain.py` → `overall: INTACT` (its own scope: the 3 active ledgers under `arifOS/VAULT999/`). The previously published "241,765 lines / 24 ledgers" named no population and matched no measured root, so it is withdrawn rather than refreshed. Whole-estate census 2026-09-30, counting `*.jsonl` files and their lines per root (`find … -name '*.jsonl'`, then `wc -l` over their contents): `arifOS/VAULT999` 60 ledgers / 353,769 lines · `/var/lib/arifos/vault` 7 / 20,986 · `~/.local/share/arifos/vault999` 66 / 16,556 · `AAA/VAULT999` 1 / 238 = **134 ledgers / 391,549 lines**. A count without a denominator is not a measurement |
+| VAULT999 ledger ↻ | Healthy, chain INTACT | `scripts/verify_vault_chain.py` → `overall: INTACT` (its own scope: the 3 active ledgers under `arifOS/VAULT999/`). The previously published "241,765 lines / 24 ledgers" named no population and matched no measured root, so it is withdrawn rather than refreshed. Census **2026-09-30T07:44:35Z** — two different, both-correct denominators: (a) recursive whole-estate, `find <root> -name '*.jsonl'` then count non-blank lines: `arifOS/VAULT999` 60/354,283 · `/var/lib/arifos/vault` 7/20,986 · `~/.local/share/arifos/vault999` 66/16,555 · `AAA/VAULT999` 1/238 = **134 ledgers / 392,062 lines**; (b) the generated SOT-MANIFEST header above reports `342K+ records` because `scripts/update_readme_sot.py` counts only top-level `VAULT999/*.jsonl` in this repo, non-recursively (measured 24 files / 342,582 lines), excluding the subdirectory ledgers (a) includes. Neither is wrong; they have different populations. The vault is append-only and live, so every figure here is a snapshot — quote the timestamp with it. |
 | Source / build / deploy ↻ | Aligned — no drift | `source_commit = built_commit = deployed_commit = 27409ddbf`; `/health → drift: false`, `runtime_matches_build: true`, `deployment_drift_status: aligned`. Release provenance is re-attested on every `scripts/deploy-release.sh` run (`VERDICT: PASS`, strict) — quote the live value, not this one |
 | Contract schema | 8/8 published, no drift | `contract_status: {tool_count: 8, schemas_complete: true, contract_drift: false}` |
 | Federation surfaces | 10/11 reachable without drift; WELL degraded (drift: true) | ports 8088 · 3001 · 7071 · 7072 · 8081 · 18082 · 18083 · 7073 · 7074 · 18085 · 18102; WELL at `127.0.0.1:18083/health` returns HTTP 200 but reports `drift: true`, so the row honestly reads 10/11 healthy + 1 degraded |
@@ -393,7 +393,7 @@ Every row names its own gap. Repairing a claim by substituting a stronger one is
 | Gap | Risk | Status |
 |---|---|---|
 | Independent security audit | Adversarial bypass testing not published | **In progress** — external researcher reviewing since 2026-08-25. First finding (fetch-surface SSRF) fixed, released in `1!2026.9.1`. A second scan (2026-09-15/16, mcp-safeguard) found 2 confirmed issues: Cypher injection (graph-wipe risk, HIGH — key whitelist landed in `l5_sovereign_forge.py`) and a fastmcp decode-after-match path traversal (MEDIUM — arifOS-side containment guard landed in `atlas333.py`; upstream report pending). Both are at code level; neither has a released-artifact verdict. See [SECURITY.md](./SECURITY.md#known-gaps) |
-| **Sovereign-binding of irreversible acknowledgement** | **`ack_irreversible: true` and `actor_signature` are transported as payload fields.** Nothing published demonstrates that a human signature is bound to `(transaction_hash ‖ state_hash ‖ nonce)`, single-use, scoped to one organ, and unforgeable by the proposing agent. | **Open** — design drafted ([`arifosmcp/runtime/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md`](./arifosmcp/runtime/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md)), not implemented. Until then, F13 is enforced by convention and band-gating, not by cryptographic transaction binding. This matches OWASP transaction-authorization practice: credentials unique per operation and bound to significant transaction data, not to session. |
+| **Sovereign-binding of irreversible acknowledgement** | **`ack_irreversible: true` and `actor_signature` are transported as payload fields.** Nothing published demonstrates that a human signature is bound to `(transaction_hash ‖ state_hash ‖ nonce)`, single-use, scoped to one organ, and unforgeable by the proposing agent. | **Open** — design drafted ([`docs/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md`](./docs/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md)), not implemented. Until then, F13 is enforced by convention and band-gating, not by cryptographic transaction binding. This matches OWASP transaction-authorization practice: credentials unique per operation and bound to significant transaction data, not to session. |
 | **Ledger head not externally anchored or signed** | **A hash chain held entirely by one party detects external modification but not wholesale rewrite by the holder**, because the holder can recompute every hash. | **Open** — periodic publication of chain head, or signing by a key the kernel does not hold, is not implemented. VAULT999 today is self-verifiable, not independently attestable. |
 | Third-party evaluation | No external reviewer has published findings | In progress — one review under way since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | **Partial** — `examples/enterprise_operations_demo.py` runs in-process and is verified here; no stranger has reproduced it unaided |
@@ -473,7 +473,7 @@ arifOS/
 ├── arifos/             # Phase 3 identity/consent namespace      [wheel root]
 ├── contracts/          # Runtime contract package — identity registry,
 │                       # gateway discovery, verdicts, continuity, envelopes.
-│                       # Imported at 15+ sites; see the note below.  [wheel root]
+│                       # Imported by 5 runtime files; see note.    [wheel root]
 ├── core/               # Load-bearing legacy root (session.py imports
 │                       # core.shared.types)                      [wheel root]
 ├── schemas/            # INIT v2 schemas (F13-ratified 2026-09-20) [wheel root]
@@ -490,9 +490,14 @@ arifOS/
 
 **The five `[wheel root]` entries are exactly what ships.** Until 2026-09-30 this
 tree listed only `arifosmcp/`, and `contracts*` was absent from
-`[tool.setuptools.packages.find].include` — while the runtime imported
-`contracts.*` at 15+ sites (`contracts.identity` alone at 15, `gateway_discovery`
-at 7, `verdicts` 4, `continuity`/`artifacts` 3 each). Production resolved those
+`[tool.setuptools.packages.find].include` — while the runtime imported `contracts.*`
+at **10 import statements across 5 files** under `arifosmcp/` (`contracts.identity`
+6, `verdicts`/`continuity`/`artifacts`/`envelopes` 1 each), plus
+`arifosmcp/contracts/__init__.py` doing `from contracts.identity import *`.
+Scope matters: a repo-wide grep reports ~4× that, because `build/lib/` holds a
+1,402-file duplicate tree and `tests/` adds its own imports (`gateway_discovery` 7,
+all of them tests — 0 in the runtime). Those inflated figures were what an earlier
+revision of this note published; corrected 2026-09-30. Production resolved those
 imports only because pip does not delete a pre-existing unrelated
 `site-packages/contracts/` leftover; a fresh venv or a machine migration would have
 raised `ImportError` at kernel import time. Fixed in `27409ddbf`. **An incomplete
