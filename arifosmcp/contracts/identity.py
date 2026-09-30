@@ -369,6 +369,30 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "default_tier": "AGENT",
         "aliases": ["codex", "codex-cli", "FI-005", "fi-005"],
     },
+    # 2026-09-30 (333-AGI, F13 "no tool blocks and no access block for all AAA
+    # agents"): restored from contracts/identity.py. This packaged copy — the one
+    # that actually SHIPS in the wheel — was missing two entries the top-level copy
+    # carries, so the 3 sites importing arifosmcp.contracts.identity (including
+    # session_auth.exempt_actor_band, the shared resolver) could not resolve them:
+    #   I_ARIF  — the 2026-08-21 Seal C fix. Its own comment records that when it
+    #             is absent "the Seal C consolidation path is structurally
+    #             unreachable" and the boot gate demotes i-arif to OBSERVE_ONLY.
+    #   GEMINI  — added to the top-level copy in 2fb5f0456; carries the FI-004
+    #             lane alias, so agy/FI-004 resolved to GEMINI or to None
+    #             depending on which copy a module imported.
+    # Both are recognitions the top-level copy already grants in production, so
+    # this widens nothing — it ends a divergence. tests/contracts/
+    # test_identity_registry_no_divergence.py now fails if they drift again.
+    "I_ARIF": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "OPERATOR",
+        "aliases": ["i-arif", "i_arif", "iarif", "I-ARIF"],
+    },
+    "GEMINI": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["gemini", "gemini-cli", "FI-004", "fi-004"],
+    },
 }
 
 
