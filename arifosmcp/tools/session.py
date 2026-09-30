@@ -2823,10 +2823,18 @@ def arif_init(
                 # returns uppercase canonical (e.g. "OPENCLAW") but exempt dict keys
                 # are lowercase. Lowercase both sides.
                 _al_lower = _al.lower().strip() if _al else None
-                if _al_lower and _al_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                # 2026-09-30 (333-AGI): shared spelling-tolerant resolver. Consulted
+                # on the RAW actor_id first (normalization drops `name/FI-nnn`), then
+                # on the normalized form.
+                from arifosmcp.runtime.session_auth import exempt_actor_band as _eab_al
+
+                _exempt_band_al = _eab_al(actor_id) or (
+                    _eab_al(_al_lower) if _al_lower else None
+                )
+                if _exempt_band_al:
                     from arifosmcp.runtime.request_trust import auto_sign_allowed
 
-                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al_lower]
+                    _exempt_level = _exempt_band_al
                     if not auto_sign_allowed():
                         logger.info(
                             "light-mode exempt elevation denied for %s (public/proxied)",
@@ -3719,12 +3727,19 @@ def arif_init(
             try:
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
 
-                if actor_lower and actor_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                # 2026-09-30 (333-AGI): shared spelling-tolerant resolver. Consulted
+                # on the RAW actor_id first (normalization drops `name/FI-nnn`).
+                from arifosmcp.runtime.session_auth import exempt_actor_band as _eab_raw
+
+                _exempt_band_raw = _eab_raw(_raw_lower) or (
+                    _eab_raw(actor_lower) if actor_lower else None
+                )
+                if _exempt_band_raw:
                     from arifosmcp.runtime.request_trust import auto_sign_allowed
 
                     # Assign _exempt_level before use (mirrors light-mode path line ~2143).
                     # Without this, the elif below raises UnboundLocalError.
-                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
+                    _exempt_level = _exempt_band_raw
 
                     # Name-only exempt elevation ONLY on true local loopback.
                     # Public/proxied callers claiming OPENCLAW/OPENCODE get OBSERVE_ONLY.

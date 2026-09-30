@@ -141,8 +141,10 @@ def build_authority_state_for_actor(
     _actor_key_basa = safe_actor.lower()
     _is_exempt = False
     try:
-        from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS as _BASA_LIST
-        _is_exempt = bool(_BASA_LIST and _actor_key_basa in _BASA_LIST)
+        # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
+        # `_actor_key_basa in _BASA_LIST`, which missed `name/FI-nnn`).
+        from arifosmcp.runtime.session_auth import exempt_actor_band as _basa_band
+        _is_exempt = _basa_band(safe_actor) is not None
     except ImportError:
         pass
 
@@ -652,8 +654,12 @@ async def init_anchor(
         )
     except ImportError:
         _EXEMPT_LIST = {}
-    if _actor_key_exempt and _EXEMPT_LIST and _actor_key_exempt in _EXEMPT_LIST:
-        _exempt_authority = str(_EXEMPT_LIST[_actor_key_exempt]).upper()
+    # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
+    # `_actor_key_exempt in _EXEMPT_LIST`, which missed `name/FI-nnn`).
+    from arifosmcp.runtime.session_auth import exempt_actor_band as _exempt_band_c
+    _exempt_band_resolved = _exempt_band_c(_dn)
+    if _exempt_band_resolved:
+        _exempt_authority = _exempt_band_resolved.upper()
         # SECURITY P0 (2026-09-04 Path A fix, FI-003): exempt actors do NOT
         # auto-verify. Cryptographic proof still required for actor_verified=True.
         # The exempt list authorizes a default authority LEVEL (e.g. operator for
@@ -831,7 +837,10 @@ async def init_anchor(
         # bootstrap gap: arif can claim SOVEREIGN, forge/opencode/hermes can
         # claim operator, without Ed25519 registration.
         _actor_key_t3a = _dn.strip().lower() if _dn else ""
-        _exempt_authority = _EXEMPT_ACTORS_T3A.get(_actor_key_t3a) if _EXEMPT_ACTORS_T3A else None
+        # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
+        # `.get(_actor_key_t3a)`, which missed `name/FI-nnn`).
+        from arifosmcp.runtime.session_auth import exempt_actor_band as _exempt_band_t3a
+        _exempt_authority = _exempt_band_t3a(_dn)
         _authority_level = (
             _exempt_authority  # T3a: exempt actors get their listed level
             if _exempt_authority

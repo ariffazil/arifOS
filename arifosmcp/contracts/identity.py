@@ -495,6 +495,49 @@ def _set_cache(key: str, value: str | None) -> None:
     _NORMALIZATION_CACHE[key] = value
 
 
+def actor_lookup_candidates(raw_actor_id: str | None) -> list[str]:
+    """Ordered registry-lookup keys for an actor string.
+
+    Yields the raw key first, then the head/tail of a `name/FI-nnn` lane-qualified
+    form, then the canonical id and its aliases.
+
+    2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for all
+    AAA agents"): authority registries were consulted with the RAW actor string, so
+    the documented lane-qualified spelling missed every one of them and the actor
+    fell through to the unknown-actor default OBSERVE_ONLY.
+
+    Lives here (not in runtime.authority) so session_auth and the init anchor can
+    share it without an import cycle.
+
+    Trust boundary is NOT widened: candidates are resolved against this SAME
+    registry, so a slash form matches only if its head or tail already matches on
+    its own (`nobody/FI-999` yields no exempt hit).
+    """
+    keys: list[str] = []
+    raw = (raw_actor_id or "").strip().lower()
+    if raw:
+        keys.append(raw)
+        if "/" in raw:
+            head, _, tail = raw.partition("/")
+            for part in (head.strip(), tail.strip()):
+                if part and part not in keys:
+                    keys.append(part)
+    try:
+        canon = normalize_actor_identity(raw_actor_id).get("normalized")
+        if canon:
+            c = str(canon).lower()
+            if c not in keys:
+                keys.append(c)
+            for alias in (CANONICAL_ACTORS.get(canon, {}) or {}).get("aliases", []) or []:
+                if isinstance(alias, str):
+                    a = alias.strip().lower()
+                    if a and a not in keys:
+                        keys.append(a)
+    except Exception:
+        pass
+    return keys
+
+
 def normalize_session_actor(
     raw_actor_id: str | None,
     session_token: str | None = None,
