@@ -91,14 +91,31 @@ def test_absorbed_name_declared_canonical_is_flagged(result):
     if not absorbed:
         pytest.skip("no absorbed names on this surface")
 
+    # 2026-09-30 (333-AGI): read the SAME registry the check read, instead of
+    # duplicating a hard-coded path order here. This test used to try
+    # /opt/arifos/app first — a tree written by scripts/deploy-to-runtime.sh, which
+    # is not the production deploy path — so it asserted against a stale 2026-09-19
+    # copy while the check under test read the live package copy. The two disagreed,
+    # and the test failed for the wrong reason. The vantage now reports its resolved
+    # `path`, so this follows the module rather than restating its search order.
     reg_path = None
-    for p in (
-        "/opt/arifos/app/arifosmcp/tool_registry.json",
-        "/root/arifOS/arifosmcp/tool_registry.json",
-    ):
-        if os.path.isfile(p):
-            reg_path = p
+    for v in result.get("vantages", []):
+        if v.get("path") and os.path.isfile(v["path"]):
+            reg_path = v["path"]
             break
+    if reg_path is None:
+        from pathlib import Path
+
+        import arifosmcp.runtime.surface_consistency as _sc
+
+        for p in (
+            str(Path(_sc.__file__).resolve().parents[1] / "tool_registry.json"),
+            "/root/arifOS/arifosmcp/tool_registry.json",
+            "/opt/arifos/app/arifosmcp/tool_registry.json",
+        ):
+            if os.path.isfile(p):
+                reg_path = p
+                break
     if reg_path is None:
         pytest.skip("tool_registry.json not found")
 
