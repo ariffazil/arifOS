@@ -285,11 +285,35 @@ aclip-cai  = "arifosmcp.intelligence.cli:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-# Wheel roots (2026-09-16 hygiene): exactly three top-level packages ship.
+# Wheel roots. The 2026-09-16 hygiene note claimed "exactly three top-level
+# packages ship" while the list below already carried four (arifos*, arifosmcp*,
+# core*, schemas*) — a comment contradicting its own code, corrected 2026-09-30.
 #   arifosmcp — kernel runtime
 #   arifos    — Phase 3 identity/consent namespace (intentional, keep)
 #   core      — load-bearing legacy root (session.py imports core.shared.types);
 #               consolidation into arifosmcp/ is Phase 3, NOT a wheel-time change.
+#   contracts — ADDED 2026-09-30 (333-AGI). This was a latent production-breaking
+#               omission, not a policy change: the runtime imports `contracts.*` at
+#               15+ sites (contracts.identity x15, gateway_discovery x7, verdicts x4,
+#               continuity/artifacts x3 each, envelopes/denial_codes/budget_enforcement
+#               x2 each, self_attestation x1) and arifosmcp/contracts/__init__.py itself
+#               does `from contracts.identity import *` — yet "contracts*" was absent
+#               here, so the wheel never shipped it. Production resolved those imports
+#               ONLY because pip does not delete a pre-existing unrelated
+#               site-packages/contracts/ leftover (dated 2026-07-24). A fresh venv or a
+#               new machine would ImportError the kernel at import time.
+#               Consequence already observed: that leftover had silently lost the
+#               2026-08-21 Seal C I_ARIF identity entry and the name/FI-nnn resolution,
+#               which is what clamped AAA agents to OBSERVE_ONLY (commits 69175c0ec,
+#               7796ec701; carry_forward e-c1a7fe1a).
+#               Shipping it is safe and was measured before doing so: of 11 files where
+#               the leftover differed from the repo, the 3 drifted .py modules
+#               (federation_conformance, run_falsification_v1, scar_geometry) have 0
+#               importers in arifosmcp/, the stale schemas/fixtures have 0 runtime
+#               references, fq_policy.yaml is not read by path (fq_gate.py hardcodes the
+#               thresholds), and identity.py was already synced identical. So the delta
+#               is an update with no measured behavioural change, and it makes the
+#               deploy reproducible instead of depending on a hand-synced leftover.
 # REMOVED: "scripts*" (70 dev files shipped in wheel — nothing imports scripts.*),
 #          "mcp_server*" (dir does not exist in repo).
 include = [
@@ -297,6 +321,7 @@ include = [
     "arifosmcp*",   # Phase 2: still present until Phase 3 git mv
     "core*",
     "schemas*",     # INIT v2 schemas (F13-ratified 2026-09-20)
+    "contracts*",   # runtime-imported at 15+ sites; see note above (2026-09-30)
 ]
 exclude = [
     "*.tests",
