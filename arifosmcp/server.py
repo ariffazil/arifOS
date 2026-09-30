@@ -1096,6 +1096,13 @@ try:
                 # status, effective_verdict, reason_code, next_action.
                 # Hardened for sustained-load: fail-closed try/except.
                 try:
+                    # Model results must not sail past envelope attachment:
+                    # .get and item-assignment both crash on pydantic models and
+                    # the exceptions are suppressed — fields silently vanished
+                    # (R1d witness: in_eff=SEAL -> out_eff=None). Normalize to
+                    # dict first; every attach below assumes dict.
+                    if not isinstance(result, dict) and hasattr(result, "model_dump"):
+                        result = result.model_dump(mode="json")
                     from arifosmcp.runtime.verdict import (
                         compose_effective_verdict,
                         verdict_to_envelope,

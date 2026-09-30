@@ -55,16 +55,19 @@ if not VAULT_PATH.exists():
 # ═══════════════════════════════════════════════════════════════
 
 
-def _mcp_raw(payload: dict, timeout: int = TIMEOUT_S) -> dict:
+def _mcp_raw(payload: dict, timeout: int = TIMEOUT_S, sid: str | None = None) -> dict:
     """Send raw MCP JSON-RPC request, return parsed response."""
     data = json.dumps(payload).encode("utf-8")
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
+    if sid:
+        headers["mcp-session-id"] = sid
     req = urllib.request.Request(
         KERNEL_MCP_URL,
         data=data,
-        headers={
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream",
-        },
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -72,6 +75,32 @@ def _mcp_raw(payload: dict, timeout: int = TIMEOUT_S) -> dict:
             return json.loads(body)
     except urllib.error.HTTPError as e:
         return {"http_error": e.code, "body": e.read().decode("utf-8", errors="replace")}
+
+
+# Stateless-kernel contract (MCP-2.0 migration): post-init calls must carry
+# arif_init's session id — the same breakage that killed niat-executor and,
+# here, made the transport's ARIF_SESSION_NOT_FOUND error parse as an empty
+# structuredContent (the phantom "A3 swallowed delta_S"). Bind lazily, once.
+_KERNEL_SESSION_ID: str | None = None
+
+
+def _bind_kernel_session() -> str | None:
+    r = _mcp_raw(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "arif_init",
+                "arguments": {"mode": "light", "actor_id": ACTOR_ID},
+            },
+        }
+    )
+    sc = (r.get("result") or {}).get("structuredContent") or {}
+    sid = sc.get("session_id") or (sc.get("result") or {}).get("session_id")
+    if not sid:
+        sid = ((r.get("result") or {}).get("session_id")) or None
+    return sid
 
 
 def mcp_initialize() -> dict:
@@ -113,14 +142,24 @@ def _mcp_raw_timeout(name: str, args: dict, timeout: int = 10) -> dict:
 
 
 def mcp_tool_call(name: str, args: dict) -> dict:
-    """MCP tools/call — return structuredContent from result."""
+    """MCP tools/call — return structuredContent from result. Post-init calls
+    are session-bound per the stateless-kernel contract (see _bind_kernel_session)."""
+    global _KERNEL_SESSION_ID
+    sid = None
+    if name != "arif_init":
+        if _KERNEL_SESSION_ID is None:
+            _KERNEL_SESSION_ID = _bind_kernel_session()
+        sid = _KERNEL_SESSION_ID
+        if sid:
+            args = {**args, "session_id": args.get("session_id") or sid}
     r = _mcp_raw(
         {
             "jsonrpc": "2.0",
             "id": 1,
             "method": "tools/call",
             "params": {"name": name, "arguments": args},
-        }
+        },
+        sid=sid,
     )
     result = r.get("result", {})
     # structuredContent is the canonical payload

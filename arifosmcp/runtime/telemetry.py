@@ -809,15 +809,22 @@ def trace_tool_call(
                     span_id = None
                 else:
                     parent_span_id = None
+    if hasattr(result, "model_dump"):
+        result = result.model_dump(mode="json")
+    if not isinstance(result, dict):
+        result = {}
+    _inner = result.get("result")
+    if not isinstance(_inner, dict):
+        _inner = {}
     status = (
         result.get("status")
         or result.get("verdict")
-        or result.get("result", {}).get("status", "OK")
+        or _inner.get("status", "OK")
         or "OK"
     )
-    reasons = result.get("reasons", []) or result.get("result", {}).get("reasons", [])
-    next_action = result.get("next_safe_action") or result.get("result", {}).get("next_safe_action")
-    vault_receipt = result.get("result", {}).get("entry_id") or result.get("vault_receipt") or None
+    reasons = result.get("reasons", []) or _inner.get("reasons", [])
+    next_action = result.get("next_safe_action") or _inner.get("next_safe_action")
+    vault_receipt = _inner.get("entry_id") or result.get("vault_receipt") or None
 
     get_telemetry().record_tool_call(
         tool=tool_name,
