@@ -1,2 +1,6 @@
-# This file is superseded by: /root/AAA/organ.yaml
+# This file is superseded by: /root/AAA/federation/organ.yaml
 # Status: DERIVED — do not update this copy.
+#
+# 2026-09-30 N11 fix: pointer corrected. /root/AAA/organ.yaml does not exist;
+# canonical arifOS topology authority lives at /root/AAA/federation/organ.yaml.
+# Per 888-APEX JUDGEMENT 2026-09-30, this is the metabolize path for N11.
