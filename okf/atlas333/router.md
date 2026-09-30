@@ -38,7 +38,7 @@ Two distinct ATLAS concepts:
 
 | Name | Plane |
 |------|--------|
-| **ATLAS333** | 35 paradoxes · cognitive geometry · 333 substrate |
+| **ATLAS333** | 40 paradoxes · cognitive geometry · 333 substrate |
 | **ATLAS metric** | Authority-to-Landscape · governance telemetry |
 
 ```
