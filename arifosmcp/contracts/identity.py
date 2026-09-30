@@ -449,6 +449,33 @@ def normalize_actor_identity(
                     "normalization_version": "1",
                 }
 
+    # 2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for
+    # all AAA agents"): resolve the documented lane-qualified actor_id form
+    # `name/FI-nnn`. Per FATWA K1 the FI id is a LANE/TIER identity, and this is
+    # the spelling used throughout the MCP tool docs (e.g. "kimi-code/FI-008") and
+    # declared by AAA/federation/agents/*/agent.yaml `fi:`. Exact/alias matching
+    # above never matched it, so every agent presenting its documented id was
+    # REJECTED -> unknown actor -> OBSERVE_ONLY, silently losing mutation
+    # authority while the bare name beside it kept operator band.
+    # The trust boundary is NOT widened: head and tail are resolved against this
+    # SAME registry, so `opencode/FI-001` resolves only because `opencode`
+    # already resolves. This widens spelling tolerance, not trust.
+    if "/" in stripped:
+        _head, _, _tail = stripped.partition("/")
+        for _part in (_head.strip(), _tail.strip()):
+            if not _part or "/" in _part:
+                continue
+            _sub = normalize_actor_identity(_part)
+            if _sub["normalized"]:
+                _set_cache(cache_key, str(_sub["normalized"]))
+                return {
+                    "raw": raw_actor_id,
+                    "normalized": _sub["normalized"],
+                    "sovereign_id": _sub.get("sovereign_id"),
+                    "verification_state": "UNVERIFIED",
+                    "normalization_version": "1",
+                }
+
     # No match found — reject
     _set_cache(cache_key, None)
     return {

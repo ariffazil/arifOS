@@ -98,6 +98,12 @@ _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "copilot": "operator",
     "copilot-cli": "operator",
     "agy": "operator",
+    # 2026-09-30 (333-AGI, F13 "no access block for all AAA agents"): mcporter was
+    # the only AAA/federation/agents roster member with no identity anchor at all
+    # (empty `fi:` in agent.yaml, absent from CANONICAL_ACTORS, the DID registry and
+    # this exempt list) so it inited to HOLD/OBSERVE_ONLY. Registered on the same
+    # basis as the sibling harnesses above (agy, aider, gemini, grok-build).
+    "mcporter": "operator",
     "aider": "operator",
     "continue-cli": "operator",
     "mesa-test-agent": "operator",
