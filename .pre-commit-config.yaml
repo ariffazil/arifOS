@@ -167,6 +167,29 @@ repos:
         types: [python, ts, json, yaml]
         files: '(governance|enforcement|runtime/apex_canonical|runtime/apex_c_dark|judgment|laws)\.'
 
+      - id: hardcoded-version-drift
+        name: D-06 Version Drift Tripwire (hardcoded 2026.0x.y strings flagged)
+        entry: >-
+          python -c "
+          import sys, re;
+          fails=[];
+          for p in sys.argv[1:]:
+            txt=open(p).read();
+            for i,line in enumerate(txt.split('\n'),1):
+              for m in re.finditer(r'2026\.0[5-9]\.\d+', line):
+                fails.append(f'{p}:{i}: hardcoded version string {m.group()} — derive from live source or single version SOT');
+          if fails:
+            print('D-06 VERSION DRIFT: hardcoded 2026.0x.y version strings found:');
+            [print(f'  {f}') for f in fails];
+            print('Remediation: read version from arifOS runtime manifest / canon version, not literals');
+            print('Exclusions: CHANGELOG, attestation_chain, fixtures (historical records)');
+            sys.exit(1);
+          sys.exit(0);
+          "
+        language: system
+        types: [python, md, yaml, json]
+        exclude: '(CHANGELOG|attestation_chain|fixtures/|tests/fixtures/)'
+
 # Configuration for specific tools
 default_language_version:
   python: python3.13
