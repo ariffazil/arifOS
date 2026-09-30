@@ -6,7 +6,17 @@ arifosmcp — The Sovereign Constitutional Intelligence Kernel
 DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """
 
-__version__ = "2026.06.11-FIQHGEOM"
+# __version__ is DERIVED from installed package metadata — pyproject.toml is the
+# single source of truth. A hardcoded string here drifted twice (served
+# "2026.07.17", then "2026.06.11-FIQHGEOM", while the wheel said 1!2026.9.6),
+# tripping runtime_verify source↔import DRIFT and false HOLDs. F13 order
+# 2026-09-30 ("clear DEPLOYMENT_DRIFT"): kill the drift class at the root.
+from importlib.metadata import version as _pkg_version, PackageNotFoundError as _PkgNotFound
+
+try:
+    __version__ = _pkg_version("arifos")
+except _PkgNotFound:  # source tree without installed distribution
+    __version__ = "0.0.0.dev0"
 __author__ = "Muhammad Arif bin Fazil"
 __license__ = "AGPL-3.0-only"
 
