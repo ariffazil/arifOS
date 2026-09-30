@@ -107,6 +107,50 @@ def _actor_in_did_registry(actor_id: str | None) -> bool:
     return False
 
 
+def _actor_lookup_candidates(actor_key: str | None) -> list[str]:
+    """Ordered registry-lookup keys for an actor string.
+
+    Yields the raw key first, then the head/tail of a `name/FI-nnn` lane-qualified
+    form, then the canonical id and its aliases.
+
+    2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for all
+    AAA agents"): every authority registry (Ed25519-exempt list, DID registry, L4
+    warga) was consulted with the RAW actor string, so the documented
+    lane-qualified spelling missed all of them and the actor fell through to the
+    unknown-actor default OBSERVE_ONLY. Candidates are drawn from the SAME
+    registries, so this widens spelling tolerance, not the trust boundary: a slash
+    form resolves only if its head or tail already resolves on its own.
+    """
+    keys: list[str] = []
+    raw = (actor_key or "").strip().lower()
+    if raw:
+        keys.append(raw)
+        if "/" in raw:
+            head, _, tail = raw.partition("/")
+            for part in (head.strip(), tail.strip()):
+                if part and part not in keys:
+                    keys.append(part)
+    try:
+        from arifosmcp.contracts.identity import (
+            CANONICAL_ACTORS,
+            normalize_actor_identity,
+        )
+
+        canon = normalize_actor_identity(actor_key).get("normalized")
+        if canon:
+            c = str(canon).lower()
+            if c not in keys:
+                keys.append(c)
+            for alias in (CANONICAL_ACTORS.get(canon, {}) or {}).get("aliases", []) or []:
+                if isinstance(alias, str):
+                    a = alias.strip().lower()
+                    if a and a not in keys:
+                        keys.append(a)
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+    return keys
+
+
 # ── End DID Registry Validation ──────────────────────────────────────────────
 
 # ADAT AGENTIC (F13 directive 2026-08-10): FORGE is inherited capability substrate.
@@ -299,8 +343,13 @@ def bind_authority_state(
         )
     except ImportError:
         _EXEMPT_BA = {}
-    if actor_key and _EXEMPT_BA and actor_key in _EXEMPT_BA:
-        _exempt_authority_ba = str(_EXEMPT_BA[actor_key]).upper()
+    # 2026-09-30 (333-AGI): match the exempt list on canonical candidates too, so
+    # the documented `name/FI-nnn` spelling resolves to the same entry as its head.
+    if _EXEMPT_BA:
+        for _cand in _actor_lookup_candidates(actor_key):
+            if _cand in _EXEMPT_BA:
+                _exempt_authority_ba = str(_EXEMPT_BA[_cand]).upper()
+                break
 
     verified_key_id = (
         state.actor.verified_key_id if hasattr(state.actor, "verified_key_id") else None
@@ -320,7 +369,9 @@ def bind_authority_state(
     elif is_sovereign:
         sess["authority_level"] = "SOVEREIGN"
         sess["authority"] = "FULL"
-    elif _actor_in_did_registry(actor_key) and state.actor.verified:
+    elif any(
+        _actor_in_did_registry(_k) for _k in _actor_lookup_candidates(actor_key)
+    ) and state.actor.verified:
         # DID-registered organ — F13 T3 directive 2026-08-07.
         # Verified DID organs get FULL authority (can seal via three-call tick).
         sess["authority_level"] = "OPERATOR"
@@ -683,7 +734,7 @@ def authority_envelope_for_session(
     # DID registry dynamic validation — F13 T3 directive 2026-08-07.
     # Actors registered in the federation DID registry are verified organs
     # entitled to OPERATOR authority with FULL mutation band.
-    _did_match = _actor_in_did_registry(actor_key)
+    _did_match = any(_actor_in_did_registry(_k) for _k in _actor_lookup_candidates(actor_key))
     h_authority = (
         "SOVEREIGN"
         if (state.actor.verified and ((_vkey and _vkey in SOVEREIGN_KEY_IDS) or _known_sovereign))
