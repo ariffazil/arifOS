@@ -138,3 +138,40 @@ async def test_session_close_mode_wires_macro_meta():
     else:
         # HOLD is acceptable when organs dead or vault path blocked — but must not be MISSING_WITNESS
         assert data.get("status") != "MISSING_WITNESS", data
+
+
+def test_vectorize_atlas333_embed_resolves_to_list(monkeypatch):
+    """Regression 2026-09-30: intelligence.embeddings.embed is async; the bare
+    sync call in vectorize_to_atlas333 handed PointStruct a coroutine object,
+    so stage 3 soft-failed on every session close ('coroutine embed was never
+    awaited', witnessed in the VAULT999 seal lane 2026-09-30 00:57)."""
+    import arifosmcp.intelligence.embeddings as emb
+    import arifosmcp.tools.vault_vectorizer as vv
+
+    async def fake_embed(text, dim=1024):
+        return [0.25] * dim
+
+    monkeypatch.setattr(emb, "embed", fake_embed)
+    monkeypatch.setattr(vv, "embed", fake_embed)
+
+    captured: dict = {}
+
+    class FakeClient:
+        def upsert(self, collection_name, points):
+            captured["collection"] = collection_name
+            captured["points"] = points
+
+    monkeypatch.setattr(scm, "_get_qdrant", lambda: FakeClient())
+    monkeypatch.setattr(scm, "_ensure_atlas333_collection", lambda *a, **k: True)
+
+    res = scm.vectorize_to_atlas333({
+        "eureka_id": "REG-20260930",
+        "insights": ["witness probe: async embed must resolve to a list vector"],
+        "actor_id": "fi-003",
+        "session_id": "sess-reg",
+        "timestamp": "2026-09-30T01:00:00+00:00",
+    })
+    assert res.get("upserted") is True, f"stage 3 must succeed after fix, got: {res}"
+    pt = captured["points"][0]
+    assert isinstance(pt.vector, list), f"vector must be a list, got {type(pt.vector)}"
+    assert len(pt.vector) == scm.ATLAS333_VECTOR_DIM
