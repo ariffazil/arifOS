@@ -240,20 +240,22 @@ def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: b
     # canonical names, so alias-bearing sessions never matched and were demoted
     # despite being trusted actors. Normalize through contracts.identity first;
     # check both raw and canonical forms.
+    # 2026-09-30 (333-AGI): replaced the hand-rolled raw+canonical membership test
+    # with the shared spelling-tolerant resolver. Two defects lived here:
+    #   (a) it imported `contracts.identity` -- a top-level package that is NOT in
+    #       the wheel include list (pyproject ships arifos*/arifosmcp*/core*/
+    #       schemas* only), so production resolved it to a stale leftover copy in
+    #       site-packages that predates and diverges from arifosmcp/contracts;
+    #   (b) `except ImportError: pass` swallowed that silently, so the alias bypass
+    #       added by the 2026-08-21 Seal C audit could never fire for aliases or for
+    #       the documented `name/FI-nnn` form.
+    # exempt_actor_band() consults ONE resolver and ONE registry, so the bypass can
+    # no longer depend on which of two divergent copies happens to be importable.
     try:
-        from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS as _BGA
-        if _BGA:
-            _raw_key = actor_id.strip().lower()
-            if _raw_key in _BGA:
-                return runtime_band
-            try:
-                from contracts.identity import normalize_actor_identity
+        from arifosmcp.runtime.session_auth import exempt_actor_band as _bga_band
 
-                _canon = normalize_actor_identity(actor_id).get("normalized")
-                if _canon and str(_canon).lower() in _BGA:
-                    return runtime_band
-            except ImportError:
-                pass
+        if _bga_band(actor_id) is not None:
+            return runtime_band
     except ImportError:
         pass
     from arifosmcp.runtime.boot_attestation import boot_state_for_authority_grade
