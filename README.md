@@ -370,7 +370,7 @@ The kernel exposes **8 canonical verbs** over Streamable HTTP. Verified by live 
 
 ## Verification Status
 
-Live-probed **2026-09-21** (UTC+08). Re-run the commands; static counts are not evidence.
+Live-probed **2026-09-21** (UTC+08); rows marked ↻ re-probed **2026-09-30**. Re-run the commands; static counts are not evidence.
 
 | Surface | Status | Evidence |
 |---------|--------|----------|
@@ -379,11 +379,11 @@ Live-probed **2026-09-21** (UTC+08). Re-run the commands; static counts are not 
 | Live kernel | Healthy, 13/13 floors | `curl localhost:8088/health` → `status: healthy`, `floors_active: 13` |
 | MCP interface | 8 exposed, 3 with a durable SUCCESS in the last 24 h (tools_loaded: 8, operational_tools: 3) | live `tools/list`; protocol advertises `2026-07-28`, negotiation settles `2025-11-25` |
 | Floor enforcement | 13/13 measured pass | `/health → runtime_floors_status` (F7 = 0.04, F9 = 0.15, L12 = 0.425 lower-is-better) |
-| VAULT999 ledger | Healthy, chain INTACT | 241,765 lines / 24 ledgers; `scripts/verify_vault_chain.py` |
-| Source / build / deploy | Aligned — no drift | `source_commit = built_commit = deployed_commit = e8e6f93`; `/health → drift: false` |
+| VAULT999 ledger ↻ | Healthy, chain INTACT | `scripts/verify_vault_chain.py` → `overall: INTACT` (its own scope: the 3 active ledgers under `arifOS/VAULT999/`). The previously published "241,765 lines / 24 ledgers" named no population and matched no measured root, so it is withdrawn rather than refreshed. Whole-estate census 2026-09-30, counting `*.jsonl` files and their lines per root (`find … -name '*.jsonl'`, then `wc -l` over their contents): `arifOS/VAULT999` 60 ledgers / 353,769 lines · `/var/lib/arifos/vault` 7 / 20,986 · `~/.local/share/arifos/vault999` 66 / 16,556 · `AAA/VAULT999` 1 / 238 = **134 ledgers / 391,549 lines**. A count without a denominator is not a measurement |
+| Source / build / deploy ↻ | Aligned — no drift | `source_commit = built_commit = deployed_commit = 27409ddbf`; `/health → drift: false`, `runtime_matches_build: true`, `deployment_drift_status: aligned`. Release provenance is re-attested on every `scripts/deploy-release.sh` run (`VERDICT: PASS`, strict) — quote the live value, not this one |
 | Contract schema | 8/8 published, no drift | `contract_status: {tool_count: 8, schemas_complete: true, contract_drift: false}` |
 | Federation surfaces | 10/11 reachable without drift; WELL degraded (drift: true) | ports 8088 · 3001 · 7071 · 7072 · 8081 · 18082 · 18083 · 7073 · 7074 · 18085 · 18102; WELL at `127.0.0.1:18083/health` returns HTTP 200 but reports `drift: true`, so the row honestly reads 10/11 healthy + 1 degraded |
-| Machine-readable | tools.json live, 37,046 bytes | [tools.json](https://arifos.arif-fazil.com/tools.json) · [llms.txt](./llms.txt) (generated mirror — see gaps) · [CITATION.cff](./CITATION.cff) |
+| Machine-readable ↻ | tools.json live, 56,224 bytes | [tools.json](https://arifos.arif-fazil.com/tools.json) · [llms.txt](./llms.txt) (generated mirror — see gaps) · [CITATION.cff](./CITATION.cff) |
 | Scanner attestation | 148 rules · 0 unauthorised mutations; 26/26 GRADE A | [mcp.arif-fazil.com/proof/](https://mcp.arif-fazil.com/proof/) |
 
 ## What Is Not Yet Proven
@@ -403,12 +403,14 @@ Every row names its own gap. Repairing a claim by substituting a stronger one is
 | Container image metadata | The image's own labels contradict this repository | **Open — flagged 2026-09-21**: `Dockerfile` labels carry `org.opencontainers.image.licenses="BSL-1.1"` while the repository LICENSE is AGPL-3.0, the image listens on 3000 while ENV/LABEL say 8088, and the label block describes both "13 tools" and "7-tool surface". Fixing the licence wording is an F13 decision, not a docs edit |
 | Generated mirrors drift | `llms.txt` still prints the retired `888` judge stage and version `v2026.07.24` | **Open** — last generated 2026-09-16; regenerate with `scripts/generate_tool_manifest.py`. The same retired label sits in a description string in `arifosmcp/constitutional_map.py` and in `tools_sot.yaml` (`stage: '666'` is correct; the prose is not), and in the pre-correction note `docs/PROMPT_666_JUDGE_DEPRECATION.md` |
 | Generated discovery artifact drift | `smithery.yaml` no longer matches the kernel ABI registry — the guard itself fails | **Open — verified 2026-09-21** on a pristine `main` worktree: `scripts/sync_kernel_abi.py --check` → `Kernel ABI drift: smithery.yaml`, exit 1. Regenerate the discovery artifacts from the registry (last resync 2026-09-15, `eacf0ca01`) |
-| Development test suite | The suite needs a live kernel | **Fixed 2026-09-25 (collection)** — stale 269-line duplicate `tests/test_rasa_bench_10.py` removed (canonical 632-line bench lives at `/root/.hermes/policy/test_rasa_bench_10.py` where `rasa_boundary` resolves in-place); 7,532 tests collect clean (measured); `tests/conftest.py` still refuses to run without a reachable kernel at `:8088` (by design) |
+| Development test suite | The suite needs a live kernel | **Fixed 2026-09-25 (collection)** — stale 269-line duplicate `tests/test_rasa_bench_10.py` removed (canonical 632-line bench lives at `/root/.hermes/policy/test_rasa_bench_10.py` where `rasa_boundary` resolves in-place); **7,622 tests collect clean** (re-measured 2026-09-30, was 7,532); `tests/conftest.py` still refuses to run without a reachable kernel at `:8088` (by design). Collection ≠ green: the identity/authority/session/attestation subset carries **34 pre-existing failures** against 321 passes (measured 2026-09-30 on a pristine `main` worktree), so quote a failure *set*, never a bare pass count |
 | Semantic layer (Graphiti) | Knowledge graph retired from the read path | Operational gap — `graphiti_read: retired_888`, `semantic_floor: disabled` by choice (`ARIFOS_ML_FLOORS=0`) |
 | Observability | Tracing partially wired | **Partial** — sovereign Postgres backend active; arifFlow FlowReceipt adapter live; OTel spans on all 8 canonical verbs; `langfuse_tracing: NOT_WIRED` after the cutover to kabarkan; caller-side trace propagation incomplete |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
 | Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Open — relevant to any institutional adoption** |
 | `__version__` strings are stale | Module `__version__` lags kernel release; readers may quote it incorrectly | **Open** — fix target: route `__version__` through `scripts/update_readme_sot.py` so it stays in sync |
+| **Identity registry exists in two copies** | A one-sided edit ships a split-brain identity registry: `contracts/identity.py` (imported by ~9 runtime sites) and `arifosmcp/contracts/identity.py` (~3 sites, and the one the wheel ships) had already diverged — the packaged copy was missing the `I_ARIF` entry added by the 2026-08-21 Seal C fix and the `GEMINI`/`FI-004` lane entry, so `i-arif` and `agy/FI-004` resolved differently depending on which copy a module imported | **Mitigated 2026-09-30, consolidation still open** — both copies were re-aligned to 18 actors (`7796ec701`) and `tests/contracts/test_identity_registry_no_divergence.py` (31 tests) now fails on any drift in key set, aliases, normalization of 20 probe ids, or a missing `actor_lookup_candidates`; it was falsified against the pre-alignment state, where it caught exactly `gemini`, `i-arif` and `agy/FI-004`, so it is not vacuous. **Open:** pick one owner — migrate the 9 imports to `arifosmcp.contracts.identity` and retire the top-level copy, or keep both and keep the tripwire. Not decided here because it is a source-of-truth call, not a bug fix |
+| **Authority floor depended on a pointer stub and an unshipped package** | Two independent faults capped every non-exempt agent at `OBSERVE_ONLY`, so mutation-capable citizens silently lost tool access — surfacing as the "tool inexplicably unauthorized" class. (a) Boot Q5 read `identity.toml` with `_file_read(A) or _file_read(B)`; both are 101-byte DERIVED stubs reading *"superseded by: /root/AAA/identity.toml"*, and a non-empty stub short-circuits the `or`, so the canonical F13 payload was never read → `Q5=NO` → `boot_state=FAIL` → `_apply_boot_gate` demoted `LIMITED_MUTATE`/`FULL`. Authority was in practice coming from the 29-entry exemption list, not from attestation. (b) `contracts*` was absent from the wheel `include`, so the kernel's identity path resolved against a July-24 leftover. A bare `except ImportError: pass` in `_apply_boot_gate` hid a wrong module path, making the 2026-08-21 alias bypass dead code | **Fixed 2026-09-30** — `5cc357974` (`_read_identity_toml_chain()` joins all candidates and follows `superseded by:` pointers; Q5 `NO`→`PARTIAL`, which passes the gate since the shipped predicate is `boot_state != "FAIL"`), `2eaec19c2`+`d43b7fece` (one shared `exempt_actor_band()` resolver replacing 7 raw-string membership tests, so the documented `name/FI-nnn` form resolves), `69175c0ec` (patched the copy production imports; boot-gate bypass moved off the fragile import), `27409ddbf` (`contracts*` ships). Verified live: 17/17 AAA identities bind `SEAL` + `mutation_allowed=True` + `VERIFIED` with an ACT carrying `LIMITED_MUTATE` and all 9 verbs, 0 boot demotions, and the control `nobody/FI-999` is still refused — trust boundary unchanged, exempt membership still does not auto-verify. **The generalizable defect: a stand-in served where the payload belonged, and a fail-silent `except` hid it — three times in one session.** |
 
 See [SECURITY.md](./SECURITY.md) for the threat model, known gaps and disclosure policy, and [docs/evidence/claims.yaml](./docs/evidence/claims.yaml) for the machine-readable claim registry.
 
@@ -462,11 +464,19 @@ See [`CODEOWNERS`](./CODEOWNERS) for sovereign ownership of automation surfaces 
 
 ```
 arifOS/
-├── arifosmcp/          # Core kernel package
+├── arifosmcp/          # Core kernel package                    [wheel root]
 │   ├── abi/            # Capability registry and floor definitions
 │   ├── constitution/   # Constitutional floor implementations
+│   ├── contracts/      # Packaged copy of the identity/verdict contracts
 │   ├── kernel/         # Core judgment engine
 │   └── VAULT999/       # VAULT999 ledger implementation
+├── arifos/             # Phase 3 identity/consent namespace      [wheel root]
+├── contracts/          # Runtime contract package — identity registry,
+│                       # gateway discovery, verdicts, continuity, envelopes.
+│                       # Imported at 15+ sites; see the note below.  [wheel root]
+├── core/               # Load-bearing legacy root (session.py imports
+│                       # core.shared.types)                      [wheel root]
+├── schemas/            # INIT v2 schemas (F13-ratified 2026-09-20) [wheel root]
 ├── examples/           # Runnable governed workflow demo
 ├── tests/              # Test suite (pytest — constitutional + integration)
 ├── scripts/            # Operational tooling (incl. update_readme_sot.py)
@@ -474,8 +484,25 @@ arifOS/
 │   ├── START_HERE.md   # External reader entry point
 │   ├── QUICKSTART.md   # Verified first governed call
 │   └── evidence/        # Claim registry and evidence index
-└── pyproject.toml      # Package metadata
+└── pyproject.toml      # Package metadata — [wheel root] marks
+                        # packages.find.include
 ```
+
+**The five `[wheel root]` entries are exactly what ships.** Until 2026-09-30 this
+tree listed only `arifosmcp/`, and `contracts*` was absent from
+`[tool.setuptools.packages.find].include` — while the runtime imported
+`contracts.*` at 15+ sites (`contracts.identity` alone at 15, `gateway_discovery`
+at 7, `verdicts` 4, `continuity`/`artifacts` 3 each). Production resolved those
+imports only because pip does not delete a pre-existing unrelated
+`site-packages/contracts/` leftover; a fresh venv or a machine migration would have
+raised `ImportError` at kernel import time. Fixed in `27409ddbf`. **An incomplete
+structure diagram is not a cosmetic gap — it is how an unshipped, runtime-critical
+package stays invisible.**
+
+`contracts/` and `arifosmcp/contracts/` are two copies of the same contract
+modules and had already diverged. They are kept in agreement by
+`tests/contracts/test_identity_registry_no_divergence.py`; consolidating them into
+one owner is still open (see gaps).
 
 ---
 
