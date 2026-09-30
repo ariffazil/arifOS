@@ -611,14 +611,19 @@ def vectorize_to_atlas333(eureka: dict[str, Any]) -> dict[str, Any]:
     try:
         from qdrant_client.models import PointStruct
 
-        from arifosmcp.intelligence.embeddings import embed
+        from arifosmcp.tools.vault_vectorizer import _embed_sync
 
         insights = eureka.get("insights") or [eureka.get("summary") or "session close"]
         eureka_id = eureka.get("eureka_id") or f"SE-{uuid.uuid4().hex[:8]}"
         points: list[Any] = []
         for idx, insight in enumerate(insights[:7]):
             text = f"[EUREKA:{eureka_id}] [ACTOR:{eureka.get('actor_id', '')}] {insight}"
-            vector = embed(text, dim=ATLAS333_VECTOR_DIM)
+            # embed() has been async since the intelligence-lane migration; the
+            # bare sync call handed PointStruct a coroutine object and stage 3
+            # soft-failed on EVERY session close (witnessed 2026-09-30 seal lane:
+            # "coroutine 'embed' was never awaited"). Same bridge as HIB's
+            # vectorizer — thread-pool asyncio.run, hash-embed fallback.
+            vector = _embed_sync(text, ATLAS333_VECTOR_DIM)
             # Deterministic UUID from content hash (Qdrant accepts UUID or int)
             point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{eureka_id}:{idx}:{insight[:64]}"))
             points.append(
