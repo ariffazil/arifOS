@@ -226,6 +226,10 @@ if __name__ == "__main__":
         ("ChatGPT connector", "arifos"),
         ("organ attestation", "arifos"),
         ("WELL biometric readiness", "well"),
+        ("HERMES organ meaning integrity", "hermes"),
+        ("CHRON organ temporal consequence", "chron"),
+        ("predictions due", "chron"),
+        ("qualia boundary", "hermes"),
     ]
     fail = 0
     for intent, expected in cases:

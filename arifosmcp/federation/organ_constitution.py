@@ -387,6 +387,73 @@ _ORGAN_CONSTITUTION_TEMPLATES: dict[str, dict[str, Any]] = {
         },
         "constitution_candidates": [],
     },
+    "HERMES": {
+        "organ_id": "HERMES",
+        "version": "1.0.0",
+        "role": "semantic_boundary",
+        "domain": "human_meaning_membrane",
+        "authority": {
+            "final_authority": "ARIF",
+            "scope": ["semantic_boundary", "meaning_integrity", "qualia_boundary", "social_lanes"],
+            "refuses": [
+                "no unauthorized sovereign personhood modification",
+                "no execution without kernel authorization",
+            ],
+            "leases": ["TRANSLATE", "INTERCEPT", "WITNESS"],
+        },
+        "floors": [
+            {"floor_id": "F01", "name": "AMANAH", "enforcement": "HARD"},
+            {"floor_id": "F02", "name": "TRUTH", "enforcement": "HARD"},
+            {"floor_id": "F06", "name": "EMPATHY", "enforcement": "HARD"},
+            {"floor_id": "F13", "name": "SOVEREIGN", "enforcement": "HARD"},
+        ],
+        "boundaries": {
+            "does_not": [
+                "self-certify claims",
+                "rewrite sovereign intent",
+                "execute unsealed mutations",
+            ],
+            "requires_sovereign_ack": [
+                "constitutional doctrine mutations",
+            ],
+        },
+        "constitution_candidates": [
+            "/root/AAA/instructions/human-attention-membrane.md",
+            "/root/HERMES/SOUL.md",
+        ],
+    },
+    "CHRON": {
+        "organ_id": "CHRON",
+        "version": "1.0.0",
+        "role": "temporal_boundary",
+        "domain": "temporal_consequence",
+        "authority": {
+            "final_authority": "ARIF",
+            "scope": ["temporal_consequence", "predictions", "calibration", "attention_debt"],
+            "refuses": [
+                "no retrocausal rewrite",
+                "no falsifying predictions after outcome",
+            ],
+            "leases": ["PREDICT", "CALIBRATE", "RECORD"],
+        },
+        "floors": [
+            {"floor_id": "F01", "name": "AMANAH", "enforcement": "HARD"},
+            {"floor_id": "F02", "name": "TRUTH", "enforcement": "HARD"},
+            {"floor_id": "F13", "name": "SOVEREIGN", "enforcement": "HARD"},
+        ],
+        "boundaries": {
+            "does_not": [
+                "alter historical predictions",
+                "bypass brier scoring gates",
+            ],
+            "requires_sovereign_ack": [
+                "resolving unverifiable events",
+            ],
+        },
+        "constitution_candidates": [
+            "/root/AAA/instructions/temporal-derivation-law.md",
+        ],
+    },
 }
 
 

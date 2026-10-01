@@ -521,6 +521,129 @@ organ_routes:
     port: 18083
     tool_prefix: well_
 
+  hermes:
+    intent_keywords:
+      # Meaning integrity / qualia / boundaries
+      - meaning integrity
+      - claim integrity
+      - qualia
+      - qualia boundary
+      - perspective
+      - contradictions
+      - contradiction
+      - contradiction detection
+      - contradiction scan
+      - counterstory
+      - counterstory test
+      - uncreated classify
+      - uncreated
+      - moral physics
+      - institutional decay
+      - makcik render
+      - makcik nusantara
+      - witness signal
+      - scar wisdom
+      - reality grounding
+      - human meaning
+      - human state inference
+      - motive attribution
+      - shadow mode
+      - rasa
+      - rasa boundary
+      - hermes_claim_validate
+      - hermes_contradiction_scan
+      - hermes_counterstory_test
+      - hermes_reality_grounding
+      - hermes_makcik_render
+      - hermes_witness_signal
+      - hermes_scar_wisdom
+      - hermes_handoff_package
+      - hermes_uncreated_classify
+      - hermes_moral_physics
+      - hermes_institutional_decay
+      - hermes_retrieve
+      - hermes_registry_status
+      # Component-qualified
+      - HERMES organ
+      - HERMES health
+      - HERMES status
+      - HERMES state
+      - HERMES mcp
+      - hermes organ
+      - hermes health
+      - hermes status
+      - hermes mcp
+      - hermes
+    organ: HERMES
+    port: 18087
+    tool_prefix: hermes_
+    component_class: semantic_boundary
+
+  chron:
+    intent_keywords:
+      # Temporal consequence / predictions / calibration
+      - temporal consequence
+      - temporal tracking
+      - arrow of time
+      - prediction
+      - predictions
+      - predictions due
+      - calibration
+      - calibration state
+      - brier score
+      - attention debt
+      - temporal briefing
+      - proxy reality
+      - proxy reality register
+      - proxy reality observe
+      - proxy reality state
+      - lesson extraction
+      - lessons learned
+      - bitemporal
+      - bitemporal episode
+      - episode store
+      - time witness
+      - verify prediction
+      - record verification
+      - reconcile state
+      - what did we predict
+      - what did we predict about
+      - active predictions
+      - verified predictions
+      - chron_predictions_due
+      - chron_calibration_state
+      - chron_last_loop
+      - chron_active_events
+      - chron_active_predictions
+      - chron_store_stats
+      - chron_temporal_briefing
+      - chron_generate_predictions
+      - chron_record_verification
+      - chron_reconcile_state
+      - chron_attention_debt
+      - chron_lessons
+      - chron_episodes
+      - chron_resolve_unverifiable
+      - chron_create_event
+      - chron_proxy_reality_register
+      - chron_proxy_reality_observe
+      - chron_proxy_reality_state
+      # Component-qualified
+      - CHRON organ
+      - CHRON health
+      - CHRON status
+      - CHRON state
+      - CHRON mcp
+      - chron organ
+      - chron health
+      - chron status
+      - chron mcp
+      - chron
+    organ: CHRON
+    port: 18102
+    tool_prefix: chron_
+    component_class: temporal_boundary
+
 # Default routing when no keyword matches
 default_organ: arifOS
 
