@@ -291,22 +291,38 @@ class TruthMetabolism:
 # ── Constitutional integration hook ─────────────────────────────────────────
 
 
-def truth_metabolism_for_judge(claim_ids: list[str], session_id: str = "") -> dict[str, Any]:
+def truth_metabolism_for_judge(
+    claim_ids: list[str],
+    session_id: str = "",
+    store_path: str = DEFAULT_STORE_PATH,
+) -> dict[str, Any]:
     """
     Integration point for arif_judge pre-verdict.
 
-    Check all claims that support a SEAL verdict. If any are EXPIRED →
-    judge should HOLD. If any are STALE → judge should SABAR.
+    Check all claims that support a SEAL verdict. Severity order:
 
-    Returns dict for attachment to judge evidence bundle.
+      EXPIRED     → HOLD          (reality's answer aged out — dispositive)
+      STALE       → SABAR         (re-probe before sealing)
+      UNKNOWN     → NOT_CHECKED   (claim never registered / no producer / no store)
+      FRESH only  → PROCEED
+
+    UNKNOWN is deliberately NOT collapsed into PROCEED. `check_claim()` reports
+    UNKNOWN for any claim absent from the store, and `can_support_seal` is True only
+    for FRESH claims — so treating "no data" as a pass contradicted this module's own
+    rule and made the gate theatre whenever no producer was running. A surface that
+    reads "truth_metabolism: PROCEED" must mean a probe happened, not that nobody
+    wrote anything down.
+
+    Returns dict for attachment to judge evidence bundle, stamped with its own
+    derivation instant per the Temporal Derivation Law.
     """
-    tm = TruthMetabolism()
+    tm = TruthMetabolism(store_path=store_path)
     results: list[dict[str, Any]] = []
-    has_expired = False
-    has_stale = False
+    states: list[str] = []
 
     for cid in claim_ids:
         status = tm.check_claim(cid)
+        states.append(status.state)
         results.append(
             {
                 "claim_id": cid,
@@ -316,16 +332,20 @@ def truth_metabolism_for_judge(claim_ids: list[str], session_id: str = "") -> di
                 "can_support_seal": status.can_support_seal,
             }
         )
-        if status.state == "EXPIRED":
-            has_expired = True
-        elif status.state == "STALE":
-            has_stale = True
 
-    recommendation = "PROCEED"
+    has_expired = "EXPIRED" in states
+    has_stale = "STALE" in states
+    has_unknown = "UNKNOWN" in states
+
     if has_expired:
-        recommendation = "HOLD"  # expired claims → cannot SEAL
+        recommendation = "HOLD"
     elif has_stale:
-        recommendation = "SABAR"  # stale claims → re-probe before SEAL
+        recommendation = "SABAR"
+    elif has_unknown or not states:
+        # nothing was actually evaluated — asking about no claims is not a pass either
+        recommendation = "NOT_CHECKED"
+    else:
+        recommendation = "PROCEED"
 
     return {
         "truth_metabolism": {
@@ -333,6 +353,9 @@ def truth_metabolism_for_judge(claim_ids: list[str], session_id: str = "") -> di
             "recommendation": recommendation,
             "has_expired": has_expired,
             "has_stale": has_stale,
+            "has_unknown": has_unknown,
+            "store_present": Path(store_path).exists(),
+            "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "session_id": session_id,
         }
     }
