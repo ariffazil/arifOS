@@ -254,7 +254,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # which should route to the named organ, not to arifOS. Fix: detect an
     # organ-qualified phrase first (e.g. "WELL organ X", "GEOX earth Y")
     # and route to that organ BEFORE the kernel guard fires.
-    _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS")
+    _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS", "HERMES", "CHRON")
 
     # Step 1: organ-qualified phrases win — ONLY for explicit organ queries.
     # HARDEN-C P0 (2026-07-12): bare " well " must NOT match geoscience
@@ -883,6 +883,12 @@ def arif_route(
 
     if target_organ.lower() == "arifos":
         return _route_ok({**routing, "bridge_status": "kernel-local: no bridge needed"})
+
+    if target_organ.lower() == "hermes":
+        return _route_ok({**routing, "bridge_status": "hermes: semantic boundary — use HERMES:18087"})
+
+    if target_organ.lower() == "chron":
+        return _route_ok({**routing, "bridge_status": "chron: temporal boundary — use CHRON:18102"})
 
     return _route_hold(f"Unknown organ: {target_organ}")
 
