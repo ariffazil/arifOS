@@ -32,6 +32,58 @@ def test_streamable_http_canary_tools_do_not_require_session():
     assert result.envelope.tool_args == {}
 
 
+def test_unexposed_legacy_name_is_naming_fault_not_session_fault():
+    """A name absent from the live public surface must not be answered with a
+    session fault. Regression: `arif_session_init` (legacy, still taught by our
+    own docs and scripts/init_live_demo.py) returned ARIF_SESSION_NOT_FOUND, so
+    an external auditor concluded the kernel had a bootstrap paradox — "init
+    requires the session init creates". Measured 2026-10-01.
+    """
+    for legacy in ("arif_session_init", "session_init", "forge_session_init", "zzz"):
+        result = streamable_http_adapter(
+            {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "method": "tools/call",
+                "params": {"name": legacy, "arguments": {}},
+            }
+        )
+        assert result.transport_error is None, f"{legacy}: naming fault reported as session fault"
+        assert result.envelope is not None, f"{legacy}: must fall through to dispatch"
+        assert result.envelope.tool_name == legacy
+
+
+def test_exposed_read_verb_still_requires_session():
+    """The naming-fault fix must not un-gate registered verbs."""
+    result = streamable_http_adapter(
+        {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "tools/call",
+            "params": {"name": "arif_observe", "arguments": {}},
+        }
+    )
+    assert result.transport_error is not None
+    assert result.transport_error["error"]["data"]["code"] == "ARIF_SESSION_NOT_FOUND"
+
+
+def test_session_fault_message_does_not_overclaim_scope():
+    """Only read-class verbs are blocked pre-session under partial_enforce, so
+    the envelope must not claim a session is needed for "all remote operations".
+    """
+    result = streamable_http_adapter(
+        {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "tools/call",
+            "params": {"name": "arif_observe", "arguments": {}},
+        }
+    )
+    message = result.transport_error["error"]["message"]
+    assert "all remote operations" not in message
+    assert "arif_init" in message, "must still name the fix"
+
+
 def test_transport_error_preserves_jsonrpc_id():
     error = build_transport_error_envelope(
         TransportFaultCode.ARIF_SESSION_NOT_FOUND,
