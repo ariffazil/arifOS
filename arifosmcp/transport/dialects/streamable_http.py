@@ -29,6 +29,20 @@ CANARY_TOOLS = frozenset(
 )
 
 
+def _exposed_tool_universe() -> frozenset[str] | None:
+    """Names the live public wire surface will serve, or None if unresolved.
+
+    None means "cannot tell", and callers must then behave exactly as before
+    rather than invent a naming verdict from an absent answer.
+    """
+    try:
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+        return frozenset(public_tool_names_for_mode())
+    except Exception:
+        return None
+
+
 def _tool_call_name(method: str, params: Any) -> str:
     if method == "tools/call" and isinstance(params, dict):
         name = params.get("name")
@@ -59,10 +73,21 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
     protocol_version = request.get("protocol_version", "2025-11-25")
     is_stateless = protocol_version == "2026-07-28"
 
+    # A name that is not on the live public surface is a NAMING fault, not a
+    # session fault. Gating it here answered legacy names (arif_session_init,
+    # still taught by our own docs and scripts/init_live_demo.py) with
+    # ARIF_SESSION_NOT_FOUND, which reads as "bootstrap requires the state
+    # bootstrap is supposed to create" — an external auditor drew exactly that
+    # conclusion on 2026-10-01. Unexposed names now fall through to dispatch,
+    # which already answers "Unknown tool": the correct class, and one that
+    # needs no session state to discover.
+    exposed = _exposed_tool_universe()
+    gate_applies_to_name = exposed is None or tool_name in exposed
+
     # Stateless MCP 2026-07-28: no session gate — every request is self-contained.
     # Tools/call, resources/list, etc. carry _meta with clientInfo and capabilities.
     # Skip the legacy lifecycle gate for stateless calls.
-    if not is_stateless and (
+    if not is_stateless and gate_applies_to_name and (
         method
         not in (
             "initialize",
@@ -84,7 +109,10 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
         return AirlockResult(
             transport_error=build_transport_error_envelope(
                 TransportFaultCode.ARIF_SESSION_NOT_FOUND,
-                "Session ID is required for all remote operations. "
+                # Scoped to THIS call on purpose: only read-class verbs are
+                # blocked pre-session under ARIF_AIRLOCK_MODE=partial_enforce,
+                # so claiming "all remote operations" was measurably false.
+                "A bound session is required for this call. "
                 f"Call {hint} first, then pass the returned session_id "
                 "as the mcp-session-id header on subsequent requests.",
                 transport="streamable_http",
