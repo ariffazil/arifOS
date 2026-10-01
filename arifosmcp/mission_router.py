@@ -138,7 +138,7 @@ MISSION_TEMPLATES: dict[Mission, dict[str, Any]] = {
                 "WELL",
                 "sense",
                 2,
-                tools_hint=["well_machine_diagnose", "well_classify_substrate"],
+                tools_hint=["well_assess_reliability", "well_classify_substrate"],
                 can_parallel=True,
             ),
             OrganStage(
@@ -373,7 +373,7 @@ MISSION_TEMPLATES: dict[Mission, dict[str, Any]] = {
                 "WELL",
                 "machine_health",
                 2,
-                tools_hint=["well_machine_diagnose", "well_assess_reliability"],
+                tools_hint=["well_assess_reliability"],
                 can_parallel=True,
             ),
             OrganStage(

@@ -472,7 +472,7 @@ CAPABILITY_TOOL_MAP: dict[str, dict[str, Any]] = {
     },
     # WELL capabilities
     "WELL:sense": {
-        "tool_names": ["well_machine_diagnose", "well_classify_substrate", "well_trace_lineage"],
+        "tool_names": ["well_assess_reliability", "well_classify_substrate", "well_trace_lineage"],
         "organ": "WELL",
         "mutation": False,
         "can_parallel": True,
@@ -490,7 +490,7 @@ CAPABILITY_TOOL_MAP: dict[str, dict[str, Any]] = {
         "can_parallel": True,
     },
     "WELL:machine_health": {
-        "tool_names": ["well_machine_diagnose", "well_assess_reliability"],
+        "tool_names": ["well_assess_reliability"],
         "organ": "WELL",
         "mutation": False,
         "can_parallel": True,
