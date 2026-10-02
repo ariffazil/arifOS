@@ -822,6 +822,21 @@ async def _arif_kernel_intercept(
         "floor_passed": not _is_hold_or_void,
         "hold_required": _is_hold_or_void or is_l5,
         "agency_level": target_aff.get("agency_level"),
+        # 2026-10-02 (F13 #4a epistemic gate): a bare floor_passed=True with
+        # no evidence keys reads downstream as EPISTEMIC_UNMEASURED_PASS and
+        # forces an epistemic HOLD on every intercept-bearing judge response
+        # (measured: trc-f770145d6001). Attach the checks this intercept
+        # actually performed as its evidence basis — the gates above already
+        # ran and would have DENY'd on failure; naming them is bookkeeping,
+        # not new authority.
+        "floors_invoked": [
+            "L1_session_token_valid",
+            "L11_actor_binding",
+            "authority_band:" + str(base.get("autonomy_band") or "unresolved"),
+            "action_class:" + str(action_class or _rev_raw or "unresolved"),
+            "reversibility:" + str((base.get("risk") or {}).get("reversibility") or "unresolved"),
+        ],
+        "failed_floors": list(_outer_failed),
         "_derivation": "arif_kernel_intercept+effective_verdict+failed_floors",
         "_stab_fix": "2026-08-07b-floor-passed-derivation",
     }
