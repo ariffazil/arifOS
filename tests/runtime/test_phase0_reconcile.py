@@ -13,6 +13,7 @@ posture "the reconciler never enables authority".
 Fixture is an immutable live capture; hash-pinned so the contradiction
 cannot be simplified away later.
 """
+
 from __future__ import annotations
 
 import copy
@@ -26,11 +27,7 @@ from arifosmcp.runtime.verdict import (
     reconcile_decision_contract,
 )
 
-FIXTURE = (
-    Path(__file__).resolve().parent.parent
-    / "fixtures"
-    / "phase0_judge_payload_20260922.json"
-)
+FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "phase0_judge_payload_20260922.json"
 FIXTURE_SHA256 = "1fff9c7ab33aa3684970d2a400abae1e3e03c69d7940e709d8a2472fae9f1686"
 
 
@@ -44,6 +41,7 @@ def _reconciled(payload: dict) -> dict:
 
 # ── fixture integrity ───────────────────────────────────────────────────────
 
+
 def test_fixture_is_immutable_hash_pinned():
     digest = hashlib.sha256(FIXTURE.read_bytes()).hexdigest()
     assert digest == FIXTURE_SHA256, (
@@ -53,6 +51,7 @@ def test_fixture_is_immutable_hash_pinned():
 
 
 # ── #1: real payload — two fields agree, walker still catches it ────────────
+
 
 def test_live_fixture_two_field_reconcile_would_pass_but_walker_flags():
     payload = _load_fixture()
@@ -64,17 +63,19 @@ def test_live_fixture_two_field_reconcile_would_pass_but_walker_flags():
     rec = (out.get("meta") or {}).get("reconciliation") or {}
     assert rec.get("inconsistent") is True
     assert rec.get("reason") == "INCONSISTENT_VERDICT_STATE"
-    assert "meta.kernel_intercept.decision" in rec.get("claims", {})
-    # raw values preserved for audit (receipt carries raw + canonical)
-    assert rec.get("raw_tokens", {}).get("meta.kernel_intercept.decision") == "ALLOW"
-    # unratified layer token flagged on its own (ALLOW never silently = SEAL)
-    assert any(f.startswith("NONCANONICAL_VERDICT_TOKEN") for f in rec.get("flags", []))
-    assert any(
-        f.startswith("VERDICT_FIELD_DIVERGENCE") for f in rec.get("flags", [])
-    )
-    assert any(
-        f.startswith("EPISTEMIC_VERDICT_CHANNEL_INTEGRITY") for f in rec.get("flags", [])
-    )
+    # 2026-10-02 exemption update: meta.kernel_intercept.decision is an
+    # AUTHORIZATION token (ALLOW/deny), not a verdict — authorization wearing
+    # a verdict-named key, same class as session_birth/irfan_review axes.
+    # It must NOT appear in verdict claims or raw tokens at all: dragging it
+    # through the legacy ALLOW→SEAL alias manufactured the divergence.
+    assert "meta.kernel_intercept.decision" not in rec.get("claims", {})
+    assert "meta.kernel_intercept.decision" not in rec.get("raw_tokens", {})
+    # The genuinely messy packet still fails closed — via accurate reasons:
+    assert any(f.startswith("EPISTEMIC_UNMEASURED_PASS") for f in rec.get("flags", []))
+    assert any(f.startswith("EPISTEMIC_VERDICT_CHANNEL_INTEGRITY") for f in rec.get("flags", []))
+    # No noncanonical translation remains: raw ALLOW can no longer masquerade
+    # as SEAL even via alias (F13 2026-09-22 ruling STRENGTHENED, not weakened).
+    assert not any(f.startswith("NONCANONICAL_VERDICT_TOKEN") for f in rec.get("flags", []))
     assert any(str(r).startswith("INCONSISTENT_STATE") for r in out.get("reasons", []))
     assert out["reason_code"] == REASON_HOLD
     # originals preserved — the contradiction is evidence, not rewritten away
@@ -86,13 +87,9 @@ def test_live_fixture_two_field_reconcile_would_pass_but_walker_flags():
     assert supplied["response.action"].startswith("Execute the capability")
     assert supplied["result"].startswith("Execute the capability")
     assert (
-        out["next_safe_action"]["action"]
-        == "Await input — effective_verdict=HOLD (reconciled)"
+        out["next_safe_action"]["action"] == "Await input — effective_verdict=HOLD (reconciled)"
     )  # dict shape preserved, instruction derived
-    assert (
-        out["result"]["next_safe_action"]
-        == "Await input — effective_verdict=HOLD (reconciled)"
-    )
+    assert out["result"]["next_safe_action"] == "Await input — effective_verdict=HOLD (reconciled)"
 
 
 def test_live_fixture_is_idempotent():
@@ -109,6 +106,7 @@ def test_live_fixture_is_idempotent():
 # (anonymous-actor authorization is a separate boundary — authority
 #  service PR — this only pins the reconciler's own posture.)
 
+
 def test_reconciler_never_enables_authority():
     for payload in (_load_fixture(), {"verdict": "SEAL", "effective_verdict": "SEAL"}):
         out = _reconciled(payload)
@@ -124,6 +122,7 @@ def test_reconciler_never_enables_authority():
 
 
 # ── #3: closed enum ─────────────────────────────────────────────────────────
+
 
 def test_unknown_verdict_token_fails_closed_to_hold():
     out = _reconciled({"effective_verdict": "QUALIFY", "verdict": "QUALIFY"})
@@ -151,6 +150,7 @@ def test_receipt_era_observe_alias_normalizes_not_flags():
 
 
 # ── divergence beyond the two headline fields ───────────────────────────────
+
 
 def test_nested_verdict_conflict_forces_hold_and_preserves_originals():
     payload = {
@@ -197,6 +197,7 @@ def test_clean_payload_passes_through_with_honest_hold_reason():
 
 # ── combined contradiction: every detected issue asserted (review test B) ───
 
+
 def test_synthetic_broken_payload_flags_every_issue():
     payload = {
         "verdict": "HOLD",
@@ -214,10 +215,17 @@ def test_synthetic_broken_payload_flags_every_issue():
     rec = out["meta"]["reconciliation"]
     assert rec["inconsistent"] is True
     joined = " ".join(rec["flags"])
-    assert "NONCANONICAL_VERDICT_TOKEN" in joined          # layer token ALLOW
-    assert "VERDICT_FIELD_DIVERGENCE" in joined            # ALLOW/SEAL vs HOLD
-    assert "EPISTEMIC_UNMEASURED_PASS" in joined           # no check ≠ pass
-    assert "EPISTEMIC_LABEL_PROVENANCE_MISMATCH" in joined # MEASURED on derived
+    # 2026-10-02 exemption update: the intercept's ALLOW is an authorization
+    # token, exempt from verdict reconciliation — it must NOT appear in claims
+    # and must NOT be translated through the legacy ALLOW→SEAL alias.
+    assert "kernel_intercept.decision" not in rec.get("claims", {})
+    assert not any(f.startswith("NONCANONICAL_VERDICT_TOKEN") for f in rec["flags"])
+    # GENUINE verdict divergence still fails closed: judge_postcondition says
+    # SEAL while the verdict layers say HOLD — heterogeneous verdict values
+    # remain fatal (F13 2026-09-22 ruling intact).
+    assert "VERDICT_FIELD_DIVERGENCE" in joined  # SEAL vs HOLD
+    assert "EPISTEMIC_UNMEASURED_PASS" in joined  # no check ≠ pass
+    assert "EPISTEMIC_LABEL_PROVENANCE_MISMATCH" in joined  # MEASURED on derived
     assert rec["authority_enabled"] is False
     assert rec["execution_enabled"] is False
     # input action ignored; output derived; no forbidden transition terms
@@ -226,9 +234,42 @@ def test_synthetic_broken_payload_flags_every_issue():
         assert term not in out["next_safe_action"].casefold()
     # supplied text kept for audit only
     assert rec["supplied_next_safe_action"]["response"] == "seal the result"
+    # authorization token preserved untouched — evidence, not rewritten away
+    assert out["kernel_intercept"]["decision"] == "ALLOW"
+
+
+def test_kernel_intercept_decision_exempt_clean_seal_preserved():
+    """2026-10-02 regression (drift-reconcile-unblock-test condition 2).
+
+    An authorization ALLOW on the kernel intercept must NOT manufacture
+    verdict divergence. Verdict layers agreeing on SEAL stay SEAL — the
+    legacy ALLOW→SEAL alias can no longer drag the authorization token into
+    verdict comparison and force a structural HOLD.
+    """
+    payload = {
+        "verdict": "SEAL",
+        "effective_verdict": "SEAL",
+        "kernel_intercept": {
+            "decision": "ALLOW",
+            "constitutional_check": {
+                "floor_passed": True,
+                "law_results": ["F1: reversibility verified"],
+            },
+        },
+        "judge_postcondition": {"verdict": "SEAL"},
+        "reason_code": None,
+    }
+    out = _reconciled(payload)
+    rec = (out.get("meta") or {}).get("reconciliation") or {}
+    assert out["effective_verdict"] == "SEAL"
+    assert not rec.get("flags"), rec.get("flags")
+    assert "kernel_intercept.decision" not in rec.get("claims", {})
+    # authorization token preserved untouched — evidence, not rewritten
+    assert out["kernel_intercept"]["decision"] == "ALLOW"
 
 
 # ── #2: next_safe_action derivation (crack #2) ──────────────────────────────
+
 
 def test_next_safe_action_may_not_point_at_seal_when_authority_off():
     payload = {
@@ -255,6 +296,7 @@ def test_inner_next_safe_action_also_derived():
 
 
 # ── #4: EPISTEMIC vetoes ────────────────────────────────────────────────────
+
 
 def test_unmeasured_floor_presented_as_passed_forces_hold():
     payload = {
@@ -292,6 +334,7 @@ def test_measured_claim_on_derived_data_forces_hold():
 
 
 # ── plumbing ────────────────────────────────────────────────────────────────
+
 
 def test_non_dict_passthrough():
     assert reconcile_decision_contract("plain") == "plain"
