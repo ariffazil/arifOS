@@ -453,8 +453,7 @@ def attach_effective_verdict(
         cc["failed_floors"] = list(_ff) if _ff else cc.get("failed_floors", [])
         if _has_hold and not cc.get("hold_reason"):
             cc["hold_reason"] = (
-                f"STAB-2026-08-07b canonical: effective_verdict={_ev} "
-                f"failed_floors={list(_ff)}"
+                f"STAB-2026-08-07b canonical: effective_verdict={_ev} failed_floors={list(_ff)}"
             )
         cc["_derivation"] = "attach_effective_verdict:degraded_dominates"
 
@@ -475,10 +474,7 @@ def attach_effective_verdict(
         if not isinstance(d, dict):
             return
         band = str(
-            d.get("authority_band")
-            or d.get("authority_mode")
-            or d.get("authority")
-            or ""
+            d.get("authority_band") or d.get("authority_mode") or d.get("authority") or ""
         ).upper()
         if force is False or band in ("OBSERVE_ONLY", "VOID", "ANONYMOUS", ""):
             # Always write the field — clients must not see missing = ambiguous
@@ -610,6 +606,16 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
     "session_birth.verdict",
     "irfan_review.verdict",
     "governance_check.verdict",
+    # 2026-10-02 (333-AGI, drift-reconcile-unblock-test cond.2): the kernel
+    # intercept's `decision` is an AUTHORIZATION token (ALLOW/deny under
+    # capability bounds), not a verdict — authorization wearing a verdict-
+    # named key, same class as the advisory axes above. Without exemption the
+    # legacy alias ALLOW→SEAL manufactures VERDICT_FIELD_DIVERGENCE and forces
+    # every intercept-bearing response to HOLD, even when all verdict layers
+    # agree — measured 2026-10-02: trc-fc842af70ae7 (judge), TRACE-7ef8a1637abe
+    # (forge). Exempt the path; fail-closed semantics for genuine verdict
+    # divergence are unchanged.
+    "kernel_intercept.decision",
 )
 
 
@@ -641,9 +647,7 @@ def _collect_epistemic_flags(node: Any, path: str = "") -> list[str]:
     flags: list[str] = []
     if isinstance(node, dict):
         child = path or "<root>"
-        if node.get("floor_passed") is True and not any(
-            node.get(k) for k in _FLOOR_EVIDENCE_KEYS
-        ):
+        if node.get("floor_passed") is True and not any(node.get(k) for k in _FLOOR_EVIDENCE_KEYS):
             flags.append(f"EPISTEMIC_UNMEASURED_PASS:{child}")
         if (
             str(node.get("claim_class", "")).upper() == "MEASURED"
@@ -706,11 +710,11 @@ def reconcile_decision_contract(response: Any) -> Any:
     # (Phase-0 nested-conflict test pins exactly this).
     # Idempotent: marker set once.
     if isinstance(response, dict):
-        _r1b_final = str(
-            response.get("verdict") or response.get("effective_verdict") or ""
-        ).upper()
+        _r1b_final = str(response.get("verdict") or response.get("effective_verdict") or "").upper()
         _r1b_meta = response.get("meta")
-        _r1b_pc_dbg = (_r1b_meta or {}).get("judge_postcondition") if isinstance(_r1b_meta, dict) else None
+        _r1b_pc_dbg = (
+            (_r1b_meta or {}).get("judge_postcondition") if isinstance(_r1b_meta, dict) else None
+        )
         import logging as _r1b_logging
 
         _r1b_logging.getLogger(__name__).warning(
@@ -772,9 +776,7 @@ def reconcile_decision_contract(response: Any) -> Any:
     for path, token in unknown.items():
         flags.append(f"UNKNOWN_VERDICT_TOKEN:{path}={token}")
     for path, token in noncanonical.items():
-        flags.append(
-            f"NONCANONICAL_VERDICT_TOKEN:{path}={token}->{claims.get(path)}"
-        )
+        flags.append(f"NONCANONICAL_VERDICT_TOKEN:{path}={token}->{claims.get(path)}")
     if len(set(claims.values())) > 1:
         detail = ",".join(f"{p}={v}" for p, v in sorted(claims.items()))
         flags.append(f"VERDICT_FIELD_DIVERGENCE:{detail}")
@@ -829,9 +831,7 @@ def reconcile_decision_contract(response: Any) -> Any:
         # Honest hold_reason vocabulary: outer_verdict=... names the writer,
         # not the reason. Rewrite to the canonical field pair.
         cc = response.get("constitutional_check")
-        if isinstance(cc, dict) and str(cc.get("hold_reason") or "").startswith(
-            "outer_verdict="
-        ):
+        if isinstance(cc, dict) and str(cc.get("hold_reason") or "").startswith("outer_verdict="):
             cc["hold_reason"] = (
                 f"effective_verdict={response.get('effective_verdict')} "
                 f"reason_code={response.get('reason_code')}"
