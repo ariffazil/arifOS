@@ -752,11 +752,33 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
         observation_method=_OBS_METHOD_PROCESS,
         independent=True,
     )
+    # kernel_epoch read only ENV:ARIFOS_RELEASE_NAME, which is unset in the
+    # service environment, so the cell published the literal string "unknown"
+    # while BUILD_INFO already carried a real release tag. Fall back through the
+    # build metadata; None (rendered "unavailable") is the honest answer only
+    # when no source has a value — never the string "unknown" dressed as data.
+    try:
+        from arifosmcp.runtime.rest_routes.rest_routes import BUILD_INFO as _BUILD_INFO
+    except Exception:
+        _BUILD_INFO = {}
+    _epoch_env = os.getenv("ARIFOS_RELEASE_NAME")
+    if _epoch_env:
+        _epoch_val, _epoch_src = _epoch_env, "ENV:ARIFOS_RELEASE_NAME"
+    elif _BUILD_INFO.get("release_tag"):
+        _epoch_val, _epoch_src = _BUILD_INFO["release_tag"], "BUILD_INFO.release_tag"
+    elif _BUILD_INFO.get("protocol_version"):
+        _epoch_val, _epoch_src = (
+            _BUILD_INFO["protocol_version"],
+            "BUILD_INFO.protocol_version",
+        )
+    else:
+        _epoch_val = None
+        _epoch_src = "no source: ENV unset, BUILD_INFO has neither release_tag nor protocol_version"
     out["kernel_epoch"] = _pf(
-        os.getenv("ARIFOS_RELEASE_NAME", "unknown"),
-        source="ENV:ARIFOS_RELEASE_NAME",
-        state="reported",
-        confidence=0.85,
+        _epoch_val,
+        source=_epoch_src,
+        state="reported" if _epoch_val else "unknown",
+        confidence=0.85 if _epoch_val else 0.0,
         observation_method=_OBS_METHOD_ENV,
         independent=True,
     )
@@ -1207,7 +1229,14 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
-        "capability": _pf(
+        # A-FORGE :7071/health publishes tools_loaded (measured 122) and
+        # _deep_probe_organ already extracts it into forge_dp["capability"] —
+        # this block was discarding that and hardcoding None, so A-FORGE
+        # readiness could never rise above DEGRADED despite a real measurement
+        # sitting in the same scope. Same `dp or placeholder` pattern as
+        # identity/contract above.
+        "capability": forge_dp["capability"]
+        or _pf(
             None,
             source="A-FORGE registry",
             state="unknown",
@@ -1257,9 +1286,17 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         ),
         "label": "A-FORGE :7071/:7072",
     }
-    # mcp-gateway — public endpoint, self-reported (we can't independently probe from inside)
+    # mcp-gateway — the comment here used to claim "we can't independently probe
+    # from inside", which is false: federation-gateway.service listens on
+    # 127.0.0.1:3003. Measured 2026-10-03 — TCP connect succeeds and HTTP
+    # answers; /health returns 404 only because that route is not implemented.
+    # `transport` held the bare hostname string, so the derived liveness test
+    # could never match "up" and the gateway rendered ABSENT / UNREACHABLE while
+    # it was in fact serving. Probe it for real, and keep the hostname in
+    # `endpoint` so no information is lost.
     out["mcp_gateway"] = {
-        "transport": _pf(
+        "transport": _probe_transport("127.0.0.1", 3003),
+        "endpoint": _pf(
             "mcp.arif-fazil.com",
             source="Caddyfile vhost",
             state="reported",
@@ -1348,13 +1385,20 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
+        # arifFLOW :7073/health publishes no `version` field, so
+        # _deep_probe_organ cannot derive a contract and this fell through to
+        # None. It does publish `status` ("ok-v3-vector"), which identifies the
+        # health-contract schema — a real observed value, labelled as such and
+        # deliberately not confused with a version field. capability stays None:
+        # arifFLOW publishes no tool count, and inventing one is exactly the
+        # defect class this file just removed.
         "contract": flow_dp["contract"]
         or _pf(
-            None,
-            source="arifFLOW receipt_chain",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
+            flow_dp.get("status"),
+            source="GET 127.0.0.1:7073/health→status (no version field published)",
+            state="observed" if flow_dp.get("status") else "unknown",
+            confidence=0.7 if flow_dp.get("status") else 0.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
         ),
         "capability": _pf(
