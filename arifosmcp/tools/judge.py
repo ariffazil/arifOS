@@ -1664,6 +1664,7 @@ async def arif_judge(
                 seal_purpose=seal_purpose,
                 authority_effect=authority_effect,
                 actor_signature=actor_signature,
+                nonce=nonce,
                 authority_token=authority_token,
                 session_id=session_id,
             )
