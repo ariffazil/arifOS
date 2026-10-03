@@ -1026,6 +1026,36 @@ def _build_governance_status_payload() -> dict[str, Any]:
         if str(floor_provenance.get(_fid, "")).startswith("governance_kernel"):
             floor_provenance[_fid] = "unmeasured_default:empty_kernel_signal"
 
+    # ── F3 TRI-WITNESS: real producers (SCAR-OBS-GREENWASH follow-up) ────────
+    # Each leg must carry an external referent or report None. Legs are published
+    # verbatim so an unmeasured leg stays visible instead of being averaged away,
+    # and F3 receives a score only when all three are measured. The human leg has
+    # no instrument anywhere in the federation (measured 2026-10-03: 0 human
+    # actors across 94999 VAULT999 outcome rows and 106055 arifFlow receipts, and
+    # no actor_class field in either ledger), so F3 remains unmeasured and the
+    # payload names the blocking leg rather than inventing a witness.
+    try:
+        from arifosmcp.runtime.witness_producers import collect_witness_legs
+
+        witness_legs = collect_witness_legs()
+    except Exception as _wl_exc:
+        witness_legs = {
+            "legs": {},
+            "coherence": None,
+            "measured": 0,
+            "total": 3,
+            "complete": False,
+            "blocking_legs": ["probe_error"],
+            "error": f"{type(_wl_exc).__name__}: {_wl_exc}",
+        }
+    if witness_legs.get("coherence") is not None:
+        resolved_floors["F3"] = witness_legs["coherence"]
+        floor_provenance["F3"] = "witness_producers:" + "+".join(
+            leg
+            for leg in ("human", "ai", "earth")
+            if (witness_legs.get("legs", {}).get(leg) or {}).get("value") is not None
+        )
+
     # F2 TRUTH (ZEN 2026-09-02, F13 'audit this and zen all'): display the
     # measured score. The previous guard overwrote failing floor scores with
     # defaults "calibrated to the passing threshold" — cosmetic alignment that
@@ -1057,9 +1087,15 @@ def _build_governance_status_payload() -> dict[str, Any]:
         else:  # quotient > 3.0
             _phi_fq = min(1.0, 3.0 / _fq_quotient)
         _phi_fq = round(_phi_fq, 4)
-        if _phi_fq > float(resolved_floors.get("F1") or 0.0):
-            resolved_floors["F1"] = _phi_fq
-            floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
+        # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
+        # That guard only accepted a real measurement when it IMPROVED on the
+        # auto-pass placeholder, so a genuine φFQ of 0.2321 (FQ=0.6964, below
+        # the AMANAH band [1,3]) was silently discarded in favour of the
+        # fabricated default 0.5 — the measurement was suppressed for being
+        # honest. A successful probe IS the measurement; assign it unconditionally
+        # and let the threshold gate decide pass/fail.
+        resolved_floors["F1"] = _phi_fq
+        floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
     except Exception as _fq_exc:
         f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
         floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
@@ -1274,6 +1310,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # threshold — and must never be rendered as green.
         "floor_provenance": floor_provenance,
         "measurement_basis": measurement_basis,
+        # F3 tri-witness legs, each with value/state/evidence. Published even
+        # when incomplete so the blocking leg is visible.
+        "witness_legs": witness_legs,
         "runtime_signal_evidence": runtime_signal_evidence,
         "f1_probe_error": f1_probe_error,
         "apex_scalars": apex_scalars,

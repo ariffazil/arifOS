@@ -894,6 +894,10 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         # `unmeasured` with a null score, per the page's own doctrine: "a loaded
         # floor without a score is not measured, never green."
         provenance = gov.get("floor_provenance", {}) or {}
+        # F3 tri-witness legs published verbatim, so a missing leg is a named,
+        # evidenced gap rather than a zero averaged away into a score.
+        out["witness_legs"] = gov.get("witness_legs")
+        out["floor_provenance"] = provenance
         passing = 0
         failing = 0
         unmeasured = 0
