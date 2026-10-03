@@ -217,7 +217,7 @@ _ORGAN_CONSTITUTION_TEMPLATES: dict[str, dict[str, Any]] = {
     },
     "GEOX": {
         "organ_id": "GEOX",
-        "version": "v2026.05.27",
+        "version": "v2026.10.03",
         "role": "earth_intelligence",
         "domain": "subsurface_evidence",
         "authority": {
@@ -247,9 +247,9 @@ _ORGAN_CONSTITUTION_TEMPLATES: dict[str, dict[str, Any]] = {
             ],
         },
         "constitution_candidates": [
-            "/root/geox/GENESIS/000_KERNEL_CANON.md",
-            "/opt/geox/app/GENESIS/000_KERNEL_CANON.md",
-            "/root/geox/GENESIS/000_MANIFESTO.md",
+            "/root/GEOX/GENESIS/000_MANIFESTO.md",
+            "/root/GEOX/GENESIS/003_CONSTITUTIONAL_ALIGNMENT.md",
+            "/root/GEOX/GENESIS/009_EARTH_ORGAN_CONTRACT.md",
         ],
     },
     "WEALTH": {

@@ -695,7 +695,7 @@ def _build_default_graph() -> CapabilityGraph:
         ),
         CapabilityNode(
             capability_id="organ.geox.claim_create",
-            tool_name="geox_claim_create",
+            tool_name="geox_claim",
             server_id="geox",
             description="GEOX create geological claim with typed evidence + provenance",
             authority_required=AuthorityTier.HIGH,
