@@ -29,8 +29,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          TARGET_REPO="${{ github.event.pull_request.base.repo.name }}"
-          echo "Target repo: $TARGET_REPO"
+          # Push events have no pull_request context — base.repo.name is EMPTY
+          # there, which made this gate fail every push (observed 2026-10-03,
+          # runs 37117699839+). On push, the target is the repo being pushed to.
+          if [ -n "${{ github.event.pull_request.base.repo.name }}" ]; then
+            TARGET_REPO="${{ github.event.pull_request.base.repo.name }}"
+          else
+            TARGET_REPO="${{ github.event.repository.name }}"
+          fi
+          echo "Event: ${{ github.event_name }} | Target repo: $TARGET_REPO"
           echo "Target repo (lowercase): ${TARGET_REPO,,}"
 
           # M4 FIX 2026-07-31 (repo-routing-validation gate that never fired):
