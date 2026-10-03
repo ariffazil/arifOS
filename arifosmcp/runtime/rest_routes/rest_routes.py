@@ -881,6 +881,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     floors: dict[str, Any] = {}
     telemetry: dict[str, Any] = {}
     witness: dict[str, float] = {}
+    measurement_basis: dict[str, Any] = {}
     qdf: float = 0.0
     metabolic_stage: int = 0
     verdict: str | None = None  # WS2: no default SEAL — substrate signal only
@@ -895,6 +896,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
             floors = state.get("floors", {})
             telemetry = state.get("telemetry", {})
             witness = state.get("witness", {})
+            measurement_basis = state.get("measurement_basis", {}) or {}
             qdf = float(state.get("qdf", 0.0))
             metabolic_stage = int(state.get("metabolic_stage", 0))
             verdict = state.get("verdict", "SEAL")
@@ -945,44 +947,30 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_containers:
         live_signals.append("container_runtime")
 
-    if len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
-        try:
-            from core.governance_kernel import get_governance_kernel
-
-            live_session_id = "live-sot"
-            live_kernel = get_governance_kernel()
-            # clear_governance_kernel is not exported in this version
-            if hasattr(live_kernel, "apply_temporal_grounding"):
-                live_kernel.apply_temporal_grounding(
-                    {
-                        "query": (
-                            "Live SOT aligned: "
-                            f"{BUILD_INFO['build']['commit']} / {BUILD_INFO.get('release_tag')} / "
-                            f"{len(live_containers)} containers / {len(live_signals)} verified runtime signals"
-                        ),
-                        "human_witness": _WITNESS_DEFAULTS["human"],
-                        "ai_witness": 0.99,
-                        "earth_witness": (0.99 if live_containers else _WITNESS_DEFAULTS["earth"]),
-                    }
-                )
-            live_kernel.record_event(
-                "assumption",
-                {"content": "Live SOT must remain evidence-backed and continuously revalidated."},
-            )
-            for signal in live_signals:
-                live_kernel.record_event("action", {"signal": signal, "reversible": True})
-                live_kernel.record_event("success", {"signal": signal})
-
-            state = live_kernel.get_current_state()
-            session_id = state.get("session_id")
-            floors = state.get("floors", {})
-            telemetry = state.get("telemetry", {})
-            witness = state.get("witness", {})
-            qdf = float(state.get("qdf", qdf or 0.0))
-            metabolic_stage = int(state.get("metabolic_stage", metabolic_stage or 0))
-            verdict = state.get("verdict", verdict)
-        except Exception:
-            logger.exception("Failed to hydrate live-sot governance kernel state")
+    # ── SCAR-OBS-GREENWASH (2026-10-03, FI-003): synthetic-evidence injection
+    # removed. This block formerly fired when >=4 runtime signals were visible
+    # and did three things: apply_temporal_grounding(human=0.42, ai=0.99,
+    # earth=0.99) with two hardcoded witness values, record_event("action") +
+    # record_event("success") per signal, then overwrote floors/telemetry/
+    # witness/qdf/verdict with the result. Measured effect on the public
+    # observatory: F2 0.5->1.0, F3 0.0->0.9299, F5 0.5->1.0, F6 0.5->1.0,
+    # substrate_state FAIL->PASS. F3 is reproducible in closed form as
+    # 3*(0.42*0.99*0.99)**(1/3)/(0.42+0.99+0.99) = 0.929858.
+    # Aggravating: GovernanceKernel._event_log is never cleared, so the
+    # process-global singleton ratcheted and the fabrication persisted for the
+    # process lifetime; reality_scoring.probe_governance_kernel_events()
+    # detects flat scores via `event_count == 0 and peace2 == 0.5`, so the
+    # injected events silenced the federation's own emptiness detector; and a
+    # DISPLAY endpoint was mutating shared constitutional state.
+    # Runtime signals remain real evidence and are still published — as
+    # signals, never as floor scores. Void Guard: "no data" != "all clear".
+    runtime_signal_evidence: dict[str, Any] = {
+        "signals_observed": list(live_signals),
+        "signal_count": len(live_signals),
+        "container_count": len(live_containers),
+        "provenance": "BUILD_INFO + build_runtime_capability_map + _collect_container_status",
+        "affects_floor_scores": False,
+    }
 
     def _safe_float(v: Any, default: float | None = None) -> float | None:
         if v is None:
@@ -1009,13 +997,34 @@ def _build_governance_status_payload() -> dict[str, Any]:
     }
 
     resolved_floors: dict[str, float | None] = {}
+    # SCAR-OBS-GREENWASH (2026-10-03): every floor now carries its provenance.
+    # _FLOOR_DEFAULTS is built by _representative_floor_score(), which returns
+    # the floor's OWN passing threshold (threshold * 0.5 for "<" floors, the
+    # comment there reads "choose conservative passing value"). It is a
+    # visualizer placeholder, not a measurement, and it can never fail. Any
+    # floor whose value came from there is labelled `unmeasured_default` so no
+    # consumer — observatory, G scalar, sovereign — can mistake it for green.
+    floor_provenance: dict[str, str] = {}
     for fid in LAW_SPEC_KEYS:
         v = _safe_float(floors.get(fid))
+        origin = "governance_kernel"
         if v is None and fid in canonical_floor_aliases:
             v = _safe_float(floors.get(canonical_floor_aliases[fid]))
+            origin = "governance_kernel_alias"
         if v is None:
             v = _FLOOR_DEFAULTS.get(fid)
+            origin = "unmeasured_default"
         resolved_floors[fid] = v
+        floor_provenance[fid] = origin
+
+    # SCAR-OBS-GREENWASH: a floor whose input signal never existed is not
+    # measured. On an empty event log the kernel returns structural baselines
+    # (tau_truth 0.5, peace2 0.5, kappa_r 0.5, witness_coherence 0.0, shadow
+    # 0.0) which are placeholders exactly like _FLOOR_DEFAULTS — so they get the
+    # same label and render `unmeasured` instead of a fabricated pass or fail.
+    for _fid in measurement_basis.get("unmeasured_floors", []) or []:
+        if str(floor_provenance.get(_fid, "")).startswith("governance_kernel"):
+            floor_provenance[_fid] = "unmeasured_default:empty_kernel_signal"
 
     # F2 TRUTH (ZEN 2026-09-02, F13 'audit this and zen all'): display the
     # measured score. The previous guard overwrote failing floor scores with
@@ -1026,7 +1035,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
     # F1 AMANAH — live arifFLOW FQ probe (FLR-F1-FQ, 2026-08-10)
     # φFQ: 1.0 if FQ∈[1,3]; FQ/3.0 if FQ∈[0.5,1); 0.0 if FQ<0.5; min(1,3/FQ) if FQ>3.
-    # Falls back silently to _FLOOR_DEFAULTS['F1'] (0.50) if arifFLOW unreachable.
+    # SCAR-OBS-GREENWASH: no longer falls back silently. An unreachable
+    # arifFLOW means "cannot witness" (Void Guard), not "all clear" — the
+    # failure is recorded in floor_provenance and surfaced as f1_probe_error.
+    f1_probe_error: str | None = None
     try:
         import json as _json
         import urllib.request as _ureq
@@ -1047,8 +1059,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
         _phi_fq = round(_phi_fq, 4)
         if _phi_fq > float(resolved_floors.get("F1") or 0.0):
             resolved_floors["F1"] = _phi_fq
-    except Exception:
-        pass  # F1 AMANAH: silently keep default on any probe failure
+            floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
+    except Exception as _fq_exc:
+        f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
+        floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
 
     # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
     # where negative values = clarity improved. But runtime_floors must display
@@ -1071,10 +1085,27 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
             pass
-    resolved_witness = {
-        k: witness.get(k) if witness.get(k) is not None and witness.get(k) != 0.0 else v
-        for k, v in _WITNESS_DEFAULTS.items()
-    }
+    # SCAR-OBS-GREENWASH / DEFAULT_TRI_WITNESS (2026-10-03): this used to be
+    #   {k: witness.get(k) if witness.get(k) not in (None, 0.0) else v
+    #        for k, v in _WITNESS_DEFAULTS.items()}
+    # i.e. whenever a real witness was missing OR exactly 0.0 it substituted the
+    # hardcoded triple {human:0.42, ai:0.32, earth:0.26} and published it as a
+    # confident sovereign-weighted measurement. "No witness at all" therefore
+    # rendered as a healthy 42/32/26 split. The same triple is hardcoded in at
+    # least eight modules (art_compat, art_pusaka, tension_node, paradox,
+    # arifosd, generate_constitutional_reality, ...) and is the constant that
+    # dominates the arifFlow Verify receipt ledger. Absence now stays absence:
+    # 0.0 plus a provenance label, never an invented weight.
+    resolved_witness: dict[str, float] = {}
+    witness_provenance: dict[str, str] = {}
+    for k in _WITNESS_DEFAULTS:
+        real = _safe_float(witness.get(k))
+        if real is None or real == 0.0:
+            resolved_witness[k] = 0.0
+            witness_provenance[k] = "unmeasured"
+        else:
+            resolved_witness[k] = real
+            witness_provenance[k] = "governance_kernel"
     live_confidence = telemetry.get("confidence")
     if live_confidence is None:
         live_confidence = resolved_floors.get("F2", 1.0)
@@ -1103,6 +1134,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
             and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
         ):
             resolved_floors["L11"] = _FLOOR_DEFAULTS["L11"]
+            floor_provenance["L11"] = "unmeasured_default:continuity_enabled"
     except Exception:
         capability_map = None
 
@@ -1132,6 +1164,16 @@ def _build_governance_status_payload() -> dict[str, Any]:
             resolved_floors["F8"] = round(
                 max(_FLOOR_DEFAULTS["F8"], float(genius_res.get("genius_score", 0.0))),
                 4,
+            )
+            # SCAR-OBS-GREENWASH: max() against _FLOOR_DEFAULTS["F8"] means this
+            # floor could never report below its own passing threshold — a floor
+            # that cannot fail is not a floor. The clamp is now labelled rather
+            # than silent; removing it outright is a separate calibration call.
+            _genius_raw = float(genius_res.get("genius_score", 0.0))
+            floor_provenance["F8"] = (
+                "derived_genius_clamped_to_default"
+                if _genius_raw < float(_FLOOR_DEFAULTS["F8"])
+                else f"derived_genius:{round(_genius_raw, 4)}"
             )
             if _safe_float(resolved_telemetry.get("confidence"), 0.0) <= 0.0:
                 resolved_telemetry["confidence"] = resolved_floors["F8"]
@@ -1223,8 +1265,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
     return {
         "telemetry": resolved_telemetry,
         "witness": resolved_witness,
+        "witness_provenance": witness_provenance,
         "qdf": qdf or _DEFAULT_QDF,
         "floors": resolved_floors,
+        # SCAR-OBS-GREENWASH (2026-10-03): per-floor origin so a consumer can
+        # tell a measurement from a placeholder. "unmeasured_default*" means the
+        # value came from _representative_floor_score() — the floor's own passing
+        # threshold — and must never be rendered as green.
+        "floor_provenance": floor_provenance,
+        "measurement_basis": measurement_basis,
+        "runtime_signal_evidence": runtime_signal_evidence,
+        "f1_probe_error": f1_probe_error,
         "apex_scalars": apex_scalars,
         "machine_vitals": machine_vitals,
         "session_id": session_id or f"sess_{uuid.uuid4().hex[:8]}",
