@@ -708,7 +708,7 @@ def _build_default_graph() -> CapabilityGraph:
         ),
         CapabilityNode(
             capability_id="organ.geox.claim_validate",
-            tool_name="geox_claim_validate",
+            tool_name="geox_claim",
             server_id="geox",
             description="GEOX validate claim against evidence + contradiction engine",
             authority_required=AuthorityTier.HIGH,
@@ -721,7 +721,7 @@ def _build_default_graph() -> CapabilityGraph:
         ),
         CapabilityNode(
             capability_id="organ.geox.claim_challenge",
-            tool_name="geox_claim_challenge",
+            tool_name="geox_claim",
             server_id="geox",
             description="GEOX challenge an existing claim with contradictory evidence",
             authority_required=AuthorityTier.HIGH,
@@ -734,7 +734,7 @@ def _build_default_graph() -> CapabilityGraph:
         ),
         CapabilityNode(
             capability_id="organ.geox.claim_seal",
-            tool_name="geox_claim_seal",
+            tool_name="geox_claim",
             server_id="geox",
             description="GEOX seal a validated claim — irreversible evidence commitment",
             authority_required=AuthorityTier.SOVEREIGN,
