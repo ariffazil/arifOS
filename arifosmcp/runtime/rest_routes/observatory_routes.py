@@ -1407,6 +1407,48 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         ),
         "label": "arifFLOW :7073",
     }
+
+    # ── 7-state vocabulary: LIVENESS + READINESS ────────────────────────────
+    # The organ blocks above emit `transport` (a real TCP probe) and
+    # `capability`/`contract` (real HTTP /health reads), but the published
+    # 7-state vocabulary is LIVENESS / READINESS / CAPABILITY / GOVERNANCE /
+    # AUTHORIZATION / RECEIPT / CONSTITUTIONAL. Two of the seven therefore
+    # rendered "unavailable" for all six organs — 12 cells — while the evidence
+    # sat in the same dict under a different key. Derived here, in one place,
+    # from measurements that already exist. Both are labelled `derived` and name
+    # their inputs; neither invents a probe, and an unreachable organ yields
+    # ABSENT/UNREACHABLE rather than a hopeful default.
+    for _organ in out.values():
+        if not isinstance(_organ, dict):
+            continue
+        _transport = (_organ.get("transport") or {}).get("value")
+        _alive = str(_transport).lower() in {"up", "reachable", "ok", "healthy"}
+        _organ["liveness"] = _pf(
+            "PRESENT" if _alive else "ABSENT",
+            source=f"derived from transport={_transport!r}",
+            state="derived" if _transport is not None else "unknown",
+            confidence=0.85 if _transport is not None else 0.0,
+            observation_method=_OBS_METHOD_DERIVED,
+            independent=True,
+        )
+        _capability = (_organ.get("capability") or {}).get("value")
+        _contract = (_organ.get("contract") or {}).get("value")
+        if not _alive:
+            _readiness, _rstate, _rconf = "UNREACHABLE", "derived", 0.85
+        elif _capability in (None, 0, "0") and _contract in (None, "", "unknown"):
+            _readiness, _rstate, _rconf = None, "unknown", 0.0
+        elif _capability not in (None, 0, "0") and _contract not in (None, "", "unknown"):
+            _readiness, _rstate, _rconf = "READY", "derived", 0.8
+        else:
+            _readiness, _rstate, _rconf = "DEGRADED", "derived", 0.7
+        _organ["readiness"] = _pf(
+            _readiness,
+            source=f"derived from capability={_capability!r} contract={_contract!r}",
+            state=_rstate,
+            confidence=_rconf,
+            observation_method=_OBS_METHOD_DERIVED if _rstate == "derived" else _OBS_METHOD_UNKNOWN,
+            independent=False,
+        )
     return out
 
 
