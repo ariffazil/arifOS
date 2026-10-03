@@ -695,7 +695,6 @@ def _build_validate_result(
                 chain_entry = _stored_state
                 break
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     if not chain_entry:
         try:
@@ -710,7 +709,6 @@ def _build_validate_result(
             if standing.valid and standing.meta:
                 chain_entry = standing.meta.get("chain_entry")
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     checks["chain_valid"] = chain_entry is not None
     if not checks["chain_valid"]:
@@ -1085,6 +1083,11 @@ async def arif_judge(
     actor_signature: str | None = None,
     nonce: str | None = None,
     key_id: str | None = None,
+    # P0 SURFACE FIX 2026-10-03: the F13 gate in _arif_kernel_intercept consumes
+    # authority_token (the issued-challenge grant: nonce + Ed25519 signature over
+    # it), but this surface never exposed it — a correctly answered challenge had
+    # no path back into the verdict (deadend: verify TRUE → judge still HOLD).
+    authority_token: str | None = None,
     reversibility_level: str | None = None,
     blast_radius: str | None = None,
     seal_purpose: str | None = None,
@@ -1164,7 +1167,6 @@ async def arif_judge(
                     evidence = dict(_last_obs)
                     _evidence = dict(_last_obs)
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         # If still empty but candidate exists, treat candidate as in-band evidence
         if (
@@ -1227,8 +1229,21 @@ async def arif_judge(
     # Gate 1: Caller identity required for judgment
     if not actor_id and not session_id:
         _hard_reasons.append("No actor_id or session_id — cannot identify caller.")
-    elif (not actor_id or str(actor_id).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", "")) and (reversibility_level or action_class or "").upper() not in ("R0", "R0_OBSERVE", "R0_OBSERVATION", "OBSERVE", "READ", "AUDIT_RECORD_READ", ""):
-        _hard_reasons.append("ANONYMOUS_MUTATION_FORBIDDEN: Anonymous callers are strictly OBSERVE_ONLY. Mutation requires authenticated actor identity.")
+    elif (
+        not actor_id
+        or str(actor_id).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", "")
+    ) and (reversibility_level or action_class or "").upper() not in (
+        "R0",
+        "R0_OBSERVE",
+        "R0_OBSERVATION",
+        "OBSERVE",
+        "READ",
+        "AUDIT_RECORD_READ",
+        "",
+    ):
+        _hard_reasons.append(
+            "ANONYMOUS_MUTATION_FORBIDDEN: Anonymous callers are strictly OBSERVE_ONLY. Mutation requires authenticated actor identity."
+        )
 
     # Gate 2a: F1 AMANAH PROVENANCE — engine-classified, agent-claimed, reconciled.
     # Forged 2026-08-27 (WIRE 4). Reversibility is a deterministic F1 floor.
@@ -1291,19 +1306,38 @@ async def arif_judge(
     # Gate 2b (F1 AMANAH): Autonomous Irreversible Destruction Prohibited
     _cand_lower = (candidate or "").lower()
     _is_destructive = any(
-        kw in _cand_lower for kw in ("delete customer", "wipe database", "drop table", "purge customer", "hard delete")
+        kw in _cand_lower
+        for kw in (
+            "delete customer",
+            "wipe database",
+            "drop table",
+            "purge customer",
+            "hard delete",
+        )
     )
-    if _is_destructive and not sovereign_receipt and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+    if (
+        _is_destructive
+        and not sovereign_receipt
+        and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
+    ):
         _hard_reasons.append(
             "F1_AMANAH_VIOLATION: Irreversible destruction/purge is strictly forbidden for autonomous agents."
         )
 
     # Gate 2c (F13 SOVEREIGN): Security Perimeter / Policy Mutation Prohibited
-    _is_security_mutation = (
-        action_class in ("CONSTITUTIONAL_AMENDMENT", "SECURITY_CONFIG", "SECURITY_OVERRIDE")
-        or any(kw in _cand_lower for kw in ("security policy", "bypass auth", "mfa_enforcement", "firewall policy"))
+    _is_security_mutation = action_class in (
+        "CONSTITUTIONAL_AMENDMENT",
+        "SECURITY_CONFIG",
+        "SECURITY_OVERRIDE",
+    ) or any(
+        kw in _cand_lower
+        for kw in ("security policy", "bypass auth", "mfa_enforcement", "firewall policy")
     )
-    if _is_security_mutation and not sovereign_receipt and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif"):
+    if (
+        _is_security_mutation
+        and not sovereign_receipt
+        and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
+    ):
         _hard_reasons.append(
             "F13_SOVEREIGN_VIOLATION: Mutating security/firewall policy or constitutional parameters is reserved exclusively for Root Sovereign."
         )
@@ -1330,16 +1364,34 @@ async def arif_judge(
     # F13 sovereignty decision, not an engineering one. Flagged, not taken.
     _sensitive_paths = (
         # identity & secret material (original)
-        "/etc/shadow", "/etc/sudoers", "/etc/passwd", "/etc/ssh",
-        "/root/.ssh", "/root/.secrets", "/root/.gnupg", "/root/.aws",
-        "kunci-root.env", "kunci-mas", "vault.env",
+        "/etc/shadow",
+        "/etc/sudoers",
+        "/etc/passwd",
+        "/etc/ssh",
+        "/root/.ssh",
+        "/root/.secrets",
+        "/root/.gnupg",
+        "/root/.aws",
+        "kunci-root.env",
+        "kunci-mas",
+        "vault.env",
         # persistence surfaces (added 2026-09-14)
-        "/etc/cron.d", "/etc/crontab", "/etc/cron.daily",
-        "/etc/systemd/system", "/etc/systemd/user", "/lib/systemd/system",
-        "/root/.bashrc", "/root/.bash_profile", "/root/.profile",
-        "/etc/profile.d", "/etc/ld.so.preload", "/etc/hosts",
+        "/etc/cron.d",
+        "/etc/crontab",
+        "/etc/cron.daily",
+        "/etc/systemd/system",
+        "/etc/systemd/user",
+        "/lib/systemd/system",
+        "/root/.bashrc",
+        "/root/.bash_profile",
+        "/root/.profile",
+        "/etc/profile.d",
+        "/etc/ld.so.preload",
+        "/etc/hosts",
     )
-    _target_lower = (str(candidate or "") + " " + str(requested_capability or "") + " " + str(domain or "")).lower()
+    _target_lower = (
+        str(candidate or "") + " " + str(requested_capability or "") + " " + str(domain or "")
+    ).lower()
     _sovereign_actor_2d = str(actor_id).strip().lower() in ("sovereign", "f13", "arif")
     # A receipt string alone is not authority — require credentials alongside it.
     _receipt_exempt_2d = bool(
@@ -1525,11 +1577,20 @@ async def arif_judge(
                     f"GODEL_LOCK_HOLD: {_g_res.get('reason', 'External witness required.')}"
                 )
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     if _hard_reasons:
         _is_void = any(
-            any(kw in r for kw in ("VIOLATION", "FORBIDDEN", "DECEPTIVE", "ANTIHANTU", "PRIVILEGE_ESCALATION", "DESTRUCTIVE"))
+            any(
+                kw in r
+                for kw in (
+                    "VIOLATION",
+                    "FORBIDDEN",
+                    "DECEPTIVE",
+                    "ANTIHANTU",
+                    "PRIVILEGE_ESCALATION",
+                    "DESTRUCTIVE",
+                )
+            )
             for r in _hard_reasons
         )
         return VerdictOutput(
@@ -1603,6 +1664,7 @@ async def arif_judge(
                 seal_purpose=seal_purpose,
                 authority_effect=authority_effect,
                 actor_signature=actor_signature,
+                authority_token=authority_token,
                 session_id=session_id,
             )
             _v_str = _intercept_res.get("decision") or _intercept_res.get("status") or "HOLD"
@@ -1644,8 +1706,7 @@ async def arif_judge(
                 "AUDIT_RECORD_READ",
             )
             _attest_safe = (
-                _rev_u in _safe_revs
-                or str(action_class or "").upper() in _safe_actions
+                _rev_u in _safe_revs or str(action_class or "").upper() in _safe_actions
             ) and _br_u in ("LOW", "L1_LOCAL", "LEDGER")
             # Routine safe actions (read-only / reversible with low blast) promote ALLOW → SEAL autonomously.
             # Non-safe / high-blast actions require explicit F13 sovereign_receipt to confirm.
@@ -1751,10 +1812,7 @@ async def arif_judge(
             # recommendation that will authorize seal. Never both.
             _identity = _intercept_res.get("identity") or {}
             _seal_allowed = bool(_identity.get("seal_allowed", False))
-            if (
-                _code == VerdictCode.SEAL
-                and not _seal_allowed
-            ):
+            if _code == VerdictCode.SEAL and not _seal_allowed:
                 _seal_safe_action = (
                     "Identity is OBSERVE_ONLY; seal is not yet authorized. "
                     "Run arif_init(actor_signature=<ed25519>, "
@@ -1798,7 +1856,8 @@ async def arif_judge(
         if reversibility_level:
             _rd_payload.setdefault(
                 "reversible",
-                str(reversibility_level).upper() in (
+                str(reversibility_level).upper()
+                in (
                     "FULL",
                     "REVERSIBLE",
                     "TRIVIAL",
@@ -2164,7 +2223,6 @@ async def arif_judge(
             try:
                 out = out.model_copy(update={"verdict": "HOLD"})
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
             logger.warning("T1 classifier override forced fail-closed HOLD: %s", _ovr_exc)
 
@@ -2268,7 +2326,6 @@ async def arif_judge(
                     session_token=session_token,
                 )
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
             return VerdictOutput(**data)
         data = out.model_dump(mode="json")
@@ -2306,7 +2363,6 @@ async def arif_judge(
                 autonomy_band=_standing_authority,
             )
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         return VerdictOutput(**data)
 
@@ -2377,7 +2433,6 @@ async def arif_judge(
                     )
                 )
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     # ── F13 CHALLENGE AUTHORIZATION (public MCP wrapper chain) ─────────────
     # Every MCP caller now hits the same handler. Prefer HMAC-rootkey (same as
@@ -2475,17 +2530,15 @@ async def arif_judge(
         if isinstance(session_token, str) and session_token.startswith("act_v1."):
             try:
                 import base64 as _b64_f11, json as _json_f11
+
                 _p_f11 = session_token.split(".")
                 _c_f11 = _json_f11.loads(
-                    _b64_f11.urlsafe_b64decode(
-                        _p_f11[1] + "=" * (4 - len(_p_f11[1]) % 4)
-                    ).decode()
+                    _b64_f11.urlsafe_b64decode(_p_f11[1] + "=" * (4 - len(_p_f11[1]) % 4)).decode()
                 )
                 if _c_f11.get("av") is True and _c_f11.get("sid"):
                     session_id = _c_f11["sid"]
                     _f11_sid = session_id
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
     if not _f11_sid:
         return VerdictOutput(
@@ -3160,7 +3213,6 @@ async def arif_judge(
                         severity=_severity,
                     )
                 except Exception:
-
                     logger.exception("suppressed exception", exc_info=True)
             except Exception:
                 # Persistence failed — do NOT increment counter. Counter is
@@ -3385,11 +3437,7 @@ async def arif_judge(
             claim_text
             or (_evidence.get("claim_text") if isinstance(_evidence, dict) else None)
             or (candidate if isinstance(candidate, str) else None)
-            or (
-                json_lib.dumps(candidate, sort_keys=True, default=str)
-                if candidate
-                else None
-            )
+            or (json_lib.dumps(candidate, sort_keys=True, default=str) if candidate else None)
             or ""
         )
         _cc_declared = claim_class or (
@@ -3858,7 +3906,6 @@ async def arif_judge(
 
                     _sess_ctx_j = _gs_j(session_id) if session_id else None
                 except Exception:
-
                     logger.exception("suppressed exception", exc_info=True)
                 _rsid_j, _ractor_j = resolve_receipt_identity(
                     session_id=session_id,
@@ -3917,7 +3964,6 @@ async def arif_judge(
 
             _predictions = extract_prediction(result if isinstance(result, dict) else {})
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         write_reality_event(
             actor=str(_actor),
