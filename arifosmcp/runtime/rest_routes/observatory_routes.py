@@ -1287,13 +1287,15 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         "label": "A-FORGE :7071/:7072",
     }
     # mcp-gateway — the comment here used to claim "we can't independently probe
-    # from inside", which is false: federation-gateway.service listens on
-    # 127.0.0.1:3003. Measured 2026-10-03 — TCP connect succeeds and HTTP
-    # answers; /health returns 404 only because that route is not implemented.
-    # `transport` held the bare hostname string, so the derived liveness test
-    # could never match "up" and the gateway rendered ABSENT / UNREACHABLE while
-    # it was in fact serving. Probe it for real, and keep the hostname in
-    # `endpoint` so no information is lost.
+    # from inside", which was false: federation-gateway.service listens on
+    # 127.0.0.1:3003. `transport` held the bare hostname string, so the derived
+    # liveness test could never match "up" and the gateway rendered ABSENT /
+    # UNREACHABLE while it was in fact serving. :3003/health now exists
+    # (AAA commit 7e88d9a4, FastMCP custom_route) and publishes version +
+    # tools_loaded from the gateway's own live registries, so identity, contract
+    # and capability are deep-probed like every other organ instead of being
+    # hardcoded None. The hostname is kept in `endpoint`; no information lost.
+    gw_dp = _deep_probe_organ("127.0.0.1", 3003, "mcp-gateway :3003")
     out["mcp_gateway"] = {
         "transport": _probe_transport("127.0.0.1", 3003),
         "endpoint": _pf(
@@ -1304,7 +1306,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_STATIC,
             independent=True,
         ),
-        "identity": _pf(
+        "identity": gw_dp["identity"]
+        or _pf(
             None,
             source="/.well-known/agent-card.json",
             state="unknown",
@@ -1312,7 +1315,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
-        "contract": _pf(
+        "contract": gw_dp["contract"]
+        or _pf(
             None,
             source="/.well-known/mcp/server.json",
             state="unknown",
@@ -1320,7 +1324,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
-        "capability": _pf(
+        "capability": gw_dp["capability"]
+        or _pf(
             None,
             source="mcp tools/list",
             state="unknown",
