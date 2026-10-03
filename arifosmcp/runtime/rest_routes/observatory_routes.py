@@ -870,6 +870,12 @@ def _governance_block() -> dict[str, dict[str, Any]]:
     """Governance verdict + 13-floor status + per-field envelopes."""
     out: dict[str, dict[str, Any]] = {}
     floors: dict[str, dict[str, Any]] = {}
+    # Counters are read after the try/except below, so they must exist even when
+    # the governance import or payload build raises (previously a latent
+    # NameError on the floors_passing/floors_failing emission path).
+    passing = 0
+    failing = 0
+    unmeasured = 0
     try:
         from arifosmcp.runtime.rest_routes.rest_routes import (  # type: ignore
             _build_governance_status_payload,
@@ -878,30 +884,62 @@ def _governance_block() -> dict[str, dict[str, Any]]:
 
         gov = _build_governance_status_payload()
         raw_floors = gov.get("floors", {})
+        # SCAR-OBS-GREENWASH (2026-10-03, FI-003): three-state floor status.
+        # A score sourced from rest_routes._FLOOR_DEFAULTS is produced by
+        # _representative_floor_score(), which returns the floor's OWN passing
+        # threshold ("choose conservative passing value"). It is a visualizer
+        # placeholder, so it can never fail — rendering it as `pass` published
+        # 12 of 13 floors as measured-and-green when at most one (F1, via the
+        # arifFLOW FQ probe) had any external referent. Placeholders now render
+        # `unmeasured` with a null score, per the page's own doctrine: "a loaded
+        # floor without a score is not measured, never green."
+        provenance = gov.get("floor_provenance", {}) or {}
         passing = 0
         failing = 0
+        unmeasured = 0
         for fid, score in raw_floors.items():
-            try:
-                ok = _floor_passes(fid, float(score))
-            except Exception:
+            origin = str(provenance.get(fid) or "governance_kernel")
+            is_placeholder = origin.startswith("unmeasured_default")
+            if is_placeholder:
                 ok = False
-            if ok:
-                passing += 1
+                status = "unmeasured"
+                unmeasured += 1
             else:
-                failing += 1
+                try:
+                    ok = _floor_passes(fid, float(score))
+                except Exception:
+                    ok = False
+                status = "pass" if ok else "fail"
+                if ok:
+                    passing += 1
+                else:
+                    failing += 1
             floors[fid] = {
                 "score": _pf(
-                    score,
-                    source="governance_kernel.get_current_state",
-                    confidence=0.9,
+                    None if is_placeholder else score,
+                    source=(
+                        "rest_routes._FLOOR_DEFAULTS (auto-pass placeholder)"
+                        if is_placeholder
+                        else f"governance_kernel.get_current_state [{origin}]"
+                    ),
+                    state="unknown" if is_placeholder else "observed",
+                    confidence=0.0 if is_placeholder else 0.9,
                     observation_method=_OBS_METHOD_SELF_REPORTED,
                     independent=False,
                 ),
                 "status": _pf(
-                    "pass" if ok else "fail",
-                    source="_floor_passes",
+                    status,
+                    source="_floor_passes + floor_provenance",
                     state="derived",
                     confidence=0.9,
+                    observation_method=_OBS_METHOD_DERIVED,
+                    independent=False,
+                ),
+                "provenance": _pf(
+                    origin,
+                    source="rest_routes.floor_provenance",
+                    state="observed",
+                    confidence=0.99,
                     observation_method=_OBS_METHOD_DERIVED,
                     independent=False,
                 ),
@@ -941,6 +979,14 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         observation_method=_OBS_METHOD_DERIVED,
         independent=False,
     )
+    out["floors_unmeasured"] = _pf(
+        unmeasured,
+        source="floor_provenance count (unmeasured_default*)",
+        state="derived",
+        confidence=0.95,
+        observation_method=_OBS_METHOD_DERIVED,
+        independent=False,
+    )
     out["verdict"] = _pf(
         verdict,
         source="governance_kernel",
@@ -967,8 +1013,11 @@ def _governance_block() -> dict[str, dict[str, Any]]:
     _resolved_session_state = _resolve_session_state_from_sessions()
     out["verdict_decomposition"] = {
         "substrate_state": _pf(
-            "PASS" if failing == 0 else "FAIL",
-            source="floors_passing count",
+            # SCAR-OBS-GREENWASH: `failing == 0` alone was fail-open — zero
+            # failures plus twelve placeholder floors still rendered PASS.
+            # Void Guard: "no data" != "all clear".
+            "FAIL" if failing else ("UNMEASURED" if unmeasured else "PASS"),
+            source="floors_passing/failing/unmeasured count",
             state="derived",
             confidence=0.9,
             observation_method=_OBS_METHOD_DERIVED,
