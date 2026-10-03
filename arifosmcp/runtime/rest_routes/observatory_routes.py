@@ -1377,6 +1377,14 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     }
     # arifFLOW — receipt gravity well + flow control plane (Z4 Forensic Trail Epoch)
     flow_dp = _deep_probe_organ("127.0.0.1", 7073, "arifFLOW :7073")
+    # arifFlow is TWO processes: the Rust metabolism daemon on :7073 (FQ,
+    # receipts, /ingest) and ariflow-mcp.service on :7075, which owns the
+    # @mcp.tool() registrations. The daemon publishes no tool count and must not
+    # — reporting capability for a surface it does not serve is a fabricated
+    # capability, the SCAR-OBS-GREENWASH class. :7075/health reads the live
+    # FastMCP registry (arifFlow commit a4759d0), so capability is probed there
+    # while transport and fq_verdict correctly stay on :7073.
+    flow_mcp_dp = _deep_probe_organ("127.0.0.1", 7075, "arifFLOW MCP :7075")
     flow_fq = _probe_arifflow_fq()
     out["arifflow"] = {
         "transport": _probe_transport("127.0.0.1", 7073),
@@ -1406,7 +1414,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
         ),
-        "capability": _pf(
+        "capability": flow_mcp_dp["capability"]
+        or _pf(
             None,
             source="arifFLOW telemetry",
             state="unknown",
