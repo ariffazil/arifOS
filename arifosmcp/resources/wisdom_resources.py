@@ -5,9 +5,13 @@ Exposes the provenance-typed quote registry as MCP resources.
 Resources are read-only. Quotes are resources, not tools.
 
 Resource URIs:
-  arifos://wisdom/quotes/all              — All quotes (includes disputed, doctrine, prohibited-uses)
+  arifos://wisdom/quotes/all              — All quotes
+  arifos://wisdom/quotes/{quote_id}       — Single quote by canonical id
   arifos://wisdom/quotes/by-floor/{fid}   — Filter by constitutional floor
   arifos://wisdom/quotes/by-tradition/{t} — Filter by tradition
+  arifos://wisdom/quotes/disputed         — DISPUTED_ATTRIBUTION shadow watch
+  arifos://wisdom/quotes/arifos-doctrine  — Native arifOS doctrine entries
+  arifos://wisdom/quotes/prohibited-uses  — Prohibited-use governance index
   arifos://wisdom/fingerprint/{quote_id}  — APEX fingerprint (Layer B)
   arifos://wisdom/canon-status/{quote_id} — Canon-status tier (Layer C)
   arifos://wisdom/contract                — Federation contract for wisdom namespace
@@ -117,10 +121,87 @@ def register_wisdom_resources(mcp) -> list[str]:
 
     registered.append("arifos://wisdom/quotes/by-tradition/{tradition}")
 
-    # ── REMOVED 2026-08-08 (merged into wisdom/quotes/all): ────────────────
-    #   arifos://wisdom/quotes/disputed        — data in quotes/all
-    #   arifos://wisdom/quotes/arifos-doctrine  — data in quotes/all
-    #   arifos://wisdom/quotes/prohibited-uses  — data in quotes/all
+    # ── RESTORED 2026-10-04 (Layer E contract: 9 namespace URIs) ───────────
+    # Removed 2026-08-08 as "merged into quotes/all" — that removal broke the
+    # sealed Layer E federation contract (test_apex_quote_alignment: all nine
+    # URIs must exist as addressable resources). Data overlap is not aliasing.
+
+    # Disputed attributions — Pillar VI shadow watch
+    @mcp.resource("arifos://wisdom/quotes/disputed")
+    def wisdom_quotes_disputed() -> str:
+        """Quotes with DISPUTED_ATTRIBUTION — shadow watch, never load-bearing."""
+        reg = load_registry()
+        disputed = [
+            _summarize_quote(q)
+            for q in reg.get("quotes", [])
+            if (q.get("attribution") or {}).get("source_class") == "DISPUTED_ATTRIBUTION"
+        ]
+        return json.dumps(
+            {
+                "count": len(disputed),
+                "shadow_policy": "C_dark elevated; never load-bearing",
+                "quotes": disputed,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    registered.append("arifos://wisdom/quotes/disputed")
+
+    # Native arifOS doctrine entries
+    @mcp.resource("arifos://wisdom/quotes/arifos-doctrine")
+    def wisdom_quotes_arifos_doctrine() -> str:
+        """Native arifOS doctrine entries (ratification ladder applies)."""
+        reg = load_registry()
+        doctrine = [
+            {
+                "doctrine_id": d.get("doctrine_id"),
+                "name": d.get("name"),
+                "text": d.get("text"),
+                "ratification": d.get("ratification_status")
+                or (d.get("status") or {}).get("ratification"),
+            }
+            for d in reg.get("doctrine", [])
+        ]
+        return json.dumps(
+            {"count": len(doctrine), "doctrine": doctrine},
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    registered.append("arifos://wisdom/quotes/arifos-doctrine")
+
+    # Prohibited-use governance index
+    @mcp.resource("arifos://wisdom/quotes/prohibited-uses")
+    def wisdom_quotes_prohibited_uses() -> str:
+        """Prohibited-use index — governance boundary per quote."""
+        reg = load_registry()
+        default_prohibited = ["factual_evidence", "verdict_authority"]
+        index = []
+        for q in reg.get("quotes", []):
+            prohibited = (q.get("usage") or {}).get("prohibited")
+            if prohibited is None:
+                prohibited = q.get("prohibited_uses")
+            if prohibited is None:
+                prohibited = default_prohibited
+            index.append(
+                {
+                    "id": q.get("id", q.get("quote_id", "")),
+                    "prohibited": prohibited,
+                    "missing_governance": not prohibited,
+                }
+            )
+        return json.dumps(
+            {
+                "registry_default": default_prohibited,
+                "count": len(index),
+                "quotes": index,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    registered.append("arifos://wisdom/quotes/prohibited-uses")
 
     # ── Layer B: APEX fingerprint namespace ────────────────────────────────
     @mcp.resource("arifos://wisdom/fingerprint/{quote_id}")
@@ -255,6 +336,9 @@ def register_wisdom_resources(mcp) -> list[str]:
                     "arifos://wisdom/quotes/{quote_id}",
                     "arifos://wisdom/quotes/by-floor/{floor_id}",
                     "arifos://wisdom/quotes/by-tradition/{tradition}",
+                    "arifos://wisdom/quotes/disputed",
+                    "arifos://wisdom/quotes/arifos-doctrine",
+                    "arifos://wisdom/quotes/prohibited-uses",
                     "arifos://wisdom/fingerprint/{quote_id}",
                     "arifos://wisdom/canon-status/{quote_id}",
                     "arifos://wisdom/contract",
