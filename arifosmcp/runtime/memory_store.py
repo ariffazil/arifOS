@@ -160,14 +160,17 @@ _QDRANT_URL = os.getenv("QDRANT_URL", "http://127.0.0.1:6333")
 _QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
-# ADR-010: L4 canonical store is LOCAL Postgres (port 5432), not Supabase pooler.
-# ARIFOS_MEMORY_POSTGRES_URL was pointing to Supabase, causing recall failures.
-# Priority: POSTGRES_URL (local) > ARIFOS_MEMORY_POSTGRES_URL (env).
-# P0 FIX (2026-07-29): No hardcoded default. If neither env var is set,
-# memory degrades gracefully (read-only / Qdrant-projection-only) with
-# an audit log warning — never a daemon crash. The real credential lives
-# in kunci-mas.env, injected at runtime via systemd.
-_PG_URL = os.getenv("POSTGRES_URL") or os.getenv("ARIFOS_MEMORY_POSTGRES_URL")
+# 2026-10-04 (FI-003, F13 SOVEREIGN 'apply the patch out-of-band'):
+# Cloud Supabase (ARIFOS_MEMORY_POSTGRES_URL) is the canonical L4/L5 store
+# (14,404 seals + 1,107 memories, +40/seit audit chain). Local 127.0.0.1:5432
+# holds the Kabarkan telemetry substrate (600K+ writes via collector/worker/
+# health services) and 12 stale seal rows from an older sync attempt;
+# not the seal canonical. Priority: ARIFOS_MEMORY_POSTGRES_URL (cloud)
+# > POSTGRES_URL (local, emergency fallback only). P0 FIX (2026-07-29)
+# semantics preserved: no hardcoded default, graceful degradation if
+# neither env var is set. The real credential lives in kunci-mas.env,
+# injected at runtime via systemd.
+_PG_URL = os.getenv("ARIFOS_MEMORY_POSTGRES_URL") or os.getenv("POSTGRES_URL")
 
 if not _PG_URL:
     import logging

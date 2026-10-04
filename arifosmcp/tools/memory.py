@@ -119,8 +119,8 @@ def _probe_memory_substrate_boot() -> dict[str, Any]:
         import socket
         from urllib.parse import urlparse
 
-        pg = os.environ.get("POSTGRES_URL") or os.environ.get(
-            "ARIFOS_MEMORY_POSTGRES_URL", "postgresql://127.0.0.1:5432/vault999"
+        pg = os.environ.get("ARIFOS_MEMORY_POSTGRES_URL") or os.environ.get(
+            "POSTGRES_URL", "postgresql://127.0.0.1:5432/vault999"
         )
         host = urlparse(pg).hostname or "127.0.0.1"
         port = urlparse(pg).port or 5432
