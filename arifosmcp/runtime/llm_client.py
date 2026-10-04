@@ -1,14 +1,15 @@
 """
 arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 
-APEX Theory applied (TokenRouter primary gateway):
-- TokenRouter (https://api.tokenrouter.com/v1) — PRIMARY for all organs.
-  Organ/task-aware routing (quality/cost/latency modes per spec):
+APEX Theory applied (FED primary — F13 SAH 2026-10-04):
+- FED-FEDERATION (sovereign local gateway :4000, per-warga virtual key) — PRIMARY
+  for all organs. External routers are diversity rungs, never the sovereignty lane.
+- Organ/task-aware routing (quality/cost/latency modes per spec):
     GEOX: petrophysics=deepseek-v4-pro (1M quality), basin screen=flash (cost), seismic=glm-5.1 (spatial)
     WEALTH: emv/npv=cost-fast, risk=deep-reasoner (quality), market=latency
     WELL: cost mode only + PII firewalls (reflect-only)
 - Direct fallbacks (MiniMax/MiMo) for redundancy: federation survives single provider failure.
-- TokenRouter + direct = sovereignty + resilience.
+- FED + direct = sovereignty + resilience.
 
 Tier 0 (TokenRouter) → Tier 1 (MiniMax) → Tier 1.5 (MiMo) → Tier 2 (Groq FREE → Gemini FREE) → etc. as fallback.
 
@@ -290,7 +291,9 @@ def resolve_tokenrouter_model(
         if any(k in t for k in ("emv", "npv", "compute", "irr", "fiscal", "runway")):
             return "deepseek-v4-flash"  # cost/fast deterministic math
         if any(k in t for k in ("risk", "asym", "asymmetry", "scenario")):
-            return "deepseek-v4-pro"  # quality deep on asymmetric (reasoner alias retired 2026-08-27)
+            return (
+                "deepseek-v4-pro"  # quality deep on asymmetric (reasoner alias retired 2026-08-27)
+            )
         if any(k in t for k in ("market", "latency", "real-time", "fx", "price")):
             return "glm-5-turbo"  # latency mode (fast agentic)
         return "deepseek-v4-flash"  # default cost for capital compute
@@ -611,7 +614,9 @@ async def _call_fed_federation(
         # Attempt to repair truncated JSON before giving up
         repaired = _repair_truncated_json(raw_output)
         if repaired is not None:
-            logger.info("FED-FEDERATION JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+            logger.info(
+                "FED-FEDERATION JSON repaired after truncation (keys: %s)", list(repaired.keys())
+            )
             parsed = repaired
             raw_output = json.dumps(repaired)  # Align raw with repaired for hash integrity
         else:
@@ -691,6 +696,7 @@ async def _call_tokenrouter(
         # saturation → CLOSE-WAIT pileup → DoS.
         if response.status_code in (402, 403):
             import time as _t
+
             _state = _circuit_state.get("tokenrouter", {"failures": 0, "open_until": 0})
             _state["failures"] = max(_state["failures"], CB_FAIL_THRESHOLD)
             _state["open_until"] = _t.monotonic() + (CB_COOLDOWN_SECONDS * 10)
@@ -1844,9 +1850,7 @@ async def _call_deepseek_direct(
 
     short = _short_model_key(model or "deepseek-v4-pro")
     if not short.startswith("deepseek"):
-        raise LLMUnavailableError(
-            f"DeepSeek direct channel refuses non-DeepSeek model {model!r}"
-        )
+        raise LLMUnavailableError(f"DeepSeek direct channel refuses non-DeepSeek model {model!r}")
 
     messages: list[dict[str, str]] = [{"role": "system", "content": system}]
     if user:
@@ -1876,9 +1880,7 @@ async def _call_deepseek_direct(
         raise LLMUnavailableError(f"DeepSeek direct transport error: {exc}") from exc
 
     if response.status_code != 200:
-        logger.warning(
-            "DeepSeek direct HTTP %s: %s", response.status_code, response.text[:200]
-        )
+        logger.warning("DeepSeek direct HTTP %s: %s", response.status_code, response.text[:200])
         raise LLMUnavailableError(f"DeepSeek direct HTTP {response.status_code}")
 
     try:
@@ -2027,15 +2029,11 @@ async def call_llm(
     if constitutional_role and constitutional_role in CONSTITUTIONAL_ROLES_GATED:
         # Validate preferred (if any) is not forbidden — raises FORBIDDEN_MODEL
         if preferred_model:
-            select_model_for_role(
-                constitutional_role, preferred_model, agent_id=tool_origin
-            )
+            select_model_for_role(constitutional_role, preferred_model, agent_id=tool_origin)
         seats = ordered_constitutional_seats(constitutional_role, preferred_model)
         if not seats:
             # Empty map / no allowed models — same fail-closed as select_model_for_role
-            select_model_for_role(
-                constitutional_role, preferred_model, agent_id=tool_origin
-            )
+            select_model_for_role(constitutional_role, preferred_model, agent_id=tool_origin)
             seats = [preferred_model or "deepseek-v4-pro"]
 
         primary_seat = seats[0]
@@ -2101,9 +2099,39 @@ async def call_llm(
         # Non-gated constitutional role — validate but don't short-circuit cascade
         select_model_for_role(constitutional_role, preferred_model, agent_id=tool_origin)
 
-    # Tier 0 — TokenRouter (OpenAI-compatible proxy, embedded key) — PRIMARY
-    # APEX Theory: resolve per organ/task for quality/cost/latency + redundancy.
+    # Tier 0 — FED-FEDERATION (sovereign local gateway :4000) — PRIMARY
+    # F13 SAH 2026-10-04 ('sah kesemuanya 999'): reasoning sovereignty sits on
+    # FED; external routers are diversity rungs only. Previously TokenRouter-
+    # primary starved the whole reasoning lane on 403 quota-exhausted
+    # (journal 2026-10-04 09:46–12:06) while sovereign FED stayed alive.
     cascade_start = time.monotonic()
+    if not _cb_is_open("fed_federation"):
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_fed_federation(
+                system, user, response_schema, temperature, max_tokens
+            )
+            _cb_record_success("fed_federation")
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "fed_federation",
+                FED_FEDERATION_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _cb_record_failure("fed_federation")
+    if time.monotonic() - cascade_start > TOTAL_CASCADE_BUDGET:
+        return _cascade_exhausted(tool_origin, mode, combined_prompt, trace_recursion_depth)
+
+    # Tier 0.5 — TokenRouter (external OpenAI-compatible proxy) — diversity rung
+    # Demoted from PRIMARY by F13 2026-10-04; retained as external redundancy.
+    # APEX Theory: resolve per organ/task for quality/cost/latency + redundancy.
     effective_model = preferred_model or resolve_tokenrouter_model(organ, task_type)
     if not _cb_is_open("tokenrouter"):
         try:
