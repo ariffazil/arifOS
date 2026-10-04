@@ -394,6 +394,26 @@ class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Only guard the /mcp endpoint
         if request.url.path.rstrip("/") == "/mcp" and request.method == "GET":
+            # Friendly human fallback: if visited via web browser,
+            # redirect to interactive landing page instead of showing raw 405 error
+            user_agent = request.headers.get("user-agent", "").lower()
+            sec_fetch_dest = request.headers.get("sec-fetch-dest", "").lower()
+            sec_fetch_mode = request.headers.get("sec-fetch-mode", "").lower()
+            upgrade_insecure = request.headers.get("upgrade-insecure-requests", "")
+            accept = request.headers.get("accept", "").lower()
+
+            is_tool = any(bot in user_agent for bot in ["cursor", "curl", "python", "httpx", "rmcp", "mcp", "grok", "postman", "glama"])
+            is_browser = (
+                sec_fetch_dest == "document"
+                or sec_fetch_mode == "navigate"
+                or upgrade_insecure == "1"
+                or "text/html" in accept
+                or ("mozilla" in user_agent and not is_tool)
+            )
+            if is_browser:
+                from starlette.responses import RedirectResponse
+                return RedirectResponse(url="https://mcp.arif-fazil.com/", status_code=303)
+
             return JSONResponse(
                 {
                     "jsonrpc": "2.0",

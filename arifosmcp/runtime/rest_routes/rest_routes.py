@@ -3121,14 +3121,35 @@ def register_rest_routes(
 
     @route("/mcp", methods=["GET"])
     async def mcp_landing(request: Request) -> Response:
-        """AAA MCP landing — HTML for browsers, discovery JSON for tools, 405 for SSE.
+        """AAA MCP landing — HTML/redirect for browsers, discovery JSON for tools, 405 for SSE.
 
         Streamable-HTTP clients (Grok rmcp, Cursor) probe GET with
         Accept: text/event-stream. Returning discovery JSON (200) makes them
         poll forever. With json_response mode we do not offer SSE — return 405
         so the client falls back to POST-only (same as GEOX transport patch).
+
+        For human web browsers navigating to /mcp, redirect (303) to the
+        interactive landing page / explorer at https://mcp.arif-fazil.com/
+        so users never see an ugly HTTP 405 error.
         """
-        accept = request.headers.get("Accept", "")
+        accept = request.headers.get("Accept", "").lower()
+        user_agent = request.headers.get("User-Agent", "").lower()
+        sec_fetch_dest = request.headers.get("Sec-Fetch-Dest", "").lower()
+        sec_fetch_mode = request.headers.get("Sec-Fetch-Mode", "").lower()
+        upgrade_insecure = request.headers.get("Upgrade-Insecure-Requests", "")
+
+        is_tool = any(bot in user_agent for bot in ["cursor", "curl", "python", "httpx", "rmcp", "mcp", "grok", "postman", "glama"])
+        is_browser = (
+            sec_fetch_dest == "document"
+            or sec_fetch_mode == "navigate"
+            or upgrade_insecure == "1"
+            or "text/html" in accept
+            or ("mozilla" in user_agent and not is_tool)
+        )
+
+        if is_browser:
+            return RedirectResponse(url="https://mcp.arif-fazil.com/", status_code=303)
+
         if "text/event-stream" in accept:
             return Response(
                 status_code=405,
