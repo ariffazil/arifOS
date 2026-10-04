@@ -67,6 +67,21 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
     method = request.get("method", "initialize")
     params = request.get("params", {})
     tool_name = _tool_call_name(method, params)
+    tool_args = _tool_call_args(params)
+
+    # 2026-10-04 heal (kernel-heal-ledger-2026-10-04.md D1): a call carrying a
+    # kernel-minted session (session_id + act_v1 session_token in tool args)
+    # proves the arif_init bootstrap already happened — that token is minted
+    # only there. Treat it as bound so arg-carrying clients resolve consistently
+    # across verbs: arif_memory/arif_think already resolve session from args and
+    # passed this gate, while read-class arif_observe was rejected on the same
+    # session (traces 2f20814f6f954228, 5950012b6cfc4d9f). The gate stays
+    # lifecycle-only: full token validation remains downstream in the kernel
+    # pipeline, exactly as it does for the verbs that resolve args today.
+    args_session_bound = bool(
+        str(tool_args.get("session_id") or "").strip()
+        and str(tool_args.get("session_token") or "").startswith("act_v1.")
+    )
 
     # Enforce lifecycle gate: no normal operations before valid initialize/initialized exchange
     mcp_session_id = request.get("_session_id") or request.get("mcp_session_id") or ""
@@ -99,6 +114,7 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
         )
         and tool_name not in CANARY_TOOLS
         and not mcp_session_id
+        and not args_session_bound
     ):
         # Build a diagnostic error that tells the caller exactly how to fix it
         hint = (
@@ -124,8 +140,6 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
             dialect_used="streamable_http",
             trace_id=trace_id,
         )
-
-    tool_args = _tool_call_args(params)
 
     envelope = CanonicalEnvelope(
         trace_id=trace_id,
