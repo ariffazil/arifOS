@@ -1,7 +1,7 @@
 <!-- SOT-MANIFEST
 last_verified: 2026-09-30T07:43:02+00:00
 kernel_release: v2026.08.01 (release_name from live /health) · canon version 2026.09.20-e8e6f93
-pypi_version: 1!2026.9.2 (published 2026-09-15T16:42Z) · repo tree 1!2026.9.6 (staged, not yet released)
+pypi_version: 1!2026.9.2 (published 2026-09-15T16:42Z) · repo tree 1!2026.10.1 (staged, not yet released)
 live_commit: b7b6004de (docs(readme): audit-edit against live reality — structure, scoped counts, two ne)
 source_commit: b7b6004de
 built_commit: b7b6004
@@ -124,7 +124,7 @@ Authority remains separated at every stage: no component proposes, judges, execu
 
 > Requires **Python 3.12+** (supported range 3.12–3.14; see `pyproject.toml`).
 >
-> **Versioning:** two schemes coexist. The **kernel release** (`v2026.08.01`, reported by `/health` as `release_name`) is the operational identity of the running service. The **PyPI package** uses epoch versioning (`1!…`) to outrank legacy releases: `1!2026.9.2` is what `pip install arifos` resolves to today, while this tree is `1!2026.9.6` (staged, not yet released). The kernel release is the operational truth; PyPI is the distribution truth.
+> **Versioning:** two schemes coexist. The **kernel release** (`v2026.08.01`, reported by `/health` as `release_name`) is the operational identity of the running service. The **PyPI package** uses epoch versioning (`1!…`) to outrank legacy releases: `1!2026.9.2` is what `pip install arifos` resolves to today, while this tree is `1!2026.10.1` (staged, not yet released). The kernel release is the operational truth; PyPI is the distribution truth.
 
 ### Install
 
@@ -375,7 +375,7 @@ Live-probed **2026-09-21** (UTC+08); rows marked ↻ re-probed **2026-09-30**. R
 | Surface | Status | Evidence |
 |---------|--------|----------|
 | Public repository | Live | GitHub [`ariffazil/arifOS`](https://github.com/ariffazil/arifOS), AGPL-3.0 |
-| PyPI package | Published `1!2026.9.2` (uploaded 2026-09-15T16:42Z) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/); tree is `1!2026.9.6`, unreleased |
+| PyPI package | Published `1!2026.9.2` (uploaded 2026-09-15T16:42Z) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/); tree is `1!2026.10.1`, unreleased |
 | Live kernel | Healthy, 13/13 floors | `curl localhost:8088/health` → `status: healthy`, `floors_active: 13` |
 | MCP interface | 8 exposed, 3 with a durable SUCCESS in the last 24 h (tools_loaded: 8, operational_tools: 3) | live `tools/list`; protocol advertises `2026-07-28`, negotiation settles `2025-11-25` |
 | Floor enforcement | 13/13 measured pass | `/health → runtime_floors_status` (F7 = 0.04, F9 = 0.15, L12 = 0.425 lower-is-better) |

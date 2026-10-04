@@ -10,6 +10,10 @@ All notable changes to the arifOS constitutional kernel.
 
 ### Changed
 - Dropped dead `master` branch triggers — fleet unified to `main`
+- Package version bumped `1!2026.9.6` → `1!2026.10.1` (first October epoch release; version surfaces synced: pyproject, well-known server card, README SOT-MANIFEST)
+
+### Fixed
+- APEX doctrine alignment (2026-10-04): HOLD floor restored to `G < 0.50` in A-FORGE runtime receipts; quote fingerprint dual-schema reads (nested v2 canonical, flat v3 fallback) — flat-only reads collapsed every nested quote to `G = 0.0`; Pillar VI `missing_prohibited` shadow restored per sealed federation contract; `APEXResult` terminal-metadata field order; wisdom namespace 9-URI federation contract restored (`quotes/disputed`, `quotes/arifos-doctrine`, `quotes/prohibited-uses`)
 
 ### Security
 - All constitutional floors (F1–F13) active and passing
