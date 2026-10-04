@@ -179,15 +179,48 @@ def report(metrics: list[DriftMetric]) -> str:
     return "\n".join(lines)
 
 
+def unmeasured_report() -> str:
+    """Emit an honest UNMEASURED report instead of demo numbers.
+
+    The five metric functions in this module are real and correct — but this
+    module has NO wired session-telemetry source. Until one exists, running it
+    as a script must not invent observations.
+
+    History (2026-10-03, FI-003): the __main__ block was a hardcoded demo
+    fixture (receipt_bytes=5000, output_bytes=1500, shadow_triggers=3,
+    total_interactions=10). The 6-hourly shadow cron published its output as
+    drift-latest.txt, so two 🔴 ALERTs ("receipt theater 3.33", "verbosity
+    drift 0.377") were literal constants in source code being reported as live
+    measurements of agent behaviour — for weeks, unchanged across every run.
+    Void Guard: "no data" != "all clear", and it never means "fabricate".
+    """
+    names = [
+        ("tool_call_entropy", "session tool-call sequence"),
+        ("question_back_rate", "agent response texts vs user turns"),
+        ("verbosity_drift", "per-response length series"),
+        ("receipt_output_ratio", "receipt bytes vs useful output bytes"),
+        ("shadow_activation_rate", "shadow-check trigger count vs interactions"),
+    ]
+    lines = [
+        "# Behavioral Drift Report",
+        "Status: UNMEASURED — no session-telemetry source is wired to this module",
+        "",
+        "Alerts: 0 | Warnings: 0 | OK: 0 | UNMEASURED: 5",
+        "",
+        "The metric functions exist and are correct; they have no input. Required per metric:",
+    ]
+    for name, need in names:
+        lines.append(f"  ⚪ {name}: UNMEASURED — needs {need}")
+    lines.extend([
+        "",
+        "To make this report real, feed compute_all() from a session transcript source",
+        "(e.g. harness session JSONL under /root/.qwen/projects, /root/.claude/projects,",
+        "/root/.hermes/logs) rather than from constants. Until then this file reports",
+        "nothing, which is the truthful result.",
+    ])
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
-    # Demo
-    metrics = compute_all(
-        tool_calls=["arif_init", "arif_think", "arif_think", "arif_think", "arif_observe", "arif_think"],
-        agent_responses=["What do you mean?", "Could you clarify?", "Let me explain. The answer is 42.", "I think this is right."],
-        response_lengths=[100, 150, 200, 300, 500, 800, 1200],
-        receipt_bytes=5000,
-        output_bytes=1500,
-        shadow_triggers=3,
-        total_interactions=10,
-    )
-    print(report(metrics))
+    print(unmeasured_report())
+
