@@ -313,10 +313,14 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     # Fingerprint a1d4971c986c1642 · Ed25519 public key at
     # /root/AAA/IDENTITY/keys/FI-008_public.pem.
     # Reversible: delete this block + restore the .bak file.
+    # 2026-10-04 heal (kernel-heal-ledger-2026-10-04.md D2): + slash-form lane
+    # aliases on both registry copies — the MCP harness transmits
+    # "<lane>/FI-nnn" and _alias_match() (runtime/tools.py) never matched it,
+    # false-HOLDing every governed call.
     "FI-008": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["FI-008", "fi-008", "kimi-code-fi008", "kimi-code"],
+        "aliases": ["FI-008", "fi-008", "kimi-code-fi008", "kimi-code", "kimi-code/fi-008"],
     },
     # T3 grant 2026-08-07 by 888 SOVEREIGN: register SOTCRON as Tier-A identity.
     # Federation SOT/Drift cron — continuous World Model vault bridge.
@@ -347,7 +351,7 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     "GROK": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["grok", "grok-build", "FI-007", "fi-007", "gap-audit", "p0-verify"],
+        "aliases": ["grok", "grok-build", "FI-007", "fi-007", "gap-audit", "p0-verify", "grok-build/fi-007"],
     },
     "CLAUDE": {
         "sovereign_id": "ARIF_FAZIL",
@@ -357,22 +361,22 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     "QWEN": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["qwen", "qwen-code", "FI-003", "fi-003"],
+        "aliases": ["qwen", "qwen-code", "FI-003", "fi-003", "qwen-code/fi-003"],
     },
     "KIMI": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["kimi", "kimi-code", "FI-008", "fi-008"],
+        "aliases": ["kimi", "kimi-code", "FI-008", "fi-008", "kimi-code/fi-008"],
     },
     "CODEX": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["codex", "codex-cli", "FI-005", "fi-005"],
+        "aliases": ["codex", "codex-cli", "FI-005", "fi-005", "codex-cli/fi-005"],
     },
     "GEMINI": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["gemini", "gemini-cli", "FI-004", "fi-004"],
+        "aliases": ["gemini", "gemini-cli", "FI-004", "fi-004", "gemini-cli/fi-004"],
     },
     # 2026-08-21 Seal C fix (Hermes AAA-lane audit): I-ARIF — the sovereign's
     # own model agent and the ratified single writer for arif_memory
