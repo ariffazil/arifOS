@@ -410,8 +410,10 @@ class APEXResult:
     equation: str = APEX_EQUATION
     shadow: str = APEX_SHADOW
     conservation: str = APEX_CONSERVATION
-    timestamp: str = ""
+    # v1.1 field-order contract: timestamp stays LAST (test-apex field-order
+    # invariant — required-then-optional, terminal metadata last).
     verdict_namespace: str = "apex.constitutional.v3"
+    timestamp: str = ""
 
     def __post_init__(self) -> None:
         # Falsifiability check — fail-loud for APEX-2026-08-01 records.
@@ -661,7 +663,9 @@ def compute_C_dark(A: float, P: float, X: float) -> float:
 compute_Phi = compute_tri_witness  # LEGACY alias (retired bare-Φ, D-05, 2026-09-12)
 
 
-def quick_verdict(A: float, P: float, E: float, X: float, tri_witness: float) -> tuple[Verdict, str]:
+def quick_verdict(
+    A: float, P: float, E: float, X: float, tri_witness: float
+) -> tuple[Verdict, str]:
     """Quick verdict from pre-computed primitives."""
     G = compute_G(A, P, E, X, tri_witness)
     C_dark = compute_C_dark(A, P, X)

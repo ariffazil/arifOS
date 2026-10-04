@@ -668,12 +668,33 @@ def compute_apex_fingerprint(
     if verdict_context is not None and isinstance(verdict_context, dict):
         intended_use = verdict_context.get("intended_use", intended_use)
 
-    confidence = float(quote.get("attribution_confidence", 0.0))
-    language = quote.get("language", "en")
-    source_class = _src_class(confidence, language)
-    prohibited = ["factual_evidence", "verdict_authority"]  # registry default
-    tradition = quote.get("tradition") or []
-    floors = quote.get("arifos_floors") or []
+    # Dual-schema read — nested v2 (attribution/classification/usage) is the
+    # registry canonical shape; flat v3 fields accepted as legacy fallback.
+    # 2026-10-04 fix: flat-only reads collapsed every nested quote's
+    # confidence to 0.0 → multiplicative G collapsed to 0 (fail-closed but
+    # blind). Declared source_class now honored over confidence-derived.
+    attr = quote.get("attribution") or {}
+    classification = quote.get("classification") or {}
+    usage = quote.get("usage") or {}
+
+    _conf = attr.get("attribution_confidence")
+    if _conf is None:
+        _conf = quote.get("attribution_confidence", 0.0)
+    confidence = float(_conf)
+
+    language = attr.get("language") or quote.get("language", "en")
+
+    declared_class = attr.get("source_class") or quote.get("source_class")
+    source_class = declared_class or _src_class(confidence, language)
+
+    prohibited = usage.get("prohibited")
+    if prohibited is None:
+        prohibited = quote.get("prohibited_uses")
+    if prohibited is None:
+        prohibited = ["factual_evidence", "verdict_authority"]  # registry default
+
+    tradition = classification.get("tradition") or quote.get("tradition") or []
+    floors = classification.get("arifos_floors") or quote.get("arifos_floors") or []
 
     # Per-organ G contributions
     organs = {
@@ -699,8 +720,10 @@ def compute_apex_fingerprint(
         c_dark += (1.0 - confidence) * 0.6
     if source_class == "FICTIONAL_VOICE":
         c_dark += 0.3
-    # prohibited_uses is a registry default — always present
-    c_dark += 0.0  # no hidden shadow from missing prohibited list (it's a default now)
+    # Pillar VI (sealed federation contract): missing/empty prohibited list
+    # = hidden shadow. Contract formula: 0.1·missing_prohibited.
+    if not prohibited:
+        c_dark += 0.1
     # Fictional voices + RECEIPT/RED_TEAM use = elevated shadow
     if source_class == "FICTIONAL_VOICE" and intended_use in ("RECEIPT", "RED_TEAM"):
         c_dark += 0.2
