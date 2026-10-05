@@ -478,7 +478,10 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         "claim_class": (
             "Epistemic strength of the claim: 'OBS' (directly observed), 'DER' "
             "(derived from observations), 'INT' (interpreted), 'SPEC' "
-            "(speculative)."
+            "(speculative), 'UNKNOWN' (cannot witness — honest null; maps to "
+            "TruthClass.UNK, weight 0.30, cannot authorize mutation). "
+            "RULE absence-null: 'not in my knowledge' is NOT evidence a claim "
+            "is false — label UNKNOWN, never FALSE."
         ),
         "claim_text": (
             "The exact claim sentence under judgment, e.g. 'uptime exceeded 99% "
