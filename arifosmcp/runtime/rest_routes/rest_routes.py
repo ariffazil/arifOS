@@ -439,7 +439,6 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
             if len(containers) >= limit:
                 break
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     # Fallback: when the kernel can't reach the docker socket (e.g. systemd
     # context where the service user is not in the `docker` group), probe
@@ -1214,7 +1213,6 @@ def _build_governance_status_payload() -> dict[str, Any]:
             if _safe_float(resolved_telemetry.get("confidence"), 0.0) <= 0.0:
                 resolved_telemetry["confidence"] = resolved_floors["F8"]
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     # WS2 (2026-07-12): removed Observatory seal-readiness guard.
     # A green /health does NOT imply execution readiness. The previous
@@ -2420,7 +2418,6 @@ def _count_mcp_tools(fmcp: Any) -> int:
 
         return len(public_tool_names_for_mode())
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     return 9
 
@@ -2697,7 +2694,6 @@ def _probe_vault999_health() -> str:
             if data.get("status") == "healthy":
                 return "healthy"
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     # 2. Legacy API (if ever revived)
     try:
@@ -2706,7 +2702,6 @@ def _probe_vault999_health() -> str:
             if data.get("status") in ("healthy", "ok", "alive"):
                 return "healthy"
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     # 3. FS-backed truth: seal_chain + head present + recent activity
     try:
@@ -2719,7 +2714,6 @@ def _probe_vault999_health() -> str:
                 return "healthy"
             return "degraded"  # exists but stale
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     return "unreachable"
 
@@ -3138,7 +3132,20 @@ def register_rest_routes(
         sec_fetch_mode = request.headers.get("Sec-Fetch-Mode", "").lower()
         upgrade_insecure = request.headers.get("Upgrade-Insecure-Requests", "")
 
-        is_tool = any(bot in user_agent for bot in ["cursor", "curl", "python", "httpx", "rmcp", "mcp", "grok", "postman", "glama"])
+        is_tool = any(
+            bot in user_agent
+            for bot in [
+                "cursor",
+                "curl",
+                "python",
+                "httpx",
+                "rmcp",
+                "mcp",
+                "grok",
+                "postman",
+                "glama",
+            ]
+        )
         is_browser = (
             sec_fetch_dest == "document"
             or sec_fetch_mode == "navigate"
@@ -3416,6 +3423,7 @@ def register_rest_routes(
             "constitutional": {
                 "status": "healthy" if _floors_pass_count == _floors_total else "degraded",
                 "floors_active": get_floor_count(),
+                "floors_pass": _floors_pass_count,
                 "floors_target": 13,
                 "vault999": _vault_health,
             },
@@ -3439,6 +3447,34 @@ def register_rest_routes(
                 "probe_endpoint": "/ready",
             },
         }
+
+        # 2026-10-06 (333-AGI, L13 class — Wawa external audit #4): the
+        # aggregate MUST be derived from its named layers. Measured defect
+        # 2026-10-05: status=healthy + degraded_reasons=[] while
+        # layer_health.constitutional.status=degraded (floors_pass <
+        # floors_target) — a layer that names itself degraded under a
+        # healthy aggregate with no cause is the exact "state field can
+        # lie" pattern (K11 honest sensor; one event → one canonical
+        # state; derived fields follow). "unknown" (infra probe) stays
+        # visible-only by design: it is a declared probe surface, not a
+        # measured failure — no data ≠ all clear, but also no data ≠ fail.
+        for _lh_name, _lh in _layer_health.items():
+            if _lh.get("status") in ("degraded", "fail") and not any(
+                r.get("layer") == _lh_name for r in degraded_reasons
+            ):
+                _degraded = True
+                degraded_reasons.append(
+                    {
+                        "layer": _lh_name,
+                        "field": f"layer_health.{_lh_name}.status",
+                        "value": str(_lh.get("status")),
+                        "severity": "warning",
+                        "explanation": (
+                            "layer self-reported degraded — see layer_health."
+                            f"{_lh_name} fields for the measured cause"
+                        ),
+                    }
+                )
 
         # ── H1.1: emit constitutional gauges from THIS handler's measured state ──
         # record_constitutional_metrics() previously had ZERO live callers, so
@@ -4526,7 +4562,6 @@ def register_rest_routes(
                 else None
             ) or None
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         return JSONResponse(
             {
@@ -4744,7 +4779,6 @@ def register_rest_routes(
                                 if result["tools"]:
                                     result["tool_count"] = len(result["tools"])
                             except Exception:
-
                                 logger.exception("suppressed exception", exc_info=True)
                 except Exception:
                     pass
@@ -5007,7 +5041,6 @@ def register_rest_routes(
                 if r.status_code == 200:
                     ollama_models = [m["name"] for m in r.json().get("models", [])]
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         external_layer = [
             build_component("Ollama", "llm", "ollama", 11434, external_results[0]),
@@ -5552,7 +5585,6 @@ def register_rest_routes(
                 jwks = _json.loads(_jwks_path.read_text())
                 return JSONResponse(jwks)
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         # Fallback: placeholder (dev mode only)
         return JSONResponse(
@@ -6042,7 +6074,6 @@ def register_rest_routes(
             try:
                 write_public_state(state)
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
             return JSONResponse(
                 state,
@@ -6096,7 +6127,6 @@ def register_rest_routes(
                             any_organ_up = True
                             break
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                 except Exception:
                     pass
@@ -6303,7 +6333,6 @@ def register_rest_routes(
                     main_registry = json.load(f)
                 sot_source = "local:fallback"
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
         # Full intended surface = canonical_order + diagnostic_order
         # (comparing only canonical_order vs ~50 live tools caused a permanent false HOLD)
@@ -6666,7 +6695,6 @@ def register_rest_routes(
                         try:
                             entries.append(json.loads(line.strip()))
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                 except Exception as e:
                     logger.warning(f"Failed to read vault file: {e}")
@@ -7059,7 +7087,6 @@ def register_rest_routes(
                         if name and name not in mcp_tool_names:
                             mcp_tool_names.append(name)
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         lines = [
             "# arifOS MCP — Constitutional AI Gateway",
@@ -8226,7 +8253,6 @@ setInterval(refreshSot, 30000);
                                     if "result" in tools_data and "tools" in tools_data["result"]:
                                         result["tools_count"] = len(tools_data["result"]["tools"])
                             except Exception:
-
                                 logger.exception("suppressed exception", exc_info=True)
                     else:
                         result["error"] = f"http_{resp.status_code}"
@@ -8249,7 +8275,6 @@ setInterval(refreshSot, 30000);
                         try:
                             result["data"] = resp.json()
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                     else:
                         result["error"] = f"http_{resp.status_code}"
@@ -8391,7 +8416,6 @@ setInterval(refreshSot, 30000);
                                     if "result" in td and "tools" in td["result"]:
                                         tools_count = len(td["result"]["tools"])
                             except Exception:
-
                                 logger.exception("suppressed exception", exc_info=True)
                             _svc_results["geox"] = {
                                 "status": "ok",

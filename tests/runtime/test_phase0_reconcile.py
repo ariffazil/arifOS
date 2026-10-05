@@ -125,7 +125,14 @@ def test_reconciler_never_enables_authority():
 
 
 def test_unknown_verdict_token_fails_closed_to_hold():
-    out = _reconciled({"effective_verdict": "QUALIFY", "verdict": "QUALIFY"})
+    # 2026-10-06 (333-AGI): fixture token QUALIFY entered _DOMAIN_EVIDENCE_TOKENS
+    # on 2026-10-05 (FI-008 bridge collision — organ qualification vocabulary
+    # wearing verdict-named keys). Using it here made this test exercise the
+    # domain-evidence bucket instead of the unknown path, and it silently
+    # stopped failing closed (measured: returned QUALIFY beside an asserted
+    # HOLD). Intent preserved unchanged: a genuinely unknown token must still
+    # fail closed to HOLD with an UNKNOWN_VERDICT_TOKEN flag.
+    out = _reconciled({"effective_verdict": "MYSTERY_VERDICT", "verdict": "MYSTERY_VERDICT"})
     assert out["effective_verdict"] == HOLD
     rec = out["meta"]["reconciliation"]
     assert any(f.startswith("UNKNOWN_VERDICT_TOKEN") for f in rec["flags"])
