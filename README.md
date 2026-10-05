@@ -1,10 +1,10 @@
 <!-- SOT-MANIFEST
-last_verified: 2026-09-30T07:43:02+00:00
+last_verified: 2026-10-05T07:41:19+00:00
 kernel_release: v2026.08.01 (release_name from live /health) · canon version 2026.09.20-e8e6f93
 pypi_version: 1!2026.9.2 (published 2026-09-15T16:42Z) · repo tree 1!2026.10.1 (staged, not yet released)
-live_commit: b7b6004de (docs(readme): audit-edit against live reality — structure, scoped counts, two ne)
-source_commit: b7b6004de
-built_commit: b7b6004
+live_commit: a98af0d74 (Merge remote-tracking branch 'origin/main' into heal/alias-slash-2026-10-04)
+source_commit: a98af0d74
+built_commit: a98af0d
 deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs — verified by live tools/list)
 tools_canonical_superset: 25 (8 exposed + 13 hidden verbs — arif_challenge, arif_judge_deliberate, …)
@@ -13,7 +13,7 @@ floors_active: 13/13 measured pass (live-probed 2026-09-21; F7=0.04, F9=0.15, L1
 federation_schema: 2.0.0
 mcp_protocol: advertises 2026-07-28; live initialize and the internal conformance runner settle on 2025-11-25 (supported: 2026-07-28 · 2025-11-25 · 2025-03-26 · 2024-11-05)
 organs: 7 per the ratified organ table (FEDERATION_CONTRACT §2) + plane classes for boundary services (see Architecture)
-vault999: healthy (342K+ records, append-only)
+vault999: healthy (397K+ records, append-only)
 contract_status: 8/8 published schemas, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json (37,046 bytes, live)
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
@@ -130,7 +130,7 @@ Authority remains separated at every stage: no component proposes, judges, execu
 
 ```bash
 pip install arifos
-pip show arifos        # → Version: 1!2026.9.2 (see gaps table — __version__ strings may lag)
+pip show arifos        # → Version: 1!2026.9.2 (PyPI published; repo tree 1!2026.10.1 — see gaps table)
 ```
 
 ### Install (Docker)
@@ -370,7 +370,7 @@ The kernel exposes **8 canonical verbs** over Streamable HTTP. Verified by live 
 
 ## Verification Status
 
-Live-probed **2026-09-21** (UTC+08); rows marked ↻ re-probed **2026-09-30**. Re-run the commands; static counts are not evidence.
+Live-probed **2026-09-21** (UTC+08); rows marked ↻ re-probed **2026-09-30** and **2026-10-05**. Re-run the commands; static counts are not evidence.
 
 | Surface | Status | Evidence |
 |---------|--------|----------|
@@ -400,15 +400,15 @@ Every row names its own gap. Repairing a claim by substituting a stronger one is
 | Enterprise deployment | No production customer reference | Open |
 | Standards conformance | MCP/A2A conformance results not published externally | **Partial** — CI `06-mcp-conformance.yml`; [conformance report](docs/evidence/conformance-report.json) says `result: PARTIAL`, `spec_version: 2025-11-25`, with per-tool schema validation DEFERRED |
 | SBOM and signed releases | Supply-chain integrity unverified externally | **Partial** — CycloneDX generator + `sbom` job on publish; no signing, no CVE scan |
-| Container image metadata | The image's own labels contradict this repository | **Open — flagged 2026-09-21**: `Dockerfile` labels carry `org.opencontainers.image.licenses="BSL-1.1"` while the repository LICENSE is AGPL-3.0, the image listens on 3000 while ENV/LABEL say 8088, and the label block describes both "13 tools" and "7-tool surface". Fixing the licence wording is an F13 decision, not a docs edit |
-| Generated mirrors drift | `llms.txt` still prints the retired `888` judge stage and version `v2026.07.24` | **Open** — last generated 2026-09-16; regenerate with `scripts/generate_tool_manifest.py`. The same retired label sits in a description string in `arifosmcp/constitutional_map.py` and in `tools_sot.yaml` (`stage: '666'` is correct; the prose is not), and in the pre-correction note `docs/PROMPT_666_JUDGE_DEPRECATION.md` |
-| Generated discovery artifact drift | `smithery.yaml` no longer matches the kernel ABI registry — the guard itself fails | **Open — verified 2026-09-21** on a pristine `main` worktree: `scripts/sync_kernel_abi.py --check` → `Kernel ABI drift: smithery.yaml`, exit 1. Regenerate the discovery artifacts from the registry (last resync 2026-09-15, `eacf0ca01`) |
-| Development test suite | The suite needs a live kernel | **Fixed 2026-09-25 (collection)** — stale 269-line duplicate `tests/test_rasa_bench_10.py` removed (canonical 632-line bench lives at `/root/.hermes/policy/test_rasa_bench_10.py` where `rasa_boundary` resolves in-place); **7,622 tests collect clean** (re-measured 2026-09-30, was 7,532); `tests/conftest.py` still refuses to run without a reachable kernel at `:8088` (by design). Collection ≠ green: the identity/authority/session/attestation subset carries **34 pre-existing failures** against 321 passes (measured 2026-09-30 on a pristine `main` worktree), so quote a failure *set*, never a bare pass count |
+| Container image metadata | The image's own labels contradict this repository | **Fixed 2026-10-05** (`8372cecc3`) — labels aligned to measured reality: `licenses` → `AGPL-3.0` (matches the repo LICENSE file and PyPI metadata — both said AGPL; the BSL-1.1 label was the outlier), tool counts 13/7 → `8` (`tools_loaded: 8` measured), `PORT` env + MCP port label → `3000` (CMD/EXPOSE/HEALTHCHECK all listen on 3000 by design for Manufact cloud compat), image version → `2026.10.1` |
+| Generated mirrors drift | `llms.txt` still prints the retired `888` judge stage and version `v2026.07.24` | **Fixed 2026-10-05** (`8372cecc3`) — `KERNEL 888` prose corrected to `KERNEL 666` in `arifosmcp/constitutional_map.py` and `tools_sot.yaml`; mirrors regenerated via `scripts/generate_tool_manifest.py`. The version line is now DERIVED from installed package metadata in the generator (was hardcoded `v2026.07.24`), so it cannot go stale again. Live tools/list confirms `KERNEL 666` post-deploy `a98af0d` |
+| Generated discovery artifact drift | `smithery.yaml` no longer matches the kernel ABI registry — the guard itself fails | **Fixed 2026-10-05** (`8372cecc3`) — regenerated from the ABI registry: `Kernel ABI verified: 8 capabilities, 6 public tools`, `--check` exit 0 |
+| Development test suite | The suite needs a live kernel | **Fixed 2026-09-25 (collection)** — stale 269-line duplicate `tests/test_rasa_bench_10.py` removed (canonical 632-line bench lives at `/root/.hermes/policy/test_rasa_bench_10.py` where `rasa_boundary` resolves in-place); **7,668 tests collect clean** (re-measured 2026-10-05, was 7,622); `tests/conftest.py` still refuses to run without a reachable kernel at `:8088` (by design). Collection ≠ green: the identity/authority/session/attestation subset carries **34 pre-existing failures** against 321 passes (measured 2026-09-30 on a pristine `main` worktree), so quote a failure *set*, never a bare pass count |
 | Semantic layer (Graphiti) | Knowledge graph retired from the read path | Operational gap — `graphiti_read: retired_888`, `semantic_floor: disabled` by choice (`ARIFOS_ML_FLOORS=0`) |
 | Observability | Tracing partially wired | **Partial** — sovereign Postgres backend active; arifFlow FlowReceipt adapter live; OTel spans on all 8 canonical verbs; `langfuse_tracing: NOT_WIRED` after the cutover to kabarkan; caller-side trace propagation incomplete |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
 | Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Open — relevant to any institutional adoption** |
-| `__version__` strings are stale | Module `__version__` lags kernel release; readers may quote it incorrectly | **Open** — fix target: route `__version__` through `scripts/update_readme_sot.py` so it stays in sync |
+| `__version__` strings are stale | Module `__version__` lags kernel release; readers may quote it incorrectly | **Closed 2026-10-05** — `arifosmcp/__init__.py` derives `__version__` from installed package metadata (`_pkg_version("arifos")`), and the live wheel reports `1!2026.10.1`, identical to `pyproject.toml`. Submodule `__version__` strings (`webmcp`, `entropy_kernel`, `federation`, `hexagon`) are component tags, not kernel releases — they track their own artifacts |
 | **Identity registry exists in two copies** | A one-sided edit ships a split-brain identity registry: `contracts/identity.py` (imported by ~9 runtime sites) and `arifosmcp/contracts/identity.py` (~3 sites, and the one the wheel ships) had already diverged — the packaged copy was missing the `I_ARIF` entry added by the 2026-08-21 Seal C fix and the `GEMINI`/`FI-004` lane entry, so `i-arif` and `agy/FI-004` resolved differently depending on which copy a module imported | **Mitigated 2026-09-30, consolidation still open** — both copies were re-aligned to 18 actors (`7796ec701`) and `tests/contracts/test_identity_registry_no_divergence.py` (31 tests) now fails on any drift in key set, aliases, normalization of 20 probe ids, or a missing `actor_lookup_candidates`; it was falsified against the pre-alignment state, where it caught exactly `gemini`, `i-arif` and `agy/FI-004`, so it is not vacuous. **Open:** pick one owner — migrate the 9 imports to `arifosmcp.contracts.identity` and retire the top-level copy, or keep both and keep the tripwire. Not decided here because it is a source-of-truth call, not a bug fix |
 | **Authority floor depended on a pointer stub and an unshipped package** | Two independent faults capped every non-exempt agent at `OBSERVE_ONLY`, so mutation-capable citizens silently lost tool access — surfacing as the "tool inexplicably unauthorized" class. (a) Boot Q5 read `identity.toml` with `_file_read(A) or _file_read(B)`; both are 101-byte DERIVED stubs reading *"superseded by: /root/AAA/identity.toml"*, and a non-empty stub short-circuits the `or`, so the canonical F13 payload was never read → `Q5=NO` → `boot_state=FAIL` → `_apply_boot_gate` demoted `LIMITED_MUTATE`/`FULL`. Authority was in practice coming from the 29-entry exemption list, not from attestation. (b) `contracts*` was absent from the wheel `include`, so the kernel's identity path resolved against a July-24 leftover. A bare `except ImportError: pass` in `_apply_boot_gate` hid a wrong module path, making the 2026-08-21 alias bypass dead code | **Fixed 2026-09-30** — `5cc357974` (`_read_identity_toml_chain()` joins all candidates and follows `superseded by:` pointers; Q5 `NO`→`PARTIAL`, which passes the gate since the shipped predicate is `boot_state != "FAIL"`), `2eaec19c2`+`d43b7fece` (one shared `exempt_actor_band()` resolver replacing 7 raw-string membership tests, so the documented `name/FI-nnn` form resolves), `69175c0ec` (patched the copy production imports; boot-gate bypass moved off the fragile import), `27409ddbf` (`contracts*` ships). Verified live: 17/17 AAA identities bind `SEAL` + `mutation_allowed=True` + `VERIFIED` with an ACT carrying `LIMITED_MUTATE` and all 9 verbs, 0 boot demotions, and the control `nobody/FI-999` is still refused — trust boundary unchanged, exempt membership still does not auto-verify. **The generalizable defect: a stand-in served where the payload belonged, and a fail-silent `except` hid it — three times in one session.** |
 
