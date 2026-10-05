@@ -442,7 +442,24 @@ def get_build_info() -> dict[str, Any]:
         build metadata (commit, branch), and status.
     """
     commit = _git_sha_short()
-    app_version = os.environ.get("ARIFOS_APP_VERSION", "").strip() or _pyproject_version()
+    # 2026-10-06 FI-008 (F13 "observatory dynamic SOT"): ONE publisher for the
+    # release version — the F13-ratified canon manifest, not the pyproject
+    # PEP-440 epoch string ("1!2026.10.1" rendered publicly as "v1!2026.10.1").
+    # Precedence: deploy env override → /etc/arifos/canon/canon-release.json →
+    # pyproject fallback. Canon = canon_version "2026.10.05-<sha>".
+    app_version = ""
+    try:
+        _canon_release = json.loads(
+            Path("/etc/arifos/canon/canon-release.json").read_text(encoding="utf-8")
+        )
+        app_version = str(_canon_release.get("canon_version") or "")
+    except Exception:
+        app_version = ""
+    app_version = (
+        os.environ.get("ARIFOS_APP_VERSION", "").strip()
+        or app_version
+        or _pyproject_version()
+    )
     return {
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,

@@ -611,3 +611,21 @@ class SessionManifest(BaseModel):
         "PROVENANCE. Each root is falsifiable and emits evidence. "
         "Schema: arifos.init.v2.roots",
     )
+    # ── UNKNOWN classification (F13 ARIF GO 2026-10-05) ──────────────────
+    # Four fields populated when verdict is HOLD or UNKNOWN. Closes the
+    # "model doesn't know what it doesn't know" gap identified in
+    # CUTOFF-TEST-REPORT-2026-10-05.pdf. Additive — old clients ignore
+    # fields they don't recognize. Tri-Witness state at apply time:
+    # F1=blocked, F2=unmeasured, F3=measured 0.82. ARIF GO = sovereign override.
+    # Schema: arifos.init.unknown_classification.v1
+    unknown_classification: dict[str, Any] | None = Field(
+        default=None,
+        description="UNKNOWN classification envelope — populated when "
+        "verdict is HOLD or UNKNOWN. Fields: as_of_date (ISO8601 UTC), "
+        "anchor_evidence (verbatim reason or 'no anchor found'), "
+        "reason_class (substrate_health|constitutional_hold|substrate_drift|"
+        "missing_data|self_correctable_failure|other), "
+        "falsifier (concrete condition that, if observed, would falsify this "
+        "UNKNOWN classification). Doctrine: absence_of_evidence_is_NOT_"
+        "evidence_of_absence (per GODEL_LOCK axiom A6, F13 ARIF GO 2026-10-05).",
+    )
