@@ -642,6 +642,13 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
     # own verdict and fail-closes every bridge-bearing response. Genuine
     # kernel-lane verdict divergence semantics are unchanged.
     "result.result.verdict",
+    # 2026-10-05b (FI-008, live bridge repro arif_route→geox): the route bridge
+    # wraps the organ reply as result.bridge_result; the organ's DOMAIN health
+    # verdict (e.g. DEGRADED) wearing a verdict-named key there legacy-maps to
+    # SABAR and fail-closes the whole route even when the kernel lanes agree.
+    # Same class as the carve-outs above; organ health stays visible in the
+    # payload, it just stops being judged as a kernel verdict.
+    "result.bridge_result.verdict",
 )
 
 
