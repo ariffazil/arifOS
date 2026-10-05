@@ -601,29 +601,32 @@ jobs:
           echo "Commit: $(git rev-parse --short HEAD)"
           echo ""
           echo "=== Tool Registry ==="
+          # Payload indented to the block-scalar level: YAML strips the common
+          # indentation, so python3 -c receives it at column 0 (parse error
+          # fix 2026-10-04 — col-0 payload lines terminated the YAML block).
           python3 -c "
-import json
-with open('arifosmcp/tool_registry.json') as f:
-    reg = json.load(f)
-tools = reg.get('tools', {})
-names = sorted(tools) if isinstance(tools, dict) else sorted(
-    t.get('name', '?') for t in tools if isinstance(t, dict)
-)
-print(f'Tools: {len(names)}')
-print(f'Canonical public: {reg.get(\"canonical_count\", \"?\")}')
-for name in names:
-    print(f'  - {name}')
-"
+          import json
+          with open('arifosmcp/tool_registry.json') as f:
+              reg = json.load(f)
+          tools = reg.get('tools', {})
+          names = sorted(tools) if isinstance(tools, dict) else sorted(
+              t.get('name', '?') for t in tools if isinstance(t, dict)
+          )
+          print(f'Tools: {len(names)}')
+          print(f'Canonical public: {reg.get(\"canonical_count\", \"?\")}')
+          for name in names:
+              print(f'  - {name}')
+          "
           echo ""
           echo "=== Live Endpoint Check ==="
           curl -s --max-time 5 https://mcp.arif-fazil.com/health | python3 -c "
-import sys, json
-try:
-  d = json.load(sys.stdin)
-  print(f'Status: {d.get(\"status\",\"?\")}')
-  print(f'Tools: {d.get(\"tool_count\",\"?\")}')
-  print(f'Version: {d.get(\"version\",\"?\")}')
-except: print('Could not parse health response')
-" 2>/dev/null || echo "Live endpoint: unreachable from CI"
+          import sys, json
+          try:
+            d = json.load(sys.stdin)
+            print(f'Status: {d.get(\"status\",\"?\")}')
+            print(f'Tools: {d.get(\"tool_count\",\"?\")}')
+            print(f'Version: {d.get(\"version\",\"?\")}')
+          except: print('Could not parse health response')
+          " 2>/dev/null || echo "Live endpoint: unreachable from CI"
           echo ""
           echo "DITEMPA BUKAN DIBERI 🧠✨🌏"
