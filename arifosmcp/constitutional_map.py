@@ -818,7 +818,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_judge": {
         "name": "arif_judge",
-        "description": "KERNEL 888 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.",
+        "description": "KERNEL 666 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.",
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
