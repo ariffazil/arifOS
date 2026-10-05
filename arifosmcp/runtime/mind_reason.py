@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import time
 import uuid
 from typing import Any
 
@@ -399,6 +400,8 @@ Distinguish CLAIM from FACT."""
     # (JSON envelope) and tool origin are unchanged. The F11 AUTH rule
     # (line 327-337) still prevents reasoning_content from leaking to
     # the audit surface — only the final content field is used.
+    llm_start = time.monotonic()
+    llm_error: str | None = None
     try:
         # F13 — Constitutional role gate (sovereign directive 2026-07-24).
         # The 333 MIND envelope synthesizes the evidence that 666_JUDGE
@@ -422,6 +425,8 @@ Distinguish CLAIM from FACT."""
         logger.warning("333 MIND LLM call failed: %s", exc)
         llm_available = False
         llm_tier = None
+        llm_error = str(exc)[:300]
+    llm_latency_ms = int((time.monotonic() - llm_start) * 1000)
 
     # ── Deterministic Fallback ─────────────────────────────────────────────────
     if not llm_available:
@@ -593,6 +598,26 @@ Distinguish CLAIM from FACT."""
             "override_reason": hib_override_reason,
             "constraint_present": bool(hib_constraint_block),
         },
+    }
+
+    # ── AUTH_RUNTIME_REALITY_001 step-3: public reasoning provenance ─────────
+    # The 777_WITNESS _envelope is internal (underscore) and stripped from the
+    # public surface — correct per F11 for reasoning CONTENT, overbroad for
+    # provenance METADATA. Without this block a consumer cannot tell
+    # LIVE_MODEL from FALLBACK_TEMPLATE (measured 2026-10-05: the envelope
+    # exposed neither; self-report confidence 0.2, both paths [UNGROUNDED]).
+    # Provenance metadata only — never reasoning content (F11 preserved).
+    result["reasoning_provenance"] = {
+        "path": "LIVE_MODEL" if llm_available else "FALLBACK_TEMPLATE",
+        "provider": envelope.provider if llm_available else "none",
+        "model": envelope.model if llm_available else "none",
+        "tool_origin": "333_REASON",
+        "mode": mode,
+        "observed_at": timestamp,
+        "latency_ms": llm_latency_ms,
+        "fallback_used": not llm_available,
+        "fallback_reason": llm_error,
+        "note": "LIVE_MODEL confidence is model self-assessment; FALLBACK_TEMPLATE output is a deterministic scaffold",
     }
 
     # ── Attach 777_WITNESS envelope metadata ───────────────────────────────────
