@@ -235,6 +235,15 @@ def _build_meta(
     meta: dict[str, Any] = {
         "actor_verified": identity_verified,
         "authority_mode": authority,
+        "genesis_anchor": {
+            "position": "/000",
+            "invariant": "REALITY > EVERYTHING",
+            "sovereign": "Muhammad Arif bin Fazil",
+            "did": "did:web:arif-fazil.com",
+            "genesis_statement": "arifos://000/genesis",
+            "claims": "arifos://000/claims",
+            "proof_chamber": "/999",
+        },
     }
     challenge_nonce = sess.get("pending_challenge_nonce") if isinstance(sess, dict) else None
     if challenge_nonce:
