@@ -22842,32 +22842,37 @@ def _arif_forge_execute(
         amanah_score=0.88,
     )
     lineage_contract: JudgeSealContract | None = None
-    if constitutional_chain_id or judge_state_hash:
-        lineage_contract, hold = _resolve_judge_contract(
-            constitutional_chain_id=constitutional_chain_id,
-            judge_state_hash=judge_state_hash,
-            tool_name="arif_forge_execute",
-        )
-        if hold is not None:
-            if plan_id:
-                _transition_plan_state(
-                    plan_id,
-                    "aborted",
-                    {"reason": "judge_contract_hold", "meta": hold["meta"]},
-                )
-            return _inject_nine_signal(
-                ForgeOutput(
-                    status="HOLD",
-                    result={},
-                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
-                    meta=hold["meta"],
-                    timestamp=_now(),
-                ).model_dump(mode="json"),
-                "HOLD",
+    # Per ARIFOS-TEST-SPEC-v1 baseline 2026-10-05 (F13 directive "fix the hash
+    # forgery gap"): the judge-packet check is MANDATORY for arif_forge_execute.
+    # The previous conditional (`if constitutional_chain_id or judge_state_hash:`)
+    # was the Semantic Authority Gap — callers could bypass the canonical
+    # `_resolve_judge_contract` check by omitting both fields. Now: always call.
+    # The function returns HOLD if no valid judge packet is in the registry.
+    lineage_contract, hold = _resolve_judge_contract(
+    constitutional_chain_id=constitutional_chain_id,
+    judge_state_hash=judge_state_hash,
+    tool_name="arif_forge_execute",
+    )
+    if hold is not None:
+        if plan_id:
+            _transition_plan_state(
+                plan_id,
+                "aborted",
+                {"reason": "judge_contract_hold", "meta": hold["meta"]},
             )
-        if lineage_contract is not None:
-            constitutional_chain_id = lineage_contract.constitutional_chain_id
-            judge_state_hash = lineage_contract.state_hash
+        return _inject_nine_signal(
+            ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta=hold["meta"],
+                timestamp=_now(),
+            ).model_dump(mode="json"),
+            "HOLD",
+        )
+    if lineage_contract is not None:
+        constitutional_chain_id = lineage_contract.constitutional_chain_id
+        judge_state_hash = lineage_contract.state_hash
 
     if mode == "engineer":
         artifact_id_out = uuid.uuid4().hex[:16]
