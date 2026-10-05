@@ -72,6 +72,41 @@ INIT_FAILURE_TYPE: dict[str, str] = {
 }
 
 
+def _build_unknown_classification(reason: str, failure_type: str) -> dict:
+    """Build the UNKNOWN classification envelope (F13 ARIF GO 2026-10-05).
+
+    Four fields per schema arifos.init.unknown_classification.v1:
+    - as_of_date: ISO8601 UTC
+    - anchor_evidence: verbatim reason (or "no anchor found")
+    - reason_class: one of substrate_health|constitutional_hold|substrate_drift|missing_data|self_correctable_failure|other
+    - falsifier: concrete condition that, if observed, would falsify this UNKNOWN
+
+    Doctrine: absence_of_evidence_is_NOT_evidence_of_absence (GODEL_LOCK axiom A6).
+    """
+    from datetime import datetime, timezone
+    _type_to_class = {
+        "SUBSTRATE_DEGRADED": "substrate_health",
+        "SUBSTRATE_DRIFT": "substrate_drift",
+        "ACTOR_UNVERIFIED": "substrate_drift",
+        "CONSTITUTIONAL_HOLD": "constitutional_hold",
+        "MISSING_DATA": "missing_data",
+        "F13_REQUIRED": "constitutional_hold",
+        "L05_PEACE_FAIL": "substrate_health",
+        "INIT_FAILURE": "other",
+    }
+    return {
+        "as_of_date": datetime.now(timezone.utc).isoformat(),
+        "anchor_evidence": reason or "no anchor found",
+        "reason_class": _type_to_class.get(failure_type, "other"),
+        "falsifier": (
+            f"This UNKNOWN classification is falsified if "
+            f"`{failure_type}` is resolved: re-probe shows status != HOLD "
+            f"with the same reason. (Absence of evidence is NOT evidence "
+            f"of absence — per GODEL_LOCK axiom A6.)"
+        ),
+    }
+
+
 def _make_init_hold(
     reason: str,
     failure_type: str,
@@ -86,6 +121,7 @@ def _make_init_hold(
     - meta.failure_type = specific INIT_FAILURE_TYPE value
     - meta.reason = human-readable explanation
     - meta.violated_laws = list of F-laws implicated
+    - unknown_classification = F13 ARIF GO 2026-10-05 UNKNOWN classification envelope
     """
     meta = {
         "reason": reason,
@@ -99,6 +135,7 @@ def _make_init_hold(
         result={},
         meta=meta,
         doctrine=ARIF_DOCTRINE,
+        unknown_classification=_build_unknown_classification(reason, failure_type),
     )
 
 
@@ -266,6 +303,17 @@ def _sm(*args, **kwargs) -> SessionManifest:
     construction. If not present, falls back to empty string.
     """
     manifest = SessionManifest(*args, **kwargs)
+    # F13 ARIF GO 2026-10-05: auto-populate unknown_classification for HOLD/UNKNOWN.
+    # Catches all paths that go through _sm (covers any caller that didn't
+    # explicitly pass unknown_classification=... to the constructor).
+    # Uses model_copy because Pydantic v2 models are immutable by default.
+    if getattr(manifest, "status", "") == "HOLD" and getattr(manifest, "unknown_classification", None) is None:
+        meta = getattr(manifest, "meta", {}) or {}
+        reason = meta.get("reason", "no reason provided") if isinstance(meta, dict) else "no reason provided"
+        failure_type = meta.get("failure_type", "INIT_FAILURE") if isinstance(meta, dict) else "INIT_FAILURE"
+        manifest = manifest.model_copy(update={
+            "unknown_classification": _build_unknown_classification(reason, failure_type)
+        })
     mode = getattr(manifest, "mode", "") or ""
     sealed = _ditempa_seal(manifest, mode=mode)
     try:
