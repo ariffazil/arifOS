@@ -651,6 +651,16 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
     "result.bridge_result.verdict",
 )
 
+# 2026-10-05c (FI-008, convergent bridge fix): organ payloads nest verdict-
+# named keys at ARBITRARY depth (measured live: result.bridge_result.result.
+# result.payload._evidence_postcondition.verdict=PASS). Per-path suffix
+# carve-outs cannot converge. The ENTIRE bridge envelope is organ domain
+# territory by construction — exclude any verdict-bearing path under it.
+# Kernel-lane verdicts (top-level, result.verdict, reasoning lanes) are NOT
+# under bridge_result and remain fully judged; fail-closed semantics for
+# genuine kernel-lane divergence are unchanged.
+_NON_VERDICT_AXIS_PATHS_PRE = ("result.bridge_result.",)
+
 
 def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
     """Yield (path, raw_string) for every EXACT verdict-bearing key holding a
@@ -667,7 +677,11 @@ def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
         for key, value in node.items():
             child = f"{path}.{key}" if path else str(key)
             if key in _VERDICT_BEARING_KEYS and isinstance(value, str) and value.strip():
-                if not _stage_superseded and not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF):
+                if (
+                    not _stage_superseded
+                    and not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF)
+                    and not child.startswith(_NON_VERDICT_AXIS_PATHS_PRE)
+                ):
                     yield child, value
             yield from _iter_verdict_bearing(value, child)
     elif isinstance(node, list):
