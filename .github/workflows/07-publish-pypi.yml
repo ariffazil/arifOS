@@ -73,7 +73,7 @@ jobs:
           uv run python -c "from arifosmcp.arifos_sbom import generate_arifos_sbom, export_sbom_to_file as x; x(generate_arifos_sbom(), 'dist/arifos-sbom.cdx.json')"
           python3 -c "import json; d=json.load(open('dist/arifos-sbom.cdx.json')); print('SBOM components:', len(d.get('components', [])))"
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: dist/arifos-sbom.cdx.json
