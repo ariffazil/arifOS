@@ -2,7 +2,7 @@
 > Auto-generated from live tool and resource registries. Hash: c19847d1a74a6d37
 > Total MCP: 65 Tools | 42 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
-> Version: v2026.07.24-ZEN-SURVIVAL · MCP Protocol: 2025-11-25
+> Version: 1!2026.10.1 · MCP Protocol: 2025-11-25
 > Verdict grammar: SEAL / HOLD / SABAR / VOID
 > Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class
 
@@ -266,4 +266,4 @@ Tool counts outside arifOS are dynamic observations, not constants. Probe them a
 - Manifest hash: c19847d1a74a6d37
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-09-29T16:05:25.668955+00:00 ---
+--- Auto-generated 2026-10-05T07:37:12.193512+00:00 ---
