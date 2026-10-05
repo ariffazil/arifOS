@@ -546,6 +546,24 @@ _KNOWN_VERDICT_TOKENS = frozenset(CANONICAL_VERDICTS) | frozenset(_LEGACY_VERDIC
 # Receipt-era alias (schemas/transition_receipt.VerdictCode.OBSERVE) — known
 # but outside the six-class envelope taxonomy; normalized locally only.
 _RECONCILE_TOKEN_ALIASES = {"OBSERVE": OBSERVE_ONLY}
+# 2026-10-05 (FI-008, external-audit bridge collision): organ-domain labels
+# wearing a verdict-named key — GEOX registry/qualification vocabulary
+# (tools_wiring.py emits "verdict": "REGISTRY_PASS"; claim engine emits
+# QUALIFIED_CANDIDATE). These are domain EVIDENCE, never judged: routed to
+# meta.reconciliation.domain_evidence, they emit no flag and never HOLD-gate.
+# Token-level mirror of the FIX-S4 precedent (fq_gate.py:66-77 renamed
+# verdict→fq_outcome for the same defect class).
+_DOMAIN_EVIDENCE_TOKENS = frozenset(
+    {
+        "REGISTRY_PASS",
+        "REGISTRY_WARN",
+        "REGISTRY_DRIFT",
+        "QUALIFY",
+        "QUALIFIED",
+        "QUALIFIED_CANDIDATE",
+        "UNQUALIFIED",
+    }
+)
 _FLOOR_EVIDENCE_KEYS = (
     "floors_invoked",
     "law_results",
@@ -616,6 +634,14 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
     # (forge). Exempt the path; fail-closed semantics for genuine verdict
     # divergence are unchanged.
     "kernel_intercept.decision",
+    # 2026-10-05 (FI-008, bridge collision): a bridged organ's payload is
+    # embedded verbatim by the kernel route bridge (tools.py geox_bridge →
+    # result.result). A domain "PASS" under that path is the organ's domain
+    # check, not a kernel verdict — without this carve-out the legacy alias
+    # PASS→SEAL manufactures VERDICT_FIELD_DIVERGENCE against the kernel's
+    # own verdict and fail-closes every bridge-bearing response. Genuine
+    # kernel-lane verdict divergence semantics are unchanged.
+    "result.result.verdict",
 )
 
 
@@ -752,6 +778,7 @@ def reconcile_decision_contract(response: Any) -> Any:
     raw_tokens: dict[str, str] = {}
     unknown: dict[str, str] = {}
     noncanonical: dict[str, str] = {}
+    domain_evidence: dict[str, str] = {}
     for path, raw in _iter_verdict_bearing(response):
         token = str(raw).strip()
         upper = token.upper()
@@ -760,6 +787,10 @@ def reconcile_decision_contract(response: Any) -> Any:
             claims[path] = upper
         elif upper in _RECONCILE_TOKEN_ALIASES:
             claims[path] = _RECONCILE_TOKEN_ALIASES[upper]
+        elif upper in _DOMAIN_EVIDENCE_TOKENS:
+            # Domain vocabulary in a verdict-named key — evidence bucket,
+            # never a flag, never a claim (see _DOMAIN_EVIDENCE_TOKENS note).
+            domain_evidence[path] = token
         elif upper in _LEGACY_VERDICT_MAP:
             # Legacy cross-layer translation (ALLOW, DEGRADED, PARTIAL, ...).
             # Participates in divergence as its canonical value AND fails
@@ -809,6 +840,7 @@ def reconcile_decision_contract(response: Any) -> Any:
             "raw_tokens": raw_tokens,
             "unknown_tokens": unknown,
             "noncanonical_tokens": noncanonical,
+            "domain_evidence": domain_evidence,
             "observed_effective_verdict": prior,
             "reconciled_effective_verdict": HOLD,
             # Review 2026-09-22: the reconciler JUDGES, it never authorizes.
