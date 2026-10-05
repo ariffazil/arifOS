@@ -5202,7 +5202,17 @@ def _enforce_nine_signal(
         #      correction_status: FALSE_POSITIVE_SESSION_SCOPE if applicable.
         _action_state = _scoped_verdicts.get("action", {}).get("state", "NOT_EVALUATED")
         _substrate_state = _scoped_verdicts.get("substrate", {}).get("state", "HEALTHY")
-        _session_state = _scoped_verdicts.get("session", {}).get("state", "OBSERVE_ONLY")
+        # 2026-10-06 (333-AGI, L13 fix): an ABSENT session axis must not
+        # default to a RESTRICTION claim — unmeasured scope is neither
+        # granted nor restricted (F2/K11). The second derivation site
+        # (STAB-2026-08-07c, ~L5669) already defaults honestly to "UNKNOWN";
+        # this site defaulted to OBSERVE_ONLY and fabricated
+        # "Session scope restricted to OBSERVE_ONLY" notices beside a
+        # canonical LIMITED_MUTATE band in the same envelope (measured:
+        # session SEAL-2c5a0a70 init, 2026-10-05). NOT_EVALUATED mirrors
+        # _action_state's default above; _session_only_restricted then
+        # correctly stays False when the session axis is absent.
+        _session_state = _scoped_verdicts.get("session", {}).get("state", "NOT_EVALUATED")
         _action_or_substrate_failed = _action_state in (
             "DENIED",
             "HOLD",

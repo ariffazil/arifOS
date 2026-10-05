@@ -800,11 +800,28 @@ def reconcile_decision_contract(response: Any) -> Any:
     unknown: dict[str, str] = {}
     noncanonical: dict[str, str] = {}
     domain_evidence: dict[str, str] = {}
+    scoped_authority: dict[str, str] = {}
     for path, raw in _iter_verdict_bearing(response):
         token = str(raw).strip()
         upper = token.upper()
         raw_tokens[path] = token
-        if upper in CANONICAL_VERDICTS:
+        if upper == OBSERVE_ONLY:
+            # 2026-10-06 (333-AGI, L13 fix — disposition "ONE EVENT → ONE
+            # canonical state → optional scoped interpretations → never
+            # competing verdict fields"): OBSERVE_ONLY is session/authority
+            # SCOPE vocabulary sharing the verdict namespace. Scope-vs-action
+            # is not contradiction: restraint-class subsumes observe-only,
+            # and what a restricted session may DO is governed by the
+            # authority gate (seal_allowed/mutation_allowed), not by the
+            # reconciler. Route scope tokens to scoped_authority — visible
+            # in meta.reconciliation, never counted toward
+            # VERDICT_FIELD_DIVERGENCE. Same defect class as FIX-S4
+            # (fq_gate verdict→fq_outcome) and the bridge carve-out
+            # (2026-10-05). Genuine kernel-lane verdict divergence (SEAL vs
+            # HOLD etc.) semantics are unchanged; this ends the per-path
+            # exemption whack-a-mole at its vocabulary root.
+            scoped_authority[path] = upper
+        elif upper in CANONICAL_VERDICTS:
             claims[path] = upper
         elif upper in _RECONCILE_TOKEN_ALIASES:
             claims[path] = _RECONCILE_TOKEN_ALIASES[upper]
@@ -862,6 +879,7 @@ def reconcile_decision_contract(response: Any) -> Any:
             "unknown_tokens": unknown,
             "noncanonical_tokens": noncanonical,
             "domain_evidence": domain_evidence,
+            "scoped_authority": scoped_authority,
             "observed_effective_verdict": prior,
             "reconciled_effective_verdict": HOLD,
             # Review 2026-09-22: the reconciler JUDGES, it never authorizes.
