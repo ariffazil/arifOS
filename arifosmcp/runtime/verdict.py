@@ -808,9 +808,17 @@ def reconcile_decision_contract(response: Any) -> Any:
             claims[path] = upper
         elif upper in _RECONCILE_TOKEN_ALIASES:
             claims[path] = _RECONCILE_TOKEN_ALIASES[upper]
-        elif upper in _DOMAIN_EVIDENCE_TOKENS:
+        elif upper in _DOMAIN_EVIDENCE_TOKENS and path.startswith("result."):
             # Domain vocabulary in a verdict-named key — evidence bucket,
             # never a flag, never a claim (see _DOMAIN_EVIDENCE_TOKENS note).
+            # 2026-10-06 (FI-008, fail-closed restoration): scope the lane to
+            # the organ-embedding zone ("result.*"). The original lane was
+            # path-independent, so a bare top-level effective_verdict=QUALIFY
+            # passed through as a standing verdict instead of HOLD
+            # (test_unknown_verdict_token_fails_closed_to_hold). Kernel-lane
+            # verdict fields (top-level / meta.*) stay fully fail-closed;
+            # organ payloads are embedded under result/result.result/
+            # result.bridge_result — the only place domain vocabulary belongs.
             domain_evidence[path] = token
         elif upper in _LEGACY_VERDICT_MAP:
             # Legacy cross-layer translation (ALLOW, DEGRADED, PARTIAL, ...).
