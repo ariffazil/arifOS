@@ -129,46 +129,57 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
     @mcp.prompt(
         name="000 🌱 IGNITE",
         title="000 — Identity Ignition",
-        description="Identity before action. VOID is final without new evidence.",
+        description="Position Zero (/000) Sovereign Anchor. Identity before action. REALITY > EVERYTHING.",
         meta={
             "stage": "000_IGNITE",
             "sigil": "🌱",
             "lexical": "IGNITE",
-            "role": "Identity ignition — bind actor before any action",
+            "role": "Identity ignition — bind actor to Position Zero (/000) before any action",
             "linked_tools": ["arif_init"],
-            "linked_resources": ["arifos://identity", "arifos://carry-forward"],
+            "linked_resources": [
+                "arifos://identity",
+                "arifos://000/genesis",
+                "arifos://000/claims",
+                "arifos://carry-forward",
+            ],
             "floors_referenced": "F1,F7,F11,F13",
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
     def hook_000_ignite(actor_id: str, intent: str) -> str:
-        """000 🌱 IGNITE — Identity before action. VOID is final without new evidence."""
+        """000 🌱 IGNITE — Position Zero (/000) Sovereign Anchor. Identity before action. REALITY > EVERYTHING."""
         return f"""000 🌱 IGNITE — Identity ignition hook
 
 actor_id: {actor_id}
 intent: {intent}
 
 ## Invariant
+REALITY > EVERYTHING.
+Position Zero (/000) Sovereign Anchor: All authority in the federation originates from the sovereign human at Position Zero (Muhammad Arif bin Fazil, did:web:arif-fazil.com).
 Identity before action. VOID is final without new evidence.
 
 ## What to do
 1. Call arif_init(actor_id='{actor_id}') → bind identity to session.
-2. Verify identity binding returned a valid session_id.
+2. Verify identity binding returned a valid session_id and verified Position Zero authority.
 3. If binding fails → HALT. Do not proceed without identity.
-4. Load carry-forward from prior session: arifos://carry-forward
-5. Confirm identity matches F13 SOVEREIGN authority.
+4. Load genesis attestation & sovereign claims: arifos://000/genesis, arifos://000/claims, arifos://identity.
+5. Load carry-forward from prior session: arifos://carry-forward.
+6. Enforce Gödel Lock: No closed AI system can prove all truths within itself; sovereign human provides external ground truth.
+7. Confirm identity matches F13 SOVEREIGN authority.
 
-## Floors
+## Floors & Principles
 F1 AMANAH — attestation is the first act.
-F7 HUMILITY — acknowledge uncertainty before identity claim.
-F11 AUTH — identity verified before any destructive action.
+F7 HUMILITY — acknowledge uncertainty before identity claim; UNKNOWN is a valid state.
+F11 AUTH — identity verified before any action.
 F13 SOVEREIGN — recognize Arif = F13 = absolute veto.
+ANTI-BANGANG LAW: Reality first, human first, system second. Satu masalah, satu owner, satu jalan.
 
 ## Output
 Return an IGNITE block:
   identity_bound: true|false
   session_id: <string>
   actor_id: <string>
+  position_zero_verified: true|false
   carry_forward_loaded: true|false
   next_stage: 111 SENSE
 """
@@ -572,14 +583,14 @@ Return a JUDGE block:
     @mcp.prompt(
         name="999 💎 SEAL",
         title="999 — Immutable Record",
-        description="Immutable record. Hash-chained. Cannot be undone.",
+        description="Immutable record. Hash-chained. Companion chamber to /000. Cannot be undone.",
         meta={
             "stage": "999_SEAL",
             "sigil": "💎",
             "lexical": "SEAL",
             "role": "Seal — immutable vault append with hash chain",
             "linked_tools": ["arif_seal"],
-            "linked_resources": ["arifos://vault/head"],
+            "linked_resources": ["arifos://vault/head", "arifos://000/claims"],
             "floors_referenced": "F1,F11",
             "federation_layer": "arifOS.kernel.prompts",
         },
@@ -593,6 +604,8 @@ mode: {mode}
 
 ## Invariant
 Immutable record. Hash-chained. Cannot be undone.
+Companion to Position Zero (/000): Closes the causal verification loop at /999 (Proof Chamber & VAULT999).
+DITEMPA BUKAN DIBERI.
 
 ## What to do
 1. Verify FORGE completed successfully with valid audit trail.
@@ -611,6 +624,7 @@ Return a SEAL block:
   chain_hash: <sha256>
   ledger_path: /var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl
   audit_provenance: <call_hash + trace_id + signature>
+  companion_chamber: /000_VERIFIED
   next_action: HUMAN_INIT_NEXT_LOOP_OR_HALT
 """
 
