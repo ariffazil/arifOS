@@ -103,13 +103,33 @@ def test_no_floor_publishes_the_fabricated_coherence_constant():
         )
 
 
-def test_empty_signal_floors_are_labelled_unmeasured():
+def test_empty_signal_floors_are_labelled_unmeasured(monkeypatch):
     """A structural baseline is a placeholder, not a score.
 
     On an empty event log evaluate_floors returns tau_truth 0.5, peace2 0.5,
     kappa_r 0.5, witness_coherence 0.0, shadow 0.0. Those must be labelled so no
     consumer renders them green.
+
+    Hermetic (2026-10-06): human-witness ledgers now EXIST on this machine
+    (landed 2026-10-05 via F13 directive, /var/lib/*/human_witness.jsonl),
+    so collect_witness_legs() returns live legs and F3 is legitimately
+    attributed to witness_producers — this test must CONSTRUCT the
+    empty-signal scenario, not inherit whatever the machine has on disk.
     """
+    import arifosmcp.runtime.witness_producers as _wp
+
+    monkeypatch.setattr(
+        _wp,
+        "collect_witness_legs",
+        lambda: {
+            "legs": {},
+            "coherence": None,
+            "measured": 0,
+            "total": 3,
+            "complete": False,
+            "blocking_legs": ["human", "ai", "earth"],
+        },
+    )
     payload = rr._build_governance_status_payload()
     provenance = payload["floor_provenance"]
     basis = payload["measurement_basis"]
