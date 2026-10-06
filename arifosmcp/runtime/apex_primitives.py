@@ -5,7 +5,9 @@ apex_primitives.py — Derive APEX primitives from live tool call metrics
 Replaces system health proxy with actual tool call metrics:
   A = lease compliance rate (actions within authority)
   P = evidence floor compliance (claims with evidence)
-  E = tool call success rate
+  E = execution success rate (execution-classed 2026-10-06; the canon name
+      "ENTROPY×ENERGY" is CANON_DERIVED, unimplemented — rename-before-rebuild,
+      THERMO-INVARIANTS Th-2)
   X = reversibility rate (dry-run before execute)
   Φ = scar feedback (1 - repeated_failure_rate)
 
@@ -166,6 +168,22 @@ def compute_apex_from_metrics(
             query += " AND actor_id = ?"
             params.append(actor_id)
         rows = conn.execute(query, params).fetchall()
+        # P1 residual accounting: fetch prior window BEFORE closing (same conn)
+        _cutoff_prior = time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 2 * window_seconds)
+        )
+        _rows_prior: list = []
+        try:
+            _qp = """SELECT success, has_evidence, within_lease, dry_run_first,
+                      reversible, failure_code, outcome
+               FROM tool_calls WHERE timestamp >= ? AND timestamp < ?"""
+            _pp: list = [_cutoff_prior, cutoff]
+            if actor_id:
+                _qp += " AND actor_id = ?"
+                _pp.append(actor_id)
+            _rows_prior = conn.execute(_qp, _pp).fetchall()
+        except Exception:
+            _rows_prior = []
         conn.close()
 
         n = len(rows)
@@ -283,8 +301,9 @@ def compute_apex_from_metrics(
                 }
                 for cls in sorted(outcome_counts)
             },
-            "E_semantics": "execution-classed; constitutional verdicts excluded",
+            "E_semantics": "execution-classed; constitutional verdicts excluded (energy/entropy components CANON_DERIVED, unimplemented)",
             "gram": _gram_block(rows, classes),
+            "residual": _residual_block(_rows_prior, rows),
             "source": "apex_primitives.py",
             "version": "apex-v2-outcome-semantics",
         }
@@ -323,6 +342,7 @@ def _gram_block(rows: list, classes: list[str]) -> dict[str, Any]:
         return {"measurement_status": "UNMEASURED", "reason": "zero-variance column"}
     corr = _np.corrcoef(obs.T)
     eigs = _np.sort(_np.linalg.eigvalsh(corr))
+    rank = int(_np.linalg.matrix_rank(corr, tol=1e-6))
     by_outcome: dict[str, float] = {}
     ev = obs[:, 1]
     for cls in sorted(set(classes)):
@@ -333,8 +353,110 @@ def _gram_block(rows: list, classes: list[str]) -> dict[str, Any]:
         "correlation": [[round(float(x), 4) for x in row] for row in corr],
         "columns": cols,
         "eigenvalues": [round(float(x), 4) for x in eigs],
+        "rank": rank,
+        "effective_dimension": rank,
+        "rank_note": (
+            "full rank"
+            if rank == len(cols)
+            else "collinear: effective dimension < columns (one voice counted twice)"
+        ),
         "evidence_correlation_by_outcome": by_outcome,
         "epistemic": "OBSERVED covariance of observables; scar reading is H-class",
+    }
+
+
+def _reduce_letters(rows: list) -> dict[str, Any] | None:
+    """Reduce a row-set to (A, P, E, X, G) with v2 outcome semantics.
+
+    Shared by the residual block: prior-window letters serve as the naive
+    persistence prediction for the current window (first honest residual
+    accounting at the metric layer; DER-class, not a model).
+    """
+    import math as _math
+
+    n = len(rows)
+    if n == 0:
+        return None
+    classes = [
+        (r[6] or "").strip() or derive_outcome(bool(r[0]), r[5] or "") for r in rows
+    ]
+    es = sum(1 for c in classes if c == OUTCOME_EXECUTION_SUCCESS)
+    ef = sum(1 for c in classes if c == OUTCOME_EXECUTION_FAILURE)
+    et = es + ef
+    A = sum(1 for r in rows if r[2]) / n
+    P = sum(1 for r in rows if r[1]) / n
+    E = es / et if et > 0 else None
+    X = sum(1 for r in rows if r[3]) / n
+    G = None
+    if E is not None:
+        fs = [max(0.01, f) for f in (A, P, E, X)]
+        G = float(_math.prod(fs) ** 0.25)
+    return {
+        "A": round(A, 4), "P": round(P, 4),
+        "E": round(E, 4) if E is not None else None,
+        "X": round(X, 4),
+        "G": round(G, 4) if G is not None else None,
+        "n": n,
+    }
+
+
+def w3_rank_check(*channels: list | None) -> dict[str, Any]:
+    """Independence gate for W³ = ∛(H×AI×Ext).
+
+    Cardinality is not independence (APEX GEOMETRY SUBSTRATE canon): k
+    witnesses are k independent voices only if their sample vectors are not
+    collinear. Returns declared vs effective witness count. Advisory until
+    witness sample streams are wired; scalar channels cannot rank-check.
+    """
+    try:
+        import numpy as _np
+    except ImportError:
+        return {"independence": "UNMEASURED", "reason": "numpy unavailable"}
+    chs = [list(c) for c in channels if c is not None and len(c) > 0]
+    k = len(chs)
+    if k < 2:
+        return {"independence": "UNMEASURED", "reason": "fewer than 2 witness streams"}
+    M = _np.vstack([_np.asarray(c, dtype=float) for c in chs])
+    if float(_np.abs(M.std(axis=1)).min()) <= 0.0:
+        return {
+            "witnesses_declared": k,
+            "witnesses_effective": 0,
+            "independence": "FAIL",
+            "reason": "constant witness stream",
+        }
+    k_eff = int(_np.linalg.matrix_rank(M, tol=1e-6))
+    return {
+        "witnesses_declared": k,
+        "witnesses_effective": k_eff,
+        "independence": "PASS" if k_eff == k else "FAIL",
+        "note": "independent" if k_eff == k else "cardinality is not independence",
+    }
+
+
+def _residual_block(rows_prior: list, rows_current: list) -> dict[str, Any]:
+    """Persistence-basis residual: prior-window letters as the naive
+    prediction for the current window. r = observed − predicted — the
+    metric layer's first honest residual accounting (DER-class: naive
+    persistence baseline, not a model; models arrive with J-calibration)."""
+    prior = _reduce_letters(rows_prior)
+    current = _reduce_letters(rows_current)
+    if prior is None or current is None:
+        return {
+            "measurement_status": "UNMEASURED",
+            "reason": "empty prior or current window",
+            "prior_n": 0 if prior is None else prior["n"],
+            "current_n": 0 if current is None else current["n"],
+        }
+    delta: dict[str, Any] = {}
+    for k in ("A", "P", "E", "X", "G"):
+        p, c = prior.get(k), current.get(k)
+        delta[k] = None if (p is None or c is None) else round(c - p, 4)
+    return {
+        "basis": "persistence: prior-window letters as naive prediction",
+        "prior": prior,
+        "current": current,
+        "delta": delta,
+        "epistemic": "DER — naive persistence baseline, not a model",
     }
 
 

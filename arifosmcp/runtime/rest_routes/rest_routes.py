@@ -1275,6 +1275,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
         apex_scalars["W3"] = {
             "value": _w3_val,
             "status": "MEASURED" if _w3_val is not None else "UNMEASURED",
+            # P1 rank-aware honesty (2026-10-06): scalar channels cannot
+            # rank-check — cardinality is not independence. w3_rank_check()
+            # in apex_primitives gates ∛ once witness sample streams exist.
+            "independence": "UNMEASURED (scalar channels; rank requires witness sample vectors)",
         }
         # h — humility mass = evidence gap (1 - P), from tool-call metrics
         _h_val = _apex.get("h")
