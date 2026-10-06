@@ -6371,6 +6371,16 @@ def _enforce_nine_signal(
             if isinstance(res, dict):
                 _SESSIONS[session_id]["last_observation"] = res
                 _SESSIONS[session_id].setdefault("observations", []).append(res)
+                # P1 FIX 2026-10-06 (F13 SAH 2026-10-06 09:35): persist the
+                # in-place mutation so the next kernel restart can re-load
+                # the observation from disk via get_session_execution_state.
+                # Without this call, the observation lives in _SESSION_IDENTITY
+                # (RAM) only and is lost on restart.
+                try:
+                    from arifosmcp.runtime import session as _p1_sess
+                    _p1_sess._persist_store()
+                except Exception:
+                    logger.exception("P1 persist_store failed", exc_info=True)
         except Exception:
             logger.exception("suppressed exception", exc_info=True)
     # Last line of every tool envelope: drift floor wins over SEAL
@@ -25886,6 +25896,42 @@ from arifosmcp.tools.stage import arif_stage as _arif_stage_handler  # 888-APEX 
 from arifosmcp.tools.commit import arif_commit as _arif_commit_handler  # 888-APEX Option A
 
 
+
+# ── P2 RECONCILIATION HANDLERS (F13 SAH 2026-10-06 09:45) ──────────────
+# Stub functions for 10 tools advertised but not mounted on the live kernel.
+# Each returns an honest DEPRECATED notice with the canonical replacement.
+async def _p2_deprecation_handler_arif_critique(*args, **kwargs):
+    return {"status": "DEPRECATED", "tool": "arif_critique", "canonical_replacement": "arif_heart_critique", "isError": False, "content": [{"type": "text", "text": "Use arif_heart_critique (canonical)."}]}
+
+async def _p2_deprecation_handler_arif_compose(*args, **kwargs):
+    return {"status": "DEPRECATED", "tool": "arif_compose", "canonical_replacement": "arif_reply_compose", "isError": False, "content": [{"type": "text", "text": "Use arif_reply_compose (canonical)."}]}
+
+async def _p2_deprecation_handler_arif_kernel_intercept(*args, **kwargs):
+    return {"status": "DEPRECATED", "tool": "arif_kernel_intercept", "canonical_replacement": "arif_route", "isError": False, "content": [{"type": "text", "text": "Use arif_route."}]}
+
+async def _p2_deprecation_handler_arif_measure(*args, **kwargs):
+    return {"status": "DEPRECATED", "tool": "arif_measure", "canonical_replacement": "arif_ops_measure", "isError": False, "content": [{"type": "text", "text": "Use arif_ops_measure."}]}
+
+async def _p2_deprecation_handler_arif_ops_measure(*args, **kwargs):
+    return {"status": "DEPRECATED", "tool": "arif_ops_measure", "canonical_replacement": "(none — internal diagnostic only)", "isError": False, "content": [{"type": "text", "text": "Use python module: from arifosmcp.runtime.tools import _arif_ops_measure"}]}
+
+async def _p2_deprecation_handler_arif_bridge_connect(*args, **kwargs):
+    return {"status": "DEPRECATED", "tool": "arif_bridge_connect", "canonical_replacement": "arif_route", "isError": False, "content": [{"type": "text", "text": "Use arif_route."}]}
+
+async def _p2_deprecation_handler_wealth_dscr_leverage(*args, **kwargs):
+    return {"status": "WRONG_ORGAN", "tool": "wealth_dscr_leverage", "canonical_replacement": "WEALTH MCP at :18082", "isError": False, "content": [{"type": "text", "text": "This is a WEALTH organ tool. Use the WEALTH MCP endpoint."}]}
+
+async def _p2_deprecation_handler_wealth_emv_downside(*args, **kwargs):
+    return {"status": "WRONG_ORGAN", "tool": "wealth_emv_downside", "canonical_replacement": "WEALTH MCP at :18082", "isError": False, "content": [{"type": "text", "text": "This is a WEALTH organ tool. Use the WEALTH MCP endpoint."}]}
+
+async def _p2_deprecation_handler_wealth_irr_yield(*args, **kwargs):
+    return {"status": "WRONG_ORGAN", "tool": "wealth_irr_yield", "canonical_replacement": "WEALTH MCP at :18082", "isError": False, "content": [{"type": "text", "text": "This is a WEALTH organ tool. Use the WEALTH MCP endpoint."}]}
+
+async def _p2_deprecation_handler_wealth_npv_reward(*args, **kwargs):
+    return {"status": "WRONG_ORGAN", "tool": "wealth_npv_reward", "canonical_replacement": "WEALTH MCP at :18082", "isError": False, "content": [{"type": "text", "text": "This is a WEALTH organ tool. Use the WEALTH MCP endpoint."}]}
+
+
+
 _CANONICAL_HANDLERS: dict[str, Any] = {
     # ── 8-TOOL MCP FACADE (constitutional surface — sovereign-ratified 2026-07-18) ─
     # Public agents see only these 8 verbs. Everything else is an alias or
@@ -25926,6 +25972,8 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     # ── Staging protocol (888-APEX Option A, 2026-08-03) ──────────
     "arif_stage": _arif_stage_handler,
     "arif_commit": _arif_commit_handler,
+    # ── P2 RECONCILIATION STUBS (F13 SAH 2026-10-06 09:45) ────────────────
+    "wealth_npv_reward": _p2_deprecation_handler_wealth_npv_reward,
 }
 
 # ── Backward-compat internal aliases (Rule 14 mode-first naming migration) ──
@@ -25959,7 +26007,9 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_initialize_probe": _runtime_initialize_probe,
     "arif_conformance_report": _runtime_conformance_report,
     "arif_selftest": _runtime_selftest,
-    # ── IDENTITY TOOLS (2026-07-18 fold): moved from _CANONICAL_HANDLERS ─
+    
+
+# ── IDENTITY TOOLS (2026-07-18 fold): moved from _CANONICAL_HANDLERS ─
     # These were re-classified as internal/diagnostic. They are reachable
     # via Python handle or HTTP endpoint /kernel/<name> but NOT on the
     # public MCP wire. Wire surface stays at 8.
