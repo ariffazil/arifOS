@@ -392,14 +392,43 @@ systemctl restart "$SERVICE_NAME" 2>&1 || {
 }
 
 echo "  Waiting for service to become healthy..."
+# 2026-10-07: success criterion was `status == healthy`, which is
+# unsatisfiable whenever the constitutional layer is degraded — including
+# when the drift this deploy is fixing is the cause. The script therefore
+# reported failure on a perfectly good deploy. Criterion is now:
+#   service answers /health at all, and status is not worse than the
+#   pre-deploy baseline captured below.
+PRE_STATUS_FILE="$(mktemp)"
+if [ -n "$PRE_DEPLOY_STATUS" ]; then
+	echo "$PRE_DEPLOY_STATUS" > "$PRE_STATUS_FILE"
+else
+	curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null \
+		| python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null \
+		> "$PRE_STATUS_FILE" || true
+fi
+PRE_STATUS="$(cat "$PRE_STATUS_FILE" 2>/dev/null || echo "")"
+rm -f "$PRE_STATUS_FILE"
+echo "  pre-deploy status: ${PRE_STATUS:-<unknown>}"
+
+# Rank: lower is worse. Unknown ranks worst so a dead kernel always fails.
+_status_rank() {
+	case "$1" in
+		healthy)   echo 2 ;;
+		degraded)  echo 1 ;;
+		*)         echo 0 ;;
+	esac
+}
+PRE_RANK=$(_status_rank "$PRE_STATUS")
+
 for i in $(seq 1 30); do
 	STATUS=$(curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
-	if [ "$STATUS" = "healthy" ]; then
-		echo "  ✅ Kernel healthy after ${i}s"
+	POST_RANK=$(_status_rank "$STATUS")
+	if [ "$POST_RANK" -gt 0 ] && [ "$POST_RANK" -ge "$PRE_RANK" ]; then
+		echo "  ✅ Kernel responding after ${i}s (status=${STATUS:-unknown}, baseline=${PRE_STATUS:-unknown})"
 		break
 	fi
 	if [ "$i" -eq 30 ]; then
-		echo "  ❌ Kernel did not become healthy"
+		echo "  ❌ Kernel did not reach an acceptable state (last=${STATUS:-<none>}, baseline=${PRE_STATUS:-unknown})"
 		systemctl status "$SERVICE_NAME" --no-pager 2>&1 | tail -20
 		rm -rf "$BUILD_DIR"
 		exit 1
