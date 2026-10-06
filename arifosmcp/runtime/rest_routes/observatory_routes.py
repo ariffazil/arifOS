@@ -1411,6 +1411,7 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     # while transport and fq_verdict correctly stay on :7073.
     flow_mcp_dp = _deep_probe_organ("127.0.0.1", 7075, "arifFLOW MCP :7075")
     flow_fq = _probe_arifflow_fq()
+    _flow_facts = _probe_arifflow_flow_facts()
     out["arifflow"] = {
         "transport": _probe_transport("127.0.0.1", 7073),
         "fq_verdict": flow_fq,
@@ -1465,11 +1466,27 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             independent=True,
         ),
         "last_receipt": _pf(
-            None,
-            source="arifFLOW receipt_chain",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
+            _flow_facts.get("receipts"),
+            source="GET 127.0.0.1:7073/health→receipts (anchored window count)",
+            state="observed" if _flow_facts.get("receipts") is not None else "unknown",
+            confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=True,
+        ),
+        "receipts": _pf(
+            _flow_facts.get("receipts"),
+            source="GET 127.0.0.1:7073/health→receipts",
+            state="observed" if _flow_facts.get("receipts") is not None else "unknown",
+            confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=True,
+        ),
+        "chain_status": _pf(
+            _flow_facts.get("chain"),
+            source="GET 127.0.0.1:7073/health→invariants",
+            state="observed" if _flow_facts.get("chain") else "unknown",
+            confidence=0.85 if _flow_facts.get("chain") else 0.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
         ),
         "drift": _pf(
@@ -1501,9 +1518,34 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     # from measurements that already exist. Both are labelled `derived` and name
     # their inputs; neither invents a probe, and an unreachable organ yields
     # ABSENT/UNREACHABLE rather than a hopeful default.
-    for _organ in out.values():
+    # 2026-10-07 (Observatory green mission): per-organ AUTHORIZATION rendered
+    # "unavailable · source: missing" for all 8 organs. The declared authority
+    # ceilings live in /root/AAA/federation/organs.yaml — surface them as the
+    # declared boundary (reported class), the same honest shape A-FORGE already
+    # used ("requires lease"). A ceiling is a declaration, not an enforcement
+    # measurement; enforcement rates stay UNMEASURED until gov_events is wired.
+    _organ_authority_ceilings = {
+        "arifos": "JUDGE_ONLY — verdicts via arif_judge; never executes",
+        "geox": "COMPUTE_ONLY — earth evidence; floors delegated to kernel",
+        "wealth": "COMPUTE_ONLY — capital math; floors delegated to kernel",
+        "well": "REFLECT_ONLY — mirror, not veto (W0)",
+        "aaa": "DISPLAY_ONLY — never judges, never executes, never seals",
+        "aforge": "EXECUTE_AFTER_SEAL — lease + cc_id required for mutation",
+        "ariflow": "METABOLIZE_ONLY — observes/anchors receipts; never judges",
+        "mcp_gateway": "AGGREGATOR — routes to organs; no independent authority",
+    }
+    for _oname, _organ in out.items():
         if not isinstance(_organ, dict):
             continue
+        _ceiling = _organ_authority_ceilings.get(_oname)
+        _organ["authorization"] = _pf(
+            _ceiling,
+            source="/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+            state="reported" if _ceiling else "unknown",
+            confidence=0.9 if _ceiling else 0.0,
+            observation_method=_OBS_METHOD_REGISTRY if _ceiling else _OBS_METHOD_UNKNOWN,
+            independent=True,
+        )
         _transport = (_organ.get("transport") or {}).get("value")
         _alive = str(_transport).lower() in {"up", "reachable", "ok", "healthy"}
         _organ["liveness"] = _pf(
@@ -1533,6 +1575,34 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             independent=False,
         )
     return out
+
+
+def _probe_arifflow_flow_facts() -> dict[str, Any]:
+    """Read :7073/health once for the receipt-window count + invariant cycle facts.
+
+    The FLOW plane rendered receipts/chain 'unavailable' while the daemon served
+    both (Observatory audit 2026-10-07, finding F5). Observational only — these
+    are the daemon's own published counters, never a verdict
+    (FLOW_OBSERVES_NEVER_INTERPRETS).
+    """
+    import json as _json
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:7073/health", timeout=3.0) as resp:
+            data = _json.loads(resp.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return {"receipts": None, "chain": None}
+    receipts = data.get("receipts") if isinstance(data, dict) else None
+    inv = (data.get("invariants") or {}) if isinstance(data, dict) else {}
+    chain = None
+    if isinstance(inv, dict) and inv:
+        chain = (
+            f"{receipts if receipts is not None else '?'} anchored · "
+            f"cycles={inv.get('cycle_count')} · holds={inv.get('hold_count')} · "
+            f"throttled={inv.get('throttle_count')}"
+        )
+    return {"receipts": receipts, "chain": chain}
 
 
 def _probe_arifflow_fq() -> Any:
@@ -1942,23 +2012,64 @@ def _metabolism_block() -> list[dict[str, dict[str, Any]]]:
 
 
 # ── Evidence + receipts envelopes ─────────────────────────────────────────────
-def _evidence_block() -> dict[str, dict[str, Any]]:
+def _chron_calibration_read() -> dict[str, Any] | None:
+    """Read CHRON canonical calibration (chron_calibration_v2) from disk.
+
+    calibration.json is the SOT for prediction accuracy / Brier with the
+    duplicate-observation guard (R2) already applied. Read-only; a missing or
+    malformed file yields None → honest UNMEASURED, never a fabricated zero (F9).
+    """
+    cal_path = Path("/root/chron/data/calibration.json")
+    try:
+        data = json.loads(cal_path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+def _evidence_block(governance: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
+    """Evidence plane — wired to sources that actually exist (2026-10-07, F13 green mission).
+
+    Before: every field was a hard-coded unknown placeholder while CHRON
+    calibration and the VAULT999 chain sat readable on the same disk
+    (Observatory audit finding F1). Fields with no real persisted store
+    (contradictions, unsupported claims, expiry, missing witnesses) REMAIN
+    honestly unmeasured — wiring a source is the fix; inventing one is F9 greenwash.
+    """
+    sources_used: list[str] = []
+    cal = _chron_calibration_read()
+    if cal:
+        sources_used.append("chron:/root/chron/data/calibration.json")
+    if Path("/root/.local/share/arifos/vault999/seal_chain.jsonl").exists():
+        sources_used.append("vault999:seal_chain.jsonl")
+    sources_used.append("organs:loopback /health transport probes (this build)")
+    sources_used.append("arifFLOW::7073/health (this build)")
+
+    diversity_value = None
+    diversity_state = "unknown"
+    if isinstance(governance, dict):
+        f3_env = ((governance.get("floors") or {}).get("F3") or {}).get("score") or {}
+        f3_val = f3_env.get("value") if isinstance(f3_env, dict) else None
+        if f3_val is not None:
+            diversity_value = {"w3_legs": "human+ai+earth", "F3_witness_score": f3_val}
+            diversity_state = "derived"
+
     return {
         "sources_used": _pf(
-            [],
-            source="snapshot source registry",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
+            sources_used,
+            source="snapshot build — sources actually consulted this emit",
+            state="observed" if sources_used else "unknown",
+            confidence=0.85 if sources_used else 0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM if sources_used else _OBS_METHOD_UNKNOWN,
             independent=True,
         ),
         "source_diversity": _pf(
-            None,
-            source="HUMAN×AI×EXTERNAL geometric mean",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
+            diversity_value,
+            source="governance.witness F3 (witness_producers: human+ai+earth)",
+            state=diversity_state,
+            confidence=0.8 if diversity_value else 0.0,
+            observation_method=_OBS_METHOD_DERIVED if diversity_value else _OBS_METHOD_UNKNOWN,
+            independent=False,
         ),
         "contradictions": _pf(
             [],
@@ -1995,11 +2106,21 @@ def _evidence_block() -> dict[str, dict[str, Any]]:
             ),
         },
         "confidence_calibration": _pf(
-            None,
-            source="reliability.bin",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
+            (
+                {
+                    "accuracy": cal.get("accuracy"),
+                    "mean_brier": cal.get("mean_brier"),
+                    "effective_n": cal.get("effective_n"),
+                    "policy": cal.get("policy"),
+                    "updated_at": cal.get("updated_at"),
+                }
+                if cal
+                else None
+            ),
+            source="/root/chron/data/calibration.json (chron_calibration_v2, duplicate-guarded R2)",
+            state="observed" if cal else "unknown",
+            confidence=0.9 if cal else 0.0,
+            observation_method=_OBS_METHOD_REGISTRY if cal else _OBS_METHOD_UNKNOWN,
             independent=True,
         ),
         "unsupported_claims": _pf(
@@ -2120,6 +2241,35 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             pass
     chain_v = _local_chain_verify()
     replay_v = _local_chain_replay_ok()
+    # 2026-10-07 (Observatory green mission, F13 "deploy all"): the VAULT999 panel
+    # rendered LAST RECEIPT / SEAL CHAIN unavailable while head_seq and the local
+    # chain walk were already computed here. Read the tail record's tier/reason for
+    # the panel and expose the walk status under the keys the SPA reads.
+    last_tier = None
+    try:
+        if chain_path.exists():
+            with open(chain_path, "rb") as fh:
+                fh.seek(max(0, os.path.getsize(chain_path) - 8192))
+                tail_lines = fh.read().decode("utf-8", errors="replace").strip().splitlines()
+            for _line in reversed(tail_lines):
+                _line = _line.strip()
+                if not _line.startswith("{"):
+                    continue
+                try:
+                    _rec = json.loads(_line)
+                except Exception:
+                    continue
+                if isinstance(_rec, dict):
+                    last_tier = (
+                        _rec.get("tier")
+                        or _rec.get("reason")
+                        or _rec.get("type")
+                        or (f"seq {_rec.get('seq')}" if _rec.get("seq") is not None else None)
+                    )
+                if last_tier:
+                    break
+    except Exception:
+        last_tier = None
     return {
         "chain_path": _pf(
             str(chain_path),
@@ -2232,6 +2382,37 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             state="unknown",
             confidence=0.0,
             observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        # Panel keys read by observatory.js renderVault + renderVocabulary RECEIPT
+        # (2026-10-07 green mission). Values come from measurements already taken
+        # above — no new probe, no invented state.
+        "seal_chain_seq": _pf(
+            head_seq,
+            source="sealer head file (panel alias of head_seq)",
+            state="observed" if head_seq is not None else "unknown",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "chain_status": _pf(
+            (
+                f"{chain_v.get('status')} · entries={chain_v.get('entries')} · gaps={len(chain_v.get('gaps') or [])}"
+                if chain_v.get("status") not in (None, "no-chain")
+                else None
+            ),
+            source="_local_chain_verify walk of seal_chain.jsonl (sovereign-frozen gaps documented, never silently repaired)",
+            state="observed" if chain_v.get("status") not in (None, "no-chain") else "unknown",
+            confidence=0.9 if chain_v.get("status") not in (None, "no-chain") else 0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "last_receipt_tier": _pf(
+            last_tier,
+            source="seal_chain.jsonl tail record tier/reason",
+            state="observed" if last_tier else "unknown",
+            confidence=0.9 if last_tier else 0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM,
             independent=True,
         ),
     }
@@ -2772,6 +2953,107 @@ def _enrich_snapshot(obj: Any) -> Any:
 
 
 # ── Snapshot composition ──────────────────────────────────────────────────────
+def _count_evidence_states(payload: dict[str, Any]) -> dict[str, int]:
+    """Count this snapshot's own envelope states (self-measured, F2-tagged)."""
+    counts = {"observed": 0, "derived": 0, "reported": 0, "unknown": 0}
+
+    def _walk(node: Any) -> None:
+        if isinstance(node, dict):
+            st = node.get("state")
+            if isinstance(st, str) and st in counts and "observation_method" in node:
+                counts[st] += 1
+            for child in node.values():
+                _walk(child)
+        elif isinstance(node, list):
+            for child in node:
+                _walk(child)
+
+    _walk(payload)
+    return counts
+
+
+def _attach_authority_planes_and_evidence_counts(
+    payload: dict[str, Any],
+    organs: dict[str, Any],
+    receipts: dict[str, Any],
+) -> None:
+    """Top-level authority + planes blocks and self-counted direct/inferred.
+
+    observatory.js reads data.authority.effective_action_authority,
+    data.authority.arifFLOW and data.planes.* fallbacks (renderNow /
+    renderVocabulary / renderFlow); none existed, so the header AUTHORITY tile
+    and the 7-state AUTHORIZATION/READINESS/RECEIPT cells rendered
+    'unavailable' permanently (2026-10-07 audit F4). Values are
+    declared/reported class — doctrine ceilings and measured heads, never
+    invented verdicts. direct_vs_inferred is counted from this snapshot's own
+    envelopes (self-measured → independent=False).
+    """
+    head_seq_env = receipts.get("head_seq") or {}
+    head_seq_val = head_seq_env.get("value") if isinstance(head_seq_env, dict) else None
+    ready = 0
+    total = 0
+    for _rec in organs.values():
+        if not isinstance(_rec, dict):
+            continue
+        total += 1
+        _rd = (_rec.get("readiness") or {}).get("value")
+        if str(_rd).upper() == "READY":
+            ready += 1
+    payload["authority"] = {
+        "effective_action_authority": _pf(
+            {
+                "authorized": None,
+                "band": "OBSERVE_ONLY",
+                "note": "public unauthenticated snapshot tier — mutations require a bound session ACT and a per-action arif_judge verdict",
+            },
+            source="WS2 doctrine (per-action verdicts) + session authority model",
+            state="reported",
+            confidence=0.95,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "arifFLOW": _pf(
+            "METABOLIZE_ONLY (declared ceiling) — observes and anchors receipts, never judges",
+            source="/root/AAA/federation/organs.yaml",
+            state="reported",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_REGISTRY,
+            independent=True,
+        ),
+    }
+    payload["planes"] = {
+        "authorization": "PUBLIC tier · OBSERVE_ONLY · mutation per-action via arif_judge",
+        "readiness": f"{ready}/{total} organs READY",
+        "receipt": (
+            f"sealed head seq={head_seq_val}"
+            if head_seq_val is not None
+            else "no sealed head observed"
+        ),
+        "transport": "REACHABLE",
+    }
+    evidence = payload.get("evidence")
+    if isinstance(evidence, dict):
+        counts = _count_evidence_states({k: v for k, v in payload.items() if k != "signature"})
+        dvi = evidence.get("direct_vs_inferred")
+        if isinstance(dvi, dict):
+            dvi["direct"] = _pf(
+                counts["observed"],
+                source="counted from this snapshot's envelopes (state=observed)",
+                state="derived",
+                confidence=0.9,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=False,
+            )
+            dvi["inferred"] = _pf(
+                counts["derived"] + counts["reported"],
+                source="counted from this snapshot's envelopes (state=derived|reported)",
+                state="derived",
+                confidence=0.9,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=False,
+            )
+
+
 def build_snapshot(
     mcp: Any,
     *,
@@ -2824,6 +3106,7 @@ def build_snapshot(
     organs = _organs_block(mcp)
     metabolism = _metabolism_block()
     receipts = _receipts_block()
+    governance_block = _governance_block()
     federation_edges = _edges_block()  # sync path — async callers use build_snapshot_async()
     findings = _findings_block(
         capabilities=capabilities,
@@ -2853,11 +3136,11 @@ def build_snapshot(
         ),
         "runtime_identity": runtime_identity,
         "substrate": _substrate_block(),
-        "governance": _governance_block(),
+        "governance": governance_block,
         "capabilities": capabilities,
         "organs": organs,
         "metabolism": metabolism,
-        "evidence": _evidence_block(),
+        "evidence": _evidence_block(governance_block),
         "receipts": receipts,
         "incidents": _incidents_block(),
         "findings": findings,
@@ -2904,6 +3187,7 @@ def build_snapshot(
             "note": "access_tier ≠ session_standing ≠ action verdict",
         },
     }
+    _attach_authority_planes_and_evidence_counts(payload, organs, receipts)
     # Enrich + Ed25519 sign (key: /root/.arifos/observatory/keys/)
     return _finalize_snapshot(payload)
 
@@ -2963,6 +3247,7 @@ async def build_snapshot_async(
     organs = _organs_block(mcp)
     metabolism = _metabolism_block()
     receipts = _receipts_block()
+    governance_block = _governance_block()
     findings = _findings_block(
         capabilities=capabilities,
         federation_edges=federation_edges,
@@ -2988,11 +3273,11 @@ async def build_snapshot_async(
         ),
         "runtime_identity": runtime_identity,
         "substrate": _substrate_block(),
-        "governance": _governance_block(),
+        "governance": governance_block,
         "capabilities": capabilities,
         "organs": organs,
         "metabolism": metabolism,
-        "evidence": _evidence_block(),
+        "evidence": _evidence_block(governance_block),
         "receipts": receipts,
         "incidents": _incidents_block(),
         "findings": findings,
@@ -3049,6 +3334,7 @@ async def build_snapshot_async(
         "canonical_tools_loaded": len(registered_tools) if registered_tools else 0,
         "narrative": {"age_seconds": 0, "incidents_count": 0, "findings_count": 0},
     }
+    _attach_authority_planes_and_evidence_counts(payload, organs, receipts)
     return _finalize_snapshot(payload)
 
 

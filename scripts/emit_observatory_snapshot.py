@@ -89,7 +89,9 @@ def _emit_chain_health() -> None:
     except Exception as exc:
         print(f"  chain-health: FAILED to reach kernel verify ({exc})", file=sys.stderr)
         return
-    health["measured_at"] = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+    health["measured_at"] = (
+        __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+    )
 
     SNAP_DIR.mkdir(parents=True, exist_ok=True)
     (SNAP_DIR / "chain_health_latest.json").write_text(
@@ -99,10 +101,10 @@ def _emit_chain_health() -> None:
     if chain_path.exists():
         report_path = chain_path.parent / "seal_chain.quarantine-report.json"
         if not report_path.exists():
-            report_path.write_text(
-                json.dumps(health, indent=2, default=str), encoding="utf-8"
+            report_path.write_text(json.dumps(health, indent=2, default=str), encoding="utf-8")
+            print(
+                f"  chain-health: wrote one-time quarantine report {report_path}", file=sys.stderr
             )
-            print(f"  chain-health: wrote one-time quarantine report {report_path}", file=sys.stderr)
     target = os.environ.get("OBSERVATORY_PUBLISH_TARGET", "").strip() or None
     if target:
         out = Path(target) / "observatory-chain-health.json"
@@ -123,7 +125,7 @@ def main() -> int:
     except Exception:
         snap_dir = Path("/tmp/arifos/observatory/snapshots")
         snap_dir.mkdir(parents=True, exist_ok=True)
-    
+
     print("=== arifOS Observatory Emitter — generating signed snapshot ===", file=sys.stderr)
     snap = build_observatory()
     snap_id = str(snap["snapshot_id"])
@@ -132,9 +134,17 @@ def main() -> int:
     encoded = json.dumps(snap, indent=2, default=str)
     try:
         out_path.write_text(encoded, encoding="utf-8")
-        latest_path.write_text(encoded, encoding="utf-8")
+        # 2026-10-07 (F13 green mission): atomic latest-swap. The kernel serves
+        # this exact file on /api/observatory/v1/snapshot; a plain write_text let
+        # readers observe a torn mid-rewrite JSON (caught live during mission
+        # verification: organs.arifflow null for one request window). tmp+replace
+        # is atomic on POSIX — readers see either the old or the new snapshot,
+        # never a fragment.
+        tmp_latest = latest_path.with_suffix(".json.tmp")
+        tmp_latest.write_text(encoded, encoding="utf-8")
+        tmp_latest.replace(latest_path)
         print(f"  wrote {out_path}", file=sys.stderr)
-        print(f"  wrote {latest_path}", file=sys.stderr)
+        print(f"  wrote {latest_path} (atomic)", file=sys.stderr)
     except Exception as exc:
         print(f"  snapshot write warning: {exc}", file=sys.stderr)
 
@@ -151,16 +161,24 @@ def main() -> int:
             f"{finding.get('status')} | {str(finding.get('evidence'))[:80]}",
             file=sys.stderr,
         )
-    
+
     # Direct write to publish target if specified
     target = os.environ.get("OBSERVATORY_PUBLISH_TARGET", "").strip()
     if target:
         try:
             target_p = Path(target)
             target_p.mkdir(parents=True, exist_ok=True)
-            (target_p / "observatory.json").write_text(encoded, encoding="utf-8")
-            (target_p / "observatory-snapshot-latest.json").write_text(encoded, encoding="utf-8")
-            print(f"  direct published to {target_p}/observatory.json", file=sys.stderr)
+            # 2026-10-07: atomic mirror writes. The direct write_text let HTTP
+            # readers (and CDN edge revalidation) observe torn/mid-publish JSON —
+            # caught live during the green mission (mirror served a snapshot_id
+            # whose organs.ariflow read null for one request window while the
+            # local file was complete). tmp+replace = readers see old or new,
+            # never a fragment.
+            for name in ("observatory.json", "observatory-snapshot-latest.json"):
+                tmp = target_p / f".{name}.tmp"
+                tmp.write_text(encoded, encoding="utf-8")
+                tmp.replace(target_p / name)
+            print(f"  direct published to {target_p}/observatory.json (atomic)", file=sys.stderr)
         except Exception as exc:
             print(f"  direct publish error: {exc}", file=sys.stderr)
 
