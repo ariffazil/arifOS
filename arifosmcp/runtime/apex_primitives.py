@@ -32,6 +32,26 @@ logger = logging.getLogger(__name__)
 _DB_DIR = Path("/var/lib/arifos")
 _DB_PATH = _DB_DIR / "apex_metrics.db"
 
+# Outcome semantics (2026-10-06, F13 SAH — verdict-pollution fix).
+# `success` conflated execution outcomes with constitutional verdicts:
+# a HOLD/SABAR is the brakes working, not a crash. Measured 2026-10-06:
+# 1,292/1,292 evidence-bearing "failures" were verdicts, zero true errors.
+OUTCOME_EXECUTION_SUCCESS = "execution_success"
+OUTCOME_EXECUTION_FAILURE = "execution_failure"
+OUTCOME_CONSTITUTIONAL_HOLD = "constitutional_hold"
+OUTCOME_CONSTITUTIONAL_SABAR = "constitutional_sabar"
+
+
+def derive_outcome(success: bool, failure_code: str) -> str:
+    """Classify a tool-call outcome. Constitutional verdicts (HOLD/SABAR)
+    are NOT execution failures. Verdict rows leave E's denominator."""
+    fc = (failure_code or "").strip().upper()
+    if fc == "HOLD":
+        return OUTCOME_CONSTITUTIONAL_HOLD
+    if fc == "SABAR":
+        return OUTCOME_CONSTITUTIONAL_SABAR
+    return OUTCOME_EXECUTION_SUCCESS if success else OUTCOME_EXECUTION_FAILURE
+
 
 def _get_db() -> sqlite3.Connection:
     """Get SQLite connection. Creates tables if needed."""
@@ -60,6 +80,11 @@ def _get_db() -> sqlite3.Connection:
     conn.execute("""
         CREATE INDEX IF NOT EXISTS idx_tool_calls_tool ON tool_calls(tool_name)
     """)
+    # 2026-10-06 outcome-semantics migration (idempotent, additive, reversible)
+    try:
+        conn.execute("ALTER TABLE tool_calls ADD COLUMN outcome TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.commit()
     return conn
 
@@ -74,16 +99,24 @@ def record_tool_call(
     failure_code: str = "",
     actor_id: str = "",
     session_id: str = "",
+    outcome: str = "",
     metadata: dict[str, Any] | None = None,
 ) -> None:
-    """Record a tool call for APEX primitive derivation."""
+    """Record a tool call for APEX primitive derivation.
+
+    `outcome` (optional, 2026-10-06): explicit outcome class. When omitted it
+    is derived from (success, failure_code) — HOLD/SABAR verdicts become
+    constitutional_* classes instead of execution failures. Existing callers
+    need no changes; their (success, failure_code) signals classify correctly.
+    """
     try:
         conn = _get_db()
+        _outcome = (outcome or "").strip() or derive_outcome(success, failure_code)
         conn.execute(
             """INSERT INTO tool_calls
                (tool_name, actor_id, session_id, timestamp, success, has_evidence,
-                within_lease, dry_run_first, reversible, failure_code, metadata_json)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                within_lease, dry_run_first, reversible, failure_code, outcome, metadata_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 tool_name,
                 actor_id,
@@ -95,6 +128,7 @@ def record_tool_call(
                 int(dry_run_first),
                 int(reversible),
                 failure_code,
+                _outcome,
                 json.dumps(metadata or {}),
             ),
         )
@@ -125,7 +159,7 @@ def compute_apex_from_metrics(
         conn = _get_db()
         cutoff = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - window_seconds))
         query = """SELECT success, has_evidence, within_lease, dry_run_first,
-                      reversible, failure_code
+                      reversible, failure_code, outcome
                FROM tool_calls WHERE timestamp >= ?"""
         params: list = [cutoff]
         if actor_id:
@@ -146,12 +180,32 @@ def compute_apex_from_metrics(
         failure_codes = [r[5] for r in rows if r[5]]
         unique_failures = len(set(failure_codes))
 
+        # Outcome classification (2026-10-06 verdict-pollution fix).
+        # Legacy rows (outcome='') are derived at read time — no backfill.
+        classes = [
+            (r[6] or "").strip() or derive_outcome(bool(r[0]), r[5] or "")
+            for r in rows
+        ]
+        outcome_counts: dict[str, int] = {}
+        outcome_evidence: dict[str, list[int]] = {}
+        for cls, r in zip(classes, rows):
+            outcome_counts[cls] = outcome_counts.get(cls, 0) + 1
+            outcome_evidence.setdefault(cls, [0, 0])
+            outcome_evidence[cls][0] += int(bool(r[1]))
+            outcome_evidence[cls][1] += 1
+        exec_success = outcome_counts.get(OUTCOME_EXECUTION_SUCCESS, 0)
+        exec_failure = outcome_counts.get(OUTCOME_EXECUTION_FAILURE, 0)
+        exec_total = exec_success + exec_failure
+
         # A = lease compliance rate
         A = round(in_lease / n, 4) if n > 0 else None
         # P = evidence floor compliance
         P = round(with_evidence / n, 4) if n > 0 else None
-        # E = tool call success rate
-        E = round(successes / n, 4) if n > 0 else None
+        # E = execution success rate — constitutional verdicts (HOLD/SABAR)
+        # are excluded from BOTH numerator and denominator. A brake
+        # activation is not an engine failure. If the window carries only
+        # verdict traffic, E is UNMEASURED (nil propagates, never coerced).
+        E = round(exec_success / exec_total, 4) if exec_total > 0 else None
         # X = reversibility rate (dry-run before execute)
         X = round(dry_runed / n, 4) if n > 0 else None
         # Φ = scar feedback (1 - repeated_failure_rate)
@@ -215,12 +269,73 @@ def compute_apex_from_metrics(
                 "dry_run_first": dry_runed,
                 "reversible": reversible_count,
                 "unique_failure_codes": unique_failures,
+                "execution_success": exec_success,
+                "execution_failure": exec_failure,
             },
+            "outcome_breakdown": {
+                cls: {
+                    "count": outcome_counts[cls],
+                    "evidence_rate": round(
+                        outcome_evidence[cls][0] / outcome_evidence[cls][1], 4
+                    )
+                    if outcome_evidence[cls][1]
+                    else None,
+                }
+                for cls in sorted(outcome_counts)
+            },
+            "E_semantics": "execution-classed; constitutional verdicts excluded",
+            "gram": _gram_block(rows, classes),
             "source": "apex_primitives.py",
-            "version": "apex-v1-phase2",
+            "version": "apex-v2-outcome-semantics",
         }
     except Exception as e:
         return _default_apex(f"error: {e}")
+
+
+def _gram_block(rows: list, classes: list[str]) -> dict[str, Any]:
+    """Second-order observability: correlation structure of the observable
+    columns (lease, evidence, execution-success, dry-run) + eigenvalues.
+
+    Epistemic: this is OBSERVED covariance of observables. The 'scar
+    covariance' reading is a separate H-class claim, not a theorem.
+    numpy is optional (guarded import) — without it the block degrades to
+    UNMEASURED, never to a fabricated proxy.
+    """
+    try:
+        import numpy as _np
+    except ImportError:
+        return {"measurement_status": "UNMEASURED", "reason": "numpy unavailable"}
+    if len(rows) < 30:
+        return {"measurement_status": "UNMEASURED", "reason": "n<30"}
+    obs = _np.array(
+        [
+            [
+                float(r[2]),
+                float(r[1]),
+                1.0 if c == OUTCOME_EXECUTION_SUCCESS else 0.0,
+                float(r[3]),
+            ]
+            for r, c in zip(rows, classes)
+        ]
+    )
+    cols = ["A_within_lease", "P_has_evidence", "E_execution_success", "X_dry_run_first"]
+    if float(obs.std(axis=0).min()) <= 0.0:
+        return {"measurement_status": "UNMEASURED", "reason": "zero-variance column"}
+    corr = _np.corrcoef(obs.T)
+    eigs = _np.sort(_np.linalg.eigvalsh(corr))
+    by_outcome: dict[str, float] = {}
+    ev = obs[:, 1]
+    for cls in sorted(set(classes)):
+        ind = _np.array([1.0 if c == cls else 0.0 for c in classes])
+        if ind.std() > 0 and ev.std() > 0:
+            by_outcome[cls] = round(float(_np.corrcoef(ev, ind)[0, 1]), 4)
+    return {
+        "correlation": [[round(float(x), 4) for x in row] for row in corr],
+        "columns": cols,
+        "eigenvalues": [round(float(x), 4) for x in eigs],
+        "evidence_correlation_by_outcome": by_outcome,
+        "epistemic": "OBSERVED covariance of observables; scar reading is H-class",
+    }
 
 
 def _default_apex(reason: str) -> dict[str, Any]:
@@ -242,7 +357,10 @@ def _default_apex(reason: str) -> dict[str, Any]:
         "window_seconds": 0,
         "sample_size": 0,
         "source": "apex_primitives.py",
-        "version": "apex-v1-phase2",
+        "version": "apex-v2-outcome-semantics",
         "note": f"UNMEASURED — no APEX sample yet ({reason}). Not a G score.",
         "measurement_status": "UNMEASURED",
+        "outcome_breakdown": {},
+        "E_semantics": "execution-classed; constitutional verdicts excluded",
+        "gram": {"measurement_status": "UNMEASURED", "reason": reason},
     }
