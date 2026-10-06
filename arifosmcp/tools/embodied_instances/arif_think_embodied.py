@@ -130,10 +130,27 @@ class ArifMindReasonEmbodied(EmbodiedTool):
             # Thread session observations and evidence into cognitive synthesis
             active_evidence = params.get("evidence")
             if not active_evidence and session_id:
+                # P1 FIX 2026-10-06 (F13 SAH 2026-10-06 09:35):
+                # In-process _SESSIONS is empty after kernel restart (the disk
+                # file at /opt/arifos/.arifos/runtime_sessions.json still has
+                # the receipts, but RAM is wiped). Fall back to the disk-backed
+                # get_session_execution_state so evidence from prior
+                # arif_observe calls survives across restarts.
                 try:
                     from arifosmcp.runtime.tools import _SESSIONS
                     if session_id in _SESSIONS:
                         active_evidence = _SESSIONS[session_id].get("observations") or None
+                    if not active_evidence:
+                        # Force a fresh disk load. The default _load_store
+                        # short-circuits when _STORE_LOADED is True, which means
+                        # post-restart RAM state is stale. Resetting forces the
+                        # session identity to be re-hydrated from the disk file.
+                        from arifosmcp.runtime import session as _p1_sess
+                        _p1_sess._STORE_LOADED = False
+                        _p1_sess._load_store()
+                        _p1_record = _p1_sess.get_session_execution_state(session_id)
+                        if _p1_record:
+                            active_evidence = _p1_record.get("observations") or None
                 except Exception:
                     active_evidence = None
 

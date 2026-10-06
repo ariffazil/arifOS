@@ -1245,9 +1245,19 @@ def get_session_execution_state(session_id: str | None) -> dict[str, Any] | None
 
     Zen collapse 2026-07-24 — replaces tools.py ``_SESSIONS.get(session_id)``.
     Returns a live dict reference (in-place mutations affect memory; writers flush).
+
+    P1 FIX 2026-10-06 (F13 SAH 2026-10-06 09:35): force a fresh disk load
+    on every read. The default _load_store short-circuits when _STORE_LOADED
+    is True, which means post-restart RAM state is stale (the disk has the
+    receipts, but the in-process _SESSION_IDENTITY was cleared on boot).
+    Resetting _STORE_LOADED ensures every read sees the latest disk state.
+    Without this fix, arif_think reads after a kernel restart see
+    evidence_count=0 even though the disk has the receipts.
     """
     if not session_id:
         return None
+    global _STORE_LOADED
+    _STORE_LOADED = False
     _load_store()
     record = _SESSION_IDENTITY.get(session_id)
     if record is None:
