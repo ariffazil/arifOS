@@ -3423,12 +3423,26 @@ def register_rest_routes(
         )
         _floors_total = get_floor_count()
 
+        # Per-floor breakdown (2026-10-07): floors_pass said 10/13 but the
+        # response never named WHICH 3 failed, so no one could act on it.
+        # Status vocabulary only (pass|fail|unmeasured) -- raw scores stay
+        # internal. Additive: nothing existing is removed or renamed.
+        _floor_detail = {
+            _fid: _floor_status_strict(_fid, _sc)
+            for _fid, _sc in _floors_scores.items()
+        }
+        _floors_failing = sorted(
+            _fid for _fid, _st in _floor_detail.items() if _st != _FLOOR_STATUS_PASS
+        )
+
         _layer_health = {
             "constitutional": {
                 "status": "healthy" if _floors_pass_count == _floors_total else "degraded",
                 "floors_active": get_floor_count(),
                 "floors_pass": _floors_pass_count,
                 "floors_target": 13,
+                "floors_failing": _floors_failing,
+                "floors_detail": _floor_detail,
                 "vault999": _vault_health,
             },
             "runtime": {
