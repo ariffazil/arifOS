@@ -57,9 +57,7 @@ GENERATED_BY = "arifOS"
 # The file is updated every 5 min by /opt/arifos/scripts/observatory_emit.py
 # and has the same observatory.v1 schema. F2: never serve skeleton when
 # real data is on disk — this file IS the SOT during dynamic-build outages.
-_SNAPSHOT_FILE_FALLBACK = Path(
-    "/root/.arifos/observatory/snapshots/snapshot_latest.json"
-)
+_SNAPSHOT_FILE_FALLBACK = Path("/root/.arifos/observatory/snapshots/snapshot_latest.json")
 
 
 # ── Observation-method vocabulary ─────────────────────────────────────────────
@@ -982,6 +980,33 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         verdict = "UNKNOWN"
 
     out["floors"] = floors
+    # ── Wave-0 two-predicate envelope (2026-10-06) ────────────────────────
+    # The kernel /health `floors_pass` and the observatory floor block answer
+    # DIFFERENT questions and may disagree numerically without either being
+    # wrong. Naming both predicates here stops consumers (page, agents,
+    # external auditors) from conflating them. Rule (external convergence
+    # letter 4, accepted): never convert unmeasured into pass/fail implicitly;
+    # never present a per-action gate pass as globally measured health.
+    out["floor_semantics"] = {
+        "version": "wave0.v1",
+        "gate_state": {
+            "predicate_id": "kernel:_floor_status_strict@rest_routes.py:3415",
+            "producer": "kernel /health layer_health.constitutional",
+            "meaning": "May this action proceed under the applicable policy? "
+            "Score-threshold evaluation per floor (defaults included where "
+            "no live instrument exists).",
+        },
+        "measurement_state": {
+            "predicate_id": "observatory:floor_provenance@rest_routes.py:1006",
+            "producer": "observatory resolved_floors + provenance labels",
+            "meaning": "Is this floor instrumented, and what does the "
+            "observation establish? unmeasured_default = no instrument, "
+            "never a pass.",
+        },
+        "scope": "gate=action-level policy · measurement=federation-level coverage",
+        "rule": "unmeasured is never converted to pass or fail implicitly; "
+        "a gate pass is never presented as global measured health",
+    }
     out["floors_loaded"] = _pf(
         len(floors),
         source="kernel.enum.LAW_SPEC_KEYS",
@@ -2784,7 +2809,9 @@ def build_snapshot(
         logger.debug("live wire probe failed (fallback to server_json): %s", exc)
 
     capabilities = compute_capability_matrix(
-        mcp=mcp, server_json=server_json, registered_tools=registered_tools,
+        mcp=mcp,
+        server_json=server_json,
+        registered_tools=registered_tools,
         live_exposed=live_exposed,
     )
     runtime_identity = _runtime_identity_block()
@@ -2921,7 +2948,9 @@ async def build_snapshot_async(
         logger.debug("live wire probe failed (fallback to server_json): %s", exc)
 
     capabilities = compute_capability_matrix(
-        mcp=mcp, server_json=server_json, registered_tools=registered_tools,
+        mcp=mcp,
+        server_json=server_json,
+        registered_tools=registered_tools,
         live_exposed=live_exposed,
     )
     runtime_identity = _runtime_identity_block()
