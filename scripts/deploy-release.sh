@@ -399,7 +399,7 @@ echo "  Waiting for service to become healthy..."
 #   service answers /health at all, and status is not worse than the
 #   pre-deploy baseline captured below.
 PRE_STATUS_FILE="$(mktemp)"
-if [ -n "$PRE_DEPLOY_STATUS" ]; then
+if [ -n "${PRE_DEPLOY_STATUS:-}" ]; then
 	echo "$PRE_DEPLOY_STATUS" > "$PRE_STATUS_FILE"
 else
 	curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null \
