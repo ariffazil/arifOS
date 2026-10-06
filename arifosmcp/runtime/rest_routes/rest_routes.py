@@ -3435,6 +3435,28 @@ def register_rest_routes(
             _fid for _fid, _st in _floor_detail.items() if _st != _FLOOR_STATUS_PASS
         )
 
+        # Measurement provenance (2026-10-07): a floor score alone is
+        # meaningless without knowing WHERE it came from. _build_governance_
+        # status_payload already computes floor_provenance per floor, but it
+        # was never surfaced -- so consumers read placeholder defaults as
+        # measurements. Observed case: F2/F5/F6 report score 0.5 with status
+        # 'fail', which reads as three violated floors; their provenance is
+        # 'unmeasured_default:empty_kernel_signal' -- they are placeholders,
+        # not measurements. Publishing provenance lets every consumer tell a
+        # measured floor from a defaulted one, which is the difference between
+        # UNMEASURED, PASS and FAIL.
+        _floor_provenance = dict(thermo.get("floor_provenance") or {})
+        _floors_measured = sorted(
+            _fid
+            for _fid, _src in _floor_provenance.items()
+            if not str(_src).startswith("unmeasured_default")
+        )
+        _floors_defaulted = sorted(
+            _fid
+            for _fid, _src in _floor_provenance.items()
+            if str(_src).startswith("unmeasured_default")
+        )
+
         _layer_health = {
             "constitutional": {
                 "status": "healthy" if _floors_pass_count == _floors_total else "degraded",
@@ -3443,6 +3465,10 @@ def register_rest_routes(
                 "floors_target": 13,
                 "floors_failing": _floors_failing,
                 "floors_detail": _floor_detail,
+                "floors_provenance": _floor_provenance,
+                "floors_measured": _floors_measured,
+                "floors_defaulted": _floors_defaulted,
+                "floors_measurement_source": "runtime_health_measurer",
                 "vault999": _vault_health,
             },
             "runtime": {
