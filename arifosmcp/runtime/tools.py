@@ -25973,7 +25973,13 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_stage": _arif_stage_handler,
     "arif_commit": _arif_commit_handler,
     # ── P2 RECONCILIATION STUBS (F13 SAH 2026-10-06 09:45) ────────────────
-    "wealth_npv_reward": _p2_deprecation_handler_wealth_npv_reward,
+    # REMOVED 2026-10-07: 'wealth_npv_reward' was registered to a handler
+    # defined as (*args, **kwargs). FastMCP rejects *args in tool functions
+    # ("Functions with *args are not supported as tools"), so kernel boot
+    # died in public_registry._spec_for_name at service start.
+    # The deprecation intent is preserved in the handlers below, which stay
+    # defined but unregistered until they get explicit signatures.
+    # Reregistering requires handler(fn) signatures FastMCP accepts.
 }
 
 # ── Backward-compat internal aliases (Rule 14 mode-first naming migration) ──
