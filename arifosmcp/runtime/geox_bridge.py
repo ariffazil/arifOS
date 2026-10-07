@@ -310,6 +310,17 @@ async def geox_health_check() -> dict[str, Any]:
                 result["version"] = health_data.get("version", "unknown")
                 result["identity"] = health_data.get("identity", False)
                 result["git_version"] = health_data.get("git_version", "unknown")
+                # kernel_verdict passthrough (2026-10-07). GEOX /health publishes
+                # it and folds it into its own `status` — a kernel HOLD makes GEOX
+                # report status=degraded even though the organ is answering,
+                # identity-verified and serving all 27 tools. This bridge copied
+                # `status` but dropped `kernel_verdict`, so organ_attestation saw
+                # an unexplained "degraded" and could only classify it
+                # DEGRADED_CLAIM — an organ failure — which pre-blocked the bridge
+                # before GEOX was ever invoked. Forwarding the verdict is what
+                # lets attestation separate "this organ is broken" from "this
+                # organ is correctly holding at a constitutional gate".
+                result["kernel_verdict"] = health_data.get("kernel_verdict")
                 # Domain identity — GEOX answers to NATURAL_LAW, not constitution
                 result["domain_law"] = health_data.get("domain_law", "NATURAL_LAW")
                 result["physics_manifest_hash"] = health_data.get(
