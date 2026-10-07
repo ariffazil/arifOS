@@ -281,7 +281,13 @@ def build_kernel_envelope(
     if session_id:
         try:
             store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
-            import json
+            # NOTE: `import json` used to sit here. json is already imported at
+            # module level (:18); a function-scoped import makes the name LOCAL
+            # for the WHOLE function, so `json.dumps(response, ...)` at :262
+            # raised UnboundLocalError on every call. build_kernel_envelope was
+            # therefore dead from 2f31e4f64 (2026-06-21) until 2026-10-07 —
+            # caught by tests/runtime/test_floor_provenance_and_hold_attestation.py,
+            # which is the first test to call this builder directly.
 
             for p in (store_path, "/tmp/arifos/sessions.json"):
                 if os.path.exists(p):
@@ -312,7 +318,26 @@ def build_kernel_envelope(
             tool_schema_hash=envelope_schema_hash,
             # P1-4 fix: "ALIVE" → "HEALTHY" — F09 ANTIHANTU compliance
             # ("ALIVE" is personhood-adjacent language for a binary liveness check)
-            attestation_status="HEALTHY" if verdict == "SEAL" else "DEGRADED_CLAIM",
+            #
+            # 2026-10-07: the binary `SEAL else DEGRADED_CLAIM` was the same
+            # verdict-pollution class the attestation registry just had fixed —
+            # HOLD and SABAR are constitutional VERDICTS, never execution
+            # failures (APEX-GEOMETRY-SUBSTRATE §4), and OBSERVE_ONLY is this
+            # function's own documented default posture, not a defect. Labelling
+            # all three DEGRADED_CLAIM made a correctly-governing envelope
+            # indistinguishable from a broken organ. Not the bridge gate (that
+            # reads organ_attestation's registry record), but it polluted every
+            # per-call envelope with a false failure claim.
+            # DENY stays DEGRADED_CLAIM: no authorization-specific value exists
+            # in the OrganAttestation vocabulary and adding one here is out of
+            # scope — conservative, and it still refuses to report healthy.
+            attestation_status=(
+                "HEALTHY"
+                if verdict == "SEAL"
+                else "CONSTITUTIONAL_HOLD"
+                if verdict in ("HOLD", "SABAR", "OBSERVE_ONLY")
+                else "DEGRADED_CLAIM"
+            ),
         ),
         authority=AuthorityLease(
             action_class=action_class,
