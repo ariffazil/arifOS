@@ -457,6 +457,46 @@ def attach_effective_verdict(
             )
         cc["_derivation"] = "attach_effective_verdict:degraded_dominates"
 
+    # D1-PATCH-2026-10-07: governance_check.verdict=PASS must not coexist with
+    # evidence_status in {UNSUPPORTED, UNKNOWN, SPECULATION}. This invariant
+    # closes the false-confidence path: an agent reading verdict=PASS must
+    # always find evidence_quality >= INFERRED behind it. Additive: only
+    # downgrades governance_check.verdict (legacy shape); effective_verdict
+    # (canonical) and mutation_allowed are untouched. Backups at
+    # /root/.hermes/cache/scratch/patches-2026-10-07/bak/verdict.py.bak-*
+    try:
+        _gc = response.get("governance_check")
+        if not isinstance(_gc, dict):
+            _res = response.get("result")
+            _gc = _res.get("governance_check") if isinstance(_res, dict) else None
+        if isinstance(_gc, dict):
+            _gc_verdict = str(_gc.get("verdict", "")).upper()
+            if _gc_verdict == "PASS":
+                # Find evidence_quality in any of the canonical locations
+                _evq = (
+                    str(response.get("evidence_quality", "")).upper()
+                    or str((response.get("result", {}) or {}).get("evidence_quality", "")).upper()
+                    or str(((response.get("reasoning_output", {}) or {}).get("evidence_quality", ""))).upper()
+                    or str(((response.get("meta", {}) or {}).get("evidence_quality", ""))).upper()
+                    or ""
+                )
+                if _evq in ("UNSUPPORTED", "UNKNOWN", "SPECULATION"):
+                    _gc["verdict"] = "HOLD"
+                    _orig_reason = _gc.get("reason", "")
+                    _gc["reason"] = (
+                        f"{_orig_reason} | EVIDENCE_GAP_DOWNGRADE: "
+                        f"governance_check.verdict=PASS incompatible with "
+                        f"evidence_quality={_evq}"
+                    ).strip(" |")
+                    response.setdefault("meta", {})["_verdict_invariant_violation"] = {
+                        "rule": "PASS_and_UNSUPPORTED_must_not_coexist",
+                        "evidence_quality": _evq,
+                        "patch": "D1-2026-10-07",
+                    }
+    except Exception as _d1_exc:
+        # Never let the invariant break the canonical writer; log and proceed.
+        response.setdefault("meta", {})["_d1_invariant_error"] = repr(_d1_exc)
+
     # STAB-2026-08-09: single source for mutation_allowed — derived from
     # effective_verdict (and authority band if present). Never leave
     # OBSERVE_ONLY/HOLD/VOID with mutation_allowed=true in any nest.
