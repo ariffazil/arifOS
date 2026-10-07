@@ -366,9 +366,46 @@ async def attest_organ(
     degraded = False
 
     if not is_healthy(health.get("status")):
-        status = "DEGRADED_CLAIM"
-        reason = f"Health probe returned: {health.get('status', 'unknown')}"
-        degraded = True
+        # ── Verdict-pollution guard (2026-10-07) ──────────────────────────
+        # An organ that is ANSWERING, identity-verified and serving its full
+        # tool surface, but reports status=degraded because it INHERITED a
+        # constitutional HOLD from the kernel, is holding correctly — it is not
+        # failing. Measured chain on live KVM8:
+        #   arifOS floors unmeasured (11/13) coerced to pass/fail
+        #     -> constitutional layer degraded -> kernel verdict for GEOX = HOLD
+        #     -> GEOX /health folds that verdict into its own status="degraded"
+        #     -> is_healthy("degraded") = False -> DEGRADED_CLAIM
+        #     -> kernel.py:62 / kernel_canonical.py:1357 block the bridge
+        #        BEFORE invoking GEOX
+        #     -> the Earth evidence needed to measure the floors is unreachable
+        #     -> the floors stay unmeasured. The loop closes on itself.
+        # CONSTITUTIONAL_HOLD already exists in this module's status vocabulary
+        # (:107, "organ correctly holding at constitutional gate — constitution
+        # working") and is already in kernel_canonical's ALIVE-family allow-list
+        # (:1359). Only the producer was binary.
+        # Fail-closed is PRESERVED: an unreachable organ, an empty tool surface,
+        # or an unverified identity still takes the DEGRADED_CLAIM branch, and
+        # the organ's own per-call authority gate still applies downstream
+        # (measured: geox_register_native_source -> AUTHORITY_GATE HOLD on an
+        # OBSERVE_ONLY session even with the bridge open).
+        _kernel_verdict = str(health.get("kernel_verdict") or "").strip().upper()
+        _identity = health.get("identity")
+        _identity_verified = (
+            isinstance(_identity, dict) and _identity.get("verified") is True
+        )
+        if _kernel_verdict in ("HOLD", "SABAR") and bool(tools) and _identity_verified:
+            status = "CONSTITUTIONAL_HOLD"
+            reason = (
+                f"Organ service sound (tools={len(tools)}, identity verified); "
+                f"health status='{health.get('status', 'unknown')}' inherited from "
+                f"kernel_verdict={_kernel_verdict}. Constitutional gate working, "
+                f"not organ failure."
+            )
+            # degraded stays False — HOLD is a verdict, not a degradation.
+        else:
+            status = "DEGRADED_CLAIM"
+            reason = f"Health probe returned: {health.get('status', 'unknown')}"
+            degraded = True
     elif not tools and not is_healthy(health.get("status")):
         # Both health probe AND tools/list failed — true degradation
         status = "DEGRADED_CLAIM"

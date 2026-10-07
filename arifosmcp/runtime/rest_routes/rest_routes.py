@@ -863,6 +863,32 @@ def _floor_status_strict(law_id: str, score: Any) -> str:
         return _FLOOR_STATUS_UNMEASURED
 
 
+def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> str:
+    """Provenance-aware sibling of _floor_status_strict.
+
+    _floor_status_strict can only see the NUMBER, so a substituted placeholder
+    gets classified pass/fail exactly as if an instrument had produced it.
+    Measured 2026-10-07 on live /health: F2/F5/F6 rendered `fail` while
+    F4/F7/F8/F9/L10-L13 rendered `pass` — all eleven carrying provenance
+    `unmeasured_default*`. The published result was floors_pass 9/13 with
+    floors_failing [F1,F2,F5,F6], when only F1 (fail) and F3 (pass) had been
+    measured at all. F7 scored 0.04 and F9 scored 0.0 and both rendered `pass`,
+    because _FLOOR_DEFAULTS is built by _representative_floor_score(), which
+    returns the floor's OWN passing threshold — a defaulted floor can never
+    fail. The green was structural, not observed.
+
+    A floor whose score was substituted is UNMEASURED. It may not render pass
+    (F13 constraint 2026-08-03: "no missing source may render PASS") and it may
+    not render fail either — coercing an evidence gap into a constitutional
+    violation is the same category error in the other direction
+    (FAILURE-CLASS-SEPARATION: absent != denied). Fail-closed authority is
+    preserved: unmeasured is still not pass, and a measured fail still fails.
+    """
+    if str(provenance or "").startswith("unmeasured_default"):
+        return _FLOOR_STATUS_UNMEASURED
+    return _floor_status_strict(law_id, score)
+
+
 def _build_governance_status_payload() -> dict[str, Any]:
     """Build /health governance status payload.
 
@@ -3258,6 +3284,82 @@ def register_rest_routes(
         }
         return JSONResponse(payload, headers={"Cache-Control": "max-age=5"})
 
+    @route("/health/public", methods=["GET"])
+    async def health_public(request: Request) -> Response:
+        """Bounded public projection of /health — truthful, non-disclosing.
+
+        The 2026-10-03 EDGE CLOSE (FI-003, F13 "you own the edge") replaced the
+        public /health with an unconditional `respond {"status":"ok"}` at Caddy
+        because the full envelope was publicly enumerable unauthenticated
+        (/health 200/13351B alongside /tools.json, /tools, /openapi.json). That
+        close was correct and it stays: floor scores, registry/identity hashes,
+        internal venv paths and module hashes are not public.
+
+        Its measured side effect (2026-10-07): an external appraiser read the
+        always-green stub and reported arifOS as "HEALTHY / CONVERGED" while the
+        kernel reported status=degraded with four floors failing. The stub
+        cannot represent degradation, and it returns 200 even with the kernel
+        dead — Void Guard: no data ≠ all clear. One URL was carrying two
+        incompatible jobs (uptime liveness vs system truth).
+
+        Resolution: keep the disclosure closed, stop lying. This route is a
+        WHITELIST projection — verdicts and counts only, no scores, no hashes,
+        no paths. It derives from the same cached payload as /health, so the
+        public and internal surfaces can never diverge. Caddy serves /health
+        from here and keeps the unconditional stub at /livez for monitors.
+        """
+        full = await health(request)
+        raw = getattr(full, "body", None)
+        try:
+            body = json.loads(raw) if raw else {}
+        except Exception:
+            body = {}
+        if not isinstance(body, dict) or not body:
+            # Honest failure: the projection could not read the internal
+            # payload. Never substitute a green.
+            return JSONResponse(
+                {
+                    "service": "arifos",
+                    "status": "unknown",
+                    "reason": "public projection could not read internal /health",
+                },
+                status_code=503,
+                headers={"Cache-Control": "no-store"},
+            )
+        _lh = (body.get("layer_health") or {}).get("constitutional") or {}
+        return JSONResponse(
+            {
+                "service": "arifos",
+                "status": body.get("status"),
+                "release_tag": body.get("release_tag"),
+                "constitutional": {
+                    "status": _lh.get("status"),
+                    "floors_pass": _lh.get("floors_pass"),
+                    "floors_target": _lh.get("floors_target"),
+                    "floors_measured": len(_lh.get("floors_measured") or []),
+                    "floors_failing": len(_lh.get("floors_failing") or []),
+                    "floors_unmeasured": len(_lh.get("floors_unmeasured") or []),
+                },
+                "drift": {
+                    "deployment": body.get("deployment_drift_status"),
+                    "runtime": body.get("runtime_drift"),
+                    "contract": body.get("contract_drift"),
+                },
+                "vault999": body.get("vault999_health"),
+                "execution_readiness": body.get("execution_readiness"),
+                "service_health": body.get("service_health"),
+                "degraded_layers": sorted(
+                    {
+                        str(r.get("layer"))
+                        for r in (body.get("degraded_reasons") or [])
+                        if r.get("severity") != "info"
+                    }
+                ),
+                "detail": "full envelope on 127.0.0.1:8088/health (internal only)",
+            },
+            headers={"Cache-Control": "no-store"},
+        )
+
     @route("/health", methods=["GET"])
     async def health(request: Request) -> Response:
         """Health check with SoT linkage — ties runtime back to canonical arifOS repository.
@@ -3416,24 +3518,6 @@ def register_rest_routes(
 
         # ── Health clarity (2026-08-14): per-layer health classification ──
         _floors_scores = thermo.get("floors", {})
-        _floors_pass_count = sum(
-            1
-            for _fid, _sc in _floors_scores.items()
-            if _floor_status_strict(_fid, _sc) == _FLOOR_STATUS_PASS
-        )
-        _floors_total = get_floor_count()
-
-        # Per-floor breakdown (2026-10-07): floors_pass said 10/13 but the
-        # response never named WHICH 3 failed, so no one could act on it.
-        # Status vocabulary only (pass|fail|unmeasured) -- raw scores stay
-        # internal. Additive: nothing existing is removed or renamed.
-        _floor_detail = {
-            _fid: _floor_status_strict(_fid, _sc)
-            for _fid, _sc in _floors_scores.items()
-        }
-        _floors_failing = sorted(
-            _fid for _fid, _st in _floor_detail.items() if _st != _FLOOR_STATUS_PASS
-        )
 
         # Measurement provenance (2026-10-07): a floor score alone is
         # meaningless without knowing WHERE it came from. _build_governance_
@@ -3445,7 +3529,42 @@ def register_rest_routes(
         # not measurements. Publishing provenance lets every consumer tell a
         # measured floor from a defaulted one, which is the difference between
         # UNMEASURED, PASS and FAIL.
+        #
+        # Hoisted ABOVE the rollup (2026-10-07, second pass): publishing
+        # provenance next to a count that still consumed the placeholder
+        # scores left the same response contradicting itself -- floors_measured
+        # named 2 floors while runtime_floors_status marked all 13
+        # measured:true. Provenance now GATES the classification instead of
+        # merely annotating it.
         _floor_provenance = dict(thermo.get("floor_provenance") or {})
+
+        # Per-floor breakdown (2026-10-07): floors_pass said 10/13 but the
+        # response never named WHICH 3 failed, so no one could act on it.
+        # Status vocabulary only (pass|fail|unmeasured) -- raw scores stay
+        # internal. Additive: nothing existing is removed or renamed.
+        _floor_detail = {
+            _fid: _floor_status_with_provenance(
+                _fid, _sc, _floor_provenance.get(_fid)
+            )
+            for _fid, _sc in _floors_scores.items()
+        }
+        _floors_pass_count = sum(
+            1 for _st in _floor_detail.values() if _st == _FLOOR_STATUS_PASS
+        )
+        _floors_total = get_floor_count()
+
+        # floors_failing is MEASURED FAILS ONLY (2026-10-07). It used to be
+        # `!= pass`, which swept unmeasured floors into the violation list --
+        # an evidence gap reported as a constitutional breach. Unmeasured gets
+        # its own list so no consumer has to guess which of the two it is.
+        _floors_failing = sorted(
+            _fid for _fid, _st in _floor_detail.items() if _st == _FLOOR_STATUS_FAIL
+        )
+        _floors_unmeasured = sorted(
+            _fid
+            for _fid, _st in _floor_detail.items()
+            if _st == _FLOOR_STATUS_UNMEASURED
+        )
         _floors_measured = sorted(
             _fid
             for _fid, _src in _floor_provenance.items()
@@ -3457,13 +3576,29 @@ def register_rest_routes(
             if str(_src).startswith("unmeasured_default")
         )
 
+        # Three states, not two (2026-10-07). Once floors are classified
+        # honestly, binary healthy|degraded forces a choice between two lies:
+        # call 11 unmeasured floors "degraded" (a permanent red with no
+        # actionable cause, which then propagates to every organ as
+        # DEGRADED_CLAIM) or call them "healthy" (greenwash). A MEASURED fail
+        # still degrades the layer -- fail-closed is untouched. "partial"
+        # means: nothing measured has failed, and not everything is measured.
+        _constitutional_status = (
+            "degraded"
+            if _floors_failing
+            else "healthy"
+            if not _floors_unmeasured and _floors_pass_count == _floors_total
+            else "partial"
+        )
+
         _layer_health = {
             "constitutional": {
-                "status": "healthy" if _floors_pass_count == _floors_total else "degraded",
+                "status": _constitutional_status,
                 "floors_active": get_floor_count(),
                 "floors_pass": _floors_pass_count,
                 "floors_target": 13,
                 "floors_failing": _floors_failing,
+                "floors_unmeasured": _floors_unmeasured,
                 "floors_detail": _floor_detail,
                 "floors_provenance": _floor_provenance,
                 "floors_measured": _floors_measured,
@@ -3516,6 +3651,36 @@ def register_rest_routes(
                         "explanation": (
                             "layer self-reported degraded — see layer_health."
                             f"{_lh_name} fields for the measured cause"
+                        ),
+                    }
+                )
+            elif _lh.get("status") == "partial" and not any(
+                r.get("layer") == _lh_name for r in degraded_reasons
+            ):
+                # "partial" = nothing measured has failed, and not everything is
+                # measured. This STILL sets _degraded: fail-closed authority
+                # cannot rest on floors that have no instrument, and F13's
+                # 2026-10-05 honest-mode ruling was explicit that 13/13 green is
+                # gone for good — an unmeasured constitution is not a healthy
+                # one. What changes is the CAUSE. The old path reported these as
+                # floors_failing, i.e. as constitutional violations that were
+                # never measured. Now the aggregate stays red while naming an
+                # evidence gap, and floors_failing carries measured fails only,
+                # so "we cannot demonstrate 11 floors" is never laundered into
+                # "11 floors were breached" — and never into "all clear" either.
+                _degraded = True
+                degraded_reasons.append(
+                    {
+                        "layer": _lh_name,
+                        "field": f"layer_health.{_lh_name}.status",
+                        "value": "partial",
+                        "severity": "warning",
+                        "explanation": (
+                            f"{len(_lh.get('floors_unmeasured') or [])} floor(s) have no "
+                            "instrument: UNMEASURED — not passed, not violated. "
+                            f"Measured floors: {_lh.get('floors_measured')}. "
+                            f"Measured failures: {_lh.get('floors_failing') or 'none'}. "
+                            "Fail-closed holds until the instruments exist."
                         ),
                     }
                 )
@@ -3681,11 +3846,24 @@ def register_rest_routes(
             # 0.0 is ambiguous: could mean "floor at zero" or "never measured".
             # runtime_floors_status adds measured/unmeasured/pass/fail per floor.
             # Consumers can now distinguish "F9 unmeasured" from "F9 failed".
+            #
+            # SC4's promise was not actually delivered until 2026-10-07: `measured`
+            # was derived from _floor_status_strict, which only sees the number,
+            # so a substituted default (F9 = 0.0) classified as `pass` and
+            # reported measured:true. Live /health marked all 13 floors
+            # measured:true while layer_health.constitutional.floors_measured
+            # named 2 — the same response contradicting itself. `measured` now
+            # means "an instrument produced this number", which is what SC4 said.
             "runtime_floors_status": {
                 fid: {
                     "score": score,
-                    "status": _floor_status_strict(fid, score),
-                    "measured": _floor_status_strict(fid, score) != "unmeasured",
+                    "status": _floor_status_with_provenance(
+                        fid, score, _floor_provenance.get(fid)
+                    ),
+                    "measured": not str(
+                        _floor_provenance.get(fid) or ""
+                    ).startswith("unmeasured_default"),
+                    "provenance": _floor_provenance.get(fid),
                 }
                 for fid, score in thermo.get("floors", {}).items()
             },
