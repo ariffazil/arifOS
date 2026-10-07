@@ -42,7 +42,13 @@ def test_seal_type_has_exactly_7_states():
 
 
 def test_verdict_state_has_14_substates():
-    """VerdictState must have 14 canonical substates (12 inherited + 2 PARTIAL)."""
+    """VerdictState must have 16 canonical substates (12 inherited + 2 PARTIAL + 2 P4).
+
+    P4 (2026-08-11) added WORK_DONE + WAITING_FOR_WITNESS to the lattice; this
+    expectation was last updated 2026-07-12 and stayed red until 2026-10-07.
+    The enum is canon (arifosmcp/models/verdicts.py) — the test was stale,
+    not the code. Do not "fix" this by deleting the P4 states.
+    """
     states = {s.value for s in VerdictState}
 
     expected = {
@@ -63,6 +69,9 @@ def test_verdict_state_has_14_substates():
         # PARTIAL substates (2) — NEW v1.0
         "PARTIAL_DERIVED",
         "PARTIAL_REVERSIBILITY",
+        # P4 substates (2) — witness-gated closure, 2026-08-11
+        "WORK_DONE",
+        "WAITING_FOR_WITNESS",
     }
     assert states == expected, f"Expected 14 substates, got {len(states)}: {states - expected}"
 
