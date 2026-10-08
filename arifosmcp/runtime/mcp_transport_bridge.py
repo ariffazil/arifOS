@@ -238,7 +238,11 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                         if isinstance(_name_val, str):
                             _mh["mcp-name"] = _name_val
                             _envelope_injected.append("Mcp-Name")
-                    logger.info(
+                    # logger.warning, not .info: uvicorn's journald wiring drops
+                    # INFO from this logger (the lenient-mode pass line uses
+                    # warning and IS captured). Re-ratcheting G0.7 needs this
+                    # count to be measurable, not absent.
+                    logger.warning(
                         "MCP 2026-07-28: completed envelope for header-only client "
                         "(method=%s, injected=%s)",
                         method,
