@@ -216,6 +216,12 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                     _envelope_injected.append("_meta.clientCapabilities")
                 if _envelope_injected:
                     body_bytes = json.dumps(body).encode("utf-8")
+                    # Starlette's BaseHTTPMiddleware.call_next replays the
+                    # _CachedRequest._body captured in __call__, NOT the
+                    # re-injected `_receive` below — the historical body
+                    # re-injection silently no-oped. Writing the mutated bytes
+                    # back into the cache is what actually reaches downstream.
+                    request._body = body_bytes  # type: ignore[attr-defined]
                     _mh = MutableHeaders(scope=request.scope)
                     if not (
                         request.headers.get("Mcp-Method") or request.headers.get("mcp-method")
