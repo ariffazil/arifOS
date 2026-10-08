@@ -30,6 +30,7 @@ import logging
 import os
 from typing import Any
 
+from starlette.datastructures import MutableHeaders
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -181,6 +182,62 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
 
             if method == "server/discover":
                 return JSONResponse(self._discover_result(req_id))
+
+            # ── Envelope completion for header-only 2026-07-28 clients ──────────
+            # 2026-10-08 (Glama connector fix): some stateless clients send the
+            # MCP-Protocol-Version header but omit the per-request `params._meta`
+            # envelope AND the Mcp-Method/Mcp-Name routing headers. The kernel
+            # gate passes them (G0.7 lenient), but the mcp SDK's
+            # classify_inbound_request then rejects: rung 1 wants params._meta
+            # carrying protocolVersion + clientCapabilities, rung 2 wants
+            # Mcp-Method == body.method. We complete the envelope server-side
+            # from values the request itself already declared (header version),
+            # so the SDK ladder sees a coherent modern request. Header injection
+            # only fills ABSENT headers — a mismatching client header still hits
+            # the kernel coherence checks below and is rejected as before.
+            # Every injection is logged for measured-traffic re-ratcheting.
+            if version == "2026-07-28" and isinstance(body, dict) and method:
+                _envelope_injected: list[str] = []
+                _p = body.get("params")
+                if not isinstance(_p, dict):
+                    _p = {}
+                    body["params"] = _p
+                    _envelope_injected.append("params")
+                _m = _p.get("_meta")
+                if not isinstance(_m, dict):
+                    _m = {}
+                    _p["_meta"] = _m
+                    _envelope_injected.append("_meta")
+                if not isinstance(_m.get("io.modelcontextprotocol/protocolVersion"), str):
+                    _m["io.modelcontextprotocol/protocolVersion"] = version
+                    _envelope_injected.append("_meta.protocolVersion")
+                if "io.modelcontextprotocol/clientCapabilities" not in _m:
+                    _m["io.modelcontextprotocol/clientCapabilities"] = {}
+                    _envelope_injected.append("_meta.clientCapabilities")
+                if _envelope_injected:
+                    body_bytes = json.dumps(body).encode("utf-8")
+                    _mh = MutableHeaders(scope=request.scope)
+                    if not (
+                        request.headers.get("Mcp-Method") or request.headers.get("mcp-method")
+                    ):
+                        _mh["mcp-method"] = str(method)
+                        _envelope_injected.append("Mcp-Method")
+                    _name_key = {"tools/call": "name", "prompts/get": "name", "resources/read": "uri"}.get(
+                        str(method)
+                    )
+                    if _name_key is not None and not (
+                        request.headers.get("Mcp-Name") or request.headers.get("mcp-name")
+                    ):
+                        _name_val = _p.get(_name_key)
+                        if isinstance(_name_val, str):
+                            _mh["mcp-name"] = _name_val
+                            _envelope_injected.append("Mcp-Name")
+                    logger.info(
+                        "MCP 2026-07-28: completed envelope for header-only client "
+                        "(method=%s, injected=%s)",
+                        method,
+                        ",".join(_envelope_injected),
+                    )
 
             # Re-inject body for downstream (Starlette consumes receive once)
             async def _receive() -> dict[str, Any]:
