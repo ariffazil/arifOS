@@ -1,0 +1,349 @@
+{
+ "status": "completed",
+ "tool": "arif_judge",
+ "verdict": "HOLD",
+ "actor": {
+  "actor_id": "anonymous",
+  "actor_verified": false,
+  "authority_level": "OBSERVE_ONLY"
+ },
+ "session_id": "anonymous-session",
+ "actor_id": "anonymous",
+ "autonomy_band": "OBSERVE_ONLY",
+ "band": "OBSERVE_ONLY",
+ "authority": "OBSERVE_ONLY",
+ "actor_verified": false,
+ "call_hash": "sha256:070f6199b493755bc9a8fc3ba0600e7054861e4df2f6d69f68a354b4bdd694b5",
+ "trace_id": "trc-d5e0df50d2e9",
+ "signature": null,
+ "session_token": null,
+ "audit_provenance": {
+  "call_hash": "sha256:070f6199b493755bc9a8fc3ba0600e7054861e4df2f6d69f68a354b4bdd694b5",
+  "trace_id": "trc-d5e0df50d2e9",
+  "signature": null,
+  "kernel_signature_anchor": "constitutional_init_v1"
+ },
+ "next_safe_action": {
+  "action": "Execute the capability; monitor delta_S and surface result for post-reflection",
+  "tool": null,
+  "reason": "Derived from result"
+ },
+ "constitutional_check": {
+  "floor_passed": null,
+  "_floor_measurement": "unmeasured",
+  "hold_required": true,
+  "hold_reason": "outer_verdict=HOLD",
+  "failed_floors": [],
+  "substrate_state": "HEALTHY",
+  "session_state": "OBSERVE_ONLY",
+  "agency_level": "OBSERVE_ONLY",
+  "observe_class_exempt": true,
+  "_derivation": "attach_effective_verdict:degraded_dominates",
+  "_stab_fix": "2026-08-07-P0-dual-truth"
+ },
+ "risk": {
+  "blast_radius": "medium",
+  "reversibility": "reversible",
+  "human_confirmation_required": false,
+  "agency_level": "OBSERVE_ONLY"
+ },
+ "effective_verdict": "HOLD",
+ "execution_state": "AWAIT_INPUT",
+ "status_scope": "execution",
+ "reason_code": "NEEDS_REVIEW",
+ "next_action": "AWAIT_INPUT",
+ "receipt_state": "UNSEALED",
+ "delta_S": null,
+ "result": {
+  "effective_verdict": null,
+  "reason_code": null,
+  "next_action": null,
+  "candidate": null,
+  "next_safe_action": "Execute the capability; monitor delta_S and surface result for post-reflection",
+  "anomalous_contrast": null,
+  "thermodynamic_state": null,
+  "decision_collapse": null,
+  "growth_paradox": null,
+  "akal_state": null,
+  "floor_compliance": {
+   "floors_invoked": [],
+   "law_results": {},
+   "violated_laws": [],
+   "failed_floor_reasons": {},
+   "blocking_floor": null,
+   "f13_invoked": false,
+   "f13_veto_triggered": false
+  },
+  "amanah_proof": {
+   "floors_checked": [],
+   "floors_passed": [],
+   "floors_failed": [],
+   "violations": [],
+   "violation_mitigation": [],
+   "override_acknowledged": false,
+   "override_reason": null,
+   "override_authorizer": null,
+   "genius_score": 0.0,
+   "genius_rationale": null,
+   "entropy_minimal": true,
+   "entropy_alternatives_considered": 0
+  },
+  "dissent": {
+   "dissent_raised": false,
+   "dissent_position": null,
+   "dissent_strength": 0.0,
+   "dissent_overruled": false,
+   "overruling_rationale": null,
+   "alternative_verdicts": [],
+   "alternative_dismissed": []
+  },
+  "civilizational_anchor": null,
+  "epistemic_state": {
+   "confidence": 0.5,
+   "confidence_sources": [],
+   "model_risk": 0.0,
+   "data_gaps": [],
+   "known_unknowns": [],
+   "unknown_unknowns_suspected": [],
+   "counterfactuals_considered": 0,
+   "rejected_alternatives": [],
+   "sensitivity_to_unknown": "low",
+   "ambiguity_fused": false,
+   "epistemic_humility_score": 0.5
+  },
+  "judge_contract": null,
+  "truth_band": null,
+  "confidence_note": null,
+  "reversibility_state": {
+   "state": "REVERSIBLE",
+   "requires_human_seal": false,
+   "external_effect": false,
+   "vault_committed": false
+  },
+  "seal_state": {
+   "semantic_seal": false,
+   "procedural_seal": false,
+   "cryptographic_seal": false,
+   "vault_committed": false,
+   "human_approved": false
+  },
+  "max_evidence_level": null,
+  "sufficiency_verdict": null,
+  "sufficiency_reason": null,
+  "injection_detected": false,
+  "invariants_checked": [],
+  "recommendation_only": true,
+  "execution_authorized": false,
+  "human_final_authority": "Arif",
+  "requires_888_judge": false,
+  "qqq_envelope": null,
+  "degraded_mode": "full",
+  "circuit_breaker": {
+   "open": false,
+   "reason": null,
+   "half_open_attempts": 0,
+   "last_failure": null,
+   "consecutive_failures": 0
+  },
+  "approval_required": null,
+  "session_token": null,
+  "standing_source": null,
+  "apex_scalars": null,
+  "authority_delta": null,
+  "llm_consulted": false,
+  "autonomy_band": "OBSERVE_ONLY",
+  "band": "OBSERVE_ONLY",
+  "actor_cryptographically_verified": false,
+  "_wrapper_degradation": [
+   "inner verdict=HOLD"
+  ],
+  "_wrapper_note": "Verdict derived by _compute_canonical_verdict. Degradation signals listed in _wrapper_degradation.",
+  "reasons": [
+   "Action authorized under standard capability bounds."
+  ],
+  "actor": "anonymous",
+  "actor_id": "anonymous",
+  "mutation_allowed": false,
+  "session_id": "anonymous-session",
+  "allowed_next_verbs": [
+   "arif_init",
+   "arif_observe",
+   "arif_think",
+   "arif_route",
+   "arif_memory",
+   "arif_judge"
+  ],
+  "seal_allowed": false,
+  "authority": "OBSERVE_ONLY",
+  "actor_verified": false
+ },
+ "reasons": [
+  "Action authorized under standard capability bounds."
+ ],
+ "allowed_next_verbs": [
+  "arif_init",
+  "arif_observe",
+  "arif_think",
+  "arif_route",
+  "arif_memory",
+  "arif_judge"
+ ],
+ "can_continue_observing": true,
+ "facts": [
+  "session bound: anonymous-session",
+  "session_id=anonymous-session"
+ ],
+ "meta": {
+  "kernel_intercept": {
+   "decision": "ALLOW",
+   "constitutional_floor_triggered": null,
+   "reason": "Action authorized under standard capability bounds.",
+   "audit_hash": null,
+   "constitutional_chain_id": "cc_69e7c59f4ed495d9fbc634c6876a7adb905f6688",
+   "judge_state_hash": "sha256:bdc3562c6f09c2baf7121761a4419e0d20ce33794af466277458033549d5dfa5",
+   "seal_type": "SEAL_RECORD",
+   "rollback_instruction": null,
+   "seal_purpose": "RECORD",
+   "authority_effect": "NONE",
+   "requires_human_signature": false,
+   "authorized_execution": false,
+   "action_class": "OBSERVE",
+   "affordance": {
+    "tool_name": "kernel.judge",
+    "resolved_from": null,
+    "purpose": "Tool purpose not yet declared in constitutional contract. Treat conservatively.",
+    "use_when": [
+     "Only after explicit lookup in affordance resource"
+    ],
+    "do_not_use_when": [
+     "High-stakes or irreversible decisions"
+    ],
+    "authority_level": "advisory_only",
+    "side_effect": "unknown",
+    "blast_radius": "unknown",
+    "requires_human_confirmation": true,
+    "output_type": "opaque",
+    "evidence_required": true,
+    "agency_level": "L2_RECOMMEND",
+    "decision_thresholds": "arifos://schema/decision_thresholds",
+    "action_class": "UNKNOWN",
+    "mutation": "unknown",
+    "external_side_effect": "unknown",
+    "irreversible": "unknown",
+    "requires_session": true,
+    "requires_lease": true,
+    "requires_human_ack": true,
+    "expected_blast_radius": "UNKNOWN",
+    "output_is_evidence": false,
+    "output_is_approval": false,
+    "safe_autonomous_use": false,
+    "transport_constraint": "unknown",
+    "known": false,
+    "agency": {
+     "level": 2,
+     "label": "Recommend",
+     "description": "Suggest pathway. Agent may act with explicit caveats.",
+     "autonomous_ok": true,
+     "human_confirmation": false
+    },
+    "agency_ref": "arifos://schema/agency/L2_RECOMMEND",
+    "decision_thresholds_ref": "arifos://schema/decision_thresholds",
+    "use_when_discovery": null,
+    "deprecated_aliases": [],
+    "keywords": [],
+    "examples": [],
+    "category": null
+   },
+   "agency_level": "L2_RECOMMEND",
+   "next_safe_action": "Execute the capability; monitor delta_S and surface result for post-reflection",
+   "metacognition": {
+    "confidence": 0.92,
+    "why_this_tool": "Kernel minimum intercept passed all gates",
+    "next_safe_action": "Execute the capability; monitor delta_S and surface result for post-reflection",
+    "measurement_used": false
+   },
+   "constitutional_check": {
+    "floor_passed": true,
+    "hold_required": false,
+    "agency_level": "L2_RECOMMEND",
+    "_derivation": "arif_kernel_intercept+effective_verdict+failed_floors",
+    "_stab_fix": "2026-08-07b-floor-passed-derivation"
+   }
+  },
+  "reversibility_level": "OBSERVE",
+  "action_class": "OBSERVE",
+  "constitutional_chain_id": "cc_69e7c59f4ed495d9fbc634c6876a7adb905f6688",
+  "state_hash": "sha256:bdc3562c6f09c2baf7121761a4419e0d20ce33794af466277458033549d5dfa5",
+  "judge_state_hash": "sha256:bdc3562c6f09c2baf7121761a4419e0d20ce33794af466277458033549d5dfa5",
+  "f13_promoted_allow_to_seal": false,
+  "judge_postcondition": {
+   "spec": "judge-evidence-postcondition-v1",
+   "mode": "judge",
+   "candidate_hash": "sha256:c9594b913ea1706fc988e6bea8db5f7eca6011cdacc1b17d336e85937012d6b4",
+   "evidence_digest": "sha256:9d74fd6b977855b90365ff7e2294a669577139d40568297187d3cef1b06caf60",
+   "verdict_channel_integrity": false,
+   "missing_evidence": [],
+   "ledger_precheck": null,
+   "enforce_ledger_gate": false,
+   "applied": false,
+   "verdict": "HOLD",
+   "reason_code": null
+  },
+  "precedent": {
+   "queried": true,
+   "matched": false,
+   "advisory_only": true
+  },
+  "actor_id": "anonymous",
+  "sesat_event": {
+   "id": "sesat-cc764ec59361",
+   "source_node": "arif_judge",
+   "source_surface": "",
+   "timestamp": "2026-09-22T08:38:54.930437+00:00",
+   "severity": "YELLOW",
+   "failure_code": "JALAN_BENAR",
+   "failed_claim": "HOLD: Action authorized under standard capability bounds.",
+   "observed_reality": "verdict=HOLD, status=OK, action_scope=HOLD, substrate_scope=HEALTHY",
+   "reversible": true,
+   "baik": {
+    "route": "inspect_and_retry",
+    "owner": "arif_judge",
+    "max_retries": 1,
+    "fallback_routes": []
+   },
+   "lantai": [
+    "F2",
+    "F4"
+   ],
+   "evidence": {
+    "sha256": null,
+    "byte_length": null,
+    "mime_type": null,
+    "receipt_id": null,
+    "witness_refs": []
+   },
+   "blocked_actions": [
+    "claim_success"
+   ],
+   "next_safe_action": "Inspect and classify failure",
+   "malu_delta": 0.15,
+   "saksi_required": false,
+   "tebus_required": true,
+   "session_restriction_only": false,
+   "correction_status": null,
+   "effective_malu_delta": 0.15,
+   "tags": [
+    "ws8:action_or_substrate_failure"
+   ]
+  }
+ },
+ "timestamp": "2026-09-22T08:38:54.981225+00:00",
+ "output_policy": "DOMAIN_HOLD",
+ "nine_signal": {
+  "overall": {
+   "state": "RETAK",
+   "en": "HOLDING"
+  }
+ },
+ "actor_cryptographically_verified": false
+}

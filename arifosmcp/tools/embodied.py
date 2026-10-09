@@ -40,6 +40,24 @@ from arifosmcp.schemas.embodied_tool import (
 logger = logging.getLogger(__name__)
 
 
+def _normalize_blast_radius(val: Any) -> BlastRadius:
+    if isinstance(val, BlastRadius):
+        return val
+    s = str(val or "").strip().upper()
+    if s == "LOW":
+        return BlastRadius.LOCAL
+    if s == "MEDIUM":
+        return BlastRadius.ACCOUNT
+    if s == "HIGH":
+        return BlastRadius.PUBLIC
+    if s == "CRITICAL":
+        return BlastRadius.CIVILIZATIONAL
+    try:
+        return BlastRadius(s)
+    except Exception:
+        return BlastRadius.LOCAL
+
+
 def register_embodied_tool(
     tool_id: str,
     tool_name: str,
@@ -80,7 +98,7 @@ def register_embodied_tool(
         limitations=limitations_obj,
         risk_tier=risk_tier,
         reversibility=reversibility,
-        blast_radius=BlastRadius(blast_radius),
+        blast_radius=_normalize_blast_radius(blast_radius),
         required_permissions=required_permissions or [],
         required_floors=required_floors or [],
         safe_compose_with=safe_compose_with or [],
@@ -133,6 +151,9 @@ class EmbodiedTool:
     # Current prediction for this tool invocation (set in run(), used in postflight)
     _current_prediction: PredictionRecord | None = None
 
+    def __init__(self) -> None:
+        self.register()
+
     @classmethod
     def manifest(cls) -> ToolManifest:
         """Build this tool's manifest."""
@@ -145,7 +166,7 @@ class EmbodiedTool:
             limitations=[],
             risk_tier=cls.risk_tier,
             reversibility=cls.reversibility,
-            blast_radius=BlastRadius(cls.blast_radius),
+            blast_radius=_normalize_blast_radius(cls.blast_radius),
             required_permissions=cls.required_permissions,
             required_floors=cls.required_floors,
             safe_compose_with=cls.safe_compose_with,
@@ -155,7 +176,7 @@ class EmbodiedTool:
     @classmethod
     def register(cls) -> None:
         """Register this tool in the global self-model."""
-        if cls._registered:
+        if not cls.tool_id:
             return
         manifest = cls.manifest()
         get_tool_self_model().register(manifest)

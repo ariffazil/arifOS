@@ -12,7 +12,7 @@ import hmac
 # ── Provider Registry ───────────────────────────────────────────────────────
 
 PROVIDER_REGISTRY = {
-    "hermes": {"type": "internal", "models": ["mimo", "sea-lion", "deepseek"]},
+    "hermes": {"type": "internal", "models": ["mimo", "fed-federation", "deepseek"]},
     "openai": {"type": "external", "models": ["gpt-4", "gpt-4o", "o1", "o3", "chatgpt"]},
     "google": {"type": "external", "models": ["gemini", "gemini-pro", "gemini-ultra"]},
     "xai": {"type": "external", "models": ["grok", "grok-2", "grok-3"]},

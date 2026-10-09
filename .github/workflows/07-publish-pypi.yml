@@ -27,6 +27,10 @@ jobs:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
     name: Build and publish arifos
     runs-on: ubuntu-latest
+    # OIDC round 3 (2026-09-16): F13 re-verified the pypi.org registration.
+    # Flip-back recipe if this fails again: remove this line, restore
+    # password + attestations: false in the publish step.
+    environment: pypi
     steps:
       - uses: actions/checkout@v7
 
@@ -45,4 +49,37 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          # OIDC TRUSTED PUBLISHING — round 3, registration re-verified by F13.
+          # Rollback: restore `password: ${{ secrets.PYPI_API_TOKEN }}` +
+          # `attestations: false` and remove the job-level environment line.
+          attestations: true
+
+  sbom:
+    if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
+    name: CycloneDX SBOM (attach to release)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # release asset upload (403 with workflow-level read)
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install uv and sync
+        run: pip install uv && uv sync
+      - name: Generate CycloneDX SBOM
+        run: |
+          mkdir -p dist
+          uv run python -c "from arifosmcp.arifos_sbom import generate_arifos_sbom, export_sbom_to_file as x; x(generate_arifos_sbom(), 'dist/arifos-sbom.cdx.json')"
+          python3 -c "import json; d=json.load(open('dist/arifos-sbom.cdx.json')); print('SBOM components:', len(d.get('components', [])))"
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-cyclonedx
+          path: dist/arifos-sbom.cdx.json
+      - name: Attach to latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(gh release list --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null || true)
+          if [ -n "$TAG" ]; then gh release upload "$TAG" dist/arifos-sbom.cdx.json --clobber && echo "attached to $TAG"; else echo "no release yet — artifact uploaded only"; fi

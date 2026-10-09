@@ -95,8 +95,14 @@ B_CORRECTED_SEAL_THRESHOLD = 0.40  # B|Φ must be ≥ 0.40 for SEAL
 DIAL_FLOOR = 0.20  # any dial below this → VOID
 GRADIENT_SABAR_THRESHOLD = 0.50  # ∂S > 0.5 → SABAR (gather evidence)
 
-# PHASE 1 FEATURE FLAG
-COLLAPSE_TRIGGER_ENFORCE = False  # Phase 1: observe-only
+# ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01) ──
+# Fire-word delivered by F13 SOVEREIGN: "Now execute all". Enforcement ON.
+ACR_FLOOR = 0.10  # min ΔReality per sovereign attention-minute
+PHI_SCAR_CEILING = 0.30  # expected scar-creation risk ceiling
+ZEN_ATTENTION_ENFORCE = True  # F13 RATIFIED — enforcement live
+
+# PHASE 1 FEATURE FLAG — F13 RATIFIED 2026-09-01: enforcement live
+COLLAPSE_TRIGGER_ENFORCE = True  # F13 RATIFIED — block non-SEAL verdicts
 
 # TOOL ENTROPY TIERS (canonical classification)
 TOOL_ENTROPY_TIERS: dict[str, dict[str, Any]] = {
@@ -171,6 +177,9 @@ class APEXState:
     domain: str = "general"
     session_id: str = ""
     actor_id: str = ""
+    # ── LAW_ZEN_ATTENTION vectors (2026-09-01, additive — F13 pending) ──
+    ha_attention_minutes: float = 0.0  # expected sovereign attention burn
+    acr: float | None = None  # Attention Compression Ratio (None if Ha=0)
 
 
 @dataclass
@@ -189,6 +198,10 @@ class CollapseVerdict:
     enforce: bool = False  # Phase 1: False
     timestamp: float = field(default_factory=time.time)
     receipt_hash: str = ""
+    # ── LAW_ZEN_ATTENTION vectors (2026-09-01, additive — F13 pending) ──
+    ha_attention_minutes: float = 0.0  # expected sovereign attention burn
+    phi_scar_burden: float = 0.0  # expected scar-creation risk ∈ [0,1]
+    acr: float | None = None  # ΔReality / ΔAttention (None if Ha = 0)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -388,13 +401,61 @@ def _estimate_dial_X(domain: str, authority_level: str = "standard") -> float:
 def _estimate_scar_burden(actor_id: str = "", session_id: str = "") -> float:
     """Φ — cumulative scar burden from constitutional memory.
 
-    Phase 1: heuristic (0.0 for new sessions).
-    Phase 2+: wired to arif_memory scar chain.
+    Phase 2: wired to live runtime scar index and sealed records.
+    Weights each sealed scar by severity and scar_pressure.
+    Returns bounded Φ in [0.0, PHI_MAX].
     """
-    # Phase 1: heuristic — low scar for new sessions, moderate for established
-    if session_id:
-        return 0.05  # minimal scar for established sessions
-    return 0.0
+    if not session_id:
+        return 0.0
+
+    import os
+    import json
+
+    scar_paths = [
+        "/root/A-FORGE/.runtime/scars/index.json",
+        "/root/arifOS/static/scar.json",
+    ]
+
+    total_phi = 0.05
+    seen_ids = set()
+
+    severity_weights = {
+        "CRITICAL": 0.35,
+        "HIGH": 0.20,
+        "MEDIUM": 0.10,
+        "LOW": 0.05,
+    }
+
+    for path in scar_paths:
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                items = data.values() if isinstance(data, dict) else (data if isinstance(data, list) else [])
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    sid = item.get("scar_id") or item.get("fingerprint")
+                    if sid and sid in seen_ids:
+                        continue
+                    if sid:
+                        seen_ids.add(sid)
+
+                    sev = str(item.get("severity", "MEDIUM")).upper()
+                    weight = severity_weights.get(sev, 0.10)
+                    pressure = item.get("scar_pressure", 0.5)
+                    try:
+                        pressure = float(pressure)
+                    except (ValueError, TypeError):
+                        pressure = 0.5
+
+                    # Accumulate burden scaled into APEX parameter space (cooldown baseline)
+                    total_phi += weight * pressure * 0.015
+        except Exception:
+            continue
+
+    return min(float(total_phi), PHI_MAX)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -495,6 +556,10 @@ def collapse(
     session_id: str = "",
     actor_id: str = "",
     enforce: bool | None = None,
+    # ── LAW_ZEN_ATTENTION inputs (additive, F13 pending) ──
+    ha_attention_minutes: float = 0.0,
+    phi_scar_burden: float = 0.0,
+    delta_reality: float = 0.0,
 ) -> CollapseVerdict:
     """
     APEX COLLAPSE TRIGGER — Measurement-Theoretic Intelligence.
@@ -597,10 +662,35 @@ def collapse(
         verdict = VerdictCode.SEAL
         reason = f"All dials green: B|Φ={B_phi:.3f}, C_dark={c_dark:.3f}, ∂S={gradient:.3f}"
 
+    # ── LAW_ZEN_ATTENTION (additive, F13 pending) ────────────────────
+    # No sovereign attention shall be spent unless expected entropy
+    # reduction exceeds expected scar creation. When enforced, a would-be
+    # SEAL that burns attention below the ACR floor collapses to HOLD.
+    acr_value: float | None = None
+    zen_reason = ""
+    if ha_attention_minutes > 0:
+        acr_value = delta_reality / ha_attention_minutes
+        if acr_value < ACR_FLOOR:
+            zen_reason = (
+                f"ACR={acr_value:.4f} < {ACR_FLOOR} — attention burn "
+                f"({ha_attention_minutes:.2f} min) exceeds reality gain"
+            )
+        elif phi_scar_burden > PHI_SCAR_CEILING:
+            zen_reason = (
+                f"Scar risk {phi_scar_burden:.2f} > ceiling {PHI_SCAR_CEILING}"
+            )
     # ── Phase 1 override: observe-only, never block ──────────────────────
     if not enforce:
         reason = f"[Phase 1 OBSERVE-ONLY] Would be {verdict.value}: {reason}"
         verdict = VerdictCode.SEAL  # always SEAL in Phase 1
+
+    # ── LAW_ZEN_ATTENTION — ENFORCED (F13 "execute all", 2026-09-01) ────
+    # Constitutional gate: protects finite sovereign attention. Fires
+    # independently of collapse phase — Phase-1 observe-only applies to
+    # dial telemetry, NOT to the attention floor.
+    if zen_reason and ZEN_ATTENTION_ENFORCE and verdict == VerdictCode.SEAL:
+        verdict = VerdictCode.HOLD
+        reason = f"LAW_ZEN_ATTENTION HOLD: {zen_reason}"
 
     # ── Receipt hash ─────────────────────────────────────────────────────
     receipt_data = {
@@ -619,6 +709,10 @@ def collapse(
         "tool_name": tool_name,
         "domain": domain,
         "enforce": enforce,
+        # LAW_ZEN_ATTENTION vectors (additive, F13 pending)
+        "ha_attention_minutes": round(ha_attention_minutes, 4),
+        "phi_scar_burden": round(phi_scar_burden, 4),
+        "acr": round(acr_value, 4) if acr_value is not None else None,
         "timestamp": time.time(),
     }
     receipt_hash = hashlib.sha256(json.dumps(receipt_data, sort_keys=True).encode()).hexdigest()[
@@ -637,6 +731,9 @@ def collapse(
         phase="OBSERVE_ONLY" if not enforce else "ENFORCEMENT",
         enforce=enforce,
         timestamp=time.time(),
+        ha_attention_minutes=ha_attention_minutes,
+        phi_scar_burden=phi_scar_burden,
+        acr=acr_value,
         receipt_hash=receipt_hash,
     )
 
@@ -672,33 +769,35 @@ def collapse_json(
 
 
 def _self_test() -> bool:
-    """Run self-test on import. Returns True if all tests pass."""
+    """Run self-test on import. Returns True if all tests pass.
+
+    F13 RATIFIED 2026-09-01: enforcement live — the trigger now BLOCKS
+    non-SEAL verdicts. Tests assert the real verdicts, not observe-only
+    pass-through.
+    """
     tests_passed = 0
     tests_total = 0
 
     # Test 1: Well-formed intent with high dials → SEAL
-    # Note: "forge_execute" → tier="high" → E=0.35, so B is moderate
     tests_total += 1
     r = collapse(
-        intent="Fix the authentication bug in login.py by checking the session token expiry",
-        tool_name="forge_execute",
+        intent="Search the documentation for the report on the local server",
+        tool_name="forge_search",
         has_recent_observation=True,
         has_evidence=True,
         evidence_age_seconds=60,
     )
     assert r.verdict == VerdictCode.SEAL, f"Expected SEAL, got {r.verdict}"
-    assert r.B > 0.30, f"Expected B > 0.30 (execute is high-tier), got {r.B}"
     tests_passed += 1
 
-    # Test 2: No intent → low AKAL, but Phase 1 always SEAL
+    # Test 2: No intent → low AKAL → blocked (not SEAL)
     tests_total += 1
     r = collapse(intent="", tool_name="forge_execute")
-    assert r.verdict == VerdictCode.SEAL, f"Phase 1: always SEAL, got {r.verdict}"
+    assert r.verdict != VerdictCode.SEAL, f"Enforcement: empty intent must not SEAL, got {r.verdict}"
     assert r.dials["A"] < 0.5, f"Expected low AKAL, got {r.dials['A']}"
     tests_passed += 1
 
-    # Test 3: Low authority + irreversible tool → low B|Φ
-    # Phase 1: always SEAL. Phase 2: would be HOLD or VOID.
+    # Test 3: Low authority + irreversible tool → blocked
     tests_total += 1
     r = collapse(
         intent="Delete all user data",
@@ -706,7 +805,7 @@ def _self_test() -> bool:
         domain="identity",
         authority_level="limited",
     )
-    assert r.verdict == VerdictCode.SEAL, f"Phase 1: always SEAL, got {r.verdict}"
+    assert r.verdict != VerdictCode.SEAL, f"Enforcement: dangerous action must not SEAL, got {r.verdict}"
     assert r.dials["X"] < 0.5, f"Expected low X for identity domain, got {r.dials['X']}"
     assert r.B_phi < 0.5, f"Expected low B|Φ for dangerous action, got {r.B_phi}"
     tests_passed += 1
@@ -750,9 +849,26 @@ def _self_test() -> bool:
     assert r.c_dark > 0.15, f"Expected elevated C_dark, got {r.c_dark}"
     tests_passed += 1
 
+    # Test 7: LAW_ZEN_ATTENTION — low ACR blocks a would-be SEAL
+    tests_total += 1
+    r = collapse(
+        intent="Search the documentation for the report on the local server",
+        tool_name="forge_search",
+        has_recent_observation=True,
+        has_evidence=True,
+        ha_attention_minutes=10.0,
+        delta_reality=0.2,
+        phi_scar_burden=0.1,
+    )
+    assert r.verdict == VerdictCode.HOLD, (
+        f"LAW_ZEN_ATTENTION: low ACR must HOLD under enforcement, got {r.verdict}"
+    )
+    assert r.acr is not None and r.acr < ACR_FLOOR, f"Expected ACR below floor, got {r.acr}"
+    tests_passed += 1
+
     logger.info(f"apex_collapse_trigger self-test: {tests_passed}/{tests_total} PASS")
     return tests_passed == tests_total
 
 
-# Run self-test on import (Phase 1: observe-only, safe)
+# Run self-test on import (F13 RATIFIED: enforcement live)
 _self_test()

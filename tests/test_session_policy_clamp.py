@@ -2,6 +2,7 @@
 
 Forged 2026-08-15. F13 "Go" on: display registers must be kernel state, not prompt.
 """
+
 import sys
 
 sys.path.insert(0, "/root/arifOS")
@@ -105,6 +106,42 @@ def test_live_clamp_init_exempt():
     )
     # arif_init is ignition-exempt: a shadow session can always re-init/inspect
     assert session_policy_clamp(sid, "arif_init", "OBSERVE") is None
+
+
+def test_step4_alias_mode_resolution():
+    """STEP 4 (2026-09-18): authority follows the MODE, not the tool namespace.
+
+    Regression: SDK long-name `arif_forge_execute` mode=query/recall/dry_run
+    must resolve OBSERVE via the canonical manifest and pass a session with
+    irreversibility_threshold=0.0. Before the fix, the alias-blind manifest
+    lookup skipped mode-resolution and gated reads at the MUTATE rank,
+    producing: "exceeds this session's irreversibility_threshold 0.00".
+    Dangerous modes keep MUTATE and stay clamped.
+    """
+    from arifosmcp.runtime.session import bind_session_identity
+
+    sid = "TEST-STEP4-ALIAS-MODE-001"
+    bind_session_identity(
+        session_id=sid,
+        actor_id="observe-probe",
+        authority_level="OBSERVE_ONLY",
+        auth_context={"source": "test"},
+        agent_policy={
+            "agent_role": "observe-probe",
+            "allowed_tools": ["arif_forge", "arif_forge_execute"],
+            "irreversibility_threshold": 0.0,
+            "policy_version": "1.0.0-step4",
+        },
+    )
+    # safe read-only modes via SDK long-name → OBSERVE → not clamped
+    for safe_mode in ("query", "recall", "dry_run"):
+        clamp = session_policy_clamp(sid, "arif_forge_execute", "MUTATE", tool_mode=safe_mode)
+        assert clamp is None, f"mode={safe_mode} should pass, got {clamp}"
+    # dangerous mode → MUTATE rank 4/6 > threshold 0.0 → clamped
+    clamp_eng = session_policy_clamp(sid, "arif_forge_execute", "MUTATE", tool_mode="engineer")
+    assert clamp_eng is not None and "irreversibility_threshold" in clamp_eng["reason"], clamp_eng
+    # canonical name equivalence
+    assert session_policy_clamp(sid, "arif_forge", "MUTATE", tool_mode="query") is None
 
 
 if __name__ == "__main__":

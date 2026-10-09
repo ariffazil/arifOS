@@ -19,7 +19,7 @@ def _minimal_envelope_kwargs(confidence_val=None, parsed_output=None):
     return {
         "raw_output": '{"status": "OK"}',
         "parsed_output": parsed_output or {"status": "OK"},
-        "provider": "sea_lion",
+        "provider": "fed_federation",
         "model": "test-model",
         "tool_origin": "333_REASON",
         "mode": "reason",

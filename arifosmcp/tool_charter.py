@@ -1088,6 +1088,11 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "optional_parameters": ["query", "memory_id", "scope"],
                 "returns": ["audit_report", "violations"],
             },
+            "metabolize": {
+                "purpose": "Metabolize evidence/receipts into a unified 6-class L1-L5 mind state.",
+                "optional_parameters": ["query", "payload"],
+                "returns": ["metabolized", "delta_S"],
+            },
         },
         "inputs": {
             "mode": {
@@ -1101,6 +1106,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                     "revise",
                     "forget",
                     "audit",
+                    "metabolize",
                 ],
                 "default": "recall",
             },

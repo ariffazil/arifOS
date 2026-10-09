@@ -49,7 +49,11 @@ _SHADOW_CEILING = frozenset({"OBSERVE", "ANALYZE", "DRAFT", "SIMULATE"})
 
 # Tools exempt from clamping: the ignition verb itself must always run,
 # otherwise a session could never be established or inspected.
-_IGNITION_EXEMPT = frozenset({"arif_init"})
+# arif_seal is exempt because the governance chain (arif_judge → SEAL verdict
+# with constitutional_chain_id) is the real authorization — the session
+# irreversibility threshold should not block the constitutional obligation
+# to seal after a judge verdict. The judge already evaluated F1-F13.
+_IGNITION_EXEMPT = frozenset({"arif_init", "arif_seal"})
 
 
 def _lookup_session(session_id: str) -> dict[str, Any] | None:
@@ -127,10 +131,19 @@ def session_policy_clamp(
             )
             from arifosmcp.schemas.kernel_envelope import ActionClass as _AC
 
-            _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+            # STEP 4 fix (2026-09-18): normalize SDK long-name aliases before
+            # the manifest lookup — arif_forge_execute → arif_forge. Without
+            # this, aliased tools skipped per-mode resolution and safe modes
+            # (query/recall/dry_run) were gated at the tool-level MUTATE rank.
+            from arifosmcp.runtime.pre_execution_gate import (
+                _SDK_LONG_NAME_ALIASES,
+            )
+
+            _canonical_tool = _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+            _manifest_entry = CANONICAL_TOOL_MANIFEST.get(_canonical_tool)
             if _manifest_entry is not None:
                 _resolved = resolve_action_class_for_mode(
-                    tool_name, tool_mode, _manifest_entry.action_class
+                    _canonical_tool, tool_mode, _manifest_entry.action_class
                 )
                 threshold_rank = _RANK.get(_resolved.value, rank)
         except Exception:
@@ -148,8 +161,19 @@ def session_policy_clamp(
     canonical = tool.split(".")[-1]
 
     # ── Explicit tool lists ─────────────────────────────────────────────
+    # STEP 4 (2026-09-18): alias-normalize both sides — denying 'arif_forge'
+    # must also deny its SDK long-name 'arif_forge_execute' (security).
+    try:
+        from arifosmcp.runtime.pre_execution_gate import _SDK_LONG_NAME_ALIASES as _ALIAS
+
+        _tool_norm = _ALIAS.get(canonical, canonical)
+    except Exception:
+        _ALIAS = {}
+        _tool_norm = canonical
+
     denied = _as_str_list(policy.get("denied_tools"))
-    if denied and (tool in denied or canonical in denied):
+    denied_norm = {_ALIAS.get(d, d) for d in denied}
+    if denied and (tool in denied or canonical in denied or _tool_norm in denied_norm):
         return {
             "reason": (
                 f"SESSION_POLICY: tool '{tool}' is denied by this session's "
@@ -160,7 +184,13 @@ def session_policy_clamp(
         }
 
     allowed = _as_str_list(policy.get("allowed_tools"))
-    if allowed and tool not in allowed and canonical not in allowed:
+    allowed_norm = {_ALIAS.get(a, a) for a in allowed}
+    if (
+        allowed
+        and tool not in allowed
+        and canonical not in allowed
+        and _tool_norm not in allowed_norm
+    ):
         return {
             "reason": (
                 f"SESSION_POLICY: tool '{tool}' is not in this session's "
@@ -171,11 +201,9 @@ def session_policy_clamp(
         }
 
     # ── Display-register ceiling (shadow mode) ──────────────────────────
-    register = str(
-        policy.get("display_register")
-        or policy.get("policy_mode")
-        or ""
-    ).strip().lower()
+    register = (
+        str(policy.get("display_register") or policy.get("policy_mode") or "").strip().lower()
+    )
     if register == "shadow" and action not in _SHADOW_CEILING:
         return {
             "reason": (
@@ -190,10 +218,21 @@ def session_policy_clamp(
     # Uses threshold_rank (mode-resolved) so read-only modes of dangerous
     # tools (e.g. arif_seal mode=verify) pass the threshold gate.
     if threshold_rank >= 4.0:
-        try:
-            threshold = float(policy.get("irreversibility_threshold"))
-        except (TypeError, ValueError):
-            threshold = None
+        raw_t = policy.get("irreversibility_threshold")
+        if isinstance(raw_t, str):
+            _THRESH_MAP = {
+                "none": 0.0,
+                "reversible": 0.35,
+                "partial": 0.67,
+                "irreversible": 0.85,
+                "critical": 1.0,
+            }
+            threshold = _THRESH_MAP.get(raw_t.strip().lower())
+        else:
+            try:
+                threshold = float(raw_t) if raw_t is not None else None
+            except (TypeError, ValueError):
+                threshold = None
         if threshold is not None and (threshold_rank / 6.0) > threshold + 1e-9:
             return {
                 "reason": (

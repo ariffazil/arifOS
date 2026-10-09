@@ -201,6 +201,29 @@ This doctrine may be amended only by:
 4. F13 SOVEREIGN explicit ratification
 5. VAULT999 seal with amendment ledger entry
 
+## XIII. The Sovereign Numéraire — Attention (RATIFIED 2026-09-01)
+
+> **Cross-reference:** GENESIS/005b §XVII (LAW_ZEN_ATTENTION) — the full
+> kernel doctrine. This section is the canonical pointer.
+> **Status: RATIFIED by F13 SOVEREIGN fire-word "Now execute all", 2026-09-01.**
+
+The Agentic Attention Paradox (2026-09-01, sovereign eureka): synthetic
+execution (L_s) is elastic with marginal cost → 0; sovereign attention
+(H_a) is strictly inelastic (biological ceiling, single-threaded). When
+L_s → ∞, total output collapses to H_a allocation. The economy is priced
+in **ACR (Attention Compression Ratio)**, not throughput:
+
+    ACR = ΔReality_accepted / ΔAttention_minutes_burned
+    LAW_ZEN_ATTENTION: no sovereign attention shall be spent unless
+    expected entropy reduction exceeds expected scar creation.
+
+HITL ex-post approval is unpriced cognitive dumping — a factory dumping
+verification cost into the human river. The kernel replaces it with
+ex-ante mechanism design: deterministic invariants, rollback recipes,
+and AUTO-SEAL inside the reversibility sandbox (R(a) ≥ 0.85).
+
+**F13 SOVEREIGN must ratify this section for it to bind the kernel.**
+
 ---
 
 **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**

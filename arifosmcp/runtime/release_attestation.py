@@ -19,9 +19,9 @@ from pathlib import Path
 
 RELEASE_DIR = Path("/opt/arifos/releases")
 MANIFEST_PATH = RELEASE_DIR / "release-manifest.json"
-STAMP_PATH = Path("/opt/arifos/app/.git_commit")
-EXPECTED_VENV = "/opt/arifos/venv"
-EXPECTED_PYTHON = "/opt/arifos/venv/bin/python"
+STAMP_PATH = Path("/opt/arifos/releases/deployed-commit")
+EXPECTED_VENV = "/opt/arifos/current/venv"
+EXPECTED_PYTHON = "/opt/arifos/current/venv/bin/python"
 
 # Source files whose hashes form the source_file_hash attestation per Arif A2 spec
 SOURCE_ATTESTATION_FILES: tuple[str, ...] = (

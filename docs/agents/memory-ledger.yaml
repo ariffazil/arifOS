@@ -1,4 +1,4 @@
-﻿# arifOS Unified Memory Ledger
+# arifOS Unified Memory Ledger
 # Canonical Agent Memory Spine - Compounding Intelligence
 # Version: 2026.03.14-FORGED
 # Authority: 888_JUDGE
@@ -170,7 +170,7 @@ memory_categories:
 
   # 5. HUMAN APPROVALS - Sovereign authority log
   human_approvals:
-    description: "All human approvals and overrides (F13)",
+    description: "All human approvals and overrides (F13)"
     retention: "permanent"
     vault_seal: true
     schema:

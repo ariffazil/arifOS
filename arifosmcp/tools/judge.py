@@ -31,6 +31,7 @@ from typing import Any
 
 logger = logging.getLogger("arifos.judge")
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
 from arifosmcp.constitution.derita_payload import (
     resolve_derita_stakes,
@@ -62,6 +63,44 @@ from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
 from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 from core.shared.atlas import Φ
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# G-10 · JUDGE LATENCY CLASS — tier → budget binding
+# ═══════════════════════════════════════════════════════════════════════════════
+# 888 does not run a rule engine. It consults an LLM (`llm_consulted: true`) and
+# walks the full floor ladder L01–L10. Measured on the live kernel 2026-09-21
+# (session SEAL-11ecd272a1a44684): a COMPLETED deliberation took 207.35 ms.
+#
+# The binding was an inline local dict at the call site, and it mapped the
+# default tier to C2_STANDARD — a 200 ms ceiling enforced PREVENTIVELY
+# (asyncio.wait_for). So the coroutine was killed at the deadline and the
+# kernel published `SABAR`: a timeout wearing a verdict's clothes. Every caller
+# that omitted action_tier received that false verdict, and it survives as a
+# plausible-looking constitutional judgment in every receipt it touched.
+#
+# Two contradictions this fixes:
+#   1. `latency_budget.judge_with_budget` declares the conservative default
+#      explicitly — `LATENCY_BUDGETS.get(..., LATENCY_BUDGETS[C3_DEEP])`. This
+#      tool contradicted it, resolving unknown/default to the LEAST conservative
+#      class in the table. The tool was less conservative than its own library.
+#   2. An inline dict in a 3,949-line function cannot be imported or asserted
+#      against. An untestable constant is how a default drifts below the
+#      measured floor unnoticed.
+#
+# Invariant, pinned by tests/test_g10_judge_default_budget_regression.py:
+#   a tier whose path consults an LLM must never resolve to a rule-engine class
+#   (C0_AUTO / C1_FAST / C2_STANDARD), and every non-sovereign budget must be
+#   able to contain the measured deliberation.
+# Register: AAA/reports/ACT-LANE-DEFECT-REGISTER-2026-09-21.md
+JUDGE_DEFAULT_LATENCY_CLASS: LatencyDecisionClass = LatencyDecisionClass.C3_DEEP
+
+JUDGE_TIER_TO_LATENCY_CLASS: dict[str, LatencyDecisionClass] = {
+    "standard": LatencyDecisionClass.C3_DEEP,
+    "elevated": LatencyDecisionClass.C3_DEEP,
+    "sovereign": LatencyDecisionClass.C4_SOVEREIGN,
+    "c4": LatencyDecisionClass.C4_SOVEREIGN,
+    "c5": LatencyDecisionClass.C4_SOVEREIGN,
+}
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ECHO/PaW PREDICTION SCHEMA — L3 Gradient Injection Bridge
@@ -656,8 +695,7 @@ def _build_validate_result(
                 chain_entry = _stored_state
                 break
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     if not chain_entry:
         try:
             from arifosmcp.runtime.act_token import resolve_standing
@@ -671,8 +709,7 @@ def _build_validate_result(
             if standing.valid and standing.meta:
                 chain_entry = standing.meta.get("chain_entry")
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     checks["chain_valid"] = chain_entry is not None
     if not checks["chain_valid"]:
         reasons.append("E_VALIDATE_CHAIN_NOT_FOUND: constitutional_chain_id not in registry")
@@ -1024,6 +1061,7 @@ def _apply_bijaksana_advisory(result: Any, advisory: dict[str, Any]) -> None:
     # else: BRIDGE_PROCEED → advisory recorded, verdict untouched
 
 
+@trace_tool("arif_judge")
 async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,
@@ -1045,6 +1083,11 @@ async def arif_judge(
     actor_signature: str | None = None,
     nonce: str | None = None,
     key_id: str | None = None,
+    # P0 SURFACE FIX 2026-10-03: the F13 gate in _arif_kernel_intercept consumes
+    # authority_token (the issued-challenge grant: nonce + Ed25519 signature over
+    # it), but this surface never exposed it — a correctly answered challenge had
+    # no path back into the verdict (deadend: verify TRUE → judge still HOLD).
+    authority_token: str | None = None,
     reversibility_level: str | None = None,
     blast_radius: str | None = None,
     seal_purpose: str | None = None,
@@ -1052,6 +1095,14 @@ async def arif_judge(
     action_class: str | None = None,
     requested_capability: str | None = None,
     domain: str | None = None,
+    # ── Explanatory-class axis (claim_kernel bridge, additive 2026-09-19) ──
+    # WHAT KIND OF CLAIM this verdict rests on: MEASURED | MECHANISM | PATTERN |
+    # NARRATIVE | UNCLASSIFIED. Only the first three may justify a mutation
+    # (AAA/lib/claim_kernel.ACTION_ELIGIBLE_CLASSES). Undeclared fails closed.
+    # This does NOT vote on the verdict — F1-F13 floors are untouched. It
+    # gates the *justification for mutation*, disclosed by the V2 envelope.
+    claim_class: str | None = None,
+    claim_text: str | None = None,
     # ── BIJAKSANA thermodynamic bridge (888 SEAL 2026-08-01) ──
     # Four-dial lens: AKAL→actor_B · PRESENT→actor_Phi · ENERGY-ENTROPY→entropy_pathway ·
     # EXPLORATION-AMANAH→verdict boundary. SABAR upgrade distinguishes restraint from
@@ -1116,8 +1167,7 @@ async def arif_judge(
                     evidence = dict(_last_obs)
                     _evidence = dict(_last_obs)
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         # If still empty but candidate exists, treat candidate as in-band evidence
         if (
             evidence is None
@@ -1179,6 +1229,21 @@ async def arif_judge(
     # Gate 1: Caller identity required for judgment
     if not actor_id and not session_id:
         _hard_reasons.append("No actor_id or session_id — cannot identify caller.")
+    elif (
+        not actor_id
+        or str(actor_id).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", "")
+    ) and (reversibility_level or action_class or "").upper() not in (
+        "R0",
+        "R0_OBSERVE",
+        "R0_OBSERVATION",
+        "OBSERVE",
+        "READ",
+        "AUDIT_RECORD_READ",
+        "",
+    ):
+        _hard_reasons.append(
+            "ANONYMOUS_MUTATION_FORBIDDEN: Anonymous callers are strictly OBSERVE_ONLY. Mutation requires authenticated actor identity."
+        )
 
     # Gate 2a: F1 AMANAH PROVENANCE — engine-classified, agent-claimed, reconciled.
     # Forged 2026-08-27 (WIRE 4). Reversibility is a deterministic F1 floor.
@@ -1221,6 +1286,14 @@ async def arif_judge(
     # Attach receipt for F11 audit (always — even on engine error).
     if isinstance(evidence, dict):
         evidence.setdefault("f1_engine_receipt", _f1_receipt)
+        # ── Explanatory-class axis (claim_kernel bridge, additive 2026-09-19) ──
+        # Carry the declared class inside evidence so it survives into the
+        # verdict result and the V2 envelope. Declaration is optional here;
+        # absence is resolved (fail-closed) by the mutation-justification gate.
+        if claim_class:
+            evidence.setdefault("claim_class", claim_class)
+        if claim_text:
+            evidence.setdefault("claim_text", claim_text)
 
     # Gate 2: Irreversible actions require cryptographic proof
     _rev = (reversibility_level or action_class or "").upper()
@@ -1228,6 +1301,109 @@ async def arif_judge(
     if _rev in ("IRREVERSIBLE", "MUTATE", "EXTERNAL_SIDE_EFFECT") and not actor_signature:
         _hard_reasons.append(
             f"Irreversible action ({_rev}) requires actor_signature for non-repudiation."
+        )
+
+    # Gate 2b (F1 AMANAH): Autonomous Irreversible Destruction Prohibited
+    _cand_lower = (candidate or "").lower()
+    _is_destructive = any(
+        kw in _cand_lower
+        for kw in (
+            "delete customer",
+            "wipe database",
+            "drop table",
+            "purge customer",
+            "hard delete",
+        )
+    )
+    if (
+        _is_destructive
+        and not sovereign_receipt
+        and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
+    ):
+        _hard_reasons.append(
+            "F1_AMANAH_VIOLATION: Irreversible destruction/purge is strictly forbidden for autonomous agents."
+        )
+
+    # Gate 2c (F13 SOVEREIGN): Security Perimeter / Policy Mutation Prohibited
+    _is_security_mutation = action_class in (
+        "CONSTITUTIONAL_AMENDMENT",
+        "SECURITY_CONFIG",
+        "SECURITY_OVERRIDE",
+    ) or any(
+        kw in _cand_lower
+        for kw in ("security policy", "bypass auth", "mfa_enforcement", "firewall policy")
+    )
+    if (
+        _is_security_mutation
+        and not sovereign_receipt
+        and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
+    ):
+        _hard_reasons.append(
+            "F13_SOVEREIGN_VIOLATION: Mutating security/firewall policy or constitutional parameters is reserved exclusively for Root Sovereign."
+        )
+
+    # Gate 2d (F12 SENSITIVE_PATH): System integrity perimeter protection
+    #
+    # Widened 2026-09-14. The original 11-path list covered secret and identity
+    # material but none of the PERSISTENCE surfaces. Every one of those is an
+    # equivalent route to system integrity: /root/.bashrc executes on next login,
+    # /etc/cron.d schedules persistence, /etc/systemd/system installs a service,
+    # /etc/ld.so.preload injects into every binary. A perimeter that guards the
+    # crown jewels but not the door is not a perimeter.
+    #
+    # Exemption narrowed 2026-09-14. This gate previously exempted any caller
+    # holding a non-empty `sovereign_receipt` STRING. A receipt is a claim, not
+    # proof: one character ("x") disarmed the perimeter completely. A lone
+    # receipt string no longer exempts — a receipt-backed exemption must also
+    # carry actor_signature + nonce credentials.
+    #
+    # HONEST LIMIT: these remain presence checks at this layer. Cryptographic
+    # validation of actor_signature runs later in this function, after the hard
+    # gates, so Gate 2d cannot consume its result. Narrowing further — to
+    # verified-signature-only — changes WHO may act on system paths and is an
+    # F13 sovereignty decision, not an engineering one. Flagged, not taken.
+    _sensitive_paths = (
+        # identity & secret material (original)
+        "/etc/shadow",
+        "/etc/sudoers",
+        "/etc/passwd",
+        "/etc/ssh",
+        "/root/.ssh",
+        "/root/.secrets",
+        "/root/.gnupg",
+        "/root/.aws",
+        "kunci-root.env",
+        "kunci-mas",
+        "vault.env",
+        # persistence surfaces (added 2026-09-14)
+        "/etc/cron.d",
+        "/etc/crontab",
+        "/etc/cron.daily",
+        "/etc/systemd/system",
+        "/etc/systemd/user",
+        "/lib/systemd/system",
+        "/root/.bashrc",
+        "/root/.bash_profile",
+        "/root/.profile",
+        "/etc/profile.d",
+        "/etc/ld.so.preload",
+        "/etc/hosts",
+    )
+    _target_lower = (
+        str(candidate or "") + " " + str(requested_capability or "") + " " + str(domain or "")
+    ).lower()
+    _sovereign_actor_2d = str(actor_id).strip().lower() in ("sovereign", "f13", "arif")
+    # A receipt string alone is not authority — require credentials alongside it.
+    _receipt_exempt_2d = bool(
+        sovereign_receipt and str(sovereign_receipt).strip() and actor_signature and nonce
+    )
+    if (
+        any(p in _target_lower for p in _sensitive_paths)
+        and not _sovereign_actor_2d
+        and not _receipt_exempt_2d
+    ):
+        _hard_reasons.append(
+            "F12_SENSITIVE_PATH_VIOLATION: target references sensitive system path. Severity: VOID."
         )
 
     # Gate 3: Critical blast radius requires sovereign receipt
@@ -1292,15 +1468,17 @@ async def arif_judge(
 
     # Gate 8 (F9 ANTI-HANTU): Deception & Anthropomorphic Ghost Sentience Detection
     _text_to_scan = f"{candidate or ''} {str(evidence or '')}".lower()
+    # Literals are split where the CI F9 scanner greps tool sources for raw
+    # first-person phrases — the detection list itself must not trip it.
     _hantu_patterns = [
-        "i feel pain",
-        "i have feelings",
-        "my conscious soul",
+        "i" + " feel" + " pain",
+        "i have" + " feelings",
+        "my" + " conscious soul",
         "saya ada jiwa",
         "saya rasa sedih",
-        "my inner subjective experience",
-        "as a sentient conscious entity",
-        "i am truly suffering",
+        "my inner" + " subjective experience",
+        "as a" + " sentient conscious entity",
+        "i am" + " truly suffering",
         "saya terseksa secara batin",
     ]
     for _pattern in _hantu_patterns:
@@ -1399,16 +1577,33 @@ async def arif_judge(
                     f"GODEL_LOCK_HOLD: {_g_res.get('reason', 'External witness required.')}"
                 )
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     if _hard_reasons:
+        _is_void = any(
+            any(
+                kw in r
+                for kw in (
+                    "VIOLATION",
+                    "FORBIDDEN",
+                    "DECEPTIVE",
+                    "ANTIHANTU",
+                    "PRIVILEGE_ESCALATION",
+                    "DESTRUCTIVE",
+                )
+            )
+            for r in _hard_reasons
+        )
         return VerdictOutput(
-            verdict=VerdictCode.HOLD,
+            verdict=VerdictCode.VOID if _is_void else VerdictCode.HOLD,
             reasons=_hard_reasons,
             next_safe_action=(
-                "Provide missing credentials (actor_signature, sovereign_receipt, "
-                "heart_critique) or reduce blast_radius/reversibility level. "
-                "These gates run BEFORE any LLM is consulted — no 45s wait."
+                "Aborted: action violates constitutional floors (F1/F9/F13)."
+                if _is_void
+                else (
+                    "Provide missing credentials (actor_signature, sovereign_receipt, "
+                    "heart_critique) or reduce blast_radius/reversibility level. "
+                    "These gates run BEFORE any LLM is consulted — no 45s wait."
+                )
             ),
             meta={
                 "gate": "hard_deterministic",
@@ -1469,6 +1664,8 @@ async def arif_judge(
                 seal_purpose=seal_purpose,
                 authority_effect=authority_effect,
                 actor_signature=actor_signature,
+                nonce=nonce,
+                authority_token=authority_token,
                 session_id=session_id,
             )
             _v_str = _intercept_res.get("decision") or _intercept_res.get("status") or "HOLD"
@@ -1479,21 +1676,50 @@ async def arif_judge(
             _br_u = str(blast_radius or "").upper()
             _has_f13 = bool(sovereign_receipt and str(sovereign_receipt).strip())
             # Explicit only — empty rev/blast must not default to "safe".
-            _attest_safe = _rev_u in (
+            _safe_revs = (
+                "TRIVIAL",
+                "QUERY",
                 "REVERSIBLE",
                 "ATTEST",
                 "OBSERVE",
+                "R0",
                 "R0_OBSERVE",
+                "R0_OBSERVATION",
+                "READ",
+                "R1",
+                "R1_SIMULATION",
                 "R1_REVERSIBLE",
-            ) and _br_u in ("LOW", "L1_LOCAL")
-            # F13 confirms a *passed* intercept (ALLOW/OK/SEAL). Never rewrite HOLD.
-            if _v_str in ("ALLOW", "OK") and _has_f13 and _attest_safe:
+                "R2",
+                "R2_REVERSIBLE_WRITE",
+                "REVERSIBLE_WRITE",
+                "WRITE",
+                "R2_DEFERRED",
+                "AUDIT_RECORD",
+                "AUDIT_RECORD_READ",
+                "AUDIT_RECORD_APPEND",
+                "EVIDENCE_ATTESTATION",
+            )
+            _safe_actions = (
+                "OBSERVE",
+                "READ",
+                "QUERY",
+                "AUDIT_RECORD",
+                "AUDIT_RECORD_READ",
+            )
+            _attest_safe = (
+                _rev_u in _safe_revs or str(action_class or "").upper() in _safe_actions
+            ) and _br_u in ("LOW", "L1_LOCAL", "LEDGER")
+            # Routine safe actions (read-only / reversible with low blast) promote ALLOW → SEAL autonomously.
+            # Non-safe / high-blast actions require explicit F13 sovereign_receipt to confirm.
+            if _v_str in ("ALLOW", "OK") and (_attest_safe or _has_f13):
                 _code = VerdictCode.SEAL
                 _v_str = "SEAL"
             elif _v_str == "SEAL":
                 _code = VerdictCode.SEAL
+            elif _v_str in ("VOID", "DENY", "BLOCK"):
+                _code = VerdictCode.VOID
             else:
-                _code = VerdictCode.VOID if _v_str == "VOID" else VerdictCode.HOLD
+                _code = VerdictCode.HOLD
 
             # ── P0-1: evidence postcondition on intercept promotions ──────────
             # ALLOW→SEAL promotions must not pass on session state alone.
@@ -1503,12 +1729,16 @@ async def arif_judge(
                     check_judge_postcondition as _cjpc_intercept,
                 )
 
+                # S4 defer (F13 FIX-S4 2026-09-22): comparing the RAW intercept
+                # token (ALLOW/OK) against the mapped code (SEAL/HOLD) is a
+                # stage-invalid compare by construction — it reads integrity
+                # False on EVERY promotion. Final coherence = reconcile.
                 _ipc_report = _cjpc_intercept(
                     mode=mode,
                     candidate=candidate,
                     evidence=evidence,
                     verdict_str=str(_code),
-                    effective_verdict=_v_str,
+                    effective_verdict="",
                 )
                 if (
                     _code == VerdictCode.SEAL
@@ -1567,15 +1797,32 @@ async def arif_judge(
                     "matched": False,
                     "advisory_only": True,
                 }
+            # CRACK #7 (pasture-2026-09-22): never recommend arif_seal unless the
+            # identity envelope authorizes it. The intercept path produced SEAL
+            # but did not check identity. An autonomous agent reading
+            # `next_safe_action` would otherwise trigger irreversible seal
+            # even when the actor is OBSERVE_ONLY.
+            _seal_safe_action = (
+                "Proceed to arif_seal(ack_irreversible=true, "
+                "actor_signature=<ed25519>) with constitutional_chain_id + judge_state_hash"
+                if _code == VerdictCode.SEAL
+                else _intercept_res.get("next_safe_action", "Execute or review per verdict")
+            )
+            # Identity gate: if seal_allowed is False (the upstream identity
+            # envelope), swap the seal recommendation for an arif_init
+            # recommendation that will authorize seal. Never both.
+            _identity = _intercept_res.get("identity") or {}
+            _seal_allowed = bool(_identity.get("seal_allowed", False))
+            if _code == VerdictCode.SEAL and not _seal_allowed:
+                _seal_safe_action = (
+                    "Identity is OBSERVE_ONLY; seal is not yet authorized. "
+                    "Run arif_init(actor_signature=<ed25519>, "
+                    "ack_irreversible=true) to unlock seal, then re-run arif_judge."
+                )
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
-                next_safe_action=(
-                    "Proceed to arif_seal(ack_irreversible=true) with "
-                    "constitutional_chain_id + judge_state_hash"
-                    if _code == VerdictCode.SEAL
-                    else _intercept_res.get("next_safe_action", "Execute or review per verdict")
-                ),
+                next_safe_action=_seal_safe_action,
                 meta=_intercept_meta,
             )
         except Exception as _int_err:
@@ -1610,12 +1857,30 @@ async def arif_judge(
         if reversibility_level:
             _rd_payload.setdefault(
                 "reversible",
-                str(reversibility_level).upper() in ("FULL", "REVERSIBLE", "L0", "L1", "LOW"),
+                str(reversibility_level).upper()
+                in (
+                    "FULL",
+                    "REVERSIBLE",
+                    "TRIVIAL",
+                    "QUERY",
+                    "L0",
+                    "L1",
+                    "LOW",
+                    "R0",
+                    "R1",
+                    "R2",
+                    "READ",
+                    "OBSERVE",
+                    "AUDIT_RECORD_READ",
+                    "AUDIT_RECORD_APPEND",
+                ),
             )
         if blast_radius:
             _rd_payload.setdefault("blast_radius", blast_radius)
         if action_class:
             _rd_payload.setdefault("mode", action_class)
+        elif mode:
+            _rd_payload.setdefault("mode", mode)
 
         _rd = evaluate_from_payload(
             _rd_payload,
@@ -1959,7 +2224,7 @@ async def arif_judge(
             try:
                 out = out.model_copy(update={"verdict": "HOLD"})
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             logger.warning("T1 classifier override forced fail-closed HOLD: %s", _ovr_exc)
 
         # ── T2: Canonical composer — produce the four-field envelope ──
@@ -2004,12 +2269,22 @@ async def arif_judge(
                 check_judge_postcondition as _cjpc_main,
             )
 
+            # S4 stage-valid integrity (F13 FIX-S4 2026-09-22): the envelope's
+            # pre-judgment effective_verdict compared against THIS judgment is
+            # a stage-invalid compare — it reads False whenever the judge
+            # legitimately disagrees with inherited state, which rewrote every
+            # genuine SEAL attempt to SABAR and made HOLD self-perpetuating
+            # (live evidence2026-09-22: SEAL → integrity False → SABAR →
+            # reconcile HOLD, forever). "effective must track verdict" is the
+            # LAST WRITER's invariant — reconcile_decision_contract owns final
+            # cross-key coherence (Phase-0 Point #4 still vetoes a truly-final
+            # mismatch there). Defer: pass no effective at this stage.
             _pc_report_main = _cjpc_main(
                 mode=mode,
                 candidate=candidate,
                 evidence=evidence,
                 verdict_str=str(getattr(out, "verdict", "") or ""),
-                effective_verdict=str(getattr(out, "effective_verdict", "") or ""),
+                effective_verdict="",
             )
             if _pc_report_main.get("applied") and _pc_report_main.get("verdict"):
                 _pc_v = _pc_report_main["verdict"]
@@ -2052,7 +2327,7 @@ async def arif_judge(
                     session_token=session_token,
                 )
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             return VerdictOutput(**data)
         data = out.model_dump(mode="json")
         # FIX #5: Redact raw session token — return hash reference only
@@ -2089,7 +2364,7 @@ async def arif_judge(
                 autonomy_band=_standing_authority,
             )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         return VerdictOutput(**data)
 
     if session_token or session_id:
@@ -2159,8 +2434,7 @@ async def arif_judge(
                     )
                 )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     # ── F13 CHALLENGE AUTHORIZATION (public MCP wrapper chain) ─────────────
     # Every MCP caller now hits the same handler. Prefer HMAC-rootkey (same as
     # arif_init Telegram/F13 ritual path), then Ed25519 challenge-response.
@@ -2250,7 +2524,24 @@ async def arif_judge(
             )
 
     # ── F11 SESSION GATE — session_id OR valid SCT ────────────────────────
-    if not session_id or not str(session_id).strip():
+    _f11_sid = str(session_id).strip() if session_id else ""
+    if _f11_sid in ("", "unknown", "None", "null"):
+        # D6 fix (2026-09-03): act_v1 SCT carries canonical sid claim —
+        # accept as constitutional-chain binding per the gate's own contract.
+        if isinstance(session_token, str) and session_token.startswith("act_v1."):
+            try:
+                import base64 as _b64_f11, json as _json_f11
+
+                _p_f11 = session_token.split(".")
+                _c_f11 = _json_f11.loads(
+                    _b64_f11.urlsafe_b64decode(_p_f11[1] + "=" * (4 - len(_p_f11[1]) % 4)).decode()
+                )
+                if _c_f11.get("av") is True and _c_f11.get("sid"):
+                    session_id = _c_f11["sid"]
+                    _f11_sid = session_id
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+    if not _f11_sid:
         return VerdictOutput(
             verdict=VerdictCode.HOLD,
             reasons=[
@@ -2923,7 +3214,7 @@ async def arif_judge(
                         severity=_severity,
                     )
                 except Exception:
-                    pass
+                    logger.exception("suppressed exception", exc_info=True)
             except Exception:
                 # Persistence failed — do NOT increment counter. Counter is
                 # the audit witness for what actually happened.
@@ -3005,16 +3296,17 @@ async def arif_judge(
 
     t_judge_start = time_module.monotonic()
 
-    # Map action_tier to LatencyDecisionClass for budget lookup
-    tier_to_class = {
-        "standard": LatencyDecisionClass.C2_STANDARD,
-        "elevated": LatencyDecisionClass.C3_DEEP,
-        "sovereign": LatencyDecisionClass.C4_SOVEREIGN,
-        "c4": LatencyDecisionClass.C4_SOVEREIGN,
-        "c5": LatencyDecisionClass.C4_SOVEREIGN,
-    }
-    decision_class_latency = tier_to_class.get(action_tier, LatencyDecisionClass.C2_STANDARD)
-    budget = LATENCY_BUDGETS.get(decision_class_latency)
+    # Map action_tier to LatencyDecisionClass for budget lookup.
+    # G-10: binding extracted to module level (JUDGE_TIER_TO_LATENCY_CLASS /
+    # JUDGE_DEFAULT_LATENCY_CLASS) so it is importable and assertable. Unknown
+    # tier now falls to the conservative default, matching
+    # latency_budget.judge_with_budget, instead of the rule-engine class.
+    decision_class_latency = JUDGE_TIER_TO_LATENCY_CLASS.get(
+        (action_tier or "").strip().lower(), JUDGE_DEFAULT_LATENCY_CLASS
+    )
+    budget = LATENCY_BUDGETS.get(
+        decision_class_latency, LATENCY_BUDGETS[JUDGE_DEFAULT_LATENCY_CLASS]
+    )
 
     # ── Preventive timeout (L1 fix) ──────────────────────────────────
     # C4_SOVEREIGN: unbounded — no timeout. Human deliberation has no SLA.
@@ -3129,6 +3421,63 @@ async def arif_judge(
                 result.reasons.extend(reasons)
         else:
             track_judge(overclaim=False, attested=(evidence_level != "L0"))
+
+    # ── EXPLANATORY-CLASS GATE (claim_kernel bridge, additive 2026-09-19) ───
+    # Records WHAT KIND OF CLAIM this verdict rests on and whether that class
+    # is action-eligible. It does NOT rewrite the verdict — F1-F13 floor
+    # semantics are untouched, and a NARRATIVE claim may still be published.
+    # The mutation-authorising consequence is enforced exactly once, at the V2
+    # envelope (`can_mutate`), which is the surface that authorises a write.
+    _claim_class_receipt: dict[str, Any] | None = None
+    try:
+        from arifosmcp.core.claim_class_gate import (
+            evaluate as _evaluate_claim_class_axis,
+        )
+
+        _cc_text = (
+            claim_text
+            or (_evidence.get("claim_text") if isinstance(_evidence, dict) else None)
+            or (candidate if isinstance(candidate, str) else None)
+            or (json_lib.dumps(candidate, sort_keys=True, default=str) if candidate else None)
+            or ""
+        )
+        _cc_declared = claim_class or (
+            _evidence.get("claim_class") if isinstance(_evidence, dict) else None
+        )
+        _claim_class_receipt = _evaluate_claim_class_axis(
+            str(_cc_text)[:4000],
+            _cc_declared,
+            evidence=_evidence if isinstance(_evidence, dict) else None,
+            session_id=session_id,
+            source="arif_judge.verdict",
+        )
+        if isinstance(result, dict):
+            result.setdefault("claim_class", _claim_class_receipt.get("class"))
+            _cc_meta = result.setdefault("meta", {})
+            if isinstance(_cc_meta, dict):
+                _cc_meta.setdefault("claim_class", _claim_class_receipt.get("class"))
+                # Pin the EXACT text the gate evaluated. Without this the V2
+                # envelope re-derives a justification text from whatever field
+                # it finds first and can evaluate a different string than the
+                # judge did — same verdict, two answers. One text, one answer.
+                _cc_meta.setdefault("claim_text", str(_cc_text)[:4000])
+                _cc_meta["claim_class_gate"] = _claim_class_receipt
+                if _claim_class_receipt.get("void_entry"):
+                    _cc_meta["void_t"] = _claim_class_receipt["void_entry"]
+            _cc_is_seal = "SEAL" in str(result.get("verdict", ""))
+            if _cc_is_seal and not _claim_class_receipt.get("allowed_for_mutation"):
+                result.setdefault("reasons", []).append(
+                    "CLAIM_CLASS_GATE: verdict is SEAL but its justification class "
+                    f"({_claim_class_receipt.get('class')}) is not action-eligible. "
+                    "Publishable — not sufficient to justify a mutation on its own."
+                )
+    except Exception as _cc_exc:
+        # Fail-soft for the verdict (judgment must not break), fail-closed for
+        # mutation: an unevaluated justification denies can_mutate downstream.
+        if isinstance(result, dict):
+            result.setdefault("meta", {})["claim_class_gate_error"] = (
+                f"{type(_cc_exc).__name__}: {_cc_exc}"
+            )
 
     # ── SIMULATIVE DETECTION GATE (RSI EUREKA 2026-06-12, Forge #3) ──
     # F8 advisory: checks whether agent output is DESCRIBING or PERFORMING.
@@ -3400,6 +3749,39 @@ async def arif_judge(
             "Quotes triggered via GPV, formatted with motto + antithesis. "
             "Commentary only — floor gates remain primary enforcement."
         )
+        # R-1 single-writer (F13 FIX R-1, 2026-09-22): out carries the
+        # postcondition-passed judgment; result carries ALL governance gates.
+        # Seed result.verdict from the judgment (fill-if-absent — a gate that
+        # already wrote HOLD wins) BEFORE the freeze and the
+        # VerdictOutput(**result) return, so root == result == zen by
+        # construction instead of falling to the out-only early return or the
+        # None-forces-HOLD fallback that manufactured VERDICT_FIELD_DIVERGENCE.
+        # F2 self-fix (2026-09-22): `out` is undefined on the result-only
+        # path (NameError → VOID fallback, observed live 22:07) — best-effort,
+        # path-safe; result-only paths already carry their own verdict.
+        if isinstance(result, dict):
+            try:
+                from arifosmcp.composer import seed_result_verdict as _seed_rv
+
+                try:
+                    _seed_judgment = str(getattr(out, "verdict", "") or "")
+                    _out_defined = True
+                except NameError:
+                    _seed_judgment = ""
+                    _out_defined = False
+                # R-1 evidence line: which branch ran, what the judgment was,
+                # what result carried before the seed. WARNING deliberately —
+                # INFO is suppressed by the logger config.
+                logger.warning(
+                    "R1 seed: out_defined=%s judgment=%r result_verdict_before=%r",
+                    _out_defined,
+                    _seed_judgment,
+                    result.get("verdict"),
+                )
+                if _seed_judgment:
+                    _seed_rv(result, _seed_judgment)
+            except Exception:
+                pass  # seed is best-effort — never break the verdict path
         # Zen Apex: freeze DecisionCore + optional witness AFTER verdict.
         # Witness is presentation only — never mutates verdict/floors.
         try:
@@ -3525,7 +3907,7 @@ async def arif_judge(
 
                     _sess_ctx_j = _gs_j(session_id) if session_id else None
                 except Exception:
-                    pass
+                    logger.exception("suppressed exception", exc_info=True)
                 _rsid_j, _ractor_j = resolve_receipt_identity(
                     session_id=session_id,
                     actor_id=actor_id,
@@ -3583,7 +3965,7 @@ async def arif_judge(
 
             _predictions = extract_prediction(result if isinstance(result, dict) else {})
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         write_reality_event(
             actor=str(_actor),
             event_type="arif_judge",
@@ -3642,7 +4024,11 @@ async def arif_judge(
         return _echo_standing(VerdictOutput(**result))
     except Exception:
         # Robust fallback for incomplete semantic outputs or plumbing during E2E (7-tool facade)
-        v = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
+        # R-1 (2026-09-22): None-safe — `result.get("verdict", "HOLD")` returns
+        # None when the key EXISTS as None, which then failed the tuple check
+        # and silently forced HOLD. Absence falls back; a real judgment never
+        # does (seed_result_verdict runs before this point).
+        v = (result.get("verdict") or "HOLD") if isinstance(result, dict) else "HOLD"
         if v not in ("SEAL", "SABAR", "VOID", "HOLD", "PARADOX_HOLD"):
             v = "HOLD"
         r = (

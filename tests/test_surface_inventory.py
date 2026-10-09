@@ -51,7 +51,13 @@ def test_phoenix72_manifest_entries_have_required_fields():
     for entry in data["tools"]:
         missing = required - set(entry.keys())
         assert not missing, f"Entry {entry.get('name')} missing fields: {missing}"
-        assert entry["status"] in {"implemented", "proxy_pending", "planned"}
+        assert entry["status"] in {"implemented", "proxy_pending", "planned", "absorbed"}
+        # Lifecycle: "absorbed" (added 2026-07-19, commit 004843da7) marks a
+        # tool folded into another tool's mode — it must say where it went.
+        if entry["status"] == "absorbed":
+            assert entry.get("absorbed_into"), (
+                f"Entry {entry['name']} is absorbed but lacks 'absorbed_into'."
+            )
 
 
 def test_phoenix72_manifest_does_not_overclaim_implemented():
@@ -100,13 +106,19 @@ def test_mcp_drift_check_is_read_only():
     assert r1["drift_detected"] == r2["drift_detected"]
 
 
-def test_phoenix72_status_doc_exists_and_does_not_claim_sealed():
-    """Status doc must exist and must not claim PHOENIX-72 is sealed."""
-    doc_path = PROJECT_ROOT / "docs" / "PHOENIX_72_STATUS.md"
-    assert doc_path.exists(), "PHOENIX_72_STATUS.md missing"
-    text = doc_path.read_text()
-    assert "NOT YET SEALED" in text or "not yet sealed" in text.lower()
-    assert "PHOENIX-72 sealed" not in text or "not" in text.lower()
+def test_phoenix72_manifest_does_not_claim_sealed():
+    """PHOENIX-72 must not claim to be sealed.
+
+    The separate status doc (docs/PHOENIX_72_STATUS.md) was retired in the
+    2026-09 orphan sweep (commit c5a062213); the honest status now lives in
+    the manifest header itself: status="target_not_sealed".
+    """
+    manifest_path = PROJECT_ROOT / "arifosmcp" / "manifests" / "phoenix72.tools.json"
+    data = json.loads(manifest_path.read_text())
+    assert data.get("status") == "target_not_sealed", (
+        f"Manifest status must remain 'target_not_sealed'; got {data.get('status')!r}. "
+        f"Sealing requires explicit 888 ratification."
+    )
 
 
 def test_no_stale_port_8080_in_docs():

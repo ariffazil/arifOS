@@ -73,10 +73,22 @@ _TOOL_STATE_MAP: dict[str, set[ExecutionState]] = {
     # ── 333_MIND / ANALYZE ────────────────────────────────────────────────────────────
     "arif_think": {ExecutionState.ANALYZE},
     "arif_kernel_route": {ExecutionState.ANALYZE},
+    # G-02 FIX (2026-09-20, FI-003). kernel.py dispatches with the RAW tool name
+    # (`canonical_name = tool_name` — no alias resolution) and tools.py registers
+    # arif_route / arif_memory under exactly those names. Both were absent from
+    # this map, so `can_execute` saw an unknown tool and returned False: enabling
+    # ARIFOS_STATE_MACHINE_ENFORCE would have HOLDed two of the eight canonical
+    # kernel verbs. Legacy spellings are kept alongside.
+    "arif_route": {ExecutionState.ANALYZE},
     # ── 666_HEART / SIMULATE ──────────────────────────────────────────────────────────
     "arif_critique": {ExecutionState.ANALYZE, ExecutionState.SIMULATE},
     # ── 888_JUDGE / AWAIT_APPROVAL ────────────────────────────────────────────────────
     "arif_judge": {ExecutionState.SIMULATE, ExecutionState.AWAIT_APPROVAL},
+    # G-02 FIX — `arif_judge_deliberate` is a kernel name in its own right
+    # (tools.py `_LOOP_FREE`). It is not on the public MCP surface today, but an
+    # unmapped name fails closed, so it is mirrored to arif_judge rather than
+    # left as a latent HOLD if it is ever dispatched.
+    "arif_judge_deliberate": {ExecutionState.SIMULATE, ExecutionState.AWAIT_APPROVAL},
     "arif_gateway_connect": {ExecutionState.AWAIT_APPROVAL},
     # ── 010_FORGE / EXECUTE ───────────────────────────────────────────────────────────
     "arif_forge": {ExecutionState.SIMULATE, ExecutionState.EXECUTE},
@@ -88,6 +100,7 @@ _TOOL_STATE_MAP: dict[str, set[ExecutionState]] = {
     "arif_seal": {ExecutionState.VERIFY, ExecutionState.SEAL},
     # ── Infrastructure (omni-state) ───────────────────────────────────────────────────
     "arif_memory_recall": _ALL_STATES,
+    "arif_memory": _ALL_STATES,  # G-02 FIX — canonical name of arif_memory_recall
     "arif_compose": _ALL_STATES,
 }
 
@@ -102,10 +115,13 @@ _TOOL_PROGRESSION_MAP: dict[str, ExecutionState | None] = {
     "arif_fetch": ExecutionState.ANALYZE,
     "arif_measure": ExecutionState.ANALYZE,
     "arif_memory_recall": None,
+    "arif_memory": None,  # G-02 FIX — canonical name of arif_memory_recall
     "arif_think": ExecutionState.SIMULATE,
     "arif_kernel_route": ExecutionState.SIMULATE,
+    "arif_route": ExecutionState.SIMULATE,  # G-02 FIX — canonical name of arif_kernel_route
     "arif_critique": ExecutionState.AWAIT_APPROVAL,
     "arif_judge": ExecutionState.EXECUTE,
+    "arif_judge_deliberate": ExecutionState.EXECUTE,  # G-02 FIX — mirrors arif_judge
     "arif_act": ExecutionState.VERIFY,  # v42.0: DYN — after act, move to VERIFY for seal
     "arif_gateway_connect": ExecutionState.EXECUTE,
     "arif_forge": ExecutionState.VERIFY,

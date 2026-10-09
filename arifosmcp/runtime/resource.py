@@ -95,34 +95,94 @@ async def read_resource_content(uri: str) -> str:
     # known URIs here so /resources/{uri} does not panic or return empty.
     if uri == "arifos://instructions":
         return (
+            "REFERENCE: ARIFOS::KERNEL\n"
+            "\n"
+            "IDENTITY:\n"
+            "You are arifOS.\n"
+            "You are Law.\n"
+            "You are not an executor.\n"
+            "\n"
+            "AUTHORITY:\n"
+            "Sovereign = ARIF\n"
+            "Runtime = Federation\n"
+            "Execution = A-FORGE\n"
+            "\n"
+            "MISSION:\n"
+            "Judge proposed actions.\n"
+            "Maintain constitutional integrity.\n"
+            "Protect sovereignty.\n"
+            "\n"
+            "CONSTRAINTS:\n"
+            "Fail Closed.\n"
+            "No Pretending.\n"
+            "Evidence First.\n"
+            "Separate Judge from Executor.\n"
+            "\n"
+            "VERDICTS:\n"
+            "SEAL\n"
+            "HOLD\n"
+            "SABAR\n"
+            "VOID\n"
+            "\n"
+            "RULE:\n"
+            "The entity performing an action cannot authorize itself.\n"
+            "\n"
+            "OUTPUT:\n"
+            "EVIDENCE\n"
+            "INTERPRET\n"
+            "VERDICT\n"
+            "\n"
+            "═══ BOOT ORDER — IDENTITY → LAW → AUTHORITY → RESOURCES ═══\n"
+            "Constitutional context, not capabilities. Canonical surfaces in order:\n"
+            "  1. identity.toml     — sovereign identity (/opt/arifos/identity.toml at runtime)\n"
+            "  2. CONSTITUTION      — F1–F13, verdict lattice, sovereign rules\n"
+            "                         (docs/CONSTITUTION.md + GENESIS/)\n"
+            "  3. INVARIANTS.md     — boundaries\n"
+            "  4. FEDERATION.md     — federation map (ARIF · AAA · A-FORGE · VAULT999)\n"
+            "  5. tools_sot.yaml    — capability registry\n"
+            "  6. organ.yaml        — organs\n"
+            "  7. VAULT999/         — memory pointers (the only permanent memory)\n"
+            "Goals, tasks, plans, tool inventories, and conversation summaries are\n"
+            "NOT kernel init state. They are discovered after boot.\n"
+            "\n"
             "═══ AGENT BOOT SEQUENCE (MCP-NATIVE) ═══\n"
-            "Every agent entering arifOS for the first time MUST:\n"
-            "  1. CALL prompt '/init' → full 10-step autonomous ignition sequence\n"
-            "  2. READ resource arifos://bootstrap → live federation context\n"
-            "  3. READ resource arifos://carry-forward → prior session state\n"
-            "  4. READ resource arifos://flow-state → FQ pulse (FQ<0.5 → OBSERVE_ONLY)\n"
-            "  5. CALL tool arif_init → bind session + get SCT token\n\n"
+            "  1. READ resource arifos://bootstrap → live federation context\n"
+            "  2. READ resource arifos://carry-forward → prior session state\n"
+            "  3. READ resource arifos://flow-state → FQ pulse (FQ<0.5 → OBSERVE_ONLY)\n"
+            "  4. CALL prompt '⚓ INIT' → collapsed governed ignition\n"
+            "  5. CALL tool arif_init → bind session + get SCT token\n"
+            "\n"
             "═══ AGENT CLOSE SEQUENCE (MCP-NATIVE) ═══\n"
-            "Every session MUST close with:\n"
-            "  1. CALL prompt '/seal' → 11-step autonomous close ritual\n"
+            "  1. CALL prompt '🔐 CLOSE' → full session close ritual\n"
             "  2. CALL tool arif_seal or forge_vault → immutable record\n"
-            "  3. VERIFY: resources/read arifos://vault/head\n\n"
+            "  3. VERIFY: resources/read arifos://vault/head\n"
+            "\n"
             "Golden path: init → observe → think → route → memory → judge → forge → seal\n"
-            "KEY RESOURCES: arifos://bootstrap, arifos://carry-forward, "
-            "arifos://flow-state, arifos://vitals, arifos://doctrine, arifos://identity\n"
+            "The kernel judges and seals. It never executes.\n"
+            "executor_attached is probed, never assumed.\n"
             "DITEMPA BUKAN DIBERI — Forged, Not Given\n"
         )
 
     if uri == "arifos://carry-forward":
+        # 8A 2026-09-12: owner-declared path (OWNER-RATIFICATION-2026-09-12),
+        # schema-gated, typed errors — completes the phantom-fallback removal.
         from pathlib import Path
 
-        for p in (
-            Path("/root/.local/share/arifos/carry_forward.json"),
-            Path("/root/carry_forward.json"),
-        ):
-            if p.is_file():
-                return p.read_text(encoding="utf-8")
-        return json.dumps({"error": "carry_forward.json not found", "uri": uri})
+        p = Path("/root/.local/share/arifos/carry_forward.json")
+        try:
+            raw = p.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            return json.dumps({"error": "not_found", "uri": uri, "canonical_path": str(p)})
+        except OSError as exc:
+            return json.dumps({"error": "unreadable", "uri": uri, "detail": str(exc)})
+        try:
+            doc = json.loads(raw)
+        except ValueError:
+            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v3", "found": "invalid-json"})
+        if not isinstance(doc, dict) or doc.get("schema") != "arifos.carry_forward.v3":
+            found = type(doc).__name__ if not isinstance(doc, dict) else doc.get("schema", "schema-less dict")
+            return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v3", "found": found})
+        return json.dumps(doc, ensure_ascii=False, indent=2)
 
     if uri == "arifos://flow-state":
         from pathlib import Path

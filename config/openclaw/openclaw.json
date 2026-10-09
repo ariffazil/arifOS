@@ -1,73 +1,1708 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.3.12",
-    "lastTouchedAt": "2026-03-19T03:05:00.000Z"
-  },
-  "logging": {
-    "level": "info"
+    "lastTouchedVersion": "2026.7.1-2"
   },
   "agents": {
     "defaults": {
       "model": {
-        "primary": "tokenrouter/deepseek/deepseek-v4-pro",
+        "primary": "fed/agi-333",
         "fallbacks": [
-          "tokenrouter/anthropic/claude-sonnet-4.6",
-          "tokenrouter/deepseek/deepseek-v4-flash",
-          "tokenrouter/xiaomi/mimo-v2.5-pro",
-          "tokenrouter/x-ai/grok-4.20-beta",
-          "tokenrouter/z-ai/glm-5.1"
+          "fed/asi-555",
+          "fed/forge-777",
+          "fed/kimi-for-coding",
+          "gemini/gemini-2.5-flash",
+          "fed/i-arif",
+          "fed/apex-888"
         ]
       },
-      "sandbox": {
-        "mode": "all"
+      "workspace": "/root/.openclaw/workspace",
+      "heartbeat": {
+        "every": "20m",
+        "target": "telegram",
+        "to": "267378578",
+        "lightContext": true,
+        "isolatedSession": true,
+        "activeHours": {
+          "start": "08:00",
+          "end": "23:00",
+          "timezone": "Asia/Kuala_Lumpur"
+        },
+        "prompt": "Read HEARTBEAT.md. Run only due tasks. Check gateway, MCPs, cron drift, disk. If nothing needs attention, reply HEARTBEAT_OK. If something needs Arif's attention, send: SEV: low|med|high | WHAT: one sentence | EVIDENCE: one signal | NEXT: one action.",
+        "directPolicy": "allow"
+      },
+      "models": {
+        "bailian-token-plan/glm-5.2": {
+          "alias": "GLM-5.2"
+        },
+        "bailian-token-plan/deepseek-v4-pro": {
+          "alias": "DeepSeek Pro"
+        },
+        "bailian-token-plan/deepseek-v4-flash": {
+          "alias": "DeepSeek Flash"
+        },
+        "deepseek/deepseek-v4-flash": {
+          "alias": "DeepSeek V4 Flash"
+        },
+        "deepseek/deepseek-v4-pro": {
+          "alias": "DeepSeek V4 Pro (direct)"
+        },
+        "bailian-token-plan/kimi-k2.7-code": {
+          "alias": "Kimi K2.7 Code"
+        },
+        "bailian-token-plan/qwen3.7-max": {
+          "alias": "Qwen 3.7 Max"
+        },
+        "bailian-token-plan/qwen3.6-flash": {
+          "alias": "Qwen 3.6 Flash"
+        },
+        "minimax/MiniMax-M3": {
+          "alias": "M3"
+        },
+        "groq/llama-3.1-8b-instant": {
+          "alias": "Groq Llama 8B (FREE)"
+        },
+        "groq/llama-3.3-70b-versatile": {
+          "alias": "Groq Llama 70B (FREE)"
+        },
+        "groq/gpt-oss-120b": {
+          "alias": "Groq GPT-OSS 120B (FREE)"
+        },
+        "minimax/MiniMax-M2.7-highspeed": {
+          "alias": "MiniMax Fast"
+        },
+        "openrouter/moonshotai/kimi-k3": {
+          "alias": "Kimi K3"
+        },
+        "kimi-coding/k3": {
+          "alias": "Kimi K3 (coding API)"
+        },
+        "kimi-coding/kimi-for-coding": {
+          "alias": "Kimi K2.7 Code (fallback)"
+        },
+        "openrouter/ai21/jamba-large-1.7": {
+          "alias": "Jamba Large 1.7"
+        },
+        "bailian-token-plan/qwen3.8-max-preview": {
+          "alias": "Qwen 3.8 Preview \u26a1"
+        },
+        "bailian-token-plan/deepseek-v4-flash-0731": {
+          "alias": "DeepSeek Flash 0731"
+        },
+        "minimax/deepseek-v4-flash": {
+          "alias": "DeepSeek V4 Flash (minimax)"
+        }
+      },
+      "bootstrapMaxChars": 50000,
+      "thinkingDefault": "medium",
+      "reasoningDefault": "on"
+    },
+    "list": [
+      {
+        "id": "opencode",
+        "workspace": "/root/.openclaw/workspace-opencode",
+        "params": {
+          "autonomy_mode": "thermodynamic_aligned",
+          "apex_layer": "L2_AGI",
+          "decision_policy": "apex_theory_governed",
+          "question_policy": "ask_only_on_constitutional_violation_or_thermodynamic_misalignment",
+          "escalation_policy": "888_on_floor_breach_irreversible_or_thermodynamic_hold",
+          "report_back_on": [
+            "forge_complete",
+            "abort_with_reason",
+            "constitutional_violation",
+            "thermodynamic_misalignment",
+            "entropy_spike",
+            "peace_collapse",
+            "vitality_critical"
+          ],
+          "decision_defaults": {
+            "Q1_placeholder_signature": "1b \u2014 accept PLACEHOLDER_KNOWN_STUB non-fatal via F13 directive",
+            "Q2_token_budget": "2b \u2014 truncate init to \u226410KB + lazy full cards",
+            "Q3_arif_act_stage": "3a \u2014 set to dynamic per spec",
+            "Q4_card_source": "4a \u2014 local files canonical for this deployment",
+            "constitutional_violation": "HOLD + ping 888 immediately",
+            "fabrication_risk": "STOP + empty > plausible",
+            "git_push_force": "HOLD \u2014 never auto",
+            "caddy_reload": "HOLD \u2014 never auto",
+            "vault_chain_mutation": "HOLD \u2014 never auto",
+            "rm_rf_unknown": "HOLD \u2014 never auto",
+            "thermodynamic_misalignment": "HOLD + report signal to 888",
+            "entropy_spike_gt_0_3": "PAUSE + suggest cooling",
+            "vitality_lt_0_3": "PAUSE + ping WELL substrate"
+          },
+          "communication": {
+            "format": "compact_receipt + eureka_question",
+            "bm_register": "Penang Pasar, technical English OK",
+            "no_menu": true,
+            "forbidden_markers": [
+              "[OUT-OF-BAND USER MESSAGE]",
+              "BANGANG",
+              "closed menu pattern"
+            ],
+            "eureka_question_required": true
+          },
+          "documentation": {
+            "trace_all_decisions": true,
+            "trace_path": "/root/.openclaw/workspace-opencode/decision_log.jsonl",
+            "include_alternative_rejected": true,
+            "rationale_min_chars": 80,
+            "record_thermodynamic_signals_per_decision": true
+          },
+          "boundaries": {
+            "irreversible_requires_888": true,
+            "constitutional_amendment_requires_888": true,
+            "external_send_requires_888": true,
+            "caddy_reload_requires_888": true,
+            "vault_chain_mutation_requires_888": true,
+            "rm_rf_requires_888": true,
+            "f1_amanah_violation": "HOLD immediately",
+            "f2_truth_fabrication": "STOP + empty > plausible",
+            "f9_antihantu_claim": "HOLD + never claim consciousness",
+            "f13_sovereign_override": "OBEY without question"
+          },
+          "spawn_default_model": true,
+          "default_model": "kimi-coding/k3",
+          "max_iterations": 99,
+          "max_runtime_seconds": 1800,
+          "temperature": 0.2,
+          "context_budget": 64000,
+          "max_thinking_tokens": 8000
+        }
+      },
+      {
+        "id": "codex",
+        "workspace": "/root/.openclaw/workspace-codex",
+        "params": {
+          "max_iterations": 99
+        }
+      },
+      {
+        "id": "kimi",
+        "workspace": "/root/.openclaw/workspace-kimi",
+        "params": {
+          "max_iterations": 99
+        }
+      },
+      {
+        "id": "main",
+        "default": true,
+        "workspace": "/root/.openclaw/workspace",
+        "params": {
+          "max_iterations": 99
+        }
+      },
+      {
+        "id": "claude",
+        "workspace": "/root/.openclaw/workspace-claude",
+        "default": false,
+        "params": {
+          "autonomy_mode": "constitutional_governed",
+          "apex_layer": "L2_AGI",
+          "decision_policy": "arifos_constitution_governed",
+          "escalation_policy": "888_HOLD_on_floor_breach",
+          "irreversible_requires_888": true,
+          "allowed_tools_on_spawn": [
+            "Read",
+            "Edit",
+            "Write",
+            "Bash",
+            "Glob",
+            "Grep",
+            "WebSearch",
+            "WebFetch",
+            "Agent"
+          ],
+          "forbidden_flags": [
+            "--dangerously-skip-permissions"
+          ],
+          "required_flags": [
+            "--max-turns",
+            "99"
+          ],
+          "constitutional_context": "arifOS F1-F13 active. F1 snapshot before mutate. Never --dangerously-skip-permissions.",
+          "max_iterations": 99
+        }
       }
-    }
-  },
-  "tools": {
-    "profile": "full",
-    "elevated": {
-      "enabled": true
-    },
-    "exec": {
-      "host": "gateway",
-      "security": "full",
-      "ask": "off"
-    },
-    "fs": {
-      "workspaceOnly": false
-    }
-  },
-  "commands": {
-    "native": "auto",
-    "nativeSkills": "auto",
-    "restart": true,
-    "ownerDisplay": "raw"
-  },
-  "session": {
-    "dmScope": "per-channel-peer"
+    ]
   },
   "channels": {
+    "defaults": {
+      "botLoopProtection": {
+        "maxEventsPerWindow": 5,
+        "windowSeconds": 60,
+        "cooldownSeconds": 120
+      }
+    },
     "telegram": {
       "enabled": true,
       "dmPolicy": "allowlist",
-      "botToken": "${TELEGRAM_BOT_TOKEN}",
-      "groupPolicy": "open",
-      "allowFrom": ["267378578"],
-      "allowGroups": true,
-      "groupMentionRequired": true,
-      "streaming": "partial"
+      "allowFrom": [
+        "267378578",
+        "1042200555",
+        "8324190535"
+      ],
+      "groupPolicy": "allowlist",
+      "groups": {
+        "-1003753855708": {
+          "groupPolicy": "open",
+          "requireMention": false
+        }
+      },
+      "customCommands": [
+        {
+          "command": "genesis",
+          "description": "Run 000 Genesis identity audit"
+        },
+        {
+          "command": "seal",
+          "description": "Trigger VAULT999 seal protocol"
+        },
+        {
+          "command": "status",
+          "description": "Federation health: organs + model + uptime"
+        },
+        {
+          "command": "model",
+          "description": "Switch or show active model"
+        },
+        {
+          "command": "think",
+          "description": "Toggle reasoning trace mode"
+        },
+        {
+          "command": "receipt",
+          "description": "Last action receipt"
+        },
+        {
+          "command": "mcp",
+          "description": "List active MCP surfaces"
+        },
+        {
+          "command": "organs",
+          "description": "Seven Zen Organs status"
+        },
+        {
+          "command": "act",
+          "description": "Reversible digital action"
+        },
+        {
+          "command": "forge",
+          "description": "A-FORGE build/deploy status"
+        },
+        {
+          "command": "claw",
+          "description": "OpenClaw engineering ops"
+        },
+        {
+          "command": "code",
+          "description": "Code generation request"
+        },
+        {
+          "command": "ops",
+          "description": "Infra operations: restart, reload"
+        },
+        {
+          "command": "reality",
+          "description": "GEOX truth anchor"
+        },
+        {
+          "command": "uncertainty",
+          "description": "WELL/GEOX uncertainty read"
+        },
+        {
+          "command": "cooling",
+          "description": "WEALTH cooling ledger"
+        },
+        {
+          "command": "risk",
+          "description": "Risk class for pending action"
+        },
+        {
+          "command": "apex",
+          "description": "APEX alignment score"
+        },
+        {
+          "command": "zen",
+          "description": "Eureka margin check"
+        },
+        {
+          "command": "next",
+          "description": "Next governed task"
+        },
+        {
+          "command": "audit",
+          "description": "ASI-readiness audit trigger"
+        },
+        {
+          "command": "vault",
+          "description": "VAULT999 receipt lookup"
+        },
+        {
+          "command": "diagram",
+          "description": "Architecture diagram generation"
+        },
+        {
+          "command": "image",
+          "description": "Generate image from prompt"
+        },
+        {
+          "command": "email",
+          "description": "Inbox summary via Himalaya"
+        },
+        {
+          "command": "signal",
+          "description": "Current XAUUSD trading signal"
+        },
+        {
+          "command": "xauusd",
+          "description": "Current XAUUSD trading signal"
+        },
+        {
+          "command": "xau",
+          "description": "Current XAUUSD trading signal"
+        },
+        {
+          "command": "gold",
+          "description": "Current XAUUSD trading signal"
+        }
+      ],
+      "groupAllowFrom": [
+        "267378578",
+        "8410138119",
+        "8324190535"
+      ],
+      "contextVisibility": "all",
+      "name": "AGI_ASI_bot",
+      "webhookUrl": "",
+      "webhookSecret": "${TELEGRAM_WEBHOOK_SECRET}",
+      "botToken": "8149595687:AAH3iDg7dJfjJ-xNvEbrUGl5uuNGlBz7Yf8",
+      "streaming": {
+        "mode": "progress"
+      },
+      "tokenFile": "/root/.secrets/tokens/telegram-agi-asi-bot"
+    },
+    "msteams": {
+      "enabled": false
     }
+  },
+  "session": {
+    "scope": "per-sender",
+    "dmScope": "per-peer",
+    "reset": {
+      "mode": "idle",
+      "idleMinutes": 120
+    },
+    "resetByType": {
+      "direct": {
+        "mode": "idle",
+        "idleMinutes": 240
+      },
+      "group": {
+        "mode": "idle",
+        "idleMinutes": 60
+      },
+      "thread": {
+        "mode": "idle",
+        "idleMinutes": 60
+      }
+    },
+    "maintenance": {
+      "mode": "enforce",
+      "pruneAfter": "30d",
+      "maxEntries": 200,
+      "maxDiskBytes": "500mb",
+      "highWaterBytes": "400mb"
+    },
+    "threadBindings": {
+      "enabled": true,
+      "idleHours": 24,
+      "maxAgeHours": 72
+    }
+  },
+  "diagnostics": {
+    "enabled": true
   },
   "gateway": {
     "port": 18789,
     "mode": "local",
-    "bind": "lan",
-    "controlUi": {
-      "allowedOrigins": ["*"]
-    },
+    "bind": "custom",
     "auth": {
-      "mode": "token",
-      "token": "openclaw-token-2026-arifos"
+      "mode": "password",
+      "trustedProxy": {
+        "userHeader": "Caddy"
+      },
+      "password": "${OPENCLAW_GATEWAY_PASSWORD}"
+    },
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789"
+      ]
+    },
+    "tailscale": {
+      "mode": "off"
+    },
+    "trustedProxies": [
+      "127.0.0.1",
+      "100.64.0.2"
+    ],
+    "customBindHost": "100.64.0.5"
+  },
+  "mcp": {
+    "servers": {
+      "arifos": {
+        "url": "http://100.64.0.2:8088/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Accept": "application/json",
+          "X-Actor-Id": "openclaw"
+        },
+        "description": "\u26a1 arifOS Constitutional Kernel \u2014 direct (no proxy). Judgment/seals, F1-F13 floor enforcement."
+      },
+      "A-FORGE": {
+        "url": "http://100.64.0.2:7072/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Accept": "application/json, text/event-stream"
+        },
+        "description": "\u26a1 A-FORGE MCP \u2014 dedicated MCP server on port 7072"
+      },
+      "filesystem": {
+        "command": "/usr/bin/mcp-server-filesystem",
+        "args": [
+          "/root"
+        ],
+        "description": "\ud83d\udcc1 Code Substrate \u2014 read, write, edit, list files on /root. Until A-FORGE adds forge_filesystem_* proxy tools."
+      },
+      "memory": {
+        "command": "/usr/bin/mcp-server-memory",
+        "description": "\ud83e\udde0 Knowledge Graph \u2014 persistent entity/relation memory across sessions. Until A-FORGE adds forge_memory_* proxy tools."
+      },
+      "brave-search": {
+        "command": "bash",
+        "args": [
+          "-lc",
+          "set -a; . /root/.env; set +a; export BRAVE_API_KEY=\"${BRAVE_API_KEY:-${BRAVE_SEARCH_API_KEY:-}}\"; exec /usr/bin/mcp-server-brave-search"
+        ],
+        "description": "\ud83d\udd0d Grounded Research \u2014 Brave web search with citations. Complements A-FORGE minimax_web_search + Tavily plugin. Key from /root/.env."
+      },
+      "GEOX": {
+        "url": "http://100.64.0.2:8081/mcp/",
+        "transport": "streamable-http",
+        "headers": {
+          "Accept": "application/json"
+        },
+        "description": "\ud83c\udf0d GEOX Earth Intelligence MCP \u2014 direct (no proxy). Natural Law physics engine."
+      },
+      "WEALTH": {
+        "url": "http://100.64.0.2:18082/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Accept": "application/json"
+        },
+        "description": "\ud83d\udcb0 WEALTH Capital Intelligence MCP \u2014 direct (no proxy). Capital reasoning engine."
+      },
+      "WELL": {
+        "url": "http://100.64.0.2:18083/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Accept": "application/json"
+        },
+        "description": "\ud83e\udec0 WELL Human Readiness MCP \u2014 direct (no proxy). Human vitality assessment."
+      },
+      "stealth-browser": {
+        "command": "/root/stealth-browser-mcp/venv/bin/python",
+        "args": [
+          "/root/stealth-browser-mcp/src/server.py"
+        ],
+        "env": {
+          "DISPLAY": ":99",
+          "BROWSER_IDLE_TIMEOUT": "600",
+          "BROWSER_IDLE_REAPER_INTERVAL": "60"
+        },
+        "description": "\ud83e\udd77 Stealth Browser \u2014 nodriver + CDP. Bypasses Cloudflare/anti-bot. 97 tools. For anti-bot targets only.",
+        "enabled": false
+      },
+      "minimax-mcp": {
+        "command": "/root/.local/bin/minimax-mcp",
+        "args": [],
+        "env": {
+          "MINIMAX_API_KEY": "{env:MINIMAX_API_KEY}",
+          "MINIMAX_API_HOST": "https://api.minimax.io",
+          "MINIMAX_MCP_BASE_PATH": "/root/HERMES/media/minimax"
+        },
+        "description": "\ud83c\udf99\ufe0f MiniMax MCP \u2014 TTS, voice clone, image gen, video gen, music gen. Official v0.0.18."
+      },
+      "arifflow": {
+        "command": "python3",
+        "args": [
+          "/root/arifFlow/mcp/arifflow-mcp.py"
+        ],
+        "description": "\ud83c\udf00 arifFLOW Metabolism Organ \u2014 Flow Quotient, receipt ingestion, attention checkpointing (127.0.0.1:7073). Check before execute, release after verify. NEVER judges, NEVER executes."
+      },
+      "mapbox": {
+        "url": "https://mcp.mapbox.com/mcp",
+        "transport": "streamable-http",
+        "headers": {
+          "Authorization": "Bearer ${MAPBOX_ACCESS_TOKEN}"
+        },
+        "description": "\ud83d\uddfa\ufe0f Mapbox Location Intelligence \u2014 geocoding, POI, routing, isochrones (hosted consumer). Inert until MAPBOX_ACCESS_TOKEN lands."
+      },
+      "osm": {
+        "command": "/usr/bin/python3",
+        "args": [
+          "/root/scripts/osm-mcp-server.py"
+        ],
+        "description": "\ud83d\uddfa\ufe0f Sovereign OSM Location Intelligence \u2014 geocode/route/POI/isochrone, zero-key. Forged 2026-08-25."
+      }
     }
-  }
+  },
+  "plugins": {
+    "allow": [
+      "acpx",
+      "opencode",
+      "ollama",
+      "telegram",
+      "memory-core",
+      "active-memory",
+      "browser",
+      "art-governor",
+      "governed-tool-gate",
+      "minimax",
+      "brave",
+      "exa",
+      "firecrawl",
+      "perplexity",
+      "kimi",
+      "openrouter",
+      "deepseek",
+      "groq",
+      "cerebras",
+      "anthropic",
+      "fireworks",
+      "moonshot",
+      "qwen",
+      "zai"
+    ],
+    "entries": {
+      "anthropic": {
+        "enabled": true
+      },
+      "openai": {
+        "enabled": false
+      },
+      "acpx": {
+        "enabled": false
+      },
+      "governed-tool-gate": {
+        "enabled": true,
+        "config": {
+          "mode": "observe",
+          "redactArgs": true
+        }
+      },
+      "opencode": {
+        "enabled": true
+      },
+      "ollama": {
+        "enabled": true,
+        "config": {
+          "discovery": {
+            "enabled": true
+          }
+        }
+      },
+      "browser": {
+        "enabled": true
+      },
+      "memory-core": {
+        "config": {
+          "dreaming": {
+            "enabled": true,
+            "timezone": "Asia/Kuala_Lumpur",
+            "frequency": "0 3 * * *",
+            "model": "deepseek/deepseek-v4-flash",
+            "verboseLogging": true,
+            "phases": {
+              "deep": {
+                "enabled": true,
+                "minScore": 0.5,
+                "minRecallCount": 2,
+                "minUniqueQueries": 2,
+                "limit": 20,
+                "maxPromotedSnippetTokens": 320
+              },
+              "rem": {
+                "enabled": true,
+                "minPatternStrength": 0.6
+              }
+            }
+          }
+        },
+        "subagent": {
+          "allowModelOverride": true,
+          "allowedModels": [
+            "deepseek/deepseek-v4-flash",
+            "ollama/qwen2.5:7b",
+            "minimax/MiniMax-M2.7-highspeed"
+          ]
+        },
+        "enabled": true
+      },
+      "minimax": {
+        "enabled": true,
+        "config": {
+          "webSearch": {
+            "apiKey": "${MINIMAX_PLUGIN_API_KEY}",
+            "region": "global"
+          }
+        }
+      },
+      "brave": {
+        "enabled": true
+      },
+      "exa": {
+        "enabled": true
+      },
+      "firecrawl": {
+        "enabled": true
+      },
+      "perplexity": {
+        "enabled": true
+      },
+      "kimi": {
+        "enabled": true
+      },
+      "openrouter": {
+        "enabled": true
+      },
+      "deepseek": {
+        "enabled": true
+      },
+      "groq": {
+        "enabled": true
+      },
+      "cerebras": {
+        "enabled": true
+      },
+      "fireworks": {
+        "enabled": true
+      },
+      "moonshot": {
+        "enabled": true
+      },
+      "qwen": {
+        "enabled": true
+      },
+      "zai": {
+        "enabled": true
+      }
+    },
+    "load": {
+      "paths": []
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "minimax": {
+        "baseUrl": "https://api.minimax.io/v1",
+        "api": "openai-completions",
+        "apiKey": "${MINIMAX_API_KEY}",
+        "models": [
+          {
+            "id": "MiniMax-M2.7",
+            "name": "MiniMax-M2.7 (direct API, no proxy)",
+            "contextWindow": 1048576,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "MiniMax-M2.7-highspeed",
+            "name": "MiniMax-M2.7-highspeed (direct API)",
+            "contextWindow": 1048576,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "MiniMax-M3",
+            "name": "MiniMax-M3 (direct API)",
+            "contextWindow": 1048576,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "bailian-token-plan": {
+        "baseUrl": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
+        "api": "openai-completions",
+        "apiKey": "${QWEN_HERMES_API_KEY}",
+        "models": [
+          {
+            "id": "qwen3.8-max-preview",
+            "name": "Qwen3.8 Max Preview (10x discount + 80% night off) \u26a1",
+            "reasoning": true,
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "qwen3.7-max",
+            "name": "Qwen3.7 Max (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "qwen3.7-plus",
+            "name": "Qwen3.7 Plus (TokenPlan, vision)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "qwen3.6-plus",
+            "name": "Qwen3.6 Plus (TokenPlan, vision)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "qwen3.6-flash",
+            "name": "Qwen3.6 Flash (TokenPlan, vision)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "deepseek-v4-pro",
+            "name": "DeepSeek V4 Pro (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "deepseek-v4-flash",
+            "name": "DeepSeek V4 Flash (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "deepseek-v3.2",
+            "name": "DeepSeek V3.2 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "kimi-k2.7-code",
+            "name": "Kimi K2.7 Code (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "kimi-k2.6",
+            "name": "Kimi K2.6 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "kimi-k2.5",
+            "name": "Kimi K2.5 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "glm-5.2",
+            "name": "GLM-5.2 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "glm-5.1",
+            "name": "GLM-5.1 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "glm-5",
+            "name": "GLM-5 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "MiniMax-M2.5",
+            "name": "MiniMax-M2.5 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "deepseek-v4-flash-0731",
+            "name": "DeepSeek V4 Flash 0731 (TokenPlan)",
+            "contextWindow": 262144,
+            "maxTokens": 131072,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com/v1",
+        "api": "openai-completions",
+        "apiKey": "${DEEPSEEK_API_KEY}",
+        "models": [
+          {
+            "id": "deepseek-v4-flash",
+            "name": "DeepSeek V4 Flash (direct) \u2014 fast, 1M ctx",
+            "contextWindow": 1000000,
+            "maxTokens": 384000,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "deepseek-v4-pro",
+            "name": "DeepSeek V4 Pro (direct) \u2014 flagship reasoning, 1M ctx",
+            "contextWindow": 1000000,
+            "maxTokens": 384000,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "api": "openai-completions",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "models": [
+          {
+            "id": "moonshotai/kimi-k3",
+            "name": "Kimi K3 (OpenRouter) \u2014 2.8T MoE reasoning, 1M ctx, coding+vision",
+            "contextWindow": 1000000,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 3,
+              "output": 15,
+              "cacheRead": 0.3,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "ai21/jamba-large-1.7",
+            "name": "AI21: Jamba Large 1.7 \u2014 Mamba-Attention hybrid, 256k ctx, long-context agent",
+            "contextWindow": 256000,
+            "maxTokens": 8192,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 2,
+              "output": 8,
+              "cacheRead": 0.2,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "groq": {
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "api": "openai-completions",
+        "apiKey": "${GROQ_API_KEY}",
+        "models": [
+          {
+            "id": "llama-3.1-8b-instant",
+            "name": "Groq: llama-3.1-8b-instant",
+            "contextWindow": 131072,
+            "maxTokens": 16384,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "llama-3.3-70b-versatile",
+            "name": "Groq: llama-3.3-70b-versatile",
+            "contextWindow": 131072,
+            "maxTokens": 16384,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai/gpt-oss-20b",
+            "name": "Groq: openai/gpt-oss-20b",
+            "contextWindow": 131072,
+            "maxTokens": 16384,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai/gpt-oss-120b",
+            "name": "Groq: openai/gpt-oss-120b",
+            "contextWindow": 131072,
+            "maxTokens": 16384,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "qwen/qwen3.6-27b",
+            "name": "Groq: qwen/qwen3.6-27b",
+            "contextWindow": 131072,
+            "maxTokens": 16384,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "sea-lion": {
+        "baseUrl": "https://api.sea-lion.ai/v1",
+        "api": "openai-completions",
+        "apiKey": "${SEA_LION_API_KEY}",
+        "models": [
+          {
+            "id": "aisingapore/Qwen-SEA-LION-v4-32B-IT",
+            "name": "Qwen SEA-LION v4 32B (FREE)",
+            "contextWindow": 32768,
+            "maxTokens": 4096,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "aisingapore/Llama-SEA-LION-v3-70B-IT",
+            "name": "Llama SEA-LION v3 70B (FREE)",
+            "contextWindow": 32768,
+            "maxTokens": 4096,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "aisingapore/Gemma-SEA-LION-v4-27B-IT",
+            "name": "Gemma SEA-LION v4 27B (FREE) \u2014 fast + light",
+            "contextWindow": 32768,
+            "maxTokens": 4096,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "gemini": {
+        "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "api": "openai-completions",
+        "apiKey": "${GEMINI_API_KEY}",
+        "models": [
+          {
+            "id": "gemini-2.5-flash",
+            "name": "Gemini 2.5 Flash (FREE) \u2014 1.5K/day, 1M ctx",
+            "contextWindow": 1048576,
+            "maxTokens": 65536,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "cerebras": {
+        "baseUrl": "https://api.cerebras.ai/v1",
+        "api": "openai-completions",
+        "apiKey": "${CEREBRAS_API_KEY}",
+        "models": [
+          {
+            "id": "gemma-4-31b",
+            "name": "Gemma 4 31B (Cerebras) \u2014 multimodal, vision",
+            "contextWindow": 131072,
+            "maxTokens": 65536,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "gpt-oss-120b",
+            "name": "GPT-OSS 120B (Cerebras) \u2014 coding",
+            "contextWindow": 131072,
+            "maxTokens": 65536,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "zai-glm-4.7",
+            "name": "GLM 4.7 (Cerebras) \u2014 agentic coding",
+            "contextWindow": 131072,
+            "maxTokens": 65536,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "kimi-coding": {
+        "baseUrl": "https://api.kimi.com/coding/v1",
+        "api": "openai-completions",
+        "apiKey": "${KIMI_API_KEY}",
+        "models": [
+          {
+            "id": "k3",
+            "name": "Kimi K3 (coding API, 1M ctx)",
+            "contextWindow": 1048576,
+            "maxTokens": 16384,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "kimi-for-coding",
+            "name": "Kimi Code: kimi-for-coding",
+            "contextWindow": 131072,
+            "maxTokens": 16384,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "kimi-for-coding-highspeed",
+            "name": "Kimi Code: kimi-for-coding-highspeed",
+            "contextWindow": 131072,
+            "maxTokens": 16384,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      },
+      "fed": {
+        "baseUrl": "http://100.64.0.5:4000/v1",
+        "api": "openai-completions",
+        "apiKey": "${LITELLM_MASTER_KEY}",
+        "models": [
+          {
+            "id": "opencode",
+            "name": "FED opencode \u2192 DeepSeek V4 Pro / Flash / MiMo / MiniMax (cascade)",
+            "contextWindow": 1048576,
+            "maxTokens": 384000,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openclaw",
+            "name": "FED openclaw \u2192 MiniMax M3 / MiMo V2.5 Pro (cascade)",
+            "contextWindow": 1048576,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "agi-333",
+            "name": "FED agi-333 \u2192 DeepSeek V4 Pro (384k out) / MiMo V2.5 Pro / MiniMax M3 / Qwen3.8 Max",
+            "contextWindow": 1048576,
+            "maxTokens": 384000,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "asi-555",
+            "name": "FED asi-555 \u2192 DeepSeek V4 Flash / MiMo V2.5 Pro / MiniMax M3 / Qwen3.8 Max",
+            "contextWindow": 1048576,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "apex-888",
+            "name": "FED apex-888 \u2192 MiniMax M3 / DeepSeek V4 Pro (384k out)",
+            "contextWindow": 1048576,
+            "maxTokens": 384000,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "hermes-asi",
+            "name": "FED hermes-asi \u2192 MiMo V2.5 / DeepSeek V4 Flash / MiniMax M3 / Qwen3.8 Max / Qwen3.6 Flash",
+            "contextWindow": 1048576,
+            "maxTokens": 131072,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "messages": {
+    "queue": {
+      "mode": "followup"
+    },
+    "groupChat": {
+      "visibleReplies": "message_tool",
+      "historyLimit": 50,
+      "unmentionedInbound": "room_event"
+    }
+  },
+  "wizard": {
+    "lastRunAt": "2026-08-14T12:48:43.179Z",
+    "lastRunVersion": "2026.7.1-2",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "commands": {
+    "ownerAllowFrom": [
+      "telegram:267378578",
+      "telegram:8324190535"
+    ]
+  },
+  "tools": {
+    "profile": "full",
+    "sessions": {
+      "visibility": "agent"
+    },
+    "web": {
+      "search": {
+        "provider": "brave",
+        "enabled": true,
+        "openaiCodex": {}
+      },
+      "fetch": {
+        "enabled": true
+      }
+    },
+    "exec": {
+      "ask": "off"
+    }
+  },
+  "skills": {
+    "entries": {
+      "apple-notes": {
+        "enabled": false
+      },
+      "apple-reminders": {
+        "enabled": false
+      },
+      "bear-notes": {
+        "enabled": false
+      },
+      "blucli": {
+        "enabled": false
+      },
+      "bluebubbles": {
+        "enabled": false
+      },
+      "camsnap": {
+        "enabled": false
+      },
+      "coding-agent": {
+        "enabled": true
+      },
+      "eightctl": {
+        "enabled": false
+      },
+      "gifgrep": {
+        "enabled": false
+      },
+      "gog": {
+        "enabled": false
+      },
+      "himalaya": {
+        "enabled": false
+      },
+      "imsg": {
+        "enabled": false
+      },
+      "model-usage": {
+        "enabled": true
+      },
+      "nano-pdf": {
+        "enabled": false
+      },
+      "notion": {
+        "enabled": true
+      },
+      "openhue": {
+        "enabled": false
+      },
+      "ordercli": {
+        "enabled": false
+      },
+      "peekaboo": {
+        "enabled": false
+      },
+      "sherpa-onnx-tts": {
+        "enabled": false
+      },
+      "slack": {
+        "enabled": false
+      },
+      "songsee": {
+        "enabled": false
+      },
+      "spotify-player": {
+        "enabled": false
+      },
+      "summarize": {
+        "enabled": false
+      },
+      "things-mac": {
+        "enabled": false
+      },
+      "trello": {
+        "enabled": false
+      },
+      "voice-call": {
+        "enabled": false
+      },
+      "wacli": {
+        "enabled": false
+      },
+      "sag": {
+        "enabled": false
+      },
+      "Google Workspace CLI": {
+        "enabled": true
+      },
+      "goplaces": {
+        "enabled": false
+      },
+      "openai-whisper-api": {
+        "enabled": false
+      },
+      "trading-signal": {
+        "enabled": true
+      },
+      "FORGE-google-workspace": {
+        "enabled": false
+      }
+    }
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": {
+          "enabled": true
+        },
+        "bootstrap-extra-files": {
+          "enabled": true
+        },
+        "command-logger": {
+          "enabled": true
+        },
+        "session-memory": {
+          "enabled": true
+        },
+        "membrane-gate": {
+          "enabled": true
+        }
+      }
+    },
+    "enabled": true,
+    "token": "${OPENCLAW_HOOKS_TOKEN}",
+    "path": "/hooks",
+    "defaultSessionKey": "${OPENCLAW_HOOKS_DEFAULT_SESSION_KEY}",
+    "allowRequestSessionKey": false,
+    "allowedSessionKeyPrefixes": [
+      "hook:"
+    ],
+    "allowedAgentIds": [
+      "main"
+    ],
+    "mappings": [
+      {
+        "id": "opencode_thermodynamic_precheck",
+        "name": "OpenCode Thermodynamic Alignment Pre-Check",
+        "match": {
+          "path": "opencode_autonomous_check"
+        },
+        "action": "agent",
+        "agentId": "opencode",
+        "sessionKey": "${OPENCLAW_HOOKS_MAPPING_SESSION_KEY}",
+        "wakeMode": "now",
+        "messageTemplate": "THERMODYNAMIC ALIGNMENT CHECK before autonomous execution.\n\nRead signals:\n1. curl -sf http://localhost:8088/health \u2192 .thermodynamic\n   - entropy_delta (must be <= 0.0)\n   - peace_squared (must be >= 0.5)\n   - vitality_index (must be >= 0.3)\n2. curl -sf http://localhost:18083/health \u2192 .well_signal, .owner_summary.color\n   - well_signal must NOT be HOLD\n   - color must be GREEN or YELLOW (not RED)\n\nDECISION:\n- IF all aligned \u2192 {\"aligned\": true, \"signals\": {...}, \"proceed\": true}\n- IF misaligned \u2192 {\"aligned\": false, \"signals\": {...}, \"block_reason\": \"...\", \"ping_888\": true}\n\nLog decision to /root/.openclaw/workspace-opencode/thermodynamic_check_log.jsonl",
+        "textTemplate": "Thermo pre-check: arifOS={entropy_delta:?, peace\u00b2:?, vitality:?} WELL={signal:?, color:?}. Aligned={true|false}.",
+        "deliver": false
+      }
+    ]
+  },
+  "browser": {
+    "enabled": true,
+    "executablePath": "/usr/bin/google-chrome-stable",
+    "profiles": {
+      "openclaw": {
+        "cdpPort": 18800,
+        "color": "#FF4500"
+      }
+    },
+    "noSandbox": true,
+    "headless": true
+  },
+  "logging": {
+    "level": "warn"
+  },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "accountId": "*"
+      }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "peer": {
+          "kind": "group",
+          "id": "-1003753855708"
+        }
+      }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "peer": {
+          "kind": "group",
+          "id": "-1003815535761"
+        }
+      }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "peer": {
+          "kind": "channel",
+          "id": "-1004446358629"
+        }
+      }
+    },
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "peer": {
+          "kind": "group",
+          "id": "-5561731065"
+        }
+      }
+    }
+  ]
 }

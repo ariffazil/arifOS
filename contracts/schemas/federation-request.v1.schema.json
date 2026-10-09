@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arifos.arif-fazil.com/schemas/federation-request/v1.0.0",
   "title": "Federation Request Envelope — v1.0.0",
-  "description": "CANONICAL transport-neutral cross-organ invocation envelope. STATUS: HARDENED DRAFT — not F13-ratified, not sealed. Owner: arifOS (this tree). AAA holds byte-identical mirrors only. session_id = live kernel session SEAL-<16hex>. session_token = optional sct_v1.* capability token (never interchange with session_id). payload_hash uses FCJ-v1 (Federation Canonical JSON) — see CANONICAL_JSON.md. Not full RFC 8785.",
+  "description": "CANONICAL transport-neutral cross-organ invocation envelope. STATUS: HARDENED DRAFT — not F13-ratified, not sealed. Owner: arifOS (this tree). AAA holds byte-identical mirrors only. session_id = live kernel session SEAL-<16hex>. session_token = optional act_v1.* capability token, legacy sct_v1.* dual-accepted (never interchange with session_id). payload_hash uses FCJ-v1 (Federation Canonical JSON) — see CANONICAL_JSON.md. Not full RFC 8785.",
   "type": "object",
   "required": [
     "schema_version",
@@ -62,8 +62,8 @@
     },
     "session_token": {
       "type": "string",
-      "pattern": "^sct_v1\\..+",
-      "description": "Optional Session Capability Token (sct_v1.*). Distinct from session_id."
+      "pattern": "^(act_v1|sct_v1)\\..+",
+      "description": "Optional Arif's Capability Token (act_v1.* canonical; legacy sct_v1.* dual-accepted during migration). Distinct from session_id."
     },
     "actor_id": {
       "type": "string",

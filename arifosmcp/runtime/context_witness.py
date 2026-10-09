@@ -2,14 +2,14 @@
 arifosmcp/runtime/context_witness.py — arifOS Context Witness v2
 
 Orchestrates the retrieval, interpretation, and safety validation of
-approved wisdom quotes.  SEA-LION acts strictly as an interpreter;
+approved wisdom quotes.  FED-FEDERATION acts strictly as an interpreter;
 quotes are always drawn from the locked ledger.
 
 Pipeline:
 1. load ledger
 2. retrieve top 3 approved quote witnesses
-3. pass candidate quotes to SEA-LION interpreter
-4. validate SEA-LION output with context_safety
+3. pass candidate quotes to FED-FEDERATION interpreter
+4. validate FED-FEDERATION output with context_safety
 5. enforce governance boundary
 6. emit structured response
 
@@ -25,7 +25,7 @@ from .context_safety import validate_interpretation_safety
 from .interpreter import (
     InterpretationError,
     fallback_interpret,
-    interpret_with_sea_lion,
+    interpret_with_fed_federation,
 )
 from .quote_ledger import get_quote_by_id, load_quote_ledger
 from .quote_retriever import retrieve_witnesses
@@ -142,27 +142,27 @@ async def arifos_context_witness(
             "safety_notes": ["Ledger coverage gap detected."],
         }
 
-    # ── 3. SEA-LION interpretation (or fallback) ──
-    sea_lion_ok = False
+    # ── 3. FED-FEDERATION interpretation (or fallback) ──
+    fed_federation_ok = False
     interpretation: dict[str, Any] | None = None
     try:
-        interpretation = await interpret_with_sea_lion(
+        interpretation = await interpret_with_fed_federation(
             event=event,
             state=state,
             judgment=judgment,
             candidate_quotes=candidates,
             language=language,
         )
-        sea_lion_ok = True
+        fed_federation_ok = True
     except InterpretationError as exc:
         logger.warning(
-            "SEA-LION interpretation failed (%s); falling back to deterministic mode.",
+            "FED-FEDERATION interpretation failed (%s); falling back to deterministic mode.",
             exc,
         )
     except Exception as exc:
-        logger.error("Unexpected error during SEA-LION call: %s", exc)
+        logger.error("Unexpected error during FED-FEDERATION call: %s", exc)
 
-    if not sea_lion_ok or interpretation is None:
+    if not fed_federation_ok or interpretation is None:
         interpretation = fallback_interpret(
             event=event,
             state=state,
@@ -227,7 +227,7 @@ async def arifos_context_witness(
     }
 
     # ── 7. Emit structured response ──
-    status = "ok" if sea_lion_ok else "partial"
+    status = "ok" if fed_federation_ok else "partial"
     # If risk_level is irreversible, downgrade to partial as a signal
     if risk_level == "irreversible":
         status = "partial"

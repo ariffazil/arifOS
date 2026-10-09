@@ -108,11 +108,21 @@ def _effective_arif_seal_flags(
         "audit",  # PUBLIC full audit
     }
     presentation_modes = {"seal_card", "render"}
+    # Lane B observational record modes (2026-09-16 fix): autonomous
+    # institutional receipts — daily SessionEnd hooks append these from
+    # LOW-authority verified actors. Doctrine: SEAL (Lane A, constitutional
+    # verdict, sovereign-gated) != RECEIPT (Lane B, autonomous record).
+    # Blanket-gating them starved VAULT999 silently for weeks (hook errors
+    # piped to /dev/null; zero vault writes witnessed 2026-09-16).
+    # mode=seal and mode=session_close stay fully gated.
+    lane_b_modes = {"receipt"}
 
     if mode in read_modes:
         return (AuthorityTier.LOW, False, False, MutationClass.NONE)
     if mode in presentation_modes:
         return (AuthorityTier.MEDIUM, False, False, MutationClass.NONE)
+    if mode in lane_b_modes:
+        return (AuthorityTier.LOW, False, False, MutationClass.NONE)
     # Default: actual seal write — keep declared gate
     return (
         capability.authority_required,
@@ -644,6 +654,86 @@ def _check_policy_floors(
                 normalized_request=req.model_dump(),
                 graph_version=graph.version.version_id,
             )
+
+    # FLOOR 4.5: AUTHORITY-ENVELOPE GATE (F13 GO 2, 2026-09-16) — wires the
+    # previously-unwired arifosmcp.runtime.authority_gate engine into this
+    # chain. Two rules:
+    #   (a) If the caller supplies an explicit `authority_envelope`, validate
+    #       it — forged/missing consequential fields and model-claimed
+    #       sovereignty are DENY (authority smuggling shape).
+    #       NOTE: only the explicit `authority_envelope` key is validated;
+    #       the identity `_envelope` (actor binding, different purpose,
+    #       pre-existing traffic) is deliberately NOT consumed here.
+    #   (b) A mutation-class call whose arguments reference a chattr-protected
+    #       canon tree requires SOVEREIGN tier OR a validated envelope with
+    #       requires_human_ack=true. Protocol-lane mirror of the VFS barrier
+    #       (/root/scripts/canon-mutate is the legal VFS path).
+    _gate_env = (req.arguments or {}).get("authority_envelope")
+    if isinstance(_gate_env, dict):
+        from arifosmcp.runtime.authority_gate import enforce_authority_boundary
+
+        _gr = enforce_authority_boundary(_gate_env, consequential=True)
+        if _gr.status != "OK":
+            _actor = req.actor_id or "anonymous"
+            return InterceptorDecision(
+                verdict=AdmissibilityVerdict.DENY,
+                reason=(
+                    f"AUTHORITY_GATE: envelope rejected — "
+                    f"{'; '.join(_gr.violations)}"
+                ),
+                capability_id=capability.capability_id,
+                actor_id=_actor,
+                authority_tier=authority,
+                mutation_class=capability.mutation_class,
+                blast_radius=capability.blast_radius,
+                resource_class=capability.resource_class,
+                organ_id=capability.organ_id,
+                normalized_request=req.model_dump(),
+                graph_version=graph.version.version_id,
+            )
+    # GO6-F2: use the mode-EFFECTIVE mutation class — read/presentation
+    # arif_seal modes are NONE; raw capability class over-blocked reads.
+    if _eff_mutation != MutationClass.NONE and authority != AuthorityTier.SOVEREIGN:
+        _protected_trees = (
+            "/root/AAA/governance",
+            "/root/AAA/canon",
+            "/root/arifOS/GENESIS",
+        )
+        _arg_str = str(req.arguments or {})
+        # GO7-R3: path-BOUNDARY match — a bare substring held superstrings
+        # like /root/AAA/canonical. The tree must end at /, quote, whitespace,
+        # or end-of-string.
+        import re as _re_mod
+
+        if any(
+            _re_mod.search(_re_mod.escape(_p) + r"(?=[/\"'\s]|$)", _arg_str)
+            for _p in _protected_trees
+        ):
+            _ack = (
+                isinstance(_gate_env, dict)
+                and _gate_env.get("requires_human_ack") is True
+                and not _gate_env.get("violations")
+            )
+            if not _ack:
+                _actor = req.actor_id or "anonymous"
+                return InterceptorDecision(
+                    verdict=AdmissibilityVerdict.HOLD_888,
+                    reason=(
+                        f"AUTHORITY_GATE: mutation-class call targets a protected "
+                        f"canon tree (chattr +i) — requires SOVEREIGN authority or "
+                        f"authority_envelope with requires_human_ack=true. Legal VFS "
+                        f"mutation path: /root/scripts/canon-mutate."
+                    ),
+                    capability_id=capability.capability_id,
+                    actor_id=_actor,
+                    authority_tier=authority,
+                    mutation_class=capability.mutation_class,
+                    blast_radius=capability.blast_radius,
+                    resource_class=capability.resource_class,
+                    organ_id=capability.organ_id,
+                    normalized_request=req.model_dump(),
+                    graph_version=graph.version.version_id,
+                )
 
     # FLOOR 5: requires_888_hold AND not SOVEREIGN → HOLD_888 (structured, not bare text)
     # Mode-aware: arif_seal read/presentation modes have effective 888_hold=False.

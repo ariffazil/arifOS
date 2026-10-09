@@ -5,20 +5,15 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+# SINGLE TRUTH: the runtime declares the canonical prompt surface.
+# This gate no longer carries a hand-maintained canon — it validates the
+# registry against the tuple the server actually registers. Ghost canons
+# (describing prompts that do not exist) are structurally impossible here.
+from arifosmcp.prompts import CANONICAL_PROMPTS
 from arifosmcp.registry.prompt_registry import PromptRegistry, get_registry
 
-EXPECTED_CANONICAL_PROMPTS = (
-    "🌱 BOOT",
-    "🌊 WITNESS",
-    "🧠 REASON",
-    "⚖ MARUAH",
-    "🔍 PREFLIGHT",
-    "🔒 JUDGE",
-    "🔥 FORGE",
-    "💎 SEAL",
-    "🌀 SABAR",
-    "📜 REPLY",
-)
+# Derived, never hand-maintained. Re-exported for backward compatibility.
+EXPECTED_CANONICAL_PROMPTS = CANONICAL_PROMPTS
 
 REFERENCE_ONLY_DOCS = (
     "README.md",
@@ -60,13 +55,18 @@ def validate_prompt_singularity(
     violations: list[str] = []
 
     if registry.canonical_sequence != EXPECTED_CANONICAL_PROMPTS:
+        missing = sorted(set(EXPECTED_CANONICAL_PROMPTS) - set(registry.canonical_sequence))
+        extra = sorted(set(registry.canonical_sequence) - set(EXPECTED_CANONICAL_PROMPTS))
         violations.append(
-            "canonical_sequence must equal the 10-prompt sigil surface: "
-            f"{registry.canonical_sequence!r}"
+            "registry canonical_sequence drift vs runtime CANONICAL_PROMPTS: "
+            f"missing={missing}, extra={extra}"
         )
     if set(registry.specs) != set(EXPECTED_CANONICAL_PROMPTS):
-        violations.append("registry prompts must contain exactly the 10 canonical prompt IDs")
+        violations.append("registry prompts must contain exactly the runtime CANONICAL_PROMPTS")
 
+    # Active aliases only — archived aliases live under `aliases_archived`
+    # in the YAML and are never loaded into the registry. Any active alias
+    # past its removal epoch is a debt the gate refuses.
     for alias in registry.aliases.values():
         try:
             removal_epoch = date.fromisoformat(alias.removal_epoch)
@@ -77,8 +77,6 @@ def validate_prompt_singularity(
             violations.append(
                 f"alias {alias.id!r} expired on {alias.removal_epoch}; remove it from runtime"
             )
-
-    from arifosmcp.prompts import CANONICAL_PROMPTS
 
     expected_live = set(registry.canonical_sequence) | set(registry.aliases)
     if set(CANONICAL_PROMPTS) != expected_live:

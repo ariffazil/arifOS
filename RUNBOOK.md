@@ -72,7 +72,7 @@ Verdicts:
 
 ```bash
 systemctl is-active arifos arifosd geox-mcp wealth-organ well aaa-a2a a-forge \
-  openclaw-gateway vault999-api vault999-writer cloudflared nats-server
+  vault999-api vault999-writer cloudflared nats-server
 ```
 
 ### 2.2 Restart a single organ
@@ -92,7 +92,7 @@ Requires Arif approval. Use only during planned maintenance or recovery.
 
 ```bash
 sudo systemctl restart arifos arifosd geox-mcp wealth-organ well aaa-a2a a-forge \
-  openclaw-gateway vault999-api vault999-writer nats-server cloudflared
+  vault999-api vault999-writer nats-server cloudflared
 ```
 
 After restart, verify:

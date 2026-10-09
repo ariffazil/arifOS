@@ -1,0 +1,12 @@
+{
+  "schema": "arifos.memory_sanctuary_denylist.v1",
+  "generated_at": "2026-09-13T06:05:00Z",
+  "reason": "Sanctuary boundary enforcement (F6 Maruah, F9 Anti-Hantu, F13 Sovereign) for third-party sensitive medical and personal data",
+  "denied_ids": [
+    "17573128",
+    "652231558",
+    "f7dfeac5-0fb5-4d74-bbf1-2966ba6ac7f6"
+  ],
+  "count": 3,
+  "rule": "F9 operational recall denied. Historical mode still denied for these IDs. No payload returned in admission receipts."
+}

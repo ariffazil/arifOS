@@ -269,8 +269,11 @@ class WitnessLog:
             )
 
             # Write to file
-            with open(self.path, "a") as f:
-                f.write(record.model_dump_json() + "\n")
+            try:
+                with open(self.path, "a") as f:
+                    f.write(record.model_dump_json() + "\n")
+            except OSError as e:
+                logger.warning(f"Could not append to witness log {self.path}: {e}")
 
             # Update index
             self._index_record(record)

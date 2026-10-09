@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
+import hmac
 import json
 import os
 import threading
@@ -43,12 +44,89 @@ CHAIN_FILENAME = "seal_chain.jsonl"
 HEAD_FILENAME = "seal_chain_head.json"
 ALLOC_FILENAME = "seal_seq_allocator.json"
 LOCK_FILENAME = "seal_chain.append.lock"
+# GOV-02 (F13 2026-09-12 "no rewrite, read-only annotate; verifier consume"):
+# one JSON object per line, schema arifos.chain-annotation/v1. Link-family
+# divergences (CHAIN_BREAK / HISTORICAL_LINK_GAP) whose position AND hash
+# pair match an annotation are classified EXPLAINED — recorded, visible,
+# never silent, never a rewrite of the chain.
+ANNOTATIONS_FILENAME = "seal_chain_annotations.jsonl"
+ANNOTATION_SCHEMA = "arifos.chain-annotation/v1"
 
 # Epoch marker: receipts after this boundary must use full envelope.
 # Historical lines before first CANONICAL epoch seal are classified HISTORICAL_*.
 CANONICAL_EPOCH_ID = "F004-CANONICAL-2026-07-17"
 
 GENESIS_PREV_HASH = "genesis"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VAULT999-SIG (G1, Fasa 1 Kernel Immutable Floor, 2026-08-30)
+# ═══════════════════════════════════════════════════════════════════════════════
+# The F-004 chain is hash-LINKED but was not AUTHENTICATED: append_receipt
+# accepted signature="" and verify_chain never checked it (SIGNATURE_FAIL /
+# WRONG_KEY were defined but never raised). Anyone with write access to
+# seal_chain.jsonl could rewrite history self-consistently.
+#
+# VAULT999-SIG closes that: every canonical receipt appended while a vault
+# HMAC key is configured is signed (full HMAC-SHA256, 256-bit) over its
+# receipt_hash. verify_chain re-checks every signed entry and — after the
+# first signed entry (the VAULT-SIG-1 cutover point) — flags unsigned
+# canonical entries. Historical entries are NEVER rewritten ("gaps are
+# classified, never rewritten").
+#
+# Activation ladder (F1: reversible-by-git until enforced):
+#   ARIFOS_VAULT_HMAC_KEY / ARIFOS_VAULT_HMAC_KEY_FILE — key material.
+#     Absent → signing disabled (dev/local), enforcement impossible.
+#   ARIFOS_VAULT_SIG_ENFORCE=1 — 888_HOLD-gated production posture:
+#     - append without a key FAILS CLOSED (SIG_ENFORCE_NO_KEY);
+#     - unsigned canonical entries after the cutover seq are SIGNATURE_FAIL
+#       gaps (chain goes red). Default (unset) = warn mode: signed entries
+#       are still verified; unsigned post-cutover entries are counted in
+#       `unsigned_after_cutover` (auditor-visible, chain stays green).
+#
+# Independent audit path: tools/audit_verify.py verifies a COPY of the chain
+# offline with the same key — no trust in the running system required.
+SIG_EPOCH_ID = "VAULT-SIG-1"
+SIG_KEY_ID = "vault-hmac-1"
+SIG_PREFIX = "hmac-sha256:"
+
+
+def _vault_hmac_key() -> bytes | None:
+    """Vault signing key from env or key file. None → signing unavailable."""
+    secret = os.environ.get("ARIFOS_VAULT_HMAC_KEY")
+    if not secret:
+        secret_file = os.environ.get("ARIFOS_VAULT_HMAC_KEY_FILE")
+        if secret_file:
+            try:
+                secret = Path(secret_file).read_text(encoding="utf-8").strip()
+            except OSError:
+                secret = None
+    return secret.encode("utf-8") if secret else None
+
+
+def _sig_enforce() -> bool:
+    return os.environ.get("ARIFOS_VAULT_SIG_ENFORCE", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _sign_receipt_hash(receipt_hash: str, key: bytes) -> str:
+    """Full 256-bit HMAC-SHA256 over the receipt_hash string."""
+    return SIG_PREFIX + hmac.new(
+        key, receipt_hash.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+
+def _verify_receipt_signature(
+    receipt_hash: str, signature: str, key: bytes
+) -> bool:
+    """Constant-time comparison of the expected vs recorded signature."""
+    if not signature.startswith(SIG_PREFIX):
+        return False
+    expected = _sign_receipt_hash(receipt_hash, key)
+    return hmac.compare_digest(signature, expected)
 
 
 class GapClass(StrEnum):
@@ -74,6 +152,28 @@ class VerifyStatus(StrEnum):
     GAPS_FOUND = "gaps-found"
     NO_CHAIN = "no-chain"
     ERROR = "error"
+    # P0-1 (888 audit 2026-09-05): chain green scoped to current epoch.
+    # Historical gaps are classified + HMAC-bound by EPOCH_ATTESTATION.json —
+    # never rewritten (F1). F-004 preserved: any gap at/after epoch start,
+    # head mismatch, digest mismatch, or tampered attestation → gaps-found.
+    EPOCH_CLEAN = "epoch-clean"
+
+
+# GOV-02: gap classes consumable by chain annotations.
+# Link-family classes require hash-pair matching (precision); historical
+# structural classes (missing-fields / corrupt-line / epoch-reset) carry no
+# hash pair and match on class + line_no only — still never a blanket skip.
+_ANNOTATION_LINK_CLASSES = frozenset(
+    {GapClass.CHAIN_BREAK, GapClass.HISTORICAL_LINK_GAP}
+)
+_ANNOTATION_STRUCTURAL_CLASSES = frozenset(
+    {
+        GapClass.HISTORICAL_MISSING_FIELDS,
+        GapClass.HISTORICAL_CORRUPT_LINE,
+        GapClass.EPOCH_RESET,
+    }
+)
+_ANNOTATION_CONSUMABLE_CLASSES = _ANNOTATION_LINK_CLASSES | _ANNOTATION_STRUCTURAL_CLASSES
 
 
 # ── Envelope ─────────────────────────────────────────────────────
@@ -121,6 +221,8 @@ class ReceiptEnvelope:
     software_release: str
     signature: str
     epoch_id: str = CANONICAL_EPOCH_ID
+    # VAULT999-SIG: which key signed `signature` ("" = unsigned/historical).
+    sig_key_id: str = ""
     # Wire aliases for observatory / legacy readers
     seq: int | None = None
     prev_hash: str | None = None
@@ -210,6 +312,10 @@ class VaultPaths:
     @property
     def lock(self) -> Path:
         return self.vault_dir / LOCK_FILENAME
+
+    @property
+    def annotations(self) -> Path:
+        return self.vault_dir / ANNOTATIONS_FILENAME
 
 
 def paths_for(vault_dir: Path | str | None = None) -> VaultPaths:
@@ -325,6 +431,79 @@ def entry_sequence(entry: dict[str, Any]) -> Any:
     return entry.get("sequence", entry.get("seq"))
 
 
+# ── Chain annotations (GOV-02 read-only explain layer) ───────────
+
+
+def load_chain_annotations(vault_dir: Path | str | None = None) -> list[dict[str, Any]]:
+    """Load seal_chain_annotations.jsonl if present. Tolerant parse: bad
+    lines are skipped (warned), never fatal — annotations are an explain
+    layer, not a chain component. Returns [] when the file is absent."""
+    p = paths_for(vault_dir)
+    if not p.annotations.exists():
+        return []
+    out: list[dict[str, Any]] = []
+    with open(p.annotations, encoding="utf-8", errors="replace") as fh:
+        for line_no, line in enumerate(fh, start=1):
+            s = line.strip()
+            if not s:
+                continue
+            try:
+                rec = json.loads(s)
+            except json.JSONDecodeError:
+                print(
+                    f"[chain-annotations] WARN line {line_no}: parse error — skipped",
+                    file=os.sys.stderr,
+                )
+                continue
+            if isinstance(rec, dict):
+                out.append(rec)
+    return out
+
+
+def _annotation_matches(
+    annotations: list[dict[str, Any]],
+    *,
+    line_no: int,
+    gap_class: GapClass,
+    expected_prev: str | None,
+    got_prev: str | None,
+) -> dict[str, Any] | None:
+    """An annotation explains a gap when class + position match, and — for
+    link-family gaps (CHAIN_BREAK / HISTORICAL_LINK_GAP) — the recorded and
+    expected hashes BOTH match (prefix-tolerant). Structural historical
+    classes (MISSING_FIELDS / CORRUPT_LINE / EPOCH_RESET) carry no hash pair;
+    they match on target_gap_class + line_no. Legacy annotation records
+    without target_gap_class are treated as link-family (v1 behavior).
+    Precision by construction: wrong class, wrong line, or wrong hash pair
+    never matches."""
+    if gap_class not in _ANNOTATION_CONSUMABLE_CLASSES:
+        return None
+    for ann in annotations:
+        target = ann.get("target_gap_class")
+        if target is not None:
+            if str(target) != str(gap_class):
+                continue
+        elif gap_class not in _ANNOTATION_LINK_CLASSES:
+            # legacy record (no target class) only ever explained link family
+            continue
+        pos = ann.get("position") or {}
+        if pos.get("line_no") != line_no:
+            continue
+        if gap_class in _ANNOTATION_LINK_CLASSES:
+            rec_prev = ann.get("recorded_prev_hash")
+            exp_prev = ann.get("expected_prev_under_current_hash")
+            if rec_prev is None or exp_prev is None:
+                continue
+            if hashes_equal(rec_prev, got_prev) and hashes_equal(
+                exp_prev, expected_prev
+            ):
+                return ann
+            continue
+        # structural class: class + line matched
+        return ann
+    return None
+
+
 def is_canonical_entry(entry: dict[str, Any]) -> bool:
     """True if entry claims the F-004 canonical envelope."""
     return (
@@ -351,6 +530,12 @@ class GapRecord:
     got_prev: str | None
     seq: Any = None
     detail: str = ""
+    # Structured cause so a witness can separate an out-of-band append (a
+    # receipt assembled without append_receipt) from evidence that sealed
+    # history was rewritten. None = no distinct cause established.
+    mechanism: str | None = None
+    # GOV-02: set when a chain annotation explains this divergence.
+    explained_by: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -361,6 +546,8 @@ class GapRecord:
             "got": (str(self.got_prev)[:64] if self.got_prev else None),
             "seq": self.seq,
             "detail": self.detail,
+            "mechanism": self.mechanism,
+            "explained_by": self.explained_by,
         }
 
 
@@ -377,6 +564,18 @@ class VerifyResult:
     canonical_entries: int = 0
     historical_entries: int = 0
     failure_classes: dict[str, int] = field(default_factory=dict)
+    # VAULT999-SIG (G1) auditor summary
+    signed_entries: int = 0
+    signed_unverifiable: int = 0
+    unsigned_after_cutover: int = 0
+    cutover_seq: Any = None
+    sig_enforce: bool = False
+    # P0-1 epoch attestation
+    epoch: dict[str, Any] | None = None
+    # GOV-02 (F13 2026-09-12): annotation-explained divergences — recorded
+    # separately from blocking gaps; visible, never silent.
+    explained_gaps: list[GapRecord] = field(default_factory=list)
+    annotations_loaded: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -394,6 +593,19 @@ class VerifyResult:
             "failure_classes": self.failure_classes,
             # F-004: never claim green when gaps exist
             "chain_verified": self.verified,
+            # VAULT999-SIG
+            "sig_epoch": SIG_EPOCH_ID,
+            "signed_entries": self.signed_entries,
+            "signed_unverifiable": self.signed_unverifiable,
+            "unsigned_after_cutover": self.unsigned_after_cutover,
+            "cutover_seq": self.cutover_seq,
+            "sig_enforce": self.sig_enforce,
+            # P0-1: epoch scope info when status=epoch-clean
+            "epoch": self.epoch,
+            # GOV-02: annotation consumption
+            "gaps_explained": len(self.explained_gaps),
+            "explained_gaps": [g.to_dict() for g in self.explained_gaps[:50]],
+            "annotations_loaded": self.annotations_loaded,
         }
 
 
@@ -430,6 +642,10 @@ def verify_chain(
         )
 
     lines = parse_chain_lines(p.chain)
+    # GOV-02: read-only explain layer — annotations never mutate the chain.
+    _annotations = load_chain_annotations(p.vault_dir)
+    _ann_loaded = len(_annotations)
+    explained: list[GapRecord] = []
     gaps: list[GapRecord] = []
     classes: dict[str, int] = {}
     prev_hash: str | None = None
@@ -443,6 +659,15 @@ def verify_chain(
     last_entry: dict[str, Any] | None = None
     parseable_index = -1
     scope_canonical = scope == "canonical"
+    # P0-1: all entry hashes (anchor presence check for epoch attestation)
+    all_entry_hashes: set[str | None] = set()
+    # VAULT999-SIG (G1) walk state
+    _sig_key = _vault_hmac_key()
+    _sig_enforce_on = _sig_enforce()
+    signed_ok = 0
+    signed_unverifiable = 0
+    signed_seqs: list[int] = []
+    unsigned_records: list[tuple[int, int, Any]] = []
 
     for pl in lines:
         if pl.corrupt or pl.entry is None:
@@ -482,7 +707,14 @@ def verify_chain(
         this_h = entry_this_hash(entry)
         prev_h = entry_prev_hash(entry)
         seq = entry_sequence(entry)
-        rid = entry.get("receipt_id") or entry.get("id")
+        rid = (
+            entry.get("receipt_id")
+            or entry.get("id")
+            or entry.get("decision_reference")
+            or entry.get("operation_id")
+        )
+        if this_h:
+            all_entry_hashes.add(this_h)
 
         # First canonical entry after historical: prev may be genesis (epoch open) — allowed
         if (
@@ -559,37 +791,14 @@ def verify_chain(
                 )
         # Chain break: prev_hash does not match previous this_hash
         elif prev_hash is not None and prev_h and not hashes_equal(prev_h, prev_hash):
-            # V999-GR-001: Canonical index 7 (line 201) prev_hash is a grandfathered
-            # pre-migration identifier, not a computed hash. Attested by V999-BRIDGE-SEAL-001.
-            # Skip continuity check AT THIS INDEX ONLY; verify normally from seq 8 onward.
-            if parseable_index == 7 and pl.line_no == 201:
-                gc = None  # type: ignore[assignment]
-            # V999-GR-002 (2026-07-30): Canonical seq=16 (rcpt-86483e9e) prev_hash
-            # does not link to prior canonical this_hash after WM-HARD-ENFORCE noise
-            # entry. Classified discontinuity — do NOT rewrite receipt. Grandfather
-            # this index only so /999/verify can go green; forward seals remain linked.
-            elif (
-                canon
-                and isinstance(seq, int)
-                and seq == 16
-                and str(entry.get("receipt_id") or "") == "rcpt-86483e9e4a4b4b14"
-            ):
-                gc = None  # type: ignore[assignment]
-            # V999-GR-003 (2026-08-11): Canonical seq=28 (rcpt-6f9000b09b2e4e77)
-            # prev_hash is 16-char hex "0b42b5c2298fa40d" picked up from a
-            # non-canonical entry by append_receipt, but the prior canonical
-            # entry (seq=27) has full sha256: this_hash. append_receipt walked
-            # non-canonical entries when picking prev_hash — known bug.
-            # Forward seals should use the canonical head hash instead.
-            # Grandfather this entry so /999/verify can go green.
-            elif (
-                canon
-                and isinstance(seq, int)
-                and seq == 28
-                and str(entry.get("receipt_id") or "") == "rcpt-6f9000b09b2e4e77"
-            ):
-                gc = None  # type: ignore[assignment]
-            elif canon and prev_was_canonical:
+            # V999-GR-001/002/003 (migrated 2026-09-12, F13 "migrat ke anotasi"):
+            # the three hardcoded grandfather skips that used to live here were
+            # MOVED into seal_chain_annotations.jsonl as annotation records
+            # GOV02-V999-GR-001/002/003. Divergences are now classified,
+            # recorded as explained_gaps (visible, never silent), and consumed
+            # by the annotation matcher at the gap-append site below — instead
+            # of being silently skipped in code.
+            if canon and prev_was_canonical:
                 gc = GapClass.CHAIN_BREAK
             elif scope_canonical and canon and prev_hash is not None:
                 # first link from historical tail into canonical — if not matching, epoch open
@@ -600,18 +809,47 @@ def verify_chain(
             else:
                 gc = GapClass.HISTORICAL_LINK_GAP
             if gc is not None:
-                classes[gc] = classes.get(gc, 0) + 1
-                gaps.append(
-                    GapRecord(
-                        index=parseable_index,
-                        line_no=pl.line_no,
-                        gap_class=gc,
-                        expected_prev=prev_hash,
-                        got_prev=prev_h,
-                        seq=seq,
-                        detail="prev_hash != prior this_hash",
-                    )
+                _ann = _annotation_matches(
+                    _annotations,
+                    line_no=pl.line_no,
+                    gap_class=gc,
+                    expected_prev=prev_hash,
+                    got_prev=prev_h,
                 )
+                if _ann is not None:
+                    # GOV-02: explained divergence — recorded, visible, never
+                    # silent, and never a rewrite of the chain.
+                    explained.append(
+                        GapRecord(
+                            index=parseable_index,
+                            line_no=pl.line_no,
+                            gap_class=gc,
+                            expected_prev=prev_hash,
+                            got_prev=prev_h,
+                            seq=seq,
+                            detail=(
+                                "explained by annotation "
+                                f"{_ann.get('annotation_id', '?')} "
+                                f"({_ann.get('annotation_class', '?')})"
+                            ),
+                            explained_by=str(
+                                _ann.get("annotation_id") or "annotation"
+                            ),
+                        )
+                    )
+                else:
+                    classes[gc] = classes.get(gc, 0) + 1
+                    gaps.append(
+                        GapRecord(
+                            index=parseable_index,
+                            line_no=pl.line_no,
+                            gap_class=gc,
+                            expected_prev=prev_hash,
+                            got_prev=prev_h,
+                            seq=seq,
+                            detail="prev_hash != prior this_hash",
+                        )
+                    )
         elif prev_hash is not None and not prev_h and not this_h:
             if not scope_canonical:
                 gc = GapClass.HISTORICAL_MISSING_FIELDS
@@ -637,7 +875,12 @@ def verify_chain(
         # rid is None. Now flagged as CANONICAL_MISSING_FIELDS.
         if canon:
             _missing: list[str] = []
-            if not entry.get("id") and not entry.get("receipt_id"):
+            if not (
+                entry.get("id")
+                or entry.get("receipt_id")
+                or entry.get("decision_reference")
+                or entry.get("operation_id")
+            ):
                 _missing.append("id/receipt_id")
             if not entry.get("timestamp") and not entry.get("timestamp_iso"):
                 _missing.append("timestamp")
@@ -668,6 +911,18 @@ def verify_chain(
             if not hashes_equal(expected, entry.get("receipt_hash")):
                 gc = GapClass.HASH_MISMATCH
                 classes[gc] = classes.get(gc, 0) + 1
+                # Name the mechanism when the record shows the one ordering
+                # that can never re-verify: an operation_id copied from the
+                # digest, which is only possible if the digest was computed
+                # before operation_id was set — i.e. the envelope was
+                # assembled outside append_receipt. This separates an
+                # out-of-band write from evidence that history was altered.
+                _rh = str(entry.get("receipt_hash") or "")
+                _rh_bare = _rh[7:] if _rh.startswith("sha256:") else _rh
+                _op = str(entry.get("operation_id") or "")
+                _mech = None
+                if _op and _rh_bare.startswith(_op):
+                    _mech = "OUT_OF_BAND_APPEND"
                 gaps.append(
                     GapRecord(
                         index=parseable_index,
@@ -676,8 +931,66 @@ def verify_chain(
                         expected_prev=expected,
                         got_prev=entry.get("receipt_hash"),
                         seq=seq,
-                        detail="recomputed receipt_hash mismatch",
+                        mechanism=_mech,
+                        detail=(
+                            "recomputed receipt_hash mismatch"
+                            + (
+                                " | operation_id is a prefix of its own "
+                                "receipt_hash (digest predates the field)"
+                                if _mech
+                                else ""
+                            )
+                        ),
                     )
+                )
+
+        # ── VAULT999-SIG (G1): signature check + cutover tracking ──────
+        if canon:
+            _sig = str(entry.get("signature") or "")
+            _skid = str(entry.get("sig_key_id") or "")
+            if _skid:
+                if _skid != SIG_KEY_ID:
+                    gc = GapClass.WRONG_KEY
+                    classes[gc] = classes.get(gc, 0) + 1
+                    gaps.append(
+                        GapRecord(
+                            index=parseable_index,
+                            line_no=pl.line_no,
+                            gap_class=gc,
+                            expected_prev=None,
+                            got_prev=_skid,
+                            seq=seq,
+                            detail=f"unknown sig_key_id '{_skid}' (expected '{SIG_KEY_ID}')",
+                        )
+                    )
+                elif _sig_key is not None:
+                    if _verify_receipt_signature(
+                        str(entry.get("receipt_hash") or ""), _sig, _sig_key
+                    ):
+                        signed_ok += 1
+                    else:
+                        gc = GapClass.SIGNATURE_FAIL
+                        classes[gc] = classes.get(gc, 0) + 1
+                        gaps.append(
+                            GapRecord(
+                                index=parseable_index,
+                                line_no=pl.line_no,
+                                gap_class=gc,
+                                expected_prev=None,
+                                got_prev=_sig[: len(SIG_PREFIX) + 12],
+                                seq=seq,
+                                detail="HMAC-SHA256 signature mismatch on receipt_hash",
+                            )
+                        )
+                else:
+                    # Signed entry but no key available to this verifier —
+                    # auditor must supply the key (see tools/audit_verify.py).
+                    signed_unverifiable += 1
+                if isinstance(seq, int):
+                    signed_seqs.append(seq)
+            else:
+                unsigned_records.append(
+                    (parseable_index, pl.line_no, seq)
                 )
 
         if this_h:
@@ -686,6 +999,64 @@ def verify_chain(
 
     head_seq = entry_sequence(last_entry) if last_entry else None
     head_hash = entry_this_hash(last_entry) if last_entry else None
+
+    # ── VAULT999-SIG cutover analysis ─────────────────────────────────
+    # Cutover = lowest sequence among signed canonical entries. Canonical
+    # entries AFTER that point must be signed: unsigned → SIGNATURE_FAIL in
+    # enforce mode (chain red), counted (green-preserving) in warn mode.
+    cutover_seq = min(signed_seqs) if signed_seqs else None
+    unsigned_after_cutover = 0
+    if cutover_seq is not None:
+        for _idx, _lno, _seq in unsigned_records:
+            _post = isinstance(_seq, int) and _seq > cutover_seq
+            if _post and _sig_enforce_on:
+                gc = GapClass.SIGNATURE_FAIL
+                classes[gc] = classes.get(gc, 0) + 1
+                gaps.append(
+                    GapRecord(
+                        index=_idx,
+                        line_no=_lno,
+                        gap_class=gc,
+                        expected_prev=None,
+                        got_prev=None,
+                        seq=_seq,
+                        detail=(
+                            f"unsigned canonical entry after {SIG_EPOCH_ID} "
+                            f"cutover (seq {cutover_seq}) in enforce mode"
+                        ),
+                    )
+                )
+            elif _post:
+                unsigned_after_cutover += 1
+
+    # ── GOV-02 post-pass: annotation consumption for gap-creation sites that
+    # do not route through the chain-break branch (corrupt lines, epoch
+    # reset, missing fields, future sites). Same matcher, same precision —
+    # class + line (+ hash pair for link family). Never a blanket skip.
+    if _annotations:
+        _still_gaps: list[GapRecord] = []
+        for g in gaps:
+            _ann = None
+            if g.gap_class in _ANNOTATION_CONSUMABLE_CLASSES:
+                _ann = _annotation_matches(
+                    _annotations,
+                    line_no=g.line_no,
+                    gap_class=g.gap_class,
+                    expected_prev=g.expected_prev,
+                    got_prev=g.got_prev,
+                )
+            if _ann is not None:
+                g.explained_by = str(_ann.get("annotation_id") or "annotation")
+                g.detail = f"{g.detail} | explained by annotation {g.explained_by}"
+                explained.append(g)
+                _k = str(g.gap_class)
+                if classes.get(_k):
+                    classes[_k] -= 1
+                    if classes[_k] <= 0:
+                        classes.pop(_k, None)
+            else:
+                _still_gaps.append(g)
+        gaps = _still_gaps
 
     # Empty file with only empties → valid genesis
     if entries == 0 and (corrupt == 0 or scope_canonical):
@@ -714,6 +1085,37 @@ def verify_chain(
         else (VerifyStatus.GAPS_FOUND if gaps else VerifyStatus.ERROR)
     )
 
+    # ── P0-1 (888 audit 2026-09-05): epoch-clean scoping ─────────────
+    # Only when NOT otherwise verified: a valid attestation that binds every
+    # gap to pre-epoch history upgrades the result to epoch-clean. F-004
+    # preserved — verified=True here is explicitly epoch-scoped (epoch dict
+    # present), never a genesis-to-head claim.
+    epoch_info: dict[str, Any] | None = None
+    if gaps and entries > 0:
+        epoch_info = _maybe_epoch_clean(p.vault_dir, gaps, all_entry_hashes)
+        if epoch_info is not None:
+            return VerifyResult(
+                verified=True,
+                status=VerifyStatus.EPOCH_CLEAN,
+                entries=entries,
+                corrupt_lines=0 if scope_canonical else corrupt,
+                gaps=gaps,
+                head_seq=head_seq,
+                head_hash=head_hash,
+                ledger_path=str(p.chain),
+                canonical_entries=canonical_n,
+                historical_entries=historical_n,
+                failure_classes=classes,
+                signed_entries=signed_ok,
+                signed_unverifiable=signed_unverifiable,
+                unsigned_after_cutover=unsigned_after_cutover,
+                cutover_seq=cutover_seq,
+                sig_enforce=_sig_enforce_on,
+                epoch=epoch_info,
+                explained_gaps=explained,
+                annotations_loaded=_ann_loaded,
+            )
+
     return VerifyResult(
         verified=verified,
         status=status,
@@ -723,10 +1125,141 @@ def verify_chain(
         head_seq=head_seq,
         head_hash=head_hash,
         ledger_path=str(p.chain),
+        explained_gaps=explained,
+        annotations_loaded=_ann_loaded,
         canonical_entries=canonical_n,
         historical_entries=historical_n,
         failure_classes=classes,
+        # VAULT999-SIG (G1)
+        signed_entries=signed_ok,
+        signed_unverifiable=signed_unverifiable,
+        unsigned_after_cutover=unsigned_after_cutover,
+        cutover_seq=cutover_seq,
+        sig_enforce=_sig_enforce_on,
     )
+
+
+# ── P0-1: Epoch-boundary attestation (888 audit 2026-09-05) ─────────
+#
+# The strong sovereignty claim is continuity from a provable point forward,
+# never a fabricated genesis-to-head story. Historical gaps stay classified
+# and HMAC-bound in EPOCH_ATTESTATION.json; the chain keeps growing and the
+# anchor hash stays valid inside it. Any NEW gap at/after epoch start, any
+# drift in the bound gap set, or any tampering with the attestation itself
+# → status falls back to gaps-found (F-004 preserved).
+
+ATTESTATION_FILENAME = "EPOCH_ATTESTATION.json"
+_ATTEST_HMAC_PREFIX = "vhmac:"
+
+
+def _attestation_gap_digest(gaps: list[GapRecord]) -> str:
+    fps = sorted(f"{g.line_no}|{g.gap_class}" for g in gaps)
+    return hashlib.sha256("\n".join(fps).encode("utf-8")).hexdigest()
+
+
+def _attestation_hmac(doc: dict[str, Any]) -> str | None:
+    key = _vault_hmac_key()
+    if key is None:
+        return None
+    body = {k: v for k, v in doc.items() if k != "attestation_hmac"}
+    canonical = json.dumps(body, sort_keys=True, ensure_ascii=False, default=str)
+    return _ATTEST_HMAC_PREFIX + hmac.new(key, canonical.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def build_epoch_attestation(
+    vault_dir: Path | str | None = None,
+    authority: str = "F13 sovereign directive 2026-09-05 (888 audit P0-1)",
+) -> dict[str, Any] | None:
+    """Classify + HMAC-bind current historical gaps into an epoch attestation.
+
+    Returns None when there is nothing to attest (chain already gapless).
+    Never mutates the chain (F1: gaps are classified, never rewritten).
+    """
+    res = verify_chain(vault_dir, scope="full")
+    if not res.gaps:
+        return None
+    epoch_start = max((g.line_no or 0) for g in res.gaps) + 1
+    doc: dict[str, Any] = {
+        "attestation_type": "EPOCH_BOUNDARY_ATTESTATION",
+        "authority": authority,
+        "sealed_at": datetime.now(UTC).isoformat(),
+        "epoch_start_line_no": epoch_start,
+        "historical_gap_count": len(res.gaps),
+        "historical_gap_digest": _attestation_gap_digest(res.gaps),
+        "gap_class_summary": res.failure_classes,
+        "anchor_hash": res.head_hash,
+        "claim": (
+            "Continuity asserted from epoch_start_line_no to anchor_hash; historical "
+            "gaps classified and bound, never rewritten (F1). New gaps at/after epoch "
+            "start, drift in the bound set, or tampering invalidate this attestation."
+        ),
+    }
+    sig = _attestation_hmac(doc)
+    if sig is None:
+        doc["attestation_hmac"] = None
+        doc["hmac_note"] = "vault hmac key unavailable — attestation UNBOUND, verifier will reject"
+    else:
+        doc["attestation_hmac"] = sig
+    p = paths_for(vault_dir)
+    p.vault_dir.mkdir(parents=True, exist_ok=True)
+    (p.vault_dir / ATTESTATION_FILENAME).write_text(
+        json.dumps(doc, indent=1, ensure_ascii=False, default=str), encoding="utf-8"
+    )
+    return doc
+
+
+def _validate_epoch_attestation(
+    att: Any,
+    gaps: list[GapRecord],
+    anchor_hashes: set[str | None],
+) -> tuple[bool, str, dict[str, Any]]:
+    if not isinstance(att, dict):
+        return False, "attestation not an object", {}
+    sig = att.get("attestation_hmac")
+    if not isinstance(sig, str) or not sig.startswith(_ATTEST_HMAC_PREFIX):
+        return False, "attestation hmac missing/unbound", {}
+    expected = _attestation_hmac(att)
+    if expected is None or not hmac.compare_digest(sig, expected):
+        return False, "attestation hmac mismatch (tampered)", {}
+    epoch_start = att.get("epoch_start_line_no")
+    if not isinstance(epoch_start, int) or epoch_start <= 0:
+        return False, "bad epoch_start_line_no", {}
+    hist = [g for g in gaps if (g.line_no or 0) < epoch_start]
+    if len(hist) != att.get("historical_gap_count"):
+        return False, "historical gap count drift since attestation", {}
+    if _attestation_gap_digest(hist) != att.get("historical_gap_digest"):
+        return False, "historical gap digest drift since attestation", {}
+    if any((g.line_no or 0) >= epoch_start for g in gaps):
+        return False, "new gap exists at/after epoch start", {}
+    anchor = normalize_hash(att.get("anchor_hash"))
+    if not anchor or anchor not in {normalize_hash(h) for h in anchor_hashes if h}:
+        return False, "anchor hash not present in chain", {}
+    epoch = {
+        "epoch_start_line_no": epoch_start,
+        "historical_gap_count": len(hist),
+        "anchor_hash": att.get("anchor_hash"),
+        "attested_at": att.get("sealed_at"),
+        "authority": att.get("authority"),
+        "scope": "continuity epoch_start→head; historical gaps classified+bound",
+    }
+    return True, "ok", epoch
+
+
+def _maybe_epoch_clean(
+    vault_dir: Path,
+    gaps: list[GapRecord],
+    anchor_hashes: set[str | None],
+) -> dict[str, Any] | None:
+    """Return epoch info dict if a valid attestation scopes all gaps to history."""
+    att_path = vault_dir / ATTESTATION_FILENAME
+    if not att_path.is_file():
+        return None
+    try:
+        att = json.loads(att_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    ok, _reason, epoch = _validate_epoch_attestation(att, gaps, anchor_hashes)
+    return epoch if ok else None
 
 
 # ── Replay ───────────────────────────────────────────────────────
@@ -1064,6 +1597,26 @@ def append_receipt(
             body["idempotency_key"] = idempotency_key
         receipt_hash = compute_receipt_hash(body)
 
+        # ── VAULT999-SIG (G1): authenticate the receipt ──────────────────
+        # Caller-supplied `signature` values (e.g. the legacy "verified"
+        # placeholder in tools.py arif_seal path) are OVERIDDEN by the real
+        # HMAC whenever a vault key is configured. Zero caller changes.
+        _sig_key = _vault_hmac_key()
+        sig_key_id = ""
+        if _sig_key is not None:
+            signature = _sign_receipt_hash(receipt_hash, _sig_key)
+            sig_key_id = SIG_KEY_ID
+        elif _sig_enforce():
+            return AppendResult(
+                ok=False,
+                receipt=None,
+                failure_class="SIG_ENFORCE_NO_KEY",
+                detail=(
+                    "ARIFOS_VAULT_SIG_ENFORCE=1 but no ARIFOS_VAULT_HMAC_KEY "
+                    "configured — unsigned append refused (fail-closed)"
+                ),
+            )
+
         # ── Idempotency check (GAP #2 fix, 2026-08-03) ──
         if idempotency_key and p.chain.exists():
             for pl in parse_chain_lines(p.chain):
@@ -1096,6 +1649,7 @@ def append_receipt(
             software_release=software_release or "",
             signature=signature or "",
             epoch_id=CANONICAL_EPOCH_ID,
+            sig_key_id=sig_key_id,
             verdict=verdict,
             idempotency_key=idempotency_key,
         )
@@ -1158,6 +1712,9 @@ def heads_agreement(vault_dir: Path | str | None = None) -> dict[str, Any]:
 
 __all__ = [
     "CANONICAL_EPOCH_ID",
+    "SIG_EPOCH_ID",
+    "SIG_KEY_ID",
+    "SIG_PREFIX",
     "GapClass",
     "VerifyStatus",
     "ReceiptEnvelope",
@@ -1168,4 +1725,43 @@ __all__ = [
     "heads_agreement",
     "compute_receipt_hash",
     "paths_for",
+    "build_epoch_attestation",
+    "ATTESTATION_FILENAME",
 ]
+
+
+if __name__ == "__main__":
+    import argparse
+    import sys as _sys
+
+    ap = argparse.ArgumentParser(description="VAULT999 canonical chain tools (P0-1)")
+    ap.add_argument("command", choices=["verify", "attest"])
+    ap.add_argument("--vault-dir", default=None)
+    args = ap.parse_args()
+
+    if args.command == "verify":
+        r = verify_chain(args.vault_dir, scope="full")
+        d = r.to_dict()
+        print(json.dumps(d, indent=1, ensure_ascii=False, default=str))
+        _sys.exit(0 if d.get("chain_verified") else 1)
+
+    if args.command == "attest":
+        doc = build_epoch_attestation(args.vault_dir)
+        if doc is None:
+            print("nothing to attest — chain gapless")
+        else:
+            r = verify_chain(args.vault_dir, scope="full")
+            print(
+                json.dumps(
+                    {
+                        "attestation_written": str(paths_for(args.vault_dir).vault_dir / ATTESTATION_FILENAME),
+                        "epoch_start_line_no": doc.get("epoch_start_line_no"),
+                        "historical_gap_count": doc.get("historical_gap_count"),
+                        "post_attest_status": str(r.status),
+                        "note": "post_attest_status reflects PRE-attestation verify cache; re-run verify to see epoch-clean",
+                    },
+                    indent=1,
+                )
+            )
+            r2 = verify_chain(args.vault_dir, scope="full")
+            print("verify after attest:", str(r2.status), "| epoch:", json.dumps(r2.epoch, default=str) if r2.epoch else None)

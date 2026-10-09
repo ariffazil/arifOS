@@ -53,6 +53,11 @@ class EffectiveState:
     reason: str = "ACTOR_NOT_VERIFIED"
     derived_from: str = "session_capability_token_v1"
     computed_at: float = field(default_factory=time.time)
+    # APEX-777: session_authority_state separates session gate from organ health.
+    # "substrate_state" in response = deployment drift / organ health.
+    # "session_authority_state" = why THIS session is restricted.
+    # Agents must not conflate the two.
+    session_authority_state: str = "OBSERVE_ONLY"
 
 
 def compute_effective_state(
@@ -77,6 +82,8 @@ def compute_effective_state(
     state = EffectiveState(actor_verified=actor_verified)
 
     # ── Compute authority band ──────────────────────────────────────
+    # APEX-777: session_authority_state tracks WHY the session is restricted,
+    # separate from substrate_state which tracks organ health.
     if actor_role == "sovereign" and actor_verified:
         state.authority_band = AuthorityBand.SOVEREIGN
         state.verdict = EffectiveVerdict.FULL
@@ -117,6 +124,10 @@ def compute_effective_state(
         state.seal_allowed = False
         state.reason = "ANONYMOUS"
 
+    # APEX-777: Derive session_authority_state from the computed reason.
+    # This field is read-only context for agents — it does NOT gate anything.
+    state.session_authority_state = state.reason
+
     return state
 
 
@@ -154,4 +165,5 @@ def to_dict(state: EffectiveState) -> dict[str, Any]:
         "reason": state.reason,
         "derived_from": state.derived_from,
         "computed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(state.computed_at)),
+        "session_authority_state": state.session_authority_state,
     }

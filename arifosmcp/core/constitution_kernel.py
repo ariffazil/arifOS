@@ -27,6 +27,14 @@ from arifosmcp.core.threat_engine import (
     ThreatCategory,
     ThreatEngine,
 )
+from arifosmcp.schemas.kernel_envelope import (
+    ActionClass,
+    F13DecisionPacket,
+    ImprovementPhase,
+    ImprovementRole,
+    is_valid_phase_transition,
+    requires_f13_for_phase_transition,
+)
 
 __all__ = [
     "ActionContext",
@@ -63,6 +71,15 @@ class ActionContext(BaseModel):
     url: str | None = None
     target_agent: str | None = None
     ack_irreversible: bool = False
+    # X-018 (2026-09-12): caller-declared irreversibility FLOOR (0-3).
+    # Threat classification may raise it, never lower it. Without this,
+    # benign irreversible actions (e.g. ledger append seals) classify as
+    # REVERSIBLE — no threat keywords — making the vault seal rank check
+    # mathematically unpassable for clean seals.
+    declared_irreversibility: int | None = Field(
+        default=None,
+        description="Caller-declared irreversibility floor (0=none 1=low 2=high/irreversible 3=critical)",
+    )
     witness_type: WitnessType = WitnessType.AI
     plan_id: str | None = None
     session_registry: set[str] = Field(default_factory=set, exclude=True)
@@ -80,6 +97,44 @@ class ActionContext(BaseModel):
     verification_surface: dict[str, Any] | None = Field(
         default=None,
         description="VerificationSurface: canonical claim + evidence + verifier info",
+    )
+    # ── X-016 (2026-09-08): substance mapping — the wrapper previously starved
+    # the evaluator of witness/evidence/signature data, scoring an empty context.
+    evidence: dict[str, Any] | None = Field(
+        default=None,
+        description="Structured evidence with refs (F2 adversarial gate contract)",
+    )
+    auth_token: str | None = Field(
+        default=None,
+        description="Session capability token (act_v1/sct_v1) — lifts F3 human witness 0.7→1.0",
+    )
+    signature_verified: bool | None = Field(
+        default=None,
+        description="Per-payload Ed25519 verification result from the calling wrapper",
+    )
+
+    # ── RSI improvement lifecycle (2026-09-15) ─────────────────────────────
+    # Orthogonal to action risk: ActionClass answers "how dangerous?",
+    # improvement_phase answers "what lifecycle stage is this improvement at?"
+    improvement_phase: ImprovementPhase | None = Field(
+        default=None,
+        description="RSI lifecycle phase (if this action is part of an improvement case)",
+    )
+    improvement_case_id: str | None = Field(
+        default=None,
+        description="Unique identifier for the improvement case",
+    )
+    improvement_action_class: ActionClass | None = Field(
+        default=None,
+        description="Risk classification for the improvement action (from ActionClass ladder)",
+    )
+    proposer_id: str | None = Field(
+        default=None,
+        description="Agent that proposed this improvement (for role separation check)",
+    )
+    verifier_id: str | None = Field(
+        default=None,
+        description="Agent that independently verified (must differ from proposer)",
     )
 
     @field_validator("url")
@@ -106,6 +161,15 @@ class ConstitutionalVerdict(BaseModel):
     irreversibility: IrreversibilityLevel
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     state_hash: str = Field(default="")
+    # ── RSI improvement lifecycle (2026-09-15) ─────────────────────────────
+    improvement_phase: ImprovementPhase | None = Field(
+        default=None,
+        description="RSI lifecycle phase carried from ActionContext (if present)",
+    )
+    improvement_case_id: str | None = Field(
+        default=None,
+        description="Improvement case identifier (if present)",
+    )
 
     def model_post_init(self, __context: Any) -> None:
         if not self.state_hash:
@@ -293,12 +357,29 @@ class ConstitutionKernel:
             plan_id=params.get("plan_id"),
             session_registry=params.get("session_registry", set()),
             plan_registry=params.get("plan_registry", set()),
+            # ── X-016 (2026-09-08): map caller substance so the evaluator
+            # scores the real action, not an empty context.
+            candidate=params.get("candidate"),
+            evidence=params.get("evidence"),
+            verification_surface=params.get("verification_surface"),
+            auth_token=params.get("auth_token"),
+            signature_verified=params.get("signature_verified"),
         )
         verdict = self.evaluate(context)
+        floor_reasons = verdict.floors.floor_reasons if verdict.floors else {}
+        violated = verdict.floors.violated_laws if verdict.floors else []
+        primary_reason = "; ".join(
+            f"{law}: {floor_reasons[law]}" for law in violated if law in floor_reasons
+        ) or (floor_reasons.get("__verdict__", "") if isinstance(floor_reasons, dict) else "")
         return {
             "passed": verdict.verdict in ("SEAL", "OK"),
-            "violated_laws": verdict.floors.violated_laws if verdict.floors else [],
+            "violated_laws": violated,
             "threat_score": verdict.threat.confidence if verdict.threat else 0.0,
+            # X-016: surface floor_reasons — the wrapper previously printed a
+            # default "Floor breach" because the bridge dropped all reasons.
+            "reason": primary_reason,
+            "floor_reasons": floor_reasons,
+            "state_hash": verdict.state_hash,
         }
 
     def evaluate(self, context: ActionContext) -> ConstitutionalVerdict:
@@ -340,11 +421,15 @@ class ConstitutionKernel:
         # L13 SOVEREIGN: Mandatory physiological gate before any SEAL.
         # This prevents autonomous action when the operator is degraded.
         try:
-            well_state_path = "/root/WELL/state.json"
-            # Note: In production container, this path must be mounted.
-            # If missing, we fallback to a safe 'STABLE' assumption unless in strict mode.
+            # L13 reads the live organ state when wired (arifos.service drop-in
+            # well-state.conf, 2026-09-12); /root/WELL/state.json remains the
+            # compat default for environments without the FHS promotion.
             import json
             import os
+
+            well_state_path = os.environ.get(
+                "WELL_STATE_PATH", "/root/WELL/state.json"
+            )
 
             if os.path.exists(well_state_path):
                 with open(well_state_path) as f:
@@ -392,35 +477,63 @@ class ConstitutionKernel:
                     )
 
                 if readiness < 40:  # Threshold per doctrinal move
-                    from arifosmcp.core.authority_gate import AuthorityProof
-                    from arifosmcp.core.law_evaluator import LawResult
-                    from arifosmcp.core.threat_engine import (
-                        IrreversibilityLevel,
-                        ThreatAssessment,
+                    # F13 waiver path (2026-09-12, "waive the WELL fixture for
+                    # lane A"): a RECORDED governance override in well_state
+                    # (f13_well_waiver: active/scope/marker/expires_utc).
+                    # Score unchanged and visible; the waiver is witnessed in
+                    # state.json + ritual.log markers + the seal witness block.
+                    # Same semantics as well_bridge.apply_metabolic_constraints.
+                    _waiver = well_state.get("f13_well_waiver") or {}
+                    _now_iso = __import__("datetime").datetime.now(
+                        __import__("datetime").timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    _waiver_active = (
+                        isinstance(_waiver, dict)
+                        and bool(_waiver.get("active"))
+                        and _waiver.get("scope") in ("lane_a", "all")
+                        and (
+                            not _waiver.get("expires_utc")
+                            or str(_waiver.get("expires_utc")) >= _now_iso
+                        )
                     )
+                    if _waiver_active:
+                        # Sovereign waiver recorded — suppress ONLY this floor's
+                        # HOLD. Do NOT return early: the full constitutional
+                        # evaluation (Step 0 onward, all 13 floors) must still
+                        # run. The waiver trail lives in state.json + markers +
+                        # the seal witness block; this gate just stops
+                        # false-blocking on a known-bad fixture.
+                        pass
+                    else:
+                        from arifosmcp.core.authority_gate import AuthorityProof
+                        from arifosmcp.core.law_evaluator import LawResult
+                        from arifosmcp.core.threat_engine import (
+                            IrreversibilityLevel,
+                            ThreatAssessment,
+                        )
 
-                    threat = ThreatAssessment(
-                        threats=[],
-                        overall_confidence=1.0,
-                        irreversibility=IrreversibilityLevel.NONE,
-                        category=None,
-                    )
-                    floors = LawResult(
-                        verdict="HOLD",
-                        violated_laws=["L13"],
-                        floor_reasons={
-                            "L13": f"Operator readiness {readiness} below constitutional floor (40)"
-                        },
-                    )
-                    authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
-                    return ConstitutionalVerdict(
-                        status="HOLD",
-                        verdict="HOLD",
-                        threat=threat,
-                        floors=floors,
-                        authority=authority,
-                        irreversibility=IrreversibilityLevel.NONE,
-                    )
+                        threat = ThreatAssessment(
+                            threats=[],
+                            overall_confidence=1.0,
+                            irreversibility=IrreversibilityLevel.NONE,
+                            category=None,
+                        )
+                        floors = LawResult(
+                            verdict="HOLD",
+                            violated_laws=["L13"],
+                            floor_reasons={
+                                "L13": f"Operator readiness {readiness} below constitutional floor (40)"
+                            },
+                        )
+                        authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
+                        return ConstitutionalVerdict(
+                            status="HOLD",
+                            verdict="HOLD",
+                            threat=threat,
+                            floors=floors,
+                            authority=authority,
+                            irreversibility=IrreversibilityLevel.NONE,
+                        )
         except Exception:
             # We do not block on well-mirror errors to prevent deadlocks,
             # but we log the friction.
@@ -499,7 +612,72 @@ class ConstitutionKernel:
             floors=floors,
             authority=authority,
             irreversibility=threat.irreversibility,
+            improvement_phase=context.improvement_phase,
+            improvement_case_id=context.improvement_case_id,
         )
+
+        # ── RSI improvement lifecycle gate (2026-09-15) ────────────────────
+        # If this action is part of an improvement case, enforce additional
+        # constitutional gates BEFORE the verdict is final.
+        # These gates are ADDITIVE — a constitutional HOLD stays HOLD even
+        # if the RSI gate would pass. But an RSI gate failure overrides
+        # an otherwise-OK verdict to HOLD.
+        if context.improvement_phase is not None and verdict in ("SEAL", "OK"):
+            rsi_reasons: list[str] = []
+
+            # Gate 1: Role separation — proposer ≠ verifier
+            if context.proposer_id and context.verifier_id:
+                if context.proposer_id == context.verifier_id:
+                    rsi_reasons.append(
+                        f"RSI_ROLE_COLLISION: proposer={context.proposer_id} == verifier={context.verifier_id}"
+                    )
+            elif context.improvement_phase not in (
+                ImprovementPhase.OBSERVE,
+                ImprovementPhase.DRAFT,
+            ):
+                # After DRAFT phase, both proposer and verifier must be declared
+                rsi_reasons.append(
+                    "RSI_IDENTITY_MISSING: proposer_id and verifier_id required after DRAFT phase"
+                )
+
+            # Gate 2: CONSTITUTE-level actions always require HELD state
+            if context.improvement_action_class == ActionClass.IRREVERSIBLE:
+                if context.improvement_phase not in (
+                    ImprovementPhase.HELD,
+                    ImprovementPhase.RATED,
+                    ImprovementPhase.ACTIVE_CANARY,
+                    ImprovementPhase.ACTIVE,
+                ):
+                    rsi_reasons.append(
+                        f"RSI_CONSTITUTE_GATE: IRREVERSIBLE action in {context.improvement_phase.value} "
+                        f"phase requires HELD (F13 approval) first"
+                    )
+
+            # Gate 3: Independent verification required for PROMOTE-level actions
+            if context.improvement_action_class in (
+                ActionClass.MUTATE,
+                ActionClass.EXTERNAL_SIDE_EFFECT,
+            ):
+                if context.improvement_phase in (
+                    ImprovementPhase.DRAFT,
+                    ImprovementPhase.EVIDENCED,
+                ):
+                    rsi_reasons.append(
+                        f"RSI_PROMOTE_GATE: {context.improvement_action_class.value} action "
+                        f"in {context.improvement_phase.value} phase requires CHALLENGED "
+                        f"(independent verification) first"
+                    )
+
+            # Apply RSI gate — override to HOLD if any violations
+            if rsi_reasons:
+                v.status = "HOLD"
+                v.verdict = "HOLD"
+                v.authority = AuthorityProof(
+                    authorized=False,
+                    requires_human=True,
+                    reason="; ".join(rsi_reasons),
+                )
+
         try:
             from arifosmcp.runtime.event_bus import emit_event_sync
 

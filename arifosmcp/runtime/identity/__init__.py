@@ -80,7 +80,16 @@ try:
 except ImportError:
     import tomli as tomllib  # type: ignore[no-redef]
 
-IDENTITY_TOML_PATH = Path("/opt/arifos/app/identity.toml")
+# ONE_ORIGIN (2026-09-16): identity.toml is host-specific configuration —
+# FHS home is /etc/arifos/identity.toml. Resolution: env override →
+# /etc/arifos/identity.toml → legacy app-tree path (transition fallback).
+# The stub-identity fallback below stays as the last-resort fail-safe.
+_IDENTITY_CANDIDATES = [
+    Path(os.environ.get("ARIFOS_IDENTITY_TOML", "")) if os.environ.get("ARIFOS_IDENTITY_TOML") else None,
+    Path("/etc/arifos/identity.toml"),
+    Path("/opt/arifos/app/identity.toml"),
+]
+IDENTITY_TOML_PATH = next((p for p in _IDENTITY_CANDIDATES if p and p.is_file()), Path("/etc/arifos/identity.toml"))
 _cached_identity: dict[str, Any] | None = None
 
 

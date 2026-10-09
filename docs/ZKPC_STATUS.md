@@ -1,9 +1,15 @@
 # ZKPC (Zero-Knowledge Proof of Personhood & Continuity) Status
-**Current Readiness:** ~85% (Real Cryptographic Verification Operational)
-**Date:** 2026-05-11
 
-## Overview
-arifOS has crossed from "Trust via Key Possession" to "Trust via Sovereign Human Continuity" to **"Trust via Real Cryptographic Proof."** The ZKPC v2 subsystem now performs genuine Groth16 verification via `snarkjs` — no simulation, no structural-only placeholder.
+> **BUKAN STATUS HIDUP.** Disemak 2026-09-27T00:32:19Z.
+> Tiada pada cakera: `/root/zkpc`, `/root/arifOS/arifos/security/zkpc_v2.py`, `/root/forge_work/ZK_PC`, dan perintah `circom`.
+> Angka "~85%" dan ayat "Groth16 operational" di bawah ialah rekod 2026-05-11. Jangan dipetik sebagai keadaan semasa.
+> Pemisahan yang masih hidup: `ZKPC_DISTINCTION.md`. Draf litar: `/root/AAA/canon/ZK_PC_v0.1.1_SPEC.md` (CANON DRAFT, belum disahkan). `SECURITY.md` masih menulis bukti sifar-pengetahuan ditangguhkan.
+
+**Rekod 2026-05-11, bukan keadaan hidup:** dakwaan lama "~85% (Real Cryptographic Verification Operational)". Jangan dipetik sebagai status semasa.
+
+## Overview (rekod 2026-05-11, dibatalkan oleh semakan 2026-09-27)
+
+arifOS has crossed from "Trust via Key Possession" to "Trust via Sovereign Human Continuity" to **"Trust via Real Cryptographic Proof."** The ZKPC v2 subsystem now performs genuine Groth16 verification via `snarkjs` — no simulation, no structural-only placeholder. Ayat ini tidak benar pada 2026-09-27: fail dan litar yang disebut tiada.
 
 The architectural governance scaffolding remains fully embedded within the canonical 13-tool pipeline. The system formally distinguishes between possession (Level 0), continuity (Level 1), and personhood (Level 2).
 
@@ -47,9 +53,9 @@ python -m pytest tests/ -k "zkpc or zk or snark" -v --tb=short
 # 25 passed, 1309 deselected
 ```
 
-## Honest Claim
+## Dakwaan pada 2026-05-11, tidak disahkan semula
 
 > ZKPC v2 proves continuity of control, not full personhood.
 > Cryptography proves control and authorship. It does not replace human judgment.
 
-DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
+DITEMPA BUKAN DIBERI — rekod 2026-05-11. Bukan seal hidup.

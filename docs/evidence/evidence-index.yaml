@@ -1,0 +1,43 @@
+version: "1.0"
+last_updated: "2026-09-16"
+artifacts:
+  - name: "MCP Conformance CI"
+    path: ".github/workflows/06-mcp-conformance.yml"
+    type: ci_workflow
+    status: active
+  - name: "ABI Conformance CI"
+    path: ".github/workflows/federation-abi-conformance.yml"
+    type: ci_workflow
+    status: active
+  - name: "CycloneDX SBOM Generator"
+    path: "arifosmcp/arifos_sbom.py"
+    type: generator
+    status: active
+  - name: "PyPI Publish Workflow"
+    path: ".github/workflows/07-publish-pypi.yml"
+    type: ci_workflow
+    status: active
+  - name: "Adversarial Spec"
+    path: "AAA/docs/ADVERSARIAL_SPEC_EXTERNAL.md"
+    type: specification
+    status: ready_for_execution
+  - name: "Pre-audit Results"
+    path: "AAA/docs/PRE_AUDIT_RESULTS.md"
+    type: audit
+    status: 4_unfixed_gaps
+  - name: "Observability Gap Audit"
+    path: "AAA/reports/observability-convergence-2026-09-15/OBSERVABILITY_GAP_AUDIT.md"
+    type: audit
+    status: 21.9_percent_coverage
+  - name: "Trace Propagation Schema"
+    path: "AAA/governance/observability/TRACE_PROPAGATION_SCHEMA.md"
+    type: specification
+    status: exists_not_wired
+  - name: "Quickstart Guide"
+    path: "docs/QUICKSTART.md"
+    type: documentation
+    status: exists
+  - name: "Enterprise Demo"
+    path: "examples/enterprise_operations_demo.py"
+    type: example
+    status: exists

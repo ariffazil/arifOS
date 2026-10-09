@@ -14,8 +14,10 @@ from __future__ import annotations
 import json
 import logging
 import hashlib
+import re
 from typing import Any, Literal
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.models.verdicts import Verdict
 
 # Sync core accepts ack_irreversible. Async MCP wrapper (_arif_seal /
@@ -121,6 +123,7 @@ def _tag_session_close_epistemic(
     return _json.dumps(body, ensure_ascii=False)
 
 
+@trace_tool("arif_seal")
 async def arif_seal(
     mode: Literal[
         "seal",
@@ -134,6 +137,7 @@ async def arif_seal(
         "chain_status",  # Public chain head + last N entries
         "audit",  # Full audit report with receipts
         "session_close",  # Autonomous 5-phase session seal (EUREKA 2026-07-30)
+        "receipt",  # Lane B autonomous institutional record (2026-09-16)
     ] = "seal",
     # 999_SEAL NOTE (F13, 2026-07-24):
     # arif_seal is deterministic — it appends the prior arif_judge verdict to
@@ -289,6 +293,163 @@ async def arif_seal(
     _SEAL_DANGEROUS_MODES = frozenset({"seal", "session_close"})
     _effect_class = "OBSERVE" if mode in _SEAL_SAFE_MODES else "IRREVERSIBLE"
     _auth_band = (_standing_authority or "OBSERVE_ONLY").upper()
+
+    # ── Lane B RECEIPT (2026-09-16): autonomous institutional record append ──
+    # Doctrine (seal-discipline): SEAL (Lane A, constitutional verdict,
+    # sovereign-gated) != RECEIPT (Lane B, autonomous observational record).
+    # Daily SessionEnd hooks call mode=receipt; the mode previously did not
+    # exist and every call died at the interceptor — VAULT999 starved
+    # silently (zero writes witnessed 2026-09-16). Appends a hash-chained
+    # VaultReceipt via the standard machinery. No E1 token, no FQ gate,
+    # no f13_override — receipts are records, not powers.
+    if mode == "receipt":
+        from arifosmcp.core.vault_receipt import (
+            create_and_seal_receipt,
+            resolve_receipt_identity,
+        )
+
+        _rb_actor = actor_id or "unknown"
+        _rb_session = session_id or "anonymous"
+        # D2 fix (F13 GO 4, 2026-09-16): attribution binding — the recorded
+        # actor derives from a kernel-verified credential when present:
+        #   session_token (ACT/SCT) -> verify_act() claims -> sct_bound
+        #   no credential            -> claimed actor, labeled self_reported
+        #   sovereign claim without binding -> HOLD (impersonation wall)
+        # A presented-but-invalid token is worse than none: HOLD.
+        _rb_verify = "self_reported"
+        # GO6-F1: normalize separators so no spelling of the sovereign name
+        # slips the wall (space/dash/underscore collapse; includes full name).
+        _rb_norm = re.sub(r"[\s_-]+", "", str(_rb_actor)).upper()
+        _rb_sovereign_names = {
+            "ARIF", "888", "ARIFFAZIL", "F13", "MUHAMMADARIFBINFAZIL",
+            "SOVEREIGN",
+        }
+        if session_token:
+            from arifosmcp.runtime.act_token import verify_act
+
+            _rb_claims = verify_act(session_token)
+            if not _rb_claims:
+                return {
+                    "status": "OK",
+                    "tool": "arif_seal",
+                    "mode": "receipt",
+                    "verdict": "HOLD",
+                    "reasons": [
+                        "receipt refused: presented session_token failed "
+                        "verification — unbound credential is worse than none"
+                    ],
+                }
+            _rb_actor = _rb_claims.get("actor") or _rb_actor
+            _rb_session = _rb_claims.get("sid") or _rb_session
+            _rb_verify = "sct_bound"
+        elif _rb_norm in _rb_sovereign_names:
+            return {
+                "status": "OK",
+                "tool": "arif_seal",
+                "mode": "receipt",
+                "verdict": "HOLD",
+                "reasons": [
+                    "receipt refused: sovereign identity claimed without a "
+                    "verified credential (D2 attribution wall, F13 GO 4)"
+                ],
+            }
+        else:
+            try:
+                _rsid, _ractor = resolve_receipt_identity(
+                    session_id=_rb_session, actor_id=_rb_actor
+                )
+                if _rsid:
+                    _rb_session = _rsid
+                if _ractor:
+                    _rb_actor = _ractor
+            except Exception:
+                pass
+        _rb_intent = (payload or "session receipt (no payload)")[:2000]
+        _rb_hash = hashlib.sha256(_rb_intent.encode()).hexdigest()
+        # Service runs as user `arifos` with ARIFOS_VAULT_DIR=/var/lib/arifos/vault;
+        # vault_receipt.SessionChain defaults to /root/VAULT999 (root-only write).
+        # Respect the env so receipts land in the service's writable ledger.
+        import os as _rb_os
+
+        _rb_vault_path = _rb_os.path.join(
+            _rb_os.environ.get("ARIFOS_VAULT_DIR", "/root/VAULT999"),
+            "receipts_v2.jsonl",
+        )
+        # D1 fix (enforcement-coverage audit 2026-09-16): Amanah-Replay checks
+        # nonce PRESENCE but never absorbs — same nonce double-appended in live
+        # probe (counters 1,2). Dedupe here: embed the nonce in the receipt's
+        # judge_verdict_ref and refuse a second append for a seen nonce.
+        # O(n) scan per receipt — acceptable at current ledger sizes; index
+        # when receipts exceed ~10k lines.
+        _rb_ref = (
+            f"lane_b_receipt:{nonce}:{_rb_verify}" if nonce else f"lane_b_receipt:{_rb_verify}"
+        )
+        if nonce:
+            # GO6-F3: dedupe key is the nonce prefix alone — the verification
+            # suffix (sct_bound/self_reported) must not split the replay class.
+            _rb_dedupe_key = f"lane_b_receipt:{nonce}:"
+            try:
+                with open(_rb_vault_path) as _rf:
+                    for _line in _rf:
+                        if _rb_dedupe_key in _line:
+                            return {
+                                "status": "OK",
+                                "tool": "arif_seal",
+                                "mode": "receipt",
+                                "verdict": "RECEIPT",
+                                "result": {
+                                    "sealed": True,
+                                    "replayed": True,
+                                    "lane": "B",
+                                },
+                                "reasons": [
+                                    "Nonce already present — replay absorbed, no second append."
+                                ],
+                            }
+            except FileNotFoundError:
+                pass
+        try:
+            _rb_receipt = create_and_seal_receipt(
+                session_id=_rb_session,
+                actor_id=_rb_actor,
+                organ_id=_rb_actor,
+                intent_summary=_rb_intent,
+                intent_hash=_rb_hash,
+                requested_authority="OBSERVE_ONLY",
+                pre_state_hash="",
+                decision="RECEIPT",
+                verdict_hash=hashlib.sha256(b"RECEIPT-LANE-B").hexdigest(),
+                floors_evaluated=["F13"],
+                floors_violated=[],
+                decision_class="C2_STANDARD",
+                witness_count=1,
+                judge_verdict_ref=_rb_ref,
+                vault_path=_rb_vault_path,
+            )
+            return {
+                "status": "OK",
+                "tool": "arif_seal",
+                "mode": "receipt",
+                "verdict": "RECEIPT",
+                "result": {
+                    "sealed": True,
+                    "receipt_id": getattr(_rb_receipt, "receipt_id", None),
+                    "receipt_hash": getattr(_rb_receipt, "receipt_hash", None),
+                    "lane": "B",
+                },
+                "reasons": [
+                    "Lane B institutional receipt appended (autonomous, non-constitutional)."
+                ],
+            }
+        except Exception as _rbe:  # noqa: BLE001
+            return {
+                "status": "OK",
+                "tool": "arif_seal",
+                "mode": "receipt",
+                "verdict": "HOLD",
+                "reasons": [f"receipt append failed: {_rbe}"],
+            }
+
     if mode in _SEAL_DANGEROUS_MODES and _auth_band not in (
         # T3 grant 2026-08-07 by 888 SOVEREIGN: SYSTEM_CRON_WRITE added to
         # allow-list — verified automation identities may seal.
@@ -332,19 +493,7 @@ async def arif_seal(
 
     # Gate S1: Seal requires a prior arif_judge verdict (judge_state_hash or cc_id)
     if mode == "seal" and not (judge_state_hash or constitutional_chain_id):
-        _seal_
-        # FQ FIX: warn on verify concentration gaming
-        try:
-            _recent = []  # placeholder — flow_state import may vary
-            _verify_conc = 0
-            # Real computation would go here
-        except Exception:
-            pass
-
-        reasons.append(
-            "Seal requires judge_state_hash or constitutional_chain_id "
-            "from a prior arif_judge verdict. No self-sealing allowed."
-        )
+        _seal_reasons.append("S1_GATE: seal requires prior arif_judge verdict — pass judge_state_hash or constitutional_chain_id")
 
     # Gate S2: Irreversible seal requires ack
     if mode == "seal" and not ack_irreversible:
@@ -638,6 +787,61 @@ async def arif_seal(
     # Lower-entropy way to expose vault verification: arif_seal mode=verify_chain
     # delegates to arif_vault_verify (read-only chain verifier). This keeps the
     # kernel ABI at 8 tools — vault.verify is a MODE of arif_seal, not a new tool.
+    if mode == "chain_status":
+        # GO7-R1 (2026-09-16): public chain head + last N entries — the mode
+        # was in the Literal + safe-set since 2026-07-18 but never had a
+        # handler branch; calls fell through to "Unknown mode" (fail-closed,
+        # surfaced when the GO6-F2 fix unmasked the interceptor over-block).
+        import os as _cs_os
+
+        _cs_path = _cs_os.path.join(
+            _cs_os.environ.get("ARIFOS_VAULT_DIR", "/root/VAULT999"),
+            "receipts_v2.jsonl",
+        )
+        _cs_entries: list[dict[str, Any]] = []
+        _cs_head = ""
+        try:
+            with open(_cs_path) as _cs_f:
+                _cs_lines = [ln for ln in _cs_f if ln.strip()]
+            for _ln in _cs_lines[-5:]:
+                try:
+                    _e = json.loads(_ln)
+                    _cs_entries.append(
+                        {
+                            "receipt_id": _e.get("receipt_id"),
+                            "ts": _e.get("ts"),
+                            "actor_id": _e.get("actor_id"),
+                            "decision": _e.get("decision"),
+                            "receipt_hash": str(_e.get("receipt_hash"))[:16],
+                            "judge_verdict_ref": _e.get("judge_verdict_ref"),
+                        }
+                    )
+                except json.JSONDecodeError:
+                    continue
+            if _cs_lines:
+                try:
+                    _cs_head = json.loads(_cs_lines[-1]).get("receipt_hash", "")
+                except json.JSONDecodeError:
+                    _cs_head = ""
+        except FileNotFoundError:
+            _cs_entries = []
+        return _echo_standing(
+            SealOutput(
+                mode=mode,
+                verdict=Verdict.SEAL if _cs_head else Verdict.HOLD,
+                status="OK",
+                entry_id="",
+                actor_id=actor_id,
+                meta={
+                    "gate": "PUBLIC_CHAIN_STATUS",
+                    "ledger": _cs_path,
+                    "chain_head": _cs_head,
+                    "total_entries": len(_cs_lines) if _cs_entries else 0,
+                    "last_entries": _cs_entries,
+                },
+            )
+        )
+
     if mode == "verify_chain":
         from arifosmcp.tools.vault import arif_vault_verify as _vault_verify_fn
 
@@ -929,15 +1133,19 @@ async def arif_seal(
         # Delegate to canonical vault_registry — thread-safe, dual-write to VAULT999
         from arifosmcp.runtime.vault_registry import issue_seal
 
+        # 2026-09-16 fix: issue_seal's first param is shell_command (the
+        # bound string), with an optional payload_hash. Both prior call
+        # shapes (payload=/command=) raised TypeError and the E1 token was
+        # silently skipped on every sovereign seal.
         try:
-            _seal_token_value = issue_seal(payload=payload, actor_id=actor_id)
-        except TypeError:
-            # Compatibility across issue_seal signatures
-            try:
-                _seal_token_value = issue_seal(command=payload, actor_id=actor_id)  # type: ignore[call-arg]
-            except Exception as _ise:  # noqa: BLE001
-                logger.warning("issue_seal failed: %s", _ise)
-                _seal_token_value = None
+            _seal_token_value = issue_seal(
+                shell_command=payload,
+                actor_id=actor_id,
+                payload_hash=_payload_hash,
+            )
+        except Exception as _ise:  # noqa: BLE001
+            logger.warning("issue_seal failed: %s", _ise)
+            _seal_token_value = None
         result["seal_token"] = _seal_token_value
         result["payload_hash"] = f"sha256:{_payload_hash}"
         result["meta"] = result.get("meta", {})

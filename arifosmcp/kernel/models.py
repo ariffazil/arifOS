@@ -163,6 +163,13 @@ class TruthClass(str, Enum):
     OBSERVATION = "OBSERVATION"
     MEASUREMENT = "MEASUREMENT"
     DERIVED = "DERIVED"
+    # P0 FIX 2026-09-04 (FI-008): referenced by kernel/interceptor.py F7
+    # overclaim branch (TruthClass.INTERPRETATION) but missing here →
+    # AttributeError whenever that branch fired during arif_seal, crashing
+    # the interceptor into a HOLD fallback. "INTERPRETATION" is first-class
+    # federation epistemic vocabulary (F2 OBS/DER/INT/SPEC; used as a value
+    # across legacy_adapter/tools/tavily_bridge) — the enum was the drift.
+    INTERPRETATION = "INTERPRETATION"
     CLAIM = "CLAIM"
     SIMULATION = "SIMULATION"
     POLICY_VERDICT = "POLICY_VERDICT"

@@ -4,13 +4,14 @@
     "version": "2026.07.15",
     "description": "Constitutional 13-floor MCP gateway. Public surface: 8 canonical tools (arif_verb_noun naming). F1-F13 floors enforced via ConstitutionKernel + FloorEvaluator. VAULT999 immutable ledger. Streamable HTTP + stdio transport."
   },
-  "protocolVersion": "2025-11-25",
-  "mcp_version": "2025-11-25",
+  "protocolVersion": "2026-07-28",
+  "mcp_version": "2026-07-28",
   "supportedProtocolVersions": [
+    "2026-07-28",
     "2025-11-25",
-    "2025-03-26",
     "2024-11-05"
   ],
+  "_migration_note": "2026-09-17: priority list upgraded. Runtime already registers 2026-07-28 via server.py:604-605 (P1 STATELESS 2026-08-01). This manifest was lagging — fixed per F2 TRUTH. Rev: musyawarah-2026-09-17-mcp-migration.",
   "transport": "streamable-http",
   "constitutional_floors": {
     "count": 13,
@@ -24,7 +25,7 @@
     { "name": "arif_think", "description": "KERNEL 333 — Structured reasoning under F2/F7 (not chat, not verdict). Modes: reason | reflect | verify | plan | plan_review | metabolize | axioms | critique. Returns OBS/DER/INT/SPEC labels. Maruah/ethics → use critique mode. Binding decision → arif_judge." },
     { "name": "arif_route", "description": "KERNEL 444 — Intent-organ router (default path to GEOX/WEALTH/WELL/A-FORGE). Select when goal is known but organ/verb is not. Optional organ_tool+arguments = governed bridge call. Returns organ, port, tool_prefix, suggested_tools." },
     { "name": "arif_memory", "description": "KERNEL memory governor — L1-L6 under F1/F2/F4/F11. Modes: recall | inspect | attest | remember | promote | revise | forget. Writes are J-space mutations." },
-    { "name": "arif_judge", "description": "KERNEL 888 — Constitutional verdict. Only organ that SEAL/HOLD/SABAR/VOIDs. Binding floor + authority arbitration. Requires actor, intent, domain, reversibility_level, blast_radius." },
+    { "name": "arif_judge", "description": "KERNEL 666 — Constitutional verdict. Only organ that SEAL/HOLD/SABAR/VOIDs. Binding floor + authority arbitration. Requires actor, intent, domain, reversibility_level, blast_radius." },
     { "name": "arif_forge", "description": "KERNEL 777 — Execution gate via A-FORGE. Mutates only after arif_judge SEAL + lease/chain IDs. Modes: dry_run | engineer | query | write | generate | commit | recall." },
     { "name": "arif_seal", "description": "KERNEL 999 — VAULT999 immutable append. Irreversible civilizational memory. Modes: seal | verify | chain | list | dry_run | session_close | audit. session_close = autonomous 5-phase session seal (organ health → SOT → atlas333 → VAULT999 RECORD → git). Requires ack_irreversible for write modes." }
   ],

@@ -206,7 +206,8 @@ async def consumer_loop() -> None:
             try:
                 msgs = await sub.fetch(BATCH_SIZE, timeout=POLL_INTERVAL_S)
             except Exception:
-                # Timeout with no messages is normal
+                # Timeout with no messages is normal — backoff to prevent tight spin
+                await asyncio.sleep(0.5)
                 continue
 
             sem = asyncio.Semaphore(MAX_CONCURRENT)

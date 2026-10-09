@@ -62,12 +62,12 @@ DEPRECATION_MAP: dict[str, dict[str, Any]] = {
     "arif_bridge_connect": {
         "canonical_tool": "arif_route",
         "mode_override": "bridge",
-        "rationale": "arif_route(mode=bridge) — direct organ tool bridge",
+        "rationale": "arif_route(intent=..., organ_tool=...) — direct organ tool bridge (no mode= param; W-05 FIX)",
     },
     "arif_entropy_route": {
         "canonical_tool": "arif_route",
         "mode_override": "route",
-        "rationale": "arif_route(mode=route) — entropy-aware routing",
+        "rationale": "arif_route(intent=...) — entropy-aware routing (no mode= param; W-05 FIX)",
     },
     # ── Absorbed into arif_judge ──
     "arif_kernel_intercept": {

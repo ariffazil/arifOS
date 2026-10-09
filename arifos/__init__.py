@@ -15,8 +15,15 @@ DITEMPA BUKAN DIBERI.
 from __future__ import annotations
 
 import importlib
+from importlib.metadata import version as _pkg_version, PackageNotFoundError as _PkgNotFound
 
-__version__ = "2026.07.17"
+# __version__ is DERIVED from installed package metadata (single source of truth: pyproject.toml).
+# Hardcoded string here served "2026.07.17" while the wheel said "1!2026.9.6" — same drift class
+# the arifosmcp/__init__.py fix landed. F13 directive 2026-09-30: kill the drift class at the root.
+try:
+    __version__ = _pkg_version("arifos")
+except _PkgNotFound:  # source tree without installed distribution
+    __version__ = "0.0.0.dev0"
 
 _LOCAL_SUBMODULES = {"forge", "aaa"}
 

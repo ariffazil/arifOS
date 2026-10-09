@@ -213,6 +213,41 @@ def capability_reindex(force: bool = False) -> str:
     )
 
 
+@mcp.tool()
+def capability_resolve(
+    agent_id: str,
+    role: str = "observe",
+    task_domains: Optional[list[str]] = None,
+    context_budget: int = 0,
+    eager_max: int = 12,
+) -> str:
+    """Task-scoped capability projection — the eager/deferred/hidden manifest.
+
+    Capability-fabric D2 (F13-ratified 2026-09-17). Returns the JSON manifest an
+    agent should load for THIS task: eager (load now — small, safe, high-evidence,
+    task-critical), deferred (allowed, discover on demand via capability_search),
+    hidden (outside the role's authority ceiling — never loaded silently).
+
+    Roles mirror the kernel verbs: observe | route | forge | judge | seal.
+    Unknown roles fail CLOSED (zero grant). The agent never asks the sovereign —
+    its action surface arrives automatically from the task envelope.
+    """
+    from capability_index.resolve import resolve_capabilities
+
+    records = store.list_records()
+    manifest = resolve_capabilities(
+        records,
+        agent_id=agent_id,
+        role=role,
+        task_domains=task_domains,
+        context_budget=context_budget,
+        eager_max=eager_max,
+    )
+    manifest["index_size"] = len(records)
+    import json as _json
+    return _json.dumps(manifest, indent=1)
+
+
 # ── Entrypoint ───────────────────────────────────────────────────────────────
 
 

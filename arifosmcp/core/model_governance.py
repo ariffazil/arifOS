@@ -66,7 +66,7 @@ def get_governance_card(model_id: str) -> dict[str, Any]:
     the default card: instrument_only + all forbidden roles.
 
     Args:
-        model_id: exact model identifier (e.g. "aisingapore/Qwen-SEA-LION-v4-32B-IT")
+        model_id: exact model identifier (e.g. "aisingapore/Qwen-FED-FEDERATION-v4-32B-IT")
     Returns:
         dict with keys: provider, role, authority, allowed_tools,
         forbidden_roles, rate_limit, fallback, output_required

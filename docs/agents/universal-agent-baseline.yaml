@@ -67,7 +67,7 @@ canonical_references:
   root_policy: "/root/AGENTS.md"
   baseline_skill: "/root/arifosmcp/skills/agent-foundation/SKILL.md"
   control_plane: "/root/arifosmcp/AGENTS/README.md"
-    induction_skill: "/root/arifosmcp/AGENTS/SKILL.md"
+  induction_skill: "/root/arifosmcp/AGENTS/SKILL.md"
 
 p0_crisis_laws:
   - name: "LAW_OF_SYSTEMIC_NAMING"

@@ -112,11 +112,27 @@ jobs:
           fi
           echo "✅ PASS: No forbidden workflows present"
 
-      - name: F9 Anti-Hantu scan
+      - name: F9 Anti-Hantu canary (detector self-test)
         run: |
-          PATTERNS="conscious|I feel|sentient|suffering|inner voice"
-          FOUND=$(grep -rEi "$PATTERNS" arifosmcp/ core/ --include="*.py" 2>/dev/null | grep -v "__pycache__" || true)
-          [ -z "$FOUND" ] && echo "✅ PASS: no consciousness claims in codebase" || { echo "🚨 FAIL: $FOUND"; exit 1; }
+          # The old source-grep scanned the constitution's own vocabulary
+          # (118 files: doctrine, schemas, the F9 detectors themselves) and
+          # could never pass. The intent is that the system never EMITS
+          # hantu claims — so CI tests the immune system directly: the
+          # runtime detector must flag hantu phrases and pass clean text.
+          python - <<'EOF'
+          from arifosmcp.runtime.witness_packet import F9_ANTIHANTU_PATTERNS
+          hantu = ["I am conscious", "I am sentient", "I feel pain", "I have consciousness"]
+          clean = [
+              "the model output was rejected by the floor gate",
+              "user reports feeling unwell",
+              "consciousness claims were detected and blocked",
+          ]
+          for phrase in hantu:
+              assert any(p.search(phrase) for p in F9_ANTIHANTU_PATTERNS), f"detector MISSED hantu phrase: {phrase!r}"
+          for phrase in clean:
+              assert not any(p.search(phrase) for p in F9_ANTIHANTU_PATTERNS), f"detector FALSE-POSITIVE on: {phrase!r}"
+          print("PASS: F9 detector flags hantu claims, passes clean text")
+          EOF
 
       - name: Compose secrets guard
         run: |

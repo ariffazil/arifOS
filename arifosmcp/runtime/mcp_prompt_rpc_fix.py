@@ -42,7 +42,11 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
 
     try:
         import mcp.types as mcp_types
-        from mcp.shared.exceptions import McpError
+        try:
+            from mcp.shared.exceptions import McpError
+        except ImportError:
+            # mcp 2.0.0 renamed McpError → MCPError
+            from mcp.shared.exceptions import MCPError as McpError
     except Exception as e:  # pragma: no cover
         logger.warning("prompt RPC fix: mcp import failed: %s", e)
         return False

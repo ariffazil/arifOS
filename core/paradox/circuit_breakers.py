@@ -1,16 +1,25 @@
 """
 core/paradox/circuit_breakers.py — Epistemic Circuit Breakers (CB1-CB5)
 
-Implements PARADOX_DOCTRINE_V1 Section 7 (P6 — Uncertainty vs Contradiction).
+DETECTOR, NOT A BRAKE (designated 2026-09-18).
+----------------------------------------------------------------------------
+This module REPORTS. It does not STOP anything: every function returns a CircuitBreaker record
+with a state and a suggested_action, and the caller decides. That is its correct role and it is
+live — core/judgment.py and arifosmcp/tools/paradox.py consume it (11 tests pass).
 
-Five circuit breakers prevent epistemic collapse:
-  CB1: Godellock    — Ω₀ < 0.03 (overconfidence)
-  CB2: Single-Witness — Any witness lane W < 0.70
-  CB3: Cheap Truth  — τ > 0.99 but evidence < Landauer bound
-  CB4: Recursive Stack — Self-reference depth > 3 levels
-  CB5: Confidence Cascade — τ rises without new evidence
+THE SINGLE BRAKE IS JITU: /root/AAA/federation/kernel/jitu.py
+    Only JITU halts a lane, only F13 trips it, and every trip leaves a receipt.
+
+Why the separation is deliberate, not accidental:
+    DETECTION may be automated — a machine can notice overconfidence.
+    STOPPING is sovereign — a machine that can halt the federation, or release its own halt,
+    has taken an authority it was not granted. CAPABILITY != AUTHORITY.
+So CB1-CB5 may recommend; they may never trip. Two things named "circuit breaker" that can both
+stop work is not redundancy — it is a shared blind spot.
+
+Original header follows.
+----------------------------------------------------------------------------
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -144,7 +144,15 @@ def _get_redis():
     global _redis_client, _REDIS_AVAILABLE
     if _redis_client is not None:
         return _redis_client
-    redis_url = os.getenv("ARIFOS_REDIS_URL", "redis://127.0.0.1:6379/0")
+    redis_url = os.getenv("ARIFOS_REDIS_URL")
+    if not redis_url:
+        redis_pw = os.getenv("REDIS_PASSWORD")
+        if redis_pw:
+            import urllib.parse
+            encoded_pw = urllib.parse.quote(redis_pw, safe="")
+            redis_url = f"redis://:{encoded_pw}@127.0.0.1:6379/0"
+        else:
+            redis_url = "redis://127.0.0.1:6379/0"
     try:
         import redis as _redis_mod
 
@@ -641,33 +649,53 @@ def resolve_actor_public_key(actor_id: str) -> ed25519.Ed25519PublicKey | None:
             key = _load_pem_public(p2.read_bytes())
             if key:
                 return key
-    for name in (f"{aid}_public.pem", f"{actor_id}_public.pem", f"{aid}.pem"):
-        p = _AAA_KEYS / name
-        if p.is_file():
-            key = _load_pem_public(p.read_bytes())
-            if key:
-                return key
-    for base in (_AFORGE_KEYS / aid, _AFORGE_KEYS / actor_id):
-        if not base.is_dir():
-            continue
-        for p in sorted(base.glob("*public*.pem")) + sorted(base.glob("*.pem")):
-            if "private" in p.name.lower():
+    # Collect candidate names including aliases from canonical identity contracts
+    candidates = [aid, actor_id]
+    try:
+        from contracts.identity import CANONICAL_ACTORS
+        for canon_name, data in CANONICAL_ACTORS.items():
+            if canon_name.lower() == aid or aid in [a.lower() for a in data.get("aliases", [])]:
+                candidates.extend(data.get("aliases", []))
+                candidates.append(canon_name)
+    except Exception:
+        pass
+    candidate_ids: list[str] = []
+    for c in candidates:
+        if c and c not in candidate_ids:
+            candidate_ids.append(c)
+
+    for cid in candidate_ids:
+        for name in (f"{cid}_public.pem", f"{cid}.pem"):
+            p = _AAA_KEYS / name
+            if p.is_file():
+                key = _load_pem_public(p.read_bytes())
+                if key:
+                    return key
+
+    for cid in candidate_ids:
+        for base in (_AFORGE_KEYS / cid, _AFORGE_KEYS / cid.lower()):
+            if not base.is_dir():
                 continue
-            key = _load_pem_public(p.read_bytes())
-            if key:
-                return key
+            for p in sorted(base.glob("*public*.pem")) + sorted(base.glob("*.pem")):
+                if "private" in p.name.lower():
+                    continue
+                key = _load_pem_public(p.read_bytes())
+                if key:
+                    return key
+
     if _AGENT_REGISTRY.is_file():
         try:
             reg = json.loads(_AGENT_REGISTRY.read_text(encoding="utf-8"))
-            entry = reg.get(actor_id) or reg.get(aid)
-            if entry:
-                proof = entry.get("identity_proof") or {}
-                if isinstance(proof, dict) and proof.get("type") == "ed25519":
-                    pem = proof.get("public_key_pem")
-                    if pem:
-                        key = _load_pem_public(pem.encode() if isinstance(pem, str) else pem)
-                        if key:
-                            return key
+            for cid in candidate_ids:
+                entry = reg.get(cid)
+                if entry:
+                    proof = entry.get("identity_proof") or {}
+                    if isinstance(proof, dict) and proof.get("type") == "ed25519":
+                        pem = proof.get("public_key_pem")
+                        if pem:
+                            key = _load_pem_public(pem.encode() if isinstance(pem, str) else pem)
+                            if key:
+                                return key
         except Exception as exc:
             logger.warning("agent_identities load failed: %s", exc)
     for reg_path in _DID_REGISTRY_CANDIDATES:
@@ -777,6 +805,58 @@ def verify_actor_signature(actor_id: str, nonce: str, signature_b64: str) -> boo
     return ok
 
 
+_SOVEREIGN_ALIAS_TUPLE = ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888")
+
+
+def _canonical_payloads(
+    actor_id: str,
+    nonce: str,
+    constitution_hash: str | None = None,
+) -> list[tuple[str, bytes]]:
+    """P0 FIX 2026-09-04 (FI-008): SINGLE SOURCE of canonical Ed25519 payload
+    formats. Used by verify_init_identity AND sovereign_verify
+    .compute_verified_key_id so the verifier and the key-id deriver can
+    never drift.
+
+    Sovereign alias coverage on the PLAIN nonce payloads: the ABI layer may
+    normalize actor_id to uppercase (e.g. "ARIF") while callers sign with any
+    sovereign variant ("ariffazil:<nonce>"). Previously aliases were only
+    tried for constitution-prefixed payloads, so a plain "{alias}:{nonce}"
+    signature failed with ed25519_signature_invalid even though the key was
+    correct — the LIMITED_MUTATE root cause #2.
+    """
+    payloads: list[tuple[str, bytes]] = [("actor_nonce", f"{actor_id}:{nonce}".encode())]
+    aid_norm = _normalize_actor(actor_id)
+    if aid_norm != actor_id:
+        payloads.append(("actor_norm_nonce", f"{aid_norm}:{nonce}".encode()))
+    if aid_norm in _SOVEREIGN_ALIAS_TUPLE:
+        for alias in _SOVEREIGN_ALIAS_TUPLE:
+            if alias not in (actor_id, aid_norm):
+                payloads.append(
+                    (f"alias_{alias}_nonce", f"{alias}:{nonce}".encode())
+                )
+    if constitution_hash:
+        payloads.append(
+            ("actor_constitution_nonce", f"{actor_id}:{constitution_hash}:{nonce}".encode())
+        )
+        if aid_norm != actor_id:
+            payloads.append(
+                (
+                    "actor_norm_constitution_nonce",
+                    f"{aid_norm}:{constitution_hash}:{nonce}".encode(),
+                )
+            )
+        for alias in _SOVEREIGN_ALIAS_TUPLE:
+            if aid_norm in _SOVEREIGN_ALIAS_TUPLE and alias != aid_norm and alias != actor_id:
+                payloads.append(
+                    (
+                        f"alias_{alias}_constitution_nonce",
+                        f"{alias}:{constitution_hash}:{nonce}".encode(),
+                    )
+                )
+    return payloads
+
+
 def verify_init_identity(
     actor_id: str,
     nonce: str,
@@ -799,29 +879,7 @@ def verify_init_identity(
         signature_bytes = base64.b64decode(signature_b64)
     except Exception:
         return False, "signature_b64_invalid"
-    payloads: list[tuple[str, bytes]] = [("actor_nonce", f"{actor_id}:{nonce}".encode())]
-    aid_norm = _normalize_actor(actor_id)
-    if aid_norm != actor_id:
-        payloads.append(("actor_norm_nonce", f"{aid_norm}:{nonce}".encode()))
-    if constitution_hash:
-        payloads.append(
-            ("actor_constitution_nonce", f"{actor_id}:{constitution_hash}:{nonce}".encode())
-        )
-        if aid_norm != actor_id:
-            payloads.append(
-                (
-                    "actor_norm_constitution_nonce",
-                    f"{aid_norm}:{constitution_hash}:{nonce}".encode(),
-                )
-            )
-        for alias in ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888"):
-            if aid_norm in ("arif", "ariffazil", "arif-fazil", "arif_fazil", "888") and alias != aid_norm:
-                payloads.append(
-                    (
-                        f"alias_{alias}_constitution_nonce",
-                        f"{alias}:{constitution_hash}:{nonce}".encode(),
-                    )
-                )
+    payloads = _canonical_payloads(actor_id, nonce, constitution_hash)
     matched_payload = None
     for label, message_bytes in payloads:
         try:

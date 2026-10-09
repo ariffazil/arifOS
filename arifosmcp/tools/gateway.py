@@ -118,6 +118,22 @@ def arif_gateway_connect(
                 if contract is None and contract_url:
                     import urllib.request
 
+                    # SSRF guard (external report, 2026-08-24, finding #2): this
+                    # path handed a caller-supplied URL straight to urlopen with no
+                    # validation — the same class as the fetch paths closed on
+                    # 2026-08-25 by commit 285a956d8, which never covered here.
+                    # Reuse the single source of truth rather than re-implement.
+                    from arifosmcp.runtime.ssrf_guard import resolve_blocked
+
+                    ssrf_flag = resolve_blocked(contract_url)
+                    if ssrf_flag is not None:
+                        return _hold(
+                            "arif_gateway_connect",
+                            f"SSRF blocked: {ssrf_flag} — contract_url must resolve to a "
+                            "public address; peer contracts are fetched, not dialled inward.",
+                            ["F1", "F11"],
+                        )
+
                     with urllib.request.urlopen(contract_url, timeout=10) as resp:
                         contract = json.loads(resp.read().decode("utf-8"))
                 validated = PeerFederationContract.model_validate(

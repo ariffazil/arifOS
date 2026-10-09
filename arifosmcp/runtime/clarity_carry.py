@@ -12,9 +12,29 @@ import time
 from typing import Any
 
 CARRY_PATH = os.getenv("ARIFOS_CARRY_FORWARD", "/root/.local/share/arifos/carry_forward.json")
+CLARITY_LEDGER_PATH = os.getenv(
+    "ARIFOS_CLARITY_LEDGER",
+    "/root/.local/share/arifos/carry_forward.clarity_ledger.jsonl",
+)
 CONTRA_LEDGER = os.getenv(
     "ARIFOS_CONTRADICTION_LEDGER", "/root/arifOS/arifosmcp/runtime/contradiction_ledger.jsonl"
 )
+
+
+def _emit_sidecar(entry: dict[str, Any]) -> str:
+    """Append a clarity receipt to the sidecar JSONL ledger WITHOUT touching
+    the v2 generational carry_forward dict. Returns path written.
+
+    2026-09-12 GUARD (canary event SEAL-38cbac302a574600): the legacy
+    'not a list → corrupted → recover' branch destroyed the v2 dict twice
+    in one day (26.6KB generational state → 310B array). A dict on the
+    canonical path is the arifos.carry_forward.v2 state written by
+    carry_forward.py — it is NEVER corruption. Divert, never destroy.
+    """
+    os.makedirs(os.path.dirname(CLARITY_LEDGER_PATH), exist_ok=True)
+    with open(CLARITY_LEDGER_PATH, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+    return CLARITY_LEDGER_PATH
 
 
 def emit_carry_forward(
@@ -40,9 +60,15 @@ def emit_carry_forward(
         data: list[dict[str, Any]] = []
         if os.path.exists(CARRY_PATH):
             with open(CARRY_PATH) as f:
-                data = json.load(f)
-            if not isinstance(data, list):
-                data = []  # corrupted — recover
+                loaded = json.load(f)
+            if not isinstance(loaded, list):
+                # 2026-09-12 GUARD (canary SEAL-38cbac302a574600): a dict here
+                # is the v2 generational state (arifos.carry_forward.v2) —
+                # NOT corruption. The legacy "recover" branch destroyed it on
+                # every arif_seal (26.6KB → 310B, twice on 2026-09-12).
+                # Divert this entry to the sidecar ledger; never destroy.
+                return _emit_sidecar(entry)
+            data = loaded
         data.append(entry)
         trimmed = data[-50:]  # keep last 50
 

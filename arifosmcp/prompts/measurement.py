@@ -29,7 +29,9 @@ SHADOW_REGISTRY_PATH = (
     Path("/root/A-FORGE/forge_work/measurement") / "entropy_registry.shadow.jsonl"
 )
 PERFORMANCE_DIR = Path("/root/A-FORGE/forge_work")
-VAULT999_PATH = Path("/root/VAULT999/seal_chain.jsonl")
+# Canonical seal chain (canonical_vault_chain.py DEFAULT_VAULT_DIR; twin-chain
+# repair 2026-09-25 — /root/VAULT999/seal_chain.jsonl is a closed legacy twin).
+VAULT999_PATH = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
 CARRY_FORWARD_PATH = Path("/root/.local/share/arifos/carry_forward.json")
 BASELINE_WINDOW = 20  # number of past seals for moving average
 

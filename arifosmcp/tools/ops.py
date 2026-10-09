@@ -1066,4 +1066,86 @@ def arif_measure(
                 )
             )
 
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # FRAME PROXY MODES — Independent Epistemic Observatory
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # Delegates to frame-organ.service :18085 (independent failure domain).
+    # FRAME computes evidence; arifOS relays transparently.
+    # Authority: OBSERVATIONAL_ONLY — all payloads carry FRAME's own authority stamp.
+    # APEX-ZEN: FRAME is the jauhari loupe, not the judge.
+    # Doc: /root/AAA/federation/frame/APEX-ZEN-FRAME-ARCHITECTURE.md
+    # ═══════════════════════════════════════════════════════════════════════════════
+
+    _FRAME_ENDPOINTS = {
+        "frame_health": "/health",
+        "frame_probe": "/frame/probe",
+        "frame_drift": "/frame/drift",
+        "frame_baseline": "/frame/baseline",
+        "frame_report": "/frame/report",
+        "frame_verify": "/frame/rsi-verify",
+    }
+    _FRAME_TREND = "frame_trend"
+
+    if mode in _FRAME_ENDPOINTS or mode == _FRAME_TREND:
+        FRAME_HOST = "127.0.0.1"
+        FRAME_PORT = 18085
+        FRAME_TIMEOUT = 15
+
+        if mode == _FRAME_TREND:
+            hours = 24  # default
+            path = f"/frame/trend?hours={hours}"
+        else:
+            path = _FRAME_ENDPOINTS[mode]
+
+        try:
+            req = urllib.request.Request(
+                f"http://{FRAME_HOST}:{FRAME_PORT}{path}",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=FRAME_TIMEOUT) as resp:
+                frame_data = json.loads(resp.read().decode())
+
+            return TelemetryBlock(
+                **_ok(
+                    "arif_measure",
+                    frame_data,
+                    meta={
+                        **drift_metrics,
+                        "mode": mode,
+                        "source": "frame-organ",
+                        "frame_host": FRAME_HOST,
+                        "frame_port": FRAME_PORT,
+                        "authority": "OBSERVATIONAL_ONLY",
+                    },
+                    session_id=session_id,
+                )
+            )
+        except urllib.error.URLError as exc:
+            return TelemetryBlock(
+                **_ok(
+                    "arif_measure",
+                    {
+                        "status": "FRAME_UNREACHABLE",
+                        "mode": mode,
+                        "error": str(exc)[:200],
+                        "frame_host": FRAME_HOST,
+                        "frame_port": FRAME_PORT,
+                    },
+                    meta={
+                        **drift_metrics,
+                        "mode": mode,
+                        "source": "frame-organ-unreachable",
+                    },
+                    session_id=session_id,
+                )
+            )
+        except Exception as exc:
+            return TelemetryBlock(
+                **_hold(
+                    "arif_measure",
+                    f"FRAME {mode} failed: {exc}",
+                    session_id=session_id,
+                )
+            )
+
     return TelemetryBlock(**_hold("arif_measure", f"Unknown mode: {mode}", session_id=session_id))

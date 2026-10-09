@@ -1,9 +1,9 @@
 """
-tests/test_no_quote_generation.py — SEA-LION must never invent quotes.
+tests/test_no_quote_generation.py — FED-FEDERATION must never invent quotes.
 
 Acceptance:
-A. Mock SEA-LION returns quote not in ledger → status=hold, error=quote_not_in_approved_ledger
-B. Mock SEA-LION mutates quote text → status=hold, error=quote_integrity_failed
+A. Mock FED-FEDERATION returns quote not in ledger → status=hold, error=quote_not_in_approved_ledger
+B. Mock FED-FEDERATION mutates quote text → status=hold, error=quote_integrity_failed
 """
 
 from __future__ import annotations

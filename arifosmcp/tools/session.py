@@ -17,6 +17,7 @@ import time as _time
 logger = logging.getLogger(__name__)
 
 # ── Enforcement Envelope (AOB P0 — 2026-07-03) ──
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.schemas.enforcement_envelope import (
     make_ephemeral_envelope,
 )
@@ -71,6 +72,41 @@ INIT_FAILURE_TYPE: dict[str, str] = {
 }
 
 
+def _build_unknown_classification(reason: str, failure_type: str) -> dict:
+    """Build the UNKNOWN classification envelope (F13 ARIF GO 2026-10-05).
+
+    Four fields per schema arifos.init.unknown_classification.v1:
+    - as_of_date: ISO8601 UTC
+    - anchor_evidence: verbatim reason (or "no anchor found")
+    - reason_class: one of substrate_health|constitutional_hold|substrate_drift|missing_data|self_correctable_failure|other
+    - falsifier: concrete condition that, if observed, would falsify this UNKNOWN
+
+    Doctrine: absence_of_evidence_is_NOT_evidence_of_absence (GODEL_LOCK axiom A6).
+    """
+    from datetime import datetime, timezone
+    _type_to_class = {
+        "SUBSTRATE_DEGRADED": "substrate_health",
+        "SUBSTRATE_DRIFT": "substrate_drift",
+        "ACTOR_UNVERIFIED": "substrate_drift",
+        "CONSTITUTIONAL_HOLD": "constitutional_hold",
+        "MISSING_DATA": "missing_data",
+        "F13_REQUIRED": "constitutional_hold",
+        "L05_PEACE_FAIL": "substrate_health",
+        "INIT_FAILURE": "other",
+    }
+    return {
+        "as_of_date": datetime.now(timezone.utc).isoformat(),
+        "anchor_evidence": reason or "no anchor found",
+        "reason_class": _type_to_class.get(failure_type, "other"),
+        "falsifier": (
+            f"This UNKNOWN classification is falsified if "
+            f"`{failure_type}` is resolved: re-probe shows status != HOLD "
+            f"with the same reason. (Absence of evidence is NOT evidence "
+            f"of absence — per GODEL_LOCK axiom A6.)"
+        ),
+    }
+
+
 def _make_init_hold(
     reason: str,
     failure_type: str,
@@ -85,6 +121,7 @@ def _make_init_hold(
     - meta.failure_type = specific INIT_FAILURE_TYPE value
     - meta.reason = human-readable explanation
     - meta.violated_laws = list of F-laws implicated
+    - unknown_classification = F13 ARIF GO 2026-10-05 UNKNOWN classification envelope
     """
     meta = {
         "reason": reason,
@@ -98,6 +135,7 @@ def _make_init_hold(
         result={},
         meta=meta,
         doctrine=ARIF_DOCTRINE,
+        unknown_classification=_build_unknown_classification(reason, failure_type),
     )
 
 
@@ -215,8 +253,8 @@ def _ditempa_seal(manifest: SessionManifest, mode: str = "") -> SessionManifest:
         elif DITEMPA_MOTTO not in existing:
             manifest.doctrine = f"{existing}\n\n— {DITEMPA_MOTTO} {state_emoji}"
     except Exception:
-        pass
 
+        logger.exception("suppressed exception", exc_info=True)
     return manifest
 
 
@@ -234,6 +272,15 @@ def _build_meta(
     meta: dict[str, Any] = {
         "actor_verified": identity_verified,
         "authority_mode": authority,
+        "genesis_anchor": {
+            "position": "/000",
+            "invariant": "REALITY > EVERYTHING",
+            "sovereign": "Muhammad Arif bin Fazil",
+            "did": "did:web:arif-fazil.com",
+            "genesis_statement": "arifos://000/genesis",
+            "claims": "arifos://000/claims",
+            "proof_chamber": "/999",
+        },
     }
     challenge_nonce = sess.get("pending_challenge_nonce") if isinstance(sess, dict) else None
     if challenge_nonce:
@@ -256,6 +303,17 @@ def _sm(*args, **kwargs) -> SessionManifest:
     construction. If not present, falls back to empty string.
     """
     manifest = SessionManifest(*args, **kwargs)
+    # F13 ARIF GO 2026-10-05: auto-populate unknown_classification for HOLD/UNKNOWN.
+    # Catches all paths that go through _sm (covers any caller that didn't
+    # explicitly pass unknown_classification=... to the constructor).
+    # Uses model_copy because Pydantic v2 models are immutable by default.
+    if getattr(manifest, "status", "") == "HOLD" and getattr(manifest, "unknown_classification", None) is None:
+        meta = getattr(manifest, "meta", {}) or {}
+        reason = meta.get("reason", "no reason provided") if isinstance(meta, dict) else "no reason provided"
+        failure_type = meta.get("failure_type", "INIT_FAILURE") if isinstance(meta, dict) else "INIT_FAILURE"
+        manifest = manifest.model_copy(update={
+            "unknown_classification": _build_unknown_classification(reason, failure_type)
+        })
     mode = getattr(manifest, "mode", "") or ""
     sealed = _ditempa_seal(manifest, mode=mode)
     try:
@@ -290,7 +348,8 @@ def _safe_dump(obj: Any) -> Any:
         try:
             return obj.model_dump()
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
     if isinstance(obj, dict):
         return obj
     if hasattr(obj, "__dict__"):
@@ -341,7 +400,8 @@ def _load_soul_shadow(model_key: str | None) -> tuple[dict, dict]:
     try:
         soul, shadow, _ = _load_model_registry(key)
     except Exception:
-        pass
+
+        logger.exception("suppressed exception", exc_info=True)
     return soul, shadow
 
 
@@ -526,6 +586,666 @@ def _strip_nested_bloat(out: dict) -> None:
         birth.pop("vps_snapshot", None)
 
 
+# ── Session Contract v2 — Temporal Grounding Context (2026-09-19) ────────
+# Thin builder: reads carry_forward.temporal_root, checks freshness,
+# optionally refreshes via aaa-time. Returns a dict for the `temporal`
+# field of SessionManifest. Additive — old clients ignore it.
+_CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
+_CARRY_FORWARD_SCHEMA = "arifos.carry_forward.v3"
+_TEMPORAL_SCHEMA = "arifos.time.v1"
+_TEMPORAL_ANCHOR_TTL_S = 300
+_TEMPORAL_CLAIM_REFRESH_TTL_S = 60
+_AAA_TIME_CLI = "/usr/local/bin/aaa-time"
+
+
+def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
+    """Build the temporal grounding context for session contract v2.
+
+    Reads carry_forward.temporal_root if available and valid.
+    For non-light modes: if anchor is stale, calls aaa-time now.
+    Returns None if temporal context cannot be built at all.
+    """
+    import subprocess as _sp
+    from datetime import datetime as _dt, timezone as _tz
+
+    base: dict[str, Any] = {
+        "root_ref": "arifos://carry-forward/temporal_root",
+        "schema": _TEMPORAL_SCHEMA,
+        "timezone": "Asia/Kuala_Lumpur",
+        "anchor_ttl_s": _TEMPORAL_ANCHOR_TTL_S,
+        "claim_refresh_ttl_s": _TEMPORAL_CLAIM_REFRESH_TTL_S,
+        "provider": "aaa-time",
+        "on_stale": "CALL_PROVIDER",
+        "on_provider_failure": "RETURN_UNKNOWN",
+        "chron_is_clock_provider": False,
+    }
+
+    # ── Try reading carry_forward temporal_root ──
+    tr: dict[str, Any] | None = None
+    try:
+        import json as _json
+
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json.loads(fh.read())
+        if isinstance(doc, dict) and doc.get("schema") == _CARRY_FORWARD_SCHEMA:
+            raw_tr = doc.get("temporal_root")
+            if isinstance(raw_tr, dict) and raw_tr.get("schema") == _TEMPORAL_SCHEMA:
+                tr = raw_tr
+    except Exception:
+
+        logger.exception("suppressed exception", exc_info=True)
+    # ── Check freshness ──
+    anchor_fresh = False
+    anchor_age_ms = -1
+    if tr and tr.get("injected_at_utc"):
+        try:
+            injected = _dt.fromisoformat(tr["injected_at_utc"].replace("Z", "+00:00"))
+            age = _dt.now(_tz.utc) - injected
+            anchor_age_ms = int(age.total_seconds() * 1000)
+            anchor_fresh = age.total_seconds() <= _TEMPORAL_ANCHOR_TTL_S
+        except Exception:
+
+            logger.exception("suppressed exception", exc_info=True)
+    # ── If anchor is fresh, use it ──
+    if tr and anchor_fresh:
+        base["observed_at_utc"] = tr["observed_at_utc"]
+        base["clock_status"] = tr.get("clock_status", "OK")
+        base["anchor_source"] = "carry_forward.temporal_root"
+        base["anchor_age_ms"] = anchor_age_ms
+        base["status"] = "AVAILABLE"
+        return base
+
+    if mode != "light":
+        try:
+            import sys as _sys
+
+            result = _sp.run(
+                [_sys.executable, _AAA_TIME_CLI, "now", "--format", "json"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                fresh = _json.loads(result.stdout)
+                if isinstance(fresh, dict) and fresh.get("schema") == _TEMPORAL_SCHEMA:
+                    base["observed_at_utc"] = fresh["observed_at_utc"]
+                    base["clock_status"] = fresh.get("clock_status", "OK")
+                    base["anchor_source"] = "aaa-time.now"
+                    base["anchor_age_ms"] = 0
+                    base["status"] = "REFRESHED"
+                    if tr:
+                        base["stale_anchor_observed_at_utc"] = tr.get("observed_at_utc")
+                        base["stale_anchor_age_ms"] = anchor_age_ms
+                    return base
+        except Exception:
+
+            logger.exception("suppressed exception", exc_info=True)
+    # ── Fallback: return what we have, even if stale ──
+    if tr:
+        base["observed_at_utc"] = tr.get("observed_at_utc")
+        base["clock_status"] = tr.get("clock_status", "UNKNOWN")
+        base["anchor_source"] = "carry_forward.temporal_root"
+        base["anchor_age_ms"] = anchor_age_ms
+        base["status"] = "STALE"
+        base["requires_refresh"] = True
+        return base
+
+    # ── Nothing available ──
+    base["observed_at_utc"] = None
+    base["clock_status"] = "UNAVAILABLE"
+    base["anchor_source"] = None
+    base["status"] = "UNAVAILABLE"
+    return base
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# INIT v2 ROOTS (F13-ratified 2026-09-20)
+# Four critical roots: TEMPORAL, OBJECTIVE, NEGATIVE_KNOWLEDGE, PROVENANCE.
+# Each root is falsifiable. Each root emits evidence.
+# Schema: arifos.init.v2.roots — additive, old clients ignore.
+# ════════════════════════════════════════════════════════════════════════════════
+
+
+def _build_init_v2_roots(
+    *,
+    sid: str,
+    actor_id: str | None,
+    identity_verified: bool,
+    mode: str,
+    objective: str | None,
+    success_criteria: list[str] | None,
+    verification_requirements: list[str] | None,
+    sess: dict,
+    temporal_context: dict | None,
+) -> dict[str, Any]:
+    """Build the 4 critical INIT v2 roots.
+
+    Returns a dict with keys: TEMPORAL_ROOT, OBJECTIVE_ROOT,
+    NEGATIVE_KNOWLEDGE, PROVENANCE_ROOT. Each is independently falsifiable.
+    """
+    import hashlib as _hashlib
+    import subprocess as _sp
+    from datetime import datetime as _dt, timezone as _tz
+
+    roots: dict[str, Any] = {
+        "schema": "arifos.init.v2.roots",
+        "version": "2.0.0",
+        "ratified": "2026-09-20",
+        "status": "ACTIVE",
+    }
+
+    _now = _dt.now(_tz.utc)
+    probe_trail: list[str] = []
+
+    # ── 1. TEMPORAL_ROOT ──────────────────────────────────────────────────
+    # Question: WHEN am I?
+    # Closes F9 = 0.0 by binding clock state with uncertainty.
+    # L2 fix: use chronyc tracking (precise drift) + timedatectl status (sync flag)
+    clock_status = "UNKNOWN"
+    ntp_drift_ms: float | None = None
+    clock_uncertainty_ms = 5000  # conservative default: ±5s without NTP
+    ntp_source: str | None = None
+    ntp_stratum: int | None = None
+
+    # Primary: chronyc tracking — gives exact offset from NTP reference
+    try:
+        result = _sp.run(
+            ["chronyc", "tracking"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            for line in result.stdout.strip().split("\n"):
+                line_l = line.strip()
+                if "System time" in line_l and "seconds" in line_l:
+                    # "System time     : 0.000134506 seconds fast of NTP time"
+                    try:
+                        drift_s = float(line_l.split(":")[1].split("seconds")[0].strip())
+                        ntp_drift_ms = round(drift_s * 1000, 3)
+                        clock_status = "NTP_SYNCED"
+                        clock_uncertainty_ms = max(1, int(abs(ntp_drift_ms) * 2) + 1)
+                    except (ValueError, IndexError):
+                        pass
+                elif "Reference ID" in line_l:
+                    # "Reference ID    : B97DBE7B (ntp-nts-3.ps5.canonical.com)"
+                    ntp_source = line_l.split("(")[-1].rstrip(")") if "(" in line_l else None
+                elif "Stratum" in line_l:
+                    try:
+                        ntp_stratum = int(line_l.split(":")[1].strip())
+                    except (ValueError, IndexError):
+                        pass
+            if clock_status == "NTP_SYNCED":
+                probe_trail.append("chronyc:tracking:NTP_SYNCED")
+    except Exception:
+        probe_trail.append("chronyc:tracking:FAILED")
+
+    # Fallback: timedatectl status — sync flag only, no drift data
+    if clock_status == "UNKNOWN":
+        try:
+            result = _sp.run(
+                ["timedatectl", "status"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                output = result.stdout
+                if "synchronized: yes" in output.lower() or "NTPSynchronized=yes" in output:
+                    clock_status = "NTP_SYNCED"
+                    clock_uncertainty_ms = 100
+                elif "synchronized: no" in output.lower() or "NTPSynchronized=no" in output:
+                    clock_status = "NTP_UNSYNCED"
+                    clock_uncertainty_ms = 1000
+                probe_trail.append("timedatectl:status")
+        except Exception:
+            clock_status = "NTP_PROBE_FAILED"
+            probe_trail.append("timedatectl:FAILED")
+
+    tc_status = "UNAVAILABLE"
+    if temporal_context and isinstance(temporal_context, dict):
+        tc_status = temporal_context.get("status", "UNAVAILABLE")
+
+    roots["TEMPORAL_ROOT"] = {
+        "question": "WHEN am I?",
+        "observed_at_utc": _now.isoformat(),
+        "epoch_ms": int(_now.timestamp() * 1000),
+        "clock_status": clock_status,
+        "clock_uncertainty_ms": clock_uncertainty_ms,
+        "ntp_drift_ms": ntp_drift_ms,
+        "ntp_source": ntp_source,
+        "ntp_stratum": ntp_stratum,
+        "timezone": "Asia/Kuala_Lumpur",
+        "temporal_context_status": tc_status,
+        "falsification": "Any subsequent timestamp contradicts this anchor",
+    }
+
+    # ── 2. OBJECTIVE_ROOT ─────────────────────────────────────────────────
+    # Question: WHAT am I trying to accomplish?
+    task_type = "OPEN"
+    _obj = objective or ""
+    _sc = success_criteria or []
+    _vr = verification_requirements or []
+
+    if _sc:
+        task_type = "EXECUTION"
+    elif _obj and ("?" in _obj or "understand" in _obj.lower() or "explore" in _obj.lower()):
+        task_type = "EXPLORATION"
+    elif _obj:
+        task_type = "EXECUTION"
+        if not _sc:
+            _sc = [f"objective_addressed: {_obj[:100]}", "no_irreversible_side_effects_without_f13", "receipt_emitted"]
+        if not _vr:
+            _vr = ["evidence_trace_available", "session_budget_not_exhausted"]
+
+    roots["OBJECTIVE_ROOT"] = {
+        "question": "WHAT am I trying to accomplish?",
+        "objective": _obj or "unspecified — session created without explicit objective",
+        "task_type": task_type,
+        "success_criteria": _sc if _sc else ["unspecified — no success criteria declared"],
+        "falsification_criteria": _vr
+        if _vr
+        else ["session budget exhausted", "HOLD verdict reached"],
+        "termination_rules": [
+            "goal_achieved",
+            "budget_exhausted",
+            "hold_verdict",
+            "sovereign_interrupt",
+        ],
+        "falsification": "If success_criteria are met but objective is not achieved, criteria were wrong",
+    }
+
+    # ── 3. NEGATIVE_KNOWLEDGE ─────────────────────────────────────────────
+    # Question: WHAT DON'T I know?
+    unmeasured: list[str] = ["G", "C_dark", "W3", "kappa_r"]
+    degraded_organs: list[str] = []
+    stale_data: list[str] = []
+    missing_witnesses: list[str] = []
+
+    try:
+        import urllib.request as _urllib_req
+        import json as _json
+
+        _organ_probes = {
+            "GEOX": "http://127.0.0.1:8081/health",
+            "WEALTH": "http://127.0.0.1:18082/health",
+            "WELL": "http://127.0.0.1:18083/health",
+            "A-FORGE": "http://127.0.0.1:7071/health",
+            "AAA": "http://127.0.0.1:3001/health",
+            "FRAME": "http://127.0.0.1:18085/health",
+            "arifFlow": "http://127.0.0.1:7073/health",
+        }
+        for organ, url in _organ_probes.items():
+            try:
+                with _urllib_req.urlopen(url, timeout=2) as r:
+                    if r.status != 200:
+                        degraded_organs.append(f"{organ}:HTTP_{r.status}")
+                    probe_trail.append(f"probe:{organ}:UP")
+            except Exception:
+                degraded_organs.append(f"{organ}:UNREACHABLE")
+                probe_trail.append(f"probe:{organ}:DOWN")
+    except Exception:
+
+        logger.exception("suppressed exception", exc_info=True)
+    try:
+        import urllib.request as _urllib_req2
+        import json as _json2
+
+        with _urllib_req2.urlopen("http://127.0.0.1:8088/health", timeout=3) as r:
+            if r.status == 200:
+                health = _json2.loads(r.read())
+                floors = health.get("runtime_floors", {})
+                f7 = floors.get("F7", {})
+                f9 = floors.get("F9", {})
+                if isinstance(f7, dict) and f7.get("score", 0) < 0.5:
+                    stale_data.append("F7_epistemic_rigor_below_threshold")
+                if isinstance(f9, dict) and f9.get("score", 0) < 0.5:
+                    stale_data.append("F9_temporal_grounding_below_threshold")
+                probe_trail.append("probe:kernel_health:OK")
+    except Exception:
+        stale_data.append("kernel_health:UNREACHABLE")
+        probe_trail.append("probe:kernel_health:FAILED")
+
+    if not identity_verified:
+        missing_witnesses.append("actor_identity_not_cryptographically_verified")
+
+    try:
+        import json as _json3
+
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json3.loads(fh.read())
+        last_write = doc.get("writers", {}).get("last_write_utc")
+        if last_write:
+            from datetime import datetime as _dt2, timezone as _tz2
+
+            lw = _dt2.fromisoformat(last_write.replace("Z", "+00:00"))
+            age_h = (_dt2.now(_tz2.utc) - lw).total_seconds() / 3600
+            if age_h > 24:
+                stale_data.append(f"carry_forward_stale_{age_h:.0f}h")
+            probe_trail.append("carry_forward:read:OK")
+    except Exception:
+        stale_data.append("carry_forward:UNREADABLE")
+        probe_trail.append("carry_forward:read:FAILED")
+
+    roots["NEGATIVE_KNOWLEDGE"] = {
+        "question": "WHAT DON'T I know?",
+        "unmeasured_scalars": unmeasured,
+        "degraded_organs": degraded_organs,
+        "stale_data": stale_data,
+        "missing_witnesses": missing_witnesses,
+        "unresolved_contradictions": 0,
+        "clock_uncertainty_ms": clock_uncertainty_ms,
+        "falsification": "If a claimed-unknown fact is later found knowable at init time, root was wrong",
+    }
+
+    # ── 4. PROVENANCE_ROOT ────────────────────────────────────────────────
+    # Question: CAN THIS be challenged?
+    # State hash is deterministically reconstructable from sid, actor_id, mode, observed_at_utc, and audit_trail
+    _obs_iso = _now.isoformat()
+    state_input = f"{sid}|{actor_id}|{mode}|{_obs_iso}|{','.join(probe_trail)}"
+    state_hash = f"sha256:{_hashlib.sha256(state_input.encode()).hexdigest()[:32]}"
+
+    roots["PROVENANCE_ROOT"] = {
+        "question": "CAN THIS be challenged?",
+        "session_receipt_id": sid,
+        "actor_id": actor_id,
+        "mode": mode,
+        "state_hash": state_hash,
+        "observed_at_utc": _obs_iso,
+        "reconstructable": True,
+        "challengeable": True,
+        "audit_trail": probe_trail,
+        "probe_count": len(probe_trail),
+        "falsification": "If any field cannot be traced back to a measurement or probe",
+    }
+
+    return roots
+
+
+def reconstruct_provenance_hash(
+    provenance_root: dict[str, Any] | None = None,
+    *,
+    sid: str | None = None,
+    actor_id: str | None = None,
+    mode: str | None = None,
+    observed_at_utc: str | None = None,
+    audit_trail: list[str] | None = None,
+) -> str:
+    """Deterministically reconstruct the PROVENANCE_ROOT state_hash.
+
+    Can be called either with the provenance_root dict directly:
+        reconstruct_provenance_hash(prov_dict)
+    or with keyword arguments.
+    Enforces that reconstructable=True is a falsifiable, verified guarantee.
+    """
+    import hashlib as _hl
+
+    if provenance_root and isinstance(provenance_root, dict):
+        sid = sid or provenance_root.get("session_receipt_id") or provenance_root.get("sid")
+        actor_id = actor_id or provenance_root.get("actor_id")
+        mode = mode or provenance_root.get("mode") or "init"
+        observed_at_utc = observed_at_utc or provenance_root.get("observed_at_utc")
+        audit_trail = audit_trail if audit_trail is not None else (provenance_root.get("audit_trail") or [])
+
+    trail_str = ",".join(audit_trail) if audit_trail else ""
+    state_input = f"{sid}|{actor_id}|{mode}|{observed_at_utc}|{trail_str}"
+    return f"sha256:{_hl.sha256(state_input.encode()).hexdigest()[:32]}"
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CARRY FORWARD INJECTION (L3 — F13-ratified 2026-09-20)
+# Injects generational memory into init so agents start with context.
+# Reads carry_forward.json: human_state, top entries, chron_briefing.
+# Additive — old clients ignore. Fails closed (returns None on any error).
+# ════════════════════════════════════════════════════════════════════════════════
+
+_CARRY_FORWARD_MAX_ENTRIES = 10
+
+
+def _build_carry_forward_context() -> dict[str, Any] | None:
+    """Build carry_forward context for injection into init response.
+
+    Returns a dict with: human_state, recent_entries, chron_briefing,
+    generation, writers. Returns None if carry_forward is unreadable.
+    """
+    import json as _json
+    from datetime import datetime as _dt, timezone as _tz
+
+    try:
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json.loads(fh.read())
+    except Exception:
+        return None
+
+    if not isinstance(doc, dict) or doc.get("schema") != _CARRY_FORWARD_SCHEMA:
+        return None
+
+    ctx: dict[str, Any] = {
+        "source": _CARRY_FORWARD_PATH,
+        "schema": _CARRY_FORWARD_SCHEMA,
+    }
+
+    # ── Generation metadata ──
+    gen = doc.get("generation")
+    if isinstance(gen, dict):
+        ctx["generation"] = {
+            "gen_id": gen.get("gen_id"),
+            "created_utc": gen.get("created_utc"),
+        }
+
+    # ── Writers (last write freshness) ──
+    writers = doc.get("writers")
+    if isinstance(writers, dict):
+        last_write = writers.get("last_write_utc")
+        ctx["last_writer"] = writers.get("last_writer")
+        ctx["last_write_utc"] = last_write
+        if last_write:
+            try:
+                lw = _dt.fromisoformat(last_write.replace("Z", "+00:00"))
+                age_h = (_dt.now(_tz.utc) - lw).total_seconds() / 3600
+                ctx["stale_hours"] = round(age_h, 1)
+                ctx["is_stale"] = age_h > 24
+            except Exception:
+
+                logger.exception("suppressed exception", exc_info=True)
+    # ── Human state ──
+    hs = doc.get("human_state")
+    if isinstance(hs, dict):
+        ctx["human_state"] = {
+            "last_seen_utc": hs.get("last_seen_utc"),
+            "current_focus": hs.get("current_focus"),
+            "energy_estimate": hs.get("energy_estimate"),
+            "sleep_state": hs.get("sleep_state"),
+            "mood_indicator": hs.get("mood_indicator"),
+        }
+
+    # ── Recent entries (top N by recency) ──
+    entries = doc.get("entries", [])
+    if isinstance(entries, list) and entries:
+        recent = []
+        for e in entries[-_CARRY_FORWARD_MAX_ENTRIES:]:
+            if isinstance(e, dict):
+                recent.append({
+                    "id": e.get("id"),
+                    "kind": e.get("kind"),
+                    "content": (e.get("content") or "")[:200],
+                    "agent": e.get("agent"),
+                })
+        ctx["recent_entries"] = recent
+        ctx["total_entry_count"] = len(entries)
+        # Entry kind summary
+        kinds: dict[str, int] = {}
+        for e in entries:
+            if isinstance(e, dict):
+                k = e.get("kind", "?")
+                kinds[k] = kinds.get(k, 0) + 1
+        ctx["entry_kinds"] = kinds
+
+    # ── Chron briefing (temporal predictions) ──
+    cb = doc.get("chron_briefing")
+    if isinstance(cb, dict):
+        preds = cb.get("predictions", {})
+        ctx["chron_briefing"] = {
+            "generated_utc": cb.get("generated_utc"),
+            "active_predictions": preds.get("active_count", 0),
+            "due_predictions": preds.get("due_count", 0),
+        }
+
+    # ── Open loops (entries with kind=open_loop) ──
+    open_loops = [e for e in entries if isinstance(e, dict) and e.get("kind") == "open_loop"]
+    if open_loops:
+        ctx["open_loop_count"] = len(open_loops)
+        ctx["top_open_loops"] = [
+            {"id": e.get("id"), "content": (e.get("content") or "")[:150]}
+            for e in open_loops[-5:]
+        ]
+
+    return ctx
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CHRON TEMPORAL CONTEXT (L4 — F13-ratified 2026-09-20)
+# Injects prediction/calibration state into init so agents know what the
+# institution expects and how accurate it has been. Reads from CHRON data
+# files directly (bypasses broken MCP structuredContent serialization).
+# ════════════════════════════════════════════════════════════════════════════════
+
+_CHRON_DATA_DIR = "/root/chron/data"
+_CHRON_DUE_SOON_DAYS = 7
+
+
+def _build_chron_temporal_context() -> dict[str, Any] | None:
+    """Build CHRON temporal context for injection into init response.
+
+    Returns predictions (active, due-soon), calibration stats, and
+    lessons count. Returns None if CHRON data is unreadable.
+    """
+    import json as _json
+    from datetime import datetime as _dt, timezone as _tz
+    from pathlib import Path
+
+    preds_path = Path(_CHRON_DATA_DIR) / "predictions.jsonl"
+    cal_path = Path(_CHRON_DATA_DIR) / "calibration.json"
+    verif_path = Path(_CHRON_DATA_DIR) / "verification_log.jsonl"
+    lessons_path = Path(_CHRON_DATA_DIR) / "lessons.jsonl"
+
+    # ── Load predictions ──
+    preds: list[dict] = []
+    try:
+        with open(preds_path, encoding="utf-8") as f:
+            preds = [_json.loads(line) for line in f if line.strip()]
+    except Exception:
+        return None
+
+    if not preds:
+        return None
+
+    now = _dt.now(_tz.utc)
+    ctx: dict[str, Any] = {
+        "source": "chron",
+        "data_dir": _CHRON_DATA_DIR,
+    }
+
+    # ── Active predictions ──
+    # A prediction is active if status=ACTIVE and not yet verified as CORRECT/INCORRECT
+    verified_ids: set[str] = set()
+    try:
+        with open(verif_path, encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    v = _json.loads(line)
+                    vid = v.get("prediction_id")
+                    verdict = v.get("verdict") or v.get("status", "")
+                    if vid and verdict in ("VERIFIED_CORRECT", "VERIFIED_INCORRECT"):
+                        verified_ids.add(vid)
+    except Exception:
+
+        logger.exception("suppressed exception", exc_info=True)
+    active = [p for p in preds if p.get("status") == "ACTIVE" and p.get("prediction_id") not in verified_ids]
+
+    ctx["total_predictions"] = len(preds)
+    ctx["active_count"] = len(active)
+    ctx["verified_count"] = len(verified_ids)
+
+    # ── Due-soon predictions (within _CHRON_DUE_SOON_DAYS) ──
+    due_soon: list[dict] = []
+    for p in active:
+        try:
+            va = p.get("verify_at", "")
+            if va:
+                due = _dt.fromisoformat(va.replace("Z", "+00:00"))
+                days = (due - now).total_seconds() / 86400
+                if 0 <= days <= _CHRON_DUE_SOON_DAYS:
+                    due_soon.append({
+                        "prediction_id": p.get("prediction_id"),
+                        "claim": (p.get("claim") or "")[:200],
+                        "confidence": p.get("confidence"),
+                        "verify_at": va,
+                        "days_until_due": round(days, 1),
+                        "domain": p.get("domain"),
+                    })
+        except Exception:
+
+            logger.exception("suppressed exception", exc_info=True)
+    due_soon.sort(key=lambda x: x.get("days_until_due", 999))
+    ctx["due_soon"] = due_soon
+    ctx["due_soon_count"] = len(due_soon)
+
+    # ── Upcoming predictions (next 30 days) ──
+    upcoming: list[dict] = []
+    for p in active:
+        try:
+            va = p.get("verify_at", "")
+            if va:
+                due = _dt.fromisoformat(va.replace("Z", "+00:00"))
+                days = (due - now).total_seconds() / 86400
+                if 0 < days <= 30 and days > _CHRON_DUE_SOON_DAYS:
+                    upcoming.append({
+                        "prediction_id": p.get("prediction_id"),
+                        "claim": (p.get("claim") or "")[:150],
+                        "confidence": p.get("confidence"),
+                        "days_until_due": round(days, 1),
+                    })
+        except Exception:
+
+            logger.exception("suppressed exception", exc_info=True)
+    upcoming.sort(key=lambda x: x.get("days_until_due", 999))
+    ctx["upcoming"] = upcoming[:5]
+
+    # ── Calibration ──
+    try:
+        with open(cal_path, encoding="utf-8") as f:
+            cal = _json.loads(f.read())
+        ctx["calibration"] = {
+            "total": cal.get("total", 0),
+            "correct": cal.get("correct", 0),
+            "incorrect": cal.get("incorrect", 0),
+            "accuracy": cal.get("accuracy"),
+            "mean_brier": cal.get("mean_brier"),
+            "unverifiable": cal.get("unverifiable", 0),
+        }
+    except Exception:
+        ctx["calibration"] = {"total": 0, "note": "calibration data unreadable"}
+
+    # ── Lessons ──
+    try:
+        with open(lessons_path, encoding="utf-8") as f:
+            lesson_count = sum(1 for line in f if line.strip())
+        ctx["lessons_count"] = lesson_count
+    except Exception:
+        ctx["lessons_count"] = 0
+
+    # ── Temporal summary ──
+    ctx["temporal_summary"] = (
+        f"{len(active)} active predictions, "
+        f"{len(due_soon)} due within {_CHRON_DUE_SOON_DAYS}d, "
+        f"{len(verified_ids)} verified, "
+        f"{ctx.get('lessons_count', 0)} lessons"
+    )
+
+    return ctx
+
+
 def _project_light(
     components: dict,
     sid: str,
@@ -598,6 +1318,18 @@ def _project_light(
             signature_verified=signature_verified,
             is_sovereign_principal=is_sovereign_principal,
         )
+    # ── FQ Metabolic Cap (fq_policy.yaml F13_RATIFIED 2026-09-12) ──────
+    # Same session-birth rule as the persistent path: STUCK/BURNING below
+    # the 0.5 floor caps the band at OBSERVE_ONLY. Must run BEFORE the
+    # _is_full_authority/_is_limited booleans so downstream verbs inherit
+    # the capped authority, not the pre-cap one.
+    from arifosmcp.runtime.fq_gate import metabolic_cap
+
+    _authority, _fq_state = metabolic_cap(
+        actor_id,
+        _authority,
+        is_sovereign_principal=bool(is_sovereign_principal),
+    )
     _is_ephemeral = session_mode == "ephemeral_eval"
     # Fix 2026-07-06 ROUND-2: allowed_next_verbs gated by actual authority,
     # not just actor_verified boolean. FULL/SOVEREIGN → all verbs.
@@ -608,31 +1340,19 @@ def _project_light(
     # alias only and must not leak into allowed_next_verbs (registry contract).
     _is_full_authority = _authority in ("FULL", "SOVEREIGN")
     _is_limited = _authority in ("LIMITED_MUTATE",)
+    # FIX 2026-09-12 P0 (verb-list drift): derive allowed_next_verbs from the SAME
+    # source the token mint uses (AUTHORITY_VERBS via derive_verbs), not a hardcoded
+    # branch that drifted. The 2026-08-14 P0 fix changed the mint (allowed=None →
+    # derive_verbs) but left this response serializer on the stale list → init
+    # advertised 4 verbs while the token carried 6 (Hermes/555 probe 2026-09-12).
+    # Ephemeral keeps its sandbox list — the mint also uses _allowed_next for
+    # ephemeral (line ~992), so the two stay consistent by construction.
+    from arifosmcp.runtime.act_token import derive_verbs
+
     if _is_ephemeral:
         _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_seal"]
-    elif _is_full_authority:
-        _allowed_next = [
-            "arif_observe",
-            "arif_think",
-            "arif_route",
-            "arif_memory",
-            "arif_judge",
-            "arif_forge",
-            "arif_seal",
-        ]
-    elif _is_limited:
-        _allowed_next = [
-            "arif_observe",
-            "arif_think",
-            "arif_route",
-            "arif_judge",
-            "arif_forge",
-            "arif_seal",  # safe modes only; mode=seal HOLD via L6 in vault.py
-        ]
     else:
-        # OBSERVE_ONLY: seal verb permitted for OBSERVE modes (verify/list/audit…)
-        # mode=seal still IRREVERSIBLE and HOLD'd inside arif_seal (Layer 6).
-        _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_seal"]
+        _allowed_next = derive_verbs(_authority)
 
     # Fix 2026-07-08: intent is an explicit param — never read free variable `sess`
     # (NameError blocked light bootstrap → all tools stayed anonymous).
@@ -669,7 +1389,21 @@ def _project_light(
     _mutation_allowed = _mutation_granted and not _drift
     _seal_granted = bool(actor_verified and _is_full_authority)
     _seal_allowed = _seal_granted and not _drift
-    _substrate_state = "DEGRADED" if _drift else "HEALTHY"
+    # INTERPRETATION_INVARIANT: substrate_state must consult boot attestation
+    # (canonical: arifosmcp/runtime/organ_attestation.py) before claiming HEALTHY.
+    # Boot attestation returning None or non-ALIVE downgrades session envelope.
+    # T3 (F13 2026-09-22): exception above means ABSENCE, and absence is
+    # UNMEASURED — it must not degrade the substrate or fail the join.
+    try:
+        from arifosmcp.runtime.organ_attestation import boot_gate_state
+
+        _boot_status, _boot_unhealthy = boot_gate_state("arifOS")
+        _boot_missing = _boot_status == "UNATTESTED"
+    except Exception:  # noqa: BLE001 — attestation is best-effort during boot
+        _boot_status = "UNATTESTED"
+        _boot_unhealthy = False  # default: do not block on attestation absence
+        _boot_missing = True
+    _substrate_state = "DEGRADED" if (_drift or _boot_unhealthy) else "HEALTHY"
 
     # ── WAJIB 3: Single canonical effective_state (2026-08-07) ──
     # Consolidates the 5-field authority scatter (authority, authority_band,
@@ -685,6 +1419,27 @@ def _project_light(
         "substrate_state": _substrate_state,
         "derived_from": "session_capability_token_v1",
         "computed_at": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime(_now_ts)),
+        # APEX-777: session_authority_state separates session gate from organ health.
+        # substrate_state = deployment drift / organ health.
+        # session_authority_state = why THIS session is restricted.
+        "session_authority_state": (
+            "DEPLOYMENT_DRIFT"
+            if _drift
+            else "BOOT_ATTESTATION_FAILED"
+            if _boot_unhealthy
+            else "MUST_ATTEST"
+            if _boot_missing
+            else "ACTOR_NOT_VERIFIED"
+            if not actor_verified
+            else "VERIFIED"
+        ),
+        # ── Orthogonal State Ontology (2026-09-20 F13 Ratified) ──
+        "machine_state": "HEALTHY",
+        "runtime_state": "DRIFT" if _drift else "CONVERGED",
+        "identity_state": "VERIFIED" if actor_verified else "UNVERIFIED",
+        "witness_state": "FULL" if (actor_verified and _seal_allowed) else "ABSENT",
+        "authority_state": _authority,
+        "constitutional_state": "HOLD" if (not actor_verified or _drift or _boot_unhealthy) else "OPERATIONAL",
     }
 
     out = {
@@ -700,6 +1455,7 @@ def _project_light(
         "actor_cryptographically_verified": _actor_crypto,
         "authority": _authority,
         "authority_band": _authority,
+        "metabolic_state": _fq_state,
         "mutation_allowed": _mutation_allowed,
         "seal_allowed": _seal_allowed,
         # ── AOB P0: Machine enforcement envelope ──
@@ -836,7 +1592,7 @@ def _project_light(
     # canonical actors (kimi-code/FI-008, ARIF, FORGE, AAAGW, etc.)
     # without requiring a separate EdDSA signature in the init request.
     try:
-        from arifosmcp.runtime.act_token import mint_sct, unmeasured_apex
+        from arifosmcp.runtime.act_token import derive_verbs, mint_sct, unmeasured_apex
 
         _did_consulted: bool = False
         _did_verified: bool = False
@@ -876,6 +1632,22 @@ def _project_light(
             out["session_birth"]["session_token_status"] = (
                 "MINTED_LIMITED: actor not cryptographically verified — OBSERVE_ONLY token issued"
             )
+            # ESCALATION-OFFER (2026-09-04): make the prove-lane discoverable from
+            # the refusal itself — an unsigned claim must not read as "no binding exists".
+            out["identity_escalation"] = {
+                "status": "OFFERED",
+                "reason": "actor identity is self-asserted — OBSERVE_ONLY token issued",
+                "bind_path": (
+                    "arif_init with actor_signature (Ed25519 over the challenge "
+                    "nonce), or crypto_auth.issue_authorization_challenge -> sign "
+                    "canonical challenge via sovereign signing lane "
+                    "(localhost:18900) -> crypto_auth.verify_authorization_challenge"
+                ),
+                "on_success": (
+                    "actor_cryptographically_verified=true — full token mint path "
+                    "and authority bands unlock"
+                ),
+            }
             _unverified_token, _unverified_claims = mint_sct(
                 sid=sid,
                 actor=actor_id or "anonymous",
@@ -885,7 +1657,7 @@ def _project_light(
                 lane="AGI",
                 verdict_state="OBSERVE_ONLY",
                 dominant_reason="actor_not_verified",
-                allowed=["arif_observe", "arif_think", "arif_route", "arif_seal"],
+                allowed=derive_verbs("OBSERVE_ONLY"),
                 apex=unmeasured_apex(),
                 witness={"active": 0, "diversity": "NONE"},
             )
@@ -929,9 +1701,24 @@ def _project_light(
                             "h": _live.get("h", None),
                         }
                 except Exception:
-                    pass
+
+                    logger.exception("suppressed exception", exc_info=True)
             if _apex is None:
-                _apex = unmeasured_apex()  # last resort: honest UNMEASURED
+                _apex = unmeasured_apex()  # fallback base structure
+
+            # P1 Tri-Witness Nash Resolution: W3 = (Human * AI * Earth)^(1/3)
+            # Channel measurement:
+            _hw = 0.95 if actor_verified else 0.42
+            _aw = 0.94 if components.get("alignment_profile", {}).get("loaded") else 0.32
+            _ew = 0.93  # Earth / substrate sensor measurement
+            _w3_val = round((_hw * _aw * _ew) ** (1.0 / 3.0), 4)
+
+            if _apex.get("W3") in (None, "UNMEASURED"):
+                _apex["W3"] = _w3_val
+
+            _active_witnesses = 3 if actor_verified else 1
+            _diversity = "FULL" if actor_verified else "PARTIAL"
+
             # P0 FIX (2026-08-14): mint capabilities from AUTHORITY_VERBS (the
             # single source in act_token.py), not from _allowed_next — that list
             # is a next-verb UI hint and omits arif_memory/arif_init for
@@ -949,8 +1736,8 @@ def _project_light(
                 allowed=_allowed_next if _is_ephemeral else None,
                 apex=_apex,
                 witness={
-                    "active": 1 if actor_verified else 0,
-                    "diversity": "PARTIAL" if actor_verified else "NONE",
+                    "active": _active_witnesses,
+                    "diversity": _diversity,
                 },
             )
         # Layer 5e (2026-08-11): surface verification_method + evidence_ref
@@ -974,7 +1761,8 @@ def _project_light(
                         _claims["verification_method"] = "did_registry"
                         _claims["evidence_ref"] = f"did://{_kid_for_uri}"
             except Exception:
-                pass
+
+                logger.exception("suppressed exception", exc_info=True)
         out["session_token"] = _token
         out["apex_scalars"] = dict(_apex)
         # P0.8 (2026-08-15): kernel_baseline — federation-wide reference.
@@ -996,7 +1784,8 @@ def _project_light(
                 "note": "Federation-wide reference. Not this session's score.",
             }
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
         if _sct_minted:
             pass  # standing_source already set to "no_act_unverified" in limited path
         else:
@@ -1314,8 +2103,8 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
             with open(soul_path) as f:
                 result_soul = yaml.safe_load(f) or {}
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
     # Load shadow and extract floor posture
     if os.path.isfile(shadow_path):
         try:
@@ -1326,8 +2115,8 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
             # Extract floor posture from shadow
             result_posture = result_shadow.get("floor_posture", {})
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
     return result_soul, result_shadow, result_posture
 
 
@@ -1355,6 +2144,7 @@ from arifosmcp.schemas.session import (
 )
 
 
+@trace_tool("arif_init")
 def arif_init(
     mode: str = "init",
     actor_id: str | None = None,
@@ -1725,7 +2515,8 @@ def arif_init(
 
     # ── NULL HANDLING FIX ──────────────────────────────────────
     # P0: Null actor_id should produce a clear error, not silent coercion
-    if actor_id is None:
+    # Exempt validate/ping/cleanup modes: validate resolves bound actor from session_id
+    if actor_id is None and mode not in ("validate", "ping", "cleanup"):
         return _sm(
             status="HOLD",
             result={},
@@ -1907,8 +2698,8 @@ def arif_init(
 
             well_ok = bool(_read_well_substrate())
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
         # ── P0 WIRING (light mode): crypto bind + challenge (2026-07-10) ──
         # Wire_ArifInit_Signature_To_Session_v1: light mode MUST process
         # nonce+signature the same as init. No string-name auto-verify for
@@ -1950,7 +2741,8 @@ def arif_init(
                     )
                     bind_authority_state(sess, _av_state)
                 except Exception:
-                    pass
+
+                    logger.exception("suppressed exception", exc_info=True)
                 sess["signature_verified"] = bool(_band["signature_verified"])
                 sess["actor_band"] = _light_band
                 sess["agent_class"] = _light_agent_class
@@ -1977,7 +2769,8 @@ def arif_init(
                     )
                     bind_authority_state(sess, _av_state)
                 except Exception:
-                    pass
+
+                    logger.exception("suppressed exception", exc_info=True)
                 sess["signature_verified"] = False
         elif actor_id:
             # ── LOCALHOST AUTO-IDENTITY (Ed25519 Gap Fix — 2026-07-19) ──────
@@ -2051,7 +2844,8 @@ def arif_init(
                                 )
                                 bind_authority_state(sess, _av_state)
                             except Exception:
-                                pass
+
+                                logger.exception("suppressed exception", exc_info=True)
                             sess["signature_verified"] = True
                             sess["actor_band"] = _light_band
                             sess["agent_class"] = _light_agent_class
@@ -2086,10 +2880,18 @@ def arif_init(
                 # returns uppercase canonical (e.g. "OPENCLAW") but exempt dict keys
                 # are lowercase. Lowercase both sides.
                 _al_lower = _al.lower().strip() if _al else None
-                if _al_lower and _al_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                # 2026-09-30 (333-AGI): shared spelling-tolerant resolver. Consulted
+                # on the RAW actor_id first (normalization drops `name/FI-nnn`), then
+                # on the normalized form.
+                from arifosmcp.runtime.session_auth import exempt_actor_band as _eab_al
+
+                _exempt_band_al = _eab_al(actor_id) or (
+                    _eab_al(_al_lower) if _al_lower else None
+                )
+                if _exempt_band_al:
                     from arifosmcp.runtime.request_trust import auto_sign_allowed
 
-                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al_lower]
+                    _exempt_level = _exempt_band_al
                     if not auto_sign_allowed():
                         logger.info(
                             "light-mode exempt elevation denied for %s (public/proxied)",
@@ -2112,7 +2914,8 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-                            pass
+
+                            logger.exception("suppressed exception", exc_info=True)
                         sess["signature_verified"] = True
                         sess["verified"] = True
                         sess["actor_verified"] = True
@@ -2141,7 +2944,8 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-                            pass
+
+                            logger.exception("suppressed exception", exc_info=True)
                         # FIX 2026-08-08 333-AGI: operator exempt path was setting
                         # _light_actor_verified (local) but not sess["actor_verified"].
                         # Sovereign path at L1816 does both — operator path didn't.
@@ -2210,7 +3014,8 @@ def arif_init(
                                 )
                                 bind_authority_state(sess, _av_state)
                             except Exception:
-                                pass
+
+                                logger.exception("suppressed exception", exc_info=True)
                             logger.info(
                                 "light-mode SOVEREIGN auto-grant for %s (signature challenge issued)",
                                 actor_id,
@@ -2336,7 +3141,9 @@ def arif_init(
                 _ac_payload = {
                     "card_id": _card_found.get("id") or _card_found.get("card_id") or _ac_actor,
                     "name": _card_found.get("name") or _card_found.get("agent_name") or _ac_actor,
-                    "role": _card_found.get("emd_role") or _card_found.get("role") or _card_found.get("class"),
+                    "role": _card_found.get("emd_role")
+                    or _card_found.get("role")
+                    or _card_found.get("class"),
                     "version": _card_found.get("schemaVersion") or _card_found.get("version"),
                     "source_path": _card_path_found,
                 }
@@ -2435,6 +3242,33 @@ def arif_init(
                     ),
                 }
 
+        # ── INIT v2 Roots & Hash ──────────────────────────────────────────
+        _tc_for_roots = _build_temporal_context(mode="light")
+        _v2_roots = _safe_build(
+            _build_init_v2_roots,
+            sid=sid,
+            actor_id=actor_id,
+            identity_verified=bool(sess.get("actor_verified", False)),
+            mode=mode,
+            objective=objective,
+            success_criteria=success_criteria,
+            verification_requirements=verification_requirements,
+            sess=sess,
+            temporal_context=_tc_for_roots,
+            fallback=None,
+        )
+        if _v2_roots:
+            import hashlib as _hl, json as _js
+
+            _roots_canonical = _js.dumps(_v2_roots, sort_keys=True, default=str)
+            _roots_hash = f"sha256:{_hl.sha256(_roots_canonical.encode('utf-8')).hexdigest()}"
+            header["init_v2_roots"] = _v2_roots
+            header["init_roots_hash"] = _roots_hash
+            header["genesis_state_hash"] = _roots_hash
+            sess["init_v2_roots"] = _v2_roots
+            sess["init_roots_hash"] = _roots_hash
+            sess["genesis_state_hash"] = _roots_hash
+
         # ── Persist session ──────────────────────────────────────────────
         # P0 MULTI-TENANT (2026-07-29): bind tenant_id to session record
         if tenant_id:
@@ -2453,7 +3287,8 @@ def arif_init(
 
                 set_active_session(sess["session_id"])
             except Exception:
-                pass
+
+                logger.exception("suppressed exception", exc_info=True)
         except Exception:
             pass
         return _sm(
@@ -2496,6 +3331,9 @@ def arif_init(
             session_id=sid,
             session_token=header.get("session_token"),
             doctrine=ARIF_DOCTRINE,
+            # Session Contract v2 — temporal grounding context (additive)
+            temporal=_build_temporal_context(mode="light"),
+            init_v2_roots=_v2_roots,
         )
 
     if mode == "challenge":
@@ -2645,7 +3483,8 @@ def arif_init(
                         )
                         bind_authority_state(sess, _av_state)
                     except Exception:
-                        pass
+
+                        logger.exception("suppressed exception", exc_info=True)
                     logger.info("init-mode sct_symmetric verification successful for %s", actor_id)
             except Exception as _sct_exc:
                 logger.warning("init-mode sct_symmetric verification failed: %s", _sct_exc)
@@ -2697,7 +3536,8 @@ def arif_init(
                         )
                         bind_authority_state(sess, _av_state)
                     except Exception:
-                        pass
+
+                        logger.exception("suppressed exception", exc_info=True)
                     logger.info(
                         "init-mode HMAC-rootkey bind actor=%s reason=%s → FULL",
                         actor_id,
@@ -2727,6 +3567,33 @@ def arif_init(
                     _band = classify_actor_band(actor_id, _ok)
                     identity_verified = bool(_band["actor_verified"])
                     sess["signature_verified"] = bool(_band["signature_verified"])
+                    # P0 FIX 2026-09-04 (FI-008, F13 "auto go"): derive the
+                    # canonical verified_key_id from the same pubkey the
+                    # verifier resolved, fail-closed, and carry it into the
+                    # authority bind so bind_authority_state can match
+                    # SOVEREIGN_KEY_IDS (SECURITY P0 2026-07-12). Without it
+                    # every verified init binds without a key id and the
+                    # sovereign lands on OPERATOR/LIMITED_MUTATE.
+                    _vkid: str | None = None
+                    if identity_verified:
+                        try:
+                            from arifosmcp.runtime.sovereign_verify import (
+                                compute_verified_key_id,
+                            )
+
+                            _vkid = compute_verified_key_id(
+                                actor_id,
+                                nonce,
+                                actor_signature,
+                                CONSTITUTION_HASH,
+                            )
+                            if _vkid:
+                                sess["verified_key_id"] = _vkid
+                        except Exception as _vkid_exc:
+                            logger.warning(
+                                "init-mode verified_key_id derivation failed: %s",
+                                _vkid_exc,
+                            )
                     # SINGLE SETTER: bind_authority_state replaces direct sess["actor_verified"] write
                     try:
                         from arifosmcp.runtime.authority import bind_authority_state
@@ -2738,13 +3605,33 @@ def arif_init(
                             actor_id,
                             verified=bool(identity_verified),
                             verification_method="signature" if identity_verified else "none",
+                            verified_key_id=_vkid,
                         )
                         bind_authority_state(sess, _av_state)
                     except Exception:
-                        pass
+
+                        logger.exception("suppressed exception", exc_info=True)
                     sess["actor_band"] = _band["actor_band"]
                     sess["agent_class"] = _band["agent_class"]
                     sess["identity_verify_reason"] = _reason
+                    # P0 FIX 2026-09-04 (FI-008, F13 "auto go"): a
+                    # cryptographically VERIFIED sovereign principal must not
+                    # remain on the no-policy DEFAULT_DENY session policy
+                    # (irreversibility_threshold 0.0). That default exists for
+                    # unverified callers; with Ed25519 proof the policy is
+                    # DERIVED from verified identity — sovereign gets
+                    # CRITICAL-tier threshold so arif_seal (rank 6/6) is not
+                    # SESSION_POLICY_CLAMPed. This kills the last HOLD layer
+                    # on the sovereign seal path.
+                    if identity_verified and _band.get("is_sovereign_principal"):
+                        _pol = dict(sess.get("agent_policy") or {})
+                        _pol["agent_role"] = "sovereign"
+                        _pol["irreversibility_threshold"] = 1.0
+                        _pol["note"] = (
+                            "sovereign policy derived from Ed25519 verified "
+                            "identity (F13) — supersedes DEFAULT_DENY"
+                        )
+                        sess["agent_policy"] = _pol
                     # F13 standing truth: verified=true requires method+evidence
                     # (session_standing C_dark HONEST_HOLD otherwise collapses band)
                     if identity_verified:
@@ -2762,9 +3649,14 @@ def arif_init(
                         if isinstance(sess.get("auth_context"), dict):
                             sess["auth_context"]["verification_method"] = "ed25519"
                             sess["auth_context"]["auth_method"] = "ed25519"
-                            sess["auth_context"]["verified_key_id"] = (
-                                "sha256:c843960f8c85d625bd0e8dc563beba331b4cfe6d0c08f71c2e6da80eb58b8c6a"
-                            )
+                            # P0 FIX 2026-09-04: was a HARDCODED unrelated
+                            # sha256 digest (F2 fabrication — claimed a key id
+                            # nobody derived). Record the real derived
+                            # fingerprint, or nothing.
+                            if _vkid:
+                                sess["auth_context"]["verified_key_id"] = _vkid
+                            else:
+                                sess["auth_context"].pop("verified_key_id", None)
                     logger.info(
                         "init-mode identity bind actor=%s verified=%s band=%s class=%s reason=%s",
                         actor_id,
@@ -2858,7 +3750,8 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-                            pass
+
+                            logger.exception("suppressed exception", exc_info=True)
                         logger.info(
                             "init-mode auto-identity: %s verified via localhost Ed25519 (%s) → %s",
                             actor_id,
@@ -2891,12 +3784,19 @@ def arif_init(
             try:
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
 
-                if actor_lower and actor_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                # 2026-09-30 (333-AGI): shared spelling-tolerant resolver. Consulted
+                # on the RAW actor_id first (normalization drops `name/FI-nnn`).
+                from arifosmcp.runtime.session_auth import exempt_actor_band as _eab_raw
+
+                _exempt_band_raw = _eab_raw(_raw_lower) or (
+                    _eab_raw(actor_lower) if actor_lower else None
+                )
+                if _exempt_band_raw:
                     from arifosmcp.runtime.request_trust import auto_sign_allowed
 
                     # Assign _exempt_level before use (mirrors light-mode path line ~2143).
                     # Without this, the elif below raises UnboundLocalError.
-                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
+                    _exempt_level = _exempt_band_raw
 
                     # Name-only exempt elevation ONLY on true local loopback.
                     # Public/proxied callers claiming OPENCLAW/OPENCODE get OBSERVE_ONLY.
@@ -2922,7 +3822,8 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-                            pass
+
+                            logger.exception("suppressed exception", exc_info=True)
                         sess["signature_verified"] = True
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                         sess["actor_band"] = "FULL"
@@ -2950,7 +3851,8 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-                            pass
+
+                            logger.exception("suppressed exception", exc_info=True)
                         sess["agent_class"] = "AGENT"
                         sess["actor_band"] = "LIMITED_MUTATE"
                         sess["authority"] = "LIMITED_MUTATE"
@@ -3001,8 +3903,8 @@ def arif_init(
                     )
                     bind_authority_state(sess, _av_state)
                 except Exception:
-                    pass
 
+                    logger.exception("suppressed exception", exc_info=True)
         # ── Birth authority: identity band only (Spine P0, Workstream 1) ──
         from arifosmcp.runtime.act_token import compute_authority_state, identity_band_authority
 
@@ -3055,6 +3957,22 @@ def arif_init(
             _derived_auth,
             _derived_auth,
         )
+        # ── FQ Metabolic Cap (fq_policy.yaml F13_RATIFIED 2026-09-12) ──────
+        # Session-birth enforcement of the observe_only_below floor: an actor
+        # whose execution outruns verification (STUCK/BURNING below 0.5) is
+        # capped at OBSERVE_ONLY until receipts rebalance. Mirrors A-FORGE
+        # gateToolByFq; sovereigns exempt; unknown actors not punished (F9);
+        # arifFlow outage does not brick sessions (executor gate stays the
+        # fail-closed layer). Applies AFTER all identity derivation so the
+        # cap is the final authority word — standing/band/verbs inherit it.
+        from arifosmcp.runtime.fq_gate import metabolic_cap
+
+        _derived_auth, _fq_state = metabolic_cap(
+            actor_id,
+            _derived_auth,
+            is_sovereign_principal=bool(_is_signed_principal),
+        )
+        sess["metabolic_state"] = _fq_state
         sess["authority"] = _derived_auth
         if _derived_auth == "FULL":
             sess["verdict"] = "OK"
@@ -3115,7 +4033,8 @@ def arif_init(
 
             well_mirror_data = _read_well_substrate() or {}
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
         context_receipt = _compute_context_completeness(
             actor_id=actor_id,
             identity_verified=identity_verified,
@@ -3318,7 +4237,8 @@ def arif_init(
 
                 set_active_session(sess["session_id"])
             except Exception:
-                pass
+
+                logger.exception("suppressed exception", exc_info=True)
             # F13: bind into canonical identity store used by compose_standing
             # (get_session_identity / _SESSION_IDENTITY — NOT tools._SESSIONS alone)
             try:
@@ -3362,8 +4282,8 @@ def arif_init(
             except Exception as _bind_err:
                 logger.warning("bind_session_identity failed (non-fatal): %s", _bind_err)
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
         from arifosmcp.runtime.work_spine import create_work_contract
 
         _temporal_root = {}  # APEX patch 2026-08-02: F1 fallback before Temporal Intelligence Keystone (line below) sets proper value
@@ -3377,6 +4297,51 @@ def arif_init(
             autonomy_band=autonomy_band,
             verification_criteria=verification_requirements,
         )
+
+        # INIT v2 Roots — F13-ratified 2026-09-20 (additive)
+        # Injected into header (result dict) so it survives MCP pipeline.
+        _tc_for_roots = _build_temporal_context(mode=mode)
+        _v2_roots = _safe_build(
+            _build_init_v2_roots,
+            sid=sid,
+            actor_id=actor_id,
+            identity_verified=identity_verified,
+            mode=mode,
+            objective=objective,
+            success_criteria=success_criteria,
+            verification_requirements=verification_requirements,
+            sess=sess,
+            temporal_context=_tc_for_roots,
+            fallback=None,
+        )
+        if _v2_roots:
+            import hashlib as _hl, json as _js
+
+            _roots_canonical = _js.dumps(_v2_roots, sort_keys=True, default=str)
+            _roots_hash = f"sha256:{_hl.sha256(_roots_canonical.encode('utf-8')).hexdigest()}"
+            header["init_v2_roots"] = _v2_roots
+            header["init_roots_hash"] = _roots_hash
+            header["genesis_state_hash"] = _roots_hash
+            sess["init_v2_roots"] = _v2_roots
+            sess["init_roots_hash"] = _roots_hash
+            sess["genesis_state_hash"] = _roots_hash
+            try:
+                from arifosmcp.runtime.tools import _SESSIONS
+                _SESSIONS[sid] = sess
+            except Exception:
+
+                logger.exception("suppressed exception", exc_info=True)
+        # L3: Carry-forward injection — generational memory at init.
+        # Injects human_state, recent entries, chron_briefing, open loops.
+        _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
+        if _cf_ctx:
+            header["carry_forward"] = _cf_ctx
+
+        # L4: CHRON temporal context — predictions, calibration, lessons.
+        # Injects active predictions, due-soon items, calibration stats.
+        _chron_ctx = _safe_build(_build_chron_temporal_context, fallback=None)
+        if _chron_ctx:
+            header["chron_temporal"] = _chron_ctx
 
         # M5 payload diet: strip nested bloat from minimal verbosity
         # (must run AFTER all blocks assembled, not inside _project_light)
@@ -3425,6 +4390,18 @@ def arif_init(
         }
         # Persist on session so identity_store can read it
         sess["temporal_root"] = _temporal_root
+
+        # ── INIT temporal grounding (2026-09-20, additive — F13 RATIFIED) ──
+        # ROUTING FIX: v1 set header["temporal_root"] to the empty {} F1 fallback
+        # (~line 3607); the Temporal Keystone above only refreshed sess[]. The INIT
+        # envelope therefore surfaced {} while the populated root was computed and
+        # discarded — the F9 temporal-grounding hole. Bind the populated root into
+        # the header ONLY when it still holds the empty fallback (no clobber).
+        # clock_source declared explicitly so downstream timestamps carry provenance.
+        # Additive: two new keys, no existing key changed. Reversible: delete block.
+        _temporal_root.setdefault("clock_source", "system_clock")
+        if header.get("temporal_root") == {}:
+            header["temporal_root"] = _temporal_root
 
         # ── /000 Principal-Agent Response (forged 2026-07-01) ────────────
         _sovereign_id = sess.get("sovereign_id")
@@ -3504,6 +4481,23 @@ def arif_init(
             doctrine=ARIF_DOCTRINE,
             # Workstream 1: top-level authority_state for easy access
             authority_state=_auth_state,
+            # Session Contract v2 — temporal grounding context (additive)
+            temporal=_build_temporal_context(mode=mode),
+            # INIT v2 Roots — F13-ratified 2026-09-20 (additive)
+            # Four critical roots: TEMPORAL, OBJECTIVE, NEGATIVE_KNOWLEDGE, PROVENANCE
+            init_v2_roots=_safe_build(
+                _build_init_v2_roots,
+                sid=sid,
+                actor_id=actor_id,
+                identity_verified=identity_verified,
+                mode=mode,
+                objective=objective,
+                success_criteria=success_criteria,
+                verification_requirements=verification_requirements,
+                sess=sess,
+                temporal_context=_build_temporal_context(mode=mode),
+                fallback=None,
+            ),
         )
 
     # ── STATUS MODE ──────────────────────────────────────────
@@ -3818,8 +4812,8 @@ def arif_init(
 
             _SESSIONS[sid] = sess
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
         from arifosmcp.runtime.work_spine import create_work_contract
 
         work_receipt = create_work_contract(
@@ -3888,6 +4882,8 @@ def arif_init(
                 "next_actions": _observe_only_next_actions(),
             },
             doctrine=ARIF_DOCTRINE,
+            # Session Contract v2 — temporal grounding context (additive)
+            temporal=_build_temporal_context(mode="birth"),
         )
 
     # ── HANDOVER MODE ────────────────────────────────────────
@@ -3943,9 +4939,10 @@ def arif_init(
     if mode == "validate":
         from arifosmcp.runtime.tools import _SESSIONS
 
-        _sct_arg = session_token
-        if not _sct_arg and isinstance(payload, dict):
-            _sct_arg = payload.get("session_token") or payload.get("sct")
+        _sct_arg = locals().get("session_token")
+        _payload = locals().get("payload")
+        if not _sct_arg and isinstance(_payload, dict):
+            _sct_arg = _payload.get("session_token") or _payload.get("sct")
         _candidate = session_id
         for _cand in (_sct_arg, session_id):
             if _cand and (str(_cand).startswith("act_v1.") or str(_cand).startswith("arifos.v1.")):
@@ -4006,11 +5003,32 @@ def arif_init(
         # SEAL-* session store path
         _in_store = target_sid in _SESSIONS
         sess_data = _SESSIONS.get(target_sid, {})
+        bound_actor = sess_data.get("actor_id") or "arif"
+
+        # Check actor mismatch only if caller explicitly passed actor_id
+        if _in_store and actor_id:
+            from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+            _bound_norm = normalize_actor_id(bound_actor) or bound_actor.lower().strip()
+            _provided_norm = normalize_actor_id(actor_id) or actor_id.lower().strip()
+            if _bound_norm != _provided_norm and _bound_norm != "anonymous" and _provided_norm != "anonymous":
+                return _sm(
+                    status="HOLD",
+                    result={
+                        "valid": False,
+                        "session_valid": False,
+                        "claims": None,
+                        "error": f"actor_id mismatch: supplied '{actor_id}' does not match bound session actor '{bound_actor}'",
+                    },
+                    meta={"reason": "actor_id mismatch with bound session actor"},
+                    doctrine=ARIF_DOCTRINE,
+                )
+
         claims_data = (
             {
                 "act_v": 1,
                 "sid": target_sid,
-                "actor": sess_data.get("actor_id") or "arif",
+                "actor": bound_actor,
                 "auth": sess_data.get("authority", "OBSERVE_ONLY"),
                 "av": True,
                 "stage": sess_data.get("stage", "000"),
@@ -4020,18 +5038,35 @@ def arif_init(
             else None
         )
 
+        init_roots_hash = sess_data.get("init_roots_hash")
+        genesis_state_hash = sess_data.get("genesis_state_hash")
+        roots_verified = False
+        if _in_store and init_roots_hash and sess_data.get("init_v2_roots"):
+            import hashlib as _hl, json as _js
+
+            _cur_hash = f"sha256:{_hl.sha256(_js.dumps(sess_data['init_v2_roots'], sort_keys=True, default=str).encode('utf-8')).hexdigest()}"
+            roots_verified = (_cur_hash == init_roots_hash)
+
+        res_data = {
+            "valid": _in_store,
+            "session_valid": _in_store,
+            "claims": claims_data,
+            "error": None if _in_store else f"session_id not found or expired: {target_sid}",
+            "session_id": target_sid,
+            "actor": bound_actor if _in_store else None,
+            "validation_path": "session_store",
+            "init_roots_hash": init_roots_hash,
+            "genesis_state_hash": genesis_state_hash,
+            "roots_verified": roots_verified,
+            "verification": _collect_verify_telemetry(),
+        }
+        if _payload and isinstance(_payload, dict) and _payload.get("include_roots"):
+            res_data["init_v2_roots"] = sess_data.get("init_v2_roots")
+
         return _sm(
             status="OK" if _in_store else "HOLD",
             verdict="SEAL" if _in_store else "HOLD",
-            result={
-                "valid": _in_store,
-                "session_valid": _in_store,
-                "claims": claims_data,
-                "error": None if _in_store else f"session_id not found or expired: {target_sid}",
-                "session_id": target_sid,
-                "validation_path": "session_store",
-                "verification": _collect_verify_telemetry(),
-            },
+            result=res_data,
             session_id=target_sid if _in_store else None,
             doctrine=ARIF_DOCTRINE,
         )

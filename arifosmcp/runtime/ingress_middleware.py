@@ -92,11 +92,7 @@ def _interceptor_hold_tool_result(
     except Exception:
         from mcp.types import CallToolResult as ToolResult  # type: ignore
 
-    auth = (
-        decision.authority_tier.value
-        if getattr(decision, "authority_tier", None)
-        else "LOW"
-    )
+    auth = decision.authority_tier.value if getattr(decision, "authority_tier", None) else "LOW"
     actor = getattr(decision, "actor_id", None) or "anonymous"
     cap = getattr(decision, "capability_id", None) or "unknown"
     reason = getattr(decision, "reason", None) or "constitutional gate"
@@ -144,10 +140,23 @@ def _interceptor_hold_tool_result(
             "derived_from": "kernel_interceptor",
         },
     }
+
+    # G2c (2026-09-17): every HOLD names its class + legal resolution lane.
+    # Anti-collapse at the gate — a blocked agent that knows its lane does
+    # not improvise (K-02 scar). Fail-soft: classification never alters the
+    # verdict, it annotates it.
+    try:
+        from arifosmcp.core.hold_resolution import as_dict, classify_hold
+
+        envelope["hold_resolution"] = as_dict(
+            classify_hold(reason, tool=tool_name, authority=auth)
+        )
+    except Exception:
+        pass
     return ToolResult(
         is_error=True,
         content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
-        structuredContent=envelope,
+        structured_content=envelope,
     )
 
 
@@ -1053,6 +1062,22 @@ if IS_FASTMCP_3:
                         from mcp.types import TextContent
 
                         _canonical = ", ".join(sorted(_public_allowed))
+                        # Soft-landing for legacy names: if the caller used a
+                        # documented-but-internal alias (docs carry 260+ legacy
+                        # mentions), name its canonical verb instead of a bare
+                        # rejection — external agents retry correctly.
+                        _redirect = ""
+                        try:
+                            from arifosmcp.runtime.tools import _ALIAS_TO_CANON
+
+                            _mapped = _ALIAS_TO_CANON.get(tool_name)
+                            if _mapped and _mapped in _public_allowed:
+                                _redirect = (
+                                    f" '{tool_name}' is a legacy alias → "
+                                    f"call '{_mapped}' with the same intent."
+                                )
+                        except Exception:
+                            pass
                         logger.info(
                             "Public surface HOLD: tools/call name=%s not in public list "
                             "(list==callable enforcement)",
@@ -1065,7 +1090,7 @@ if IS_FASTMCP_3:
                                     type="text",
                                     text=(
                                         f"Unknown tool: '{tool_name}'. "
-                                        f"Not on canonical public surface. "
+                                        f"Not on canonical public surface.{_redirect} "
                                         f"Callable tools: {_canonical}. "
                                         f"Diagnostics (arif_canary etc.) require "
                                         f"ARIFOS_MCP_EXPOSE_DEV_TOOLS=true and a "
@@ -1112,6 +1137,44 @@ if IS_FASTMCP_3:
 
                     envelope_session_id = envelope.session_id
                     envelope_agent_id = envelope.agent_id
+
+                    # ── SESSION-TOKEN ADOPTION (F11 session-chain fix, 2026-09-03) ──
+                    # A verified act_v1/sct_v1 token in tool arguments carries
+                    # actor + sid claims. Adopt them when the envelope would
+                    # otherwise be anonymous/unknown — the anonymous gate stays
+                    # fully intact for token-less callers.
+                    _args_token = (msg.arguments or {}).get("session_token")
+                    if (
+                        isinstance(_args_token, str)
+                        and _args_token.startswith(("act_v1.", "sct_v1."))
+                        and (
+                            envelope.actor_id in (None, "", "anonymous")
+                            or envelope.session_id in (None, "", "unknown")
+                        )
+                    ):
+                        try:
+                            from arifosmcp.runtime.capability_token import (
+                                verify_token as _verify_act_token,
+                            )
+
+                            _act_claims = _verify_act_token(_args_token)
+                            if isinstance(_act_claims, dict) and _act_claims.get("av"):
+                                if envelope.actor_id in (None, "", "anonymous"):
+                                    envelope.actor_id = str(
+                                        _act_claims.get("actor") or envelope.actor_id
+                                    )
+                                if envelope.session_id in (None, "", "unknown"):
+                                    envelope.session_id = str(
+                                        _act_claims.get("sid") or envelope.session_id
+                                    )
+                                envelope_session_id = envelope.session_id
+                                logger.info(
+                                    "Ingress session-token adoption: actor=%s sid=%s",
+                                    envelope.actor_id,
+                                    envelope.session_id,
+                                )
+                        except Exception as _adopt_err:
+                            logger.debug("Ingress token adoption skipped: %s", _adopt_err)
 
                     # ── FORGE SCOPE GATE (v3: ToolScoper integration) ──────────────
                     # When forge_scope is non-empty, only tools on the allowlist pass.
@@ -1460,7 +1523,22 @@ if IS_FASTMCP_3:
                             }
                         )
 
-                    result = await call_next(context)
+                    # P0-B Wave 1: the MCP ingress dispatcher is the trusted
+                    # ingress — open the root trace span around the handler so
+                    # nested governed emissions become children of one causal
+                    # graph, and the finally-block record carries the root IDs.
+                    from arifosmcp.arifos_observability.trace_context import (
+                        span as _trace_span,
+                    )
+
+                    _actor = getattr(envelope, "actor_id", None)
+                    _sess = getattr(envelope, "session_id", None)
+                    with _trace_span(
+                        tool_name,
+                        actor_id=str(_actor) if _actor and _actor != "anonymous" else None,
+                        act_sid=str(_sess) if _sess and _sess != "unknown" else None,
+                    ) as _ingress_tctx:
+                        result = await call_next(context)
 
                     if result:
                         if hasattr(result, "structured_content") and isinstance(
@@ -1495,6 +1573,17 @@ if IS_FASTMCP_3:
                                 result.structured_content, dict
                             ):
                                 _resp_dict = {**result.structured_content, **_resp_dict}
+                            # P0-B: explicit root IDs — guard against unbound
+                            # when the failure happened before the span opened.
+                            _extra_trace: dict[str, Any] = {}
+                            try:
+                                if _ingress_tctx is not None:
+                                    _extra_trace = {
+                                        "trace_id": str(_ingress_tctx.trace_id),
+                                        "span_id": str(_ingress_tctx.span_id),
+                                    }
+                            except NameError:
+                                pass
                             trace_tool_call(
                                 tool_name=tool_name,
                                 arguments=dict(msg.arguments or {}),
@@ -1504,6 +1593,7 @@ if IS_FASTMCP_3:
                                 else None,
                                 actor_id=envelope_agent_id,
                                 latency_ms=float(elapsed_ms),
+                                **_extra_trace,
                             )
                         except Exception:
                             pass

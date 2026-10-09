@@ -29,7 +29,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # Schema version for receipt signing
-RECEIPT_SCHEMA_VERSION = "v1"
+RECEIPT_SCHEMA_VERSION = "v2"  # Bumped: persona-tag fields added (2026-09-17)
 
 
 @dataclass
@@ -45,6 +45,10 @@ class SignedReceipt:
     timestamp: str
     schema_version: str
     signature: str  # base64 Ed25519 signature
+    # Persona-canon (EUREKA-2026-09-17-PERSONA-CIVILISATION-TRIAD) tag fields — optional, backward compat
+    persona_id: str | None = None
+    persona_evidence_standard: str | None = None  # OBS | DER | INT | SPEC
+    authority_boundary: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -57,20 +61,31 @@ class SignedReceipt:
             "timestamp": self.timestamp,
             "schema_version": self.schema_version,
             "signature": self.signature,
+            "persona_id": self.persona_id,
+            "persona_evidence_standard": self.persona_evidence_standard,
+            "authority_boundary": self.authority_boundary,
         }
 
     def signature_payload(self) -> str:
-        """The canonical string that was signed."""
-        return (
-            f"arifos-receipt-{self.schema_version}\n"
-            f"receipt_id={self.receipt_id}\n"
-            f"event_type={self.event_type}\n"
-            f"payload_hash={self.payload_hash}\n"
-            f"previous_hash={self.previous_hash}\n"
-            f"writer={self.writer_identity}\n"
-            f"key_id={self.key_id}\n"
-            f"timestamp={self.timestamp}"
-        )
+        """The canonical string that was signed. Includes persona fields when present."""
+        lines = [
+            f"arifos-receipt-{self.schema_version}",
+            f"receipt_id={self.receipt_id}",
+            f"event_type={self.event_type}",
+            f"payload_hash={self.payload_hash}",
+            f"previous_hash={self.previous_hash}",
+            f"writer={self.writer_identity}",
+            f"key_id={self.key_id}",
+            f"timestamp={self.timestamp}",
+        ]
+        # Backward compat: only include persona lines when set
+        if self.persona_id is not None:
+            lines.append(f"persona_id={self.persona_id}")
+        if self.persona_evidence_standard is not None:
+            lines.append(f"persona_evidence_standard={self.persona_evidence_standard}")
+        if self.authority_boundary is not None:
+            lines.append(f"authority_boundary={self.authority_boundary}")
+        return "\n".join(lines) + "\n"
 
 
 @dataclass
@@ -102,6 +117,9 @@ def sign_receipt(
     *,
     key_id: str = "service",
     use_sovereign: bool = False,
+    persona_id: str | None = None,
+    persona_evidence_standard: str | None = None,
+    authority_boundary: str | None = None,
 ) -> SignedReceipt | None:
     """Sign a receipt with Ed25519.
 
@@ -112,6 +130,9 @@ def sign_receipt(
         writer_identity: Who is writing this receipt
         key_id: Key identifier (default: "service" for routine receipts)
         use_sovereign: If True, use the sovereign key (for sovereign-class events)
+        persona_id: Optional persona tag (EUREKA-2026-09-17-PERSONA-CIVILISATION-TRIAD)
+        persona_evidence_standard: Optional epistemic tag (OBS|DER|INT|SPEC)
+        authority_boundary: Optional free-text describing what the persona cannot do
 
     Returns:
         SignedReceipt or None if signing fails
@@ -125,7 +146,7 @@ def sign_receipt(
         if use_sovereign:
             key_id = "sovereign"
 
-        # Build the canonical signing payload
+        # Build the canonical signing payload (persona fields appended only when set)
         signing_string = (
             f"arifos-receipt-{schema_version}\n"
             f"receipt_id={receipt_id}\n"
@@ -134,8 +155,14 @@ def sign_receipt(
             f"previous_hash={previous_hash}\n"
             f"writer={writer_identity}\n"
             f"key_id={key_id}\n"
-            f"timestamp={timestamp}"
+            f"timestamp={timestamp}\n"
         )
+        if persona_id is not None:
+            signing_string += f"persona_id={persona_id}\n"
+        if persona_evidence_standard is not None:
+            signing_string += f"persona_evidence_standard={persona_evidence_standard}\n"
+        if authority_boundary is not None:
+            signing_string += f"authority_boundary={authority_boundary}\n"
 
         # Sign with Ed25519
         signature = _sign_with_key(signing_string, use_sovereign=use_sovereign)
@@ -153,6 +180,9 @@ def sign_receipt(
             timestamp=timestamp,
             schema_version=schema_version,
             signature=signature,
+            persona_id=persona_id,
+            persona_evidence_standard=persona_evidence_standard,
+            authority_boundary=authority_boundary,
         )
 
     except Exception as e:

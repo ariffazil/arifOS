@@ -122,6 +122,8 @@ def requires_causal_cascade(
     m = (mode or "").strip().lower()
     tier = (action_tier or "").strip().lower()
     br = (blast_radius or "").strip().upper()
+    if m in ("read", "r0", "observe", "audit_record_read", "r0_observe", "r0_observation", "query"):
+        return False
     if ack_irreversible:
         return True
     if reversible is False:

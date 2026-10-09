@@ -140,7 +140,8 @@ class GovernanceKernel:
         reversibility_flags = sum(
             1 for e in self._event_log if e["payload"].get("reversible", False)
         )
-        total_actions = max(1, len([e for e in self._event_log if e["type"] == "action"]))
+        action_count = len([e for e in self._event_log if e["type"] == "action"])
+        total_actions = max(1, action_count)
         shadow_signals = sum(
             query_text.count(w)
             for w in (
@@ -212,8 +213,41 @@ class GovernanceKernel:
         else:
             verdict = "SEAL"
 
+        # ── SCAR-OBS-GREENWASH (2026-10-03): measurement basis ──────────────
+        # Every score above is an affine function of this kernel's event log and
+        # witness inputs, so an empty log yields structural baselines
+        # (tau_truth=0.5, peace2=0.5, kappa_r=0.5, witness_coherence=0.0,
+        # shadow=0.0) that are indistinguishable from real measurements
+        # downstream. Publishing those as `state: observed, confidence: 0.9` is
+        # what turned the public observatory green with no external referent.
+        # Expose the basis so consumers can render "unmeasured" instead.
+        outcome_count = self._success_streak + self._failure_count
+        unmeasured_floors = [
+            fid
+            for fid, has_signal in (
+                ("F2", evidence_count > 0),
+                ("F3", witness_sum > 0),
+                ("F4", bool(self._assumptions or self._resolved)),
+                ("F5", outcome_count > 0),
+                ("F6", action_count > 0),
+                ("F9", bool(query_text)),
+            )
+            if not has_signal
+        ]
+        measurement_basis = {
+            "event_count": evidence_count,
+            "action_count": action_count,
+            "outcome_count": outcome_count,
+            "contradiction_count": contradiction_signals,
+            "reversibility_count": reversibility_flags,
+            "witness_sum": round(witness_sum, 4),
+            "query_evaluated": bool(query_text),
+            "unmeasured_floors": unmeasured_floors,
+        }
+
         res = {
             "session_id": self.session_id,
+            "measurement_basis": measurement_basis,
             "floors": {
                 "tau_truth": round(tau_truth, 4),
                 "ds": round(ds, 4),

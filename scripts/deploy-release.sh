@@ -17,15 +17,74 @@ set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SELF_DIR/.." && pwd)"
-VENV_PYTHON="/opt/arifos/venv/bin/python"
-VENV_PIP="/opt/arifos/venv/bin/pip"
-VENV_SITE_PKG="$(cd / && "$VENV_PYTHON" -c 'from pathlib import Path; import arifosmcp; print(str(Path(arifosmcp.__file__).parent))' 2>/dev/null || echo "/opt/arifos/venv/lib/python3.12/site-packages/arifosmcp")"
+# ONE_ORIGIN (2026-09-16): the production venv lives at
+# /opt/arifos/current/venv — the ONLY legal runtime origin. Legacy
+# /opt/arifos/venv is a compat symlink for sibling services.
+ACTIVE_VENV="/opt/arifos/current/venv"
+VENV_PYTHON="$ACTIVE_VENV/bin/python"
+VENV_PIP="$ACTIVE_VENV/bin/pip"
 SERVICE_NAME="arifos.service"
 RELEASE_DIR="/opt/arifos/releases"
+STAMP_FILE="$RELEASE_DIR/deployed-commit"
 BUILD_DIR="/tmp/arifos-build-$$"
+
+# Real site-packages ROOT (sysconfig), not the arifosmcp package dir —
+# the 2026-09-16 audit found the old cleanup computed the package dir,
+# so editable/.pth removal had been a silent no-op for weeks.
+SITE_PKG_ROOT="$(cd / && "$VENV_PYTHON" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])' 2>/dev/null || echo "$ACTIVE_VENV/lib/python3.13/site-packages")"
 
 GIT_COMMIT="$(cd "$REPO_DIR" && git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown")"
 BUILD_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+# ── Origin visibility (2026-09-29, audit item #16) ───────────────────
+# deploy-local guards HEAD == origin/main; this path did not, so a release
+# could be built from commits that exist only on this machine — making the
+# deployed artifact unreconstructable from the remote. Recorded, not blocked:
+# local-first deploy is legitimate practice here (the running ac054a5 build
+# was itself unpushed). Publishing is an F13 decision, not a deploy side effect.
+ORIGIN_COMMIT="$(cd "$REPO_DIR" && git rev-parse --short=7 origin/main 2>/dev/null || echo "unknown")"
+AHEAD_OF_ORIGIN="$(cd "$REPO_DIR" && git rev-list --count origin/main..HEAD 2>/dev/null || echo "-1")"
+
+# ── S5 deploy-honesty: dirty-tree capture (flag + record, NOT abort) ─
+# 2026-09-23: the git stamp is commit-only, but the wheel builds from the
+# WORKING TREE — concurrent lanes leave uncommitted deltas that ship in
+# the wheel while the stamp claims a clean commit (F2 omission hole).
+# Capture the dirty state BEFORE the build and record it in the manifest.
+GIT_DIRTY_FILES="$(git -C "$REPO_DIR" status --porcelain 2>/dev/null || true)"
+if [ -n "$GIT_DIRTY_FILES" ]; then
+	GIT_DIRTY="true"
+	GIT_DIRTY_COUNT="$(printf '%s\n' "$GIT_DIRTY_FILES" | wc -l | tr -d ' ')"
+	GIT_DIRTY_JSON="$(printf '%s\n' "$GIT_DIRTY_FILES" | python3 -c 'import sys, json; print(json.dumps([line[3:] for line in sys.stdin.read().splitlines()]))')"
+	echo "⚠️  WARNING: wheel built from DIRTY tree — git stamp is commit-only; content includes uncommitted deltas ($GIT_DIRTY_COUNT files):"
+	printf '%s\n' "$GIT_DIRTY_FILES"
+	echo ""
+else
+	GIT_DIRTY="false"
+	GIT_DIRTY_COUNT="0"
+	GIT_DIRTY_JSON="[]"
+fi
+
+# ── Step 0: CLEAN-TREE GATE (fail-closed) ────────────────────────────
+# 2026-09-29 (333-AGI, referential-integrity audit item #15/#16).
+# The capture above was flag-only: it recorded dirty=true and then built
+# anyway. That is how the ac054a5 production wheel came to contain four
+# uncommitted files — live code that existed in no commit, so the release
+# was identifiable only by content_sha256 and `source == built == deployed`
+# could never be truthfully asserted. Doctrine said "stamp honestly";
+# the institution needed "refuse to ship". Escape hatch is explicit and
+# leaves an audit line, because a dirty build is never the default path.
+if [ "$GIT_DIRTY" = "true" ] && [ "${DEPLOY_ALLOW_DIRTY:-0}" != "1" ]; then
+	echo "❌ 888_HOLD: refusing to build from a DIRTY tree ($GIT_DIRTY_COUNT uncommitted paths)."
+	echo "   A dirty build produces an artifact reproducible from no commit, which makes"
+	echo "   release_id a name that does not designate the running artifact (F2)."
+	printf '%s\n' "$GIT_DIRTY_FILES" | sed 's/^/     /'
+	echo "   Commit or stash the in-flight work first. If another lane owns it, wait for that lane."
+	echo "   Override (audited, discouraged): DEPLOY_ALLOW_DIRTY=1 $0"
+	exit 1
+fi
+if [ "$GIT_DIRTY" = "true" ]; then
+	echo "⚠️  DEPLOY_ALLOW_DIRTY=1 — building from a dirty tree by explicit override; manifest will record dirty=true"
+fi
 
 echo "═══ arifOS Release 1 — Runtime Truth ═══"
 echo "  Source:     $REPO_DIR"
@@ -36,17 +95,21 @@ echo ""
 # ── Step 1: Build wheel ──────────────────────────────────────────────
 echo "--- Step 1: Build immutable wheel ---"
 cd "$REPO_DIR"
+# 2026-09-16: stale build/lib + egg-info poison every wheel — scripts/
+# shipped for months because a cached copy lived in build/lib even after
+# pyproject include-list hygiene. Clean before every build.
+rm -rf build arifos.egg-info
 python -m build --wheel --outdir "$BUILD_DIR" 2>&1 || {
-    echo "ERROR: build failed"
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "ERROR: build failed"
+	rm -rf "$BUILD_DIR"
+	exit 1
 }
 
 WHEEL_FILE="$(ls "$BUILD_DIR"/*.whl 2>/dev/null | head -1)"
 if [ -z "$WHEEL_FILE" ]; then
-    echo "ERROR: no wheel produced"
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "ERROR: no wheel produced"
+	rm -rf "$BUILD_DIR"
+	exit 1
 fi
 WHEEL_HASH="$(sha256sum "$WHEEL_FILE" | cut -d' ' -f1)"
 WHEEL_NAME="$(basename "$WHEEL_FILE")"
@@ -59,101 +122,289 @@ echo "--- Step 2: Remove stale global install ---"
 # Remove from global site-packages (python3.13 dist-packages)
 GLOBAL_SITE_PKG="$(python3 -c 'import site; print([p for p in site.getsitepackages() if "dist-packages" in p][0])' 2>/dev/null || echo "")"
 if [ -n "$GLOBAL_SITE_PKG" ] && [ -d "$GLOBAL_SITE_PKG/arifosmcp" ]; then
-    echo "  Removing: $GLOBAL_SITE_PKG/arifosmcp"
-    rm -rf "$GLOBAL_SITE_PKG/arifosmcp"
-    rm -f "$GLOBAL_SITE_PKG/arifos-"*.dist-info 2>/dev/null || true
-    echo "  ✅ Global install removed"
+	echo "  Removing: $GLOBAL_SITE_PKG/arifosmcp"
+	rm -rf "$GLOBAL_SITE_PKG/arifosmcp"
+	rm -f "$GLOBAL_SITE_PKG/arifos-"*.dist-info 2>/dev/null || true
+	echo "  ✅ Global install removed"
 else
-    echo "  No global install found"
+	echo "  No global install found"
 fi
 echo ""
 
-# ── Step 3: Install wheel into production venv ────────────────────────
-echo "--- Step 3: Install wheel into /opt/arifos/venv ---"
+# ── Step 3: Install wheel into the active release venv ───────────────
+echo "--- Step 3: Install wheel into $ACTIVE_VENV ---"
 mkdir -p "$RELEASE_DIR"
 cp "$WHEEL_FILE" "$RELEASE_DIR/"
 
-# Uninstall old version first if present
-"$VENV_PIP" uninstall -y arifos 2>/dev/null || true
+# ONE_ORIGIN seed (first run only): build the active venv from the legacy
+# venv's dependencies — WITHOUT the arifos lineage, stale dist-infos
+# (1!2026.8.2 / 1!2026.9.2), or editable finder artifacts. Fresh venv has
+# correct shebangs; deps arrive by copy so no network resolution.
+if [ ! -x "$VENV_PYTHON" ]; then
+	echo "  Seeding $ACTIVE_VENV from legacy /opt/arifos/venv ..."
+	LEGACY_SP="$(ls -d /opt/arifos/venv/lib/python*/site-packages 2>/dev/null | head -1 || true)"
+	python3 -m venv "$ACTIVE_VENV"
+	if [ -n "$LEGACY_SP" ]; then
+		NEW_SP="$ACTIVE_VENV/lib/$(basename "$(dirname "$LEGACY_SP")")/site-packages"
+		rsync -a \
+			--exclude 'arifosmcp/' \
+			--exclude 'core/' \
+			--exclude 'arifos/' \
+			--exclude 'arifos-*.dist-info/' \
+			--exclude '__editable__*' \
+			--exclude '~*' \
+			"$LEGACY_SP/" "$NEW_SP/"
+	fi
+	echo "  ✅ Active venv seeded"
+fi
 
-# Remove any editable install artifacts from the venv (PEP 660 .pth files)
-# These redirect imports to /root/arifOS source, defeating the wheel install
-rm -f "$VENV_SITE_PKG/arifos-core.pth" 2>/dev/null || true
-rm -f "$VENV_SITE_PKG/__editable__.arifos-"*.pth 2>/dev/null || true
-rm -f "$VENV_SITE_PKG/__editable___arifos_"*.py 2>/dev/null || true
+SITE_PKG_ROOT="$(cd / && "$VENV_PYTHON" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
 
-# Install fresh wheel (force to override any editable residue)
-"$VENV_PIP" install --force-reinstall --no-deps "$WHEEL_FILE" 2>&1
+# Purge every arifos lineage artifact at site-packages ROOT (the old
+# script computed the arifosmcp package dir — cleanup was a no-op).
+"$VENV_PIP" uninstall -y arifos arifosmcp 2>/dev/null || true
+rm -rf "$SITE_PKG_ROOT/arifosmcp" "$SITE_PKG_ROOT/core" "$SITE_PKG_ROOT/arifos"
+rm -rf "$SITE_PKG_ROOT"/arifos-*.dist-info "$SITE_PKG_ROOT"/arifosmcp-*.dist-info
+rm -f "$SITE_PKG_ROOT/arifos-core.pth" "$SITE_PKG_ROOT"/__editable__.arifos-*.pth \
+	"$SITE_PKG_ROOT"/__editable___arifos_*.py
 
-echo "  ✅ Wheel installed (editable artifacts removed)"
+# Install fresh wheel — the ONLY arifos distribution in the active venv
+"$VENV_PIP" install --no-deps "$WHEEL_FILE" 2>&1
+
+# Axis C gate: exactly one arifos distribution, zero editable installs
+# (|| true: empty glob is a PASS condition, not an ls error)
+ARIFOS_DIST_COUNT=$({ ls -d "$SITE_PKG_ROOT"/arifos-*.dist-info 2>/dev/null || true; } | wc -l)
+EDITABLE_COUNT=$({ ls "$SITE_PKG_ROOT"/__editable__.arifos-* 2>/dev/null || true; } | wc -l)
+if [ "$ARIFOS_DIST_COUNT" -ne 1 ] || [ "$EDITABLE_COUNT" -ne 0 ]; then
+	echo "❌ ONE-ORIGIN GATE: dist_count=$ARIFOS_DIST_COUNT editable=$EDITABLE_COUNT"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
+echo "  ✅ Wheel installed (single distribution, zero editables)"
+
+# ── S5 deploy-honesty: content-hash stamp (binary self-describes) ────
+# 2026-09-23: the commit stamp alone cannot prove what the wheel contains
+# (S5: no verifiable link between binary and commit). Hash the INSTALLED
+# package's .py files and stamp the digest into arifosmcp/__init__.py so
+# the deployed binary self-describes its actual content; the same digest
+# is recorded in release-manifest.json. Verify recipe: strip the
+# __content_sha256__ line from the installed __init__.py, re-run the
+# pipeline below, compare. (The stamp line cannot contain its own digest
+# — self-reference is cryptographically infeasible — hence the
+# documented exclusion rule.)
+PKG_DIR="$SITE_PKG_ROOT/arifosmcp"
+if [ ! -d "$PKG_DIR" ]; then
+	echo "❌ CONTENT-STAMP GATE: installed package missing: $PKG_DIR"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
+CONTENT_SHA256="$(find "$PKG_DIR" -name '*.py' -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)"
+if "$VENV_PYTHON" - "$PKG_DIR/__init__.py" "$CONTENT_SHA256" <<'STAMPEOF'; then
+import re, sys
+from pathlib import Path
+
+init_py, digest = Path(sys.argv[1]), sys.argv[2]
+text = init_py.read_text(encoding="utf-8")
+line = f'__content_sha256__ = "{digest}"'
+if re.search(r"^__content_sha256__\s*=.*$", text, flags=re.MULTILINE):
+    text = re.sub(r"^__content_sha256__\s*=.*$", line, text, count=1, flags=re.MULTILINE)
+else:
+    if not text.endswith("\n"):
+        text += "\n"
+    text += line + "\n"
+init_py.write_text(text, encoding="utf-8")
+STAMPEOF
+	echo "  ✅ Content stamp: __content_sha256__ = $CONTENT_SHA256"
+else
+	echo "❌ CONTENT-STAMP GATE: failed to stamp $PKG_DIR/__init__.py"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
 echo ""
 
-# ── Step 4: Verify import path ───────────────────────────────────────
-echo "--- Step 4: Verify import path resolution ---"
+# Host identity config: /etc/arifos/identity.toml (root:root 0644)
+install -d -m 0755 -o root -g root /etc/arifos
+install -m 0644 -o root -g root "$REPO_DIR/identity.toml" /etc/arifos/identity.toml
+echo "  ✅ identity.toml → /etc/arifos/identity.toml"
+
+# ── Step 3.6: Venv self-containment gate ─────────────────────────────
+# ONE_ORIGIN dep closure (2026-09-16): the venv must be self-contained —
+# no kernel import may resolve from system dist-packages. The legacy venv
+# silently leaned on /usr/local + /usr/lib for ~40 packages (incl. numpy,
+# cryptography, asyncpg) since forever.
+DEP_LEAN=$(cd / && env -i "$VENV_PYTHON" -c "
+import sys, json
+import arifosmcp.runtime.__main__
+import arifosmcp.runtime.tools
+import arifosmcp.runtime.rest_routes.rest_routes
+lean = sorted({n.split('.')[0] for n, m in list(sys.modules.items())
+    if (f := getattr(m, '__file__', None)) and 'dist-packages' in f
+    and '$ACTIVE_VENV' not in f})
+print(json.dumps(lean))
+" 2>/dev/null || echo '["SCAN_FAILED"]')
+if [ "$DEP_LEAN" != "[]" ]; then
+	echo "❌ DEP-CLOSURE GATE: venv not self-contained: $DEP_LEAN"
+	rm -rf "$BUILD_DIR"
+	exit 1
+fi
+echo "  ✅ Venv self-contained (zero system-lean imports)"
+echo ""
+
+# Wheel content gate: exactly three legal roots, nothing else ships.
+WHEEL_ROOTS=$(unzip -l "$RELEASE_DIR/$WHEEL_NAME" 2>/dev/null | awk '{print $4}' |
+	grep -v '^$' | grep -v 'dist-info' | cut -d/ -f1 | sort -u | tr '\n' ' ')
+case "$WHEEL_ROOTS" in
+*"scripts"* | *"tests"* | *"archive"* | *"mcp_server"*)
+	echo "❌ WHEEL GATE: illegal package root shipped: $WHEEL_ROOTS"
+	rm -rf "$BUILD_DIR"
+	exit 1
+	;;
+esac
+echo "  ✅ Wheel roots: $WHEEL_ROOTS"
+
+# ── Step 4: Verify import path (ONE_ORIGIN axis A) ───────────────────
+echo "--- Step 4: Verify import origin ---"
 IMPORT_PATH=$(cd / && "$VENV_PYTHON" -c "
-import arifosmcp.runtime.build as b
+import arifosmcp
 from pathlib import Path
-print(Path(b.__file__).resolve())
+print(Path(arifosmcp.__file__).resolve())
 " 2>/dev/null || echo "ERROR")
 
-echo "  Import path: $IMPORT_PATH"
+echo "  Import origin: $IMPORT_PATH"
 
-# Path must be inside /opt/arifos/venv, NOT global
-if echo "$IMPORT_PATH" | grep -q "/opt/arifos/venv"; then
-    echo "  ✅ Import path is inside production venv"
+# Axis A: origin must be inside the ACTIVE release venv — nothing else
+# (no app tree, no global, no editable) may serve the kernel.
+if echo "$IMPORT_PATH" | grep -q "^$ACTIVE_VENV"; then
+	echo "  ✅ Runtime origin is the active release venv"
 else
-    echo "  ❌ Import path is NOT inside production venv"
-    echo "     Run: $VENV_PYTHON -c \"import arifosmcp; print(arifosmcp.__file__)\""
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "  ❌ ONE-ORIGIN GATE: import origin outside $ACTIVE_VENV"
+	echo "     Origin: $IMPORT_PATH"
+	rm -rf "$BUILD_DIR"
+	exit 1
 fi
+echo ""
+
+# ── Step 5-pre: Deploy canon package to /etc/arifos/canon ────────────
+echo "--- Step 5-pre: Deploy canon package to /etc/arifos/canon ---"
+# FHS formalization (2026-09-16): ratified authority lives at /etc — a
+# DIFFERENT change cadence from code releases. Canon files are root-owned,
+# 0644; the service reads but can never write them (drop-in 02-fhs-canon).
+# Generated projections (tools_sot.yaml, capability_registry.json) are NOT
+# canon — they stay code-shipped; hashes ride the release manifest only.
+CANON_DIR_FHS="/etc/arifos/canon"
+install -d -m 0755 -o root -g root "$CANON_DIR_FHS/charter"
+install -m 0644 -o root -g root "$REPO_DIR/config/sovereignty.charter.json" \
+	"$CANON_DIR_FHS/sovereignty.charter.json"
+install -m 0644 -o root -g root "$REPO_DIR/config/charter/kernel.charter.yaml" \
+	"$CANON_DIR_FHS/charter/kernel.charter.yaml"
+install -m 0644 -o root -g root "$REPO_DIR/config/memory-admissibility-policy.yaml" \
+	"$CANON_DIR_FHS/memory-admissibility-policy.yaml"
+CANON_VERSION="$(date -u +%Y.%m.%d)-${GIT_COMMIT}"
+CANON_MANIFEST_SHA=$(
+	"$VENV_PYTHON" - "$CANON_DIR_FHS" "$CANON_VERSION" "$GIT_COMMIT" <<'PYEOF'
+import hashlib, json, sys
+from pathlib import Path
+
+canon_dir, version, commit = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+names = [
+    "sovereignty.charter.json",
+    "charter/kernel.charter.yaml",
+    "memory-admissibility-policy.yaml",
+]
+files = []
+for name in names:
+    p = canon_dir / name
+    if p.is_file():
+        files.append({"name": name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()})
+    else:
+        sys.exit(f"canon file missing after install: {p}")
+# Alpha-zen P7 (2026-09-22): the release train must reflect F13 ratifications
+# from the AAA canon corpus — hash them into the manifest so /etc/arifos/canon
+# staleness vs /root/AAA/canon is visible on every release.
+external = []
+aaa_canon_dir = Path("/root/AAA/canon")
+if aaa_canon_dir.is_dir():
+    import re as _re
+    for fp in sorted(aaa_canon_dir.glob("*.md")):
+        _m = _re.search(r"(\d{4}-\d{2}-\d{2})", fp.name)
+        external.append({
+            "name": fp.name,
+            "sha256": hashlib.sha256(fp.read_bytes()).hexdigest(),
+            "ratified_date": _m.group(1) if _m else None,
+        })
+manifest = {
+    "canon_version": version,
+    "ratified_by": "F13",
+    "source_commit": commit,
+    "files": files,
+    "external_ratified_canon": external,
+}
+raw = json.dumps(manifest, sort_keys=True, separators=(",", ":"))
+(canon_dir / "canon-release.json").write_text(raw + "\n", encoding="utf-8")
+print("sha256:" + hashlib.sha256(raw.encode()).hexdigest())
+PYEOF
+) || {
+	echo "ERROR: canon package generation failed"
+	rm -rf "$BUILD_DIR"
+	exit 1
+}
+echo "  ✅ Canon deployed: $CANON_VERSION (manifest $CANON_MANIFEST_SHA)"
 echo ""
 
 # ── Step 5: Write release manifest ───────────────────────────────────
 echo "--- Step 5: Write release manifest ---"
 MANIFEST_FILE="$RELEASE_DIR/release-manifest.json"
-cat > "$MANIFEST_FILE" <<MANIFEST_EOF
+cat >"$MANIFEST_FILE" <<MANIFEST_EOF
 {
   "release": 1,
   "name": "Runtime Truth",
   "git_commit": "$GIT_COMMIT",
+  "dirty": $GIT_DIRTY,
+  "dirty_files": $GIT_DIRTY_JSON,
+  "origin_main_commit": "$ORIGIN_COMMIT",
+  "ahead_of_origin": $AHEAD_OF_ORIGIN,
   "build_timestamp": "$BUILD_TS",
   "wheel_name": "$WHEEL_NAME",
   "wheel_sha256": "$WHEEL_HASH",
+  "content_sha256": "$CONTENT_SHA256",
+  "canon_version": "$CANON_VERSION",
+  "canon_manifest_sha256": "$CANON_MANIFEST_SHA",
   "imported_from": "$IMPORT_PATH",
   "venv_python": "$VENV_PYTHON"
 }
 MANIFEST_EOF
 
-# Also write to deployment stamp
-echo "$GIT_COMMIT" > /opt/arifos/app/.git_commit
+# Deployment stamp: ONE stable path (build.py + reconciler read this).
+# No legacy /opt/arifos/app stamp — that tree is retired by ONE_ORIGIN.
+echo "$GIT_COMMIT" >"$STAMP_FILE"
+echo "$GIT_COMMIT" >"$REPO_DIR/.git_commit"
 
 echo "  Manifest: $MANIFEST_FILE"
-echo "  Deployment stamp: /opt/arifos/app/.git_commit = $GIT_COMMIT"
+echo "  Deployment stamp: $STAMP_FILE = $GIT_COMMIT"
 echo ""
 
 # ── Step 6: Restart service ──────────────────────────────────────────
 echo "--- Step 6: Restart arifOS service ---"
 systemctl daemon-reload 2>/dev/null || true
 systemctl restart "$SERVICE_NAME" 2>&1 || {
-    echo "WARNING: restart failed, attempting manually"
-    pkill -f "arifosmcp.runtime" 2>/dev/null || true
+	echo "WARNING: restart failed, attempting manually"
+	pkill -f "arifosmcp.runtime" 2>/dev/null || true
 }
 
 echo "  Waiting for service to become healthy..."
 for i in $(seq 1 30); do
-    STATUS=$(curl -s -m 2 http://localhost:8088/health 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
-    if [ "$STATUS" = "healthy" ]; then
-        echo "  ✅ Kernel healthy after ${i}s"
-        break
-    fi
-    if [ "$i" -eq 30 ]; then
-        echo "  ❌ Kernel did not become healthy"
-        systemctl status "$SERVICE_NAME" --no-pager 2>&1 | tail -20
-        rm -rf "$BUILD_DIR"
-        exit 1
-    fi
-    sleep 2
+	STATUS=$(curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
+	if [ "$STATUS" = "healthy" ]; then
+		echo "  ✅ Kernel healthy after ${i}s"
+		break
+	fi
+	if [ "$i" -eq 30 ]; then
+		echo "  ❌ Kernel did not become healthy"
+		systemctl status "$SERVICE_NAME" --no-pager 2>&1 | tail -20
+		rm -rf "$BUILD_DIR"
+		exit 1
+	fi
+	sleep 2
 done
 echo ""
 
@@ -170,9 +421,28 @@ echo "  Expected commit: $GIT_COMMIT"
 echo "  Runtime commit:  $RUNTIME_COMMIT"
 
 if [ "$RUNTIME_COMMIT" = "$GIT_COMMIT" ]; then
-    echo "  ✅ Runtime aligned with source"
+	echo "  ✅ Runtime aligned with source"
 else
-    echo "  ⚠️  Runtime commit differs — deploy stamp may need update"
+	# 2026-09-29 (audit item #16): this was warn-only, so a deploy could
+	# complete with the running interpreter still importing a different
+	# commit than the stamp claimed. Fail closed instead.
+	echo "  ❌ 888_HOLD: runtime commit ($RUNTIME_COMMIT) != source commit ($GIT_COMMIT)"
+	echo "     The stamp would name an artifact that is not the one imported."
+	echo "     Rollback: $(cat /tmp/arifos_rollback_dir.txt 2>/dev/null || echo 'see /opt/arifos/releases/rollback-*')"
+	if [ "${DEPLOY_ALLOW_RUNTIME_MISMATCH:-0}" = "1" ]; then
+		echo "     DEPLOY_ALLOW_RUNTIME_MISMATCH=1 — continuing by explicit override (audited)"
+	else
+		exit 1
+	fi
+fi
+echo ""
+
+# ── Step 8: G1 release attestation (fail-soft) ───────────────────────
+echo "--- Step 8: Release provenance attestation ---"
+if "$VENV_PYTHON" "$REPO_DIR/scripts/emit_release_attestation.py" --emit 2>&1; then
+	echo "  ✅ Attestation sealed to ledger"
+else
+	echo "  ⚠️  Attestation emission failed — deploy NOT rolled back (fail-soft); investigate /opt/arifos/releases/attestations/"
 fi
 echo ""
 
@@ -183,6 +453,26 @@ echo "  Commit: $GIT_COMMIT"
 echo "  Wheel:  $WHEEL_NAME"
 echo "  Hash:   $WHEEL_HASH"
 echo "  DITEMPA BUKAN DIBERI"
+
+# ── Step 9: INDEPENDENT PROOF EXECUTOR (fail-closed) ─────────────────
+# 2026-09-29 (333-AGI, referential-integrity audit item #17).
+# verify_attestation.py existed, scored PASS/WARN/FAIL, and was called by
+# NOTHING — no Makefile target, no CI workflow, no deploy step. A verifier
+# with no caller is a name that creates the prior "attestation is verified"
+# while verifying nothing. Wiring it here makes the invariant continuous:
+#   declared = built = deployed = observed, from a clean tree, or the
+#   deploy reports failure instead of silently succeeding.
+echo ""
+echo "--- Step 9: Independent attestation proof (fail-closed) ---"
+if "$VENV_PYTHON" "$REPO_DIR/scripts/verify_attestation.py" --strict 2>&1; then
+	echo "  ✅ Attestation verified: PASS (declared == built == deployed == observed)"
+else
+	VERIFY_RC=$?
+	echo "  ❌ Attestation gate FAILED (rc=$VERIFY_RC). The artifact above IS live and healthy;"
+	echo "     the provenance invariant is not satisfied. Do not treat this deploy as sealed."
+	echo "     Investigate: /opt/arifos/releases/release-manifest.json + :8088/health software_release"
+	exit 1
+fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANON GATE: tools/list == capability_registry.json (surface consistency)
@@ -209,20 +499,32 @@ with open('$REPO_DIR/arifosmcp/abi/policy_registry.json') as f:
 pa_caps = set(pr['profiles']['public_agent']['capabilities'])
 print(f'Policy public_agent ({len(pa_caps)}): {sorted(pa_caps)}')
 
-# All three must be consistent
-if abi_tools != pa_caps:
-    print(f'MISMATCH: ABI tools != policy caps')
-    print(f'  ABI - Policy: {abi_tools - pa_caps}')
-    print(f'  Policy - ABI: {pa_caps - abi_tools}')
+# All three must be consistent.
+# Fixed 2026-09-15 (333-AGI): the gate compared raw ABI TOOL names against
+# policy CAPABILITY ids — different namespaces, so it could never pass.
+# Correct invariant: policy caps, mapped through capability_registry to
+# provider tool names, must equal the ABI profile's tool names, and every
+# policy cap must exist in the capability registry.
+by_id = {c['capability_id']: c for c in cr['capabilities']}
+unknown_caps = pa_caps - set(by_id)
+pa_tools = set(by_id[c]['provider']['tool'] for c in pa_caps if c in by_id)
+
+if unknown_caps:
+    print(f'MISMATCH: policy caps missing from capability registry: {sorted(unknown_caps)}')
+    sys.exit(1)
+if abi_tools != pa_tools:
+    print(f'MISMATCH: ABI tools != policy caps mapped to tools')
+    print(f'  ABI - Policy(tools): {abi_tools - pa_tools}')
+    print(f'  Policy(tools) - ABI: {pa_tools - abi_tools}')
     sys.exit(1)
 
 print('✅ Canon gate: ABI, capability, and policy registries consistent')
 " 2>&1) || {
-    echo "ERROR: Canon gate failed — surface inconsistency detected"
-    echo "$CANON_RESULT"
-    echo "Aborting deploy. Fix the ABI registries before deploying."
-    rm -rf "$BUILD_DIR"
-    exit 1
+	echo "ERROR: Canon gate failed — surface inconsistency detected"
+	echo "$CANON_RESULT"
+	echo "Aborting deploy. Fix the ABI registries before deploying."
+	rm -rf "$BUILD_DIR"
+	exit 1
 }
 echo "$CANON_RESULT"
 echo ""

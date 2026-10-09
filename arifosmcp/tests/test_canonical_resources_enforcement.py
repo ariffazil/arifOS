@@ -16,6 +16,11 @@ DITEMPA BUKAN DIBERI — Bound by execution, not by string.
 mcp-alignment, mcp/surface-map, atlas333/{seal/head,zones,organs,thresholds,
 activation/rules,quote/list}, wisdom/{disputed,prohibited-uses,arifos-doctrine}
 and the dynamic-number index family all deregistered.
+
+2026-08-08 (later) + 2026-08-09: Surface 30 → 33 — deliberate re-registrations:
+  - arifos://institution        (resources/institution.py, added 2026-08-08)
+  - arifos://seal-readiness     (resources/seal_readiness.py, re-enabled 2026-08-08)
+  - arifos://atlas333/metrics   (MAP·ATLAS·ECHO wiring input, 2026-08-09, commit 902034886)
 """
 
 from __future__ import annotations
@@ -51,6 +56,9 @@ _TEXT_RESOURCE_KEYS: frozenset[str] = frozenset(
         "arifos://vault/head",
         "arifos://quickstart",
         "arifos://wisdom/contract",
+        # Re-registered 2026-08-08 (blue-team re-registration, commit eb765c784)
+        "arifos://institution",
+        "arifos://seal-readiness",
     }
 )
 
@@ -67,18 +75,21 @@ _NON_TEXT_RESOURCE_KEYS: frozenset[str] = frozenset(
         "arifos://atlas333/paradox/list",
         "arifos://atlas333/geometry",
         "arifos://atlas333/flow",
+        "arifos://atlas333/metrics",  # MAP·ATLAS·ECHO wiring input (2026-08-09)
         "arifos://wisdom/quotes/all",
         "tree777://index",
         "skill://index",
     }
 )
 
-# Dropped from surface 2026-08-08 (must NOT appear in either frozenset):
-#   arifos://seal-readiness, arifos://mcp-alignment, arifos://mcp/surface-map,
-#   arifos://resources/index, arifos://atlas-repo, arifos://aaa-index,
-#   arifos://a-forge-index, arifos://vault999-index,
+# Dropped from surface 2026-08-08 and NOT re-registered (must NOT appear):
+#   arifos://mcp-alignment, arifos://mcp/surface-map, arifos://resources/index,
+#   arifos://atlas-repo, arifos://aaa-index, arifos://a-forge-index,
+#   arifos://vault999-index,
 #   arifos://atlas333/{seal/head,zones,organs,thresholds,activation/rules,quote/list},
 #   arifos://wisdom/quotes/{disputed,prohibited-uses,arifos-doctrine}
+# NOTE: arifos://seal-readiness was dropped then deliberately re-enabled
+# 2026-08-08 (see resources/__init__.py register_seal_readiness).
 
 EXPECTED_CANONICAL_RESOURCES: frozenset[str] = _TEXT_RESOURCE_KEYS | _NON_TEXT_RESOURCE_KEYS
 
@@ -134,10 +145,12 @@ RESOURCE_DIR = Path(__file__).resolve().parents[2] / "arifosmcp" / "resources"
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def test_canonical_resources_count_is_30():
-    """The constitutional resource surface is exactly 30 URIs (2026-08-08: 48 → 30)."""
-    assert len(EXPECTED_CANONICAL_RESOURCES) == 30, (
-        f"EXPECTED_CANONICAL_RESOURCES must be exactly 30; "
+def test_canonical_resources_count_is_33():
+    """The constitutional resource surface is exactly 33 URIs (48 → 30 on
+    2026-08-08; +3 deliberate re-registrations 2026-08-08/09: institution,
+    seal-readiness, atlas333/metrics)."""
+    assert len(EXPECTED_CANONICAL_RESOURCES) == 33, (
+        f"EXPECTED_CANONICAL_RESOURCES must be exactly 33; "
         f"got {len(EXPECTED_CANONICAL_RESOURCES)}. "
         f"To change, edit this constant AND obtain explicit 888 ratification."
     )

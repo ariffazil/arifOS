@@ -174,6 +174,12 @@ class MINDState:
     floor_violations: list[dict[str, Any]] = field(default_factory=list)
     reversibility_flags: list[str] = field(default_factory=list)
 
+    # ── LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01) ──
+    # Sovereign attention burn + compression ratio for this reasoning
+    # request. Ha is the inelastic numéraire; ACR = ΔReality / ΔAttention.
+    attention_minutes_burned: float = 0.0
+    attention_compression_ratio: float | None = None
+
     # ── Memory Refs ──
     memory_refs: dict[str, Any] = field(default_factory=dict)
     # e.g. {"qdrant_ids": [...], "graphiti_uuids": [...], "pg_row_ids": [...]}

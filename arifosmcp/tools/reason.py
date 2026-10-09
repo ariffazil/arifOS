@@ -875,12 +875,11 @@ def _build_delta_bundle(
     return bundle
 
 
-def _run_reasoning_sync(coro: Any, timeout: float = 5.0) -> Any:
+def _run_reasoning_sync(coro: Any, timeout: float = 55.0) -> Any:
     """Run coroutine in sync context, including when caller already has an active event loop.
 
-    L13 TIMEOUT_SAFE / P0 G3 2026-08-09: default 5s matches ARIF_THINK_TIMEOUT_S.
-    Previous 35s left agents waiting while cascade stalled. Prefer fast template
-    fallback over multi-provider thrash.
+    L13 TIMEOUT_SAFE: default 55s allows frontier reasoner token generation while preventing hangs.
+    Prefer fast fallback over multi-provider thrash.
     """
     import os as _os
 
@@ -907,7 +906,7 @@ def _run_reasoning_sync(coro: Any, timeout: float = 5.0) -> Any:
         # Thread still running after timeout — LLM backend stalled
         raise LLMUnavailableError(
             f"Reasoning backend timeout after {timeout}s — "
-            "SEA-LION unreachable or Ollama CPU inference too slow"
+            "FED-FEDERATION unreachable or Ollama CPU inference too slow"
         )
 
     if error:
@@ -969,6 +968,12 @@ def arif_think(
         except Exception:
             pass
 
+    _is_actor_verified = bool(
+        _standing_auth.get("actor_verified")
+        or _standing_auth.get("signature_verified")
+        or _standing_auth.get("crypto_verified")
+    )
+
     def _echo_standing(env: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(env, dict):
             return env
@@ -983,6 +988,11 @@ def arif_think(
                 env.setdefault("standing_source", _standing_source)
         if session_id:
             env.setdefault("session_id", session_id)
+            res = env.get("result")
+            if isinstance(res, dict):
+                res.setdefault("session_id", session_id)
+                if actor_id:
+                    res.setdefault("actor_id", actor_id)
         if _standing_auth:
             _auth = _standing_auth.get("authority")
             # Prefer band string when structured block present
@@ -1086,6 +1096,7 @@ def arif_think(
         from arifosmcp.runtime.apex_canonical import (
             APEX_EQUATION,
             APEX_SHADOW,
+            FalsifiablePrediction,
             PrimitiveInputs,
             compute_apex,
         )
@@ -1112,11 +1123,23 @@ def arif_think(
         gate_h = float(ctx.get("gate_h") or 0.04)  # F7 band mid
         gate_delta_s = float(ctx.get("gate_delta_s") or 0.0)
         gate_w3 = float(ctx.get("gate_w3") or 1.0)
+        pred = ctx.get("prediction")
+        if isinstance(pred, dict):
+            prediction = FalsifiablePrediction(**pred)
+        elif isinstance(pred, FalsifiablePrediction):
+            prediction = pred
+        else:
+            prediction = FalsifiablePrediction(
+                claim=str(query or "arif_think apex mode observation"),
+                falsifier="downstream execution or measurement contradicts apex observation",
+                deadline="2026-12-31",
+            )
         result = compute_apex(
             inputs,
             gate_h=gate_h,
             gate_delta_s=gate_delta_s,
             gate_w3=gate_w3,
+            prediction=prediction,
         )
         apex_dict = result.to_dict()
         # Session-derived scalars: evidence only. Not authority. Not persisted as truth.
@@ -1128,7 +1151,8 @@ def arif_think(
             "P": apex_dict["primitives"]["P"],
             "E": apex_dict["primitives"]["E"],
             "X": apex_dict["primitives"]["X"],
-            "Phi": apex_dict["primitives"]["Phi"],
+            "Phi": apex_dict["primitives"].get("tri_witness", apex_dict["primitives"].get("Phi", 0.0)),
+            "tri_witness": apex_dict["primitives"].get("tri_witness", 0.0),
             "G_seal": apex_dict["gate_layer"]["G_seal"],
             "equation": APEX_EQUATION,
             "shadow": APEX_SHADOW,
@@ -1139,9 +1163,9 @@ def arif_think(
         }
         bundle = {
             "actor_authority": {
-                "verified": bool(actor_id and session_id),
+                "verified": _is_actor_verified,
                 "scope": "observe_only",
-                "note": "G-fold is advisory evidence. Only arif_judge may SEAL.",
+                "note": "G-fold is advisory evidence. Only arif_judge may SEAL." if not _is_actor_verified else "Actor identity verified. G-fold is advisory evidence.",
             },
             "reasoning_output": {
                 "claim_state": "DERIVED",
@@ -1171,12 +1195,18 @@ def arif_think(
                 "equation": APEX_EQUATION,
                 "G": apex_scalars["G"],
                 "C_dark": apex_scalars["C_dark"],
+                "dS_dt": apex_scalars["dS_dt"],
+                "verdict": apex_dict["verdict"],
             },
         }
         env = _ok("arif_think", bundle)
         env["apex_scalars"] = apex_scalars
+        env["verdict"] = apex_dict["verdict"]
         if isinstance(env.get("result"), dict):
             env["result"]["apex_scalars"] = apex_scalars
+            env["result"]["g_fold"] = bundle["g_fold"]
+            env["result"]["reasoning_output"] = bundle["reasoning_output"]
+            env["result"]["effective_verdict"] = apex_dict["verdict"]
         return Synthesis(**_echo_standing(env))
 
     # ── CONVERGE MODE: recursive convergence loop with marginal gain collapse ──
@@ -1201,7 +1231,7 @@ def arif_think(
         # Wrap report as Synthesis-compatible output
         bundle = {
             "actor_authority": {
-                "verified": bool(actor_id and context and context.get("session_id")),
+                "verified": _is_actor_verified,
                 "scope": "observe_only",
                 "note": "Convergence loop collapsed. Final answer is best current estimate, not sealed truth.",
             },
@@ -1286,7 +1316,45 @@ def arif_think(
         actor_id=actor_id,
     )
 
-    reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
+    try:
+        reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
+    except Exception as exc:
+        reason_result = {
+            "status": "HOLD",
+            "claim_state": "UNKNOWN",
+            "synthesis": f"[REASONING_UNAVAILABLE] {exc}",
+            "reasoning": {
+                "observed_inputs": [query or ""],
+                "inferences": [],
+                "counterarguments": [],
+                "missing_evidence": [f"Reasoning backend unavailable: {exc}"],
+            },
+            "confidence": {
+                "reasoning_confidence": 0.0,
+                "evidence_confidence": 0.0,
+                "overall_confidence": 0.0,
+                "label": "unmeasured",
+            },
+            "uncertainty": [
+                {
+                    "type": "REASONING_UNAVAILABLE",
+                    "detail": str(exc),
+                    "dependency": "llm_backend",
+                    "evidence": "backend_timeout_or_unreachable",
+                    "retryable": True,
+                }
+            ],
+            "degraded": True,
+            "llm_available": False,
+            "_llm_available": False,
+            "degraded_state": {
+                "code": "REASONING_UNAVAILABLE",
+                "verdict": "HOLD",
+                "dependency": "llm_backend",
+                "evidence": str(exc),
+                "retryable": True,
+            },
+        }
 
     # If v2 metabolic mode, handle the nested mind_packet structure
     if mode == "metabolize" and "mind_packet" in reason_result:
@@ -1304,9 +1372,9 @@ def arif_think(
         # truth_verdict.sealed is always false — only arif_judge/arif_seal can set it.
         bundle = {
             "actor_authority": {
-                "verified": bool(actor_id and session_id),
+                "verified": _is_actor_verified,
                 "scope": "observe_only",
-                "note": "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
+                "note": "Actor identity verified." if _is_actor_verified else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
             },
             "reasoning_output": {
                 "claim_state": str(packet.get("claim_state", "UNKNOWN")).upper(),
@@ -1347,7 +1415,7 @@ def arif_think(
             },
             "mind_routing": _routing["_mind_routing"],
         }
-        return Synthesis(**_echo_standing(_ok("arif_think", bundle)))
+        return Synthesis(**_echo_standing(_ok("arif_think", bundle, session_id=session_id)))
 
     # Floor check (Manual override check)
     floor_check = check_laws("arif_think", {"query": query or ""}, actor_id)
@@ -1389,9 +1457,9 @@ def arif_think(
     # truth_verdict.sealed = False — only arif_judge can set it.
     bundle = {
         "actor_authority": {
-            "verified": bool(actor_id and session_id),
+            "verified": _is_actor_verified,
             "scope": "observe_only",
-            "note": "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
+            "note": "Actor identity verified." if _is_actor_verified else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
         },
         "reasoning_output": {
             "claim_state": str(reason_result.get("claim_state", "UNKNOWN")).upper(),
@@ -1414,7 +1482,7 @@ def arif_think(
                     ),
                     "label": str(raw_conf.get("label", "low")),
                 },
-                reason_result.get("_llm_available", True),
+                reason_result.get("llm_available", reason_result.get("_llm_available", True)),
                 reason_result.get("degraded", False),
                 bool(context and context.get("degraded")),
             ),
@@ -1424,12 +1492,13 @@ def arif_think(
             "next_actions": reason_result.get("next_safe_action", [])
             if isinstance(reason_result.get("next_safe_action"), list)
             else [],
+            "degraded_state": reason_result.get("degraded_state"),
         },
         "governance_check": {
             "floors_checked": list(floor_check.get("checked_laws", [])),
             "floors_violated": list(floor_check.get("violated_laws", [])),
-            "verdict": "PASS" if floor_verdict == "SEAL" else "HOLD",
-            "reason": "All floors passed" if floor_verdict == "SEAL" else floor_reason,
+            "verdict": "HOLD" if reason_result.get("degraded_state") else ("PASS" if floor_verdict == "SEAL" else "HOLD"),
+            "reason": (f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}" if reason_result.get("degraded_state") else ("All floors passed" if floor_verdict == "SEAL" else floor_reason)),
         },
         "truth_verdict": {
             "sealed": False,
@@ -1442,19 +1511,22 @@ def arif_think(
         "called_from_kernel": _called_from_kernel,
         "invocation_count": _invocation_count,
     }
+    if reason_result.get("degraded_state"):
+        bundle["degraded_state"] = reason_result["degraded_state"]
 
-    if floor_verdict != "SEAL":
+    if floor_verdict != "SEAL" or reason_result.get("degraded_state"):
+        eff_reason = (f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}" if reason_result.get("degraded_state") else floor_reason)
         hold_env = _hold(
             "arif_think",
-            floor_reason,
+            eff_reason,
             floors=list(floor_check.get("violated_laws", [])),
-            extra_meta={"floor_verdict": floor_verdict},
+            extra_meta={"floor_verdict": floor_verdict, "degraded_state": reason_result.get("degraded_state")},
             session_id=session_id,
         )
         hold_env["result"] = bundle
         return Synthesis(**_echo_standing(hold_env))
 
-    return Synthesis(**_echo_standing(_ok("arif_think", bundle)))
+    return Synthesis(**_echo_standing(_ok("arif_think", bundle, session_id=session_id)))
 
 
 # Backward compatibility aliases for regression tests & legacy callers

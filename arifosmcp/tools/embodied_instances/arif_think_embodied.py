@@ -127,13 +127,31 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         if mode in COGNITIVE_MODES:
             from arifosmcp.runtime.tools import _synthesize_async
 
-            synthesis = await _synthesize_async(query or "", reasoning_mode=mode)
+            # Thread session observations and evidence into cognitive synthesis
+            active_evidence = params.get("evidence")
+            if not active_evidence and session_id:
+                try:
+                    from arifosmcp.runtime.tools import _SESSIONS
+                    if session_id in _SESSIONS:
+                        active_evidence = _SESSIONS[session_id].get("observations") or None
+                except Exception:
+                    active_evidence = None
+
+            synthesis = await _synthesize_async(query or "", reasoning_mode=mode, evidence=active_evidence)
             result = {
                 "status": "OK",
                 "tool": "arif_mind_reason",
-                "verdict": "CLAIM",
+                "session_id": session_id,
+                "actor_id": actor_id,
+                "verdict": synthesis.get("verdict", "CLAIM"),
                 "result": {
                     "query": query,
+                    # RED-013: carry the bound identity into the inner result so the
+                    # envelope wrapper cannot fall back to actor="anonymous".
+                    "actor_id": actor_id,
+                    "session_id": session_id,
+                    "evidence_used": active_evidence or [],
+                    "evidence_count": len(active_evidence) if active_evidence else 0,
                     "synthesis": synthesis.get("bounded_answer", ""),
                     # STAB-2026-08-07b: default of 0.65 was a fabricated number.
                     # When synthesis omits overall_confidence, return None (UNMEASURED)
@@ -144,9 +162,16 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
                     "confidence_reasoning": synthesis.get("confidence_reasoning"),
                     "confidence_evidence": synthesis.get("confidence_evidence"),
-                    "confidence_provenance": "OBSERVED",
+                    "confidence_provenance": "OBSERVED" if active_evidence else "INFERRED",
                 },
             }
+            if hasattr(result, "model_dump"):
+                return result.model_dump()
+            if hasattr(result, "dict"):
+                return result.dict()
+            if isinstance(result, dict):
+                return result
+            return {}
         else:
             from arifosmcp.runtime.tools import _arif_mind_reason
 
@@ -343,16 +368,21 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 logger.warning(f"333_MIND memory store failed: {exc}")
 
         else:
-            # Legacy v1 path
-            context = params.get("context", {})
+            # Canonical reasoning & APEX/converge/reflect path
+            context = dict(params.get("context", {}) or {})
             if session_id:
                 context["session_id"] = session_id
+            session_token = params.get("session_token")
+            if session_token:
+                context["session_token"] = session_token
 
             result = _mind_reason_kernel(
                 mode=mode,
                 query=query,
                 actor_id=actor_id,
                 context=context,
+                session_id=session_id,
+                session_token=session_token,
             )
 
         # Handle both Pydantic models (MindResponse) and plain dicts (legacy v1)

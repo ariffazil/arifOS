@@ -190,8 +190,12 @@ class MCPTransport:
             )
         sid = resp.headers.get("mcp-session-id") or resp.headers.get("Mcp-Session-Id")
         if not sid:
-            raise MCPError("MCP initialize returned no Mcp-Session-Id header")
-        self.session_id = sid
+            # Stateless FastMCP (post 22076fef2 migration): initialize succeeds without
+            # a session header; subsequent calls work headerless. Proceed, don't abort.
+            # 2026-09-13 FI-008: probe had failed daily since ~2026-08-14 on this.
+            self.session_id = None
+        else:
+            self.session_id = sid
         note = {"jsonrpc": "2.0", "method": "notifications/initialized"}
         requests.post(self.endpoint, json=note, headers=self._headers(), timeout=10)
 
@@ -304,8 +308,8 @@ def _extract_envelope(response: dict[str, Any]) -> dict[str, Any]:
 def _parse_sct_expiry(token: str | None) -> float | None:
     """Best-effort parse of act_v1.* JWT exp claim. Returns seconds-until-expiry.
 
-    sct_v1 is a JWT-prefixed token (signature after a dot). Decoding base64
-    payload is non-trivial cryptographically; we only need the `exp` claim.
+    act_v1 (and legacy sct_v1) are JWT-prefixed tokens (signature after a dot).
+    Decoding base64 payload is non-trivial cryptographically; we only need the `exp` claim.
     Returns None if exp cannot be parsed.
     """
     if not token or not token.startswith("act_v1."):

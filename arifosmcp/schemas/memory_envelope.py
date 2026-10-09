@@ -109,6 +109,85 @@ class MemoryStatus(StrEnum):
     REVOKED = "revoked"
 
 
+class EpistemicStatus(StrEnum):
+    """Epistemic lifecycle of a knowledge claim.
+
+    Orthogonal to EpistemicTag (evidence quality: FACT/OBSERVED/DERIVED/...)
+    and to MemoryStatus (storage state: ACTIVE/QUARANTINED/...).
+
+    EpistemicStatus answers: "how far has this claim been validated?"
+    A claim can be OBSERVATION-quality evidence (EpistemicTag) that is
+    still MACHINE_PENDING (EpistemicStatus) because no human has ratified it.
+
+    Valid promotion path:
+      observation → claim → evidenced → challenged → ratified
+    Direct jump machine_pending → ratifie is FORBIDDEN (requires challenged intermediate).
+    """
+
+    OBSERVATION = "observation"  # raw sensory input, no interpretation
+    CLAIM = "claim"  # asserted but unbacked
+    EVIDENCED = "evidenced"  # source-backed with provenance
+    CHALLENGED = "challenged"  # independent review requested/completed
+    RATIFIED = "ratified"  # institutionally accepted knowledge
+
+    # Terminal dispute states
+    DISPUTED = "disputed"  # challenged and found wanting
+    SUPERSEDED = "superseded"  # replaced by a newer, better-validated claim
+    REVOKED = "revoked"  # explicitly withdrawn
+
+    # Machine state
+    MACHINE_PENDING = "machine_pending"  # LLM-generated, not yet human-validated
+
+
+# Valid epistemic promotion paths (fail-closed).
+_VALID_EPISTEMIC_TRANSITIONS: dict[EpistemicStatus, set[EpistemicStatus]] = {
+    EpistemicStatus.OBSERVATION: {EpistemicStatus.CLAIM, EpistemicStatus.DISPUTED},
+    EpistemicStatus.CLAIM: {
+        EpistemicStatus.EVIDENCED,
+        EpistemicStatus.DISPUTED,
+        EpistemicStatus.REVOKED,
+    },
+    EpistemicStatus.EVIDENCED: {
+        EpistemicStatus.CHALLENGED,
+        EpistemicStatus.RATIFIED,
+        EpistemicStatus.DISPUTED,
+    },
+    EpistemicStatus.CHALLENGED: {
+        EpistemicStatus.RATIFIED,
+        EpistemicStatus.DISPUTED,
+    },
+    EpistemicStatus.RATIFIED: {
+        EpistemicStatus.SUPERSEDED,
+        EpistemicStatus.DISPUTED,
+        EpistemicStatus.REVOKED,
+    },
+    EpistemicStatus.MACHINE_PENDING: {
+        EpistemicStatus.CLAIM,
+        EpistemicStatus.EVIDENCED,
+        EpistemicStatus.DISPUTED,
+        EpistemicStatus.REVOKED,
+    },
+    # Disputed can be re-evidenced
+    EpistemicStatus.DISPUTED: {
+        EpistemicStatus.EVIDENCED,
+        EpistemicStatus.REVOKED,
+    },
+    # Terminal — no further promotion
+    EpistemicStatus.SUPERSEDED: set(),
+    EpistemicStatus.REVOKED: set(),
+}
+
+
+def is_valid_epistemic_transition(
+    current: EpistemicStatus, target: EpistemicStatus
+) -> bool:
+    """Check whether an epistemic promotion is permitted. Fail-closed."""
+    allowed = _VALID_EPISTEMIC_TRANSITIONS.get(current)
+    if allowed is None:
+        return False
+    return target in allowed
+
+
 class VirtueVerdict(StrEnum):
     """Result of a single virtue gate."""
 

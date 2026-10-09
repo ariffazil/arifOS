@@ -8,10 +8,18 @@ CANONICAL SOURCE: /root/AGENTS.md §6.1
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+from importlib.metadata import version as _pkg_version, PackageNotFoundError as _PkgNotFound
 from typing import Final
 
 # --- VERSIONING ---
-VERSION: Final[str] = "v2026.08.01"  # Canonical verdict composer & projection release
+# VERSION is DERIVED from installed package metadata (single source of truth in pyproject.toml).
+# Hardcoded constants served "v2026.08.01" while wheel said "1!2026.9.6" — two parallel schemes
+# drifted. F13 directive 2026-09-30 ("kill the version-drift class"): same fix as arifosmcp/__init__.py.
+try:
+    _PKG_VERSION: str = _pkg_version("arifos")
+except _PkgNotFound:  # source tree without installed distribution
+    _PKG_VERSION = "0.0.0.dev0"
+VERSION: Final[str] = _PKG_VERSION  # Canonical verdict composer & projection release
 CODENAME: Final[str] = "ZEN_KERNEL_DISTILLED"
 
 # --- F7 HUMILITY BAND (OMNIPRESENT) ---

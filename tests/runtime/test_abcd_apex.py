@@ -9,7 +9,15 @@ B: Runtime Behavior — do live paths use real math?
 C: Contrast Separation — does APEX distinguish good from bad?
 D: Capability Governance — does the registry match reality?
 
-Forged: 2026-07-06 by FORGE (000Ω)
+Canonical APEX V3 (ratified 2026-09-12, F13 — D-04/D-06):
+  G      = (A · P · E · X)^(1/4)   — four-factor geometric mean
+  Φ      ∉  G                       — tri-witness is a separate verdict gate; Φ = 0 ⇒ VOID
+  C_dark = A · (1-P) · (1-X)        — shadow term
+
+Imports from arifosmcp.runtime.apex_canonical (NOT apex_c_dark).
+apex_c_dark is a deprecated compatibility shim; its 5-factor G is VOID.
+
+Forged: 2026-07-06 by FORGE (000Ω) · Updated 2026-09-12 F13 (4-factor canonical)
 DITEMPA BUKAN DIBERI
 """
 
@@ -18,7 +26,7 @@ import sys
 from pathlib import Path
 
 from core.intelligence import compute_w3
-from arifosmcp.runtime.apex_c_dark import compute_c_dark, compute_apex
+from arifosmcp.runtime.apex_canonical import compute_G, compute_C_dark, quick_verdict, Verdict
 from arifosmcp.runtime.tools import _nine_signal_from_apex, _nine_signal_from_status
 from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
 from arifosmcp.runtime.hantar import hantar_wrap, HantarState
@@ -41,16 +49,17 @@ def run_all() -> bool:
     results["A1_W3"] = "PASS"
 
     # A2: C_dark = A·(1-P)·(1-X)
-    assert abs(compute_c_dark(0.9, 0.1, 0.1) - 0.9 * 0.9 * 0.9) < 0.001
-    assert compute_c_dark(0.0, 0.5, 0.5) == 0.0
-    assert abs(compute_c_dark(1.0, 0.0, 0.0) - 1.0) < 0.001
+    assert abs(compute_C_dark(0.9, 0.1, 0.1) - 0.9 * 0.9 * 0.9) < 0.001
+    assert compute_C_dark(0.0, 0.5, 0.5) == 0.0
+    assert abs(compute_C_dark(1.0, 0.0, 0.0) - 1.0) < 0.001
     results["A2_C_dark"] = "PASS"
 
-    # A3: G = A·P·E·X·Φ multiplicative + zero collapse
-    v = compute_apex(0.8, 0.7, 0.6, 0.5, 0.6)
-    assert abs(v.G - 0.8 * 0.7 * 0.6 * 0.5 * 0.6) < 0.001
-    assert compute_apex(0.8, 0.0, 0.6, 0.5, 0.6).G == 0.0
-    assert compute_apex(0.0, 0.7, 0.6, 0.5, 0.6).G == 0.0
+    # A3: G = (A·P·E·X)^(1/4) — 4-factor geometric mean, NOT the legacy 5-factor product
+    assert abs(compute_G(0.8, 0.7, 0.6, 0.5, 0.6) - (0.8 * 0.7 * 0.6 * 0.5) ** (1 / 4)) < 1e-9
+    assert compute_G(0.8, 0.0, 0.6, 0.5, 0.6) == 0.0          # A/P/E/X zero → Nash collapse
+    assert compute_G(0.0, 0.7, 0.6, 0.5, 0.6) == 0.0
+    # Φ (tri-witness) is NOT a G factor: changing Φ must not change G
+    assert compute_G(0.8, 0.7, 0.6, 0.5, 0.99) == compute_G(0.8, 0.7, 0.6, 0.5, 0.01)
     results["A3_G"] = "PASS"
 
     # ═══ B: RUNTIME BEHAVIOR ═══
@@ -101,14 +110,13 @@ def run_all() -> bool:
     # ═══ C: CONTRAST SEPARATION ═══
 
     # C1: Good vs bad G separation ≥ 0.30
-    good = compute_apex(0.95, 0.9, 0.95, 0.9, 0.85)
-    bad = compute_apex(0.8, 0.15, 0.1, 0.7, 0.5)
-    assert abs(good.G - bad.G) >= 0.30
+    good = compute_G(0.95, 0.9, 0.95, 0.9, 0.85)
+    bad = compute_G(0.8, 0.15, 0.1, 0.7, 0.5)
+    assert abs(good - bad) >= 0.30
     results["C1_separation"] = "PASS"
 
     # C2: Hallucinating C_dark ≥ 0.50
-    hallucinating = compute_apex(0.9, 0.1, 0.8, 0.1, 0.5)
-    assert hallucinating.C_dark >= 0.50
+    assert compute_C_dark(0.9, 0.1, 0.1) >= 0.50
     results["C2_c_dark"] = "PASS"
 
     # C3: W³ zero in any channel = 0
@@ -117,22 +125,25 @@ def run_all() -> bool:
     assert compute_w3(0.9, 0.9, 0.0) == 0.0
     results["C3_w3_collapse"] = "PASS"
 
-    # C4: Authority failure → G < SEAL threshold
-    no_auth = compute_apex(0.10, 0.9, 0.9, 0.9, 0.9)
-    assert no_auth.G < 0.50
-    assert no_auth.verdict.value != "SEAL"
+    # C4: Authority failure → below SEAL threshold
+    no_auth_g = compute_G(0.10, 0.9, 0.9, 0.9, 0.9)
+    assert no_auth_g < 0.80
+    no_auth_v, _ = quick_verdict(0.10, 0.9, 0.9, 0.9, 0.9)
+    assert no_auth_v != Verdict.SEAL
     results["C4_no_auth"] = "PASS"
 
-    # C5: Φ scar reduction
-    first = compute_apex(0.85, 0.6, 0.55, 0.7, 0.7)
-    repeated = compute_apex(0.85, 0.6, 0.55, 0.7, 0.2)
-    assert repeated.G < first.G
-    results["C5_scar"] = "PASS"
+    # C5: Φ (tri-witness) is a verdict gate, not a score factor
+    g_hi = compute_G(0.85, 0.6, 0.55, 0.7, 0.7)
+    g_lo = compute_G(0.85, 0.6, 0.55, 0.7, 0.2)
+    assert g_hi == g_lo                      # Φ does not alter G
+    v_zero, _ = quick_verdict(0.85, 0.6, 0.55, 0.7, 0.0)
+    assert v_zero == Verdict.VOID            # Φ = 0 → VOID (hard witness veto)
+    results["C5_scar_gate"] = "PASS"
 
     # C6: Double failure (low P + low X)
-    double_fail = compute_apex(0.7, 0.3, 0.2, 0.1, 0.5)
-    assert double_fail.G < 0.05
-    assert double_fail.C_dark > 0.30
+    double_fail = compute_G(0.7, 0.3, 0.2, 0.1, 0.5)
+    assert double_fail < 0.50
+    assert compute_C_dark(0.7, 0.3, 0.1) > 0.30
     results["C6_double_fail"] = "PASS"
 
     # ═══ D: CAPABILITY GOVERNANCE ═══

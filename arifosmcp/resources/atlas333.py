@@ -13,8 +13,10 @@ Data sources:
 
 Resource URIs (arifos:// namespace):
   arifos://atlas333/index            — Root index
-  arifos://atlas333/paradox/list     — 36 crosswalk rows (35 unique paradox IDs)
-  arifos://atlas333/paradox/{id}     — Single paradox (1-35)
+  arifos://atlas333/paradox/list     — 36 crosswalk rows (35 unique paradox IDs).
+#     SCOPE: canonical ATLAS333 = 40 paradoxes / 5 clusters (P36-P40 Humanity live in
+#     okf/atlas333/paradox/); this resource carries the P1-P35 crosswalk only.
+  arifos://atlas333/paradox/{id}     — Single paradox (1-35; resource scope — estate is 40)
   arifos://atlas333/quote/{id}       — Single quote (M1-M12, R1-R11, J1-J11, C1-C2)
   arifos://atlas333/flow             — 10-stage pipeline
   arifos://atlas333/geometry         — Full cognitive geometry (zones × geometries × depths)
@@ -405,7 +407,17 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
         try:
             import pathlib
 
-            scar_path = pathlib.Path("/root/.local/share/arifos/vault999") / "scars" / f"{id}.json"
+            # Path traversal guard (external report, Syed Anas Mohiuddin,
+            # 2026-09-15, finding #2): `id` is a URL-path parameter used directly
+            # as a filename, so `../` walked out of the scars directory. Contain
+            # it by resolving and comparing against the resolved root.
+            _scars_root = pathlib.Path("/root/.local/share/arifos/vault999/scars").resolve()
+            scar_path = (_scars_root / f"{id}.json").resolve()
+            if _scars_root not in scar_path.parents:
+                raise ValueError(
+                    f"Scar id rejected: {id!r} escapes the scars directory "
+                    "(external report 2026-09-15)"
+                )
             if scar_path.exists():
                 return scar_path.read_text()
             # Try in-memory scar store

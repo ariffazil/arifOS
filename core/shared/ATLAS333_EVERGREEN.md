@@ -55,7 +55,10 @@ It is NOT a tool. It is NOT a resource. It is the **map** that tools use to navi
 
 ---
 
-## The 36 Paradoxes (Minimum Viable Self-Knowledge)
+## The 40 Paradoxes (Minimum Viable Self-Knowledge)
+
+> Resource documents P1–P36 below; canonical estate = 40 / 5 clusters — P37–P40 live in
+> `okf/atlas333/paradox/`. Reconciled 2026-09-30 under F13 order (prior 35/36 drift closed).
 
 ### Memory Paradoxes (1–11)
 
@@ -168,7 +171,7 @@ This document is updated when:
 
 ## The One Sentence
 
-> The 35 paradoxes are the minimum viable self-knowledge — they prevent the agent's confidence from becoming noise, and its knowledge from becoming certainty.
+> The 40 paradoxes are the minimum viable self-knowledge — they prevent the agent's confidence from becoming noise, and its knowledge from becoming certainty.
 
 ---
 

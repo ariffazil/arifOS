@@ -3,7 +3,7 @@ arifosmcp/tools/heart.py — 666_HEART v3 (Fractal Critique Engine)
 ═══════════════════════════════════════════════════════════════════
 
 LLM-Powered constitutional risk analysis with fractal recursion.
-Tier 1: SEA-LION (api.sea-lion.ai)
+Tier 1: FED-FEDERATION (api.fed-federation.ai)
 Tier 2: Ollama local fallback
 Tier 3: Deterministic fallback (rule-based keyword matching)
 
@@ -1033,7 +1033,7 @@ async def _heart_with_llm(
     trace_recursion_depth: int = 0,
 ) -> dict[str, Any]:
     """
-    Tier 1/2: Use SEA-LION or Ollama for constitutional risk analysis.
+    Tier 1/2: Use FED-FEDERATION or Ollama for constitutional risk analysis.
 
     777_WITNESS: call_llm returns LLMOutputEnvelope. We extract parsed_output
     and attach _envelope metadata for judge/vault processing.
@@ -1068,7 +1068,7 @@ A response without "risks_found" will be REJECTED. Return ONLY valid JSON, no ma
             response_schema=CRITIQUE_SCHEMA,
             temperature=0.3,
             max_tokens=2500,  # Increased from 1200 — CRITIQUE_SCHEMA is large (8 risk
-            # categories × nested objects + metadata). SEA-LION truncates at lower limits.
+            # categories × nested objects + metadata). FED-FEDERATION truncates at lower limits.
             tool_origin="666_HEART",
             mode=mode,
             trace_recursion_depth=trace_recursion_depth,
@@ -1077,7 +1077,7 @@ A response without "risks_found" will be REJECTED. Return ONLY valid JSON, no ma
         result = envelope.parsed_output
 
         # Post-validate: if the provider returned valid JSON but missing critical
-        # schema fields (common with weaker models like SEA-LION for complex schemas),
+        # schema fields (common with weaker models like FED-FEDERATION for complex schemas),
         # raise LLMUnavailableError so the cascade falls through to the next tier
         # rather than silently accepting degraded output.
         if "risks_found" not in result or not isinstance(result.get("risks_found"), list):
@@ -1889,7 +1889,7 @@ async def arif_critique(
 
       The fractal IS the constitutional answer to "who critiques the critic?"
 
-    Tier 1: SEA-LION LLM inference
+    Tier 1: FED-FEDERATION LLM inference
     Tier 2: Ollama local fallback
     Tier 3: Deterministic keyword-based fallback
 

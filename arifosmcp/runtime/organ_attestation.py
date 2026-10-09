@@ -208,10 +208,14 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
             "/root/.local/share/arifos/vault999/vault_manifest.json",
             "/root/.local/share/arifos/vault999/identity_anchor.json",
             "/agent/vault999/vault_manifest.json",
-            # Legacy fallback — seal_chain.jsonl is mutable; here only as
-            # last resort so the probe never returns missing unless the
-            # entire vault is gone.
-            "/root/VAULT999/seal_chain.jsonl",
+            # Legacy twin /root/VAULT999/seal_chain.jsonl removed 2026-09-25
+            # (twin-chain repair, F13 "baiki dua dua cacat"): the repo chain
+            # is a closed CHAIN_REDIRECT tombstone; hashing it anchored organ
+            # identity to a dead file. Stage-0.2 completed 2026-09-25(ii):
+            # vault_manifest.json + identity_anchor.json declared in the
+            # canonical vault dir by scripts/declare_vault_manifest.py —
+            # stable self-declared identity; seal_chain.jsonl below stays
+            # audit material (mutates on every seal), not identity.
             "/root/.local/share/arifos/vault999/seal_chain.jsonl",
             "/agent/vault999/vault999.jsonl",
         ],
@@ -524,6 +528,21 @@ async def attest_organ(
 
 def get_organ_attestation(organ_id: str) -> OrganAttestationRecord | None:
     return _ORGAN_REGISTRY.get(organ_id)
+
+
+def boot_gate_state(organ_id: str = "arifOS") -> tuple[str, bool]:
+    """T3 (F13 2026-09-22): attestation gate state for session envelopes.
+
+    Returns (status, blocks). Absence of a record is UNMEASURED — it does
+    NOT block. The old consumer ran ``not is_healthy("UNATTESTED")`` and
+    stamped BOOT_ATTESTATION_FAILED + substrate DEGRADED on every session
+    for a measurement that never happened (decision note
+    /root/work/F13-DECISION-T3-T6-2026-09-20.md, T3: absence → must-attest).
+    """
+    record = get_organ_attestation(organ_id)
+    if record is None:
+        return "UNATTESTED", False
+    return record.status, not is_healthy(record.status)
 
 
 def list_organ_attestations() -> dict[str, OrganAttestationRecord]:

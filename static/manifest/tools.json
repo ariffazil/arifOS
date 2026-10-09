@@ -247,7 +247,7 @@
   "resources": {
     "count": 82,
     "categories": ["constitutional doctrine", "vitals", "schema", "session state", "vault entries", "witness logs"],
-    "uri_schemes": ["arifos://", "skill://", "tree777://", "sovereign://", "contrast://", "void://", "source://", "receipt://"]
+    "uri_schemes": ["arifos://", "skill://", "sovereign://", "contrast://", "void://", "source://", "receipt://"]
   },
   "prompts": {
     "count": 21,

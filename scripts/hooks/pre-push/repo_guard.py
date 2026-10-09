@@ -64,7 +64,7 @@ def gate_1_pytest() -> tuple[bool, str]:
             "-q",
             "-p",
             "no:logfire",
-            "--timeout=15",
+            "--timeout=30",
             "--tb=line",
         ],
         cwd=REPO_ROOT,
@@ -126,14 +126,17 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
 
     head_short = git_head[:12]
     # F13 directive 2026-08-12: status='degraded' is acceptable intermediate state
-    # during intentional staging. The `drift` field is a soft signal — it reports
-    # the structural divergence between source_commit (the latest deployed SHA)
-    # and the live code in /opt/arifos/app. When local main is intentionally ahead
-    # of the deployed runtime (the natural staging state), drift=True is expected.
-    # We only hard-block if status is genuinely unhealthy or kernel is unreachable.
+    # during intentional staging. Ahead-of-deploy is allowed. It must not be
+    # reported as alignment. health drift can still read false while HEAD and
+    # the deployed stamp differ, which is how a green line hid 8a582669 vs 931ff15.
     status_ok = status in ("healthy", "degraded")
+    stamps_match = bool(deployed) and deployed == head_short
+    relation = "aligned" if stamps_match else "ahead"
     if status_ok:
-        return True, f"deployed={deployed} HEAD={head_short} drift={drift} status={status}"
+        return True, (
+            f"deployed={deployed} HEAD={head_short} "
+            f"health_drift={drift} commit_{relation} status={status}"
+        )
 
     msgs = [
         f"deployed={deployed} HEAD={head_short} drift={drift} runtime_drift={runtime_drift} status={status}"

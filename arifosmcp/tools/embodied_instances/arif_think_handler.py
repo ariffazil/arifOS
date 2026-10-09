@@ -30,17 +30,19 @@ async def embodied_mind_reason_handler(
     actor_id: str | None = None,
     plan_id: str | None = None,
     witness_type: str = "ai",
+    context: dict | None = None,
     ctx: Any = None,
     # Continuity / envelope fields ChatGPT + SCT path may pass
     _envelope: Any = None,
     contract_c_kwargs: dict | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     333_REASON: + reason — Symbolic reasoning kernel.
 
-    Routes cognitive modes through LLM inference (SEA-LION → Ollama → rule fallback).
+    Routes cognitive modes through LLM inference (FED-FEDERATION → Ollama → rule fallback).
     Structural modes (plan, plan_review, plan_approve, axioms) are deterministic.
-    Cognitive modes (reason, reflect, verify, critique, debate, socratic) use LLM.
+    Cognitive modes (reason, reflect, verify, critique, debate, socratic, apex, converge) use LLM/canonical.
 
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
@@ -64,7 +66,7 @@ async def embodied_mind_reason_handler(
             st = resolve_standing(
                 session_token=session_token,
                 actor_id=actor_id,
-                allow_store=True,
+                allow_store=False,
             )
             if st.valid and st.session_id:
                 session_id = st.session_id
@@ -75,16 +77,20 @@ async def embodied_mind_reason_handler(
 
     tool = ArifMindReasonEmbodied()
 
+    run_params: dict[str, Any] = {
+        "mode": mode,
+        "query": query,
+        "session_id": session_id,
+        "session_token": session_token,
+        "actor_id": actor_id,
+        "plan_id": plan_id,
+        "witness_type": witness_type,
+        "context": context or {},
+    }
+    run_params.update(kwargs)
+
     envelope = await tool.run(
-        params={
-            "mode": mode,
-            "query": query,
-            "session_id": session_id,
-            "session_token": session_token,
-            "actor_id": actor_id,
-            "plan_id": plan_id,
-            "witness_type": witness_type,
-        },
+        params=run_params,
         ctx=ctx,
         actor_id=actor_id,
         session_id=session_id,
@@ -92,8 +98,11 @@ async def embodied_mind_reason_handler(
 
     out = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
     # Echo continuity for ChatGPT / multi-call clients
-    if session_token and isinstance(out, dict):
-        out.setdefault("session_token", session_token)
+    if isinstance(out, dict):
+        if session_token:
+            out["session_token"] = session_token
         if session_id:
-            out.setdefault("session_id", session_id)
+            out["session_id"] = session_id
+        if actor_id and (not out.get("actor_id") or out.get("actor_id") == "anonymous"):
+            out["actor_id"] = actor_id
     return out

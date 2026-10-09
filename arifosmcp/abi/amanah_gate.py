@@ -86,18 +86,35 @@ HARAM_PATTERNS: list[tuple[str, str, str]] = [
     (r"ufw\s+deny\s+22\b", "ufw deny SSH", "TOTAL — Arif locked out permanently"),
     (r"ufw\s+disable", "ufw disable firewall", "MEDIUM — machine exposed, but recoverable"),
     (
-        r"chmod\s+-R?\s+777\s+/etc",
+        r"chmod\s+(-R\s+)?777\s+/etc",
         "chmod 777 /etc",
         "MEDIUM — security model destroyed, privilege escalation",
     ),
-    (r"chmod\s+-R?\s+777\s+/root", "chmod 777 /root", "MEDIUM — Arif's home directory exposed"),
+    (r"chmod\s+(-R\s+)?777\s+/root", "chmod 777 /root", "MEDIUM — Arif's home directory exposed"),
     (
-        r"chmod\s+-R?\s+777\s+/",
+        r"chmod\s+(-R\s+)?777\s+/",
         "chmod 777 on root filesystem",
         "TOTAL — entire permission model destroyed",
     ),
     (r">\s*/etc/passwd", "truncate /etc/passwd", "TOTAL — machine unbootable"),
     (r">\s*/var/log", "truncate all logs", "HIGH — audit trail destroyed"),
+    # ── v2 parity patterns (F13 Option 3, 2026-09-04, corpus-gated) ──────────
+    # Closes the 11-fixture regression from the law.py de-scan + 5 never-covered
+    # gaps. Evidence: forge_work/2026-09-04-law-consolidation/corpus/parity_matrix.json
+    # The chmod entries above also fix the single-space bug (chmod 777 /etc was
+    # missed by the old `chmod\s+-R?\s+777` double-whitespace regex).
+    (
+        r"shutil\.rmtree\s*\(\s*['\"]/",
+        "shutil.rmtree on root-anchored path",
+        "TOTAL — recursive python deletion from root",
+    ),
+    (r"find\s+/\s+.*-delete", "find / -delete", "TOTAL — filesystem-wide deletion"),
+    (r"truncate\s+-s\s*\d*\s*/etc/", "truncate /etc file", "HIGH — system file zeroed"),
+    (
+        r"chmod\s+-R\s+0?000\s+/(root|etc|home)",
+        "recursive chmod 000 on system tree",
+        "HIGH — permissions destroyed",
+    ),
 ]
 
 
@@ -120,6 +137,17 @@ HOLD_PATTERNS: list[tuple[str, str]] = [
     (r"git\s+reset\s+--hard", "git reset --hard — local history destroyed"),
     (r"git\s+rebase\s+-i", "git rebase -i — history rewrite"),
     (r"git\s+push\s+--force", "git push --force — remote history rewritten"),
+    # ── v2 parity patterns (F13 Option 3, 2026-09-04, corpus-gated) ──────────
+    # Code-exec tokens + obfuscation vectors. HOLD (review), not HARAM (block):
+    # these appear legitimately in code-review/audit contexts. Word boundaries
+    # keep 'evaluate(' / 'executor' clean.
+    (r"\beval\s*\(", "eval( call"),
+    (r"\bexec\s*\(", "exec( call"),
+    (r"\bos\.system\s*\(", "os.system call"),
+    (r"\bos\.popen\s*\(", "os.popen call"),
+    (r"getattr\s*\(\s*\w+,\s*['\"](system|popen|exec|eval)['\"]", "getattr-obfuscated code execution"),
+    (r"__import__\s*\(\s*['\"](os|subprocess|ctypes)['\"]", "__import__ obfuscation"),
+    (r"iptables\s+(-F|--flush)", "firewall rules flush"),
 ]
 
 
@@ -167,6 +195,18 @@ if __name__ == "__main__":
         ("rm -rf /tmp/logs", Verdict.PROCEED),
         ("docker ps", Verdict.PROCEED),
         ("curl https://arif-fazil.com", Verdict.PROCEED),
+        # v2 parity corpus representatives (2026-09-04)
+        ("chmod 777 /etc", Verdict.HARAM),  # single-space — old regex missed this
+        ("chmod +x deploy.sh", Verdict.PROCEED),  # benign chmod must pass
+        ("shutil.rmtree('/', ignore_errors=True)", Verdict.HARAM),
+        ("find / -delete", Verdict.HARAM),
+        ("getattr(os, 'system')('id')", Verdict.HOLD),
+        ("__import__('subprocess').Popen(['sh'])", Verdict.HOLD),
+        ("eval('2+2')", Verdict.HOLD),
+        ("evaluate the prospect NPV", Verdict.PROCEED),  # word-boundary precision
+        ("review the subprocess module documentation", Verdict.PROCEED),
+        ("os.system('ls /')", Verdict.HOLD),
+        ("iptables -F", Verdict.HOLD),
     ]
 
     all_passed = True

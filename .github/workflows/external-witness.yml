@@ -7,7 +7,7 @@ name: External Witness Attestation (Gödel Lock)
 on:
   pull_request:
     types: [opened, edited, synchronize, labeled]
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
     inputs:
       pull_request:

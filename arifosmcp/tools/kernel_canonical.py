@@ -31,6 +31,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.core.federation_contracts import validate_organ_output
 from arifosmcp.federation.federation_envelope import (
     attach_degraded_claim,
@@ -253,7 +254,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # which should route to the named organ, not to arifOS. Fix: detect an
     # organ-qualified phrase first (e.g. "WELL organ X", "GEOX earth Y")
     # and route to that organ BEFORE the kernel guard fires.
-    _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS")
+    _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS", "HERMES", "CHRON")
 
     # Step 1: organ-qualified phrases win — ONLY for explicit organ queries.
     # HARDEN-C P0 (2026-07-12): bare " well " must NOT match geoscience
@@ -518,8 +519,10 @@ def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | 
     return aid, sid
 
 
+@trace_tool("arif_route")
 def arif_route(
     intent: str | None = None,
+    mode: str | None = "route",
     organ: str | None = None,
     task: str | None = None,
     actor_id: str | None = None,
@@ -530,12 +533,13 @@ def arif_route(
     mission_id: str | None = None,
     _envelope: Any = None,
     contract_c_kwargs: dict | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     Canonical routing entry point. Routes an intent to the correct organ.
 
-    RULE 14: Mode-first. This is ONE tool for all routing decisions.
-    The mode parameter does not exist here — routing is the only operation.
+    CONTRACT REALITY: Accepts mode='route' (default) or mode='bridge' per published
+    schema and tool charter, absorbing any forward-compat kwargs gracefully.
 
     Args:
         intent:        Natural-language description of what the user wants.
@@ -655,14 +659,15 @@ def arif_route(
         else:
             _plan = classify_mission(intent or "investigate")
         mission_payload = plan_to_dict(_plan)
-        # If caller did not pin an organ, prefer mission primary organ
-        if not organ and mission_payload.get("primary_organ"):
-            organ = str(mission_payload["primary_organ"])
+        # If caller did not pin an organ, resolve organ from intent first.
+        # Fall back to mission primary_organ only if intent-based routing defaults to arifOS.
     except Exception as _mission_err:
         logger.debug("arif_route mission binding soft-fail: %s", _mission_err)
         mission_payload = None
 
     target_organ = _route_intent_to_organ(intent, organ)
+    if target_organ == "arifOS" and mission_payload and mission_payload.get("primary_organ"):
+        target_organ = str(mission_payload["primary_organ"])
     if mission_payload:
         mission_payload["primary_organ"] = target_organ.upper()
     intent_map = _load_intent_map()
@@ -822,12 +827,23 @@ def arif_route(
     # Vector #7 (2026-07-20): SCT propagation — session_token was previously dropped
     # here, breaking cross-organ authority parity. GEOX/WEALTH/WELL received no SCT
     # and defaulted to OBSERVE_ONLY regardless of the caller's actual session authority.
+    # P0-B fix (2026-09-16): trace_id must be a UUID for the typed receiver — the
+    # old `trace_{ms}_{actor}` template silently failed UUID parsing downstream
+    # and broke correlation (distinct(trace_id) ≈ row count). Prefer the ambient
+    # governed trace; fall back to a fresh UUID4. Never a prefixed template.
+    try:
+        from arifosmcp.arifos_observability.trace_context import current as _tcur
+
+        _tctx = _tcur()
+        _bridge_trace_id = str(_tctx.trace_id) if _tctx else str(__import__("uuid").uuid4())
+    except Exception:
+        _bridge_trace_id = str(__import__("uuid").uuid4())
     _envelope = {
         "session_id": session_id,
         "session_token": session_token,
         "constitutional_chain_id": session_id or "cc-none",
         "actor_id": actor_id,
-        "trace_id": f"trace_{int(__import__('time').time() * 1000)}_{actor_id or 'anon'}",
+        "trace_id": _bridge_trace_id,
     }
     call_args = dict(arguments or {})
     # Force envelope identity — do not let stale null envelope win
@@ -867,6 +883,12 @@ def arif_route(
 
     if target_organ.lower() == "arifos":
         return _route_ok({**routing, "bridge_status": "kernel-local: no bridge needed"})
+
+    if target_organ.lower() == "hermes":
+        return _route_ok({**routing, "bridge_status": "hermes: semantic boundary — use HERMES:18087"})
+
+    if target_organ.lower() == "chron":
+        return _route_ok({**routing, "bridge_status": "chron: temporal boundary — use CHRON:18102"})
 
     return _route_hold(f"Unknown organ: {target_organ}")
 

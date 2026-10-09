@@ -209,20 +209,23 @@ def _build_payload(entry: dict[str, Any], point_id: int) -> dict[str, Any]:
 # ── PrecedentVectorizer class ──────────────────────────────────────────────
 
 
+_GLOBAL_ENCODER = None
+
+
 class PrecedentVectorizer:
     """Create, seed, and search the VAULT999 precedent vector index in Qdrant."""
 
     def __init__(self, qdrant_url: str = DEFAULT_QDRANT_URL) -> None:
-        self.client = QdrantClient(url=qdrant_url)
-        self._encoder = None
+        self.client = QdrantClient(url=qdrant_url, timeout=1.0)
 
     def _get_encoder(self):
-        if self._encoder is None:
+        global _GLOBAL_ENCODER
+        if _GLOBAL_ENCODER is None:
             from sentence_transformers import SentenceTransformer
 
             logger.info("Loading embedding model %s ...", EMBEDDING_MODEL)
-            self._encoder = SentenceTransformer(EMBEDDING_MODEL, trust_remote_code=True)
-        return self._encoder
+            _GLOBAL_ENCODER = SentenceTransformer(EMBEDDING_MODEL, trust_remote_code=True)
+        return _GLOBAL_ENCODER
 
     def create_collection(self, recreate: bool = False) -> bool:
         if recreate:
@@ -339,6 +342,13 @@ class PrecedentVectorizer:
         score_threshold: float = HIB_TAU_THRESHOLD,
         limit: int = 5,
     ) -> list[dict[str, Any]]:
+        try:
+            if not self.client.collection_exists(COLLECTION_NAME):
+                return []
+        except Exception as exc:
+            logger.debug("HIB search: Qdrant unavailable: %s", exc)
+            return []
+
         encoder = self._get_encoder()
         query_vector = encoder.encode([query_text], show_progress_bar=False)[0].tolist()
         query_filter = None

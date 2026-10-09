@@ -2,7 +2,7 @@
 arifosmcp/runtime/reply_compose.py — 444r_REPLY LLM-Powered Response Composition
 
 Wires arif_compose through call_llm() for constitutional message composition.
-Tier 1: SEA-LION (api.sea-lion.ai)
+Tier 1: FED-FEDERATION (api.fed-federation.ai)
 Tier 2: Ollama local fallback
 Tier 3: Deterministic fallback (pass-through with constitutional annotations)
 
@@ -126,7 +126,7 @@ async def _compose_with_llm(
     ai_involvement: str = "full",  # F14 #1
     language: str = "en",  # F14 #4
 ) -> dict[str, Any]:
-    """Tier 1/2: Use SEA-LION or Ollama for constitutional reply composition."""
+    """Tier 1/2: Use FED-FEDERATION or Ollama for constitutional reply composition."""
     mode_prompt = _MODE_PROMPTS.get(mode, _MODE_PROMPTS["compose"])
     style_block = f"\nTARGET STYLE: {style}" if style else ""
     citations_block = f"\nCITATIONS TO INJECT: {citations}" if citations else ""
@@ -372,7 +372,7 @@ async def arif_compose(
     """
     444r_REPLY: Constitutional governed response composition.
 
-    Tier 1: SEA-LION LLM inference
+    Tier 1: FED-FEDERATION LLM inference
     Tier 2: Ollama local fallback
     Tier 3: Deterministic pass-through with constitutional annotations
 
@@ -426,9 +426,9 @@ async def arif_compose(
         }
 
     # ── SEA-Guard Pre-Filter ──
-    from arifosmcp.runtime.sea_guard import sea_guard_filter
+    from arifosmcp.runtime.fed_guard import fed_guard_filter
 
-    safety = sea_guard_filter(msg)
+    safety = fed_guard_filter(msg)
     if not safety.passed:
         logger.warning("SEA-Guard BLOCKED arif_compose: categories=%s", safety.blocked)
         return {

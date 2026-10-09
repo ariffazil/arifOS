@@ -125,7 +125,23 @@ def query_precedent(
             MatchAny,
         )  # noqa: PLC0415
 
-        vector = embed(query_text, dim=HIB_VECTOR_DIM)
+        from arifosmcp.intelligence.embeddings import embed, embed_hash
+
+        try:
+            import asyncio as _asyncio
+            try:
+                _loop = _asyncio.get_running_loop()
+            except RuntimeError:
+                _loop = None
+
+            if _loop is not None and _loop.is_running():
+                import concurrent.futures as _cf
+                with _cf.ThreadPoolExecutor(max_workers=1) as _pool:
+                    vector = _pool.submit(lambda: _asyncio.run(embed(query_text, dim=HIB_VECTOR_DIM))).result(timeout=2.0)
+            else:
+                vector = _asyncio.run(embed(query_text, dim=HIB_VECTOR_DIM))
+        except Exception:
+            vector = embed_hash(query_text, dim=HIB_VECTOR_DIM)
 
         # GATE 2: Payload filter on blast_radius
         payload_filter = Filter(

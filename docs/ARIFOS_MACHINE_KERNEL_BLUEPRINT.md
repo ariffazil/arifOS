@@ -671,7 +671,7 @@ Real-machine installation is A-FORGE. This is a staged, governed operation.
 Before any real host installation:
 
 - [ ] Daemon binary builds and starts on test machine
-- [ ] All 13 MCP tools respond correctly
+- [ ] All 8 canonical MCP verbs respond correctly (KERNEL_ABI_8 — docs/CANONICAL-VERBS.md)
 - [ ] Deterministic floor evaluator correctly classifies HOLD/VOID/SEAL
 - [ ] VAULT appends entries without corruption
 - [ ] Memory stores (Redis, Qdrant, Postgres) connect

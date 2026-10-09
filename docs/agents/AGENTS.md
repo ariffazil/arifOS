@@ -1,5 +1,9 @@
 # AGENTS.md — Pointer — arifOS — agent docs
 
+> **REFERENCE-ONLY — NOT RUNTIME AUTHORITY.** This document describes intent and
+> pointers; it governs nothing at runtime. The kernel (`:8088`) and `/root/AGENTS.md`
+> are authoritative. If this file disagrees with either, they win — fix this file.
+
 > **Canonical:** /root/AGENTS.md
 > **ZEN:** /root/AAA/prompts/AAA-ZEN-ALIGNMENT.md
 > **SOT:** 2026-08-01 | **seal_seq:** SEAL-8a8e064d1fe34443

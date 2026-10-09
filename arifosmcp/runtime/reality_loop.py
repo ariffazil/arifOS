@@ -424,6 +424,22 @@ def reality_loop_gate(ctx: Any) -> dict[str, Any]:
         "doctrine": "GENESIS/058 §1 Q9c — FalsifiablePrediction seam",
     }
 
+    # ── IRFAN advisory annotation (ARIF::SALAM::IRFAN::INIT::v0.1) ────────
+    # Advisory-only stewardship annotation on the step receipt. NEVER reads
+    # or changes this gate's verdict/status. Fail-open by construction.
+    try:
+        from arifosmcp.runtime.irfan_review import annotate_with_irfan
+
+        receipt = annotate_with_irfan(
+            receipt,
+            tool_name=tool,
+            mode="",
+            actor_id=str(getattr(ctx, "actor_id", "") or ""),
+            action_class=action,
+        )
+    except Exception:
+        pass  # advisory — the receipt above stands unchanged
+
     return {
         "passed": True,
         "verdict": verdict,

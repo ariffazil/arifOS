@@ -9,15 +9,18 @@
 #
 # Usage:
 #   flow_resume.sh                 # print carry-forward + FQ
-#   flow_resume.sh --write         # also write carry_forward.json
 #
 # Output: JSON to stdout
+#
+# WRITER BAN (2026-09-12, P0 carry_forward writer audit):
+# --write flag REMOVED. flow_resume.sh is OBSERVE-ONLY.
+# It must never mutate carry_forward.json — ownership belongs to
+# carry_forward.py (flock-protected, v2-native, atomic writer).
+# Writer authority > ownership = the disease we cured. — FI-003
 
 set -euo pipefail
 FLOW_URL="${ARIFLOW_URL:-http://127.0.0.1:7073}"
 CARRY_FORWARD="${CARRY_FORWARD_PATH:-/root/.local/share/arifos/carry_forward.json}"
-
-mode="${1:-}"
 
 # ── Probe arifFLOW health ──────────────────────────────────
 health=$(curl -sf "$FLOW_URL/health" 2>/dev/null) || {
@@ -56,10 +59,9 @@ print(json.dumps(resume, indent=2))
 
 echo "$result"
 
-# ── Write carry_forward if --write ──────────────────────────
-if [[ "$mode" == "--write" && -d "$(dirname "$CARRY_FORWARD")" ]]; then
-    echo "$result" > "$CARRY_FORWARD"
-    echo "[flow_resume] carry_forward.json updated" >&2
-fi
+# ── WRITE REMOVED (P0 audit 2026-09-12) ────────────────────
+# --write flag deleted. This script is OBSERVE-ONLY.
+# Ownership of carry_forward.json belongs to carry_forward.py.
+# See: writer-audit 2026-09-12, P0 finding #1.
 
 exit 0

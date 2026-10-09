@@ -400,14 +400,14 @@ CAPABILITY_TOOL_MAP: dict[str, dict[str, Any]] = {
         "mutation": False,
         "can_parallel": False,
     },
-    # GEOX capabilities
+    # GEOX capabilities (reconciled 2026-10-03 to live canonical surface — 27 tools)
     "GEOX:query": {
         "tool_names": [
             "geox_basin",
             "geox_well_ingest",
-            "geox_well_view",
-            "geox_deep_time_state",
-            "geox_stac_discover",
+            "geox_well",
+            "geox_deep_time",
+            "geox_spatial",
         ],
         "organ": "GEOX",
         "mutation": False,
@@ -415,20 +415,19 @@ CAPABILITY_TOOL_MAP: dict[str, dict[str, Any]] = {
     },
     "GEOX:interpret": {
         "tool_names": [
-            "geox_contradiction_scan",
-            "geox_falsify",
+            "geox_claim",
             "geox_petrophysics",
-            "geox_geological_model_generate",
-            "geox_sequence",
-            "geox_dde_reason",
-            "geox_thermal_maturity_history",
+            "geox_model",
+            "geox_deep_time",
+            "geox_basin",
+            "geox_seismic_interpret",
         ],
         "organ": "GEOX",
         "mutation": False,
         "can_parallel": True,
     },
     "GEOX:consequence": {
-        "tool_names": ["geox_prospect", "geox_falsify", "geox_petrophysics"],
+        "tool_names": ["geox_prospect", "geox_claim", "geox_petrophysics"],
         "organ": "GEOX",
         "mutation": False,
         "can_parallel": True,
@@ -472,7 +471,7 @@ CAPABILITY_TOOL_MAP: dict[str, dict[str, Any]] = {
     },
     # WELL capabilities
     "WELL:sense": {
-        "tool_names": ["well_machine_diagnose", "well_classify_substrate", "well_trace_lineage"],
+        "tool_names": ["well_assess_reliability", "well_classify_substrate", "well_trace_lineage"],
         "organ": "WELL",
         "mutation": False,
         "can_parallel": True,
@@ -490,7 +489,7 @@ CAPABILITY_TOOL_MAP: dict[str, dict[str, Any]] = {
         "can_parallel": True,
     },
     "WELL:machine_health": {
-        "tool_names": ["well_machine_diagnose", "well_assess_reliability"],
+        "tool_names": ["well_assess_reliability"],
         "organ": "WELL",
         "mutation": False,
         "can_parallel": True,

@@ -54,11 +54,11 @@ class LLMOutputEnvelope(BaseModel):
     """
     The ONE legal form of AI output in arifOS.
 
-    Every LLM response — from SEA-LION, Ollama, or any provider — is
+    Every LLM response — from FED-FEDERATION, Ollama, or any provider — is
     wrapped here before it enters any tool, floor, or judgment layer.
 
     Fields:
-        provider       — "sea_lion" | "ollama" | "deterministic"
+        provider       — "fed_federation" | "ollama" | "deterministic"
         model          — exact model identifier
         tool_origin    — which tool called the LLM
         mode           — the cognitive mode of the call
@@ -234,7 +234,7 @@ def wrap_llm_output(
     Args:
         raw_output     — the raw string from LLM
         parsed_output  — JSON dict from LLM
-        provider       — "sea_lion" | "ollama" | "deterministic"
+        provider       — "fed_federation" | "ollama" | "deterministic"
         model          — model identifier string
         tool_origin    — canonical tool name (e.g. "333_REASON", "444_CRITIQUE")
         mode           — cognitive mode (e.g. "reason", "critique", "compose")

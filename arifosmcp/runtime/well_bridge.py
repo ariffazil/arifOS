@@ -102,6 +102,7 @@ def get_biological_readiness() -> dict[str, Any]:
             "violations": violations,
             "sabar_advisory": sabar_advisory,
             "timestamp": state.get("timestamp"),
+            "f13_well_waiver": state.get("f13_well_waiver"),
         }
     except Exception as e:
         logger.error(f"Failed to read WELL state: {e}")
@@ -174,14 +175,33 @@ def apply_metabolic_constraints(
         governance_state["only_emergency"] = True
 
     elif verdict == "LOW_CAPACITY":
-        # Block irreversible regardless of verdict
+        # F13 waiver path (2026-09-12): the sovereign may waive the L13
+        # irreversible block when the score rides a known-bad fixture
+        # (mocked/stalled sensors). The waiver is a RECORDED governance
+        # override in state.json — the score stays unchanged and visible;
+        # every output annotates the waiver. Scope + expiry enforced.
+        waiver = readiness.get("f13_well_waiver") or {}
+        _now = __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+        waiver_active = (
+            isinstance(waiver, dict)
+            and bool(waiver.get("active"))
+            and waiver.get("scope") in ("lane_a", "all")
+            and (not waiver.get("expires_utc") or str(waiver.get("expires_utc")) >= _now)
+        )
         if action_risk_tier in ("HIGH", "CRITICAL"):
-            governance_state["verdict"] = "HOLD"
-            constraints_applied.append("W6-LOW_CAPACITY-IRREVERSIBLE_BLOCKED")
-            governance_state["message"] = (
-                governance_state.get("message", "")
-                + " [W6-LOW_CAPACITY] Irreversible action blocked. Sovereign rest interval required."
-            )
+            if waiver_active:
+                constraints_applied.append(
+                    f"W6-LOW_CAPACITY-F13-WAIVED(marker={waiver.get('marker', '?')})"
+                )
+            else:
+                governance_state["verdict"] = "HOLD"
+                constraints_applied.append("W6-LOW_CAPACITY-IRREVERSIBLE_BLOCKED")
+                governance_state["message"] = (
+                    governance_state.get("message", "")
+                    + " [W6-LOW_CAPACITY] Irreversible action blocked. Sovereign rest interval required."
+                )
         else:
             # Non-critical auto-HOLD unless rest interval met
             if last_high_stakes_timestamp is not None:

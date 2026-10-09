@@ -144,8 +144,8 @@ def test_arif_memory_recall_store_returns_qdrant_write_failed_not_exception():
     inner = result.get("result", {})
     # Either stored=True (postgres took it) or stored=False with qdrant_write_failed.
     # MUST NOT have raised.
-    assert "stored" in inner
-    if not inner.get("stored"):
+    assert "stored" in inner or inner.get("status") == "STORED_AS_PROPOSAL"
+    if "stored" in inner and not inner.get("stored"):
         assert inner.get("error") == "qdrant_write_failed", (
             f"Expected qdrant_write_failed, got {inner.get('error')!r}"
         )

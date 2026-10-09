@@ -163,7 +163,17 @@ class TestJudgeWithBudget:
         assert result.judge_result.verdict == "HOLD"  # C1 degrades to HOLD
         assert not result.judge_result.within_budget
         assert result.degradation_reason is not None
-        assert "Latency breach" in result.degradation_reason
+        # L1 fix (preventive timeout): judge_fn is killed AT the deadline instead
+        # of being measured after it returns, so the report reads
+        # "Latency timeout", not "Latency breach". Assert the semantics rather
+        # than a substring that drifts with the message — the previous wording
+        # assertion sat red and unread from the day the enforcement changed.
+        assert "preventive timeout" in result.degradation_reason
+        assert result.judge_result.decision_class == DecisionClass.C1_FAST.value
+        assert (
+            result.judge_result.latency_ms
+            == LATENCY_BUDGETS[DecisionClass.C1_FAST].max_latency_ms
+        )
 
     def test_c2_degrades_to_sabar(self):
         """C2_STANDARD degrades to SABAR (retry allowed)."""
@@ -377,7 +387,8 @@ class TestFailureBehavior:
             judge_fn=slow_judge,
         )
         assert result.judge_result.verdict == "HOLD"
-        assert "Latency breach" in result.degradation_reason  # type: ignore
+        assert result.degradation_reason is not None
+        assert "preventive timeout" in result.degradation_reason
 
     def test_degradation_never_guesses(self):
         """Degradation always returns a safe verdict, never PROCEED."""

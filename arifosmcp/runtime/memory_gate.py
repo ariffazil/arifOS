@@ -100,6 +100,11 @@ MUTATE_MODES: frozenset[str] = frozenset(
         "graph_store",
         "cognitive_learn",
         "contradict_resolve",
+        "remember",
+        "promote",
+        "revise",
+        "metabolize",
+        "federation_sync",
     }
 )
 
@@ -127,6 +132,10 @@ READ_MODES: frozenset[str] = frozenset(
         "cognitive_cross_session",
         "graph_query",
         "graph_get",
+        "inspect",
+        "attest",
+        "score_prediction",
+        "federation_query",
     }
 )
 

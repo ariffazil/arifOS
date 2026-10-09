@@ -81,17 +81,31 @@ def test_band_gate_observe_only_does_not_block():
 
 
 def test_band_gate_above_observe_only_reports_passes_false_when_fail():
+    """FAIL refuses the band; PARTIAL and OK allow it.
+
+    Corrected 2026-09-30 (333-AGI): this test previously asserted that ANY
+    non-OK state refuses, which contradicted the shipped predicate
+    (`passes = boot_state != "FAIL"`) and was only passing because the live
+    system was stuck in FAIL. Refusing PARTIAL is not implementable -- Q1/Q3
+    are inherently PARTIAL during arif_init (P0.3 2026-08-13), so it would
+    clamp every actor to OBSERVE_ONLY on every init.
+    """
     res = boot_state_for_authority_grade("LIMITED_MUTATE")
     assert res["gates_requested_band"] is True
-    if res["boot_state"] != "OK":
+    assert res["must_be"] == "OK"
+    assert res["passes"] is (res["boot_state"] != "FAIL")
+    if res["boot_state"] == "FAIL":
         assert res["passes"] is False
-        assert res["must_be"] == "OK"
+    else:
+        assert res["passes"] is True
 
 
 def test_band_gate_sovereign_does_not_pass_when_fail():
+    """SOVEREIGN band is gated by the same predicate: only FAIL refuses."""
     res = boot_state_for_authority_grade("SOVEREIGN")
     assert res["gates_requested_band"] is True
-    if res["boot_state"] != "OK":
+    assert res["passes"] is (res["boot_state"] != "FAIL")
+    if res["boot_state"] == "FAIL":
         assert res["passes"] is False
 
 

@@ -235,6 +235,11 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     try:
         from arifosmcp.memory.vector_memory_qdrant import vector_store as _vector_store
 
+        # kernel_seal (F13 ruling 2026-09-24): this code path runs ONLY after
+        # the L4 write succeeded (verdict=SEAL upstream) — the flag asserts
+        # that existing verdict into the L3 gate's distinct 0.95 trust band.
+        # It is provenance pass-through, not a new truth claim; verified=1.0
+        # remains reserved for external witnesses.
         _l3_result = await _vector_store(
             content=content,
             metadata={
@@ -246,6 +251,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                 "actor_id": actor_id,
                 "session_id": session_id,
                 "summary": summary,
+                "kernel_seal": True,
             },
             session_id=session_id,
             actor_id=actor_id,
@@ -381,6 +387,188 @@ def _sabar_remember(note: str) -> dict[str, Any]:
         "mode": "remember",
         "verdict": "SABAR",
         "payload": {"note": note},
+    }
+
+
+# ────────────────────────────────────────────────────────────────────────
+# _handle_revise — Supersede a prior memory with fresh truth (M9, M10, M11)
+# ────────────────────────────────────────────────────────────────────────
+async def _handle_revise(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
+    """Supersede/retract an existing memory and persist replacement.
+
+    Invariants (M9, M10, M11, M12):
+      - Historical truth is preserved: old memory is NOT deleted; marked superseded.
+      - supersedes_memory_id is required.
+      - new memory carries supersedes_id = old_memory_id.
+      - old memory metadata gets superseded_by = new_memory_id and supersession_reason.
+      - causal trace (objective_id, trace_id, actor_id) preserved across hops.
+      - memory authority remains asymmetric (may_expand_tools=False, may_raise_autonomy=False).
+    """
+    import uuid as _uuid
+    from arifosmcp.runtime.memory_store import (
+        _content_hash,
+        _pg_write,
+        _pg_supersede,
+        _summarize,
+    )
+    from arifosmcp.schemas import TruthClass, tier_allowed
+
+    supersedes_memory_id = payload.get("supersedes_memory_id")
+    if not supersedes_memory_id:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": "B5: supersedes_memory_id required for revise"},
+        }
+
+    content = payload.get("new_content") or payload.get("content")
+    if not content:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": "revise: content/new_content required"},
+        }
+
+    correction_event = (
+        payload.get("correction_event")
+        or payload.get("reason")
+        or "Superseded by fresh evidence"
+    )
+    resolution_kind = payload.get("resolution_kind", "supersede")
+
+    provenance = payload.get("provenance") or {}
+    actor_id = provenance.get("actor_id")
+    if not actor_id:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": "revise: provenance.actor_id required (F11)"},
+        }
+
+    trace_id = payload.get("trace_id") or provenance.get("trace_id") or "tr_canonical"
+    objective_id = payload.get("objective_id") or provenance.get("objective_id") or "obj_canonical"
+
+    truth_class_dict = payload.get("new_truth_class") or payload.get("truth_class") or {}
+    if isinstance(truth_class_dict, str):
+        truth_class_dict = {"status": truth_class_dict, "confidence": 0.9}
+
+    tc_status = truth_class_dict.get("status", "observed")
+    try:
+        tc = TruthClass(tc_status)
+    except ValueError:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": f"revise: invalid truth_class.status='{tc_status}'"},
+        }
+
+    tier_hint = payload.get("tier_hint", "L3")
+    if not tier_allowed(tc, tier_hint):
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {
+                "note": f"revise: truth_class={tc_status} not allowed at tier={tier_hint}"
+            },
+        }
+
+    # Asymmetric Memory Authority: hard-locked to false
+    memory_authority = payload.get("authority") or {}
+    memory_authority["may_expand_tools"] = False
+    memory_authority["may_raise_autonomy"] = False
+
+    new_memory_id = str(_uuid.uuid4())
+    content_hash = _content_hash(content)
+    summary = _summarize(content)
+    confidence = float(truth_class_dict.get("confidence", 0.9))
+    uncertainty_band = float(truth_class_dict.get("uncertainty_band", 0.05))
+
+    metadata = {
+        "memory_class": payload.get("memory_class", "episodic"),
+        "truth_class": tc_status,
+        "confidence": confidence,
+        "uncertainty_band": uncertainty_band,
+        "provenance": {
+            **provenance,
+            "trace_id": trace_id,
+            "objective_id": objective_id,
+        },
+        "source_receipts": payload.get("source_receipts", []),
+        "policy": payload.get("policy", {}),
+        "content_hash": content_hash,
+        "summary": summary,
+        "tier_hint": tier_hint,
+        "supersedes_id": supersedes_memory_id,
+        "supersedes_memory_id": supersedes_memory_id,
+        "correction_event": correction_event,
+        "resolution_kind": resolution_kind,
+        "supersedes_chain": [supersedes_memory_id],
+        "trace_id": trace_id,
+        "objective_id": objective_id,
+        "schema_version": 7,
+        "authority": memory_authority,
+        "decision_lifecycle": payload.get("decision_lifecycle", {}),
+    }
+
+    session_id = provenance.get("session_id") or "anon"
+    valid_at = _utc_now()
+
+    # Step 1: Mark old memory superseded
+    await _pg_supersede(
+        old_memory_id=supersedes_memory_id,
+        new_memory_id=new_memory_id,
+        reason=correction_event,
+        resolution_kind=resolution_kind,
+    )
+
+    # Step 2: Insert new memory
+    try:
+        ok = await _pg_write(
+            memory_id=new_memory_id,
+            tier=tier_hint,
+            text=content,
+            metadata=metadata,
+            qdrant_id=None,
+            session_id=session_id,
+            entity_tags=[],
+            distillation_status="pending",
+            distillation_metadata={"embedding_status": "pending"},
+            valid_at=valid_at,
+            recorded_at=valid_at,
+        )
+    except Exception as exc:
+        return {
+            "mode": "revise",
+            "verdict": "SABAR",
+            "payload": {"note": f"revise: L4 write failed: {exc}"},
+        }
+
+    receipt = {
+        "receipt_id": f"rcp_rev_{new_memory_id[:8]}",
+        "receipt_kind": "revision",
+        "mode": "revise",
+        "memory_id": new_memory_id,
+        "supersedes_id": supersedes_memory_id,
+        "correction_event": correction_event,
+        "resolution_kind": resolution_kind,
+        "content_hash": content_hash,
+        "trace_id": trace_id,
+        "objective_id": objective_id,
+        "operation_at": valid_at.isoformat(),
+    }
+
+    return {
+        "mode": "revise",
+        "verdict": "SEAL",
+        "payload": {
+            "note": f"Memory '{supersedes_memory_id}' {resolution_kind}d by '{new_memory_id}'",
+            "memory_id": new_memory_id,
+            "supersedes_memory_id": supersedes_memory_id,
+            "resolution_kind": resolution_kind,
+            "revision_receipt": receipt,
+            "trace_id": trace_id,
+            "objective_id": objective_id,
+        },
     }
 
 
@@ -1025,6 +1213,56 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 
     query = payload.get("query") or payload.get("memory_id") or ""
 
+    # ── Belief / Lineage Reader (Reality Graph L2 Join) ──
+    if (
+        payload.get("target") in ("belief", "belief_chain", "lineage")
+        or payload.get("kind") in ("belief", "belief_chain", "lineage")
+        or (isinstance(query, str) and (query.lower().startswith("belief") or query.lower() in ("lineage", "belief_chain")))
+        or payload.get("seq") is not None
+        or payload.get("verify_belief")
+    ):
+        from arifosmcp.runtime.belief import get_registry
+        reg = get_registry()
+        if payload.get("seq") is not None:
+            entry = reg.get_belief_at_seq(int(payload["seq"]))
+            if entry:
+                return {
+                    "ok": True,
+                    "verdict": "SEAL",
+                    "payload": {
+                        "mode": "belief_seq",
+                        "seq": int(payload["seq"]),
+                        "entry": entry,
+                        "source": "belief_chain",
+                    },
+                }
+            return {
+                "ok": False,
+                "verdict": "SABAR",
+                "payload": {"error": "NOT_FOUND", "message": f"Belief entry at seq {payload['seq']} not found"},
+            }
+        if payload.get("verify") or payload.get("verify_belief") or query in ("belief_verify", "belief_chain"):
+            res = reg.verify_belief_chain()
+            return {
+                "ok": res.get("valid", False),
+                "verdict": "SEAL" if res.get("valid") else "SABAR",
+                "payload": res,
+            }
+        actor = payload.get("actor_id")
+        limit = int(payload.get("limit", 50))
+        history = reg.get_belief_history(actor_id=actor, limit=limit)
+        return {
+            "ok": True,
+            "verdict": "SEAL",
+            "payload": {
+                "mode": "belief_history",
+                "actor_id": actor,
+                "count": len(history),
+                "history": history,
+                "source": "belief_chain",
+            },
+        }
+
     # Check if query looks like a UUID
     uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     if re.match(uuid_pattern, query, re.I):
@@ -1154,6 +1392,7 @@ __all__ = [
     "_handle_inspect",
     "_handle_audit",
     "_handle_remember",
+    "_handle_revise",
     "_handle_metabolize",
 ]
 
@@ -1224,18 +1463,11 @@ async def _handle_audit(payload: dict, ctx: Any) -> dict:
     memory_scope = payload.get("memory_scope", {})
     actor_id = payload.get("actor_id", "unknown")
 
-    if not action.get("description"):
-        return {
-            "ok": False,
-            "verdict": "HOLD",
-            "payload": {
-                "error": "MISSING_ACTION",
-                "message": "audit requires action.description",
-                "jitu_fired": False,
-            },
-        }
-
-    action_desc = action["description"]
+    # 2026-09-20 FIX (Memory Audit Schema): action.description was a hidden
+    # required field that blocked read-only audit calls that legitimately carry
+    # no proposed action.  JITU contradiction checks only make sense when a
+    # description is present — skip them gracefully instead of rejecting.
+    action_desc = action.get("description", "")
     action_domain = action.get("domain", "general")
     action_reversibility = action.get("reversibility", "UNKNOWN")
     action_blast = action.get("blast_radius", "UNKNOWN")
@@ -1650,4 +1882,34 @@ async def _handle_metabolize(payload: dict[str, Any], ctx: Any) -> dict[str, Any
                 "note": f"Metabolism handler error: {exc}",
             },
         }
+
+
+async def _handle_reconcile(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
+    """Execute background reality-veto periodic reconciliation pass (P1-MEM-001).
+
+    Discovers active claims with registered probe contracts, checks against
+    fresh reality, applies reality veto when contradicted, and synchronizes
+    PostgreSQL, Qdrant, and audit records.
+    """
+    from arifosmcp.runtime.memory_reconciler import MemoryReconciler
+
+    dry_run = payload.get("dry_run", False)
+    limit = payload.get("limit", 100)
+    trace_id = payload.get("trace_id") or getattr(ctx, "trace_id", None)
+    objective_id = payload.get("objective_id", "obj-memory-homeostasis")
+
+    reconciler = MemoryReconciler(dry_run=dry_run)
+    report = await reconciler.run(limit=limit, trace_id=trace_id, objective_id=objective_id)
+    return {
+        "mode": "reconcile",
+        "verdict": "RECEIPT",
+        "payload": {
+            "status": "RECONCILED",
+            "report": report,
+            "dry_run": dry_run,
+        },
+        "trace_id": report.get("trace_id"),
+        "objective_id": objective_id,
+    }
+
 

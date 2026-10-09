@@ -46,6 +46,8 @@ class MemoryMode(str, Enum):
     Revise    MUTATE   — Supersede prior memory with corrected version (audit).
     Forget    ATOMIC   — Soft-delete or revoke. NEVER destructive to L6.
                          Human ack required (L13 SOVEREIGN).
+    Audit     OBSERVE  — JITU contradiction engine scan over memory state.
+    Metabolize MUTATE  — Unified 6-class L1-L5 closed loop metabolism.
     """
 
     RECALL = "recall"
@@ -55,6 +57,8 @@ class MemoryMode(str, Enum):
     PROMOTE = "promote"
     REVISE = "revise"
     FORGET = "forget"
+    AUDIT = "audit"
+    METABOLIZE = "metabolize"
 
 
 # ── Mode metadata ─────────────────────────────────────────────────────────
@@ -69,6 +73,8 @@ MODE_ACTION_CLASS: dict[MemoryMode, str] = {
     MemoryMode.PROMOTE: "EXECUTE_HIGH_IMPACT",
     MemoryMode.REVISE: "EXECUTE_HIGH_IMPACT",
     MemoryMode.FORGET: "IRREVERSIBLE",
+    MemoryMode.AUDIT: "OBSERVE",
+    MemoryMode.METABOLIZE: "EXECUTE_REVERSIBLE",
 }
 
 
@@ -83,6 +89,8 @@ MODE_PRE_FLOORS: dict[MemoryMode, tuple[str, ...]] = {
     MemoryMode.PROMOTE: ("L01", "L02", "L04", "L07", "L11", "L12"),
     MemoryMode.REVISE: ("L01", "L02", "L04", "L09", "L11", "L12"),
     MemoryMode.FORGET: ("L01", "L02", "L04", "L09", "L11", "L12", "L13"),
+    MemoryMode.AUDIT: ("L02", "L12"),
+    MemoryMode.METABOLIZE: ("L01", "L02", "L08", "L11", "L12"),
 }
 
 
@@ -95,6 +103,8 @@ MODE_POST_FLOORS: dict[MemoryMode, tuple[str, ...]] = {
     MemoryMode.PROMOTE: ("L04", "L08", "L09"),
     MemoryMode.REVISE: ("L04", "L08"),
     MemoryMode.FORGET: ("L04", "L08", "L09"),
+    MemoryMode.AUDIT: ("L04",),
+    MemoryMode.METABOLIZE: ("L04", "L05", "L09"),
 }
 
 
@@ -107,6 +117,8 @@ MODE_REQUIRES_LEASE: dict[MemoryMode, bool] = {
     MemoryMode.PROMOTE: True,
     MemoryMode.REVISE: True,
     MemoryMode.FORGET: True,  # + 888_HOLD if cascade=True
+    MemoryMode.AUDIT: False,
+    MemoryMode.METABOLIZE: True,
 }
 
 
@@ -119,6 +131,8 @@ MODE_REQUIRES_HUMAN_ACK: dict[MemoryMode, bool] = {
     MemoryMode.PROMOTE: False,  # recommended for L4+, but not blocking
     MemoryMode.REVISE: False,
     MemoryMode.FORGET: True,  # MANDATORY per L13 SOVEREIGN
+    MemoryMode.AUDIT: False,
+    MemoryMode.METABOLIZE: False,
 }
 
 
@@ -132,6 +146,8 @@ MODE_BACKEND_TARGET: dict[MemoryMode, str | None] = {
     MemoryMode.PROMOTE: "NEW — promote handler",
     MemoryMode.REVISE: "cognitive_memory.contradict_resolve + supersede logic",
     MemoryMode.FORGET: "NEW — forget/tombstone handler",
+    MemoryMode.AUDIT: "memory_handlers_v5._handle_audit",
+    MemoryMode.METABOLIZE: "memory_handlers_v5._handle_metabolize",
 }
 
 
@@ -144,6 +160,8 @@ MODE_STAGE: dict[MemoryMode, str] = {
     MemoryMode.PROMOTE: "555m",
     MemoryMode.REVISE: "555m",
     MemoryMode.FORGET: "555m",
+    MemoryMode.AUDIT: "555m",
+    MemoryMode.METABOLIZE: "555m",
 }
 
 
@@ -156,6 +174,8 @@ MemoryModeName = Literal[
     "promote",
     "revise",
     "forget",
+    "audit",
+    "metabolize",
 ]
 
 
@@ -203,11 +223,17 @@ def resolve_legacy_mode(legacy: str) -> MemoryMode | None:
     return LEGACY_MODE_ALIASES.get(legacy)
 
 
+def all_memory_modes() -> list[str]:
+    """Return all canonical mode strings — source of truth for MCP schema enum."""
+    return [m.value for m in MemoryMode]
+
+
 __all__ = [
     "MemoryMode",
     "MemoryModeName",
     "LEGACY_MODE_ALIASES",
     "resolve_legacy_mode",
+    "all_memory_modes",
     "MODE_ACTION_CLASS",
     "MODE_PRE_FLOORS",
     "MODE_POST_FLOORS",

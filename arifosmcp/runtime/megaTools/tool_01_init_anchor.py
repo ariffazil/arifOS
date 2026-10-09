@@ -141,8 +141,10 @@ def build_authority_state_for_actor(
     _actor_key_basa = safe_actor.lower()
     _is_exempt = False
     try:
-        from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS as _BASA_LIST
-        _is_exempt = bool(_BASA_LIST and _actor_key_basa in _BASA_LIST)
+        # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
+        # `_actor_key_basa in _BASA_LIST`, which missed `name/FI-nnn`).
+        from arifosmcp.runtime.session_auth import exempt_actor_band as _basa_band
+        _is_exempt = _basa_band(safe_actor) is not None
     except ImportError:
         pass
 
@@ -163,6 +165,9 @@ def build_authority_state_for_actor(
         claimed_id=safe_actor or "anonymous",
         verified=bool(verified),
         verification_method=method,  # type: ignore[arg-type]
+        # P0 FIX 2026-09-04: carry the verified key fingerprint into the
+        # canonical state so bind_authority_state can match SOVEREIGN_KEY_IDS.
+        verified_key_id=verified_key_id,
     )
 
     # Init-time seals: only ``kernel_seal_awareness`` is ACTIVE for known sovereign;
@@ -315,6 +320,21 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
     platform = str(identity.get("platform") or "mcp")
     stage = str(identity.get("stage") or "000_INIT")
 
+    # ESCALATION-OFFER (2026-09-04, F13 GO 1-4): unverified identity must not
+    # read as "no binding exists" — point the connector at the existing prove-lane.
+    identity_escalation = None
+    if not verified:
+        identity_escalation = {
+            "status": "OFFERED",
+            "reason": "actor identity is self-asserted — authority capped at OBSERVER",
+            "bind_path": (
+                "crypto_auth.issue_authorization_challenge -> Ed25519-sign the "
+                "canonical challenge (sovereign signing lane, localhost:18900) "
+                "-> crypto_auth.verify_authorization_challenge"
+            ),
+            "on_success": "identity_authenticated=true; authority bands unlock per AuthorityState",
+        }
+
     return RuntimeEnvelope(
         ok=True,
         tool="init_anchor",
@@ -355,6 +375,11 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
                 "risk_tier": risk_tier,
                 "platform": platform,
             },
+            **(
+                {"identity_escalation": identity_escalation}
+                if identity_escalation is not None
+                else {}
+            ),
         },
     )
 
@@ -629,14 +654,30 @@ async def init_anchor(
         )
     except ImportError:
         _EXEMPT_LIST = {}
-    if _actor_key_exempt and _EXEMPT_LIST and _actor_key_exempt in _EXEMPT_LIST:
-        _exempt_authority = str(_EXEMPT_LIST[_actor_key_exempt]).upper()
-        # P0.4 FIX (2026-08-13): ALL exempt actors get verified=True, not just SOVEREIGN.
-        verified = True
+    # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
+    # `_actor_key_exempt in _EXEMPT_LIST`, which missed `name/FI-nnn`).
+    from arifosmcp.runtime.session_auth import exempt_actor_band as _exempt_band_c
+    _exempt_band_resolved = _exempt_band_c(_dn)
+    if _exempt_band_resolved:
+        _exempt_authority = _exempt_band_resolved.upper()
+        # SECURITY P0 (2026-09-04 Path A fix, FI-003): exempt actors do NOT
+        # auto-verify. Cryptographic proof still required for actor_verified=True.
+        # The exempt list authorizes a default authority LEVEL (e.g. operator for
+        # opencode/hermes/a-forge); downstream code uses
+        # verification_method="system_exempt" as the signal. SOVEREIGN authority
+        # still requires Ed25519 + key_id in SOVEREIGN_KEY_IDS. Closes the
+        # string-match auth bypass that the 2026-09-04 audit's exempt-actor
+        # expectations are designed to catch — keeps the test suite's fail-closed
+        # invariant honest while preserving the bootstrap trust for OpenCode /
+        # Claude Code / etc. via the exempt authority LEVEL (not actor_verified).
+        # (P0.4 2026-08-13 was a regression: ALL exempt actors got verified=True,
+        # not just SOVEREIGN. That regression violated F2 — verified must reflect
+        # cryptographic truth, not registry membership.)
         verification_method = "system_exempt"
         logger.info(
-            "EXEMPT ACTOR: actor=%s exempted from Ed25519 by _ED25519_EXEMPT_SYSTEM_ACTORS "
-            "(authority=%s). LOCALHOST_IS_PASSWORD doctrine.",
+            "EXEMPT ACTOR: actor=%s in _ED25519_EXEMPT_SYSTEM_ACTORS "
+            "(authority=%s, verified=False — Ed25519 not provided). "
+            "actor_verified requires Ed25519 proof.",
             _dn,
             _exempt_authority,
         )
@@ -657,21 +698,19 @@ async def init_anchor(
                 verification_method = "ed25519"
                 # SECURITY P0: key_id is the SHA256 fingerprint of the public
                 # key bytes used for verification. Sovereign authority binds
+                # SECURITY P0: key_id is the SHA256 fingerprint of the public
+                # key bytes used for verification. Sovereign authority binds
                 # to this fingerprint, never to the actor_id string.
                 try:
-                    import hashlib
-
                     from arifosmcp.runtime.sovereign_verify import (
-                        _PUBKEY_CANDIDATES,
+                        compute_verified_key_id,
                     )
 
-                    for _pk_path in _PUBKEY_CANDIDATES:
-                        if _pk_path and _pk_path.exists():
-                            verified_key_id = (
-                                "ed25519:sha256:"
-                                + hashlib.sha256(_pk_path.read_bytes()).hexdigest()[:16]
-                            )
-                            break
+                    verified_key_id = compute_verified_key_id(
+                        actor_id=_dn,
+                        nonce=_nonce,
+                        actor_signature=_actor_signature,
+                    )
                 except Exception:
                     verified_key_id = None
         except Exception as _e:
@@ -798,7 +837,10 @@ async def init_anchor(
         # bootstrap gap: arif can claim SOVEREIGN, forge/opencode/hermes can
         # claim operator, without Ed25519 registration.
         _actor_key_t3a = _dn.strip().lower() if _dn else ""
-        _exempt_authority = _EXEMPT_ACTORS_T3A.get(_actor_key_t3a) if _EXEMPT_ACTORS_T3A else None
+        # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
+        # `.get(_actor_key_t3a)`, which missed `name/FI-nnn`).
+        from arifosmcp.runtime.session_auth import exempt_actor_band as _exempt_band_t3a
+        _exempt_authority = _exempt_band_t3a(_dn)
         _authority_level = (
             _exempt_authority  # T3a: exempt actors get their listed level
             if _exempt_authority

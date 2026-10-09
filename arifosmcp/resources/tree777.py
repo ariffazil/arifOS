@@ -173,9 +173,15 @@ def _build_index() -> dict[str, Any]:
 
     index = {
         "uri": "tree777://index",
-        "schema_version": "1.0-DEPRECATED",
-        "canonical_owner": "tree777 MCP service v2.0 (port 18077, AAA/mcp/tree777/server.py)",
-        "supersession": "Superseded by tree777-service v2.0 index: semantic slugs, sha256/size metadata, coverage warnings, no host paths. Retained as alias for one deprecation window per DECISION_TREE777_GO_2026-08-14. Prefer wiki_search/wiki_read tools on port 18077.",
+        "schema_version": "3.0-WIKI-INDEX-LIVE",
+        "canonical_owner": "/root/AAA/wiki (live corpus; manifest AAA/wiki/tree-manifest.json)",
+        "status": (
+            "RETIRED_NAMESPACE · PRESERVED_ACCESS — the tree777 MCP service (port 18077) is "
+            "decommissioned per AAA/corpus/DECISION_TREE777_HOLD_2026-08-14.md. No successor "
+            "service exists and none is planned; the previous payload cited a decision id "
+            "(DECISION_TREE777_GO) that does not exist on disk. This resource serves the live "
+            "AAA/wiki corpus read-only and is no longer advertised in llms.txt."
+        ),
         "wiki_root": str(WIKI_ROOT),
         "total_skills": len(skills),
         "total_concepts": len(concepts),

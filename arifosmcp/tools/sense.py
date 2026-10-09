@@ -46,6 +46,7 @@ import logging
 import random
 from typing import Any
 
+from arifosmcp.arifos_otel_wiring import trace_tool
 from arifosmcp.paradox import build_organ_anchors, register_organ
 from arifosmcp.runtime.DNA import OMEGA_BAND
 from arifosmcp.runtime.law import check_laws
@@ -570,6 +571,7 @@ def _calculate_discovery_physics(
     }
 
 
+@trace_tool("arif_observe")
 def arif_observe(
     mode: str = "search",
     query: str | None = None,

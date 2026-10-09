@@ -21,6 +21,14 @@ import os
 import time
 import uuid
 
+from arifosmcp.memory.admissibility import (
+    AdmissibilityDecision,
+    compute_sro_block,
+    evaluate,
+    load_policy,
+    summarize_exclusions,
+)
+
 logger = logging.getLogger(__name__)
 
 # Qdrant configuration — prefer QDRANT_URL (set in docker-compose), fallback to host/port
@@ -41,6 +49,11 @@ _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 
 # Constitutional thresholds
 _F2_TRUTH_THRESHOLD = 0.99
+# F13 ruling 2026-09-24 ("kernel_seal 0.95, executed sah!"): kernel-SEALed
+# content (L4 write passed constitutional floors, verdict=SEAL) forms a
+# DISTINCT trust band fixed at 0.95 — above raw content (<=0.90), below
+# external-witness verified=1.0. kernel_seal never implies verified.
+_KERNEL_SEAL_SCORE = 0.95
 _F10_ONTOLOGY_CHECK = True
 
 _qdrant_client = None
@@ -254,6 +267,11 @@ def _generate_embedding(text: str) -> list[float]:
 
 def _compute_truth_score(content: str, context: dict | None = None) -> float:
     """F2: Compute truth score τ ∈ [0,1]."""
+    # kernel_seal is a FIXED band (F13 ruling 2026-09-24): the flag means the
+    # L4 store already holds verdict=SEAL; the score is stamped 0.95 — it does
+    # not accumulate with content heuristics and never reaches verified=1.0.
+    if context and context.get("kernel_seal"):
+        return _KERNEL_SEAL_SCORE
     score = 0.0
     if content and len(content.strip()) > 0:
         score += 0.5
@@ -330,7 +348,13 @@ async def vector_store(
         return _sabar_qdrant_unreachable(exc, op="vector_store")
     metadata = metadata or {}
     truth_score = _compute_truth_score(content, metadata)
-    if truth_score < _F2_TRUTH_THRESHOLD:
+    # Gate: external-witness content passes at >= 0.99; kernel_seal content
+    # passes at its fixed 0.95 band (F13 ruling 2026-09-24). Everything
+    # below 0.95 is refused — raw remember-path content cannot self-elevate.
+    _kernel_sealed = bool(metadata.get("kernel_seal"))
+    if truth_score < _F2_TRUTH_THRESHOLD and not (
+        _kernel_sealed and truth_score == _KERNEL_SEAL_SCORE
+    ):
         return {
             "ok": False,
             "error": (
@@ -354,6 +378,8 @@ async def vector_store(
         return {"ok": False, "error": f"L10 EMBEDDING: {exc}", "embedding_unavailable": True}
     point_id = str(uuid.uuid4())
     content_hash = _compute_content_hash(content)
+    truth_class = metadata.get("truth_class") if isinstance(metadata, dict) else None
+    sro = compute_sro_block(truth_class=truth_class, confidence=truth_score)
     payload = {
         "content": content,
         "content_hash": content_hash,
@@ -365,6 +391,7 @@ async def vector_store(
             "actor_id": actor_id,
             "timestamp": time.time(),
         },
+        "sro": sro,
     }
     try:
         client = _get_qdrant_client()
@@ -389,6 +416,8 @@ async def vector_store(
         "ontology_class": ontology["ontology_class"],
         "truth_score": truth_score,
         "vector_size": len(vector),
+        "sro_version": sro["sro_version"],
+        "expires_at": sro["expiry"]["expires_at"],
     }
 
 
@@ -398,9 +427,16 @@ async def vector_query(
     session_id: str = "",
     actor_id: str = "",
     filters: dict | None = None,
+    recall_mode: str = "default",
     **kwargs,
 ) -> dict:
-    """Query vector memory with L10/F2 constitutional filtering.
+    """Query vector memory with L10/F2 constitutional filtering + SRO read gate.
+
+    recall_mode="default" returns only currently-admissible memory (SRO
+    ACTIVE, not expired by time, not superseded). recall_mode="historical"
+    also returns EXPIRED/SUPERSEDED/STALE records, each labelled
+    admissibility_label="HISTORICAL". Refusals are counted with reason codes
+    in the response's admissibility block — never dropped silently.
 
     On Qdrant-unreachable failure (any point in the connection-establish
     / query path), returns a SABAR verdict via `_sabar_qdrant_unreachable`
@@ -453,20 +489,32 @@ async def vector_query(
         # "no-match" success.
         logger.warning(f"Qdrant unavailable for vector_query search: {exc}")
         return _sabar_qdrant_unreachable(exc, op="vector_query")
+    policy = load_policy()
+    decisions: list[AdmissibilityDecision] = []
     filtered_results = []
     for hit in hits:
         md = hit.payload.get("metadata", {})
-        if md.get("truth_score", 0.0) >= _F2_TRUTH_THRESHOLD:
-            filtered_results.append(
-                {
-                    "point_id": hit.id,
-                    "score": hit.score,
-                    "content": hit.payload.get("content", "")[:500],
-                    "content_hash": hit.payload.get("content_hash"),
-                    "metadata": md,
-                }
-            )
-    logger.info(f"Vector query: '{query[:50]}...' → {len(filtered_results)} results")
+        if md.get("truth_score", 0.0) < _F2_TRUTH_THRESHOLD:
+            continue
+        decision = evaluate(hit.payload, policy, mode=recall_mode)
+        decisions.append(decision)
+        if not decision.admitted:
+            continue
+        entry = {
+            "point_id": hit.id,
+            "score": hit.score,
+            "content": hit.payload.get("content", "")[:500],
+            "content_hash": hit.payload.get("content_hash"),
+            "metadata": md,
+        }
+        if decision.label:
+            entry["admissibility_label"] = decision.label
+        filtered_results.append(entry)
+    refused = summarize_exclusions(decisions)
+    logger.info(
+        f"Vector query: '{query[:50]}...' → {len(filtered_results)} admitted, "
+        f"{sum(refused.values())} refused {refused or '{}'} (mode={recall_mode})"
+    )
     return {
         "ok": True,
         "query": query,
@@ -474,6 +522,13 @@ async def vector_query(
         "total_hits": len(hits),
         "filtered_hits": len(filtered_results),
         "f2_threshold": _F2_TRUTH_THRESHOLD,
+        "admissibility": {
+            "mode": recall_mode,
+            "policy_version": policy.get("policy_version"),
+            "admitted": len(filtered_results),
+            "refused": refused,
+            "silent": False,
+        },
     }
 
 
