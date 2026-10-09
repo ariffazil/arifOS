@@ -192,10 +192,12 @@ arif-fazil.com {
 		file_server
 	}
 	handle /arifos {
-		redir /arifos/ 308
+		redir /arifos/ 301
 	}
 	# Human arifOS overview on root domain (Observatory remains arifos.arif-fazil.com)
 	handle /arifos/* {
+		header Content-Type "text/html; charset=utf-8"
+		header Cache-Control "no-cache, must-revalidate"
 		root * /var/www/html/arif
 		try_files {path} {path}/index.html /arifos/index.html
 		file_server

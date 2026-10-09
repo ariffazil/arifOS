@@ -49,7 +49,7 @@ def governed_tool(fn):
     """
 
     @wraps(fn)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(**kwargs):
         # Extract context if present, else use default
         ctx = kwargs.get("ctx", {})
         if not isinstance(ctx, dict):
