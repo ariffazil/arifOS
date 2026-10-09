@@ -3383,11 +3383,19 @@ def register_rest_routes(
             if _now - _health_cache["ts"] < 300.0:  # 5min TTL (was 30s; cold build ~10s)
                 return JSONResponse(_health_cache["payload"])
 
+        # P2-PROVENANCE-LIVE-2026-10-10: source identity_hash from helper
+        # (local-import pattern), keep file-read as verification channel,
+        # fall back to "UNAVAILABLE" only when both fail.
+        identity_hash = "UNAVAILABLE"
         try:
-            with open("/opt/arifos/app/.identity_hash") as f:
-                identity_hash = f.read().strip()
+            from arifosmcp.runtime.identity import get_identity_hash as _gih_hash  # type: ignore
+            identity_hash = _gih_hash()
         except Exception:
-            identity_hash = "UNAVAILABLE"
+            try:
+                with open("/opt/arifos/app/.identity_hash") as f:
+                    identity_hash = f.read().strip()
+            except Exception:
+                identity_hash = "UNAVAILABLE"
 
         # Get thermodynamic state for Energy dimension
         thermo = _build_governance_status_payload()
