@@ -2539,13 +2539,21 @@ async def _edges_block_async() -> dict[str, Any]:
         # is the source hits its own /health via a thread-pool worker.
         self_health = None
         try:
+            # P2-PROVENANCE-LIVE-2026-10-10: prefer helper, fall back to file-read,
+            # then UNKNOWN. Same provenance contract as rest_routes.py.
             identity_hash = None
-            for id_file in ("/opt/arifos/app/.identity_hash", "/root/arifOS/.identity_hash"):
-                if os.path.exists(id_file):
-                    with open(id_file) as f:
-                        identity_hash = f.read().strip()
-                    if identity_hash:
-                        break
+            try:
+                from arifosmcp.runtime.identity import get_identity_hash as _gih_hash2  # type: ignore
+                identity_hash = _gih_hash2()
+            except Exception:
+                pass
+            if not identity_hash:
+                for id_file in ("/opt/arifos/app/.identity_hash", "/root/arifOS/.identity_hash"):
+                    if os.path.exists(id_file):
+                        with open(id_file) as f:
+                            identity_hash = f.read().strip()
+                        if identity_hash:
+                            break
             self_health = {
                 "identity_hash": identity_hash or "UNKNOWN",
                 "federation_schema_version": SCHEMA_VERSION,
