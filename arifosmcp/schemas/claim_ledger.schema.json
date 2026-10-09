@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arifos.org/schemas/claim_ledger/v1.0",
+  "title": "Claim Ledger Schema v1.0",
+  "description": "Canonical schema for arifOS Claim Ledger — evidence spine for domain claims with falsification paths. DITEMPA BUKAN DIBERI.",
+  "type": "object",
+  "required": ["ledger", "claims"],
+  "properties": {
+    "ledger": {
+      "type": "object",
+      "required": ["id", "version", "claim_count", "classification_scheme"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ledger identifier (e.g., PETRONAS-MAKCIK-2026-06-20)",
+          "pattern": "^[A-Z0-9_-]+$"
+        },
+        "version": {
+          "type": "number",
+          "description": "Ledger schema version",
+          "minimum": 1.0
+        },
+        "source_article": {
+          "type": "string",
+          "description": "Path or URL to the source article this ledger supports"
+        },
+        "claim_count": {
+          "type": "integer",
+          "description": "Total number of claims in this ledger",
+          "minimum": 0
+        },
+        "classification_scheme": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["OBS", "OBS_PROJ", "DER", "INT", "SPEC"]
+          },
+          "description": "Epistemic classification labels used in this ledger"
+        },
+        "verification_principle": {
+          "type": "string",
+          "description": "How a reader verifies claims (e.g., '3 clicks to formula + counterargument')"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sovereign": {
+          "type": "string",
+          "description": "F13 sovereign who authorized this ledger"
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    }
+  },
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "required": ["claim_id", "claim_text", "classification", "confidence", "counterargument"],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "description": "Unique claim identifier (e.g., OBS-DIV-2024, INT-STRESS-2026)",
+          "pattern": "^[A-Z]+-[A-Z0-9_-]+$"
+        },
+        "claim_text": {
+          "type": "string",
+          "description": "Human-readable claim statement"
+        },
+        "classification": {
+          "type": "string",
+          "enum": ["OBS", "OBS_PROJ", "DER", "INT", "SPEC"],
+          "description": "Epistemic classification: OBS=observed, OBS_PROJ=observed+projected, DER=derived, INT=interpreted, SPEC=speculative"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Confidence level (0.0-1.0). F7 HUMILITY: cap at 0.97"
+        },
+        "source_documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_document"
+          },
+          "description": "Provenance — where this claim comes from"
+        },
+        "formula": {
+          "type": "string",
+          "description": "Mathematical or logical formula underlying this claim (if applicable)"
+        },
+        "counterargument": {
+          "type": "string",
+          "description": "FALSIFICATION PATH — how to disprove this claim. REQUIRED for all claims."
+        },
+        "falsification_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific conditions that would falsify this claim"
+        },
+        "last_verified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this claim was last verified against sources"
+        },
+        "domain": {
+          "type": "string",
+          "enum": ["GEOX", "WEALTH", "WELL", "arifOS", "AAA", "federation"],
+          "description": "Domain witness that owns this claim"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "References to evidence in VAULT999 or other registries"
+        },
+        "linked_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Claim IDs that support or contradict this claim"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["proposed", "validated", "challenged", "falsified", "sealed"],
+          "description": "Current lifecycle status"
+        },
+        "sealed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "seal_id": {
+          "type": "string",
+          "description": "VAULT999 seal ID if sealed"
+        }
+      }
+    },
+    "source_document": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Document title"
+        },
+        "page": {
+          "type": "string",
+          "description": "Page or section reference"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the source document"
+        },
+        "accessed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the source document for tamper-evidence"
+        }
+      }
+    }
+  }
+}

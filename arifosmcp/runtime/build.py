@@ -14,6 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.canon import canon_attestation
 from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +50,10 @@ _CRITICAL_MODULES = (
     "arifosmcp/runtime/kernel/judge.py",
     "arifosmcp/tools/forge.py",
     "arifosmcp/tools/judge.py",
+    # FHS canon plane (2026-09-16): /etc/arifos/canon resolution is an
+    # authority path — a silent swap here would redefine ratified policy.
+    "arifosmcp/canon.py",
+    "arifosmcp/memory/admissibility.py",
 )
 
 
@@ -59,26 +64,61 @@ def _sha256_file(path: Path) -> str | None:
         return None
 
 
+DEPLOYED_COMMIT_STAMP = Path("/opt/arifos/releases/deployed-commit")
+_LEGACY_APP_STAMP = Path("/opt/arifos/app/.git_commit")
+_REPO_COMMIT_STAMP = Path("/root/arifOS/.git_commit")
+
+
+def _read_commit_stamp() -> str:
+    """Deployed commit: stable release stamp → legacy app stamp → repo stamp."""
+    for stamp in (DEPLOYED_COMMIT_STAMP, _LEGACY_APP_STAMP, _REPO_COMMIT_STAMP):
+        try:
+            value = stamp.read_text().strip()
+            if len(value) >= 7:
+                return value
+        except OSError:
+            pass
+    return "unknown"
+
+
 def _full_source_commit() -> str:
-    """Return the deployed full commit when available; never invent padding."""
-    stamp = Path("/opt/arifos/app/.git_commit")
-    try:
-        value = stamp.read_text().strip()
-        if len(value) >= 7:
-            return value
-    except OSError:
-        pass
+    """Return the source repository commit (git HEAD)."""
     git_head = Path("/root/arifOS/.git/HEAD")
     try:
         value = git_head.read_text().strip()
         if value.startswith("ref: "):
             ref = Path("/root/arifOS/.git") / value[5:]
-            return ref.read_text().strip()
+            if ref.exists():
+                return ref.read_text().strip()
         if len(value) >= 7:
             return value
     except OSError:
         pass
-    return "unknown"
+    # Fallback to deployed stamp if source git repo is unavailable (e.g. isolated container)
+    value = _read_commit_stamp()
+    return value if value != "unknown" else "unknown"
+
+
+def _full_deployed_commit() -> str:
+    """Return the deployed commit SHA (release stamp → legacy app stamp)."""
+    return _read_commit_stamp()
+
+
+def _full_built_commit() -> str:
+    """Return the built commit SHA from installed release manifest."""
+    env_commit = os.getenv("ARIFOS_BUILT_COMMIT", "").strip()
+    if env_commit:
+        return env_commit
+    release_manifest = Path("/opt/arifos/releases/release-manifest.json")
+    if release_manifest.exists():
+        try:
+            data = json.loads(release_manifest.read_text())
+            commit = data.get("git_commit")
+            if commit and len(commit) >= 7:
+                return commit
+        except Exception:
+            pass
+    return _full_deployed_commit()
 
 
 def _installation_manifest_hash() -> str | None:
@@ -121,6 +161,31 @@ def _compute_tool_surface_hash() -> str:
         return "unavailable"
 
 
+ACTIVE_VENV_ROOT = os.environ.get("ARIFOS_ACTIVE_VENV_ROOT", "/opt/arifos/current/venv")
+
+
+def _runtime_origin() -> str:
+    """Physical import origin of the live arifosmcp package (ONE_ORIGIN axis A)."""
+    try:
+        import arifosmcp
+
+        return str(Path(arifosmcp.__file__).resolve())
+    except Exception:
+        return "unknown"
+
+
+def _origin_ok() -> bool:
+    """True when the live package origin is the active release venv (wheel origin).
+
+    Enforcement is opt-in via ARIFOS_ENFORCE_ORIGIN=1 (set by the production
+    unit drop-in) so dev checkouts and test environments never false-drift.
+    """
+    if os.getenv("ARIFOS_ENFORCE_ORIGIN", "").strip() != "1":
+        return True
+    origin = _runtime_origin()
+    return origin != "unknown" and origin.startswith(str(Path(ACTIVE_VENV_ROOT).resolve()) + "/")
+
+
 def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     """Public, machine-readable binding from release to this live process.
 
@@ -129,6 +194,9 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     (or /health?detail=1). Target success payload tax < 2 KB on compact path.
     """
     source_commit = _full_source_commit()
+    deployed_commit = _full_deployed_commit()
+    built_commit = _full_built_commit()
+
     critical_module_hashes = {
         rel: digest for rel in _CRITICAL_MODULES if (digest := _sha256_file(ROOT / rel)) is not None
     }
@@ -145,14 +213,25 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         ).hexdigest()
     )
 
-    # built_commit is THIS process's install stamp, not a sibling checkout.
-    # Reading /root/arifOS/.git while the service runs from /opt/arifos/app
-    # made software_release.drift=true on SOT-only label mismatch (P1.2).
-    # Constitutional HOLD is for code drift (runtime_matches_build=false).
-    built_commit = source_commit
-    deployed_commit = source_commit
-
+    # Truthful drift calculation:
+    # Drift is True if source repo HEAD != deployed code stamp,
+    # or if built package metadata != deployed code stamp.
     drift = False
+    if source_commit != "unknown" and deployed_commit != "unknown":
+        if not (source_commit.startswith(deployed_commit[:7]) or deployed_commit.startswith(source_commit[:7])):
+            drift = True
+    if built_commit != "unknown" and deployed_commit != "unknown":
+        if not (built_commit.startswith(deployed_commit[:7]) or deployed_commit.startswith(built_commit[:7])):
+            drift = True
+
+    # ONE_ORIGIN (2026-09-16): drift must also fire when the live package
+    # origin is not the active release venv — the runtime executing from any
+    # other tree (cwd shadow, editable finder, stale app copy) is drift,
+    # whatever the stamps say.
+    runtime_import_path = _runtime_origin()
+    origin_ok = _origin_ok()
+    if not origin_ok:
+        drift = True
 
     surface_hash = _compute_tool_surface_hash()
 
@@ -168,6 +247,11 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "wheel_hash": wheel_hash,
         "runtime_manifest_hash": runtime_manifest_hash,
         "surface_hash": surface_hash,
+        "canon": canon_attestation(),
+        "runtime_import_path": runtime_import_path,
+        "origin_ok": origin_ok,
+        "active_venv_root": ACTIVE_VENV_ROOT,
+        "origin_enforced": os.getenv("ARIFOS_ENFORCE_ORIGIN", "").strip() == "1",
         "service_pid": os.getpid(),
         "service_started_at": PROCESS_STARTED_AT,
         "critical_module_hash_count": len(critical_module_hashes),
@@ -180,10 +264,12 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "payload_mode": "detail",
         "critical_module_hashes": critical_module_hashes,
         "deployment_invariant": {
-            "rule": "source_commit == built_commit == deployed_commit == health_commit",
+            "rule": "source_commit == built_commit == deployed_commit == health_commit AND runtime origin == active venv",
             "source_commit": source_commit,
             "built_commit": built_commit,
             "deployed_commit": deployed_commit,
+            "runtime_import_path": runtime_import_path,
+            "origin_ok": origin_ok,
             "drift": drift,
             "note": "Deployment must refuse to report healthy when drift is true.",
         },
@@ -202,16 +288,10 @@ def _git_sha_short() -> str:
     4. Canonical repo .git/HEAD fallback
     5. Fallback "unknown"
     """
-    # 1. Native Bare-Metal deployment stamp (highest priority)
-    _stamp_path = "/opt/arifos/app/.git_commit"
-    if os.path.exists(_stamp_path):
-        try:
-            with open(_stamp_path) as f:
-                content = f.read().strip()
-                if len(content) >= 7:
-                    return content[:7]
-        except Exception:
-            pass
+    # 1. Native Bare-Metal deployment stamp (highest priority: deployed-commit → legacy app → repo)
+    _stamp = _read_commit_stamp()
+    if _stamp != "unknown":
+        return _stamp[:7]
 
     # 2. Image-baked env (legacy docker)
     for env_key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
@@ -362,7 +442,29 @@ def get_build_info() -> dict[str, Any]:
         build metadata (commit, branch), and status.
     """
     commit = _git_sha_short()
-    app_version = os.environ.get("ARIFOS_APP_VERSION", "").strip() or _pyproject_version()
+    # 2026-10-06 FI-008 (F13 "observatory dynamic SOT"): ONE publisher for the
+    # release version — the F13-ratified canon manifest, not the pyproject
+    # PEP-440 epoch string ("1!2026.10.1" rendered publicly as "v1!2026.10.1").
+    # Precedence: deploy env override → /etc/arifos/canon/canon-release.json →
+    # pyproject fallback. Canon = canon_version "2026.10.05-<sha>".
+    app_version = ""
+    try:
+        _canon_release = json.loads(
+            Path("/etc/arifos/canon/canon-release.json").read_text(encoding="utf-8")
+        )
+        app_version = str(_canon_release.get("canon_version") or "")
+    except Exception:
+        app_version = ""
+    app_version = (
+        os.environ.get("ARIFOS_APP_VERSION", "").strip()
+        or app_version
+        # FI-008 "ONE publisher" canon manifest (C-3.1 amend 2026-10-06):
+        # fail-closed if both env override AND canon-release.json are
+        # missing/empty. Removed pyproject PEP-440 fallback — defeats
+        # "ONE publisher" purpose (re-renders "1!2026.10.1" as "v1!2026.10.1"
+        # when canon manifest is missing). Callers detect empty string
+        # and surface the missing publisher. F13 binary: "amend dulu".
+    )
     return {
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,

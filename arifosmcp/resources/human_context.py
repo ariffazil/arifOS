@@ -9,7 +9,7 @@ Not 186 lines of scar testimony. The structured signal that changes behavior.
 URI: arifos://human/metabolized
 
 Source: AAA/wiki/arif-fazil-metabolized.md
-Derived from: scar-terrain-arif-fazil.md (SOVEREIGN_TESTIMONY)
+Derived from: AAA/wiki/SCAR_TERRAIN.md (SOVEREIGN_TESTIMONY; renamed from scar-terrain-arif-fazil.md)
 Governance: F2 (truth), F6 (dignity), F9 (anti-hantu), F13 (sovereign)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
@@ -86,7 +86,7 @@ def register_human_context(mcp: FastMCP) -> list[str]:
         Returns the structured signal that changes how AI behaves around
         this human. Not the full testimony — the nutrient.
 
-        Source: scar-terrain-arif-fazil.md (SOVEREIGN_TESTIMONY)
+        Source: AAA/wiki/SCAR_TERRAIN.md (SOVEREIGN_TESTIMONY; renamed from scar-terrain-arif-fazil.md)
         Derived: 2026-06-16, FORGE (000Ω)
         """
         content = _load_metabolized()

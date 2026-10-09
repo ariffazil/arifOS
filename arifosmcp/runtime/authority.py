@@ -107,6 +107,27 @@ def _actor_in_did_registry(actor_id: str | None) -> bool:
     return False
 
 
+def _actor_lookup_candidates(actor_key: str | None) -> list[str]:
+    """Ordered registry-lookup keys for an actor string.
+
+    Yields the raw key first, then the head/tail of a `name/FI-nnn` lane-qualified
+    form, then the canonical id and its aliases.
+
+    2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for all
+    AAA agents"): every authority registry (Ed25519-exempt list, DID registry, L4
+    warga) was consulted with the RAW actor string, so the documented
+    lane-qualified spelling missed all of them and the actor fell through to the
+    unknown-actor default OBSERVE_ONLY. Candidates are drawn from the SAME
+    registries, so this widens spelling tolerance, not the trust boundary: a slash
+    form resolves only if its head or tail already resolves on its own.
+    """
+    # 2026-09-30: single source of truth moved to contracts.identity so the
+    # session_auth exempt lookup and the init anchor share one resolver.
+    from arifosmcp.contracts.identity import actor_lookup_candidates
+
+    return actor_lookup_candidates(actor_key)
+
+
 # ── End DID Registry Validation ──────────────────────────────────────────────
 
 # ADAT AGENTIC (F13 directive 2026-08-10): FORGE is inherited capability substrate.
@@ -173,7 +194,7 @@ from arifosmcp.runtime.governance_identity import (
 _LEGACY_MIRROR_RETIREMENT_DATE = "2026-08-09"
 
 
-def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: bool = False) -> str:
+def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: bool = False, session_id: str | None = None) -> str:
     """T3a Item 3 (2026-07-17): refuse authority-grade band when server-side
     BOOT attestation is not OK.
 
@@ -219,25 +240,27 @@ def _apply_boot_gate(runtime_band: str, actor_id: str = "", identity_verified: b
     # canonical names, so alias-bearing sessions never matched and were demoted
     # despite being trusted actors. Normalize through contracts.identity first;
     # check both raw and canonical forms.
+    # 2026-09-30 (333-AGI): replaced the hand-rolled raw+canonical membership test
+    # with the shared spelling-tolerant resolver. Two defects lived here:
+    #   (a) it imported `contracts.identity` -- a top-level package that is NOT in
+    #       the wheel include list (pyproject ships arifos*/arifosmcp*/core*/
+    #       schemas* only), so production resolved it to a stale leftover copy in
+    #       site-packages that predates and diverges from arifosmcp/contracts;
+    #   (b) `except ImportError: pass` swallowed that silently, so the alias bypass
+    #       added by the 2026-08-21 Seal C audit could never fire for aliases or for
+    #       the documented `name/FI-nnn` form.
+    # exempt_actor_band() consults ONE resolver and ONE registry, so the bypass can
+    # no longer depend on which of two divergent copies happens to be importable.
     try:
-        from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS as _BGA
-        if _BGA:
-            _raw_key = actor_id.strip().lower()
-            if _raw_key in _BGA:
-                return runtime_band
-            try:
-                from contracts.identity import normalize_actor_identity
+        from arifosmcp.runtime.session_auth import exempt_actor_band as _bga_band
 
-                _canon = normalize_actor_identity(actor_id).get("normalized")
-                if _canon and str(_canon).lower() in _BGA:
-                    return runtime_band
-            except ImportError:
-                pass
+        if _bga_band(actor_id) is not None:
+            return runtime_band
     except ImportError:
         pass
     from arifosmcp.runtime.boot_attestation import boot_state_for_authority_grade
 
-    gate = boot_state_for_authority_grade(runtime_band)
+    gate = boot_state_for_authority_grade(runtime_band, actor_id=actor_id, session_id=session_id)
     if gate.get("gates_requested_band") and not gate.get("passes"):
         logger.warning(
             "T3a Item 3: BOOT gate demoted runtime_band=%s -> OBSERVE_ONLY "
@@ -299,8 +322,13 @@ def bind_authority_state(
         )
     except ImportError:
         _EXEMPT_BA = {}
-    if actor_key and _EXEMPT_BA and actor_key in _EXEMPT_BA:
-        _exempt_authority_ba = str(_EXEMPT_BA[actor_key]).upper()
+    # 2026-09-30 (333-AGI): match the exempt list on canonical candidates too, so
+    # the documented `name/FI-nnn` spelling resolves to the same entry as its head.
+    if _EXEMPT_BA:
+        for _cand in _actor_lookup_candidates(actor_key):
+            if _cand in _EXEMPT_BA:
+                _exempt_authority_ba = str(_EXEMPT_BA[_cand]).upper()
+                break
 
     verified_key_id = (
         state.actor.verified_key_id if hasattr(state.actor, "verified_key_id") else None
@@ -320,7 +348,9 @@ def bind_authority_state(
     elif is_sovereign:
         sess["authority_level"] = "SOVEREIGN"
         sess["authority"] = "FULL"
-    elif _actor_in_did_registry(actor_key) and state.actor.verified:
+    elif any(
+        _actor_in_did_registry(_k) for _k in _actor_lookup_candidates(actor_key)
+    ) and state.actor.verified:
         # DID-registered organ — F13 T3 directive 2026-08-07.
         # Verified DID organs get FULL authority (can seal via three-call tick).
         sess["authority_level"] = "OPERATOR"
@@ -608,6 +638,7 @@ def authority_envelope_for_session(
                 runtime_band,
                 actor_id=actor_key,
                 identity_verified=(exempt_authority == "SOVEREIGN"),
+                session_id=session_id,
             )
             return {
                 "actor_verified": True,  # exempt actors are verified by definition
@@ -640,6 +671,7 @@ def authority_envelope_for_session(
             runtime_band,
             actor_id=actor_id or "",
             identity_verified=bool(actor_verified_flag),
+            session_id=session_id,
         )
         sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
@@ -681,7 +713,7 @@ def authority_envelope_for_session(
     # DID registry dynamic validation — F13 T3 directive 2026-08-07.
     # Actors registered in the federation DID registry are verified organs
     # entitled to OPERATOR authority with FULL mutation band.
-    _did_match = _actor_in_did_registry(actor_key)
+    _did_match = any(_actor_in_did_registry(_k) for _k in _actor_lookup_candidates(actor_key))
     h_authority = (
         "SOVEREIGN"
         if (state.actor.verified and ((_vkey and _vkey in SOVEREIGN_KEY_IDS) or _known_sovereign))
@@ -697,6 +729,7 @@ def authority_envelope_for_session(
         runtime_band,
         actor_id=getattr(state.actor, "claimed_id", "") or "",
         identity_verified=bool(getattr(state.actor, "verified", False)),
+        session_id=session_id,
     )
     return {
         "actor_verified": bool(state.actor.verified),

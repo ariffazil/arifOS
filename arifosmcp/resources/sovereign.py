@@ -36,11 +36,28 @@ from typing import Any
 from fastmcp import FastMCP
 
 # ── Canonical paths ──────────────────────────────────────────────────
-_STATIC_ROOT = Path("/opt/arifos/app/static/000")
+_CANDIDATE_ROOTS = [
+    Path("/var/www/html/arif/000"),
+    Path("/root/arif-fazil.com/sites/arif-fazil.com/public/000"),
+    Path("/opt/arifos/static/000"),
+    Path("/opt/arifos/app/static/000"),
+]
+
+
+def _resolve_static_root() -> Path:
+    for candidate in _CANDIDATE_ROOTS:
+        if candidate.exists() and candidate.is_dir():
+            return candidate
+    return _CANDIDATE_ROOTS[0]
+
+
+_STATIC_ROOT = _resolve_static_root()
 
 # ── URI → file mapping ───────────────────────────────────────────────
 _SOVEREIGN_FILES: dict[str, str] = {
     "index": "INDEX.md",
+    "genesis": "genesis-statement.json",
+    "claims": "claims.json",
     "prologue": "01_PROLOGUE.md",
     "soul-map": "02_SOUL_MAP.md",
     "scars": "03_SCARS.md",
@@ -64,17 +81,50 @@ _SOVEREIGN_FILES: dict[str, str] = {
 
 SOVEREIGN_RESOURCES = tuple(f"sovereign://{key}" for key in _SOVEREIGN_FILES) + (
     "sovereign://{file}",
+    "arifos://000/genesis",
+    "arifos://000/claims",
 )
 
 
 def _read_file(filename: str) -> dict[str, Any]:
-    """Read a sovereign file and return a structured resource envelope."""
-    filepath = _STATIC_ROOT / filename
+    """Read a sovereign file and return a structured resource envelope.
+
+    Containment (2026-09-22): ``filename`` arrives from ``sovereign://{file}``
+    and may carry ``../`` past the URI segment (fastmcp matches before percent
+    decode). Resolve against ``_STATIC_ROOT`` and refuse any escape — the
+    extension suffix in the handler is a content-type convention, not a boundary.
+    """
+    from arifosmcp.runtime.path_guard import contained_path
+
+    try:
+        filepath = contained_path(_STATIC_ROOT, filename)
+    except ValueError:
+        return {
+            "status": "REJECTED",
+            "uri": f"sovereign://{filename}",
+            "reason": "filename escapes the sovereign archive (path containment)",
+        }
     if not filepath.exists():
+        if filename == "INDEX.md":
+            available = sorted(f.name for f in _STATIC_ROOT.iterdir() if not f.name.startswith("."))
+            content = (
+                f"# arifOS Position Zero (/000) Sovereign Index\n\n"
+                f"Canonical archive root: `{_STATIC_ROOT}`\n\n"
+                f"Available records:\n"
+                + "\n".join(f"- `{f}`" for f in available)
+            )
+            return {
+                "status": "OK",
+                "uri": "sovereign://index",
+                "source": str(_STATIC_ROOT / "INDEX.md (virtual)"),
+                "size_bytes": len(content),
+                "lines": content.count("\n") + 1,
+                "content": content,
+            }
         return {
             "status": "NOT_FOUND",
             "uri": f"sovereign://{filename}",
-            "available_files": sorted(f.name for f in _STATIC_ROOT.glob("*.md")),
+            "available_files": sorted(f.name for f in _STATIC_ROOT.iterdir() if not f.name.startswith(".")),
         }
     content = filepath.read_text(encoding="utf-8")
     return {
@@ -97,24 +147,55 @@ def register_sovereign_resources(mcp: FastMCP) -> list[str]:
     # ── Single parameterized resource for all sovereign files ──────
     @mcp.resource("sovereign://{file}")
     def sovereign_file_resource(file: str) -> dict[str, Any]:
-        """Arif Fazil sovereign knowledge. Use file=index, prologue, soul-map,
-        scars, family, floors, organs, timeline, institutions, people,
+        """Arif Fazil sovereign knowledge. Use file=index, genesis, claims, prologue,
+        soul-map, scars, family, floors, organs, timeline, institutions, people,
         letters, investigations, petrophysics, unfinished, truth-reality-life,
         data-sources, reality, unsealed, zkpc-atlas, soul-metabolism.
-        Or pass any .md filename from the /000/SOVEREIGN/ archive.
+        Or pass any filename (.md, .json, .html, .txt, .sig) from the /000 archive.
         """
         # Named key lookup first
         if file in _SOVEREIGN_FILES:
             return _read_file(_SOVEREIGN_FILES[file])
-        # Direct filename access (safety: .md only)
-        if not file.endswith(".md"):
+        # Direct filename access (safety: safe extensions only)
+        if not file.endswith((".md", ".json", ".html", ".txt", ".sig")):
             return {
                 "status": "REJECTED",
-                "reason": "Only .md files served. Use named keys: index, prologue, soul-map, scars, family, floors, organs, timeline, institutions, people, reality.",
+                "reason": "Supported extensions: .md, .json, .html, .txt, .sig or named keys (index, genesis, claims, prologue...)",
             }
         return _read_file(file)
 
     registered.append("sovereign://{file}")
+
+    # ── Canonical arifos://000/* resources ──────────────────────────
+    @mcp.resource("arifos://000/genesis")
+    def sovereign_000_genesis_resource() -> dict[str, Any]:
+        """arifOS Position Zero Genesis Statement (/000) signed by Muhammad Arif bin Fazil."""
+        p = _STATIC_ROOT / "genesis-statement.json"
+        if p.exists():
+            return {
+                "status": "OK",
+                "uri": "arifos://000/genesis",
+                "source": str(p),
+                "content": p.read_text(encoding="utf-8"),
+            }
+        return {"status": "NOT_FOUND", "uri": "arifos://000/genesis"}
+
+    registered.append("arifos://000/genesis")
+
+    @mcp.resource("arifos://000/claims")
+    def sovereign_000_claims_resource() -> dict[str, Any]:
+        """arifOS Position Zero Attestation Claims (000-CLAIM-001..006, ZKPC dimensions, Gödel Lock)."""
+        p = _STATIC_ROOT / "claims.json"
+        if p.exists():
+            return {
+                "status": "OK",
+                "uri": "arifos://000/claims",
+                "source": str(p),
+                "content": p.read_text(encoding="utf-8"),
+            }
+        return {"status": "NOT_FOUND", "uri": "arifos://000/claims"}
+
+    registered.append("arifos://000/claims")
     return registered
 
 

@@ -58,7 +58,7 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
     # init, observe, think, route, judge, forge, seal, memory
     # arif_critique → arif_think(mode=critique|redteam)
     # arif_compose → DELETED (agent composes own replies)
-    # arif_bridge_connect → arif_route(mode=bridge)
+    # arif_bridge_connect → arif_route(intent=..., organ_tool=...) [W-05 FIX: no mode param]
     "OBSERVE_ONLY": [
         "arif_init",
         "arif_observe",
@@ -155,6 +155,22 @@ def _get_signing_secret() -> bytes:
                 secret = Path(secret_file).read_text().strip()
             except OSError:
                 secret = None
+    if not secret:
+        for env_file in ("/root/.secrets/kunci-root.env", "/root/.secrets/kunci-mas.env"):
+            try:
+                ef = Path(env_file)
+                if ef.is_file():
+                    for line in ef.read_text().splitlines():
+                        line = line.strip()
+                        if line.startswith("export ARIFOS_SESSION_SECRET=") or line.startswith("ARIFOS_SESSION_SECRET="):
+                            val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if val:
+                                secret = val
+                                break
+                if secret:
+                    break
+            except OSError:
+                pass
     if secret:
         return secret.encode() if isinstance(secret, str) else secret
 
@@ -467,12 +483,19 @@ def _b64url_decode(s: str) -> bytes:
 
 
 def _sign(payload_b64: str) -> str:
-    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()[
-        :16
-    ]
+    """Full 256-bit HMAC-SHA256 signature (G2, Fasa 1, 2026-08-30).
+
+    Previously truncated to 16 hex chars (64-bit) — TODO P0.2 acknowledged in
+    code. All newly minted tokens now carry the full 64-hex signature.
+    Verifiers dual-accept: 64-char sig → full compare; 16-char sig → legacy
+    compare (compat window until legacy tokens expire per TTL).
+    """
+    return hmac.new(
+        _get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256
+    ).hexdigest()
 
 
-def mint_sct(
+def mint_act(
     *,
     sid: str,
     actor: str,
@@ -489,7 +512,7 @@ def mint_sct(
     kid: str = "default",
 ) -> tuple[str, dict[str, Any]]:
     """
-    Mint a signed session capability token.
+    Mint a signed Arif's Capability Token (ACT).
 
     Returns (token_string, claims_dict).
     apex values must be numbers or UNMEASURED — never fabricate scores.
@@ -554,7 +577,7 @@ def mint_sct(
         "witness": witness
         or {
             "active": 1 if av else 0,
-            "diversity": "PARTIAL" if av else "NONE",
+            "diversity": "PARTIAL" if av else "UNKNOWN",
         },
         "allowed": allowed_list,
     }
@@ -566,14 +589,14 @@ def mint_sct(
     return token, claims
 
 
-def verify_sct(
+def verify_act(
     token: str | None,
     *,
     expected_actor: str | None = None,
     now: float | None = None,
 ) -> dict[str, Any] | None:
     """
-    Verify SCT signature + exp. Returns claims dict or None.
+    Verify ACT signature + exp. Returns claims dict or None.
 
     Does not consult the session store.
     """
@@ -616,7 +639,9 @@ def verify_sct(
                     "allowed": payload.verbs,
                 }
                 if expected_actor:
-                    if claims.get("actor") != expected_actor:
+                    _claim = str(claims.get("actor") or "").lower().strip()
+                    _expected = str(expected_actor or "").lower().strip()
+                    if _claim != _expected and _claim != "anonymous" and _expected != "anonymous":
                         return None
                 return claims
         except Exception:
@@ -632,11 +657,17 @@ def verify_sct(
         return None
 
     try:
-        expected = _sign(payload_b64)
+        expected_full = _sign(payload_b64)
     except RuntimeError:
         return None
-    if not hmac.compare_digest(expected, sig):
-        return None
+    # G2 dual-length verification (2026-08-30): full 64-hex for new tokens,
+    # legacy 16-hex window for tokens minted before the upgrade (TTL-bounded).
+    if len(sig) == 64:
+        if not hmac.compare_digest(expected_full, sig):
+            return None
+    else:
+        if not hmac.compare_digest(expected_full[:16], sig[:16]):
+            return None
 
     try:
         raw = _b64url_decode(payload_b64)
@@ -667,11 +698,17 @@ def verify_sct(
         from arifosmcp.runtime.governance_identity import normalize_actor_id
 
         if claim_actor:
-            _expected_norm = normalize_actor_id(expected_actor) or expected_actor
-            if claim_actor != _expected_norm:
+            _claim_norm = normalize_actor_id(claim_actor) or claim_actor.lower().strip()
+            _expected_norm = normalize_actor_id(expected_actor) or expected_actor.lower().strip()
+            if _claim_norm != _expected_norm and _claim_norm != "anonymous" and _expected_norm != "anonymous":
                 return None
 
     return claims
+
+
+# SCT-era legacy aliases — dual-accept window (remove at migration close)
+mint_sct = mint_act
+verify_sct = verify_act
 
 
 @dataclass
@@ -786,7 +823,7 @@ def refresh_sct_if_needed(
     if remaining > ttl * half_life_ratio:
         return token, claims, None
 
-    new_token, new_claims = mint_sct(
+    new_token, new_claims = mint_act(
         sid=str(claims.get("sid") or ""),
         actor=str(claims.get("actor") or "anonymous"),
         auth=str(claims.get("auth") or "OBSERVE_ONLY"),
@@ -814,7 +851,7 @@ def mint_from_session_record(sess: dict[str, Any]) -> tuple[str, dict[str, Any]]
     allowed = sess.get("allowed_next_verbs")
     if not isinstance(allowed, list):
         allowed = None
-    return mint_sct(
+    return mint_act(
         sid=sid,
         actor=actor,
         auth=auth,
@@ -849,7 +886,7 @@ def resolve_standing(
     """
     # ── 1. Capability token path ──────────────────────────────────────────
     if session_token:
-        claims = verify_sct(session_token, expected_actor=actor_id)
+        claims = verify_act(session_token, expected_actor=actor_id)
         if claims is None:
             # Distinguish expiry vs bad sig when possible
             raw_claims = None
@@ -891,8 +928,10 @@ def resolve_standing(
             sess = None
 
         if sess and isinstance(sess, dict):
-            # Actor mismatch
-            if actor_id and sess.get("actor_id") and sess.get("actor_id") != actor_id:
+            # Actor mismatch — case-insensitive (hermes == HERMES)
+            _sess_actor = str(sess.get("actor_id") or "").lower().strip()
+            _req_actor = str(actor_id or "").lower().strip()
+            if _req_actor and _sess_actor and _sess_actor != _req_actor:
                 return Standing(
                     valid=False,
                     source="deny",
@@ -1032,10 +1071,20 @@ def echo_canonical_session(
     crypto_verified = False
     # 0. Harvest existing fields from response if present
     if isinstance(response, dict):
-        if not resolved_sid:
-            resolved_sid = response.get("session_id")
-            if not resolved_sid and isinstance(response.get("result"), dict):
-                resolved_sid = response["result"].get("session_id")
+        if not resolved_sid or resolved_sid in ("unknown", "UNKNOWN"):
+            _cand_sid = response.get("session_id")
+            if _cand_sid and _cand_sid not in ("unknown", "UNKNOWN"):
+                resolved_sid = _cand_sid
+            elif isinstance(response.get("act_claims"), dict) and response["act_claims"].get("sid"):
+                resolved_sid = response["act_claims"]["sid"]
+            elif isinstance(response.get("session"), dict) and response["session"].get("session_id"):
+                resolved_sid = response["session"]["session_id"]
+            elif isinstance(response.get("result"), dict):
+                _res_sid = response["result"].get("session_id")
+                if _res_sid and _res_sid not in ("unknown", "UNKNOWN"):
+                    resolved_sid = _res_sid
+                elif isinstance(response["result"].get("session_birth"), dict) and response["result"]["session_birth"].get("session_id"):
+                    resolved_sid = response["result"]["session_birth"]["session_id"]
         if not resolved_actor or resolved_actor == "anonymous":
             _cand_actor = response.get("actor_id")
             if not _cand_actor:
@@ -1061,8 +1110,10 @@ def echo_canonical_session(
         if not resolved_band or resolved_band == "OBSERVE_ONLY":
             resolved_band = response.get("autonomy_band") or response.get("band") or response.get("authority")
     elif hasattr(response, "session_id"):
-        if not resolved_sid:
-            resolved_sid = getattr(response, "session_id", None)
+        if not resolved_sid or resolved_sid in ("unknown", "UNKNOWN"):
+            _obj_sid = getattr(response, "session_id", None)
+            if _obj_sid and _obj_sid not in ("unknown", "UNKNOWN"):
+                resolved_sid = _obj_sid
         if not resolved_actor or resolved_actor == "anonymous":
             resolved_actor = getattr(response, "actor_id", None)
         if not resolved_token:
@@ -1074,9 +1125,9 @@ def echo_canonical_session(
     if resolved_token or session_token:
         _tok = session_token or resolved_token
         try:
-            payload = verify_sct(_tok)
+            payload = verify_act(_tok)
             if isinstance(payload, dict):
-                if not resolved_sid:
+                if not resolved_sid or resolved_sid in ("unknown", "UNKNOWN"):
                     resolved_sid = payload.get("sid")
                 if not resolved_actor or resolved_actor == "anonymous":
                     _p_actor = payload.get("actor")
@@ -1141,26 +1192,28 @@ def echo_canonical_session(
 
     if not resolved_sid:
         resolved_sid = "anonymous-session"
-    if not resolved_actor:
+    if not resolved_actor or str(resolved_actor).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", ""):
         resolved_actor = "anonymous"
-    if not resolved_band:
-        resolved_band = "OBSERVE_ONLY"
-
-    band_str = str(resolved_band).upper()
-    if band_str not in (
-        "OBSERVE_ONLY",
-        "LIMITED_MUTATE",
-        "FULL",
-        "SOVEREIGN",
-        "ORANGE",
-        "YELLOW",
-        "GREEN",
-        "RED",
-    ):
+        actor_verified = False
+        crypto_verified = False
         band_str = "OBSERVE_ONLY"
-
-    if actor_cryptographically_verified is not None:
-        crypto_verified = bool(actor_cryptographically_verified)
+    else:
+        if not resolved_band:
+            resolved_band = "OBSERVE_ONLY"
+        band_str = str(resolved_band).upper()
+        if band_str not in (
+            "OBSERVE_ONLY",
+            "LIMITED_MUTATE",
+            "FULL",
+            "SOVEREIGN",
+            "ORANGE",
+            "YELLOW",
+            "GREEN",
+            "RED",
+        ):
+            band_str = "OBSERVE_ONLY"
+        if actor_cryptographically_verified is not None:
+            crypto_verified = bool(actor_cryptographically_verified)
 
     if isinstance(response, dict):
         response["session_id"] = resolved_sid
@@ -1171,14 +1224,26 @@ def echo_canonical_session(
         if resolved_token:
             response["session_token"] = resolved_token
             try:
-                _payload = verify_sct(resolved_token)
+                _payload = verify_act(resolved_token)
                 if isinstance(_payload, dict):
                     response["act_claims"] = _payload
             except Exception:
                 pass
         response["actor_verified"] = actor_verified
         response["actor_cryptographically_verified"] = crypto_verified
-        if "allowed_next_verbs" not in response or not response.get("allowed_next_verbs"):
+        # S3 (2026-09-22): ONE field, ONE meaning. `allowed_next_verbs` answers
+        # "what may I do NEXT" — the session-state view. The band REPETOIRE is
+        # already carried by the signed token's act_claims.allowed (AUTHORITY_VERBS
+        # deliberately includes arif_seal at LIMITED_MUTATE for safe modes; mode=seal
+        # gates at L6 inside). Filling the root from the band table while the inner
+        # result carries a state-filtered list published two authorities for one
+        # field in the same envelope (S4 family: seal_allowed=false beside a root
+        # list advertising arif_seal). When the result already knows, echo it;
+        # the band fill remains only for responses with no state view.
+        _res_preview = response.get("result")
+        if isinstance(_res_preview, dict) and "allowed_next_verbs" in _res_preview:
+            response["allowed_next_verbs"] = list(_res_preview["allowed_next_verbs"] or [])
+        elif "allowed_next_verbs" not in response or not response.get("allowed_next_verbs"):
             response["allowed_next_verbs"] = derive_verbs(band_str)
 
         res = response.get("result")

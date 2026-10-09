@@ -755,9 +755,19 @@ def stage_10_human_acknowledgement_check(
     human_ack_required: bool,
     nonce: str | None,
     session_id: str | None,
+    reversibility_score: float | None = None,
+    rollback_recipe: str | None = None,
 ) -> tuple[bool, bool, list[str]]:
     """
     G10 + adversarial: Verify human acknowledgment is present and valid.
+
+    LAW_ZEN_ATTENTION (2026-09-01, additive — F13 RATIFIED 2026-09-01):
+      When a deterministic reversibility score and rollback recipe are
+      provided (K-Gate), the kernel recomputes whether human ack is truly
+      required. Reversible actions inside the sandbox (R(a) >= 0.85 with a
+      compiled rollback recipe) auto-pass — the sovereign's attention is
+      preserved for the atomic/irreversible surface only. This is ex-ante
+      mechanism design, not ex-post review theatre.
 
     Checks:
       - If ack is required, it must be explicitly True
@@ -769,6 +779,21 @@ def stage_10_human_acknowledgement_check(
     """
     reasons: list[str] = []
     replay_detected = False
+
+    # ── LAW_ZEN_ATTENTION K-Gate override ─────────────────────────────
+    # Deterministic reversibility check replaces the manual confirmation
+    # popup when the action lives inside the reversible sandbox.
+    if (
+        human_ack_required
+        and reversibility_score is not None
+        and reversibility_score >= 0.85
+        and rollback_recipe
+    ):
+        human_ack_required = False
+        reasons.append(
+            "LAW_ZEN_ATTENTION:K_GATE_OVERRIDE"
+            f":reversibility={reversibility_score:.2f},rollback_recipe_compiled"
+        )
 
     if not human_ack_required:
         return True, replay_detected, reasons
@@ -1191,6 +1216,12 @@ def run_forge_preflight(
     # Governance
     ack_irreversible: bool = False,
     nonce: str | None = None,
+    # LAW_ZEN_ATTENTION K-Gate (F13 RATIFIED 2026-09-01 — "execute all"):
+    # deterministic reversibility proof compiled ex-ante. When score >= 0.85
+    # AND a rollback recipe is compiled, the manual ack popup auto-passes —
+    # sovereign attention reserved for the atomic/irreversible surface only.
+    reversibility_score: float | None = None,
+    rollback_recipe: str | None = None,
     # Judge
     judge_verdict: str | None = None,
     # P1: Ed25519 forge gate
@@ -1346,11 +1377,19 @@ def run_forge_preflight(
     stage_results["human_ack_required"] = human_ack_required
 
     # ── Stage 10: Human Acknowledgement Check (G10) ────────────────
+    # K-Gate threading (F13 RATIFIED): deterministic reversibility proof
+    # replaces manual ack for actions inside the reversible sandbox.
+    # SECURITY GUARD: K-Gate inputs are caller-supplied — they are void
+    # whenever stage 9 classified the action IRREVERSIBLE, so a deploy-mode
+    # caller cannot forge a score/recipe to bypass acknowledgement.
+    _k_gate_active = reversibility != "IRREVERSIBLE"
     s10_valid, s10_replay, s10_reasons = stage_10_human_acknowledgement_check(
         ack_irreversible=ack_irreversible,
         human_ack_required=human_ack_required,
         nonce=nonce,
         session_id=session_id,
+        reversibility_score=reversibility_score if _k_gate_active else None,
+        rollback_recipe=rollback_recipe if _k_gate_active else None,
     )
     human_ack_valid = s10_valid
     if s10_replay:

@@ -1,6 +1,15 @@
 {
   "_schema": "arifos-ssct-v2026.07.12-public-sot",
-  "_source": "arifosmcp.abi.capability_registry + constitutional_map.CANONICAL_TOOLS",
+  "_source": "HAND-MAINTAINED. Do NOT regenerate from constitutional_map.build_tool_registry_manifest() — see _maintenance.",
+  "_maintenance": {
+    "status": "hand-maintained artifact; its former _source claim was false",
+    "measured": "2026-09-30 by 333-AGI",
+    "why_not_regenerable": "build_tool_registry_manifest() has diverged from this file: 12 of 18 top-level keys differ, 62 of 66 tool entries differ, internal_canonical_count would jump 6 -> 17, it would add arif_challenge/arif_commit/arif_stage and drop arif_act/arif_runtime_health/arif_telegram_send/arif_verify, and its canonical_order yields only SEVEN tools — omitting arif_memory, which the live MCP wire does expose (tools/list = 8). Regenerating would therefore remove a live canonical verb from the registry that six modules read.",
+    "also": "this file carries _smoke_test and _surface_sync, which the generator never emits — further proof it is edited by hand",
+    "consumers": "tools/health.py, runtime/capability_drift.py, runtime/surface_consistency.py, tools/retrieve_tools.py, runtime/rest_routes/topology_routes.py, scripts/observatory_emit.py",
+    "tripwire": "tests/abi/test_tool_registry_generator_divergence.py",
+    "correct_fix": "repair build_tool_registry_manifest() until its output equals this file, then restore _source and delete this block — do not paper over it by regenerating"
+  },
   "_note": "Implementation registry. Semantic authority lives in the eight-capability Kernel ABI; canonical_order contains its MCP provider bindings.",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py \u2192 ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
@@ -16,7 +25,7 @@
     "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
   "canonical_count": 8,
-  "internal_canonical_count": 6,
+  "internal_canonical_count": 5,
   "diagnostic_count": 40,
   "total_surface": 65,
   "tier_summary": {
@@ -56,12 +65,10 @@
   ],
   "internal_canonical_order": [
     "arif_act",
-    "arif_fetch",
     "arif_judge_deliberate",
     "arif_kernel_intercept",
     "arif_measure",
-    "arif_telegram_send",
-    "arif_triage"
+    "arif_telegram_send"
   ],
   "diagnostic_order": [
     "arif_canary",

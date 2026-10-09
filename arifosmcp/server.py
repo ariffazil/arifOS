@@ -58,9 +58,8 @@ try:
 
     apply_prompt_missing_args_rpc_fix()
 except Exception:
-    pass
 
-
+    logger.exception("suppressed exception", exc_info=True)
 # ── Entropy Integrity Mesh ─────────────────────────────────────────
 # NEVER insert /root/entropy-integrity at sys.path[0] — its top-level
 # package name `mcp/` shadows the official MCP SDK (`mcp.types`) and
@@ -69,7 +68,7 @@ except Exception:
 _entropy_integrity_path = "/root/entropy-integrity"
 _llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
 if _llm_client is not None:
-    _llm_client.SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")  # pyright: ignore[reportAttributeAccessIssue]
+    _llm_client.FED_PROXY_API_KEY = os.getenv("FED_PROXY_API_KEY")  # pyright: ignore[reportAttributeAccessIssue]
 
 # Fix sys.path so arifOS packages resolve correctly inside Docker
 _apply_path_priority()
@@ -80,7 +79,7 @@ def _log_llm_provider_health() -> None:
     """Log redacted LLM provider source at startup — never the secret value."""
     _logger = logging.getLogger("arifosmcp")
     providers = {
-        "SEA_LION_API_KEY": os.getenv("SEA_LION_API_KEY"),
+        "FED_PROXY_API_KEY": os.getenv("FED_PROXY_API_KEY"),
         "OLLAMA_BASE_URL": os.getenv("OLLAMA_BASE_URL"),
     }
     for name, val in providers.items():
@@ -96,8 +95,17 @@ _log_llm_provider_health()
 
 import fastmcp  # noqa: E002,E402
 from fastmcp import FastMCP  # noqa: E402
-from mcp import McpError  # noqa: E402
-from mcp.server.fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
+
+try:
+    from mcp import McpError  # noqa: E402
+except ImportError:
+    # mcp 2.0.0 renamed McpError → MCPError
+    from mcp import MCPError as McpError  # noqa: E402
+try:
+    from mcp.server.fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
+except ImportError:
+    # mcp 2.0.0 / fastmcp 4.x: standalone fastmcp.prompts.base
+    from fastmcp.prompts.base import Prompt as _FastMCPPrompt  # noqa: E402
 from mcp.types import ErrorData  # noqa: E402
 
 
@@ -133,8 +141,8 @@ try:
 
     _LRR.model_dump = _lrr_dump_with_resulttype
 except Exception:
-    pass
 
+    logger.exception("suppressed exception", exc_info=True)
 try:
     from mcp.types import ListPromptsResult as _LPR
 
@@ -148,7 +156,8 @@ try:
 
     _LPR.model_dump = _lpr_dump_with_resulttype
 except Exception:
-    pass
+
+    logger.exception("suppressed exception", exc_info=True)
 from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
@@ -272,7 +281,8 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.url.path.rstrip("/") == "/mcp" and request.method == "POST":
             try:
-                return await asyncio.wait_for(call_next(request), timeout=45.0)
+                _mcp_timeout = float(os.getenv("FAST_MCP_TIMEOUT_S", "75.0"))
+                return await asyncio.wait_for(call_next(request), timeout=_mcp_timeout)
             except TimeoutError:
                 return JSONResponse(
                     {
@@ -283,8 +293,8 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
                             "verdict": "HOLD",
                             "reason_code": "JUDGE_UNAVAILABLE",
                             "reasons": [
-                                "TOOL_TIMEOUT: arifOS tool exceeded 45s budget. "
-                                "The upstream LLM cascade (TokenRouter → MiniMax → SEA-LION → Ollama) "
+                                "TOOL_TIMEOUT: arifOS tool exceeded execution budget. "
+                                "The upstream LLM cascade (TokenRouter → MiniMax → FED-FEDERATION → Ollama) "
                                 "is likely degraded. This is a constitutional HOLD — "
                                 "execution is blocked until the reasoning backend recovers."
                             ],
@@ -294,7 +304,7 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
                             "next_safe_action": (
                                 "Wait 60s and retry. If the error persists, check "
                                 "arifOS logs: journalctl -u arifos --since '2 min ago'. "
-                                "The model may be rate-limited or the SEA-LION API may be degraded."
+                                "The model may be rate-limited or the FED-FEDERATION API may be degraded."
                             ),
                         },
                     },
@@ -360,7 +370,8 @@ class RequestTrustMiddleware(BaseHTTPMiddleware):
             )
             set_request_trust(peer=peer, proxied=proxied)
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
         return await call_next(request)
 
 
@@ -383,6 +394,26 @@ class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Only guard the /mcp endpoint
         if request.url.path.rstrip("/") == "/mcp" and request.method == "GET":
+            # Friendly human fallback: if visited via web browser,
+            # redirect to interactive landing page instead of showing raw 405 error
+            user_agent = request.headers.get("user-agent", "").lower()
+            sec_fetch_dest = request.headers.get("sec-fetch-dest", "").lower()
+            sec_fetch_mode = request.headers.get("sec-fetch-mode", "").lower()
+            upgrade_insecure = request.headers.get("upgrade-insecure-requests", "")
+            accept = request.headers.get("accept", "").lower()
+
+            is_tool = any(bot in user_agent for bot in ["cursor", "curl", "python", "httpx", "rmcp", "mcp", "grok", "postman", "glama"])
+            is_browser = (
+                sec_fetch_dest == "document"
+                or sec_fetch_mode == "navigate"
+                or upgrade_insecure == "1"
+                or "text/html" in accept
+                or ("mozilla" in user_agent and not is_tool)
+            )
+            if is_browser:
+                from starlette.responses import RedirectResponse
+                return RedirectResponse(url="https://mcp.arif-fazil.com/", status_code=303)
+
             return JSONResponse(
                 {
                     "jsonrpc": "2.0",
@@ -624,15 +655,20 @@ def _resolve_git_commit() -> str:
     was unbound because subprocess git rev-parse fails when CWD is not a git repo.
     """
     # 1. Bare-metal deployment stamp (written by deploy scripts)
-    _stamp_path = "/opt/arifos/app/.git_commit"
-    if os.path.exists(_stamp_path):
-        try:
-            with open(_stamp_path) as f:
-                content = f.read().strip()
-                if len(content) >= 7:
-                    return content[:7]
-        except Exception:
-            pass
+    for _stamp_path in (
+        "/opt/arifos/releases/deployed-commit",
+        "/opt/arifos/app/.git_commit",
+        "/root/arifOS/.git_commit",
+    ):
+        if os.path.exists(_stamp_path):
+            try:
+                with open(_stamp_path) as f:
+                    content = f.read().strip()
+                    if len(content) >= 7:
+                        return content[:7]
+            except Exception:
+
+                logger.exception("suppressed exception", exc_info=True)
     # 2. Environment variables
     for _key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
         _val = os.environ.get(_key, "").strip()
@@ -654,7 +690,8 @@ def _resolve_git_commit() -> str:
                 elif len(_content) >= 7:
                     return _content[:7]
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
     # 4. Subprocess git (legacy fallback — works only if CWD is git repo)
     try:
         import subprocess  # nosec B404
@@ -689,6 +726,11 @@ mcp = FastMCP(
     website_url="https://mcp.arif-fazil.com",
     # MCP logging: SEP-2577 deprecated — FastMCP may still declare logging; no expansion.
     client_log_level="warning",
+    # MCP spec 2026-07-28 compliance: declare listChanged + subscribe capabilities
+    experimental_capabilities={
+        "resources": {"listChanged": True, "subscribe": True},
+        "prompts": {"listChanged": True},
+    },
     instructions=(
         "arifOS — Constitutional AI orchestration kernel. F1-F13 governed.\n\n"
         "═══ AGENT BOOT SEQUENCE (MCP-NATIVE) ═══\n"
@@ -728,7 +770,7 @@ mcp = FastMCP(
         "  Templates: arifos://verdict/{sid}, continuity/{sid}, floor/{fid}, vault/{type}\n"
         "  Skills: skill://index, skill://{name}/SKILL.md\n"
         "  Wisdom: arifos://wisdom/quotes/*, arifos://wisdom/contract\n"
-        "Key prompts: /init (ignition), /seal (close), 🌱 BOOT (lightweight), 🌀 SABAR (governed loop).\n"
+        "Key prompts: /init (ignition), /seal (close), 000 🌱 IGNITE (identity), 🌀 GOVERN (governed loop).\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
@@ -746,7 +788,12 @@ mcp = FastMCP(
 # ═══════════════════════════════════════════════════════════════════════════
 if Path is not None:
     try:
-        _skill_root = Path("/root/.agents/skills")
+        # ONE_ORIGIN (2026-09-16): skill docs at ARIFOS_SKILL_ROOT —
+        # production serves /etc/arifos/skills (the service user cannot
+        # traverse /root at 0710; reads were failing long before hardening).
+        import os as _os
+
+        _skill_root = Path(_os.environ.get("ARIFOS_SKILL_ROOT", "/root/.agents/skills"))
         if _skill_root.exists():
             import json as _json
 
@@ -774,7 +821,8 @@ if Path is not None:
                                 _desc = _stripped.lstrip("#").strip()
                                 break
                     except Exception:
-                        pass
+
+                        logger.exception("suppressed exception", exc_info=True)
                     _skill_index.append(
                         {
                             "name": _sd.name,
@@ -800,7 +848,23 @@ if Path is not None:
                 "Use skill://index first to discover available skills.",
             )
             def skill_by_name_resource(name: str) -> str:
-                _path = _skill_root / name / "SKILL.md"
+                # Path traversal guard (external report, Syed Anas Mohiuddin,
+                # 2026-09-15, finding #2): `name` came from the URL path template
+                # with no validation at all, so `..%2F` walked out of the skill
+                # root — any directory holding a file literally named SKILL.md
+                # was readable. Reproduced: name="../../../../root/.secrets"
+                # resolves to /root/.secrets/SKILL.md.
+                #
+                # Containment check, not a character blocklist: compare the
+                # resolved path against the resolved root so symlinks and
+                # exotic encodings are covered too.
+                _root_res = _skill_root.resolve()
+                _path = (_skill_root / name / "SKILL.md").resolve()
+                if _root_res not in _path.parents or _path.name != "SKILL.md":
+                    raise ValueError(
+                        f"Skill name rejected: {name!r} escapes the skill root "
+                        "(external report 2026-09-15)"
+                    )
                 if not _path.is_file():
                     raise FileNotFoundError(f"Skill not found: {name}")
                 return _path.read_text()
@@ -984,7 +1048,8 @@ try:
                     with open("/tmp/.t1_akal_wrapper_called", "w") as _mf:
                         _mf.write("called")
                 except Exception:
-                    pass
+
+                    logger.exception("suppressed exception", exc_info=True)
                 blast = kwargs.get("blast_radius", "low")
                 intent = kwargs.get("intent", "")
                 dual = akal_pre_judge(
@@ -1051,6 +1116,13 @@ try:
                 # status, effective_verdict, reason_code, next_action.
                 # Hardened for sustained-load: fail-closed try/except.
                 try:
+                    # Model results must not sail past envelope attachment:
+                    # .get and item-assignment both crash on pydantic models and
+                    # the exceptions are suppressed — fields silently vanished
+                    # (R1d witness: in_eff=SEAL -> out_eff=None). Normalize to
+                    # dict first; every attach below assumes dict.
+                    if not isinstance(result, dict) and hasattr(result, "model_dump"):
+                        result = result.model_dump(mode="json")
                     from arifosmcp.runtime.verdict import (
                         compose_effective_verdict,
                         verdict_to_envelope,
@@ -1120,7 +1192,8 @@ try:
 
                             apply_deployment_drift_floor(result)
                         except Exception:
-                            pass
+
+                            logger.exception("suppressed exception", exc_info=True)
                 except Exception as _t3_exc:
                     # Fail-closed: never let the composer crash the worker.
                     # Force a deterministic HOLD; downstream status = pending.
@@ -1128,7 +1201,8 @@ try:
                         result["effective_verdict"] = "HOLD"
                         result["reason_code"] = "COMPOSER_FAIL_CLOSED"
                     except Exception:
-                        pass
+
+                        logger.exception("suppressed exception", exc_info=True)
                 return result
 
             return wrapped
@@ -1459,11 +1533,56 @@ try:
     _GHOST_ALIASES: dict[str, str] = {
         "arif_kernel_intercept": "arif_judge",
         "arifos_kernel_intercept": "arif_judge",
+        # SESAT extension 2026-09-18 (333-AGI, P0 capability truth):
+        # Legacy names must resolve server-side per PUBLIC_SURFACE_CANON.md
+        # ("Legacy tool names resolve server-side and never appear in
+        # discovery"). Public facade stays KERNEL_ABI_8; retired names
+        # advertised by old clients/docs get a deprecation redirect
+        # instead of "Unknown tool". Targets are ABI8 verbs only.
+        "arif_kernel_route": "arif_route",
+        "arif_memory_recall": "arif_memory",
+        "arif_mind_reason": "arif_think",
+        "arif_sense_observe": "arif_observe",
+        "arif_evidence_fetch": "arif_observe",
+        "arif_fetch": "arif_observe",
+        "arif_explore": "arif_observe",
+        "arif_reply_compose": "arif_think",
+        "arif_heart_critique": "arif_think",
+        "arif_judge_deliberate": "arif_judge",
+        "arif_forge_execute": "arif_forge",
+        "arif_vault_seal": "arif_seal",
+        "arif_ops_measure": "arif_measure",
+        "arif_stack_health_probe": "arif_measure",
+        "arif_bridge": "arif_route",
+        "arif_bridge_connect": "arif_route",
     }
     for _ghost_name, _canonical_target in _GHOST_ALIASES.items():
         _ghost_fn = _CTH_ALIAS.get(_ghost_name) or _CTH_ALIAS.get(_canonical_target)
-        if _ghost_fn is not None:
-            _ghost_wrapped = _wrap_handler(_ghost_fn, _ghost_name)
+        if _ghost_fn is None:
+            logger.warning(
+                f"Deprecation alias skipped (no handler): {_ghost_name} → {_canonical_target}"
+            )
+            continue
+        _ghost_read_only = _canonical_target in {
+            "arif_judge",
+            "arif_route",
+            "arif_observe",
+            "arif_think",
+            "arif_memory",
+        }
+        try:
+            # T11-CONTRACT-RECONCILIATION (2026-09-18, BIJAKSANA compile):
+            # Public advertised schema passes `mode=...` but internal arif_route
+            # rejects unknown kwargs. Wrap the alias to silently drop `mode` and
+            # let the canonical handler run. Applies to: arif_kernel_route,
+            # arif_bridge_connect, arif_bridge.
+            _base_fn = _ghost_fn
+
+            async def _mode_compat_alias(*args, __fn=_base_fn, **kwargs):
+                kwargs.pop("mode", None)  # drop mode — internal rejects
+                return await __fn(*args, **kwargs)
+
+            _ghost_wrapped = _wrap_handler(_mode_compat_alias, _ghost_name)
             mcp.tool(
                 name=_ghost_name,
                 description=(
@@ -1473,11 +1592,15 @@ try:
                 ),
                 tags={"deprecated", "alias"},
                 annotations={
-                    "readOnlyHint": True,
+                    "readOnlyHint": _ghost_read_only,
                     "destructiveHint": False,
                 },
             )(_ghost_wrapped)
             logger.info(f"Deprecation alias registered: {_ghost_name} → {_canonical_target}")
+        except Exception as _ghost_exc:
+            logger.warning(
+                f"Deprecation alias registration failed: {_ghost_name} → {_canonical_target}: {_ghost_exc}"
+            )
 
     # ── arif_triage: DEPRECATED public name (2026-07-09 audit) ─────────────
     # Canonical path: arif_init(mode=preflight|triage). Thin wrapper only —
@@ -1645,8 +1768,21 @@ try:
                 for p in _sig.parameters.values()
             )
             if not _has_var_args:
+                # T11-CONTRACT-RECONCILIATION (2026-09-18, BIJAKSANA compile):
+                # Wrap handler with mode→organ+tool_name translation. Public advertised
+                # schema passes `mode='discover'|'route'|'status'|'stage'|...` but the
+                # internal arif_bridge_connect requires `organ` + `tool_name`. Map
+                # `mode='discover'` to defaults so the alias no longer 422s.
+                async def _gateway_alias_adapter(*args, **kwargs):
+                    _mode = kwargs.pop("mode", "discover")
+                    if "organ" not in kwargs:
+                        kwargs["organ"] = "ARIFOS"
+                    if "tool_name" not in kwargs:
+                        kwargs["tool_name"] = f"_mode_{_mode}"
+                    return await _gateway_handler(*args, **kwargs)
+
                 _SDK_ALIAS_REGISTRATIONS.append(
-                    ("arif_gateway_connect", _gateway_handler, "arif_bridge_connect")
+                    ("arif_gateway_connect", _gateway_alias_adapter, "arif_bridge_connect")
                 )
             else:
                 logger.warning(
@@ -1942,6 +2078,16 @@ try:
                 logger.warning("Resource/prompt registration issue: %s", _err)
     except Exception as _rp_err:
         logger.warning("Explicit resources+prompts registration failed: %s", _rp_err)
+
+    # MCP spec 2026-07-28 compliance: enrich resources with title + annotations
+    try:
+        from arifosmcp.resources import enrich_resource_metadata
+
+        _enriched = enrich_resource_metadata(mcp)
+        if _enriched:
+            logger.info("Enriched %d resources with title + annotations (MCP spec compliance)", _enriched)
+    except Exception as _enrich_err:
+        logger.warning("Resource metadata enrichment failed: %s", _enrich_err)
 
     # Default HTTP tools/list must reflect the canonical public facade exactly.
     # 2026-07-17: list filter alone is insufficient — call path also gated in
@@ -2853,7 +2999,11 @@ if app:
     async def _airlock_version(request):
         from starlette.responses import JSONResponse
 
-        return JSONResponse({"version": "v2026.05.05-SSCT", "airlock": "v0.1", "kernel": "arifOS"})
+        # VERSION derived from installed package metadata (single source of truth: pyproject.toml).
+        # Was hardcoded "v2026.05.05-SSCT" — a fourth scheme on one machine.
+        # F13 directive 2026-09-30: kill the drift class at the root.
+        from arifosmcp import __version__ as _kernel_version
+        return JSONResponse({"version": _kernel_version, "airlock": "v0.1", "kernel": "arifOS"})
 
     async def _airlock_probe(request):
         from starlette.responses import JSONResponse
@@ -3059,7 +3209,8 @@ if app:
                 __import__(f"arifosmcp.runtime.{mod}")
                 reality_loaded += 1
             except Exception:
-                pass
+
+                logger.exception("suppressed exception", exc_info=True)
         checks["reality_stack_modules"] = reality_loaded
 
         # 7. VAULT999
@@ -3069,7 +3220,8 @@ if app:
             try:
                 vault_lines = sum(1 for _ in open(vault_path))
             except Exception:
-                pass
+
+                logger.exception("suppressed exception", exc_info=True)
         checks["vault999_lines"] = vault_lines
 
         # 8. Static eureka files
@@ -3300,7 +3452,8 @@ if app:
             __import__("arifosmcp.runtime.memory_quarantine")
             s_val += 3.0
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
         s_val = min(s_val, 80.0)
         s_error = 6.0 + falsification_failures * 3.0
         safety = AnchoredScore(
@@ -3783,8 +3936,8 @@ if app:
                         "source": str(p),
                     }
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
         # Optional public_key presence check (does not replace sovereign path)
         public_key_note = None
         if public_key:
@@ -3908,8 +4061,8 @@ if app:
                     1 for r in latest.values() if r.get("status") == "ACTIVE"
                 )
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
         # AAA seal chain head seq
         chain_seq = None
         try:
@@ -3920,8 +4073,8 @@ if app:
             if head.is_file():
                 chain_seq = _json2.loads(head.read_text()).get("seq")
         except Exception:
-            pass
 
+            logger.exception("suppressed exception", exc_info=True)
         ok = bool(
             result.get("token_valid") and result.get("scope_valid") and result.get("replay_safe")
         )
@@ -4132,7 +4285,8 @@ async def _shutdown_nats_event_bus() -> None:
         try:
             await _anomaly_subscriber.stop()
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
         _anomaly_subscriber = None
 
     if _organ_attestation_subscriber is not None:
@@ -4143,7 +4297,8 @@ async def _shutdown_nats_event_bus() -> None:
 
             await stop_organ_attestation_subscriber()
         except Exception:
-            pass
+
+            logger.exception("suppressed exception", exc_info=True)
         _organ_attestation_subscriber = None
 
     try:
@@ -4151,9 +4306,8 @@ async def _shutdown_nats_event_bus() -> None:
 
         await event_bus.disconnect()
     except Exception:
-        pass
 
-
+        logger.exception("suppressed exception", exc_info=True)
 # Wire to the main app (top-level Starlette app from FastMCP)
 _wire_nats_to_app(app)
 

@@ -1,7 +1,7 @@
 ---
 type: Specification
 title: ATLAS333 Cognitive Geometry
-description: 35 paradoxes across 4 axes (Memory 1-11, Mind 12-22, Judge 23-33, Contour 34-35) forming the cognitive geometry engine for the arifOS federation. Every paradox is a tension vector between two opposing poles — agents navigate between them, not pick one
+description: 40 paradoxes across 5 clusters (Memory 1-11, Mind 12-22, Judge 23-33, Contour 34-35, Humanity 36-40) forming the cognitive geometry engine for the arifOS federation. Every paradox is a tension vector between two opposing poles — agents navigate between them, not pick one
 tags: [federation, atlas333, cognitive-geometry, paradox, decision-framework]
 timestamp: 2026-07-20T08:00:00Z
 links:
@@ -17,7 +17,7 @@ links:
 
 Not a tool. Not a database. The **map** that generates tension vectors for constitutional reasoning.
 
-## The 4 Axes
+## The 5 Clusters
 
 ### Memory (P1-P11): What Is Remembered, What Is Forgotten
 
@@ -68,6 +68,18 @@ Not a tool. Not a database. The **map** that generates tension vectors for const
 |---|---------|--------------|
 | P34 | Root/Kernel | ALL |
 | P35 | Positive/Closed | arifOS |
+
+### Humanity (P36-P40): The 5 Dimensions of Human Responsibility
+
+| # | Paradox | Primary Organ |
+|---|---------|--------------|
+| P36 | Witness/Dignity | WELL |
+| P37 | Scar/Forgiveness | arifOS |
+| P38 | Synthetic/Accountability | arifOS |
+| P39 | Flesh/Computation | WELL |
+| P40 | Intelligence/Consequence | arifOS |
+
+*(Organ column derived from each paradox's own wire set; paradox text unchanged.)*
 
 ## Activation
 

@@ -12,7 +12,7 @@ Coded equations:
   T ∈ [0,1]                         tank remaining
   U_eureka(T)=T , U_zen(T)=1−T      margin theorem utilities (cross at 0.50)
   dT/dt = J_rate − X_rate − k·T     tank dynamics
-  G = A·P·E·X·Φ                     APEX Nash product
+  G = (A·P·E·X)^(1/4)               APEX V3 canonical geometric mean (Φ is a separate scar gate; pre-V3 A·P·E·X·Φ retired)
   C_dark = A·(1−P)·(1−X)            gaming potential
   W³ = (H·AI·EXT)^(1/3)             tri-witness
   ΔS = J − X ≤ 0                    F4

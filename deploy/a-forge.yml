@@ -14,7 +14,7 @@ services:
       - NODE_ENV=production
       - AF_FORGE_PORT=7071
       - ARIFOS_GOVERNANCE_URL=http://arifosmcp:8080
-      # All provider secrets (MINIMAX_API_KEY, SEA_LION_API_KEY, etc.)
+      # All provider secrets (MINIMAX_API_KEY, FED_PROXY_API_KEY, etc.)
       # are loaded from /root/.secrets/a-forge.env via env_file below.
     env_file:
       - /root/.secrets/a-forge.env

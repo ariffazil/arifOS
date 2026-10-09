@@ -173,7 +173,21 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=False,
         ),
     ],
-    # ── KERNEL: Route Intent ─────────────────────────────────────
+    # ── KERNEL: Route Intent (canonical: arif_route) ──────────────
+    "arif_route": [
+        ToolRiskProfile(
+            tool_name="arif_route",
+            mode=None,
+            action_class="OBSERVE",
+            risk_tier="LOW",
+            blast_radius="LOCAL",
+            reversibility=0.9,
+            autonomy_floor="FULL_AUTO",
+            rationale="Routing is computational dispatch. No local mutation — delegates to target organ.",
+            requires_lease=False,
+        ),
+    ],
+    # ── DEPRECATED ALIAS (2026-09-16): arif_kernel_route → arif_route ──
     "arif_kernel_route": [
         ToolRiskProfile(
             tool_name="arif_kernel_route",
@@ -201,7 +215,43 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=False,
         ),
     ],
-    # ── MEMORY: Recall/Store ──────────────────────────────────────
+    # ── MEMORY: Recall/Store (canonical: arif_memory) ─────────────
+    "arif_memory": [
+        ToolRiskProfile(
+            tool_name="arif_memory",
+            mode=None,  # base — covers remember/promote/revise/audit
+            action_class="MUTATE",
+            risk_tier="MEDIUM",
+            blast_radius="ORG",
+            reversibility=0.7,
+            autonomy_floor="PROPOSE_ONLY",
+            rationale="Memory writes (remember/promote/revise) change the governed knowledge graph. Reversible via supersede/tombstone but mutates state.",
+            requires_lease=True,
+        ),
+        ToolRiskProfile(
+            tool_name="arif_memory",
+            mode="recall",
+            action_class="OBSERVE",
+            risk_tier="LOW",
+            blast_radius="LOCAL",
+            reversibility=1.0,
+            autonomy_floor="FULL_AUTO",
+            rationale="Recall is read-only search. No mutation.",
+            requires_lease=False,
+        ),
+        ToolRiskProfile(
+            tool_name="arif_memory",
+            mode="forget",
+            action_class="IRREVERSIBLE",
+            risk_tier="HIGH",
+            blast_radius="ORG",
+            reversibility=0.0,
+            autonomy_floor="PRINCIPAL_APPROVAL_REQUIRED",
+            rationale="Forget tombstones memory irreversibly — F13 SOVEREIGN, explicit human ack required.",
+            requires_lease=True,
+        ),
+    ],
+    # ── DEPRECATED ALIAS (2026-09-16): arif_memory_recall → arif_memory ──
     "arif_memory_recall": [
         ToolRiskProfile(
             tool_name="arif_memory_recall",

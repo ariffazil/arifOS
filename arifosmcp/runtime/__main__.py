@@ -414,6 +414,8 @@ def _run_minimal_stdio_server() -> None:
                 except OSError:
                     pass
             # No explicit shutdown signal — stay alive (late client may still connect).
+            # A closed pipe stays readable, so the select above returns at once.
+            select.select([], [], [], 1.0)
             continue
 
         raw = line.decode("utf-8", errors="replace").strip()
@@ -759,6 +761,31 @@ def main() -> None:
         fail_closed_check()
     except Exception:
         pass  # attestation never blocks startup
+
+    # ── T3 (F13 2026-09-22): seed the organ attestation registry ──────
+    # _ORGAN_REGISTRY has no writer at boot; downstream absence used to
+    # read as BOOT_ATTESTATION_FAILED. Seed once, best-effort, from a
+    # daemon thread — same never-block-startup contract as above. Until
+    # it lands, readers treat absence as UNATTESTED/MUST_ATTEST (honest),
+    # never FAILED.
+    try:
+        import threading as _threading
+
+        def _seed_organ_registry() -> None:
+            try:
+                import asyncio as _asyncio
+
+                from arifosmcp.runtime.organ_attestation import attest_all_organs
+
+                _asyncio.run(attest_all_organs())
+            except Exception:
+                pass  # best-effort; readers handle absence honestly (T3)
+
+        _threading.Thread(
+            target=_seed_organ_registry, name="organ-attest-seed", daemon=True
+        ).start()
+    except Exception:
+        pass  # never block startup
 
     # P0 FIX: Robust mode detection
     mode = os.getenv("AAA_MCP_TRANSPORT", "stdio")

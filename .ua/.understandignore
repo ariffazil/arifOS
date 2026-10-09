@@ -1,0 +1,279 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+# Lines below are suggestions — uncomment to activate.
+# Use ! prefix to force-include something excluded by defaults.
+#
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+#
+
+# --- From .gitignore (uncomment to exclude) ---
+
+# *.py[cod]
+# *$py.class
+# *.so
+# .Python
+# env/
+# develop-eggs/
+# downloads/
+# eggs/
+# .eggs/
+# lib/
+# lib64/
+# parts/
+# sdist/
+# var/
+# wheels/
+# *.egg-info/
+# .installed.cfg
+# *.egg
+# .pytest_cache/
+# .coverage
+# htmlcov/
+# .tox/
+# .nox/
+# v*.json
+# final_*.json
+# trace_*.json
+# live_*.json
+# debug_*.json
+# test_*.json
+# persist_*.json
+# init_res.json
+# mind_res.json
+# sense_trace.json
+# mcp.json
+# wow_*.json
+# DEPLOY_*.md
+# EPOCH_*.md
+# STATUS_EPOCH_*.md
+# THERMO_*.md
+# MCP_WEB_*.md
+# LANDING_PAGE_*.md
+# TOOLS_FLOORS_*.md
+# nosetests.xml
+# coverage.xml
+# *.cover
+# *.py,cover
+# .hypothesis/
+# .env
+# ENV/
+# env.bak/
+# venv.bak/
+# *.env
+# *.key
+# *.pem
+# openclaw.json
+# *.swp
+# *.swo
+# logs/*.log
+# logs/backup.log
+# !logs/audit.jsonl
+# .openclaw/
+# .arifos/
+# bin/
+# _ARCHIVE/
+# *.tar.gz
+# *.7z
+# *.rar
+# BACKUP_*.zip
+# *.backup
+# Caddyfile.backup.*
+# breach_results.json
+# arifosmcp.egg-info/
+# .env.docker
+# VAULT999/
+# eigent/
+# *.db
+# .governance_secret
+# *.secret
+# secrets/*.secret
+# secrets/
+# .coverage
+# test.txt
+# test_write.tmp
+# pytest_output.txt
+# eval_results.json
+# eval_results.txt
+# *.tmp
+# *_output.*
+# output/
+# core/vault999/**/*.jsonl
+# *.jsonl
+# pytest_output.txt
+# eval_results.*
+# *_output.*
+# *.pyc
+# SECRETS.md
+# state/
+# objective_state.json
+# /memory/
+# .openclaw/
+# codex/
+# notes/
+# skills/github-readme-dynamic/
+# evidence/
+# *.zkey
+# zkp_artifacts/
+# arifos.egg-info/
+# .archive/
+# .env.decrypted
+# arifosmcp/sessions/hermes-briefings/*
+# !arifosmcp/sessions/hermes-briefings/README.md
+# .archive/
+# *.bak/
+# .*.bak
+# .ruff_cache/
+# .antigravitycli/
+# /node_modules
+# .claude/
+# .gemini/
+# *.bak*
+# *.backup*
+# arifOS_LEGACY/
+# arifOS_QUARANTINED_*/
+# arifos_mcp/
+# arifosmcp/sessions/
+# arifosmcp/ARIFOS_MCP_AGENT_SEED.json
+# arifosmcp/ARIFOS_MCP_FINAL_SEAL.md
+# docs/PHOENIX_*_STATUS.md
+# entropy-report.json
+# contracts/generated/
+# .serena/
+# .env
+# .env.local
+# .env.*.local
+# scratch/
+# .mypy_cache/
+# Copilot/
+# *.derived
+# forge_work/
+# arifosmcp/forge_work/
+# archive/
+# arifosmcp/archive/
+# experiments/
+# incidents/
+# blueprints/
+# design/
+# evals/
+# benchmarks/
+# reports/
+# rendered/
+# logs/
+# data/
+# !arifosmcp/data/
+# !arifosmcp/data/quote_registry_v2.json
+# arifosmcp/data/memory/
+# research/
+# AFORGE_PHASE1_CONTROL_SPINE.md
+# AGENTIC_MEMORY_ROUTING.md
+# AGENT_KERNEL_START.md
+# COMPUTE_TIERING.md
+# CONFORMANCE-BASELINE-*.md
+# FEDERATION_MEMORY.md
+# FEDERATION_REALITY_SNAPSHOT.md
+# FEDERATION_STATUS.md
+# FOUNDATION_SPRINT_V1.md
+# HERMES_HELPERS.md
+# HERMES_IDENTITY.md
+# ORGAN_FORGE_INTEGRATION.md
+# REPO_ROLE_MAP.md
+# ROOLBACK_PLAN_PHASE1.md
+# ROOT_888_HOLD.md
+# ROOTKEY_SPEC_v53.md
+# arifos_agent_surface_map.md
+# arifos_agent_surface_map.yaml
+# bootstrap_ledgers.py
+# federation-manager.sh
+# generate_missing_tests.py
+# generate_tests.py
+# patch_schemas.py
+# run_scar_listener.py
+# session_memory_bridge.py
+# test_eureka_lem.py
+# last_eureka_result.json
+# CONSTITUTIONAL_REALITY_LATEST.json
+# ESTATE_MANIFEST.yaml
+# federation.manifest.yaml
+# tools_sot.yaml
+# tools_sot.yaml
+# forge_work/meta-mesa-harness/keys/
+# claude_desktop_config.json
+# .mcp-use
+# audits/
+# deploy/rollback/
+# .pytest_cache/
+# .git_commit
+# termux-agentic/
+
+# --- Detected directories (uncomment to exclude) ---
+
+# docs/
+# examples/
+# scripts/
+# tests/
+
+# --- Test file patterns (uncomment to exclude) ---
+
+# JS / TS
+# *.test.*
+# *.spec.*
+# *.snap
+# C# / .NET
+# **/*Tests.cs
+# **/*Test.cs
+# **/*Fixture.cs
+# **/*.Tests.csproj
+# Java / Kotlin
+# **/src/test/**
+# **/*Test.java
+# **/*IT.java
+# **/*Spec.kt
+# Go
+# **/*_test.go
+# C++
+# **/*_test.cc
+# **/*_test.cpp
+# **/*_test.cxx
+# **/*Test.cc
+# **/*Test.cpp
+# **/*_unittest.cc
+# **/*_unittest.cpp
+# **/*_browsertest.cc
+# **/*_benchmark.cc
+# **/*Benchmark.cpp
+# Python
+# **/test_*.py
+# **/*_test.py
+# **/tests.py
+# **/conftest.py
+# Rust
+# **/tests.rs
+# **/test_*.rs
+# **/*_test.rs
+# **/bench_*.rs
+# **/*_bench.rs
+# Ruby
+# **/*_spec.rb
+# **/*_test.rb
+# **/test_*.rb
+# **/spec_helper.rb
+# **/test_helper.rb
+# **/rails_helper.rb
+# Swift
+# **/Tests/**/*.swift
+# **/Specs/**/*.swift
+
+# --- 333-AGI entropy patterns (2026-09-14, session ua-batch-1-launch) ---
+# Timestamped filename extensions that pollute UA's language-detector.
+# Pattern identified from arifOS scan (37 langs detected; many are noise).
+# ACTIVE — these are not in .gitignore because the files exist but are 'stale'.
+**/pre-forged-*
+**/pre-helix-*
+**/.bak-*
+**/.quarantine-*
+**/.superseded-*
+**/.tombstoned-*
+**/.zen-archived-*
+**/.archive-*
+**/.hermes-archived-*

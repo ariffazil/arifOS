@@ -43,11 +43,13 @@ import logging
 import os
 import re
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import asyncpg  # noqa: E402, PLC0415
+
+from arifosmcp.memory.admissibility import compute_sro_block, evaluate, load_policy
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +116,11 @@ def enforce_memory_routing(tier: str, content: dict, actor: str) -> bool:
 # gates the load; the names themselves are placeholders until first call.
 
 _policies_loaded: bool = False
+integrate_with_search_results: Any = None
+f4_write_path_hook: Any = None
+is_tri_witness_complete: Any = None
+phoenix_summary: Any = None
+_phoenix_entry: Any = None
 
 
 def _load_memory_policies() -> None:
@@ -149,18 +156,21 @@ _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/agent/memory"))
 _INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
 _LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
 
-_QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
-_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory_v2")
+_QDRANT_URL = os.getenv("QDRANT_URL", "http://127.0.0.1:6333")
+_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest")
-# ADR-010: L4 canonical store is LOCAL Postgres (port 5432), not Supabase pooler.
-# ARIFOS_MEMORY_POSTGRES_URL was pointing to Supabase, causing recall failures.
-# Priority: POSTGRES_URL (local) > ARIFOS_MEMORY_POSTGRES_URL (env).
-# P0 FIX (2026-07-29): No hardcoded default. If neither env var is set,
-# memory degrades gracefully (read-only / Qdrant-projection-only) with
-# an audit log warning — never a daemon crash. The real credential lives
-# in kunci-mas.env, injected at runtime via systemd.
-_PG_URL = os.getenv("POSTGRES_URL") or os.getenv("ARIFOS_MEMORY_POSTGRES_URL")
+_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
+# 2026-10-04 (FI-003, F13 SOVEREIGN 'apply the patch out-of-band'):
+# Cloud Supabase (ARIFOS_MEMORY_POSTGRES_URL) is the canonical L4/L5 store
+# (14,404 seals + 1,107 memories, +40/seit audit chain). Local 127.0.0.1:5432
+# holds the Kabarkan telemetry substrate (600K+ writes via collector/worker/
+# health services) and 12 stale seal rows from an older sync attempt;
+# not the seal canonical. Priority: ARIFOS_MEMORY_POSTGRES_URL (cloud)
+# > POSTGRES_URL (local, emergency fallback only). P0 FIX (2026-07-29)
+# semantics preserved: no hardcoded default, graceful degradation if
+# neither env var is set. The real credential lives in kunci-mas.env,
+# injected at runtime via systemd.
+_PG_URL = os.getenv("ARIFOS_MEMORY_POSTGRES_URL") or os.getenv("POSTGRES_URL")
 
 if not _PG_URL:
     import logging
@@ -271,31 +281,37 @@ async def _pg_write(
 
         conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
+            final_metadata = dict(metadata or {})
+            if value_anchor:
+                final_metadata["value_anchor"] = value_anchor
+            if floor_constraint:
+                final_metadata["floor_constraint"] = floor_constraint
+            if care_provenance:
+                final_metadata["care_provenance"] = care_provenance
+
+            rec_at = recorded_at or datetime.now(UTC)
+            val_at = valid_at or rec_at
+
             await conn.execute(
                 """
                 INSERT INTO memory_store
                     (id, tier, text, metadata, qdrant_id, session_id,
                      entity_tags, distillation_status, distillation_metadata,
-                     valid_at, recorded_at,
-                     value_anchor, floor_constraint, care_provenance)
-                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb, $10, $11,
-                        $12, $13, $14)
+                     valid_at, recorded_at)
+                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb, $10, $11)
                 ON CONFLICT (id) DO NOTHING
                 """,
                 memory_id,
                 tier,
                 text,
-                json.dumps(metadata, default=str),
+                json.dumps(final_metadata, default=str),
                 qdrant_id,
                 session_id,
                 entity_tags,
                 distillation_status,
                 (json.dumps(distillation_metadata, default=str) if distillation_metadata else None),
-                valid_at,
-                recorded_at,
-                value_anchor or [],
-                floor_constraint or [],
-                care_provenance,
+                val_at,
+                rec_at,
             )
             return True
         finally:
@@ -322,6 +338,198 @@ async def _pg_soft_delete(memory_id: str) -> bool:
     except Exception as exc:
         logger.warning("Postgres soft-delete failed for %s: %s", memory_id, exc)
         return False
+
+
+async def _pg_supersede(
+    old_memory_id: str,
+    new_memory_id: str,
+    reason: str,
+    resolution_kind: str = "supersede",
+) -> bool:
+    """Supersede/retract a prior memory record in Postgres (M9, M10, M11).
+
+    Preserves historical record by marking old memory superseded rather than
+    deleting it. Sets superseded_by, supersession_reason, and soft-deletes
+    from active queries while keeping it historically queryable.
+    """
+    try:
+        import asyncpg  # noqa: PLC0415
+
+        conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
+        try:
+            status_val = "revoked" if resolution_kind == "retract" else "superseded"
+            row = await conn.fetchrow(
+                """
+                UPDATE memory_store
+                SET superseded_by = $2::uuid,
+                    superseded_at = now(),
+                    deleted_at = now(),
+                    metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(
+                        'status', $3::text,
+                        'superseded_by', $2::text,
+                        'superseded_at', now()::text,
+                        'supersession_reason', $4::text,
+                        'resolution_kind', $5::text
+                    )
+                WHERE id = $1::uuid AND deleted_at IS NULL
+                RETURNING qdrant_id
+                """,
+                old_memory_id,
+                new_memory_id,
+                status_val,
+                reason,
+                resolution_kind,
+            )
+            success = row is not None
+            if success:
+                # Synchronize Qdrant payload if vector index exists (P1-MEM-002)
+                try:
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    update_payload = {
+                        "active": False,
+                        "status": status_val,
+                        "superseded_by": str(new_memory_id),
+                        "superseded_at": now_iso,
+                        "supersession_reason": reason,
+                        "resolution_kind": resolution_kind,
+                    }
+                    client = _get_qdrant_client()
+                    q_id = str(row["qdrant_id"]) if row and row["qdrant_id"] else None
+                    if q_id:
+                        try:
+                            client.set_payload(
+                                collection_name=_QDRANT_COLLECTION,
+                                payload=update_payload,
+                                points=[q_id],
+                            )
+                        except Exception:
+                            pass
+                    # Also match by memory_id payload filter in case point_id differs
+                    from qdrant_client.models import FieldCondition, Filter, MatchValue  # noqa: PLC0415
+                    try:
+                        client.set_payload(
+                            collection_name=_QDRANT_COLLECTION,
+                            payload=update_payload,
+                            points=Filter(
+                                must=[FieldCondition(key="memory_id", match=MatchValue(value=str(old_memory_id)))]
+                            ),
+                        )
+                    except Exception:
+                        pass
+                except Exception as q_exc:
+                    logger.debug("Qdrant payload sync on supersede: %s", q_exc)
+            return success
+        finally:
+            await conn.close()
+    except Exception as exc:
+        logger.warning(
+            "Postgres supersede failed for %s -> %s: %s",
+            old_memory_id,
+            new_memory_id,
+            exc,
+        )
+        return False
+
+
+def reality_veto_check(
+    stored_claim: dict[str, Any],
+    observed_reality: dict[str, Any],
+    *,
+    key_fields: list[str] | None = None,
+) -> dict[str, Any]:
+    """Check if fresh authenticated observation contradicts stored memory (M10, M24).
+
+    The highest runtime law:
+        Reality(t+1) has veto power over Memory(t).
+        A stored representation never outranks fresh, authenticated reality.
+    """
+    discrepancies = []
+    fields = key_fields or list(set(stored_claim.keys()) & set(observed_reality.keys()))
+
+    for field in fields:
+        stored_val = stored_claim.get(field)
+        observed_val = observed_reality.get(field)
+        if stored_val is not None and observed_val is not None and stored_val != observed_val:
+            discrepancies.append(
+                {
+                    "field": field,
+                    "stored": stored_val,
+                    "observed": observed_val,
+                }
+            )
+
+    has_contradiction = len(discrepancies) > 0
+    return {
+        "veto": has_contradiction,
+        "contradiction_detected": has_contradiction,
+        "stale_claim_propagation_detected": has_contradiction,
+        "discrepancies": discrepancies,
+        "reason": (
+            f"Reality contradiction detected on {len(discrepancies)} field(s): {', '.join(d['field'] for d in discrepancies)}"
+            if has_contradiction
+            else "Reality verified consistent with memory"
+        ),
+    }
+
+
+async def execute_reality_veto(
+    stored_memory_id: str,
+    stored_claim: dict[str, Any],
+    fresh_observation: dict[str, Any],
+    *,
+    actor_id: str,
+    session_id: str,
+    trace_id: str,
+    objective_id: str,
+    reason: str,
+) -> dict[str, Any]:
+    """Execute reality veto: supersede/retract old claim, persist new observation with lineage (M10, M11)."""
+    from arifosmcp.runtime.megaTools.tool_13_arif_memory import arif_memory
+
+    # Call revise to supersede old memory with fresh observation
+    revise_res = await arif_memory(
+        mode="revise",
+        payload={
+            "supersedes_memory_id": stored_memory_id,
+            "content": json.dumps(fresh_observation, default=str),
+            "reason": reason,
+            "correction_event": reason,
+            "resolution_kind": "supersede",
+            "provenance": {
+                "actor_id": actor_id,
+                "session_id": session_id,
+                "origin": "reality_probe",
+                "trace_id": trace_id,
+                "objective_id": objective_id,
+            },
+            "truth_class": {
+                "status": "observed",
+                "confidence": 1.0,
+            },
+            "authority": {
+                "may_expand_tools": False,
+                "may_raise_autonomy": False,
+                "may_restrict_tools": False,
+            },
+            "trace_id": trace_id,
+            "objective_id": objective_id,
+        },
+        session_id=session_id,
+        actor_id=actor_id,
+        lease_id="reality_veto_lease",
+        trace_id=trace_id,
+    )
+
+    return {
+        "veto_executed": True,
+        "stored_memory_id": stored_memory_id,
+        "superseded": True,
+        "fresh_observation": fresh_observation,
+        "revise_result": revise_res,
+        "trace_id": trace_id,
+        "objective_id": objective_id,
+        "stale_claim_propagation_prevented": True,
+    }
 
 
 async def _pg_update_qdrant_id(memory_id: str, qdrant_id: str) -> bool:
@@ -962,6 +1170,25 @@ def store(
         "flow_key": flow_key or "",
     }
 
+    # SRO v1 stamp — writer boundary (config/memory-admissibility-policy.yaml).
+    # Every new Qdrant point is born admissible-shaped: status, expiry window,
+    # calibration slots. Unknown truth class defaults to INT per policy SOT.
+    #
+    # FIXED 2026-09-18 (A1): this line used to read `payload.get("truth_class")`
+    # while the payload carries `epistemic_class`. The class was present and
+    # silently DISCARDED exactly where it decides the expiry window — measured:
+    # the live `DERIVATION` points got INT's 90-day TTL instead of DER's 180.
+    # One name, one owner: accept either shape on input, persist
+    # `epistemic_class` as canonical (it is the name phi_witness derives
+    # truth_class FROM — storing the derived name would mint a second key).
+    _epistemic_class = payload.get("epistemic_class") or payload.get("truth_class")
+    if _epistemic_class:
+        payload["epistemic_class"] = _epistemic_class
+    payload["sro"] = compute_sro_block(
+        truth_class=_epistemic_class,
+        confidence=payload.get("confidence"),
+    )
+
     # If resolution was SUPERSEDE or ESCALATE, update Phoenix state accordingly
     phoenix_override_state = None
     if f4_result.resolution == "escalate":
@@ -1132,6 +1359,25 @@ def store(
         }
 
     canonical_status = "committed" if pg_ok else "non-canonical"
+
+    # ── SRO Propagation (fire-and-forget) ──────────────────────────────
+    # When an SRO is created, propagate to federation agents via A2A gateway.
+    # Non-blocking: failures are logged but don't fail the store.
+    sro_block = payload.get("sro")
+    if isinstance(sro_block, dict) and sro_block.get("sro_version") and qdrant_ok:
+        try:
+            from arifosmcp.memory.sro_propagation import propagate_created
+
+            propagate_created(
+                agent_id=actor_id or "unknown",
+                claim_id=memory_id,
+                jurisdiction=sro_block.get("jurisdiction"),
+                confidence=sro_block.get("calibration", {}).get("confidence_at_creation"),
+                truth_class=payload.get("epistemic_class") or payload.get("truth_class"),
+            )
+        except Exception as exc:
+            logger.debug("SRO propagation skipped: %s", exc)
+
     return {
         "stored": True,
         "memory_id": memory_id,
@@ -1237,6 +1483,7 @@ def recall(memory_id: str) -> dict[str, Any] | None:
             "session_id": p.get("session_id"),
             "summary": p.get("summary"),
             "content_hash": p.get("content_hash"),
+            "sro": p.get("sro"),
             "created_at": p.get("created_at"),
             "tier": p.get("tier", TIER_CANONICAL),
             "point_id": point_id,
@@ -1478,7 +1725,14 @@ def recall_constitutional(
 
     # F13 SOVEREIGN — protect sovereignty (highest priority)
     if "F13" in floor_constraints:
-        if actor_id and actor_id.lower().strip() not in ("arif", "888", "sovereign", "ariffazil", "arif-fazil", "arif_fazil"):
+        if actor_id and actor_id.lower().strip() not in (
+            "arif",
+            "888",
+            "sovereign",
+            "ariffazil",
+            "arif-fazil",
+            "arif_fazil",
+        ):
             violation = (
                 "F13 SOVEREIGN: This memory is sovereign-protected. "
                 "Only the sovereign may recall with full access."
@@ -1693,6 +1947,15 @@ def search(
     idx = _index_read()
     results: list[tuple[float, dict[str, Any]]] = []
 
+    # SRO v1 read gate (config/memory-admissibility-policy.yaml) — refusals
+    # are counted with reason codes and surfaced in _retrieval_trace, never
+    # dropped silently. include_historical=True maps to the policy's
+    # historical mode (EXPIRED/SUPERSEDED admitted, each labelled).
+    sro_policy = load_policy()
+    sro_mode = "historical" if include_historical else "default"
+    sro_refused: dict[str, int] = {}
+    sro_refused_pids: set[str] = set()
+
     if query and query.strip():
         try:
             from qdrant_client.models import (  # noqa: PLC0415
@@ -1719,12 +1982,19 @@ def search(
                 filter_conditions.append(
                     FieldCondition(key="entity_tags", match=MatchAny(any=entity_filter))
                 )
+
+            must_not_conditions: list[Condition] = []
             if not include_historical:
-                filter_conditions.append(
-                    FieldCondition(key="temporal_marker", match=MatchValue(value="active"))
+                must_not_conditions.append(FieldCondition(key="active", match=MatchValue(value=False)))
+                must_not_conditions.append(
+                    FieldCondition(key="status", match=MatchAny(any=["superseded", "revoked"]))
                 )
 
-            qdrant_filter = Filter(must=filter_conditions) if filter_conditions else None
+            qdrant_filter = (
+                Filter(must=filter_conditions, must_not=must_not_conditions)
+                if (filter_conditions or must_not_conditions)
+                else None
+            )
 
             # P1: Hybrid dense+sparse query with RRF fusion
             dense_vec = _generate_embedding(query)
@@ -1771,12 +2041,24 @@ def search(
                 for rank, hit in enumerate(pts):
                     p = hit.payload or {}
                     pid = str(hit.id)
+                    if pid in sro_refused_pids:
+                        continue
+                    if not include_historical:
+                        if p.get("active") is False or p.get("status") in ("superseded", "revoked") or p.get("superseded_by"):
+                            continue
                     rrf_scores[pid] = rrf_scores.get(pid, 0.0) + weight / (RRF_K + rank + 1)
                     if pid not in dedup_map:
+                        decision = evaluate(p, sro_policy, mode=sro_mode)
+                        if not decision.admitted:
+                            sro_refused_pids.add(pid)
+                            sro_refused[decision.reason_code] = (
+                                sro_refused.get(decision.reason_code, 0) + 1
+                            )
+                            continue
                         temporal_marker = p.get("temporal_marker", "unknown")
                         dedup_map[pid] = {
                             "memory_id": p.get("memory_id") or pid,
-                            "content": p.get("content"),
+                            "content": p.get("content") or p.get("summary") or p.get("title") or "",
                             "mode": p.get("mode"),
                             "tags": p.get("tags", []),
                             "actor_id": p.get("actor_id"),
@@ -1800,7 +2082,17 @@ def search(
                             "superseded_at": p.get("superseded_at"),
                             "extraction_metadata": p.get("extraction_metadata"),
                             "constitutional": p.get("constitutional"),
+                            "sro": p.get("sro"),
+                            "truth_class": p.get("truth_class"),
+                            # FIXED 2026-09-18 (A1 read side): the live payload
+                            # name is `epistemic_class`; `truth_class` is a
+                            # derived view that no payload ever stored, so this
+                            # sibling read was always None. `truth_class` is kept
+                            # for the legacy shape.
+                            "epistemic_class": p.get("epistemic_class") or p.get("truth_class"),
                         }
+                        if decision.label:
+                            dedup_map[pid]["admissibility_label"] = decision.label
                     else:
                         dedup_map[pid]["rrf_score"] = rrf_scores[pid]
 
@@ -1817,6 +2109,13 @@ def search(
                 "sparse_candidates": len(sparse_resp.points) if sparse_resp else 0,
                 "fused_total": len(fused),
                 "query_prefix": query[:80],
+            }
+            # SRO read gate witness — refusals counted, never silent (Void Guard)
+            _retrieval_trace["sro_gate"] = {
+                "mode": sro_mode,
+                "policy_version": sro_policy.get("policy_version"),
+                "admitted": len(fused),
+                "refused": dict(sro_refused),
             }
             results = [(r["rrf_score"], r) for r in fused]
 
@@ -1843,6 +2142,19 @@ def search(
                 temporal_marker = record.get("temporal_marker", "unknown")
                 if not include_historical and temporal_marker == "historical":
                     continue
+                # SRO read gate — records from the migrated Qdrant collection
+                # carry payload.sro and are gated; PG/legacy lineages without
+                # an SRO block predate the contract and pass (progressive scope)
+                record_sro = record.get("sro")
+                if isinstance(record_sro, dict):
+                    decision = evaluate({"sro": record_sro}, sro_policy, mode=sro_mode)
+                    if not decision.admitted:
+                        sro_refused[decision.reason_code] = (
+                            sro_refused.get(decision.reason_code, 0) + 1
+                        )
+                        continue
+                    if decision.label:
+                        record["admissibility_label"] = decision.label
                 results.append((1.0, record))
 
     results.sort(key=lambda x: x[0], reverse=True)
@@ -2626,6 +2938,9 @@ __all__ = [
     "quarantine",
     "forget",
     "audit_governance",
+    "_pg_supersede",
+    "reality_veto_check",
+    "execute_reality_veto",
     "TIER_SACRED",
     "TIER_CANONICAL",
     "TIER_SESSION",

@@ -233,9 +233,15 @@ async def search_semantic(req: SemanticSearchRequest):
     params = {}
     for i, term in enumerate(terms):
         param_name = f"term{i}"
+        # R1 FIX 2026-09-13 (session SEAL-64d8d16afb864e0d): include e.summary —
+        # the sovereign forge writes `summary` (never episode_body). The
+        # writer/reader schema disagreement made every forged Episode invisible
+        # to semantic search (paradox-class: unit+acceptance+deploy all PASS,
+        # query returns []).
         where_clauses.append(
             f"(toLower(e.name) CONTAINS ${param_name} "
             f"OR toLower(e.episode_body) CONTAINS ${param_name} "
+            f"OR toLower(e.summary) CONTAINS ${param_name} "
             f"OR toLower(e.source_description) CONTAINS ${param_name})"
         )
         params[param_name] = term
@@ -243,39 +249,51 @@ async def search_semantic(req: SemanticSearchRequest):
     cypher = (
         "MATCH (e:Episode)\n"
         "WHERE " + " OR ".join(where_clauses) + "\n"
-        "RETURN e.uuid, e.name, e.episode_body, e.source_description, e.created_at, e.source\n"
-        f"LIMIT {req.max_results}"
+        "RETURN e.uuid, e.name, e.episode_body, e.summary, e.source_description, "
+        "e.created_at, e.source, e.actor_id, e.session_id, e.memory_id\n"
+        # R1 FIX-2 2026-09-13: hard safety cap only. Real limit applied AFTER
+        # python-side scoring — LIMIT-before-score on an unordered scan can
+        # truncate the best match (boundary marker scored ~0.95 yet fell
+        # outside the arbitrary first-5).
+        "LIMIT 500"
     )
 
     rows = _safe_query(cypher, params)
 
     # Score: how many query terms hit this episode
-    results = []
+    scored = []
     for row in rows:
-        name = _safe_get(row, 1, "")
-        body = _safe_get(row, 2, "")
-        desc = _safe_get(row, 3, "")
-        combined = f"{name} {body} {desc}".lower()
+        name = _safe_get(row, 1, "") or ""
+        body = _safe_get(row, 2, "") or ""
+        summary = _safe_get(row, 3, "") or ""
+        desc = _safe_get(row, 4, "") or ""
+        combined = f"{name} {body} {summary} {desc}".lower()
         hits = sum(1 for t in terms if t in combined)
         score = min(0.95, 0.3 + (hits / max(len(terms), 1)) * 0.65)
-
         if score >= req.min_score:
-            results.append(
-                {
-                    "uuid": _safe_get(row, 0, ""),
-                    "name": name,
-                    "summary": body[:300] if body else "",
-                    "source_description": desc[:300],
-                    "source": _safe_get(row, 5, ""),
-                    "score": round(score, 3),
-                    "hits": hits,
-                    "total_terms": len(terms),
-                    "created_at": _safe_get(row, 4, ""),
-                }
+            scored.append(
+                (
+                    score,
+                    {
+                        "uuid": _safe_get(row, 0, ""),
+                        "name": name,
+                        "summary": (summary or body)[:300],
+                        "source_description": desc[:300],
+                        "source": _safe_get(row, 6, ""),
+                        "actor_id": _safe_get(row, 7, ""),
+                        "session_id": _safe_get(row, 8, ""),
+                        "memory_id": _safe_get(row, 9, ""),
+                        "score": round(score, 3),
+                        "hits": hits,
+                        "total_terms": len(terms),
+                        "created_at": _safe_get(row, 5, ""),
+                    },
+                )
             )
 
-    # Sort by score descending
-    results.sort(key=lambda r: r["score"], reverse=True)
+    # Sort by score descending, THEN apply the caller's max_results.
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    results = [r for _, r in scored[: req.max_results]]
 
     return {"results": results, "total": len(results)}
 

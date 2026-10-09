@@ -25,15 +25,28 @@ All constitutional floors (F1-F13) derive from his sovereignty. No organ, agent,
 
 ## 2. The Federation Organs
 
-| # | Organ | Repo | Port | MCP Endpoint | Role | Authority |
-|---|-------|------|------|-------------|------|-----------|
-| Ω | **arifOS** | `ariffazil/arifos` | 8088 | `https://mcp.arif-fazil.com/mcp` | Governance kernel | F1-F13 enforcement, 888 JUDGE, VAULT999, routing |
-| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7071 sense · 7072 mcp | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
-| Δ | **AAA** | `ariffazil/AAA` | 3001 | — | Cockpit / identity / A2A | Display, route, queue — never adjudicate |
-| 🌍 | **GEOX** | `ariffazil/geox` | 8081 | `https://geox.arif-fazil.com/mcp` | Earth intelligence | Evidence-only — never authorize drilling |
-| 💰 | **WEALTH** | `ariffazil/wealth` | 18082 | `https://wealth.arif-fazil.com/mcp` | Capital intelligence | Compute-only — never allocate capital |
-| 🫀 | **WELL** | `ariffazil/well` | 18083 | `https://well.arif-fazil.com/mcp` | Vitality guard | Reflect-only — never judge or diagnose |
-| ⚖️ | **APEX_LEGACY_v3002** | `ariffazil/apex` | 3002 (retired 2026-06-27) | — | 888 JUDGE (legacy) | Decommissioned — deliberation in AAA a2a |
+*Plane/HERMES alignment pass 2026-09-14 — see §2.1 and revision note below.*
+
+| # | Organ | Plane | Repo | Port | MCP Endpoint | Role | Authority |
+|---|-------|-------|------|------|-------------|------|-----------|
+| Ω | **arifOS** | Authority Plane | `ariffazil/arifos` | 8088 | `https://mcp.arif-fazil.com/mcp` | Governance kernel | F1-F13 enforcement, 888 JUDGE, VAULT999, routing |
+| Ψ | **A-FORGE** | Execution Plane | `ariffazil/A-FORGE` | 7071 sense · 7072 mcp | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
+| Δ | **AAA** | Attention Plane | `ariffazil/AAA` | 3001 | — | Cockpit / identity / A2A | Display, route, queue — never adjudicate |
+| 🌍 | **GEOX** | Domain Intelligence | `ariffazil/geox` | 8081 | `https://geox.arif-fazil.com/mcp` | Earth intelligence | Evidence-only — never authorize drilling |
+| 💰 | **WEALTH** | Domain Intelligence | `ariffazil/wealth` | 18082 | `https://wealth.arif-fazil.com/mcp` | Capital intelligence | Compute-only — never allocate capital |
+| 🫀 | **WELL** | Domain Intelligence | `ariffazil/well` | 18083 | `https://well.arif-fazil.com/mcp` | Vitality guard | Reflect-only — never judge or diagnose |
+| 🌊 | **arifFlow** | Witness / Metabolism | `ariffazil/arifFlow` | 7073 | — | Receipt ingestion, FQ, verification cadence | Metabolizes receipts — never adjudicates |
+| ⚖️ | **APEX_LEGACY_v3002** | — | `ariffazil/apex` | 3002 (retired 2026-06-27) | — | 888 JUDGE (legacy) | Decommissioned — deliberation in AAA a2a |
+
+**Governing invariant (added 2026-09-14):** Organs own durable constitutional capabilities. Interfaces provide replaceable entry surfaces. A channel does not become an organ by being important — see §2.1.
+
+### §2.1 Tier-3 Boundary Interfaces (not core organs)
+
+| Interface | Function | Boundary |
+|---|---|---|
+| **HERMES** | Receives and translates external signals (Telegram), routes inward | World ↔ federation |
+
+*Revision note (2026-09-14): this table previously had no HERMES row at all (this file predates HERMES's introduction into federation docs); the separate `FEDERATION.md` in this and five sibling repos — an auto-generated 2026-07-25 snapshot, not this hand-ratified contract — listed HERMES as a 7th core organ. That was never reconciled against this file. Ruling: HERMES is boundary infrastructure (Tier-3), not an organ; it owns no constitutional plane and is independently replaceable. arifFlow (metabolism/receipts, live at :7073) is added above as the organ that `FEDERATION.md` had been reaching for. This correction changes no runtime code, port, or deployment.*
 
 ---
 

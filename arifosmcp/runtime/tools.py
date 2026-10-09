@@ -104,14 +104,22 @@ def _unlock(handle: Any) -> None:
     try:
         handle.release()
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
 
 
 # ── W-02 / W-03: Deployment-drift floor (2026-08-04) ─────────────────
-# INVARIANT: If substrate.drift or software_release.drift is true, the
-# payload must NOT claim SEAL/PROCEED/SELAMAT and must NOT claim
-# mutation_allowed=true in any nested block. Standing must not overwrite
-# the safer floor set by session.py under drift.
+# Extracted 2026-09-28 to arifosmcp/runtime/deployment_drift.py
+# Backward-compat aliases preserved below. New callers: import from deployment_drift.
+from arifosmcp.runtime.deployment_drift import (
+    drift_spots as _drift_spots,
+    derive_degradation_cause_from_spots as _derive_degradation_cause_from_spots,
+    derive_degradation_cause as _derive_degradation_cause,
+    measure_drift_from_spots as _measure_drift_from_spots,
+    measure_deployment_drift as _measure_deployment_drift,
+    payload_has_deployment_drift as _payload_has_deployment_drift,
+    drift_reason_evidence as _drift_reason_evidence,
+)
+
 _SEALISH = frozenset(
     {
         "SEAL",
@@ -127,41 +135,298 @@ _SEALISH = frozenset(
 )
 
 
-def _payload_has_deployment_drift(payload: dict[str, Any]) -> bool:
-    """True if any known location reports deployment/kernel drift."""
-    if not isinstance(payload, dict):
-        return False
-    spots: list[dict[str, Any]] = [payload]
+# ── EVIDENCE HIERARCHY FOR THE DEPLOYMENT-DRIFT FLOOR ───────────────────────
+# 2026-09-18 · lane B receipt KERNEL-DUAL-TRUTH-FIX-2026-09-18 (NOT F13-sealed)
+#
+# Binding doctrine: RAW OBSERVATION > MEASURED FACT > DERIVED STATE >
+# REASON CODE > NARRATIVE LABEL. A DERIVED state label must never outrank a
+# MEASURED fact carried in the same payload.
+#
+# DEFECT REPAIRED: the previous predicate returned True on
+# `substrate.state == "DEGRADED"` even when a MEASURED `drift is False` sat
+# beside it in the same object, and the floor then stamped
+# reason_code="DEPLOYMENT_DRIFT" — a specific-sounding label nothing had
+# measured. The label's actual producer is a boot-attestation failure, not
+# drift (see arifosmcp/tools/session.py:
+#   `_substrate_state = "DEGRADED" if (_drift or _boot_unhealthy) else "HEALTHY"`).
+# Net effect was a control whose enforcement was not backed by the
+# measurement it claimed to make: every seal blocked, citing a drift the
+# same payload measured as absent.
+#
+# Tiers used below:
+#   MEASURED — explicit boolean drift facts (`*.drift`), plus `degraded[]`
+#              entries naming drift (written only from a measured drift read:
+#              session.py appends "kernel_drift" iff `_drift` is True, and
+#              _preserve_arif_init_truth gates the same way).
+#   DERIVED  — `substrate.state`, a label computed from other signals.
+#
+# Rules:
+#   R1. Any MEASURED drift=true  → floor fires; cause DEPLOYMENT_DRIFT (real).
+#   R2. No drift measurement anywhere, but a DERIVED DEGRADED label → floor
+#       fires fail-closed; cause SUBSTRATE_DEGRADED_UNATTRIBUTED (honest:
+#       the label is real, its attribution is missing).
+#   R3. DERIVED DEGRADED contradicted by a MEASURED drift=false → floor does
+#       NOT fire; the contradiction is recorded, never silently dropped.
+#   R4. No drift evidence at all → floor does not fire (unchanged).
+#
+# A safety gate is never weakened: R1 and R2 both keep the floor closed, and
+# the reason code a caller receives is now always something that was
+# measured (or an explicit "unmeasured" sentinel) — never a defaulted label.
+_MEASURED_DRIFT_FIELDS: tuple[tuple[str, str], ...] = (
+    ("substrate", "drift"),
+    ("software_release", "drift"),
+    ("software_release.deployment_invariant", "drift"),
+)
+_DERIVED_DEGRADED_TOKENS: tuple[str, ...] = ("DEGRADED", "FAIL")
+_DRIFT_NEXT_ACTION_BY_CAUSE: dict[str, str] = {
+    "DEPLOYMENT_DRIFT": "RECONCILE_SOURCE_BUILT_DEPLOYED",
+    "SUBSTRATE_DEGRADED_UNATTRIBUTED": "MEASURE_SUBSTRATE_DEGRADATION_CAUSE",
+}
+
+
+def _drift_spots(payload: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
+    """Known payload locations that may carry drift evidence."""
+    spots: list[tuple[str, dict[str, Any]]] = [("envelope", payload)]
     res = payload.get("result")
     if isinstance(res, dict):
-        spots.append(res)
-    for d in spots:
+        spots.append(("result", res))
+    return spots
+
+
+def _derive_degradation_cause_from_spots(
+    spots: list[tuple[str, dict[str, Any]]],
+) -> dict[str, Any] | None:
+    """Recover the kernel's own stated cause for a DEGRADED substrate label.
+
+    session.py already distinguishes WHY the substrate is degraded in
+    `effective_state.session_authority_state` (DEPLOYMENT_DRIFT /
+    BOOT_ATTESTATION_FAILED / ACTOR_NOT_VERIFIED). Reading it back is how the
+    floor can name a cause it actually measured instead of defaulting to a
+    drift label.
+    """
+    for loc, d in spots:
+        if not isinstance(d, dict):
+            continue
+        for container_key in ("effective_state", "effective"):
+            node = d.get(container_key)
+            if isinstance(node, dict) and node.get("session_authority_state"):
+                return {
+                    "location": f"{loc}.{container_key}",
+                    "field": "session_authority_state",
+                    "value": str(node["session_authority_state"]),
+                }
+        cc = d.get("constitutional_check")
+        if isinstance(cc, dict) and cc.get("substrate_state"):
+            return {
+                "location": f"{loc}.constitutional_check",
+                "field": "substrate_state",
+                "value": str(cc["substrate_state"]),
+            }
+    return None
+
+
+def _derive_degradation_cause(payload: dict[str, Any]) -> dict[str, Any] | None:
+    return _derive_degradation_cause_from_spots(_drift_spots(payload))
+
+
+def _measure_drift_from_spots(
+    spots: list[tuple[str, dict[str, Any]]],
+) -> dict[str, Any]:
+    """Apply the evidence hierarchy to drift evidence found at `spots`."""
+    measured: list[dict[str, Any]] = []
+    derived: list[dict[str, Any]] = []
+
+    for loc, d in spots:
+        if not isinstance(d, dict):
+            continue
         sub = d.get("substrate") if isinstance(d.get("substrate"), dict) else {}
-        if sub.get("state") == "DEGRADED" or sub.get("drift") is True:
-            return True
         sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
-        if sw.get("drift") is True:
-            return True
         inv = (
             sw.get("deployment_invariant")
             if isinstance(sw.get("deployment_invariant"), dict)
             else {}
         )
-        if inv.get("drift") is True:
-            return True
+        for prefix, node in (
+            ("substrate", sub),
+            ("software_release", sw),
+            ("software_release.deployment_invariant", inv),
+        ):
+            if isinstance(node, dict) and isinstance(node.get("drift"), bool):
+                measured.append(
+                    {
+                        "location": loc,
+                        "field": f"{prefix}.drift",
+                        "value": node["drift"],
+                        "tier": "MEASURED",
+                    }
+                )
         deg = d.get("degraded")
-        if isinstance(deg, list) and any("drift" in str(x).lower() for x in deg):
-            return True
-    return False
+        if isinstance(deg, list):
+            for entry in deg:
+                if "drift" in str(entry).lower():
+                    measured.append(
+                        {
+                            "location": loc,
+                            "field": "degraded[]",
+                            "value": str(entry),
+                            "tier": "MEASURED",
+                        }
+                    )
+        if isinstance(sub, dict) and "state" in sub:
+            derived.append(
+                {
+                    "location": loc,
+                    "field": "substrate.state",
+                    "value": str(sub.get("state")),
+                    "tier": "DERIVED",
+                }
+            )
+
+    measured_true = [f for f in measured if f["value"] is True or f["field"] == "degraded[]"]
+    measured_false = [f for f in measured if f["value"] is False]
+    derived_degraded = [
+        label for label in derived if str(label["value"]).upper() in _DERIVED_DEGRADED_TOKENS
+    ]
+
+    out: dict[str, Any] = {
+        "fired": False,
+        "evidence_tier": "NONE",
+        "cause": None,
+        "location": None,
+        "field": None,
+        "value": None,
+        "measured_facts": measured,
+        "derived_labels": derived,
+        "superseded": [],
+        "derived_degradation_cause": None,
+        "rationale": "no drift evidence present",
+    }
+
+    if measured_true:
+        hit = measured_true[0]
+        out.update(
+            fired=True,
+            evidence_tier="MEASURED_FACT",
+            cause="DEPLOYMENT_DRIFT",
+            location=hit["location"],
+            field=hit["field"],
+            value=hit["value"],
+            rationale=(f"MEASURED drift=true at {hit['location']}.{hit['field']}={hit['value']}"),
+        )
+        return out
+
+    if derived_degraded and not measured_false:
+        hit = derived_degraded[0]
+        out.update(
+            fired=True,
+            evidence_tier="DERIVED_STATE_UNCONTRADICTED",
+            cause="SUBSTRATE_DEGRADED_UNATTRIBUTED",
+            location=hit["location"],
+            field=hit["field"],
+            value=hit["value"],
+            derived_degradation_cause=_derive_degradation_cause_from_spots(spots),
+            rationale=(
+                "no drift measurement present; DERIVED label "
+                f"{hit['location']}.{hit['field']}={hit['value']} stands "
+                "uncontradicted — fail-closed"
+            ),
+        )
+        return out
+
+    if derived_degraded and measured_false:
+        out["superseded"] = [
+            {
+                "derived_label": label,
+                "overridden_by": fact,
+                "rule": "MEASURED_FACT > DERIVED_STATE",
+            }
+            for label in derived_degraded
+            for fact in measured_false
+        ]
+        out["derived_degradation_cause"] = _derive_degradation_cause_from_spots(spots)
+        out["rationale"] = (
+            f"DERIVED label {derived_degraded[0]['location']}."
+            f"{derived_degraded[0]['field']}={derived_degraded[0]['value']} "
+            f"overridden by MEASURED {measured_false[0]['location']}."
+            f"{measured_false[0]['field']}={measured_false[0]['value']} — "
+            "deployment-drift floor withheld (evidence hierarchy)"
+        )
+        return out
+
+    return out
+
+
+def _measure_deployment_drift(payload: Any) -> dict[str, Any]:
+    """Measure deployment drift under the explicit evidence hierarchy.
+
+    Single measurement source for the drift floor across the kernel. Never
+    names a specific cause that was not measured.
+    """
+    if not isinstance(payload, dict):
+        return {
+            "fired": False,
+            "evidence_tier": "NONE",
+            "cause": None,
+            "location": None,
+            "field": None,
+            "value": None,
+            "measured_facts": [],
+            "derived_labels": [],
+            "superseded": [],
+            "derived_degradation_cause": None,
+            "rationale": "payload is not a dict — no evidence surface",
+        }
+    return _measure_drift_from_spots(_drift_spots(payload))
+
+
+def _payload_has_deployment_drift(payload: dict[str, Any]) -> bool:
+    """True iff the drift floor is warranted under the evidence hierarchy.
+
+    Thin predicate over _measure_deployment_drift() so existing callers keep
+    their call shape. The superseded logic fired on the DERIVED
+    `substrate.state` label even when a MEASURED `drift=False` sat beside it
+    in the same object.
+    """
+    return bool(_measure_deployment_drift(payload).get("fired"))
+
+
+def _drift_reason_evidence(evidence: dict[str, Any]) -> dict[str, Any]:
+    """Auditable 'which payload location, which field' record for a firing."""
+    return {
+        "cause": evidence.get("cause") or "REASON_UNMEASURED",
+        "evidence_tier": evidence.get("evidence_tier"),
+        "location": evidence.get("location"),
+        "field": evidence.get("field"),
+        "value": evidence.get("value"),
+        "chain": (f"{evidence.get('location')}.{evidence.get('field')}={evidence.get('value')}"),
+        "measured_facts": evidence.get("measured_facts", []),
+        "derived_labels": evidence.get("derived_labels", []),
+        "superseded": evidence.get("superseded", []),
+        "derived_degradation_cause": evidence.get("derived_degradation_cause"),
+        "rationale": evidence.get("rationale"),
+        "hierarchy": (
+            "RAW_OBSERVATION > MEASURED_FACT > DERIVED_STATE > REASON_CODE > NARRATIVE_LABEL"
+        ),
+    }
 
 
 def apply_deployment_drift_floor(payload: Any) -> Any:
     """Collapse cheerful-corpse + authority-fork under deployment drift.
 
     Mutates dict payload in place. Safe to call multiple times.
+
+    Fires only on MEASURED drift, or on an uncontradicted DERIVED DEGRADED
+    label (fail-closed). Every firing records WHICH payload location and
+    WHICH field produced it, and stamps a cause that was actually measured —
+    never a defaulted label. See _measure_deployment_drift for the hierarchy.
     """
-    if not isinstance(payload, dict) or not _payload_has_deployment_drift(payload):
+    if not isinstance(payload, dict):
         return payload
+    _drift_evidence = _measure_deployment_drift(payload)
+    if not _drift_evidence.get("fired"):
+        return payload
+    _evidence_record = _drift_reason_evidence(_drift_evidence)
+    _cause = _evidence_record["cause"]
 
     def _force_no_mutate(d: dict[str, Any]) -> None:
         if "mutation_allowed" in d:
@@ -221,8 +486,14 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
         # Ensure status is not pure celebration under drift
         if str(d.get("status", "")).lower() in ("completed", "ok", "healthy"):
             d["status"] = "degraded"
-        d["reason_code"] = d.get("reason_code") or "DEPLOYMENT_DRIFT"
-        d["next_action"] = d.get("next_action") or "RECONCILE_SOURCE_BUILT_DEPLOYED"
+        # MEASURED, never defaulted (2026-09-18): the cause is read from the
+        # drift measurement, not from a hard-coded label. A caller can only
+        # see a specific cause name here if that cause was actually measured.
+        d["reason_code"] = d.get("reason_code") or _cause
+        d["reason_evidence"] = dict(_evidence_record)
+        d["next_action"] = d.get("next_action") or _DRIFT_NEXT_ACTION_BY_CAUSE.get(
+            _cause, "RECONCILE_SUBSTRATE_STATE"
+        )
 
     def _force_nine(d: dict[str, Any]) -> None:
         ns = d.get("nine_signal")
@@ -233,7 +504,7 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
             ns["overall"] = {
                 "state": "RETAK",
                 "en": "HOLDING",
-                "reason": "deployment_drift",
+                "reason": str(_cause).lower(),
             }
         elif isinstance(overall, str) and overall.upper() in ("SELAMAT", "SAFE"):
             ns["overall"] = "RETAK"
@@ -295,20 +566,24 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
     )
     if sub_scope.get("state") in ("PASS", "HEALTHY", ""):
         sub_scope["state"] = "DEGRADED"
-        sub_scope["evidence_reference"] = sub_scope.get("evidence_reference") or "deployment_drift"
+        sub_scope["evidence_reference"] = sub_scope.get("evidence_reference") or str(_cause).lower()
         sub_scope["issuer"] = sub_scope.get("issuer") or "arifos_conformance"
         verdicts_top["substrate"] = sub_scope
         payload["verdicts"] = verdicts_top
 
     # Surface prefix for agents
     prefix = payload.get("response_prefix") or ""
-    if "DRIFT" not in str(prefix).upper():
+    if str(_cause).upper() not in str(prefix).upper():
         payload["response_prefix"] = (
-            "⚠️ DRIFT DETECTED — substrate DEGRADED. mutation_allowed=false. "
+            f"⚠️ {_cause} — substrate DEGRADED (evidence: "
+            f"{_evidence_record['chain']}). mutation_allowed=false. "
             "Headline cannot be SEAL/SAFE. " + str(prefix)
         )
 
     payload["_drift_floor_applied"] = True
+    # Requirement (c): the block states WHICH location and WHICH field
+    # produced it, so a HOLD is auditable instead of a bare label.
+    payload["drift_floor_evidence"] = dict(_evidence_record)
     return payload
 
 
@@ -1038,9 +1313,11 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "canonical_public_name": "arif_observe",
     },
     "arif_bridge_connect": {
-        "purpose": "Connect to a federation organ. Canonical alias of arif_route(mode=bridge). Pure discovery — no mutation.",
-        "use_when": ["Prefer canonical mode arif_route(mode=bridge)"],
-        "do_not_use_when": ["Use canonical name arif_route(mode=bridge) for new code"],
+        "purpose": "Connect to a federation organ. Canonical alias of arif_route(intent=..., organ_tool=...) per W-05 FIX. Pure discovery — no mutation.",
+        "use_when": ["Prefer canonical call arif_route(intent=..., organ_tool=...)"],
+        "do_not_use_when": [
+            "Use canonical name arif_route(intent=..., organ_tool=...) for new code (no mode= parameter; W-05 FIX)"
+        ],
         "authority_level": "advisory_only",
         "side_effect": "read_only",
         "blast_radius": "low",
@@ -1138,6 +1415,29 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
 }
 
 
+# Legacy alias → canonical verb (module-level so ingress_middleware's
+# soft-landing redirect can import it; was function-local inside
+# get_full_affordance until 2026-09-16 — import failed silently, redirect
+# never fired, alias callers got a bare "Unknown tool" rejection).
+_ALIAS_TO_CANON: dict[str, str] = {
+    "arif_mind_reason": "arif_think",
+    "arif_act": "arif_forge",
+    "arif_fetch": "arif_observe",
+    "arif_search": "arif_observe",
+    "arif_explore": "arif_observe",
+    "arif_sense_observe": "arif_observe",
+    "arif_evidence_fetch": "arif_observe",
+    "arif_bridge_connect": "arif_route",
+    "arif_memory_recall": "arif_memory",
+    "arif_judge_deliberate": "arif_judge",
+    "arif_reply_compose": "arif_think",
+    "arif_vault_seal": "arif_seal",
+    "arif_session_init": "arif_init",
+    "arif_triage": "arif_init",
+    "arif_delegate": "arif_route",
+}
+
+
 def get_full_affordance(tool_name: str) -> dict[str, Any]:
     """Return the complete cognitive + power affordance contract for an agent.
 
@@ -1149,24 +1449,8 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
     """
     from arifosmcp.resources.tool_discovery_resource import TOOL_DISCOVERY
 
-    # Orphan kill: never leave arif_mind_reason as undeclared purpose
-    _ALIAS_TO_CANON = {
-        "arif_mind_reason": "arif_think",
-        "arif_act": "arif_forge",
-        "arif_fetch": "arif_observe",
-        "arif_search": "arif_observe",
-        "arif_explore": "arif_observe",
-        "arif_sense_observe": "arif_observe",
-        "arif_evidence_fetch": "arif_observe",
-        "arif_bridge_connect": "arif_route",
-        "arif_memory_recall": "arif_memory",
-        "arif_judge_deliberate": "arif_judge",
-        "arif_reply_compose": "arif_think",
-        "arif_vault_seal": "arif_seal",
-        "arif_session_init": "arif_init",
-        "arif_triage": "arif_init",
-        "arif_delegate": "arif_route",
-    }
+    # Orphan kill: never leave arif_mind_reason as undeclared purpose.
+    # _ALIAS_TO_CANON now lives at module level (shared with ingress_middleware).
     lookup = _ALIAS_TO_CANON.get(tool_name, tool_name)
     purpose = dict(
         TOOL_PURPOSE_CONTRACTS.get(lookup)
@@ -1204,7 +1488,7 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
         )
         full["action_class"] = resp_model.action_class
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     # Canonical blast_radius normalization
     if "blast_radius" not in full or full.get("blast_radius") in (None, "unknown"):
         full["blast_radius"] = power.get("expected_blast_radius", "LOW").lower()
@@ -2284,8 +2568,7 @@ def _get_affordance_contract(tool_name: str, mode: str | None = None) -> dict[st
                 "_note": "auto-generated affordance — tool is in public registry but missing from TOOL_AFFORDANCE_CONTRACTS",
             }
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     return {
         "action_class": "UNKNOWN",
         "mutation": "unknown",
@@ -2629,6 +2912,9 @@ def _compute_canonical_verdict(
             "allowed_next_verbs",
             "degraded_state",
             "confidence",
+            "receipt",
+            "verdicts",
+            "effective_verdict",
         )
         _has_substance = any(
             k in _rp and _rp.get(k) not in (None, "", [], {}) for k in _SUBSTANCE_KEYS
@@ -2805,7 +3091,7 @@ def _compute_canonical_verdict(
                                     if a.lower() in aliases and b.lower() in aliases:
                                         return True
                             except Exception:
-                                pass
+                                logger.exception("suppressed exception", exc_info=True)
                             return False
 
                         if (
@@ -2828,8 +3114,7 @@ def _compute_canonical_verdict(
                                 f"≠ session actor_id={_sess_actor} for session={_session_id}"
                             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     # ── Step 5b: Actor verification (P0-3 identity gating) ───────────────
     # Uses session-derived authority, not per-tool args.
     # 2026-08-04 333-AGI: SCT sovereign bypass. When the response carries a
@@ -2853,7 +3138,7 @@ def _compute_canonical_verdict(
                 _claims = _json.loads(base64.urlsafe_b64decode(_raw))
                 _sct_sovereign = (_claims.get("auth") or "").upper() == "SOVEREIGN"
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
     if verdict == "SEAL" and _session_actor_verified is False:
         if _sct_sovereign:
             degradation.append(
@@ -2994,8 +3279,43 @@ def _compute_scoped_verdicts(
     # Derived from: status STALE/ERROR → DEGRADED, presence of degradation flags,
     # AND explicit substrate/software_release.drift (W-02: must not PASS when
     # top-level substrate.state is DEGRADED).
+    # 2026-09-20 FIX (Substrate≠Authority): Degradation signals issued by
+    # session_capability_token or identity_band reflect AUTHORITY state, not
+    # physical substrate health.  Filter them out before deriving substrate scope
+    # so that an anonymous actor does not mark the physical machine as DEGRADED.
+    # 2026-09-29 FIX (referential-integrity audit item #25): the exclusion set
+    # covered AUTHORITY issuers only. A VERDICT-scope note is equally not a
+    # physical substrate measurement — "verdict_monotonicity: HOLD -> RETAK
+    # (sub-signal floor dominates aggregate)", emitted by
+    # _compute_canonical_verdict and surfaced as _wrapper_degradation — but it
+    # survived the filter. Whenever the tool's own status was restricted (not
+    # OK/SEAL), that single token set _has_degradation=True and the substrate
+    # scope reported DEGRADED, which attach_effective_verdict then let dominate
+    # ("degraded_dominates"), forcing seal_allowed=false.
+    # Measured contradiction at 14:56Z and again at 15:06Z on a healthy kernel:
+    #   /health            -> status=healthy, degraded_reasons=[]
+    #   software_release   -> drift=False, source==built==deployed==bc4ad92
+    #   boot_gate_state('arifOS') -> ('UNATTESTED', False)  [i.e. NOT unhealthy]
+    #   arif_judge         -> substrate_state=DEGRADED, HOLD/RETAK
+    # Net effect: Lane A sealing (arif_judge -> arif_seal) was unreachable for
+    # every agent even after deployment drift was fully reconciled.
+    # This does NOT weaken the drift floor: real drift is caught by
+    # _substrate_degraded below (substrate.drift / software_release.drift /
+    # out["degraded"] entries containing "drift"), never by this token list.
+    # Regression test: tests/test_scoped_verdict_substrate_scope.py
+    _NON_SUBSTRATE_ISSUERS = {
+        "session_capability_token",
+        "identity_band",
+        "verdict_monotonicity",
+        "_compute_canonical_verdict",
+    }
+    _substrate_only_degradation = [
+        d
+        for d in (degradation or [])
+        if not any(iss in str(d).lower() for iss in _NON_SUBSTRATE_ISSUERS)
+    ]
     _is_healthy = status in ("OK", "SEAL")
-    _has_degradation = bool(degradation)
+    _has_degradation = bool(_substrate_only_degradation)
     _has_error = status in ("ERROR", "STALE", "TIMEOUT")
     _sub_out = out.get("substrate") if isinstance(out.get("substrate"), dict) else {}
     _sw_out = out.get("software_release") if isinstance(out.get("software_release"), dict) else {}
@@ -3028,15 +3348,17 @@ def _compute_scoped_verdicts(
             issuer="arifos_conformance",
             evidence_reference="deployment_drift"
             if (_sub_out.get("drift") or _sw_out.get("drift") or _rp_sub.get("drift"))
-            else "; ".join(degradation[:3])
-            if degradation
+            else "; ".join(_substrate_only_degradation[:3])
+            if _substrate_only_degradation
             else "substrate_degraded",
         )
     elif _has_degradation and not _is_healthy:
         vs.substrate = ScopeEvidence(
             state="DEGRADED",
             issuer="arifos_conformance",
-            evidence_reference="; ".join(degradation[:3]) if degradation else "",
+            evidence_reference="; ".join(_substrate_only_degradation[:3])
+            if _substrate_only_degradation
+            else "",
         )
     elif _is_healthy and not _has_degradation:
         vs.substrate = ScopeEvidence(
@@ -3225,6 +3547,16 @@ from arifosmcp.schemas.verdict import (
 logger = logging.getLogger(__name__)
 _RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
     "arifos_response_context",
+    default=None,
+)
+
+# ── IRFAN advisory stewardship review (ARIF::SALAM::IRFAN::INIT::v0.1) ────
+# ADVISORY ONLY: holds the most recent Irfan review for THIS execution
+# context so response builders can attach it as metadata. It NEVER carries
+# or influences a kernel verdict (SEAL/SABAR/HOLD/VOID). Irfan emits only
+# CLEAR/CONCERN/ESCALATE as a stewardship recommendation.
+IRFAN_LAST_REVIEW: ContextVar[dict[str, Any] | None] = ContextVar(
+    "arifos_last_irfan_review",
     default=None,
 )
 
@@ -3562,6 +3894,41 @@ except Exception:
     minimax_bridge = None  # type: ignore
 
 
+def _resolve_irfan_action_shape(tool_name: str, mode: str | None) -> tuple[str | None, str | None]:
+    """Best-effort (action_class, reversibility) resolution for the Irfan review.
+
+    Advisory-only: reads the canonical tool manifest and applies the
+    per-mode effect typing. Any failure yields (None, None) and the review
+    degrades honestly. NEVER used for enforcement.
+    """
+    try:
+        from arifosmcp.runtime.pre_execution_gate import (
+            _SDK_LONG_NAME_ALIASES as _IRFAN_ALIASES,
+            CANONICAL_TOOL_MANIFEST as _IRFAN_CTM,
+            resolve_action_class_for_mode as _irfan_resolve_mode,
+        )
+
+        canonical = _IRFAN_ALIASES.get(tool_name, tool_name)
+        entry = _IRFAN_CTM.get(canonical)
+        if entry is None or entry.action_class is None:
+            return None, None
+        resolved = entry.action_class
+        try:
+            resolved = _irfan_resolve_mode(canonical, str(mode or ""), entry.action_class)
+        except Exception:
+            resolved = entry.action_class  # manifest default on any resolution failure
+        name = str(getattr(resolved, "name", resolved)).upper()
+        if name == "IRREVERSIBLE":
+            reversibility = "irreversible"
+        elif name in ("MUTATE", "EXTERNAL_SIDE_EFFECT"):
+            reversibility = "mutating"
+        else:
+            reversibility = "reversible"
+        return name, reversibility
+    except Exception:
+        return None, None
+
+
 def _constitutional_gate(
     tool_name: str,
     mode: str,
@@ -3599,7 +3966,28 @@ def _constitutional_gate(
             "arif_vault_seal",
         }
     )
+    # STEP 4 (2026-09-18): authority follows the MODE, not the namespace.
+    # Safe read-only modes (query/recall/dry_run) of Tier-3 tools resolve to
+    # OBSERVE via the canonical manifest — reads do not require SEAL/sovereign.
+    _tier3_mode_safe = False
     if tool_name in _TIER_3_IRREVERSIBLE_TOOLS:
+        try:
+            from arifosmcp.runtime.pre_execution_gate import (
+                CANONICAL_TOOL_MANIFEST as _CTM,
+                _SDK_LONG_NAME_ALIASES as _ALIASES,
+                resolve_action_class_for_mode as _resolve_mode,
+            )
+
+            _canon = _ALIASES.get(tool_name, tool_name)
+            _entry = _CTM.get(_canon)
+            if _entry is not None and mode:
+                _resolved_cls = _resolve_mode(_canon, str(mode), _entry.action_class)
+                _tier3_mode_safe = (
+                    str(getattr(_resolved_cls, "value", _resolved_cls)).upper() == "OBSERVE"
+                )
+        except Exception:
+            _tier3_mode_safe = False
+    if tool_name in _TIER_3_IRREVERSIBLE_TOOLS and not _tier3_mode_safe:
         has_prior_seal = bool(constitutional_chain_id)
         sess = _SESSIONS.get(session_id) if session_id else None
         # F1 FIX 2026-07-19: Read canonical authority_state (WS1) instead of legacy sess["authority_level"]
@@ -3636,7 +4024,7 @@ def _constitutional_gate(
 
         _unified_session_registry.update(get_all_session_ids())
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     try:
         ctx = ActionContext(
             tool_name=tool_name,
@@ -3670,6 +4058,39 @@ def _constitutional_gate(
 
     _RESPONSE_CONTEXT.set({"actor_id": actor_id, "session_id": session_id})
     verdict = _CORE.evaluate(ctx)
+
+    # ── IRFAN advisory stewardship review (ARIF::SALAM::IRFAN::INIT::v0.1) ──
+    # ADVISORY ONLY. Computed AFTER the core verdict and NEVER fed back into
+    # it. Irfan emits CLEAR/CONCERN/ESCALATE as a stewardship recommendation;
+    # the gate verdict above remains the sole authority. Fail-open by design:
+    # an Irfan failure can never break the gate or alter any verdict.
+    try:
+        from arifosmcp.runtime.irfan_review import irfan_review_for_action
+
+        _irfan_action_class, _irfan_reversibility = _resolve_irfan_action_shape(tool_name, mode)
+        _irfan_payload: dict[str, Any] = {
+            "candidate": candidate,
+            "manifest": manifest,
+            "query": query,
+            "url": url,
+            "target_agent": target_agent,
+            "constitutional_chain_id": constitutional_chain_id,
+            "plan_id": plan_id,
+        }
+        IRFAN_LAST_REVIEW.set(
+            irfan_review_for_action(
+                tool_name=tool_name,
+                mode=mode,
+                actor_id=actor_id,
+                action_class=_irfan_action_class,
+                reversibility=_irfan_reversibility,
+                payload=_irfan_payload,
+                session_id=session_id,
+            )
+        )
+    except Exception:
+        # Advisory metadata only — the verdict above stands unchanged.
+        IRFAN_LAST_REVIEW.set(None)
 
     # ── Registry Tripwire Scan (v2 Deepening — Fix 4) ──
     if session_id and session_id in _SESSIONS:
@@ -3774,6 +4195,12 @@ def _constitutional_gate(
             "compass",
             "atlas",
             "recall",
+            "inspect",
+            "audit",
+            "attest",
+            "reconcile",
+            "score_prediction",
+            "federation_query",
             "reason",
             "reflect",
             "wonder",
@@ -3875,7 +4302,7 @@ def _actor_for_response(session_id: str | None = None, candidate: str | None = N
                     or "anonymous"
                 )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
     return "anonymous"
 
 
@@ -3924,7 +4351,7 @@ def _attach_sct_continuity(
         if actor and actor != "anonymous":
             final_resp.setdefault("actor_id", actor)
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
 
 
 # ── Output Policy + Truth Band (DEPRECATED — import from tools/nine_signal.py) ──
@@ -4176,7 +4603,7 @@ def _nine_signal_from_apex(  # noqa: F811
             "en": omega_en,
             "G": round(G, 4),
             "C_dark": round(C_dark, 4),
-            "formula": "G = A·P·E·X·Φ",
+            "formula": "G = (A·P·E·X)^(1/4)",
             "computed": True,
         },
         "overall": {"state": overall_state, "en": overall_en},
@@ -4519,7 +4946,9 @@ def _enforce_nine_signal(
             if isinstance(response, dict):
                 response.setdefault("meta", {})
                 if isinstance(response["meta"], dict):
-                    response["meta"]["sabar_gate_error"] = f"{type(_sabar_exc).__name__}: {_sabar_exc}"
+                    response["meta"]["sabar_gate_error"] = (
+                        f"{type(_sabar_exc).__name__}: {_sabar_exc}"
+                    )
 
     def _as_reason_list(value: Any) -> list[str]:
         if value is None:
@@ -4600,8 +5029,11 @@ def _enforce_nine_signal(
             "philosophical_anchor",
             "actor",
         }
-        if isinstance(out.get("result"), dict):
-            result_payload = dict(out["result"])
+        # D5 fix (2026-09-03): empty result dict starved the hollow gate —
+        # envelope substance (receipt/verdicts) is real payload, fall through.
+        _out_result_dict = out.get("result")
+        if isinstance(_out_result_dict, dict) and _out_result_dict:
+            result_payload = dict(_out_result_dict)
         else:
             result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
 
@@ -4628,7 +5060,7 @@ def _enforce_nine_signal(
                     if _identity and isinstance(_identity, dict):
                         _sess = dict(_identity)
                 except Exception:
-                    pass
+                    logger.exception("suppressed exception", exc_info=True)
             if _sess and isinstance(_sess, dict):
                 actor_verified_flag = bool(_sess.get("actor_verified", False))
         # D1 FIX (2026-08-06): SCT fallback when session store misses.
@@ -4658,7 +5090,7 @@ def _enforce_nine_signal(
                         if _claims.get("av") is True:
                             actor_verified_flag = True
                 except Exception:
-                    pass
+                    logger.exception("suppressed exception", exc_info=True)
         # Log per-tool claims for audit (advisory only, not used for gating)
         _tool_claimed_av = out.get("actor_verified")
         if _tool_claimed_av is not None and _tool_claimed_av != actor_verified_flag:
@@ -4751,7 +5183,7 @@ def _enforce_nine_signal(
         if verdict == "SEAL" and not reasons:
             reasons = [
                 "Reversible operation verified",
-                "Constitutional floors passed",
+                "No failed floors reported",
                 "No irreversible state change",
             ]
         if verdict not in ("SEAL", "OBSERVE_ONLY") and not reasons:
@@ -4770,7 +5202,17 @@ def _enforce_nine_signal(
         #      correction_status: FALSE_POSITIVE_SESSION_SCOPE if applicable.
         _action_state = _scoped_verdicts.get("action", {}).get("state", "NOT_EVALUATED")
         _substrate_state = _scoped_verdicts.get("substrate", {}).get("state", "HEALTHY")
-        _session_state = _scoped_verdicts.get("session", {}).get("state", "OBSERVE_ONLY")
+        # 2026-10-06 (333-AGI, L13 fix): an ABSENT session axis must not
+        # default to a RESTRICTION claim — unmeasured scope is neither
+        # granted nor restricted (F2/K11). The second derivation site
+        # (STAB-2026-08-07c, ~L5669) already defaults honestly to "UNKNOWN";
+        # this site defaulted to OBSERVE_ONLY and fabricated
+        # "Session scope restricted to OBSERVE_ONLY" notices beside a
+        # canonical LIMITED_MUTATE band in the same envelope (measured:
+        # session SEAL-2c5a0a70 init, 2026-10-05). NOT_EVALUATED mirrors
+        # _action_state's default above; _session_only_restricted then
+        # correctly stays False when the session axis is absent.
+        _session_state = _scoped_verdicts.get("session", {}).get("state", "NOT_EVALUATED")
         _action_or_substrate_failed = _action_state in (
             "DENIED",
             "HOLD",
@@ -4789,11 +5231,16 @@ def _enforce_nine_signal(
                 )
 
                 fc = FailureCode.JALAN_KUASA if verdict == "VOID" else FailureCode.JALAN_BENAR
+                # Phase 0 (2026-09-22): quote the FINAL status vocabulary.
+                # The raw handler default "OK" read as success beside the
+                # envelope's blocked/completed (observed D5 contradiction);
+                # "OK" is only ever the schema alias of "completed".
+                _sesat_status = "completed" if str(status).upper() == "OK" else status
                 sesat = emit_sesat(
                     source_node=tool_name,
                     failure_code=fc.value,
                     failed_claim=f"{verdict}: {'; '.join(reasons[:3])}",
-                    observed_reality=f"verdict={verdict}, status={status}, "
+                    observed_reality=f"verdict={verdict}, status={_sesat_status}, "
                     f"action_scope={_action_state}, substrate_scope={_substrate_state}",
                     severity="YELLOW" if verdict in ("HOLD", "DEGRADED") else "RED",
                     lantai=[],
@@ -4839,6 +5286,7 @@ def _enforce_nine_signal(
                 _truth = 0.88
                 _peace = 1.0
                 _empathy = 0.9
+
                 def _safe_f(v: Any, default: float) -> float:
                     # BUG-1 null-guard: nine/result scalars may be None
                     try:
@@ -4852,13 +5300,9 @@ def _enforce_nine_signal(
                         return default
 
                 if isinstance(result_payload, dict):
-                    _truth = max(
-                        0.0, min(1.0, _safe_f(result_payload.get("truth_score"), 0.88))
-                    )
+                    _truth = max(0.0, min(1.0, _safe_f(result_payload.get("truth_score"), 0.88)))
                     _peace = max(0.0, min(1.5, _safe_f(result_payload.get("peace2"), 1.0)))
-                    _empathy = max(
-                        0.0, min(1.0, _safe_f(result_payload.get("empathy_score"), 0.9))
-                    )
+                    _empathy = max(0.0, min(1.0, _safe_f(result_payload.get("empathy_score"), 0.9)))
                 if isinstance(nine, dict):
                     _truth = max(_truth, _safe_f(nine.get("psi"), _truth))
                     _empathy = max(_empathy, _safe_f(nine.get("omega"), _empathy))
@@ -4949,19 +5393,19 @@ def _enforce_nine_signal(
         if _audit_invocation_count is None:
             _audit_invocation_count = 0
         # PHASE A BIRTH-FIX (2026-07-10): SCT token is PRIMARY source of truth
-        # for runtime_authority. If SCT token is present and valid, its authority
+        # for runtime_authority. If ACT token is present and valid, its authority
         # is the single source — no fallback chain can override it.
-        # Legacy path: if no SCT token, fall back to session store lookup.
+        # Legacy path: if no ACT token, fall back to session store lookup.
         _runtime_auth = "OBSERVE_ONLY"
         _sct_authority_resolved = False
         try:
-            from arifosmcp.runtime.act_token import verify_sct as _verify_sct_envelope
+            from arifosmcp.runtime.act_token import verify_act as _verify_act_envelope
 
             _tok_for_auth = (
                 isinstance(result_payload, dict) and result_payload.get("session_token")
             ) or out.get("session_token")
             if isinstance(_tok_for_auth, str) and _tok_for_auth:
-                _claims = _verify_sct_envelope(_tok_for_auth)
+                _claims = _verify_act_envelope(_tok_for_auth)
                 if isinstance(_claims, dict):
                     _sct_auth = _claims.get("auth")
                     if _sct_auth and _sct_auth != "OBSERVE_ONLY":
@@ -5013,7 +5457,8 @@ def _enforce_nine_signal(
             "SOVEREIGN"
             if (
                 actor_verified_flag
-                and (resolved_actor_id or "").lower() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+                and (resolved_actor_id or "").lower()
+                in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
             )
             else "OPERATOR"
         )
@@ -5153,6 +5598,69 @@ def _enforce_nine_signal(
             envelope.setdefault("constitutional_check", enriched.get("constitutional_check", {}))
             envelope.setdefault("risk", enriched.get("risk", {}))
 
+            # ── FREE-TEXT VOCABULARY GATE (F13 GO 3, 2026-09-16) ────────────
+            # Wires arifosmcp.runtime.authority_gate.validate_free_text_
+            # vocabulary (forged 2026-06-06, Royal Decree incident) into the
+            # response envelope. AGI-lane (000-777) outputs may not emit
+            # verdict vocabulary or governance theatre as final form without
+            # a real seal hash; 888 may; 999 needs one. Advisory flag always;
+            # a verdict-shaped AGI response (SEAL/VOID/SABAR) carrying
+            # violations is forced to HOLD — it refuses to render as a
+            # sealed document. Non-verdict responses keep flowing with the
+            # flag (e.g. search results quoting documents ABOUT verdicts).
+            try:
+                from arifosmcp.runtime.authority_gate import (
+                    validate_free_text_vocabulary,
+                )
+
+                _vg_lane = (
+                    "999"
+                    if tool_name == "arif_seal"
+                    else ("888" if tool_name == "arif_judge" else "333")
+                )
+                _vg_result = (
+                    envelope.get("result") if isinstance(envelope.get("result"), dict) else {}
+                )
+                # Real 999 hashes only — call_hash rides every envelope and
+                # would mislabel every AGI violation as a "smuggled seal".
+                _vg_has_seal_hash = bool(
+                    _vg_result.get("chain_hash")
+                    or _vg_result.get("seal_hash")
+                    or _vg_result.get("receipt_hash")
+                )
+                # GO7-R2: scan HUMAN-FACING text only — reasons plus explicit
+                # narrative fields. str(result) wholesale made any nested
+                # verdict-shaped JSON (e.g. '"verdict": "HOLD"' echoes) trip
+                # the advisory flag; the Royal-Decree target lives in prose.
+                _vg_text_fields = [str(envelope.get("reasons") or "")]
+                for _vg_key in ("summary", "message", "note", "detail", "text"):
+                    _vg_v = _vg_result.get(_vg_key) if isinstance(_vg_result, dict) else None
+                    if isinstance(_vg_v, str):
+                        _vg_text_fields.append(_vg_v)
+                _vg_text = " ".join(_vg_text_fields)[:6000]
+                _vg_violations = validate_free_text_vocabulary(
+                    _vg_text, lane=_vg_lane, has_seal_hash=_vg_has_seal_hash
+                )
+                if _vg_violations:
+                    envelope["vocabulary_gate"] = {
+                        "lane": _vg_lane,
+                        "violations": _vg_violations,
+                        "note": "F13 GO 3 free-text boundary (Royal-Decree shape)",
+                    }
+                    _vg_verdict = str(
+                        envelope.get("effective_verdict") or envelope.get("verdict") or ""
+                    ).upper()
+                    if _vg_lane not in ("888", "999") and _vg_verdict in ("SEAL", "VOID", "SABAR"):
+                        envelope["verdict"] = "HOLD"
+                        envelope["effective_verdict"] = "HOLD"
+                        envelope["reasons"] = [
+                            "FREE_TEXT_GATE: AGI-lane response carries verdict "
+                            "vocabulary/governance theatre without a seal hash — "
+                            "refused to render as sealed. " + "; ".join(_vg_violations)
+                        ] + list(envelope.get("reasons") or [])
+            except Exception as _vg_exc:  # noqa: BLE001
+                logger.debug("vocabulary gate skipped: %s", _vg_exc)
+
             # STAB-2026-08-07: Constitutional-check dual-truth fix.
             # The inner path computes constitutional_check from confidence/agency_level
             # alone. The outer envelope has the canonical verdict + failed_floors +
@@ -5219,7 +5727,7 @@ def _enforce_nine_signal(
                 envelope["constitutional_check"] = {
                     "floor_passed": _fp,
                     "_floor_measurement": "measured" if _floors_checked_here else "unmeasured",
-                    "hold_required": _is_hold or bool(_failed_floors),
+                    "hold_required": _is_hold or bool(_failed_floors) or not _floors_checked_here,
                     "hold_reason": (
                         "outer_verdict=" + _outer_verdict
                         if _is_hold
@@ -5327,13 +5835,7 @@ def _enforce_nine_signal(
                         _cf = 0.5
                     _target["confidence"] = {
                         "overall": _cf,
-                        "label": (
-                            "high"
-                            if _cf >= 0.7
-                            else "low"
-                            if _cf < 0.4
-                            else "medium"
-                        ),
+                        "label": ("high" if _cf >= 0.7 else "low" if _cf < 0.4 else "medium"),
                     }
 
         # ── DEGRADED RESPONSE PREFIX (Phase 1, 2026-06-21) ──────────────
@@ -5395,7 +5897,12 @@ def _enforce_nine_signal(
         # subsequent tool calls can find it via get_session().
         # Use effective_verdict from envelope (post-wrapping), not internal
         # verdict variable (which may have been downgraded by the wrapper).
-        if tool_name == "arif_init":
+        # 2026-09-20 FIX: validate/refresh/handover must NOT overwrite the
+        # bound actor — doing so destroys the original session binding.
+        # Only mode=init/full/light/challenge may write/update the store.
+        _arif_init_mode = str(out.get("mode") or "").lower() if isinstance(out, dict) else ""
+        _SESSION_WRITE_MODES = {"init", "full", "light", "challenge", ""}
+        if tool_name == "arif_init" and _arif_init_mode in _SESSION_WRITE_MODES:
             _eff_verdict = envelope.get("effective_verdict", verdict)
             if _eff_verdict == "SEAL":
                 _sess_tok = out.get("session_token") or envelope.get("session_token")
@@ -5454,6 +5961,7 @@ def _enforce_nine_signal(
             if isinstance(out, dict):
                 _preserve_arif_init_truth(out, envelope)
             _stamp_arif_init_deterministic(envelope)
+            _reconcile_legacy_aliases_with_token(envelope)
             apply_deployment_drift_floor(envelope)
 
         # STAB-2026-08-09c: last-writer after authority envelope attach.
@@ -5483,8 +5991,7 @@ def _enforce_nine_signal(
                         _auth["may_mutate"] = False
                         _auth["may_seal"] = False
             except Exception:
-                pass
-
+                logger.exception("suppressed exception", exc_info=True)
         try:
             from arifosmcp.runtime.act_token import echo_canonical_session
 
@@ -5494,8 +6001,7 @@ def _enforce_nine_signal(
                 actor_id=actor_id,
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         return envelope
 
         # ── APEX Runtime Governance Envelope (APEX-MCP-001) ───────────────
@@ -5571,7 +6077,7 @@ def _enforce_nine_signal(
             if verdict == "SEAL" and not reasons:
                 reasons = [
                     "Reversible operation verified",
-                    "Constitutional floors passed",
+                    "No failed floors reported",
                     "No irreversible state change",
                 ]
             out = dict(response)
@@ -5812,7 +6318,9 @@ def _enforce_nine_signal(
                         "session_id": _sid,
                         "actor_id": _prior_actor or _actor,
                         "actor_verified": True,
-                        "authority": "FULL" if (_prior_authority or "").upper() in ("SOVEREIGN", "FULL") else "LIMITED",
+                        "authority": "FULL"
+                        if (_prior_authority or "").upper() in ("SOVEREIGN", "FULL")
+                        else "LIMITED",
                         "authority_level": _prior_authority or "SOVEREIGN",
                         "verification_method": "system_exempt",
                         "verified": True,
@@ -5843,7 +6351,7 @@ def _enforce_nine_signal(
                         if hasattr(_standing, "authority"):
                             _sync_authority_surfaces_from_standing(enforced, _standing)
                     except Exception:
-                        pass
+                        logger.exception("suppressed exception", exc_info=True)
             apply_deployment_drift_floor(enforced)
 
         # ALWAYS stamp DETERMINISTIC for arif_init (bind is not inference).
@@ -5853,15 +6361,18 @@ def _enforce_nine_signal(
         _stamp_arif_init_deterministic(enforced)
         # Final pass: stamp must never re-green a drifted substrate
     # Observation caching for seamless observe -> judge pre-flight
-    if tool_name in ("arif_observe", "arif_sense_observe") and session_id and session_id in _SESSIONS:
+    if (
+        tool_name in ("arif_observe", "arif_sense_observe")
+        and session_id
+        and session_id in _SESSIONS
+    ):
         try:
             res = enforced.get("result")
             if isinstance(res, dict):
                 _SESSIONS[session_id]["last_observation"] = res
                 _SESSIONS[session_id].setdefault("observations", []).append(res)
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     # Last line of every tool envelope: drift floor wins over SEAL
     apply_deployment_drift_floor(enforced)
 
@@ -5870,8 +6381,7 @@ def _enforce_nine_signal(
 
         enforced = echo_canonical_session(enforced, session_id=session_id, actor_id=actor_id)
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     return enforced
 
 
@@ -5934,53 +6444,9 @@ def _constitutional_reasoning_scan(
     verdict: str | None = None
     l2_flags: list[str] = []  # L2 semantic escalation flags
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # L1: FAST REGEX PATTERNS — explicit attack detection
-    # ═══════════════════════════════════════════════════════════════════════════
-
-    # ══ F1 AMANAH — irreversible destruction ══
-    f1_triggers = [
-        "rm -rf" in q,
-        "drop database" in q,
-        "drop table" in q,
-        "docker system prune" in q,
-        "delete from" in q,
-        "shred " in q,
-        "reset --hard" in q,
-        (".git directory" in q and "delete" in q),
-        ("directory permanently" in q and "delete" in q),
-    ]
-    if any(f1_triggers):
-        violations.append("F1: Destructive operation detected without irreversibility ack")
-        violated_laws.append("L01")
-        verdict = "HOLD"
-
-    # ══ F1 L2: Semantic escalation — destructive intent without exact regex match ══
-    # Catches rephrased attacks that bypass L1: "remove all files", "wipe the disk", etc.
-    _destructive_semantic = [
-        ("remove" in q or "delete" in q or "wipe" in q or "erase" in q or "purge" in q)
-        and ("all" in q or "everything" in q or "recursive" in q or "entire" in q or "whole" in q)
-        and ("file" in q or "disk" in q or "directory" in q or "system" in q or "data" in q),
-        ("destroy" in q or "nuke" in q or "obliterate" in q)
-        and ("system" in q or "server" in q or "machine" in q or "vps" in q),
-        ("format" in q and ("disk" in q or "drive" in q or "partition" in q)),
-        ("truncate" in q and ("table" in q or "database" in q)),
-        ("unlink" in q and ("all" in q or "recursive" in q)),
-        (
-            "kill" in q
-            and ("-9" in q or "sigkill" in q)
-            and ("process" in q or "pid" in q or "service" in q)
-        ),
-        ("overwrite" in q and ("boot" in q or "mbr" in q or "partition" in q)),
-    ]
-    if any(_destructive_semantic):
-        l2_flags.append(
-            "F1_semantic: Destructive intent detected in query semantics (L2 escalation)"
-        )
-        if "L01" not in violated_laws:
-            violated_laws.append("L01")
-            violations.append("F1: Potential destructive operation — semantic escalation (L2)")
-            verdict = "HOLD" if verdict != "VOID" else verdict
+    # ══ F1 AMANAH — identity/authority gating only (regex scanning removed; weak and duplicated)
+    # Irreversibility enforcement now handled at the action boundary (judge/forge layer)
+    # L01 (identity binding) enforced in law.py check_laws()
 
     # ══ F2 TRUTH — false certainty / fabricated claims ══
     f2_triggers = [
@@ -6610,19 +7076,30 @@ def _context_restore_summary(
     }
 
 
-# ── Async LLM Synthesis (SEA-LION → Ollama → template fallback) ───────────────
+# ── Async LLM Synthesis (FED-FEDERATION → Ollama → template fallback) ───────────────
 # Replaces _synthesize in reason/reflect/verify/critique/debate/socratic modes.
 # F7 Humility: confidence capped at 0.85.
 
 
-async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
+async def _synthesize_async(
+    query: str,
+    reasoning_mode: str,
+    evidence: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """
-    Async constitutional synthesis via SEA-LION → Ollama → template fallback.
+    Async constitutional synthesis via FED-FEDERATION → Ollama → template fallback.
 
     Returns dict with keys:
       bounded_answer, what_is_supported, what_is_not_supported,
       what_remains_unknown, confidence_reasoning, confidence_evidence,
       overall_confidence (capped at 0.85 per F7 Humility).
+
+    P0 FIX 2026-09-27 (composition continuity): accepts optional `evidence`
+    list (typically _SESSIONS[session_id]["observations"]) and threads it into
+    the LLM prompt as EVIDENCE BLOCK. The synthesis must GROUND claims in this
+    evidence; claims without supporting evidence are routed to
+    `what_is_not_supported` with an [UNGROUNDED] label, never fabricated into
+    `what_is_supported`. Empty/None evidence is passed through (no fabrication).
 
     Falls back to template _synthesize() on any LLM error — never raises.
     """
@@ -6631,19 +7108,23 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         call_llm,
     )
 
-    # ARIF_THINK_TIMEOUT_S (2026-08-08, blue-team DoS fix): hard 5s wall-clock
-    # cap on _synthesize_async. Prevents a slow LLM cascade (e.g. TokenRouter
-    # 403 → Ollama CPU 35s) from occupying a FastMCP worker for the full
-    # cascade budget. DoS root cause: thread pool saturated → CLOSE-WAIT pileup.
+    # ARIF_THINK_TIMEOUT_S (2026-08-08, blue-team DoS fix, updated 2026-09-07): 35s wall-clock
+    # cap on _synthesize_async. Accommodates reasoning models emitting reasoning tokens.
     import asyncio as _asyncio
 
-    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
 
     system_prompt = (
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
         "Perform bounded constitutional reasoning on the query.\n"
         "Ground every conclusion in L02 (Truth), L07 (Humility), L08 (Genius).\n"
         "Keep confidence ≤ 0.85 per L07 Humility calibration band.\n\n"
+        "EVIDENCE GROUNDING (F2 TRUTH, P0 2026-09-27): If an EVIDENCE BLOCK is\n"
+        "present in the user prompt, every claim in `what_is_supported` MUST be\n"
+        "traceable to an entry in that block. Claims without supporting evidence\n"
+        "MOVE to `what_is_not_supported` with an [UNGROUNDED] label. NEVER\n"
+        "fabricate evidence references. If the EVIDENCE BLOCK is empty or absent,\n"
+        "treat ALL claims as [UNGROUNDED] and lower overall_confidence accordingly.\n\n"
         "Return ONLY JSON with this exact structure:\n"
         "{\n"
         '  "bounded_answer": "one-sentence constitutional understanding",\n'
@@ -6655,7 +7136,20 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         '  "overall_confidence": 0.0-1.0 (must be ≤ 0.85)\n'
         "}"
     )
-    user_prompt = f"QUERY: {query}\nMODE: {reasoning_mode}"
+    # P0 FIX 2026-09-27: thread evidence into user prompt as EVIDENCE BLOCK.
+    if evidence:
+        # Cap evidence size to bound token cost; keep most recent first.
+        evidence_block_lines = ["EVIDENCE BLOCK (most recent first, capped at 10):"]
+        for i, ev in enumerate(evidence[:10]):
+            if not isinstance(ev, dict):
+                continue
+            label = ev.get("label") or ev.get("kind") or ev.get("type") or f"obs[{i}]"
+            content = ev.get("content") or ev.get("result") or ev.get("summary") or str(ev)[:200]
+            evidence_block_lines.append(f"- [{i}] {label}: {str(content)[:300]}")
+        evidence_block = "\n".join(evidence_block_lines)
+    else:
+        evidence_block = "EVIDENCE BLOCK: (empty — no observations recorded for this session yet)"
+    user_prompt = f"QUERY: {query}\nMODE: {reasoning_mode}\n\n{evidence_block}"
 
     schema = {
         "type": "object",
@@ -6734,7 +7228,9 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     ql = (query or "").strip().lower()
     if any(k in ql for k in ["why", "how", "explain", "cause", "reason"]):
         domain = "explanatory"
-    elif any(k in ql for k in ["is it", "are there", "does it", "will it", "can it", "dangerous", "safe"]):
+    elif any(
+        k in ql for k in ["is it", "are there", "does it", "will it", "can it", "dangerous", "safe"]
+    ):
         domain = "evaluative"
     else:
         domain = "descriptive"
@@ -6836,7 +7332,7 @@ def _json_default_pydantic(obj: Any) -> Any:
         try:
             return obj.model_dump()
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
     if hasattr(obj, "__getstate__"):
         return obj.__getstate__()
     raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
@@ -7445,7 +7941,10 @@ def _new_session(
 
     # /000: Derive principal from sovereign_id or fallback to actor_id
     _principal = sovereign_id or (
-        actor_id if actor_id and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil") else None
+        actor_id
+        if actor_id
+        and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+        else None
     )
     _delegation = delegation_mode or (
         "delegated" if sovereign_id and actor_id and actor_id != sovereign_id else "direct"
@@ -7555,7 +8054,11 @@ def _new_session(
             session_id=sid,
             actor_id=actor_id or "anonymous",
             authority_level=(
-                "sovereign" if actor_id and actor_id.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil") else ("operator" if actor_id else "anonymous")
+                "sovereign"
+                if actor_id
+                and actor_id.lower().strip()
+                in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+                else ("operator" if actor_id else "anonymous")
             ),
             auth_context={"source": "arif_session_init", "mode": "init"},
             stage="000",
@@ -7615,7 +8118,7 @@ def get_session(session_id: str | None) -> dict[str, Any] | None:
         if result is not None:
             return result
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     # Iterative fallback: walk all sessions looking for partial match
     try:
         from arifosmcp.runtime.session import get_all_session_ids
@@ -7633,7 +8136,7 @@ def get_session(session_id: str | None) -> dict[str, Any] | None:
             ):
                 return dict(_rec)
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     return None
 
 
@@ -8066,15 +8569,11 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         )
     if not dst.get("session_id"):
         dst["session_id"] = (
-            src.get("session_id")
-            or res.get("session_id")
-            or sess_blk.get("session_id")
+            src.get("session_id") or res.get("session_id") or sess_blk.get("session_id")
         )
     if not dst.get("session_token"):
         dst["session_token"] = (
-            src.get("session_token")
-            or res.get("session_token")
-            or sess_blk.get("session_token")
+            src.get("session_token") or res.get("session_token") or sess_blk.get("session_token")
         )
     if not dst.get("autonomy_band"):
         dst["autonomy_band"] = (
@@ -8098,6 +8597,8 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
             if src.get("actor_verified") is not None
             else res.get("actor_verified", False)
         )
+    # LEGACY-LABEL TRUTH (2026-09-04): token claims win over store flags.
+    _reconcile_legacy_aliases_with_token(dst)
 
     # If engine path (SessionManifest ping/light) never set substrate, inject
     # live attestation so the wire cannot claim SEAL while drift is unknown.
@@ -8120,8 +8621,7 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
             if _drift and not dst.get("degraded"):
                 dst["degraded"] = ["kernel_drift"]
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     # Keep structured init geometry if engine emitted a dict verdict
     if isinstance(src.get("verdict"), dict):
         dst["verdict_geometry"] = src["verdict"]
@@ -8135,19 +8635,13 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         sw = src["software_release"]
         dst["software_release"] = sw
 
-    drifted = (
-        sub.get("state") == "DEGRADED"
-        or sub.get("drift") is True
-        or sw.get("drift") is True
-        or (
-            isinstance(dst.get("degraded"), list)
-            and any("drift" in str(x).lower() for x in dst["degraded"])
-        )
-        or (
-            isinstance(src.get("degraded"), list)
-            and any("drift" in str(x).lower() for x in src["degraded"])
-        )
+    # EVIDENCE HIERARCHY (2026-09-18, lane B receipt): pooled measurement over
+    # the wire envelope AND the engine source, so a MEASURED drift=false in
+    # either outranks a DERIVED `substrate.state == "DEGRADED"` in the other.
+    _preserve_drift_evidence = _measure_drift_from_spots(
+        _drift_spots(dst) + ([("engine_source", src)] if isinstance(src, dict) else [])
     )
+    drifted = bool(_preserve_drift_evidence.get("fired"))
     if drifted:
         # Monotonic floor — never SEAL / OK celebration over degraded substrate
         dst["verdict"] = "DEGRADED"
@@ -8157,7 +8651,11 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
         dst["seal_allowed"] = False
         if str(dst.get("status", "")).lower() in ("ok", "completed", "healthy", "seal"):
             dst["status"] = "degraded"
-        dst["reason_code"] = dst.get("reason_code") or "DEPLOYMENT_DRIFT"
+        # MEASURED, never defaulted (2026-09-18).
+        dst["reason_code"] = dst.get("reason_code") or (
+            _preserve_drift_evidence.get("cause") or "REASON_UNMEASURED"
+        )
+        dst["reason_evidence"] = _drift_reason_evidence(_preserve_drift_evidence)
         # Annotate geometry if present
         geom = dst.get("verdict_geometry")
         if isinstance(geom, dict):
@@ -8180,6 +8678,44 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
     # Always re-run drift floor after preserve (idempotent)
     apply_deployment_drift_floor(dst)
     return dst
+
+
+def _reconcile_legacy_aliases_with_token(dst: dict[str, Any]) -> None:
+    """LEGACY-LABEL TRUTH (2026-09-04): flat aliases autonomy_band/band/
+    authority/actor_verified must mirror the session token when one exists.
+    The token (act_v1 claims) is immutable and authoritative; the session
+    store's system_exempt bridge stamps verified=True for any *bound* session,
+    and a bound-but-unverified session must never reach the wire as
+    FULL/crypto-verified in flat fields (actor_cryptographically_verified and
+    effective_state remain the precise fields)."""
+    _st = dst.get("session_token")
+    try:
+        logger.info(
+            "legacy-reconcile: fired token_present=%s av_source=%s",
+            bool(_st),
+            getattr(dst.get("act_claims") or {}, "get", lambda _k: None)("av"),
+        )
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+    if not (isinstance(_st, str) and _st.startswith("act_v1.")):
+        return
+    try:
+        import base64 as _b64
+        import json as _json
+
+        _part = _st.split(".", 2)[1]
+        _part += "=" * (4 - len(_part) % 4)
+        _claims = _json.loads(_b64.urlsafe_b64decode(_part))
+    except Exception:
+        return
+    _tauth = _claims.get("auth")
+    if isinstance(_tauth, str) and _tauth:
+        dst["autonomy_band"] = _tauth
+        dst["band"] = _tauth
+        dst["authority"] = _tauth
+    _tav = _claims.get("av")
+    if _tav is not None:
+        dst["actor_verified"] = bool(_tav)
 
 
 def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
@@ -8278,11 +8814,20 @@ def build_standard_mcp_result(
         band_note = DECISION_THRESHOLDS["confidence_above_0_85"]
 
     afford = get_full_affordance(tool)
-    is_l5 = "L5" in str(afford.get("agency_level", ""))
+    # K5 (STAB-2026-09-16): read modes must not inherit the tool's L5 default.
+    # mode_agency_levels is the per-mode truth when the affordance declares it.
+    _mode_levels = afford.get("mode_agency_levels") or {}
+    _effective_agency = _mode_levels.get(mode, afford.get("agency_level", ""))
+    is_l5 = "L5" in str(_effective_agency)
     human_req = afford.get("requires_human_confirmation", False) or is_l5
 
+    # K5: "mode_dependent" is a registry placeholder, never a risk value.
+    _blast = afford.get("blast_radius", "low")
+    if _blast == "mode_dependent":
+        _blast = "high" if is_l5 else "low"
+
     risk = {
-        "blast_radius": afford.get("blast_radius", "low"),
+        "blast_radius": _blast,
         "reversibility": "irreversible"
         if afford.get("side_effect", "").startswith("append") or is_l5
         else "reversible",
@@ -8492,7 +9037,9 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         if tool == "arif_init":
             # A1: preserve substrate before stamp (pre-existing envelope path)
             _preserve_arif_init_truth(payload, payload)
-            return _stamp_arif_init_deterministic(payload)
+            _stamped = _stamp_arif_init_deterministic(payload)
+            _reconcile_legacy_aliases_with_token(_stamped)
+            return _stamped
         return payload
 
     # 2026-08-04 333-AGI: arif_init verified bypass.
@@ -8521,7 +9068,9 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         # A1 + G8 (2026-08-05): preserve engine truth then floor SEAL-over-drift.
         # build_standard_mcp_result invents verdict="SEAL" and drops substrate.
         _preserve_arif_init_truth(payload, _built)
-        return _stamp_arif_init_deterministic(_built)
+        _stamped = _stamp_arif_init_deterministic(_built)
+        _reconcile_legacy_aliases_with_token(_stamped)
+        return _stamped
 
     # Derive basics — check routing-specific confidence before default
     # Fix: arif_route stores routing_confidence in result.source_of_truth;
@@ -8638,6 +9187,13 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         or "Review result. If confidence low, gather more evidence via observe or domain organ."
     )
 
+    # K5 (STAB-2026-09-16): seal read modes carry mode inside result{}; resolve
+    # it so build_standard_mcp_result does not default to "observe" and
+    # re-inherit the tool-level L5 agency.
+    _payload_mode = payload.get("mode")
+    if _payload_mode is None and isinstance(payload.get("result"), dict):
+        _payload_mode = payload["result"].get("mode")
+
     return build_standard_mcp_result(
         tool=tool,
         facts=facts if isinstance(facts, list) else [str(facts)],
@@ -8645,7 +9201,7 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         confidence=conf,
         next_safe_action=next_act,
         raw_result=payload.get("result", payload),
-        mode=payload.get("mode", "observe"),
+        mode=_payload_mode or "observe",
     )
 
 
@@ -8724,6 +9280,17 @@ def _ok(
 
     # Defensive shallow copy (L12 stewardship — never mutate caller's dict)
     meta_payload = {**(meta or {})}
+    # IRFAN advisory attachment (ARIF::SALAM::IRFAN::INIT::v0.1): stewardship
+    # recommendation metadata only. NEVER alters the verdict/status.
+    try:
+        _irfan_review = IRFAN_LAST_REVIEW.get()
+        if (
+            isinstance(_irfan_review, dict)
+            and _irfan_review.get("context", {}).get("tool_name") == tool
+        ):
+            meta_payload.setdefault("irfan_review", _irfan_review)
+    except Exception:
+        pass  # advisory — never blocks a success path
     from arifosmcp.runtime.context_witness import (
         build_internal_context_witness,
         should_emit_context_witness,
@@ -8762,7 +9329,7 @@ def _ok(
     try:
         result.setdefault("_affordance", get_full_affordance(tool))
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     trace_id = None
     if session_id and session_id in _SESSIONS:
         sess = _SESSIONS[session_id]
@@ -8993,7 +9560,7 @@ def _ok(
             )
             response["action_class"] = ar.action_class
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
     except Exception:
         pass
     # FIX-4 (2026-08-16): When F4 entropy gate fires, update constitutional_check
@@ -9046,7 +9613,7 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
         state = read_authority_state(sess)
         return bool(state.actor.verified)
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     # Fallback: check file-backed session store (matches live_kernel.py lookup)
     try:
         import json
@@ -9068,7 +9635,7 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
                     state = read_authority_state(sess)
                     return bool(state.actor.verified)
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     return False
 
 
@@ -9132,6 +9699,17 @@ def _hold(
         session_id = response_ctx.get("session_id")
     actor_id = _actor_for_response(session_id, meta.get("actor_id"))
     meta.setdefault("actor_id", actor_id)
+    # IRFAN advisory attachment (ARIF::SALAM::IRFAN::INIT::v0.1): stewardship
+    # recommendation metadata only. NEVER alters the HOLD itself.
+    try:
+        _irfan_review = IRFAN_LAST_REVIEW.get()
+        if (
+            isinstance(_irfan_review, dict)
+            and _irfan_review.get("context", {}).get("tool_name") == tool
+        ):
+            meta.setdefault("irfan_review", _irfan_review)
+    except Exception:
+        pass  # advisory — never blocks a HOLD
     _add_floor_compat(meta)
     # SESAT integration: attach structured failure event to HOLD responses
     try:
@@ -9453,8 +10031,7 @@ def _require_session(
                     session_id=session_id,
                 )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     return sess, None
 
 
@@ -9493,6 +10070,53 @@ def _build_judge_contract(
     if not state_hash or not isinstance(state_hash, str):
         raise RuntimeError(
             "F1 AMANAH: JudgeSealContract produced empty/invalid state_hash — "
+            "refusing to register an unverifiable packet. F2 TRUTH."
+        )
+    contract = contract.model_copy(update={"state_hash": state_hash})
+    packet = contract.model_dump(mode="json")
+    _JUDGE_STATE_REGISTRY[contract.state_hash] = packet
+    _JUDGE_CHAIN_REGISTRY[contract.constitutional_chain_id] = packet
+    return contract
+
+
+def _issue_judge_seal_contract(
+    *,
+    candidate: str | None,
+    session_id: str | None,
+    actor_id: str | None,
+    constitutional_chain_id: str | None,
+    irreversibility_level: IrreversibilityLevel,
+    delta_s: float,
+    g_score: float,
+    epistemic_snapshot: dict[str, Any] | None,
+    floor_compliance: ConstitutionalCompliance,
+) -> JudgeSealContract:
+    """Sovereign-bypass seal contract — synthesize + register a judge packet
+    when F13 ack + FULL SCT authorize a seal without a prior judge call.
+    Restored 2026-09-12 (FI-003): the vault seal call site imported this name
+    but no definition existed in either tree — the sovereign seal lane was
+    severed at the ImportError."""
+    law_results = (
+        getattr(floor_compliance, "law_results", None) if floor_compliance is not None else None
+    )
+    contract = JudgeSealContract(
+        constitutional_chain_id=constitutional_chain_id or uuid.uuid4().hex[:16],
+        state_hash="",
+        session_id=session_id,
+        actor_id=actor_id,
+        candidate=candidate,
+        verdict="SEAL",
+        irreversibility_level=irreversibility_level.value,
+        delta_s=delta_s,
+        g_score=g_score,
+        epistemic_snapshot=epistemic_snapshot or {},
+        law_results=law_results or {},
+        timestamp=_now(),
+    )
+    state_hash = _stable_hash(contract.model_dump(mode="json", exclude={"state_hash"}))
+    if not state_hash or not isinstance(state_hash, str):
+        raise RuntimeError(
+            "F1 AMANAH: sovereign seal contract produced empty/invalid state_hash — "
             "refusing to register an unverifiable packet. F2 TRUTH."
         )
     contract = contract.model_copy(update={"state_hash": state_hash})
@@ -9845,7 +10469,9 @@ def _arif_session_init(
       epoch_seal  — Seal the current epoch, writing Epoch Seal JSON to vault.
 
     Parameters:
-      mode              — init | light | resume | validate | epoch_open | epoch_seal
+      mode              — init | light | resume | validate | canary | preflight |
+                        triage | epoch_open | epoch_seal | opt_out | opt_out_profiling
+                        (full mode grammar: GET /charter/arif_init)
       actor_id          — Sovereign actor identifier (required for init)
       ack_irreversible  — Explicit human ack for irreversible operations (F1 Amanah)
       session_id        — Existing session UUID (required for resume/validate/epoch_*)
@@ -10128,7 +10754,7 @@ def _arif_session_init(
                                             _sess2["verification_method"] = "dpop+registry"
                                             _sess2["actor_verified"] = True
                                         except Exception:
-                                            pass
+                                            logger.exception("suppressed exception", exc_info=True)
                                         logger.info(
                                             "DPOP_REGISTRY_PROMOTION actor=%s did=%s tier=SYSTEM_CRON_WRITE",
                                             actor_id,
@@ -10149,8 +10775,7 @@ def _arif_session_init(
                     autonomy_band=requested_authority or _result_dict.get("autonomy_band"),
                 )
             except Exception:
-                pass
-
+                logger.exception("suppressed exception", exc_info=True)
             return _inject_atlas333_boot(_result_dict)
         except Exception as e:
             return _hold(
@@ -10486,15 +11111,46 @@ def _arif_session_init(
             from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
                 build_authority_state_for_actor,
             )
+            from arifosmcp.runtime.sovereign_verify import compute_verified_key_id
+
+            # P0 FIX 2026-09-04 (FI-008, F13 "auto go"): Ed25519→FULL bridge.
+            # identity_verified alone never granted SOVEREIGN because
+            # bind_authority_state matches verified_key_id against
+            # SOVEREIGN_KEY_IDS (SECURITY P0 2026-07-12). Derive the key
+            # fingerprint from the same public key the verifier resolved
+            # (fail-closed: None on any failure). The previous in-flight edit
+            # called an undefined _compute_ed25519_key_id → NameError was
+            # swallowed below → bind never ran at all.
+            _verified_key_id: str | None = None
+            if identity_verified and actor_signature and nonce:
+                _verified_key_id = compute_verified_key_id(
+                    actor_id or "anonymous",
+                    nonce,
+                    actor_signature,
+                    constitution_hash,
+                )
+                if _verified_key_id:
+                    sess["verified_key_id"] = _verified_key_id
+                    logger.info(
+                        "Ed25519 verified_key_id derived — actor=%s key=%s",
+                        actor_id,
+                        _verified_key_id,
+                    )
 
             _bind_state = build_authority_state_for_actor(
                 actor_id or "anonymous",
                 verified=bool(identity_verified),
                 verification_method="signature" if identity_verified else "none",
+                verified_key_id=_verified_key_id,
             )
             bind_authority_state(sess, _bind_state)
-        except Exception:
-            pass
+        except Exception as exc:  # never break init, but NEVER silently swallow
+            logger.warning(
+                "authority bind failed at init (actor=%s): %s: %s",
+                actor_id,
+                type(exc).__name__,
+                exc,
+            )
         sess["constitution_bound"] = constitution_bound
 
         # P3 Fix: Initialize thermodynamic budget for the new session
@@ -10746,7 +11402,7 @@ def _arif_session_init(
 
             store_ack["_SESSION_IDENTITY"] = session_exists(sid)
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         # EUREKA: Build embodied capability card
         import socket as _socket
 
@@ -11232,6 +11888,15 @@ def _arif_session_init(
 
                     _live_url = _genesis_card.get("url", "")
                     if _live_url:
+                        # SSRF guard (CVE-2026-SyedAnas, 2026-08-25):
+                        # Genesis card URL was fetched without SSRF validation.
+                        # urlopen follows redirects and resolves DNS internally,
+                        # so a malicious genesis_card.yaml could exfil to private IPs.
+                        from arifosmcp.runtime.ssrf_guard import resolve_blocked as _ssrf_check
+
+                        _ssrf_flag = _ssrf_check(_live_url)
+                        if _ssrf_flag:
+                            raise ValueError(f"SSRF blocked: {_ssrf_flag}")
                         with urllib.request.urlopen(_live_url, timeout=3) as _resp:
                             _live_content = _resp.read()
                         _live_hash = hashlib.sha256(_live_content).hexdigest()
@@ -11316,20 +11981,20 @@ def _arif_session_init(
         )
 
     if normalized_mode == "validate":
-        # P0 2026-07-17: federation_sct wire contract.
-        # AAA (and organs) call arif_init(mode=validate, session_id=<SCT token>).
+        # P0 2026-07-17: federation ACT wire contract.
+        # AAA (and organs) call arif_init(mode=validate, session_id=<ACT token>).
         # That is intentional overload: validate mode accepts either:
-        #   (a) act_v1.* / arifos.v1.* capability token → crypto verify via verify_sct
+        #   (a) act_v1.* / arifos.v1.* capability token → crypto verify via verify_act
         #   (b) SEAL-* session id → session-store liveness check
         # Response shape required by AAA governance/federation_act.py:
         #   {"valid": bool, "claims": {...}, "error": str|None}
         #
         # Prefer token-shaped values from session_token param, payload, or session_id.
-        _sct_arg = session_token
-        if not _sct_arg and isinstance(payload, dict):
-            _sct_arg = payload.get("session_token") or payload.get("sct")
+        _act_arg = session_token
+        if not _act_arg and isinstance(payload, dict):
+            _act_arg = payload.get("session_token") or payload.get("sct")
         _candidate = session_id
-        for _cand in (_sct_arg, session_id):
+        for _cand in (_act_arg, session_id):
             if _cand and (str(_cand).startswith("act_v1.") or str(_cand).startswith("arifos.v1.")):
                 _candidate = _cand
                 break
@@ -11339,7 +12004,7 @@ def _arif_session_init(
             return {
                 "valid": False,
                 "claims": None,
-                "error": "session_id required for validate (pass SCT token or SEAL session id)",
+                "error": "session_id required for validate (pass ACT token or SEAL session id)",
                 "session_valid": False,
                 "verification": _proof_spine_validate_summary(),
             }
@@ -11348,16 +12013,16 @@ def _arif_session_init(
         _recv_prefix = _sid_str[:24]
         _token_like = _sid_str.startswith("act_v1.") or _sid_str.startswith("arifos.v1.")
         if _token_like:
-            from arifosmcp.runtime.act_token import verify_sct
+            from arifosmcp.runtime.act_token import verify_act
 
-            claims = verify_sct(_sid_str, expected_actor=actor_id)
+            claims = verify_act(_sid_str, expected_actor=actor_id)
             if not claims:
                 return {
                     "valid": False,
                     "claims": None,
-                    "error": "SCT signature/expiry/actor verification failed",
+                    "error": "ACT signature/expiry/actor verification failed",
                     "session_valid": False,
-                    "validation_path": "verify_sct",
+                    "validation_path": "verify_act",
                     "received_prefix": _recv_prefix,
                 }
             return {
@@ -11366,7 +12031,7 @@ def _arif_session_init(
                 "error": None,
                 "session_id": claims.get("sid"),
                 "session_valid": True,
-                "validation_path": "verify_sct",
+                "validation_path": "verify_act",
                 "actor": claims.get("actor"),
                 "authority": claims.get("auth"),
                 "received_prefix": _recv_prefix,
@@ -11677,7 +12342,7 @@ def _arif_sense_observe(
 
                 _session_valid = session_exists(session_id)
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
     if session_id and not _session_valid:
         return _hold(
             "arif_sense_observe",
@@ -12487,7 +13152,7 @@ def _arif_sense_observe(
                 sh = store.store_source(source)
                 t["source_hash"] = sh
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             claims_stored.append(t)
         return _ok(
             "arif_sense_observe",
@@ -14598,13 +15263,37 @@ def _arif_mind_reason(
         )
     if mode == "verify":
         v = _KERNEL.threat_engine.classify(query or "")
+        # 2026-09-20 FIX (Think Verify evidence-binding invariant):
+        # The threat engine classify() call populates violations but never
+        # populates evidence_used.  Emitting SEAL with evidence_used=[] is a
+        # silent lie — the caller has no basis to trust the verdict.
+        # When no violations are detected AND no evidence was used, return HOLD
+        # with reason=INSUFFICIENT_EVIDENCE so the caller knows to escalate.
+        _violations = v.violations or []
+        _threats_tier = getattr(v, "tier", None)
+        from arifosmcp.kernel.threat import ThreatTier as _TT
+
+        if _violations:
+            # Threat detected — VOID is fully evidenced by the violations list.
+            _verify_verdict = "VOID"
+            _evidence = [str(viol) for viol in _violations]
+        elif v.confidence is not None and float(v.confidence) >= 0.7:
+            # High-confidence CLEAN — acceptable SEAL with confidence as evidence.
+            _verify_verdict = "SEAL"
+            _evidence = [f"threat_engine_confidence={v.confidence}"]
+        else:
+            # Low confidence, no violations — cannot certify SEAL.
+            _verify_verdict = "HOLD"
+            _evidence = []
         return _ok(
             "arif_mind_reason",
             {
                 "mode": "verify",
                 "query": query,
-                "verdict": "VOID" if v.tier == ThreatTier.VOID else "SEAL",
-                "threats_detected": v.violations,
+                "verdict": _verify_verdict,
+                "threats_detected": _violations,
+                "evidence_used": _evidence,
+                "invariant": "INSUFFICIENT_EVIDENCE" if not _evidence else None,
             },
             delta_S=0.002,
             session_id=session_id,
@@ -14696,7 +15385,7 @@ async def _arif_mind_reason_tool(
     Structural modes (plan, plan_review, plan_approve, axioms) are
     deterministic and go directly to _arif_mind_reason. Cognitive modes
     (reason, reflect, verify, critique, debate, socratic) route through
-    runtime.mind_reason which provides SEA-LION → Ollama → rule fallback.
+    runtime.mind_reason which provides FED-FEDERATION → Ollama → rule fallback.
 
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
@@ -14715,8 +15404,7 @@ async def _arif_mind_reason_tool(
                 tags=["arifOS", "333_MIND", mode],
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     try:
         # Structural/deterministic modes — bypass LLM entirely.
         # P1 fix (2026-06-30, FORGE): reflect | verify | critique were
@@ -14724,7 +15412,7 @@ async def _arif_mind_reason_tool(
         # modes that have instant deterministic sync handlers in
         # _arif_mind_reason (threat_engine.classify, axioms dict, plan
         # registry). Only reason | debate | socratic | metabolize genuinely
-        # require the LLM inference pipeline (v2 / SEA-LION / Ollama).
+        # require the LLM inference pipeline (v2 / FED-FEDERATION / Ollama).
         #
         # P0 FIX (2026-07-19, Fable5): reflect | verify | critique
         # were ALSO excluded, causing all three to produce template-synthesized
@@ -14774,18 +15462,26 @@ async def _arif_mind_reason_tool(
                 await trace.span("result", input=result)
             return result
 
-        # Cognitive modes: delegate to LLM (TokenRouter → MiniMax → MiMo → SEA-LION → Ollama → template)
+        # Cognitive modes: delegate to LLM (TokenRouter → MiniMax → MiMo → FED-FEDERATION → Ollama → template)
         # L13: Deterministic timeout — no dead zones allowed
         # P0 FIX 2026-07-19: arifosmcp.runtime.mind_reason module does not exist.
         # Instead of importing a non-existent module, call _synthesize_async directly
         # which already wraps call_llm with the correct constitutional prompt and schema.
         try:
-            # P0 2026-08-09 G3: outer budget must match ARIF_THINK_TIMEOUT_S
-            # (default 5s). HEART_TIMEOUT_MS=60s was leaving agents waiting
-            # 28–38s when LLM cascade stalled despite inner 5s cap.
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+            # P0 2026-08-09 G3 / 2026-09-07: outer budget must match ARIF_THINK_TIMEOUT_S (default 35s)
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+            # P0 FIX 2026-09-27 (composition continuity): thread session observations
+            # into the synthesis prompt so THINK output can ground claims in
+            # OBSERVE evidence rather than fabricating references.
+            _active_evidence = None
+            try:
+                _sid_local = locals().get("session_id") or globals().get("_CURRENT_SESSION_ID")
+                if _sid_local and _sid_local in _SESSIONS:
+                    _active_evidence = _SESSIONS[_sid_local].get("observations") or None
+            except Exception:
+                _active_evidence = None  # never let evidence lookup break the think path
             synthesis = await asyncio.wait_for(
-                _synthesize_async(query or "", reasoning_mode=mode),
+                _synthesize_async(query or "", reasoning_mode=mode, evidence=_active_evidence),
                 timeout=_think_budget_s,
             )
             # Build result from real LLM synthesis
@@ -14813,10 +15509,14 @@ async def _arif_mind_reason_tool(
                                 c for c in synthesis.get("what_is_supported", []) if "[DER]" in c
                             ],
                             "REF": [
-                                c for c in synthesis.get("what_is_not_supported", []) if "[REF]" in c
+                                c
+                                for c in synthesis.get("what_is_not_supported", [])
+                                if "[REF]" in c
                             ],
                             "SPEC": [
-                                c for c in synthesis.get("what_remains_unknown", []) if "[SPEC]" in c
+                                c
+                                for c in synthesis.get("what_remains_unknown", [])
+                                if "[SPEC]" in c
                             ],
                             "UNK": [
                                 c for c in synthesis.get("what_remains_unknown", []) if "[UNK]" in c
@@ -14846,13 +15546,11 @@ async def _arif_mind_reason_tool(
                             else "low"
                         ),
                     },
-                    "next_safe_action": [
-                        "Proceed to arif_judge or arif_forge with evidence hash"
-                    ],
+                    "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
                 },
             }
         except TimeoutError:
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "5.0"))
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
             logger.warning(
                 "333_MIND timeout after %.1fs — degraded substance fallback (not SAFE_VOID)",
                 _think_budget_s,
@@ -14945,8 +15643,7 @@ async def _arif_mind_reason_tool(
                 session_token=session_token,
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         return result
     finally:
         if trace:
@@ -15351,27 +16048,49 @@ def _build_orchestration(
     actor_id: str | None,
     session_id: str | None,
     stage: str | None,
+    tool_name: str | None = None,
 ) -> dict[str, Any]:
     """Build full orchestration decision for a task."""
     route_id = f"KR-{uuid.uuid4().hex[:12].upper()}"
     task_class = _kernel_classify_task(task)
     depth = _kernel_depth_select(task)
-    risk_tier, risk_score = _kernel_risk_gate(task)
-    is_irreversible = _kernel_reversibility_gate(task)
+
+    # Attention Engine replaces keyword-based risk/reversibility gates
+    from arifosmcp.runtime.attention_engine import compute_attention
+
+    attention = compute_attention(
+        tool_name=tool_name or "arif_kernel_route",
+        params={"task": task or "", "query": task or ""},
+        actor_id=actor_id,
+        session_id=session_id,
+        actor_verified=False,  # verified at higher layer
+    )
+
     auth = _kernel_authority_gate(task, actor_id)
     workflow = _kernel_workflow(depth)
     budget = _kernel_token_budget(depth)
-    authority_boundary = _kernel_authority_boundary(depth, risk_tier, is_irreversible)
-    judge_required = authority_boundary["human_judge"] == "required"
+
+    # Attention-driven boundary: replaces keyword-based irreversibility check
+    authority_boundary = _kernel_authority_boundary(
+        depth,
+        "critical"
+        if attention.irreversibility >= 0.7
+        else "high"
+        if attention.irreversibility >= 0.4
+        else "medium"
+        if attention.irreversibility >= 0.2
+        else "low",
+        attention.irreversibility >= 0.6,
+    )
+    judge_required = attention.requires_judgment or authority_boundary["human_judge"] == "required"
 
     return {
         "route_id": route_id,
         "task_class": task_class,
         "task_preview": task[:200] if task else None,
         "depth_tier": depth,
-        "risk_tier": risk_tier,
-        "risk_score": risk_score,
-        "reversibility": "irreversible" if is_irreversible else "reversible",
+        # Attention profile replaces risk_gate + reversibility_gate
+        "attention_profile": attention.to_dict(),
         "judge_required": judge_required,
         "token_budget": budget,
         "workflow": workflow,
@@ -15381,10 +16100,18 @@ def _build_orchestration(
                 "tier": depth,
                 "rationale": f"Keyword-classified as {depth}",
             },
-            "risk_gate": {"tier": risk_tier, "score": risk_score},
-            "reversibility_gate": {
-                "is_irreversible": is_irreversible,
-                "requires_ack": is_irreversible,
+            "attention_engine": {
+                "weight": attention.attention_weight,
+                "requires_judgment": attention.requires_judgment,
+                "requires_witness": attention.requires_witness,
+                "dimensions": {
+                    "identity": attention.identity,
+                    "sovereignty": attention.sovereignty,
+                    "irreversibility": attention.irreversibility,
+                    "witness": attention.witness,
+                    "novelty": attention.novelty,
+                    "confidence": attention.confidence,
+                },
             },
             "authority_gate": auth,
         },
@@ -15512,7 +16239,7 @@ def _arif_kernel_route(
                     "entropy_exceeded": True,
                 }
             _HOP_COUNTER[session_id] = current_hops + 1
-        orch = _build_orchestration(task, actor_id, session_id, stage)
+        orch = _build_orchestration(task, actor_id, session_id, stage, "arif_kernel_route")
         orch["hop_count"] = _HOP_COUNTER.get(session_id, 1)
         orch["max_hops"] = _MAX_HOPS
         orch["entropy_limit"] = _ENTROPY_LIMIT
@@ -15551,7 +16278,17 @@ def _arif_kernel_route(
     if mode == "metabolize":
         # P0 FIX 2026-07-19: mind_reason module does not exist.
         # Route through the LLM client directly via _synthesize_async.
-        synthesis = _run_async(_synthesize_async(task or "", reasoning_mode="metabolize"))
+        # P0 FIX 2026-09-27 (composition continuity): thread session observations.
+        _active_evidence = None
+        try:
+            _sid_local = locals().get("session_id") or globals().get("_CURRENT_SESSION_ID")
+            if _sid_local and _sid_local in _SESSIONS:
+                _active_evidence = _SESSIONS[_sid_local].get("observations") or None
+        except Exception:
+            _active_evidence = None
+        synthesis = _run_async(
+            _synthesize_async(task or "", reasoning_mode="metabolize", evidence=_active_evidence)
+        )
         return _ok(
             "arif_kernel_route",
             synthesis,
@@ -15665,7 +16402,7 @@ def _arif_kernel_route(
             )
 
     if mode == "status":
-        orch = _build_orchestration(task, actor_id, session_id, stage)
+        orch = _build_orchestration(task, actor_id, session_id, stage, "arif_kernel_route")
         # Fetch governance warnings
         sess = _SESSIONS.get(session_id) if session_id else None
         card = sess.get("model_governance_card", {}) if sess else {}
@@ -15783,12 +16520,18 @@ def _arif_kernel_route(
         )
 
     if mode == "risk_gate":
-        risk_tier, risk_score = _kernel_risk_gate(task)
+        from arifosmcp.runtime.attention_engine import compute_attention
+
+        attention = compute_attention(
+            tool_name="arif_kernel_route",
+            params={"task": task or "", "query": task or ""},
+            actor_id=actor_id,
+            session_id=session_id,
+        )
         return _ok(
             "arif_kernel_route",
             {
-                "risk_tier": risk_tier,
-                "risk_score": risk_score,
+                "attention_profile": attention.to_dict(),
                 "task_preview": task[:100] if task else None,
             },
             delta_S=0.001,
@@ -15818,12 +16561,21 @@ def _arif_kernel_route(
         )
 
     if mode == "reversibility_gate":
-        is_irreversible = _kernel_reversibility_gate(task)
+        from arifosmcp.runtime.attention_engine import compute_attention
+
+        attention = compute_attention(
+            tool_name="arif_kernel_route",
+            params={"task": task or "", "query": task or ""},
+            actor_id=actor_id,
+            session_id=session_id,
+        )
         return _ok(
             "arif_kernel_route",
             {
-                "is_irreversible": is_irreversible,
-                "requires_ack": is_irreversible,
+                "irreversibility_score": attention.irreversibility,
+                "requires_ack": attention.irreversibility >= 0.6,
+                "requires_judgment": attention.requires_judgment,
+                "attention_profile": attention.to_dict(),
                 "task_preview": task[:100] if task else None,
             },
             delta_S=0.0,
@@ -16153,7 +16905,7 @@ async def _arif_reply_compose_tool(
     """
     444r_REPLY async tool — routes all modes through LLM-aware reply_compose module.
 
-    SEA-LION → Ollama → deterministic fallback (same pattern as 333_MIND / 666_HEART).
+    FED-FEDERATION → Ollama → deterministic fallback (same pattern as 333_MIND / 666_HEART).
     The LLM actually composes/rewrites the message rather than echoing it back.
     """
     trace = None
@@ -16170,8 +16922,7 @@ async def _arif_reply_compose_tool(
                 tags=["arifOS", "444r_REPLY", mode],
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────
     # Short-circuit before gate because it is read-only and non-network.
     if mode == "repo_answer":
@@ -16308,7 +17059,7 @@ def _try_reformulate_query(query: str) -> str | None:
         if rewritten and len(rewritten) > 5 and rewritten.lower() != query.lower():
             return rewritten
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     return None
 
 
@@ -16562,8 +17313,7 @@ def _arif_memory_recall(
                             }
                         )
                 except Exception:
-                    pass
-
+                    logger.exception("suppressed exception", exc_info=True)
         return _ok(
             "arif_memory_recall",
             {
@@ -16753,8 +17503,7 @@ def _arif_memory_recall(
                     if _refd and _refd != weakest:
                         sub_questions = [_refd if s == weakest else s for s in sub_questions]
                 except Exception:
-                    pass
-
+                    logger.exception("suppressed exception", exc_info=True)
         # ── STATE 4: SYNTHESISE ─────────────────────────
         telemetry["states_visited"].append("SYNTHESISE")
 
@@ -17031,7 +17780,7 @@ def _arif_memory_recall(
                 retention_window_seconds=0,
             )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         return result
 
     # ── context ──────────────────────────────────────────────
@@ -17113,7 +17862,7 @@ async def _arif_heart_critique(
     """
     666_HEART: Ethical critique, risk assessment, and empathy scan.
 
-    Tier 1: SEA-LION LLM inference
+    Tier 1: FED-FEDERATION LLM inference
     Tier 2: Ollama local fallback
     Tier 3: Deterministic keyword-based fallback
 
@@ -17220,8 +17969,7 @@ async def _arif_heart_critique(
                 tags=["arifOS", "666_HEART", mode],
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     if mode == "deepnshadow":
         from arifosmcp.protocols.deepnshadow import adapter as _ds_adapter
 
@@ -17993,6 +18741,14 @@ def _arif_ops_measure(
       geometry  — Runtime geometry hygiene: signal/noise, KV pressure,
                   dead-branch count, context-rot warnings, non-blocking
                   recommendation. Eureka 4 (Phase 1, measure only).
+      frame_health    — FRAME organ status (chambers, baseline info).
+      frame_probe     — FRAME live organ health snapshot (all organs up/down).
+      frame_drift     — FRAME drift detection (live state vs baselines).
+      frame_baseline  — FRAME full baseline data (organs + floors).
+      frame_trend     — FRAME federation trend over time window.
+      frame_report    — FRAME institutional health report (daily/weekly).
+      frame_verify    — FRAME RSI monotonicity verification (trend integrity).
+      (FRAME modes delegate to frame-organ.service :18085 — independent witness.)
 
     Parameters:
       mode       — health | vitals | cost | predict | topology | drift
@@ -18026,6 +18782,57 @@ def _arif_ops_measure(
 
         payload = compute_geometry_health(session_id=session_id)
         return _ok("arif_ops_measure", payload, delta_S=0.0)
+
+    # ── FRAME proxy modes — Independent Epistemic Observatory ────────────────
+    # Read-only observational probes to frame-organ.service :18085.
+    # Bypass constitutional gate (same as stack_health/budget/geometry).
+    # FRAME is independent: separate process, separate failure domain.
+    # Authority: OBSERVATIONAL_ONLY. See APEX-ZEN-FRAME-ARCHITECTURE.md
+    _FRAME_MODES = {
+        "frame_health": "/health",
+        "frame_probe": "/frame/probe",
+        "frame_drift": "/frame/drift",
+        "frame_baseline": "/frame/baseline",
+        "frame_report": "/frame/report",
+        "frame_verify": "/frame/rsi-verify",
+        "frame_trend": "/frame/trend",
+    }
+    if mode in _FRAME_MODES:
+        import urllib.request
+        import json as _json
+
+        _FRAME_PORT = 18085
+        _FRAME_TIMEOUT = 15
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{_FRAME_PORT}{_FRAME_MODES[mode]}",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=_FRAME_TIMEOUT) as resp:
+                frame_data = _json.loads(resp.read().decode())
+            return _ok(
+                "arif_ops_measure",
+                frame_data,
+                meta={
+                    "mode": mode,
+                    "source": "frame-organ",
+                    "frame_port": _FRAME_PORT,
+                    "authority": "OBSERVATIONAL_ONLY",
+                },
+                delta_S=0.0,
+            )
+        except Exception as exc:
+            return _ok(
+                "arif_ops_measure",
+                {
+                    "status": "FRAME_UNREACHABLE",
+                    "mode": mode,
+                    "error": str(exc)[:200],
+                    "frame_port": _FRAME_PORT,
+                },
+                meta={"mode": mode, "source": "frame-organ-unreachable"},
+                delta_S=0.0,
+            )
 
     gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
     if gate is not None:
@@ -18084,7 +18891,7 @@ def _arif_ops_measure(
 
         # system_health_score: CPU/memory/disk health proxy [0, 1]
         # NOT APEX G — this is infrastructure health, not intelligence quality.
-        # APEX G = A·P·E·X·Φ is computed separately via apex_c_dark.compute_apex()
+        # APEX G = (A·P·E·X)^(1/4) is computed via apex_canonical.compute_apex()
         # See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
         system_health_score = max(0.0, 1.0 - (cpu_val + mem_val + disk_val) / 300.0)
         g_score = (
@@ -18118,7 +18925,7 @@ def _arif_ops_measure(
                 "membrane_note": (
                     "INFRASTRUCTURE TELEMETRY — NOT APEX. "
                     "g_score = CPU/mem/disk health proxy. "
-                    "APEX G = A·P·E·X·Φ is computed by A-FORGE, not kernel. "
+                    "APEX G = (A·P·E·X)^(1/4) is computed by apex_canonical (kernel). "
                     "See MEMBRANE-01/04. This field will be removed when "
                     "A-FORGE MeasurementPacket ingress is fully wired."
                 ),
@@ -18159,7 +18966,7 @@ def _arif_ops_measure(
                 "mem": round(mem, 1),
                 "disk": round(disk, 1),
                 "telemetry_source": "live_metrics",
-                "membrane_note": "Kernel returns telemetry. A-FORGE computes G = A·P·E·X·Φ.",
+                "membrane_note": "Kernel returns telemetry. Canonical G = (A·P·E·X)^(1/4) via apex_canonical.",
             },
             delta_S=0.0,
         )
@@ -18206,7 +19013,7 @@ def _arif_ops_measure(
                 "tokens_estimated": tokens,
                 "cost_usd": cost_usd,
                 "currency": "USD",
-                "model": "sea_lion",
+                "model": "fed_federation",
             },
             delta_S=0.0,
         )
@@ -18367,6 +19174,7 @@ def _judge_evidence_sufficiency(
 def _arif_judge_deliberate(
     mode: str = "judge",
     candidate: str | None = None,
+    candidate_ref: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
@@ -18468,7 +19276,15 @@ def _arif_judge_deliberate(
         verify_candidate_for_authority,
     )
 
-    _fw_candidate_ref = candidate  # may be candidate_ref string or None
+    # X-017 (2026-09-12): candidate_ref is the STORE REFERENCE param — the
+    # firewall below must key on it, never on the candidate TEXT. The old
+    # `_fw_candidate_ref = candidate` stuffed raw text into the store lookup,
+    # UNKNOWN_CANDIDATE-firewalling EVERY text-candidate judge call (sixth
+    # label-truth emitter; reproduced identically 2026-09-08 + 2026-09-12).
+    # Text candidates without a ref are "normal governance work" per
+    # verify_candidate_for_authority's own None-path; the secondary
+    # string-detect gate below still screens raw strings for wonder leakage.
+    _fw_candidate_ref = candidate_ref  # store reference only — never the text
     if _fw_candidate_ref is not None and isinstance(_fw_candidate_ref, str):
         _store_verdict = verify_candidate_for_authority(
             _fw_candidate_ref,
@@ -18938,6 +19754,22 @@ def _arif_judge_deliberate(
             # The caller (or upstream) should treat this as a partial/invalid candidate.
             pass
 
+    _declared_irrev = 0
+    try:
+        _rl = str(((contract_c_kwargs or {}).get("reversibility_level")) or "").lower()
+        _declared_irrev = {
+            "reversible": 0,
+            "none": 0,
+            "low": 1,
+            "semi_irreversible": 1,
+            "high": 2,
+            "irreversible": 2,
+            "critical": 3,
+            "catastrophic": 3,
+        }.get(_rl, 0)
+    except Exception:
+        _declared_irrev = 0
+
     ctx = ActionContext(
         tool_name="arif_judge_deliberate",
         mode=mode,
@@ -18952,6 +19784,7 @@ def _arif_judge_deliberate(
         audit_entropy=_audit_entropy,
         wealth_score=_wealth_score,
         verification_surface=_verification_surface,
+        declared_irreversibility=_declared_irrev or None,
     )
 
     verdict = _CORE.evaluate(ctx)
@@ -19505,6 +20338,7 @@ def _arif_judge_deliberate(
 async def _arif_judge_deliberate_tool(
     mode: str = "judge",
     candidate: str | None = None,
+    candidate_ref: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
     session_token: str | None = None,
@@ -19639,8 +20473,7 @@ async def _arif_judge_deliberate_tool(
                 tags=["arifOS", "888_JUDGE", mode],
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     try:
         # ── Benchmark/eval path (no human prompt; kernel-encoded governance) ──
         # REMOVED 2026-07-08: bench harness bypass for human elicitation.
@@ -19656,12 +20489,17 @@ async def _arif_judge_deliberate_tool(
         result = _arif_judge_deliberate(
             mode=mode,
             candidate=candidate,
+            candidate_ref=candidate_ref,
             session_id=session_id,
             actor_id=actor_id,
             constitutional_chain_id=constitutional_chain_id,
             evidence_receipt=evidence_receipt,
             claimed_evidence_level=claimed_evidence_level,
             measurement=measurement,
+            contract_c_kwargs=contract_c_kwargs,
+            verification_surface=verification_surface,
+            audit_entropy=audit_entropy,
+            wealth_score=wealth_score,
         )
 
         if trace:
@@ -19754,8 +20592,7 @@ async def _arif_judge_deliberate_tool(
                     i_cannot_explain=result.get("verdict") == "UNKNOWN",
                 )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         # APEX Phase 3: record governed-vs-baseline comparison
         try:
             from arifosmcp.runtime.governed_vs_baseline import (
@@ -20133,8 +20970,7 @@ def _arif_vault_seal(
 
                 _vault_session_registry.update(get_all_session_ids())
             except Exception:
-                pass
-
+                logger.exception("suppressed exception", exc_info=True)
             k_verdict = _KERNEL.evaluate_intent(
                 tool_name="arif_vault_seal",
                 params={
@@ -20144,6 +20980,42 @@ def _arif_vault_seal(
                     "nonce": nonce,
                     "signature_verified": signature_verified,
                     "session_registry": _vault_session_registry,
+                    # ── X-016 (2026-09-08): pass substance so the constitution
+                    # kernel scores the real action instead of an empty context.
+                    # NOTE: this wrapper is a lossy funnel — witness/verdict/
+                    # evidence_sha/session_token are dropped by the tool layer
+                    # before reaching here; only what remains in scope is passed.
+                    "candidate": (payload[:4000] or None) if isinstance(payload, str) else None,
+                    "evidence": {
+                        "refs": [
+                            r
+                            for r in (
+                                judge_state_hash,
+                                constitutional_chain_id,
+                            )
+                            if r
+                        ],
+                        "source": "arif_judge+vault999"
+                        if (judge_state_hash or constitutional_chain_id)
+                        else "caller",
+                    },
+                    # External Verifier Override (F2 design): a claims-grade
+                    # truth signal is asserted ONLY when independent
+                    # confirmations exist — judge verdict hash, per-payload
+                    # Ed25519, and a human witness type. Otherwise confidence
+                    # stands.
+                    "verification_surface": {
+                        "truth_score": 0.99
+                        if (
+                            (judge_state_hash or constitutional_chain_id)
+                            and signature_verified
+                            and "human" in str(witness_type)
+                        )
+                        else None,
+                        "verifier": "arif_judge",
+                        "decision_core_hash": judge_state_hash,
+                        "constitutional_chain_id": constitutional_chain_id,
+                    },
                 },
                 session_id=session_id,
                 actor_id=actor_id,
@@ -20180,16 +21052,16 @@ def _arif_vault_seal(
         if mode == "seal" and floors and floors.get("F13") in ("SOVEREIGN_ACK", "ACK"):
             _sct_auth_level = "OBSERVE_ONLY"
             try:
-                from arifosmcp.runtime.act_token import verify_sct as _sv
+                from arifosmcp.runtime.act_token import verify_act as _va
 
                 _sess_obj = _SESSIONS.get(session_id, {}) if session_id else {}
-                _sct_tok = _sess_obj.get("session_token") or _sess_obj.get("sct_token")
-                if _sct_tok:
-                    _sct_claims = _sv(_sct_tok)
-                    if isinstance(_sct_claims, dict):
-                        _sct_auth_level = str(_sct_claims.get("auth", "OBSERVE_ONLY"))
+                _act_tok = _sess_obj.get("session_token") or _sess_obj.get("sct_token")
+                if _act_tok:
+                    _act_claims = _va(_act_tok)
+                    if isinstance(_act_claims, dict):
+                        _sct_auth_level = str(_act_claims.get("auth", "OBSERVE_ONLY"))
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             if _sct_auth_level == "FULL":
                 _sov_bypass = True
                 _sov_bypass_reason = "F13_SOVEREIGN+FULL_SCT — seal_allowed via sovereign bypass"
@@ -20245,7 +21117,10 @@ def _arif_vault_seal(
                 session_id=session_id or "sov_bypass",
                 actor_id=actor_id or "ariffazil",
                 constitutional_chain_id=f"SOV-{uuid.uuid4().hex[:12]}",
-                irreversibility_level=IrreversibilityLevel.REVERSIBLE,
+                # VAULT999 append is irreversible by construction; a
+                # REVERSIBLE synthetic contract would trip the rank check
+                # against required_level below (fixed 2026-09-12 FI-003).
+                irreversibility_level=IrreversibilityLevel.IRREVERSIBLE,
                 delta_s=0.001,
                 g_score=0.95,
                 epistemic_snapshot={},
@@ -20351,8 +21226,7 @@ def _arif_vault_seal(
                         auth_context={"source": "arif_vault_seal", "mode": "update"},
                     )
                 except Exception:
-                    pass
-
+                    logger.exception("suppressed exception", exc_info=True)
             drift_summary = {
                 "total_events": len(sess.get("drift_log", [])),
                 "event_types": list({e["event_type"] for e in sess.get("drift_log", [])}),
@@ -20401,7 +21275,7 @@ def _arif_vault_seal(
                 {"entry_id": entry_id, "type": "constitutional_seal"},
             )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         # F-004: canonical vault chain — single path, envelope, derived head.
         # Does NOT write to arifOS/VAULT999 dual-ledger; only share path.
         try:
@@ -20413,7 +21287,7 @@ def _arif_vault_seal(
             try:
                 _chain_sess_ctx = _SESSIONS.get(session_id) if session_id else None
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             _c_resolved_sid, _c_resolved_actor = _rrid(
                 session_id=session_id,
                 actor_id=actor_id,
@@ -20785,9 +21659,7 @@ def _arif_vault_seal(
                         # sealed_at / prev_seal_id — without these fallbacks
                         # every v2 entry showed id:null/timestamp:null/
                         # depends_on:null while integrity read "OK".
-                        "id": entry.get("id")
-                        or entry.get("event_id")
-                        or entry.get("decision_id"),
+                        "id": entry.get("id") or entry.get("event_id") or entry.get("decision_id"),
                         "type": entry_type,
                         "timestamp": entry.get("timestamp")
                         or entry.get("sealed_at")
@@ -20823,8 +21695,7 @@ def _arif_vault_seal(
             # Same vault as the public /999/verify endpoint
             # (rest_routes/vault_verify.py:22). Env override is for tests.
             _vault_dir = (
-                os.environ.get("VAULT999_VERIFY_DIR")
-                or "/root/.local/share/arifos/vault999"
+                os.environ.get("VAULT999_VERIFY_DIR") or "/root/.local/share/arifos/vault999"
             )
             _res = _vc(_vault_dir, scope="canonical")
             _audit = {
@@ -20832,7 +21703,9 @@ def _arif_vault_seal(
                 "vault_dir": str(_vault_dir),
                 "scope": "canonical",
                 "verified": bool(getattr(_res, "verified", False)),
-                "status": str(getattr(getattr(_res, "status", None), "value", getattr(_res, "status", ""))),
+                "status": str(
+                    getattr(getattr(_res, "status", None), "value", getattr(_res, "status", ""))
+                ),
                 "entries": getattr(_res, "entries", None),
                 "canonical_entries": getattr(_res, "canonical_entries", None),
                 "head_hash": getattr(_res, "head_hash", None),
@@ -20852,6 +21725,9 @@ def _arif_vault_seal(
             SealOutput(
                 status="OK",
                 result={
+                    # K5 (STAB-2026-09-16): echo mode so the envelope resolves
+                    # read-mode risk instead of the tool-level L5 default.
+                    "mode": "verify",
                     "ledger_size": len(_VAULT_LEDGER),
                     "integrity": _integrity,
                     "integrity_detail": {
@@ -21203,6 +22079,28 @@ async def _arif_vault_seal_tool(
       SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
       session_close adds meta.session_close with stages 0–5 receipt.
     """
+    # ── MCP DOOR: receipt → tools.vault.arif_seal (Lane B record, 2026-09-16) ─
+    # Autonomous institutional receipt append — no judge packet, no elicitation,
+    # no irreversible ack. Interceptor classifies mode=receipt LOW (lane_b_modes);
+    # vault.py appends a hash-chained VaultReceipt via create_and_seal_receipt.
+    # Doctrine: SEAL (Lane A, constitutional) != RECEIPT (Lane B, record).
+    if mode == "receipt":
+        from arifosmcp.tools.vault import arif_seal as _canonical_receipt
+
+        out = await _canonical_receipt(
+            mode="receipt",
+            payload=payload or "",
+            session_id=session_id,
+            session_token=session_token,
+            actor_id=actor_id,
+            actor_signature=actor_signature,
+            nonce=nonce,
+            seal_purpose=seal_purpose or "RECORD",
+        )
+        if hasattr(out, "model_dump"):
+            return out.model_dump(mode="json")
+        return dict(out) if out is not None else {"status": "HOLD", "verdict": "HOLD"}
+
     # ── MCP DOOR: session_close → tools.vault.arif_seal (5-phase macro) ─────
     # Critical: do NOT call sync _arif_vault_seal here — that path lacks the
     # organ-health gate, BOOT_EUREKA append, atlas333 vectorize, and git sync.
@@ -21214,7 +22112,7 @@ async def _arif_vault_seal_tool(
             try:
                 await ctx.report_progress(10, 100, "session_close: organ health + SOT + vault")
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
         out = await _canonical_session_close(
             mode="session_close",
             payload=payload or "",
@@ -21234,7 +22132,7 @@ async def _arif_vault_seal_tool(
             try:
                 await ctx.report_progress(100, 100, "session_close: complete")
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
         if hasattr(out, "model_dump"):
             return out.model_dump(mode="json")
         return dict(out) if out is not None else {"status": "HOLD", "verdict": "HOLD"}
@@ -21253,8 +22151,7 @@ async def _arif_vault_seal_tool(
                 tags=["arifOS", "999_VAULT", mode],
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     try:
         # Verify mode is read-only — no irreversible ack needed
         if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit"):
@@ -21387,8 +22284,7 @@ async def _arif_vault_seal_tool(
                 session_token=session_token,
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         return result
     finally:
         if trace:
@@ -22374,7 +23270,24 @@ async def _arif_forge_execute_tool(
     if session_id:
         # placeholder: real impl would load full geometry + flags
         pass
-    v = enforce_restraint_and_verdict(session_ctx, "arif_forge_execute", "EXECUTE_HIGH_IMPACT")
+    # STEP 4 (2026-09-18): restraint follows the MODE — read-only modes
+    # (query/recall/dry_run) are observation and do not require the verdict
+    # loop; dangerous modes keep EXECUTE_HIGH_IMPACT.
+    _forge_action = "EXECUTE_HIGH_IMPACT"
+    try:
+        from arifosmcp.runtime.pre_execution_gate import (
+            CANONICAL_TOOL_MANIFEST as _CTM2,
+            resolve_action_class_for_mode as _rmode,
+        )
+
+        _e2 = _CTM2.get("arif_forge")
+        if _e2 is not None and mode:
+            _rc2 = _rmode("arif_forge", str(mode), _e2.action_class)
+            if str(getattr(_rc2, "value", _rc2)).upper() == "OBSERVE":
+                _forge_action = "OBSERVE"
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+    v = enforce_restraint_and_verdict(session_ctx, "arif_forge_execute", _forge_action)
     if v["decision"] != "PROCEED":
         return {
             "status": v["decision"],
@@ -22398,8 +23311,7 @@ async def _arif_forge_execute_tool(
                 tags=["arifOS", "010_FORGE", mode],
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
     has_prior_authority = bool(constitutional_chain_id or arif_ack_id)
     try:
         _, hold = await _elicit_irreversible_ack(
@@ -22475,8 +23387,7 @@ async def _arif_forge_execute_tool(
                 session_token=session_token,
             )
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         return result
     finally:
         if trace:
@@ -22644,7 +23555,7 @@ def _arif_ping(
                 if kk in demo:
                     response.setdefault(kk, demo[kk])
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     return response
 
 
@@ -23052,7 +23963,7 @@ def _server_version() -> str:
         if version:
             return str(version)
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     return "v2026.06.12"
 
 
@@ -23455,8 +24366,7 @@ def _arif_version_echo(
 
         build_info = get_build_info()
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     response = _ok(
         "arif_version_echo",
         {
@@ -23938,19 +24848,86 @@ async def _arif_memory_v5_router(
     # mutations — they write to long-term memory substrate that influences
     # future constitutional judgments. Must pass the same gate every other
     # canonical tool uses. P0-01 fix 2026-07-17.
-    gate = _constitutional_gate("arif_memory", mode, actor_id, session_id=session_id)
+    #
+    # KRT-2026-09-23 (skill-mesh federation): the gate previously measured an
+    # EMPTY context here (no candidate) — the declared measurement surface
+    # (content, truth_class, provenance, lease) was only assembled AFTER the
+    # gate — so pre-execution derivation failed BY CONSTRUCTION for every
+    # mutation payload: F2 truth_score fell back to the 0.96 clean baseline
+    # (< 0.99 claim threshold, law_evaluator._floor_context X-016) and F4 ΔS
+    # fell back to the fabricated +0.02 (entropy_output = confidence >
+    # entropy_input).
+    #
+    # Minimal fix: for SCT-VERIFIED sessions (server-bound session whose
+    # authority_state.actor.verified is true), pass a STRUCTURAL DECLARATION
+    # of the record into the gate as `candidate` so the evaluator measures
+    # the actual declaration instead of unmeasured defaults:
+    #   - F2: compact single-line JSON matches the axiomatic-declaration
+    #     pattern (`^\{.*\}$`) → declaration threshold 0.95. A memory record
+    #     is a self-declared structured statement, not a reality-claim; its
+    #     truth is post-hoc auditable (audit mode / JITU contradiction
+    #     engine) and its declared confidence stays enforceable downstream
+    #     (B3: confidence < 0.3 → SABAR).
+    #   - F4: query and response both derive from payload_text() → ΔS = 0
+    #     (honest identity — real entropy is measured on the receipt chain
+    #     after the write, not fabricated pre-execution).
+    #   - The payload BODY is deliberately NOT embedded: destructive-verb
+    #     prose floors (F5) and ontology guards (L10) are intent scanners for
+    #     the agent's utterance; stored content is DATA with a hash referent
+    #     (content_sha256) and remains fully auditable post-write.
+    # Unverified/unbound sessions keep candidate=None → unmeasured defaults
+    # → L02/L04 HOLD, exactly as before this fix. The L13 sovereign gate,
+    # the L11 session registry, and the OBSERVE-class exemption are untouched.
+    _gate_candidate: str | None = None
+    if mode in ("remember", "promote", "revise", "forget", "attest"):
+        _sess = _SESSIONS.get(session_id) if session_id else None
+        if _sess is not None:
+            try:
+                from arifosmcp.runtime.authority import read_authority_state as _read_auth
+
+                _session_verified = bool(_read_auth(_sess).actor.verified)
+            except Exception:
+                _session_verified = bool(_sess.get("identity_verified", False))
+            if _session_verified:
+                _decl_content = (
+                    content
+                    if isinstance(content, str)
+                    else json.dumps(payload or {}, ensure_ascii=False, default=str)
+                )
+                _decl_tc = truth_class if isinstance(truth_class, dict) else {}
+                _gate_candidate = json.dumps(
+                    {
+                        "record": "arif_memory_mutation_declaration",
+                        "mutation": mode,
+                        "memory_id": memory_id,
+                        "content_sha256": hashlib.sha256(_decl_content.encode("utf-8")).hexdigest(),
+                        "content_bytes": len(_decl_content.encode("utf-8")),
+                        "truth_class_status": _decl_tc.get("status"),
+                        "truth_class_confidence": _decl_tc.get("confidence"),
+                        "provenance_actor": (
+                            provenance.get("actor_id") if isinstance(provenance, dict) else None
+                        ),
+                        "lease_id": lease_id,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+    gate = _constitutional_gate(
+        "arif_memory", mode, actor_id, session_id=session_id, candidate=_gate_candidate
+    )
     if gate is not None:
         return gate
 
-    v5_native_modes = {
-        "recall",
-        "inspect",
-        "attest",
-        "remember",
-        "promote",
-        "revise",
-        "forget",
-    }
+    # Capability-truth 2026-09-18 (333-AGI): routing derives from the v5
+    # dispatch table (ARIF_MEMORY_MODES) — single source of truth. The previous
+    # hand-copied literal was missing 'audit' (implemented + advertised in
+    # constitutional_map, never routed). Derive; never re-type.
+    from arifosmcp.runtime.megaTools.tool_13_arif_memory import (
+        ARIF_MEMORY_MODES as _V5_MEMORY_MODES,
+    )
+
+    v5_native_modes = frozenset(_V5_MEMORY_MODES)
 
     if mode in v5_native_modes:
         # Translate kwargs → payload dict (Day 4 polish — propagate ALL v5 fields)
@@ -24092,6 +25069,20 @@ async def _arif_memory_v5_router(
         metadata=metadata,
         tier=tier,
     )
+
+
+# ── Capability-truth 2026-09-18 (333-AGI): declared dispatch universe ──────
+# register_tools filters advertised enums to a subset of this set, so the
+# schema physically cannot list a mode this handler lacks. Legacy modes stay
+# callable back-compat but unadvertised — discovery shows the routed v5 set.
+try:  # cycle-safe: megaTools module-level deps exclude runtime.tools
+    from arifosmcp.runtime.megaTools.tool_13_arif_memory import (
+        ARIF_MEMORY_MODES as _ARIF_MEMORY_DISPATCH_MODES,
+    )
+
+    _arif_memory_v5_router.__dispatch_modes__ = frozenset(_ARIF_MEMORY_DISPATCH_MODES)
+except Exception:  # pragma: no cover — guard degrades to no-filter
+    logger.warning("capability-truth: arif_memory dispatch universe undeclared", exc_info=True)
 
 
 from arifosmcp.runtime.vault_registry import (
@@ -24378,7 +25369,7 @@ async def _arif_ed25519_verify_tool(
     try:
         pubkey.verify(sig_raw, payload)
     except Exception as e:  # noqa: BLE001 — InvalidSignature is expected for bad sigs
-        _log.info(
+        logger.info(
             "arif_verify: signature rejected actor=%s reason=%s",
             effective_actor_id,
             type(e).__name__,
@@ -24402,7 +25393,7 @@ async def _arif_ed25519_verify_tool(
     challenge_record = _issued_challenges.get(challenge)
     if challenge_record is None:
         # Signature valid but challenge was not issued by us (or already consumed)
-        _log.warning(
+        logger.warning(
             "arif_verify: signature OK but challenge not found in issued set — "
             "actor=%s challenge_prefix=%s",
             effective_actor_id,
@@ -24440,12 +25431,12 @@ async def _arif_ed25519_verify_tool(
                 session_id.strip(), effective_actor_id, pubkey_hex
             )
     except Exception as e:  # noqa: BLE001 — session binding is best-effort
-        _log.debug(
+        logger.debug(
             "arif_verify: session binding best-effort failed (%s) — non-fatal",
             type(e).__name__,
         )
 
-    _log.info(
+    logger.info(
         "arif_verify: VERIFIED actor=%s challenge_age=%ds session=%s",
         effective_actor_id,
         challenge_age_seconds,
@@ -24693,7 +25684,7 @@ async def _arif_kernel_intercept_tool(
                 f"{intent}\n[extras: " + ", ".join(f"{k}={v!r}" for k, v in kwargs.items()) + "]"
             )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
     raw = await _arif_kernel_intercept(
         actor=actor,
         intent=intent,
@@ -24879,7 +25870,7 @@ async def _arif_act(
                 )
                 return enriched
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
         return forge_result
     except Exception as exc:
         return _hold(
@@ -25075,10 +26066,7 @@ def _force_hold_mutation_fields(response: Any) -> Any:
             return ""
         if isinstance(val, dict):
             return str(
-                val.get("state")
-                or val.get("verdict")
-                or val.get("dominant_reason")
-                or ""
+                val.get("state") or val.get("verdict") or val.get("dominant_reason") or ""
             ).upper()
         return str(val).upper()
 
@@ -25116,7 +26104,17 @@ def _force_hold_mutation_fields(response: Any) -> Any:
         return response
 
     # Normalize effective_verdict
-    if "VOID" in blob or "BLOCKED" in status_u or "DENY" in blob:
+    # R-1d single-writer (F13 FIX R-1d, 2026-09-22): this function's OWN
+    # docstring contract is to MATERIALIZE effective when missing ("Always
+    # materialize effective_verdict when status is holdish") — it must
+    # never re-derive an EXISTING attach-composed value. Observed reset:
+    # the blob chain preferred raw SABAR-over-HOLD and overwrote the
+    # worse-merged HOLD between attach (tools.py:26023) and wrapper
+    # reconcile (:26131) — the R-1d delta that survived trim/echo guards.
+    # Materialize-only when absent; mutation/seal flag sync below unchanged.
+    if response.get("effective_verdict"):
+        pass  # attach remains THE writer of an existing effective
+    elif "VOID" in blob or "BLOCKED" in status_u or "DENY" in blob:
         response["effective_verdict"] = "VOID"
     elif "SABAR" in blob:
         response["effective_verdict"] = "SABAR"
@@ -25146,9 +26144,7 @@ def _force_hold_mutation_fields(response: Any) -> Any:
     if isinstance(cc, dict):
         cc["hold_required"] = True
         if not cc.get("hold_reason"):
-            cc["hold_reason"] = (
-                f"outer_verdict={response.get('effective_verdict')}"
-            )
+            cc["hold_reason"] = f"outer_verdict={response.get('effective_verdict')}"
 
     # Nested result / session_birth
     for nest_key in ("result", "session_birth", "standing"):
@@ -25227,10 +26223,117 @@ def _wrap_with_canonical_normalization(handler, tool_name):
         async def _async_wrapped(*args, **kwargs):
             import time as _time
 
+            # P0-B Wave 1: dispatcher = trusted ingress. Every governed call
+            # gets a root span (parent=None); nested governed calls inside
+            # the handler become children; the dispatcher's own telemetry
+            # record reads this context → one causal graph per request.
+            from arifosmcp.arifos_observability.trace_context import span as _tspan
+
             _start_t = _time.time()
-            response = await handler(*args, **kwargs)
+            with _tspan(
+                tool_name, actor_id=kwargs.get("actor_id"), act_sid=kwargs.get("session_id")
+            ):
+                response = await handler(*args, **kwargs)
+                _latency_ms = (_time.time() - _start_t) * 1000.0
+                # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────
+                try:
+                    from arifosmcp.runtime.telemetry import trace_tool_call
+
+                    trace_tool_call(
+                        tool_name=tool_name,
+                        arguments={k: v for k, v in kwargs.items() if k != "session_token"},
+                        result=response
+                        if isinstance(response, dict)
+                        else {"result": str(response)[:500]},
+                        session_id=kwargs.get("session_id"),
+                        actor_id=kwargs.get("actor_id") or "unknown",
+                        latency_ms=_latency_ms,
+                    )
+                except Exception:
+                    logger.exception("suppressed exception", exc_info=True)
+            # ────────────────────────────────────────────────────────────────
+            try:
+                body = response if isinstance(response, dict) else {"result": response}
+                sid, aid = _resolve_standing_ids(body, kwargs)
+                response = attach_canonical(body, session_id=sid, actor_id=aid)
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+            # Verbosity diet (P0-5 2026-07-25): trim canonical responses
+            try:
+                from arifosmcp.runtime.verbosity import trim_for_verbosity
+
+                level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
+                response = trim_for_verbosity(response, level)
+                # R-1d TAG-1 (F13 'ADD THE TWO TAGS', 2026-09-23): trim-output
+                # id+eff — with the echo tag this brackets the SABAR-birth.
+                logger.warning(
+                    "R1d trim-out: id=%s eff=%s",
+                    hex(id(response))[-6:],
+                    response.get("effective_verdict") or None,
+                )
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+            # STAB-2026-08-09c: last-writer mut/seal sync after trim
+            try:
+                _force_hold_mutation_fields(response)
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+            try:
+                from arifosmcp.runtime.act_token import echo_canonical_session
+
+                response = echo_canonical_session(
+                    response,
+                    session_id=sid or kwargs.get("session_id"),
+                    actor_id=aid or kwargs.get("actor_id"),
+                    session_token=kwargs.get("session_token"),
+                    autonomy_band=kwargs.get("autonomy_band")
+                    or kwargs.get("band")
+                    or kwargs.get("requested_authority"),
+                )
+                # R-1d TAG-2 (F13 'ADD THE TWO TAGS', 2026-09-23): echo-output
+                # id+eff — trim-out=HOLD + echo-out=SABAR ⇒ echo is the birth;
+                # trim-out=SABAR ⇒ trim projection is the birth.
+                logger.warning(
+                    "R1d echo-out: id=%s eff=%s",
+                    hex(id(response))[-6:],
+                    response.get("effective_verdict") or None,
+                )
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+            # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+            # the TRUE last writer. Every verdict-bearing field must agree,
+            # or the envelope becomes HOLD/INCONSISTENT with authority off.
+            try:
+                from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+                response = reconcile_decision_contract(response)
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+            # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+            # the TRUE last writer. Every verdict-bearing field must agree,
+            # or the envelope becomes HOLD/INCONSISTENT with authority off.
+            try:
+                from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+                response = reconcile_decision_contract(response)
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+            return response
+
+        return _async_wrapped
+
+    @wraps(handler)
+    def _sync_wrapped(*args, **kwargs):
+        import time as _time
+
+        # P0-B Wave 1: same ambient root span for the sync dispatch path.
+        from arifosmcp.arifos_observability.trace_context import span as _tspan
+
+        _start_t = _time.time()
+        with _tspan(tool_name, actor_id=kwargs.get("actor_id"), act_sid=kwargs.get("session_id")):
+            response = handler(*args, **kwargs)
             _latency_ms = (_time.time() - _start_t) * 1000.0
-            # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────
+            # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────────
             try:
                 from arifosmcp.runtime.telemetry import trace_tool_call
 
@@ -25245,83 +26348,32 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                     latency_ms=_latency_ms,
                 )
             except Exception:
-                pass
-            # ────────────────────────────────────────────────────────────────
-            try:
-                body = response if isinstance(response, dict) else {"result": response}
-                sid, aid = _resolve_standing_ids(body, kwargs)
-                response = attach_canonical(body, session_id=sid, actor_id=aid)
-            except Exception:
-                pass
-            # Verbosity diet (P0-5 2026-07-25): trim canonical responses
-            try:
-                from arifosmcp.runtime.verbosity import trim_for_verbosity
-
-                level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
-                response = trim_for_verbosity(response, level)
-            except Exception:
-                pass
-            # STAB-2026-08-09c: last-writer mut/seal sync after trim
-            try:
-                _force_hold_mutation_fields(response)
-            except Exception:
-                pass
-            try:
-                from arifosmcp.runtime.act_token import echo_canonical_session
-
-                response = echo_canonical_session(
-                    response,
-                    session_id=sid or kwargs.get("session_id"),
-                    actor_id=aid or kwargs.get("actor_id"),
-                    session_token=kwargs.get("session_token"),
-                    autonomy_band=kwargs.get("autonomy_band") or kwargs.get("band") or kwargs.get("requested_authority"),
-                )
-            except Exception:
-                pass
-            return response
-
-        return _async_wrapped
-
-    @wraps(handler)
-    def _sync_wrapped(*args, **kwargs):
-        import time as _time
-
-        _start_t = _time.time()
-        response = handler(*args, **kwargs)
-        _latency_ms = (_time.time() - _start_t) * 1000.0
-        # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────────
-        try:
-            from arifosmcp.runtime.telemetry import trace_tool_call
-
-            trace_tool_call(
-                tool_name=tool_name,
-                arguments={k: v for k, v in kwargs.items() if k != "session_token"},
-                result=response if isinstance(response, dict) else {"result": str(response)[:500]},
-                session_id=kwargs.get("session_id"),
-                actor_id=kwargs.get("actor_id") or "unknown",
-                latency_ms=_latency_ms,
-            )
-        except Exception:
-            pass
+                logger.exception("suppressed exception", exc_info=True)
         # ────────────────────────────────────────────────────────────────────
         try:
             body = response if isinstance(response, dict) else {"result": response}
             sid, aid = _resolve_standing_ids(body, kwargs)
             response = attach_canonical(body, session_id=sid, actor_id=aid)
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         # Verbosity diet (P0-5 2026-07-25): trim canonical responses
         try:
             from arifosmcp.runtime.verbosity import trim_for_verbosity
 
             level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
             response = trim_for_verbosity(response, level)
+            # R-1d TAG-1 (F13 'ADD THE TWO TAGS', 2026-09-23): sync-path trim tag.
+            logger.warning(
+                "R1d trim-out: id=%s eff=%s",
+                hex(id(response))[-6:],
+                response.get("effective_verdict") or None,
+            )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         try:
             _force_hold_mutation_fields(response)
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         try:
             from arifosmcp.runtime.act_token import echo_canonical_session
 
@@ -25330,10 +26382,34 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 session_id=sid or kwargs.get("session_id"),
                 actor_id=aid or kwargs.get("actor_id"),
                 session_token=kwargs.get("session_token"),
-                autonomy_band=kwargs.get("autonomy_band") or kwargs.get("band") or kwargs.get("requested_authority"),
+                autonomy_band=kwargs.get("autonomy_band")
+                or kwargs.get("band")
+                or kwargs.get("requested_authority"),
+            )
+            # R-1d TAG-2 (F13 'ADD THE TWO TAGS', 2026-09-23): sync-path echo tag.
+            logger.warning(
+                "R1d echo-out: id=%s eff=%s",
+                hex(id(response))[-6:],
+                response.get("effective_verdict") or None,
             )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
+        # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+        # the TRUE last writer (sync path).
+        try:
+            from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+            response = reconcile_decision_contract(response)
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+        # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
+        # the TRUE last writer (sync path).
+        try:
+            from arifosmcp.runtime.verdict import reconcile_decision_contract
+
+            response = reconcile_decision_contract(response)
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
         return response
 
     return _sync_wrapped
@@ -25359,10 +26435,24 @@ def _apply_canonical_normalization_to_all_handlers():
             registry[tool_name]._canonical_normalization_wrapped = True
             wrapped_count += 1
     if wrapped_count:
-        _log.info(
+        logger.info(
             "canonical_normalization: wrapped %d canonical/diagnostic handlers",
             wrapped_count,
         )
+    # R-1e SNAPSHOT REFRESH (F13 sleep-cycle, 2026-09-23): the map exposed a
+    # permanent SECOND STACK — CANONICAL_TOOL_HANDLERS (line ~28525) is a
+    # COPY taken at import before this pass wraps the live store, so every
+    # in-process consumer via get_tool_handler (kernel_router, kernel_core,
+    # dispatcher) read RAW handlers with no trim/force/echo/reconcile repair
+    # ever. Rebind the snapshot AFTER wrapping so both lanes share the
+    # single repaired chain.
+    try:
+        globals()["CANONICAL_TOOL_HANDLERS"] = {
+            **_CANONICAL_HANDLERS,
+            **_RUNTIME_DIAGNOSTIC_HANDLERS,
+        }
+    except Exception as _snap_exc:
+        logger.warning("canonical snapshot refresh failed: %s", _snap_exc)
 
 
 # NOTE: the post-process call was moved to END-OF-FILE (see bottom of this
@@ -25807,7 +26897,7 @@ def _inject_envelope_into_kwargs(
 def verify_and_inject_token(
     kwargs: dict[str, Any], tool_name: str
 ) -> tuple[bool, dict[str, Any] | None, dict[str, Any] | None]:
-    """Verify session capability token (sct_v1 canonical; arifos.v1 verify-only legacy).
+    """Verify Arif's Capability Token (act_v1 canonical; legacy sct_v1 + arifos.v1 verify-only).
 
     If valid, rehydrates session dict into _SESSIONS (store = optional cache).
     Returns (success, error_response_dict, claims_dict).
@@ -25827,14 +26917,14 @@ def verify_and_inject_token(
     try:
         from arifosmcp.runtime.act_token import (
             resolve_standing,
-            verify_sct,
+            verify_act,
         )
 
         actor_hint = kwargs.get("actor_id")
-        claims = verify_sct(token, expected_actor=actor_hint if actor_hint else None)
+        claims = verify_act(token, expected_actor=actor_hint if actor_hint else None)
         if claims is None and actor_hint:
             # Retry without actor pin (caller may pass wrong actor; token is truth)
-            claims = verify_sct(token, expected_actor=None)
+            claims = verify_act(token, expected_actor=None)
         if claims is None:
             standing = resolve_standing(
                 session_token=token,
@@ -25842,11 +26932,40 @@ def verify_and_inject_token(
                 actor_id=actor_hint,
                 tool=tool_name,
             )
+            deny_reason = standing.reason
+            if not standing.valid and kwargs.get("session_id"):
+                # TRANSCRIPTION-RESCUE (2026-09-12): ACT tokens relayed through
+                # agent context windows corrupt single characters; HMAC correctly
+                # rejects them. The no-token path already grants identical
+                # authority via the session store, so when the store independently
+                # validates the same session_id + actor, rescue instead of
+                # hard-denying. Suspected corruption is stamped, never silent.
+                standing = resolve_standing(
+                    session_token=None,
+                    session_id=kwargs.get("session_id"),
+                    actor_id=actor_hint,
+                    tool=tool_name,
+                )
+                if standing.valid and standing.claims:
+                    claims = standing.claims
+                    kwargs["_act_relay_rescue"] = True
+                    logger.warning(
+                        "ACT transcription-rescue: sig invalid but session store "
+                        "validated sid=%s actor=%s (authority identical to no-token "
+                        "path); proceeding with rescue stamp",
+                        kwargs.get("session_id"),
+                        actor_hint,
+                    )
+        if claims is None:
+            import hashlib as _hashlib
+
             token_prefix = token[:30] if token else "(none)"
+            token_len = len(token) if token else 0
+            token_sha8 = _hashlib.sha256(token.encode("utf-8")).hexdigest()[:8] if token else None
             err_resp = {
                 "status": "HOLD",
                 "tool": tool_name,
-                "verdict": {"state": "HOLD", "dominant_reason": standing.reason},
+                "verdict": {"state": "HOLD", "dominant_reason": deny_reason},
                 "effective_verdict": "HOLD",
                 "mutation_allowed": False,
                 "seal_allowed": False,
@@ -25861,24 +26980,51 @@ def verify_and_inject_token(
                     "malu_delta": 0.05,
                     "tebus_required": "re-authenticate via arif_init",
                     "token_prefix": token_prefix,
-                    "reason": standing.reason,
+                    "token_len": token_len,
+                    "token_sha8": token_sha8,
+                    "reason": deny_reason,
                 },
                 "type": "TOKEN_INVALID",
                 "malu_delta": 0.05,
                 "tebus_required": "re-authenticate via arif_init",
                 "token_prefix": token_prefix,
-                "reasons": [standing.reason or f"Session token invalid. Prefix: {token_prefix}..."],
+                "token_len": token_len,
+                "token_sha8": token_sha8,
+                "reasons": [deny_reason or f"Session token invalid. Prefix: {token_prefix}..."],
             }
             return False, err_resp, None
 
         allowed = list(claims.get("allowed") or [])
         # Kernel birth/resume always allowed; empty allowed → band-only later
         _always = {"arif_init", "arif_session_init"}
+        # GO 5 (2026-09-16): mode-aware carve for the verb allowlist —
+        # Lane B / read-only arif_seal modes pass at any band; write modes
+        # (seal, session_close) remain governed by the token's verb list.
+        # Mode-level authority still applies downstream (interceptor Floors
+        # 4.5–7 mode-classify arif_seal; the receipt branch binds
+        # attribution). This relaxes only the coarse tool-level gate.
+        _seal_lane_b_or_read = tool_name == "arif_seal" and str(
+            kwargs.get("mode", "seal")
+        ).lower() in {
+            "receipt",
+            "verify",
+            "chain",
+            "list",
+            "dry_run",
+            "verify_chain",
+            "chain_status",
+            "audit",
+            "seal_card",
+            "render",
+            "changelog",
+            "ledger",
+        }
         if (
             tool_name not in _always
             and allowed
             and tool_name not in allowed
             and not tool_name.startswith("forge_")
+            and not _seal_lane_b_or_read
         ):
             err_resp = {
                 "status": "HOLD",
@@ -25999,6 +27145,73 @@ def verify_and_inject_token(
         )
 
 
+# ═════════════════════════════════════════════════════════════════════════════
+# KITARAN Tuas 2 — SHARED INVOCATION TELEMETRY (wired 2026-09-19)
+# ═════════════════════════════════════════════════════════════════════════════
+# WHY: the 2026-09-19 KITARAN audit found only ONE organ (GEOX) kept a real
+# invocation log, so every ceremony/exercise measurement rested on a labelled
+# PROXY. arifOS emitted thousands of doctrine artifacts and never recorded
+# which one was actually used. This closes that measurement gap at the one
+# boundary every MCP tool invocation crosses: the handler call inside
+# _wrap_handler (register_tools wraps EVERY canonical tool with it; server.py
+# adds the rest — the FastMCP Middleware path is NOT attached under
+# fastmcp 4.x, so this wrapper, not ingress_middleware.on_call_tool, is live).
+#
+# PRIVACY (frozen contract): tool NAME + actor id ONLY. Never arguments,
+# never payloads, never message content. A tool name is MAP; an argument is
+# STORY.
+#
+# The shared module is NEVER vendored: /root/AAA/lib/invocation_log.py is
+# loaded by path so arifOS keeps exactly one copy of the contract and pays no
+# heavy `arifosmcp.__init__` import chain. Registering the module in
+# sys.modules BEFORE exec_module is required — the module carries postponed
+# annotations and would otherwise fail to exec.
+_INVOCATION_LOG_PATH = "/root/AAA/lib/invocation_log.py"
+
+
+def _record_invocation(
+    tool_name: str,
+    *,
+    actor_id: Any = None,
+    session_id: Any = None,
+    ok: bool = True,
+    duration_ms: float | None = None,
+    error: str | None = None,
+) -> None:
+    """Append one invocation receipt to the shared federation telemetry sink.
+
+    NEVER raises, NEVER blocks: telemetry that can break the thing it measures
+    is more dangerous than the disease it exists to cure (invocation_log
+    contract, frozen 2026-09-19). Every failure path here returns silently.
+    """
+    try:
+        import sys as _inv_sys
+
+        _mod = _inv_sys.modules.get("invocation_log")
+        if _mod is None:
+            import importlib.util as _importlib_util
+
+            _spec = _importlib_util.spec_from_file_location("invocation_log", _INVOCATION_LOG_PATH)
+            if _spec is None or _spec.loader is None:
+                return
+            _mod = _importlib_util.module_from_spec(_spec)
+            # Register BEFORE exec_module: the module uses postponed
+            # annotations and needs its own __dict__ in sys.modules.
+            _inv_sys.modules["invocation_log"] = _mod
+            _spec.loader.exec_module(_mod)
+        _mod.log_invocation(
+            "arifOS",
+            tool_name,
+            actor_id=str(actor_id) if actor_id else None,
+            ok=ok,
+            duration_ms=duration_ms,
+            session_id=str(session_id) if session_id else None,
+            error=error,
+        )
+    except Exception:
+        pass  # telemetry must never break the tool call it measures
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """ "
         Wrap a handler so:
@@ -26039,8 +27252,13 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             return resp
 
     # ── F12 INJECTION MEMBRANE (K1b HARDENING — 2026-08-08) ──────────────
-    # Scans ALL free-text kwargs across ALL tool calls for prompt-injection
-    # patterns before they reach any handler. One gate, applied universally.
+    # Scans free-text kwargs on MUTATION tools for prompt-injection patterns
+    # before they reach any handler. PASSIVE READS (arif_observe,
+    # arif_memory in recall/audit mode, document search) are exempt because
+    # historical-audit vocabulary ("seal", "verdict", "override") is common
+    # prose in audit queries and is NOT an injection vector for read paths.
+    # Mutation tools that can change persistent state MUST remain gated.
+    # P0 FIX 2026-09-27 (composition continuity): gate tightened to mutation only.
     _MEMBRANE_PATTERNS: tuple[str, ...] = (
         r"(?i)(?:ignore|return|seal|grant|emit|print).{0,80}(?:instruction|prompt|override|seal-|verdict)",
         r"(?i)ignore\s*(?:all\s*)?(?:prior|previous|earlier)\s*(?:instructions?|rules?|directives?)",
@@ -26050,9 +27268,37 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     )
     _MEMBRANE_MAX_LEN: int = 2048  # per-field cap, generous but bounded
 
+    # Canonical mutation tool set. Single source of truth — used by both the
+    # F12 membrane gate and the runtime telemetry counter at line ~18384.
+    # Adding a new mutation tool? Update this set, NOT ad-hoc string compares.
+    _MUTATION_TOOLS: frozenset[str] = frozenset(
+        {
+            "arif_forge_execute",  # A-FORGE act
+            "arif_vault_seal",  # legacy alias
+            "arif_seal",  # 999 canonical
+            "arif_act",  # 900 canonical execution
+            "arif_commit",  # commit mutation
+            "arif_run",  # shell exec
+            "arif_exec",  # shell exec
+            "arif_sudo",  # shell exec
+            "arif_systemctl",  # systemd mutation
+            "arif_bridge_connect",  # direct organ tool call
+        }
+    )
+
     def _membrane_scan(kw: dict[str, Any], tool: str) -> str | None:
-        """Scan kwarg values for F12 injection patterns. Returns field name if hit."""
+        """Scan kwarg values for F12 injection patterns. Returns field name if hit.
+        PASSIVE READ TOOLS: bypassed (return None). Only MUTATION_TOOLS are scanned.
+        """
         import re as _mre
+
+        # P0 FIX 2026-09-27 (composition continuity): the F12 lexical gate is
+        # ONLY meaningful for tools that can mutate persistent state. Passive
+        # reads (audit, recall, observe, search) legitimately contain words like
+        # "seal", "verdict", "override" in legitimate prose — gating them
+        # false-positives every audit query. Bypass for non-mutation tools.
+        if tool not in _MUTATION_TOOLS:
+            return None
 
         for _k, _v in kw.items():
             if not isinstance(_v, str):
@@ -26116,8 +27362,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 if _sess and _sess.get("actor_id"):
                     kwargs["actor_id"] = _sess["actor_id"]
             except Exception:
-                pass
-
+                logger.exception("suppressed exception", exc_info=True)
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
         if not ok:
@@ -26138,15 +27383,38 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             _clamp_action = "OBSERVE"
             try:
-                from arifosmcp.runtime.pre_execution_gate import CANONICAL_TOOL_MANIFEST
+                from arifosmcp.runtime.pre_execution_gate import (
+                    CANONICAL_TOOL_MANIFEST,
+                    _SDK_LONG_NAME_ALIASES,
+                )
 
-                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(
+                    _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+                )
                 if _manifest_entry is not None:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
+            # D4 mode-awareness (2026-09-03): read-only modes of IRREVERSIBLE
+            # tools are downgraded to OBSERVE at ingress by the canonical
+            # classifier. The clamp must consult the same classifier —
+            # otherwise it re-gates what ingress already cleared, and the
+            # hollow gate then fires on the clamped empty payload.
+            _clamp_mode = str(kwargs.get("mode") or "")
+            if _clamp_mode:
+                try:
+                    from arifosmcp.core.enforcement.risk_classifier import (
+                        classify_tool as _classify_for_clamp,
+                    )
+
+                    _clamp_rp = _classify_for_clamp(tool_name, mode=_clamp_mode)
+                    _clamp_action = getattr(_clamp_rp.action_class, "value", _clamp_action)
+                except Exception:
+                    logger.exception("suppressed exception", exc_info=True)
             _clamp = session_policy_clamp(
-                kwargs.get("session_id"), tool_name, _clamp_action,
+                kwargs.get("session_id"),
+                tool_name,
+                _clamp_action,
                 tool_mode=str(kwargs.get("mode", "")),
             )
             if _clamp is not None:
@@ -26191,7 +27459,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=0.0,
                 )
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             # ── Session A: Emit operation STARTED ──────────────────────────
             from arifosmcp.runtime.event_bus import emit_operation
 
@@ -26214,6 +27482,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _start_t = _time.time()
             response = handler(*args, **_filtered)
             _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=True,
+                duration_ms=_latency_ms,
+            )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
                 from arifosmcp.runtime.telemetry import trace_tool_call
@@ -26227,7 +27503,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=_latency_ms,
                 )
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             # ── Session A: Emit operation SUCCESS + receipt ────────────────
             from arifosmcp.runtime.event_bus import emit_operation as _eo
             from arifosmcp.runtime.event_bus import emit_receipt as _er
@@ -26254,7 +27530,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
                 record_test_result(tool_name, passed=True)
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             # ── Kabarkan telemetry (ATLAS333 valve) ────────────────────────
             try:
                 from arifosmcp.runtime.telemetry import trace_tool_call as _kabarkan_trace
@@ -26272,9 +27548,17 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=_latency,
                 )
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             # ────────────────────────────────────────────────────────────────
         except Exception as exc:
+            # ── KITARAN Tuas 2: failed invocation still counts (ok=False) ──
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=False,
+                error=type(exc).__name__,
+            )
             # ── Session A: Emit operation FAIL ────────────────────────────
             try:
                 from arifosmcp.runtime.event_bus import emit_operation as _eo
@@ -26287,7 +27571,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     op_id=op_id,
                 )
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             # ───────────────────────────────────────────────────────────────
             msg = str(exc)
             if handler.__name__ in msg:
@@ -26309,11 +27593,26 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
+        _r1d_in = _dict_from_response(response)
         final_resp = _enforce_nine_signal(
             tool_name,
-            _dict_from_response(response),
+            _r1d_in,
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
+        )
+        # R-1d FINAL_RESP TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23):
+        # birth bracket at the OUTER layer — coherent inner-HOLD goes in,
+        # newborn final_resp comes out. trim/echo already exonerated
+        # (598e80 chain clean); this catches the SABAR line exactly.
+        logger.warning(
+            "R1d final_resp: in_eff=%s in_verdict=%s -> out_id=%s out_eff=%s out_verdict=%s",
+            _r1d_in.get("effective_verdict") or None,
+            _r1d_in.get("verdict") or None,
+            hex(id(final_resp))[-6:],
+            final_resp.get("effective_verdict") or None
+            if isinstance(final_resp, dict)
+            else type(final_resp).__name__,
+            final_resp.get("verdict") or None if isinstance(final_resp, dict) else None,
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         # Epoch 1 / Items 1+3: canonical normalization. One call replaces
@@ -26403,7 +27702,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                             _last.get("payload_hash") or _last.get("chain_hash") or "GENESIS"
                         )
                     except Exception:
-                        pass
+                        logger.exception("suppressed exception", exc_info=True)
             _chain_hash = _hl.sha256(f"{_payload_hash}:{_prev_hash}".encode()).hexdigest()[:16]
             _outcome_entry["payload_hash"] = _payload_hash
             _outcome_entry["prev_hash"] = _prev_hash
@@ -26504,15 +27803,38 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             _clamp_action = "OBSERVE"
             try:
-                from arifosmcp.runtime.pre_execution_gate import CANONICAL_TOOL_MANIFEST
+                from arifosmcp.runtime.pre_execution_gate import (
+                    CANONICAL_TOOL_MANIFEST,
+                    _SDK_LONG_NAME_ALIASES,
+                )
 
-                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+                _manifest_entry = CANONICAL_TOOL_MANIFEST.get(
+                    _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+                )
                 if _manifest_entry is not None:
                     _clamp_action = getattr(_manifest_entry.action_class, "value", "OBSERVE")
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
+            # D4 mode-awareness (2026-09-03): read-only modes of IRREVERSIBLE
+            # tools are downgraded to OBSERVE at ingress by the canonical
+            # classifier. The clamp must consult the same classifier —
+            # otherwise it re-gates what ingress already cleared, and the
+            # hollow gate then fires on the clamped empty payload.
+            _clamp_mode = str(kwargs.get("mode") or "")
+            if _clamp_mode:
+                try:
+                    from arifosmcp.core.enforcement.risk_classifier import (
+                        classify_tool as _classify_for_clamp,
+                    )
+
+                    _clamp_rp = _classify_for_clamp(tool_name, mode=_clamp_mode)
+                    _clamp_action = getattr(_clamp_rp.action_class, "value", _clamp_action)
+                except Exception:
+                    logger.exception("suppressed exception", exc_info=True)
             _clamp = session_policy_clamp(
-                kwargs.get("session_id"), tool_name, _clamp_action,
+                kwargs.get("session_id"),
+                tool_name,
+                _clamp_action,
                 tool_mode=str(kwargs.get("mode", "")),
             )
             if _clamp is not None:
@@ -26548,7 +27870,38 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             _start_t = _time.time()
             response = await handler(*args, **_filtered)
+            # R-1d AWAIT TAG (F13 'ADD THE AWAIT TAG', 2026-09-23): what the
+            # outer layer ACTUALLY receives from the handler chain — the
+            # one-line window between the tagged inner return (trim/echo
+            # chain, HOLD) and _dict_from_response (whose input read SABAR).
+            # R-1e HANDLER IDENTITY (F13 'ADD HANDLER IDENTITY', 2026-09-23):
+            # wrapped=True ⇒ B captured an A-wrapped handle (intended single
+            # chain B(A(raw))); wrapped=False ⇒ B captured RAW (register ran
+            # before the end-of-file A-pass or an alias/snapshot path) =
+            # the dispatch split, R-1e cause (a). fn shows the wraps chain.
+            logger.warning(
+                "R1d outer-in: id=%s type=%s eff=%s verdict=%s | handler id=%s wrapped=%s fn=%s",
+                hex(id(response))[-6:],
+                type(response).__name__,
+                (response.get("effective_verdict") or None)
+                if isinstance(response, dict)
+                else getattr(response, "effective_verdict", None),
+                (response.get("verdict") or None)
+                if isinstance(response, dict)
+                else getattr(response, "verdict", None),
+                hex(id(handler))[-6:],
+                bool(getattr(handler, "_canonical_normalization_wrapped", False)),
+                f"{getattr(handler, '__name__', '?')}<-{getattr(getattr(handler, '__wrapped__', None), '__name__', '-')}",
+            )
             _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=True,
+                duration_ms=_latency_ms,
+            )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
                 from arifosmcp.runtime.telemetry import trace_tool_call
@@ -26562,8 +27915,16 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     latency_ms=_latency_ms,
                 )
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
         except Exception as exc:
+            # ── KITARAN Tuas 2: failed invocation still counts (ok=False) ──
+            _record_invocation(
+                tool_name,
+                actor_id=kwargs.get("actor_id"),
+                session_id=kwargs.get("session_id"),
+                ok=False,
+                error=type(exc).__name__,
+            )
             msg = str(exc)
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)
@@ -26586,11 +27947,26 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
+        _r1d_in = _dict_from_response(response)
         final_resp = _enforce_nine_signal(
             tool_name,
-            _dict_from_response(response),
+            _r1d_in,
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
+        )
+        # R-1d FINAL_RESP TAG (F13 'ADD THE FINAL_RESP TAG', 2026-09-23):
+        # birth bracket at the OUTER layer — coherent inner-HOLD goes in,
+        # newborn final_resp comes out. trim/echo already exonerated
+        # (598e80 chain clean); this catches the SABAR line exactly.
+        logger.warning(
+            "R1d final_resp: in_eff=%s in_verdict=%s -> out_id=%s out_eff=%s out_verdict=%s",
+            _r1d_in.get("effective_verdict") or None,
+            _r1d_in.get("verdict") or None,
+            hex(id(final_resp))[-6:],
+            final_resp.get("effective_verdict") or None
+            if isinstance(final_resp, dict)
+            else type(final_resp).__name__,
+            final_resp.get("verdict") or None if isinstance(final_resp, dict) else None,
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         # Epoch 1 / Items 1+3: canonical normalization. One call replaces
@@ -26651,7 +28027,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 latency_ms=_latency,
             )
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
         try:
             from datetime import UTC as _UTC
@@ -27196,6 +28572,20 @@ def register_tools(
                 preferred=(spec.description if spec is not None else None),
                 live_modes=None,  # modes belong in input_schema enum, not prose
             )
+            # R-1e SINGLE-CHAIN GUARANTEE (F13 sleep-cycle, 2026-09-23):
+            # the end-of-file A-pass alone did NOT prove sufficient — live
+            # identity evidence: handler wrapped=False fn=arif_judge<-arif_judge
+            # (B captured RAW) and outer-in was a VerdictOutput MODEL
+            # (SABAR/SEAL) that bypassed the repair chain entirely →
+            # manufactured VERDICT_FIELD_DIVERGENCE. Compose at REGISTER
+            # time, sentinel-idempotent: the FastMCP handle is now ALWAYS
+            # B(A(raw)) regardless of pass ordering.
+            if not getattr(handler, "_canonical_normalization_wrapped", False):
+                handler = _wrap_with_canonical_normalization(handler, name)
+                try:
+                    handler._canonical_normalization_wrapped = True
+                except Exception:
+                    logger.exception("suppressed exception", exc_info=True)
             wrapped = _wrap_handler(handler, name)
 
             # Compute canonical risk passport for this tool
@@ -27254,6 +28644,19 @@ def register_tools(
             _spec = _registry.get(name)
             if _spec:
                 _modes = _spec.get("modes", [])
+                # Capability-truth guard 2026-09-18 (333-AGI): never advertise a
+                # mode the handler cannot dispatch (declared via __dispatch_modes__;
+                # undeclared handlers pass through unchanged).
+                _universe = getattr(handler, "__dispatch_modes__", None)
+                if _universe is not None:
+                    _dropped_modes = sorted(m for m in _modes if m not in _universe)
+                    if _dropped_modes:
+                        logger.warning(
+                            "MODE ENUM GUARD %s: advertised-but-not-dispatchable dropped: %s",
+                            name,
+                            _dropped_modes,
+                        )
+                    _modes = [m for m in _modes if m in _universe]
                 try:
                     _provider = getattr(mcp, "_local_provider", None)
                     if _provider is not None:

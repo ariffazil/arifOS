@@ -57,9 +57,7 @@ GENERATED_BY = "arifOS"
 # The file is updated every 5 min by /opt/arifos/scripts/observatory_emit.py
 # and has the same observatory.v1 schema. F2: never serve skeleton when
 # real data is on disk — this file IS the SOT during dynamic-build outages.
-_SNAPSHOT_FILE_FALLBACK = Path(
-    "/root/.arifos/observatory/snapshots/snapshot_latest.json"
-)
+_SNAPSHOT_FILE_FALLBACK = Path("/root/.arifos/observatory/snapshots/snapshot_latest.json")
 
 
 # ── Observation-method vocabulary ─────────────────────────────────────────────
@@ -752,11 +750,33 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
         observation_method=_OBS_METHOD_PROCESS,
         independent=True,
     )
+    # kernel_epoch read only ENV:ARIFOS_RELEASE_NAME, which is unset in the
+    # service environment, so the cell published the literal string "unknown"
+    # while BUILD_INFO already carried a real release tag. Fall back through the
+    # build metadata; None (rendered "unavailable") is the honest answer only
+    # when no source has a value — never the string "unknown" dressed as data.
+    try:
+        from arifosmcp.runtime.rest_routes.rest_routes import BUILD_INFO as _BUILD_INFO
+    except Exception:
+        _BUILD_INFO = {}
+    _epoch_env = os.getenv("ARIFOS_RELEASE_NAME")
+    if _epoch_env:
+        _epoch_val, _epoch_src = _epoch_env, "ENV:ARIFOS_RELEASE_NAME"
+    elif _BUILD_INFO.get("release_tag"):
+        _epoch_val, _epoch_src = _BUILD_INFO["release_tag"], "BUILD_INFO.release_tag"
+    elif _BUILD_INFO.get("protocol_version"):
+        _epoch_val, _epoch_src = (
+            _BUILD_INFO["protocol_version"],
+            "BUILD_INFO.protocol_version",
+        )
+    else:
+        _epoch_val = None
+        _epoch_src = "no source: ENV unset, BUILD_INFO has neither release_tag nor protocol_version"
     out["kernel_epoch"] = _pf(
-        os.getenv("ARIFOS_RELEASE_NAME", "unknown"),
-        source="ENV:ARIFOS_RELEASE_NAME",
-        state="reported",
-        confidence=0.85,
+        _epoch_val,
+        source=_epoch_src,
+        state="reported" if _epoch_val else "unknown",
+        confidence=0.85 if _epoch_val else 0.0,
         observation_method=_OBS_METHOD_ENV,
         independent=True,
     )
@@ -870,6 +890,12 @@ def _governance_block() -> dict[str, dict[str, Any]]:
     """Governance verdict + 13-floor status + per-field envelopes."""
     out: dict[str, dict[str, Any]] = {}
     floors: dict[str, dict[str, Any]] = {}
+    # Counters are read after the try/except below, so they must exist even when
+    # the governance import or payload build raises (previously a latent
+    # NameError on the floors_passing/floors_failing emission path).
+    passing = 0
+    failing = 0
+    unmeasured = 0
     try:
         from arifosmcp.runtime.rest_routes.rest_routes import (  # type: ignore
             _build_governance_status_payload,
@@ -878,30 +904,66 @@ def _governance_block() -> dict[str, dict[str, Any]]:
 
         gov = _build_governance_status_payload()
         raw_floors = gov.get("floors", {})
+        # SCAR-OBS-GREENWASH (2026-10-03, FI-003): three-state floor status.
+        # A score sourced from rest_routes._FLOOR_DEFAULTS is produced by
+        # _representative_floor_score(), which returns the floor's OWN passing
+        # threshold ("choose conservative passing value"). It is a visualizer
+        # placeholder, so it can never fail — rendering it as `pass` published
+        # 12 of 13 floors as measured-and-green when at most one (F1, via the
+        # arifFLOW FQ probe) had any external referent. Placeholders now render
+        # `unmeasured` with a null score, per the page's own doctrine: "a loaded
+        # floor without a score is not measured, never green."
+        provenance = gov.get("floor_provenance", {}) or {}
+        # F3 tri-witness legs published verbatim, so a missing leg is a named,
+        # evidenced gap rather than a zero averaged away into a score.
+        out["witness_legs"] = gov.get("witness_legs")
+        out["floor_provenance"] = provenance
         passing = 0
         failing = 0
+        unmeasured = 0
         for fid, score in raw_floors.items():
-            try:
-                ok = _floor_passes(fid, float(score))
-            except Exception:
+            origin = str(provenance.get(fid) or "governance_kernel")
+            is_placeholder = origin.startswith("unmeasured_default")
+            if is_placeholder:
                 ok = False
-            if ok:
-                passing += 1
+                status = "unmeasured"
+                unmeasured += 1
             else:
-                failing += 1
+                try:
+                    ok = _floor_passes(fid, float(score))
+                except Exception:
+                    ok = False
+                status = "pass" if ok else "fail"
+                if ok:
+                    passing += 1
+                else:
+                    failing += 1
             floors[fid] = {
                 "score": _pf(
-                    score,
-                    source="governance_kernel.get_current_state",
-                    confidence=0.9,
+                    None if is_placeholder else score,
+                    source=(
+                        "rest_routes._FLOOR_DEFAULTS (auto-pass placeholder)"
+                        if is_placeholder
+                        else f"governance_kernel.get_current_state [{origin}]"
+                    ),
+                    state="unknown" if is_placeholder else "observed",
+                    confidence=0.0 if is_placeholder else 0.9,
                     observation_method=_OBS_METHOD_SELF_REPORTED,
                     independent=False,
                 ),
                 "status": _pf(
-                    "pass" if ok else "fail",
-                    source="_floor_passes",
+                    status,
+                    source="_floor_passes + floor_provenance",
                     state="derived",
                     confidence=0.9,
+                    observation_method=_OBS_METHOD_DERIVED,
+                    independent=False,
+                ),
+                "provenance": _pf(
+                    origin,
+                    source="rest_routes.floor_provenance",
+                    state="observed",
+                    confidence=0.99,
                     observation_method=_OBS_METHOD_DERIVED,
                     independent=False,
                 ),
@@ -918,6 +980,33 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         verdict = "UNKNOWN"
 
     out["floors"] = floors
+    # ── Wave-0 two-predicate envelope (2026-10-06) ────────────────────────
+    # The kernel /health `floors_pass` and the observatory floor block answer
+    # DIFFERENT questions and may disagree numerically without either being
+    # wrong. Naming both predicates here stops consumers (page, agents,
+    # external auditors) from conflating them. Rule (external convergence
+    # letter 4, accepted): never convert unmeasured into pass/fail implicitly;
+    # never present a per-action gate pass as globally measured health.
+    out["floor_semantics"] = {
+        "version": "wave0.v1",
+        "gate_state": {
+            "predicate_id": "kernel:_floor_status_strict@rest_routes.py:3415",
+            "producer": "kernel /health layer_health.constitutional",
+            "meaning": "May this action proceed under the applicable policy? "
+            "Score-threshold evaluation per floor (defaults included where "
+            "no live instrument exists).",
+        },
+        "measurement_state": {
+            "predicate_id": "observatory:floor_provenance@rest_routes.py:1006",
+            "producer": "observatory resolved_floors + provenance labels",
+            "meaning": "Is this floor instrumented, and what does the "
+            "observation establish? unmeasured_default = no instrument, "
+            "never a pass.",
+        },
+        "scope": "gate=action-level policy · measurement=federation-level coverage",
+        "rule": "unmeasured is never converted to pass or fail implicitly; "
+        "a gate pass is never presented as global measured health",
+    }
     out["floors_loaded"] = _pf(
         len(floors),
         source="kernel.enum.LAW_SPEC_KEYS",
@@ -936,6 +1025,14 @@ def _governance_block() -> dict[str, dict[str, Any]]:
     out["floors_failing"] = _pf(
         failing,
         source="_floor_passes count",
+        state="derived",
+        confidence=0.95,
+        observation_method=_OBS_METHOD_DERIVED,
+        independent=False,
+    )
+    out["floors_unmeasured"] = _pf(
+        unmeasured,
+        source="floor_provenance count (unmeasured_default*)",
         state="derived",
         confidence=0.95,
         observation_method=_OBS_METHOD_DERIVED,
@@ -967,8 +1064,11 @@ def _governance_block() -> dict[str, dict[str, Any]]:
     _resolved_session_state = _resolve_session_state_from_sessions()
     out["verdict_decomposition"] = {
         "substrate_state": _pf(
-            "PASS" if failing == 0 else "FAIL",
-            source="floors_passing count",
+            # SCAR-OBS-GREENWASH: `failing == 0` alone was fail-open — zero
+            # failures plus twelve placeholder floors still rendered PASS.
+            # Void Guard: "no data" != "all clear".
+            "FAIL" if failing else ("UNMEASURED" if unmeasured else "PASS"),
+            source="floors_passing/failing/unmeasured count",
             state="derived",
             confidence=0.9,
             observation_method=_OBS_METHOD_DERIVED,
@@ -1154,7 +1254,14 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
-        "capability": _pf(
+        # A-FORGE :7071/health publishes tools_loaded (measured 122) and
+        # _deep_probe_organ already extracts it into forge_dp["capability"] —
+        # this block was discarding that and hardcoding None, so A-FORGE
+        # readiness could never rise above DEGRADED despite a real measurement
+        # sitting in the same scope. Same `dp or placeholder` pattern as
+        # identity/contract above.
+        "capability": forge_dp["capability"]
+        or _pf(
             None,
             source="A-FORGE registry",
             state="unknown",
@@ -1204,9 +1311,19 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         ),
         "label": "A-FORGE :7071/:7072",
     }
-    # mcp-gateway — public endpoint, self-reported (we can't independently probe from inside)
+    # mcp-gateway — the comment here used to claim "we can't independently probe
+    # from inside", which was false: federation-gateway.service listens on
+    # 127.0.0.1:3003. `transport` held the bare hostname string, so the derived
+    # liveness test could never match "up" and the gateway rendered ABSENT /
+    # UNREACHABLE while it was in fact serving. :3003/health now exists
+    # (AAA commit 7e88d9a4, FastMCP custom_route) and publishes version +
+    # tools_loaded from the gateway's own live registries, so identity, contract
+    # and capability are deep-probed like every other organ instead of being
+    # hardcoded None. The hostname is kept in `endpoint`; no information lost.
+    gw_dp = _deep_probe_organ("127.0.0.1", 3003, "mcp-gateway :3003")
     out["mcp_gateway"] = {
-        "transport": _pf(
+        "transport": _probe_transport("127.0.0.1", 3003),
+        "endpoint": _pf(
             "mcp.arif-fazil.com",
             source="Caddyfile vhost",
             state="reported",
@@ -1214,7 +1331,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_STATIC,
             independent=True,
         ),
-        "identity": _pf(
+        "identity": gw_dp["identity"]
+        or _pf(
             None,
             source="/.well-known/agent-card.json",
             state="unknown",
@@ -1222,7 +1340,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
-        "contract": _pf(
+        "contract": gw_dp["contract"]
+        or _pf(
             None,
             source="/.well-known/mcp/server.json",
             state="unknown",
@@ -1230,7 +1349,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
-        "capability": _pf(
+        "capability": gw_dp["capability"]
+        or _pf(
             None,
             source="mcp tools/list",
             state="unknown",
@@ -1282,8 +1402,18 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     }
     # arifFLOW — receipt gravity well + flow control plane (Z4 Forensic Trail Epoch)
     flow_dp = _deep_probe_organ("127.0.0.1", 7073, "arifFLOW :7073")
+    # arifFlow is TWO processes: the Rust metabolism daemon on :7073 (FQ,
+    # receipts, /ingest) and ariflow-mcp.service on :7075, which owns the
+    # @mcp.tool() registrations. The daemon publishes no tool count and must not
+    # — reporting capability for a surface it does not serve is a fabricated
+    # capability, the SCAR-OBS-GREENWASH class. :7075/health reads the live
+    # FastMCP registry (arifFlow commit a4759d0), so capability is probed there
+    # while transport and fq_verdict correctly stay on :7073.
+    flow_mcp_dp = _deep_probe_organ("127.0.0.1", 7075, "arifFLOW MCP :7075")
+    flow_fq = _probe_arifflow_fq()
     out["arifflow"] = {
         "transport": _probe_transport("127.0.0.1", 7073),
+        "fq_verdict": flow_fq,
         "identity": flow_dp["identity"]
         or _pf(
             None,
@@ -1293,16 +1423,24 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
+        # arifFLOW :7073/health publishes no `version` field, so
+        # _deep_probe_organ cannot derive a contract and this fell through to
+        # None. It does publish `status` ("ok-v3-vector"), which identifies the
+        # health-contract schema — a real observed value, labelled as such and
+        # deliberately not confused with a version field. capability stays None:
+        # arifFLOW publishes no tool count, and inventing one is exactly the
+        # defect class this file just removed.
         "contract": flow_dp["contract"]
         or _pf(
-            None,
-            source="arifFLOW receipt_chain",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
+            flow_dp.get("status"),
+            source="GET 127.0.0.1:7073/health→status (no version field published)",
+            state="observed" if flow_dp.get("status") else "unknown",
+            confidence=0.7 if flow_dp.get("status") else 0.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
         ),
-        "capability": _pf(
+        "capability": flow_mcp_dp["capability"]
+        or _pf(
             None,
             source="arifFLOW telemetry",
             state="unknown",
@@ -1352,7 +1490,93 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         ),
         "label": "arifFLOW :7073",
     }
+
+    # ── 7-state vocabulary: LIVENESS + READINESS ────────────────────────────
+    # The organ blocks above emit `transport` (a real TCP probe) and
+    # `capability`/`contract` (real HTTP /health reads), but the published
+    # 7-state vocabulary is LIVENESS / READINESS / CAPABILITY / GOVERNANCE /
+    # AUTHORIZATION / RECEIPT / CONSTITUTIONAL. Two of the seven therefore
+    # rendered "unavailable" for all six organs — 12 cells — while the evidence
+    # sat in the same dict under a different key. Derived here, in one place,
+    # from measurements that already exist. Both are labelled `derived` and name
+    # their inputs; neither invents a probe, and an unreachable organ yields
+    # ABSENT/UNREACHABLE rather than a hopeful default.
+    for _organ in out.values():
+        if not isinstance(_organ, dict):
+            continue
+        _transport = (_organ.get("transport") or {}).get("value")
+        _alive = str(_transport).lower() in {"up", "reachable", "ok", "healthy"}
+        _organ["liveness"] = _pf(
+            "PRESENT" if _alive else "ABSENT",
+            source=f"derived from transport={_transport!r}",
+            state="derived" if _transport is not None else "unknown",
+            confidence=0.85 if _transport is not None else 0.0,
+            observation_method=_OBS_METHOD_DERIVED,
+            independent=True,
+        )
+        _capability = (_organ.get("capability") or {}).get("value")
+        _contract = (_organ.get("contract") or {}).get("value")
+        if not _alive:
+            _readiness, _rstate, _rconf = "UNREACHABLE", "derived", 0.85
+        elif _capability in (None, 0, "0") and _contract in (None, "", "unknown"):
+            _readiness, _rstate, _rconf = None, "unknown", 0.0
+        elif _capability not in (None, 0, "0") and _contract not in (None, "", "unknown"):
+            _readiness, _rstate, _rconf = "READY", "derived", 0.8
+        else:
+            _readiness, _rstate, _rconf = "DEGRADED", "derived", 0.7
+        _organ["readiness"] = _pf(
+            _readiness,
+            source=f"derived from capability={_capability!r} contract={_contract!r}",
+            state=_rstate,
+            confidence=_rconf,
+            observation_method=_OBS_METHOD_DERIVED if _rstate == "derived" else _OBS_METHOD_UNKNOWN,
+            independent=False,
+        )
     return out
+
+
+def _probe_arifflow_fq() -> Any:
+    """Measure arifFLOW's live Flow Quotient verdict from :7073/health.
+
+    Audit 2026-09-28: the FLOW PLANE rendered fq=receipts=chain 'unavailable'
+    while arifFLOW was live and tracking FQ (qg vector, 25 actors). The data
+    existed; nobody probed it. FQ is observational (FLOW_OBSERVES_NEVER_INTERPRETS)
+    — we surface verdict + diagnosis only, never a judgment.
+    """
+    import json as _json
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:7073/health", timeout=3.0) as resp:
+            data = _json.loads(resp.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return _pf(
+            None,
+            source="arifFLOW :7073/health→fq",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        )
+    fq = data.get("fq") if isinstance(data.get("fq"), dict) else {}
+    verdict = fq.get("legacy_verdict") or data.get("verdict")
+    diagnosis = fq.get("legacy_diagnosis") or data.get("diagnosis")
+    frame = fq.get("metric_frame") if isinstance(fq.get("metric_frame"), dict) else {}
+    value = {
+        "verdict": verdict,
+        "diagnosis": diagnosis,
+        "actors_tracked": frame.get("actors_tracked"),
+        "sample_size": frame.get("sample_size"),
+        "execute_count": fq.get("execute_count"),
+    }
+    return _pf(
+        value,
+        source="GET 127.0.0.1:7073/health→fq",
+        state="observed",
+        confidence=0.9,
+        observation_method="http_probe",
+        independent=True,
+    )
 
 
 def _deep_probe_organ(host: str, port: int, label: str) -> dict[str, Any]:
@@ -2573,8 +2797,22 @@ def build_snapshot(
     except Exception as exc:
         logger.warning("build_server_json failed: %s", exc)
 
+    # Wire truth for `exposed`: probe the running service directly. The cron
+    # emitter has no ARIFOS_PUBLIC_SURFACE_MODE and would otherwise score a
+    # config profile that does not match the live surface (audit 2026-09-28).
+    live_exposed: set[str] | None = None
+    try:
+        from arifosmcp.runtime.capability_drift import probe_live_wire_tools
+
+        live_exposed = probe_live_wire_tools()
+    except Exception as exc:
+        logger.debug("live wire probe failed (fallback to server_json): %s", exc)
+
     capabilities = compute_capability_matrix(
-        mcp=mcp, server_json=server_json, registered_tools=registered_tools
+        mcp=mcp,
+        server_json=server_json,
+        registered_tools=registered_tools,
+        live_exposed=live_exposed,
     )
     runtime_identity = _runtime_identity_block()
     capability_degraded = int(capabilities.get("degraded_count", 0) or 0)
@@ -2700,8 +2938,20 @@ async def build_snapshot_async(
     except Exception as exc:
         logger.warning("build_server_json failed: %s", exc)
 
+    # Wire truth for `exposed` — see the sibling build_snapshot call site.
+    live_exposed: set[str] | None = None
+    try:
+        from arifosmcp.runtime.capability_drift import probe_live_wire_tools
+
+        live_exposed = probe_live_wire_tools()
+    except Exception as exc:
+        logger.debug("live wire probe failed (fallback to server_json): %s", exc)
+
     capabilities = compute_capability_matrix(
-        mcp=mcp, server_json=server_json, registered_tools=registered_tools
+        mcp=mcp,
+        server_json=server_json,
+        registered_tools=registered_tools,
+        live_exposed=live_exposed,
     )
     runtime_identity = _runtime_identity_block()
     capability_degraded = int(capabilities.get("degraded_count", 0) or 0)

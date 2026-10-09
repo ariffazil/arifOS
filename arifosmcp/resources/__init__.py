@@ -491,7 +491,11 @@ CANONICAL_RESOURCES = (
     "arifos://wisdom/contract",
     "arifos://wisdom/quotes/all",
     # DOORS chamber
-    "tree777://index",
+    # REMOVED 2026-09-29 (F13 Order A — tree777 de-advertisement):
+    #   "tree777://index" — retired namespace. Service held 2026-08-14
+    #   (AAA/corpus/DECISION_TREE777_HOLD_2026-08-14.md), no successor service.
+    #   The live handler is retained in resources/tree777.py (access preserved);
+    #   this tuple governs ADVERTISEMENT only.
     "skill://index",
     # Structural anchors
     "arifos://index",
@@ -512,9 +516,15 @@ SUPPLEMENTAL_RESOURCES = (
 
 TREE777_RESOURCES = (
     # REMOVED 2026-06-28: tree777://index (meta, not domain data)
-    # Keep concepts/scars — these are domain knowledge (geology concepts, scars)
-    "tree777://concepts/{name}",
-    "tree777://scars/{name}",
+    # REMOVED 2026-09-29 (F13 Order A — namespace retired):
+    #   "tree777://concepts/{name}" — broken: resolved to a non-existent wiki path
+    #                                 (ERROR: File not found: AAA/wiki/concepts/*.md)
+    #   "tree777://scars/{name}"    — orphaned namespace; the tree777 service was held
+    #                                 2026-08-14 and has no successor.
+    # The CORPUS is retained and live: /root/AAA/wiki (see AAA/wiki/INDEX.md).
+    # ADVERTISEMENT != ACCESS: live handlers remain registered by
+    #   register_tree777_resources() below; this tuple governs only what the federated
+    #   resource catalog / llms.txt publish.
 )
 
 EMBODIED_RESOURCES = (
@@ -606,3 +616,76 @@ def register_resources(mcp: FastMCP) -> list[str]:
     if _atlas333_attach:
         registered.extend(_atlas333_attach(mcp))
     return registered
+
+
+def enrich_resource_metadata(mcp: FastMCP) -> int:
+    """Post-registration enrichment: add title + annotations to resources missing them.
+
+    MCP spec 2026-07-28 compliance: resources SHOULD carry title (human-readable
+    display name) and annotations (audience, priority) for host-side filtering
+    and prioritization. This function patches resources that were registered
+    without these fields.
+
+    Returns number of resources patched.
+    """
+    patched = 0
+    try:
+        local_provider = mcp._local_provider
+        components = local_provider._components
+    except AttributeError:
+        logger.warning("Cannot access internal resource store for enrichment")
+        return 0
+
+    for key, comp in components.items():
+        if not hasattr(comp, "uri") or not hasattr(comp, "title"):
+            continue
+        uri = str(comp.uri) if comp.uri else ""
+
+        # Skip if title already set
+        if comp.title:
+            continue
+
+        # Derive title from URI
+        if uri in _RESOURCE_PROVENANCE:
+            # Use the URI's chamber/context for a meaningful title
+            title = uri.split("://")[-1].replace("/", " · ").replace("-", " ").title()
+            title = title.replace("{", "").replace("}", "")
+        else:
+            title = uri.split("://")[-1] if "://" in uri else uri
+            title = title.replace("/", " · ").replace("-", " ").title()
+
+        try:
+            comp.title = title
+            patched += 1
+        except Exception as exc:
+            logger.debug("Could not patch title for %s: %s", uri, exc)
+
+        # Add annotations if missing
+        if not comp.annotations:
+            from mcp.types import Annotations as McpAnnotations
+
+            # Derive audience and priority from provenance
+            prov = get_resource_provenance(uri)
+            if prov:
+                truth_level = prov.get("truth_level", 3)
+                # Map truth_level to priority (1=most important → 0.5; 7=least → 0.1)
+                priority = max(0.1, 1.0 - (truth_level - 1) * 0.15)
+                # Sovereign canon and human resources get user audience
+                if truth_level <= 2 or "human" in uri:
+                    audience = ["user", "assistant"]
+                else:
+                    audience = ["assistant"]
+            else:
+                priority = 0.5
+                audience = ["assistant"]
+
+            try:
+                comp.annotations = McpAnnotations(
+                    audience=audience, priority=priority
+                )
+            except Exception as exc:
+                logger.debug("Could not patch annotations for %s: %s", uri, exc)
+
+    if patched:
+        logger.info("Enriched %d resources with title + annotations", patched)
+    return patched

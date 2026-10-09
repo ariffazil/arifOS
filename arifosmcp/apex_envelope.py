@@ -34,6 +34,9 @@ def toac_contrast_score(evidence: dict | None = None, claim_strength: float = 0.
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
+# LEGACY_PRE_V3 — deprecated APEX-MCP-001 'APEX-Law' equation (7-factor, incl. H,S,U,E²).
+# NOT canonical G. Canonical V3 G = (A·P·E·X)^(1/4) — see arifosmcp.runtime.apex_canonical.
+# Still emitted by tools/reason.py as legacy envelope metadata; retirement = D-03/D-05 (F13).
 APEX_EQUATION = "g(t)=A(t)\u00b7P(t)\u00b7H(t)\u00b7\u221a(S(t)\u00b7U(t))\u00b7E(t)\u00b2"
 APEX_VERSION = "v2026.06.20"
 APEX_SPEC = "APEX-MCP-001"

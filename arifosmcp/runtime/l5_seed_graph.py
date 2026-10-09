@@ -587,8 +587,8 @@ EDGES = [
     ("arif_think", "ROUTES_TO", "arif_critique", 1.0, "333→444 pipeline"),
     ("arif_critique", "ROUTES_TO", "arif_kernel_route", 1.0, "444→555 pipeline"),
     ("arif_kernel_route", "ROUTES_TO", "arif_forge", 0.8, "555→666 conditional"),
-    ("arif_forge", "ROUTES_TO", "arif_judge", 1.0, "666→888 pipeline"),
-    ("arif_judge", "ROUTES_TO", "arif_seal", 1.0, "888→999 pipeline"),
+    ("arif_forge", "ROUTES_TO", "arif_judge", 1.0, "777→666 reverse-edge (HOLD: direction reversal flagged for sovereign musyawarah)"),
+    ("arif_judge", "ROUTES_TO", "arif_seal", 1.0, "666→999 pipeline (canonical: 666→777→999; graph shortcut labeled for witness)"),
     # Memory architecture
     ("arif_memory_recall", "DEPENDS_ON", "memory_store", 1.0, "recall reads store"),
     ("memory_store", "PRODUCES", "l5_graphiti_bridge", 0.8, "store triggers L5 write"),

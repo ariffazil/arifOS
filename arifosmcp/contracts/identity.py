@@ -313,10 +313,13 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     # Fingerprint a1d4971c986c1642 · Ed25519 public key at
     # /root/AAA/IDENTITY/keys/FI-008_public.pem.
     # Reversible: delete this block + restore the .bak file.
+    # 2026-10-04 heal (kernel-heal-ledger-2026-10-04.md D2): + slash-form lane
+    # alias — the MCP harness transmits "<lane>/FI-nnn" and _alias_match()
+    # (runtime/tools.py) never matched it, false-HOLDing every governed call.
     "FI-008": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["FI-008", "fi-008", "kimi-code-fi008", "kimi-code"],
+        "aliases": ["FI-008", "fi-008", "kimi-code-fi008", "kimi-code", "kimi-code/fi-008"],
     },
     # T3 grant 2026-08-07 by 888 SOVEREIGN: register SOTCRON as Tier-A identity.
     # Federation SOT/Drift cron — continuous World Model vault bridge.
@@ -347,7 +350,7 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     "GROK": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["grok", "grok-build", "FI-007", "fi-007", "gap-audit", "p0-verify"],
+        "aliases": ["grok", "grok-build", "FI-007", "fi-007", "gap-audit", "p0-verify", "grok-build/fi-007"],
     },
     "CLAUDE": {
         "sovereign_id": "ARIF_FAZIL",
@@ -357,17 +360,41 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     "QWEN": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["qwen", "qwen-code", "FI-003", "fi-003"],
+        "aliases": ["qwen", "qwen-code", "FI-003", "fi-003", "qwen-code/fi-003"],
     },
     "KIMI": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["kimi", "kimi-code", "FI-008", "fi-008"],
+        "aliases": ["kimi", "kimi-code", "FI-008", "fi-008", "kimi-code/fi-008"],
     },
     "CODEX": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "AGENT",
-        "aliases": ["codex", "codex-cli", "FI-005", "fi-005"],
+        "aliases": ["codex", "codex-cli", "FI-005", "fi-005", "codex-cli/fi-005"],
+    },
+    # 2026-09-30 (333-AGI, F13 "no tool blocks and no access block for all AAA
+    # agents"): restored from contracts/identity.py. This packaged copy — the one
+    # that actually SHIPS in the wheel — was missing two entries the top-level copy
+    # carries, so the 3 sites importing arifosmcp.contracts.identity (including
+    # session_auth.exempt_actor_band, the shared resolver) could not resolve them:
+    #   I_ARIF  — the 2026-08-21 Seal C fix. Its own comment records that when it
+    #             is absent "the Seal C consolidation path is structurally
+    #             unreachable" and the boot gate demotes i-arif to OBSERVE_ONLY.
+    #   GEMINI  — added to the top-level copy in 2fb5f0456; carries the FI-004
+    #             lane alias, so agy/FI-004 resolved to GEMINI or to None
+    #             depending on which copy a module imported.
+    # Both are recognitions the top-level copy already grants in production, so
+    # this widens nothing — it ends a divergence. tests/contracts/
+    # test_identity_registry_no_divergence.py now fails if they drift again.
+    "I_ARIF": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "OPERATOR",
+        "aliases": ["i-arif", "i_arif", "iarif", "I-ARIF"],
+    },
+    "GEMINI": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["gemini", "gemini-cli", "FI-004", "fi-004", "gemini-cli/fi-004"],
     },
 }
 
@@ -449,6 +476,33 @@ def normalize_actor_identity(
                     "normalization_version": "1",
                 }
 
+    # 2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for
+    # all AAA agents"): resolve the documented lane-qualified actor_id form
+    # `name/FI-nnn`. Per FATWA K1 the FI id is a LANE/TIER identity, and this is
+    # the spelling used throughout the MCP tool docs (e.g. "kimi-code/FI-008") and
+    # declared by AAA/federation/agents/*/agent.yaml `fi:`. Exact/alias matching
+    # above never matched it, so every agent presenting its documented id was
+    # REJECTED -> unknown actor -> OBSERVE_ONLY, silently losing mutation
+    # authority while the bare name beside it kept operator band.
+    # The trust boundary is NOT widened: head and tail are resolved against this
+    # SAME registry, so `opencode/FI-001` resolves only because `opencode`
+    # already resolves. This widens spelling tolerance, not trust.
+    if "/" in stripped:
+        _head, _, _tail = stripped.partition("/")
+        for _part in (_head.strip(), _tail.strip()):
+            if not _part or "/" in _part:
+                continue
+            _sub = normalize_actor_identity(_part)
+            if _sub["normalized"]:
+                _set_cache(cache_key, str(_sub["normalized"]))
+                return {
+                    "raw": raw_actor_id,
+                    "normalized": _sub["normalized"],
+                    "sovereign_id": _sub.get("sovereign_id"),
+                    "verification_state": "UNVERIFIED",
+                    "normalization_version": "1",
+                }
+
     # No match found — reject
     _set_cache(cache_key, None)
     return {
@@ -466,6 +520,49 @@ def _set_cache(key: str, value: str | None) -> None:
         # Evict oldest entry
         _NORMALIZATION_CACHE.pop(next(iter(_NORMALIZATION_CACHE)))
     _NORMALIZATION_CACHE[key] = value
+
+
+def actor_lookup_candidates(raw_actor_id: str | None) -> list[str]:
+    """Ordered registry-lookup keys for an actor string.
+
+    Yields the raw key first, then the head/tail of a `name/FI-nnn` lane-qualified
+    form, then the canonical id and its aliases.
+
+    2026-09-30 (333-AGI, F13 directive "no tool blocks and no access block for all
+    AAA agents"): authority registries were consulted with the RAW actor string, so
+    the documented lane-qualified spelling missed every one of them and the actor
+    fell through to the unknown-actor default OBSERVE_ONLY.
+
+    Lives here (not in runtime.authority) so session_auth and the init anchor can
+    share it without an import cycle.
+
+    Trust boundary is NOT widened: candidates are resolved against this SAME
+    registry, so a slash form matches only if its head or tail already matches on
+    its own (`nobody/FI-999` yields no exempt hit).
+    """
+    keys: list[str] = []
+    raw = (raw_actor_id or "").strip().lower()
+    if raw:
+        keys.append(raw)
+        if "/" in raw:
+            head, _, tail = raw.partition("/")
+            for part in (head.strip(), tail.strip()):
+                if part and part not in keys:
+                    keys.append(part)
+    try:
+        canon = normalize_actor_identity(raw_actor_id).get("normalized")
+        if canon:
+            c = str(canon).lower()
+            if c not in keys:
+                keys.append(c)
+            for alias in (CANONICAL_ACTORS.get(canon, {}) or {}).get("aliases", []) or []:
+                if isinstance(alias, str):
+                    a = alias.strip().lower()
+                    if a and a not in keys:
+                        keys.append(a)
+    except Exception:
+        pass
+    return keys
 
 
 def normalize_session_actor(

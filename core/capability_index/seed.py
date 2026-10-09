@@ -659,40 +659,43 @@ SEED_CAPABILITIES: list[CapabilityRecord] = [
         tags=["summary", "search", "brave", "ai"],
         epistemic_tag="PLAUSIBLE",
     ),
-    # ── meyhem ──
-    CapabilityRecord(
-        tool_name="search",
-        server="meyhem",
-        description="Search the web and return ranked results with feedback-driven scoring.",
-        tags=["web", "search", "meyhem"],
-        epistemic_tag="CLAIM",
-    ),
-    CapabilityRecord(
-        tool_name="select",
-        server="meyhem",
-        description="Select a search result to get its full content.",
-        tags=["web", "select", "content"],
-        epistemic_tag="CLAIM",
-    ),
-    CapabilityRecord(
-        tool_name="outcome",
-        server="meyhem",
-        description="Report whether a search result helped complete your task.",
-        tags=["feedback", "search", "meyhem"],
-        epistemic_tag="CLAIM",
-    ),
-    CapabilityRecord(
-        tool_name="find_server",
-        server="meyhem",
-        description="Find MCP servers for a given task.",
-        tags=["discovery", "server"],
-        epistemic_tag="PLAUSIBLE",
-    ),
-    CapabilityRecord(
-        tool_name="find_capability",
-        server="meyhem",
-        description="Find the best tool for your task across MCP servers and OpenClaw skills.",
-        tags=["discovery", "capability"],
-        epistemic_tag="PLAUSIBLE",
-    ),
+    # ── meyhem — REMOVED 2026-09-29 (referential-integrity audit item #1) ──
+    # Five capabilities (search, select, outcome, find_server, find_capability)
+    # were seeded for server="meyhem". That server is declared in exactly one
+    # config on this machine — /root/.config/1mcp/mcp.json — and is marked
+    # `disabled: true` there (url https://api.rhdxm.com/mcp/). It is absent
+    # from opencode.json, so no harness in the federation can call it.
+    # capability_resolve nevertheless served these five rows to every agent as
+    # loadable capability: declared-but-disabled indexed as available.
+    # Correction to the original audit wording: this was NOT a name that
+    # resolved nowhere — it was a real name for a disabled endpoint, which is
+    # the same defect class (declared != resolvable != callable) and the more
+    # common one. Live alternatives already seeded: brave-search (6 tools),
+    # forge_search / forge_fetch (aforge), free-search harness tools.
+    # Re-add only together with a reachability probe, or with an `enabled`
+    # field on CapabilityRecord so resolve() can exclude disabled servers.
 ]
+
+# ── Classification pass (D4, F13 "bina D4" 2026-09-17) ──
+# Seed literals deliberately carry no classification fields (pydantic default
+# = OBSERVE). The constitutional SOT for classification is the policy engine
+# (AAA governance classification_policy.yaml), so applying it here keeps the
+# store's seed-fallback path from ever serving unclassified records — proven
+# load-bearing when the registry JSON went missing and the resolver saw
+# arif_forge_execute as OBSERVE-eager. Mirrors indexer.py Source 3.
+import sys as _sys
+
+if "/root" not in _sys.path:
+    _sys.path.insert(0, "/root")
+try:
+    from AAA.governance.classifier import ClassificationEngine as _ClassificationEngine
+
+    _engine = _ClassificationEngine()
+    for _rec in SEED_CAPABILITIES:
+        _c = _engine.classify_tool(_rec.tool_name, _rec.server)
+        _rec.action_class = _c["action_class"]
+        _rec.effective_class = _c["effective_class"]
+        _rec.authority_ceiling = _c["authority_ceiling"]
+    SEED_CLASSIFIED = True
+except Exception:  # classifier unreachable: defaults stand, flagged for callers
+    SEED_CLASSIFIED = False

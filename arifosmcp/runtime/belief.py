@@ -31,6 +31,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given [ΔΩΨ | ARIF]
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import math
@@ -44,8 +45,30 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # ── Storage path ─────────────────────────────────────────────────────────────
-# VAULT999 is the canonical persistence volume. Falls back to /tmp for stdio.
-_VAULT_DIR = os.getenv("ARIFOS_VAULT_DIR", "/usr/src/app/VAULT999")
+# VAULT999 is the canonical persistence volume. Falls back safely if path is read-only.
+def _resolve_vault_dir() -> str:
+    candidates = [
+        os.getenv("ARIFOS_VAULT_DIR"),
+        os.getenv("ARIFOS_CANONICAL_VAULT_DIR"),
+        "/root/.local/share/arifos/vault999",
+        "/var/lib/arifos/vault999",
+        "/tmp/arifos_vault999",
+    ]
+    for c in candidates:
+        if not c:
+            continue
+        try:
+            os.makedirs(c, exist_ok=True)
+            test_file = os.path.join(c, ".write_test")
+            with open(test_file, "a") as f:
+                pass
+            os.remove(test_file)
+            return c
+        except (OSError, PermissionError):
+            continue
+    return "/tmp"
+
+_VAULT_DIR = _resolve_vault_dir()
 _DB_PATH = os.path.join(_VAULT_DIR, "belief_registry.db")
 _AUDIT_LOG = os.path.join(_VAULT_DIR, "SEALED_EVENTS.jsonl")
 
@@ -217,6 +240,61 @@ class BeliefUpdater:
         )
 
 
+# ── Belief lineage linkage (Reality Graph L2 join, 2026-09-13) ────────────────
+# Additive: every audited belief event now carries id/seq/prev_hash/entry_hash
+# + vault_seq_anchor (nearest canonical seal-chain seq). Historical entries
+# (pre-linkage) remain unmodified — gaps are classified, never rewritten (F-004).
+# Supersession-append: a changed belief is a NEW linked entry, never an edit.
+
+_SEAL_HEAD_FILE = os.path.join(
+    os.getenv("ARIFOS_CANONICAL_VAULT_DIR", "/root/.local/share/arifos/vault999"),
+    "seal_chain_head.json",
+)
+
+
+def _belief_chain_tail() -> tuple[str | None, int, bool]:
+    """Return (last_entry_hash, last_seq, file_nonempty) of the belief audit chain."""
+    try:
+        with open(_AUDIT_LOG, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fsize = fh.tell()
+            if fsize == 0:
+                return None, 0, False
+            buf = b""
+            read = 0
+            while fsize - read > 0 and buf.count(b"\n") < 2 and read < 16384:
+                step = min(4096, fsize - read)
+                fh.seek(fsize - read - step)
+                buf = fh.read(step) + buf
+                read += step
+            lines = [ln for ln in buf.decode("utf-8", "replace").splitlines() if ln.strip()]
+            if not lines:
+                return None, 0, True
+            last = json.loads(lines[-1])
+            return last.get("entry_hash"), int(last.get("seq", 0)), True
+    except (OSError, ValueError, json.JSONDecodeError):
+        return None, 0, False
+
+
+def _seal_head_seq() -> int | None:
+    """Nearest canonical seal-chain seq at belief-write time (anchor only)."""
+    try:
+        with open(_SEAL_HEAD_FILE, encoding="utf-8") as fh:
+            head = json.load(fh)
+        for src in (head, head.get("head") if isinstance(head.get("head"), dict) else {}):
+            for key in ("seq", "seq_num", "sequence"):
+                if key in src:
+                    return int(src[key])
+    except (OSError, ValueError, TypeError):
+        pass
+    return None
+
+
+def _hash_belief_entry(entry: dict, prev_hash: str | None) -> str:
+    payload = json.dumps(entry, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256((str(prev_hash) + "|" + payload).encode("utf-8")).hexdigest()
+
+
 # ── BeliefRegistry ────────────────────────────────────────────────────────────
 
 
@@ -314,14 +392,30 @@ class BeliefRegistry:
                 logger.error("BeliefRegistry.save failed for %s: %s", state.actor_id, exc)
 
     def _audit(self, state: BeliefState, event_type: str) -> None:
-        """Append belief update to VAULT999 audit trail (SEALED_EVENTS.jsonl)."""
-        entry = {
+        """Append belief update to VAULT999 audit trail (SEALED_EVENTS.jsonl).
+
+        Reality Graph L2 join (2026-09-13): entries carry hash linkage
+        (seq/prev_hash/entry_hash) + vault_seq_anchor to the canonical seal
+        chain — belief lineage becomes reconstructible by traversal.
+        """
+        prev_hash, prev_seq, had_tail = _belief_chain_tail()
+        entry: dict = {
             "event_type": event_type,
             "event_id": uuid.uuid4().hex,
             "timestamp": datetime.now(UTC).isoformat(),
             "actor_id": state.actor_id,
             "belief_snapshot": state.to_dict(),
+            "seq": (prev_seq if prev_hash else 0) + 1,
+            "prev_hash": prev_hash or "genesis-belief-chain-2026-09-13",
+            "vault_seq_anchor": _seal_head_seq(),
+            "linkage": "live",
         }
+        if had_tail and not prev_hash:
+            entry["linkage_note"] = "first_linked_entry_after_legacy_tail"
+        entry["entry_hash"] = _hash_belief_entry(
+            {k: v for k, v in entry.items() if k != "entry_hash"},
+            entry["prev_hash"],
+        )
         try:
             with open(_AUDIT_LOG, "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(entry) + "\n")
@@ -347,6 +441,95 @@ class BeliefRegistry:
             except Exception as exc:
                 logger.warning("BeliefRegistry.purge_expired failed: %s", exc)
                 return 0
+
+    def get_belief_history(
+        self,
+        actor_id: str | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Read verifiable belief history from audit chain (newest first)."""
+        if not os.path.exists(_AUDIT_LOG):
+            return []
+        entries: list[dict[str, Any]] = []
+        try:
+            with open(_AUDIT_LOG, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        if actor_id is None or entry.get("actor_id") == actor_id:
+                            entries.append(entry)
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as exc:
+            logger.warning("BeliefRegistry.get_belief_history read failed: %s", exc)
+            return []
+        entries.reverse()
+        return entries[:limit]
+
+    def get_belief_at_seq(self, seq: int) -> dict[str, Any] | None:
+        """Fetch exact belief state entry at specified sequence number."""
+        if not os.path.exists(_AUDIT_LOG):
+            return None
+        try:
+            with open(_AUDIT_LOG, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        if entry.get("seq") == seq:
+                            return entry
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as exc:
+            logger.warning("BeliefRegistry.get_belief_at_seq read failed: %s", exc)
+        return None
+
+    def verify_belief_chain(self) -> dict[str, Any]:
+        """Verify cryptographic integrity of belief revision chain."""
+        if not os.path.exists(_AUDIT_LOG):
+            return {"valid": True, "entries_count": 0, "status": "EMPTY"}
+        entries: list[dict[str, Any]] = []
+        try:
+            with open(_AUDIT_LOG, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entries.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        return {"valid": False, "error": "CORRUPT_JSON_LINE"}
+        except Exception as exc:
+            return {"valid": False, "error": str(exc)}
+
+        if not entries:
+            return {"valid": True, "entries_count": 0, "status": "EMPTY"}
+
+        gaps: list[dict[str, Any]] = []
+        for i, entry in enumerate(entries):
+            expected_prev = entries[i - 1].get("entry_hash") if i > 0 else (entry.get("prev_hash") or "genesis-belief-chain-2026-09-13")
+            actual_prev = entry.get("prev_hash")
+            if i > 0 and actual_prev != expected_prev:
+                gaps.append({"seq": entry.get("seq"), "expected_prev": expected_prev, "actual_prev": actual_prev})
+            computed_hash = _hash_belief_entry(
+                {k: v for k, v in entry.items() if k != "entry_hash"},
+                entry.get("prev_hash"),
+            )
+            if entry.get("entry_hash") and computed_hash != entry.get("entry_hash"):
+                gaps.append({"seq": entry.get("seq"), "error": "HASH_MISMATCH", "computed": computed_hash, "declared": entry.get("entry_hash")})
+
+        return {
+            "valid": len(gaps) == 0,
+            "entries_count": len(entries),
+            "head_seq": entries[-1].get("seq") if entries else 0,
+            "head_hash": entries[-1].get("entry_hash") if entries else None,
+            "gaps": gaps,
+        }
 
 
 # ── Module-level singleton ────────────────────────────────────────────────────

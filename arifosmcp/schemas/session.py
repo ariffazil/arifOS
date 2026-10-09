@@ -580,6 +580,16 @@ class SessionManifest(BaseModel):
         "Fields: fingerprint (sha256[:16]), iso8601, epoch_ms, myt, dow, iso_week. "
         "Al-'Asr 103:1-3 constitutional anchor.",
     )
+    # Session Contract v2 — Temporal Grounding Context (2026-09-19)
+    # Additive field. References carry_forward.temporal_root if available.
+    # Advisory when TEMPORAL_GROUNDING_ENFORCED is false (default).
+    # Does NOT replace temporal_root (genesis fingerprint) above.
+    temporal: dict[str, Any] | None = Field(
+        default=None,
+        description="Temporal grounding context — carry_forward temporal_root "
+        "reference, anchor freshness, provider reference, policy. "
+        "Schema: arifos.session.v2.temporal. Advisory unless enforced.",
+    )
     # Quranic Distillation Surface (FORGED 2026-08-02)
     # Surfaces the Al-Fatihah boot binding + Ayat al-Kursi enforcement on
     # every session manifest. Additive — fields missing-safe.
@@ -590,4 +600,32 @@ class SessionManifest(BaseModel):
         "Fields: binding_source, binding_authority, binding_ts_utc, "
         "fatihah_loaded, ayat_al_kursi_loaded, al_fatihah_functions_bound, "
         "ayat_al_kursi_properties_bound, runtime_heart_fingerprint.",
+    )
+    # ── INIT v2 Roots (F13-ratified 2026-09-20) ──────────────────────────
+    # Four critical roots that close the TIME + OUTCOME + UNKNOWN + WITNESS
+    # gaps identified in the deep research synthesis. Additive — old clients
+    # ignore fields they don't recognize. Schema: arifos.init.v2.roots
+    init_v2_roots: dict[str, Any] | None = Field(
+        default=None,
+        description="INIT v2 root bindings — TEMPORAL, OBJECTIVE, NEGATIVE_KNOWLEDGE, "
+        "PROVENANCE. Each root is falsifiable and emits evidence. "
+        "Schema: arifos.init.v2.roots",
+    )
+    # ── UNKNOWN classification (F13 ARIF GO 2026-10-05) ──────────────────
+    # Four fields populated when verdict is HOLD or UNKNOWN. Closes the
+    # "model doesn't know what it doesn't know" gap identified in
+    # CUTOFF-TEST-REPORT-2026-10-05.pdf. Additive — old clients ignore
+    # fields they don't recognize. Tri-Witness state at apply time:
+    # F1=blocked, F2=unmeasured, F3=measured 0.82. ARIF GO = sovereign override.
+    # Schema: arifos.init.unknown_classification.v1
+    unknown_classification: dict[str, Any] | None = Field(
+        default=None,
+        description="UNKNOWN classification envelope — populated when "
+        "verdict is HOLD or UNKNOWN. Fields: as_of_date (ISO8601 UTC), "
+        "anchor_evidence (verbatim reason or 'no anchor found'), "
+        "reason_class (substrate_health|constitutional_hold|substrate_drift|"
+        "missing_data|self_correctable_failure|other), "
+        "falsifier (concrete condition that, if observed, would falsify this "
+        "UNKNOWN classification). Doctrine: absence_of_evidence_is_NOT_"
+        "evidence_of_absence (per GODEL_LOCK axiom A6, F13 ARIF GO 2026-10-05).",
     )

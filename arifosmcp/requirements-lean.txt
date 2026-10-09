@@ -1,6 +1,6 @@
-fastmcp==4.0.5
+fastmcp>=4.0.10
 fastapi>=0.136.1
-uvicorn>=0.49.0
+uvicorn>=0.53.0
 pydantic>=2.13.4
 jsonschema>=4.0.0
 prometheus-client>=0.25.0
@@ -13,6 +13,6 @@ asyncpg>=0.31.0
 langfuse>=4.14.3
 numpy>=2.0.0
 qdrant-client>=1.18.0
-google-api-python-client>=2.160.0
+google-api-python-client>=2.200.0
 google-auth-httplib2>=0.4.0
 google-auth-oauthlib>=1.4.0

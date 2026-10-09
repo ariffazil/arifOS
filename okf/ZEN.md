@@ -56,7 +56,7 @@ h       AKAL              AKAL × EXPLORATION     calibration gap               
 
 ```
 LAYER      MODE      QUESTION              FILES
-ATLAS333   static    what tensions persist? paradox/*.md          (35)
+ATLAS333   static    what tensions persist? paradox/*.md          (40)
 EUREKA777  dynamic   what just transitioned? eureka/*.md          (N)
 VAULT999   record    what was true when?    seal_chain.jsonl      (19)
 ```
@@ -127,7 +127,7 @@ No knowledge is homeless. No coordinate is ambiguous.
 
 | Repo | Contains |
 |------|----------|
-| **arifOS/okf/** | ZEN · type-taxonomy · graph-link · apex-flow · ATLAS333 (35 paradoxes) · APEX dials |
+| **arifOS/okf/** | ZEN · type-taxonomy · graph-link · apex-flow · ATLAS333 (40 paradoxes · 5 clusters) · APEX dials |
 | **AAA/okf/** | EUREKA777 (5 classes, 5 scars) · skills · federation-map |
 | **GEOX/okf/** | Sabah Basin pilot bundle |
 | **A-FORGE/okf/** | Organ definitions |

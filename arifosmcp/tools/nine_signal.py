@@ -207,7 +207,7 @@ def nine_signal_from_apex(
             "en": omega_en,
             "G": round(G, 4),
             "C_dark": round(C_dark, 4),
-            "formula": "G = A·P·E·X·Φ",
+            "formula": "G = (A·P·E·X)^(1/4)",
             "computed": True,
         },
         "overall": {"state": overall_state, "en": overall_en},

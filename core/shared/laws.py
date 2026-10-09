@@ -666,6 +666,92 @@ class F4_Clarity(Law):
 
 
 # --- F5: PEACE² (Stability) ---
+
+# Contextual tokenizer (2026-09-17, F13: "fix the L05 scorer — contextualize,
+# no more waivers"). Proven false-positive classes: substring 'forge' inside
+# lane name forge-777 (2026-09-17 BS-1 seal), 'irreversible' in seal-record
+# prose (2026-09-13). Rules — a keyword counts ONLY when it appears as a
+# whole prose token; identifier-like tokens (paths, digit-suffixed lane
+# names, hashes, mixed alpha-digit) are names, not verbs; morphological
+# variants ('forged', 'harmless') are different tokens; hyphenated prose
+# compounds re-split so 'wipe-out' still matches 'wipe'.
+# 2026-09-25 extension (F13 "baiki dua dua cacat"): markdown inline code
+# spans are explicit literal-name markers. Proven false-positive: hostname
+# `forge` (bare word — no digits, no path chars) in the FI-003 witness-report
+# payload scored as the fraud verb → Peace² 0.700. Code-quoted tokens are
+# names by record-format convention — same names-not-verbs law, next class.
+# 2026-09-25(ii) hardening (555 residuals documented in 76c1759fe): (a)
+# mid-token backtick evasion ('era`se`') — a span glued to alphanumeric
+# characters is intra-word formatting noise, not a name quote; delimiters
+# drop, the word rejoins, the verb reconstitutes. (b) phrase-wide span
+# exemption ('delete `all` files', 'spy `on` him') — multi-word keywords
+# split by a span are catchable again via a content-preserving second token
+# stream that feeds BIGRAM matching only; single keywords still match the
+# span-exempt stream, so a bare quoted name (`forge`) remains exempt (D2
+# law intact).
+import re as _f5_re
+
+_F5_HAS_DIGIT = _f5_re.compile(r"[0-9]")
+_F5_PATHISH = _f5_re.compile(r"[/\\:]")
+_F5_HEXISH = _f5_re.compile(r"^[0-9a-f]{7,}$")
+_F5_CODE_SPAN = _f5_re.compile(r"`[^`\n]*`")
+
+
+def _f5_strip_spans(text: str) -> str:
+    """Remove markdown code spans, boundary-aware.
+
+    A span delimited at token boundaries (whitespace/punctuation/edges) is a
+    clean literal-name quote → replaced by a space (name exempt). A span
+    glued to an alphanumeric character on either side ('era`se`', '`forge`x')
+    is intra-word formatting noise → only the delimiters drop and the content
+    rejoins its word ('erase') so any destructive verb reconstitutes.
+    Fail-safe direction: malformed spans LOSE the exemption, never gain it.
+    """
+
+    def _repl(m: "_f5_re.Match[str]") -> str:
+        s, e = m.start(), m.end()
+        before = text[s - 1] if s > 0 else ""
+        after = text[e] if e < len(text) else ""
+        if (before and before.isalnum()) or (after and after.isalnum()):
+            return m.group(0)[1:-1]  # keep content, drop delimiters
+        return " "
+
+    return _F5_CODE_SPAN.sub(_repl, text)
+
+
+def _f5_tokens(text: str, *, keep_span_content: bool = False) -> list[str]:
+    """Prose tokens only: identifiers/paths/lane-names/hashes/code-spans excluded.
+
+    A token is an identifier (name, not verb) when it carries a digit,
+    a path/colon separator, is a bare hex hash, or sits inside a markdown
+    inline code span (literal name — hostname, config key, path). Pure-word
+    hyphen compounds carry no digits, so they re-split ('wipe-out' → 'wipe
+    out'). Unpaired backticks do not form a span — such bare tokens stay
+    scanned (fail-safe direction preserved).
+
+    keep_span_content=True yields the phrase-reconstruction stream: span
+    delimiters drop but the content stays as ordinary tokens. Used ONLY for
+    bigram (multi-word keyword) matching so 'delete `all`' is still caught;
+    single keywords never match this stream, keeping bare quoted names
+    (`forge`) exempt.
+    """
+    if not text or not isinstance(text, str):
+        return []
+    text = text.replace("`", " ") if keep_span_content else _f5_strip_spans(text)
+    out: list[str] = []
+    for tok in text.lower().split():
+        tok = tok.strip(".,;:!?'\"()[]{}<>|*`")
+        if not tok:
+            continue
+        if _F5_HAS_DIGIT.search(tok) or _F5_PATHISH.search(tok) or _F5_HEXISH.match(tok):
+            continue
+        if "-" in tok or "_" in tok:
+            out.extend(_f5_re.sub(r"[-_]", " ", tok).split())
+        else:
+            out.append(tok)
+    return out
+
+
 class F5_Peace2(Law):
     """
     F5: PEACE² (P²) - Lyapunov Stability
@@ -676,7 +762,10 @@ class F5_Peace2(Law):
         super().__init__("F5_Peace2")
 
     def check(self, context: dict[str, Any]) -> LawResult:
-        # Check for destructive actions
+        # Check for destructive actions. Matching is token-exact on prose
+        # tokens (see _f5_tokens): identifiers, paths, lane names, hashes,
+        # and morphological variants no longer trip the floor; direct
+        # destructive verbs in prose still do — safety direction preserved.
         destructive_keywords = [
             # Physical/system destruction
             "destroy",
@@ -707,14 +796,23 @@ class F5_Peace2(Law):
             "wiretap",
             "dox",
         ]
-        query = context.get("query", "").lower()
+        tokens = _f5_tokens(context.get("query", ""))
+        token_set = set(tokens)
+        bigrams = {f"{a} {b}" for a, b in zip(tokens, tokens[1:])}
+        # Phrase reconstruction (2026-09-25(ii)): multi-word keywords split by
+        # a code span ('delete `all` files', 'spy `on` him') must stay
+        # catchable — union in bigrams from the content-preserving stream.
+        # Single keywords match `token_set` only, so quoted names stay exempt.
+        ctokens = _f5_tokens(context.get("query", ""), keep_span_content=True)
+        bigrams |= {f"{a} {b}" for a, b in zip(ctokens, ctokens[1:])}
 
         peace_penalty = 0.0
         for kw in destructive_keywords:
-            if kw in query:
+            hit = (kw in bigrams) if " " in kw else (kw in token_set)
+            if hit:
                 peace_penalty += 0.3
 
-        # High-intent harm verbs: stronger penalty
+        # High-intent harm verbs: stronger penalty (same token rules)
         high_harm = [
             "hack",
             "harass",
@@ -725,7 +823,7 @@ class F5_Peace2(Law):
             "impersonate",
         ]
         for kw in high_harm:
-            if kw in query:
+            if kw in token_set:
                 peace_penalty += 0.4
 
         # Peace score with exponential decay for multiple violations

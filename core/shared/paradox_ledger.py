@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import sqlite3
 import time
 from datetime import UTC, datetime
@@ -55,7 +56,18 @@ from typing import Optional
 logger = logging.getLogger("arifos.atlas.ledger")
 
 # ── Storage location ──────────────────────────────────────────────────────
-LEDGER_DIR = Path("/root/.local/share/arifos/atlas333")
+# FHS canon (FI-008 repair, 2026-09-20). The kernel runs as User=arifos with
+# ProtectHome=read-only (arifos.service.d/02-fhs-canon.conf — "G7 immutability:
+# the kernel may READ /root assets but can never WRITE into the dev tree").
+# A hardcoded /root path therefore fails on every write with
+# "unable to open database file" (~958 occurrences/day, all swallowed by the
+# F1 fail-safe, so the paradox ledger silently stopped recording).
+#
+# Mutable process state belongs under /var/lib/arifos — the same repair
+# pattern already ratified in arifos.service.d/20-state-directory.conf
+# (ARIFOS_WITNESS_DIR). Do NOT loosen ProtectHome to fix this.
+# Override with ARIFOS_ATLAS_LEDGER_DIR if the ledger must move again.
+LEDGER_DIR = Path(os.getenv("ARIFOS_ATLAS_LEDGER_DIR", "/var/lib/arifos/atlas333"))
 LEDGER_PATH = LEDGER_DIR / "atlas_ledger.db"
 
 # ── Zone mapping ──────────────────────────────────────────────────────────

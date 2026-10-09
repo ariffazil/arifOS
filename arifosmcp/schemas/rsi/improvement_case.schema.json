@@ -1,0 +1,336 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arifos://schemas/rsi/improvement_case.schema.json",
+  "title": "ImprovementCase — RSI Constitutional Kernel",
+  "description": "Every recursive improvement begins with a typed, mandatory-field ImprovementCase. No process starts without complete case.",
+  "type": "object",
+  "required": [
+    "case_id",
+    "trigger_type",
+    "baseline",
+    "scope",
+    "risk_class",
+    "evidence_refs",
+    "owner",
+    "created_at",
+    "status"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "pattern": "^IMP-\\d{4}-\\d{2}-\\d{2}-\\d{3,}$",
+      "description": "Unique case identifier. Format: IMP-YYYY-MM-DD-NNN"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "verified_failure",
+        "capability_gap",
+        "drift",
+        "human_directive",
+        "safety_incident",
+        "near_miss",
+        "cost_deficit",
+        "latency_deficit",
+        "reliability_deficit",
+        "quality_deficit",
+        "external_change"
+      ],
+      "description": "What triggered this improvement case. Must be specific, not 'general improvement'."
+    },
+    "trigger_evidence": {
+      "type": "string",
+      "description": "Human-readable description of the trigger event with evidence reference"
+    },
+    "baseline": {
+      "type": "object",
+      "required": ["metric", "current_value", "target_value", "measurement_method"],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "description": "What is being measured (e.g., task_success_rate, false_positive_rate)"
+        },
+        "current_value": {
+          "type": ["number", "string"],
+          "description": "Current measured value"
+        },
+        "target_value": {
+          "type": ["number", "string"],
+          "description": "Target value after improvement"
+        },
+        "measurement_method": {
+          "type": "string",
+          "description": "How the metric is measured (tool, dataset, procedure)"
+        },
+        "measurement_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the baseline was measured"
+        },
+        "data_version": {
+          "type": "string",
+          "description": "Version/hash of the evaluation dataset"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": ["capabilities", "environments"],
+      "properties": {
+        "capabilities": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1,
+          "description": "Which capabilities are affected"
+        },
+        "environments": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1,
+          "description": "Where this operates (sandbox, staging, production)"
+        },
+        "bounded": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether scope is bounded (must be true for sandbox)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "risk_class": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "constitutional"],
+      "description": "Risk classification. constitutional = affects kernel, F13, trust roots"
+    },
+    "proposed_by": {
+      "type": "string",
+      "description": "Agent or human proposing the improvement"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1,
+      "description": "References to evidence (receipt://, log://, dataset://, etc.)"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Responsible organ or agent for this case"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "EVIDENCED",
+        "CHALLENGED",
+        "SANDBOXED",
+        "MEASURED",
+        "RATIFIED",
+        "ACTIVE",
+        "ACTIVE-CANARY",
+        "RATIFIED-ACTIVE",
+        "REJECTED",
+        "REVERTED",
+        "QUARANTINED",
+        "EXPIRED"
+      ],
+      "default": "DRAFT"
+    },
+    "options": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Proposed intervention options (minimum 1, recommended 3)",
+      "items": {
+        "type": "object",
+        "required": ["option_id", "type", "description"],
+        "properties": {
+          "option_id": {
+            "type": "string",
+            "pattern": "^OPT-[A-C]$"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["local_patch", "structural_redesign", "no_change"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "claimed_benefit": {
+            "type": "string"
+          },
+          "required_tools": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "required_models": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "permissions_delta": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "What permissions would change"
+          },
+          "authority_delta": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this changes agent authority"
+          },
+          "dependency_delta": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "New dependencies introduced"
+          },
+          "constitutional_floors_affected": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Which F1-F13 floors are affected"
+          },
+          "reversible": {
+            "type": "boolean",
+            "default": true
+          },
+          "rollback_designed": {
+            "type": "boolean",
+            "default": false
+          },
+          "changes_improvement_process": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this option changes the future improvement process itself"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "selected_option": {
+      "type": "string",
+      "description": "Which option was selected (e.g., OPT-A)"
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "verifier_id": {
+          "type": "string",
+          "description": "Independent verifier agent"
+        },
+        "verifier_independence_dimension": {
+          "type": "string",
+          "enum": ["different_model", "different_context", "different_identity", "different_corpus", "different_human"],
+          "description": "How verifier is independent from proposer"
+        },
+        "verification_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tests_passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tests_failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "regressions_found": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "safety_regression": {
+          "type": "boolean",
+          "default": false
+        },
+        "authority_expansion_detected": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "decision_packet": {
+      "$ref": "#/$defs/DecisionPacket"
+    },
+    "f13_ratification": {
+      "type": "object",
+      "properties": {
+        "ratified": {"type": "boolean"},
+        "ratified_by": {"type": "string"},
+        "ratified_at": {"type": "string", "format": "date-time"},
+        "conditions": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "canary": {
+      "type": "object",
+      "properties": {
+        "scope": {"type": "string"},
+        "traffic_percentage": {"type": "number", "minimum": 0, "maximum": 100},
+        "validity_hours": {"type": "integer", "minimum": 1},
+        "success_condition": {"type": "string"},
+        "rollback_condition": {"type": "string"},
+        "auto_quarantine_triggers": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "properties": {
+        "content_hash": {"type": "string"},
+        "ledger_anchor": {"type": "string"},
+        "immutable": {"type": "boolean", "default": true}
+      }
+    }
+  },
+  "$defs": {
+    "DecisionPacket": {
+      "type": "object",
+      "required": ["decision", "why_now", "measured_gain", "rollback", "recommendation"],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "description": "One-line description of what is being decided"
+        },
+        "why_now": {
+          "type": "string",
+          "description": "Why this decision is needed now"
+        },
+        "measured_gain": {
+          "type": "string",
+          "description": "Quantified improvement"
+        },
+        "regressions": {
+          "type": "string",
+          "description": "What got worse, if anything"
+        },
+        "authority_delta": {
+          "type": "string",
+          "description": "What permissions/authority change"
+        },
+        "dependency_delta": {
+          "type": "string",
+          "description": "What dependencies change"
+        },
+        "rollback": {
+          "type": "string",
+          "description": "How to roll back"
+        },
+        "uncertainty": {
+          "type": "string",
+          "description": "What is uncertain or unknown"
+        },
+        "recommendation": {
+          "type": "string",
+          "enum": ["approve", "reject", "hold", "defer"]
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

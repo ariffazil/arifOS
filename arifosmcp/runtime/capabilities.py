@@ -88,7 +88,7 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     providers = {
         "openai": _configured("OPENAI_API_KEY"),
         "anthropic": _configured("ANTHROPIC_API_KEY"),
-        "sea_lion": _configured("SEA_LION_API_KEY"),
+        "fed_federation": _configured("FED_PROXY_API_KEY"),
         "deepseek": _configured("DEEPSEEK_API_KEY"),
         "google": _configured("GOOGLE_API_KEY"),
         "openrouter": _configured("OPENROUTER_API_KEY"),
@@ -130,7 +130,7 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     llm_provider_states = [
         providers["openai"],
         providers["anthropic"],
-        providers["sea_lion"],
+        providers["fed_federation"],
         providers["deepseek"],
         providers["google"],
         providers["openrouter"],

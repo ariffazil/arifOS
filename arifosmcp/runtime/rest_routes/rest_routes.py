@@ -439,8 +439,7 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
             if len(containers) >= limit:
                 break
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     # Fallback: when the kernel can't reach the docker socket (e.g. systemd
     # context where the service user is not in the `docker` group), probe
     # services via TCP. We try two host families:
@@ -881,6 +880,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     floors: dict[str, Any] = {}
     telemetry: dict[str, Any] = {}
     witness: dict[str, float] = {}
+    measurement_basis: dict[str, Any] = {}
     qdf: float = 0.0
     metabolic_stage: int = 0
     verdict: str | None = None  # WS2: no default SEAL — substrate signal only
@@ -895,6 +895,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
             floors = state.get("floors", {})
             telemetry = state.get("telemetry", {})
             witness = state.get("witness", {})
+            measurement_basis = state.get("measurement_basis", {}) or {}
             qdf = float(state.get("qdf", 0.0))
             metabolic_stage = int(state.get("metabolic_stage", 0))
             verdict = state.get("verdict", "SEAL")
@@ -909,8 +910,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
     try:
         drift = _compute_runtime_drift()
         drift_detected = drift.get("runtime_drift", False)
-        src = drift.get("source_commit", "") or ""
-        built = drift.get("built_commit", "") or ""
+        # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
+        src = drift.get("live_commit", "") or ""
+        built = drift.get("build_commit", "") or ""
         if drift_detected or (src and built and src != built):
             degradation_reasons.append(
                 f"deployment_drift: built={built[:12]}… ≠ source={src[:12]}…"
@@ -944,44 +946,30 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_containers:
         live_signals.append("container_runtime")
 
-    if len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
-        try:
-            from core.governance_kernel import get_governance_kernel
-
-            live_session_id = "live-sot"
-            live_kernel = get_governance_kernel()
-            # clear_governance_kernel is not exported in this version
-            if hasattr(live_kernel, "apply_temporal_grounding"):
-                live_kernel.apply_temporal_grounding(
-                    {
-                        "query": (
-                            "Live SOT aligned: "
-                            f"{BUILD_INFO['build']['commit']} / {BUILD_INFO.get('release_tag')} / "
-                            f"{len(live_containers)} containers / {len(live_signals)} verified runtime signals"
-                        ),
-                        "human_witness": _WITNESS_DEFAULTS["human"],
-                        "ai_witness": 0.99,
-                        "earth_witness": (0.99 if live_containers else _WITNESS_DEFAULTS["earth"]),
-                    }
-                )
-            live_kernel.record_event(
-                "assumption",
-                {"content": "Live SOT must remain evidence-backed and continuously revalidated."},
-            )
-            for signal in live_signals:
-                live_kernel.record_event("action", {"signal": signal, "reversible": True})
-                live_kernel.record_event("success", {"signal": signal})
-
-            state = live_kernel.get_current_state()
-            session_id = state.get("session_id")
-            floors = state.get("floors", {})
-            telemetry = state.get("telemetry", {})
-            witness = state.get("witness", {})
-            qdf = float(state.get("qdf", qdf or 0.0))
-            metabolic_stage = int(state.get("metabolic_stage", metabolic_stage or 0))
-            verdict = state.get("verdict", verdict)
-        except Exception:
-            logger.exception("Failed to hydrate live-sot governance kernel state")
+    # ── SCAR-OBS-GREENWASH (2026-10-03, FI-003): synthetic-evidence injection
+    # removed. This block formerly fired when >=4 runtime signals were visible
+    # and did three things: apply_temporal_grounding(human=0.42, ai=0.99,
+    # earth=0.99) with two hardcoded witness values, record_event("action") +
+    # record_event("success") per signal, then overwrote floors/telemetry/
+    # witness/qdf/verdict with the result. Measured effect on the public
+    # observatory: F2 0.5->1.0, F3 0.0->0.9299, F5 0.5->1.0, F6 0.5->1.0,
+    # substrate_state FAIL->PASS. F3 is reproducible in closed form as
+    # 3*(0.42*0.99*0.99)**(1/3)/(0.42+0.99+0.99) = 0.929858.
+    # Aggravating: GovernanceKernel._event_log is never cleared, so the
+    # process-global singleton ratcheted and the fabrication persisted for the
+    # process lifetime; reality_scoring.probe_governance_kernel_events()
+    # detects flat scores via `event_count == 0 and peace2 == 0.5`, so the
+    # injected events silenced the federation's own emptiness detector; and a
+    # DISPLAY endpoint was mutating shared constitutional state.
+    # Runtime signals remain real evidence and are still published — as
+    # signals, never as floor scores. Void Guard: "no data" != "all clear".
+    runtime_signal_evidence: dict[str, Any] = {
+        "signals_observed": list(live_signals),
+        "signal_count": len(live_signals),
+        "container_count": len(live_containers),
+        "provenance": "BUILD_INFO + build_runtime_capability_map + _collect_container_status",
+        "affects_floor_scores": False,
+    }
 
     def _safe_float(v: Any, default: float | None = None) -> float | None:
         if v is None:
@@ -1008,25 +996,78 @@ def _build_governance_status_payload() -> dict[str, Any]:
     }
 
     resolved_floors: dict[str, float | None] = {}
+    # SCAR-OBS-GREENWASH (2026-10-03): every floor now carries its provenance.
+    # _FLOOR_DEFAULTS is built by _representative_floor_score(), which returns
+    # the floor's OWN passing threshold (threshold * 0.5 for "<" floors, the
+    # comment there reads "choose conservative passing value"). It is a
+    # visualizer placeholder, not a measurement, and it can never fail. Any
+    # floor whose value came from there is labelled `unmeasured_default` so no
+    # consumer — observatory, G scalar, sovereign — can mistake it for green.
+    floor_provenance: dict[str, str] = {}
     for fid in LAW_SPEC_KEYS:
         v = _safe_float(floors.get(fid))
+        origin = "governance_kernel"
         if v is None and fid in canonical_floor_aliases:
             v = _safe_float(floors.get(canonical_floor_aliases[fid]))
+            origin = "governance_kernel_alias"
         if v is None:
             v = _FLOOR_DEFAULTS.get(fid)
+            origin = "unmeasured_default"
         resolved_floors[fid] = v
+        floor_provenance[fid] = origin
 
-    # Guard: if the governance kernel produced a failing score, fall back to the
-    # canonical default which is calibrated to the passing threshold. This prevents
-    # stale kernel state from keeping the Observatory in NEGATIVE indefinitely.
-    for fid in LAW_SPEC_KEYS:
-        val = resolved_floors.get(fid)
-        if val is not None and not _floor_passes(fid, float(val)):
-            resolved_floors[fid] = _FLOOR_DEFAULTS.get(fid, val)
+    # SCAR-OBS-GREENWASH: a floor whose input signal never existed is not
+    # measured. On an empty event log the kernel returns structural baselines
+    # (tau_truth 0.5, peace2 0.5, kappa_r 0.5, witness_coherence 0.0, shadow
+    # 0.0) which are placeholders exactly like _FLOOR_DEFAULTS — so they get the
+    # same label and render `unmeasured` instead of a fabricated pass or fail.
+    for _fid in measurement_basis.get("unmeasured_floors", []) or []:
+        if str(floor_provenance.get(_fid, "")).startswith("governance_kernel"):
+            floor_provenance[_fid] = "unmeasured_default:empty_kernel_signal"
+
+    # ── F3 TRI-WITNESS: real producers (SCAR-OBS-GREENWASH follow-up) ────────
+    # Each leg must carry an external referent or report None. Legs are published
+    # verbatim so an unmeasured leg stays visible instead of being averaged away,
+    # and F3 receives a score only when all three are measured. The human leg has
+    # no instrument anywhere in the federation (measured 2026-10-03: 0 human
+    # actors across 94999 VAULT999 outcome rows and 106055 arifFlow receipts, and
+    # no actor_class field in either ledger), so F3 remains unmeasured and the
+    # payload names the blocking leg rather than inventing a witness.
+    try:
+        from arifosmcp.runtime.witness_producers import collect_witness_legs
+
+        witness_legs = collect_witness_legs()
+    except Exception as _wl_exc:
+        witness_legs = {
+            "legs": {},
+            "coherence": None,
+            "measured": 0,
+            "total": 3,
+            "complete": False,
+            "blocking_legs": ["probe_error"],
+            "error": f"{type(_wl_exc).__name__}: {_wl_exc}",
+        }
+    if witness_legs.get("coherence") is not None:
+        resolved_floors["F3"] = witness_legs["coherence"]
+        floor_provenance["F3"] = "witness_producers:" + "+".join(
+            leg
+            for leg in ("human", "ai", "earth")
+            if (witness_legs.get("legs", {}).get(leg) or {}).get("value") is not None
+        )
+
+    # F2 TRUTH (ZEN 2026-09-02, F13 'audit this and zen all'): display the
+    # measured score. The previous guard overwrote failing floor scores with
+    # defaults "calibrated to the passing threshold" — cosmetic alignment that
+    # hid real signal (F7=0.04, F9=0.0, L12=0.425 were being masked in this
+    # view). Removed. Staleness belongs in freshness metadata, never in
+    # rewriting the measurement itself.
 
     # F1 AMANAH — live arifFLOW FQ probe (FLR-F1-FQ, 2026-08-10)
     # φFQ: 1.0 if FQ∈[1,3]; FQ/3.0 if FQ∈[0.5,1); 0.0 if FQ<0.5; min(1,3/FQ) if FQ>3.
-    # Falls back silently to _FLOOR_DEFAULTS['F1'] (0.50) if arifFLOW unreachable.
+    # SCAR-OBS-GREENWASH: no longer falls back silently. An unreachable
+    # arifFLOW means "cannot witness" (Void Guard), not "all clear" — the
+    # failure is recorded in floor_provenance and surfaced as f1_probe_error.
+    f1_probe_error: str | None = None
     try:
         import json as _json
         import urllib.request as _ureq
@@ -1045,10 +1086,18 @@ def _build_governance_status_payload() -> dict[str, Any]:
         else:  # quotient > 3.0
             _phi_fq = min(1.0, 3.0 / _fq_quotient)
         _phi_fq = round(_phi_fq, 4)
-        if _phi_fq > float(resolved_floors.get("F1") or 0.0):
-            resolved_floors["F1"] = _phi_fq
-    except Exception:
-        pass  # F1 AMANAH: silently keep default on any probe failure
+        # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
+        # That guard only accepted a real measurement when it IMPROVED on the
+        # auto-pass placeholder, so a genuine φFQ of 0.2321 (FQ=0.6964, below
+        # the AMANAH band [1,3]) was silently discarded in favour of the
+        # fabricated default 0.5 — the measurement was suppressed for being
+        # honest. A successful probe IS the measurement; assign it unconditionally
+        # and let the threshold gate decide pass/fail.
+        resolved_floors["F1"] = _phi_fq
+        floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
+    except Exception as _fq_exc:
+        f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
+        floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
 
     # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
     # where negative values = clarity improved. But runtime_floors must display
@@ -1071,10 +1120,27 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
             pass
-    resolved_witness = {
-        k: witness.get(k) if witness.get(k) is not None and witness.get(k) != 0.0 else v
-        for k, v in _WITNESS_DEFAULTS.items()
-    }
+    # SCAR-OBS-GREENWASH / DEFAULT_TRI_WITNESS (2026-10-03): this used to be
+    #   {k: witness.get(k) if witness.get(k) not in (None, 0.0) else v
+    #        for k, v in _WITNESS_DEFAULTS.items()}
+    # i.e. whenever a real witness was missing OR exactly 0.0 it substituted the
+    # hardcoded triple {human:0.42, ai:0.32, earth:0.26} and published it as a
+    # confident sovereign-weighted measurement. "No witness at all" therefore
+    # rendered as a healthy 42/32/26 split. The same triple is hardcoded in at
+    # least eight modules (art_compat, art_pusaka, tension_node, paradox,
+    # arifosd, generate_constitutional_reality, ...) and is the constant that
+    # dominates the arifFlow Verify receipt ledger. Absence now stays absence:
+    # 0.0 plus a provenance label, never an invented weight.
+    resolved_witness: dict[str, float] = {}
+    witness_provenance: dict[str, str] = {}
+    for k in _WITNESS_DEFAULTS:
+        real = _safe_float(witness.get(k))
+        if real is None or real == 0.0:
+            resolved_witness[k] = 0.0
+            witness_provenance[k] = "unmeasured"
+        else:
+            resolved_witness[k] = real
+            witness_provenance[k] = "governance_kernel"
     live_confidence = telemetry.get("confidence")
     if live_confidence is None:
         live_confidence = resolved_floors.get("F2", 1.0)
@@ -1103,6 +1169,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
             and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
         ):
             resolved_floors["L11"] = _FLOOR_DEFAULTS["L11"]
+            floor_provenance["L11"] = "unmeasured_default:continuity_enabled"
     except Exception:
         capability_map = None
 
@@ -1133,11 +1200,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 max(_FLOOR_DEFAULTS["F8"], float(genius_res.get("genius_score", 0.0))),
                 4,
             )
+            # SCAR-OBS-GREENWASH: max() against _FLOOR_DEFAULTS["F8"] means this
+            # floor could never report below its own passing threshold — a floor
+            # that cannot fail is not a floor. The clamp is now labelled rather
+            # than silent; removing it outright is a separate calibration call.
+            _genius_raw = float(genius_res.get("genius_score", 0.0))
+            floor_provenance["F8"] = (
+                "derived_genius_clamped_to_default"
+                if _genius_raw < float(_FLOOR_DEFAULTS["F8"])
+                else f"derived_genius:{round(_genius_raw, 4)}"
+            )
             if _safe_float(resolved_telemetry.get("confidence"), 0.0) <= 0.0:
                 resolved_telemetry["confidence"] = resolved_floors["F8"]
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     # WS2 (2026-07-12): removed Observatory seal-readiness guard.
     # A green /health does NOT imply execution readiness. The previous
     # version force-overrode verdict to ``SEAL`` whenever all floors passed,
@@ -1223,8 +1299,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
     return {
         "telemetry": resolved_telemetry,
         "witness": resolved_witness,
+        "witness_provenance": witness_provenance,
         "qdf": qdf or _DEFAULT_QDF,
         "floors": resolved_floors,
+        # SCAR-OBS-GREENWASH (2026-10-03): per-floor origin so a consumer can
+        # tell a measurement from a placeholder. "unmeasured_default*" means the
+        # value came from _representative_floor_score() — the floor's own passing
+        # threshold — and must never be rendered as green.
+        "floor_provenance": floor_provenance,
+        "measurement_basis": measurement_basis,
+        # F3 tri-witness legs, each with value/state/evidence. Published even
+        # when incomplete so the blocking leg is visible.
+        "witness_legs": witness_legs,
+        "runtime_signal_evidence": runtime_signal_evidence,
+        "f1_probe_error": f1_probe_error,
         "apex_scalars": apex_scalars,
         "machine_vitals": machine_vitals,
         "session_id": session_id or f"sess_{uuid.uuid4().hex[:8]}",
@@ -2330,7 +2418,7 @@ def _count_mcp_tools(fmcp: Any) -> int:
 
         return len(public_tool_names_for_mode())
     except Exception:
-        pass
+        logger.exception("suppressed exception", exc_info=True)
     return 9
 
 
@@ -2531,8 +2619,12 @@ def _compute_runtime_drift() -> dict[str, Any]:
     build_commit = BUILD_INFO.get("build", {}).get("commit", "unknown")
     live_commit = "unknown"
 
-    # ── 1) Canonical deployment marker (written by make deploy-local) ──
-    for commit_file in ["/opt/arifos/app/.git_commit", "/root/arifOS/.git_commit"]:
+    # ── 1) Canonical deployment marker (written by deploy-release.sh / make deploy-local) ──
+    for commit_file in [
+        "/opt/arifos/releases/deployed-commit",
+        "/opt/arifos/app/.git_commit",
+        "/root/arifOS/.git_commit",
+    ]:
         try:
             if os.path.exists(commit_file):
                 with open(commit_file) as f:
@@ -2602,8 +2694,7 @@ def _probe_vault999_health() -> str:
             if data.get("status") == "healthy":
                 return "healthy"
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     # 2. Legacy API (if ever revived)
     try:
         with urllib.request.urlopen("http://localhost:8100/health", timeout=2) as resp:
@@ -2611,8 +2702,7 @@ def _probe_vault999_health() -> str:
             if data.get("status") in ("healthy", "ok", "alive"):
                 return "healthy"
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     # 3. FS-backed truth: seal_chain + head present + recent activity
     try:
         head_p = "/root/.local/share/arifos/vault999/seal_chain_head.json"
@@ -2624,8 +2714,7 @@ def _probe_vault999_health() -> str:
                 return "healthy"
             return "degraded"  # exists but stale
     except Exception:
-        pass
-
+        logger.exception("suppressed exception", exc_info=True)
     return "unreachable"
 
 
@@ -2665,36 +2754,44 @@ def _probe_provider_status() -> dict[str, Any]:
 
     status: dict[str, Any] = {
         "primary_provider": None,
-        "sea_lion_configured": False,
-        "sea_lion_healthy": False,
+        "fed_federation_configured": False,
+        "fed_federation_healthy": False,
         "ollama_configured": False,
         "ollama_healthy": False,
         "deterministic_fallback_available": True,
         "deterministic_fallback_used": True,
         "last_fallback_reason": None,
+        # ZD3 fix: explicit cognitive tier for the watchdog (2026-09-17)
+        "cognitive_tier": "DEGRADED_COGNITIVE_TIER",
+        "fallback_acknowledged": False,
     }
 
-    # SEA-LION
-    sea_key = _os_probe.getenv("SEA_LION_API_KEY")
-    sea_url = _os_probe.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
-    if sea_key:
-        status["sea_lion_configured"] = True
-        status["primary_provider"] = "sea_lion"
+    # FED-FEDERATION
+    fed_key = _os_probe.getenv("FED_PROXY_API_KEY")
+    fed_url = _os_probe.getenv("FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1")
+    if fed_key:
+        status["fed_federation_configured"] = True
+        status["primary_provider"] = "fed_federation"
         try:
             import urllib.request
             import ssl as _ssl
 
             ctx = _ssl.create_default_context()
             req = urllib.request.Request(
-                f"{sea_url}/models",
-                headers={"Authorization": f"Bearer {sea_key}"},
+                f"{fed_url}/models",
+                headers={"Authorization": f"Bearer {fed_key}"},
             )
             with urllib.request.urlopen(req, timeout=5, context=ctx) as resp:
                 if resp.status == 200:
-                    status["sea_lion_healthy"] = True
+                    status["fed_federation_healthy"] = True
                     status["deterministic_fallback_used"] = False
+                    # ZD3: explicit tier declaration (no silent fallback)
+                    status["cognitive_tier"] = "FEDERATED"
+                    status["fallback_acknowledged"] = True
         except Exception:
-            status["last_fallback_reason"] = "SEA_LION_UNREACHABLE"
+            status["last_fallback_reason"] = "FED_FEDERATION_UNREACHABLE"
+            # ZD3: explicit degradation — never silent
+            status["cognitive_tier"] = "DEGRADED_COGNITIVE_TIER"
 
     # Ollama — independent probe (parallel tier, not conditional fallback)
     ollama_host = _os_probe.getenv("OLLAMA_HOST", "localhost")
@@ -2712,6 +2809,11 @@ def _probe_provider_status() -> dict[str, Any]:
                 status["ollama_healthy"] = bool(data.get("models"))
                 if status["ollama_healthy"]:
                     status["deterministic_fallback_used"] = False
+                    if status.get("fed_federation_healthy"):
+                        status["cognitive_tier"] = "FEDERATED"
+                    else:
+                        status["cognitive_tier"] = "LOCAL_OLLAMA"
+                    status["fallback_acknowledged"] = True
     except Exception:
         if not status["last_fallback_reason"]:
             status["last_fallback_reason"] = "OLLAMA_UNREACHABLE"
@@ -2720,6 +2822,13 @@ def _probe_provider_status() -> dict[str, Any]:
         status["primary_provider"] = status["primary_provider"] or "deterministic"
         if not status["last_fallback_reason"]:
             status["last_fallback_reason"] = "ALL_PROVIDERS_UNAVAILABLE"
+        # ZD3: explicit degradation — never silent
+        if status["cognitive_tier"] == "DEGRADED_COGNITIVE_TIER":
+            status["cognitive_tier"] = "DETERMINISTIC_ONLY"
+
+    # ZD3 final guard: if we fell back without acknowledgment, raise explicitly
+    if not status["fallback_acknowledged"] and status["deterministic_fallback_used"]:
+        status["cognitive_tier"] = "DEGRADED_COGNITIVE_TIER"
 
     return status
 
@@ -2731,7 +2840,7 @@ def _probe_provider_status() -> dict[str, Any]:
 # synchronous urllib probes directly on the event loop —
 #   _probe_langfuse_tracing()  → external HTTPS (jp.cloud.langfuse.com)
 #   _probe_vault999_health()   → 2 × 2s local urlopen
-#   _probe_provider_status()   → external HTTPS (SEA-LION 5s + Ollama 3s)
+#   _probe_provider_status()   → external HTTPS (FED-FEDERATION 5s + Ollama 3s)
 # Worst case ~15s total event-loop freeze per /health call, observed live via
 # py-spy (MainThread stuck in ssl.do_handshake under health→_probe_provider_status).
 # Strategy: TTL cache (60s) + refresh in a worker thread (asyncio.to_thread).
@@ -3006,14 +3115,48 @@ def register_rest_routes(
 
     @route("/mcp", methods=["GET"])
     async def mcp_landing(request: Request) -> Response:
-        """AAA MCP landing — HTML for browsers, discovery JSON for tools, 405 for SSE.
+        """AAA MCP landing — HTML/redirect for browsers, discovery JSON for tools, 405 for SSE.
 
         Streamable-HTTP clients (Grok rmcp, Cursor) probe GET with
         Accept: text/event-stream. Returning discovery JSON (200) makes them
         poll forever. With json_response mode we do not offer SSE — return 405
         so the client falls back to POST-only (same as GEOX transport patch).
+
+        For human web browsers navigating to /mcp, redirect (303) to the
+        interactive landing page / explorer at https://mcp.arif-fazil.com/
+        so users never see an ugly HTTP 405 error.
         """
-        accept = request.headers.get("Accept", "")
+        accept = request.headers.get("Accept", "").lower()
+        user_agent = request.headers.get("User-Agent", "").lower()
+        sec_fetch_dest = request.headers.get("Sec-Fetch-Dest", "").lower()
+        sec_fetch_mode = request.headers.get("Sec-Fetch-Mode", "").lower()
+        upgrade_insecure = request.headers.get("Upgrade-Insecure-Requests", "")
+
+        is_tool = any(
+            bot in user_agent
+            for bot in [
+                "cursor",
+                "curl",
+                "python",
+                "httpx",
+                "rmcp",
+                "mcp",
+                "grok",
+                "postman",
+                "glama",
+            ]
+        )
+        is_browser = (
+            sec_fetch_dest == "document"
+            or sec_fetch_mode == "navigate"
+            or upgrade_insecure == "1"
+            or "text/html" in accept
+            or ("mozilla" in user_agent and not is_tool)
+        )
+
+        if is_browser:
+            return RedirectResponse(url="https://mcp.arif-fazil.com/", status_code=303)
+
         if "text/event-stream" in accept:
             return Response(
                 status_code=405,
@@ -3237,34 +3380,41 @@ def register_rest_routes(
         _code_runtime_drift = bool(_drift.get("runtime_drift", False))
         degraded_reasons: list[dict[str, str]] = []
         if _sr_drift:
-            degraded_reasons.append({
-                "layer": "deployment_attestation",
-                "field": "software_release.drift",
-                "value": "true",
-                "severity": "warning",
-                "explanation": "source_commit != built_commit in runtime attestation (SOT drift, not code drift)",
-            })
+            degraded_reasons.append(
+                {
+                    "layer": "deployment_attestation",
+                    "field": "software_release.drift",
+                    "value": "true",
+                    "severity": "warning",
+                    "explanation": "source_commit != built_commit in runtime attestation (SOT drift, not code drift)",
+                }
+            )
         if _code_runtime_drift:
-            degraded_reasons.append({
-                "layer": "runtime",
-                "field": "runtime_drift",
-                "value": "true",
-                "severity": "critical",
-                "explanation": "Live running code does not match deployed commit",
-            })
+            degraded_reasons.append(
+                {
+                    "layer": "runtime",
+                    "field": "runtime_drift",
+                    "value": "true",
+                    "severity": "critical",
+                    "explanation": "Live running code does not match deployed commit",
+                }
+            )
         if contract_drift_val:
-            degraded_reasons.append({
-                "layer": "registry",
-                "field": "contract_drift",
-                "value": "true",
-                "severity": "warning",
-                "explanation": "Tool contract schemas have drift",
-            })
+            degraded_reasons.append(
+                {
+                    "layer": "registry",
+                    "field": "contract_drift",
+                    "value": "true",
+                    "severity": "warning",
+                    "explanation": "Tool contract schemas have drift",
+                }
+            )
 
         # ── Health clarity (2026-08-14): per-layer health classification ──
         _floors_scores = thermo.get("floors", {})
         _floors_pass_count = sum(
-            1 for _fid, _sc in _floors_scores.items()
+            1
+            for _fid, _sc in _floors_scores.items()
             if _floor_status_strict(_fid, _sc) == _FLOOR_STATUS_PASS
         )
         _floors_total = get_floor_count()
@@ -3273,22 +3423,24 @@ def register_rest_routes(
             "constitutional": {
                 "status": "healthy" if _floors_pass_count == _floors_total else "degraded",
                 "floors_active": get_floor_count(),
+                "floors_pass": _floors_pass_count,
                 "floors_target": 13,
                 "vault999": _vault_health,
             },
             "runtime": {
                 "status": "healthy" if not _code_runtime_drift else "degraded",
-                "source_commit": _drift.get("source_commit"),
-                "built_commit": _drift.get("built_commit"),
+                "source_commit": _drift.get("live_commit"),
+                "built_commit": _drift.get("build_commit"),
                 "runtime_matches_build": _drift.get("runtime_matches_build", True),
                 "deployment_attestation": "drift" if _sr_drift else "aligned",
             },
             "registry": {
                 "status": "degraded" if contract_drift_val else "healthy",
                 "registry_size": len(tool_registry),
-                "declared_tools": _exposed + _diagnostic,
+                "declared_tools": _exposed,
                 "exposed_tools": _exposed,
-                "note": "registry_size includes aliases; diagnostic_tools not on public wire",
+                "diagnostic_tools": _diagnostic,
+                "note": "declared == exposed == callable surface; diagnostic_tools not on public wire; registry_size includes aliases",
             },
             "infra": {
                 "status": "unknown",
@@ -3296,11 +3448,134 @@ def register_rest_routes(
             },
         }
 
+        # 2026-10-06 (333-AGI, L13 class — Wawa external audit #4): the
+        # aggregate MUST be derived from its named layers. Measured defect
+        # 2026-10-05: status=healthy + degraded_reasons=[] while
+        # layer_health.constitutional.status=degraded (floors_pass <
+        # floors_target) — a layer that names itself degraded under a
+        # healthy aggregate with no cause is the exact "state field can
+        # lie" pattern (K11 honest sensor; one event → one canonical
+        # state; derived fields follow). "unknown" (infra probe) stays
+        # visible-only by design: it is a declared probe surface, not a
+        # measured failure — no data ≠ all clear, but also no data ≠ fail.
+        for _lh_name, _lh in _layer_health.items():
+            if _lh.get("status") in ("degraded", "fail") and not any(
+                r.get("layer") == _lh_name for r in degraded_reasons
+            ):
+                _degraded = True
+                degraded_reasons.append(
+                    {
+                        "layer": _lh_name,
+                        "field": f"layer_health.{_lh_name}.status",
+                        "value": str(_lh.get("status")),
+                        "severity": "warning",
+                        "explanation": (
+                            "layer self-reported degraded — see layer_health."
+                            f"{_lh_name} fields for the measured cause"
+                        ),
+                    }
+                )
+
+        # ── H1.1: emit constitutional gauges from THIS handler's measured state ──
+        # record_constitutional_metrics() previously had ZERO live callers, so
+        # arifos_genius_score / arifos_entropy_delta / arifos_peace_squared /
+        # arifos_empathy_quotient (F8/ΔS/P²/κᵣ observability) never populated.
+        # Every value below is exactly what /health itself reports — nothing
+        # fabricated (F2). Provenance labels distinguish measured vs derived.
+        # Ω₀ (HUMILITY_BAND) is honestly SKIPPED here: no Ω₀-band value is
+        # computed on this path (the F7 floor score and the apex 'h'
+        # evidence-gap are different quantities, not Ω₀ ∈ [0.03, 0.05]).
+        try:
+            from arifosmcp.runtime.metrics import (
+                record_constitutional_metrics as _record_const_metrics,
+                record_w3 as _record_w3,
+            )
+
+            _apex_health = thermo.get("apex_scalars", {}) or {}
+            _health_telemetry = thermo.get("telemetry", {}) or {}
+            _const_metrics: dict[str, float] = {}
+            _const_provenance: dict[str, str] = {}
+            _g_snap = _apex_health.get("G") or {}
+            if _g_snap.get("status") == "MEASURED" and _g_snap.get("value") is not None:
+                _const_metrics["G"] = float(_g_snap["value"])
+                _const_provenance["G"] = "measured"
+            if _health_telemetry.get("dS") is not None:
+                _const_metrics["dS"] = float(_health_telemetry["dS"])
+                _const_provenance["dS"] = "derived"
+            if _health_telemetry.get("peace2") is not None:
+                _const_metrics["peace2"] = float(_health_telemetry["peace2"])
+                _const_provenance["peace2"] = "derived"
+            if _health_telemetry.get("kappa_r") is not None:
+                _const_metrics["kappa_r"] = float(_health_telemetry["kappa_r"])
+                _const_provenance["kappa_r"] = "derived"
+            if _const_metrics:
+                _record_const_metrics(
+                    session_id=str(thermo.get("session_id") or "health"),
+                    tool="health",
+                    metrics=_const_metrics,
+                    provenance_map=_const_provenance,
+                )
+            # W3 tri-witness histogram (F3) — only when the live witness
+            # channels actually measured it (any zero channel → UNMEASURED).
+            _w3_snap = _apex_health.get("W3") or {}
+            if _w3_snap.get("status") == "MEASURED" and _w3_snap.get("value") is not None:
+                _record_w3("health", float(_w3_snap["value"]))
+        except Exception:
+            # Metrics emission must never break /health.
+            pass
+
+        # ZD-3: Pre-compute provider status so we can check for cognitive downgrade
+        _provider_status = await _cached_offloaded_probe(
+            "provider_status",
+            _probe_provider_status,
+            fallback={
+                "primary_provider": None,
+                "deterministic_fallback_available": True,
+                "deterministic_fallback_used": True,
+                "last_fallback_reason": "PROBE_WARMING",
+            },
+        )
+
+        # ZD-3: Detect silent cognitive downgrade
+        _fed_unreachable = (
+            _provider_status.get("last_fallback_reason")
+            and _provider_status["last_fallback_reason"] not in ("PROBE_WARMING",)
+            and _provider_status.get("deterministic_fallback_used", False)
+        )
+        if _fed_unreachable:
+            _degraded = True
+            degraded_reasons = degraded_reasons + [
+                {
+                    "layer": "provider_fallback",
+                    "field": "cognitive_tier",
+                    "value": _provider_status["last_fallback_reason"],
+                    "severity": "warning",
+                    "explanation": (
+                        "Primary LLM provider unreachable. System running on "
+                        "reduced cognitive capacity (local/deterministic fallback). "
+                        "Prompt injections and logical manipulations are easier to "
+                        "pull off on smaller models."
+                    ),
+                }
+            ]
+
+        # 2026-09-21 (surface-consistency audit): hoisted out of the payload literal
+        # so `registry_truth` can cite registry-only evidence instead of a variable
+        # it shares with the software-release axis.
+        _surface_consistency = _get_surface_consistency()
+        _surface_consistency_verdict = str((_surface_consistency or {}).get("verdict") or "UNKNOWN")
+
         payload = {
             "status": "degraded" if _degraded else "healthy",
             "degraded_reasons": degraded_reasons,
             "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
+            # ZEN 2026-09-02 (F13 'audit this and zen all'): the import path is
+            # the runtime truth. Deploy markers once said "aligned" while the
+            # service imported a stale venv site-packages copy (79 paths behind
+            # source). Expose the path so any auditor can hash-compare it
+            # against source without trusting labels.
+            "runtime_import_path": __import__("arifosmcp").__file__,
             "identity_hash": identity_hash,
             # ── Federation enum schema version (federation-wide handshake) ──
             # Bump FEDERATION_ENUMS_SCHEMA_VERSION in the canonical file when
@@ -3354,7 +3629,7 @@ def register_rest_routes(
             # ── FORGE 2: Surface Self-Consistency (2026-06-22) ─────────────
             # INVARIANT: H(sorted(canonical_tool_names)) must be identical
             # from every enumeration endpoint. Divergence → AMBER + F11.
-            "surface_consistency": _get_surface_consistency(),
+            "surface_consistency": _surface_consistency,
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
             "runtime_floors": thermo.get("floors", {}),
@@ -3376,13 +3651,40 @@ def register_rest_routes(
             ).schema_load_receipt(),
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
             "registry_truth": "VERIFIED"
-            if not contract_drift_val and not runtime_drift_val
+            if not contract_drift_val and _surface_consistency_verdict == "CONSISTENT"
             else "DRIFT_DETECTED",
+            # 2026-09-21 (surface-consistency audit): registry_truth used to read
+            # `runtime_drift_val`, which by then had been OR'd with the software
+            # release attestation — so a REGISTRY verdict red-flagged on a
+            # SOURCE-vs-BUILT signal. /health emitted registry_truth=DRIFT_DETECTED
+            # while its own surface_consistency block hashed six vantages to the
+            # same value with divergences=[]. Basis is now registry-only; the
+            # software-release axis has its own fields and is not laundered here.
+            "registry_truth_basis": (
+                "contract_drift + surface_consistency.verdict "
+                "(registry axis only; excludes software-release drift)"
+            ),
             "schema_hash": _compute_schema_hash(mcp, tool_registry),
             "critical_module_hashes": _compute_critical_module_hashes(),
             "contract_status": contracts,
             "contract_drift": contract_drift_val,
             **_drift,
+            # ── AXIS-QUALIFIED DRIFT (surface-consistency audit 2026-09-21) ──
+            # `**_drift` above re-emits runtime_drift from the RAW probe, shadowing
+            # the value OR'd with the software-release attestation (~line 3210).
+            # /health therefore carried runtime_drift=false inside a payload that
+            # simultaneously said deployment_drift_status="drift_detected" and
+            # registry_truth="DRIFT_DETECTED" — "narrate SAFE, arithmetic says
+            # drift", the same Mode-3 defect the 2026-08-04 note fixed one field
+            # over. Both axes are real; neither is left unqualified now:
+            #   runtime_drift       deployment integrity, EITHER axis (the consumer
+            #                       at /health's runtime_drift_vs_trinity check
+            #                       documents this field as "deployment integrity")
+            #   code_runtime_drift  live running code vs deployed commit  (critical)
+            #   source_build_drift  repo source vs built artifact        (SOT only)
+            "runtime_drift": runtime_drift_val,
+            "code_runtime_drift": _code_runtime_drift,
+            "source_build_drift": _sr_drift,
             "graphiti_enabled": graphiti_enabled,
             # ── Token pressure telemetry (Phase 1.A — additive, F1 reversible) ──
             "token_pressure": _token_pressure_payload,
@@ -3415,8 +3717,11 @@ def register_rest_routes(
                 #               ARIFOS_ML_FLOORS — graphiti may be live
                 #               while ML floors are off (and vice versa).
                 #   - semantic_floor: tied to ML toggle (the actual gate)
-                "graphiti_transport": "healthy" if graphiti_enabled else "degraded",
-                "graphiti_storage": "healthy" if graphiti_enabled else "degraded",
+                # L5 Graphiti RETIRED by 888 Sovereign command 2026-09-04
+                # (FEDERATION_MEMORY_CONTRACT.md — worker neutralized, do-not-
+                # auto-wake). Disabled state is retirement, not degradation.
+                "graphiti_transport": "healthy" if graphiti_enabled else "retired_888",
+                "graphiti_storage": "healthy" if graphiti_enabled else "retired_888",
                 "graphiti_embedding_runtime": (
                     "unverified"
                 ),  # Decoupled from ARIFOS_ML_FLOORS — flips to
@@ -3434,13 +3739,20 @@ def register_rest_routes(
                 "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
                 "runtime_drift": runtime_drift_val,
                 "contract_drift": contract_drift_val,
-                "graphiti_read": "degraded" if not graphiti_enabled else "healthy",
+                "graphiti_read": "retired_888" if not graphiti_enabled else "healthy",
                 "semantic_floor": (
                     "enabled"
                     if ml_runtime["ml_runtime_ready"]
                     else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
                 ),
-                "langfuse_traces": _langfuse.get("status", "unknown"),
+                # Kabarkan sovereign cutover 2026-09 (99-kabarkan-sovereign.conf):
+                # OBSERVABILITY_BACKEND=arifos stops Langfuse dual-write. NOT_WIRED
+                # was the pre-cutover framing; the plane is Kabarkan (NATS + PG).
+                "langfuse_traces": (
+                    "sovereign_cutover_kabarkan"
+                    if os.getenv("OBSERVABILITY_BACKEND", "").lower() == "arifos"
+                    else _langfuse.get("status", "unknown")
+                ),
             },
             "known_gaps": _compute_known_gaps(
                 langfuse_tracing=_langfuse,
@@ -3453,16 +3765,7 @@ def register_rest_routes(
                 build_runtime_capability_map,
                 fallback={"note": "capability probe offloaded; no cache yet"},
             ),
-            "provider_status": await _cached_offloaded_probe(
-                "provider_status",
-                _probe_provider_status,
-                fallback={
-                    "primary_provider": None,
-                    "deterministic_fallback_available": True,
-                    "deterministic_fallback_used": True,
-                    "last_fallback_reason": "PROBE_WARMING",
-                },
-            ),
+            "provider_status": _provider_status,
             "timestamp": datetime.now(UTC).isoformat(),
             # ── Freshness & Owner Summary (Phase 2 Hardening) ─────────────────
             # Freshness: answers "can you trust my current state?"
@@ -3541,7 +3844,7 @@ def register_rest_routes(
             },
             # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
             # Computed from live tool call metrics over 24h window.
-            # G = A·P·E·X·Φ (canonical 5-primitive). Zero anywhere = collapse.
+            # G = (A·P·E·X)^(1/4) (canonical 4-factor). Zero anywhere = collapse.
             # C_dark = A·(1-P)·(1-X) — the "Bangang Detector".
             "apex_scalars": thermo.get("apex_scalars", {}),
             # T7 — federation contract conformance. arifOS was missing this
@@ -3698,6 +4001,47 @@ def register_rest_routes(
             payload = dict(payload)
             payload["payload_mode"] = "detail"
 
+        # ── T6 verdict floor-guard (F13 A1 batch, 2026-09-22) ────────────
+        # SEAL-grade publication must not out-shout a canon floor breach.
+        # Thresholds are canon-grounded, NOT taken from any external paste:
+        #   W3 < 0.75 → HOLD band — APEX-REALITY-KERNEL.md L154 +
+        #                 W3-HYSTERESIS-DOCTRINE-2026-09-20 (any single
+        #                 measurement below 0.75 = fail-closed demotion)
+        #   G  < 0.80 → F08 GENIUS floor breach — CANON-FLOOR-INDEX-2026-09-20
+        # Observed breach (OBS 2026-09-22): verdict=SEAL beside
+        # G=0.4649 / W3=0.7439 — one payload, two truths (S4 family).
+        # Guard runs BEFORE the cache store so cached and ?nocache=1
+        # payloads agree. Fail-safe: never raises — telemetry must not
+        # break /health.
+        try:
+            _apex_pub = payload.get("apex_scalars") or {}
+            _g_pub = (_apex_pub.get("G") or {}).get("value")
+            _w_pub = (_apex_pub.get("W3") or {}).get("value")
+            _t6_breaches: list[str] = []
+            if isinstance(_g_pub, (int, float)) and not isinstance(_g_pub, bool) and _g_pub < 0.80:
+                _t6_breaches.append(
+                    f"F08_GENIUS: G={_g_pub:.4f} < 0.80 (CANON-FLOOR-INDEX-2026-09-20)"
+                )
+            if isinstance(_w_pub, (int, float)) and not isinstance(_w_pub, bool) and _w_pub < 0.75:
+                _t6_breaches.append(
+                    f"W3_HOLD_BAND: W3={_w_pub:.4f} < 0.75 (APEX-REALITY-KERNEL.md:154)"
+                )
+            _thermo_pub = payload.get("thermodynamic")
+            if (
+                isinstance(_thermo_pub, dict)
+                and _t6_breaches
+                and str(_thermo_pub.get("verdict") or "").upper() in ("SEAL", "888_SEAL")
+            ):
+                _thermo_pub["verdict"] = "HOLD"
+                _thermo_pub["verdict_floor_guard"] = {
+                    "guard": "T6_verdict_floor_guard_2026-09-22",
+                    "breaches": _t6_breaches,
+                    "original_verdict": "SEAL",
+                    "authority": "F13 A1 batch 2026-09-22 (thresholds canon-grounded)",
+                }
+        except Exception:
+            pass  # fail-safe: guard must never take down /health
+
         # ── RSI: Update cache ──
         # Cache compact only — detail bypasses shared cache pollution
         if not _detail:
@@ -3711,6 +4055,82 @@ def register_rest_routes(
                 "X-Deployment-Hash": BUILD_INFO["build"]["commit_short"],
             },
         )
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # FRAME PROXY — Independent Epistemic Observatory
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Lightweight HTTP proxy to frame-organ.service :18085.
+    # No auth required — FRAME is OBSERVE_ONLY, read-only, internal.
+    # Agents call arifOS:8088/frame/{mode} instead of FRAME:18086 directly.
+    # APEX-ZEN: cognitive surface collapse, runtime independence preserved.
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    _FRAME_ENDPOINTS = {
+        "health": "/health",
+        "probe": "/frame/probe",
+        "drift": "/frame/drift",
+        "baseline": "/frame/baseline",
+        "trend": "/frame/trend",
+        "report": "/frame/report",
+        "verify": "/frame/rsi-verify",
+    }
+    _FRAME_PORT = 18085
+    _FRAME_TIMEOUT = 15
+
+    @route("/frame/{mode:path}", methods=["GET"])
+    async def frame_proxy(request: Request) -> Response:
+        """Proxy to FRAME organ — independent epistemic witness.
+
+        Modes: health, probe, drift, baseline, trend, report, verify.
+        Returns FRAME's OBSERVATIONAL_ONLY payload unchanged.
+        FRAME unreachable → graceful FRAME_UNREACHABLE response.
+        """
+        import urllib.request
+        import json
+
+        mode = request.path_params.get("mode", "health")
+        endpoint = _FRAME_ENDPOINTS.get(mode)
+        if not endpoint:
+            return JSONResponse(
+                {
+                    "error": f"Unknown FRAME mode: {mode}",
+                    "available_modes": list(_FRAME_ENDPOINTS.keys()),
+                },
+                status_code=404,
+            )
+
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{_FRAME_PORT}{endpoint}",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=_FRAME_TIMEOUT) as resp:
+                frame_data = json.loads(resp.read().decode())
+            frame_data["_proxy"] = {
+                "source": "frame-organ",
+                "via": "arifos-frame-proxy",
+                "authority": "OBSERVATIONAL_ONLY",
+            }
+            return JSONResponse(frame_data)
+        except urllib.error.URLError as exc:
+            return JSONResponse(
+                {
+                    "status": "FRAME_UNREACHABLE",
+                    "mode": mode,
+                    "error": str(exc)[:200],
+                    "frame_port": _FRAME_PORT,
+                },
+                status_code=503,
+            )
+        except Exception as exc:
+            return JSONResponse(
+                {
+                    "status": "FRAME_PROXY_ERROR",
+                    "mode": mode,
+                    "error": str(exc)[:200],
+                },
+                status_code=500,
+            )
 
     @route("/identity", methods=["GET"])
     async def identity(request: Request) -> Response:
@@ -4142,8 +4562,7 @@ def register_rest_routes(
                 else None
             ) or None
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         return JSONResponse(
             {
                 # Core gauges — null if kernel telemetry unavailable
@@ -4360,7 +4779,7 @@ def register_rest_routes(
                                 if result["tools"]:
                                     result["tool_count"] = len(result["tools"])
                             except Exception:
-                                pass
+                                logger.exception("suppressed exception", exc_info=True)
                 except Exception:
                     pass
 
@@ -4493,7 +4912,7 @@ def register_rest_routes(
         Returns a layered topology map:
           Layer 0: Infrastructure  (Postgres, Redis, Qdrant, Vault999)
           Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Apex)
-          Layer 2: AI Providers     (Ollama, SEA-LION, Langfuse, Supabase)
+          Layer 2: AI Providers     (Ollama, FED-FEDERATION, Langfuse, Supabase)
           Layer 3: Edge / Routing   (Caddy, Cloudflare)
         Each entry: name, type, host, port, status, latency_ms, version (if available).
         """
@@ -4520,12 +4939,14 @@ def register_rest_routes(
         ]
 
         # --- Layer 2: AI / External ---
-        sea_lion_base = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
+        fed_federation_base = os.getenv(
+            "FED_FEDERATION_BASE_URL", "https://api.fed-federation.ai/v1"
+        )
         langfuse_base = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
 
         external_tasks = [
             _probe_tcp_port("ollama", 11434),
-            _probe_http(path=f"{sea_lion_base}/health", timeout=5.0),
+            _probe_http(path=f"{fed_federation_base}/health", timeout=5.0),
             _probe_http(path=f"{langfuse_base}/api/public/health", timeout=5.0),
         ]
 
@@ -4620,11 +5041,12 @@ def register_rest_routes(
                 if r.status_code == 200:
                     ollama_models = [m["name"] for m in r.json().get("models", [])]
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         external_layer = [
             build_component("Ollama", "llm", "ollama", 11434, external_results[0]),
-            build_component("SEA-LION", "llm", "api.sea-lion.ai", 443, external_results[1]),
+            build_component(
+                "FED-FEDERATION", "llm", "api.fed-federation.ai", 443, external_results[1]
+            ),
             build_component(
                 "Langfuse",
                 "observability",
@@ -4882,6 +5304,12 @@ def register_rest_routes(
                 from arifosmcp.runtime.tools import _is_actor_verified
 
                 _rest_action = _rest_action_class(canonical_name, body)
+                # STEP 4 (2026-09-18): thread the call's mode into the gate +
+                # clamp so per-mode authority resolution runs (query/recall/
+                # dry_run -> OBSERVE; engineer/commit -> MUTATE). Without this,
+                # multi-mode tools hit the no-mode anti-downgrade branch
+                # (ForgedClassificationError) on read-only calls.
+                _rest_mode = str(body.get("mode") or "")
                 # P0 single-writer discipline (2026-07-04): route through canonical
                 # _is_actor_verified(session_id, actor_id) instead of the prior
                 # hardcoded True shortcut. Single-sovereign federation is a
@@ -4893,6 +5321,7 @@ def register_rest_routes(
                     action_class=_rest_action,
                     actor_verified=_is_actor_verified(_rest_session_id, _rest_actor_id),
                     tool_name=canonical_name,
+                    tool_mode=_rest_mode,
                 )
                 # ── Session Policy Clamp (2026-08-15, F13 Go on Shadow Mode) ──
                 # Enforce the session's OWN agent_policy: display-register
@@ -4902,7 +5331,7 @@ def register_rest_routes(
                     from arifosmcp.runtime.session_policy import session_policy_clamp
 
                     _clamp = session_policy_clamp(
-                        _rest_session_id, canonical_name, _rest_action.value
+                        _rest_session_id, canonical_name, _rest_action.value, tool_mode=_rest_mode
                     )
                     if _clamp is not None:
                         logger.warning(
@@ -5156,7 +5585,7 @@ def register_rest_routes(
                 jwks = _json.loads(_jwks_path.read_text())
                 return JSONResponse(jwks)
         except Exception:
-            pass
+            logger.exception("suppressed exception", exc_info=True)
         # Fallback: placeholder (dev mode only)
         return JSONResponse(
             {
@@ -5522,10 +5951,11 @@ def register_rest_routes(
         # P0-5: Deployment invariant check via _compute_runtime_drift()
         drift = _compute_runtime_drift()
         drift_detected = drift.get("runtime_drift", False)
-        src = drift.get("source_commit", "?") or "?"
-        built = drift.get("built_commit", "?") or "?"
-        deployed = drift.get("deployed_commit", "?") or "?"
-        deploy_ok = not drift_detected and src == built == deployed
+        # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
+        src = drift.get("live_commit", "?") or "?"
+        built = drift.get("build_commit", "?") or "?"
+        deployed = drift.get("live_commit", "?") or "?"
+        deploy_ok = not drift_detected and built != "?" and src == built
 
         # Composite verdict
         if selftest_verdict == "FAIL":
@@ -5644,7 +6074,7 @@ def register_rest_routes(
             try:
                 write_public_state(state)
             except Exception:
-                pass
+                logger.exception("suppressed exception", exc_info=True)
             return JSONResponse(
                 state,
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
@@ -5697,7 +6127,7 @@ def register_rest_routes(
                             any_organ_up = True
                             break
                         except Exception:
-                            pass
+                            logger.exception("suppressed exception", exc_info=True)
                 except Exception:
                     pass
 
@@ -5903,8 +6333,7 @@ def register_rest_routes(
                     main_registry = json.load(f)
                 sot_source = "local:fallback"
             except Exception:
-                pass
-
+                logger.exception("suppressed exception", exc_info=True)
         # Full intended surface = canonical_order + diagnostic_order
         # (comparing only canonical_order vs ~50 live tools caused a permanent false HOLD)
         canonical_tools = main_registry.get("canonical_order", [])
@@ -6266,7 +6695,7 @@ def register_rest_routes(
                         try:
                             entries.append(json.loads(line.strip()))
                         except Exception:
-                            pass
+                            logger.exception("suppressed exception", exc_info=True)
                 except Exception as e:
                     logger.warning(f"Failed to read vault file: {e}")
 
@@ -6658,8 +7087,7 @@ def register_rest_routes(
                         if name and name not in mcp_tool_names:
                             mcp_tool_names.append(name)
         except Exception:
-            pass
-
+            logger.exception("suppressed exception", exc_info=True)
         lines = [
             "# arifOS MCP — Constitutional AI Gateway",
             f"Version: {BUILD_VERSION}",
@@ -7018,7 +7446,15 @@ def register_rest_routes(
         arguments[] schema per MCP spec §Prompts.
         """
         try:
-            mcp_prompts = await mcp.list_prompts()
+            # ZEN 2026-09-02: positional-swap fix — the `mcp` param receives the
+            # StarletteWithLifespan ASGI app (server.py passes `app` first), which
+            # has no list_prompts. The real FastMCP instance arrives as
+            # `fastmcp_instance`. Resolve before listing.
+            _fmcp = fastmcp_instance if fastmcp_instance is not None else mcp
+            try:
+                mcp_prompts = await _fmcp.list_prompts(run_middleware=False)
+            except TypeError:
+                mcp_prompts = await _fmcp.list_prompts()
             prompts_list = []
             for p in mcp_prompts:
                 raw_args = getattr(p, "arguments", []) or []
@@ -7050,13 +7486,22 @@ def register_rest_routes(
                 }
             )
         except Exception:
+            logger.exception("REST /prompts listing failed")
             return _rest_error("Failed to list prompts", status_code=500)
 
     @route("/prompts/{prompt_name:path}", methods=["GET"])
     async def get_prompt(request: Request, prompt_name: str) -> Response:
         """Get a prompt template by name."""
         try:
-            mcp_prompts = await mcp.list_prompts()
+            # ZEN 2026-09-02: positional-swap fix — the `mcp` param receives the
+            # StarletteWithLifespan ASGI app (server.py passes `app` first), which
+            # has no list_prompts. The real FastMCP instance arrives as
+            # `fastmcp_instance`. Resolve before listing.
+            _fmcp = fastmcp_instance if fastmcp_instance is not None else mcp
+            try:
+                mcp_prompts = await _fmcp.list_prompts(run_middleware=False)
+            except TypeError:
+                mcp_prompts = await _fmcp.list_prompts()
             for p in mcp_prompts:
                 if p.name == prompt_name or p.name == f"arifos.{prompt_name}":
                     return JSONResponse(
@@ -7808,7 +8253,7 @@ setInterval(refreshSot, 30000);
                                     if "result" in tools_data and "tools" in tools_data["result"]:
                                         result["tools_count"] = len(tools_data["result"]["tools"])
                             except Exception:
-                                pass
+                                logger.exception("suppressed exception", exc_info=True)
                     else:
                         result["error"] = f"http_{resp.status_code}"
             except Exception as e:
@@ -7830,7 +8275,7 @@ setInterval(refreshSot, 30000);
                         try:
                             result["data"] = resp.json()
                         except Exception:
-                            pass
+                            logger.exception("suppressed exception", exc_info=True)
                     else:
                         result["error"] = f"http_{resp.status_code}"
             except Exception as e:
@@ -7971,7 +8416,7 @@ setInterval(refreshSot, 30000);
                                     if "result" in td and "tools" in td["result"]:
                                         tools_count = len(td["result"]["tools"])
                             except Exception:
-                                pass
+                                logger.exception("suppressed exception", exc_info=True)
                             _svc_results["geox"] = {
                                 "status": "ok",
                                 "mcp_probe": "ok",

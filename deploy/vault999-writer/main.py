@@ -132,15 +132,28 @@ def _load_writer_token() -> str:
 _WRITER_TOKEN = _load_writer_token()
 
 
-def verify_writer_token(x_writer_token: str = Header(None)) -> str:
-    """Reject requests without a valid X-Writer-Token."""
+def verify_writer_token(
+    x_writer_token: str = Header(None),
+    authorization: str = Header(None),
+) -> str:
+    """Reject requests without a valid writer token.
+
+    Accepts either header (fixed 2026-09-15, 333-AGI):
+      - X-Writer-Token: <token>          (native writer clients)
+      - Authorization: Bearer <token>    (arifosmcp vault_sealer kernel path)
+    Previously only X-Writer-Token was accepted, which would 401 every
+    kernel audit receipt once a writer token became configured.
+    """
     if not _WRITER_TOKEN:
         return "unauthenticated"
-    if not x_writer_token:
+    candidate = x_writer_token
+    if not candidate and authorization and authorization.lower().startswith("bearer "):
+        candidate = authorization[7:].strip()
+    if not candidate:
         raise HTTPException(401, "Missing X-Writer-Token")
-    if x_writer_token != _WRITER_TOKEN:
+    if candidate != _WRITER_TOKEN:
         raise HTTPException(401, "Invalid X-Writer-Token")
-    return x_writer_token
+    return candidate
 
 
 logging.basicConfig(
@@ -262,7 +275,9 @@ class VaultDB:
         self.pool: asyncpg.Pool | None = None
 
     async def connect(self):
-        self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=3, statement_cache_size=0)
+        self.pool = await asyncpg.create_pool(
+            self.dsn, min_size=1, max_size=3, statement_cache_size=0
+        )
         log.info("Connected to vault999 database")
 
     async def close(self):

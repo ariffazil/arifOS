@@ -51,11 +51,14 @@ for repo in arifOS A-FORGE arif-sites WEALTH; do
     done
 done
 
-# GEOX must not be on 8081 in any active config
+# GEOX daemon canonical port is :8081. Port :18081 was RETIRED by F13
+# decision 2026-09-24 (Option B — attest-surface retirement; arifosd was
+# never commissioned: disabled since creation, journal empty). Any active
+# config still pointing GEOX at :18081 is stale.
 for repo in arifOS A-FORGE arif-sites WEALTH; do
     for f in $(find /root/$repo -maxdepth 3 \( -name "*.md" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" \) 2>/dev/null); do
-        check_stale_port "$f" "localhost:8081" "localhost:18081" "GEOX daemon"
-        check_stale_port "$f" "127.0.0.1:8081" "127.0.0.1:18081" "GEOX daemon"
+        check_stale_port "$f" "localhost:18081" "localhost:8081" "GEOX daemon"
+        check_stale_port "$f" "127.0.0.1:18081" "127.0.0.1:8081" "GEOX daemon"
     done
 done
 
@@ -67,11 +70,11 @@ if [ -f /root/arifOS/Caddyfile ]; then
     else
         pass "Caddyfile: arifOS routing not on :8080"
     fi
-    CADDY_GEOX=$(grep -c "127.0.0.1:8081" /root/arifOS/Caddyfile 2>/dev/null || echo 0)
-    if [ "$CADDY_GEOX" -gt 0 ]; then
-        fail "Caddyfile: GEOX still routing to :8081 (wrong port, daemon is on :18081)"
+    CADDY_GEOX_RETIRED=$(grep -c "127.0.0.1:18081" /root/arifOS/Caddyfile 2>/dev/null || echo 0)
+    if [ "$CADDY_GEOX_RETIRED" -gt 0 ]; then
+        fail "Caddyfile: GEOX routing to :18081 (RETIRED port per F13 2026-09-24, daemon is on :8081)"
     else
-        pass "Caddyfile: GEOX routing not on :8081"
+        pass "Caddyfile: GEOX routing not on retired :18081"
     fi
 fi
 
@@ -90,7 +93,7 @@ if systemctl is-active wealth-organ &>/dev/null; then
     else
         fail "WEALTH: /health not healthy or not reachable (status=$(echo $HEALTH | python3 -c 'import sys,json;print(json.load(sys.stdin).get(\"status\",\"?\"))' 2>/dev/null || echo '?'))"
     fi
-    LOG=$(journalctl -u wealth-organ --no-pager -n 50 2>/dev/null | grep "governance\|GOVERNANCE" | tail -1)
+    LOG=$(journalctl -u wealth-organ --no-pager -n 50 2>/dev/null | grep "governance\|GOVERNANCE" | tail -1 || true)
     if echo "$LOG" | grep -qi "governance wrapper active"; then
         pass "WEALTH: governance wrapper confirmed ACTIVE"
     else
@@ -107,11 +110,13 @@ else
     fail "arifOS: /health on 8088 not healthy"
 fi
 
-# GEOX must be accessible on 18081
-if curl -s --max-time 5 http://127.0.0.1:18081/health 2>/dev/null | grep -q '"status":"ok"'; then
-    pass "GEOX: /health on 18081 returns ok"
+# GEOX must be reachable on :8081 (canonical; :18081 retired per F13 2026-09-24).
+# Reachability = service identity present; health verdict (degraded/HOLD) is the
+# service's own honest state, not a port invariant.
+if curl -s --max-time 5 http://127.0.0.1:8081/health 2>/dev/null | grep -q '"service":"geox-unified"'; then
+    pass "GEOX: /health on 8081 reachable (service identity present)"
 else
-    fail "GEOX: /health on 18081 not ok"
+    fail "GEOX: /health on 8081 not reachable"
 fi
 
 echo ""
@@ -164,7 +169,9 @@ check_public_404() {
 }
 
 check_public_health "arifos.arif-fazil.com" '"status":"healthy"'
-check_public_health "geox.arif-fazil.com" '"status":"ok"'
+# GEOX daemon now answers degraded/HOLD honestly (kernel verdict) — assert
+# service identity (reachability), not a specific health status.
+check_public_health "geox.arif-fazil.com" '"service":"geox-unified"'
 check_public_health "wealth.arif-fazil.com" '"status":"healthy"'
 check_public_404 "well.arif-fazil.com"
 

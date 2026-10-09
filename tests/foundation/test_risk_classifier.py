@@ -89,9 +89,12 @@ class TestClassifyTool:
         assert rp.action_class == ActionClass.ATOMIC
 
     def test_judge_deliberate_is_t5(self):
+        # Aligned with the 2026-06-13 judge-family downgrade (ATOMIC → OBSERVE):
+        # deliberation emits advisory verdicts; sealing stays with arif_seal.
+        # Method name retained for history; expectation is T3 observation-class.
         rp = classify_tool("arif_judge_deliberate")
-        assert rp.tier == RiskTier.T5
-        assert rp.action_class == ActionClass.ATOMIC
+        assert rp.tier == RiskTier.T3
+        assert rp.action_class == ActionClass.OBSERVE
 
     def test_sense_observe_is_t1(self):
         rp = classify_tool("arif_sense_observe")

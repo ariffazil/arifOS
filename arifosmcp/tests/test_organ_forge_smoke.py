@@ -51,11 +51,11 @@ from arifosmcp.experiments.loop import (
     ProbeSpec,
     run_simple_experiment,
 )
-from arifosmcp.memory import (  # noqa: E402
+from arifosmcp.memory.contradictions import get_store as get_contradiction_store  # noqa: E402
+from arifosmcp.memory.lessons import get_store as get_lesson_store  # noqa: E402
+from arifosmcp.memory.policies import (  # noqa: E402
     WriteRequest,
-    get_contradiction_store,
-    get_lesson_store,
-    get_memory_policy_engine,
+    get_engine as get_memory_policy_engine,
 )
 from arifosmcp.schemas.envelope import ContradictionEntry  # noqa: E402
 from arifosmcp.schemas.governance_locks import MemoryLayer  # noqa: E402

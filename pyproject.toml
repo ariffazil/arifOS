@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "1!2026.8.2"
+version = "1!2026.10.1"
 
 # 2026.06.19 — Packaging Unification (FORGE SEAL)
 #   Package rename: arifosmcp → arifos (MCP is transport, not identity)
@@ -8,33 +8,23 @@ version = "1!2026.8.2"
 #   Domain coverage: [geox] [wealth] [well] [aaa] [io] [search] [google] [db] [heavy] [observe]
 #   Floor alignment: canonical matrix 2026-06-19 across all organs
 # 2026.06.11 — previous release (arifosmcp on PyPI)
-description = "mcp-name: io.github.ariffazil/arifos | .ariffazil/arifos | arifOS v1!2026.7.26 — Constitutional AI Governance Kernel. 8 kernel ABI capabilities → 6 public tools (arif_verb_noun, generated from arifosmcp/abi/capability_registry.json), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport. Kernel substrate for AGI/ASI federation."
+description = "Open-source governance decision point for AI agent actions. Evaluates proposed actions against constitutional policy floors (F1-F13) and returns SEAL/HOLD/SABAR/VOID verdicts before execution. 8 MCP tools, append-only audit ledger (VAULT999), Streamable HTTP transport. Designed for regulated AI deployment."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 keywords = [
-    # Core Concepts
+    # Core
     "ai-governance",
     "ai-safety",
-    "constitutional-ai",
-    "ai-filter",
     "ai-guardrails",
-    # TEACH Framework
-    "truth-detection",
-    "empathy",
-    "reversibility",
-    "clarity",
-    "humility",
-    # v52.5 Features
-    "atlas-333",
-    "smart-routing",
-    "888-hold",
-    "crisis-detection",
+    "constitutional-ai",
+    "policy-engine",
     # Architecture
-    "trinity-architecture",
-    "agi-asi-apex",
-    "tri-witness",
+    "agent-governance",
+    "decision-point",
+    "audit-ledger",
+    "verdict-engine",
     # MCP Integration
     "mcp",
     "mcp-server",
@@ -42,31 +32,27 @@ keywords = [
     # Platforms
     "chatgpt",
     "claude",
-    "claude-desktop",
-    "cursor-ide",
-    "gemini",
+    "cursor",
     "llm",
     # Technical
-    "hallucination-prevention",
-    "immutable-ledger",
-    "merkle-audit",
-    "thermodynamic-governance",
+    "append-only-ledger",
+    "evidence-chain",
+    "hitl",
 ]
 authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
 maintainers = [
     { name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Information Technology",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Monitoring",
@@ -79,16 +65,17 @@ dependencies = [
     "numpy>=2.4.6",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.7.0",
+    "rfc8785>=0.1.4",  # G0.6 semantic capability hash — RFC 8785 JCS canonicalization
     "anyio>=4.13.0",
     "starlette>=1.3.1",
     "itsdangerous>=2.2.0",  # Required for SessionMiddleware (WebMCP F11)
-    "fastmcp[tasks]==4.0.5",
+    "fastmcp[tasks]>=3.4.6",  # 2026-09-17 align: requirements.txt pins 3.4.6 with SHA256; >=4.0.0 would pull incompatible runtime. F2 TRUTH.
     "prefab-ui==0.13.1",
     "openapi-pydantic>=0.5.1",
     "fastapi>=0.136.1",
     "uvicorn[standard]>=0.49.0",
-    "sse-starlette>=1.8.2",
-    "mcp>=1.0.0",
+    "sse-starlette>=3.4.11",
+    "mcp>=2.0.0",
     "httpx>=0.28.1",
     "prometheus-client>=0.25.0",
     "rich>=15.0.0",
@@ -107,13 +94,22 @@ dependencies = [
     "qdrant-client>=1.18.0",
     "aiohttp>=3.13.5",
     "pynacl>=1.6.2",
+    # 2026-09-21: OpenTelemetry SDK is imported unconditionally on the mandatory
+    # import path (arifosmcp/arifos_observability/otel_tracer.py -> otel_wiring ->
+    # megaTools/__init__ -> arifosmcp/__init__). It was declared only in the
+    # [observe]/[observability] extras, so a clean `pip install arifos` installed
+    # fine but crashed at import with ModuleNotFoundError: No module named
+    # 'opentelemetry.sdk'. The package could never start. These two are the
+    # runtime floor, not an extra.
+    "opentelemetry-api>=1.42.1",
+    "opentelemetry-sdk>=1.42.1",
 ]
 
 [project.optional-dependencies]
 # === DOMAIN EXTRAS — organ-specific capability gates ===
 ml = [
     "sentence-transformers>=5.6.0",  # H1.2: SBERT-based ASI floors (F5, F6, F9)
-    "scikit-learn>=1.9.0",  # H1.2: Cosine similarity for SBERT embeddings
+    "scikit-learn>=1.9.1",  # H1.2: Cosine similarity for SBERT embeddings
 ]
 vectors = [
     "chromadb>=0.5.0",  # Vector memory backend for ACLIP semantic recall (legacy console path)
@@ -127,7 +123,7 @@ browser = [
 ]
 heavy = [
     "torch>=2.12.1",
-    "transformers>=5.12.1",
+    "transformers>=5.17.0",
 ]
 observe = [
     "opentelemetry-api>=1.42.1",
@@ -149,7 +145,7 @@ io = [
 search = [
     "tavily-python>=0.5.0",
     "exa-py>=2.14.0",
-    "firecrawl-py>=1.3.0",
+    "firecrawl-py>=4.42.0",
     "trafilatura>=1.12.0",
     "readability-lxml>=0.8.4.1",
     "markdownify>=0.13.1",
@@ -159,7 +155,7 @@ search = [
     "tldextract>=5.3.1",
 ]
 google = [
-    "google-api-python-client>=2.160.0",
+    "google-api-python-client>=2.200.0",
     "google-auth-httplib2>=0.4.0",
     "google-auth-oauthlib>=1.4.0",
     "google-genai>=0.1.0",
@@ -174,9 +170,9 @@ geox = [
     "striplog>=0.9.2",
     "segyio>=1.9.14",
     "statsmodels>=0.14.6",
-    "scikit-learn>=1.9.0",
+    "scikit-learn>=1.9.1",
     "scipy>=1.17.1",
-    "matplotlib>=3.11.0",
+    "matplotlib>=3.8.0",
     "pyproj>=3.7.2",
     "setuptools<70",  # welly requires pkg_resources from older setuptools (setuptools 70+ removed it)
 ]
@@ -197,7 +193,7 @@ wealth = [
     "arviz>=1.2.0",
     "mesa>=3.5.1",
     "pydantic-ai>=0.0.14",
-    "langgraph>=0.2.0,<0.3",
+    "langgraph>=0.2.0,<1.3",
 ]
 well = []  # WELL is kernel-only; its substrate deps are covered by the mandatory tier
 aaa = [
@@ -207,7 +203,7 @@ aaa = [
 ]
 forge = [
     "httpx>=0.28.1",         # arifos.forge thin MCP client → :7072/mcp
-    "sse-starlette>=1.8.2",  # streamable-http SSE frames
+    "sse-starlette>=3.4.11",  # streamable-http SSE frames
 ]
 federation = [
     "arifos[geox]",
@@ -228,10 +224,10 @@ dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.3.0",
     "pytest-cov>=4.0.0",
-    "ruff>=0.15.18",
+    "ruff>=0.16.7",
     "mypy>=2.1.0",
     "httpx>=0.28.1",
-    "hypothesis>=6.155.7",
+    "hypothesis>=6.168.0",
     "python-lsp-server>=1.11.0",
     "aiohttp>=3.9.0",
 ]
@@ -289,12 +285,43 @@ aclip-cai  = "arifosmcp.intelligence.cli:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
+# Wheel roots. The 2026-09-16 hygiene note claimed "exactly three top-level
+# packages ship" while the list below already carried four (arifos*, arifosmcp*,
+# core*, schemas*) — a comment contradicting its own code, corrected 2026-09-30.
+#   arifosmcp — kernel runtime
+#   arifos    — Phase 3 identity/consent namespace (intentional, keep)
+#   core      — load-bearing legacy root (session.py imports core.shared.types);
+#               consolidation into arifosmcp/ is Phase 3, NOT a wheel-time change.
+#   contracts — ADDED 2026-09-30 (333-AGI). This was a latent production-breaking
+#               omission, not a policy change: the runtime imports `contracts.*` at
+#               15+ sites (contracts.identity x15, gateway_discovery x7, verdicts x4,
+#               continuity/artifacts x3 each, envelopes/denial_codes/budget_enforcement
+#               x2 each, self_attestation x1) and arifosmcp/contracts/__init__.py itself
+#               does `from contracts.identity import *` — yet "contracts*" was absent
+#               here, so the wheel never shipped it. Production resolved those imports
+#               ONLY because pip does not delete a pre-existing unrelated
+#               site-packages/contracts/ leftover (dated 2026-07-24). A fresh venv or a
+#               new machine would ImportError the kernel at import time.
+#               Consequence already observed: that leftover had silently lost the
+#               2026-08-21 Seal C I_ARIF identity entry and the name/FI-nnn resolution,
+#               which is what clamped AAA agents to OBSERVE_ONLY (commits 69175c0ec,
+#               7796ec701; carry_forward e-c1a7fe1a).
+#               Shipping it is safe and was measured before doing so: of 11 files where
+#               the leftover differed from the repo, the 3 drifted .py modules
+#               (federation_conformance, run_falsification_v1, scar_geometry) have 0
+#               importers in arifosmcp/, the stale schemas/fixtures have 0 runtime
+#               references, fq_policy.yaml is not read by path (fq_gate.py hardcodes the
+#               thresholds), and identity.py was already synced identical. So the delta
+#               is an update with no measured behavioural change, and it makes the
+#               deploy reproducible instead of depending on a hand-synced leftover.
+# REMOVED: "scripts*" (70 dev files shipped in wheel — nothing imports scripts.*),
+#          "mcp_server*" (dir does not exist in repo).
 include = [
-    "scripts*",
     "arifos*",      # Phase 3: renamed from arifosmcp
     "arifosmcp*",   # Phase 2: still present until Phase 3 git mv
-    "mcp_server*",
     "core*",
+    "schemas*",     # INIT v2 schemas (F13-ratified 2026-09-20)
+    "contracts*",   # runtime-imported at 15+ sites; see note above (2026-09-30)
 ]
 exclude = [
     "*.tests",
@@ -305,8 +332,23 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"*" = ["spec/*.yaml", "spec/*.json"]
-"arifosmcp" = ["sites/apex-dashboard/*.html", "registry/*.yaml"]
+# 2026-09-16: recursive globs — godel_lock.yaml (constitution/), abi/*.json,
+# charters, schemas, agent cards etc. are runtime-read assets. Previous
+# wheels only worked because stale build/lib smuggled them in; clean builds
+# exposed the undeclared dependency (import-time FileNotFoundError).
+"*" = [
+    "**/*.yaml",
+    "**/*.yml",
+    "**/*.json",
+    "**/*.html",
+    "**/*.toml",
+    "**/*.txt",
+    "**/*.js",
+    "**/*.css",
+    "spec/*.yaml",
+    "spec/*.json",
+    "spec/*.md",
+]
 
 [tool.setuptools.data-files]
 "spec" = ["spec/**/*.json", "spec/**/*.yaml", "spec/**/*.md"]
@@ -323,7 +365,6 @@ markers = [
     "slow",
     "integration",
 ]
-cache_dir = "C:/Users/User/AppData/Local/Temp/pytest_cache"
 filterwarnings = [
     "ignore:Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.:UserWarning:langsmith.schemas",
 ]

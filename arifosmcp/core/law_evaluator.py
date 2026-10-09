@@ -200,7 +200,18 @@ class FloorEvaluator:
         """
         # Derive thermodynamic fields that floor classes need but ActionContext
         # doesn't directly expose. Derived conservatively from threat properties.
-        confidence = threat.confidence if threat.confidence is not None else 0.96
+        # ── X-016 (2026-09-08): ThreatEngine.classify() sets confidence to
+        # "1.0 if threats else 0.0" — that field means threat-detection
+        # certainty, NOT claim-truth confidence. Reading it as truth inverted
+        # the semantics for CLEAN actions: no threats → truth/confidence 0.0
+        # → Ω₀=1.0, E=0, clarity≈0.1 — an unsatisfiable gauntlet for any
+        # clean irreversible action. A clean assessment (zero threats) gets
+        # the standard 0.96 baseline; threat-bearing assessments keep their
+        # engine confidence.
+        if threat.confidence is not None and getattr(threat, "threats", None):
+            confidence = threat.confidence
+        else:
+            confidence = 0.96
         irreversibility = threat.irreversibility.value if threat.irreversibility else 0
 
         # F2: entropy_delta derived from Landauer bound heuristic.
@@ -253,13 +264,27 @@ class FloorEvaluator:
             "session_id": context.session_id or "",
             "authority_token": getattr(context, "auth_token", "") or "",
             "auth_token": getattr(context, "auth_token", "") or "",
+            # ── X-016 (2026-09-08): evidence mapping — F2's adversarial gate
+            # reads context["evidence"] but the floor context never carried it.
+            "evidence": getattr(context, "evidence", None),
             "human_authority": (
                 1.0 if context.witness_type and "human" in str(context.witness_type) else 0.0
             ),
             "witness_type": str(context.witness_type) if context.witness_type else "ai",
             # Derived from threat
             "confidence": confidence,
-            "truth_score": confidence,
+            # ── X-016 (2026-09-08): truth decoupling — F2's documented
+            # "External Verifier Override" expects truth to come from the
+            # verifier signal when present, NOT from threat confidence.
+            # Gate: verification_surface.truth_score is honored only when the
+            # caller supplied independent confirmations (judge hash + crypto),
+            # which the wrapper enforces before setting it.
+            "truth_score": (
+                (context.verification_surface or {}).get("truth_score")
+                if isinstance(getattr(context, "verification_surface", None), dict)
+                and (context.verification_surface or {}).get("truth_score") is not None
+                else confidence
+            ),
             "humility_omega": humility_omega,
             "entropy_delta": entropy_delta,
             "entropy_input": entropy_input,
@@ -313,6 +338,38 @@ class FloorEvaluator:
         return cache[key]
 
     @classmethod
+    def _active_floor_waiver(cls, floor_label: str) -> dict | None:
+        """Return the active F13 waiver dict for a floor label, or None.
+
+        Registry: /root/.local/share/arifos/floor_waivers.json — kernel-owned
+        governance file. Waiver validity: active=true, matching floor label,
+        not expired (ISO-8601 UTC string compare). Missing/unreadable file
+        or any error → None (no waiver — fail-closed normal operation).
+        """
+        try:
+            import json as _json
+            from pathlib import Path as _Path
+
+            reg = _Path("/root/.local/share/arifos/floor_waivers.json")
+            if not reg.exists():
+                return None
+            waivers = _json.loads(reg.read_text(encoding="utf-8"))
+            if not isinstance(waivers, dict):
+                return None
+            w = waivers.get(floor_label)
+            if not isinstance(w, dict) or not w.get("active"):
+                return None
+            import datetime as _dt
+
+            _now = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            exp = str(w.get("expires_utc") or "")
+            if exp and exp < _now:
+                return None
+            return w
+        except Exception:
+            return None
+
+    @classmethod
     def _check_floor(
         cls,
         floor_class: type,
@@ -333,8 +390,22 @@ class FloorEvaluator:
             instance = cls._lazy_floor(floor_class, {floor_class.__name__: None})
             r = instance.check(fc)
             if not r.passed:
-                failed.append(floor_label)
-                reasons[floor_label] = r.reason
+                # F13 floor-waiver path (2026-09-12): a RECORDED sovereign
+                # waiver in /root/.local/share/arifos/floor_waivers.json
+                # converts this floor's failure to a waived-pass. The waiver
+                # marker rides in the reason string — the failure value stays
+                # visible; only the blocking is suppressed. Scope + expiry
+                # enforced; missing file = no waivers (fail-closed normal).
+                _w = cls._active_floor_waiver(floor_label)
+                if _w is not None:
+                    reasons[floor_label] = (
+                        f"{r.reason} — WAIVED by F13 (marker={_w.get('marker', '?')}, "
+                        f"expires={_w.get('expires_utc', '?')}); value unchanged, "
+                        "blocking suppressed"
+                    )
+                else:
+                    failed.append(floor_label)
+                    reasons[floor_label] = r.reason
             elif floor_label not in failed:
                 reasons[floor_label] = r.reason
         except Exception as e:

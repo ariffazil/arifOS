@@ -98,181 +98,6 @@ def _linked_prompt(
     }
 
 
-# ─── SABAR Orchestrator: runs the 6-stage loop autonomously ────────────
-def sabar_run_loop(
-    intent: str,
-    *,
-    session_id: str | None = None,
-    actor_id: str | None = "arif",
-    depth: str = "stage",
-) -> PromptResult:
-    """🌀 SABAR orchestrator — drives the 6-stage reality loop.
-
-    Stages:
-      1. 🌊 WITNESS  — observe (arif_observe, geox_evidence, well_validate_vitality)
-      2. 🧠 REASON   — propose hypothesis (arif_think mode=reason)
-      3. ⚖ MARUAH  — dignity check (arif_think mode=reflect, well_guard_dignity)
-      4. 🔒 JUDGE    — constitutional gate (arif_judge, geox_contradiction_scan, geox_falsify)
-      5. 🔥 FORGE    — execute after SEAL/SABAR verdict (arif_forge)
-      6. 💎 SEAL     — persist (arif_seal)
-
-    depth='stage'  → human-in-loop: agent completes one stage, hands off.
-    depth='auto'   → AUTONOMOUS: agent chains all 6 stages without stopping
-                      at stage boundaries. Only HOLD/VOID gates pause the loop.
-
-    Receipt tiering (autonomous mode):
-      NONE (agent alone)   → PROVISIONAL — telemetry only
-      PARTIAL (1 witness)  → LEDGER
-      ≥2 independent       → SEAL eligible
-    The loop can stack PROVISIONAL receipts all night. Human review
-    converts a batch to SEAL. Agent never upgrades its own record class.
-
-    F2 PROVENANCE GATE (non-bypassable, active in autonomous mode):
-      Every epistemic tag (OBS/DER/INT/SPEC) MUST trace to a retrieval
-      event with provenance_source. Tags invented at output time → VOID.
-    """
-    depth = (depth or "stage").lower()
-    if depth == "auto":
-        return PromptResult(
-            messages=[
-                Message(
-                    f"AUTONOMOUS REALITY LOOP — 🌀 SABAR (depth=auto)\n"
-                    f"intent: {intent}\n"
-                    f"session_id: {session_id or 'pending'}\n"
-                    f"actor_id: {actor_id or 'anonymous'}\n\n"
-                    "EXECUTE ALL 6 STAGES WITHOUT STOPPING AT BOUNDARIES.\n"
-                    "Do not ask. Do not wait. Do not hand off between stages.\n"
-                    "The loop runs until: (a) all 6 stages complete, or\n"
-                    "(b) a HOLD/VOID gate fires.\n\n"
-                    "═══ TIERED RECEIPT DISCIPLINE ═══\n"
-                    "Record every stage receipt to arifflow_flow_ingest.\n"
-                    "Receipt class is capped by witness diversity:\n"
-                    "  NONE (agent alone)   → PROVISIONAL\n"
-                    "  PARTIAL               → LEDGER\n"
-                    "  ≥2 independent        → SEAL eligible\n\n"
-                    "═══ F2 PROVENANCE GATE ═══\n"
-                    "Before JUDGE: verify every OBS/DER/INT/SPEC tag\n"
-                    "has provenance_source from a retrieval event.\n"
-                    "Tags without provenance → VOID. Do not seal.\n"
-                    "ΔS is UNMEASURED unless a meter exists.\n\n"
-                    "═══ STAGE SEQUENCE ═══\n"
-                    "1. 🌊 WITNESS: arif_observe(mode=vitals) + geox_evidence\n"
-                    "   + well_validate_vitality. Output WITNESS block with\n"
-                    "   provenance_source on every tag.\n"
-                    "2. 🧠 REASON: arif_think(mode=reason). Extract principles.\n"
-                    "   Propose hypothesis. Hand evidence to next stage.\n"
-                    "3. ⚖ MARUAH: arif_think(mode=reflect) + well_guard_dignity.\n"
-                    "   Consequence scan. Weakest stakeholder check.\n"
-                    "4. 🔒 JUDGE: arif_judge + geox_contradiction_scan +\n"
-                    "   geox_falsify. Emit SEAL|HOLD|SABAR|VOID with\n"
-                    "   provenance_verified field.\n"
-                    "5. 🔥 FORGE: arif_forge (only if verdict=SEAL|SABAR).\n"
-                    "   Execute governed mutation. Verify reversibility.\n"
-                    "6. 💎 SEAL: arif_seal (only if FORGE complete +\n"
-                    "   witness diversity ≥2 or human ack).\n\n"
-                    "═══ GATE BEHAVIOR ═══\n"
-                    "VOID at any stage → HALT entire loop. Record scar.\n"
-                    "HOLD at JUDGE → return to WITNESS with named failures.\n"
-                    "HOLD at FORGE → escalate to human (888_HOLD).\n"
-                    "FQ < 0.5 → ALL agents HOLD until recovery.\n\n"
-                    "This prompt grants no judgment, execution, or seal\n"
-                    "authority on its own. Every tool keeps its kernel and\n"
-                    "sovereign gates. The loop is a RATED conveyor, not\n"
-                    "a blank check.",
-                    role="user",
-                ),
-                Message(
-                    "🌀 SABAR autonomous loop engaged. Executing all 6 stages "
-                    "without boundary stops. Recording receipts at "
-                    "witness-diversity-capped tiers. Will halt only on "
-                    "HOLD/VOID gates or FQ < 0.5.",
-                    role="assistant",
-                ),
-            ],
-            description="🌀 SABAR autonomous reality-loop orchestrator (depth=auto) — rated conveyor",
-            meta={
-                "stage": "000_LOOP",
-                "sigil": "🌀",
-                "lexical": "SABAR",
-                "role": "Autonomous 6-stage reality loop orchestrator",
-                "depth": "auto",
-                "receipt_tiers": ["PROVISIONAL", "LEDGER", "SEAL"],
-                "f2_provenance_gate": True,
-                "linked_tools": [
-                    "arif_observe",
-                    "geox_evidence",
-                    "well_validate_vitality",
-                    "arif_think",
-                    "well_guard_dignity",
-                    "arif_judge",
-                    "geox_contradiction_scan",
-                    "geox_falsify",
-                    "arif_forge",
-                    "arif_seal",
-                    "arifflow_flow_ingest",
-                ],
-                "linked_resources": [
-                    "arifos://verdict/{session_id}",
-                    "arifos://continuity/{session_id}",
-                    "arifos://vitals",
-                    "arifos://init/agent_init",
-                ],
-                "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
-                "federation_layer": "arifOS.kernel.prompts",
-            },
-        )
-    # depth='stage' — multi-message instruction for human-in-loop
-    return PromptResult(
-        messages=[
-            Message(
-                f"🌀 SABAR — Realize the intent through the 6-stage reality loop.\n\n"
-                f"intent: {intent}\n"
-                f"session_id: {session_id or 'pending'}\n\n"
-                f"Sequence these 6 stages. At each stage:\n"
-                f"  - Read the linked arifOS tools (meta.linked_tools)\n"
-                f"  - Load the linked resources (meta.linked_resources)\n"
-                f"  - Record a stage receipt\n"
-                f"  - Pass to next stage\n\n"
-                "After all 6 stages, return the evidence to the authorized actor for "
-                "any final seal.\n"
-                f"This prompt grants no judgment, execution, or seal authority.",
-                role="user",
-            ),
-            Message(
-                "Initiating 🌊 WITNESS by requesting arif_observe and geox_evidence. "
-                "Will return at stage 1/6.",
-                role="assistant",
-            ),
-        ],
-        description="🌀 SABAR — Recursive Governed Loop orchestrator (depth=stage)",
-        meta={
-            "stage": "000_LOOP",
-            "sigil": "🌀",
-            "lexical": "SABAR",
-            "role": "Recursive Governed Loop orchestrator",
-            "depth": "stage",
-            "linked_tools": [
-                "arif_observe",
-                "geox_evidence",
-                "well_validate_vitality",
-                "arif_think",
-                "well_guard_dignity",
-                "arif_judge",
-                "geox_contradiction_scan",
-                "arif_forge",
-                "arif_seal",
-            ],
-            "linked_resources": [
-                "arifos://verdict/{session_id}",
-                "arifos://continuity/{session_id}",
-                "arifos://vitals",
-                "arifos://init/agent_init",
-            ],
-            "floors_referenced": "F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13",
-            "federation_layer": "arifOS.kernel.prompts",
-        },
-    )
-
 
 def register_arifos_prompts(mcp: Any) -> list[str]:
     """Register the 13 governed agentic intelligence hooks (000-999 ladder).
@@ -303,46 +128,58 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
     # ─── 000 🌱 IGNITE — Identity before action ─────────────────────────
     @mcp.prompt(
         name="000 🌱 IGNITE",
-        description="Identity before action. VOID is final without new evidence.",
+        title="000 — Identity Ignition",
+        description="Position Zero (/000) Sovereign Anchor. Identity before action. REALITY > EVERYTHING.",
         meta={
             "stage": "000_IGNITE",
             "sigil": "🌱",
             "lexical": "IGNITE",
-            "role": "Identity ignition — bind actor before any action",
+            "role": "Identity ignition — bind actor to Position Zero (/000) before any action",
             "linked_tools": ["arif_init"],
-            "linked_resources": ["arifos://identity", "arifos://carry-forward"],
+            "linked_resources": [
+                "arifos://identity",
+                "arifos://000/genesis",
+                "arifos://000/claims",
+                "arifos://carry-forward",
+            ],
             "floors_referenced": "F1,F7,F11,F13",
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
     def hook_000_ignite(actor_id: str, intent: str) -> str:
-        """000 🌱 IGNITE — Identity before action. VOID is final without new evidence."""
+        """000 🌱 IGNITE — Position Zero (/000) Sovereign Anchor. Identity before action. REALITY > EVERYTHING."""
         return f"""000 🌱 IGNITE — Identity ignition hook
 
 actor_id: {actor_id}
 intent: {intent}
 
 ## Invariant
+REALITY > EVERYTHING.
+Position Zero (/000) Sovereign Anchor: All authority in the federation originates from the sovereign human at Position Zero (Muhammad Arif bin Fazil, did:web:arif-fazil.com).
 Identity before action. VOID is final without new evidence.
 
 ## What to do
 1. Call arif_init(actor_id='{actor_id}') → bind identity to session.
-2. Verify identity binding returned a valid session_id.
+2. Verify identity binding returned a valid session_id and verified Position Zero authority.
 3. If binding fails → HALT. Do not proceed without identity.
-4. Load carry-forward from prior session: arifos://carry-forward
-5. Confirm identity matches F13 SOVEREIGN authority.
+4. Load genesis attestation & sovereign claims: arifos://000/genesis, arifos://000/claims, arifos://identity.
+5. Load carry-forward from prior session: arifos://carry-forward.
+6. Enforce Gödel Lock: No closed AI system can prove all truths within itself; sovereign human provides external ground truth.
+7. Confirm identity matches F13 SOVEREIGN authority.
 
-## Floors
+## Floors & Principles
 F1 AMANAH — attestation is the first act.
-F7 HUMILITY — acknowledge uncertainty before identity claim.
-F11 AUTH — identity verified before any destructive action.
+F7 HUMILITY — acknowledge uncertainty before identity claim; UNKNOWN is a valid state.
+F11 AUTH — identity verified before any action.
 F13 SOVEREIGN — recognize Arif = F13 = absolute veto.
+ANTI-BANGANG LAW: Reality first, human first, system second. Satu masalah, satu owner, satu jalan.
 
 ## Output
 Return an IGNITE block:
   identity_bound: true|false
   session_id: <string>
   actor_id: <string>
+  position_zero_verified: true|false
   carry_forward_loaded: true|false
   next_stage: 111 SENSE
 """
@@ -352,6 +189,7 @@ Return an IGNITE block:
     # ─── 111 🌊 SENSE — Reality before judgment ──────────────────────────
     @mcp.prompt(
         name="111 🌊 SENSE",
+        title="111 — Reality Sensing",
         description="Reality before judgment. Verify before integrate.",
         meta={
             "stage": "111_SENSE",
@@ -399,6 +237,7 @@ Return a SENSE block:
     # ─── 222 🏛 PLAN — Design reality change ─────────────────────────────
     @mcp.prompt(
         name="222 🏛 PLAN",
+        title="222 — Reality Change Design",
         description="Design reality change. Map reversibility.",
         meta={
             "stage": "222_PLAN",
@@ -446,6 +285,7 @@ Return a PLAN block:
     # ─── 333 🧠 REASON — UNMEASURED beats fabricated certainty ────────────
     @mcp.prompt(
         name="333 🧠 REASON",
+        title="333 — Hypothesis Reasoning",
         description="UNMEASURED beats fabricated certainty.",
         meta={
             "stage": "333_REASON",
@@ -493,6 +333,7 @@ Return a REASON block:
     # ─── 444 🧭 DIRECT — Route to the institution with authority ─────────
     @mcp.prompt(
         name="444 🧭 DIRECT",
+        title="444 — Organ Routing",
         description="Route to the institution with authority, not the one with speed.",
         meta={
             "stage": "444_DIRECT",
@@ -540,6 +381,7 @@ Return a DIRECT block:
     # ─── 555 🗂 REMEMBER — Memory without provenance is not truth ─────────
     @mcp.prompt(
         name="555 🗂 REMEMBER",
+        title="555 — Memory Governance",
         description="Memory without provenance is not truth.",
         meta={
             "stage": "555_REMEMBER",
@@ -586,6 +428,7 @@ Return a REMEMBER block:
     # ─── 666 ⚖ DIGNITY — Stand in the position of the weakest stakeholder ─
     @mcp.prompt(
         name="666 ⚖ DIGNITY",
+        title="666 — Dignity Check",
         description="Stand in the position of the weakest stakeholder.",
         meta={
             "stage": "666_DIGNITY",
@@ -634,6 +477,7 @@ Return a DIGNITY block:
     # ─── 777 🔥 FORGE — Reality contact before belief ────────────────────
     @mcp.prompt(
         name="777 🔥 FORGE",
+        title="777 — Governed Execution",
         description="Reality contact before belief. Mutation after SEAL only.",
         meta={
             "stage": "777_FORGE",
@@ -683,6 +527,7 @@ Return a FORGE block:
     # ─── 888 🔒 JUDGE — Verdict, not invention ───────────────────────────
     @mcp.prompt(
         name="888 🔒 JUDGE",
+        title="888 — Constitutional Verdict",
         description="Verdict, not invention. VOID = branch dead.",
         meta={
             "stage": "888_JUDGE",
@@ -737,14 +582,15 @@ Return a JUDGE block:
     # ─── 999 💎 SEAL — Immutable record ──────────────────────────────────
     @mcp.prompt(
         name="999 💎 SEAL",
-        description="Immutable record. Hash-chained. Cannot be undone.",
+        title="999 — Immutable Record",
+        description="Immutable record. Hash-chained. Companion chamber to /000. Cannot be undone.",
         meta={
             "stage": "999_SEAL",
             "sigil": "💎",
             "lexical": "SEAL",
             "role": "Seal — immutable vault append with hash chain",
             "linked_tools": ["arif_seal"],
-            "linked_resources": ["arifos://vault/head"],
+            "linked_resources": ["arifos://vault/head", "arifos://000/claims"],
             "floors_referenced": "F1,F11",
             "federation_layer": "arifOS.kernel.prompts",
         },
@@ -758,6 +604,8 @@ mode: {mode}
 
 ## Invariant
 Immutable record. Hash-chained. Cannot be undone.
+Companion to Position Zero (/000): Closes the causal verification loop at /999 (Proof Chamber & VAULT999).
+DITEMPA BUKAN DIBERI.
 
 ## What to do
 1. Verify FORGE completed successfully with valid audit trail.
@@ -776,6 +624,7 @@ Return a SEAL block:
   chain_hash: <sha256>
   ledger_path: /var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl
   audit_provenance: <call_hash + trace_id + signature>
+  companion_chamber: /000_VERIFIED
   next_action: HUMAN_INIT_NEXT_LOOP_OR_HALT
 """
 
@@ -784,6 +633,7 @@ Return a SEAL block:
     # ─── 🌀 GOVERN — Full loop + 4 invariant enforcement gates ───────────
     @mcp.prompt(
         name="🌀 GOVERN",
+        title="Governed Reality Loop",
         description=(
             "Full loop + 4 invariant enforcement gates. "
             "GATE 1 GÖDEL LOCK: every loop touches reality before becoming doctrine. "
@@ -871,6 +721,7 @@ Return a GOVERN block with:
 
     @mcp.prompt(
         name="⚓ INIT",
+        title="Session Ignition",
         description=(
             "Collapsed 4-step governed ignition (000_INIT). Probes kernel, "
             "binds session, loads context."
@@ -934,6 +785,7 @@ Return a GOVERN block with:
 
     @mcp.prompt(
         name="🔐 CLOSE",
+        title="Session Close Ritual",
         description=(
             "Full autonomous session close ritual (999_CLOSE). "
             "Two-lane seal/receipt."
@@ -994,4 +846,4 @@ Return a GOVERN block with:
     return registered
 
 
-__all__ = ["register_arifos_prompts", "sabar_run_loop"]
+__all__ = ["register_arifos_prompts"]

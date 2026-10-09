@@ -27,6 +27,7 @@ from __future__ import annotations
 import contextvars
 import json
 import logging
+import os
 from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -111,12 +112,6 @@ ERR_HEADER_MISMATCH = -32020       # Mcp-Method header != body method
 ERR_MISSING_CLIENT_CAP = -32021   # MissingRequiredClientCapability
 ERR_UNSUPPORTED_VERSION = -32022  # UnsupportedProtocolVersion
 
-# ── G14: MCP 2026-07-28 JSON-RPC error codes ──
-# SEP-2243/2575: standard error codes for stateless MCP
-ERR_HEADER_MISMATCH = -32020       # Mcp-Method header != body method
-ERR_MISSING_CLIENT_CAP = -32021   # MissingRequiredClientCapability
-ERR_UNSUPPORTED_VERSION = -32022  # UnsupportedProtocolVersion
-
 # ═══════════════════════════════════════════════════════════════
 # MCP PROTOCOL VERSION MIDDLEWARE
 # ═══════════════════════════════════════════════════════════════
@@ -193,11 +188,165 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
 
             request = Request(request.scope, _receive)
 
+            # ── G10: reject requests that declare no protocol era ────────────────
+            # The 2026-07-28 revision removed the initialize handshake, so the
+            # request's own _meta.io.modelcontextprotocol/protocolVersion IS its
+            # identity. Era used to be read from the MCP-Protocol-Version header
+            # alone, so a POST declaring nothing was still served — measured on
+            # KVM8: a full tools/list returned to an anonymous, versionless request.
+            # Serving it means the kernel cannot state which dialect it answered,
+            # and two clients can then be correct against different semantics on the
+            # same endpoint.
+            # ARIFOS_MCP_REQUIRE_VERSION=0 restores accept-any behavior for
+            # emergency compatibility only (same convention as ENVELOPE_STRICT).
+            meta_version = ""
+            _params = body.get("params") if isinstance(body, dict) else None
+            _meta_probe = _params.get("_meta") if isinstance(_params, dict) else None
+            if isinstance(_meta_probe, dict):
+                _mv = _meta_probe.get("io.modelcontextprotocol/protocolVersion")
+                if isinstance(_mv, str):
+                    meta_version = _mv.strip()
+            # Who to annotate, once the floor drops. The versionless population is
+            # only actionable if it is attributable, and clientInfo/User-Agent are
+            # the two identifiers a request carries without trusting a session.
+            _ci = _meta_probe.get("io.modelcontextprotocol/clientInfo") if isinstance(_meta_probe, dict) else None
+            caller_name = _ci.get("name") if isinstance(_ci, dict) else None
+            caller_id = caller_name or request.headers.get("user-agent") or "unknown"
+
+            if meta_version and version and version != meta_version:
+                if version != LATEST_PROTOCOL_VERSION:
+                    # The 2026-07-28 branch below already answers this case with
+                    # HeaderMismatch; this covers a legacy header paired with a
+                    # modern body claim, which no dialect can interpret coherently.
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": ERR_UNSUPPORTED_VERSION,
+                                "message": (
+                                    f"UnsupportedProtocolVersion: header '{version}' "
+                                    f"conflicts with _meta '{meta_version}'"
+                                ),
+                                "data": {
+                                    "supported": sorted(
+                                        SUPPORTED_PROTOCOL_VERSIONS, reverse=True
+                                    ),
+                                    "latest": LATEST_PROTOCOL_VERSION,
+                                },
+                            },
+                        },
+                        status_code=400,
+                    )
+
+            if (
+                not version
+                and not meta_version
+                and method not in ("initialize", "notifications/initialized")
+                and not request.headers.get("Mcp-Session-Id", "").strip()
+            ):
+                if os.getenv("ARIFOS_MCP_REQUIRE_VERSION", "1") != "0":
+                    logger.warning(
+                        "G10: rejecting versionless POST (method=%s path=%s caller=%s) — no "
+                        "MCP-Protocol-Version header, no _meta protocolVersion, no session",
+                        method,
+                        request.url.path,
+                        caller_id,
+                    )
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": ERR_UNSUPPORTED_VERSION,
+                                "message": (
+                                    "UnsupportedProtocolVersion: request declares no "
+                                    "protocol era. Send the MCP-Protocol-Version header "
+                                    "or params._meta['io.modelcontextprotocol/"
+                                    "protocolVersion']."
+                                ),
+                                "data": {
+                                    "supported": sorted(
+                                        SUPPORTED_PROTOCOL_VERSIONS, reverse=True
+                                    ),
+                                    "latest": LATEST_PROTOCOL_VERSION,
+                                },
+                            },
+                        },
+                        status_code=400,
+                    )
+                logger.warning(
+                    "G10: versionless POST (method=%s path=%s caller=%s) accepted under "
+                    "ARIFOS_MCP_REQUIRE_VERSION=0 — annotate this caller before re-tightening",
+                    method,
+                    request.url.path,
+                    caller_id,
+                )
+
             # ── 2026-07-28 stateless intercepts ──
             if version == "2026-07-28":
                 mcp_method = (
                     request.headers.get("Mcp-Method") or request.headers.get("mcp-method") or ""
                 ).strip()
+                mcp_name = (
+                    request.headers.get("Mcp-Name") or request.headers.get("mcp-name") or ""
+                ).strip()
+
+                # ── G0.7 version coherence ──
+                # MCP-Protocol-Version header MUST equal _meta protocolVersion
+                # when both present (SEP-2243: one request, one interpretation —
+                # header and body must never claim different dialects).
+                _params = body.get("params") if isinstance(body, dict) else None
+                _meta = _params.get("_meta") if isinstance(_params, dict) else None
+                _meta_ver = (
+                    _meta.get("io.modelcontextprotocol/protocolVersion")
+                    if isinstance(_meta, dict)
+                    else None
+                )
+                if _meta_ver and _meta_ver != version:
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": req_id,
+                            "error": {
+                                "code": ERR_HEADER_MISMATCH,
+                                "message": (
+                                    f"HeaderMismatch: MCP-Protocol-Version '{version}' "
+                                    f"!= _meta protocolVersion '{_meta_ver}'"
+                                ),
+                            },
+                        },
+                        status_code=400,
+                    )
+
+                # ── G0.7 Mcp-Param-* mirror equality (tools/call) ──
+                # Annotated argument mirrors (x-mcp-header) must agree with body
+                # arguments — gateway routing one value while the body executes
+                # another is the confused-deputy class.
+                if method == "tools/call" and isinstance(body, dict):
+                    _args = (_params or {}).get("arguments")
+                    _args = _args if isinstance(_args, dict) else {}
+                    for _h_name, _h_val in request.headers.items():
+                        if not _h_name.lower().startswith("mcp-param-"):
+                            continue
+                        _arg_name = _h_name.lower()[len("mcp-param-"):]
+                        _body_val = _args.get(_arg_name)
+                        if _body_val is None or str(_body_val) != _h_val:
+                            return JSONResponse(
+                                {
+                                    "jsonrpc": "2.0",
+                                    "id": req_id,
+                                    "error": {
+                                        "code": ERR_HEADER_MISMATCH,
+                                        "message": (
+                                            f"HeaderMismatch: Mcp-Param-{_arg_name} "
+                                            f"'{_h_val}' does not match body "
+                                            f"arguments.{_arg_name}={_body_val!r}"
+                                        ),
+                                    },
+                                },
+                                status_code=400,
+                            )
 
                 # HeaderMismatch: Mcp-Method MUST match body method when both present
                 if mcp_method and method and mcp_method != method:
@@ -214,6 +363,84 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                             },
                         },
                         status_code=400,
+                    )
+
+                # HeaderMismatch: Mcp-Name MUST match body params.name when both present
+                # (confused-deputy guard: gateway must not route one tool while the
+                # body executes another — SEP-2243 header/body equality.)
+                if mcp_name and isinstance(body, dict):
+                    params = body.get("params")
+                    body_name = params.get("name") if isinstance(params, dict) else None
+                    if isinstance(body_name, str) and mcp_name != body_name:
+                        return JSONResponse(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": req_id,
+                                "error": {
+                                    "code": ERR_HEADER_MISMATCH,
+                                    "message": (
+                                        f"HeaderMismatch: Mcp-Name '{mcp_name}' "
+                                        f"does not match body params.name '{body_name}'"
+                                    ),
+                                },
+                            },
+                            status_code=400,
+                        )
+
+                # ── Fail-closed modern envelope (2026-09-17) + G0.7 ratchet ──
+                # SCAR: the prior check fired only when header AND body method were
+                # both present, so omitting Mcp-Method/Mcp-Name bypassed validation
+                # entirely — gateway and kernel could interpret one request two
+                # ways (external AGI-substrate audit + live probe, confirmed at
+                # mcp_transport_bridge.py:203). Interpretation must be singular.
+                # G0.7 RATCHET: Mcp-Method is now required for ALL routed methods
+                # on the 2026-07-28 path (notifications/* exempt; server/discover
+                # early-returns above). Justified by measured production traffic:
+                # zero transition-window warnings between the 03:03 deploy and
+                # the ratchet — no legitimate federation client omits it.
+                # ARIFOS_MCP_ENVELOPE_STRICT=0 restores lenient mode (emergency
+                # compatibility only — mismatch checks above stay on).
+                strict_envelope = os.getenv("ARIFOS_MCP_ENVELOPE_STRICT", "1") != "0"
+                if strict_envelope and method and not str(method).startswith("notifications/"):
+                    if not mcp_method:
+                        return JSONResponse(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": req_id,
+                                "error": {
+                                    "code": ERR_HEADER_MISMATCH,
+                                    "message": (
+                                        "HeaderMismatch: Mcp-Method header is required "
+                                        "on MCP 2026-07-28 requests (G0.7 ratchet, "
+                                        "fail-closed)"
+                                    ),
+                                },
+                            },
+                            status_code=400,
+                        )
+                    if method == "tools/call" and not mcp_name:
+                        return JSONResponse(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": req_id,
+                                "error": {
+                                    "code": ERR_HEADER_MISMATCH,
+                                    "message": (
+                                        "HeaderMismatch: Mcp-Name header is required "
+                                        "for tools/call on MCP 2026-07-28 (fail-closed)"
+                                    ),
+                                },
+                            },
+                            status_code=400,
+                        )
+                elif not strict_envelope and not mcp_method and method and not str(method).startswith("notifications/"):
+                    # Lenient mode (kill-switch): log omissions so re-ratcheting
+                    # is driven by measured traffic, not guesswork.
+                    logger.warning(
+                        "MCP 2026-07-28: request without Mcp-Method header "
+                        "(method=%s, path=%s) — lenient-mode pass",
+                        method,
+                        request.url.path,
                     )
 
                 # ── G7: Skip initialize handshake for 2026-07-28 stateless clients ──

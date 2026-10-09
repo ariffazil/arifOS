@@ -20,7 +20,13 @@ from pathlib import Path
 SNAP = Path("/root/.arifos/observatory/snapshots/snapshot_latest.json")
 FORGE_DIR = Path("/root/forge_work/auto-remediate")
 FORGE_DIR.mkdir(parents=True, exist_ok=True)
-VAULT = Path("/root/.local/share/arifos/vault999/outcomes.jsonl")
+# 2026-09-15 VAULT999 SOT fix: this WRITE target was
+# /root/.local/share/arifos/vault999/outcomes.jsonl, FROZEN since 2026-08-25
+# (last record: 333-AGI hermes-coding-gateway). Every auto-remediation receipt
+# appended here has been landing in a dead file. The live event log is
+# /root/VAULT999/outcomes.jsonl (same inode as /root/arifOS/VAULT999/outcomes.jsonl,
+# and the path probe_sys_health.sh treats as canonical).
+VAULT = Path("/root/VAULT999/outcomes.jsonl")
 
 
 def _now():

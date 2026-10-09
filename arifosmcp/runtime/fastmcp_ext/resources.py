@@ -8,8 +8,10 @@ INIT prompt resources make agent bootstrap files discoverable via MCP (F4 CLARIT
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+from datetime import UTC
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -54,6 +56,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Verdict resource ────────────────────────────────────────────────
     @mcp.resource(
         "arifos://verdict/{session_id}",
+        title="Constitutional Verdict",
         description=(
             "Constitutional verdict for a specific session. "
             "Returns the current constitutional advisory verdict (SEAL, SABAR, VOID, or HOLD). "
@@ -61,32 +64,121 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "from the governance kernel, along with floor compliance proof and "
             "risk tier. Updated in real-time as the session progresses through stages."
         ),
+        annotations={"audience": ["assistant"], "priority": 0.9},
     )
     async def get_verdict(session_id: str) -> str:
-        """Get constitutional verdict for a session as JSON."""
-        try:
-            from core.governance_kernel import get_governance_kernel
+        """Constitutional verdict for a SPECIFIC session.
 
-            kernel = get_governance_kernel()
-            state = kernel.get_current_state() if hasattr(kernel, "get_current_state") else {}
-            verdict = state.get("verdict", "SEAL") if state else "SEAL"
-        except Exception:
-            verdict = "SEAL"
+        FIX 2026-09-24 (P0-1a, F13-directed): the previous handler ignored
+        session_id entirely (read global kernel state for ANY session),
+        defaulted missing state to "SEAL", and rendered exceptions as "SEAL"
+        — fail-OPEN on the most safety-critical read surface. Replaced with
+        session-scoped reads in honesty order, fail-CLOSED to UNKNOWN.
+        Absence of evidence is not SEAL (F2/F1).
+        """
         import json
+        from datetime import datetime, timezone
 
-        return json.dumps({"session_id": session_id, "verdict": verdict}, indent=2)
+        provenance = {
+            "session_id": session_id,
+            "queried_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        # Source 1: live session identity store (same reader session_standing uses)
+        try:
+            from arifosmcp.runtime.session import get_session_identity
+
+            record = get_session_identity(session_id)
+            verdict = None
+            if record:
+                verdict = record.get("verdict") or record.get("effective_verdict")
+            if verdict:
+                return json.dumps(
+                    {
+                        **provenance,
+                        "verdict": verdict,
+                        "source": "session_identity",
+                        "truth_class": "OBS",
+                    },
+                    indent=2,
+                )
+        except Exception:
+            pass
+
+        # Source 2: in-memory session store
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+
+            sess = _SESSIONS.get(session_id)
+            if sess:
+                verdict = sess.get("effective_verdict") or sess.get("verdict")
+                if verdict:
+                    return json.dumps(
+                        {
+                            **provenance,
+                            "verdict": verdict,
+                            "source": "session_store",
+                            "truth_class": "OBS",
+                        },
+                        indent=2,
+                    )
+        except Exception:
+            pass
+
+        # Source 3: sealed receipts (disk, append-only; per-session verdict record)
+        try:
+            import os
+
+            receipts_path = os.path.expanduser("~/.local/share/arifos/seal_receipts.jsonl")
+            if os.path.exists(receipts_path):
+                with open(receipts_path, "r", encoding="utf-8") as fh:
+                    for line in fh:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            entry = json.loads(line)
+                        except Exception:
+                            continue
+                        if entry.get("session_id") == session_id and entry.get("verdict"):
+                            return json.dumps(
+                                {
+                                    **provenance,
+                                    "verdict": entry["verdict"],
+                                    "source": "seal_receipts",
+                                    "seal_id": entry.get("seal_id"),
+                                    "truth_class": "OBS",
+                                },
+                                indent=2,
+                            )
+        except Exception:
+            pass
+
+        # FAIL CLOSED — unresolved session state is UNKNOWN, never SEAL
+        return json.dumps(
+            {
+                **provenance,
+                "verdict": "UNKNOWN",
+                "source": "unresolved",
+                "truth_class": "UNKNOWN",
+                "note": "session state unresolved; absence of evidence is not SEAL (fail-closed, P0-1a 2026-09-24)",
+            },
+            indent=2,
+        )
 
     registered.append("arifos://verdict/{session_id}")
 
     # ── Continuity resource ──────────────────────────────────────────────
     @mcp.resource(
         "arifos://continuity/{session_id}",
+        title="Session Continuity",
         description=(
             "Session continuity state and contract lineage. "
             "Returns the full continuity chain for a session including previous tool, "
             "current tool, max risk tier, and contract version. "
             "Essential for resuming interrupted sessions and audit trail reconstruction."
         ),
+        annotations={"audience": ["assistant"], "priority": 0.8},
     )
     async def get_continuity(session_id: str) -> str:
         """Get session continuity state as JSON."""
@@ -106,12 +198,14 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Vitals resource ──────────────────────────────────────────────────
     @mcp.resource(
         "arifos://vitals",
+        title="Constitutional Vitals",
         description=(
             "Real-time constitutional vitals and thermodynamic telemetry. "
             "Returns CPU, memory, disk, genius score (G), entropy delta (ΔS), "
             "human impact load (Ω), and paradox tension (Ψ). "
             "Updated continuously by the metabolic monitor. Use for health checks."
         ),
+        annotations={"audience": ["assistant", "user"], "priority": 1.0},
     )
     async def get_vitals() -> str:
         """Get real-time constitutional vitals as JSON."""
@@ -132,10 +226,12 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # We use a single templated resource `{name}` and look up content by name.
     @mcp.resource(
         "arifos://init/opencode/{name}",
+        title="OpenCode INIT Prompts",
         description=(
             "OpenCode INIT prompt files (agent bootstrap instruction). "
             "Available names: " + ", ".join(sorted(_INIT_PROMPT_FILES.keys()))
         ),
+        annotations={"audience": ["assistant"], "priority": 0.7},
     )
     async def get_init_resource(name: str) -> str:
         """Return the contents of a named INIT prompt file."""
@@ -151,11 +247,13 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Agent INIT resource ──────────────────────────────────────────────
     @mcp.resource(
         "arifos://init/agent_init",
+        title="Agent Initialization Bootstrap",
         description=(
             "Canonical INIT.md v4.0 (2026-08-05) — 12 orthogonal layers, 10-question attestation, "
             "init→seal→RSI→reality loop. 293-line universal bootstrap for all arifOS agents. "
             "Forged 2026-08-05 by 333-AGI (Δ MIND) under F13 SOVEREIGN directive."
         ),
+        annotations={"audience": ["assistant"], "priority": 0.9},
     )
     async def agent_init() -> str:
         return _read_file_safe(_INIT_PATH)
@@ -163,28 +261,71 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     registered.append("arifos://init/agent_init")
 
     # ── carry-forward resource (session state continuity) ─────────────────
+    # 8A REVISED 2026-09-12: Single canonical path, schema-gated.
+    # Prior mtime-max across .local/share + .hermes + AAA/docs picked the
+    # wrong semantic object (V2: mtime_as_authority). Now: owner-declared
+    # path only, schema == arifos.carry_forward.v3 required.
     _CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
+    _CARRY_FORWARD_SCHEMA = "arifos.carry_forward.v3"
 
     @mcp.resource(
         "arifos://carry-forward",
+        title="Session Carry-Forward State",
         description=(
-            "Live session carry-forward state. Returns prior session ID, completed tasks, "
-            "open 888_HOLD loops, entropy delta, cooling status, and successor pointer. "
-            "This is the MCP-native equivalent of reading carry_forward.json from filesystem. "
-            "Essential for agent continuity — load at session start instead of FS reads."
+            "Live session carry-forward state (v3 typed entries). Returns prior session "
+            "decisions, scars, open loops, eurekas, directives, and anchors. "
+            "Schema-gated: only serves arifos.carry_forward.v3. "
+            "Essential for agent continuity — load at session start."
         ),
+        annotations={"audience": ["assistant"], "priority": 1.0},
     )
     async def get_carry_forward() -> str:
-        """Return current carry-forward.json contents."""
+        """Return canonical carry-forward.json — owner-declared path, schema-gated."""
+        # Gate 1: file exists
+        try:
+            stat = os.stat(_CARRY_FORWARD_PATH)
+        except OSError:
+            return '{"error":"not_found","uri":"arifos://carry-forward","note":"Canonical carry_forward.json absent"}'
+        # Gate 2: readable
         try:
             with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
-                return fh.read()
-        except FileNotFoundError:
-            return (
-                '{"error":"carry_forward.json not found","note":"No prior session state available"}'
-            )
+                raw = fh.read()
         except Exception as exc:
-            return f'{{"error":"{exc}"}}'
+            return json.dumps(
+                {"error": "unreadable", "uri": "arifos://carry-forward", "detail": str(exc)}
+            )
+        # Gate 3: valid JSON
+        try:
+            doc = json.loads(raw)
+        except ValueError:
+            return json.dumps(
+                {"error": "unreadable", "uri": "arifos://carry-forward", "detail": "Not valid JSON"}
+            )
+        # Gate 4: dict type
+        if not isinstance(doc, dict):
+            return json.dumps(
+                {
+                    "error": "contract_mismatch",
+                    "uri": "arifos://carry-forward",
+                    "detail": f"Expected dict, got {type(doc).__name__}",
+                }
+            )
+        # Gate 5: schema contract
+        actual_schema = doc.get("schema", "NONE")
+        if actual_schema != _CARRY_FORWARD_SCHEMA:
+            return json.dumps(
+                {
+                    "error": "contract_mismatch",
+                    "uri": "arifos://carry-forward",
+                    "detail": f"Expected schema {_CARRY_FORWARD_SCHEMA}, got {actual_schema}",
+                }
+            )
+        # All gates passed — stamp provenance and serve
+        from datetime import datetime as _dt
+
+        doc["_served_from"] = _CARRY_FORWARD_PATH
+        doc["_served_mtime_utc"] = _dt.fromtimestamp(stat.st_mtime, UTC).isoformat()
+        return json.dumps(doc, ensure_ascii=False, indent=2)
 
     registered.append("arifos://carry-forward")
 
@@ -193,6 +334,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     @mcp.resource(
         "arifos://flow-state",
+        title="Flow Quality Pulse",
         description=(
             "Live Flow Quality (FQ) pulse — the federation's metabolic nerve health. "
             "Returns FQ value, verdict (OPTIMAL/BALANCED/WATCHING/STUCK), and last update. "
@@ -200,6 +342,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "FQ >= 0.5 → forge. This replaces filesystem reads of /root/AAA/state/flow_state.json. "
             "Cross-reference with arifFlow :7073/health for real-time metabolic data."
         ),
+        annotations={"audience": ["assistant", "user"], "priority": 0.9},
     )
     async def get_flow_state() -> str:
         """Return current flow_state.json contents."""
@@ -239,11 +382,13 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     # ── Instructions resource (MCP-native server discover, FastMCP 3 compat) ──
     @mcp.resource(
         "arifos://instructions",
+        title="Agent Boot Instructions",
         description=(
             "Agent bootstrap instructions — the MCP-native equivalent of server/discover. "
             "Every agent entering arifOS for the first time should read this. "
             "Contains boot sequence, key resources, canonical tools, and constitutional rules."
         ),
+        annotations={"audience": ["assistant"], "priority": 1.0},
     )
     async def get_instructions() -> str:
         return (

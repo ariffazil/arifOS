@@ -32,13 +32,17 @@ jobs:
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://mcp.arif-fazil.com/health)
           echo "HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" = "200" ]; then
+            # Payload indented to the block-scalar level: YAML strips the
+            # common indentation, so python3 -c receives it at column 0
+            # (parse error fix 2026-10-04 — col-0 payload lines terminated
+            # the YAML block and killed the 6-hourly uptime check).
             curl -s --max-time 10 https://mcp.arif-fazil.com/health | python3 -c "
-              import sys, json
-              d = json.load(sys.stdin)
-              print(f'Status: {d.get(\"status\",\"?\")}')
-              print(f'Tools: {d.get(\"tool_count\",\"?\")}')
-              print(f'Version: {d.get(\"version\",\"?\")}')
-            "
+          import sys, json
+          d = json.load(sys.stdin)
+          print(f'Status: {d.get(\"status\",\"?\")}')
+          print(f'Tools: {d.get(\"tool_count\",\"?\")}')
+          print(f'Version: {d.get(\"version\",\"?\")}')
+          "
           else
             echo "ALERT: mcp.arif-fazil.com returned $HTTP_CODE"
             exit 1

@@ -14,7 +14,7 @@ IDENTITY_TEXT = """\
 resource_class: identity
 authority_level: SOVEREIGN_CANON
 owner: ARIF_FAZIL
-version: 2026.06.21
+version: 2026.10.05
 mutation_allowed: false
 requires_actor_verified: true
 requires_session: true
@@ -22,38 +22,50 @@ lease_required: false
 blast_radius: MEDIUM
 evidence_level: CANONICAL
 staleness_policy: fail_closed
-last_attested: 2026-06-22T00:00:00Z
+last_attested: 2026-10-05T00:00:00Z
 truth_level: 1
 ---end_arifos_meta
 
 arifOS Identity Manifest
 
 Sovereign:       Muhammad Arif bin Fazil
-Role:            L13 SOVEREIGN — final veto authority
+Position:        Position Zero (/000) · Sovereign Anchor
+Role:            F13 SOVEREIGN (L13 SOVEREIGN) — non-delegable final human veto
+DID:             did:web:arif-fazil.com
+Root Domain:     https://arif-fazil.com
 VPS:             af-forge (72.62.71.199)
-Identity Source: identity.toml
-Identity Hash:   BLAKE3 (verified at boot)
+Identity Source: identity.toml & genesis-statement.json
+Identity Hash:   BLAKE3 / Ed25519 (verified at boot)
+Companion:       /999 (The Proof Chamber / VAULT999)
+Prime Invariant: REALITY > EVERYTHING
 
 Federation Identity:
+  Genesis:       /000 (Position Zero · Human Root Anchor)
   Kernel:        arifOS MCP (Ω — Constitutional)
   Ag entry:      A-FORGE (forge execution shell)
   Earth witness: GEOX (evidence only)
   Capital:       WEALTH (evidence only)
   Vitality:      WELL (reflect only)
+  Temporal:      CHRON (calibration only)
   Cockpit:       AAA (control plane)
   Judge:         APEX (888 verdict relay)
+  Proof Chamber: /999 (VAULT999 ZKPC & Proof Chain)
 
 Authority Chain:
-  APEX (Arif Fazil, L13 SOVEREIGN)
+  Position Zero (/000) (Muhammad Arif bin Fazil, F13 SOVEREIGN)
     → arifOS constitutional kernel
-      → F1–L13 floor receipts
-        → domain organ advisory output (GEOX/WEALTH/WELL)
+      → F1–F13 floor receipts
+        → domain organ advisory output (GEOX/WEALTH/WELL/CHRON)
           → AAA operator surface
-            → VAULT999 audit seal
+            → VAULT999 audit seal (/999)
               → A-FORGE execution
 
-No organ may authorize its own execution.
-APEX is the only path to a forge gate.
+Invariants:
+  1. Reality > Models, metrics, and doctrine.
+  2. No organ may authorize its own execution.
+  3. APEX is the only path to a forge gate.
+  4. Gödel Lock: No closed AI system can fully self-verify without external human ground truth.
+  5. ZKPC Active: Wound architecture, moral framework, language register, sovereign intent.
 
 Architecture Principle:
   Bare-metal systemd (organs) + Docker (supporting services only).

@@ -46,9 +46,7 @@
   "transport": {
     "type": "streamable-http",
     "endpoint": "https://mcp.arif-fazil.com/mcp",
-    "auth_required": true,
-    "auth_type": "bearer",
-    "env_var": "ARIFOS_API_KEY"
+    "auth_required": false
   },
   "protocol": "2025-11-25",
   "client_compatibility": ["Claude Desktop", "Copilot Agents", "Cursor", "Smithery", "Glama", "mcp.so", "OpenCode", "Kimi Code", "Cline", "Windsurf"]

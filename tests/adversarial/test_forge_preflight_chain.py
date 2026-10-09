@@ -81,6 +81,7 @@ def test_forge_preflight_irreversible_action_requires_ack():
         session_id="sess_irrev",
         actor_id="arif",
         plan_id="plan_irrev",
+        forge_mode="deploy",
         ack_irreversible=False,
     )
     assert r_no_ack.get("human_ack_required") is True

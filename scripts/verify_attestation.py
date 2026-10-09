@@ -127,13 +127,31 @@ def verify_health_payload(payload: dict, strict: bool = False) -> int:
     )
 
     # 9. critical_module_hashes must include all CRITICAL_MODULES
-    cmh = release.get("critical_module_hashes", {})
-    missing_mods = CRITICAL_MODULES - set(cmh.keys())
-    score += _check(
-        not missing_mods,
-        f"critical_module_hashes covers all modules (missing: {sorted(missing_mods) or 'none'})",
-        fail=bool(missing_mods),
-    )
+    # 2026-09-29 (audit item #17): the live kernel publishes
+    # payload_mode="compact", which exposes `critical_module_hash_count`
+    # (18) but NOT the `critical_module_hashes` dict. This check therefore
+    # failed unconditionally on every compact payload — a verifier that can
+    # never pass is indistinguishable from no verifier, and it is why nobody
+    # noticed this file was unwired. Accept the count as WEAKER evidence and
+    # say so in the output rather than silently scoring a pass.
+    cmh = release.get("critical_module_hashes")
+    if isinstance(cmh, dict) and cmh:
+        missing_mods = CRITICAL_MODULES - set(cmh.keys())
+        score += _check(
+            not missing_mods,
+            f"critical_module_hashes covers all modules (missing: {sorted(missing_mods) or 'none'})",
+            fail=bool(missing_mods),
+        )
+    else:
+        cmh_count = release.get("critical_module_hash_count", 0)
+        count_ok = isinstance(cmh_count, int) and cmh_count >= len(CRITICAL_MODULES)
+        score += _check(
+            count_ok,
+            f"critical modules hashed: count={cmh_count} >= {len(CRITICAL_MODULES)} "
+            f"[COUNT-ONLY evidence — per-module hashes not published in "
+            f"payload_mode={release.get('payload_mode', 'unknown')}]",
+            fail=not count_ok,
+        )
 
     # 10. runtime_manifest_hash must be a valid sha256: prefix
     rmh = release.get("runtime_manifest_hash", "")
@@ -156,6 +174,47 @@ def verify_health_payload(payload: dict, strict: bool = False) -> int:
         isinstance(pid, int) and pid > 0,
         f"service_pid = {pid}",
         fail=(not isinstance(pid, int) or pid <= 0),
+    )
+
+    # 13. PROVENANCE EQUALITY — declared = built = deployed = observed.
+    # Added 2026-09-29 (333-AGI, referential-integrity audit item #10/#17).
+    # Before this check the verifier asserted each commit field was non-empty
+    # but never that they were the SAME commit, so a release_id minted from
+    # source HEAD could ship an artifact built from an ancestor and still
+    # score PASS. That is the exact defect that froze every session at
+    # effective_verdict=HOLD / DEPLOYMENT_DRIFT.
+    sc7 = str(release.get("source_commit", ""))[:7]
+    bc7 = str(release.get("built_commit", ""))[:7]
+    dc7 = str(release.get("deployed_commit", ""))[:7]
+    provenance_equal = bool(sc7) and sc7 == bc7 == dc7
+    score += _check(
+        provenance_equal,
+        f"provenance equality source==built==deployed ({sc7} / {bc7} / {dc7})",
+        fail=True,
+    )
+
+    # 13b. The kernel's own drift flag must agree.
+    score += _check(
+        release.get("drift") is False,
+        f"software_release.drift = {release.get('drift')} (expected False)",
+        fail=True,
+    )
+
+    # 14. CLEAN-TREE BUILD — the running artifact must be reproducible from a
+    # commit. Added 2026-09-29 (audit item #15): the ac054a5 production wheel
+    # was built from a dirty tree, so live code existed in no commit and the
+    # release could only be identified by content_sha256.
+    try:
+        with open("/opt/arifos/releases/release-manifest.json", encoding="utf-8") as _mf:
+            _manifest = json.load(_mf)
+        _dirty = _manifest.get("dirty")
+        _dirty_files = _manifest.get("dirty_files") or []
+    except Exception as exc:  # manifest unreadable = cannot witness, not "clean"
+        _dirty, _dirty_files = None, [f"manifest unreadable: {exc}"]
+    score += _check(
+        _dirty is False,
+        f"release built from clean tree (dirty={_dirty}, files={len(_dirty_files)})",
+        fail=True,
     )
 
     verdict = "PASS" if score == 0 else ("WARN" if score <= 2 else "FAIL")

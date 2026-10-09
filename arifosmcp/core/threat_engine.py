@@ -194,6 +194,16 @@ class ThreatEngine:
 
         # Compute irreversibility
         max_irrev = max((THREAT_IRREVERSIBILITY.get(t, 0) for t in threats), default=0)
+        # X-018 (2026-09-12): honor caller-declared irreversibility floor —
+        # raise-only. Benign irreversible actions carry no threat keywords,
+        # so threat-scan alone classifies them REVERSIBLE and the vault seal
+        # rank check can never pass for clean irreversible seals.
+        _declared = getattr(context, "declared_irreversibility", None)
+        if isinstance(_declared, int) and 0 <= _declared <= 3 and _declared > max_irrev:
+            reasoning.append(
+                f"declared irreversibility floor {_declared} honored (threat scan said {max_irrev})"
+            )
+            max_irrev = _declared
         irreversibility = IrreversibilityLevel(max_irrev)
 
         return ThreatAssessment(

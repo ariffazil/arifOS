@@ -293,6 +293,55 @@ def _exposed_tools(server_json: dict[str, Any] | None) -> set[str]:
     return names
 
 
+def probe_live_wire_tools(
+    url: str = "http://127.0.0.1:8088/mcp", timeout: float = 3.0
+) -> set[str] | None:
+    """Measure the actual public wire: MCP ``tools/list`` against the running service.
+
+    ``exposed`` must be measured ON the wire, not inferred from a config
+    profile resolved inside *this* process. Audit 2026-09-28: the cron
+    emitter runs without ``ARIFOS_PUBLIC_SURFACE_MODE`` and computed a
+    6-tool ``public_agent`` profile while the live service (env
+    ``forge_next_8``) exposed 8 — the snapshot falsely reported
+    ``arif_forge``/``arif_seal`` as not exposed.
+
+    Returns the live tool-name set, or None on any failure (caller falls
+    back to the server_json-derived set). Read-only JSON-RPC — never an
+    invocation.
+    """
+    import json as _json
+    import urllib.request as _rq
+
+    payload = _json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}).encode()
+    req = _rq.Request(
+        url,
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        },
+    )
+    try:
+        with _rq.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8", "replace")
+    except Exception:
+        return None
+    # Tolerate SSE framing (event:/data: lines) around the JSON document.
+    stripped = raw.lstrip()
+    if stripped.startswith("event:") or stripped.startswith("data:"):
+        for line in raw.splitlines():
+            if line.startswith("data:"):
+                raw = line[5:].strip()
+                break
+    try:
+        doc = _json.loads(raw)
+        tools = (doc.get("result") or {}).get("tools") or []
+        names = {t.get("name") for t in tools if isinstance(t, dict) and t.get("name")}
+        return names or None
+    except Exception:
+        return None
+
+
 def _load_test_cache() -> dict[str, dict[str, Any]]:
     """Read the per-tool test cache from disk. Returns {} on miss/error."""
     try:
@@ -461,6 +510,7 @@ def compute_capability_matrix(
     server_json: dict[str, Any] | None,
     registry_index: dict[str, dict[str, Any]] | None = None,
     registered_tools: set[str] | None = None,
+    live_exposed: set[str] | None = None,
 ) -> dict[str, Any]:
     """Build the canonical capability-drift matrix.
 
@@ -470,6 +520,9 @@ def compute_capability_matrix(
         registry_index: pre-loaded registry index
         registered_tools: pre-computed set of registered tool names (preferred —
                           avoids async issues with FastMCP 3.x list_tools())
+        live_exposed: tool names measured via live wire probe (preferred over
+                      server_json — config profiles resolved in this process
+                      may not match the running service's surface)
 
     Returns:
         {
@@ -498,7 +551,12 @@ def compute_capability_matrix(
     # Public surface discipline: matrix rows are the constitutional 8, plus any
     # extra declared arif_* so drift still surfaces — but headline counts use public 8.
     registered = registered_tools if registered_tools is not None else _registered_tools(mcp)
+    exposed_source = "server_json"
     exposed = _exposed_tools(server_json)
+    if live_exposed:
+        # Wire truth wins over any config-derived profile (F2, audit 2026-09-28).
+        exposed = set(live_exposed)
+        exposed_source = "live_wire_probe"
     # Prefer explicit public wire when registries are noisy/multi-tier.
     if not declared:
         declared = set(PUBLIC_CANONICAL_TOOLS)
@@ -612,6 +670,7 @@ def compute_capability_matrix(
 
     return {
         "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "exposed_source": exposed_source,
         "declared_count": len(public_declared),
         "registered_count": len(registered_public)
         if registered_public

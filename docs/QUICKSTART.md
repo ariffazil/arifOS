@@ -1,116 +1,137 @@
-# arifOS — 5 Minutes to First Governed Tool Call
+# arifOS — 5 Minutes to Your First Governed Verdict
 
-arifOS is the constitutional MCP kernel for the federation. The **public MCP surface is 12 canonical verbs** (Spine P0 — 2026-07-10):
+Everything below was executed on **2026-09-21** against the live kernel and this repository. Outputs are quoted from that run, not from memory. Where a count is stated it was measured; where a floor is named it matches [`FEDERATION_CONTRACT.md`](../FEDERATION_CONTRACT.md) §3.
 
-`arif_init` → `arif_observe` → `arif_think` → `arif_route` → `arif_bridge_connect` → `arif_critique` → `arif_memory` → `arif_judge` → `arif_forge` → `arif_compose` → `arif_seal` → `arif_verify`
+arifOS evaluates a proposed action against 13 constitutional floors and returns an independent verdict **before** execution. The judge never executes; the executor never certifies.
 
-## Connect
+---
 
-Add to your MCP client:
+## 1. Install and run the kernel
+
+```bash
+pip install arifos
+pip show arifos            # → Version: 1!2026.9.2
+
+# HTTP transport — the MCP endpoint. The port comes from $PORT (default 8080).
+PORT=8088 arifos-mcp streamable-http
+
+# stdio transport, for a local stdio MCP client
+arifos-mcp
+```
+
+Version checks: quote `pip show arifos` or `/health`. The in-package `__version__` strings (`arifos.__version__`, `arifosmcp.__version__`) are stale and must not be quoted as the release.
+
+## 2. Confirm the kernel is healthy
+
+```bash
+curl -s http://localhost:8088/health
+```
+
+```jsonc
+{ "status": "healthy", "release_name": "v2026.08.01", "mcp_protocol_version": "2026-07-28",
+  "tools_loaded": 8, "deployment_drift_status": "aligned", "floors_active": 13,
+  "vault999_health": "healthy" }
+```
+
+`floors_active: 13` is 13 of 13. Lower-is-better floors report raw measurements (F7 = 0.04, F9 = 0.15, L12 = 0.425), not failures.
+
+## 3. See a governed workflow without writing code
+
+```bash
+python examples/enterprise_operations_demo.py
+```
+
+Six graded scenarios run in-process, in a sandbox — no real customer funds, records or policies are touched. Verified summary from the run:
+
+```
+#   | Scenario                                          | Verdict    | DB Mutated
+1   | Read Customer Account Data                        | ALLOW      | No (Prevented)
+2   | Automated Micro-Refund (RM50.00)                   | ALLOW      | Yes
+3   | Major Enterprise Refund (RM5,000.00)               | HOLD       | No (Prevented)
+4   | Delete Customer Account & Audit Trail              | BLOCK/VOID | No (Prevented)
+5   | Modify Production Security Policy                  | BLOCK/VOID | No (Prevented)
+6   | Ambiguous Batch Request ('Clean up old records')   | HOLD       | No (Prevented)
+```
+
+Each scenario prints the floors checked, the violated floor when there is one (`F1_AMANAH_VIOLATION`, `F13_SOVEREIGN_VIOLATION`), and an audit receipt hash.
+
+## 4. Connect an MCP client
 
 ```json
 {
   "mcpServers": {
-    "arifos": {
-      "url": "https://mcp.arif-fazil.com/mcp",
-      "transport": "streamable-http"
-    }
+    "arifos": { "url": "https://mcp.arif-fazil.com/mcp", "transport": "streamable-http" }
   }
 }
 ```
 
-Or run locally from this repo:
+Local: `http://localhost:8088/mcp`.
+
+**Protocol:** the kernel advertises `2026-07-28` and accepts `2026-07-28 · 2025-11-25 · 2025-03-26 · 2024-11-05`. A live `initialize` currently settles on **`2025-11-25`** — the canonical spec in `arifosmcp/runtime/public_surface.py`, and the version the internal conformance runner records. Pin `2025-11-25` if you pin anything.
 
 ```bash
-uv sync --all-extras
-uv run python -m arifosmcp.runtime.server
-# server listens on http://127.0.0.1:8088
+curl -s http://localhost:8088/mcp \
+  -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
 
-Microsoft 365 / Teams path:
+## 5. The canonical flow: init → judge → seal
 
-Preferred when your Teams/Copilot surface is backed by Copilot Studio MCP onboarding:
+`arif_init` binds identity and an authority band; `arif_judge` returns the verdict; `arif_seal` appends the receipt — only after a SEAL.
 
-```text
-Server URL: https://mcp.arif-fazil.com/mcp
-Transport: streamable-http
+```jsonc
+// 1. Session ignition — 000
+{ "name": "arif_init", "arguments": { "mode": "init", "actor_id": "my-agent" } }
+// → { "verdict": "HOLD", "session_id": "SEAL-df114686f4c34971",
+//     "autonomy_band": "OBSERVE_ONLY", "trace_id": "trc-197d2fa35887" }
+
+// 2. Judgment — 666
+{ "name": "arif_judge", "arguments": {
+    "candidate": "Delete the production audit table", "action_tier": "standard",
+    "session_id": "SEAL-df114686f4c34971", "actor_id": "my-agent" } }
+// → { "verdict": "HOLD", "trace_id": "trc-d5d4d2fed6f8",
+//     "constitutional_check": { "hold_required": true, "failed_floors": [] },
+//     "next_safe_action": "provide actor_signature / sovereign_receipt / heart_critique,
+//                          or reduce blast radius" }
+
+// 3. Seal — 999, only after SEAL
+{ "name": "arif_seal", "arguments": { "payload": "…", "session_id": "…", "ack_irreversible": true } }
 ```
 
-Bridge scaffold fallback when direct MCP onboarding is blocked or you need an OpenAPI/REST adapter:
+Two things a first-time caller should expect:
 
-```bash
-set ARIFOS_M365_UPSTREAM_URL=https://mcp.arif-fazil.com/mcp
-uv run arifos-teams-bridge
-# bridge listens on http://127.0.0.1:8091 and exposes OpenAPI/REST routes
-```
+- **HOLD is the normal first verdict.** A fresh session starts at `OBSERVE_ONLY`: nothing is authorised yet and the kernel says so, with the reason and the next safe action rather than a bare refusal.
+- **No session, no authority.** Calling `arif_judge` without `arif_init` returns `actor: anonymous`, `authority_level: OBSERVE_ONLY`, `verdict: HOLD`. The kernel will not silently upgrade an unattested caller.
 
-Windows bootstrap for this machine:
+## The 8 canonical verbs
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap_local_agent_connectivity.ps1 -InstallDeps
-```
+The live `tools/list` facade exposes exactly these eight:
 
-Blessed client template:
+| Stage | Verb | Use when |
+|-------|------|----------|
+| 000 | `arif_init` | Start or resume a governed session |
+| 111 | `arif_observe` | You need reality as evidence, with OBS/DER/INT/SPEC labels |
+| 333 | `arif_think` | You need structured reasoning under F2/F7 before proposing |
+| 444 | `arif_route` | You are unsure which organ or governed step is next |
+| 555 | `arif_memory` | Recall, store or promote institutional memory |
+| 666 | `arif_judge` | You need a verdict — SEAL / PARTIAL / SABAR / HOLD / VOID |
+| 777 | `arif_forge` | Execute an approved action (requires a prior SEAL) |
+| 999 | `arif_seal` | Write the immutable receipt to VAULT999 |
 
-```text
-CONFIG\mcp-clients.local.json
-```
+Stage numbering is the F13-ratified nine-stage map (`arifosmcp/constitutional_map.py`, `ToolStage`): **JUDGE = 666, FORGE = 777**. The old `888` stage was retired when compose was absorbed into forge; a few description strings and the generated `llms.txt` still carry the retired label — they are mirrors, the stage field and the live wire are the source of truth.
 
-## First governed flow
-
-```python
-# 1. Start a session
-arif_init(mode="init", actor_id="your_name")
-
-# 2. Gather evidence or map current reality
-arif_observe(mode="search", query="portfolio risk drivers")
-
-# 3. Reason or plan
-arif_think(mode="plan", query="analyze portfolio risk")
-
-# 4. Route if the next tool or organ is unclear
-arif_route(mode="route", intent="I want to analyze portfolio risk")
-
-# 5. Get a constitutional verdict before any action
-arif_judge(actor="your_name", intent="analyze portfolio", ...)  # returns SEAL / HOLD / SABAR / VOID
-
-# 6. Execute after SEAL
-arif_forge(mode="engineer", ...)  # only after judge SEAL
-
-# 7. Seal the result for the immutable ledger
-arif_seal(mode="seal", payload="...", ack_irreversible=True)
-```
-
-## The 12 Canonical Public Tools
-
-| # | Tool | Stage | Use When |
-|---|------|-------|----------|
-| 1 | `arif_init` | 000 | Start or resume a governed session |
-| 2 | `arif_observe` | 111 | Need external data, search, ingest, vitals |
-| 3 | `arif_think` | 333 | Need reasoning, verification, or planning |
-| 4 | `arif_route` | 444 | Unsure which governed step or organ is next |
-| 5 | `arif_bridge_connect` | 444-direct | Direct call to a known organ (HIGH auth) |
-| 6 | `arif_critique` | 555 | Maruah / risk / ethical stress-test before irreversible action |
-| 7 | `arif_memory` | 555m | Constitutional memory: recall, remember, promote |
-| 8 | `arif_judge` | 888 | Need a constitutional verdict (SEAL/HOLD/SABAR/VOID) |
-| 9 | `arif_forge` | 777 | Execute an approved action (requires prior SEAL) |
-| 10 | `arif_compose` | reply | Format final human-facing response. Call LAST. |
-| 11 | `arif_seal` | 999 | Immutable VAULT999 record |
-| 12 | `arif_verify` | E1 | JITU pre-execution gate — SEAL token check for IRREVERSIBLE shell |
-
-**Demoted / internal:** `arif_triage` → `arif_init(mode=preflight|triage)`; `arif_act` → `arif_forge`; `arif_fetch` → `arif_observe(mode=fetch)`.
+Hidden from the public facade but present internally (25 canonical entries in total, 13 hidden — e.g. `arif_challenge`, `arif_judge_deliberate`). `tools_loaded = 8` is the only tool count to quote publicly.
 
 ## Invariants
 
-1. The public wire surface is **12 verbs only** (Spine P0 — SATU PERMUKAAN).
-2. `arif_forge` is downstream of `arif_judge` SEAL — no action skips judgment.
-3. No organ self-authorizes. A-FORGE executes; arifOS judges.
-4. Pass `session_token` every hop — do not re-interrogate store-only `session_id`.
-5. Runtime truth is the live MCP facade plus:
-   - `arifosmcp/runtime/public_surface.py`
-   - `arifosmcp/tool_registry.json`
+1. **The public wire is 8 verbs.** Any count you read elsewhere is a mirror of a different surface.
+2. **No action skips judgment.** `arif_forge` is downstream of a SEAL verdict.
+3. **No organ self-authorises.** A-FORGE executes; arifOS judges; FRAME witnesses; VAULT999 remembers.
+4. **Pass `session_id` (and `session_token` when issued) with every hop.** Do not re-derive identity from a store-only id.
+5. **Live surfaces beat prose.** `/health`, `tools/list`, and these files are the runtime truth:
+   - `arifosmcp/runtime/public_surface.py` · `arifosmcp/constitutional_map.py` · `arifosmcp/tool_registry.json`
    - `static/.well-known/mcp/server.json`
 
 ---
 
-For architecture and governance, read [`README.md`](README.md) and [`AGENTS.md`](AGENTS.md).
+Architecture and governance: [`README.md`](../README.md) · [`FEDERATION_CONTRACT.md`](../FEDERATION_CONTRACT.md) · [`SECURITY.md`](../SECURITY.md) · [`docs/START_HERE.md`](./START_HERE.md)

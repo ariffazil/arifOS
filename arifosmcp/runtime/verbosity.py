@@ -45,6 +45,11 @@ _MINIMAL_KEEP_TOP_LEVEL = {
     "signature",
     "_identity_consistency_applied",
     "_identity_drift_count",
+    # INIT v2 roots + temporal grounding context (2026-09-20, additive — F11/F9).
+    # Without these the 4 built roots and the temporal context were silently
+    # projected OUT of the envelope (built-then-dropped = F2 truth gap).
+    "temporal",
+    "init_v2_roots",
 }
 
 _MINIMAL_KEEP_RESULT = {
@@ -62,6 +67,9 @@ _MINIMAL_KEEP_RESULT = {
     "init_mode",
     "session_mode",
     "authority_scope",
+    # INIT v2 roots (2026-09-20, additive — surface where present).
+    "temporal",
+    "init_v2_roots",
 }
 
 # Fields STRIPPED in minimal mode (metadata, not evidence).
@@ -215,6 +223,11 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             pass
     if not actor_verified and _jwt_av is True:
         actor_verified = True
+    # LEGACY-LABEL TRUTH (2026-09-04): the token is authoritative both ways.
+    # A bound-but-unverified session carries av=False — the legacy lookup can
+    # surface the store's bound-flag (true); that must not read as verified.
+    elif _jwt_av is False:
+        actor_verified = False
     session_id = _lookup("session_id")
     call_hash = _lookup("call_hash")
     trace_id = _lookup("trace_id")
@@ -224,11 +237,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     # "verdict", so the old fallback (response.get("status")) copied
     # "completed" into the verdict slot — FORGE-RECEIPT-DISHONEST.
     # Priority: canonical effective_verdict > legacy verdict > status.
-    verdict = (
-        _lookup("effective_verdict")
-        or _lookup("verdict")
-        or response.get("status", "SEAL")
-    )
+    verdict = _lookup("effective_verdict") or _lookup("verdict") or response.get("status", "SEAL")
 
     # Unified actor block
     authority_level = "OBSERVER"
@@ -380,9 +389,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     _st = str(minimal.get("status") or "").lower()
     _tool = str(minimal.get("tool") or response.get("tool") or "")
     _cc = minimal.get("constitutional_check") or {}
-    _exec = str(
-        minimal.get("execution_state") or response.get("execution_state") or ""
-    ).upper()
+    _exec = str(minimal.get("execution_state") or response.get("execution_state") or "").upper()
     if _st == "pending":
         _orig = str(response.get("status") or "").upper()
         if _orig in ("OK", "COMPLETED", "SEAL", "COMPLETED") or _exec == "COMPLETED":
@@ -400,9 +407,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         if _ev:
             minimal["effective_verdict"] = _ev
     if str(minimal.get("verdict") or "").lower() == "pending":
-        minimal["verdict"] = (
-            minimal.get("effective_verdict") or response.get("verdict") or "HOLD"
-        )
+        minimal["verdict"] = minimal.get("effective_verdict") or response.get("verdict") or "HOLD"
     # Ensure execution_state present
     if not minimal.get("execution_state"):
         if str(minimal.get("status")).lower() in ("completed", "ok"):
@@ -412,33 +417,60 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     minimal.setdefault("status_scope", "execution")
 
     # W-03: deployment drift is a hard floor — never re-green to SEAL/PROCEED.
-    def _has_drift(d: dict) -> bool:
-        if not isinstance(d, dict):
-            return False
-        sub = d.get("substrate") if isinstance(d.get("substrate"), dict) else {}
-        if sub.get("state") == "DEGRADED" or sub.get("drift") is True:
-            return True
-        sw = d.get("software_release") if isinstance(d.get("software_release"), dict) else {}
-        if sw.get("drift") is True:
-            return True
-        deg = d.get("degraded")
-        if isinstance(deg, list) and any("drift" in str(x).lower() for x in deg):
-            return True
-        res = d.get("result") if isinstance(d.get("result"), dict) else {}
-        rsub = res.get("substrate") if isinstance(res.get("substrate"), dict) else {}
-        return rsub.get("state") == "DEGRADED" or rsub.get("drift") is True
+    # DUAL-TRUTH FIX (2026-09-18, lane B receipt): this used a private
+    # label-first check that gave a DERIVED `substrate.state == "DEGRADED"`
+    # the same weight as a MEASURED drift boolean. It now defers to the
+    # kernel's single measurement point under the evidence hierarchy
+    # (RAW_OBSERVATION > MEASURED_FACT > DERIVED_STATE > REASON_CODE >
+    # NARRATIVE_LABEL), so a measured drift=false outranks a stale derived
+    # label here too — and a measured drift=true still fires.
+    try:
+        from arifosmcp.runtime.tools import (
+            _drift_reason_evidence,
+            _drift_spots,
+            _measure_drift_from_spots,
+        )
 
-    _drift = _has_drift(minimal) or _has_drift(response if isinstance(response, dict) else {})
+        _verbosity_spots: list[tuple[str, dict]] = [("minimal", minimal)]
+        if isinstance(response, dict):
+            _verbosity_spots.extend(_drift_spots(response))
+        _verbosity_evidence = _measure_drift_from_spots(_verbosity_spots)
+    except Exception:  # pragma: no cover — trimming must never break the wire
+        _drift_reason_evidence = None  # type: ignore[assignment]
+        _verbosity_evidence = {"fired": False, "cause": None}
+
+    _drift = bool(_verbosity_evidence.get("fired"))
+    _drift_cause = _verbosity_evidence.get("cause") or "REASON_UNMEASURED"
 
     # Derive effective/canonical from constitutional_check — single resolver.
     # 2026-08-04 audit: floor_passed=true + hold_required=false must not
     # coexist with effective_verdict=HOLD / canonical=DENY (Mode 3).
     # 2026-08-04 W-03: drift must not be overpainted by floor_passed=true.
     if _drift:
-        minimal["effective_verdict"] = "HOLD"
-        minimal["canonical_verdict"] = "HOLD"
-        minimal["reason_code"] = minimal.get("reason_code") or "DEPLOYMENT_DRIFT"
-        minimal["next_action"] = minimal.get("next_action") or "RECONCILE_SOURCE_BUILT_DEPLOYED"
+        # R-1d single-writer (F13 FIX R-1d, 2026-09-22): attach_effective_
+        # verdict composed `effective` (worse-merged inner) BEFORE trim —
+        # trim may fill when absent or overwrite ONLY in the DEGRADATION
+        # direction (rank-new <= rank-current, lower=worse). Journal showed
+        # trim resetting an attach-composed HOLD to SABAR between attach
+        # (tools.py:26023) and wrapper reconcile (:26131) — the R-1d reset.
+        from arifosmcp.runtime.verdict import _VERDICT_RANK as _vrank
+
+        _cur_ev = str(minimal.get("effective_verdict") or "").upper()
+        if not _cur_ev or _vrank.get("HOLD", 2) <= _vrank.get(_cur_ev, 0):
+            minimal["effective_verdict"] = "HOLD"
+            minimal["canonical_verdict"] = "HOLD"
+        # MEASURED, never defaulted (2026-09-18).
+        minimal["reason_code"] = minimal.get("reason_code") or _drift_cause
+        if _drift_reason_evidence is not None:
+            try:
+                minimal["reason_evidence"] = _drift_reason_evidence(_verbosity_evidence)
+            except Exception:  # pragma: no cover
+                minimal["reason_evidence"] = {"cause": _drift_cause}
+        minimal["next_action"] = minimal.get("next_action") or (
+            "RECONCILE_SOURCE_BUILT_DEPLOYED"
+            if _drift_cause == "DEPLOYMENT_DRIFT"
+            else "MEASURE_SUBSTRATE_DEGRADATION_CAUSE"
+        )
         if str(minimal.get("status", "")).lower() in ("ok", "completed", "healthy"):
             minimal["status"] = "degraded"
         # Keep nine_signal honest if present
@@ -466,8 +498,19 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         _v = str(minimal.get("verdict") or response.get("verdict") or "").upper()
         if _v in ("SEAL", "OK", "COMPLETED", "SYUBHAH", "SABAR", ""):
             # SYUBHAH is epistemic doubt on content, not session DENY
-            minimal["effective_verdict"] = "SEAL" if _v in ("SEAL", "OK", "COMPLETED", "") else _v
-            minimal["canonical_verdict"] = "PROCEED"
+            # R-1d single-writer (F13 FIX R-1d, 2026-09-22): this branch used
+            # to OVERWRITE an attach-composed effective with the raw unmerged
+            # `_v` — observed resetting HOLD → SABAR (an UPGRADE, the unlawful
+            # direction) between attach and wrapper reconcile: the R-1d reset
+            # that survived every prior fix. Fill-if-absent, or degrade-only
+            # (rank-new <= rank-current); attach remains THE writer.
+            from arifosmcp.runtime.verdict import _VERDICT_RANK as _vrank2
+
+            _new_ev = "SEAL" if _v in ("SEAL", "OK", "COMPLETED", "") else _v
+            _cur_ev2 = str(minimal.get("effective_verdict") or "").upper()
+            if not _cur_ev2 or _vrank2.get(_new_ev, 9) <= _vrank2.get(_cur_ev2, 0):
+                minimal["effective_verdict"] = _new_ev
+                minimal["canonical_verdict"] = "PROCEED"
     elif isinstance(_cc, dict) and _cc.get("hold_required"):
         if minimal.get("effective_verdict") is None:
             minimal["effective_verdict"] = "HOLD"
@@ -523,9 +566,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
             # No measured nine_signal in source — derive a declared projection
             # from the final verdict (same mapping precedent as the drift
             # override above) or admit UNKNOWN. Never fabricate a measurement.
-            _ev9 = str(
-                minimal.get("effective_verdict") or minimal.get("verdict") or ""
-            ).upper()
+            _ev9 = str(minimal.get("effective_verdict") or minimal.get("verdict") or "").upper()
             if _ev9 in ("SEAL", "PROCEED", "OK", "COMPLETED"):
                 _st9, _en9 = "SELAMAT", "SAFE"
             elif _ev9 in ("HOLD", "VOID", "SABAR"):

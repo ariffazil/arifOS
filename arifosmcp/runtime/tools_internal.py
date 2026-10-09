@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -488,9 +489,9 @@ async def _wrap_call(
     )
     if token:
         try:
-            from arifosmcp.runtime.act_token import resolve_standing, verify_sct
+            from arifosmcp.runtime.act_token import resolve_standing, verify_act
 
-            claims = verify_sct(token)
+            claims = verify_act(token)
             if claims:
                 session_id = str(claims.get("sid") or session_id)
                 payload["session_id"] = session_id
@@ -1322,6 +1323,67 @@ def _get_constitutional_memory_store():
     return _constitutional_memory_store
 
 
+def _memory_content_str(content: Any) -> str:
+    """Coerce stored memory content to str.
+
+    FIX 2026-09-05 (FI-008): legacy Qdrant points may hold dict/list payloads in
+    `content`. One poisoned point crashed every recall with
+    ``'dict' object has no attribute 'strip'`` (tools_internal.py:1706). Coerce
+    defensively — never assume str. F2 TRUTH: surfaced, not silently dropped.
+    """
+    if isinstance(content, str):
+        return content
+    if content is None:
+        return ""
+    try:
+        import json as _json
+
+        return _json.dumps(content, ensure_ascii=False, default=str)
+    except Exception:
+        return str(content)
+
+
+# FIX 2026-09-05 (bug #2): retrieval signal must be real, auditable, fail-closed.
+_MEMORY_MIN_SCORE = 0.1
+
+
+def _score_admits(r: dict) -> bool:
+    """Relevance gate. None score = signal unavailable → fail closed (never None>=x TypeError,
+    never fabricated 0.0)."""
+    s = r.get("score")
+    return isinstance(s, (int, float)) and s >= _MEMORY_MIN_SCORE
+
+
+def _memory_not_found_payload(query: str, candidates: list[dict], backend: str, note: str) -> dict:
+    """Honest not-found envelope (F2/F4/F9): distinguish WHY nothing was admitted.
+
+    Taxonomy (888 audit 2026-09-05):
+      NO_VECTOR_HITS        — backend returned zero candidates
+      SCORE_UNAVAILABLE     — candidates exist but retrieval signal missing (fail closed)
+      NO_HITS_ABOVE_THRESHOLD — candidates + scores exist, all below policy floor
+    """
+    scores = [c.get("score") for c in candidates if isinstance(c.get("score"), (int, float))]
+    if not candidates:
+        reason = "NO_VECTOR_HITS"
+    elif any(c.get("score") is None for c in candidates):
+        reason = "SCORE_UNAVAILABLE"
+    else:
+        reason = "NO_HITS_ABOVE_THRESHOLD"
+    return {
+        "results": [],
+        "count": 0,
+        "query": query,
+        "found": False,
+        "backend": backend,
+        "reason": reason,
+        "candidate_count": len(candidates),
+        "threshold": _MEMORY_MIN_SCORE,
+        "top_score_raw": max(scores) if scores else None,
+        "content_coerced_count": sum(1 for c in candidates if c.get("content_coerced")),
+        "note": note,
+    }
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 0 FIX: Hardened engineering_memory with filesystem error handling
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1360,6 +1422,27 @@ async def engineering_memory_dispatch_impl(
             error_code="INVALID_MODE",
             verdict=Verdict.VOID,
         )
+
+    # ── F2/VOID-GUARD (2026-09-13, session SEAL-64d8d16afb864e0d) ─────────────
+    # Reproduced defect (external probe + FI-008): tier="L5" / backend="graph"
+    # was accepted by the surface, then silently answered from Qdrant with
+    # SUCCESS. Void Guard: "no data" ≠ "all clear". Graph-tier requests are
+    # gated BEFORE any vector fallback: backend down → UNMEASURED HOLD;
+    # backend up → graph-backed answer with provenance.
+    from arifosmcp.runtime.graph_tier_gate import graph_tier_gate, wants_graph_tier
+
+    if wants_graph_tier(payload):
+        _gate = graph_tier_gate(mode, payload)
+        if _gate.get("intercepted"):
+            return RuntimeEnvelope(
+                ok=True,
+                tool="engineering_memory",
+                session_id=session_id,
+                stage="555m_MEMORY",
+                verdict=Verdict.SABAR if _gate.get("hold") else Verdict.SEAL,
+                status=RuntimeStatus.HOLD if _gate.get("hold") else RuntimeStatus.SUCCESS,
+                payload=_gate["payload"],
+            )
 
     store = _get_constitutional_memory_store()
 
@@ -1601,7 +1684,9 @@ async def engineering_memory_dispatch_impl(
                 from arifosmcp.hexagon.memory.constitutional_memory import MemoryArea
 
                 await store.initialize_project(project_id)
+                _t0 = time.monotonic()
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
+                _retrieval_ms = (time.monotonic() - _t0) * 1000.0
                 results = [e.to_dict() for e in entries]
             except Exception as emb_err:
                 return _create_error_envelope(
@@ -1617,7 +1702,12 @@ async def engineering_memory_dispatch_impl(
             budget_remaining = context_budget
             budgeted_results = []
             for r in results:
-                content_len = len(r.get("content", ""))
+                # FIX 2026-09-05: coerce legacy non-str content before len()/slice
+                original = r.get("content", "")
+                r["content"] = _memory_content_str(original)
+                if not isinstance(original, str):
+                    r["content_coerced"] = True
+                content_len = len(r["content"])
                 if content_len <= budget_remaining:
                     budgeted_results.append(r)
                     budget_remaining -= content_len
@@ -1632,11 +1722,20 @@ async def engineering_memory_dispatch_impl(
                     break
 
             # F2 TRUTH: detect false-SUCCESS (Qdrant returns K results even when nothing matches)
-            usable = [
-                r
-                for r in budgeted_results
-                if r.get("content", "").strip() and r.get("score", 0) >= 0.1
-            ]
+            # FIX 2026-09-05 (bug #2): score gate is fail-closed (None ≠ admitted)
+            usable = [r for r in budgeted_results if _memory_content_str(r.get("content", "")).strip() and _score_admits(r)]
+            # P1 telemetry (888 audit 2026-09-05): never load-bearing
+            try:
+                from arifosmcp.runtime.memory_telemetry import record_recall
+
+                record_recall(
+                    query, results, usable,
+                    reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
+                    backend="qdrant",
+                    latency_ms=round(_retrieval_ms, 2),
+                )
+            except Exception:
+                pass
             if not usable:
                 return RuntimeEnvelope(
                     ok=True,
@@ -1645,14 +1744,12 @@ async def engineering_memory_dispatch_impl(
                     stage="555m_MEMORY",
                     verdict=Verdict.SABAR,
                     status=RuntimeStatus.SUCCESS,
-                    payload={
-                        "results": [],
-                        "count": 0,
-                        "query": query,
-                        "found": False,
-                        "backend": "qdrant",
-                        "note": "F2 TRUTH: No memories matched query with usable confidence",
-                    },
+                    payload=_memory_not_found_payload(
+                        query,
+                        results,
+                        "qdrant",
+                        "F2 TRUTH: No memories matched query with usable confidence",
+                    ),
                 )
 
             return RuntimeEnvelope(
@@ -1699,12 +1796,38 @@ async def engineering_memory_dispatch_impl(
         if store:
             try:
                 await store.initialize_project(project_id)
+                _t0 = time.monotonic()
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
+                _retrieval_ms = (time.monotonic() - _t0) * 1000.0
                 results = [e.to_dict() for e in entries]
                 # F2 TRUTH: detect false-SUCCESS — Qdrant returns K results even when nothing matches
-                usable = [
-                    r for r in results if r.get("content", "").strip() and r.get("score", 0) >= 0.1
-                ]
+                # FIX 2026-09-05: legacy points may hold dict/list content — coerce BEFORE the
+                # filter AND in-place, so admitted results always carry str content (no raw dict leak).
+                # FIX 2026-09-05 (bug #2): score gate fail-closed (None ≠ admitted); coercion flagged
+                # on every candidate BEFORE mutation so provenance survives.
+                usable = []
+                for r in results:
+                    original = r.get("content", "")
+                    coerced = _memory_content_str(original)
+                    if not isinstance(original, str):
+                        r["content_coerced"] = True
+                    if coerced.strip() and _score_admits(r):
+                        r["content"] = coerced
+                        usable.append(r)
+                    else:
+                        r["content"] = coerced  # keep candidates readable for not-found diagnostics
+                # P1 telemetry (888 audit 2026-09-05): never load-bearing
+                try:
+                    from arifosmcp.runtime.memory_telemetry import record_recall
+
+                    record_recall(
+                        query, results, usable,
+                        reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
+                        backend="qdrant",
+                        latency_ms=round(_retrieval_ms, 2),
+                    )
+                except Exception:
+                    pass
                 if not usable:
                     return RuntimeEnvelope(
                         ok=True,
@@ -1713,14 +1836,12 @@ async def engineering_memory_dispatch_impl(
                         stage="555m_MEMORY",
                         verdict=Verdict.SABAR,
                         status=RuntimeStatus.SUCCESS,
-                        payload={
-                            "results": [],
-                            "count": 0,
-                            "query": query,
-                            "found": False,
-                            "backend": "qdrant",
-                            "note": "F2 TRUTH: No memories matched query with usable confidence",
-                        },
+                        payload=_memory_not_found_payload(
+                            query,
+                            results,
+                            "qdrant",
+                            "F2 TRUTH: No memories matched query with usable confidence",
+                        ),
                     )
                 return RuntimeEnvelope(
                     ok=True,
@@ -1735,6 +1856,8 @@ async def engineering_memory_dispatch_impl(
                         "query": query,
                         "found": True,
                         "backend": "qdrant",
+                        "threshold": _MEMORY_MIN_SCORE,
+                        "content_coerced_count": sum(1 for r in usable if r.get("content_coerced")),
                         "note": "mode='query' is alias for 'vector_query'",
                     },
                 )

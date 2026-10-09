@@ -1,50 +1,49 @@
 # Contributing to arifOS
 
-> **SOT:** 2026-07-25 | **DITEMPA BUKAN DIBERI**
+Thank you for your interest in contributing to the arifOS Federation.
 
-arifOS is the constitutional governance kernel of the arifOS Federation. Contributions are welcome from anyone who respects the 13 constitutional floors (F1–F13).
+## Code of Conduct
 
-## Before You Start
+We expect all contributors to uphold a culture of respect, intellectual honesty,
+and governance-first thinking. arifOS exists because ungoverned AI is a liability,
+not an asset.
 
-1. Read the [README](README.md) — understand the 8 canonical tools and 13 floors
-2. Read [AGENTS.md](AGENTS.md) — agent boot sequence and autonomy tiers
-3. Run `make health` — ensure the kernel is running
+## How to Contribute
 
-## Setup
+1. **Fork** the repository you want to contribute to.
+2. **Branch** from `main` — feature branches must be descriptive.
+3. **Commit** with conventional commit messages: `feat:`, `fix:`, `docs:`, `chore:`, `test:`.
+4. **Test** your changes before opening a PR. Each organ has its own test suite.
+5. **Open a Pull Request** against `main`.
 
-```bash
-git clone git@github.com:ariffazil/arifos.git && cd arifOS
-uv sync --all-extras
-python -m arifosmcp.runtime.server           # starts on :8088
-curl http://127.0.0.1:8088/health
-```
+## Pull Request Requirements
 
-## Making Changes
+Every PR must include:
+- A clear description of **what** changed and **why**.
+- Reference to an issue or session discussion (if applicable).
+- Evidence that tests pass (CI must be green).
+- For structural changes: an updated README or docs file.
 
-1. **Fork → Branch → Edit → Test → PR**
-2. Run `pytest tests/ -q --tb=short` before pushing
-3. Run `ruff check . && ruff format .` for linting
-4. Never skip the constitutional chain: `arif_init → arif_judge → arif_forge → arif_seal`
+## Constitutional Alignment
 
-## Commit Format
+arifOS is a governed system. Changes that affect:
+- **Constitutional floors (F1–F13)** require explicit sovereign approval.
+- **MCP tool contracts** must maintain backward compatibility or include a migration guide.
+- **VAULT999 schema** changes require a seal approval and migration script.
 
-```
-[ORIGIN] description — TASK-ID
-```
+## License
 
-Where ORIGIN is one of: `FORGE`, `SEAL`, `HOLD`, `AUDIT`, `TEST`, `ZEN`, `REPAIR`, `COLLAPSE`
+Unless otherwise noted, this project is licensed under the **AGPL-3.0**.
+See [LICENSE](LICENSE) for the full text. The GEOX organ is licensed under the
+**Business Source License 1.1** (BSL-1.1); see the GEOX repository for details.
 
-## Boundaries
+By contributing, you agree that your contributions will be licensed under the
+same license as the repository.
 
-- arifOS judges — never executes (A-FORGE does that)
-- arifOS seals — never mutates without SEAL
-- No self-authorization
-- No floor bypass
+## Governance
 
-## Federation
+The arifOS Federation is governed by a constitutional kernel (F1–F13).
+External contributions are welcome but subject to constitutional review before
+merging into production branches.
 
-arifOS is one of 7 organs in the arifOS Federation. See [ariffazil/ariffazil](https://github.com/ariffazil/ariffazil) for the federation map.
-
----
-
-*Maintained under F13 SOVEREIGN by Muhammad Arif bin Fazil.*
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.

@@ -266,3 +266,83 @@ def test_vault_verify_module_docstring_documents_phase_4_1() -> None:
     assert "cross_verify_endpoint" in src or "cross-verify" in src.lower(), (
         "vault_verify module must document the cross-verify contract"
     )
+
+
+# ── 7) Gaps must carry their own reason, and posture must be published ──
+# A public witness that says "gap_count: 2, violation_reasons: []" tells an
+# auditor the chain is broken and refuses to say where, and cannot tell
+# warn-mode green from enforce-mode green. Both are unfalsifiable readings.
+
+
+def test_every_published_gap_has_a_public_reason() -> None:
+    proof = get_vault_proof()
+    gap_count = proof.get("gap_count", 0)
+    reasons = proof.get("violation_reasons", [])
+    if gap_count == 0:
+        assert all(isinstance(r, str) for r in reasons)
+        return
+    assert reasons, (
+        f"gap_count={gap_count} but violation_reasons is empty — the chain "
+        "reports a defect it will not name"
+    )
+    assert len(reasons) >= gap_count, (
+        f"{gap_count} gaps must each surface a reason, got {len(reasons)}"
+    )
+
+
+def test_gap_details_are_published_with_seq_class_and_detail() -> None:
+    proof = get_vault_proof()
+    gaps = proof.get("gaps")
+    assert isinstance(gaps, list), "gaps must be published as a list"
+    assert len(gaps) == proof.get("gap_count"), (
+        "gap_count and len(gaps) must agree — one number, one list"
+    )
+    for g in gaps:
+        assert {"seq", "class", "detail"} <= set(g), f"gap record incomplete: {g!r}"
+        assert g["class"], "every gap must name its class"
+
+
+def test_verifier_posture_is_published() -> None:
+    """The same chain reads a different verified verdict depending on
+    ARIFOS_VAULT_SIG_ENFORCE and on whether the HMAC key is available. The
+    posture is therefore part of the proof, not an internal detail."""
+    proof = get_vault_proof()
+    posture = proof.get("verifier_posture")
+    assert isinstance(posture, dict) and posture, "verifier_posture must be published"
+    assert posture.get("hmac_key") in ("present", "absent"), posture
+    assert posture.get("sig_enforce") in ("on", "warn"), posture
+
+
+def test_head_seq_is_disambiguated_into_two_named_quantities() -> None:
+    """verify_chain().head_seq is the last record's sequence; derive_head()
+    ['seq'] is the count of canonical entries. Publishing only 'head_seq'
+    let the two public endpoints disagree (44 vs 61) on one chain."""
+    proof = get_vault_proof()
+    for key in ("head_seq", "head_entry_seq", "head_count_seq"):
+        assert key in proof, f"/999/verify lost disambiguation field: {key}"
+    assert proof.get("canonical_entries") == proof.get("head_count_seq"), (
+        "head_count_seq must equal canonical_entries — it is that count"
+    )
+
+
+def test_out_of_band_append_is_named_but_never_washed() -> None:
+    """A record whose operation_id is a prefix of its own receipt_hash can
+    never re-verify — the digest predates the field, so the envelope was
+    assembled outside append_receipt. That is an out-of-band write, which is
+    a different claim from "sealed history was rewritten", and the payload
+    must say which one it is.
+
+    Naming the cause must not soften the verdict: the gap keeps its
+    HASH_MISMATCH class and the chain stays red. Reality beats narrative.
+    """
+    proof = get_vault_proof()
+    named = [g for g in proof.get("gaps", []) if g.get("mechanism")]
+    for g in named:
+        assert g["mechanism"] == "OUT_OF_BAND_APPEND", g
+        assert g["class"] == "HASH_MISMATCH", (
+            "identifying a cause must not reclassify the gap away"
+        )
+    if named:
+        assert proof.get("verified") is False, (
+            "an out-of-band append must never read as a verified chain"
+        )
