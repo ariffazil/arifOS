@@ -391,28 +391,80 @@ def emit_stage_event(
     return emit_durable_event(payload)
 
 
-def read_durable_events(limit: int = 5000) -> list[dict[str, Any]]:
-    """Read durable JSONL events from all bus files (newest-last)."""
+_TAIL_CACHE_TTL_S = 60.0
+_tail_cache: dict[int, tuple[float, list[dict[str, Any]]]] = {}
+
+
+def _read_tail_lines(path: Path, take: int | None) -> list[str]:
+    """Return the last ``take`` complete lines of *path* without parsing the
+    whole file.
+
+    Backward chunk scan counting newlines, then decode only the bounded
+    window.  Full-file behaviour is preserved when ``take`` is None/<=0.
+    (2026-10-09: operations.log grew to 104 MB / 168k lines and every
+    /health re-parsed the entire bus under the GIL — kernel 503 storm.)
+    """
+    if take is None or take <= 0:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.readlines()
+    chunk_size = 1 << 20  # 1 MB backward scan step
+    size = path.stat().st_size
+    with open(path, "rb") as fh:
+        pos = size
+        newlines = 0
+        buf = b""
+        while pos > 0 and newlines <= take:
+            step = min(chunk_size, pos)
+            pos -= step
+            fh.seek(pos)
+            chunk = fh.read(step)
+            newlines += chunk.count(b"\n")
+            buf = chunk + buf
+    lines = buf.splitlines()
+    if len(lines) > take:
+        lines = lines[-take:]
+    return [ln.decode("utf-8", errors="replace") for ln in lines]
+
+
+def read_durable_events(limit: int = 5000, force: bool = False) -> list[dict[str, Any]]:
+    """Read durable JSONL events from all bus files (newest-last).
+
+    Tail-bounded per file (2026-10-09): only the last ``limit`` complete
+    lines of EACH bus file are decoded — operations.log events can no
+    longer be displaced by receipts.log volume (or vice versa), and the
+    read cost is O(tail) instead of O(bus).  Results are cached for
+    ``_TAIL_CACHE_TTL_S`` seconds (telemetry bus, not transactional);
+    pass ``force=True`` to bypass the cache.
+    """
+    now = time.monotonic()
+    cached = _tail_cache.get(int(limit or 0))
+    if not force and cached is not None and (now - cached[0]) < _TAIL_CACHE_TTL_S:
+        return cached[1]
+
     out: list[dict[str, Any]] = []
     for path in (_LEGACY_LOG, _OPERATIONS_LOG, _RECEIPTS_LOG):
         if not path.exists():
             continue
         try:
-            with open(path, encoding="utf-8") as fh:
-                for line in fh:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        obj = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
-                    if isinstance(obj, dict):
-                        out.append(obj)
+            for line in _read_tail_lines(path, limit):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(obj, dict):
+                    out.append(obj)
         except Exception as exc:
             logger.debug("durable bus read failed %s: %s", path, exc)
     if limit and len(out) > limit:
-        return out[-limit:]
+        out = out[-limit:]
+
+    _tail_cache[int(limit or 0)] = (now, out)
+    if len(_tail_cache) > 8:  # bound distinct-limit cache entries
+        oldest_key = min(_tail_cache, key=lambda k: _tail_cache[k][0])
+        _tail_cache.pop(oldest_key, None)
     return out
 
 

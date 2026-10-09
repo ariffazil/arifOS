@@ -14,11 +14,11 @@
     ],
     "federation_state": {
       "providers": 26,
-      "models": 202,
+      "models": 226,
       "agents": 20
     },
     "dead_pools_note": "mulerouter removed from dead_pools 2026-08-13T21:18:04Z \u2014 falsified by live HTTP 200. opencode-go / tokenrouter-arifos unverified this pass.",
-    "last_verified": "2026-08-20T07:18:00Z",
+    "last_verified": "2026-10-08T19:58:00Z",
     "tombstones": [
       {
         "file": "/root/AAA/federation/fed_signatures.yaml",
@@ -37,7 +37,8 @@
     "last_patch_note_2026_08_26_gemini_multimodal": "F13 directive 2026-08-26: Registered Gemini Nano Banana image generation & editing suite (gemini-3.1-flash-image / Nano Banana 2, gemini-3.1-flash-lite-image / NB2 Lite, gemini-3-pro-image / NB Pro, gemini-2.5-flash-image) and Video generation suite (gemini-omni-flash conversational default, veo-3.1-generate-preview with native audio / extension up to 148s, veo-3.1-fast-generate-preview, veo-3.1-lite-generate-preview). Wired to FED i-ARIF multimodal capabilities and AAA skills mesh.",
     "last_patch_note_2026_08_30_deepseek_zen": "F13 directive 2026-08-30 (Arif: make deepseek configs zen \u2014 deep-research DeepSeek vision): (1) REGISTERED deepseek/deepseek-v4-flash-vision-exp \u2014 official vision model released 2026-08-21 (api-docs.deepseek.com/guides/vision), image-in user-role only, 384 tok/image cap, JPEG/PNG/GIF/WebP, Anthropic-compat /anthropic accepts image blocks; DIRECT-API-ONLY \u2014 no mirror carries it; provider deepseek INSOLVENT so status LIVE_PROVIDER_DEAD until top-up. Roles 111/777 only; 333/666/999 forbidden while EXP. (2) model_routes deepseek-v4-pro: dead-direct demoted p1\u2192p4, qwen-token-plan-team promoted p1 (HTTP 200 verified 2026-08-18, CN jurisdiction preserved for sovereign lanes), opencode-zen added p3, duplicate individual entry collapsed. (3) model_routes deepseek-v4-flash: dead-direct demoted p1\u2192p4, individual entries REMOVED (seat has NO v4-flash \u2014 dead fallbacks behind dead primary), qwen-token-plan-team p1, opencode-zen p2, opencode-go p3. Effect: all routing_rules preferring deepseek/deepseek-v4-pro|flash (incl. sovereign p100/p150/p200 lanes) now resolve LIVE-first with zero rule edits. (4) OUTSTANDING (reported, not fixed \u2014 runtime config belongs to FI-001): SOT agents FORGE(000\u03a9)/AUDITOR(\u03a8) primary still deepseek-direct-dead, mirrors /root/.config/opencode/opencode.json subagents; their runtime chain fails to kimi/k3 rung today. SOT reloads at next FED boot. Backup: federation-models.json.bak-20260830-deepseek-zen.",
     "last_patch_note_2026_08_30_deepseek_revival": "ARIF CORRECTION same day 11:0xZ \u2014 'ada credit la deepseek api key'. Deepscan found 3 keys: DEEPSEEK_API_KEY (sk-a8a68a\u20266115) LIVE $17.38 is_available=true; DEEPSEEK_ANTHROPIC_KEY (sk-973607\u20264c5b) same account LIVE; kimi config.toml hardcoded sk-6e10\u2026 INVALID 401 (root cause of Kimi-side dead lane \u2014 replaced with secrets DEEPSEEK_API_KEY byte-exact). The 2026-08-20 INSOLVENT probe (-0.08) was STALE and/or probed the dead key. LIVE VERIFICATION 2026-08-30: balance $17.38; v4-flash 200 'PONG' 1.2s; v4-pro 200 'PONG-PRO' 1.3s (thinking disabled works); v4-flash-vision-exp REAL-IMAGE 200 answered 'Red' 1.1s; /anthropic/v1/messages 200 both keys; vision-exp works on /anthropic too. ACTIONS: provider deepseek ACTIVE (health 0.95); both ladders direct RESTORED to p1 (sovereign constitutional lane), team p2, individual/zen/go behind; vision-exp status LIVE. Kimi [providers.deepseek] now wired to live key \u2014 deepseek/deepseek-v4-flash-vision-exp usable from Kimi harness immediately. FORGE/AUDITOR opencode subagent runtime (FI-001 lane) still pending re-point.",
-    "last_patch_note_2026_08_31_dsvision_primary": "F13 DIRECTIVE 2026-08-31 (Arif, kimi-code/FI-008): (1) deepseek/deepseek-v4-flash-vision-exp promoted to PRIMARY-FOR-NOW for the HERMES i-ARIF persona lane \u2014 Hermes config.yaml model.default + vision aux + litellm i-arif cascade rung P0 (order 0.5, direct deepseek). Roles note: vision-exp constitutional_roles 111/777 unchanged \u2014 Hermes persona lane carries zero federation authority (persona_policy), so the 333/666/999 EXP ban is NOT violated. Swap back at DeepSeek GA. (2) GPT-OSS REMOVED per F13 ('GPT OSS tu x perlu kot'): 2 model entries deleted, 2 pool/list references scrubbed. Backup: federation-models.json.bak-20260831-dsvision."
+    "last_patch_note_2026_08_31_dsvision_primary": "F13 DIRECTIVE 2026-08-31 (Arif, kimi-code/FI-008): (1) deepseek/deepseek-v4-flash-vision-exp promoted to PRIMARY-FOR-NOW for the HERMES i-ARIF persona lane \u2014 Hermes config.yaml model.default + vision aux + litellm i-arif cascade rung P0 (order 0.5, direct deepseek). Roles note: vision-exp constitutional_roles 111/777 unchanged \u2014 Hermes persona lane carries zero federation authority (persona_policy), so the 333/666/999 EXP ban is NOT violated. Swap back at DeepSeek GA. (2) GPT-OSS REMOVED per F13 ('GPT OSS tu x perlu kot'): 2 model entries deleted, 2 pool/list references scrubbed. Backup: federation-models.json.bak-20260831-dsvision.",
+    "last_patch_note_2026_10_08_free_quota": "F13 verified live console: 24 active DashScope free quota models registered. Added new 3.1 audio, omni-flash, deepseek-v4.1-flash, glm-5.3, wan3.0 video prime, and qwen-image-3.0 entries."
   },
   "providers": [
     {
@@ -4251,6 +4252,612 @@
       "free_quota_tokens": 1000000,
       "free_quota_expiry": "2026-09-29",
       "notes": "FREE QUOTA \u2014 Small VL thinking. Expires 2026-09-29."
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.0-asr-flash-streaming",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "36K s",
+        "remaining": "100%",
+        "expiration": "2026-10-27",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.0-asr-flash",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "36K s",
+        "remaining": "99.93%",
+        "expiration": "2026-10-27",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.0-tts-flash",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "10K chars",
+        "remaining": "100%",
+        "expiration": "2026-10-13",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.0-tts-plus",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "10K chars",
+        "remaining": "100%",
+        "expiration": "2026-10-13",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen3.8-livetranslate-flash-realtime",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio",
+        "text"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-12-16",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/deepseek-v4.1-flash",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "text",
+        "vision"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "99.99%",
+        "expiration": "2026-12-13",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-mt-image-2.0",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "image"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "100 img",
+        "remaining": "96%",
+        "expiration": "2026-11-26",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/glm-5.3",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "99.92%",
+        "expiration": "2026-11-23",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/wan3.0-video-prime",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "video"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "30s",
+        "remaining": "83.33%",
+        "expiration": "2026-11-21",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.0-realtime-plus",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-11-04",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.0-realtime-flash",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-11-04",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-image-3.0-pro",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "image"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "10 img",
+        "remaining": "20%",
+        "expiration": "2026-11-03",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-image-3.0",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "image"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "10 img",
+        "remaining": "80%",
+        "expiration": "2026-11-03",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.0-asr-flash-filetrans",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "36K s",
+        "remaining": "99.97%",
+        "expiration": "2026-10-27",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen3.7-flash-2026-07-15",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "99.48%",
+        "expiration": "2026-10-23",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-image-2.1-pro",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "image"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "10 img",
+        "remaining": "100%",
+        "expiration": "2027-01-01",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen3.8-omni-flash-realtime",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio",
+        "vision",
+        "text"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-12-21",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.1-asr-flash-streaming",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-12-21",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.1-asr-flash-filetrans",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "99.99%",
+        "expiration": "2026-12-21",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.1-asr-flash",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "99.93%",
+        "expiration": "2026-12-21",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.1-asr-flash-message",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-12-21",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.1-tts-flash",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-12-21",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen-audio-3.1-realtime-plus",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "100%",
+        "expiration": "2026-12-18",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
+    },
+    {
+      "model_key": "dashscope-free-quota/qwen3.8-omni-flash",
+      "provider_ref": "dashscope-free-quota",
+      "status": "LIVE",
+      "context_window": 131072,
+      "max_output_tokens": 8192,
+      "capabilities": [
+        "fast_infer",
+        "free_quota_eligible"
+      ],
+      "modalities": [
+        "audio",
+        "vision",
+        "text"
+      ],
+      "constitutional_roles": [
+        "111_OBSERVE",
+        "444_ROUTE"
+      ],
+      "routing_doc": "/root/AAA/docs/qwen-free-quota-routing.md",
+      "quota_metadata": {
+        "grant": "1M tok",
+        "remaining": "99.99%",
+        "expiration": "2026-12-17",
+        "source": "F13_CONSOLE_AUDIT_2026-10-08"
+      }
     }
   ],
   "agents": [

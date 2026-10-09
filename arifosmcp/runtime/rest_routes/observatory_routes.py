@@ -1092,13 +1092,13 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         ),
         "receipt_state": _pf(
             {
+                "head_present": Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists(),
                 "snapshot_receipt": "PRESENT"
                 if Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists()
                 else "ABSENT",
-                "issuer_claim": "SEALED"
-                if Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists()
-                else "UNSEALED",
-                "signature_verified": False,
+                "issuer_claim": "UNKNOWN",
+                "verification_status": "NOT_ATTEMPTED",
+                "signature_verified": None,
                 "ledger_write": "AVAILABLE"
                 if Path("/root/.local/share/arifos/vault999/seal_chain.jsonl").exists()
                 else "UNAVAILABLE",
@@ -1587,12 +1587,25 @@ def _probe_arifflow_flow_facts() -> dict[str, Any]:
     """
     import json as _json
     import urllib.request
+    import urllib.error
+    import socket
 
+    url = "http://127.0.0.1:7073/health"
     try:
-        with urllib.request.urlopen("http://127.0.0.1:7073/health", timeout=3.0) as resp:
+        with urllib.request.urlopen(url, timeout=3.0) as resp:
             data = _json.loads(resp.read().decode("utf-8", errors="replace"))
-    except Exception:
-        return {"receipts": None, "chain": None}
+    except socket.timeout:
+        logger.warning("arifFLOW health probe timed out (url=%s)", url)
+        return {"receipts": None, "chain": None, "probe_status": "PROBE_TIMEOUT", "bottleneck": None, "flow_state": None}
+    except urllib.error.URLError as exc:
+        logger.warning("arifFLOW health probe connection error (url=%s): %s", url, exc)
+        return {"receipts": None, "chain": None, "probe_status": "ENDPOINT_UNREACHABLE", "bottleneck": None, "flow_state": None}
+    except _json.JSONDecodeError as exc:
+        logger.warning("arifFLOW health probe malformed JSON (url=%s): %s", url, exc)
+        return {"receipts": None, "chain": None, "probe_status": "MALFORMED_PAYLOAD", "bottleneck": None, "flow_state": None}
+    except Exception as exc:
+        logger.warning("arifFLOW health probe unexpected error (url=%s): %s", url, exc)
+        return {"receipts": None, "chain": None, "probe_status": "INTERNAL_PROBE_ERROR", "bottleneck": None, "flow_state": None}
     receipts = data.get("receipts") if isinstance(data, dict) else None
     inv = (data.get("invariants") or {}) if isinstance(data, dict) else {}
     chain = None
@@ -1602,7 +1615,7 @@ def _probe_arifflow_flow_facts() -> dict[str, Any]:
             f"cycles={inv.get('cycle_count')} · holds={inv.get('hold_count')} · "
             f"throttled={inv.get('throttle_count')}"
         )
-    return {"receipts": receipts, "chain": chain}
+    return {"receipts": receipts, "chain": chain, "probe_status": "OK", "flow_state": "FLOWING" if receipts is not None else None}
 
 
 def _probe_arifflow_fq() -> Any:
@@ -2227,6 +2240,7 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             with open(head_path, encoding="utf-8") as fh:
                 head_data = json.load(fh)
             head_seq = head_data.get("seq")
+            head_verdict = head_data.get("verdict") or head_data.get("type")
             head_epoch_str = head_data.get("epoch")
             if head_epoch_str:
                 # ISO-8601 UTC → epoch; tolerate trailing Z.
@@ -2279,6 +2293,14 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             observation_method=_OBS_METHOD_FILESYSTEM,
             independent=True,
         ),
+        "head_present": _pf(
+            head_path.exists(),
+            source="sealer head file existence",
+            state="observed",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
         "snapshot_receipt": _pf(
             "PRESENT" if head_seq is not None else "ABSENT",
             source="sealer head file",
@@ -2288,11 +2310,19 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             independent=True,
         ),
         "issuer_claim": _pf(
-            "SEALED" if head_seq is not None else "UNSEALED",
+            head_verdict if head_verdict is not None else ("RECORDED" if head_seq is not None else "UNKNOWN"),
             source="sealer head file",
             state="reported",
-            confidence=0.8,
+            confidence=0.9 if head_verdict else 0.5,
             observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "verification_status": _pf(
+            "NOT_ATTEMPTED",
+            source="GET /api/observatory/v1/seal/verify",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
             independent=True,
         ),
         "head_seq": _pf(
@@ -2629,14 +2659,21 @@ def _findings_block(
     metabolism = metabolism if isinstance(metabolism, list) else []
 
     declared = int(caps.get("declared_count") or 0)
-    registered = int(caps.get("registered_count") or 0)
+    reg_raw = caps.get("registered_count")
+    registered = int(reg_raw) if reg_raw is not None else None
     exposed = int(caps.get("exposed_count") or 0)
     proven = int(caps.get("proven_live_count") or 0)
     tested = int(caps.get("tested_count") or 0)
     invocable = int(caps.get("invocable_count") or caps.get("callable_public") or 0)
 
     # F-001 public wire only
-    if declared == registered == exposed == 8 or (declared == registered and declared >= 8):
+    if registered is None:
+        f001_status, f001_ev = (
+            "UNMEASURED",
+            f"registered_count is unmeasured (MCP instance unavailable) declared={declared}",
+        )
+        f001_desc = "Capability registration could not be verified against live MCP instance"
+    elif declared == registered == exposed == 8 or (declared == registered and declared >= 8):
         f001_status, f001_ev = (
             "RESOLVED",
             f"public wire declared={declared} registered={registered} exposed={exposed}",
