@@ -3383,11 +3383,20 @@ def register_rest_routes(
             if _now - _health_cache["ts"] < 300.0:  # 5min TTL (was 30s; cold build ~10s)
                 return JSONResponse(_health_cache["payload"])
 
+        # P2-PROVENANCE-2026-10-09: source identity_hash from the helper that
+        # already exists in runtime/identity; keep the file-read path as a
+        # verification channel only. Falls back to "UNAVAILABLE" only when
+        # BOTH the helper and the marker file are unreachable.
+        identity_hash = "UNAVAILABLE"
         try:
-            with open("/opt/arifos/app/.identity_hash") as f:
-                identity_hash = f.read().strip()
+            from arifosmcp.runtime.identity import get_identity_hash  # type: ignore
+            identity_hash = get_identity_hash()
         except Exception:
-            identity_hash = "UNAVAILABLE"
+            try:
+                with open("/opt/arifos/app/.identity_hash") as f:
+                    identity_hash = f.read().strip()
+            except Exception:
+                identity_hash = "UNAVAILABLE"
 
         # Get thermodynamic state for Energy dimension
         thermo = _build_governance_status_payload()
