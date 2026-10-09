@@ -157,7 +157,7 @@ def _declared_arif_tools(registry_index: dict[str, dict[str, Any]]) -> set[str]:
     }
 
 
-def _registered_tools(mcp: Any) -> set[str]:
+def _registered_tools(mcp: Any) -> set[str] | None:
     """Registered = live kernel tool names.
 
     Fallback chain (F2: never silently return empty):
@@ -165,9 +165,12 @@ def _registered_tools(mcp: Any) -> set[str]:
         2. mcp.list_tools() via event loop (FastMCP 3.x async)
         3. public_tool_names_for_mode() — same source as /health tools_loaded
         4. _tool_manager._tools — internal enumeration (last resort)
+
+    Returns None if mcp is None (unmeasured/unavailable).
+    Returns set() if confirmed empty.
     """
     if mcp is None:
-        return set()
+        return None
 
     # ── 1) Legacy: _tool_registry attribute ──
     registry = getattr(mcp, "_tool_registry", None)
@@ -236,16 +239,19 @@ def _registered_tools(mcp: Any) -> set[str]:
     return set()
 
 
-async def _registered_tools_async(mcp: Any) -> set[str]:
+async def _registered_tools_async(mcp: Any) -> set[str] | None:
     """Async version — preferred when caller is async.
 
     Fallback chain (F2: never silently return empty):
         1. mcp.list_tools() — primary async path
         2. public_tool_names_for_mode() — same source as /health tools_loaded
         3. mcp._tool_manager._tools.keys() — internal enumeration (last resort)
+
+    Returns None if mcp is None (unmeasured/unavailable).
+    Returns set() if confirmed empty.
     """
     if mcp is None:
-        return set()
+        return None
 
     # ── 1) Primary: mcp.list_tools() (FastMCP 3.x async) ──
     try:
@@ -562,12 +568,12 @@ def compute_capability_matrix(
         declared = set(PUBLIC_CANONICAL_TOOLS)
     public_declared = declared & PUBLIC_CANONICAL_TOOLS or set(PUBLIC_CANONICAL_TOOLS)
     # Restrict registered/exposed counters to public wire for F-001 honesty.
-    registered_public = registered & PUBLIC_CANONICAL_TOOLS
+    registered_public = (registered & PUBLIC_CANONICAL_TOOLS) if registered is not None else None
     exposed_public = exposed & PUBLIC_CANONICAL_TOOLS if exposed else set(PUBLIC_CANONICAL_TOOLS)
     if not exposed:
         # server.json miss: if registered on public wire, treat as exposed on public facade
-        exposed_public = set(registered_public)
-        exposed = set(registered)
+        exposed_public = set(registered_public) if registered_public is not None else set(PUBLIC_CANONICAL_TOOLS)
+        exposed = set(registered) if registered is not None else set()
 
     test_cache = _load_test_cache()
 
@@ -584,9 +590,12 @@ def compute_capability_matrix(
     for tool_name in sorted(all_tools):
         canon = registry_index.get(tool_name, {})
         is_public = tool_name in PUBLIC_CANONICAL_TOOLS
-        in_registered = tool_name in registered or tool_name in registered_public
+        if registered is not None:
+            in_registered = tool_name in registered or (registered_public is not None and tool_name in registered_public)
+        else:
+            in_registered = None
         in_exposed = tool_name in exposed or tool_name in exposed_public
-        live_invocable = in_registered and in_exposed
+        live_invocable = (in_registered and in_exposed) if in_registered is not None else False
         cache_row = (
             test_cache.get(tool_name, {}) if isinstance(test_cache.get(tool_name), dict) else {}
         )
@@ -672,9 +681,13 @@ def compute_capability_matrix(
         "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "exposed_source": exposed_source,
         "declared_count": len(public_declared),
-        "registered_count": len(registered_public)
-        if registered_public
-        else len(public_declared & registered),
+        "registered_count": (
+            len(registered_public)
+            if registered_public is not None
+            else len(public_declared & registered)
+        )
+        if registered is not None
+        else None,
         "exposed_count": len(exposed_public) if exposed_public else len(public_declared),
         "invocable_count": invocable_count,
         "callable_public": invocable_count,
