@@ -80,7 +80,7 @@ def _compute_sha256_hex(data: str) -> str:
 
 def issue_seal(
     shell_command: str,
-    actor_id: str = "ARIF",
+    actor_id: str = "anonymous",
     payload_hash: str | None = None,
     expires_in_seconds: int = 300,
     signature: str = "ed25519:unsigned",
@@ -150,7 +150,7 @@ def issue_seal(
 def verify_seal(
     token: str,
     command: str,
-    actor_id: str = "ARIF",
+    actor_id: str = "anonymous",
 ) -> dict[str, Any]:
     """
     Verify a SEAL token and burn it on use (one-shot, no replay).

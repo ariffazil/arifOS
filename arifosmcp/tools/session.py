@@ -1147,21 +1147,59 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
     }
 
     # ── Active predictions ──
-    # A prediction is active if status=ACTIVE and not yet verified as CORRECT/INCORRECT
-    verified_ids: set[str] = set()
+    # Canonical CHRON semantics (chron.chron_prediction): the verification ledger
+    # is append-only and last-write-wins per prediction_id; a verdict is then
+    # normalised so a retraction (VOID/VOIDED/RETRACTED) or an explicit
+    # CLOSED_UNTESTABLE / UNVERIFIABLE re-classification supersedes an earlier
+    # decisive record. 2026-10-10 FIX-3: the prior code counted *any* VERIFIED_*
+    # ever seen and reported 35 vs the canonical store's 31 — the four extra were
+    # one VOIDed retraction and three rows a later non-decisive record superseded.
+    def _canonical_verdict(rec: dict) -> str:
+        raw = str(rec.get("verdict") or rec.get("status") or "").strip().upper()
+        if raw in ("CORRECT", "VERIFIED_CORRECT"):
+            return "VERIFIED_CORRECT"
+        if raw in ("INCORRECT", "VERIFIED_INCORRECT"):
+            return "VERIFIED_INCORRECT"
+        if raw in ("VOID", "VOIDED", "RETRACTED"):
+            return "VOID"
+        if rec.get("resolution_class") == "CLOSED_UNTESTABLE" or (
+            rec.get("verified_by") == "chron_resolve_unverifiable"
+        ):
+            return "UNVERIFIABLE_CLOSED"
+        if raw == "UNVERIFIABLE_CLOSED":
+            return "UNVERIFIABLE_CLOSED"
+        return "UNVERIFIABLE"
+
+    latest_verifications: dict[str, dict] = {}
     try:
         with open(verif_path, encoding="utf-8") as f:
             for line in f:
                 if line.strip():
                     v = _json.loads(line)
                     vid = v.get("prediction_id")
-                    verdict = v.get("verdict") or v.get("status", "")
-                    if vid and verdict in ("VERIFIED_CORRECT", "VERIFIED_INCORRECT"):
-                        verified_ids.add(vid)
+                    if vid:
+                        latest_verifications[vid] = v
     except Exception:
 
         logger.exception("suppressed exception", exc_info=True)
-    active = [p for p in preds if p.get("status") == "ACTIVE" and p.get("prediction_id") not in verified_ids]
+
+    decisive_ids = {
+        vid
+        for vid, rec in latest_verifications.items()
+        if _canonical_verdict(rec) in ("VERIFIED_CORRECT", "VERIFIED_INCORRECT")
+    }
+    # resolved also carries explicitly-closed-untestable arrows: finished but unscored.
+    resolved_ids = decisive_ids | {
+        vid
+        for vid, rec in latest_verifications.items()
+        if _canonical_verdict(rec) == "UNVERIFIABLE_CLOSED"
+    }
+    verified_ids = decisive_ids
+    active = [
+        p
+        for p in preds
+        if p.get("status") == "ACTIVE" and p.get("prediction_id") not in resolved_ids
+    ]
 
     ctx["total_predictions"] = len(preds)
     ctx["active_count"] = len(active)
@@ -1228,10 +1266,20 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
         ctx["calibration"] = {"total": 0, "note": "calibration data unreadable"}
 
     # ── Lessons ──
+    # Canonical CHRON semantics (chron.chron_learn.load_lessons): the lesson
+    # ledger is append-only and last-write-wins per lesson_id, so a superseded
+    # row does not count twice. 2026-10-10 FIX-3: raw line-counting reported 16
+    # vs the canonical store's 14.
     try:
+        effective_lessons: dict[str, dict] = {}
         with open(lessons_path, encoding="utf-8") as f:
-            lesson_count = sum(1 for line in f if line.strip())
-        ctx["lessons_count"] = lesson_count
+            for idx, line in enumerate(f):
+                if not line.strip():
+                    continue
+                row = _json.loads(line)
+                lid = row.get("lesson_id") or f"_row-{idx}"
+                effective_lessons[lid] = row
+        ctx["lessons_count"] = len(effective_lessons)
     except Exception:
         ctx["lessons_count"] = 0
 

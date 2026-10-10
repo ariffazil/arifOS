@@ -1,7 +1,7 @@
 <!-- SOT-MANIFEST
 last_verified: 2026-10-05T07:41:19+00:00
 kernel_release: v2026.08.01 (release_name from live /health) · canon version 2026.09.20-e8e6f93
-pypi_version: 1!2026.9.2 (published 2026-09-15T16:42Z) · repo tree 1!2026.10.1 (staged, not yet released)
+pypi_version: 1!2026.10.1 (release 2026.10.1) · repo tree 1!2026.10.1 (aligned)
 live_commit: a98af0d74 (Merge remote-tracking branch 'origin/main' into heal/alias-slash-2026-10-04)
 source_commit: a98af0d74
 built_commit: a98af0d
