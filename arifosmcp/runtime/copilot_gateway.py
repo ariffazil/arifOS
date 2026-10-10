@@ -70,7 +70,7 @@ def _check_rate_limit(client_key: str) -> tuple[bool, dict[str, Any]]:
 # PYDANTIC SCHEMAS
 class CopilotIngestRequest(BaseModel):
     session_id: str
-    actor_id: str = "ARIF"
+    actor_id: str = "anonymous"
     copilot_output: str
     trigger: str = "MANUAL"
     metadata: dict[str, Any] = Field(default_factory=dict)
