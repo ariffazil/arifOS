@@ -760,6 +760,23 @@ _FLOOR_STATUS_PASS = "pass"
 _FLOOR_STATUS_FAIL = "fail"
 
 
+def _phi_fq_from_quotient(quotient: float) -> float:
+    """FLR-F1-FQ v2 (F13 'pilih A', 2026-10-10): φFQ aligned to the ratified
+    fq_policy.yaml floor (0.5, F13 RATIFIED 2026-09-12) — FQ ≥ 0.5 is acceptable
+    flow (φ=1.0); below it is not (φ=0.0).
+
+    Supersedes the 2026-08-10 three-band mapping whose FQ/3.0 branch rendered
+    the entire [0.5, 1.0) band a guaranteed F1 fail (φ max 0.333 < threshold
+    0.5) even while arifFlow itself diagnosed BALANCED/FLOWING — a calibration
+    contradiction between two ratified instruments. Audit receipt:
+    forge_work/2026-10-10-f1-audit-receipt.md (option A).
+
+    The seal path keeps its own stricter GENESIS/059 φFQ gate (tools/vault.py,
+    seal requires FQ∈[1,3]) — different surface, deliberately unchanged.
+    """
+    return 1.0 if float(quotient) >= 0.5 else 0.0
+
+
 def _read_vault_last_seal() -> dict[str, Any]:
     """Arrow of time: read the canonical VAULT999 ledger directly.
 
@@ -1088,8 +1105,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # view). Removed. Staleness belongs in freshness metadata, never in
     # rewriting the measurement itself.
 
-    # F1 AMANAH — live arifFLOW FQ probe (FLR-F1-FQ, 2026-08-10)
-    # φFQ: 1.0 if FQ∈[1,3]; FQ/3.0 if FQ∈[0.5,1); 0.0 if FQ<0.5; min(1,3/FQ) if FQ>3.
+    # F1 AMANAH — live arifFLOW FQ probe (FLR-F1-FQ, 2026-08-10; v2 calibration
+    # F13 'pilih A' 2026-10-10 — mapping now _phi_fq_from_quotient, aligned to
+    # fq_policy.yaml floor 0.5 per audit 2026-10-10-f1-audit-receipt.md).
     # SCAR-OBS-GREENWASH: no longer falls back silently. An unreachable
     # arifFLOW means "cannot witness" (Void Guard), not "all clear" — the
     # failure is recorded in floor_provenance and surfaced as f1_probe_error.
@@ -1103,15 +1121,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
         _fq_quotient = float(_fq_data["fq"]["quotient"])
-        if 1.0 <= _fq_quotient <= 3.0:
-            _phi_fq = 1.0
-        elif 0.5 <= _fq_quotient < 1.0:
-            _phi_fq = _fq_quotient / 3.0
-        elif _fq_quotient < 0.5:
-            _phi_fq = 0.0
-        else:  # quotient > 3.0
-            _phi_fq = min(1.0, 3.0 / _fq_quotient)
-        _phi_fq = round(_phi_fq, 4)
+        _phi_fq = round(_phi_fq_from_quotient(_fq_quotient), 4)
         # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
         # That guard only accepted a real measurement when it IMPROVED on the
         # auto-pass placeholder, so a genuine φFQ of 0.2321 (FQ=0.6964, below
