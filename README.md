@@ -1,19 +1,36 @@
+<!-- CURRENT-VERIFIED-STATE :: re-probed 2026-10-10/11 UTC · do not delete -->
+> ### ⚠️ Current verified state (2026-10-11) — measured, not intended
+>
+> Re-probed live by FI-008 on this date. This block states only what was observed; it does not replace the hand-audited manifest below.
+>
+> **Two properties hold end-to-end:** deterministic rejection (the judge refuses without consulting a model — `gate: hard_deterministic`, `llm_consulted: false`) and prevention of an unauthorised mutation.
+>
+> **Four do not:** verified actor (the signing path exists and the lane on `:18900` listens, but observed calls arrived **unsigned**; `actor_verified:false`) · receipt fidelity **on the invocation-telemetry surface** (`/var/lib/arifos/metrics/tool_invocations.jsonl`, 194,243 lines, **0 governance fields**; a call whose kernel verdict was `HOLD` was persisted as `ok:true`) · sink agreement (one event: ledger `ok:false`, organ counters omit it) · independent reconstruction (no external verifier bound).
+>
+> **Note on two witness surfaces:** the VAULT999 verdict ledger (`outcomes.jsonl`, 95,091 lines, 89,509 carrying a verdict/decision field) is a **different object** from the invocation-telemetry ledger above. They share a shape and not a schema. A verdict is not transferable between them.
+>
+> **Floors: pass 2 · fail F2/F11/F12/F13 · unmeasured 10. Unmeasured is not pass.**
+>
+> No customers, no pilots, no signed contracts, no independent benchmark, no external security audit. Current revenue value: USD 0.
+>
+> Claim-level audit: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`.
+
 <!-- SOT-MANIFEST
-last_verified: 2026-10-05T07:41:19+00:00
-kernel_release: v2026.08.01 (release_name from live /health) · canon version 2026.09.20-e8e6f93
+last_verified: 2026-10-10T18:48:56+00:00
+kernel_release: 2026.10.10-0a109ab (version from live /health, 2026-10-11) · canon version 2026.10.10-0a109ab
 pypi_version: 1!2026.10.1 (release 2026.10.1) · repo tree 1!2026.10.1 (aligned)
-live_commit: a98af0d74 (Merge remote-tracking branch 'origin/main' into heal/alias-slash-2026-10-04)
-source_commit: a98af0d74
-built_commit: a98af0d
+live_commit: 00dc0199d (fix(canon): route release-version read through the single canon owner)
+source_commit: 00dc0199d
+built_commit: 00dc019
 deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs — verified by live tools/list)
 tools_canonical_superset: 25 (8 exposed + 13 hidden verbs — arif_challenge, arif_judge_deliberate, …)
 tools_declared: 48 · registry_callables: 62 (includes aliases) · proven_live_24h: 3
-floors_active: 13/13 measured pass (live-probed 2026-09-21; F7=0.04, F9=0.15, L12=0.425 are lower-is-better)
+floors_active: 2 pass · 4 fail (F2, F11, F12, F13) · 10 unmeasured — re-probed live 2026-10-11. A prior reading of 13/13 came from a threshold defect (the fallback left the gate at "score >= 0.0" — every finite score passed); that earlier pass count was a FALSE PASS, not a loss. UNMEASURED IS NOT PASS.
 federation_schema: 2.0.0
 mcp_protocol: advertises 2026-07-28; live initialize and the internal conformance runner settle on 2025-11-25 (supported: 2026-07-28 · 2025-11-25 · 2025-03-26 · 2024-11-05)
 organs: 7 per the ratified organ table (FEDERATION_CONTRACT §2) + plane classes for boundary services (see Architecture)
-vault999: healthy (397K+ records, append-only)
+vault999: healthy (457K+ records, append-only)
 contract_status: 8/8 published schemas, contract_drift: false
 tool_manifest_url: https://arifos.arif-fazil.com/tools.json (37,046 bytes, live)
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
@@ -302,7 +319,7 @@ Every consequential verdict, evidence chain and execution receipt is written to 
 
 **A hash chain proves internal consistency.** It does NOT prove that the chain was not recomputed by whoever controls the ledger. External anchoring — periodic publication of the chain head, or signing by a key the kernel does not hold — is not yet implemented. **Treat VAULT999 today as self-verifiable, not independently attestable.** See "What Is Not Yet Proven" for the gap row.
 
-Measured 2026-09-21: 241,765 lines across 24 JSONL ledgers in VAULT999/ (largest: `outcomes.jsonl` 93,266 · `arifflow_sealed.jsonl` 52,056 · `apex-zen-receipts.jsonl` 30,977). Composition: the majority is operational telemetry and receipt ingestion; constitutional verdict count is published separately (see `scripts/verify_vault_chain.py --verdict-count-only`). The chain report returns overall: `INTACT` for the active ledgers, reporting 2 strict link breaks in the frozen v1 legacy ledger as historical facts rather than hiding or rewriting them. Live record count is re-stamped into the header manifest above by `scripts/update_readme_sot.py`.
+Measured 2026-09-21: 241,765 lines across 24 JSONL ledgers in VAULT999/ (largest: `outcomes.jsonl` 93,266 · `arifflow_sealed.jsonl` 52,056 · `apex-zen-receipts.jsonl` 30,977). **Re-counted 2026-10-11: 471,067 lines across 58 JSONL ledgers** — method: `find` including subdirectories. The header above re-stamps a **different object** (top-level `*.jsonl` glob → 457K+). **The two figures are not interchangeable; neither should be quoted without its method.** Composition: the majority is operational telemetry and receipt ingestion; constitutional verdict count is published separately (see `scripts/verify_vault_chain.py --verdict-count-only`) — a 2026-10-11 re-count found `outcomes.jsonl` at 95,091 lines, of which 89,509 carry a verdict/decision field and 344 are `HOLD`. The chain report returns overall: `INTACT` for the active ledgers, reporting 2 strict link breaks in the frozen v1 legacy ledger as historical facts rather than hiding or rewriting them. Live record count is re-stamped into the header manifest above by `scripts/update_readme_sot.py`.
 
 ---
 
