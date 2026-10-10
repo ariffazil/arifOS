@@ -69,6 +69,16 @@ def test_f2_contradiction_when_origin_lies():
     assert sig["status"] == "CONTRADICTED"
 
 
+def test_f2_fails_insufficient_coverage():
+    """2/13 floors measured (coverage < COVERAGE_THRESHOLD) → FAIL, contract §5."""
+    prov = {"F1": "arifflow_fq_probe", "F3": "witness_producers"}
+    prov.update({f"F{i}": "unmeasured_default" for i in (2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)})
+    sources = {"floor_provenance": prov, "resolved_floors": {}, "floor_defaults": {}}
+    sig = collect_floor_producer_signal("F2", sources=sources)
+    assert sig["status"] == "FAIL"
+    assert sig.get("reason") == "insufficient-coverage"
+
+
 # ── F11 AUDIT ─────────────────────────────────────────────────────────────
 
 
@@ -138,10 +148,14 @@ def test_f12_contradiction_when_doc_code_drift():
 
 
 def test_f13_rejects_machine_self_acceptance():
-    """A seal attributing a machine SEAL to its own mutation → FAIL (self-acceptance)."""
+    """A machine SEAL verdict with NO human ratification → FAIL (self-acceptance).
+
+    Uses the LIVE seal-chain schema: a non-sovereign actor sealing with
+    verdict==SEAL and no human_ratifier/human_signature is self-acceptance.
+    """
     sources = {
         "seals": [
-            {"actor": "333-AGI", "verdict": "SEAL", "self_mutation": True}  # fabrication
+            {"actor": "333-AGI", "verdict": "SEAL", "payload": {}}  # no human_ratifier
         ]
     }
     sig = collect_floor_producer_signal("F13", sources=sources)
@@ -150,7 +164,22 @@ def test_f13_rejects_machine_self_acceptance():
 
 def test_f13_accepts_sovereign_seal():
     """A sovereign-attributed seal is a valid human-acceptance signal."""
-    sources = {"seals": [{"actor": "arif", "verdict": "SEAL", "self_mutation": False}]}
+    sources = {"seals": [{"actor": "arif", "verdict": "SEAL", "payload": {}}]}
+    sig = collect_floor_producer_signal("F13", sources=sources)
+    assert sig["status"] == "PASS"
+
+
+def test_f13_accepts_human_ratified_machine_seal():
+    """A machine seal WITH human ratification is legitimate, not self-acceptance."""
+    sources = {
+        "seals": [
+            {
+                "actor": "aaa-bridge",
+                "verdict": "SEAL",
+                "payload": {"human_ratifier": "arif", "human_signature": "SIG_XYZ"},
+            }
+        ]
+    }
     sig = collect_floor_producer_signal("F13", sources=sources)
     assert sig["status"] == "PASS"
 
