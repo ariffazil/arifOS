@@ -139,9 +139,56 @@ def _display_id(fid: str) -> str:
     return _DISPLAY_ID_MAP.get(fid, fid)
 
 
+# ── FLR-004 (2026-10-10, hermes/555-asi): restore the F<->L floor-id bridge ──
+# LAW_SPEC_KEYS stores floors 10-13 under the L-prefix (L10..L13), while this
+# module's own contract (see the _DISPLAY_ID_MAP comment above) states that
+# internal callers keep the F-prefix and that F10-F13 are accepted aliases.
+# No normaliser was ever written between those two facts, so:
+#     get_floor_spec("F13")        -> {}      (LAW_SPEC_KEYS has no "F13")
+#     get_law_threshold("F13")     -> 0.0     (the "no spec" fallback)
+#     get_floor_comparator("F13")  -> ">="
+# => every finite score satisfied "score >= 0.0", so the F2/F11/F12/F13
+#    producers' CONTRADICTED/FAIL verdicts (which carry score 0.0) published as
+#    `pass` in /health while floors_provenance still read floor_producer:FAIL:*.
+#    Measured live 2026-10-10 against the deployed wheel.
+# The half-finished rename is still visible in get_floor_comparator below, whose
+# set mixes both prefixes: {"F7", "F9", "L12"}.
+# Fix: one bridge at the single lookup choke point. Storage keys stay L-prefix;
+# F-prefix for 10-13 is accepted as an alias. No threshold value is changed.
+_FLOOR_ID_ALIASES: dict[str, str] = {
+    # the missing half of the rename
+    "F10": "L10",
+    "F11": "L11",
+    "F12": "L12",
+    "F13": "L13",
+    # legacy display ids produced by get_floors_by_category()
+    "L01": "F1",
+    "L02": "F2",
+    "L03": "F3",
+    "L04": "F4",
+    "L05": "F5",
+    "L06": "F6",
+    "L07": "F7",
+    "L08": "F8",
+    "L09": "F9",
+}
+
+
+def canonical_floor_id(law_id: str) -> str:
+    """Bridge F10-F13 <-> L10-L13 (and L01-L09 -> F1-F9).
+
+    Idempotent: canonical ids pass through unchanged. Unknown ids pass through
+    unchanged so callers still see an honest miss rather than a silent alias.
+    """
+    if not law_id:
+        return law_id
+    key = str(law_id).upper().strip()
+    return _FLOOR_ID_ALIASES.get(key, key)
+
+
 def get_floor_spec(law_id: str) -> dict[str, Any]:
     """Return canonical floor specification for a short floor id (e.g., F2)."""
-    spec_key = LAW_SPEC_KEYS.get(law_id)
+    spec_key = LAW_SPEC_KEYS.get(canonical_floor_id(law_id))
     if not spec_key:
         return {}
     return dict(THRESHOLDS.get(spec_key, {}))
@@ -160,9 +207,10 @@ def get_law_threshold(law_id: str) -> float:
 
 def get_floor_comparator(law_id: str) -> str:
     """Return how threshold should be interpreted for reporting."""
-    if law_id == "F4":
+    _lid = canonical_floor_id(law_id)
+    if _lid == "F4":
         return "<="
-    if law_id in {"F7", "F9", "L12"}:
+    if _lid in {"F7", "F9", "L12"}:
         return "<"
     return ">="
 

@@ -732,6 +732,21 @@ def _floor_passes(law_id: str, score: float) -> bool:
 
     spec = get_floor_spec(law_id)
     comparator = get_floor_comparator(law_id)
+
+    # ── FLR-003 (2026-10-10): an unresolvable law_id may NOT render PASS ──
+    # get_floor_spec() returns {} and get_law_threshold() returns 0.0 for any
+    # id outside LAW_SPEC_KEYS, so `score >= 0.0` held for every score: a floor
+    # that does not exist could never fail. Measured live against the deployed
+    # wheel: _floor_passes("NOT_A_FLOOR", 0.0) -> True, and the F12/F13
+    # producers' CONTRADICTED/FAIL (score 0.0) both rendered `pass` in
+    # floors_detail while floors_provenance still read floor_producer:FAIL:*.
+    # The docstring above already promised False here; this enforces it.
+    # All 13 canonical LAW_SPEC_KEYS carry a non-empty spec (verified), so no
+    # real floor regresses. This asserts "not pass", never "violation" --
+    # FAILURE-CLASS-SEPARATION is applied by _floor_status_with_provenance.
+    if not spec:
+        return False
+
     if law_id == "F7" and "range" in spec:
         lower, upper = spec["range"]
         return float(lower) <= fscore <= float(upper)
@@ -901,8 +916,39 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
     (FAILURE-CLASS-SEPARATION: absent != denied). Fail-closed authority is
     preserved: unmeasured is still not pass, and a measured fail still fails.
     """
-    if str(provenance or "").startswith("unmeasured_default"):
+    _prov = str(provenance or "")
+    if _prov.startswith("unmeasured_default"):
         return _FLOOR_STATUS_UNMEASURED
+
+    # ── FLR-003b (2026-10-10): a producer's verdict must survive the reducer ──
+    # The producer's STATUS is real evidence; the numeric score carrying it is
+    # not, because _producer_score maps FAIL and CONTRADICTED both to 0.0 and an
+    # unmapped law_id has no threshold to test that 0.0 against. Read the status
+    # back out of provenance so a measured FAIL reaches floors_failing instead of
+    # being laundered by the threshold table.
+    #   FAIL / CONTRADICTED    -> fail   (measured violation; fail-closed)
+    #   PASS                   -> falls through to the threshold gate when this
+    #                             id HAS a spec; otherwise PASS (FLR-003c)
+    #
+    # ── FLR-003c (2026-10-10, hermes/555-asi): corrected FLR-003b's PASS branch ──
+    # FLR-003b returned UNMEASURED for a producer PASS on an id with no spec.
+    # That REGRESSED F11: its live provenance is
+    # floor_producer:PASS:receipt_ledger (score 0.9) and get_floor_spec("F11")
+    # is {}, so a legitimate measured PASS was reclassified as ABSENT — the same
+    # FAILURE-CLASS-SEPARATION error the docstring forbids, mirrored.
+    # Root cause of the empty spec is NOT this function: LAW_SPEC_KEYS holds
+    # F1-F9 + L10-L13, while the F2/F11/F12/F13 producers emit ids F11/F12/F13.
+    # Floors 11-13 are therefore double-labelled — the producer writes to a
+    # namespace that has no thresholds, and the threshold namespace (L11-L13)
+    # has no producer. Until that namespace is unified (an F13 threshold
+    # decision), a producer PASS with no spec to contradict it stays PASS.
+    if _prov.startswith("floor_producer:"):
+        _pstat = _prov.split(":", 2)[1]
+        if _pstat in ("FAIL", "CONTRADICTED"):
+            return _FLOOR_STATUS_FAIL
+        if _pstat == "PASS" and not get_floor_spec(law_id):
+            return _FLOOR_STATUS_PASS
+
     return _floor_status_strict(law_id, score)
 
 
