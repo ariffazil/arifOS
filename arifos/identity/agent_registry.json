@@ -1,7 +1,7 @@
 {
   "version": "1.2.0",
-  "agent_count": 19,
-  "last_sweep": "2026-08-12T22:59Z \u2014 fingerprint sync: 14 entries updated, 5 added (32-char SHA-256)",
+  "agent_count": 20,
+  "last_sweep": "2026-08-12T22:59Z — fingerprint sync: 14 entries updated, 5 added (32-char SHA-256)",
   "federation_geometry": {},
   "agents": {
     "agent-zero": {
@@ -328,6 +328,22 @@
       "needs_keygen": false,
       "fi_id": "FI-026",
       "last_fingerprint_sync": "2026-08-12T22:59:30+08:00"
+    },
+    "forge-bot": {
+      "agent_id": "forge-bot",
+      "actor_id": "forge-bot",
+      "pubkey_hex": "302a300506032b6570032100fb39075062d64d7595e9c29636df8924049da02d6072d976f2074025be0c9b94",
+      "fingerprint": "f85a48f99fa7a3e2ddf1e7388a182682",
+      "capabilities": [
+        "OBSERVE",
+        "REASON",
+        "ROUTE"
+      ],
+      "max_blast_radius": "T1",
+      "bound_to": "arif-fazil/F13",
+      "created_at": "2026-10-10T01:37:00+00:00",
+      "needs_keygen": false,
+      "note": "telegram @arifOS_bot gateway v2 — registered by 333-AGI under F13 auto-go 2026-10-10"
     }
   },
   "last_fingerprint_sync": "2026-08-12T22:58:44+08:00",
