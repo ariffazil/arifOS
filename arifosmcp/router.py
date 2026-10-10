@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -274,13 +275,45 @@ MISSION_TRIGGERS: dict[Mission, dict[str, Any]] = {
 }
 
 
+# S6 verb-object compound rules — checked BEFORE single-keyword scoring.
+# Scar: keyword-routing (canary/5, AAA/tests/test_mission_classifier.py).
+_COMPOUND_RULES: tuple[tuple[str, "Mission", str], ...] = (
+    (
+        r"\bwhat (did|do) we (decide|decided|agree|agreed|say|said|conclude|concluded)\b",
+        Mission.RECALL,
+        "compound:past-decision-inquiry=recall",
+    ),
+    (
+        r"\brun\b[^.?!]*\b(tests?|conformance|verify|validate|check|lint|qa)\b",
+        Mission.OBSERVE,
+        "compound:run+verification-object=read-only",
+    ),
+    (
+        r"\brun\b[^.?!]*\banalysis\b",
+        Mission.EXPLAIN,
+        "compound:run+analysis=no-external-state-change",
+    ),
+)
+
+
 def classify_intent(intent: str) -> tuple[Mission, float, list[str]]:
     """Classify natural language intent into a mission.
 
     Returns (mission, confidence, matched_triggers).
-    Pure keyword matching. No model. Deterministic.
+    Verb-object compound rules first, then keyword matching.
+    No model. Deterministic.
     """
     intent_lower = intent.lower().strip()
+
+    # S6 compound rules: a single keyword must not override compound meaning
+    # ("run tests" = read-only verification, not mutation; "what did we
+    # decide" = recall, not a decision request). Deterministic, ordered,
+    # cited in matched triggers (F2). The F13-pending mode_first_gate wiring
+    # is unaffected — this hardens the heuristic fallback classifier only.
+    for _pattern, _mission, _rule in _COMPOUND_RULES:
+        if re.search(_pattern, intent_lower):
+            return _mission, 0.9, [_rule]
+
     scores: dict[Mission, tuple[int, int, list[str]]] = {}
 
     for mission, triggers in MISSION_TRIGGERS.items():

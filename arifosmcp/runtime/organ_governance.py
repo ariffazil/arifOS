@@ -165,6 +165,15 @@ TOOL_RISK_MAP: dict[str, dict[str, RiskTier]] = {
         "wealth_governance_verdict": RiskTier.READONLY,
         "wealth_system_registry_status": RiskTier.READONLY,
         "wealth_mcp_health_check": RiskTier.READONLY,
+        # canary/2 Surface-3 convergence (2026-10-11): live WEALTH tools
+        # capital_polix (topology/capture/rents/asymmetry — OBSERVE-class,
+        # ADVISORY_ONLY) and capital_civx (scenario study — SAFE_TO_STUDY,
+        # never decision authority) registered READONLY per
+        # test_capital_polix_schema.py. NOTE: this map's broader wealth_*
+        # naming is stale vs the live capital_* surface — full reconvergence
+        # (mode-granular risk tiers) is a separate registry work order.
+        "capital_polix": RiskTier.READONLY,
+        "capital_civx": RiskTier.READONLY,
         # C1 — pre-check
         "wealth_synthesize": RiskTier.C1_ADVISORY,
         "wealth_ledger_query": RiskTier.C1_ADVISORY,
