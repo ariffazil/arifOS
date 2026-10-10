@@ -945,7 +945,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_containers:
         live_signals.append("container_runtime")
 
-    if len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
+    if False:  # HONEST MODE (2026-10-05): live-sot hydration DISABLED. Original code: `if len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:`. The block synthesized kernel floors from constants (human=0.42, ai=0.99, earth=0.99) + per-signal record_event, then OVERWROTE honest `floors` dict. F3 reproducible as 3*(0.42*0.99*0.99)^(1/3)/(0.42+0.99+0.99)=0.929858 — same closed-form scar-OBS-GREENWASH-2026-10-03. Staleness belongs in freshness metadata, never in rewriting the measurement itself.
         try:
             from core.governance_kernel import get_governance_kernel
 
@@ -1013,8 +1013,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
         v = _safe_float(floors.get(fid))
         if v is None and fid in canonical_floor_aliases:
             v = _safe_float(floors.get(canonical_floor_aliases[fid]))
-        if v is None:
-            v = _FLOOR_DEFAULTS.get(fid)
+        # HONEST MODE (F13 directive 2026-10-05, post SCAR-OBS-GREENWASH-2026-10-03):
+        # missing measurements stay None — do NOT silently substitute phantom defaults.
+        # `_FLOOR_DEFAULTS` calibration was hiding real measurement gaps for F5/F6.
+        # Caller surfaces `unmeasured` honestly via runtime_floors_status.
         resolved_floors[fid] = v
 
     # F2 TRUTH (ZEN 2026-09-02, F13 'audit this and zen all'): display the
@@ -1026,7 +1028,8 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
     # F1 AMANAH — live arifFLOW FQ probe (FLR-F1-FQ, 2026-08-10)
     # φFQ: 1.0 if FQ∈[1,3]; FQ/3.0 if FQ∈[0.5,1); 0.0 if FQ<0.5; min(1,3/FQ) if FQ>3.
-    # Falls back silently to _FLOOR_DEFAULTS['F1'] (0.50) if arifFLOW unreachable.
+    # HONEST MODE (2026-10-05): on probe failure, F1 stays at its prior live value or None —
+    # do NOT fall back to a phantom default. Surface unmeasured gap honestly.
     try:
         import json as _json
         import urllib.request as _ureq
@@ -1098,11 +1101,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
     try:
         capability_map = live_capability_map or build_runtime_capability_map()
-        if (
-            _safe_float(resolved_floors.get("L11"), 0.0) <= 0.0
-            and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
-        ):
-            resolved_floors["L11"] = _FLOOR_DEFAULTS["L11"]
+        # HONEST MODE (2026-10-05): do not substitute L11 default on capability presence.
+        # Original code:
+        # if (
+        #     _safe_float(resolved_floors.get("L11"), 0.0) <= 0.0
+        #     and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
+        # ):
+        #     resolved_floors["L11"] = _FLOOR_DEFAULTS["L11"]
     except Exception:
         capability_map = None
 
@@ -1129,10 +1134,8 @@ def _build_governance_status_payload() -> dict[str, Any]:
             genius_res = calculate_genius(
                 floor_scores, h=0.0, compute_budget_used=0.0, compute_budget_max=1.0
             )
-            resolved_floors["F8"] = round(
-                max(_FLOOR_DEFAULTS["F8"], float(genius_res.get("genius_score", 0.0))),
-                4,
-            )
+            # HONEST MODE (2026-10-05): report genius_score as measured; no phantom floor.
+            resolved_floors["F8"] = round(float(genius_res.get("genius_score", 0.0)), 4)
             if _safe_float(resolved_telemetry.get("confidence"), 0.0) <= 0.0:
                 resolved_telemetry["confidence"] = resolved_floors["F8"]
     except Exception:
