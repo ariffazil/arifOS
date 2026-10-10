@@ -1135,6 +1135,81 @@ def _build_governance_status_payload() -> dict[str, Any]:
         f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
         floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
 
+    # ── F2/F11/F12/F13 MEASUREMENT PRODUCERS (MEASUREMENT_CLOSURE_INIT 2026-10-10) ──
+    # Bounded tranche: wire four floor-producers so previously-UNMEASURED floors
+    # gain a real, challengeable signal. PASS/FAIL/CONTRADICTED assign a score;
+    # UNMEASURED/STALE/ERROR leave the floor as unmeasured_default (never fabricated).
+    try:
+        import json as _json
+        from pathlib import Path as _Path
+
+        from arifosmcp.runtime import request_trust as _rt
+        from arifosmcp.runtime.floor_producers import collect_floor_producer_signal
+
+        _producer_score = {"PASS": 0.9, "FAIL": 0.0, "CONTRADICTED": 0.0}
+
+        def _wire_producer(fid: str, _src: dict) -> None:
+            _sig = collect_floor_producer_signal(fid, sources=_src)
+            if _sig.get("status") in _producer_score:
+                resolved_floors[fid] = _producer_score[_sig["status"]]
+                floor_provenance[fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+
+        # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
+        # reporting (provenance honesty, not a fabricated pass).
+        _wire_producer(
+            "F2",
+            {
+                "floor_provenance": floor_provenance,
+                "resolved_floors": resolved_floors,
+                "floor_defaults": _FLOOR_DEFAULTS,
+            },
+        )
+
+        # F12 INJECTION — request-trust gate (auto-sign must be denied).
+        _wire_producer(
+            "F12",
+            {
+                "auto_sign_allowed": _rt.auto_sign_allowed(),
+                "trust_snapshot": _rt.trust_snapshot(),
+            },
+        )
+
+        # F11 AUDIT — arifFlow receipt ledger tail attributability (read-only).
+        try:
+            _receipt_rows: list[dict] = []
+            _rp = _Path("/var/lib/arifflow/receipts.jsonl")
+            if _rp.exists():
+                for _ln in _rp.read_text(errors="replace").splitlines()[-200:]:
+                    try:
+                        _receipt_rows.append(_json.loads(_ln))
+                    except Exception:
+                        continue
+            _wire_producer("F11", {"receipts": _receipt_rows})
+        except Exception as _f11_exc:
+            floor_provenance["F11"] = (
+                f"unmeasured_default:ledger_unreachable:{type(_f11_exc).__name__}"
+            )
+
+        # F13 SOVEREIGN — seal chain tail human-acceptance separation (read-only).
+        try:
+            _seal_rows: list[dict] = []
+            _sp = _Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+            if _sp.exists():
+                for _ln in _sp.read_text(errors="replace").splitlines()[-100:]:
+                    try:
+                        _seal_rows.append(_json.loads(_ln))
+                    except Exception:
+                        continue
+            _wire_producer("F13", {"seals": _seal_rows})
+        except Exception as _f13_exc:
+            floor_provenance["F13"] = (
+                f"unmeasured_default:seal_chain_unreachable:{type(_f13_exc).__name__}"
+            )
+    except Exception as _fp_exc:
+        floor_provenance["F2"] = (
+            f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
+        )
+
     # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
     # where negative values = clarity improved. But runtime_floors must display
     # in [0,1] band for cross-floor comparability and G scalar integrity.
