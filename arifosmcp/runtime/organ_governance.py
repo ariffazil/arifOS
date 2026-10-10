@@ -293,7 +293,10 @@ class OrganGovernance:
         self.risk_map = risk_map or TOOL_RISK_MAP.get(organ_name, {})
         self._session_id: str | None = None
         self._constitution_hash: str | None = None
-        self._logged_tools: list[str] = []
+        # Annotation fixed 2026-10-11 (pre-existing LSP error at HEAD, flagged
+        # in commit 31643bcb0): entries appended at ~line 504 are dicts
+        # (organ/tool/verdict/risk_tier/session_id), not strings.
+        self._logged_tools: list[dict[str, Any]] = []
 
         logger.info(
             f"OrganGovernance initialized for {organ_name} v{organ_version} "
