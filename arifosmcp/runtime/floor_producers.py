@@ -32,6 +32,10 @@ FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
 # reached by a placeholder).
 PASS_THRESHOLD = 0.5
 
+# F2 coverage requirement (contract §5): at least this fraction of floors must
+# carry non-placeholder origin for the truth floor to pass.
+COVERAGE_THRESHOLD = 0.5
+
 # Actor labels that count as sovereign/human for F13 acceptance.
 SOVEREIGN_ACTORS = frozenset({"arif", "ARIF", "Arif"})
 
@@ -61,11 +65,13 @@ def collect_floor_producer_signal(
 def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
     """F2 TRUTH = the kernel's own reporting honesty, across ALL floors.
 
-    Two checks, in order:
+    Three checks, in order:
       1. CONTRADICTED — an origin claims a real measurement but the value
          equals the placeholder default (origin lies about its source).
       2. FAIL (greenwash) — a floor renders a passing value while its origin
          is `unmeasured_default*` (a placeholder that would falsely pass).
+      3. FAIL (coverage) — provenance coverage below COVERAGE_THRESHOLD
+         (contract §5: coverage ≥ N/13 floors with non-placeholder origin).
     Absent provenance map → UNMEASURED.
     """
     prov = sources.get("floor_provenance")
@@ -74,8 +80,11 @@ def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
     resolved = sources.get("resolved_floors", {})
     defaults = sources.get("floor_defaults", {})
 
-    # 1. origin lies: claims governance_kernel (or any real origin) but the
-    #    value is the placeholder default.
+    total = len(prov)
+    measured = sum(1 for o in prov.values() if not str(o).startswith("unmeasured_default"))
+    coverage = round(measured / total, 4) if total else 0.0
+
+    # 1. origin lies: claims a real origin but the value is the placeholder default.
     for fid, origin in prov.items():
         if str(origin).startswith("unmeasured_default"):
             continue
@@ -87,6 +96,7 @@ def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
                 "origin": origin,
                 "reason": "origin-lies-default-value",
                 "offending_floor": fid,
+                "coverage": coverage,
             }
 
     # 2. greenwash: placeholder origin that would render a passing value.
@@ -104,8 +114,27 @@ def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
             "origin": "greenwash",
             "reason": "pass-from-placeholder",
             "offending_floors": greenwash,
+            "coverage": coverage,
         }
-    return {"floor": "F2", "status": "PASS", "origin": "floor_provenance_coverage"}
+
+    # 3. coverage (contract §5).
+    if coverage < COVERAGE_THRESHOLD:
+        return {
+            "floor": "F2",
+            "status": "FAIL",
+            "origin": "floor_provenance_coverage",
+            "reason": "insufficient-coverage",
+            "coverage": coverage,
+            "measured": measured,
+            "total": total,
+        }
+
+    return {
+        "floor": "F2",
+        "status": "PASS",
+        "origin": "floor_provenance_coverage",
+        "coverage": coverage,
+    }
 
 
 def _f11_audit(sources: dict[str, Any]) -> dict[str, Any]:
@@ -118,7 +147,13 @@ def _f11_audit(sources: dict[str, Any]) -> dict[str, Any]:
         }
     if not receipts:
         return {"floor": "F11", "status": "UNMEASURED", "origin": "unmeasured_default:ledger_empty"}
-    known = {r.get("receipt_id") for r in receipts if r.get("receipt_id")}
+    # Known identifiers include every hash-like field a parent link may target.
+    known: set[str] = set()
+    for r in receipts:
+        for key in ("receipt_id", "jcs_body_hash", "this_hash"):
+            v = r.get(key)
+            if v:
+                known.add(v)
     unattributable = 0
     broken_chain = 0
     for r in receipts:
@@ -172,6 +207,13 @@ def _f12_injection(sources: dict[str, Any]) -> dict[str, Any]:
 
 
 def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
+    """F13 SOVEREIGN = human acceptance remains separate from machine sealing.
+
+    A seal attributed to a NON-sovereign actor is only legitimate when the
+    payload carries a human ratification (`human_ratifier` / `human_signature`).
+    A machine `SEAL` verdict with neither is self-acceptance → FAIL. This uses
+    the live seal-chain schema, not a synthetic flag.
+    """
     seals = sources.get("seals")
     if seals is None:
         return {
@@ -186,17 +228,23 @@ def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
             "origin": "unmeasured_default:seal_chain_empty",
         }
     for s in seals:
-        if (
-            s.get("self_mutation")
-            and s.get("verdict") == "SEAL"
-            and s.get("actor") not in SOVEREIGN_ACTORS
-        ):
+        actor = s.get("actor")
+        if s.get("verdict") != "SEAL" or actor in SOVEREIGN_ACTORS:
+            continue
+        payload = s.get("payload") or {}
+        ratified = (
+            payload.get("human_ratifier")
+            or s.get("human_ratifier")
+            or payload.get("human_signature")
+            or s.get("human_signature")
+        )
+        if not ratified:
             return {
                 "floor": "F13",
                 "status": "FAIL",
                 "origin": "seal_chain",
                 "reason": "machine_self_acceptance",
-                "actor": s.get("actor"),
+                "actor": actor,
             }
     return {"floor": "F13", "status": "PASS", "origin": "seal_chain"}
 
