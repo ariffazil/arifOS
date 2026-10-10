@@ -3399,6 +3399,7 @@ def register_rest_routes(
         identity_hash = "UNAVAILABLE"
         try:
             from arifosmcp.runtime.identity import get_identity_hash as _gih_hash  # type: ignore
+
             identity_hash = _gih_hash()
         except Exception:
             try:
@@ -3561,14 +3562,10 @@ def register_rest_routes(
         # Status vocabulary only (pass|fail|unmeasured) -- raw scores stay
         # internal. Additive: nothing existing is removed or renamed.
         _floor_detail = {
-            _fid: _floor_status_with_provenance(
-                _fid, _sc, _floor_provenance.get(_fid)
-            )
+            _fid: _floor_status_with_provenance(_fid, _sc, _floor_provenance.get(_fid))
             for _fid, _sc in _floors_scores.items()
         }
-        _floors_pass_count = sum(
-            1 for _st in _floor_detail.values() if _st == _FLOOR_STATUS_PASS
-        )
+        _floors_pass_count = sum(1 for _st in _floor_detail.values() if _st == _FLOOR_STATUS_PASS)
         _floors_total = get_floor_count()
 
         # floors_failing is MEASURED FAILS ONLY (2026-10-07). It used to be
@@ -3579,9 +3576,7 @@ def register_rest_routes(
             _fid for _fid, _st in _floor_detail.items() if _st == _FLOOR_STATUS_FAIL
         )
         _floors_unmeasured = sorted(
-            _fid
-            for _fid, _st in _floor_detail.items()
-            if _st == _FLOOR_STATUS_UNMEASURED
+            _fid for _fid, _st in _floor_detail.items() if _st == _FLOOR_STATUS_UNMEASURED
         )
         _floors_measured = sorted(
             _fid
@@ -3875,12 +3870,10 @@ def register_rest_routes(
             "runtime_floors_status": {
                 fid: {
                     "score": score,
-                    "status": _floor_status_with_provenance(
-                        fid, score, _floor_provenance.get(fid)
+                    "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
+                    "measured": not str(_floor_provenance.get(fid) or "").startswith(
+                        "unmeasured_default"
                     ),
-                    "measured": not str(
-                        _floor_provenance.get(fid) or ""
-                    ).startswith("unmeasured_default"),
                     "provenance": _floor_provenance.get(fid),
                 }
                 for fid, score in thermo.get("floors", {}).items()
@@ -4157,7 +4150,12 @@ def register_rest_routes(
                 "evidence_state": "VALID",
                 "action_judgment": "NOT_EVALUATED",
                 "receipt_state": "UNSEALED",
-                "overall_health": "PASS",
+                # 2026-10-10 T2 fix: DERIVE overall_health from the authoritative
+                # health axes (status + deployment drift), not a hardcoded PASS.
+                # Prevents "overall_health=PASS" while status=degraded/drift_detected.
+                "overall_health": "PASS"
+                if (not _degraded and not runtime_drift_val)
+                else "DEGRADED",
                 # Separated identity fields (replaces conflated actor_verified)
                 "identity_declared": True,
                 "identity_authenticated": False,
