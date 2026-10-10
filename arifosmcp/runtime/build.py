@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from arifosmcp.canon import canon_attestation
+from arifosmcp.canon import canon_attestation, canon_manifest
 from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -449,9 +449,8 @@ def get_build_info() -> dict[str, Any]:
     # pyproject fallback. Canon = canon_version "2026.10.05-<sha>".
     app_version = ""
     try:
-        _canon_release = json.loads(
-            Path("/etc/arifos/canon/canon-release.json").read_text(encoding="utf-8")
-        )
+        # canon.py is the sole reader of the canon dir (FHS single-owner).
+        _canon_release = canon_manifest() or {}
         app_version = str(_canon_release.get("canon_version") or "")
     except Exception:
         app_version = ""
