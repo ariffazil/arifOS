@@ -1,6 +1,7 @@
 # APEX Theory T-000: Computed Governance Calculus Specification
 **Version:** `v2026.07.APEX`  
-**Equation:** $G_{\text{APEX}} = A \cdot P \cdot E \cdot X$  
+**Equation:** $G_{\text{APEX}} = \sqrt[4]{A \cdot P \cdot E \cdot X}$ (geometric mean — per APEX_MATH_CANON, F13-sealed 2026-07-28)  
+**Note:** the legacy raw product and the canonical geometric mean share the same zero-condition and ordering on $[0,1]^4$, but use different numerical scales. Thresholds (SEAL/SABAR/VOID) below are calibrated against the geometric-mean form; do not reuse them against the raw product.
 **Authority:** `888_JUDGE` | `F13 SOVEREIGN`
 
 ---
@@ -9,7 +10,7 @@
 
 $$\text{Intelligence} = \text{Governed Constraint Satisfaction}$$
 
-$$G = A \cdot P \cdot E \cdot X$$
+$$G = \sqrt[4]{A \cdot P \cdot E \cdot X}$$
 
 Where $A, P, E, X \in [0.00, 1.00]$ are Nash Geometric Means across normalized floor sub-scores:
 
