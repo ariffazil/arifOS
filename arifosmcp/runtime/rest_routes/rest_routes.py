@@ -1166,11 +1166,23 @@ def _build_governance_status_payload() -> dict[str, Any]:
         )
 
         # F12 INJECTION — request-trust gate (auto-sign must be denied).
+        # Surface the known doc/code drift (request_trust.py docstring says
+        # "ARIFOS_TRUST_AUTO_SIGN=1 ... (default 1)" but the env resolver
+        # `os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0")` defaults to "0"). Pass
+        # both so the F12 producer can flag the contradiction live.
+        import os as _os
+
+        _rt_doc = _rt.__doc__ or ""
+        _declared_default = "1" if "(default 1)" in _rt_doc else "0"
+        _effective_default = _os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0").strip().lower()
+        _effective_token = "1" if _effective_default in ("1", "true", "yes") else "0"
         _wire_producer(
             "F12",
             {
                 "auto_sign_allowed": _rt.auto_sign_allowed(),
                 "trust_snapshot": _rt.trust_snapshot(),
+                "declared_default": _declared_default,
+                "effective_default": _effective_token,
             },
         )
 
