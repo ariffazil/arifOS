@@ -24267,14 +24267,17 @@ def _build_abc_surface_summary() -> dict[str, Any]:
             )
         res = payload.get("result", payload)
         sid = ""
+        env: dict = {}  # the response envelope that carried the session_id (WO-3)
         if isinstance(res, dict):
             if res.get("isError"):
                 sid = ""
             elif isinstance(res.get("structuredContent"), dict):
-                sid = res["structuredContent"].get("session_id") or ""
+                env = res["structuredContent"]
+                sid = env.get("session_id") or ""
             elif isinstance(res.get("content"), list) and res["content"]:
                 try:
                     parsed = _json.loads(res["content"][0].get("text") or "{}")
+                    env = parsed if isinstance(parsed, dict) else {}
                     sid = (
                         parsed.get("session_id")
                         or (
@@ -24291,8 +24294,21 @@ def _build_abc_surface_summary() -> dict[str, Any]:
                 except Exception:
                     sid = ""
             else:
+                env = res
                 sid = res.get("session_id") or ""
-        result["session_binding_pass"] = bool(sid) and str(sid).startswith("SEAL-")
+        # WO-3 / R18 (Translation-Witness Law, F13 2026-10-11): a flag named
+        # "binding_pass" must not be satisfied by string shape alone —
+        # lexical resemblance must not confer semantic authority. Require
+        # actual binding evidence from the kernel's own init response
+        # envelope (actor_bound / session_token / authority). The SEAL-
+        # prefix check remains as format conformance only, never as sole
+        # evidence. Key name unchanged (ratified 13-key spine schema).
+        binding_evidence = bool(
+            env.get("actor_bound") or env.get("session_token") or env.get("authority")
+        )
+        result["session_binding_pass"] = (
+            bool(sid) and str(sid).startswith("SEAL-") and binding_evidence
+        )
     except Exception:
         result["session_binding_pass"] = False
 
