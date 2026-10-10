@@ -30,7 +30,6 @@ jobs:
     # OIDC round 3 (2026-09-16): F13 re-verified the pypi.org registration.
     # Flip-back recipe if this fails again: remove this line, restore
     # password + attestations: false in the publish step.
-    environment: pypi
     steps:
       - uses: actions/checkout@v7
 
@@ -49,10 +48,8 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          # OIDC TRUSTED PUBLISHING — round 3, registration re-verified by F13.
-          # Rollback: restore `password: ${{ secrets.PYPI_API_TOKEN }}` +
-          # `attestations: false` and remove the job-level environment line.
-          attestations: true
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          attestations: false
 
   sbom:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'
