@@ -614,7 +614,7 @@ def verify_act(
                     "sid": payload.sub,
                     "actor": payload.act,
                     "auth": payload.auth,
-                    "av": payload.witness.active_count > 0,
+                    "av": getattr(payload, "av", False),
                     "stage": "000",
                     "lane": "AGI",
                     "iat": payload.iat,

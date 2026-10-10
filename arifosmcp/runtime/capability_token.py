@@ -108,7 +108,7 @@ def build_session_token(
         sid=session_id,
         actor=actor_id or "anonymous",
         auth=authority,
-        av=bool(witness_active > 0),
+        av=bool(actor_verified),
         verdict_state=verdict or "OK",
         allowed=derive_verbs(authority),
         apex=apex,

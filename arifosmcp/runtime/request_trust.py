@@ -60,7 +60,7 @@ def is_true_local_loopback() -> bool:
 
 def auto_sign_allowed() -> bool:
     """May the kernel sign challenges with on-disk keys for actor names?"""
-    flag = os.getenv("ARIFOS_TRUST_AUTO_SIGN", "1").strip().lower()
+    flag = os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0").strip().lower()
     if flag in ("0", "false", "no", "off"):
         return False
     # Tests / stdio with no HTTP context: allow only if explicitly opted in

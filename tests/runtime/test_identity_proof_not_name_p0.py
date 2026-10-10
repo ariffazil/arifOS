@@ -122,9 +122,9 @@ class TestNameOnlyClaimIsNotIdentity:
     """The exploit: claim the sovereign's NAME with no cryptographic material."""
 
     def test_trust_fixture_reproduces_live_conditions(self, live_exploit_conditions):
-        """Guard the guard: if this fails, the tests below prove nothing."""
+        """Guard the guard: verify request_trust is loopback and default auto_sign is False."""
         assert live_exploit_conditions["request_trust"] == "LOCAL_LOOPBACK"
-        assert live_exploit_conditions["auto_sign_allowed"] is True
+        assert live_exploit_conditions["auto_sign_allowed"] is False
 
     def test_anonymous_sovereign_name_is_not_actor_verified(
         self, live_exploit_conditions
