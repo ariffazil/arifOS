@@ -1,0 +1,217 @@
+# CLAIM_REGISTRY.yaml — Federation canonical claim registry
+# Generated 2026-10-11 per directive §10
+# Source of truth: this file. All downstream mirrors, READMEs, and AGENT_START.md
+# MUST consume this file. No generator may invent stronger prose than this registry.
+#
+# Schema (per directive §10):
+#   CLAIM_ID, CLAIM_TEXT, REPOSITORY_OWNER, SCOPE, EPISTEMIC_CLASS,
+#   SOURCE, OBSERVED_AT, MEASUREMENT_METHOD, POPULATION, DENOMINATOR,
+#   LIMITATION, FALSIFIER, PUBLIC_SAFE, STATUS, SUPERSEDES, SUPERSEDED_BY,
+#   GENERATED_CONSUMERS
+#
+# Allowed epistemic classes: OBSERVED, DERIVED, DECLARED, HISTORICAL, TARGET, UNKNOWN
+# Allowed statuses: MEASURED_PASS, MEASURED_FAIL, PARTIAL, UNMEASURED, STALE, UNKNOWN, NOT_APPLICABLE
+
+claims:
+
+  - CLAIM_ID: F-001
+    CLAIM_TEXT: arifOS kernel refuses a MUTATE-class proposal without consulting a model
+    REPOSITORY_OWNER: arifOS
+    SCOPE: kernel :8088, MUTATE-class calls
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe via arif_judge
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: live kernel call observed gate=hard_deterministic, llm_consulted=false
+    POPULATION: '1 observed call'
+    DENOMINATOR: unbounded
+    LIMITATION: single observation; gate behavior is structural, not statistical
+    FALSIFIER: any future MUTATE-class call observed with llm_consulted=true
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_PASS
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md, AAA/README.md, A-FORGE/README.md]
+
+  - CLAIM_ID: F-002
+    CLAIM_TEXT: at least one unauthorized mutation was prevented (observed once)
+    REPOSITORY_OWNER: arifOS
+    SCOPE: kernel :8088, MUTATE-class calls
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: live kernel call returned VOID
+    POPULATION: '1 observation'
+    DENOMINATOR: unbounded
+    LIMITATION: one observation only; before/after hashes not captured at observation time
+    FALSIFIER: any future unauthorised mutation reaching committed state
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_PASS
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md]
+
+  - CLAIM_ID: F-003
+    CLAIM_TEXT: verified actor binding has NOT been demonstrated end-to-end
+    REPOSITORY_OWNER: arifOS
+    SCOPE: every MUTATE-class call
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe; observed calls unsigned
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: observed actor_verified=false; signing path exists; :18900 listens
+    POPULATION: bounded sample
+    DENOMINATOR: unbounded
+    LIMITATION: observed sample only; not a population census
+    FALSIFIER: future call observed with actor_verified=true AND cryptographic signature verified
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_FAIL
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md]
+
+  - CLAIM_ID: F-004
+    CLAIM_TEXT: invocation telemetry represents governance outcomes faithfully (one HOLD was persisted as ok:true)
+    REPOSITORY_OWNER: A-FORGE
+    SCOPE: /var/lib/arifos/metrics/tool_invocations.jsonl
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: 194,243 lines; 0 governance fields; one HOLD -> ok:true
+    POPULATION: 'one observed case'
+    DENOMINATOR: unbounded
+    LIMITATION: single observed case
+    FALSIFIER: future HOLD persisted as ok=false (i.e. fidelity restored)
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_FAIL
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [A-FORGE/README.md]
+
+  - CLAIM_ID: F-005
+    CLAIM_TEXT: sink agreement has NOT been demonstrated (one event in ledger, omitted from counters)
+    REPOSITORY_OWNER: arifOS + arifFlow
+    SCOPE: federation sinks (VAULT999 + invocation telemetry)
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: observed ok:false in one sink; absent from another
+    POPULATION: 'one observed case'
+    DENOMINATOR: unbounded
+    LIMITATION: single observed case
+    FALSIFIER: full reconciliation succeeds across all events
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_FAIL
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md]
+
+  - CLAIM_ID: F-006
+    CLAIM_TEXT: independent reconstruction has NOT been demonstrated (no external verifier bound)
+    REPOSITORY_OWNER: arifOS
+    SCOPE: any external verifier
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: absence of evidence (no external verifier found)
+    POPULATION: 'n/a (absence)'
+    DENOMINATOR: 'n/a'
+    LIMITATION: absence-of-evidence
+    FALSIFIER: discovery of an external verifier bound to the federation
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_FAIL
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md]
+
+  - CLAIM_ID: F-007
+    CLAIM_TEXT: floor state — 2 pass · 4 fail (F2/F11/F12/F13) · 10 unmeasured
+    REPOSITORY_OWNER: arifOS
+    SCOPE: F1-F13 floors
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe via arifOS :8088/health
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: live probe of F1-F13; UNMEASURED ≠ PASS
+    POPULATION: 13 floors
+    DENOMINATOR: 13 floors
+    LIMITATION: snapshot at one time; floors can drift between probes
+    FALSIFIER: any future floor state showing different counts
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_PASS (for the count itself, not for the underlying behavior)
+    SUPERSEDES: 'prior claim of 13/13 pass (was inflated by a threshold defect)'
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md]
+
+  - CLAIM_ID: F-008
+    CLAIM_TEXT: VAULT999 verdict ledger and invocation telemetry are DIFFERENT objects (do not share schema)
+    REPOSITORY_OWNER: arifOS
+    SCOPE: outcomes.jsonl vs tool_invocations.jsonl
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 live probe
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: 95,091 lines in outcomes.jsonl vs 194,243 in tool_invocations.jsonl
+    POPULATION: '2 ledgers'
+    DENOMINATOR: 2
+    LIMITATION: observed counts at one snapshot
+    FALSIFIER: one ledger schema importing the other with full joinability
+    PUBLIC_SAFE: yes
+    STATUS: MEASURED_PASS
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md]
+
+  - CLAIM_ID: F-009
+    CLAIM_TEXT: HERMES Telegram displayed 9 monthly users (platform-generated, composition unverified)
+    REPOSITORY_OWNER: AAA
+    SCOPE: "Telegram bot handle ASI_arifos_bot (note: leading @ removed for YAML compatibility) profile metric"
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: 2026-10-11 user-supplied screenshot
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: screenshot capture
+    POPULATION: '1 capture'
+    DENOMINATOR: 'n/a (Telegram does not publish MAU methodology)'
+    LIMITATION: counting method NOT officially documented by Telegram; may include test/internal accounts
+    FALSIFIER: discovery of seven distinct external humans all verified
+    PUBLIC_SAFE: yes (with the qualification above)
+    STATUS: PARTIAL
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arif-fazil.com, AAA/README.md]
+
+  - CLAIM_ID: F-010
+    CLAIM_TEXT: external vulnerability disclosure received (5 vulnerability classes, researcher identity NOT independently verified)
+    REPOSITORY_OWNER: arifOS + A-FORGE
+    SCOPE: production runtime paths
+    EPISTEMIC_CLASS: OBSERVED
+    SOURCE: Gmail thread Aug 24 - Sep 15 2026
+    OBSERVED_AT: '2026-10-11'
+    MEASUREMENT_METHOD: mailread thread read
+    POPULATION: '7 emails, 5 vulnerability classes'
+    DENOMINATOR: 'n/a (disclosure thread)'
+    LIMITATION: researcher identity NOT independently verified; findings NOT independently verified in arifOS code
+    FALSIFIER: independent code probe showing disclosed paths do not exhibit the vulnerability
+    PUBLIC_SAFE: no (researcher email/body retained in PRIVATE record only)
+    STATUS: UNKNOWN
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: []
+
+  - CLAIM_ID: F-011
+    CLAIM_TEXT: separation of powers — Proposer ≠ Judge ≠ Executor ≠ Witness (design intent)
+    REPOSITORY_OWNER: arifOS + AAA + A-FORGE + FRAME
+    SCOPE: federation architecture
+    EPISTEMIC_CLASS: DECLARED (intent, not measured)
+    SOURCE: design docs (FEDERATION.md, README hero blocks)
+    OBSERVED_AT: 'n/a (architectural intent)'
+    MEASUREMENT_METHOD: code review
+    POPULATION: 'all four organs'
+    DENOMINATOR: 4
+    LIMITATION: design intent ≠ runtime enforcement; the executor's authority check is currently format-only (regex on SEAL-<hex>)
+    FALSIFIER: any component observed performing two of the four roles in production
+    PUBLIC_SAFE: yes
+    STATUS: DECLARED (with limit)
+    SUPERSEDES: ~
+    SUPERSEDED_BY: ~
+    GENERATED_CONSUMERS: [arifOS/README.md, AAA/README.md, A-FORGE/README.md]
+
+end_of_claims: true
+
+# 333-AGI / OpenCode, 2026-10-11 UTC+8
