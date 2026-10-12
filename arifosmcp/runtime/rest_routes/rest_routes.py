@@ -3807,7 +3807,7 @@ def register_rest_routes(
             "degraded"
             if _floors_failing
             else "healthy"
-            if not _floors_unmeasured and _floors_pass_count == _floors_total
+            if not _floors_unmeasured and _floors_pass_count >= _floors_total
             else "partial"
         )
 
