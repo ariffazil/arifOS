@@ -1355,9 +1355,9 @@ google-auth==2.58.0 \
     #   google-auth-httplib2
     #   google-auth-oauthlib
     #   google-genai
-google-auth-httplib2==0.4.2 \
-    --hash=sha256:4298dd6b1415972d0c464b7177e6a69a595e7aec5b972222ecdca342f6009647 \
-    --hash=sha256:916225a6367e613c9af44d83f41688a599d3f687777846b8b91bec65085ed1f1
+google-auth-httplib2==0.4.4 \
+    --hash=sha256:b931de392c20cfaa351cd789274922bd8cdc001e0e9e96de31b39d71347f8e16 \
+    --hash=sha256:bbe5d7b2401bb3a4017f4720e1e91bd273ab9a2bb60b84e65edbc0de127852da
     # via
     #   arifos
     #   google-api-python-client
