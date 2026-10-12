@@ -3698,9 +3698,9 @@ psutil==7.2.2 \
     # via
     #   arifos
     #   ipython
-psycopg==3.3.4 \
-    --hash=sha256:b6bbc25ccf05c8fad3b061d9db2ef0909a555171b84b07f29458a447253d679a \
-    --hash=sha256:e21207764952cff81b6b8bdacad9a3939f2793367fdac2987b3aac36a651b5bc
+psycopg==3.3.6 \
+    --hash=sha256:a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631 \
+    --hash=sha256:c081f2250df751a943036e42db6df4571c66cd0aabe8291a7a506512b12007d2
     # via arifos
 psycopg-binary==3.3.4 ; implementation_name != 'pypy' \
     --hash=sha256:018fbed325936da502feb546642c982dcc4b9ffdea32dfef78dbf3b7f7ad4070 \
