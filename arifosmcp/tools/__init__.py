@@ -20,7 +20,10 @@ from arifosmcp.tools.retrieve_tools import arif_retrieve_tools
 from arifosmcp.tools.sense import arif_observe
 from arifosmcp.tools.session import arif_init
 from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
-from arifosmcp.tools.telegram import arif_telegram_send  # 777_FORGE internal canonical — Hermes-only
+from arifosmcp.tools.telegram import (  # 777_FORGE internal canonical — Hermes-only
+    arif_telegram_send,
+    arif_telegram_send_voice,
+)
 from arifosmcp.tools.vault import arif_seal, arif_vault_verify
 from arifosmcp.tools.wiki import ingest_repo, search_index, map_repo, ask_repo
 
@@ -49,4 +52,5 @@ __all__ = [
     "arif_self_evaluate",
     "arif_model_compare",
     "arif_telegram_send",  # 777_FORGE — internal canonical, Hermes-only caller scope
+    "arif_telegram_send_voice",  # 777_FORGE — governed voice-note send, Hermes-only
 ]
