@@ -1190,6 +1190,28 @@ def _build_governance_status_payload() -> dict[str, Any]:
         f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
         floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
 
+    # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
+    # where negative values = clarity improved. But runtime_floors must display
+    # in [0,1] band for cross-floor comparability and G scalar integrity.
+    #   ΔS < -0.5   → 1.0  (strong clarity gain)
+    #   ΔS ∈ [-0.5, 0) → 0.80-1.0  (moderate clarity — CALIBRATED 2026-08-09)
+    #   ΔS = 0      → 0.80 (all-novel: WARNING but technically ΔS≤0 passes)
+    #   ΔS > 0      → max(0, 1.0 - ΔS) (entropy increased, clarity degraded)
+    raw_f4 = resolved_floors.get("F4")
+    if raw_f4 is not None:
+        try:
+            f4_val = float(raw_f4)
+            if f4_val < -0.5:
+                resolved_floors["F4"] = 1.0
+            elif f4_val < 0:
+                resolved_floors["F4"] = round(0.80 + abs(f4_val) * 0.4, 4)
+            elif f4_val == 0:
+                resolved_floors["F4"] = 0.80
+            else:
+                resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
+        except (TypeError, ValueError):
+            pass
+
     # ── F2/F11/F12/F13 MEASUREMENT PRODUCERS (MEASUREMENT_CLOSURE_INIT 2026-10-10) ──
     # Bounded tranche: wire four floor-producers so previously-UNMEASURED floors
     # gain a real, challengeable signal. PASS/FAIL/CONTRADICTED assign a score;
@@ -1295,28 +1317,6 @@ def _build_governance_status_payload() -> dict[str, Any]:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
         )
-
-    # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
-    # where negative values = clarity improved. But runtime_floors must display
-    # in [0,1] band for cross-floor comparability and G scalar integrity.
-    #   ΔS < -0.5   → 1.0  (strong clarity gain)
-    #   ΔS ∈ [-0.5, 0) → 0.80-1.0  (moderate clarity — CALIBRATED 2026-08-09)
-    #   ΔS = 0      → 0.80 (all-novel: WARNING but technically ΔS≤0 passes)
-    #   ΔS > 0      → max(0, 1.0 - ΔS) (entropy increased, clarity degraded)
-    raw_f4 = resolved_floors.get("F4")
-    if raw_f4 is not None:
-        try:
-            f4_val = float(raw_f4)
-            if f4_val < -0.5:
-                resolved_floors["F4"] = 1.0
-            elif f4_val < 0:
-                resolved_floors["F4"] = round(0.80 + abs(f4_val) * 0.4, 4)
-            elif f4_val == 0:
-                resolved_floors["F4"] = 0.80
-            else:
-                resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
-        except (TypeError, ValueError):
-            pass
     # SCAR-OBS-GREENWASH / DEFAULT_TRI_WITNESS (2026-10-03): this used to be
     #   {k: witness.get(k) if witness.get(k) not in (None, 0.0) else v
     #        for k, v in _WITNESS_DEFAULTS.items()}
