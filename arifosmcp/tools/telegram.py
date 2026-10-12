@@ -264,3 +264,141 @@ async def arif_telegram_send(
         },
         risk_class=RiskClass.C5_IRREVERSIBLE,
     )
+
+
+async def arif_telegram_send_voice(
+    chat_id: str | int,
+    voice_path: str,
+    caption: str | None = None,
+    duration: int | None = None,
+    disable_notification: bool = False,
+    reply_to_message_id: int | None = None,
+    actor_id: str = "anonymous",
+    session_id: str | None = None,
+    ack_irreversible: bool = False,
+) -> _RE:
+    """
+    Send a Telegram voice note via Bot API sendVoice.
+
+    Risk: HIGH (INTERACT, C5_IRREVERSIBLE).
+    Same gates as arif_telegram_send:
+      F1 AMANAH  — ack_irreversible=True required on first call per session
+      F4 CLARITY — 60s dedup window keyed on sha256(chat_id + voice_path)
+      F11 AUDIT  — every send emits TelegramReceipt
+      F12 RESILIENCE — Hermes-only caller scope
+
+    Caller scope: HERMES_SESSION_KEY only. Other sessions get VOID verdict.
+    """
+    cid = str(chat_id)
+
+    # 1. Hermes caller scope gate (HARD FAIL)
+    if not _is_hermes_session(session_id):
+        return _RE(
+            ok=False,
+            tool="arif_telegram_send_voice",
+            canonical_tool_name="arif_telegram_send_voice",
+            stage="777_FORGE",
+            verdict="VOID",
+            detail=(
+                f"F12 RESILIENCE: session_id='{session_id}' is not a Hermes session. "
+                f"arif_telegram_send_voice requires HERMES_SESSION_KEY. "
+                f"Route through Hermes, not directly."
+            ),
+            risk_class=RiskClass.C5_IRREVERSIBLE,
+        )
+
+    # 2. F1 AMANAH — irreversible operations require explicit ack
+    if not ack_irreversible:
+        return _RE(
+            ok=False,
+            tool="arif_telegram_send_voice",
+            canonical_tool_name="arif_telegram_send_voice",
+            stage="777_FORGE",
+            verdict="HOLD",
+            detail=(
+                "F1 AMANAH: telegram_send_voice is irreversible post-delivery. "
+                "Requires explicit ack_irreversible=True. "
+                "This is a one-time gate per session."
+            ),
+            risk_class=RiskClass.C5_IRREVERSIBLE,
+        )
+
+    # 3. F4 dedup window — same voice_path within 60s returns cached receipt
+    key = _dedup_key(cid, f"voice:{voice_path}")
+    cached = _dedup_get(key)
+    if cached is not None:
+        logger.info(
+            f"Telegram voice dedup hit: chat_id={cid} voice_path={voice_path} "
+            f"returning cached message_id={cached.message_id}"
+        )
+        return _RE(
+            ok=True,
+            tool="arif_telegram_send_voice",
+            canonical_tool_name="arif_telegram_send_voice",
+            stage="777_FORGE",
+            verdict="SEAL",
+            detail="F4 dedup: returning cached receipt (within 60s window)",
+            payload={
+                "chat_id": cached.chat_id,
+                "message_id": cached.message_id,
+                "evidence_receipt": cached.to_dict(),
+                "dedup": True,
+            },
+            risk_class=RiskClass.C5_IRREVERSIBLE,
+        )
+
+    # 4. Bridge call
+    try:
+        bridge = TelegramBridge.get()
+        receipt = await bridge.send_voice(
+            chat_id=cid,
+            voice_path=voice_path,
+            caption=caption,
+            duration=duration,
+            disable_notification=disable_notification,
+            reply_to_message_id=reply_to_message_id,
+        )
+    except TelegramBridgeError as e:
+        logger.error(f"Telegram voice bridge error: chat_id={cid} reason={type(e).__name__}")
+        return _RE(
+            ok=False,
+            tool="arif_telegram_send_voice",
+            canonical_tool_name="arif_telegram_send_voice",
+            stage="777_FORGE",
+            verdict="VOID",
+            detail=f"Bridge rejected: {type(e).__name__}: {str(e)[:200]}",
+            risk_class=RiskClass.C5_IRREVERSIBLE,
+        )
+    except Exception as e:
+        logger.exception(f"Telegram voice send unexpected failure: chat_id={cid}")
+        return _RE(
+            ok=False,
+            tool="arif_telegram_send_voice",
+            canonical_tool_name="arif_telegram_send_voice",
+            stage="777_FORGE",
+            verdict="VOID",
+            detail=f"Unexpected error: {type(e).__name__}: {str(e)[:200]}",
+            risk_class=RiskClass.C5_IRREVERSIBLE,
+        )
+
+    # 5. Cache for dedup
+    _dedup_put(key, receipt)
+
+    # 6. Return SEAL with F11 receipt
+    return _RE(
+        ok=True,
+        tool="arif_telegram_send_voice",
+        canonical_tool_name="arif_telegram_send_voice",
+        stage="777_FORGE",
+        verdict="SEAL",
+        detail="Telegram voice note delivered",
+        payload={
+            "chat_id": receipt.chat_id,
+            "message_id": receipt.message_id,
+            "file_hash": receipt.text_hash,
+            "file_bytes": receipt.text_length,
+            "evidence_receipt": receipt.to_dict(),
+            "dedup": False,
+        },
+        risk_class=RiskClass.C5_IRREVERSIBLE,
+    )

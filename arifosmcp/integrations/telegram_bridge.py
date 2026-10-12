@@ -291,6 +291,109 @@ class TelegramBridge:
         )
         return receipt
 
+    # ─── Voice ──────────────────────────────────────────────────────────────
+
+    async def send_voice(
+        self,
+        chat_id: str | int,
+        voice_path: str,
+        caption: str | None = None,
+        duration: int | None = None,
+        disable_notification: bool = False,
+        reply_to_message_id: int | None = None,
+    ) -> TelegramReceipt:
+        """
+        Send a Telegram voice note via Bot API sendVoice (multipart upload).
+
+        Same fail-closed contract as send_message:
+          - chat_id not in allowlist -> TelegramBridgeError
+          - voice file missing or empty -> TelegramBridgeError
+          - upstream HTTP non-200 -> TelegramBridgeError
+
+        Receipt's text_hash is the sha256 of the file bytes (not caption),
+        so a resend of the same audio is attributable and dedup-able.
+        """
+        import io
+        import pathlib
+
+        # 1. Allowlist gate
+        cid = str(chat_id)
+        if not self._chat_authorized(cid):
+            raise TelegramBridgeError(
+                f"chat_id={cid} not in TELEGRAM_ALLOWED_CHATS or TELEGRAM_ALLOWED_USERS. "
+                "Refusing to send."
+            )
+
+        # 2. File gate — fail closed on missing/empty audio
+        vp = pathlib.Path(voice_path)
+        if not vp.is_file():
+            raise TelegramBridgeError(f"voice file not found: {voice_path}")
+        data = vp.read_bytes()
+        if not data:
+            raise TelegramBridgeError(f"voice file is empty: {voice_path}")
+
+        # 3. Build multipart payload
+        files_field = [("voice", (vp.name, io.BytesIO(data), "audio/ogg"))]
+        form: dict[str, Any] = {
+            "chat_id": cid,
+            "disable_notification": str(bool(disable_notification)).lower(),
+        }
+        if caption:
+            form["caption"] = caption
+        if duration is not None:
+            form["duration"] = str(int(duration))
+        if reply_to_message_id is not None:
+            form["reply_to_message_id"] = str(int(reply_to_message_id))
+
+        # 4. POST (multipart)
+        url = f"{TELEGRAM_API_BASE}/bot{self.bot_token}/sendVoice"
+        client = await self._get_client()
+        try:
+            resp = await client.post(url, data=form, files=files_field)
+        except httpx.TimeoutException as e:
+            raise TelegramBridgeError(f"Telegram API timeout after {self.timeout}s") from e
+        except httpx.HTTPError as e:
+            raise TelegramBridgeError(f"Telegram API HTTP error: {type(e).__name__}") from e
+
+        # 5. Parse response
+        if resp.status_code != 200:
+            try:
+                err_body = resp.json()
+                err_desc = err_body.get("description", "unknown")
+            except Exception:
+                err_desc = resp.text[:200]
+            raise TelegramBridgeError(
+                f"Telegram API returned {resp.status_code}: {err_desc}"
+            )
+
+        body = resp.json()
+        if not body.get("ok"):
+            raise TelegramBridgeError(f"Telegram API ok=false: {body.get('description', 'unknown')}")
+
+        result = body["result"]
+        message_id = int(result["message_id"])
+        file_hash = hashlib.sha256(data).hexdigest()[:16]
+
+        # 6. Receipt
+        from datetime import UTC, datetime
+
+        sent_at_unix = int(result.get("date", datetime.now(UTC).timestamp()))
+        receipt = TelegramReceipt(
+            receipt_id=f"tg_{hashlib.sha256(f'{cid}{message_id}{sent_at_unix}'.encode()).hexdigest()[:16]}",
+            chat_id=cid,
+            message_id=message_id,
+            text_hash=file_hash,
+            text_length=len(data),
+            parse_mode=None,
+            timestamp=datetime.now(UTC).isoformat(),
+            sent_at_unix=sent_at_unix,
+        )
+        logger.info(
+            f"Telegram voice send OK: chat_id={cid} message_id={message_id} "
+            f"file_hash={file_hash} bytes={len(data)}"
+        )
+        return receipt
+
     # ─── Inspect ─────────────────────────────────────────────────────────────
 
     async def health_check(self) -> dict[str, Any]:
