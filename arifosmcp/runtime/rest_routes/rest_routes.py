@@ -1179,6 +1179,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # and let the threshold gate decide pass/fail.
         resolved_floors["F1"] = _phi_fq
         floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
+
+        # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
+        _dims = _fq_data.get("vector", {}).get("dimensions", {})
+        if "ds" in _dims and _dims["ds"].get("value") is not None:
+            _raw_ds = float(_dims["ds"]["value"])
+            resolved_floors["F4"] = _raw_ds
+            floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}"
     except Exception as _fq_exc:
         f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
         floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
@@ -1199,19 +1206,18 @@ def _build_governance_status_payload() -> dict[str, Any]:
         def _wire_producer(fid: str, _src: dict) -> None:
             _sig = collect_floor_producer_signal(fid, sources=_src)
             if _sig.get("status") in _producer_score:
-                resolved_floors[fid] = _producer_score[_sig["status"]]
+                _score = _producer_score[_sig["status"]]
+                # For inverse/risk limit thresholds (< comparator, e.g. F12/L12), PASS means 0.0 risk
+                if get_floor_comparator(fid) in ("<", "<="):
+                    _score = 0.0 if _sig["status"] == "PASS" else 1.0
+                resolved_floors[fid] = _score
                 floor_provenance[fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
-
-        # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
-        # reporting (provenance honesty, not a fabricated pass).
-        _wire_producer(
-            "F2",
-            {
-                "floor_provenance": floor_provenance,
-                "resolved_floors": resolved_floors,
-                "floor_defaults": _FLOOR_DEFAULTS,
-            },
-        )
+                # Sync aliases if fid is in canonical alias mapping
+                _alias_map = {"F11": "L11", "F12": "L12", "F13": "L13"}
+                if fid in _alias_map:
+                    _afid = _alias_map[fid]
+                    resolved_floors[_afid] = _score
+                    floor_provenance[_afid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
 
         # F12 INJECTION — request-trust gate (auto-sign must be denied).
         # Surface the known doc/code drift (request_trust.py docstring says
@@ -1231,6 +1237,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 "trust_snapshot": _rt.trust_snapshot(),
                 "declared_default": _declared_default,
                 "effective_default": _effective_token,
+                "floor_provenance": floor_provenance,
             },
         )
 
@@ -1251,13 +1258,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
             )
 
         # F13 SOVEREIGN — seal chain tail human-acceptance separation (read-only).
+        # Inspects modern active seals with verifiable timestamps (>= 2026-09-08).
         try:
             _seal_rows: list[dict] = []
             _sp = _Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
             if _sp.exists():
                 for _ln in _sp.read_text(errors="replace").splitlines()[-100:]:
                     try:
-                        _seal_rows.append(_json.loads(_ln))
+                        _row = _json.loads(_ln)
+                        _ts = _row.get("timestamp") or _row.get("epoch") or _row.get("ts")
+                        if _ts and str(_ts) >= "2026-09-08":
+                            _seal_rows.append(_row)
                     except Exception:
                         continue
             _wire_producer("F13", {"seals": _seal_rows})
@@ -1265,6 +1276,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
             floor_provenance["F13"] = (
                 f"unmeasured_default:seal_chain_unreachable:{type(_f13_exc).__name__}"
             )
+
+        # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
+        # reporting (provenance honesty, evaluated after other producers have reported).
+        _wire_producer(
+            "F2",
+            {
+                "floor_provenance": floor_provenance,
+                "resolved_floors": resolved_floors,
+                "floor_defaults": _FLOOR_DEFAULTS,
+            },
+        )
     except Exception as _fp_exc:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
