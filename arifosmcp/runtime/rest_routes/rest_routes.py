@@ -1305,12 +1305,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # placeholder defaults comparison so their genuine measured values are not mistaken for placeholder defaults.
         _producer_floor_ids = {"F2", "F11", "F12", "F13", "L11", "L12", "L13"}
         _active_defaults = {k: v for k, v in _FLOOR_DEFAULTS.items() if k not in _producer_floor_ids}
+        _floor_statuses_snapshot = {
+            _fid: _floor_status_with_provenance(_fid, _fval, floor_provenance.get(_fid))
+            for _fid, _fval in resolved_floors.items()
+        }
         _wire_producer(
             "F2",
             {
                 "floor_provenance": floor_provenance,
                 "resolved_floors": resolved_floors,
                 "floor_defaults": _active_defaults,
+                "floor_statuses": _floor_statuses_snapshot,
             },
         )
     except Exception as _fp_exc:
