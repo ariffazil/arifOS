@@ -1279,12 +1279,16 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
         # reporting (provenance honesty, evaluated after other producers have reported).
+        # Floors measured by real producers (F2, F11, F12, F13, L11, L12, L13) are excluded from
+        # placeholder defaults comparison so their genuine measured values are not mistaken for placeholder defaults.
+        _producer_floor_ids = {"F2", "F11", "F12", "F13", "L11", "L12", "L13"}
+        _active_defaults = {k: v for k, v in _FLOOR_DEFAULTS.items() if k not in _producer_floor_ids}
         _wire_producer(
             "F2",
             {
                 "floor_provenance": floor_provenance,
                 "resolved_floors": resolved_floors,
-                "floor_defaults": _FLOOR_DEFAULTS,
+                "floor_defaults": _active_defaults,
             },
         )
     except Exception as _fp_exc:
