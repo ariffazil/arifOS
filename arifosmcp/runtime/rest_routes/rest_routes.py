@@ -1116,6 +1116,44 @@ def _build_governance_status_payload() -> dict[str, Any]:
         if str(floor_provenance.get(_fid, "")).startswith("governance_kernel"):
             floor_provenance[_fid] = "unmeasured_default:empty_kernel_signal"
 
+    # T3 PATCH 2026-10-12: register f4-f9-probe (+ L10) as a kernel floor source.
+    # The external probe writes /var/www/html/arifos/claims.json every 5 min via
+    # /etc/cron.d/f4-f9-claims. When the probe has a non-None value for F4-F9, L10,
+    # inject it as a real measurement with provenance=f4_f9_probe:<source> so
+    # the F2 producer sees non-placeholder coverage and F4-F9, L10 render pass/fail
+    # from the F2 _floor_passes threshold rather than the unmeasured default.
+    # F2-bounded: only overrides when claims.json has a real value.
+    try:
+        import json as _t3_json
+        import os as _t3_os
+
+        _t3_claims = "/var/www/html/arifos/claims.json"
+        if _t3_os.path.exists(_t3_claims):
+            with open(_t3_claims) as _t3_f:
+                _t3_c = _t3_json.load(_t3_f)
+            _t3_map = {
+                "F4": _t3_c.get("F4_clarity"),
+                "F5": _t3_c.get("F5_peace2"),
+                "F6": _t3_c.get("F6_maruh"),
+                "F7": _t3_c.get("F7_humility"),
+                "F8": _t3_c.get("F8_genius"),
+                "F9": _t3_c.get("F9_anti_hantu"),
+                "L10": _t3_c.get("L10_ontology"),
+            }
+            for _t3_fid, _t3_v in _t3_map.items():
+                if _t3_v is not None:
+                    if _t3_fid == "F4":
+                        _t3_d = _t3_c.get("F4_raw_delta_s")
+                        if _t3_d is not None:
+                            resolved_floors["F4"] = float(_t3_d)
+                        else:
+                            resolved_floors["F4"] = float(_t3_v)
+                    else:
+                        resolved_floors[_t3_fid] = float(_t3_v)
+                    floor_provenance[_t3_fid] = f"f4_f9_probe:claims.json:{_t3_c.get('ts', '')}"
+    except Exception:
+        pass  # F2-bounded: external probe missing is unmeasured, not failure
+
     # ── F3 TRI-WITNESS: real producers (SCAR-OBS-GREENWASH follow-up) ────────
     # Each leg must carry an external referent or report None. Legs are published
     # verbatim so an unmeasured leg stays visible instead of being averaged away,
@@ -1301,9 +1339,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
         # reporting (provenance honesty, evaluated after other producers have reported).
-        # Floors measured by real producers (F2, F11, F12, F13, L11, L12, L13) are excluded from
+        # Floors measured by real producers/probes are excluded from
         # placeholder defaults comparison so their genuine measured values are not mistaken for placeholder defaults.
-        _producer_floor_ids = {"F2", "F11", "F12", "F13", "L11", "L12", "L13"}
+        _producer_floor_ids = {
+            _fid for _fid, _origin in floor_provenance.items()
+            if not str(_origin).startswith("unmeasured_default")
+        }
         _active_defaults = {k: v for k, v in _FLOOR_DEFAULTS.items() if k not in _producer_floor_ids}
         _floor_statuses_snapshot = {
             _fid: _floor_status_with_provenance(_fid, _fval, floor_provenance.get(_fid))
