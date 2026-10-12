@@ -5204,9 +5204,9 @@ statsmodels==0.15.0 \
     #   arch
     #   arifos
     #   riskfolio-lib
-storage3==2.31.0 \
-    --hash=sha256:4bf46e8bea320743179a6beafdc7531c5242495e00e0cc22af7c7a9d69d4ed84 \
-    --hash=sha256:d2161e2ea650dc115a1787c30e09b118365589ac772f4dd8643e3a503ecfc667
+storage3==2.32.0 \
+    --hash=sha256:9188dfe6931f3366fd9740d21f737bf969dbbd69f9ecb97746dbb7eeb5f01731 \
+    --hash=sha256:a72109e4223b461488ad338ada324c27380dda0be3a8928498f19ec3b8946c98
     # via supabase
 strenum==0.4.15 \
     --hash=sha256:878fb5ab705442070e4dd1929bb5e2249511c0bcf2b0eeacf3bcd80875c82eff \
