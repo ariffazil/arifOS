@@ -99,14 +99,25 @@ def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
                 "coverage": coverage,
             }
 
-    # 2. greenwash: placeholder origin that would render a passing value.
-    greenwash = [
-        fid
-        for fid, origin in prov.items()
-        if str(origin).startswith("unmeasured_default")
-        and resolved.get(fid) is not None
-        and resolved.get(fid) >= PASS_THRESHOLD
-    ]
+    # 2. greenwash: placeholder origin that renders a passing verdict.
+    # Contract §5 & §6: "zero floors render PASS from unmeasured_default".
+    # Check rendered statuses if provided, or verify against PASS_THRESHOLD if explicit pass.
+    statuses = sources.get("floor_statuses")
+    if statuses:
+        greenwash = [
+            fid
+            for fid, origin in prov.items()
+            if str(origin).startswith("unmeasured_default")
+            and statuses.get(fid) == "pass"
+        ]
+    else:
+        greenwash = [
+            fid
+            for fid, origin in prov.items()
+            if str(origin).startswith("unmeasured_default")
+            and resolved.get(fid) is not None
+            and resolved.get(fid) >= PASS_THRESHOLD
+        ]
     if greenwash:
         return {
             "floor": "F2",
