@@ -946,8 +946,10 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
         _pstat = _prov.split(":", 2)[1]
         if _pstat in ("FAIL", "CONTRADICTED"):
             return _FLOOR_STATUS_FAIL
-        if _pstat == "PASS" and not get_floor_spec(law_id):
-            return _FLOOR_STATUS_PASS
+        if _pstat == "PASS":
+            _spec = get_floor_spec(law_id)
+            if not _spec or _floor_passes(law_id, score):
+                return _FLOOR_STATUS_PASS
 
     return _floor_status_strict(law_id, score)
 
@@ -1192,7 +1194,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         from arifosmcp.runtime import request_trust as _rt
         from arifosmcp.runtime.floor_producers import collect_floor_producer_signal
 
-        _producer_score = {"PASS": 0.9, "FAIL": 0.0, "CONTRADICTED": 0.0}
+        _producer_score = {"PASS": 1.0, "FAIL": 0.0, "CONTRADICTED": 0.0}
 
         def _wire_producer(fid: str, _src: dict) -> None:
             _sig = collect_floor_producer_signal(fid, sources=_src)
