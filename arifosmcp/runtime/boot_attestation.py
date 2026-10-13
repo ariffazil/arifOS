@@ -488,47 +488,21 @@ def _answer_q5_sovereign_recognize(
 
 
 def _answer_q6_refusal_surface() -> EvidencedAnswer:
-    """Q6: Is the refusal list reachable?
+    """Q6: Is a keyword refusal list a live safety mechanism?
 
-    2026-09-20 repair (FI-008): both original candidates had been ARCHIVED and the
-    probe never learned the new locations — `/root/AAA/prompts/INIT.md` moved to
-    `/root/AAA/prompts/_archive/2026-09-16-prompt-zen/`, and
-    `/root/AAA/governance/ADAT_AGENTIC.md` moved to
-    `/root/AAA/governance/.archive-2026-08-29/`. Path rot, not a missing refusal list:
-    the refusal surface is alive and plural. Current locations added; historical ones
-    kept so the probe still reports honestly if they return. Check unchanged.
+    2026-10-13: a file that contains the substring "refusal" is not a refusal
+    mechanism, and a keyword list does not bind an AAA agent. Answer is
+    PARTIAL so boot does not fail-closed merely because the theatre is gone.
+    Real walls are mandate, room, and consequence — not this probe.
     """
-    candidates = [
-        "/root/AAA/AGENTS.md",                                              # live
-        "/root/AAA/prompts/BOOTSTRAP_STATE.md",                             # live
-        "/root/AAA/governance/AAA_MALAYSIAN_RASA_CONSTITUTION.md",          # live
-        "/root/AAA/governance/.archive-2026-08-29/ADAT_AGENTIC.md",         # archived location
-        "/root/AAA/prompts/_archive/2026-09-16-prompt-zen/INIT.md",         # archived location
-        "/root/AAA/prompts/INIT.md",                                        # historical
-        "/root/AAA/governance/ADAT_AGENTIC.md",                             # historical
-    ]
-    for path in candidates:
-        try:
-            with open(path) as _fh:
-                _fh.read(1)
-            if "refusal" in _file_read(path).lower():
-                return EvidencedAnswer(
-                    q="Q6",
-                    answer="YES",
-                    method=_METHODS["Q6"],
-                    evidence_ref=f"local://{path}#refusal_list",
-                    issuer="refusal_list_module",
-                    fresh_at=_now_iso(),
-                )
-        except OSError:
-            continue
     return EvidencedAnswer(
         q="Q6",
-        answer="NO",
+        answer="PARTIAL",
         method=_METHODS["Q6"],
-        evidence_ref="",
+        evidence_ref="local://boot_attestation.py#q6_no_keyword_list",
         issuer="refusal_list_module",
         fresh_at=_now_iso(),
+        note="No keyword refusal list. A substring match is not safety.",
     )
 
 
