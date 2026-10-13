@@ -64,6 +64,7 @@ from core.shared.law_audit import get_ml_floor_runtime
 from core.shared.laws import (
     LAW_DESCRIPTIONS,
     LAW_SPEC_KEYS,
+    canonical_floor_id,
     get_floor_comparator,
     get_floor_spec,
     get_law_threshold,
@@ -1270,14 +1271,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 # For inverse/risk limit thresholds (< comparator, e.g. F12/L12), PASS means 0.0 risk
                 if get_floor_comparator(fid) in ("<", "<="):
                     _score = 0.0 if _sig["status"] == "PASS" else 1.0
-                resolved_floors[fid] = _score
-                floor_provenance[fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
-                # Sync aliases if fid is in canonical alias mapping
-                _alias_map = {"F11": "L11", "F12": "L12", "F13": "L13"}
-                if fid in _alias_map:
-                    _afid = _alias_map[fid]
-                    resolved_floors[_afid] = _score
-                    floor_provenance[_afid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                # Canonical storage: F11/F12/F13 are ACCEPTED ALIASES of
+                # L11/L12/L13 (FLR-004, core/shared/laws.py). Store ONCE under
+                # the canonical L-prefix key so the floor count stays 13 and
+                # /health + arif_init agree on ids.
+                _store_fid = canonical_floor_id(fid)
+                resolved_floors[_store_fid] = _score
+                floor_provenance[_store_fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
 
         # F12 INJECTION — request-trust gate (auto-sign must be denied).
         # Surface the known doc/code drift (request_trust.py docstring says
@@ -3807,7 +3807,7 @@ def register_rest_routes(
             "degraded"
             if _floors_failing
             else "healthy"
-            if not _floors_unmeasured and _floors_pass_count >= _floors_total
+            if not _floors_unmeasured and _floors_pass_count == _floors_total
             else "partial"
         )
 
