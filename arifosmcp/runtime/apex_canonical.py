@@ -580,23 +580,31 @@ def compute_apex(
     G_seal = None if G is None else G * (1 - h) * delta_s_factor * w3
 
     # ═══ AXIOM CHECK ═══
+    # AX-0 (LANE A, 2026-10-14): every axiom counts only if its condition is
+    # actually evaluated true in THIS computation. No unconditional +1 (D5:
+    # five of seven were vacuous — a self-audit that cannot fail).
     axioms = 0
-    # 1. Multiplicativity — G is multiplicative (structural, always satisfied)
-    axioms += 1
-    # 2. Four-dial V3 (HISTORICAL: pre-V3 "five-sufficient" superseded by W-12 fix)
-    axioms += 1
-    # 3. Nash bargaining — product form used (structural)
-    axioms += 1
-    # 4. Shadow — C_dark computed
-    axioms += 1
+    # 1. Multiplicativity — product form actually reproduces G.
+    if G is not None and abs(G - (A * P * E * X) ** (1 / 4)) <= 1e-9:
+        axioms += 1
+    # 2. Four-dial V3 — exactly four measured dials feed G (no 5th witness dial).
+    if all(v is not None for v in (A, P, E, X)):
+        axioms += 1
+    # 3. Nash bargaining — product form differs from additive form (actually used).
+    if G is not None and abs(G - (A + P + E + X) / 4) > 1e-9:
+        axioms += 1
+    # 4. Shadow — C_dark actually computed, non-negative.
+    if C_dark is not None and C_dark >= 0:
+        axioms += 1
     # 5. Conservation — dS/dt checked
     if dS_dt <= 0:
         axioms += 1
     # 6. Tri-witness — triWitness computed from three witnesses
     if inputs.h_witness > 0 and inputs.ai_witness > 0 and inputs.ext_witness > 0:
         axioms += 1
-    # 7. F13 veto — sovereign_override is available
-    axioms += 1  # always structurally present
+    # 7. F13 veto — sovereign_override input actually present in this build.
+    if "sovereign_override" in PrimitiveInputs.__dataclass_fields__:
+        axioms += 1
 
     # ═══ VERDICT ═══
     verdict, reason = _determine_verdict(G, C_dark, dS_dt, A, P, E, X, tri_witness)
