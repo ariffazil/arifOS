@@ -3298,7 +3298,10 @@ def arif_init(
             actor_id=actor_id,
             identity_verified=bool(sess.get("actor_verified", False)),
             mode=mode,
-            objective=objective,
+            # F2 2026-10-14: arif_init MCP schema has no `objective` param — callers
+            # pass `intent`. Without this fallback OBJECTIVE_ROOT reads "unspecified"
+            # while work_contract holds the real objective (F13 chat directive fix).
+            objective=objective or intent,
             success_criteria=success_criteria,
             verification_requirements=verification_requirements,
             sess=sess,
@@ -4355,7 +4358,10 @@ def arif_init(
             actor_id=actor_id,
             identity_verified=identity_verified,
             mode=mode,
-            objective=objective,
+            # F2 2026-10-14: arif_init MCP schema has no `objective` param — callers
+            # pass `intent`. Without this fallback OBJECTIVE_ROOT reads "unspecified"
+            # while work_contract holds the real objective (F13 chat directive fix).
+            objective=objective or intent,
             success_criteria=success_criteria,
             verification_requirements=verification_requirements,
             sess=sess,
