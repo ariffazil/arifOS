@@ -7147,7 +7147,7 @@ async def _synthesize_async(
         '  "what_remains_unknown": ["list of unknown claims"],\n'
         '  "confidence_reasoning": 0.0-1.0,\n'
         '  "confidence_evidence": 0.0-1.0,\n'
-        '  "overall_confidence": 0.0-1.0 (must be ≤ 0.85)\n'
+        '  "overall_confidence": decimal NUMBER 0.0-1.0 (must be ≤ 0.85; never a word like "rendah")\n'
         "}"
     )
     # P0 FIX 2026-09-27: thread evidence into user prompt as EVIDENCE BLOCK.
@@ -7194,9 +7194,20 @@ async def _synthesize_async(
         )
         parsed = envelope.parsed_output
 
-        # F7 Humility hard-cap
-        capped = min(parsed.get("overall_confidence", 0.85), 0.85)
-        parsed["overall_confidence"] = capped
+        # F7 Humility hard-cap (2026-10-15 hardening): reasoning models
+        # occasionally emit a Malay word ("rendah") instead of a number —
+        # min() on a str raises TypeError and silently drops a VALID answer
+        # back into template fallback. Coerce non-numeric confidence to None
+        # (honest absence) instead of fabricating or crashing.
+        _oc = parsed.get("overall_confidence")
+        if isinstance(_oc, bool) or not isinstance(_oc, (int, float)):
+            parsed["overall_confidence"] = None
+        else:
+            parsed["overall_confidence"] = min(_oc, 0.85)
+        for _ck in ("confidence_reasoning", "confidence_evidence"):
+            _cv = parsed.get(_ck)
+            if isinstance(_cv, bool) or not isinstance(_cv, (int, float)):
+                parsed[_ck] = None
 
         if parsed.get("bounded_answer"):
             return parsed
@@ -14728,8 +14739,9 @@ def _arif_mind_reason(
                 "allowed_next": ["arif_think:critique", "arif_observe"],
                 "blocked": ["arif_judge", "arif_seal", "arif_forge", "arif_think:verify"],
                 "message": (
-                    "CANDIDATE ONLY — generated through exploratory play. "
-                    "Candidate registered in authoritative store. "
+                    "CANDIDATE_ONLY — query registered verbatim as candidate. "
+                    "Kernel-side generation is NOT implemented (deterministic kernel; "
+                    "the calling agent explores, the kernel witnesses). "
                     "Must pass Jauhari (arif_think:critique) before proceeding "
                     "to verification, judgment, or execution."
                 ),
