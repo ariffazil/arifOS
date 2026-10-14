@@ -13,9 +13,11 @@ Before the fix, ``_read_file("/etc/hostname")`` returned ``{"status": "OK",
 from __future__ import annotations
 
 import importlib
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 def _import_or_skip(module_path: str):
@@ -53,6 +55,50 @@ class TestSovereignPathContainment(unittest.TestCase):
         res = self.sovereign._read_file("INDEX.md")
         self.assertIn(res.get("status"), ("OK", "NOT_FOUND"))
         self.assertNotEqual(res.get("status"), "REJECTED")
+
+    # ── static-root resolution ─────────────────────────────────────────────
+
+    def test_resolve_static_root_skips_unreadable_candidate(self) -> None:
+        # 2026-10-15: CI runners (and any non-root process on a box with
+        # /root 07xx) hit PermissionError — not ENOENT — from
+        # candidate.exists() on /root/arif-fazil.com/..., killing five gates
+        # at import time. The real first candidate is used so the test
+        # exercises the actual production path; an unreadable candidate must
+        # be treated as absent, never fatal.
+        readable = Path(tempfile.mkdtemp()) / "000"
+        readable.mkdir()
+        self.addCleanup(
+            lambda: (__import__("shutil").rmtree(readable.parent, ignore_errors=True))
+        )
+        hidden = Path("/root/arif-fazil.com/sites/arif-fazil.com/public/000")
+        if os.geteuid() == 0:
+            self.skipTest("root can traverse /root; EACCES branch untestable")
+        with mock.patch.object(
+            self.sovereign, "_CANDIDATE_ROOTS", [hidden, readable]
+        ):
+            self.assertEqual(self.sovereign._resolve_static_root(), readable)
+
+    def test_resolve_static_root_readable_candidate_wins(self) -> None:
+        # Semantics unchanged when a candidate IS readable: the first readable
+        # dir candidate is returned, absent ones skipped.
+        with tempfile.TemporaryDirectory() as td:
+            first = Path(td) / "a"
+            second = Path(td) / "b"
+            first.mkdir()
+            second.mkdir()
+            with mock.patch.object(
+                self.sovereign,
+                "_CANDIDATE_ROOTS",
+                [Path(td) / "missing", first, second],
+            ):
+                self.assertEqual(self.sovereign._resolve_static_root(), first)
+
+    def test_resolve_static_root_all_absent_returns_first(self) -> None:
+        # The documented fallback: no candidate resolves → first candidate.
+        with tempfile.TemporaryDirectory() as td:
+            missing = [Path(td) / f"m{i}" for i in range(3)]
+            with mock.patch.object(self.sovereign, "_CANDIDATE_ROOTS", missing):
+                self.assertEqual(self.sovereign._resolve_static_root(), missing[0])
 
     # ── helper semantics ──────────────────────────────────────────────────
 

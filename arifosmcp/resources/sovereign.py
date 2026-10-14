@@ -46,8 +46,13 @@ _CANDIDATE_ROOTS = [
 
 def _resolve_static_root() -> Path:
     for candidate in _CANDIDATE_ROOTS:
-        if candidate.exists() and candidate.is_dir():
-            return candidate
+        try:
+            if candidate.exists() and candidate.is_dir():
+                return candidate
+        except OSError:
+            # Parent unsearchable (e.g. /root 0700 on CI runners) — unreadable
+            # is not the same as existing; skip to the next candidate.
+            continue
     return _CANDIDATE_ROOTS[0]
 
 
