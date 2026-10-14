@@ -59,6 +59,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
+    "express": "^5.3.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
@@ -75,5 +76,8 @@
     "access": "public",
     "tag": "latest"
   },
-  "_updated": "2026.03.12"
+  "_updated": "2026.03.12",
+  "overrides": {
+    "proxy-addr": "2.0.8"
+  }
 }
