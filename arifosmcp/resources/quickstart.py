@@ -135,8 +135,9 @@ def register_quickstart(mcp: FastMCP) -> list[str]:
         name="LLM Client Quickstart",
         description=(
             "Getting started guide for LLM clients connecting to arifOS MCP. "
-            "Covers: endpoint, transport, auth, 13 canonical tools, 13 resources, "
-            "8 prompts, 7 stages, key constitutional rules (F1-F13), "
+            "Covers: endpoint, transport, auth, canonical tools, resources, "
+            "prompts (counts live in arifos://index — single SOT, never "
+            "hardcoded here), 7 stages, key constitutional rules (F1-F13), "
             "when to use arifOS vs direct organ, and VAULT999 ledger guidance. "
             "Read this first before using the server."
         ),
