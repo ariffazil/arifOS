@@ -214,6 +214,37 @@ SCENARIO 4: Delete Customer Account & Audit Trail → ✘ BLOCK/VOID
 http://localhost:8088/mcp      # or https://mcp.arif-fazil.com/mcp
 ```
 
+<details>
+<summary><strong>Client config</strong> — Cline · Cursor · Windsurf · Claude Desktop (click to expand)</summary>
+
+Cline — `cline_mcp_settings.json`:
+
+```json
+{ "mcpServers": { "arifos": { "type": "streamableHttp", "url": "https://mcp.arif-fazil.com/mcp" } } }
+```
+
+Cursor — project `.cursor/mcp.json` or `~/.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "arifos": { "url": "https://mcp.arif-fazil.com/mcp" } } }
+```
+
+Windsurf — `mcp_config.json` (note: Windsurf uses `serverUrl`, not `url`):
+
+```json
+{ "mcpServers": { "arifos": { "type": "streamable-http", "serverUrl": "https://mcp.arif-fazil.com/mcp" } } }
+```
+
+Claude Desktop — `claude_desktop_config.json` (stdio bridge to the HTTP door):
+
+```json
+{ "mcpServers": { "arifos": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.arif-fazil.com/mcp"] } } }
+```
+
+Self-hosted? Swap the URL for `http://localhost:8088/mcp`. The public door requires no auth header. Protocol pin: `2025-11-25` (see below).
+
+</details>
+
 **Protocol facts, as measured:** the kernel advertises `2026-07-28` and accepts `2026-07-28 · 2025-11-25 · 2025-03-26 · 2024-11-05`. A live `initialize` currently settles on **`2025-11-25`** — the declared canonical spec in `arifosmcp/runtime/public_surface.py` and the version the internal conformance runner records. If you pin a protocol version, use `2025-11-25`.
 
 ```bash
