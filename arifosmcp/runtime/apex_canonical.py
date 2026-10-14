@@ -118,7 +118,7 @@ def compute_A(
     total_leases: int = 0,
     floor_compliance: int = 13,
     sovereign_override: bool = False,
-) -> float:
+) -> "float | None":  # AX-0: None = UNMEASURED (no lease data)
     """
     A — Authority
 
@@ -138,8 +138,9 @@ def compute_A(
         return 0.0
 
     if total_leases == 0:
-        # No leases = pure read authority (default 0.5 for observational)
-        return clamp(floor_compliance / TOTAL_FLOORS)
+        # AX-0 (LANE A, 2026-10-14): no leases = no measurement, never free
+        # authority. Absence of evidence returns None (UNMEASURED), not 1.0.
+        return None
 
     lease_ratio = valid_leases / total_leases
     floor_ratio = floor_compliance / TOTAL_FLOORS
@@ -223,7 +224,7 @@ def compute_X(
     total_steps: int = 0,
     delta_s_t: float = 0.0,
     forge_evaluate_passed: bool = True,
-) -> float:
+) -> "float | None":  # AX-0: None = UNMEASURED (no execution data)
     """
     X — Execution
 
@@ -241,8 +242,9 @@ def compute_X(
         return 0.0
 
     if total_steps == 0:
-        # No execution = default 0.5 (observational)
-        return 0.5
+        # AX-0 (LANE A, 2026-10-14): no execution = no measurement.
+        # Absence returns None (UNMEASURED), never a neutral 0.5.
+        return None
 
     step_ratio = successful_steps / total_steps
     consequence_stability = math.exp(-abs(delta_s_t))
@@ -556,6 +558,10 @@ def compute_apex(
             verdict_reason=(
                 "UNMEASURED: " + ", ".join(unmeasured) + " — no verdict from missing data"
             ),
+            gate_h=gate_h,
+            gate_delta_s=gate_delta_s,
+            gate_w3=gate_w3,
+            G_seal=None,
         )
 
     G = (A * P * E * X) ** (1 / 4)
