@@ -86,6 +86,29 @@ if [ "$GIT_DIRTY" = "true" ]; then
 	echo "⚠️  DEPLOY_ALLOW_DIRTY=1 — building from a dirty tree by explicit override; manifest will record dirty=true"
 fi
 
+# ── Step 0b: LINEAGE GATE (fail-closed) ──────────────────────────────
+# 2026-10-15 (333-AGI, coordination loop e-87ab39b5). A deploy from a
+# divergent line that lacks the currently-deployed commits silently
+# REGRESSES production: live fixes vanish while every individual commit
+# still looks legitimate. If the commit in deployed-commit is not an
+# ancestor of what we are about to build, the running kernel's lineage
+# goes backwards (F2). Fix: merge/rebase onto origin/main first. Escape
+# hatch is explicit and leaves an audit line.
+if [ -s "$STAMP_FILE" ]; then
+	DEPLOYED_LINEAGE="$(head -c 40 "$STAMP_FILE" | tr -d '[:space:]')"
+	if ! git -C "$REPO_DIR" merge-base --is-ancestor "$DEPLOYED_LINEAGE" "$GIT_COMMIT" 2>/dev/null; then
+		echo "❌ 888_HOLD: refusing to build — DEPLOYED LINEAGE REGRESSION."
+		echo "   deployed-commit=$DEPLOYED_LINEAGE is NOT an ancestor of build commit $GIT_COMMIT."
+		echo "   Deploying this would silently revert everything the deployed lineage carries"
+		echo "   (e.g. live fixes that exist only on the deployed line)."
+		echo "   Fix: merge/rebase onto origin/main (contains $DEPLOYED_LINEAGE), then deploy."
+		if [ "${DEPLOY_ALLOW_DIVERGENT:-0}" != "1" ]; then
+			exit 1
+		fi
+		echo "⚠️  DEPLOY_ALLOW_DIVERGENT=1 — lineage regression by explicit override; manifest will record it"
+	fi
+fi
+
 echo "═══ arifOS Release 1 — Runtime Truth ═══"
 echo "  Source:     $REPO_DIR"
 echo "  Commit:     $GIT_COMMIT"
@@ -400,11 +423,11 @@ echo "  Waiting for service to become healthy..."
 #   pre-deploy baseline captured below.
 PRE_STATUS_FILE="$(mktemp)"
 if [ -n "${PRE_DEPLOY_STATUS:-}" ]; then
-	echo "$PRE_DEPLOY_STATUS" > "$PRE_STATUS_FILE"
+	echo "$PRE_DEPLOY_STATUS" >"$PRE_STATUS_FILE"
 else
-	curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null \
-		| python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null \
-		> "$PRE_STATUS_FILE" || true
+	curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null |
+		python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null \
+			>"$PRE_STATUS_FILE" || true
 fi
 PRE_STATUS="$(cat "$PRE_STATUS_FILE" 2>/dev/null || echo "")"
 rm -f "$PRE_STATUS_FILE"
@@ -413,9 +436,9 @@ echo "  pre-deploy status: ${PRE_STATUS:-<unknown>}"
 # Rank: lower is worse. Unknown ranks worst so a dead kernel always fails.
 _status_rank() {
 	case "$1" in
-		healthy)   echo 2 ;;
-		degraded)  echo 1 ;;
-		*)         echo 0 ;;
+	healthy) echo 2 ;;
+	degraded) echo 1 ;;
+	*) echo 0 ;;
 	esac
 }
 PRE_RANK=$(_status_rank "$PRE_STATUS")
