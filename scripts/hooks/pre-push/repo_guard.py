@@ -68,7 +68,10 @@ def gate_1_pytest() -> tuple[bool, str]:
             "--tb=line",
         ],
         cwd=REPO_ROOT,
-        timeout=120,
+        # GATE-1 suite needs 127-145s on this box (evidence: base a23067c3f 145.03s,
+        # tip 127.69s / 27 27 PASS). 120s made this gate mathematically unsatisfiable
+        # (0 failed but TIMEOUT blocked every push). Per-test --timeout=30 unchanged.
+        timeout=300,
     )
     # Allow if only the vault-corruption detector fails (Opus 5 known issue)
     # The test name is test_no_null_id_entries_on_parseable_lines
