@@ -99,7 +99,24 @@ def test_session_close_is_a_write_mode():
 def test_forge_engineer_requires_manifest():
     assert enforce("arif_forge", {"mode": "engineer"}) is not None
     assert enforce("arif_forge", {"mode": "engineer", "manifest": "build X"}) is None
+    # Write paths are HARD manifest-required — no query fallback.
+    assert enforce("arif_forge", {"mode": "engineer", "query": "state check"}) is not None
+    assert missing_params("arif_forge", {"mode": "engineer", "query": "x"}) == ["manifest"]
+    # dry_run with NEITHER input is still missing (deterministic: both named,
+    # advertised-schema order — manifest first; message says "at least one of").
     assert enforce("arif_forge", {"mode": "dry_run"}) is not None
+    assert missing_params("arif_forge", {"mode": "dry_run"}) == ["manifest", "query"]
+    assert "at least one of manifest or query" in enforce("arif_forge", {"mode": "dry_run"})
+
+
+def test_forge_dry_run_accepts_query_fallback():
+    """Fallback ruling 2026-10-15: dry_run preview accepts manifest OR query."""
+    assert enforce("arif_forge", {"mode": "dry_run", "query": "preview the plan"}) is None
+    assert enforce("arif_forge", {"mode": "dry_run", "manifest": '{"step": 1}'}) is None
+    assert enforce("arif_forge", {"mode": "dry_run", "manifest": "m", "query": "q"}) is None
+    # default mode is engineer — an omitted mode never gets the fallback
+    assert enforce("arif_forge", {"query": "preview the plan"}) is not None
+    assert enforce("arif_forge", {"manifest": "m"}) is None
 
 
 def test_route_alias_intent_or_task():
@@ -209,13 +226,17 @@ def test_facade_documents_validate_against_jsonschema():
     """T4/T3 document-level checks: dry_run+query-only is schema-valid; reads exempted handler-side."""
     jsonschema = pytest.importorskip("jsonschema")
     forge = _forge_facade()
-    # dry_run with query only — valid DOCUMENT (server still demands manifest)
+    # dry_run with query only — valid DOCUMENT (the accepted fallback path)
     jsonschema.validate({"mode": "dry_run", "query": "check state"}, forge)
     # query-only in mode=query — legal fallback path
     jsonschema.validate({"mode": "query", "query": "health"}, forge)
     # engineer without manifest — invalid document (handler returns missing_input)
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate({"mode": "engineer"}, forge)
+    # counter-pin: engineer+query (no manifest) is schema-INVALID — the write
+    # paths have no query fallback, and the schema says so too
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"mode": "engineer", "query": "x"}, forge)
 
     seal = _contracts()["arif_seal"]["input_schema"]
     # empty seal call — invalid document (handler returns missing_input naming payload)
