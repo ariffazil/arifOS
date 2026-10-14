@@ -5462,6 +5462,28 @@ def _enforce_nine_signal(
             )
             else "OPERATOR"
         )
+        # ── INCREMENT-0 hygiene (2026-10-14): concise-by-default envelope.
+        # The result block must not mirror top-level envelope fields — one
+        # fact, one place (F2), and the median envelope target is <2KB.
+        # Legacy consumers needing the full mirror pass verbosity="full".
+        try:
+            _verbosity = str(
+                (meta_payload or {}).get("verbosity")
+                or out.get("verbosity")
+                or (result_payload.get("verbosity") if isinstance(result_payload, dict) else None)
+                or "minimal"
+            ).lower()
+            if _verbosity != "full" and isinstance(result_payload, dict):
+                for _dk in (
+                    "session_id", "actor_id", "autonomy_band", "band", "authority",
+                    "session_token", "act_claims", "allowed_next_verbs",
+                    "effective_verdict", "canonical_verdict", "actor_verified",
+                    "actor_cryptographically_verified", "verdict", "reason_code",
+                    "next_action", "next_safe_action",
+                ):
+                    result_payload.pop(_dk, None)
+        except Exception:
+            pass  # hygiene dedup is best-effort — never blocks the call path
         envelope = {
             "status": status,
             "tool": tool_name,

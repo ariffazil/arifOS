@@ -875,7 +875,7 @@ def review_irfan(
         {
           "advisory": True,
           "spec": "ARIF::SALAM::IRFAN::INIT::v0.1",
-          "verdict": "CLEAR" | "CONCERN" | "ESCALATE",   # NEVER SEAL/SABAR/HOLD/VOID
+          "recommendation": "CLEAR" | "CONCERN" | "ESCALATE",  # NEVER SEAL/SABAR/HOLD/VOID
           "tests": [ ...10 StewardshipTest dicts... ],
           "reasons": [ ...one line per non-PASS test... ],
           "habit_question": "What institutional habit is created if this action is repeated?",
@@ -908,7 +908,7 @@ def review_irfan(
     out: dict[str, Any] = {
         "advisory": IRFAN_IS_ADVISORY,
         "spec": IRFAN_SPEC,
-        "verdict": verdict,
+        "recommendation": verdict,
         "tests": [t.to_dict() for t in tests],
         "reasons": reasons,
         "habit_question": IRFAN_CANONICAL_QUESTION,
@@ -949,7 +949,7 @@ def _guard_advisory_output(out: dict[str, Any]) -> dict[str, Any]:
     fail-safe: the calling gate treats a raised Irfan as absent advisory
     metadata, never as a verdict change.
     """
-    verdict = out.get("verdict")
+    verdict = out.get("recommendation") or out.get("verdict")
     if verdict not in IRFAN_ALLOWED_VERDICTS:
         raise RuntimeError(
             f"IRFAN advisory invariant violated: verdict {verdict!r} not in "
@@ -1129,7 +1129,7 @@ def annotate_with_irfan(
         step["irfan"] = {
             "advisory": IRFAN_IS_ADVISORY,
             "spec": IRFAN_SPEC,
-            "verdict": review["verdict"],
+            "recommendation": review["recommendation"],
             "top_failing_test": top_failing,
             "habit_question": IRFAN_CANONICAL_QUESTION,
         }
@@ -1137,7 +1137,7 @@ def annotate_with_irfan(
         step["irfan"] = {
             "advisory": IRFAN_IS_ADVISORY,
             "spec": IRFAN_SPEC,
-            "verdict": None,
+            "recommendation": None,
             "error": f"irfan_review_unavailable: {exc}",
             "habit_question": IRFAN_CANONICAL_QUESTION,
         }
