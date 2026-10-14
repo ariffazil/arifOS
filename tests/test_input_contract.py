@@ -16,9 +16,12 @@ from __future__ import annotations
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from arifosmcp.runtime.input_contract import enforce  # noqa: E402
+from arifosmcp.runtime.input_contract import missing_params  # noqa: E402
 
 
 # ── 1. enforce() matrix ────────────────────────────────────────────────────
@@ -57,9 +60,40 @@ def test_resume_requires_session():
 
 def test_seal_write_requires_payload_read_exempt():
     assert enforce("arif_seal", {"mode": "seal"}) is not None
-    assert enforce("arif_seal", {"mode": "seal", "payload": "receipt..."}) is None
+    # 2026-10-15 hardening: mode=seal additionally requires seal_purpose —
+    # a permanent record with no stated reason is refused.
+    assert enforce("arif_seal", {"mode": "seal", "payload": "receipt..."}) is not None
+    assert (
+        enforce("arif_seal", {"mode": "seal", "payload": "r", "seal_purpose": "close D-17"})
+        is None
+    )
+    # Pure reads stay exempt — do not over-block reads.
     assert enforce("arif_seal", {"mode": "ledger"}) is None
     assert enforce("arif_seal", {"mode": "audit"}) is None
+    assert enforce("arif_seal", {"mode": "verify"}) is None
+
+
+def test_seal_empty_call_names_payload_first():
+    """Empty arif_seal (mode defaults to seal) must name payload."""
+    msg = enforce("arif_seal", {})
+    assert msg is not None and "payload" in msg
+    missing = missing_params("arif_seal", {})
+    assert missing[0] == "payload"
+
+
+def test_seal_purpose_missing_names_seal_purpose():
+    """payload present but no seal_purpose in mode=seal → named refusal."""
+    kwargs = {"mode": "seal", "payload": "the record"}
+    missing = missing_params("arif_seal", kwargs)
+    assert missing == ["seal_purpose"]
+    msg = enforce("arif_seal", kwargs)
+    assert msg is not None and "seal_purpose" in msg
+
+
+def test_session_close_is_a_write_mode():
+    """session_close writes a permanent closure record → payload required."""
+    assert enforce("arif_seal", {"mode": "session_close"}) is not None
+    assert enforce("arif_seal", {"mode": "session_close", "payload": "summary"}) is None
 
 
 def test_forge_engineer_requires_manifest():
@@ -130,3 +164,72 @@ def test_tooling_accepts_documented_list_form():
     any_of = schema["properties"]["tooling"].get("anyOf", [])
     types = {variant.get("type") for variant in any_of}
     assert "array" in types, f"tooling anyOf={types} — doc promises a list"
+
+
+# ── 4. required-field facades (2026-10-15 hardening) ──────────────────────
+
+
+def _forge_facade():
+    from arifosmcp.runtime.public_registry import _spec_for_name
+
+    return _spec_for_name("arif_forge").input_schema
+
+
+def test_init_advertises_required_intent():
+    schema = _contracts()["arif_init"]["input_schema"]
+    assert schema.get("required") == ["intent"]
+    intent = schema["properties"]["intent"]
+    assert intent.get("type") == "string" and intent.get("minLength") == 1
+
+
+def test_seal_advertises_required_payload_and_purpose_branch():
+    schema = _contracts()["arif_seal"]["input_schema"]
+    assert schema.get("required") == ["payload"]
+    branches = schema.get("allOf") or []
+    assert branches, "arif_seal must mirror the seal_purpose requirement"
+    then = branches[0]["then"]
+    assert then.get("required") == ["seal_purpose"]
+
+
+def test_forge_facade_conditional_manifest():
+    schema = _forge_facade()
+    assert "_envelope" not in schema.get("properties", {})
+    branches = schema.get("allOf") or []
+    assert len(branches) == 2, "forge facade pins two mode-conditional branches"
+    write_branch = branches[0]
+    assert write_branch["then"]["required"] == ["manifest"]
+    dry_branch = branches[1]
+    assert dry_branch["then"]["anyOf"] == [
+        {"required": ["manifest"]},
+        {"required": ["query"]},
+    ]
+
+
+def test_facade_documents_validate_against_jsonschema():
+    """T4/T3 document-level checks: dry_run+query-only is schema-valid; reads exempted handler-side."""
+    jsonschema = pytest.importorskip("jsonschema")
+    forge = _forge_facade()
+    # dry_run with query only — valid DOCUMENT (server still demands manifest)
+    jsonschema.validate({"mode": "dry_run", "query": "check state"}, forge)
+    # query-only in mode=query — legal fallback path
+    jsonschema.validate({"mode": "query", "query": "health"}, forge)
+    # engineer without manifest — invalid document (handler returns missing_input)
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"mode": "engineer"}, forge)
+
+    seal = _contracts()["arif_seal"]["input_schema"]
+    # empty seal call — invalid document (handler returns missing_input naming payload)
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({}, seal)
+    # mode=seal without purpose — invalid document
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({"mode": "seal", "payload": "r"}, seal)
+    # fully stated seal — valid
+    jsonschema.validate(
+        {"mode": "seal", "payload": "r", "seal_purpose": "close D-17"}, seal
+    )
+
+    init = _contracts()["arif_init"]["input_schema"]
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({}, init)
+    jsonschema.validate({"intent": "repair tests"}, init)

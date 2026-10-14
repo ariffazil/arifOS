@@ -193,6 +193,9 @@
         "light",
         "resume",
         "validate",
+        "canary",
+        "preflight",
+        "triage",
         "epoch_open",
         "epoch_seal",
         "opt_out",
@@ -693,7 +696,8 @@
         "verify",
         "ledger",
         "changelog",
-        "audit"
+        "audit",
+        "session_close"
       ],
       "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
       "tier": "canonical",

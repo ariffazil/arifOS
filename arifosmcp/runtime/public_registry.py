@@ -318,8 +318,9 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             '{"autonomy": "reversible_only", "forbidden": ["git push"]}.'
         ),
         "intent": (
-            "Plain-language statement of what this session is for, e.g. "
-            "'repair the failing MCP tests'. Recorded for audit."
+            "Required. Plain-language statement of what this session is for, e.g. "
+            "'repair the failing MCP tests'. A session without a stated purpose "
+            "is refused (F1 Amanah). Recorded for audit."
         ),
         "requested_authority": (
             "The highest class of action you may take: 'OBSERVE_ONLY' (read-only, "
@@ -483,7 +484,9 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         ),
         "payload": (
             "The content to store forever, as a string (usually JSON-serialized) "
-            "— the outcome, lesson, or record itself."
+            "— the outcome, lesson, or record itself. Required for the write "
+            "modes (seal, session_close); pure reads (verify, ledger, changelog, "
+            "audit) may omit it."
         ),
         "judge_state_hash": (
             "Hash string from the arif_judge SEAL response — ties this entry to "
@@ -526,6 +529,83 @@ def _merge_param_docs(tool_name: str, input_schema: dict[str, Any]) -> dict[str,
         if param in merged_props and isinstance(merged_props[param], dict):
             merged_props[param] = {**merged_props[param], "description": doc}
     merged["properties"] = merged_props
+    return merged
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INPUT-CONTRACT FACADES (2026-10-15 hardening) — advertised `required` minimums
+# for arif_init / arif_forge / arif_seal. Pinned by the F13 work order
+# "harden MCP input contracts": an empty arif_seal call must not be
+# schema-valid, a session must not boot without a stated intent, and forge
+# write paths must name their manifest.
+#
+# MECHANISM (verified against the live flow, not guessed): FastMCP 4 validates
+# tools/call against the handler signature TypeAdapter — all params optional —
+# so the wire layer never hard-rejects on these declarations; per-mode
+# enforcement lives server-side in runtime/input_contract.py via the
+# _wrap_handler gate. The advertised schema is therefore the CLIENT-facing
+# contract: it declares the minimums callers should satisfy, and the handler
+# gate backstops them with structured missing_input errors.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_INPUT_CONTRACT_FACADES: dict[str, dict[str, Any]] = {
+    # 000 INIT — booting a governed session without stating its purpose is
+    # refused (schema floor: intent is a non-empty string; the handler gate
+    # additionally requires actor_id for mode=init).
+    "arif_init": {
+        "required": ["intent"],
+        "properties": {
+            "intent": {"type": "string", "minLength": 1},
+        },
+    },
+    # 999 SEAL — payload required (write modes seal/session_close need it;
+    # pure reads verify/ledger/changelog/audit remain exempt at the handler —
+    # do not over-block reads). mode='seal' (also the default) additionally
+    # requires seal_purpose: a permanent record with no stated reason is
+    # refused, mirrored here as if/then.
+    "arif_seal": {
+        "required": ["payload"],
+        "allOf": [
+            {
+                "if": {
+                    "anyOf": [
+                        {"not": {"required": ["mode"]}},
+                        {"required": ["mode"], "properties": {"mode": {"enum": ["seal"]}}},
+                    ]
+                },
+                "then": {"required": ["seal_purpose"]},
+            }
+        ],
+    },
+}
+
+
+def _apply_required_facade(tool_name: str, input_schema: dict[str, Any]) -> dict[str, Any]:
+    """Stamp the advertised required-field facade onto a signature-derived schema.
+
+    Property patches replace the type-bearing shape of the named property but
+    always preserve its (doc-merged) description. Unknown tools are untouched.
+    """
+    facade = _INPUT_CONTRACT_FACADES.get(tool_name)
+    if not facade:
+        return input_schema
+    merged = {**input_schema}
+    if facade.get("required"):
+        merged["required"] = list(facade["required"])
+    if facade.get("allOf"):
+        merged["allOf"] = list(facade["allOf"])
+    patch_props = facade.get("properties") or {}
+    props = merged.get("properties")
+    if patch_props and isinstance(props, dict):
+        merged_props = dict(props)
+        for param, patch in patch_props.items():
+            existing = merged_props.get(param)
+            if isinstance(existing, dict):
+                rebuilt = {**patch}
+                if "description" in existing:
+                    rebuilt["description"] = existing["description"]
+                merged_props[param] = rebuilt
+        merged["properties"] = merged_props
     return merged
 
 
@@ -779,6 +859,10 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
         _props = input_schema.get("properties")
         if isinstance(_props, dict):
             _props.pop("_envelope", None)
+        # INPUT-CONTRACT FACADES (2026-10-15 hardening): advertise required
+        # minimums for arif_init / arif_seal (forge has its own facade in
+        # _spec_for_name). Enforcement stays server-side in input_contract.
+        input_schema = _apply_required_facade(name, input_schema)
         contracts[name] = {
             "description": tool.description
             or _TOOL_DESCRIPTIONS.get(
@@ -804,6 +888,38 @@ def _spec_for_name(name: str) -> Any:
         input_schema = {
             "type": "object",
             "additionalProperties": False,
+            # INPUT-CONTRACT FACADE 2026-10-15: manifest is required on the
+            # write paths — engineer (also the default mode), write, generate —
+            # and for dry_run the schema accepts manifest OR query statically
+            # while the server-side contract gate still demands the manifest
+            # (missing_input names it). Query-only stays legal in mode=query
+            # and mode=recall; commit is gated downstream by seal_verdict_id.
+            # Enforcement: runtime/input_contract.py via _wrap_handler.
+            "allOf": [
+                {
+                    "if": {
+                        "anyOf": [
+                            {"not": {"required": ["mode"]}},
+                            {
+                                "required": ["mode"],
+                                "properties": {
+                                    "mode": {"enum": ["engineer", "write", "generate"]}
+                                },
+                            },
+                        ]
+                    },
+                    "then": {"required": ["manifest"]},
+                },
+                {
+                    "if": {
+                        "required": ["mode"],
+                        "properties": {"mode": {"enum": ["dry_run"]}},
+                    },
+                    "then": {
+                        "anyOf": [{"required": ["manifest"]}, {"required": ["query"]}]
+                    },
+                },
+            ],
             "properties": {
                 "mode": {
                     "default": "engineer",
@@ -821,9 +937,11 @@ def _spec_for_name(name: str) -> Any:
                     "default": "",
                     "type": "string",
                     "description": (
-                        "The work order (usually JSON or markdown) describing "
-                        "exactly what to build or change — the more specific, the "
-                        "tighter the gate."
+                        "Required for engineer (the default mode), write, "
+                        "generate, and dry_run: the work order (usually JSON or "
+                        "markdown) describing exactly what to build or change — "
+                        "the more specific, the tighter the gate. mode=query "
+                        "uses query instead."
                     ),
                 },
                 "seal_verdict_id": {
