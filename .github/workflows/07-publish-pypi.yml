@@ -63,7 +63,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install uv and sync
-        run: pip install uv && uv sync
+        run: pip install uv && uv sync --frozen
       - name: Generate CycloneDX SBOM
         run: |
           mkdir -p dist
