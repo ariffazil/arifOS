@@ -7132,16 +7132,31 @@ async def _synthesize_async(
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
         "Perform bounded constitutional reasoning on the query.\n"
         "Ground every conclusion in L02 (Truth), L07 (Humility), L08 (Genius).\n"
-        "Keep confidence ≤ 0.85 per L07 Humility calibration band.\n\n"
+        "Keep confidence ≤ 0.85 per L07 Humility calibration band.\n"
+        "LANGUAGE REGISTER (2026-10-15): emit ALL text fields in Bahasa Malaysia\n"
+        "(baku Malaysia) — never Indonesian forms: karena→kerana, bisa→boleh,\n"
+        "kamu→awak, bilang→beritahu, inggris→inggeris.\n\n"
         "EVIDENCE GROUNDING (F2 TRUTH, P0 2026-09-27): If an EVIDENCE BLOCK is\n"
         "present in the user prompt, every claim in `what_is_supported` MUST be\n"
         "traceable to an entry in that block. Claims without supporting evidence\n"
         "MOVE to `what_is_not_supported` with an [UNGROUNDED] label. NEVER\n"
         "fabricate evidence references. If the EVIDENCE BLOCK is empty or absent,\n"
-        "treat ALL claims as [UNGROUNDED] and lower overall_confidence accordingly.\n\n"
+        "treat unsupported ASSERTIONS as [UNGROUNDED] and lower overall_confidence\n"
+        "accordingly.\n\n"
+        "PREMISE HANDLING (F2 scope rule, Epistemic Invariant §0.2 — 2026-10-15):\n"
+        'Hypothetical questions (kalau / jika / andaikan / suppose / "if ... then")\n'
+        "carry GIVEN premises — assumptions granted for the sake of argument.\n"
+        "Extract them into `premises[]`. GIVEN premises are NOT claims: they are\n"
+        "EXEMPT from [UNGROUNDED], receive NO evidence weight (neither positive\n"
+        "nor negative), and must NOT appear in what_is_supported or\n"
+        "what_is_not_supported. Conclusions resting on them are CONDITIONAL —\n"
+        'phrase as "JIKA <premis> MAKA ...". Record each premise\'s own\n'
+        "verification status inside what_remains_unknown. Never refuse the\n"
+        "conditional question itself; answer it under its premises.\n\n"
         "Return ONLY JSON with this exact structure:\n"
         "{\n"
-        '  "bounded_answer": "one-sentence constitutional understanding",\n'
+        '  "bounded_answer": "one-sentence constitutional understanding (conditional if premises given)",\n'
+        '  "premises": ["given premises extracted from the query (empty if none)"],\n'
         '  "what_is_supported": ["list of supported claims"],\n'
         '  "what_is_not_supported": ["list of unsupported claims"],\n'
         '  "what_remains_unknown": ["list of unknown claims"],\n'
@@ -7169,6 +7184,7 @@ async def _synthesize_async(
         "type": "object",
         "properties": {
             "bounded_answer": {"type": "string"},
+            "premises": {"type": "array", "items": {"type": "string"}},
             "what_is_supported": {"type": "array", "items": {"type": "string"}},
             "what_is_not_supported": {"type": "array", "items": {"type": "string"}},
             "what_remains_unknown": {"type": "array", "items": {"type": "string"}},
@@ -7210,6 +7226,18 @@ async def _synthesize_async(
                 parsed[_ck] = None
 
         if parsed.get("bounded_answer"):
+            # Reasoning provenance (F13 "ok go" 2026-10-15): the public reason
+            # path must disclose HOW the answer was produced — LIVE_MODEL vs
+            # FALLBACK_TEMPLATE, provider, model, latency. Fluent text is not
+            # proof of a healthy cascade (frontier-model-audit rule).
+            parsed["reasoning_provenance"] = {
+                "path": "LIVE_MODEL",
+                "provider": getattr(envelope, "provider", None),
+                "model": getattr(envelope, "model", None),
+                "tool_origin": getattr(envelope, "tool_origin", "arif_think"),
+                "latency_ms": getattr(envelope, "latency_ms", None),
+                "mode": reasoning_mode,
+            }
             return parsed
 
     except LLMUnavailableError as e:
@@ -7251,6 +7279,10 @@ async def _synthesize_async(
     # backing produces empty evidence. Confidence 0.65 → 0.15 cap.
     text = _synthesize(query, reasoning_mode)
     ql = (query or "").strip().lower()
+    # Premise Ledger (2026-10-15): offline fallback still honors GIVEN premises —
+    # echo them rather than mislabeling them as claims.
+    _premise_markers = ("kalau", "jika", "andaikan", "suppose", "given that", "premis")
+    _has_premise = any(m in ql for m in _premise_markers)
     if any(k in ql for k in ["why", "how", "explain", "cause", "reason"]):
         domain = "explanatory"
     elif any(
@@ -7271,9 +7303,19 @@ async def _synthesize_async(
         f"[SPEC] {query or 'query'} (pending live model verification)",
         "[UNK] Offline template fallback active — live LLM cascade degraded",
     ]
+    if _has_premise:
+        what_remains_unknown.append(
+            "[UNK] Hypothetical premise detected — its own truth status is UNVERIFIED "
+            "(given, not observed); conditional answer withheld until live model returns"
+        )
 
     return {
         "bounded_answer": text,
+        "premises": (
+            ["(hypothetical premise in query — offline fallback echoes, does not extract)"]
+            if _has_premise
+            else []
+        ),
         "what_is_supported": what_is_supported,
         "what_is_not_supported": what_is_not_supported,
         "what_remains_unknown": what_remains_unknown,
@@ -7288,6 +7330,14 @@ async def _synthesize_async(
         "confidence_evidence": 0.05,
         "overall_confidence": 0.15,
         "confidence_provenance": "DERIVED",
+        "reasoning_provenance": {
+            "path": "FALLBACK_TEMPLATE",
+            "provider": None,
+            "model": None,
+            "tool_origin": "arif_think",
+            "latency_ms": None,
+            "mode": reasoning_mode,
+        },
         "degraded_state": "DEGRADED_DISPATCH",
     }
 
@@ -15531,6 +15581,9 @@ async def _arif_mind_reason_tool(
                     "what_is_supported": synthesis.get("what_is_supported", []),
                     "what_is_not_supported": synthesis.get("what_is_not_supported", []),
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
+                    # Premise Ledger + provenance surfacing (F13 "ok go" 2026-10-15):
+                    "premises": synthesis.get("premises", []),
+                    "reasoning_provenance": synthesis.get("reasoning_provenance", None),
                     "epistemic_labels": synthesis.get(
                         "epistemic_labels",
                         {
@@ -15559,7 +15612,9 @@ async def _arif_mind_reason_tool(
                     "confidence_evidence": synthesis.get("confidence_evidence", None),
                     "confidence_provenance": synthesis.get("confidence_provenance", "OBSERVED"),
                     "claim_state": synthesis.get("claim_state", "CLAIM"),
-                    "reasoning_verdict": synthesis.get("verdict", "SEAL"),
+                    # 2026-10-15: default "SEAL"→"REASONED" — a quality label must
+                    # never borrow a constitutional verdict token as its fallback.
+                    "reasoning_verdict": synthesis.get("verdict", "REASONED"),
                     "evidence_used": synthesis.get("what_is_supported", []),
                     "inferences": synthesis.get(
                         "inferences", synthesis.get("what_is_supported", [])
@@ -15591,7 +15646,9 @@ async def _arif_mind_reason_tool(
                     "synthesis": synthesis.get("bounded_answer", ""),
                     "confidence": synthesis.get("overall_confidence", None),
                     "claim_state": synthesis.get("claim_state", "CLAIM"),
-                    "reasoning_verdict": synthesis.get("verdict", "SEAL"),
+                    # 2026-10-15: default "SEAL"→"REASONED" — a quality label must
+                    # never borrow a constitutional verdict token as its fallback.
+                    "reasoning_verdict": synthesis.get("verdict", "REASONED"),
                     "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
                 }
         except TimeoutError:
