@@ -184,8 +184,12 @@ def test_v1_1_with_bound_prediction_and_kwargs_still_works():
     result = compute_apex(inputs, gate_h=0.0, gate_delta_s=0.0, gate_w3=1.0, prediction=pred)
     assert isinstance(result, APEXResult)
     assert result.verdict is not None
-    assert result.G > 0
-    assert result.G_seal >= 0
+    # AX-0 (LANE A): all-default inputs are UNMEASURED — G is None, verdict HOLD,
+    # never a number invented from absence. Kwargs + prediction contract unchanged.
+    assert result.G is None
+    assert result.G_seal is None
+    assert result.verdict.value == "HOLD"
+    assert "UNMEASURED" in result.verdict_reason
     assert result.prediction is pred
     assert result.is_falsifiable is True
 
