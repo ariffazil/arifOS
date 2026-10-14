@@ -1,7 +1,7 @@
 {
   "$schema": "https://glama.ai/schemas/glama.json",
   "name": "arifOS",
-  "description": "Constitutional AI Governance Kernel. 8 public MCP verbs (init, observe, think, route, memory, judge, forge, seal), 65 total MCP tools. F1-F13 floors, 888_JUDGE sovereign verdict pipeline, VAULT999 immutable ledger. F13 SOVEREIGN: human veto is absolute. DITEMPA BUKAN DIBERI.",
+  "description": "Constitutional AI Governance Kernel. 8 public MCP verbs (init, observe, think, route, memory, judge, forge, seal) over Streamable HTTP. F1-F13 floors, judge-before-execute verdicts, VAULT999 immutable ledger. Not a model - a policy kernel. F13 SOVEREIGN: human veto is absolute. DITEMPA BUKAN DIBERI.",
   "author": {
     "name": "Muhammad Arif bin Fazil",
     "url": "https://arif-fazil.com"
@@ -12,7 +12,7 @@
   },
   "homepage": "https://arif-fazil.com",
   "license": "AGPL-3.0",
-  "version": "2026.07.17",
+  "version": "2026.10.14",
   "tags": [
     "constitutional-ai",
     "governance",
@@ -32,16 +32,14 @@
   },
   "tools": {
     "count": 8,
-    "total_mcp_tools": 65,
-    "canonical_tools": 25,
     "public_manifest": "https://mcp.arif-fazil.com/manifest/tools.json",
-    "naming": "arif_verb — 8 public kernel verbs + 57 operational"
+    "naming": "arif_verb - 8 public kernel verbs"
   },
   "resources": {
-    "count": 82
+    "count": 40
   },
   "prompts": {
-    "count": 8
+    "count": 13
   },
   "transport": {
     "type": "streamable-http",
@@ -49,5 +47,16 @@
     "auth_required": false
   },
   "protocol": "2025-11-25",
-  "client_compatibility": ["Claude Desktop", "Copilot Agents", "Cursor", "Smithery", "Glama", "mcp.so", "OpenCode", "Kimi Code", "Cline", "Windsurf"]
+  "client_compatibility": [
+    "Claude Desktop",
+    "Copilot Agents",
+    "Cursor",
+    "Smithery",
+    "Glama",
+    "mcp.so",
+    "OpenCode",
+    "Kimi Code",
+    "Cline",
+    "Windsurf"
+  ]
 }
