@@ -226,9 +226,24 @@ def compute_apex_from_metrics(
         E = round(exec_success / exec_total, 4) if exec_total > 0 else None
         # X = reversibility rate (dry-run before execute)
         X = round(dry_runed / n, 4) if n > 0 else None
-        # Φ = scar feedback (1 - repeated_failure_rate)
-        repeated_rate = unique_failures / n if n > 0 else 0
-        PHI = round(max(0.0, 1.0 - repeated_rate), 4) if n > 0 else None
+        # Φ = repeat-failure rate (AX-0 item 5, LANE A 2026-10-14).
+        # OLD formula (defective — kept one release as phi_legacy):
+        #   1 - unique_codes/n rewarded repeating the SAME failure and
+        #   penalised diverse ones (D7 inversion). NEW: a failing call whose
+        #   failure_code already occurred earlier in this window is a repeat.
+        #   Higher Phi now = more repetition = worse scar. No failing calls
+        #   in window -> None (UNMEASURED), never a perfect 1.0.
+        failing_codes_in_order = [r[5] for r in rows if r[5]]
+        _seen_codes: set = set()
+        repeated_failures = 0
+        for _code in failing_codes_in_order:
+            if _code in _seen_codes:
+                repeated_failures += 1
+            _seen_codes.add(_code)
+        _failing_total = len(failing_codes_in_order)
+        PHI = round(repeated_failures / _failing_total, 4) if _failing_total > 0 else None
+        # phi_legacy (DEPRECATED, one release): old diversity-inverted value.
+        PHI_LEGACY = round(max(0.0, 1.0 - (unique_failures / n)), 4) if n > 0 else None
 
         # 2026-08-04 333-AGI: UNMEASURED propagation.
         # When no data exists (n==0), factors are None → G is UNMEASURED.
@@ -263,6 +278,9 @@ def compute_apex_from_metrics(
             "E": E,
             "X": X,
             "Phi": PHI,
+            # DEPRECATED (AX-0 item 5): old 1 - unique_codes/n value, kept one
+            # release for downstream diffing. Do not gate on this.
+            "phi_legacy": PHI_LEGACY,
             "G": G,
             "C_dark": C_dark,
             # P0 2026-08-09: W3 + h wired from live metrics (was UNMEASURED).
