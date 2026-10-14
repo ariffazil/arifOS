@@ -108,12 +108,17 @@ def clamp(value: float, lo: float = 0.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, value))
 
 
+def _round4(value):
+    """AX-0 (LANE A): None-safe rounding — UNMEASURED stays None in output."""
+    return None if value is None else round(value, 4)
+
+
 def compute_A(
     valid_leases: int = 0,
     total_leases: int = 0,
     floor_compliance: int = 13,
     sovereign_override: bool = False,
-) -> float:
+) -> "float | None":  # AX-0: None = UNMEASURED (no lease data)
     """
     A — Authority
 
@@ -133,8 +138,9 @@ def compute_A(
         return 0.0
 
     if total_leases == 0:
-        # No leases = pure read authority (default 0.5 for observational)
-        return clamp(floor_compliance / TOTAL_FLOORS)
+        # AX-0 (LANE A, 2026-10-14): no leases = no measurement, never free
+        # authority. Absence of evidence returns None (UNMEASURED), not 1.0.
+        return None
 
     lease_ratio = valid_leases / total_leases
     floor_ratio = floor_compliance / TOTAL_FLOORS
@@ -150,36 +156,42 @@ def compute_P(
     w_geo: float = 0.3,
     well_contradicts_seis: bool = False,
     seis_contradicts_geo: bool = False,
-) -> float:
+) -> "float | None":  # AX-0: None = UNMEASURED (no measured dial)
     """
     P — Physics
 
     P = w_well · P_well + w_seis · P_seis + w_geo · P_geo
 
-    Measurement Law:
-      - P_well = observed, somatic, irreversible (default 0.99)
-      - P_seis = interpreted, reversible (default 0.50)
-      - P_geo = model-derived, reversible (default 0.70)
-      - If well contradicts seismic → P = P_well
-      - If seismic contradicts model → P = P_seis
+    Measurement Law (AX-0, LANE A 2026-10-14):
+      - No invented physics: an unmeasured dial contributes nothing; weights
+        renormalise over measured dials only. All dials unmeasured -> None.
+      - DOMAIN pointer: the well/seismic/geology-weighted interpretation with
+        its domain priors moved to GEOX (geoscience organ). This kernel
+        function computes only the explicit-value weighted average.
+      - If well contradicts seismic → P = P_well (must be measured)
+      - If seismic contradicts model → P = P_seis (must be measured)
     """
+    if p_well <= 0 and p_seis <= 0 and p_geo <= 0:
+        # AX-0: absence of measurements is UNMEASURED, never 0.756-by-default.
+        return None
+
     if well_contradicts_seis:
-        return clamp(p_well if p_well > 0 else 0.99)
+        return clamp(p_well) if p_well > 0 else None
 
     if seis_contradicts_geo:
-        return clamp(p_seis if p_seis > 0 else 0.50)
+        return clamp(p_seis) if p_seis > 0 else None
 
-    # Apply defaults if not provided
-    pw = p_well if p_well > 0 else 0.99
-    ps = p_seis if p_seis > 0 else 0.50
-    pg = p_geo if p_geo > 0 else 0.70
-
-    # Normalize weights
-    w_total = w_well + w_seis + w_geo
+    measured = [
+        (w_well, p_well),
+        (w_seis, p_seis),
+        (w_geo, p_geo),
+    ]
+    measured = [(w, v) for w, v in measured if v > 0]
+    w_total = sum(w for w, _ in measured)
     if w_total == 0:
-        return 0.0
+        return None
 
-    return clamp((w_well / w_total) * pw + (w_seis / w_total) * ps + (w_geo / w_total) * pg)
+    return clamp(sum((w / w_total) * v for w, v in measured))
 
 
 def compute_E(
@@ -218,7 +230,7 @@ def compute_X(
     total_steps: int = 0,
     delta_s_t: float = 0.0,
     forge_evaluate_passed: bool = True,
-) -> float:
+) -> "float | None":  # AX-0: None = UNMEASURED (no execution data)
     """
     X — Execution
 
@@ -236,8 +248,9 @@ def compute_X(
         return 0.0
 
     if total_steps == 0:
-        # No execution = default 0.5 (observational)
-        return 0.5
+        # AX-0 (LANE A, 2026-10-14): no execution = no measurement.
+        # Absence returns None (UNMEASURED), never a neutral 0.5.
+        return None
 
     step_ratio = successful_steps / total_steps
     consequence_stability = math.exp(-abs(delta_s_t))
@@ -379,16 +392,16 @@ class APEXResult:
     # prediction, not in the number.
     prediction: FalsifiablePrediction
 
-    # Primitives
-    A: float
-    P: float
+    # Primitives (A/P/X may be None = UNMEASURED per AX-0; E always float)
+    A: "float | None"
+    P: "float | None"
     E: float
-    X: float
+    X: "float | None"
     tri_witness: float
 
-    # Core formula
-    G: float
-    C_dark: float
+    # Core formula (None when any primitive UNMEASURED)
+    G: "float | None"
+    C_dark: "float | None"
     dS_dt: float
 
     # Verdict
@@ -399,7 +412,7 @@ class APEXResult:
     gate_h: float = 0.0  # humility gate
     gate_delta_s: float = 0.0  # entropy gate
     gate_w3: float = 0.0  # tri-witness gate
-    G_seal: float = 0.0  # gated score
+    G_seal: "float | None" = 0.0  # gated score
 
     # v1.1: always True when required.
     is_falsifiable: bool = True
@@ -423,22 +436,22 @@ class APEXResult:
     def to_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {
             "primitives": {
-                "A": round(self.A, 4),
-                "P": round(self.P, 4),
-                "E": round(self.E, 4),
-                "X": round(self.X, 4),
-                "tri_witness": round(self.tri_witness, 4),
+                "A": _round4(self.A),
+                "P": _round4(self.P),
+                "E": _round4(self.E),
+                "X": _round4(self.X),
+                "tri_witness": _round4(self.tri_witness),
             },
-            "G": round(self.G, 4),
-            "C_dark": round(self.C_dark, 4),
-            "dS_dt": round(self.dS_dt, 4),
+            "G": _round4(self.G),
+            "C_dark": _round4(self.C_dark),
+            "dS_dt": _round4(self.dS_dt),
             "verdict": self.verdict.value,
             "verdict_reason": self.verdict_reason,
             "gate_layer": {
                 "h": round(self.gate_h, 4),
                 "delta_s": round(self.gate_delta_s, 4),
                 "w3": round(self.gate_w3, 4),
-                "G_seal": round(self.G_seal, 4),
+                "G_seal": _round4(self.G_seal),
             },
             "axioms_satisfied": self.axioms_satisfied,
             "axioms_total": self.axioms_total,
@@ -532,6 +545,31 @@ def compute_apex(
     # 2026-08-05 W-12 FIX: triWitness is the witness gate (separate per A2 canonic),
     # NOT a 5th G dial. Adding it to the product changed Nash bargaining
     # geometry and silently penalized every score for having a 5th factor.
+    # AX-0 (LANE A, 2026-10-14): None-propagation — any UNMEASURED primitive
+    # means no numeric output and no verdict from missing data. HOLD is a
+    # brake, never SEAL/SABAR.
+    unmeasured = [nm for nm, v in (("A", A), ("P", P), ("E", E), ("X", X)) if v is None]
+    if unmeasured:
+        return APEXResult(
+            prediction=prediction,
+            A=A,
+            P=P,
+            E=E,
+            X=X,
+            tri_witness=tri_witness,
+            G=None,
+            C_dark=None,
+            dS_dt=float(inputs.entropy_rate),
+            verdict=Verdict.HOLD,
+            verdict_reason=(
+                "UNMEASURED: " + ", ".join(unmeasured) + " — no verdict from missing data"
+            ),
+            gate_h=gate_h,
+            gate_delta_s=gate_delta_s,
+            gate_w3=gate_w3,
+            G_seal=None,
+        )
+
     G = (A * P * E * X) ** (1 / 4)
 
     # ═══ THE SHADOW TERM ═══
@@ -545,26 +583,34 @@ def compute_apex(
     beta = 1.0  # default exponent for |ΔS|^β
     w3 = clamp(gate_w3)
     delta_s_factor = abs(gate_delta_s) ** beta if gate_delta_s != 0 else 1.0
-    G_seal = G * (1 - h) * delta_s_factor * w3
+    G_seal = None if G is None else G * (1 - h) * delta_s_factor * w3
 
     # ═══ AXIOM CHECK ═══
+    # AX-0 (LANE A, 2026-10-14): every axiom counts only if its condition is
+    # actually evaluated true in THIS computation. No unconditional +1 (D5:
+    # five of seven were vacuous — a self-audit that cannot fail).
     axioms = 0
-    # 1. Multiplicativity — G is multiplicative (structural, always satisfied)
-    axioms += 1
-    # 2. Four-dial V3 (HISTORICAL: pre-V3 "five-sufficient" superseded by W-12 fix)
-    axioms += 1
-    # 3. Nash bargaining — product form used (structural)
-    axioms += 1
-    # 4. Shadow — C_dark computed
-    axioms += 1
+    # 1. Multiplicativity — product form actually reproduces G.
+    if G is not None and abs(G - (A * P * E * X) ** (1 / 4)) <= 1e-9:
+        axioms += 1
+    # 2. Four-dial V3 — exactly four measured dials feed G (no 5th witness dial).
+    if all(v is not None for v in (A, P, E, X)):
+        axioms += 1
+    # 3. Nash bargaining — product form differs from additive form (actually used).
+    if G is not None and abs(G - (A + P + E + X) / 4) > 1e-9:
+        axioms += 1
+    # 4. Shadow — C_dark actually computed, non-negative.
+    if C_dark is not None and C_dark >= 0:
+        axioms += 1
     # 5. Conservation — dS/dt checked
     if dS_dt <= 0:
         axioms += 1
     # 6. Tri-witness — triWitness computed from three witnesses
     if inputs.h_witness > 0 and inputs.ai_witness > 0 and inputs.ext_witness > 0:
         axioms += 1
-    # 7. F13 veto — sovereign_override is available
-    axioms += 1  # always structurally present
+    # 7. F13 veto — sovereign_override input actually present in this build.
+    if "sovereign_override" in PrimitiveInputs.__dataclass_fields__:
+        axioms += 1
 
     # ═══ VERDICT ═══
     verdict, reason = _determine_verdict(G, C_dark, dS_dt, A, P, E, X, tri_witness)
@@ -600,6 +646,10 @@ def _determine_verdict(
     tri_witness: float,
 ) -> tuple[Verdict, str]:
     """Determine APEX verdict from computed values."""
+
+    # AX-0 (LANE A): UNMEASURED inputs -> HOLD, never SEAL/SABAR.
+    if G is None or C_dark is None or any(v is None for v in (A, P, E, X)):
+        return Verdict.HOLD, "UNMEASURED — no verdict from missing data"
 
     # VOID: any primitive = 0 or tri_witness = 0 (zero witness collapse)
     if G == 0 or tri_witness == 0:
@@ -651,12 +701,16 @@ def compute_G(A: float, P: float, E: float, X: float, tri_witness: float) -> flo
     compatibility but excluded from the geometric mean — it is scar pressure
     (separate gate per A2 canonic), not a 5th G dial.
     """
+    if None in (A, P, E, X):
+        return None
     a, p, e, x = clamp(A), clamp(P), clamp(E), clamp(X)
     return (a * p * e * x) ** (1 / 4)
 
 
 def compute_C_dark(A: float, P: float, X: float) -> float:
     """Quick C_dark computation."""
+    if None in (A, P, X):
+        return None
     return clamp(A) * (1 - clamp(P)) * (1 - clamp(X))
 
 
