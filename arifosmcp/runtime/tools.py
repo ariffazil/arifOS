@@ -3703,7 +3703,10 @@ async def APEX_JUDGE(  # noqa: N802
 
 
 async def VAULT_SEAL(  # noqa: N802
-    verdict: Any = None, evidence: Any = None, ctx: Any | None = None, **kwargs: Any
+    verdict: Any = None,
+    evidence: dict | list | str | None = None,
+    ctx: Any | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("VAULT_SEAL", verdict=verdict, evidence=evidence, **kwargs)
@@ -10402,11 +10405,14 @@ def _arif_session_init(
     #   {"timezone": str|None, "spatial_context": str|None,
     #    "host_id": str|None, "inside_outside": "inside"|"remote"|"unknown",
     #    "memory_requested": bool, "memory_window": ["today","yesterday"]|None}
-    evidence: dict | None = None,
+    evidence: dict | list[dict[str, str]] | None = None,
     #   {"mode": "strict"|"standard"|"exploratory",
     #    "godel_lock": bool, "obs_der_int_spec": bool,
     #    "uncertainty_required": bool}
-    tooling: dict | None = None,
+    # INPUT-CONTRACT FIX 2026-10-15: doc promises a list of {fact, source}
+    # — signature now accepts both the documented list form and the
+    # internal object form. Doc and schema must never disagree (F4).
+    tooling: dict | list[str] | None = None,
     #   {"requested_capabilities": [str], "declared_mcp_targets": [str]}
     # ── GAP-C: AgentPolicy integration (forged 2026-06-09 by Ω) ──────────────
     agent_policy: dict | None = None,
@@ -27496,9 +27502,41 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     return _k
         return None
 
+    # ── INPUT CONTRACT GATE (2026-10-15) — mode-conditional minimums ──────
+    # Single chokepoint enforcement of per-mode required params. The
+    # advertised schema stays all-optional (wire back-compat); the contract
+    # lives in runtime/input_contract.py — the one owner of this truth.
+    def _input_contract_gate(tool: str, kw: dict[str, Any]) -> dict[str, Any] | None:
+        from arifosmcp.runtime.input_contract import enforce as _ic_enforce
+
+        msg = _ic_enforce(tool, kw)
+        if msg is None:
+            return None
+        return {
+            "status": "HOLD",
+            "result": {},
+            "meta": {
+                "reason": msg,
+                "failure_type": "MISSING_REQUIRED_INPUT",
+                "violated_laws": ["F4_CLARITY"],
+            },
+        }
+
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # INPUT CONTRACT — cheapest, most actionable check runs first.
+        _ic_resp = _input_contract_gate(tool_name, kwargs)
+        if _ic_resp is not None:
+            final_resp = _enforce_nine_signal(
+                tool_name,
+                _ic_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            return _sanitize_envelope(final_resp)
 
         # ── F12 INJECTION MEMBRANE — pre-execution scan ─────────────────
         _hit_field = _membrane_scan(kwargs, tool_name)
@@ -27955,6 +27993,18 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # INPUT CONTRACT — cheapest, most actionable check runs first.
+        _ic_resp = _input_contract_gate(tool_name, kwargs)
+        if _ic_resp is not None:
+            final_resp = _enforce_nine_signal(
+                tool_name,
+                _ic_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            return _sanitize_envelope(final_resp)
 
         # ── P0 FIX: Session context propagation (2026-07-12) ─────────────────────
         # P0-A SESSION ISOLATION (2026-07-17): pass caller actor_id
