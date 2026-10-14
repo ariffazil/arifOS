@@ -631,3 +631,18 @@ When deployed over a network, the complete source code must be made available to
 **Independent audit pass 2026-09-22** (Copilot external, mode ENTERPRISE). Findings A, B, C, D, E, F, G, H, I, K, L, N — all four blocking contradictions + the two highest-leverage gaps (G sovereign-binding, H ledger anchoring) — corrected in this revision. M (TOC/badges) and a per-pass signature remain open as structural polish. See commit history for per-finding receipts.
 
 **Ditempa Bukan Diberi** — Forged, Not Given.
+
+<!-- FEDERATION-STANDARD v2026-10-15 START :: 333-AGI audit :: source: organs.yaml + git + live probes :: regenerate: re-run audit -->
+## 🔗 Federation Identity (auto-audit 2026-10-15)
+| Field | Value |
+|---|---|
+| Organ | `arifos` · CORE · governance_kernel |
+| Ports | 8088 (/mcp) |
+| Unit | arifos.service |
+| Authority ceiling | JUDGE_ONLY |
+| Live (SOT probe @audit) | UP (DEGRADED: F5+attestation drift @audit) |
+| Repo HEAD @audit | `d0d1054a5 2026-10-14` |
+| Public MCP | https://arifos.arif-fazil.com/mcp |
+| Rollback | — |
+| Flow graph | [FEDERATION-FLOW-GRAPH.md](../FEDERATION-FLOW-GRAPH.md) — peta semua organ + repo |
+<!-- FEDERATION-STANDARD v2026-10-15 END -->

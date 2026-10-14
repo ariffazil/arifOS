@@ -5462,28 +5462,6 @@ def _enforce_nine_signal(
             )
             else "OPERATOR"
         )
-        # ── INCREMENT-0 hygiene (2026-10-14): concise-by-default envelope.
-        # The result block must not mirror top-level envelope fields — one
-        # fact, one place (F2), and the median envelope target is <2KB.
-        # Legacy consumers needing the full mirror pass verbosity="full".
-        try:
-            _verbosity = str(
-                (meta_payload or {}).get("verbosity")
-                or out.get("verbosity")
-                or (result_payload.get("verbosity") if isinstance(result_payload, dict) else None)
-                or "minimal"
-            ).lower()
-            if _verbosity != "full" and isinstance(result_payload, dict):
-                for _dk in (
-                    "session_id", "actor_id", "autonomy_band", "band", "authority",
-                    "session_token", "act_claims", "allowed_next_verbs",
-                    "effective_verdict", "canonical_verdict", "actor_verified",
-                    "actor_cryptographically_verified", "verdict", "reason_code",
-                    "next_action", "next_safe_action",
-                ):
-                    result_payload.pop(_dk, None)
-        except Exception:
-            pass  # hygiene dedup is best-effort — never blocks the call path
         envelope = {
             "status": status,
             "tool": tool_name,
@@ -15411,6 +15389,7 @@ async def _arif_mind_reason_tool(
     plan_id: str | None = None,
     witness_type: str = "ai",
     ctx: Context | None = None,
+    concise: bool = True,
 ) -> dict[str, Any]:
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
@@ -15582,6 +15561,19 @@ async def _arif_mind_reason_tool(
                     "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
                 },
             }
+            # ── INCREMENT-2 hygiene (2026-10-14): concise diet for arif_think ──
+            # Default concise=True emits only essential fields; pass
+            # concise=False for full AGI-readiness payload. Trims the
+            # 4.3KB result.result sub-dict to ~0.6KB.
+            if concise:
+                result["result"] = {
+                    "query": query,
+                    "synthesis": synthesis.get("bounded_answer", ""),
+                    "confidence": synthesis.get("overall_confidence", None),
+                    "claim_state": synthesis.get("claim_state", "CLAIM"),
+                    "reasoning_verdict": synthesis.get("verdict", "SEAL"),
+                    "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
+                }
         except TimeoutError:
             _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
             logger.warning(
@@ -15628,6 +15620,19 @@ async def _arif_mind_reason_tool(
                     ),
                 },
             }
+            # INCREMENT-2: concise diet (same pattern as the LLM path above)
+            if concise:
+                result["result"] = {
+                    "mode": mode,
+                    "query": query,
+                    "synthesis": f"Cognitive processing timeout after {_think_budget_s}s. Template synthesis active.",
+                    "confidence": 0.10,
+                    "claim_state": "UNKNOWN",
+                    "reasoning_verdict": "HOLD",
+                    "degraded_state": DEGRADED_REASONING_STATES.get(
+                        "DEGRADED_TIMEOUT", "DEGRADED_TIMEOUT"
+                    ),
+                }
         except Exception as _exc:
             logger.warning(
                 "333_MIND cognitive module unavailable (%s); rule fallback active",
