@@ -14688,7 +14688,9 @@ def _arif_mind_reason(
 
     if mode == "wonder":
         # SUNSHINE CHILD: CANDIDATE ONLY — not evidence, not verdict.
-        # Generates naive questions, strange connections, metaphors.
+        # Registers the caller's wondering VERBATIM as a store candidate.
+        # No kernel-side generation (kernel stays deterministic): the
+        # calling agent explores, the kernel witnesses and firewalls.
         # Firewalled from judge/seal/forge — must pass Jauhari first.
         # The candidate is registered in the authoritative CandidateStore
         # with a SERVER-GENERATED ID. The model NEVER invents candidate_id,
@@ -27508,16 +27510,22 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # lives in runtime/input_contract.py — the one owner of this truth.
     def _input_contract_gate(tool: str, kw: dict[str, Any]) -> dict[str, Any] | None:
         from arifosmcp.runtime.input_contract import enforce as _ic_enforce
+        from arifosmcp.runtime.input_contract import missing_params as _ic_missing
 
         msg = _ic_enforce(tool, kw)
         if msg is None:
             return None
+        # R3 (input-contract hardening 2026-10-15): name the missing fields
+        # STRUCTURALLY, not only in prose — same truth as the message, from
+        # the same single source (missing_params mirrors enforce).
         return {
             "status": "HOLD",
             "result": {},
             "meta": {
                 "reason": msg,
                 "failure_type": "MISSING_REQUIRED_INPUT",
+                "error_code": "MISSING_INPUT",
+                "missing_fields": _ic_missing(tool, kw),
                 "violated_laws": ["F4_CLARITY"],
             },
         }
