@@ -156,36 +156,42 @@ def compute_P(
     w_geo: float = 0.3,
     well_contradicts_seis: bool = False,
     seis_contradicts_geo: bool = False,
-) -> float:
+) -> "float | None":  # AX-0: None = UNMEASURED (no measured dial)
     """
     P — Physics
 
     P = w_well · P_well + w_seis · P_seis + w_geo · P_geo
 
-    Measurement Law:
-      - P_well = observed, somatic, irreversible (default 0.99)
-      - P_seis = interpreted, reversible (default 0.50)
-      - P_geo = model-derived, reversible (default 0.70)
-      - If well contradicts seismic → P = P_well
-      - If seismic contradicts model → P = P_seis
+    Measurement Law (AX-0, LANE A 2026-10-14):
+      - No invented physics: an unmeasured dial contributes nothing; weights
+        renormalise over measured dials only. All dials unmeasured -> None.
+      - DOMAIN pointer: the well/seismic/geology-weighted interpretation with
+        its domain priors moved to GEOX (geoscience organ). This kernel
+        function computes only the explicit-value weighted average.
+      - If well contradicts seismic → P = P_well (must be measured)
+      - If seismic contradicts model → P = P_seis (must be measured)
     """
+    if p_well <= 0 and p_seis <= 0 and p_geo <= 0:
+        # AX-0: absence of measurements is UNMEASURED, never 0.756-by-default.
+        return None
+
     if well_contradicts_seis:
-        return clamp(p_well if p_well > 0 else 0.99)
+        return clamp(p_well) if p_well > 0 else None
 
     if seis_contradicts_geo:
-        return clamp(p_seis if p_seis > 0 else 0.50)
+        return clamp(p_seis) if p_seis > 0 else None
 
-    # Apply defaults if not provided
-    pw = p_well if p_well > 0 else 0.99
-    ps = p_seis if p_seis > 0 else 0.50
-    pg = p_geo if p_geo > 0 else 0.70
-
-    # Normalize weights
-    w_total = w_well + w_seis + w_geo
+    measured = [
+        (w_well, p_well),
+        (w_seis, p_seis),
+        (w_geo, p_geo),
+    ]
+    measured = [(w, v) for w, v in measured if v > 0]
+    w_total = sum(w for w, _ in measured)
     if w_total == 0:
-        return 0.0
+        return None
 
-    return clamp((w_well / w_total) * pw + (w_seis / w_total) * ps + (w_geo / w_total) * pg)
+    return clamp(sum((w / w_total) * v for w, v in measured))
 
 
 def compute_E(
