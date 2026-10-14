@@ -134,11 +134,14 @@ class TestComputeP(unittest.TestCase):
     """Test P — Physics measurement law."""
 
     def test_well_only(self):
-        """Well evidence provided, seis/geo get defaults."""
+        """AX-0: only measured dials count — no invented 0.50/0.70 priors."""
         result = compute_P(p_well=0.99, p_seis=0.0, p_geo=0.0)
-        # p_seis=0 → default 0.50, p_geo=0 → default 0.70
-        expected = 0.4 * 0.99 + 0.3 * 0.50 + 0.3 * 0.70
-        self.assertAlmostEqual(result, expected, places=2)
+        # unmeasured dials drop out; weight renormalises to the measured one
+        self.assertAlmostEqual(result, 0.99, places=2)
+
+    def test_all_zero_unmeasured(self):
+        """AX-0: all dials unmeasured → None, never 0.756-by-default."""
+        self.assertIsNone(compute_P(p_well=0.0, p_seis=0.0, p_geo=0.0))
 
     def test_weighted_average(self):
         """Weighted average of all three."""
