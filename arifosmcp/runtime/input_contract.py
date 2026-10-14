@@ -13,7 +13,8 @@ Exemptions preserved BY DESIGN (a read with no inputs is legitimate):
   - arif_memory audit/metabolize maintenance sweeps
 
 Single source of truth. Adding a mode requirement? Edit MODE_REQUIRED /
-ALIAS_REQUIRED here — never inline checks in handlers (LAW 8: one owner).
+MODE_ANY_REQUIRED / ALIAS_REQUIRED here — never inline checks in handlers
+(LAW 8: one owner).
 """
 
 from __future__ import annotations
@@ -74,7 +75,7 @@ MODE_REQUIRED: dict[str, dict[str, tuple[str, ...]]] = {
         "engineer": ("manifest",),
         "write": ("manifest",),
         "generate": ("manifest",),
-        "dry_run": ("manifest",),
+        # dry_run: manifest OR query — see MODE_ANY_REQUIRED (anyOf fallback)
         "query": ("query",),
         "recall": ("query",),
         # commit: gated by seal_verdict_id downstream, not here
@@ -97,6 +98,18 @@ ALIAS_REQUIRED: dict[str, list[tuple[str, ...]]] = {
     "arif_route": [("intent", "task")],  # task is the legacy alias for intent
 }
 
+# tool -> mode -> anyOf groups; at least ONE param PER GROUP must be present.
+# Mirrors the advertised schema's allOf/anyOf branches (public_registry) —
+# the gate and the schema must say the same thing (F4 CLARITY). Fallback
+# ruling 2026-10-15: "query-only allowed as an explicit fallback path" is a
+# REAL carve-out for arif_forge mode=dry_run — the preview accepts a
+# manifest OR a plain-language query.
+MODE_ANY_REQUIRED: dict[str, dict[str, tuple[tuple[str, ...], ...]]] = {
+    "arif_forge": {
+        "dry_run": (("manifest", "query"),),
+    },
+}
+
 # Fallback default mode when the caller omits it entirely (matches the
 # signature defaults on the public tools).
 DEFAULT_MODE: dict[str, str] = {
@@ -116,21 +129,32 @@ def _is_absent(value: Any) -> bool:
     return value is None or (isinstance(value, str) and not value.strip())
 
 
+def _mode_of(tool_name: str, kwargs: dict[str, Any]) -> str:
+    """Resolve the effective mode (caller-supplied or the signature default)."""
+    return kwargs.get("mode") or DEFAULT_MODE.get(tool_name, "")
+
+
 def missing_params(tool_name: str, kwargs: dict[str, Any]) -> list[str]:
     """Return the mode-conditional required params absent from this call.
 
     Empty list = the call satisfies the contract. Mirrors enforce() exactly —
     single source of truth for WHICH fields are missing, so structured error
     envelopes (meta.missing_fields) can never disagree with the prose reason.
+    For a failed anyOf group (e.g. dry_run with neither manifest nor query)
+    every alternative is named, in advertised-schema order — deterministic.
     """
     mode_map = MODE_REQUIRED.get(tool_name)
     if not mode_map:
         return []
-    mode = kwargs.get("mode") or DEFAULT_MODE.get(tool_name, "")
+    mode = _mode_of(tool_name, kwargs)
+    missing: list[str] = []
     required = mode_map.get(mode)
-    if not required:
-        return []
-    return [p for p in required if _is_absent(kwargs.get(p))]
+    if required:
+        missing.extend(p for p in required if _is_absent(kwargs.get(p)))
+    for group in MODE_ANY_REQUIRED.get(tool_name, {}).get(mode, ()):
+        if all(_is_absent(kwargs.get(p)) for p in group):
+            missing.extend(p for p in group if p not in missing)
+    return missing
 
 
 def enforce(tool_name: str, kwargs: dict[str, Any]) -> str | None:
@@ -141,15 +165,31 @@ def enforce(tool_name: str, kwargs: dict[str, Any]) -> str | None:
     """
     try:
         mode_map = MODE_REQUIRED.get(tool_name)
-        mode = kwargs.get("mode") or DEFAULT_MODE.get(tool_name, "")
+        mode = _mode_of(tool_name, kwargs)
         if mode_map:
-            missing = missing_params(tool_name, kwargs)
-            if missing:
+            # AND-requirements message from the table itself (NOT from
+            # missing_params, which unions anyOf failures — an anyOf refusal
+            # must carry its own "at least one of" wording).
+            required = mode_map.get(mode)
+            if required:
+                and_missing = [p for p in required if _is_absent(kwargs.get(p))]
+                if and_missing:
+                    got = sorted(k for k in kwargs if not k.startswith("_") and k != "mode")
+                    return (
+                        f"MISSING_REQUIRED_INPUT: {tool_name} mode='{mode}' requires "
+                        f"{', '.join(and_missing)}. State it explicitly — the kernel no "
+                        f"longer infers it from silence. Params received: "
+                        f"{got or ['<none>']}. Retry with the required params; this "
+                        f"rejection is the input contract working, not a crash."
+                    )
+
+        for group in MODE_ANY_REQUIRED.get(tool_name, {}).get(mode, ()):
+            if all(_is_absent(kwargs.get(p)) for p in group):
                 got = sorted(k for k in kwargs if not k.startswith("_") and k != "mode")
                 return (
-                    f"MISSING_REQUIRED_INPUT: {tool_name} mode='{mode}' requires "
-                    f"{', '.join(missing)}. State it explicitly — the kernel no "
-                    f"longer infers it from silence. Params received: "
+                    f"MISSING_REQUIRED_INPUT: {tool_name} mode='{mode}' requires at "
+                    f"least one of {' or '.join(group)} — any one alternative "
+                    f"satisfies the advertised schema anyOf. Params received: "
                     f"{got or ['<none>']}. Retry with the required params; this "
                     f"rejection is the input contract working, not a crash."
                 )

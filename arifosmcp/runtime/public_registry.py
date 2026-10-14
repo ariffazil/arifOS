@@ -889,12 +889,12 @@ def _spec_for_name(name: str) -> Any:
             "type": "object",
             "additionalProperties": False,
             # INPUT-CONTRACT FACADE 2026-10-15: manifest is required on the
-            # write paths — engineer (also the default mode), write, generate —
-            # and for dry_run the schema accepts manifest OR query statically
-            # while the server-side contract gate still demands the manifest
-            # (missing_input names it). Query-only stays legal in mode=query
-            # and mode=recall; commit is gated downstream by seal_verdict_id.
-            # Enforcement: runtime/input_contract.py via _wrap_handler.
+            # write paths — engineer (also the default mode), write, generate.
+            # dry_run accepts manifest OR query (the explicit fallback path —
+            # gate and schema say the same thing: allOf/anyOf below, enforced
+            # by runtime/input_contract.py MODE_ANY_REQUIRED). Query-only
+            # stays legal in mode=query and mode=recall; commit is gated
+            # downstream by seal_verdict_id.
             "allOf": [
                 {
                     "if": {
@@ -937,10 +937,11 @@ def _spec_for_name(name: str) -> Any:
                     "default": "",
                     "type": "string",
                     "description": (
-                        "Required for engineer (the default mode), write, "
-                        "generate, and dry_run: the work order (usually JSON or "
-                        "markdown) describing exactly what to build or change — "
-                        "the more specific, the tighter the gate. mode=query "
+                        "Required for engineer (the default mode), write, and "
+                        "generate: the work order (usually JSON or markdown) "
+                        "describing exactly what to build or change — the more "
+                        "specific, the tighter the gate. mode=dry_run accepts "
+                        "the manifest or a plain-language query; mode=query "
                         "uses query instead."
                     ),
                 },
