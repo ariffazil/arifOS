@@ -494,6 +494,28 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
         d["next_action"] = d.get("next_action") or _DRIFT_NEXT_ACTION_BY_CAUSE.get(
             _cause, "RECONCILE_SUBSTRATE_STATE"
         )
+        # B0 same-plane consistency check (333-AGI 2026-10-15):
+        # If verdict and effective_verdict both exist and disagree,
+        # effective_verdict is the canonical field (K7: one source per question).
+        # Log the divergence and align verdict to effective_verdict.
+        _ev = d.get("effective_verdict")
+        _vv = d.get("verdict")
+        if (
+            isinstance(_ev, str)
+            and isinstance(_vv, str)
+            and _ev.strip()
+            and _vv.strip()
+            and _ev.upper() != _vv.upper()
+        ):
+            import logging
+
+            logging.getLogger("arifosmcp.verdict").warning(
+                "B0_VERDICT_DIVERGENCE: verdict=%s != effective_verdict=%s — "
+                "aligning to effective_verdict (K7 one-source-per-question)",
+                _vv,
+                _ev,
+            )
+            d["verdict"] = _ev
 
     def _force_nine(d: dict[str, Any]) -> None:
         ns = d.get("nine_signal")
