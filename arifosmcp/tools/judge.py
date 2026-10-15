@@ -317,7 +317,11 @@ def _read_well_substrate() -> dict[str, Any]:
                     raw = json_lib.loads(resp.read())
                 # W-1: /health now exposes substrate advisory fields — forward them.
                 state = {
-                    "well_score": float(raw.get("well_score", 50.0)),
+                    "well_score": (
+                        None
+                        if raw.get("well_score") is None
+                        else float(raw["well_score"])
+                    ),
                     "floors_violated": raw.get("floors_violated") or [],
                     "metrics": raw.get("metrics") or {},
                     "truth_status": raw.get("truth_status", "OPERATOR_REPORTED"),
@@ -337,11 +341,11 @@ def _read_well_substrate() -> dict[str, Any]:
     if state is None:
         return {"status": "unavailable", "coupled_verdict": "CAUTION", "source": "all_paths_failed"}
 
-    _ws = state.get("well_score", 50.0)
+    _ws = state.get("well_score", None)
     try:
-        well_score = 50.0 if _ws is None else float(_ws)
+        well_score = None if _ws is None else float(_ws)
     except (TypeError, ValueError):
-        well_score = 50.0
+        well_score = None
     floors_violated: list = state.get("floors_violated", []) or []
     metrics: dict = state.get("metrics") or {}
     truth_status: str = state.get("truth_status", "UNVERIFIED")
@@ -351,6 +355,8 @@ def _read_well_substrate() -> dict[str, Any]:
     )
 
     if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED"):
+        human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
+    elif well_score is None:
         human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
     elif floors_violated:
         human_ready, coupled_verdict = "DEGRADED", "HOLD"
@@ -3361,7 +3367,14 @@ async def arif_judge(
         else:
             result = await judge_coro
         elapsed_ms = (time_module.monotonic() - t_judge_start) * 1000
-        within_budget = True
+        # EEE fix: within_budget must be able to FAIL. Unbounded budget
+        # (max_latency_ms <= 0) has no budget to exceed → True. Bounded
+        # budget → True only if elapsed stays under the cap.
+        within_budget = (
+            budget is None
+            or budget.max_latency_ms <= 0
+            or elapsed_ms <= budget.max_latency_ms
+        )
     except TimeoutError:
         elapsed_ms = budget.max_latency_ms  # killed at deadline
         within_budget = False

@@ -56,7 +56,7 @@ def get_biological_readiness() -> dict[str, Any]:
         return {
             "ok": False,
             "verdict": "UNKNOWN",
-            "well_score": 50.0,
+            "well_score": None,
             "bandwidth": "NORMAL",
             "message": "WELL substrate offline or state missing.",
             "sabar_advisory": False,
@@ -66,18 +66,23 @@ def get_biological_readiness() -> dict[str, Any]:
         with open(WELL_STATE_PATH) as f:
             state = json.load(f)
 
-        raw_score = state.get("well_score", 50.0)
-        # Null-safe: well_score may be explicit null in state.json
+        raw_score = state.get("well_score", None)
+        # Null-safe: well_score may be explicit null in state.json.
+        # None (unmeasured) stays None — never fabricated into a number.
         try:
-            score = 50.0 if raw_score is None else float(raw_score)
+            score = None if raw_score is None else float(raw_score)
         except (TypeError, ValueError):
-            score = 50.0
+            score = None
         violations = state.get("floors_violated") or []
         if not isinstance(violations, list):
             violations = []
 
         # Readiness logic (mirrors WELL/server.py:well_readiness)
-        if violations:
+        if score is None:
+            verdict = "UNKNOWN"
+            bandwidth = "NORMAL"
+            sabar_advisory = False
+        elif violations:
             verdict = "DEGRADED"
             bandwidth = "RESTRICTED"
             sabar_advisory = True
@@ -110,7 +115,7 @@ def get_biological_readiness() -> dict[str, Any]:
             "ok": False,
             "verdict": "ERROR",
             "error": str(e),
-            "well_score": 0.0,
+            "well_score": None,
             "bandwidth": "RESTRICTED",
             "sabar_advisory": True,
         }

@@ -34,7 +34,7 @@ class TestGetBiologicalReadiness:
         readiness = get_biological_readiness()
         assert readiness["ok"] is False
         assert readiness["verdict"] == "UNKNOWN"
-        assert readiness["well_score"] == 50.0
+        assert readiness["well_score"] is None
         assert readiness["bandwidth"] == "NORMAL"
         assert readiness["sabar_advisory"] is False
 
@@ -74,7 +74,7 @@ class TestGetBiologicalReadiness:
         readiness = get_biological_readiness()
         assert readiness["ok"] is False
         assert readiness["verdict"] == "ERROR"
-        assert readiness["well_score"] == 0.0
+        assert readiness["well_score"] is None
         assert readiness["bandwidth"] == "RESTRICTED"
         assert readiness["sabar_advisory"] is True
 
