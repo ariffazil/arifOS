@@ -732,6 +732,9 @@ mcp = FastMCP(
     "ARIFOS MCP",
     version=_DEPLOY_VERSION,
     website_url="https://mcp.arif-fazil.com",
+    # D3: Mask error details — prevents Pydantic vendor URLs, internal paths,
+    # and type info from leaking to external callers (R1 fix 2026-10-16).
+    mask_error_details=True,
     # MCP logging: SEP-2577 deprecated — FastMCP may still declare logging; no expansion.
     client_log_level="warning",
     # MCP spec 2026-07-28 compliance: declare listChanged + subscribe capabilities
