@@ -28093,7 +28093,18 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     f"Use json.dumps(obj) NOT json.dumps(obj, indent=2). "
                     f"Entry preview: {_outcome_line[:120]}"
                 )
+            # 2026-10-15: append-only (+a) ledgers cannot be repaired in place,
+            # so a prior writer that left no trailing newline makes every later
+            # append GLUE onto that line — two JSON objects, one physical line,
+            # unparseable. Self-heal before appending rather than assume.
+            _needs_nl = (
+                os.path.exists(_outcomes_path)
+                and os.path.getsize(_outcomes_path) > 0
+                and open(_outcomes_path, "rb").read()[-1:] != b"\n"
+            )
             with open(_outcomes_path, "a") as _f:
+                if _needs_nl:
+                    _f.write("\n")
                 _f.write(_outcome_line + "\n")
         except Exception as e:
             logger.debug(f"outcomes.jsonl write failed: {e}")
@@ -28446,7 +28457,18 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     f"Use json.dumps(obj) NOT json.dumps(obj, indent=2). "
                     f"Entry preview: {_outcome_line[:120]}"
                 )
+            # 2026-10-15: append-only (+a) ledgers cannot be repaired in place,
+            # so a prior writer that left no trailing newline makes every later
+            # append GLUE onto that line — two JSON objects, one physical line,
+            # unparseable. Self-heal before appending rather than assume.
+            _needs_nl = (
+                os.path.exists(_outcomes_path)
+                and os.path.getsize(_outcomes_path) > 0
+                and open(_outcomes_path, "rb").read()[-1:] != b"\n"
+            )
             with open(_outcomes_path, "a") as _f:
+                if _needs_nl:
+                    _f.write("\n")
                 _f.write(_outcome_line + "\n")
         except Exception as e:
             logger.debug(f"outcomes.jsonl write failed: {e}")
