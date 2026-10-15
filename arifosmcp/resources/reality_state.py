@@ -144,7 +144,7 @@ def _probe_digital() -> dict[str, Any]:
 
     # ── MCP surface — counts from the live tool surface ──────────────────
     result["mcp_surface"] = {
-        "protocol": "MCP 2025-11-25",
+        "protocol": "MCP 2026-07-28",  # SOT: arifosmcp/runtime/public_surface.py::MCP_SPEC_VERSION_STATELESS
         "transport": "streamable-http",
         "canonical_tools": len(CANONICAL_TOOLS),
         "diagnostic_tools": len(DIAGNOSTIC_TOOLS),

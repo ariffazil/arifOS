@@ -2963,9 +2963,17 @@ def _compute_canonical_verdict(
         if isinstance(_rp, dict):
             _rp.setdefault("implementation", "UNMEASURED")
             _rp.setdefault("evidence_used", [])
+            # Claim-tense fix (333-AGI 2026-10-15): an empty payload is a
+            # MEASUREMENT of emptiness, not a finding of non-implementation.
+            # Cause may be handler-empty OR transport/concurrency drop (see
+            # kernel journal: "Exceeded concurrency limit" / "No response
+            # returned"). Never claim the stronger cause without evidence.
             _rp.setdefault(
                 "note",
-                "UNMEASURED-not-implemented — hollow reason payload cannot support success",
+                "UNMEASURED — empty payload; cause not established "
+                "(handler-empty OR transport/concurrency drop). "
+                "Not a finding of non-implementation. Retry once; "
+                "check kernel journal before concluding.",
             )
 
     # ── Step 2: Sub-gate verdicts ─────────────────────────────────────────

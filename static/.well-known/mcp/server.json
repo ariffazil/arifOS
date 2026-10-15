@@ -7,7 +7,7 @@
     "version": "2026.07.24"
   },
   "profile": "public_agent",
-  "protocolVersion": "2025-11-25",
+  "protocolVersion": "2026-07-28",
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional Kernel",

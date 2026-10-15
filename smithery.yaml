@@ -5,7 +5,7 @@ display_name: "arifOS — Constitutional Intelligence Kernel"
 description: "Platform-neutral governed capability surface."
 category: governance
 subcategory: ai-safety
-mcp_version: "2025-11-25"
+mcp_version: "2026-07-28"
 transport: streamable_http
 profile: public_agent
 kernel_capability_count: 8
