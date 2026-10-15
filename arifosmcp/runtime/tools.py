@@ -22348,6 +22348,28 @@ async def _arif_vault_seal_tool(
             )
         except Exception:
             logger.exception("suppressed exception", exc_info=True)
+    # ── L11 AUTH: session gate (W1 fix 2026-10-15) ───────────────────────────
+    # arif_seal wrapper — reject unbound callers before any vault operation.
+    from arifosmcp.runtime.session_auth import validate_session as _vs_seal
+
+    _auth_seal = _vs_seal(session_id, actor_id, session_token=session_token)
+    if not _auth_seal.get("valid"):
+        return {
+            "status": "HOLD",
+            "tool": "arif_seal",
+            "verdict": "HOLD",
+            "reasons": [_auth_seal.get("reason", "L11 AUTH: session required")],
+            "next_safe_action": "Call arif_init(mode='init') first to bind a session.",
+            "actor_id": actor_id or "anonymous",
+            "session_id": session_id or "anonymous-session",
+            "mutation_allowed": False,
+            "meta": {
+                "reason": _auth_seal.get("reason", "L11 AUTH: session required"),
+                "violated_laws": ["L11"],
+                "failure_type": "ARIF_SESSION_NOT_FOUND",
+            },
+        }
+
     try:
         # Verify mode is read-only — no irreversible ack needed
         if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit"):

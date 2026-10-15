@@ -82,7 +82,29 @@ def _read_commit_stamp() -> str:
 
 
 def _full_source_commit() -> str:
-    """Return the source repository commit (git HEAD)."""
+    """Return the source commit that produced the running binary.
+
+    Priority: deployed-commit stamp (what was actually built and deployed)
+    → release manifest git_commit → git HEAD (working directory).
+    Git HEAD is LAST because the working directory may be on a different
+    branch than what was deployed (e.g. test branches), causing false
+    drift detection in get_runtime_attestation().
+    """
+    # 1. Deployed commit stamp — written by deploy-release.sh at deploy time
+    value = _read_commit_stamp()
+    if value != "unknown":
+        return value
+    # 2. Release manifest
+    release_manifest = Path("/opt/arifos/releases/release-manifest.json")
+    if release_manifest.exists():
+        try:
+            data = json.loads(release_manifest.read_text())
+            commit = data.get("git_commit")
+            if commit and len(commit) >= 7:
+                return commit
+        except Exception:
+            pass
+    # 3. Git HEAD — last resort (may be on wrong branch)
     git_head = Path("/root/arifOS/.git/HEAD")
     try:
         value = git_head.read_text().strip()
@@ -94,9 +116,7 @@ def _full_source_commit() -> str:
             return value
     except OSError:
         pass
-    # Fallback to deployed stamp if source git repo is unavailable (e.g. isolated container)
-    value = _read_commit_stamp()
-    return value if value != "unknown" else "unknown"
+    return "unknown"
 
 
 def _full_deployed_commit() -> str:
