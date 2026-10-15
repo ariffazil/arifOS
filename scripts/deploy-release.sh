@@ -15,6 +15,31 @@
 
 set -euo pipefail
 
+# ── DP-C: deploy mutual exclusion (2026-10-15) ───────────────────────
+# On 2026-10-15 two agents each ran build+install into $ACTIVE_VENV
+# within 3 minutes of each other. BUILD_DIR is PID-scoped so the builds
+# did not collide — but `pip install` into the SHARED venv and the
+# arifOS restart did, and neither agent knew the other existed. This
+# lock makes a second concurrent deploy WAIT rather than interleave.
+#
+# Fail-CLOSED with a timeout: refusing is the safe answer for a
+# production venv, but a wedged lock must never block deploys forever,
+# so we wait a bounded time and then exit with a distinct code.
+# Exit 3 == "another deploy owns the venv", not "deploy failed".
+DEPLOY_LOCK="${TMPDIR:-/tmp}/arifos-deploy.lock"
+LOCK_WAIT_SECS="${ARIFOS_DEPLOY_LOCK_WAIT:-300}"
+if command -v flock >/dev/null 2>&1; then
+	exec 9>"$DEPLOY_LOCK"
+	if ! flock -w "$LOCK_WAIT_SECS" 9; then
+		echo "FATAL: another deploy holds $DEPLOY_LOCK (waited ${LOCK_WAIT_SECS}s)." >&2
+		echo "       If you are certain none is running: rm -f $DEPLOY_LOCK" >&2
+		exit 3
+	fi
+	echo "✓ deploy lock acquired ($DEPLOY_LOCK)"
+else
+	echo "⚠️  flock unavailable — proceeding WITHOUT mutual exclusion." >&2
+fi
+
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SELF_DIR/.." && pwd)"
 # ONE_ORIGIN (2026-09-16): the production venv lives at
