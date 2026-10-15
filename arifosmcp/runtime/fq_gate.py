@@ -22,15 +22,106 @@ Rules (ratified contract + live ledger semantics):
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import pathlib
 import urllib.request
 
 logger = logging.getLogger(__name__)
 
 ARIFFLOW_HEALTH_URL = "http://127.0.0.1:7073/health"
-FQ_OBSERVE_ONLY_BELOW = 0.5          # fq_policy.yaml policy.thresholds.observe_only_below
 CAP_VERDICTS = ("STUCK", "BURNING")  # execute outruns verify
+
+# F13_RATIFIED_CHAT 2026-09-12 said "ratify + wire". Until 2026-10-15 the
+# contract file existed but this module bound the number itself, so editing
+# fq_policy.yaml changed nothing at runtime — a ratified contract that bound
+# nothing. The ratified contract is now the source of truth for THIS plane,
+# read once at import (same startup-read contract as stateless_era.py: the
+# process reports the environment it actually loaded).
+#
+# The Rust daemon (arifFlow) and the TS executor gate (A-FORGE gateToolByFq)
+# still carry their own literals; they are cross-language and cannot read YAML
+# at runtime. They are out of scope for this plane and remain a known gap —
+# FQ_POLICY_BOUND_PLANES below says so out loud rather than implying full
+# federation binding.
+FQ_POLICY_FILENAME = "fq_policy.yaml"
+FQ_POLICY_FALLBACK = {
+    "observe_only_below": 0.5,
+    "healthy_min": 0.5,
+    "formula_hash": None,
+}
+
+
+def _policy_path() -> pathlib.Path:
+    """Resolve the shipped contract next to the installed `contracts` package.
+
+    Prefers the installed wheel copy (what the deployed process actually has)
+    over the source tree, so an editable YAML in the repo cannot silently
+    diverge from the artifact in the venv.
+    """
+    try:
+        import contracts  # noqa: PLC0415 — optional at import time by design
+
+        cand = pathlib.Path(contracts.__file__).parent / FQ_POLICY_FILENAME
+        if cand.is_file():
+            return cand
+    except Exception:  # noqa: BLE001
+        pass
+    return pathlib.Path(__file__).resolve().parents[2] / "contracts" / FQ_POLICY_FILENAME
+
+
+def _load_policy() -> dict:
+    """Read the ratified thresholds once, at import. Never at call time."""
+    path = _policy_path()
+    try:
+        raw = path.read_bytes()
+        import yaml  # noqa: PLC0415
+
+        doc = yaml.safe_load(raw) or {}
+        pol = doc.get("policy") or {}
+        thr = pol.get("thresholds") or {}
+        obs = thr.get("observe_only_below")
+        healthy = thr.get("healthy_min")
+        if not isinstance(obs, (int, float)) or isinstance(obs, bool):
+            raise ValueError(f"observe_only_below is not numeric: {obs!r}")
+        return {
+            "observe_only_below": float(obs),
+            "healthy_min": float(healthy) if isinstance(healthy, (int, float)) else FQ_POLICY_FALLBACK["healthy_min"],
+            "formula_hash": pol.get("formula_hash"),
+            "source": str(path),
+            "sha256": hashlib.sha256(raw).hexdigest(),
+            "status": "LOADED",
+            "error": None,
+        }
+    except Exception as exc:  # noqa: BLE001 — never brick the kernel on a bad contract
+        logger.error("fq_gate: could not read %s (%s) — falling back to ratified literal 0.5", path, exc)
+        return {
+            **FQ_POLICY_FALLBACK,
+            "source": str(path),
+            "sha256": None,
+            "status": "FALLBACK_LITERAL",
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+
+FQ_POLICY = _load_policy()
+FQ_POLICY_SOURCE = FQ_POLICY["source"]
+FQ_POLICY_SHA256 = FQ_POLICY["sha256"]
+FQ_POLICY_STATUS = FQ_POLICY["status"]
+FQ_POLICY_ERROR = FQ_POLICY["error"]
+FQ_OBSERVE_ONLY_BELOW = FQ_POLICY["observe_only_below"]
+FQ_HEALTHY_MIN = FQ_POLICY["healthy_min"]
+FQ_POLICY_FORMULA_HASH = FQ_POLICY["formula_hash"]
+FQ_POLICY_BOUND_PLANES = ("arifOS kernel (this module)",)
+
+logger.info(
+    "fq_gate: policy %s from %s#%s (formula_hash=%s)",
+    FQ_POLICY_STATUS,
+    FQ_POLICY_SOURCE,
+    (FQ_POLICY_SHA256 or "none")[:16],
+    FQ_POLICY_FORMULA_HASH,
+)
 
 
 def _candidate_lanes(per_actor: dict, actor_id: str) -> list:
@@ -82,6 +173,9 @@ def metabolic_cap(
         "reason": None,
         "source": "arifFlow :7073/health",
         "policy": f"fq_policy.yaml F13_RATIFIED 2026-09-12 floor={FQ_OBSERVE_ONLY_BELOW}",
+        "policy_source": FQ_POLICY_SOURCE,
+        "policy_sha256": FQ_POLICY_SHA256,
+        "policy_status": FQ_POLICY_STATUS,
     }
     if not actor_id or is_sovereign_principal:
         state["fq_outcome"] = "SOVEREIGN_EXEMPT" if is_sovereign_principal else "NO_ACTOR"
