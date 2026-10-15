@@ -1652,22 +1652,45 @@ if IS_FASTMCP_3:
                         actor_id=str(_actor) if _actor and _actor != "anonymous" else None,
                         act_sid=str(_sess) if _sess and _sess != "unknown" else None,
                     ) as _ingress_tctx:
-                        result = await call_next(context)
+                        try:
+                            result = await call_next(context)
+                        except Exception as _call_exc:
+                            # ── D3: Intercept Pydantic validation errors ──
+                            # FastMCP raises ValidationError on bad input; the raw
+                            # message leaks vendor URLs. Catch, sanitize, return.
+                            _exc_text = str(_call_exc)
+                            _clean = _sanitize_pydantic_error(_exc_text)
+                            if _clean is not None:
+                                try:
+                                    from fastmcp.server.middleware.middleware import (
+                                        ToolResult as _TR,
+                                    )
+                                    from mcp.types import TextContent as _TC
 
-                    # ── D3: Sanitize Pydantic validation errors (R1 fix) ──
-                    # Raw Pydantic errors leak vendor URLs and internal paths.
+                                    result = _TR(
+                                        content=[_TC(type="text", text=_clean)],
+                                        is_error=True,
+                                    )
+                                except Exception:
+                                    # Fallback: re-raise original if ToolResult unavailable
+                                    raise _call_exc from _call_exc
+                            else:
+                                raise _call_exc from _call_exc
+
+                    # ── D3: Also sanitize Pydantic errors in successful results ──
+                    # Some code paths return isError ToolResult instead of raising.
                     if result and getattr(result, "is_error", False):
                         try:
                             from mcp.types import TextContent as _TC
 
                             for _ci, _item in enumerate(getattr(result, "content", []) or []):
                                 if hasattr(_item, "text") and _item.text:
-                                    _clean = _sanitize_pydantic_error(_item.text)
-                                    if _clean is not None:
-                                        result.content[_ci] = _TC(type="text", text=_clean)
+                                    _clean2 = _sanitize_pydantic_error(_item.text)
+                                    if _clean2 is not None:
+                                        result.content[_ci] = _TC(type="text", text=_clean2)
                                         break
                         except Exception:
-                            pass  # never break tool dispatch on sanitization failure
+                            pass
 
                     if result:
                         if hasattr(result, "structured_content") and isinstance(
