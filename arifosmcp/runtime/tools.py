@@ -3703,7 +3703,10 @@ async def APEX_JUDGE(  # noqa: N802
 
 
 async def VAULT_SEAL(  # noqa: N802
-    verdict: Any = None, evidence: Any = None, ctx: Any | None = None, **kwargs: Any
+    verdict: Any = None,
+    evidence: dict | list | str | None = None,
+    ctx: Any | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("VAULT_SEAL", verdict=verdict, evidence=evidence, **kwargs)
@@ -7129,22 +7132,37 @@ async def _synthesize_async(
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
         "Perform bounded constitutional reasoning on the query.\n"
         "Ground every conclusion in L02 (Truth), L07 (Humility), L08 (Genius).\n"
-        "Keep confidence ≤ 0.85 per L07 Humility calibration band.\n\n"
+        "Keep confidence ≤ 0.85 per L07 Humility calibration band.\n"
+        "LANGUAGE REGISTER (2026-10-15): emit ALL text fields in Bahasa Malaysia\n"
+        "(baku Malaysia) — never Indonesian forms: karena→kerana, bisa→boleh,\n"
+        "kamu→awak, bilang→beritahu, inggris→inggeris.\n\n"
         "EVIDENCE GROUNDING (F2 TRUTH, P0 2026-09-27): If an EVIDENCE BLOCK is\n"
         "present in the user prompt, every claim in `what_is_supported` MUST be\n"
         "traceable to an entry in that block. Claims without supporting evidence\n"
         "MOVE to `what_is_not_supported` with an [UNGROUNDED] label. NEVER\n"
         "fabricate evidence references. If the EVIDENCE BLOCK is empty or absent,\n"
-        "treat ALL claims as [UNGROUNDED] and lower overall_confidence accordingly.\n\n"
+        "treat unsupported ASSERTIONS as [UNGROUNDED] and lower overall_confidence\n"
+        "accordingly.\n\n"
+        "PREMISE HANDLING (F2 scope rule, Epistemic Invariant §0.2 — 2026-10-15):\n"
+        'Hypothetical questions (kalau / jika / andaikan / suppose / "if ... then")\n'
+        "carry GIVEN premises — assumptions granted for the sake of argument.\n"
+        "Extract them into `premises[]`. GIVEN premises are NOT claims: they are\n"
+        "EXEMPT from [UNGROUNDED], receive NO evidence weight (neither positive\n"
+        "nor negative), and must NOT appear in what_is_supported or\n"
+        "what_is_not_supported. Conclusions resting on them are CONDITIONAL —\n"
+        'phrase as "JIKA <premis> MAKA ...". Record each premise\'s own\n'
+        "verification status inside what_remains_unknown. Never refuse the\n"
+        "conditional question itself; answer it under its premises.\n\n"
         "Return ONLY JSON with this exact structure:\n"
         "{\n"
-        '  "bounded_answer": "one-sentence constitutional understanding",\n'
+        '  "bounded_answer": "one-sentence constitutional understanding (conditional if premises given)",\n'
+        '  "premises": ["given premises extracted from the query (empty if none)"],\n'
         '  "what_is_supported": ["list of supported claims"],\n'
         '  "what_is_not_supported": ["list of unsupported claims"],\n'
         '  "what_remains_unknown": ["list of unknown claims"],\n'
         '  "confidence_reasoning": 0.0-1.0,\n'
         '  "confidence_evidence": 0.0-1.0,\n'
-        '  "overall_confidence": 0.0-1.0 (must be ≤ 0.85)\n'
+        '  "overall_confidence": decimal NUMBER 0.0-1.0 (must be ≤ 0.85; never a word like "rendah")\n'
         "}"
     )
     # P0 FIX 2026-09-27: thread evidence into user prompt as EVIDENCE BLOCK.
@@ -7166,6 +7184,7 @@ async def _synthesize_async(
         "type": "object",
         "properties": {
             "bounded_answer": {"type": "string"},
+            "premises": {"type": "array", "items": {"type": "string"}},
             "what_is_supported": {"type": "array", "items": {"type": "string"}},
             "what_is_not_supported": {"type": "array", "items": {"type": "string"}},
             "what_remains_unknown": {"type": "array", "items": {"type": "string"}},
@@ -7191,11 +7210,34 @@ async def _synthesize_async(
         )
         parsed = envelope.parsed_output
 
-        # F7 Humility hard-cap
-        capped = min(parsed.get("overall_confidence", 0.85), 0.85)
-        parsed["overall_confidence"] = capped
+        # F7 Humility hard-cap (2026-10-15 hardening): reasoning models
+        # occasionally emit a Malay word ("rendah") instead of a number —
+        # min() on a str raises TypeError and silently drops a VALID answer
+        # back into template fallback. Coerce non-numeric confidence to None
+        # (honest absence) instead of fabricating or crashing.
+        _oc = parsed.get("overall_confidence")
+        if isinstance(_oc, bool) or not isinstance(_oc, (int, float)):
+            parsed["overall_confidence"] = None
+        else:
+            parsed["overall_confidence"] = min(_oc, 0.85)
+        for _ck in ("confidence_reasoning", "confidence_evidence"):
+            _cv = parsed.get(_ck)
+            if isinstance(_cv, bool) or not isinstance(_cv, (int, float)):
+                parsed[_ck] = None
 
         if parsed.get("bounded_answer"):
+            # Reasoning provenance (F13 "ok go" 2026-10-15): the public reason
+            # path must disclose HOW the answer was produced — LIVE_MODEL vs
+            # FALLBACK_TEMPLATE, provider, model, latency. Fluent text is not
+            # proof of a healthy cascade (frontier-model-audit rule).
+            parsed["reasoning_provenance"] = {
+                "path": "LIVE_MODEL",
+                "provider": getattr(envelope, "provider", None),
+                "model": getattr(envelope, "model", None),
+                "tool_origin": getattr(envelope, "tool_origin", "arif_think"),
+                "latency_ms": getattr(envelope, "latency_ms", None),
+                "mode": reasoning_mode,
+            }
             return parsed
 
     except LLMUnavailableError as e:
@@ -7237,6 +7279,10 @@ async def _synthesize_async(
     # backing produces empty evidence. Confidence 0.65 → 0.15 cap.
     text = _synthesize(query, reasoning_mode)
     ql = (query or "").strip().lower()
+    # Premise Ledger (2026-10-15): offline fallback still honors GIVEN premises —
+    # echo them rather than mislabeling them as claims.
+    _premise_markers = ("kalau", "jika", "andaikan", "suppose", "given that", "premis")
+    _has_premise = any(m in ql for m in _premise_markers)
     if any(k in ql for k in ["why", "how", "explain", "cause", "reason"]):
         domain = "explanatory"
     elif any(
@@ -7257,9 +7303,19 @@ async def _synthesize_async(
         f"[SPEC] {query or 'query'} (pending live model verification)",
         "[UNK] Offline template fallback active — live LLM cascade degraded",
     ]
+    if _has_premise:
+        what_remains_unknown.append(
+            "[UNK] Hypothetical premise detected — its own truth status is UNVERIFIED "
+            "(given, not observed); conditional answer withheld until live model returns"
+        )
 
     return {
         "bounded_answer": text,
+        "premises": (
+            ["(hypothetical premise in query — offline fallback echoes, does not extract)"]
+            if _has_premise
+            else []
+        ),
         "what_is_supported": what_is_supported,
         "what_is_not_supported": what_is_not_supported,
         "what_remains_unknown": what_remains_unknown,
@@ -7274,6 +7330,14 @@ async def _synthesize_async(
         "confidence_evidence": 0.05,
         "overall_confidence": 0.15,
         "confidence_provenance": "DERIVED",
+        "reasoning_provenance": {
+            "path": "FALLBACK_TEMPLATE",
+            "provider": None,
+            "model": None,
+            "tool_origin": "arif_think",
+            "latency_ms": None,
+            "mode": reasoning_mode,
+        },
         "degraded_state": "DEGRADED_DISPATCH",
     }
 
@@ -10402,11 +10466,14 @@ def _arif_session_init(
     #   {"timezone": str|None, "spatial_context": str|None,
     #    "host_id": str|None, "inside_outside": "inside"|"remote"|"unknown",
     #    "memory_requested": bool, "memory_window": ["today","yesterday"]|None}
-    evidence: dict | None = None,
+    evidence: dict | list[dict[str, str]] | None = None,
     #   {"mode": "strict"|"standard"|"exploratory",
     #    "godel_lock": bool, "obs_der_int_spec": bool,
     #    "uncertainty_required": bool}
-    tooling: dict | None = None,
+    # INPUT-CONTRACT FIX 2026-10-15: doc promises a list of {fact, source}
+    # — signature now accepts both the documented list form and the
+    # internal object form. Doc and schema must never disagree (F4).
+    tooling: dict | list[str] | None = None,
     #   {"requested_capabilities": [str], "declared_mcp_targets": [str]}
     # ── GAP-C: AgentPolicy integration (forged 2026-06-09 by Ω) ──────────────
     agent_policy: dict | None = None,
@@ -14682,7 +14749,9 @@ def _arif_mind_reason(
 
     if mode == "wonder":
         # SUNSHINE CHILD: CANDIDATE ONLY — not evidence, not verdict.
-        # Generates naive questions, strange connections, metaphors.
+        # Registers the caller's wondering VERBATIM as a store candidate.
+        # No kernel-side generation (kernel stays deterministic): the
+        # calling agent explores, the kernel witnesses and firewalls.
         # Firewalled from judge/seal/forge — must pass Jauhari first.
         # The candidate is registered in the authoritative CandidateStore
         # with a SERVER-GENERATED ID. The model NEVER invents candidate_id,
@@ -14720,8 +14789,9 @@ def _arif_mind_reason(
                 "allowed_next": ["arif_think:critique", "arif_observe"],
                 "blocked": ["arif_judge", "arif_seal", "arif_forge", "arif_think:verify"],
                 "message": (
-                    "CANDIDATE ONLY — generated through exploratory play. "
-                    "Candidate registered in authoritative store. "
+                    "CANDIDATE_ONLY — query registered verbatim as candidate. "
+                    "Kernel-side generation is NOT implemented (deterministic kernel; "
+                    "the calling agent explores, the kernel witnesses). "
                     "Must pass Jauhari (arif_think:critique) before proceeding "
                     "to verification, judgment, or execution."
                 ),
@@ -15389,6 +15459,7 @@ async def _arif_mind_reason_tool(
     plan_id: str | None = None,
     witness_type: str = "ai",
     ctx: Context | None = None,
+    concise: bool = True,
 ) -> dict[str, Any]:
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
@@ -15510,6 +15581,9 @@ async def _arif_mind_reason_tool(
                     "what_is_supported": synthesis.get("what_is_supported", []),
                     "what_is_not_supported": synthesis.get("what_is_not_supported", []),
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
+                    # Premise Ledger + provenance surfacing (F13 "ok go" 2026-10-15):
+                    "premises": synthesis.get("premises", []),
+                    "reasoning_provenance": synthesis.get("reasoning_provenance", None),
                     "epistemic_labels": synthesis.get(
                         "epistemic_labels",
                         {
@@ -15538,7 +15612,9 @@ async def _arif_mind_reason_tool(
                     "confidence_evidence": synthesis.get("confidence_evidence", None),
                     "confidence_provenance": synthesis.get("confidence_provenance", "OBSERVED"),
                     "claim_state": synthesis.get("claim_state", "CLAIM"),
-                    "reasoning_verdict": synthesis.get("verdict", "SEAL"),
+                    # 2026-10-15: default "SEAL"→"REASONED" — a quality label must
+                    # never borrow a constitutional verdict token as its fallback.
+                    "reasoning_verdict": synthesis.get("verdict", "REASONED"),
                     "evidence_used": synthesis.get("what_is_supported", []),
                     "inferences": synthesis.get(
                         "inferences", synthesis.get("what_is_supported", [])
@@ -15560,6 +15636,21 @@ async def _arif_mind_reason_tool(
                     "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
                 },
             }
+            # ── INCREMENT-2 hygiene (2026-10-14): concise diet for arif_think ──
+            # Default concise=True emits only essential fields; pass
+            # concise=False for full AGI-readiness payload. Trims the
+            # 4.3KB result.result sub-dict to ~0.6KB.
+            if concise:
+                result["result"] = {
+                    "query": query,
+                    "synthesis": synthesis.get("bounded_answer", ""),
+                    "confidence": synthesis.get("overall_confidence", None),
+                    "claim_state": synthesis.get("claim_state", "CLAIM"),
+                    # 2026-10-15: default "SEAL"→"REASONED" — a quality label must
+                    # never borrow a constitutional verdict token as its fallback.
+                    "reasoning_verdict": synthesis.get("verdict", "REASONED"),
+                    "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
+                }
         except TimeoutError:
             _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
             logger.warning(
@@ -15606,6 +15697,19 @@ async def _arif_mind_reason_tool(
                     ),
                 },
             }
+            # INCREMENT-2: concise diet (same pattern as the LLM path above)
+            if concise:
+                result["result"] = {
+                    "mode": mode,
+                    "query": query,
+                    "synthesis": f"Cognitive processing timeout after {_think_budget_s}s. Template synthesis active.",
+                    "confidence": 0.10,
+                    "claim_state": "UNKNOWN",
+                    "reasoning_verdict": "HOLD",
+                    "degraded_state": DEGRADED_REASONING_STATES.get(
+                        "DEGRADED_TIMEOUT", "DEGRADED_TIMEOUT"
+                    ),
+                }
         except Exception as _exc:
             logger.warning(
                 "333_MIND cognitive module unavailable (%s); rule fallback active",
@@ -27469,9 +27573,47 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     return _k
         return None
 
+    # ── INPUT CONTRACT GATE (2026-10-15) — mode-conditional minimums ──────
+    # Single chokepoint enforcement of per-mode required params. The
+    # advertised schema stays all-optional (wire back-compat); the contract
+    # lives in runtime/input_contract.py — the one owner of this truth.
+    def _input_contract_gate(tool: str, kw: dict[str, Any]) -> dict[str, Any] | None:
+        from arifosmcp.runtime.input_contract import enforce as _ic_enforce
+        from arifosmcp.runtime.input_contract import missing_params as _ic_missing
+
+        msg = _ic_enforce(tool, kw)
+        if msg is None:
+            return None
+        # R3 (input-contract hardening 2026-10-15): name the missing fields
+        # STRUCTURALLY, not only in prose — same truth as the message, from
+        # the same single source (missing_params mirrors enforce).
+        return {
+            "status": "HOLD",
+            "result": {},
+            "meta": {
+                "reason": msg,
+                "failure_type": "MISSING_REQUIRED_INPUT",
+                "error_code": "MISSING_INPUT",
+                "missing_fields": _ic_missing(tool, kw),
+                "violated_laws": ["F4_CLARITY"],
+            },
+        }
+
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # INPUT CONTRACT — cheapest, most actionable check runs first.
+        _ic_resp = _input_contract_gate(tool_name, kwargs)
+        if _ic_resp is not None:
+            final_resp = _enforce_nine_signal(
+                tool_name,
+                _ic_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            return _sanitize_envelope(final_resp)
 
         # ── F12 INJECTION MEMBRANE — pre-execution scan ─────────────────
         _hit_field = _membrane_scan(kwargs, tool_name)
@@ -27928,6 +28070,18 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # INPUT CONTRACT — cheapest, most actionable check runs first.
+        _ic_resp = _input_contract_gate(tool_name, kwargs)
+        if _ic_resp is not None:
+            final_resp = _enforce_nine_signal(
+                tool_name,
+                _ic_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            return _sanitize_envelope(final_resp)
 
         # ── P0 FIX: Session context propagation (2026-07-12) ─────────────────────
         # P0-A SESSION ISOLATION (2026-07-17): pass caller actor_id

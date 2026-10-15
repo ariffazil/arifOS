@@ -240,7 +240,9 @@ _COMMON_PARAM_DOCS: dict[str, str] = {
         "Your agent identity, e.g. 'kimi-code/FI-008' or 'claude/sonnet'. Recorded "
         "in the audit log so this action is attributed to you."
     ),
-    "_envelope": "Reserved for the transport layer — never fill this in.",
+    # _envelope REMOVED from advertised surface 2026-10-15 (input-contract
+    # patch): transport-owned params are not caller contract. Code still
+    # accepts it; the schema simply stops advertising it.
     "nonce": (
         "One-time random string (e.g. a UUID) making this request unique; "
         "protects against replay of the same call."
@@ -283,8 +285,7 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "artifacts and cannot be deleted afterwards."
         ),
         "epoch_id": (
-            "Optional id grouping related sessions into one long-running epoch, "
-            "e.g. '2026-H2-ops'."
+            "Optional id grouping related sessions into one long-running epoch, e.g. '2026-H2-ops'."
         ),
         "previous_session_hash": (
             "Hash string returned when your previous session closed; supplying it "
@@ -296,28 +297,30 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         ),
         "counterparty": (
             "JSON describing the other party in a two-agent exchange, e.g. "
-            '{\"agent_id\": \"hermes/1\", \"role\": \"verifier\"}.'
+            '{"agent_id": "hermes/1", "role": "verifier"}.'
         ),
         "context": (
             "JSON object of background facts to bind into the session, e.g. "
-            '{\"repo\": \"arifOS\", \"task\": \"fix-tests\"}.'
+            '{"repo": "arifOS", "task": "fix-tests"}.'
         ),
         "evidence": (
             "JSON list of facts you have already verified, e.g. "
-            '[{\"fact\": \"pytest 299 passed\", \"source\": \"CI run\"}] — '
-            "carried into the session record."
+            '[{"fact": "pytest 299 passed", "source": "CI run"}] — '
+            "carried into the session record. Also accepts a single object."
         ),
         "tooling": (
-            "JSON list of the tools you can use, e.g. [\"Bash\", \"Read\"] — "
-            "lets the kernel scope what it will permit you."
+            'JSON list of the tools you can use, e.g. ["Bash", "Read"] — '
+            "lets the kernel scope what it will permit you. Also accepts an "
+            'object like {"requested_capabilities": [...]}.'
         ),
         "agent_policy": (
             "JSON constraints on your own behavior, e.g. "
-            '{\"autonomy\": \"reversible_only\", \"forbidden\": [\"git push\"]}.'
+            '{"autonomy": "reversible_only", "forbidden": ["git push"]}.'
         ),
         "intent": (
-            "Plain-language statement of what this session is for, e.g. "
-            "'repair the failing MCP tests'. Recorded for audit."
+            "Required. Plain-language statement of what this session is for, e.g. "
+            "'repair the failing MCP tests'. A session without a stated purpose "
+            "is refused (F1 Amanah). Recorded for audit."
         ),
         "requested_authority": (
             "The highest class of action you may take: 'OBSERVE_ONLY' (read-only, "
@@ -325,8 +328,7 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         ),
         "verbose": "Legacy on/off verbosity ('true'/'false'); prefer verbosity.",
         "verbosity": (
-            "How detailed responses should be: 'minimal' (default), 'standard', "
-            "or 'full'."
+            "How detailed responses should be: 'minimal' (default), 'standard', or 'full'."
         ),
         "caller_actor_id": (
             "If you are calling on behalf of another agent, that agent's id — "
@@ -340,20 +342,18 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "Identifier of the human principal you act for, when acting under "
             "their explicit delegation."
         ),
-        "delegation_mode": (
-            "Contract governing delegated calls, e.g. 'read_only' or 'governed'."
-        ),
+        "delegation_mode": ("Contract governing delegated calls, e.g. 'read_only' or 'governed'."),
         "payload": (
             "Extra mode-specific data as a JSON object; the mode's response tells "
             "you which fields it expects."
         ),
         "client_capabilities": (
             "JSON declaring what your client supports, e.g. "
-            '{\"transports\": [\"http\"], \"protocol\": \"2025-11-25\"}.'
+            '{"transports": ["http"], "protocol": "2025-11-25"}.'
         ),
         "auth_context": (
             "JSON carrying external authentication material, e.g. "
-            '{\"token_class\": \"bearer\", \"issuer\": \"github\"} — used for gating.'
+            '{"token_class": "bearer", "issuer": "github"} — used for gating.'
         ),
     },
     "arif_observe": {
@@ -364,20 +364,13 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "'entropy_dS' — measure system change; 'vitals' — kernel machine "
             "telemetry."
         ),
-        "query": (
-            "What to look for, in plain language, e.g. 'TDQS scoring rubric MCP'."
-        ),
-        "url": (
-            "Exact URL to retrieve when mode=fetch, e.g. "
-            "'https://example.com/report.pdf'."
-        ),
+        "query": ("What to look for, in plain language, e.g. 'TDQS scoring rubric MCP'."),
+        "url": ("Exact URL to retrieve when mode=fetch, e.g. 'https://example.com/report.pdf'."),
         "layers": (
-            "Restrict where to look, e.g. [\"web\"] or [\"canon\", \"memory\"]; "
+            'Restrict where to look, e.g. ["web"] or ["canon", "memory"]; '
             "omit to search everything available."
         ),
-        "result_limit": (
-            "Maximum number of results to return in search modes; default 10."
-        ),
+        "result_limit": ("Maximum number of results to return in search modes; default 10."),
     },
     "arif_think": {
         "mode": (
@@ -388,22 +381,18 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "consolidate past reasoning; 'simulate' — what-if; 'wonder' — open "
             "exploration; 'atlas' — map the problem space."
         ),
-        "query": (
-            "The question, claim, or problem to reason about, in plain language."
-        ),
+        "query": ("The question, claim, or problem to reason about, in plain language."),
         "plan_id": (
             "Plan reference from an earlier plan-mode response — needed for the "
             "review/approve/refactor steps."
         ),
         "witness_type": (
-            "Who vouches for the reasoning record: 'ai' (default), 'human', or "
-            "'external' system."
+            "Who vouches for the reasoning record: 'ai' (default), 'human', or 'external' system."
         ),
     },
     "arif_route": {
         "contract_c_kwargs": (
-            "Extra keyword arguments passed through to the organ tool call, as a "
-            "JSON object."
+            "Extra keyword arguments passed through to the organ tool call, as a JSON object."
         ),
     },
     "arif_judge": {
@@ -414,16 +403,14 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "— refer the decision to the human owner."
         ),
         "candidate": (
-            "The action or claim being judged, stated plainly, e.g. 'delete "
-            "table users in prod'."
+            "The action or claim being judged, stated plainly, e.g. 'delete table users in prod'."
         ),
         "vault_entry_id": (
             "Id of the permanent-ledger entry this verdict should attach to "
             "(from an earlier arif_seal response)."
         ),
         "cooldown_entry_id": (
-            "Id of an existing cooling-period record to consult before this "
-            "action may proceed."
+            "Id of an existing cooling-period record to consult before this action may proceed."
         ),
         "action_tier": (
             "How risky the action is: 'standard', 'high', or 'critical' — higher "
@@ -431,38 +418,30 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         ),
         "heart_critique": (
             "JSON result of an ethics/dignity check, e.g. "
-            '{\"coercion\": false, \"dignity\": 0.9} — feeds the verdict.'
+            '{"coercion": false, "dignity": 0.9} — feeds the verdict.'
         ),
         "niat_params": (
             "JSON intent-calibration settings, e.g. "
-            '{\"sincerity\": 0.8, \"stated_goal\": \"verify the claim\"}.'
+            '{"sincerity": 0.8, "stated_goal": "verify the claim"}.'
         ),
-        "context_source": (
-            "Where the candidate came from: 'session', 'file', or 'memory'."
-        ),
+        "context_source": ("Where the candidate came from: 'session', 'file', or 'memory'."),
         "sovereign_receipt": (
             "Reference to the human owner's explicit approval, for the rare case "
             "where they have already decided directly."
         ),
         "evidence": (
             "The facts the verdict should rest on — a JSON list like "
-            '[{\"fact\": \"tests pass\", \"source\": \"CI\"}], or an object.'
+            '[{"fact": "tests pass", "source": "CI"}], or an object.'
         ),
-        "key_id": (
-            "Which of your registered keys produced actor_signature, e.g. "
-            "'key-1'."
-        ),
+        "key_id": ("Which of your registered keys produced actor_signature, e.g. 'key-1'."),
         "reversibility_level": (
-            "How hard the action would be to undo: 'reversible', 'hard', or "
-            "'irreversible'."
+            "How hard the action would be to undo: 'reversible', 'hard', or 'irreversible'."
         ),
         "blast_radius": (
-            "Who or what the action can affect: 'self', 'session', 'organ', or "
-            "'federation'."
+            "Who or what the action can affect: 'self', 'session', 'organ', or 'federation'."
         ),
         "authority_effect": (
-            "What permission a SEAL verdict would grant, e.g. 'execute forge "
-            "plan P-9'."
+            "What permission a SEAL verdict would grant, e.g. 'execute forge plan P-9'."
         ),
         "action_class": (
             "Kind of action under judgment: 'OBSERVE' (read-only), 'DRAFT' "
@@ -472,9 +451,7 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "The specific capability being requested, e.g. 'forge.execute' — "
             "checked against the capability registry."
         ),
-        "domain": (
-            "Subject area for claim evaluation, e.g. 'geoscience' or 'finance'."
-        ),
+        "domain": ("Subject area for claim evaluation, e.g. 'geoscience' or 'finance'."),
         "claim_class": (
             "Epistemic strength of the claim: 'OBS' (directly observed), 'DER' "
             "(derived from observations), 'INT' (interpreted), 'SPEC' "
@@ -484,24 +461,19 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "is false — label UNKNOWN, never FALSE."
         ),
         "claim_text": (
-            "The exact claim sentence under judgment, e.g. 'uptime exceeded 99% "
-            "in August'."
+            "The exact claim sentence under judgment, e.g. 'uptime exceeded 99% in August'."
         ),
         "actor_B": (
-            "Your calibrated confidence for a prediction, 0.0–1.0 (Brier-style "
-            "score component)."
+            "Your calibrated confidence for a prediction, 0.0–1.0 (Brier-style score component)."
         ),
         "actor_Phi": (
             "JSON map of supporting signals about you, e.g. "
-            '{\"consistency\": 0.9, \"track_record\": 0.7}.'
+            '{"consistency": 0.9, "track_record": 0.7}.'
         ),
         "entropy_pathway": (
-            "How the action changes system order: 'reduces', 'neutral', or "
-            "'increases' complexity."
+            "How the action changes system order: 'reduces', 'neutral', or 'increases' complexity."
         ),
-        "entropy_receipt": (
-            "JSON receipt from an entropy computation, bound to this judgment."
-        ),
+        "entropy_receipt": ("JSON receipt from an entropy computation, bound to this judgment."),
     },
     "arif_seal": {
         "mode": (
@@ -512,18 +484,18 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         ),
         "payload": (
             "The content to store forever, as a string (usually JSON-serialized) "
-            "— the outcome, lesson, or record itself."
+            "— the outcome, lesson, or record itself. Required for the write "
+            "modes (seal, session_close); pure reads (verify, ledger, changelog, "
+            "audit) may omit it."
         ),
         "judge_state_hash": (
             "Hash string from the arif_judge SEAL response — ties this entry to "
             "the verdict that authorized it."
         ),
-        "witness_type": (
-            "Who witnessed the sealed fact: 'ai', 'human', or 'external' system."
-        ),
+        "witness_type": ("Who witnessed the sealed fact: 'ai', 'human', or 'external' system."),
         "drift_events": (
             "JSON list of deviations observed, e.g. "
-            '[{\"what\": \"schema drift\", \"where\": \"tools/list\"}] — stored '
+            '[{"what": "schema drift", "where": "tools/list"}] — stored '
             "with the record."
         ),
         "constitutional": (
@@ -557,6 +529,83 @@ def _merge_param_docs(tool_name: str, input_schema: dict[str, Any]) -> dict[str,
         if param in merged_props and isinstance(merged_props[param], dict):
             merged_props[param] = {**merged_props[param], "description": doc}
     merged["properties"] = merged_props
+    return merged
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INPUT-CONTRACT FACADES (2026-10-15 hardening) — advertised `required` minimums
+# for arif_init / arif_forge / arif_seal. Pinned by the F13 work order
+# "harden MCP input contracts": an empty arif_seal call must not be
+# schema-valid, a session must not boot without a stated intent, and forge
+# write paths must name their manifest.
+#
+# MECHANISM (verified against the live flow, not guessed): FastMCP 4 validates
+# tools/call against the handler signature TypeAdapter — all params optional —
+# so the wire layer never hard-rejects on these declarations; per-mode
+# enforcement lives server-side in runtime/input_contract.py via the
+# _wrap_handler gate. The advertised schema is therefore the CLIENT-facing
+# contract: it declares the minimums callers should satisfy, and the handler
+# gate backstops them with structured missing_input errors.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_INPUT_CONTRACT_FACADES: dict[str, dict[str, Any]] = {
+    # 000 INIT — booting a governed session without stating its purpose is
+    # refused (schema floor: intent is a non-empty string; the handler gate
+    # additionally requires actor_id for mode=init).
+    "arif_init": {
+        "required": ["intent"],
+        "properties": {
+            "intent": {"type": "string", "minLength": 1},
+        },
+    },
+    # 999 SEAL — payload required (write modes seal/session_close need it;
+    # pure reads verify/ledger/changelog/audit remain exempt at the handler —
+    # do not over-block reads). mode='seal' (also the default) additionally
+    # requires seal_purpose: a permanent record with no stated reason is
+    # refused, mirrored here as if/then.
+    "arif_seal": {
+        "required": ["payload"],
+        "allOf": [
+            {
+                "if": {
+                    "anyOf": [
+                        {"not": {"required": ["mode"]}},
+                        {"required": ["mode"], "properties": {"mode": {"enum": ["seal"]}}},
+                    ]
+                },
+                "then": {"required": ["seal_purpose"]},
+            }
+        ],
+    },
+}
+
+
+def _apply_required_facade(tool_name: str, input_schema: dict[str, Any]) -> dict[str, Any]:
+    """Stamp the advertised required-field facade onto a signature-derived schema.
+
+    Property patches replace the type-bearing shape of the named property but
+    always preserve its (doc-merged) description. Unknown tools are untouched.
+    """
+    facade = _INPUT_CONTRACT_FACADES.get(tool_name)
+    if not facade:
+        return input_schema
+    merged = {**input_schema}
+    if facade.get("required"):
+        merged["required"] = list(facade["required"])
+    if facade.get("allOf"):
+        merged["allOf"] = list(facade["allOf"])
+    patch_props = facade.get("properties") or {}
+    props = merged.get("properties")
+    if patch_props and isinstance(props, dict):
+        merged_props = dict(props)
+        for param, patch in patch_props.items():
+            existing = merged_props.get(param)
+            if isinstance(existing, dict):
+                rebuilt = {**patch}
+                if "description" in existing:
+                    rebuilt["description"] = existing["description"]
+                merged_props[param] = rebuilt
+        merged["properties"] = merged_props
     return merged
 
 
@@ -804,6 +853,16 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
             input_schema = {**input_schema, "additionalProperties": False}
         # TDQS Parameter Semantics: merge per-param prose docs (no type changes).
         input_schema = _merge_param_docs(name, input_schema)
+        # INPUT-CONTRACT 2026-10-15: transport-owned params are not caller
+        # contract — strip from the advertised surface. Code still accepts
+        # them via the signature; the schema just stops advertising them.
+        _props = input_schema.get("properties")
+        if isinstance(_props, dict):
+            _props.pop("_envelope", None)
+        # INPUT-CONTRACT FACADES (2026-10-15 hardening): advertise required
+        # minimums for arif_init / arif_seal (forge has its own facade in
+        # _spec_for_name). Enforcement stays server-side in input_contract.
+        input_schema = _apply_required_facade(name, input_schema)
         contracts[name] = {
             "description": tool.description
             or _TOOL_DESCRIPTIONS.get(
@@ -829,6 +888,38 @@ def _spec_for_name(name: str) -> Any:
         input_schema = {
             "type": "object",
             "additionalProperties": False,
+            # INPUT-CONTRACT FACADE 2026-10-15: manifest is required on the
+            # write paths — engineer (also the default mode), write, generate.
+            # dry_run accepts manifest OR query (the explicit fallback path —
+            # gate and schema say the same thing: allOf/anyOf below, enforced
+            # by runtime/input_contract.py MODE_ANY_REQUIRED). Query-only
+            # stays legal in mode=query and mode=recall; commit is gated
+            # downstream by seal_verdict_id.
+            "allOf": [
+                {
+                    "if": {
+                        "anyOf": [
+                            {"not": {"required": ["mode"]}},
+                            {
+                                "required": ["mode"],
+                                "properties": {
+                                    "mode": {"enum": ["engineer", "write", "generate"]}
+                                },
+                            },
+                        ]
+                    },
+                    "then": {"required": ["manifest"]},
+                },
+                {
+                    "if": {
+                        "required": ["mode"],
+                        "properties": {"mode": {"enum": ["dry_run"]}},
+                    },
+                    "then": {
+                        "anyOf": [{"required": ["manifest"]}, {"required": ["query"]}]
+                    },
+                },
+            ],
             "properties": {
                 "mode": {
                     "default": "engineer",
@@ -846,17 +937,19 @@ def _spec_for_name(name: str) -> Any:
                     "default": "",
                     "type": "string",
                     "description": (
-                        "The work order (usually JSON or markdown) describing "
-                        "exactly what to build or change — the more specific, the "
-                        "tighter the gate."
+                        "Required for engineer (the default mode), write, and "
+                        "generate: the work order (usually JSON or markdown) "
+                        "describing exactly what to build or change — the more "
+                        "specific, the tighter the gate. mode=dry_run accepts "
+                        "the manifest or a plain-language query; mode=query "
+                        "uses query instead."
                     ),
                 },
                 "seal_verdict_id": {
                     "anyOf": [{"type": "string"}, {"type": "null"}],
                     "default": None,
                     "description": (
-                        "The SEAL verdict id arif_judge returned — without it, "
-                        "nothing is executed."
+                        "The SEAL verdict id arif_judge returned — without it, nothing is executed."
                     ),
                 },
                 "approved_action_hash": {
@@ -911,8 +1004,7 @@ def _spec_for_name(name: str) -> Any:
                     "anyOf": [{"type": "string"}, {"type": "null"}],
                     "default": None,
                     "description": (
-                        "Your agent identity, e.g. 'kimi-code/FI-008' — recorded in "
-                        "the audit log."
+                        "Your agent identity, e.g. 'kimi-code/FI-008' — recorded in the audit log."
                     ),
                 },
                 "constitutional_chain_id": {
@@ -943,22 +1035,15 @@ def _spec_for_name(name: str) -> Any:
                     "anyOf": [{"type": "string"}, {"type": "null"}],
                     "default": None,
                     "description": (
-                        "Plan id from arif_think's plan mode, when executing an "
-                        "approved plan."
+                        "Plan id from arif_think's plan mode, when executing an approved plan."
                     ),
                 },
                 "arif_ack_id": {
                     "anyOf": [{"type": "string"}, {"type": "null"}],
                     "default": None,
                     "description": (
-                        "Acknowledgment id from a prior step, for multi-step "
-                        "execution chains."
+                        "Acknowledgment id from a prior step, for multi-step execution chains."
                     ),
-                },
-                "_envelope": {
-                    "default": None,
-                    "title": "Envelope",
-                    "description": "Internal transport envelope handle — server-side; omit.",
                 },
             },
         }
@@ -1045,7 +1130,7 @@ def _spec_for_name(name: str) -> Any:
                     "default": None,
                     "description": (
                         "Extra mode-specific fields as JSON — e.g. "
-                        '{\"truth_class\": \"DERIVED\", \"provenance\": \"CI log\"} '
+                        '{"truth_class": "DERIVED", "provenance": "CI log"} '
                         "for remember."
                     ),
                 },
@@ -1069,8 +1154,7 @@ def _spec_for_name(name: str) -> Any:
                     "anyOf": [{"type": "string"}, {"type": "null"}],
                     "default": None,
                     "description": (
-                        "Your agent identity, e.g. 'kimi-code/FI-008' — recorded in "
-                        "the audit log."
+                        "Your agent identity, e.g. 'kimi-code/FI-008' — recorded in the audit log."
                     ),
                 },
                 "lease_id": {

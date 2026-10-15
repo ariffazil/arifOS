@@ -251,6 +251,15 @@ TOOLS: tuple[ToolSpec, ...] = (
                     "type": "string",
                     "description": "Active session ID. Required for sequential/step/branch/merge modes to maintain reasoning continuity.",
                 },
+                # ── INCREMENT-2 hygiene (2026-10-14): concise payload flag ──
+                # Default concise=True drops verbose AGI-readiness fields
+                # (what_is_*/epistemic_labels/evidence_used/etc.) from
+                # result.result. Set concise=False for the full 4.3KB payload.
+                "concise": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "Concise payload (default true). Drops verbose AGI-readiness fields; set false for full payload.",
+                },
             },
         },
     ),
