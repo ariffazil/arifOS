@@ -147,10 +147,19 @@ def generate_llms_txt() -> str:
     lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
     try:
         from importlib.metadata import version as _pkg_version
+
         _kernel_version = _pkg_version("arifos")
     except Exception:
         _kernel_version = "unknown"
-    lines.append(f"> Version: {_kernel_version} · MCP Protocol: 2025-11-25")
+    try:
+        from arifosmcp.runtime.public_surface import (
+            MCP_SPEC_VERSION_STATELESS as MCP_PROTOCOL_VERSION,
+        )
+    except Exception:
+        MCP_PROTOCOL_VERSION = (
+            "2026-07-28"  # SOT: arifosmcp/runtime/public_surface.py::MCP_SPEC_VERSION_STATELESS
+        )
+    lines.append(f"> Version: {_kernel_version} · MCP Protocol: {MCP_PROTOCOL_VERSION}")
     lines.append("> Verdict grammar: SEAL / HOLD / SABAR / VOID")
     lines.append(
         "> Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class"
