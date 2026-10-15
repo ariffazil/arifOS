@@ -197,6 +197,25 @@ async def arif_seal(
     # ── SCT standing (Spine P0) ──
     _standing_token = session_token
 
+    # ── L11 AUTH: session gate (W1 fix 2026-10-15) ───────────────────────────
+    # arif_observe enforced session binding; arif_seal did not — unbound
+    # callers received status:"completed" seal envelopes (no receipt written,
+    # but the response shape was success). Replicate the same validate_session
+    # guard so the identity gate is uniform across all 8 canonical verbs.
+    from arifosmcp.runtime.session_auth import validate_session as _vs
+
+    _auth = _vs(session_id, actor_id, session_token=session_token)
+    if not _auth.get("valid"):
+        return SealOutput(
+            mode=mode,
+            status="HOLD",
+            verdict="HOLD",
+            reasons=[_auth.get("reason", "L11 AUTH: session required")],
+            next_safe_action="Call arif_init(mode='init') first to bind a session.",
+            entry_id="",
+            actor_id=actor_id or "anonymous",
+        )
+
     def _echo_standing(out: SealOutput) -> SealOutput:
         """Echo next-hop SCT continuity onto a direct SealOutput.
 
@@ -321,7 +340,11 @@ async def arif_seal(
         # slips the wall (space/dash/underscore collapse; includes full name).
         _rb_norm = re.sub(r"[\s_-]+", "", str(_rb_actor)).upper()
         _rb_sovereign_names = {
-            "ARIF", "888", "ARIFFAZIL", "F13", "MUHAMMADARIFBINFAZIL",
+            "ARIF",
+            "888",
+            "ARIFFAZIL",
+            "F13",
+            "MUHAMMADARIFBINFAZIL",
             "SOVEREIGN",
         }
         if session_token:
@@ -493,7 +516,9 @@ async def arif_seal(
 
     # Gate S1: Seal requires a prior arif_judge verdict (judge_state_hash or cc_id)
     if mode == "seal" and not (judge_state_hash or constitutional_chain_id):
-        _seal_reasons.append("S1_GATE: seal requires prior arif_judge verdict — pass judge_state_hash or constitutional_chain_id")
+        _seal_reasons.append(
+            "S1_GATE: seal requires prior arif_judge verdict — pass judge_state_hash or constitutional_chain_id"
+        )
 
     # Gate S2: Irreversible seal requires ack
     if mode == "seal" and not ack_irreversible:

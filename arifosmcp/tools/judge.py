@@ -1137,6 +1137,32 @@ async def arif_judge(
         except (ValueError, TypeError):
             pass  # leave as-is; empty-evidence gate then HOLDs honestly
 
+    # ── L11 AUTH: session gate (W1 fix 2026-10-15) ───────────────────────────
+    # arif_observe enforced session binding; arif_judge did not — unbound
+    # callers received status:"completed" verdict envelopes. Replicate the
+    # same validate_session guard so the identity gate is uniform across
+    # all 8 canonical verbs.
+    from arifosmcp.runtime.session_auth import validate_session as _vs
+
+    _auth = _vs(session_id, actor_id, session_token=session_token)
+    if not _auth.get("valid"):
+        return {
+            "status": "HOLD",
+            "tool": "arif_judge",
+            "verdict": "HOLD",
+            "reasons": [_auth.get("reason", "L11 AUTH: session required")],
+            "next_safe_action": "Call arif_init(mode='init') first to bind a session.",
+            "actor_id": actor_id or "anonymous",
+            "session_id": session_id or "anonymous-session",
+            "mutation_allowed": False,
+            "meta": {
+                "reason": _auth.get("reason", "L11 AUTH: session required"),
+                "violated_laws": ["L11"],
+                "failure_type": "ARIF_SESSION_NOT_FOUND",
+                "detail": "Call arif_init(mode='init') first to bind a session.",
+            },
+        }
+
     # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any LLM call ──
     # Per ChatGPT forensic: arif_judge must not wait 45s for LLM to decide
     # hard facts. Identity, permissions, and reversibility are checkable
