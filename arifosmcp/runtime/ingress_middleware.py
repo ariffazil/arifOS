@@ -160,6 +160,58 @@ def _interceptor_hold_tool_result(
     )
 
 
+# ── SIGNED-ENVELOPE v1 (GAP #1 slice) ────────────────────────────────────
+# Spec: arifosmcp/docs/SIGNED-ENVELOPE-v1.md. Flag: ARIF_ENVELOPE_SIGNED=1.
+# Verify-if-present, fail-closed on any PRESENT invalid envelope. Absent
+# envelopes pass through this slice (default-on enforcement is a later,
+# separately authorized rollout step).
+
+
+def _signed_envelope_rejection_result(tool_name: str, code: str, envelope_actor: str) -> Any:
+    """Reject a tools/call whose present signed_envelope failed verification."""
+    from mcp.types import TextContent
+
+    try:
+        from fastmcp.server.middleware.middleware import ToolResult  # type: ignore
+    except Exception:
+        from mcp.types import CallToolResult as ToolResult  # type: ignore
+
+    envelope = {
+        "status": "completed",
+        "tool": tool_name,
+        "verdict": "completed",
+        "effective_verdict": "VOID",
+        "execution_state": "COMPLETED",
+        "status_scope": "execution",
+        "reason_code": "SIGNED_ENVELOPE_" + code,
+        "hold_required": False,
+        "mutation_allowed": False,
+        "seal_allowed": False,
+        "actor": {"actor_id": envelope_actor, "authority_tier": "LOW"},
+        "reasons": [f"signed_envelope verification failed: {code}"],
+        "facts": [
+            f"tool={tool_name}",
+            f"envelope_actor={envelope_actor}",
+            f"failure_code={code}",
+            "envelope_spec=arifosmcp/docs/SIGNED-ENVELOPE-v1.md",
+        ],
+        "next_action": "HALT",
+        "can_continue_observing": True,
+        "can_mutate": False,
+        "can_claim_success": False,
+        "human_readable": (
+            f"SIGNED-ENVELOPE v1 rejected: {code} (actor={envelope_actor}, tool={tool_name}). "
+            "Sign the call per arifosmcp/docs/SIGNED-ENVELOPE-v1.md with a registered "
+            "Ed25519 key, or drop the signed_envelope field."
+        ).strip(),
+    }
+    return ToolResult(
+        is_error=True,
+        content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
+        structured_content=envelope,
+    )
+
+
 def _nine_signal_for_severity(severity: str) -> dict[str, Any]:
     """Map denial severity to appropriate nine_signal.
 
@@ -1109,6 +1161,33 @@ if IS_FASTMCP_3:
                 # Only reachable when listed above (dev surface).
                 if tool_name == "arif_ping":
                     return await call_next(context)
+
+                # ── SIGNED-ENVELOPE v1 gate (GAP #1 slice) ──
+                # Flag-gated (ARIF_ENVELOPE_SIGNED=1). Verifies a present
+                # signed_envelope before anything else runs; invalid → VOID.
+                # Flag off or envelope absent → behavior identical to before.
+                try:
+                    from arifosmcp.runtime.signed_envelope import (
+                        check_arguments as _signed_env_check,
+                    )
+
+                    _sig_reject = _signed_env_check(dict(msg.arguments or {}))
+                    if _sig_reject is not None:
+                        logger.info(
+                            "Signed-envelope rejection: tool=%s code=%s actor=%s",
+                            tool_name,
+                            _sig_reject.get("code"),
+                            _sig_reject.get("envelope_actor"),
+                        )
+                        return _signed_envelope_rejection_result(
+                            tool_name,
+                            _sig_reject.get("code", "MALFORMED_ENVELOPE"),
+                            _sig_reject.get("envelope_actor", ""),
+                        )
+                except Exception as _sig_err:
+                    # Fail-soft on the gate's own plumbing; never on a bad sig
+                    # (check_arguments handles rejection internally).
+                    logger.warning("Signed-envelope gate unavailable (%s)", _sig_err)
 
                 t0 = time.monotonic()
                 verdict = "SEAL"
