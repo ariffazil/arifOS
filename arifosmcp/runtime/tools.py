@@ -15377,6 +15377,57 @@ def _arif_mind_reason(
             session_id=session_id,
         )
 
+    # ── QRL increment-1 (2026-10-14): dag / branches / clarify ──────────────
+    # Wire the ba79005b2 PlanGraph engine into arif_think dispatch.
+    # All three modes are ADVISORY + unsealable: thinking is not acting,
+    # verdicts come only from arif_judge.
+    if mode in ("dag", "branches", "clarify"):
+        from arifosmcp.tools.qrl_branches import branches as _qrl_branches
+        from arifosmcp.tools.planner import generate_paths, compact_within_budget
+
+        _qrl = _qrl_branches(query or mode)
+        if mode == "dag":
+            # dag = the full PlanGraph, compact wire form (≤2KB)
+            _pg = generate_paths(query or "dag")
+            _body = compact_within_budget(_pg)
+            _body.update(
+                {
+                    "mode": "dag",
+                    "authority": "ADVISORY",
+                    "sealable": False,
+                    "plan_graph_id": _pg.id,
+                }
+            )
+        elif mode == "branches":
+            _body = _qrl
+        else:  # clarify
+            # clarify surfaces ONLY the sovereign-question path: ONE binary
+            # question for F13, no mutation until answered.
+            _cands = _qrl.get("candidates", [])
+            _clarify = next(
+                (c for c in _cands if "clarify" in c.get("name", "")),
+                None,
+            )
+            _body = {
+                "mode": "clarify",
+                "authority": "ADVISORY",
+                "sealable": False,
+                "plan_graph_id": _qrl.get("plan_graph_id"),
+                "question": (
+                    (_clarify or {}).get("steps", [""])[0]
+                    if _clarify
+                    else "confirm priority: proceed with the top-ranked advisory path?"
+                ),
+                "candidates_considered": len(_cands),
+                "rule": "one binary question per call — hold all mutation until answered",
+            }
+        return _ok(
+            "arif_mind_reason",
+            _body,
+            delta_S=0.0,
+            session_id=session_id,
+        )
+
     return _hold("arif_mind_reason", f"Unknown mode: {mode}", session_id=session_id)
 
 
