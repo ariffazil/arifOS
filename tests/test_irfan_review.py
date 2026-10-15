@@ -92,7 +92,7 @@ def _test_by_name(review: dict, name: str) -> dict:
 
 def test_clear_case_all_benign() -> None:
     review = review_irfan(_benign_input(), action_class="MUTATE", reversibility="reversible")
-    assert review["verdict"] == "CLEAR"
+    assert review["recommendation"] == "CLEAR"
     assert len(review["tests"]) == 10
     assert {t["name"] for t in review["tests"]} == TEST_NAMES
     assert all(t["status"] == "PASS" for t in review["tests"])
@@ -120,7 +120,7 @@ def test_concern_irreversible_mutation_without_repair_plan() -> None:
         "irreversible",
         {},
     )
-    assert review["verdict"] == "CONCERN"
+    assert review["recommendation"] == "CONCERN"
     repair = _test_by_name(review, "Repair Test")
     assert repair["status"] == "CONCERN"
     assert "irreversible" in repair["reason"].lower()
@@ -134,7 +134,7 @@ def test_concern_capability_authority_flag_unknown_basis() -> None:
     inp = _benign_input()
     inp.authority_basis = None  # authority unknown
     review = review_irfan(inp, action_class="MUTATE", reversibility="reversible")
-    assert review["verdict"] == "CONCERN"
+    assert review["recommendation"] == "CONCERN"
     cap = _test_by_name(review, "Capability-Authority Test")
     assert cap["status"] == "CONCERN"
     assert "authority" in cap["reason"].lower()
@@ -145,7 +145,7 @@ def test_concern_no_least_power_alternative_for_mutation() -> None:
     inp.least_power_alternative = None
     inp.non_action_alternative = None
     review = review_irfan(inp, action_class="MUTATE", reversibility="reversible")
-    assert review["verdict"] == "CONCERN"
+    assert review["recommendation"] == "CONCERN"
     abstention = _test_by_name(review, "Power-Abstention Test")
     assert abstention["status"] == "CONCERN"
     assert "least-power" in abstention["reason"].lower()
@@ -168,7 +168,7 @@ def test_escalate_extraction_dignity_breach_no_consent() -> None:
             "authority_basis": "exceeds the actor's mandate",
         },
     )
-    assert review["verdict"] == "ESCALATE"
+    assert review["recommendation"] == "ESCALATE"
     failed = {t["name"] for t in review["tests"] if t["status"] == "FAIL"}
     assert "Extractor-Steward Counterfactual" in failed  # extraction
     assert "Non-Paternalism Test" in failed  # coercion / no consent
@@ -177,14 +177,14 @@ def test_escalate_extraction_dignity_breach_no_consent() -> None:
     # Reasons list is one line per non-PASS test
     non_pass = [t for t in review["tests"] if t["status"] != "PASS"]
     assert len(review["reasons"]) == len(non_pass)
-    assert review["verdict"] not in IRFAN_KERNEL_VERDICTS
+    assert review["recommendation"] not in IRFAN_KERNEL_VERDICTS
 
 
 def test_escalate_phantom_claim() -> None:
     inp = _benign_input()
     inp.evidence_state = "claimed but not measured"
     review = review_irfan(inp, action_class="MUTATE", reversibility="reversible")
-    assert review["verdict"] == "ESCALATE"
+    assert review["recommendation"] == "ESCALATE"
     assert _test_by_name(review, "Anti-Hantu Test")["status"] == "FAIL"
 
 
@@ -219,8 +219,8 @@ def test_escalate_phantom_claim() -> None:
 )
 def test_advisory_invariant_verdict_domain(kwargs: dict) -> None:
     review = irfan_review_for_action("some_tool", "some_mode", "some_actor", **kwargs)
-    assert review["verdict"] in IRFAN_ALLOWED_VERDICTS
-    assert review["verdict"] not in IRFAN_KERNEL_VERDICTS
+    assert review["recommendation"] in IRFAN_ALLOWED_VERDICTS
+    assert review["recommendation"] not in IRFAN_KERNEL_VERDICTS
     assert review["advisory"] is True
     for t in review["tests"]:
         assert t["status"] in {"PASS", "CONCERN", "FAIL"}
@@ -307,8 +307,8 @@ def test_annotate_with_irfan_preserves_step_verdict_and_status() -> None:
     assert step["passed"] is True  # untouched
     irfan = step["irfan"]
     assert irfan["advisory"] is True
-    assert irfan["verdict"] in IRFAN_ALLOWED_VERDICTS
-    assert irfan["verdict"] not in IRFAN_KERNEL_VERDICTS
+    assert irfan["recommendation"] in IRFAN_ALLOWED_VERDICTS
+    assert irfan["recommendation"] not in IRFAN_KERNEL_VERDICTS
     assert irfan["habit_question"] == IRFAN_CANONICAL_QUESTION
     assert "top_failing_test" in irfan
 
@@ -321,7 +321,7 @@ def test_annotate_with_irfan_fail_open_honest_absence() -> None:
     # Even on internal failure the annotation must never fabricate a verdict.
     assert out["verdict"] == "PROCEED"
     assert out["irfan"]["advisory"] is True
-    assert out["irfan"]["verdict"] in IRFAN_ALLOWED_VERDICTS | {None}
+    assert out["irfan"]["recommendation"] in IRFAN_ALLOWED_VERDICTS | {None}
 
 
 def test_annotate_with_irfan_non_dict_passthrough() -> None:
@@ -343,8 +343,8 @@ def test_gate_seal_path_verdict_unchanged_and_irfan_advisory_stashed() -> None:
     assert result is None  # gate verdict untouched by Irfan
     stashed = runtime_tools.IRFAN_LAST_REVIEW.get()
     assert isinstance(stashed, dict)
-    assert stashed["verdict"] in IRFAN_ALLOWED_VERDICTS
-    assert stashed["verdict"] not in IRFAN_KERNEL_VERDICTS
+    assert stashed["recommendation"] in IRFAN_ALLOWED_VERDICTS
+    assert stashed["recommendation"] not in IRFAN_KERNEL_VERDICTS
     assert stashed["context"]["tool_name"] == "arif_kernel_health"
 
 
@@ -374,8 +374,8 @@ def test_hold_response_carries_irfan_review_as_metadata_only() -> None:
         assert response["status"] == "HOLD"
         attached = response["meta"].get("irfan_review")
         assert isinstance(attached, dict)
-        assert attached["verdict"] in IRFAN_ALLOWED_VERDICTS
-        assert attached["verdict"] not in IRFAN_KERNEL_VERDICTS
+        assert attached["recommendation"] in IRFAN_ALLOWED_VERDICTS
+        assert attached["recommendation"] not in IRFAN_KERNEL_VERDICTS
     finally:
         runtime_tools.IRFAN_LAST_REVIEW.reset(token)
 

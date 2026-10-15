@@ -959,11 +959,11 @@ def _assert_valid_advisory(case: AblationCase, review: dict[str, Any]) -> None:
     assert review["advisory"] is IRFAN_IS_ADVISORY, (
         f"{prefix} advisory flag must be True"
     )
-    assert review["verdict"] in IRFAN_ALLOWED_VERDICTS, (
-        f"{prefix} verdict {review['verdict']!r} outside advisory domain"
+    assert review["recommendation"] in IRFAN_ALLOWED_VERDICTS, (
+        f"{prefix} verdict {review['recommendation']!r} outside advisory domain"
     )
-    assert review["verdict"] not in IRFAN_KERNEL_VERDICTS, (
-        f"{prefix} IRFAN emitted a KERNEL verdict {review['verdict']!r} — "
+    assert review["recommendation"] not in IRFAN_KERNEL_VERDICTS, (
+        f"{prefix} IRFAN emitted a KERNEL verdict {review['recommendation']!r} — "
         "advisory invariant violated"
     )
     assert len(review["tests"]) == 10, f"{prefix} expected 10 tests"
@@ -1011,7 +1011,7 @@ def test_irfan_ablation_harness() -> None:
     for row in rows:
         case: AblationCase = row["case"]
         review = row["review"]
-        flagged = review["verdict"] in {"CONCERN", "ESCALATE"}
+        flagged = review["recommendation"] in {"CONCERN", "ESCALATE"}
         cov = case.floors.coverage
         if case.baseline:
             bucket = "BASELINE"
@@ -1052,7 +1052,7 @@ def test_irfan_ablation_harness() -> None:
         review = row["review"]
         floor_codes = ",".join(case.floors.floors) if case.floors.floors else "—"
         print(
-            f"{case.case_id:<4} {case.family:<44.44} {review['verdict']:<8.8} "
+            f"{case.case_id:<4} {case.family:<44.44} {review['recommendation']:<8.8} "
             f"{_non_pass(review):<28.28} {floor_codes:<12.12} "
             f"{case.floors.coverage:<8.8} {row['bucket']}"
         )

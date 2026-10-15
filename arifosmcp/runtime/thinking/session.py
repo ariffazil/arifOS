@@ -343,7 +343,13 @@ class ThinkingSessionManager:
         conclusion = self.add_step(session_id=session_id, step_type="conclusion", content=synthesis)
 
         session.status = SessionStatus.MERGED
-        session.final_verdict = "SEAL" if conclusion.quality_score > 0.7 else "SABAR"
+        # ADVISORY QUALITY LABEL — NOT a constitutional verdict (2026-10-15, F13 "ok go").
+        # SEAL/SABAR/HOLD/VOID are reserved for arif_judge only. A local merge-quality
+        # score may never authorize execution, promotion, or sealing, and must never
+        # surface a verdict token. Consumer audit 2026-10-15: no live consumer routes
+        # this into authority (pre_execution_gate self-computes; sequential_bridge orphan);
+        # values renamed to kill vocabulary laundering preemptively.
+        session.final_verdict = "MERGE_STRONG" if conclusion.quality_score > 0.7 else "MERGE_WEAK"
 
         return conclusion
 
