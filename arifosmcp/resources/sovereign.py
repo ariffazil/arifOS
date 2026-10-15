@@ -46,8 +46,14 @@ _CANDIDATE_ROOTS = [
 
 def _resolve_static_root() -> Path:
     for candidate in _CANDIDATE_ROOTS:
-        if candidate.exists() and candidate.is_dir():
-            return candidate
+        try:
+            if candidate.exists() and candidate.is_dir():
+                return candidate
+        except OSError:
+            # Python 3.13 pathlib no longer swallows OSError on exists()/is_dir():
+            # an unreadable candidate (e.g. root-owned /root in CI) raises
+            # PermissionError instead of returning False. Treat as absent.
+            continue
     return _CANDIDATE_ROOTS[0]
 
 
