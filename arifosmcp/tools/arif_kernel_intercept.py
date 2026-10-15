@@ -800,8 +800,16 @@ async def _arif_kernel_intercept(
         else "Execute the capability; monitor delta_S and surface result for post-reflection"
     )
     base["next_safe_action"] = next_act
+    # T1: Confidence honesty — when no measurement was used, emit null + UNMEASURED
+    # instead of a hardcoded number. (2026-10-16)
+    _confidence_val = None
+    _confidence_band = "UNMEASURED"
+    if _has_measurement:
+        _confidence_val = 0.75 if is_l5 else 0.92
+        _confidence_band = "ACTIONABLE"
     base["metacognition"] = {
-        "confidence": 0.92 if not is_l5 else 0.75,
+        "confidence": _confidence_val,
+        "confidence_band": _confidence_band,
         "why_this_tool": "Kernel minimum intercept passed all gates",
         "next_safe_action": next_act,
         "measurement_used": _has_measurement,
@@ -818,17 +826,11 @@ async def _arif_kernel_intercept(
     _outer_eff = str(base.get("effective_verdict", "")).upper()
     _outer_failed = base.get("failed_floors") or []
     _is_hold_or_void = _outer_eff in ("HOLD", "VOID", "888_HOLD") or bool(_outer_failed)
+    # T2: One floor truth — the OUTER response (tools.py) owns floor_passed and
+    # hold_required. kernel_intercept provides evidence, not verdict.
+    # (2026-10-16)
     base["constitutional_check"] = {
-        "floor_passed": not _is_hold_or_void,
-        "hold_required": _is_hold_or_void or is_l5,
         "agency_level": target_aff.get("agency_level"),
-        # 2026-10-02 (F13 #4a epistemic gate): a bare floor_passed=True with
-        # no evidence keys reads downstream as EPISTEMIC_UNMEASURED_PASS and
-        # forces an epistemic HOLD on every intercept-bearing judge response
-        # (measured: trc-f770145d6001). Attach the checks this intercept
-        # actually performed as its evidence basis — the gates above already
-        # ran and would have DENY'd on failure; naming them is bookkeeping,
-        # not new authority.
         "floors_invoked": [
             "L1_session_token_valid",
             "L11_actor_binding",
@@ -838,7 +840,7 @@ async def _arif_kernel_intercept(
         ],
         "failed_floors": list(_outer_failed),
         "_derivation": "arif_kernel_intercept+effective_verdict+failed_floors",
-        "_stab_fix": "2026-08-07b-floor-passed-derivation",
+        "_note": "floor_passed and hold_required are owned by the outer response — single writer",
     }
 
     # ── PR4: emit SCT decision event for kernel observability ──
