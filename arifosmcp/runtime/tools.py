@@ -1062,6 +1062,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "next_safe_action_default": "If critique passes, proceed to arif_judge. Otherwise revise and re-think.",
     },
     "arif_judge": {
+        "known": True,
         "purpose": "Final constitutional arbitration (888). Takes the full chain (evidence + think + critique) and renders a binding SEAL / HOLD / VOID / SABAR verdict. Backed by arif_kernel_intercept for runtime enforcement. This is the 'may' decision.",
         "use_when": [
             "After a complete observe → fetch → think → critique pipeline",
