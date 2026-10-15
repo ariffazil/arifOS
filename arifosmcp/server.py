@@ -95,6 +95,55 @@ _log_llm_provider_health()
 import fastmcp  # noqa: E002,E402
 from fastmcp import FastMCP  # noqa: E402
 
+# ── D3: Pydantic error sanitization (R1 fix 2026-10-16) ──────────────
+# Monkey-patch FastMCP's _validate_input to sanitize Pydantic errors
+# at the source, before they propagate through the middleware/protocol layers.
+import re as _re_d3
+
+_PYDANTIC_URL_RE = _re_d3.compile(r"\s*https?://errors\.pydantic\.dev/[^\s\]]+")
+_PYDANTIC_HEADER_RE = _re_d3.compile(r"^\d+ validation error[s]? for\s+", _re_d3.MULTILINE)
+
+
+def _d3_sanitize_pydantic_error(text: str) -> str | None:
+    if "errors.pydantic.dev" not in text and "validation error" not in text.lower():
+        return None
+    cleaned = _PYDANTIC_URL_RE.sub("", text)
+    cleaned = _PYDANTIC_HEADER_RE.sub("", cleaned)
+    lines = [ln.strip() for ln in cleaned.strip().splitlines() if ln.strip()]
+    errors = []
+    current_field = None
+    for line in lines:
+        if line.startswith("Input should be") or line.startswith("Field required"):
+            if current_field:
+                errors.append(f"{current_field}: {line}")
+            else:
+                errors.append(line)
+        elif not line.startswith("For further") and not line.startswith("[type="):
+            current_field = line.rstrip(".")
+    if errors:
+        return "CONTRACT_VIOLATION: " + "; ".join(errors[:5])
+    return "CONTRACT_VIOLATION: invalid input types"
+
+
+try:
+    from fastmcp.tools.function_tool import _validate_input as _orig_validate_input
+
+    def _d3_wrapped_validate_input(type_adapter, value, *, strict=None):
+        try:
+            return _orig_validate_input(type_adapter, value, strict=strict)
+        except Exception as e:
+            _clean = _d3_sanitize_pydantic_error(str(e))
+            if _clean is not None:
+                raise type(e)(_clean) from e.__cause__
+            raise
+
+    import fastmcp.tools.function_tool as _ft_module
+
+    _ft_module._validate_input = _d3_wrapped_validate_input
+except Exception:
+    pass  # non-fatal: middleware has defense-in-depth
+# ── END D3 ───────────────────────────────────────────────────────────
+
 try:
     from mcp import McpError  # noqa: E402
 except ImportError:
