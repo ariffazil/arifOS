@@ -5,20 +5,20 @@
 >
 > **Two properties hold end-to-end:** deterministic rejection (the judge refuses without consulting a model — `gate: hard_deterministic`, `llm_consulted: false`) and prevention of an unauthorised mutation.
 >
-> **Four do not:** verified actor (the signing path exists and the lane on `:18900` listens, but observed calls arrived **unsigned**; `actor_verified:false`) · receipt fidelity **on the invocation-telemetry surface** (`/var/lib/arifos/metrics/tool_invocations.jsonl`, 194,243 lines, **0 governance fields**; a call whose kernel verdict was `HOLD` was persisted as `ok:true`) · sink agreement (one event: ledger `ok:false`, organ counters omit it) · independent reconstruction (no external verifier bound).
+> **Four do not:** verified actor (the signing path exists and the lane on `:18900` listens, but observed calls arrived **unsigned**; `actor_verified:false`) · receipt fidelity **on the invocation-telemetry surface** (`/var/lib/arifos/metrics/tool_invocations.jsonl`, 210,081 lines at the 2026-10-15 re-count; recent entries carry governance fields and a re-audit of the last 500 found **0** `ok:true`-with-HOLD — the 2026-10-11 finding may be repaired on new entries but a full-history re-audit has not been published) · sink agreement (one event: ledger `ok:false`, organ counters omit it) · independent reconstruction (no external verifier bound).
 >
-> **Note on two witness surfaces:** the VAULT999 verdict ledger (`outcomes.jsonl`, 95,091 lines, 89,509 carrying a verdict/decision field) is a **different object** from the invocation-telemetry ledger above. They share a shape and not a schema. A verdict is not transferable between them.
+> **Note on two witness surfaces:** the VAULT999 verdict ledger (`outcomes.jsonl`, 96,600 lines, 90,519 carrying a verdict/decision field — counted 2026-10-15) is a **different object** from the invocation-telemetry ledger above. They share a shape and not a schema. A verdict is not transferable between them.
 >
-> **Floors: pass 2 · fail F2/F11/F12/F13 · unmeasured 10. Unmeasured is not pass.**
+> **Floors (live `/health`, 2026-10-15): 16/16 measured pass, 0 failing, 0 unmeasured.** The 2026-10-11 reading (pass 2 · fail F2/F11/F12/F13 · unmeasured 10) is superseded by the live probe — re-run `/health` rather than quoting either snapshot. Unmeasured is not pass.
 >
 > No customers, no pilots, no signed contracts, no independent benchmark, no external security audit. Current revenue value: USD 0.
 >
 > Claim-level audit: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`.
 
 <!-- SOT-MANIFEST
-last_verified: 2026-10-10T18:48:56+00:00
-kernel_release: 2026.10.10-0a109ab (version from live /health, 2026-10-11) · canon version 2026.10.10-0a109ab
-pypi_version: 1!2026.10.1 (release 2026.10.1) · repo tree 1!2026.10.1 (aligned)
+last_verified: 2026-10-15T21:30:00+00:00
+kernel_release: 2026.10.14-a6ec3c8 (version from live /health, 2026-10-15) · canon version 2026.10.14-a6ec3c8
+pypi_version: 1!2026.10.11 (uploaded 2026-10-10) · repo tree 1!2026.10.1 (staged, not yet released)
 live_commit: 00dc0199d (fix(canon): route release-version read through the single canon owner)
 source_commit: 00dc0199d
 built_commit: 00dc019
@@ -26,13 +26,13 @@ deployment_drift_status: aligned (source = built = deployed (drift: false))
 tools_exposed_via_mcp: 8 (canonical public verbs — verified by live tools/list)
 tools_canonical_superset: 25 (8 exposed + 13 hidden verbs — arif_challenge, arif_judge_deliberate, …)
 tools_declared: 48 · registry_callables: 62 (includes aliases) · proven_live_24h: 3
-floors_active: 2 pass · 4 fail (F2, F11, F12, F13) · 10 unmeasured — re-probed live 2026-10-11. A prior reading of 13/13 came from a threshold defect (the fallback left the gate at "score >= 0.0" — every finite score passed); that earlier pass count was a FALSE PASS, not a loss. UNMEASURED IS NOT PASS.
+floors_active: 16/16 measured pass, 0 failing, 0 unmeasured (live /health 2026-10-15; supersede the 2026-10-11 reading of pass 2 · fail 4 · unmeasured 10). History: a pre-2026-10 reading of 13/13 came from a threshold defect (the fallback left the gate at "score >= 0.0" — every finite score passed); that earlier pass count was a FALSE PASS, not a loss. UNMEASURED IS NOT PASS.
 federation_schema: 2.0.0
 mcp_protocol: advertises 2026-07-28; live initialize and the internal conformance runner settle on 2025-11-25 (supported: 2026-07-28 · 2025-11-25 · 2025-03-26 · 2024-11-05)
 organs: 7 per the ratified organ table (FEDERATION_CONTRACT §2) + plane classes for boundary services (see Architecture)
-vault999: healthy (457K+ records, append-only)
+vault999: healthy, chain INTACT (outcomes.jsonl 96,600 lines / 90,519 verdict-carrying at 2026-10-15 re-count; append-only)
 contract_status: 8/8 published schemas, contract_drift: false
-tool_manifest_url: https://arifos.arif-fazil.com/tools.json (37,046 bytes, live)
+tool_manifest_url: https://arifos.arif-fazil.com/tools.json — NOW GATED (401 Unauthorized, found 2026-10-15; was public 37,046 bytes)
 apex_zen: A2A delegates ⊥ MCP equips ⊥ ACT mutates ⊥ arifOS governs ⊥ F13 decides
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
 generated_by: scripts/update_readme_sot.py re-stamps commits, drift, last_verified and the vault count only; every other field here is verified by hand at audit time and must be re-verified the same way
@@ -45,8 +45,8 @@ seal_readiness_gaps: graphiti=RETIRED_888(2026-09-04) · semantic_floor=off_by_c
 [![Security Audit: In Progress](https://img.shields.io/badge/Security_Audit-In_Progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![External evaluation: not yet published](https://img.shields.io/badge/External_Evaluation-Not_Yet_Published-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![Kernel process: healthy](https://img.shields.io/badge/Kernel_Process-healthy-blue?style=flat-square)](https://arifos.arif-fazil.com/health)
-[![F2/F11/F12/F13: fail (per CURRENT-VERIFIED-STATE 2026-10-11)](https://img.shields.io/badge/Floors-2_pass%C2%B74_fail%C2%B710_unmeasured-d4a853?style=flat-square)](./CURRENT_VERIFIED_STATE.md)
-[![Sovereignty: F13 currently in fail set](https://img.shields.io/badge/F13-Fail_Set-critical?style=flat-square)](https://arif-fazil.com/governance/)
+[![Floors: 16/16 measured pass (live /health 2026-10-15)](https://img.shields.io/badge/Floors-16%2F16_measured_pass_(live_2026--10--15)-4c9a53?style=flat-square)](./CURRENT_VERIFIED_STATE.md)
+[![F13: measured pass (live /health 2026-10-15)](https://img.shields.io/badge/F13-pass_(live_2026--10--15)-4c9a53?style=flat-square)](https://arif-fazil.com/governance/)
 [![MCP Conformance](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/06-mcp-conformance.yml?label=MCP_Conformance&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/06-mcp-conformance.yml)
 [![Vault Integrity](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/07-vault-integrity.yml?label=Vault_Integrity&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/07-vault-integrity.yml)
 [![Floor Gate](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/floor_gate.yml?label=Floor_Gate&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/floor_gate.yml)
@@ -141,13 +141,13 @@ Authority remains separated at every stage: no component proposes, judges, execu
 
 > Requires **Python 3.12+** (supported range 3.12–3.14; see `pyproject.toml`).
 >
-> **Versioning:** two schemes coexist. The **kernel release** (`v2026.08.01`, reported by `/health` as `release_name`) is the operational identity of the running service. The **PyPI package** uses epoch versioning (`1!…`) to outrank legacy releases: `1!2026.9.2` is what `pip install arifos` resolves to today, while this tree is `1!2026.10.1` (staged, not yet released). The kernel release is the operational truth; PyPI is the distribution truth.
+> **Versioning:** two schemes coexist. The **kernel release** (e.g. `2026.10.14-a6ec3c8`, reported by `/health` as `release_name`) is the operational identity of the running service. The **PyPI package** uses epoch versioning (`1!…`) to outrank legacy releases: `1!2026.10.11` is what `pip install arifos` resolves to today (verified in a clean venv 2026-10-15), while this tree is `1!2026.10.1` (staged, not yet released). The kernel release is the operational truth; PyPI is the distribution truth.
 
 ### Install
 
 ```bash
 pip install arifos
-pip show arifos        # → Version: 1!2026.9.2 (PyPI published; repo tree 1!2026.10.1 — see gaps table)
+pip show arifos        # → Version: 1!2026.10.11 (PyPI published 2026-10-10; repo tree 1!2026.10.1 — see gaps table)
 ```
 
 ### Install (Docker)
@@ -176,13 +176,15 @@ PORT=8088 python -m arifosmcp.runtime --mode streamable-http
 curl -s http://localhost:8088/health
 ```
 
-Verified on 2026-09-21 against the live unit:
+Verified 2026-10-15 against the live unit (release 2026.10.14-a6ec3c8):
 
 ```jsonc
-{ "status": "healthy", "release_name": "v2026.08.01", "mcp_protocol_version": "2026-07-28",
+{ "status": "healthy", "release_name": "2026.10.14-a6ec3c8", "mcp_protocol_version": "2026-07-28",
   "tools_loaded": 8, "operational_tools": 3, "deployment_drift_status": "aligned",
-  "floors_active": 13, "vault999_health": "healthy" }
+  "floors_active": 13, "floors_pass": 16, "floors_failing": [], "floors_unmeasured": [],
+  "vault999": "healthy" }
 ```
+Re-run `curl -s http://localhost:8088/health` — the live value beats this snapshot.
 
 ### Run a governed workflow locally (no client needed)
 
@@ -350,7 +352,7 @@ Every consequential verdict, evidence chain and execution receipt is written to 
 
 **A hash chain proves internal consistency.** It does NOT prove that the chain was not recomputed by whoever controls the ledger. External anchoring — periodic publication of the chain head, or signing by a key the kernel does not hold — is not yet implemented. **Treat VAULT999 today as self-verifiable, not independently attestable.** See "What Is Not Yet Proven" for the gap row.
 
-Measured 2026-09-21: 241,765 lines across 24 JSONL ledgers in VAULT999/ (largest: `outcomes.jsonl` 93,266 · `arifflow_sealed.jsonl` 52,056 · `apex-zen-receipts.jsonl` 30,977). **Re-counted 2026-10-11: 471,067 lines across 58 JSONL ledgers** — method: `find` including subdirectories. The header above re-stamps a **different object** (top-level `*.jsonl` glob → 457K+). **The two figures are not interchangeable; neither should be quoted without its method.** Composition: the majority is operational telemetry and receipt ingestion; constitutional verdict count is published separately (see `scripts/verify_vault_chain.py --verdict-count-only`) — a 2026-10-11 re-count found `outcomes.jsonl` at 95,091 lines, of which 89,509 carry a verdict/decision field and 344 are `HOLD`. The chain report returns overall: `INTACT` for the active ledgers, reporting 2 strict link breaks in the frozen v1 legacy ledger as historical facts rather than hiding or rewriting them. Live record count is re-stamped into the header manifest above by `scripts/update_readme_sot.py`.
+Measured 2026-09-21: 241,765 lines across 24 JSONL ledgers in VAULT999/ (largest: `outcomes.jsonl` 93,266 · `arifflow_sealed.jsonl` 52,056 · `apex-zen-receipts.jsonl` 30,977). **Re-counted 2026-10-11: 471,067 lines across 58 JSONL ledgers** — method: `find` including subdirectories. The header above re-stamps a **different object** (top-level `*.jsonl` glob → 457K+). **The two figures are not interchangeable; neither should be quoted without its method.** Composition: the majority is operational telemetry and receipt ingestion; constitutional verdict count is published separately (see `scripts/verify_vault_chain.py --verdict-count-only`) — a 2026-10-11 re-count found `outcomes.jsonl` at 95,091 lines, of which 89,509 carry a verdict/decision field and 344 are `HOLD`; a 2026-10-15 re-count (`/var/lib/arifos/999-vault/outcomes.jsonl` and its `/var/lib/arifos/vault/` mirror, identical) found 96,600 lines, 90,519 verdict-carrying. The chain report returns overall: `INTACT` for the active ledgers, reporting 2 strict link breaks in the frozen v1 legacy ledger as historical facts rather than hiding or rewriting them. Live record count is re-stamped into the header manifest above by `scripts/update_readme_sot.py`.
 
 ---
 
@@ -418,20 +420,20 @@ The kernel exposes **8 canonical verbs** over Streamable HTTP. Verified by live 
 
 ## Verification Status
 
-Live-probed **2026-09-21** (UTC+08); rows marked ↻ re-probed **2026-09-30** and **2026-10-05**. Re-run the commands; static counts are not evidence.
+Live-probed **2026-09-21** (UTC+08); rows marked ↻ re-probed **2026-09-30**, **2026-10-05** and **2026-10-15**. Re-run the commands; static counts are not evidence.
 
 | Surface | Status | Evidence |
 |---------|--------|----------|
 | Public repository | Live | GitHub [`ariffazil/arifOS`](https://github.com/ariffazil/arifOS), AGPL-3.0 |
-| PyPI package | Published `1!2026.9.2` (uploaded 2026-09-15T16:42Z) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/); tree is `1!2026.10.1`, unreleased |
+| PyPI package | Published `1!2026.10.11` (uploaded 2026-10-10T19:30Z) | `pip install arifos` — [pypi.org/project/arifos](https://pypi.org/project/arifos/); tree is `1!2026.10.1`, unreleased |
 | Live kernel | Healthy, 13/13 floors | `curl localhost:8088/health` → `status: healthy`, `floors_active: 13` |
 | MCP interface | 8 exposed, 3 with a durable SUCCESS in the last 24 h (tools_loaded: 8, operational_tools: 3) | live `tools/list`; protocol advertises `2026-07-28`, negotiation settles `2025-11-25` |
-| Floor enforcement | 13/13 measured pass | `/health → runtime_floors_status` (F7 = 0.04, F9 = 0.15, L12 = 0.425 lower-is-better) |
+| Floor enforcement | 16/16 measured pass, 0 failing, 0 unmeasured (live probe 2026-10-15) | `/health → layer_health.constitutional.floors_detail` — quote the live value, not this row |
 | VAULT999 ledger ↻ | Healthy, chain INTACT | `scripts/verify_vault_chain.py` → `overall: INTACT` (its own scope: the 3 active ledgers under `arifOS/VAULT999/`). The previously published "241,765 lines / 24 ledgers" named no population and matched no measured root, so it is withdrawn rather than refreshed. Census **2026-09-30T07:44:35Z** — two different, both-correct denominators: (a) recursive whole-estate, `find <root> -name '*.jsonl'` then count non-blank lines: `arifOS/VAULT999` 60/354,283 · `/var/lib/arifos/vault` 7/20,986 · `~/.local/share/arifos/vault999` 66/16,555 · `AAA/VAULT999` 1/238 = **134 ledgers / 392,062 lines**; (b) the generated SOT-MANIFEST header above reports `342K+ records` because `scripts/update_readme_sot.py` counts only top-level `VAULT999/*.jsonl` in this repo, non-recursively (measured 24 files / 342,582 lines), excluding the subdirectory ledgers (a) includes. Neither is wrong; they have different populations. The vault is append-only and live, so every figure here is a snapshot — quote the timestamp with it. |
 | Source / build / deploy ↻ | Aligned — no drift | `source_commit = built_commit = deployed_commit = 27409ddbf`; `/health → drift: false`, `runtime_matches_build: true`, `deployment_drift_status: aligned`. Release provenance is re-attested on every `scripts/deploy-release.sh` run (`VERDICT: PASS`, strict) — quote the live value, not this one |
 | Contract schema | 8/8 published, no drift | `contract_status: {tool_count: 8, schemas_complete: true, contract_drift: false}` |
 | Federation surfaces | 10/11 reachable without drift; WELL degraded (drift: true) | ports 8088 · 3001 · 7071 · 7072 · 8081 · 18082 · 18083 · 7073 · 7074 · 18085 · 18102; WELL at `127.0.0.1:18083/health` returns HTTP 200 but reports `drift: true`, so the row honestly reads 10/11 healthy + 1 degraded |
-| Machine-readable ↻ | tools.json live, 56,224 bytes | [tools.json](https://arifos.arif-fazil.com/tools.json) · [llms.txt](./llms.txt) (generated mirror — see gaps) · [CITATION.cff](./CITATION.cff) |
+| Machine-readable ↻ | tools.json **now requires auth (401)** — regression found 2026-10-15; llms.txt live (8.4 KB), ai-catalog.json live | [llms.txt](https://arifos.arif-fazil.com/llms.txt) · [ai-catalog.json](https://arifos.arif-fazil.com/.well-known/ai-catalog.json) · [CITATION.cff](./CITATION.cff) · tools.json (gated — see gaps) |
 | Scanner attestation | 148 rules · 0 unauthorised mutations; 26/26 GRADE A | [mcp.arif-fazil.com/proof/](https://mcp.arif-fazil.com/proof/) |
 
 ## What Is Not Yet Proven
@@ -561,17 +563,17 @@ one owner is still open (see gaps).
 
 ## Sister Repositories
 
-| Repository | Purpose |
-|------------|---------|
-| [AAA](https://github.com/ariffazil/AAA) | Attention plane — routing, state, skill catalog, A2A gateway |
-| [A-FORGE](https://github.com/ariffazil/A-FORGE) | Execution engine after authorisation |
-| [GEOX](https://github.com/ariffazil/GEOX) | Earth sciences domain evidence |
-| [WEALTH](https://github.com/ariffazil/arifWEALTH) | Capital and financial intelligence |
-| [WELL](https://github.com/ariffazil/WELL) | Human and machine vitality observation |
-| [arifFlow](https://github.com/ariffazil/arifFLOW) | Metabolic ledger daemon — FQ monitoring, receipt ingestion |
-| [FRAME](https://github.com/ariffazil/FRAME) | Independent observer — drift detection, evidence gathering (repository archived, organ live) |
+| Repository | Purpose | Source |
+|------------|---------|--------|
+| [A-FORGE](https://github.com/ariffazil/A-FORGE) | Execution engine after authorisation | Public |
+| [arifFLOW](https://github.com/ariffazil/arifFLOW) | Metabolic ledger daemon — FQ monitoring, receipt ingestion | Public |
+| [WEALTH](https://github.com/ariffazil/WEALTH) | Capital and financial intelligence | Public |
+| AAA | Attention plane — routing, state, skill catalog, A2A gateway | Private |
+| GEOX | Earth sciences domain evidence | Private |
+| WELL | Human and machine vitality observation | Private |
+| FRAME | Independent observer — drift detection, evidence gathering | Private (organ live) |
 
-**No public repository today:** FED (`:7074`) and i-ARIF. They are deployed and reachable, but their source is not published — a previous revision of this file linked to repositories that return 404. Treat their behaviour as observed from `/health` only, not as readable code.
+**No public source today:** AAA, GEOX, WELL, FRAME (deployed organs whose repositories are private), FED (`:7074`) and i-ARIF. They are deployed and reachable — verify them from `/health`, not from links. A previous revision of this file linked to repositories that return 404 for strangers; that was a defect, and it is fixed by stating visibility instead of by linking dead URLs.
 
 ---
 
@@ -583,7 +585,7 @@ arifOS publishes verifiable evidence for its claims. Every public claim links to
 |---|---|---|
 | MCP conformance | [CI workflow](./.github/workflows/06-mcp-conformance.yml) · [report](docs/evidence/conformance-report.json) | **Partial** — `result: PARTIAL`, per-tool schema validation deferred, results not published externally |
 | ABI stability | [Drift guard](./scripts/sync_kernel_abi.py) | **Partial** — `--check` currently reports drift in `smithery.yaml` (reproduced on a pristine `main` worktree, 2026-09-21); last clean resync 2026-09-15 |
-| Floor enforcement | `/health → runtime_floors_status` | **Verified** — 13/13 measured pass (live probe) |
+| Floor enforcement | `/health → layer_health.constitutional` | **Verified** — 16/16 measured pass (live probe 2026-10-15) |
 | Vault integrity | [`scripts/verify_vault_chain.py`](./scripts/verify_vault_chain.py) | **Verified** — overall INTACT; 2 legacy breaks reported as historical |
 | SBOM | [Generator](arifosmcp/arifos_sbom.py) | **Partial** — CycloneDX generated, no CVE scan, unsigned |
 | Observability | [Telemetry](arifosmcp/runtime/telemetry.py) | **Partial** — Postgres + arifFlow live; tracing incomplete |
@@ -627,6 +629,8 @@ When deployed over a network, the complete source code must be made available to
 ---
 
 *Revision 2026-09-21 — audited against the live kernel, the ratified federation contract and the repository itself. Every number in this file was re-measured, not carried forward; each correction is receipted in the commit history.*
+
+*Audit pass 2026-10-15 (HERMES, live probes from the forge host): PyPI version corrected (`1!2026.10.11`), stale health snapshot refreshed (release `2026.10.14-a6ec3c8`, floors 16/16 measured pass live), vault counts re-stamped (96,600 / 90,519), sister-repo links fixed to state visibility instead of 404ing (AAA/GEOX/WELL/FRAME private; arifWEALTH renamed WEALTH), tools.json flagged 401, invocation-telemetry receipt-fidelity re-probed on recent entries. Full findings: forge audit log 2026-10-15.*
 
 **Independent audit pass 2026-09-22** (Copilot external, mode ENTERPRISE). Findings A, B, C, D, E, F, G, H, I, K, L, N — all four blocking contradictions + the two highest-leverage gaps (G sovereign-binding, H ledger anchoring) — corrected in this revision. M (TOC/badges) and a per-pass signature remain open as structural polish. See commit history for per-finding receipts.
 
