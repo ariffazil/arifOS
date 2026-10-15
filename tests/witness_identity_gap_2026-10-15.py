@@ -75,10 +75,25 @@ def tool_result(resp):
 
 
 def status_of(text):
+    """Extract the semantic status, not the MCP wrapper status.
+
+    The MCP server always sets the outer 'status' to 'completed' (meaning the
+    tool call itself succeeded). The real identity verdict lives in
+    meta.failure_type or verdict.  After the W1 fix (2026-10-15), unbound
+    calls return meta.failure_type='ARIF_SESSION_NOT_FOUND' — that is the
+    signal we gate on.
+    """
     try:
-        return json.loads(text).get("status")
+        o = json.loads(text)
     except Exception:  # noqa: BLE001
         return None
+    # Post-W1 fix: check for the session-not-found failure
+    ft = (o.get("meta") or {}).get("failure_type")
+    if ft:
+        return f"HOLD:{ft}"
+    # Pre-fix behaviour: MCP wrapper status = 'completed' but no failure_type
+    # means the tool genuinely ran to completion.
+    return o.get("status")
 
 
 # ── D1 · unbound arif_judge must be refused ────────────────────────────────
