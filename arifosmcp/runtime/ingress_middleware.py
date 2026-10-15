@@ -48,6 +48,43 @@ logger = logging.getLogger(__name__)
 _RECEIPT_MODE = os.getenv("SUPABASE_WRITE_MODE", "off").lower()
 _RECEIPT_OFF = _RECEIPT_MODE == "off"
 
+# ── D3: Pydantic Error Sanitization (R1 fix 2026-10-16) ────────────────
+# Raw Pydantic ValidationErrors leak vendor URLs (errors.pydantic.dev),
+# internal field paths, and type information to external callers.
+# Sanitize: strip vendor URLs, collapse to field→error pairs.
+_PYDANTIC_URL_PATTERN = __import__("re").compile(r"\s*https?://errors\.pydantic\.dev/[^\s\]]+")
+_PYDANTIC_FIELD_MARKER = __import__("re").compile(
+    r"^\d+ validation error[s]? for\s+", __import__("re").MULTILINE
+)
+
+
+def _sanitize_pydantic_error(text: str) -> str | None:
+    """If text is a Pydantic validation error, return sanitized version.
+
+    Returns None if text is not a Pydantic error (caller should pass through).
+    """
+    if "errors.pydantic.dev" not in text and "validation error" not in text.lower():
+        return None
+    # Strip vendor URLs
+    cleaned = _PYDANTIC_URL_PATTERN.sub("", text)
+    # Strip the "N validation errors for X" header
+    cleaned = _PYDANTIC_FIELD_MARKER.sub("", cleaned)
+    # Collapse to concise field→error pairs
+    lines = [ln.strip() for ln in cleaned.strip().splitlines() if ln.strip()]
+    errors = []
+    current_field = None
+    for line in lines:
+        if line.startswith("Input should be") or line.startswith("Field required"):
+            if current_field:
+                errors.append(f"{current_field}: {line}")
+            else:
+                errors.append(line)
+        elif not line.startswith("For further") and not line.startswith("[type="):
+            current_field = line.rstrip(".")
+    if errors:
+        return "CONTRACT_VIOLATION: " + "; ".join(errors[:5])
+    return "CONTRACT_VIOLATION: invalid input types"
+
 
 # ── Supabase Tool Call Receipt ─────────────────────────────────────────
 # Fire-and-forget async receipt written after each tool execution.
@@ -148,9 +185,7 @@ def _interceptor_hold_tool_result(
     try:
         from arifosmcp.core.hold_resolution import as_dict, classify_hold
 
-        envelope["hold_resolution"] = as_dict(
-            classify_hold(reason, tool=tool_name, authority=auth)
-        )
+        envelope["hold_resolution"] = as_dict(classify_hold(reason, tool=tool_name, authority=auth))
     except Exception:
         pass
     return ToolResult(
@@ -1618,6 +1653,21 @@ if IS_FASTMCP_3:
                         act_sid=str(_sess) if _sess and _sess != "unknown" else None,
                     ) as _ingress_tctx:
                         result = await call_next(context)
+
+                    # ── D3: Sanitize Pydantic validation errors (R1 fix) ──
+                    # Raw Pydantic errors leak vendor URLs and internal paths.
+                    if result and getattr(result, "is_error", False):
+                        try:
+                            from mcp.types import TextContent as _TC
+
+                            for _ci, _item in enumerate(getattr(result, "content", []) or []):
+                                if hasattr(_item, "text") and _item.text:
+                                    _clean = _sanitize_pydantic_error(_item.text)
+                                    if _clean is not None:
+                                        result.content[_ci] = _TC(type="text", text=_clean)
+                                        break
+                        except Exception:
+                            pass  # never break tool dispatch on sanitization failure
 
                     if result:
                         if hasattr(result, "structured_content") and isinstance(
