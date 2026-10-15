@@ -26484,7 +26484,8 @@ def _force_hold_mutation_fields(response: Any) -> Any:
     response["mutation_allowed"] = False
     response["seal_allowed"] = False
     response["can_mutate"] = False
-    response.setdefault("hold_required", True)
+    # T2: hold_required belongs ONLY in constitutional_check (single writer).
+    # Removed response.setdefault("hold_required", True) — 2026-10-16.
 
     auth = response.get("authority")
     if isinstance(auth, dict):
