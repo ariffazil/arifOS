@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" font-family="DejaVu Sans, Liberation Sans, sans-serif">
+  <defs>
+    <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#5a6270"/>
+    </marker>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1e24"/>
+      <stop offset="1" stop-color="#14161a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#fade)"/>
+  <g stroke="#232830" stroke-width="1">
+    <line x1="0" y1="260" x2="1280" y2="260"/><line x1="0" y1="460" x2="1280" y2="460"/>
+    <line x1="320" y1="0" x2="320" y2="640"/><line x1="960" y1="0" x2="960" y2="640"/>
+  </g>
+
+  <!-- Title -->
+  <text x="60" y="104" fill="#f2f4f7" font-size="58" font-weight="700">arifOS</text>
+  <text x="60" y="146" fill="#d4a853" font-size="22" letter-spacing="6">AUTHORITY BEFORE EXECUTION</text>
+
+  <!-- Human authority (above the gate) -->
+  <rect x="400" y="182" width="480" height="56" rx="12" fill="none" stroke="#d4a853" stroke-width="2.5"/>
+  <text x="640" y="218" fill="#d4a853" font-size="22" font-weight="700" text-anchor="middle">HUMAN AUTHORITY · retained veto</text>
+  <line x1="640" y1="238" x2="640" y2="302" stroke="#d4a853" stroke-width="2.5" stroke-dasharray="6 5"/>
+
+  <!-- Cards -->
+  <g>
+    <rect x="60" y="340" width="210" height="120" rx="14" fill="#1d2229" stroke="#4fd1c5" stroke-width="2"/>
+    <text x="165" y="392" fill="#f2f4f7" font-size="24" font-weight="700" text-anchor="middle">AGENT</text>
+    <text x="165" y="424" fill="#9aa4b2" font-size="17" text-anchor="middle">proposes action</text>
+
+    <rect x="325" y="340" width="210" height="120" rx="14" fill="#1d2229" stroke="#4fd1c5" stroke-width="2"/>
+    <text x="430" y="392" fill="#f2f4f7" font-size="24" font-weight="700" text-anchor="middle">arifOS</text>
+    <text x="430" y="424" fill="#9aa4b2" font-size="17" text-anchor="middle">judges · F1–F13</text>
+
+    <rect x="745" y="340" width="210" height="120" rx="14" fill="#1d2229" stroke="#4fd1c5" stroke-width="2"/>
+    <text x="850" y="392" fill="#f2f4f7" font-size="24" font-weight="700" text-anchor="middle">A-FORGE</text>
+    <text x="850" y="424" fill="#9aa4b2" font-size="17" text-anchor="middle">executes under verdict</text>
+
+    <rect x="1010" y="340" width="210" height="120" rx="14" fill="#1d2229" stroke="#4fd1c5" stroke-width="2"/>
+    <text x="1115" y="384" fill="#f2f4f7" font-size="21" font-weight="700" text-anchor="middle">REALITY</text>
+    <text x="1115" y="412" fill="#f2f4f7" font-size="21" font-weight="700" text-anchor="middle">+ RECEIPT</text>
+    <text x="1115" y="440" fill="#9aa4b2" font-size="15" text-anchor="middle">VAULT999 · evidence</text>
+  </g>
+
+  <!-- Arrows -->
+  <g stroke="#5a6270" stroke-width="2.5" marker-end="url(#ah)">
+    <line x1="272" y1="400" x2="318" y2="400"/>
+    <line x1="537" y1="400" x2="592" y2="400"/>
+    <line x1="688" y1="400" x2="738" y2="400"/>
+    <line x1="957" y1="400" x2="1003" y2="400"/>
+  </g>
+
+  <!-- Constitutional gate (between judgment and execution) -->
+  <g>
+    <rect x="596" y="302" width="88" height="14" rx="4" fill="#d4a853"/>
+    <rect x="598" y="316" width="12" height="120" rx="3" fill="#d4a853"/>
+    <rect x="670" y="316" width="12" height="120" rx="3" fill="#d4a853"/>
+    <text x="640" y="382" fill="#d4a853" font-size="17" font-weight="700" text-anchor="middle">GATE</text>
+    <text x="640" y="466" fill="#d4a853" font-size="15" font-weight="700" text-anchor="middle">CONSTITUTIONAL GATE</text>
+    <text x="640" y="489" fill="#9aa4b2" font-size="13" text-anchor="middle">the judge never executes</text>
+  </g>
+
+  <!-- Verdict pills -->
+  <g>
+    <rect x="536" y="512" width="62" height="28" rx="14" fill="#14342b" stroke="#3fbf7f" stroke-width="1.5"/>
+    <text x="567" y="531" fill="#3fbf7f" font-size="14" font-weight="700" text-anchor="middle">SEAL</text>
+    <rect x="610" y="512" width="62" height="28" rx="14" fill="#3a2f16" stroke="#d4a853" stroke-width="1.5"/>
+    <text x="641" y="531" fill="#d4a853" font-size="14" font-weight="700" text-anchor="middle">HOLD</text>
+    <rect x="684" y="512" width="62" height="28" rx="14" fill="#3a1a1a" stroke="#d9534f" stroke-width="1.5"/>
+    <text x="715" y="531" fill="#d9534f" font-size="14" font-weight="700" text-anchor="middle">VOID</text>
+    <text x="641" y="568" fill="#9aa4b2" font-size="13" text-anchor="middle">every verdict receipted in an append-only hash chain</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="60" y="606" fill="#9aa4b2" font-size="17">Proposer ≠ Judge ≠ Executor ≠ Witness</text>
+  <text x="1220" y="606" fill="#d4a853" font-size="16" letter-spacing="3" text-anchor="end">DITEMPA BUKAN DIBERI</text>
+</svg>
