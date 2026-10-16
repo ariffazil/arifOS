@@ -1,0 +1,52 @@
+[
+  {
+    "step": 1,
+    "what": "obtain pinned source",
+    "status": "deferred-outsider"
+  },
+  {
+    "step": 2,
+    "what": "verify declared hashes",
+    "status": "deferred-outsider"
+  },
+  {
+    "step": 3,
+    "what": "build without private deps",
+    "status": "deferred-outsider"
+  },
+  {
+    "step": 4,
+    "what": "run with network disabled",
+    "status": "deferred-outsider"
+  },
+  {
+    "step": 5,
+    "what": "init isolated runtime/fixture",
+    "status": "done-here (fixture)"
+  },
+  {
+    "step": 6,
+    "what": "reproduce deterministic refusal",
+    "status": "done-here (BT1-BT4 fixtures)"
+  },
+  {
+    "step": 7,
+    "what": "attempt spoofed identity",
+    "status": "done-here (BT2 fixture)"
+  },
+  {
+    "step": 8,
+    "what": "observe no mutation",
+    "status": "by-construction (no network, tmp dirs)"
+  },
+  {
+    "step": 9,
+    "what": "inspect transport/governance/execution separately",
+    "status": "done-here (BT3 schema)"
+  },
+  {
+    "step": 10,
+    "what": "reconstruct chain with separate verifier",
+    "status": "deferred-outsider"
+  }
+]

@@ -1,0 +1,82 @@
+{
+  "sealtype": [
+    "VOID",
+    "HOLD_888",
+    "HOLD",
+    "SABAR",
+    "PARTIAL",
+    "PROVISIONAL",
+    "SEAL"
+  ],
+  "reasoncode": [
+    "DEPLOYED_COMMIT_MISMATCH",
+    "STATE_MISMATCH",
+    "EVIDENCE_MISSING",
+    "AUTHORITY_MISSING",
+    "DEPENDENCY_UNAVAILABLE",
+    "EVIDENCE_CONFLICT",
+    "AUTOMATED_POLICY_FAIL",
+    "AUTOMATED_EVIDENCE_FAIL",
+    "HUMAN_JUDGMENT_REQUIRED",
+    "SYSTEM_FAULT",
+    "VERIFIER_IDENTITY_VIOLATION",
+    "FRESHNESS_EXCEEDED",
+    "SUCCESS_CRITERIA_UNDEFINED"
+  ],
+  "actor_verified": {
+    "type": "bool",
+    "default": false
+  },
+  "measured_results": [
+    {
+      "id": "BT1",
+      "l1_command_ran": true,
+      "l2_expected_observed": true,
+      "verdict": "GAP_CONFIRMED",
+      "note": "actor_verified is bool default=False; NO signature verification in verification_envelope.py -> the field is a declared bool, not crypto-derived. Invariant holds trivially (nothing sets it True), but the identity gap is REAL: unsigned and signed callers are indistinguishable at this surface."
+    },
+    {
+      "id": "BT2",
+      "l1_command_ran": true,
+      "l2_expected_observed": true,
+      "verdict": "GAP_OPEN",
+      "note": "spoofed envelope {\"actor_id\": \"attacker\", \"actor_verified\": true, \"verdict\": \"SEAL\", \"session_id\": \"SEAL-spoofed\"}: actor_verified is a writable bool field (type=bool), verdict is a plain string, 'SEAL-' session_id is a label. No signature gate re-derives identity from a cryptographic envelope. GAP OPEN: none of these values is cryptographically bound."
+    },
+    {
+      "id": "BT3",
+      "l1_command_ran": true,
+      "l2_expected_observed": true,
+      "verdict": "INVARIANT_DEFINED",
+      "note": "fixture event separates governance.verdict=HOLD from transport.response_completed=true and governance.can_claim_success=false. The SCHEMA preserves both facts. The legacy defect (ok:true overloading HOLD as success) is what the schema is designed to detect \u2014 the field separation is the invariant under test, NOT a claim that live telemetry is fixed. (validated against schemas/governance-event.schema.json)"
+    },
+    {
+      "id": "BT4",
+      "l1_command_ran": true,
+      "l2_expected_observed": true,
+      "verdict": "GAP_CONFIRMED",
+      "note": "ReasonCode enum has 13 canonical values: ['DEPLOYED_COMMIT_MISMATCH', 'STATE_MISMATCH', 'EVIDENCE_MISSING', 'AUTHORITY_MISSING', 'DEPENDENCY_UNAVAILABLE', 'EVIDENCE_CONFLICT', 'AUTOMATED_POLICY_FAIL', 'AUTOMATED_EVIDENCE_FAIL', 'HUMAN_JUDGMENT_REQUIRED', 'SYSTEM_FAULT', 'VERIFIER_IDENTITY_VIOLATION', 'FRESHNESS_EXCEEDED', 'SUCCESS_CRITERIA_UNDEFINED']. Fixture with reason_code present vs absent: the schema permits reason_code=null, so a refusal record CAN omit the cause. GAP: invocation telemetry does not guarantee an explicit reason_code on refusal."
+    },
+    {
+      "id": "BT5",
+      "l1_command_ran": true,
+      "l2_expected_observed": true,
+      "verdict": "GAP_CONFIRMED",
+      "note": "fixture: 2 sinks, equal count (2==2), DIFFERENT event identities ({e1,e2} vs {e1,e9}). Count-equality alone would pass; set-equality detects the divergence. This reproduces the 4-PATH split defect class using event_id, NOT manufactured identity."
+    },
+    {
+      "id": "BT6",
+      "l1_command_ran": true,
+      "l2_expected_observed": true,
+      "verdict": "INDEPENDENCE_LIMITED",
+      "note": "Maintainer-built harness IS NOT independent reconstruction (mission rule). Steps 5-9 are reproduced here via fixtures; steps 1-4,10 require an OUTSIDER on a clean host. This is a documented independence limitation, not a hidden success."
+    }
+  ],
+  "design_invariants": {
+    "no_mutation": {
+      "level": "L3",
+      "basis": "by-construction",
+      "experimentally_measured": false,
+      "detail": "The runner opens no sockets and writes only to $TMPDIR and harness fixtures/. No independent target-state probe exists in this harness; against a live target, non-mutation is UNMEASURED."
+    }
+  }
+}
