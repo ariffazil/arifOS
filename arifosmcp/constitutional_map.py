@@ -2064,7 +2064,7 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     ),
     "arif_judge": derive_mcp_annotations(
         "DRAFT",
-        title="888 Judge · Verdict",
+        title="666 Judge · Verdict",
     ),
     "arif_seal": derive_mcp_annotations(
         "IRREVERSIBLE",
