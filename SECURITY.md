@@ -130,14 +130,14 @@ arifbfazil@gmail.com
 
 The MCP Marketplace published scan (against `v2026.10.11`) reported six findings. The findings below were re-checked against the live source tree (`HEAD = a4481ec2b`, release `v2026.10.15`, marketplace version label `1!2026.10.11`) on **2026-10-16**.
 
-### Findings retracted by live evidence
+### Findings resolved — declaration fix + live evidence
 
 1. **anyio TLSStream IDNA 2003 (CVE-2026-63374) — CRITICAL**  
-   `pyproject.toml:69` pins `"anyio>=4.13.0"`. The installed runtime is `anyio 4.14.2` (`uv.lock:3514`). CVE-2026-63374 is fixed in anyio `>=4.7.0`. The marketplace scanner's report predates the `v2026.10.14` anyio bump (`chore(deps): bump anyio 4.14.1 → 4.14.2`). **Retract.**  
+   `pyproject.toml:69` pins `"anyio>=4.13.0"`. The installed runtime is `anyio 4.14.2` (`uv.lock:3514`). Per advisory GHSA-82r6-8w77-94w6: vulnerable `< 4.14.2`, first patched **4.14.2**. The old declaration `anyio>=4.13.0` admitted vulnerable versions — the scanner was right to flag it. **Fixed 2026-10-16 (`525bcb1121`):** floor raised to `anyio>=4.14.2`, published in `1!2026.10.16` (wheel METADATA verified). *(An earlier draft here claimed 'fixed in >=4.7.0' — wrong; corrected against the advisory.)*  
    Refs: `b134061a9` (bump 4.14.1→4.14.2), `2066bfc9c`, `116cec18a` (≥4.13.0 → ≥4.14.1).
 
-2. **anyio process-pool stderr (CVE-2026-64847) — CRITICAL**  
-   Same root cause: live source is `4.14.2`; this CVE is fixed in anyio `>=4.9.0`. **Retract** for the same reason.
+2. **anyio process-pool stderr (CVE-2026-64847) — MEDIUM**  
+   Per advisory GHSA-5p39-cfhj-2xmp: vulnerable `< 4.14.2`, first patched **4.14.2**. Same declaration defect, same fix (`>=4.14.2` in `1!2026.10.16`). *(Earlier draft said 'fixed in >=4.9.0' — wrong; corrected.)*
 
 3. **Source code truncated, modules missing — LOW**  
    All four modules cited as missing exist at the reported paths:
@@ -162,4 +162,4 @@ A re-publication of `arifOS` (PyPI tag `v2026.10.16` — version bumped this tur
 
 ### Honest note
 
-This rebuttal is grounded in live source measurements from this turn. Each "Retract" line is supported by an exact file:line reference. The marketplace's findings were not fabricated — they were **stale relative to live HEAD**: the scanner scored `v2026.10.11` while the live tree is `a4481ec2b` with `anyio 4.14.2`. The fix is **a re-publication**, not a code change. The version bump (`1!2026.10.11` → `1!2026.10.16`) recorded in this turn is the mechanism that triggers the marketplace re-scan.
+This rebuttal is grounded in live source measurements from this turn. Each finding below carries an exact file:line or advisory reference. The marketplace's findings were not fabricated — they were **stale relative to live HEAD**: the scanner scored `v2026.10.11` while the live tree is `a4481ec2b`. Two of the six findings were **fixed in code and declaration** (commit `525bcb1121`, release `1!2026.10.16`: anyio floor `>=4.14.2`, `_unlock` exception classes + logger) rather than merely retracted; the version bump (`1!2026.10.11` → `1!2026.10.16`) is the mechanism that triggers the marketplace re-scan.
