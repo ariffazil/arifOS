@@ -374,7 +374,7 @@ Start here: [docs/START_HERE.md](./docs/START_HERE.md)
 
 ## Founding Context
 
-arifOS was built by Muhammad Arif bin Fazil, a senior exploration geoscientist who spent his career making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
+arifOS was built by ARIF FAZ, a senior exploration geoscientist who spent his career making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
 
 The system is named after its founder and reflects a core belief: **governance is a systems problem, not a model problem.**
 
