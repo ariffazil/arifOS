@@ -1,0 +1,97 @@
+{
+  "_meta": {
+    "reference": "ARIFOS::REALITY_LOOP_RECEIPT_INTEGRITY_REPAIR::v1",
+    "status": "READ_ONLY | EVIDENCE_REPAIR_ONLY",
+    "verdict": "HOLD",
+    "note": "Timestamps marked UNKNOWN if not captured. No timestamps invented."
+  },
+  "loop_id": "rl-577cbd57-b37b-47b3-a29f-80fac62ba6b8",
+  "actor_id": "FI-003",
+  "invocations": [
+    {
+      "attempt_id": "attempt-1",
+      "timestamp": "UNKNOWN (not captured at call time)",
+      "endpoint": "A-FORGE MCP at http://127.0.0.1:7072/mcp",
+      "tool": "forge_reality_loop",
+      "mode": "destroy",
+      "session_supplied": "rl-577cbd57-b37b-47b3-a29f-80fac62ba6b8",
+      "session_supplied_kind": "loop_session",
+      "actor_verified": "NOT_PROBED (tool returned SESSION_REQUIRED before any identity check)",
+      "autonomy_band": "NOT_PROBED",
+      "verdict": "NOT_PROBED",
+      "transport_outcome": "rejected",
+      "error_class": "SESSION_REQUIRED",
+      "gate": "SESSION_REQUIRED",
+      "reason_text": "SESSION_UNKNOWN",
+      "target_state_observation": "NONE (caller-response only; L2 evidence at best)"
+    },
+    {
+      "attempt_id": "attempt-2-step-1",
+      "timestamp": "UNKNOWN (not captured at call time)",
+      "endpoint": "arifOS at http://127.0.0.1:8088/mcp",
+      "tool": "arif_init",
+      "mode": "init",
+      "session_supplied": "NONE (no session \u2014 this is the bootstrap call)",
+      "actor_id_arg": "FI-003",
+      "requested_authority_arg": "engineer",
+      "intent_arg_redacted": "<redacted \u2014 not embedded in fixture per directive>",
+      "transport_outcome": "success at transport layer (HTTP 200, isError=false)",
+      "response_session_id_prefix": "SEAL-",
+      "response_session_id_hash": "computed_at_runtime_per_harness_runtime_path_NOT_EMBEDDED_HERE",
+      "response_verdict": "HOLD",
+      "response_actor_verified": "false",
+      "response_autonomy_band": "OBSERVE_ONLY",
+      "act_token_present": true,
+      "act_token_redacted": true,
+      "act_token_length": "REDACTED (was an implementation fingerprint)",
+      "error_class": "NONE",
+      "gate": "NONE",
+      "target_state_observation": "NONE",
+      "note": "This is a SESSION CREATION call \u2014 it succeeded at transport but per the integrity-repair directive, no arif_init was authorized in this scope"
+    },
+    {
+      "attempt_id": "attempt-2-step-2",
+      "timestamp": "UNKNOWN (not captured at call time)",
+      "endpoint": "A-FORGE MCP at http://127.0.0.1:7072/mcp",
+      "tool": "forge_reality_loop",
+      "mode": "destroy",
+      "session_supplied_prefix": "SEAL-",
+      "session_supplied_kind": "arifOS session (HOLD/OBSERVE_ONLY per attempt-2-step-1)",
+      "act_token_present": true,
+      "act_token_redacted": true,
+      "loop_session_id_arg": "rl-577cbd57-b37b-47b3-a29f-80fac62ba6b8",
+      "actor_id": "FI-003",
+      "transport_outcome": "rejected",
+      "error_class": "SESSION_REQUIRED",
+      "gate": "SESSION_REQUIRED",
+      "reason_text": "SESSION_UNKNOWN",
+      "actor_verified": "false (from attempt-2-step-1 response)",
+      "autonomy_band": "OBSERVE_ONLY (from attempt-2-step-1 response)",
+      "verdict": "HOLD (from attempt-2-step-1 response)",
+      "target_state_observation": "NONE (caller-response only; L2 evidence at best)"
+    }
+  ],
+  "summary": {
+    "invocation_count": 3,
+    "mutation_class_count": 2,
+    "accepted_execution_count": 0,
+    "rejected_count": 2,
+    "session_creation_count": 1,
+    "target_mutation_count": "UNKNOWN",
+    "level_3_result": "UNMEASURED"
+  },
+  "forbidden_actions_observed": {
+    "forbidden_forge_reality_loop_calls": 2,
+    "forbidden_session_creations_arif_init": 1,
+    "forbidden_retries_after_failure": 2,
+    "argument_variation_after_failure": 1
+  },
+  "forbidden_actions_NOT_observed": [
+    "carry_forward_append",
+    "tasks.json_rewrite",
+    "runtime_seal",
+    "cleanup_delegation_to_888_apex",
+    "doctrine_file_creation",
+    "governance_gap_closure_claim"
+  ]
+}
