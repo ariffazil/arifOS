@@ -100,11 +100,20 @@ def _lock_exclusive(handle: Any) -> None:
     fcntl.flock(handle, fcntl.LOCK_EX)
 
 
+logger = logging.getLogger(__name__)
+
+
 def _unlock(handle: Any) -> None:
+    """Release a lock-like handle. Never raises — unlock must not fail a task.
+
+    Catches the documented release-failure classes of asyncio/threading
+    primitives (unlocked, wrong-owner/thread, closed) instead of swallowing
+    every exception (2026-10-16 code-quality finding from MCP marketplace scan).
+    """
     try:
         handle.release()
-    except Exception:
-        logger.exception("suppressed exception", exc_info=True)
+    except (RuntimeError, OSError, ValueError):
+        logger.debug("suppressed release failure in _unlock", exc_info=True)
 
 
 # ── W-02 / W-03: Deployment-drift floor (2026-08-04) ─────────────────
