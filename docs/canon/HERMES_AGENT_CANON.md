@@ -47,7 +47,7 @@ Irreversible or high-risk action in arifOS context:
 ## Verified arifOS State (2026-05-05)
 - arifOS MCP: localhost:8088, streamable-http, 13 tools healthy
 - arifOS release: v2026.05.01-KANON, git: e920436
-- vault999: localhost:8100, healthy
+- vault999: localhost:5001, healthy
 - arifOS cannot reach postgres (psycopg2 fails in-container)
 - arifOS cannot reach redis (redis import fails in-container)
 

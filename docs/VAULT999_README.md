@@ -40,7 +40,7 @@ Vault999 is **not one service** — it is two cooperating services:
 │   ┌──────────────┐         ┌──────────────┐                │
 │   │  vault999    │  HTTP   │vault999-     │                │
 │   │  API Layer   │◄────────│writer        │                │
-│   │  (port 8100) │         │(port 5001)   │                │
+│   │  (port 5001) │         │(port 5001)   │                │
 │   └──────┬───────┘         └──────┬───────┘                │
 │          │                        │                         │
 │          │  asyncpg pool          │  asyncpg pool          │
@@ -61,7 +61,7 @@ Vault999 is **not one service** — it is two cooperating services:
 ```
 
 ### 2.1 vault999 (API Layer)
-- **Port:** 8100
+- **Port:** 5001
 - **Source:** `/root/compose/vault999/server.py`
 - **Role:** Exposes REST API for queries, audits, receipts, health
 - **DB env:** `DATABASE_URL`
@@ -128,11 +128,11 @@ Vault999 is **not one service** — it is two cooperating services:
 Required in `/etc/arifOS/secrets.env` (or systemd `Environment=`):
 
 ```bash
-# For vault999 API layer (port 8100)
+# For vault999 API layer (port 5001)
 DATABASE_URL=postgresql://postgres:<PASSWORD>@db.utbmmjmbolmuahwixjqc.supabase.co:5432/postgres?sslmode=require
 VAULT_WRITER_URL=http://localhost:5001
 VAULT_ADMIN_TOKEN=<strong-random-token>
-PORT=8100
+PORT=5001
 
 # For vault999-writer (port 5001)
 VAULT999_DB=postgresql://postgres:<PASSWORD>@db.utbmmjmbolmuahwixjqc.supabase.co:5432/postgres?sslmode=require
@@ -151,7 +151,7 @@ PORT=5001
 
 ## 5. API Reference
 
-### 5.1 vault999 (API Layer) — Port 8100
+### 5.1 vault999 (API Layer) — Port 5001
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
@@ -225,7 +225,7 @@ curl -s http://localhost:5001/health
 
 # 3. Start API layer
 sudo systemctl start vault999
-curl -s http://localhost:8100/health
+curl -s http://localhost:5001/health
 
 # 4. Verify federation health
 curl -s http://localhost:8088/health | python3 -m json.tool
@@ -253,7 +253,7 @@ journalctl -u vault999-writer -f
 ### 7.1 Check Chain Hash
 
 ```bash
-curl -s http://localhost:8100/vault/status | python3 -m json.tool
+curl -s http://localhost:5001/vault/status | python3 -m json.tool
 ```
 
 Look for:
@@ -362,20 +362,20 @@ This creates a SHA-256 attestation of the local vault state. It does **not** wri
 
 ```bash
 # Health checks
-curl -s http://localhost:8100/health
+curl -s http://localhost:5001/health
 curl -s http://localhost:5001/health
 
 # Vault status
-curl -s http://localhost:8100/vault/status | python3 -m json.tool
+curl -s http://localhost:5001/vault/status | python3 -m json.tool
 
 # Pending reviews
-curl -s http://localhost:8100/cli/pending | python3 -m json.tool
+curl -s http://localhost:5001/cli/pending | python3 -m json.tool
 
 # Inspect a cooling queue entry
-curl -s http://localhost:8100/cli/inspect/123
+curl -s http://localhost:5001/cli/inspect/123
 
 # Audit a seal
-curl -s http://localhost:8100/vault/audit/<seal_id>
+curl -s http://localhost:5001/vault/audit/<seal_id>
 
 # Write audit receipt (autonomous, non-binding)
 curl -s -X POST http://localhost:5001/audit-receipt \
@@ -391,7 +391,7 @@ curl -s -X POST http://localhost:5001/audit-receipt \
 | Component | Status |
 |-----------|--------|
 | Supabase schema | ✅ Deployed (11 tables, 4 sequences, 15+ indexes) |
-| vault999 service (8100) | ❌ Not started — needs systemd unit |
+| vault999 service (5001) | ❌ Not started — needs systemd unit |
 | vault999-writer service (5001) | ❌ Not started — needs systemd unit |
 | Local JSONL ledger | ✅ 14,786 entries (`/root/arifOS/VAULT999/outcomes.jsonl`) |
 | Daily attestation cron | ✅ Active (03:00 daily) |

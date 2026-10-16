@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- arifOS favicon (logo-mark, simplified for small sizes) -->
+  <rect width="512" height="512" rx="96" fill="#14161a"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#d4a853" stroke-width="22"/>
+  <rect x="206" y="128" width="100" height="22" rx="11" fill="#d4a853"/>
+  <line x1="256" y1="152" x2="256" y2="248" stroke="#d4a853" stroke-width="12" stroke-dasharray="16 14"/>
+  <circle cx="172" cy="330" r="30" fill="#4fd1c5"/>
+  <circle cx="268" cy="330" r="38" fill="#d4a853"/>
+  <circle cx="392" cy="330" r="30" fill="#4fd1c5"/>
+  <rect x="322" y="272" width="56" height="16" rx="6" fill="#d4a853"/>
+  <rect x="324" y="288" width="14" height="84" rx="5" fill="#d4a853"/>
+  <rect x="364" y="288" width="14" height="84" rx="5" fill="#d4a853"/>
+</svg>

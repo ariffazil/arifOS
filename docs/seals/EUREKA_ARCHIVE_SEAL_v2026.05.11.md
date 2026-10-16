@@ -24,7 +24,7 @@ entry_n.chain_hash = BLAKE3(prev_seal_hash  | entry_n.seal_hash)
 Any tampering with a past entry breaks all downstream chain_hash values — detectable on read.
 Genesis anchor: `9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43`
 BLAKE3 is primary; SHA-256 is the fallback (import error path only).
-Never conflate the two services: `vault-service` (port 8100, read + audit surface) is NOT `vault999_writer` (port 5001, the only INSERT-authorized service).
+Never conflate the two services: `vault-service` (port 5001, read + audit surface) is NOT `vault999_writer` (port 5001, the only INSERT-authorized service).
 
 ### E2 — Sealing Rule: What Enters the Chain
 Only `PROCEED` and `SEAL` verdicts are sealed. `HOLD` and `VOID` are NOT sealed — ungoverned states do not enter the chain.
@@ -69,7 +69,7 @@ machine         — machine-generated (deprecated in current flow)
 ### E7 — WELD-004 Topology (designed but never deployed)
 `geox-wealth/docker-compose.yml` defined the deployment unit:
 - vault999-writer  → port 5001 (internal only)
-- vault-service    → port 8100 (read/audit surface)
+- vault-service    → port 5001 (read/audit surface)
 - geox             → port 8000:8081
 - wealth           → stdio-only MCP, kept alive via `tail -f /dev/null`
 
