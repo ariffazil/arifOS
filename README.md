@@ -42,6 +42,7 @@ seal_readiness_gaps: graphiti=RETIRED_888(2026-09-04) · semantic_floor=off_by_c
 
 # arifOS — The Authority Plane of the arifOS Federation
 
+[![arifOS — Constitutional AI Kernel MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
 [![Security Audit: In Progress](https://img.shields.io/badge/Security_Audit-In_Progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![External evaluation: not yet published](https://img.shields.io/badge/External_Evaluation-Not_Yet_Published-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![Kernel process: healthy](https://img.shields.io/badge/Kernel_Process-healthy-blue?style=flat-square)](https://arifos.arif-fazil.com/health)
