@@ -84,6 +84,9 @@ tools:
       - simulate
       - wonder
       - atlas
+      - dag
+      - branches
+      - clarify
 
   - id: arif_route
     name: arif_route
@@ -139,6 +142,8 @@ tools:
       - validate
       - hold
       - escalate
+      - score
+      - collapse
 
   - id: arif_forge
     name: arif_forge

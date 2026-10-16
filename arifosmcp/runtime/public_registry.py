@@ -389,8 +389,20 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         "witness_type": (
             "Who vouches for the reasoning record: 'ai' (default), 'human', or 'external' system."
         ),
+        "concise": (
+            "Trim result.result to essential fields (default true). Set false for the "
+            "full payload — evidence_used, epistemic_labels and the AGI-readiness block. "
+            "Read-only formatting choice; it never changes the reasoning itself."
+        ),
     },
     "arif_route": {
+        "mode": (
+            "'route' (default) — classify intent and recommend the target organ; "
+            "'triage' — rank a batch of intents; 'delegate' — prepare an A2A "
+            "handoff; 'status' — surface organ state; 'kernel' — kernel-level "
+            "status; 'metabolize' — feed routing outcomes to arifFlow. Routing "
+            "only recommends — execution is arif_forge after a SEAL verdict."
+        ),
         "contract_c_kwargs": (
             "Extra keyword arguments passed through to the organ tool call, as a JSON object."
         ),
@@ -404,6 +416,12 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         ),
         "candidate": (
             "The action or claim being judged, stated plainly, e.g. 'delete table users in prod'."
+        ),
+        "authority_token": (
+            "Authority credential CLAIMED for this proposal (payload field, not proof). "
+            "The judge records the claim and still verifies identity separately — an "
+            "unverified token never upgrades an OBSERVE_ONLY session, and verdicts "
+            "remain binding regardless of what the token asserts."
         ),
         "vault_entry_id": (
             "Id of the permanent-ledger entry this verdict should attach to "
@@ -902,9 +920,7 @@ def _spec_for_name(name: str) -> Any:
                             {"not": {"required": ["mode"]}},
                             {
                                 "required": ["mode"],
-                                "properties": {
-                                    "mode": {"enum": ["engineer", "write", "generate"]}
-                                },
+                                "properties": {"mode": {"enum": ["engineer", "write", "generate"]}},
                             },
                         ]
                     },
@@ -915,9 +931,7 @@ def _spec_for_name(name: str) -> Any:
                         "required": ["mode"],
                         "properties": {"mode": {"enum": ["dry_run"]}},
                     },
-                    "then": {
-                        "anyOf": [{"required": ["manifest"]}, {"required": ["query"]}]
-                    },
+                    "then": {"anyOf": [{"required": ["manifest"]}, {"required": ["query"]}]},
                 },
             ],
             "properties": {
