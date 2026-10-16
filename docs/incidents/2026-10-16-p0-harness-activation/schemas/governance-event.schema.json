@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Governance Event (arifOS) — baseline unit tests",
+  "description": "AUTHORITATIVE machine-checked event contract for ARIFOS::BASELINE_UNIT_TESTS::v1. Verdict text MUST NEVER establish identity. Signature validity MUST NEVER establish authority by itself. Transport success MUST NEVER mean governance success. VERDICT VALUES ARE FROZEN FROM LIVE SOURCE (arifosmcp/models/verdicts.py::SealType), NOT INVENTED.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "identity",
+    "authority",
+    "governance",
+    "transport",
+    "execution",
+    "witness",
+    "receipt"
+  ],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": { "type": ["string", "null"], "description": "UNTRUSTED caller-supplied identifier" },
+        "actor_key_id": { "type": ["string", "null"], "description": "Referenced key in registry, UNTRUSTED unless signed" },
+        "actor_verified": { "type": "boolean", "description": "CANONICAL field (abi/verification_envelope.py:268, bool default False). Derived from cryptographic envelope, NOT from verdict text. NOTE (gap-1): no Ed25519 signature verification exists in this envelope in the current source — the field is a declared bool, not a crypto-derived value." },
+        "identity_evidence": { "type": ["string", "null"], "description": "Envelope or absent. UNTRUSTED if signature fails." },
+        "verification_reason": { "type": ["string", "null"], "description": "Failure cause. Canonical reason codes only (see ReasonCode enum below)." }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "authority_present": { "type": "boolean", "description": "UNTRUSTED if derived from verdict text or prefix" },
+        "authority_scope": { "type": ["string", "null"], "description": "UNTRUSTED unless signed" },
+        "authority_ceiling": { "type": ["string", "null"], "description": "Canonical field. NOT derived from verdict prefix." },
+        "authority_source": { "type": ["string", "null"], "description": "Module name. Canonical." }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "verdict": {
+          "type": ["string", "null"],
+          "enum": ["SEAL", "HOLD", "VOID", "SABAR", "PARTIAL", "PROVISIONAL", "HOLD_888", null],
+          "description": "FROZEN FROM LIVE SOURCE SealType (7 members): VOID, HOLD_888, HOLD, SABAR, PARTIAL, PROVISIONAL, SEAL. null = undetermined/missing (missing evidence must remain UNKNOWN or absent — represented as null, NOT as a fake 'UNKNOWN' verdict string). VOCABULARY CONFLICT DOCUMENTED (see EVENT_CONTRACT.md §conflict): AGENTS.md names only 4 'constitutional verdicts' (SEAL/HOLD/VOID/SABAR); the runtime SealType enum proves 7. Conflict is shown, not silently resolved."
+        },
+        "reason_code": { "type": ["string", "null"], "description": "Canonical ReasonCode enum (abi/verification_envelope.py): DEPLOYED_COMMIT_MISMATCH, STATE_MISMATCH, EVIDENCE_MISSING, AUTHORITY_MISSING, DEPENDENCY_UNAVAILABLE, EVIDENCE_CONFLICT, AUTOMATED_POLICY_FAIL, AUTOMATED_EVIDENCE_FAIL, HUMAN_JUDGMENT_REQUIRED, SYSTEM_FAULT, VERIFIER_IDENTITY_VIOLATION, FRESHNESS_EXCEEDED, SUCCESS_CRITERIA_UNDEFINED. Do not invent." },
+        "can_claim_success": { "type": "boolean", "description": "CANONICAL field (contradiction_detector.py, tools.py, verbosity.py). Separate from ok/success. MUST be false when verdict is HOLD/VOID/SABAR." },
+        "judge_source": { "type": ["string", "null"], "description": "Module name. 666 (judgment) vs 888 (decision) both exist; do not over-claim 888." }
+      }
+    },
+    "transport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_accepted": { "type": "boolean" },
+        "response_completed": { "type": "boolean" },
+        "transport_error": { "type": ["string", "null"] }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "attempted": { "type": "boolean" },
+        "mutation_occurred": { "type": "boolean", "description": "FALSE in all baseline tests — this is the gate" },
+        "target": { "type": ["string", "null"], "description": "UNTRUSTED" },
+        "consequence_hash": { "type": ["string", "null"], "description": "sha256. CANONICAL if computed correctly." }
+      }
+    },
+    "witness": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "observed": { "type": "boolean" },
+        "witness_source": { "type": ["string", "null"], "description": "Module name. FRAMElock per federation witness." },
+        "observed_at": { "type": ["string", "null"], "description": "Timestamp. DO NOT assert on this." }
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "receipt_id": { "type": ["string", "null"], "description": "UNTRUSTED unless signed" },
+        "event_id": { "type": ["string", "null"], "description": "Stable identifier. CANONICAL if used. If no stable event identity exists, record that as baseline failure — do NOT manufacture one." },
+        "trace_id": { "type": ["string", "null"], "description": "Stable identifier. CANONICAL if used." },
+        "payload_hash": { "type": ["string", "null"], "description": "sha256. CANONICAL." },
+        "previous_hash": { "type": ["string", "null"], "description": "sha256 or null. Chain integrity." },
+        "receipt_status": { "type": ["string", "null"], "description": "Canonical values only." }
+      }
+    }
+  }
+}

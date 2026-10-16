@@ -1,0 +1,28 @@
+{
+  "sink_a": [
+    {
+      "event_id": "e1",
+      "trace_id": "t1",
+      "event_type": "HOLD"
+    },
+    {
+      "event_id": "e2",
+      "trace_id": "t2",
+      "event_type": "HOLD"
+    }
+  ],
+  "sink_b": [
+    {
+      "event_id": "e1",
+      "trace_id": "t1",
+      "event_type": "HOLD"
+    },
+    {
+      "event_id": "e9",
+      "trace_id": "t9",
+      "event_type": "HOLD"
+    }
+  ],
+  "count_equal": true,
+  "set_equal": false
+}
