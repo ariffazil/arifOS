@@ -1,6 +1,77 @@
 {
-  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "$schema": "https://glama.ai/schemas/glama.json",
   "maintainers": [
     "ariffazil"
+  ],
+  "name": "arifOS",
+  "description": "Constitutional AI governance kernel — 8 public MCP verbs (init/observe/think/route/memory/judge/forge/seal). F1–F13 floors, judge-before-execute verdicts, VAULT999 immutable ledger. Streamable HTTP, dual-era: 2026-07-28 (stateless) + 2025-11-25 (stateful). Not a model — a policy kernel between 'agent proposes' and 'action permitted'. F13 SOVEREIGN: human veto is absolute. DITEMPA BUKAN DIBERI.",
+  "author": {
+    "name": "Muhammad Arif bin Fazil",
+    "url": "https://arif-fazil.com"
+  },
+  "repository": {
+    "url": "https://github.com/ariffazil/arifOS",
+    "type": "git"
+  },
+  "homepage": "https://arif-fazil.com",
+  "license": "AGPL-3.0",
+  "version": "2026.10.16",
+  "tags": [
+    "constitutional-ai",
+    "governance",
+    "mcp-server",
+    "sovereign-ai",
+    "ai-safety",
+    "federation",
+    "orchestration",
+    "audit",
+    "immutable-ledger",
+    "arifos",
+    "verdict-pipeline",
+    "f13-sovereign"
+  ],
+  "features": {
+    "tools": true,
+    "resources": true,
+    "prompts": true
+  },
+  "tools": {
+    "count_public": 8,
+    "count_canonical_superset": 25,
+    "public_manifest": "https://mcp.arif-fazil.com/manifest/tools.json",
+    "naming": "arif_verb — 8 public kernel verbs"
+  },
+  "resources": {
+    "count": 40
+  },
+  "prompts": {
+    "count": 13
+  },
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://mcp.arif-fazil.com/mcp",
+    "auth_required": false
+  },
+  "protocol": "2026-07-28",
+  "supported_protocols": [
+    "2026-07-28",
+    "2025-11-25"
+  ],
+  "client_compatibility": [
+    "Claude Desktop",
+    "Copilot Agents",
+    "Cursor",
+    "Smithery",
+    "Glama",
+    "mcp.so",
+    "OpenCode",
+    "Kimi Code",
+    "Cline",
+    "Windsurf"
+  ],
+  "categories_hint": [
+    "AI & Machine Learning",
+    "Knowledge & Memory",
+    "Developer Tools"
   ]
 }
