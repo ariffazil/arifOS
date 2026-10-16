@@ -139,6 +139,95 @@ MODE_REQUIRES_HUMAN_ACK = {
 }
 
 
+# ── Recall result contract (F2/F4) — hits + tiers searched + reason ───────
+# 2026-10-16: recall used to answer L4/L6 tier requests silently from the L3
+# cascade and, on empty results, said nothing at all — an agent could not
+# distinguish "not found" from "blocked" from "wrong tier". Contract: every
+# recall return carries `hits`, `tiers_requested`, `tiers_searched`,
+# `tier_honored`, and on empty a `reason`.
+
+RECALL_TIERS_NOT_SEARCHED = {
+    "L4": (
+        "L4 (Supabase structured record) is not searched by recall. "
+        "For a known memory_id use arif_memory(mode=inspect)."
+    ),
+    "L5": (
+        "L5 graph tier is retired (tombstoned 2026-09-04); graph requests "
+        "are gated before any vector fallback."
+    ),
+    "L6": (
+        "L6 (VAULT999) is seal-only via arif_seal. recall never reads L6 "
+        "and never writes it — there is no second path to L6 through memory."
+    ),
+}
+
+_BACKEND_TO_TIERS = {
+    "qdrant": ["L3"],
+    "lancedb": ["L3"],
+    "postgres_direct": ["L4"],
+    "hexagon_legacy": ["L3"],
+}
+
+
+def _requested_tier(payload: dict[str, Any]) -> str | None:
+    raw = payload.get("tier_hint") or payload.get("tier") or ""
+    tier = str(raw).strip().upper()
+    return tier or None
+
+
+def _recall_empty_payload(
+    query: str, tier: str | None, tiers_searched: list[str], reason: str
+) -> dict:
+    return {
+        "hits": [],
+        "results": [],
+        "count": 0,
+        "query": query,
+        "found": False,
+        "tiers_requested": [tier] if tier else ["L3"],
+        "tiers_searched": tiers_searched,
+        "tier_honored": tier is None or tier in tiers_searched,
+        "reason": reason,
+    }
+
+
+def annotate_recall_contract(envelope: Any, payload: dict[str, Any]) -> Any:
+    """Stamp the recall contract onto a backend envelope (never raises).
+
+    Keeps the backend's own payload fields (results, reason codes, backend
+    name) and adds the honest tier/emptiness contract the caller needs.
+    """
+    try:
+        tier = _requested_tier(payload)
+        body: dict[str, Any] = {}
+        if isinstance(envelope, dict):
+            body = envelope
+        else:
+            raw = getattr(envelope, "payload", None)
+            if isinstance(raw, dict):
+                body = raw
+        hits = body.get("results") or body.get("hits") or []
+        backend = str(body.get("backend") or "")
+        tiers_searched = list(_BACKEND_TO_TIERS.get(backend, ["L3"]))
+        body.setdefault("hits", hits)
+        body.setdefault("results", hits)
+        body.setdefault("count", len(hits))
+        body.setdefault("query", payload.get("query"))
+        body.setdefault("found", bool(hits))
+        body["tiers_requested"] = [tier] if tier else ["L3"]
+        body["tiers_searched"] = tiers_searched
+        body["tier_honored"] = tier is None or tier in tiers_searched
+        if not hits and not body.get("reason"):
+            body["reason"] = "NO_HITS: nothing matched the query in tiers searched: " + ", ".join(
+                tiers_searched
+            )
+        if not isinstance(envelope, dict) and hasattr(envelope, "payload"):
+            envelope.payload = body
+        return envelope
+    except Exception:  # pragma: no cover — contract stamping is never fatal
+        return envelope
+
+
 # ── Legacy mode aliases (arif_memory_recall v4 → arif_memory v5) ──────────
 
 LEGACY_MODE_ALIASES = {
@@ -541,6 +630,34 @@ async def arif_memory(
     # which DOES accept payload.
     from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
 
+    if mode == "recall":
+        # F2/F4 recall contract (2026-10-16): an explicitly requested tier the
+        # recall cascade cannot search gets an HONEST empty answer naming the
+        # tier — never a silent cross-tier fallback (L5 gate is the same
+        # void-guard doctrine). Searched paths get the tier/emptiness stamp.
+        # Same envelope shape as the search path so `hits`/`tiers_*`/`reason`
+        # always land in result at the top level.
+        _tier = _requested_tier(payload)
+        if _tier in RECALL_TIERS_NOT_SEARCHED:
+            from arifosmcp.runtime.model import RuntimeStatus, Verdict
+
+            return _echo_standing(
+                RuntimeEnvelope(
+                    ok=True,
+                    tool="engineering_memory",
+                    session_id=session_id,
+                    stage="555m_MEMORY",
+                    verdict=Verdict.SABAR,
+                    status=RuntimeStatus.SUCCESS,
+                    payload=_recall_empty_payload(
+                        query=str(payload.get("query") or ""),
+                        tier=_tier,
+                        tiers_searched=[],
+                        reason=RECALL_TIERS_NOT_SEARCHED[_tier],
+                    ),
+                )
+            )
+
     try:
         result = await engineering_memory_dispatch_impl(
             mode=_map_mode_to_engineering(mode, payload),
@@ -550,6 +667,8 @@ async def arif_memory(
             dry_run=False,
             ctx=ctx,
         )
+        if mode == "recall":
+            result = annotate_recall_contract(result, payload)
         return _echo_standing(result)
     except Exception as exc:
         logger.exception(f"[ARIF_MEMORY] backend dispatch failed: {exc}")
