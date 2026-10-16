@@ -526,7 +526,30 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     # as measured (F2).
     if not isinstance(minimal.get("result"), dict):
         _res_src = response.get("result")
-        minimal["result"] = _res_src if isinstance(_res_src, dict) else {}
+        if isinstance(_res_src, dict):
+            minimal["result"] = _res_src
+        elif _res_src is None:
+            minimal["result"] = {}
+        else:
+            # F2 TRUTH (2026-10-16): a non-dict result (RuntimeEnvelope /
+            # Pydantic model) must be PROJECTED, not dropped. Dropping it
+            # starved the contract restore into emitting {} — which
+            # echo_canonical_session then filled with the standing blob, so
+            # arif_memory recall surfaced "completed" with zero hits and zero
+            # reason (measured: live :8088 recall probes, 2026-10-16).
+            _proj: dict = {}
+            for _attr in ("model_dump", "dict"):
+                _fn = getattr(_res_src, _attr, None)
+                if callable(_fn):
+                    try:
+                        _proj = _fn() or {}
+                    except Exception:
+                        _proj = {}
+                    break
+            if not isinstance(_proj, dict):
+                _proj = {}
+            _domain = _proj.get("payload")
+            minimal["result"] = _domain if isinstance(_domain, dict) else _proj
     if not isinstance(minimal.get("reasons"), list):
         minimal["reasons"] = []
     if not isinstance(minimal.get("meta"), dict):
