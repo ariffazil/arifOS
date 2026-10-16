@@ -43,17 +43,18 @@ seal_readiness_gaps: graphiti=RETIRED_888(2026-09-04) · semantic_floor=off_by_c
 # arifOS — The Authority Plane of the arifOS Federation
 
 [![arifOS — Constitutional AI Kernel MCP connector – tool definition quality and endpoint health on Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
+[![arifOS Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
+[![MCP Conformance](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/06-mcp-conformance.yml?label=MCP_Conformance&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/06-mcp-conformance.yml)
+[![Vault Integrity](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/07-vault-integrity.yml?label=Vault_Integrity&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/07-vault-integrity.yml)
+[![Floor Gate](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/floor_gate.yml?label=Floor_Gate&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/floor_gate.yml)
+[![Governance](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/governance-gate.yml?label=Governance&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/governance-gate.yml)
+[![Drift Monitor](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/drift-monitor.yml?label=Drift_Monitor&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/drift-monitor.yml)
+[![Uptime Monitor](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/04-uptime-monitor.yml?label=Uptime&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/04-uptime-monitor.yml)
 [![Security Audit: In Progress](https://img.shields.io/badge/Security_Audit-In_Progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![External evaluation: not yet published](https://img.shields.io/badge/External_Evaluation-Not_Yet_Published-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 [![Kernel process: healthy](https://img.shields.io/badge/Kernel_Process-healthy-blue?style=flat-square)](https://arifos.arif-fazil.com/health)
 [![F2/F11/F12/F13: fail (per CURRENT-VERIFIED-STATE 2026-10-11)](https://img.shields.io/badge/Floors-2_pass%C2%B74_fail%C2%B710_unmeasured-d4a853?style=flat-square)](./CURRENT_VERIFIED_STATE.md)
 [![Sovereignty: F13 currently in fail set](https://img.shields.io/badge/F13-Fail_Set-critical?style=flat-square)](https://arif-fazil.com/governance/)
-[![MCP Conformance](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/06-mcp-conformance.yml?label=MCP_Conformance&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/06-mcp-conformance.yml)
-[![Vault Integrity](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/07-vault-integrity.yml?label=Vault_Integrity&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/07-vault-integrity.yml)
-[![Floor Gate](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/floor_gate.yml?label=Floor_Gate&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/floor_gate.yml)
-[![Governance](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/governance-gate.yml?label=Governance&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/governance-gate.yml)
-[![Runtime Drift](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/08-runtime-drift.yml?label=Runtime_Drift&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/08-runtime-drift.yml)
-[![External Witness: not bound](https://img.shields.io/badge/External_Witness-Not_Bound-d4a853?style=flat-square)](./CURRENT_VERIFIED_STATE.md)
 
 **arifOS evaluates consequential AI actions against constitutional floors and returns an independent verdict _before_ execution occurs.**
 
