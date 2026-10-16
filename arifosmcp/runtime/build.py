@@ -238,10 +238,16 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     # or if built package metadata != deployed code stamp.
     drift = False
     if source_commit != "unknown" and deployed_commit != "unknown":
-        if not (source_commit.startswith(deployed_commit[:7]) or deployed_commit.startswith(source_commit[:7])):
+        if not (
+            source_commit.startswith(deployed_commit[:7])
+            or deployed_commit.startswith(source_commit[:7])
+        ):
             drift = True
     if built_commit != "unknown" and deployed_commit != "unknown":
-        if not (built_commit.startswith(deployed_commit[:7]) or deployed_commit.startswith(built_commit[:7])):
+        if not (
+            built_commit.startswith(deployed_commit[:7])
+            or deployed_commit.startswith(built_commit[:7])
+        ):
             drift = True
 
     # ONE_ORIGIN (2026-09-16): drift must also fire when the live package
@@ -276,6 +282,53 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "service_started_at": PROCESS_STARTED_AT,
         "critical_module_hash_count": len(critical_module_hashes),
         "payload_mode": "compact",
+        # F2 TRUTH fix 2026-10-16: explicit semantic labels so a consumer
+        # can disambiguate software_release.* from vps_snapshot.organ_shas.*
+        # without a separate docs read. Audit ticket: arif_init_source_commit
+        # labelling. Without _field_semantics, the field names alone cannot
+        # distinguish deployed-binary source from a VPS snapshot of repo HEAD.
+        "_field_semantics": {
+            "release_id": (
+                "Human-readable identifier combining product and source SHA prefix. "
+                "Equals arifos-{source_commit[:12]} when source is known."
+            ),
+            "source_commit": (
+                "Git SHA of the source tree at the moment this deployed binary was "
+                "BUILT. This is the deployed-binary source SHA, NOT the live "
+                "repository HEAD — those may differ. Compare against "
+                "vps_snapshot.organ_shas.arifos for the live repo HEAD."
+            ),
+            "built_commit": (
+                "Git SHA recorded in the wheel's RECORD.json / build manifest. "
+                "Equals source_commit on a clean build."
+            ),
+            "deployed_commit": (
+                "Git SHA stamped into the runtime at package install time. "
+                "Should equal source_commit and built_commit on a clean deployment. "
+                "drift=true means one or more of these three SHAs diverge."
+            ),
+            "wheel_hash": (
+                "SHA-256 of the installed wheel when ARIFOS_WHEEL_SHA256 is set; "
+                "otherwise hash of the installation RECORD. Verifies the wheel "
+                "bytes on disk match what was attested at build time."
+            ),
+            "runtime_manifest_hash": (
+                "SHA-256 of the {source_commit, wheel_hash, critical_module_hashes} "
+                "manifest. Binds release identity to specific bytes."
+            ),
+            "surface_hash": (
+                "SHA-256 of the registered tool-surface schema. Detects schema "
+                "drift even when source/deployed SHAs match."
+            ),
+            "canon": (
+                "Active constitutional canon attestation. Independent of source "
+                "commits — the constitution is signed canon, not a build artifact."
+            ),
+            "runtime_import_path": (
+                "Filesystem path the live interpreter imported arifosmcp from. "
+                "origin_ok=true means it lives under active_venv_root."
+            ),
+        },
     }
     if not detail:
         return compact
@@ -475,8 +528,7 @@ def get_build_info() -> dict[str, Any]:
     except Exception:
         app_version = ""
     app_version = (
-        os.environ.get("ARIFOS_APP_VERSION", "").strip()
-        or app_version
+        os.environ.get("ARIFOS_APP_VERSION", "").strip() or app_version
         # FI-008 "ONE publisher" canon manifest (C-3.1 amend 2026-10-06):
         # fail-closed if both env override AND canon-release.json are
         # missing/empty. Removed pyproject PEP-440 fallback — defeats
