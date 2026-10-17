@@ -27466,12 +27466,19 @@ def verify_and_inject_token(
             "changelog",
             "ledger",
         }
+        # G8 (2026-10-17): forge preview modes are read-only. Denying them to
+        # an OBSERVE_ONLY actor hides *what would happen* without protecting
+        # anything — the mutation path stays gated downstream.
+        _forge_read_only = tool_name == "arif_forge" and str(
+            kwargs.get("mode", "engineer")
+        ).lower() in {"dry_run", "query", "recall"}
         if (
             tool_name not in _always
             and allowed
             and tool_name not in allowed
             and not tool_name.startswith("forge_")
             and not _seal_lane_b_or_read
+            and not _forge_read_only
         ):
             err_resp = {
                 "status": "HOLD",
