@@ -993,6 +993,8 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
         "arif_consequence_trace",
         "arif_entropy_route",
         "arif_j_gate",
+        "arif_guard",
+        "arif_heal",
     }
     for _mesh in _MESH:
         registered_set.discard(_mesh)
