@@ -326,7 +326,7 @@ async def arif_forge(
                 manifest=ForgeManifest(status=ManifestStatus.HOLD),
                 meta={
                     "dry_run": True,
-                    "standing_source": _standing_source or ("sct" if _standing_token else "none"),
+                    "standing_source": _standing_source or ("act" if _standing_token else "none"),
                 },
                 timestamp=datetime.now(UTC).isoformat(),
             )
