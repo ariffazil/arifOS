@@ -212,9 +212,8 @@ def _reconcile_intercept_signals(intercept: Any, verdict: str) -> dict[str, Any]
             reconciled.setdefault(f"original_{key}", original[key])
     reconciled["decision"] = verdict
     reconciled["status"] = verdict
-    reconciled["reason"] = (
-        f"Reconciled: effective verdict {verdict} dominates intercept"
-        + (f" (was {original.get('decision')})" if original.get("decision") else "")
+    reconciled["reason"] = f"Reconciled: effective verdict {verdict} dominates intercept" + (
+        f" (was {original.get('decision')})" if original.get("decision") else ""
     )
     reconciled["next_safe_action"] = (
         f"Resolve {verdict} before acting; the intercept signal is not an authorization."
@@ -1846,9 +1845,7 @@ async def arif_judge(
             # Store the reconciled value, not the raw intercept.
             if str(_code) in ("HOLD", "OBSERVE_ONLY", "VOID"):
                 _orig_intercept_reason = (
-                    _intercept_res.get("reason")
-                    if isinstance(_intercept_res, dict)
-                    else None
+                    _intercept_res.get("reason") if isinstance(_intercept_res, dict) else None
                 )
                 _intercept_meta["kernel_intercept"] = _reconcile_intercept_signals(
                     _intercept_res, str(_code)
@@ -1857,9 +1854,7 @@ async def arif_judge(
                 # overridden ALLOW rationale either.
                 if _orig_intercept_reason:
                     _reasons = [r for r in _reasons if r != _orig_intercept_reason]
-                _reasons.insert(
-                    0, f"Effective verdict {_code} dominates intercept decision"
-                )
+                _reasons.insert(0, f"Effective verdict {_code} dominates intercept decision")
             if _precedent_advisory is not None:
                 _intercept_meta["precedent"] = {
                     "queried": True,
@@ -2409,7 +2404,7 @@ async def arif_judge(
         # FIX #5: Redact raw session token — return hash reference only
         token_ref = hashlib.sha256(_standing_token.encode()).hexdigest()[:16]
         data["session_token_ref"] = f"sct_ref:{token_ref}"
-        data["standing_source"] = _standing_source or "sct"
+        data["standing_source"] = _standing_source or "act"
         if _standing_apex is not None:
             data["apex_scalars"] = _standing_apex
         data["authority"] = _standing_authority or "OBSERVE_ONLY"
@@ -2426,7 +2421,7 @@ async def arif_judge(
         res = data.get("result")
         if isinstance(res, dict):
             res.setdefault("session_token_ref", f"sct_ref:{token_ref}")
-            res.setdefault("standing_source", _standing_source or "sct")
+            res.setdefault("standing_source", _standing_source or "act")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _standing_apex)
         try:
