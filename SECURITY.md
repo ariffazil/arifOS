@@ -158,7 +158,7 @@ The MCP Marketplace published scan (against `v2026.10.11`) reported six findings
 
 ### Resolution path
 
-A re-publication of `arifOS` (PyPI tag `v2026.10.16` — version bumped this turn) will trigger an automatic MCP Marketplace re-scan within 24–48h. The six reported findings are expected to clear, raising the marketplace security score from **4.7 → ≥8.0** (which removes the "Use Caution" tag at score 6.0 and surfaces the safety badge at score 8.0+).
+A re-publication of `arifOS` (PyPI `1!2026.10.17`, tag `v2026.10.17`) triggers an automatic MCP Marketplace re-scan within 24–48h. 10.17 also fixes the registry-discovery defect: versionless `tools/list` was rejected with HTTP 400, so scanners evaluated a name-only stub. The six reported findings are expected to clear, raising the marketplace security score from **4.7 → ≥8.0** (which removes the "Use Caution" tag at score 6.0 and surfaces the safety badge at score 8.0+).
 
 ### Honest note
 
