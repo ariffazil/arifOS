@@ -53,9 +53,14 @@ from typing import Any
 from arifosmcp.runtime.model import CanonicalError, RecoveryContext
 from arifosmcp.runtime.failure_wal import wal_append
 
-# Strategy bank import — graceful if unavailable
+# Strategy bank import — graceful if unavailable.
+# NOTE (2026-10-17): was `from AAA.state.strategy_bank import ...` which raised
+# ModuleNotFoundError in the deployed venv (no AAA package on sys.path) and
+# silently disabled the bank (_STRATEGY_BANK_AVAILABLE=False). The module now
+# lives inside the arifosmcp package, alongside failure_wal.py, so the import
+# resolves regardless of how /root is mounted.
 try:
-    from AAA.state.strategy_bank import record_failure, lookup_recovery
+    from arifosmcp.runtime.strategy_bank import record_failure, lookup_recovery
 
     _STRATEGY_BANK_AVAILABLE = True
 except ImportError:
