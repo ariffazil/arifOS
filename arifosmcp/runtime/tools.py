@@ -12390,6 +12390,43 @@ def _brave_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def _read_mcp_resource_text(uri: str) -> dict[str, Any]:
+    """Read a registered MCP resource from the live FastMCP registry (sync).
+
+    Tools-only clients (ChatGPT connectors) cannot call ``resources/read``.
+    This bridge lets them reach the same canon surface through a tool call.
+    Static TextResources are served directly; dynamic resources return a
+    pointer to the proper MCP method rather than inventing content.
+    """
+    try:
+        from arifosmcp.server import mcp as _server_mcp
+    except Exception as exc:  # noqa: BLE001
+        return {"error": f"RESOURCE_BRIDGE_UNAVAILABLE: {type(exc).__name__}: {exc}"}
+
+    comps = getattr(getattr(_server_mcp, "_local_provider", None), "_components", {}) or {}
+    comp = comps.get(f"resource:{uri}@")
+    if comp is None:
+        for key, cand in comps.items():
+            if key.startswith("resource:") and key[len("resource:") :].rstrip("@") == uri:
+                comp = cand
+                break
+    if comp is None:
+        return {"error": f"UNKNOWN_RESOURCE: {uri}"}
+
+    text = getattr(comp, "text", None)
+    if text is None:
+        return {
+            "error": f"RESOURCE_NOT_STATIC: {uri}",
+            "action": "use resources/read for dynamic resources",
+        }
+    return {
+        "uri": uri,
+        "content": text,
+        "mime_type": getattr(comp, "mime_type", None),
+        "source": "mcp_resource_registry",
+    }
+
+
 def _arif_sense_observe(
     mode: str = "search",
     query: str | None = None,
@@ -12434,6 +12471,20 @@ def _arif_sense_observe(
             "session_token": session_token,
         }
     )
+    # ── MCP resource bridge (2026-10-17) ─────────────────────────────────────
+    # ChatGPT-style connectors can only call tools, never resources/read.
+    # arif_observe(mode="fetch", url="arifos://...") now serves the resource
+    # text from the live registry, so the canon surface is reachable from any
+    # tools-only client. No new tool; the 8-verb facade is unchanged.
+    _bridge_uri = (url or query or "").strip()
+    if mode == "fetch" and _bridge_uri.startswith("arifos://"):
+        _bridge = _read_mcp_resource_text(_bridge_uri)
+        if "error" in _bridge:
+            return _hold(
+                "arif_sense_observe", _bridge["error"], ["F2"], session_id=session_id
+            )
+        return _ok("arif_sense_observe", _bridge, session_id=session_id)
+
     # ── Mode normalization ────────────────────────────────────────────────────
     # `fetch` is the canonical name for URL ingestion (absorbed from arif_fetch).
     # `ingest` is the legacy name. Both route to the same logic.
