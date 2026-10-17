@@ -42,7 +42,7 @@ fi
 
 PORTS_INFO="unavailable"
 ss -tulpn > "$TMP_DIR/ports" 2>/dev/null || true
-PORTS_INFO=$(cat "$TMP_DIR/ports" 2>/dev/null | grep -E ':(80|443|8080|8081|8082|8083|5432|6379|6333|8100|11434|3000|3003|7474|7687)' | head -30 || true)
+PORTS_INFO=$(cat "$TMP_DIR/ports" 2>/dev/null | grep -E ':(80|443|8080|8081|8082|8083|5432|6379|6333|5001|11434|3000|3003|7474|7687)' | head -30 || true)
 
 # ── Evaluate thresholds ───────────────────────────────────────
 STATUS="PASS"

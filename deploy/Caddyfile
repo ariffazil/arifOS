@@ -1828,7 +1828,7 @@ monitor.arif-fazil.com {
 # VAULT999 is INTERNAL ONLY. No direct public proxy.
 # Public proof surface: /999 on arifos.arif-fazil.com (hashes, signatures, roots)
 # Operator verification: /api/observatory/v1/seal/* with X-Op-Token
-# Direct vault access: 127.0.0.1:8100 from localhost only.
+# Direct vault access: 127.0.0.1:5001 from localhost only.
 vault999.arif-fazil.com {
 	import tls_origin
 	# MEMORY boundary: vault999 is internal. Public users see the /999 proof surface.
