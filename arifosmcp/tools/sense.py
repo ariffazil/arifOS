@@ -656,10 +656,10 @@ def arif_observe(
                 result.setdefault("session_token", _standing_token)
                 if auth.get("apex_scalars"):
                     result.setdefault("apex_scalars", auth["apex_scalars"])
-                result.setdefault("standing_source", auth.get("source", "sct"))
+                result.setdefault("standing_source", auth.get("source", "act"))
             if auth.get("apex_scalars"):
                 resp.setdefault("apex_scalars", auth["apex_scalars"])
-            resp.setdefault("standing_source", auth.get("source", "sct"))
+            resp.setdefault("standing_source", auth.get("source", "act"))
         sid = session_id or (auth.get("session") or {}).get("session_id")
         if sid:
             resp.setdefault("session_id", sid)
