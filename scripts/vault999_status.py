@@ -163,7 +163,7 @@ def verify_service_health() -> dict:
     try:
         with urllib.request.urlopen(
             "http://localhost:5001/health", timeout=2
-        ) as resp:  # writer (live); legacy 8100 removed
+        ) as resp:  # writer (live); legacy 5001 removed
             data = json.loads(resp.read().decode())
             result["status"] = data.get("status", "unknown")
             result["reachable"] = True
@@ -215,7 +215,7 @@ def main() -> int:
         f"   Last hash:    {live['last_entry_hash'][:16] if live['last_entry_hash'] else 'N/A'}..."
     )
 
-    print("\n🌐 Vault Service (port 8100)")
+    print("\n🌐 Vault Service (port 5001)")
     svc = verify_service_health()
     print(f"   Reachable:    {svc['reachable']}")
     print(f"   Status:       {svc['status']}")

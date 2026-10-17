@@ -22,7 +22,7 @@ Bare-metal systemd (ports exposed via Caddy or Cloudflare Tunnel)
 ├── OpenClaw GW       → :18789  (A2A mesh gateway)
 ├── cn-organ          → :18795  (Continue CLI organ gateway)
 ├── APEX Prime        → :3002   (888 JUDGE deliberative relay)
-├── vault999-api      → :8100   (vault read API)
+├── vault999-api      → :5001   (vault read API)
 ├── vault999-writer   → :5001   (vault write API — internal only)
 ├── NATS              → :4222/:8222 (event bus + JetStream)
 ├── Prometheus        → :9090
@@ -455,7 +455,7 @@ curl -s http://localhost:18795/.well-known/agent-card.json | python3 -m json.too
 | Field | Value |
 |-------|-------|
 | Service | `vault999-api.service` (or via Caddy at vault999.arif-fazil.com) |
-| Port | 8100 |
+| Port | 5001 |
 
 #### Restart
 ```bash
@@ -466,7 +466,7 @@ pkill -f vault999-api; sleep 1; nohup python3 /opt/arifOS/vault999-api.py &
 
 #### Verify
 ```bash
-curl -s http://localhost:8100/health | python3 -m json.tool
+curl -s http://localhost:5001/health | python3 -m json.tool
 ```
 
 ---
@@ -572,7 +572,7 @@ echo "=== APEX Prime ==="
 curl -s http://localhost:3002/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
 
 echo "=== vault999-api ==="
-curl -s http://localhost:8100/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")} | Vault: {d.get(\"vault\",\"?\")}')"
+curl -s http://localhost:5001/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")} | Vault: {d.get(\"vault\",\"?\")}')"
 
 echo "=== vault999-writer ==="
 curl -s http://localhost:5001/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Seals: {d.get(\"vault_seals_count\",\"?\")} | Chain: {d.get(\"chain_height\",\"?\")} | Pending: {d.get(\"pending_holds\",\"?\")}')"

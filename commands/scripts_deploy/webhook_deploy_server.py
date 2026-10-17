@@ -21,7 +21,7 @@ ARIFOS_DEPLOY_SCRIPT = os.environ.get(
     "ARIFOS_DEPLOY_SCRIPT", "/root/arifOS/scripts/deploy_arifosmcp.sh"
 )
 ARIFOS_URL = os.environ.get("ARIFOS_URL", "http://127.0.0.1:8088")
-VAULT999_URL = os.environ.get("VAULT999_URL", "http://127.0.0.1:8100")
+VAULT999_URL = os.environ.get("VAULT999_URL", "http://127.0.0.1:5001")
 RATE_LIMIT = {}
 RATE_LIMIT_LOCK = threading.Lock()
 START_TIME = time.time()

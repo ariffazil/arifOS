@@ -64,7 +64,7 @@ def resolve_receipt(entry: dict, chain: list[dict]) -> dict:
     return {**entry, "payload": resolved["payload"]}
 ```
 
-**Fallback:** If back-reference resolution fails (corrupted chain), the full text is requested from the Postgres-backed VAULT999 API (port 8100). This is the safety net — the ref is an optimization, not a dependency.
+**Fallback:** If back-reference resolution fails (corrupted chain), the full text is requested from the Postgres-backed VAULT999 API (port 5001). This is the safety net — the ref is an optimization, not a dependency.
 
 ## 4. Write Path
 

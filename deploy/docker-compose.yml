@@ -17,7 +17,7 @@ services:
     environment:
       ARIFOS_CONSTITUTION: /etc/arifos/constitution
       ARIFOS_MANIFESTS: /etc/arifos/manifests
-      VAULT_URL: http://vault999:8100
+      VAULT_URL: http://vault999:5001
       POSTGRES_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
       REDIS_URL: redis://redis:6379
       QDRANT_URL: http://qdrant:6333
@@ -75,11 +75,11 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
-      PORT: '8100'
+      PORT: '5001'
     networks:
       - arifos_core
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\""]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\""]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -121,7 +121,7 @@ services:
     environment:
       NOTIFIER_TELEGRAM_BOT_TOKEN: '8149595687:AAGQ3DSI5_AKDLNcyKORyy8g_bz5QSsbufA'
       NOTIFIER_TELEGRAM_CHAT_ID: '-1003768847825'
-      VAULT_URL: http://vault999:8100/seals
+      VAULT_URL: http://vault999:5001/seals
     networks:
       - arifos_core
     depends_on:
