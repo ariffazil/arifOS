@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import os
 import time
 import uuid
 from typing import Any
@@ -417,7 +418,9 @@ Distinguish CLAIM from FACT."""
             tool_origin="333_REASON",
             mode=mode,
             constitutional_role="666_JUDGE",
-            preferred_model="deepseek-v4-pro",
+            # Model-agnostic (2026-10-17): deployments can pin any model that
+            # the constitutional allow-set accepts; default unchanged.
+            preferred_model=os.getenv("ARIFOS_THINK_MODEL", "deepseek-v4-pro"),
         )
         llm_available = True
         llm_tier = envelope.provider
