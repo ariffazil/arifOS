@@ -138,6 +138,28 @@ def test_unknown_verdict_token_fails_closed_to_hold():
     assert any(f.startswith("UNKNOWN_VERDICT_TOKEN") for f in rec["flags"])
 
 
+def test_domain_evidence_token_at_kernel_lane_fails_closed_to_hold():
+    """2026-10-17 (PR #904 forward-port of #889 commit 21b9d89).
+
+    _DOMAIN_EVIDENCE_TOKENS must only absorb organ payloads embedded under
+    result.*. A bare top-level effective_verdict=QUALIFY is an unratified
+    verdict and must fail closed to HOLD, not pass through as a standing
+    verdict. Reproduced on unpatched main: returned QUALIFY.
+    """
+    out = _reconciled({"effective_verdict": "QUALIFY", "verdict": "QUALIFY"})
+    assert out["effective_verdict"] == HOLD
+    rec = out["meta"]["reconciliation"]
+    assert any(f.startswith("UNKNOWN_VERDICT_TOKEN") for f in rec["flags"])
+    assert rec["domain_evidence"] == {}
+
+
+def test_domain_evidence_token_under_result_stays_evidence():
+    """The organ-embedding zone keeps working: result.* domain vocabulary
+    is evidence, never a competing verdict."""
+    out = _reconciled({"effective_verdict": "SEAL", "result": {"verdict": "QUALIFY"}})
+    assert out["effective_verdict"] == "SEAL"
+
+
 def test_unratified_layer_token_fails_closed_even_when_canonicals_agree():
     # ALLOW normalizes to SEAL — but layer vocabulary is unratified: a
     # kernel-intercept ALLOW must never silently certify a constitutional
