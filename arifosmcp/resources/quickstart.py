@@ -70,7 +70,7 @@ FIRST STEPS FOR AN LLM CLIENT:
      arif_forge       — execution (A-FORGE proxy) + compose (compose mode absorbed)
      arif_seal        — immutable VAULT999 ledger write
 
-  4. KNOW YOUR RESOURCES (13 canonical):
+  4. KNOW YOUR RESOURCES (40 registered — run resources/list for full surface):
      arifos://doctrine         — F1-F13 constitutional floors
      arifos://trinity          — AAA lane definitions
      arifos://schema           — complete MCP blueprint
@@ -83,17 +83,22 @@ FIRST STEPS FOR AN LLM CLIENT:
      arifos://bootstrap        — full knowledge-graph context
      arifos://human/metabolized — compact sovereign context
      arifos://loop-engineering — 7-stage reality loop
-     arifos://skills-catalog   — all available skills
+     arifos://atlas333/index   — 33 human paradoxes, 7 zones
 
-  5. KNOW YOUR PROMPTS (8 registered):
-     arifosmcp_loop_engineer — entry guard / intent classifier
-     arifosmcp_000_init      — anchor identity
-     arifosmcp_111_sense     — observe
-     arifosmcp_333_reason    — plan
-     arifosmcp_555_judge     — verdict
-     arifosmcp_666_critique  — consequence
-     arifosmcp_777_forge     — execute
-     arifosmcp_999_seal      — record
+  5. KNOW YOUR PROMPTS (13 registered — run prompts/list for full surface):
+     000 🌱 IGNITE    — Position Zero sovereign anchor
+     111 🌊 SENSE     — Reality before judgment
+     222 🏛 PLAN      — Design reality change
+     333 🧠 REASON    — Structured reasoning
+     444 🧭 DIRECT    — Route to correct organ
+     555 🗂 REMEMBER  — Memory with provenance
+     666 ⚖ DIGNITY   — Weakest stakeholder position
+     777 🔥 FORGE     — Reality contact before belief
+     888 🔒 JUDGE     — Verdict, not invention
+     999 💎 SEAL      — Immutable record
+     🌀 GOVERN       — Full loop + 4 gates
+     ⚓ INIT         — Collapsed ignition
+     🔐 CLOSE        — Session close ritual
 
 KEY CONSTITUTIONAL RULES:
   F1  AMANAH    — Reversible first. Irreversible → 888_HOLD.

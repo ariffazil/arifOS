@@ -205,7 +205,7 @@ async def arif_forge(
             return out
         data = out.model_dump(mode="json")
         data["session_token"] = _standing_token
-        data["standing_source"] = _standing_source or "sct"
+        data["standing_source"] = _standing_source or "act"
         if _standing_apex is not None:
             data["apex_scalars"] = _standing_apex
         data["authority"] = _standing_authority or "OBSERVE_ONLY"
@@ -215,7 +215,7 @@ async def arif_forge(
         res = data.get("result")
         if isinstance(res, dict):
             res.setdefault("session_token", _standing_token)
-            res.setdefault("standing_source", _standing_source or "sct")
+            res.setdefault("standing_source", _standing_source or "act")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _standing_apex)
         return ForgeOutput(**data)
@@ -880,11 +880,13 @@ async def arif_forge(
         # when VAULT999 is broken).
         try:
             from pathlib import Path as _VPath
+
             _vault_alive = _VPath("/root/arifOS/VAULT999/outcomes.jsonl").exists()
         except Exception:
             _vault_alive = False
         try:
             from arifosmcp.constitution.runtime_hook import check_godel_lock as _godel_check
+
             _godel_result = _godel_check(
                 action_class="MUTATE",
                 actor_id=actor_id or "",
