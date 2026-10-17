@@ -228,7 +228,7 @@ async def arif_seal(
             return out
         data = out.model_dump(mode="json")
         data["session_token"] = _standing_token
-        data["standing_source"] = _standing_source or "sct"
+        data["standing_source"] = _standing_source or "act"
         if _standing_apex is not None:
             data["apex_scalars"] = _standing_apex
         data["authority"] = _standing_authority or "OBSERVE_ONLY"
@@ -238,7 +238,7 @@ async def arif_seal(
         res = data.get("result")
         if isinstance(res, dict):
             res.setdefault("session_token", _standing_token)
-            res.setdefault("standing_source", _standing_source or "sct")
+            res.setdefault("standing_source", _standing_source or "act")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _standing_apex)
         return SealOutput(**data)
