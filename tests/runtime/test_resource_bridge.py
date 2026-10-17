@@ -60,3 +60,15 @@ def test_fetch_mode_still_rejects_bad_scheme(monkeypatch):
     out = _arif_sense_observe(mode="fetch", url="not-a-url")
     # Falls through to the ingest path, which fails explicitly.
     assert "ingested" in str(out) or "error" in str(out).lower()
+
+
+def test_dynamic_resource_bridge(monkeypatch):
+    mcp = FastMCP("dynamic-resource-probe")
+
+    @mcp.resource("arifos://dynamic")
+    def dynamic() -> str:
+        return "dyn-body"
+
+    monkeypatch.setitem(sys.modules, "arifosmcp.server", types.SimpleNamespace(mcp=mcp))
+    out = _read_mcp_resource_text("arifos://dynamic")
+    assert out["content"] == "dyn-body"
