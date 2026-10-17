@@ -499,7 +499,18 @@ def akal_pre_judge(
         "l5b_present": result.judge is not None,
         "dual_pass": result.dual_pass,
         "blocked_reason": result.blocked_reason,
-        "verdict": result.judge.verdict if result.judge else "PENDING_L5b",
+        # G6 (2026-10-17): never leak non-canonical tokens (PENDING_L5b, ALIVE)
+        # into a verdict field. Unknown -> HOLD (fail-closed). The honest
+        # pending signal moves to judge_state, where consumers can see it
+        # without mistaking it for a constitutional verdict.
+        "verdict": (
+            __import__(
+                "arifosmcp.runtime.verdict", fromlist=["_normalize_verdict"]
+            )._normalize_verdict(result.judge.verdict)
+            if result.judge
+            else "HOLD"
+        ),
+        "judge_state": "L5B_PRESENT" if result.judge else "PENDING_L5b",
     }
 
 
