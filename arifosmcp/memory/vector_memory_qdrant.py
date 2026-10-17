@@ -393,6 +393,20 @@ async def vector_store(
         },
         "sro": sro,
     }
+    # Phoenix-72 v5 wiring (2026-10-17): hoist the cooling metadata passed by
+    # the v5 remember handler to the payload top level, matching the legacy
+    # memory_store schema that the janitor and recall paths read. Additive
+    # only — never overwrite a top-level key.
+    for _phoenix_key in (
+        "phoenix_id",
+        "phoenix_state",
+        "phoenix_cooldown_expiry",
+        "phoenix_psi_utility",
+        "phoenix_tri_witness",
+        "phoenix_anti_hantu_flag",
+    ):
+        if _phoenix_key in payload["metadata"] and _phoenix_key not in payload:
+            payload[_phoenix_key] = payload["metadata"][_phoenix_key]
     try:
         client = _get_qdrant_client()
         client.upsert(
