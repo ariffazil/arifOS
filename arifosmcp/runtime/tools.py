@@ -12415,10 +12415,35 @@ def _read_mcp_resource_text(uri: str) -> dict[str, Any]:
 
     text = getattr(comp, "text", None)
     if text is None:
-        return {
-            "error": f"RESOURCE_NOT_STATIC: {uri}",
-            "action": "use resources/read for dynamic resources",
-        }
+        # Dynamic resource (FunctionResource). Read it in a worker thread so a
+        # sync tool call can await the coroutine without touching the running
+        # event loop.
+        try:
+            import asyncio
+            import concurrent.futures
+
+            reader = getattr(comp, "read", None)
+            if reader is None:
+                return {
+                    "error": f"RESOURCE_NOT_READABLE: {uri}",
+                    "action": "use resources/read",
+                }
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                result = pool.submit(asyncio.run, reader()).result(timeout=15)
+            if isinstance(result, bytes):
+                text = result.decode("utf-8", "replace")
+            elif isinstance(result, str):
+                text = result
+            else:
+                contents = getattr(result, "contents", None) or []
+                first = contents[0] if contents else result
+                text = (
+                    getattr(first, "text", None)
+                    or getattr(first, "content", None)
+                    or str(first)
+                )
+        except Exception as exc:  # noqa: BLE001
+            return {"error": f"RESOURCE_READ_FAILED: {type(exc).__name__}: {exc}"}
     return {
         "uri": uri,
         "content": text,
