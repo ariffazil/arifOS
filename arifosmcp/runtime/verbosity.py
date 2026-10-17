@@ -316,6 +316,8 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "effective_verdict",
         "execution_state",
         "status_scope",
+        "result_state",
+        "hold_scope",
         "reason_code",
         "next_action",
         "receipt_state",
@@ -415,6 +417,31 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         elif str(minimal.get("status")).lower() in ("blocked", "failed", "error"):
             minimal["execution_state"] = "FAILED"
     minimal.setdefault("status_scope", "execution")
+
+    # Reality/authority separation (2026-10-17, external assessment):
+    # a completed read is not a blocked action. Publish both signals so the
+    # next agent does not read "HOLD" as "nothing happened".
+    _result_payload = minimal.get("result", response.get("result"))
+    if "result_state" not in minimal:
+        minimal["result_state"] = (
+            "RESULT_READY"
+            if _result_payload not in (None, {}, [], "")
+            else "NO_RESULT"
+        )
+    if "hold_scope" not in minimal:
+        _ev = str(minimal.get("effective_verdict") or "").upper()
+        _risk = minimal.get("risk") or response.get("risk") or {}
+        _cls = str(_risk.get("action_class") or "").upper()
+        if (
+            _ev in ("HOLD", "SABAR", "OBSERVE_ONLY")
+            and minimal.get("result_state") == "RESULT_READY"
+            and _cls in ("OBSERVE", "")
+        ):
+            minimal["hold_scope"] = "MUTATION"
+        elif _ev in ("HOLD", "VOID", "SABAR"):
+            minimal["hold_scope"] = "EXECUTION"
+        else:
+            minimal["hold_scope"] = "NONE"
 
     # W-03: deployment drift is a hard floor — never re-green to SEAL/PROCEED.
     # DUAL-TRUTH FIX (2026-09-18, lane B receipt): this used a private
