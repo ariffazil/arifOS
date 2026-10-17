@@ -46,6 +46,7 @@ DITEMPA BUKAN DIBERI ⚒️
 
 from __future__ import annotations
 
+import difflib
 import hashlib
 from typing import Any
 
@@ -108,6 +109,8 @@ def healing_error(
     available: list[str] | None = None,
     discovery_tool: str | None = None,
     retryable: bool = True,
+    rejected_fields: list[str] | None = None,
+    level: str | None = None,
     stage: str | None = None,
 ) -> CanonicalError:
     """Build a CanonicalError with self-healing recovery context.
@@ -122,6 +125,8 @@ def healing_error(
         available: Bounded list of valid alternatives. Capped at MAX_ALTERNATIVES.
         discovery_tool: Tool to call for more options (e.g. "geox_describe").
         retryable: Whether retrying with corrected input may succeed.
+        rejected_fields: Explicit list of rejected field/value names (P-1).
+        level: Recovery level — "field" or "tool" (P-1, optional).
         stage: Constitutional stage (optional).
 
     Returns:
@@ -139,10 +144,21 @@ def healing_error(
         context["received"] = received
 
     # Build recovery hints — bounded alternatives
+    avail = (available or [])[:MAX_ALTERNATIVES]
+
+    # P-1: derive rejected fields — explicit list, else a single `received`
+    # value when this is a field-level rejection.
+    rejected = list(rejected_fields) if rejected_fields else []
+    if not rejected and parameter == "field" and isinstance(received, str) and received:
+        rejected = [received]
+
     recovery = RecoveryContext(
-        available=(available or [])[:MAX_ALTERNATIVES],
+        available=avail,
         discovery_tool=discovery_tool,
         retryable=retryable,
+        level=level,
+        rejected_fields=rejected,
+        closest_match=_closest_matches(rejected, avail),
     )
 
     err = CanonicalError(
@@ -204,6 +220,40 @@ def _sig_hash(tool: str | None, code: str, context: dict[str, Any] | None) -> st
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
+def _closest_matches(
+    rejected_fields: list[str], available_fields: list[str], cutoff: float = 0.6
+) -> dict[str, list[str]]:
+    """Map each rejected field to its nearest valid alternatives.
+
+    P-1 (Layer 1.5 field recovery). Order: substring containment first
+    (stronger, structure-preserving), then difflib close matches. Case-insensitive;
+    returns original casing. Empty inputs -> empty dict.
+    """
+    if not rejected_fields or not available_fields:
+        return {}
+    avail_lower = [str(a).lower() for a in available_fields]
+    result: dict[str, list[str]] = {}
+    for field in rejected_fields:
+        if not isinstance(field, str) or not field.strip():
+            result[field] = []
+            continue
+        fl = field.lower()
+        matched: list[str] = []
+        # 1) substring containment (either direction)
+        for orig, low in zip(available_fields, avail_lower):
+            if fl in low or low in fl:
+                if orig not in matched:
+                    matched.append(orig)
+        # 2) difflib close matches
+        for m in difflib.get_close_matches(fl, avail_lower, n=3, cutoff=cutoff):
+            idx = avail_lower.index(m)
+            orig = available_fields[idx]
+            if orig not in matched:
+                matched.append(orig)
+        result[field] = matched
+    return result
+
+
 def tool_not_found_error(
     *,
     tool_name: str,
@@ -254,6 +304,8 @@ def field_not_found_error(
         received=field_name,
         available=available_fields,
         discovery_tool=discovery_tool or f"{organ}_describe",
+        rejected_fields=[field_name],
+        level="field",
     )
 
 
