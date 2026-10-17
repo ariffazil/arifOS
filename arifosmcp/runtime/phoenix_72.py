@@ -94,11 +94,17 @@ def compute_cooldown_expiry(created_at: datetime | str) -> datetime:
     return created_at + timedelta(hours=COOLING_HOURS)
 
 
-def is_cooldown_complete(cooldown_expiry: datetime | str) -> bool:
-    """Return True if 72h cooling window has elapsed."""
+def is_cooldown_complete(
+    cooldown_expiry: datetime | str, now: datetime | None = None
+) -> bool:
+    """Return True if 72h cooling window has elapsed.
+
+    ``now`` allows an accelerated clock in tests and in the cooling
+    evaluator. Omitted, it reads the wall clock (previous behaviour).
+    """
     if isinstance(cooldown_expiry, str):
         cooldown_expiry = datetime.fromisoformat(cooldown_expiry.replace("Z", "+00:00"))
-    return datetime.now(UTC) >= cooldown_expiry
+    return (now or datetime.now(UTC)) >= cooldown_expiry
 
 
 def compute_w3(
@@ -187,6 +193,7 @@ def should_seal(
     anti_hantu_flag: bool,
     explicit_seal_requested: bool = False,
     position_debt: int = 0,
+    now: datetime | None = None,
 ) -> tuple[bool, str]:
     """Evaluate whether a Phoenix entry should be SEALED or VOIDED.
 
@@ -206,7 +213,7 @@ def should_seal(
         return False, "explicit_veto=True — VOID"
 
     # Check cooldown completion
-    if not is_cooldown_complete(cooldown_expiry):
+    if not is_cooldown_complete(cooldown_expiry, now=now):
         return False, f"cooldown incomplete: {cooldown_expiry}"
 
     # Check psi_utility threshold
@@ -229,6 +236,7 @@ def should_void(
     tri_witness: dict[str, bool | float],
     anti_hantu_flag: bool,
     explicit_veto: bool = False,
+    now: datetime | None = None,
 ) -> tuple[bool, str]:
     """Evaluate whether a Phoenix entry should be VOIDED.
 
@@ -240,16 +248,17 @@ def should_void(
     if anti_hantu_flag:
         return True, "anti_hantu_flag=True"
 
-    if not is_cooldown_complete(cooldown_expiry):
+    if not is_cooldown_complete(cooldown_expiry, now=now):
         return False, "cooldown incomplete — remain in COOLING"
 
     # After cooldown: if not SEALed, must be VOIDed
     sealable, _ = should_seal(
-        created_at=datetime.now(UTC),  # not used after cooldown check
+        created_at=now or datetime.now(UTC),  # not used after cooldown check
         cooldown_expiry=cooldown_expiry,
         psi_utility=psi_utility,
         tri_witness=tri_witness,
         anti_hantu_flag=anti_hantu_flag,
+        now=now,
     )
     if sealable:
         return False, "should be SEALed, not VOIDed"
@@ -488,15 +497,20 @@ def is_tri_witness_complete(entry: dict[str, Any]) -> bool:
 # --------------------------------------------------------------------------- #
 
 
-def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
+def evaluate_promotion(
+    entry: dict[str, Any], now: datetime | None = None
+) -> tuple[str, str]:
     """Evaluate state transition for a COOLING or CANDIDATE entry.
 
     Returns (new_state: str, reason: str).
     Positional debt is extracted from entry['position_debt'] if set,
     defaulting to 0 for backward compatibility. See witness_class.py
     — BANGANG P0 fix.
+
+    ``now`` allows an accelerated clock (tests / cooling evaluator).
+    Omitted, it reads the wall clock (previous behaviour).
     """
-    now = datetime.now(UTC)
+    now = now or datetime.now(UTC)
     state = entry.get("state", STATE_CANDIDATE)
     cooldown_expiry_str = entry.get("cooldown_expiry")
     psi_utility = entry.get("psi_utility", 0)
@@ -519,7 +533,7 @@ def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
 
     # Not yet cooled down: stay in COOLING
     if cooldown_expiry_str:
-        if not is_cooldown_complete(cooldown_expiry_str):
+        if not is_cooldown_complete(cooldown_expiry_str, now=now):
             return STATE_COOLING, "cooldown in progress"
     else:
         return STATE_COOLING, "no cooldown_expiry set"
@@ -532,6 +546,7 @@ def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
         tri_witness=tri_witness,
         anti_hantu_flag=anti_hantu,
         position_debt=position_debt,
+        now=now,
     )
 
     if sealable:
@@ -542,6 +557,7 @@ def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
         psi_utility=psi_utility,
         tri_witness=tri_witness,
         anti_hantu_flag=anti_hantu,
+        now=now,
     )
 
     if voidable:
