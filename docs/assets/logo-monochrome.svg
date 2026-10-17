@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- arifOS logo-monochrome (single-color · inverts cleanly) -->
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#e8eaed" stroke-width="10"/>
+  <rect x="216" y="112" width="80" height="14" rx="7" fill="#e8eaed"/>
+  <line x1="256" y1="126" x2="256" y2="252" stroke="#e8eaed" stroke-width="4" stroke-dasharray="7 6"/>
+  <line x1="182" y1="316" x2="236" y2="316" stroke="#e8eaed" stroke-width="7"/>
+  <line x1="300" y1="316" x2="330" y2="316" stroke="#e8eaed" stroke-width="7"/>
+  <line x1="372" y1="316" x2="384" y2="316" stroke="#e8eaed" stroke-width="7"/>
+  <circle cx="166" cy="316" r="24" fill="#e8eaed"/>
+  <circle cx="268" cy="316" r="30" fill="#e8eaed"/>
+  <circle cx="398" cy="316" r="24" fill="#e8eaed"/>
+  <rect x="326" y="262" width="46" height="10" rx="4" fill="#e8eaed"/>
+  <rect x="328" y="272" width="9" height="72" rx="3" fill="#e8eaed"/>
+  <rect x="361" y="272" width="9" height="72" rx="3" fill="#e8eaed"/>
+</svg>

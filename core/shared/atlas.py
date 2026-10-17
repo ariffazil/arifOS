@@ -196,6 +196,19 @@ class ATLAS:
             re.compile(r"\b(explain|how do I|how can I|what should I|advice)\b"),
             # Emotional context
             re.compile(r"\b(worried|concerned|confused|stressed|anxious)\b"),
+            # Human-reality signals (BM/ID) — S3 2026-10-17.
+            # Grief, loss, faith and feeling words must classify CARE even when
+            # the same sentence carries a domain noun ("portfolio", "basin").
+            re.compile(
+                r"\b(duka|dukacita|sedih|pilu|kecewa|merana|hampa|sunyi|kesunyian)\b"
+            ),
+            re.compile(
+                r"\b(hati|perasaan|emosi|marah|takut|risau|gelisah|tenang|redha|sabar|ikhlas)\b"
+            ),
+            re.compile(
+                r"\b(sayang|rindu|kasih|cinta|kehilangan|berpisah|kematian|maut|takdir)\b"
+            ),
+            re.compile(r"\b(doa|berserah|tawakkal|insaf|muhasabah)\b"),
             # Learning
             re.compile(r"\b(learn|understand|teach me|show me)\b"),
         ]

@@ -25,7 +25,7 @@
     "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
   "canonical_count": 8,
-  "internal_canonical_count": 5,
+  "internal_canonical_count": 6,
   "diagnostic_count": 40,
   "total_surface": 65,
   "tier_summary": {
@@ -68,7 +68,8 @@
     "arif_judge_deliberate",
     "arif_kernel_intercept",
     "arif_measure",
-    "arif_telegram_send"
+    "arif_telegram_send",
+    "arif_telegram_send_voice"
   ],
   "diagnostic_order": [
     "arif_canary",
@@ -192,6 +193,9 @@
         "light",
         "resume",
         "validate",
+        "canary",
+        "preflight",
+        "triage",
         "epoch_open",
         "epoch_seal",
         "opt_out",
@@ -692,7 +696,8 @@
         "verify",
         "ledger",
         "changelog",
-        "audit"
+        "audit",
+        "session_close"
       ],
       "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
       "tier": "canonical",
@@ -2441,6 +2446,50 @@
       "forged_by": "Claude session linked-juggling-pillow",
       "forged_for": "Arif 'hantar kat telegram' → governed outbound path",
       "design_record": "/root/.claude/projects/-root/memory/forge-telegram-send-design-2026-08-20.md"
+    },
+    "arif_telegram_send_voice": {
+      "stage": "777",
+      "lane": "AGI",
+      "floors": [
+        "L01",
+        "L02",
+        "L04",
+        "L11",
+        "L12",
+        "L13"
+      ],
+      "risk_tier": "critical",
+      "irreversible": true,
+      "access": "internal_only",
+      "requires_auth": true,
+      "modes": [
+        "send_voice"
+      ],
+      "eureka_insight": "Voice-note send closes the raw-curl gap: arif_telegram_send covered text only, so voice notes fell back to ungoverned curl. F12 RESILIENCE Hermes-only caller scope. F1 AMANAH ack_irreversible required first call. Same 6-gate contract as arif_telegram_send.",
+      "tier": "internal",
+      "namespace": "arif_* (Hermes-only internal supporting alias)",
+      "tags": [
+        "internal",
+        "non-public",
+        "hermes-only",
+        "chat-actuator"
+      ],
+      "public_exposed": false,
+      "affordance_contract": {
+        "action_class": "MUTATE",
+        "risk_tier": "CRITICAL",
+        "blast_radius": "EXTERNAL",
+        "reversibility": 0.0,
+        "requires_lease": false,
+        "autonomy_floor": "FULL_AUTO",
+        "rationale": "Outbound Telegram voice note via Bot API sendVoice. Cannot un-send. C5_IRREVERSIBLE. Hermes session gate at tool layer; allowlist at bridge layer. File gate: missing/empty voice file fails closed.",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      },
+      "tested": true,
+      "status": "registered",
+      "forged": "2026-10-12",
+      "forged_by": "HERMES (KVM8) — send-voice governed path",
+      "forged_for": "Close the raw-curl voice-note gap (scar: unauthorized send 2026-10-12)"
     }
   },
   "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",

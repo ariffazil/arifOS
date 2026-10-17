@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-10-16T08:46:23Z",
+  "self_measurement": {
+    "status": "healthy",
+    "probe": "http://127.0.0.1:8088/health @2026-10-16T08:46:23Z",
+    "floors_pass": 13,
+    "floors_target": 13,
+    "floors_failing": [],
+    "floors_unmeasured": [],
+    "floors_provenance": {
+      "F1": "arifflow_fq_probe:fq=1.0",
+      "F2": "floor_producer:PASS:floor_provenance_coverage",
+      "F3": "witness_producers:human+ai+earth",
+      "F4": "arifflow_probe:ds=-0.0",
+      "F5": "f4_f9_probe:claims.json:2026-10-16T08:40:01.664+00:00",
+      "F6": "f4_f9_probe:claims.json:2026-10-16T08:40:01.664+00:00",
+      "F7": "f4_f9_probe:claims.json:2026-10-16T08:40:01.664+00:00",
+      "F8": "f4_f9_probe:claims.json:2026-10-16T08:40:01.664+00:00",
+      "F9": "f4_f9_probe:claims.json:2026-10-16T08:40:01.664+00:00",
+      "F10": "f4_f9_probe:claims.json:2026-10-16T08:40:01.664+00:00",
+      "F11": "floor_producer:PASS:receipt_ledger",
+      "F12": "floor_producer:PASS:request_trust",
+      "F13": "floor_producer:PASS:seal_chain"
+    },
+    "vault999": "healthy",
+    "release_id": "arifos-05c1734",
+    "source_commit": "05c1734",
+    "drift": false,
+    "tools_exposed": 8,
+    "registry_size": 62
+  },
+  "independent_audit": {
+    "date": "2026-10-11",
+    "method": "live re-probe by FI-008 + claim-level hand audit",
+    "receipts": "AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/",
+    "floors_pass": 2,
+    "floors_fail": [
+      "F2",
+      "F11",
+      "F12",
+      "F13"
+    ],
+    "floors_unmeasured": 10,
+    "actor_binding": "not verified (observed calls unsigned)",
+    "receipt_fidelity": "broken on invocation-telemetry surface (HOLD persisted as ok:true)",
+    "sink_agreement": "one event: ledger ok:false, organ counters omit it",
+    "independent_reconstruction": "no external verifier bound"
+  }
+}

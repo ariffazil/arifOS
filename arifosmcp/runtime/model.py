@@ -284,7 +284,12 @@ class AuthorityActor(BaseModel):
     # reaches OPERATOR/OBSERVER_MUTATE — the LIMITED_MUTATE bug.
     verified_key_id: str | None = None
     verification_method: Literal[
-        "none", "session", "signature", "oauth", "hardware", "f13_sovereign",
+        "none",
+        "session",
+        "signature",
+        "oauth",
+        "hardware",
+        "f13_sovereign",
         # T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP proof + DID registry match.
         # Cryptographically strong: Ed25519 signature over nonce+method+url+ath,
         # bound to a registered DID via JWK thumbprint.
@@ -393,10 +398,37 @@ class Artifact(BaseModel):
     sealed: bool = False
 
 
+class RecoveryContext(BaseModel):
+    """Self-healing recovery hints for LLM agents (P0 — Faucet-inspired).
+
+    Governance: alternatives MUST be filtered through caller's auth scope.
+    No secrets, hidden resources, or unauthorized names disclosed.
+    """
+
+    available: list[str] = Field(
+        default_factory=list, description="Bounded list of valid alternatives"
+    )
+    discovery_tool: str | None = Field(None, description="Tool to discover more options")
+    retryable: bool = Field(True, description="Whether retrying with corrected input may succeed")
+    level: str | None = Field(None, description="Recovery level: 'field' | 'tool'")
+    rejected_fields: list[str] = Field(
+        default_factory=list, description="Field/value names that were rejected"
+    )
+    closest_match: dict[str, list[str]] = Field(
+        default_factory=dict, description="rejected name -> nearest valid alternatives"
+    )
+
+
 class CanonicalError(BaseModel):
     code: str
     message: str
     stage: str | None = None
+    context: dict[str, Any] | None = Field(
+        None, description="Structured error context (organ, tool, parameter, received)"
+    )
+    recovery: RecoveryContext | None = Field(
+        None, description="Self-healing recovery hints for agents"
+    )
 
 
 class PNSSignal(BaseModel):

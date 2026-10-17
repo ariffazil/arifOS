@@ -623,7 +623,7 @@ nats.arif-fazil.com {
 # ═══════════════════════════════════════════════════════════════════════
 vault999.arif-fazil.com {
  	import tls_origin
- 	reverse_proxy localhost:8100
+ 	reverse_proxy localhost:5001
  }
 
 

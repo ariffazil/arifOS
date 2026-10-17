@@ -138,6 +138,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 # arif_observe calls survives across restarts.
                 try:
                     from arifosmcp.runtime.tools import _SESSIONS
+
                     if session_id in _SESSIONS:
                         active_evidence = _SESSIONS[session_id].get("observations") or None
                     if not active_evidence:
@@ -146,6 +147,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                         # post-restart RAM state is stale. Resetting forces the
                         # session identity to be re-hydrated from the disk file.
                         from arifosmcp.runtime import session as _p1_sess
+
                         _p1_sess._STORE_LOADED = False
                         _p1_sess._load_store()
                         _p1_record = _p1_sess.get_session_execution_state(session_id)
@@ -154,7 +156,9 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 except Exception:
                     active_evidence = None
 
-            synthesis = await _synthesize_async(query or "", reasoning_mode=mode, evidence=active_evidence)
+            synthesis = await _synthesize_async(
+                query or "", reasoning_mode=mode, evidence=active_evidence
+            )
             result = {
                 "status": "OK",
                 "tool": "arif_mind_reason",
@@ -177,6 +181,9 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                     "what_is_supported": synthesis.get("what_is_supported", []),
                     "what_is_not_supported": synthesis.get("what_is_not_supported", []),
                     "what_remains_unknown": synthesis.get("what_remains_unknown", []),
+                    # Premise Ledger + provenance surfacing (F13 "ok go" 2026-10-15)
+                    "premises": synthesis.get("premises", []),
+                    "reasoning_provenance": synthesis.get("reasoning_provenance", None),
                     "confidence_reasoning": synthesis.get("confidence_reasoning"),
                     "confidence_evidence": synthesis.get("confidence_evidence"),
                     "confidence_provenance": "OBSERVED" if active_evidence else "INFERRED",

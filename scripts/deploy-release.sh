@@ -15,6 +15,31 @@
 
 set -euo pipefail
 
+# ── DP-C: deploy mutual exclusion (2026-10-15) ───────────────────────
+# On 2026-10-15 two agents each ran build+install into $ACTIVE_VENV
+# within 3 minutes of each other. BUILD_DIR is PID-scoped so the builds
+# did not collide — but `pip install` into the SHARED venv and the
+# arifOS restart did, and neither agent knew the other existed. This
+# lock makes a second concurrent deploy WAIT rather than interleave.
+#
+# Fail-CLOSED with a timeout: refusing is the safe answer for a
+# production venv, but a wedged lock must never block deploys forever,
+# so we wait a bounded time and then exit with a distinct code.
+# Exit 3 == "another deploy owns the venv", not "deploy failed".
+DEPLOY_LOCK="${TMPDIR:-/tmp}/arifos-deploy.lock"
+LOCK_WAIT_SECS="${ARIFOS_DEPLOY_LOCK_WAIT:-300}"
+if command -v flock >/dev/null 2>&1; then
+	exec 9>"$DEPLOY_LOCK"
+	if ! flock -w "$LOCK_WAIT_SECS" 9; then
+		echo "FATAL: another deploy holds $DEPLOY_LOCK (waited ${LOCK_WAIT_SECS}s)." >&2
+		echo "       If you are certain none is running: rm -f $DEPLOY_LOCK" >&2
+		exit 3
+	fi
+	echo "✓ deploy lock acquired ($DEPLOY_LOCK)"
+else
+	echo "⚠️  flock unavailable — proceeding WITHOUT mutual exclusion." >&2
+fi
+
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SELF_DIR/.." && pwd)"
 # ONE_ORIGIN (2026-09-16): the production venv lives at
@@ -84,6 +109,29 @@ if [ "$GIT_DIRTY" = "true" ] && [ "${DEPLOY_ALLOW_DIRTY:-0}" != "1" ]; then
 fi
 if [ "$GIT_DIRTY" = "true" ]; then
 	echo "⚠️  DEPLOY_ALLOW_DIRTY=1 — building from a dirty tree by explicit override; manifest will record dirty=true"
+fi
+
+# ── Step 0b: LINEAGE GATE (fail-closed) ──────────────────────────────
+# 2026-10-15 (333-AGI, coordination loop e-87ab39b5). A deploy from a
+# divergent line that lacks the currently-deployed commits silently
+# REGRESSES production: live fixes vanish while every individual commit
+# still looks legitimate. If the commit in deployed-commit is not an
+# ancestor of what we are about to build, the running kernel's lineage
+# goes backwards (F2). Fix: merge/rebase onto origin/main first. Escape
+# hatch is explicit and leaves an audit line.
+if [ -s "$STAMP_FILE" ]; then
+	DEPLOYED_LINEAGE="$(head -c 40 "$STAMP_FILE" | tr -d '[:space:]')"
+	if ! git -C "$REPO_DIR" merge-base --is-ancestor "$DEPLOYED_LINEAGE" "$GIT_COMMIT" 2>/dev/null; then
+		echo "❌ 888_HOLD: refusing to build — DEPLOYED LINEAGE REGRESSION."
+		echo "   deployed-commit=$DEPLOYED_LINEAGE is NOT an ancestor of build commit $GIT_COMMIT."
+		echo "   Deploying this would silently revert everything the deployed lineage carries"
+		echo "   (e.g. live fixes that exist only on the deployed line)."
+		echo "   Fix: merge/rebase onto origin/main (contains $DEPLOYED_LINEAGE), then deploy."
+		if [ "${DEPLOY_ALLOW_DIVERGENT:-0}" != "1" ]; then
+			exit 1
+		fi
+		echo "⚠️  DEPLOY_ALLOW_DIVERGENT=1 — lineage regression by explicit override; manifest will record it"
+	fi
 fi
 
 echo "═══ arifOS Release 1 — Runtime Truth ═══"
@@ -400,11 +448,11 @@ echo "  Waiting for service to become healthy..."
 #   pre-deploy baseline captured below.
 PRE_STATUS_FILE="$(mktemp)"
 if [ -n "${PRE_DEPLOY_STATUS:-}" ]; then
-	echo "$PRE_DEPLOY_STATUS" > "$PRE_STATUS_FILE"
+	echo "$PRE_DEPLOY_STATUS" >"$PRE_STATUS_FILE"
 else
-	curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null \
-		| python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null \
-		> "$PRE_STATUS_FILE" || true
+	curl -s -m 8 "http://localhost:8088/health?nocache=1" 2>/dev/null |
+		python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null \
+			>"$PRE_STATUS_FILE" || true
 fi
 PRE_STATUS="$(cat "$PRE_STATUS_FILE" 2>/dev/null || echo "")"
 rm -f "$PRE_STATUS_FILE"
@@ -413,9 +461,9 @@ echo "  pre-deploy status: ${PRE_STATUS:-<unknown>}"
 # Rank: lower is worse. Unknown ranks worst so a dead kernel always fails.
 _status_rank() {
 	case "$1" in
-		healthy)   echo 2 ;;
-		degraded)  echo 1 ;;
-		*)         echo 0 ;;
+	healthy) echo 2 ;;
+	degraded) echo 1 ;;
+	*) echo 0 ;;
 	esac
 }
 PRE_RANK=$(_status_rank "$PRE_STATUS")

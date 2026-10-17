@@ -189,9 +189,16 @@ def test_missing_registry_file_fails_closed_for_judge(
     monkeypatch: pytest.MonkeyPatch,
     clear_tokenrouter_model: None,
 ) -> None:
-    """Registry missing → fail-closed for 666_JUDGE (never silently allow)."""
+    """No model source at all → fail-closed for 666_JUDGE (never silently allow).
+
+    2026-10-17: the frozen map is SUPERSEDED, so the gate may legitimately fall
+    back to the live federation registry. This test isolates *every* source to
+    prove the no-source path still fails closed.
+    """
     nonexistent = tmp_path / "does_not_exist.json"
     monkeypatch.setenv("ARIFOS_AGENT_MODEL_MAP_PATH", str(nonexistent))
+    monkeypatch.setenv("ARIFOS_FEDERATION_MODELS", str(nonexistent))
+    monkeypatch.delenv("ARIFOS_CONSTITUTIONAL_MODELS", raising=False)
     llm_client._agent_model_map_cache["mtime"] = None
     llm_client._agent_model_map_cache["data"] = None
 

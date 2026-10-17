@@ -124,21 +124,24 @@ class TestComputeA(unittest.TestCase):
             1.0,
         )
 
-    def test_no_leases_observational(self):
-        """No leases = pure read authority."""
+    def test_no_leases_unmeasured(self):
+        """AX-0: no leases = UNMEASURED (None), never invented authority."""
         result = compute_A(valid_leases=0, total_leases=0, floor_compliance=13)
-        self.assertAlmostEqual(result, 1.0)
+        self.assertIsNone(result)
 
 
 class TestComputeP(unittest.TestCase):
     """Test P — Physics measurement law."""
 
     def test_well_only(self):
-        """Well evidence provided, seis/geo get defaults."""
+        """AX-0: only measured dials count — no invented 0.50/0.70 priors."""
         result = compute_P(p_well=0.99, p_seis=0.0, p_geo=0.0)
-        # p_seis=0 → default 0.50, p_geo=0 → default 0.70
-        expected = 0.4 * 0.99 + 0.3 * 0.50 + 0.3 * 0.70
-        self.assertAlmostEqual(result, expected, places=2)
+        # unmeasured dials drop out; weight renormalises to the measured one
+        self.assertAlmostEqual(result, 0.99, places=2)
+
+    def test_all_zero_unmeasured(self):
+        """AX-0: all dials unmeasured → None, never 0.756-by-default."""
+        self.assertIsNone(compute_P(p_well=0.0, p_seis=0.0, p_geo=0.0))
 
     def test_weighted_average(self):
         """Weighted average of all three."""
@@ -205,9 +208,9 @@ class TestComputeX(unittest.TestCase):
         expected = 1.0 * math.exp(-5.0)
         self.assertAlmostEqual(result, expected, places=4)
 
-    def test_no_steps_observational(self):
-        """No execution = default 0.5."""
-        self.assertEqual(compute_X(successful_steps=0, total_steps=0), 0.5)
+    def test_no_steps_unmeasured(self):
+        """AX-0: no execution = UNMEASURED (None), never neutral 0.5."""
+        self.assertIsNone(compute_X(successful_steps=0, total_steps=0))
 
 
 class TestComputePhi(unittest.TestCase):
@@ -341,13 +344,15 @@ class TestFullPipeline(unittest.TestCase):
         self.assertLess(result.C_dark, 0.30)
 
     def test_zero_witness_void(self):
-        """Zero human witness → VOID."""
+        """Zero human witness → VOID. (AX-0: X measured so only witness is dead.)"""
         inputs = PrimitiveInputs(
             valid_leases=5,
             total_leases=5,
             floor_compliance=13,
             p_well=0.99,
             clarity=0.95,
+            successful_steps=10,
+            total_steps=10,  # AX-0: X must be measured; test targets witness, not X
             h_witness=0.0,  # zero human witness
             ai_witness=0.9,
             ext_witness=0.9,
@@ -356,10 +361,12 @@ class TestFullPipeline(unittest.TestCase):
         self.assertEqual(result.verdict, Verdict.VOID)
 
     def test_floor_violation_void(self):
-        """Floor violation → A = 0 → VOID."""
+        """Floor violation → A = 0 → VOID. (AX-0: X measured so only floor is dead.)"""
         inputs = PrimitiveInputs(
             floor_compliance=12,  # one floor violated
             p_well=0.99,
+            successful_steps=10,
+            total_steps=10,  # AX-0: X must be measured; test targets floor violation
             h_witness=0.9,
             ai_witness=0.9,
             ext_witness=0.9,

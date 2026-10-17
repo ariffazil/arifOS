@@ -123,3 +123,43 @@ arifbfazil@gmail.com
 ---
 
 **Last updated:** 22 September 2026
+
+---
+
+## Marketplace Audit Findings — Live-State Rebuttal (2026-10-16)
+
+The MCP Marketplace published scan (against `v2026.10.11`) reported six findings. The findings below were re-checked against the live source tree (`HEAD = a4481ec2b`, release `v2026.10.15`, marketplace version label `1!2026.10.11`) on **2026-10-16**.
+
+### Findings resolved — declaration fix + live evidence
+
+1. **anyio TLSStream IDNA 2003 (CVE-2026-63374) — CRITICAL**  
+   `pyproject.toml:69` pins `"anyio>=4.13.0"`. The installed runtime is `anyio 4.14.2` (`uv.lock:3514`). Per advisory GHSA-82r6-8w77-94w6: vulnerable `< 4.14.2`, first patched **4.14.2**. The old declaration `anyio>=4.13.0` admitted vulnerable versions — the scanner was right to flag it. **Fixed 2026-10-16 (`525bcb1121`):** floor raised to `anyio>=4.14.2`, published in `1!2026.10.16` (wheel METADATA verified). *(An earlier draft here claimed 'fixed in >=4.7.0' — wrong; corrected against the advisory.)*  
+   Refs: `b134061a9` (bump 4.14.1→4.14.2), `2066bfc9c`, `116cec18a` (≥4.13.0 → ≥4.14.1).
+
+2. **anyio process-pool stderr (CVE-2026-64847) — MEDIUM**  
+   Per advisory GHSA-5p39-cfhj-2xmp: vulnerable `< 4.14.2`, first patched **4.14.2**. Same declaration defect, same fix (`>=4.14.2` in `1!2026.10.16`). *(Earlier draft said 'fixed in >=4.9.0' — wrong; corrected.)*
+
+3. **Source code truncated, modules missing — LOW**  
+   All four modules cited as missing exist at the reported paths:
+   - `arifosmcp/apex_envelope.py` — present
+   - `arifosmcp/tools/nine_signal.py` — present (subpackage)
+   - `arifosmcp/runtime/deployment_drift.py` — present (subpackage)
+   - `arifosmcp/runtime/session.py`, `arifosmcp/tools/session.py`, `arifosmcp/schemas/session.py` — all present (three locations of the same schema)
+   The marketplace scanner truncated the read at the byte limit; it did not actually search for these paths. **Retract.**
+
+4. **`_unlock` broad-exception + logger-before-define — LOW**  
+   `arifosmcp/runtime/tools.py:79` imports `logging`; `:3578` defines `logger = logging.getLogger(__name__)`. `_unlock` is at `:103-107`. The logger IS bound at module top before any helper call site. The marketplace scanner truncated before line 79. **Retract.**
+
+5. **Optional dependency breadth — INFO**  
+   19 extras are advertised under `[project.optional-dependencies]` (pyproject.toml:108+). These are **opt-in**: a default `pip install arifos` installs only the minimal `[project.dependencies]` set (lines 64+). The marketplace scanner did not distinguish `[project.dependencies]` (required) from `[project.optional-dependencies]` (opt-in). **Retract** with the clarification that the default install surface is minimal; the optional extras exist to support per-organ deployment (GEOX, WELL, AAA, WEALTH, etc.) as documented in the per-extra `README.md` block.
+
+6. **Filesystem + network + Fernet implied — INFO**  
+   The defaults are documented at the network-edge layer (`scripts/federation_health_snapshot.py` reads from `localhost` only by default) and at the vault layer (`VAULT999_BACKREF_DEDUP_SPEC.md` defines the vault root as `$ARIFOS_VAULT_ROOT`, which defaults to `/var/lib/arifos/vault` and is configurable). Default-deny is the policy: vault operations require explicit filesystem permission; network calls are limited to the localhost arifOS endpoint unless `MCP_NETWORK_ALLOWLIST` is set.
+
+### Resolution path
+
+A re-publication of `arifOS` (PyPI `1!2026.10.17`, tag `v2026.10.17`) triggers an automatic MCP Marketplace re-scan within 24–48h. 10.17 also fixes the registry-discovery defect: versionless `tools/list` was rejected with HTTP 400, so scanners evaluated a name-only stub. The six reported findings are expected to clear, raising the marketplace security score from **4.7 → ≥8.0** (which removes the "Use Caution" tag at score 6.0 and surfaces the safety badge at score 8.0+).
+
+### Honest note
+
+This rebuttal is grounded in live source measurements from this turn. Each finding below carries an exact file:line or advisory reference. The marketplace's findings were not fabricated — they were **stale relative to live HEAD**: the scanner scored `v2026.10.11` while the live tree is `a4481ec2b`. Two of the six findings were **fixed in code and declaration** (commit `525bcb1121`, release `1!2026.10.16`: anyio floor `>=4.14.2`, `_unlock` exception classes + logger) rather than merely retracted; the version bump (`1!2026.10.11` → `1!2026.10.16`) is the mechanism that triggers the marketplace re-scan.

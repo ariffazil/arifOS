@@ -569,7 +569,11 @@ def mint_act(
         "ttl": int(ttl),
         "nbf": now,
         "kid": kid,
-        "verdict": {
+        # INCREMENT-0 hygiene (2026-10-14): the ACT standing is an authority
+        # axis, not a kernel verdict — stop wearing the verdict-named key on
+        # the response surface (single verdict enum per envelope). Readers
+        # fall back to the legacy key for tokens minted before this change.
+        "standing": {
             "state": verdict_state or "OK",
             "dominant_reason": dominant_reason,
         },
@@ -830,8 +834,12 @@ def refresh_sct_if_needed(
         av=bool(claims.get("av")),
         stage=str(claims.get("stage") or "000"),
         lane=str(claims.get("lane") or "AGI"),
-        verdict_state=str((claims.get("verdict") or {}).get("state") or "OK"),
-        dominant_reason=(claims.get("verdict") or {}).get("dominant_reason"),
+        verdict_state=str(
+            ((claims.get("standing") or claims.get("verdict")) or {}).get("state") or "OK"
+        ),
+        dominant_reason=(
+            (claims.get("standing") or claims.get("verdict") or {}).get("dominant_reason")
+        ),
         allowed=list(claims.get("allowed") or []),
         apex=claims.get("apex") if isinstance(claims.get("apex"), dict) else None,
         witness=claims.get("witness") if isinstance(claims.get("witness"), dict) else None,
@@ -914,7 +922,9 @@ def resolve_standing(
             )
 
         token, claims, delta = refresh_sct_if_needed(claims, session_token)
-        standing = _claims_to_standing(claims, token, source="sct", reason="L11 AUTH: SCT valid")
+        standing = _claims_to_standing(
+            claims, token, source="act", reason="L11 AUTH: ACT valid"
+        )
         standing.authority_delta = delta
         return standing
 
