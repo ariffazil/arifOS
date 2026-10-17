@@ -2,15 +2,15 @@
 <!-- GENERATED:CURRENT-STATE:BEGIN · source: scripts/generate_current_state.py · never hand-edit -->
 > ### ⚠️ Current verified state — generated, never hand-edited
 >
-> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-16T08:46:23Z`): kernel **healthy** · floors **13/13 measured pass** · vault999 healthy · release `arifos-05c1734` · drift `aligned` · tools exposed 8. Per-floor provenance: `state/current-state.json`.
+> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-17T09:00:08Z`): kernel **healthy** · floors **13/13 measured pass** · vault999 healthy · release `arifos-cf7a984` · drift `aligned` (source=built=deployed) · tools exposed 8. Per-floor provenance: `.well-known/current-state.json`.
 >
-> **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured** · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
+> **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured = 13 distinct** (raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13) · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
 > **These are two different witness objects.** Self-measurement ≠ independent audit;
 > unmeasured is not pass. If this block conflicts with the live endpoint, the endpoint
 > wins — re-run `python scripts/generate_current_state.py`.
 >
-> Machine state: [`state/current-state.json`](./state/current-state.json) ·
+> Machine state: [`.well-known/current-state.json`](./.well-known/current-state.json) ·
 > Badge feed: [`.well-known/badges/`](./.well-known/badges/) ·
 > Known gaps: [What Is Not Yet Proven](#what-is-not-yet-proven)
 <!-- GENERATED:CURRENT-STATE:END -->
@@ -196,8 +196,10 @@ Every consequential verdict and receipt is written to VAULT999: a hash-chained, 
 ## Connect an MCP client
 
 ```
-https://mcp.arif-fazil.com/mcp      # public · or http://localhost:8088/mcp self-hosted
+https://mcp.arif-fazil.com/mcp      # canonical public door · or http://localhost:8088/mcp self-hosted
 ```
+
+**Canonical endpoint:** `https://mcp.arif-fazil.com/mcp`. `https://arifos.arif-fazil.com/mcp` is a live alias (proxies to the same kernel); use the canonical URL in client configs.
 
 <details>
 <summary><strong>Client config</strong> — Cline · Cursor · Windsurf · Claude Desktop</summary>
@@ -302,7 +304,7 @@ arifOS Federation — planes and classes
 | Provider gateway | **FED** `:7074` | Multi-provider model routing (advisory-only) |
 | Boundary services | **HERMES** `:18087` · **CHRON** `:18102` | Semantic and temporal boundaries — not organs ([FEDERATION_CONTRACT.md §2.1](./FEDERATION_CONTRACT.md)) |
 
-**Tool-count semantics** (so no two surfaces disagree): `tools_loaded = 8` — the public MCP facade, the only number to quote publicly · `canonical superset = 21` (8 exposed + 13 hidden verbs) · `total_declared = 48` · `registry = 62` (with aliases) · `operational = 3` (durable SUCCESS in the last 24 h — proven live, not merely invocable).
+**Tool-count semantics** (so no two surfaces disagree): `tools_loaded = 8` — the public MCP facade (KERNEL_ABI_8), the only number to quote publicly · `canonical superset = 25` (8 public ABI + 4 map-only verbs: `arif_fetch`, `arif_challenge`, `arif_stage`, `arif_measure` + 13 hidden verbs) · `total_declared = 48` (8 canonical + 40 diagnostic) · `registry = 62` (with aliases) · `operational = 3` (durable SUCCESS in the last 24 h — proven live, not merely invocable).
 
 ---
 
@@ -438,6 +440,6 @@ See [SECURITY.md](./SECURITY.md) for the threat model, known vulnerabilities and
 | Ports | 8088 (/mcp) |
 | Unit | arifos.service |
 | Authority ceiling | JUDGE_ONLY |
-| Public MCP | https://mcp.arif-fazil.com/mcp |
+| Public MCP | https://mcp.arif-fazil.com/mcp (canonical; live alias: https://arifos.arif-fazil.com/mcp) |
 | Flow graph | [FEDERATION.md](https://github.com/ariffazil/AAA/blob/main/FEDERATION.md) — peta semua organ + repo |
 <!-- FEDERATION-STANDARD v2026-10-17 END -->

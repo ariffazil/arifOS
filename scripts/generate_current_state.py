@@ -3,7 +3,7 @@
 scripts/generate_current_state.py — ONE WITNESS OBJECT, MULTIPLE VIEWS.
 
 Probes the live kernel and generates:
-  1. state/current-state.json        — machine state (full provenance)
+  1. .well-known/current-state.json  — machine state (full provenance)
   2. .well-known/badges/*.json       — shields.io endpoint-badge payloads
   3. README.md generated block       — between GENERATED:CURRENT-STATE markers
 
@@ -45,7 +45,14 @@ AUDIT_SNAPSHOT = {
     "receipts": "AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/",
     "floors_pass": 2,
     "floors_fail": ["F2", "F11", "F12", "F13"],
+    # Raw audit key-count from the 2026-10-10 /health map. The map had 16 keys:
+    # F1-F9 + L10-L13 (LAW_SPEC_KEYS) + producer-emitted F11-F13. L11/L12/L13
+    # are L-prefix aliases of the failing F11/F12/F13, so the distinct floor
+    # count is 13: 2 pass + 4 fail + 7 unmeasured. Alias normalisation
+    # (_normalize_floors_to_canonical) landed after the audit.
     "floors_unmeasured": 10,
+    "floors_unmeasured_distinct": 7,
+    "floors_unmeasured_note": "raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13",
     "actor_binding": "not verified (observed calls unsigned)",
     "receipt_fidelity": "broken on invocation-telemetry surface (HOLD persisted as ok:true)",
     "sink_agreement": "one event: ledger ok:false, organ counters omit it",
@@ -99,13 +106,19 @@ def badge(label: str, message: str, color: str) -> dict:
 def build_badges(state: dict) -> dict[str, dict]:
     s = state["self_measurement"]
     a = state["independent_audit"]
+    _audit_unmeasured = a.get("floors_unmeasured_distinct", a["floors_unmeasured"])
     if s.get("status") == "UNMEASURED":
-        floors_msg = "self: UNMEASURED · audit: 2 pass/4 fail/10 unmeasured @10-11"
+        floors_msg = (
+            f"self: UNMEASURED · audit: {a['floors_pass']} pass/"
+            f"{len(a['floors_fail'])} fail/{_audit_unmeasured} unmeasured "
+            f"(raw {a['floors_unmeasured']}) @{a['date']}"
+        )
         kernel_msg, kernel_color = "probe down", "critical"
     else:
         floors_msg = (
             f"self {s['floors_pass']}/{s['floors_target']} pass"
-            f" · audit {a['floors_pass']} pass/{len(a['floors_fail'])} fail/{a['floors_unmeasured']} unmeasured @{a['date']}"
+            f" · audit {a['floors_pass']} pass/{len(a['floors_fail'])} fail/"
+            f"{_audit_unmeasured} unmeasured (raw {a['floors_unmeasured']}) @{a['date']}"
         )
         kernel_msg, kernel_color = (
             s.get("status", "unknown"),
@@ -140,11 +153,15 @@ def render_block(state: dict) -> str:
             f"vault999 {s['vault999']} · release `{s['release_id']}` · "
             f"drift `{'aligned' if s['drift'] is False else 'DRIFT'}`"
             f"{' (source=built=deployed)' if s['drift'] is False else ''} · "
-            f"tools exposed {s['tools_exposed']}. Per-floor provenance: `state/current-state.json`."
+            f"tools exposed {s['tools_exposed']}. Per-floor provenance: `.well-known/current-state.json`."
         )
+    _unm_distinct = a.get("floors_unmeasured_distinct", a["floors_unmeasured"])
+    _unm_note = a.get("floors_unmeasured_note", "")
     audit_line = (
         f"**Independent audit** ({a['date']}, {a['method']}; receipts: `{a['receipts']}`): "
-        f"floors **{a['floors_pass']} pass · fail {', '.join(a['floors_fail'])} · {a['floors_unmeasured']} unmeasured** · "
+        f"floors **{a['floors_pass']} pass · fail {', '.join(a['floors_fail'])} · "
+        f"{_unm_distinct} unmeasured = 13 distinct**"
+        f"{f' ({_unm_note})' if _unm_note else ''} · "
         f"actor binding {a['actor_binding']} · receipt fidelity {a['receipt_fidelity']} · "
         f"independent reconstruction: {a['independent_reconstruction']}."
     )
@@ -202,7 +219,7 @@ def main() -> None:
             "badges": sorted(p.name for p in BADGE_DIR.glob("*.json")),
         }
         (ROOT / ".well-known" / "badges.json").write_text(json.dumps(index, indent=2) + "\n")
-        print(f"wrote state/current-state.json + {len(build_badges(state))} badge payloads")
+        print(f"wrote .well-known/current-state.json + {len(build_badges(state))} badge payloads")
     patch_readme(render_block(state), dry)
 
 
