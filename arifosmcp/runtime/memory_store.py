@@ -570,11 +570,7 @@ async def _pg_load_canonical(actor_id: str, limit: int = 5) -> list[dict]:
                 FROM memory_store
                 WHERE tier IN ('canon', 'sacred')
                   AND deleted_at IS NULL
-                  AND (
-                    metadata->>'actor_id' = $1
-                    OR metadata->>'actor_id' IS NULL
-                    OR $1 = 'anonymous'
-                  )
+                  AND metadata->>'actor_id' = $1
                 ORDER BY created_at DESC
                 LIMIT $2
                 """,
@@ -880,29 +876,37 @@ def _memory_triage_gate(
                     ),
                 }
 
-    # --- WAJIB: Attestation enforcement (actor_id + session_id for Tier 3+) ---
-    if is_wajib:
-        missing = []
-        if not actor_id:
-            missing.append("actor_id")
-        if not session_id:
-            missing.append("session_id")
-        if missing:
-            logger.warning(
-                "MEMORY TRIAGE [WAJIB-FAIL]: Attestation missing %s for tier=%s — "
-                "rejected. Scar/Constitutional tier requires sovereign attestation.",
-                missing,
-                tier_name,
-            )
-            return {
-                "rejected": True,
-                "reason": "WAJIB_ATTESTATION",
-                "detail": (
-                    f"Missing attestation fields: {', '.join(missing)}. "
-                    "Scar/Constitutional tier requires actor_id and session_id "
-                    "to prove origin and chain of custody."
-                ),
-            }
+    # --- WAJIB: Attestation enforcement (actor_id mandatory; session_id for Tier 3+) ---
+    clean_actor = str(actor_id).strip() if actor_id else ""
+    if not clean_actor or clean_actor.lower() in ("none", "null", "anonymous"):
+        logger.warning(
+            "MEMORY TRIAGE [WAJIB-FAIL]: Attestation missing actor_id for tier=%s — "
+            "rejected. All memories require an identified custodian/actor_id.",
+            tier_name,
+        )
+        return {
+            "rejected": True,
+            "reason": "WAJIB_ATTESTATION",
+            "detail": (
+                "Missing or anonymous actor_id. All memory writes require an identified "
+                "custodian (actor_id) to prevent unattributed memory contamination."
+            ),
+        }
+
+    if is_wajib and not session_id:
+        logger.warning(
+            "MEMORY TRIAGE [WAJIB-FAIL]: Attestation missing session_id for tier=%s — "
+            "rejected. Scar/Constitutional tier requires sovereign attestation.",
+            tier_name,
+        )
+        return {
+            "rejected": True,
+            "reason": "WAJIB_ATTESTATION",
+            "detail": (
+                "Missing session_id. Scar/Constitutional tier requires session_id "
+                "to prove origin and chain of custody."
+            ),
+        }
 
     # --- WAJIB: Abstraction enforcement (summary required for long content) ---
     content_len = len(content) if isinstance(content, str) else len(str(content))
@@ -1975,6 +1979,10 @@ def search(
             if session_id:
                 filter_conditions.append(
                     FieldCondition(key="session_id", match=MatchValue(value=session_id))
+                )
+            if actor_id:
+                filter_conditions.append(
+                    FieldCondition(key="actor_id", match=MatchValue(value=actor_id))
                 )
             if tags:
                 filter_conditions.append(FieldCondition(key="tags", match=MatchAny(any=tags)))
