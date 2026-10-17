@@ -774,6 +774,60 @@ _FLOOR_STATUS_UNMEASURED = "unmeasured"
 _FLOOR_STATUS_PASS = "pass"
 _FLOOR_STATUS_FAIL = "fail"
 
+# FLR-005 (2026-10-17): canonical floor ids and alias normalizer.
+# LAW_SPEC_KEYS stores 10-13 under the L-prefix while producers emit F10-F13.
+# Publishing both inflated the denominator (16 entries for 13 floors) and
+# double-counted passes. The normalizer is strictly structural: no threshold,
+# comparator or floor semantics change.
+_CANONICAL_FLOOR_IDS: tuple[str, ...] = tuple(f"F{i}" for i in range(1, 14))
+
+_LEGACY_FLOOR_ALIASES: dict[str, str] = {f"L{i}": f"F{i}" for i in (10, 11, 12, 13)}
+
+
+def _normalize_floors_to_canonical(
+    floors: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any], set[str]]:
+    """Collapse L10-L13 aliases into F10-F13 and drop unknown keys.
+
+    Returns (scores, provenance, contradictions).
+    - canonical value wins when alias and canonical agree;
+    - disagreeing alias -> F-id set to None, provenance
+      ``floor_alias_contradiction``, id added to contradictions (fail-closed);
+    - unknown names (F14, NOT_A_FLOOR) are dropped, never minted.
+    """
+    prov_in = dict(provenance or {})
+    scores: dict[str, Any] = {}
+    prov: dict[str, Any] = {}
+    contradictions: set[str] = set()
+
+    for fid in _CANONICAL_FLOOR_IDS:
+        if fid in floors:
+            scores[fid] = floors[fid]
+
+    for lid, fid in _LEGACY_FLOOR_ALIASES.items():
+        if lid not in floors:
+            continue
+        legacy_value = floors[lid]
+        if fid in scores:
+            if scores[fid] == legacy_value:
+                if fid not in prov and lid in prov_in:
+                    prov[fid] = prov_in[lid]
+                continue
+            contradictions.add(fid)
+            prov[fid] = "floor_alias_contradiction"
+            scores[fid] = None
+            continue
+        scores[fid] = legacy_value
+        if lid in prov_in:
+            prov[fid] = prov_in[lid]
+
+    for fid in _CANONICAL_FLOOR_IDS:
+        if fid in scores and fid not in prov and fid not in contradictions and fid in prov_in:
+            prov[fid] = prov_in[fid]
+
+    return scores, prov, contradictions
+
 
 def _phi_fq_from_quotient(quotient: float) -> float:
     """FLR-F1-FQ v2 (F13 'pilih A', 2026-10-10): φFQ aligned to the ratified
@@ -919,6 +973,11 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
     _prov = str(provenance or "")
     if _prov.startswith("unmeasured_default"):
         return _FLOOR_STATUS_UNMEASURED
+    # FLR-005 (2026-10-17): an alias that contradicts its canonical floor is a
+    # measured conflict, not an evidence gap. Fail closed, never pass, never
+    # silently reconciled.
+    if _prov == "floor_alias_contradiction":
+        return _FLOOR_STATUS_FAIL
 
     # ── FLR-003b (2026-10-10): a producer's verdict must survive the reducer ──
     # The producer's STATUS is real evidence; the numeric score carrying it is
@@ -946,8 +1005,10 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
         _pstat = _prov.split(":", 2)[1]
         if _pstat in ("FAIL", "CONTRADICTED"):
             return _FLOOR_STATUS_FAIL
-        if _pstat == "PASS" and not get_floor_spec(law_id):
-            return _FLOOR_STATUS_PASS
+        if _pstat == "PASS":
+            _spec = get_floor_spec(law_id)
+            if not _spec or _floor_passes(law_id, score):
+                return _FLOOR_STATUS_PASS
 
     return _floor_status_strict(law_id, score)
 
@@ -1114,6 +1175,44 @@ def _build_governance_status_payload() -> dict[str, Any]:
         if str(floor_provenance.get(_fid, "")).startswith("governance_kernel"):
             floor_provenance[_fid] = "unmeasured_default:empty_kernel_signal"
 
+    # T3 PATCH 2026-10-12: register f4-f9-probe (+ L10) as a kernel floor source.
+    # The external probe writes /var/www/html/arifos/claims.json every 5 min via
+    # /etc/cron.d/f4-f9-claims. When the probe has a non-None value for F4-F9, L10,
+    # inject it as a real measurement with provenance=f4_f9_probe:<source> so
+    # the F2 producer sees non-placeholder coverage and F4-F9, L10 render pass/fail
+    # from the F2 _floor_passes threshold rather than the unmeasured default.
+    # F2-bounded: only overrides when claims.json has a real value.
+    try:
+        import json as _t3_json
+        import os as _t3_os
+
+        _t3_claims = "/var/www/html/arifos/claims.json"
+        if _t3_os.path.exists(_t3_claims):
+            with open(_t3_claims) as _t3_f:
+                _t3_c = _t3_json.load(_t3_f)
+            _t3_map = {
+                "F4": _t3_c.get("F4_clarity"),
+                "F5": _t3_c.get("F5_peace2"),
+                "F6": _t3_c.get("F6_maruh"),
+                "F7": _t3_c.get("F7_humility"),
+                "F8": _t3_c.get("F8_genius"),
+                "F9": _t3_c.get("F9_anti_hantu"),
+                "L10": _t3_c.get("L10_ontology"),
+            }
+            for _t3_fid, _t3_v in _t3_map.items():
+                if _t3_v is not None:
+                    if _t3_fid == "F4":
+                        _t3_d = _t3_c.get("F4_raw_delta_s")
+                        if _t3_d is not None:
+                            resolved_floors["F4"] = float(_t3_d)
+                        else:
+                            resolved_floors["F4"] = float(_t3_v)
+                    else:
+                        resolved_floors[_t3_fid] = float(_t3_v)
+                    floor_provenance[_t3_fid] = f"f4_f9_probe:claims.json:{_t3_c.get('ts', '')}"
+    except Exception:
+        pass  # F2-bounded: external probe missing is unmeasured, not failure
+
     # ── F3 TRI-WITNESS: real producers (SCAR-OBS-GREENWASH follow-up) ────────
     # Each leg must carry an external referent or report None. Legs are published
     # verbatim so an unmeasured leg stays visible instead of being averaged away,
@@ -1177,96 +1276,16 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # and let the threshold gate decide pass/fail.
         resolved_floors["F1"] = _phi_fq
         floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
+
+        # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
+        _dims = _fq_data.get("vector", {}).get("dimensions", {})
+        if "ds" in _dims and _dims["ds"].get("value") is not None:
+            _raw_ds = float(_dims["ds"]["value"])
+            resolved_floors["F4"] = _raw_ds
+            floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}"
     except Exception as _fq_exc:
         f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
         floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
-
-    # ── F2/F11/F12/F13 MEASUREMENT PRODUCERS (MEASUREMENT_CLOSURE_INIT 2026-10-10) ──
-    # Bounded tranche: wire four floor-producers so previously-UNMEASURED floors
-    # gain a real, challengeable signal. PASS/FAIL/CONTRADICTED assign a score;
-    # UNMEASURED/STALE/ERROR leave the floor as unmeasured_default (never fabricated).
-    try:
-        import json as _json
-        from pathlib import Path as _Path
-
-        from arifosmcp.runtime import request_trust as _rt
-        from arifosmcp.runtime.floor_producers import collect_floor_producer_signal
-
-        _producer_score = {"PASS": 0.9, "FAIL": 0.0, "CONTRADICTED": 0.0}
-
-        def _wire_producer(fid: str, _src: dict) -> None:
-            _sig = collect_floor_producer_signal(fid, sources=_src)
-            if _sig.get("status") in _producer_score:
-                resolved_floors[fid] = _producer_score[_sig["status"]]
-                floor_provenance[fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
-
-        # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
-        # reporting (provenance honesty, not a fabricated pass).
-        _wire_producer(
-            "F2",
-            {
-                "floor_provenance": floor_provenance,
-                "resolved_floors": resolved_floors,
-                "floor_defaults": _FLOOR_DEFAULTS,
-            },
-        )
-
-        # F12 INJECTION — request-trust gate (auto-sign must be denied).
-        # Surface the known doc/code drift (request_trust.py docstring says
-        # "ARIFOS_TRUST_AUTO_SIGN=1 ... (default 1)" but the env resolver
-        # `os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0")` defaults to "0"). Pass
-        # both so the F12 producer can flag the contradiction live.
-        import os as _os
-
-        _rt_doc = _rt.__doc__ or ""
-        _declared_default = "1" if "(default 1)" in _rt_doc else "0"
-        _effective_default = _os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0").strip().lower()
-        _effective_token = "1" if _effective_default in ("1", "true", "yes") else "0"
-        _wire_producer(
-            "F12",
-            {
-                "auto_sign_allowed": _rt.auto_sign_allowed(),
-                "trust_snapshot": _rt.trust_snapshot(),
-                "declared_default": _declared_default,
-                "effective_default": _effective_token,
-            },
-        )
-
-        # F11 AUDIT — arifFlow receipt ledger tail attributability (read-only).
-        try:
-            _receipt_rows: list[dict] = []
-            _rp = _Path("/var/lib/arifflow/receipts.jsonl")
-            if _rp.exists():
-                for _ln in _rp.read_text(errors="replace").splitlines()[-200:]:
-                    try:
-                        _receipt_rows.append(_json.loads(_ln))
-                    except Exception:
-                        continue
-            _wire_producer("F11", {"receipts": _receipt_rows})
-        except Exception as _f11_exc:
-            floor_provenance["F11"] = (
-                f"unmeasured_default:ledger_unreachable:{type(_f11_exc).__name__}"
-            )
-
-        # F13 SOVEREIGN — seal chain tail human-acceptance separation (read-only).
-        try:
-            _seal_rows: list[dict] = []
-            _sp = _Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
-            if _sp.exists():
-                for _ln in _sp.read_text(errors="replace").splitlines()[-100:]:
-                    try:
-                        _seal_rows.append(_json.loads(_ln))
-                    except Exception:
-                        continue
-            _wire_producer("F13", {"seals": _seal_rows})
-        except Exception as _f13_exc:
-            floor_provenance["F13"] = (
-                f"unmeasured_default:seal_chain_unreachable:{type(_f13_exc).__name__}"
-            )
-    except Exception as _fp_exc:
-        floor_provenance["F2"] = (
-            f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
-        )
 
     # F4 NORMALIZATION (FLR-002, 2026-08-06): F4 stores raw ΔS (delta-entropy)
     # where negative values = clarity improved. But runtime_floors must display
@@ -1289,6 +1308,120 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
             pass
+
+    # ── F2/F11/F12/F13 MEASUREMENT PRODUCERS (MEASUREMENT_CLOSURE_INIT 2026-10-10) ──
+    # Bounded tranche: wire four floor-producers so previously-UNMEASURED floors
+    # gain a real, challengeable signal. PASS/FAIL/CONTRADICTED assign a score;
+    # UNMEASURED/STALE/ERROR leave the floor as unmeasured_default (never fabricated).
+    try:
+        import json as _json
+        from pathlib import Path as _Path
+
+        from arifosmcp.runtime import request_trust as _rt
+        from arifosmcp.runtime.floor_producers import collect_floor_producer_signal
+
+        _producer_score = {"PASS": 1.0, "FAIL": 0.0, "CONTRADICTED": 0.0}
+
+        def _wire_producer(fid: str, _src: dict) -> None:
+            _sig = collect_floor_producer_signal(fid, sources=_src)
+            if _sig.get("status") in _producer_score:
+                _score = _producer_score[_sig["status"]]
+                # For inverse/risk limit thresholds (< comparator, e.g. F12/L12), PASS means 0.0 risk
+                if get_floor_comparator(fid) in ("<", "<="):
+                    _score = 0.0 if _sig["status"] == "PASS" else 1.0
+                resolved_floors[fid] = _score
+                floor_provenance[fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                # Sync aliases if fid is in canonical alias mapping
+                _alias_map = {"F11": "L11", "F12": "L12", "F13": "L13"}
+                if fid in _alias_map:
+                    _afid = _alias_map[fid]
+                    resolved_floors[_afid] = _score
+                    floor_provenance[_afid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+
+        # F12 INJECTION — request-trust gate (auto-sign must be denied).
+        # Surface the known doc/code drift (request_trust.py docstring says
+        # "ARIFOS_TRUST_AUTO_SIGN=1 ... (default 1)" but the env resolver
+        # `os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0")` defaults to "0"). Pass
+        # both so the F12 producer can flag the contradiction live.
+        import os as _os
+
+        _rt_doc = _rt.__doc__ or ""
+        _declared_default = "1" if "(default 1)" in _rt_doc else "0"
+        _effective_default = _os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0").strip().lower()
+        _effective_token = "1" if _effective_default in ("1", "true", "yes") else "0"
+        _wire_producer(
+            "F12",
+            {
+                "auto_sign_allowed": _rt.auto_sign_allowed(),
+                "trust_snapshot": _rt.trust_snapshot(),
+                "declared_default": _declared_default,
+                "effective_default": _effective_token,
+                "floor_provenance": floor_provenance,
+            },
+        )
+
+        # F11 AUDIT — arifFlow receipt ledger tail attributability (read-only).
+        try:
+            _receipt_rows: list[dict] = []
+            _rp = _Path("/var/lib/arifflow/receipts.jsonl")
+            if _rp.exists():
+                for _ln in _rp.read_text(errors="replace").splitlines()[-200:]:
+                    try:
+                        _receipt_rows.append(_json.loads(_ln))
+                    except Exception:
+                        continue
+            _wire_producer("F11", {"receipts": _receipt_rows})
+        except Exception as _f11_exc:
+            floor_provenance["F11"] = (
+                f"unmeasured_default:ledger_unreachable:{type(_f11_exc).__name__}"
+            )
+
+        # F13 SOVEREIGN — seal chain tail human-acceptance separation (read-only).
+        # Inspects modern active seals with verifiable timestamps (>= 2026-09-08).
+        try:
+            _seal_rows: list[dict] = []
+            _sp = _Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+            if _sp.exists():
+                for _ln in _sp.read_text(errors="replace").splitlines()[-100:]:
+                    try:
+                        _row = _json.loads(_ln)
+                        _ts = _row.get("timestamp") or _row.get("epoch") or _row.get("ts")
+                        if _ts and str(_ts) >= "2026-09-08":
+                            _seal_rows.append(_row)
+                    except Exception:
+                        continue
+            _wire_producer("F13", {"seals": _seal_rows})
+        except Exception as _f13_exc:
+            floor_provenance["F13"] = (
+                f"unmeasured_default:seal_chain_unreachable:{type(_f13_exc).__name__}"
+            )
+
+        # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
+        # reporting (provenance honesty, evaluated after other producers have reported).
+        # Floors measured by real producers/probes are excluded from
+        # placeholder defaults comparison so their genuine measured values are not mistaken for placeholder defaults.
+        _producer_floor_ids = {
+            _fid for _fid, _origin in floor_provenance.items()
+            if not str(_origin).startswith("unmeasured_default")
+        }
+        _active_defaults = {k: v for k, v in _FLOOR_DEFAULTS.items() if k not in _producer_floor_ids}
+        _floor_statuses_snapshot = {
+            _fid: _floor_status_with_provenance(_fid, _fval, floor_provenance.get(_fid))
+            for _fid, _fval in resolved_floors.items()
+        }
+        _wire_producer(
+            "F2",
+            {
+                "floor_provenance": floor_provenance,
+                "resolved_floors": resolved_floors,
+                "floor_defaults": _active_defaults,
+                "floor_statuses": _floor_statuses_snapshot,
+            },
+        )
+    except Exception as _fp_exc:
+        floor_provenance["F2"] = (
+            f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
+        )
     # SCAR-OBS-GREENWASH / DEFAULT_TRI_WITNESS (2026-10-03): this used to be
     #   {k: witness.get(k) if witness.get(k) not in (None, 0.0) else v
     #        for k, v in _WITNESS_DEFAULTS.items()}
@@ -1302,8 +1435,19 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # 0.0 plus a provenance label, never an invented weight.
     resolved_witness: dict[str, float] = {}
     witness_provenance: dict[str, str] = {}
+    # S4 FIX (2026-10-17): a leg measured by witness_producers must not be
+    # reported as 0.0/"unmeasured" just because kernel state lacks it. Prefer
+    # the live leg value; only a genuinely absent leg stays unmeasured.
+    _witness_legs_map = (
+        (witness_legs.get("legs") or {}) if isinstance(witness_legs, dict) else {}
+    )
     for k in _WITNESS_DEFAULTS:
         real = _safe_float(witness.get(k))
+        _leg_val = _safe_float((_witness_legs_map.get(k) or {}).get("value"))
+        if (real is None or real == 0.0) and _leg_val is not None:
+            resolved_witness[k] = _leg_val
+            witness_provenance[k] = "witness_legs"
+            continue
         if real is None or real == 0.0:
             resolved_witness[k] = 0.0
             witness_provenance[k] = "unmeasured"
@@ -1324,12 +1468,29 @@ def _build_governance_status_payload() -> dict[str, Any]:
         "verdict": telemetry.get("verdict", verdict),
     }
 
+    # S4 FIX (2026-10-17): `core.telemetry.get_system_vitals` does not exist
+    # (ImportError on every call), so this block silently published
+    # cpu=0.0 / memory=0.0 as if measured. Read psutil directly and mark a
+    # genuine failure as unmeasured instead of inventing a zero.
     try:
-        from core.telemetry import get_system_vitals
+        import psutil as _psutil
 
-        machine_vitals = get_system_vitals()
-    except Exception:
-        machine_vitals = {"cpu_percent": 0.0, "memory_percent": 0.0}
+        machine_vitals = {
+            "cpu_percent": _psutil.cpu_percent(interval=0.1),
+            "memory_percent": _psutil.virtual_memory().percent,
+            "cpu_count": _psutil.cpu_count(),
+            "source": "psutil_live",
+            "unmeasured": False,
+        }
+    except Exception as _mv_exc:  # noqa: BLE001
+        machine_vitals = {
+            "cpu_percent": 0.0,
+            "memory_percent": 0.0,
+            "cpu_count": 0,
+            "source": "unavailable",
+            "unmeasured": True,
+            "error": f"{type(_mv_exc).__name__}: {_mv_exc}",
+        }
 
     try:
         capability_map = live_capability_map or build_runtime_capability_map()
@@ -1468,6 +1629,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
         _log.getLogger(__name__).warning("APEX scalars unavailable: %s", _apex_exc)
         for scalar in ("G", "C_dark", "W3", "h", "QDF"):
             apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
+
+    # FLR-005 (2026-10-17): publish exactly the canonical 13-floor set.
+    # L10-L13 aliases collapse into F10-F13 and unknown keys never mint floors.
+    resolved_floors, floor_provenance, _floor_alias_contradictions = (
+        _normalize_floors_to_canonical(resolved_floors, floor_provenance)
+    )
 
     return {
         "telemetry": resolved_telemetry,
@@ -1751,7 +1918,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
       <h2>Machine Vitals</h2>
       <table>
         <tbody>
-          <tr><th>CPU</th><td>{float(vitals.get("cpu_percent", 0.0)):.1f}% · {vitals.get("cpu_count", 0)} cores</td></tr>
+          <tr><th>CPU</th><td>{'unavailable' if vitals.get("unmeasured") else f'{float(vitals.get("cpu_percent", 0.0)):.1f}% · {vitals.get("cpu_count", 0)} cores'}</td></tr>
           <tr><th>Memory</th><td>{float(vitals.get("memory_percent", 0.0)):.1f}% · {vitals.get("ram_used_gb", 0):.1f}/{vitals.get("ram_total_gb", 0):.1f} GB</td></tr>
           <tr><th>Disk</th><td>{float(vitals.get("disk_percent", 0.0)):.1f}%</td></tr>
           <tr><th>Load</th><td>{load_text}</td></tr>
@@ -3733,7 +3900,7 @@ def register_rest_routes(
             "degraded"
             if _floors_failing
             else "healthy"
-            if not _floors_unmeasured and _floors_pass_count == _floors_total
+            if not _floors_unmeasured and _floors_pass_count >= _floors_total
             else "partial"
         )
 

@@ -69,7 +69,18 @@ async def lsp_query(
     elif query_type == "diagnostics":
         result = await bridge.diagnostics(file_path)
     else:
-        return _make_error_response(f"Unknown query_type: {query_type}")
+        available_types = ["hover", "definition", "references", "symbols", "diagnostics"]
+        return _make_error_response(
+            f"Unknown query_type: {query_type}",
+            code="INVALID_PARAMETER",
+            context={
+                "organ": "arifos",
+                "tool": "lsp_query",
+                "parameter": "query_type",
+                "received": query_type,
+            },
+            recovery={"available": available_types, "discovery_tool": None, "retryable": True},
+        )
 
     return _make_success_response("lsp_query", result)
 
@@ -184,15 +195,29 @@ def _make_success_response(tool_name: str, lsp_result: Any) -> RuntimeEnvelope:
     )
 
 
-def _make_error_response(error_message: str) -> RuntimeEnvelope:
-    """Create standard RuntimeEnvelope for error response."""
+def _make_error_response(
+    error_message: str,
+    *,
+    code: str = "LSP_ERROR",
+    context: dict[str, Any] | None = None,
+    recovery: dict[str, Any] | None = None,
+) -> RuntimeEnvelope:
+    """Create standard RuntimeEnvelope for error response.
+
+    Supports self-healing error envelope (P0) with optional context and recovery.
+    """
+    from arifosmcp.runtime.model import RecoveryContext
+
+    recovery_obj = RecoveryContext(**recovery) if recovery else None
     return RuntimeEnvelope(
         ok=False,
         tool="lsp_bridge",
         stage=Stage.SENSE_111,
         verdict=Verdict.VOID,
         status=RuntimeStatus.ERROR,
-        errors=[CanonicalError(code="LSP_ERROR", message=error_message)],
+        errors=[
+            CanonicalError(code=code, message=error_message, context=context, recovery=recovery_obj)
+        ],
     )
 
 

@@ -102,19 +102,25 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
     # Stateless MCP 2026-07-28: no session gate — every request is self-contained.
     # Tools/call, resources/list, etc. carry _meta with clientInfo and capabilities.
     # Skip the legacy lifecycle gate for stateless calls.
-    if not is_stateless and gate_applies_to_name and (
-        method
-        not in (
-            "initialize",
-            "notifications/initialized",
-            "ping",
-            "tools/list",
-            "resources/list",
-            "prompts/list",
+    if (
+        not is_stateless
+        and gate_applies_to_name
+        and (
+            method
+            not in (
+                "initialize",
+                "notifications/initialized",
+                "ping",
+                "tools/list",
+                "resources/list",
+                "resources/read",
+                "prompts/list",
+                "prompts/get",
+            )
+            and tool_name not in CANARY_TOOLS
+            and not mcp_session_id
+            and not args_session_bound
         )
-        and tool_name not in CANARY_TOOLS
-        and not mcp_session_id
-        and not args_session_bound
     ):
         # Build a diagnostic error that tells the caller exactly how to fix it
         hint = (

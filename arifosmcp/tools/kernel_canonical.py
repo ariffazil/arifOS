@@ -189,6 +189,48 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     ):
         return "well"
 
+    # Human-reality / grief signals beat domain nouns (S3 2026-10-17).
+    # "portfolio sedih" and "basin duka" are human states, not WEALTH/GEOX
+    # work. CARE lane already classifies them; the organ resolver must not
+    # overturn that with a domain keyword. Explicit organ still wins (above).
+    _HUMAN_REALITY = (
+        "duka",
+        "dukacita",
+        "sedih",
+        "pilu",
+        "kecewa",
+        "merana",
+        "hampa",
+        "sunyi",
+        "kesunyian",
+        "hati",
+        "perasaan",
+        "emosi",
+        "marah",
+        "takut",
+        "risau",
+        "gelisah",
+        "redha",
+        "sabar",
+        "ikhlas",
+        "sayang",
+        "rindu",
+        "kasih",
+        "cinta",
+        "kehilangan",
+        "berpisah",
+        "kematian",
+        "maut",
+        "takdir",
+        "doa",
+        "berserah",
+        "tawakkal",
+        "insaf",
+        "muhasabah",
+    )
+    if any(_token_in(w, intent_lower) for w in _HUMAN_REALITY):
+        return "well"
+
     # Multi-domain collision (≥3 distinct domains) → arifOS, not random winner.
     # Catches garbage soup like "money geology well fatigue deploy".
     _GEO_MARKERS = (

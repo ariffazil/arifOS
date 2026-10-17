@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "label": "actor binding",
+  "message": "audit 2026-10-11: not verified (observed calls unsigned)",
+  "color": "red"
+}

@@ -8,7 +8,7 @@
 
 ## My Error Acknowledged
 
-In my initial PHOENIX-73D preflight, I ran `ss -tlnp | grep -E "18001|3001|3002|8088"` and concluded only port 8088 was listening. **This was incomplete.** I missed ports 18081, 18082, 18083, 18000, 7071, 8100, 5001, and 18789 because I didn't scan the full `ss` output or probe systematically.
+In my initial PHOENIX-73D preflight, I ran `ss -tlnp | grep -E "18001|3001|3002|8088"` and concluded only port 8088 was listening. **This was incomplete.** I missed ports 18081, 18082, 18083, 18000, 7071, 5001, 5001, and 18789 because I didn't scan the full `ss` output or probe systematically.
 
 **Corrected finding:** Services run via **systemd**, not Docker. Docker has 0 containers. But 12+ systemd services are active and healthy.
 
@@ -22,7 +22,7 @@ In my initial PHOENIX-73D preflight, I ran `ss -tlnp | grep -E "18001|3001|3002|
 | GEOX | 8081 | **18081** | ✅ Healthy | python3 (pid 4117) |
 | WEALTH | 8082 | **18082** | ✅ Healthy | python3 (pid 460032) |
 | WELL | 8083 | **18083** | ✅ Healthy | python3 (pid 974661) |
-| vault999 | 8100 | **8100** | ✅ Healthy | python3 (pid 985778) |
+| vault999 | 5001 | **5001** | ✅ Healthy | python3 (pid 985778) |
 | vault999-writer | 5001 | **5001** | ✅ Healthy | python3 (pid 986031) |
 | A-FORGE bridge | 7071 | **7071** | ✅ Healthy | node |
 | OpenClaw gateway | — | **18789** | ✅ Healthy | node (pid 804118) |

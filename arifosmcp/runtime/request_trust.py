@@ -13,7 +13,7 @@ Trust classes:
   UNKNOWN        — no request context (stdio / tests) — conservative
 
 Env:
-  ARIFOS_TRUST_AUTO_SIGN=1  — allow auto-sign only when LOCAL_LOOPBACK (default 1)
+  ARIFOS_TRUST_AUTO_SIGN=1  — allow auto-sign only when LOCAL_LOOPBACK (default 0)
   ARIFOS_TRUST_AUTO_SIGN=0  — never auto-sign / never name-elevate operators
 
 DITEMPA BUKAN DIBERI.

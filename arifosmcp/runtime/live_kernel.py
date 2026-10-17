@@ -263,16 +263,37 @@ def build_kernel_envelope(
     current_state_hash = _sha256_of_text(response_json)
     input_hash = _sha256_of_text(tool_name)
 
-    verdict = str(response.get("verdict", response.get("status", "OBSERVE_ONLY")))
-    if verdict not in ("SEAL", "DEGRADED", "OBSERVE_ONLY", "HOLD", "DENY"):
+    # F13-ratified 5-state lattice (contracts/arifos_live_kernel_envelope.v1.json,
+    # D6 2026-07-31): SEAL > PARTIAL > SABAR > HOLD > VOID. DEGRADED/DENY are
+    # DEPRECATED aliases — mapped at intake so the envelope never emits a
+    # noncanonical verdict token (kills NONCANONICAL_VERDICT_TOKEN at source;
+    # defect observed live 2026-10-13/14 as SABAR-vs-HOLD field divergence).
+    # DEGRADED is a STATE (organ attestation status), never a VERDICT.
+    # B2 fix (2026-10-16): prefer canonical_verdict (computed by
+    # _compute_canonical_verdict) over raw verdict/status to prevent
+    # DEGRADED→SABAR alias from overriding the actual HOLD verdict.
+    _raw_verdict = str(
+        response.get("canonical_verdict")
+        or response.get("effective_verdict")
+        or response.get("verdict", response.get("status", "OBSERVE_ONLY"))
+    )
+    _was_degraded_alias = _raw_verdict == "DEGRADED"
+    _VERDICT_ALIASES = {"DEGRADED": "SABAR", "DENY": "VOID"}
+    verdict = _VERDICT_ALIASES.get(_raw_verdict, _raw_verdict)
+    # OBSERVE_ONLY retained as passthrough default (session-band token widely
+    # emitted by observe-class tools); full purge of this deprecated alias is a
+    # separate consumer-census change — do NOT widen scope here.
+    if verdict not in ("SEAL", "PARTIAL", "SABAR", "HOLD", "VOID", "OBSERVE_ONLY"):
         verdict = "OBSERVE_ONLY"
 
     risk_blast = "LOW"
     reversibility = 1.0
-    if verdict in ("HOLD", "DENY"):
+    if verdict in ("HOLD", "VOID"):
         risk_blast = "MEDIUM"
         reversibility = 0.0
-    elif verdict == "DEGRADED":
+    elif verdict == "SABAR" and _was_degraded_alias:
+        # risk posture inherited from the deprecated DEGRADED alias only —
+        # a genuine SABAR (patience) response keeps LOW/1.0.
         risk_blast = "MEDIUM"
         reversibility = 0.5
 
@@ -334,6 +355,12 @@ def build_kernel_envelope(
             attestation_status=(
                 "HEALTHY"
                 if verdict == "SEAL"
+                # deprecated DEGRADED alias still signals ORGAN FAILURE even
+                # though the verdict field now carries canonical SABAR —
+                # failure-state separation preserved (test_floor_provenance
+                # test_envelope_attestation_status_separates_verdict_from_failure)
+                else "DEGRADED_CLAIM"
+                if _was_degraded_alias
                 else "CONSTITUTIONAL_HOLD"
                 if verdict in ("HOLD", "SABAR", "OBSERVE_ONLY")
                 else "DEGRADED_CLAIM"
@@ -357,7 +384,7 @@ def build_kernel_envelope(
             reversibility_score=reversibility,
             blast_radius=risk_blast,
             secret_touching=False,
-            f13_sovereign_required=verdict in ("HOLD", "DENY") or irreversible_allowed,
+            f13_sovereign_required=verdict in ("HOLD", "VOID") or irreversible_allowed,
         ),
         audit=AuditReceipt(
             vault_required=vault_required,
@@ -505,7 +532,9 @@ def arif_os_attest(
             vault_required=True,
             seal_mode="observe",
         ),
-        verdict="SEAL" if not degraded else "DEGRADED",
+        # degraded is a STATE, not a verdict — canonical lattice token SABAR
+        # (patience: wait for substrate repair) per contract D6 enum.
+        verdict="SEAL" if not degraded else "SABAR",
     )
 
     return {

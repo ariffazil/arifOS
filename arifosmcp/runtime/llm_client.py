@@ -135,6 +135,13 @@ OLLAMA_TEXT_ENABLED = os.getenv("OLLAMA_TEXT_ENABLED", "false").lower() in {"1",
 # timeout. Total cascade completes in under 30s, leaving 15s for kernel
 # response construction before the 45s ToolTimeoutMiddleware fires.
 PROVIDER_TIMEOUT = 4.0  # max per-provider HTTP timeout
+# FED-FEDERATION lane timeout (sovereign primary, 2026-10-15): reasoning-capable
+# models behind the local gateway legitimately take >4s to first byte. The
+# shared 4.0s cap starved the primary tier into permanent empty transport-error
+# (journal 2026-10-15 04:25–04:26) and forced the whole reasoning lane into
+# template fallback. arif_think still enforces its own 35s wall clock
+# (ARIF_THINK_TIMEOUT_S), so this only widens the per-request HTTP window.
+FED_PROVIDER_TIMEOUT = float(os.getenv("FED_PROVIDER_TIMEOUT_S", "30.0"))
 TOTAL_CASCADE_BUDGET = 30.0  # hard ceiling for entire cascade
 CB_FAIL_THRESHOLD = 2  # consecutive failures before circuit breaks
 CB_COOLDOWN_SECONDS = 120  # circuit stays open for 2 minutes
@@ -408,6 +415,46 @@ def _strip_markdown(content: str) -> str:
     return content.strip()
 
 
+def _extract_json_object(text: str) -> dict[str, Any] | None:
+    """Recover the first balanced JSON object embedded in prose.
+
+    Models occasionally emit a preamble sentence before/after the JSON body
+    even in JSON mode. Scan for the first '{' and take the balanced block.
+    Returns None if no complete object is present.
+    """
+    start = text.find("{")
+    while start != -1:
+        depth = 0
+        in_str = False
+        esc = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if in_str:
+                if esc:
+                    esc = False
+                elif ch == "\\":
+                    esc = True
+                elif ch == '"':
+                    in_str = False
+                continue
+            if ch == '"':
+                in_str = True
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        candidate = json.loads(text[start : i + 1])
+                    except json.JSONDecodeError:
+                        break
+                    if isinstance(candidate, dict):
+                        return candidate
+                    break
+        start = text.find("{", start + 1)
+    return None
+
+
 def _repair_truncated_json(
     raw: str, min_viable_keys: set[str] | None = None
 ) -> dict[str, Any] | None:
@@ -572,16 +619,34 @@ async def _call_fed_federation(
     if user:
         messages.append({"role": "user", "content": user})
 
-    payload = {
+    # FIX 2026-10-15 (reason-lane JSON starvation): the FED lane serves
+    # reasoning-first models (observed: glm-5.3-flash behind this virtual
+    # key; deepseek-v4-flash alias) whose reasoning_content consumes the
+    # entire max_tokens budget before any `content` is emitted —
+    # finish_reason=length, content="" — which starved arif_think into
+    # permanent template fallback (journal 2026-10-15 04:25-04:26).
+    # When a response_schema is requested: force JSON mode, disable thinking,
+    # and floor the token budget — reasoning legitimately spends 1-3k
+    # completion tokens before the JSON body (observed: reasoning 8351 chars
+    # + 2536-char JSON at max_tokens 4000 → finish=stop in 16s, well under
+    # arif_think's 35s wall clock).
+    _structured_request = bool(response_schema)
+    if _structured_request:
+        max_tokens = max(max_tokens, 4000)
+
+    payload: dict[str, Any] = {
         "model": FED_FEDERATION_MODEL,
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": temperature,
     }
+    if _structured_request:
+        payload["response_format"] = {"type": "json_object"}
+        payload["thinking"] = {"type": "disabled"}
 
-    try:
-        async with httpx.AsyncClient(timeout=PROVIDER_TIMEOUT) as client:
-            response = await client.post(
+    async def _post(payload: dict[str, Any]):
+        async with httpx.AsyncClient(timeout=FED_PROVIDER_TIMEOUT) as client:
+            return await client.post(
                 f"{FED_FEDERATION_BASE_URL}/chat/completions",
                 headers={
                     "Authorization": f"Bearer {FED_PROXY_API_KEY}",
@@ -589,6 +654,15 @@ async def _call_fed_federation(
                 },
                 json=payload,
             )
+
+    try:
+        response = await _post(payload)
+        if response.status_code == 400 and _structured_request and "thinking" in payload:
+            # Compat shim: provider may reject the thinking toggle while
+            # accepting response_format. Drop the toggle, retry once.
+            logger.info("FED-FEDERATION 400 with thinking toggle — retrying without")
+            payload.pop("thinking", None)
+            response = await _post(payload)
     except Exception as exc:
         logger.warning("FED-FEDERATION transport error: %s", exc)
         raise LLMUnavailableError(f"FED-FEDERATION transport error: {exc}") from exc
@@ -620,10 +694,20 @@ async def _call_fed_federation(
             parsed = repaired
             raw_output = json.dumps(repaired)  # Align raw with repaired for hash integrity
         else:
-            logger.warning(
-                "FED-FEDERATION returned invalid JSON, wrapping plain text: %s", raw_output[:200]
-            )
-            parsed = {"reasoning": raw_output}
+            extracted = _extract_json_object(raw_output)
+            if extracted is not None:
+                logger.info(
+                    "FED-FEDERATION JSON recovered from prose wrapper (keys: %s)",
+                    list(extracted.keys()),
+                )
+                parsed = extracted
+                raw_output = json.dumps(extracted)  # Align raw with recovered for hash integrity
+            else:
+                logger.warning(
+                    "FED-FEDERATION returned invalid JSON, wrapping plain text: %s",
+                    raw_output[:200],
+                )
+                parsed = {"reasoning": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -1573,6 +1657,44 @@ def _load_agent_model_map() -> dict[str, Any]:
         return {}
 
 
+def _federation_constitutional_models() -> set[str]:
+    """Model-agnostic constitutional allow-set (2026-10-17).
+
+    The frozen AGENT_MODEL_MAP is marked SUPERSEDED_BY_FEDERATION_MODELS_JSON.
+    When it yields no models for a constitutional role, read the live registry
+    (/root/.config/federation-models.json) and accept any model whose route
+    carries ``constitutional: true``. An explicit env override
+    (ARIFOS_CONSTITUTIONAL_MODELS=a/b,c/d) wins for air-gapped deployments.
+
+    Returns an empty set when no source is available — callers stay
+    fail-closed.
+    """
+    override = os.getenv("ARIFOS_CONSTITUTIONAL_MODELS", "").strip()
+    if override:
+        return {m.strip() for m in override.split(",") if m.strip()}
+
+    path = os.getenv(
+        "ARIFOS_FEDERATION_MODELS", "/root/.config/federation-models.json"
+    )
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception:
+        return set()
+
+    allowed: set[str] = set()
+    for model_key, routes in (data.get("model_routes") or {}).items():
+        if not isinstance(routes, list):
+            continue
+        if not any(isinstance(r, dict) and r.get("constitutional") is True for r in routes):
+            continue
+        allowed.add(model_key)
+        for r in routes:
+            provider = (r or {}).get("provider")
+            if provider:
+                allowed.add(f"{provider}/{model_key}")
+    return allowed
+
+
 def _allowed_models_for_role(model_map: dict[str, Any], role: str) -> set[str]:
     """Return the set of model_keys allowed to serve a constitutional role.
 
@@ -1639,6 +1761,12 @@ def select_model_for_role(
 
     model_map = _load_agent_model_map()
     allowed = _allowed_models_for_role(model_map, role)
+    if not allowed:
+        # Model-agnostic fallback (2026-10-17): the frozen AGENT_MODEL_MAP is
+        # marked SUPERSEDED_BY_FEDERATION_MODELS_JSON. When it yields no role
+        # set, consult the live registry / explicit env override instead of
+        # failing closed on a stale file. Empty result stays fail-closed.
+        allowed = _federation_constitutional_models()
     # Normalize: accept both full ("provider/model") and short ("model") forms.
     allowed_normalized = set(allowed)
     for a in list(allowed):
@@ -1651,7 +1779,10 @@ def select_model_for_role(
 
     timestamp = datetime.now(UTC).isoformat()
 
-    if not model_map or not allowed:
+    # Fail-closed only when NO source produced an allow-set. A missing frozen
+    # map no longer dominates when the live federation registry (or the env
+    # override) supplies constitutional models.
+    if not allowed:
         event = {
             "event": "FORBIDDEN_MODEL_FOR_ROLE",
             "role": role,

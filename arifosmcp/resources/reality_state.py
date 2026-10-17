@@ -144,7 +144,7 @@ def _probe_digital() -> dict[str, Any]:
 
     # ── MCP surface — counts from the live tool surface ──────────────────
     result["mcp_surface"] = {
-        "protocol": "MCP 2025-11-25",
+        "protocol": "MCP 2026-07-28",  # SOT: arifosmcp/runtime/public_surface.py::MCP_SPEC_VERSION_STATELESS
         "transport": "streamable-http",
         "canonical_tools": len(CANONICAL_TOOLS),
         "diagnostic_tools": len(DIAGNOSTIC_TOOLS),
@@ -170,10 +170,18 @@ def _probe_digital() -> dict[str, Any]:
     return result
 
 
-def _probe_biological() -> dict[str, Any]:
+def _probe_biological(candidates: list[str] | None = None) -> dict[str, Any]:
     """Probe biological reality layer.
 
     Returns human readiness state from WELL state files.
+
+    F2 fix 2026-10-14 (F13 chat directive): a WELL state.json that
+    self-declares environment=TEST / "Mocked ..." must NOT be relayed as
+    epistemic OBSERVED. WELL's own freshness/fresh claim stays inside
+    `data` (its claim, its label); the kernel label above it is now honest:
+      - mock/test payload      -> epistemic DECLARED_TEST_MOCK + degraded
+      - payload timestamp >48h -> data_freshness STALE + degraded
+    Causality contract honored: two disagreeing values both returned, labeled.
     """
     result: dict[str, Any] = {
         "layer": "biological",
@@ -183,8 +191,16 @@ def _probe_biological() -> dict[str, Any]:
     }
 
     # ── WELL state (from filesystem state.json) ──────────────────────────
+    _paths = (
+        candidates
+        if candidates is not None
+        else [
+            "/root/WELL/state.json",
+            "/root/WELL/state/current.json",
+        ]
+    )
     well_state: dict[str, Any] = {"epistemic": "UNKNOWN", "note": "No state.json found"}
-    for candidate in ["/root/WELL/state.json", "/root/WELL/state/current.json"]:
+    for candidate in _paths:
         try:
             with open(candidate) as f:
                 raw = json.load(f)
@@ -196,11 +212,38 @@ def _probe_biological() -> dict[str, Any]:
                 }
                 result["degraded"] = True
             else:
+                # ── F2 honest labeling (2026-10-14) ────────────────────────
+                _env = str(raw.get("environment") or "")
+                _reason = str(raw.get("reason") or "")
+                _is_mock = _env.upper() == "TEST" or "mock" in _reason.lower()
+                _age_hours: float | None = None
+                _raw_ts = raw.get("timestamp") or raw.get("last_successful_read")
+                if _raw_ts:
+                    try:
+                        from datetime import datetime as _dt
+
+                        _parsed = _dt.fromisoformat(str(_raw_ts).replace("Z", "+00:00"))
+                        _age_hours = round((time.time() - _parsed.timestamp()) / 3600.0, 1)
+                    except (ValueError, TypeError):
+                        _age_hours = None
+                _is_stale = _age_hours is not None and _age_hours > 48
+
                 well_state = {
-                    "epistemic": "OBSERVED",
+                    "epistemic": "DECLARED_TEST_MOCK" if _is_mock else "OBSERVED",
                     "source": candidate,
                     "data": raw,
                 }
+                if _age_hours is not None:
+                    well_state["data_age_hours"] = _age_hours
+                if _is_mock:
+                    well_state["mock_warning"] = (
+                        "WELL self-declares TEST/mock state — this is not live "
+                        "biometric reality. Do not treat data.* as observed (F2)."
+                    )
+                    result["degraded"] = True
+                if _is_stale:
+                    well_state["data_freshness"] = "STALE"
+                    result["degraded"] = True
             break
         except FileNotFoundError:
             well_state = {

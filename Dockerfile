@@ -9,6 +9,11 @@ FROM python:3.12-slim AS build
 # Build-time environment
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+# Discovery compatibility (2026-10-17): registry scanners and simple clients
+# often POST tools/list without an MCP-Protocol-Version header. Rejecting that
+# made Glama evaluate a name-only stub (TDQS 1.6/5). Strict mode remains
+# available for state-changing deployments via the service drop-in.
+ENV ARIFOS_MCP_REQUIRE_VERSION=0
 
 # Deployment identity — set at docker build via --build-arg
 ARG ARIFOS_BUILD_SHA=unknown

@@ -198,6 +198,31 @@ ATLAS333_COMMENTARY_MOTTO: dict[str, str] = {
 }
 
 
+def _reconcile_intercept_signals(intercept: Any, verdict: str) -> dict[str, Any]:
+    """Make every intercept signal agree with the effective verdict (S2).
+
+    The outer verdict dominates. When the kernel returns HOLD / OBSERVE_ONLY /
+    VOID, no downstream field may still say ALLOW. Original values are
+    preserved under ``original_*`` for audit — never silently dropped.
+    """
+    original = dict(intercept) if isinstance(intercept, dict) else {}
+    reconciled: dict[str, Any] = dict(original) if original else {"status": verdict}
+    for key in ("decision", "status", "reason", "next_safe_action"):
+        if key in original:
+            reconciled.setdefault(f"original_{key}", original[key])
+    reconciled["decision"] = verdict
+    reconciled["status"] = verdict
+    reconciled["reason"] = f"Reconciled: effective verdict {verdict} dominates intercept" + (
+        f" (was {original.get('decision')})" if original.get("decision") else ""
+    )
+    reconciled["next_safe_action"] = (
+        f"Resolve {verdict} before acting; the intercept signal is not an authorization."
+    )
+    reconciled["reconciled"] = True
+    reconciled["reconcile_reason"] = f"verdict={verdict}, intercept_overridden"
+    return reconciled
+
+
 def _format_paradox_commentary(quotes: list[dict]) -> str:
     """Format triggered ATLAS333 paradox quotes as human-readable commentary.
 
@@ -317,7 +342,9 @@ def _read_well_substrate() -> dict[str, Any]:
                     raw = json_lib.loads(resp.read())
                 # W-1: /health now exposes substrate advisory fields — forward them.
                 state = {
-                    "well_score": float(raw.get("well_score", 50.0)),
+                    "well_score": (
+                        None if raw.get("well_score") is None else float(raw["well_score"])
+                    ),
                     "floors_violated": raw.get("floors_violated") or [],
                     "metrics": raw.get("metrics") or {},
                     "truth_status": raw.get("truth_status", "OPERATOR_REPORTED"),
@@ -337,11 +364,11 @@ def _read_well_substrate() -> dict[str, Any]:
     if state is None:
         return {"status": "unavailable", "coupled_verdict": "CAUTION", "source": "all_paths_failed"}
 
-    _ws = state.get("well_score", 50.0)
+    _ws = state.get("well_score", None)
     try:
-        well_score = 50.0 if _ws is None else float(_ws)
+        well_score = None if _ws is None else float(_ws)
     except (TypeError, ValueError):
-        well_score = 50.0
+        well_score = None
     floors_violated: list = state.get("floors_violated", []) or []
     metrics: dict = state.get("metrics") or {}
     truth_status: str = state.get("truth_status", "UNVERIFIED")
@@ -351,6 +378,8 @@ def _read_well_substrate() -> dict[str, Any]:
     )
 
     if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED"):
+        human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
+    elif well_score is None:
         human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
     elif floors_violated:
         human_ready, coupled_verdict = "DEGRADED", "HOLD"
@@ -1137,6 +1166,32 @@ async def arif_judge(
         except (ValueError, TypeError):
             pass  # leave as-is; empty-evidence gate then HOLDs honestly
 
+    # ── L11 AUTH: session gate (W1 fix 2026-10-15) ───────────────────────────
+    # arif_observe enforced session binding; arif_judge did not — unbound
+    # callers received status:"completed" verdict envelopes. Replicate the
+    # same validate_session guard so the identity gate is uniform across
+    # all 8 canonical verbs.
+    from arifosmcp.runtime.session_auth import validate_session as _vs
+
+    _auth = _vs(session_id, actor_id, session_token=session_token)
+    if not _auth.get("valid"):
+        return {
+            "status": "HOLD",
+            "tool": "arif_judge",
+            "verdict": "HOLD",
+            "reasons": [_auth.get("reason", "L11 AUTH: session required")],
+            "next_safe_action": "Call arif_init(mode='init') first to bind a session.",
+            "actor_id": actor_id or "anonymous",
+            "session_id": session_id or "anonymous-session",
+            "mutation_allowed": False,
+            "meta": {
+                "reason": _auth.get("reason", "L11 AUTH: session required"),
+                "violated_laws": ["L11"],
+                "failure_type": "ARIF_SESSION_NOT_FOUND",
+                "detail": "Call arif_init(mode='init') first to bind a session.",
+            },
+        }
+
     # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any LLM call ──
     # Per ChatGPT forensic: arif_judge must not wait 45s for LLM to decide
     # hard facts. Identity, permissions, and reversibility are checkable
@@ -1784,6 +1839,22 @@ async def arif_judge(
                 "f13_promoted_allow_to_seal": bool(_code == VerdictCode.SEAL and _has_f13),
                 "judge_postcondition": _ipc_report,
             }
+            # S2 FIX: reconcile kernel_intercept with effective_verdict.
+            # If the verdict is HOLD (identity unverified, drift, etc.),
+            # the intercept MUST NOT say ALLOW — that's a contradiction.
+            # Store the reconciled value, not the raw intercept.
+            if str(_code) in ("HOLD", "OBSERVE_ONLY", "VOID"):
+                _orig_intercept_reason = (
+                    _intercept_res.get("reason") if isinstance(_intercept_res, dict) else None
+                )
+                _intercept_meta["kernel_intercept"] = _reconcile_intercept_signals(
+                    _intercept_res, str(_code)
+                )
+                # The top-level reasons array must not keep advertising the
+                # overridden ALLOW rationale either.
+                if _orig_intercept_reason:
+                    _reasons = [r for r in _reasons if r != _orig_intercept_reason]
+                _reasons.insert(0, f"Effective verdict {_code} dominates intercept decision")
             if _precedent_advisory is not None:
                 _intercept_meta["precedent"] = {
                     "queried": True,
@@ -2333,7 +2404,7 @@ async def arif_judge(
         # FIX #5: Redact raw session token — return hash reference only
         token_ref = hashlib.sha256(_standing_token.encode()).hexdigest()[:16]
         data["session_token_ref"] = f"sct_ref:{token_ref}"
-        data["standing_source"] = _standing_source or "sct"
+        data["standing_source"] = _standing_source or "act"
         if _standing_apex is not None:
             data["apex_scalars"] = _standing_apex
         data["authority"] = _standing_authority or "OBSERVE_ONLY"
@@ -2350,7 +2421,7 @@ async def arif_judge(
         res = data.get("result")
         if isinstance(res, dict):
             res.setdefault("session_token_ref", f"sct_ref:{token_ref}")
-            res.setdefault("standing_source", _standing_source or "sct")
+            res.setdefault("standing_source", _standing_source or "act")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _standing_apex)
         try:
@@ -3335,7 +3406,12 @@ async def arif_judge(
         else:
             result = await judge_coro
         elapsed_ms = (time_module.monotonic() - t_judge_start) * 1000
-        within_budget = True
+        # EEE fix: within_budget must be able to FAIL. Unbounded budget
+        # (max_latency_ms <= 0) has no budget to exceed → True. Bounded
+        # budget → True only if elapsed stays under the cap.
+        within_budget = (
+            budget is None or budget.max_latency_ms <= 0 or elapsed_ms <= budget.max_latency_ms
+        )
     except TimeoutError:
         elapsed_ms = budget.max_latency_ms  # killed at deadline
         within_budget = False

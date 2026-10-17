@@ -683,6 +683,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "simulate",
             "wonder",
             "atlas",
+            # QRL increment-1 (2026-10-14): PlanGraph engine modes
+            # (ba79005b2 engine wired via tools/qrl_branches.py). ADVISORY
+            # + unsealable — verdicts remain arif_judge's alone.
+            "dag",
+            "branches",
+            "clarify",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
@@ -825,7 +831,20 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": False,
-        "modes": ["intercept", "judge", "validate", "hold", "escalate"],
+        # QRL increment-1 (2026-10-14): score/collapse wired via
+        # tools/qrl_collapse.py. score = deterministic hard-floor veto +
+        # INT-labeled soft score (ADVISORY). collapse = canonical QRL-4
+        # verdict via strict-token mapping, never upward; emits exactly
+        # one prediction record (test sink until deploy).
+        "modes": [
+            "intercept",
+            "judge",
+            "validate",
+            "hold",
+            "escalate",
+            "score",
+            "collapse",
+        ],
         "eureka_insight": (
             "F13 SOVEREIGN: human veto absolute. "
             "F01 AMANAH: reversibility required unless explicitly acked. "
@@ -2045,7 +2064,7 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     ),
     "arif_judge": derive_mcp_annotations(
         "DRAFT",
-        title="888 Judge · Verdict",
+        title="666 Judge · Verdict",
     ),
     "arif_seal": derive_mcp_annotations(
         "IRREVERSIBLE",
