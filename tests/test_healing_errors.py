@@ -178,3 +178,48 @@ class TestRecoveryContext:
         assert rc2.available == ["a", "b"]
         assert rc2.discovery_tool == "test_list"
         assert rc2.retryable is False
+
+
+class TestP1_FieldRecovery:
+    """P-1: closest_match + rejected_fields + level on field-level rejection."""
+
+    def test_field_closest_match_substring(self):
+        err = field_not_found_error(
+            field_name="pressure",
+            organ="geox",
+            tool="geox_well_log",
+            available_fields=["pressure_kpa", "formation_pressure"],
+        )
+        assert err.recovery is not None
+        assert err.recovery.available == ["pressure_kpa", "formation_pressure"]
+        assert err.recovery.rejected_fields == ["pressure"]
+        assert err.recovery.closest_match["pressure"] == [
+            "pressure_kpa",
+            "formation_pressure",
+        ]
+        assert err.recovery.level == "field"
+
+    def test_explicit_rejected_fields_close_and_substring(self):
+        err = healing_error(
+            code=ErrorCodes.INVALID_FIELD,
+            message="bad fields",
+            organ="geox",
+            tool="geox_well_log",
+            parameter="field",
+            rejected_fields=["presure", "temp"],
+            available=["pressure_kpa", "temperature_c"],
+        )
+        cm = err.recovery.closest_match
+        # "presure" (typo) -> difflib close match to "pressure_kpa"
+        assert "pressure_kpa" in cm.get("presure", [])
+        # "temp" -> substring of "temperature_c"
+        assert "temperature_c" in cm.get("temp", [])
+
+    def test_no_rejected_fields_backward_compat(self):
+        err = healing_error(
+            code=ErrorCodes.EXECUTION_FAILED,
+            message="boom",
+        )
+        assert err.recovery.rejected_fields == []
+        assert err.recovery.closest_match == {}
+        assert err.recovery.level is None

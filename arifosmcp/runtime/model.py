@@ -410,6 +410,13 @@ class RecoveryContext(BaseModel):
     )
     discovery_tool: str | None = Field(None, description="Tool to discover more options")
     retryable: bool = Field(True, description="Whether retrying with corrected input may succeed")
+    level: str | None = Field(None, description="Recovery level: 'field' | 'tool'")
+    rejected_fields: list[str] = Field(
+        default_factory=list, description="Field/value names that were rejected"
+    )
+    closest_match: dict[str, list[str]] = Field(
+        default_factory=dict, description="rejected name -> nearest valid alternatives"
+    )
 
 
 class CanonicalError(BaseModel):
