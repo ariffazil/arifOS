@@ -46,10 +46,19 @@ DITEMPA BUKAN DIBERI ⚒️
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from arifosmcp.runtime.model import CanonicalError, RecoveryContext
 from arifosmcp.runtime.failure_wal import wal_append
+
+# Strategy bank import — graceful if unavailable
+try:
+    from AAA.state.strategy_bank import record_failure, lookup_recovery
+
+    _STRATEGY_BANK_AVAILABLE = True
+except ImportError:
+    _STRATEGY_BANK_AVAILABLE = False
 
 # Maximum alternatives returned to prevent token explosion.
 MAX_ALTERNATIVES = 10
@@ -161,7 +170,38 @@ def healing_error(
     except Exception:
         pass
 
+    # INV-L5-REFLEX: Strategy bank lookup for auto-recovery injection.
+    # If signature hash matches a known recovery skill, inject it.
+    if _STRATEGY_BANK_AVAILABLE:
+        try:
+            # Record this failure in the strategy bank
+            sig_hash = _sig_hash(tool, code, context)
+            record_failure(sig_hash=sig_hash, code=code, organ=organ, tool=tool)
+
+            # Look up known recovery
+            skill = lookup_recovery(sig_hash)
+            if skill and skill.get("recovery_steps"):
+                # Inject recovery steps into the error message
+                recovery_hint = " | ".join(skill["recovery_steps"][:3])
+                err.message = f"{err.message} [RECOVERY KNOWN: {recovery_hint}]"
+        except Exception:
+            pass
+
     return err
+
+
+def _sig_hash(tool: str | None, code: str, context: dict[str, Any] | None) -> str:
+    """Deterministic signature hash for strategy bank lookup.
+
+    Must match the hash function in failure_wal.py.
+    """
+    parts = [tool or "", code]
+    if context:
+        for k in sorted(context.keys()):
+            v = context[k]
+            parts.append(f"{k}={v}" if v is not None else k)
+    raw = "|".join(parts)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
 def tool_not_found_error(
