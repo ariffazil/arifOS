@@ -4,7 +4,7 @@
 >
 > **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-16T08:46:23Z`): kernel **healthy** · floors **13/13 measured pass** · vault999 healthy · release `arifos-05c1734` · drift `aligned` · tools exposed 8. Per-floor provenance: `state/current-state.json`.
 >
-> **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 10 unmeasured** · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
+> **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured** · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
 > **These are two different witness objects.** Self-measurement ≠ independent audit;
 > unmeasured is not pass. If this block conflicts with the live endpoint, the endpoint
@@ -302,7 +302,7 @@ arifOS Federation — planes and classes
 | Provider gateway | **FED** `:7074` | Multi-provider model routing (advisory-only) |
 | Boundary services | **HERMES** `:18087` · **CHRON** `:18102` | Semantic and temporal boundaries — not organs ([FEDERATION_CONTRACT.md §2.1](./FEDERATION_CONTRACT.md)) |
 
-**Tool-count semantics** (so no two surfaces disagree): `tools_loaded = 8` — the public MCP facade, the only number to quote publicly · `canonical superset = 25` (8 exposed + 13 hidden verbs) · `total_declared = 48` · `registry = 62` (with aliases) · `operational = 3` (durable SUCCESS in the last 24 h — proven live, not merely invocable).
+**Tool-count semantics** (so no two surfaces disagree): `tools_loaded = 8` — the public MCP facade, the only number to quote publicly · `canonical superset = 21` (8 exposed + 13 hidden verbs) · `total_declared = 48` · `registry = 62` (with aliases) · `operational = 3` (durable SUCCESS in the last 24 h — proven live, not merely invocable).
 
 ---
 
@@ -438,6 +438,6 @@ See [SECURITY.md](./SECURITY.md) for the threat model, known vulnerabilities and
 | Ports | 8088 (/mcp) |
 | Unit | arifos.service |
 | Authority ceiling | JUDGE_ONLY |
-| Public MCP | https://arifos.arif-fazil.com/mcp |
+| Public MCP | https://mcp.arif-fazil.com/mcp |
 | Flow graph | [FEDERATION.md](https://github.com/ariffazil/AAA/blob/main/FEDERATION.md) — peta semua organ + repo |
 <!-- FEDERATION-STANDARD v2026-10-17 END -->
