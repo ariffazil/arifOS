@@ -1657,6 +1657,44 @@ def _load_agent_model_map() -> dict[str, Any]:
         return {}
 
 
+def _federation_constitutional_models() -> set[str]:
+    """Model-agnostic constitutional allow-set (2026-10-17).
+
+    The frozen AGENT_MODEL_MAP is marked SUPERSEDED_BY_FEDERATION_MODELS_JSON.
+    When it yields no models for a constitutional role, read the live registry
+    (/root/.config/federation-models.json) and accept any model whose route
+    carries ``constitutional: true``. An explicit env override
+    (ARIFOS_CONSTITUTIONAL_MODELS=a/b,c/d) wins for air-gapped deployments.
+
+    Returns an empty set when no source is available — callers stay
+    fail-closed.
+    """
+    override = os.getenv("ARIFOS_CONSTITUTIONAL_MODELS", "").strip()
+    if override:
+        return {m.strip() for m in override.split(",") if m.strip()}
+
+    path = os.getenv(
+        "ARIFOS_FEDERATION_MODELS", "/root/.config/federation-models.json"
+    )
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception:
+        return set()
+
+    allowed: set[str] = set()
+    for model_key, routes in (data.get("model_routes") or {}).items():
+        if not isinstance(routes, list):
+            continue
+        if not any(isinstance(r, dict) and r.get("constitutional") is True for r in routes):
+            continue
+        allowed.add(model_key)
+        for r in routes:
+            provider = (r or {}).get("provider")
+            if provider:
+                allowed.add(f"{provider}/{model_key}")
+    return allowed
+
+
 def _allowed_models_for_role(model_map: dict[str, Any], role: str) -> set[str]:
     """Return the set of model_keys allowed to serve a constitutional role.
 
@@ -1723,6 +1761,12 @@ def select_model_for_role(
 
     model_map = _load_agent_model_map()
     allowed = _allowed_models_for_role(model_map, role)
+    if not allowed:
+        # Model-agnostic fallback (2026-10-17): the frozen AGENT_MODEL_MAP is
+        # marked SUPERSEDED_BY_FEDERATION_MODELS_JSON. When it yields no role
+        # set, consult the live registry / explicit env override instead of
+        # failing closed on a stale file. Empty result stays fail-closed.
+        allowed = _federation_constitutional_models()
     # Normalize: accept both full ("provider/model") and short ("model") forms.
     allowed_normalized = set(allowed)
     for a in list(allowed):
@@ -1735,7 +1779,10 @@ def select_model_for_role(
 
     timestamp = datetime.now(UTC).isoformat()
 
-    if not model_map or not allowed:
+    # Fail-closed only when NO source produced an allow-set. A missing frozen
+    # map no longer dominates when the live federation registry (or the env
+    # override) supplies constitutional models.
+    if not allowed:
         event = {
             "event": "FORBIDDEN_MODEL_FOR_ROLE",
             "role": role,

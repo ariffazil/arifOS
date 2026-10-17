@@ -60,7 +60,7 @@ def test_gather_runtime_manifest_returns_none_when_kernel_unreachable():
     from arifosmcp.runtime.manifest import gather_runtime_manifest
 
     with patch(
-        "arifosmcp.runtime.manifest._kernel_reachable",
+        "arifosmcp.runtime.manifest.legacy._kernel_reachable",
         return_value=False,
     ):
         result = gather_runtime_manifest()
@@ -103,11 +103,11 @@ def test_gather_runtime_manifest_collects_from_mcp_lists():
 
     with (
         patch(
-            "arifosmcp.runtime.manifest._kernel_reachable",
+            "arifosmcp.runtime.manifest.legacy._kernel_reachable",
             return_value=True,
         ),
         patch(
-            "arifosmcp.runtime.manifest._mcp_post",
+            "arifosmcp.runtime.manifest.legacy._mcp_post",
             side_effect=_mcp,
         ),
     ):

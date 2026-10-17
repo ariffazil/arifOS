@@ -100,11 +100,20 @@ def _lock_exclusive(handle: Any) -> None:
     fcntl.flock(handle, fcntl.LOCK_EX)
 
 
+logger = logging.getLogger(__name__)
+
+
 def _unlock(handle: Any) -> None:
+    """Release a lock-like handle. Never raises — unlock must not fail a task.
+
+    Catches the documented release-failure classes of asyncio/threading
+    primitives (unlocked, wrong-owner/thread, closed) instead of swallowing
+    every exception (2026-10-16 code-quality finding from MCP marketplace scan).
+    """
     try:
         handle.release()
-    except Exception:
-        logger.exception("suppressed exception", exc_info=True)
+    except (RuntimeError, OSError, ValueError):
+        logger.debug("suppressed release failure in _unlock", exc_info=True)
 
 
 # ── W-02 / W-03: Deployment-drift floor (2026-08-04) ─────────────────
@@ -494,6 +503,28 @@ def apply_deployment_drift_floor(payload: Any) -> Any:
         d["next_action"] = d.get("next_action") or _DRIFT_NEXT_ACTION_BY_CAUSE.get(
             _cause, "RECONCILE_SUBSTRATE_STATE"
         )
+        # B0 same-plane consistency check (333-AGI 2026-10-15):
+        # If verdict and effective_verdict both exist and disagree,
+        # effective_verdict is the canonical field (K7: one source per question).
+        # Log the divergence and align verdict to effective_verdict.
+        _ev = d.get("effective_verdict")
+        _vv = d.get("verdict")
+        if (
+            isinstance(_ev, str)
+            and isinstance(_vv, str)
+            and _ev.strip()
+            and _vv.strip()
+            and _ev.upper() != _vv.upper()
+        ):
+            import logging
+
+            logging.getLogger("arifosmcp.verdict").warning(
+                "B0_VERDICT_DIVERGENCE: verdict=%s != effective_verdict=%s — "
+                "aligning to effective_verdict (K7 one-source-per-question)",
+                _vv,
+                _ev,
+            )
+            d["verdict"] = _ev
 
     def _force_nine(d: dict[str, Any]) -> None:
         ns = d.get("nine_signal")
@@ -1040,6 +1071,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "next_safe_action_default": "If critique passes, proceed to arif_judge. Otherwise revise and re-think.",
     },
     "arif_judge": {
+        "known": True,
         "purpose": "Final constitutional arbitration (888). Takes the full chain (evidence + think + critique) and renders a binding SEAL / HOLD / VOID / SABAR verdict. Backed by arif_kernel_intercept for runtime enforcement. This is the 'may' decision.",
         "use_when": [
             "After a complete observe → fetch → think → critique pipeline",
@@ -2963,9 +2995,17 @@ def _compute_canonical_verdict(
         if isinstance(_rp, dict):
             _rp.setdefault("implementation", "UNMEASURED")
             _rp.setdefault("evidence_used", [])
+            # Claim-tense fix (333-AGI 2026-10-15): an empty payload is a
+            # MEASUREMENT of emptiness, not a finding of non-implementation.
+            # Cause may be handler-empty OR transport/concurrency drop (see
+            # kernel journal: "Exceeded concurrency limit" / "No response
+            # returned"). Never claim the stronger cause without evidence.
             _rp.setdefault(
                 "note",
-                "UNMEASURED-not-implemented — hollow reason payload cannot support success",
+                "UNMEASURED — empty payload; cause not established "
+                "(handler-empty OR transport/concurrency drop). "
+                "Not a finding of non-implementation. Retry once; "
+                "check kernel journal before concluding.",
             )
 
     # ── Step 2: Sub-gate verdicts ─────────────────────────────────────────
@@ -6364,6 +6404,8 @@ def _enforce_nine_signal(
         _stamp_arif_init_deterministic(enforced)
         # Final pass: stamp must never re-green a drifted substrate
     # Observation caching for seamless observe -> judge pre-flight
+    # NOTE: Primary caching now happens inside _arif_sense_observe via
+    # _cache_obs_result(). This wrapper path is a secondary fallback.
     if (
         tool_name in ("arif_observe", "arif_sense_observe")
         and session_id
@@ -7122,11 +7164,12 @@ async def _synthesize_async(
         call_llm,
     )
 
-    # ARIF_THINK_TIMEOUT_S (2026-08-08, blue-team DoS fix, updated 2026-09-07): 35s wall-clock
-    # cap on _synthesize_async. Accommodates reasoning models emitting reasoning tokens.
+    # ARIF_THINK_TIMEOUT_S (revised 2026-10-17, grounded test): 20s ceiling.
+    # The 9s budget cut long constitutional queries into template fallback.
+    # Standard queries still return in 1-5s; long ones are allowed to finish.
     import asyncio as _asyncio
 
-    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "20.0"))
 
     system_prompt = (
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
@@ -12349,6 +12392,80 @@ def _brave_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def _read_mcp_resource_text(uri: str) -> dict[str, Any]:
+    """Read a registered MCP resource from the live FastMCP registry (sync).
+
+    Tools-only clients (ChatGPT connectors) cannot call ``resources/read``.
+    This bridge lets them reach the same canon surface through a tool call.
+    Static TextResources are served directly; dynamic resources return a
+    pointer to the proper MCP method rather than inventing content.
+    """
+    try:
+        from arifosmcp.server import mcp as _server_mcp
+    except Exception as exc:  # noqa: BLE001
+        return {"error": f"RESOURCE_BRIDGE_UNAVAILABLE: {type(exc).__name__}: {exc}"}
+
+    comps = getattr(getattr(_server_mcp, "_local_provider", None), "_components", {}) or {}
+    comp = comps.get(f"resource:{uri}@")
+    if comp is None:
+        for key, cand in comps.items():
+            if key.startswith("resource:") and key[len("resource:") :].rstrip("@") == uri:
+                comp = cand
+                break
+    if comp is None:
+        return {"error": f"UNKNOWN_RESOURCE: {uri}"}
+
+    text = getattr(comp, "text", None)
+    if text is None:
+        # Dynamic resource (FunctionResource). Read it in a worker thread so a
+        # sync tool call can await the coroutine without touching the running
+        # event loop.
+        try:
+            import asyncio
+            import concurrent.futures
+
+            reader = getattr(comp, "read", None)
+            if reader is None:
+                return {
+                    "error": f"RESOURCE_NOT_READABLE: {uri}",
+                    "action": "use resources/read",
+                }
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                result = pool.submit(asyncio.run, reader()).result(timeout=15)
+            if isinstance(result, bytes):
+                text = result.decode("utf-8", "replace")
+            elif isinstance(result, str):
+                text = result
+            else:
+                contents = getattr(result, "contents", None) or []
+                first = contents[0] if contents else result
+                text = getattr(first, "text", None) or getattr(first, "content", None) or str(first)
+        except Exception as exc:  # noqa: BLE001
+            return {"error": f"RESOURCE_READ_FAILED: {type(exc).__name__}: {exc}"}
+    return {
+        "uri": uri,
+        "content": text,
+        "mime_type": getattr(comp, "mime_type", None),
+        "source": "mcp_resource_registry",
+    }
+
+
+def _cache_obs_result(session_id: str | None, result: dict[str, Any]) -> None:
+    """Store observation in session for evidence handoff to arif_think.
+
+    Called from _arif_sense_observe at every _ok() return path.
+    Bypasses _wrap_handler (which FastMCP may not call) by caching
+    directly inside the handler.
+    """
+    if not session_id or session_id not in _SESSIONS:
+        return
+    try:
+        _SESSIONS[session_id]["last_observation"] = result
+        _SESSIONS[session_id].setdefault("observations", []).append(result)
+    except Exception:
+        pass  # never break observe for caching
+
+
 def _arif_sense_observe(
     mode: str = "search",
     query: str | None = None,
@@ -12393,6 +12510,19 @@ def _arif_sense_observe(
             "session_token": session_token,
         }
     )
+    # ── MCP resource bridge (2026-10-17) ─────────────────────────────────────
+    # ChatGPT-style connectors can only call tools, never resources/read.
+    # arif_observe(mode="fetch", url="arifos://...") now serves the resource
+    # text from the live registry, so the canon surface is reachable from any
+    # tools-only client. No new tool; the 8-verb facade is unchanged.
+    _bridge_uri = (url or query or "").strip()
+    if mode == "fetch" and _bridge_uri.startswith("arifos://"):
+        _bridge = _read_mcp_resource_text(_bridge_uri)
+        if "error" in _bridge:
+            return _hold("arif_sense_observe", _bridge["error"], ["F2"], session_id=session_id)
+        _cache_obs_result(session_id, _bridge)
+        return _ok("arif_sense_observe", _bridge, session_id=session_id)
+
     # ── Mode normalization ────────────────────────────────────────────────────
     # `fetch` is the canonical name for URL ingestion (absorbed from arif_fetch).
     # `ingest` is the legacy name. Both route to the same logic.
@@ -13093,6 +13223,7 @@ def _arif_sense_observe(
                     "doctrine": "DITEMPA BUKAN DIBERI",
                 },
             }
+            _cache_obs_result(session_id, _payload)
             return _ok("arif_sense_observe", _payload, delta_S=-0.01)
         except Exception as _e:
             return _ok(
@@ -13374,6 +13505,7 @@ def _arif_sense_observe(
                     payload["invite_only"] = True
                     payload["invite_url"] = bridge_result.get("invite_url")
                     payload["note"] = bridge_result.get("note")
+                _cache_obs_result(session_id, payload)
                 return _ok("arif_sense_observe", payload, delta_S=0.005)
 
             # Success path — carry the bridge's epistemic stamp.
@@ -13408,6 +13540,7 @@ def _arif_sense_observe(
             else:  # tavily_map
                 payload["urls"] = bridge_result.get("urls", [])
 
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.005)
         except Exception as exc:
             logger.error("arif_sense_observe %s failed: %s", mode, exc)
@@ -13447,6 +13580,7 @@ def _arif_sense_observe(
                 }
                 if bridge_result.get("error_code"):
                     payload["error_code"] = bridge_result["error_code"]
+                _cache_obs_result(session_id, payload)
                 return _ok("arif_sense_observe", payload, delta_S=0.01)
 
             inner = bridge_result.get("result", {})
@@ -13472,6 +13606,7 @@ def _arif_sense_observe(
                 payload["search_id"] = bridge_result.get("search_id")
                 payload["search_results"] = bridge_result.get("search_results", [])
 
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.01)
         except Exception as exc:
             logger.error("arif_sense_observe %s gptr bridge failed: %s", mode, exc)
@@ -13530,6 +13665,7 @@ def _arif_sense_observe(
                         floors=["L13"],
                         session_id=session_id,
                     )
+                _cache_obs_result(session_id, payload)
                 return _ok("arif_sense_observe", payload, delta_S=0.005)
 
             payload = {
@@ -13541,6 +13677,7 @@ def _arif_sense_observe(
                     k: v for k, v in bridge_result.items() if k not in {"status", "verdict"}
                 },
             }
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.005)
         except Exception as exc:
             logger.error("arif_sense_observe %s skyll bridge failed: %s", mode, exc)
@@ -13613,6 +13750,7 @@ def _arif_sense_observe(
                 payload["expired"] = bridge_result.get("expired", [])
             if bridge_result.get("deleted") is not None:
                 payload["deleted"] = bridge_result["deleted"]
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.01)
         except Exception as exc:
             logger.error("arif_sense_observe %s tovana failed: %s", mode, exc)
@@ -15447,6 +15585,57 @@ def _arif_mind_reason(
             session_id=session_id,
         )
 
+    # ── QRL increment-1 (2026-10-14): dag / branches / clarify ──────────────
+    # Wire the ba79005b2 PlanGraph engine into arif_think dispatch.
+    # All three modes are ADVISORY + unsealable: thinking is not acting,
+    # verdicts come only from arif_judge.
+    if mode in ("dag", "branches", "clarify"):
+        from arifosmcp.tools.qrl_branches import branches as _qrl_branches
+        from arifosmcp.tools.planner import generate_paths, compact_within_budget
+
+        _qrl = _qrl_branches(query or mode)
+        if mode == "dag":
+            # dag = the full PlanGraph, compact wire form (≤2KB)
+            _pg = generate_paths(query or "dag")
+            _body = compact_within_budget(_pg)
+            _body.update(
+                {
+                    "mode": "dag",
+                    "authority": "ADVISORY",
+                    "sealable": False,
+                    "plan_graph_id": _pg.id,
+                }
+            )
+        elif mode == "branches":
+            _body = _qrl
+        else:  # clarify
+            # clarify surfaces ONLY the sovereign-question path: ONE binary
+            # question for F13, no mutation until answered.
+            _cands = _qrl.get("candidates", [])
+            _clarify = next(
+                (c for c in _cands if "clarify" in c.get("name", "")),
+                None,
+            )
+            _body = {
+                "mode": "clarify",
+                "authority": "ADVISORY",
+                "sealable": False,
+                "plan_graph_id": _qrl.get("plan_graph_id"),
+                "question": (
+                    (_clarify or {}).get("steps", [""])[0]
+                    if _clarify
+                    else "confirm priority: proceed with the top-ranked advisory path?"
+                ),
+                "candidates_considered": len(_cands),
+                "rule": "one binary question per call — hold all mutation until answered",
+            }
+        return _ok(
+            "arif_mind_reason",
+            _body,
+            delta_S=0.0,
+            session_id=session_id,
+        )
+
     return _hold("arif_mind_reason", f"Unknown mode: {mode}", session_id=session_id)
 
 
@@ -15461,6 +15650,7 @@ async def _arif_mind_reason_tool(
     ctx: Context | None = None,
     concise: bool = True,
 ) -> dict[str, Any]:
+
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
 
@@ -15550,16 +15740,27 @@ async def _arif_mind_reason_tool(
         # Instead of importing a non-existent module, call _synthesize_async directly
         # which already wraps call_llm with the correct constitutional prompt and schema.
         try:
-            # P0 2026-08-09 G3 / 2026-09-07: outer budget must match ARIF_THINK_TIMEOUT_S (default 35s)
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+            # P0 2026-08-09 G3 / 2026-10-17 E5: outer budget must match
+            # ARIF_THINK_TIMEOUT_S (revised 2026-10-17, grounded test): 20s.
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "20.0"))
             # P0 FIX 2026-09-27 (composition continuity): thread session observations
             # into the synthesis prompt so THINK output can ground claims in
             # OBSERVE evidence rather than fabricating references.
             _active_evidence = None
             try:
                 _sid_local = locals().get("session_id") or globals().get("_CURRENT_SESSION_ID")
+                import logging as _dbg_log2
+
+                _dbg_log2.warning(
+                    _sid_local,
+                    type(_sid_local).__name__,
+                    _sid_local in _SESSIONS if _sid_local else False,
+                )
                 if _sid_local and _sid_local in _SESSIONS:
                     _active_evidence = _SESSIONS[_sid_local].get("observations") or None
+                    _dbg_log2.warning(
+                        len(_SESSIONS[_sid_local].get("observations", [])),
+                    )
             except Exception:
                 _active_evidence = None  # never let evidence lookup break the think path
             synthesis = await asyncio.wait_for(
@@ -15616,6 +15817,20 @@ async def _arif_mind_reason_tool(
                     # never borrow a constitutional verdict token as its fallback.
                     "reasoning_verdict": synthesis.get("verdict", "REASONED"),
                     "evidence_used": synthesis.get("what_is_supported", []),
+                    # Handoff visibility (2026-10-17): prove whether the
+                    # session's observations actually reached this reasoning
+                    # pass, instead of leaving it to inference.
+                    "evidence_count": len(_active_evidence or []),
+                    "evidence_sources": [
+                        str(
+                            (e or {}).get("source")
+                            or (e or {}).get("url")
+                            or (e or {}).get("mode")
+                            or "observation"
+                        )
+                        for e in (_active_evidence or [])[:10]
+                        if isinstance(e, dict)
+                    ],
                     "inferences": synthesis.get(
                         "inferences", synthesis.get("what_is_supported", [])
                     ),
@@ -15652,7 +15867,7 @@ async def _arif_mind_reason_tool(
                     "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
                 }
         except TimeoutError:
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "20.0"))
             logger.warning(
                 "333_MIND timeout after %.1fs — degraded substance fallback (not SAFE_VOID)",
                 _think_budget_s,
@@ -22267,6 +22482,28 @@ async def _arif_vault_seal_tool(
             )
         except Exception:
             logger.exception("suppressed exception", exc_info=True)
+    # ── L11 AUTH: session gate (W1 fix 2026-10-15) ───────────────────────────
+    # arif_seal wrapper — reject unbound callers before any vault operation.
+    from arifosmcp.runtime.session_auth import validate_session as _vs_seal
+
+    _auth_seal = _vs_seal(session_id, actor_id, session_token=session_token)
+    if not _auth_seal.get("valid"):
+        return {
+            "status": "HOLD",
+            "tool": "arif_seal",
+            "verdict": "HOLD",
+            "reasons": [_auth_seal.get("reason", "L11 AUTH: session required")],
+            "next_safe_action": "Call arif_init(mode='init') first to bind a session.",
+            "actor_id": actor_id or "anonymous",
+            "session_id": session_id or "anonymous-session",
+            "mutation_allowed": False,
+            "meta": {
+                "reason": _auth_seal.get("reason", "L11 AUTH: session required"),
+                "violated_laws": ["L11"],
+                "failure_type": "ARIF_SESSION_NOT_FOUND",
+            },
+        }
+
     try:
         # Verify mode is read-only — no irreversible ack needed
         if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit"):
@@ -26381,7 +26618,8 @@ def _force_hold_mutation_fields(response: Any) -> Any:
     response["mutation_allowed"] = False
     response["seal_allowed"] = False
     response["can_mutate"] = False
-    response.setdefault("hold_required", True)
+    # T2: hold_required belongs ONLY in constitutional_check (single writer).
+    # Removed response.setdefault("hold_required", True) — 2026-10-16.
 
     auth = response.get("authority")
     if isinstance(auth, dict):
@@ -27274,12 +27512,19 @@ def verify_and_inject_token(
             "changelog",
             "ledger",
         }
+        # G8 (2026-10-17): forge preview modes are read-only. Denying them to
+        # an OBSERVE_ONLY actor hides *what would happen* without protecting
+        # anything — the mutation path stays gated downstream.
+        _forge_read_only = tool_name == "arif_forge" and str(
+            kwargs.get("mode", "engineer")
+        ).lower() in {"dry_run", "query", "recall"}
         if (
             tool_name not in _always
             and allowed
             and tool_name not in allowed
             and not tool_name.startswith("forge_")
             and not _seal_lane_b_or_read
+            and not _forge_read_only
         ):
             err_resp = {
                 "status": "HOLD",
@@ -28012,7 +28257,18 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     f"Use json.dumps(obj) NOT json.dumps(obj, indent=2). "
                     f"Entry preview: {_outcome_line[:120]}"
                 )
+            # 2026-10-15: append-only (+a) ledgers cannot be repaired in place,
+            # so a prior writer that left no trailing newline makes every later
+            # append GLUE onto that line — two JSON objects, one physical line,
+            # unparseable. Self-heal before appending rather than assume.
+            _needs_nl = (
+                os.path.exists(_outcomes_path)
+                and os.path.getsize(_outcomes_path) > 0
+                and open(_outcomes_path, "rb").read()[-1:] != b"\n"
+            )
             with open(_outcomes_path, "a") as _f:
+                if _needs_nl:
+                    _f.write("\n")
                 _f.write(_outcome_line + "\n")
         except Exception as e:
             logger.debug(f"outcomes.jsonl write failed: {e}")
@@ -28069,6 +28325,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
 
         # INPUT CONTRACT — cheapest, most actionable check runs first.
@@ -28365,7 +28622,18 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     f"Use json.dumps(obj) NOT json.dumps(obj, indent=2). "
                     f"Entry preview: {_outcome_line[:120]}"
                 )
+            # 2026-10-15: append-only (+a) ledgers cannot be repaired in place,
+            # so a prior writer that left no trailing newline makes every later
+            # append GLUE onto that line — two JSON objects, one physical line,
+            # unparseable. Self-heal before appending rather than assume.
+            _needs_nl = (
+                os.path.exists(_outcomes_path)
+                and os.path.getsize(_outcomes_path) > 0
+                and open(_outcomes_path, "rb").read()[-1:] != b"\n"
+            )
             with open(_outcomes_path, "a") as _f:
+                if _needs_nl:
+                    _f.write("\n")
                 _f.write(_outcome_line + "\n")
         except Exception as e:
             logger.debug(f"outcomes.jsonl write failed: {e}")
@@ -29040,6 +29308,51 @@ def register_tools(
         )
     except Exception as e:
         logger.warning(f"MANIFEST_ENRICH: skipped — {e}")
+
+    # ── E2 (2026-10-17): diagnostic tools — additive to the ratified 8 ─────
+    # arif_heal / arif_guard are read-only inspectors. They do NOT enter
+    # CANONICAL_TOOLS or the ABI contract; the sovereign 8-verb facade is
+    # untouched. Opt-in only: the kernel's surface-drift guard asserts the
+    # ratified 8, so registration must be explicitly enabled
+    # (ARIFOS_ENABLE_HEAL_GUARD=1) after the contract is extended.
+    if os.environ.get("ARIFOS_ENABLE_HEAL_GUARD", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        try:
+            from arifosmcp.tools.guard import arif_guard as _arif_guard_fn
+            from arifosmcp.tools.heal import arif_heal as _arif_heal_fn
+
+            for _name, _fn, _desc in (
+                (
+                    "arif_heal",
+                    _arif_heal_fn,
+                    "KERNEL · Read-only repair diagnosis: WAL/receipt query and "
+                    "failure-signature → strategy lookup. Never mutates; execution "
+                    "stays with arif_forge under a SEAL verdict.",
+                ),
+                (
+                    "arif_guard",
+                    _arif_guard_fn,
+                    "KERNEL · Read-only drift / integrity / verification gate. "
+                    "Returns evidence (source-vs-deployed delta, organ reachability); "
+                    "verdict authority remains arif_judge.",
+                ),
+            ):
+                try:
+                    mcp.tool(
+                        name=_name,
+                        description=_desc,
+                        tags={"diagnostic", "arifos"},
+                        annotations={"readOnlyHint": True, "destructiveHint": False},
+                    )(_fn)
+                    registered.append(_name)
+                except Exception as _reg_exc:  # noqa: BLE001
+                    logger.warning("Failed to register %s: %s", _name, _reg_exc)
+        except Exception as _e2_exc:  # noqa: BLE001
+            logger.warning("E2 diagnostic tools skipped: %s", _e2_exc)
 
     return registered
 

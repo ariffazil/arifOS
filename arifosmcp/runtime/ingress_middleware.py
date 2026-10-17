@@ -48,6 +48,43 @@ logger = logging.getLogger(__name__)
 _RECEIPT_MODE = os.getenv("SUPABASE_WRITE_MODE", "off").lower()
 _RECEIPT_OFF = _RECEIPT_MODE == "off"
 
+# ── D3: Pydantic Error Sanitization (R1 fix 2026-10-16) ────────────────
+# Raw Pydantic ValidationErrors leak vendor URLs (errors.pydantic.dev),
+# internal field paths, and type information to external callers.
+# Sanitize: strip vendor URLs, collapse to field→error pairs.
+_PYDANTIC_URL_PATTERN = __import__("re").compile(r"\s*https?://errors\.pydantic\.dev/[^\s\]]+")
+_PYDANTIC_FIELD_MARKER = __import__("re").compile(
+    r"^\d+ validation error[s]? for\s+", __import__("re").MULTILINE
+)
+
+
+def _sanitize_pydantic_error(text: str) -> str | None:
+    """If text is a Pydantic validation error, return sanitized version.
+
+    Returns None if text is not a Pydantic error (caller should pass through).
+    """
+    if "errors.pydantic.dev" not in text and "validation error" not in text.lower():
+        return None
+    # Strip vendor URLs
+    cleaned = _PYDANTIC_URL_PATTERN.sub("", text)
+    # Strip the "N validation errors for X" header
+    cleaned = _PYDANTIC_FIELD_MARKER.sub("", cleaned)
+    # Collapse to concise field→error pairs
+    lines = [ln.strip() for ln in cleaned.strip().splitlines() if ln.strip()]
+    errors = []
+    current_field = None
+    for line in lines:
+        if line.startswith("Input should be") or line.startswith("Field required"):
+            if current_field:
+                errors.append(f"{current_field}: {line}")
+            else:
+                errors.append(line)
+        elif not line.startswith("For further") and not line.startswith("[type="):
+            current_field = line.rstrip(".")
+    if errors:
+        return "CONTRACT_VIOLATION: " + "; ".join(errors[:5])
+    return "CONTRACT_VIOLATION: invalid input types"
+
 
 # ── Supabase Tool Call Receipt ─────────────────────────────────────────
 # Fire-and-forget async receipt written after each tool execution.
@@ -148,11 +185,61 @@ def _interceptor_hold_tool_result(
     try:
         from arifosmcp.core.hold_resolution import as_dict, classify_hold
 
-        envelope["hold_resolution"] = as_dict(
-            classify_hold(reason, tool=tool_name, authority=auth)
-        )
+        envelope["hold_resolution"] = as_dict(classify_hold(reason, tool=tool_name, authority=auth))
     except Exception:
         pass
+    return ToolResult(
+        is_error=True,
+        content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
+        structured_content=envelope,
+    )
+
+
+# ── SIGNED-ENVELOPE v1 (GAP #1 slice) ────────────────────────────────────
+# Spec: arifosmcp/docs/SIGNED-ENVELOPE-v1.md. Flag: ARIF_ENVELOPE_SIGNED=1.
+# Verify-if-present, fail-closed on any PRESENT invalid envelope. Absent
+# envelopes pass through this slice (default-on enforcement is a later,
+# separately authorized rollout step).
+
+
+def _signed_envelope_rejection_result(tool_name: str, code: str, envelope_actor: str) -> Any:
+    """Reject a tools/call whose present signed_envelope failed verification."""
+    from mcp.types import TextContent
+
+    try:
+        from fastmcp.server.middleware.middleware import ToolResult  # type: ignore
+    except Exception:
+        from mcp.types import CallToolResult as ToolResult  # type: ignore
+
+    envelope = {
+        "status": "completed",
+        "tool": tool_name,
+        "verdict": "completed",
+        "effective_verdict": "VOID",
+        "execution_state": "COMPLETED",
+        "status_scope": "execution",
+        "reason_code": "SIGNED_ENVELOPE_" + code,
+        "hold_required": False,
+        "mutation_allowed": False,
+        "seal_allowed": False,
+        "actor": {"actor_id": envelope_actor, "authority_tier": "LOW"},
+        "reasons": [f"signed_envelope verification failed: {code}"],
+        "facts": [
+            f"tool={tool_name}",
+            f"envelope_actor={envelope_actor}",
+            f"failure_code={code}",
+            "envelope_spec=arifosmcp/docs/SIGNED-ENVELOPE-v1.md",
+        ],
+        "next_action": "HALT",
+        "can_continue_observing": True,
+        "can_mutate": False,
+        "can_claim_success": False,
+        "human_readable": (
+            f"SIGNED-ENVELOPE v1 rejected: {code} (actor={envelope_actor}, tool={tool_name}). "
+            "Sign the call per arifosmcp/docs/SIGNED-ENVELOPE-v1.md with a registered "
+            "Ed25519 key, or drop the signed_envelope field."
+        ).strip(),
+    }
     return ToolResult(
         is_error=True,
         content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
@@ -1110,6 +1197,33 @@ if IS_FASTMCP_3:
                 if tool_name == "arif_ping":
                     return await call_next(context)
 
+                # ── SIGNED-ENVELOPE v1 gate (GAP #1 slice) ──
+                # Flag-gated (ARIF_ENVELOPE_SIGNED=1). Verifies a present
+                # signed_envelope before anything else runs; invalid → VOID.
+                # Flag off or envelope absent → behavior identical to before.
+                try:
+                    from arifosmcp.runtime.signed_envelope import (
+                        check_arguments as _signed_env_check,
+                    )
+
+                    _sig_reject = _signed_env_check(dict(msg.arguments or {}))
+                    if _sig_reject is not None:
+                        logger.info(
+                            "Signed-envelope rejection: tool=%s code=%s actor=%s",
+                            tool_name,
+                            _sig_reject.get("code"),
+                            _sig_reject.get("envelope_actor"),
+                        )
+                        return _signed_envelope_rejection_result(
+                            tool_name,
+                            _sig_reject.get("code", "MALFORMED_ENVELOPE"),
+                            _sig_reject.get("envelope_actor", ""),
+                        )
+                except Exception as _sig_err:
+                    # Fail-soft on the gate's own plumbing; never on a bad sig
+                    # (check_arguments handles rejection internally).
+                    logger.warning("Signed-envelope gate unavailable (%s)", _sig_err)
+
                 t0 = time.monotonic()
                 verdict = "SEAL"
                 floors = ["F2", "F4", "F11"]
@@ -1538,7 +1652,66 @@ if IS_FASTMCP_3:
                         actor_id=str(_actor) if _actor and _actor != "anonymous" else None,
                         act_sid=str(_sess) if _sess and _sess != "unknown" else None,
                     ) as _ingress_tctx:
-                        result = await call_next(context)
+                        try:
+                            result = await call_next(context)
+                            # Evidence handoff: cache observations for arif_think
+                            # FastMCP 4.x bypasses _wrap_handler; middleware is the
+                            # guaranteed execution path.
+                            if tool_name in ("arif_observe", "arif_sense_observe") and _sess:
+                                try:
+                                    from arifosmcp.runtime.tools import _SESSIONS
+
+                                    logger.warning(
+                                        _in_sessions,
+                                        _has_sc,
+                                        type(_sc).__name__,
+                                    )
+                                    if _in_sessions and result and _has_sc:
+                                        sc = _sc
+                                        if isinstance(sc, dict) and sc.get("status") != "HOLD":
+                                            _SESSIONS[_sess]["last_observation"] = sc
+                                            _SESSIONS[_sess].setdefault("observations", []).append(
+                                                sc
+                                            )
+                                except Exception:
+                                    pass
+                        except Exception as _call_exc:
+                            # ── D3: Intercept Pydantic validation errors ──
+                            # FastMCP raises ValidationError on bad input; the raw
+                            # message leaks vendor URLs. Catch, sanitize, return.
+                            _exc_text = str(_call_exc)
+                            _clean = _sanitize_pydantic_error(_exc_text)
+                            if _clean is not None:
+                                try:
+                                    from fastmcp.server.middleware.middleware import (
+                                        ToolResult as _TR,
+                                    )
+                                    from mcp.types import TextContent as _TC
+
+                                    result = _TR(
+                                        content=[_TC(type="text", text=_clean)],
+                                        is_error=True,
+                                    )
+                                except Exception:
+                                    # Fallback: re-raise original if ToolResult unavailable
+                                    raise _call_exc from _call_exc
+                            else:
+                                raise _call_exc from _call_exc
+
+                    # ── D3: Also sanitize Pydantic errors in successful results ──
+                    # Some code paths return isError ToolResult instead of raising.
+                    if result and getattr(result, "is_error", False):
+                        try:
+                            from mcp.types import TextContent as _TC
+
+                            for _ci, _item in enumerate(getattr(result, "content", []) or []):
+                                if hasattr(_item, "text") and _item.text:
+                                    _clean2 = _sanitize_pydantic_error(_item.text)
+                                    if _clean2 is not None:
+                                        result.content[_ci] = _TC(type="text", text=_clean2)
+                                        break
+                        except Exception:
+                            pass
 
                     if result:
                         if hasattr(result, "structured_content") and isinstance(

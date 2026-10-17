@@ -55,6 +55,7 @@ _ORGAN_SRCS: dict[str, str] = {
 # ANCHOR 1: INIT — VPS Snapshot
 # ═══════════════════════════════════════════════════════════════════
 
+
 def vps_snapshot() -> dict[str, Any]:
     """Capture live VPS state at init time. Non-blocking, fail-safe."""
     snap: dict[str, Any] = {
@@ -65,9 +66,37 @@ def vps_snapshot() -> dict[str, Any]:
         "disk_used_pct": -1.0,
         "organ_shas": {},
         "snapshot_hash": "",
+        # F2 TRUTH fix 2026-10-16: explicit semantic labels so a consumer
+        # can disambiguate vps_snapshot.organ_shas.* from software_release.*
+        # without a separate docs read. Audit ticket: arif_init_source_commit
+        # labelling. The two surface area represent DIFFERENT identity
+        # claims — VPS snapshot is the live disk HEAD; software_release is
+        # the deployed binary's source stamp at build time.
+        "_field_semantics": {
+            "timestamp": (
+                "ISO-8601 UTC when this snapshot was captured. May differ from "
+                "software_release.service_started_at by seconds."
+            ),
+            "hostname": "Live OS hostname (from socket.gethostname()).",
+            "load_1m": "OS 1-minute load average (os.getloadavg()). -1.0 if unavailable.",
+            "mem_used_pct": "Memory used percent (1 - MemAvailable/MemTotal). -1.0 if unavailable.",
+            "disk_used_pct": "Root filesystem used percent. -1.0 if unavailable.",
+            "organ_shas": (
+                "Map of organ_repo -> live .git/HEAD short SHA (first 7 chars). "
+                "This is the LIVE REPOSITORY HEAD on disk — NOT the deployed "
+                "binary's source SHA. Compare against software_release.source_commit "
+                "to detect kernel/source drift (a real failure class: deployed "
+                "binary newer or older than source checkout)."
+            ),
+            "snapshot_hash": (
+                "First-16-chars SHA-256 of the snapshot dict itself, for "
+                "deterministic seal reference."
+            ),
+        },
     }
     try:
         import socket
+
         snap["hostname"] = socket.gethostname()
     except Exception:
         pass
@@ -123,6 +152,7 @@ def vps_snapshot() -> dict[str, Any]:
 # ANCHOR 2: OBSERVE — Hash-Verified Evidence Persistence
 # ═══════════════════════════════════════════════════════════════════
 
+
 def persist_evidence(
     observation: dict[str, Any],
     *,
@@ -130,7 +160,7 @@ def persist_evidence(
     session_id: str = "",
 ) -> dict[str, str]:
     """Write observation to disk with SHA-256. Returns {path, hash, ts}.
-    
+
     Non-blocking: returns empty dict on failure.
     """
     try:
@@ -139,7 +169,7 @@ def persist_evidence(
         evidence_id = hashlib.sha256(
             json.dumps(observation, sort_keys=True, default=str).encode()
         ).hexdigest()[:12]
-        
+
         record = {
             "evidence_id": evidence_id,
             "timestamp": ts.isoformat(),
@@ -149,11 +179,11 @@ def persist_evidence(
         }
         raw = json.dumps(record, sort_keys=True, default=str)
         record["sha256"] = hashlib.sha256(raw.encode()).hexdigest()
-        
+
         filename = f"{ts_str}_{source}_{evidence_id}.json"
         path = EVIDENCE_DIR / filename
         path.write_text(json.dumps(record, indent=2, default=str))
-        
+
         return {
             "evidence_id": evidence_id,
             "path": str(path),
@@ -169,12 +199,13 @@ def persist_evidence(
 # ANCHOR 3: JUDGE — Falsifiable Prediction Extraction
 # ═══════════════════════════════════════════════════════════════════
 
+
 def extract_prediction(
     judge_result: dict[str, Any],
     prediction_schema: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Extract falsifiable predictions from judge output.
-    
+
     Returns a dict of {prediction_key: predicted_value} that can be
     checked against future observations. Empty dict if none found.
     """
@@ -184,14 +215,14 @@ def extract_prediction(
         for key in ("predicted_state", "predictions", "l3_predictions"):
             if key in judge_result and isinstance(judge_result[key], dict):
                 predictions.update(judge_result[key])
-        
+
         # Extract from apex_scalars if present (these ARE predictions)
         apex = judge_result.get("apex_scalars", {})
         if isinstance(apex, dict):
             for k in ("g_score", "delta_S", "omega", "psi_le"):
                 if k in apex:
                     predictions[f"apex.{k}"] = apex[k]
-        
+
         # Extract from vitals if present
         vitals = judge_result.get("vitals", {})
         if isinstance(vitals, dict):
@@ -207,12 +238,13 @@ def extract_prediction(
 # ANCHOR 4: SEAL — Observation Hash + VPS Delta
 # ═══════════════════════════════════════════════════════════════════
 
+
 def seal_reality_context(
     init_snapshot_hash: str = "",
     evidence_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     """Build reality context for seal: current VPS delta + evidence refs.
-    
+
     Compares current state against init snapshot hash to detect drift.
     """
     ctx: dict[str, Any] = {
@@ -226,7 +258,7 @@ def seal_reality_context(
         current = vps_snapshot()
         ctx["current_snapshot_hash"] = current.get("snapshot_hash", "")
         if init_snapshot_hash and ctx["current_snapshot_hash"]:
-            ctx["vps_drift"] = (ctx["current_snapshot_hash"] != init_snapshot_hash)
+            ctx["vps_drift"] = ctx["current_snapshot_hash"] != init_snapshot_hash
     except Exception:
         pass
     return ctx
