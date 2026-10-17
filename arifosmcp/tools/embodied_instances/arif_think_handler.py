@@ -37,6 +37,7 @@ async def embodied_mind_reason_handler(
     contract_c_kwargs: dict | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
+
     """
     333_REASON: + reason — Symbolic reasoning kernel.
 

@@ -1654,6 +1654,27 @@ if IS_FASTMCP_3:
                     ) as _ingress_tctx:
                         try:
                             result = await call_next(context)
+                            # Evidence handoff: cache observations for arif_think
+                            # FastMCP 4.x bypasses _wrap_handler; middleware is the
+                            # guaranteed execution path.
+                            if tool_name in ("arif_observe", "arif_sense_observe") and _sess:
+                                try:
+                                    from arifosmcp.runtime.tools import _SESSIONS
+
+                                    logger.warning(
+                                        _in_sessions,
+                                        _has_sc,
+                                        type(_sc).__name__,
+                                    )
+                                    if _in_sessions and result and _has_sc:
+                                        sc = _sc
+                                        if isinstance(sc, dict) and sc.get("status") != "HOLD":
+                                            _SESSIONS[_sess]["last_observation"] = sc
+                                            _SESSIONS[_sess].setdefault("observations", []).append(
+                                                sc
+                                            )
+                                except Exception:
+                                    pass
                         except Exception as _call_exc:
                             # ── D3: Intercept Pydantic validation errors ──
                             # FastMCP raises ValidationError on bad input; the raw

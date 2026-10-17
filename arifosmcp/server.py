@@ -2170,8 +2170,8 @@ try:
     except Exception as _surface_patch_err:
         logger.warning("Failed to patch default tools/list public facade: %s", _surface_patch_err)
 
-    # Attach middleware to MCP server (FastMCP 3.x only)
-    if IS_FASTMCP_3:
+    # Attach middleware to MCP server (FastMCP 3.x+ — on_call_tool hook)
+    if IS_FASTMCP_3 or fastmcp.__version__.startswith("4"):
         mcp.add_middleware(_ingress_middleware)  # pyright: ignore[reportArgumentType]
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 
