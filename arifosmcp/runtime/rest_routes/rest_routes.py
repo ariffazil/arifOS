@@ -1376,8 +1376,19 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # 0.0 plus a provenance label, never an invented weight.
     resolved_witness: dict[str, float] = {}
     witness_provenance: dict[str, str] = {}
+    # S4 FIX (2026-10-17): a leg measured by witness_producers must not be
+    # reported as 0.0/"unmeasured" just because kernel state lacks it. Prefer
+    # the live leg value; only a genuinely absent leg stays unmeasured.
+    _witness_legs_map = (
+        (witness_legs.get("legs") or {}) if isinstance(witness_legs, dict) else {}
+    )
     for k in _WITNESS_DEFAULTS:
         real = _safe_float(witness.get(k))
+        _leg_val = _safe_float((_witness_legs_map.get(k) or {}).get("value"))
+        if (real is None or real == 0.0) and _leg_val is not None:
+            resolved_witness[k] = _leg_val
+            witness_provenance[k] = "witness_legs"
+            continue
         if real is None or real == 0.0:
             resolved_witness[k] = 0.0
             witness_provenance[k] = "unmeasured"
@@ -1398,12 +1409,29 @@ def _build_governance_status_payload() -> dict[str, Any]:
         "verdict": telemetry.get("verdict", verdict),
     }
 
+    # S4 FIX (2026-10-17): `core.telemetry.get_system_vitals` does not exist
+    # (ImportError on every call), so this block silently published
+    # cpu=0.0 / memory=0.0 as if measured. Read psutil directly and mark a
+    # genuine failure as unmeasured instead of inventing a zero.
     try:
-        from core.telemetry import get_system_vitals
+        import psutil as _psutil
 
-        machine_vitals = get_system_vitals()
-    except Exception:
-        machine_vitals = {"cpu_percent": 0.0, "memory_percent": 0.0}
+        machine_vitals = {
+            "cpu_percent": _psutil.cpu_percent(interval=0.1),
+            "memory_percent": _psutil.virtual_memory().percent,
+            "cpu_count": _psutil.cpu_count(),
+            "source": "psutil_live",
+            "unmeasured": False,
+        }
+    except Exception as _mv_exc:  # noqa: BLE001
+        machine_vitals = {
+            "cpu_percent": 0.0,
+            "memory_percent": 0.0,
+            "cpu_count": 0,
+            "source": "unavailable",
+            "unmeasured": True,
+            "error": f"{type(_mv_exc).__name__}: {_mv_exc}",
+        }
 
     try:
         capability_map = live_capability_map or build_runtime_capability_map()
@@ -1825,7 +1853,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
       <h2>Machine Vitals</h2>
       <table>
         <tbody>
-          <tr><th>CPU</th><td>{float(vitals.get("cpu_percent", 0.0)):.1f}% · {vitals.get("cpu_count", 0)} cores</td></tr>
+          <tr><th>CPU</th><td>{'unavailable' if vitals.get("unmeasured") else f'{float(vitals.get("cpu_percent", 0.0)):.1f}% · {vitals.get("cpu_count", 0)} cores'}</td></tr>
           <tr><th>Memory</th><td>{float(vitals.get("memory_percent", 0.0)):.1f}% · {vitals.get("ram_used_gb", 0):.1f}/{vitals.get("ram_total_gb", 0):.1f} GB</td></tr>
           <tr><th>Disk</th><td>{float(vitals.get("disk_percent", 0.0)):.1f}%</td></tr>
           <tr><th>Load</th><td>{load_text}</td></tr>

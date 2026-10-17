@@ -345,37 +345,85 @@ def register_arifos_resources(mcp: Any) -> list[str]:
         annotations={"audience": ["assistant", "user"], "priority": 0.9},
     )
     async def get_flow_state() -> str:
-        """Return current flow_state.json contents."""
+        """Return the flow pulse with explicit freshness metadata (S5).
+
+        Before this fix the resource served the file verbatim: a 19-minute-old
+        pulse was indistinguishable from a live one, and FQ_SIGNAL_DRIFT did
+        not trigger a refresh. Freshness is now published with every read.
+        """
+        import json
+        import time as _time
+        import urllib.request
+        from datetime import UTC, datetime
+
+        _TTL = 300
+
+        def _parse_ts(value: object) -> float | None:
+            if value is None:
+                return None
+            if isinstance(value, (int, float)):
+                return float(value)
+            try:
+                return datetime.fromisoformat(
+                    str(value).replace("Z", "+00:00")
+                ).timestamp()
+            except Exception:
+                return None
+
+        flow: dict = {}
+        source = _FLOW_STATE_PATH
         try:
             with open(_FLOW_STATE_PATH, encoding="utf-8") as fh:
-                flow_data = fh.read()
-        except (FileNotFoundError, Exception):
-            # Try arifFlow as fallback
-            import json
+                flow = json.loads(fh.read())
+            if not isinstance(flow, dict):
+                flow = {"payload": flow}
+        except Exception:
+            flow = {}
 
+        ts = _parse_ts(flow.get("refreshed_at") or flow.get("timestamp"))
+        age = round(_time.time() - ts, 1) if ts else None
+        flags = flow.get("flags") or []
+        drift = "FQ_SIGNAL_DRIFT" in flags or bool(flow.get("fq_signal_drift"))
+        stale = age is None or age > _TTL or drift
+
+        if stale:
             try:
-                import urllib.request
-
-                with urllib.request.urlopen("http://localhost:7073/health", timeout=3) as resp:
-                    arifflow_data = json.loads(resp.read())
-                flow_data = json.dumps(
-                    {
-                        "fq": arifflow_data.get("fq", {}),
-                        "status": arifflow_data.get("status", "unknown"),
-                        "source": "arifFlow :7073 (fallback — flow_state.json unavailable)",
-                    },
-                    indent=2,
-                )
-            except Exception:
-                flow_data = json.dumps(
-                    {
-                        "fq": {"quotient": 0.5, "verdict": "UNKNOWN"},
+                with urllib.request.urlopen(
+                    "http://127.0.0.1:7073/health", timeout=3
+                ) as resp:
+                    af = json.loads(resp.read())
+                fq = af.get("fq")
+                flow = {
+                    "fq": (
+                        fq.get("quotient", fq) if isinstance(fq, dict) else fq
+                    ),
+                    "status": af.get("status", "unknown"),
+                    "source": "arifFlow :7073 (live refresh)",
+                    "refreshed_at": datetime.now(UTC).isoformat(),
+                }
+                source = "arifFlow :7073"
+                age, stale, drift = 0.0, False, False
+            except Exception as exc:  # noqa: BLE001
+                if not flow:
+                    flow = {
+                        "fq": 0.5,
+                        "status": "UNKNOWN",
                         "error": "Neither flow_state.json nor arifFlow available",
                         "action": "Proceed with FQ=0.5 (conservative). Monitor.",
-                    },
-                    indent=2,
+                    }
+                flow.setdefault("warnings", []).append(
+                    f"refresh_failed: {type(exc).__name__}"
                 )
-        return flow_data
+
+        flow["_freshness"] = {
+            "age_seconds": age,
+            "ttl_seconds": _TTL,
+            "stale": stale,
+            "drift_flag": drift,
+            "source": source,
+            "checked_at": datetime.now(UTC).isoformat(),
+        }
+        return json.dumps(flow, ensure_ascii=False, indent=2)
 
     registered.append("arifos://flow-state")
 

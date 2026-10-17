@@ -922,7 +922,9 @@ def resolve_standing(
             )
 
         token, claims, delta = refresh_sct_if_needed(claims, session_token)
-        standing = _claims_to_standing(claims, token, source="sct", reason="L11 AUTH: SCT valid")
+        standing = _claims_to_standing(
+            claims, token, source="act", reason="L11 AUTH: ACT valid"
+        )
         standing.authority_delta = delta
         return standing
 

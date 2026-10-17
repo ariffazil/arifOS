@@ -48,3 +48,38 @@ def test_invalid_params_constant():
 
     assert mcp_types.INVALID_PARAMS == -32602
     assert mcp_types.INTERNAL_ERROR == -32603
+
+
+def test_missing_required_arg_raises_invalid_params():
+    """End-to-end: the patched render path must raise MCPError(-32602).
+
+    Regression for the mcp 1.x -> 2.x signature change: raising
+    ``MCPError(ErrorData(...))`` binds ErrorData to ``code`` and fails with
+    ``TypeError: missing 1 required positional argument: 'message'``, which
+    the transport surfaces as a malformed ``{"code": 0, ...}`` error.
+    """
+    import asyncio
+
+    import mcp.types as mcp_types
+    import pytest
+    from mcp.shared.exceptions import MCPError
+
+    from arifosmcp.runtime.mcp_prompt_rpc_fix import (
+        apply_prompt_missing_args_rpc_fix,
+    )
+
+    apply_prompt_missing_args_rpc_fix()
+
+    from fastmcp import FastMCP
+
+    probe = FastMCP("prompt-arg-probe")
+
+    @probe.prompt(name="probe_prompt")
+    def probe_prompt(required_thing: str) -> str:
+        return f"got {required_thing}"
+
+    with pytest.raises(MCPError) as excinfo:
+        asyncio.run(probe.render_prompt("probe_prompt", arguments={}))
+
+    assert excinfo.value.code == mcp_types.INVALID_PARAMS
+    assert "required_thing" in excinfo.value.message
