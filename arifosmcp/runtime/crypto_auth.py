@@ -149,6 +149,7 @@ def _get_redis():
         redis_pw = os.getenv("REDIS_PASSWORD")
         if redis_pw:
             import urllib.parse
+
             encoded_pw = urllib.parse.quote(redis_pw, safe="")
             redis_url = f"redis://:{encoded_pw}@127.0.0.1:6379/0"
         else:
@@ -508,11 +509,20 @@ def verify_authorization_challenge(
 
     from cryptography.exceptions import InvalidSignature
 
+    # F13 P1 hardening (2026-10-17, Workstream A finding A2): an AUTHORIZATION
+    # signature must be over the canonical envelope (binds scope/capability),
+    # never the legacy "actor:nonce" form (binds only actor+nonce). The legacy
+    # form is gated behind a dev flag for migration only — a nonce-only
+    # signature must never authorize a scoped action.
+    _accept_legacy_actor_nonce = os.environ.get(
+        "ARIFOS_LEGACY_ACTOR_NONCE_SIG", "false"
+    ).lower() in ("true", "1")
+    _signature_forms: list[tuple[str, bytes]] = [("canonical", canonical_bytes)]
+    if _accept_legacy_actor_nonce:
+        _signature_forms.append(("actor_nonce", f"{actor}:{nonce}".encode()))
+
     matched = False
-    for label, msg_bytes in [
-        ("canonical", canonical_bytes),
-        ("actor_nonce", f"{actor}:{nonce}".encode()),
-    ]:
+    for label, msg_bytes in _signature_forms:
         try:
             public_key.verify(signature_bytes, msg_bytes)
             matched = True
@@ -653,6 +663,7 @@ def resolve_actor_public_key(actor_id: str) -> ed25519.Ed25519PublicKey | None:
     candidates = [aid, actor_id]
     try:
         from contracts.identity import CANONICAL_ACTORS
+
         for canon_name, data in CANONICAL_ACTORS.items():
             if canon_name.lower() == aid or aid in [a.lower() for a in data.get("aliases", [])]:
                 candidates.extend(data.get("aliases", []))
@@ -832,9 +843,7 @@ def _canonical_payloads(
     if aid_norm in _SOVEREIGN_ALIAS_TUPLE:
         for alias in _SOVEREIGN_ALIAS_TUPLE:
             if alias not in (actor_id, aid_norm):
-                payloads.append(
-                    (f"alias_{alias}_nonce", f"{alias}:{nonce}".encode())
-                )
+                payloads.append((f"alias_{alias}_nonce", f"{alias}:{nonce}".encode()))
     if constitution_hash:
         payloads.append(
             ("actor_constitution_nonce", f"{actor_id}:{constitution_hash}:{nonce}".encode())
@@ -915,7 +924,13 @@ def verify_init_identity(
 
 def classify_actor_band(actor_id: str, signature_verified: bool) -> dict[str, Any]:
     aid = _normalize_actor(actor_id)
-    is_sovereign_principal = aid.lower().strip() in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+    is_sovereign_principal = aid.lower().strip() in (
+        "arif",
+        "888",
+        "ariffazil",
+        "arif-fazil",
+        "arif_fazil",
+    )
     if not signature_verified:
         return {
             "actor_verified": False,
