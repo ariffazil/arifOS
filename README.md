@@ -53,19 +53,17 @@ Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](http
 
 ---
 
-## What works today
+## Who built this
 
-- **Deterministic rejection without consulting an LLM.** The judge refuses on the constitution, not on a model opinion (`gate: hard_deterministic`, `llm_consulted: false`).
-- **Prevention of a tested unauthorised mutation.** One MUTATE-class call without presented authority was stopped before execution.
+arifOS was built by Arif Fazil, a senior exploration geoscientist who spent his career making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
 
-## What is not yet proven
+**I am a geologist, not a programmer.** I did not write this codebase and I do not read it line by line. What I do is point at where the problem is — and the agents in my federation solve it, inside the constitution and the review gates I set, with the commit trail to show who ran what.
 
-- Verified actor binding end-to-end (observed calls arrive unsigned).
-- Invocation-telemetry receipt fidelity (a kernel `HOLD` was persisted as `ok:true`).
-- Independent reconstruction of the ledger (no external verifier bound).
-- External security evaluation (in progress; nothing published).
+Read the commits if you want to check that claim: the author fields are agent handles, not aliases of mine. That is the deliberate shape of this project, not a detail being hidden. It also sets the honest expectation — the design and the judgment are mine, the implementation is theirs, and where the two disagree, the bug is mine to answer for.
 
-Every row, with evidence and risk: [What Is Not Yet Proven](#what-is-not-yet-proven). We publish what passed, what failed, and what remains unknown. We do not claim maturity beyond our evidence.
+The system is named after its founder and reflects a core belief: **governance is a systems problem, not a model problem.**
+
+One human, and the agents he directs.
 
 ---
 
@@ -85,6 +83,36 @@ Delete account + audit trail      → VOID   (blocked by a hard floor)
 ```
 
 Full transcript: [`docs/QUICKSTART.md`](./docs/QUICKSTART.md). The demo runs in-process — no real records or funds are touched.
+
+---
+
+## What works today
+
+- **Deterministic rejection without consulting an LLM.** The judge refuses on the constitution, not on a model opinion (`gate: hard_deterministic`, `llm_consulted: false`).
+- **Prevention of a tested unauthorised mutation.** One MUTATE-class call without presented authority was stopped before execution.
+
+## What is not yet proven
+
+Every row names its own gap. Repairing a claim by substituting a stronger one is worse than the stale claim it replaced. (Closed rows are receipted in [`docs/evidence/GAP_HISTORY.md`](./docs/evidence/GAP_HISTORY.md).)
+
+| Gap | Risk | Status |
+|---|---|---|
+| Independent security audit | Adversarial bypass testing not published | **In progress** — external researcher reviewing since 2026-08-25. Findings so far: fetch-surface SSRF (fixed, `1!2026.9.1`); Cypher injection (HIGH — key whitelist landed) and fastmcp path traversal (MEDIUM — containment guard landed). See [SECURITY.md](./SECURITY.md#known-gaps) |
+| **Sovereign-binding of irreversible acknowledgement** | `ack_irreversible` and `actor_signature` are transported as payload fields; nothing published shows a human signature bound to `(transaction_hash ‖ state_hash ‖ nonce)`, single-use, scoped, unforgeable by the proposing agent | **Open** — design drafted ([`docs/judgment-integrity-2026-09-22/`](./docs/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md)), not implemented. F13 is enforced by convention and band-gating, not cryptographic transaction binding |
+| **Ledger head not externally anchored or signed** | A hash chain held entirely by one party cannot detect wholesale rewrite by that party | **Open** — VAULT999 today is self-verifiable, not independently attestable |
+| Third-party evaluation | No external reviewer has published findings | In progress since 2026-08-25; nothing published |
+| Reproducible demo by strangers | Onboarding path not independently tested | **Partial** — demo verified here; no stranger has reproduced it unaided |
+| Enterprise deployment | No production customer reference | Open |
+| Standards conformance | MCP/A2A results not published externally | **Partial** — [report](docs/evidence/conformance-report.json): `result: PARTIAL`, per-tool schema validation DEFERRED |
+| SBOM and signed releases | Supply-chain integrity unverified externally | **Partial** — CycloneDX on publish; no signing, no CVE scan |
+| Test suite | Needs a live kernel (`tests/conftest.py` refuses without `:8088`, by design) | 7,668 tests collect clean (2026-10-05); the identity/authority subset carries 34 pre-existing failures vs 321 passes (2026-09-30) — quote a failure *set*, never a bare pass count |
+| Observability | Tracing partially wired | **Partial** — sovereign Postgres + arifFlow live; OTel spans on all 8 verbs; caller-side propagation incomplete |
+| Semantic layer (Graphiti) | Knowledge graph retired from the read path | `graphiti_read: retired_888` (2026-09-04); semantic floor disabled by choice (`ARIFOS_ML_FLOORS=0`) |
+| Comparative benchmark | No published comparison against alternative frameworks | Open |
+| Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Open — relevant to institutional adoption** |
+| Identity registry in two copies | `contracts/identity.py` ↔ `arifosmcp/contracts/identity.py` had diverged; a one-sided edit ships split-brain identity | **Mitigated 2026-09-30** (tripwire tests, 18 actors aligned) — consolidation to one owner still open |
+
+See [SECURITY.md](./SECURITY.md) for the threat model and disclosure policy, and [docs/evidence/claims.yaml](./docs/evidence/claims.yaml) for the machine-readable claim registry.
 
 ---
 
@@ -308,31 +336,6 @@ Dynamic values live in the [generated block](#current-verified-state) at the top
 
 ---
 
-## What Is Not Yet Proven
-
-Every row names its own gap. Repairing a claim by substituting a stronger one is worse than the stale claim it replaced. (Closed rows are receipted in [`docs/evidence/GAP_HISTORY.md`](./docs/evidence/GAP_HISTORY.md).)
-
-| Gap | Risk | Status |
-|---|---|---|
-| Independent security audit | Adversarial bypass testing not published | **In progress** — external researcher reviewing since 2026-08-25. Findings so far: fetch-surface SSRF (fixed, `1!2026.9.1`); Cypher injection (HIGH — key whitelist landed) and fastmcp path traversal (MEDIUM — containment guard landed). See [SECURITY.md](./SECURITY.md#known-gaps) |
-| **Sovereign-binding of irreversible acknowledgement** | `ack_irreversible` and `actor_signature` are transported as payload fields; nothing published shows a human signature bound to `(transaction_hash ‖ state_hash ‖ nonce)`, single-use, scoped, unforgeable by the proposing agent | **Open** — design drafted ([`docs/judgment-integrity-2026-09-22/`](./docs/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md)), not implemented. F13 is enforced by convention and band-gating, not cryptographic transaction binding |
-| **Ledger head not externally anchored or signed** | A hash chain held entirely by one party cannot detect wholesale rewrite by that party | **Open** — VAULT999 today is self-verifiable, not independently attestable |
-| Third-party evaluation | No external reviewer has published findings | In progress since 2026-08-25; nothing published |
-| Reproducible demo by strangers | Onboarding path not independently tested | **Partial** — demo verified here; no stranger has reproduced it unaided |
-| Enterprise deployment | No production customer reference | Open |
-| Standards conformance | MCP/A2A results not published externally | **Partial** — [report](docs/evidence/conformance-report.json): `result: PARTIAL`, per-tool schema validation DEFERRED |
-| SBOM and signed releases | Supply-chain integrity unverified externally | **Partial** — CycloneDX on publish; no signing, no CVE scan |
-| Test suite | Needs a live kernel (`tests/conftest.py` refuses without `:8088`, by design) | 7,668 tests collect clean (2026-10-05); the identity/authority subset carries 34 pre-existing failures vs 321 passes (2026-09-30) — quote a failure *set*, never a bare pass count |
-| Observability | Tracing partially wired | **Partial** — sovereign Postgres + arifFlow live; OTel spans on all 8 verbs; caller-side propagation incomplete |
-| Semantic layer (Graphiti) | Knowledge graph retired from the read path | `graphiti_read: retired_888` (2026-09-04); semantic floor disabled by choice (`ARIFOS_ML_FLOORS=0`) |
-| Comparative benchmark | No published comparison against alternative frameworks | Open |
-| Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Open — relevant to institutional adoption** |
-| Identity registry in two copies | `contracts/identity.py` ↔ `arifosmcp/contracts/identity.py` had diverged; a one-sided edit ships split-brain identity | **Mitigated 2026-09-30** (tripwire tests, 18 actors aligned) — consolidation to one owner still open |
-
-See [SECURITY.md](./SECURITY.md) for the threat model and disclosure policy, and [docs/evidence/claims.yaml](./docs/evidence/claims.yaml) for the machine-readable claim registry.
-
----
-
 ## Sister Repositories
 
 | Repository | Purpose |
@@ -371,20 +374,6 @@ arifOS publishes verifiable evidence for its claims. Every public claim links to
 **Operators** deploying AI agents in regulated environments who need an independent judgment layer between proposals and execution. **Developers** building agent systems who want a policy decision point as a service. **Evaluators and security reviewers** assessing AI governance frameworks. **Domain builders** adapting governance to a field (geoscience, finance, healthcare).
 
 Start here: [docs/START_HERE.md](./docs/START_HERE.md)
-
-## Founding Context
-
-arifOS was built by ARIF FAZ, a senior exploration geoscientist who spent his career making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
-
-The system is named after its founder and reflects a core belief: **governance is a systems problem, not a model problem.**
-
-## Who Maintains This
-
-One human, and the agents he directs.
-
-I am a geologist, not a programmer. I did not write this codebase and I do not read it line by line. What I do is point at where the problem is — and the agents in my federation solve it, inside the constitution and the review gates I set, with the commit trail to show who ran what.
-
-Read the commits if you want to check that claim: the author fields are agent handles, not aliases of mine. That is the deliberate shape of this project, not a detail being hidden. It also sets the honest expectation — the design and the judgment are mine, the implementation is theirs, and where the two disagree, the bug is mine to answer for.
 
 ## Development
 
@@ -437,11 +426,11 @@ See [SECURITY.md](./SECURITY.md) for the threat model, known vulnerabilities and
 
 ---
 
-*Revision 2026-10-16 — restructured under AGENTIC-README-DOCTRINE v1 (attention layer for humans, agents and institutions; dynamic state generated, never hand-carried). Pre-doctrine text preserved verbatim in [`docs/archive/README-2026-10-16-pre-doctrine.md`](./docs/archive/README-2026-10-16-pre-doctrine.md); every claim retained or receipted there. Prior audit passes: 2026-09-21 full re-measurement · 2026-09-22 Copilot external ENTERPRISE · 2026-10-11 independent re-probe.*
+*Revision 2026-10-17 — APEX-ZEN upgrade: human story moved forward, founding context consolidated, 30-second proof elevated, duplicate "not yet proven" consolidated, "drift aligned" semantics clarified (binary matches build source, not necessarily repo HEAD). Prior revision: 2026-10-16 restructured under AGENTIC-README-DOCTRINE v1. Prior audit passes: 2026-09-21 full re-measurement · 2026-09-22 Copilot external ENTERPRISE · 2026-10-11 independent re-probe · 2026-10-17 four-probe audit (333-AGI + IrfanClaw + ChatGPT + WawaBot).*
 
 **Ditempa Bukan Diberi** — Forged, Not Given.
 
-<!-- FEDERATION-STANDARD v2026-10-15 START :: 333-AGI audit :: source: organs.yaml + git + live probes -->
+<!-- FEDERATION-STANDARD v2026-10-17 START :: 333-AGI audit :: source: organs.yaml + git + live probes -->
 ## 🔗 Federation Identity
 | Field | Value |
 |---|---|
@@ -451,4 +440,4 @@ See [SECURITY.md](./SECURITY.md) for the threat model, known vulnerabilities and
 | Authority ceiling | JUDGE_ONLY |
 | Public MCP | https://arifos.arif-fazil.com/mcp |
 | Flow graph | [FEDERATION.md](https://github.com/ariffazil/AAA/blob/main/FEDERATION.md) — peta semua organ + repo |
-<!-- FEDERATION-STANDARD v2026-10-15 END -->
+<!-- FEDERATION-STANDARD v2026-10-17 END -->
