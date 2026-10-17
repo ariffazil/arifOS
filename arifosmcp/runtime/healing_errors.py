@@ -49,6 +49,7 @@ from __future__ import annotations
 from typing import Any
 
 from arifosmcp.runtime.model import CanonicalError, RecoveryContext
+from arifosmcp.runtime.failure_wal import wal_append
 
 # Maximum alternatives returned to prevent token explosion.
 MAX_ALTERNATIVES = 10
@@ -135,13 +136,32 @@ def healing_error(
         retryable=retryable,
     )
 
-    return CanonicalError(
+    err = CanonicalError(
         code=code,
         message=message,
         stage=stage,
         context=context if context else None,
         recovery=recovery,
     )
+
+    # INV-L5-WAL: Synchronous append to failure telemetry ledger.
+    # WAL failure MUST NEVER block the error response.
+    try:
+        wal_append(
+            code=code,
+            message=message,
+            organ=organ,
+            tool=tool,
+            parameter=parameter,
+            received=received,
+            available=available,
+            discovery_tool=discovery_tool,
+            context=context if context else None,
+        )
+    except Exception:
+        pass
+
+    return err
 
 
 def tool_not_found_error(
