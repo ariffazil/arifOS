@@ -312,14 +312,14 @@ async def arif_memory(
         string band is stamped as `authority_band`.
         """
         token = None
-        source = "sct"
+        source = "act"
         apex = None
         actor_verified = False
         authority = None
         authority_delta = None
         if _standing is not None and getattr(_standing, "valid", False):
             token = _standing.session_token or _standing_token
-            source = _standing.source or "sct"
+            source = _standing.source or "act"
             apex = dict(_standing.apex) if _standing.apex else None
             actor_verified = bool(_standing.actor_verified)
             authority = _standing.authority

@@ -60,7 +60,8 @@ FIRST STEPS FOR AN LLM CLIENT:
        777 FORGE  → execute
        999 SEAL   → record immutably
 
-  3. KNOW YOUR TOOLS (8 canonical — capability_registry.json):
+  3. KNOW YOUR TOOLS (run tools/list — counts live in arifos://index, never
+     hardcoded here):
      arif_init        — session bootstrap
      arif_observe     — multimodal observation
      arif_think       — symbolic reasoning + critique (critique mode absorbed)
@@ -70,7 +71,7 @@ FIRST STEPS FOR AN LLM CLIENT:
      arif_forge       — execution (A-FORGE proxy) + compose (compose mode absorbed)
      arif_seal        — immutable VAULT999 ledger write
 
-  4. KNOW YOUR RESOURCES (40 registered — run resources/list for full surface):
+  4. KNOW YOUR RESOURCES (run resources/list — counts live in arifos://index):
      arifos://doctrine         — F1-F13 constitutional floors
      arifos://trinity          — AAA lane definitions
      arifos://schema           — complete MCP blueprint
@@ -85,7 +86,7 @@ FIRST STEPS FOR AN LLM CLIENT:
      arifos://loop-engineering — 7-stage reality loop
      arifos://atlas333/index   — 33 human paradoxes, 7 zones
 
-  5. KNOW YOUR PROMPTS (13 registered — run prompts/list for full surface):
+  5. KNOW YOUR PROMPTS (run prompts/list — counts live in arifos://index):
      000 🌱 IGNITE    — Position Zero sovereign anchor
      111 🌊 SENSE     — Reality before judgment
      222 🏛 PLAN      — Design reality change

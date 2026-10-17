@@ -7162,11 +7162,12 @@ async def _synthesize_async(
         call_llm,
     )
 
-    # ARIF_THINK_TIMEOUT_S (2026-08-08, blue-team DoS fix, updated 2026-09-07): 35s wall-clock
-    # cap on _synthesize_async. Accommodates reasoning models emitting reasoning tokens.
+    # ARIF_THINK_TIMEOUT_S (updated 2026-10-17, E5): 9s wall-clock cap so a
+    # standard think call returns inside the 10s budget. Slow reasoning falls
+    # back to the deterministic template rather than blocking the caller.
     import asyncio as _asyncio
 
-    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "9.0"))
 
     system_prompt = (
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
@@ -15641,8 +15642,9 @@ async def _arif_mind_reason_tool(
         # Instead of importing a non-existent module, call _synthesize_async directly
         # which already wraps call_llm with the correct constitutional prompt and schema.
         try:
-            # P0 2026-08-09 G3 / 2026-09-07: outer budget must match ARIF_THINK_TIMEOUT_S (default 35s)
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+            # P0 2026-08-09 G3 / 2026-10-17 E5: outer budget must match
+            # ARIF_THINK_TIMEOUT_S (default 9s — inside the 10s UX budget).
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "9.0"))
             # P0 FIX 2026-09-27 (composition continuity): thread session observations
             # into the synthesis prompt so THINK output can ground claims in
             # OBSERVE evidence rather than fabricating references.
@@ -29176,6 +29178,49 @@ def register_tools(
         )
     except Exception as e:
         logger.warning(f"MANIFEST_ENRICH: skipped — {e}")
+
+    # ── E2 (2026-10-17): diagnostic tools — additive to the ratified 8 ─────
+    # arif_heal / arif_guard are read-only inspectors. They do NOT enter
+    # CANONICAL_TOOLS or the ABI contract; the sovereign 8-verb facade is
+    # untouched. Set ARIFOS_ENABLE_HEAL_GUARD=0 to hide them.
+    if os.environ.get("ARIFOS_ENABLE_HEAL_GUARD", "1").strip().lower() not in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }:
+        try:
+            from arifosmcp.tools.guard import arif_guard as _arif_guard_fn
+            from arifosmcp.tools.heal import arif_heal as _arif_heal_fn
+
+            for _name, _fn, _desc in (
+                (
+                    "arif_heal",
+                    _arif_heal_fn,
+                    "KERNEL · Read-only repair diagnosis: WAL/receipt query and "
+                    "failure-signature → strategy lookup. Never mutates; execution "
+                    "stays with arif_forge under a SEAL verdict.",
+                ),
+                (
+                    "arif_guard",
+                    _arif_guard_fn,
+                    "KERNEL · Read-only drift / integrity / verification gate. "
+                    "Returns evidence (source-vs-deployed delta, organ reachability); "
+                    "verdict authority remains arif_judge.",
+                ),
+            ):
+                try:
+                    mcp.tool(
+                        name=_name,
+                        description=_desc,
+                        tags={"diagnostic", "arifos"},
+                        annotations={"readOnlyHint": True, "destructiveHint": False},
+                    )(_fn)
+                    registered.append(_name)
+                except Exception as _reg_exc:  # noqa: BLE001
+                    logger.warning("Failed to register %s: %s", _name, _reg_exc)
+        except Exception as _e2_exc:  # noqa: BLE001
+            logger.warning("E2 diagnostic tools skipped: %s", _e2_exc)
 
     return registered
 
