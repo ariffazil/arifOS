@@ -876,37 +876,34 @@ def _memory_triage_gate(
                     ),
                 }
 
-    # --- WAJIB: Attestation enforcement (actor_id mandatory; session_id for Tier 3+) ---
+    # --- WAJIB: Provenance enforcement on every store (contract R2) ---
     clean_actor = str(actor_id).strip() if actor_id else ""
     if not clean_actor or clean_actor.lower() in ("none", "null", "anonymous"):
         logger.warning(
-            "MEMORY TRIAGE [WAJIB-FAIL]: Attestation missing actor_id for tier=%s — "
-            "rejected. All memories require an identified custodian/actor_id.",
+            "MEMORY TRIAGE [WAJIB-PROVENANCE]: Missing actor_id for tier=%s — rejected.",
             tier_name,
         )
         return {
             "rejected": True,
-            "reason": "WAJIB_ATTESTATION",
-            "detail": (
-                "Missing or anonymous actor_id. All memory writes require an identified "
-                "custodian (actor_id) to prevent unattributed memory contamination."
-            ),
+            "reason": "WAJIB_PROVENANCE",
+            "detail": "actor_id required on every store (contract R2)",
         }
 
-    if is_wajib and not session_id:
+    clean_session = str(session_id).strip() if session_id else ""
+    if not clean_session or clean_session.lower() in ("none", "null", "anonymous"):
         logger.warning(
-            "MEMORY TRIAGE [WAJIB-FAIL]: Attestation missing session_id for tier=%s — "
-            "rejected. Scar/Constitutional tier requires sovereign attestation.",
+            "MEMORY TRIAGE [WAJIB-PROVENANCE]: Missing session_id for tier=%s — rejected.",
             tier_name,
         )
         return {
             "rejected": True,
-            "reason": "WAJIB_ATTESTATION",
-            "detail": (
-                "Missing session_id. Scar/Constitutional tier requires session_id "
-                "to prove origin and chain of custody."
-            ),
+            "reason": "WAJIB_PROVENANCE",
+            "detail": "session_id required on every store (contract R2)",
         }
+
+    if is_wajib:
+        # Extra tier-3+ constitutional / scar verification
+        pass
 
     # --- WAJIB: Abstraction enforcement (summary required for long content) ---
     content_len = len(content) if isinstance(content, str) else len(str(content))
