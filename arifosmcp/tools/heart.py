@@ -2228,7 +2228,7 @@ async def arif_critique(
     if isinstance(result, dict):
         if _standing_token:
             result["session_token"] = _standing_token
-            result.setdefault("standing_source", "sct")
+            result.setdefault("standing_source", "act")
         if session_id:
             result.setdefault("session_id", session_id)
         if actor_id and actor_id != "anonymous":

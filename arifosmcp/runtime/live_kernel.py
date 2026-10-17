@@ -269,7 +269,14 @@ def build_kernel_envelope(
     # noncanonical verdict token (kills NONCANONICAL_VERDICT_TOKEN at source;
     # defect observed live 2026-10-13/14 as SABAR-vs-HOLD field divergence).
     # DEGRADED is a STATE (organ attestation status), never a VERDICT.
-    _raw_verdict = str(response.get("verdict", response.get("status", "OBSERVE_ONLY")))
+    # B2 fix (2026-10-16): prefer canonical_verdict (computed by
+    # _compute_canonical_verdict) over raw verdict/status to prevent
+    # DEGRADED→SABAR alias from overriding the actual HOLD verdict.
+    _raw_verdict = str(
+        response.get("canonical_verdict")
+        or response.get("effective_verdict")
+        or response.get("verdict", response.get("status", "OBSERVE_ONLY"))
+    )
     _was_degraded_alias = _raw_verdict == "DEGRADED"
     _VERDICT_ALIASES = {"DEGRADED": "SABAR", "DENY": "VOID"}
     verdict = _VERDICT_ALIASES.get(_raw_verdict, _raw_verdict)

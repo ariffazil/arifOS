@@ -774,6 +774,60 @@ _FLOOR_STATUS_UNMEASURED = "unmeasured"
 _FLOOR_STATUS_PASS = "pass"
 _FLOOR_STATUS_FAIL = "fail"
 
+# FLR-005 (2026-10-17): canonical floor ids and alias normalizer.
+# LAW_SPEC_KEYS stores 10-13 under the L-prefix while producers emit F10-F13.
+# Publishing both inflated the denominator (16 entries for 13 floors) and
+# double-counted passes. The normalizer is strictly structural: no threshold,
+# comparator or floor semantics change.
+_CANONICAL_FLOOR_IDS: tuple[str, ...] = tuple(f"F{i}" for i in range(1, 14))
+
+_LEGACY_FLOOR_ALIASES: dict[str, str] = {f"L{i}": f"F{i}" for i in (10, 11, 12, 13)}
+
+
+def _normalize_floors_to_canonical(
+    floors: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any], set[str]]:
+    """Collapse L10-L13 aliases into F10-F13 and drop unknown keys.
+
+    Returns (scores, provenance, contradictions).
+    - canonical value wins when alias and canonical agree;
+    - disagreeing alias -> F-id set to None, provenance
+      ``floor_alias_contradiction``, id added to contradictions (fail-closed);
+    - unknown names (F14, NOT_A_FLOOR) are dropped, never minted.
+    """
+    prov_in = dict(provenance or {})
+    scores: dict[str, Any] = {}
+    prov: dict[str, Any] = {}
+    contradictions: set[str] = set()
+
+    for fid in _CANONICAL_FLOOR_IDS:
+        if fid in floors:
+            scores[fid] = floors[fid]
+
+    for lid, fid in _LEGACY_FLOOR_ALIASES.items():
+        if lid not in floors:
+            continue
+        legacy_value = floors[lid]
+        if fid in scores:
+            if scores[fid] == legacy_value:
+                if fid not in prov and lid in prov_in:
+                    prov[fid] = prov_in[lid]
+                continue
+            contradictions.add(fid)
+            prov[fid] = "floor_alias_contradiction"
+            scores[fid] = None
+            continue
+        scores[fid] = legacy_value
+        if lid in prov_in:
+            prov[fid] = prov_in[lid]
+
+    for fid in _CANONICAL_FLOOR_IDS:
+        if fid in scores and fid not in prov and fid not in contradictions and fid in prov_in:
+            prov[fid] = prov_in[fid]
+
+    return scores, prov, contradictions
+
 
 def _phi_fq_from_quotient(quotient: float) -> float:
     """FLR-F1-FQ v2 (F13 'pilih A', 2026-10-10): φFQ aligned to the ratified
@@ -919,6 +973,11 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
     _prov = str(provenance or "")
     if _prov.startswith("unmeasured_default"):
         return _FLOOR_STATUS_UNMEASURED
+    # FLR-005 (2026-10-17): an alias that contradicts its canonical floor is a
+    # measured conflict, not an evidence gap. Fail closed, never pass, never
+    # silently reconciled.
+    if _prov == "floor_alias_contradiction":
+        return _FLOOR_STATUS_FAIL
 
     # ── FLR-003b (2026-10-10): a producer's verdict must survive the reducer ──
     # The producer's STATUS is real evidence; the numeric score carrying it is
@@ -1376,8 +1435,19 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # 0.0 plus a provenance label, never an invented weight.
     resolved_witness: dict[str, float] = {}
     witness_provenance: dict[str, str] = {}
+    # S4 FIX (2026-10-17): a leg measured by witness_producers must not be
+    # reported as 0.0/"unmeasured" just because kernel state lacks it. Prefer
+    # the live leg value; only a genuinely absent leg stays unmeasured.
+    _witness_legs_map = (
+        (witness_legs.get("legs") or {}) if isinstance(witness_legs, dict) else {}
+    )
     for k in _WITNESS_DEFAULTS:
         real = _safe_float(witness.get(k))
+        _leg_val = _safe_float((_witness_legs_map.get(k) or {}).get("value"))
+        if (real is None or real == 0.0) and _leg_val is not None:
+            resolved_witness[k] = _leg_val
+            witness_provenance[k] = "witness_legs"
+            continue
         if real is None or real == 0.0:
             resolved_witness[k] = 0.0
             witness_provenance[k] = "unmeasured"
@@ -1398,12 +1468,29 @@ def _build_governance_status_payload() -> dict[str, Any]:
         "verdict": telemetry.get("verdict", verdict),
     }
 
+    # S4 FIX (2026-10-17): `core.telemetry.get_system_vitals` does not exist
+    # (ImportError on every call), so this block silently published
+    # cpu=0.0 / memory=0.0 as if measured. Read psutil directly and mark a
+    # genuine failure as unmeasured instead of inventing a zero.
     try:
-        from core.telemetry import get_system_vitals
+        import psutil as _psutil
 
-        machine_vitals = get_system_vitals()
-    except Exception:
-        machine_vitals = {"cpu_percent": 0.0, "memory_percent": 0.0}
+        machine_vitals = {
+            "cpu_percent": _psutil.cpu_percent(interval=0.1),
+            "memory_percent": _psutil.virtual_memory().percent,
+            "cpu_count": _psutil.cpu_count(),
+            "source": "psutil_live",
+            "unmeasured": False,
+        }
+    except Exception as _mv_exc:  # noqa: BLE001
+        machine_vitals = {
+            "cpu_percent": 0.0,
+            "memory_percent": 0.0,
+            "cpu_count": 0,
+            "source": "unavailable",
+            "unmeasured": True,
+            "error": f"{type(_mv_exc).__name__}: {_mv_exc}",
+        }
 
     try:
         capability_map = live_capability_map or build_runtime_capability_map()
@@ -1542,6 +1629,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
         _log.getLogger(__name__).warning("APEX scalars unavailable: %s", _apex_exc)
         for scalar in ("G", "C_dark", "W3", "h", "QDF"):
             apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
+
+    # FLR-005 (2026-10-17): publish exactly the canonical 13-floor set.
+    # L10-L13 aliases collapse into F10-F13 and unknown keys never mint floors.
+    resolved_floors, floor_provenance, _floor_alias_contradictions = (
+        _normalize_floors_to_canonical(resolved_floors, floor_provenance)
+    )
 
     return {
         "telemetry": resolved_telemetry,
@@ -1825,7 +1918,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
       <h2>Machine Vitals</h2>
       <table>
         <tbody>
-          <tr><th>CPU</th><td>{float(vitals.get("cpu_percent", 0.0)):.1f}% · {vitals.get("cpu_count", 0)} cores</td></tr>
+          <tr><th>CPU</th><td>{'unavailable' if vitals.get("unmeasured") else f'{float(vitals.get("cpu_percent", 0.0)):.1f}% · {vitals.get("cpu_count", 0)} cores'}</td></tr>
           <tr><th>Memory</th><td>{float(vitals.get("memory_percent", 0.0)):.1f}% · {vitals.get("ram_used_gb", 0):.1f}/{vitals.get("ram_total_gb", 0):.1f} GB</td></tr>
           <tr><th>Disk</th><td>{float(vitals.get("disk_percent", 0.0)):.1f}%</td></tr>
           <tr><th>Load</th><td>{load_text}</td></tr>

@@ -45,6 +45,75 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+# ── Phoenix-72 v5 wiring (2026-10-17) ────────────────────────────────────────
+# The v5 remember handler writes through vector_store, not memory_store.store.
+# These helpers attach the existing Phoenix cooling contract to governed
+# records without changing the L4 write and without overwriting caller fields.
+PHOENIX_FIELDS: tuple[str, ...] = (
+    "phoenix_id",
+    "phoenix_state",
+    "phoenix_cooldown_expiry",
+    "phoenix_psi_utility",
+    "phoenix_tri_witness",
+    "phoenix_anti_hantu_flag",
+)
+
+
+def build_phoenix_metadata(
+    *,
+    memory_id: str,
+    content: Any,
+    mode: str,
+    tags: list[str] | None,
+    actor_id: str | None,
+    session_id: str | None,
+    summary: str | None,
+    tier: str | None,
+    provenance: dict[str, Any] | None,
+    quality: str,
+) -> dict[str, Any]:
+    """Return Phoenix-72 payload fields for a governed memory record.
+
+    Non-governed records return {} so the quick/transient path keeps its
+    current behaviour. phoenix_entry is pure (no I/O); any failure here must
+    never block the memory write, so callers catch and continue.
+    """
+    from arifosmcp.runtime.memory_store import QUALITY_GOVERNED
+
+    if quality != QUALITY_GOVERNED:
+        return {}
+    from arifosmcp.runtime.phoenix_72 import phoenix_entry
+
+    entry = phoenix_entry(
+        memory_id=memory_id,
+        content=content,
+        mode=mode,
+        tags=tags,
+        actor_id=actor_id,
+        session_id=session_id,
+        summary=summary,
+        tier=tier,
+        provenance=provenance,
+    )
+    return {
+        "phoenix_id": entry["phoenix_id"],
+        "phoenix_state": entry["state"],
+        "phoenix_cooldown_expiry": entry["cooldown_expiry"],
+        "phoenix_psi_utility": entry["psi_utility"],
+        "phoenix_tri_witness": entry["tri_witness"],
+        "phoenix_anti_hantu_flag": entry["anti_hantu_flag"],
+    }
+
+
+def merge_phoenix_metadata(
+    metadata: dict[str, Any], phoenix: dict[str, Any]
+) -> dict[str, Any]:
+    """Merge Phoenix fields without overwriting caller-provided values."""
+    for key, value in phoenix.items():
+        metadata.setdefault(key, value)
+    return metadata
+
+
 # ────────────────────────────────────────────────────────────────────────
 # _handle_remember — Write a candidate memory to L4 (memory_store table)
 # ────────────────────────────────────────────────────────────────────────
@@ -192,6 +261,30 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 
     # ── Insert into L4 memory_store ──
     session_id = provenance.get("session_id") or "anon"
+
+    # Phoenix-72 v5 wiring (2026-10-17): governed records carry the existing
+    # cooling contract into both L4 metadata and the L3 payload. Failure is
+    # non-fatal — a memory write must not become inconsistent because the
+    # cooling band failed.
+    _phoenix_meta: dict[str, Any] = {}
+    try:
+        _phoenix_meta = build_phoenix_metadata(
+            memory_id=memory_id,
+            content=content,
+            mode="remember",
+            tags=payload.get("tags") or [],
+            actor_id=actor_id,
+            session_id=session_id,
+            summary=summary,
+            tier=tier_hint,
+            provenance=provenance,
+            quality=quality,
+        )
+        merge_phoenix_metadata(metadata, _phoenix_meta)
+    except Exception as _phoenix_err:  # noqa: BLE001
+        logger.warning("Phoenix-72 v5 wiring skipped (non-fatal): %s", _phoenix_err)
+        _phoenix_meta = {}
+
     valid_at = _utc_now()  # NOT NULL constraint per memory_store schema
 
     # Extract constitutional fields for dedicated columns (Δ Axis 3)
@@ -252,6 +345,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                 "session_id": session_id,
                 "summary": summary,
                 "kernel_seal": True,
+                **{k: metadata[k] for k in PHOENIX_FIELDS if k in metadata},
             },
             session_id=session_id,
             actor_id=actor_id,
@@ -357,6 +451,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "operation_at": _utc_now().isoformat(),
         "constitutional_seal": _sealed,
         "constitutional": constitutional,  # Δ Axis 3: moral provenance
+        "phoenix": {k: metadata[k] for k in PHOENIX_FIELDS if k in metadata},
     }
     from arifosmcp.runtime.decision_memory import predicted_value
 

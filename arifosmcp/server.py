@@ -95,6 +95,55 @@ _log_llm_provider_health()
 import fastmcp  # noqa: E002,E402
 from fastmcp import FastMCP  # noqa: E402
 
+# ── D3: Pydantic error sanitization (R1 fix 2026-10-16) ──────────────
+# Monkey-patch FastMCP's _validate_input to sanitize Pydantic errors
+# at the source, before they propagate through the middleware/protocol layers.
+import re as _re_d3
+
+_PYDANTIC_URL_RE = _re_d3.compile(r"\s*https?://errors\.pydantic\.dev/[^\s\]]+")
+_PYDANTIC_HEADER_RE = _re_d3.compile(r"^\d+ validation error[s]? for\s+", _re_d3.MULTILINE)
+
+
+def _d3_sanitize_pydantic_error(text: str) -> str | None:
+    if "errors.pydantic.dev" not in text and "validation error" not in text.lower():
+        return None
+    cleaned = _PYDANTIC_URL_RE.sub("", text)
+    cleaned = _PYDANTIC_HEADER_RE.sub("", cleaned)
+    lines = [ln.strip() for ln in cleaned.strip().splitlines() if ln.strip()]
+    errors = []
+    current_field = None
+    for line in lines:
+        if line.startswith("Input should be") or line.startswith("Field required"):
+            if current_field:
+                errors.append(f"{current_field}: {line}")
+            else:
+                errors.append(line)
+        elif not line.startswith("For further") and not line.startswith("[type="):
+            current_field = line.rstrip(".")
+    if errors:
+        return "CONTRACT_VIOLATION: " + "; ".join(errors[:5])
+    return "CONTRACT_VIOLATION: invalid input types"
+
+
+try:
+    from fastmcp.tools.function_tool import _validate_input as _orig_validate_input
+
+    def _d3_wrapped_validate_input(type_adapter, value, *, strict=None):
+        try:
+            return _orig_validate_input(type_adapter, value, strict=strict)
+        except Exception as e:
+            _clean = _d3_sanitize_pydantic_error(str(e))
+            if _clean is not None:
+                raise type(e)(_clean) from e.__cause__
+            raise
+
+    import fastmcp.tools.function_tool as _ft_module
+
+    _ft_module._validate_input = _d3_wrapped_validate_input
+except Exception:
+    pass  # non-fatal: middleware has defense-in-depth
+# ── END D3 ───────────────────────────────────────────────────────────
+
 try:
     from mcp import McpError  # noqa: E402
 except ImportError:
@@ -732,6 +781,9 @@ mcp = FastMCP(
     "ARIFOS MCP",
     version=_DEPLOY_VERSION,
     website_url="https://mcp.arif-fazil.com",
+    # D3: Mask error details — prevents Pydantic vendor URLs, internal paths,
+    # and type info from leaking to external callers (R1 fix 2026-10-16).
+    mask_error_details=True,
     # MCP logging: SEP-2577 deprecated — FastMCP may still declare logging; no expansion.
     client_log_level="warning",
     # MCP spec 2026-07-28 compliance: declare listChanged + subscribe capabilities
@@ -941,6 +993,8 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
         "arif_consequence_trace",
         "arif_entropy_route",
         "arif_j_gate",
+        "arif_guard",
+        "arif_heal",
     }
     for _mesh in _MESH:
         registered_set.discard(_mesh)
@@ -2116,8 +2170,8 @@ try:
     except Exception as _surface_patch_err:
         logger.warning("Failed to patch default tools/list public facade: %s", _surface_patch_err)
 
-    # Attach middleware to MCP server (FastMCP 3.x only)
-    if IS_FASTMCP_3:
+    # Attach middleware to MCP server (FastMCP 3.x+ — on_call_tool hook)
+    if IS_FASTMCP_3 or fastmcp.__version__.startswith("4"):
         mcp.add_middleware(_ingress_middleware)  # pyright: ignore[reportArgumentType]
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 

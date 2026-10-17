@@ -60,7 +60,8 @@ FIRST STEPS FOR AN LLM CLIENT:
        777 FORGE  → execute
        999 SEAL   → record immutably
 
-  3. KNOW YOUR TOOLS (8 canonical — capability_registry.json):
+  3. KNOW YOUR TOOLS (run tools/list — counts live in arifos://index, never
+     hardcoded here):
      arif_init        — session bootstrap
      arif_observe     — multimodal observation
      arif_think       — symbolic reasoning + critique (critique mode absorbed)
@@ -70,7 +71,15 @@ FIRST STEPS FOR AN LLM CLIENT:
      arif_forge       — execution (A-FORGE proxy) + compose (compose mode absorbed)
      arif_seal        — immutable VAULT999 ledger write
 
-  4. KNOW YOUR RESOURCES (13 canonical):
+     SURFACE PROFILE (why counts differ by client):
+       public_agent / trusted_agent → 6 verbs (init, observe, think, route,
+         memory, judge) — no forge, no seal
+       executor → 7 (adds forge)
+       sovereign / operator / legacy → 8 (adds seal)
+     A client that reports 6 tools is on the public profile, not a broken
+     server. Request the profile that matches the authority you were granted.
+
+  4. KNOW YOUR RESOURCES (run resources/list — counts live in arifos://index):
      arifos://doctrine         — F1-F13 constitutional floors
      arifos://trinity          — AAA lane definitions
      arifos://schema           — complete MCP blueprint
@@ -83,17 +92,22 @@ FIRST STEPS FOR AN LLM CLIENT:
      arifos://bootstrap        — full knowledge-graph context
      arifos://human/metabolized — compact sovereign context
      arifos://loop-engineering — 7-stage reality loop
-     arifos://skills-catalog   — all available skills
+     arifos://atlas333/index   — 33 human paradoxes, 7 zones
 
-  5. KNOW YOUR PROMPTS (8 registered):
-     arifosmcp_loop_engineer — entry guard / intent classifier
-     arifosmcp_000_init      — anchor identity
-     arifosmcp_111_sense     — observe
-     arifosmcp_333_reason    — plan
-     arifosmcp_555_judge     — verdict
-     arifosmcp_666_critique  — consequence
-     arifosmcp_777_forge     — execute
-     arifosmcp_999_seal      — record
+  5. KNOW YOUR PROMPTS (run prompts/list — counts live in arifos://index):
+     000 🌱 IGNITE    — Position Zero sovereign anchor
+     111 🌊 SENSE     — Reality before judgment
+     222 🏛 PLAN      — Design reality change
+     333 🧠 REASON    — Structured reasoning
+     444 🧭 DIRECT    — Route to correct organ
+     555 🗂 REMEMBER  — Memory with provenance
+     666 ⚖ DIGNITY   — Weakest stakeholder position
+     777 🔥 FORGE     — Reality contact before belief
+     888 🔒 JUDGE     — Verdict, not invention
+     999 💎 SEAL      — Immutable record
+     🌀 GOVERN       — Full loop + 4 gates
+     ⚓ INIT         — Collapsed ignition
+     🔐 CLOSE        — Session close ritual
 
 KEY CONSTITUTIONAL RULES:
   F1  AMANAH    — Reversible first. Irreversible → 888_HOLD.
