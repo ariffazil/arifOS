@@ -15785,6 +15785,20 @@ async def _arif_mind_reason_tool(
                     # never borrow a constitutional verdict token as its fallback.
                     "reasoning_verdict": synthesis.get("verdict", "REASONED"),
                     "evidence_used": synthesis.get("what_is_supported", []),
+                    # Handoff visibility (2026-10-17): prove whether the
+                    # session's observations actually reached this reasoning
+                    # pass, instead of leaving it to inference.
+                    "evidence_count": len(_active_evidence or []),
+                    "evidence_sources": [
+                        str(
+                            (e or {}).get("source")
+                            or (e or {}).get("url")
+                            or (e or {}).get("mode")
+                            or "observation"
+                        )
+                        for e in (_active_evidence or [])[:10]
+                        if isinstance(e, dict)
+                    ],
                     "inferences": synthesis.get(
                         "inferences", synthesis.get("what_is_supported", [])
                     ),
