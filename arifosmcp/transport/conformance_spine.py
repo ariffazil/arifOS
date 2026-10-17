@@ -748,7 +748,7 @@ def check_cooling_ledger() -> dict[str, Any]:
     """9. Combined Cooling+Ledger tripwire — VAULT999 attested + WELL ΔS live.
 
     Probes:
-      A) VAULT999 API (port 8100) — /vault/status for seal count, chain integrity
+      A) VAULT999 API (port 5001) — /vault/status for seal count, chain integrity
       B) VAULT999 API — /health for service liveness
       C) Recent vault entries for WELL entropy seals (well_entropy_seal action)
 
@@ -766,7 +766,7 @@ def check_cooling_ledger() -> dict[str, Any]:
     api_t0 = time.monotonic()
     try:
         req = urllib.request.Request(
-            "http://127.0.0.1:8100/health",
+            "http://127.0.0.1:5001/health",
             headers={"Accept": "application/json"},
         )
         resp = urllib.request.urlopen(req, timeout=10)
@@ -780,7 +780,7 @@ def check_cooling_ledger() -> dict[str, Any]:
     # ── Probe B: vault status (seal count, chain integrity) ──────────────
     try:
         req = urllib.request.Request(
-            "http://127.0.0.1:8100/vault/status",
+            "http://127.0.0.1:5001/vault/status",
             headers={"Accept": "application/json"},
         )
         resp = urllib.request.urlopen(req, timeout=10)
@@ -795,12 +795,12 @@ def check_cooling_ledger() -> dict[str, Any]:
     api_latency_ms = round((time.monotonic() - api_t0) * 1000, 1)
 
     # ── Probe C: query VAULT999 API for WELL entropy seals ─────────────
-    # The Postgres-backed VAULT999 API (port 8100) is the canonical source,
+    # The Postgres-backed VAULT999 API (port 5001) is the canonical source,
     # not the file-based /root/VAULT999/ path. WELL entropy seals land here.
     query_t0 = time.monotonic()
     try:
         req = urllib.request.Request(
-            "http://127.0.0.1:8100/vault/status",
+            "http://127.0.0.1:5001/vault/status",
             headers={"Accept": "application/json"},
         )
         resp = urllib.request.urlopen(req, timeout=10)
