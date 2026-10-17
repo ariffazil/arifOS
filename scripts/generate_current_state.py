@@ -137,7 +137,9 @@ def render_block(state: dict) -> str:
             f"**Runtime self-measurement** (`{s['probe']}`): kernel **{s['status']}** · "
             f"floors **{s['floors_pass']}/{s['floors_target']} measured pass**"
             f"{f' · failing: {", ".join(s["floors_failing"])}' if s['floors_failing'] else ''} · "
-            f"vault999 {s['vault999']} · release `{s['release_id']}` · drift `{'aligned' if s['drift'] is False else 'DRIFT'}` · "
+            f"vault999 {s['vault999']} · release `{s['release_id']}` · "
+            f"drift `{'aligned' if s['drift'] is False else 'DRIFT'}`"
+            f"{' (source=built=deployed)' if s['drift'] is False else ''} · "
             f"tools exposed {s['tools_exposed']}. Per-floor provenance: `state/current-state.json`."
         )
     audit_line = (
