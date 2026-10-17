@@ -6404,6 +6404,8 @@ def _enforce_nine_signal(
         _stamp_arif_init_deterministic(enforced)
         # Final pass: stamp must never re-green a drifted substrate
     # Observation caching for seamless observe -> judge pre-flight
+    # NOTE: Primary caching now happens inside _arif_sense_observe via
+    # _cache_obs_result(). This wrapper path is a secondary fallback.
     if (
         tool_name in ("arif_observe", "arif_sense_observe")
         and session_id
@@ -12437,11 +12439,7 @@ def _read_mcp_resource_text(uri: str) -> dict[str, Any]:
             else:
                 contents = getattr(result, "contents", None) or []
                 first = contents[0] if contents else result
-                text = (
-                    getattr(first, "text", None)
-                    or getattr(first, "content", None)
-                    or str(first)
-                )
+                text = getattr(first, "text", None) or getattr(first, "content", None) or str(first)
         except Exception as exc:  # noqa: BLE001
             return {"error": f"RESOURCE_READ_FAILED: {type(exc).__name__}: {exc}"}
     return {
@@ -12450,6 +12448,22 @@ def _read_mcp_resource_text(uri: str) -> dict[str, Any]:
         "mime_type": getattr(comp, "mime_type", None),
         "source": "mcp_resource_registry",
     }
+
+
+def _cache_obs_result(session_id: str | None, result: dict[str, Any]) -> None:
+    """Store observation in session for evidence handoff to arif_think.
+
+    Called from _arif_sense_observe at every _ok() return path.
+    Bypasses _wrap_handler (which FastMCP may not call) by caching
+    directly inside the handler.
+    """
+    if not session_id or session_id not in _SESSIONS:
+        return
+    try:
+        _SESSIONS[session_id]["last_observation"] = result
+        _SESSIONS[session_id].setdefault("observations", []).append(result)
+    except Exception:
+        pass  # never break observe for caching
 
 
 def _arif_sense_observe(
@@ -12505,9 +12519,8 @@ def _arif_sense_observe(
     if mode == "fetch" and _bridge_uri.startswith("arifos://"):
         _bridge = _read_mcp_resource_text(_bridge_uri)
         if "error" in _bridge:
-            return _hold(
-                "arif_sense_observe", _bridge["error"], ["F2"], session_id=session_id
-            )
+            return _hold("arif_sense_observe", _bridge["error"], ["F2"], session_id=session_id)
+        _cache_obs_result(session_id, _bridge)
         return _ok("arif_sense_observe", _bridge, session_id=session_id)
 
     # ── Mode normalization ────────────────────────────────────────────────────
@@ -13210,6 +13223,7 @@ def _arif_sense_observe(
                     "doctrine": "DITEMPA BUKAN DIBERI",
                 },
             }
+            _cache_obs_result(session_id, _payload)
             return _ok("arif_sense_observe", _payload, delta_S=-0.01)
         except Exception as _e:
             return _ok(
@@ -13491,6 +13505,7 @@ def _arif_sense_observe(
                     payload["invite_only"] = True
                     payload["invite_url"] = bridge_result.get("invite_url")
                     payload["note"] = bridge_result.get("note")
+                _cache_obs_result(session_id, payload)
                 return _ok("arif_sense_observe", payload, delta_S=0.005)
 
             # Success path — carry the bridge's epistemic stamp.
@@ -13525,6 +13540,7 @@ def _arif_sense_observe(
             else:  # tavily_map
                 payload["urls"] = bridge_result.get("urls", [])
 
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.005)
         except Exception as exc:
             logger.error("arif_sense_observe %s failed: %s", mode, exc)
@@ -13564,6 +13580,7 @@ def _arif_sense_observe(
                 }
                 if bridge_result.get("error_code"):
                     payload["error_code"] = bridge_result["error_code"]
+                _cache_obs_result(session_id, payload)
                 return _ok("arif_sense_observe", payload, delta_S=0.01)
 
             inner = bridge_result.get("result", {})
@@ -13589,6 +13606,7 @@ def _arif_sense_observe(
                 payload["search_id"] = bridge_result.get("search_id")
                 payload["search_results"] = bridge_result.get("search_results", [])
 
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.01)
         except Exception as exc:
             logger.error("arif_sense_observe %s gptr bridge failed: %s", mode, exc)
@@ -13647,6 +13665,7 @@ def _arif_sense_observe(
                         floors=["L13"],
                         session_id=session_id,
                     )
+                _cache_obs_result(session_id, payload)
                 return _ok("arif_sense_observe", payload, delta_S=0.005)
 
             payload = {
@@ -13658,6 +13677,7 @@ def _arif_sense_observe(
                     k: v for k, v in bridge_result.items() if k not in {"status", "verdict"}
                 },
             }
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.005)
         except Exception as exc:
             logger.error("arif_sense_observe %s skyll bridge failed: %s", mode, exc)
@@ -13730,6 +13750,7 @@ def _arif_sense_observe(
                 payload["expired"] = bridge_result.get("expired", [])
             if bridge_result.get("deleted") is not None:
                 payload["deleted"] = bridge_result["deleted"]
+            _cache_obs_result(session_id, payload)
             return _ok("arif_sense_observe", payload, delta_S=0.01)
         except Exception as exc:
             logger.error("arif_sense_observe %s tovana failed: %s", mode, exc)
@@ -15629,6 +15650,7 @@ async def _arif_mind_reason_tool(
     ctx: Context | None = None,
     concise: bool = True,
 ) -> dict[str, Any]:
+
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
 
@@ -15727,8 +15749,18 @@ async def _arif_mind_reason_tool(
             _active_evidence = None
             try:
                 _sid_local = locals().get("session_id") or globals().get("_CURRENT_SESSION_ID")
+                import logging as _dbg_log2
+
+                _dbg_log2.warning(
+                    _sid_local,
+                    type(_sid_local).__name__,
+                    _sid_local in _SESSIONS if _sid_local else False,
+                )
                 if _sid_local and _sid_local in _SESSIONS:
                     _active_evidence = _SESSIONS[_sid_local].get("observations") or None
+                    _dbg_log2.warning(
+                        len(_SESSIONS[_sid_local].get("observations", [])),
+                    )
             except Exception:
                 _active_evidence = None  # never let evidence lookup break the think path
             synthesis = await asyncio.wait_for(
@@ -28293,6 +28325,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
 
         # INPUT CONTRACT — cheapest, most actionable check runs first.
