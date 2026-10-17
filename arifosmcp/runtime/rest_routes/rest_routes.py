@@ -774,6 +774,60 @@ _FLOOR_STATUS_UNMEASURED = "unmeasured"
 _FLOOR_STATUS_PASS = "pass"
 _FLOOR_STATUS_FAIL = "fail"
 
+# FLR-005 (2026-10-17): canonical floor ids and alias normalizer.
+# LAW_SPEC_KEYS stores 10-13 under the L-prefix while producers emit F10-F13.
+# Publishing both inflated the denominator (16 entries for 13 floors) and
+# double-counted passes. The normalizer is strictly structural: no threshold,
+# comparator or floor semantics change.
+_CANONICAL_FLOOR_IDS: tuple[str, ...] = tuple(f"F{i}" for i in range(1, 14))
+
+_LEGACY_FLOOR_ALIASES: dict[str, str] = {f"L{i}": f"F{i}" for i in (10, 11, 12, 13)}
+
+
+def _normalize_floors_to_canonical(
+    floors: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any], set[str]]:
+    """Collapse L10-L13 aliases into F10-F13 and drop unknown keys.
+
+    Returns (scores, provenance, contradictions).
+    - canonical value wins when alias and canonical agree;
+    - disagreeing alias -> F-id set to None, provenance
+      ``floor_alias_contradiction``, id added to contradictions (fail-closed);
+    - unknown names (F14, NOT_A_FLOOR) are dropped, never minted.
+    """
+    prov_in = dict(provenance or {})
+    scores: dict[str, Any] = {}
+    prov: dict[str, Any] = {}
+    contradictions: set[str] = set()
+
+    for fid in _CANONICAL_FLOOR_IDS:
+        if fid in floors:
+            scores[fid] = floors[fid]
+
+    for lid, fid in _LEGACY_FLOOR_ALIASES.items():
+        if lid not in floors:
+            continue
+        legacy_value = floors[lid]
+        if fid in scores:
+            if scores[fid] == legacy_value:
+                if fid not in prov and lid in prov_in:
+                    prov[fid] = prov_in[lid]
+                continue
+            contradictions.add(fid)
+            prov[fid] = "floor_alias_contradiction"
+            scores[fid] = None
+            continue
+        scores[fid] = legacy_value
+        if lid in prov_in:
+            prov[fid] = prov_in[lid]
+
+    for fid in _CANONICAL_FLOOR_IDS:
+        if fid in scores and fid not in prov and fid not in contradictions and fid in prov_in:
+            prov[fid] = prov_in[fid]
+
+    return scores, prov, contradictions
+
 
 def _phi_fq_from_quotient(quotient: float) -> float:
     """FLR-F1-FQ v2 (F13 'pilih A', 2026-10-10): φFQ aligned to the ratified
@@ -919,6 +973,11 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
     _prov = str(provenance or "")
     if _prov.startswith("unmeasured_default"):
         return _FLOOR_STATUS_UNMEASURED
+    # FLR-005 (2026-10-17): an alias that contradicts its canonical floor is a
+    # measured conflict, not an evidence gap. Fail closed, never pass, never
+    # silently reconciled.
+    if _prov == "floor_alias_contradiction":
+        return _FLOOR_STATUS_FAIL
 
     # ── FLR-003b (2026-10-10): a producer's verdict must survive the reducer ──
     # The producer's STATUS is real evidence; the numeric score carrying it is
@@ -1570,6 +1629,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
         _log.getLogger(__name__).warning("APEX scalars unavailable: %s", _apex_exc)
         for scalar in ("G", "C_dark", "W3", "h", "QDF"):
             apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
+
+    # FLR-005 (2026-10-17): publish exactly the canonical 13-floor set.
+    # L10-L13 aliases collapse into F10-F13 and unknown keys never mint floors.
+    resolved_floors, floor_provenance, _floor_alias_contradictions = (
+        _normalize_floors_to_canonical(resolved_floors, floor_provenance)
+    )
 
     return {
         "telemetry": resolved_telemetry,

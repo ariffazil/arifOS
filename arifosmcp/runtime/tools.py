@@ -7162,12 +7162,12 @@ async def _synthesize_async(
         call_llm,
     )
 
-    # ARIF_THINK_TIMEOUT_S (updated 2026-10-17, E5): 9s wall-clock cap so a
-    # standard think call returns inside the 10s budget. Slow reasoning falls
-    # back to the deterministic template rather than blocking the caller.
+    # ARIF_THINK_TIMEOUT_S (revised 2026-10-17, grounded test): 20s ceiling.
+    # The 9s budget cut long constitutional queries into template fallback.
+    # Standard queries still return in 1-5s; long ones are allowed to finish.
     import asyncio as _asyncio
 
-    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "9.0"))
+    _ARIF_THINK_TIMEOUT_S = float(os.getenv("ARIF_THINK_TIMEOUT_S", "20.0"))
 
     system_prompt = (
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
@@ -15719,8 +15719,8 @@ async def _arif_mind_reason_tool(
         # which already wraps call_llm with the correct constitutional prompt and schema.
         try:
             # P0 2026-08-09 G3 / 2026-10-17 E5: outer budget must match
-            # ARIF_THINK_TIMEOUT_S (default 9s — inside the 10s UX budget).
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "9.0"))
+            # ARIF_THINK_TIMEOUT_S (revised 2026-10-17, grounded test): 20s.
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "20.0"))
             # P0 FIX 2026-09-27 (composition continuity): thread session observations
             # into the synthesis prompt so THINK output can ground claims in
             # OBSERVE evidence rather than fabricating references.
@@ -15835,7 +15835,7 @@ async def _arif_mind_reason_tool(
                     "next_safe_action": ["Proceed to arif_judge or arif_forge with evidence hash"],
                 }
         except TimeoutError:
-            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "35.0"))
+            _think_budget_s = float(os.getenv("ARIF_THINK_TIMEOUT_S", "20.0"))
             logger.warning(
                 "333_MIND timeout after %.1fs — degraded substance fallback (not SAFE_VOID)",
                 _think_budget_s,
@@ -29279,12 +29279,14 @@ def register_tools(
     # ── E2 (2026-10-17): diagnostic tools — additive to the ratified 8 ─────
     # arif_heal / arif_guard are read-only inspectors. They do NOT enter
     # CANONICAL_TOOLS or the ABI contract; the sovereign 8-verb facade is
-    # untouched. Set ARIFOS_ENABLE_HEAL_GUARD=0 to hide them.
-    if os.environ.get("ARIFOS_ENABLE_HEAL_GUARD", "1").strip().lower() not in {
-        "0",
-        "false",
-        "no",
-        "off",
+    # untouched. Opt-in only: the kernel's surface-drift guard asserts the
+    # ratified 8, so registration must be explicitly enabled
+    # (ARIFOS_ENABLE_HEAL_GUARD=1) after the contract is extended.
+    if os.environ.get("ARIFOS_ENABLE_HEAL_GUARD", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
     }:
         try:
             from arifosmcp.tools.guard import arif_guard as _arif_guard_fn

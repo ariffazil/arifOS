@@ -71,6 +71,14 @@ FIRST STEPS FOR AN LLM CLIENT:
      arif_forge       — execution (A-FORGE proxy) + compose (compose mode absorbed)
      arif_seal        — immutable VAULT999 ledger write
 
+     SURFACE PROFILE (why counts differ by client):
+       public_agent / trusted_agent → 6 verbs (init, observe, think, route,
+         memory, judge) — no forge, no seal
+       executor → 7 (adds forge)
+       sovereign / operator / legacy → 8 (adds seal)
+     A client that reports 6 tools is on the public profile, not a broken
+     server. Request the profile that matches the authority you were granted.
+
   4. KNOW YOUR RESOURCES (run resources/list — counts live in arifos://index):
      arifos://doctrine         — F1-F13 constitutional floors
      arifos://trinity          — AAA lane definitions
