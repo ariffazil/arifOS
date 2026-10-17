@@ -146,6 +146,7 @@ def test_apply_writes_only_state_and_stamp():
             dry_run=False,
             client=qc,
             collection="arifos_memory",
+            point_ids=["11111111-1111-1111-1111-111111111111"],
         )
     )
     assert out["transitions_applied"] == 1
@@ -159,11 +160,16 @@ def test_second_pass_is_idempotent():
 
     qc = _FakeQdrant([_point()])
     now = EXPIRY + timedelta(seconds=1)
-    first = asyncio.run(evaluate_cooling(now=now, dry_run=False, client=qc))
+    allow = ["11111111-1111-1111-1111-111111111111"]
+    first = asyncio.run(
+        evaluate_cooling(now=now, dry_run=False, client=qc, point_ids=allow)
+    )
     assert first["transitions_applied"] == 1
     # Simulate the store now holding the applied state.
     qc.points = [_point(state="void")]
-    second = asyncio.run(evaluate_cooling(now=now, dry_run=False, client=qc))
+    second = asyncio.run(
+        evaluate_cooling(now=now, dry_run=False, client=qc, point_ids=allow)
+    )
     assert second["transitions_planned"] == 0
     assert second["transitions_applied"] == 0
     assert len(qc.writes) == 1
@@ -190,3 +196,89 @@ def test_point_ids_scope_excludes_other_records():
     assert out["scanned"] == 1
     assert out["transitions_applied"] == 1
     assert qc.writes[0]["points"] == ["aaaaaaaa-0000-0000-0000-000000000001"]
+
+
+# ── safety floor (2026-10-17 emergency stabilization) ───────────────────────
+
+
+def test_apply_without_allowlist_is_refused():
+    import asyncio
+
+    qc = _FakeQdrant([_point()])
+    out = asyncio.run(
+        evaluate_cooling(now=EXPIRY + timedelta(seconds=1), dry_run=False, client=qc)
+    )
+    assert out["ok"] is False
+    assert out["transitions_applied"] == 0
+    assert out["scanned"] == 0
+    assert "allowlist" in out["errors"][0]
+    assert qc.writes == []
+
+
+def test_empty_allowlist_mutates_nothing():
+    import asyncio
+
+    qc = _FakeQdrant([_point()])
+    out = asyncio.run(
+        evaluate_cooling(
+            now=EXPIRY + timedelta(seconds=1), dry_run=False, client=qc, point_ids=[]
+        )
+    )
+    assert out["transitions_applied"] == 0
+    assert qc.writes == []
+
+
+def test_dry_run_without_allowlist_may_report():
+    """Production-wide scanning is allowed for reporting, never for writing."""
+    import asyncio
+
+    qc = _FakeQdrant([_point()])
+    out = asyncio.run(evaluate_cooling(now=EXPIRY + timedelta(seconds=1), dry_run=True, client=qc))
+    assert out["mode"] == "dry_run"
+    assert out["phoenix_records"] == 1
+    assert out["transitions_applied"] == 0
+    assert qc.writes == []
+
+
+def test_malformed_expiry_is_reported_not_raised():
+    import asyncio
+
+    bad = _point()
+    bad.payload["phoenix_cooldown_expiry"] = "not-a-timestamp"
+    qc = _FakeQdrant([bad])
+    out = asyncio.run(
+        evaluate_cooling(
+            now=EXPIRY,
+            dry_run=False,
+            client=qc,
+            point_ids=[bad.id],
+        )
+    )
+    assert out["transitions_applied"] == 0
+    assert out["plan"][0]["error"] == "MALFORMED_RECORD"
+    assert out["plan"][0]["changed"] is False
+    assert qc.writes == []
+
+
+def test_qdrant_write_failure_reported_and_pg_skipped():
+    import asyncio
+
+    class _FailingQdrant(_FakeQdrant):
+        def set_payload(self, **kwargs):
+            raise RuntimeError("qdrant write refused")
+
+    qc = _FailingQdrant([_point()])
+    out = asyncio.run(
+        evaluate_cooling(
+            now=EXPIRY + timedelta(seconds=1),
+            dry_run=False,
+            client=qc,
+            point_ids=["11111111-1111-1111-1111-111111111111"],
+            pg_dsn="postgresql://invalid:invalid@127.0.0.1:1/none",
+        )
+    )
+    assert out["ok"] is False
+    assert out["transitions_applied"] == 0
+    assert out["pg_synced"] == 0
+    assert any("qdrant write failed" in e for e in out["errors"])
+    assert not any("pg sync failed" in e for e in out["errors"])

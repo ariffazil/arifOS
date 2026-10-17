@@ -92,8 +92,25 @@ def plan_transitions(
         old_state = entry["state"]
         if old_state in TERMINAL_STATES:
             continue
-        new_state, reason = evaluate_promotion(entry, now=now)
         metadata = payload.get("metadata") or {}
+        try:
+            new_state, reason = evaluate_promotion(entry, now=now)
+        except Exception as exc:  # noqa: BLE001 — a malformed record must not
+            # abort the scan; it is reported per-point and never transitioned.
+            plan.append(
+                {
+                    "point_id": str(getattr(point, "id", "")),
+                    "memory_id": metadata.get("memory_id") or payload.get("memory_id"),
+                    "phoenix_id": entry.get("phoenix_id"),
+                    "old_state": old_state,
+                    "new_state": None,
+                    "reason": f"unevaluable: {exc}",
+                    "changed": False,
+                    "new_state_valid": False,
+                    "error": "MALFORMED_RECORD",
+                }
+            )
+            continue
         plan.append(
             {
                 "point_id": str(getattr(point, "id", "")),
@@ -134,7 +151,9 @@ async def evaluate_cooling(
     live client from ``vector_memory_qdrant`` is used.
     With ``pg_dsn`` set, the decided state is mirrored into the L4 row.
     ``point_ids`` restricts evaluation to an explicit set of points — the
-    bounded canary path. ``None`` means every open record.
+    bounded canary path. ``None`` means every open record, which is allowed
+    for reporting (dry-run) but refused for mutation: an apply without an
+    allowlist mutates zero records.
     """
     import os
 
@@ -145,6 +164,28 @@ async def evaluate_cooling(
 
     now = now or datetime.now(UTC)
     coll = collection or _QDRANT_COLLECTION
+
+    # Safety floor (2026-10-17, emergency stabilization): an apply is only
+    # legal with an explicit, non-empty allowlist. Missing or empty means
+    # zero live records are touched — no scan-write over production.
+    if not dry_run and not point_ids:
+        return {
+            "ok": False,
+            "mode": "apply",
+            "evaluated_at": now.isoformat(),
+            "collection": coll,
+            "scanned": 0,
+            "phoenix_records": 0,
+            "transitions_planned": 0,
+            "transitions_applied": 0,
+            "pg_synced": 0,
+            "plan": [],
+            "errors": [
+                "REFUSED: apply requires an explicit non-empty point_ids allowlist; "
+                "zero live records mutated"
+            ],
+        }
+
     qc = client or _get_qdrant_client()
 
     points, _offset = qc.scroll(
