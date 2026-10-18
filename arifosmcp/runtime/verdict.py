@@ -37,6 +37,11 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
+from arifosmcp.runtime.health_truth import (
+    FLOOR_SCOPE_TOOL_CALL,
+    floor_truth,
+)
+
 # ── Nine-Signal wiring (P0 schema-fix 2026-08-17) ─────────────────────────────
 # The hardening EUREKAS (F2 addendum + L10 ONTOLOGY) require every kernel
 # response to carry `output_policy` and `nine_signal.overall.{state,en}`.
@@ -437,18 +442,32 @@ def attach_effective_verdict(
         # STAB-2026-08-08j: FLOOR_HONESTY.
         # floor_passed is now a genuine sensor: None = unmeasured,
         # True = floors measured and passed, False = floors failed.
-        # If no floors were checked (_ff empty AND no nine_signal floor data),
-        # floor_passed = None — honest absence, not silent True/False.
-        _floors_actually_checked = bool(_ff)
-        if _floors_actually_checked:
-            cc["floor_passed"] = False  # if we got here, floors DID fail
-        elif _has_hold and not _ff:
-            # HOLD without specific floor failures = unmeasured
-            cc["floor_passed"] = None
+        #
+        # T1 (2026-10-18): the old rule was `_floors_actually_checked =
+        # bool(_ff)`, i.e. "we measured the floors" meant "we found a
+        # failure". A clean call could therefore never report a measured
+        # PASS, and /health (which counts passes) could never agree with
+        # this writer. The mapping now lives in health_truth.floor_truth()
+        # and is shared with /health.
+        _floor_detail = cc.get("floors_detail")
+        if not isinstance(_floor_detail, dict) or not _floor_detail:
+            _res_obj = response.get("result")
+            _floor_detail = _res_obj.get("floors_detail") if isinstance(_res_obj, dict) else None
+        _floors_total = cc.get("floors_total") or cc.get("floors_active") or 13
+        if _ff:
+            # A measured failure dominates any pass count in the same payload.
+            cc["floor_passed"] = False
+            cc["_floor_measurement"] = "measured"
+        elif isinstance(_floor_detail, dict) and _floor_detail:
+            _truth = floor_truth(_floor_detail, int(_floors_total))
+            cc["floor_passed"] = _truth.floor_passed
+            cc["_floor_measurement"] = _truth.measurement
         else:
-            # No hold, no failed floors, but also no measured floors
-            cc["floor_passed"] = None  # not measured, not assumed
-        cc["_floor_measurement"] = "measured" if _floors_actually_checked else "unmeasured"
+            # No hold cause, no failed floors, and no floor instrument on this
+            # call: honest absence, not an assumed True.
+            cc["floor_passed"] = None
+            cc["_floor_measurement"] = "unmeasured"
+        cc["floor_scope"] = FLOOR_SCOPE_TOOL_CALL
         cc["hold_required"] = _has_hold
         cc["failed_floors"] = list(_ff) if _ff else cc.get("failed_floors", [])
         if _has_hold and not cc.get("hold_reason"):
