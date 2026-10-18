@@ -29,11 +29,11 @@ already asserts the correct invariant, but it runs with no HTTP context, so
 `auto_sign_allowed()` is False → the name-only elevation branch is skipped and
 the test passes while production is open.
 
-These tests therefore reproduce the LIVE configuration, not the test-harness
-configuration:
+These tests therefore verify against adversarial configurations, ensuring
+identity proof cannot be bypassed:
 
-  * `ARIFOS_TRUST_AUTO_SIGN_UNKNOWN=1` — set in the live arifos.service env
-    (measured via /proc/<MainPID>/environ).
+  * `ARIFOS_TRUST_AUTO_SIGN_UNKNOWN` is removed from the live arifos.service env;
+    these tests verify that identity proof does not depend on it.
   * `request_trust == LOCAL_LOOPBACK` — measured listener topology on KVM8:
 
         LISTEN 100.64.0.2:8088  tailscaled

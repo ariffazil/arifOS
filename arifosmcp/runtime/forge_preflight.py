@@ -37,6 +37,10 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# G6 scar store. fail-closed: a store that cannot be read is UNKNOWN,
+# never "no scars". Overridable in tests via monkeypatch.
+SCAR_DB_PATH = Path("/opt/arifos/app/static/scar.json")
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE 1 — Session Token Validation
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -888,6 +892,8 @@ def stage_12_execution_or_hold(
     plan_bound = stage_results.get("plan_manifest_bound", True)
     ack_valid = stage_results.get("human_ack_valid", True)
     replay = stage_results.get("replay_detected", False)
+    # G6: scar consultation must have actually happened (fail-closed default).
+    scar_consulted = stage_results.get("scar_consulted", False)
     # P1: Ed25519 forge gate
     ed25519_verified = stage_results.get("ed25519_verified", True)
     # RASA DERITA Phase 3
@@ -942,6 +948,11 @@ def stage_12_execution_or_hold(
 
     if not ack_valid:
         reasons.append("E_PREFLIGHT_FINAL_HOLD:ack_invalid")
+        return "HOLD", reasons
+
+    # G6: an unreadable scar store is UNKNOWN, not "no scars" — fail closed.
+    if not scar_consulted:
+        reasons.append("E_PREFLIGHT_FINAL_HOLD:scar_not_consulted")
         return "HOLD", reasons
 
     # P1: Ed25519 forge gate failure → HOLD
@@ -1137,24 +1148,49 @@ def g6_consult_scar(
     """
     G6 fix: Consult scar database before execution.
 
-    Loads scar records /opt/arifos/app/static/scar.json and checks
-    whether the proposed operation matches any known failure patterns.
+    Loads scar records from SCAR_DB_PATH and checks whether the proposed
+    operation matches any known failure patterns.
 
     Returns:
         (scar_consulted, scars_found, reason_codes)
+
+    fail-closed: `scar_consulted=False` means consultation COULD NOT be
+    performed (store missing, malformed, or unreadable). "Consulted, no
+    match" is `(True, [], [])`. An unreadable store is UNKNOWN — never
+    clean — because silence there re-buys a lesson already paid for.
     """
     reasons: list[str] = []
     scars_found: list[dict[str, Any]] = []
 
-    try:
-        scar_path = Path("/opt/arifos/app/static/scar.json")
-        if not scar_path.exists():
-            # Scar file not deployed — not a blocking issue
-            return True, scars_found, reasons
+    def _unavailable(
+        code: str, detail: str
+    ) -> tuple[bool, list[dict[str, Any]], list[str]]:
+        reasons.append(f"{code}:{detail}")
+        scars_found.append(
+            {
+                "id": "SCAR_STORE_UNAVAILABLE",
+                "name": "Scar store unavailable",
+                "description": detail,
+                "severity": "CRITICAL",
+                "matched_on": "store_unavailable",
+            }
+        )
+        return False, scars_found, reasons
 
-        scar_db = json.loads(scar_path.read_text(encoding="utf-8"))
+    try:
+        if not SCAR_DB_PATH.exists():
+            return _unavailable(
+                "E_PREFLIGHT_G6_SCAR_STORE_MISSING",
+                f"scar store absent at {SCAR_DB_PATH}",
+            )
+
+        scar_db = json.loads(SCAR_DB_PATH.read_text(encoding="utf-8"))
         if not isinstance(scar_db, list):
-            return True, scars_found, reasons
+            return _unavailable(
+                "E_PREFLIGHT_G6_SCAR_STORE_MALFORMED",
+                f"scar store at {SCAR_DB_PATH} parsed as "
+                f"{type(scar_db).__name__}, expected list",
+            )
 
         candidate_norm = f"{forge_mode}:{manifest}".lower()
         for scar in scar_db:
@@ -1189,8 +1225,7 @@ def g6_consult_scar(
         return True, scars_found, reasons
 
     except Exception as e:
-        reasons.append(f"E_PREFLIGHT_G6_SCAR_ERROR:{e}")
-        return True, scars_found, reasons
+        return _unavailable("E_PREFLIGHT_G6_SCAR_ERROR", str(e))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
