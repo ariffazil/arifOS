@@ -2995,6 +2995,11 @@ def _compute_canonical_verdict(
         if isinstance(_rp, dict):
             _rp.setdefault("implementation", "UNMEASURED")
             _rp.setdefault("evidence_used", [])
+            # F0 fix (333-AGI 2026-10-18): carry the handler's stated reason.
+            _hmeta = _rp.get("meta") if isinstance(_rp.get("meta"), dict) else {}
+            for _k in ("reason", "failure_type", "missing_fields", "error_code"):
+                if _hmeta.get(_k):
+                    _rp.setdefault(_k, _hmeta[_k])
             # Claim-tense fix (333-AGI 2026-10-15): an empty payload is a
             # MEASUREMENT of emptiness, not a finding of non-implementation.
             # Cause may be handler-empty OR transport/concurrency drop (see
@@ -27832,9 +27837,21 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         # R3 (input-contract hardening 2026-10-15): name the missing fields
         # STRUCTURALLY, not only in prose — same truth as the message, from
         # the same single source (missing_params mirrors enforce).
+        # F0 fix (333-AGI 2026-10-18): result={} made the input-contract reason
+        # invisible — hollow_success_gate rewrote it to UNMEASURED, so
+        # arif_init(mode=init) without `intent` looked like a silent failure.
         return {
             "status": "HOLD",
-            "result": {},
+            "result": {
+                "implementation": "HOLD",
+                "reason": msg,
+                "failure_type": "MISSING_REQUIRED_INPUT",
+                "error_code": "MISSING_INPUT",
+                "missing_fields": _ic_missing(tool, kw),
+                "tool": tool,
+                "mode": kw.get("mode"),
+                "next_safe_action": "Supply the field(s) named in missing_fields, then retry.",
+            },
             "meta": {
                 "reason": msg,
                 "failure_type": "MISSING_REQUIRED_INPUT",
