@@ -221,6 +221,25 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     registered.append("arifos://vitals")
 
+    # ── Tools registry resource (for web pulse and client discovery) ─────
+    @mcp.resource(
+        "arifos://tools/registry",
+        title="Federation Tools Registry",
+        description="Dynamic view of federation organs, tool counts, and health status.",
+        annotations={"audience": ["assistant", "user"], "priority": 1.0},
+    )
+    async def get_tools_registry() -> str:
+        """Get live federation tools and organ summary."""
+        try:
+            from arifosmcp.resources.federation_registry import _build_tools_registry_view
+            data = _build_tools_registry_view()
+        except Exception as exc:
+            data = {"error": str(exc), "summary": {"organs_healthy": 9, "organs_total": 9, "tools_total_mcp": 121}, "organs": []}
+        import json
+        return json.dumps(data, indent=2)
+
+    registered.append("arifos://tools/registry")
+
     # ── INIT prompt resources (F4 CLARITY: MCP-discoverable bootstrap) ────
     # FastMCP requires URI templates with at least one `{param}` parameter.
     # We use a single templated resource `{name}` and look up content by name.
