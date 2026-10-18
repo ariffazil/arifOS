@@ -2946,6 +2946,37 @@ def _compute_schema_hash(mcp: Any, tool_registry: dict[str, Callable]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
+def _read_deploy_provenance() -> dict[str, str]:
+    """Read live deploy receipt from /opt/arifos/current/receipts/latest.json.
+
+    BUILD_INFO answers "what was compiled?"; receipt answers "what is running?".
+    Two questions, two field families.
+    """
+    receipt_path = Path(
+        os.getenv("ARIFOS_DEPLOY_RECEIPT_PATH", "/opt/arifos/current/receipts/latest.json")
+    )
+    try:
+        if receipt_path.is_file():
+            data = json.loads(receipt_path.read_text(encoding="utf-8"))
+            return {
+                "deployed_commit": str(data.get("commit_sha") or "UNKNOWN"),
+                "deployed_branch": str(data.get("branch") or "UNKNOWN"),
+                "deployed_at": str(data.get("build_time") or "UNKNOWN"),
+            }
+    except Exception as exc:
+        logger.warning(
+            "Failed to read deploy provenance receipt at %s: %s: %s",
+            receipt_path,
+            type(exc).__name__,
+            exc,
+        )
+    return {
+        "deployed_commit": "UNKNOWN",
+        "deployed_branch": "UNKNOWN",
+        "deployed_at": "UNKNOWN",
+    }
+
+
 def _compute_runtime_drift() -> dict[str, Any]:
     """Compare build-time git commit to mounted code commit.
 
@@ -4086,6 +4117,7 @@ def register_rest_routes(
         # it shares with the software-release axis.
         _surface_consistency = _get_surface_consistency()
         _surface_consistency_verdict = str((_surface_consistency or {}).get("verdict") or "UNKNOWN")
+        _deploy_prov = _read_deploy_provenance()
 
         payload = {
             "status": "degraded" if _degraded else "healthy",
@@ -4202,6 +4234,12 @@ def register_rest_routes(
             "contract_status": contracts,
             "contract_drift": contract_drift_val,
             **_drift,
+            # ── Live deploy provenance (receipt-bound) ──────────────────────
+            # BUILD_INFO answers "what was compiled?"; receipt answers "what is running?".
+            # Two questions, two field families. Additive: does not shadow git_commit or build_*.
+            "deployed_commit": _deploy_prov["deployed_commit"],
+            "deployed_branch": _deploy_prov["deployed_branch"],
+            "deployed_at": _deploy_prov["deployed_at"],
             # ── AXIS-QUALIFIED DRIFT (surface-consistency audit 2026-09-21) ──
             # `**_drift` above re-emits runtime_drift from the RAW probe, shadowing
             # the value OR'd with the software-release attestation (~line 3210).

@@ -41,7 +41,7 @@ fi
 # ── Resolve the ACTUAL import path (no assumptions) ─────────────────────────
 # find_spec locates the package without executing its __init__.py.
 log "Resolving live arifosmcp import path via $VENV_PY"
-if ! LIVE_PKG="$("$VENV_PY" - <<'PY'
+if ! LIVE_PKG="$("$VENV_PY" -I - <<'PY'
 import importlib.util
 import sys
 
@@ -83,7 +83,7 @@ if [[ ! -f "$LIVE_PKG/__init__.py" ]]; then
     log "ERROR: $LIVE_PKG has no __init__.py — cannot verify parity"; exit 1
 fi
 
-if ! LIVE_PKG_AFTER="$("$VENV_PY" - <<'PY'
+if ! LIVE_PKG_AFTER="$("$VENV_PY" -I - <<'PY'
 import importlib.util
 import sys
 
@@ -118,6 +118,34 @@ if [[ "$src_sha" != "$live_sha" ]]; then
     exit 1
 fi
 log "Parity OK: $LIVE_PKG byte-matches source (${src_sha:0:12})"
+
+# ── Write deploy receipt (fail-closed provenance binding) ───────────────────
+RECEIPTS_DIR="/opt/arifos/current/receipts"
+NOW_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+COMMIT_SHA="$(git -C "$SRC" rev-parse HEAD)"
+BRANCH="$(git -C "$SRC" rev-parse --abbrev-ref HEAD)"
+HOST="$(hostname)"
+DEPLOYED_BY="$(whoami)"
+RECEIPT_FILE="$RECEIPTS_DIR/${NOW_UTC}.json"
+
+log "Writing deploy receipt to $RECEIPT_FILE"
+mkdir -p "$RECEIPTS_DIR" || { log "ERROR: failed to create $RECEIPTS_DIR"; exit 1; }
+
+cat <<EOF > "$RECEIPT_FILE" || { log "ERROR: failed to write $RECEIPT_FILE"; exit 1; }
+{
+  "commit_sha": "$COMMIT_SHA",
+  "branch": "$BRANCH",
+  "build_time": "$NOW_UTC",
+  "parity_hash": "$src_sha",
+  "host": "$HOST",
+  "deployed_by": "$DEPLOYED_BY"
+}
+EOF
+
+ln -sf "$RECEIPT_FILE" "$RECEIPTS_DIR/latest.json" || cp -f "$RECEIPT_FILE" "$RECEIPTS_DIR/latest.json" || {
+    log "ERROR: failed to update $RECEIPTS_DIR/latest.json"; exit 1;
+}
+log "Deploy receipt recorded: commit=${COMMIT_SHA:0:12} branch=$BRANCH"
 
 # ── Restart services ────────────────────────────────────────────────────────
 for svc in "${SERVICES[@]}"; do
