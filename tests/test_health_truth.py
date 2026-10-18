@@ -7,10 +7,13 @@ agree on substrate_state and floor_passed.
 
 from __future__ import annotations
 
+import pytest
+
 from arifosmcp.runtime.health_truth import (
     FLOOR_STATUS_FAIL,
     FLOOR_STATUS_PASS,
     FLOOR_STATUS_UNMEASURED,
+    clear_system_floor_truth,
     floor_truth,
     normalize_substrate_label,
     publish_system_floor_truth,
@@ -19,6 +22,20 @@ from arifosmcp.runtime.health_truth import (
 )
 
 ALL_PASS = {f"F{i}": FLOOR_STATUS_PASS for i in range(1, 14)}
+
+
+@pytest.fixture(autouse=True)
+def _isolated_system_reading():
+    """The published reading is process-global state.
+
+    A leaked reading from an earlier test would silently become the machine's
+    state for every later consumer — and it did: test_health_truth published,
+    then test_scoped_verdict_substrate_scope read it through the T1/A echo
+    branch and reported HEALTHY/DEGRADED for fixtures that published nothing.
+    """
+    clear_system_floor_truth()
+    yield
+    clear_system_floor_truth()
 
 
 def test_all_thirteen_measured_and_passing_is_true() -> None:

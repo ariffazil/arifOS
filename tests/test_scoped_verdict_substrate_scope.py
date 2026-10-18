@@ -30,7 +30,22 @@ from __future__ import annotations
 
 import pytest
 
+from arifosmcp.runtime.health_truth import clear_system_floor_truth
 from arifosmcp.runtime.tools import _compute_scoped_verdicts
+
+
+@pytest.fixture(autouse=True)
+def _isolated_system_reading():
+    """These fixtures publish nothing.
+
+    The T1/A echo branch reads a process-global published reading; a leaked
+    reading from an earlier test file silently became the machine state these
+    assertions judged (measured 2026-10-18: 4 failures here only when
+    test_health_truth.py ran first in the same session).
+    """
+    clear_system_floor_truth()
+    yield
+    clear_system_floor_truth()
 
 VERDICT_TOKEN = "verdict_monotonicity: HOLD \u2192 RETAK (sub-signal floor dominates aggregate)"
 AUTH_TOKEN = "session_capability_token: OBSERVE_ONLY"
