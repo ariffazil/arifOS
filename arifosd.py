@@ -1,1 +1,1 @@
-/root/arifOS/scripts/arifosd.py
+scripts/arifosd.py
