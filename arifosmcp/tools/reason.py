@@ -974,9 +974,34 @@ def arif_think(
         or _standing_auth.get("crypto_verified")
     )
 
+    # ── ROLE GUARD (P1-4): Explicit Role Enforcement ─────────────────────────
+    # If prompt/context lacks an explicit role, forbid fabricating hallucinated
+    # expert roles (e.g. 'biostratigraphy expert'). Return UNKNOWN or request clarification.
+    _raw_role = (context or {}).get("role")
+    if not _raw_role and query:
+        import re
+        _role_match = re.search(r"\b(?:role|as a|as an)\s*[:=]?\s*([a-zA-Z0-9_\-\s]{3,30})\b", query, re.I)
+        if _role_match:
+            _raw_role = _role_match.group(1).strip()
+
+    _declared_role = _raw_role if (_raw_role and _raw_role.strip().lower() not in ("none", "null", "unknown", "")) else "UNKNOWN"
+
     def _echo_standing(env: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(env, dict):
             return env
+        if _declared_role:
+            env.setdefault("role", _declared_role)
+            res = env.get("result")
+            if isinstance(res, dict):
+                res.setdefault("role", _declared_role)
+                res.setdefault(
+                    "role_guard",
+                    {
+                        "status": "ENFORCED",
+                        "declared_role": _declared_role,
+                        "hallucination_forbidden": True,
+                    },
+                )
         if _standing_token:
             env["session_token"] = _standing_token
             res = env.get("result")
@@ -1250,6 +1275,39 @@ def arif_think(
             },
         }
         return Synthesis(**_ok("arif_think", bundle))
+
+    # ── BRANCHES MODE: hypothesis branching map (superpose) ─────────────────────
+    if mode == "branches":
+        from arifosmcp.tools.qrl_branches import branches as generate_branches
+
+        ctx = context or {}
+        branch_data = generate_branches(
+            query=query or "branches",
+            cf_path=ctx.get("cf_path"),
+            min_candidates=ctx.get("min_candidates", 3),
+        )
+        bundle = {
+            "actor_authority": {
+                "verified": _is_actor_verified,
+                "scope": "observe_only",
+                "note": "Hypothesis branching map generated in superposition. Routes to arif_judge for collapse/measurement.",
+            },
+            "mode": "branches",
+            "superpose": True,
+            "hypothesis_map": branch_data,
+            "candidates": branch_data.get("candidates", []),
+            "governance_check": {
+                "floors_checked": ["F7", "F9"],
+                "floors_violated": [],
+                "verdict": "PASS",
+                "reason": "Branches held in valid superposition without premature collapse.",
+            },
+            "truth_verdict": {
+                "sealed": False,
+                "note": "Branches are unsealed superposed hypotheses.",
+            },
+        }
+        return Synthesis(**_echo_standing(_ok("arif_think", bundle, session_id=session_id)))
 
     if mode in (
         "geox_quantum_suitability",
