@@ -99,11 +99,19 @@ def normalize_substrate_label(value: Any) -> str:
 
 
 def publish_system_floor_truth(
-    truth: FloorTruth, *, measured_at: str | None = None
+    truth: FloorTruth,
+    *,
+    measured_at: str | None = None,
+    substrate: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Record the system reading so tool envelopes can echo it.
 
     Called by /health, which is the one surface that measures all 13 floors.
+    ``substrate`` is the ``substrate_truth()`` result from the same /health
+    pass. Verbs echo it rather than recomputing drift from a second predicate
+    (``build.get_runtime_attestation().drift`` answers a different question
+    than /health's build-stamp comparison, and the two disagree — measured
+    2026-10-18 on staging: injector said HEALTHY, /health said RUNTIME_DRIFT).
     """
     record = {
         "floor_passed": truth.floor_passed,
@@ -117,6 +125,13 @@ def publish_system_floor_truth(
         or datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "_monotonic": time.monotonic(),
     }
+    if substrate:
+        record["substrate_state"] = normalize_substrate_label(
+            substrate.get("substrate_state")
+        )
+        record["substrate_degraded_causes"] = list(
+            substrate.get("degraded_causes") or []
+        )
     with _SYSTEM_TRUTH_LOCK:
         _SYSTEM_TRUTH.clear()
         _SYSTEM_TRUTH.update(record)

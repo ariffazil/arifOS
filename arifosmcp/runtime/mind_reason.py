@@ -235,6 +235,7 @@ async def arif_think(
     session_id: str | None = None,
     actor_id: str | None = None,
     depth: int = 3,
+    context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND v1 — Constitutional reasoning with envelope integrity.
