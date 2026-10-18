@@ -37,7 +37,10 @@ GENESIS/
 _archive/
 archive/
 static/
-core/
+# core/ REMOVED from ignore (2026-10-18, TDQS Phase-1): excluding core/ made the
+# published image miss core/shared/constitutional_ontology.py → compression.py:38
+# fallback crashed the server at boot (FileNotFoundError) → Glama scanned a dead
+# artifact and scored a name-only scaffold. core/shared/*.py is runtime-critical.
 contracts/
 deploy/
 commands/
