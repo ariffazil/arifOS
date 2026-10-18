@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "arifOS-verdict-lattice/v1",
+  "version": "2026.10.18",
+  "purpose": "Two-Stage Stratified Verdict Algebra for arifOS federation governance. Defines Stage 1 (666 arif_judge) non-compensatory 7-verdict evaluation lattice and Stage 2 (999 arif_seal) deterministic projection operator pi_commit into VAULT999 ledger commit classes.",
+  "canonical_authority": "Muhammad Arif bin Fazil (/000 / F13)",
+  "strata": {
+    "stage_1_evaluation": {
+      "verb": "666 arif_judge",
+      "lattice_order": ["VOID", "HOLD_888", "HOLD", "SABAR", "PARTIAL", "PROVISIONAL", "SEAL"],
+      "monotonicity": "VOID > HOLD_888 > HOLD > SABAR > PARTIAL > PROVISIONAL > SEAL (most restrictive -> least restrictive)",
+      "elements": {
+        "VOID": {
+          "rank": 6,
+          "class": "FATAL_VIOLATION",
+          "description": "HARD constitutional floor violation (F1-F13) or ontological breach. Permanent block.",
+          "sealable": false
+        },
+        "HOLD_888": {
+          "rank": 5,
+          "class": "SOVEREIGN_ESCALATION",
+          "description": "Irreversible or out-of-boundary action requiring explicit /000 Muhammad Arif bin Fazil ratification.",
+          "sealable": false
+        },
+        "HOLD": {
+          "rank": 4,
+          "class": "GOVERNANCE_GATE",
+          "description": "Action halted due to unverified actor identity, missing witness, or metabolic FQ < 0.50.",
+          "sealable": false
+        },
+        "SABAR": {
+          "rank": 3,
+          "class": "DEFERRED_RESTRAINT",
+          "description": "SOFT caution — patient restraint awaiting sufficient evidence or live telemetry measurement.",
+          "sealable": true
+        },
+        "PARTIAL": {
+          "rank": 2,
+          "class": "CONDITIONAL_APPROVAL",
+          "description": "DERIVED warning — proceed with active cooling and continuous boundary monitoring.",
+          "sealable": true
+        },
+        "PROVISIONAL": {
+          "rank": 1,
+          "class": "TIME_BOUNDED_APPROVAL",
+          "description": "Contract variant — interim approval auto-revoking at valid_until TTL if FRAME detects drift.",
+          "sealable": true
+        },
+        "SEAL": {
+          "rank": 0,
+          "class": "CONSTITUTIONAL_AFFIRMATION",
+          "description": "All constitutional floors pass, evidence verified, W3^3 >= 0.95. Unconditional authorization.",
+          "sealable": true
+        }
+      }
+    },
+    "stage_2_commit": {
+      "verb": "999 arif_seal",
+      "ledger_classes": ["SEAL", "SABAR"],
+      "projection_operator": "pi_commit: V_eval -> V_commit U {REJECT}",
+      "rules": [
+        {
+          "input_verdicts": ["SEAL"],
+          "output_class": "SEAL",
+          "execution_mode": "FULL",
+          "action": "Commit to ledger as authoritative SEAL record."
+        },
+        {
+          "input_verdicts": ["PROVISIONAL"],
+          "output_class": "SEAL",
+          "execution_mode": "PROVISIONAL_TTL",
+          "preconditions": ["valid_until > t_now", "W3^3 >= 0.95"],
+          "action": "Project to SEAL commit with execution_mode PROVISIONAL_TTL."
+        },
+        {
+          "input_verdicts": ["PARTIAL"],
+          "output_class": "SEAL",
+          "execution_mode": "PARTIAL_COOLED",
+          "preconditions": ["cooling_channel_active == true"],
+          "action": "Project to SEAL commit with execution_mode PARTIAL_COOLED."
+        },
+        {
+          "input_verdicts": ["SABAR"],
+          "output_class": "SABAR",
+          "execution_mode": "DEFERRED",
+          "action": "Commit to ledger as SABAR restraint checkpoint."
+        },
+        {
+          "input_verdicts": ["HOLD", "HOLD_888"],
+          "output_class": "SABAR",
+          "execution_mode": "HELD_CHECKPOINT",
+          "action": "Project to SABAR ledger checkpoint for sovereign review."
+        },
+        {
+          "input_verdicts": ["VOID"],
+          "output_class": "REJECT",
+          "action": "Raise FloorError; write nothing to VAULT999."
+        }
+      ]
+    }
+  },
+  "verb_numbering_canon": {
+    "111": "arif_observe",
+    "222": "arif_ingest",
+    "333": "arif_think",
+    "444": "arif_route",
+    "555": "arif_memory",
+    "666": "arif_judge",
+    "777": "arif_forge",
+    "999": "arif_seal",
+    "retired_indices": {
+      "888": "Retired as verb index. Preserved strictly as constitutional state prefix '888_HOLD' for Sovereign Escalation."
+    }
+  },
+  "organ_hygiene_policy": {
+    "non_kernel_allowed_status": ["ok", "degraded", "down", "unknown"],
+    "reserved_tokens": {
+      "SEAL": "Exclusive to 666 arif_judge evaluation and 999 arif_seal commit.",
+      "HOLD": "Exclusive to arifOS kernel governance reference monitor."
+    }
+  }
+}

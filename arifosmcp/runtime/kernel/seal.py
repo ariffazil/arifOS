@@ -51,25 +51,60 @@ class SealChain:
     last_hash: str = ""
 
 
+class FloorError(ValueError):
+    """Raised when an action violates a constitutional floor and cannot be sealed."""
+    pass
+
+
+def pi_commit(verdict: str) -> tuple[str, str]:
+    """
+    Deterministic projection operator pi_commit: V_eval -> V_commit U {REJECT}.
+    Maps Stage 1 evaluation verdicts (666 arif_judge) to Stage 2 ledger commit classes (999 arif_seal):
+      SEAL        -> (SEAL, FULL)
+      PROVISIONAL -> (SEAL, PROVISIONAL_TTL)
+      PARTIAL     -> (SEAL, PARTIAL_COOLED)
+      SABAR       -> (SABAR, DEFERRED)
+      HOLD        -> (SABAR, HELD_CHECKPOINT)
+      HOLD_888    -> (SABAR, HELD_CHECKPOINT)
+      VOID        -> raises FloorError
+    """
+    v = str(verdict).upper()
+    if v == "SEAL":
+        return "SEAL", "FULL"
+    elif v == "PROVISIONAL":
+        return "SEAL", "PROVISIONAL_TTL"
+    elif v == "PARTIAL":
+        return "SEAL", "PARTIAL_COOLED"
+    elif v == "SABAR":
+        return "SABAR", "DEFERRED"
+    elif v in ("HOLD", "HOLD_888"):
+        return "SABAR", "HELD_CHECKPOINT"
+    elif v == "VOID":
+        raise FloorError("Cannot seal with verdict 'VOID'. VOID verdicts are permanently blocked by constitutional floor.")
+    else:
+        raise ValueError(
+            f"Cannot seal with verdict '{verdict}'. "
+            "Only verdicts conforming to verdict_lattice.json may be projected to seal."
+        )
+
+
 # ── 999 — Seal Function ───────────────────────
 
 
 def seal(
     state: GovernanceState, chain: SealChain | None = None, note: str | None = None
 ) -> SealRecord:
-    """Produce an immutable SealRecord from GovernanceState."""
-    if state.verdict not in ("SEAL", "SABAR"):
-        raise ValueError(
-            f"Cannot seal with verdict '{state.verdict}'. "
-            "Only SEAL or SABAR verdicts may be sealed."
-        )
+    """Produce an immutable SealRecord from GovernanceState via pi_commit projection."""
+    commit_verdict, execution_mode = pi_commit(state.verdict)
 
     ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     prev_hash = chain.last_hash if chain else None
 
     # Build payload for content hash
     payload = {
-        "verdict": state.verdict,
+        "verdict": commit_verdict,
+        "original_verdict": state.verdict,
+        "execution_mode": execution_mode,
         "delta": state.scalars.delta,
         "omega": state.scalars.omega,
         "psi": state.scalars.psi,
@@ -92,7 +127,7 @@ def seal(
     return SealRecord(
         seal_id=seal_id,
         seq=seq,
-        verdict=state.verdict,
+        verdict=commit_verdict,
         delta=state.scalars.delta,
         omega=state.scalars.omega,
         psi=state.scalars.psi,
