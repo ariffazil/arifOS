@@ -54,7 +54,27 @@ jobs:
           # JSONL is append-only, so line numbers are stable.
           # Contract: these exact anomalies are tolerated and counted; ANY NEW
           # bad-JSON line or broken link FAILS the check.
-          LEGACY_BAD_JSON_LINES = {4}
+          # ── 2026-10-18 extension: custody-note-documented glue at line 1352 ──
+          # Physical line 1352 of SEALED_EVENTS.jsonl contains TWO concatenated
+          # JSON objects (ids 977 and 978) with no separator. This is recorded
+          # damage, not new corruption: ledger entry 979 is a CUSTODY_NOTE
+          # (seal_id CUSTODY-SEALED-EVENTS-GLUED-LINE-2026-10-15, committed
+          # de1b916c0) which states:
+          #   cause        — writer appended without checking the trailing newline
+          #   data_loss    — NONE; both objects byte-intact, recoverable via
+          #                  JSONDecoder.raw_decode
+          #   repair_status— NOT REPAIRED BY DESIGN: the deployed ledger is
+          #                  append-only (chattr +a), and a rewrite is correctly
+          #                  refused; remediation is writer discipline
+          # Authority: F13 owner directive 2026-10-18 ("full actions sweep and
+          # make sure all green"), tracked in issue #911. This is an allowlist of
+          # documented damage — the ledger bytes are NOT touched and the anomaly
+          # stays counted and printed on every run.
+          # Still open (issue #911): the file cited above,
+          # VAULT999/chain_tombstone_manifest.json, does not exist in this tree,
+          # so this line has no tombstone-manifest entry. That custody question
+          # is not settled by this allowlist.
+          LEGACY_BAD_JSON_LINES = {4, 1352}
           LEGACY_BROKEN_LINK_LINES = {588, 589, 1029}
 
           try:
