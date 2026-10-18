@@ -831,19 +831,20 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": False,
-        # QRL increment-1 (2026-10-14): score/collapse wired via
-        # tools/qrl_collapse.py. score = deterministic hard-floor veto +
-        # INT-labeled soft score (ADVISORY). collapse = canonical QRL-4
-        # verdict via strict-token mapping, never upward; emits exactly
-        # one prediction record (test sink until deploy).
+        # QRL increment-1 (2026-10-14): score/collapse are NOT declared here.
+        # tools/qrl_collapse.py carries the deterministic veto + QRL-4 logic and
+        # its 47 local tests, but the module is still "PRODUCED/TESTED-LOCAL.
+        # Not WIRED until dispatch lands in the arif_judge facade" (see module
+        # docstring). arif_judge has no score/collapse branch, so advertising
+        # them in the public mode enum would be a phantom capability (F2).
+        # Re-add both modes here AND to tools_sot.yaml in the same commit that
+        # wires the dispatch into arifosmcp/tools/judge.py::arif_judge.
         "modes": [
             "intercept",
             "judge",
             "validate",
             "hold",
             "escalate",
-            "score",
-            "collapse",
         ],
         "eureka_insight": (
             "F13 SOVEREIGN: human veto absolute. "

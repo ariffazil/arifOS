@@ -142,8 +142,6 @@ tools:
       - validate
       - hold
       - escalate
-      - score
-      - collapse
 
   - id: arif_forge
     name: arif_forge
