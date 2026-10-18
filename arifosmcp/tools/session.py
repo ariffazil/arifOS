@@ -1466,7 +1466,29 @@ def _project_light(
         _boot_status = "UNATTESTED"
         _boot_unhealthy = False  # default: do not block on attestation absence
         _boot_missing = True
-    _substrate_state = "DEGRADED" if (_drift or _boot_unhealthy) else "HEALTHY"
+    from arifosmcp.runtime.health_truth import (
+        read_system_floor_truth,
+        substrate_truth,
+    )
+
+    # Echo the system reading when /health has published one in this process.
+    # Otherwise derive locally with the same single function. Two surfaces,
+    # one vocabulary — the drift predicates differ (build attestation vs
+    # /health's build-stamp comparison) and must not each mint a state.
+    _system_reading = read_system_floor_truth()
+    if (
+        _system_reading
+        and not _system_reading.get("stale")
+        and _system_reading.get("substrate_state")
+    ):
+        _substrate_state = _system_reading["substrate_state"]
+        _substrate_causes = list(_system_reading.get("substrate_degraded_causes") or [])
+    else:
+        _substrate = substrate_truth(
+            source_drift=bool(_drift), boot_unhealthy=bool(_boot_unhealthy)
+        )
+        _substrate_state = _substrate["substrate_state"]
+        _substrate_causes = _substrate["degraded_causes"]
 
     # ── WAJIB 3: Single canonical effective_state (2026-08-07) ──
     # Consolidates the 5-field authority scatter (authority, authority_band,
@@ -1480,6 +1502,7 @@ def _project_light(
         "mutation_allowed": _mutation_allowed,
         "seal_allowed": _seal_allowed,
         "substrate_state": _substrate_state,
+        "substrate_degraded_causes": _substrate_causes,
         "derived_from": "session_capability_token_v1",
         "computed_at": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime(_now_ts)),
         # APEX-777: session_authority_state separates session gate from organ health.
@@ -1527,7 +1550,11 @@ def _project_light(
         "authority_scope": _authority,
         "kernel_epoch": "2026-07-03",
         "software_release": _sw,
-        "substrate": {"state": _substrate_state, "drift": _drift},
+        "substrate": {
+            "state": _substrate_state,
+            "drift": _drift,
+            "degraded_causes": _substrate_causes,
+        },
         "public_surface_version": "7",
         "tool_registry_version": "1.0.0",
         "allowed_next_verbs": _allowed_next,
@@ -1584,6 +1611,7 @@ def _project_light(
             "mutation_allowed": _mutation_allowed,
             "seal_allowed": _seal_allowed,
             "substrate_state": _substrate_state,
+            "substrate_degraded_causes": _substrate_causes,
             "authority_source": "identity_band",
         },
         # RSI 2026-06-22: renamed from model_soul_loaded / model_shadow_loaded

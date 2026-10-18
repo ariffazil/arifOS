@@ -12,6 +12,9 @@ from arifosmcp.runtime.health_truth import (
     FLOOR_STATUS_PASS,
     FLOOR_STATUS_UNMEASURED,
     floor_truth,
+    normalize_substrate_label,
+    publish_system_floor_truth,
+    read_system_floor_truth,
     substrate_truth,
 )
 
@@ -105,3 +108,55 @@ def test_all_causes_are_named_not_collapsed() -> None:
         "CONTRACT_DRIFT",
         "BOOT_UNHEALTHY",
     ]
+
+
+def test_substrate_vocabulary_is_one_vocabulary() -> None:
+    # D1: a scoped verdict's PASS/FAIL must never leak into substrate_state.
+    assert normalize_substrate_label("PASS") == "HEALTHY"
+    assert normalize_substrate_label("SEAL") == "HEALTHY"
+    assert normalize_substrate_label("healthy") == "HEALTHY"
+    assert normalize_substrate_label("FAIL") == "DEGRADED"
+    assert normalize_substrate_label("HOLD") == "DEGRADED"
+    assert normalize_substrate_label("DEGRADED") == "DEGRADED"
+    assert normalize_substrate_label("NOT_EVALUATED") == "UNMEASURED"
+    assert normalize_substrate_label(None) == "UNMEASURED"
+
+
+def test_published_system_reading_is_what_verbs_echo() -> None:
+    detail = dict(ALL_PASS)
+    detail["F8"] = FLOOR_STATUS_FAIL
+    truth = floor_truth(detail, 13)
+    published = publish_system_floor_truth(truth, measured_at="2026-10-18T09:30:00Z")
+    read = read_system_floor_truth()
+    assert read is not None
+    assert read["floor_passed"] is False
+    assert read["measurement"] == "measured"
+    assert read["floors_failing"] == ["F8"]
+    assert read["measured_at"] == "2026-10-18T09:30:00Z"
+    assert published["floor_passed"] is False
+
+
+def test_stale_system_reading_is_flagged_not_silently_reused() -> None:
+    publish_system_floor_truth(floor_truth(ALL_PASS, 13), measured_at="2026-10-18T09:30:00Z")
+    read = read_system_floor_truth(max_age_s=0.0)
+    assert read is not None
+    assert read["stale"] is True
+
+
+def test_published_reading_carries_the_substrate_state_too() -> None:
+    # The verbs echo substrate_state from this record. When only floor truth
+    # was published, arif_init injected its own reading from
+    # build.get_runtime_attestation().drift and said HEALTHY while /health
+    # named RUNTIME_DRIFT for the same process (measured 2026-10-18, staging).
+    truth = floor_truth(ALL_PASS, 13)
+    publish_system_floor_truth(
+        truth,
+        measured_at="2026-10-18T09:30:00Z",
+        substrate=substrate_truth(runtime_drift=True),
+    )
+    read = read_system_floor_truth()
+    assert read is not None
+    assert read["substrate_state"] == "DEGRADED"
+    assert read["substrate_degraded_causes"] == ["RUNTIME_DRIFT"]
+    assert read["floor_passed"] is True
+

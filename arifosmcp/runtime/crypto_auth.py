@@ -1031,7 +1031,8 @@ def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
         "888": "/root/.secrets/aaa-identity/keys/arif_private.pem",
         "ariffazil": "/root/.secrets/aaa-identity/keys/arif_private.pem",
         "opencode": "/root/A-FORGE/IDENTITY/keys/opencode/opencode_ed25519_private.pem",
-        "333-agi": "/root/A-FORGE/IDENTITY/keys/opencode/opencode_ed25519_private.pem",
+        "333-agi": "/root/AAA/IDENTITY/keys/333-AGI_private.pem",
+        "333-agi/fi-001": "/root/AAA/IDENTITY/keys/333-AGI_private.pem",
         # 2026-08-08 333-AGI: openclaw — 32-byte Ed25519 seed, reconciled
         # from device.json PEM. DID: did:arif:openclaw
         "openclaw": "/root/AAA/auth/keys/openclaw_private.key",

@@ -119,6 +119,11 @@ def _unlock(handle: Any) -> None:
 # ── W-02 / W-03: Deployment-drift floor (2026-08-04) ─────────────────
 # Extracted 2026-09-28 to arifosmcp/runtime/deployment_drift.py
 # Backward-compat aliases preserved below. New callers: import from deployment_drift.
+from arifosmcp.runtime.health_truth import (
+    normalize_substrate_label,
+    read_system_floor_truth,
+    substrate_truth,
+)
 from arifosmcp.runtime.deployment_drift import (
     drift_spots as _drift_spots,
     derive_degradation_cause_from_spots as _derive_degradation_cause_from_spots,
@@ -5784,7 +5789,13 @@ def _enforce_nine_signal(
                         )
                     ),
                     "failed_floors": _failed_floors,
-                    "substrate_state": _substrate_state,
+                    # T1/D1: one field, one vocabulary. The scoped-verdict
+                    # axis speaks PASS/FAIL; substrate speaks HEALTHY/DEGRADED.
+                    # Prefer the measured envelope substrate label, then
+                    # normalise whatever the verdict axis supplied.
+                    "substrate_state": normalize_substrate_label(
+                        (envelope.get("substrate") or {}).get("state") or _substrate_state
+                    ),
                     "session_state": _session_state,
                     "agency_level": envelope.get("constitutional_check", {}).get("agency_level"),
                     "observe_class_exempt": envelope.get("constitutional_check", {}).get(
@@ -8735,13 +8746,30 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
             if not isinstance(dst.get("software_release"), dict):
                 dst["software_release"] = _att
             if not isinstance(dst.get("substrate"), dict):
-                _drift = bool(_att.get("drift"))
-                dst["substrate"] = {
-                    "state": "DEGRADED" if _drift else "HEALTHY",
-                    "drift": _drift,
-                    "source": "runtime_attestation_injected",
-                }
-            if _drift and not dst.get("degraded"):
+                _sys = read_system_floor_truth()
+                if _sys and not _sys.get("stale") and _sys.get("substrate_state"):
+                    # Echo the reading /health already published. The build
+                    # attestation answers a different drift question and can
+                    # say HEALTHY while /health names RUNTIME_DRIFT.
+                    dst["substrate"] = {
+                        "state": _sys["substrate_state"],
+                        "drift": bool(_sys.get("substrate_degraded_causes")),
+                        "degraded_causes": list(
+                            _sys.get("substrate_degraded_causes") or []
+                        ),
+                        "source": "system_reading",
+                        "measured_at": _sys.get("measured_at"),
+                    }
+                else:
+                    _drift = bool(_att.get("drift"))
+                    _sub = substrate_truth(source_drift=_drift)
+                    dst["substrate"] = {
+                        "state": _sub["substrate_state"],
+                        "drift": _drift,
+                        "degraded_causes": _sub["degraded_causes"],
+                        "source": "runtime_attestation_injected",
+                    }
+            if dst["substrate"].get("drift") and not dst.get("degraded"):
                 dst["degraded"] = ["kernel_drift"]
         except Exception:
             logger.exception("suppressed exception", exc_info=True)

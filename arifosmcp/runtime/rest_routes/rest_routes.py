@@ -3949,7 +3949,12 @@ def register_rest_routes(
         # T1/A: publish the one system reading. Tool envelopes echo this
         # instead of guessing, so init/observe and /health cannot disagree
         # about floors that only /health measures.
-        publish_system_floor_truth(_floor_verdict)
+        _substrate = substrate_truth(
+            runtime_drift=_code_runtime_drift,
+            source_drift=_sr_drift,
+            contract_drift=bool(contract_drift_val),
+        )
+        publish_system_floor_truth(_floor_verdict, substrate=_substrate)
 
         _layer_health = {
             "constitutional": {

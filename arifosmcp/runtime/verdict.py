@@ -38,8 +38,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 from arifosmcp.runtime.health_truth import (
+    FLOOR_SCOPE_SYSTEM,
     FLOOR_SCOPE_TOOL_CALL,
     floor_truth,
+    read_system_floor_truth,
 )
 
 # ── Nine-Signal wiring (P0 schema-fix 2026-08-17) ─────────────────────────────
@@ -454,20 +456,45 @@ def attach_effective_verdict(
             _res_obj = response.get("result")
             _floor_detail = _res_obj.get("floors_detail") if isinstance(_res_obj, dict) else None
         _floors_total = cc.get("floors_total") or cc.get("floors_active") or 13
+
+        # Per-call gate keeps its own name: it answers "did THIS call's floors
+        # fail", not "is the constitution healthy".
+        _call_passed: bool | None = None
+        _call_measurement = "unmeasured"
         if _ff:
             # A measured failure dominates any pass count in the same payload.
-            cc["floor_passed"] = False
-            cc["_floor_measurement"] = "measured"
+            _call_passed = False
+            _call_measurement = "measured"
         elif isinstance(_floor_detail, dict) and _floor_detail:
-            _truth = floor_truth(_floor_detail, int(_floors_total))
-            cc["floor_passed"] = _truth.floor_passed
-            cc["_floor_measurement"] = _truth.measurement
+            _call_truth = floor_truth(_floor_detail, int(_floors_total))
+            _call_passed = _call_truth.floor_passed
+            _call_measurement = _call_truth.measurement
+        cc["call_floor_passed"] = _call_passed
+        cc["call_floor_measurement"] = _call_measurement
+
+        # T1/A (2026-10-18): floor_passed is the SYSTEM reading, echoed from
+        # the one producer (/health). Verbs do not measure all 13 floors, so
+        # their own None must not be published under the system field name —
+        # that is what made /health say False while init said null.
+        _sys = read_system_floor_truth()
+        if _sys and not _sys.get("stale"):
+            cc["floor_passed"] = _sys.get("floor_passed")
+            cc["_floor_measurement"] = _sys.get("measurement", "unmeasured")
+            cc["floor_scope"] = FLOOR_SCOPE_SYSTEM
+            cc["system_floor_passed"] = _sys.get("floor_passed")
+            cc["system_measured_at"] = _sys.get("measured_at")
+            cc["system_floors"] = {
+                "pass": _sys.get("floors_pass"),
+                "total": _sys.get("floors_total"),
+                "failing": _sys.get("floors_failing"),
+                "unmeasured": _sys.get("floors_unmeasured"),
+            }
         else:
-            # No hold cause, no failed floors, and no floor instrument on this
-            # call: honest absence, not an assumed True.
-            cc["floor_passed"] = None
-            cc["_floor_measurement"] = "unmeasured"
-        cc["floor_scope"] = FLOOR_SCOPE_TOOL_CALL
+            # No published system reading: stay per-call and say so.
+            cc["floor_passed"] = _call_passed
+            cc["_floor_measurement"] = _call_measurement
+            cc["floor_scope"] = FLOOR_SCOPE_TOOL_CALL
+            cc["system_measured_at"] = None
         cc["hold_required"] = _has_hold
         cc["failed_floors"] = list(_ff) if _ff else cc.get("failed_floors", [])
         if _has_hold and not cc.get("hold_reason"):
