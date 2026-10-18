@@ -3364,6 +3364,20 @@ def _compute_scoped_verdicts(
         for d in (degradation or [])
         if not any(iss in str(d).lower() for iss in _NON_SUBSTRATE_ISSUERS)
     ]
+    # T1/A: substrate is machine health, not call health. When /health has
+    # published a reading in this process, that reading IS the substrate
+    # measurement and a tool envelope must echo it instead of re-deriving a
+    # state from its own signals (the build-attestation drift predicate and
+    # /health's build-stamp comparison disagree; measured 2026-10-18:
+    # arif_observe said DEGRADED beside a HEALTHY /health on the same process).
+    _sys_reading = read_system_floor_truth()
+    _sys_state = None
+    if (
+        _sys_reading
+        and not _sys_reading.get("stale")
+        and _sys_reading.get("substrate_state")
+    ):
+        _sys_state = _sys_reading["substrate_state"]
     _is_healthy = status in ("OK", "SEAL")
     _has_degradation = bool(_substrate_only_degradation)
     _has_error = status in ("ERROR", "STALE", "TIMEOUT")
@@ -3401,6 +3415,25 @@ def _compute_scoped_verdicts(
             else "; ".join(_substrate_only_degradation[:3])
             if _substrate_only_degradation
             else "substrate_degraded",
+        )
+    elif _sys_state == "DEGRADED":
+        # /health measured this machine and named a cause. Echo it.
+        vs.substrate = ScopeEvidence(
+            state="DEGRADED",
+            issuer="arifos_conformance",
+            evidence_reference="system_reading: "
+            + ", ".join(_sys_reading.get("substrate_degraded_causes") or ["DEGRADED"]),
+        )
+    elif _sys_state == "HEALTHY":
+        # T1/A: a measured machine state outranks a narrative degradation
+        # token (MEASURED > NARRATIVE). Without this branch, a filtered
+        # degradation token plus a non-OK call status minted DEGRADED beside
+        # a HEALTHY /health on the same process (measured 2026-10-18,
+        # arif_observe vs /health on :28188).
+        vs.substrate = ScopeEvidence(
+            state="HEALTHY",
+            issuer="arifos_conformance",
+            evidence_reference=f"system_reading:{_sys_reading.get('measured_at')}",
         )
     elif _has_degradation and not _is_healthy:
         vs.substrate = ScopeEvidence(

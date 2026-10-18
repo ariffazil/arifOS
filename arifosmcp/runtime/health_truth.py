@@ -150,6 +150,17 @@ def read_system_floor_truth(max_age_s: float = _SYSTEM_TRUTH_TTL_S) -> dict[str,
     return record
 
 
+def clear_system_floor_truth() -> None:
+    """Drop the published reading.
+
+    Tests and long-lived processes must be able to say "no reading has been
+    published in this process" explicitly — a leaked reading from an earlier
+    call would silently become the machine's state for every later consumer.
+    """
+    with _SYSTEM_TRUTH_LOCK:
+        _SYSTEM_TRUTH.clear()
+
+
 @dataclass(frozen=True)
 class FloorTruth:
     """Tri-state result of one floor measurement."""
