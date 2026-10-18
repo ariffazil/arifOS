@@ -147,6 +147,24 @@ ln -sf "$RECEIPT_FILE" "$RECEIPTS_DIR/latest.json" || cp -f "$RECEIPT_FILE" "$RE
 }
 log "Deploy receipt recorded: commit=${COMMIT_SHA:0:12} branch=$BRANCH"
 
+# ── Update deployment commit stamps (SOT parity) ───────────────────────────
+echo -n "${COMMIT_SHA:0:7}" > /opt/arifos/releases/deployed-commit
+echo -n "$COMMIT_SHA" > /opt/arifos/app/.git_commit
+echo -n "$COMMIT_SHA" > "$SRC/.git_commit"
+if [[ -f /opt/arifos/releases/release-manifest.json ]]; then
+    python3 -c "
+import json
+p = '/opt/arifos/releases/release-manifest.json'
+with open(p) as f:
+    d = json.load(f)
+d['git_commit'] = '${COMMIT_SHA:0:7}'
+d['origin_main_commit'] = '${COMMIT_SHA:0:7}'
+with open(p, 'w') as f:
+    json.dump(d, f, indent=2)
+" || log "WARN: could not update release-manifest.json"
+fi
+log "Deployment commit stamps updated to ${COMMIT_SHA:0:7}"
+
 # ── Restart services ────────────────────────────────────────────────────────
 for svc in "${SERVICES[@]}"; do
     log "Restarting $svc"
