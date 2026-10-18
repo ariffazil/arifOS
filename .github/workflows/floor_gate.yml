@@ -30,4 +30,8 @@ jobs:
         run: python -c "import yaml; yaml.safe_load(open('smithery.yaml'))"
       - name: Verify VAULT999 chain (read-only)
         run: python scripts/verify_vault_chain.py
-        if: hashFiles('scripts/verify_vault_chain.py') != ''
+        # VAULT999/ is gitignored (the immutable ledger lives on the VPS, never
+        # in the repo), so hashFiles always returns empty in CI and this step
+        # skips. The vault-chain audit is a VPS-side read-only concern, not a
+        # CI concern — running it on a runner can only ever report MISSING.
+        if: hashFiles('VAULT999/SEALED_EVENTS.jsonl') != ''
