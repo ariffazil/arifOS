@@ -24,6 +24,10 @@ README = Path(__file__).resolve().parent.parent / "README.md"
 HEALTH_URL = "http://127.0.0.1:8088/health"
 VAULT_DIR = Path(__file__).resolve().parent.parent / "VAULT999"
 
+# The SOT-MANIFEST block is machine-owned; 13-sot-manifest-check greps it.
+SOT_BEGIN = "<!-- SOT-MANIFEST"
+CURRENT_STATE_ANCHOR = "<!-- GENERATED:CURRENT-STATE:END -->\n"
+
 
 def get_git_commit() -> str:
     """Get short HEAD commit hash."""
@@ -109,6 +113,33 @@ def update_readme_sot(dry_run: bool = False) -> dict:
         vault_k = f"{vault_count}+"
 
     changes = {}
+
+    # Recreate the SOT-MANIFEST block when it is absent.
+    #
+    # Root cause of the 2026-10-18 CI red: commit 49dfc62df removed the
+    # SOT-MANIFEST block during a README restructure. Every "patch" below only
+    # rewrites fields that already exist, so the stamper silently did nothing
+    # and 13-sot-manifest-check failed on main and on every PR. A stamper that
+    # cannot recreate its own home turns a README rewrite into a silent
+    # de-activation of the SOT gate.
+    if SOT_BEGIN not in content:
+        block = (
+            f"{SOT_BEGIN}\n"
+            f"last_verified: {now_iso}\n"
+            f"live_commit: {commit} ({commit_subject[:80]})\n"
+            f"source_commit: {commit}\n"
+            "truth_rule: live :8088/health + tools/list beat any static count in prose "
+            "— re-run before you quote this file\n"
+            "generated_by: scripts/update_readme_sot.py re-stamps live_commit, "
+            "source_commit and last_verified\n"
+            "-->\n"
+        )
+        anchor = CURRENT_STATE_ANCHOR
+        if anchor in content:
+            content = content.replace(anchor, anchor + "\n" + block, 1)
+        else:
+            content = block + "\n" + content
+        changes["manifest_block"] = ("", "inserted (was absent)")
 
     # Patch live_commit
     old_live = re.search(r"live_commit: .*", content)
