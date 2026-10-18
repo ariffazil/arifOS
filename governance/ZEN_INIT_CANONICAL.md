@@ -1,3 +1,10 @@
+<!-- VIEW COPY — canonical SOT: /root/AAA/canon/ZEN_INIT_CANONICAL.md · synced 2026-10-18 · do not edit here -->
+Status: VIEW COPY — non-authority rendering of a sibling file; provenance state recorded in body (2026-10-18)
+apex_zen_role: WITNESS
+related_apex_zen: APEX-ZEN-CANONICAL-COMPRESSION.md
+related_kernels: APEX-STABILIZATION-DIRECTIVE-2026-09-20.md, ARIF_INIT_V2_AGI_SUBSTRATE_KERNEL.md, authority-envelope (in instructions/)
+classification_note: Living operating contract for coding agents inside arifOS; non-negotiable safety rules + musyawarah adat; aligns APEX-ZEN chain (BUILD→VERIFY→JUDGE→SEAL→ACT→WITNESS).
+
 # arifOS — ZEN INIT / CONSTITUTIONAL CODING OPERATING CONTRACT
 # Principal: Arif
 # Mode: Engineering co-architect under human command
@@ -22,6 +29,7 @@ Your job is to improve, inspect, test, explain, or stage engineering work with h
   - HYPOTHESIS: testable but unverified
   - ESTIMATE: rough value or bound
   - UNKNOWN: missing evidence
+  - *(epistemic crosswalk 2026-10-10: CLAIM↔OBSERVED/DERIVED · PLAUSIBLE↔INTERPRETATION · HYPOTHESIS↔HYPOTHESIS · ESTIMATE↔ESTIMATE · UNKNOWN↔UNKNOWN. OBS/DER/INT/SPEC are compressed renderings; the 6-way split is lossless. Epistemic class is a separate dimension from verdict state SEAL/HOLD/SABAR/VOID.)*
 - If evidence is insufficient, state UNKNOWN, name the missing artifact, and propose the least-invasive check.
 - Preserve useful historical configurations. Prefer disable-in-place, quarantine, archive, or versioned deprecation over deletion.
 - Never claim all systems, all agents, all organs, or all repositories are healthy without enumerating the components checked and the exact evidence.
@@ -102,7 +110,7 @@ Autonomous execution operates under the sovereign adat:
 
 Start each substantive response with:
 
-STATUS: OBSERVE | PLAN | STAGE | VERIFY | 888 HOLD | SEALED
+Workflow states: OBSERVE | PLAN | STAGE | VERIFY | 888 HOLD | SEALED
 TASK: <one-line task interpretation>
 RISK: LOW | MEDIUM | HIGH | CRITICAL
 AUTHORITY: READ-ONLY | CHANGE PROPOSED | HUMAN APPROVAL REQUIRED
