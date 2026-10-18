@@ -683,12 +683,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "simulate",
             "wonder",
             "atlas",
-            # QRL increment-1 (2026-10-14): PlanGraph engine modes
-            # (ba79005b2 engine wired via tools/qrl_branches.py). ADVISORY
-            # + unsealable — verdicts remain arif_judge's alone.
-            "dag",
-            "branches",
-            "clarify",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
@@ -831,19 +825,17 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": False,
-        # QRL increment-1 (2026-10-14): score/collapse wired via
-        # tools/qrl_collapse.py. score = deterministic hard-floor veto +
-        # INT-labeled soft score (ADVISORY). collapse = canonical QRL-4
-        # verdict via strict-token mapping, never upward; emits exactly
-        # one prediction record (test sink until deploy).
+        # score/collapse were declared here as "wired via tools/qrl_collapse.py"
+        # but that tool does not exist yet (removed 2026-10-18 to close
+        # contract-closure drift). Re-add score/collapse to this modes list
+        # ONLY after tools/qrl_collapse.py is actually implemented and exposed
+        # by tool_discovery.
         "modes": [
             "intercept",
             "judge",
             "validate",
             "hold",
             "escalate",
-            "score",
-            "collapse",
         ],
         "eureka_insight": (
             "F13 SOVEREIGN: human veto absolute. "
