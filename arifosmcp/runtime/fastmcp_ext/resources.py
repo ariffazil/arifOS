@@ -249,9 +249,10 @@ def register_arifos_resources(mcp: Any) -> list[str]:
         "arifos://init/agent_init",
         title="Agent Initialization Bootstrap",
         description=(
-            "Canonical INIT.md v4.0 (2026-08-05) — 12 orthogonal layers, 10-question attestation, "
-            "init→seal→RSI→reality loop. 293-line universal bootstrap for all arifOS agents. "
-            "Forged 2026-08-05 by 333-AGI (Δ MIND) under F13 SOVEREIGN directive."
+            "INIT.md v4.0 SUPERSEDED 2026-09-04 — file is now a redirect stub (MCP /init). "
+            "Canonical init = arif_init (KERNEL 000) + command/init.md v7.0. "
+            "Legacy 293-line content preserved at _archive/2026-09-16-prompt-zen/. "
+            "Fix 2026-10-18 (FI-008): description drift — was advertising 293 lines against an 8-line stub."
         ),
         annotations={"audience": ["assistant"], "priority": 0.9},
     )

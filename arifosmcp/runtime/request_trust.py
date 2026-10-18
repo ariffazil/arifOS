@@ -63,8 +63,10 @@ def auto_sign_allowed() -> bool:
     flag = os.getenv("ARIFOS_TRUST_AUTO_SIGN", "0").strip().lower()
     if flag in ("0", "false", "no", "off"):
         return False
-    # Tests / stdio with no HTTP context: allow only if explicitly opted in
+    # Tests / stdio with no HTTP context: allow ONLY in explicit test runner context
     if get_request_trust() == "UNKNOWN":
+        if "PYTEST_CURRENT_TEST" not in os.environ:
+            return False
         return os.getenv("ARIFOS_TRUST_AUTO_SIGN_UNKNOWN", "0").strip().lower() in (
             "1",
             "true",
