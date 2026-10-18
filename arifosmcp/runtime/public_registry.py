@@ -889,6 +889,28 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
             "input_schema": input_schema,
             "output_schema": None,
         }
+
+    # ── Phase-1 TDQS repair (2026-10-18, 333-AGI) ─────────────────────────────
+    # Root cause of Glama TDQS 1.6/5: on a degraded boot `FINAL_TOOL_IMPLEMENTATIONS`
+    # is empty, so the loop above emits NOTHING and `_spec_for_name` falls back to a
+    # zero-property schema + name-only description. Surface must never depend on
+    # live handlers. Fill every canonical tool that lacks a contract with its
+    # STATIC description + an honest empty schema; the behavior (not the surface)
+    # degrades to UNAVAILABLE at call time.
+    for name in CANONICAL_TOOLS:
+        if name in contracts:
+            continue
+        contracts[name] = {
+            "description": _TOOL_DESCRIPTIONS.get(name)
+            or "Governed arifOS kernel verb (MCP transport envelope).",
+            "input_schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": False,
+            },
+            "output_schema": None,
+            "_handler_present": False,
+        }
     return contracts
 
 
