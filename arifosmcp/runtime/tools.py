@@ -5975,6 +5975,20 @@ def _enforce_nine_signal(
         # Also merge substrate from out into envelope so floor sees it
         if isinstance(out.get("substrate"), dict) and "substrate" not in envelope:
             envelope["substrate"] = out["substrate"]
+        # T2 (2026-10-18): echo the ONE federation FQ object /health published.
+        # Verbs used to carry an FQ reading either frozen at mint or absent, with
+        # no scope and no instant. The wire now carries the object /health
+        # measured — same shape, same value, measured_at included — so a consumer
+        # can tell what it is and how old it is. Not a second representation: the
+        # gate still owns the session-scoped reading at metabolic_state.fq.
+        if not isinstance(envelope.get("fq"), dict):
+            _fq_reading = read_system_floor_truth()
+            if (
+                _fq_reading
+                and not _fq_reading.get("stale")
+                and isinstance(_fq_reading.get("fq"), dict)
+            ):
+                envelope["fq"] = dict(_fq_reading["fq"])
         if isinstance(out.get("software_release"), dict) and "software_release" not in envelope:
             envelope["software_release"] = out["software_release"]
         if isinstance(out.get("degraded"), list) and "degraded" not in envelope:

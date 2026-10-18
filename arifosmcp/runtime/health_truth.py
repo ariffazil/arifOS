@@ -29,6 +29,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
+from arifosmcp.runtime.fq_truth import FQ_SCOPE_FEDERATION, normalize_fq
+
 FLOOR_STATUS_PASS = "pass"
 FLOOR_STATUS_FAIL = "fail"
 FLOOR_STATUS_UNMEASURED = "unmeasured"
@@ -103,6 +105,7 @@ def publish_system_floor_truth(
     *,
     measured_at: str | None = None,
     substrate: Mapping[str, Any] | None = None,
+    fq: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Record the system reading so tool envelopes can echo it.
 
@@ -112,6 +115,11 @@ def publish_system_floor_truth(
     (``build.get_runtime_attestation().drift`` answers a different question
     than /health's build-stamp comparison, and the two disagree — measured
     2026-10-18 on staging: injector said HEALTHY, /health said RUNTIME_DRIFT).
+
+    ``fq`` is the federation-scope FQ object (``fq_truth.fq_object``) read by
+    the same pass. T2 (2026-10-18): publishing it here is what lets the verbs
+    echo one timestamped reading instead of each re-deriving an undated
+    baseline that disagrees with the one beside it.
     """
     record = {
         "floor_passed": truth.floor_passed,
@@ -132,6 +140,9 @@ def publish_system_floor_truth(
         record["substrate_degraded_causes"] = list(
             substrate.get("degraded_causes") or []
         )
+    if fq:
+        # Stored through the coercer, never re-built here: one writer.
+        record["fq"] = normalize_fq(fq, scope=FQ_SCOPE_FEDERATION)
     with _SYSTEM_TRUTH_LOCK:
         _SYSTEM_TRUTH.clear()
         _SYSTEM_TRUTH.update(record)

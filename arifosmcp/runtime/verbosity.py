@@ -313,6 +313,12 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "risk",
         "substrate",
         "substrate_gate",
+        # T2 (2026-10-18): the federation FQ object is a measurement, not
+        # decoration. It was built on the envelope and then projected out of
+        # the minimal view, so a consumer saw /health's reading and a verb's
+        # silence in the same session (measured on staging: has_fq=True
+        # before trim, False after). Same class as `substrate` above.
+        "fq",
         "effective_verdict",
         "execution_state",
         "status_scope",
