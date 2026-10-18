@@ -84,6 +84,11 @@ from arifosmcp.runtime.contracts import (
 )
 from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
 from arifosmcp.runtime.law import get_floor_count
+from arifosmcp.runtime.health_truth import (
+    FLOOR_SCOPE_SYSTEM,
+    floor_truth,
+    substrate_truth,
+)
 from arifosmcp.schemas.federation_enums import FEDERATION_ENUMS_SCHEMA_VERSION
 
 # External MCP tool name → internal contract name
@@ -1175,43 +1180,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
         if str(floor_provenance.get(_fid, "")).startswith("governance_kernel"):
             floor_provenance[_fid] = "unmeasured_default:empty_kernel_signal"
 
-    # T3 PATCH 2026-10-12: register f4-f9-probe (+ L10) as a kernel floor source.
-    # The external probe writes /var/www/html/arifos/claims.json every 5 min via
-    # /etc/cron.d/f4-f9-claims. When the probe has a non-None value for F4-F9, L10,
-    # inject it as a real measurement with provenance=f4_f9_probe:<source> so
-    # the F2 producer sees non-placeholder coverage and F4-F9, L10 render pass/fail
-    # from the F2 _floor_passes threshold rather than the unmeasured default.
-    # F2-bounded: only overrides when claims.json has a real value.
-    try:
-        import json as _t3_json
-        import os as _t3_os
-
-        _t3_claims = "/var/www/html/arifos/claims.json"
-        if _t3_os.path.exists(_t3_claims):
-            with open(_t3_claims) as _t3_f:
-                _t3_c = _t3_json.load(_t3_f)
-            _t3_map = {
-                "F4": _t3_c.get("F4_clarity"),
-                "F5": _t3_c.get("F5_peace2"),
-                "F6": _t3_c.get("F6_maruh"),
-                "F7": _t3_c.get("F7_humility"),
-                "F8": _t3_c.get("F8_genius"),
-                "F9": _t3_c.get("F9_anti_hantu"),
-                "L10": _t3_c.get("L10_ontology"),
-            }
-            for _t3_fid, _t3_v in _t3_map.items():
-                if _t3_v is not None:
-                    if _t3_fid == "F4":
-                        _t3_d = _t3_c.get("F4_raw_delta_s")
-                        if _t3_d is not None:
-                            resolved_floors["F4"] = float(_t3_d)
-                        else:
-                            resolved_floors["F4"] = float(_t3_v)
-                    else:
-                        resolved_floors[_t3_fid] = float(_t3_v)
-                    floor_provenance[_t3_fid] = f"f4_f9_probe:claims.json:{_t3_c.get('ts', '')}"
-    except Exception:
-        pass  # F2-bounded: external probe missing is unmeasured, not failure
+    # DEPRECATED 2026-10-18 (Gate 1 / P0-1): static claims.json read removed.
+    # Telemetry for F4-F9, L10 is now driven directly by live arifFlow (:7073)
+    # and FRAME (:18085) probes below to prevent circular self-reference defects.
 
     # ── F3 TRI-WITNESS: real producers (SCAR-OBS-GREENWASH follow-up) ────────
     # Each leg must carry an external referent or report None. Legs are published
@@ -1283,6 +1254,42 @@ def _build_governance_status_payload() -> dict[str, Any]:
             _raw_ds = float(_dims["ds"]["value"])
             resolved_floors["F4"] = _raw_ds
             floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}"
+
+        # F5 PEACE^2: live from arifFlow thermodynamic invariants
+        if "peace_squared" in _fq_data:
+            resolved_floors["F5"] = float(_fq_data["peace_squared"])
+            floor_provenance["F5"] = f"arifflow_live:peace2={_fq_data['peace_squared']}"
+
+        # F7 HUMILITY: live from arifFlow vector dimension omega
+        if "omega" in _dims and _dims["omega"].get("value") is not None:
+            resolved_floors["F7"] = float(_dims["omega"]["value"])
+            floor_provenance["F7"] = f"arifflow_live_vector:omega={_dims['omega']['value']}"
+
+        # F8 GENIUS: live from arifFlow vector dimension g
+        if "g" in _dims and _dims["g"].get("value") is not None:
+            resolved_floors["F8"] = float(_dims["g"]["value"])
+            floor_provenance["F8"] = f"arifflow_live_vector:g={_dims['g']['value']}"
+
+        # F9 ANTI-HANTU / SHADOW: live from arifFlow vector dimension c_dark
+        if "c_dark" in _dims and _dims["c_dark"].get("value") is not None:
+            resolved_floors["F9"] = float(_dims["c_dark"]["value"])
+            floor_provenance["F9"] = f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}"
+
+        # L10 ONTOLOGY: live from arifFlow ontology specification
+        _ont = _fq_data.get("vector", {}).get("ontology", {})
+        if _ont.get("spec"):
+            resolved_floors["L10"] = 1.0
+            floor_provenance["L10"] = f"arifflow_live_ontology:{_ont['spec']}"
+
+        # FRAME (:18085) Observer Probe: live resilience / drift telemetry
+        try:
+            with _urllib_request.urlopen("http://127.0.0.1:18085/health", timeout=1.0) as _fr_resp:
+                _fr_data = _json.loads(_fr_resp.read())
+            if _fr_data.get("status") == "ok":
+                resolved_floors["L12"] = 1.0
+                floor_provenance["L12"] = "frame_live_probe:chambers_active"
+        except Exception:
+            pass
     except Exception as _fq_exc:
         f1_probe_error = f"{type(_fq_exc).__name__}: {_fq_exc}"
         floor_provenance["F1"] = "unmeasured_default:arifflow_unreachable"
@@ -3927,17 +3934,21 @@ def register_rest_routes(
         # DEGRADED_CLAIM) or call them "healthy" (greenwash). A MEASURED fail
         # still degrades the layer -- fail-closed is untouched. "partial"
         # means: nothing measured has failed, and not everything is measured.
-        _constitutional_status = (
-            "degraded"
-            if _floors_failing
-            else "healthy"
-            if not _floors_unmeasured and _floors_pass_count >= _floors_total
-            else "partial"
-        )
+        #
+        # T1 (2026-10-18): the tri-state now comes from the single producer in
+        # health_truth. /health used to publish only floors_pass, while the
+        # kernel verbs published floor_passed under a different rule
+        # (measured == "some floor failed"), so the two surfaces could never
+        # agree. One function, two consumers, one vocabulary.
+        _floor_verdict = floor_truth(_floor_detail, _floors_total)
+        _constitutional_status = _floor_verdict.status
 
         _layer_health = {
             "constitutional": {
                 "status": _constitutional_status,
+                "floor_passed": _floor_verdict.floor_passed,
+                "_floor_measurement": _floor_verdict.measurement,
+                "floor_scope": FLOOR_SCOPE_SYSTEM,
                 "floors_active": get_floor_count(),
                 "floors_pass": _floors_pass_count,
                 "floors_target": 13,
@@ -3951,7 +3962,13 @@ def register_rest_routes(
                 "vault999": _vault_health,
             },
             "runtime": {
-                "status": "healthy" if not _code_runtime_drift else "degraded",
+                # T1: source!=built is a real drift, not a footnote. It used to
+                # be demoted to a warning while the verbs read the same fact as
+                # DEGRADED, which is how /health and arif_observe ended up
+                # describing one machine in two states.
+                "status": "degraded"
+                if (_code_runtime_drift or _sr_drift)
+                else "healthy",
                 "source_commit": _drift.get("live_commit"),
                 "built_commit": _drift.get("build_commit"),
                 "runtime_matches_build": _drift.get("runtime_matches_build", True),
@@ -4119,9 +4136,23 @@ def register_rest_routes(
         _surface_consistency_verdict = str((_surface_consistency or {}).get("verdict") or "UNKNOWN")
         _deploy_prov = _read_deploy_provenance()
 
+        # T1: same predicate the verbs use, with the causes named instead of
+        # collapsed into one word. Published at top level so a verifier does
+        # not have to reconstruct the judgement from layer_health.
+        _substrate = substrate_truth(
+            runtime_drift=_code_runtime_drift,
+            source_drift=_sr_drift,
+            contract_drift=bool(contract_drift_val),
+        )
+
         payload = {
             "status": "degraded" if _degraded else "healthy",
             "degraded_reasons": degraded_reasons,
+            "substrate_state": _substrate["substrate_state"],
+            "substrate_degraded_causes": _substrate["degraded_causes"],
+            "floor_passed": _floor_verdict.floor_passed,
+            "floor_measurement": _floor_verdict.measurement,
+            "floor_scope": FLOOR_SCOPE_SYSTEM,
             "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
             # ZEN 2026-09-02 (F13 'audit this and zen all'): the import path is
