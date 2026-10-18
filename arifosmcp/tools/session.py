@@ -1480,6 +1480,7 @@ def _project_light(
         read_system_floor_truth,
         substrate_truth,
     )
+    from arifosmcp.runtime.contradiction_margin import contradiction_margin
 
     # Echo the system reading when /health has published one in this process.
     # Otherwise derive locally with the same single function. Two surfaces,
@@ -1562,6 +1563,7 @@ def _project_light(
         "authority_scope": _authority,
         "kernel_epoch": "2026-07-03",
         "software_release": _sw,
+        "eureka_margin": contradiction_margin(),
         "substrate": {
             "state": _substrate_state,
             "drift": _drift,
