@@ -90,6 +90,7 @@ from arifosmcp.runtime.health_truth import (
     publish_system_floor_truth,
     substrate_truth,
 )
+from arifosmcp.runtime.fq_truth import FQ_SCOPE_FEDERATION, fq_object, now_iso
 from arifosmcp.schemas.federation_enums import FEDERATION_ENUMS_SCHEMA_VERSION
 
 # External MCP tool name → internal contract name
@@ -1229,6 +1230,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # arifFLOW means "cannot witness" (Void Guard), not "all clear" — the
     # failure is recorded in floor_provenance and surfaced as f1_probe_error.
     f1_probe_error: str | None = None
+    # T2 (2026-10-18): the federation FQ is ONE object with a timestamp and a
+    # scope. Before this, G/C_dark reached the wire as a bare number in
+    # apex_scalars and again in kernel_baseline with no way to tell which was
+    # the session's reading, which was the federation's, or how old either was.
+    # An unreachable arifFlow leaves value=None — UNMEASURED is not zero.
+    _federation_fq = fq_object(None, scope=FQ_SCOPE_FEDERATION)
     try:
         import json as _json
         import urllib.request as _ureq
@@ -1238,6 +1245,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
         _fq_quotient = float(_fq_data["fq"]["quotient"])
+        _federation_fq = fq_object(
+            _fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION
+        )
         _phi_fq = round(_phi_fq_from_quotient(_fq_quotient), 4)
         # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
         # That guard only accepted a real measurement when it IMPROVED on the
@@ -1653,6 +1663,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
         "witness_provenance": witness_provenance,
         "qdf": qdf or _DEFAULT_QDF,
         "floors": resolved_floors,
+        # T2 (2026-10-18): the federation FQ reading, one object with a scope
+        # and a timestamp. Consumers must not read apex_scalars.G as FQ: G is
+        # a geometric composite, this is the verification/execution quotient.
+        "fq": _federation_fq,
         # SCAR-OBS-GREENWASH (2026-10-03): per-floor origin so a consumer can
         # tell a measurement from a placeholder. "unmeasured_default*" means the
         # value came from _representative_floor_score() — the floor's own passing
@@ -3954,7 +3968,11 @@ def register_rest_routes(
             source_drift=_sr_drift,
             contract_drift=bool(contract_drift_val),
         )
-        publish_system_floor_truth(_floor_verdict, substrate=_substrate)
+        # T2: publish the same federation FQ object the payload carries, so
+        # verbs echo one timestamped reading instead of re-deriving a second.
+        publish_system_floor_truth(
+            _floor_verdict, substrate=_substrate, fq=thermo.get("fq")
+        )
 
         _layer_health = {
             "constitutional": {
@@ -4174,6 +4192,10 @@ def register_rest_routes(
             "floor_passed": _floor_verdict.floor_passed,
             "floor_measurement": _floor_verdict.measurement,
             "floor_scope": FLOOR_SCOPE_SYSTEM,
+            # T2 (2026-10-18): ONE FQ object at this surface — federation scope,
+            # timestamped from the same arifFlow read that resolves F1. Verbs
+            # echo this object verbatim; none of them re-derives a second one.
+            "fq": thermo.get("fq"),
             "eureka_margin": _eureka_margin,
             "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",

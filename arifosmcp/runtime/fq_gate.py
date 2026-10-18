@@ -28,6 +28,8 @@ import logging
 import pathlib
 import urllib.request
 
+from arifosmcp.runtime.fq_truth import FQ_SCOPE_SESSION, fq_object, now_iso
+
 logger = logging.getLogger(__name__)
 
 ARIFFLOW_HEALTH_URL = "http://127.0.0.1:7073/health"
@@ -167,7 +169,12 @@ def metabolic_cap(
     # VOID/OBSERVE_ONLY/888_HOLD only; fq_outcome = this policy's vocabulary.
     state = {
         "actor_id": actor_id,
-        "quotient": None,
+        # T2 (2026-10-18): ONE reading, one shape. `quotient` was a second
+        # representation of the same number with no scope and no timestamp --
+        # a consumer could not tell a session reading from the federation
+        # baseline carried beside it. The object is built only by
+        # fq_truth.fq_object(); diagnostics stay on this dict.
+        "fq": fq_object(None, scope=FQ_SCOPE_SESSION),
         "fq_outcome": None,
         "capped": False,
         "reason": None,
@@ -191,6 +198,7 @@ def metabolic_cap(
         state["reason"] = f"arifFlow health probe failed: {exc}"
         logger.warning("fq_gate: arifFlow unreachable (%s) — session cap skipped", exc)
         return authority, state
+    _read_at = now_iso()
     per_actor = (health.get("fq") or {}).get("per_actor") or {}
     candidates = _candidate_lanes(per_actor, actor_id)
     if not candidates:
@@ -206,7 +214,7 @@ def metabolic_cap(
     state["matched_lanes"] = {lane: {"fq_outcome": e.get("verdict"), "quotient": e.get("quotient")} for lane, e in candidates}
     if qualifying:
         worst = min(qualifying, key=lambda t: t[2])
-        state["quotient"] = worst[2]
+        state["fq"] = fq_object(worst[2], measured_at=_read_at, scope=FQ_SCOPE_SESSION)
         state["fq_outcome"] = worst[1]
         state["capped"] = True
         lanes_txt = ", ".join(f"{lane} ({v}, FQ={round(q, 3)})" for lane, v, q in qualifying)
@@ -218,6 +226,6 @@ def metabolic_cap(
         logger.info("fq_gate: capped %s via lane(s) %s -> OBSERVE_ONLY", actor_id, lanes_txt)
         return "OBSERVE_ONLY", state
     best = candidates[0]
-    state["quotient"] = best[1].get("quotient")
+    state["fq"] = fq_object(best[1].get("quotient"), measured_at=_read_at, scope=FQ_SCOPE_SESSION)
     state["fq_outcome"] = best[1].get("verdict")
     return authority, state
