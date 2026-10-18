@@ -29,11 +29,11 @@ already asserts the correct invariant, but it runs with no HTTP context, so
 `auto_sign_allowed()` is False → the name-only elevation branch is skipped and
 the test passes while production is open.
 
-These tests therefore reproduce the LIVE configuration, not the test-harness
-configuration:
+These tests therefore verify against adversarial configurations, ensuring
+identity proof cannot be bypassed:
 
-  * `ARIFOS_TRUST_AUTO_SIGN_UNKNOWN=1` — set in the live arifos.service env
-    (measured via /proc/<MainPID>/environ).
+  * `ARIFOS_TRUST_AUTO_SIGN_UNKNOWN` is removed from the live arifos.service env;
+    these tests verify that identity proof does not depend on it.
   * `request_trust == LOCAL_LOOPBACK` — measured listener topology on KVM8:
 
         LISTEN 100.64.0.2:8088  tailscaled
@@ -93,11 +93,13 @@ SOVEREIGN_NAME = "arif"
 
 @pytest.fixture
 def live_exploit_conditions(monkeypatch):
-    """Reproduce the LIVE arifos.service trust configuration.
+    """Reproduce the trust configuration that made the exploit reachable.
 
-    Both halves are measured production facts, not assumptions:
-      * the env opt-in is present in the service's own environment;
-      * tailscaled's loopback forward makes every tailnet peer look local.
+    The env opt-in is NO LONGER live: `ARIFOS_TRUST_AUTO_SIGN_UNKNOWN` was
+    removed from arifos.service on 2026-10-18, and the auto-sign branch is
+    unreachable while `ARIFOS_TRUST_AUTO_SIGN` stays unset. It is set here only
+    to prove it is inert (`auto_sign_allowed()` stays False).
+      * tailscaled's loopback forward still makes every tailnet peer look local.
     """
     monkeypatch.setenv("ARIFOS_TRUST_AUTO_SIGN_UNKNOWN", "1")
     set_request_trust(peer="127.0.0.1", proxied=False)

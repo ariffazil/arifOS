@@ -16,43 +16,92 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # HEAD~1 lineage check requires at least 2 commits of history
-          fetch-depth: 2
+          # ancestry + drift-distance checks need the full history, not HEAD~1
+          fetch-depth: 0
 
-      - name: Verify README SOT-manifest live_commit matches git HEAD
+      - name: Verify README SOT-manifest live_commit is a real, recent ancestor of HEAD
+        env:
+          # Freshness budget, in commits. A stamp may lag the tip by this much
+          # before it stops describing the tree being shipped. Override to retune.
+          SOT_MAX_STAMP_DISTANCE: "50"
         run: |
           set -euo pipefail
 
-          # Stamp flow: update_readme_sot.py stamps at HEAD, the stamped README
-          # rides the NEXT commit. live_commit == HEAD is impossible by
-          # construction (fixed point); the checkable invariant is
-          # live_commit == HEAD~1 (or == HEAD when the stamp commit itself is HEAD).
-          README_COMMIT=$(grep 'live_commit:' README.md | head -1 | awk '{print $2}' | cut -c1-7)
-          GIT_HEAD=$(git rev-parse --short=7 HEAD)
-          GIT_HEAD_PREV=$(git rev-parse --short=7 HEAD~1)
-
-          echo "README live_commit: $README_COMMIT"
-          echo "git HEAD:           $GIT_HEAD"
-          echo "git HEAD~1:         $GIT_HEAD_PREV"
-
-          if [ "$README_COMMIT" != "$GIT_HEAD" ] && [ "$README_COMMIT" != "$GIT_HEAD_PREV" ]; then
+          # Stamp flow: update_readme_sot.py stamps the manifest at HEAD and the
+          # stamped README rides the NEXT commit, so live_commit can never equal
+          # the commit that contains it (fixed point).
+          #
+          # 2026-10-18: the previous contract — live_commit ∈ {HEAD, HEAD~1} —
+          # was unsatisfiable in steady state. On a pull_request run HEAD is
+          # GitHub's synthetic merge commit (parents = base tip, PR head), so
+          # HEAD~1 is the base tip; the README comes from the base branch and
+          # its stamp is *older* than the base tip the moment any commit lands
+          # after the stamp. Every PR therefore failed this gate, regardless of
+          # its content. The invariant that actually holds and actually matters:
+          # the stamped commit must exist, be an ancestor of HEAD (it is real
+          # history this tree descends from), and be no further than
+          # SOT_MAX_STAMP_DISTANCE commits behind. Stale claims still fail.
+          if ! grep -q 'live_commit:' README.md; then
             echo ""
-            echo "❌ SOT MANIFEST DRIFT DETECTED"
-            echo "   README claims: $README_COMMIT"
-            echo "   Reality:       $GIT_HEAD or $GIT_HEAD_PREV"
+            echo "❌ SOT MANIFEST MISSING"
+            echo "   README.md has no live_commit: line."
             echo ""
             echo "Fix: run scripts/update_readme_sot.py at current HEAD and commit"
             echo "     the stamped README so it rides the next commit."
             exit 1
           fi
 
-          echo "✅ SOT-manifest consistent: README live_commit matches git HEAD lineage"
+          README_COMMIT=$(grep -m1 'live_commit:' README.md | awk '{print $2}' | cut -c1-7)
+          GIT_HEAD=$(git rev-parse --short=7 HEAD)
+          GIT_HEAD_PREV=$(git rev-parse --short=7 HEAD~1 2>/dev/null || echo "-")
+
+          echo "README live_commit: $README_COMMIT"
+          echo "git HEAD:           $GIT_HEAD"
+          echo "git HEAD~1:         $GIT_HEAD_PREV"
+
+          if ! STAMP_SHA=$(git rev-parse --verify --quiet "${README_COMMIT}^{commit}"); then
+            echo ""
+            echo "❌ SOT MANIFEST DRIFT DETECTED"
+            echo "   README claims commit '$README_COMMIT', which is not in this history."
+            echo "Fix: run scripts/update_readme_sot.py and commit the stamped README."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$STAMP_SHA" HEAD; then
+            echo ""
+            echo "❌ SOT MANIFEST DRIFT DETECTED"
+            echo "   README claims '$README_COMMIT', which is not an ancestor of HEAD ($GIT_HEAD)."
+            echo "Fix: run scripts/update_readme_sot.py and commit the stamped README."
+            exit 1
+          fi
+
+          DISTANCE=$(git rev-list --count "$STAMP_SHA..HEAD")
+          MAX_DISTANCE="${SOT_MAX_STAMP_DISTANCE:-50}"
+          echo "commits between stamp and HEAD: $DISTANCE (max $MAX_DISTANCE)"
+
+          if [ "$DISTANCE" -gt "$MAX_DISTANCE" ]; then
+            echo ""
+            echo "❌ SOT MANIFEST STALE"
+            echo "   README claims '$README_COMMIT' — $DISTANCE commits behind HEAD ($GIT_HEAD)."
+            echo "   Budget is $MAX_DISTANCE. Re-verify and re-stamp:"
+            echo "   run scripts/update_readme_sot.py and commit the stamped README."
+            exit 1
+          fi
+
+          echo "✅ SOT-manifest consistent: live_commit $README_COMMIT is a recent ancestor of HEAD ($DISTANCE commits behind)"
 
       - name: Verify SOT-manifest last_verified is recent
         run: |
           set -euo pipefail
 
-          LAST_VERIFIED=$(grep 'last_verified:' README.md | head -1 | awk '{print $2}' | cut -d'T' -f1)
+          if ! grep -q 'last_verified:' README.md; then
+            echo ""
+            echo "❌ SOT MANIFEST MISSING last_verified"
+            echo "   Fix: run scripts/update_readme_sot.py and commit the stamped README."
+            exit 1
+          fi
+
+          LAST_VERIFIED=$(grep -m1 'last_verified:' README.md | awk '{print $2}' | cut -d'T' -f1)
           TODAY=$(date +%Y-%m-%d)
 
           echo "last_verified: $LAST_VERIFIED"
