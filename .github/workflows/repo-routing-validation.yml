@@ -59,6 +59,17 @@ jobs:
           #     body runs in the MAIN shell (FAILED persists).
           #   - Fetch body per commit via `git log -1 --format='%B'` so multi-
           #     line trailers stay attached to their commit hash.
+          #
+          # Bug 3, fixed 2026-10-18: on pull_request (and merge_group) events
+          # actions/checkout leaves HEAD at GitHub's SYNTHETIC merge commit
+          # ("Merge <head> into <base>"), which by construction cannot carry a
+          # REPO= trailer — nobody writes it. `git rev-list origin/main..HEAD`
+          # therefore always returned that merge commit and every PR failed
+          # (observed: PR #910 run 39095366458 on fee312ec4, PR #912 run
+          # 39098488397 on a76761b4). `--no-merges` validates the commits a
+          # human or agent actually authored; the synthetic merge is skipped.
+          # Merge commits authored on a branch are also skipped — acceptable,
+          # because the routing contract is about commits that carry intent.
 
           declare -a FAILED=()
           while IFS= read -r sha; do
@@ -76,7 +87,7 @@ jobs:
                 echo "✅ Commit $sha: REPO=$DECLARED ✓"
               fi
             fi
-          done < <(git rev-list origin/main..HEAD 2>/dev/null || git rev-list HEAD)
+          done < <(git rev-list --no-merges origin/main..HEAD 2>/dev/null || git rev-list --no-merges HEAD)
 
           if [ ${#FAILED[@]} -gt 0 ]; then
             echo ""
