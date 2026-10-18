@@ -628,6 +628,23 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_parameters": ["query"],
                 "returns": ["atlas", "zones"],
             },
+            # QRL increment-1 (2026-10-14, wired 702e9b683): PlanGraph engine
+            # modes. ADVISORY + unsealable — verdicts remain arif_judge's alone.
+            "dag": {
+                "purpose": "Return the full PlanGraph for the query in compact wire form (≤2KB).",
+                "required_parameters": ["query"],
+                "returns": ["plan_graph_id", "authority", "sealable", "nodes"],
+            },
+            "branches": {
+                "purpose": "Generate ≥3 candidate next-actions from the PlanGraph frontier (derived or template fallback).",
+                "required_parameters": ["query"],
+                "returns": ["plan_graph_id", "candidates", "n_candidates", "template_fallback", "advisory"],
+            },
+            "clarify": {
+                "purpose": "Surface ONE binary sovereign question (F13) from the branch set; no mutation until answered.",
+                "required_parameters": ["query"],
+                "returns": ["plan_graph_id", "question", "rule"],
+            },
         },
         "inputs": {
             "mode": {
@@ -645,6 +662,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                     "simulate",
                     "wonder",
                     "atlas",
+                    "dag",
+                    "branches",
+                    "clarify",
                 ],
                 "default": "reason",
             },
