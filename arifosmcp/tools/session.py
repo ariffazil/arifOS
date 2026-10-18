@@ -130,9 +130,24 @@ def _make_init_hold(
     }
     if extra_meta:
         meta.update(extra_meta)
+    # 2026-10-18 (333-AGI, F0 fix): result={} made every INIT HOLD invisible —
+    # the hollow_success_gate rewrote the whole response to UNMEASURED, discarding
+    # meta.reason. mode=init therefore returned "no session, no reason" while
+    # full/light/birth worked. The reason must live in `result` where the wrapper
+    # and the caller can see it. meta/status/unknown_classification unchanged.
     return _sm(
         status="HOLD",
-        result={},
+        result={
+            "implementation": "HOLD",
+            "reason": reason,
+            "failure_type": failure_type,
+            "violated_laws": meta.get("violated_laws", []),
+            "mode": mode or None,
+            "next_safe_action": (
+                "Resolve the stated reason, then retry. For crypto auth: "
+                "call mode=challenge, sign signature_payload, then mode=init before expiry."
+            ),
+        },
         meta=meta,
         doctrine=ARIF_DOCTRINE,
         unknown_classification=_build_unknown_classification(reason, failure_type),
@@ -3450,9 +3465,16 @@ def arif_init(
             declared_model_key=declared_model_key,
             floor_check=floor_check,
         )
+        # F0 fix (333-AGI 2026-10-18): carry the floor-check reason.
         return _sm(
             status="HOLD",
-            result={},
+            result={
+                "implementation": "HOLD",
+                "reason": floor_check["reason"],
+                "violated_laws": floor_check.get("violated_laws", []),
+                "mode": mode,
+                "next_safe_action": "Supply the missing required input named in `reason`, then retry.",
+            },
             meta={
                 "reason": floor_check["reason"],
                 "violated_laws": floor_check.get("violated_laws", []),
