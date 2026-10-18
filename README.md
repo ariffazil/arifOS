@@ -15,6 +15,17 @@
 > Known gaps: [What Is Not Yet Proven](#what-is-not-yet-proven)
 <!-- GENERATED:CURRENT-STATE:END -->
 
+<!-- SOT-MANIFEST
+last_verified: 2026-10-18T10:20:00+00:00
+live_commit: 9e6477d08 (docs(test): correct stale auto-sign claim in identity-proof P0 test)
+source_commit: 9e6477d08
+built_commit: cf7a984
+deployment_drift_status: aligned (source = built = deployed (drift: false))
+tools_exposed_via_mcp: 8 (verified by live tools/list, 2026-10-18)
+truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
+generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
+-->
+
 <p align="center">
   <img src="docs/assets/arifos-hero.png" alt="arifOS — agent proposes, arifOS judges, human authority, A-FORGE executes, reality and receipt" width="100%">
 </p>
