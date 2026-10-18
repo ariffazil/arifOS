@@ -84,6 +84,7 @@ def _build_unknown_classification(reason: str, failure_type: str) -> dict:
     Doctrine: absence_of_evidence_is_NOT_evidence_of_absence (GODEL_LOCK axiom A6).
     """
     from datetime import datetime, timezone
+
     _type_to_class = {
         "SUBSTRATE_DEGRADED": "substrate_health",
         "SUBSTRATE_DRIFT": "substrate_drift",
@@ -268,7 +269,6 @@ def _ditempa_seal(manifest: SessionManifest, mode: str = "") -> SessionManifest:
         elif DITEMPA_MOTTO not in existing:
             manifest.doctrine = f"{existing}\n\n— {DITEMPA_MOTTO} {state_emoji}"
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     return manifest
 
@@ -322,13 +322,22 @@ def _sm(*args, **kwargs) -> SessionManifest:
     # Catches all paths that go through _sm (covers any caller that didn't
     # explicitly pass unknown_classification=... to the constructor).
     # Uses model_copy because Pydantic v2 models are immutable by default.
-    if getattr(manifest, "status", "") == "HOLD" and getattr(manifest, "unknown_classification", None) is None:
+    if (
+        getattr(manifest, "status", "") == "HOLD"
+        and getattr(manifest, "unknown_classification", None) is None
+    ):
         meta = getattr(manifest, "meta", {}) or {}
-        reason = meta.get("reason", "no reason provided") if isinstance(meta, dict) else "no reason provided"
-        failure_type = meta.get("failure_type", "INIT_FAILURE") if isinstance(meta, dict) else "INIT_FAILURE"
-        manifest = manifest.model_copy(update={
-            "unknown_classification": _build_unknown_classification(reason, failure_type)
-        })
+        reason = (
+            meta.get("reason", "no reason provided")
+            if isinstance(meta, dict)
+            else "no reason provided"
+        )
+        failure_type = (
+            meta.get("failure_type", "INIT_FAILURE") if isinstance(meta, dict) else "INIT_FAILURE"
+        )
+        manifest = manifest.model_copy(
+            update={"unknown_classification": _build_unknown_classification(reason, failure_type)}
+        )
     mode = getattr(manifest, "mode", "") or ""
     sealed = _ditempa_seal(manifest, mode=mode)
     try:
@@ -363,7 +372,6 @@ def _safe_dump(obj: Any) -> Any:
         try:
             return obj.model_dump()
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     if isinstance(obj, dict):
         return obj
@@ -415,7 +423,6 @@ def _load_soul_shadow(model_key: str | None) -> tuple[dict, dict]:
     try:
         soul, shadow, _ = _load_model_registry(key)
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     return soul, shadow
 
@@ -647,7 +654,6 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
             if isinstance(raw_tr, dict) and raw_tr.get("schema") == _TEMPORAL_SCHEMA:
                 tr = raw_tr
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     # ── Check freshness ──
     anchor_fresh = False
@@ -659,7 +665,6 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
             anchor_age_ms = int(age.total_seconds() * 1000)
             anchor_fresh = age.total_seconds() <= _TEMPORAL_ANCHOR_TTL_S
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     # ── If anchor is fresh, use it ──
     if tr and anchor_fresh:
@@ -693,7 +698,6 @@ def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
                         base["stale_anchor_age_ms"] = anchor_age_ms
                     return base
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     # ── Fallback: return what we have, even if stale ──
     if tr:
@@ -849,7 +853,11 @@ def _build_init_v2_roots(
     elif _obj:
         task_type = "EXECUTION"
         if not _sc:
-            _sc = [f"objective_addressed: {_obj[:100]}", "no_irreversible_side_effects_without_f13", "receipt_emitted"]
+            _sc = [
+                f"objective_addressed: {_obj[:100]}",
+                "no_irreversible_side_effects_without_f13",
+                "receipt_emitted",
+            ]
         if not _vr:
             _vr = ["evidence_trace_available", "session_budget_not_exhausted"]
 
@@ -900,7 +908,6 @@ def _build_init_v2_roots(
                 degraded_organs.append(f"{organ}:UNREACHABLE")
                 probe_trail.append(f"probe:{organ}:DOWN")
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
     try:
         import urllib.request as _urllib_req2
@@ -1000,7 +1007,9 @@ def reconstruct_provenance_hash(
         actor_id = actor_id or provenance_root.get("actor_id")
         mode = mode or provenance_root.get("mode") or "init"
         observed_at_utc = observed_at_utc or provenance_root.get("observed_at_utc")
-        audit_trail = audit_trail if audit_trail is not None else (provenance_root.get("audit_trail") or [])
+        audit_trail = (
+            audit_trail if audit_trail is not None else (provenance_root.get("audit_trail") or [])
+        )
 
     trail_str = ",".join(audit_trail) if audit_trail else ""
     state_input = f"{sid}|{actor_id}|{mode}|{observed_at_utc}|{trail_str}"
@@ -1061,7 +1070,6 @@ def _build_carry_forward_context() -> dict[str, Any] | None:
                 ctx["stale_hours"] = round(age_h, 1)
                 ctx["is_stale"] = age_h > 24
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
     # ── Human state ──
     hs = doc.get("human_state")
@@ -1080,12 +1088,14 @@ def _build_carry_forward_context() -> dict[str, Any] | None:
         recent = []
         for e in entries[-_CARRY_FORWARD_MAX_ENTRIES:]:
             if isinstance(e, dict):
-                recent.append({
-                    "id": e.get("id"),
-                    "kind": e.get("kind"),
-                    "content": (e.get("content") or "")[:200],
-                    "agent": e.get("agent"),
-                })
+                recent.append(
+                    {
+                        "id": e.get("id"),
+                        "kind": e.get("kind"),
+                        "content": (e.get("content") or "")[:200],
+                        "agent": e.get("agent"),
+                    }
+                )
         ctx["recent_entries"] = recent
         ctx["total_entry_count"] = len(entries)
         # Entry kind summary
@@ -1111,8 +1121,7 @@ def _build_carry_forward_context() -> dict[str, Any] | None:
     if open_loops:
         ctx["open_loop_count"] = len(open_loops)
         ctx["top_open_loops"] = [
-            {"id": e.get("id"), "content": (e.get("content") or "")[:150]}
-            for e in open_loops[-5:]
+            {"id": e.get("id"), "content": (e.get("content") or "")[:150]} for e in open_loops[-5:]
         ]
 
     return ctx
@@ -1195,7 +1204,6 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
                     if vid:
                         latest_verifications[vid] = v
     except Exception:
-
         logger.exception("suppressed exception", exc_info=True)
 
     decisive_ids = {
@@ -1229,16 +1237,17 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
                 due = _dt.fromisoformat(va.replace("Z", "+00:00"))
                 days = (due - now).total_seconds() / 86400
                 if 0 <= days <= _CHRON_DUE_SOON_DAYS:
-                    due_soon.append({
-                        "prediction_id": p.get("prediction_id"),
-                        "claim": (p.get("claim") or "")[:200],
-                        "confidence": p.get("confidence"),
-                        "verify_at": va,
-                        "days_until_due": round(days, 1),
-                        "domain": p.get("domain"),
-                    })
+                    due_soon.append(
+                        {
+                            "prediction_id": p.get("prediction_id"),
+                            "claim": (p.get("claim") or "")[:200],
+                            "confidence": p.get("confidence"),
+                            "verify_at": va,
+                            "days_until_due": round(days, 1),
+                            "domain": p.get("domain"),
+                        }
+                    )
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     due_soon.sort(key=lambda x: x.get("days_until_due", 999))
     ctx["due_soon"] = due_soon
@@ -1253,14 +1262,15 @@ def _build_chron_temporal_context() -> dict[str, Any] | None:
                 due = _dt.fromisoformat(va.replace("Z", "+00:00"))
                 days = (due - now).total_seconds() / 86400
                 if 0 < days <= 30 and days > _CHRON_DUE_SOON_DAYS:
-                    upcoming.append({
-                        "prediction_id": p.get("prediction_id"),
-                        "claim": (p.get("claim") or "")[:150],
-                        "confidence": p.get("confidence"),
-                        "days_until_due": round(days, 1),
-                    })
+                    upcoming.append(
+                        {
+                            "prediction_id": p.get("prediction_id"),
+                            "claim": (p.get("claim") or "")[:150],
+                            "confidence": p.get("confidence"),
+                            "days_until_due": round(days, 1),
+                        }
+                    )
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     upcoming.sort(key=lambda x: x.get("days_until_due", 999))
     ctx["upcoming"] = upcoming[:5]
@@ -1525,7 +1535,9 @@ def _project_light(
         "identity_state": "VERIFIED" if actor_verified else "UNVERIFIED",
         "witness_state": "FULL" if (actor_verified and _seal_allowed) else "ABSENT",
         "authority_state": _authority,
-        "constitutional_state": "HOLD" if (not actor_verified or _drift or _boot_unhealthy) else "OPERATIONAL",
+        "constitutional_state": "HOLD"
+        if (not actor_verified or _drift or _boot_unhealthy)
+        else "OPERATIONAL",
     }
 
     out = {
@@ -1792,7 +1804,6 @@ def _project_light(
                             "h": _live.get("h", None),
                         }
                 except Exception:
-
                     logger.exception("suppressed exception", exc_info=True)
             if _apex is None:
                 _apex = unmeasured_apex()  # fallback base structure
@@ -1852,7 +1863,6 @@ def _project_light(
                         _claims["verification_method"] = "did_registry"
                         _claims["evidence_ref"] = f"did://{_kid_for_uri}"
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
         out["session_token"] = _token
         out["apex_scalars"] = dict(_apex)
@@ -1875,7 +1885,6 @@ def _project_light(
                 "note": "Federation-wide reference. Not this session's score.",
             }
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         if _sct_minted:
             pass  # standing_source already set to "no_act_unverified" in limited path
@@ -2194,7 +2203,6 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
             with open(soul_path) as f:
                 result_soul = yaml.safe_load(f) or {}
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     # Load shadow and extract floor posture
     if os.path.isfile(shadow_path):
@@ -2206,7 +2214,6 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
             # Extract floor posture from shadow
             result_posture = result_shadow.get("floor_posture", {})
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
     return result_soul, result_shadow, result_posture
 
@@ -2400,6 +2407,38 @@ def arif_init(
                         },
                     )
     # ── END F12 INJECTION GATE ─────────────────────────────────────────────
+
+    # ── EUREKA MARGIN GATE (F13 judge order 2026-10-18, C4) ──────────────
+    # The old state — "OPERATIONAL: no paradoxes -> phiE waived (1.0)" — was a
+    # comment, not a control: n_act was accepted and recorded, never computed
+    # or enforced. Now: NON_OPERATIONAL work must carry a DECLARED margin from
+    # the contradiction register (never a per-call number). Undeclared -> BLOCKED.
+    from arifosmcp.runtime.contradiction_margin import (
+        contradiction_margin,
+        eureka_margin_gate,
+    )
+
+    _eureka_margin = contradiction_margin()
+    _eureka_gate = eureka_margin_gate(session_class, _eureka_margin)
+    if not _eureka_gate["execution_permitted"]:
+        logger.warning(
+            "arif_init: EUREKA_MARGIN_UNDECLARED — session_class=%s blocked (C4 control)",
+            session_class,
+        )
+        return _make_init_hold(
+            reason=(
+                f"EUREKA_MARGIN_UNDECLARED — session_class={session_class} requires a "
+                "declared contradiction margin. Register the active contradictions in "
+                "/var/lib/arifos/contradiction_register.json or use session_class=OPERATIONAL."
+            ),
+            failure_type="eureka_margin_undeclared",
+            extra_meta={
+                "phi_e": _eureka_gate["phi_e"],
+                "n_act": _eureka_margin["n_act"],
+                "contradiction_register_hash": _eureka_margin["contradiction_register_hash"],
+                "violated_laws": ["EUREKA_MARGIN_UNDECLARED"],
+            },
+        )
 
     # F12 BLUE-TEAM HARDENING (2026-08-08): sanitize actor_id against
     # log-injection before identity resolution. Strip non-printable/control
@@ -2789,7 +2828,6 @@ def arif_init(
 
             well_ok = bool(_read_well_substrate())
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         # ── P0 WIRING (light mode): crypto bind + challenge (2026-07-10) ──
         # Wire_ArifInit_Signature_To_Session_v1: light mode MUST process
@@ -2832,7 +2870,6 @@ def arif_init(
                     )
                     bind_authority_state(sess, _av_state)
                 except Exception:
-
                     logger.exception("suppressed exception", exc_info=True)
                 sess["signature_verified"] = bool(_band["signature_verified"])
                 sess["actor_band"] = _light_band
@@ -2860,7 +2897,6 @@ def arif_init(
                     )
                     bind_authority_state(sess, _av_state)
                 except Exception:
-
                     logger.exception("suppressed exception", exc_info=True)
                 sess["signature_verified"] = False
         elif actor_id:
@@ -2935,7 +2971,6 @@ def arif_init(
                                 )
                                 bind_authority_state(sess, _av_state)
                             except Exception:
-
                                 logger.exception("suppressed exception", exc_info=True)
                             sess["signature_verified"] = True
                             sess["actor_band"] = _light_band
@@ -2976,9 +3011,7 @@ def arif_init(
                 # on the normalized form.
                 from arifosmcp.runtime.session_auth import exempt_actor_band as _eab_al
 
-                _exempt_band_al = _eab_al(actor_id) or (
-                    _eab_al(_al_lower) if _al_lower else None
-                )
+                _exempt_band_al = _eab_al(actor_id) or (_eab_al(_al_lower) if _al_lower else None)
                 if _exempt_band_al:
                     from arifosmcp.runtime.request_trust import auto_sign_allowed
 
@@ -3005,7 +3038,6 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                         sess["signature_verified"] = True
                         sess["verified"] = True
@@ -3035,7 +3067,6 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                         # FIX 2026-08-08 333-AGI: operator exempt path was setting
                         # _light_actor_verified (local) but not sess["actor_verified"].
@@ -3105,7 +3136,6 @@ def arif_init(
                                 )
                                 bind_authority_state(sess, _av_state)
                             except Exception:
-
                                 logger.exception("suppressed exception", exc_info=True)
                             logger.info(
                                 "light-mode SOVEREIGN auto-grant for %s (signature challenge issued)",
@@ -3381,7 +3411,6 @@ def arif_init(
 
                 set_active_session(sess["session_id"])
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
         except Exception:
             pass
@@ -3584,7 +3613,6 @@ def arif_init(
                         )
                         bind_authority_state(sess, _av_state)
                     except Exception:
-
                         logger.exception("suppressed exception", exc_info=True)
                     logger.info("init-mode sct_symmetric verification successful for %s", actor_id)
             except Exception as _sct_exc:
@@ -3637,7 +3665,6 @@ def arif_init(
                         )
                         bind_authority_state(sess, _av_state)
                     except Exception:
-
                         logger.exception("suppressed exception", exc_info=True)
                     logger.info(
                         "init-mode HMAC-rootkey bind actor=%s reason=%s → FULL",
@@ -3710,7 +3737,6 @@ def arif_init(
                         )
                         bind_authority_state(sess, _av_state)
                     except Exception:
-
                         logger.exception("suppressed exception", exc_info=True)
                     sess["actor_band"] = _band["actor_band"]
                     sess["agent_class"] = _band["agent_class"]
@@ -3851,7 +3877,6 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                         logger.info(
                             "init-mode auto-identity: %s verified via localhost Ed25519 (%s) → %s",
@@ -3923,7 +3948,6 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                         sess["signature_verified"] = True
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
@@ -3952,7 +3976,6 @@ def arif_init(
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
-
                             logger.exception("suppressed exception", exc_info=True)
                         sess["agent_class"] = "AGENT"
                         sess["actor_band"] = "LIMITED_MUTATE"
@@ -4004,7 +4027,6 @@ def arif_init(
                     )
                     bind_authority_state(sess, _av_state)
                 except Exception:
-
                     logger.exception("suppressed exception", exc_info=True)
         # ── Birth authority: identity band only (Spine P0, Workstream 1) ──
         from arifosmcp.runtime.act_token import compute_authority_state, identity_band_authority
@@ -4134,7 +4156,6 @@ def arif_init(
 
             well_mirror_data = _read_well_substrate() or {}
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         context_receipt = _compute_context_completeness(
             actor_id=actor_id,
@@ -4338,7 +4359,6 @@ def arif_init(
 
                 set_active_session(sess["session_id"])
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
             # F13: bind into canonical identity store used by compose_standing
             # (get_session_identity / _SESSION_IDENTITY — NOT tools._SESSIONS alone)
@@ -4383,7 +4403,6 @@ def arif_init(
             except Exception as _bind_err:
                 logger.warning("bind_session_identity failed (non-fatal): %s", _bind_err)
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         from arifosmcp.runtime.work_spine import create_work_contract
 
@@ -4431,9 +4450,9 @@ def arif_init(
             sess["genesis_state_hash"] = _roots_hash
             try:
                 from arifosmcp.runtime.tools import _SESSIONS
+
                 _SESSIONS[sid] = sess
             except Exception:
-
                 logger.exception("suppressed exception", exc_info=True)
         # L3: Carry-forward injection — generational memory at init.
         # Injects human_state, recent entries, chron_briefing, open loops.
@@ -4916,7 +4935,6 @@ def arif_init(
 
             _SESSIONS[sid] = sess
         except Exception:
-
             logger.exception("suppressed exception", exc_info=True)
         from arifosmcp.runtime.work_spine import create_work_contract
 
@@ -5115,7 +5133,11 @@ def arif_init(
 
             _bound_norm = normalize_actor_id(bound_actor) or bound_actor.lower().strip()
             _provided_norm = normalize_actor_id(actor_id) or actor_id.lower().strip()
-            if _bound_norm != _provided_norm and _bound_norm != "anonymous" and _provided_norm != "anonymous":
+            if (
+                _bound_norm != _provided_norm
+                and _bound_norm != "anonymous"
+                and _provided_norm != "anonymous"
+            ):
                 return _sm(
                     status="HOLD",
                     result={
@@ -5149,7 +5171,7 @@ def arif_init(
             import hashlib as _hl, json as _js
 
             _cur_hash = f"sha256:{_hl.sha256(_js.dumps(sess_data['init_v2_roots'], sort_keys=True, default=str).encode('utf-8')).hexdigest()}"
-            roots_verified = (_cur_hash == init_roots_hash)
+            roots_verified = _cur_hash == init_roots_hash
 
         res_data = {
             "valid": _in_store,

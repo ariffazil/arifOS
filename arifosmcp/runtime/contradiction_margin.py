@@ -65,15 +65,36 @@ def load_contradiction_register(register_path: Path | str | None = None) -> dict
     return raw if isinstance(raw, dict) else None
 
 
+# Shared snapshot cache keyed by (path, mtime_ns). Two surfaces probing the same
+# register must emit the SAME measured_at and hash (judge Test D) — recomputing
+# per call would make agreement impossible by construction.
+_MARGIN_CACHE: dict[tuple[str, int | None], dict[str, Any]] = {}
+
+
 def contradiction_margin(
     *,
     register_path: Path | str | None = None,
     register: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Derive the Eureka margin from the register. No caller-supplied n_act."""
-    reg: Mapping[str, Any] | None = (
-        dict(register) if register is not None else load_contradiction_register(register_path)
-    )
+    if register is None:
+        p = Path(register_path) if register_path else REGISTER_PATH
+        try:
+            mtime_ns: int | None = p.stat().st_mtime_ns
+        except OSError:
+            mtime_ns = None
+        key = (str(p), mtime_ns)
+        cached = _MARGIN_CACHE.get(key)
+        if cached is not None:
+            return dict(cached)
+        margin = _compute_margin(load_contradiction_register(p))
+        _MARGIN_CACHE.clear()
+        _MARGIN_CACHE[key] = dict(margin)
+        return margin
+    return _compute_margin(dict(register))
+
+
+def _compute_margin(reg: Mapping[str, Any] | None) -> dict[str, Any]:
     now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
     if reg is None:

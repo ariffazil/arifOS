@@ -4159,6 +4159,13 @@ def register_rest_routes(
             contract_drift=bool(contract_drift_val),
         )
 
+        # Eureka margin (F13 judge order 2026-10-18): n_act/n_resolved/phi_e
+        # derived from the contradiction register only — never typed per call.
+        # Same producer as the arif_init gate so surfaces cannot disagree (Test D).
+        from arifosmcp.runtime.contradiction_margin import contradiction_margin
+
+        _eureka_margin = contradiction_margin()
+
         payload = {
             "status": "degraded" if _degraded else "healthy",
             "degraded_reasons": degraded_reasons,
@@ -4167,6 +4174,7 @@ def register_rest_routes(
             "floor_passed": _floor_verdict.floor_passed,
             "floor_measurement": _floor_verdict.measurement,
             "floor_scope": FLOOR_SCOPE_SYSTEM,
+            "eureka_margin": _eureka_margin,
             "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
             # ZEN 2026-09-02 (F13 'audit this and zen all'): the import path is
