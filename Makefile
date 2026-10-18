@@ -76,6 +76,9 @@ deploy-local:
 	chmod -R u+rwX,go+rX /opt/arifos/app/; \
 	chmod 640 /opt/arifos/app/.env 2>/dev/null; \
 	chown arifos:arifos /opt/arifos/app/.env 2>/dev/null; \
+	SITE_PKGS=$$(/opt/arifos/current/venv/bin/python -c "import site; print(site.getsitepackages()[0])"); \
+	echo "Syncing runtime import path ($$SITE_PKGS)..."; \
+	rsync -a --exclude='__pycache__' $(DIR)/arifosmcp/ $$SITE_PKGS/arifosmcp/; \
 	echo "$$GIT_SHA" > /opt/arifos/app/.git_commit; \
 	echo "Restarting arifOS bare-metal service..."; \
 	systemctl restart arifos.service; \
