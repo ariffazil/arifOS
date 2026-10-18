@@ -87,6 +87,7 @@ from arifosmcp.runtime.law import get_floor_count
 from arifosmcp.runtime.health_truth import (
     FLOOR_SCOPE_SYSTEM,
     floor_truth,
+    publish_system_floor_truth,
     substrate_truth,
 )
 from arifosmcp.schemas.federation_enums import FEDERATION_ENUMS_SCHEMA_VERSION
@@ -1343,7 +1344,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 if fid in _alias_map:
                     _afid = _alias_map[fid]
                     resolved_floors[_afid] = _score
-                    floor_provenance[_afid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                    floor_provenance[_afid] = (
+                        f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                    )
 
         # F12 INJECTION — request-trust gate (auto-sign must be denied).
         # Surface the known doc/code drift (request_trust.py docstring says
@@ -1408,10 +1411,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # Floors measured by real producers/probes are excluded from
         # placeholder defaults comparison so their genuine measured values are not mistaken for placeholder defaults.
         _producer_floor_ids = {
-            _fid for _fid, _origin in floor_provenance.items()
+            _fid
+            for _fid, _origin in floor_provenance.items()
             if not str(_origin).startswith("unmeasured_default")
         }
-        _active_defaults = {k: v for k, v in _FLOOR_DEFAULTS.items() if k not in _producer_floor_ids}
+        _active_defaults = {
+            k: v for k, v in _FLOOR_DEFAULTS.items() if k not in _producer_floor_ids
+        }
         _floor_statuses_snapshot = {
             _fid: _floor_status_with_provenance(_fid, _fval, floor_provenance.get(_fid))
             for _fid, _fval in resolved_floors.items()
@@ -1445,9 +1451,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # S4 FIX (2026-10-17): a leg measured by witness_producers must not be
     # reported as 0.0/"unmeasured" just because kernel state lacks it. Prefer
     # the live leg value; only a genuinely absent leg stays unmeasured.
-    _witness_legs_map = (
-        (witness_legs.get("legs") or {}) if isinstance(witness_legs, dict) else {}
-    )
+    _witness_legs_map = (witness_legs.get("legs") or {}) if isinstance(witness_legs, dict) else {}
     for k in _WITNESS_DEFAULTS:
         real = _safe_float(witness.get(k))
         _leg_val = _safe_float((_witness_legs_map.get(k) or {}).get("value"))
@@ -1639,8 +1643,8 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
     # FLR-005 (2026-10-17): publish exactly the canonical 13-floor set.
     # L10-L13 aliases collapse into F10-F13 and unknown keys never mint floors.
-    resolved_floors, floor_provenance, _floor_alias_contradictions = (
-        _normalize_floors_to_canonical(resolved_floors, floor_provenance)
+    resolved_floors, floor_provenance, _floor_alias_contradictions = _normalize_floors_to_canonical(
+        resolved_floors, floor_provenance
     )
 
     return {
@@ -1925,7 +1929,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
       <h2>Machine Vitals</h2>
       <table>
         <tbody>
-          <tr><th>CPU</th><td>{'unavailable' if vitals.get("unmeasured") else f'{float(vitals.get("cpu_percent", 0.0)):.1f}% · {vitals.get("cpu_count", 0)} cores'}</td></tr>
+          <tr><th>CPU</th><td>{"unavailable" if vitals.get("unmeasured") else f"{float(vitals.get('cpu_percent', 0.0)):.1f}% · {vitals.get('cpu_count', 0)} cores"}</td></tr>
           <tr><th>Memory</th><td>{float(vitals.get("memory_percent", 0.0)):.1f}% · {vitals.get("ram_used_gb", 0):.1f}/{vitals.get("ram_total_gb", 0):.1f} GB</td></tr>
           <tr><th>Disk</th><td>{float(vitals.get("disk_percent", 0.0)):.1f}%</td></tr>
           <tr><th>Load</th><td>{load_text}</td></tr>
@@ -3940,8 +3944,12 @@ def register_rest_routes(
         # kernel verbs published floor_passed under a different rule
         # (measured == "some floor failed"), so the two surfaces could never
         # agree. One function, two consumers, one vocabulary.
-        _floor_verdict = floor_truth(_floor_detail, _floors_total)
+        _floor_verdict = floor_truth(_floor_detail, _floors_total, provenance=_floor_provenance)
         _constitutional_status = _floor_verdict.status
+        # T1/A: publish the one system reading. Tool envelopes echo this
+        # instead of guessing, so init/observe and /health cannot disagree
+        # about floors that only /health measures.
+        publish_system_floor_truth(_floor_verdict)
 
         _layer_health = {
             "constitutional": {
@@ -3950,10 +3958,13 @@ def register_rest_routes(
                 "_floor_measurement": _floor_verdict.measurement,
                 "floor_scope": FLOOR_SCOPE_SYSTEM,
                 "floors_active": get_floor_count(),
-                "floors_pass": _floors_pass_count,
+                "floors_pass": _floor_verdict.floors_pass,
                 "floors_target": 13,
                 "floors_failing": _floors_failing,
                 "floors_unmeasured": _floors_unmeasured,
+                "floors_declared": list(_floor_verdict.floors_declared),
+                "floors_measurement_status": dict(_floor_verdict.measurement_status),
+                "floors_aggregate": _floor_verdict.aggregate,
                 "floors_detail": _floor_detail,
                 "floors_provenance": _floor_provenance,
                 "floors_measured": _floors_measured,
@@ -3966,9 +3977,7 @@ def register_rest_routes(
                 # be demoted to a warning while the verbs read the same fact as
                 # DEGRADED, which is how /health and arif_observe ended up
                 # describing one machine in two states.
-                "status": "degraded"
-                if (_code_runtime_drift or _sr_drift)
-                else "healthy",
+                "status": "degraded" if (_code_runtime_drift or _sr_drift) else "healthy",
                 "source_commit": _drift.get("live_commit"),
                 "built_commit": _drift.get("build_commit"),
                 "runtime_matches_build": _drift.get("runtime_matches_build", True),
