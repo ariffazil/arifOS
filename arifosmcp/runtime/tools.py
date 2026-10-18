@@ -29180,7 +29180,10 @@ def register_tools(
 
     from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS, CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
-    from arifosmcp.runtime.public_registry import public_tool_spec_by_name
+    from arifosmcp.runtime.public_registry import (
+        _tool_output_schema,
+        public_tool_spec_by_name,
+    )
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import (
         CANONICAL_ORDER,
@@ -29292,11 +29295,16 @@ def register_tools(
                     "external_effect": tool_risk.external_effect.value,
                 },
             }
+            # TDQS Phase-2 (2026-10-18, 333-AGI): output_schema restored — the
+            # 2026-07-03 P3 removal predated _wrap_handler's structured-content
+            # fix (sanitized dict return). Handlers all return dict[str, Any];
+            # FastMCP now emits structuredContent and validates cleanly.
             mcp.tool(
                 name=name,
                 description=desc,
                 tags={"canonical", "arifos"},
                 annotations=_TOOL_ANNOTATIONS.get(name),
+                output_schema=_tool_output_schema(name),
                 task=task_flag or None,
                 meta=meta_payload,
             )(wrapped)
