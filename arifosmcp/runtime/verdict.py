@@ -65,7 +65,8 @@ VERDICT_STATE_VERSION = 1
 # The six canonical verdict values. Closed taxonomy.
 OBSERVE_ONLY = "OBSERVE_ONLY"
 SEAL = "SEAL"
-SABAR = "SABAR"
+SABAR = "SABAR"  # canonical: proceed-cautiously / partial coverage.
+                  # NOT sabar_gate.py's SABAR_HOLD (gate-local F7/F9 hold).
 VOID = "VOID"
 HOLD = "HOLD"
 HOLD_888 = "888_HOLD"

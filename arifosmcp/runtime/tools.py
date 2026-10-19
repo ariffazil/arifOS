@@ -4961,6 +4961,10 @@ def _enforce_nine_signal(
                     )
 
     # ── SABAR GATE (F9+F7 pre-return chokepoint, 2026-06-11) ────────────
+    # LIVE STATUS 2026-10-19: disabled by ARIFOS_DISABLE_SAFETY_THEATRE=1.
+    # The code path below is retained for audit/re-enable, not enforcement.
+    # Token note: SABAR_HOLD here is gate-local; canonical SABAR (verdict.py)
+    # means proceed-cautiously / partial coverage. Do not conflate them.
     # SABAR (Pre-Execution Interceptor) runs AFTER post_observe_gate
     # and BEFORE the response is returned to the caller. It catches:
     #   F7  — overconfident claims (omega_0 or confidence > 0.90)
