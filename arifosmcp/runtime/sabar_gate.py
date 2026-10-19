@@ -2,6 +2,17 @@
 sabar_gate.py
 =============
 
+LIVE STATUS (2026-10-19): DISABLED.
+    The live arifos.service runs with ARIFOS_DISABLE_SAFETY_THEATRE=1.
+    This module is retained for audit/re-enable, but it is NOT in the live
+    enforcement path. Do not report it as "ENFORCED".
+
+TOKEN SEMANTICS:
+    SABAR       — canonical verdict in verdict.py: proceed-cautiously /
+                  partial coverage. NOT this module's token.
+    SABAR_HOLD  — gate-local verdict from this module only: F7/F9 pre-return
+                  hold. Do not compare it to canonical SABAR.
+
 SABAR — Pre-Execution Interceptor. F7 HUMILITY + F9 ANTIHANTU chokepoint
 at the call site, BEFORE any tool output reaches the operator.
 
