@@ -16,6 +16,8 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from arifosmcp.runtime.tailnet_identity import TailnetIdentityMiddleware
+
 logger = logging.getLogger(__name__)
 
 
@@ -553,6 +555,7 @@ def _build_http_middleware() -> list[Middleware]:
 
     # Add default Accept header for universal compatibility
     middleware.append(Middleware(AgnosticAcceptMiddleware))
+    middleware.append(Middleware(TailnetIdentityMiddleware))
     middleware.append(Middleware(ConstitutionalJWTAuthMiddleware))
     middleware.append(Middleware(SovereignIdentityMiddleware))
 
