@@ -2172,6 +2172,11 @@ try:
 
     # Attach middleware to MCP server (FastMCP 3.x+ — on_call_tool hook)
     if IS_FASTMCP_3 or fastmcp.__version__.startswith("4"):
+        from arifosmcp.runtime.tailnet_identity import TailnetActorBindingMiddleware
+
+        mcp.add_middleware(TailnetActorBindingMiddleware())
+        logger.info("TailnetActorBindingMiddleware attached (observe by default)")
+
         mcp.add_middleware(_ingress_middleware)  # pyright: ignore[reportArgumentType]
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 
@@ -2905,6 +2910,15 @@ async def mcp_health(request: Request) -> JSONResponse:
 # Constitutional tools remain actor/SCT gated; transport session ≠ governance session.
 # Backward compat: initialize still works (returns capabilities), no persistent session.
 app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
+
+# P4c (888-APEX HOLD, Commit 1, 2026-10-19): loop-lag telemetry.
+# Diagnostic only — not a gate, watchdog, or readiness signal. Never blocks boot.
+try:
+    from arifosmcp.runtime.loop_lag import start_monitor as _start_loop_lag_monitor
+
+    app.add_event_handler("startup", _start_loop_lag_monitor)
+except Exception:  # telemetry must never prevent the kernel from booting
+    pass
 # Counts are derived live from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (imported above).
 _actual_canonical_count = len(CANONICAL_TOOLS)
 _actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)
@@ -2932,6 +2946,7 @@ if app:
         MCPProtocolVersionMiddleware,
         MCPSessionBridgeMiddleware,
     )
+    from arifosmcp.runtime.tailnet_identity import TailnetIdentityMiddleware
     from arifosmcp.transport import AirlockASGIMiddleware
     from arifosmcp.transport.organ_proxy import OrganProxyMiddleware
     from arifosmcp.transport.resulttype_asgi import ResultTypeASGIMiddleware
@@ -2945,6 +2960,7 @@ if app:
 
     app.add_middleware(OriginValidationMiddleware)
     app.add_middleware(DPoPAuthMiddleware)
+    app.add_middleware(TailnetIdentityMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
     # MCP 2026-07-28: inject resultType into tools/list responses (MCPJam compliance)

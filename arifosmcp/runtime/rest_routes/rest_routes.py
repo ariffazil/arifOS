@@ -1245,9 +1245,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
         _fq_quotient = float(_fq_data["fq"]["quotient"])
-        _federation_fq = fq_object(
-            _fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION
-        )
+        _federation_fq = fq_object(_fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION)
         _phi_fq = round(_phi_fq_from_quotient(_fq_quotient), 4)
         # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
         # That guard only accepted a real measurement when it IMPROVED on the
@@ -3736,6 +3734,16 @@ def register_rest_routes(
         module load — cold-start penalty (~2.2s) paid once, not per-request. All expensive
         probes called once and reused. Result: 1.5s → <5ms (300x improvement).
         """
+        # P4c: lazy-start the loop-lag monitor. FastMCP owns the app lifespan,
+        # so a Starlette startup handler is not guaranteed to run. /health is
+        # polled continuously; health is diagnostic-only and never a gate.
+        try:
+            from arifosmcp.runtime.loop_lag import start_monitor as _start_loop_lag
+
+            _start_loop_lag()
+        except Exception:
+            pass
+
         # ── Cache check (30s TTL, bypass with ?nocache=1 or ?detail=1) ──
         _now = time.monotonic()
         _nocache = request.query_params.get("nocache") == "1"
@@ -3747,7 +3755,9 @@ def register_rest_routes(
         )
         if not _nocache and not _want_detail and _health_cache["payload"] is not None:
             if _now - _health_cache["ts"] < 300.0:  # 5min TTL (was 30s; cold build ~10s)
-                return JSONResponse(_health_cache["payload"])
+                from arifosmcp.runtime.loop_lag import with_loop_lag as _with_loop_lag
+
+                return JSONResponse(_with_loop_lag(_health_cache["payload"]))
 
         # P2-PROVENANCE-LIVE-2026-10-10: source identity_hash from helper
         # (local-import pattern), keep file-read as verification channel,
@@ -3970,9 +3980,7 @@ def register_rest_routes(
         )
         # T2: publish the same federation FQ object the payload carries, so
         # verbs echo one timestamped reading instead of re-deriving a second.
-        publish_system_floor_truth(
-            _floor_verdict, substrate=_substrate, fq=thermo.get("fq")
-        )
+        publish_system_floor_truth(_floor_verdict, substrate=_substrate, fq=thermo.get("fq"))
 
         _layer_health = {
             "constitutional": {
@@ -4699,8 +4707,10 @@ def register_rest_routes(
             _health_cache["payload"] = payload
             _health_cache["ts"] = _now
 
+        from arifosmcp.runtime.loop_lag import with_loop_lag as _with_loop_lag
+
         return JSONResponse(
-            payload,
+            _with_loop_lag(payload),
             headers={
                 "Access-Control-Allow-Origin": "*",
                 "X-Deployment-Hash": BUILD_INFO["build"]["commit_short"],
