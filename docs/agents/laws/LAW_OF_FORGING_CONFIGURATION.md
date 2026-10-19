@@ -83,7 +83,7 @@ Before editing ANY configuration file for an external service, you MUST:
 | Provider | Status | Key | Endpoint |
 |----------|--------|-----|----------|
 | **minimax** | ✅ Works | `sk-cp-...` | `https://api.minimax.io/anthropic` |
-| **google** | ✅ Works | `AIzaSyCJFxAger1lsy9PfeBdwxjlBcTfFHm6kvI` | `https://generativelanguage.googleapis.com/v1beta` |
+| **google** | ✅ Works | `REDACTED-2026-10-18-USE-ENV` | `https://generativelanguage.googleapis.com/v1beta` |
 
 ---
 
