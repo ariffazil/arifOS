@@ -1057,6 +1057,35 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         independent=True,
     )
 
+    # P-1 (2026-10-20 · external-audit items 3+4): F13/F11 PASS derives from artifact
+    # PRESENCE only (seal_chain / receipt_ledger). Read the last chain entry so the
+    # decomposition reports what the PASS does and does not prove. Read-only, fail-closed
+    # to UNKNOWN — an unreadable entry must never be narrated (F7).
+    _chain_last: dict[str, Any] = {}
+    try:
+        _chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+        if _chain_path.exists():
+            with _chain_path.open("r", encoding="utf-8") as _cf:
+                _tail = _cf.readlines()[-1:]
+            if _tail:
+                _chain_last = json.loads(_tail[0]) or {}
+    except Exception:  # noqa: BLE001 — probe failure is UNKNOWN, not a crash
+        _chain_last = {}
+    _av = _chain_last.get("actor_verification") or {}
+    _human_veto = "UNKNOWN"
+    try:
+        _chain_path2 = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+        if _chain_path2.exists():
+            with _chain_path2.open("r", encoding="utf-8") as _cf2:
+                _sample = _cf2.readlines()[-50:]
+            _human_veto = (
+                "MEASURED"
+                if any('"authority_state": "SOVEREIGN"' in ln for ln in _sample)
+                else "NOT_PROVEN"
+            )
+    except Exception:  # noqa: BLE001
+        _human_veto = "UNKNOWN"
+
     # Decomposition — never collapse into a single green badge.
     # FIX 2026-07-19: session_state derived from active sessions, not hardcoded.
     # Previously hardcoded "OBSERVE_ONLY" which masked actual SOVEREIGN/FULL
@@ -1092,7 +1121,9 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         ),
         "receipt_state": _pf(
             {
-                "head_present": Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists(),
+                "head_present": Path(
+                    "/root/.local/share/arifos/vault999/seal_chain_head.json"
+                ).exists(),
                 "snapshot_receipt": "PRESENT"
                 if Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists()
                 else "ABSENT",
@@ -1128,6 +1159,51 @@ def _governance_block() -> dict[str, dict[str, Any]]:
             state="reported",
             confidence=0.7,
             observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        # P-1 (2026-10-20 · external-audit items 3+4). STATUS UNCHANGED — these are
+        # additive evidence fields. F13 derives PASS from seal_chain presence and F11
+        # from receipt_ledger presence; each decomposition states what that PASS does
+        # and does NOT prove. UNKNOWN means not measured — never narrated (F7).
+        "f13_sovereignty_decomposition": _pf(
+            {
+                "pass_basis": "presence_only:floor_producer:PASS:seal_chain",
+                "human_veto_available": _human_veto,
+                "authority_identity_verified": (
+                    "MEASURED" if _av.get("signature_verified") is True else "NOT_PROVEN"
+                ),
+                "consent_bound_to_action": "NOT_PROVEN",
+                "no_machine_self_authorization": "PARTIAL",
+                "revocation_path_available": "UNKNOWN",
+                "independent_attestation": "ABSENT",
+            },
+            source="seal_chain last entry + actor_verification (read-only probe)",
+            state="derived",
+            confidence=0.8,
+            observation_method=_OBS_METHOD_DERIVED,
+            independent=True,
+        ),
+        "f11_auditability_decomposition": _pf(
+            {
+                "pass_basis": "presence_only:floor_producer:PASS:receipt_ledger",
+                "receipt_emitted": "MEASURED" if _chain_last else "ABSENT",
+                "receipt_contains_governance_outcome": (
+                    "MEASURED" if _chain_last.get("decision_reference") else "UNKNOWN"
+                ),
+                "receipt_actor_bound": (
+                    "MEASURED" if _chain_last.get("actor_id") and _av else "UNKNOWN"
+                ),
+                "receipt_action_bound": (
+                    "MEASURED" if _chain_last.get("decision_reference") else "UNKNOWN"
+                ),
+                "receipt_consequence_verified": "NOT_PROVEN",
+                "receipt_chain_valid": "UNKNOWN",
+                "independent_reconstruction_passed": "NO",
+            },
+            source="seal_chain last entry (read-only probe) + VAULT999 census scope",
+            state="derived",
+            confidence=0.8,
+            observation_method=_OBS_METHOD_DERIVED,
             independent=True,
         ),
     }
@@ -1596,16 +1672,40 @@ def _probe_arifflow_flow_facts() -> dict[str, Any]:
             data = _json.loads(resp.read().decode("utf-8", errors="replace"))
     except socket.timeout:
         logger.warning("arifFLOW health probe timed out (url=%s)", url)
-        return {"receipts": None, "chain": None, "probe_status": "PROBE_TIMEOUT", "bottleneck": None, "flow_state": None}
+        return {
+            "receipts": None,
+            "chain": None,
+            "probe_status": "PROBE_TIMEOUT",
+            "bottleneck": None,
+            "flow_state": None,
+        }
     except urllib.error.URLError as exc:
         logger.warning("arifFLOW health probe connection error (url=%s): %s", url, exc)
-        return {"receipts": None, "chain": None, "probe_status": "ENDPOINT_UNREACHABLE", "bottleneck": None, "flow_state": None}
+        return {
+            "receipts": None,
+            "chain": None,
+            "probe_status": "ENDPOINT_UNREACHABLE",
+            "bottleneck": None,
+            "flow_state": None,
+        }
     except _json.JSONDecodeError as exc:
         logger.warning("arifFLOW health probe malformed JSON (url=%s): %s", url, exc)
-        return {"receipts": None, "chain": None, "probe_status": "MALFORMED_PAYLOAD", "bottleneck": None, "flow_state": None}
+        return {
+            "receipts": None,
+            "chain": None,
+            "probe_status": "MALFORMED_PAYLOAD",
+            "bottleneck": None,
+            "flow_state": None,
+        }
     except Exception as exc:
         logger.warning("arifFLOW health probe unexpected error (url=%s): %s", url, exc)
-        return {"receipts": None, "chain": None, "probe_status": "INTERNAL_PROBE_ERROR", "bottleneck": None, "flow_state": None}
+        return {
+            "receipts": None,
+            "chain": None,
+            "probe_status": "INTERNAL_PROBE_ERROR",
+            "bottleneck": None,
+            "flow_state": None,
+        }
     receipts = data.get("receipts") if isinstance(data, dict) else None
     inv = (data.get("invariants") or {}) if isinstance(data, dict) else {}
     chain = None
@@ -1615,7 +1715,12 @@ def _probe_arifflow_flow_facts() -> dict[str, Any]:
             f"cycles={inv.get('cycle_count')} · holds={inv.get('hold_count')} · "
             f"throttled={inv.get('throttle_count')}"
         )
-    return {"receipts": receipts, "chain": chain, "probe_status": "OK", "flow_state": "FLOWING" if receipts is not None else None}
+    return {
+        "receipts": receipts,
+        "chain": chain,
+        "probe_status": "OK",
+        "flow_state": "FLOWING" if receipts is not None else None,
+    }
 
 
 def _probe_arifflow_fq() -> Any:
@@ -2310,7 +2415,9 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             independent=True,
         ),
         "issuer_claim": _pf(
-            head_verdict if head_verdict is not None else ("RECORDED" if head_seq is not None else "UNKNOWN"),
+            head_verdict
+            if head_verdict is not None
+            else ("RECORDED" if head_seq is not None else "UNKNOWN"),
             source="sealer head file",
             state="reported",
             confidence=0.9 if head_verdict else 0.5,
@@ -2544,6 +2651,7 @@ async def _edges_block_async() -> dict[str, Any]:
             identity_hash = None
             try:
                 from arifosmcp.runtime.identity import get_identity_hash as _gih_hash2  # type: ignore
+
                 identity_hash = _gih_hash2()
             except Exception:
                 pass
