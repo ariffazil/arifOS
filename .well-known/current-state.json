@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-19T15:26:19Z",
+  "generated_at": "2026-10-19T19:51:17Z",
   "self_measurement": {
     "status": "degraded",
-    "probe": "http://127.0.0.1:8088/health @2026-10-19T15:26:19Z",
+    "probe": "http://127.0.0.1:8088/health @2026-10-19T19:51:17Z",
     "floors_pass": 10,
     "floors_target": 13,
     "floors_failing": [
@@ -17,15 +17,15 @@
       "F11": "floor_producer:PASS:receipt_ledger",
       "F12": "floor_producer:PASS:request_trust",
       "F13": "floor_producer:PASS:seal_chain",
-      "F1": "arifflow_fq_probe:fq=0.8357142857142856",
+      "F1": "arifflow_fq_probe:fq=1.6632992861727747",
       "F2": "floor_producer:PASS:floor_provenance_coverage",
       "F3": "witness_producers:human+ai+earth",
       "F4": "arifflow_probe:ds=-0.0",
       "F5": "unmeasured_default:empty_kernel_signal",
       "F6": "unmeasured_default:empty_kernel_signal",
       "F7": "arifflow_live_vector:omega=0.04",
-      "F8": "arifflow_live_vector:g=0.5613",
-      "F9": "arifflow_live_vector:c_dark=0.2196"
+      "F8": "arifflow_live_vector:g=0.5611",
+      "F9": "arifflow_live_vector:c_dark=0.2193"
     },
     "vault999": "healthy",
     "release_id": "arifos-7628a9a",
