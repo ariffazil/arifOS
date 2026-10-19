@@ -207,6 +207,19 @@ def make_receipt(
 # ── Store ────────────────────────────────────────────────────────────────
 
 
+class ReceiptParseError(Exception):
+    """A stored receipt line could not be parsed into a complete record.
+
+    Carries the 1-based ``line_number`` so an operator can go straight to the
+    damaged row, and ``reason`` so the failure is diagnosable without a debugger.
+    """
+
+    def __init__(self, line_number: int, reason: str) -> None:
+        self.line_number = line_number
+        self.reason = reason
+        super().__init__(f"line {line_number}: {reason}")
+
+
 class ReceiptStore:
     """Append-only, signed, hash-chained receipt ledger."""
 
@@ -256,6 +269,21 @@ class ReceiptStore:
         return _record_to_receipt(json.loads(last_line))
 
     def all_receipts(self) -> tuple[Receipt, ...]:
+        """DEPRECATED tolerant read. Kept for backward compatibility only.
+
+        This reader SKIPS malformed lines. Use ``all_receipts_strict()`` for
+        anything that makes a claim about the ledger's integrity, and
+        ``all_receipts_tolerant()`` when the tolerance is the point (e.g.
+        salvage inspection of a damaged file).
+        """
+        return self.all_receipts_tolerant()
+
+    def all_receipts_tolerant(self) -> tuple[Receipt, ...]:
+        """Salvage read: skip unparseable or incomplete records.
+
+        Never use this to answer "is the chain intact?". A damaged newest
+        record would simply disappear, and the survivors would verify.
+        """
         if not self.path.exists():
             return ()
         out: list[Receipt] = []
@@ -267,8 +295,46 @@ class ReceiptStore:
                 try:
                     record = json.loads(line)
                     out.append(_record_to_receipt(record))
-                except (json.JSONDecodeError, ValueError, KeyError):
+                except (json.JSONDecodeError, ValueError, KeyError, TypeError):
                     continue
+        return tuple(out)
+
+    def all_receipts_strict(self) -> tuple[Receipt, ...]:
+        """Integrity read: every nonblank line must parse into a full receipt.
+
+        Raises ``ReceiptParseError`` (carrying ``line_number``) on the first
+        malformed or structurally incomplete record. This is the reader that
+        verification must use, because a skipped row is a row that cannot be
+        certified.
+        """
+        if not self.path.exists():
+            return ()
+        out: list[Receipt] = []
+        with open(self.path, encoding="utf-8") as f:
+            for line_number, line in enumerate(f, start=1):
+                text = line.strip()
+                if not text:
+                    continue
+                try:
+                    record = json.loads(text)
+                except json.JSONDecodeError as exc:
+                    raise ReceiptParseError(
+                        line_number, f"malformed JSON: {exc.msg}"
+                    ) from exc
+                if not isinstance(record, dict):
+                    raise ReceiptParseError(
+                        line_number, f"record is {type(record).__name__}, not object"
+                    )
+                try:
+                    out.append(_record_to_receipt(record))
+                except KeyError as exc:
+                    raise ReceiptParseError(
+                        line_number, f"missing field {exc}"
+                    ) from exc
+                except (ValueError, TypeError) as exc:
+                    raise ReceiptParseError(
+                        line_number, f"incomplete record: {exc}"
+                    ) from exc
         return tuple(out)
 
     def verify_chain(self) -> tuple[bool, str]:
@@ -280,8 +346,12 @@ class ReceiptStore:
         """
         if not self.path.exists():
             return (True, "")
+        try:
+            receipts = self.all_receipts_strict()
+        except ReceiptParseError as exc:
+            return (False, f"malformed_record at line {exc.line_number}: {exc.reason}")
         prev_hash = GENESIS_PREVIOUS_HASH
-        for i, receipt in enumerate(self.all_receipts()):
+        for i, receipt in enumerate(receipts):
             # Verify the signature.
             expected_sig = _sign_receipt(receipt, self.secret)
             if not hmac.compare_digest(expected_sig, receipt.signature):
@@ -398,6 +468,7 @@ __all__ = [
     "DEFAULT_RECEIPT_PATH",
     "GENESIS_PREVIOUS_HASH",
     "Receipt",
+    "ReceiptParseError",
     "ReceiptStore",
     "make_receipt",
     "_canonical_hash",

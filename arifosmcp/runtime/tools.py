@@ -9186,6 +9186,35 @@ def build_standard_mcp_result(
     return envelope
 
 
+def _arif_init_refusal_fields(payload: dict[str, Any]) -> tuple[list[str], str] | None:
+    """Detect an arif_init INPUT-CONTRACT refusal and return (missing_fields, reason).
+
+    F03: a refusal must drive the envelope. Returns None when init did not refuse.
+    Recognises the two shapes the kernel emits: the result block carries
+    ``failure_type``/``missing_fields``, or the top level carries ``error_code``
+    MISSING_INPUT together with HOLD.
+    """
+    if not isinstance(payload, dict):
+        return None
+    result = payload.get("result")
+    blocks = [result] if isinstance(result, dict) else []
+    blocks.append(payload)
+    for block in blocks:
+        failure = str(block.get("failure_type") or "").upper()
+        error_code = str(block.get("error_code") or "").upper()
+        status = str(block.get("status") or "").upper()
+        if failure in {"MISSING_REQUIRED_INPUT", "MISSING_INPUT"} or error_code == "MISSING_INPUT":
+            missing = block.get("missing_fields") or []
+            if isinstance(missing, str):
+                missing = [missing]
+            missing = [str(m) for m in missing]
+            reason = str(block.get("reason") or failure or "missing required input")
+            return (missing, reason)
+        if status == "HOLD" and "MISSING" in failure:
+            return ([], str(block.get("reason") or "missing required input"))
+    return None
+
+
 def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Post-process any tool return to guarantee the full metacognitive grammar.
 
@@ -9246,6 +9275,39 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     # sessions with HOLD/constitutional_check. Session bind is DETERMINISTIC —
     # never invent conf=0.65→ADVISORY_ONLY or conf=0.85 probabilistic bands.
     if tool == "arif_init":
+        # F03 (external audit, 2026-10-18): derive the envelope from the INPUT
+        # CONTRACT outcome, not from the assumption that init succeeded.
+        # A MISSING_INPUT rejection used to be wrapped with the success fact
+        # "Session bound (deterministic identity bind)" and a next_action that
+        # told the caller to proceed — an AI caller reads the success line and
+        # misses the refusal. The refusal is correct; the framing was not.
+        _refusal = _arif_init_refusal_fields(payload)
+        if _refusal is not None:
+            _missing, _reason = _refusal
+            _missing_txt = ", ".join(_missing) if _missing else "required inputs"
+            _built = build_standard_mcp_result(
+                tool=tool,
+                facts=[
+                    f"arif_init REFUSED — missing required input: {_missing_txt}",
+                    "No session was created. Session id is unknown; no identity was bound.",
+                ],
+                inferences=[
+                    {"type": "session_refused", "missing_fields": _missing},
+                ],
+                unknowns=[f"Session not established: {_reason}"],
+                confidence=0.0,
+                next_safe_action=(
+                    f"Supply {_missing_txt} explicitly, then retry arif_init. "
+                    "Do not proceed to arif_observe or arif_think — there is no session."
+                ),
+                raw_result=payload,
+                mode="refusal",
+            )
+            _preserve_arif_init_truth(payload, _built)
+            _stamped = _stamp_arif_init_deterministic(_built)
+            _reconcile_legacy_aliases_with_token(_stamped)
+            return _stamped
+
         _identity = payload.get("identity", {}) if isinstance(payload, dict) else {}
         _built = build_standard_mcp_result(
             tool=tool,
