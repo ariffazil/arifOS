@@ -67,7 +67,15 @@ def get_dispatch_map() -> MutableMapping[str, Any]:
 async def dispatch_with_fail_closed(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     from arifosmcp.runtime.kernel import kernel
 
-    return await kernel.dispatch_with_fail_closed(tool_name, arguments)
+    # P4c (888-authorized 2026-10-19): tool NAME only, for loop-lag attribution.
+    # Never carries arguments, payloads, SCTs, tokens, or paths (F12).
+    from arifosmcp.runtime.loop_lag import current_tool
+
+    _tok = current_tool.set(str(tool_name))
+    try:
+        return await kernel.dispatch_with_fail_closed(tool_name, arguments)
+    finally:
+        current_tool.reset(_tok)
 
 
 def get_tool_handler(name: str) -> Any:
