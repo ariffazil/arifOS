@@ -1028,9 +1028,9 @@ def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
         "kimi-code": "/root/A-FORGE/IDENTITY/keys/kimi-code/kimi-code_ed25519_private.pem",
         "kimi-code/fi-008": "/root/A-FORGE/IDENTITY/keys/kimi-code/kimi-code_ed25519_private.pem",
         "arif": "/root/.secrets/aaa-identity/keys/arif_private.pem",
-        "888": "/root/.secrets/aaa-identity/keys/arif_private.pem",
-        "ariffazil": "/root/.secrets/aaa-identity/keys/arif_private.pem",
-        "opencode": "/root/A-FORGE/IDENTITY/keys/opencode/opencode_ed25519_private.pem",
+        "888": "/root/AAA/IDENTITY/keys/888-APEX_private.pem",
+        "ariffazil": "/root/AAA/IDENTITY/keys/888-APEX_private.pem",
+        "opencode": "/root/AAA/IDENTITY/keys/opencode_private.pem",
         "333-agi": "/root/AAA/IDENTITY/keys/333-AGI_private.pem",
         "333-agi/fi-001": "/root/AAA/IDENTITY/keys/333-AGI_private.pem",
         # 2026-08-08 333-AGI: openclaw — 32-byte Ed25519 seed, reconciled

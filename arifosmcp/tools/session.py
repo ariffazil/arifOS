@@ -2917,6 +2917,11 @@ def arif_init(
                 "ariffazil",
                 "kimi-code",
                 "kimi-code/fi-008",
+                # 2026-10-20: authentication gate ONLY — lets a registered
+                # EXECUTE-capable actor auto-sign on true loopback. It does
+                # NOT grant EXECUTE_REVERSIBLE; that stays with the registry
+                # capability ceiling. See agent_registry.json.
+                "opencode",
             )
             if _is_sovereign:
                 try:
