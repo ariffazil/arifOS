@@ -12,6 +12,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
+import threading
+import time
 from collections import deque
 from contextvars import ContextVar
 from datetime import datetime, timezone
@@ -32,6 +35,57 @@ _last_ms: float = 0.0
 _last_at: str | None = None
 _task: asyncio.Task | None = None
 
+# ── 24h p99 histogram (Commit 3 gate) ────────────────────────────────────────
+# Time-bucketed, fixed-resolution histogram: 50ms buckets, 24 hourly slots.
+# O(1) update, O(24*200) read. Diagnostic only — never a gate by itself.
+_HIST_BUCKET_MS = 50
+_HIST_BUCKETS = 200  # up to 10s
+_HIST_HOURS = 24
+_hist: dict[int, list[int]] = {}
+
+
+def _hour_epoch() -> int:
+    return int(time.time() // 3600)
+
+
+def _record_histogram(lag_ms: float) -> None:
+    hour = _hour_epoch()
+    arr = _hist.get(hour)
+    if arr is None:
+        arr = [0] * _HIST_BUCKETS
+        _hist[hour] = arr
+        cutoff = hour - _HIST_HOURS
+        for old in [k for k in _hist if k < cutoff]:
+            _hist.pop(old, None)
+    bucket = int(max(0.0, lag_ms) // _HIST_BUCKET_MS)
+    arr[min(bucket, _HIST_BUCKETS - 1)] += 1
+
+
+def _p99_ms() -> float | None:
+    total = sum(sum(arr) for arr in _hist.values())
+    if total == 0:
+        return None
+    target = 0.99 * total
+    running = 0
+    for b in range(_HIST_BUCKETS):
+        count = sum(arr[b] for arr in _hist.values())
+        if running + count >= target:
+            return float((b + 1) * _HIST_BUCKET_MS)
+        running += count
+    return float(_HIST_BUCKETS * _HIST_BUCKET_MS)
+
+
+def _process_gauges() -> tuple[int | None, int | None]:
+    try:
+        threads: int | None = threading.active_count()
+    except Exception:
+        threads = None
+    try:
+        fds: int | None = len(os.listdir("/proc/self/fd"))
+    except Exception:
+        fds = None
+    return threads, fds
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
@@ -42,10 +96,13 @@ def record(lag_ms: float) -> None:
     _last_ms = float(lag_ms)
     _last_at = _now_iso()
     _lag_ms.append(_last_ms)
+    _record_histogram(_last_ms)
 
 
 def snapshot() -> dict:
     """Additive, secret-free telemetry for /health."""
+    threads, fds = _process_gauges()
+    p99 = _p99_ms()
     return {
         "loop_lag_ms": round(_last_ms, 3),
         "loop_lag_max_ms": round(max(_lag_ms), 3) if _lag_ms else 0.0,
@@ -53,6 +110,11 @@ def snapshot() -> dict:
         "loop_lag_threshold_ms": THRESHOLD_MS,
         "loop_lag_tool": current_tool.get(),
         "loop_lag_at": _last_at,
+        # Commit 3 gate inputs (diagnostic only)
+        "loop_lag_p99_24h_ms": round(p99, 3) if p99 is not None else None,
+        "loop_lag_window_hours": len(_hist),
+        "process_threads": threads,
+        "process_fds": fds,
     }
 
 

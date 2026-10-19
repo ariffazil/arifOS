@@ -27,6 +27,20 @@ def test_snapshot_shape_is_additive_and_secret_free():
     assert isinstance(s["loop_lag_tool"], str)
 
 
+def test_p99_and_process_gauges_are_present():
+    """Commit 3 gate inputs must be observable, not inferred."""
+    from arifosmcp.runtime.loop_lag import record
+
+    for _ in range(100):
+        record(10.0)
+    record(900.0)
+    s = snapshot()
+    assert s["loop_lag_p99_24h_ms"] is not None
+    assert s["loop_lag_window_hours"] >= 1
+    assert isinstance(s["process_threads"], int) and s["process_threads"] >= 1
+    assert isinstance(s["process_fds"], int) and s["process_fds"] >= 1
+
+
 def test_blocked_loop_is_observed():
     """A synchronous block on the loop MUST be recorded as lag >= threshold."""
 
