@@ -1034,6 +1034,14 @@ def arif_observe(
                 },
             )
             kernel_bridge = "HIT"
+            # Completion event for the REAL action that just succeeded (2026-10-20):
+            # peace2 computes from genuine action+success pairs (measured: 3 pairs -> 1.0;
+            # lone action -> 0.5 structural baseline). Recording completions of real
+            # activity is measurement — SCAR-OBS-GREENWASH bans synthesizing activity
+            # that never happened, not witnessing activity that did.
+            _gk.record_event("success", _evt)
+            if session_id:
+                get_governance_kernel("global").record_event("success", _evt)
             # Log the kernel function invoked and payload shape
             print("[KERNEL-BRIDGE] arif_observe → core.governance_kernel.evaluate_floors")
             print(
