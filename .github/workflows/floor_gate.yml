@@ -13,6 +13,10 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Fix broken symlinks for CI
         run: |
+          # Root-level absolute-path pointers (CLAUDE.md -> /root/AAA/..., etc.)
+          # cannot resolve on the CI runner and break pytest collection with
+          # PermissionError. Remove ANY broken symlink before tests run.
+          find . -type l ! -exec test -e {} \; -print -delete || true
           [ -L TOOL_MANIFEST.json ] && rm TOOL_MANIFEST.json && echo '{}' > TOOL_MANIFEST.json || true
       - name: Run constitutional tests
         continue-on-error: true
