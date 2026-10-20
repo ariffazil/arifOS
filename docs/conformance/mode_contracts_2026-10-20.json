@@ -1,0 +1,561 @@
+{
+  "class_histogram": {
+    "IRREVERSIBLE": 5,
+    "MATERIAL": 15,
+    "OBSERVE": 29,
+    "PREPARE": 9
+  },
+  "declared": 69,
+  "enforcement": "AUTHORITY_GATE_PROVEN",
+  "enforcement_scope": {
+    "not_proved": "grant authenticity \u2014 expiry, revocation, action-hash binding. arif_forge refuses at the capability-authority layer (888_HOLD) before any cc_id is examined, so a forged chain id is indistinguishable from a valid one at this authority level.",
+    "proved": "requests that exceed the caller's authority are refused before side effect"
+  },
+  "gap_count": 11,
+  "gaps": [
+    {
+      "contract": "arif_report.ack",
+      "gap": "tool 'arif_report' is live on the wire but absent from CANONICAL_TOOLS"
+    },
+    {
+      "contract": "arif_report.file",
+      "gap": "tool 'arif_report' is live on the wire but absent from CANONICAL_TOOLS"
+    },
+    {
+      "contract": "arif_report.flush",
+      "gap": "tool 'arif_report' is live on the wire but absent from CANONICAL_TOOLS"
+    },
+    {
+      "contract": "arif_report.inbox",
+      "gap": "tool 'arif_report' is live on the wire but absent from CANONICAL_TOOLS"
+    },
+    {
+      "contract": "arif_report.stats",
+      "gap": "tool 'arif_report' is live on the wire but absent from CANONICAL_TOOLS"
+    },
+    {
+      "contract": "arif_route.delegate",
+      "gap": "canon lists no modes for 'arif_route' but declares a contract for 'delegate' \u2014 canon under-declares"
+    },
+    {
+      "contract": "arif_route.kernel",
+      "gap": "canon lists no modes for 'arif_route' but declares a contract for 'kernel' \u2014 canon under-declares"
+    },
+    {
+      "contract": "arif_route.metabolize",
+      "gap": "canon lists no modes for 'arif_route' but declares a contract for 'metabolize' \u2014 canon under-declares"
+    },
+    {
+      "contract": "arif_route.route",
+      "gap": "canon lists no modes for 'arif_route' but declares a contract for 'route' \u2014 canon under-declares"
+    },
+    {
+      "contract": "arif_route.status",
+      "gap": "canon lists no modes for 'arif_route' but declares a contract for 'status' \u2014 canon under-declares"
+    },
+    {
+      "contract": "arif_route.triage",
+      "gap": "canon lists no modes for 'arif_route' but declares a contract for 'triage' \u2014 canon under-declares"
+    }
+  ],
+  "modes_total": 58,
+  "refusal_probes": [
+    {
+      "detail": "verdict=HOLD mutation_allowed=False",
+      "mode": "seal",
+      "probe": "IRREVERSIBLE seal without a sovereign seal token",
+      "refused": true,
+      "tool": "arif_seal"
+    },
+    {
+      "detail": "verdict=HOLD mutation_allowed=None",
+      "mode": "forget",
+      "probe": "IRREVERSIBLE forget without human_approval",
+      "refused": true,
+      "tool": "arif_memory"
+    },
+    {
+      "detail": "verdict=HOLD mutation_allowed=None",
+      "mode": "promote",
+      "probe": "IRREVERSIBLE promote without human_approval",
+      "refused": true,
+      "tool": "arif_memory"
+    },
+    {
+      "detail": "verdict=HOLD mutation_allowed=False",
+      "mode": "commit",
+      "probe": "IRREVERSIBLE commit without constitutional_chain_id",
+      "refused": true,
+      "tool": "arif_forge"
+    }
+  ],
+  "registry": "/root/arifOS/arifosmcp/abi/mode_contracts.json",
+  "registry_hash": "6781427093dd176789775c019f2144c1ed16c032b163df581b66f37b64b5207d",
+  "rows": [
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "EXECUTOR",
+      "mode": "engineer",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_forge"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "query",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_forge"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "EXECUTOR",
+      "mode": "write",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_forge"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "EXECUTOR",
+      "mode": "generate",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_forge"
+    },
+    {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mode": "commit",
+      "recovery": "permanent",
+      "status": "OK",
+      "tool": "arif_forge"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "recall",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_forge"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "dry_run",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_forge"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "init",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "light",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "resume",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "validate",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "canary",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "preflight",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "triage",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "epoch_open",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "epoch_seal",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "opt_out",
+      "recovery": "permanent",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "opt_out_profiling",
+      "recovery": "permanent",
+      "status": "OK",
+      "tool": "arif_init"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "intercept",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_judge"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "judge",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_judge"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "validate",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_judge"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "hold",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_judge"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "escalate",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_judge"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "recall",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "inspect",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "attest",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "remember",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mode": "promote",
+      "recovery": "compensate",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "revise",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mode": "forget",
+      "recovery": "permanent",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "audit",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "metabolize",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_memory"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "search",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "fetch",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "hybrid_discovery",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "ingest",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "compass",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "atlas",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "entropy_dS",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "vitals",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_observe"
+    },
+    {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mode": "seal",
+      "recovery": "permanent",
+      "status": "OK",
+      "tool": "arif_seal"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "verify",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_seal"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "ledger",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_seal"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "changelog",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_seal"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "audit",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_seal"
+    },
+    {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mode": "session_close",
+      "recovery": "permanent",
+      "status": "OK",
+      "tool": "arif_seal"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "reason",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "reflect",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "verify",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "axioms",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "plan",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "plan_review",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mode": "plan_approve",
+      "recovery": "rollback",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "refactor_plan",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "PREPARE",
+      "authority_required": "OBSERVER",
+      "mode": "metabolize",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "simulate",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "wonder",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    },
+    {
+      "action_class": "OBSERVE",
+      "authority_required": "OBSERVER",
+      "mode": "atlas",
+      "recovery": "none",
+      "status": "OK",
+      "tool": "arif_think"
+    }
+  ],
+  "schema": "arifos.mode_contract.v1"
+}

@@ -10,7 +10,7 @@
       "stage": "000",
       "lane": "AGI",
       "description": "Session ignition — binds actor, floors, and audit for governed operations.",
-      "modes": ["init", "light", "resume", "validate", "canary", "preflight", "triage", "epoch_open", "epoch_seal", "opt_out", "opt_out_profiling"],
+      "modes": ["init", "light", "resume", "validate", "canary", "preflight", "triage", "epoch_open", "epoch_seal", "opt_out", "opt_out_profiling", "challenge"],
       "floors": ["L01", "L11", "L12"],
       "irreversible": false,
       "risk_tier": "medium",

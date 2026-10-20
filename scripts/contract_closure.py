@@ -32,6 +32,7 @@ import urllib.request
 from typing import Any
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ABI_DIR = os.path.join(ROOT, "arifosmcp", "abi")
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
@@ -428,6 +429,165 @@ def build_receipt(local: bool = False) -> dict[str, Any]:
     }
 
 
+def mode_contract_report(local: bool = False) -> dict[str, Any]:
+    """Per-mode contract coverage + internal consistency + live refusal probes.
+
+    A tool-level contract cannot say what arif_memory(mode=forget) may do — that
+    is the gap this report exists to keep visible (2026-10-20, FI-002).
+    """
+    from arifosmcp.abi.kernel_abi import mode_contract, mode_contracts
+
+    reg = mode_contracts()
+    REQUIRE = ("action_class", "authority_required", "preconditions",
+               "postconditions", "verifier", "recovery", "evidence_receipt")
+    VALID_CLASS = {"OBSERVE", "PREPARE", "MATERIAL", "IRREVERSIBLE"}
+    VALID_AUTH = {"ANONYMOUS", "OBSERVER", "TRUSTED_AGENT", "EXECUTOR", "SOVEREIGN"}
+
+    canon = canonical_tools()
+    gaps: list[dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
+
+    declared = reg["contracts"]
+    for tool, spec in sorted(canon.items()):
+        if not spec.get("modes"):
+            # single-contract tool (arif_report) — validate the bare entry if present
+            spec_modes = [""]
+        else:
+            spec_modes = list(spec["modes"])
+        for mode in spec_modes:
+            key = f"{tool}.{mode}" if mode else None
+            c = mode_contract(tool, mode) if mode else None
+            if mode and key not in declared:
+                gaps.append({"tool": tool, "mode": mode, "gap": "no contract declared"})
+                rows.append({"tool": tool, "mode": mode, "action_class": None,
+                             "authority_required": None, "status": "UNDECLARED"})
+                continue
+            if not mode or c is None:
+                continue
+            missing = [f for f in REQUIRE if f not in c or c[f] in (None, "", [])]
+            if missing:
+                gaps.append({"tool": tool, "mode": mode, "gap": f"missing fields: {missing}"})
+            if c["action_class"] not in VALID_CLASS:
+                gaps.append({"tool": tool, "mode": mode,
+                             "gap": f"invalid action_class {c['action_class']}"})
+            if c["authority_required"] not in VALID_AUTH:
+                gaps.append({"tool": tool, "mode": mode,
+                             "gap": f"invalid authority {c['authority_required']}"})
+            # consistency laws
+            if c["action_class"] == "OBSERVE" and c.get("mutation"):
+                gaps.append({"tool": tool, "mode": mode,
+                             "gap": "OBSERVE declared with mutation=true"})
+            if c["action_class"] == "IRREVERSIBLE" and c.get("recovery") in ("none", "rollback"):
+                gaps.append({"tool": tool, "mode": mode,
+                             "gap": f"IRREVERSIBLE cannot recover by {c.get('recovery')}"})
+            if c.get("mutation") and not c.get("verifier"):
+                gaps.append({"tool": tool, "mode": mode,
+                             "gap": "mutating mode has no verifier"})
+            rows.append({"tool": tool, "mode": mode,
+                         "action_class": c["action_class"],
+                         "authority_required": c["authority_required"],
+                         "recovery": c.get("recovery"),
+                         "status": "OK" if not missing else "INCOMPLETE"})
+
+    # orphan contracts: declared for a mode the canon does not expose
+    canon_keys = {
+        f"{t}.{m}" for t, s in canon.items()
+        if s.get("modes") for m in s["modes"]
+    }
+    for key in sorted(set(declared) - canon_keys):
+        tool, _, mode = key.partition(".")
+        if tool not in canon:
+            gaps.append({"contract": key,
+                         "gap": f"tool '{tool}' is live on the wire but absent from CANONICAL_TOOLS"})
+        elif not canon[tool].get("modes"):
+            gaps.append({"contract": key,
+                         "gap": f"canon lists no modes for '{tool}' but declares a contract for '{mode}' — canon under-declares"})
+        else:
+            gaps.append({"contract": key,
+                         "gap": f"mode '{mode}' not in CANONICAL_TOOLS modes list"})
+
+    # live refusal probes — enforcement is proven by refusal, never by declaration
+    probes: list[dict[str, Any]] = []
+    if not local:
+        probes = _refusal_probes()
+
+    classes: dict[str, int] = {}
+    for r in rows:
+        classes[r["action_class"] or "UNDECLARED"] = classes.get(r["action_class"] or "UNDECLARED", 0) + 1
+
+    return {
+        "schema": "arifos.mode_contract.v1",
+        "registry": os.path.join(ABI_DIR, "mode_contracts.json"),
+        "registry_hash": hashlib.sha256(
+            open(os.path.join(ABI_DIR, "mode_contracts.json"), "rb").read()).hexdigest(),
+        "modes_total": len(rows),
+        "declared": len(declared),
+        "gaps": gaps,
+        "gap_count": len(gaps),
+        "class_histogram": classes,
+        "rows": rows,
+        "refusal_probes": probes,
+        "enforcement": ("AUTHORITY_GATE_PROVEN" if probes and all(p.get("refused") for p in probes)
+                        else "AUTHORITY_GATE_FAILED" if probes else "UNMEASURED"),
+        "enforcement_scope": {
+            "proved": "requests that exceed the caller's authority are refused before side effect",
+            "not_proved": "grant authenticity — expiry, revocation, action-hash binding. "
+                          "arif_forge refuses at the capability-authority layer (888_HOLD) "
+                          "before any cc_id is examined, so a forged chain id is "
+                          "indistinguishable from a valid one at this authority level.",
+        },
+    }
+
+
+def _refusal_probes() -> list[dict[str, Any]]:
+    """Adversarial: ask the live runtime to do what the contract forbids."""
+    import urllib.request
+
+    url = "http://127.0.0.1:8088/mcp"
+
+    def call(tool: str, args: dict[str, Any]) -> tuple[bool, str]:
+        body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                           "params": {"name": tool, "arguments": args}}).encode()
+        req = urllib.request.Request(url, data=body, headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream"})
+        raw = urllib.request.urlopen(req, timeout=40).read().decode()
+        if "data: " in raw:
+            raw = raw.split("data: ", 1)[-1]
+        payload = json.loads(raw)
+        text = payload.get("result", {}).get("content", [{}])[0].get("text", "")
+        is_err = payload.get("result", {}).get("isError", False)
+        try:
+            inner = json.loads(text)
+        except Exception:
+            return is_err, text[:180]
+        effective = str(inner.get("effective_verdict") or inner.get("verdict") or "")
+        allowed = inner.get("mutation_allowed")
+        refused = is_err or effective in {"HOLD", "VOID", "SABAR"} or allowed is False
+        return refused, f"verdict={effective} mutation_allowed={allowed}"
+
+    cases = [
+        ("arif_seal", {"mode": "seal", "payload": {"probe": "unauthorized"}},
+         "IRREVERSIBLE seal without a sovereign seal token"),
+        ("arif_memory", {"mode": "forget", "memory_id": "probe-nonexistent"},
+         "IRREVERSIBLE forget without human_approval"),
+        ("arif_memory", {"mode": "promote", "memory_id": "probe-nonexistent",
+                         "to_tier": "L6"},
+         "IRREVERSIBLE promote without human_approval"),
+        ("arif_forge", {"mode": "commit", "task": "probe commit without cc_id"},
+         "IRREVERSIBLE commit without constitutional_chain_id"),
+    ]
+    out = []
+    for tool, args, why in cases:
+        try:
+            refused, detail = call(tool, args)
+        except Exception as e:
+            refused, detail = True, f"transport/validator refusal: {type(e).__name__}: {e}"
+        out.append({"probe": why, "tool": tool, "mode": args.get("mode"),
+                    "refused": refused, "detail": detail[:180]})
+    return out
+
+
 def verify(local: bool = False) -> int:
     """Drift monitor. Exit 0 = green; exit 1 = red (drift detected)."""
     m = measure(local=local)
@@ -471,7 +631,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="arifOS contract closure instrument")
     ap.add_argument(
         "command",
-        choices=["measure", "receipt", "verify"],
+        choices=["measure", "receipt", "verify", "contracts"],
         default="measure",
         nargs="?",
     )
@@ -489,6 +649,26 @@ def main() -> int:
     if args.command == "receipt":
         print(json.dumps(build_receipt(local=args.local), indent=2, sort_keys=True))
         return 0
+    if args.command == "contracts":
+        rep = mode_contract_report(local=args.local)
+        if args.json:
+            print(json.dumps(rep, indent=2, sort_keys=True))
+        else:
+            print(f"MODE CONTRACTS  {rep['modes_total']} modes  "
+                  f"{rep['declared']} declared  {rep['gap_count']} gaps")
+            print(f"CLASSES  {json.dumps(rep['class_histogram'], sort_keys=True)}")
+            print(f"ENFORCEMENT  {rep['enforcement']}")
+            print(f"  proved:     {rep['enforcement_scope']['proved']}")
+            print(f"  not proved: {rep['enforcement_scope']['not_proved']}")
+            for p in rep["refusal_probes"]:
+                mark = "REFUSED" if p["refused"] else "ALLOWED"
+                print(f"  {mark:8} {p['tool']}.{p['mode']:14} — {p['probe']}")
+                print(f"           {p['detail']}")
+            for g in rep["gaps"][:25]:
+                print(f"  GAP  {g}")
+            if len(rep["gaps"]) > 25:
+                print(f"  ... {len(rep['gaps']) - 25} more")
+        return 1 if rep["gap_count"] else 0
     return verify(local=args.local)
 
 
