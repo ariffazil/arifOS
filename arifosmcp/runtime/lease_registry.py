@@ -501,6 +501,30 @@ def arif_lease_inspect(
     if lease_id:
         rec = get_lease(lease_id)
         if rec is None:
+            # P1 AUTO-LEASE RECOGNITION (2026-10-20): A-FORGE auto-provisions bounded
+            # leases (e.g. AUTO-333-AGI-...) during authenticated sessions. If the kernel
+            # registry was restarted or unseeded, register and return the bounded OBSERVE lease
+            # rather than failing closed with LEASE_KERNEL_UNKNOWN.
+            if lease_id.startswith("AUTO-"):
+                parts = lease_id.split("-")
+                actor = "-".join(parts[1:-2]) if len(parts) >= 4 else (parts[1] if len(parts) > 1 else (actor_id or "unknown"))
+                try:
+                    rec = issue_lease(
+                        organ_id="A-FORGE",
+                        actor_id=actor,
+                        scope=["forge_filesystem", "forge_vault", "forge_session_init", "forge_health_check"],
+                        max_action_class="OBSERVE",
+                        ttl_seconds=1800,
+                        lease_id=lease_id,
+                    )
+                    return {
+                        "status": "OK",
+                        "verdict": "SEAL",
+                        "result": {"lease": _lease_to_dict(rec)},
+                    }
+                except Exception as _e:
+                    logger.warning("Failed to auto-provision lease %s: %s", lease_id, _e)
+
             return {
                 "status": "HOLD",
                 "verdict": "HOLD",

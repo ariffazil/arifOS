@@ -1606,12 +1606,23 @@ def _build_governance_status_payload() -> dict[str, Any]:
         from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
 
         _apex = compute_apex_from_metrics()
-        for scalar in ("G", "C_dark"):
+        for scalar in ("G", "C_dark", "A", "P", "E", "X"):
             val = _apex.get(scalar)
             apex_scalars[scalar] = {
                 "value": val,
                 "status": "MEASURED" if val is not None else "UNMEASURED",
             }
+        measurement_basis["f8_g_basis"] = {
+            "formula": "G = (A * P * E * X) ** 0.25",
+            "A": _apex.get("A"),
+            "P": _apex.get("P"),
+            "E": _apex.get("E"),
+            "X": _apex.get("X"),
+            "sample_size": _apex.get("sample_size"),
+            "window_seconds": _apex.get("window_seconds"),
+            "instrument": "apex_primitives.compute_apex_from_metrics",
+            "calibration": "PHASE_1_HEURISTIC_UNCALIBRATED",
+        }
         # W3 — canonical Nash tri-witness ∛(H×AI×Ext) from LIVE witness channels
         # (resolved_witness: human/ai/earth). Zero in any channel → UNMEASURED.
         # Never inflate from tool metrics — PHI is scar pressure, not witness.
@@ -1646,7 +1657,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         import logging as _log
 
         _log.getLogger(__name__).warning("APEX scalars unavailable: %s", _apex_exc)
-        for scalar in ("G", "C_dark", "W3", "h", "QDF"):
+        for scalar in ("G", "C_dark", "W3", "h", "QDF", "A", "P", "E", "X"):
             apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
 
     # FLR-005 (2026-10-17): publish exactly the canonical 13-floor set.
