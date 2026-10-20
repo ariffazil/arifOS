@@ -16,6 +16,7 @@ from arifosmcp.runtime.mcp_transport_bridge import (
     MCPSessionBridgeMiddleware,
     MCPProtocolVersionMiddleware,
 )
+from arifosmcp.runtime.tailnet_identity import TailnetIdentityMiddleware
 
 
 def create_http_app():
@@ -28,6 +29,7 @@ def create_http_app():
     # be bypassed by targeting transport/http.py instead of server.py. Both
     # entrypoints now run the same validation stack.
     app.add_middleware(GlobalPanicMiddleware)
+    app.add_middleware(TailnetIdentityMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Fail-closed modern envelope validation
     app.add_middleware(

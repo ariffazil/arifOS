@@ -1,33 +1,40 @@
 {
-  "generated_at": "2026-10-17T09:00:08Z",
+  "generated_at": "2026-10-20T01:43:10Z",
   "self_measurement": {
-    "status": "healthy",
-    "probe": "http://127.0.0.1:8088/health @2026-10-17T09:00:08Z",
-    "floors_pass": 13,
+    "status": "degraded",
+    "probe": "http://127.0.0.1:8088/health @2026-10-20T01:43:10Z",
+    "floors_pass": 7,
     "floors_target": 13,
     "floors_failing": [],
-    "floors_unmeasured": [],
+    "floors_unmeasured": [
+      "F4",
+      "F5",
+      "F6",
+      "F7",
+      "F8",
+      "F9"
+    ],
     "floors_provenance": {
-      "F10": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
+      "F10": "arifflow_live_ontology:QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD",
       "F11": "floor_producer:PASS:receipt_ledger",
       "F12": "floor_producer:PASS:request_trust",
       "F13": "floor_producer:PASS:seal_chain",
-      "F1": "arifflow_fq_probe:fq=0.9607843137254902",
+      "F1": "arifflow_fq_probe:fq=1.1996204996754276",
       "F2": "floor_producer:PASS:floor_provenance_coverage",
       "F3": "witness_producers:human+ai+earth",
-      "F4": "arifflow_probe:ds=-0.0",
-      "F5": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F6": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F7": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F8": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F9": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00"
+      "F4": "unmeasured_default:empty_kernel_signal",
+      "F5": "unmeasured_default:empty_kernel_signal",
+      "F6": "unmeasured_default:empty_kernel_signal",
+      "F7": "unmeasured_default",
+      "F8": "unmeasured_default",
+      "F9": "unmeasured_default:empty_kernel_signal"
     },
     "vault999": "healthy",
-    "release_id": "arifos-cf7a984",
-    "source_commit": "cf7a984",
+    "release_id": "arifos-9b95aff",
+    "source_commit": "9b95aff",
     "drift": false,
     "tools_exposed": 8,
-    "registry_size": 62
+    "registry_size": 63
   },
   "independent_audit": {
     "date": "2026-10-11",

@@ -182,6 +182,26 @@ async def read_resource_content(uri: str) -> str:
         if not isinstance(doc, dict) or doc.get("schema") != "arifos.carry_forward.v3":
             found = type(doc).__name__ if not isinstance(doc, dict) else doc.get("schema", "schema-less dict")
             return json.dumps({"error": "contract_mismatch", "uri": uri, "expected": "arifos.carry_forward.v3", "found": found})
+        # F13 2026-10-20: sovereign memory is not served to unverified callers.
+        try:
+            from arifosmcp.runtime.fastmcp_ext.resources import (
+                _caller_is_verified_actor,
+                _redacted_carry_forward,
+            )
+
+            if not _caller_is_verified_actor():
+                return _redacted_carry_forward(doc)
+        except Exception:
+            # Fail closed: if the authority check cannot be evaluated, redact.
+            entries = doc.get("entries") or []
+            return json.dumps(
+                {
+                    "uri": uri,
+                    "redacted": True,
+                    "reason": "verified_actor_required",
+                    "total_entry_count": len(entries) if isinstance(entries, list) else 0,
+                }
+            )
         return json.dumps(doc, ensure_ascii=False, indent=2)
 
     if uri == "arifos://flow-state":

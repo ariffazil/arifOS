@@ -458,21 +458,38 @@ def _redact(input_data: dict[str, Any]) -> dict[str, Any]:
     }
     result = {}
     for k, v in input_data.items():
-        k_lower = k.lower()
+        k_lower = str(k).lower()
         if any(redact in k_lower for redact in redact_keys):
             result[k] = "[REDACTED]"
-        elif isinstance(v, dict):
-            result[k] = _redact(v)
-        elif isinstance(v, list) and len(v) > 100:
-            result[k] = f"[list:{len(v)} items]"
-        elif isinstance(v, str) and len(v) > 1000:
-            result[k] = _redact_sct_in_string(v[:500] + "...[truncated]")
-        elif isinstance(v, str):
-            # F12/F11: Scan ALL string values for SCT token leakage
-            result[k] = _redact_sct_in_string(v)
         else:
-            result[k] = v
+            result[k] = _redact_value(v)
     return result
+
+
+def _redact_value(v: Any) -> Any:
+    """Redact one value at any nesting depth.
+
+    F01 (external audit, 2026-10-18): the original implementation recursed into
+    dicts only, so ``{"items": [{"api_key": "..."}]}`` reached the telemetry
+    sink intact. Lists and tuples are now walked element-wise, which means key
+    matching applies at every depth and string scanning applies inside
+    containers too.
+    """
+    if isinstance(v, dict):
+        return _redact(v)
+    if isinstance(v, (list, tuple)):
+        # Bounded handling: summarise oversized collections rather than walk
+        # them, so a pathological payload cannot blow up the telemetry path.
+        if len(v) > 100:
+            return f"[list:{len(v)} items]"
+        redacted = [_redact_value(item) for item in v]
+        return type(v)(redacted) if isinstance(v, tuple) else redacted
+    if isinstance(v, str):
+        if len(v) > 1000:
+            return _redact_sct_in_string(v[:500] + "...[truncated]")
+        # F12/F11: scan ALL string values for SCT token leakage
+        return _redact_sct_in_string(v)
+    return v
 
 
 class Telemetry:
@@ -650,7 +667,8 @@ class Telemetry:
                     output_hash=output_hash,
                     vault_receipt=vault_receipt,
                     latency_ms=latency if latency else None,
-                    metadata=metadata,
+                    # F01: redact at the sink, not only at the Langfuse path.
+                    metadata=_redact(metadata) if metadata else None,
                 )
                 _publish_nats(record)
             except Exception:
@@ -678,7 +696,8 @@ class Telemetry:
                     output_hash=output_hash,
                     vault_receipt=vault_receipt,
                     latency_ms=latency if latency else None,
-                    metadata=metadata,
+                    # F01: redact at the sink, not only at the Langfuse path.
+                    metadata=_redact(metadata) if metadata else None,
                 )
                 self._local.store(record)
                 # Fire-and-forget NATS publish for downstream consumers

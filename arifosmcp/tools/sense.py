@@ -824,7 +824,17 @@ def arif_observe(
         )
 
     if mode == "hybrid_discovery":
-        from arifos_wiki_tools.search import search_index
+        import logging as _logging0
+
+        _logging0.getLogger("arifosmcp.sense").info(
+            "[DISPATCH-PROBE] hybrid_discovery branch entered q=%r", (query or "")[:60]
+        )
+        try:
+            from arifos_wiki_tools.search import search_index
+        except Exception:  # wiki layer is OPTIONAL — package arifos_wiki_tools is not on
+            # this host (2026-10-20: ModuleNotFoundError killed the whole branch before the
+            # kernel bridge). Degrade to no-wiki instead of aborting hybrid_discovery.
+            search_index = None  # type: ignore[assignment]
 
         q = query or ""
         errors: list[str] = []
@@ -1009,15 +1019,20 @@ def arif_observe(
             from core.governance_kernel import get_governance_kernel
 
             _gk = get_governance_kernel(session_id or "global")
-            _gk.record_event(
-                "action",
-                {
-                    "tool": "arif_observe",
-                    "mode": "hybrid_discovery",
-                    "query": q,
-                    "actor_id": actor_id,
-                },
-            )
+            _evt = {
+                "tool": "arif_observe",
+                "mode": "hybrid_discovery",
+                "query": q,
+                "actor_id": actor_id,
+            }
+            _gk.record_event("action", _evt)
+            # Federation-level mirror (2026-10-20 keying fix): floors/telemetry are
+            # measured on the "global" kernel instance — reality_scoring.probe_governance_
+            # events() reads get_governance_kernel() with no args. Session-scoped events
+            # alone never reach the measured instance, so F5/F6 stayed flat baselines
+            # (rest_routes SCAR-OBS-GREENWASH). Genuine events only — no synthesis.
+            if session_id:
+                get_governance_kernel("global").record_event("action", _evt)
             kernel_result = _gk.evaluate_floors(
                 query=q,
                 options={
@@ -1029,6 +1044,14 @@ def arif_observe(
                 },
             )
             kernel_bridge = "HIT"
+            # Completion event for the REAL action that just succeeded (2026-10-20):
+            # peace2 computes from genuine action+success pairs (measured: 3 pairs -> 1.0;
+            # lone action -> 0.5 structural baseline). Recording completions of real
+            # activity is measurement — SCAR-OBS-GREENWASH bans synthesizing activity
+            # that never happened, not witnessing activity that did.
+            _gk.record_event("success", _evt)
+            if session_id:
+                get_governance_kernel("global").record_event("success", _evt)
             # Log the kernel function invoked and payload shape
             print("[KERNEL-BRIDGE] arif_observe → core.governance_kernel.evaluate_floors")
             print(
@@ -1045,6 +1068,13 @@ def arif_observe(
         except Exception as _e:
             kernel_bridge = "ERROR"
             print(f"[KERNEL-BRIDGE-WARN] sense.py → core.governance_kernel: {_e}")
+            # 2026-10-20 observability: print() is block-buffered under systemd and was
+            # invisible in the journal, hiding real bridge failures. Log properly too.
+            import logging as _logging
+
+            _logging.getLogger("arifosmcp.sense").warning(
+                "[KERNEL-BRIDGE-WARN] sense.py -> core.governance_kernel: %r", _e
+            )
 
         return _ok(
             "arif_observe",

@@ -61,6 +61,7 @@
 | Formal pilots | 0 evidenced |
 | Signed contracts | 0 evidenced |
 | Attributable revenue | USD 0 |
+| External ecosystem listings | AgenTrust [Awesome AI Agent Governance](https://github.com/agentrust-io/awesome-ai-governance#governance-frameworks) (PR #148 merged 2026-10-16; listed under *Governance Frameworks* for both arifOS and A-FORGE) |
 | Independent benchmark | none |
 | Completed formal external security audit | none |
 

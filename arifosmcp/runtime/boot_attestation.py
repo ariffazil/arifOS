@@ -23,6 +23,7 @@ Freshness. This module is the single source for that proof at BOOT.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any
@@ -117,7 +118,19 @@ def _now_iso() -> str:
 
 
 def _local_url_get(url: str, timeout_s: float = 1.5) -> dict[str, Any] | None:
-    """Read a local-HTTP URL as JSON with bounded timeout. No network calls."""
+    """Read a local-HTTP URL as JSON with bounded timeout. No network calls.
+
+    P4a (888-APEX 2026-10-19): NEVER a synchronous self-HTTP call while an
+    event loop is running. The kernel is single-worker; calling its own
+    /health or /sessions endpoint from the loop is the documented deadlock
+    class (see _answer_q2_constitution_load). Callers degrade conservatively;
+    out-of-process CLI paths keep the HTTP fallback unchanged.
+    """
+    try:
+        asyncio.get_running_loop()
+        return None
+    except RuntimeError:
+        pass
     try:
         req = URLRequest(url, headers={"Accept": "application/json"})
         with urlopen(req, timeout=timeout_s) as resp:
@@ -201,6 +214,25 @@ def _answer_q1_identity_bind(session_id: str | None) -> EvidencedAnswer:
             fresh_at=_now_iso(),
             note="no session_id provided — expected during boot init, identity verified via crypto",
         )
+
+    # P4a (2026-10-19): in-process lookup first. The session store is local;
+    # a synchronous HTTP self-call here deadlocks the single-worker kernel.
+    try:
+        from arifosmcp.runtime.session import get_session_identity as _get_session_identity
+
+        _rec = _get_session_identity(session_id)
+        if _rec and _rec.get("actor_id"):
+            return EvidencedAnswer(
+                q="Q1",
+                answer="YES",
+                method=_METHODS["Q1"],
+                evidence_ref=f"session://{session_id}#actor_id",
+                issuer="session_store",
+                fresh_at=_now_iso(),
+                note=f"actor_id={_rec.get('actor_id')}",
+            )
+    except Exception:
+        pass  # fall through to the (loop-guarded) HTTP fallback
 
     sess = _local_url_get(
         f"{_KERNEL_HEALTH.replace('/health', '/sessions/')}lookup?session_id={session_id}"
@@ -336,11 +368,11 @@ def _answer_q4_trinity33_loaded() -> EvidencedAnswer:
     directory is reachable), and the current locations are added. No bar is lowered.
     """
     candidates = [
-        "/root/AAA/consolidation",                                    # canonical phase map (directory)
+        "/root/AAA/consolidation",  # canonical phase map (directory)
         "/root/AAA/consolidation/phase-777",
         "/root/AAA/FEDERATION.md",
         "/root/FEDERATION.md",
-        "/root/AAA/prompts/INIT.md",                                  # historical locations, kept
+        "/root/AAA/prompts/INIT.md",  # historical locations, kept
         "/root/A-FORGE/forge_work/2026-07-12/CONSOLIDATION_EPOCH_SEAL_PAYLOAD.json",
     ]
     for path in candidates:
@@ -349,7 +381,7 @@ def _answer_q4_trinity33_loaded() -> EvidencedAnswer:
                 pass
             reachable = True
         except IsADirectoryError:
-            reachable = True                                          # a directory IS reachable
+            reachable = True  # a directory IS reachable
         except OSError:
             reachable = False
         if reachable:
@@ -518,10 +550,10 @@ def _answer_q7_rsi_path_clear() -> EvidencedAnswer:
     RSI must appear verbatim AND session must appear. No loosening.
     """
     candidates = [
-        "/root/AAA/prompts/SEAL.md",                                        # live, carries both
-        "/root/AAA/prompts/AAA-ZEN-ALIGNMENT.md",                           # live, carries both
-        "/root/AAA/prompts/ARIFOS_FEDERATION_INIT.md",                      # live init surface
-        "/root/AAA/skills/RSI-recursive-improvement/SKILL.md",              # historical casing
+        "/root/AAA/prompts/SEAL.md",  # live, carries both
+        "/root/AAA/prompts/AAA-ZEN-ALIGNMENT.md",  # live, carries both
+        "/root/AAA/prompts/ARIFOS_FEDERATION_INIT.md",  # live init surface
+        "/root/AAA/skills/RSI-recursive-improvement/SKILL.md",  # historical casing
         "/root/arifOS/skills/RSI-recursive-improvement/SKILL.md",
         "/root/AAA/agents/makcikgpt/INIT.md",
         "/root/AAA/prompts/INIT.md",
@@ -692,7 +724,9 @@ def bootstrap_attestation(actor_id: str | None = None) -> dict[str, Any]:
     return boot_state_for_authority_grade("LIMITED_MUTATE")
 
 
-def boot_state_for_authority_grade(requested_band: str, *, session_id: str | None = None, actor_id: str | None = None) -> dict[str, Any]:
+def boot_state_for_authority_grade(
+    requested_band: str, *, session_id: str | None = None, actor_id: str | None = None
+) -> dict[str, Any]:
     """For any requested_band >= LIMITED_MUTATE, return the BOOT verdict that
     gates that band.
 

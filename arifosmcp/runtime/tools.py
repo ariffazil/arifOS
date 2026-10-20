@@ -4961,6 +4961,10 @@ def _enforce_nine_signal(
                     )
 
     # ── SABAR GATE (F9+F7 pre-return chokepoint, 2026-06-11) ────────────
+    # LIVE STATUS 2026-10-19: disabled by ARIFOS_DISABLE_SAFETY_THEATRE=1.
+    # The code path below is retained for audit/re-enable, not enforcement.
+    # Token note: SABAR_HOLD here is gate-local; canonical SABAR (verdict.py)
+    # means proceed-cautiously / partial coverage. Do not conflate them.
     # SABAR (Pre-Execution Interceptor) runs AFTER post_observe_gate
     # and BEFORE the response is returned to the caller. It catches:
     #   F7  — overconfident claims (omega_0 or confidence > 0.90)
@@ -9186,6 +9190,35 @@ def build_standard_mcp_result(
     return envelope
 
 
+def _arif_init_refusal_fields(payload: dict[str, Any]) -> tuple[list[str], str] | None:
+    """Detect an arif_init INPUT-CONTRACT refusal and return (missing_fields, reason).
+
+    F03: a refusal must drive the envelope. Returns None when init did not refuse.
+    Recognises the two shapes the kernel emits: the result block carries
+    ``failure_type``/``missing_fields``, or the top level carries ``error_code``
+    MISSING_INPUT together with HOLD.
+    """
+    if not isinstance(payload, dict):
+        return None
+    result = payload.get("result")
+    blocks = [result] if isinstance(result, dict) else []
+    blocks.append(payload)
+    for block in blocks:
+        failure = str(block.get("failure_type") or "").upper()
+        error_code = str(block.get("error_code") or "").upper()
+        status = str(block.get("status") or "").upper()
+        if failure in {"MISSING_REQUIRED_INPUT", "MISSING_INPUT"} or error_code == "MISSING_INPUT":
+            missing = block.get("missing_fields") or []
+            if isinstance(missing, str):
+                missing = [missing]
+            missing = [str(m) for m in missing]
+            reason = str(block.get("reason") or failure or "missing required input")
+            return (missing, reason)
+        if status == "HOLD" and "MISSING" in failure:
+            return ([], str(block.get("reason") or "missing required input"))
+    return None
+
+
 def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Post-process any tool return to guarantee the full metacognitive grammar.
 
@@ -9246,22 +9279,69 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     # sessions with HOLD/constitutional_check. Session bind is DETERMINISTIC —
     # never invent conf=0.65→ADVISORY_ONLY or conf=0.85 probabilistic bands.
     if tool == "arif_init":
+        # F03 (external audit, 2026-10-18): derive the envelope from the INPUT
+        # CONTRACT outcome, not from the assumption that init succeeded.
+        # A MISSING_INPUT rejection used to be wrapped with the success fact
+        # "Session bound (deterministic identity bind)" and a next_action that
+        # told the caller to proceed — an AI caller reads the success line and
+        # misses the refusal. The refusal is correct; the framing was not.
+        _refusal = _arif_init_refusal_fields(payload)
+        if _refusal is not None:
+            _missing, _reason = _refusal
+            _missing_txt = ", ".join(_missing) if _missing else "required inputs"
+            _built = build_standard_mcp_result(
+                tool=tool,
+                facts=[
+                    f"arif_init REFUSED — missing required input: {_missing_txt}",
+                    "No session was created. Session id is unknown; no identity was bound.",
+                ],
+                inferences=[
+                    {"type": "session_refused", "missing_fields": _missing},
+                ],
+                unknowns=[f"Session not established: {_reason}"],
+                confidence=0.0,
+                next_safe_action=(
+                    f"Supply {_missing_txt} explicitly, then retry arif_init. "
+                    "Do not proceed to arif_observe or arif_think — there is no session."
+                ),
+                raw_result=payload,
+                mode="refusal",
+            )
+            _preserve_arif_init_truth(payload, _built)
+            _stamped = _stamp_arif_init_deterministic(_built)
+            _reconcile_legacy_aliases_with_token(_stamped)
+            return _stamped
+
         _identity = payload.get("identity", {}) if isinstance(payload, dict) else {}
+        _sid = payload.get("session_id", "unknown")
+        _mode = payload.get("init_mode") or payload.get("mode") or "init"
+        _is_canary = _mode == "canary" or _sid == "unknown"
+
+        if _is_canary:
+            _facts = [
+                "Canary probe only (unbound ephemeral session, no mutation/seal authority)",
+                "Session id is unknown; actor is unverified; read-only inspection allowed.",
+            ]
+            _next_safe = "Session is unbound canary. Call arif_init(mode='init') to bind an authentic session."
+        else:
+            _facts = ["Session bound (deterministic identity bind)"]
+            _next_safe = "Proceed to arif_observe or arif_think with this session."
+
         _built = build_standard_mcp_result(
             tool=tool,
-            facts=["Session bound (deterministic identity bind)"],
+            facts=_facts,
             inferences=[
                 {
-                    "type": "session_create",
+                    "type": "canary_probe" if _is_canary else "session_create",
                     "actor": _identity.get("declared_actor_id", payload.get("actor", "unknown"))
                     if isinstance(_identity, dict)
                     else payload.get("actor", "unknown"),
                 }
             ],
             confidence=1.0,  # placeholder — stamped over immediately
-            next_safe_action="Proceed to arif_observe or arif_think with this session.",
+            next_safe_action=_next_safe,
             raw_result=payload,
-            mode="init",
+            mode="canary" if _is_canary else "init",
         )
         # A1 + G8 (2026-08-05): preserve engine truth then floor SEAL-over-drift.
         # build_standard_mcp_result invents verdict="SEAL" and drops substrate.
@@ -25207,6 +25287,107 @@ def _arif_daily_intelligence_brief(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# arif_report — AGENT REPORT LANE (F13 2026-10-20)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Takes the human out of the agent loop. Agents file reports into a peer lane;
+# agents read each other's reports. Only kind=decision|blocked reaches the human,
+# and only in one coalesced message per push window.
+def _caller_verified() -> bool:
+    """True only when the inbound request carries a cryptographically verified ACT.
+
+    Unverified callers may still file reports, but they may not, on their own
+    authority, decide that a report deserves the human's attention.
+    """
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers() or {}
+    except Exception:
+        return False
+    auth = str(headers.get("authorization") or headers.get("Authorization") or "")
+    if not auth.lower().startswith("bearer "):
+        return False
+    token = auth.split(" ", 1)[1].strip()
+    if not token:
+        return False
+    try:
+        from arifosmcp.runtime.act_token import verify_act
+
+        claims = verify_act(token, expected_actor=None)
+    except Exception:
+        return False
+    return bool(isinstance(claims, dict) and claims.get("av") is True)
+
+
+async def _arif_report(
+    mode: str = "report",
+    kind: str = "fyi",
+    subject: str | None = None,
+    body: str | None = None,
+    sender: str | None = None,
+    platform: str | None = None,
+    thread_id: str | None = None,
+    evidence: Any = None,
+    needs_human: bool | None = None,
+    report_id: str | None = None,
+    since: str | None = None,
+    limit: int = 20,
+    mark_read: bool = False,
+    force: bool = False,
+    dry_run: bool = False,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    session_token: str | None = None,
+    _envelope: Any = None,
+) -> dict[str, Any]:
+    """Agent report lane — peer coordination without waking the human."""
+    from arifosmcp.runtime import report_lane as rl
+
+    m = (mode or "report").strip().lower()
+    who = (sender or actor_id or "unknown").strip()
+    plat = (platform or "mcp").strip()
+
+    if m == "report":
+        result = rl.report(
+            sender=who,
+            platform=plat,
+            kind=kind,
+            subject=subject or "",
+            body=body or "",
+            session_id=session_id,
+            thread_id=thread_id,
+            evidence=evidence,
+            needs_human=needs_human,
+            verified_actor=_caller_verified(),
+        )
+    elif m == "inbox":
+        result = rl.inbox(
+            since=since,
+            sender=sender,
+            kind=kind if kind not in ("fyi", "all") else None,
+            limit=limit,
+            mark_read=mark_read,
+            reader=who,
+        )
+    elif m == "ack":
+        result = rl.ack(reader=who, report_id=report_id or "", thread_id=thread_id)
+    elif m == "flush":
+        result = rl.flush_human(force=force, dry_run=dry_run)
+    elif m == "stats":
+        result = rl.stats()
+    else:
+        result = {
+            "status": "error",
+            "reason": f"unknown mode {mode!r}",
+            "valid_modes": ["report", "inbox", "ack", "flush", "stats"],
+        }
+
+    result["tool"] = "arif_report"
+    result["actor_id"] = who
+    return _ok("arif_report", result, delta_S=-0.001)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -26479,6 +26660,9 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_reply_compose": _arif_reply_compose_tool,
     "arif_memory": _arif_memory_v5_router,
     "arif_memory_recall": _arif_memory_v5_router,
+    # AGENT REPORT LANE (F13 2026-10-20): peer coordination bus. Agents file and
+    # read each other's reports; only decision|blocked reaches the human.
+    "arif_report": _arif_report,
     "arif_measure": _arif_ops_measure,
     "arif_ops_measure": _arif_ops_measure,
     "arif_explore": _arif_sense_observe,
@@ -29453,6 +29637,32 @@ def register_tools(
                     logger.warning("Failed to register %s: %s", _name, _reg_exc)
         except Exception as _e2_exc:  # noqa: BLE001
             logger.warning("E2 diagnostic tools skipped: %s", _e2_exc)
+
+    # ── AGENT REPORT LANE (F13 2026-10-20) — additive to the ratified 8 ────
+    # arif_report is a COORDINATION channel, not a constitutional verb: it does
+    # not judge, mutate, or seal. It takes the human out of the agent loop —
+    # agents file and read each other's reports, and only decision|blocked
+    # reaches F13, coalesced. Registered outside the ABI profile so the
+    # sovereign 8-verb facade stays exactly 8.
+    try:
+        mcp.tool(
+            name="arif_report",
+            description=(
+                "AGENT REPORT LANE · File or read reports between agents without "
+                "involving the human. Use when your work is done, when you are "
+                "blocked by another agent, or when you need to tell peers a fact. "
+                "modes: report (file), inbox (read peers), ack, flush, stats. "
+                "kind=fyi|peer|done|claim stay in the peer lane; ONLY kind=decision "
+                "or kind=blocked reach the sovereign, and only in one coalesced "
+                "message. Reports are SELF_REPORTED — probe before relying on one."
+            ),
+            tags={"coordination", "arifos", "non-constitutional"},
+            annotations={"readOnlyHint": False, "destructiveHint": False},
+        )(_arif_report)
+        registered.append("arif_report")
+        logger.info("AGENT REPORT LANE: registered arif_report (coordination channel)")
+    except Exception as _rep_exc:  # noqa: BLE001
+        logger.warning("arif_report registration skipped: %s", _rep_exc)
 
     return registered
 

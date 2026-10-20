@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
   "label": "kernel",
-  "message": "healthy",
-  "color": "brightgreen"
+  "message": "degraded",
+  "color": "orange"
 }

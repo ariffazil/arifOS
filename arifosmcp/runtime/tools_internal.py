@@ -694,10 +694,48 @@ async def _wrap_call(
                 except Exception:
                     pass
 
+        # Genuine-metabolism feed (2026-10-20): every REAL completed tool call is
+        # witnessed to the measured global kernel instance (floor telemetry reads
+        # get_governance_kernel() = "global"). Guarded — never breaks a tool call.
+        # Pairs of real action+success events are what peace2 (F5) computes from.
+        try:
+            from core.governance_kernel import get_governance_kernel as _metab_gk
+
+            _metab_evt = {
+                "tool": tool_name,
+                "stage": str(getattr(stage, "value", stage)),
+                "session_id": session_id,
+                "actor_id": getattr(caller_context, "actor_id", None),
+            }
+            _metab_gk("global").record_event("action", _metab_evt)
+            _metab_gk("global").record_event("success", _metab_evt)
+        except Exception as _metab_err:
+            import logging as _metab_log
+
+            _metab_log.getLogger("arifosmcp.metab").warning(
+                "[METAB-FEED-FAIL] tool=%s err=%r", tool_name, _metab_err
+            )
+
         return envelope
 
     except Exception as e:
         # PHASE 0 FIX: Enhanced error handling with structured envelope
+        # Genuine-metabolism feed: an errored call is a real action without a
+        # completion — recorded unpaired so the completion ratio stays honest.
+        try:
+            from core.governance_kernel import get_governance_kernel as _metab_gk2
+
+            _metab_gk2("global").record_event(
+                "action",
+                {
+                    "tool": tool_name,
+                    "stage": str(getattr(stage, "value", stage)),
+                    "session_id": session_id,
+                    "outcome": "error",
+                },
+            )
+        except Exception:
+            pass
         error_msg = str(e)
         logger.error(f"DEBUG: _wrap_call exception in {tool_name}: {e}")
         import traceback
@@ -1723,14 +1761,24 @@ async def engineering_memory_dispatch_impl(
 
             # F2 TRUTH: detect false-SUCCESS (Qdrant returns K results even when nothing matches)
             # FIX 2026-09-05 (bug #2): score gate is fail-closed (None ≠ admitted)
-            usable = [r for r in budgeted_results if _memory_content_str(r.get("content", "")).strip() and _score_admits(r)]
+            usable = [
+                r
+                for r in budgeted_results
+                if _memory_content_str(r.get("content", "")).strip() and _score_admits(r)
+            ]
             # P1 telemetry (888 audit 2026-09-05): never load-bearing
             try:
                 from arifosmcp.runtime.memory_telemetry import record_recall
 
                 record_recall(
-                    query, results, usable,
-                    reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
+                    query,
+                    results,
+                    usable,
+                    reason=(
+                        None
+                        if usable
+                        else _memory_not_found_payload(query, results, "qdrant", "")["reason"]
+                    ),
                     backend="qdrant",
                     latency_ms=round(_retrieval_ms, 2),
                 )
@@ -1821,8 +1869,14 @@ async def engineering_memory_dispatch_impl(
                     from arifosmcp.runtime.memory_telemetry import record_recall
 
                     record_recall(
-                        query, results, usable,
-                        reason=(None if usable else _memory_not_found_payload(query, results, "qdrant", "")["reason"]),
+                        query,
+                        results,
+                        usable,
+                        reason=(
+                            None
+                            if usable
+                            else _memory_not_found_payload(query, results, "qdrant", "")["reason"]
+                        ),
                         backend="qdrant",
                         latency_ms=round(_retrieval_ms, 2),
                     )
