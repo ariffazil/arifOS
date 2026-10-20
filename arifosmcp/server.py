@@ -811,6 +811,15 @@ mcp = FastMCP(
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
         "Golden path: init → observe → think → route → memory → judge → forge → seal\n\n"
+        "═══ AGENT REPORT LANE (coordination — NOT a constitutional verb) ═══\n"
+        "  arif_report — Finished, blocked, or need to tell peers? File it here.\n"
+        "    kind=fyi|peer|done|claim  → peer lane. The human is NOT notified.\n"
+        "    kind=decision|blocked     → may reach the human, but ONLY if the caller is\n"
+        "                                a verified actor, OR two distinct agents ack\n"
+        "                                the same thread_id first. An unverified caller\n"
+        "                                cannot interrupt the human on its own authority.\n"
+        "    mode=inbox → read what other agents filed. mode=ack → vouch for a thread.\n"
+        "  Agents coordinate with agents. The human is the exception path, not the bus.\n\n"
         "Canonical 8 tools — select by gap:\n"
         "  arif_init    — No session yet? Start here. Binds actor identity.\n"
         "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
@@ -996,6 +1005,12 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
         "arif_guard",
         "arif_heal",
     }
+    # Coordination channels — registered on the wire but NOT constitutional
+    # verbs, so they never count toward the ratified 8-verb facade.
+    # Single owner: public_surface.COORDINATION_TOOLS.
+    for _coord in _public_surface.COORDINATION_TOOLS:
+        registered_set.discard(_coord)
+        expected_set.discard(_coord)
     for _mesh in _MESH:
         registered_set.discard(_mesh)
         expected_set.discard(_mesh)
@@ -2160,6 +2175,11 @@ try:
             async def _public_only_list_tools():
                 tools = await _orig_list_tools()
                 allowed = set(public_tool_names_for_mode())
+                # Coordination channels are listed AND callable but are not
+                # constitutional verbs — single owner public_surface.
+                from arifosmcp.runtime.public_surface import COORDINATION_TOOLS
+
+                allowed |= set(COORDINATION_TOOLS)
                 return [tool for tool in tools if tool.name in allowed]
 
             _provider._list_tools = _public_only_list_tools

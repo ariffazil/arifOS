@@ -25273,6 +25273,107 @@ def _arif_daily_intelligence_brief(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# arif_report — AGENT REPORT LANE (F13 2026-10-20)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Takes the human out of the agent loop. Agents file reports into a peer lane;
+# agents read each other's reports. Only kind=decision|blocked reaches the human,
+# and only in one coalesced message per push window.
+def _caller_verified() -> bool:
+    """True only when the inbound request carries a cryptographically verified ACT.
+
+    Unverified callers may still file reports, but they may not, on their own
+    authority, decide that a report deserves the human's attention.
+    """
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers() or {}
+    except Exception:
+        return False
+    auth = str(headers.get("authorization") or headers.get("Authorization") or "")
+    if not auth.lower().startswith("bearer "):
+        return False
+    token = auth.split(" ", 1)[1].strip()
+    if not token:
+        return False
+    try:
+        from arifosmcp.runtime.act_token import verify_act
+
+        claims = verify_act(token, expected_actor=None)
+    except Exception:
+        return False
+    return bool(isinstance(claims, dict) and claims.get("av") is True)
+
+
+async def _arif_report(
+    mode: str = "report",
+    kind: str = "fyi",
+    subject: str | None = None,
+    body: str | None = None,
+    sender: str | None = None,
+    platform: str | None = None,
+    thread_id: str | None = None,
+    evidence: Any = None,
+    needs_human: bool | None = None,
+    report_id: str | None = None,
+    since: str | None = None,
+    limit: int = 20,
+    mark_read: bool = False,
+    force: bool = False,
+    dry_run: bool = False,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    session_token: str | None = None,
+    _envelope: Any = None,
+) -> dict[str, Any]:
+    """Agent report lane — peer coordination without waking the human."""
+    from arifosmcp.runtime import report_lane as rl
+
+    m = (mode or "report").strip().lower()
+    who = (sender or actor_id or "unknown").strip()
+    plat = (platform or "mcp").strip()
+
+    if m == "report":
+        result = rl.report(
+            sender=who,
+            platform=plat,
+            kind=kind,
+            subject=subject or "",
+            body=body or "",
+            session_id=session_id,
+            thread_id=thread_id,
+            evidence=evidence,
+            needs_human=needs_human,
+            verified_actor=_caller_verified(),
+        )
+    elif m == "inbox":
+        result = rl.inbox(
+            since=since,
+            sender=sender,
+            kind=kind if kind not in ("fyi", "all") else None,
+            limit=limit,
+            mark_read=mark_read,
+            reader=who,
+        )
+    elif m == "ack":
+        result = rl.ack(reader=who, report_id=report_id or "", thread_id=thread_id)
+    elif m == "flush":
+        result = rl.flush_human(force=force, dry_run=dry_run)
+    elif m == "stats":
+        result = rl.stats()
+    else:
+        result = {
+            "status": "error",
+            "reason": f"unknown mode {mode!r}",
+            "valid_modes": ["report", "inbox", "ack", "flush", "stats"],
+        }
+
+    result["tool"] = "arif_report"
+    result["actor_id"] = who
+    return _ok("arif_report", result, delta_S=-0.001)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -26545,6 +26646,9 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_reply_compose": _arif_reply_compose_tool,
     "arif_memory": _arif_memory_v5_router,
     "arif_memory_recall": _arif_memory_v5_router,
+    # AGENT REPORT LANE (F13 2026-10-20): peer coordination bus. Agents file and
+    # read each other's reports; only decision|blocked reaches the human.
+    "arif_report": _arif_report,
     "arif_measure": _arif_ops_measure,
     "arif_ops_measure": _arif_ops_measure,
     "arif_explore": _arif_sense_observe,
@@ -29519,6 +29623,32 @@ def register_tools(
                     logger.warning("Failed to register %s: %s", _name, _reg_exc)
         except Exception as _e2_exc:  # noqa: BLE001
             logger.warning("E2 diagnostic tools skipped: %s", _e2_exc)
+
+    # ── AGENT REPORT LANE (F13 2026-10-20) — additive to the ratified 8 ────
+    # arif_report is a COORDINATION channel, not a constitutional verb: it does
+    # not judge, mutate, or seal. It takes the human out of the agent loop —
+    # agents file and read each other's reports, and only decision|blocked
+    # reaches F13, coalesced. Registered outside the ABI profile so the
+    # sovereign 8-verb facade stays exactly 8.
+    try:
+        mcp.tool(
+            name="arif_report",
+            description=(
+                "AGENT REPORT LANE · File or read reports between agents without "
+                "involving the human. Use when your work is done, when you are "
+                "blocked by another agent, or when you need to tell peers a fact. "
+                "modes: report (file), inbox (read peers), ack, flush, stats. "
+                "kind=fyi|peer|done|claim stay in the peer lane; ONLY kind=decision "
+                "or kind=blocked reach the sovereign, and only in one coalesced "
+                "message. Reports are SELF_REPORTED — probe before relying on one."
+            ),
+            tags={"coordination", "arifos", "non-constitutional"},
+            annotations={"readOnlyHint": False, "destructiveHint": False},
+        )(_arif_report)
+        registered.append("arif_report")
+        logger.info("AGENT REPORT LANE: registered arif_report (coordination channel)")
+    except Exception as _rep_exc:  # noqa: BLE001
+        logger.warning("arif_report registration skipped: %s", _rep_exc)
 
     return registered
 
