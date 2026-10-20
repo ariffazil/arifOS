@@ -679,11 +679,18 @@ def main(argv: list[str]) -> int:
         # be circular (a logging failure should not corrupt the audit result).
         print(f"\n[warn] could not append history → {history_path}: {e}", file=sys.stderr)
 
-    # Non-zero exit only on hard failure (UNREADABLE / MISSING chain files).
+    # Non-zero exit only on hard failure (UNREADABLE / MISSING chain files)
+    # that are NOT frozen-historical. A frozen ledger is append-only retired
+    # state; its absence (gitignored runtime file in a fresh CI checkout) is a
+    # fact to report, not a live failure. This must mirror the `overall`
+    # verdict's `not historical_frozen` guard — they had drifted, so a frozen
+    # MISSING ledger exited 2 while `overall` correctly said INTACT.
     hard_failures = [
         r
         for r in reports
-        if r["status"] in ("UNREADABLE", "MISSING") and not r.get("non_chain_row_count")
+        if r["status"] in ("UNREADABLE", "MISSING")
+        and not r.get("non_chain_row_count")
+        and not r.get("historical_frozen")
     ]
     if hard_failures:
         return 2
