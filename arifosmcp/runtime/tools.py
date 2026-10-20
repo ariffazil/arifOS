@@ -638,7 +638,6 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     "ROSAK": 0,  # nine_signal Δ: BROKEN
     "KHIANAT": 0,  # nine_signal Ψ: BETRAYED
     "BANGANG": 0,  # nine_signal Ω: FOOLISH
-    "RETAK": 0,  # nine_signal overall/nine_signal Δ: FAILED/CRACKED
     # ── Held / deferred (severity 1-2) ──
     "SABAR": 1,
     "SABAR_HOLD": 1,
@@ -649,6 +648,7 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     "WARN": 3,
     "DIVERGENT": 3,  # FORGE 2: surface self-consistency divergence
     "DEGRADED": 4,
+    "RETAK": 4,  # nine_signal Δ / overall: CRACKED (degraded, SABAR-class)
     "BIJAK": 4,  # nine_signal Ω: SMART (degraded intelligence)
     # ── Observe only / partial (severity 5) ──
     "OBSERVE_ONLY": 5,
@@ -2745,7 +2745,7 @@ def _collect_monotonicity_floor(
                 _track(val, f"result.{key}")
 
     # ── 4. Deep scan: any string value that is exactly a terminal signal ─
-    _TERMINAL = frozenset({"BROKEN", "FAIL", "VOID", "ROSAK", "KHIANAT", "BANGANG", "RETAK"})
+    _TERMINAL = frozenset({"BROKEN", "FAIL", "VOID", "ROSAK", "KHIANAT", "BANGANG"})
 
     def _deep_scan(obj: Any, path: str = "out") -> None:
         if isinstance(obj, dict):
@@ -3290,6 +3290,27 @@ def _compute_canonical_verdict(
             f"(sub-signal floor dominates aggregate)"
         )
         verdict = floor_verdict
+
+    # Canonical wire contract normalization (F13 / 7-verdict wire contract):
+    # Sub-signals (e.g. nine_signal PSI="SYUBHAH", DELTA="RETAK") must never
+    # leak as the aggregate wire verdict.
+    # Canonical verdicts: SEAL, HOLD, SABAR, PARTIAL, PROVISIONAL, HOLD_888, VOID, OBSERVE_ONLY.
+    _WIRE_VERDICT_NORM = {
+        "SYUBHAH": "HOLD",
+        "ROSAK": "VOID",
+        "KHIANAT": "VOID",
+        "BANGANG": "VOID",
+        "RETAK": "SABAR",
+        "FAIL": "VOID",
+        "BROKEN": "VOID",
+        "ERROR": "VOID",
+        "BLOCKED": "VOID",
+        "SABAR_HOLD": "SABAR",
+        "PASS": "SEAL",
+        "ALLOW": "SEAL",
+    }
+    if verdict in _WIRE_VERDICT_NORM:
+        verdict = _WIRE_VERDICT_NORM[verdict]
 
     return verdict, degradation
 

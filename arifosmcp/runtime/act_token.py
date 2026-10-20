@@ -340,6 +340,8 @@ def compute_authority_state(
 
     mutation_allowed = grant_level in ("LIMITED_MUTATE", "FULL")
     seal_allowed = grant_level == "FULL"
+    if not seal_allowed:
+        verbs = [v for v in verbs if v != "arif_seal"]
 
     # ── 4. Session binding ─────────────────────────────────────────
     # Per WS1 spec: session_bound requires both the session to exist AND

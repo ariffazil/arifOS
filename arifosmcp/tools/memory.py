@@ -887,6 +887,27 @@ def arif_memory_recall(
                 ["L11"],
             )
 
+    # ── P0-01a Pre-Execution Floor Gate (F1 / F11 / F13) ──────────────────
+    # Hooks BEFORE check_laws() so the gate verdict carries specific floor
+    # citations (F1 / F11 / F13) and never falls through to a generic error.
+    # Issue #598: arif_memory had no pre-execution constitutional gate.
+    # - F1: session binding missing -> SABAR (empty result)
+    # - F11: actor missing OR OBSERVE_ONLY session on MUTATE -> SABAR / VOID
+    # - F13: IRREVERSIBLE (forget/prune) without arif_judge trace -> 888_HOLD
+    # - Reversible mutations (store / update) proceed with FLOOR verdict
+    #   attached via the gate_to_envelope receipt.
+    gate_verdict = pre_execution_floor_gate(
+        mode=mode,
+        session_id=session_id,
+        actor_id=actor_id,
+        memory_id=memory_id,
+    )
+    envelope = gate_to_envelope(gate_verdict, tool="arif_memory_recall")
+    if envelope is not None:
+        # The gate emitted a SABAR/VOID/888_HOLD envelope; return it verbatim.
+        # Downstream execution is NOT invoked when envelope is non-None.
+        return envelope
+
     # ── Seal C — Single-Writer Write-Lock CQRS (F13-ratified 2026-08-19) ────
     # Labor-agent writes (store/import/learn/update) are buffered as durable
     # proposals, not executed. i-ARIF (allowlist, ARIF_MEMORY_WRITERS env
@@ -910,27 +931,6 @@ def arif_memory_recall(
             },
             meta={"seal": "C", "actor_id": actor_id},
         )
-
-    # ── P0-01a Pre-Execution Floor Gate (F1 / F11 / F13) ──────────────────
-    # Hooks BEFORE check_laws() so the gate verdict carries specific floor
-    # citations (F1 / F11 / F13) and never falls through to a generic error.
-    # Issue #598: arif_memory had no pre-execution constitutional gate.
-    # - F1: session binding missing -> SABAR (empty result)
-    # - F11: actor missing OR OBSERVE_ONLY session on MUTATE -> SABAR / VOID
-    # - F13: IRREVERSIBLE (forget/prune) without arif_judge trace -> 888_HOLD
-    # - Reversible mutations (store / update) proceed with FLOOR verdict
-    #   attached via the gate_to_envelope receipt.
-    gate_verdict = pre_execution_floor_gate(
-        mode=mode,
-        session_id=session_id,
-        actor_id=actor_id,
-        memory_id=memory_id,
-    )
-    envelope = gate_to_envelope(gate_verdict, tool="arif_memory_recall")
-    if envelope is not None:
-        # The gate emitted a SABAR/VOID/888_HOLD envelope; return it verbatim.
-        # Downstream execution is NOT invoked when envelope is non-None.
-        return envelope
 
     # ── P0-04 F10 Ontology pre-write scan (after gate, before durable write) ─
     # Closes issue #598 remainder: check + witness + ontological proof before

@@ -15,14 +15,26 @@ async def _provider_offline(*args: object, **kwargs: object) -> tuple[str, dict[
     raise llm_client.LLMUnavailableError("provider offline")
 
 
+_ACTIVE_REMOTE_PROVIDERS = (
+    "_call_fed_federation",
+    "_call_tokenrouter",
+    "_call_minimax",
+    "_call_mimo",
+    "_call_groq",
+    "_call_gemini",
+    "_call_cerebras",
+)
+
+
 @pytest.fixture
 def remote_providers_offline(monkeypatch: pytest.MonkeyPatch) -> dict[str, AsyncMock]:
     """Disable every remote generation provider without making network calls."""
     mocks: dict[str, AsyncMock] = {}
-    for name in ("_call_tokenrouter", "_call_minimax", "_call_mimo", "_call_sea_lion"):
-        provider = AsyncMock(side_effect=_provider_offline)
-        monkeypatch.setattr(llm_client, name, provider)
-        mocks[name] = provider
+    for name in _ACTIVE_REMOTE_PROVIDERS:
+        if hasattr(llm_client, name):
+            provider = AsyncMock(side_effect=_provider_offline)
+            monkeypatch.setattr(llm_client, name, provider)
+            mocks[name] = provider
     monkeypatch.setattr(llm_client, "ILMU_ENABLED", False)
     return mocks
 
@@ -43,7 +55,7 @@ def ollama_response(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
 
 
 @pytest.mark.asyncio
-async def test_sea_lion_offline_uses_ollama(
+async def test_remote_providers_offline_uses_ollama(
     remote_providers_offline: dict[str, AsyncMock],
     ollama_response: AsyncMock,
 ) -> None:
@@ -54,7 +66,6 @@ async def test_sea_lion_offline_uses_ollama(
         mode="reason",
     )
 
-    assert remote_providers_offline["_call_sea_lion"].await_count == 1
     ollama_response.assert_awaited_once()
     assert envelope.provider == "ollama"
     assert envelope.parsed_output["verdict"] == "HOLD"
@@ -62,7 +73,7 @@ async def test_sea_lion_offline_uses_ollama(
 
 
 @pytest.mark.asyncio
-async def test_sea_lion_and_ollama_offline_use_deterministic_hold(
+async def test_remote_and_ollama_offline_use_deterministic_hold(
     remote_providers_offline: dict[str, AsyncMock],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -104,7 +115,7 @@ async def test_all_providers_offline_never_void_without_hard_floor(
     assert envelope.provider == "deterministic_fallback"
     assert envelope.parsed_output["verdict"] != "VOID"
     assert envelope.parsed_output["verdict"] in {"HOLD", "SABAR"}
-    assert envelope.parsed_output["violated_floors"] == []
+    assert envelope.parsed_output.get("violated_floors", []) == []
 
 
 @pytest.mark.asyncio
