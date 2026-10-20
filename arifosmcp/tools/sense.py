@@ -824,7 +824,17 @@ def arif_observe(
         )
 
     if mode == "hybrid_discovery":
-        from arifos_wiki_tools.search import search_index
+        import logging as _logging0
+
+        _logging0.getLogger("arifosmcp.sense").info(
+            "[DISPATCH-PROBE] hybrid_discovery branch entered q=%r", (query or "")[:60]
+        )
+        try:
+            from arifos_wiki_tools.search import search_index
+        except Exception:  # wiki layer is OPTIONAL — package arifos_wiki_tools is not on
+            # this host (2026-10-20: ModuleNotFoundError killed the whole branch before the
+            # kernel bridge). Degrade to no-wiki instead of aborting hybrid_discovery.
+            search_index = None  # type: ignore[assignment]
 
         q = query or ""
         errors: list[str] = []
@@ -1058,6 +1068,13 @@ def arif_observe(
         except Exception as _e:
             kernel_bridge = "ERROR"
             print(f"[KERNEL-BRIDGE-WARN] sense.py → core.governance_kernel: {_e}")
+            # 2026-10-20 observability: print() is block-buffered under systemd and was
+            # invisible in the journal, hiding real bridge failures. Log properly too.
+            import logging as _logging
+
+            _logging.getLogger("arifosmcp.sense").warning(
+                "[KERNEL-BRIDGE-WARN] sense.py -> core.governance_kernel: %r", _e
+            )
 
         return _ok(
             "arif_observe",
