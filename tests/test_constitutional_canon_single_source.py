@@ -97,6 +97,42 @@ def test_doctrine_resource_renders_from_canon():
         assert f.doctrine in line, f"doctrine {f.fid} rule drifted: {line!r}"
 
 
+def test_schema_resource_renders_floor_block_from_canon():
+    from arifosmcp.resources.schema import SCHEMA_TEXT
+
+    assert canon.doctrine_block() in SCHEMA_TEXT
+    assert "0.90" not in SCHEMA_TEXT, (
+        "arifos://schema still carries the stale F02 0.90 cap — the Ω₀ band "
+        "is 1 − Ω₀ ∈ [0.95, 0.97]"
+    )
+
+
+def test_no_stale_confidence_cap_anywhere_on_the_resource_surface():
+    """Grep-level guard: the 0.90 cap is the documented F7 drift.
+
+    This gate is what found alignment_gap.py and floor_table.py still citing
+    0.90 after the 2026-07-23 unification. It scans the resources package,
+    ensuring active code strings don't reintroduce the cap.
+    """
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1] / "arifosmcp" / "resources"
+    offenders = []
+    for path in root.rglob("*.py"):
+        if "test" in path.parts:
+            continue
+        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if line.strip().startswith("#"):
+                continue
+            low = line.lower()
+            if "0.90" in line and ("cap" in low or "ceiling" in low):
+                offenders.append(f"{path.relative_to(root)}:{n}")
+    assert not offenders, (
+        "stale 0.90 confidence cap reintroduced: "
+        f"{offenders}. F7 canon is 1 − Ω₀ ∈ [0.95, 0.97]."
+    )
+
+
 def test_axioms_tool_catalogue_matches_canon():
     catalogue = canon.axiom_catalogue()
     assert [a["id"] for a in catalogue] == [f.law_id for f in canon.FLOORS]

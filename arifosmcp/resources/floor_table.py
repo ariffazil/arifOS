@@ -22,7 +22,7 @@ FLOOR_TABLE: dict[str, str] = {
     ),
     "F2": (
         "F2 TRUTH — Information fidelity (anti-hallucination).\n"
-        "All evidence labeled OBS/DER/INT/SPEC. Confidence capped at 0.90.\n"
+        "All evidence labeled OBS/DER/INT/SPEC. Cap = 1 − Ω₀ ∈ [0.95, 0.97]; ceiling 0.96.\n"
         "OBS = directly observed. DER = derived from OBS. INT = interpreted.\n"
         "SPEC = speculative. Never present SPEC as OBS."
     ),
