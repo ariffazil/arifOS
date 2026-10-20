@@ -3277,7 +3277,27 @@ def build_snapshot(
     drift_value = runtime_identity.get("drift", {}).get("value")
     if isinstance(drift_value, dict):
         drift_value["capability"] = "DRIFTED" if capability_degraded else "ALIGNED"
-        drift_value["forge_registry"] = "DRIFTED" if capability_degraded else "UNKNOWN"
+        # F2 FIX (kimi-code/FI-008, 2026-10-20): forge_registry is A-FORGE
+        # registry staleness — an INDEPENDENT registry probe, not arifOS's own
+        # capability-matrix test coverage (category error: the old line derived
+        # it from `capability_degraded`, so untested arif_* tools falsely graded
+        # A-FORGE's registry). Uses the same live probe as the organs block;
+        # fail-closed to UNKNOWN (F7).
+        try:
+            from arifosmcp.runtime.capability_drift import (
+                measure_aforge_registry_alignment,
+            )
+
+            _forge_reg_state = measure_aforge_registry_alignment()["capability_drift"]
+            drift_value["forge_registry"] = (
+                "DRIFTED"
+                if _forge_reg_state is True
+                else "ALIGNED"
+                if _forge_reg_state is False
+                else "UNKNOWN"
+            )
+        except Exception:  # noqa: BLE001 — probe failure is UNKNOWN, not a claim
+            drift_value["forge_registry"] = "UNKNOWN"
 
     organs = _organs_block(mcp)
     metabolism = _metabolism_block()
@@ -3418,7 +3438,27 @@ async def build_snapshot_async(
     drift_value = runtime_identity.get("drift", {}).get("value")
     if isinstance(drift_value, dict):
         drift_value["capability"] = "DRIFTED" if capability_degraded else "ALIGNED"
-        drift_value["forge_registry"] = "DRIFTED" if capability_degraded else "UNKNOWN"
+        # F2 FIX (kimi-code/FI-008, 2026-10-20): forge_registry is A-FORGE
+        # registry staleness — an INDEPENDENT registry probe, not arifOS's own
+        # capability-matrix test coverage (category error: the old line derived
+        # it from `capability_degraded`, so untested arif_* tools falsely graded
+        # A-FORGE's registry). Uses the same live probe as the organs block;
+        # fail-closed to UNKNOWN (F7).
+        try:
+            from arifosmcp.runtime.capability_drift import (
+                measure_aforge_registry_alignment,
+            )
+
+            _forge_reg_state = measure_aforge_registry_alignment()["capability_drift"]
+            drift_value["forge_registry"] = (
+                "DRIFTED"
+                if _forge_reg_state is True
+                else "ALIGNED"
+                if _forge_reg_state is False
+                else "UNKNOWN"
+            )
+        except Exception:  # noqa: BLE001 — probe failure is UNKNOWN, not a claim
+            drift_value["forge_registry"] = "UNKNOWN"
 
     organs = _organs_block(mcp)
     metabolism = _metabolism_block()

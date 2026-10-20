@@ -300,7 +300,8 @@ DELTA_MAX: float = 0.30
 _WELL_STATE_CANDIDATES = [
     Path(p)
     for p in [
-        os.environ.get("WELL_STATE_PATH", ""),  # docker-compose: /app/well_state.json
+        os.environ.get("WELL_STATE_PATH", ""),
+        "/var/lib/well/state.json",  # Canonical live organ state (FHS promoted 2026-09-12)
         "/app/well_state.json",
         "/root/WELL/state.json",
     ]
@@ -309,6 +310,8 @@ _WELL_STATE_CANDIDATES = [
 
 # WELL internal HTTP fallback — used when no state file is accessible
 _WELL_INTERNAL_URLS = [
+    "http://127.0.0.1:18083/health",  # Live organ service on af-forge VPS
+    "http://localhost:18083/health",
     "http://well:8083/health",  # Docker Compose service name
     "http://172.19.0.5:8083/health",  # Docker network IP (static for this deployment)
 ]
@@ -318,8 +321,8 @@ def _read_well_substrate() -> dict[str, Any]:
     """Read WELL biological substrate state and return a minimal advisory packet.
 
     Strategy:
-      1. Try state file candidates in order (fastest, no network)
-      2. Fall back to WELL HTTP health endpoint (stable internal route)
+      1. Try state file candidates in order (fastest, no network; canonical /var/lib/well/state.json first)
+      2. Fall back to WELL HTTP health endpoint (:18083 live service)
 
     W0 invariant preserved: WELL informs. The judge decides. The operator
     holds the veto. This packet is advisory evidence — not a gate.
@@ -330,6 +333,7 @@ def _read_well_substrate() -> dict[str, Any]:
         try:
             with open(path) as fh:
                 state = json_lib.load(fh)
+            state["_source"] = str(path)
             break
         except Exception:
             continue
@@ -374,10 +378,10 @@ def _read_well_substrate() -> dict[str, Any]:
     truth_status: str = state.get("truth_status", "UNVERIFIED")
     has_metrics = bool(
         isinstance(metrics, dict)
-        and any(metrics.get(d) for d in ("sleep", "stress", "cognitive", "metabolic", "structural"))
+        and any(metrics.get(d) for d in ("sleep", "stress", "cognitive", "metabolic", "structural", "derived"))
     )
 
-    if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED"):
+    if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED", "INSUFFICIENT_DATA"):
         human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
     elif well_score is None:
         human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
@@ -392,8 +396,13 @@ def _read_well_substrate() -> dict[str, Any]:
 
     clarity = metrics.get("cognitive", {}).get("clarity") if has_metrics else None
 
+    # Truthful status: if we have no valid telemetry metrics or truth is unverified/insufficient,
+    # packet status is honest ('insufficient_data' or 'degraded'), never pretend to be cleanly 'available'
+    # without telemetry.
+    packet_status = "available" if (has_metrics and well_score is not None and truth_status not in ("VOID", "TEST", "UNVERIFIED", "INSUFFICIENT_DATA")) else "insufficient_data"
+
     packet: dict[str, Any] = {
-        "status": "available",
+        "status": packet_status,
         "well_score": well_score,
         "human_ready": human_ready,
         "coupled_verdict": coupled_verdict,

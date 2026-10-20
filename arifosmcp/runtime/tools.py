@@ -9313,21 +9313,35 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
             return _stamped
 
         _identity = payload.get("identity", {}) if isinstance(payload, dict) else {}
+        _sid = payload.get("session_id", "unknown")
+        _mode = payload.get("init_mode") or payload.get("mode") or "init"
+        _is_canary = _mode == "canary" or _sid == "unknown"
+
+        if _is_canary:
+            _facts = [
+                "Canary probe only (unbound ephemeral session, no mutation/seal authority)",
+                "Session id is unknown; actor is unverified; read-only inspection allowed.",
+            ]
+            _next_safe = "Session is unbound canary. Call arif_init(mode='init') to bind an authentic session."
+        else:
+            _facts = ["Session bound (deterministic identity bind)"]
+            _next_safe = "Proceed to arif_observe or arif_think with this session."
+
         _built = build_standard_mcp_result(
             tool=tool,
-            facts=["Session bound (deterministic identity bind)"],
+            facts=_facts,
             inferences=[
                 {
-                    "type": "session_create",
+                    "type": "canary_probe" if _is_canary else "session_create",
                     "actor": _identity.get("declared_actor_id", payload.get("actor", "unknown"))
                     if isinstance(_identity, dict)
                     else payload.get("actor", "unknown"),
                 }
             ],
             confidence=1.0,  # placeholder — stamped over immediately
-            next_safe_action="Proceed to arif_observe or arif_think with this session.",
+            next_safe_action=_next_safe,
             raw_result=payload,
-            mode="init",
+            mode="canary" if _is_canary else "init",
         )
         # A1 + G8 (2026-08-05): preserve engine truth then floor SEAL-over-drift.
         # build_standard_mcp_result invents verdict="SEAL" and drops substrate.
