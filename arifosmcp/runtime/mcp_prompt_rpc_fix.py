@@ -66,6 +66,24 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
         return True
 
     original_render_prompt = FastMCP.render_prompt
+    original_get_prompt = FastMCP.get_prompt
+
+    PROMPT_ALIASES: dict[str, str] = {
+        "/init": "⚓ INIT",
+        "init": "⚓ INIT",
+        "/seal": "🔐 CLOSE",
+        "seal": "🔐 CLOSE",
+        "/close": "🔐 CLOSE",
+        "close": "🔐 CLOSE",
+        "/govern": "🌀 GOVERN",
+        "govern": "🌀 GOVERN",
+    }
+
+    async def get_prompt_with_aliases(
+        self: Any, name: str, version: Any = None
+    ) -> Any:
+        canonical_name = PROMPT_ALIASES.get(name, name)
+        return await original_get_prompt(self, canonical_name, version)
 
     async def render_prompt_with_invalid_params(
         self: Any, *args: Any, **kwargs: Any
@@ -77,6 +95,8 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
         arguments = kwargs.pop("arguments", args[1] if len(args) > 1 else None)
         version = kwargs.pop("version", args[2] if len(args) > 2 else None)
         try:
+            if name:
+                name = PROMPT_ALIASES.get(name, name)
             arguments = arguments or {}
             prompt = await self.get_prompt(name, version=version)
             if prompt is not None:
@@ -110,15 +130,20 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
                     )
         except McpError:
             raise
+        if args:
+            args = (name,) + args[1:]
+        else:
+            kwargs["name"] = name
         return await original_render_prompt(self, *args, **kwargs)
 
+    FastMCP.get_prompt = get_prompt_with_aliases  # type: ignore[method-assign]
     FastMCP.render_prompt = render_prompt_with_invalid_params  # type: ignore[method-assign]
     FastMCP._arifos_render_prompt_fix_installed = True  # type: ignore[attr-defined]
 
     _APPLIED = True
     msg = (
-        "Applied prompts/get missing-args fix: -> JSON-RPC -32602 Invalid params "
-        "(patched FastMCP._render_prompt)"
+        "Applied prompts/get missing-args fix & prompt aliases: -> JSON-RPC -32602 Invalid params "
+        "(patched FastMCP.get_prompt and FastMCP._render_prompt)"
     )
     logger.warning(msg)
     print(msg, flush=True)
