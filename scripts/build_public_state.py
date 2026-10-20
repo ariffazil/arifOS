@@ -716,6 +716,7 @@ def project_public_state(
             "verify_count": extra.get("ariflow_verify_count"),
             "receipts": extra.get("arifflow_receipts"),
             "uptime_ms": extra.get("ariflow_uptime_ms"),
+            "status": extra.get("ariflow_status"),  # P0-A
             "source": extra.get("ariflow_source", "ariflow:7073/health"),
             "observed_at": extra.get("ariflow_observed_at"),
         },
@@ -1240,6 +1241,9 @@ def collect_extras() -> dict[str, Any]:
         extras["ariflow_verify_count"] = fq.get("verify_count")
         extras["ariflow_receipts"] = flow.get("data", {}).get("receipts")
         extras["ariflow_uptime_ms"] = flow.get("data", {}).get("uptime_ms")
+        extras["ariflow_status"] = flow.get("data", {}).get(
+            "status"
+        )  # P0-A: flow health badge (single-f — MUST match emitter key extra.get("arifflow_status"→"ariflow_status") at project_public_state; 2026-10-20 one-char fix)
         extras["ariflow_source"] = "ariflow:7073/health"
         extras["ariflow_observed_at"] = observed_at
 
@@ -1413,6 +1417,7 @@ def wire_observatory_contract(state: dict[str, Any]) -> dict[str, Any]:
     if isinstance(flow, dict):
         state["arifflow"] = flow
         state["arifFlow"] = flow
+        _p0a_wire_census(state, flow)
     organs = state.get("organs")
     if isinstance(organs, dict):
         for organ_id, row in organs.items():
@@ -1452,6 +1457,9 @@ def wire_observatory_contract(state: dict[str, Any]) -> dict[str, Any]:
             }
             # governance / receipt / constitutional: no per-organ producer
             # exists yet (class B) — keys intentionally absent → honest unknown.
+    _p0a_wire_organs(
+        state
+    )  # P0-A: pulse-grid aliases (after organ loop populated liveness/authorization)
     return state
 
 
@@ -1476,6 +1484,63 @@ def main() -> int:
         f"paths={[str(p) for p in paths]}"
     )
     return 0
+
+
+def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
+    """P0-A (2026-10-20): project vault receipt census into observatory.js keys.
+
+    renderFlowPlane chain read = flowField(record,'chain','chain_status',...)
+    and the VAULT999 line = firstPresent(governance.vault999, substrate.vault999,
+    receipts.chain_status). The census data already exists in the receipt block —
+    re-key it additively. No new telemetry.
+    """
+    rb = state.get("receipt") if isinstance(state.get("receipt"), dict) else {}
+    if not rb:
+        return
+    chain_ok = bool(rb.get("chain_verified"))
+    flow["chain_status"] = {
+        "value": (
+            f"canonical {rb.get('canonical_status') or 'UNKNOWN'}"
+            f" · head_seq {rb.get('head_sequence')}"
+            f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+        ),
+        "state": "healthy" if chain_ok else "unknown",
+        "source": "vault receipt census",
+        "confidence": None,
+    }
+    gov = state.get("governance")
+    if isinstance(gov, dict):
+        gov["vault999"] = {
+            "value": (
+                f"vault {rb.get('vault_status') or 'UNKNOWN'}"
+                f" · canonical {rb.get('canonical_status') or 'UNKNOWN'}"
+                f" · head_seq {rb.get('head_sequence')}"
+                f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+            ),
+            "state": "healthy" if chain_ok else "unknown",
+            "source": "vault receipt census (build_public_state receipt block)",
+            "confidence": None,
+        }
+
+
+def _p0a_wire_organs(state: dict[str, Any]) -> None:
+    """P0-A (2026-10-20): alias per-organ records to pulse-grid signal keys.
+
+    renderOrgans reads ['transport','dependency','capability','governance',
+    'identity','last_receipt','contract'] — alias liveness→transport and
+    authorization→identity. Keys without a producer stay absent → honest
+    'unknown', never green-washed.
+    """
+    organs = state.get("organs")
+    if not isinstance(organs, dict):
+        return
+    for row in organs.values():
+        if not isinstance(row, dict):
+            continue
+        if isinstance(row.get("liveness"), dict):
+            row["transport"] = row["liveness"]
+        if isinstance(row.get("authorization"), dict):
+            row["identity"] = row["authorization"]
 
 
 if __name__ == "__main__":
