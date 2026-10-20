@@ -107,7 +107,7 @@ DITEMPA BUKAN DIBERI
 """
 
 # Single source substitution (2026-10-20). This block used to carry a copy of
-# the floor table that still said "Cap confidence at 0.90" long after F13
+# the floor table that retained an obsolete value long after F13
 # sealed the Ω₀ band — a copy is a drift site, so render it instead.
 from arifosmcp.constitutional_canon import doctrine_block as _doctrine_block  # noqa: E402
 
