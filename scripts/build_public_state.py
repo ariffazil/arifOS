@@ -650,6 +650,26 @@ def project_public_state(
             "verify_url": release_url,
             "connect_url": connect_url,
         },
+        # ── Observatory wiring (class A, 2026-10-20, additive) ──────────────
+        # observatory.js renderIdentity() reads data.runtime_identity.* — the
+        # snapshot already carries this (ri); carry it through merged with the
+        # release commits so the F2 panel shows real data, not "source: missing".
+        "runtime_identity": {
+            "source_commit": pf_value(ri.get("workspace_source_commit"))
+            or pf_value(ri.get("source_commit"))
+            or short_commit(source, 7),
+            "source_commit_full": source,
+            "deployed_commit": pf_value(ri.get("deployed_commit")) or short_commit(deployed, 7),
+            "build_commit": pf_value(ri.get("build_commit")) or short_commit(build, 7),
+            "drift": drift_obj if drift_obj is not None else alignment,
+            "deployment_mode": pf_value(ri.get("deployment_mode")) or health.get("deployment_mode"),
+            "process_started_at": pf_value(ri.get("process_started_at")),
+            "platform": pf_value(ri.get("platform")),
+            "kernel_epoch": pf_value(ri.get("kernel_epoch")),
+            "confidence": ri.get("confidence"),
+            "source": "snapshot.runtime_identity+release",
+            "observed_at": snap.get("observed_at"),
+        },
         "mcp": {
             "endpoint": "https://mcp.arif-fazil.com/mcp",
             "transport": health.get("transport") or "streamable-http",
@@ -1377,6 +1397,64 @@ def collect_extras() -> dict[str, Any]:
     return extras
 
 
+def wire_observatory_contract(state: dict[str, Any]) -> dict[str, Any]:
+    """Class A projection wiring (2026-10-20, additive).
+
+    observatory.js flowSnapshot() candidates are arifFLOW / arifFlow /
+    arifflow / arif_flow / flow_plane — the canonical key ``ariflow``
+    (single f) matches NONE of them, so the FLOW panel read nothing.
+    Emit alias keys alongside the canonical block. Also derive per-organ
+    signal records (liveness/readiness/capability/authorization) from
+    data the probe ALREADY collected — no new telemetry. Signals without
+    a producer stay absent so the page renders honest 'unknown', never
+    green.
+    """
+    flow = state.get("ariflow")
+    if isinstance(flow, dict):
+        state["arifflow"] = flow
+        state["arifFlow"] = flow
+    organs = state.get("organs")
+    if isinstance(organs, dict):
+        for organ_id, row in organs.items():
+            if not isinstance(row, dict):
+                continue
+            transport = str(row.get("transport") or "")
+            row["liveness"] = {
+                "value": "live" if transport == "PRESENT" else (transport or None),
+                "state": "healthy" if transport == "PRESENT" else "unknown",
+                "source": "live /health probe",
+                "confidence": row.get("confidence"),
+            }
+            status_code = row.get("probe_status_code")
+            if status_code is not None:
+                row["readiness"] = {
+                    "value": f"http {status_code}",
+                    "state": "healthy" if status_code == 200 else "degraded",
+                    "source": "live /health probe",
+                    "confidence": row.get("confidence"),
+                }
+            tools = row.get("public_tools")
+            if isinstance(tools, int):
+                row["capability"] = {
+                    "value": f"{tools} public tools",
+                    "state": "healthy" if tools > 0 else "unknown",
+                    "source": "mcp tools/list probe",
+                    "confidence": row.get("confidence"),
+                }
+            identity_state = str(row.get("identity_state") or "")
+            row["authorization"] = {
+                "value": identity_state or None,
+                "state": "healthy"
+                if identity_state == "VERIFIED"
+                else ("degraded" if identity_state == "PRESENT" else "unknown"),
+                "source": "identity probe",
+                "confidence": row.get("confidence"),
+            }
+            # governance / receipt / constitutional: no per-organ producer
+            # exists yet (class B) — keys intentionally absent → honest unknown.
+    return state
+
+
 def main() -> int:
     snap = load_snapshot()
     health = get_health()
@@ -1385,6 +1463,7 @@ def main() -> int:
         print("error: no snapshot, no health, no extras", file=sys.stderr)
         return 1
     state = project_public_state(snap, health, extra=extras)
+    state = wire_observatory_contract(state)
     paths = write_public_state(state)
     print(
         f"public-state {state['schema']} headline={state['headline']!r} "
