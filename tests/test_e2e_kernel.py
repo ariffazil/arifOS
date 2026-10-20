@@ -202,9 +202,12 @@ class TestMCPProtocol:
         assert "tools" in caps, "Missing tools capability"
 
     def test_tools_list_returns_8_tools(self):
-        """tools/list returns exactly 8 arif_* tools."""
+        """tools/list carries the 8 canonical arif_* verbs.
+
+        Extra tools are allowed only when explicitly declared as non-constitutional
+        coordination lanes (e.g. arif_report). An undeclared 10th tool still fails.
+        """
         tools = mcp_tools_list()
-        assert len(tools) == 8, f"Expected 8 tools, got {len(tools)}: {[t['name'] for t in tools]}"
         names = {t["name"] for t in tools}
         expected = {
             "arif_init",
@@ -216,7 +219,11 @@ class TestMCPProtocol:
             "arif_forge",
             "arif_seal",
         }
-        assert names == expected, f"Tool mismatch: {names ^ expected}"
+        # Coordination lanes surfaced alongside the canonical 8 — NOT constitutional verbs.
+        declared_lanes = {"arif_report"}
+        assert expected <= names, f"Missing canonical verbs: {sorted(expected - names)}"
+        unexpected = names - expected - declared_lanes
+        assert not unexpected, f"Undeclared tools surfaced: {sorted(unexpected)}"
 
     def test_tools_list_input_schemas_valid(self):
         """Every tool has valid JSON Schema inputSchema."""
@@ -561,9 +568,24 @@ class TestVaultIntegrity:
         anomalous = 0
         total_parsed = 0
         # Canonical identity fields (any one present + non-null is enough)
-        ID_FIELDS = ("id", "seq", "receipt_id", "seal_seq", "coherence_id", "event_id", "decision_id")
+        ID_FIELDS = (
+            "id",
+            "seq",
+            "receipt_id",
+            "seal_seq",
+            "coherence_id",
+            "event_id",
+            "decision_id",
+        )
         # Canonical timestamp fields (any one present + non-null is enough)
-        TS_FIELDS = ("ts", "timestamp", "created_at", "sealed_at", "timestamp_decision", "timestamp_outcome")
+        TS_FIELDS = (
+            "ts",
+            "timestamp",
+            "created_at",
+            "sealed_at",
+            "timestamp_decision",
+            "timestamp_outcome",
+        )
         for line in VAULT_PATH.read_text(encoding="utf-8").splitlines():
             try:
                 entry = json.loads(line)
@@ -765,7 +787,9 @@ class TestDeploymentAlignment:
         # intentional staging of 10 unpushed commits. Treat 'degraded' as a
         # soft signal, not a hard failure — only 'unhealthy' or unreachable
         # should block the dev loop.
-        assert status in ("healthy", "degraded"), f"kernel status={status}, expected healthy or degraded"
+        assert status in ("healthy", "degraded"), (
+            f"kernel status={status}, expected healthy or degraded"
+        )
 
         # Soft signal: surface the drift magnitude; do not hard-fail.
         drift = h.get("runtime_drift")
