@@ -23,11 +23,11 @@ EXTENSION HOOKS PATTERN (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
 
 DELTA BUNDLE SPEC (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   arif_think output must include: facts, scars, floor_scores, entropy, omega_0.
-  See: tools/mind_reason.py _build_delta_bundle()
+  See: runtime/mind_reason.py or tools/reason.py
 
 QUANTUM SABAR PROTOCOL (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   Byzantine continuity when W1/W3 unreachable. partition_mode: ONLINE | PURGATORY | DEAD.
-  See: tools/sense_observe.py
+  See: tools/sense.py
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

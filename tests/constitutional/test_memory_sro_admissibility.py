@@ -47,6 +47,7 @@ from arifosmcp.memory.admissibility import (  # noqa: E402
 # ─────────────────────────────────────────────────────────────────────
 
 _NOW = datetime(2026, 9, 12, tzinfo=UTC)
+_CLOCK_NOW = datetime.now(UTC)
 
 
 def _sro(status="ACTIVE", expires_at=None, superseded_by=None, version=1, confidence=None):
@@ -77,7 +78,7 @@ def _payload(sro):
     return {"content": "probe", "sro": sro}
 
 
-_FUTURE = (_NOW + timedelta(days=30)).isoformat()
+_FUTURE = (_CLOCK_NOW + timedelta(days=30)).isoformat()
 _PAST = (_NOW - timedelta(days=30)).isoformat()
 
 

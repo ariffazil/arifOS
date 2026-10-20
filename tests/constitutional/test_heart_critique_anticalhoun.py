@@ -202,12 +202,21 @@ class TestArifCritiqueAntiCalhounIntegration:
     @pytest.fixture(autouse=True)
     def _disable_remote_llm(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Force deterministic fallback so the scan test stays fast and offline."""
-        for name in ("_call_tokenrouter", "_call_minimax", "_call_mimo", "_call_sea_lion"):
-            monkeypatch.setattr(
-                llm_client,
-                name,
-                AsyncMock(side_effect=llm_client.LLMUnavailableError("offline-by-test")),
-            )
+        for name in (
+            "_call_fed_federation",
+            "_call_tokenrouter",
+            "_call_minimax",
+            "_call_mimo",
+            "_call_groq",
+            "_call_gemini",
+            "_call_cerebras",
+        ):
+            if hasattr(llm_client, name):
+                monkeypatch.setattr(
+                    llm_client,
+                    name,
+                    AsyncMock(side_effect=llm_client.LLMUnavailableError("offline-by-test")),
+                )
         monkeypatch.setattr(llm_client, "ILMU_ENABLED", False)
         # Also stub ollama so the fallback chain resolves deterministically.
         monkeypatch.setattr(

@@ -2777,9 +2777,12 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
 def _count_mcp_tools(fmcp: Any) -> int:
     """Count tools exposed on the default public MCP wire surface."""
     try:
-        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+        from arifosmcp.runtime.public_surface import (
+            COORDINATION_TOOLS,
+            public_tool_names_for_mode,
+        )
 
-        return len(public_tool_names_for_mode())
+        return len(public_tool_names_for_mode()) + len(COORDINATION_TOOLS)
     except Exception:
         logger.exception("suppressed exception", exc_info=True)
     return 9
@@ -2802,6 +2805,12 @@ def _mcp_discovery_payload(
       tools_registry_size = internal registry callables (aliases included)
       total_declared_tools = public + diagnostic declared surface
     """
+    from arifosmcp.runtime.public_surface import (
+        COORDINATION_TOOLS,
+        public_tool_names_for_mode,
+    )
+
+    canonical_loaded = len(public_tool_names_for_mode())
     exposed = _count_mcp_tools(fastmcp_instance or mcp)
     diagnostic = _get_diagnostic_tool_count(mcp)
     commit = (BUILD_INFO.get("build") or {}).get("commit") or "unknown"
@@ -2820,7 +2829,8 @@ def _mcp_discovery_payload(
         "tool_count": exposed,
         "tools_exposed_via_mcp": exposed,
         "tools_loaded": exposed,
-        "canonical_tools_loaded": exposed,
+        "canonical_tools_loaded": canonical_loaded,
+        "coordination_tools": len(COORDINATION_TOOLS),
         "tools_registry_size": len(tool_registry),
         "diagnostic_tools": diagnostic,
         "total_declared_tools": exposed + diagnostic,
@@ -3856,6 +3866,12 @@ def register_rest_routes(
                 "error": str(_tp_err)[:200],
             }
 
+        from arifosmcp.runtime.public_surface import (
+            COORDINATION_TOOLS,
+            public_tool_names_for_mode,
+        )
+
+        _canonical_loaded = len(public_tool_names_for_mode())
         _exposed = _count_mcp_tools(fastmcp_instance or mcp)
         _diagnostic = _get_diagnostic_tool_count(mcp)
         # FEDERATION SCHEMA ALIGNMENT L2 (canonical: arifOS/arifosmcp/schemas/federation_enums.py)
@@ -4241,9 +4257,10 @@ def register_rest_routes(
             "transport": "streamable-http",
             # SOT: tools_loaded == tools_exposed_via_mcp == public tools/list count
             "tools_loaded": _exposed,
-            "canonical_tools_loaded": _exposed,
+            "canonical_tools_loaded": _canonical_loaded,
             "tools_exposed_via_mcp": _exposed,
-            "canonical_tools": _exposed,
+            "canonical_tools": _canonical_loaded,
+            "coordination_tools": len(COORDINATION_TOOLS),
             "tools_registry_size": len(tool_registry),
             "diagnostic_tools": _diagnostic,
             "total_declared_tools": _exposed + _diagnostic,
@@ -4252,8 +4269,10 @@ def register_rest_routes(
             "callable_public": _exposed,
             "tool_count_semantics": {
                 "tools_loaded": "Public MCP tools/list facade (same as GET /mcp tool_count)",
-                "canonical_tools_loaded": "Same as tools_loaded — public constitutional surface",
+                "canonical_tools_loaded": "Public constitutional surface (Kernel ABI)",
                 "tools_exposed_via_mcp": "Total tools returned by default MCP tools/list public facade",
+                "coordination_tools": "Non-constitutional peer coordination channels (e.g. arif_report)",
+                "canonical_tools": "Public constitutional surface (Kernel ABI)",
                 "tools_registry_size": "Internal registry callables (canonical + aliases)",
                 "diagnostic_tools": "Declared DIAGNOSTIC_TOOLS (not on default public wire)",
                 "total_declared_tools": "public wire + diagnostic declared surface",
