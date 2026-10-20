@@ -167,9 +167,27 @@ def _rendered_doctrine() -> dict[str, str]:
     return out or _from_prose(f"{REPO}/arifosmcp/resources/doctrine.py")
 
 
+def _rendered_schema() -> dict[str, str]:
+    """resource:schema also renders {{FLOORS}} from constitutional_canon.
+
+    schema.py moved to import-time derivation on 2026-10-20 (the source now
+    contains a '{{FLOORS}}' placeholder and zero literal floor lines), so
+    parsing its source returned {} and reported 13 false MISSING. Read the
+    RENDERED SCHEMA_TEXT — the renderer, not the template.
+    """
+    import importlib
+    sys.path.insert(0, REPO)
+    mod = importlib.import_module("arifosmcp.resources.schema")
+    out = {}
+    for m in re.finditer(r"^F(\d{1,2})\s+([A-Z][A-Z0-9_²⇄·\- ]{1,28}?)\s*(?::|—)",
+                         getattr(mod, "SCHEMA_TEXT", ""), re.M):
+        out[f"F{int(m.group(1))}"] = m.group(2).strip()
+    return out or _from_prose(f"{REPO}/arifosmcp/resources/schema.py")
+
+
 SURFACES = [
     ("resource:doctrine", _rendered_doctrine),
-    ("resource:schema", lambda: _from_prose(f"{REPO}/arifosmcp/resources/schema.py")),
+    ("resource:schema", _rendered_schema),
     ("resource:floor/{id}", lambda: _floors_template()),
     ("code:constitutional_map", lambda: _law_enum(f"{REPO}/arifosmcp/constitutional_map.py")),
     ("code:amendment_guard", lambda: _from_py_dict(f"{REPO}/arifosmcp/runtime/amendment_guard.py", "FLOOR_NAMES")),

@@ -127,13 +127,18 @@ def t2_confidence_ceiling() -> None:
         record("T2 confidence ceiling ≤0.97", UNMEASURED,
                "axioms surface returned no axioms")
         return
-    over = [(a.get("id"), a.get("confidence")) for a in axes
-            if isinstance(a.get("confidence"), (int, float)) and a["confidence"] > 0.97]
-    if over:
+    confs = [(a.get("id"), a.get("confidence")) for a in axes
+             if isinstance(a.get("confidence"), (int, float))]
+    over_hard = [(i, c) for i, c in confs if c > 0.97]
+    in_band = [(i, c) for i, c in confs if 0.96 < c <= 0.97]   # above operational ceiling
+    if over_hard:
         record("T2 confidence ceiling ≤0.97", FAIL,
-               f"{len(over)}/{len(axes)} above 0.97: {over[:4]}")
+               f"{len(over_hard)}/{len(axes)} above hard max 0.97: {over_hard[:4]}")
     else:
-        record("T2 confidence ceiling ≤0.97", PASS, f"{len(axes)} axioms, max ≤ 0.97")
+        detail = f"{len(axes)} axioms, max ≤ 0.97"
+        if in_band:
+            detail += f" · {len(in_band)} above operational 0.96 but within band: {in_band[:3]}"
+        record("T2 confidence ceiling ≤0.97", PASS, detail)
 
 
 # ── T3: F11 means AUDIT, not identity ───────────────────────────────────────
