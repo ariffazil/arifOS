@@ -42,6 +42,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 
 [![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
+[![Awesome AI Governance](https://img.shields.io/badge/Awesome-AI_Agent_Governance-orange?style=flat-square)](https://github.com/agentrust-io/awesome-ai-governance#governance-frameworks)
 [![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
 [![Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
 [![Security audit](https://img.shields.io/badge/security-audit_in_progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
@@ -58,7 +59,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 | **Agent / A2A** | MCP tools + receipts. You do not get the keys. Judgment by arifOS, discovery by AAA, execution by A-FORGE |
 | **Institution** | Policy floors F1–F13, a hash-chained VAULT999 audit trail, model-vendor independence |
 | **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, [published schemas](https://arifos.arif-fazil.com/tools.json) |
-| **Auditor / indexer** | [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`docs/evidence/`](./docs/evidence/) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) |
+| **Auditor / indexer** | [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`docs/evidence/`](./docs/evidence/) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) · [Awesome AI Agent Governance](https://github.com/agentrust-io/awesome-ai-governance#governance-frameworks) |
 
 Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](https://github.com/ariffazil/AAA) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [GEOX](https://github.com/ariffazil/GEOX)
 
