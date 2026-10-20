@@ -189,6 +189,23 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                     "confidence_provenance": "OBSERVED" if active_evidence else "INFERRED",
                 },
             }
+            # ── ACAH2 (2026-10-20): recipient side of the evidence journey ──
+            # params["handoff"|"context"]["handoff"] = hermes_handoff_package
+            # envelope: evidence transport status must survive to the consumer
+            # (EVIDENCE_NOT_RECEIVED / EVIDENCE_UNAVAILABLE / HASH_MISMATCH),
+            # status is never upgraded from a summary, and an unverified
+            # principal must never become a profile/memory key.
+            try:
+                from arifosmcp.tools.reason import (
+                    _apply_handoff_evidence as _ahe,
+                    _resolve_handoff_evidence as _rhe,
+                )
+
+                _hev = _rhe(params.get("context")) or _rhe(params)
+                if _hev:
+                    _ahe(result, _hev)
+            except Exception:
+                pass
             if hasattr(result, "model_dump"):
                 return result.model_dump()
             if hasattr(result, "dict"):
@@ -239,6 +256,19 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                     result["akal"]["recommended_pipeline"] = akal_friction.get(
                         "required_pipeline", []
                     )
+
+            # ── ACAH2 (2026-10-20): evidence-journey merge (deterministic path)
+            try:
+                from arifosmcp.tools.reason import (
+                    _apply_handoff_evidence as _ahe2,
+                    _resolve_handoff_evidence as _rhe2,
+                )
+
+                _hev2 = _rhe2(params.get("context")) or _rhe2(params)
+                if _hev2 and isinstance(result, dict):
+                    _ahe2(result, _hev2)
+            except Exception:
+                pass
 
             if hasattr(result, "model_dump"):
                 return result.model_dump()  # type: ignore[attr-defined]

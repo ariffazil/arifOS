@@ -627,6 +627,65 @@ ROLE GUARD: If ROLE is UNKNOWN, do not hallucinate, adopt, or fabricate domain e
         "note": "LIVE_MODEL confidence is model self-assessment; FALLBACK_TEMPLATE output is a deterministic scaffold",
     }
 
+    # ── ACAH2 (2026-10-20) — recipient side of the evidence journey ────────
+    # context["handoff"] (a hermes_handoff_package envelope): report evidence
+    # transport status precisely — EVIDENCE_NOT_RECEIVED / EVIDENCE_UNAVAILABLE
+    # / HASH_MISMATCH — and never upgrade status from a summary. A missing ref
+    # is NOT "false"; a matching hash is NOT proof of truth. An unverified
+    # principal (e.g. keyword-extracted "Remembering") must never become a
+    # profile/memory key.
+    try:
+        from arifosmcp.tools.reason import _resolve_handoff_evidence as _rhe
+    except Exception:
+        _rhe = None
+    _handoff_ev = {}
+    if _rhe is not None:
+        try:
+            _handoff_ev = _rhe(context) or {}
+        except Exception:
+            _handoff_ev = {}
+    if _handoff_ev:
+        _reasoning = result.get("reasoning") if isinstance(result.get("reasoning"), dict) else {}
+        if not isinstance(result.get("reasoning"), dict):
+            result["reasoning"] = _reasoning
+        _resolved = [
+            r
+            for c in _handoff_ev.get("claims", [])
+            for r in c.get("refs", [])
+            if r.get("status") == "REFS_RESOLVED"
+        ]
+        _markers = []
+        for _c in _handoff_ev.get("claims", []):
+            if _c.get("evidence_transfer") == "EVIDENCE_NOT_RECEIVED":
+                _markers.append(f"EVIDENCE_NOT_RECEIVED: {_c.get('statement', '')}")
+            for _r in _c.get("refs", []):
+                if _r.get("status") == "EVIDENCE_UNAVAILABLE":
+                    _markers.append(f"EVIDENCE_UNAVAILABLE: {_r.get('ref', '')}")
+                elif _r.get("status") == "HASH_MISMATCH":
+                    _markers.append(f"HASH_MISMATCH: {_r.get('ref', '')}")
+            if not _c.get("principal_key_safe", True):
+                _markers.append(
+                    "IDENTITY_UNVERIFIED: do not use this principal as a profile/memory key"
+                )
+        if _resolved:
+            _used = result.get("evidence_used")
+            result["evidence_used"] = (list(_used) if isinstance(_used, list) else []) + _resolved
+        if _markers:
+            _me = _reasoning.setdefault("missing_evidence", [])
+            if not isinstance(_me, list):
+                _me = []
+                _reasoning["missing_evidence"] = _me
+            _me.extend(_markers)
+        if _handoff_ev.get("summary", {}).get("resolved", 0) == 0 and str(
+            result.get("claim_state", "")
+        ).upper() in {"CLAIM", "VERIFIED_FACT", "SUPPORTED_CLAIM"}:
+            result["claim_state"] = "HYPOTHESIS"
+            _reasoning.setdefault("missing_evidence", []).append(
+                "handoff evidence not retrieved — claim_state downgraded to "
+                "HYPOTHESIS (no status upgrade without new verification)"
+            )
+        result["handoff_evidence"] = _handoff_ev
+
     # ── Attach 777_WITNESS envelope metadata ───────────────────────────────────
     if llm_available:
         result["_envelope"] = {

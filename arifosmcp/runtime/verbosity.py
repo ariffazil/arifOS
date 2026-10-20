@@ -50,6 +50,13 @@ _MINIMAL_KEEP_TOP_LEVEL = {
     # projected OUT of the envelope (built-then-dropped = F2 truth gap).
     "temporal",
     "init_v2_roots",
+    # ACAH2 evidence-journey (2026-10-20, additive — F2 truth): transport
+    # status of handoff evidence is SAFETY-RELEVANT, not trimmable metadata.
+    # A minimal view that drops EVIDENCE_NOT_RECEIVED / HASH_MISMATCH markers
+    # or the unverified-identity flag misrepresents what arrived (the built
+    # then dropped failure class again).
+    "handoff_evidence",
+    "missing_evidence",
 }
 
 _MINIMAL_KEEP_RESULT = {
@@ -70,6 +77,12 @@ _MINIMAL_KEEP_RESULT = {
     # INIT v2 roots (2026-09-20, additive — surface where present).
     "temporal",
     "init_v2_roots",
+    # ACAH2 evidence-journey (2026-10-20, additive — F2 truth): evidence
+    # transport status + claim scope must survive every verbosity level.
+    "handoff_evidence",
+    "missing_evidence",
+    "evidence_used",
+    "claim_state",
 }
 
 # Fields STRIPPED in minimal mode (metadata, not evidence).
@@ -430,9 +443,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     _result_payload = minimal.get("result", response.get("result"))
     if "result_state" not in minimal:
         minimal["result_state"] = (
-            "RESULT_READY"
-            if _result_payload not in (None, {}, [], "")
-            else "NO_RESULT"
+            "RESULT_READY" if _result_payload not in (None, {}, [], "") else "NO_RESULT"
         )
     if "hold_scope" not in minimal:
         _ev = str(minimal.get("effective_verdict") or "").upper()
