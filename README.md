@@ -19,9 +19,9 @@
 last_verified: 2026-10-18T10:20:00+00:00
 live_commit: 9e6477d08 (docs(test): correct stale auto-sign claim in identity-proof P0 test)
 source_commit: 9e6477d08
-built_commit: cf7a984
-deployment_drift_status: aligned (source = built = deployed (drift: false))
-tools_exposed_via_mcp: 8 (verified by live tools/list, 2026-10-18)
+built_commit: cf7a984 (live /health: source=built=deployed for the running release)
+deployment_drift_status: kernel self-report drift=false (release arifos-cf7a984) — this says nothing about the repo tree above, which is 9e6477d08
+tools_exposed_via_mcp: 8 (verified by live POST /mcp tools/list on 2026-10-18: arif_init, arif_observe, arif_think, arif_route, arif_memory, arif_judge, arif_forge, arif_seal)
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
 generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
 -->
