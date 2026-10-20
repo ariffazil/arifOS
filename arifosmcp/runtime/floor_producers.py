@@ -282,6 +282,12 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
         }
     for s in seals:
         payload = s.get("payload") or {}
+        # Sovereign-actor exemption — SAME doctrine line as _f13_sovereign
+        # (floor_producers.py:242): the human principal acting IS human
+        # ratification; demanding a second ratifier on Arif's own action is
+        # a category error. F5 polices NON-sovereign destructive power.
+        if s.get("actor") in SOVEREIGN_ACTORS:
+            continue
         reversibility = str(
             payload.get("reversibility")
             or payload.get("reversibility_level")
