@@ -1,13 +1,11 @@
 {
-  "generated_at": "2026-10-20T01:14:34Z",
+  "generated_at": "2026-10-20T01:43:10Z",
   "self_measurement": {
     "status": "degraded",
-    "probe": "http://127.0.0.1:8088/health @2026-10-20T01:14:34Z",
-    "floors_pass": 6,
+    "probe": "http://127.0.0.1:8088/health @2026-10-20T01:43:10Z",
+    "floors_pass": 7,
     "floors_target": 13,
-    "floors_failing": [
-      "F1"
-    ],
+    "floors_failing": [],
     "floors_unmeasured": [
       "F4",
       "F5",
@@ -21,7 +19,7 @@
       "F11": "floor_producer:PASS:receipt_ledger",
       "F12": "floor_producer:PASS:request_trust",
       "F13": "floor_producer:PASS:seal_chain",
-      "F1": "arifflow_fq_probe:fq=0.3333333333333333",
+      "F1": "arifflow_fq_probe:fq=1.1996204996754276",
       "F2": "floor_producer:PASS:floor_provenance_coverage",
       "F3": "witness_producers:human+ai+earth",
       "F4": "unmeasured_default:empty_kernel_signal",
@@ -32,11 +30,11 @@
       "F9": "unmeasured_default:empty_kernel_signal"
     },
     "vault999": "healthy",
-    "release_id": "arifos-d43bfd8",
-    "source_commit": "d43bfd8",
+    "release_id": "arifos-9b95aff",
+    "source_commit": "9b95aff",
     "drift": false,
     "tools_exposed": 8,
-    "registry_size": 62
+    "registry_size": 63
   },
   "independent_audit": {
     "date": "2026-10-11",
