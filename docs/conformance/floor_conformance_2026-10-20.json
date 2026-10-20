@@ -1,0 +1,306 @@
+{
+  "schema": "arifos.floor_conformance.v1",
+  "checked_at": "2026-10-20T13:28:14.921021+00:00",
+  "canon": {
+    "path": "/root/arifOS/GENESIS/FLOOR_TABLE.json",
+    "version": "1.0.0",
+    "authority": "F13 SOVEREIGN",
+    "consumers_must_sync_to": "this file or 000_KERNEL_CANON.md"
+  },
+  "surfaces_read": 7,
+  "surfaces_total": 7,
+  "verdict": "DRIFT",
+  "drift_count": 18,
+  "findings": [
+    {
+      "floor": "F3",
+      "surface": "resource:doctrine",
+      "canon": "TRI-WITNESS",
+      "surface_value": "WITNESS"
+    },
+    {
+      "floor": "F3",
+      "surface": "resource:schema",
+      "canon": "TRI-WITNESS",
+      "surface_value": "WITNESS"
+    },
+    {
+      "floor": "F3",
+      "surface": "resource:floor/{id}",
+      "canon": "TRI-WITNESS",
+      "surface_value": "WITNESS"
+    },
+    {
+      "floor": "F3",
+      "surface": "code:constitutional_map",
+      "canon": "TRI-WITNESS",
+      "surface_value": "WITNESS"
+    },
+    {
+      "floor": "F3",
+      "surface": "code:amendment_guard",
+      "canon": "TRI-WITNESS",
+      "surface_value": "WITNESS"
+    },
+    {
+      "floor": "F3",
+      "surface": "live:arif_think(axioms)",
+      "canon": "TRI-WITNESS",
+      "surface_value": "WITNESS"
+    },
+    {
+      "floor": "F11",
+      "surface": "resource:doctrine",
+      "canon": "AUDITABILITY",
+      "surface_value": "AUDIT"
+    },
+    {
+      "floor": "F11",
+      "surface": "resource:schema",
+      "canon": "AUDITABILITY",
+      "surface_value": "AUDIT"
+    },
+    {
+      "floor": "F11",
+      "surface": "resource:floor/{id}",
+      "canon": "AUDITABILITY",
+      "surface_value": "AUDIT"
+    },
+    {
+      "floor": "F11",
+      "surface": "code:constitutional_map",
+      "canon": "AUDITABILITY",
+      "surface_value": "AUDIT"
+    },
+    {
+      "floor": "F11",
+      "surface": "code:amendment_guard",
+      "canon": "AUDITABILITY",
+      "surface_value": "AUDIT"
+    },
+    {
+      "floor": "F11",
+      "surface": "live:arif_think(axioms)",
+      "canon": "AUDITABILITY",
+      "surface_value": "AUDIT"
+    },
+    {
+      "floor": "F12",
+      "surface": "resource:doctrine",
+      "canon": "RESILIENCE",
+      "surface_value": "INJECTION"
+    },
+    {
+      "floor": "F12",
+      "surface": "resource:schema",
+      "canon": "RESILIENCE",
+      "surface_value": "INJECTION"
+    },
+    {
+      "floor": "F12",
+      "surface": "resource:floor/{id}",
+      "canon": "RESILIENCE",
+      "surface_value": "INJECTION"
+    },
+    {
+      "floor": "F12",
+      "surface": "code:constitutional_map",
+      "canon": "RESILIENCE",
+      "surface_value": "INJECTION"
+    },
+    {
+      "floor": "F12",
+      "surface": "code:amendment_guard",
+      "canon": "RESILIENCE",
+      "surface_value": "INJECTION"
+    },
+    {
+      "floor": "F12",
+      "surface": "live:arif_think(axioms)",
+      "canon": "RESILIENCE",
+      "surface_value": "INJECTION"
+    }
+  ],
+  "rows": [],
+  "matrix": [
+    {
+      "floor": "F1",
+      "canon": "AMANAH",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F2",
+      "canon": "TRUTH",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F3",
+      "canon": "TRI-WITNESS",
+      "resource:doctrine": "WITNESS",
+      "resource:schema": "WITNESS",
+      "resource:floor/{id}": "WITNESS",
+      "code:constitutional_map": "WITNESS",
+      "code:amendment_guard": "WITNESS",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "WITNESS"
+    },
+    {
+      "floor": "F4",
+      "canon": "CLARITY",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F5",
+      "canon": "PEACE\u00b2",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F6",
+      "canon": "EMPATHY",
+      "resource:doctrine": "ok~",
+      "resource:schema": "ok~",
+      "resource:floor/{id}": "ok~",
+      "code:constitutional_map": "ok~",
+      "code:amendment_guard": "ok~",
+      "live:arifos://floors": "ok*",
+      "live:arif_think(axioms)": "ok~"
+    },
+    {
+      "floor": "F7",
+      "canon": "HUMILITY",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F8",
+      "canon": "GENIUS",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F9",
+      "canon": "ANTIHANTU",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F10",
+      "canon": "ONTOLOGY",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    },
+    {
+      "floor": "F11",
+      "canon": "AUDITABILITY",
+      "resource:doctrine": "AUDIT",
+      "resource:schema": "AUDIT",
+      "resource:floor/{id}": "AUDIT",
+      "code:constitutional_map": "AUDIT",
+      "code:amendment_guard": "AUDIT",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "AUDIT"
+    },
+    {
+      "floor": "F12",
+      "canon": "RESILIENCE",
+      "resource:doctrine": "INJECTION",
+      "resource:schema": "INJECTION",
+      "resource:floor/{id}": "INJECTION",
+      "code:constitutional_map": "INJECTION",
+      "code:amendment_guard": "INJECTION",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "INJECTION"
+    },
+    {
+      "floor": "F13",
+      "canon": "SOVEREIGN",
+      "resource:doctrine": "ok",
+      "resource:schema": "ok",
+      "resource:floor/{id}": "ok",
+      "code:constitutional_map": "ok",
+      "code:amendment_guard": "ok",
+      "live:arifos://floors": "ok",
+      "live:arif_think(axioms)": "ok"
+    }
+  ],
+  "confidence_cap": {
+    "status": "VIOLATION",
+    "rule": "F7 HUMILITY \u2014 GENESIS/000_KERNEL_CANON.md \u00a73.2 (F13 2026-07-23)",
+    "declared_band": {
+      "omega_0": [
+        0.03,
+        0.05
+      ],
+      "cap_range": [
+        0.95,
+        0.97
+      ],
+      "operational_ceiling": 0.96
+    },
+    "stale_value_retired": 0.9,
+    "axioms_emitted": 13,
+    "max_emitted": {
+      "axiom": "L13_SOVEREIGN",
+      "confidence": 0.99
+    },
+    "over_hard_max": [
+      {
+        "axiom": "L01_AMANAH",
+        "confidence": 0.98
+      },
+      {
+        "axiom": "L12_INJECTION",
+        "confidence": 0.98
+      },
+      {
+        "axiom": "L13_SOVEREIGN",
+        "confidence": 0.99
+      }
+    ],
+    "over_operational": 6
+  }
+}

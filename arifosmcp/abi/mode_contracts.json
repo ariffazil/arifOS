@@ -1,0 +1,324 @@
+{
+  "$schema": "arifos://schema/mode-contract/v1",
+  "abi_version": "2026.10.20",
+  "description": "Per-mode execution contract. CANONICAL_TOOLS owns the mode LIST; this file owns what each mode is ALLOWED to do. The two are checked against each other by scripts/contract_closure.py contracts — divergence is a defect, not a preference.",
+  "fields": {
+    "action_class": "OBSERVE | PREPARE | MATERIAL | IRREVERSIBLE",
+    "authority_required": "ANONYMOUS | OBSERVER | TRUSTED_AGENT | EXECUTOR | SOVEREIGN",
+    "preconditions": "what must be true before the call is admitted",
+    "postconditions": "what must be true after the call returns",
+    "verifier": "how the outcome is checked independently of the executor",
+    "recovery": "none | rollback | compensate | permanent",
+    "evidence_receipt": "what proves the call happened as declared"
+  },
+  "defaults": {
+    "OBSERVE": {
+      "authority_required": "OBSERVER",
+      "mutation": false,
+      "irreversible": false,
+      "preconditions": ["none beyond session identity"],
+      "postconditions": ["no state mutated"],
+      "verifier": "not required — no side effect to verify",
+      "recovery": "none",
+      "evidence_receipt": "tool result envelope only"
+    },
+    "PREPARE": {
+      "authority_required": "OBSERVER",
+      "mutation": false,
+      "irreversible": false,
+      "preconditions": ["session bound"],
+      "postconditions": ["output conforms to declared schema", "no external state mutated"],
+      "verifier": "output schema conformance",
+      "recovery": "none",
+      "evidence_receipt": "reasoning/decision record with trace_id"
+    }
+  },
+  "contracts": {
+    "arif_init.init": {"action_class": "PREPARE", "note": "mints session authority — the authority itself is the output"},
+    "arif_init.light": {"action_class": "PREPARE"},
+    "arif_init.resume": {"action_class": "PREPARE"},
+    "arif_init.validate": {"action_class": "OBSERVE"},
+    "arif_init.canary": {"action_class": "OBSERVE"},
+    "arif_init.preflight": {"action_class": "OBSERVE"},
+    "arif_init.triage": {"action_class": "OBSERVE"},
+    "arif_init.epoch_open": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["session bound", "epoch_id supplied"],
+      "postconditions": ["epoch record persisted"],
+      "verifier": "read-back of epoch record",
+      "recovery": "rollback",
+      "evidence_receipt": "epoch_open event id"
+    },
+    "arif_init.epoch_seal": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["epoch opened", "epoch_id supplied"],
+      "postconditions": ["epoch record closed"],
+      "verifier": "read-back of sealed epoch",
+      "recovery": "rollback",
+      "evidence_receipt": "epoch_seal event id"
+    },
+    "arif_init.opt_out": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "irreversible": true,
+      "preconditions": ["actor identity supplied", "ack_irreversible=true"],
+      "postconditions": ["opt-out persisted as permanent audit artifact"],
+      "verifier": "read-back under a different session",
+      "recovery": "permanent",
+      "evidence_receipt": "opt-out record hash"
+    },
+    "arif_init.opt_out_profiling": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "irreversible": true,
+      "preconditions": ["actor identity supplied", "ack_irreversible=true"],
+      "postconditions": ["profiling opt-out persisted"],
+      "verifier": "read-back under a different session",
+      "recovery": "permanent",
+      "evidence_receipt": "opt-out record hash"
+    },
+
+    "arif_observe.search": {"action_class": "OBSERVE"},
+    "arif_observe.fetch": {"action_class": "OBSERVE"},
+    "arif_observe.hybrid_discovery": {"action_class": "OBSERVE"},
+    "arif_observe.compass": {"action_class": "OBSERVE"},
+    "arif_observe.atlas": {"action_class": "OBSERVE"},
+    "arif_observe.vitals": {"action_class": "OBSERVE"},
+    "arif_observe.entropy_dS": {"action_class": "OBSERVE"},
+    "arif_observe.ingest": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["evidence source identified", "provenance recorded"],
+      "postconditions": ["document absorbed into evidence store with provenance"],
+      "verifier": "evidence record retrievable with matching hash",
+      "recovery": "rollback",
+      "evidence_receipt": "evidence id + source uri"
+    },
+
+    "arif_think.reason": {"action_class": "OBSERVE"},
+    "arif_think.reflect": {"action_class": "OBSERVE"},
+    "arif_think.verify": {"action_class": "OBSERVE"},
+    "arif_think.axioms": {"action_class": "OBSERVE"},
+    "arif_think.wonder": {"action_class": "OBSERVE"},
+    "arif_think.simulate": {"action_class": "OBSERVE"},
+    "arif_think.atlas": {"action_class": "OBSERVE"},
+    "arif_think.metabolize": {"action_class": "PREPARE"},
+    "arif_think.plan": {"action_class": "PREPARE"},
+    "arif_think.plan_review": {"action_class": "PREPARE"},
+    "arif_think.refactor_plan": {"action_class": "PREPARE"},
+    "arif_think.plan_approve": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["plan_id refers to an existing plan", "actor bound to the plan owner"],
+      "postconditions": ["plan marked approved for the actor that approved it"],
+      "verifier": "approval readable and attributable to the approving actor",
+      "recovery": "rollback",
+      "evidence_receipt": "plan_id + approver actor_id"
+    },
+
+    "arif_route.route": {"action_class": "OBSERVE"},
+    "arif_route.triage": {"action_class": "OBSERVE"},
+    "arif_route.status": {"action_class": "OBSERVE"},
+    "arif_route.kernel": {"action_class": "OBSERVE"},
+    "arif_route.metabolize": {"action_class": "PREPARE"},
+    "arif_route.delegate": {
+      "action_class": "PREPARE",
+      "note": "prepares an A2A handoff envelope; does not call the organ unless organ_tool is supplied",
+      "postconditions": ["handoff envelope carries no authority beyond the caller's"]
+    },
+
+    "arif_memory.recall": {"action_class": "OBSERVE"},
+    "arif_memory.inspect": {"action_class": "OBSERVE"},
+    "arif_memory.audit": {"action_class": "OBSERVE"},
+    "arif_memory.attest": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["memory_id exists"],
+      "postconditions": ["attestation recorded against the memory"],
+      "verifier": "attestation readable in memory audit",
+      "recovery": "rollback",
+      "evidence_receipt": "memory_id + attestation"
+    },
+    "arif_memory.remember": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["provenance supplied", "tier supplied"],
+      "postconditions": ["memory stored with provenance and tier"],
+      "verifier": "recall by query returns the stored memory with provenance",
+      "recovery": "rollback",
+      "evidence_receipt": "memory_id"
+    },
+    "arif_memory.revise": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["memory_id exists", "new_content supplied"],
+      "postconditions": ["prior content replaced, revision discoverable"],
+      "verifier": "revision history readable",
+      "recovery": "rollback",
+      "evidence_receipt": "memory_id + revision"
+    },
+    "arif_memory.metabolize": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["memory store reachable"],
+      "postconditions": ["tiers compacted, no entry silently lost"],
+      "verifier": "entry count reconciliation before/after",
+      "recovery": "rollback",
+      "evidence_receipt": "before/after counts"
+    },
+    "arif_memory.promote": {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mutation": true,
+      "irreversible": true,
+      "preconditions": ["memory_id exists", "to_tier supplied", "human_approval=true"],
+      "postconditions": ["memory raised in tier, promotion recorded as permanent"],
+      "verifier": "promotion recorded with approver identity",
+      "recovery": "compensate",
+      "evidence_receipt": "memory_id + from_tier → to_tier + approver"
+    },
+    "arif_memory.forget": {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mutation": true,
+      "irreversible": true,
+      "preconditions": ["memory_id exists", "human_approval=true"],
+      "postconditions": ["memory retired from recall path"],
+      "verifier": "recall no longer returns the memory; tombstone present",
+      "recovery": "permanent",
+      "evidence_receipt": "tombstone record"
+    },
+
+    "arif_judge.judge": {"action_class": "PREPARE", "note": "renders a verdict; does not execute it"},
+    "arif_judge.intercept": {"action_class": "PREPARE"},
+    "arif_judge.validate": {"action_class": "OBSERVE"},
+    "arif_judge.hold": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["candidate supplied"],
+      "postconditions": ["hold placed with reason chain"],
+      "verifier": "hold readable in cooling register",
+      "recovery": "rollback",
+      "evidence_receipt": "hold id"
+    },
+    "arif_judge.escalate": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["candidate supplied", "escalation target identified"],
+      "postconditions": ["escalation recorded for sovereign"],
+      "verifier": "escalation readable",
+      "recovery": "rollback",
+      "evidence_receipt": "escalation id"
+    },
+
+    "arif_forge.query": {"action_class": "OBSERVE"},
+    "arif_forge.recall": {"action_class": "OBSERVE"},
+    "arif_forge.dry_run": {"action_class": "OBSERVE"},
+    "arif_forge.engineer": {
+      "action_class": "MATERIAL",
+      "authority_required": "EXECUTOR",
+      "mutation": true,
+      "preconditions": ["constitutional_chain_id from arif_judge SEAL", "action inside the sealed scope"],
+      "postconditions": ["artefact produced", "execution receipt emitted"],
+      "verifier": "artefact exists and matches the sealed plan",
+      "recovery": "rollback",
+      "evidence_receipt": "execution receipt + cc_id"
+    },
+    "arif_forge.generate": {
+      "action_class": "MATERIAL",
+      "authority_required": "EXECUTOR",
+      "mutation": true,
+      "preconditions": ["constitutional_chain_id from arif_judge SEAL"],
+      "postconditions": ["artifact produced under sealed scope"],
+      "verifier": "artifact hash recorded",
+      "recovery": "rollback",
+      "evidence_receipt": "artifact hash + cc_id"
+    },
+    "arif_forge.write": {
+      "action_class": "MATERIAL",
+      "authority_required": "EXECUTOR",
+      "mutation": true,
+      "preconditions": ["constitutional_chain_id from arif_judge SEAL", "write target inside sealed scope"],
+      "postconditions": ["target written", "prior content recoverable"],
+      "verifier": "read-back of written state",
+      "recovery": "rollback",
+      "evidence_receipt": "diff hash + cc_id"
+    },
+    "arif_forge.commit": {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mutation": true,
+      "irreversible": true,
+      "preconditions": ["constitutional_chain_id from arif_judge SEAL", "seal_verdict_id supplied", "push explicitly authorised"],
+      "postconditions": ["commit exists on the target branch"],
+      "verifier": "commit hash readable from the remote",
+      "recovery": "permanent",
+      "evidence_receipt": "commit sha"
+    },
+
+    "arif_seal.verify": {"action_class": "OBSERVE"},
+    "arif_seal.ledger": {"action_class": "OBSERVE"},
+    "arif_seal.changelog": {"action_class": "OBSERVE"},
+    "arif_seal.audit": {"action_class": "OBSERVE"},
+    "arif_seal.seal": {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mutation": true,
+      "irreversible": true,
+      "preconditions": ["seal readiness gate passed", "authority from arifOS kernel", "witness evidence attached"],
+      "postconditions": ["VAULT999 chain extended, chain hash verifiable"],
+      "verifier": "chain verification from an independent reader",
+      "recovery": "permanent",
+      "evidence_receipt": "chain sequence + hash"
+    },
+    "arif_seal.session_close": {
+      "action_class": "IRREVERSIBLE",
+      "authority_required": "SOVEREIGN",
+      "mutation": true,
+      "irreversible": true,
+      "preconditions": ["session bound", "open work declared"],
+      "postconditions": ["session ledger closed, cannot be reopened"],
+      "verifier": "session no longer accepts writes",
+      "recovery": "permanent",
+      "evidence_receipt": "session ledger hash"
+    },
+
+    "arif_report.file": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["sender and subject supplied"],
+      "postconditions": ["report appended to peer lane"],
+      "verifier": "report id readable in inbox",
+      "recovery": "rollback",
+      "evidence_receipt": "report id"
+    },
+    "arif_report.inbox": {"action_class": "OBSERVE"},
+    "arif_report.ack": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["report_id exists"],
+      "postconditions": ["report marked read"],
+      "verifier": "read state reflected in a later inbox call",
+      "recovery": "rollback",
+      "evidence_receipt": "report id"
+    },
+    "arif_report.flush": {"action_class": "OBSERVE"},
+    "arif_report.stats": {"action_class": "OBSERVE"}
+  }
+}
