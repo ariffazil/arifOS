@@ -1310,6 +1310,25 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     out["aaa"] = _aaa_display_only_block()
     # A-FORGE — independent TCP probe + static config
     forge_dp = _deep_probe_organ("127.0.0.1", 7071, "A-FORGE :7071")
+    # F2 FIX (kimi-code/FI-008, 2026-10-20): registry drift is MEASURED, never
+    # asserted. The retired claim "forge_registry_status exposes stale 31-tool
+    # hard-coded list vs live 65+" was cited from an archived alignment doc and
+    # narrated at confidence 0.99 — a fossil, not a probe. Fail-closed to
+    # UNKNOWN: an unreachable probe is never narrated (F7).
+    try:
+        from arifosmcp.runtime.capability_drift import (
+            measure_aforge_registry_alignment,
+        )
+
+        _aforge_reg = measure_aforge_registry_alignment()
+    except Exception:  # noqa: BLE001 — probe failure is UNKNOWN, not a claim
+        _aforge_reg = {
+            "text": "UNVERIFIED: registry alignment probe unavailable",
+            "state": "unknown",
+            "confidence": 0.0,
+            "capability_drift": None,
+            "evidence": "probe error",
+        }
     out["aforge"] = {
         "transport": _probe_transport("127.0.0.1", 7071),
         "identity": forge_dp["identity"]
@@ -1370,11 +1389,15 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             independent=True,
         ),
         "drift": _pf(
-            "DEGRADED: forge_registry_status exposes stale 31-tool hard-coded list vs live 65+",
-            source="ARIFOS_AFORGE_TOOL_ALIGNMENT_MAP.md:108",
-            state="reported",
-            confidence=0.99,
-            observation_method=_OBS_METHOD_REGISTRY,
+            _aforge_reg["text"],
+            source=f"A-FORGE live probe ({_aforge_reg['evidence']})",
+            state=_aforge_reg["state"],
+            confidence=_aforge_reg["confidence"],
+            observation_method=(
+                _OBS_METHOD_HTTP_PROBE
+                if _aforge_reg["state"] == "measured"
+                else _OBS_METHOD_UNKNOWN
+            ),
             independent=True,
         ),
         "dependency": _pf(

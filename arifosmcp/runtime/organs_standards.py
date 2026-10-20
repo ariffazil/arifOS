@@ -319,8 +319,20 @@ def probe_aaa() -> OrganStandardProbe:
 
 def probe_aforge() -> OrganStandardProbe:
     p = _probe_organ_via_public("aforge", expected_name="A-FORGE")
-    # A-FORGE has the well-known drift: forge_registry_status exposes stale 31-tool hard-coded list
-    p.capability_drift = True
+    # F2 FIX (kimi-code/FI-008, 2026-10-20): capability drift is MEASURED, never
+    # asserted. The old forced True came from a retired claim ("stale 31-tool
+    # hard-coded list") cited from an archived alignment doc — a fossil, not a
+    # probe. measure_aforge_registry_alignment() compares the two live registry
+    # surfaces (:7072 tools_listed vs :7071 tool_count); fail-closed to None
+    # (unknown, not drift) when the probe cannot run (F7).
+    try:
+        from arifosmcp.runtime.capability_drift import (
+            measure_aforge_registry_alignment,
+        )
+
+        p.capability_drift = measure_aforge_registry_alignment()["capability_drift"]
+    except Exception:  # noqa: BLE001 — probe failure is UNKNOWN, not a claim
+        p.capability_drift = None
     # re-aggregate
     p.overall_state, p.overall_reasons = _aggregate_overall(p)
     return p

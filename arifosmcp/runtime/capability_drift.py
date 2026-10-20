@@ -24,6 +24,7 @@ import hashlib
 import json
 import logging
 import time
+import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -750,4 +751,68 @@ def per_field_age(
         "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(observed_at_epoch)),
         "age_seconds": age,
         "confidence": confidence,
+    }
+
+
+# ── A-FORGE registry alignment (F2 FIX · kimi-code/FI-008 · 2026-10-20) ─────────
+def measure_aforge_registry_alignment() -> dict[str, Any]:
+    """Live probe: is the A-FORGE registry surface aligned with the live tool set?
+
+    Retires the hard-coded claim "forge_registry_status exposes stale 31-tool
+    hard-coded list vs live 65+", which was cited from an archived alignment doc
+    (docs/archive/cleanup-2026-07-20/ARIFOS_AFORGE_TOOL_ALIGNMENT_MAP.md:108)
+    and narrated as registry truth at confidence 0.99. As of 2026-10-20 the live
+    forge_registry_status introspects the MCP registry dynamically (verified:
+    fingerprint total == tools_listed), so the claim was a fossil, not a probe.
+
+    Measurement: :7072/health tools_listed (registry surface) vs
+    :7071/health tool_count (executor surface) — both derive from the same
+    in-memory tool registry. Fail-closed: an unreachable probe returns state
+    "unknown" and capability_drift None — never a narrated verdict (F7).
+    """
+
+    def _health_field(port: int, field: str) -> Any:
+        try:
+            with urllib.request.urlopen(
+                f"http://127.0.0.1:{port}/health", timeout=2.5
+            ) as resp:
+                body = json.loads(resp.read().decode("utf-8", "replace"))
+            return body.get(field) if isinstance(body, dict) else None
+        except Exception:  # noqa: BLE001 — probe failure is UNKNOWN
+            return None
+
+    registry_listed = _health_field(7072, "tools_listed")
+    live_count = _health_field(7071, "tool_count")
+    evidence = (
+        f":7072/health tools_listed={registry_listed!r}; "
+        f":7071/health tool_count={live_count!r}"
+    )
+    if isinstance(registry_listed, int) and isinstance(live_count, int):
+        if registry_listed == live_count:
+            return {
+                "capability_drift": False,
+                "text": (
+                    f"ALIGNED: live registry surfaces agree ({live_count} tools); "
+                    "legacy 31-tool claim retired 2026-10-20"
+                ),
+                "state": "measured",
+                "confidence": 0.9,
+                "evidence": evidence,
+            }
+        return {
+            "capability_drift": True,
+            "text": (
+                "DRIFTED: registry surfaces disagree "
+                f"(:7072 listed={registry_listed} vs :7071 live={live_count})"
+            ),
+            "state": "measured",
+            "confidence": 0.9,
+            "evidence": evidence,
+        }
+    return {
+        "capability_drift": None,
+        "text": "UNVERIFIED: A-FORGE registry surfaces unreachable",
+        "state": "unknown",
+        "confidence": 0.0,
+        "evidence": evidence,
     }
