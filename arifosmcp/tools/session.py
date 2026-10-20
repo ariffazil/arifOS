@@ -4461,17 +4461,36 @@ def arif_init(
                 _SESSIONS[sid] = sess
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
-        # L3: Carry-forward injection — generational memory at init.
+        # L3/L4: Carry-forward + CHRON context — generational memory at init.
         # Injects human_state, recent entries, chron_briefing, open loops.
-        _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
-        if _cf_ctx:
-            header["carry_forward"] = _cf_ctx
+        # F13 2026-10-20: this is PRIVATE — entry text, open loops and named-
+        # individual predictions must never reach an unverified caller on the
+        # public surface. Unverified actors get counts only (fail closed).
+        if identity_verified:
+            _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
+            if _cf_ctx:
+                header["carry_forward"] = _cf_ctx
 
-        # L4: CHRON temporal context — predictions, calibration, lessons.
-        # Injects active predictions, due-soon items, calibration stats.
-        _chron_ctx = _safe_build(_build_chron_temporal_context, fallback=None)
-        if _chron_ctx:
-            header["chron_temporal"] = _chron_ctx
+            # L4: CHRON temporal context — predictions, calibration, lessons.
+            _chron_ctx = _safe_build(_build_chron_temporal_context, fallback=None)
+            if _chron_ctx:
+                header["chron_temporal"] = _chron_ctx
+        else:
+            header["carry_forward"] = {
+                "redacted": True,
+                "reason": "verified_actor_required",
+                "note": (
+                    "Session continuity is sovereign memory and is withheld from "
+                    "unverified actors. Bind identity with actor_signature (Ed25519) "
+                    "to receive carry_forward and chron_temporal."
+                ),
+                "source": _CARRY_FORWARD_PATH,
+            }
+            header["chron_temporal"] = {
+                "redacted": True,
+                "reason": "verified_actor_required",
+                "source": "chron",
+            }
 
         # M5 payload diet: strip nested bloat from minimal verbosity
         # (must run AFTER all blocks assembled, not inside _project_light)
