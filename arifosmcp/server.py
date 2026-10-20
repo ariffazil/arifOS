@@ -113,7 +113,12 @@ def _d3_sanitize_pydantic_error(text: str) -> str | None:
     errors = []
     current_field = None
     for line in lines:
-        if line.startswith("Input should be") or line.startswith("Field required"):
+        if (
+            line.startswith("Input should be")
+            or line.startswith("Field required")
+            or line.startswith("Unexpected keyword argument")
+            or line.startswith("Extra inputs are not permitted")
+        ):
             if current_field:
                 errors.append(f"{current_field}: {line}")
             else:

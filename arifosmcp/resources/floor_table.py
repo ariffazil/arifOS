@@ -90,6 +90,22 @@ FLOOR_TABLE: dict[str, str] = {
     ),
 }
 
+# ── Identity line is DERIVED from the single canon (2026-10-20) ──────────
+# The prose below each floor keeps its detail, but the first line — the one
+# that names the floor — is generated from arifosmcp.constitutional_canon.
+# Hand-typed identity lines had drifted: F11 was "COMMANDAUTH — Verified
+# identity", which is the F11 confusion the axioms tool also carried.
+from arifosmcp.constitutional_canon import FLOORS as _CANON_FLOORS  # noqa: E402
+
+for _f in _CANON_FLOORS:
+    _law_key = "L" + _f.fid[1:]
+    _key = _law_key if _law_key in FLOOR_TABLE else _f.fid
+    _raw = FLOOR_TABLE.get(_key, "")
+    _body = _raw.splitlines()[1:]
+    _text = "\n".join([f"{_f.fid} {_f.name} — {_f.axiom}", *_body])
+    FLOOR_TABLE[_key] = _text
+    FLOOR_TABLE[_f.fid] = _text  # readable alias: F10 answers like L10
+
 
 def register_floor_template(mcp: FastMCP) -> list[str]:
     """Register arifos://floor/{fid} resource template."""

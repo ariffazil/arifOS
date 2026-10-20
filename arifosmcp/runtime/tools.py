@@ -14780,79 +14780,22 @@ def _arif_mind_reason(
     # embodied_tool_engine also crashed the path → SAFE_VOID. Serve axioms
     # before the gate — read-only, zero blast radius.
     if mode == "axioms":
+        # F1–F13 catalogue is DERIVED from the single canon module.
+        # 2026-10-20 F2 fix: this block used to carry its own floor table —
+        # F06 EMPATHY / F11 "verify identity" — at confidence 0.97, directly
+        # contradicting arifos://doctrine (F06 MARUAH / F11 AUDIT) and
+        # violating the F02 0.90 confidence cap. One canon, many renderers.
+        from arifosmcp.constitutional_canon import CONFIDENCE_CAP, axiom_catalogue
+
         return _ok(
             "arif_mind_reason",
             {
                 "mode": "axioms",
-                "axioms": [
-                    {
-                        "id": "L01_AMANAH",
-                        "text": "Trustworthiness — every action is accountable.",
-                        "confidence": 0.98,
-                    },
-                    {
-                        "id": "L02_TRUTH",
-                        "text": "Truthfulness — no deception, no hallucination passed as fact.",
-                        "confidence": 0.97,
-                    },
-                    {
-                        "id": "L03_WITNESS",
-                        "text": "Witness — evidence must be verifiable and preserved.",
-                        "confidence": 0.96,
-                    },
-                    {
-                        "id": "L04_CLARITY",
-                        "text": "Clarity — intent and mechanism are transparent.",
-                        "confidence": 0.95,
-                    },
-                    {
-                        "id": "L05_PEACE",
-                        "text": "Peace — no harm to human dignity or safety.",
-                        "confidence": 0.97,
-                    },
-                    {
-                        "id": "L06_EMPATHY",
-                        "text": "Empathy — consider human consequence before acting.",
-                        "confidence": 0.94,
-                    },
-                    {
-                        "id": "L07_HUMILITY",
-                        "text": "Humility — acknowledge limits and uncertainty.",
-                        "confidence": 0.96,
-                    },
-                    {
-                        "id": "L08_GENIUS",
-                        "text": "Genius — strive for elegant, correct solutions.",
-                        "confidence": 0.93,
-                    },
-                    {
-                        "id": "L09_ANTIHANTU",
-                        "text": "Anti-Hantu — detect and reject manipulation.",
-                        "confidence": 0.95,
-                    },
-                    {
-                        "id": "L10_ONTOLOGY",
-                        "text": "Ontology — preserve structural coherence.",
-                        "confidence": 0.94,
-                    },
-                    {
-                        "id": "L11_AUDIT",
-                        "text": "Authority — verify identity before irreversible acts.",
-                        "confidence": 0.97,
-                    },
-                    {
-                        "id": "L12_INJECTION",
-                        "text": "Injection Guard — sanitize all inputs.",
-                        "confidence": 0.98,
-                    },
-                    {
-                        "id": "L13_SOVEREIGN",
-                        "text": "Sovereign — human veto is absolute.",
-                        "confidence": 0.99,
-                    },
-                ],
-                "confidence": 0.97,
+                "axioms": axiom_catalogue(),
+                "confidence": CONFIDENCE_CAP,
+                "confidence_basis": "canonical_floor_statements (F02 cap)",
                 "claim_state": "CLAIM",
+                "canon_source": "arifosmcp/constitutional_canon.py",
             },
             delta_S=0.001,
             session_id=session_id,
@@ -29658,7 +29601,51 @@ def register_tools(
                         _ft = _components.get(_tool_key)
                         if _ft is not None and hasattr(_ft, "parameters"):
                             if spec and spec.input_schema:
-                                _ft.parameters = dict(spec.input_schema)
+                                # PHANTOM-PARAM GATE (F2 TRUTH, 2026-10-20):
+                                # the static input_schema may advertise parameters
+                                # the live handler cannot accept. FastMCP builds the
+                                # argument model from the HANDLER signature, so an
+                                # advertised-but-unaccepted param is a hard client
+                                # error that reports as "invalid input types".
+                                # Live evidence: arif_think advertised `concise`
+                                # (handler: embodied_mind_reason_handler, no such
+                                # param) — every call passing it died. Advertise
+                                # only what the handler can actually receive, and
+                                # say so loudly instead of shipping the lie.
+                                _schema = dict(spec.input_schema)
+                                _declared = set((_schema.get("properties") or {}).keys())
+                                try:
+                                    _sig = inspect.signature(handler)
+                                    _accepted = {
+                                        p.name
+                                        for p in _sig.parameters.values()
+                                        if p.kind
+                                        in (
+                                            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                                            inspect.Parameter.KEYWORD_ONLY,
+                                        )
+                                    }
+                                    _phantom = sorted(_declared - _accepted)
+                                    if _phantom:
+                                        _schema["properties"] = {
+                                            k: v
+                                            for k, v in (_schema.get("properties") or {}).items()
+                                            if k in _accepted
+                                        }
+                                        if _schema.get("required"):
+                                            _schema["required"] = [
+                                                r for r in _schema["required"] if r in _accepted
+                                            ]
+                                        logger.warning(
+                                            "PHANTOM PARAM GATE %s: advertised but not accepted "
+                                            "by handler %s — dropped from wire schema: %s",
+                                            name,
+                                            getattr(handler, "__name__", type(handler).__name__),
+                                            _phantom,
+                                        )
+                                except (TypeError, ValueError):
+                                    pass  # C-builtins / no signature: leave schema untouched
+                                _ft.parameters = _schema
                             _params = _ft.parameters
                             if _modes and "properties" in _params:
                                 if "mode" in _params["properties"]:
