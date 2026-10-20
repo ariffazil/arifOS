@@ -4531,6 +4531,7 @@ def register_rest_routes(
             # G = (A·P·E·X)^(1/4) (canonical 4-factor). Zero anywhere = collapse.
             # C_dark = A·(1-P)·(1-X) — the "Bangang Detector".
             "apex_scalars": thermo.get("apex_scalars", {}),
+            "measurement_basis": thermo.get("measurement_basis", {}),
             # T7 — federation contract conformance. arifOS was missing this
             # field; commit 46778a39f only touched CI workflow, not this
             # emission. Restored per APEX-CONCORDANCE-17072026 §8 so the 6
