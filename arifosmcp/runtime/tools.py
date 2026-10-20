@@ -9777,6 +9777,20 @@ def _ok(
             actor_id=actor_id or "",
             session_id=session_id or "",
         )
+        try:
+            from core.governance_kernel import get_governance_kernel
+
+            get_governance_kernel("global").record_event(
+                "action",
+                {
+                    "tool": tool,
+                    "session_id": session_id or "global",
+                    "actor_id": actor_id or "",
+                    "timestamp": time.time(),
+                },
+            )
+        except Exception:
+            pass
     except Exception:
         pass  # APEX metrics are best-effort
     invocation_count = None
