@@ -1115,6 +1115,7 @@ async def arif_judge(
     context_source: str | None = None,
     sovereign_receipt: str | None = None,
     evidence: dict[str, Any]
+    | list[Any]
     | str
     | None = None,  # BRIDGE-COMPAT: JSON-string tolerated, coerced below (SCAR_JUDGE_EVIDENCE_BRIDGE)
     # ── F13 challenge authorization params (public MCP wrapper chain) ──
@@ -1165,6 +1166,8 @@ async def arif_judge(
     # Some MCP clients (opencode adapter vs anyOf schemas) stringify composite
     # args before transport. Tolerant parse: coerce JSON-string evidence back
     # to dict before any gate runs. Traces: trc-38afbd13ee55, TRACE-d12a4a3ca6bd.
+    if isinstance(evidence, list):
+        evidence = {"items": evidence}
     if isinstance(evidence, str):
         try:
             import json as _json_bridge
