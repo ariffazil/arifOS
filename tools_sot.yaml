@@ -144,7 +144,9 @@ tools:
     name: arif_forge
     stage: '777'
     description: >
-      KERNEL 777 · Execution gate via A-FORGE — mutates only after SEAL verdict.
+      KERNEL 777 · Execution gate via A-FORGE — T1 reversible mutations execute on
+        sovereign authorization; T1.5+ (irreversible / prod / money / identity)
+        is arif_judge SEAL-gated. CAPABILITY != AUTHORITY.
     risk_tier: critical
     floors:
       - L01_AMANAH
