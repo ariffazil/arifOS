@@ -1,0 +1,647 @@
+{
+  "scanned_at_utc": "2026-10-20T13:37:06+00:00",
+  "canon": {
+    "omega_band": [
+      0.03,
+      0.05
+    ],
+    "confidence_cap_operational": 0.96,
+    "confidence_cap_max": 0.97,
+    "authority": "GENESIS/FLOOR_TABLE.json F7 + 000_KERNEL_CANON.md \u00a73.2",
+    "ratified": "2026-08-09 (F13 clarification)"
+  },
+  "totals": {
+    "sites": 104,
+    "ASSERTION": 88,
+    "CLAMP": 15,
+    "UNRELATED": 1
+  },
+  "findings": [
+    {
+      "file": "arifosmcp/agents/eureka/__init__.py",
+      "line": 16,
+      "kind": "ASSERTION",
+      "text": "- F7 HUMILITY: confidence cap 0.90"
+    },
+    {
+      "file": "arifosmcp/agents/eureka/signals.py",
+      "line": 40,
+      "kind": "ASSERTION",
+      "text": "confidence: float  # 0.0\u20130.90 (F7 cap)"
+    },
+    {
+      "file": "arifosmcp/agents/eureka/validator.py",
+      "line": 8,
+      "kind": "ASSERTION",
+      "text": "- Confidence capped at 0.90 (F7)"
+    },
+    {
+      "file": "arifosmcp/agents/eureka/validator.py",
+      "line": 32,
+      "kind": "ASSERTION",
+      "text": "confidence: float  # 0.0\u20130.90"
+    },
+    {
+      "file": "arifosmcp/agents/eureka/validator.py",
+      "line": 39,
+      "kind": "ASSERTION",
+      "text": "if self.confidence > 0.90:"
+    },
+    {
+      "file": "arifosmcp/agents/eureka/validator.py",
+      "line": 40,
+      "kind": "CLAMP",
+      "text": "raise ValueError(\"F7 HUMILITY: confidence cannot exceed 0.90\")"
+    },
+    {
+      "file": "arifosmcp/agents/eureka/validator.py",
+      "line": 65,
+      "kind": "ASSERTION",
+      "text": "if claim.confidence > 0.90:"
+    },
+    {
+      "file": "arifosmcp/agents/eureka/validator.py",
+      "line": 66,
+      "kind": "ASSERTION",
+      "text": "issues.append(f\"Confidence {claim.confidence} exceeds 0.90 cap (F7)\")"
+    },
+    {
+      "file": "arifosmcp/arifos_policy/opa_bridge.py",
+      "line": 68,
+      "kind": "ASSERTION",
+      "text": "confidence: float  # 0.0\u20130.90 (F7 cap)"
+    },
+    {
+      "file": "arifosmcp/arifos_policy/opa_bridge.py",
+      "line": 158,
+      "kind": "CLAMP",
+      "text": "confidence=min(0.90, float(result.get(\"confidence\", 0.85))),"
+    },
+    {
+      "file": "arifosmcp/constitutional_canon.py",
+      "line": 15,
+      "kind": "ASSERTION",
+      "text": "emitted confidence 0.97 > F02 cap 0.90)"
+    },
+    {
+      "file": "arifosmcp/constitutional_canon.py",
+      "line": 30,
+      "kind": "ASSERTION",
+      "text": "3. Confidence on any canon statement is capped at 0.90 by F02 TRUTH."
+    },
+    {
+      "file": "arifosmcp/constitutional_canon.py",
+      "line": 63,
+      "kind": "ASSERTION",
+      "text": "# F7 unification explicitly absorbed: 0.90 left no room for calibrated"
+    },
+    {
+      "file": "arifosmcp/contracts/handoff_v1.py",
+      "line": 144,
+      "kind": "ASSERTION",
+      "text": "if self.claim.confidence > 0.90 and self.claim.epistemic_state == EpistemicState.OBSERVED:"
+    },
+    {
+      "file": "arifosmcp/core/authorization_envelope.py",
+      "line": 252,
+      "kind": "ASSERTION",
+      "text": "confidence: float = 0.0  # 0.0-1.0, capped at 0.90 (F7)"
+    },
+    {
+      "file": "arifosmcp/core/authorization_envelope.py",
+      "line": 285,
+      "kind": "ASSERTION",
+      "text": "if self.confidence > 0.90:"
+    },
+    {
+      "file": "arifosmcp/core/authorization_envelope.py",
+      "line": 338,
+      "kind": "CLAMP",
+      "text": "confidence=min(confidence, 0.90),  # F7 cap"
+    },
+    {
+      "file": "arifosmcp/core/moral_accountability_kernel.py",
+      "line": 484,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/core/policy_engine.py",
+      "line": 80,
+      "kind": "ASSERTION",
+      "text": "if env.confidence > 0.90:"
+    },
+    {
+      "file": "arifosmcp/core/policy_engine.py",
+      "line": 81,
+      "kind": "CLAMP",
+      "text": "return False, f\"F2 TRUTH: Confidence {env.confidence} exceeds F7 cap (0.90)\""
+    },
+    {
+      "file": "arifosmcp/core/policy_engine.py",
+      "line": 97,
+      "kind": "ASSERTION",
+      "text": "\"\"\"F7: Confidence capped at 0.90.\"\"\""
+    },
+    {
+      "file": "arifosmcp/core/policy_engine.py",
+      "line": 98,
+      "kind": "ASSERTION",
+      "text": "if env.confidence > 0.90:"
+    },
+    {
+      "file": "arifosmcp/core/policy_engine.py",
+      "line": 99,
+      "kind": "CLAMP",
+      "text": "return False, f\"F7 HUMILITY: Confidence {env.confidence} exceeds 0.90 cap\""
+    },
+    {
+      "file": "arifosmcp/core/scalar_collector.py",
+      "line": 109,
+      "kind": "ASSERTION",
+      "text": "0.90 for a capped witness confidence per F7 HUMILITY)."
+    },
+    {
+      "file": "arifosmcp/core/scalar_collector.py",
+      "line": 264,
+      "kind": "CLAMP",
+      "text": "confidence=min(max(0.0, min(1.0, g_val)), 0.90),"
+    },
+    {
+      "file": "arifosmcp/core/scalar_collector.py",
+      "line": 276,
+      "kind": "CLAMP",
+      "text": "confidence=min(max(0.0, min(1.0, g_val)), 0.90),"
+    },
+    {
+      "file": "arifosmcp/core/scalar_collector.py",
+      "line": 309,
+      "kind": "ASSERTION",
+      "text": "confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/core/scalar_collector.py",
+      "line": 427,
+      "kind": "CLAMP",
+      "text": "confidences.append(min(max(cf, 0.0), 0.90))"
+    },
+    {
+      "file": "arifosmcp/gateway/putra_heights_graph.py",
+      "line": 418,
+      "kind": "ASSERTION",
+      "text": "confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/memory/admissibility.py",
+      "line": 377,
+      "kind": "ASSERTION",
+      "text": "CONFIDENCE_FLOORS = {\"OBS\": 0.90, \"DER\": 0.75, \"INT\": 0.65, \"SPEC\": 0.50}"
+    },
+    {
+      "file": "arifosmcp/rasa/rasa_dunia.py",
+      "line": 101,
+      "kind": "ASSERTION",
+      "text": "epistemic_confidence: float = Field(0.90, description=\"Epistemic cap enforced at 0.90\")"
+    },
+    {
+      "file": "arifosmcp/rasa/rasa_dunia.py",
+      "line": 269,
+      "kind": "ASSERTION",
+      "text": "epistemic_confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/rasa/rasa_dunia.py",
+      "line": 312,
+      "kind": "ASSERTION",
+      "text": "epistemic_confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/resources/schema.py",
+      "line": 110,
+      "kind": "ASSERTION",
+      "text": "# the floor table that still said \"Cap confidence at 0.90\" long after F13"
+    },
+    {
+      "file": "arifosmcp/runtime/DNA.py",
+      "line": 28,
+      "kind": "CLAMP",
+      "text": "CONFIDENCE_CAP: Final[float] = 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/DNA.py",
+      "line": 42,
+      "kind": "ASSERTION",
+      "text": "\"F7_HUMILITY\",  # Cap confidence at 0.90 \u2014 declare unknowns"
+    },
+    {
+      "file": "arifosmcp/runtime/compression.py",
+      "line": 282,
+      "kind": "ASSERTION",
+      "text": "confidence = 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/constitution_compiler.py",
+      "line": 113,
+      "kind": "ASSERTION",
+      "text": "Confidence cap \u2208 [0.90, 0.97]"
+    },
+    {
+      "file": "arifosmcp/runtime/constitution_compiler.py",
+      "line": 121,
+      "kind": "ASSERTION",
+      "text": "AND confidence \u2264 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/constitution_compiler.py",
+      "line": 126,
+      "kind": "ASSERTION",
+      "text": "CONSTRAINT confidence_cap: confidence \u2264 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/constitution_compiler.py",
+      "line": 140,
+      "kind": "ASSERTION",
+      "text": "confidence: Claimed confidence (must be \u2264 0.90)"
+    },
+    {
+      "file": "arifosmcp/runtime/constitution_compiler.py",
+      "line": 158,
+      "kind": "ASSERTION",
+      "text": "# Constraint 2: confidence \u2264 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/constitution_compiler.py",
+      "line": 159,
+      "kind": "ASSERTION",
+      "text": "c2 = confidence <= 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/constitution_compiler.py",
+      "line": 163,
+      "kind": "ASSERTION",
+      "text": "reasons.append(f\"confidence={confidence:.2f} exceeds cap 0.90\")"
+    },
+    {
+      "file": "arifosmcp/runtime/feedback_loop.py",
+      "line": 37,
+      "kind": "ASSERTION",
+      "text": "F07 (HUMILITY) \u2014 hard cap at 0.90 confidence"
+    },
+    {
+      "file": "arifosmcp/runtime/feedback_loop.py",
+      "line": 249,
+      "kind": "ASSERTION",
+      "text": "# F7 HUMILITY: cap at 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/feedback_loop.py",
+      "line": 250,
+      "kind": "CLAMP",
+      "text": "confidence = min(confidence, 0.90)"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 113,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 133,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 153,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 204,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 245,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 255,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 266,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 276,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 286,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 296,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 367,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 418,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 448,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 458,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 479,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 529,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 540,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/l5_seed_graph.py",
+      "line": 550,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_feedback_hook.py",
+      "line": 43,
+      "kind": "ASSERTION",
+      "text": "F07 (HUMILITY) \u2014 omega_0 hard-capped at 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_feedback_hook.py",
+      "line": 191,
+      "kind": "ASSERTION",
+      "text": "epistemic_tag=EpistemicTag.PLAUSIBLE if confidence < 0.90 else EpistemicTag.VERIFIED,"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_feedback_hook.py",
+      "line": 377,
+      "kind": "ASSERTION",
+      "text": "confidence=0.90 if packet.attestations else 0.60,"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_reason.py",
+      "line": 327,
+      "kind": "CLAMP",
+      "text": "\"confidence_cap\": round(min(0.90, 1.0 - (rho * 0.3)), 2),"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_state.py",
+      "line": 23,
+      "kind": "ASSERTION",
+      "text": "F07 (HUMILITY) \u2014 omega_0 tracked, hard-capped at 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_state.py",
+      "line": 114,
+      "kind": "ASSERTION",
+      "text": "confidence: float = 0.5  # 0.0\u20130.90 (F7 cap)"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_state.py",
+      "line": 214,
+      "kind": "CLAMP",
+      "text": "confidence=min(confidence, 0.90),  # F7 cap"
+    },
+    {
+      "file": "arifosmcp/runtime/mind_state.py",
+      "line": 281,
+      "kind": "CLAMP",
+      "text": "self.epistemic_band = min(band, 0.90)  # F7 cap"
+    },
+    {
+      "file": "arifosmcp/runtime/philosophy_registry.py",
+      "line": 732,
+      "kind": "ASSERTION",
+      "text": "- F7 HUMILITY: confidence can never exceed 0.90 (base cap)"
+    },
+    {
+      "file": "arifosmcp/runtime/rest_routes/observatory_routes.py",
+      "line": 1827,
+      "kind": "ASSERTION",
+      "text": "confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/rest_routes/observatory_routes.py",
+      "line": 1837,
+      "kind": "ASSERTION",
+      "text": "confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/sabar_gate.py",
+      "line": 56,
+      "kind": "ASSERTION",
+      "text": "F7 HUMILITY  \u2014 overall_confidence > 0.90 \u2192 SABAR_HOLD (hard cap)"
+    },
+    {
+      "file": "arifosmcp/runtime/sabar_gate.py",
+      "line": 78,
+      "kind": "ASSERTION",
+      "text": "# F7 hard cap (omega_0 is the F7 humility signal; >0.90 = overconfident)"
+    },
+    {
+      "file": "arifosmcp/runtime/sabar_gate.py",
+      "line": 79,
+      "kind": "CLAMP",
+      "text": "OMEGA_0_HARD_CAP = 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/sabar_gate.py",
+      "line": 255,
+      "kind": "ASSERTION",
+      "text": "Optional explicit confidence in [0.0, 1.0]. If > 0.90 and not"
+    },
+    {
+      "file": "arifosmcp/runtime/sensing_protocol.py",
+      "line": 1385,
+      "kind": "ASSERTION",
+      "text": "classification_confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 4479,
+      "kind": "ASSERTION",
+      "text": "if confidence < 0.90:"
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 4987,
+      "kind": "ASSERTION",
+      "text": "#   F7  \u2014 overconfident claims (omega_0 or confidence > 0.90)"
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 14003,
+      "kind": "ASSERTION",
+      "text": "confidence_threshold: float = 0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 14787,
+      "kind": "ASSERTION",
+      "text": "# violating the F02 0.90 confidence cap. One canon, many renderers."
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 14832,
+      "kind": "ASSERTION",
+      "text": "confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 15328,
+      "kind": "ASSERTION",
+      "text": "# \"why is final confidence 0.85 and not 0.90?\""
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 17810,
+      "kind": "ASSERTION",
+      "text": "# MAX_LOOPS: 3  |  F7 HUMILITY: confidence capped at 0.90"
+    },
+    {
+      "file": "arifosmcp/runtime/tools.py",
+      "line": 19456,
+      "kind": "ASSERTION",
+      "text": "{\"omega\": 0.95, \"target\": 0.90, \"status\": \"above_target\"},"
+    },
+    {
+      "file": "arifosmcp/schemas/agent_contract.py",
+      "line": 172,
+      "kind": "ASSERTION",
+      "text": "\"NEVER claim >0.90 confidence (F7 humility)\","
+    },
+    {
+      "file": "arifosmcp/schemas/governor.py",
+      "line": 252,
+      "kind": "ASSERTION",
+      "text": "\"\"\"F7 HUMILITY \u2014 Confidence cap at 0.90. No fake certainty.\"\"\""
+    },
+    {
+      "file": "arifosmcp/schemas/stage_packets/__init__.py",
+      "line": 125,
+      "kind": "CLAMP",
+      "text": "default=0.0, ge=0.0, le=0.90, description=\"Capped at 0.90 (F7 HUMILITY)\""
+    },
+    {
+      "file": "arifosmcp/server.py",
+      "line": 3421,
+      "kind": "ASSERTION",
+      "text": "prediction_confidence=0.90,"
+    },
+    {
+      "file": "arifosmcp/tools/arif_kernel_intercept.py",
+      "line": 687,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    },
+    {
+      "file": "arifosmcp/tools/chatgpt_shim.py",
+      "line": 169,
+      "kind": "ASSERTION",
+      "text": "confidence_threshold: float = 0.90,"
+    },
+    {
+      "file": "arifosmcp/tools/evidence.py",
+      "line": 37,
+      "kind": "ASSERTION",
+      "text": "confidence_threshold: float = 0.90,"
+    },
+    {
+      "file": "arifosmcp/tools/heart.py",
+      "line": 880,
+      "kind": "ASSERTION",
+      "text": "\"description\": \"Heart's confidence in its own critique (F7 Humility cap at 0.90)\","
+    },
+    {
+      "file": "arifosmcp/tools/heart.py",
+      "line": 994,
+      "kind": "ASSERTION",
+      "text": "Estimate critique_confidence [0.03\u20130.90] and confidence_band."
+    },
+    {
+      "file": "arifosmcp/tools/judge.py",
+      "line": 3136,
+      "kind": "ASSERTION",
+      "text": "\"confidence_cap\": 0.85 if 16 in _pids else 0.90,"
+    },
+    {
+      "file": "arifosmcp/tools/judge.py",
+      "line": 3210,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": _evidence[\"atlas_calibration\"].get(\"confidence_cap\", 0.90),"
+    },
+    {
+      "file": "arifosmcp/tools/nine_signal.py",
+      "line": 42,
+      "kind": "ASSERTION",
+      "text": "if confidence < 0.90:"
+    },
+    {
+      "file": "arifosmcp/tools/ops.py",
+      "line": 50,
+      "kind": "UNRELATED",
+      "text": "\"description\": \"Omega stability ratio (target \u2265 0.90)\","
+    },
+    {
+      "file": "arifosmcp/tools/ops.py",
+      "line": 482,
+      "kind": "ASSERTION",
+      "text": "{\"omega\": 0.95, \"target\": 0.90, \"status\": \"above_target\"},"
+    },
+    {
+      "file": "arifosmcp/tools/sense.py",
+      "line": 1588,
+      "kind": "ASSERTION",
+      "text": "\"confidence\": 0.90,"
+    }
+  ],
+  "verdict": "AMENDMENT_NOT_PROPAGATED",
+  "note": "CLAMP sites change behaviour: the kernel refuses what canon permits. Migrating them is an F13 decision, not a refactor."
+}
