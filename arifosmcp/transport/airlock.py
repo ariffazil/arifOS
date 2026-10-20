@@ -379,6 +379,7 @@ SUPPORTED_PROTOCOL_VERSIONS = frozenset(
     {
         "2026-07-28",  # Stateless MCP 2.0 — SEP-2567 + SEP-2575 + MRTR
         "2025-11-25",  # Stateful Streamable HTTP
+        "2025-06-18",  # Claude Desktop / Anthropic draft MCP spec
         "2025-03-26",
         "2024-11-05",
     }

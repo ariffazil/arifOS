@@ -427,18 +427,25 @@ class ConstitutionKernel:
             import json
             import os
 
-            well_state_path = os.environ.get(
-                "WELL_STATE_PATH", "/root/WELL/state.json"
-            )
+            # Canonical live organ state is at /var/lib/well/state.json per FHS promotion (2026-09-12).
+            # Fall back to /root/WELL/state.json only if /var/lib/well is absent.
+            well_state_path = os.environ.get("WELL_STATE_PATH")
+            if not well_state_path or not os.path.exists(well_state_path):
+                if os.path.exists("/var/lib/well/state.json"):
+                    well_state_path = "/var/lib/well/state.json"
+                elif os.path.exists("/root/WELL/state.json"):
+                    well_state_path = "/root/WELL/state.json"
 
-            if os.path.exists(well_state_path):
+            if well_state_path and os.path.exists(well_state_path):
                 with open(well_state_path) as f:
                     well_state = json.load(f)
                 readiness = well_state.get("well_score")
                 backend_status = well_state.get("backend_status", "UNKNOWN")
 
                 # Fail-closed: null well_score or DEGRADED backend blocks SEAL
-                if readiness is None or backend_status == "DEGRADED":
+                # Note: PIPELINE_FEEDING or STABLE indicates alive backend feed, but null well_score
+                # means biometrics are not yet injected/calibrated.
+                if readiness is None or backend_status in ("DEGRADED", "UNKNOWN"):
                     is_dev = os.environ.get("ARIFOS_DEV_MODE", "").lower() in (
                         "1",
                         "true",

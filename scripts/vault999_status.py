@@ -69,8 +69,18 @@ def verify_v1_frozen() -> dict:
 
 
 def verify_v2_active() -> dict:
-    """v2 is active — verify genesis anchor and chain continuity."""
-    v2_file = VAULT_DIR / "SEALED_EVENTS_v2.jsonl"
+    """v2 epoch — resolve the REAL path, not a name-scoped guess.
+
+    Stabilization 2026-10-19: v2 lives on the /agent mount and is reached via
+    /var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl (symlink). Checking only
+    VAULT_DIR/SEALED_EVENTS_v2.jsonl reported MISSING for a 1,761-entry ledger.
+    """
+    candidates = [
+        VAULT_DIR / "SEALED_EVENTS_v2.jsonl",
+        Path("/var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl"),
+        Path("/agent/vault999/sealed/SEALED_EVENTS_v2.jsonl"),
+    ]
+    v2_file = next((p for p in candidates if p.exists()), candidates[0])
     state_file = VAULT_DIR / "epoch_state.json"
     result = {
         "status": "unknown",
@@ -102,17 +112,36 @@ def verify_v2_active() -> dict:
         v1_terminal = v1_state.get("terminal_hash")
         result["genesis_anchored"] = genesis_hash == v1_terminal
 
-        # Verify chain continuity within v2
+        # Verify chain continuity within v2 — honest: a MISSING link field is
+        # UNMEASURED, never a pass. (2026-10-19: the old guard `if prev_hash and
+        # curr_prev` skipped every row whose link field was absent, so a chain
+        # with 956 broken links reported chain_continuous=True.)
         result["chain_continuous"] = True
+        missing_links = 0
+        breaks = 0
         for i in range(1, len(entries)):
             prev = entries[i - 1]
             curr = entries[i]
-            prev_hash = prev.get("entry_hash") or prev.get("chain_hash")
-            curr_prev = curr.get("prev_entry_hash") or curr.get("prev_hash")
-            if prev_hash and curr_prev and prev_hash != curr_prev:
-                result["chain_continuous"] = False
-                result["break_at"] = i
-                break
+            prev_hash = (
+                prev.get("entry_hash")
+                or prev.get("chain_hash")
+                or prev.get("seal_hash")
+            )
+            curr_prev = (
+                curr.get("prev_entry_hash")
+                or curr.get("prev_hash")
+                or curr.get("prev_leaf")
+            )
+            if curr_prev in (None, "None", "", "null"):
+                missing_links += 1
+                continue
+            if prev_hash and str(curr_prev) != str(prev_hash):
+                breaks += 1
+                if "break_at" not in result:
+                    result["break_at"] = i
+        result["missing_link_fields"] = missing_links
+        result["broken_links"] = breaks
+        result["chain_continuous"] = (breaks == 0 and missing_links == 0)
 
     if result["genesis_anchored"] and result["chain_continuous"]:
         result["status"] = "HEALTHY"
@@ -172,6 +201,9 @@ def verify_service_health() -> dict:
         result["status"] = f"unreachable: {e}"
     print()
     print("═══ VAULT999 Summary ═══")
+    # Stabilization 2026-10-19: this function printed but returned None, so any
+    # caller doing svc["reachable"] crashed. Return the probe result explicitly.
+    return result
 
 
 def _is_v1_frozen() -> bool:
@@ -214,6 +246,19 @@ def main() -> int:
     print(
         f"   Last hash:    {live['last_entry_hash'][:16] if live['last_entry_hash'] else 'N/A'}..."
     )
+
+    print("\n🧭 Canonical Spine (F004 — the only authority)")
+    spine = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+    head = Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
+    if spine.exists():
+        print(f"   Path:         {spine}")
+        print(f"   Entries:      {sum(1 for _ in spine.open(errors='replace'))}")
+        if head.exists():
+            h = json.load(head.open())
+            print(f"   Head seq:     {h.get('seq')}  hash={str(h.get('hash'))[:24]}…")
+            print(f"   Declared:     canonical={h.get('canonical_entries')} historical={h.get('historical_entries')}")
+    else:
+        print("   MISSING — no canonical spine")
 
     print("\n🌐 Vault Service (port 5001)")
     svc = verify_service_health()

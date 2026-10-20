@@ -17,7 +17,7 @@ from mcp.types import TextContent
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS
 from arifosmcp.runtime.law import check_laws
-from arifosmcp.runtime.public_surface import public_boundary_allows
+from arifosmcp.runtime.public_surface import COORDINATION_TOOLS, public_boundary_allows
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +107,12 @@ class ConstitutionalProvider(Provider):
         tools = await self._provider._list_tools()
         wrapped: list[Tool] = []
         for t in tools:
+            # Coordination channels (F13 2026-10-20) are registered on the wire
+            # but are NOT constitutional verbs. They must still be listed —
+            # list==callable is a law in both directions.
+            if t.name in COORDINATION_TOOLS:
+                wrapped.append(self._wrap(t))
+                continue
             if t.name not in CANONICAL_TOOLS:
                 logger.warning(
                     f"[ConstitutionalProvider] Dropping unregistered tool '{t.name}' at list time."
@@ -122,6 +128,8 @@ class ConstitutionalProvider(Provider):
         return wrapped
 
     async def _get_tool(self, name: str, version: Any = None) -> Tool | None:
+        if name in COORDINATION_TOOLS:
+            return await self._provider._get_tool(name, version)
         if name not in CANONICAL_TOOLS:
             logger.warning(
                 f"[ConstitutionalProvider] Blocking unregistered tool '{name}' at get time."

@@ -65,7 +65,8 @@ VERDICT_STATE_VERSION = 1
 # The six canonical verdict values. Closed taxonomy.
 OBSERVE_ONLY = "OBSERVE_ONLY"
 SEAL = "SEAL"
-SABAR = "SABAR"
+SABAR = "SABAR"  # canonical: proceed-cautiously / partial coverage.
+                  # NOT sabar_gate.py's SABAR_HOLD (gate-local F7/F9 hold).
 VOID = "VOID"
 HOLD = "HOLD"
 HOLD_888 = "888_HOLD"
@@ -745,7 +746,19 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
 # Kernel-lane verdicts (top-level, result.verdict, reasoning lanes) are NOT
 # under bridge_result and remain fully judged; fail-closed semantics for
 # genuine kernel-lane divergence are unchanged.
-_NON_VERDICT_AXIS_PATHS_PRE = ("result.bridge_result.",)
+# 2026-10-20 (333-AGI): meta.zen_apex / meta.zen_witness are
+# PRESENTATION witnesses (composer: "never mutates verdict"; heart:
+# "Presentation witness is meta.zen_apex"). They freeze a stage-time
+# view and were being judged as live kernel claims, manufacturing
+# VERDICT_FIELD_DIVERGENCE whenever the bridge later restrained a
+# verdict (effective=SABAR vs meta=HOLD). Same class as the carve-outs
+# above; fail-closed semantics for genuine kernel-lane divergence are
+# unchanged.
+_NON_VERDICT_AXIS_PATHS_PRE = (
+    "result.bridge_result.",
+    "meta.zen_apex.",
+    "meta.zen_witness.",
+)
 
 
 def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
