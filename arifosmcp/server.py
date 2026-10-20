@@ -134,7 +134,11 @@ try:
         except Exception as e:
             _clean = _d3_sanitize_pydantic_error(str(e))
             if _clean is not None:
-                raise type(e)(_clean) from e.__cause__
+                # ValidationError.__new__ requires line_errors; re-raising
+                # type(e) crashed the sanitizer itself (2026-10-20). A plain
+                # ValueError carries the clean contract message without
+                # fabricating a Pydantic error shape.
+                raise ValueError(_clean) from e.__cause__
             raise
 
     import fastmcp.tools.function_tool as _ft_module
