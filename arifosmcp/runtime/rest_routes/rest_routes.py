@@ -1414,6 +1414,28 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 f"unmeasured_default:seal_chain_unreachable:{type(_f13_exc).__name__}"
             )
 
+        # F5 PEACE² — non-destructive power (same seal tail as F13, read-only;
+        # MEASUREMENT_CLOSURE tranche 2, 2026-10-20). Reuses _seal_rows when
+        # the F13 block succeeded; reads independently if it did not.
+        try:
+            if "_seal_rows" not in dir() or not isinstance(_seal_rows, list):
+                _seal_rows = []
+                _sp = _Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+                if _sp.exists():
+                    for _ln in _sp.read_text(errors="replace").splitlines()[-100:]:
+                        try:
+                            _row = _json.loads(_ln)
+                            _ts = _row.get("timestamp") or _row.get("epoch") or _row.get("ts")
+                            if _ts and str(_ts) >= "2026-09-08":
+                                _seal_rows.append(_row)
+                        except Exception:
+                            continue
+            _wire_producer("F5", {"seals": _seal_rows})
+        except Exception as _f5_exc:
+            floor_provenance["F5"] = (
+                f"unmeasured_default:seal_chain_unreachable:{type(_f5_exc).__name__}"
+            )
+
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
         # reporting (provenance honesty, evaluated after other producers have reported).
         # Floors measured by real producers/probes are excluded from
