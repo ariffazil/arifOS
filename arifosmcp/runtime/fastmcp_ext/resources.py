@@ -16,6 +16,79 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
+# ── PRIVATE-RESOURCE GATE (F13 2026-10-20) ───────────────────────────────
+# The public MCP surface is unauthenticated (mcp.arif-fazil.com). Sovereign
+# memory — session continuity, human state, named-individual predictions —
+# must never be served to an anonymous caller. Full body requires a verified
+# capability token (act_v1 with av=true); everyone else gets counts only.
+# Failure class this closes: OBSERVE_ONLY gated actions but not reads.
+def _request_claims() -> dict[str, Any] | None:
+    """Return verified ACT claims from the inbound Authorization header, or None."""
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers() or {}
+    except Exception:
+        return None
+    auth = headers.get("authorization") or headers.get("Authorization") or ""
+    if not str(auth).lower().startswith("bearer "):
+        return None
+    token = str(auth).split(" ", 1)[1].strip()
+    if not token:
+        return None
+    try:
+        from arifosmcp.runtime.act_token import verify_act
+
+        claims = verify_act(token, expected_actor=None)
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+        return None
+    return claims if isinstance(claims, dict) else None
+
+
+def _caller_is_verified_actor() -> bool:
+    """True only when the caller presents a cryptographically verified ACT."""
+    claims = _request_claims() or {}
+    return bool(claims.get("av")) is True and str(claims.get("auth", "")).upper() != "OBSERVE_ONLY"
+
+
+def _redacted_carry_forward(doc: dict[str, Any]) -> str:
+    """Counts-only projection of carry_forward for unverified callers."""
+    entries = doc.get("entries") or []
+    kinds: dict[str, int] = {}
+    open_loops = 0
+    for entry in entries:
+        if isinstance(entry, dict):
+            kind = entry.get("kind", "?")
+            kinds[kind] = kinds.get(kind, 0) + 1
+            if kind == "open_loop":
+                open_loops += 1
+    writers = doc.get("writers")
+    if not isinstance(writers, dict):
+        writers = {}
+    return json.dumps(
+        {
+            "uri": "arifos://carry-forward",
+            "redacted": True,
+            "reason": "verified_actor_required",
+            "note": (
+                "Session continuity is sovereign memory and is not served to "
+                "unverified callers. Call arif_init with actor_signature (Ed25519) "
+                "and then re-request with header: Authorization: Bearer <session_token>."
+            ),
+            "schema": doc.get("schema"),
+            "total_entry_count": len(entries),
+            "open_loop_count": open_loops,
+            "entry_kinds": kinds,
+            "last_writer": writers.get("last_writer") or doc.get("last_writer"),
+            "last_write_utc": writers.get("last_write_utc") or doc.get("last_write_utc"),
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
+
+
 # ── INIT prompt files — canonical paths ──────────────────────────────────
 _INIT_PROMPT_DIR = "/root/AAA/agents/opencode"
 _INIT_PATH = "/root/AAA/prompts/INIT.md"  # v4.0 (2026-08-05)
@@ -340,6 +413,10 @@ def register_arifos_resources(mcp: Any) -> list[str]:
                     "detail": f"Expected schema {_CARRY_FORWARD_SCHEMA}, got {actual_schema}",
                 }
             )
+        # Gate 6: caller authority (F13 2026-10-20)
+        # Sovereign memory is not public. Unverified callers get counts only.
+        if not _caller_is_verified_actor():
+            return _redacted_carry_forward(doc)
         # All gates passed — stamp provenance and serve
         from datetime import datetime as _dt
 
