@@ -3372,11 +3372,7 @@ def _compute_scoped_verdicts(
     # arif_observe said DEGRADED beside a HEALTHY /health on the same process).
     _sys_reading = read_system_floor_truth()
     _sys_state = None
-    if (
-        _sys_reading
-        and not _sys_reading.get("stale")
-        and _sys_reading.get("substrate_state")
-    ):
+    if _sys_reading and not _sys_reading.get("stale") and _sys_reading.get("substrate_state"):
         _sys_state = _sys_reading["substrate_state"]
     _is_healthy = status in ("OK", "SEAL")
     _has_degradation = bool(_substrate_only_degradation)
@@ -5879,6 +5875,11 @@ def _enforce_nine_signal(
                     "confidence",
                     "claim_state",
                     "degraded_state",
+                    # ACAH2 (2026-10-20): handoff transport status must survive
+                    # the nested→top flatten. A marker built at depth and then
+                    # projected out is the built-then-dropped failure class.
+                    "handoff_evidence",
+                    "missing_evidence",
                 ):
                     if _fk in _nested and _fk not in result_payload:
                         result_payload[_fk] = _nested[_fk]
@@ -8805,9 +8806,7 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
                     dst["substrate"] = {
                         "state": _sys["substrate_state"],
                         "drift": bool(_sys.get("substrate_degraded_causes")),
-                        "degraded_causes": list(
-                            _sys.get("substrate_degraded_causes") or []
-                        ),
+                        "degraded_causes": list(_sys.get("substrate_degraded_causes") or []),
                         "source": "system_reading",
                         "measured_at": _sys.get("measured_at"),
                     }
@@ -15809,8 +15808,8 @@ async def _arif_mind_reason_tool(
     witness_type: str = "ai",
     ctx: Context | None = None,
     concise: bool = True,
+    context: dict | None = None,
 ) -> dict[str, Any]:
-
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
 
@@ -15818,6 +15817,13 @@ async def _arif_mind_reason_tool(
     deterministic and go directly to _arif_mind_reason. Cognitive modes
     (reason, reflect, verify, critique, debate, socratic) route through
     runtime.mind_reason which provides FED-FEDERATION → Ollama → rule fallback.
+
+    context (2026-10-20, ACAH2 evidence journey): structured sideband.
+    context["handoff"] = hermes_handoff_package envelope. The recipient reports
+    evidence TRANSPORT status only (REFS_RESOLVED / EVIDENCE_NOT_RECEIVED /
+    EVIDENCE_UNAVAILABLE / HASH_MISMATCH) and never upgrades claim_state from a
+    handoff summary. Failure class closed: schema-stripped handoff (the
+    handoff never arrived but the answer read as if it did).
 
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
@@ -27976,6 +27982,95 @@ def _record_invocation(
         pass  # telemetry must never break the tool call it measures
 
 
+def _attach_handoff_evidence_from_input(resp: dict[str, Any], kwargs: dict[str, Any]) -> None:
+    """ACAH2 evidence journey (2026-10-20) — recipient-side transport truth.
+
+    Single wire choke point. The handler-level merges (mind_reason, tools/reason,
+    embodied instances) cannot survive the wrapper stack on every path:
+    `_filter_kwargs_for_handler` strips `context` from handlers whose signature
+    lacks it, `Synthesis(**bundle)` ignores undeclared fields, and the
+    AGI-readiness/concise rebuilds construct result dicts from literals. This
+    resolver reads the handoff envelope from the RAW call kwargs — which no
+    projection touches — and attaches at the final wire boundary:
+
+      handoff_evidence  — full transport record (REFS_RESOLVED /
+                          EVIDENCE_NOT_RECEIVED / EVIDENCE_UNAVAILABLE /
+                          HASH_MISMATCH per claim+ref)
+      missing_evidence  — human-readable markers incl. IDENTITY_UNVERIFIED
+      claim_state       — NEVER upgraded from a summary; downgraded to
+                          HYPOTHESIS when nothing was retrieved
+
+    Idempotent: never overwrites a handler-emitted handoff_evidence block.
+    """
+    if not isinstance(resp, dict):
+        return
+    ctx = kwargs.get("context")
+    handoff = ctx.get("handoff") if isinstance(ctx, dict) else None
+    if not isinstance(handoff, dict):
+        handoff = kwargs.get("handoff")
+    if not isinstance(handoff, dict):
+        return
+    try:
+        from arifosmcp.tools.reason import _resolve_handoff_evidence as _rhe
+
+        ev = _rhe({"handoff": handoff}) or {}
+    except Exception:
+        logger.debug("handoff evidence resolution failed", exc_info=True)
+        return
+    if not ev:
+        return
+    markers: list[str] = []
+    for c in ev.get("claims", []):
+        if c.get("evidence_transfer") == "EVIDENCE_NOT_RECEIVED":
+            markers.append(f"EVIDENCE_NOT_RECEIVED: {c.get('statement', '')}")
+        for r in c.get("refs", []):
+            if r.get("status") == "EVIDENCE_UNAVAILABLE":
+                markers.append(f"EVIDENCE_UNAVAILABLE: {r.get('ref', '')}")
+            elif r.get("status") == "HASH_MISMATCH":
+                markers.append(f"HASH_MISMATCH: {r.get('ref', '')}")
+        if not c.get("principal_key_safe", True):
+            markers.append("IDENTITY_UNVERIFIED: do not use this principal as a profile/memory key")
+    resolved = int(ev.get("summary", {}).get("resolved", 0) or 0)
+    _downgrade_note = (
+        "handoff evidence not retrieved — claim_state downgraded to HYPOTHESIS "
+        "(no status upgrade without new verification)"
+    )
+
+    def _apply(d: Any) -> None:
+        if not isinstance(d, dict):
+            return
+        if "handoff_evidence" not in d:
+            d["handoff_evidence"] = ev
+        me = d.get("missing_evidence")
+        if not isinstance(me, list):
+            me = []
+            d["missing_evidence"] = me
+        for m in markers:
+            if m not in me:
+                me.append(m)
+        if resolved == 0 and str(d.get("claim_state", "")).upper() in {
+            "CLAIM",
+            "VERIFIED_FACT",
+            "SUPPORTED_CLAIM",
+        }:
+            d["claim_state"] = "HYPOTHESIS"
+            if _downgrade_note not in me:
+                me.append(_downgrade_note)
+
+    _apply(resp)
+    res = resp.get("result")
+    if isinstance(res, dict):
+        _apply(res)
+        inner = res.get("result")
+        if isinstance(inner, dict):
+            _apply(inner)
+    logger.info(
+        "ACAH2 handoff evidence attached at wire: markers=%d resolved=%d",
+        len(markers),
+        resolved,
+    )
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """ "
         Wrap a handler so:
@@ -28472,6 +28567,12 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _schedule_seal(final_resp, tool_name, kwargs)
         # P3 FIX (2026-07-19): V2 envelope guarantee on the sync-success path.
         _attach_v2_envelope_guarantee(final_resp, tool_name)
+        # ACAH2 (2026-10-20): handoff evidence transport truth at the wire
+        # choke point — after all envelope normalization, before the trim.
+        try:
+            _attach_handoff_evidence_from_input(final_resp, kwargs)
+        except Exception:
+            logger.exception("handoff evidence attach suppressed")
         # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
         # Root cause: Supabase adapter (arifOS.supabase_adapter) was never
         # created. Old writer removed during incomplete migration. Silent

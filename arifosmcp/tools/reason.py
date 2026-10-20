@@ -914,6 +914,153 @@ def _run_reasoning_sync(coro: Any, timeout: float = 55.0) -> Any:
     return result["value"]
 
 
+def _resolve_handoff_evidence(context) -> dict:
+    """ACAH2 (2026-10-20) — recipient side of the evidence journey.
+
+    Accepts context["handoff"] (a hermes_handoff_package envelope) and reports
+    transport status per claim with precision:
+      REFS_RESOLVED      — reference retrieved via permitted access, hash matches
+      EVIDENCE_NOT_RECEIVED — handoff carried no retrievable reference
+      EVIDENCE_UNAVAILABLE — reference present but not retrievable here
+      HASH_MISMATCH      — retrieved content differs from source-time hash
+    Law: a missing ref is NOT "false"; a matching hash is NOT proof of truth —
+    it only detects change. This function never upgrades a status.
+    """
+    import hashlib as _hl
+    import os as _os
+
+    if not isinstance(context, dict):
+        return {}
+    handoff = context.get("handoff")
+    if not isinstance(handoff, dict):
+        return {}
+    claims = handoff.get("claims") or []
+    report = {
+        "envelope": handoff.get("envelope"),
+        "target_organ": handoff.get("target_organ"),
+        "purpose": handoff.get("purpose"),
+        "scopes": handoff.get("scopes"),
+        "status_upgrade": False,
+        "hash_note": ("sha256 detects content change only — it is not proof of truth"),
+        "claims": [],
+        "summary": {
+            "resolved": 0,
+            "not_received": 0,
+            "unavailable": 0,
+            "hash_mismatch": 0,
+        },
+    }
+    for e in claims:
+        if not isinstance(e, dict):
+            continue
+        principal = e.get("principal") if isinstance(e.get("principal"), dict) else {}
+        item = {
+            "statement": str(e.get("statement", ""))[:200],
+            "evidence_transfer": str(e.get("evidence_transfer", "EVIDENCE_NOT_RECEIVED")),
+            "verification_status": str(e.get("verification_status", "UNKNOWN")),
+            "identity_verified": bool(principal.get("identity_verified")),
+            "principal_key_safe": bool(e.get("principal_key_safe", True))
+            and bool(principal.get("identity_verified", True)),
+            "refs": [],
+        }
+        refs = e.get("evidence_refs") or []
+        if not refs:
+            report["summary"]["not_received"] += 1
+        for r in refs:
+            if not isinstance(r, dict):
+                continue
+            ref = str(r.get("ref", ""))
+            expected = str(r.get("sha256", ""))
+            status = "EVIDENCE_UNAVAILABLE"
+            sha_match = None
+            if ref and _os.path.isfile(ref):
+                try:
+                    with open(ref, "rb") as fh:
+                        actual = _hl.sha256(fh.read()).hexdigest()
+                    if expected:
+                        sha_match = actual == expected
+                        status = "REFS_RESOLVED" if sha_match else "HASH_MISMATCH"
+                    else:
+                        status = "REFS_RESOLVED"
+                except OSError:
+                    status = "EVIDENCE_UNAVAILABLE"
+            item["refs"].append({"ref": ref, "status": status, "sha256_match": sha_match})
+            if status == "REFS_RESOLVED":
+                report["summary"]["resolved"] += 1
+            elif status == "HASH_MISMATCH":
+                report["summary"]["hash_mismatch"] += 1
+            else:
+                report["summary"]["unavailable"] += 1
+        report["claims"].append(item)
+    return report
+
+
+def _apply_handoff_evidence(bundle: dict, handoff_ev: dict) -> None:
+    """Merge handoff evidence transport into the arif_think result bundle.
+
+    Acceptance criteria (2026-10-20 evidence-journey directive):
+      1. no status upgrade without new verification
+      4. missing evidence marked EVIDENCE_NOT_RECEIVED / EVIDENCE_UNAVAILABLE
+      5. hash mismatch flagged
+    Mutates bundle in place. Never flips UNVERIFIED/SUPPORTED downward claims
+    upward; when nothing was retrieved, a strong claim_state is downgraded to
+    HYPOTHESIS and the downgrade is recorded, not hidden.
+    """
+    if not handoff_ev:
+        return
+    ro = bundle.get("reasoning_output")
+    if not isinstance(ro, dict):
+        ro = bundle.get("result") if isinstance(bundle.get("result"), dict) else bundle
+    if not isinstance(ro, dict):
+        return
+    resolved = [
+        r
+        for c in handoff_ev.get("claims", [])
+        for r in c.get("refs", [])
+        if r.get("status") == "REFS_RESOLVED"
+    ]
+    if resolved:
+        used = ro.get("evidence_used")
+        ro["evidence_used"] = list(used) if isinstance(used, list) else []
+        ro["evidence_used"].extend(resolved)
+    markers = []
+    for c in handoff_ev.get("claims", []):
+        if c.get("evidence_transfer") == "EVIDENCE_NOT_RECEIVED":
+            markers.append(f"EVIDENCE_NOT_RECEIVED: {c.get('statement', '')}")
+        for r in c.get("refs", []):
+            if r.get("status") == "EVIDENCE_UNAVAILABLE":
+                markers.append(f"EVIDENCE_UNAVAILABLE: {r.get('ref', '')}")
+            elif r.get("status") == "HASH_MISMATCH":
+                markers.append(f"HASH_MISMATCH: {r.get('ref', '')}")
+        if not c.get("principal_key_safe", True):
+            markers.append(
+                "IDENTITY_UNVERIFIED: principal "
+                f"{c.get('statement', '')[:40]!r} carried identity_verified=false "
+                "— never use as profile/memory key"
+            )
+    if markers:
+        me = ro.get("missing_evidence")
+        ro["missing_evidence"] = list(me) if isinstance(me, list) else []
+        ro["missing_evidence"].extend(markers)
+    if handoff_ev.get("summary", {}).get("resolved", 0) == 0:
+        for _lvl in (ro, bundle):
+            if isinstance(_lvl, dict) and str(_lvl.get("claim_state", "")).upper() in {
+                "CLAIM",
+                "VERIFIED_FACT",
+                "SUPPORTED_CLAIM",
+            }:
+                _lvl["claim_state"] = "HYPOTHESIS"
+                _lvl.setdefault("missing_evidence", []).append(
+                    "handoff evidence not retrieved — claim_state downgraded to "
+                    "HYPOTHESIS (no status upgrade without new verification)"
+                )
+    # Set at both levels — projections differ per surface; the block must
+    # survive at whichever level the consumer reads.
+    if isinstance(ro, dict):
+        ro["handoff_evidence"] = handoff_ev
+    bundle["handoff_evidence"] = handoff_ev
+
+
 def arif_think(
     mode: str = "reason",
     query: str | None = None,
@@ -980,11 +1127,18 @@ def arif_think(
     _raw_role = (context or {}).get("role")
     if not _raw_role and query:
         import re
-        _role_match = re.search(r"\b(?:role|as a|as an)\s*[:=]?\s*([a-zA-Z0-9_\-\s]{3,30})\b", query, re.I)
+
+        _role_match = re.search(
+            r"\b(?:role|as a|as an)\s*[:=]?\s*([a-zA-Z0-9_\-\s]{3,30})\b", query, re.I
+        )
         if _role_match:
             _raw_role = _role_match.group(1).strip()
 
-    _declared_role = _raw_role if (_raw_role and _raw_role.strip().lower() not in ("none", "null", "unknown", "")) else "UNKNOWN"
+    _declared_role = (
+        _raw_role
+        if (_raw_role and _raw_role.strip().lower() not in ("none", "null", "unknown", ""))
+        else "UNKNOWN"
+    )
 
     def _echo_standing(env: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(env, dict):
@@ -1176,7 +1330,9 @@ def arif_think(
             "P": apex_dict["primitives"]["P"],
             "E": apex_dict["primitives"]["E"],
             "X": apex_dict["primitives"]["X"],
-            "Phi": apex_dict["primitives"].get("tri_witness", apex_dict["primitives"].get("Phi", 0.0)),
+            "Phi": apex_dict["primitives"].get(
+                "tri_witness", apex_dict["primitives"].get("Phi", 0.0)
+            ),
             "tri_witness": apex_dict["primitives"].get("tri_witness", 0.0),
             "G_seal": apex_dict["gate_layer"]["G_seal"],
             "equation": APEX_EQUATION,
@@ -1190,7 +1346,9 @@ def arif_think(
             "actor_authority": {
                 "verified": _is_actor_verified,
                 "scope": "observe_only",
-                "note": "G-fold is advisory evidence. Only arif_judge may SEAL." if not _is_actor_verified else "Actor identity verified. G-fold is advisory evidence.",
+                "note": "G-fold is advisory evidence. Only arif_judge may SEAL."
+                if not _is_actor_verified
+                else "Actor identity verified. G-fold is advisory evidence.",
             },
             "reasoning_output": {
                 "claim_state": "DERIVED",
@@ -1432,7 +1590,9 @@ def arif_think(
             "actor_authority": {
                 "verified": _is_actor_verified,
                 "scope": "observe_only",
-                "note": "Actor identity verified." if _is_actor_verified else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
+                "note": "Actor identity verified."
+                if _is_actor_verified
+                else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
             },
             "reasoning_output": {
                 "claim_state": str(packet.get("claim_state", "UNKNOWN")).upper(),
@@ -1473,6 +1633,9 @@ def arif_think(
             },
             "mind_routing": _routing["_mind_routing"],
         }
+        _handoff_ev_m = _resolve_handoff_evidence(context)
+        if _handoff_ev_m:
+            _apply_handoff_evidence(bundle, _handoff_ev_m)
         return Synthesis(**_echo_standing(_ok("arif_think", bundle, session_id=session_id)))
 
     # Floor check (Manual override check)
@@ -1517,7 +1680,9 @@ def arif_think(
         "actor_authority": {
             "verified": _is_actor_verified,
             "scope": "observe_only",
-            "note": "Actor identity verified." if _is_actor_verified else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
+            "note": "Actor identity verified."
+            if _is_actor_verified
+            else "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
         },
         "reasoning_output": {
             "claim_state": str(reason_result.get("claim_state", "UNKNOWN")).upper(),
@@ -1555,8 +1720,14 @@ def arif_think(
         "governance_check": {
             "floors_checked": list(floor_check.get("checked_laws", [])),
             "floors_violated": list(floor_check.get("violated_laws", [])),
-            "verdict": "HOLD" if reason_result.get("degraded_state") else ("PASS" if floor_verdict == "SEAL" else "HOLD"),
-            "reason": (f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}" if reason_result.get("degraded_state") else ("All floors passed" if floor_verdict == "SEAL" else floor_reason)),
+            "verdict": "HOLD"
+            if reason_result.get("degraded_state")
+            else ("PASS" if floor_verdict == "SEAL" else "HOLD"),
+            "reason": (
+                f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}"
+                if reason_result.get("degraded_state")
+                else ("All floors passed" if floor_verdict == "SEAL" else floor_reason)
+            ),
         },
         "truth_verdict": {
             "sealed": False,
@@ -1569,16 +1740,26 @@ def arif_think(
         "called_from_kernel": _called_from_kernel,
         "invocation_count": _invocation_count,
     }
+    _handoff_ev = _resolve_handoff_evidence(context)
+    if _handoff_ev:
+        _apply_handoff_evidence(bundle, _handoff_ev)
     if reason_result.get("degraded_state"):
         bundle["degraded_state"] = reason_result["degraded_state"]
 
     if floor_verdict != "SEAL" or reason_result.get("degraded_state"):
-        eff_reason = (f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}" if reason_result.get("degraded_state") else floor_reason)
+        eff_reason = (
+            f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}"
+            if reason_result.get("degraded_state")
+            else floor_reason
+        )
         hold_env = _hold(
             "arif_think",
             eff_reason,
             floors=list(floor_check.get("violated_laws", [])),
-            extra_meta={"floor_verdict": floor_verdict, "degraded_state": reason_result.get("degraded_state")},
+            extra_meta={
+                "floor_verdict": floor_verdict,
+                "degraded_state": reason_result.get("degraded_state"),
+            },
             session_id=session_id,
         )
         hold_env["result"] = bundle
