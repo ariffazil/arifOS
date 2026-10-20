@@ -94,6 +94,36 @@ def main() -> int:
     check("positive", "report.file is a declared write", "arif_report", "file",
           "MUTATE", "MUTATE")
 
+    # ── GATE INTEGRATION: the deployed classifier must escalate too ────────
+    # These call the real resolve_action_class_for_mode, not the resolver.
+    # Before 2026-10-20 21:46 this returned OBSERVE for every row below.
+    from arifosmcp.runtime.pre_execution_gate import (
+        ActionClass,
+        resolve_action_class_for_mode,
+    )
+
+    gate_cases = [
+        ("memory.forget claimed OBSERVE", "arif_memory", "forget", "OBSERVE", "IRREVERSIBLE"),
+        ("memory.promote claimed OBSERVE", "arif_memory", "promote", "OBSERVE", "IRREVERSIBLE"),
+        ("forge.commit claimed IRREVERSIBLE", "arif_forge", "commit", "IRREVERSIBLE", "IRREVERSIBLE"),
+        ("forge.commit claimed OBSERVE", "arif_forge", "commit", "OBSERVE", "IRREVERSIBLE"),
+        ("report.file claimed OBSERVE", "arif_report", "file", "OBSERVE", "MUTATE"),
+        ("route.metabolize claimed OBSERVE", "arif_route", "metabolize", "OBSERVE", "ANALYZE"),
+        # positive controls: escalation must not over-reach
+        ("memory.recall stays a read", "arif_memory", "recall", "OBSERVE", "OBSERVE"),
+        ("forge.dry_run stays a read", "arif_forge", "dry_run", "OBSERVE", "OBSERVE"),
+        ("think.axioms stays a read", "arif_think", "axioms", "OBSERVE", "OBSERVE"),
+        ("seal.verify stays a read", "arif_seal", "verify", "OBSERVE", "OBSERVE"),
+    ]
+    for label, tool, mode, claim, expect in gate_cases:
+        try:
+            got = resolve_action_class_for_mode(tool, mode, ActionClass[claim]).name
+            ok = got == expect
+            rows.append(("gate", PASS if ok else FAIL,
+                         f"{label}: {claim} → {got}" + ("" if ok else f" (expected {expect})")))
+        except Exception as e:
+            rows.append(("gate", FAIL, f"{label}: raised {type(e).__name__}: {e}"))
+
     # ── contract summary is readable (receipt line for future wiring) ──────
     s = contract_summary("arif_memory", "forget")
     rows.append(("summary", PASS if s and s["recovery"] == "permanent" else FAIL,
