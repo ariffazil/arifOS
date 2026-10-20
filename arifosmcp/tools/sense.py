@@ -1009,15 +1009,20 @@ def arif_observe(
             from core.governance_kernel import get_governance_kernel
 
             _gk = get_governance_kernel(session_id or "global")
-            _gk.record_event(
-                "action",
-                {
-                    "tool": "arif_observe",
-                    "mode": "hybrid_discovery",
-                    "query": q,
-                    "actor_id": actor_id,
-                },
-            )
+            _evt = {
+                "tool": "arif_observe",
+                "mode": "hybrid_discovery",
+                "query": q,
+                "actor_id": actor_id,
+            }
+            _gk.record_event("action", _evt)
+            # Federation-level mirror (2026-10-20 keying fix): floors/telemetry are
+            # measured on the "global" kernel instance — reality_scoring.probe_governance_
+            # events() reads get_governance_kernel() with no args. Session-scoped events
+            # alone never reach the measured instance, so F5/F6 stayed flat baselines
+            # (rest_routes SCAR-OBS-GREENWASH). Genuine events only — no synthesis.
+            if session_id:
+                get_governance_kernel("global").record_event("action", _evt)
             kernel_result = _gk.evaluate_floors(
                 query=q,
                 options={
