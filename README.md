@@ -38,15 +38,14 @@ generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit,
 
 In a world where intelligence is abundant, authority becomes the scarce resource. arifOS keeps judgment independent from execution.
 
-[Quick Start](#30-second-proof) · [MCP Endpoint](#connect-an-mcp-client) · [Current Verified State](#current-verified-state) · [Agent surfaces](#machine-readable-surfaces) · [Known Gaps](#what-is-not-yet-proven) · [Security](./SECURITY.md)
+[Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
 
-[![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
-[![Awesome AI Governance](https://img.shields.io/badge/Awesome-AI_Agent_Governance-orange?style=flat-square)](https://github.com/agentrust-io/awesome-ai-governance#governance-frameworks)
-[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
-[![Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
-[![Security audit](https://img.shields.io/badge/security-audit_in_progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
+[![Python](https://img.shields.io/pypi/pyversions/arifos?style=flat-square)](https://pypi.org/project/arifos)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](./LICENSE)
+[![Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
+[![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
+[![Security audit](https://img.shields.io/badge/audit-partial_in_progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 
 > **Proposer ≠ Judge ≠ Executor ≠ Witness**
 > **Human sovereignty > machine authority**
