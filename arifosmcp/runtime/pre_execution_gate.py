@@ -1214,7 +1214,7 @@ def _model_hazard_check(
     return None
 
 
-def resolve_action_class_for_mode(
+def _resolve_from_manifest(
     tool_name: str,
     tool_mode: str,
     requested_action: ActionClass,
@@ -1279,6 +1279,62 @@ def resolve_action_class_for_mode(
         )
 
     return requested_action
+
+
+def resolve_action_class_for_mode(
+    tool_name: str,
+    tool_mode: str,
+    requested_action: ActionClass,
+) -> ActionClass:
+    """Manifest classification, then escalated by the per-mode contract.
+
+    The manifest is per-TOOL: it declares arif_memory action_class=OBSERVE for
+    the entire tool, so `forget` (permanent deletion) claimed as OBSERVE was
+    admitted as OBSERVE — proved by direct call on the deployed package,
+    2026-10-20. The contract layer can only ESCALATE; it never weakens what
+    the manifest already decided, and it refuses an undeclared mode that
+    would mutate instead of inheriting the caller's claim.
+    """
+    effective = _resolve_from_manifest(tool_name, tool_mode, requested_action)
+
+    canonical = _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+    mode = (tool_mode or "").strip().lower()
+    if not mode:
+        # No mode context: the contract layer is per-MODE, so there is nothing
+        # to resolve. The manifest floor already applied inside
+        # _resolve_from_manifest (an OBSERVE claim on a MUTATE tool raises
+        # ForgedClassificationError there). Refusing solely for absence of a
+        # mode would break every legitimate no-mode caller.
+        return effective
+    try:
+        from arifosmcp.runtime.mode_contract_gate import (
+            CONTRACT_TO_GATE,
+            ContractUnavailable,
+            RANK,
+            _contracts,
+        )
+    except Exception:
+        return effective  # contract layer unavailable — manifest result stands
+
+    spec = _contracts().get(f"{canonical}.{mode}") if mode else None
+    if spec is None:
+        if RANK.get(effective.name, 0) >= RANK["MUTATE"]:
+            entry = CANONICAL_TOOL_MANIFEST.get(canonical)
+            known = entry is not None and (
+                mode in {m.lower() for m in (entry.safe_modes or [])}
+                or mode in {m.lower() for m in (entry.dangerous_modes or [])}
+            )
+            if not known:
+                raise ContractUnavailable(
+                    canonical, mode, requested_action.name,
+                    "undeclared mode would mutate state; declare it in "
+                    "abi/mode_contracts.json")
+        return effective
+
+    declared = CONTRACT_TO_GATE[spec["action_class"]]
+    if RANK.get(declared, 0) > RANK.get(effective.name, 0):
+        return ActionClass[declared]
+    return effective
 
 
 def pre_execution_gate(
