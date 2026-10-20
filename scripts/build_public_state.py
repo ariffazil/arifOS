@@ -636,6 +636,11 @@ def project_public_state(
         "generated_at": now_iso(),
         "headline": headline,
         "planes": planes,
+        # ── Class B (2026-10-20): carry the snapshot's metabolism stages
+        # (000_INIT…, per-field envelopes with origin + confidence) so the
+        # observatory renderMetabolism panel reads measured data instead of
+        # "unavailable". Projection-carry only — no new telemetry.
+        "metabolism": snap.get("metabolism") if isinstance(snap.get("metabolism"), list) else [],
         "organs": organs_normalized,
         "release": {
             "release_id": release_id,
@@ -669,6 +674,20 @@ def project_public_state(
             "confidence": ri.get("confidence"),
             "source": "snapshot.runtime_identity+release",
             "observed_at": snap.get("observed_at"),
+        },
+        # ── Footer signature (P1, additive): observatory.js footer reads
+        # data.signature.{algorithm,key_id,payload_hash,signed_at} and derives
+        # trust display from signature.algorithm. The snapshot already carries
+        # a full ed25519 signature record — carry it through so the footer
+        # reports the real signature instead of the 'unsigned' fallback.
+        "signature": {
+            "algorithm": (snap.get("signature") or {}).get("algorithm"),
+            "key_id": (snap.get("signature") or {}).get("key_id"),
+            "payload_hash": (snap.get("signature") or {}).get("payload_hash"),
+            "signed_at": (snap.get("signature") or {}).get("signed_at"),
+            "state": (snap.get("signature") or {}).get("state"),
+            "verification_url": (snap.get("signature") or {}).get("verification_url"),
+            "source": "snapshot.signature",
         },
         "mcp": {
             "endpoint": "https://mcp.arif-fazil.com/mcp",
@@ -712,9 +731,9 @@ def project_public_state(
         "ariflow": {
             "fq_quotient": extra.get("ariflow_fq_quotient"),
             "fq_verdict": extra.get("ariflow_fq_verdict"),
-            "execute_count": extra.get("arifflow_execute_count"),
+            "execute_count": extra.get("ariflow_execute_count"),
             "verify_count": extra.get("ariflow_verify_count"),
-            "receipts": extra.get("arifflow_receipts"),
+            "receipts": extra.get("ariflow_receipts"),
             "uptime_ms": extra.get("ariflow_uptime_ms"),
             "status": extra.get("ariflow_status"),  # P0-A
             "source": extra.get("ariflow_source", "ariflow:7073/health"),

@@ -107,8 +107,7 @@ def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
         greenwash = [
             fid
             for fid, origin in prov.items()
-            if str(origin).startswith("unmeasured_default")
-            and statuses.get(fid) == "pass"
+            if str(origin).startswith("unmeasured_default") and statuses.get(fid) == "pass"
         ]
     else:
         greenwash = [
@@ -260,8 +259,57 @@ def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
     return {"floor": "F13", "status": "PASS", "origin": "seal_chain"}
 
 
+def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
+    """F5 PEACE² = non-destructive power (MEASUREMENT_CLOSURE tranche 2, 2026-10-20).
+
+    Every recent seal must be either reversible or carry explicit human
+    ratification for its irreversibility. An IRREVERSIBLE action without
+    ratification is destructive power → FAIL. Mirrors the F13 source contract
+    (seal_chain tail, read-only) so both floors read the same evidence.
+    """
+    seals = sources.get("seals")
+    if seals is None:
+        return {
+            "floor": "F5",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_chain_unreachable",
+        }
+    if not seals:
+        return {
+            "floor": "F5",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_chain_empty",
+        }
+    for s in seals:
+        payload = s.get("payload") or {}
+        reversibility = str(
+            payload.get("reversibility")
+            or payload.get("reversibility_level")
+            or s.get("reversibility")
+            or ""
+        ).upper()
+        if reversibility != "IRREVERSIBLE":
+            continue
+        ratified = (
+            payload.get("human_ratifier")
+            or payload.get("human_signature")
+            or s.get("human_ratifier")
+            or s.get("human_signature")
+        )
+        if not ratified:
+            return {
+                "floor": "F5",
+                "status": "FAIL",
+                "origin": "seal_chain",
+                "reason": "unratified_irreversible_action",
+                "actor": s.get("actor"),
+            }
+    return {"floor": "F5", "status": "PASS", "origin": "seal_chain"}
+
+
 _PRODUCERS = {
     "F2": _f2_truth,
+    "F5": _f5_peace,
     "F11": _f11_audit,
     "F12": _f12_injection,
     "F13": _f13_sovereign,
