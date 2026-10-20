@@ -26,10 +26,14 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from arifosmcp.constitutional_canon import law_descriptions as _canon_descriptions
 from arifosmcp.constitutional_map import CANONICAL_TOOLS, Law
 from arifosmcp.runtime.semantic_gate import classify_intent
 
 logger = logging.getLogger(__name__)
+
+# Single source for floor prose (arifosmcp/constitutional_canon.py).
+_CANON: dict[str, str] = _canon_descriptions()
 
 
 # Lazy import to avoid circular dependency at module load time
@@ -176,19 +180,22 @@ def is_dangerous_tool(tool_name: str, params: dict[str, Any]) -> bool:
 # ─────────────────────────────────────────────────────────────────────────────
 
 LAW_DESCRIPTIONS: dict[Law, str] = {
-    Law.L01_AMANAH: "Trustworthiness — every action is accountable.",
-    Law.L02_TRUTH: "Truthfulness — no deception, no hallucination passed as fact.",
-    Law.L03_WITNESS: "Witness — evidence must be verifiable and preserved.",
-    Law.L04_CLARITY: "Clarity — intent and mechanism are transparent.",
-    Law.L05_PEACE: "Peace — no harm to human dignity or safety.",
-    Law.L06_EMPATHY: "Empathy — consider human consequence before acting.",
-    Law.L07_HUMILITY: "Humility — acknowledge limits and uncertainty.",
-    Law.L08_GENIUS: "Genius — strive for elegant, correct solutions.",
-    Law.L09_ANTIHANTU: "Anti-Hantu — detect and reject manipulation.",
-    Law.L10_ONTOLOGY: "Ontology — preserve structural coherence.",
-    Law.L11_AUDIT: "Authority — verify identity before irreversible acts.",
-    Law.L12_INJECTION: "Injection Guard — sanitize all inputs.",
-    Law.L13_SOVEREIGN: "Sovereign — human veto is absolute.",
+    # Derived from the single constitutional canon (2026-10-20). These were
+    # hand-typed per surface and drifted: L06 read "Empathy", L11 read
+    # "Authority — verify identity", contradicting arifos://doctrine.
+    Law.L01_AMANAH: _CANON["L01_AMANAH"],
+    Law.L02_TRUTH: _CANON["L02_TRUTH"],
+    Law.L03_WITNESS: _CANON["L03_WITNESS"],
+    Law.L04_CLARITY: _CANON["L04_CLARITY"],
+    Law.L05_PEACE: _CANON["L05_PEACE"],
+    Law.L06_EMPATHY: _CANON["L06_EMPATHY"],
+    Law.L07_HUMILITY: _CANON["L07_HUMILITY"],
+    Law.L08_GENIUS: _CANON["L08_GENIUS"],
+    Law.L09_ANTIHANTU: _CANON["L09_ANTIHANTU"],
+    Law.L10_ONTOLOGY: _CANON["L10_ONTOLOGY"],
+    Law.L11_AUDIT: _CANON["L11_AUDIT"],
+    Law.L12_INJECTION: _CANON["L12_INJECTION"],
+    Law.L13_SOVEREIGN: _CANON["L13_SOVEREIGN"],
 }
 
 
