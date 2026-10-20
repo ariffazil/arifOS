@@ -829,7 +829,7 @@ mcp = FastMCP(
         "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
         "  arif_forge   — Ready to execute? Governed execution path. (arif_compose → mode=compose)\n"
         "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
-        "Key resources (38 static + 24 templates = 62 total):\n"
+        "Key resources (41 static + 27 templates = 68 total):\n"
         "  Core: arifos://doctrine, identity, vitals, bootstrap, schema, trinity,\n"
         "        arifos://civilization, jurisdiction, refusal-surface, seal-readiness,\n"
         "        arifos://loop-engineering, quickstart, mcp-alignment, memory,\n"

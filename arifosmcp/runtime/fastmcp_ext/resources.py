@@ -572,7 +572,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "  arif_judge   — Decision time? Constitutional verdict.\n"
             "  arif_forge   — Ready to execute? Governed execution.\n"
             "  arif_seal    — Need finality? VAULT999 immutable append.\n\n"
-            "KEY RESOURCES (38 static + 24 templates = 62 total):\n"
+            "KEY RESOURCES (41 static + 27 templates = 68 total):\n"
             "  Core: arifos://doctrine, identity, vitals, bootstrap, schema, trinity, civilization, jurisdiction, refusal-surface, seal-readiness, loop-engineering, quickstart, mcp-alignment, memory, human/metabolized, reality/state, mcp/surface-map\n"
             "  Operational: arifos://carry-forward, flow-state, init/agent_init, instructions\n"
             "  ATLAS333: arifos://atlas333/* (index, paradox, zones, thresholds, activation, flow, geometry, seal/head, quote/list)\n"
