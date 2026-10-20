@@ -378,7 +378,10 @@ def _read_well_substrate() -> dict[str, Any]:
     truth_status: str = state.get("truth_status", "UNVERIFIED")
     has_metrics = bool(
         isinstance(metrics, dict)
-        and any(metrics.get(d) for d in ("sleep", "stress", "cognitive", "metabolic", "structural", "derived"))
+        and any(
+            metrics.get(d)
+            for d in ("sleep", "stress", "cognitive", "metabolic", "structural", "derived")
+        )
     )
 
     if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED", "INSUFFICIENT_DATA"):
@@ -399,7 +402,15 @@ def _read_well_substrate() -> dict[str, Any]:
     # Truthful status: if we have no valid telemetry metrics or truth is unverified/insufficient,
     # packet status is honest ('insufficient_data' or 'degraded'), never pretend to be cleanly 'available'
     # without telemetry.
-    packet_status = "available" if (has_metrics and well_score is not None and truth_status not in ("VOID", "TEST", "UNVERIFIED", "INSUFFICIENT_DATA")) else "insufficient_data"
+    packet_status = (
+        "available"
+        if (
+            has_metrics
+            and well_score is not None
+            and truth_status not in ("VOID", "TEST", "UNVERIFIED", "INSUFFICIENT_DATA")
+        )
+        else "insufficient_data"
+    )
 
     packet: dict[str, Any] = {
         "status": packet_status,
@@ -3433,8 +3444,11 @@ async def arif_judge(
             "verdict": degradation_verdict,
             "reasons": [
                 f"LATENCY_TIMEOUT: judge exceeded {budget.max_latency_ms}ms budget "
-                f"for {decision_class_latency.value}. Degraded to {degradation_verdict} "
-                f"(preventive timeout — deliberation did not complete)."
+                f"for {decision_class_latency.value}. Deliberation did not complete — "
+                f"NO VERDICT RENDERED. Budget degradation verdict = {degradation_verdict} "
+                f"(recorded in meta.degradation). Whether the envelope reads VOID/blocked "
+                f"or the budget's {degradation_verdict}, the meaning is the same: no "
+                f"judgment was reached, so no verdict may be cited from this call."
             ],
             "next_safe_action": "Re-run with narrower scope or escalate to sovereign (C4 unbounded).",
         }
