@@ -22,11 +22,61 @@ Health endpoint   → GET /health
 
 Machine-readable surfaces:
 ```
+/server.json                  — Official MCP Registry manifest (registry.modelcontextprotocol.io)
 /.well-known/mcp/server.json  — MCP server metadata
 /llms.txt                     — LLM-readable summary
 /llms-full.txt                — Full LLM-readable docs
 /tools                        — Public tool inventory
 /tools.json                   — Tool inventory (JSON)
+```
+
+## Client Configuration Snippets
+
+### Cursor (`~/.cursor/mcp.json`)
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "url": "https://mcp.arif-fazil.com/mcp"
+    }
+  }
+}
+```
+
+### Cline (`cline_mcp_settings.json`)
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "type": "streamableHttp",
+      "url": "https://mcp.arif-fazil.com/mcp"
+    }
+  }
+}
+```
+
+### Windsurf (`mcp_config.json`)
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "type": "streamable-http",
+      "serverUrl": "https://mcp.arif-fazil.com/mcp"
+    }
+  }
+}
+```
+
+### Claude Desktop (`claude_desktop_config.json`)
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.arif-fazil.com/mcp"]
+    }
+  }
+}
 ```
 
 ## Session lifecycle
