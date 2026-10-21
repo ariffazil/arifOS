@@ -433,7 +433,7 @@ echo "$GIT_COMMIT" >"$STAMP_FILE"
 # audit P0 "status contract"). Write BOTH truths from ONE place, every deploy.
 RECEIPT_DIR="/opt/arifos/current/receipts"
 mkdir -p "$RECEIPT_DIR"
-python3 - "$RECEIPT_DIR/latest.json" "$GIT_COMMIT" "$GIT_BRANCH" "$BUILD_TS" <<'PYRC'
+python3 - "$RECEIPT_DIR/latest.json" "$GIT_COMMIT" "$(git -C "$REPO_DIR" branch --show-current 2>/dev/null || echo main)" "$BUILD_TS" <<'PYRC'
 import json, sys
 path, commit, branch, ts = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 try:
