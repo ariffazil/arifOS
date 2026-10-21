@@ -4001,7 +4001,6 @@ def register_rest_routes(
             _fid: _floor_status_with_provenance(_fid, _sc, _floor_provenance.get(_fid))
             for _fid, _sc in _floors_scores.items()
         }
-        _floors_pass_count = sum(1 for _st in _floor_detail.values() if _st == _FLOOR_STATUS_PASS)
         _floors_total = get_floor_count()
 
         # floors_failing is MEASURED FAILS ONLY (2026-10-07). It used to be
@@ -6053,6 +6052,43 @@ def register_rest_routes(
                 # active session that has been verified should pass the gate.
                 _rest_session_id = body.get("session_id") or ""
                 _rest_actor_id = body.get("actor_id") or ""
+                # Call-time cryptographic identity (2026-10-21): verify ACT token
+                # / Ed25519 proof BEFORE the gate reads _is_actor_verified, so a
+                # call carrying a valid credential promotes its OWN session and
+                # the gate sees the real crypto result. Unsigned calls skip this
+                # entirely — _is_actor_verified keeps returning False (fail-closed).
+                try:
+                    from arifosmcp.runtime.calltime_identity import (
+                        extract_act_token,
+                        verify_caller_identity,
+                    )
+
+                    _ct = verify_caller_identity(
+                        _rest_session_id,
+                        _rest_actor_id,
+                        token=extract_act_token(
+                            body=body,
+                            headers={
+                                k: v
+                                for k, v in request.headers.items()
+                                if k.lower() in ("x-act-token",)
+                            },
+                            authorization=request.headers.get("authorization"),
+                        ),
+                        ed25519_proof=body.get("ed25519_proof")
+                        if isinstance(body.get("ed25519_proof"), dict)
+                        else None,
+                    )
+                    if _ct.verified:
+                        logger.info(
+                            "calltime_identity verified: actor=%s method=%s session=%s promoted=%s",
+                            _ct.actor,
+                            _ct.method,
+                            _ct.session_id or "-",
+                            _ct.promoted_to_session,
+                        )
+                except Exception as _ct_exc:  # fail-closed: gate still reads False
+                    logger.warning("calltime_identity skipped: %s", _ct_exc)
                 _gate_result = quick_gate(
                     action_class=_rest_action,
                     actor_verified=_is_actor_verified(_rest_session_id, _rest_actor_id),
