@@ -3017,18 +3017,27 @@ def _read_deploy_provenance() -> dict[str, str]:
 
     BUILD_INFO answers "what was compiled?"; receipt answers "what is running?".
     Two questions, two field families.
+
+    F2 STALENESS GUARD (2026-10-21, 333-AGI — external audit P0 "status
+    contract"): the receipt is written by deploy tooling and can go stale when
+    a deploy path skips it. When receipt.commit_sha disagrees with the
+    deployed-commit stamp (/opt/arifos/releases/deployed-commit, written by
+    deploy-release.sh at deploy time), the STAMP wins and the disagreement is
+    flagged — one question, one answer.
     """
     receipt_path = Path(
         os.getenv("ARIFOS_DEPLOY_RECEIPT_PATH", "/opt/arifos/current/receipts/latest.json")
     )
+    deployed_commit = "UNKNOWN"
+    deployed_branch = "UNKNOWN"
+    deployed_at = "UNKNOWN"
+    receipt_stale = False
     try:
         if receipt_path.is_file():
             data = json.loads(receipt_path.read_text(encoding="utf-8"))
-            return {
-                "deployed_commit": str(data.get("commit_sha") or "UNKNOWN"),
-                "deployed_branch": str(data.get("branch") or "UNKNOWN"),
-                "deployed_at": str(data.get("build_time") or "UNKNOWN"),
-            }
+            deployed_commit = str(data.get("commit_sha") or "UNKNOWN")
+            deployed_branch = str(data.get("branch") or "UNKNOWN")
+            deployed_at = str(data.get("build_time") or "UNKNOWN")
     except Exception as exc:
         logger.warning(
             "Failed to read deploy provenance receipt at %s: %s: %s",
@@ -3036,10 +3045,22 @@ def _read_deploy_provenance() -> dict[str, str]:
             type(exc).__name__,
             exc,
         )
+    # Cross-check against the deploy stamp (deploy-release.sh writes it every run).
+    try:
+        from arifosmcp.runtime.build import DEPLOYED_COMMIT_STAMP
+
+        stamp = DEPLOYED_COMMIT_STAMP.read_text().strip()
+        if stamp and len(stamp) >= 7:
+            if deployed_commit == "UNKNOWN" or not deployed_commit.startswith(stamp[:7]):
+                receipt_stale = True
+                deployed_commit = stamp
+    except Exception:
+        pass
     return {
-        "deployed_commit": "UNKNOWN",
-        "deployed_branch": "UNKNOWN",
-        "deployed_at": "UNKNOWN",
+        "deployed_commit": deployed_commit,
+        "deployed_branch": deployed_branch,
+        "deployed_at": deployed_at,
+        "receipt_stale": str(receipt_stale).lower(),
     }
 
 
@@ -4375,6 +4396,7 @@ def register_rest_routes(
             "deployed_commit": _deploy_prov["deployed_commit"],
             "deployed_branch": _deploy_prov["deployed_branch"],
             "deployed_at": _deploy_prov["deployed_at"],
+            "deployed_commit_receipt_stale": _deploy_prov.get("receipt_stale", "false"),
             # ── AXIS-QUALIFIED DRIFT (surface-consistency audit 2026-09-21) ──
             # `**_drift` above re-emits runtime_drift from the RAW probe, shadowing
             # the value OR'd with the software-release attestation (~line 3210).
