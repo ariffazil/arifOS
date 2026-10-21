@@ -66,7 +66,7 @@ VERDICT_STATE_VERSION = 1
 OBSERVE_ONLY = "OBSERVE_ONLY"
 SEAL = "SEAL"
 SABAR = "SABAR"  # canonical: proceed-cautiously / partial coverage.
-                  # NOT sabar_gate.py's SABAR_HOLD (gate-local F7/F9 hold).
+# NOT sabar_gate.py's SABAR_HOLD (gate-local F7/F9 hold).
 VOID = "VOID"
 HOLD = "HOLD"
 HOLD_888 = "888_HOLD"
@@ -393,6 +393,15 @@ def attach_effective_verdict(
     existing = response.get("effective_verdict")
     if isinstance(existing, str) and existing.strip():
         inner_verdict = _worse_verdict(existing, inner_verdict)
+    # [U4 2026-10-21 — eval-calibration audit closure] Simpan verdict asal
+    # judge dan sekatan wrapper secara BERASINGAN daripada effective_verdict.
+    # Sebelum ini _strip_legacy_verdict memadam verdict asal (SABAR) apabila
+    # wrapper dominan (HOLD) — fixture bukti: verdict(asal)=None. Tiga medan:
+    #   verdict_inner              = verdict judge sebelum dominasi wrapper
+    #   verdict_wrapper_restriction= sebab wrapper menahan (atau null)
+    #   effective_verdict          = keputusan efektif (tidak berubah)
+    verdict_inner_original = inner_verdict
+    wrapper_restriction = None
     sub = response.get("substrate")
     if not isinstance(sub, dict):
         res = response.get("result")
@@ -402,6 +411,7 @@ def attach_effective_verdict(
     ):
         # Degraded substrate cannot surface as SEAL (P1.3).
         inner_verdict = _worse_verdict(inner_verdict, HOLD)
+        wrapper_restriction = "substrate_degraded_dominates"
     effective = compose_effective_verdict(
         inner_verdict=inner_verdict,
         session_authority_band=session_authority_band,
@@ -413,6 +423,10 @@ def attach_effective_verdict(
     response["next_action"] = effective.next_action
     response["execution_state"] = effective.execution_state
     response["status_scope"] = "execution"
+    # [U4] Tiga medan berasingan — verdict asal tak lagi hilang bila wrapper
+    # dominan. Additive sahaja; tiada pengguna sedia ada berubah.
+    response["verdict_inner"] = verdict_inner_original
+    response["verdict_wrapper_restriction"] = wrapper_restriction
     # P0 schema-fix 2026-08-17: close the envelope with nine_signal + output_policy
     # before downstream mutation_allowed sync. Pass effective.verdict (not status)
     # so output_policy_for_verdict maps SEAL→DOMAIN_SEAL, HOLD→DOMAIN_HOLD,
@@ -523,7 +537,9 @@ def attach_effective_verdict(
                 _evq = (
                     str(response.get("evidence_quality", "")).upper()
                     or str((response.get("result", {}) or {}).get("evidence_quality", "")).upper()
-                    or str(((response.get("reasoning_output", {}) or {}).get("evidence_quality", ""))).upper()
+                    or str(
+                        ((response.get("reasoning_output", {}) or {}).get("evidence_quality", ""))
+                    ).upper()
                     or str(((response.get("meta", {}) or {}).get("evidence_quality", ""))).upper()
                     or ""
                 )
