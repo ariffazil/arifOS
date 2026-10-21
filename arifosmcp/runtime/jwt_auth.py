@@ -757,3 +757,60 @@ def set_request_auth_lineage(lineage: dict[str, Any] | None) -> None:
 def get_request_auth_lineage() -> dict[str, Any] | None:
     """Get auth lineage for the current request context."""
     return _current_auth_lineage.get(None)
+
+
+# ── Verified actor binding for receipts (2026-10-21) ───────────────────────
+# Capability ≠ authority; receipts are WITNESS artifacts, not guards. This
+# resolver exists so receipt writers (apex_primitives.record_tool_call,
+# Telemetry.record_tool_call) can PERSIST the transport-verified identity the
+# ConstitutionalJWTAuthMiddleware already established. It never blocks,
+# strips output, or gates — unsigned traffic simply records identity_verified=0.
+
+_IDENTITY_VERIFIED_METHODS = frozenset(
+    {"jwt_supabase", "jwt_supabase_es256", "jwt_internal", "dpop"}
+)
+
+
+def get_verified_actor_binding(actor_id: str | None = None) -> dict[str, Any]:
+    """Resolve the verified actor binding for a receipt.
+
+    Returns:
+        {"actor_id": <resolved id>, "identity_verified": bool,
+         "auth_method": <method or "unsigned">}
+
+    Resolution precedence:
+      1. JWT/DPoP-bound lineage contextvar (transport-verified) — wins even
+         over a self-reported actor_id, because capability ≠ authority.
+      2. Caller-supplied actor_id (self-report) — recorded with
+         identity_verified=False.
+      3. Neither — recorded as "unsigned" with identity_verified=False.
+    """
+    lineage: dict[str, Any] | None = None
+    try:
+        lineage = get_request_auth_lineage()
+    except LookupError:  # contextvar accessed outside its context
+        lineage = None
+
+    if isinstance(lineage, dict) and lineage.get("sub"):
+        sub = str(lineage["sub"])
+        method = str(lineage.get("auth_method") or "jwt")
+        return {
+            "actor_id": sub,
+            "identity_verified": method in _IDENTITY_VERIFIED_METHODS,
+            "auth_method": method,
+        }
+
+    if actor_id and str(actor_id).strip() and str(actor_id) not in (
+        "anonymous",
+        "unknown",
+        "openclaw-anon",
+        "null",
+        "None",
+    ):
+        return {
+            "actor_id": str(actor_id),
+            "identity_verified": False,
+            "auth_method": "self_reported",
+        }
+
+    return {"actor_id": "unsigned", "identity_verified": False, "auth_method": "unsigned"}
