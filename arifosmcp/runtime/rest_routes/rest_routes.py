@@ -4003,6 +4003,16 @@ def register_rest_routes(
         }
         _floors_total = get_floor_count()
 
+        # 2026-10-21 (two-counters defect): the status-only pass counter
+        # (sum of _floor_detail == "pass") was deleted. It counted a pass
+        # whenever the threshold table said pass, while floor_truth()
+        # gates every pass through measurement provenance (STATIC_CLAIM ->
+        # declared, unmeasured_default -> unmeasured, never pass) - two
+        # counters, one dataset, two definitions of pass. There is ONE
+        # definition now: _floor_verdict.floors_pass, already consumed by
+        # layer_health.constitutional below. Reuse, never duplicate
+        # (ANTI-BANGANG LAW 8: the mapping rule lives in health_truth and
+        # nowhere else).
         # floors_failing is MEASURED FAILS ONLY (2026-10-07). It used to be
         # `!= pass`, which swept unmeasured floors into the violation list --
         # an evidence gap reported as a constitutional breach. Unmeasured gets
