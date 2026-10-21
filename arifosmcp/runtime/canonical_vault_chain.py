@@ -114,14 +114,10 @@ def _sig_enforce() -> bool:
 
 def _sign_receipt_hash(receipt_hash: str, key: bytes) -> str:
     """Full 256-bit HMAC-SHA256 over the receipt_hash string."""
-    return SIG_PREFIX + hmac.new(
-        key, receipt_hash.encode("utf-8"), hashlib.sha256
-    ).hexdigest()
+    return SIG_PREFIX + hmac.new(key, receipt_hash.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def _verify_receipt_signature(
-    receipt_hash: str, signature: str, key: bytes
-) -> bool:
+def _verify_receipt_signature(receipt_hash: str, signature: str, key: bytes) -> bool:
     """Constant-time comparison of the expected vs recorded signature."""
     if not signature.startswith(SIG_PREFIX):
         return False
@@ -163,9 +159,7 @@ class VerifyStatus(StrEnum):
 # Link-family classes require hash-pair matching (precision); historical
 # structural classes (missing-fields / corrupt-line / epoch-reset) carry no
 # hash pair and match on class + line_no only — still never a blanket skip.
-_ANNOTATION_LINK_CLASSES = frozenset(
-    {GapClass.CHAIN_BREAK, GapClass.HISTORICAL_LINK_GAP}
-)
+_ANNOTATION_LINK_CLASSES = frozenset({GapClass.CHAIN_BREAK, GapClass.HISTORICAL_LINK_GAP})
 _ANNOTATION_STRUCTURAL_CLASSES = frozenset(
     {
         GapClass.HISTORICAL_MISSING_FIELDS,
@@ -223,6 +217,12 @@ class ReceiptEnvelope:
     epoch_id: str = CANONICAL_EPOCH_ID
     # VAULT999-SIG: which key signed `signature` ("" = unsigned/historical).
     sig_key_id: str = ""
+    # 888 F13 2026-10-21 (PATCH 4): enum-typed method of the seal `signature`
+    # itself — DERIVED by the writer from the signature prefix, never
+    # caller-supplied. Enum: hmac-sha256 | ed25519 | unsigned | unknown.
+    # actor_verification.method describes ACTOR identity verification — a
+    # different fact; it must not be read as the seal-signature method.
+    sig_method: str = ""
     # Wire aliases for observatory / legacy readers
     seq: int | None = None
     prev_hash: str | None = None
@@ -494,9 +494,7 @@ def _annotation_matches(
             exp_prev = ann.get("expected_prev_under_current_hash")
             if rec_prev is None or exp_prev is None:
                 continue
-            if hashes_equal(rec_prev, got_prev) and hashes_equal(
-                exp_prev, expected_prev
-            ):
+            if hashes_equal(rec_prev, got_prev) and hashes_equal(exp_prev, expected_prev):
                 return ann
             continue
         # structural class: class + line matched
@@ -832,9 +830,7 @@ def verify_chain(
                                 f"{_ann.get('annotation_id', '?')} "
                                 f"({_ann.get('annotation_class', '?')})"
                             ),
-                            explained_by=str(
-                                _ann.get("annotation_id") or "annotation"
-                            ),
+                            explained_by=str(_ann.get("annotation_id") or "annotation"),
                         )
                     )
                 else:
@@ -989,9 +985,7 @@ def verify_chain(
                 if isinstance(seq, int):
                     signed_seqs.append(seq)
             else:
-                unsigned_records.append(
-                    (parseable_index, pl.line_no, seq)
-                )
+                unsigned_records.append((parseable_index, pl.line_no, seq))
 
         if this_h:
             prev_hash = this_h
@@ -1163,7 +1157,9 @@ def _attestation_hmac(doc: dict[str, Any]) -> str | None:
         return None
     body = {k: v for k, v in doc.items() if k != "attestation_hmac"}
     canonical = json.dumps(body, sort_keys=True, ensure_ascii=False, default=str)
-    return _ATTEST_HMAC_PREFIX + hmac.new(key, canonical.encode("utf-8"), hashlib.sha256).hexdigest()
+    return (
+        _ATTEST_HMAC_PREFIX + hmac.new(key, canonical.encode("utf-8"), hashlib.sha256).hexdigest()
+    )
 
 
 def build_epoch_attestation(
@@ -1617,6 +1613,19 @@ def append_receipt(
                 ),
             )
 
+        # ── 888 F13 2026-10-21 (PATCH 4): derive the seal-signature method ──
+        # from the FINAL signature — enum-typed, writer-authored, never a
+        # caller claim. Old rows keep their original shape (append-only);
+        # every NEW seal carries sig_method.
+        if signature and signature.startswith(SIG_PREFIX):
+            sig_method = "hmac-sha256"
+        elif signature and signature.startswith("ed25519"):
+            sig_method = "ed25519"
+        elif not signature:
+            sig_method = "unsigned"
+        else:
+            sig_method = "unknown"
+
         # ── Idempotency check (GAP #2 fix, 2026-08-03) ──
         if idempotency_key and p.chain.exists():
             for pl in parse_chain_lines(p.chain):
@@ -1650,6 +1659,7 @@ def append_receipt(
             signature=signature or "",
             epoch_id=CANONICAL_EPOCH_ID,
             sig_key_id=sig_key_id,
+            sig_method=sig_method,
             verdict=verdict,
             idempotency_key=idempotency_key,
         )
@@ -1754,7 +1764,9 @@ if __name__ == "__main__":
             print(
                 json.dumps(
                     {
-                        "attestation_written": str(paths_for(args.vault_dir).vault_dir / ATTESTATION_FILENAME),
+                        "attestation_written": str(
+                            paths_for(args.vault_dir).vault_dir / ATTESTATION_FILENAME
+                        ),
                         "epoch_start_line_no": doc.get("epoch_start_line_no"),
                         "historical_gap_count": doc.get("historical_gap_count"),
                         "post_attest_status": str(r.status),
@@ -1764,4 +1776,9 @@ if __name__ == "__main__":
                 )
             )
             r2 = verify_chain(args.vault_dir, scope="full")
-            print("verify after attest:", str(r2.status), "| epoch:", json.dumps(r2.epoch, default=str) if r2.epoch else None)
+            print(
+                "verify after attest:",
+                str(r2.status),
+                "| epoch:",
+                json.dumps(r2.epoch, default=str) if r2.epoch else None,
+            )
