@@ -186,6 +186,23 @@ def tool_count_from_payload(data: dict[str, Any] | None) -> int | None:
     return None
 
 
+def _first_health_field(
+    health_data: dict[str, Any] | None, keys: tuple[str, ...]
+) -> dict[str, Any] | None:
+    """First-present raw /health field with the key it came from. None if absent.
+
+    P1 (2026-10-20): evidence passthrough for governance / receipt / contract
+    signals — raw values only, source names the actual key, no inference.
+    """
+    if not isinstance(health_data, dict):
+        return None
+    for k in keys:
+        v = health_data.get(k)
+        if v is not None:
+            return {"value": v, "key": k}
+    return None
+
+
 def probe_organ(organ_id: str) -> dict[str, Any]:
     """Probe an organ with three-verdict semantics.
 
@@ -266,6 +283,17 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
         "website": meta.get("website"),
         "mcp": meta.get("mcp"),
         "evidence_url": meta.get("evidence_url"),
+        # Evidence passthrough (P1, additive) for governance/receipt/contract
+        # signals — raw /health fields, source names the key, never inferred.
+        "governance_evidence": _first_health_field(
+            health_data, ("kernel_verdict", "governance", "verdict")
+        ),
+        "receipt_evidence": _first_health_field(
+            health_data, ("runtime_seal_state", "vault999_health", "seal_state")
+        ),
+        "contract_evidence": _first_health_field(
+            health_data, ("federation_schema_version", "contract_status")
+        ),
     }
 
 
@@ -1183,6 +1211,13 @@ def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, 
         "source": row.get("source") or "127.0.0.1 tcp probe",
         "trace": row.get("probe_reason") or row.get("status_code") or None,
         "receipt": row.get("receipt"),
+        # P1 passthrough (2026-10-20): raw probe evidence for readiness /
+        # governance / receipt / contract signals — whitelisted through so the
+        # contract wire can emit sourced records instead of honest-null.
+        "probe_status_code": row.get("probe_status_code"),
+        "governance_evidence": row.get("governance_evidence"),
+        "receipt_evidence": row.get("receipt_evidence"),
+        "contract_evidence": row.get("contract_evidence"),
         "evidence_url": row.get("evidence_url"),
         "website": row.get("website"),
         "mcp": row.get("mcp"),
@@ -1474,8 +1509,42 @@ def wire_observatory_contract(state: dict[str, Any]) -> dict[str, Any]:
                 "source": "identity probe",
                 "confidence": row.get("confidence"),
             }
-            # governance / receipt / constitutional: no per-organ producer
-            # exists yet (class B) — keys intentionally absent → honest unknown.
+            identity_state = str(row.get("identity_state") or "")
+            row["identity"] = {
+                "value": identity_state or None,
+                "state": row["authorization"]["state"],
+                "source": "identity probe",
+                "confidence": row.get("confidence"),
+            }
+            if "readiness" in row:
+                row["dependency"] = row["readiness"]  # pulse-grid + vocab alias
+            # P1 (2026-10-20): governance / receipt / contract now wire from the
+            # raw /health evidence probe_organ passes through. Absent evidence →
+            # key stays absent → the page renders honest 'unknown', never green.
+            ge = row.get("governance_evidence")
+            if ge:
+                row["governance"] = {
+                    "value": ge["value"],
+                    "state": "reported",
+                    "source": f"live /health→{ge['key']}",
+                    "confidence": row.get("confidence"),
+                }
+            rev = row.get("receipt_evidence")
+            if rev:
+                row["last_receipt"] = {
+                    "value": rev["value"],
+                    "state": "reported",
+                    "source": f"live /health→{rev['key']}",
+                    "confidence": row.get("confidence"),
+                }
+            ce = row.get("contract_evidence")
+            if ce:
+                row["contract"] = {
+                    "value": ce["value"],
+                    "state": "observed",
+                    "source": f"live /health→{ce['key']}",
+                    "confidence": row.get("confidence"),
+                }
     _p0a_wire_organs(
         state
     )  # P0-A: pulse-grid aliases (after organ loop populated liveness/authorization)

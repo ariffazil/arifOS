@@ -271,19 +271,32 @@ def _pf(
     confidence: float = 0.95,
     observation_method: str = _OBS_METHOD_UNKNOWN,
     independent: bool = True,
+    observed_epoch: float | None = None,
 ) -> dict[str, Any]:
     """Single-cell per-field envelope. Use this everywhere.
 
     `observation_method` — how this value was obtained (tcp_probe, filesystem, self_reported, etc.)
     `independent` — True if observed by a process OTHER than the organ being described.
                     False if the organ's own endpoint reported this about itself.
+    `observed_epoch` — UNIX epoch of the TRUE underlying observation. When given,
+                    age_seconds is computed from it (honest age). When omitted the
+                    envelope reports `age_seconds: null` — freshness UNMEASURED —
+                    instead of asserting a fake `0` (P1 freshness fix 2026-10-21:
+                    "0s old" without a new observation is greenwash).
     """
+    _now = time.time()
+    if observed_epoch is not None:
+        _age = max(0, int(_now - float(observed_epoch)))
+        _observed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(observed_epoch))
+    else:
+        _age = None  # freshness unmeasured — never claim 0
+        _observed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_now))
     return {
         "value": value,
         "state": state,
         "source": source,
-        "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "age_seconds": 0,
+        "observed_at": _observed_at,
+        "age_seconds": _age,
         "confidence": confidence,
         "observation_method": observation_method,
         "independent_or_self_reported": "independent" if independent else "self_reported",
@@ -1088,24 +1101,44 @@ def _governance_block() -> dict[str, dict[str, Any]]:
 
     # Decomposition — never collapse into a single green badge.
     # FIX 2026-07-19: session_state derived from active sessions, not hardcoded.
-    # Previously hardcoded "OBSERVE_ONLY" which masked actual SOVEREIGN/FULL
-    # sessions from external hosts — root cause of F-006 semantic propagation gap.
+    # FIX 2026-10-21 (Arif semantic-repair package): floor counts measure GOVERNANCE,
+    # not server/infrastructure. substrate_state no longer inherits the floor-count
+    # verdict; the count verdict moves to governance_floor_state and substrate
+    # honesty is NOT_PROVEN until an infra probe exists.
     _resolved_session_state = _resolve_session_state_from_sessions()
     out["verdict_decomposition"] = {
         "substrate_state": _pf(
-            # SCAR-OBS-GREENWASH: `failing == 0` alone was fail-open — zero
-            # failures plus twelve placeholder floors still rendered PASS.
-            # Void Guard: "no data" != "all clear".
+            # SCAR-OBS-GREENWASH: floor counts are a governance-state measurement.
+            # They do not prove the server or infrastructure failed (or passed).
+            # Void Guard: "no data" != "all clear"; "floors failing" != "infra down".
+            "NOT_PROVEN",
+            source="no infrastructure probe in this snapshot; floor counts measure governance, not substrate",
+            state="unknown",
+            confidence=0.3,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "governance_floor_state": _pf(
             "FAIL" if failing else ("UNMEASURED" if unmeasured else "PASS"),
-            source="floors_passing/failing/unmeasured count",
+            source="floors_passing/failing/unmeasured count (governance scope only)",
             state="derived",
             confidence=0.9,
             observation_method=_OBS_METHOD_DERIVED,
             independent=False,
         ),
         "session_state": _pf(
+            # FIX 2026-10-21: a population scan of active sessions cannot prove the
+            # authority of THIS session/request. Unbound snapshot => UNKNOWN.
+            "UNKNOWN",
+            source="snapshot is request-unbound; per-session authority requires a request-bound probe (session identity not carried in this view)",
+            state="unknown",
+            confidence=0.2,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "sessions_max_band": _pf(
             _resolved_session_state,
-            source="active_sessions authority scan",
+            source="active_sessions authority scan — POPULATION MAX across all sessions, NOT this session's authority",
             state="derived",
             confidence=0.85,
             observation_method=_OBS_METHOD_DERIVED,
@@ -1162,12 +1195,19 @@ def _governance_block() -> dict[str, dict[str, Any]]:
             independent=True,
         ),
         # P-1 (2026-10-20 · external-audit items 3+4). STATUS UNCHANGED — these are
-        # additive evidence fields. F13 derives PASS from seal_chain presence and F11
-        # from receipt_ledger presence; each decomposition states what that PASS does
-        # and does NOT prove. UNKNOWN means not measured — never narrated (F7).
+        # additive evidence fields. FIX 2026-10-21 (Arif semantic-repair #3): a
+        # seal-chain EXISTENCE probe is presence_only evidence. It cannot prove
+        # consent was bound to the action — the decomposition itself says
+        # NOT_PROVEN — so the floor verdict is published as PASS(presence_only)
+        # with proof_class, never as full-proof PASS. F6 stays UNMEASURED
+        # (auto-pass placeholder must never flip to PASS).
         "f13_sovereignty_decomposition": _pf(
             {
                 "pass_basis": "presence_only:floor_producer:PASS:seal_chain",
+                "proof_class": "presence_only",
+                "floor_verdict": "PASS(presence_only)",
+                "proves": "a seal chain exists and produced entries",
+                "does_not_prove": "sovereign consent was bound to any specific action",
                 "human_veto_available": _human_veto,
                 "authority_identity_verified": (
                     "MEASURED" if _av.get("signature_verified") is True else "NOT_PROVEN"
@@ -1657,21 +1697,38 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         )
         _capability = (_organ.get("capability") or {}).get("value")
         _contract = (_organ.get("contract") or {}).get("value")
+        # FIX 2026-10-21 (Arif repair #2): capability count + contract version are
+        # INVENTORY facts, not operational readiness. READY requires an operational
+        # test with timestamp and scope; anything else is UNKNOWN — never a
+        # threshold change, only label honesty.
+        _ops_test = (
+            (_organ.get("operational_test") or {})
+            if isinstance(_organ.get("operational_test"), dict)
+            else {}
+        )
+        _ops_ok = bool(_ops_test.get("passed") is True and _ops_test.get("tested_at"))
         if not _alive:
             _readiness, _rstate, _rconf = "UNREACHABLE", "derived", 0.85
-        elif _capability in (None, 0, "0") and _contract in (None, "", "unknown"):
-            _readiness, _rstate, _rconf = None, "unknown", 0.0
-        elif _capability not in (None, 0, "0") and _contract not in (None, "", "unknown"):
-            _readiness, _rstate, _rconf = "READY", "derived", 0.8
+        elif _ops_ok:
+            _readiness, _rstate, _rconf = "READY", "observed", 0.85
         else:
-            _readiness, _rstate, _rconf = "DEGRADED", "derived", 0.7
+            _readiness, _rstate, _rconf = None, "unknown", 0.0
+        _organ["capability_inventory"] = _organ.get("capability")
         _organ["readiness"] = _pf(
             _readiness,
-            source=f"derived from capability={_capability!r} contract={_contract!r}",
+            source=(
+                f"operational_test passed at {_ops_test.get('tested_at')} scope={_ops_test.get('scope', 'unspecified')}"
+                if _ops_ok
+                else "NO operational test on record — capability/contract are inventory facts, not readiness proof"
+                if _alive
+                else f"derived from transport={_transport!r}"
+            ),
             state=_rstate,
             confidence=_rconf,
-            observation_method=_OBS_METHOD_DERIVED if _rstate == "derived" else _OBS_METHOD_UNKNOWN,
-            independent=False,
+            observation_method=_OBS_METHOD_DERIVED
+            if _rstate == "derived"
+            else (_OBS_METHOD_SELF_REPORTED if _ops_ok else _OBS_METHOD_UNKNOWN),
+            independent=not _ops_ok,
         )
     return out
 
@@ -3548,10 +3605,82 @@ async def build_snapshot_async(
         },
         "tools_loaded": len(registered_tools) if registered_tools else 0,
         "canonical_tools_loaded": len(registered_tools) if registered_tools else 0,
+        "tool_tests": _tool_tests_block(registered_tools),
         "narrative": {"age_seconds": 0, "incidents_count": 0, "findings_count": 0},
     }
     _attach_authority_planes_and_evidence_counts(payload, organs, receipts)
     return _finalize_snapshot(payload)
+
+
+# ── Tool tests tied to release ────────────────────────────────────────────────
+def _tool_tests_block(registered_tools: set[str] | None) -> dict[str, Any]:
+    """P1 fix #5 (2026-10-21): tool tests must be tied to the release under test.
+
+    Publishes passed/failed/untested counts, the commit under test, and test age.
+    Reads /opt/arifos/app/.test_receipt.json (written by the release test runner)
+    when present; otherwise EVERYTHING is untested and the commit is taken from
+    the deployment marker. Never fabricates a pass. Never hides untested.
+    """
+    import json as _json
+
+    receipt_path = "/opt/arifos/app/.test_receipt.json"
+    tested_commit: str | None = None
+    passed = failed = 0
+    tested_at: str | None = None
+    scope: str | None = None
+    basis = "NO_TEST_RECEIPT"
+    try:
+        with open(receipt_path) as fh:
+            tr = _json.load(fh)
+        passed = int(tr.get("passed") or 0)
+        failed = int(tr.get("failed") or 0)
+        tested_commit = tr.get("commit") or None
+        tested_at = tr.get("tested_at") or None
+        scope = tr.get("scope") or None
+        basis = tr.get("basis") or "test_receipt"
+    except Exception:  # noqa: BLE001 — absent/unreadable receipt = untested, not pass
+        pass
+    if tested_commit is None:
+        try:
+            with open("/opt/arifos/app/.git_commit") as fh:
+                tested_commit = fh.read().strip()[:40] or None
+        except Exception:  # noqa: BLE001
+            tested_commit = None
+    total = len(registered_tools) if registered_tools else 0
+    untested = max(0, total - passed - failed)
+    age_s: int | None = None
+    if tested_at:
+        try:
+            import datetime as _dt
+
+            age_s = max(
+                0,
+                int(
+                    (
+                        _dt.datetime.now(_dt.timezone.utc)
+                        - _dt.datetime.fromisoformat(str(tested_at).replace("Z", "+00:00"))
+                    ).total_seconds()
+                ),
+            )
+        except Exception:  # noqa: BLE001
+            age_s = None
+    return {
+        "value": {
+            "passed": passed,
+            "failed": failed,
+            "untested": untested,
+            "total_tools": total,
+            "tested_commit": tested_commit,
+            "test_age_seconds": age_s,
+            "test_scope": scope,
+            "basis": basis,
+        },
+        "state": "observed" if tested_at else "unknown",
+        "source": f"{receipt_path} + /opt/arifos/app/.git_commit (release-tied; absent receipt ⇒ untested)",
+        "confidence": 0.9 if tested_at else 0.2,
+        "observation_method": _OBS_METHOD_FILESYSTEM,
+        "independent": True,
+    }
 
 
 # ── Seven-state vocabulary health endpoint ────────────────────────────────────

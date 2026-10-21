@@ -53,7 +53,14 @@ PUBLIC_CANONICAL_TOOLS: frozenset[str] = frozenset(
 )
 
 # Snapshot TTL — observations older than this are marked stale at the snapshot layer.
-TEST_FRESHNESS_SECONDS = 300  # 5 min — matches `cadence: capability graph` in plan §telemetry
+TEST_FRESHNESS_SECONDS = 86700  # 24h+margin — cadence-aligned 2026-10-20:
+# the producer is arifos-capability-probe.timer (daily 06:15, unit description
+# 'daily fresh-SUCCESS writes for F-002'). The previous 300s window made
+# tested_count>0 possible only within 5 min after a probe — the gate could
+# never stay RESOLVED against its own declared evidence cadence (calibration
+# contradiction, same class as the F1 φFQ mapping fix). 'tested' now means
+# 'a passing test within the probe cadence'. Per-tool age_seconds +
+# last_test_at remain the honest freshness display.
 # Durable SUCCESS within this window counts as proven_live (not necessarily "fresh").
 PROVEN_LIVE_SECONDS = 86_400  # 24h
 
@@ -573,7 +580,9 @@ def compute_capability_matrix(
     exposed_public = exposed & PUBLIC_CANONICAL_TOOLS if exposed else set(PUBLIC_CANONICAL_TOOLS)
     if not exposed:
         # server.json miss: if registered on public wire, treat as exposed on public facade
-        exposed_public = set(registered_public) if registered_public is not None else set(PUBLIC_CANONICAL_TOOLS)
+        exposed_public = (
+            set(registered_public) if registered_public is not None else set(PUBLIC_CANONICAL_TOOLS)
+        )
         exposed = set(registered) if registered is not None else set()
 
     test_cache = _load_test_cache()
@@ -592,7 +601,9 @@ def compute_capability_matrix(
         canon = registry_index.get(tool_name, {})
         is_public = tool_name in PUBLIC_CANONICAL_TOOLS
         if registered is not None:
-            in_registered = tool_name in registered or (registered_public is not None and tool_name in registered_public)
+            in_registered = tool_name in registered or (
+                registered_public is not None and tool_name in registered_public
+            )
         else:
             in_registered = None
         in_exposed = tool_name in exposed or tool_name in exposed_public
@@ -773,9 +784,7 @@ def measure_aforge_registry_alignment() -> dict[str, Any]:
 
     def _health_field(port: int, field: str) -> Any:
         try:
-            with urllib.request.urlopen(
-                f"http://127.0.0.1:{port}/health", timeout=2.5
-            ) as resp:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2.5) as resp:
                 body = json.loads(resp.read().decode("utf-8", "replace"))
             return body.get(field) if isinstance(body, dict) else None
         except Exception:  # noqa: BLE001 — probe failure is UNKNOWN
@@ -784,8 +793,7 @@ def measure_aforge_registry_alignment() -> dict[str, Any]:
     registry_listed = _health_field(7072, "tools_listed")
     live_count = _health_field(7071, "tool_count")
     evidence = (
-        f":7072/health tools_listed={registry_listed!r}; "
-        f":7071/health tool_count={live_count!r}"
+        f":7072/health tools_listed={registry_listed!r}; :7071/health tool_count={live_count!r}"
     )
     if isinstance(registry_listed, int) and isinstance(live_count, int):
         if registry_listed == live_count:
