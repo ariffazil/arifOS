@@ -272,7 +272,12 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
     "ARIF": {
         "sovereign_id": "ARIF_FAZIL",
         "default_tier": "SOVEREIGN",
-        "aliases": ["arif", "Arif", "arif-fazil", "ariffazil"],
+        # 2026-10-22 (333-AGI, DIR-E1): + sovereign spellings that were
+        # absent -> "ARIF_FAZIL" resolved to None (REJECTED) and lost binding.
+        "aliases": ["arif", "Arif", "arif-fazil", "ariffazil", "arif_fazil",
+                    "arif fazil", "arif f", "arif f.", "muhammad_arif",
+                    "muhammad arif", "muhammad arif bin fazil",
+                    "888", "f13", "sovereign", "arif-fazil.com"],
     },
     "FORGE": {
         "sovereign_id": "ARIF_FAZIL",
