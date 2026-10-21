@@ -425,6 +425,30 @@ MANIFEST_EOF
 # Deployment stamp: ONE stable path (build.py + reconciler read this).
 # No legacy /opt/arifos/app stamp — that tree is retired by ONE_ORIGIN.
 echo "$GIT_COMMIT" >"$STAMP_FILE"
+
+# ── Deploy receipt (F2 2026-10-21, 333-AGI): the kernel's /health top-level
+# deployed_commit reads /opt/arifos/current/receipts/latest.json. This script
+# never wrote it, so the field served a stale SHA from an older pipeline while
+# software_release showed the truth — two answers to one question (external
+# audit P0 "status contract"). Write BOTH truths from ONE place, every deploy.
+RECEIPT_DIR="/opt/arifos/current/receipts"
+mkdir -p "$RECEIPT_DIR"
+python3 - "$RECEIPT_DIR/latest.json" "$GIT_COMMIT" "$GIT_BRANCH" "$BUILD_TS" <<'PYRC'
+import json, sys
+path, commit, branch, ts = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+try:
+    prev = json.load(open(path))
+except Exception:
+    prev = {}
+json.dump({
+    "commit_sha": commit,
+    "branch": branch or "main",
+    "build_time": ts,
+    "deployed_via": "deploy-release.sh",
+    "prev_commit_sha": prev.get("commit_sha"),
+}, open(path, "w"), indent=1)
+print(f"  Deploy receipt: {path} = {commit}")
+PYRC
 echo "$GIT_COMMIT" >"$REPO_DIR/.git_commit"
 
 echo "  Manifest: $MANIFEST_FILE"
