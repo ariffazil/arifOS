@@ -42,16 +42,29 @@ OUTCOME_EXECUTION_SUCCESS = "execution_success"
 OUTCOME_EXECUTION_FAILURE = "execution_failure"
 OUTCOME_CONSTITUTIONAL_HOLD = "constitutional_hold"
 OUTCOME_CONSTITUTIONAL_SABAR = "constitutional_sabar"
+OUTCOME_CONSTITUTIONAL_VOID = "constitutional_void"
+
+# Verdict codes that must NEVER persist as success=1. Receipt-fidelity fix
+# (2026-10-21): a caller passing success=True with failure_code="HOLD" used to
+# serialize int(success)=1 — a HOLD receipt surfaced as ok:true and was cited
+# that way in a third-party review. Fix-forward only: historical rows are NOT
+# rewritten (append-only ledger). Read-side derivation
+# (compute_apex_from_metrics and friends) already re-derives outcome from
+# (success, failure_code) for legacy rows, so VOID/HOLD/SABAR history
+# reclassifies correctly at read time once those codes are in derive_outcome.
+VERDICT_FAILURE_CODES = frozenset({"HOLD", "SABAR", "VOID"})
 
 
 def derive_outcome(success: bool, failure_code: str) -> str:
-    """Classify a tool-call outcome. Constitutional verdicts (HOLD/SABAR)
+    """Classify a tool-call outcome. Constitutional verdicts (HOLD/SABAR/VOID)
     are NOT execution failures. Verdict rows leave E's denominator."""
     fc = (failure_code or "").strip().upper()
     if fc == "HOLD":
         return OUTCOME_CONSTITUTIONAL_HOLD
     if fc == "SABAR":
         return OUTCOME_CONSTITUTIONAL_SABAR
+    if fc == "VOID":
+        return OUTCOME_CONSTITUTIONAL_VOID
     return OUTCOME_EXECUTION_SUCCESS if success else OUTCOME_EXECUTION_FAILURE
 
 
@@ -113,6 +126,13 @@ def record_tool_call(
     """
     try:
         conn = _get_db()
+        # Receipt fidelity (2026-10-21): a verdict (HOLD/SABAR/VOID) recorded
+        # via failure_code must never persist as success=1, even when the
+        # caller passes success=True (the documented misuse). success=False is
+        # the persisted fact; the verdict class lives in `outcome`.
+        _fc = (failure_code or "").strip().upper()
+        if _fc in VERDICT_FAILURE_CODES:
+            success = False
         _outcome = (outcome or "").strip() or derive_outcome(success, failure_code)
         conn.execute(
             """INSERT INTO tool_calls

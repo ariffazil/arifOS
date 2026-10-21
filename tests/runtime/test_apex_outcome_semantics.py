@@ -28,6 +28,55 @@ def test_derive_outcome_mapping():
     assert ap.derive_outcome(True, "HOLD") == ap.OUTCOME_CONSTITUTIONAL_HOLD
 
 
+def test_verdict_never_persists_success_1(tmp_db):
+    """Receipt fidelity (2026-10-21): HOLD/VOID/SABAR recorded via failure_code
+    must never serialize as success=1, even when the caller passes success=True.
+
+    Fails on pre-fix behavior: int(success)=1 was persisted verbatim, so a HOLD
+    receipt surfaced as ok:true (cited that way in a third-party review).
+    """
+    ap.record_tool_call("t_hold", success=True, failure_code="HOLD")
+    ap.record_tool_call("t_sabar", success=True, failure_code="SABAR")
+    ap.record_tool_call("t_void", success=True, failure_code="VOID")
+    conn = sqlite3.connect(str(tmp_db))
+    rows = conn.execute(
+        "SELECT tool_name, success, outcome FROM tool_calls ORDER BY id"
+    ).fetchall()
+    conn.close()
+    got = {name: (succ, outcome) for name, succ, outcome in rows}
+    assert got["t_hold"] == (0, "constitutional_hold")
+    assert got["t_sabar"] == (0, "constitutional_sabar")
+    assert got["t_void"] == (0, "constitutional_void")
+
+
+def test_void_is_not_execution_failure(tmp_db):
+    """VOID must leave E's denominator like HOLD/SABAR — brakes, not crashes."""
+    ap.record_tool_call("t", success=True, has_evidence=True, within_lease=True)
+    ap.record_tool_call("t", success=True, failure_code="VOID")
+    ap.record_tool_call("t", success=True, failure_code="VOID")
+    m = ap.compute_apex_from_metrics(window_seconds=3600)
+    assert m["E"] == pytest.approx(1.0), "VOID rows must not pollute E"
+    ob = m["outcome_breakdown"]
+    assert ob["constitutional_void"]["count"] == 2
+    assert ob["execution_success"]["count"] == 1
+
+
+def test_void_legacy_rows_derive_at_read_time(tmp_db):
+    """Historical VOID rows written as success=1/outcome='' reclassify at read
+    time — fix-forward, no ledger rewrite."""
+    conn = sqlite3.connect(str(tmp_db))
+    ap._get_db()
+    conn.execute(
+        "INSERT INTO tool_calls (tool_name, timestamp, success, has_evidence,"
+        " within_lease, dry_run_first, reversible, failure_code, outcome)"
+        " VALUES ('legacy', '2026-10-21T00:00:00Z', 1, 0, 1, 0, 1, 'VOID', '')"
+    )
+    conn.commit()
+    conn.close()
+    m = ap.compute_apex_from_metrics(window_seconds=10**9)
+    assert m["outcome_breakdown"]["constitutional_void"]["count"] == 1
+
+
 def test_record_stores_derived_outcome(tmp_db):
     ap.record_tool_call("t1", success=False, failure_code="HOLD", has_evidence=True)
     conn = sqlite3.connect(str(tmp_db))
