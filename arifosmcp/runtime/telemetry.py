@@ -579,6 +579,19 @@ class Telemetry:
         # before they reach Langfuse, Kabarkan NATS, or Postgres sinks
         session_id = _sanitize_session_id(session_id)
 
+        # ── Verified actor binding (2026-10-21, witness persistence) ──────
+        # Prefer the transport-verified JWT/DPoP lineage over self-reported
+        # actor_id; persist the binding in observation metadata. Never blocks.
+        _identity_binding: dict[str, Any] | None = None
+        try:
+            from arifosmcp.runtime.jwt_auth import get_verified_actor_binding
+
+            _binding = get_verified_actor_binding(actor_id)
+            actor_id = _binding["actor_id"]
+            _identity_binding = _binding
+        except Exception:
+            _identity_binding = None  # best-effort; receipt still lands
+
         if _METRICS_ENABLED and "tool_calls" in self._counters:
             self._counters["tool_calls"].labels(tool=tool, verdict=verdict).inc()
         if latency is not None and "tool_latency" in self._histograms:
@@ -600,6 +613,9 @@ class Telemetry:
                     "reasons": reasons or [],
                     "next_safe_action": next_safe_action,
                 }
+                if _identity_binding:
+                    trace_meta["identity_verified"] = _identity_binding["identity_verified"]
+                    trace_meta["auth_method"] = _identity_binding["auth_method"]
                 if metadata:
                     trace_meta.update(metadata)
                 self._lf(
@@ -668,7 +684,10 @@ class Telemetry:
                     vault_receipt=vault_receipt,
                     latency_ms=latency if latency else None,
                     # F01: redact at the sink, not only at the Langfuse path.
-                    metadata=_redact(metadata) if metadata else None,
+                    metadata={
+                        **(_redact(metadata) if metadata else {}),
+                        **(_identity_binding or {}),
+                    },
                 )
                 _publish_nats(record)
             except Exception:
@@ -697,7 +716,10 @@ class Telemetry:
                     vault_receipt=vault_receipt,
                     latency_ms=latency if latency else None,
                     # F01: redact at the sink, not only at the Langfuse path.
-                    metadata=_redact(metadata) if metadata else None,
+                    metadata={
+                        **(_redact(metadata) if metadata else {}),
+                        **(_identity_binding or {}),
+                    },
                 )
                 self._local.store(record)
                 # Fire-and-forget NATS publish for downstream consumers

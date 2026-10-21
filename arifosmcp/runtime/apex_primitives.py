@@ -100,6 +100,17 @@ def _get_db() -> sqlite3.Connection:
         conn.execute("ALTER TABLE tool_calls ADD COLUMN outcome TEXT DEFAULT ''")
     except sqlite3.OperationalError:
         pass  # column already exists
+    # 2026-10-21 verified-actor-binding migration (idempotent, additive)
+    # Persists whether the receipt's actor id came from transport-verified
+    # JWT/DPoP lineage (1) or is self-reported/unsigned (0).
+    try:
+        conn.execute("ALTER TABLE tool_calls ADD COLUMN identity_verified INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # column already exists
+    try:
+        conn.execute("ALTER TABLE tool_calls ADD COLUMN auth_method TEXT DEFAULT 'unsigned'")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.commit()
     return conn
 
@@ -123,8 +134,28 @@ def record_tool_call(
     is derived from (success, failure_code) — HOLD/SABAR verdicts become
     constitutional_* classes instead of execution failures. Existing callers
     need no changes; their (success, failure_code) signals classify correctly.
+
+    `actor_id` + verified binding (2026-10-21): when the request carries a
+    JWT/DPoP-verified lineage (set by ConstitutionalJWTAuthMiddleware), the
+    verified sub WINS over any self-reported actor_id and is persisted with
+    identity_verified=1. Self-reported ids persist with identity_verified=0;
+    no identity at all persists as 'unsigned'. This is witness persistence —
+    it never blocks or alters the call itself.
     """
     try:
+        # ── Verified actor binding (witness, not guard) ───────────────────
+        try:
+            from arifosmcp.runtime.jwt_auth import get_verified_actor_binding
+
+            _binding = get_verified_actor_binding(actor_id)
+            actor_id = _binding["actor_id"]
+            _identity_verified = int(bool(_binding["identity_verified"]))
+            _auth_method = str(_binding["auth_method"])
+        except Exception:
+            # Best-effort: receipt still lands, binding stays unverified.
+            _identity_verified = 0
+            _auth_method = "unsigned" if not actor_id else "self_reported"
+
         conn = _get_db()
         # Receipt fidelity (2026-10-21): a verdict (HOLD/SABAR/VOID) recorded
         # via failure_code must never persist as success=1, even when the
@@ -137,8 +168,9 @@ def record_tool_call(
         conn.execute(
             """INSERT INTO tool_calls
                (tool_name, actor_id, session_id, timestamp, success, has_evidence,
-                within_lease, dry_run_first, reversible, failure_code, outcome, metadata_json)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                within_lease, dry_run_first, reversible, failure_code, outcome,
+                identity_verified, auth_method, metadata_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 tool_name,
                 actor_id,
@@ -151,6 +183,8 @@ def record_tool_call(
                 int(reversible),
                 failure_code,
                 _outcome,
+                _identity_verified,
+                _auth_method,
                 json.dumps(metadata or {}),
             ),
         )
