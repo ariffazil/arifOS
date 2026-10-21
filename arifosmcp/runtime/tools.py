@@ -25343,6 +25343,7 @@ async def _arif_report(
             evidence=evidence,
             needs_human=needs_human,
             verified_actor=_caller_verified(),
+            dry_run=dry_run,
         )
     elif m == "inbox":
         result = rl.inbox(
