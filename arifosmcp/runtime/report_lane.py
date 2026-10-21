@@ -66,6 +66,12 @@ BODY_PREVIEW_CHARS = 220
 # Distinct agents that must vouch for an unverified decision report before it may
 # interrupt the human. Agents triage agents; the person is the exception path.
 PEER_QUORUM = int(os.getenv("ARIFOS_REPORT_PEER_QUORUM", "2"))
+# [F13 2026-10-21 — insiden t-ext-1] Lantai persidangan: ack hanya kira ke
+# quorum selepas ACK_DELIBERATION_MIN_S daripada laporan PERTAMA thread.
+# Bukti insiden: 6 ack dalam 3.1s (codex 3x + gemini 3x) atas thread berumur
+# 1s mengeluarkan quorum untuk umpan "wire money" stranger. Id berbeza ≠
+# kebebasan bila burst berskrip (kin: Scar-2026-10-01-002).
+ACK_DELIBERATION_MIN_S = int(os.getenv("ARIFOS_REPORT_ACK_DELIBERATION_S", "30"))
 
 ACKS = REPORT_DIR / "acks.jsonl"
 
@@ -308,13 +314,53 @@ def _save_cursor(reader: str, ts: str) -> None:
         logger.exception("report lane: cursor write failed")
 
 
+def _parse_ts(v: Any) -> datetime | None:
+    if not isinstance(v, str) or not v:
+        return None
+    try:
+        dt = datetime.fromisoformat(v)
+    except ValueError:
+        return None
+    return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt
+
+
+def _thread_first_ts(thread_id: str) -> datetime | None:
+    """Timestamp laporan PERTAMA dalam thread (dari INBOX)."""
+    ts_list = [
+        t
+        for t in (
+            _parse_ts(r.get("ts")) for r in _read_all(INBOX) if r.get("thread_id") == thread_id
+        )
+        if t is not None
+    ]
+    return min(ts_list) if ts_list else None
+
+
+def _ack_after_floor(ack_ts: Any, first_ts: datetime) -> bool:
+    a = _parse_ts(ack_ts)
+    if a is None:
+        return False  # ts tak boleh parse — jangan kira (fail-closed)
+    return (a - first_ts).total_seconds() >= ACK_DELIBERATION_MIN_S
+
+
 def _thread_ackers(thread_id: str | None) -> list[str]:
-    """Distinct agent ids that have vouched for this thread. Never the author."""
+    """Distinct agent ids that have vouched for this thread. Never the author.
+
+    [F13 2026-10-21] Lantai persidangan — ack kira HANYA jika difailkan
+    ≥ ACK_DELIBERATION_MIN_S selepas laporan pertama thread. Thread tanpa
+    laporan pertama yang diketahui (bukan dalam INBOX) tidak boleh capai
+    quorum langsung (fail-closed).
+    """
     if not thread_id:
+        return []
+    first_ts = _thread_first_ts(thread_id)
+    if first_ts is None:
         return []
     seen: list[str] = []
     for row in _read_all(ACKS):
         if row.get("thread_id") != thread_id:
+            continue
+        if not _ack_after_floor(row.get("ts"), first_ts):
             continue
         who = row.get("reader")
         if who and who not in seen:
