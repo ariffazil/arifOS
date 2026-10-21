@@ -133,6 +133,7 @@ def report(
     evidence: Any = None,
     needs_human: bool | None = None,
     verified_actor: bool = False,
+    dry_run: bool = False,
 ) -> dict[str, Any]:
     """File one report into the lane. Never raises on bad input; coerces.
 
@@ -189,9 +190,27 @@ def report(
         "verified_by": None,
         "ack_by": [],
     }
-    row["content_hash"] = "sha256:" + hashlib.sha256(
-        json.dumps({k2: row[k2] for k2 in ("sender", "subject", "body", "ts")}, sort_keys=True).encode()
-    ).hexdigest()
+    row["content_hash"] = (
+        "sha256:"
+        + hashlib.sha256(
+            json.dumps(
+                {k2: row[k2] for k2 in ("sender", "subject", "body", "ts")}, sort_keys=True
+            ).encode()
+        ).hexdigest()
+    )
+
+    if dry_run:
+        # F2 honesty: a dry run must not touch the store. Preview only.
+        return {
+            "status": "dry_run",
+            "would_write": True,
+            "report_id": None,
+            "kind": k,
+            "queued_for_human": escalate,
+            "escalation_withheld": withheld,
+            "claim_state": "SELF_REPORTED",
+            "note": "Dry run — nothing written to the store.",
+        }
 
     _append(INBOX, row)
     if escalate:
@@ -205,6 +224,7 @@ def report(
         "report_id": report_id,
         "kind": k,
         "queued_for_human": escalate,
+        "escalation_withheld": withheld,
         "claim_state": "SELF_REPORTED",
         "note": (
             "Report stored in the peer lane. Only kind=decision|blocked reaches "
@@ -316,7 +336,12 @@ def ack(*, reader: str, report_id: str, thread_id: str | None = None) -> dict[st
             "reason": "no thread_id and report carries none — ack needs a thread to vouch for",
             "report_id": report_id,
         }
-    row = {"ts": _now(), "reader": (reader or "unknown")[:120], "report_id": report_id, "thread_id": thread}
+    row = {
+        "ts": _now(),
+        "reader": (reader or "unknown")[:120],
+        "report_id": report_id,
+        "thread_id": thread,
+    }
     _append(ACKS, row)
     quorum = _thread_ackers(thread)
     return {
@@ -340,8 +365,17 @@ def _thread_of(report_id: str) -> str | None:
 
 
 def pending_for_human() -> list[dict[str, Any]]:
-    """Reports queued for a human that have not yet been pushed."""
-    queued = {r.get("report_id") for r in _read_all(OUTBOX) if not r.get("pushed")}
+    """Reports queued for a human that have not yet been successfully pushed.
+
+    A report id with ANY successful push (pushed=true) is consumed. Failed
+    attempts (pushed=false) stay pending and retry on the next flush — but a
+    report never re-pings the human after one successful push (dup-kill,
+    fixed 2026-10-21: previously any failed attempt kept the id pending
+    forever, so every flush re-pushed the same decisions).
+    """
+    outbox_rows = _read_all(OUTBOX)
+    pushed = {r.get("report_id") for r in outbox_rows if r.get("pushed")}
+    queued = {r.get("report_id") for r in outbox_rows} - pushed
     if not queued:
         return []
     return [r for r in _read_all(INBOX) if r.get("report_id") in queued]
@@ -413,8 +447,15 @@ def flush_human(*, force: bool = False, dry_run: bool = False) -> dict[str, Any]
     sent, detail = _send_telegram(text)
     now = _now()
     for r in rows:
-        _append(OUTBOX, {"report_id": r.get("report_id"), "pushed": sent, "pushed_at": now, "detail": detail})
-    return {"status": "pushed" if sent else "send_failed", "pushed": len(rows) if sent else 0, "detail": detail}
+        _append(
+            OUTBOX,
+            {"report_id": r.get("report_id"), "pushed": sent, "pushed_at": now, "detail": detail},
+        )
+    return {
+        "status": "pushed" if sent else "send_failed",
+        "pushed": len(rows) if sent else 0,
+        "detail": detail,
+    }
 
 
 def _send_telegram(text: str) -> tuple[bool, str]:
