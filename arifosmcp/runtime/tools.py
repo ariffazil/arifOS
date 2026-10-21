@@ -27987,6 +27987,7 @@ def _record_invocation(
     ok: bool = True,
     duration_ms: float | None = None,
     error: str | None = None,
+    verdict: str | None = None,
 ) -> None:
     """Append one invocation receipt to the shared federation telemetry sink.
 
@@ -28016,10 +28017,57 @@ def _record_invocation(
             ok=ok,
             duration_ms=duration_ms,
             session_id=str(session_id) if session_id else None,
+            verdict=verdict,
             error=error,
         )
     except Exception:
         pass  # telemetry must never break the tool call it measures
+
+
+# ── 2026-10-21 VERDICT-TRUTH FIX ─────────────────────────────────────────────
+# Root cause (KITARAN follow-up): _wrap_handler's success path called
+# _record_invocation(ok=True) purely because the handler did not RAISE. A
+# governed HOLD/SABAR/PARTIAL response is a successful transport of a
+# NON-PASS verdict, not a pass — persisting it as ok:true poisoned the CER/ASD
+# numerators in /var/lib/arifos/metrics/tool_invocations.jsonl.
+#
+# Law: telemetry `ok` is derived from the response's OWN verdict. Only the
+# explicit non-pass verdict set maps to ok=False (unknown statuses fail OPEN
+# here — verdict enforcement is the kernel's job, not telemetry's). Historical
+# records are NEVER rewritten; the fix is at the write boundary only.
+_NON_PASS_VERDICTS: frozenset[str] = frozenset(
+    {"HOLD", "SABAR", "PARTIAL", "VOID", "PROVISIONAL", "HOLD_888"}
+)
+
+
+def _invocation_ok_from_response(response: Any) -> tuple[bool, str | None]:
+    """Derive (ok, verdict_label) strictly from the response's verdict fields.
+
+    Reads the first truthy verdict carrier: effective_verdict → verdict →
+    status → result.verdict → result.status (mirrors what _dict_from_response
+    and the R-1d tags show the wire actually carries). NEVER raises.
+    """
+    try:
+        d = _dict_from_response(response)
+        result = d.get("result")
+        if not isinstance(result, dict):
+            result = {}
+        verdict: str | None = None
+        for cand in (
+            d.get("effective_verdict"),
+            d.get("verdict"),
+            d.get("status"),
+            result.get("verdict"),
+            result.get("status"),
+        ):
+            if isinstance(cand, str) and cand.strip():
+                verdict = cand.strip().upper()
+                break
+        if verdict is None:
+            return True, None  # no verdict carrier → not a governed response
+        return verdict not in _NON_PASS_VERDICTS, verdict[:64]
+    except Exception:
+        return True, None  # telemetry derivation must never break dispatch
 
 
 def _attach_handoff_evidence_from_input(resp: dict[str, Any], kwargs: dict[str, Any]) -> None:
@@ -28432,12 +28480,15 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             response = handler(*args, **_filtered)
             _latency_ms = (_time.time() - _start_t) * 1000.0
             # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            # 2026-10-21: ok is the response's OWN verdict, not "didn't raise".
+            _ok, _verdict = _invocation_ok_from_response(response)
             _record_invocation(
                 tool_name,
                 actor_id=kwargs.get("actor_id"),
                 session_id=kwargs.get("session_id"),
-                ok=True,
+                ok=_ok,
                 duration_ms=_latency_ms,
+                verdict=_verdict,
             )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
@@ -28874,12 +28925,15 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
             _latency_ms = (_time.time() - _start_t) * 1000.0
             # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            # 2026-10-21: ok is the response's OWN verdict, not "didn't raise".
+            _ok, _verdict = _invocation_ok_from_response(response)
             _record_invocation(
                 tool_name,
                 actor_id=kwargs.get("actor_id"),
                 session_id=kwargs.get("session_id"),
-                ok=True,
+                ok=_ok,
                 duration_ms=_latency_ms,
+                verdict=_verdict,
             )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
