@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ariffazil/arifos",
+  "title": "arifOS",
+  "description": "Constitutional authority plane for AI agents \u2014 verifies identity and authority before execution.",
+  "repository": {
+    "url": "https://github.com/ariffazil/arifOS",
+    "source": "github"
+  },
+  "homepage": "https://arifos.arif-fazil.com",
+  "version": "1!2026.10.17",
+  "license": "AGPL-3.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "arifos",
+      "version": "1!2026.10.17",
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://mcp.arif-fazil.com/mcp"
+      }
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.arif-fazil.com/mcp"
+    }
+  ]
+}
