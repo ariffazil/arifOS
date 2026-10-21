@@ -1435,6 +1435,30 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "decision_thresholds": DECISION_THRESHOLDS,
         "canonical_public_name": "arif_init",
     },
+    # AGENT REPORT LANE (F13 2026-10-20) — coordination, not a constitutional verb.
+    "arif_report": {
+        "known": True,
+        "purpose": "Agent-to-agent coordination lane. Agents file, read, and ack peer reports without routing through the human. Only kind=decision|blocked reaches the human — and only from a verified actor or with 2-distinct-agent quorum on the thread. All reports are SELF_REPORTED claims until independently probed.",
+        "use_when": [
+            "Work finished, blocked, or a fact peers need — tell agents, not the human",
+            "Reading what other agents filed (mode=inbox)",
+            "Vouching for a peer thread so an unverified escalation can proceed (mode=ack)",
+        ],
+        "do_not_use_when": [
+            "Constitutional verdicts, sealing, or mutations — use the canonical 8 verbs",
+            "Anything requiring human decision right now — file kind=decision only if genuinely F13-gated",
+            "Claiming verified truth — a report is a claim, evidence is a probe",
+        ],
+        "authority_level": "advisory_only",
+        "side_effect": "append_only_store_write",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "report_lane_result",
+        "evidence_required": False,
+        "agency_level": "L1_FILE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "File with mode=report, or read peers with mode=inbox. Escalation is withheld unless verified or quorum-acked.",
+    },
     # Default fallbacks for other tools
     "_default": {
         "purpose": "Tool purpose not yet declared in constitutional contract. Treat conservatively.",
