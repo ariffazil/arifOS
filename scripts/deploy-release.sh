@@ -147,7 +147,9 @@ cd "$REPO_DIR"
 # shipped for months because a cached copy lived in build/lib even after
 # pyproject include-list hygiene. Clean before every build.
 rm -rf build arifos.egg-info
-python -m build --wheel --outdir "$BUILD_DIR" 2>&1 || {
+# 2026-10-21: use venv python explicitly — bare `python` on KVM8 may resolve
+# to the Hermes toolchain python (/root/.hermes/tools/...) which lacks `build`.
+"$VENV_PYTHON" -m build --wheel --outdir "$BUILD_DIR" 2>&1 || {
 	echo "ERROR: build failed"
 	rm -rf "$BUILD_DIR"
 	exit 1
