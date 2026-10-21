@@ -1070,6 +1070,22 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
+    # AGENT REPORT LANE (F13 2026-10-20) — coordination channel, not a
+    # constitutional verb. Base class OBSERVE (reads); writing modes are
+    # flagged dangerous here and declared per-mode in abi/mode_contracts.json
+    # (file=MATERIAL, ack=MATERIAL, flush/inbox/stats=OBSERVE). The human-
+    # facing push is internally gated by the escalation law (verified actor
+    # or 2-distinct-agent quorum). Store is append-only: nothing reversible.
+    "arif_report": ToolManifestEntry(
+        tool_name="arif_report",
+        action_class=ActionClass.OBSERVE,
+        safe_modes=["inbox", "stats"],
+        dangerous_modes=["report", "ack", "flush"],
+        requires_lease=False,
+        requires_f13_sovereign_ack=False,
+        blast_radius=BlastRadius.LOCAL,
+        is_reversible=False,
+    ),
 }
 
 
@@ -1326,9 +1342,11 @@ def resolve_action_class_for_mode(
             )
             if not known:
                 raise ContractUnavailable(
-                    canonical, mode, requested_action.name,
-                    "undeclared mode would mutate state; declare it in "
-                    "abi/mode_contracts.json")
+                    canonical,
+                    mode,
+                    requested_action.name,
+                    "undeclared mode would mutate state; declare it in abi/mode_contracts.json",
+                )
         return effective
 
     declared = CONTRACT_TO_GATE[spec["action_class"]]
