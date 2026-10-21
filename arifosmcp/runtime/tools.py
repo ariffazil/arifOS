@@ -29793,6 +29793,25 @@ def register_tools(
     # reaches F13, coalesced. Registered outside the ABI profile so the
     # sovereign 8-verb facade stays exactly 8.
     try:
+        # Wire meta: same compact projection as the canonical loop (F2 — an
+        # agent reading tools/list must see the lane's purpose, modes, and
+        # authority boundary, not an unnamed tool).
+        from arifosmcp.tool_charter import CANONICAL_ORDER as _rep_canon_order
+        from arifosmcp.tool_charter import surface_manifest as _rep_surface_manifest
+
+        _rep_manifest = _rep_surface_manifest("arif_report", full=False)
+        _rep_meta = {
+            "arifos_manifest": _rep_manifest,
+            "stage_code": _rep_manifest.get("stage_code", ""),
+            "stage_name": _rep_manifest.get("stage_name", ""),
+            "risk_tier": (_rep_manifest.get("risk") or {}).get("tier", "low"),
+            "irreversible": (_rep_manifest.get("risk") or {}).get("irreversible", False),
+            "requires_human_ack": (_rep_manifest.get("risk") or {}).get(
+                "requires_human_ack", False
+            ),
+            "canonical_order": list(_rep_canon_order),
+            "manifest_surface": "compact",
+        }
         mcp.tool(
             name="arif_report",
             description=(
@@ -29806,6 +29825,7 @@ def register_tools(
             ),
             tags={"coordination", "arifos", "non-constitutional"},
             annotations={"readOnlyHint": False, "destructiveHint": False},
+            meta=_rep_meta,
         )(_arif_report)
         registered.append("arif_report")
         logger.info("AGENT REPORT LANE: registered arif_report (coordination channel)")
