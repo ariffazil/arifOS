@@ -259,6 +259,34 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     if not origin_ok:
         drift = True
 
+    # T3b identity-directive (2026-10-22): `drift` compares the three BUILD
+    # stamps only. The comment above claimed "source repo HEAD" but the code
+    # never read the live repo. Live case 2026-10-21: repo HEAD 3980bbe vs
+    # deployed e69abf6 (2 docs commits) reported drift=false. Expose the repo
+    # delta explicitly instead of widening `drift` (docs-only commits would
+    # otherwise flip the kernel substrate to degraded).
+    repo_head_commit = None
+    repo_head_in_sync = None
+    try:
+        import subprocess as _sp
+
+        from arifosmcp import __file__ as _pkg_init
+
+        _repo_dir = str(Path(_pkg_init).resolve().parents[1])
+        _head = _sp.run(
+            ["git", "-C", _repo_dir, "rev-parse", "--short=7", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if _head.returncode == 0:
+            repo_head_commit = _head.stdout.strip() or None
+            if repo_head_commit and source_commit not in ("unknown", ""):
+                repo_head_in_sync = source_commit.startswith(repo_head_commit[:7])
+    except Exception:  # noqa: BLE001 — attestation must never raise
+        repo_head_commit = None
+        repo_head_in_sync = None
+
     surface_hash = _compute_tool_surface_hash()
 
     release_id = os.getenv("ARIFOS_RELEASE_ID", "").strip() or (
@@ -270,6 +298,9 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "built_commit": built_commit,
         "deployed_commit": deployed_commit,
         "drift": drift,
+        "drift_scope": "binary_build_stamps",  # T3b: what `drift` actually compares
+        "repo_head_commit": repo_head_commit,  # T3b: live repo HEAD (was invisible)
+        "repo_head_in_sync": repo_head_in_sync,  # T3b: repo HEAD vs deployed stamp
         "wheel_hash": wheel_hash,
         "runtime_manifest_hash": runtime_manifest_hash,
         "surface_hash": surface_hash,
@@ -547,7 +578,13 @@ def get_build_info() -> dict[str, Any]:
         ),
         # MCP protocol compatibility
         "protocol_version": "2026-07-28",
-        "supported_protocol_versions": ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"],
+        "supported_protocol_versions": [
+            "2026-07-28",
+            "2025-11-25",
+            "2025-06-18",
+            "2025-03-26",
+            "2024-11-05",
+        ],
         # Governance layer
         "governance_version": "registry-1.3.0",
         "policy_version": "arifOS.constitution.v1",

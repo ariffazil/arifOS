@@ -3138,47 +3138,23 @@ def _compute_canonical_verdict(
                 # like "ARIF" are presentation only.
                 if _passed_actor:
                     try:
-                        from arifosmcp.runtime.governance_identity import (
-                            normalize_actor_id,
-                        )
-
-                        _passed_norm = normalize_actor_id(_passed_actor) or _passed_actor
-                        _sess_norm = normalize_actor_id(_sess_actor) if _sess_actor else _sess_actor
-
-                        # P0.10 mirror (2026-08-14): FI canonical aliases. The ACT/
-                        # standing store keeps the canonical short form ("QWEN" for
-                        # "qwen-code", "GROK" for "grok-build"). normalize_actor_id
-                        # is blind to those aliases — without this check every
-                        # hyphenated FI agent trips a false session_actor_mismatch
-                        # SCAR and an L13 HOLD on evidence tools.
-                        def _alias_match(a: str | None, b: str | None) -> bool:
-                            if not a or not b:
-                                return False
-                            if a.lower() == b.lower():
-                                return True
-                            try:
-                                from contracts.identity import CANONICAL_ACTORS
-
-                                for _canon, info in CANONICAL_ACTORS.items():
-                                    aliases = {str(x).lower() for x in info.get("aliases", [])}
-                                    aliases.add(_canon.lower())
-                                    if a.lower() in aliases and b.lower() in aliases:
-                                        return True
-                            except Exception:
-                                logger.exception("suppressed exception", exc_info=True)
-                            return False
+                        # IDENTITY_CANON v1 (2026-10-22): one comparison rule for
+                        # every surface. same_principal resolves both handles
+                        # through CANONICAL_ACTORS incl. slash head/tail — the
+                        # 2026-10-21 false session_actor_mismatch
+                        # (claude/opus-5.5 vs CLAUDE) came from this comparator
+                        # never consulting the slash path.
+                        from contracts.identity_canon import same_principal
 
                         if (
-                            _passed_norm
-                            and _sess_norm
-                            and _passed_norm != _sess_norm
-                            and not _alias_match(_passed_norm, _sess_norm)
-                            and not _alias_match(_passed_actor, _sess_actor)
+                            _passed_actor
+                            and _sess_actor
+                            and not same_principal(_passed_actor, _sess_actor)
                         ):
                             degradation.append(
                                 f"session_actor_mismatch: passed actor_id={_passed_actor} "
-                                f"(canonical={_passed_norm}) ≠ session actor_id={_sess_actor} "
-                                f"(canonical={_sess_norm}) for session={_session_id}"
+                                f"≠ session actor_id={_sess_actor} for session={_session_id} "
+                                f"(comparison_key differs per IDENTITY_CANON v1)"
                             )
                     except Exception:
                         # Fail-soft: keep the legacy raw comparison as SCAR backup

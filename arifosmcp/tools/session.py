@@ -1332,6 +1332,7 @@ def _project_light(
     signature_verified: bool = False,
     is_sovereign_principal: bool = False,
     verbosity: str = "minimal",
+    init_mode_label: str = "light",
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -1368,6 +1369,21 @@ def _project_light(
 
     # F11 audit spine — was nulled by abd33817d refactor
     _now_ts = _time.time()
+    # ── IDENTITY_CANON v1 (2026-10-22): ONE resolved identity object ──────
+    # Every identity block in this payload (top-level, session_birth,
+    # act_claims, metabolic_state) reads from _identity. The claimed handle
+    # is preserved; canonical_id is comparison-only and never overwrites it.
+    try:
+        from contracts.identity_canon import resolve_actor_identity
+
+        _identity = resolve_actor_identity(actor_id)
+    except Exception:  # noqa: BLE001 — identity canon must never block a session
+        _identity = {
+            "claimed": actor_id,
+            "canonical_id": actor_id,
+            "comparison_key": (actor_id or "").lower(),
+            "source": "inline_fallback",
+        }
     _call_payload = f"arif_init|light|{sid}|{actor_id}|{_now_ts:.6f}"
     call_hash = f"sha256:{hashlib.sha256(_call_payload.encode()).hexdigest()}"
     trace_id = f"trc-{_uuid.uuid4().hex[:12]}"
@@ -1547,18 +1563,22 @@ def _project_light(
         # GATING (deprecated aliases — prefer effective_state)
         "session_id": sid,
         "actor_id": actor_id,
+        "canonical_id": _identity["canonical_id"],
+        "identity_resolved": _identity,
         "actor_claimed": _actor_claimed,
-        "actor_canonicalized": bool(actor_id),  # refined by identity registry if present
+        "actor_canonicalized": _identity[
+            "canonical_id"
+        ],  # IDENTITY_CANON v1: string|None (was bool — forks were undetectable)
         "actor_bound": _actor_bound,
         "actor_verified": actor_verified,
         "actor_cryptographically_verified": _actor_crypto,
         "authority": _authority,
         "authority_band": _authority,
-        "metabolic_state": _fq_state,
+        "metabolic_state": {**_fq_state, "canonical_id": _identity["canonical_id"]},
         "mutation_allowed": _mutation_allowed,
         "seal_allowed": _seal_allowed,
         # ── AOB P0: Machine enforcement envelope ──
-        "init_mode": "light",
+        "init_mode": init_mode_label,  # T3 2026-10-22: mode=init must not self-report "light"
         "session_mode": session_mode,
         "authority_scope": _authority,
         "kernel_epoch": "2026-07-03",
@@ -1616,6 +1636,7 @@ def _project_light(
         "session_birth": {
             "session_id": sid,
             "actor_id": actor_id,
+            "canonical_id": _identity["canonical_id"],
             "actor_verified": actor_verified,
             "actor_cryptographically_verified": _actor_crypto,
             "authority_mode": _authority,
@@ -1769,6 +1790,7 @@ def _project_light(
             out["session_token"] = _unverified_token
             out["session_birth"]["session_token"] = _unverified_token
             out["act_claims"] = {
+                "canonical_id": _identity["canonical_id"],
                 "auth": _unverified_claims.get("auth"),
                 "av": _unverified_claims.get("av"),
                 "exp": _unverified_claims.get("exp"),
@@ -1894,6 +1916,7 @@ def _project_light(
             out["standing_source"] = "act"
         out["session_birth"]["session_token"] = _token
         out["act_claims"] = {
+            "canonical_id": _identity["canonical_id"],
             "auth": _claims.get("auth"),
             "av": _claims.get("av"),
             "exp": _claims.get("exp"),
@@ -2547,12 +2570,15 @@ def arif_init(
             if _canon.get("normalized"):
                 _canonical_actor_id = str(_canon["normalized"])
                 if _canonical_actor_id != actor_id:
+                    # IDENTITY_CANON v1 (2026-10-22): canonical is comparison-only.
+                    # Do NOT write it back over the claim — the 2026-10-21 fork
+                    # (claude/opus-5.5 → standing `claude`, ACT `CLAUDE`, birth
+                    # `CLAUDE`) came from exactly this overwrite.
                     logger.info(
-                        "arif_init: canonical identity '%s' → '%s'",
+                        "arif_init: canonical identity '%s' → '%s' (comparison-only; claim preserved)",
                         actor_id,
                         _canonical_actor_id,
                     )
-                    actor_id = _canonical_actor_id
             else:
                 actor_id = actor_id.strip() if actor_id else "anonymous"
         except ImportError:
@@ -4317,6 +4343,7 @@ def arif_init(
             authority_override=str(_real_authority_override),
             intent=sess.get("intent") or intent or "constitutionally_bound_session",
             verbosity=_vb_full,
+            init_mode_label="init",  # T3 2026-10-22: the full-init path must report what it is
         )
         # Belt: force effective_state consistent with authority_override
         if isinstance(header, dict):
