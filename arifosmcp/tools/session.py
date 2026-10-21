@@ -1777,6 +1777,7 @@ def _project_light(
             _unverified_token, _unverified_claims = mint_sct(
                 sid=sid,
                 actor=actor_id or "anonymous",
+                canonical_id=_identity["canonical_id"],
                 auth="OBSERVE_ONLY",
                 av=False,
                 stage="000",
@@ -1853,6 +1854,7 @@ def _project_light(
             _token, _claims = mint_sct(
                 sid=sid,
                 actor=actor_id or "anonymous",
+                canonical_id=_identity["canonical_id"],
                 auth=_authority,
                 av=bool(actor_verified),
                 stage="000",
@@ -2544,6 +2546,11 @@ def arif_init(
             )
 
     _canonical_actor_id: str | None = None
+    # IDENTITY_CANON v1 (2026-10-22): capture the claim BEFORE any normalizer
+    # mutates the local — the ACT mint must carry the claimed handle (or the
+    # canonical), never a silently collapsed intermediate ("arif-fazil" →
+    # "arif" was minted as actor without the caller ever choosing it).
+    _identity_claimed: str | None = actor_id
     if actor_id:
         try:
             from arifosmcp.runtime.governance_identity import normalize_actor_id
@@ -3192,7 +3199,7 @@ def arif_init(
                 "next": {"recommended_next": "arif_observe"},
             },
             sid=sid,
-            actor_id=actor_id or "light_client",
+            actor_id=_identity_claimed or actor_id or "light_client",
             constitution_hash=CONSTITUTION_HASH,
             actor_verified=_light_actor_verified,
             session_mode=session_mode,  # AOB P0 — 2026-07-03
@@ -4333,7 +4340,7 @@ def arif_init(
                 },
             },
             sid=sid,
-            actor_id=actor_id,
+            actor_id=_identity_claimed or actor_id,
             constitution_hash=CONSTITUTION_HASH,
             # INIT v2.0 Phase 3.2: always surface context completeness score
             context_completeness=sess.get("context_completeness"),

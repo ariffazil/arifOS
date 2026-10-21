@@ -91,3 +91,24 @@ def test_sovereign_spoof_shapes_do_not_become_arif():
 
     assert not same_principal("ARIF FAZIL THE GREAT", "arif")
     assert not same_principal("F13 SOVEREIGN", "arif")
+
+
+def test_act_token_carries_claimed_and_canonical():
+    """F13 fix 2026-10-22: ACT actor = claimed handle; canonical_id = principal.
+
+    Receipt-1 gap: input 'arif-fazil' minted actor='arif' (layer-1 collapse
+    leaked into the token). The mint must carry what the caller claimed, with
+    the principal in canonical_id — never a silently collapsed intermediate.
+    """
+    from arifosmcp.runtime.act_token import mint_act
+
+    token, claims = mint_act(
+        sid="SEAL-identity-canon-test",
+        actor="arif-fazil",
+        auth="OBSERVE_ONLY",
+        av=False,
+        canonical_id="ARIF",
+    )
+    assert claims["actor"] == "arif-fazil", f"ACT rewrote the claim: {claims['actor']!r}"
+    assert claims["canonical_id"] == "ARIF"
+    assert token.startswith("act_v1.")
