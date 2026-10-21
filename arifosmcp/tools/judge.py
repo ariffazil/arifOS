@@ -17,6 +17,15 @@ PARADOX ANCHORS (v3): 11 linguistic invariants fire at verdict decision points:
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+
+# ── SIGIL NOTE (888 order 2026-10-21, item #6) ─────────────────────────────
+# Canonical stage numbering per constitutional_map.py (F13-ratified 2026-07-31):
+#   arif_judge = 666 · arif_forge = 777 · arif_seal/VAULT999 = 999.
+# "888" in this file refers to the RETIRED judge label and the 888_HOLD /
+# HOLD_888 verdict class (sovereign-hold), NOT the tool sigil.
+# Live wire advertises: "KERNEL 666". Do not "correct" 666 -> 888; the map wins.
+
+
 from __future__ import annotations
 
 import hashlib

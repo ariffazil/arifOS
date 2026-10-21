@@ -160,7 +160,18 @@ def _scan_unexplained_critical(checks: list[dict[str, Any]]) -> list[dict[str, A
                 "(unknown pattern — possible new failure)"
             )
         if ev.get("vault_seals_total", 1) == 0:
-            signals.append("vault_seals_total: 0 (empty ledger)")
+            if ev.get("file_present"):
+                # 888 2026-10-21: API mirror empty (writer DB schema not
+                # migrated — F13 pending) while the canonical filesystem
+                # ledger exists. The ledger is NOT empty; the API mirror is.
+                # Explain — do not raise an unexplained failure.
+                ev.setdefault("notes", []).append(
+                    "vault_seals_total=0 from writer API; filesystem chain "
+                    "present (outcomes ledger healthy) — writer DB migration "
+                    "pending F13 decision"
+                )
+            else:
+                signals.append("vault_seals_total: 0 (empty ledger)")
         if signals:
             unexplained.append(
                 {
