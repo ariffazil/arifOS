@@ -699,6 +699,13 @@ def check_vault_replay() -> dict[str, Any]:
     if latest_id == "unknown":
         errors.append("Most recent vault entry has no recognisable timestamp/id")
 
+    # 888 2026-10-21: drop writer-unreachable noise BEFORE chain evaluation —
+    # the filesystem-only proof path (below) must engage when the writer API
+    # is down but the canonical ledger is readable. Previously the dedup ran
+    # AFTER chain_ok, so the fallback could never fire.
+    if file_exists and entries_returned > 0:
+        errors = [e for e in errors if "writer :5001 unreachable" not in e]
+
     # Chain health: API INTACT/DEGRADED with seals > 0 is acceptable when
     # historical gap is sovereign-ruled NON-ISSUE. BROKEN without ruling = fail.
     chain_ok = False
@@ -721,11 +728,6 @@ def check_vault_replay() -> dict[str, Any]:
     query_status = "OK" if (api_healthy or entries_returned > 0) and file_exists else None
     if query_status != "OK" and query_status is None:
         errors.append("vault replay sources returned non-OK status")
-
-    # Deduplicate empty-path noise when we already have a clean pass path
-    if chain_ok and file_exists and entries_returned > 0:
-        # Drop writer-unreachable noise if filesystem proof is solid
-        errors = [e for e in errors if "writer :5001 unreachable" not in e]
 
     passed = file_exists and entries_returned > 0 and chain_ok and latest_id != "unknown"
 
