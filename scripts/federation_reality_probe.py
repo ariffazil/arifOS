@@ -43,7 +43,27 @@ ROOT = Path(__file__).resolve().parent.parent
 VAR_DIR = ROOT / "var" / "reality"
 MD_PATH = ROOT / "FEDERATION_REALITY_SNAPSHOT.md"
 
+
 # ── canonical federation organ manifest ────────────────────────────────
+def _aforge_mcp_base() -> str:
+    """A-FORGE MCP base URL from the canonical registry (organs.yaml aforge.mcp_port).
+
+    Banda Haram D2: ports come from the registry, not literals. The API port
+    (:7071) serves /health; the MCP surface lives on mcp_port (:7072).
+    Fallback :7072 is documented, versioned behaviour — not a silent guess.
+    """
+    try:
+        import re as _re
+
+        txt = open("/root/AAA/federation/organs.yaml", "r", encoding="utf-8").read()
+        m = _re.search(r"aforge:[\s\S]{0,400}?mcp_port:\s*(\d+)", txt)
+        if m:
+            return f"http://127.0.0.1:{m.group(1)}"
+    except Exception:
+        pass
+    return "http://127.0.0.1:7072"
+
+
 ORGANS: list[dict[str, Any]] = [
     {
         "key": "arifOS",
@@ -99,8 +119,9 @@ ORGANS: list[dict[str, Any]] = [
         "key": "A-FORGE",
         "name": "A-FORGE",
         "role": "governed_execution",
-        "expected_tools": 77,
+        "expected_tools": 115,
         "localhost": "http://127.0.0.1:7071",
+        "mcp_base_url": _aforge_mcp_base(),
         "public": None,
         "mcp_path": "/mcp",
         "freshness_required": False,
@@ -155,6 +176,25 @@ FLOOR_TABLE_PATH = ROOT / "GENESIS" / "FLOOR_TABLE.json"
 KERNEL_CANON_PATH = ROOT / "GENESIS" / "000_KERNEL_CANON.md"
 
 
+def _aforge_mcp_base() -> str:
+    """A-FORGE MCP base URL from the canonical registry (organs.yaml aforge.mcp_port).
+
+    Banda Haram D2: ports come from the registry, not literals. The API port
+    (:7071) serves /health; the MCP surface lives on mcp_port (:7072).
+    Fallback :7072 is documented, versioned behaviour — not a silent guess.
+    """
+    try:
+        import re as _re
+
+        txt = open("/root/AAA/federation/organs.yaml", "r", encoding="utf-8").read()
+        m = _re.search(r"aforge:[\s\S]{0,400}?mcp_port:\s*(\d+)", txt)
+        if m:
+            return f"http://127.0.0.1:{m.group(1)}"
+    except Exception:
+        pass
+    return "http://127.0.0.1:7072"
+
+
 # ── HTTP helpers ───────────────────────────────────────────────────────
 def _http_get(
     url: str, headers: dict[str, str] | None = None, timeout: float = 10.0
@@ -174,11 +214,18 @@ def _http_get(
             }
     except urllib.error.HTTPError as e:
         latency_ms = round((time.perf_counter() - start) * 1000, 2)
+        try:
+            body = e.read().decode("utf-8", errors="replace")
+        except Exception:
+            # 888 2026-10-21: error bodies can be truncated (IncompleteRead)
+            # — an exception inside this except handler would escape the
+            # outer handler and kill the whole probe run (observed live).
+            body = ""
         return {
             "ok": False,
             "status_code": e.code,
             "latency_ms": latency_ms,
-            "body": e.read().decode("utf-8", errors="replace"),
+            "body": body,
             "error": str(e),
         }
     except Exception as e:
@@ -205,10 +252,21 @@ def _http_post(
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = resp.read().decode("utf-8", errors="replace")
             latency_ms = round((time.perf_counter() - start) * 1000, 2)
-            return {"ok": True, "status_code": resp.status, "latency_ms": latency_ms, "body": body}
+            return {
+                "ok": True,
+                "status_code": resp.status,
+                "latency_ms": latency_ms,
+                "body": body,
+                "headers": {k.lower(): v for k, v in resp.headers.items()},
+            }
     except urllib.error.HTTPError as e:
         latency_ms = round((time.perf_counter() - start) * 1000, 2)
-        body = e.read().decode("utf-8", errors="replace")
+        try:
+            body = e.read().decode("utf-8", errors="replace")
+        except Exception:
+            # 888 2026-10-21: truncated error bodies (IncompleteRead) must
+            # degrade to skip-and-log, never kill the probe run.
+            body = ""
         return {
             "ok": False,
             "status_code": e.code,
@@ -237,7 +295,9 @@ def _safe_json(body: str) -> dict[str, Any] | None:
 # ── organ-specific probes ──────────────────────────────────────────────
 def _probe_health(base_url: str) -> dict[str, Any]:
     """GET /health and return normalized fields."""
-    result = _http_get(f"{base_url}/health", headers={"Accept": "application/json"})
+    result = _http_get(
+        f"{base_url}/health", headers={"Accept": "application/json, text/event-stream"}
+    )
     out = {
         "reachable": result["ok"],
         "status_code": result.get("status_code"),
@@ -273,13 +333,15 @@ def _probe_mcp_tool_count(base_url: str, mcp_path: str) -> dict[str, Any]:
         "id": 1,
         "method": "initialize",
         "params": {
-            "protocolVersion": "2024-11-05",
+            "protocolVersion": "2025-11-25",
             "capabilities": {},
             "clientInfo": {"name": "federation-reality-probe", "version": "1.0.0"},
         },
     }
     init_url = f"{base_url}{mcp_path}"
-    init = _http_post(init_url, init_payload, headers={"Accept": "application/json"})
+    init = _http_post(
+        init_url, init_payload, headers={"Accept": "application/json, text/event-stream"}
+    )
     if not init["ok"]:
         return {
             "ok": False,
@@ -287,9 +349,25 @@ def _probe_mcp_tool_count(base_url: str, mcp_path: str) -> dict[str, Any]:
             "error": init.get("error"),
             "status_code": init.get("status_code"),
         }
+    # MCP spec: replay the session assigned at initialize and send
+    # notifications/initialized before tools/list. Without this, FastMCP
+    # organs answer 400 on tools/list (observed live 2026-10-21).
+    sess = (init.get("headers") or {}).get("mcp-session-id")
+    if sess:
+        _http_post(
+            init_url,
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+            headers={
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": sess,
+            },
+        )
+    mcp_headers = {"Accept": "application/json, text/event-stream"}
+    if sess:
+        mcp_headers["Mcp-Session-Id"] = sess
 
     list_payload = {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
-    listed = _http_post(init_url, list_payload, headers={"Accept": "application/json"})
+    listed = _http_post(init_url, list_payload, headers=mcp_headers)
     if not listed["ok"]:
         return {
             "ok": False,
@@ -321,7 +399,7 @@ def _probe_mcp_tool_scope(base_url: str, mcp_path: str) -> dict[str, Any]:
         "id": 1,
         "method": "initialize",
         "params": {
-            "protocolVersion": "2024-11-05",
+            "protocolVersion": "2025-11-25",
             "capabilities": {},
             "clientInfo": {"name": "federation-reality-probe", "version": "1.0.0"},
         },
@@ -329,15 +407,32 @@ def _probe_mcp_tool_scope(base_url: str, mcp_path: str) -> dict[str, Any]:
     init_url = f"{base_url}{mcp_path}"
 
     # initialize
-    init = _http_post(init_url, init_payload, headers={"Accept": "application/json"})
+    init = _http_post(
+        init_url, init_payload, headers={"Accept": "application/json, text/event-stream"}
+    )
     if not init["ok"]:
         return {"ok": False, "error": init.get("error"), "status_code": init.get("status_code")}
+
+    # MCP spec: session replay + notifications/initialized (see _probe_mcp_tool_count).
+    sess = (init.get("headers") or {}).get("mcp-session-id")
+    if sess:
+        _http_post(
+            init_url,
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+            headers={
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": sess,
+            },
+        )
+    mcp_headers = {"Accept": "application/json, text/event-stream"}
+    if sess:
+        mcp_headers["Mcp-Session-Id"] = sess
 
     result: dict[str, Any] = {"ok": True}
 
     # tools/list
     list_payload = {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
-    listed = _http_post(init_url, list_payload, headers={"Accept": "application/json"})
+    listed = _http_post(init_url, list_payload, headers=mcp_headers)
     if listed["ok"]:
         data = _safe_json(listed["body"])
         if data and "result" in data:
@@ -365,7 +460,7 @@ def _probe_mcp_tool_scope(base_url: str, mcp_path: str) -> dict[str, Any]:
 
     # resources/list
     res_payload = {"jsonrpc": "2.0", "id": 3, "method": "resources/list", "params": {}}
-    res_listed = _http_post(init_url, res_payload, headers={"Accept": "application/json"})
+    res_listed = _http_post(init_url, res_payload, headers=mcp_headers)
     if res_listed["ok"]:
         data = _safe_json(res_listed["body"])
         if data and "result" in data:
@@ -381,7 +476,7 @@ def _probe_mcp_tool_scope(base_url: str, mcp_path: str) -> dict[str, Any]:
 
     # prompts/list
     pr_payload = {"jsonrpc": "2.0", "id": 4, "method": "prompts/list", "params": {}}
-    pr_listed = _http_post(init_url, pr_payload, headers={"Accept": "application/json"})
+    pr_listed = _http_post(init_url, pr_payload, headers=mcp_headers)
     if pr_listed["ok"]:
         data = _safe_json(pr_listed["body"])
         if data and "result" in data:
@@ -427,7 +522,9 @@ def _probe_a_forge_metadata(base_url: str) -> dict[str, Any]:
 def _probe_public(public_url: str | None) -> dict[str, Any]:
     if not public_url:
         return {"reachable": None, "note": "no public endpoint configured"}
-    result = _http_get(f"{public_url}/health", headers={"Accept": "application/json"})
+    result = _http_get(
+        f"{public_url}/health", headers={"Accept": "application/json, text/event-stream"}
+    )
     out = {
         "reachable": result["ok"],
         "status_code": result.get("status_code"),
@@ -516,23 +613,70 @@ def _probe_organ_f13_health(organ: dict[str, Any], health: dict[str, Any]) -> di
 # ── tool scope classification (BloodHound-style) ───────────────────────
 
 _CRITICAL_KW = {
-    "seal", "forge", "judge", "sovereign", "sovereignty",
-    "constitutional", "floor", "vault", "admin",
-    "elevate", "privilege", "writeacl", "dacl",
-    "genericall", "alldelegation",
+    "seal",
+    "forge",
+    "judge",
+    "sovereign",
+    "sovereignty",
+    "constitutional",
+    "floor",
+    "vault",
+    "admin",
+    "elevate",
+    "privilege",
+    "writeacl",
+    "dacl",
+    "genericall",
+    "alldelegation",
 }
 _HIGH_KW = {
-    "create", "update", "modify", "deploy", "execute",
-    "route", "bridge", "connect", "install", "remove",
-    "restart", "stop", "start", "write", "delete",
-    "mutate", "configure", "set", "add", "link",
-    "run", "spawn", "lease", "commit", "push",
+    "create",
+    "update",
+    "modify",
+    "deploy",
+    "execute",
+    "route",
+    "bridge",
+    "connect",
+    "install",
+    "remove",
+    "restart",
+    "stop",
+    "start",
+    "write",
+    "delete",
+    "mutate",
+    "configure",
+    "set",
+    "add",
+    "link",
+    "run",
+    "spawn",
+    "lease",
+    "commit",
+    "push",
 }
 _MEDIUM_KW = {
-    "read", "query", "search", "fetch", "list", "get",
-    "observe", "inspect", "export", "import", "monitor",
-    "watch", "track", "follow", "collect", "gather",
-    "recall", "remember", "review", "audit",
+    "read",
+    "query",
+    "search",
+    "fetch",
+    "list",
+    "get",
+    "observe",
+    "inspect",
+    "export",
+    "import",
+    "monitor",
+    "watch",
+    "track",
+    "follow",
+    "collect",
+    "gather",
+    "recall",
+    "remember",
+    "review",
+    "audit",
 }
 
 
@@ -543,30 +687,41 @@ def _classify_tool(tool_name, tool_description="", organ_key="unknown"):
     combined = f"{name_lower} {desc_lower}"
 
     organ_distance = {
-        "arifOS": 1, "A-FORGE": 2,
-        "GEOX": 3, "WEALTH": 3,
-        "WELL": 4, "AAA": 3,
+        "arifOS": 1,
+        "A-FORGE": 2,
+        "GEOX": 3,
+        "WEALTH": 3,
+        "WELL": 4,
+        "AAA": 3,
     }
     base_hops = organ_distance.get(organ_key, 3)
 
     for kw in _CRITICAL_KW:
         if kw in combined:
-            return {"mutation_class": "CRITICAL",
-                    "reason": f"keyword '{kw}' suggests constitutional/admin authority",
-                    "estimated_hops_to_f13": max(1, base_hops)}
+            return {
+                "mutation_class": "CRITICAL",
+                "reason": f"keyword '{kw}' suggests constitutional/admin authority",
+                "estimated_hops_to_f13": max(1, base_hops),
+            }
     for kw in _HIGH_KW:
         if kw in combined:
-            return {"mutation_class": "HIGH",
-                    "reason": f"keyword '{kw}' suggests mutation capability",
-                    "estimated_hops_to_f13": max(1, base_hops + 1)}
+            return {
+                "mutation_class": "HIGH",
+                "reason": f"keyword '{kw}' suggests mutation capability",
+                "estimated_hops_to_f13": max(1, base_hops + 1),
+            }
     for kw in _MEDIUM_KW:
         if kw in combined:
-            return {"mutation_class": "MEDIUM",
-                    "reason": f"keyword '{kw}' suggests read/observe capability",
-                    "estimated_hops_to_f13": base_hops + 2}
-    return {"mutation_class": "LOW",
-            "reason": "no authority/mutation keywords detected",
-            "estimated_hops_to_f13": base_hops + 3}
+            return {
+                "mutation_class": "MEDIUM",
+                "reason": f"keyword '{kw}' suggests read/observe capability",
+                "estimated_hops_to_f13": base_hops + 2,
+            }
+    return {
+        "mutation_class": "LOW",
+        "reason": "no authority/mutation keywords detected",
+        "estimated_hops_to_f13": base_hops + 3,
+    }
 
 
 def _generate_attack_surface(tool_scope):
@@ -591,10 +746,13 @@ def _generate_attack_surface(tool_scope):
             desc = ""
             classified = _classify_tool(name, desc, organ_key)
             cls = classified["mutation_class"]
-            entry = {"tool": name, "organ": organ_key,
-                     "mutation_class": cls,
-                     "estimated_hops_to_f13": classified["estimated_hops_to_f13"],
-                     "reason": classified["reason"]}
+            entry = {
+                "tool": name,
+                "organ": organ_key,
+                "mutation_class": cls,
+                "estimated_hops_to_f13": classified["estimated_hops_to_f13"],
+                "reason": classified["reason"],
+            }
             organ_classes.setdefault(cls, []).append(entry)
             if cls == "CRITICAL":
                 critical_tools.append(entry)
@@ -610,19 +768,25 @@ def _generate_attack_surface(tool_scope):
         n_total = n_crit + n_high + n_med + n_low
         risk_score = round((n_crit * 3 + n_high * 1) / max(n_total, 1), 3)
 
-        organ_summary[organ_key] = {"total_tools": n_total,
-                                     "CRITICAL": n_crit, "HIGH": n_high,
-                                     "MEDIUM": n_med, "LOW": n_low,
-                                     "risk_score": risk_score}
+        organ_summary[organ_key] = {
+            "total_tools": n_total,
+            "CRITICAL": n_crit,
+            "HIGH": n_high,
+            "MEDIUM": n_med,
+            "LOW": n_low,
+            "risk_score": risk_score,
+        }
 
     federation_risk_score = round((total_critical * 3 + total_high * 1) / max(total_all, 1), 3)
 
-    return {"critical_tools": critical_tools,
-            "organ_summary": organ_summary,
-            "federation_risk_score": federation_risk_score,
-            "total_tools_swept": total_all,
-            "total_critical": total_critical,
-            "total_high": total_high}
+    return {
+        "critical_tools": critical_tools,
+        "organ_summary": organ_summary,
+        "federation_risk_score": federation_risk_score,
+        "total_tools_swept": total_all,
+        "total_critical": total_critical,
+        "total_high": total_high,
+    }
 
 
 # ── verdict engine ─────────────────────────────────────────────────────
@@ -834,9 +998,7 @@ def _write_md(snapshot: dict[str, Any]) -> Path:
             r_count = res_info.get("count", 0) if isinstance(res_info, dict) else 0
             p_count = pr_info.get("count", 0) if isinstance(pr_info, dict) else 0
             if isinstance(tools_info, dict) and "prefixes" in tools_info:
-                pfx_str = ", ".join(
-                    f"{k}={v}" for k, v in tools_info["prefixes"].items()
-                )
+                pfx_str = ", ".join(f"{k}={v}" for k, v in tools_info["prefixes"].items())
             else:
                 pfx_str = "—"
             lines.append(f"| {skey} | {t_count} | {pfx_str} | {r_count} | {p_count} |")
@@ -875,30 +1037,41 @@ def _write_md(snapshot: dict[str, Any]) -> Path:
     # ── Attack Surface (BloodHound-style) ───────────────────────────
     if attack.get("organ_summary"):
         summary = attack["organ_summary"]
-        lines.extend(["",
-            "## Attack Surface — Tool Scope Risk (BloodHound-style)",
-            "",
-            "| Organ | Total Tools | CRITICAL | HIGH | MEDIUM | LOW | Risk Score |",
-            "|-------|-------------|----------|------|--------|-----|------------|"])
+        lines.extend(
+            [
+                "",
+                "## Attack Surface — Tool Scope Risk (BloodHound-style)",
+                "",
+                "| Organ | Total Tools | CRITICAL | HIGH | MEDIUM | LOW | Risk Score |",
+                "|-------|-------------|----------|------|--------|-----|------------|",
+            ]
+        )
         for okey in sorted(summary.keys()):
             s = summary[okey]
             lines.append(
-                f"| {okey} | {s['total_tools']} | {s['CRITICAL']} | {s['HIGH']} | {s['MEDIUM']} | {s['LOW']} | {s['risk_score']} |")
+                f"| {okey} | {s['total_tools']} | {s['CRITICAL']} | {s['HIGH']} | {s['MEDIUM']} | {s['LOW']} | {s['risk_score']} |"
+            )
         lines.append(
             f"| **Federation** | {attack['total_tools_swept']} | "
             f"{attack['total_critical']} | {attack['total_high']} | — | — | "
-            f"{attack['federation_risk_score']} |")
+            f"{attack['federation_risk_score']} |"
+        )
 
         crit = attack.get("critical_tools", [])
         if crit:
-            lines.extend(["",
-                "### CRITICAL Tools — Direct F13 Reachability Risk",
-                "",
-                "| Tool | Organ | Estimated Hops to F13 | Reason |",
-                "|------|-------|----------------------|--------|"])
+            lines.extend(
+                [
+                    "",
+                    "### CRITICAL Tools — Direct F13 Reachability Risk",
+                    "",
+                    "| Tool | Organ | Estimated Hops to F13 | Reason |",
+                    "|------|-------|----------------------|--------|",
+                ]
+            )
             for c in crit:
                 lines.append(
-                    f"| `{c['tool']}` | {c['organ']} | {c['estimated_hops_to_f13']} | {c['reason']} |")
+                    f"| `{c['tool']}` | {c['organ']} | {c['estimated_hops_to_f13']} | {c['reason']} |"
+                )
 
     lines.extend(
         [
@@ -955,7 +1128,9 @@ def main(argv: list[str] | None = None) -> int:
         if organ["key"] == "A-FORGE":
             tools = _probe_a_forge_metadata(organ["localhost"])
         elif organ["mcp_path"]:
-            tools = _probe_mcp_tool_count(organ["localhost"], organ["mcp_path"])
+            tools = _probe_mcp_tool_count(
+                organ.get("mcp_base_url") or organ["localhost"], organ["mcp_path"]
+            )
         else:
             tools = {
                 "ok": False,
@@ -986,7 +1161,9 @@ def main(argv: list[str] | None = None) -> int:
                 scope_result["prompts"] = {"count": 0, "names": []}
                 scope_result["note"] = "A-FORGE: limited scope via GET /mcp metadata"
             elif organ["mcp_path"]:
-                scope_result = _probe_mcp_tool_scope(organ["localhost"], organ["mcp_path"])
+                scope_result = _probe_mcp_tool_scope(
+                    organ.get("mcp_base_url") or organ["localhost"], organ["mcp_path"]
+                )
             else:
                 # AAA has no MCP path
                 scope_result = {
