@@ -1,0 +1,70 @@
+{
+  "canon_version": "1.0.0",
+  "content_sha256": "d409000b0148d45d908041d5f4bf68fadabd27fcd1d10315657cd680a038cf18",
+  "rule": "claimed preserved; canonical comparison-only; key = canonical lower no-separators",
+  "cases": [
+    {
+      "raw": "arif-fazil",
+      "claimed": "arif-fazil",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "ARIF_FAZIL",
+      "claimed": "ARIF_FAZIL",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "ariffazil",
+      "claimed": "ariffazil",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "arif",
+      "claimed": "arif",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "claude/opus-5.5",
+      "claimed": "claude/opus-5.5",
+      "canonical_id": "CLAUDE",
+      "comparison_key": "claude",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "kimi-code/FI-008",
+      "claimed": "kimi-code/FI-008",
+      "canonical_id": "FI-008",
+      "comparison_key": "fi008",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "333-AGI",
+      "claimed": "333-AGI",
+      "canonical_id": "OPENCODE",
+      "comparison_key": "opencode",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "333-agi",
+      "claimed": "333-agi",
+      "canonical_id": "OPENCODE",
+      "comparison_key": "opencode",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "nova-9",
+      "claimed": "nova-9",
+      "canonical_id": "nova-9",
+      "comparison_key": "nova9",
+      "source": "mechanical"
+    }
+  ]
+}
