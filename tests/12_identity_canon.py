@@ -93,6 +93,31 @@ def test_sovereign_spoof_shapes_do_not_become_arif():
     assert not same_principal("F13 SOVEREIGN", "arif")
 
 
+def test_role_strings_resolve_to_nothing():
+    """F13 2026-10-22: 'f13'/'sovereign'/'888'/'arif-fazil.com' are ROLE/POWER
+    strings, not names. They must resolve to NOTHING — never to ARIF."""
+    from contracts.identity_canon import resolve_actor_identity, same_principal
+
+    for raw in ("f13", "sovereign", "888", "arif-fazil.com"):
+        r = resolve_actor_identity(raw)
+        assert r["canonical_id"] is None, (
+            f"{raw!r} resolved to {r['canonical_id']!r} — role escalation"
+        )
+        assert r["source"] == "rejected_role_string"
+        assert not same_principal(raw, "arif"), f"{raw!r} must not be the sovereign principal"
+
+
+def test_person_name_aliases_proposed_with_tests():
+    """F13-approved person-name aliases (registry commit 1dd978712) resolve to
+    the sovereign principal — WITH tests, unlike the role strings."""
+    from contracts.identity_canon import same_principal
+
+    for alias in ("arif_fazil", "muhammad arif"):
+        assert same_principal(alias, "arif-fazil"), (
+            f"{alias!r} is a person-name alias of the sovereign"
+        )
+
+
 def test_act_token_carries_claimed_and_canonical():
     """F13 fix 2026-10-22: ACT actor = claimed handle; canonical_id = principal.
 

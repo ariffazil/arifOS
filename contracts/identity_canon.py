@@ -32,6 +32,20 @@ __canon_version__ = "1.0.0"
 _SLASH_RE = re.compile(r"/")
 _SEP_RE = re.compile(r"[-_\s.]+")
 
+# F13 ruling 2026-10-22: role/power strings are NOT names. Resolving them to a
+# principal lets anyone claim sovereignty with a string — escalation without a
+# signature. They resolve to NOTHING (anonymous), in every lane, before any
+# registry or alias layer runs. The committed kernel layers still contain these
+# mappings (residue reported) — this canon is the enforcement point for
+# identity comparisons and every payload block that reads it.
+ROLE_STRING_BLOCKLIST = frozenset({"f13", "sovereign", "888", "arif-fazil.com"})
+
+
+def is_role_string(raw: str | None) -> bool:
+    if not raw:
+        return False
+    return raw.strip().lower() in ROLE_STRING_BLOCKLIST
+
 
 def _mechanical(raw: str) -> str:
     """Deterministic fallback form for unknown handles."""
@@ -74,6 +88,17 @@ def resolve_actor_identity(raw: str | None) -> dict[str, Any]:
         }
 
     claimed = unicodedata.normalize("NFC", str(raw).strip())
+
+    # F13 2026-10-22: role/power strings resolve to nothing — BEFORE any
+    # alias layer sees them. No principal, no comparison key.
+    if is_role_string(claimed):
+        return {
+            "claimed": claimed,
+            "canonical_id": None,
+            "comparison_key": None,
+            "source": "rejected_role_string",
+            "canon_version": __canon_version__,
+        }
 
     # Layer 1+2: existing resolvers, in the order session.py applies them.
     canonical: str | None = None
