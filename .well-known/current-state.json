@@ -1,36 +1,35 @@
 {
-  "generated_at": "2026-10-21T09:05:34Z",
+  "generated_at": "2026-10-21T09:36:20Z",
   "self_measurement": {
     "status": "degraded",
-    "probe": "http://127.0.0.1:8088/health @2026-10-21T09:05:34Z",
-    "floors_pass": 8,
+    "probe": "http://127.0.0.1:8088/health @2026-10-21T09:36:20Z",
+    "floors_pass": 10,
     "floors_target": 13,
-    "floors_failing": [],
+    "floors_failing": [
+      "F1",
+      "F8"
+    ],
     "floors_unmeasured": [
-      "F4",
-      "F6",
-      "F7",
-      "F8",
-      "F9"
+      "F6"
     ],
     "floors_provenance": {
       "F10": "arifflow_live_ontology:QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD",
       "F11": "floor_producer:PASS:receipt_ledger",
       "F12": "floor_producer:PASS:request_trust",
       "F13": "floor_producer:PASS:seal_chain",
-      "F1": "arifflow_fq_probe:fq=0.807650140090145",
+      "F1": "arifflow_fq_probe:fq=0.4583333333333333",
       "F2": "floor_producer:PASS:floor_provenance_coverage",
       "F3": "witness_producers:human+ai+earth",
-      "F4": "unmeasured_default:empty_kernel_signal",
+      "F4": "arifflow_probe:ds=-0.0",
       "F5": "floor_producer:PASS:seal_chain",
       "F6": "unmeasured_default:empty_kernel_signal",
-      "F7": "unmeasured_default",
-      "F8": "unmeasured_default",
-      "F9": "unmeasured_default:empty_kernel_signal"
+      "F7": "arifflow_live_vector:omega=0.04",
+      "F8": "arifflow_live_vector:g=0.587",
+      "F9": "arifflow_live_vector:c_dark=0.2085"
     },
     "vault999": "healthy",
-    "release_id": "arifos-59ad4bc",
-    "source_commit": "59ad4bc",
+    "release_id": "arifos-e895e42",
+    "source_commit": "e895e42",
     "drift": false,
     "tools_exposed": 9,
     "registry_size": 63
