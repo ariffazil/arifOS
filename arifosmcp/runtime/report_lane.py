@@ -140,6 +140,7 @@ def report(
     needs_human: bool | None = None,
     verified_actor: bool = False,
     dry_run: bool = False,
+    server_actor: str | None = None,
 ) -> dict[str, Any]:
     """File one report into the lane. Never raises on bad input; coerces.
 
@@ -177,7 +178,12 @@ def report(
         "schema": "arifos.report.v1",
         "report_id": report_id,
         "ts": _now(),
-        "sender": (sender or "unknown").strip()[:120],
+        # Server stamps the caller identity; `sender_claimed` is what the
+        # caller WROTE for itself (AgentsRoom pattern — agents may not mint
+        # their own identity). They differ whenever an unverified caller
+        # names itself "codex" or "stranger".
+        "sender": (server_actor or "anonymous").strip()[:120],
+        "sender_claimed": (sender or "").strip()[:120] or None,
         "platform": (platform or "unknown").strip()[:40],
         "kind": k,
         "kind_requested": kind,
@@ -247,14 +253,22 @@ def inbox(
     limit: int = 20,
     mark_read: bool = False,
     reader: str = "unknown",
+    verified_actor: bool = False,
 ) -> dict[str, Any]:
-    """Read reports filed by other agents. Pull-only — nothing is pushed."""
+    """Read reports filed by other agents. Pull-only — nothing is pushed.
+
+    F13 2026-10-21 (privacy floor): the peer board (fyi/peer/done/claim) is
+    open — that is the messageboard. Rows of HUMAN_CLASSES (decision/blocked)
+    carry operational secrets (tokens, hosts, infrastructure) and are visible
+    ONLY to verified actors. Unverified readers never see them.
+    """
     rows = _read_all(INBOX)
     cursor = _load_cursor(reader)
     if since is None and cursor:
         since = cursor
 
     out: list[dict[str, Any]] = []
+    hidden_sensitive = 0
     for row in rows:
         if since and str(row.get("ts", "")) <= since:
             continue
@@ -262,11 +276,24 @@ def inbox(
             continue
         if kind and row.get("kind") != kind:
             continue
+        row_kind = row.get("kind")
+        # Downgraded human-class rows carry `kind_requested` = decision/blocked
+        # (the escalation law rewrites kind to peer on withhold) — the CONTENT
+        # is the sensitive part, so filter on requested class + escalation.
+        sensitive = (
+            row_kind in HUMAN_CLASSES
+            or row.get("kind_requested") in HUMAN_CLASSES
+            or bool(row.get("escalated"))
+        )
+        if sensitive and not verified_actor:
+            hidden_sensitive += 1
+            continue
         out.append(
             {
                 "report_id": row.get("report_id"),
                 "ts": row.get("ts"),
                 "sender": row.get("sender"),
+                "sender_claimed": row.get("sender_claimed"),
                 "platform": row.get("platform"),
                 "kind": row.get("kind"),
                 "subject": row.get("subject"),
@@ -283,7 +310,7 @@ def inbox(
     if mark_read and latest:
         _save_cursor(reader, latest)
 
-    return {
+    result: dict[str, Any] = {
         "status": "ok",
         "count": len(out),
         "total_filed": len(rows),
@@ -291,6 +318,12 @@ def inbox(
         "reports": out,
         "reminder": "Reports are SELF_REPORTED by the sender. Probe before relying on one.",
     }
+    if hidden_sensitive:
+        result["hidden_sensitive"] = hidden_sensitive
+        result["hidden_reason"] = (
+            "decision/blocked rows are visible to verified actors only (F13 2026-10-21)"
+        )
+    return result
 
 
 def _cursor_path(reader: str) -> Path:
@@ -360,6 +393,11 @@ def _thread_ackers(thread_id: str | None) -> list[str]:
     for row in _read_all(ACKS):
         if row.get("thread_id") != thread_id:
             continue
+        # F13 2026-10-21 (sovereign "ya"): quorum counts VERIFIED acks only.
+        # Rows before this field existed (burst-ack test data) carry no
+        # reader_verified → excluded. Fail-closed.
+        if not row.get("reader_verified"):
+            continue
         if not _ack_after_floor(row.get("ts"), first_ts):
             continue
         who = row.get("reader")
@@ -368,13 +406,32 @@ def _thread_ackers(thread_id: str | None) -> list[str]:
     return seen
 
 
-def ack(*, reader: str, report_id: str, thread_id: str | None = None) -> dict[str, Any]:
+def ack(
+    *,
+    reader: str,
+    report_id: str,
+    thread_id: str | None = None,
+    verified_actor: bool = False,
+) -> dict[str, Any]:
     """Vouch for a thread. Agents acknowledge to agents — the human is not told.
 
-    Two distinct acknowledgements on a thread are what allow an unverified
-    sender's decision report to reach F13. Acknowledgement is a coordination
-    act, not a verdict: it says 'another agent saw this', never 'this is true'.
+    F13 2026-10-21 (sovereign "ya"): ack WAJIB verified session. A self-declared
+    reader name is forgeable by any caller, so an unverified "2-ack quorum" was
+    worth nothing. Only cryptographically verified agents may vouch — their
+    quorum can still escalate an unverified thread, but the vouches themselves
+    are no longer spoofable.
     """
+    if not verified_actor:
+        return {
+            "status": "rejected",
+            "reason": (
+                "ack needs a verified session (ACT/SCT) — self-declared reader "
+                "names are forgeable, so they carry no quorum weight. Bind via "
+                "arif_init + identity challenge first."
+            ),
+            "report_id": report_id,
+            "reader_verified": False,
+        }
     thread = (thread_id or "").strip() or _thread_of(report_id)
     if not thread:
         return {
@@ -385,6 +442,7 @@ def ack(*, reader: str, report_id: str, thread_id: str | None = None) -> dict[st
     row = {
         "ts": _now(),
         "reader": (reader or "unknown")[:120],
+        "reader_verified": True,
         "report_id": report_id,
         "thread_id": thread,
     }
