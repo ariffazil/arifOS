@@ -25327,6 +25327,36 @@ def _caller_verified() -> bool:
     return bool(isinstance(claims, dict) and claims.get("av") is True)
 
 
+def _caller_actor() -> str:
+    """Server-stamped caller identity (AgentsRoom pattern — F13 2026-10-21).
+
+    Agents may not mint their own identity: `sender` in the payload is kept as
+    `sender_claimed` only. This returns the SERVER-side view — the ACT subject
+    when the call carries a verified token, else "anonymous".
+    """
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers() or {}
+    except Exception:
+        return "anonymous"
+    auth = str(headers.get("authorization") or headers.get("Authorization") or "")
+    if not auth.lower().startswith("bearer "):
+        return "anonymous"
+    token = auth.split(" ", 1)[1].strip()
+    if not token:
+        return "anonymous"
+    try:
+        from arifosmcp.runtime.act_token import verify_act
+
+        claims = verify_act(token, expected_actor=None)
+    except Exception:
+        return "anonymous"
+    if not (isinstance(claims, dict) and claims.get("av") is True):
+        return "anonymous"
+    return str(claims.get("sub") or claims.get("actor_id") or "verified-actor")[:120]
+
+
 async def _arif_report(
     mode: str = "report",
     kind: str = "fyi",
@@ -25368,6 +25398,7 @@ async def _arif_report(
             needs_human=needs_human,
             verified_actor=_caller_verified(),
             dry_run=dry_run,
+            server_actor=_caller_actor(),
         )
     elif m == "inbox":
         result = rl.inbox(
@@ -25377,9 +25408,15 @@ async def _arif_report(
             limit=limit,
             mark_read=mark_read,
             reader=who,
+            verified_actor=_caller_verified(),
         )
     elif m == "ack":
-        result = rl.ack(reader=who, report_id=report_id or "", thread_id=thread_id)
+        result = rl.ack(
+            reader=who,
+            report_id=report_id or "",
+            thread_id=thread_id,
+            verified_actor=_caller_verified(),
+        )
     elif m == "flush":
         result = rl.flush_human(force=force, dry_run=dry_run)
     elif m == "stats":
