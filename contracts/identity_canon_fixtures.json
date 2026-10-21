@@ -1,7 +1,7 @@
 {
-  "canon_version": "1.0.0",
-  "content_sha256": "d409000b0148d45d908041d5f4bf68fadabd27fcd1d10315657cd680a038cf18",
-  "rule": "claimed preserved; canonical comparison-only; key = canonical lower no-separators",
+  "canon_version": "1.1.0",
+  "content_sha256": "744ac26bfc64cf98874a2a295f5b400dcd2c008d968629bd6016b3afd4cab4a0",
+  "rule": "claimed preserved; canonical comparison-only; role strings resolve to nothing (F13 2026-10-22); key = canonical lower no-separators",
   "cases": [
     {
       "raw": "arif-fazil",
@@ -65,6 +65,48 @@
       "canonical_id": "nova-9",
       "comparison_key": "nova9",
       "source": "mechanical"
+    },
+    {
+      "raw": "arif_fazil",
+      "claimed": "arif_fazil",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "muhammad arif",
+      "claimed": "muhammad arif",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "f13",
+      "claimed": "f13",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
+    },
+    {
+      "raw": "sovereign",
+      "claimed": "sovereign",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
+    },
+    {
+      "raw": "888",
+      "claimed": "888",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
+    },
+    {
+      "raw": "arif-fazil.com",
+      "claimed": "arif-fazil.com",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
     }
   ]
 }
