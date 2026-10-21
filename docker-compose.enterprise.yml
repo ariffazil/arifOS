@@ -1,0 +1,61 @@
+# arifOS Enterprise Self-Hosted MCP Authority Plane
+# Usage:
+#   docker compose -f docker-compose.enterprise.yml up -d
+#
+# Endpoints:
+#   MCP Streamable HTTP: http://localhost:8088/mcp
+#   Health Telemetry:    http://localhost:8088/health
+#   Tools Schema:        http://localhost:8088/tools.json
+#   Discovery Manifest:  http://localhost:8088/.well-known/server.json
+
+version: "3.8"
+
+services:
+  arifos-kernel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ARIFOS_BUILD_BRANCH: main
+    image: arifos:enterprise
+    container_name: arifos-enterprise-kernel
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    environment:
+      - ARIFOS_ENV=enterprise
+      - ARIFOS_MCP_REQUIRE_VERSION=0
+      - ARIFOS_PORT=8088
+      - REDIS_URL=redis://redis:6379/0
+      - VAULT_DIR=/var/lib/arifos/vault
+    volumes:
+      - arifos_vault:/var/lib/arifos/vault
+      - ./server.json:/usr/src/app/static/.well-known/server.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8088/health', timeout=5)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    container_name: arifos-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - arifos_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  arifos_vault:
+    name: arifos_vault_storage
+  arifos_redis_data:
+    name: arifos_redis_storage
