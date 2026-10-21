@@ -699,6 +699,31 @@ def _run_minimal_stdio_server() -> None:
 
             try:
                 envelope = asyncio.run(_invoke_stdio_tool(handler, arguments))
+                # ── 888 2026-10-21: production-wire strictest-component envelope ──
+                # server.py wraps the OTHER handler stack (_CANONICAL_HANDLERS);
+                # the runtime entrypoint serves CANONICAL_TOOL_HANDLERS — the v2
+                # wrap never reached the live wire. Apply the reducer here so
+                # every canonical response carries final_verdict /
+                # intermediate_trace_states / can_claim_success, and no top-level
+                # field is more lenient than the strictest internal component.
+                try:
+                    if isinstance(envelope, dict) and name in (
+                        "arif_init",
+                        "arif_observe",
+                        "arif_think",
+                        "arif_route",
+                        "arif_memory",
+                        "arif_judge",
+                        "arif_forge",
+                        "arif_seal",
+                    ):
+                        from arifosmcp.runtime.v2_envelope import (
+                            build_v2_envelope as _b2e,
+                        )
+
+                        envelope = _b2e(name, envelope)
+                except Exception:
+                    pass
                 local_payload: dict[str, Any] = {
                     "content": [{"type": "text", "text": json.dumps(envelope)}],
                 }
