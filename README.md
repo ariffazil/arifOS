@@ -38,11 +38,12 @@ generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit,
 
 In a world where intelligence is abundant, authority becomes the scarce resource. arifOS keeps judgment independent from execution.
 
-[Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
+[Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [MCP Registry (Glama)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
 
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/pypi/pyversions/arifos?style=flat-square)](https://pypi.org/project/arifos)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](./LICENSE)
+[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
 [![Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
 [![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
 [![Security audit](https://img.shields.io/badge/audit-partial_in_progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
@@ -58,7 +59,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 | **Agent / A2A** | MCP tools + receipts. You do not get the keys. Judgment by arifOS, discovery by AAA, execution by A-FORGE |
 | **Institution** | Policy floors F1–F13, a hash-chained VAULT999 audit trail, model-vendor independence |
 | **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, [published schemas](https://arifos.arif-fazil.com/tools.json) |
-| **Auditor / indexer** | [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`docs/evidence/`](./docs/evidence/) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) · [Awesome AI Agent Governance](https://github.com/agentrust-io/awesome-ai-governance#governance-frameworks) |
+| **Registries & Indexers** | [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) (Score: A) · [`server.json`](./server.json) (Official MCP Registry) · [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) |
 
 Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](https://github.com/ariffazil/AAA) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [GEOX](https://github.com/ariffazil/GEOX)
 
@@ -206,11 +207,14 @@ Every consequential verdict and receipt is written to VAULT999: a hash-chained, 
 
 ## Connect an MCP client
 
+[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
+[![Official Registry Manifest](https://img.shields.io/badge/MCP_Registry-server.json_valid-brightgreen?style=flat-square)](./server.json)
+
 ```
 https://mcp.arif-fazil.com/mcp      # canonical public door · or http://localhost:8088/mcp self-hosted
 ```
 
-**Canonical endpoint:** `https://mcp.arif-fazil.com/mcp`. `https://arifos.arif-fazil.com/mcp` is a live alias (proxies to the same kernel); use the canonical URL in client configs.
+**Canonical endpoint:** `https://mcp.arif-fazil.com/mcp`. Listed & verified on [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) with rating **A**. Official registry manifest: [`server.json`](./server.json). `https://arifos.arif-fazil.com/mcp` is a live alias (proxies to the same kernel); use the canonical URL in client configs.
 
 <details>
 <summary><strong>Client config</strong> — Cline · Cursor · Windsurf · Claude Desktop</summary>

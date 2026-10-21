@@ -1,40 +1,24 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ariffazil/arifos",
-  "title": "arifOS Constitutional MCP Server",
-  "description": "Governed MCP server: 7 canonical verbs (init→seal), VAULT999 ledger, 888 Judge, F1-F13 floors.",
-  "version": "2026.06.30",
-  "websiteUrl": "https://arifos.arif-fazil.com",
+  "title": "arifOS",
+  "description": "Constitutional authority plane for AI agents \u2014 verifies identity and authority before execution.",
   "repository": {
     "url": "https://github.com/ariffazil/arifOS",
-    "source": "github",
-    "id": "ariffazil/arifOS"
+    "source": "github"
   },
-  "icons": [
-    {
-      "src": "https://arif-fazil.com/hero_portrait.jpg",
-      "mimeType": "image/jpeg",
-      "sizes": ["any"]
-    }
-  ],
+  "homepage": "https://arifos.arif-fazil.com",
+  "version": "1!2026.10.17",
+  "license": "AGPL-3.0",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "arifos",
-      "version": "2026.06.30",
+      "version": "1!2026.10.17",
       "transport": {
         "type": "streamable-http",
         "url": "https://mcp.arif-fazil.com/mcp"
-      },
-      "environmentVariables": [
-        {
-          "name": "ARIFOS_API_KEY",
-          "description": "API key for authentication",
-          "format": "string",
-          "isSecret": true,
-          "isRequired": true
-        }
-      ]
+      }
     }
   ],
   "remotes": [
@@ -42,16 +26,5 @@
       "type": "streamable-http",
       "url": "https://mcp.arif-fazil.com/mcp"
     }
-  ],
-  "_meta": {
-    "io.modelcontextprotocol.registry/publisher-provided": {
-      "version": "2026.06.30",
-      "tool": "forge_anthropic_registry_submit",
-      "buildInfo": {
-        "commit": "arifOS-2026.06.30",
-        "pipelineId": "arifOS-10surface-aligned",
-        "timestamp": "2026-06-30T14:30:00Z"
-      }
-    }
-  }
+  ]
 }
