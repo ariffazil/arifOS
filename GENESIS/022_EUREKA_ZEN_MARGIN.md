@@ -189,10 +189,14 @@ C, Gnd, Auth, Cont, Acc ∈ [0, 1]
 Met = clamp(M, 0, 1)   # metabolic balance, capped at 1 for product form
 ```
 
-### F8 Genius (existing)
+### F8 Genius (existing) — **SUPERSEDED**
+
+> **SUPERSEDED by `arifOS/docs/APEX_MATH_CANON.md` (2026-10-15):** this E² form
+> is HARAM — mathematically disproven by Theorem T5 (counterexample). Canonical:
+> `G = (A·P·E·X)^(1/4)`. Retained for history only.
 
 ```
-G = (A × P × X_exec × E²) × (1 − h) ≥ 0.80
+G = (A × P × X_exec × E²) × (1 − h) ≥ 0.80   ← DISPROVEN FORM — DO NOT USE
 h ∈ [0, 1] humility / uncertainty mass
 ```
 
