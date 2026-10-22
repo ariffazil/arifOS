@@ -7495,7 +7495,7 @@ def get_constitution_identity() -> dict[str, Any]:
     c_hash = _load_constitution_hash()
     if c_hash in ("sha256:missing", "sha256:unavailable"):
         # P0-2 fix: use full 64-char hash, never truncated
-        FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Maruah, F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auditability, F12: Resilience, F13: Sovereign"""
+        FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Maruah (machine-restraint; never a dignity score — docs/canon/F6_MARUAH_CANON.md), F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auditability, F12: Resilience, F13: Sovereign"""
         c_hash = f"sha256:{hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()}"
 
     return {
@@ -18354,7 +18354,7 @@ async def _arif_heart_critique(
       simulate   — Run a what-if scenario and project risk outcomes.
       empathize  — Assess human impact load (Ω) on weakest stakeholders.
       redteam    — Attack surface analysis.
-      maruah     — Dignity score (L05 Peace) / F6 MARUAH.
+      maruah     — Advisory human-impact posture signal. NOT a dignity measure (F6 canon 2026-10-23 — docs/canon/F6_MARUAH_CANON.md).
       deescalate — Risk reduction strategy.
 
     Parameters:
@@ -18628,7 +18628,7 @@ async def _arif_heart_critique(
             result["output_policy"] = "DOMAIN_SEAL"
 
         # ── L05/L06 Dignity Breakdown ──────────────────────────────────────────
-        # Quantifies "Maruah" (ASEAN dignity floor) for human impact assessment
+        # Advisory posture signal for human-impact assessment — never a dignity score (F6 canon 2026-10-23)
         _dignity_breakdown = {
             "autonomy_preservation_F04": {
                 "metric": "Does this action diminish 888's sovereignty?",
