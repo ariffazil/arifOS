@@ -2380,9 +2380,22 @@ def _local_chain_verify() -> dict[str, Any]:
                 )
             prev_hash = entry_hash
             prev_index = i
+
+        try:
+            from arifosmcp.runtime.canonical_vault_chain import verify_chain as _canon_verify
+            _canon_res = _canon_verify(scope="canonical")
+            canonical_status = "HEALTHY" if getattr(_canon_res, "verified", False) else "BROKEN"
+        except Exception:
+            canonical_status = "HEALTHY" if (len(gaps) == 0 and entries) else "BROKEN"
+
+        historical_status = "gaps-found" if gaps else "clean"
+        canon_ok = (canonical_status == "HEALTHY")
+
         return {
-            "verified": len(gaps) == 0 and len(entries) > 0,
+            "verified": canon_ok,
             "status": "verified" if (len(gaps) == 0 and entries) else "gaps-found",
+            "canonical_status": canonical_status,
+            "historical_status": historical_status,
             "entries": len(entries),
             "skipped_corrupt": skipped,
             "gaps": gaps[:20],
