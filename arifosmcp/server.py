@@ -518,6 +518,7 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
     ALLOWED_ORIGIN_PREFIXES: tuple[str, ...] = (
         "https://arifos.arif-fazil.com",
         "https://arif-fazil.com",
+        "https://mcp.arif-fazil.com",  # self-fix 2026-10-22: gateway live console 403 on own origin
         "http://localhost",
         "https://localhost",
         "http://127.0.0.1",
