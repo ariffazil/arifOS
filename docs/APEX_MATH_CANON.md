@@ -164,6 +164,12 @@ practical threshold for SEAL-level governance health. The exact value 0.80
 is chosen for operational reasons (a clear boundary that balances false
 positives and false negatives).
 
+The operational split is likewise chosen, not measured: **0.80 = the GENIUS/
+SEAL admission bound; 0.50 = the live deploy floor** (`A-FORGE APEXRuntimeReceipt.ts`
+`G < 0.50 → HOLD`; `arifosmcp/runtime/tools.py` `GENIUS_SCORE_VOID_FLOOR = 0.50`,
+"constitutional target is 0.80"). Neither number is a measurement — both are
+policy bounds. *(Declared 2026-10-22, F13.)*
+
 ---
 
 ## Part II: Theorems (Proven from Axioms)
