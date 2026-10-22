@@ -386,6 +386,43 @@ arifOS publishes verifiable evidence for its claims. Every public claim links to
 
 ---
 
+## External Footprint & Discovery
+
+arifOS is publicly discoverable beyond first-party domains.
+
+### Current Measured Reality
+
+- **Discoverable:** YES
+- **Installable:** YES (`pip install arifos`)
+- **Inspectable:** YES
+- **Forkable:** YES
+
+### Verified Surfaces
+
+- GitHub public repositories (`ariffazil/arifOS`, `ariffazil/arifosmcp`)
+- PyPI packages (`arifos`, `arifosmcp`)
+- MCP ecosystem directories (`model-context-protocol.com`, `glama.ai`)
+- Third-party MCP catalogs (Loomal, Skills Playground, LobeHub, G2, Willow)
+
+### Candidate Independent References (Observed Claims)
+
+- Agentrust: *Awesome AI Governance* (Curated production AI governance frameworks)
+- Tom Rochette: *AI Control Planes Research* (Technical evaluation on separation of powers and self-audit culture)
+- Hapax Systems: *Constitution Research* (Comparative benchmark on runtime axiom enforcement)
+
+### Open Gaps
+
+- Independent validation not yet established
+- Independent CI verifier not yet bound (Open Gap 4)
+- Academic citation not yet established
+- Commercial adoption not independently verified
+
+*Discoverability should not be interpreted as endorsement, certification, adoption, or proof of effectiveness.*
+
+See: [`docs/EXTERNAL_WITNESS_LEDGER.md`](./docs/EXTERNAL_WITNESS_LEDGER.md) and [`docs/EXTERNAL_FOOTPRINT.md`](./docs/EXTERNAL_FOOTPRINT.md).
+
+---
+
 ## Who Is This For
 
 **Operators** deploying AI agents in regulated environments who need an independent judgment layer between proposals and execution. **Developers** building agent systems who want a policy decision point as a service. **Evaluators and security reviewers** assessing AI governance frameworks. **Domain builders** adapting governance to a field (geoscience, finance, healthcare).
