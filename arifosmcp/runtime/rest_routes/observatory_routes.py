@@ -955,7 +955,7 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                 "score": _pf(
                     None if is_placeholder else score,
                     source=(
-                        "rest_routes._FLOOR_DEFAULTS (auto-pass placeholder)"
+                        "rest_routes._FLOOR_DEFAULTS (unmeasured — Maruah predicates live, producer pending; docs/canon/F6_MARUAH_CANON.md)"
                         if is_placeholder
                         else f"governance_kernel.get_current_state [{origin}]"
                     ),
