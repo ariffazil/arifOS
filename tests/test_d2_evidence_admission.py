@@ -93,6 +93,12 @@ def test_arif_think_accepts_evidence_param():
     from arifosmcp.runtime.mind_reason import arif_think_structured
 
     assert "evidence" in inspect.signature(arif_think_structured).parameters
+    # The WIRE surface — the function registered in _CANONICAL_HANDLERS whose
+    # signature builds the tools/list inputSchema (2026-10-23 lesson: editing
+    # deeper layers does not propagate to the wire without this one).
+    from arifosmcp.runtime.tools import _arif_mind_reason_tool
+
+    assert "evidence" in inspect.signature(_arif_mind_reason_tool).parameters
 
 
 def test_registry_schema_exposes_evidence():
