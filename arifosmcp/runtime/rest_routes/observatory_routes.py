@@ -1827,11 +1827,18 @@ def _probe_arifflow_fq() -> Any:
             independent=True,
         )
     fq = data.get("fq") if isinstance(data.get("fq"), dict) else {}
-    verdict = fq.get("legacy_verdict") or data.get("verdict")
-    diagnosis = fq.get("legacy_diagnosis") or data.get("diagnosis")
+    # P2 (F13 D2 2026-10-23): prefer the LIVE verdict/diagnosis over the dead
+    # legacy fields; keep both rendered so the migration stays auditable.
+    live_verdict = data.get("verdict")
+    legacy_verdict = fq.get("legacy_verdict")
+    verdict = live_verdict or legacy_verdict
+    diagnosis = data.get("diagnosis") or fq.get("legacy_diagnosis")
+    verdict_source = "live" if live_verdict else ("legacy" if legacy_verdict else None)
     frame = fq.get("metric_frame") if isinstance(fq.get("metric_frame"), dict) else {}
     value = {
         "verdict": verdict,
+        "verdict_source": verdict_source,
+        "legacy_verdict": legacy_verdict,
         "diagnosis": diagnosis,
         "actors_tracked": frame.get("actors_tracked"),
         "sample_size": frame.get("sample_size"),
