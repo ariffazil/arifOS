@@ -1255,8 +1255,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
         _fq_quotient = float(_fq_data["fq"]["quotient"])
+        # 2026-10-23 F13 YES: F1 reads the vector verdict constellation,
+        # not the scalar arifFlow itself marks "Deprecated as health
+        # indicator". A live FLOWING verdict is the measurement; the
+        # deprecated scalar remains in telemetry only.
+        _fq_verdict = str(_fq_data.get("verdict", "UNKNOWN")).split(":")[0].strip().upper()
         _federation_fq = fq_object(_fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION)
-        _phi_fq = round(_phi_fq_from_quotient(_fq_quotient), 4)
+        _phi_fq = 1.0 if _fq_verdict == "FLOWING" else 0.0
         # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
         # That guard only accepted a real measurement when it IMPROVED on the
         # auto-pass placeholder, so a genuine φFQ of 0.2321 (FQ=0.6964, below
@@ -1265,7 +1270,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # honest. A successful probe IS the measurement; assign it unconditionally
         # and let the threshold gate decide pass/fail.
         resolved_floors["F1"] = _phi_fq
-        floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}@{now_iso()}"
+        floor_provenance["F1"] = f"arifflow_verdict:{_fq_verdict};fq={_fq_quotient}@{now_iso()}"
 
         # P6 (F13 D2 2026-10-23): five-field FQ decomposition rides with the
         # reading — raw / normalization / threshold / window / formula as
