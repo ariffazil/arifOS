@@ -15806,6 +15806,7 @@ async def _arif_mind_reason_tool(
     ctx: Context | None = None,
     concise: bool = True,
     context: dict | None = None,
+    evidence: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
@@ -15869,6 +15870,7 @@ async def _arif_mind_reason_tool(
                 actor_id=actor_id,
                 plan_id=plan_id,
                 witness_type=witness_type,
+                evidence=evidence,
             )
             # P1 telemetry: deterministic bypass must expose handler_entered,
             # model_started=false, handler_returned=true so callers can diagnose
@@ -15926,6 +15928,24 @@ async def _arif_mind_reason_tool(
                     )
             except Exception:
                 _active_evidence = None  # never let evidence lookup break the think path
+            # D2 evidence channel (F13 D1 2026-10-23): typed EvidenceObjects
+            # from the wire pass the admission gate (expired omitted,
+            # UNKNOWN/CONTRADICTED gated, malformed rejected) and merge with
+            # session observations; the admission summary echoes in the result.
+            _d2_admission = None
+            if evidence:
+                from arifosmcp.runtime.evidence_admission import admit_evidence
+
+                _ev = admit_evidence(evidence)
+                _d2_admission = {
+                    "consumed": _ev["consumed"],
+                    "expired_omitted": _ev["expired_omitted"],
+                    "rejected": _ev["rejected"],
+                    "counts": _ev["counts"],
+                }
+                _admitted = [a["evidence"] for a in _ev["admitted_items"]]
+                if _admitted:
+                    _active_evidence = (_active_evidence or []) + _admitted
             synthesis = await asyncio.wait_for(
                 _synthesize_async(query or "", reasoning_mode=mode, evidence=_active_evidence),
                 timeout=_think_budget_s,
@@ -15935,6 +15955,7 @@ async def _arif_mind_reason_tool(
                 "status": "OK",
                 "tool": "arif_mind_reason",
                 "verdict": synthesis.get("verdict", "CLAIM"),
+                **({"evidence_admission": _d2_admission} if _d2_admission else {}),
                 "result": {
                     "query": query,
                     "synthesis": synthesis.get("bounded_answer", ""),
