@@ -1142,7 +1142,9 @@ def _build_governance_status_payload() -> dict[str, Any]:
         "F3": "witness_coherence",
         "F4": "ds",
         "F5": "peace2",
-        "F6": "kappa_r",
+        # F6 MARUAH severed from kappa_r (2026-10-23, spec C.11): kappa_r is
+        # reversibility, not human dignity. F6 is governed exclusively by the
+        # six F6 system-behavior meters + human-witness lane.
         "F7": "humility",
         "F8": "genius",
         "F9": "shadow",
@@ -1434,6 +1436,29 @@ def _build_governance_status_payload() -> dict[str, Any]:
         except Exception as _f5_exc:
             floor_provenance["F5"] = (
                 f"unmeasured_default:seal_chain_unreachable:{type(_f5_exc).__name__}"
+            )
+
+        # F6 MARUAH — six system-behavior meters + human-witness lane (read-only).
+        # Exposes UNKNOWN meters and STALE/UNWITNESSED witness status in
+        # measurement_basis["f6_maruah"] without elevating F6 to PASS while
+        # mandatory evidence or witness review is missing.
+        try:
+            from arifosmcp.runtime.f6.meters import evaluate_all as _f6_eval_all
+
+            _f6_report = _f6_eval_all()
+            measurement_basis["f6_maruah"] = _f6_report
+            _f6_sig = collect_floor_producer_signal(
+                "F6", sources={"meters": _f6_report.get("meters", [])}
+            )
+            if _f6_sig.get("status") in _producer_score:
+                _wire_producer("F6", {"meters": _f6_report.get("meters", [])})
+            else:
+                floor_provenance["F6"] = str(
+                    _f6_sig.get("origin") or "unmeasured_default:f6_partially_measured"
+                )
+        except Exception as _f6_exc:
+            floor_provenance["F6"] = (
+                f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
             )
 
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor

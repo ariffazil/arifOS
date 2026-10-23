@@ -313,9 +313,113 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
     return {"floor": "F5", "status": "PASS", "origin": "seal_chain"}
 
 
+def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
+    """F6 MARUAH = six separate system-behavior meters + human-witness lane.
+
+    Contract (f6-dignity-boundary-ruling.md + F6 spec v0):
+      1. L1 breach check: any human_id / dignity_index / human scoring key in
+         sources immediately disqualifies (FAIL).
+      2. Reversibility proxy (`kappa_r`) is NEVER accepted as F6 Maruah
+         (Amendment 05 / C.11).
+      3. Missing meters or empty sources -> UNMEASURED (never PASS).
+      4. Missing or silent witness (witness != 'REVIEWED') -> UNMEASURED / STALE
+         (never PASS).
+      5. Any meter with result == 'FAIL' -> FAIL; any meter with result == 'UNKNOWN'
+         or missing producer -> UNMEASURED (never PASS).
+      6. NOT_APPLICABLE requires a non-empty reason.
+    """
+    from arifosmcp.runtime.f6.privacy_and_redress import validate_no_human_scoring
+
+    ok_l1, violations = validate_no_human_scoring(sources)
+    if not ok_l1:
+        return {
+            "floor": "F6",
+            "status": "FAIL",
+            "origin": "f6_l1_breach_disqualify",
+            "reason": "L1_BREACH_HUMAN_SCORING_OR_IDENTITY_FORBIDDEN",
+            "violations": violations,
+        }
+
+    if "kappa_r" in sources and "meters" not in sources:
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:kappa_r_proxy_rejected",
+            "reason": "kappa_r is reversibility, never F6 Maruah (spec C.11)",
+        }
+
+    meters = sources.get("meters")
+    if not meters or not isinstance(meters, list) or len(meters) < 6:
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:f6_mandatory_evidence_missing",
+            "reason": "all 6 F6 meters required; missing evidence never yields PASS",
+        }
+
+    failed = []
+    unknown = []
+    witness_states = set()
+    for m in meters:
+        if not isinstance(m, dict):
+            unknown.append("malformed_meter")
+            continue
+        mid = str(m.get("meter_id") or "unknown")
+        res = str(m.get("result") or "UNKNOWN").upper()
+        meas = str(m.get("measurement") or "UNMEASURED").upper()
+        prod = str(m.get("producer") or "NONE")
+        wit = str(m.get("witness") or sources.get("witness") or "UNWITNESSED").upper()
+        witness_states.add(wit)
+
+        if res == "NOT_APPLICABLE" and not str(m.get("result_reason") or "").strip():
+            unknown.append(mid)
+        elif res == "FAIL":
+            failed.append(mid)
+        elif res == "UNKNOWN" or prod in ("NONE", "") or meas in ("UNMEASURED", "ERROR"):
+            unknown.append(mid)
+        elif res not in ("PASS", "NOT_APPLICABLE"):
+            unknown.append(mid)
+
+    top_witness = str(sources.get("witness") or "").upper()
+    if top_witness:
+        witness_states.add(top_witness)
+
+    if failed and not unknown and witness_states == {"REVIEWED"}:
+        return {
+            "floor": "F6",
+            "status": "FAIL",
+            "origin": "f6_meters",
+            "failed_meters": failed,
+            "unknown_meters": unknown,
+            "witness_states": sorted(witness_states),
+        }
+
+    if unknown or witness_states != {"REVIEWED"}:
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:f6_partially_measured",
+            "f6_overall": "PARTIALLY_MEASURED",
+            "failed_meters": failed,
+            "unknown_meters": unknown,
+            "witness_states": sorted(witness_states),
+            "reason": "mandatory meter evidence or human witness review missing/stale — never PASS",
+        }
+
+    return {
+        "floor": "F6",
+        "status": "PASS",
+        "origin": "f6_meters_and_witness",
+        "failed_meters": [],
+        "unknown_meters": [],
+        "witness_states": ["REVIEWED"],
+    }
+
+
 _PRODUCERS = {
     "F2": _f2_truth,
     "F5": _f5_peace,
+    "F6": _f6_maruah,
     "F11": _f11_audit,
     "F12": _f12_injection,
     "F13": _f13_sovereign,
