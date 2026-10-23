@@ -23,9 +23,16 @@ Contract per floor:
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
+
+
+def _now_iso() -> str:
+    """P4 (F13 D2 2026-10-23): producer WHEN slot — emission time of THIS
+    measurement, never report-generation time."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 # Conservative passing band for these four floors (matches _FLOOR_DEFAULTS
 # placeholder semantics — 0.5 is the auto-pass threshold that must never be
@@ -58,8 +65,14 @@ def collect_floor_producer_signal(
             "floor": floor_id,
             "status": "UNMEASURED",
             "origin": "unmeasured_default:no_producer",
+            "measured_at": _now_iso(),
         }
-    return handler(sources)
+    signal = handler(sources)
+    if isinstance(signal, dict):
+        # P4 (F13 D2 2026-10-23): every producer signal carries its own WHEN
+        # slot — stamped at emission unless the producer already dated itself.
+        signal.setdefault("measured_at", _now_iso())
+    return signal
 
 
 def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
@@ -252,11 +265,11 @@ def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
             return {
                 "floor": "F13",
                 "status": "FAIL",
-                "origin": "seal_chain",
+                "origin": "seal_chain_sovereign",
                 "reason": "machine_self_acceptance",
                 "actor": actor,
             }
-    return {"floor": "F13", "status": "PASS", "origin": "seal_chain"}
+    return {"floor": "F13", "status": "PASS", "origin": "seal_chain_sovereign"}
 
 
 def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
@@ -306,11 +319,13 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
             return {
                 "floor": "F5",
                 "status": "FAIL",
-                "origin": "seal_chain",
+                "origin": "seal_chain_peace",
                 "reason": "unratified_irreversible_action",
                 "actor": s.get("actor"),
             }
-    return {"floor": "F5", "status": "PASS", "origin": "seal_chain"}
+    # P3 (F13 D2 2026-10-23): F5 and F13 no longer share one origin — one
+    # measurement may not earn two constitutional claims under one label.
+    return {"floor": "F5", "status": "PASS", "origin": "seal_chain_peace"}
 
 
 _PRODUCERS = {
