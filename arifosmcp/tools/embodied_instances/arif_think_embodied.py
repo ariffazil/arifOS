@@ -129,6 +129,23 @@ class ArifMindReasonEmbodied(EmbodiedTool):
 
             # Thread session observations and evidence into cognitive synthesis
             active_evidence = params.get("evidence")
+            _d2_admission = None
+            if active_evidence:
+                # D2 evidence channel (F13 D1 ratified 2026-10-23): typed
+                # EvidenceObjects pass an admission gate — expired entries
+                # are omitted, malformed entries rejected; only admitted
+                # objects reach the synthesis prompt. The session-observation
+                # fallback below keeps its own (ungated) lane.
+                from arifosmcp.runtime.evidence_admission import admit_evidence
+
+                _ev = admit_evidence(active_evidence)
+                _d2_admission = {
+                    "consumed": _ev["consumed"],
+                    "expired_omitted": _ev["expired_omitted"],
+                    "rejected": _ev["rejected"],
+                    "counts": _ev["counts"],
+                }
+                active_evidence = [a["evidence"] for a in _ev["admitted_items"]] or None
             if not active_evidence and session_id:
                 # P1 FIX 2026-10-06 (F13 SAH 2026-10-06 09:35):
                 # In-process _SESSIONS is empty after kernel restart (the disk
@@ -173,6 +190,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                     "session_id": session_id,
                     "evidence_used": active_evidence or [],
                     "evidence_count": len(active_evidence) if active_evidence else 0,
+                    **({"evidence_admission": _d2_admission} if _d2_admission else {}),
                     "synthesis": synthesis.get("bounded_answer", ""),
                     # STAB-2026-08-07b: default of 0.65 was a fabricated number.
                     # When synthesis omits overall_confidence, return None (UNMEASURED)
