@@ -236,10 +236,14 @@ async def arif_think(
     actor_id: str | None = None,
     depth: int = 3,
     context: dict[str, Any] | None = None,
+    evidence: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND v1 — Constitutional reasoning with envelope integrity.
     Updated to delegate to v2 for 'metabolize' mode.
+    D2 evidence channel (F13 D1 ratified 2026-10-23): `evidence` admits
+    typed EvidenceObjects into the reasoning prompt. context.role and
+    context.handoff remain the only context keys read.
     """
     if mode == "metabolize":
         from arifosmcp.schemas.mind_metabolism import MindRequest, ReasoningControl
@@ -337,13 +341,22 @@ async def arif_think(
             "actor_id": actor_id or "anonymous",
         }
 
+    # ── D2 EVIDENCE CHANNEL (F13 D1 ratified 2026-10-23) ──────────────────────
+    # Typed evidence admission — validated, freshness-gated, rendered into the
+    # prompt. Expired entries never enter; UNKNOWN/CONTRADICTED render under a
+    # gate banner barring them from supporting PASS-shaped conclusions.
+    from arifosmcp.runtime.evidence_admission import admit_evidence
+
+    _ev_admission = admit_evidence(evidence)
+    _evidence_prompt_block = _ev_admission["prompt_block"] or ""
+
     # Build the reasoning prompt
     user_prompt = f"""QUERY: {query}
 MODE: {mode}
 DEPTH: {depth}
 SESSION_ID: {session_id or "none"}
 ACTOR_ID: {actor_id or "anonymous"}
-ROLE: {(context or {}).get("role") or "UNKNOWN"}
+ROLE: {(context or {}).get("role") or "UNKNOWN"}{_evidence_prompt_block}
 
 Reason through this under the 13 constitutional floors.
 Provide structured reasoning as a witness.
@@ -627,6 +640,21 @@ ROLE GUARD: If ROLE is UNKNOWN, do not hallucinate, adopt, or fabricate domain e
         "note": "LIVE_MODEL confidence is model self-assessment; FALLBACK_TEMPLATE output is a deterministic scaffold",
     }
 
+    # D2 evidence channel: echo what was admitted / expired / rejected so a
+    # downstream consumer can audit which evidence the reasoning consumed
+    # without re-deriving it from the prompt.
+    result["evidence_admission"] = {
+        "consumed": list(_ev_admission["consumed"]),
+        "expired_omitted": list(_ev_admission["expired_omitted"]),
+        "rejected": list(_ev_admission["rejected"]),
+        "counts": dict(_ev_admission["counts"]),
+    }
+    if _ev_admission["consumed"]:
+        _used = result.get("evidence_used")
+        result["evidence_used"] = (list(_used) if isinstance(_used, list) else []) + list(
+            _ev_admission["consumed"]
+        )
+
     # ── ACAH2 (2026-10-20) — recipient side of the evidence journey ────────
     # context["handoff"] (a hermes_handoff_package envelope): report evidence
     # transport status precisely — EVIDENCE_NOT_RECEIVED / EVIDENCE_UNAVAILABLE
@@ -850,9 +878,11 @@ async def arif_think_structured(
     mode: str = "reason",
     session_id: str | None = None,
     actor_id: str | None = None,
+    evidence: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Structured wrapper for arif_think - returns parsed_output directly."""
-    result = await arif_think(query, mode, session_id, actor_id)
+    """Structured wrapper for arif_think - returns parsed_output directly.
+    D2 (F13 D1 2026-10-23): forwards typed evidence into the reasoning pass."""
+    result = await arif_think(query, mode, session_id, actor_id, evidence=evidence)
     return {k: v for k, v in result.items() if not k.startswith("_")}
 
 
