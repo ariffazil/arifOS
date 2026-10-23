@@ -7275,6 +7275,11 @@ async def _synthesize_async(
         "fabricate evidence references. If the EVIDENCE BLOCK is empty or absent,\n"
         "treat unsupported ASSERTIONS as [UNGROUNDED] and lower overall_confidence\n"
         "accordingly.\n\n"
+        "CLASSIFICATION GATE (D2, F13 D1 2026-10-23): Evidence entries carrying\n"
+        "classification UNKNOWN or CONTRADICTED may NOT support PASS/SEAL-shaped\n"
+        "conclusions — treat UNKNOWN as an open question and preserve CONTRADICTED\n"
+        "entries as contradictions, never averaging them away. Expired entries are\n"
+        "absent by policy.\n\n"
         "PREMISE HANDLING (F2 scope rule, Epistemic Invariant §0.2 — 2026-10-15):\n"
         'Hypothetical questions (kalau / jika / andaikan / suppose / "if ... then")\n'
         "carry GIVEN premises — assumptions granted for the sake of argument.\n"
@@ -7306,6 +7311,20 @@ async def _synthesize_async(
                 continue
             label = ev.get("label") or ev.get("kind") or ev.get("type") or f"obs[{i}]"
             content = ev.get("content") or ev.get("result") or ev.get("summary") or str(ev)[:200]
+            # D2 typed EvidenceObjects (F13 D1 2026-10-23): render
+            # classification, claim, expiry and falsifier explicitly so the
+            # model can honour the classification gate. Legacy
+            # session-observation shapes (no claim key) render unchanged.
+            _claim = ev.get("claim")
+            if _claim is not None:
+                _cls = str(ev.get("classification") or "").upper() or "UNCLASSIFIED"
+                label = f"{ev.get('source_id') or label} [{_cls}]"
+                content = (
+                    f"{_claim}"
+                    f" (observed_at={ev.get('observed_at') or '?'},"
+                    f" expires_at={ev.get('expires_at') or 'none'},"
+                    f" falsifier={ev.get('falsifier') or 'not-stated'})"
+                )
             evidence_block_lines.append(f"- [{i}] {label}: {str(content)[:300]}")
         evidence_block = "\n".join(evidence_block_lines)
     else:

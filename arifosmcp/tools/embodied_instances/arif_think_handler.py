@@ -31,6 +31,7 @@ async def embodied_mind_reason_handler(
     plan_id: str | None = None,
     witness_type: str = "ai",
     context: dict | None = None,
+    evidence: list[dict] | None = None,
     ctx: Any = None,
     # Continuity / envelope fields ChatGPT + SCT path may pass
     _envelope: Any = None,
@@ -87,6 +88,8 @@ async def embodied_mind_reason_handler(
         "plan_id": plan_id,
         "witness_type": witness_type,
         "context": context or {},
+        # D2 evidence channel (F13 D1 ratified 2026-10-23): typed EvidenceObjects
+        "evidence": evidence or [],
     }
     run_params.update(kwargs)
 

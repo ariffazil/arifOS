@@ -1068,6 +1068,7 @@ def arif_think(
     context: dict | None = None,
     session_id: str | None = None,
     session_token: str | None = None,
+    evidence: list[dict] | None = None,
 ) -> Synthesis:
     """
     333_MIND: Constitutional reasoning and synthesis (Structured Witness).
@@ -1533,7 +1534,10 @@ def arif_think(
     )
 
     try:
-        reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
+        # D2 (F13 D1 2026-10-23): forward typed evidence into the reasoning pass.
+        reason_result = _run_reasoning_sync(
+            run_reasoning(query or "", mode, session_id, actor_id, evidence=evidence)
+        )
     except Exception as exc:
         reason_result = {
             "status": "HOLD",
