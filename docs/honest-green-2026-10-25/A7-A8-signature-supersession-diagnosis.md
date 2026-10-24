@@ -77,3 +77,30 @@ ledger → counter) but NEVER USED by any minter. Zero-superseded is a
 **behavioural truth**, not a broken counter. Fixing F8's institutional-learning
 story via supersession requires lanes to actually mint supersession receipts —
 a policy/behaviour decision (routes to Arif), not a code patch.
+
+## Post-commit timeline refinement (OBS, 2026-10-25 03:0x +08)
+
+The deployed commit `e62a9406f` (2026-10-24 17:42:20 +08, author hermes/555-asi,
+F13 order Arif live: "tanpa kunci, append mesti ditolak, bukan ditulis kosong")
+changed the picture — this is ENFORCE TIMELINE truth:
+
+- **seq57 was written 09:08:54 +08, i.e. PRE-enforce** (commit 17:42 +08, service
+  redeployed 09:45 +08). Its own successor seq58 says exactly that:
+  "pre-enforce". The defect was measured and fixed by e62a940: `_sig_enforce()`
+  now FAIL-CLOSED default ON (unset env → refuse keyless append,
+  `SIG_ENFORCE_NO_KEY`), branch `canonical_vault_chain.py:106-116,668,1010,1136`.
+- The legacy `signature="verified"` writer (tools.py:21869) routes through
+  `_cvc_append` → canonical_vault_chain, so under the current default it is
+  also refused keyless (seq38/39 were written 2026-09-16, pre-enforce).
+- Guard coverage is TESTED in the running suite (`tests/test_vault_sig_enforce_default.py`,
+  added by e62a940).
+
+**Net: the append-path GUARD ALREADY EXISTS AND IS DEPLOYED.** What remains for
+B2 (prepared, not applied):
+1. Annotation consumption for SIGNATURE_FAIL: a signed supersede (seq58 → seq57)
+   still leaves `explained_by: null` on the target gap (only CHAIN_BREAK is
+   consumed by annotations today) — extend classification so signed supersedes
+   explain the gap they supersede.
+2. Verify-in-writing: one audit line in the doc's guard proposal naming
+   `_sig_enforce()` as the single chokepoint every writer reaches (this doc) —
+   no code change beyond #1.
