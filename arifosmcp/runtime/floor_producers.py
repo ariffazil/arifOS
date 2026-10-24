@@ -39,6 +39,30 @@ COVERAGE_THRESHOLD = 0.5
 # Actor labels that count as sovereign/human for F13 acceptance.
 SOVEREIGN_ACTORS = frozenset({"arif", "ARIF", "Arif"})
 
+# Fields that make a seal record interpretable. A record carrying none of
+# these cannot be judged: it is a shape without evidence, not a passing seal.
+_SEAL_RECORD_KEYS = (
+    "verdict",
+    "actor",
+    "payload",
+    "reversibility",
+    "human_ratifier",
+    "human_signature",
+)
+
+
+def _readable_seal(record: Any) -> bool:
+    """True only if this record carries enough to be judged at all.
+
+    Empty dicts, non-dicts, and dicts of unrelated keys are unreadable.
+    Cheap on purpose: this gate decides whether evidence EXISTS, not whether
+    it is good — the floor's own logic decides that afterwards.
+    """
+    if not isinstance(record, dict):
+        return False
+    return any(record.get(k) not in (None, "", {}, []) for k in _SEAL_RECORD_KEYS)
+
+
 _EPSILON = 1e-9
 
 
@@ -237,6 +261,21 @@ def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
             "status": "UNMEASURED",
             "origin": "unmeasured_default:seal_chain_empty",
         }
+    # ── SEAL-READABILITY GATE (F13 888_HOLD repair, 2026-10-24) ──────────
+    # 888_HOLD named "{} -> PASS". Measured: {} and None already return
+    # UNMEASURED. The live leak is present-but-JUNK evidence:
+    #   {"seals": [{}]}  and  {"seals": [{"payload": {}}]}
+    # fell through the `continue` loop to PASS on F5 and F13 — the two floors
+    # that gate SEAL. Requirement #4 of the ruling forbids exactly that:
+    # "malformed or insufficient producer evidence must resolve to
+    # UNMEASURED". Present-but-unreadable records are not evidence; nothing
+    # was observed, so nothing may pass.
+    if not any(_readable_seal(s) for s in seals):
+        return {
+            "floor": "F13",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_records_unreadable",
+        }
     for s in seals:
         actor = s.get("actor")
         if s.get("verdict") != "SEAL" or actor in SOVEREIGN_ACTORS:
@@ -279,6 +318,21 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
             "floor": "F5",
             "status": "UNMEASURED",
             "origin": "unmeasured_default:seal_chain_empty",
+        }
+    # ── SEAL-READABILITY GATE (F13 888_HOLD repair, 2026-10-24) ──────────
+    # 888_HOLD named "{} -> PASS". Measured: {} and None already return
+    # UNMEASURED. The live leak is present-but-JUNK evidence:
+    #   {"seals": [{}]}  and  {"seals": [{"payload": {}}]}
+    # fell through the `continue` loop to PASS on F5 and F13 — the two floors
+    # that gate SEAL. Requirement #4 of the ruling forbids exactly that:
+    # "malformed or insufficient producer evidence must resolve to
+    # UNMEASURED". Present-but-unreadable records are not evidence; nothing
+    # was observed, so nothing may pass.
+    if not any(_readable_seal(s) for s in seals):
+        return {
+            "floor": "F5",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_records_unreadable",
         }
     for s in seals:
         payload = s.get("payload") or {}
