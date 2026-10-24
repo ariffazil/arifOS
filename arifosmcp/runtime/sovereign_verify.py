@@ -293,3 +293,137 @@ def pubkey_status() -> dict:
         "sovereign_pubkey_exists": pubkey_path is not None,
         "ed25519_verification": "enabled" if pubkey is not None else "disabled",
     }
+
+
+# ─── agent-card verification (Phase 1 · 2026-10-24 · kimi-code/FI-008) ─────────
+# Implements the function that sign-agent-card.sh:114 points at — previously a
+# dead pointer (verify_card did not exist anywhere in the federation).
+#
+# Signature format produced by sign-agent-card.sh (air-gapped Ed25519 signer):
+#   card["signatures"] += {
+#     "type": "Ed25519Signature2020",
+#     "proofValue": b64(Ed25519.sign(canonical)),
+#     "verificationMethod": "ed25519:sha256:" + sha256(DER_SPKI_pub).hexdigest(),
+#     "created": timestamp,
+#   }
+#   where canonical = json.dumps(card_without_this_entry, sort_keys=True,
+#                                separators=(",", ":")).encode("utf-8")
+# (the signer canonicalises BEFORE appending the new entry).
+#
+# Fails CLOSED on: unreadable card, missing/empty/invalid public key, unknown
+# signature type, kid mismatch (corrupt or foreign verificationMethod),
+# undecodable or invalid proofValue. Legacy JWS `signature_legacy` entries are
+# NOT verifiable (corrupt kid template 'arifos-a2a-card-2026-%q', body modified
+# after signing) — they are reported as unattributable, never as passes.
+
+def verify_card(
+    card_path: str,
+    public_key_pem: str | bytes | None = None,
+    key_pem_path: str | None = None,
+) -> dict:
+    """Verify an agent-card.json signature. Returns a verdict dict; never raises
+    on bad input (fail closed inside the dict)."""
+    import json as _json
+
+    result: dict = {
+        "valid": False,
+        "status": "FAILED",
+        "checked": 0,
+        "verified": 0,
+        "results": [],
+        "reason": None,
+    }
+
+    try:
+        card = _json.loads(Path(card_path).read_text(encoding="utf-8"))
+        if not isinstance(card, dict):
+            raise ValueError("card is not a JSON object")
+    except Exception as exc:  # noqa: BLE001 — fail closed, report reason
+        result["reason"] = f"card_unreadable: {exc}"
+        return result
+
+    pem = public_key_pem
+    if not pem and key_pem_path:
+        try:
+            pem = Path(key_pem_path).read_text(encoding="utf-8")
+        except Exception as exc:  # noqa: BLE001
+            result["reason"] = f"pubkey_unreadable: {exc}"
+            return result
+    if not pem or not str(pem).strip():
+        result["reason"] = "empty_public_key — fail closed"
+        return result
+
+    try:
+        from cryptography.hazmat.primitives import serialization
+
+        pub = serialization.load_pem_public_key(
+            pem.encode("utf-8") if isinstance(pem, str) else pem
+        )
+        der = pub.public_bytes(
+            serialization.Encoding.DER,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    except Exception as exc:  # noqa: BLE001
+        result["reason"] = f"pubkey_invalid — fail closed: {exc}"
+        return result
+
+    fingerprint = hashlib.sha256(der).hexdigest()
+    expected_vm = f"ed25519:sha256:{fingerprint}"
+
+    signatures = card.get("signatures")
+    if not isinstance(signatures, list) or not signatures:
+        legacy = card.get("signature_legacy")
+        note = (
+            "legacy JWS entries present but unattributable (corrupt kid / body"
+            " modified after signing) — see card['signature_legacy']"
+            if legacy
+            else "no signature entry in card['signatures']"
+        )
+        result["reason"] = f"no_verifiable_signature: {note}"
+        return result
+
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    except Exception as exc:  # noqa: BLE001
+        result["reason"] = f"ed25519_unavailable — fail closed: {exc}"
+        return result
+
+    for index, entry in enumerate(signatures):
+        row: dict = {"index": index, "ok": False, "reason": None}
+        result["checked"] += 1
+
+        if not isinstance(entry, dict) or entry.get("type") != "Ed25519Signature2020":
+            row["reason"] = "unsupported_signature_type"
+            result["results"].append(row)
+            continue
+
+        method = entry.get("verificationMethod", "")
+        if method != expected_vm:
+            row["reason"] = "kid_mismatch (corrupt or foreign verificationMethod)"
+            result["results"].append(row)
+            continue
+
+        stripped = dict(card)
+        stripped["signatures"] = [s for j, s in enumerate(signatures) if j != index]
+        canonical = _json.dumps(stripped, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
+
+        try:
+            raw = base64.b64decode(entry.get("proofValue", ""), validate=True)
+            pub.verify(raw, canonical)
+            row["ok"] = True
+            result["verified"] += 1
+        except Exception as exc:  # noqa: BLE001
+            row["reason"] = f"signature_invalid: {type(exc).__name__}"
+        result["results"].append(row)
+
+    if result["checked"] and result["verified"] == result["checked"]:
+        result["valid"] = True
+        result["status"] = "VERIFIED"
+    elif result["verified"]:
+        result["status"] = "PARTIAL"
+        result["reason"] = "some signatures verified, some failed"
+    else:
+        result["reason"] = result["reason"] or "no_signature_verified"
+    return result
