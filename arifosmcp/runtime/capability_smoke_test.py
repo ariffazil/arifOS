@@ -199,11 +199,15 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
 
     # ── Step 4: Record NEVER tools as intentionally skipped ──────────────────
     for tool_name in NEVER_TOOLS:
-        record_test_result(
-            tool_name, passed=False, error="intentionally_skipped: mutation/irreversible tool"
-        )
+        # 2026-10-24 333-AGI — do NOT write a cache row for a decision not taken.
+        # `record_test_result(passed=False)` made a deliberate skip indistinguishable
+        # from a failed invocation: arif_judge/arif_forge/arif_seal then read as
+        # DEGRADED forever, and the observatory published capability=DRIFTED off a
+        # choice nobody made. A skip is reported in this run's summary only; the
+        # tool's last real observation is left untouched.
         results[tool_name] = {
-            "passed": False,
+            "passed": None,
+            "skipped": True,
             "error": "intentionally_skipped: mutation/irreversible tool",
             "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
