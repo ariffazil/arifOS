@@ -20849,6 +20849,70 @@ def _arif_judge_deliberate(
     return seal_output
 
 
+# ── MARUAH_HIKMAH_RUNTIME_WIRING (2026-10-24) ─────────────────────────────
+# A consequential action must carry an admissible dignity critique before the
+# judge may return better than HOLD. The helper reads exactly three declared
+# keys. It never infers a human motive, inner state, diagnosis or identity.
+_CRITIQUE_GATED_ACTIONS = frozenset({"MUTATE", "IRREVERSIBLE"})
+
+
+def _critique_admissibility(
+    action_class: str | None, critique: dict[str, Any] | None
+) -> tuple[str, str]:
+    """Return (status, detail). Pure. No side effects. Never raises."""
+    if str(action_class or "").upper() not in _CRITIQUE_GATED_ACTIONS:
+        return "NOT_REQUIRED", "action_class not gated"
+    if not isinstance(critique, dict) or not critique:
+        return "ABSENT", "no heart_critique supplied for a consequential action"
+    if "dignity" not in critique or "coercion" not in critique:
+        return "INCOMPLETE", "heart_critique must declare both 'dignity' and 'coercion'"
+    if critique.get("self_attested") is True or not critique.get("reviewer"):
+        return "SELF_ATTESTED", "critique has no independent reviewer"
+    if critique.get("coercion") is True:
+        return "COERCION", "coercion declared present"
+    dignity = critique.get("dignity")
+    if isinstance(dignity, (int, float)) and dignity < 0.5:
+        return "DIGNITY_CONFLICT", f"dignity={dignity} below 0.5"
+    if str(critique.get("dignity_verdict") or "").upper() == "COMPROMISED":
+        return "DIGNITY_CONFLICT", "dignity_verdict=COMPROMISED"
+    return "OK", "critique admissible"
+
+
+_CAP_BLOCKED_VERDICTS = frozenset({"SEAL", "SABAR", "SABAR_HOLD", "PROCEED", "999_SEAL"})
+
+
+def _cap_critique(
+    payload: Any, action_class: str | None, critique: dict[str, Any] | None
+) -> Any:
+    """Cap the verdict at HOLD when the critique is inadmissible.
+
+    The cap can only move a verdict DOWN. It never raises one, never turns HOLD
+    into SEAL, and never touches VOID/888_HOLD. A complete critique (status OK)
+    does NOT authorize anything — it merely fails to block.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    status, detail = _critique_admissibility(action_class, critique)
+    if status in ("OK", "NOT_REQUIRED"):
+        return payload
+    verdict = str(payload.get("verdict") or payload.get("final_verdict") or "").upper()
+    if verdict in _CAP_BLOCKED_VERDICTS:
+        payload["verdict"] = "HOLD"
+        if "final_verdict" in payload:
+            payload["final_verdict"] = "HOLD"
+    if not isinstance(payload.get("reasons"), list):
+        payload["reasons"] = []
+    payload["reasons"].append(f"critique_gate:{status} — {detail}")
+    payload["critique_gate"] = {
+        "status": status,
+        "detail": detail,
+        "action_class": action_class,
+        "advisory_source": "declared heart_critique (no inference)",
+    }
+    payload["error_code"] = f"CRITIQUE_{status}"
+    return payload
+
+
 async def _arif_judge_deliberate_tool(
     mode: str = "judge",
     candidate: str | None = None,
@@ -20866,6 +20930,7 @@ async def _arif_judge_deliberate_tool(
     # 888_HOLD before the LLM runs. The hint is informational;
     # the actual gate is in require_sovereign_judgment().
     action_class: str | None = None,
+    heart_critique: dict[str, Any] | None = None,
     audit_entropy: float | None = None,
     wealth_score: float | None = None,
     verification_surface: dict[str, Any] | None = None,
@@ -20967,11 +21032,12 @@ async def _arif_judge_deliberate_tool(
     if mode == "witness_consensus":
         from arifosmcp.tools.organ_consensus import arif_organ_consensus
 
-        return await arif_organ_consensus(
+        _wc_result = await arif_organ_consensus(
             action_description=candidate or "",
             session_id=session_id,
             actor_id=actor_id,
         )
+        return _cap_critique(_wc_result, action_class, heart_critique)
 
     trace = None
     if _ensure_langfuse_tracer() is not None:
@@ -21127,7 +21193,7 @@ async def _arif_judge_deliberate_tool(
         except Exception:
             pass  # Comparison recording is best-effort
 
-        return result
+        return _cap_critique(result, action_class, heart_critique)
     finally:
         if trace:
             try:
@@ -26259,6 +26325,7 @@ async def _arif_kernel_intercept_tool(
     session_token: str | None = None,
     # ── Seal Architecture (forged 2026-07-24) ──────────────────────────
     action_class: str | None = None,
+    heart_critique: dict[str, Any] | None = None,
     seal_purpose: str | None = None,
     authority_effect: str | None = None,
     actor_signature: str | None = None,
@@ -26366,7 +26433,8 @@ async def _arif_kernel_intercept_tool(
     kwargs.pop("niat_params", None)
     kwargs.pop("cooldown_entry_id", None)
     kwargs.pop("vault_entry_id", None)
-    kwargs.pop("heart_critique", None)
+    # heart_critique is consumed by _cap_critique at every return site.
+    # Never pop it silently: an unconsumed critique is a truth defect.
     if kwargs:
         # Surface unknown kwargs in intent as a structured footer so the kernel
         # judge sees them but the strict signature stays clean.
@@ -26426,10 +26494,14 @@ async def _arif_kernel_intercept_tool(
         # Preserve the kernel's native fields
         std["kernel_decision"] = raw
         std["affordance_for_capability"] = raw.get("affordance")
-        return std
+        return _cap_critique(std, action_class, heart_critique)
     except Exception:
         # Fail-soft: never break the kernel
-        return {"kernel_raw": raw, "note": "standard envelope enrichment failed"}
+        return _cap_critique(
+            {"kernel_raw": raw, "note": "standard envelope enrichment failed"},
+            action_class,
+            heart_critique,
+        )
 
 
 async def _arif_act(

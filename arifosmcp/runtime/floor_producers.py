@@ -382,7 +382,65 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
     return {"floor": "F5", "status": "PASS", "origin": "seal_chain_peace"}
 
 
+def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
+    """F6 MARUAH — protected human worth (2026-10-24, MARUAH_HIKMAH_RUNTIME_WIRING).
+
+    Source: `sources["seals"]` payloads carrying a declared `heart_critique` block
+    — the SAME evidence bundle F5/F13 already read. No new ledger, no new organ.
+
+    Dignity conflict is never averaged away: the producer short-circuits on the
+    first conflict and reports FAIL. Absence of evidence is UNMEASURED, never PASS.
+    It reads three declared keys and nothing else — it cannot turn a representation
+    of a person into a fact about them.
+    """
+    seals = sources.get("seals")
+    if seals is None:
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_chain_unreachable",
+        }
+    reviews: list[dict[str, Any]] = []
+    for s in seals:
+        payload = (s or {}).get("payload") or {}
+        critique = payload.get("heart_critique")
+        if isinstance(critique, dict):
+            reviews.append(critique)
+    if not reviews:
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:no_heart_critique",
+        }
+    for r in reviews:
+        if r.get("coercion") is True:
+            return {
+                "floor": "F6",
+                "status": "FAIL",
+                "origin": "heart_critique",
+                "reason": "coercion_present",
+            }
+        if str(r.get("dignity_verdict") or "").upper() == "COMPROMISED":
+            return {
+                "floor": "F6",
+                "status": "FAIL",
+                "origin": "heart_critique",
+                "reason": "dignity_verdict_compromised",
+            }
+        dignity = r.get("dignity")
+        if isinstance(dignity, (int, float)) and dignity < 0.5:
+            return {
+                "floor": "F6",
+                "status": "FAIL",
+                "origin": "heart_critique",
+                "reason": "dignity_conflict",
+                "dignity": dignity,
+            }
+    return {"floor": "F6", "status": "PASS", "origin": "heart_critique"}
+
+
 _PRODUCERS = {
+    "F6": _f6_maruah,
     "F2": _f2_truth,
     "F5": _f5_peace,
     "F11": _f11_audit,
