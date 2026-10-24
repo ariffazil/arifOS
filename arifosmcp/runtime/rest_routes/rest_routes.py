@@ -1441,6 +1441,32 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 f"unmeasured_default:seal_chain_unreachable:{type(_f5_exc).__name__}"
             )
 
+        # F6 MARUAH — protected human worth (2026-10-24, MARUAH_HIKMAH_RUNTIME_WIRING).
+        # Reads the SAME seal tail as F5/F13. A seal payload carrying a declared
+        # heart_critique makes the floor measurable; if none does, the producer
+        # returns UNMEASURED — never a fabricated PASS.
+        try:
+            # _wire_producer only overrides PASS/FAIL/CONTRADICTED; UNMEASURED
+            # would leave the generic "empty_kernel_signal" label. Call the
+            # producer directly so the reason is visible: "no_heart_critique"
+            # tells the operator the floor awaits evidence, not that the kernel
+            # was empty. Still no override of the score — UNMEASURED stays unmeasured.
+            from arifosmcp.runtime.floor_producers import (
+                collect_floor_producer_signal as _cfps,
+            )
+
+            _f6_sig = _cfps("F6", sources={"seals": _seal_rows})
+            if _f6_sig.get("status") in ("PASS", "FAIL", "CONTRADICTED"):
+                _wire_producer("F6", {"seals": _seal_rows})
+            else:
+                floor_provenance["F6"] = str(
+                    _f6_sig.get("origin") or "unmeasured_default:no_evidence"
+                )
+        except Exception as _f6_exc:
+            floor_provenance["F6"] = (
+                f"unmeasured_default:f6_producer_error:{type(_f6_exc).__name__}"
+            )
+
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
         # reporting (provenance honesty, evaluated after other producers have reported).
         # Floors measured by real producers/probes are excluded from
