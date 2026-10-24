@@ -3173,6 +3173,15 @@ def _probe_vault999_health() -> str:
     """Best-effort vault999 health probe.
     Prefers live writer (5001) + seal_chain_head (fs truth) over legacy 8100 container.
     Fixes: vault999_health "unreachable"/None in arifOS /health report.
+
+    A2 (branch fix/honest-green-2026-10-25) — TWO PRODUCERS, ONE VERDICT CLASS:
+      producer 1 = runtime/floor_producers._f13_sovereign — seal-chain SEMANTICS
+        (unreachable/empty/unreadable -> UNMEASURED; machine self-acceptance ->
+        FAIL); it never greens on presence alone,
+      producer 2 = this probe — vault LIVENESS.
+    Both must agree on the evidence class: when the only evidence is "files
+    exist", the verdict is presence_only -> PRESENCE_ONLY (amber), never
+    "healthy" (green) and never PASS.
     """
     # 1. Live writer (canonical active path)
     try:
@@ -3193,6 +3202,9 @@ def _probe_vault999_health() -> str:
     except Exception:
         logger.exception("suppressed exception", exc_info=True)
     # 3. FS-backed truth: seal_chain + head present + recent activity
+    #    A2 (fix/honest-green-2026-10-25): files existing (even fresh) is
+    #    PRESENCE, not liveness -> presence_only (amber). The old return value
+    #    here was the green half of the false-green: presence read as healthy.
     try:
         head_p = "/root/.local/share/arifos/vault999/seal_chain_head.json"
         chain_p = "/root/.local/share/arifos/vault999/seal_chain.jsonl"
@@ -3200,7 +3212,7 @@ def _probe_vault999_health() -> str:
             import time as _t
 
             if _t.time() - os.path.getmtime(head_p) < 86400:  # within 24h
-                return "healthy"
+                return "presence_only"
             return "degraded"  # exists but stale
     except Exception:
         logger.exception("suppressed exception", exc_info=True)
@@ -4551,16 +4563,26 @@ def register_rest_routes(
                 "stale_after_seconds": 300,
                 "expired_after_seconds": 3600,
             },
+            # A2 (fix/honest-green-2026-10-25): presence-only vault evidence is
+            # PRESENCE_ONLY -> YELLOW (amber). GREEN requires live-writer
+            # liveness ("healthy"); RED remains for unreachable/unreadable.
+            # The two F13 producers now agree: presence never renders green.
             "owner_summary": {
                 "color": (
-                    "RED"
+                    "YELLOW"
+                    if _vault_health == "presence_only"
+                    else "RED"
                     if _vault_health != "healthy"
                     else "YELLOW"
                     if runtime_drift_val or contract_drift_val or c_dark_val >= 0.30
                     else "GREEN"
                 ),
                 "reasons": (
-                    ["vault_unavailable_or_degraded"]
+                    [
+                        "presence_only_no_liveness: PRESENCE_ONLY (chain/head files exist; writer liveness not verified)"
+                    ]
+                    if _vault_health == "presence_only"
+                    else ["vault_unavailable_or_degraded"]
                     if _vault_health != "healthy"
                     else ["vault_healthy"]
                     + (["code_runtime_drift"] if _code_runtime_drift else [])
