@@ -27154,15 +27154,10 @@ def _wrap_with_canonical_normalization(handler, tool_name):
             # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
             # the TRUE last writer. Every verdict-bearing field must agree,
             # or the envelope becomes HOLD/INCONSISTENT with authority off.
-            try:
-                from arifosmcp.runtime.verdict import reconcile_decision_contract
-
-                response = reconcile_decision_contract(response)
-            except Exception:
-                logger.exception("suppressed exception", exc_info=True)
-            # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
-            # the TRUE last writer. Every verdict-bearing field must agree,
-            # or the envelope becomes HOLD/INCONSISTENT with authority off.
+            # 2026-10-26 (FI-003): the identical duplicate of this block was
+            # removed — reconcile is idempotent, and a second call would be a
+            # fail-closed trap once an ownership set exists. No builder runs on
+            # this path, so `owned` is left at the fail-closed default.
             try:
                 from arifosmcp.runtime.verdict import reconcile_decision_contract
 
@@ -27247,14 +27242,7 @@ def _wrap_with_canonical_normalization(handler, tool_name):
             logger.exception("suppressed exception", exc_info=True)
         # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
         # the TRUE last writer (sync path).
-        try:
-            from arifosmcp.runtime.verdict import reconcile_decision_contract
-
-            response = reconcile_decision_contract(response)
-        except Exception:
-            logger.exception("suppressed exception", exc_info=True)
-        # Phase 0 (2026-09-22 F13): decision-contract reconciliation —
-        # the TRUE last writer (sync path).
+        # 2026-10-26 (FI-003): duplicate block removed (see async path note).
         try:
             from arifosmcp.runtime.verdict import reconcile_decision_contract
 
@@ -29236,22 +29224,10 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             # Envelope attachment must never crash a tool call.
             pass
 
-    def _attach_v2_envelope_guarantee(response: dict[str, Any], tool_name: str) -> None:
-        """P3 guarantee (2026-07-19): attach canonical V2 envelope fields
-        directly to a tool response. Idempotent via setdefault — safe to
-        call on top of any other envelope layer. Fail-soft: never crashes
-        a tool call.
-        """
-        if not isinstance(response, dict):
-            return
-        try:
-            from arifosmcp.runtime.v2_envelope import build_v2_envelope
-
-            envelope = build_v2_envelope(tool_name, response)
-            for _key, _val in envelope.items():
-                response.setdefault(_key, _val)
-        except Exception as _v2_exc:
-            logger.debug("V2 envelope guarantee skipped for %s: %s", tool_name, _v2_exc)
+    # _attach_v2_envelope_guarantee was HOISTED to module level (2026-10-26,
+    # FI-003, verdict-ownership design). A nested function could not return an
+    # ownership set, so the name now resolves to the module-level definition at
+    # the end of this file. Call sites are unchanged.
 
     def _inject_epistemic_tag(response: dict[str, Any], tool_name: str) -> None:
         """Inject _epistemic halal/haram tag into every tool response.
@@ -30234,3 +30210,36 @@ if _cn_module is not None:
         "canonical_normalization: monkey-patched %d module attributes for SDK aliases",
         _cn_patch_count,
     )
+
+
+# ── V2 envelope guarantee (hoisted to module level 2026-10-26, FI-003) ───────
+# Was a nested function, so it could neither be tested nor return an ownership
+# set. It now RETURNS the fields it actually assigned in this call: a field the
+# builder itself wrote is exempt from reconcile's judgement, while a setdefault
+# no-op owns nothing (I1). Design:
+# forge_work/2026-10-26-FI-003-verdict-ownership-design.md
+def _attach_v2_envelope_guarantee(response: dict, tool_name: str) -> frozenset:
+    """P3 guarantee: attach canonical V2 envelope fields to a tool response.
+
+    Fail-soft: never crashes a tool call; on any failure it owns nothing.
+    """
+    if not isinstance(response, dict):
+        return frozenset()
+    from arifosmcp.runtime.verdict import OwnedField, _value_token
+
+    root_id = id(response)
+    owned: set = set()
+    try:
+        from arifosmcp.runtime.v2_envelope import build_v2_envelope
+
+        envelope = build_v2_envelope(tool_name, response)
+        for _key, _val in envelope.items():
+            # Assignment only. A setdefault that changed nothing confers no
+            # ownership: the organ's value is the organ's claim.
+            if _key not in response:
+                response[_key] = _val
+                owned.add(OwnedField(root_id, _key, _value_token(_val)))
+    except Exception as _v2_exc:
+        logger.debug("V2 envelope guarantee skipped for %s: %s", tool_name, _v2_exc)
+        return frozenset()
+    return frozenset(owned)
