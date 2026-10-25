@@ -1073,9 +1073,13 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
     # AGENT REPORT LANE (F13 2026-10-20) — coordination channel, not a
     # constitutional verb. Base class OBSERVE (reads); writing modes are
     # flagged dangerous here and declared per-mode in abi/mode_contracts.json
-    # (file=MATERIAL, ack=MATERIAL, flush/inbox/stats=OBSERVE). The human-
-    # facing push is internally gated by the escalation law (verified actor
-    # or 2-distinct-agent quorum). Store is append-only: nothing reversible.
+    # (report=MATERIAL [alias file], ack=MATERIAL, flush=MATERIAL — see the
+    # contract note on its EXTERNAL_SIDE_EFFECT intent, inbox/stats=OBSERVE).
+    # Before 2026-10-25 the only MATERIAL key was the dead name
+    # "arif_report.file" while the wire write mode is "report": the append
+    # resolved OBSERVE (reproduced live 2026-10-25). The human-facing push is
+    # internally gated by the escalation law (verified actor or 2-distinct-
+    # agent quorum). Store is append-only: nothing reversible.
     "arif_report": ToolManifestEntry(
         tool_name="arif_report",
         action_class=ActionClass.OBSERVE,
