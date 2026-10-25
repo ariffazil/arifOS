@@ -203,7 +203,9 @@ def test_birth_band_path_is_an_axis_not_a_verdict_carrier():
     """
     resp = {
         "effective_verdict": "SABAR",
-        "result": {"session_birth": {"verdict": "LIMITED_MUTATE", "authority_mode": "LIMITED_MUTATE"}},
+        "result": {
+            "session_birth": {"verdict": "LIMITED_MUTATE", "authority_mode": "LIMITED_MUTATE"}
+        },
         "meta": {"judge_postcondition": {"verdict": "SABAR", "verdict_channel_integrity": True}},
     }
     out = reconcile_decision_contract(resp)
@@ -352,6 +354,71 @@ def test_r1d_trim_never_upgrades_void():
     out = trim_for_verbosity(resp, "minimal")
     assert out.get("effective_verdict") == "VOID"  # VOID is the worst rank
 
+
+# ── M5: public transport projection is not a constitutional claim ────────────
+
+
+def test_public_canonical_verdict_projection_is_not_judged():
+    """Live 2026-10-25: arif_judge(mode=validate) returned canonical_verdict=DENY
+    beside verdict/effective_verdict=HOLD and the reconciler flagged
+    UNKNOWN_VERDICT_TOKEN:canonical_verdict=DENY, marking the whole response
+    INCONSISTENT_VERDICT_STATE. canonical_verdict is the public projection
+    (PROCEED/DENY), derived from the verdict — not an independent claim."""
+    for public_token, eff in (("DENY", "HOLD"), ("PROCEED", "SEAL")):
+        resp = {
+            "status": "completed",
+            "verdict": eff,
+            "effective_verdict": eff,
+            "canonical_verdict": public_token,
+        }
+        out = reconcile_decision_contract(resp)
+        flags = _flags(out)
+        assert not any(f.startswith("UNKNOWN_VERDICT_TOKEN") for f in flags), flags
+        rec = (out.get("meta") or {}).get("reconciliation") or {}
+        assert rec.get("inconsistent") is not True, (public_token, rec)
+        assert out.get("effective_verdict") == eff, (public_token, out.get("effective_verdict"))
+
+
+def test_transport_trace_state_canonical_verdict_is_not_judged():
+    """Live 2026-10-25 (arif_init mode=triage, trc-07232b207757): v2_envelope
+    republishes the public projection inside `intermediate_trace_states`, so the
+    top-level-only carve-out left the nested copy firing
+    UNKNOWN_VERDICT_TOKEN:result.intermediate_trace_states.canonical_verdict=DENY
+    and forced HOLD on every v2-enveloped response. The nested projection is the
+    same transport axis, not an independent claim."""
+    for public_token, eff in (("DENY", "HOLD"), ("PROCEED", "SEAL")):
+        resp = {
+            "status": "completed",
+            "verdict": eff,
+            "effective_verdict": eff,
+            "result": {
+                "intermediate_trace_states": {
+                    "canonical_verdict": public_token,
+                    "effective_verdict": eff,
+                    "hold_required": eff == "HOLD",
+                    "strictness_hits": [],
+                }
+            },
+        }
+        out = reconcile_decision_contract(resp)
+        flags = _flags(out)
+        assert not any(f.startswith("UNKNOWN_VERDICT_TOKEN") for f in flags), flags
+        assert out.get("effective_verdict") == eff, (public_token, out.get("effective_verdict"))
+
+
+def test_nested_canonical_verdict_is_still_judged():
+    """The carve-out is the exact top-level path only. A nested organ claim
+    wearing canonical_verdict must still fail closed."""
+    resp = {
+        "effective_verdict": "SEAL",
+        "result": {"payload": {"canonical_verdict": "DENY"}},
+    }
+    out = reconcile_decision_contract(resp)
+    flags = _flags(out)
+    assert any(
+        f.startswith("UNKNOWN_VERDICT_TOKEN:result.payload.canonical_verdict") for f in flags
+    ), flags
+    assert out.get("effective_verdict") == "HOLD"
 
 
 if __name__ == "__main__":  # pragma: no cover

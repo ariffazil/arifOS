@@ -752,6 +752,17 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
     # Same class as the carve-outs above; organ health stays visible in the
     # payload, it just stops being judged as a kernel verdict.
     "result.bridge_result.verdict",
+    # 2026-10-25b (333-AGI, live repro arif_init mode=triage, trc-07232b207757):
+    # v2_envelope publishes `intermediate_trace_states` as its own transport
+    # axis and writes the SAME public projection inside it. The exact-path
+    # carve-out below only matched top level, so the nested copy still fired
+    #   UNKNOWN_VERDICT_TOKEN:result.intermediate_trace_states.canonical_verdict=DENY
+    # and forced HOLD on every v2-enveloped response (init triage/light
+    # included) even when verdict == effective_verdict. Transport projection
+    # axis, same class as `canonical_verdict` — exempt by suffix. Organ
+    # payloads (result.payload.canonical_verdict) and every other
+    # verdict-named key remain fully judged.
+    "intermediate_trace_states.canonical_verdict",
 )
 
 # 2026-10-05c (FI-008, convergent bridge fix): organ payloads nest verdict-
@@ -776,6 +787,21 @@ _NON_VERDICT_AXIS_PATHS_PRE = (
     "meta.zen_witness.",
 )
 
+# 2026-10-25 (333-AGI, live repro through arif_judge mode=validate):
+# `canonical_verdict` is the PUBLIC TRANSPORT projection written by
+# verbosity.trim()/v2_envelope — its vocabulary is {PROCEED, DENY, HOLD,
+# SEALED, ...}, and it is DERIVED from the resolved verdict, never an
+# independent constitutional claim. Walking it as a verdict bearing produced
+#   UNKNOWN_VERDICT_TOKEN:canonical_verdict=DENY
+# on every envelope whose effective verdict was HOLD (and would do the same to
+# PROCEED), marking the whole response INCONSISTENT_VERDICT_STATE and disabling
+# authority/execution even when verdict == effective_verdict. Same class as the
+# S4 / IRFAN / zen_apex carve-outs above: a different axis wearing a
+# verdict-named key. Exact top-level path only — `verdict` and
+# `effective_verdict` remain fully judged, and a nested canonical_verdict in an
+# organ payload is still walked.
+_NON_VERDICT_AXIS_PATHS_EXACT = frozenset({"canonical_verdict"})
+
 
 def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
     """Yield (path, raw_string) for every EXACT verdict-bearing key holding a
@@ -796,6 +822,7 @@ def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
                     not _stage_superseded
                     and not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF)
                     and not child.startswith(_NON_VERDICT_AXIS_PATHS_PRE)
+                    and child not in _NON_VERDICT_AXIS_PATHS_EXACT
                 ):
                     yield child, value
             yield from _iter_verdict_bearing(value, child)
