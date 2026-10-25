@@ -615,7 +615,7 @@ def attach_effective_verdict(
     # composer. The registration wrapper runs additional writers later and
     # re-runs reconciliation at its own return; this call covers direct
     # callers of attach_effective_verdict.
-    return reconcile_decision_contract(response)
+    return reconcile_decision_contract(response, owned=frozenset())
 
 
 # ── Phase 0 (2026-09-22, F13 nine-point critique): decision-contract ────────
@@ -803,11 +803,56 @@ _NON_VERDICT_AXIS_PATHS_PRE = (
 _NON_VERDICT_AXIS_PATHS_EXACT = frozenset({"canonical_verdict"})
 
 
-def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
+class OwnedField(tuple):
+    """A field the builder itself ASSIGNED, in one call, on one object.
+
+    Tuple subclass on purpose: hashable and comparable without adding an import
+    to a module that must stay cheap to load. ``value`` is the scalar itself
+    (compared by equality) or ``("obj", id(container))`` for a mutable container
+    — see _value_token.
+    """
+
+    __slots__ = ()
+
+    def __new__(cls, root_id: int, path: str, value: Any) -> "OwnedField":
+        return tuple.__new__(cls, (root_id, path, value))
+
+    root_id = property(lambda self: self[0])
+    path = property(lambda self: self[1])
+    value = property(lambda self: self[2])
+
+
+def _value_token(v: Any) -> Any:
+    """Scalars compare by value (strings are interned); containers by identity."""
+    if isinstance(v, (str, int, float, bool)) or v is None:
+        return v
+    return ("obj", id(v))
+
+
+def _is_owned(root_id: Any, path: str, value: Any, owned: Any) -> bool:
+    """True only for an exact (object, path, value) triple the builder wrote."""
+    if root_id is None or not owned:
+        return False
+    return OwnedField(root_id, path, _value_token(value)) in owned
+
+
+def _iter_verdict_bearing(
+    node: Any,
+    path: str = "",
+    *,
+    root_id: int | None = None,
+    owned: frozenset = frozenset(),
+) -> Any:
     """Yield (path, raw_string) for every EXACT verdict-bearing key holding a
     non-null non-empty string. Null/absent means unset and is skipped — a
     missing value is not a claim (prevents mass-HOLD on schema defaults).
-    Substring keys such as decision_thresholds are NOT matched."""
+    Substring keys such as decision_thresholds are NOT matched.
+
+    ``owned`` is OUT-OF-BAND: it is a function argument, never read from the
+    payload, so an organ cannot forge an exemption. Bind to (root_id, path,
+    value) — path alone is insufficient because a re-wrapped object can reuse a
+    path with a different value.
+    """
     if isinstance(node, dict):
         # R-1b (F13 FIX R-1b, 2026-09-22): a stage claim self-declared
         # SUPERSEDED is excluded from LIVE divergence evaluation — claim-state
@@ -820,15 +865,18 @@ def _iter_verdict_bearing(node: Any, path: str = "") -> Any:
             if key in _VERDICT_BEARING_KEYS and isinstance(value, str) and value.strip():
                 if (
                     not _stage_superseded
+                    and not _is_owned(root_id, child, value, owned)
                     and not child.endswith(_NON_VERDICT_AXIS_PATHS_SUF)
                     and not child.startswith(_NON_VERDICT_AXIS_PATHS_PRE)
                     and child not in _NON_VERDICT_AXIS_PATHS_EXACT
                 ):
                     yield child, value
-            yield from _iter_verdict_bearing(value, child)
+            yield from _iter_verdict_bearing(value, child, root_id=root_id, owned=owned)
     elif isinstance(node, list):
         for index, value in enumerate(node):
-            yield from _iter_verdict_bearing(value, f"{path}[{index}]")
+            yield from _iter_verdict_bearing(
+                value, f"{path}[{index}]", root_id=root_id, owned=owned
+            )
 
 
 def _collect_epistemic_flags(node: Any, path: str = "") -> list[str]:
@@ -867,7 +915,11 @@ def _disable_authority_fields(node: Any) -> None:
             _disable_authority_fields(value)
 
 
-def reconcile_decision_contract(response: Any) -> Any:
+def reconcile_decision_contract(
+    response: Any,
+    *,
+    owned: frozenset = frozenset(),
+) -> Any:
     """Walk every verdict-bearing field; one honest verdict or HOLD.
 
     F13 Phase 0 (2026-09-22). Non-dict inputs pass through. Idempotent —
@@ -877,6 +929,10 @@ def reconcile_decision_contract(response: Any) -> Any:
     disagreeing fields into agreement. ``next_safe_action`` is derived from
     the reconciled state — with authority off it may not point at
     seal/forge/commit (crack #2).
+
+    ``owned`` is OUT-OF-BAND (2026-10-26, FI-003): the ownership set of fields
+    the builder itself assigned in this call. Empty default = fail-closed, every
+    verdict-bearing field judged. Never read from the payload.
     """
     if not isinstance(response, dict):
         return response
@@ -943,7 +999,8 @@ def reconcile_decision_contract(response: Any) -> Any:
     noncanonical: dict[str, str] = {}
     domain_evidence: dict[str, str] = {}
     scoped_authority: dict[str, str] = {}
-    for path, raw in _iter_verdict_bearing(response):
+    _root_id = id(response)
+    for path, raw in _iter_verdict_bearing(response, root_id=_root_id, owned=owned):
         token = str(raw).strip()
         upper = token.upper()
         raw_tokens[path] = token
