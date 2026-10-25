@@ -1,0 +1,4658 @@
+{
+  "snapshot_id": "obs_20261021_015416",
+  "observed_at": "2026-10-21T01:54:16Z",
+  "generated_by": "arifOS",
+  "schema_version": "observatory.v1",
+  "signature": {
+    "value": "LmLpBv5+VBkp8lVBhSgCrGlCSyETvCbG0IYCaQi/P2URpbjMecskncCeyX39aRat0v+cdeF/c9748BJfVABPDw==",
+    "state": "signed",
+    "source": "ed25519 over canonicaljson(payload_without_signature) \u2014 key ed25519:sha256:698cc1ab26357272",
+    "observed_at": "2026-10-21T01:54:16Z",
+    "signed_at": "2026-10-21T01:54:16Z",
+    "age_seconds": 0,
+    "confidence": 1.0,
+    "observation_method": "ed25519_signing",
+    "independent_or_self_reported": "independent",
+    "key_id": "ed25519:sha256:698cc1ab26357272",
+    "algorithm": "ed25519",
+    "key_algorithm": "ed25519",
+    "key_namespace": "arifos-observatory",
+    "payload_hash": "5baf30e96087ea9e8c0a17bc8b92d3e8ed42fcd063b2de8ffc47fa2e4c5c5833",
+    "payload_hash_sha256": "5baf30e96087ea9e8c0a17bc8b92d3e8ed42fcd063b2de8ffc47fa2e4c5c5833",
+    "canonicalization": "sort_keys+separators+utf8+no_nan",
+    "verification_url": "https://arifos.arif-fazil.com/.well-known/did-arifos-observatory.json"
+  },
+  "runtime_identity": {
+    "source_commit": {
+      "value": "a08fb2e",
+      "state": "observed",
+      "source": "arifOS/_collect_git_snapshot",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "source_branch": {
+      "value": "main",
+      "state": "observed",
+      "source": "arifOS/_collect_git_snapshot",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "workspace_source_commit": {
+      "value": "a08fb2ea61a6",
+      "state": "observed",
+      "source": "/root/arifOS",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "workspace_dirty": {
+      "value": true,
+      "state": "observed",
+      "source": "git status --porcelain (/root/arifOS)",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "deployed_commit": {
+      "value": "a08fb2e",
+      "state": "observed",
+      "source": "/opt/arifos/app/.git_commit or HEAD",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "build_commit": {
+      "value": "a08fb2e",
+      "state": "observed",
+      "source": "BUILD_INFO.build.commit",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "drift": {
+      "value": {
+        "artifact": "ALIGNED",
+        "capability": "ALIGNED",
+        "forge_registry": "ALIGNED",
+        "schema": "UNKNOWN",
+        "route": "UNKNOWN",
+        "upstream_repository": "UNVERIFIED"
+      },
+      "state": "derived",
+      "source": "_compute_runtime_drift + capability_matrix",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "independent"
+    },
+    "drift_state": {
+      "value": "aligned",
+      "state": "derived",
+      "source": "_compute_runtime_drift.artifact",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "independent"
+    },
+    "deployment_mode": {
+      "value": "container",
+      "state": "reported",
+      "source": "Container/Path-probe",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.85,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "process_started_at": {
+      "value": "2026-10-21T01:54:00Z",
+      "state": "observed",
+      "source": "psutil.Process(arifOS).create_time (preferred) \u2192 /proc/stat btime fallback",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.85,
+      "observation_method": "process_introspection",
+      "independent_or_self_reported": "independent"
+    },
+    "kernel_epoch": {
+      "value": "2026-07-28",
+      "state": "reported",
+      "source": "BUILD_INFO.protocol_version",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.85,
+      "observation_method": "environment_variable",
+      "independent_or_self_reported": "independent"
+    },
+    "platform": {
+      "value": "Linux-6.17.0-41-generic-x86_64-with-glibc2.42",
+      "state": "observed",
+      "source": "platform.platform",
+      "observed_at": "2026-10-21T01:54:05Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "process_introspection",
+      "independent_or_self_reported": "independent"
+    }
+  },
+  "substrate": {
+    "cpu": {
+      "value": {
+        "percent": 50.6,
+        "count": 8
+      },
+      "state": "observed",
+      "source": "psutil.cpu",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "process_introspection",
+      "independent_or_self_reported": "independent"
+    },
+    "memory": {
+      "value": {
+        "percent": 54.1,
+        "total_bytes": 33651912704,
+        "available_bytes": 15458443264
+      },
+      "state": "observed",
+      "source": "psutil.virtual_memory",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "process_introspection",
+      "independent_or_self_reported": "independent"
+    },
+    "disk": {
+      "value": {
+        "percent": 81.3,
+        "total_bytes": 415381426176,
+        "free_bytes": 77614702592
+      },
+      "state": "observed",
+      "source": "psutil.disk_usage",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "network": {
+      "value": {
+        "bytes_sent": 219952320108,
+        "bytes_recv": 129224258288,
+        "errin": 0,
+        "errout": 0
+      },
+      "state": "observed",
+      "source": "psutil.net_io_counters",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "process_introspection",
+      "independent_or_self_reported": "independent"
+    },
+    "postgres": {
+      "value": null,
+      "state": "unknown",
+      "source": "postgres_probe_pending",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "redis": {
+      "value": null,
+      "state": "unknown",
+      "source": "redis_probe_pending",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "qdrant": {
+      "value": null,
+      "state": "unknown",
+      "source": "qdrant_probe_pending",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "vault999": {
+      "value": "healthy",
+      "state": "observed",
+      "source": "rest_routes._probe_vault999_health",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    }
+  },
+  "governance": {
+    "witness_legs": {
+      "legs": {
+        "human": {
+          "value": 0.6667,
+          "state": "measured",
+          "evidence": "human_witness_ledger 2/3 rows: /var/lib/arifos/human_witness.jsonl"
+        },
+        "ai": {
+          "value": 1.0,
+          "state": "measured",
+          "evidence": "record_test_result 8/8 tools passed within 86400s (0 stale excluded)"
+        },
+        "earth": {
+          "value": 1.0,
+          "state": "measured",
+          "evidence": "tcp_probe 11/11 declared organ ports up"
+        }
+      },
+      "coherence": 0.9828,
+      "measured": 3,
+      "total": 3,
+      "complete": true,
+      "blocking_legs": []
+    },
+    "floor_provenance": {
+      "F10": "arifflow_live_ontology:QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD",
+      "F11": "floor_producer:PASS:receipt_ledger",
+      "F12": "floor_producer:PASS:request_trust",
+      "F13": "floor_producer:PASS:seal_chain",
+      "F1": "arifflow_fq_probe:fq=1.8169361468895586",
+      "F2": "floor_producer:PASS:floor_provenance_coverage",
+      "F3": "witness_producers:human+ai+earth",
+      "F4": "arifflow_probe:ds=-0.0",
+      "F5": "floor_producer:PASS:seal_chain",
+      "F6": "unmeasured_default:empty_kernel_signal",
+      "F7": "arifflow_live_vector:omega=0.04",
+      "F8": "arifflow_live_vector:g=0.5846",
+      "F9": "arifflow_live_vector:c_dark=0.2067"
+    },
+    "floors": {
+      "F1": {
+        "score": {
+          "value": 1.0,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [arifflow_fq_probe:fq=1.8169361468895586]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "arifflow_fq_probe:fq=1.8169361468895586",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F2": {
+        "score": {
+          "value": 1.0,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [floor_producer:PASS:floor_provenance_coverage]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "floor_producer:PASS:floor_provenance_coverage",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F3": {
+        "score": {
+          "value": 0.9828,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [witness_producers:human+ai+earth]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "witness_producers:human+ai+earth",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F4": {
+        "score": {
+          "value": 0.8,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [arifflow_probe:ds=-0.0]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "arifflow_probe:ds=-0.0",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F5": {
+        "score": {
+          "value": 1.0,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [floor_producer:PASS:seal_chain]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "floor_producer:PASS:seal_chain",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F6": {
+        "score": {
+          "value": null,
+          "state": "unknown",
+          "source": "rest_routes._FLOOR_DEFAULTS (auto-pass placeholder)",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.0,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported",
+          "explanation": {
+            "machine_code": "UNKNOWN",
+            "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+            "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+          }
+        },
+        "status": {
+          "value": "unmeasured",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "unmeasured_default:empty_kernel_signal",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F7": {
+        "score": {
+          "value": 0.04,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [arifflow_live_vector:omega=0.04]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "arifflow_live_vector:omega=0.04",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F8": {
+        "score": {
+          "value": 0.5846,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [arifflow_live_vector:g=0.5846]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "fail",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "arifflow_live_vector:g=0.5846",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F9": {
+        "score": {
+          "value": 0.2067,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [arifflow_live_vector:c_dark=0.2067]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "arifflow_live_vector:c_dark=0.2067",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F11": {
+        "score": {
+          "value": 1.0,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [floor_producer:PASS:receipt_ledger]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "floor_producer:PASS:receipt_ledger",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F12": {
+        "score": {
+          "value": 0.0,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [floor_producer:PASS:request_trust]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "floor_producer:PASS:request_trust",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F13": {
+        "score": {
+          "value": 1.0,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [floor_producer:PASS:seal_chain]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "floor_producer:PASS:seal_chain",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      },
+      "F10": {
+        "score": {
+          "value": 1.0,
+          "state": "observed",
+          "source": "governance_kernel.get_current_state [arifflow_live_ontology:QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD]",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "self_reported_endpoint",
+          "independent_or_self_reported": "self_reported"
+        },
+        "status": {
+          "value": "pass",
+          "state": "derived",
+          "source": "_floor_passes + floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.9,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        },
+        "provenance": {
+          "value": "arifflow_live_ontology:QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD",
+          "state": "observed",
+          "source": "rest_routes.floor_provenance",
+          "observed_at": "2026-10-21T01:54:06Z",
+          "age_seconds": 0,
+          "confidence": 0.99,
+          "observation_method": "computed_from_other_fields",
+          "independent_or_self_reported": "self_reported"
+        }
+      }
+    },
+    "floor_semantics": {
+      "version": "wave0.v1",
+      "gate_state": {
+        "predicate_id": "kernel:_floor_status_strict@rest_routes.py:3415",
+        "producer": "kernel /health layer_health.constitutional",
+        "meaning": "May this action proceed under the applicable policy? Score-threshold evaluation per floor (defaults included where no live instrument exists)."
+      },
+      "measurement_state": {
+        "predicate_id": "observatory:floor_provenance@rest_routes.py:1006",
+        "producer": "observatory resolved_floors + provenance labels",
+        "meaning": "Is this floor instrumented, and what does the observation establish? unmeasured_default = no instrument, never a pass."
+      },
+      "scope": "gate=action-level policy \u00b7 measurement=federation-level coverage",
+      "rule": "unmeasured is never converted to pass or fail implicitly; a gate pass is never presented as global measured health"
+    },
+    "floors_loaded": {
+      "value": 13,
+      "state": "observed",
+      "source": "kernel.enum.LAW_SPEC_KEYS",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "registry_file_read",
+      "independent_or_self_reported": "independent"
+    },
+    "floors_passing": {
+      "value": 11,
+      "state": "derived",
+      "source": "_floor_passes count",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "self_reported"
+    },
+    "floors_failing": {
+      "value": 1,
+      "state": "derived",
+      "source": "_floor_passes count",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "self_reported"
+    },
+    "floors_unmeasured": {
+      "value": 1,
+      "state": "derived",
+      "source": "floor_provenance count (unmeasured_default*)",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "self_reported"
+    },
+    "verdict": {
+      "value": "PER_ACTION",
+      "state": "observed",
+      "source": "governance_kernel",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "self_reported_endpoint",
+      "independent_or_self_reported": "self_reported"
+    },
+    "verdict_reason": {
+      "value": "WS2: no standing verdict by doctrine \u2014 constitutional verdicts render per-action via arif_judge",
+      "state": "reported",
+      "source": "WS2 doctrine 2026-07-12",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "registry_file_read",
+      "independent_or_self_reported": "independent"
+    },
+    "verdict_decomposition": {
+      "substrate_state": {
+        "value": "FAIL",
+        "state": "derived",
+        "source": "floors_passing/failing/unmeasured count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      },
+      "session_state": {
+        "value": "FULL",
+        "state": "derived",
+        "source": "active_sessions authority scan",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      },
+      "action_state": {
+        "value": "PER_ACTION",
+        "state": "observed",
+        "source": "governance_kernel.verdict",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "self_reported_endpoint",
+        "independent_or_self_reported": "self_reported"
+      },
+      "receipt_state": {
+        "value": {
+          "head_present": true,
+          "snapshot_receipt": "PRESENT",
+          "issuer_claim": "UNKNOWN",
+          "verification_status": "NOT_ATTEMPTED",
+          "signature_verified": null,
+          "ledger_write": "AVAILABLE",
+          "ledger_read": "AVAILABLE",
+          "chain_verified": "UNKNOWN",
+          "replay_verified": "UNKNOWN"
+        },
+        "state": "observed",
+        "source": "sealer.head.exists() + chain.jsonl.exists()",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "constitutional_judgment": {
+        "value": "NOT_INVOKED",
+        "state": "reported",
+        "source": "observation-only",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent"
+      },
+      "human_ratification": {
+        "value": "NOT_REQUIRED",
+        "state": "reported",
+        "source": "observation-only",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent"
+      },
+      "f13_sovereignty_decomposition": {
+        "value": {
+          "pass_basis": "presence_only:floor_producer:PASS:seal_chain",
+          "human_veto_available": "MEASURED",
+          "authority_identity_verified": "MEASURED",
+          "consent_bound_to_action": "NOT_PROVEN",
+          "no_machine_self_authorization": "PARTIAL",
+          "revocation_path_available": "UNKNOWN",
+          "independent_attestation": "ABSENT"
+        },
+        "state": "derived",
+        "source": "seal_chain last entry + actor_verification (read-only probe)",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "f11_auditability_decomposition": {
+        "value": {
+          "pass_basis": "presence_only:floor_producer:PASS:receipt_ledger",
+          "receipt_emitted": "MEASURED",
+          "receipt_contains_governance_outcome": "MEASURED",
+          "receipt_actor_bound": "MEASURED",
+          "receipt_action_bound": "MEASURED",
+          "receipt_consequence_verified": "NOT_PROVEN",
+          "receipt_chain_valid": "UNKNOWN",
+          "independent_reconstruction_passed": "NO"
+        },
+        "state": "derived",
+        "source": "seal_chain last entry (read-only probe) + VAULT999 census scope",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      }
+    }
+  },
+  "capabilities": {
+    "as_of": "2026-10-21T01:54:05Z",
+    "exposed_source": "live_wire_probe",
+    "declared_count": 8,
+    "registered_count": 8,
+    "exposed_count": 8,
+    "invocable_count": 8,
+    "callable_public": 8,
+    "tested_count": 8,
+    "proven_live_count": 8,
+    "degraded_count": 0,
+    "untested_count": 0,
+    "matrix": [
+      {
+        "name": "arif_forge",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-20T15:51:12Z",
+        "age_seconds": 36173,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      },
+      {
+        "name": "arif_init",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-21T01:44:15Z",
+        "age_seconds": 590,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      },
+      {
+        "name": "arif_judge",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-20T15:51:12Z",
+        "age_seconds": 36173,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      },
+      {
+        "name": "arif_memory",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-20T15:51:12Z",
+        "age_seconds": 36173,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      },
+      {
+        "name": "arif_observe",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-21T01:43:05Z",
+        "age_seconds": 660,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      },
+      {
+        "name": "arif_route",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-21T01:44:16Z",
+        "age_seconds": 589,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      },
+      {
+        "name": "arif_seal",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-20T15:51:12Z",
+        "age_seconds": 36173,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      },
+      {
+        "name": "arif_think",
+        "declared": true,
+        "registered": true,
+        "exposed": true,
+        "invocable": true,
+        "tested": true,
+        "proven_live": true,
+        "input_schema_hash_match": false,
+        "output_schema_hash_match": false,
+        "last_test_at": "2026-10-20T15:51:12Z",
+        "age_seconds": 36173,
+        "last_failure": null,
+        "capability_truth": "PROVEN",
+        "evidence_source": "record_test_result"
+      }
+    ],
+    "semantics": {
+      "callable_public": "declared \u2227 registered \u2227 exposed on public wire",
+      "proven_live": "durable SUCCESS within 86400s",
+      "tested": "fresh SUCCESS within 86700s",
+      "operational_tools": "alias of proven_live_count (not invocable alone)"
+    }
+  },
+  "organs": {
+    "arifos": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:8088)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": "4e819be3fa269103",
+        "state": "observed",
+        "source": "GET 127.0.0.1:8088/health\u2192identity_hash",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "contract": {
+        "value": "2026.10.21-a08fb2e",
+        "state": "observed",
+        "source": "GET 127.0.0.1:8088/health\u2192version",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": 9,
+        "state": "observed",
+        "source": "GET 127.0.0.1:8088/health\u2192tools_loaded",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": "loaded",
+        "state": "observed",
+        "source": "kernel :8088 domain evidence",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "governance": {
+        "value": "active",
+        "state": "derived",
+        "source": "kernel :8088 floor scope",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": "pending",
+        "state": "derived",
+        "source": "kernel :8088 seal_chain tail",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "drift": {
+        "value": null,
+        "state": "unknown",
+        "source": "kernel :8088 identity diff",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "dependency": {
+        "value": [],
+        "state": "unknown",
+        "source": "kernel :8088 declared deps",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "label": "kernel :8088",
+      "authorization": {
+        "value": "JUDGE_ONLY \u2014 verdicts via arif_judge; never executes",
+        "state": "reported",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "registry_file_read",
+        "independent_or_self_reported": "independent"
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability=9 contract='2026.10.21-a08fb2e'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "geox": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:8081)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": "geox-aa980ce9",
+        "state": "observed",
+        "source": "GET 127.0.0.1:8081/health\u2192identity_hash",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "contract": {
+        "value": "v2026.10.03",
+        "state": "observed",
+        "source": "GET 127.0.0.1:8081/health\u2192version",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": 27,
+        "state": "observed",
+        "source": "GET 127.0.0.1:8081/health\u2192tools_loaded",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": "loaded",
+        "state": "observed",
+        "source": "GEOX :8081 domain evidence",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "governance": {
+        "value": "DELEGATES_TO_KERNEL",
+        "state": "derived",
+        "source": "GEOX :8081 floor scope",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": "pending",
+        "state": "derived",
+        "source": "GEOX :8081 seal_chain tail",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "drift": {
+        "value": null,
+        "state": "unknown",
+        "source": "GEOX :8081 identity diff",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "dependency": {
+        "value": [],
+        "state": "unknown",
+        "source": "GEOX :8081 declared deps",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "label": "GEOX :8081",
+      "authorization": {
+        "value": "COMPUTE_ONLY \u2014 earth evidence; floors delegated to kernel",
+        "state": "reported",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "registry_file_read",
+        "independent_or_self_reported": "independent"
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability=27 contract='v2026.10.03'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "wealth": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:18082)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": "4c31dad39a2ce9a4fcb3baa14c5fb48b",
+        "state": "observed",
+        "source": "GET 127.0.0.1:18082/health\u2192identity_hash",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "contract": {
+        "value": "v2026.07.24",
+        "state": "observed",
+        "source": "GET 127.0.0.1:18082/health\u2192version",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": 15,
+        "state": "observed",
+        "source": "GET 127.0.0.1:18082/health\u2192tools_loaded",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": "loaded",
+        "state": "observed",
+        "source": "WEALTH :18082 domain evidence",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "governance": {
+        "value": "DELEGATES_TO_KERNEL",
+        "state": "derived",
+        "source": "WEALTH :18082 floor scope",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": "pending",
+        "state": "derived",
+        "source": "WEALTH :18082 seal_chain tail",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "drift": {
+        "value": null,
+        "state": "unknown",
+        "source": "WEALTH :18082 identity diff",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "dependency": {
+        "value": [],
+        "state": "unknown",
+        "source": "WEALTH :18082 declared deps",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "label": "WEALTH :18082",
+      "authorization": {
+        "value": "COMPUTE_ONLY \u2014 capital math; floors delegated to kernel",
+        "state": "reported",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "registry_file_read",
+        "independent_or_self_reported": "independent"
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability=15 contract='v2026.07.24'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "well": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:18083)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": "cab94b160b9c0d1a33fbc259de27759d",
+        "state": "observed",
+        "source": "GET 127.0.0.1:18083/health\u2192identity_hash",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "contract": {
+        "value": "v2026.10.20",
+        "state": "observed",
+        "source": "GET 127.0.0.1:18083/health\u2192version",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": 10,
+        "state": "observed",
+        "source": "GET 127.0.0.1:18083/health\u2192tools_loaded",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": "loaded",
+        "state": "observed",
+        "source": "WELL :18083 domain evidence",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "governance": {
+        "value": "DELEGATES_TO_KERNEL",
+        "state": "derived",
+        "source": "WELL :18083 floor scope",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": "pending",
+        "state": "derived",
+        "source": "WELL :18083 seal_chain tail",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "drift": {
+        "value": null,
+        "state": "unknown",
+        "source": "WELL :18083 identity diff",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "dependency": {
+        "value": [],
+        "state": "unknown",
+        "source": "WELL :18083 declared deps",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "label": "WELL :18083",
+      "authorization": {
+        "value": "REFLECT_ONLY \u2014 mirror, not veto (W0)",
+        "state": "reported",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "registry_file_read",
+        "independent_or_self_reported": "independent"
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability=10 contract='v2026.10.20'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "aaa": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:3001)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": "f909eab007954d345edd20ecad73c361",
+        "state": "observed",
+        "source": "GET 127.0.0.1:3001/health\u2192identity_hash",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "contract": {
+        "value": "v2026.07.24",
+        "state": "observed",
+        "source": "GET 127.0.0.1:3001/health\u2192version",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": {
+          "ceiling": "DISPLAY_ONLY",
+          "a2a": "up",
+          "cockpit": "present"
+        },
+        "state": "observed",
+        "source": "DISPLAY_ONLY: A2A :3001/health + cockpit /var/www/html/aaa/index.html",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe+filesystem",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": "cockpit_html",
+        "state": "observed",
+        "source": "/var/www/html/aaa/index.html",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "filesystem",
+        "independent_or_self_reported": "independent"
+      },
+      "governance": {
+        "value": "DELEGATES_TO_KERNEL",
+        "state": "derived",
+        "source": "federation_contracts.aaa \u2014 never adjudicates, never seals",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": "not_applicable",
+        "state": "derived",
+        "source": "DISPLAY_ONLY \u2014 AAA does not write VAULT999",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "drift": {
+        "value": "not_applicable",
+        "state": "derived",
+        "source": "DISPLAY_ONLY \u2014 seal-chain drift is a kernel field",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "dependency": {
+        "value": [
+          "arifos"
+        ],
+        "state": "reported",
+        "source": "declared dep",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "authority_ceiling": {
+        "value": "DISPLAY_ONLY",
+        "state": "derived",
+        "source": "AAA/instructions/topology.md",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "label": "AAA :3001 DISPLAY_ONLY",
+      "authorization": {
+        "value": "DISPLAY_ONLY \u2014 never judges, never executes, never seals",
+        "state": "reported",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "registry_file_read",
+        "independent_or_self_reported": "independent"
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability={'ceiling': 'DISPLAY_ONLY', 'a2a': 'up', 'cockpit': 'present'} contract='v2026.07.24'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "aforge": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:7071)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": "fb3c88911e6c3a53e91863ec0cb19086",
+        "state": "observed",
+        "source": "GET 127.0.0.1:7071/health\u2192identity_hash",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "contract": {
+        "value": "v2026.09.30-fix",
+        "state": "observed",
+        "source": "GET 127.0.0.1:7071/health\u2192version",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": 115,
+        "state": "observed",
+        "source": "GET 127.0.0.1:7071/health\u2192tools_loaded",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": null,
+        "state": "unknown",
+        "source": "A-FORGE SHELL ledger",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "governance": {
+        "value": "DELEGATES_TO_KERNEL",
+        "state": "reported",
+        "source": "arifOS 3-B",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": null,
+        "state": "unknown",
+        "source": "forge_shell_ledger",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "drift": {
+        "value": "ALIGNED: live registry surfaces agree (115 tools); legacy 31-tool claim retired 2026-10-20",
+        "state": "measured",
+        "source": "A-FORGE live probe (:7072/health tools_listed=115; :7071/health tool_count=115)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_get_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "dependency": {
+        "value": [
+          "arifos"
+        ],
+        "state": "reported",
+        "source": "declared dep",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "label": "A-FORGE :7071/:7072",
+      "authorization": {
+        "value": "EXECUTE_AFTER_SEAL \u2014 lease + cc_id required for mutation",
+        "state": "reported",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "registry_file_read",
+        "independent_or_self_reported": "independent"
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability=115 contract='v2026.09.30-fix'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "mcp_gateway": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:3003)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "endpoint": {
+        "value": "mcp.arif-fazil.com",
+        "state": "reported",
+        "source": "Caddyfile vhost",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": null,
+        "state": "unknown",
+        "source": "/.well-known/agent-card.json",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "contract": {
+        "value": "2026.09.18",
+        "state": "observed",
+        "source": "GET 127.0.0.1:3003/health\u2192version",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": 197,
+        "state": "observed",
+        "source": "GET 127.0.0.1:3003/health\u2192tools_loaded",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": null,
+        "state": "unknown",
+        "source": "gateway probe",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "governance": {
+        "value": "ROUTES_TO_ORGANS",
+        "state": "reported",
+        "source": "arifOS 3-B",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": null,
+        "state": "unknown",
+        "source": "mcp.recent_seal",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "drift": {
+        "value": null,
+        "state": "unknown",
+        "source": "mcp canonical vs exposed",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "dependency": {
+        "value": [
+          "arifos",
+          "geox",
+          "wealth",
+          "well",
+          "aaa",
+          "aforge"
+        ],
+        "state": "reported",
+        "source": "declared dep",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "label": "mcp.arif-fazil.com",
+      "authorization": {
+        "value": "AGGREGATOR \u2014 routes to organs; no independent authority",
+        "state": "reported",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "registry_file_read",
+        "independent_or_self_reported": "independent"
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability=197 contract='2026.09.18'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "arifflow": {
+      "transport": {
+        "value": "up",
+        "state": "observed",
+        "source": "tcp_probe(127.0.0.1:7073)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "tcp_connect_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "fq_verdict": {
+        "value": {
+          "verdict": "OPTIMAL",
+          "diagnosis": "BALANCED",
+          "actors_tracked": 21,
+          "sample_size": 100,
+          "execute_count": 47
+        },
+        "state": "observed",
+        "source": "GET 127.0.0.1:7073/health\u2192fq",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "identity": {
+        "value": null,
+        "state": "unknown",
+        "source": "arifFLOW /health",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "contract": {
+        "value": "ok-v3-vector",
+        "state": "observed",
+        "source": "GET 127.0.0.1:7073/health\u2192status (no version field published)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "self_reported_endpoint",
+        "independent_or_self_reported": "independent"
+      },
+      "capability": {
+        "value": 8,
+        "state": "observed",
+        "source": "GET 127.0.0.1:7075/health\u2192tools_loaded",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "http_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "evidence": {
+        "value": null,
+        "state": "unknown",
+        "source": "arifFLOW receipt gravity well",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "RECEIPT_UNAVAILABLE",
+          "human": "The audit system is not responding. Events may not be being recorded.",
+          "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+        }
+      },
+      "governance": {
+        "value": "FLOW_OBSERVES_NEVER_INTERPRETS",
+        "state": "reported",
+        "source": "EUREKA-ZEN Flow-Plane Invariant A6",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "last_receipt": {
+        "value": 1000,
+        "state": "observed",
+        "source": "GET 127.0.0.1:7073/health\u2192receipts (anchored window count)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "self_reported_endpoint",
+        "independent_or_self_reported": "independent"
+      },
+      "receipts": {
+        "value": 1000,
+        "state": "observed",
+        "source": "GET 127.0.0.1:7073/health\u2192receipts",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "self_reported_endpoint",
+        "independent_or_self_reported": "independent"
+      },
+      "chain_status": {
+        "value": "1000 anchored \u00b7 cycles=6 \u00b7 holds=83 \u00b7 throttled=0",
+        "state": "observed",
+        "source": "GET 127.0.0.1:7073/health\u2192invariants",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "self_reported_endpoint",
+        "independent_or_self_reported": "independent"
+      },
+      "drift": {
+        "value": null,
+        "state": "unknown",
+        "source": "arifFLOW vs VAULT999",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "dependency": {
+        "value": [
+          "arifos",
+          "aforge"
+        ],
+        "state": "reported",
+        "source": "declared dep",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.7,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "label": "arifFLOW :7073",
+      "authorization": {
+        "value": null,
+        "state": "unknown",
+        "source": "/root/AAA/federation/organs.yaml authority ceiling (declared boundary)",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "liveness": {
+        "value": "PRESENT",
+        "state": "derived",
+        "source": "derived from transport='up'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.85,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "independent"
+      },
+      "readiness": {
+        "value": "READY",
+        "state": "derived",
+        "source": "derived from capability=8 contract='ok-v3-vector'",
+        "observed_at": "2026-10-21T01:54:05Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    }
+  },
+  "metabolism": [
+    {
+      "stage": {
+        "value": "000_INIT",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:000_INIT:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:000_INIT:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:000_INIT:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:000_INIT:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:000_INIT:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:000_INIT:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:000_INIT:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:000_INIT:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:000_INIT:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "111_OBSERVE",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:111_OBSERVE:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:111_OBSERVE:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:111_OBSERVE:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:111_OBSERVE:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:111_OBSERVE:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:111_OBSERVE:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:111_OBSERVE:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:111_OBSERVE:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:111_OBSERVE:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "222_EVIDENCE",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 2,
+        "state": "observed",
+        "source": "durable_event_bus:222_EVIDENCE:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:222_EVIDENCE:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:222_EVIDENCE:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:222_EVIDENCE:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:222_EVIDENCE:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:222_EVIDENCE:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:222_EVIDENCE:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:222_EVIDENCE:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:222_EVIDENCE:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "333_THINK",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:333_THINK:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:333_THINK:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:333_THINK:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:333_THINK:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:333_THINK:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:333_THINK:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:333_THINK:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:333_THINK:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:333_THINK:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "444_ROUTE",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:444_ROUTE:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:444_ROUTE:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:444_ROUTE:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:444_ROUTE:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:444_ROUTE:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:444_ROUTE:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:444_ROUTE:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:444_ROUTE:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:444_ROUTE:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "555_MEMORY",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:555_MEMORY:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:555_MEMORY:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:555_MEMORY:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:555_MEMORY:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:555_MEMORY:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:555_MEMORY:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:555_MEMORY:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:555_MEMORY:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:555_MEMORY:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "666_CRITIQUE",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 2,
+        "state": "observed",
+        "source": "durable_event_bus:666_CRITIQUE:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:666_CRITIQUE:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:666_CRITIQUE:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:666_CRITIQUE:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:666_CRITIQUE:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:666_CRITIQUE:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:666_CRITIQUE:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:666_CRITIQUE:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:666_CRITIQUE:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "777_MEASURE",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 2,
+        "state": "observed",
+        "source": "durable_event_bus:777_MEASURE:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:777_MEASURE:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:777_MEASURE:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:777_MEASURE:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:777_MEASURE:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:777_MEASURE:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:777_MEASURE:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:777_MEASURE:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:777_MEASURE:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "888_JUDGE",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:888_JUDGE:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:888_JUDGE:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:888_JUDGE:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:888_JUDGE:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:888_JUDGE:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:888_JUDGE:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:888_JUDGE:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:888_JUDGE:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:888_JUDGE:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "999_RECEIPT",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:999_RECEIPT:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:999_RECEIPT:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:999_RECEIPT:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "RECEIPT_UNAVAILABLE",
+          "human": "The audit system is not responding. Events may not be being recorded.",
+          "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:999_RECEIPT:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "RECEIPT_UNAVAILABLE",
+          "human": "The audit system is not responding. Events may not be being recorded.",
+          "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:999_RECEIPT:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "RECEIPT_UNAVAILABLE",
+          "human": "The audit system is not responding. Events may not be being recorded.",
+          "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:999_RECEIPT:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "RECEIPT_UNAVAILABLE",
+          "human": "The audit system is not responding. Events may not be being recorded.",
+          "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:999_RECEIPT:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "RECEIPT_UNAVAILABLE",
+          "human": "The audit system is not responding. Events may not be being recorded.",
+          "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:999_RECEIPT:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:999_RECEIPT:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    },
+    {
+      "stage": {
+        "value": "010_FORGE",
+        "state": "reported",
+        "source": "kernel.stage_enum",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.99,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "invocations": {
+        "value": 3,
+        "state": "observed",
+        "source": "durable_event_bus:010_FORGE:count",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "success_rate": {
+        "value": 1.0,
+        "state": "observed",
+        "source": "durable_event_bus:010_FORGE:success_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "void_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:010_FORGE:void_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "hold_rate": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:010_FORGE:hold_rate",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "median_latency_ms": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:010_FORGE:median_latency",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "queue_depth": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:010_FORGE:queue_depth",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "last_error": {
+        "value": null,
+        "state": "unknown",
+        "source": "event_bus:010_FORGE:last_error",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.0,
+        "observation_method": "unknown",
+        "independent_or_self_reported": "independent",
+        "explanation": {
+          "machine_code": "UNKNOWN",
+          "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+          "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+        }
+      },
+      "evidence_level": {
+        "value": "L2",
+        "state": "observed",
+        "source": "durable_event_bus:010_FORGE:evidence_level",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.8,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "output_confidence": {
+        "value": 0.95,
+        "state": "observed",
+        "source": "durable_event_bus:010_FORGE:confidence",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.95,
+        "observation_method": "filesystem_probe",
+        "independent_or_self_reported": "independent"
+      },
+      "responsible_organ": {
+        "value": "arifos",
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      },
+      "human_gate": {
+        "value": false,
+        "state": "reported",
+        "source": "kernel.stage_lane",
+        "observed_at": "2026-10-21T01:54:06Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "static_configuration",
+        "independent_or_self_reported": "independent"
+      }
+    }
+  ],
+  "evidence": {
+    "sources_used": {
+      "value": [
+        "chron:/root/chron/data/calibration.json",
+        "vault999:seal_chain.jsonl",
+        "organs:loopback /health transport probes (this build)",
+        "arifFLOW::7073/health (this build)"
+      ],
+      "state": "observed",
+      "source": "snapshot build \u2014 sources actually consulted this emit",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.85,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "source_diversity": {
+      "value": {
+        "w3_legs": "human+ai+earth",
+        "F3_witness_score": 0.9828
+      },
+      "state": "derived",
+      "source": "governance.witness F3 (witness_producers: human+ai+earth)",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.8,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "self_reported"
+    },
+    "contradictions": {
+      "value": [],
+      "state": "unknown",
+      "source": "contradiction_engine.scan",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "missing_witnesses": {
+      "value": [],
+      "state": "unknown",
+      "source": "witness_class.scan",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "direct_vs_inferred": {
+      "direct": {
+        "value": 137,
+        "state": "derived",
+        "source": "counted from this snapshot's envelopes (state=observed)",
+        "observed_at": "2026-10-21T01:54:17Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      },
+      "inferred": {
+        "value": 114,
+        "state": "derived",
+        "source": "counted from this snapshot's envelopes (state=derived|reported)",
+        "observed_at": "2026-10-21T01:54:17Z",
+        "age_seconds": 0,
+        "confidence": 0.9,
+        "observation_method": "computed_from_other_fields",
+        "independent_or_self_reported": "self_reported"
+      }
+    },
+    "confidence_calibration": {
+      "value": {
+        "accuracy": 0.8145833333333334,
+        "mean_brier": 0.16759396537650645,
+        "effective_n": 40,
+        "policy": "chron-observation-level-rule-v1",
+        "updated_at": "2026-10-20T23:15:18.309047Z"
+      },
+      "state": "observed",
+      "source": "/root/chron/data/calibration.json (chron_calibration_v2, duplicate-guarded R2)",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "registry_file_read",
+      "independent_or_self_reported": "independent"
+    },
+    "unsupported_claims": {
+      "value": [],
+      "state": "unknown",
+      "source": "claims without evidence_refs",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "evidence_expiry": {
+      "value": [],
+      "state": "unknown",
+      "source": "expiring receipts",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "RECEIPT_UNAVAILABLE",
+        "human": "The audit system is not responding. Events may not be being recorded.",
+        "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+      }
+    }
+  },
+  "receipts": {
+    "chain_path": {
+      "value": "/root/.local/share/arifos/vault999/seal_chain.jsonl",
+      "state": "reported",
+      "source": "VAULT999 path probe",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "head_present": {
+      "value": true,
+      "state": "observed",
+      "source": "sealer head file existence",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "snapshot_receipt": {
+      "value": "PRESENT",
+      "state": "observed",
+      "source": "sealer head file",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "issuer_claim": {
+      "value": "SEAL",
+      "state": "reported",
+      "source": "sealer head file",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "verification_status": {
+      "value": "NOT_ATTEMPTED",
+      "state": "unknown",
+      "source": "GET /api/observatory/v1/seal/verify",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "head_seq": {
+      "value": 72,
+      "state": "observed",
+      "source": "sealer head file",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "head_epoch": {
+      "value": null,
+      "state": "unknown",
+      "source": "sealer.head.epoch",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "write_path_alive": {
+      "value": true,
+      "state": "derived",
+      "source": "sealer writer alive heuristic",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.7,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "read_path_alive": {
+      "value": true,
+      "state": "derived",
+      "source": "sealer reader (jsonl exists)",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "verify_path_alive": {
+      "value": true,
+      "state": "observed",
+      "source": "GET /api/observatory/v1/seal/verify (handler present)",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "replay_path_alive": {
+      "value": true,
+      "state": "observed",
+      "source": "GET /api/observatory/v1/seal/replay (handler present)",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "signature_verified": {
+      "value": null,
+      "state": "unknown",
+      "source": "GET /api/observatory/v1/seal/verify",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "chain_verified": {
+      "value": false,
+      "state": "observed",
+      "source": "local seal_chain.jsonl walk status=gaps-found gaps=13",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "replay_verified": {
+      "value": true,
+      "state": "observed",
+      "source": "local seal_chain.jsonl parse entries=274 skipped=0",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "orphan_traces": {
+      "value": null,
+      "state": "unknown",
+      "source": "trace_id without receipt",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "RECEIPT_UNAVAILABLE",
+        "human": "The audit system is not responding. Events may not be being recorded.",
+        "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions."
+      }
+    },
+    "unsealed_actions": {
+      "value": null,
+      "state": "unknown",
+      "source": "audit gap detector",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "unknown",
+      "independent_or_self_reported": "independent",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "seal_chain_seq": {
+      "value": 72,
+      "state": "observed",
+      "source": "sealer head file (panel alias of head_seq)",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.99,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "chain_status": {
+      "value": "gaps-found \u00b7 entries=274 \u00b7 gaps=13",
+      "state": "observed",
+      "source": "_local_chain_verify walk of seal_chain.jsonl (sovereign-frozen gaps documented, never silently repaired)",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    },
+    "last_receipt_tier": {
+      "value": "seq 55",
+      "state": "observed",
+      "source": "seal_chain.jsonl tail record tier/reason",
+      "observed_at": "2026-10-21T01:54:06Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "filesystem_probe",
+      "independent_or_self_reported": "independent"
+    }
+  },
+  "incidents": [],
+  "findings": {
+    "count": 4,
+    "by_severity": {
+      "HIGH": 1,
+      "MEDIUM": 2,
+      "LOW": 1
+    },
+    "findings": [
+      {
+        "id": "F-001",
+        "category": "capability_drift",
+        "description": "Public tool surface consistent (8-wire)",
+        "severity": "MEDIUM",
+        "evidence": "public wire declared=8 registered=8 exposed=8",
+        "status": "RESOLVED"
+      },
+      {
+        "id": "F-002",
+        "category": "tool_testing",
+        "description": "Successful tool invocations recorded for full public wire",
+        "severity": "MEDIUM",
+        "evidence": "proven_live=8/8 tested_fresh=8",
+        "status": "RESOLVED"
+      },
+      {
+        "id": "F-003",
+        "category": "metabolism",
+        "description": "Intelligence metabolism stages observed on durable bus",
+        "severity": "LOW",
+        "evidence": "stages_with_invocations=11/11",
+        "status": "RESOLVED"
+      },
+      {
+        "id": "F-004",
+        "category": "receipt",
+        "description": "VAULT paths live; chain not fully green (gaps declared allowed)",
+        "severity": "HIGH",
+        "evidence": "verify=True replay=True chain_verified=False (gaps may be declared)",
+        "status": "OPEN"
+      },
+      {
+        "id": "F-005",
+        "category": "identity",
+        "description": "Organ identity partially verified",
+        "severity": "MEDIUM",
+        "evidence": "identity present 6/8",
+        "status": "OPEN"
+      },
+      {
+        "id": "F-006",
+        "category": "topology",
+        "description": "Federation edges transport-reachable; authority propagation unproven",
+        "severity": "MEDIUM",
+        "evidence": "transport=11/11 semantic=2/11 rows=11 aggregate=TRANSPORT_ALIGNED \u2014 transport only",
+        "status": "OPEN"
+      },
+      {
+        "id": "F-007",
+        "category": "integrity",
+        "description": "Snapshot signature verified (ed25519)",
+        "severity": "LOW",
+        "evidence": "signature.state=signed key_id=ed25519:sha256:698cc1ab26357272",
+        "status": "RESOLVED"
+      },
+      {
+        "id": "F-008",
+        "category": "provenance",
+        "description": "Deployed commit not aligned with source HEAD",
+        "severity": "LOW",
+        "evidence": "source=a08fb2ea61a6 deployed=a08fb2e workspace_dirty=True",
+        "status": "OPEN"
+      },
+      {
+        "id": "F-009",
+        "category": "governance_gate",
+        "description": "BANGANG P0 audit \u2014 3 structural cracks closed 2026-07-19",
+        "severity": "LOW",
+        "evidence": "RESOLVED: authority fork (interceptor LOW), verification theater (positional debt), blame laundering (GateResult hash), attestation gap (12 modules)",
+        "status": "RESOLVED"
+      }
+    ]
+  },
+  "federation_edges": {
+    "declared": 11,
+    "probed": 11,
+    "reachable": 11,
+    "transport_reachable": 11,
+    "semantic_proven": 2,
+    "authority_propagated": 2,
+    "drifted": 0,
+    "unreachable": 0,
+    "unknown": 0,
+    "aggregate_state": "TRANSPORT_ALIGNED",
+    "edges": [
+      {
+        "id": "arifos\u2192aforge",
+        "source": "arifOS",
+        "target": "A-FORGE",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "source_identity": "6c9055f6b3f9f4306b662f5b",
+        "target_identity": "fb3c88911e6c3a53e91863ec",
+        "schema_match": true,
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "arifos\u2192geox",
+        "source": "arifOS",
+        "target": "GEOX",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "source_identity": "6c9055f6b3f9f4306b662f5b",
+        "target_identity": "geox-aa980ce9",
+        "schema_match": true,
+        "bridge_attempted": true,
+        "session_propagated": false,
+        "actor_propagated": false,
+        "trace_propagated": false,
+        "receipt_produced": false,
+        "bridge_receipt_state": null,
+        "bridge_note": "arif_route failed: timed out",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "FAILED",
+        "color_hint": "red"
+      },
+      {
+        "id": "arifos\u2192wealth",
+        "source": "arifOS",
+        "target": "WEALTH",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "source_identity": "6c9055f6b3f9f4306b662f5b",
+        "target_identity": "4c31dad39a2ce9a4fcb3baa1",
+        "schema_match": true,
+        "bridge_attempted": true,
+        "session_propagated": true,
+        "actor_propagated": true,
+        "trace_propagated": true,
+        "receipt_produced": true,
+        "bridge_receipt_state": "UNSEALED",
+        "bridge_note": null,
+        "epistemic_preserved": "N/E",
+        "state": "SEMANTIC_PROVEN",
+        "overall": "GOVERNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "arifos\u2192well",
+        "source": "arifOS",
+        "target": "WELL",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "source_identity": "6c9055f6b3f9f4306b662f5b",
+        "target_identity": "cab94b160b9c0d1a33fbc259",
+        "schema_match": true,
+        "bridge_attempted": true,
+        "session_propagated": true,
+        "actor_propagated": true,
+        "trace_propagated": true,
+        "receipt_produced": true,
+        "bridge_receipt_state": "UNSEALED",
+        "bridge_note": null,
+        "epistemic_preserved": "N/E",
+        "state": "SEMANTIC_PROVEN",
+        "overall": "GOVERNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "arifos\u2192aaa",
+        "source": "arifOS",
+        "target": "AAA",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "source_identity": "6c9055f6b3f9f4306b662f5b",
+        "target_identity": "f909eab007954d345edd20ec",
+        "schema_match": true,
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "aforge\u2192arifos",
+        "source": "A-FORGE",
+        "target": "arifOS",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "schema_match": true,
+        "note": "self-edge skipped (would self-dead-lock)",
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "geox\u2192arifos",
+        "source": "GEOX",
+        "target": "arifOS",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "schema_match": true,
+        "note": "self-edge skipped (would self-dead-lock)",
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "wealth\u2192arifos",
+        "source": "WEALTH",
+        "target": "arifOS",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "schema_match": true,
+        "note": "self-edge skipped (would self-dead-lock)",
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "well\u2192arifos",
+        "source": "WELL",
+        "target": "arifOS",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "schema_match": true,
+        "note": "self-edge skipped (would self-dead-lock)",
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "aaa\u2192arifos",
+        "source": "AAA",
+        "target": "arifOS",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "transport_latency_ms": null,
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "schema_match": true,
+        "note": "self-edge skipped (would self-dead-lock)",
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "CONTRACT_ALIGNED",
+        "overall": "CONTRACT_ALIGNED",
+        "semantic_state": "SCHEMA_ALIGNED",
+        "color_hint": "amber"
+      },
+      {
+        "id": "mcp\u2192arifos",
+        "source": "MCP",
+        "target": "arifOS",
+        "declared": true,
+        "observed_at": "2026-10-21T01:54:06Z",
+        "transport": "reachable",
+        "identity_match": true,
+        "identity_status": "PRESENT_BOTH",
+        "source_identity": "mcp-gateway",
+        "target_identity": "6c9055f6b3f9f4306b662f5b",
+        "schema_match": "N/E",
+        "session_propagated": "N/E",
+        "actor_propagated": "N/E",
+        "trace_propagated": "N/E",
+        "receipt_produced": "N/E",
+        "epistemic_preserved": "N/E",
+        "state": "TRANSPORT_IDENTITY_OK",
+        "overall": "IDENTITY_ALIGNED",
+        "semantic_state": "TRANSPORT_ONLY",
+        "color_hint": "blue"
+      }
+    ]
+  },
+  "conformance": {
+    "fast": {
+      "value": null,
+      "state": "unknown",
+      "source": "conformance",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "BLOCKED",
+      "independent_or_self_reported": "self_reported",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "live_transport": {
+      "value": null,
+      "state": "unknown",
+      "source": "conformance",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "BLOCKED",
+      "independent_or_self_reported": "self_reported",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    },
+    "full_conformance": {
+      "value": null,
+      "state": "unknown",
+      "source": "conformance",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.0,
+      "observation_method": "BLOCKED",
+      "independent_or_self_reported": "self_reported",
+      "explanation": {
+        "machine_code": "UNKNOWN",
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running."
+      }
+    }
+  },
+  "stage_evidence": {
+    "value": "self-reported",
+    "state": "reported",
+    "source": "observatory pipeline stage (not a governed session)",
+    "observed_at": "2026-10-21T01:54:17Z",
+    "age_seconds": 0,
+    "confidence": 0.7,
+    "observation_method": "self_reported_endpoint",
+    "independent_or_self_reported": "self_reported"
+  },
+  "intelligence_decomposition": {
+    "machine_substrate": {
+      "value": "ALIGNED",
+      "state": "derived",
+      "source": "transport + public wire invocable",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.85,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "independent"
+    },
+    "intelligence_pipeline": {
+      "value": "PARTIAL",
+      "state": "derived",
+      "source": "proven_live=8/8 tested_fresh=8 stages_observed=11/11 semantic_edges=2 degraded=0",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.75,
+      "observation_method": "computed_from_other_fields",
+      "independent_or_self_reported": "independent"
+    }
+  },
+  "tier": {
+    "value": "public",
+    "state": "reported",
+    "source": "Caddy X-Observatory-Tier (default public; operator with valid X-Op-Token)",
+    "observed_at": "2026-10-21T01:54:17Z",
+    "age_seconds": 0,
+    "confidence": 0.99,
+    "observation_method": "static_configuration",
+    "independent_or_self_reported": "independent"
+  },
+  "authority_dimensions": {
+    "access_tier": "PUBLIC",
+    "session_standing": "OBSERVE_ONLY_unless_bound",
+    "action_judgment": "per_call_via_arif_judge",
+    "note": "access_tier \u2260 session_standing \u2260 action verdict"
+  },
+  "authority": {
+    "effective_action_authority": {
+      "value": {
+        "authorized": null,
+        "band": "OBSERVE_ONLY",
+        "note": "public unauthenticated snapshot tier \u2014 mutations require a bound session ACT and a per-action arif_judge verdict"
+      },
+      "state": "reported",
+      "source": "WS2 doctrine (per-action verdicts) + session authority model",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.95,
+      "observation_method": "static_configuration",
+      "independent_or_self_reported": "independent"
+    },
+    "arifFLOW": {
+      "value": "METABOLIZE_ONLY (declared ceiling) \u2014 observes and anchors receipts, never judges",
+      "state": "reported",
+      "source": "/root/AAA/federation/organs.yaml",
+      "observed_at": "2026-10-21T01:54:17Z",
+      "age_seconds": 0,
+      "confidence": 0.9,
+      "observation_method": "registry_file_read",
+      "independent_or_self_reported": "independent"
+    }
+  },
+  "planes": {
+    "authorization": "PUBLIC tier \u00b7 OBSERVE_ONLY \u00b7 mutation per-action via arif_judge",
+    "readiness": "8/8 organs READY",
+    "receipt": "sealed head seq=72",
+    "transport": "REACHABLE"
+  }
+}

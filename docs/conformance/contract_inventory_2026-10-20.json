@@ -1,0 +1,91 @@
+{
+  "schema": "arifos.contract_inventory.v1",
+  "generated": "2026-10-20T13:39:16.862459+00:00",
+  "commit": "c56e94ad9b1bf65637aee5afc8c79bc69c35121d",
+  "contracts_total": 69,
+  "canon_modes": 58,
+  "extra": 11,
+  "items": [
+    {
+      "contract": "arif_report.ack",
+      "class": "coordination-lane",
+      "why": "tool live on the wire, outside the constitutional 8; not a verb, not counted",
+      "action_class": "MATERIAL",
+      "authority": "TRUSTED_AGENT"
+    },
+    {
+      "contract": "arif_report.file",
+      "class": "coordination-lane",
+      "why": "tool live on the wire, outside the constitutional 8; not a verb, not counted",
+      "action_class": "MATERIAL",
+      "authority": "TRUSTED_AGENT"
+    },
+    {
+      "contract": "arif_report.flush",
+      "class": "coordination-lane",
+      "why": "tool live on the wire, outside the constitutional 8; not a verb, not counted",
+      "action_class": "OBSERVE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_report.inbox",
+      "class": "coordination-lane",
+      "why": "tool live on the wire, outside the constitutional 8; not a verb, not counted",
+      "action_class": "OBSERVE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_report.stats",
+      "class": "coordination-lane",
+      "why": "tool live on the wire, outside the constitutional 8; not a verb, not counted",
+      "action_class": "OBSERVE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_route.delegate",
+      "class": "canon-under-declared",
+      "why": "tool IS constitutional (expose=True) but CANONICAL_TOOLS lists modes=[]",
+      "action_class": "PREPARE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_route.kernel",
+      "class": "canon-under-declared",
+      "why": "tool IS constitutional (expose=True) but CANONICAL_TOOLS lists modes=[]",
+      "action_class": "OBSERVE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_route.metabolize",
+      "class": "canon-under-declared",
+      "why": "tool IS constitutional (expose=True) but CANONICAL_TOOLS lists modes=[]",
+      "action_class": "PREPARE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_route.route",
+      "class": "canon-under-declared",
+      "why": "tool IS constitutional (expose=True) but CANONICAL_TOOLS lists modes=[]",
+      "action_class": "OBSERVE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_route.status",
+      "class": "canon-under-declared",
+      "why": "tool IS constitutional (expose=True) but CANONICAL_TOOLS lists modes=[]",
+      "action_class": "OBSERVE",
+      "authority": "OBSERVER"
+    },
+    {
+      "contract": "arif_route.triage",
+      "class": "canon-under-declared",
+      "why": "tool IS constitutional (expose=True) but CANONICAL_TOOLS lists modes=[]",
+      "action_class": "OBSERVE",
+      "authority": "OBSERVER"
+    }
+  ],
+  "classes": {
+    "canon-under-declared": 6,
+    "coordination-lane": 5
+  }
+}

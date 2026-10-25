@@ -50,6 +50,10 @@ _ALLOWED_KEYS = {
     "host",
     "error",
     "extra",
+    # Governance verdict label (2026-10-21): part of the frozen contract in
+    # invocation_log.py — the response's OWN outcome label (SEAL/HOLD/SABAR),
+    # never content. Required so ok is verdict-derived, not raise-derived.
+    "verdict",
 }
 
 
@@ -156,6 +160,71 @@ async def test_logger_explosion_cannot_break_the_tool_call(
     # exploding changed nothing observable.
     assert isinstance(result, dict) and result.get("tool") == "kitaran_probe_tool"
     assert _receipts(sink) == [], "nothing written — and nothing broken"
+
+
+async def test_hold_response_is_receipted_as_failure(
+    sink: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression 2026-10-21: a governed HOLD is ok=False, never ok=True.
+
+    The success path used to persist ok=True purely because the handler did
+    not RAISE — a HOLD/SABAR/PARTIAL verdict is a successful transport of a
+    NON-PASS decision, and it poisoned the CER/ASD numerators. Telemetry ok
+    must be derived from the response's OWN verdict, not from "didn't raise".
+    """
+    from arifosmcp.runtime.tools import _wrap_handler
+
+    non_pass_cases = [
+        ("kitaran_hold_tool", {"status": "HOLD", "result": {"reason": "governed hold"}}),
+        ("kitaran_sabar_tool", {"status": "SABAR", "result": {}}),
+        ("kitaran_void_tool", {"verdict": "VOID", "result": {}}),
+        ("kitaran_partial_tool", {"status": "PARTIAL", "result": {}}),
+        ("kitaran_provisional_tool", {"status": "PROVISIONAL", "result": {}}),
+        ("kitaran_hold888_tool", {"status": "HOLD_888", "result": {}}),
+    ]
+
+    for tool_name, payload in non_pass_cases:
+
+        async def probe_tool(
+            actor_id: str | None = None, session_id: str | None = None, _p=payload
+        ):
+            return _p
+
+        wrapped = _wrap_handler(probe_tool, tool_name)
+        result = await wrapped(actor_id="KITARAN-TEST-ACTOR")
+
+        assert result is not None, f"{tool_name}: dispatch must still return a response"
+
+    recs = _receipts(sink)
+    assert len(recs) == len(non_pass_cases), (
+        f"expected {len(non_pass_cases)} receipts, got {len(recs)}"
+    )
+    for rec in recs:
+        assert rec["ok"] is False, (
+            f"{rec['tool']}: non-pass verdict {rec.get('verdict')} persisted as ok=True"
+        )
+        assert rec["verdict"] in {"HOLD", "SABAR", "VOID", "PARTIAL", "PROVISIONAL", "HOLD_888"}
+    tools_seen = {rec["tool"] for rec in recs}
+    assert tools_seen == {name for name, _ in non_pass_cases}
+
+    # Control: an explicit PASS verdict (SEAL) on the same path stays ok=True.
+    async def seal_tool(actor_id: str | None = None, session_id: str | None = None):
+        return {"status": "SEAL", "result": {"sealed": True}}
+
+    wrapped = _wrap_handler(seal_tool, "kitaran_seal_tool")
+    await wrapped(actor_id="KITARAN-TEST-ACTOR")
+
+    recs = _receipts(sink)
+    assert len(recs) == len(non_pass_cases) + 1
+    seal_rec = recs[-1]
+    assert seal_rec["tool"] == "kitaran_seal_tool"
+    assert seal_rec["ok"] is True, "SEAL verdict must persist as ok=True"
+    assert seal_rec["verdict"] == "SEAL"
+
+    # Readback: the failures are now visible to exercise_count — no proxy.
+    counts = _shared_module().exercise_count("arifOS", 30, path=sink)
+    assert counts["failed"] == len(non_pass_cases)
+    assert counts["total"] == len(non_pass_cases) + 1
 
 
 async def test_unavailable_shared_module_cannot_break_the_tool_call(

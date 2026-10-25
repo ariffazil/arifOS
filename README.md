@@ -2,7 +2,7 @@
 <!-- GENERATED:CURRENT-STATE:BEGIN · source: scripts/generate_current_state.py · never hand-edit -->
 > ### ⚠️ Current verified state — generated, never hand-edited
 >
-> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-17T09:00:08Z`): kernel **healthy** · floors **13/13 measured pass** · vault999 healthy · release `arifos-cf7a984` · drift `aligned` (source=built=deployed) · tools exposed 8. Per-floor provenance: `.well-known/current-state.json`.
+> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-21T09:36:20Z`): kernel **degraded** · floors **10/13 measured pass** · failing: F1, F8 · vault999 healthy · release `arifos-e895e42` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
 >
 > **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured = 13 distinct** (raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13) · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
@@ -19,9 +19,9 @@
 last_verified: 2026-10-18T10:20:00+00:00
 live_commit: 9e6477d08 (docs(test): correct stale auto-sign claim in identity-proof P0 test)
 source_commit: 9e6477d08
-built_commit: cf7a984
-deployment_drift_status: aligned (source = built = deployed (drift: false))
-tools_exposed_via_mcp: 8 (verified by live tools/list, 2026-10-18)
+built_commit: cf7a984 (live /health: source=built=deployed for the running release)
+deployment_drift_status: kernel self-report drift=false (release arifos-cf7a984) — this says nothing about the repo tree above, which is 9e6477d08
+tools_exposed_via_mcp: 8 (verified by live POST /mcp tools/list on 2026-10-18: arif_init, arif_observe, arif_think, arif_route, arif_memory, arif_judge, arif_forge, arif_seal)
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
 generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
 -->
@@ -38,14 +38,15 @@ generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit,
 
 In a world where intelligence is abundant, authority becomes the scarce resource. arifOS keeps judgment independent from execution.
 
-[Quick Start](#30-second-proof) · [MCP Endpoint](#connect-an-mcp-client) · [Current Verified State](#current-verified-state) · [Agent surfaces](#machine-readable-surfaces) · [Known Gaps](#what-is-not-yet-proven) · [Security](./SECURITY.md)
+[Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [MCP Registry (Glama)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
 
-[![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
+[![Python](https://img.shields.io/pypi/pyversions/arifos?style=flat-square)](https://pypi.org/project/arifos)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](./LICENSE)
 [![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
 [![Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
-[![Security audit](https://img.shields.io/badge/security-audit_in_progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](./LICENSE)
+[![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
+[![Security audit](https://img.shields.io/badge/audit-partial_in_progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
 
 > **Proposer ≠ Judge ≠ Executor ≠ Witness**
 > **Human sovereignty > machine authority**
@@ -58,7 +59,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 | **Agent / A2A** | MCP tools + receipts. You do not get the keys. Judgment by arifOS, discovery by AAA, execution by A-FORGE |
 | **Institution** | Policy floors F1–F13, a hash-chained VAULT999 audit trail, model-vendor independence |
 | **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, [published schemas](https://arifos.arif-fazil.com/tools.json) |
-| **Auditor / indexer** | [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`docs/evidence/`](./docs/evidence/) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) |
+| **Registries & Indexers** | [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) (Score: A) · [`server.json`](./server.json) (Official MCP Registry) · [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) |
 
 Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](https://github.com/ariffazil/AAA) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [GEOX](https://github.com/ariffazil/GEOX)
 
@@ -206,11 +207,14 @@ Every consequential verdict and receipt is written to VAULT999: a hash-chained, 
 
 ## Connect an MCP client
 
+[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
+[![Official Registry Manifest](https://img.shields.io/badge/MCP_Registry-server.json_valid-brightgreen?style=flat-square)](./server.json)
+
 ```
 https://mcp.arif-fazil.com/mcp      # canonical public door · or http://localhost:8088/mcp self-hosted
 ```
 
-**Canonical endpoint:** `https://mcp.arif-fazil.com/mcp`. `https://arifos.arif-fazil.com/mcp` is a live alias (proxies to the same kernel); use the canonical URL in client configs.
+**Canonical endpoint:** `https://mcp.arif-fazil.com/mcp`. Listed & verified on [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) with rating **A**. Official registry manifest: [`server.json`](./server.json). `https://arifos.arif-fazil.com/mcp` is a live alias (proxies to the same kernel); use the canonical URL in client configs.
 
 <details>
 <summary><strong>Client config</strong> — Cline · Cursor · Windsurf · Claude Desktop</summary>
@@ -379,6 +383,43 @@ arifOS publishes verifiable evidence for its claims. Every public claim links to
 | Quickstart | [Verified quickstart](./docs/QUICKSTART.md) | **Verified by the maintainer** 2026-09-21; not yet reproduced by a stranger |
 
 > **Honesty principle:** we publish what passed, what failed, and what remains unknown. We do not claim maturity beyond our evidence.
+
+---
+
+## External Footprint & Discovery
+
+arifOS is publicly discoverable beyond first-party domains.
+
+### Current Measured Reality
+
+- **Discoverable:** YES
+- **Installable:** YES (`pip install arifos`)
+- **Inspectable:** YES
+- **Forkable:** YES
+
+### Verified Surfaces
+
+- GitHub public repositories (`ariffazil/arifOS`, `ariffazil/arifosmcp`)
+- PyPI packages (`arifos`, `arifosmcp`)
+- MCP ecosystem directories (`model-context-protocol.com`, `glama.ai`)
+- Third-party MCP catalogs (Loomal, Skills Playground, LobeHub, G2, Willow)
+
+### Candidate Independent References (Observed Claims)
+
+- Agentrust: *Awesome AI Governance* (Curated production AI governance frameworks)
+- Tom Rochette: *AI Control Planes Research* (Technical evaluation on separation of powers and self-audit culture)
+- Hapax Systems: *Constitution Research* (Comparative benchmark on runtime axiom enforcement)
+
+### Open Gaps
+
+- Independent validation not yet established
+- Independent CI verifier not yet bound (Open Gap 4)
+- Academic citation not yet established
+- Commercial adoption not independently verified
+
+*Discoverability should not be interpreted as endorsement, certification, adoption, or proof of effectiveness.*
+
+See: [`docs/EXTERNAL_WITNESS_LEDGER.md`](./docs/EXTERNAL_WITNESS_LEDGER.md) and [`docs/EXTERNAL_FOOTPRINT.md`](./docs/EXTERNAL_FOOTPRINT.md).
 
 ---
 

@@ -236,10 +236,14 @@ async def arif_think(
     actor_id: str | None = None,
     depth: int = 3,
     context: dict[str, Any] | None = None,
+    evidence: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND v1 — Constitutional reasoning with envelope integrity.
     Updated to delegate to v2 for 'metabolize' mode.
+    D2 evidence channel (F13 D1 ratified 2026-10-23): `evidence` admits
+    typed EvidenceObjects into the reasoning prompt. context.role and
+    context.handoff remain the only context keys read.
     """
     if mode == "metabolize":
         from arifosmcp.schemas.mind_metabolism import MindRequest, ReasoningControl
@@ -337,13 +341,22 @@ async def arif_think(
             "actor_id": actor_id or "anonymous",
         }
 
+    # ── D2 EVIDENCE CHANNEL (F13 D1 ratified 2026-10-23) ──────────────────────
+    # Typed evidence admission — validated, freshness-gated, rendered into the
+    # prompt. Expired entries never enter; UNKNOWN/CONTRADICTED render under a
+    # gate banner barring them from supporting PASS-shaped conclusions.
+    from arifosmcp.runtime.evidence_admission import admit_evidence
+
+    _ev_admission = admit_evidence(evidence)
+    _evidence_prompt_block = _ev_admission["prompt_block"] or ""
+
     # Build the reasoning prompt
     user_prompt = f"""QUERY: {query}
 MODE: {mode}
 DEPTH: {depth}
 SESSION_ID: {session_id or "none"}
 ACTOR_ID: {actor_id or "anonymous"}
-ROLE: {(context or {}).get("role") or "UNKNOWN"}
+ROLE: {(context or {}).get("role") or "UNKNOWN"}{_evidence_prompt_block}
 
 Reason through this under the 13 constitutional floors.
 Provide structured reasoning as a witness.
@@ -627,6 +640,80 @@ ROLE GUARD: If ROLE is UNKNOWN, do not hallucinate, adopt, or fabricate domain e
         "note": "LIVE_MODEL confidence is model self-assessment; FALLBACK_TEMPLATE output is a deterministic scaffold",
     }
 
+    # D2 evidence channel: echo what was admitted / expired / rejected so a
+    # downstream consumer can audit which evidence the reasoning consumed
+    # without re-deriving it from the prompt.
+    result["evidence_admission"] = {
+        "consumed": list(_ev_admission["consumed"]),
+        "expired_omitted": list(_ev_admission["expired_omitted"]),
+        "rejected": list(_ev_admission["rejected"]),
+        "counts": dict(_ev_admission["counts"]),
+    }
+    if _ev_admission["consumed"]:
+        _used = result.get("evidence_used")
+        result["evidence_used"] = (list(_used) if isinstance(_used, list) else []) + list(
+            _ev_admission["consumed"]
+        )
+
+    # ── ACAH2 (2026-10-20) — recipient side of the evidence journey ────────
+    # context["handoff"] (a hermes_handoff_package envelope): report evidence
+    # transport status precisely — EVIDENCE_NOT_RECEIVED / EVIDENCE_UNAVAILABLE
+    # / HASH_MISMATCH — and never upgrade status from a summary. A missing ref
+    # is NOT "false"; a matching hash is NOT proof of truth. An unverified
+    # principal (e.g. keyword-extracted "Remembering") must never become a
+    # profile/memory key.
+    try:
+        from arifosmcp.tools.reason import _resolve_handoff_evidence as _rhe
+    except Exception:
+        _rhe = None
+    _handoff_ev = {}
+    if _rhe is not None:
+        try:
+            _handoff_ev = _rhe(context) or {}
+        except Exception:
+            _handoff_ev = {}
+    if _handoff_ev:
+        _reasoning = result.get("reasoning") if isinstance(result.get("reasoning"), dict) else {}
+        if not isinstance(result.get("reasoning"), dict):
+            result["reasoning"] = _reasoning
+        _resolved = [
+            r
+            for c in _handoff_ev.get("claims", [])
+            for r in c.get("refs", [])
+            if r.get("status") == "REFS_RESOLVED"
+        ]
+        _markers = []
+        for _c in _handoff_ev.get("claims", []):
+            if _c.get("evidence_transfer") == "EVIDENCE_NOT_RECEIVED":
+                _markers.append(f"EVIDENCE_NOT_RECEIVED: {_c.get('statement', '')}")
+            for _r in _c.get("refs", []):
+                if _r.get("status") == "EVIDENCE_UNAVAILABLE":
+                    _markers.append(f"EVIDENCE_UNAVAILABLE: {_r.get('ref', '')}")
+                elif _r.get("status") == "HASH_MISMATCH":
+                    _markers.append(f"HASH_MISMATCH: {_r.get('ref', '')}")
+            if not _c.get("principal_key_safe", True):
+                _markers.append(
+                    "IDENTITY_UNVERIFIED: do not use this principal as a profile/memory key"
+                )
+        if _resolved:
+            _used = result.get("evidence_used")
+            result["evidence_used"] = (list(_used) if isinstance(_used, list) else []) + _resolved
+        if _markers:
+            _me = _reasoning.setdefault("missing_evidence", [])
+            if not isinstance(_me, list):
+                _me = []
+                _reasoning["missing_evidence"] = _me
+            _me.extend(_markers)
+        if _handoff_ev.get("summary", {}).get("resolved", 0) == 0 and str(
+            result.get("claim_state", "")
+        ).upper() in {"CLAIM", "VERIFIED_FACT", "SUPPORTED_CLAIM"}:
+            result["claim_state"] = "HYPOTHESIS"
+            _reasoning.setdefault("missing_evidence", []).append(
+                "handoff evidence not retrieved — claim_state downgraded to "
+                "HYPOTHESIS (no status upgrade without new verification)"
+            )
+        result["handoff_evidence"] = _handoff_ev
+
     # ── Attach 777_WITNESS envelope metadata ───────────────────────────────────
     if llm_available:
         result["_envelope"] = {
@@ -791,9 +878,11 @@ async def arif_think_structured(
     mode: str = "reason",
     session_id: str | None = None,
     actor_id: str | None = None,
+    evidence: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Structured wrapper for arif_think - returns parsed_output directly."""
-    result = await arif_think(query, mode, session_id, actor_id)
+    """Structured wrapper for arif_think - returns parsed_output directly.
+    D2 (F13 D1 2026-10-23): forwards typed evidence into the reasoning pass."""
+    result = await arif_think(query, mode, session_id, actor_id, evidence=evidence)
     return {k: v for k, v in result.items() if not k.startswith("_")}
 
 

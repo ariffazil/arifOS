@@ -186,6 +186,23 @@ def tool_count_from_payload(data: dict[str, Any] | None) -> int | None:
     return None
 
 
+def _first_health_field(
+    health_data: dict[str, Any] | None, keys: tuple[str, ...]
+) -> dict[str, Any] | None:
+    """First-present raw /health field with the key it came from. None if absent.
+
+    P1 (2026-10-20): evidence passthrough for governance / receipt / contract
+    signals — raw values only, source names the actual key, no inference.
+    """
+    if not isinstance(health_data, dict):
+        return None
+    for k in keys:
+        v = health_data.get(k)
+        if v is not None:
+            return {"value": v, "key": k}
+    return None
+
+
 def probe_organ(organ_id: str) -> dict[str, Any]:
     """Probe an organ with three-verdict semantics.
 
@@ -266,6 +283,17 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
         "website": meta.get("website"),
         "mcp": meta.get("mcp"),
         "evidence_url": meta.get("evidence_url"),
+        # Evidence passthrough (P1, additive) for governance/receipt/contract
+        # signals — raw /health fields, source names the key, never inferred.
+        "governance_evidence": _first_health_field(
+            health_data, ("kernel_verdict", "governance", "verdict")
+        ),
+        "receipt_evidence": _first_health_field(
+            health_data, ("runtime_seal_state", "vault999_health", "seal_state")
+        ),
+        "contract_evidence": _first_health_field(
+            health_data, ("federation_schema_version", "contract_status")
+        ),
     }
 
 
@@ -636,6 +664,11 @@ def project_public_state(
         "generated_at": now_iso(),
         "headline": headline,
         "planes": planes,
+        # ── Class B (2026-10-20): carry the snapshot's metabolism stages
+        # (000_INIT…, per-field envelopes with origin + confidence) so the
+        # observatory renderMetabolism panel reads measured data instead of
+        # "unavailable". Projection-carry only — no new telemetry.
+        "metabolism": snap.get("metabolism") if isinstance(snap.get("metabolism"), list) else [],
         "organs": organs_normalized,
         "release": {
             "release_id": release_id,
@@ -649,6 +682,40 @@ def project_public_state(
             "deployment_alignment": alignment,
             "verify_url": release_url,
             "connect_url": connect_url,
+        },
+        # ── Observatory wiring (class A, 2026-10-20, additive) ──────────────
+        # observatory.js renderIdentity() reads data.runtime_identity.* — the
+        # snapshot already carries this (ri); carry it through merged with the
+        # release commits so the F2 panel shows real data, not "source: missing".
+        "runtime_identity": {
+            "source_commit": pf_value(ri.get("workspace_source_commit"))
+            or pf_value(ri.get("source_commit"))
+            or short_commit(source, 7),
+            "source_commit_full": source,
+            "deployed_commit": pf_value(ri.get("deployed_commit")) or short_commit(deployed, 7),
+            "build_commit": pf_value(ri.get("build_commit")) or short_commit(build, 7),
+            "drift": drift_obj if drift_obj is not None else alignment,
+            "deployment_mode": pf_value(ri.get("deployment_mode")) or health.get("deployment_mode"),
+            "process_started_at": pf_value(ri.get("process_started_at")),
+            "platform": pf_value(ri.get("platform")),
+            "kernel_epoch": pf_value(ri.get("kernel_epoch")),
+            "confidence": ri.get("confidence"),
+            "source": "snapshot.runtime_identity+release",
+            "observed_at": snap.get("observed_at"),
+        },
+        # ── Footer signature (P1, additive): observatory.js footer reads
+        # data.signature.{algorithm,key_id,payload_hash,signed_at} and derives
+        # trust display from signature.algorithm. The snapshot already carries
+        # a full ed25519 signature record — carry it through so the footer
+        # reports the real signature instead of the 'unsigned' fallback.
+        "signature": {
+            "algorithm": (snap.get("signature") or {}).get("algorithm"),
+            "key_id": (snap.get("signature") or {}).get("key_id"),
+            "payload_hash": (snap.get("signature") or {}).get("payload_hash"),
+            "signed_at": (snap.get("signature") or {}).get("signed_at"),
+            "state": (snap.get("signature") or {}).get("state"),
+            "verification_url": (snap.get("signature") or {}).get("verification_url"),
+            "source": "snapshot.signature",
         },
         "mcp": {
             "endpoint": "https://mcp.arif-fazil.com/mcp",
@@ -692,10 +759,11 @@ def project_public_state(
         "ariflow": {
             "fq_quotient": extra.get("ariflow_fq_quotient"),
             "fq_verdict": extra.get("ariflow_fq_verdict"),
-            "execute_count": extra.get("arifflow_execute_count"),
+            "execute_count": extra.get("ariflow_execute_count"),
             "verify_count": extra.get("ariflow_verify_count"),
-            "receipts": extra.get("arifflow_receipts"),
+            "receipts": extra.get("ariflow_receipts"),
             "uptime_ms": extra.get("ariflow_uptime_ms"),
+            "status": extra.get("ariflow_status"),  # P0-A
             "source": extra.get("ariflow_source", "ariflow:7073/health"),
             "observed_at": extra.get("ariflow_observed_at"),
         },
@@ -1143,6 +1211,13 @@ def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, 
         "source": row.get("source") or "127.0.0.1 tcp probe",
         "trace": row.get("probe_reason") or row.get("status_code") or None,
         "receipt": row.get("receipt"),
+        # P1 passthrough (2026-10-20): raw probe evidence for readiness /
+        # governance / receipt / contract signals — whitelisted through so the
+        # contract wire can emit sourced records instead of honest-null.
+        "probe_status_code": row.get("probe_status_code"),
+        "governance_evidence": row.get("governance_evidence"),
+        "receipt_evidence": row.get("receipt_evidence"),
+        "contract_evidence": row.get("contract_evidence"),
         "evidence_url": row.get("evidence_url"),
         "website": row.get("website"),
         "mcp": row.get("mcp"),
@@ -1220,6 +1295,9 @@ def collect_extras() -> dict[str, Any]:
         extras["ariflow_verify_count"] = fq.get("verify_count")
         extras["ariflow_receipts"] = flow.get("data", {}).get("receipts")
         extras["ariflow_uptime_ms"] = flow.get("data", {}).get("uptime_ms")
+        extras["ariflow_status"] = flow.get("data", {}).get(
+            "status"
+        )  # P0-A: flow health badge (single-f — MUST match emitter key extra.get("arifflow_status"→"ariflow_status") at project_public_state; 2026-10-20 one-char fix)
         extras["ariflow_source"] = "ariflow:7073/health"
         extras["ariflow_observed_at"] = observed_at
 
@@ -1377,6 +1455,102 @@ def collect_extras() -> dict[str, Any]:
     return extras
 
 
+def wire_observatory_contract(state: dict[str, Any]) -> dict[str, Any]:
+    """Class A projection wiring (2026-10-20, additive).
+
+    observatory.js flowSnapshot() candidates are arifFLOW / arifFlow /
+    arifflow / arif_flow / flow_plane — the canonical key ``ariflow``
+    (single f) matches NONE of them, so the FLOW panel read nothing.
+    Emit alias keys alongside the canonical block. Also derive per-organ
+    signal records (liveness/readiness/capability/authorization) from
+    data the probe ALREADY collected — no new telemetry. Signals without
+    a producer stay absent so the page renders honest 'unknown', never
+    green.
+    """
+    flow = state.get("ariflow")
+    if isinstance(flow, dict):
+        state["arifflow"] = flow
+        state["arifFlow"] = flow
+        _p0a_wire_census(state, flow)
+    organs = state.get("organs")
+    if isinstance(organs, dict):
+        for organ_id, row in organs.items():
+            if not isinstance(row, dict):
+                continue
+            transport = str(row.get("transport") or "")
+            row["liveness"] = {
+                "value": "live" if transport == "PRESENT" else (transport or None),
+                "state": "healthy" if transport == "PRESENT" else "unknown",
+                "source": "live /health probe",
+                "confidence": row.get("confidence"),
+            }
+            status_code = row.get("probe_status_code")
+            if status_code is not None:
+                row["readiness"] = {
+                    "value": f"http {status_code}",
+                    "state": "healthy" if status_code == 200 else "degraded",
+                    "source": "live /health probe",
+                    "confidence": row.get("confidence"),
+                }
+            tools = row.get("public_tools")
+            if isinstance(tools, int):
+                row["capability"] = {
+                    "value": f"{tools} public tools",
+                    "state": "healthy" if tools > 0 else "unknown",
+                    "source": "mcp tools/list probe",
+                    "confidence": row.get("confidence"),
+                }
+            identity_state = str(row.get("identity_state") or "")
+            row["authorization"] = {
+                "value": identity_state or None,
+                "state": "healthy"
+                if identity_state == "VERIFIED"
+                else ("degraded" if identity_state == "PRESENT" else "unknown"),
+                "source": "identity probe",
+                "confidence": row.get("confidence"),
+            }
+            identity_state = str(row.get("identity_state") or "")
+            row["identity"] = {
+                "value": identity_state or None,
+                "state": row["authorization"]["state"],
+                "source": "identity probe",
+                "confidence": row.get("confidence"),
+            }
+            if "readiness" in row:
+                row["dependency"] = row["readiness"]  # pulse-grid + vocab alias
+            # P1 (2026-10-20): governance / receipt / contract now wire from the
+            # raw /health evidence probe_organ passes through. Absent evidence →
+            # key stays absent → the page renders honest 'unknown', never green.
+            ge = row.get("governance_evidence")
+            if ge:
+                row["governance"] = {
+                    "value": ge["value"],
+                    "state": "reported",
+                    "source": f"live /health→{ge['key']}",
+                    "confidence": row.get("confidence"),
+                }
+            rev = row.get("receipt_evidence")
+            if rev:
+                row["last_receipt"] = {
+                    "value": rev["value"],
+                    "state": "reported",
+                    "source": f"live /health→{rev['key']}",
+                    "confidence": row.get("confidence"),
+                }
+            ce = row.get("contract_evidence")
+            if ce:
+                row["contract"] = {
+                    "value": ce["value"],
+                    "state": "observed",
+                    "source": f"live /health→{ce['key']}",
+                    "confidence": row.get("confidence"),
+                }
+    _p0a_wire_organs(
+        state
+    )  # P0-A: pulse-grid aliases (after organ loop populated liveness/authorization)
+    return state
+
+
 def main() -> int:
     snap = load_snapshot()
     health = get_health()
@@ -1385,6 +1559,7 @@ def main() -> int:
         print("error: no snapshot, no health, no extras", file=sys.stderr)
         return 1
     state = project_public_state(snap, health, extra=extras)
+    state = wire_observatory_contract(state)
     paths = write_public_state(state)
     print(
         f"public-state {state['schema']} headline={state['headline']!r} "
@@ -1397,6 +1572,63 @@ def main() -> int:
         f"paths={[str(p) for p in paths]}"
     )
     return 0
+
+
+def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
+    """P0-A (2026-10-20): project vault receipt census into observatory.js keys.
+
+    renderFlowPlane chain read = flowField(record,'chain','chain_status',...)
+    and the VAULT999 line = firstPresent(governance.vault999, substrate.vault999,
+    receipts.chain_status). The census data already exists in the receipt block —
+    re-key it additively. No new telemetry.
+    """
+    rb = state.get("receipt") if isinstance(state.get("receipt"), dict) else {}
+    if not rb:
+        return
+    chain_ok = bool(rb.get("chain_verified"))
+    flow["chain_status"] = {
+        "value": (
+            f"canonical {rb.get('canonical_status') or 'UNKNOWN'}"
+            f" · head_seq {rb.get('head_sequence')}"
+            f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+        ),
+        "state": "healthy" if chain_ok else "unknown",
+        "source": "vault receipt census",
+        "confidence": None,
+    }
+    gov = state.get("governance")
+    if isinstance(gov, dict):
+        gov["vault999"] = {
+            "value": (
+                f"vault {rb.get('vault_status') or 'UNKNOWN'}"
+                f" · canonical {rb.get('canonical_status') or 'UNKNOWN'}"
+                f" · head_seq {rb.get('head_sequence')}"
+                f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+            ),
+            "state": "healthy" if chain_ok else "unknown",
+            "source": "vault receipt census (build_public_state receipt block)",
+            "confidence": None,
+        }
+
+
+def _p0a_wire_organs(state: dict[str, Any]) -> None:
+    """P0-A (2026-10-20): alias per-organ records to pulse-grid signal keys.
+
+    renderOrgans reads ['transport','dependency','capability','governance',
+    'identity','last_receipt','contract'] — alias liveness→transport and
+    authorization→identity. Keys without a producer stay absent → honest
+    'unknown', never green-washed.
+    """
+    organs = state.get("organs")
+    if not isinstance(organs, dict):
+        return
+    for row in organs.values():
+        if not isinstance(row, dict):
+            continue
+        if isinstance(row.get("liveness"), dict):
+            row["transport"] = row["liveness"]
+        if isinstance(row.get("authorization"), dict):
+            row["identity"] = row["authorization"]
 
 
 if __name__ == "__main__":

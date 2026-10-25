@@ -17,6 +17,15 @@ PARADOX ANCHORS (v3): 11 linguistic invariants fire at verdict decision points:
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+
+# ── SIGIL NOTE (888 order 2026-10-21, item #6) ─────────────────────────────
+# Canonical stage numbering per constitutional_map.py (F13-ratified 2026-07-31):
+#   arif_judge = 666 · arif_forge = 777 · arif_seal/VAULT999 = 999.
+# "888" in this file refers to the RETIRED judge label and the 888_HOLD /
+# HOLD_888 verdict class (sovereign-hold), NOT the tool sigil.
+# Live wire advertises: "KERNEL 666". Do not "correct" 666 -> 888; the map wins.
+
+
 from __future__ import annotations
 
 import hashlib
@@ -300,7 +309,8 @@ DELTA_MAX: float = 0.30
 _WELL_STATE_CANDIDATES = [
     Path(p)
     for p in [
-        os.environ.get("WELL_STATE_PATH", ""),  # docker-compose: /app/well_state.json
+        os.environ.get("WELL_STATE_PATH", ""),
+        "/var/lib/well/state.json",  # Canonical live organ state (FHS promoted 2026-09-12)
         "/app/well_state.json",
         "/root/WELL/state.json",
     ]
@@ -309,6 +319,8 @@ _WELL_STATE_CANDIDATES = [
 
 # WELL internal HTTP fallback — used when no state file is accessible
 _WELL_INTERNAL_URLS = [
+    "http://127.0.0.1:18083/health",  # Live organ service on af-forge VPS
+    "http://localhost:18083/health",
     "http://well:8083/health",  # Docker Compose service name
     "http://172.19.0.5:8083/health",  # Docker network IP (static for this deployment)
 ]
@@ -318,8 +330,8 @@ def _read_well_substrate() -> dict[str, Any]:
     """Read WELL biological substrate state and return a minimal advisory packet.
 
     Strategy:
-      1. Try state file candidates in order (fastest, no network)
-      2. Fall back to WELL HTTP health endpoint (stable internal route)
+      1. Try state file candidates in order (fastest, no network; canonical /var/lib/well/state.json first)
+      2. Fall back to WELL HTTP health endpoint (:18083 live service)
 
     W0 invariant preserved: WELL informs. The judge decides. The operator
     holds the veto. This packet is advisory evidence — not a gate.
@@ -330,6 +342,7 @@ def _read_well_substrate() -> dict[str, Any]:
         try:
             with open(path) as fh:
                 state = json_lib.load(fh)
+            state["_source"] = str(path)
             break
         except Exception:
             continue
@@ -374,10 +387,13 @@ def _read_well_substrate() -> dict[str, Any]:
     truth_status: str = state.get("truth_status", "UNVERIFIED")
     has_metrics = bool(
         isinstance(metrics, dict)
-        and any(metrics.get(d) for d in ("sleep", "stress", "cognitive", "metabolic", "structural"))
+        and any(
+            metrics.get(d)
+            for d in ("sleep", "stress", "cognitive", "metabolic", "structural", "derived")
+        )
     )
 
-    if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED"):
+    if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED", "INSUFFICIENT_DATA"):
         human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
     elif well_score is None:
         human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
@@ -392,8 +408,21 @@ def _read_well_substrate() -> dict[str, Any]:
 
     clarity = metrics.get("cognitive", {}).get("clarity") if has_metrics else None
 
+    # Truthful status: if we have no valid telemetry metrics or truth is unverified/insufficient,
+    # packet status is honest ('insufficient_data' or 'degraded'), never pretend to be cleanly 'available'
+    # without telemetry.
+    packet_status = (
+        "available"
+        if (
+            has_metrics
+            and well_score is not None
+            and truth_status not in ("VOID", "TEST", "UNVERIFIED", "INSUFFICIENT_DATA")
+        )
+        else "insufficient_data"
+    )
+
     packet: dict[str, Any] = {
-        "status": "available",
+        "status": packet_status,
         "well_score": well_score,
         "human_ready": human_ready,
         "coupled_verdict": coupled_verdict,
@@ -1106,6 +1135,7 @@ async def arif_judge(
     context_source: str | None = None,
     sovereign_receipt: str | None = None,
     evidence: dict[str, Any]
+    | list[Any]
     | str
     | None = None,  # BRIDGE-COMPAT: JSON-string tolerated, coerced below (SCAR_JUDGE_EVIDENCE_BRIDGE)
     # ── F13 challenge authorization params (public MCP wrapper chain) ──
@@ -1156,6 +1186,8 @@ async def arif_judge(
     # Some MCP clients (opencode adapter vs anyOf schemas) stringify composite
     # args before transport. Tolerant parse: coerce JSON-string evidence back
     # to dict before any gate runs. Traces: trc-38afbd13ee55, TRACE-d12a4a3ca6bd.
+    if isinstance(evidence, list):
+        evidence = {"items": evidence}
     if isinstance(evidence, str):
         try:
             import json as _json_bridge
@@ -3421,8 +3453,11 @@ async def arif_judge(
             "verdict": degradation_verdict,
             "reasons": [
                 f"LATENCY_TIMEOUT: judge exceeded {budget.max_latency_ms}ms budget "
-                f"for {decision_class_latency.value}. Degraded to {degradation_verdict} "
-                f"(preventive timeout — deliberation did not complete)."
+                f"for {decision_class_latency.value}. Deliberation did not complete — "
+                f"NO VERDICT RENDERED. Budget degradation verdict = {degradation_verdict} "
+                f"(recorded in meta.degradation). Whether the envelope reads VOID/blocked "
+                f"or the budget's {degradation_verdict}, the meaning is the same: no "
+                f"judgment was reached, so no verdict may be cited from this call."
             ],
             "next_safe_action": "Re-run with narrower scope or escalate to sovereign (C4 unbounded).",
         }

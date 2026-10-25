@@ -36,7 +36,9 @@ AUTHORITY_SOURCES = (
 
 # SOVEREIGN actor patterns — actors who can authorize ATOMIC actions
 SOVEREIGN_ACTORS = frozenset(
-    os.environ.get("ARIFOS_SOVEREIGN_ACTORS", "arifbfazil,arif,888").split(",")
+    s.strip().lower()
+    for s in os.environ.get("ARIFOS_SOVEREIGN_ACTORS", "arifbfazil,arif").split(",")
+    if s.strip()
 )
 
 
@@ -45,7 +47,12 @@ def _authority_tier_for_actor(actor_id: str) -> str:
     if not actor_id or actor_id in ("anonymous", "openclaw-anon", "unknown"):
         return "UNKNOWN"
     actor_lower = (normalize_actor_id(actor_id) or actor_id.lower().strip()) if actor_id else ""
-    if actor_lower in SOVEREIGN_ACTORS or any(s in actor_lower for s in SOVEREIGN_ACTORS):
+    # P0 SECURITY 2026-10-22: exact match ONLY. The previous
+    # `any(s in actor_lower ...)` substring test made every actor_id
+    # containing "arif" or "888" resolve to SOVEREIGN (measured:
+    # notarif/xarifx/agent888/888-apex -> SOVEREIGN). Bare "888" also
+    # removed from defaults (FATWA K1 Ruling 4: tier numerals never bare).
+    if actor_lower in SOVEREIGN_ACTORS:
         return "SOVEREIGN"
     if actor_lower.startswith(("hermes", "forge", "root")):
         return "HIGH"

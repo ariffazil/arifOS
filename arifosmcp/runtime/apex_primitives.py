@@ -42,16 +42,29 @@ OUTCOME_EXECUTION_SUCCESS = "execution_success"
 OUTCOME_EXECUTION_FAILURE = "execution_failure"
 OUTCOME_CONSTITUTIONAL_HOLD = "constitutional_hold"
 OUTCOME_CONSTITUTIONAL_SABAR = "constitutional_sabar"
+OUTCOME_CONSTITUTIONAL_VOID = "constitutional_void"
+
+# Verdict codes that must NEVER persist as success=1. Receipt-fidelity fix
+# (2026-10-21): a caller passing success=True with failure_code="HOLD" used to
+# serialize int(success)=1 — a HOLD receipt surfaced as ok:true and was cited
+# that way in a third-party review. Fix-forward only: historical rows are NOT
+# rewritten (append-only ledger). Read-side derivation
+# (compute_apex_from_metrics and friends) already re-derives outcome from
+# (success, failure_code) for legacy rows, so VOID/HOLD/SABAR history
+# reclassifies correctly at read time once those codes are in derive_outcome.
+VERDICT_FAILURE_CODES = frozenset({"HOLD", "SABAR", "VOID"})
 
 
 def derive_outcome(success: bool, failure_code: str) -> str:
-    """Classify a tool-call outcome. Constitutional verdicts (HOLD/SABAR)
+    """Classify a tool-call outcome. Constitutional verdicts (HOLD/SABAR/VOID)
     are NOT execution failures. Verdict rows leave E's denominator."""
     fc = (failure_code or "").strip().upper()
     if fc == "HOLD":
         return OUTCOME_CONSTITUTIONAL_HOLD
     if fc == "SABAR":
         return OUTCOME_CONSTITUTIONAL_SABAR
+    if fc == "VOID":
+        return OUTCOME_CONSTITUTIONAL_VOID
     return OUTCOME_EXECUTION_SUCCESS if success else OUTCOME_EXECUTION_FAILURE
 
 
@@ -87,6 +100,17 @@ def _get_db() -> sqlite3.Connection:
         conn.execute("ALTER TABLE tool_calls ADD COLUMN outcome TEXT DEFAULT ''")
     except sqlite3.OperationalError:
         pass  # column already exists
+    # 2026-10-21 verified-actor-binding migration (idempotent, additive)
+    # Persists whether the receipt's actor id came from transport-verified
+    # JWT/DPoP lineage (1) or is self-reported/unsigned (0).
+    try:
+        conn.execute("ALTER TABLE tool_calls ADD COLUMN identity_verified INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # column already exists
+    try:
+        conn.execute("ALTER TABLE tool_calls ADD COLUMN auth_method TEXT DEFAULT 'unsigned'")
+    except sqlite3.OperationalError:
+        pass  # column already exists
     conn.commit()
     return conn
 
@@ -110,15 +134,43 @@ def record_tool_call(
     is derived from (success, failure_code) — HOLD/SABAR verdicts become
     constitutional_* classes instead of execution failures. Existing callers
     need no changes; their (success, failure_code) signals classify correctly.
+
+    `actor_id` + verified binding (2026-10-21): when the request carries a
+    JWT/DPoP-verified lineage (set by ConstitutionalJWTAuthMiddleware), the
+    verified sub WINS over any self-reported actor_id and is persisted with
+    identity_verified=1. Self-reported ids persist with identity_verified=0;
+    no identity at all persists as 'unsigned'. This is witness persistence —
+    it never blocks or alters the call itself.
     """
     try:
+        # ── Verified actor binding (witness, not guard) ───────────────────
+        try:
+            from arifosmcp.runtime.jwt_auth import get_verified_actor_binding
+
+            _binding = get_verified_actor_binding(actor_id)
+            actor_id = _binding["actor_id"]
+            _identity_verified = int(bool(_binding["identity_verified"]))
+            _auth_method = str(_binding["auth_method"])
+        except Exception:
+            # Best-effort: receipt still lands, binding stays unverified.
+            _identity_verified = 0
+            _auth_method = "unsigned" if not actor_id else "self_reported"
+
         conn = _get_db()
+        # Receipt fidelity (2026-10-21): a verdict (HOLD/SABAR/VOID) recorded
+        # via failure_code must never persist as success=1, even when the
+        # caller passes success=True (the documented misuse). success=False is
+        # the persisted fact; the verdict class lives in `outcome`.
+        _fc = (failure_code or "").strip().upper()
+        if _fc in VERDICT_FAILURE_CODES:
+            success = False
         _outcome = (outcome or "").strip() or derive_outcome(success, failure_code)
         conn.execute(
             """INSERT INTO tool_calls
                (tool_name, actor_id, session_id, timestamp, success, has_evidence,
-                within_lease, dry_run_first, reversible, failure_code, outcome, metadata_json)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                within_lease, dry_run_first, reversible, failure_code, outcome,
+                identity_verified, auth_method, metadata_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 tool_name,
                 actor_id,
@@ -131,6 +183,8 @@ def record_tool_call(
                 int(reversible),
                 failure_code,
                 _outcome,
+                _identity_verified,
+                _auth_method,
                 json.dumps(metadata or {}),
             ),
         )

@@ -147,7 +147,9 @@ cd "$REPO_DIR"
 # shipped for months because a cached copy lived in build/lib even after
 # pyproject include-list hygiene. Clean before every build.
 rm -rf build arifos.egg-info
-python -m build --wheel --outdir "$BUILD_DIR" 2>&1 || {
+# 2026-10-21: use venv python explicitly — bare `python` on KVM8 may resolve
+# to the Hermes toolchain python (/root/.hermes/tools/...) which lacks `build`.
+"$VENV_PYTHON" -m build --wheel --outdir "$BUILD_DIR" 2>&1 || {
 	echo "ERROR: build failed"
 	rm -rf "$BUILD_DIR"
 	exit 1
@@ -425,6 +427,30 @@ MANIFEST_EOF
 # Deployment stamp: ONE stable path (build.py + reconciler read this).
 # No legacy /opt/arifos/app stamp — that tree is retired by ONE_ORIGIN.
 echo "$GIT_COMMIT" >"$STAMP_FILE"
+
+# ── Deploy receipt (F2 2026-10-21, 333-AGI): the kernel's /health top-level
+# deployed_commit reads /opt/arifos/current/receipts/latest.json. This script
+# never wrote it, so the field served a stale SHA from an older pipeline while
+# software_release showed the truth — two answers to one question (external
+# audit P0 "status contract"). Write BOTH truths from ONE place, every deploy.
+RECEIPT_DIR="/opt/arifos/current/receipts"
+mkdir -p "$RECEIPT_DIR"
+python3 - "$RECEIPT_DIR/latest.json" "$GIT_COMMIT" "$(git -C "$REPO_DIR" branch --show-current 2>/dev/null || echo main)" "$BUILD_TS" <<'PYRC'
+import json, sys
+path, commit, branch, ts = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+try:
+    prev = json.load(open(path))
+except Exception:
+    prev = {}
+json.dump({
+    "commit_sha": commit,
+    "branch": branch or "main",
+    "build_time": ts,
+    "deployed_via": "deploy-release.sh",
+    "prev_commit_sha": prev.get("commit_sha"),
+}, open(path, "w"), indent=1)
+print(f"  Deploy receipt: {path} = {commit}")
+PYRC
 echo "$GIT_COMMIT" >"$REPO_DIR/.git_commit"
 
 echo "  Manifest: $MANIFEST_FILE"

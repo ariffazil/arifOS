@@ -23,9 +23,16 @@ Contract per floor:
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
+
+
+def _now_iso() -> str:
+    """P4 (F13 D2 2026-10-23): producer WHEN slot — emission time of THIS
+    measurement, never report-generation time."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 # Conservative passing band for these four floors (matches _FLOOR_DEFAULTS
 # placeholder semantics — 0.5 is the auto-pass threshold that must never be
@@ -58,8 +65,14 @@ def collect_floor_producer_signal(
             "floor": floor_id,
             "status": "UNMEASURED",
             "origin": "unmeasured_default:no_producer",
+            "measured_at": _now_iso(),
         }
-    return handler(sources)
+    signal = handler(sources)
+    if isinstance(signal, dict):
+        # P4 (F13 D2 2026-10-23): every producer signal carries its own WHEN
+        # slot — stamped at emission unless the producer already dated itself.
+        signal.setdefault("measured_at", _now_iso())
+    return signal
 
 
 def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
@@ -107,8 +120,7 @@ def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
         greenwash = [
             fid
             for fid, origin in prov.items()
-            if str(origin).startswith("unmeasured_default")
-            and statuses.get(fid) == "pass"
+            if str(origin).startswith("unmeasured_default") and statuses.get(fid) == "pass"
         ]
     else:
         greenwash = [
@@ -253,15 +265,72 @@ def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
             return {
                 "floor": "F13",
                 "status": "FAIL",
-                "origin": "seal_chain",
+                "origin": "seal_chain_sovereign",
                 "reason": "machine_self_acceptance",
                 "actor": actor,
             }
-    return {"floor": "F13", "status": "PASS", "origin": "seal_chain"}
+    return {"floor": "F13", "status": "PASS", "origin": "seal_chain_sovereign"}
+
+
+def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
+    """F5 PEACE² = non-destructive power (MEASUREMENT_CLOSURE tranche 2, 2026-10-20).
+
+    Every recent seal must be either reversible or carry explicit human
+    ratification for its irreversibility. An IRREVERSIBLE action without
+    ratification is destructive power → FAIL. Mirrors the F13 source contract
+    (seal_chain tail, read-only) so both floors read the same evidence.
+    """
+    seals = sources.get("seals")
+    if seals is None:
+        return {
+            "floor": "F5",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_chain_unreachable",
+        }
+    if not seals:
+        return {
+            "floor": "F5",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_chain_empty",
+        }
+    for s in seals:
+        payload = s.get("payload") or {}
+        # Sovereign-actor exemption — SAME doctrine line as _f13_sovereign
+        # (floor_producers.py:242): the human principal acting IS human
+        # ratification; demanding a second ratifier on Arif's own action is
+        # a category error. F5 polices NON-sovereign destructive power.
+        if s.get("actor") in SOVEREIGN_ACTORS:
+            continue
+        reversibility = str(
+            payload.get("reversibility")
+            or payload.get("reversibility_level")
+            or s.get("reversibility")
+            or ""
+        ).upper()
+        if reversibility != "IRREVERSIBLE":
+            continue
+        ratified = (
+            payload.get("human_ratifier")
+            or payload.get("human_signature")
+            or s.get("human_ratifier")
+            or s.get("human_signature")
+        )
+        if not ratified:
+            return {
+                "floor": "F5",
+                "status": "FAIL",
+                "origin": "seal_chain_peace",
+                "reason": "unratified_irreversible_action",
+                "actor": s.get("actor"),
+            }
+    # P3 (F13 D2 2026-10-23): F5 and F13 no longer share one origin — one
+    # measurement may not earn two constitutional claims under one label.
+    return {"floor": "F5", "status": "PASS", "origin": "seal_chain_peace"}
 
 
 _PRODUCERS = {
     "F2": _f2_truth,
+    "F5": _f5_peace,
     "F11": _f11_audit,
     "F12": _f12_injection,
     "F13": _f13_sovereign,

@@ -71,7 +71,7 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         # arif_seal REMOVED from anonymous band 2026-08-25 (DIR-E0 ship,
         # F11 hole closure): unverified actors never reach Lane A, not even
         # safe modes. Verified bands regain it via E1 ed25519 bind.
-        ],
+    ],
     "LIMITED_MUTATE": [
         "arif_init",
         "arif_observe",
@@ -162,7 +162,9 @@ def _get_signing_secret() -> bytes:
                 if ef.is_file():
                     for line in ef.read_text().splitlines():
                         line = line.strip()
-                        if line.startswith("export ARIFOS_SESSION_SECRET=") or line.startswith("ARIFOS_SESSION_SECRET="):
+                        if line.startswith("export ARIFOS_SESSION_SECRET=") or line.startswith(
+                            "ARIFOS_SESSION_SECRET="
+                        ):
                             val = line.split("=", 1)[1].strip().strip('"').strip("'")
                             if val:
                                 secret = val
@@ -340,6 +342,8 @@ def compute_authority_state(
 
     mutation_allowed = grant_level in ("LIMITED_MUTATE", "FULL")
     seal_allowed = grant_level == "FULL"
+    if not seal_allowed:
+        verbs = [v for v in verbs if v != "arif_seal"]
 
     # ── 4. Session binding ─────────────────────────────────────────
     # Per WS1 spec: session_bound requires both the session to exist AND
@@ -490,9 +494,7 @@ def _sign(payload_b64: str) -> str:
     Verifiers dual-accept: 64-char sig → full compare; 16-char sig → legacy
     compare (compat window until legacy tokens expire per TTL).
     """
-    return hmac.new(
-        _get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256
-    ).hexdigest()
+    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()
 
 
 def mint_act(
@@ -510,6 +512,7 @@ def mint_act(
     witness: dict[str, Any] | None = None,
     ttl: int = DEFAULT_TTL_SECONDS,
     kid: str = "default",
+    canonical_id: str | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """
     Mint a signed Arif's Capability Token (ACT).
@@ -560,6 +563,7 @@ def mint_act(
         "act_v": ACT_VERSION,
         "sid": sid,
         "actor": normalized_actor,
+        "canonical_id": canonical_id,  # IDENTITY_CANON v1: principal for comparison, never a lane label
         "auth": auth_norm,
         "av": bool(av),
         "stage": stage or "000",
@@ -704,7 +708,11 @@ def verify_act(
         if claim_actor:
             _claim_norm = normalize_actor_id(claim_actor) or claim_actor.lower().strip()
             _expected_norm = normalize_actor_id(expected_actor) or expected_actor.lower().strip()
-            if _claim_norm != _expected_norm and _claim_norm != "anonymous" and _expected_norm != "anonymous":
+            if (
+                _claim_norm != _expected_norm
+                and _claim_norm != "anonymous"
+                and _expected_norm != "anonymous"
+            ):
                 return None
 
     return claims
@@ -922,9 +930,7 @@ def resolve_standing(
             )
 
         token, claims, delta = refresh_sct_if_needed(claims, session_token)
-        standing = _claims_to_standing(
-            claims, token, source="act", reason="L11 AUTH: ACT valid"
-        )
+        standing = _claims_to_standing(claims, token, source="act", reason="L11 AUTH: ACT valid")
         standing.authority_delta = delta
         return standing
 
@@ -1087,13 +1093,17 @@ def echo_canonical_session(
                 resolved_sid = _cand_sid
             elif isinstance(response.get("act_claims"), dict) and response["act_claims"].get("sid"):
                 resolved_sid = response["act_claims"]["sid"]
-            elif isinstance(response.get("session"), dict) and response["session"].get("session_id"):
+            elif isinstance(response.get("session"), dict) and response["session"].get(
+                "session_id"
+            ):
                 resolved_sid = response["session"]["session_id"]
             elif isinstance(response.get("result"), dict):
                 _res_sid = response["result"].get("session_id")
                 if _res_sid and _res_sid not in ("unknown", "UNKNOWN"):
                     resolved_sid = _res_sid
-                elif isinstance(response["result"].get("session_birth"), dict) and response["result"]["session_birth"].get("session_id"):
+                elif isinstance(response["result"].get("session_birth"), dict) and response[
+                    "result"
+                ]["session_birth"].get("session_id"):
                     resolved_sid = response["result"]["session_birth"]["session_id"]
         if not resolved_actor or resolved_actor == "anonymous":
             _cand_actor = response.get("actor_id")
@@ -1118,7 +1128,9 @@ def echo_canonical_session(
         if not resolved_token:
             resolved_token = response.get("session_token")
         if not resolved_band or resolved_band == "OBSERVE_ONLY":
-            resolved_band = response.get("autonomy_band") or response.get("band") or response.get("authority")
+            resolved_band = (
+                response.get("autonomy_band") or response.get("band") or response.get("authority")
+            )
     elif hasattr(response, "session_id"):
         if not resolved_sid or resolved_sid in ("unknown", "UNKNOWN"):
             _obj_sid = getattr(response, "session_id", None)
@@ -1129,7 +1141,9 @@ def echo_canonical_session(
         if not resolved_token:
             resolved_token = getattr(response, "session_token", None)
         if not resolved_band or resolved_band == "OBSERVE_ONLY":
-            resolved_band = getattr(response, "autonomy_band", None) or getattr(response, "band", None)
+            resolved_band = getattr(response, "autonomy_band", None) or getattr(
+                response, "band", None
+            )
 
     # 1. Resolve token if provided
     if resolved_token or session_token:
@@ -1155,6 +1169,7 @@ def echo_canonical_session(
     if not resolved_sid:
         try:
             from arifosmcp.runtime.session import get_active_session
+
             resolved_sid = get_active_session()
         except Exception:
             pass
@@ -1162,6 +1177,7 @@ def echo_canonical_session(
     if resolved_sid:
         try:
             from arifosmcp.runtime.tools import _SESSIONS
+
             sess = _SESSIONS.get(resolved_sid)
             if sess and isinstance(sess, dict):
                 if not resolved_actor or resolved_actor == "anonymous":
@@ -1188,9 +1204,12 @@ def echo_canonical_session(
     if resolved_sid and not actor_verified:
         try:
             from arifosmcp.runtime.session import get_session_identity
+
             ident = get_session_identity(resolved_sid)
             if ident:
-                if (not resolved_actor or resolved_actor == "anonymous") and getattr(ident, "actor_id", None):
+                if (not resolved_actor or resolved_actor == "anonymous") and getattr(
+                    ident, "actor_id", None
+                ):
                     resolved_actor = ident.actor_id
                 if getattr(ident, "verified", False):
                     actor_verified = True
@@ -1202,7 +1221,13 @@ def echo_canonical_session(
 
     if not resolved_sid:
         resolved_sid = "anonymous-session"
-    if not resolved_actor or str(resolved_actor).strip().lower() in ("anonymous", "openclaw-anon", "unknown", "null", ""):
+    if not resolved_actor or str(resolved_actor).strip().lower() in (
+        "anonymous",
+        "openclaw-anon",
+        "unknown",
+        "null",
+        "",
+    ):
         resolved_actor = "anonymous"
         actor_verified = False
         crypto_verified = False
@@ -1313,4 +1338,3 @@ def echo_canonical_session(
         return response
 
     return response
-

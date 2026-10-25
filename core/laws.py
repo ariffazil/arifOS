@@ -194,20 +194,22 @@ _POLICY_VIOLATIONS = frozenset(
 )
 
 
+# Mirrors arifosmcp/constitutional_canon.py (F1–F13 single canon, 2026-10-20).
+# Test-locked by tests/test_constitutional_canon_single_source.py.
 LAW_DESCRIPTIONS = {
     "F1": "Amanah - Reversibility and audit mandate",
-    "F2": "Truth - Information fidelity (anti-hallucination)",
-    "F3": "Quad-Witness - Byzantine consensus (H×A×E)^(1/3)",
+    "F2": "Truth - Information fidelity (anti-hallucination), confidence cap 0.90",
+    "F3": "Witness - Tri/Quad-Witness consensus (H×A×E)^(1/3) for SEAL",
     "F4": "Clarity - Entropy reduction (ΔS ≤ 0)",
-    "F5": "Peace² - Non-destructive power",
-    "F6": "Empathy - Stakeholder care (κᵣ)",
+    "F5": "Peace² - Non-destructive power, weakest stakeholder guarded",
+    "F6": "Maruah - Dignity-first (ASEAN/MY); law id L06_EMPATHY frozen",
     "F7": "Humility - Uncertainty band [0.03, 0.05]",
     "F8": "Genius - G = (A × P × E × X)^(1/4) (canonical Nash Bargaining Product, no Φ, no H)",
-    "F9": "Anti-Hantu - No spiritual cosplay / consciousness claims",
-    "L10": "Ontology - Category lock (AI ≠ human)",
-    "L11": "CommandAuth - Verified identity / session required",
-    "L12": "Injection - Block adversarial control",
-    "L13": "Sovereign - Human final authority (888_HOLD)",
+    "F9": "Anti-Hantu - No spiritual cosplay / consciousness claims, C_dark < 0.30",
+    "L10": "Ontology - AI-only ontology, substrate ≠ being",
+    "L11": "Audit - Every consequential action leaves a trace",
+    "L12": "Injection - Sanitize inputs, external ≠ authority",
+    "L13": "Sovereign - Arif holds final veto (888_HOLD)",
 }
 
 

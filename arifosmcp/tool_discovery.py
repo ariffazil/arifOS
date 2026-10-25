@@ -73,7 +73,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
             "Resume my previous session",
         ],
         category="session",
-        modes=["init", "light", "resume", "validate", "epoch_open", "epoch_seal", "opt_out"],
+        modes=["init", "light", "resume", "validate", "epoch_open", "epoch_seal", "challenge", "opt_out"],
         requires_session=False,
     ),
     # ── OBSERVATION & SENSING ──────────────────────────────────────────────────

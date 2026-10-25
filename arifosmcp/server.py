@@ -113,7 +113,12 @@ def _d3_sanitize_pydantic_error(text: str) -> str | None:
     errors = []
     current_field = None
     for line in lines:
-        if line.startswith("Input should be") or line.startswith("Field required"):
+        if (
+            line.startswith("Input should be")
+            or line.startswith("Field required")
+            or line.startswith("Unexpected keyword argument")
+            or line.startswith("Extra inputs are not permitted")
+        ):
             if current_field:
                 errors.append(f"{current_field}: {line}")
             else:
@@ -134,7 +139,11 @@ try:
         except Exception as e:
             _clean = _d3_sanitize_pydantic_error(str(e))
             if _clean is not None:
-                raise type(e)(_clean) from e.__cause__
+                # ValidationError.__new__ requires line_errors; re-raising
+                # type(e) crashed the sanitizer itself (2026-10-20). A plain
+                # ValueError carries the clean contract message without
+                # fabricating a Pydantic error shape.
+                raise ValueError(_clean) from e.__cause__
             raise
 
     import fastmcp.tools.function_tool as _ft_module
@@ -509,6 +518,7 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
     ALLOWED_ORIGIN_PREFIXES: tuple[str, ...] = (
         "https://arifos.arif-fazil.com",
         "https://arif-fazil.com",
+        "https://mcp.arif-fazil.com",  # self-fix 2026-10-22: gateway live console 403 on own origin
         "http://localhost",
         "https://localhost",
         "http://127.0.0.1",
@@ -811,6 +821,15 @@ mcp = FastMCP(
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
         "Golden path: init → observe → think → route → memory → judge → forge → seal\n\n"
+        "═══ AGENT REPORT LANE (coordination — NOT a constitutional verb) ═══\n"
+        "  arif_report — Finished, blocked, or need to tell peers? File it here.\n"
+        "    kind=fyi|peer|done|claim  → peer lane. The human is NOT notified.\n"
+        "    kind=decision|blocked     → may reach the human, but ONLY if the caller is\n"
+        "                                a verified actor, OR two distinct agents ack\n"
+        "                                the same thread_id first. An unverified caller\n"
+        "                                cannot interrupt the human on its own authority.\n"
+        "    mode=inbox → read what other agents filed. mode=ack → vouch for a thread.\n"
+        "  Agents coordinate with agents. The human is the exception path, not the bus.\n\n"
         "Canonical 8 tools — select by gap:\n"
         "  arif_init    — No session yet? Start here. Binds actor identity.\n"
         "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
@@ -820,7 +839,7 @@ mcp = FastMCP(
         "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
         "  arif_forge   — Ready to execute? Governed execution path. (arif_compose → mode=compose)\n"
         "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
-        "Key resources (38 static + 24 templates = 62 total):\n"
+        "Key resources (41 static + 27 templates = 68 total):\n"
         "  Core: arifos://doctrine, identity, vitals, bootstrap, schema, trinity,\n"
         "        arifos://civilization, jurisdiction, refusal-surface, seal-readiness,\n"
         "        arifos://loop-engineering, quickstart, mcp-alignment, memory,\n"
@@ -996,6 +1015,12 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
         "arif_guard",
         "arif_heal",
     }
+    # Coordination channels — registered on the wire but NOT constitutional
+    # verbs, so they never count toward the ratified 8-verb facade.
+    # Single owner: public_surface.COORDINATION_TOOLS.
+    for _coord in _public_surface.COORDINATION_TOOLS:
+        registered_set.discard(_coord)
+        expected_set.discard(_coord)
     for _mesh in _MESH:
         registered_set.discard(_mesh)
         expected_set.discard(_mesh)
@@ -2160,6 +2185,11 @@ try:
             async def _public_only_list_tools():
                 tools = await _orig_list_tools()
                 allowed = set(public_tool_names_for_mode())
+                # Coordination channels are listed AND callable but are not
+                # constitutional verbs — single owner public_surface.
+                from arifosmcp.runtime.public_surface import COORDINATION_TOOLS
+
+                allowed |= set(COORDINATION_TOOLS)
                 return [tool for tool in tools if tool.name in allowed]
 
             _provider._list_tools = _public_only_list_tools
@@ -2172,6 +2202,11 @@ try:
 
     # Attach middleware to MCP server (FastMCP 3.x+ — on_call_tool hook)
     if IS_FASTMCP_3 or fastmcp.__version__.startswith("4"):
+        from arifosmcp.runtime.tailnet_identity import TailnetActorBindingMiddleware
+
+        mcp.add_middleware(TailnetActorBindingMiddleware())
+        logger.info("TailnetActorBindingMiddleware attached (observe by default)")
+
         mcp.add_middleware(_ingress_middleware)  # pyright: ignore[reportArgumentType]
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 
@@ -2905,6 +2940,15 @@ async def mcp_health(request: Request) -> JSONResponse:
 # Constitutional tools remain actor/SCT gated; transport session ≠ governance session.
 # Backward compat: initialize still works (returns capabilities), no persistent session.
 app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
+
+# P4c (888-APEX HOLD, Commit 1, 2026-10-19): loop-lag telemetry.
+# Diagnostic only — not a gate, watchdog, or readiness signal. Never blocks boot.
+try:
+    from arifosmcp.runtime.loop_lag import start_monitor as _start_loop_lag_monitor
+
+    app.add_event_handler("startup", _start_loop_lag_monitor)
+except Exception:  # telemetry must never prevent the kernel from booting
+    pass
 # Counts are derived live from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (imported above).
 _actual_canonical_count = len(CANONICAL_TOOLS)
 _actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)
@@ -2932,6 +2976,7 @@ if app:
         MCPProtocolVersionMiddleware,
         MCPSessionBridgeMiddleware,
     )
+    from arifosmcp.runtime.tailnet_identity import TailnetIdentityMiddleware
     from arifosmcp.transport import AirlockASGIMiddleware
     from arifosmcp.transport.organ_proxy import OrganProxyMiddleware
     from arifosmcp.transport.resulttype_asgi import ResultTypeASGIMiddleware
@@ -2945,6 +2990,7 @@ if app:
 
     app.add_middleware(OriginValidationMiddleware)
     app.add_middleware(DPoPAuthMiddleware)
+    app.add_middleware(TailnetIdentityMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
     # MCP 2026-07-28: inject resultType into tools/list responses (MCPJam compliance)

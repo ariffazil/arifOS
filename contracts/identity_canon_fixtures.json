@@ -1,0 +1,112 @@
+{
+  "canon_version": "1.1.0",
+  "content_sha256": "744ac26bfc64cf98874a2a295f5b400dcd2c008d968629bd6016b3afd4cab4a0",
+  "rule": "claimed preserved; canonical comparison-only; role strings resolve to nothing (F13 2026-10-22); key = canonical lower no-separators",
+  "cases": [
+    {
+      "raw": "arif-fazil",
+      "claimed": "arif-fazil",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "ARIF_FAZIL",
+      "claimed": "ARIF_FAZIL",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "ariffazil",
+      "claimed": "ariffazil",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "arif",
+      "claimed": "arif",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "claude/opus-5.5",
+      "claimed": "claude/opus-5.5",
+      "canonical_id": "CLAUDE",
+      "comparison_key": "claude",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "kimi-code/FI-008",
+      "claimed": "kimi-code/FI-008",
+      "canonical_id": "FI-008",
+      "comparison_key": "fi008",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "333-AGI",
+      "claimed": "333-AGI",
+      "canonical_id": "OPENCODE",
+      "comparison_key": "opencode",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "333-agi",
+      "claimed": "333-agi",
+      "canonical_id": "OPENCODE",
+      "comparison_key": "opencode",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "nova-9",
+      "claimed": "nova-9",
+      "canonical_id": "nova-9",
+      "comparison_key": "nova9",
+      "source": "mechanical"
+    },
+    {
+      "raw": "arif_fazil",
+      "claimed": "arif_fazil",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "muhammad arif",
+      "claimed": "muhammad arif",
+      "canonical_id": "ARIF",
+      "comparison_key": "arif",
+      "source": "canonical_registry"
+    },
+    {
+      "raw": "f13",
+      "claimed": "f13",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
+    },
+    {
+      "raw": "sovereign",
+      "claimed": "sovereign",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
+    },
+    {
+      "raw": "888",
+      "claimed": "888",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
+    },
+    {
+      "raw": "arif-fazil.com",
+      "claimed": "arif-fazil.com",
+      "canonical_id": null,
+      "comparison_key": null,
+      "source": "rejected_role_string"
+    }
+  ]
+}

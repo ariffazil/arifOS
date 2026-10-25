@@ -229,7 +229,11 @@ class GovernanceKernel:
                 ("F3", witness_sum > 0),
                 ("F4", bool(self._assumptions or self._resolved)),
                 ("F5", outcome_count > 0),
-                ("F6", action_count > 0),
+                # FLR-F6-KAPPA (2026-10-21, deploy-binding-20261021-f6diag.json):
+            # kappa_r = 0.5 + 0.5*care_ratio is pinned at the structural 0.5
+            # baseline whenever reversibility_flags == 0 — action_count alone
+            # does not make F6 a measurement. Rename the signal, not the value.
+            ("F6", reversibility_flags > 0),
                 ("F9", bool(query_text)),
             )
             if not has_signal

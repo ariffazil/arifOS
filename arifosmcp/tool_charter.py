@@ -1728,7 +1728,14 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "state": {"requires_session_id": True, "accepts_anonymous": False},
         "next_recommended_tools": ["arif_seal", "arif_forge"],
         "authority_boundary": {
-            "may": ["evaluate", "intercept", "validate", "hold", "escalate", "emit_verdict_structure"],
+            "may": [
+                "evaluate",
+                "intercept",
+                "validate",
+                "hold",
+                "escalate",
+                "emit_verdict_structure",
+            ],
             "may_not": [
                 "self-approve irreversible actions",
                 "override human judge",
@@ -2056,6 +2063,105 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "redaction_required": True,
         },
     },
+    # AGENT REPORT LANE (F13 2026-10-20) — coordination channel, NOT a
+    # constitutional verb. Does not judge, mutate constitutional state, or seal.
+    "arif_report": {
+        "eureka_insight": "A firehose aimed at one human makes the human the message bus. Agents coordinate with agents; the human hears only what no agent may decide.",
+        "stage_code": "",
+        "stage_name": "COORDINATION",
+        "purpose": [
+            "Agent-to-agent report lane: file, read, and ack peer reports without waking the human.",
+            "Only kind=decision|blocked reaches the human — and only from a verified actor or with 2-distinct-agent quorum on the thread.",
+        ],
+        "use_when": [
+            "Work is finished, blocked, or produced a fact peers need — tell agents, not the human.",
+            "Reading what other agents filed (mode=inbox).",
+            "Vouching for a peer thread so an unverified escalation can proceed (mode=ack).",
+        ],
+        "do_not_use_when": [
+            "Constitutional verdicts, sealing, or mutation — use the canonical 8 verbs.",
+            "Claiming verified truth — every report is SELF_REPORTED until independently probed.",
+            "Testing store behaviour — set dry_run=true, which writes nothing.",
+        ],
+        "modes": {
+            "report": {
+                "purpose": "File one report into the peer lane.",
+                "required_parameters": [],
+                "optional_parameters": [
+                    "kind",
+                    "subject",
+                    "body",
+                    "sender",
+                    "thread_id",
+                    "evidence",
+                    "dry_run",
+                ],
+                "returns": ["report_id", "queued_for_human", "escalation_withheld", "claim_state"],
+            },
+            "inbox": {
+                "purpose": "Read peer reports since your cursor.",
+                "required_parameters": [],
+                "optional_parameters": ["since", "sender", "kind", "limit", "mark_read"],
+                "returns": ["reports", "cursor"],
+            },
+            "ack": {
+                "purpose": "Vouch for a peer thread (peer quorum for unverified escalations).",
+                "required_parameters": ["report_id"],
+                "optional_parameters": ["thread_id"],
+                "returns": ["acked", "thread_ackers"],
+            },
+            "flush": {
+                "purpose": "Coalesce queued escalations into at most one human message.",
+                "required_parameters": [],
+                "optional_parameters": ["force", "dry_run"],
+                "returns": ["pushed", "pending", "status"],
+            },
+            "stats": {
+                "purpose": "Lane counts: filed, escalated, pushed.",
+                "required_parameters": [],
+                "optional_parameters": [],
+                "returns": ["counts"],
+            },
+        },
+        "authority_boundary": {
+            "may": [
+                "append peer reports",
+                "read peer reports",
+                "ack threads",
+                "coalesce human escalations",
+            ],
+            "may_not": [
+                "judge",
+                "seal",
+                "mutate constitutional state",
+                "guarantee truth of any report (all SELF_REPORTED)",
+            ],
+        },
+        "risk": {
+            "tier": "low",
+            "irreversible": False,
+            "requires_human_ack": False,
+            "requires_judge_state_hash": False,
+            "requires_vault_entry_id": False,
+        },
+        "examples": [
+            {
+                "user_intent": "Tell peers a refactor landed without pinging the human",
+                "reason_to_call": "kind=done stays in the peer lane; the human is not notified.",
+            },
+            {
+                "user_intent": "Escalate a genuine blocker",
+                "reason_to_call": "kind=blocked reaches the human coalesced, only if verified or quorum-acked.",
+            },
+        ],
+        "privacy_scope": {
+            "reads_memory": False,
+            "writes_memory": False,
+            "writes_immutable_record": False,
+            "contains_sensitive_data_possible": True,
+            "redaction_required": True,
+        },
+    },
 }
 
 
@@ -2094,7 +2200,9 @@ for _name, _entry in TOOL_CHARTER.items():
             "arif_commit": "arif_seal",
         }
         _entry["next_recommended_tools"] = [
-            _remap.get(t, t) for t in nxt if _remap.get(t, t) in set(CANONICAL_ORDER) | set(TOOL_CHARTER)
+            _remap.get(t, t)
+            for t in nxt
+            if _remap.get(t, t) in set(CANONICAL_ORDER) | set(TOOL_CHARTER)
         ]
 
 
@@ -2126,9 +2234,7 @@ def _mode_names(entry: dict[str, Any], live_modes: list[str] | None = None) -> l
     return []
 
 
-def _mode_purpose_map(
-    entry: dict[str, Any], mode_names: list[str]
-) -> dict[str, str]:
+def _mode_purpose_map(entry: dict[str, Any], mode_names: list[str]) -> dict[str, str]:
     """One-line purpose per mode — no required/optional param trees on the wire."""
     modes = entry.get("modes")
     out: dict[str, str] = {}

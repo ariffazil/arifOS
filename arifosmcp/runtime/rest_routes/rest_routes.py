@@ -1210,11 +1210,21 @@ def _build_governance_status_payload() -> dict[str, Any]:
         }
     if witness_legs.get("coherence") is not None:
         resolved_floors["F3"] = witness_legs["coherence"]
-        floor_provenance["F3"] = "witness_producers:" + "+".join(
-            leg
-            for leg in ("human", "ai", "earth")
-            if (witness_legs.get("legs", {}).get(leg) or {}).get("value") is not None
+        # P5 (F13 D2 2026-10-23): verdict-shaped provenance — WHO
+        # (floor_producer), WHAT (witness_coherence=value), WHEN (@iso),
+        # VERDICT (MEASURED; the threshold gate decides pass/fail from the
+        # coherence score).
+        floor_provenance["F3"] = (
+            f"floor_producer:MEASURED:witness_coherence={witness_legs['coherence']}"
+            f"@{now_iso()}"
         )
+    else:
+        # P5: legs incomplete → UNMEASURED, never renderer-passed. Name the
+        # blocking legs instead of inventing a witness.
+        _blocking = ",".join(
+            str(leg) for leg in (witness_legs.get("blocking_legs") or ["unknown"])
+        )
+        floor_provenance["F3"] = f"unmeasured_default:witness_legs_incomplete:{_blocking}"
 
     # F2 TRUTH (ZEN 2026-09-02, F13 'audit this and zen all'): display the
     # measured score. The previous guard overwrote failing floor scores with
@@ -1245,9 +1255,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
         _fq_quotient = float(_fq_data["fq"]["quotient"])
-        _federation_fq = fq_object(
-            _fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION
-        )
+        _federation_fq = fq_object(_fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION)
         _phi_fq = round(_phi_fq_from_quotient(_fq_quotient), 4)
         # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
         # That guard only accepted a real measurement when it IMPROVED on the
@@ -1257,40 +1265,68 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # honest. A successful probe IS the measurement; assign it unconditionally
         # and let the threshold gate decide pass/fail.
         resolved_floors["F1"] = _phi_fq
-        floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
+        floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}@{now_iso()}"
+
+        # P6 (F13 D2 2026-10-23): five-field FQ decomposition rides with the
+        # reading — raw / normalization / threshold / window / formula as
+        # separate fields. D2 adds fields only; it tunes no threshold.
+        _mf = ((_fq_data.get("fq") or {}).get("metric_frame")) or {}
+        try:
+            from arifosmcp.runtime.fq_gate import FQ_OBSERVE_ONLY_BELOW as _fq_floor_v
+        except Exception:
+            _fq_floor_v = None
+        _federation_fq["decomposition"] = {
+            "raw": _fq_quotient,
+            "normalization": "NONE_PASSTHROUGH_QUOTIENT",
+            "threshold": _fq_floor_v,
+            "threshold_source": "fq_policy.yaml (F13 RATIFIED 2026-09-12)",
+            "window_size": _mf.get("window_size"),
+            "sample_size": _mf.get("sample_size"),
+            "formula_version": _mf.get("formula_version"),
+            "actors_tracked": _mf.get("actors_tracked"),
+            "note": (
+                "raw arifFlow quotient, unnormalized; values >1.0 observed — "
+                "scale uncalibrated; D2 P6 adds fields only, tunes nothing"
+            ),
+        }
 
         # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
         _dims = _fq_data.get("vector", {}).get("dimensions", {})
         if "ds" in _dims and _dims["ds"].get("value") is not None:
             _raw_ds = float(_dims["ds"]["value"])
             resolved_floors["F4"] = _raw_ds
-            floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}"
+            floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}@{now_iso()}"
 
         # F5 PEACE^2: live from arifFlow thermodynamic invariants
         if "peace_squared" in _fq_data:
             resolved_floors["F5"] = float(_fq_data["peace_squared"])
-            floor_provenance["F5"] = f"arifflow_live:peace2={_fq_data['peace_squared']}"
+            floor_provenance["F5"] = f"arifflow_live:peace2={_fq_data['peace_squared']}@{now_iso()}"
 
         # F7 HUMILITY: live from arifFlow vector dimension omega
         if "omega" in _dims and _dims["omega"].get("value") is not None:
             resolved_floors["F7"] = float(_dims["omega"]["value"])
-            floor_provenance["F7"] = f"arifflow_live_vector:omega={_dims['omega']['value']}"
+            floor_provenance["F7"] = f"arifflow_live_vector:omega={_dims['omega']['value']}@{now_iso()}"
 
         # F8 GENIUS: live from arifFlow vector dimension g
         if "g" in _dims and _dims["g"].get("value") is not None:
             resolved_floors["F8"] = float(_dims["g"]["value"])
-            floor_provenance["F8"] = f"arifflow_live_vector:g={_dims['g']['value']}"
+            floor_provenance["F8"] = f"arifflow_live_vector:g={_dims['g']['value']}@{now_iso()}"
 
         # F9 ANTI-HANTU / SHADOW: live from arifFlow vector dimension c_dark
         if "c_dark" in _dims and _dims["c_dark"].get("value") is not None:
             resolved_floors["F9"] = float(_dims["c_dark"]["value"])
-            floor_provenance["F9"] = f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}"
+            floor_provenance["F9"] = f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}@{now_iso()}"
 
         # L10 ONTOLOGY: live from arifFlow ontology specification
         _ont = _fq_data.get("vector", {}).get("ontology", {})
         if _ont.get("spec"):
+            # P5 (F13 D2 2026-10-23): a spec filename is CONFIG REFERENCE,
+            # not an ontology verdict — the floor no longer renders pass
+            # from a document version string.
             resolved_floors["L10"] = 1.0
-            floor_provenance["L10"] = f"arifflow_live_ontology:{_ont['spec']}"
+            floor_provenance["L10"] = (
+                f"unmeasured_default:ontology_config_reference:{_ont['spec']}"
+            )
 
         # FRAME (:18085) Observer Probe: live resilience / drift telemetry
         try:
@@ -1298,7 +1334,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 _fr_data = _json.loads(_fr_resp.read())
             if _fr_data.get("status") == "ok":
                 resolved_floors["L12"] = 1.0
-                floor_provenance["L12"] = "frame_live_probe:chambers_active"
+                floor_provenance["L12"] = f"frame_live_probe:chambers_active@{now_iso()}"
         except Exception:
             pass
     except Exception as _fq_exc:
@@ -1348,7 +1384,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 if get_floor_comparator(fid) in ("<", "<="):
                     _score = 0.0 if _sig["status"] == "PASS" else 1.0
                 resolved_floors[fid] = _score
-                floor_provenance[fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                # P4 (F13 D2 2026-10-23): producer WHEN slot rides the
+                # provenance string — WHO:VERDICT:origin@measured_at.
+                floor_provenance[fid] = (
+                    f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                    f"@{_sig.get('measured_at') or now_iso()}"
+                )
                 # Sync aliases if fid is in canonical alias mapping
                 _alias_map = {"F11": "L11", "F12": "L12", "F13": "L13"}
                 if fid in _alias_map:
@@ -1356,6 +1397,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     resolved_floors[_afid] = _score
                     floor_provenance[_afid] = (
                         f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                        f"@{_sig.get('measured_at') or now_iso()}"
                     )
 
         # F12 INJECTION — request-trust gate (auto-sign must be denied).
@@ -1414,6 +1456,28 @@ def _build_governance_status_payload() -> dict[str, Any]:
         except Exception as _f13_exc:
             floor_provenance["F13"] = (
                 f"unmeasured_default:seal_chain_unreachable:{type(_f13_exc).__name__}"
+            )
+
+        # F5 PEACE² — non-destructive power (same seal tail as F13, read-only;
+        # MEASUREMENT_CLOSURE tranche 2, 2026-10-20). Reuses _seal_rows when
+        # the F13 block succeeded; reads independently if it did not.
+        try:
+            if "_seal_rows" not in dir() or not isinstance(_seal_rows, list):
+                _seal_rows = []
+                _sp = _Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+                if _sp.exists():
+                    for _ln in _sp.read_text(errors="replace").splitlines()[-100:]:
+                        try:
+                            _row = _json.loads(_ln)
+                            _ts = _row.get("timestamp") or _row.get("epoch") or _row.get("ts")
+                            if _ts and str(_ts) >= "2026-09-08":
+                                _seal_rows.append(_row)
+                        except Exception:
+                            continue
+            _wire_producer("F5", {"seals": _seal_rows})
+        except Exception as _f5_exc:
+            floor_provenance["F5"] = (
+                f"unmeasured_default:seal_chain_unreachable:{type(_f5_exc).__name__}"
             )
 
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
@@ -1608,12 +1672,23 @@ def _build_governance_status_payload() -> dict[str, Any]:
         from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
 
         _apex = compute_apex_from_metrics()
-        for scalar in ("G", "C_dark"):
+        for scalar in ("G", "C_dark", "A", "P", "E", "X"):
             val = _apex.get(scalar)
             apex_scalars[scalar] = {
                 "value": val,
                 "status": "MEASURED" if val is not None else "UNMEASURED",
             }
+        measurement_basis["f8_g_basis"] = {
+            "formula": "G = (A * P * E * X) ** 0.25",
+            "A": _apex.get("A"),
+            "P": _apex.get("P"),
+            "E": _apex.get("E"),
+            "X": _apex.get("X"),
+            "sample_size": _apex.get("sample_size"),
+            "window_seconds": _apex.get("window_seconds"),
+            "instrument": "apex_primitives.compute_apex_from_metrics",
+            "calibration": "PHASE_1_HEURISTIC_UNCALIBRATED",
+        }
         # W3 — canonical Nash tri-witness ∛(H×AI×Ext) from LIVE witness channels
         # (resolved_witness: human/ai/earth). Zero in any channel → UNMEASURED.
         # Never inflate from tool metrics — PHI is scar pressure, not witness.
@@ -1648,7 +1723,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         import logging as _log
 
         _log.getLogger(__name__).warning("APEX scalars unavailable: %s", _apex_exc)
-        for scalar in ("G", "C_dark", "W3", "h", "QDF"):
+        for scalar in ("G", "C_dark", "W3", "h", "QDF", "A", "P", "E", "X"):
             apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
 
     # FLR-005 (2026-10-17): publish exactly the canonical 13-floor set.
@@ -2779,9 +2854,12 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
 def _count_mcp_tools(fmcp: Any) -> int:
     """Count tools exposed on the default public MCP wire surface."""
     try:
-        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+        from arifosmcp.runtime.public_surface import (
+            COORDINATION_TOOLS,
+            public_tool_names_for_mode,
+        )
 
-        return len(public_tool_names_for_mode())
+        return len(public_tool_names_for_mode()) + len(COORDINATION_TOOLS)
     except Exception:
         logger.exception("suppressed exception", exc_info=True)
     return 9
@@ -2804,6 +2882,12 @@ def _mcp_discovery_payload(
       tools_registry_size = internal registry callables (aliases included)
       total_declared_tools = public + diagnostic declared surface
     """
+    from arifosmcp.runtime.public_surface import (
+        COORDINATION_TOOLS,
+        public_tool_names_for_mode,
+    )
+
+    canonical_loaded = len(public_tool_names_for_mode())
     exposed = _count_mcp_tools(fastmcp_instance or mcp)
     diagnostic = _get_diagnostic_tool_count(mcp)
     commit = (BUILD_INFO.get("build") or {}).get("commit") or "unknown"
@@ -2822,7 +2906,8 @@ def _mcp_discovery_payload(
         "tool_count": exposed,
         "tools_exposed_via_mcp": exposed,
         "tools_loaded": exposed,
-        "canonical_tools_loaded": exposed,
+        "canonical_tools_loaded": canonical_loaded,
+        "coordination_tools": len(COORDINATION_TOOLS),
         "tools_registry_size": len(tool_registry),
         "diagnostic_tools": diagnostic,
         "total_declared_tools": exposed + diagnostic,
@@ -2976,18 +3061,27 @@ def _read_deploy_provenance() -> dict[str, str]:
 
     BUILD_INFO answers "what was compiled?"; receipt answers "what is running?".
     Two questions, two field families.
+
+    F2 STALENESS GUARD (2026-10-21, 333-AGI — external audit P0 "status
+    contract"): the receipt is written by deploy tooling and can go stale when
+    a deploy path skips it. When receipt.commit_sha disagrees with the
+    deployed-commit stamp (/opt/arifos/releases/deployed-commit, written by
+    deploy-release.sh at deploy time), the STAMP wins and the disagreement is
+    flagged — one question, one answer.
     """
     receipt_path = Path(
         os.getenv("ARIFOS_DEPLOY_RECEIPT_PATH", "/opt/arifos/current/receipts/latest.json")
     )
+    deployed_commit = "UNKNOWN"
+    deployed_branch = "UNKNOWN"
+    deployed_at = "UNKNOWN"
+    receipt_stale = False
     try:
         if receipt_path.is_file():
             data = json.loads(receipt_path.read_text(encoding="utf-8"))
-            return {
-                "deployed_commit": str(data.get("commit_sha") or "UNKNOWN"),
-                "deployed_branch": str(data.get("branch") or "UNKNOWN"),
-                "deployed_at": str(data.get("build_time") or "UNKNOWN"),
-            }
+            deployed_commit = str(data.get("commit_sha") or "UNKNOWN")
+            deployed_branch = str(data.get("branch") or "UNKNOWN")
+            deployed_at = str(data.get("build_time") or "UNKNOWN")
     except Exception as exc:
         logger.warning(
             "Failed to read deploy provenance receipt at %s: %s: %s",
@@ -2995,10 +3089,22 @@ def _read_deploy_provenance() -> dict[str, str]:
             type(exc).__name__,
             exc,
         )
+    # Cross-check against the deploy stamp (deploy-release.sh writes it every run).
+    try:
+        from arifosmcp.runtime.build import DEPLOYED_COMMIT_STAMP
+
+        stamp = DEPLOYED_COMMIT_STAMP.read_text().strip()
+        if stamp and len(stamp) >= 7:
+            if deployed_commit == "UNKNOWN" or not deployed_commit.startswith(stamp[:7]):
+                receipt_stale = True
+                deployed_commit = stamp
+    except Exception:
+        pass
     return {
-        "deployed_commit": "UNKNOWN",
-        "deployed_branch": "UNKNOWN",
-        "deployed_at": "UNKNOWN",
+        "deployed_commit": deployed_commit,
+        "deployed_branch": deployed_branch,
+        "deployed_at": deployed_at,
+        "receipt_stale": str(receipt_stale).lower(),
     }
 
 
@@ -3736,6 +3842,16 @@ def register_rest_routes(
         module load — cold-start penalty (~2.2s) paid once, not per-request. All expensive
         probes called once and reused. Result: 1.5s → <5ms (300x improvement).
         """
+        # P4c: lazy-start the loop-lag monitor. FastMCP owns the app lifespan,
+        # so a Starlette startup handler is not guaranteed to run. /health is
+        # polled continuously; health is diagnostic-only and never a gate.
+        try:
+            from arifosmcp.runtime.loop_lag import start_monitor as _start_loop_lag
+
+            _start_loop_lag()
+        except Exception:
+            pass
+
         # ── Cache check (30s TTL, bypass with ?nocache=1 or ?detail=1) ──
         _now = time.monotonic()
         _nocache = request.query_params.get("nocache") == "1"
@@ -3747,7 +3863,9 @@ def register_rest_routes(
         )
         if not _nocache and not _want_detail and _health_cache["payload"] is not None:
             if _now - _health_cache["ts"] < 300.0:  # 5min TTL (was 30s; cold build ~10s)
-                return JSONResponse(_health_cache["payload"])
+                from arifosmcp.runtime.loop_lag import with_loop_lag as _with_loop_lag
+
+                return JSONResponse(_with_loop_lag(_health_cache["payload"]))
 
         # P2-PROVENANCE-LIVE-2026-10-10: source identity_hash from helper
         # (local-import pattern), keep file-read as verification channel,
@@ -3846,6 +3964,12 @@ def register_rest_routes(
                 "error": str(_tp_err)[:200],
             }
 
+        from arifosmcp.runtime.public_surface import (
+            COORDINATION_TOOLS,
+            public_tool_names_for_mode,
+        )
+
+        _canonical_loaded = len(public_tool_names_for_mode())
         _exposed = _count_mcp_tools(fastmcp_instance or mcp)
         _diagnostic = _get_diagnostic_tool_count(mcp)
         # FEDERATION SCHEMA ALIGNMENT L2 (canonical: arifOS/arifosmcp/schemas/federation_enums.py)
@@ -3921,9 +4045,18 @@ def register_rest_routes(
             _fid: _floor_status_with_provenance(_fid, _sc, _floor_provenance.get(_fid))
             for _fid, _sc in _floors_scores.items()
         }
-        _floors_pass_count = sum(1 for _st in _floor_detail.values() if _st == _FLOOR_STATUS_PASS)
         _floors_total = get_floor_count()
 
+        # 2026-10-21 (two-counters defect): the status-only pass counter
+        # (sum of _floor_detail == "pass") was deleted. It counted a pass
+        # whenever the threshold table said pass, while floor_truth()
+        # gates every pass through measurement provenance (STATIC_CLAIM ->
+        # declared, unmeasured_default -> unmeasured, never pass) - two
+        # counters, one dataset, two definitions of pass. There is ONE
+        # definition now: _floor_verdict.floors_pass, already consumed by
+        # layer_health.constitutional below. Reuse, never duplicate
+        # (ANTI-BANGANG LAW 8: the mapping rule lives in health_truth and
+        # nowhere else).
         # floors_failing is MEASURED FAILS ONLY (2026-10-07). It used to be
         # `!= pass`, which swept unmeasured floors into the violation list --
         # an evidence gap reported as a constitutional breach. Unmeasured gets
@@ -3970,9 +4103,7 @@ def register_rest_routes(
         )
         # T2: publish the same federation FQ object the payload carries, so
         # verbs echo one timestamped reading instead of re-deriving a second.
-        publish_system_floor_truth(
-            _floor_verdict, substrate=_substrate, fq=thermo.get("fq")
-        )
+        publish_system_floor_truth(_floor_verdict, substrate=_substrate, fq=thermo.get("fq"))
 
         _layer_health = {
             "constitutional": {
@@ -3990,6 +4121,12 @@ def register_rest_routes(
                 "floors_aggregate": _floor_verdict.aggregate,
                 "floors_detail": _floor_detail,
                 "floors_provenance": _floor_provenance,
+                # P4 (F13 D2 2026-10-23): per-floor producer WHEN slots parsed
+                # from the provenance stamps — never report-generation time.
+                "floors_measured_at": {
+                    _fid: (str(_src).rsplit("@", 1)[1] if "@" in str(_src) else None)
+                    for _fid, _src in _floor_provenance.items()
+                },
                 "floors_measured": _floors_measured,
                 "floors_defaulted": _floors_defaulted,
                 "floors_measurement_source": "runtime_health_measurer",
@@ -4233,9 +4370,10 @@ def register_rest_routes(
             "transport": "streamable-http",
             # SOT: tools_loaded == tools_exposed_via_mcp == public tools/list count
             "tools_loaded": _exposed,
-            "canonical_tools_loaded": _exposed,
+            "canonical_tools_loaded": _canonical_loaded,
             "tools_exposed_via_mcp": _exposed,
-            "canonical_tools": _exposed,
+            "canonical_tools": _canonical_loaded,
+            "coordination_tools": len(COORDINATION_TOOLS),
             "tools_registry_size": len(tool_registry),
             "diagnostic_tools": _diagnostic,
             "total_declared_tools": _exposed + _diagnostic,
@@ -4244,8 +4382,10 @@ def register_rest_routes(
             "callable_public": _exposed,
             "tool_count_semantics": {
                 "tools_loaded": "Public MCP tools/list facade (same as GET /mcp tool_count)",
-                "canonical_tools_loaded": "Same as tools_loaded — public constitutional surface",
+                "canonical_tools_loaded": "Public constitutional surface (Kernel ABI)",
                 "tools_exposed_via_mcp": "Total tools returned by default MCP tools/list public facade",
+                "coordination_tools": "Non-constitutional peer coordination channels (e.g. arif_report)",
+                "canonical_tools": "Public constitutional surface (Kernel ABI)",
                 "tools_registry_size": "Internal registry callables (canonical + aliases)",
                 "diagnostic_tools": "Declared DIAGNOSTIC_TOOLS (not on default public wire)",
                 "total_declared_tools": "public wire + diagnostic declared surface",
@@ -4315,6 +4455,7 @@ def register_rest_routes(
             "deployed_commit": _deploy_prov["deployed_commit"],
             "deployed_branch": _deploy_prov["deployed_branch"],
             "deployed_at": _deploy_prov["deployed_at"],
+            "deployed_commit_receipt_stale": _deploy_prov.get("receipt_stale", "false"),
             # ── AXIS-QUALIFIED DRIFT (surface-consistency audit 2026-09-21) ──
             # `**_drift` above re-emits runtime_drift from the RAW probe, shadowing
             # the value OR'd with the software-release attestation (~line 3210).
@@ -4493,6 +4634,7 @@ def register_rest_routes(
             # G = (A·P·E·X)^(1/4) (canonical 4-factor). Zero anywhere = collapse.
             # C_dark = A·(1-P)·(1-X) — the "Bangang Detector".
             "apex_scalars": thermo.get("apex_scalars", {}),
+            "measurement_basis": thermo.get("measurement_basis", {}),
             # T7 — federation contract conformance. arifOS was missing this
             # field; commit 46778a39f only touched CI workflow, not this
             # emission. Restored per APEX-CONCORDANCE-17072026 §8 so the 6
@@ -4699,8 +4841,10 @@ def register_rest_routes(
             _health_cache["payload"] = payload
             _health_cache["ts"] = _now
 
+        from arifosmcp.runtime.loop_lag import with_loop_lag as _with_loop_lag
+
         return JSONResponse(
-            payload,
+            _with_loop_lag(payload),
             headers={
                 "Access-Control-Allow-Origin": "*",
                 "X-Deployment-Hash": BUILD_INFO["build"]["commit_short"],
@@ -5968,6 +6112,43 @@ def register_rest_routes(
                 # active session that has been verified should pass the gate.
                 _rest_session_id = body.get("session_id") or ""
                 _rest_actor_id = body.get("actor_id") or ""
+                # Call-time cryptographic identity (2026-10-21): verify ACT token
+                # / Ed25519 proof BEFORE the gate reads _is_actor_verified, so a
+                # call carrying a valid credential promotes its OWN session and
+                # the gate sees the real crypto result. Unsigned calls skip this
+                # entirely — _is_actor_verified keeps returning False (fail-closed).
+                try:
+                    from arifosmcp.runtime.calltime_identity import (
+                        extract_act_token,
+                        verify_caller_identity,
+                    )
+
+                    _ct = verify_caller_identity(
+                        _rest_session_id,
+                        _rest_actor_id,
+                        token=extract_act_token(
+                            body=body,
+                            headers={
+                                k: v
+                                for k, v in request.headers.items()
+                                if k.lower() in ("x-act-token",)
+                            },
+                            authorization=request.headers.get("authorization"),
+                        ),
+                        ed25519_proof=body.get("ed25519_proof")
+                        if isinstance(body.get("ed25519_proof"), dict)
+                        else None,
+                    )
+                    if _ct.verified:
+                        logger.info(
+                            "calltime_identity verified: actor=%s method=%s session=%s promoted=%s",
+                            _ct.actor,
+                            _ct.method,
+                            _ct.session_id or "-",
+                            _ct.promoted_to_session,
+                        )
+                except Exception as _ct_exc:  # fail-closed: gate still reads False
+                    logger.warning("calltime_identity skipped: %s", _ct_exc)
                 _gate_result = quick_gate(
                     action_class=_rest_action,
                     actor_verified=_is_actor_verified(_rest_session_id, _rest_actor_id),

@@ -179,6 +179,31 @@ def receipt_registry() -> dict[str, Any]:
     return _load_registry("receipt_registry.json")
 
 
+def mode_contracts() -> dict[str, Any]:
+    """Per-mode execution contract (2026-10-20, FI-002).
+
+    CANONICAL_TOOLS owns the mode LIST; this registry owns what each mode is
+    allowed to do. A tool-level contract cannot describe arif_memory, where
+    `recall` reads and `forget` permanently retires — one authority tier for
+    both is an over-authorisation, not a simplification.
+    """
+    return _load_registry("mode_contracts.json")
+
+
+def mode_contract(tool: str, mode: str) -> dict[str, Any] | None:
+    """Resolved contract for one tool.mode, with class defaults applied."""
+    reg = mode_contracts()
+    spec = reg["contracts"].get(f"{tool}.{mode}")
+    if spec is None:
+        return None
+    action_class = spec.get("action_class", "OBSERVE")
+    resolved = dict(reg["defaults"].get(action_class, {}))
+    resolved.update(spec)
+    resolved["contract_id"] = f"{tool}.{mode}"
+    resolved["action_class"] = action_class
+    return resolved
+
+
 def _capabilities() -> tuple[dict[str, Any], ...]:
     return tuple(capability_registry()["capabilities"])
 

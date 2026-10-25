@@ -279,9 +279,7 @@ def _extract_claim_justification(response: dict[str, Any]) -> dict[str, Any]:
             from arifosmcp.core.epistemic_state import get_claim_class
 
             session_id = (
-                response.get("session_id")
-                or result.get("session_id")
-                or session.get("session_id")
+                response.get("session_id") or result.get("session_id") or session.get("session_id")
             )
             axis_value = get_claim_class(session_id) if session_id else None
             if axis_value:
@@ -370,9 +368,7 @@ def _apply_mutation_justification_gate(
             "eligible": False,
             "allowed_for_mutation": False,
             "declared": justification["declared"] or "UNCLASSIFIED",
-            "reasons": [
-                f"CLAIM_CLASS_GATE_UNAVAILABLE: {type(exc).__name__}: {exc}. Fail-closed."
-            ],
+            "reasons": [f"CLAIM_CLASS_GATE_UNAVAILABLE: {type(exc).__name__}: {exc}. Fail-closed."],
         }
 
     receipt = {
@@ -401,6 +397,66 @@ def _apply_mutation_justification_gate(
     return False, receipt
 
 
+# ── 888 ORDER 2026-10-21: strictest-component invariant ────────────────────
+# Directive (F13, 2026-10-21, item #1): the top-level envelope disposition
+# MUST NOT be more lenient than the strictest internal component. External
+# audit 2026-10-21 16:18 MYT reproduced SABAR + can_claim_success=true +
+# DOMAIN_SEAL + DEGRADED inside one payload. These helpers are the single
+# source of truth for what counts as a strictness hit; build_v2_envelope
+# enforces them in the final reducer before return.
+_STRICT_VERDICTS = (
+    "HOLD",
+    "HOLD_888",
+    "VOID",
+    "DENY",
+    "FAILED",
+    "BLOCKED",
+    "SABAR",
+    "PROVISIONAL",
+    "DEGRADED",
+)
+# Sub-event keys scanned for CURRENT-action strictness. Deliberately excludes
+# historical ledger keys (e.g. "verdicts" tail lists) — those are records of
+# past runs, not components of this action's disposition.
+_SUBEVENT_KEYS = ("sesat_events", "events")
+
+
+def _collect_strictness_hits(response: dict[str, Any]) -> list[str]:
+    """Collect every internal signal that forbids a lenient top-level disposition."""
+    hits: list[str] = []
+    if "claim_success" in (response.get("blocked_actions") or []):
+        hits.append("blocked_actions:claim_success")
+    cc = response.get("constitutional_check")
+    if isinstance(cc, dict):
+        if cc.get("hold_required") is True:
+            hits.append(f"hold_required:{cc.get('hold_reason') or 'true'}")
+        if str(cc.get("substrate_state") or "").upper() in ("DEGRADED", "FAIL"):
+            hits.append(f"substrate_state:{cc.get('substrate_state')}")
+    for key in ("effective_verdict", "verdict"):
+        val = str(response.get(key) or "").upper()
+        if val in _STRICT_VERDICTS:
+            hits.append(f"{key}={val}")
+    status = str(response.get("status") or "").upper()
+    if status in ("HOLD", "FAILED", "BLOCKED"):
+        hits.append(f"status={status}")
+    state = str(response.get("substrate_state") or "").upper()
+    if state in ("DEGRADED", "FAIL"):
+        hits.append(f"substrate_state={state}")
+    for key in _SUBEVENT_KEYS:
+        items = response.get(key)
+        if not isinstance(items, list):
+            continue
+        for ev in items[:20]:
+            if not isinstance(ev, dict):
+                continue
+            ev_v = str(ev.get("verdict") or ev.get("state") or "").upper()
+            if ev_v in _STRICT_VERDICTS:
+                hits.append(f"{key}[].verdict={ev_v}")
+            if "claim_success" in (ev.get("blocked_actions") or []):
+                hits.append(f"{key}[].blocked_actions:claim_success")
+    return hits
+
+
 def _extract_can_claim_success(
     canonical_verdict: str,
     execution_state: str,
@@ -408,15 +464,23 @@ def _extract_can_claim_success(
 ) -> bool:
     """Derive success claim permission.
 
-    INVARIANT: can_claim_success MUST BE FALSE under HOLD, DENY, VOID, FAILED,
-    or when hold_required is True.
+    INVARIANT (888 2026-10-21): can_claim_success MUST BE FALSE under HOLD,
+    HOLD_888, SABAR, PROVISIONAL, DENY, VOID, FAILED, DEGRADED substrate,
+    blocked "claim_success", strict sub-events, or any hold_required=True.
     """
-    if canonical_verdict in ("DENY", "VOID", "HOLD", "HOLD_888"):
+    if canonical_verdict in ("DENY", "VOID", "HOLD", "HOLD_888", "SABAR", "PROVISIONAL"):
         return False
     if execution_state in ("FAILED", "BLOCKED", "CANCELLED"):
         return False
-    if response and (response.get("hold_required") is True or response.get("effective_verdict") in ("HOLD", "VOID", "HOLD_888")):
-        return False
+    if response:
+        if response.get("hold_required") is True or response.get("effective_verdict") in (
+            "HOLD",
+            "VOID",
+            "HOLD_888",
+        ):
+            return False
+        if _collect_strictness_hits(response):
+            return False
     if canonical_verdict == "PROCEED" and execution_state == "COMPLETED":
         return True
     return False
@@ -492,14 +556,13 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
         # Normalize legacy AWAITING_* → COMPLETED when a result payload exists
         if _pre in ("AWAITING_INPUT", "AWAITING_IDENTITY", "BLOCKED") and (
             response.get("result") is not None
-            or str(response.get("status") or "").lower()
-            in ("ok", "completed", "pending")
+            or str(response.get("status") or "").lower() in ("ok", "completed", "pending")
         ):
-            execution_state = (
-                "FAILED" if _internal_verdict == "VOID" else "COMPLETED"
-            )
+            execution_state = "FAILED" if _internal_verdict == "VOID" else "COMPLETED"
         else:
-            execution_state = _pre if _pre not in ("AWAITING_INPUT", "AWAITING_IDENTITY") else "COMPLETED"
+            execution_state = (
+                _pre if _pre not in ("AWAITING_INPUT", "AWAITING_IDENTITY") else "COMPLETED"
+            )
     else:
         execution_state = _EXECUTION_STATE_FROM_VERDICT.get(_internal_verdict, "COMPLETED")
 
@@ -541,6 +604,41 @@ def build_v2_envelope(tool_name: str, response: dict[str, Any]) -> dict[str, Any
     else:
         envelope.setdefault("can_mutate", can_mutate)
     envelope.setdefault("can_claim_success", can_claim_success)
+    # ── 888 ORDER 2026-10-21: strictest-component reducer (pre-return) ─────
+    # The top-level disposition may never be more lenient than the strictest
+    # internal component. Force-writes (not setdefault): a handler that
+    # pre-set can_claim_success=True cannot survive a strictness hit.
+    # final_verdict and intermediate_trace_states are published separately so
+    # downstream agents cannot cherry-pick contradictory fields.
+    _strict_hits = _collect_strictness_hits(response)
+    if _strict_hits:
+        can_claim_success = False
+        envelope["can_claim_success"] = False
+        envelope["output_policy"] = "DOMAIN_HOLD"
+    if _strict_hits:
+        _final_verdict = "HOLD"
+    else:
+        _cands = [str(response.get("verdict") or "").upper(), str(canonical_verdict).upper()]
+        if "SEAL" in _cands:
+            _final_verdict = "SEAL"
+        elif "PROCEED" in _cands:
+            _final_verdict = "PROCEED"
+        else:
+            _final_verdict = str(
+                response.get("effective_verdict") or canonical_verdict or "UNMEASURED"
+            )
+    envelope["final_verdict"] = _final_verdict
+    envelope["intermediate_trace_states"] = {
+        "canonical_verdict": canonical_verdict,
+        "internal_verdict": _internal_verdict,
+        "execution_state": execution_state,
+        "effective_verdict": response.get("effective_verdict"),
+        "hold_required": bool(
+            response.get("hold_required")
+            or (response.get("constitutional_check") or {}).get("hold_required")
+        ),
+        "strictness_hits": _strict_hits,
+    }
     # ── Explanatory-class disclosure (additive 2026-09-19) ──────────────────
     # Every canonical response now declares WHAT KIND OF CLAIM justified it,
     # and whether that class is allowed to authorise a mutation.

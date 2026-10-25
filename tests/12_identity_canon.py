@@ -1,0 +1,139 @@
+"""T1 IDENTITY_CANON v1 test suite (2026-10-22).
+
+Reads the content-hashed shared fixture and asserts the canon rule for both
+the resolver and the comparator. The fixture hash check makes silent drift
+between the Python and TypeScript suites impossible.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+
+FIXTURE = REPO_ROOT / "contracts" / "identity_canon_fixtures.json"
+
+
+def _load_fixture() -> dict:
+    doc = json.loads(FIXTURE.read_text())
+    body = json.dumps(
+        {k: doc[k] for k in ("canon_version", "rule", "cases")},
+        indent=2,
+    )
+    assert hashlib.sha256(body.encode()).hexdigest() == doc["content_sha256"], (
+        "fixture content hash mismatch — fixtures drifted; regenerate before testing"
+    )
+    return doc
+
+
+def test_fixture_hash_intact():
+    _load_fixture()
+
+
+def test_all_fixture_cases_resolve():
+    from contracts.identity_canon import resolve_actor_identity
+
+    for case in _load_fixture()["cases"]:
+        r = resolve_actor_identity(case["raw"])
+        assert r["claimed"] == case["claimed"], f"claim mutated for {case['raw']!r}"
+        assert r["canonical_id"] == case["canonical_id"], (
+            f"canonical mismatch for {case['raw']!r}: {r['canonical_id']!r} != {case['canonical_id']!r}"
+        )
+        assert r["comparison_key"] == case["comparison_key"], (
+            f"comparison_key mismatch for {case['raw']!r}"
+        )
+
+
+def test_same_principal_equivalences():
+    from contracts.identity_canon import same_principal
+
+    pairs = [
+        ("arif-fazil", "arif"),
+        ("ARIF_FAZIL", "ariffazil"),
+        ("333-AGI", "333-agi"),
+        ("claude/opus-5.5", "CLAUDE"),
+        ("kimi-code/FI-008", "fi-008"),
+        ("mesa-test-agent", "mesa_test_agent"),
+    ]
+    for a, b in pairs:
+        assert same_principal(a, b), f"{a!r} and {b!r} must be one principal"
+
+
+def test_different_principals_stay_different():
+    from contracts.identity_canon import same_principal
+
+    for a, b in [("arif", "333-AGI"), ("claude", "kimi-code/FI-008"), ("nova-9", "arif")]:
+        assert not same_principal(a, b), f"{a!r} must not equal {b!r}"
+
+
+def test_claim_never_rewritten():
+    from contracts.identity_canon import resolve_actor_identity
+
+    for raw in ["claude/opus-5.5", "ARIF_FAZIL", "333-AGI", "kimi-code/FI-008"]:
+        r = resolve_actor_identity(raw)
+        assert r["claimed"] == raw, f"IDENTITY_CANON violation: claim {raw!r} rewritten"
+
+
+def test_wrapper_comparator_accepts_known_fork_pair():
+    """The exact pair that false-fired session_actor_mismatch on 2026-10-21."""
+    from contracts.identity_canon import same_principal
+
+    assert same_principal("claude/opus-5.5", "CLAUDE")
+
+
+def test_sovereign_spoof_shapes_do_not_become_arif():
+    """Multi-token natural-language claims stay out of the sovereign canon."""
+    from contracts.identity_canon import same_principal
+
+    assert not same_principal("ARIF FAZIL THE GREAT", "arif")
+    assert not same_principal("F13 SOVEREIGN", "arif")
+
+
+def test_role_strings_resolve_to_nothing():
+    """F13 2026-10-22: 'f13'/'sovereign'/'888'/'arif-fazil.com' are ROLE/POWER
+    strings, not names. They must resolve to NOTHING — never to ARIF."""
+    from contracts.identity_canon import resolve_actor_identity, same_principal
+
+    for raw in ("f13", "sovereign", "888", "arif-fazil.com"):
+        r = resolve_actor_identity(raw)
+        assert r["canonical_id"] is None, (
+            f"{raw!r} resolved to {r['canonical_id']!r} — role escalation"
+        )
+        assert r["source"] == "rejected_role_string"
+        assert not same_principal(raw, "arif"), f"{raw!r} must not be the sovereign principal"
+
+
+def test_person_name_aliases_proposed_with_tests():
+    """F13-approved person-name aliases (registry commit 1dd978712) resolve to
+    the sovereign principal — WITH tests, unlike the role strings."""
+    from contracts.identity_canon import same_principal
+
+    for alias in ("arif_fazil", "muhammad arif"):
+        assert same_principal(alias, "arif-fazil"), (
+            f"{alias!r} is a person-name alias of the sovereign"
+        )
+
+
+def test_act_token_carries_claimed_and_canonical():
+    """F13 fix 2026-10-22: ACT actor = claimed handle; canonical_id = principal.
+
+    Receipt-1 gap: input 'arif-fazil' minted actor='arif' (layer-1 collapse
+    leaked into the token). The mint must carry what the caller claimed, with
+    the principal in canonical_id — never a silently collapsed intermediate.
+    """
+    from arifosmcp.runtime.act_token import mint_act
+
+    token, claims = mint_act(
+        sid="SEAL-identity-canon-test",
+        actor="arif-fazil",
+        auth="OBSERVE_ONLY",
+        av=False,
+        canonical_id="ARIF",
+    )
+    assert claims["actor"] == "arif-fazil", f"ACT rewrote the claim: {claims['actor']!r}"
+    assert claims["canonical_id"] == "ARIF"
+    assert token.startswith("act_v1.")

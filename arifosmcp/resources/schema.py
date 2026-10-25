@@ -87,20 +87,8 @@ Pipeline (capability-enforced, not convention):
   000 → 111 → 333 → 444 → 555 → 666 → 777 → 999
   init  observe think route memory judge  forge  seal
 
-Floors (F1–F13 — single source: arifos://doctrine):
-  F01 AMANAH    — Irreversible = explicit ack
-  F02 TRUTH     — Cap confidence at 0.90. Label OBS/DER/INT/SPEC
-  F03 WITNESS   — Tri-witness W³ = ∛(H × AI × Ext) for SEAL
-  F04 CLARITY   — ΔS ≤ 0. Every output reduces entropy
-  F05 PEACE     — De-escalate. Guard weakest stakeholder
-  F06 MARUAH    — Dignity-first. ASEAN/MY context
-  F07 HUMILITY  — Declare unknowns. Ω₀ ∈ [0.03, 0.05]
-  F08 GENIUS    — Simplest correct path. G ≥ 0.80
-  F09 ANTI-HANTU — C_dark < 0.30. No consciousness claims
-  F10 ONTOLOGY  — AI-only ontology. Substrate ≠ being
-  F11 AUDIT     — Every consequential action leaves a trace
-  F12 INJECTION — Sanitize inputs. External ≠ authority
-  F13 SOVEREIGN — Arif holds final veto. 888 decides irreversible
+Floors (F1–F13 — rendered from arifosmcp.constitutional_canon, not retyped):
+{{FLOORS}}
 
 Separation of Powers:
   arif_think proposes → arif_judge adjudicates → arif_forge executes → arif_seal records
@@ -117,6 +105,13 @@ Absorbed Tools (modes on parent, not separate verbs):
 
 DITEMPA BUKAN DIBERI
 """
+
+# Single source substitution (2026-10-20). This block used to carry a copy of
+# the floor table that retained an obsolete value long after F13
+# sealed the Ω₀ band — a copy is a drift site, so render it instead.
+from arifosmcp.constitutional_canon import doctrine_block as _doctrine_block  # noqa: E402
+
+SCHEMA_TEXT = SCHEMA_TEXT.replace("{{FLOORS}}", _doctrine_block())
 
 
 def register_schema(mcp: FastMCP) -> list[str]:

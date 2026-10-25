@@ -1332,6 +1332,7 @@ def _project_light(
     signature_verified: bool = False,
     is_sovereign_principal: bool = False,
     verbosity: str = "minimal",
+    init_mode_label: str = "light",
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -1368,6 +1369,21 @@ def _project_light(
 
     # F11 audit spine — was nulled by abd33817d refactor
     _now_ts = _time.time()
+    # ── IDENTITY_CANON v1 (2026-10-22): ONE resolved identity object ──────
+    # Every identity block in this payload (top-level, session_birth,
+    # act_claims, metabolic_state) reads from _identity. The claimed handle
+    # is preserved; canonical_id is comparison-only and never overwrites it.
+    try:
+        from contracts.identity_canon import resolve_actor_identity
+
+        _identity = resolve_actor_identity(actor_id)
+    except Exception:  # noqa: BLE001 — identity canon must never block a session
+        _identity = {
+            "claimed": actor_id,
+            "canonical_id": actor_id,
+            "comparison_key": (actor_id or "").lower(),
+            "source": "inline_fallback",
+        }
     _call_payload = f"arif_init|light|{sid}|{actor_id}|{_now_ts:.6f}"
     call_hash = f"sha256:{hashlib.sha256(_call_payload.encode()).hexdigest()}"
     trace_id = f"trc-{_uuid.uuid4().hex[:12]}"
@@ -1547,18 +1563,22 @@ def _project_light(
         # GATING (deprecated aliases — prefer effective_state)
         "session_id": sid,
         "actor_id": actor_id,
+        "canonical_id": _identity["canonical_id"],
+        "identity_resolved": _identity,
         "actor_claimed": _actor_claimed,
-        "actor_canonicalized": bool(actor_id),  # refined by identity registry if present
+        "actor_canonicalized": _identity[
+            "canonical_id"
+        ],  # IDENTITY_CANON v1: string|None (was bool — forks were undetectable)
         "actor_bound": _actor_bound,
         "actor_verified": actor_verified,
         "actor_cryptographically_verified": _actor_crypto,
         "authority": _authority,
         "authority_band": _authority,
-        "metabolic_state": _fq_state,
+        "metabolic_state": {**_fq_state, "canonical_id": _identity["canonical_id"]},
         "mutation_allowed": _mutation_allowed,
         "seal_allowed": _seal_allowed,
         # ── AOB P0: Machine enforcement envelope ──
-        "init_mode": "light",
+        "init_mode": init_mode_label,  # T3 2026-10-22: mode=init must not self-report "light"
         "session_mode": session_mode,
         "authority_scope": _authority,
         "kernel_epoch": "2026-07-03",
@@ -1616,6 +1636,7 @@ def _project_light(
         "session_birth": {
             "session_id": sid,
             "actor_id": actor_id,
+            "canonical_id": _identity["canonical_id"],
             "actor_verified": actor_verified,
             "actor_cryptographically_verified": _actor_crypto,
             "authority_mode": _authority,
@@ -1756,6 +1777,7 @@ def _project_light(
             _unverified_token, _unverified_claims = mint_sct(
                 sid=sid,
                 actor=actor_id or "anonymous",
+                canonical_id=_identity["canonical_id"],
                 auth="OBSERVE_ONLY",
                 av=False,
                 stage="000",
@@ -1769,6 +1791,7 @@ def _project_light(
             out["session_token"] = _unverified_token
             out["session_birth"]["session_token"] = _unverified_token
             out["act_claims"] = {
+                "canonical_id": _identity["canonical_id"],
                 "auth": _unverified_claims.get("auth"),
                 "av": _unverified_claims.get("av"),
                 "exp": _unverified_claims.get("exp"),
@@ -1831,6 +1854,7 @@ def _project_light(
             _token, _claims = mint_sct(
                 sid=sid,
                 actor=actor_id or "anonymous",
+                canonical_id=_identity["canonical_id"],
                 auth=_authority,
                 av=bool(actor_verified),
                 stage="000",
@@ -1894,6 +1918,7 @@ def _project_light(
             out["standing_source"] = "act"
         out["session_birth"]["session_token"] = _token
         out["act_claims"] = {
+            "canonical_id": _identity["canonical_id"],
             "auth": _claims.get("auth"),
             "av": _claims.get("av"),
             "exp": _claims.get("exp"),
@@ -2521,6 +2546,11 @@ def arif_init(
             )
 
     _canonical_actor_id: str | None = None
+    # IDENTITY_CANON v1 (2026-10-22): capture the claim BEFORE any normalizer
+    # mutates the local — the ACT mint must carry the claimed handle (or the
+    # canonical), never a silently collapsed intermediate ("arif-fazil" →
+    # "arif" was minted as actor without the caller ever choosing it).
+    _identity_claimed: str | None = actor_id
     if actor_id:
         try:
             from arifosmcp.runtime.governance_identity import normalize_actor_id
@@ -2547,12 +2577,15 @@ def arif_init(
             if _canon.get("normalized"):
                 _canonical_actor_id = str(_canon["normalized"])
                 if _canonical_actor_id != actor_id:
+                    # IDENTITY_CANON v1 (2026-10-22): canonical is comparison-only.
+                    # Do NOT write it back over the claim — the 2026-10-21 fork
+                    # (claude/opus-5.5 → standing `claude`, ACT `CLAUDE`, birth
+                    # `CLAUDE`) came from exactly this overwrite.
                     logger.info(
-                        "arif_init: canonical identity '%s' → '%s'",
+                        "arif_init: canonical identity '%s' → '%s' (comparison-only; claim preserved)",
                         actor_id,
                         _canonical_actor_id,
                     )
-                    actor_id = _canonical_actor_id
             else:
                 actor_id = actor_id.strip() if actor_id else "anonymous"
         except ImportError:
@@ -2917,6 +2950,11 @@ def arif_init(
                 "ariffazil",
                 "kimi-code",
                 "kimi-code/fi-008",
+                # 2026-10-20: authentication gate ONLY — lets a registered
+                # EXECUTE-capable actor auto-sign on true loopback. It does
+                # NOT grant EXECUTE_REVERSIBLE; that stays with the registry
+                # capability ceiling. See agent_registry.json.
+                "opencode",
             )
             if _is_sovereign:
                 try:
@@ -3161,7 +3199,7 @@ def arif_init(
                 "next": {"recommended_next": "arif_observe"},
             },
             sid=sid,
-            actor_id=actor_id or "light_client",
+            actor_id=_identity_claimed or actor_id or "light_client",
             constitution_hash=CONSTITUTION_HASH,
             actor_verified=_light_actor_verified,
             session_mode=session_mode,  # AOB P0 — 2026-07-03
@@ -4302,7 +4340,7 @@ def arif_init(
                 },
             },
             sid=sid,
-            actor_id=actor_id,
+            actor_id=_identity_claimed or actor_id,
             constitution_hash=CONSTITUTION_HASH,
             # INIT v2.0 Phase 3.2: always surface context completeness score
             context_completeness=sess.get("context_completeness"),
@@ -4312,6 +4350,7 @@ def arif_init(
             authority_override=str(_real_authority_override),
             intent=sess.get("intent") or intent or "constitutionally_bound_session",
             verbosity=_vb_full,
+            init_mode_label="init",  # T3 2026-10-22: the full-init path must report what it is
         )
         # Belt: force effective_state consistent with authority_override
         if isinstance(header, dict):
@@ -4456,17 +4495,36 @@ def arif_init(
                 _SESSIONS[sid] = sess
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
-        # L3: Carry-forward injection — generational memory at init.
+        # L3/L4: Carry-forward + CHRON context — generational memory at init.
         # Injects human_state, recent entries, chron_briefing, open loops.
-        _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
-        if _cf_ctx:
-            header["carry_forward"] = _cf_ctx
+        # F13 2026-10-20: this is PRIVATE — entry text, open loops and named-
+        # individual predictions must never reach an unverified caller on the
+        # public surface. Unverified actors get counts only (fail closed).
+        if identity_verified:
+            _cf_ctx = _safe_build(_build_carry_forward_context, fallback=None)
+            if _cf_ctx:
+                header["carry_forward"] = _cf_ctx
 
-        # L4: CHRON temporal context — predictions, calibration, lessons.
-        # Injects active predictions, due-soon items, calibration stats.
-        _chron_ctx = _safe_build(_build_chron_temporal_context, fallback=None)
-        if _chron_ctx:
-            header["chron_temporal"] = _chron_ctx
+            # L4: CHRON temporal context — predictions, calibration, lessons.
+            _chron_ctx = _safe_build(_build_chron_temporal_context, fallback=None)
+            if _chron_ctx:
+                header["chron_temporal"] = _chron_ctx
+        else:
+            header["carry_forward"] = {
+                "redacted": True,
+                "reason": "verified_actor_required",
+                "note": (
+                    "Session continuity is sovereign memory and is withheld from "
+                    "unverified actors. Bind identity with actor_signature (Ed25519) "
+                    "to receive carry_forward and chron_temporal."
+                ),
+                "source": _CARRY_FORWARD_PATH,
+            }
+            header["chron_temporal"] = {
+                "redacted": True,
+                "reason": "verified_actor_required",
+                "source": "chron",
+            }
 
         # M5 payload diet: strip nested bloat from minimal verbosity
         # (must run AFTER all blocks assembled, not inside _project_light)

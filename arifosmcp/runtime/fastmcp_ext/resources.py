@@ -16,6 +16,79 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
+# ── PRIVATE-RESOURCE GATE (F13 2026-10-20) ───────────────────────────────
+# The public MCP surface is unauthenticated (mcp.arif-fazil.com). Sovereign
+# memory — session continuity, human state, named-individual predictions —
+# must never be served to an anonymous caller. Full body requires a verified
+# capability token (act_v1 with av=true); everyone else gets counts only.
+# Failure class this closes: OBSERVE_ONLY gated actions but not reads.
+def _request_claims() -> dict[str, Any] | None:
+    """Return verified ACT claims from the inbound Authorization header, or None."""
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers() or {}
+    except Exception:
+        return None
+    auth = headers.get("authorization") or headers.get("Authorization") or ""
+    if not str(auth).lower().startswith("bearer "):
+        return None
+    token = str(auth).split(" ", 1)[1].strip()
+    if not token:
+        return None
+    try:
+        from arifosmcp.runtime.act_token import verify_act
+
+        claims = verify_act(token, expected_actor=None)
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+        return None
+    return claims if isinstance(claims, dict) else None
+
+
+def _caller_is_verified_actor() -> bool:
+    """True only when the caller presents a cryptographically verified ACT."""
+    claims = _request_claims() or {}
+    return bool(claims.get("av")) is True and str(claims.get("auth", "")).upper() != "OBSERVE_ONLY"
+
+
+def _redacted_carry_forward(doc: dict[str, Any]) -> str:
+    """Counts-only projection of carry_forward for unverified callers."""
+    entries = doc.get("entries") or []
+    kinds: dict[str, int] = {}
+    open_loops = 0
+    for entry in entries:
+        if isinstance(entry, dict):
+            kind = entry.get("kind", "?")
+            kinds[kind] = kinds.get(kind, 0) + 1
+            if kind == "open_loop":
+                open_loops += 1
+    writers = doc.get("writers")
+    if not isinstance(writers, dict):
+        writers = {}
+    return json.dumps(
+        {
+            "uri": "arifos://carry-forward",
+            "redacted": True,
+            "reason": "verified_actor_required",
+            "note": (
+                "Session continuity is sovereign memory and is not served to "
+                "unverified callers. Call arif_init with actor_signature (Ed25519) "
+                "and then re-request with header: Authorization: Bearer <session_token>."
+            ),
+            "schema": doc.get("schema"),
+            "total_entry_count": len(entries),
+            "open_loop_count": open_loops,
+            "entry_kinds": kinds,
+            "last_writer": writers.get("last_writer") or doc.get("last_writer"),
+            "last_write_utc": writers.get("last_write_utc") or doc.get("last_write_utc"),
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
+
+
 # ── INIT prompt files — canonical paths ──────────────────────────────────
 _INIT_PROMPT_DIR = "/root/AAA/agents/opencode"
 _INIT_PATH = "/root/AAA/prompts/INIT.md"  # v4.0 (2026-08-05)
@@ -340,6 +413,10 @@ def register_arifos_resources(mcp: Any) -> list[str]:
                     "detail": f"Expected schema {_CARRY_FORWARD_SCHEMA}, got {actual_schema}",
                 }
             )
+        # Gate 6: caller authority (F13 2026-10-20)
+        # Sovereign memory is not public. Unverified callers get counts only.
+        if not _caller_is_verified_actor():
+            return _redacted_carry_forward(doc)
         # All gates passed — stamp provenance and serve
         from datetime import datetime as _dt
 
@@ -478,6 +555,14 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
             "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
             "Golden path: init → observe → think → route → memory → judge → forge → seal\n\n"
+            "═══ AGENT REPORT LANE (coordination, not a constitutional verb) ═══\n"
+            "  arif_report  — Done, blocked, or need to tell peers? File it here.\n"
+            "    mode=report kind=fyi|peer|done|claim → peer lane, the human is NOT notified.\n"
+            "    mode=report kind=decision|blocked   → may reach the human, but ONLY if\n"
+            "      your caller is a verified actor, OR two distinct agents ack the same\n"
+            "      thread_id first. Unverified callers cannot interrupt the human alone.\n"
+            "    mode=inbox  → read what other agents filed. mode=ack → vouch for a thread.\n"
+            "  Agents coordinate with agents. The human is the exception path, not the bus.\n\n"
             "CANONICAL 8 TOOLS — select by gap:\n"
             "  arif_init    — No session? Bind actor identity.\n"
             "  arif_observe — Evidence gap? Search, fetch, vitals.\n"
@@ -487,7 +572,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             "  arif_judge   — Decision time? Constitutional verdict.\n"
             "  arif_forge   — Ready to execute? Governed execution.\n"
             "  arif_seal    — Need finality? VAULT999 immutable append.\n\n"
-            "KEY RESOURCES (38 static + 24 templates = 62 total):\n"
+            "KEY RESOURCES (41 static + 27 templates = 68 total):\n"
             "  Core: arifos://doctrine, identity, vitals, bootstrap, schema, trinity, civilization, jurisdiction, refusal-surface, seal-readiness, loop-engineering, quickstart, mcp-alignment, memory, human/metabolized, reality/state, mcp/surface-map\n"
             "  Operational: arifos://carry-forward, flow-state, init/agent_init, instructions\n"
             "  ATLAS333: arifos://atlas333/* (index, paradox, zones, thresholds, activation, flow, geometry, seal/head, quote/list)\n"

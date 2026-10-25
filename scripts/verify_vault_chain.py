@@ -173,6 +173,48 @@ def _declared_lineage_breaks(state: dict[str, Any], ledger_key: str) -> int | No
     return None
 
 
+def _link_semantics(path) -> dict:
+    """Classify WHY strict links break. A GENESIS-anchored seal is not corruption;
+    it is an unchained record. Absence of this distinction makes a log look like a
+    broken chain."""
+    import json as _j
+    counts = {"authentic_links": 0, "genesis_anchored": 0,
+              "null_prev": 0, "mismatched_links": 0}
+    prev = None
+    first = True
+    try:
+        for line in open(path, errors="replace"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                d = _j.loads(line)
+            except Exception:
+                continue
+            ch = d.get("chain_hash") or d.get("this_hash") or d.get("seal_hash")
+            pv = d.get("prev_hash") or d.get("previous_hash") or d.get("prev_leaf")
+            if first:
+                first = False
+                prev = ch if ch is not None else prev
+                continue
+            if pv is None:
+                counts["null_prev"] += 1
+            elif str(pv).upper() == "GENESIS":
+                counts["genesis_anchored"] += 1
+            elif prev is not None and str(pv) == str(prev):
+                counts["authentic_links"] += 1
+            else:
+                counts["mismatched_links"] += 1
+            prev = ch if ch is not None else prev
+    except Exception:
+        pass
+    total = sum(counts.values())
+    counts["verdict"] = ("UNCHAINED_SEAL_LOG"
+                         if total and counts["genesis_anchored"] > total * 0.5
+                         else "PARTIAL_CHAIN" if counts["mismatched_links"] else "CHAINED")
+    return counts
+
+
 def verify_ledger(spec: dict[str, Any], declared_breaks: int | None) -> dict[str, Any]:
     """
     Walk one chain-formatted ledger; return the spec-shape report dict.
@@ -564,6 +606,7 @@ def verify_ledger(spec: dict[str, Any], declared_breaks: int | None) -> dict[str
     report["sub_chains_observed"] = sub_chains_observed
     report["prev_with_genesis_or_null_count"] = prev_with_genesis_or_null_count
     report["strict_link_break_count"] = strict_link_break_count
+    report["chain_semantics"] = _link_semantics(report.get("path"))
     report["parse_errors"] = parse_errors
     # PATCH 3 (2026-10-06 vaultharness-mission): explicit multi-chain handling.
     # If a ledger carries multiple `chain_id` values, declare it EXPLICIT
@@ -637,12 +680,19 @@ def main(argv: list[str]) -> int:
     # cannot be repaired (append-only, retired epoch) — degrading the gate on
     # them permanently would be noise without a correction loop.
     overall = "INTACT"
+    historical_broken = []
     for r in reports:
         if r["status"] in ("BROKEN", "UNREADABLE", "MISSING") and not r.get("historical_frozen"):
             overall = "DEGRADED"
             break
+        if r["status"] in ("BROKEN", "UNREADABLE") and r.get("historical_frozen"):
+            historical_broken.append(r.get("ledger", "?"))
         if r["status"] == "NON_CHAIN":
             continue
+    # Stabilization 2026-10-19: a headline of INTACT while a frozen ledger is
+    # BROKEN hides the finding from anyone reading only `overall`. Name it.
+    if overall == "INTACT" and historical_broken:
+        overall = "INTACT_ACTIVE_DEGRADED_HISTORICAL"
 
     envelope: dict[str, Any] = {
         "audit_id": f"verify_vault_chain.{datetime.now(UTC).isoformat()}",
@@ -679,11 +729,18 @@ def main(argv: list[str]) -> int:
         # be circular (a logging failure should not corrupt the audit result).
         print(f"\n[warn] could not append history → {history_path}: {e}", file=sys.stderr)
 
-    # Non-zero exit only on hard failure (UNREADABLE / MISSING chain files).
+    # Non-zero exit only on hard failure (UNREADABLE / MISSING chain files)
+    # that are NOT frozen-historical. A frozen ledger is append-only retired
+    # state; its absence (gitignored runtime file in a fresh CI checkout) is a
+    # fact to report, not a live failure. This must mirror the `overall`
+    # verdict's `not historical_frozen` guard — they had drifted, so a frozen
+    # MISSING ledger exited 2 while `overall` correctly said INTACT.
     hard_failures = [
         r
         for r in reports
-        if r["status"] in ("UNREADABLE", "MISSING") and not r.get("non_chain_row_count")
+        if r["status"] in ("UNREADABLE", "MISSING")
+        and not r.get("non_chain_row_count")
+        and not r.get("historical_frozen")
     ]
     if hard_failures:
         return 2

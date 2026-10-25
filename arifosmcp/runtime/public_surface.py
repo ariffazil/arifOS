@@ -76,6 +76,13 @@ BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
 # A-FORGE owns execution; arifOS keeps governance and can route to it.
 
 
+# Coordination channels (F13 2026-10-20): registered on the wire, callable, and
+# listed — but NOT constitutional verbs. They judge nothing, mutate nothing, seal
+# nothing, so they never count toward the ratified 8-verb facade. Single owner:
+# every surface (list, call gate, drift guard) imports this tuple; do not
+# re-declare it anywhere else (ANTI-BANGANG LAW 8).
+COORDINATION_TOOLS: tuple[str, ...] = ("arif_report",)
+
 # Diagnostic tools are reversible inspectors, not canonical constitutional tools.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arifos_ping",

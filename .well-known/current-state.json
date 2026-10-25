@@ -1,33 +1,38 @@
 {
-  "generated_at": "2026-10-17T09:00:08Z",
+  "generated_at": "2026-10-21T09:36:20Z",
   "self_measurement": {
-    "status": "healthy",
-    "probe": "http://127.0.0.1:8088/health @2026-10-17T09:00:08Z",
-    "floors_pass": 13,
+    "status": "degraded",
+    "probe": "http://127.0.0.1:8088/health @2026-10-21T09:36:20Z",
+    "floors_pass": 10,
     "floors_target": 13,
-    "floors_failing": [],
-    "floors_unmeasured": [],
+    "floors_failing": [
+      "F1",
+      "F8"
+    ],
+    "floors_unmeasured": [
+      "F6"
+    ],
     "floors_provenance": {
-      "F10": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
+      "F10": "arifflow_live_ontology:QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD",
       "F11": "floor_producer:PASS:receipt_ledger",
       "F12": "floor_producer:PASS:request_trust",
       "F13": "floor_producer:PASS:seal_chain",
-      "F1": "arifflow_fq_probe:fq=0.9607843137254902",
+      "F1": "arifflow_fq_probe:fq=0.4583333333333333",
       "F2": "floor_producer:PASS:floor_provenance_coverage",
       "F3": "witness_producers:human+ai+earth",
       "F4": "arifflow_probe:ds=-0.0",
-      "F5": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F6": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F7": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F8": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00",
-      "F9": "f4_f9_probe:claims.json:2026-10-17T08:55:01.909+00:00"
+      "F5": "floor_producer:PASS:seal_chain",
+      "F6": "unmeasured_default:empty_kernel_signal",
+      "F7": "arifflow_live_vector:omega=0.04",
+      "F8": "arifflow_live_vector:g=0.587",
+      "F9": "arifflow_live_vector:c_dark=0.2085"
     },
     "vault999": "healthy",
-    "release_id": "arifos-cf7a984",
-    "source_commit": "cf7a984",
+    "release_id": "arifos-e895e42",
+    "source_commit": "e895e42",
     "drift": false,
-    "tools_exposed": 8,
-    "registry_size": 62
+    "tools_exposed": 9,
+    "registry_size": 63
   },
   "independent_audit": {
     "date": "2026-10-11",

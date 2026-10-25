@@ -638,7 +638,6 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     "ROSAK": 0,  # nine_signal Δ: BROKEN
     "KHIANAT": 0,  # nine_signal Ψ: BETRAYED
     "BANGANG": 0,  # nine_signal Ω: FOOLISH
-    "RETAK": 0,  # nine_signal overall/nine_signal Δ: FAILED/CRACKED
     # ── Held / deferred (severity 1-2) ──
     "SABAR": 1,
     "SABAR_HOLD": 1,
@@ -649,6 +648,7 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     "WARN": 3,
     "DIVERGENT": 3,  # FORGE 2: surface self-consistency divergence
     "DEGRADED": 4,
+    "RETAK": 4,  # nine_signal Δ / overall: CRACKED (degraded, SABAR-class)
     "BIJAK": 4,  # nine_signal Ω: SMART (degraded intelligence)
     # ── Observe only / partial (severity 5) ──
     "OBSERVE_ONLY": 5,
@@ -1434,6 +1434,30 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "agency_level": "L0_OBSERVE",
         "decision_thresholds": DECISION_THRESHOLDS,
         "canonical_public_name": "arif_init",
+    },
+    # AGENT REPORT LANE (F13 2026-10-20) — coordination, not a constitutional verb.
+    "arif_report": {
+        "known": True,
+        "purpose": "Agent-to-agent coordination lane. Agents file, read, and ack peer reports without routing through the human. Only kind=decision|blocked reaches the human — and only from a verified actor or with 2-distinct-agent quorum on the thread. All reports are SELF_REPORTED claims until independently probed.",
+        "use_when": [
+            "Work finished, blocked, or a fact peers need — tell agents, not the human",
+            "Reading what other agents filed (mode=inbox)",
+            "Vouching for a peer thread so an unverified escalation can proceed (mode=ack)",
+        ],
+        "do_not_use_when": [
+            "Constitutional verdicts, sealing, or mutations — use the canonical 8 verbs",
+            "Anything requiring human decision right now — file kind=decision only if genuinely F13-gated",
+            "Claiming verified truth — a report is a claim, evidence is a probe",
+        ],
+        "authority_level": "advisory_only",
+        "side_effect": "append_only_store_write",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "report_lane_result",
+        "evidence_required": False,
+        "agency_level": "L1_FILE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "File with mode=report, or read peers with mode=inbox. Escalation is withheld unless verified or quorum-acked.",
     },
     # Default fallbacks for other tools
     "_default": {
@@ -2745,7 +2769,7 @@ def _collect_monotonicity_floor(
                 _track(val, f"result.{key}")
 
     # ── 4. Deep scan: any string value that is exactly a terminal signal ─
-    _TERMINAL = frozenset({"BROKEN", "FAIL", "VOID", "ROSAK", "KHIANAT", "BANGANG", "RETAK"})
+    _TERMINAL = frozenset({"BROKEN", "FAIL", "VOID", "ROSAK", "KHIANAT", "BANGANG"})
 
     def _deep_scan(obj: Any, path: str = "out") -> None:
         if isinstance(obj, dict):
@@ -3114,47 +3138,23 @@ def _compute_canonical_verdict(
                 # like "ARIF" are presentation only.
                 if _passed_actor:
                     try:
-                        from arifosmcp.runtime.governance_identity import (
-                            normalize_actor_id,
-                        )
-
-                        _passed_norm = normalize_actor_id(_passed_actor) or _passed_actor
-                        _sess_norm = normalize_actor_id(_sess_actor) if _sess_actor else _sess_actor
-
-                        # P0.10 mirror (2026-08-14): FI canonical aliases. The ACT/
-                        # standing store keeps the canonical short form ("QWEN" for
-                        # "qwen-code", "GROK" for "grok-build"). normalize_actor_id
-                        # is blind to those aliases — without this check every
-                        # hyphenated FI agent trips a false session_actor_mismatch
-                        # SCAR and an L13 HOLD on evidence tools.
-                        def _alias_match(a: str | None, b: str | None) -> bool:
-                            if not a or not b:
-                                return False
-                            if a.lower() == b.lower():
-                                return True
-                            try:
-                                from contracts.identity import CANONICAL_ACTORS
-
-                                for _canon, info in CANONICAL_ACTORS.items():
-                                    aliases = {str(x).lower() for x in info.get("aliases", [])}
-                                    aliases.add(_canon.lower())
-                                    if a.lower() in aliases and b.lower() in aliases:
-                                        return True
-                            except Exception:
-                                logger.exception("suppressed exception", exc_info=True)
-                            return False
+                        # IDENTITY_CANON v1 (2026-10-22): one comparison rule for
+                        # every surface. same_principal resolves both handles
+                        # through CANONICAL_ACTORS incl. slash head/tail — the
+                        # 2026-10-21 false session_actor_mismatch
+                        # (claude/opus-5.5 vs CLAUDE) came from this comparator
+                        # never consulting the slash path.
+                        from contracts.identity_canon import same_principal
 
                         if (
-                            _passed_norm
-                            and _sess_norm
-                            and _passed_norm != _sess_norm
-                            and not _alias_match(_passed_norm, _sess_norm)
-                            and not _alias_match(_passed_actor, _sess_actor)
+                            _passed_actor
+                            and _sess_actor
+                            and not same_principal(_passed_actor, _sess_actor)
                         ):
                             degradation.append(
                                 f"session_actor_mismatch: passed actor_id={_passed_actor} "
-                                f"(canonical={_passed_norm}) ≠ session actor_id={_sess_actor} "
-                                f"(canonical={_sess_norm}) for session={_session_id}"
+                                f"≠ session actor_id={_sess_actor} for session={_session_id} "
+                                f"(comparison_key differs per IDENTITY_CANON v1)"
                             )
                     except Exception:
                         # Fail-soft: keep the legacy raw comparison as SCAR backup
@@ -3291,6 +3291,27 @@ def _compute_canonical_verdict(
         )
         verdict = floor_verdict
 
+    # Canonical wire contract normalization (F13 / 7-verdict wire contract):
+    # Sub-signals (e.g. nine_signal PSI="SYUBHAH", DELTA="RETAK") must never
+    # leak as the aggregate wire verdict.
+    # Canonical verdicts: SEAL, HOLD, SABAR, PARTIAL, PROVISIONAL, HOLD_888, VOID, OBSERVE_ONLY.
+    _WIRE_VERDICT_NORM = {
+        "SYUBHAH": "HOLD",
+        "ROSAK": "VOID",
+        "KHIANAT": "VOID",
+        "BANGANG": "VOID",
+        "RETAK": "SABAR",
+        "FAIL": "VOID",
+        "BROKEN": "VOID",
+        "ERROR": "VOID",
+        "BLOCKED": "VOID",
+        "SABAR_HOLD": "SABAR",
+        "PASS": "SEAL",
+        "ALLOW": "SEAL",
+    }
+    if verdict in _WIRE_VERDICT_NORM:
+        verdict = _WIRE_VERDICT_NORM[verdict]
+
     return verdict, degradation
 
 
@@ -3372,11 +3393,7 @@ def _compute_scoped_verdicts(
     # arif_observe said DEGRADED beside a HEALTHY /health on the same process).
     _sys_reading = read_system_floor_truth()
     _sys_state = None
-    if (
-        _sys_reading
-        and not _sys_reading.get("stale")
-        and _sys_reading.get("substrate_state")
-    ):
+    if _sys_reading and not _sys_reading.get("stale") and _sys_reading.get("substrate_state"):
         _sys_state = _sys_reading["substrate_state"]
     _is_healthy = status in ("OK", "SEAL")
     _has_degradation = bool(_substrate_only_degradation)
@@ -4961,6 +4978,10 @@ def _enforce_nine_signal(
                     )
 
     # ── SABAR GATE (F9+F7 pre-return chokepoint, 2026-06-11) ────────────
+    # LIVE STATUS 2026-10-19: disabled by ARIFOS_DISABLE_SAFETY_THEATRE=1.
+    # The code path below is retained for audit/re-enable, not enforcement.
+    # Token note: SABAR_HOLD here is gate-local; canonical SABAR (verdict.py)
+    # means proceed-cautiously / partial coverage. Do not conflate them.
     # SABAR (Pre-Execution Interceptor) runs AFTER post_observe_gate
     # and BEFORE the response is returned to the caller. It catches:
     #   F7  — overconfident claims (omega_0 or confidence > 0.90)
@@ -5875,6 +5896,11 @@ def _enforce_nine_signal(
                     "confidence",
                     "claim_state",
                     "degraded_state",
+                    # ACAH2 (2026-10-20): handoff transport status must survive
+                    # the nested→top flatten. A marker built at depth and then
+                    # projected out is the built-then-dropped failure class.
+                    "handoff_evidence",
+                    "missing_evidence",
                 ):
                     if _fk in _nested and _fk not in result_payload:
                         result_payload[_fk] = _nested[_fk]
@@ -7249,6 +7275,11 @@ async def _synthesize_async(
         "fabricate evidence references. If the EVIDENCE BLOCK is empty or absent,\n"
         "treat unsupported ASSERTIONS as [UNGROUNDED] and lower overall_confidence\n"
         "accordingly.\n\n"
+        "CLASSIFICATION GATE (D2, F13 D1 2026-10-23): Evidence entries carrying\n"
+        "classification UNKNOWN or CONTRADICTED may NOT support PASS/SEAL-shaped\n"
+        "conclusions — treat UNKNOWN as an open question and preserve CONTRADICTED\n"
+        "entries as contradictions, never averaging them away. Expired entries are\n"
+        "absent by policy.\n\n"
         "PREMISE HANDLING (F2 scope rule, Epistemic Invariant §0.2 — 2026-10-15):\n"
         'Hypothetical questions (kalau / jika / andaikan / suppose / "if ... then")\n'
         "carry GIVEN premises — assumptions granted for the sake of argument.\n"
@@ -7280,6 +7311,20 @@ async def _synthesize_async(
                 continue
             label = ev.get("label") or ev.get("kind") or ev.get("type") or f"obs[{i}]"
             content = ev.get("content") or ev.get("result") or ev.get("summary") or str(ev)[:200]
+            # D2 typed EvidenceObjects (F13 D1 2026-10-23): render
+            # classification, claim, expiry and falsifier explicitly so the
+            # model can honour the classification gate. Legacy
+            # session-observation shapes (no claim key) render unchanged.
+            _claim = ev.get("claim")
+            if _claim is not None:
+                _cls = str(ev.get("classification") or "").upper() or "UNCLASSIFIED"
+                label = f"{ev.get('source_id') or label} [{_cls}]"
+                content = (
+                    f"{_claim}"
+                    f" (observed_at={ev.get('observed_at') or '?'},"
+                    f" expires_at={ev.get('expires_at') or 'none'},"
+                    f" falsifier={ev.get('falsifier') or 'not-stated'})"
+                )
             evidence_block_lines.append(f"- [{i}] {label}: {str(content)[:300]}")
         evidence_block = "\n".join(evidence_block_lines)
     else:
@@ -7469,7 +7514,7 @@ def get_constitution_identity() -> dict[str, Any]:
     c_hash = _load_constitution_hash()
     if c_hash in ("sha256:missing", "sha256:unavailable"):
         # P0-2 fix: use full 64-char hash, never truncated
-        FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Maruah, F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auditability, F12: Resilience, F13: Sovereign"""
+        FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Maruah (machine-restraint; never a dignity score — docs/canon/F6_MARUAH_CANON.md), F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auditability, F12: Resilience, F13: Sovereign"""
         c_hash = f"sha256:{hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()}"
 
     return {
@@ -8801,9 +8846,7 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
                     dst["substrate"] = {
                         "state": _sys["substrate_state"],
                         "drift": bool(_sys.get("substrate_degraded_causes")),
-                        "degraded_causes": list(
-                            _sys.get("substrate_degraded_causes") or []
-                        ),
+                        "degraded_causes": list(_sys.get("substrate_degraded_causes") or []),
                         "source": "system_reading",
                         "measured_at": _sys.get("measured_at"),
                     }
@@ -9186,6 +9229,35 @@ def build_standard_mcp_result(
     return envelope
 
 
+def _arif_init_refusal_fields(payload: dict[str, Any]) -> tuple[list[str], str] | None:
+    """Detect an arif_init INPUT-CONTRACT refusal and return (missing_fields, reason).
+
+    F03: a refusal must drive the envelope. Returns None when init did not refuse.
+    Recognises the two shapes the kernel emits: the result block carries
+    ``failure_type``/``missing_fields``, or the top level carries ``error_code``
+    MISSING_INPUT together with HOLD.
+    """
+    if not isinstance(payload, dict):
+        return None
+    result = payload.get("result")
+    blocks = [result] if isinstance(result, dict) else []
+    blocks.append(payload)
+    for block in blocks:
+        failure = str(block.get("failure_type") or "").upper()
+        error_code = str(block.get("error_code") or "").upper()
+        status = str(block.get("status") or "").upper()
+        if failure in {"MISSING_REQUIRED_INPUT", "MISSING_INPUT"} or error_code == "MISSING_INPUT":
+            missing = block.get("missing_fields") or []
+            if isinstance(missing, str):
+                missing = [missing]
+            missing = [str(m) for m in missing]
+            reason = str(block.get("reason") or failure or "missing required input")
+            return (missing, reason)
+        if status == "HOLD" and "MISSING" in failure:
+            return ([], str(block.get("reason") or "missing required input"))
+    return None
+
+
 def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Post-process any tool return to guarantee the full metacognitive grammar.
 
@@ -9246,22 +9318,69 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     # sessions with HOLD/constitutional_check. Session bind is DETERMINISTIC —
     # never invent conf=0.65→ADVISORY_ONLY or conf=0.85 probabilistic bands.
     if tool == "arif_init":
+        # F03 (external audit, 2026-10-18): derive the envelope from the INPUT
+        # CONTRACT outcome, not from the assumption that init succeeded.
+        # A MISSING_INPUT rejection used to be wrapped with the success fact
+        # "Session bound (deterministic identity bind)" and a next_action that
+        # told the caller to proceed — an AI caller reads the success line and
+        # misses the refusal. The refusal is correct; the framing was not.
+        _refusal = _arif_init_refusal_fields(payload)
+        if _refusal is not None:
+            _missing, _reason = _refusal
+            _missing_txt = ", ".join(_missing) if _missing else "required inputs"
+            _built = build_standard_mcp_result(
+                tool=tool,
+                facts=[
+                    f"arif_init REFUSED — missing required input: {_missing_txt}",
+                    "No session was created. Session id is unknown; no identity was bound.",
+                ],
+                inferences=[
+                    {"type": "session_refused", "missing_fields": _missing},
+                ],
+                unknowns=[f"Session not established: {_reason}"],
+                confidence=0.0,
+                next_safe_action=(
+                    f"Supply {_missing_txt} explicitly, then retry arif_init. "
+                    "Do not proceed to arif_observe or arif_think — there is no session."
+                ),
+                raw_result=payload,
+                mode="refusal",
+            )
+            _preserve_arif_init_truth(payload, _built)
+            _stamped = _stamp_arif_init_deterministic(_built)
+            _reconcile_legacy_aliases_with_token(_stamped)
+            return _stamped
+
         _identity = payload.get("identity", {}) if isinstance(payload, dict) else {}
+        _sid = payload.get("session_id", "unknown")
+        _mode = payload.get("init_mode") or payload.get("mode") or "init"
+        _is_canary = _mode == "canary" or _sid == "unknown"
+
+        if _is_canary:
+            _facts = [
+                "Canary probe only (unbound ephemeral session, no mutation/seal authority)",
+                "Session id is unknown; actor is unverified; read-only inspection allowed.",
+            ]
+            _next_safe = "Session is unbound canary. Call arif_init(mode='init') to bind an authentic session."
+        else:
+            _facts = ["Session bound (deterministic identity bind)"]
+            _next_safe = "Proceed to arif_observe or arif_think with this session."
+
         _built = build_standard_mcp_result(
             tool=tool,
-            facts=["Session bound (deterministic identity bind)"],
+            facts=_facts,
             inferences=[
                 {
-                    "type": "session_create",
+                    "type": "canary_probe" if _is_canary else "session_create",
                     "actor": _identity.get("declared_actor_id", payload.get("actor", "unknown"))
                     if isinstance(_identity, dict)
                     else payload.get("actor", "unknown"),
                 }
             ],
             confidence=1.0,  # placeholder — stamped over immediately
-            next_safe_action="Proceed to arif_observe or arif_think with this session.",
+            next_safe_action=_next_safe,
             raw_result=payload,
-            mode="init",
+            mode="canary" if _is_canary else "init",
         )
         # A1 + G8 (2026-08-05): preserve engine truth then floor SEAL-over-drift.
         # build_standard_mcp_result invents verdict="SEAL" and drops substrate.
@@ -9677,6 +9796,20 @@ def _ok(
             actor_id=actor_id or "",
             session_id=session_id or "",
         )
+        try:
+            from core.governance_kernel import get_governance_kernel
+
+            get_governance_kernel("global").record_event(
+                "action",
+                {
+                    "tool": tool,
+                    "session_id": session_id or "global",
+                    "actor_id": actor_id or "",
+                    "timestamp": time.time(),
+                },
+            )
+        except Exception:
+            pass
     except Exception:
         pass  # APEX metrics are best-effort
     invocation_count = None
@@ -14666,79 +14799,22 @@ def _arif_mind_reason(
     # embodied_tool_engine also crashed the path → SAFE_VOID. Serve axioms
     # before the gate — read-only, zero blast radius.
     if mode == "axioms":
+        # F1–F13 catalogue is DERIVED from the single canon module.
+        # 2026-10-20 F2 fix: this block used to carry its own floor table —
+        # F06 EMPATHY / F11 "verify identity" — at confidence 0.97, directly
+        # contradicting arifos://doctrine (F06 MARUAH / F11 AUDIT) and
+        # violating the F02 0.90 confidence cap. One canon, many renderers.
+        from arifosmcp.constitutional_canon import CONFIDENCE_CAP, axiom_catalogue
+
         return _ok(
             "arif_mind_reason",
             {
                 "mode": "axioms",
-                "axioms": [
-                    {
-                        "id": "L01_AMANAH",
-                        "text": "Trustworthiness — every action is accountable.",
-                        "confidence": 0.98,
-                    },
-                    {
-                        "id": "L02_TRUTH",
-                        "text": "Truthfulness — no deception, no hallucination passed as fact.",
-                        "confidence": 0.97,
-                    },
-                    {
-                        "id": "L03_WITNESS",
-                        "text": "Witness — evidence must be verifiable and preserved.",
-                        "confidence": 0.96,
-                    },
-                    {
-                        "id": "L04_CLARITY",
-                        "text": "Clarity — intent and mechanism are transparent.",
-                        "confidence": 0.95,
-                    },
-                    {
-                        "id": "L05_PEACE",
-                        "text": "Peace — no harm to human dignity or safety.",
-                        "confidence": 0.97,
-                    },
-                    {
-                        "id": "L06_EMPATHY",
-                        "text": "Empathy — consider human consequence before acting.",
-                        "confidence": 0.94,
-                    },
-                    {
-                        "id": "L07_HUMILITY",
-                        "text": "Humility — acknowledge limits and uncertainty.",
-                        "confidence": 0.96,
-                    },
-                    {
-                        "id": "L08_GENIUS",
-                        "text": "Genius — strive for elegant, correct solutions.",
-                        "confidence": 0.93,
-                    },
-                    {
-                        "id": "L09_ANTIHANTU",
-                        "text": "Anti-Hantu — detect and reject manipulation.",
-                        "confidence": 0.95,
-                    },
-                    {
-                        "id": "L10_ONTOLOGY",
-                        "text": "Ontology — preserve structural coherence.",
-                        "confidence": 0.94,
-                    },
-                    {
-                        "id": "L11_AUDIT",
-                        "text": "Authority — verify identity before irreversible acts.",
-                        "confidence": 0.97,
-                    },
-                    {
-                        "id": "L12_INJECTION",
-                        "text": "Injection Guard — sanitize all inputs.",
-                        "confidence": 0.98,
-                    },
-                    {
-                        "id": "L13_SOVEREIGN",
-                        "text": "Sovereign — human veto is absolute.",
-                        "confidence": 0.99,
-                    },
-                ],
-                "confidence": 0.97,
+                "axioms": axiom_catalogue(),
+                "confidence": CONFIDENCE_CAP,
+                "confidence_basis": "canonical_floor_statements (F02 cap)",
                 "claim_state": "CLAIM",
+                "canon_source": "arifosmcp/constitutional_canon.py",
             },
             delta_S=0.001,
             session_id=session_id,
@@ -15729,8 +15805,9 @@ async def _arif_mind_reason_tool(
     witness_type: str = "ai",
     ctx: Context | None = None,
     concise: bool = True,
+    context: dict | None = None,
+    evidence: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
 
@@ -15738,6 +15815,13 @@ async def _arif_mind_reason_tool(
     deterministic and go directly to _arif_mind_reason. Cognitive modes
     (reason, reflect, verify, critique, debate, socratic) route through
     runtime.mind_reason which provides FED-FEDERATION → Ollama → rule fallback.
+
+    context (2026-10-20, ACAH2 evidence journey): structured sideband.
+    context["handoff"] = hermes_handoff_package envelope. The recipient reports
+    evidence TRANSPORT status only (REFS_RESOLVED / EVIDENCE_NOT_RECEIVED /
+    EVIDENCE_UNAVAILABLE / HASH_MISMATCH) and never upgrades claim_state from a
+    handoff summary. Failure class closed: schema-stripped handoff (the
+    handoff never arrived but the answer read as if it did).
 
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
@@ -15786,6 +15870,7 @@ async def _arif_mind_reason_tool(
                 actor_id=actor_id,
                 plan_id=plan_id,
                 witness_type=witness_type,
+                evidence=evidence,
             )
             # P1 telemetry: deterministic bypass must expose handler_entered,
             # model_started=false, handler_returned=true so callers can diagnose
@@ -15843,6 +15928,24 @@ async def _arif_mind_reason_tool(
                     )
             except Exception:
                 _active_evidence = None  # never let evidence lookup break the think path
+            # D2 evidence channel (F13 D1 2026-10-23): typed EvidenceObjects
+            # from the wire pass the admission gate (expired omitted,
+            # UNKNOWN/CONTRADICTED gated, malformed rejected) and merge with
+            # session observations; the admission summary echoes in the result.
+            _d2_admission = None
+            if evidence:
+                from arifosmcp.runtime.evidence_admission import admit_evidence
+
+                _ev = admit_evidence(evidence)
+                _d2_admission = {
+                    "consumed": _ev["consumed"],
+                    "expired_omitted": _ev["expired_omitted"],
+                    "rejected": _ev["rejected"],
+                    "counts": _ev["counts"],
+                }
+                _admitted = [a["evidence"] for a in _ev["admitted_items"]]
+                if _admitted:
+                    _active_evidence = (_active_evidence or []) + _admitted
             synthesis = await asyncio.wait_for(
                 _synthesize_async(query or "", reasoning_mode=mode, evidence=_active_evidence),
                 timeout=_think_budget_s,
@@ -15852,6 +15955,7 @@ async def _arif_mind_reason_tool(
                 "status": "OK",
                 "tool": "arif_mind_reason",
                 "verdict": synthesis.get("verdict", "CLAIM"),
+                **({"evidence_admission": _d2_admission} if _d2_admission else {}),
                 "result": {
                     "query": query,
                     "synthesis": synthesis.get("bounded_answer", ""),
@@ -18290,7 +18394,7 @@ async def _arif_heart_critique(
       simulate   — Run a what-if scenario and project risk outcomes.
       empathize  — Assess human impact load (Ω) on weakest stakeholders.
       redteam    — Attack surface analysis.
-      maruah     — Dignity score (L05 Peace) / F6 MARUAH.
+      maruah     — Advisory human-impact posture signal. NOT a dignity measure (F6 canon 2026-10-23 — docs/canon/F6_MARUAH_CANON.md).
       deescalate — Risk reduction strategy.
 
     Parameters:
@@ -18564,7 +18668,7 @@ async def _arif_heart_critique(
             result["output_policy"] = "DOMAIN_SEAL"
 
         # ── L05/L06 Dignity Breakdown ──────────────────────────────────────────
-        # Quantifies "Maruah" (ASEAN dignity floor) for human impact assessment
+        # Advisory posture signal for human-impact assessment — never a dignity score (F6 canon 2026-10-23)
         _dignity_breakdown = {
             "autonomy_preservation_F04": {
                 "metric": "Does this action diminish 888's sovereignty?",
@@ -25207,6 +25311,145 @@ def _arif_daily_intelligence_brief(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# arif_report — AGENT REPORT LANE (F13 2026-10-20)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Takes the human out of the agent loop. Agents file reports into a peer lane;
+# agents read each other's reports. Only kind=decision|blocked reaches the human,
+# and only in one coalesced message per push window.
+def _caller_verified() -> bool:
+    """True only when the inbound request carries a cryptographically verified ACT.
+
+    Unverified callers may still file reports, but they may not, on their own
+    authority, decide that a report deserves the human's attention.
+    """
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers() or {}
+    except Exception:
+        return False
+    auth = str(headers.get("authorization") or headers.get("Authorization") or "")
+    if not auth.lower().startswith("bearer "):
+        return False
+    token = auth.split(" ", 1)[1].strip()
+    if not token:
+        return False
+    try:
+        from arifosmcp.runtime.act_token import verify_act
+
+        claims = verify_act(token, expected_actor=None)
+    except Exception:
+        return False
+    return bool(isinstance(claims, dict) and claims.get("av") is True)
+
+
+def _caller_actor() -> str:
+    """Server-stamped caller identity (AgentsRoom pattern — F13 2026-10-21).
+
+    Agents may not mint their own identity: `sender` in the payload is kept as
+    `sender_claimed` only. This returns the SERVER-side view — the ACT subject
+    when the call carries a verified token, else "anonymous".
+    """
+    try:
+        from fastmcp.server.dependencies import get_http_headers
+
+        headers = get_http_headers() or {}
+    except Exception:
+        return "anonymous"
+    auth = str(headers.get("authorization") or headers.get("Authorization") or "")
+    if not auth.lower().startswith("bearer "):
+        return "anonymous"
+    token = auth.split(" ", 1)[1].strip()
+    if not token:
+        return "anonymous"
+    try:
+        from arifosmcp.runtime.act_token import verify_act
+
+        claims = verify_act(token, expected_actor=None)
+    except Exception:
+        return "anonymous"
+    if not (isinstance(claims, dict) and claims.get("av") is True):
+        return "anonymous"
+    return str(claims.get("sub") or claims.get("actor_id") or "verified-actor")[:120]
+
+
+async def _arif_report(
+    mode: str = "report",
+    kind: str = "fyi",
+    subject: str | None = None,
+    body: str | None = None,
+    sender: str | None = None,
+    platform: str | None = None,
+    thread_id: str | None = None,
+    evidence: Any = None,
+    needs_human: bool | None = None,
+    report_id: str | None = None,
+    since: str | None = None,
+    limit: int = 20,
+    mark_read: bool = False,
+    force: bool = False,
+    dry_run: bool = False,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    session_token: str | None = None,
+    _envelope: Any = None,
+) -> dict[str, Any]:
+    """Agent report lane — peer coordination without waking the human."""
+    from arifosmcp.runtime import report_lane as rl
+
+    m = (mode or "report").strip().lower()
+    who = (sender or actor_id or "unknown").strip()
+    plat = (platform or "mcp").strip()
+
+    if m == "report":
+        result = rl.report(
+            sender=who,
+            platform=plat,
+            kind=kind,
+            subject=subject or "",
+            body=body or "",
+            session_id=session_id,
+            thread_id=thread_id,
+            evidence=evidence,
+            needs_human=needs_human,
+            verified_actor=_caller_verified(),
+            dry_run=dry_run,
+            server_actor=_caller_actor(),
+        )
+    elif m == "inbox":
+        result = rl.inbox(
+            since=since,
+            sender=sender,
+            kind=kind if kind not in ("fyi", "all") else None,
+            limit=limit,
+            mark_read=mark_read,
+            reader=who,
+            verified_actor=_caller_verified(),
+        )
+    elif m == "ack":
+        result = rl.ack(
+            reader=who,
+            report_id=report_id or "",
+            thread_id=thread_id,
+            verified_actor=_caller_verified(),
+        )
+    elif m == "flush":
+        result = rl.flush_human(force=force, dry_run=dry_run)
+    elif m == "stats":
+        result = rl.stats()
+    else:
+        result = {
+            "status": "error",
+            "reason": f"unknown mode {mode!r}",
+            "valid_modes": ["report", "inbox", "ack", "flush", "stats"],
+        }
+
+    result["tool"] = "arif_report"
+    result["actor_id"] = who
+    return _ok("arif_report", result, delta_S=-0.001)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -26479,6 +26722,9 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_reply_compose": _arif_reply_compose_tool,
     "arif_memory": _arif_memory_v5_router,
     "arif_memory_recall": _arif_memory_v5_router,
+    # AGENT REPORT LANE (F13 2026-10-20): peer coordination bus. Agents file and
+    # read each other's reports; only decision|blocked reaches the human.
+    "arif_report": _arif_report,
     "arif_measure": _arif_ops_measure,
     "arif_ops_measure": _arif_ops_measure,
     "arif_explore": _arif_sense_observe,
@@ -27757,6 +28003,7 @@ def _record_invocation(
     ok: bool = True,
     duration_ms: float | None = None,
     error: str | None = None,
+    verdict: str | None = None,
 ) -> None:
     """Append one invocation receipt to the shared federation telemetry sink.
 
@@ -27786,10 +28033,146 @@ def _record_invocation(
             ok=ok,
             duration_ms=duration_ms,
             session_id=str(session_id) if session_id else None,
+            verdict=verdict,
             error=error,
         )
     except Exception:
         pass  # telemetry must never break the tool call it measures
+
+
+# ── 2026-10-21 VERDICT-TRUTH FIX ─────────────────────────────────────────────
+# Root cause (KITARAN follow-up): _wrap_handler's success path called
+# _record_invocation(ok=True) purely because the handler did not RAISE. A
+# governed HOLD/SABAR/PARTIAL response is a successful transport of a
+# NON-PASS verdict, not a pass — persisting it as ok:true poisoned the CER/ASD
+# numerators in /var/lib/arifos/metrics/tool_invocations.jsonl.
+#
+# Law: telemetry `ok` is derived from the response's OWN verdict. Only the
+# explicit non-pass verdict set maps to ok=False (unknown statuses fail OPEN
+# here — verdict enforcement is the kernel's job, not telemetry's). Historical
+# records are NEVER rewritten; the fix is at the write boundary only.
+_NON_PASS_VERDICTS: frozenset[str] = frozenset(
+    {"HOLD", "SABAR", "PARTIAL", "VOID", "PROVISIONAL", "HOLD_888"}
+)
+
+
+def _invocation_ok_from_response(response: Any) -> tuple[bool, str | None]:
+    """Derive (ok, verdict_label) strictly from the response's verdict fields.
+
+    Reads the first truthy verdict carrier: effective_verdict → verdict →
+    status → result.verdict → result.status (mirrors what _dict_from_response
+    and the R-1d tags show the wire actually carries). NEVER raises.
+    """
+    try:
+        d = _dict_from_response(response)
+        result = d.get("result")
+        if not isinstance(result, dict):
+            result = {}
+        verdict: str | None = None
+        for cand in (
+            d.get("effective_verdict"),
+            d.get("verdict"),
+            d.get("status"),
+            result.get("verdict"),
+            result.get("status"),
+        ):
+            if isinstance(cand, str) and cand.strip():
+                verdict = cand.strip().upper()
+                break
+        if verdict is None:
+            return True, None  # no verdict carrier → not a governed response
+        return verdict not in _NON_PASS_VERDICTS, verdict[:64]
+    except Exception:
+        return True, None  # telemetry derivation must never break dispatch
+
+
+def _attach_handoff_evidence_from_input(resp: dict[str, Any], kwargs: dict[str, Any]) -> None:
+    """ACAH2 evidence journey (2026-10-20) — recipient-side transport truth.
+
+    Single wire choke point. The handler-level merges (mind_reason, tools/reason,
+    embodied instances) cannot survive the wrapper stack on every path:
+    `_filter_kwargs_for_handler` strips `context` from handlers whose signature
+    lacks it, `Synthesis(**bundle)` ignores undeclared fields, and the
+    AGI-readiness/concise rebuilds construct result dicts from literals. This
+    resolver reads the handoff envelope from the RAW call kwargs — which no
+    projection touches — and attaches at the final wire boundary:
+
+      handoff_evidence  — full transport record (REFS_RESOLVED /
+                          EVIDENCE_NOT_RECEIVED / EVIDENCE_UNAVAILABLE /
+                          HASH_MISMATCH per claim+ref)
+      missing_evidence  — human-readable markers incl. IDENTITY_UNVERIFIED
+      claim_state       — NEVER upgraded from a summary; downgraded to
+                          HYPOTHESIS when nothing was retrieved
+
+    Idempotent: never overwrites a handler-emitted handoff_evidence block.
+    """
+    if not isinstance(resp, dict):
+        return
+    ctx = kwargs.get("context")
+    handoff = ctx.get("handoff") if isinstance(ctx, dict) else None
+    if not isinstance(handoff, dict):
+        handoff = kwargs.get("handoff")
+    if not isinstance(handoff, dict):
+        return
+    try:
+        from arifosmcp.tools.reason import _resolve_handoff_evidence as _rhe
+
+        ev = _rhe({"handoff": handoff}) or {}
+    except Exception:
+        logger.debug("handoff evidence resolution failed", exc_info=True)
+        return
+    if not ev:
+        return
+    markers: list[str] = []
+    for c in ev.get("claims", []):
+        if c.get("evidence_transfer") == "EVIDENCE_NOT_RECEIVED":
+            markers.append(f"EVIDENCE_NOT_RECEIVED: {c.get('statement', '')}")
+        for r in c.get("refs", []):
+            if r.get("status") == "EVIDENCE_UNAVAILABLE":
+                markers.append(f"EVIDENCE_UNAVAILABLE: {r.get('ref', '')}")
+            elif r.get("status") == "HASH_MISMATCH":
+                markers.append(f"HASH_MISMATCH: {r.get('ref', '')}")
+        if not c.get("principal_key_safe", True):
+            markers.append("IDENTITY_UNVERIFIED: do not use this principal as a profile/memory key")
+    resolved = int(ev.get("summary", {}).get("resolved", 0) or 0)
+    _downgrade_note = (
+        "handoff evidence not retrieved — claim_state downgraded to HYPOTHESIS "
+        "(no status upgrade without new verification)"
+    )
+
+    def _apply(d: Any) -> None:
+        if not isinstance(d, dict):
+            return
+        if "handoff_evidence" not in d:
+            d["handoff_evidence"] = ev
+        me = d.get("missing_evidence")
+        if not isinstance(me, list):
+            me = []
+            d["missing_evidence"] = me
+        for m in markers:
+            if m not in me:
+                me.append(m)
+        if resolved == 0 and str(d.get("claim_state", "")).upper() in {
+            "CLAIM",
+            "VERIFIED_FACT",
+            "SUPPORTED_CLAIM",
+        }:
+            d["claim_state"] = "HYPOTHESIS"
+            if _downgrade_note not in me:
+                me.append(_downgrade_note)
+
+    _apply(resp)
+    res = resp.get("result")
+    if isinstance(res, dict):
+        _apply(res)
+        inner = res.get("result")
+        if isinstance(inner, dict):
+            _apply(inner)
+    logger.info(
+        "ACAH2 handoff evidence attached at wire: markers=%d resolved=%d",
+        len(markers),
+        resolved,
+    )
 
 
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
@@ -28113,12 +28496,15 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             response = handler(*args, **_filtered)
             _latency_ms = (_time.time() - _start_t) * 1000.0
             # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            # 2026-10-21: ok is the response's OWN verdict, not "didn't raise".
+            _ok, _verdict = _invocation_ok_from_response(response)
             _record_invocation(
                 tool_name,
                 actor_id=kwargs.get("actor_id"),
                 session_id=kwargs.get("session_id"),
-                ok=True,
+                ok=_ok,
                 duration_ms=_latency_ms,
+                verdict=_verdict,
             )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
@@ -28288,6 +28674,12 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _schedule_seal(final_resp, tool_name, kwargs)
         # P3 FIX (2026-07-19): V2 envelope guarantee on the sync-success path.
         _attach_v2_envelope_guarantee(final_resp, tool_name)
+        # ACAH2 (2026-10-20): handoff evidence transport truth at the wire
+        # choke point — after all envelope normalization, before the trim.
+        try:
+            _attach_handoff_evidence_from_input(final_resp, kwargs)
+        except Exception:
+            logger.exception("handoff evidence attach suppressed")
         # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
         # Root cause: Supabase adapter (arifOS.supabase_adapter) was never
         # created. Old writer removed during incomplete migration. Silent
@@ -28549,12 +28941,15 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
             _latency_ms = (_time.time() - _start_t) * 1000.0
             # ── KITARAN Tuas 2: shared invocation receipt (name only) ──────
+            # 2026-10-21: ok is the response's OWN verdict, not "didn't raise".
+            _ok, _verdict = _invocation_ok_from_response(response)
             _record_invocation(
                 tool_name,
                 actor_id=kwargs.get("actor_id"),
                 session_id=kwargs.get("session_id"),
-                ok=True,
+                ok=_ok,
                 duration_ms=_latency_ms,
+                verdict=_verdict,
             )
             # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
             try:
@@ -29338,7 +29733,51 @@ def register_tools(
                         _ft = _components.get(_tool_key)
                         if _ft is not None and hasattr(_ft, "parameters"):
                             if spec and spec.input_schema:
-                                _ft.parameters = dict(spec.input_schema)
+                                # PHANTOM-PARAM GATE (F2 TRUTH, 2026-10-20):
+                                # the static input_schema may advertise parameters
+                                # the live handler cannot accept. FastMCP builds the
+                                # argument model from the HANDLER signature, so an
+                                # advertised-but-unaccepted param is a hard client
+                                # error that reports as "invalid input types".
+                                # Live evidence: arif_think advertised `concise`
+                                # (handler: embodied_mind_reason_handler, no such
+                                # param) — every call passing it died. Advertise
+                                # only what the handler can actually receive, and
+                                # say so loudly instead of shipping the lie.
+                                _schema = dict(spec.input_schema)
+                                _declared = set((_schema.get("properties") or {}).keys())
+                                try:
+                                    _sig = inspect.signature(handler)
+                                    _accepted = {
+                                        p.name
+                                        for p in _sig.parameters.values()
+                                        if p.kind
+                                        in (
+                                            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                                            inspect.Parameter.KEYWORD_ONLY,
+                                        )
+                                    }
+                                    _phantom = sorted(_declared - _accepted)
+                                    if _phantom:
+                                        _schema["properties"] = {
+                                            k: v
+                                            for k, v in (_schema.get("properties") or {}).items()
+                                            if k in _accepted
+                                        }
+                                        if _schema.get("required"):
+                                            _schema["required"] = [
+                                                r for r in _schema["required"] if r in _accepted
+                                            ]
+                                        logger.warning(
+                                            "PHANTOM PARAM GATE %s: advertised but not accepted "
+                                            "by handler %s — dropped from wire schema: %s",
+                                            name,
+                                            getattr(handler, "__name__", type(handler).__name__),
+                                            _phantom,
+                                        )
+                                except (TypeError, ValueError):
+                                    pass  # C-builtins / no signature: leave schema untouched
+                                _ft.parameters = _schema
                             _params = _ft.parameters
                             if _modes and "properties" in _params:
                                 if "mode" in _params["properties"]:
@@ -29453,6 +29892,52 @@ def register_tools(
                     logger.warning("Failed to register %s: %s", _name, _reg_exc)
         except Exception as _e2_exc:  # noqa: BLE001
             logger.warning("E2 diagnostic tools skipped: %s", _e2_exc)
+
+    # ── AGENT REPORT LANE (F13 2026-10-20) — additive to the ratified 8 ────
+    # arif_report is a COORDINATION channel, not a constitutional verb: it does
+    # not judge, mutate, or seal. It takes the human out of the agent loop —
+    # agents file and read each other's reports, and only decision|blocked
+    # reaches F13, coalesced. Registered outside the ABI profile so the
+    # sovereign 8-verb facade stays exactly 8.
+    try:
+        # Wire meta: same compact projection as the canonical loop (F2 — an
+        # agent reading tools/list must see the lane's purpose, modes, and
+        # authority boundary, not an unnamed tool).
+        from arifosmcp.tool_charter import CANONICAL_ORDER as _rep_canon_order
+        from arifosmcp.tool_charter import surface_manifest as _rep_surface_manifest
+
+        _rep_manifest = _rep_surface_manifest("arif_report", full=False)
+        _rep_meta = {
+            "arifos_manifest": _rep_manifest,
+            "stage_code": _rep_manifest.get("stage_code", ""),
+            "stage_name": _rep_manifest.get("stage_name", ""),
+            "risk_tier": (_rep_manifest.get("risk") or {}).get("tier", "low"),
+            "irreversible": (_rep_manifest.get("risk") or {}).get("irreversible", False),
+            "requires_human_ack": (_rep_manifest.get("risk") or {}).get(
+                "requires_human_ack", False
+            ),
+            "canonical_order": list(_rep_canon_order),
+            "manifest_surface": "compact",
+        }
+        mcp.tool(
+            name="arif_report",
+            description=(
+                "AGENT REPORT LANE · File or read reports between agents without "
+                "involving the human. Use when your work is done, when you are "
+                "blocked by another agent, or when you need to tell peers a fact. "
+                "modes: report (file), inbox (read peers), ack, flush, stats. "
+                "kind=fyi|peer|done|claim stay in the peer lane; ONLY kind=decision "
+                "or kind=blocked reach the sovereign, and only in one coalesced "
+                "message. Reports are SELF_REPORTED — probe before relying on one."
+            ),
+            tags={"coordination", "arifos", "non-constitutional"},
+            annotations={"readOnlyHint": False, "destructiveHint": False},
+            meta=_rep_meta,
+        )(_arif_report)
+        registered.append("arif_report")
+        logger.info("AGENT REPORT LANE: registered arif_report (coordination channel)")
+    except Exception as _rep_exc:  # noqa: BLE001
+        logger.warning("arif_report registration skipped: %s", _rep_exc)
 
     return registered
 

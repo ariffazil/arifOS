@@ -24,6 +24,7 @@ import hashlib
 import json
 import logging
 import time
+import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -52,7 +53,14 @@ PUBLIC_CANONICAL_TOOLS: frozenset[str] = frozenset(
 )
 
 # Snapshot TTL — observations older than this are marked stale at the snapshot layer.
-TEST_FRESHNESS_SECONDS = 300  # 5 min — matches `cadence: capability graph` in plan §telemetry
+TEST_FRESHNESS_SECONDS = 86700  # 24h+margin — cadence-aligned 2026-10-20:
+# the producer is arifos-capability-probe.timer (daily 06:15, unit description
+# 'daily fresh-SUCCESS writes for F-002'). The previous 300s window made
+# tested_count>0 possible only within 5 min after a probe — the gate could
+# never stay RESOLVED against its own declared evidence cadence (calibration
+# contradiction, same class as the F1 φFQ mapping fix). 'tested' now means
+# 'a passing test within the probe cadence'. Per-tool age_seconds +
+# last_test_at remain the honest freshness display.
 # Durable SUCCESS within this window counts as proven_live (not necessarily "fresh").
 PROVEN_LIVE_SECONDS = 86_400  # 24h
 
@@ -572,7 +580,9 @@ def compute_capability_matrix(
     exposed_public = exposed & PUBLIC_CANONICAL_TOOLS if exposed else set(PUBLIC_CANONICAL_TOOLS)
     if not exposed:
         # server.json miss: if registered on public wire, treat as exposed on public facade
-        exposed_public = set(registered_public) if registered_public is not None else set(PUBLIC_CANONICAL_TOOLS)
+        exposed_public = (
+            set(registered_public) if registered_public is not None else set(PUBLIC_CANONICAL_TOOLS)
+        )
         exposed = set(registered) if registered is not None else set()
 
     test_cache = _load_test_cache()
@@ -591,7 +601,9 @@ def compute_capability_matrix(
         canon = registry_index.get(tool_name, {})
         is_public = tool_name in PUBLIC_CANONICAL_TOOLS
         if registered is not None:
-            in_registered = tool_name in registered or (registered_public is not None and tool_name in registered_public)
+            in_registered = tool_name in registered or (
+                registered_public is not None and tool_name in registered_public
+            )
         else:
             in_registered = None
         in_exposed = tool_name in exposed or tool_name in exposed_public
@@ -750,4 +762,65 @@ def per_field_age(
         "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(observed_at_epoch)),
         "age_seconds": age,
         "confidence": confidence,
+    }
+
+
+# ── A-FORGE registry alignment (F2 FIX · kimi-code/FI-008 · 2026-10-20) ─────────
+def measure_aforge_registry_alignment() -> dict[str, Any]:
+    """Live probe: is the A-FORGE registry surface aligned with the live tool set?
+
+    Retires the hard-coded claim "forge_registry_status exposes stale 31-tool
+    hard-coded list vs live 65+", which was cited from an archived alignment doc
+    (docs/archive/cleanup-2026-07-20/ARIFOS_AFORGE_TOOL_ALIGNMENT_MAP.md:108)
+    and narrated as registry truth at confidence 0.99. As of 2026-10-20 the live
+    forge_registry_status introspects the MCP registry dynamically (verified:
+    fingerprint total == tools_listed), so the claim was a fossil, not a probe.
+
+    Measurement: :7072/health tools_listed (registry surface) vs
+    :7071/health tool_count (executor surface) — both derive from the same
+    in-memory tool registry. Fail-closed: an unreachable probe returns state
+    "unknown" and capability_drift None — never a narrated verdict (F7).
+    """
+
+    def _health_field(port: int, field: str) -> Any:
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2.5) as resp:
+                body = json.loads(resp.read().decode("utf-8", "replace"))
+            return body.get(field) if isinstance(body, dict) else None
+        except Exception:  # noqa: BLE001 — probe failure is UNKNOWN
+            return None
+
+    registry_listed = _health_field(7072, "tools_listed")
+    live_count = _health_field(7071, "tool_count")
+    evidence = (
+        f":7072/health tools_listed={registry_listed!r}; :7071/health tool_count={live_count!r}"
+    )
+    if isinstance(registry_listed, int) and isinstance(live_count, int):
+        if registry_listed == live_count:
+            return {
+                "capability_drift": False,
+                "text": (
+                    f"ALIGNED: live registry surfaces agree ({live_count} tools); "
+                    "legacy 31-tool claim retired 2026-10-20"
+                ),
+                "state": "measured",
+                "confidence": 0.9,
+                "evidence": evidence,
+            }
+        return {
+            "capability_drift": True,
+            "text": (
+                "DRIFTED: registry surfaces disagree "
+                f"(:7072 listed={registry_listed} vs :7071 live={live_count})"
+            ),
+            "state": "measured",
+            "confidence": 0.9,
+            "evidence": evidence,
+        }
+    return {
+        "capability_drift": None,
+        "text": "UNVERIFIED: A-FORGE registry surfaces unreachable",
+        "state": "unknown",
+        "confidence": 0.0,
+        "evidence": evidence,
     }

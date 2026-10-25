@@ -4,6 +4,34 @@ All notable changes to the arifOS constitutional kernel.
 
 ## [Unreleased]
 
+## [2026-10-22] External Footprint & Epistemic Demarcation
+
+### Added
+- External Footprint Register (`docs/EXTERNAL_FOOTPRINT.md`) and Canonical External Witness Ledger (`docs/EXTERNAL_WITNESS_LEDGER.md`).
+- Verified External Footprint classification (Tier W1 Public Registries, Tier W2 Independent Catalogs).
+- Candidate Independent References section (Tier W3: Agentrust, Tom Rochette, Hapax Systems).
+- Public discovery status disclosures across `mcp.arif-fazil.com`, `llms.txt`, and `claims.json`.
+- Disproof and Rejection Log tracking falsified/unverified claims as an anti-cult invariant.
+
+### Changed
+- Explicit distinction enforced across public surfaces:
+  - Discoverability ≠ Validation
+  - Indexing ≠ Endorsement
+  - Mention ≠ Adoption
+  - Claim ≠ Evidence
+- Replaced self-referential positioning with observable public discovery metrics.
+
+### Preserved
+- No constitutional floor changes (F1–F13 unchanged).
+- No MCP wire protocol changes.
+- No authority model changes.
+- No execution pathway changes.
+
+### Open Gaps
+- Independent verifier kit not yet bound into continuous CI (Open Gap 4).
+- Academic peer review not yet established.
+- Third-party reproduction pipeline incomplete.
+
 ### Added
 - Theory of Operating System academic paper (LaTeX + PDF)
 - Enhanced federation state reporting (`now` command)

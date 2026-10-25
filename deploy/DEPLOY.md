@@ -37,6 +37,20 @@ curl -sf http://localhost:8088/health
 curl -sf http://localhost:8088/tools | python3 -c "import sys,json; print(len(json.load(sys.stdin)['tools']))"
 ```
 
+## Never deploy from a dirty tree (measured 2026-10-23)
+
+`deploy-release.sh` builds its wheel from the working tree as-is. On 2026-10-23 01:34 an uncommitted one-line change in `request_trust.py` was grep-confirmed **inside the production wheel** minutes after a concurrent deploy. Before every deploy:
+
+```bash
+git status -s   # the files you intend to ship must be committed
+# dirty tree (yours or a concurrent writer's)? deploy from a clean worktree instead:
+git worktree add /tmp/arifos-rel <commit>
+cd /tmp/arifos-rel && bash scripts/deploy-release.sh
+git worktree remove /tmp/arifos-rel
+```
+
+Never `git add -A` to "clean up" a shared index — staged entries may belong to a live concurrent writer.
+
 ## Three-Tense Contract
 
 Every deployment claim must answer all three:
