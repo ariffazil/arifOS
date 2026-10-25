@@ -1313,9 +1313,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
             floor_provenance["F7"] = f"arifflow_live_vector:omega={_dims['omega']['value']}@{now_iso()}"
 
         # F8 GENIUS: live from arifFlow vector dimension g
-        if "g" in _dims and _dims["g"].get("value") is not None:
-            resolved_floors["F8"] = float(_dims["g"]["value"])
-            floor_provenance["F8"] = f"arifflow_live_vector:g={_dims['g']['value']}@{now_iso()}"
+        # 2026-10-25 (F13 order): a PHASE_1_HEURISTIC_UNCALIBRATED dimension must not be
+        # gate-grade — it falls through to the derived path instead of deciding F8.
+        _g_dim = _dims.get("g") or {}
+        _g_calib = str(_g_dim.get("calibration") or "").upper()
+        if _g_dim.get("value") is not None and "UNCALIBRATED" not in _g_calib:
+            resolved_floors["F8"] = float(_g_dim["value"])
+            floor_provenance["F8"] = f"arifflow_live_vector:g={_g_dim['value']}@{now_iso()}"
+        elif _g_dim.get("value") is not None:
+            floor_provenance["F8"] = (
+                f"arifflow_vector_g_skipped:calibration={_g_calib or 'unknown'}@{now_iso()}"
+            )
 
         # F9 ANTI-HANTU / SHADOW: live from arifFlow vector dimension c_dark
         if "c_dark" in _dims and _dims["c_dark"].get("value") is not None:

@@ -294,11 +294,17 @@ def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
         if s.get("verdict") != "SEAL" or actor in SOVEREIGN_ACTORS:
             continue
         payload = s.get("payload") or {}
+        # 2026-10-25 (F13 order): canonical envelope f004-v1 carries ratification in
+        # `authority_state` (SOVEREIGN_RATIFIED, ed25519 actor_verification —
+        # canonical_vault_chain.py / sovereign_verify.py). The legacy payload.human_*
+        # fields do not exist in live chain records, so reading only those mis-judged
+        # ratified machine seals as machine_self_acceptance and froze every write tool.
         ratified = (
             payload.get("human_ratifier")
             or s.get("human_ratifier")
             or payload.get("human_signature")
             or s.get("human_signature")
+            or str(s.get("authority_state") or "").upper() == "SOVEREIGN_RATIFIED"
         )
         if not ratified:
             return {
@@ -368,6 +374,7 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
             or payload.get("human_signature")
             or s.get("human_ratifier")
             or s.get("human_signature")
+            or str(s.get("authority_state") or "").upper() == "SOVEREIGN_RATIFIED"
         )
         if not ratified:
             return {
