@@ -114,6 +114,8 @@ class ProbeReport:
     tested_count: int | None = None
     proven_live_count: int | None = None
     untested_count: int | None = None
+    # Why the matrix counts are unreadable, when they are (None ≠ -1 ≠ measured).
+    matrix_note: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -121,12 +123,14 @@ class ProbeReport:
             "tested_count": self.tested_count,
             "proven_live_count": self.proven_live_count,
             "untested_count": self.untested_count,
+            "matrix_note": self.matrix_note,
             "all_8_invoked": all(r.invocation_ok for r in self.rows),
             "all_8_emitted": all(r.emitted_success for r in self.rows),
         }
 
 
 # ── MCP wire layer ─────────────────────────────────────────────────────────────
+
 
 class MCPError(RuntimeError):
     pass
@@ -181,13 +185,9 @@ class MCPTransport:
                 },
             },
         }
-        resp = requests.post(
-            self.endpoint, json=init_body, headers=self._headers(), timeout=20
-        )
+        resp = requests.post(self.endpoint, json=init_body, headers=self._headers(), timeout=20)
         if resp.status_code != 200:
-            raise MCPError(
-                f"MCP initialize HTTP {resp.status_code}: {resp.text[:200]}"
-            )
+            raise MCPError(f"MCP initialize HTTP {resp.status_code}: {resp.text[:200]}")
         sid = resp.headers.get("mcp-session-id") or resp.headers.get("Mcp-Session-Id")
         if not sid:
             # Stateless FastMCP (post 22076fef2 migration): initialize succeeds without
@@ -228,9 +228,7 @@ class MCPTransport:
             "method": "tools/call",
             "params": {"name": tool, "arguments": arguments},
         }
-        resp = requests.post(
-            self.endpoint, json=body, headers=self._headers(), timeout=30
-        )
+        resp = requests.post(self.endpoint, json=body, headers=self._headers(), timeout=30)
         if resp.status_code != 200:
             raise MCPError(f"{tool}: HTTP {resp.status_code}: {resp.text[:200]}")
         ctype = (resp.headers.get("content-type") or "").lower()
@@ -396,11 +394,17 @@ def _emit_probe_event(
 # ── Verify layer ───────────────────────────────────────────────────────────────
 
 
-def _verify_matrix(mcp_url: str) -> dict[str, int]:
+def _verify_matrix(mcp_url: str) -> dict[str, Any]:
     """Read the LIVE capability matrix to confirm the probe flipped tested_count.
 
     Uses the kernel's own /api/observatory/v1/capabilities endpoint, NOT the
     static snapshot file. This is the same data the page renders.
+
+    2026-10-24 333-AGI — this endpoint is the SANITIZED public card: it carries
+    `totals` only, never tested/proven/untested counts. The old code turned that
+    absence into `-1`, which read like a measurement in the daily journal (three
+    consecutive -1s, every run). An unreadable field is None with a stated
+    reason; -1 is reserved for "the endpoint itself failed".
     """
     try:
         resp = requests.get(
@@ -409,15 +413,35 @@ def _verify_matrix(mcp_url: str) -> dict[str, int]:
             timeout=5,
         )
         if resp.status_code != 200:
-            return {"tested_count": -1, "proven_live_count": -1, "untested_count": -1}
+            return {
+                "tested_count": -1,
+                "proven_live_count": -1,
+                "untested_count": -1,
+                "matrix_note": f"endpoint HTTP {resp.status_code}",
+            }
         body = resp.json()
-        return {
-            "tested_count": int(body.get("tested_count", -1)),
-            "proven_live_count": int(body.get("proven_live_count", -1)),
-            "untested_count": int(body.get("untested_count", -1)),
+        missing = [
+            k for k in ("tested_count", "proven_live_count", "untested_count") if k not in body
+        ]
+        out: dict[str, Any] = {
+            "tested_count": body.get("tested_count"),
+            "proven_live_count": body.get("proven_live_count"),
+            "untested_count": body.get("untested_count"),
         }
-    except Exception:
-        return {"tested_count": -1, "proven_live_count": -1, "untested_count": -1}
+        if missing:
+            out["matrix_note"] = (
+                "sanitized public card carries no per-tool counts ("
+                + ",".join(missing)
+                + "); read /capabilities/full with an operator token to confirm the flip"
+            )
+        return out
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "tested_count": -1,
+            "proven_live_count": -1,
+            "untested_count": -1,
+            "matrix_note": f"matrix read failed: {type(exc).__name__}: {exc}"[:160],
+        }
 
 
 # ── Main probe runner ──────────────────────────────────────────────────────────
@@ -456,6 +480,16 @@ def run(mcp_url: str = "http://127.0.0.1:8088", actor_id: str = PROBE_ACTOR_ID) 
 
     session_token = init_env.get("session_token")
     session_id = init_env.get("session_id")
+    # 2026-10-24 333-AGI — bind the TRANSPORT session, not just the JSON body.
+    # The kernel now requires `mcp-session-id: <session_id>` for tools that need a
+    # bound session (arif_observe among them); initialize returns no such header,
+    # so the probe went headerless and observe failed every run with
+    # ARIF_SESSION_NOT_FOUND → all_8_invoked=false → exit 1 → cache aged out →
+    # the observatory published capability=DRIFTED. Adopt the session_id the
+    # kernel itself returned. No token is attached, so authority stays
+    # OBSERVE_ONLY/anonymous — this binds transport only.
+    if session_id and _TRANSPORT is not None and not getattr(_TRANSPORT, "session_id", None):
+        _TRANSPORT.session_id = str(session_id)
     trace_id = init_env.get("trace_id")
     verdict = init_env.get("effective_verdict") or init_env.get("verdict")
     token_remaining = _parse_sct_expiry(session_token)
@@ -539,6 +573,8 @@ def run(mcp_url: str = "http://127.0.0.1:8088", actor_id: str = PROBE_ACTOR_ID) 
     report.tested_count = matrix["tested_count"]
     report.proven_live_count = matrix["proven_live_count"]
     report.untested_count = matrix["untested_count"]
+    if matrix.get("matrix_note"):
+        report.matrix_note = matrix["matrix_note"]
 
     return report
 

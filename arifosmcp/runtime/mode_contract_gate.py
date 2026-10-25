@@ -24,6 +24,7 @@ WHAT THIS MODULE IS NOT
     It does not dispatch, execute, or mutate. Pure functions only. Wiring it into
     `pre_execution_gate.pre_execution_gate()` is a separate, reviewed change.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -32,8 +33,14 @@ from typing import Any
 # imports nothing from the gate (no import cycle, testable in isolation).
 CONTRACT_TO_GATE: dict[str, str] = {
     "OBSERVE": "OBSERVE",
-    "PREPARE": "ANALYZE",       # reasoning/decision output, no state change
-    "MATERIAL": "MUTATE",       # reversible state change
+    "PREPARE": "ANALYZE",  # reasoning/decision output, no state change
+    "MATERIAL": "MUTATE",  # reversible state change
+    "EXTERNAL_SIDE_EFFECT": "EXTERNAL_SIDE_EFFECT",  # open-internet egress or
+    # other effect no rollback can undo (e.g. arif_report.flush paging the
+    # human over Telegram). Contract-vocabulary key added 2026-10-25; takes
+    # effect for declarations using this class only after this module is
+    # reloaded (kernel restart). Until then declare MATERIAL (strictest class
+    # the live resolver can apply) — see abi/mode_contracts.json arif_report.flush.
     "IRREVERSIBLE": "IRREVERSIBLE",
 }
 
@@ -60,8 +67,14 @@ def _contracts() -> dict[str, Any]:
     return mode_contracts()["contracts"]
 
 
-RANK: dict[str, int] = {"OBSERVE": 0, "ANALYZE": 1, "DRAFT": 2, "MUTATE": 3,
-                        "EXTERNAL_SIDE_EFFECT": 4, "IRREVERSIBLE": 5}
+RANK: dict[str, int] = {
+    "OBSERVE": 0,
+    "ANALYZE": 1,
+    "DRAFT": 2,
+    "MUTATE": 3,
+    "EXTERNAL_SIDE_EFFECT": 4,
+    "IRREVERSIBLE": 5,
+}
 
 
 def resolve_contract_class(
@@ -91,8 +104,11 @@ def resolve_contract_class(
     if spec is None:
         if requested_class in MUTATING_CLASSES:
             raise ContractUnavailable(
-                tool_name, mode, requested_class,
-                "declare it in abi/mode_contracts.json, or request OBSERVE")
+                tool_name,
+                mode,
+                requested_class,
+                "declare it in abi/mode_contracts.json, or request OBSERVE",
+            )
         return requested_class, f"no contract for {key or tool_name}; non-mutating request honoured"
 
     declared = CONTRACT_TO_GATE[spec["action_class"]]
@@ -107,8 +123,11 @@ def resolve_contract_class(
 
     if RANK.get(requested_class, 0) < RANK[declared]:
         raise ContractUnavailable(
-            tool_name, mode, requested_class,
-            f"{reason}; caller asked for {requested_class} (downgrade refused)")
+            tool_name,
+            mode,
+            requested_class,
+            f"{reason}; caller asked for {requested_class} (downgrade refused)",
+        )
     return declared, reason
 
 

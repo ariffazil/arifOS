@@ -6,6 +6,7 @@ Run: python3 -m pytest arifosmcp/tests/test_kernel_hardening_phase1.py -v
 Nota: sengaja TIDAK mengimport arifosmcp.memory (test_organ_forge_smoke.py
 rosak pra-wujud disebab ImportError WriteRequest — bukan skop fasa ini).
 """
+
 from __future__ import annotations
 
 import json
@@ -98,12 +99,36 @@ def _with_key(monkeypatch, key: str = TEST_KEY, enforce: str = ""):
     monkeypatch.setenv("ARIFOS_VAULT_SIG_ENFORCE", enforce)
 
 
-def test_g1_append_unsigned_when_no_key(monkeypatch, tmp_path):
+def test_g1_append_unsigned_refused_by_default(monkeypatch, tmp_path):
+    """F13 2026-10-24: no key → no receipt. seq 57 rcpt-d4dbbfb195c7431a
+    landed unsigned while claiming ed25519 verification; a keyless append must
+    now fail closed rather than write an empty signature."""
     _no_key(monkeypatch)
     res = append_receipt(actor_id="tester", vault_dir=tmp_path)
+    assert not res.ok
+    assert res.failure_class == "SIG_ENFORCE_NO_KEY"
+    assert not (tmp_path / "seal_chain.jsonl").exists()
+
+
+def test_g1_unsigned_optout_sanitizes_actor_claim(monkeypatch, tmp_path):
+    """Explicit opt-out still writes, but the row may not assert verification
+    it cannot prove: caller actor_verification is demoted to a claim."""
+    _no_key(monkeypatch)
+    monkeypatch.setenv("ARIFOS_VAULT_SIG_ENFORCE", "0")
+    res = append_receipt(
+        actor_id="tester",
+        vault_dir=tmp_path,
+        actor_verification={"actor_verified": True, "method": "ed25519", "key_id": "b4dc3682"},
+    )
     assert res.ok
     assert res.receipt["signature"] == ""
-    assert res.receipt["sig_key_id"] == ""
+    assert res.receipt["sig_method"] == "unsigned"
+    av = res.receipt["actor_verification"]
+    assert av["actor_verified"] is False
+    assert av["method"] == "unsigned"
+    assert av["caller_claim"]["key_id"] == "b4dc3682"
+    v = verify_chain(tmp_path)
+    assert v.unsigned_after_cutover == 0  # no signed row precedes it
 
 
 def test_g1_append_signs_with_key(monkeypatch, tmp_path):
@@ -130,11 +155,26 @@ def test_g1_tampered_body_breaks_hash_and_signature(monkeypatch, tmp_path):
     chain = tmp_path / "seal_chain.jsonl"
     entry = json.loads(chain.read_text().splitlines()[0])
     entry["actor_id"] = "attacker"
-    body = {k: entry.get(k) for k in (
-        "sequence", "previous_hash", "timestamp", "actor_id", "session_id",
-        "trace_id", "operation_id", "tool_name", "input_hash", "authority_state",
-        "decision_reference", "result_hash", "reversibility", "software_release",
-        "epoch_id")}
+    body = {
+        k: entry.get(k)
+        for k in (
+            "sequence",
+            "previous_hash",
+            "timestamp",
+            "actor_id",
+            "session_id",
+            "trace_id",
+            "operation_id",
+            "tool_name",
+            "input_hash",
+            "authority_state",
+            "decision_reference",
+            "result_hash",
+            "reversibility",
+            "software_release",
+            "epoch_id",
+        )
+    }
     entry["receipt_hash"] = compute_receipt_hash(body)  # attacker fixes the hash
     entry["this_hash"] = entry["receipt_hash"]
     chain.write_text(json.dumps(entry, sort_keys=True) + "\n")
@@ -142,7 +182,7 @@ def test_g1_tampered_body_breaks_hash_and_signature(monkeypatch, tmp_path):
     assert not v.verified
     classes = {g.gap_class for g in v.gaps}
     assert "HASH_MISMATCH" not in classes  # attacker fixed the link layer…
-    assert "SIGNATURE_FAIL" in classes     # …but cannot forge the signature
+    assert "SIGNATURE_FAIL" in classes  # …but cannot forge the signature
 
 
 def test_g1_tampered_body_without_rehash_detected(monkeypatch, tmp_path):
@@ -209,12 +249,28 @@ def test_g1_enforce_mode_flags_unsigned_after_cutover(monkeypatch, tmp_path):
     forged["receipt_id"] = "rcpt-forgedunsigned0001"
     forged["previous_hash"] = signed["receipt_hash"]
     forged["prev_hash"] = signed["receipt_hash"]  # wire alias must agree
-    body = {k: forged.get(k) for k in (
-        "sequence", "previous_hash", "timestamp", "actor_id", "session_id",
-        "trace_id", "operation_id", "tool_name", "input_hash", "authority_state",
-        "decision_reference", "result_hash", "reversibility", "software_release",
-        "epoch_id")}
+    body = {
+        k: forged.get(k)
+        for k in (
+            "sequence",
+            "previous_hash",
+            "timestamp",
+            "actor_id",
+            "session_id",
+            "trace_id",
+            "operation_id",
+            "tool_name",
+            "input_hash",
+            "authority_state",
+            "decision_reference",
+            "result_hash",
+            "reversibility",
+            "software_release",
+            "epoch_id",
+        )
+    }
     from arifosmcp.runtime.canonical_vault_chain import compute_receipt_hash
+
     forged["receipt_hash"] = compute_receipt_hash(body)
     forged["this_hash"] = forged["receipt_hash"]
     forged["signature"] = ""
@@ -222,8 +278,8 @@ def test_g1_enforce_mode_flags_unsigned_after_cutover(monkeypatch, tmp_path):
     with open(chain, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(forged, sort_keys=True) + "\n")
 
-    # warn mode: counted, chain stays green
-    _with_key(monkeypatch, enforce="")
+    # warn/opt-out mode: counted, chain stays green
+    _with_key(monkeypatch, enforce="0")
     v = verify_chain(tmp_path)
     assert v.verified
     assert v.unsigned_after_cutover == 1
@@ -252,7 +308,9 @@ def test_g1_audit_tool_green_on_copy(monkeypatch, tmp_path):
     keyfile.write_text(TEST_KEY)
     proc = subprocess.run(
         [sys.executable, str(AUDIT_TOOL), "--chain", str(copy), "--key-file", str(keyfile)],
-        capture_output=True, text=True, timeout=60,
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     assert proc.returncode == 0, f"stdout: {proc.stdout}\nstderr: {proc.stderr}"
     assert "VERIFIED" in proc.stdout
@@ -267,7 +325,9 @@ def test_g1_audit_tool_red_on_tampered_copy(monkeypatch, tmp_path):
     keyfile.write_text(TEST_KEY)
     proc = subprocess.run(
         [sys.executable, str(AUDIT_TOOL), "--chain", str(copy), "--key-file", str(keyfile)],
-        capture_output=True, text=True, timeout=60,
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     assert proc.returncode == 1
     assert "SIGNATURE_FAIL" in proc.stdout or "HASH_MISMATCH" in proc.stdout
@@ -276,10 +336,21 @@ def test_g1_audit_tool_red_on_tampered_copy(monkeypatch, tmp_path):
 def test_g1_audit_tool_no_key_warns_but_links_verified(monkeypatch, tmp_path):
     copy = _make_signed_chain(monkeypatch, tmp_path)
     import os
+
     env = {k: v for k, v in os.environ.items() if k != "ARIFOS_VAULT_HMAC_KEY"}
     proc = subprocess.run(
-        [sys.executable, str(AUDIT_TOOL), "--chain", str(copy), "--key-env", "ARIFOS_VAULT_HMAC_KEY"],
-        capture_output=True, text=True, timeout=60, env=env,
+        [
+            sys.executable,
+            str(AUDIT_TOOL),
+            "--chain",
+            str(copy),
+            "--key-env",
+            "ARIFOS_VAULT_HMAC_KEY",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env=env,
     )
     # Links verified, signatures unverifiable → still green on link layer,
     # warning emitted on stderr.
