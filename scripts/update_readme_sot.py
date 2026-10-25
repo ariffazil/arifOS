@@ -170,12 +170,29 @@ def update_readme_sot(dry_run: bool = False) -> dict:
 
     drift = release.get("drift")
     if drift is not None:
-        drift_word = "aligned" if not drift else "drift_detected"
-        drift_detail = (
-            f"source = built = deployed (drift: {str(drift).lower()})"
-            if not drift
-            else f"source != deployed (drift: true) — run deploy-release.sh"
+        # TRUTH FIX (2026-10-25): `drift` is the KERNEL's self-report about its
+        # own build-time source=built=deployed triple — it says NOTHING about the
+        # repo tree stamped above. Emitting "source = built = deployed" while
+        # source_commit != built_commit is a numeric contradiction (substrate
+        # defect class). Compare built vs the stamped source ourselves.
+        kernel_drift = str(drift).lower()
+        built_sh = built.split()[0][:7] if built else ""
+        repo_matches_built = bool(built_sh) and (
+            built_sh == commit[:7] or commit.startswith(built_sh)
         )
+        if not drift and repo_matches_built:
+            drift_word = "aligned"
+            drift_detail = f"source = built = deployed (drift: {kernel_drift})"
+        elif not repo_matches_built:
+            drift_word = "repo_live_divergence"
+            drift_detail = (
+                f"kernel self-report drift={kernel_drift} (built={built_sh}) — "
+                f"this says nothing about the repo tree above, which is {commit[:7]} "
+                f"(deploy pending)"
+            )
+        else:
+            drift_word = "drift_detected"
+            drift_detail = f"source != deployed (drift: true) — run deploy-release.sh"
         old_drift = re.search(r"deployment_drift_status: .*", content)
         new_drift = f"deployment_drift_status: {drift_word} ({drift_detail})"
         if old_drift and old_drift.group() != new_drift:

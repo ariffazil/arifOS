@@ -297,8 +297,19 @@
       "evidence_receipt": "session ledger hash"
     },
 
+    "arif_report.report": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["sender and subject supplied"],
+      "postconditions": ["report appended to peer lane"],
+      "verifier": "report id readable in inbox",
+      "recovery": "rollback",
+      "evidence_receipt": "report id"
+    },
     "arif_report.file": {
       "action_class": "MATERIAL",
+      "deprecated_alias_of": "arif_report.report",
       "authority_required": "TRUSTED_AGENT",
       "mutation": true,
       "preconditions": ["sender and subject supplied"],
@@ -313,12 +324,22 @@
       "authority_required": "TRUSTED_AGENT",
       "mutation": true,
       "preconditions": ["report_id exists"],
-      "postconditions": ["report marked read"],
-      "verifier": "read state reflected in a later inbox call",
+      "postconditions": ["ack appended to acks.jsonl for the thread"],
+      "verifier": "ack row present for the report id",
       "recovery": "rollback",
       "evidence_receipt": "report id"
     },
-    "arif_report.flush": {"action_class": "OBSERVE"},
+    "arif_report.flush": {
+      "action_class": "MATERIAL",
+      "authority_required": "TRUSTED_AGENT",
+      "mutation": true,
+      "preconditions": ["human-escalated rows pending or force"],
+      "postconditions": ["outbox rows appended; escalated text pushed to the sovereign Telegram chat"],
+      "verifier": "outbox row present for the push",
+      "recovery": "none",
+      "evidence_receipt": "outbox row id",
+      "note": "EXTERNAL_SIDE_EFFECT intent: flush sends a Telegram message over the open internet (report_lane.flush_human -> _send_telegram). Declared MATERIAL because CONTRACT_TO_GATE on the running kernel has no EXTERNAL_SIDE_EFFECT contract key yet (map key added 2026-10-25; upgrade this contract after the next kernel restart). MATERIAL is the strictest class the live resolver can apply without a restart."
+    },
     "arif_report.stats": {"action_class": "OBSERVE"}
   }
 }

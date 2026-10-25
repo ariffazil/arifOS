@@ -104,11 +104,15 @@ def _vault_hmac_key() -> bytes | None:
 
 
 def _sig_enforce() -> bool:
-    return os.environ.get("ARIFOS_VAULT_SIG_ENFORCE", "").strip().lower() in (
-        "1",
-        "true",
-        "yes",
-        "on",
+    """F13 2026-10-24 (Arif): DEFAULT ON — fail-closed. Without a signing key,
+    append_receipt refuses (SIG_ENFORCE_NO_KEY); an unsigned row never lands.
+    Explicit opt-out for documented mirroring flows:
+    ARIFOS_VAULT_SIG_ENFORCE=0|false|no|off."""
+    return os.environ.get("ARIFOS_VAULT_SIG_ENFORCE", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+        "off",
     )
 
 
@@ -1612,6 +1616,21 @@ def append_receipt(
                     "configured — unsigned append refused (fail-closed)"
                 ),
             )
+        else:
+            # 2026-10-24 (F13 live order, after seq 57 rcpt-d4dbbfb195c7431a):
+            # enforcement is now DEFAULT ON, so reaching here means an operator
+            # explicitly opted out (ARIFOS_VAULT_SIG_ENFORCE=0). An unsigned row
+            # must not carry an authentication claim it cannot substantiate:
+            # seq 57 asserted actor_verified=true / method=ed25519 / key_id while
+            # its signature field was empty. Caller claims are preserved as a
+            # claim, never as proof.
+            _claim = actor_verification
+            actor_verification = {
+                "actor_verified": False,
+                "method": "unsigned",
+            }
+            if _claim:
+                actor_verification["caller_claim"] = _claim
 
         # ── 888 F13 2026-10-21 (PATCH 4): derive the seal-signature method ──
         # from the FINAL signature — enum-typed, writer-authored, never a

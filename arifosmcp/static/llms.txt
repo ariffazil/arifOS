@@ -5,7 +5,6 @@
 > Version: 1!2026.10.17 · MCP Protocol: 2026-07-28
 > Verdict grammar: SEAL / HOLD / SABAR / VOID
 > Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class
-> Registry status: Verified on Glama (Score A) · Official Manifest /server.json · PyPI arifos · Streamable HTTP https://mcp.arif-fazil.com/mcp
 
 ## Canonical Kernel Tools (8 exposed via /tools/list)
 The live MCP gateway exposes 8 canonical kernel verbs. The internal constitutional_map has more entries (legacy, internal-only, or filtered by server). The 8 below are the only ones visible to agents at https://mcp.arif-fazil.com/mcp:
@@ -267,4 +266,4 @@ Tool counts outside arifOS are dynamic observations, not constants. Probe them a
 - Manifest hash: c19847d1a74a6d37
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-10-21T13:13:58.661747+00:00 ---
+--- Auto-generated 2026-10-25T07:32:13.784659+00:00 ---

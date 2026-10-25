@@ -695,6 +695,18 @@ def project_public_state(
             "deployed_commit": pf_value(ri.get("deployed_commit")) or short_commit(deployed, 7),
             "build_commit": pf_value(ri.get("build_commit")) or short_commit(build, 7),
             "drift": drift_obj if drift_obj is not None else alignment,
+            # 2026-10-24 333-AGI — "capability: DRIFTED" is an enum with no units, so
+            # the page could not say WHAT drifted. It is a coverage statement, not a
+            # mismatch: the matrix marks a public verb degraded whenever truth is not
+            # PASS/PROVEN, and a verb whose happy path never refreshes the test cache
+            # can never leave that state. Publish the counts beside the word.
+            "drift_counts": {
+                "tested_fresh": tested,
+                "proven_live": proven,
+                "untested": caps.get("untested_count"),
+                "public_tools": public_tools,
+                "read_as": "DRIFTED here means NOT-PROVEN, not declared!=actual",
+            },
             "deployment_mode": pf_value(ri.get("deployment_mode")) or health.get("deployment_mode"),
             "process_started_at": pf_value(ri.get("process_started_at")),
             "platform": pf_value(ri.get("platform")),
@@ -756,6 +768,17 @@ def project_public_state(
             "observed_at": extra.get("apex_observed_at"),
         },
         # ── arifFLOW FQ (T1.3): FLOW quotient + verdict, size-bounded.
+        # Three stable fleet facts replace the deprecated FQ scalar on the face
+        # of the page (F13 directive 2026-10-24: "jangan sentuh FQ, buang dari
+        # muka depan — tunjuk berapa aktif, berapa tertahan, dan kenapa").
+        "fleet": {
+            "actors_tracked": extra.get("fleet_actors_tracked"),
+            "held": extra.get("fleet_held"),
+            "held_actors": extra.get("fleet_held_actors") or [],
+            "reason": extra.get("fleet_held_reason"),
+            "source": "ariflow:7073/health :: fq.per_actor",
+            "observed_at": extra.get("ariflow_observed_at"),
+        },
         "ariflow": {
             "fq_quotient": extra.get("ariflow_fq_quotient"),
             "fq_verdict": extra.get("ariflow_fq_verdict"),
@@ -798,6 +821,15 @@ def project_public_state(
             "verified": extra.get("chain_verified"),
             "head_hash": extra.get("chain_head_hash"),
             "head_seq": extra.get("chain_head_seq"),
+            # 2026-10-24 333-AGI — scope-explicit so a historical-era blend cannot
+            # be read as a broken forward chain. `verified`/`gap_count` stay as the
+            # full-file census (back-compat); `*_canonical` is the governed scope.
+            "scope": extra.get("chain_scope", "full"),
+            "verified_canonical": extra.get("chain_canonical_verified"),
+            "gap_count_canonical": extra.get("chain_canonical_gap_count"),
+            "gap_count_historical": extra.get("chain_historical_gap_count"),
+            "head_seq_canonical": extra.get("chain_canonical_head_seq"),
+            "head_count_seq_canonical": extra.get("chain_canonical_head_count_seq"),
             "observed_at": extra.get("chain_observed_at"),
             "source": extra.get("chain_source", "/api/observatory/v1/seal/verify"),
         },
@@ -838,9 +870,48 @@ def project_public_state(
             "aggregate_state": fed.get("aggregate_state"),
         },
         "receipt": {
-            "head_sequence": pf_value(receipts.get("head_seq")),
+            # 2026-10-24 333-AGI — two quantities shared one name. `head_seq` from
+            # the vault head is the COUNT of canonical-envelope entries (73);
+            # the chain's own sequence is 56. Publishing the count as
+            # "head_sequence" is what made head/tail look 17 entries apart.
+            # Prefer the measured chain sequence; keep the count by its own name.
+            "head_sequence": (
+                extra.get("chain_canonical_head_seq")
+                if extra.get("chain_canonical_head_seq") is not None
+                else pf_value(receipts.get("head_seq"))
+            ),
+            "head_sequence_basis": (
+                "chain_sequence"
+                if extra.get("chain_canonical_head_seq") is not None
+                else "vault_head_count_unverified"
+            ),
+            "canonical_entry_count": (
+                extra.get("chain_canonical_head_count_seq")
+                if extra.get("chain_canonical_head_count_seq") is not None
+                else (
+                    extra.get("chain_canonical_entries")
+                    if extra.get("chain_canonical_entries") is not None
+                    else pf_value(receipts.get("head_seq"))
+                )
+            ),
             "head_hash": pf_value(receipts.get("head_hash")),
-            "canonical_status": canonical_status,
+            # 2026-10-24 333-AGI — canonical_status arrived as None upstream, so the
+            # page rendered "canonical UNKNOWN" for a chain we can and did measure.
+            # Derive it from the canonical-scope census by name. Never green when a
+            # gap exists: a non-zero count publishes as CLASSIFIED_GAPS:n.
+            "canonical_status": (
+                canonical_status
+                if canonical_status is not None
+                else (
+                    "VERIFIED"
+                    if extra.get("chain_canonical_gap_count") == 0
+                    else (
+                        f"CLASSIFIED_GAPS:{extra.get('chain_canonical_gap_count')}"
+                        if extra.get("chain_canonical_gap_count") is not None
+                        else None
+                    )
+                )
+            ),
             "historical_status": historical_status,
             "verify": "PROVEN"
             if verify is True
@@ -1300,6 +1371,25 @@ def collect_extras() -> dict[str, Any]:
         )  # P0-A: flow health badge (single-f — MUST match emitter key extra.get("arifflow_status"→"ariflow_status") at project_public_state; 2026-10-20 one-char fix)
         extras["ariflow_source"] = "ariflow:7073/health"
         extras["ariflow_observed_at"] = observed_at
+        # 2026-10-24 333-AGI — FQ is deprecated by its own producer as a health
+        # indicator and moves every cycle; four readings appeared in forty
+        # minutes across three surfaces. Front pages therefore stop publishing
+        # the scalar and publish three STABLE facts instead: actors tracked,
+        # actors held, and why. Nothing here fixes or replaces FQ.
+        _pa = fq.get("per_actor") or {}
+        _held = sorted(a for a, v in _pa.items() if isinstance(v, dict) and v.get("held"))
+        extras["fleet_actors_tracked"] = len(_pa)
+        extras["fleet_held"] = len(_held)
+        extras["fleet_held_actors"] = _held
+        _why = []
+        for _a in _held:
+            _v = _pa.get(_a) or {}
+            _q = _v.get("quotient")
+            if _q is None:
+                _why.append(f"{_a}: tiada kaunter semasa")
+            else:
+                _why.append(f"{_a}: FQ {float(_q):.2f} vs paras {_v.get('fq_required')}")
+        extras["fleet_held_reason"] = "; ".join(_why) if _why else None
 
     # ── Organ identity hashes: arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, arifFLOW
     organ_health_urls = {
@@ -1380,6 +1470,26 @@ def collect_extras() -> dict[str, Any]:
         extras["chain_verified"] = sd.get("verified")
         extras["chain_head_hash"] = sd.get("head_hash")
         extras["chain_head_seq"] = sd.get("head_seq")
+        # 2026-10-24 333-AGI — scope split. The route defaults to scope=full, so the
+        # top-level gap_count blends ~39 HISTORICAL-era gaps (missing fields, epoch
+        # resets) with the 1 canonical gap, and published as verified:false →
+        # "vault DEGRADED / canonical UNKNOWN / head_seq 73". Measured on the same
+        # chain: canonical scope = 56 contiguous entries, 55/56 hash-verifiable,
+        # 1 classified OUT_OF_BAND_APPEND. Publish both populations by name so the
+        # forward (governed) chain is not read through a historical-era blend.
+        _sc = sd.get("scope_canonical")
+        if isinstance(_sc, dict) and not _sc.get("error"):
+            extras["chain_scope"] = "canonical + historical"
+            extras["chain_canonical_verified"] = _sc.get("verified")
+            extras["chain_canonical_gap_count"] = _sc.get("gap_count")
+            extras["chain_canonical_head_seq"] = _sc.get("head_seq")
+            extras["chain_canonical_head_count_seq"] = _sc.get("head_count_seq")
+            try:
+                extras["chain_historical_gap_count"] = int(sd.get("gap_count") or 0) - int(
+                    _sc.get("gap_count") or 0
+                )
+            except (TypeError, ValueError):
+                extras["chain_historical_gap_count"] = None
         extras["chain_observed_at"] = observed_at
 
     # ── Kernel canonical verdict: read from arifOS /health state_axes
@@ -1586,10 +1696,18 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
     if not rb:
         return
     chain_ok = bool(rb.get("chain_verified"))
+    # 2026-10-24 333-AGI: the chip previously read "canonical UNKNOWN · head_seq 73"
+    # — a status that was never measured plus a COUNT wearing a sequence label.
+    # Publish the measured sequence, the entry count under its own name, and the
+    # canonical-scope verdict (CLASSIFIED_GAPS:n when a gap exists).
+    _seq = rb.get("head_sequence")
+    _cnt = rb.get("canonical_entry_count")
+    _entries = f" · entries {_cnt}" if _cnt is not None else ""
     flow["chain_status"] = {
         "value": (
             f"canonical {rb.get('canonical_status') or 'UNKNOWN'}"
-            f" · head_seq {rb.get('head_sequence')}"
+            f" · head_seq {_seq}"
+            f"{_entries}"
             f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
         ),
         "state": "healthy" if chain_ok else "unknown",
@@ -1602,7 +1720,8 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
             "value": (
                 f"vault {rb.get('vault_status') or 'UNKNOWN'}"
                 f" · canonical {rb.get('canonical_status') or 'UNKNOWN'}"
-                f" · head_seq {rb.get('head_sequence')}"
+                f" · head_seq {_seq}"
+                f"{_entries}"
                 f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
             ),
             "state": "healthy" if chain_ok else "unknown",
