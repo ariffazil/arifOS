@@ -84,6 +84,20 @@ def judge_via_kernel(intent, finding_id):
 
 def execute(f, wo_id):
     """Map finding category → organ → concrete action."""
+    # ── deployment lease guard (P0 complete mediation, 2026-10-26) ──────────
+    # This function can sync source into the production app dir and restart the
+    # kernel service. It must not mint its own authority: an operator or the
+    # canonical deploy path must hold the lease. Its call site is currently
+    # disabled (`if False` in main), so this guard is dormant today and
+    # protective on revival.
+    _lease = subprocess.run(
+        ["python3", "/root/arifOS/scripts/deploy_lease.py", "require", "--caller", "auto_remediate"],
+        capture_output=True,
+        text=True,
+    )
+    if _lease.returncode != 0:
+        return False, f"{f.get('id')}: HOLD_NO_LEASE — writer is lease-mediated"
+
     c = f.get("category", "")
     fid = f["id"]
 
