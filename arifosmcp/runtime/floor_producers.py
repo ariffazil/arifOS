@@ -829,7 +829,14 @@ def _f10_ontology(sources: dict[str, Any]) -> dict[str, Any]:
     return {
         "floor": "F10",
         "status": "PASS",
-        "origin": f"f10_guard:report_corpus:{scanned}",
+        # Origin carries the reality anchors so the observable /health string
+        # names WHAT was measured, not just that something passed:
+        #   f10_guard:report_corpus:71:b314d709c08d:fresh:artifact=0dbbc688
+        "origin": (
+            f"f10_guard:report_corpus:{scanned}:"
+            f"{_receipt['window_digest'].split(':')[-1][:12]}:"
+            f"{_receipt['freshness']}:artifact={str(_receipt['artifact_commit'])[:8]}"
+        ),
         "scanned": scanned,
         "measurement_receipt": _receipt,
         "shadow_residual": [
