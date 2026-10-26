@@ -143,11 +143,27 @@ def test_terminal_boundary_survives_sct_continuity_reinjection():
     assert RAW in _json.dumps(resp, default=str), (
         "continuity did not re-inject the raw token; test payload is stale"
     )
-    # terminal boundary (the body of _sanitize_envelope at the wire)
-    sanitized = _json.loads(_json.dumps(resp, default=str, ensure_ascii=False))
-    out = _mask_sct_egress(sanitized, "arif_route")
+    # terminal boundary: the REAL _sanitize_envelope closure, pulled out of a
+    # live _wrap_handler binding (555 mutation-test finding: a test that
+    # reimplements the boundary stays green while the boundary is deleted or
+    # its result discarded — so this calls the wiring itself).
+    out = _real_sanitize("arif_route")(resp)
     assert RAW not in _json.dumps(out)
     assert "act_v1.<redacted" in _json.dumps(out)
+
+
+def _real_sanitize(tool_name: str):
+    """Extract the actual _sanitize_envelope closure from _wrap_handler."""
+    from arifosmcp.runtime.tools import _wrap_handler
+
+    def _stub(*args, **kwargs):  # never called; we only want the closure
+        return {"status": "completed"}
+
+    wrapped = _wrap_handler(_stub, tool_name)
+    for name, cell in zip(wrapped.__code__.co_freevars, wrapped.__closure__ or ()):
+        if name == "_sanitize_envelope":
+            return cell.cell_contents
+    raise AssertionError("_sanitize_envelope not bound in the wrapper closure")
 
 
 def test_sanitize_envelope_closure_applies_mask():
