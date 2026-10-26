@@ -73,35 +73,9 @@ deploy-local:
 		--ttl "$${DEPLOY_LEASE_TTL:-1800}" > /tmp/arifos-deploy-lease.json || \
 		(echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another session owns production; nothing was written"; \
 		 cat /tmp/arifos-deploy-lease.json; exit 1)
-	@cd $(DIR) && GIT_SHA=$$(git rev-parse HEAD); \
-	echo "Syncing canonical code to /opt/arifos/app..."; \
-	rsync -av --exclude='.git' --exclude='.venv' --exclude='.claude' \
-		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
-		--exclude='node_modules' --exclude='build' --exclude='.mypy_cache' \
-		$(DIR)/ /opt/arifos/app/; \
-	chown -R ariffazil:arifos /opt/arifos/app/ 2>/dev/null; \
-	chmod -R u+rwX,go+rX /opt/arifos/app/; \
-	chmod 640 /opt/arifos/app/.env 2>/dev/null; \
-	chown arifos:arifos /opt/arifos/app/.env 2>/dev/null; \
-	SITE_PKGS=$$(/opt/arifos/current/venv/bin/python -c "import site; print(site.getsitepackages()[0])"); \
-	echo "Syncing runtime import path ($$SITE_PKGS)..."; \
-	rsync -a --exclude='__pycache__' $(DIR)/arifosmcp/ $$SITE_PKGS/arifosmcp/; \
-	echo "$$GIT_SHA" > /opt/arifos/app/.git_commit; \
-	echo "Restarting arifOS bare-metal service..."; \
-	systemctl restart arifos.service; \
-	echo "Waiting for kernel health..."; \
-	for i in $$(seq 1 30); do \
-		status=$$(curl -s -m 2 http://localhost:8088/health 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('status',''))" 2>/dev/null); \
-		if [ -n "$$status" ]; then echo "Kernel answers (status=$$status) after $${i}s"; break; fi; \
-		sleep 2; \
-	done; \
-	if [ -z "$$status" ]; then echo "888_HOLD: KERNEL_BOOT_UNRESPONSIVE — no /health answer after 60s"; exit 1; fi; \
-	echo "Deploy gate: kernel booted and answers (status=$$status) — honesty of status is floor work, not a boot gate"; \
-	echo "Running conformance spine post-deploy..."; \
-	$(PYTHON) -m arifosmcp.transport.conformance_spine
-	@$(PYTHON) scripts/deploy_lease.py release --actor "$${DEPLOY_ACTOR:-$$(whoami)}" \
-		--receipt "docs/releases" > /tmp/arifos-deploy-release.json \
-		&& echo "Deploy lease released — epoch appended to /var/lib/arifos/deploy_epochs.jsonl (verify with: scripts/deploy_lease.py verify)"
+	@GIT_SHA=$$(git -C $(DIR) rev-parse HEAD) DIR=$(DIR) PYTHON="$(PYTHON)" \
+		DEPLOY_ACTOR="$${DEPLOY_ACTOR:-$$(whoami)}" DEPLOY_RECEIPT="$${DEPLOY_RECEIPT:-docs/releases}" \
+		bash $(DIR)/scripts/deploy_local_body.sh
 
 sot-check: security-audit
 	@echo "Auditing arifOS source-of-truth alignment..."

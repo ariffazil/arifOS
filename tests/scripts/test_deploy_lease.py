@@ -114,3 +114,51 @@ def test_expired_lease_does_not_block_forever(tmp_path: Path) -> None:
     again = _run(tmp_path, "acquire", "--actor", "agent-b", "--base", "b2", "--candidate", "c2")
     assert again.returncode == 0, "an expired lease must not permanently block deploys"
     assert json.loads(again.stdout)["lease"]["actor"] == "agent-b"
+
+
+def test_abort_path_releases_the_lease_and_preserves_exit_code(tmp_path: Path) -> None:
+    """Measured defect (2026-10-26): the conformance spine exits 1 on CAUTION,
+    which aborted `make deploy-local` before the release line, leaving production
+    leased for the rest of the TTL. The body script must release on ANY exit and
+    exit with the original status.
+
+    Exercised with DEPLOY_DRY_RUN=1 so no production path is touched, and with
+    CONFORMANCE_CMD=false to force the abort.
+    """
+    body = REPO / "scripts" / "deploy_local_body.sh"
+    assert body.exists(), "deploy body script missing"
+
+    # make acquires the lease before calling the body
+    acquired = _run(tmp_path, "acquire", "--actor", "agent-a", "--base", "b1", "--candidate", "c1")
+    assert acquired.returncode == 0
+    assert (tmp_path / "deploy_lease.json").exists()
+
+    env = dict(os.environ)
+    env.update(
+        {
+            "ARIFOS_STATE_DIRECTORY": str(tmp_path),
+            "DEPLOY_DRY_RUN": "1",
+            "CONFORMANCE_CMD": "false",  # force the abort AFTER the lease is held
+            "DEPLOY_ACTOR": "agent-a",
+            "PYTHON": sys.executable,
+            "DIR": str(REPO),
+            "GIT_SHA": "deadbeefdeadbeef",
+        }
+    )
+    run = subprocess.run(["bash", str(body)], capture_output=True, text=True, env=env)
+
+    assert run.returncode != 0, "a failing conformance spine must fail the deploy"
+    assert not (tmp_path / "deploy_lease.json").exists(), (
+        "lease survived an aborted deploy — production stays leased and every "
+        "subsequent deploy is refused until the TTL expires"
+    )
+    rows = [
+        json.loads(line)
+        for line in (tmp_path / "deploy_epochs.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    released = [r for r in rows if r.get("event") == "RELEASED"]
+    assert len(released) == 1, f"expected exactly one RELEASED row, got {len(released)}"
+    assert released[0]["actor"] == "agent-a"
+    assert released[0]["receipt"] == "docs/releases"
+    assert released[0]["resulting_artifact"]["module_count"] > 0
