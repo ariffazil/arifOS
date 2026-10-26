@@ -35,7 +35,9 @@ release_lease() {
 	trap - EXIT INT TERM
 	echo "Releasing deploy lease (deploy exit=${rc})..."
 	# shellcheck disable=SC2086
-	if $PYTHON "$LEASE_TOOL" release --actor "$LEASE_ACTOR" --receipt "$DEPLOY_RECEIPT" \
+	if $PYTHON "$LEASE_TOOL" release --actor "$LEASE_ACTOR" \
+		--session "${DEPLOY_SESSION:-}" --lease-id "${DEPLOY_LEASE_ID:-}" \
+		--token "${DEPLOY_HOLDER_TOKEN:-}" --receipt "$DEPLOY_RECEIPT" \
 		>/tmp/arifos-deploy-release.json 2>&1; then
 		echo "Deploy lease released — epoch appended to ${ARIFOS_STATE_DIRECTORY:-/var/lib/arifos}/deploy_epochs.jsonl"
 	else

@@ -69,12 +69,17 @@ deploy-local:
 	@cd $(DIR) && GIT_SHA=$$(git rev-parse HEAD); \
 	echo "Acquiring production mutation lease..."; \
 	$(PYTHON) scripts/deploy_lease.py acquire \
-		--actor "$${DEPLOY_ACTOR:-$$(whoami)}" --base "$$GIT_SHA" --candidate "$$GIT_SHA" \
+		--actor "$${DEPLOY_ACTOR:-$$(whoami)}" --session "$${DEPLOY_SESSION:?DEPLOY_SESSION is required for a lease}" \
+		--base "$$GIT_SHA" --candidate "$$GIT_SHA" \
 		--ttl "$${DEPLOY_LEASE_TTL:-1800}" > /tmp/arifos-deploy-lease.json || \
 		(echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another session owns production; nothing was written"; \
 		 cat /tmp/arifos-deploy-lease.json; exit 1)
-	@GIT_SHA=$$(git -C $(DIR) rev-parse HEAD) DIR=$(DIR) PYTHON="$(PYTHON)" \
-		DEPLOY_ACTOR="$${DEPLOY_ACTOR:-$$(whoami)}" DEPLOY_RECEIPT="$${DEPLOY_RECEIPT:-docs/releases}" \
+	@LEASE_ID=$$($(PYTHON) -c 'import json;print(json.load(open("/tmp/arifos-deploy-lease.json"))["lease"]["lease_id"])'); \
+	 HOLDER_TOKEN=$$($(PYTHON) -c 'import json;print(json.load(open("/tmp/arifos-deploy-lease.json"))["holder_token"])'); \
+	 GIT_SHA=$$(git -C $(DIR) rev-parse HEAD) DIR=$(DIR) PYTHON="$(PYTHON)" \
+		DEPLOY_ACTOR="$${DEPLOY_ACTOR:-$$(whoami)}" DEPLOY_SESSION="$$DEPLOY_SESSION" \
+		DEPLOY_LEASE_ID="$$LEASE_ID" DEPLOY_HOLDER_TOKEN="$$HOLDER_TOKEN" \
+		DEPLOY_RECEIPT="$${DEPLOY_RECEIPT:-docs/releases}" \
 		bash $(DIR)/scripts/deploy_local_body.sh
 
 sot-check: security-audit

@@ -31,7 +31,8 @@ gate is decoration (K6) — so `make deploy-local` calls it.
 
 USAGE
     deploy_lease.py acquire --actor 333-AGI --base <sha> --candidate <sha> [--ttl 1800]
-    deploy_lease.py release --resulting-artifact auto [--receipt <path>]
+    deploy_lease.py release --actor <a> --session <s> --lease-id <id> --token <t> [--receipt <p>]
+    (acquire returns holder_token ONCE; only its sha256 is stored)
     deploy_lease.py status [--json]
     deploy_lease.py verify            # expected_artifact vs observed_artifact
 
@@ -47,8 +48,10 @@ from __future__ import annotations
 import argparse
 import fcntl
 import hashlib
+import hmac
 import json
 import os
+import secrets
 import sys
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -207,31 +210,80 @@ def cmd_acquire(a) -> int:
             "resulting_artifact": None,
             "receipt": None,
         }
+        # opaque holder capability: the token is shown ONCE, only its digest is
+        # stored. A release without it cannot prove it is the same holder even
+        # if it knows actor/session/lease_id (all of which are visible in the
+        # lease file and in /tmp/arifos-deploy-lease.json).
+        holder_token = secrets.token_urlsafe(32)
+        lease["holder_token_sha256"] = hashlib.sha256(holder_token.encode()).hexdigest()
+        lease["holder_capability"] = (
+            "opaque token presented once at acquire; only its sha256 is stored"
+        )
         _write_lease(lease)
-        print(json.dumps({"status": "LEASED", "lease": lease}, indent=2))
+        print(
+            json.dumps(
+                {"status": "LEASED", "lease": lease, "holder_token": holder_token}, indent=2
+            )
+        )
         return 0
 
 
 def cmd_release(a) -> int:
+    """Release is four-way ownership: actor + session + lease_id + holder token.
+
+    Before 2026-10-26 the guard was `if a.actor and ...`, so omitting --actor
+    cleared anyone's lease (measured). Even with --actor required, three of the
+    four fields are readable from /tmp/arifos-deploy-lease.json by any process
+    on the box, so actor/session/lease_id alone prove knowledge, not ownership.
+    Only the token is secret; only its digest is stored.
+    """
     with _Lock():
         lease = _read_lease()
         if not _is_live(lease):
             print(json.dumps({"status": "NO_ACTIVE_LEASE"}, indent=2))
             return 5
-        if a.actor and lease.get("actor") and a.actor != lease.get("actor"):
+        stored = str(lease.get("holder_token_sha256") or "")
+        if not stored:
             print(
                 json.dumps(
                     {
                         "status": "HOLD_NOT_OWNER",
+                        "reason": "legacy_lease_without_holder_token",
+                        "message": "this lease predates capability tokens; it can only expire",
+                    },
+                    indent=2,
+                )
+            )
+            return 3
+        def same(x: object, y: object) -> bool:
+            return hmac.compare_digest(str(x or ""), str(y or ""))
+
+        mismatched: list[str] = []
+        if not same(a.actor, lease.get("actor")):
+            mismatched.append("actor")
+        if not same(a.session, lease.get("session")):
+            mismatched.append("session")
+        if not same(a.lease_id, lease.get("lease_id")):
+            mismatched.append("lease_id")
+        presented = hashlib.sha256(str(a.token or "").encode()).hexdigest()
+        if not hmac.compare_digest(presented, stored):
+            mismatched.append("token")
+        if mismatched:
+            print(
+                json.dumps(
+                    {
+                        "status": "HOLD_NOT_OWNER",
+                        "mismatched": mismatched,
                         "holder": lease.get("actor"),
-                        "caller": a.actor,
-                        "message": "only the lease owner may release; nothing was written",
+                        "message": "nothing was written; the lease is unchanged",
                     },
                     indent=2,
                 )
             )
             return 3
         lease = dict(lease)
+        lease.pop("holder_token_sha256", None)
+        lease.pop("holder_capability", None)
         lease["resulting_artifact"] = artifact_manifest()
         lease["receipt"] = a.receipt
         lease["released_at"] = _iso()
@@ -340,7 +392,7 @@ def main(argv: list[str] | None = None) -> int:
 
     pa = sub.add_parser("acquire")
     pa.add_argument("--actor", required=True)
-    pa.add_argument("--session", default=None)
+    pa.add_argument("--session", required=True)
     pa.add_argument("--base", required=True)
     pa.add_argument("--candidate", required=True)
     pa.add_argument("--ttl", default="1800", help="seconds; default 1800")
@@ -353,6 +405,9 @@ def main(argv: list[str] | None = None) -> int:
     # acquire and deploy unopposed. A gate that can be opened by forgetting a
     # flag is decoration (K6). The deploy body always passes --actor.
     pr.add_argument("--actor", required=True)
+    pr.add_argument("--session", required=True)
+    pr.add_argument("--lease-id", required=True, dest="lease_id")
+    pr.add_argument("--token", required=True)
     pr.add_argument("--receipt", default=None)
     pr.set_defaults(fn=cmd_release)
 
