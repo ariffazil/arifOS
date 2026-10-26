@@ -475,6 +475,73 @@ def test_candidate_mismatch_release_blocks_and_cannot_pass(env):
     assert "candidate_mismatch" in v.stdout
 
 
+def test_failed_epoch_requires_f13_resolution_then_unblocks(env):
+    _, lease, _ = _acquire(env, candidate="cand")
+    # marker stays "old" -> candidate mismatch epoch
+    assert _run(env, "release", "--actor", "A", "--session", "S").returncode == 11
+    blocked = _run(
+        env,
+        "acquire",
+        "--actor",
+        "A",
+        "--session",
+        "S",
+        "--base",
+        "cand",
+        "--candidate",
+        "cand",
+    )
+    assert blocked.returncode == 6
+    refused = _run(
+        env,
+        "resolve-epoch",
+        "--lease-id",
+        lease["lease_id"],
+        "--authority",
+        "agent",
+        "--receipt",
+        "x",
+        "--reason",
+        "x",
+        "--actor",
+        "A",
+        "--session",
+        "S",
+    )
+    assert refused.returncode == 3
+    resolved = _run(
+        env,
+        "resolve-epoch",
+        "--lease-id",
+        lease["lease_id"],
+        "--authority",
+        "F13",
+        "--receipt",
+        "ARIFOS-TEST",
+        "--reason",
+        "known test failure",
+        "--actor",
+        "ARIF",
+        "--session",
+        "F13",
+    )
+    assert resolved.returncode == 0, resolved.stdout + resolved.stderr
+    assert json.loads(resolved.stdout)["status"] == "RESOLVED"
+    allowed = _run(
+        env,
+        "acquire",
+        "--actor",
+        "A",
+        "--session",
+        "S",
+        "--base",
+        "cand",
+        "--candidate",
+        "cand",
+    )
+    assert allowed.returncode == 0
+
+
 def test_body_exit_nonzero_cannot_be_stamped_pass(env):
     _, lease, _ = _acquire(env, candidate="cand")
     _marker(env, "cand")
@@ -790,6 +857,13 @@ def test_body_uses_fixed_runtime_for_site_packages():
 def test_body_keeps_deployed_commit_stamp():
     text = BODY.read_text()
     assert "/opt/arifos/releases/deployed-commit" in text
+
+
+def test_body_deploys_from_git_archive_not_mutable_worktree():
+    text = BODY.read_text()
+    assert 'git -C "$DIR" archive' in text
+    assert '"$EXPORT_DIR/" /opt/arifos/app/' in text
+    assert "resolve-epoch" not in text
 
 
 def test_makefile_never_passes_token_through_argv():

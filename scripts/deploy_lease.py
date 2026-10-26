@@ -254,6 +254,14 @@ def _verdict_for(lease_id: str) -> dict | None:
     return None
 
 
+def _resolution_for(lease_id: str) -> dict | None:
+    """F13 recovery lane: a failed epoch is resolved by explicit sovereign receipt."""
+    for row in reversed(_ledger_rows()):
+        if row.get("event") == "RESOLVED" and row.get("lease_id") == lease_id:
+            return row
+    return None
+
+
 class _Lock:
     """flock around read-modify-write so two acquires cannot both win."""
 
@@ -346,7 +354,10 @@ def cmd_acquire(a) -> int:
         last = _governed_release()
         if last is not None:
             verdict = _verdict_for(str(last.get("lease_id") or ""))
-            if verdict is None or str(verdict.get("verdict") or "").upper() != "PASS":
+            resolved = _resolution_for(str(last.get("lease_id") or ""))
+            if (
+                verdict is None or str(verdict.get("verdict") or "").upper() != "PASS"
+            ) and resolved is None:
                 print(
                     json.dumps(
                         {
@@ -732,6 +743,86 @@ def cmd_verify_epoch(a) -> int:
         return 0 if verdict == "PASS" else 12
 
 
+def cmd_resolve_epoch(a) -> int:
+    """F13-only recovery for a failed/unverified governed epoch.
+
+    The governed path never calls this. Without it, a single failed preflight
+    would block every future deployment forever. The resolution is an explicit
+    F13 receipt in the append-only ledger; raw tokens are never involved.
+    """
+    with _Lock():
+        target = None
+        for row in reversed(_ledger_rows()):
+            if row.get("event") == "RELEASED" and row.get("lease_id") == a.lease_id:
+                target = row
+                break
+        if target is None:
+            print(json.dumps({"status": "UNKNOWN_EPOCH", "lease_id": a.lease_id}, indent=2))
+            return 5
+        if a.authority != "F13":
+            print(
+                json.dumps(
+                    {
+                        "status": "HOLD_NOT_OWNER",
+                        "reason": "resolve-epoch is F13-only",
+                        "authority": a.authority,
+                    },
+                    indent=2,
+                )
+            )
+            return 3
+        existing = _resolution_for(a.lease_id)
+        if existing is not None:
+            print(
+                json.dumps(
+                    {
+                        "status": "RESOLUTION_ALREADY_RECORDED",
+                        "epoch": target.get("deployment_epoch"),
+                        "resolved_at": existing.get("resolved_at"),
+                    },
+                    indent=2,
+                )
+            )
+            return 0
+        verdict = _verdict_for(a.lease_id)
+        if verdict is not None and str(verdict.get("verdict")).upper() == "PASS":
+            print(
+                json.dumps(
+                    {
+                        "status": "ALREADY_VERIFIED",
+                        "epoch": target.get("deployment_epoch"),
+                        "verdict": "PASS",
+                    },
+                    indent=2,
+                )
+            )
+            return 0
+        entry = {
+            "event": "RESOLVED",
+            "lease_id": a.lease_id,
+            "deployment_epoch": target.get("deployment_epoch"),
+            "authority": "F13",
+            "receipt": a.receipt,
+            "reason": a.reason,
+            "actor": a.actor,
+            "session": a.session,
+            "resolved_at": _iso(),
+        }
+        _append_ledger(entry)
+        print(
+            json.dumps(
+                {
+                    "status": "RESOLVED",
+                    "epoch": entry["deployment_epoch"],
+                    "authority": "F13",
+                    "receipt": a.receipt,
+                },
+                indent=2,
+            )
+        )
+        return 0
+
+
 def cmd_status(a) -> int:
     lease = _read_lease()
     live = _is_live(lease)
@@ -909,6 +1000,15 @@ def main(argv: list[str] | None = None) -> int:
     pve.add_argument("--actor", required=True)
     pve.add_argument("--session", required=True)
     pve.set_defaults(fn=cmd_verify_epoch)
+
+    prs = sub.add_parser("resolve-epoch")
+    prs.add_argument("--lease-id", required=True, dest="lease_id")
+    prs.add_argument("--authority", required=True)
+    prs.add_argument("--receipt", required=True)
+    prs.add_argument("--reason", required=True)
+    prs.add_argument("--actor", required=True)
+    prs.add_argument("--session", required=True)
+    prs.set_defaults(fn=cmd_resolve_epoch)
 
     ps = sub.add_parser("status")
     ps.add_argument("--json", action="store_true")

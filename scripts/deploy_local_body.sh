@@ -37,12 +37,16 @@ LEASE_TOOL="$DIR/scripts/deploy_lease.py"
 SITE_PACKAGES="$("$RUNTIME_PYTHON" -c 'import site; print(site.getsitepackages()[0])')"
 LEASE_ID=""
 LEASE_CANDIDATE=""
+EXPORT_DIR=""
 RELEASED=0
 
 # ── the invariant: a lease that was acquired is released, whatever happens ──
 release_lease() {
 	local rc=$?
 	trap - EXIT INT TERM
+	if [ -n "$EXPORT_DIR" ]; then
+		rm -rf "$EXPORT_DIR"
+	fi
 	if [ "$RELEASED" = "1" ]; then
 		exit "$rc"
 	fi
@@ -123,18 +127,23 @@ fi
 set -e
 
 if [ "$DRY" != "1" ]; then
-	echo "Syncing canonical code to /opt/arifos/app..."
+	# Immutable source: export the pinned commit, not the mutable worktree.
+	# This is what makes C4 real — untracked or post-assertion files cannot ride
+	# rsync into the deployed artifact.
+	EXPORT_DIR="$(mktemp -d "${TMPDIR:-/var/tmp}/arifos-deploy.XXXXXX")"
+	git -C "$DIR" archive --format=tar "$LEASE_CANDIDATE" | tar -x -C "$EXPORT_DIR"
+	echo "Syncing canonical code to /opt/arifos/app (export=$EXPORT_DIR)..."
 	rsync -a --exclude='.git' --exclude='.venv' --exclude='.claude' \
 		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
 		--exclude='node_modules' --exclude='build' --exclude='.mypy_cache' \
-		"$DIR/" /opt/arifos/app/
+		"$EXPORT_DIR/" /opt/arifos/app/
 	chown -R ariffazil:arifos /opt/arifos/app/ 2>/dev/null || true
 	chmod -R u+rwX,go+rX /opt/arifos/app/
 	chmod 640 /opt/arifos/app/.env 2>/dev/null || true
 	chown arifos:arifos /opt/arifos/app/.env 2>/dev/null || true
 
 	echo "Syncing runtime import path ($SITE_PACKAGES)..."
-	rsync -a --exclude='__pycache__' "$DIR/arifosmcp/" "$SITE_PACKAGES/arifosmcp/"
+	rsync -a --exclude='__pycache__' "$EXPORT_DIR/arifosmcp/" "$SITE_PACKAGES/arifosmcp/"
 
 	# Marker provenance: both stamps are written from LEASE_CANDIDATE, never
 	# from a post-acquire HEAD re-read.
