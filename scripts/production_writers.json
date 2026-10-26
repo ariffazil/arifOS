@@ -255,6 +255,21 @@
       "discovery": "scan",
       "classification": "NOT_A_WRITER",
       "reason": "test fixture strings."
+    },
+    {
+      "file": "scripts/deploy_rollback.sh",
+      "writer_id": "W11",
+      "entrypoint": "bash scripts/deploy_rollback.sh restore",
+      "target": "site-packages/arifosmcp + deploy markers + arifos.service",
+      "mutation_type": [
+        "tar_replace",
+        "marker_write",
+        "systemctl_stop_start"
+      ],
+      "mediation": "lease_require",
+      "mediated": true,
+      "discovery": "manual",
+      "note": "F13/manual recovery verb; the deploy body never calls it automatically (no automatic retry). snapshot mode is read-only. restore refuses without a live lease (exit 6)."
     }
   ],
   "outside_repository_control": [

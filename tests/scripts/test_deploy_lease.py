@@ -871,3 +871,198 @@ def test_makefile_never_passes_token_through_argv():
     block = text.split("deploy-local:", 1)[1].split("\nsot-check:", 1)[0]
     assert "--token" not in block
     assert "DEPLOY_SESSION" in block
+
+
+# ── pre-registered rollback (888 deployment-readiness condition) ───────────
+
+ROLLBACK = ROOT / "scripts" / "deploy_rollback.sh"
+
+
+def _rollback(env: dict[str, str], *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["bash", str(ROLLBACK), *args], env=env, text=True, capture_output=True)
+
+
+@pytest.fixture
+def rb_env(tmp_path: Path):
+    site = tmp_path / "site"
+    (site / "arifosmcp").mkdir(parents=True)
+    (site / "arifosmcp" / "live.py").write_text("v = 1\n")
+    snaps = tmp_path / "snaps"
+    snaps.mkdir()
+    pointer = tmp_path / "pointer.txt"
+    deployed_marker = tmp_path / "deployed-commit"
+    deployed_marker.write_text("prevsha\n")
+    app_marker = tmp_path / "app-git-commit"
+    app_marker.write_text("prevapp\n")
+    e = os.environ.copy()
+    e.update(
+        {
+            "SNAP_ROOT": str(snaps),
+            "POINTER_FILE": str(pointer),
+            "DEPLOYED_COMMIT_MARKER": str(deployed_marker),
+            "APP_GIT_COMMIT_MARKER": str(app_marker),
+            "SERVICE_STOP_CMD": "true",
+            "SERVICE_START_CMD": "true",
+            "REQUIRE_PYTHON": "bash",
+            "LEASE_TOOL": str(tmp_path / "require_stub.sh"),
+        }
+    )
+    stub = tmp_path / "require_stub.sh"
+    stub.write_text("#!/usr/bin/env bash\nexit ${REQUIRE_STUB_RC:-0}\n")
+    stub.chmod(0o755)
+    return {
+        "env": e,
+        "site": site,
+        "snaps": snaps,
+        "pointer": pointer,
+        "deployed_marker": deployed_marker,
+        "app_marker": app_marker,
+    }
+
+
+def _snapshot(rb, candidate="cand12345"):
+    return _rollback(
+        rb["env"], "snapshot", "--site-packages", str(rb["site"]), "--candidate", candidate
+    )
+
+
+def test_snapshot_registers_tar_hash_pointer_meta(rb_env):
+    rb = rb_env
+    p = _snapshot(rb)
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert "ROLLBACK_REGISTERED" in p.stdout
+    snap = Path(p.stdout.split("ROLLBACK_REGISTERED", 1)[1].strip().splitlines()[0])
+    assert (snap / "arifosmcp-site.tar").exists()
+    verify = subprocess.run(
+        ["sha256sum", "-c", "SNAPSHOT.sha256"], cwd=snap, capture_output=True, text=True
+    )
+    assert verify.returncode == 0
+    assert rb["pointer"].read_text().strip() == str(snap)
+    meta = (snap / "SNAPSHOT.meta").read_text()
+    assert "prev_deployed_commit=prevsha" in meta
+    assert "prev_app_git_commit=prevapp" in meta
+
+
+def test_snapshot_missing_live_package_fails(rb_env):
+    rb = rb_env
+    p = _rollback(
+        rb["env"], "snapshot", "--site-packages", str(rb["site"] / "nope"), "--candidate", "c"
+    )
+    assert p.returncode == 3
+    assert "ROLLBACK_SNAPSHOT_FAILED" in p.stderr
+
+
+def test_restore_roundtrip_recovers_bytes_and_markers(rb_env):
+    rb = rb_env
+    p = _snapshot(rb)
+    assert p.returncode == 0, p.stdout + p.stderr
+    snap = Path(rb["pointer"].read_text().strip())
+    # post-snapshot drift: mutated module, stale module, moved markers
+    (rb["site"] / "arifosmcp" / "live.py").write_text("v = 2  # bad deploy\n")
+    (rb["site"] / "arifosmcp" / "stale_removed.py").write_text("gone = True\n")
+    rb["deployed_marker"].write_text("newsha\n")
+    rb["app_marker"].write_text("newapp\n")
+    r = _rollback(rb["env"], "restore", "--snapshot", str(snap))
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "ROLLBACK_RESTORED" in r.stdout
+    assert (rb["site"] / "arifosmcp" / "live.py").read_text() == "v = 1\n"
+    assert not (rb["site"] / "arifosmcp" / "stale_removed.py").exists()
+    assert rb["deployed_marker"].read_text().strip() == "prevsha"
+    assert rb["app_marker"].read_text().strip() == "prevapp"
+
+
+def test_restore_refuses_tampered_snapshot(rb_env):
+    rb = rb_env
+    p = _snapshot(rb)
+    assert p.returncode == 0
+    snap = Path(rb["pointer"].read_text().strip())
+    with (snap / "arifosmcp-site.tar").open("ab") as fh:
+        fh.write(b"tampered bytes")
+    r = _rollback(rb["env"], "restore", "--snapshot", str(snap))
+    assert r.returncode == 5
+    assert "RESTORE_FAILED" in r.stderr
+
+
+def test_snapshot_retention_keeps_newest(rb_env):
+    rb = rb_env
+    rb["env"]["ROLLBACK_RETENTION"] = "2"
+    for i, cand in enumerate(("candaaa11", "candbbb22", "candccc33")):
+        p = _snapshot(rb, candidate=cand)
+        assert p.returncode == 0, p.stdout + p.stderr
+    snaps = sorted(rb["snaps"].glob("rollback-*"))
+    assert len(snaps) == 2
+    names = " ".join(s.name for s in snaps)
+    assert "candaaa11" not in names
+
+
+def test_release_row_carries_rollback_fields(env):
+    _acquire(env)
+    _marker(env, "cand")  # deployed artifact == pinned candidate
+    p = _run(
+        env,
+        "release",
+        "--envelope",
+        str(_envelope_path(env)),
+        "--actor",
+        "A",
+        "--session",
+        "S",
+        "--exit-code",
+        "0",
+        "--rollback-snapshot",
+        "/opt/arifos/releases/rollback-test-cand12345",
+        "--stale-pruned",
+        "true:stale_modules_pruned=2",
+    )
+    assert p.returncode == 0, p.stdout + p.stderr
+    row = _last_released(env)
+    assert row["rollback_snapshot"] == "/opt/arifos/releases/rollback-test-cand12345"
+    assert row["stale_pruned"] == "true:stale_modules_pruned=2"
+
+
+# ── static body assertions: rollback is wired before mutation, fail-closed ──
+
+
+def test_body_snapshots_before_first_protected_write():
+    text = BODY.read_text()
+    snap_at = text.index('deploy_rollback.sh" snapshot')
+    first_rsync = text.index("rsync -a --exclude='.git'")
+    assert snap_at < first_rsync, "snapshot must precede the first protected write"
+    assert "ROLLBACK_NOT_REGISTERED" in text
+    assert "exit 10" in text
+
+
+def test_body_site_sync_prunes_stale_modules():
+    text = BODY.read_text()
+    site_line = [
+        line
+        for line in text.splitlines()
+        if "arifosmcp/" in line and line.strip().startswith("rsync")
+    ]
+    assert site_line, "site-packages rsync not found"
+    assert "--delete" in site_line[0], "stale modules would survive the deploy"
+    assert "__pycache__" in text
+
+
+def test_body_passes_rollback_fields_on_every_release_path():
+    text = BODY.read_text()
+    assert text.count("--rollback-snapshot") >= 2  # trap path + success path
+    assert text.count("--stale-pruned") >= 2
+
+
+def test_rollback_restore_verifies_hash_before_stopping_service():
+    text = ROLLBACK.read_text()
+    assert text.index("sha256sum -c") < text.index("$SERVICE_STOP_CMD")
+
+
+def test_restore_refused_without_active_lease(rb_env):
+    rb = rb_env
+    p = _snapshot(rb)
+    assert p.returncode == 0
+    (rb["site"] / "arifosmcp" / "live.py").write_text("v = 2  # bad deploy\n")
+    rb["env"]["REQUIRE_STUB_RC"] = "6"  # lease require fails → no lease
+    r = _rollback(rb["env"], "restore")
+    assert r.returncode == 6
+    assert "RESTORE_REFUSED" in r.stderr
+    # refused restore wrote nothing
+    assert (rb["site"] / "arifosmcp" / "live.py").read_text() == "v = 2  # bad deploy\n"

@@ -39,6 +39,8 @@ LEASE_ID=""
 LEASE_CANDIDATE=""
 EXPORT_DIR=""
 RELEASED=0
+ROLLBACK_SNAPSHOT=""
+STALE_PRUNED="na"
 
 # ── the invariant: a lease that was acquired is released, whatever happens ──
 release_lease() {
@@ -59,6 +61,8 @@ release_lease() {
 		--actor "$LEASE_ACTOR" --session "$LEASE_SESSION" \
 		--receipt "$DEPLOY_RECEIPT" --exit-code "$rc" \
 		--observed-head "${HEAD_SHA:-}" \
+		--rollback-snapshot "${ROLLBACK_SNAPSHOT:-NONE}" \
+		--stale-pruned "$STALE_PRUNED" \
 		>/tmp/arifos-deploy-release.json 2>&1; then
 		echo "Deploy lease released — epoch appended to ${STATE_DIR}/deploy_epochs.jsonl"
 	else
@@ -132,6 +136,28 @@ if [ "$DRY" != "1" ]; then
 	# rsync into the deployed artifact.
 	EXPORT_DIR="$(mktemp -d "${TMPDIR:-/var/tmp}/arifos-deploy.XXXXXX")"
 	git -C "$DIR" archive --format=tar "$LEASE_CANDIDATE" | tar -x -C "$EXPORT_DIR"
+
+	# ── pre-registered rollback snapshot — BEFORE the first protected write ──
+	# 888 deployment-readiness condition (2026-10-26): a governed deploy that
+	# cannot be undone by script is not reversible. Fail-closed: no snapshot,
+	# no mutation.
+	if ! SNAP_OUT="$("$DIR/scripts/deploy_rollback.sh" snapshot \
+		--site-packages "$SITE_PACKAGES" --candidate "$LEASE_CANDIDATE" 2>&1)"; then
+		echo "888_HOLD: ROLLBACK_NOT_REGISTERED — refusing to mutate production without a pre-registered snapshot." >&2
+		echo "$SNAP_OUT" >&2
+		exit 10
+	fi
+	ROLLBACK_SNAPSHOT="$(printf '%s\n' "$SNAP_OUT" | sed -n 's/^ROLLBACK_REGISTERED //p')"
+	echo "$SNAP_OUT"
+	echo "Rollback registered: ${ROLLBACK_SNAPSHOT:-unknown}"
+
+	# Stale-module accounting: modules live in site-packages but absent from
+	# the pinned candidate are pruned by --delete below and counted here so the
+	# epoch records what the deploy removed, not just what it wrote.
+	STALE_COUNT="$(comm -23 \
+		<(cd "$SITE_PACKAGES/arifosmcp" 2>/dev/null && find . -name '*.py' | sort) \
+		<(cd "$EXPORT_DIR/arifosmcp" && find . -name '*.py' | sort) | grep -c . || true)"
+
 	echo "Syncing canonical code to /opt/arifos/app (export=$EXPORT_DIR)..."
 	rsync -a --exclude='.git' --exclude='.venv' --exclude='.claude' \
 		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
@@ -143,7 +169,12 @@ if [ "$DRY" != "1" ]; then
 	chown arifos:arifos /opt/arifos/app/.env 2>/dev/null || true
 
 	echo "Syncing runtime import path ($SITE_PACKAGES)..."
-	rsync -a --exclude='__pycache__' "$EXPORT_DIR/arifosmcp/" "$SITE_PACKAGES/arifosmcp/"
+	# --delete: the export IS the complete authorized package; a module the
+	# candidate removed must not survive in the import path (stale-module
+	# defect class: deployed tree silently keeps the previous release's code).
+	rsync -a --delete --exclude='__pycache__' "$EXPORT_DIR/arifosmcp/" "$SITE_PACKAGES/arifosmcp/"
+	find "$SITE_PACKAGES/arifosmcp" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+	STALE_PRUNED="true:stale_modules_pruned=${STALE_COUNT:-0}"
 
 	# Marker provenance: both stamps are written from LEASE_CANDIDATE, never
 	# from a post-acquire HEAD re-read.
@@ -199,6 +230,8 @@ set +e
 	--actor "$LEASE_ACTOR" --session "$LEASE_SESSION" \
 	--receipt "$DEPLOY_RECEIPT" --exit-code 0 \
 	--observed-head "$HEAD_SHA" \
+	--rollback-snapshot "${ROLLBACK_SNAPSHOT:-NONE(dry_run)}" \
+	--stale-pruned "$STALE_PRUNED" \
 	>/tmp/arifos-deploy-release.json 2>&1
 RELEASE_RC=$?
 set -e

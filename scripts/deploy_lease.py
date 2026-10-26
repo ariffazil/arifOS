@@ -512,6 +512,8 @@ def cmd_release(a) -> int:
         )
         row["receipt"] = a.receipt
         row["body_exit_code"] = a.exit_code
+        row["rollback_snapshot"] = a.rollback_snapshot
+        row["stale_pruned"] = a.stale_pruned
         row["released_at"] = _iso()
         row["event"] = "RELEASED"
 
@@ -982,6 +984,8 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--receipt", default=None)
     pr.add_argument("--exit-code", default="0", dest="exit_code")
     pr.add_argument("--observed-head", default=None, dest="observed_head")
+    pr.add_argument("--rollback-snapshot", default=None, dest="rollback_snapshot")
+    pr.add_argument("--stale-pruned", default=None, dest="stale_pruned")
     pr.set_defaults(fn=cmd_release)
 
     pvc = sub.add_parser("verify-candidate")
