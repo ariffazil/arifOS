@@ -39,7 +39,9 @@ EXIT CODES
     0  ok
     3  HOLD_CONCURRENT_DEPLOY (another lease is active)
     4  ARTIFACT_CHANGED (running runtime differs from the approved manifest)
-    5  NO_ACTIVE_LEASE
+    5  NO_ACTIVE_LEASE (release without a lease)
+    6  NO_ACTIVE_LEASE (require refused a mutation)
+    7  ARTIFACT_UNOBSERVABLE (verify could not read the runtime)
 """
 
 from __future__ import annotations
@@ -95,7 +97,15 @@ def artifact_manifest() -> dict:
             digest = _sha_file(p)
             files.append(f"{rel}:{digest}")
             h.update(f"{rel}\0{digest}\0".encode())
+    observable = bool(files)
+    reason = None
+    if not SITE_PKGS.is_dir():
+        reason = f"site_packages_absent:{SITE_PKGS}"
+    elif not files:
+        reason = f"no_python_modules_under:{SITE_PKGS}"
     return {
+        "observable": observable,
+        "unobservable_reason": reason,
         "manifest_sha256": h.hexdigest() if files else "EMPTY",
         "module_count": len(files),
         "target_runtime": RUNTIME_TARGET,
@@ -280,6 +290,32 @@ def cmd_status(a) -> int:
     return 0
 
 
+def cmd_require(a) -> int:
+    """Fail-closed gate for repository-controlled production writers.
+
+    A writer calls this BEFORE it mutates. Exit 6 means "no lease, do nothing".
+    This is option A of the complete-mediation contract: a writer may not mutate
+    first and check ownership later.
+
+    It deliberately does NOT acquire on the writer's behalf — acquisition is a
+    decision with an owner and a TTL, and hiding it inside a guard would let any
+    script mint its own authority.
+    """
+    lease = _read_lease()
+    if _is_live(lease):
+        return 0
+    print(json.dumps({
+        "status": "NO_ACTIVE_LEASE",
+        "action": "refused_before_mutation",
+        "caller": a.caller,
+        "message": ("no live deployment lease. Acquire one through the canonical "
+                    "entrypoint (make deploy-local) or run: deploy_lease.py "
+                    "acquire --actor <you> --base <sha> --candidate <sha>"),
+        "holder": lease,
+    }, indent=2))
+    return 6
+
+
 def cmd_verify(a) -> int:
     """expected_artifact != observed_artifact → epistemic invalidation."""
     last = None
@@ -308,6 +344,24 @@ def cmd_verify(a) -> int:
         return 5
     expected = last.get("resulting_artifact") or {}
     observed = artifact_manifest()
+
+    # UNOBSERVABLE is not UNCHANGED (2026-10-26). The first version compared
+    # EMPTY == EMPTY when site-packages was absent and returned a green
+    # ARTIFACT_UNCHANGED — the detector went green exactly when it was blind.
+    # Missing evidence may never manufacture equality.
+    if not observed.get("observable"):
+        print(json.dumps({
+            "status": "ARTIFACT_UNOBSERVABLE",
+            "reason": observed.get("unobservable_reason"),
+            "expected": {"manifest_sha256": expected.get("manifest_sha256"),
+                         "module_count": expected.get("module_count"),
+                         "epoch": last.get("deployment_epoch")},
+            "observed": observed,
+            "meaning": "the imported runtime could not be read; this is NOT a "
+                       "match and NOT a mismatch — integrity is unknown",
+        }, indent=2))
+        return 7
+
     same = (
         expected.get("manifest_sha256") == observed["manifest_sha256"]
         and expected.get("module_count") == observed["module_count"]
@@ -357,6 +411,10 @@ def main(argv: list[str] | None = None) -> int:
 
     pv = sub.add_parser("verify")
     pv.set_defaults(fn=cmd_verify)
+
+    pq = sub.add_parser("require")
+    pq.add_argument("--caller", default=None, help="writer id, for the refusal record")
+    pq.set_defaults(fn=cmd_require)
 
     a = p.parse_args(argv)
     return a.fn(a)
