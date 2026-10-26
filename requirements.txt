@@ -4728,9 +4728,9 @@ segyio==1.9.14 \
     --hash=sha256:f7f7add046d9338b1af4d922220c9dc120f72ff7961213f3f79d8025426d547f \
     --hash=sha256:ffb815f07ac8779ca8351f4f2fa178cc976cc96429c5f12b380d2d6b99c1f2b3
     # via arifos
-sentence-transformers==6.1.0 \
-    --hash=sha256:299025df51550dc1a38f05be27a9b0bf881c4e5e70542b3b7757d05e00aa3868 \
-    --hash=sha256:eb8122f4d180f552eda26dc3d77e84e8c11dc2b1d456a406b9f24abb70ceeadd
+sentence-transformers==6.2.0 \
+    --hash=sha256:1e3cd8796ab7bcad4cfa2f51e2083d8b37b15d6b68e6fa6b91a147c67380574d \
+    --hash=sha256:ffb51ccfef65427cfa61776d0eeeb257600b0099cf0c7533ae9a6856d31e4665
     # via arifos
 setuptools==69.5.1 \
     --hash=sha256:6c1fccdac05a97e598fb0ae3bbed5904ccb317337a51139dcd51453611bbb987 \
@@ -5036,9 +5036,9 @@ traitlets==5.16.0 \
     #   ipython
     #   ipywidgets
     #   matplotlib-inline
-transformers==5.19.0 \
-    --hash=sha256:87f38dd25e4521151b97e94520ac457f44a0ae8a8358a5b112daff6c64a822d6 \
-    --hash=sha256:afcd2dd5f603ed28c1e1fcb00a338ccbb4ef5f878ed289635df8b58187afb518
+transformers==5.20.2 \
+    --hash=sha256:080871e061546d720be57f5846fce426f46b44d61574907cc7404c2cba49d180 \
+    --hash=sha256:7ae75dbc1fb3922aff1b6c97b9e5479d6cf26fd86a8866bfb71324190479f807
     # via
     #   arifos
     #   sentence-transformers
