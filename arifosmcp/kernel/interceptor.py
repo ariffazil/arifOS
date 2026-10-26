@@ -455,7 +455,10 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
     # the print path to block log-injection. Attacker-supplied newlines or
     # control chars must not be able to forge audit lines.
     def _safe_audit(s):
-        return "".join(c for c in str(s) if c.isprintable() and c not in "\r\n").strip()[:120] or "<empty>"
+        return (
+            "".join(c for c in str(s) if c.isprintable() and c not in "\r\n").strip()[:120]
+            or "<empty>"
+        )
 
     print(
         f"[KERNEL_AUTHORITY] actor={_safe_audit(req.actor_id)} "
@@ -677,10 +680,7 @@ def _check_policy_floors(
             _actor = req.actor_id or "anonymous"
             return InterceptorDecision(
                 verdict=AdmissibilityVerdict.DENY,
-                reason=(
-                    f"AUTHORITY_GATE: envelope rejected — "
-                    f"{'; '.join(_gr.violations)}"
-                ),
+                reason=(f"AUTHORITY_GATE: envelope rejected — {'; '.join(_gr.violations)}"),
                 capability_id=capability.capability_id,
                 actor_id=_actor,
                 authority_tier=authority,
@@ -1116,7 +1116,28 @@ def clear_nonce_cache() -> None:
 _OVERCLAIM_PATTERNS: list[str] = [
     r"\bI (am |)(certain|sure|confident|positive|absolutely sure)\b",
     r"\b(this|it|that) (is |)(definitely|certainly|undoubtedly|unquestionably|absolutely|always|never)\b",
-    r"\b(always|never|guaranteed|proven|verified|confirmed)\b",
+    # [2026-10-26 F7_PRECISION] The old pattern was a bare-token alternation
+    # r"\b(always|never|guaranteed|proven|verified|confirmed)\b" — it fired on
+    # the federation's own working vocabulary ("a Verify receipt", "verified
+    # consequence", "actor_verified") in ANY text field, including evidence
+    # quotations. Measured: two arif_report filings were refused because the
+    # report body quoted verification state. A detector that forbids saying
+    # "verified" cannot govern a system whose core verb is Verify.
+    #
+    # F7's intent is ASSERTED certainty, not the noun. These forms keep every
+    # real overclaim shape and drop the bare adjective:
+    # [2026-10-26 F7_PRECISION] Certainty claims are ASSERTIONS OF GUARANTEE,
+    # not reports that work was done. "verified" and "confirmed" are state
+    # reports in a federation whose core verb is Verify, so the bare adjective
+    # is immune; they become overclaims only in absolute constructions.
+    r"\b(is|are|was|were|am|has been|have been|been)\s+"
+    r"(guaranteed|proven|infallible|unassailable)\b",
+    r"\b(guaranteed|proven|confirmed|verified)\s+to\s+"
+    r"(work|succeed|pass|hold|scale|be (safe|correct|fine|stable))\b",
+    r"\b(completely|fully|absolutely|totally|100%)\s+(verified|confirmed|proven)\b",
+    r"\b(verified|confirmed|proven)\s+(beyond (any )?doubt|with (absolute )?certainty)\b",
+    r"\bnever\s+(fails?|breaks?|errs?|goes wrong|lets? (you|us) down)\b",
+    r"\balways\s+(works?|succeeds?|passes?)\b",
     r"\b100%|\b100\s*percent\b",
     r"\b(completely|entirely|totally|perfect(ly)?|100%)\s+(safe|secure|clean|verified|bug-free|error-free|tested)\b",
     r"\b(zero|no)\s+(risk|doubt|error|bug|flaw|chance of failure)\b",
@@ -1128,6 +1149,36 @@ _OVERCLAIM_PATTERNS: list[str] = [
     r"\b(every single|all possible|without exception)\b",
     r"\b(cannot (possibly |)be wrong|infallible|unassailable)\b",
 ]
+
+# Citation immunity (2026-10-26 F7_PRECISION): a claim that is QUOTED is being
+# reported, not asserted. Double quotes and backticks are the citation marks
+# that appear in JSON payloads and evidence quotations; single quotes are left
+# alone because contractions ("don't", "it's") would open a false span.
+_QUOTED_SPAN = re.compile(r'"(?:[^"\\]|\\.)*"|`[^`]*`', re.DOTALL)
+
+# Prose fields where an agent ASSERTS something. Scanned directly so a real
+# overclaim cannot hide from F7 just by living in a report body.
+_PROSE_FIELDS: tuple[str, ...] = (
+    "query",
+    "task",
+    "candidate",
+    "intent",
+    "manifest",
+    "body",
+    "subject",
+    "reason",
+    "justification",
+    "note",
+    "content",
+    "description",
+    "summary",
+    "claim",
+)
+
+
+def _strip_citations(text: str) -> str:
+    """Remove quoted spans so a cited claim is not read as an asserted claim."""
+    return _QUOTED_SPAN.sub(" ", text)
 
 
 def _check_overclaim(
@@ -1142,17 +1193,15 @@ def _check_overclaim(
     """
     # Combine all text fields to scan
     text_fields: list[str] = []
-    # FIX 2026-07-29: InterceptorInput has no .task field.
-    # Extract task/query from raw_arguments (arif_think.query, arif_forge.task, etc.)
-    _task_text = (
-        req.raw_arguments.get("query")
-        or req.raw_arguments.get("task")
-        or req.raw_arguments.get("candidate")
-        or req.raw_arguments.get("intent")
-        or ""
-    )
-    if _task_text:
-        text_fields.append(_task_text)
+    # [2026-10-26 F7_PRECISION] Scan every prose field that can carry a CLAIM,
+    # not just the first non-empty one. Before this, a report body or a forge
+    # manifest was reachable only through the serialized JSON dump — where
+    # every value is quoted, so the only thing F7 could see there was exactly
+    # the quoted text it should have ignored.
+    for _field in _PROSE_FIELDS:
+        _value = req.raw_arguments.get(_field)
+        if isinstance(_value, str) and _value.strip():
+            text_fields.append(_value)
     if req.raw_arguments:
         import json as _json
 
@@ -1162,7 +1211,9 @@ def _check_overclaim(
         except (TypeError, ValueError):
             pass
 
-    combined = " ".join(text_fields)
+    # Citation immunity: strip quoted spans (JSON string values, evidence
+    # quotations) so REPORTING a claim is not read as MAKING one.
+    combined = _strip_citations(" ".join(text_fields))
     if not combined.strip():
         return None
 

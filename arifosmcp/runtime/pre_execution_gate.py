@@ -335,7 +335,15 @@ def _art_reflex_check(
                 action_class=requested_action.value,
                 is_reversible=(manifest_entry.is_reversible if manifest_entry else False),
                 session_id=envelope.kernel.session_id,
-                actor_id=envelope.kernel.actor_id or "anonymous",
+                # [2026-10-26 IDENTITY_BUCKET] These receipts are the KERNEL's own
+                # self-check, so they book under the kernel's namespace. They used
+                # to fall through to the literal bucket "anonymous", which made an
+                # identity placeholder look like a principal that could be gated,
+                # ranked and held. arifFlow holds on "anonymous" were un-clearable
+                # because that bucket can never perform a real Verify of itself.
+                # The synthetic class 'kernel:art-evidence-gate' is declared in
+                # arifFlow config/entity_classes.yaml.
+                actor_id=envelope.kernel.actor_id or "kernel:art-evidence-gate",
                 payload=payload,
                 canonical_tool=manifest_entry is not None,
             )
