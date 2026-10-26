@@ -197,6 +197,27 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
         "Smoke test: arif_memory %s (%dms)", "PASS" if actually_passed else "FAIL", latency_ms
     )
 
+    # ── Step 3b: Test arif_report in stats mode only ─────────────────────────
+    logger.info("Smoke test: calling arif_report (stats mode)")
+    t0 = time.time()
+    passed, error, raw = await _call_tool_safe(
+        mcp, "arif_report", {"mode": "stats"}
+    )
+    latency_ms = int((time.time() - t0) * 1000)
+
+    actually_passed = passed and error is None
+    record_test_result("arif_report", passed=actually_passed, error=error)
+    results["arif_report"] = {
+        "passed": actually_passed,
+        "error": error,
+        "latency_ms": latency_ms,
+        "mode": "stats",
+        "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    logger.info(
+        "Smoke test: arif_report %s (%dms)", "PASS" if actually_passed else "FAIL", latency_ms
+    )
+
     # ── Step 4: Record NEVER tools as intentionally skipped ──────────────────
     for tool_name in NEVER_TOOLS:
         # 2026-10-24 333-AGI — do NOT write a cache row for a decision not taken.
