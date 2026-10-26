@@ -2771,9 +2771,11 @@ nvidia-cudnn-cu13==9.20.0.48 ; sys_platform == 'linux' \
     --hash=sha256:0c45dd8eeb50b603f07995b1b300c62ffe6a1980482b82b3bcf94a4ca9d49304 \
     --hash=sha256:e31454ae00094b0c55319d9d15b6fa2fc50a9e1c0f5c8c80fb75258234e731e1
     # via torch
-nvidia-cufft==12.0.0.61 ; sys_platform == 'linux' \
-    --hash=sha256:2708c852ef8cd89d1d2068bdbece0aa188813a0c934db3779b9b1faa8442e5f5 \
-    --hash=sha256:6c44f692dce8fd5ffd3e3df134b6cdb9c2f72d99cf40b62c32dde45eea9ddad3
+nvidia-cufft==12.4.0.43 ; sys_platform == 'linux' \
+    --hash=sha256:0e8385013596b112d29c9ce8c63dc575b308d77636c7169104e18714f03961a8 \
+    --hash=sha256:3938644a5b594e06d396e02d6e52bdd84589b3c1f3a8a127a2704211c2abc441 \
+    --hash=sha256:4e8d551542bd661aef431422acddc5f06f793ac9b1dc7af53de63cbfde5781f9 \
+    --hash=sha256:4ff7075f2d0b5f69291f70938d37a86ec632cbe5747184c74ba1f50f17accacc
     # via cuda-toolkit
 nvidia-cufile==1.15.1.6 ; sys_platform == 'linux' \
     --hash=sha256:08a3ecefae5a01c7f5117351c64f17c7c62efa5fffdbe24fc7d298da19cd0b44 \
