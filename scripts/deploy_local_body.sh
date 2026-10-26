@@ -137,6 +137,18 @@ if [ "$DRY" != "1" ]; then
 	EXPORT_DIR="$(mktemp -d "${TMPDIR:-/var/tmp}/arifos-deploy.XXXXXX")"
 	git -C "$DIR" archive --format=tar "$LEASE_CANDIDATE" | tar -x -C "$EXPORT_DIR"
 
+	# ── regression guard: the deployed artifact must be an ancestor of the
+	# candidate (888 recurrence signal — main fell behind the live lineage
+	# twice in 19h). Unknown marker fails closed. Zero protected writes on HOLD.
+	DEPLOYED_MARK="$(cat "${DEPLOYED_COMMIT_MARKER:-/opt/arifos/releases/deployed-commit}" 2>/dev/null || true)"
+	if ! "$PYTHON" "$LEASE_TOOL" check-ancestry --repo "$DIR" \
+		--deployed "$DEPLOYED_MARK" --candidate "$LEASE_CANDIDATE" \
+		>/tmp/arifos-ancestry-check.json 2>&1; then
+		echo "888_HOLD: DEPLOY_REGRESSION_RISK — deployed ${DEPLOYED_MARK:-<none>} is not an ancestor of candidate ${LEASE_CANDIDATE}. Zero protected writes." >&2
+		cat /tmp/arifos-ancestry-check.json >&2 || true
+		exit 13
+	fi
+
 	# ── pre-registered rollback snapshot — BEFORE the first protected write ──
 	# 888 deployment-readiness condition (2026-10-26): a governed deploy that
 	# cannot be undone by script is not reversible. Fail-closed: no snapshot,

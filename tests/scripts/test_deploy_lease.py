@@ -1066,3 +1066,67 @@ def test_restore_refused_without_active_lease(rb_env):
     assert "RESTORE_REFUSED" in r.stderr
     # refused restore wrote nothing
     assert (rb["site"] / "arifosmcp" / "live.py").read_text() == "v = 2  # bad deploy\n"
+
+
+# ── regression guard: deployed must be an ancestor of the candidate ────────
+
+
+def _commit(repo: Path, name: str) -> str:
+    (repo / f"{name}.txt").write_text(f"{name}\n")
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "-c", "user.email=a@b", "-c", "user.name=a",
+         "commit", "-qm", name],
+        check=True,
+    )
+    return subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"],
+        text=True, capture_output=True, check=True,
+    ).stdout.strip()
+
+
+def test_check_ancestry_ok_for_linear_history(env, repo):
+    a = _git_head(repo)
+    b = _commit(repo, "b")
+    p = _run(env, "check-ancestry", "--repo", str(repo), "--deployed", a, "--candidate", b)
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert "ANCESTOR_OK" in p.stdout
+
+
+def test_check_ancestry_blocks_diverged_lineage(env, repo):
+    a = _git_head(repo)
+    _commit(repo, "mainline")
+    subprocess.run(["git", "-C", str(repo), "checkout", "-qb", "divergent", a], check=True)
+    d = _commit(repo, "divergent")
+    subprocess.run(["git", "-C", str(repo), "checkout", "-q", "master"], check=True, stderr=subprocess.DEVNULL) \
+        if subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "-q", "master"]).returncode == 0 \
+        else subprocess.run(["git", "-C", str(repo), "checkout", "-q", "main"], check=True)
+    p = _run(env, "check-ancestry", "--repo", str(repo), "--deployed", d, "--candidate", _git_head(repo))
+    # candidate on mainline, deployed on divergent branch → not an ancestor
+    assert p.returncode == 13
+    assert "DEPLOY_REGRESSION_RISK" in p.stdout
+    assert "DEPLOYED_NOT_ANCESTOR" in p.stdout
+
+
+def test_check_ancestry_unknown_deployed_fails_closed(env, repo):
+    p = _run(env, "check-ancestry", "--repo", str(repo),
+             "--deployed", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+             "--candidate", _git_head(repo))
+    assert p.returncode == 13
+    assert "DEPLOYED_UNKNOWN_TO_REPO" in p.stdout
+
+
+def test_check_ancestry_first_deployment_has_no_marker(env, repo):
+    p = _run(env, "check-ancestry", "--repo", str(repo), "--deployed", "",
+             "--candidate", _git_head(repo))
+    assert p.returncode == 0
+    assert "NO_DEPLOYED_MARKER" in p.stdout
+
+
+def test_body_runs_ancestry_guard_before_snapshot_and_writes():
+    text = BODY.read_text()
+    guard_at = text.index("check-ancestry")
+    snapshot_at = text.index("deploy_rollback.sh\" snapshot")
+    first_rsync = text.index("rsync -a --exclude='.git'")
+    assert guard_at < snapshot_at < first_rsync
+    assert "DEPLOY_REGRESSION_RISK" in text
