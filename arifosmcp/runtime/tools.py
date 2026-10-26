@@ -23746,6 +23746,36 @@ async def _arif_forge_execute_tool(
       ForgeOutput with status, execution_trace, artifact_id, and
       irreversibility_level.
     """
+    # ── F6 P0/P3 execution-boundary authority (2026-10-26, additive, flag-gated) ──
+    # Baseline probe found check_binding() had ZERO live callers in the kernel
+    # (dead seam). This block is the caller. Observe-only by default; set
+    # ARIFOS_F6_BINDING_ENFORCE=1 to fail closed. See runtime/f6/execution_boundary.py.
+    try:
+        from arifosmcp.runtime.f6.execution_boundary import (
+            guard_forge_call as _f6_guard_forge_call,
+        )
+
+        _f6_binding = _f6_guard_forge_call(
+            mode=str(mode or ""),
+            manifest=manifest or "",
+            actor_id=actor_id,
+            approved_action_hash=approved_action_hash,
+        )
+    except Exception as _f6_exc:  # unavailable guard: fail closed only when enforcing
+        _f6_binding = {
+            "decision": "ERROR",
+            "blocked": os.environ.get("ARIFOS_F6_BINDING_ENFORCE", "0").strip() == "1",
+            "reason": f"f6 guard unavailable: {type(_f6_exc).__name__}: {_f6_exc}"[:300],
+        }
+    if _f6_binding.get("blocked"):
+        return {
+            "status": "HOLD",
+            "result": {},
+            "reason": (
+                f"F6_AUTHORITY_BINDING: {_f6_binding.get('decision')} — {_f6_binding.get('reason')}"
+            ),
+            "f6_binding": _f6_binding,
+        }
     # HARDENED TEETH: One Skill + One Tool enforcement. Verdict loop is the ONLY path.
     # This is called in the kernel for every forge path. Non-bypassable.
     # ── ACT v2 consent schema alignment (2026-08-07 audit) ─────────────

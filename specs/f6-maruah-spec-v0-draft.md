@@ -1,6 +1,8 @@
-# F6 / MARUAH — SPESIFIKASI v0.2 (DRAFT / IMPLEMENTATION CANDIDATE)
+# F6 / MARUAH — SPESIFIKASI v0.3 (DRAFT / IMPLEMENTATION CANDIDATE)
 
 > **Status:** DRAFT / IMPLEMENTATION CANDIDATE. Bukan kanon. Tiada seal. Tiada canon-mutate.
+> Revisi v0.3: 2026-10-26 — baseline deployment disahkan, Meter 5 dispatcher
+> dibaiki, sempadan autoriti disambung (flag OFF). Lihat Lampiran F.
 > **Prinsip Wajib:** *"Sistem mesti membuktikan bahawa ia menghormati manusia. Manusia tidak perlu membuktikan bahawa dia layak dihormati."*
 > **Revisi v0.2:** 2026-10-23 — Penyelarasan penuh antara kod kernel (`arifosmcp/runtime/f6/` + `floor_producers.py` + `rest_routes.py` di `/root/arifOS-wt-f6`), kod A-FORGE (`apa/core/f6/` di `/root/A-FORGE-wt-f6`), dan spesifikasi pada branch `feat/f6-maruah-v0-20261023` (tiada deploy, tiada merge, tiada ratifikasi).
 > **Pengesahan SHA-256 & Salasilah Dokumen:**
@@ -681,5 +683,77 @@ worktree A-FORGE `/root/A-FORGE-wt-f6`. Tiada deploy, tiada merge, tiada seal.
 
 ---
 
-*DRAF v0.2 / IMPLEMENTATION CANDIDATE — untuk semakan F13. Tiada kuasa mengikat
+## Lampiran F — AMENDMENT 06 — 2026-10-26 (Baseline reconciliation + Meter 5 fix + boundary wiring; additive)
+
+Semua item DIVERIFIKASI terhadap kod/probe dalam sesi 2026-10-26. Tiada verdict
+sedia ada diubah; tiada polisi tertangguh diaktifkan.
+
+### F.1 Pengesahan SHA-256 & status deployment (menutup soalan terbuka)
+
+- Prefix `704cac39` yang dilaporkan dalam arahan ialah draf kerja pra-komit;
+  salinan yang boleh dikenal pasti:
+  - komit pertama `0ae5807` → `7097a5c9…` (539 baris),
+  - komit `e4ef842e` → `9264f8d9…` (579 baris),
+  - salinan `/root/AAA/forge_work/specs/f6-maruah-spec-v0-draft.md`
+    (Amendments 04–05, `chattr +i`) → `f51c03c3…` (682 baris).
+  - salinan worktree ini (v0.2) → `6843f24c…` (685 baris) sebelum Amendment 06.
+- **Deployed kernel:** `e62a940` (`/health`: `runtime_matches_build=true`).
+  `/opt/arifos/app/arifosmcp/runtime/f6/` **tidak wujud** → F6 v0 tidak deployed.
+- **Branch:** `aaf00ebc9` bukan ancestor `main` atau `30fc077d9`;
+  merge-base = `257c146bf`. Kekal DRAFT, tiada merge.
+
+### F.2 Meter 5 — mekanisme propagasi dibaiki (bukan lagi FAIL semua lapisan)
+
+- Defek asal: `apa/core/forget_propagation.py::emit()` hanya merekod sasaran;
+  tiada subscriber. Ujian 2026-10-23 menyemat ketiadaan itu.
+- Pembetulan 2026-10-26:
+  - `LayerAdapter` + `ListLayerAdapter` + `SQLiteLayerAdapter` (validasi lajur
+    skema sebenar; metadata `forget_layer_applied`).
+  - `ForgetPropagation.register_layer()` + `propagate()`: dispatch → tulis →
+    baca-semula → status per lapisan.
+  - Status: `UPDATED` / `NOT_APPLICABLE` (wajib alasan) / `UNCHANGED` /
+    `STALE` / `MISSING` / `ERROR`.
+  - `propagated=True` HANYA jika semua lapisan wajib bersih DAN ≥1 baris berubah.
+    `emit()` sahaja kekal tidak mengubah apa-apa (falsifier sejarah dikekalkan).
+- Ujian: A-FORGE `test_f6_correction_propagation.py` **9/9 OK** (termasuk
+  SQLite sebenar, MISSING, ERROR, STALE, no-effect-not-verified).
+- **Had jujur:** dispatcher wujud dan diuji, tetapi **tiada adapter lapisan
+  produksi didaftarkan** — memori/queue/planner/payload produksi belum disambung.
+  Meter 5 kekal `UNKNOWN` sehingga producer produksi mendaftar adapter.
+
+### F.3 P0/P3 — sempadan autoriti disambung ke laluan forge (flag-gated)
+
+- Baseline: `check_binding()` mempunyai **sifar pemanggil langsung** dalam kernel
+  (dead seam). Ujian sahaja tidak membuktikan sempadan.
+- 2026-10-26: `arifosmcp/runtime/f6/execution_boundary.py::guard_forge_call`
+  dipanggil dari `_arif_forge_execute_tool` sebelum sebarang dispatch mutasi.
+- Flag `ARIFOS_F6_BINDING_ENFORCE` (default `"0"`): observe-only annotate jika
+  off; fail-closed jika `"1"`.
+- Enforcing: mutating mode tanpa `f6_binding_id` → `REJECT_BYPASS`; scope
+  melebar → `REJECT_SCOPE`; parameter berubah → `REJECT_PARAM`; expired/revoked/
+  replay/changed-after-approval → ditolak sebelum effect; tiada state guard →
+  `UNKNOWN` (block). Observation modes → `NOT_APPLICABLE`.
+- Ujian: `tests/constitutional/test_f6_execution_boundary.py` **7/7 OK**.
+- **Had jujur:** flag default OFF; tiada trafik produksi diuji di bawah enforce=1.
+
+### F.4 Meter 6 — kekal UNKNOWN (dependency)
+
+- Tiada ledger consent produksi. `check_consent(None)` melaporkan
+  `dependency_missing=True` dan kekal `UNKNOWN` — tidak diisi dengan default.
+- **BLOCKED:** sumber consent sah (UI/store F13) belum wujud. Tiada kod
+  tambahan dibina untuk mengelak polisi atas andaian.
+
+### F.5 Keputusan tertangguh — tidak berubah
+
+Pihak ketiga (`PENDING`), saksi kolektif (`HOLD`/`DISABLED`), External Peer
+Witness (`UNASSIGNED`) kekal tidak aktif. Tiada notifikasi/veto diaktifkan.
+
+### F.6 Peta baseline penuh
+
+`F6-P0-BASELINE-MAP-2026-10-26.md` (kernel worktree) memetakan setiap meter →
+producer → code path → enforcement point → evidence → test → gap.
+
+---
+
+*DRAF v0.3 / IMPLEMENTATION CANDIDATE — untuk semakan F13. Tiada kuasa mengikat
 sehingga disahkan F13. Tiada seal. Tiada merge. Tiada deploy.*

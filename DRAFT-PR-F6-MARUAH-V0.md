@@ -98,3 +98,60 @@ Perubahan ini hanya melibatkan kod di dalam branch `feat/f6-maruah-v0-20261023` 
 3. **External Peer Witness (`external_peer_witness` = `UNASSIGNED`)**: Siapa dan bila untuk melantik saksi rakan sebaya luaran yang bebas?
 4. **Parameter Statistik & Keparahan (C.2, C.3)**: Penetapan ambang kesetaraan TOST `δ` dan pemberat matriks keparahan.
 5. **Substrat Token & IRFAN Gate (C.5, Q1)**: Adakah DPoP-bound Macaroons akan diterima pakai, dan adakah `IRFAN ESCALATE` patut ditukar daripada `advisory` kepada `binding gate` untuk aksi `MUTATE`/`IRREVERSIBLE`?
+
+---
+
+## 6. ADDENDUM — 2026-10-26 (baseline reconciliation + Meter 5 fix + boundary seam)
+
+> Status kekal DRAFT PR · NOT MERGED · NOT DEPLOYED · NOT SEALED.
+> Butiran penuh: `F6-P0-BASELINE-MAP-2026-10-26.md`; spec Lampiran F.
+
+### 6.1 Deployment reality (probed)
+
+- Deployed kernel `e62a940`; `/opt/arifos/app/arifosmcp/runtime/f6/` **does not
+  exist** → F6 v0 is not in production.
+- Branch `aaf00ebc9` is **not** an ancestor of `main` or `30fc077d9`
+  (merge-base `257c146bf`).
+
+### 6.2 Meter 5 — mechanism fixed in the actuator
+
+- `apa/core/forget_propagation.py`: added `LayerAdapter`,
+  `ListLayerAdapter`, `SQLiteLayerAdapter`, `register_layer()` and
+  `propagate()` (dispatch → write → re-read → per-layer status).
+- Status vocabulary: `UPDATED` / `NOT_APPLICABLE` (reason required) /
+  `UNCHANGED` / `STALE` / `MISSING` / `ERROR`.
+- `propagated=True` only when every required layer is clean **and** ≥1 row
+  changed. Registry-only `emit()` still changes nothing (historical falsifier
+  kept green).
+- Tests: **9/9 OK**, including a real SQLite table, missing layer, subscriber
+  exception, stale survival, and no-effect-not-verified.
+- **Honest limit:** no production layer adapter is registered yet. Meter 5
+  stays `UNKNOWN` in production until memory/queue/planner/payload adapters
+  are wired.
+
+### 6.3 P0/P3 — authority boundary is now called
+
+- Baseline: `check_binding()` had **zero live call sites** in the kernel.
+- Added `runtime/f6/execution_boundary.py::guard_forge_call`, called from
+  `_arif_forge_execute_tool` before dispatch.
+- Flag `ARIFOS_F6_BINDING_ENFORCE` default `"0"` (observe-only annotation);
+  `"1"` = fail-closed.
+- Enforcing blocks: missing binding (`REJECT_BYPASS`), widened scope
+  (`REJECT_SCOPE`), changed params (`REJECT_PARAM`), expired/revoked/replay,
+  changed-after-approval (`REJECT_STATE`), missing state guard (`UNKNOWN`).
+- Tests: `test_f6_execution_boundary.py` **7/7 OK**.
+
+### 6.4 Meter 6 — still UNKNOWN
+
+No production consent ledger exists. `check_consent(None)` reports
+`dependency_missing=True` and stays `UNKNOWN`. No policy was invented.
+
+### 6.5 Updated closure vocabulary
+
+| State | Items |
+|---|---|
+| IMPLEMENTED | propagation dispatcher + 4 adapters + SQLite adapter; `guard_forge_call` + tools.py call site |
+| TESTED | 105 tests across both worktrees (kernel 53, A-FORGE 52) |
+| UNTESTED | live forge traffic under enforce=1; production layer adapters |
+| BLOCKED | Meter 6 production consent source |
+| NOT DEPLOYED | kernel `e62a940` has no F6 code; branch unmerged |
