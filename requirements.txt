@@ -3087,9 +3087,9 @@ openai==2.52.0 \
     #   exa-py
     #   litellm
     #   pydantic-ai-slim
-openapi-pydantic==0.5.1 \
-    --hash=sha256:a3a09ef4586f5bd760a8df7f43028b60cafb6d9f61de2acba9574766255ab146 \
-    --hash=sha256:ff6835af6bde7a459fb93eb93bb92b8749b754fc6e51b2f1590a19dc3005ee0d
+openapi-pydantic==0.6.0 \
+    --hash=sha256:11f3ac6ad41521fc156381ec587246b0c0ecea523bd9565ed74d3e7fac9d91cd \
+    --hash=sha256:8bd6d548a250da37db96f461bcd52b3468e8834ad7d6db14b00a6b2ebbd163a3
     # via
     #   arifos
     #   fastmcp-slim
