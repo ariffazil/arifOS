@@ -4436,9 +4436,9 @@ rich==15.0.0 \
     #   pymc
     #   rich-rst
     #   typer
-rich-rst==2.1.0 \
-    --hash=sha256:7ecd1343ee12c879d0e7ae74c3eb6d263b023d2929c6d114212eb1fd91057255 \
-    --hash=sha256:f4d117b49697f338769759fa5cacf5197da4888b347b9fda2e50aef5cd8d93bd
+rich-rst==2.2.0 \
+    --hash=sha256:1ea1c43813dc4a8d86475fce27ffb74e0ada3d4656c9f8130ba2a59868055fe9 \
+    --hash=sha256:b1e6a67f8f694a6f36035624bf73e2b1a0a4be13edaf3ba5e654d9758b61073a
     # via cyclopts
 riskfolio-lib==7.3.0 \
     --hash=sha256:0d11dfd7aff3ecccf6204638526372d93ffd9e3e569e6f2fb77b45ff2f5eb74b \
