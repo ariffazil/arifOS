@@ -84,3 +84,18 @@ def test_marker_absent_falls_back_to_release_stamp(tmp_path, monkeypatch):
     d = rr._compute_runtime_drift()
     assert d["live_commit"] == "83bae89"
     assert d["identity_authority"] == "release_stamp"
+
+
+def test_stamp_older_than_marker_is_history_not_conflict(tmp_path, monkeypatch):
+    import os as _os, time as _time
+    marker = tmp_path / "marker"; marker.write_text("48a9d877ca8c\n")
+    stamp = tmp_path / "stamp"; stamp.write_text("83bae89deadbe\n")
+    _old = _time.time() - 3600
+    _os.utime(stamp, (_old, _old))
+    _os.utime(marker, None)
+    monkeypatch.setattr(rr, "DEFAULT_IDENTITY_PATHS",
+                        {"artifact_marker": str(marker), "release_stamp": str(stamp)})
+    d = rr._compute_runtime_drift()
+    assert d["live_commit"] == "48a9d87"
+    assert d["identity_consistent"] is True
+    assert d["identity_stale_sources"] == {"release_stamp": "83bae89"}

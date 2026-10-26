@@ -3291,6 +3291,22 @@ def _compute_runtime_drift() -> dict[str, Any]:
     # as NAMED sources, and disagreement is a first-class field rather than a
     # silent resolution.
     identity_sources = _read_identity_sources()
+    # A stamp OLDER than the artifact is history, not a competing claim (2026-10-26).
+    # Measured: /opt/arifos/releases/deployed-commit is (re)written by another boot
+    # path and stayed on 83bae89, so the artifact marker and the stamp could never
+    # agree and identity_consistent was permanently false. Rather than delete the
+    # other writer's file, age decides: earlier mtime = superseded.
+    identity_stale: dict[str, str] = {}
+    try:
+        _marker_p = DEFAULT_IDENTITY_PATHS["artifact_marker"]
+        _stamp_p = DEFAULT_IDENTITY_PATHS["release_stamp"]
+        if os.path.exists(_marker_p) and os.path.exists(_stamp_p):
+            if os.path.getmtime(_stamp_p) < os.path.getmtime(_marker_p):
+                _stale_v = identity_sources.pop("release_stamp", None)
+                if _stale_v:
+                    identity_stale["release_stamp"] = _stale_v
+    except Exception:
+        pass
 
     if identity_sources.get("artifact_marker"):
         live_commit = identity_sources["artifact_marker"]
@@ -3349,6 +3365,7 @@ def _compute_runtime_drift() -> dict[str, Any]:
         "identity_authority": identity_source,
         "identity_sources": dict(identity_sources),
         "identity_consistent": identity_consistent,
+        "identity_stale_sources": identity_stale,
         "identity_conflict": (
             []
             if identity_consistent
@@ -4653,6 +4670,7 @@ def register_rest_routes(
             "identity_sources": _drift.get("identity_sources"),
             "identity_consistent": _drift.get("identity_consistent"),
             "identity_conflict": _drift.get("identity_conflict"),
+            "identity_stale_sources": _drift.get("identity_stale_sources"),
             "deployed_branch": _deploy_prov["deployed_branch"],
             "deployed_at": _deploy_prov["deployed_at"],
             "deployed_commit_receipt_stale": _deploy_prov.get("receipt_stale", "false"),
