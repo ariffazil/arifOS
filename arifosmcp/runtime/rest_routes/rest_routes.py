@@ -1503,7 +1503,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # contradiction-register producer decides it — zero ACTIVE registered
         # contradictions PASS, one or more FAIL with ids named. Register
         # unreachable -> UNMEASURED (a void is not a zero).
-        if "F8" not in resolved_floors:
+        # Guard on PROVENANCE, not membership: resolved_floors is pre-filled
+        # with defaults for every LAW_SPEC_KEYS floor above, so a membership
+        # test is always False and this producer would be dead code (555 P1,
+        # 2026-10-26). A calibrated arifFlow g ("arifflow_live_vector") keeps
+        # precedence (K12); placeholder/skip/unmeasured provenance yields to
+        # the LOGIC producer.
+        if not str(floor_provenance.get("F8", "")).startswith("arifflow_live_vector"):
             try:
                 _cr_path = _Path(
                     _os.environ.get(
@@ -1731,7 +1737,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
         capability_map = None
 
     try:
-        if _safe_float(resolved_floors.get("F8"), 0.0) <= 0.0 or resolved_floors.get("F8") is None:
+        # A REAL F8 measurement survives (555 P1b, 2026-10-26): the derived
+        # GENIUS fallback used to trigger on score <= 0.0, which treated a
+        # measured FAIL (0.0) exactly like "no measurement" and clamped it to
+        # >= 0.8 — asymmetric greenwash (PASS sticks, FAIL erased). It now only
+        # fills a genuine void: producer or calibrated-arifFlow provenance
+        # means F8 was measured and the fallback keeps its hands off.
+        _f8_prov_now = str(floor_provenance.get("F8") or "")
+        _f8_already_measured = _f8_prov_now.startswith(
+            "floor_producer:"
+        ) or _f8_prov_now.startswith("arifflow_live_vector")
+        if not _f8_already_measured and (
+            _safe_float(resolved_floors.get("F8"), 0.0) <= 0.0
+            or resolved_floors.get("F8") is None
+        ):
             from core.enforcement.genius import calculate_genius, coerce_floor_scores
 
             floor_scores = coerce_floor_scores(

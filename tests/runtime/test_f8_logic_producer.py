@@ -108,14 +108,78 @@ def test_real_register_shape_measured_not_unmeasured():
     assert {a["id"] for a in sig["active"]} == {"KX-002", "KX-004"}
 
 
-def test_rest_routes_wiring_precedence_and_env_seam():
+def test_payload_builder_f8_producer_fires_and_fail_survives(monkeypatch, tmp_path):
+    """BEHAVIORAL wiring test (replaces a text-grep that enshrined a dead
+    guard — 555 P1c). Calls the REAL _build_governance_status_payload and
+    asserts the F8 producer actually decides the floor, and that a measured
+    FAIL is not greenwashed by the derived-GENIUS clamp."""
+    import json as _json
+    import os
+
+    reg = tmp_path / "register.json"
+    reg.write_text(
+        _json.dumps(
+            {
+                "schema": "contradiction_register.v1",
+                "entries": [
+                    {"id": "KX-A", "status": "resolved", "title": "cooled"},
+                    {"id": "KX-B", "status": "active", "title": "LIVE_CONTRADICTION"},
+                ],
+            }
+        )
+    )
+    monkeypatch.setenv("ARIFOS_CONTRADICTION_REGISTER", str(reg))
+    monkeypatch.setenv("ARIFOS_STATE_DIRECTORY", str(tmp_path / "state"))
+    os.makedirs(tmp_path / "state", exist_ok=True)
+
+    from arifosmcp.runtime.rest_routes.rest_routes import (
+        _build_governance_status_payload,
+    )
+
+    payload = _build_governance_status_payload()
+    prov = str(payload.get("floor_provenance", {}).get("F8", ""))
+    score = payload.get("floors", {}).get("F8")
+    # the producer ran (not the placeholder, not the derived clamp)
+    assert prov.startswith("floor_producer:FAIL:f8_logic_active_contradictions"), prov
+    # measured FAIL survives to the payload — no >=0.8 greenwash
+    assert float(score) == 0.0
+
+
+def test_payload_builder_f8_pass_when_register_cooled(monkeypatch, tmp_path):
+    import json as _json
+    import os
+
+    reg = tmp_path / "register.json"
+    reg.write_text(
+        _json.dumps(
+            {
+                "schema": "contradiction_register.v1",
+                "entries": [{"id": "KX-A", "status": "resolved", "title": "cooled"}],
+            }
+        )
+    )
+    monkeypatch.setenv("ARIFOS_CONTRADICTION_REGISTER", str(reg))
+    monkeypatch.setenv("ARIFOS_STATE_DIRECTORY", str(tmp_path / "state"))
+    os.makedirs(tmp_path / "state", exist_ok=True)
+
+    from arifosmcp.runtime.rest_routes.rest_routes import (
+        _build_governance_status_payload,
+    )
+
+    payload = _build_governance_status_payload()
+    prov = str(payload.get("floor_provenance", {}).get("F8", ""))
+    score = payload.get("floors", {}).get("F8")
+    assert prov.startswith("floor_producer:PASS:f8_logic_contradiction_register"), prov
+    assert float(score) >= 0.8
+
+
+def test_rest_routes_k12_precedence_and_env_seam_structural():
     text = BODY.read_text()
-    # K12 precedence: the producer only decides F8 when the arifFlow path left
-    # it unresolved (a calibrated g would own the floor)
-    assert 'if "F8" not in resolved_floors:' in text
-    wire_at = text.index('"contradiction_register": _cr')
-    guard_at = text.index('if "F8" not in resolved_floors:')
-    assert guard_at < wire_at
+    # K12 precedence: a calibrated arifFlow g ("arifflow_live_vector") keeps
+    # ownership of F8; the LOGIC producer decides otherwise.
+    assert 'startswith("arifflow_live_vector")' in text
     assert "ARIFOS_CONTRADICTION_REGISTER" in text
-    # producer error must degrade to UNMEASURED, never raise into health
+    # producer error degrades to UNMEASURED provenance, never raises into health
     assert "f8_producer_error" in text
+    # the derived-GENIUS fallback must skip measured F8 (anti-greenwash guard)
+    assert "_f8_already_measured" in text
