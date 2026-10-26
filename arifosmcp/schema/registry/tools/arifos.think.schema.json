@@ -82,6 +82,33 @@
       "default": "ai",
       "type": "string"
     },
+    "context": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Background facts. Only role and handoff are read from context; pass typed evidence via the evidence parameter."
+    },
+    "evidence": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "D2 typed EvidenceObjects admitted into reasoning: {subject, claim, classification VERIFIED|DERIVED|REPORTED|UNKNOWN|CONTRADICTED, observed_at, expires_at, source_id, source_uri, observer_actor, observer_verified, contradictions, falsifier}. Expired entries are omitted; UNKNOWN/CONTRADICTED are gated from supporting PASS-shaped conclusions."
+    },
     "_envelope": {
       "default": null,
       "title": "Envelope"

@@ -955,7 +955,7 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                 "score": _pf(
                     None if is_placeholder else score,
                     source=(
-                        "rest_routes._FLOOR_DEFAULTS (auto-pass placeholder)"
+                        "rest_routes._FLOOR_DEFAULTS (unmeasured — Maruah predicates live, producer pending; docs/canon/F6_MARUAH_CANON.md)"
                         if is_placeholder
                         else f"governance_kernel.get_current_state [{origin}]"
                     ),
@@ -1827,11 +1827,18 @@ def _probe_arifflow_fq() -> Any:
             independent=True,
         )
     fq = data.get("fq") if isinstance(data.get("fq"), dict) else {}
-    verdict = fq.get("legacy_verdict") or data.get("verdict")
-    diagnosis = fq.get("legacy_diagnosis") or data.get("diagnosis")
+    # P2 (F13 D2 2026-10-23): prefer the LIVE verdict/diagnosis over the dead
+    # legacy fields; keep both rendered so the migration stays auditable.
+    live_verdict = data.get("verdict")
+    legacy_verdict = fq.get("legacy_verdict")
+    verdict = live_verdict or legacy_verdict
+    diagnosis = data.get("diagnosis") or fq.get("legacy_diagnosis")
+    verdict_source = "live" if live_verdict else ("legacy" if legacy_verdict else None)
     frame = fq.get("metric_frame") if isinstance(fq.get("metric_frame"), dict) else {}
     value = {
         "verdict": verdict,
+        "verdict_source": verdict_source,
+        "legacy_verdict": legacy_verdict,
         "diagnosis": diagnosis,
         "actors_tracked": frame.get("actors_tracked"),
         "sample_size": frame.get("sample_size"),

@@ -41,8 +41,8 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
-  issues: read
+  pull-requests: write
+  issues: write
 
 jobs:
   # ── PR event: validate attestation exists and is SHA-bound ──
@@ -182,6 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: write
       issues: write
     steps:
       - name: Validate attestation inputs

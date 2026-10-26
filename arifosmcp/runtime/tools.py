@@ -7275,6 +7275,11 @@ async def _synthesize_async(
         "fabricate evidence references. If the EVIDENCE BLOCK is empty or absent,\n"
         "treat unsupported ASSERTIONS as [UNGROUNDED] and lower overall_confidence\n"
         "accordingly.\n\n"
+        "CLASSIFICATION GATE (D2, F13 D1 2026-10-23): Evidence entries carrying\n"
+        "classification UNKNOWN or CONTRADICTED may NOT support PASS/SEAL-shaped\n"
+        "conclusions — treat UNKNOWN as an open question and preserve CONTRADICTED\n"
+        "entries as contradictions, never averaging them away. Expired entries are\n"
+        "absent by policy.\n\n"
         "PREMISE HANDLING (F2 scope rule, Epistemic Invariant §0.2 — 2026-10-15):\n"
         'Hypothetical questions (kalau / jika / andaikan / suppose / "if ... then")\n'
         "carry GIVEN premises — assumptions granted for the sake of argument.\n"
@@ -7306,6 +7311,20 @@ async def _synthesize_async(
                 continue
             label = ev.get("label") or ev.get("kind") or ev.get("type") or f"obs[{i}]"
             content = ev.get("content") or ev.get("result") or ev.get("summary") or str(ev)[:200]
+            # D2 typed EvidenceObjects (F13 D1 2026-10-23): render
+            # classification, claim, expiry and falsifier explicitly so the
+            # model can honour the classification gate. Legacy
+            # session-observation shapes (no claim key) render unchanged.
+            _claim = ev.get("claim")
+            if _claim is not None:
+                _cls = str(ev.get("classification") or "").upper() or "UNCLASSIFIED"
+                label = f"{ev.get('source_id') or label} [{_cls}]"
+                content = (
+                    f"{_claim}"
+                    f" (observed_at={ev.get('observed_at') or '?'},"
+                    f" expires_at={ev.get('expires_at') or 'none'},"
+                    f" falsifier={ev.get('falsifier') or 'not-stated'})"
+                )
             evidence_block_lines.append(f"- [{i}] {label}: {str(content)[:300]}")
         evidence_block = "\n".join(evidence_block_lines)
     else:
@@ -7495,7 +7514,7 @@ def get_constitution_identity() -> dict[str, Any]:
     c_hash = _load_constitution_hash()
     if c_hash in ("sha256:missing", "sha256:unavailable"):
         # P0-2 fix: use full 64-char hash, never truncated
-        FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Maruah, F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auditability, F12: Resilience, F13: Sovereign"""
+        FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Maruah (machine-restraint; never a dignity score — docs/canon/F6_MARUAH_CANON.md), F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auditability, F12: Resilience, F13: Sovereign"""
         c_hash = f"sha256:{hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()}"
 
     return {
@@ -15787,6 +15806,7 @@ async def _arif_mind_reason_tool(
     ctx: Context | None = None,
     concise: bool = True,
     context: dict | None = None,
+    evidence: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
@@ -15850,6 +15870,7 @@ async def _arif_mind_reason_tool(
                 actor_id=actor_id,
                 plan_id=plan_id,
                 witness_type=witness_type,
+                evidence=evidence,
             )
             # P1 telemetry: deterministic bypass must expose handler_entered,
             # model_started=false, handler_returned=true so callers can diagnose
@@ -15907,6 +15928,24 @@ async def _arif_mind_reason_tool(
                     )
             except Exception:
                 _active_evidence = None  # never let evidence lookup break the think path
+            # D2 evidence channel (F13 D1 2026-10-23): typed EvidenceObjects
+            # from the wire pass the admission gate (expired omitted,
+            # UNKNOWN/CONTRADICTED gated, malformed rejected) and merge with
+            # session observations; the admission summary echoes in the result.
+            _d2_admission = None
+            if evidence:
+                from arifosmcp.runtime.evidence_admission import admit_evidence
+
+                _ev = admit_evidence(evidence)
+                _d2_admission = {
+                    "consumed": _ev["consumed"],
+                    "expired_omitted": _ev["expired_omitted"],
+                    "rejected": _ev["rejected"],
+                    "counts": _ev["counts"],
+                }
+                _admitted = [a["evidence"] for a in _ev["admitted_items"]]
+                if _admitted:
+                    _active_evidence = (_active_evidence or []) + _admitted
             synthesis = await asyncio.wait_for(
                 _synthesize_async(query or "", reasoning_mode=mode, evidence=_active_evidence),
                 timeout=_think_budget_s,
@@ -15916,6 +15955,7 @@ async def _arif_mind_reason_tool(
                 "status": "OK",
                 "tool": "arif_mind_reason",
                 "verdict": synthesis.get("verdict", "CLAIM"),
+                **({"evidence_admission": _d2_admission} if _d2_admission else {}),
                 "result": {
                     "query": query,
                     "synthesis": synthesis.get("bounded_answer", ""),
@@ -18354,7 +18394,7 @@ async def _arif_heart_critique(
       simulate   — Run a what-if scenario and project risk outcomes.
       empathize  — Assess human impact load (Ω) on weakest stakeholders.
       redteam    — Attack surface analysis.
-      maruah     — Dignity score (L05 Peace) / F6 MARUAH.
+      maruah     — Advisory human-impact posture signal. NOT a dignity measure (F6 canon 2026-10-23 — docs/canon/F6_MARUAH_CANON.md).
       deescalate — Risk reduction strategy.
 
     Parameters:
@@ -18628,7 +18668,7 @@ async def _arif_heart_critique(
             result["output_policy"] = "DOMAIN_SEAL"
 
         # ── L05/L06 Dignity Breakdown ──────────────────────────────────────────
-        # Quantifies "Maruah" (ASEAN dignity floor) for human impact assessment
+        # Advisory posture signal for human-impact assessment — never a dignity score (F6 canon 2026-10-23)
         _dignity_breakdown = {
             "autonomy_preservation_F04": {
                 "metric": "Does this action diminish 888's sovereignty?",
@@ -20809,6 +20849,70 @@ def _arif_judge_deliberate(
     return seal_output
 
 
+# ── MARUAH_HIKMAH_RUNTIME_WIRING (2026-10-24) ─────────────────────────────
+# A consequential action must carry an admissible dignity critique before the
+# judge may return better than HOLD. The helper reads exactly three declared
+# keys. It never infers a human motive, inner state, diagnosis or identity.
+_CRITIQUE_GATED_ACTIONS = frozenset({"MUTATE", "IRREVERSIBLE"})
+
+
+def _critique_admissibility(
+    action_class: str | None, critique: dict[str, Any] | None
+) -> tuple[str, str]:
+    """Return (status, detail). Pure. No side effects. Never raises."""
+    if str(action_class or "").upper() not in _CRITIQUE_GATED_ACTIONS:
+        return "NOT_REQUIRED", "action_class not gated"
+    if not isinstance(critique, dict) or not critique:
+        return "ABSENT", "no heart_critique supplied for a consequential action"
+    if "dignity" not in critique or "coercion" not in critique:
+        return "INCOMPLETE", "heart_critique must declare both 'dignity' and 'coercion'"
+    if critique.get("self_attested") is True or not critique.get("reviewer"):
+        return "SELF_ATTESTED", "critique has no independent reviewer"
+    if critique.get("coercion") is True:
+        return "COERCION", "coercion declared present"
+    dignity = critique.get("dignity")
+    if isinstance(dignity, (int, float)) and dignity < 0.5:
+        return "DIGNITY_CONFLICT", f"dignity={dignity} below 0.5"
+    if str(critique.get("dignity_verdict") or "").upper() == "COMPROMISED":
+        return "DIGNITY_CONFLICT", "dignity_verdict=COMPROMISED"
+    return "OK", "critique admissible"
+
+
+_CAP_BLOCKED_VERDICTS = frozenset({"SEAL", "SABAR", "SABAR_HOLD", "PROCEED", "999_SEAL"})
+
+
+def _cap_critique(
+    payload: Any, action_class: str | None, critique: dict[str, Any] | None
+) -> Any:
+    """Cap the verdict at HOLD when the critique is inadmissible.
+
+    The cap can only move a verdict DOWN. It never raises one, never turns HOLD
+    into SEAL, and never touches VOID/888_HOLD. A complete critique (status OK)
+    does NOT authorize anything — it merely fails to block.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    status, detail = _critique_admissibility(action_class, critique)
+    if status in ("OK", "NOT_REQUIRED"):
+        return payload
+    verdict = str(payload.get("verdict") or payload.get("final_verdict") or "").upper()
+    if verdict in _CAP_BLOCKED_VERDICTS:
+        payload["verdict"] = "HOLD"
+        if "final_verdict" in payload:
+            payload["final_verdict"] = "HOLD"
+    if not isinstance(payload.get("reasons"), list):
+        payload["reasons"] = []
+    payload["reasons"].append(f"critique_gate:{status} — {detail}")
+    payload["critique_gate"] = {
+        "status": status,
+        "detail": detail,
+        "action_class": action_class,
+        "advisory_source": "declared heart_critique (no inference)",
+    }
+    payload["error_code"] = f"CRITIQUE_{status}"
+    return payload
+
+
 async def _arif_judge_deliberate_tool(
     mode: str = "judge",
     candidate: str | None = None,
@@ -20826,6 +20930,7 @@ async def _arif_judge_deliberate_tool(
     # 888_HOLD before the LLM runs. The hint is informational;
     # the actual gate is in require_sovereign_judgment().
     action_class: str | None = None,
+    heart_critique: dict[str, Any] | None = None,
     audit_entropy: float | None = None,
     wealth_score: float | None = None,
     verification_surface: dict[str, Any] | None = None,
@@ -20927,11 +21032,12 @@ async def _arif_judge_deliberate_tool(
     if mode == "witness_consensus":
         from arifosmcp.tools.organ_consensus import arif_organ_consensus
 
-        return await arif_organ_consensus(
+        _wc_result = await arif_organ_consensus(
             action_description=candidate or "",
             session_id=session_id,
             actor_id=actor_id,
         )
+        return _cap_critique(_wc_result, action_class, heart_critique)
 
     trace = None
     if _ensure_langfuse_tracer() is not None:
@@ -21087,7 +21193,7 @@ async def _arif_judge_deliberate_tool(
         except Exception:
             pass  # Comparison recording is best-effort
 
-        return result
+        return _cap_critique(result, action_class, heart_critique)
     finally:
         if trace:
             try:
@@ -26249,6 +26355,7 @@ async def _arif_kernel_intercept_tool(
     session_token: str | None = None,
     # ── Seal Architecture (forged 2026-07-24) ──────────────────────────
     action_class: str | None = None,
+    heart_critique: dict[str, Any] | None = None,
     seal_purpose: str | None = None,
     authority_effect: str | None = None,
     actor_signature: str | None = None,
@@ -26356,7 +26463,8 @@ async def _arif_kernel_intercept_tool(
     kwargs.pop("niat_params", None)
     kwargs.pop("cooldown_entry_id", None)
     kwargs.pop("vault_entry_id", None)
-    kwargs.pop("heart_critique", None)
+    # heart_critique is consumed by _cap_critique at every return site.
+    # Never pop it silently: an unconsumed critique is a truth defect.
     if kwargs:
         # Surface unknown kwargs in intent as a structured footer so the kernel
         # judge sees them but the strict signature stays clean.
@@ -26416,10 +26524,14 @@ async def _arif_kernel_intercept_tool(
         # Preserve the kernel's native fields
         std["kernel_decision"] = raw
         std["affordance_for_capability"] = raw.get("affordance")
-        return std
+        return _cap_critique(std, action_class, heart_critique)
     except Exception:
         # Fail-soft: never break the kernel
-        return {"kernel_raw": raw, "note": "standard envelope enrichment failed"}
+        return _cap_critique(
+            {"kernel_raw": raw, "note": "standard envelope enrichment failed"},
+            action_class,
+            heart_critique,
+        )
 
 
 async def _arif_act(

@@ -99,4 +99,10 @@ def normalize_fq(
             scope = raw["scope"]
     else:
         value = raw
-    return fq_object(value, measured_at=measured_at, scope=scope)
+    coerced = fq_object(value, measured_at=measured_at, scope=scope)
+    if isinstance(raw, Mapping) and isinstance(raw.get("decomposition"), Mapping):
+        # P6 (F13 D2 2026-10-23): the decomposition sub-object (raw /
+        # normalization / threshold / window / formula) travels WITH the
+        # reading as separate fields — one writer, coerced here.
+        coerced["decomposition"] = dict(raw["decomposition"])
+    return coerced
