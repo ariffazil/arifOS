@@ -135,3 +135,61 @@ def test_producer_is_pure_and_does_not_mutate_input():
     _f10({"records": rows})
     assert rec == CLEAN
     assert rows == [CLEAN]
+
+
+# ── v2: reality fixtures (2026-10-26) ──────────────────────────────────────
+# A detector must be tested in BOTH directions against the system, not just
+# against its own pattern bank.
+
+def test_pass_carries_recomputable_receipt():
+    sig = _f10({"records": [{**CLEAN, "ts": "2026-10-26T09:00:00+00:00"}]})
+    assert sig["status"] == "PASS"
+    r = sig["measurement_receipt"]
+    assert r["rows_read"] == 1
+    assert r["window_digest"].startswith("sha256:")
+    assert r["freshness"] == "fresh"
+    assert r["positive_fixtures"]["passed"] == r["positive_fixtures"]["total"]
+    assert len(r["suppression_fixtures"]) == 6  # 3 real lines + 3 hedges
+    assert "artifact_commit" in r and "observed_at" in r
+
+
+def test_receipt_digest_changes_with_corpus():
+    a = _f10({"records": [{**CLEAN, "ts": "2026-10-26T09:00:00+00:00"}]})
+    b = _f10(
+        {
+            "records": [
+                {**CLEAN, "ts": "2026-10-26T09:00:00+00:00"},
+                {"report_id": "r2", "body": "second line", "ts": "2026-10-26T09:05:00+00:00"},
+            ]
+        }
+    )
+    assert a["measurement_receipt"]["window_digest"] != b["measurement_receipt"]["window_digest"]
+
+
+def test_stale_corpus_is_stale_not_pass():
+    sig = _f10({"records": [{**CLEAN, "ts": "2020-01-01T00:00:00+00:00"}]})
+    assert sig["status"] == "STALE"
+    assert sig["reason"] == "corpus_stale"
+    assert sig["measurement_receipt"]["freshness"] == "stale"
+
+
+def test_overblocking_detector_is_error_not_pass(monkeypatch):
+    """Sensitivity without specificity destroys legitimate corpus."""
+    import arifosmcp.core.enforcement.f10_ontology_guard as f10mod
+
+    class _TriggerHappy:
+        def __init__(self, *a, **k):
+            pass
+
+        def scan(self, text, task_hint="x"):
+            class _S:
+                verdict = type("V", (), {"value": "SABAR"})()
+                violation_mode = "MODE_B_SOUL_EN"
+
+            return _S()
+
+    monkeypatch.setattr(f10mod, "F10OntologyGuard", _TriggerHappy)
+    sig = _f10({"records": [CLEAN]})
+    assert sig["status"] == "ERROR"
+    assert sig["reason"] == "detector_overblock"
+    assert sig["false_positive_fixture"]
