@@ -130,7 +130,15 @@ def _interceptor_hold_tool_result(
         from mcp.types import CallToolResult as ToolResult  # type: ignore
 
     auth = decision.authority_tier.value if getattr(decision, "authority_tier", None) else "LOW"
-    actor = getattr(decision, "actor_id", None) or "anonymous"
+    # [2026-10-26 IDENTITY_BUCKET] A decision that carries no actor_id was made
+    # BEFORE session binding — the floors gate ran first. Falling straight to the
+    # string "anonymous" made that look like a failed identity, and it collided
+    # with the real arifFlow identity bucket of the same name. Name the state
+    # instead of inventing an actor: the verdict is unchanged, only the label
+    # becomes honest.
+    _decision_actor = getattr(decision, "actor_id", None)
+    actor_unresolved = not _decision_actor
+    actor = _decision_actor or "anonymous"
     cap = getattr(decision, "capability_id", None) or "unknown"
     reason = getattr(decision, "reason", None) or "constitutional gate"
     vraw = getattr(decision, "verdict", None)
@@ -150,7 +158,24 @@ def _interceptor_hold_tool_result(
         "hold_required": True,
         "mutation_allowed": False,
         "seal_allowed": False,
-        "actor": {"actor_id": actor, "authority_tier": auth},
+        "actor": {
+            "actor_id": actor,
+            "authority_tier": auth,
+            # [2026-10-26 IDENTITY_BUCKET] Name the state rather than let the
+            # placeholder read as a failed identity.
+            "identity_state": "UNRESOLVED" if actor_unresolved else "BOUND",
+            **(
+                {
+                    "identity_note": (
+                        "no actor_id on this decision — the floors gate ran before "
+                        "session binding. This is NOT an identity failure and NOT the "
+                        "arifFlow actor named 'anonymous'. Bind with arif_init to attribute."
+                    )
+                }
+                if actor_unresolved
+                else {}
+            ),
+        },
         "capability_id": cap,
         "reasons": [f"{bare_prefix}: {reason}"],
         "facts": [
@@ -165,8 +190,13 @@ def _interceptor_hold_tool_result(
         "human_readable": (
             f"{bare_prefix}: {reason}\n\n"
             f"Capability: {cap}\n"
-            f"Actor: {actor}\n"
-            f"Authority: {auth}\n"
+            + (
+                "Actor: UNRESOLVED (gate ran before session bind — not an identity failure; "
+                "call arif_init to attribute)\n"
+                if actor_unresolved
+                else f"Actor: {actor}\n"
+            )
+            + f"Authority: {auth}\n"
             f"{'This action requires SOVEREIGN (Arif/888) approval.' if '888' in bare_prefix else ''}"
         ).strip(),
         "effective_state": {
