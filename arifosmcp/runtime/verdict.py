@@ -752,6 +752,19 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
     # Same class as the carve-outs above; organ health stays visible in the
     # payload, it just stops being judged as a kernel verdict.
     "result.bridge_result.verdict",
+    # 2026-10-26 (333-AGI, live repro through arif_judge this session):
+    # v2_envelope publishes `intermediate_trace_states` as its own transport
+    # axis and writes the SAME public projection ({PROCEED, DENY, HOLD,
+    # SEALED}) inside it. The walker judged the nested copy as a kernel claim:
+    #   UNKNOWN_VERDICT_TOKEN:intermediate_trace_states.canonical_verdict=DENY
+    # → HOLD on EVERY v2-enveloped response, including a harmless read-only
+    # candidate. Measured 2026-10-26: arif_judge ×3 → all HOLD, and
+    # /health.execution_readiness stuck at `held`. The top-level copy is
+    # already stripped by _strip_legacy_verdict; only the nested projection
+    # leaked, so the suffix carve-out is sufficient. Organ payloads
+    # (result.payload.canonical_verdict) and every other verdict-named key
+    # remain fully judged — fail-closed semantics unchanged.
+    "intermediate_trace_states.canonical_verdict",
 )
 
 # 2026-10-05c (FI-008, convergent bridge fix): organ payloads nest verdict-
