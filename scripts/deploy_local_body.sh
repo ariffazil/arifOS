@@ -77,6 +77,12 @@ else
 	echo "Syncing runtime import path ($SITE_PKGS)..."
 	rsync -a --exclude='__pycache__' "$DIR/arifosmcp/" "$SITE_PKGS/arifosmcp/"
 	echo "$GIT_SHA" >/opt/arifos/app/.git_commit
+	# Identity contract (2026-10-26): the release stamp is a DEPLOYED marker too.
+	# Before this, only an older deploy-release.sh path wrote it, so it stayed on
+	# an old commit and /health carried two disagreeing identities in one payload.
+	# Both markers now move in the same deploy.
+	mkdir -p /opt/arifos/releases
+	echo "$GIT_SHA" >/opt/arifos/releases/deployed-commit
 
 	echo "Restarting arifOS bare-metal service..."
 	systemctl restart arifos.service
