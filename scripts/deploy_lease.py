@@ -825,6 +825,52 @@ def cmd_resolve_epoch(a) -> int:
         return 0
 
 
+def cmd_check_ancestry(a) -> int:
+    """Regression guard (888 recurrence signal, 2026-10-26).
+
+    The deployed artifact must be an ANCESTOR of the candidate. Deploying a
+    main that fell behind the live lineage silently rolls back floor work —
+    measured twice in 19h (bdc4ec515, then this stack's first 888 HOLD).
+    Unknown deployed sha fails closed: cannot prove no regression => HOLD.
+    """
+    import subprocess
+
+    deployed = (a.deployed or "").strip()
+    if not deployed:
+        print(json.dumps({
+            "status": "NO_DEPLOYED_MARKER",
+            "ancestor": None,
+            "message": "no deployed-commit marker; nothing to regress against",
+        }))
+        return 0
+    r = subprocess.run(
+        ["git", "-C", a.repo, "merge-base", "--is-ancestor", deployed, a.candidate],
+        capture_output=True,
+    )
+    if r.returncode == 0:
+        print(json.dumps({
+            "status": "ANCESTOR_OK",
+            "deployed": deployed,
+            "candidate": a.candidate,
+        }))
+        return 0
+    known = subprocess.run(
+        ["git", "-C", a.repo, "cat-file", "-e", f"{deployed}^{{commit}}"],
+        capture_output=True,
+    )
+    print(json.dumps({
+        "status": "DEPLOY_REGRESSION_RISK",
+        "reason": "DEPLOYED_UNKNOWN_TO_REPO" if known.returncode != 0 else "DEPLOYED_NOT_ANCESTOR",
+        "deployed": deployed,
+        "candidate": a.candidate,
+        "message": (
+            "the deployed artifact is not an ancestor of the candidate; merge "
+            "the deployed lineage before deploying. Zero protected writes."
+        ),
+    }, indent=2))
+    return 13
+
+
 def cmd_status(a) -> int:
     lease = _read_lease()
     live = _is_live(lease)
@@ -1013,6 +1059,12 @@ def main(argv: list[str] | None = None) -> int:
     prs.add_argument("--actor", required=True)
     prs.add_argument("--session", required=True)
     prs.set_defaults(fn=cmd_resolve_epoch)
+
+    pca = sub.add_parser("check-ancestry")
+    pca.add_argument("--deployed", default="")
+    pca.add_argument("--candidate", required=True)
+    pca.add_argument("--repo", default=".")
+    pca.set_defaults(fn=cmd_check_ancestry)
 
     ps = sub.add_parser("status")
     ps.add_argument("--json", action="store_true")
