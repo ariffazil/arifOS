@@ -67,6 +67,13 @@ deploy-local:
 	@cd $(DIR) && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
 		(echo "888_HOLD: local HEAD is not origin/main; push or rebase before deploy-local" && exit 1)
 	@cd $(DIR) && GIT_SHA=$$(git rev-parse HEAD); \
+	echo "Acquiring production mutation lease..."; \
+	$(PYTHON) scripts/deploy_lease.py acquire \
+		--actor "$${DEPLOY_ACTOR:-$$(whoami)}" --base "$$GIT_SHA" --candidate "$$GIT_SHA" \
+		--ttl "$${DEPLOY_LEASE_TTL:-1800}" > /tmp/arifos-deploy-lease.json || \
+		(echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another session owns production; nothing was written"; \
+		 cat /tmp/arifos-deploy-lease.json; exit 1)
+	@cd $(DIR) && GIT_SHA=$$(git rev-parse HEAD); \
 	echo "Syncing canonical code to /opt/arifos/app..."; \
 	rsync -av --exclude='.git' --exclude='.venv' --exclude='.claude' \
 		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
@@ -92,6 +99,9 @@ deploy-local:
 	echo "Deploy gate: kernel booted and answers (status=$$status) — honesty of status is floor work, not a boot gate"; \
 	echo "Running conformance spine post-deploy..."; \
 	$(PYTHON) -m arifosmcp.transport.conformance_spine
+	@$(PYTHON) scripts/deploy_lease.py release --actor "$${DEPLOY_ACTOR:-$$(whoami)}" \
+		--receipt "docs/releases" > /tmp/arifos-deploy-release.json \
+		&& echo "Deploy lease released — epoch appended to /var/lib/arifos/deploy_epochs.jsonl (verify with: scripts/deploy_lease.py verify)"
 
 sot-check: security-audit
 	@echo "Auditing arifOS source-of-truth alignment..."
