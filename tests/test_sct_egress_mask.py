@@ -92,3 +92,81 @@ def test_unknown_echo_mode_fails_closed(monkeypatch):
     monkeypatch.setenv("ARIFOS_SCT_ECHO", "raww")
     out = _mask_sct_egress({"session_token": RAW}, "arif_route")
     assert RAW not in str(out)
+
+
+# ── 2026-10-26 remediation (555 independent verification P1/P2/P3) ─────────
+
+
+def test_mask_is_non_mutating():
+    """P3: the caller's dict is never edited in place — aliased caches
+    (last_observation) must not be silently redacted at persist time."""
+    import copy
+    import json as _json
+
+    resp = {"status": "completed", "session_token": RAW, "result": {"session_token": RAW}}
+    before = copy.deepcopy(resp)
+    out = _mask_sct_egress(resp, "arif_route")
+    assert _json.dumps(resp, sort_keys=True) == _json.dumps(before, sort_keys=True)
+    assert out["session_token"].startswith("act_v1.<redacted")
+
+
+def test_depth_exhaustion_fails_closed():
+    """P2: beyond the depth budget the subtree is swept for token-shaped
+    strings — exhaustion must redact, never return raw."""
+    import json as _json
+
+    deep = {"l1": {"l2": {"l3": {"l4": {"l5": {"l6": {"l7": {"l8": {"tok": RAW}}}}}}}}}
+    out = _mask_sct_egress(deep, "arif_route")
+    assert RAW not in _json.dumps(out)
+    assert f"act_v1.<redacted:sha256:{_digest(RAW)}>" in _json.dumps(out)
+
+
+def test_terminal_boundary_survives_sct_continuity_reinjection():
+    """P1: the mask must live at the LAST hop. _attach_sct_continuity
+    re-injects the caller's raw session_token AFTER the envelope builders
+    run, so a mask placed only inside _enforce_nine_signal was undone
+    before the wire. This test traverses the real wrapper sequence:
+    builder output -> continuity re-injection -> terminal sanitize+mask."""
+    import json as _json
+
+    from arifosmcp.runtime.tools import _attach_sct_continuity
+
+    resp: dict = {"status": "completed", "result": {"ok": True}}
+    payload = {
+        "session_token": RAW,
+        "auth": "LIMITED_MUTATE",
+        "actor": "333-AGI",
+    }
+    _attach_sct_continuity(resp, payload, "arif_route")
+    # non-vacuity: the re-injection must actually have happened, otherwise
+    # this test would pass without exercising the defect it guards
+    assert RAW in _json.dumps(resp, default=str), (
+        "continuity did not re-inject the raw token; test payload is stale"
+    )
+    # terminal boundary (the body of _sanitize_envelope at the wire)
+    sanitized = _json.loads(_json.dumps(resp, default=str, ensure_ascii=False))
+    out = _mask_sct_egress(sanitized, "arif_route")
+    assert RAW not in _json.dumps(out)
+    assert "act_v1.<redacted" in _json.dumps(out)
+
+
+def test_sanitize_envelope_closure_applies_mask():
+    """Static guarantee: the wire-boundary closure calls the mask on both
+    the sanitized and the fallback path (regression guard for the P1 fix
+    being edited back out)."""
+    import inspect
+    import re
+
+    from arifosmcp.runtime import tools as tools_mod
+
+    src = inspect.getsource(tools_mod)
+    m = re.search(
+        r"def _sanitize_envelope\(resp.*?\n(?=\n    # |\n    def |\Z)",
+        src,
+        re.DOTALL,
+    )
+    assert m, "_sanitize_envelope not found"
+    body = m.group(0)
+    assert body.count("_mask_sct_egress(") >= 2, (
+        "terminal mask must run on BOTH the sanitized and the fallback path"
+    )

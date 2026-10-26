@@ -4930,20 +4930,49 @@ def _mask_sct(value: Any) -> Any:
     return f"act_v1.<redacted:sha256:{digest}>"
 
 
+_SCT_TOKEN_PREFIX = "act_v1."
+
+
+def _mask_sct_strings(value: Any) -> Any:
+    """Fail-closed sweep: redact every act_v1.*-shaped string in a subtree,
+    at any depth. Used where the structural walk gave up (depth budget) —
+    an exhausted walk must redact, never hand back raw bytes."""
+    if isinstance(value, str):
+        return _mask_sct(value) if value.startswith(_SCT_TOKEN_PREFIX) else value
+    if isinstance(value, dict):
+        return {k: _mask_sct_strings(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_mask_sct_strings(v) for v in value]
+    return value
+
+
 def _mask_sct_egress(resp: Any, tool_name: str, _depth: int = 0) -> Any:
-    """Mask every session capability token on the way out. Never raises."""
+    """Mask every session capability token on the way out. Never raises.
+
+    2026-10-26 remediation (555 independent verification P1/P2/P3):
+      - TERMINAL PLACEMENT: _sanitize_envelope — the actual wire boundary on
+        every wrapper return path — invokes this mask. Masking only inside
+        _enforce_nine_signal was undone downstream by _attach_sct_continuity
+        re-injecting the caller's raw token after the mask ran.
+      - NON-MUTATING: returns fresh containers; the caller's dict is never
+        edited in place (aliased caches such as last_observation were being
+        silently redacted at persist time).
+      - DEPTH FAIL-CLOSED: beyond the depth budget the subtree is swept for
+        token-shaped strings instead of returned raw.
+    """
     try:
         if _sct_echo_mode() == "raw" or tool_name in _SCT_MINT_VERBS:
             return resp
         if _depth > 6:
-            return resp
+            return _mask_sct_strings(resp)
         if isinstance(resp, dict):
-            for k in list(resp.keys()):
+            out: dict[Any, Any] = {}
+            for k, v in resp.items():
                 if k in _SCT_MASK_KEYS:
-                    resp[k] = _mask_sct(resp[k])
+                    out[k] = _mask_sct(v)
                 else:
-                    resp[k] = _mask_sct_egress(resp[k], tool_name, _depth + 1)
-            return resp
+                    out[k] = _mask_sct_egress(v, tool_name, _depth + 1)
+            return out
         if isinstance(resp, list):
             return [_mask_sct_egress(v, tool_name, _depth + 1) for v in resp]
         return resp
@@ -20934,9 +20963,7 @@ def _critique_admissibility(
 _CAP_BLOCKED_VERDICTS = frozenset({"SEAL", "SABAR", "SABAR_HOLD", "PROCEED", "999_SEAL"})
 
 
-def _cap_critique(
-    payload: Any, action_class: str | None, critique: dict[str, Any] | None
-) -> Any:
+def _cap_critique(payload: Any, action_class: str | None, critique: dict[str, Any] | None) -> Any:
     """Cap the verdict at HOLD when the critique is inadmissible.
 
     The cap can only move a verdict DOWN. It never raises one, never turns HOLD
@@ -28362,12 +28389,17 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     def _sanitize_envelope(resp: dict[str, Any]) -> dict[str, Any]:
         import json as _json
 
+        # F11 TERMINAL EGRESS MASK (2026-10-26): this is the last hop before
+        # the wire on EVERY wrapper return path. _attach_sct_continuity runs
+        # upstream of here and re-injects the caller's raw session_token by
+        # design — so the mask MUST live here, not only inside the envelope
+        # builders. tool_name is the closure's; arif_init stays exempt.
         try:
             sanitized = _json.loads(_json.dumps(resp, default=str, ensure_ascii=False))
-            return sanitized
+            return _mask_sct_egress(sanitized, tool_name)
         except Exception:
             logger.warning("JSON sanitization failed for %s; returning raw envelope", tool_name)
-            return resp
+            return _mask_sct_egress(resp, tool_name)
 
     # ── F12 INJECTION MEMBRANE (K1b HARDENING — 2026-08-08) ──────────────
     # Scans free-text kwargs on MUTATION tools for prompt-injection patterns
