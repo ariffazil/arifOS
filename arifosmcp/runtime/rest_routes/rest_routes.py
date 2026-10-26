@@ -1405,7 +1405,11 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     f"@{_sig.get('measured_at') or now_iso()}"
                 )
                 # Sync aliases if fid is in canonical alias mapping
-                _alias_map = {"F11": "L11", "F12": "L12", "F13": "L13"}
+                # F10/L10 added 2026-10-26: the arifFlow ontology block writes
+                # L10 provenance from a config reference, and the canonical
+                # normalizer prefers the alias provenance — a real F10
+                # measurement lost its own reason label behind a document name.
+                _alias_map = {"F10": "L10", "F11": "L11", "F12": "L12", "F13": "L13"}
                 if fid in _alias_map:
                     _afid = _alias_map[fid]
                     resolved_floors[_afid] = _score
@@ -1541,9 +1545,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
             if _f10_sig.get("status") in ("PASS", "FAIL", "CONTRADICTED"):
                 _wire_producer("F10", {"records": _report_rows})
             else:
-                floor_provenance["F10"] = str(
-                    _f10_sig.get("origin") or "unmeasured_default:no_evidence"
-                )
+                _reason = str(_f10_sig.get("origin") or "unmeasured_default:no_evidence")
+                # Write both ids: the canonical normalizer prefers L10's
+                # provenance, so an unmeasured F10 must name its reason there
+                # too or it renders as a config-reference placeholder.
+                floor_provenance["F10"] = _reason
+                floor_provenance["L10"] = _reason
         except Exception as _f10_exc:
             floor_provenance["F10"] = (
                 f"unmeasured_default:f10_producer_error:{type(_f10_exc).__name__}"
