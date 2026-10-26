@@ -929,6 +929,25 @@ def _read_vault_last_seal() -> dict[str, Any]:
     }
 
 
+def _provenance_is_unmeasured(provenance: Any) -> bool:
+    """True when the provenance string itself DECLARES that no instrument ran.
+
+    2026-10-26: narrow on purpose. Only two shapes qualify —
+    ``unmeasured_default*`` (the substituter's own label) and ``*_skipped*``
+    (a producer that declined to measure). An ABSENT provenance is not
+    declared-absent; it stays with _floor_status_strict so a score carrying no
+    provenance keeps its previous behaviour.
+
+    Measured defect it closes: F8 published ``score 0.80 . status pass .
+    measured true`` while its provenance said
+    ``arifflow_vector_g_skipped:calibration=PHASE_1_HEURISTIC_UNCALIBRATED``
+    — the live reading was skipped and the placeholder rendered as a measured
+    pass. Provenance was honest; the status derived from it was not.
+    """
+    _p = str(provenance or "").strip().lower()
+    return _p.startswith("unmeasured_default") or "_skipped" in _p
+
+
 def _floor_status_strict(law_id: str, score: Any) -> str:
     """Return one of 'unmeasured' | 'pass' | 'fail' for a floor.
 
@@ -978,7 +997,7 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
     preserved: unmeasured is still not pass, and a measured fail still fails.
     """
     _prov = str(provenance or "")
-    if _prov.startswith("unmeasured_default"):
+    if _provenance_is_unmeasured(_prov):
         return _FLOOR_STATUS_UNMEASURED
     # FLR-005 (2026-10-17): an alias that contradicts its canonical floor is a
     # measured conflict, not an evidence gap. Fail closed, never pass, never
@@ -1253,23 +1272,42 @@ def _build_governance_status_payload() -> dict[str, Any]:
             "http://127.0.0.1:7073/health", timeout=1.5
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
-        _fq_quotient = float(_fq_data["fq"]["quotient"])
-        # 2026-10-23 F13 YES: F1 reads the vector verdict constellation,
-        # not the scalar arifFlow itself marks "Deprecated as health
-        # indicator". A live FLOWING verdict is the measurement; the
-        # deprecated scalar remains in telemetry only.
+        # F1 MEASUREMENT CONTRACT (2026-10-26, F13 "1234 deploy").
+        # The 2026-10-23 mapping (full marks only when the constellation read
+        # FLOWING, zero otherwise)
+        # collapsed arifFlow's SEVEN-value constellation into a binary gate, so
+        # a WIRING/coverage diagnosis decided a constitutional floor. Measured
+        # live 2026-10-26: FQ 0.9677 (above the ratified 0.5 floor) rendered
+        # F1 = 0.0 FAIL on `PARTIAL_WIRING`, then FQ 0.9883 rendered 1.0 PASS
+        # on `FLOWING` two minutes later — same band, opposite verdict, no
+        # threshold crossed. arifFlow documents PARTIAL_WIRING /
+        # FEEL_UNANCHORED as "not pathologies" (vector.rs:506-514,589).
+        # Restore the ratified instrument: _phi_fq_from_quotient (fq_policy.yaml
+        # floor 0.5, F13 RATIFIED 2026-09-12). The constellation rides along as
+        # a diagnostic only. No threshold changed.
         _fq_verdict = str(_fq_data.get("verdict", "UNKNOWN")).split(":")[0].strip().upper()
-        _federation_fq = fq_object(_fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION)
-        _phi_fq = 1.0 if _fq_verdict == "FLOWING" else 0.0
-        # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
-        # That guard only accepted a real measurement when it IMPROVED on the
-        # auto-pass placeholder, so a genuine φFQ of 0.2321 (FQ=0.6964, below
-        # the AMANAH band [1,3]) was silently discarded in favour of the
-        # fabricated default 0.5 — the measurement was suppressed for being
-        # honest. A successful probe IS the measurement; assign it unconditionally
-        # and let the threshold gate decide pass/fail.
-        resolved_floors["F1"] = _phi_fq
-        floor_provenance["F1"] = f"arifflow_verdict:{_fq_verdict};fq={_fq_quotient}@{now_iso()}"
+        _fq_quotient_raw = (_fq_data.get("fq") or {}).get("quotient")
+        if _fq_quotient_raw is None:
+            # Reachable but no pooled quotient yet (cold window). A void is not
+            # a zero (K2): publish UNMEASURED, never 0.0.
+            floor_provenance["F1"] = "unmeasured_default:arifflow_no_quotient"
+        else:
+            _fq_quotient = float(_fq_quotient_raw)
+            _federation_fq = fq_object(
+                _fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION
+            )
+            _phi_fq = _phi_fq_from_quotient(_fq_quotient)
+            # SCAR-OBS-GREENWASH: assign the measurement unconditionally and let
+            # the threshold gate decide pass/fail — never suppress an honest
+            # measurement because it is worse than a placeholder.
+            resolved_floors["F1"] = _phi_fq
+            # Prefix stays a MEASURED producer token for
+            # health_truth.classify_provenance ("probe"), or the same response
+            # says "pass" and "unmeasured" about the same floor (K7).
+            floor_provenance["F1"] = (
+                f"arifflow_probe:quotient={_fq_quotient};floor=0.5"
+                f";constellation={_fq_verdict}@{now_iso()}"
+            )
 
         # P6 (F13 D2 2026-10-23): five-field FQ decomposition rides with the
         # reading — raw / normalization / threshold / window / formula as
@@ -4158,7 +4196,7 @@ def register_rest_routes(
         _floors_measured = sorted(
             _fid
             for _fid, _src in _floor_provenance.items()
-            if not str(_src).startswith("unmeasured_default")
+            if not _provenance_is_unmeasured(_src)
         )
         _floors_defaulted = sorted(
             _fid
@@ -4506,8 +4544,8 @@ def register_rest_routes(
                 fid: {
                     "score": score,
                     "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
-                    "measured": not str(_floor_provenance.get(fid) or "").startswith(
-                        "unmeasured_default"
+                    "measured": not _provenance_is_unmeasured(
+                        _floor_provenance.get(fid)
                     ),
                     "provenance": _floor_provenance.get(fid),
                 }
