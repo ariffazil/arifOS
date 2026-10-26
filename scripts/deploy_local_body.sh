@@ -26,7 +26,10 @@ GIT_SHA="${GIT_SHA:-$(git -C "$DIR" rev-parse HEAD)}"
 LEASE_ACTOR="${DEPLOY_ACTOR:-$(whoami)}"
 DEPLOY_RECEIPT="${DEPLOY_RECEIPT:-docs/releases}"
 DRY="${DEPLOY_DRY_RUN:-0}"
-SITE_PKGS="$($PYTHON -c 'import site; print(site.getsitepackages()[0])')"
+# Runtime venv is fixed: deriving this from $PYTHON let a source-venv invocation
+# sync new code into the wrong site-packages while the deploy marker advanced
+# (measured 2026-10-26). Deploys target the interpreter systemd actually runs.
+SITE_PKGS="$(/opt/arifos/current/venv/bin/python -c 'import site; print(site.getsitepackages()[0])')"
 LEASE_TOOL="$DIR/scripts/deploy_lease.py"
 
 # ── the invariant: a lease that was acquired is released, whatever happens ──
