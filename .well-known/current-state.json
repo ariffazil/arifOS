@@ -1,35 +1,34 @@
 {
-  "generated_at": "2026-10-21T09:36:20Z",
+  "generated_at": "2026-10-26T15:21:17Z",
   "self_measurement": {
     "status": "degraded",
-    "probe": "http://127.0.0.1:8088/health @2026-10-21T09:36:20Z",
-    "floors_pass": 10,
+    "probe": "http://127.0.0.1:8088/health @2026-10-26T15:21:17Z",
+    "floors_pass": 11,
     "floors_target": 13,
     "floors_failing": [
-      "F1",
       "F8"
     ],
     "floors_unmeasured": [
       "F6"
     ],
     "floors_provenance": {
-      "F10": "arifflow_live_ontology:QG_V0_3_VECTOR_SPEC.md v0.3.1-AMD",
-      "F11": "floor_producer:PASS:receipt_ledger",
-      "F12": "floor_producer:PASS:request_trust",
-      "F13": "floor_producer:PASS:seal_chain",
-      "F1": "arifflow_fq_probe:fq=0.4583333333333333",
-      "F2": "floor_producer:PASS:floor_provenance_coverage",
-      "F3": "witness_producers:human+ai+earth",
-      "F4": "arifflow_probe:ds=-0.0",
-      "F5": "floor_producer:PASS:seal_chain",
-      "F6": "unmeasured_default:empty_kernel_signal",
-      "F7": "arifflow_live_vector:omega=0.04",
-      "F8": "arifflow_live_vector:g=0.587",
-      "F9": "arifflow_live_vector:c_dark=0.2085"
+      "F10": "floor_producer:PASS:f10_guard:report_corpus:77:601234dfed3d:fresh:artifact=c9fab54e@2026-10-26T15:19:04Z",
+      "F11": "floor_producer:PASS:receipt_ledger@2026-10-26T15:19:03Z",
+      "F12": "floor_producer:PASS:request_trust@2026-10-26T15:19:03Z",
+      "F13": "floor_producer:PASS:seal_chain_sovereign@2026-10-26T15:19:03Z",
+      "F1": "arifflow_probe:quotient=1.233451342132217;floor=0.5;constellation=FLOWING@2026-10-26T15:19:03Z",
+      "F2": "floor_producer:PASS:floor_provenance_coverage@2026-10-26T15:19:04Z",
+      "F3": "floor_producer:MEASURED:witness_coherence=0.9257@2026-10-26T15:19:03Z",
+      "F4": "arifflow_probe:ds=-0.0@2026-10-26T15:19:03Z",
+      "F5": "floor_producer:PASS:seal_chain_peace@2026-10-26T15:19:03Z",
+      "F6": "unmeasured_default:f6_partially_measured",
+      "F7": "arifflow_live_vector:omega=0.04@2026-10-26T15:19:03Z",
+      "F8": "floor_producer:FAIL:f8_logic_active_contradictions@2026-10-26T15:19:03Z",
+      "F9": "arifflow_live_vector:c_dark=0.199@2026-10-26T15:19:03Z"
     },
     "vault999": "healthy",
-    "release_id": "arifos-e895e42",
-    "source_commit": "e895e42",
+    "release_id": "arifos-c9fab54e3ce9",
+    "source_commit": "c9fab54e3ce9c166f48e49e583ccac7c7ae7f818",
     "drift": false,
     "tools_exposed": 9,
     "registry_size": 63
