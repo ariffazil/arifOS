@@ -2625,10 +2625,10 @@ def arif_init(
             priority=intent,
         )
 
-    # ── PING MODE ──────────────────────────────────────────────
+    # ── PING / CANARY MODE ────────────────────────────────────
     # Pre-session, zero-authority capability probe. No actor_id required.
     # This is the always-safe path for clients blocked by safety gates on init.
-    if mode == "ping":
+    if mode in ("ping", "canary"):
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
         from arifosmcp.runtime.tools import _SESSIONS
 
