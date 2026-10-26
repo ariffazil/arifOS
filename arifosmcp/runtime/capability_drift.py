@@ -686,7 +686,10 @@ def compute_capability_matrix(
             tested_count += 1
         if is_public and proven:
             proven_live_count += 1
-        if is_public and truth not in {"PASS", "PROVEN"}:
+        # 2026-10-26: EXPOSED_UNPROVEN is not degraded — it means "not yet tested",
+        # not "measured mismatch". Only DEGRADED (declared≠registered/exposed or
+        # tested-and-failed) increments degraded_count.
+        if is_public and truth == "DEGRADED":
             degraded_count += 1
 
         matrix.append(

@@ -220,9 +220,13 @@ def test_matrix_counts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     fallback = set(public_tool_names_for_mode())
     assert matrix["registered_count"] == len(fallback & set(cd.PUBLIC_CANONICAL_TOOLS))
     assert matrix["invocable_count"] == matrix["registered_count"]
-    # No fresh passes in the pinned cache ⇒ nothing PASS/PROVEN.
+    # No fresh passes in the pinned cache ⇒ nothing PASS/PROVEN. Public tools
+    # inside the F2 fallback profile are live-invocable but unproven ⇒
+    # EXPOSED_UNPROVEN ("not yet tested"), which must NOT inflate the
+    # degraded headline; only public-declared tools OUTSIDE the fallback
+    # profile (unregistered/unexposed ⇒ DEGRADED) count (2026-10-27 reclass).
     assert matrix["tested_count"] == 0
-    assert matrix["degraded_count"] == len(cd.PUBLIC_CANONICAL_TOOLS)
+    assert matrix["degraded_count"] == len(set(cd.PUBLIC_CANONICAL_TOOLS) - fallback)
 
 
 def test_load_registry_index_falls_back_gracefully(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
