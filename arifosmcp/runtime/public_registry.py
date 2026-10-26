@@ -127,12 +127,11 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     # ── 444 ROUTE ───────────────────────────────────────────────────────────
     "arif_route": (
         "KERNEL 444 · Intent→organ router: classifies a natural-language intent "
-        "and dispatches it to the specialist organ (GEOX geoscience, WEALTH "
-        "capital, WELL vitality, A-FORGE execution). Returns the routing "
-        "decision only — no organ call — unless organ_tool names the target "
-        "tool and arguments carries its inputs. Prefer this over guessing "
-        "organs yourself; use arif_think for reasoning you keep in-kernel."
-        "Auth: requires session_id + session_token from arif_init. Returns: the routing decision (organ + tool) only — the organ call itself is a separate step."
+        "and prepares a dispatch envelope for the specialist organ (GEOX geoscience, "
+        "WEALTH capital, WELL vitality, A-FORGE execution). Returns the routing "
+        "decision and target organ contract. Calling the organ tool itself is a separate "
+        "governed invocation (via arif_forge after judgment or direct organ client). "
+        "Auth: requires session_id + session_token from arif_init."
     ),
     "arif_kernel_route": ("[DEPRECATED → arif_route] Legacy KERNEL 444 entry."),
     # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
@@ -584,22 +583,23 @@ _INPUT_CONTRACT_FACADES: dict[str, dict[str, Any]] = {
             "intent": {"type": "string", "minLength": 1},
         },
     },
-    # 999 SEAL — payload required (write modes seal/session_close need it;
-    # pure reads verify/ledger/changelog/audit remain exempt at the handler —
-    # do not over-block reads). mode='seal' (also the default) additionally
-    # requires seal_purpose: a permanent record with no stated reason is
-    # refused, mirrored here as if/then.
+    # 999 SEAL — payload required for write modes (seal, session_close);
+    # pure reads (verify, ledger, changelog, audit, chain_status) may omit it.
+    # mode='seal' (default) additionally requires seal_purpose: a permanent record
+    # with no stated reason is refused, mirrored here as if/then.
     "arif_seal": {
-        "required": ["payload"],
         "allOf": [
             {
                 "if": {
                     "anyOf": [
                         {"not": {"required": ["mode"]}},
-                        {"required": ["mode"], "properties": {"mode": {"enum": ["seal"]}}},
+                        {
+                            "required": ["mode"],
+                            "properties": {"mode": {"enum": ["seal", "session_close"]}},
+                        },
                     ]
                 },
-                "then": {"required": ["seal_purpose"]},
+                "then": {"required": ["payload", "seal_purpose"]},
             }
         ],
     },
