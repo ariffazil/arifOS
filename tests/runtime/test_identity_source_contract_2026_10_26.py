@@ -29,8 +29,7 @@ def test_read_sources_names_every_existing_file(tmp_path):
     paths = {
         "artifact_marker": str(marker),
         "release_stamp": str(stamp),
-        "repo_marker": str(tmp_path / "absent"),
-    }
+        }
     got = rr._read_identity_sources(paths)
     assert got == {"artifact_marker": "c9dc347", "release_stamp": "83bae89"}
 
@@ -55,7 +54,7 @@ def test_identity_prefers_artifact_marker_and_names_the_conflict(tmp_path, monke
     )
     d = rr._compute_runtime_drift()
     assert d["live_commit"] == "c9dc347"  # marker wins
-    assert d["identity_source"] == "artifact_marker"
+    assert d["identity_authority"] == "artifact_marker"
     assert d["identity_consistent"] is False
     assert {"source": "release_stamp", "commit": "83bae89"} in d["identity_conflict"]
 
@@ -63,7 +62,7 @@ def test_identity_prefers_artifact_marker_and_names_the_conflict(tmp_path, monke
 def test_identity_consistent_when_all_agree(tmp_path, monkeypatch):
     same = "83bae89"
     paths = {}
-    for name in ("artifact_marker", "release_stamp", "repo_marker"):
+    for name in ("artifact_marker", "release_stamp"):
         paths[name] = str(_write(tmp_path / name, same))
     monkeypatch.setattr(rr, "DEFAULT_IDENTITY_PATHS", paths)
     d = rr._compute_runtime_drift()
@@ -80,9 +79,8 @@ def test_marker_absent_falls_back_to_release_stamp(tmp_path, monkeypatch):
         {
             "artifact_marker": str(tmp_path / "absent"),
             "release_stamp": str(stamp),
-            "repo_marker": str(tmp_path / "absent2"),
-        },
+            },
     )
     d = rr._compute_runtime_drift()
     assert d["live_commit"] == "83bae89"
-    assert d["identity_source"] == "release_stamp"
+    assert d["identity_authority"] == "release_stamp"
