@@ -641,16 +641,24 @@ def compute_capability_matrix(
         registry_out_hash = _schema_hash(canon.get("output_schema"))
         observed_in_hash = cache_row.get("input_schema_hash")
         observed_out_hash = cache_row.get("output_schema_hash")
-        # Hash-match only meaningful when we have BOTH sides; missing observed ⇒ unknown.
-        in_match = (
-            observed_in_hash is not None
-            and registry_in_hash is not None
-            and observed_in_hash == registry_in_hash
+        # Hash-match is TRI-STATE, not boolean (2026-10-26).
+        # `False` used to mean two different things at once — "the schema
+        # changed" (both sides present, different) and "nobody ever recorded an
+        # observed hash" (one side missing). The matrix published the second as
+        # the first, so a verb with a null cache hash read as a MISMATCH and
+        # could never reach PASS, and the surface reported "capability DRIFTED"
+        # for what was really "never measured". Unknown is None, not False
+        # (K2: a void is not a zero). PASS still requires both to be True, so
+        # the fail-closed ladder is unchanged.
+        in_match: bool | None = (
+            None
+            if (observed_in_hash is None or registry_in_hash is None)
+            else observed_in_hash == registry_in_hash
         )
-        out_match = (
-            observed_out_hash is not None
-            and registry_out_hash is not None
-            and observed_out_hash == registry_out_hash
+        out_match: bool | None = (
+            None
+            if (observed_out_hash is None or registry_out_hash is None)
+            else observed_out_hash == registry_out_hash
         )
 
         # Truth ladder — PROVEN for durable success without full schema match.
