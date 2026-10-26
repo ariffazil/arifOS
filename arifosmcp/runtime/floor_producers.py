@@ -848,10 +848,115 @@ def _f10_ontology(sources: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+_F8_CLOSED_STATUSES = frozenset({"resolved", "closed", "retired"})
+
+
+def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
+    """F8 LOGIC — internal consistency (verdicts.F8_LOGIC), gate-grade.
+
+    WHY THIS PRODUCER (2026-10-26, Track 2):
+      The arifFlow vector dimension `g` is labelled
+      PHASE_1_HEURISTIC_UNCALIBRATED, and the F13 order of 2026-10-25 bars an
+      uncalibrated heuristic from being gate-grade. F8's constitutional name
+      is LOGIC — internal consistency — so the gate-grade instrument measures
+      exactly that, from the federation's own acknowledged-contradiction
+      ledger (/var/lib/arifos/contradiction_register.json, consumer:
+      contradiction_margin -> /health eureka_margin + arif_init session gate).
+
+    CALIBRATION (by definition, not heuristic):
+      A system carrying an entry it has itself registered as an ACTIVE
+      internal contradiction is not internally consistent. The threshold is
+      not a tuned number — it is the definition: zero active contradictions
+      PASS, one or more FAIL (ids named, never averaged away). Only
+      resolved/closed/retired entries count as cooled (EUREKA777 loop).
+      Any other status — including statuses this producer has never seen —
+      counts ACTIVE (fail-closed).
+
+    HONEST LIMITS (shadow residual, per F6-canon receipt discipline):
+      The register only tracks ACKNOWLEDGED contradictions. Undetected
+      inconsistency is not measured by this producer; a PASS here means
+      "no registered contradiction remains open", never "the system is
+      provably consistent" (Gödel). Register unreachable/malformed ->
+      UNMEASURED, never PASS (a void is not a zero, K2).
+    """
+    register = sources.get("contradiction_register")
+    if register is None:
+        return {
+            "floor": "F8",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:contradiction_register_unreachable",
+        }
+    if not isinstance(register, dict):
+        return {
+            "floor": "F8",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:contradiction_register_malformed",
+        }
+    entries = register.get("entries")
+    if not isinstance(entries, list):
+        return {
+            "floor": "F8",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:contradiction_entries_malformed",
+        }
+
+    active: list[dict[str, Any]] = []
+    closed = 0
+    malformed = 0
+    for e in entries:
+        if not isinstance(e, dict):
+            malformed += 1
+            continue
+        status = str(e.get("status") or "").strip().lower()
+        if status in _F8_CLOSED_STATUSES:
+            closed += 1
+        else:
+            # unknown/empty status counts ACTIVE — fail-closed
+            active.append(
+                {
+                    "id": str(e.get("id") or "unknown"),
+                    "status": status or "unset",
+                    "title": str(e.get("title") or "")[:80],
+                }
+            )
+    if malformed:
+        return {
+            "floor": "F8",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:contradiction_entries_malformed",
+            "malformed_entries": malformed,
+        }
+
+    residual = (
+        "register tracks acknowledged contradictions only; undetected "
+        "inconsistency is unmeasured by this producer"
+    )
+    if active:
+        return {
+            "floor": "F8",
+            "status": "FAIL",
+            "origin": "f8_logic_active_contradictions",
+            "active": active,
+            "active_count": len(active),
+            "closed_count": closed,
+            "shadow_residual": residual,
+        }
+    return {
+        "floor": "F8",
+        "status": "PASS",
+        "origin": "f8_logic_contradiction_register",
+        "active_count": 0,
+        "closed_count": closed,
+        "checked_entries": len(entries),
+        "shadow_residual": residual,
+    }
+
+
 _PRODUCERS = {
     "F2": _f2_truth,
     "F5": _f5_peace,
     "F6": _f6_maruah,
+    "F8": _f8_logic,
     "F10": _f10_ontology,
     "F11": _f11_audit,
     "F12": _f12_injection,

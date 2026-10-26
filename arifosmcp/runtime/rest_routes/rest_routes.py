@@ -1495,6 +1495,33 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 f"unmeasured_default:ledger_unreachable:{type(_f11_exc).__name__}"
             )
 
+        # F8 LOGIC — gate-grade internal-consistency producer (Track 2, 2026-10-26).
+        # Precedence (K12 dual evaluation paths): if arifFlow's `g` dimension is
+        # ever CALIBRATED it decides F8 via resolved_floors above; the
+        # PHASE_1_HEURISTIC_UNCALIBRATED skip path (F13 order 2026-10-25:
+        # uncalibrated is never gate-grade) leaves F8 unresolved, and then the
+        # contradiction-register producer decides it — zero ACTIVE registered
+        # contradictions PASS, one or more FAIL with ids named. Register
+        # unreachable -> UNMEASURED (a void is not a zero).
+        if "F8" not in resolved_floors:
+            try:
+                _cr_path = _Path(
+                    _os.environ.get(
+                        "ARIFOS_CONTRADICTION_REGISTER",
+                        "/var/lib/arifos/contradiction_register.json",
+                    )
+                )
+                _cr = (
+                    _json.loads(_cr_path.read_text(errors="replace"))
+                    if _cr_path.exists()
+                    else None
+                )
+                _wire_producer("F8", {"contradiction_register": _cr})
+            except Exception as _f8_exc:
+                floor_provenance["F8"] = (
+                    f"unmeasured_default:f8_producer_error:{type(_f8_exc).__name__}"
+                )
+
         # F13 SOVEREIGN — seal chain tail human-acceptance separation (read-only).
         # Inspects modern active seals with verifiable timestamps (>= 2026-09-08).
         try:
