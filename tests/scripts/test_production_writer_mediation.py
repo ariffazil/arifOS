@@ -139,6 +139,9 @@ def test_verify_returns_unobservable_when_the_runtime_cannot_be_read(tmp_path: P
     (app / ".git_commit").write_text("c")
     blind = {
         "ARIFOS_ACTIVE_VENV_ROOT": str(tmp_path / "no-such-venv"),
+        "ARIFOS_RUNTIME_TARGET": str(
+            tmp_path / "no-such-venv" / "lib" / "python3.13" / "site-packages" / "arifosmcp"
+        ),
         "ARIFOS_APP_DIR": str(app),
     }
     acq = _run_lease(
