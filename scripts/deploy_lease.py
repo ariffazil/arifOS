@@ -347,7 +347,12 @@ def main(argv: list[str] | None = None) -> int:
     pa.set_defaults(fn=cmd_acquire)
 
     pr = sub.add_parser("release")
-    pr.add_argument("--actor", default=None)
+    # --actor is REQUIRED (2026-10-26, 333-AGI). It was optional, and the owner
+    # check reads `if a.actor and lease.get("actor") and a.actor != ...` — so a
+    # second deployer could clear the holder's lease by omitting the flag, then
+    # acquire and deploy unopposed. A gate that can be opened by forgetting a
+    # flag is decoration (K6). The deploy body always passes --actor.
+    pr.add_argument("--actor", required=True)
     pr.add_argument("--receipt", default=None)
     pr.set_defaults(fn=cmd_release)
 

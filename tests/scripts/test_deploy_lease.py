@@ -162,3 +162,19 @@ def test_abort_path_releases_the_lease_and_preserves_exit_code(tmp_path: Path) -
     assert released[0]["actor"] == "agent-a"
     assert released[0]["receipt"] == "docs/releases"
     assert released[0]["resulting_artifact"]["module_count"] > 0
+
+
+def test_release_without_actor_is_refused_and_lease_survives(tmp_path: Path) -> None:
+    """A non-owner must not clear the lease by omitting --actor.
+
+    Measured hole (2026-10-26): the owner check read `if a.actor and ...`, so
+    --actor was optional and a second deployer could release the holder's lease,
+    then acquire and deploy unopposed. HOLD_NOT_OWNER only held for callers who
+    volunteered their identity.
+    """
+    _run(tmp_path, "acquire", "--actor", "agent-a", "--base", "b1", "--candidate", "c1")
+    attempt = _run(tmp_path, "release")
+    assert attempt.returncode != 0, "release without --actor must be refused"
+    status = json.loads(_run(tmp_path, "status", "--json").stdout)
+    assert status["state"] == "LEASED"
+    assert status["lease"]["actor"] == "agent-a"
