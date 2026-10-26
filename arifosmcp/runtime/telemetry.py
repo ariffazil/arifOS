@@ -306,6 +306,18 @@ def _build_arifflow_receipt(
     }
     floor_verdict = _floor_map.get(_verdict_upper, "Pass")
 
+    # Map epistemic_label (matches arifFlow Rust enum EpistemicLabel)
+    if step_type == "Seal":
+        epistemic_label = "Seal"
+    elif tool_name in ("arif_observe", "arif_init"):
+        epistemic_label = "Observation"
+    elif tool_name in ("arif_think", "arif_judge"):
+        epistemic_label = "Derivation"
+    elif step_type == "Verify":
+        epistemic_label = "Derivation"
+    else:
+        epistemic_label = "Observation"
+
     # Convert latency_ms to cost_ns
     cost_ns = int(latency_ms * 1_000_000) if latency_ms else 0
 
@@ -340,7 +352,7 @@ def _build_arifflow_receipt(
         "parent_receipt_ids": [],
         "cost_ns": cost_ns,
         "preceding_verify_cost_ns": None,
-        "epistemic_label": "OBS",
+        "epistemic_label": epistemic_label,
         "floor_verdict": floor_verdict,
         "cooling_decision": "None",
         "tri_witness_votes": None,
@@ -379,7 +391,11 @@ def _forward_to_arifflow(
         )
 
         with httpx.Client(timeout=3.0) as client:
-            resp = client.post(_ARIFLOW_TELEMETRY_URL, json=receipt)
+            resp = client.post(
+                _ARIFLOW_TELEMETRY_URL,
+                json=receipt,
+                headers={"Content-Type": "application/json", "Connection": "close"},
+            )
             if resp.status_code < 400:
                 return "DELIVERED"
             else:
