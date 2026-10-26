@@ -936,7 +936,19 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         unmeasured = 0
         for fid, score in raw_floors.items():
             origin = str(provenance.get(fid) or "governance_kernel")
-            is_placeholder = origin.startswith("unmeasured_default")
+            # 2026-10-26: a SKIPPED producer is not a measurement either.
+            if origin.startswith("unmeasured_default"):
+                is_placeholder = True
+                placeholder_label = (
+                    "rest_routes._FLOOR_DEFAULTS (unmeasured — Maruah predicates live, "
+                    "producer pending; docs/canon/F6_MARUAH_CANON.md)"
+                )
+            elif "_skipped" in origin or score is None:
+                is_placeholder = True
+                placeholder_label = f"skipped producer, no measurement [{origin}]"
+            else:
+                is_placeholder = False
+                placeholder_label = None
             if is_placeholder:
                 ok = False
                 status = "unmeasured"
@@ -955,8 +967,7 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                 "score": _pf(
                     None if is_placeholder else score,
                     source=(
-                        "rest_routes._FLOOR_DEFAULTS (unmeasured — Maruah predicates live, producer pending; docs/canon/F6_MARUAH_CANON.md)"
-                        if is_placeholder
+                        placeholder_label if is_placeholder
                         else f"governance_kernel.get_current_state [{origin}]"
                     ),
                     state="unknown" if is_placeholder else "observed",

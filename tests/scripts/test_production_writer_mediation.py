@@ -211,6 +211,8 @@ def test_canonical_body_with_an_owned_lease_runs_and_releases(tmp_path: Path) ->
         head,
         "--candidate",
         head,
+        "--entry-point",
+        "make:deploy-local",
         env_extra=app_env,
     )
     assert acq.returncode == 0, acq.stderr
