@@ -3222,6 +3222,31 @@ def _read_deploy_provenance() -> dict[str, str]:
     }
 
 
+DEFAULT_IDENTITY_PATHS: dict[str, str] = {
+    "artifact_marker": "/opt/arifos/app/.git_commit",
+    "release_stamp": "/opt/arifos/releases/deployed-commit",
+    "repo_marker": "/root/arifOS/.git_commit",
+}
+
+
+def _read_identity_sources(paths: dict[str, str] | None = None) -> dict[str, str]:
+    """Read every identity file that exists, naming each one.
+
+    Pure read; no precedence. Precedence belongs to the caller so the choice is
+    one line of code a reader can audit, not an implicit loop order.
+    """
+    out: dict[str, str] = {}
+    for name, path in (paths or DEFAULT_IDENTITY_PATHS).items():
+        try:
+            if os.path.exists(path):
+                value = open(path).read().strip()[:7]
+                if value:
+                    out[name] = value
+        except Exception:
+            continue
+    return out
+
+
 def _compute_runtime_drift() -> dict[str, Any]:
     """Compare build-time git commit to mounted code commit.
 
@@ -3235,21 +3260,27 @@ def _compute_runtime_drift() -> dict[str, Any]:
     build_commit = BUILD_INFO.get("build", {}).get("commit", "unknown")
     live_commit = "unknown"
 
-    # ── 1) Canonical deployment marker (written by deploy-release.sh / make deploy-local) ──
-    for commit_file in [
-        "/opt/arifos/releases/deployed-commit",
-        "/opt/arifos/app/.git_commit",
-        "/root/arifOS/.git_commit",
-    ]:
-        try:
-            if os.path.exists(commit_file):
-                with open(commit_file) as f:
-                    candidate = f.read().strip()[:7]
-                if candidate:
-                    live_commit = candidate
-                    break
-        except Exception:
-            continue
+    # ── 1) Identity sources — ALL read, ONE authoritative (2026-10-26) ──────
+    # Measured defect: /health reported 83bae89 while the artifact marker said
+    # c9dc3476, because `releases/deployed-commit` (written by an older release
+    # path) was read first and shadowed the marker. The docstring above says
+    # ".git_commit first (canonical)"; the code did the opposite. One fact,
+    # three files, no precedence stated to the reader.
+    #
+    # Now: /opt/arifos/app/.git_commit is authoritative because it sits next to
+    # the code the interpreter imports. The other two are published beside it
+    # as NAMED sources, and disagreement is a first-class field rather than a
+    # silent resolution.
+    identity_sources = _read_identity_sources()
+
+    if identity_sources.get("artifact_marker"):
+        live_commit = identity_sources["artifact_marker"]
+        identity_source = "artifact_marker"
+    elif identity_sources.get("release_stamp"):
+        live_commit = identity_sources["release_stamp"]
+        identity_source = "release_stamp"
+    else:
+        identity_source = "git_head"
 
     # ── 2) Fallback: git repo HEAD (may be stale / detached) ──
     if live_commit == "unknown":
@@ -3283,6 +3314,8 @@ def _compute_runtime_drift() -> dict[str, Any]:
     # Build/runtime are comparable only when both SHAs are known and resolved.
     _both_known = build_commit != "unknown" and live_commit != "unknown"
     _matches = _both_known and (build_commit == live_commit)
+    _distinct = sorted(set(identity_sources.values()))
+    identity_consistent = len(_distinct) <= 1
     return {
         # Negative framing: "is the runtime drifted from the build?"
         "runtime_drift": _both_known and (build_commit != live_commit),
@@ -3292,6 +3325,20 @@ def _compute_runtime_drift() -> dict[str, Any]:
         "runtime_matches_build": _matches,
         "build_commit": build_commit,
         "live_commit": live_commit,
+        # Identity contract (2026-10-26): which file won, what the others say,
+        # and whether they agree. A consumer must not have to guess precedence.
+        "identity_source": identity_source,
+        "identity_sources": dict(identity_sources),
+        "identity_consistent": identity_consistent,
+        "identity_conflict": (
+            []
+            if identity_consistent
+            else [
+                {"source": k, "commit": v}
+                for k, v in sorted(identity_sources.items())
+                if v != live_commit
+            ]
+        ),
         "git_dirty": None,  # Would require git status; skipped for performance
     }
 
@@ -4194,9 +4241,7 @@ def register_rest_routes(
             _fid for _fid, _st in _floor_detail.items() if _st == _FLOOR_STATUS_UNMEASURED
         )
         _floors_measured = sorted(
-            _fid
-            for _fid, _src in _floor_provenance.items()
-            if not _provenance_is_unmeasured(_src)
+            _fid for _fid, _src in _floor_provenance.items() if not _provenance_is_unmeasured(_src)
         )
         _floors_defaulted = sorted(
             _fid
@@ -4544,9 +4589,7 @@ def register_rest_routes(
                 fid: {
                     "score": score,
                     "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
-                    "measured": not _provenance_is_unmeasured(
-                        _floor_provenance.get(fid)
-                    ),
+                    "measured": not _provenance_is_unmeasured(_floor_provenance.get(fid)),
                     "provenance": _floor_provenance.get(fid),
                 }
                 for fid, score in thermo.get("floors", {}).items()
@@ -4578,7 +4621,19 @@ def register_rest_routes(
             # ── Live deploy provenance (receipt-bound) ──────────────────────
             # BUILD_INFO answers "what was compiled?"; receipt answers "what is running?".
             # Two questions, two field families. Additive: does not shadow git_commit or build_*.
-            "deployed_commit": _deploy_prov["deployed_commit"],
+            # Build_info answers "what was compiled?"; the artifact marker answers
+            # "what is deployed?". Identity authority (2026-10-26): the marker
+            # wins; the receipt is published beside it as a NAMED value so the
+            # two can disagree in public instead of one silently shadowing.
+            "deployed_commit": _drift.get("live_commit", _deploy_prov["deployed_commit"]),
+            "deploy_receipt_commit": _deploy_prov["deployed_commit"],
+            "deploy_receipt_matches_artifact": (
+                str(_deploy_prov["deployed_commit"])[:7] == str(_drift.get("live_commit", ""))[:7]
+            ),
+            "identity_source": _drift.get("identity_source"),
+            "identity_sources": _drift.get("identity_sources"),
+            "identity_consistent": _drift.get("identity_consistent"),
+            "identity_conflict": _drift.get("identity_conflict"),
             "deployed_branch": _deploy_prov["deployed_branch"],
             "deployed_at": _deploy_prov["deployed_at"],
             "deployed_commit_receipt_stale": _deploy_prov.get("receipt_stale", "false"),
