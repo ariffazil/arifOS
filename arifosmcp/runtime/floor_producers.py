@@ -23,6 +23,8 @@ Contract per floor:
 
 from __future__ import annotations
 
+import json
+
 from datetime import datetime, timezone
 from typing import Any
 
@@ -410,7 +412,19 @@ def _f6_maruah_seal_fallback(sources: dict[str, Any]) -> dict[str, Any]:
         }
     reviews: list[dict[str, Any]] = []
     for s in seals:
-        payload = (s or {}).get("payload") or {}
+        payload = (s or {}).get("payload")
+        # 2026-10-26: the live seal-chain writer stores `payload` as a STRING
+        # (arif_seal(payload: str = "")) and most envelope rows store None.
+        # Assuming a dict raised AttributeError on the real ledger shape and the
+        # caller's guard turned a producer crash into an evidence gap. A str is
+        # evidence only once it parses.
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except (TypeError, ValueError):
+                continue
+        if not isinstance(payload, dict):
+            continue
         critique = payload.get("heart_critique")
         if isinstance(critique, dict):
             reviews.append(critique)
