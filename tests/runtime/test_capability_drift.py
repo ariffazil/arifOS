@@ -96,12 +96,13 @@ def test_registered_extracts_names_from_tools() -> None:
 
 
 def test_registered_handles_none_and_f2_fallback() -> None:
-    """None → empty. Anything else walks the F2 fallback chain and NEVER
+    """None → None (no MCP = unknown, not zero tools — ratified R1a,
+    2026-10-27). Anything else walks the F2 fallback chain and NEVER
     silently returns empty (module law: fallback ends at
     public_tool_names_for_mode() — same source as /health tools_loaded)."""
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
-    assert cd._registered_tools(None) == set()
+    assert cd._registered_tools(None) is None
 
     class Empty:
         _tool_registry = None
@@ -169,9 +170,10 @@ def test_matrix_truth_ladder_pass_degraded_void(tmp_path: Path, monkeypatch: pyt
     assert rows["arif_init"]["invocable"] is True
     assert rows["arif_init"]["tested"] is True
     # Hash match only meaningful with BOTH sides present (registry + observed);
-    # None on either side ⇒ no match credit…
-    assert rows["arif_init"]["input_schema_hash_match"] is False
-    assert rows["arif_init"]["output_schema_hash_match"] is False
+    # None on either side ⇒ hash_match is None, not False (K2: unknown ≠
+    # mismatch; tri-state 2026-10-26, measured None under this fixture).
+    assert rows["arif_init"]["input_schema_hash_match"] is None
+    assert rows["arif_init"]["output_schema_hash_match"] is None
     # …but a live-invocable tool with a durable pass is PROVEN — schema hash
     # absence no longer forces DEGRADED (truth ladder redesign).
     assert rows["arif_init"]["capability_truth"] == "PROVEN"
@@ -184,7 +186,8 @@ def test_matrix_truth_ladder_pass_degraded_void(tmp_path: Path, monkeypatch: pyt
 def test_matrix_excludes_undeclared_ghost_tool(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Ghost tools (not declared, not on the public wire) are excluded from
     matrix rows — public surface discipline: rows are the constitutional 8
-    plus declared extras, so ghosts can't pollute headline counts."""
+    plus declared/coordination extras (A5), so ghosts can't pollute headline
+    counts."""
     monkeypatch.setattr(cd, "TEST_CACHE_PATH", tmp_path / "cache.json")
     monkeypatch.setattr(cd, "hydrate_test_cache_from_durable_bus", lambda: None)
 
@@ -194,7 +197,9 @@ def test_matrix_excludes_undeclared_ghost_tool(tmp_path: Path, monkeypatch: pyte
     matrix = cd.compute_capability_matrix(mcp=StubMCP(), server_json={}, registry_index={})
     rows = {r["name"] for r in matrix["matrix"]}
     assert "ghost_tool" not in rows
-    assert rows == set(cd.PUBLIC_CANONICAL_TOOLS)
+    # A5: COORDINATION_TOOLS join the declared set for row visibility but
+    # never enter the public-8 headline (ratified R3a, 2026-10-27).
+    assert rows == set(cd.PUBLIC_CANONICAL_TOOLS) | set(cd.COORDINATION_TOOLS)
 
 
 def test_matrix_counts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -209,9 +214,11 @@ def test_matrix_counts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
     registry = {"arif_a": {}, "arif_b": {}, "arif_c": {}}
     matrix = cd.compute_capability_matrix(mcp=StubMCP(), server_json={}, registry_index=registry)
-    # Rows: public 8 + declared extras (drift visibility)…
+    # Rows: public 8 + declared extras + coordination extras (drift visibility)…
     row_names = {r["name"] for r in matrix["matrix"]}
-    assert row_names == set(cd.PUBLIC_CANONICAL_TOOLS) | {"arif_a", "arif_b", "arif_c"}
+    assert row_names == (
+        set(cd.PUBLIC_CANONICAL_TOOLS) | {"arif_a", "arif_b", "arif_c"} | set(cd.COORDINATION_TOOLS)
+    )
     # …but headline counts are public-wire only.
     assert matrix["declared_count"] == len(cd.PUBLIC_CANONICAL_TOOLS)
     # Empty stub registry ⇒ F2 fallback registers the default public profile.
