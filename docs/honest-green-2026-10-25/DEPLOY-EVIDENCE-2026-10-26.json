@@ -1,0 +1,222 @@
+{
+  "schema": "deploy-evidence/v1",
+  "generated_at": "2026-10-26T03:44:39+00:00",
+  "observer": "333-AGI (opencode session, harness=opencode, kernel=bound)",
+  "current_observation": {
+    "observed_at": "2026-10-26T03:44:39.953584+00:00",
+    "deployed_commit_reported": "bb756d9",
+    "app_git_commit_marker": "0dbbc6888e6fc0ac095dbc3d1e54ac76ebe1f176",
+    "service_active": "active",
+    "health_http": "200",
+    "floor_passed": null,
+    "execution_readiness": "held",
+    "floors_aggregate": "11 measured \u00b7 0 attested \u00b7 0 declared \u00b7 2 unmeasured / 13",
+    "floors_pass": 11,
+    "floors_failing": [],
+    "floors_unmeasured": [
+      "F6",
+      "F8"
+    ],
+    "floor_provenance": {
+      "F1": "arifflow_probe:quotient=0.9357326478149101;floor=0.5;constellation=FLOWING@2026-10-26T03:44:39Z",
+      "F2": "floor_producer:PASS:floor_provenance_coverage@2026-10-26T03:44:39Z",
+      "F3": "floor_producer:MEASURED:witness_coherence=0.9257@2026-10-26T03:44:39Z",
+      "F4": "arifflow_probe:ds=-0.0@2026-10-26T03:44:39Z",
+      "F5": "floor_producer:PASS:seal_chain_peace@2026-10-26T03:44:39Z",
+      "F6": "unmeasured_default:f6_partially_measured",
+      "F7": "arifflow_live_vector:omega=0.04@2026-10-26T03:44:39Z",
+      "F8": "arifflow_vector_g_skipped:calibration=PHASE_1_HEURISTIC_UNCALIBRATED@2026-10-26T03:44:39Z",
+      "F9": "arifflow_live_vector:c_dark=0.1993@2026-10-26T03:44:39Z",
+      "F10": "floor_producer:PASS:f10_guard:report_corpus:71@2026-10-26T03:44:39Z",
+      "F11": "floor_producer:PASS:receipt_ledger@2026-10-26T03:44:39Z",
+      "F12": "floor_producer:PASS:request_trust@2026-10-26T03:44:39Z",
+      "F13": "floor_producer:PASS:seal_chain_sovereign@2026-10-26T03:44:39Z"
+    },
+    "floor_status": {
+      "F1": {
+        "status": "pass",
+        "measured": true
+      },
+      "F2": {
+        "status": "pass",
+        "measured": true
+      },
+      "F3": {
+        "status": "pass",
+        "measured": true
+      },
+      "F4": {
+        "status": "pass",
+        "measured": true
+      },
+      "F5": {
+        "status": "pass",
+        "measured": true
+      },
+      "F6": {
+        "status": "unmeasured",
+        "measured": false
+      },
+      "F7": {
+        "status": "pass",
+        "measured": true
+      },
+      "F8": {
+        "status": "unmeasured",
+        "measured": false
+      },
+      "F9": {
+        "status": "pass",
+        "measured": true
+      },
+      "F10": {
+        "status": "pass",
+        "measured": true
+      },
+      "F11": {
+        "status": "pass",
+        "measured": true
+      },
+      "F12": {
+        "status": "pass",
+        "measured": true
+      },
+      "F13": {
+        "status": "pass",
+        "measured": true
+      }
+    },
+    "vault999_health": "healthy",
+    "vault_sealer_breaker": "closed",
+    "origin_ok": true,
+    "runtime_import_path": "/opt/arifos/current/venv/lib/python3.13/site-packages/arifosmcp/__init__.py"
+  },
+  "deployed_tree_proof": {
+    "deploy_commit": "0dbbc6888e6fc0ac095dbc3d1e54ac76ebe1f176",
+    "base_origin_main": "e9ac91105bbeee48815ed6b750ccbf6d38479ae5",
+    "divergence_left_right_vs_origin_main": "2\t0",
+    "merge_base": "e9ac91105bbeee48815ed6b750ccbf6d38479ae5",
+    "files_changed_vs_origin_main": [
+      "arifosmcp/runtime/capability_drift.py",
+      "arifosmcp/runtime/floor_producers.py",
+      "arifosmcp/runtime/rest_routes/rest_routes.py",
+      "arifosmcp/runtime/verdict.py",
+      "docs/honest-green-2026-10-25/ADAT-BINDING-GUIDE.md",
+      "docs/honest-green-2026-10-25/DEPLOY-RECEIPT-2026-10-26.md",
+      "tests/runtime/test_capability_hash_match_tristate.py",
+      "tests/runtime/test_honest_green_wiring_2026_10_26.py"
+    ],
+    "module_hashes_live_vs_deployed_commit": {
+      "runtime/verdict.py": {
+        "live": "c08961798cae",
+        "deployed": "c08961798cae",
+        "match": true
+      },
+      "runtime/rest_routes/rest_routes.py": {
+        "live": "6856f7a83903",
+        "deployed": "6856f7a83903",
+        "match": true
+      },
+      "runtime/floor_producers.py": {
+        "live": "eb814d223a14",
+        "deployed": "eb814d223a14",
+        "match": true
+      },
+      "runtime/capability_drift.py": {
+        "live": "5035b38cd774",
+        "deployed": "5035b38cd774",
+        "match": true
+      },
+      "runtime/health_truth.py": {
+        "live": "a6261b0ee9ed",
+        "deployed": "a6261b0ee9ed",
+        "match": true
+      },
+      "runtime/v2_envelope.py": {
+        "live": "c9e706fd706a",
+        "deployed": "c9e706fd706a",
+        "match": true
+      },
+      "runtime/tools.py": {
+        "live": "dcef98c0b1c4",
+        "deployed": "dcef98c0b1c4",
+        "match": true
+      }
+    }
+  },
+  "observation_ledger": [
+    {
+      "seq": 1,
+      "deployed_commit": "bb756d958",
+      "observed_at": "2026-10-26T03:20Z-03:29Z",
+      "state": "pre-hotfix",
+      "measurement": {
+        "floors_aggregate": "9 measured / 4 unmeasured",
+        "F1_provenance": "arifflow_verdict:FLOWING;fq=0.9883",
+        "F8": "pass, measured=true, provenance arifflow_vector_g_skipped",
+        "judge_reason_1": "UNKNOWN_VERDICT_TOKEN:intermediate_trace_states.canonical_verdict=DENY"
+      },
+      "note": "health surfaces disagreed: floors_unmeasured(status)=[F10,F6] while aggregate said 4 unmeasured"
+    },
+    {
+      "seq": 2,
+      "deployed_commit": "8359618fe",
+      "observed_at": "2026-10-26T03:34Z-03:37Z",
+      "state": "hotfix live",
+      "measurement": {
+        "F1_provenance": "arifflow_probe:quotient=1.0032;floor=0.5;constellation=PARTIAL_WIRING",
+        "F1": "pass 1.0",
+        "F8": "unmeasured, measured=false",
+        "floors_unmeasured": [
+          "F10",
+          "F4",
+          "F6",
+          "F7",
+          "F8",
+          "F9"
+        ],
+        "judge_unknown_token": false
+      },
+      "note": "effect-verified, then SUPERSEDED at 03:38-03:41Z by another session's deploy of main cd28e52cf"
+    },
+    {
+      "seq": 3,
+      "deployed_commit": "cd28e52cf",
+      "observed_at": "2026-10-26T03:38Z-03:41Z",
+      "state": "sibling deploy, hotfix stomped",
+      "measurement": {
+        "F1_provenance": "arifflow_verdict:FLOWING (old path)",
+        "F8": "pass, measured=true (false green restored)",
+        "floors_aggregate": "9 measured / 4 unmeasured"
+      },
+      "note": "site-packages overwritten; service restarted 03:41:41Z by the other session"
+    },
+    {
+      "seq": 4,
+      "deployed_commit": "0dbbc6888e6fc0ac095dbc3d1e54ac76ebe1f176",
+      "observed_at": "2026-10-26T03:44:39.953584+00:00",
+      "state": "current",
+      "measurement": {
+        "F1_provenance": "arifflow_probe:quotient=0.9357326478149101;floor=0.5;constellation=FLOWING@2026-10-26T03:44:39Z",
+        "F8": "unmeasured",
+        "floors_aggregate": "11 measured \u00b7 0 attested \u00b7 0 declared \u00b7 2 unmeasured / 13",
+        "floors_unmeasured": [
+          "F6",
+          "F8"
+        ]
+      },
+      "note": "rebased onto origin/main e9ac91105 (sibling's F10 instrument now measures F10 \u2192 8/5)"
+    }
+  ],
+  "defect_this_episode_exposes": {
+    "class": "CONCURRENT_DEPLOY_RACE_ON_SHARED_SITE_PACKAGES",
+    "evidence": "three runtime code states in 21 minutes (03:20Z, 03:34Z, 03:41Z) with no lock, no ownership marker, and no rollback of the superseded session's patches",
+    "consequence": "a verified fix silently regressed; every downstream consumer read a different surface depending on probe time",
+    "no_fix_applied": "coordination + landing on main (PR opened). A deploy lock is a federation-wide design decision, not a single-agent patch."
+  },
+  "not_claimed": [
+    "actor_verified semantics: an actor_id swap inside a valid session still shows actor_verified=true in seq-1 probes; whether that is attribution spoofing only or privilege escalation is UNRESOLVED (session band stayed OBSERVE_ONLY in the probes run).",
+    "readiness: execution_readiness=held is substrate-driven; this deploy cannot and does not change it.",
+    "VAULT999: no append was made by the author (lease gate refused; 888/F13 only)."
+  ]
+}
