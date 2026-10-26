@@ -402,6 +402,19 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "full payload — evidence_used, epistemic_labels and the AGI-readiness block. "
             "Read-only formatting choice; it never changes the reasoning itself."
         ),
+        "context": (
+            "Structured sideband for the reasoning pass, e.g. "
+            '{"handoff": <hermes_handoff_package>}. The recipient reports evidence '
+            "TRANSPORT status only (REFS_RESOLVED / EVIDENCE_NOT_RECEIVED / "
+            "EVIDENCE_UNAVAILABLE / HASH_MISMATCH) and never upgrades claim_state "
+            "from a handoff summary."
+        ),
+        "evidence": (
+            "Typed evidence objects (list of EvidenceObject) to ground the reasoning. "
+            "They pass an admission gate — expired omitted, UNKNOWN/CONTRADICTED "
+            "gated, malformed rejected — and merge with session observations; the "
+            "admission summary echoes in the result."
+        ),
     },
     "arif_route": {
         "mode": (

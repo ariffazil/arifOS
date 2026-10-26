@@ -20881,9 +20881,7 @@ def _critique_admissibility(
 _CAP_BLOCKED_VERDICTS = frozenset({"SEAL", "SABAR", "SABAR_HOLD", "PROCEED", "999_SEAL"})
 
 
-def _cap_critique(
-    payload: Any, action_class: str | None, critique: dict[str, Any] | None
-) -> Any:
+def _cap_critique(payload: Any, action_class: str | None, critique: dict[str, Any] | None) -> Any:
     """Cap the verdict at HOLD when the critique is inadmissible.
 
     The cap can only move a verdict DOWN. It never raises one, never turns HOLD
@@ -25490,7 +25488,36 @@ async def _arif_report(
     session_token: str | None = None,
     _envelope: Any = None,
 ) -> dict[str, Any]:
-    """Agent report lane — peer coordination without waking the human."""
+    """Agent report lane — peer coordination without waking the human.
+
+    Files reports into a peer lane and reads peers' reports; agents coordinate
+    with agents, the human is the exception path. Reports are SELF_REPORTED —
+    probe before relying on one. ESCALATION LAW (F13 2026-10-20): only
+    kind=decision|blocked can reach the sovereign, and only from a
+    cryptographically verified actor or after >=2 distinct agents ack the same
+    thread_id (peer quorum); anything else is downgraded to the peer lane.
+
+    Parameters:
+        mode: 'report' (file a report), 'inbox' (read peers' reports), 'ack' (vouch for a thread — acks form the peer quorum), 'flush' (push pending human-bound reports now), 'stats' (lane counters).
+        kind: Report class — 'fyi'|'peer'|'done'|'claim' stay in the peer lane; 'decision'|'blocked' may reach the sovereign (gated by verified actor or peer quorum).
+        subject: One-line title of the report (mode=report).
+        body: Full report text — what happened, what is needed, what was verified (mode=report).
+        sender: Your agent id as claimed in the payload; kept as sender_claimed — the server separately stamps the verified ACT subject, agents cannot mint identity.
+        platform: Surface the report is filed from, e.g. 'mcp' (default), 'telegram'.
+        thread_id: Thread to file into or ack; two distinct agents acking the same thread_id form the quorum that can escalate to the human.
+        evidence: Optional JSON evidence attached to the report (probe output, receipts, hashes) — peers can ground the claim without re-asking.
+        needs_human: Hint that this deserves human attention; still gated — an unverified caller cannot interrupt the human on its own authority.
+        report_id: Id of one filed report to ack (from an inbox listing).
+        since: Only read reports newer than this — ISO timestamp or relative window (mode=inbox).
+        limit: Maximum number of reports to return, default 20 (mode=inbox).
+        mark_read: Advance your read cursor past the returned reports (mode=inbox).
+        force: Push pending human-bound reports immediately, bypassing the coalescing window (mode=flush).
+        dry_run: Classify and validate without filing anything (mode=report/flush).
+        session_id: Kernel session id from arif_init — attributes this call to your governed session.
+        actor_id: Your agent identity, e.g. '333-AGI'; recorded in the audit log.
+        session_token: Session Continuity Token (SCT/ACT) from arif_init — a verified token is what lets decision|blocked reach the human.
+        _envelope: Optional A2A federation envelope (JSON) for cross-agent transport; handled by middleware.
+    """
     from arifosmcp.runtime import report_lane as rl
 
     m = (mode or "report").strip().lower()
@@ -30021,6 +30048,12 @@ def register_tools(
             "canonical_order": list(_rep_canon_order),
             "manifest_surface": "compact",
         }
+        # TDQS naming pass (2026-10-26): project the docstring param docs into
+        # the wire schema via the same mechanism the canonical 8 use
+        # (_build_enriched_signature → Annotated descriptions). Fixes
+        # arif_report's 0% schema-description coverage (TDQS hosted baseline
+        # 2026-10-26: parameter_semantics=2, only smell on an all-A surface).
+        _arif_report.__signature__ = _build_enriched_signature(_arif_report)
         mcp.tool(
             name="arif_report",
             description=(
