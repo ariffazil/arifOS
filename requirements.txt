@@ -1996,9 +1996,9 @@ jsonpatch==1.33 \
     --hash=sha256:0ae28c0cd062bbd8b8ecc26d7d164fbbea9652a1a3693f3b956c1eae5145dade \
     --hash=sha256:9fcd4009c41e6d12348b4a0ff2563ba56a2923a7dfee731d004e212e1ee5030c
     # via langchain-core
-jsonpointer==3.1.1 \
-    --hash=sha256:0b801c7db33a904024f6004d526dcc53bbb8a4a0f4e32bfd10beadf60adf1900 \
-    --hash=sha256:8ff8b95779d071ba472cf5bc913028df06031797532f08a7d5b602d8b2a488ca
+jsonpointer==3.4 \
+    --hash=sha256:136e2e3273fd82a1502274f56ec172f331b6a1703d86a1824d503af4d9a96142 \
+    --hash=sha256:e57015ae65af3821c6a3976069860789cf326103f38b22b2178d41d021adad25
     # via jsonpatch
 jsonref==1.1.0 \
     --hash=sha256:32fe8e1d85af0fdefbebce950af85590b22b60f9e95443176adbde4e1ecea552 \
