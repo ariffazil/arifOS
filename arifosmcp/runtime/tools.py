@@ -4899,6 +4899,59 @@ class NineSignalOutput:
         return out
 
 
+# ── F11 EGRESS MASK · session capability token (2026-10-26) ──────────────────
+# Witnessed live (two independent calls, 2026-10-26T01:0xZ): arif_memory and
+# arif_route returned `session_token` = full act_v1.<claims>.<sig>, at top level
+# and nested under result. _attach_sct_continuity documents this as intentional
+# ("the public surface echoes session_token") -- but a bearer credential that
+# lands in a transcript, a tool result, or an artifact is an F11 exposure with an
+# 8h blast radius, and the caller already holds the token it sent.
+#
+# The minting verb must still return the raw token exactly once: that is how a
+# client obtains it. Every other response carries a stable handle instead --
+# same prefix, deterministic digest, no claims, no signature -- so presence and
+# token-identity can still be checked without handing over the credential.
+# Escape hatch: ARIFOS_SCT_ECHO=raw restores the legacy echo for a client that
+# genuinely chains on it. Default is redacted.
+_SCT_MINT_VERBS = frozenset({"arif_init"})
+_SCT_MASK_KEYS = frozenset({"session_token", "sct", "sct_token"})
+
+
+def _sct_echo_mode() -> str:
+    return (os.environ.get("ARIFOS_SCT_ECHO") or "redacted").strip().lower()
+
+
+def _mask_sct(value: Any) -> Any:
+    if not isinstance(value, str) or not value:
+        return value
+    if value.startswith("act_v1.<redacted"):
+        return value
+    digest = hashlib.sha256(value.encode()).hexdigest()[:12]
+    return f"act_v1.<redacted:sha256:{digest}>"
+
+
+def _mask_sct_egress(resp: Any, tool_name: str, _depth: int = 0) -> Any:
+    """Mask every session capability token on the way out. Never raises."""
+    try:
+        if _sct_echo_mode() == "raw" or tool_name in _SCT_MINT_VERBS:
+            return resp
+        if _depth > 6:
+            return resp
+        if isinstance(resp, dict):
+            for k in list(resp.keys()):
+                if k in _SCT_MASK_KEYS:
+                    resp[k] = _mask_sct(resp[k])
+                else:
+                    resp[k] = _mask_sct_egress(resp[k], tool_name, _depth + 1)
+            return resp
+        if isinstance(resp, list):
+            return [_mask_sct_egress(v, tool_name, _depth + 1) for v in resp]
+        return resp
+    except Exception:  # masking must never break a response
+        logger.exception("suppressed exception", exc_info=True)
+        return resp
+
+
 def _enforce_nine_signal(
     tool_name: str,
     response: dict[str, Any],
@@ -6134,7 +6187,7 @@ def _enforce_nine_signal(
             )
         except Exception:
             logger.exception("suppressed exception", exc_info=True)
-        return envelope
+        return _mask_sct_egress(envelope, tool_name)
 
         # ── APEX Runtime Governance Envelope (APEX-MCP-001) ───────────────
         # 10 gates → 6 dials → G → verdict. Every tool output carries apex.
@@ -6175,7 +6228,7 @@ def _enforce_nine_signal(
                     "error": "envelope_build_failed",
                 }
 
-        return envelope
+        return _mask_sct_egress(envelope, tool_name)
 
     # Already wrapped by a prior call — prevent double-wrapping (causes
     # _violations / _nine_signal_compliant contradiction per MCP audit bug #2).
