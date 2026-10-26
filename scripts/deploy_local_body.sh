@@ -1,72 +1,128 @@
 #!/usr/bin/env bash
-# deploy_local_body.sh — the mutating half of `make deploy-local`.
+# deploy_local_body.sh — the ONLY mutating half of `make deploy-local`.
 #
 # CONTRACT
-#   The caller MUST already hold an active production lease (make deploy-local
-#   acquires it before calling this). This script ALWAYS releases the lease:
-#   on success, on any failure, and on SIGINT/SIGTERM. It exits with the
-#   ORIGINAL status — the release never masks a failed deploy.
+#   The caller must hold a live lease AND a 0600 authorization envelope minted
+#   by `deploy_lease.py acquire`. The body proves ownership (sha256(token) ==
+#   lease.holder_token_sha256), proves the live artifact is the lease baseline,
+#   and proves HEAD == LEASE_CANDIDATE before the first protected write.
 #
-# WHY (measured defect, 2026-10-26)
-#   `conformance_spine` returns 1 on a CAUTION verdict (its own "T6 SKIPPED is
-#   not PASS" doctrine). That aborted make before the release recipe line, so
-#   production stayed leased for the remainder of the 1800s TTL. Fail-closed,
-#   but sticky: every other deploy was refused for up to 30 minutes.
+#   The body ALWAYS releases the lease on exit, including exit 7/8/9. A refused
+#   preflight records a failed epoch and blocks the next governed deploy until
+#   F13 resolves it; it never leaves the lease held until TTL.
+#
+# WHY (measured defects, 2026-10-26)
+#   - release without --actor cleared a live lease
+#   - the body re-read HEAD and deployed a different commit than the lease
+#   - SITE_PKGS was derived from a mutable $PYTHON
+#   - the holder token was written to /tmp and passed through argv
+#   - verify-epoch was called before release (impossible by construction)
 #
 # TEST SEAM
-#   DEPLOY_DRY_RUN=1       skip every runtime mutation, still run the lease
-#                          lifecycle (used by tests/scripts/test_deploy_lease.py)
+#   DEPLOY_DRY_RUN=1       skip runtime mutation, still exercise lease lifecycle
 #   CONFORMANCE_CMD=<cmd>  override the post-deploy verification command
 #   ARIFOS_STATE_DIRECTORY redirect the lease ledger (tests only)
 set -uo pipefail
 
 DIR="${DIR:-/root/arifOS}"
 PYTHON="${PYTHON:-/opt/arifos/current/venv/bin/python}"
-GIT_SHA="${GIT_SHA:-$(git -C "$DIR" rev-parse HEAD)}"
+RUNTIME_PYTHON="/opt/arifos/current/venv/bin/python"
 LEASE_ACTOR="${DEPLOY_ACTOR:-$(whoami)}"
+LEASE_SESSION="${DEPLOY_SESSION:-}"
 DEPLOY_RECEIPT="${DEPLOY_RECEIPT:-docs/releases}"
 DRY="${DEPLOY_DRY_RUN:-0}"
-# Runtime venv is fixed: deriving this from $PYTHON let a source-venv invocation
-# sync new code into the wrong site-packages while the deploy marker advanced
-# (measured 2026-10-26). Deploys target the interpreter systemd actually runs.
-SITE_PKGS="$(/opt/arifos/current/venv/bin/python -c 'import site; print(site.getsitepackages()[0])')"
+STATE_DIR="${ARIFOS_STATE_DIRECTORY:-/var/lib/arifos}"
+ENVELOPE="${STATE_DIR}/deploy_envelope.json"
 LEASE_TOOL="$DIR/scripts/deploy_lease.py"
+SITE_PACKAGES="$("$RUNTIME_PYTHON" -c 'import site; print(site.getsitepackages()[0])')"
+LEASE_ID=""
+LEASE_CANDIDATE=""
+RELEASED=0
 
 # ── the invariant: a lease that was acquired is released, whatever happens ──
 release_lease() {
 	local rc=$?
 	trap - EXIT INT TERM
+	if [ "$RELEASED" = "1" ]; then
+		exit "$rc"
+	fi
 	echo "Releasing deploy lease (deploy exit=${rc})..."
-	# shellcheck disable=SC2086
-	if $PYTHON "$LEASE_TOOL" release --actor "$LEASE_ACTOR" --receipt "$DEPLOY_RECEIPT" \
+	if [ -z "$LEASE_ID" ]; then
+		echo "WARNING: no lease id captured; lease may remain until TTL." >&2
+		exit "$rc"
+	fi
+	if "$PYTHON" "$LEASE_TOOL" release --envelope "$ENVELOPE" \
+		--actor "$LEASE_ACTOR" --session "$LEASE_SESSION" \
+		--receipt "$DEPLOY_RECEIPT" --exit-code "$rc" \
+		--observed-head "${HEAD_SHA:-}" \
 		>/tmp/arifos-deploy-release.json 2>&1; then
-		echo "Deploy lease released — epoch appended to ${ARIFOS_STATE_DIRECTORY:-/var/lib/arifos}/deploy_epochs.jsonl"
+		echo "Deploy lease released — epoch appended to ${STATE_DIR}/deploy_epochs.jsonl"
 	else
-		echo "WARNING: lease release FAILED — production may stay leased." >&2
-		echo "  recover with: $PYTHON $LEASE_TOOL release --actor $LEASE_ACTOR" >&2
-		cat /tmp/arifos-deploy-release.json >&2 || true
+		local release_rc=$?
+		if [ "$release_rc" -eq 11 ]; then
+			echo "Deploy lease released — epoch recorded as CANDIDATE_MISMATCH (evidence preserved)."
+		else
+			echo "WARNING: lease release failed (exit=${release_rc}) — the lease may remain until TTL." >&2
+			cat /tmp/arifos-deploy-release.json >&2 || true
+		fi
 	fi
 	exit "$rc"
 }
 trap release_lease EXIT INT TERM
 
-# ── refuse to mutate without a lease (complete mediation on this path) ──────
-if ! $PYTHON "$LEASE_TOOL" status --json 2>/dev/null | grep -q '"state": "LEASED"'; then
+# A unique session is required before any acquire. make deploy-local also
+# checks this; the body repeats it because the body is the last line of defense.
+if [ -z "$LEASE_SESSION" ]; then
+	echo "888_HOLD: HOLD_SESSION_REQUIRED — set DEPLOY_SESSION to a unique session id." >&2
+	exit 2
+fi
+
+# Capture non-secret lease identity from the live lease. This does not prove
+# ownership; check-envelope does that before any protected write.
+STATUS_JSON="$("$PYTHON" "$LEASE_TOOL" status --json 2>/dev/null || true)"
+LEASE_ID="$(printf '%s' "$STATUS_JSON" | "$RUNTIME_PYTHON" -c 'import json,sys; print((json.load(sys.stdin).get("lease") or {}).get("lease_id",""))' 2>/dev/null || true)"
+LEASE_CANDIDATE="$(printf '%s' "$STATUS_JSON" | "$RUNTIME_PYTHON" -c 'import json,sys; print((json.load(sys.stdin).get("lease") or {}).get("candidate_commit",""))' 2>/dev/null || true)"
+if [ -z "$LEASE_ID" ]; then
 	echo "888_HOLD: NO_ACTIVE_LEASE — refusing to mutate production outside a lease." >&2
-	trap - EXIT INT TERM
 	exit 6
 fi
 
-echo "deploying ${GIT_SHA} as ${LEASE_ACTOR} (dry_run=${DRY})"
+# ── preflight 1: ownership envelope, including the opaque token hash ────────
+if ! "$PYTHON" "$LEASE_TOOL" check-envelope --envelope "$ENVELOPE" \
+	--actor "$LEASE_ACTOR" --session "$LEASE_SESSION" \
+	>/tmp/arifos-envelope-check.json 2>&1; then
+	echo "888_HOLD: HOLD_UNAPPROVED_ENTRY_POINT — the envelope does not prove this caller owns the lease." >&2
+	cat /tmp/arifos-envelope-check.json >&2 || true
+	exit 7
+fi
+
+# ── preflight 2: the live artifact must be the lease baseline ───────────────
+if ! "$PYTHON" "$LEASE_TOOL" verify-baseline \
+	>/tmp/arifos-baseline-check.json 2>&1; then
+	echo "888_HOLD: HOLD_ARTIFACT_DRIFT — the live artifact is not the lease baseline." >&2
+	cat /tmp/arifos-baseline-check.json >&2 || true
+	exit 4
+fi
+
+# ── preflight 3: candidate binding — no second authority read ───────────────
+HEAD_SHA="$(git -C "$DIR" rev-parse HEAD 2>/dev/null || true)"
+if [ "$HEAD_SHA" != "$LEASE_CANDIDATE" ]; then
+	echo "888_HOLD: HOLD_CANDIDATE_CHANGED — HEAD ${HEAD_SHA:-unknown} != lease candidate ${LEASE_CANDIDATE:-unknown}. Zero protected writes." >&2
+	exit 9
+fi
+if [ -n "$(git -C "$DIR" status --porcelain --untracked-files=no 2>/dev/null)" ]; then
+	echo "888_HOLD: HOLD_DIRTY_SOURCE — tracked files modified in $DIR. Zero protected writes." >&2
+	exit 8
+fi
+
+echo "deploying ${LEASE_CANDIDATE} as ${LEASE_ACTOR} (session=${LEASE_SESSION}, dry_run=${DRY})"
 if [ "$DRY" = "1" ]; then
-	echo "DEPLOY_DRY_RUN=1 — test seam: no runtime mutation, lease lifecycle still exercised"
+	echo "DEPLOY_DRY_RUN=1 — test seam: no runtime mutation; lease lifecycle still exercised"
 fi
 
 set -e
 
-if [ "$DRY" = "1" ]; then
-	echo "  [dry-run] rsync app skipped"
-else
+if [ "$DRY" != "1" ]; then
 	echo "Syncing canonical code to /opt/arifos/app..."
 	rsync -a --exclude='.git' --exclude='.venv' --exclude='.claude' \
 		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
@@ -77,28 +133,23 @@ else
 	chmod 640 /opt/arifos/app/.env 2>/dev/null || true
 	chown arifos:arifos /opt/arifos/app/.env 2>/dev/null || true
 
-	echo "Syncing runtime import path ($SITE_PKGS)..."
-	rsync -a --exclude='__pycache__' "$DIR/arifosmcp/" "$SITE_PKGS/arifosmcp/"
-	echo "$GIT_SHA" >/opt/arifos/app/.git_commit
-	# Identity contract (2026-10-26): the release stamp is a DEPLOYED marker too.
-	# Before this, only an older deploy-release.sh path wrote it, so it stayed on
-	# an old commit and /health carried two disagreeing identities in one payload.
-	# Both markers now move in the same deploy.
+	echo "Syncing runtime import path ($SITE_PACKAGES)..."
+	rsync -a --exclude='__pycache__' "$DIR/arifosmcp/" "$SITE_PACKAGES/arifosmcp/"
+
+	# Marker provenance: both stamps are written from LEASE_CANDIDATE, never
+	# from a post-acquire HEAD re-read.
+	echo "$LEASE_CANDIDATE" >/opt/arifos/app/.git_commit
 	mkdir -p /opt/arifos/releases
-	echo "$GIT_SHA" >/opt/arifos/releases/deployed-commit
+	echo "$LEASE_CANDIDATE" >/opt/arifos/releases/deployed-commit
 
 	echo "Restarting arifOS bare-metal service..."
 	systemctl restart arifos.service
-fi
 
-status=""
-if [ "$DRY" = "1" ]; then
-	status="dry-run"
-else
 	echo "Waiting for kernel health..."
+	status=""
 	for i in $(seq 1 30); do
 		status="$(curl -s -m 2 http://localhost:8088/health 2>/dev/null |
-			python3 -c 'import sys,json; print(json.load(sys.stdin).get("status",""))' 2>/dev/null || true)"
+			"$RUNTIME_PYTHON" -c 'import sys,json; print(json.load(sys.stdin).get("status",""))' 2>/dev/null || true)"
 		if [ -n "$status" ]; then
 			echo "Kernel answers (status=$status) after ${i}s"
 			break
@@ -110,11 +161,55 @@ else
 		exit 1
 	fi
 	echo "Deploy gate: kernel booted and answers (status=$status) — honesty of status is floor work, not a boot gate"
+
+	# The running package must be the authorized candidate before we release.
+	if ! "$PYTHON" "$LEASE_TOOL" verify-candidate --envelope "$ENVELOPE" \
+		--actor "$LEASE_ACTOR" --session "$LEASE_SESSION" \
+		>/tmp/arifos-candidate-check.json 2>&1; then
+		echo "888_HOLD: ARTIFACT_CHANGED — running package is not the authorized candidate." >&2
+		cat /tmp/arifos-candidate-check.json >&2 || true
+		exit 4
+	fi
 fi
 
-echo "Running conformance spine post-deploy..."
-# shellcheck disable=SC2086
-${CONFORMANCE_CMD:-$PYTHON -m arifosmcp.transport.conformance_spine}
-echo "Conformance spine: exit 0"
+echo "Running conformance gate post-deploy..."
+CONFORMANCE_RECEIPT="${CONFORMANCE_RECEIPT:-$STATE_DIR/conformance_amber.json}"
+export CONFORMANCE_RECEIPT
+if [ -n "${CONFORMANCE_CMD:-}" ]; then
+	# shellcheck disable=SC2086
+	$CONFORMANCE_CMD >/tmp/arifos-conformance.json 2>&1
+else
+	"$PYTHON" "$DIR/scripts/conformance_deploy_gate.py" >/tmp/arifos-conformance.json 2>&1
+fi
+cat /tmp/arifos-conformance.json
+echo "Conformance gate: exit 0 (PASS or explicitly accepted AMBER)"
 
-# success falls through to the EXIT trap, which releases the lease
+# ── release FIRST; verify-epoch can only stamp a RELEASED epoch ────────────
+set +e
+"$PYTHON" "$LEASE_TOOL" release --envelope "$ENVELOPE" \
+	--actor "$LEASE_ACTOR" --session "$LEASE_SESSION" \
+	--receipt "$DEPLOY_RECEIPT" --exit-code 0 \
+	--observed-head "$HEAD_SHA" \
+	>/tmp/arifos-deploy-release.json 2>&1
+RELEASE_RC=$?
+set -e
+if [ "$RELEASE_RC" -eq 0 ] || [ "$RELEASE_RC" -eq 11 ]; then
+	RELEASED=1
+fi
+if [ "$RELEASE_RC" -ne 0 ]; then
+	echo "888_HOLD: release refused or candidate mismatch (exit=${RELEASE_RC})." >&2
+	cat /tmp/arifos-deploy-release.json >&2 || true
+	exit "$RELEASE_RC"
+fi
+echo "Deploy lease released — epoch appended to ${STATE_DIR}/deploy_epochs.jsonl"
+
+# ── post-release verdict: candidate == marker == manifest, or no clearance ──
+if ! "$PYTHON" "$LEASE_TOOL" verify-epoch --lease-id "$LEASE_ID" \
+	--verdict PASS --evidence "$DEPLOY_RECEIPT" \
+	--actor "$LEASE_ACTOR" --session "$LEASE_SESSION" \
+	>/tmp/arifos-verify-epoch.json 2>&1; then
+	echo "888_HOLD: verify-epoch failed — the next governed deploy stays HOLD until a PASS verdict is recorded." >&2
+	cat /tmp/arifos-verify-epoch.json >&2 || true
+	exit 12
+fi
+echo "verify-epoch PASS — candidate/artifact equivalence recorded."

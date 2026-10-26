@@ -34,7 +34,17 @@ INVENTORY = REPO / "scripts" / "production_writers.json"
 LEASE_TOOL = REPO / "scripts" / "deploy_lease.py"
 BODY = REPO / "scripts" / "deploy_local_body.sh"
 
-SKIP_DIRS = {".venv", "build", "node_modules", ".git", "docs", "archive", "_retired", ".worktrees", "tests"}
+SKIP_DIRS = {
+    ".venv",
+    "build",
+    "node_modules",
+    ".git",
+    "docs",
+    "archive",
+    "_retired",
+    ".worktrees",
+    "tests",
+}
 PATTERNS = {
     "rsync_to_production": re.compile(r"\brsync\b[^\n]*/opt/arifos"),
     "cp_into_production": re.compile(r"\b(cp|install|mv)\b[^\n]*/opt/arifos/(app|current|venv)"),
@@ -124,12 +134,28 @@ def _run_lease(
 
 def test_verify_returns_unobservable_when_the_runtime_cannot_be_read(tmp_path: Path) -> None:
     """Missing evidence may not manufacture equality (the original fail-open)."""
-    blind = {"ARIFOS_ACTIVE_VENV_ROOT": str(tmp_path / "no-such-venv")}
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / ".git_commit").write_text("c")
+    blind = {
+        "ARIFOS_ACTIVE_VENV_ROOT": str(tmp_path / "no-such-venv"),
+        "ARIFOS_APP_DIR": str(app),
+    }
     acq = _run_lease(
-        tmp_path, "acquire", "--actor", "a", "--base", "b", "--candidate", "c", env_extra=blind
+        tmp_path,
+        "acquire",
+        "--actor",
+        "a",
+        "--session",
+        "s",
+        "--base",
+        "b",
+        "--candidate",
+        "c",
+        env_extra=blind,
     )
     assert acq.returncode == 0, acq.stderr
-    rel = _run_lease(tmp_path, "release", "--actor", "a", env_extra=blind)
+    rel = _run_lease(tmp_path, "release", "--actor", "a", "--session", "s", env_extra=blind)
     assert rel.returncode == 0, rel.stderr
 
     out = _run_lease(tmp_path, "verify", env_extra=blind)
@@ -146,6 +172,7 @@ def test_body_refuses_to_mutate_without_a_lease(tmp_path: Path) -> None:
         {
             "ARIFOS_STATE_DIRECTORY": str(tmp_path),
             "DEPLOY_DRY_RUN": "1",
+            "DEPLOY_SESSION": "s",
             "PYTHON": sys.executable,
             "DIR": str(REPO),
             "GIT_SHA": "deadbeef",
@@ -157,8 +184,36 @@ def test_body_refuses_to_mutate_without_a_lease(tmp_path: Path) -> None:
 
 
 def test_canonical_body_with_an_owned_lease_runs_and_releases(tmp_path: Path) -> None:
-    acq = _run_lease(tmp_path, "acquire", "--actor", "agent-a", "--base", "b1", "--candidate", "c1")
-    assert acq.returncode == 0
+    head = subprocess.run(
+        ["git", "-C", str(REPO), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    app = tmp_path / "app"
+    runtime = tmp_path / "runtime" / "arifosmcp"
+    app.mkdir()
+    runtime.mkdir(parents=True)
+    (app / ".git_commit").write_text(head)
+    (runtime / "fake.py").write_text("x = 1\n")
+    app_env = {
+        "ARIFOS_APP_DIR": str(app),
+        "ARIFOS_RUNTIME_TARGET": str(runtime),
+    }
+    acq = _run_lease(
+        tmp_path,
+        "acquire",
+        "--actor",
+        "agent-a",
+        "--session",
+        "s",
+        "--base",
+        head,
+        "--candidate",
+        head,
+        env_extra=app_env,
+    )
+    assert acq.returncode == 0, acq.stderr
     env = dict(os.environ)
     env.update(
         {
@@ -166,9 +221,10 @@ def test_canonical_body_with_an_owned_lease_runs_and_releases(tmp_path: Path) ->
             "DEPLOY_DRY_RUN": "1",
             "CONFORMANCE_CMD": "true",
             "DEPLOY_ACTOR": "agent-a",
+            "DEPLOY_SESSION": "s",
             "PYTHON": sys.executable,
             "DIR": str(REPO),
-            "GIT_SHA": "deadbeef",
+            **app_env,
         }
     )
     run = subprocess.run(["bash", str(BODY)], capture_output=True, text=True, env=env)
@@ -179,4 +235,7 @@ def test_canonical_body_with_an_owned_lease_runs_and_releases(tmp_path: Path) ->
         for line in (tmp_path / "deploy_epochs.jsonl").read_text().splitlines()
         if line.strip()
     ]
-    assert [r["event"] for r in rows] == ["RELEASED"]
+    events = [r["event"] for r in rows]
+    assert "RELEASED" in events
+    assert "VERDICT" in events
+    assert [r["verdict"] for r in rows if r["event"] == "VERDICT"] == ["PASS"]
