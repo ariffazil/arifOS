@@ -31,7 +31,7 @@ gate is decoration (K6) — so `make deploy-local` calls it.
 
 USAGE
     deploy_lease.py acquire --actor 333-AGI --base <sha> --candidate <sha> [--ttl 1800]
-    deploy_lease.py release --resulting-artifact auto [--receipt <path>]
+    deploy_lease.py release [--actor <id>] [--receipt <dir>]
     deploy_lease.py status [--json]
     deploy_lease.py verify            # expected_artifact vs observed_artifact
 
