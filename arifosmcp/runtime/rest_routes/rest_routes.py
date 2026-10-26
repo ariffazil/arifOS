@@ -30,6 +30,7 @@ import inspect
 import json
 import logging
 import os
+import re
 import secrets
 import socket
 import subprocess  # nosec B404
@@ -2979,9 +2980,24 @@ def _count_mcp_tools(fmcp: Any) -> int:
     return 9
 
 
+_VERSION_COMMIT_RE = re.compile(r"^(?P<prefix>.+)-(?P<commit>[0-9a-f]{7,40})$")
+
+
 def _kanon_version() -> str:
-    """Single pin used by /health, GET /mcp, /tools, /tools.json, initialize-adjacent cards."""
-    return BUILD_INFO.get("release_tag", BUILD_INFO["version"])
+    """Single pin used by /health, GET /mcp, /tools, /tools.json, initialize-adjacent cards.
+
+    The commit suffix is DERIVED from the deployed artifact marker (2026-10-26).
+    A baked suffix named the BUILD, not the runtime: /health carried
+    `version 2026.10.26-83bae89` next to `live_commit c9dc3476` in the SAME
+    payload. Two identity claims, one page. Now the marker supplies the commit
+    and a build-only string stays untouched.
+    """
+    base = BUILD_INFO.get("release_tag", BUILD_INFO["version"])
+    m = _VERSION_COMMIT_RE.match(str(base))
+    if not m:
+        return base
+    marker = _read_identity_sources().get("artifact_marker")
+    return f"{m.group('prefix')}-{marker}" if marker else base
 
 
 def _mcp_discovery_payload(
@@ -3225,8 +3241,11 @@ def _read_deploy_provenance() -> dict[str, str]:
 DEFAULT_IDENTITY_PATHS: dict[str, str] = {
     "artifact_marker": "/opt/arifos/app/.git_commit",
     "release_stamp": "/opt/arifos/releases/deployed-commit",
-    "repo_marker": "/root/arifOS/.git_commit",
 }
+# /root/arifOS/.git_commit is deliberately NOT a source: it marks a source
+# checkout, which may legitimately sit on a feature branch while production runs
+# another commit. Including it produced a permanent false conflict (09a2f17 vs
+# deployed). Deployed identity = the artifact + the release stamp, nothing else.
 
 
 def _read_identity_sources(paths: dict[str, str] | None = None) -> dict[str, str]:
@@ -3327,7 +3346,7 @@ def _compute_runtime_drift() -> dict[str, Any]:
         "live_commit": live_commit,
         # Identity contract (2026-10-26): which file won, what the others say,
         # and whether they agree. A consumer must not have to guess precedence.
-        "identity_source": identity_source,
+        "identity_authority": identity_source,
         "identity_sources": dict(identity_sources),
         "identity_consistent": identity_consistent,
         "identity_conflict": (
@@ -4630,7 +4649,7 @@ def register_rest_routes(
             "deploy_receipt_matches_artifact": (
                 str(_deploy_prov["deployed_commit"])[:7] == str(_drift.get("live_commit", ""))[:7]
             ),
-            "identity_source": _drift.get("identity_source"),
+            "identity_authority": _drift.get("identity_authority"),
             "identity_sources": _drift.get("identity_sources"),
             "identity_consistent": _drift.get("identity_consistent"),
             "identity_conflict": _drift.get("identity_conflict"),
