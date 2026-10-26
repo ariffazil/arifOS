@@ -929,6 +929,30 @@ def _read_vault_last_seal() -> dict[str, Any]:
     }
 
 
+def _provenance_is_unmeasured(provenance: Any) -> bool:
+    """True when the provenance string itself DECLARES that no instrument ran.
+
+    Narrow on purpose. Only two shapes qualify:
+      - ``unmeasured_default*``  — the substituter's own label
+      - ``*_skipped*``           — a producer that declined to measure
+
+    An ABSENT provenance is not declared-absent; it stays with
+    ``_floor_status_strict`` so a score carrying no provenance keeps its
+    previous behaviour. This predicate exists so the four measurement surfaces
+    in one /health response (status, ``measured``, ``floors_measured``,
+    ``floors_aggregate``) cannot answer "was this measured?" differently (K7).
+
+    Measured defect it closes (2026-10-26): F8 published
+      score 0.80 · status pass · measured true
+      provenance arifflow_vector_g_skipped:calibration=PHASE_1_HEURISTIC_UNCALIBRATED
+    i.e. the live G reading was SKIPPED, the default 0.8 was substituted, and
+    the substituted number rendered as a measured pass. Provenance was honest;
+    the status derived from it was not.
+    """
+    _p = str(provenance or "").strip().lower()
+    return _p.startswith("unmeasured_default") or "_skipped" in _p
+
+
 def _floor_status_strict(law_id: str, score: Any) -> str:
     """Return one of 'unmeasured' | 'pass' | 'fail' for a floor.
 
@@ -978,7 +1002,7 @@ def _floor_status_with_provenance(law_id: str, score: Any, provenance: Any) -> s
     preserved: unmeasured is still not pass, and a measured fail still fails.
     """
     _prov = str(provenance or "")
-    if _prov.startswith("unmeasured_default"):
+    if _provenance_is_unmeasured(_prov):
         return _FLOOR_STATUS_UNMEASURED
     # FLR-005 (2026-10-17): an alias that contradicts its canonical floor is a
     # measured conflict, not an evidence gap. Fail closed, never pass, never
@@ -1244,23 +1268,52 @@ def _build_governance_status_payload() -> dict[str, Any]:
             "http://127.0.0.1:7073/health", timeout=1.5
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
-        _fq_quotient = float(_fq_data["fq"]["quotient"])
-        # 2026-10-23 F13 YES: F1 reads the vector verdict constellation,
-        # not the scalar arifFlow itself marks "Deprecated as health
-        # indicator". A live FLOWING verdict is the measurement; the
-        # deprecated scalar remains in telemetry only.
+        # F1 MEASUREMENT CONTRACT (2026-10-26, F13 "INIT, VERIFY AND STABILIZE").
+        # Superseded 2026-10-23 behaviour: `_phi_fq = 1.0 if _fq_verdict ==
+        # "FLOWING" else 0.0` collapsed a SEVEN-value constellation classifier
+        # into a binary gate and then let a WIRING/coverage diagnosis decide a
+        # constitutional floor.
+        #
+        # Measured defect (live, 2026-10-26): 01:20:18Z /health published
+        #   F1 score 0.0 status fail provenance arifflow_verdict:PARTIAL_WIRING
+        #   ;fq=0.96774   (FQ ABOVE the ratified 0.5 floor)
+        # then at 01:25:49Z, same FQ band:
+        #   F1 score 1.0 status pass provenance arifflow_verdict:FLOWING
+        # Same measured quantity, opposite verdict, no threshold crossed. The
+        # 0.0 came from arifFlow's constellation, which arifFlow itself labels
+        # "not pathologies" for PARTIAL_WIRING/FEEL_UNANCHORED
+        # (/root/arifFlow/src/vector.rs:506-514,589) — i.e. dimensions that
+        # have not been wired yet, not a flow failure.
+        #
+        # The ratified instrument for F1 is the QUOTIENT mapping
+        # fq_policy.yaml floor 0.5 (F13 RATIFIED 2026-09-12), implemented in
+        # `_phi_fq_from_quotient` — which has tests but had ZERO callers
+        # (dead code since 2026-10-23). Restore it: the measurement decides
+        # the floor, and the constellation rides along as a published
+        # diagnostic so wiring coverage stays visible without gating AMANAH.
         _fq_verdict = str(_fq_data.get("verdict", "UNKNOWN")).split(":")[0].strip().upper()
-        _federation_fq = fq_object(_fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION)
-        _phi_fq = 1.0 if _fq_verdict == "FLOWING" else 0.0
-        # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
-        # That guard only accepted a real measurement when it IMPROVED on the
-        # auto-pass placeholder, so a genuine φFQ of 0.2321 (FQ=0.6964, below
-        # the AMANAH band [1,3]) was silently discarded in favour of the
-        # fabricated default 0.5 — the measurement was suppressed for being
-        # honest. A successful probe IS the measurement; assign it unconditionally
-        # and let the threshold gate decide pass/fail.
-        resolved_floors["F1"] = _phi_fq
-        floor_provenance["F1"] = f"arifflow_verdict:{_fq_verdict};fq={_fq_quotient}"
+        _fq_quotient_raw = (_fq_data.get("fq") or {}).get("quotient")
+        if _fq_quotient_raw is None:
+            # arifFlow reachable but no pooled quotient yet (cold window).
+            # A void is not a zero (K2): publish UNMEASURED, never 0.0.
+            floor_provenance["F1"] = "unmeasured_default:arifflow_no_quotient"
+        else:
+            _fq_quotient = float(_fq_quotient_raw)
+            _federation_fq = fq_object(
+                _fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION
+            )
+            _phi_fq = _phi_fq_from_quotient(_fq_quotient)
+            # SCAR-OBS-GREENWASH: assign the measurement unconditionally and
+            # let the threshold gate decide pass/fail. Never suppress an honest
+            # measurement because it is worse than a placeholder.
+            resolved_floors["F1"] = _phi_fq
+            # Prefix must stay a MEASURED producer token for
+            # health_truth.classify_provenance ("probe") — otherwise the
+            # measurement-class axis labels a real reading unmeasured while
+            # status says pass, which is the K7 dual-truth defect.
+            floor_provenance["F1"] = (
+                f"arifflow_probe:quotient={_fq_quotient};floor=0.5;constellation={_fq_verdict}"
+            )
 
         # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
         _dims = _fq_data.get("vector", {}).get("dimensions", {})
@@ -4076,9 +4129,7 @@ def register_rest_routes(
             _fid for _fid, _st in _floor_detail.items() if _st == _FLOOR_STATUS_UNMEASURED
         )
         _floors_measured = sorted(
-            _fid
-            for _fid, _src in _floor_provenance.items()
-            if not str(_src).startswith("unmeasured_default")
+            _fid for _fid, _src in _floor_provenance.items() if not _provenance_is_unmeasured(_src)
         )
         _floors_defaulted = sorted(
             _fid
@@ -4420,9 +4471,7 @@ def register_rest_routes(
                 fid: {
                     "score": score,
                     "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
-                    "measured": not str(_floor_provenance.get(fid) or "").startswith(
-                        "unmeasured_default"
-                    ),
+                    "measured": not _provenance_is_unmeasured(_floor_provenance.get(fid)),
                     "provenance": _floor_provenance.get(fid),
                 }
                 for fid, score in thermo.get("floors", {}).items()

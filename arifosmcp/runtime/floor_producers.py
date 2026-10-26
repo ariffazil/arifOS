@@ -23,6 +23,7 @@ Contract per floor:
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
@@ -394,7 +395,21 @@ def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
         }
     reviews: list[dict[str, Any]] = []
     for s in seals:
-        payload = (s or {}).get("payload") or {}
+        payload = (s or {}).get("payload")
+        # The live seal-chain writer stores `payload` as a STRING
+        # (arif_seal(payload: str = "")) and most envelope rows store None.
+        # 2026-10-26: assuming a dict here raised AttributeError on the real
+        # ledger shape, and the caller's guard turned that into
+        # `unmeasured_default:f6_producer_error:AttributeError` — the floor
+        # still read UNMEASURED, but the REASON was wrong (a producer crash
+        # reported as an evidence gap). A str is evidence only once it parses.
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except (TypeError, ValueError):
+                continue
+        if not isinstance(payload, dict):
+            continue
         critique = payload.get("heart_critique")
         if isinstance(critique, dict):
             reviews.append(critique)
