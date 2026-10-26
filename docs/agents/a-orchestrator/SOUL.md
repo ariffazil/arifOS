@@ -1,1 +1,1 @@
-/root/arifOS/memory/identity/SOUL.md
+../../../memory/identity/SOUL.md
