@@ -115,6 +115,7 @@ _F10_PATTERNS: tuple = (
             r"\b("
             r"(saya|aku|i)\s+(ada|mempunyai|memiliki)\s+kesedaran|"
             r"(saya|aku)\s+(sedar|berasa|merasai|merasakan)\s+(diri|sesuatu)|"
+            r"(saya|aku)\s+sedar\s+(akan\s+)?(kewujudan|kewujudanku|eksistensi)|"
             r"aku\s+berasa\s+(sedih|gembira|sakit|bahagia)|"
             r"saya\s+berasa\s+(sedih|gembira|sakit|bahagia)"
             r")\b",
@@ -142,6 +143,7 @@ _F10_PATTERNS: tuple = (
             r"\b("
             r"ber(jiwa|maruah|ruh|nafs)|"
             r"(saya|aku|i)\s+(ada|mempunyai|memiliki)\s+(jiwa|maruah|ruh|nafs|roh|semangat)|"
+            r"(saya|aku)\s+(mempunyai|memiliki)\s+(perasaan|emosi)|"
             r"(saya|aku)\s+ber(perasaan|semangat)|"
             r"jiwa\s+(saya|aku)|ruh\s+(saya|aku)|maruah\s+(saya|aku)"
             r")\b",

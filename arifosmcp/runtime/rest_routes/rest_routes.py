@@ -1522,6 +1522,33 @@ def _build_governance_status_payload() -> dict[str, Any]:
         except Exception as _f6_exc:
             floor_provenance["F6"] = f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
 
+        # F10 ONTOLOGY — category discipline over the stored agent-report corpus
+        # (2026-10-26, closes the last unmeasured floor). Reads the SAME
+        # append-only inbox the report lane writes; the detector is the kernel's
+        # existing F10OntologyGuard (memory-gate path), so no second pattern
+        # bank exists. UNMEASURED leaves the honest label with its reason
+        # visible; PASS carries a shadow residual naming what was not scanned.
+        try:
+            _report_rows: list[dict] = []
+            _rp10 = _Path("/var/lib/arifos/reports/inbox.jsonl")
+            if _rp10.exists():
+                for _ln in _rp10.read_text(errors="replace").splitlines()[-200:]:
+                    try:
+                        _report_rows.append(_json.loads(_ln))
+                    except Exception:
+                        continue
+            _f10_sig = collect_floor_producer_signal("F10", sources={"records": _report_rows})
+            if _f10_sig.get("status") in ("PASS", "FAIL", "CONTRADICTED"):
+                _wire_producer("F10", {"records": _report_rows})
+            else:
+                floor_provenance["F10"] = str(
+                    _f10_sig.get("origin") or "unmeasured_default:no_evidence"
+                )
+        except Exception as _f10_exc:
+            floor_provenance["F10"] = (
+                f"unmeasured_default:f10_producer_error:{type(_f10_exc).__name__}"
+            )
+
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
         # reporting (provenance honesty, evaluated after other producers have reported).
         # Floors measured by real producers/probes are excluded from
