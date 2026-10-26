@@ -936,7 +936,22 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         unmeasured = 0
         for fid, score in raw_floors.items():
             origin = str(provenance.get(fid) or "governance_kernel")
-            is_placeholder = origin.startswith("unmeasured_default")
+            # 2026-10-26 (333-AGI): a SKIPPED producer is not a measurement either.
+            # F13 order 2026-10-25 made rest_routes skip an UNCALIBRATED arifFlow
+            # dimension (origin "arifflow_vector_g_skipped:..."), but this publisher
+            # only recognised "unmeasured_default" — so F8's skipped placeholder
+            # (0.8 = its own threshold) published as observed/pass at confidence
+            # 0.9 while its own provenance said "skipped". Same defect, second
+            # evaluation path (K12). UNMEASURED != PASS; absent != denied.
+            if origin.startswith("unmeasured_default"):
+                is_placeholder = True
+                placeholder_label = "rest_routes._FLOOR_DEFAULTS (auto-pass placeholder)"
+            elif "_skipped" in origin or score is None:
+                is_placeholder = True
+                placeholder_label = f"skipped producer, no measurement [{origin}]"
+            else:
+                is_placeholder = False
+                placeholder_label = None
             if is_placeholder:
                 ok = False
                 status = "unmeasured"
@@ -955,7 +970,7 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                 "score": _pf(
                     None if is_placeholder else score,
                     source=(
-                        "rest_routes._FLOOR_DEFAULTS (auto-pass placeholder)"
+                        placeholder_label
                         if is_placeholder
                         else f"governance_kernel.get_current_state [{origin}]"
                     ),
@@ -2383,13 +2398,14 @@ def _local_chain_verify() -> dict[str, Any]:
 
         try:
             from arifosmcp.runtime.canonical_vault_chain import verify_chain as _canon_verify
+
             _canon_res = _canon_verify(scope="canonical")
             canonical_status = "HEALTHY" if getattr(_canon_res, "verified", False) else "BROKEN"
         except Exception:
             canonical_status = "HEALTHY" if (len(gaps) == 0 and entries) else "BROKEN"
 
         historical_status = "gaps-found" if gaps else "clean"
-        canon_ok = (canonical_status == "HEALTHY")
+        canon_ok = canonical_status == "HEALTHY"
 
         return {
             "verified": canon_ok,
