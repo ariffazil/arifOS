@@ -66,15 +66,24 @@ deploy-local:
 	@cd $(DIR) && git fetch origin main
 	@cd $(DIR) && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
 		(echo "888_HOLD: local HEAD is not origin/main; push or rebase before deploy-local" && exit 1)
-	@cd $(DIR) && GIT_SHA=$$(git rev-parse HEAD); \
-	echo "Acquiring production mutation lease..."; \
-	$(PYTHON) scripts/deploy_lease.py acquire \
-		--actor "$${DEPLOY_ACTOR:-$$(whoami)}" --base "$$GIT_SHA" --candidate "$$GIT_SHA" \
-		--ttl "$${DEPLOY_LEASE_TTL:-1800}" > /tmp/arifos-deploy-lease.json || \
-		(echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another session owns production; nothing was written"; \
-		 cat /tmp/arifos-deploy-lease.json; exit 1)
-	@GIT_SHA=$$(git -C $(DIR) rev-parse HEAD) DIR=$(DIR) PYTHON="$(PYTHON)" \
-		DEPLOY_ACTOR="$${DEPLOY_ACTOR:-$$(whoami)}" DEPLOY_RECEIPT="$${DEPLOY_RECEIPT:-docs/releases}" \
+	@cd $(DIR) && test -z "$$(git status --porcelain --untracked-files=no)" || \
+		(echo "888_HOLD: HOLD_DIRTY_SOURCE — tracked files modified; commit or stash before deploy-local" && exit 1)
+	@cd $(DIR) && test -n "$${DEPLOY_SESSION:-}" || \
+		(echo "888_HOLD: DEPLOY_SESSION is required — set it to the arifOS session id" && exit 1)
+	@cd $(DIR) && export ARIFOS_STATE_DIRECTORY="$${ARIFOS_STATE_DIRECTORY:-/var/lib/arifos}" && \
+	GIT_SHA=$$(git rev-parse HEAD) && \
+	echo "Acquiring production mutation lease..." && \
+	/opt/arifos/current/venv/bin/python scripts/deploy_lease.py acquire \
+		--actor "$${DEPLOY_ACTOR:-$$(whoami)}" --session "$$DEPLOY_SESSION" \
+		--base "$$GIT_SHA" --candidate "$$GIT_SHA" \
+		--entry-point "make:deploy-local" \
+		--deployment-id "$${DEPLOYMENT_ID:-dep-$$(date -u +%Y%m%dT%H%M%SZ)-$$(openssl rand -hex 3)}" \
+		--ttl "$${DEPLOY_LEASE_TTL:-1800}" \
+		> /tmp/arifos-deploy-lease.json || \
+		(echo "888_HOLD: lease acquire refused — nothing was written"; cat /tmp/arifos-deploy-lease.json; exit 1) && \
+	DIR=$(DIR) PYTHON=/opt/arifos/current/venv/bin/python \
+		DEPLOY_ACTOR="$${DEPLOY_ACTOR:-$$(whoami)}" DEPLOY_SESSION="$$DEPLOY_SESSION" \
+		DEPLOY_RECEIPT="$${DEPLOY_RECEIPT:-docs/releases}" \
 		bash $(DIR)/scripts/deploy_local_body.sh
 
 sot-check: security-audit
