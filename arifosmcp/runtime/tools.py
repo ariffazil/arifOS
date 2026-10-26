@@ -4932,13 +4932,29 @@ def _mask_sct(value: Any) -> Any:
 
 _SCT_TOKEN_PREFIX = "act_v1."
 
+# Full credential shape: act_v1.<b64url claims>.<hex signature>. A 30-char
+# token_prefix diagnostic has no signature segment and must stay readable —
+# only complete, usable bearer credentials are swept. R2 (2026-10-26): the
+# live wire carried a refreshed full token under a key the mask set did not
+# name; F11 is about CREDENTIALS, not field names, so the terminal boundary
+# matches the credential SHAPE at any key, any depth, including embedded in
+# longer strings (prose, serialized blobs).
+_SCT_FULL_SHAPE = re.compile(r"act_v1\.[A-Za-z0-9_\-]{8,}\.[a-f0-9]{32,}")
+
+
+def _mask_sct_in_string(text: str) -> str:
+    """Redact every full-shape act_v1 credential inside a string value."""
+    def _sub(m: "re.Match[str]") -> str:
+        return _mask_sct(m.group(0))
+    return _SCT_FULL_SHAPE.sub(_sub, text)
+
 
 def _mask_sct_strings(value: Any) -> Any:
-    """Fail-closed sweep: redact every act_v1.*-shaped string in a subtree,
-    at any depth. Used where the structural walk gave up (depth budget) —
-    an exhausted walk must redact, never hand back raw bytes."""
+    """Fail-closed sweep: redact every full-shape act_v1 credential in a
+    subtree, at any depth. Used where the structural walk gave up (depth
+    budget) — an exhausted walk must redact, never hand back raw bytes."""
     if isinstance(value, str):
-        return _mask_sct(value) if value.startswith(_SCT_TOKEN_PREFIX) else value
+        return _mask_sct_in_string(value) if _SCT_FULL_SHAPE.search(value) else value
     if isinstance(value, dict):
         return {k: _mask_sct_strings(v) for k, v in value.items()}
     if isinstance(value, list):
@@ -4975,6 +4991,8 @@ def _mask_sct_egress(resp: Any, tool_name: str, _depth: int = 0) -> Any:
             return out
         if isinstance(resp, list):
             return [_mask_sct_egress(v, tool_name, _depth + 1) for v in resp]
+        if isinstance(resp, str) and "act_v1." in resp and _SCT_FULL_SHAPE.search(resp):
+            return _mask_sct_in_string(resp)
         return resp
     except Exception:  # masking must never break a response
         logger.exception("suppressed exception", exc_info=True)

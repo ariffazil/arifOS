@@ -22,7 +22,8 @@ import pytest
 
 from arifosmcp.runtime.tools import _mask_sct, _mask_sct_egress
 
-RAW = "act_v1.eyJhdXRoIjoiTElNSVRFRF9NVVRBVEUifQ.c2lnbmF0dXJl"
+# Realistic shape: b64url claims + 64-hex signature (matches _SCT_FULL_SHAPE).
+RAW = "act_v1.eyJhdXRoIjoiTElNSVRFRF9NVVRBVEUifQ." + "9f2c41deab78" * 5 + "0a1b2c3d"
 
 
 def _digest(tok: str) -> str:
@@ -186,3 +187,43 @@ def test_sanitize_envelope_closure_applies_mask():
     assert body.count("_mask_sct_egress(") >= 2, (
         "terminal mask must run on BOTH the sanitized and the fallback path"
     )
+
+
+# ── R2: value-shape masking (credential shape, not field names) ────────────
+
+
+def test_full_token_under_arbitrary_key_is_masked():
+    """R2 live-wire evidence (2026-10-26): a refreshed full token rode out
+    under a key the mask set did not name. F11 is about credentials, not
+    field names — the terminal boundary matches the credential SHAPE."""
+    import json as _json
+
+    resp = {"status": "completed", "result": {"sesat_event": {"bearer": RAW}}}
+    out = _mask_sct_egress(resp, "arif_route")
+    assert RAW not in _json.dumps(out)
+    assert "act_v1.<redacted:sha256:" in _json.dumps(out)
+
+
+def test_token_embedded_in_prose_string_is_masked():
+    resp = {"detail": f"caller presented {RAW} at 08:44Z and it was accepted"}
+    out = _mask_sct_egress(resp, "arif_route")
+    assert RAW not in out["detail"]
+    assert "act_v1.<redacted:sha256:" in out["detail"]
+    assert "at 08:44Z" in out["detail"]  # surrounding prose preserved
+
+
+def test_thirty_char_token_prefix_stays_readable():
+    """Diagnostics keep the 30-char prefix (no signature segment = not a
+    credential); only full act_v1.<claims>.<sig> shapes are swept."""
+    prefix = RAW[:30]
+    resp = {"result": {"token_prefix": prefix}}
+    out = _mask_sct_egress(resp, "arif_route")
+    assert out["result"]["token_prefix"] == prefix
+
+
+def test_value_shape_mask_respects_mint_and_raw_mode(monkeypatch):
+    out = _mask_sct_egress({"x": {"y": RAW}}, "arif_init")
+    assert RAW in str(out)  # mint verb exempt
+    monkeypatch.setenv("ARIFOS_SCT_ECHO", "raw")
+    out2 = _mask_sct_egress({"x": {"y": RAW}}, "arif_route")
+    assert RAW in str(out2)  # audited escape hatch
