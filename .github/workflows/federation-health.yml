@@ -46,6 +46,7 @@ jobs:
 
             LAST_RUN=$(gh run list --repo "$SLUG" --limit 1 \
               --json conclusion --jq '.[0].conclusion // "unknown"' 2>/dev/null || echo "unknown")
+            LAST_RUN=${LAST_RUN:-unknown}
 
             OPEN_PRS=$(gh pr list --repo "$SLUG" --state open \
               --json number --jq 'length' 2>/dev/null || echo "?")
@@ -56,9 +57,15 @@ jobs:
             case "$LAST_RUN" in
               success)   STATUS="✅ green" ;;
               failure)   STATUS="🔴 FAIL"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path last CI failed" ;;
-              cancelled) STATUS="⚠️ cancelled" ;;
-              *)         STATUS="⚪ $LAST_RUN" ;;
+              cancelled) STATUS="⚠️ cancelled"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path last CI cancelled" ;;
+              *)         STATUS="⚪ $LAST_RUN"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path CI not verified: $LAST_RUN" ;;
             esac
+
+            if [ "$OPEN_PRS" = "?" ] || [ "$DEP_PRS" = "?" ]; then
+              ALL_GREEN=false
+              STATUS="⚠️ incomplete observation"
+              ALERTS="$ALERTS\n- $repo_path PR counts unavailable"
+            fi
 
             if [ "$DEP_PRS" != "?" ] && [ "$DEP_PRS" -gt 5 ]; then
               ALERTS="$ALERTS\n- $repo_path has $DEP_PRS Dependabot PRs open"
