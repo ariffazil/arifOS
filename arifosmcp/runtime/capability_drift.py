@@ -52,6 +52,18 @@ PUBLIC_CANONICAL_TOOLS: frozenset[str] = frozenset(
     }
 )
 
+# A5 (branch fix/honest-green-2026-10-25): coordination-lane tools live ON the
+# public wire but are NOT canonical kernel verbs. They must appear as matrix
+# rows (a tool exposed-but-absent from the matrix was capability DRIFT), while
+# canonical counters (declared_count/registered_count/exposed_count) keep
+# counting only PUBLIC_CANONICAL_TOOLS — capability ≠ authority, and a
+# coordination tool never inflates the canonical 8.
+COORDINATION_TOOLS: frozenset[str] = frozenset(
+    {
+        "arif_report",
+    }
+)
+
 # Snapshot TTL — observations older than this are marked stale at the snapshot layer.
 TEST_FRESHNESS_SECONDS = 86700  # 24h+margin — cadence-aligned 2026-10-20:
 # the producer is arifos-capability-probe.timer (daily 06:15, unit description
@@ -574,6 +586,11 @@ def compute_capability_matrix(
     # Prefer explicit public wire when registries are noisy/multi-tier.
     if not declared:
         declared = set(PUBLIC_CANONICAL_TOOLS)
+    # A5: coordination tools join the DECLARED set (drives row generation via
+    # `all_tools = public_declared | (declared - PUBLIC_CANONICAL_TOOLS)`) but
+    # never enter public_declared/registered_public, so every canonical
+    # aggregate below is unchanged.
+    declared = set(declared) | COORDINATION_TOOLS
     public_declared = declared & PUBLIC_CANONICAL_TOOLS or set(PUBLIC_CANONICAL_TOOLS)
     # Restrict registered/exposed counters to public wire for F-001 honesty.
     registered_public = (registered & PUBLIC_CANONICAL_TOOLS) if registered is not None else None
@@ -669,6 +686,7 @@ def compute_capability_matrix(
         matrix.append(
             {
                 "name": tool_name,
+                "tool_class": ("coordination" if tool_name in COORDINATION_TOOLS else "canonical"),
                 "declared": tool_name in declared or is_public,
                 "registered": in_registered,
                 "exposed": in_exposed,

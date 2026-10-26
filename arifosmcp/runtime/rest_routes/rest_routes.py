@@ -1212,11 +1212,18 @@ def _build_governance_status_payload() -> dict[str, Any]:
         }
     if witness_legs.get("coherence") is not None:
         resolved_floors["F3"] = witness_legs["coherence"]
-        floor_provenance["F3"] = "witness_producers:" + "+".join(
-            leg
-            for leg in ("human", "ai", "earth")
-            if (witness_legs.get("legs", {}).get(leg) or {}).get("value") is not None
+        # P5 (F13 D2 2026-10-23): verdict-shaped provenance — WHO
+        # (floor_producer), WHAT (witness_coherence=value), WHEN (@iso),
+        # VERDICT (MEASURED; the threshold gate decides pass/fail from the
+        # coherence score).
+        floor_provenance["F3"] = (
+            f"floor_producer:MEASURED:witness_coherence={witness_legs['coherence']}@{now_iso()}"
         )
+    else:
+        # P5: legs incomplete → UNMEASURED, never renderer-passed. Name the
+        # blocking legs instead of inventing a witness.
+        _blocking = ",".join(str(leg) for leg in (witness_legs.get("blocking_legs") or ["unknown"]))
+        floor_provenance["F3"] = f"unmeasured_default:witness_legs_incomplete:{_blocking}"
 
     # F2 TRUTH (ZEN 2026-09-02, F13 'audit this and zen all'): display the
     # measured score. The previous guard overwrote failing floor scores with
@@ -1247,8 +1254,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
         ) as _resp:
             _fq_data = _json.loads(_resp.read())
         _fq_quotient = float(_fq_data["fq"]["quotient"])
+        # 2026-10-23 F13 YES: F1 reads the vector verdict constellation,
+        # not the scalar arifFlow itself marks "Deprecated as health
+        # indicator". A live FLOWING verdict is the measurement; the
+        # deprecated scalar remains in telemetry only.
+        _fq_verdict = str(_fq_data.get("verdict", "UNKNOWN")).split(":")[0].strip().upper()
         _federation_fq = fq_object(_fq_quotient, measured_at=now_iso(), scope=FQ_SCOPE_FEDERATION)
-        _phi_fq = round(_phi_fq_from_quotient(_fq_quotient), 4)
+        _phi_fq = 1.0 if _fq_verdict == "FLOWING" else 0.0
         # SCAR-OBS-GREENWASH: was `if _phi_fq > float(resolved_floors["F1"])`.
         # That guard only accepted a real measurement when it IMPROVED on the
         # auto-pass placeholder, so a genuine φFQ of 0.2321 (FQ=0.6964, below
@@ -1257,40 +1269,78 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # honest. A successful probe IS the measurement; assign it unconditionally
         # and let the threshold gate decide pass/fail.
         resolved_floors["F1"] = _phi_fq
-        floor_provenance["F1"] = f"arifflow_fq_probe:fq={_fq_quotient}"
+        floor_provenance["F1"] = f"arifflow_verdict:{_fq_verdict};fq={_fq_quotient}@{now_iso()}"
+
+        # P6 (F13 D2 2026-10-23): five-field FQ decomposition rides with the
+        # reading — raw / normalization / threshold / window / formula as
+        # separate fields. D2 adds fields only; it tunes no threshold.
+        _mf = ((_fq_data.get("fq") or {}).get("metric_frame")) or {}
+        try:
+            from arifosmcp.runtime.fq_gate import FQ_OBSERVE_ONLY_BELOW as _fq_floor_v
+        except Exception:
+            _fq_floor_v = None
+        _federation_fq["decomposition"] = {
+            "raw": _fq_quotient,
+            "normalization": "NONE_PASSTHROUGH_QUOTIENT",
+            "threshold": _fq_floor_v,
+            "threshold_source": "fq_policy.yaml (F13 RATIFIED 2026-09-12)",
+            "window_size": _mf.get("window_size"),
+            "sample_size": _mf.get("sample_size"),
+            "formula_version": _mf.get("formula_version"),
+            "actors_tracked": _mf.get("actors_tracked"),
+            "note": (
+                "raw arifFlow quotient, unnormalized; values >1.0 observed — "
+                "scale uncalibrated; D2 P6 adds fields only, tunes nothing"
+            ),
+        }
 
         # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
         _dims = _fq_data.get("vector", {}).get("dimensions", {})
         if "ds" in _dims and _dims["ds"].get("value") is not None:
             _raw_ds = float(_dims["ds"]["value"])
             resolved_floors["F4"] = _raw_ds
-            floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}"
+            floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}@{now_iso()}"
 
         # F5 PEACE^2: live from arifFlow thermodynamic invariants
         if "peace_squared" in _fq_data:
             resolved_floors["F5"] = float(_fq_data["peace_squared"])
-            floor_provenance["F5"] = f"arifflow_live:peace2={_fq_data['peace_squared']}"
+            floor_provenance["F5"] = f"arifflow_live:peace2={_fq_data['peace_squared']}@{now_iso()}"
 
         # F7 HUMILITY: live from arifFlow vector dimension omega
         if "omega" in _dims and _dims["omega"].get("value") is not None:
             resolved_floors["F7"] = float(_dims["omega"]["value"])
-            floor_provenance["F7"] = f"arifflow_live_vector:omega={_dims['omega']['value']}"
+            floor_provenance["F7"] = (
+                f"arifflow_live_vector:omega={_dims['omega']['value']}@{now_iso()}"
+            )
 
         # F8 GENIUS: live from arifFlow vector dimension g
-        if "g" in _dims and _dims["g"].get("value") is not None:
-            resolved_floors["F8"] = float(_dims["g"]["value"])
-            floor_provenance["F8"] = f"arifflow_live_vector:g={_dims['g']['value']}"
+        # 2026-10-25 (F13 order): a PHASE_1_HEURISTIC_UNCALIBRATED dimension must not be
+        # gate-grade — it falls through to the derived path instead of deciding F8.
+        _g_dim = _dims.get("g") or {}
+        _g_calib = str(_g_dim.get("calibration") or "").upper()
+        if _g_dim.get("value") is not None and "UNCALIBRATED" not in _g_calib:
+            resolved_floors["F8"] = float(_g_dim["value"])
+            floor_provenance["F8"] = f"arifflow_live_vector:g={_g_dim['value']}@{now_iso()}"
+        elif _g_dim.get("value") is not None:
+            floor_provenance["F8"] = (
+                f"arifflow_vector_g_skipped:calibration={_g_calib or 'unknown'}@{now_iso()}"
+            )
 
         # F9 ANTI-HANTU / SHADOW: live from arifFlow vector dimension c_dark
         if "c_dark" in _dims and _dims["c_dark"].get("value") is not None:
             resolved_floors["F9"] = float(_dims["c_dark"]["value"])
-            floor_provenance["F9"] = f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}"
+            floor_provenance["F9"] = (
+                f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}@{now_iso()}"
+            )
 
         # L10 ONTOLOGY: live from arifFlow ontology specification
         _ont = _fq_data.get("vector", {}).get("ontology", {})
         if _ont.get("spec"):
+            # P5 (F13 D2 2026-10-23): a spec filename is CONFIG REFERENCE,
+            # not an ontology verdict — the floor no longer renders pass
+            # from a document version string.
             resolved_floors["L10"] = 1.0
-            floor_provenance["L10"] = f"arifflow_live_ontology:{_ont['spec']}"
+            floor_provenance["L10"] = f"unmeasured_default:ontology_config_reference:{_ont['spec']}"
 
         # FRAME (:18085) Observer Probe: live resilience / drift telemetry
         try:
@@ -1298,7 +1348,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 _fr_data = _json.loads(_fr_resp.read())
             if _fr_data.get("status") == "ok":
                 resolved_floors["L12"] = 1.0
-                floor_provenance["L12"] = "frame_live_probe:chambers_active"
+                floor_provenance["L12"] = f"frame_live_probe:chambers_active@{now_iso()}"
         except Exception:
             pass
     except Exception as _fq_exc:
@@ -1348,7 +1398,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 if get_floor_comparator(fid) in ("<", "<="):
                     _score = 0.0 if _sig["status"] == "PASS" else 1.0
                 resolved_floors[fid] = _score
-                floor_provenance[fid] = f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                # P4 (F13 D2 2026-10-23): producer WHEN slot rides the
+                # provenance string — WHO:VERDICT:origin@measured_at.
+                floor_provenance[fid] = (
+                    f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                    f"@{_sig.get('measured_at') or now_iso()}"
+                )
                 # Sync aliases if fid is in canonical alias mapping
                 _alias_map = {"F11": "L11", "F12": "L12", "F13": "L13"}
                 if fid in _alias_map:
@@ -1356,6 +1411,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     resolved_floors[_afid] = _score
                     floor_provenance[_afid] = (
                         f"floor_producer:{_sig['status']}:{_sig.get('origin')}"
+                        f"@{_sig.get('measured_at') or now_iso()}"
                     )
 
         # F12 INJECTION — request-trust gate (auto-sign must be denied).
@@ -1438,28 +1494,33 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 f"unmeasured_default:seal_chain_unreachable:{type(_f5_exc).__name__}"
             )
 
-        # F6 MARUAH — six system-behavior meters + human-witness lane (read-only).
-        # Exposes UNKNOWN meters and STALE/UNWITNESSED witness status in
-        # measurement_basis["f6_maruah"] without elevating F6 to PASS while
-        # mandatory evidence or witness review is missing.
+        # F6 MARUAH — six system-behavior meters + human-witness lane (read-only),
+        # with the seal-level heart_critique check as a FAIL-only fallback
+        # (2026-10-26 merge: feat/f6-maruah-v0-20261023 + the 2026-10-24
+        # MARUAH_HIKMAH wiring). Missing meters/witness -> UNMEASURED, never PASS.
         try:
             from arifosmcp.runtime.f6.meters import evaluate_all as _f6_eval_all
 
             _f6_report = _f6_eval_all()
             measurement_basis["f6_maruah"] = _f6_report
             _f6_sig = collect_floor_producer_signal(
-                "F6", sources={"meters": _f6_report.get("meters", [])}
+                "F6",
+                sources={
+                    "meters": _f6_report.get("meters", []),
+                    "seals": _seal_rows,
+                },
             )
             if _f6_sig.get("status") in _producer_score:
-                _wire_producer("F6", {"meters": _f6_report.get("meters", [])})
+                _wire_producer(
+                    "F6",
+                    {"meters": _f6_report.get("meters", []), "seals": _seal_rows},
+                )
             else:
                 floor_provenance["F6"] = str(
                     _f6_sig.get("origin") or "unmeasured_default:f6_partially_measured"
                 )
         except Exception as _f6_exc:
-            floor_provenance["F6"] = (
-                f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
-            )
+            floor_provenance["F6"] = f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
 
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
         # reporting (provenance honesty, evaluated after other producers have reported).
@@ -3167,6 +3228,15 @@ def _probe_vault999_health() -> str:
     """Best-effort vault999 health probe.
     Prefers live writer (5001) + seal_chain_head (fs truth) over legacy 8100 container.
     Fixes: vault999_health "unreachable"/None in arifOS /health report.
+
+    A2 (branch fix/honest-green-2026-10-25) — TWO PRODUCERS, ONE VERDICT CLASS:
+      producer 1 = runtime/floor_producers._f13_sovereign — seal-chain SEMANTICS
+        (unreachable/empty/unreadable -> UNMEASURED; machine self-acceptance ->
+        FAIL); it never greens on presence alone,
+      producer 2 = this probe — vault LIVENESS.
+    Both must agree on the evidence class: when the only evidence is "files
+    exist", the verdict is presence_only -> PRESENCE_ONLY (amber), never
+    "healthy" (green) and never PASS.
     """
     # 1. Live writer (canonical active path)
     try:
@@ -3187,6 +3257,9 @@ def _probe_vault999_health() -> str:
     except Exception:
         logger.exception("suppressed exception", exc_info=True)
     # 3. FS-backed truth: seal_chain + head present + recent activity
+    #    A2 (fix/honest-green-2026-10-25): files existing (even fresh) is
+    #    PRESENCE, not liveness -> presence_only (amber). The old return value
+    #    here was the green half of the false-green: presence read as healthy.
     try:
         head_p = "/root/.local/share/arifos/vault999/seal_chain_head.json"
         chain_p = "/root/.local/share/arifos/vault999/seal_chain.jsonl"
@@ -3194,7 +3267,7 @@ def _probe_vault999_health() -> str:
             import time as _t
 
             if _t.time() - os.path.getmtime(head_p) < 86400:  # within 24h
-                return "healthy"
+                return "presence_only"
             return "degraded"  # exists but stale
     except Exception:
         logger.exception("suppressed exception", exc_info=True)
@@ -4102,6 +4175,12 @@ def register_rest_routes(
                 "floors_aggregate": _floor_verdict.aggregate,
                 "floors_detail": _floor_detail,
                 "floors_provenance": _floor_provenance,
+                # P4 (F13 D2 2026-10-23): per-floor producer WHEN slots parsed
+                # from the provenance stamps — never report-generation time.
+                "floors_measured_at": {
+                    _fid: (str(_src).rsplit("@", 1)[1] if "@" in str(_src) else None)
+                    for _fid, _src in _floor_provenance.items()
+                },
                 "floors_measured": _floors_measured,
                 "floors_defaulted": _floors_defaulted,
                 "floors_measurement_source": "runtime_health_measurer",
@@ -4545,16 +4624,26 @@ def register_rest_routes(
                 "stale_after_seconds": 300,
                 "expired_after_seconds": 3600,
             },
+            # A2 (fix/honest-green-2026-10-25): presence-only vault evidence is
+            # PRESENCE_ONLY -> YELLOW (amber). GREEN requires live-writer
+            # liveness ("healthy"); RED remains for unreachable/unreadable.
+            # The two F13 producers now agree: presence never renders green.
             "owner_summary": {
                 "color": (
-                    "RED"
+                    "YELLOW"
+                    if _vault_health == "presence_only"
+                    else "RED"
                     if _vault_health != "healthy"
                     else "YELLOW"
                     if runtime_drift_val or contract_drift_val or c_dark_val >= 0.30
                     else "GREEN"
                 ),
                 "reasons": (
-                    ["vault_unavailable_or_degraded"]
+                    [
+                        "presence_only_no_liveness: PRESENCE_ONLY (chain/head files exist; writer liveness not verified)"
+                    ]
+                    if _vault_health == "presence_only"
+                    else ["vault_unavailable_or_degraded"]
                     if _vault_health != "healthy"
                     else ["vault_healthy"]
                     + (["code_runtime_drift"] if _code_runtime_drift else [])

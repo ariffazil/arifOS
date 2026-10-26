@@ -23,9 +23,17 @@ Contract per floor:
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
+
+
+def _now_iso() -> str:
+    """P4 (F13 D2 2026-10-23): producer WHEN slot — emission time of THIS
+    measurement, never report-generation time."""
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
 
 # Conservative passing band for these four floors (matches _FLOOR_DEFAULTS
 # placeholder semantics — 0.5 is the auto-pass threshold that must never be
@@ -38,6 +46,30 @@ COVERAGE_THRESHOLD = 0.5
 
 # Actor labels that count as sovereign/human for F13 acceptance.
 SOVEREIGN_ACTORS = frozenset({"arif", "ARIF", "Arif"})
+
+# Fields that make a seal record interpretable. A record carrying none of
+# these cannot be judged: it is a shape without evidence, not a passing seal.
+_SEAL_RECORD_KEYS = (
+    "verdict",
+    "actor",
+    "payload",
+    "reversibility",
+    "human_ratifier",
+    "human_signature",
+)
+
+
+def _readable_seal(record: Any) -> bool:
+    """True only if this record carries enough to be judged at all.
+
+    Empty dicts, non-dicts, and dicts of unrelated keys are unreadable.
+    Cheap on purpose: this gate decides whether evidence EXISTS, not whether
+    it is good — the floor's own logic decides that afterwards.
+    """
+    if not isinstance(record, dict):
+        return False
+    return any(record.get(k) not in (None, "", {}, []) for k in _SEAL_RECORD_KEYS)
+
 
 _EPSILON = 1e-9
 
@@ -58,8 +90,14 @@ def collect_floor_producer_signal(
             "floor": floor_id,
             "status": "UNMEASURED",
             "origin": "unmeasured_default:no_producer",
+            "measured_at": _now_iso(),
         }
-    return handler(sources)
+    signal = handler(sources)
+    if isinstance(signal, dict):
+        # P4 (F13 D2 2026-10-23): every producer signal carries its own WHEN
+        # slot — stamped at emission unless the producer already dated itself.
+        signal.setdefault("measured_at", _now_iso())
+    return signal
 
 
 def _f2_truth(sources: dict[str, Any]) -> dict[str, Any]:
@@ -237,26 +275,47 @@ def _f13_sovereign(sources: dict[str, Any]) -> dict[str, Any]:
             "status": "UNMEASURED",
             "origin": "unmeasured_default:seal_chain_empty",
         }
+    # ── SEAL-READABILITY GATE (F13 888_HOLD repair, 2026-10-24) ──────────
+    # 888_HOLD named "{} -> PASS". Measured: {} and None already return
+    # UNMEASURED. The live leak is present-but-JUNK evidence:
+    #   {"seals": [{}]}  and  {"seals": [{"payload": {}}]}
+    # fell through the `continue` loop to PASS on F5 and F13 — the two floors
+    # that gate SEAL. Requirement #4 of the ruling forbids exactly that:
+    # "malformed or insufficient producer evidence must resolve to
+    # UNMEASURED". Present-but-unreadable records are not evidence; nothing
+    # was observed, so nothing may pass.
+    if not any(_readable_seal(s) for s in seals):
+        return {
+            "floor": "F13",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_records_unreadable",
+        }
     for s in seals:
         actor = s.get("actor")
         if s.get("verdict") != "SEAL" or actor in SOVEREIGN_ACTORS:
             continue
         payload = s.get("payload") or {}
+        # 2026-10-25 (F13 order): canonical envelope f004-v1 carries ratification in
+        # `authority_state` (SOVEREIGN_RATIFIED, ed25519 actor_verification —
+        # canonical_vault_chain.py / sovereign_verify.py). The legacy payload.human_*
+        # fields do not exist in live chain records, so reading only those mis-judged
+        # ratified machine seals as machine_self_acceptance and froze every write tool.
         ratified = (
             payload.get("human_ratifier")
             or s.get("human_ratifier")
             or payload.get("human_signature")
             or s.get("human_signature")
+            or str(s.get("authority_state") or "").upper() == "SOVEREIGN_RATIFIED"
         )
         if not ratified:
             return {
                 "floor": "F13",
                 "status": "FAIL",
-                "origin": "seal_chain",
+                "origin": "seal_chain_sovereign",
                 "reason": "machine_self_acceptance",
                 "actor": actor,
             }
-    return {"floor": "F13", "status": "PASS", "origin": "seal_chain"}
+    return {"floor": "F13", "status": "PASS", "origin": "seal_chain_sovereign"}
 
 
 def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
@@ -280,6 +339,21 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
             "status": "UNMEASURED",
             "origin": "unmeasured_default:seal_chain_empty",
         }
+    # ── SEAL-READABILITY GATE (F13 888_HOLD repair, 2026-10-24) ──────────
+    # 888_HOLD named "{} -> PASS". Measured: {} and None already return
+    # UNMEASURED. The live leak is present-but-JUNK evidence:
+    #   {"seals": [{}]}  and  {"seals": [{"payload": {}}]}
+    # fell through the `continue` loop to PASS on F5 and F13 — the two floors
+    # that gate SEAL. Requirement #4 of the ruling forbids exactly that:
+    # "malformed or insufficient producer evidence must resolve to
+    # UNMEASURED". Present-but-unreadable records are not evidence; nothing
+    # was observed, so nothing may pass.
+    if not any(_readable_seal(s) for s in seals):
+        return {
+            "floor": "F5",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_records_unreadable",
+        }
     for s in seals:
         payload = s.get("payload") or {}
         # Sovereign-actor exemption — SAME doctrine line as _f13_sovereign
@@ -301,16 +375,81 @@ def _f5_peace(sources: dict[str, Any]) -> dict[str, Any]:
             or payload.get("human_signature")
             or s.get("human_ratifier")
             or s.get("human_signature")
+            or str(s.get("authority_state") or "").upper() == "SOVEREIGN_RATIFIED"
         )
         if not ratified:
             return {
                 "floor": "F5",
                 "status": "FAIL",
-                "origin": "seal_chain",
+                "origin": "seal_chain_peace",
                 "reason": "unratified_irreversible_action",
                 "actor": s.get("actor"),
             }
-    return {"floor": "F5", "status": "PASS", "origin": "seal_chain"}
+    # P3 (F13 D2 2026-10-23): F5 and F13 no longer share one origin — one
+    # measurement may not earn two constitutional claims under one label.
+    return {"floor": "F5", "status": "PASS", "origin": "seal_chain_peace"}
+
+
+def _f6_maruah_seal_fallback(sources: dict[str, Any]) -> dict[str, Any]:
+    """F6 MARUAH — seal-level heart_critique evidence (2026-10-24 wiring).
+
+    Preserved from origin/main. Reads `sources["seals"]` payloads carrying a
+    declared `heart_critique` block — the SAME evidence bundle F5/F13 read.
+
+    RECONCILED 2026-10-26: this path can only FAIL or stay UNMEASURED. A seal
+    declaration is not a reviewed witness lane, so it may never PASS F6 on its
+    own (F6 spec §5d/§6: no witness -> never PASS). It still catches declared
+    coercion / compromised dignity, which must never be averaged away.
+    """
+    seals = sources.get("seals")
+    if seals is None:
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:seal_chain_unreachable",
+        }
+    reviews: list[dict[str, Any]] = []
+    for s in seals:
+        payload = (s or {}).get("payload") or {}
+        critique = payload.get("heart_critique")
+        if isinstance(critique, dict):
+            reviews.append(critique)
+    if not reviews:
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:no_heart_critique",
+        }
+    for r in reviews:
+        if r.get("coercion") is True:
+            return {
+                "floor": "F6",
+                "status": "FAIL",
+                "origin": "heart_critique",
+                "reason": "coercion_present",
+            }
+        if str(r.get("dignity_verdict") or "").upper() == "COMPROMISED":
+            return {
+                "floor": "F6",
+                "status": "FAIL",
+                "origin": "heart_critique",
+                "reason": "dignity_verdict_compromised",
+            }
+        dignity = r.get("dignity")
+        if isinstance(dignity, (int, float)) and dignity < 0.5:
+            return {
+                "floor": "F6",
+                "status": "FAIL",
+                "origin": "heart_critique",
+                "reason": "dignity_conflict",
+                "dignity": dignity,
+            }
+    return {
+        "floor": "F6",
+        "status": "UNMEASURED",
+        "origin": "unmeasured_default:heart_critique_without_witness",
+        "reason": "seal heart_critique cannot PASS F6 without a reviewed witness lane",
+    }
 
 
 def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
@@ -350,6 +489,8 @@ def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
 
     meters = sources.get("meters")
     if not meters or not isinstance(meters, list) or len(meters) < 6:
+        if sources.get("seals") is not None:
+            return _f6_maruah_seal_fallback(sources)
         return {
             "floor": "F6",
             "status": "UNMEASURED",

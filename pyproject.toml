@@ -92,7 +92,7 @@ dependencies = [
     "structlog>=24.4.0",  # Structured logging
     "blake3>=1.0.0",  # Required by intent_envelope import path at runtime
     "qdrant-client>=1.18.0",
-    "aiohttp>=3.13.5",
+    "aiohttp>=3.9.0",
     "pynacl>=1.6.2",
     # 2026-09-21: OpenTelemetry SDK is imported unconditionally on the mandatory
     # import path (arifosmcp/arifos_observability/otel_tracer.py -> otel_wiring ->
