@@ -5,6 +5,27 @@
 
 set -e
 
+# ── deployment lease convergence (P0 complete mediation, 2026-10-26) ──────────
+# This script mutates the production runtime, so it takes the SAME lease that
+# `make deploy-local` takes. Two writers that share one lease serialise; two
+# writers with two private locks do not. Refuses rather than interleaves.
+_ARIFOS_PY="${ARIFOS_PYTHON:-/opt/arifos/current/venv/bin/python}"
+_ARIFOS_LEASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/deploy_lease.py"
+_ARIFOS_SHA="$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)"
+if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "${DEPLOY_ACTOR:-$(whoami)}" \
+     --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
+  echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another deployment owns production; nothing was written" >&2
+  exit 3
+fi
+_arifos_release_lease() {
+  local rc=$?
+  trap - EXIT INT TERM
+  "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "${DEPLOY_ACTOR:-$(whoami)}" \
+    --receipt "${0##*/}" >/dev/null 2>&1 || echo "WARNING: lease release failed" >&2
+  exit "$rc"
+}
+trap _arifos_release_lease EXIT INT TERM
+
 DIR="/root/arifOS"
 TARGET="/opt/arifos/app"
 

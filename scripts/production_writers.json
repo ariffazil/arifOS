@@ -1,0 +1,265 @@
+{
+  "schema": "production-writers/v1",
+  "generated_at": "2026-10-26",
+  "authority": {
+    "primitive": "scripts/deploy_lease.py",
+    "state": "/var/lib/arifos/deploy_lease.json",
+    "ledger": "/var/lib/arifos/deploy_epochs.jsonl",
+    "canonical_entrypoint": "make deploy-local"
+  },
+  "discovery_method": "regex scan of *.sh/*.py/*.yml/Makefile for rsync|cp|install|mv into /opt/arifos, systemctl (restart|reload|start|stop) ... arifos, pip install into /opt/arifos. KNOWN BLIND SPOT: variable-indirected calls (systemctl restart $SERVICE_NAME) are not matched \u2014 deploy-release.sh was found by reading, not by the scan, and is listed here as discovery=manual. The scan bounds common forms, it does not prove exhaustiveness.",
+  "writers": [
+    {
+      "file": "Makefile",
+      "writer_id": "W01",
+      "entrypoint": "make deploy-local",
+      "target": "/opt/arifos/app + site-packages/arifosmcp + arifos.service",
+      "mutation_type": [
+        "rsync",
+        "systemctl_restart",
+        "marker_write"
+      ],
+      "mediation": "lease_acquire_then_body",
+      "mediated": true,
+      "discovery": "manual",
+      "note": "acquires the lease before any write; body refuses without it"
+    },
+    {
+      "file": "scripts/deploy_local_body.sh",
+      "writer_id": "W02",
+      "entrypoint": "bash scripts/deploy_local_body.sh",
+      "target": "/opt/arifos/app + site-packages/arifosmcp + arifos.service",
+      "mutation_type": [
+        "rsync",
+        "systemctl_restart"
+      ],
+      "mediation": "lease_require",
+      "mediated": true,
+      "discovery": "scan",
+      "note": "exits 6 without a live lease; releases unconditionally on EXIT/INT/TERM"
+    },
+    {
+      "file": "scripts/deploy-bridge.sh",
+      "writer_id": "W03",
+      "entrypoint": "make deploy-bridge",
+      "target": "/opt/arifos/app + arifos.service",
+      "mutation_type": [
+        "rsync_delete",
+        "systemctl_restart"
+      ],
+      "mediation": "lease_acquire",
+      "mediated": true,
+      "discovery": "scan"
+    },
+    {
+      "file": "scripts/deploy-release.sh",
+      "writer_id": "W04",
+      "entrypoint": "make deploy-release",
+      "target": "venv package replace + arifos.service",
+      "mutation_type": [
+        "pip_install",
+        "systemctl_restart"
+      ],
+      "mediation": "lease_acquire (plus its own DP-C wait-lock)",
+      "mediated": true,
+      "discovery": "manual",
+      "note": "had a private flock at ${TMPDIR}/arifos-deploy.lock that the lease could not see; now takes both"
+    },
+    {
+      "file": "scripts/deploy-memory-mode-fix.sh",
+      "writer_id": "W05",
+      "entrypoint": "bash scripts/deploy-memory-mode-fix.sh",
+      "target": "site-packages/arifosmcp/runtime/tools.py + arifos.service",
+      "mutation_type": [
+        "cp",
+        "systemctl_restart"
+      ],
+      "mediation": "lease_acquire",
+      "mediated": true,
+      "discovery": "scan"
+    },
+    {
+      "file": "scripts/sovereignty_drill.sh",
+      "writer_id": "W06",
+      "entrypoint": "bash scripts/sovereignty_drill.sh",
+      "target": "arifos.service (tier-override restarts)",
+      "mutation_type": [
+        "systemctl_restart"
+      ],
+      "mediation": "lease_acquire",
+      "mediated": true,
+      "discovery": "scan",
+      "note": "drill restarts the kernel three times; now serialised against real deploys"
+    },
+    {
+      "file": "scripts/auto_remediate.py",
+      "writer_id": "W07",
+      "entrypoint": "python3 scripts/auto_remediate.py",
+      "target": "/opt/arifos/app + arifos.service",
+      "mutation_type": [
+        "rsync_delete",
+        "systemctl_restart"
+      ],
+      "mediation": "lease_require",
+      "mediated": true,
+      "discovery": "scan",
+      "note": "call site currently disabled (`if False`); guard dormant but present"
+    },
+    {
+      "file": "commands/scripts_deploy/arifos_install.sh",
+      "writer_id": "W08",
+      "entrypoint": "bash commands/scripts_deploy/arifos_install.sh",
+      "target": "host bootstrap: units + venv + arifos.service",
+      "mutation_type": [
+        "systemctl_start_stop_restart"
+      ],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "OPEN",
+      "reason": "host bootstrap installer: it creates the service and the venv that the lease state itself lives in, so it cannot require a lease that does not yet exist. Privileged, manual, one-shot. NOT addressed by this change."
+    },
+    {
+      "file": "commands/scripts_deploy/deploy-vps.sh",
+      "writer_id": "W09",
+      "entrypoint": "bash commands/scripts_deploy/deploy-vps.sh",
+      "target": "container image (GHCR) + docker-compose",
+      "mutation_type": [
+        "image_push",
+        "container_restart"
+      ],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "manual",
+      "classification": "OPEN",
+      "reason": "container path, not the bare-metal systemd runtime this lease governs. A containerised arifOS would need its own serialization."
+    },
+    {
+      "file": "commands/scripts_deploy/webhook_deploy_server.py",
+      "writer_id": "W10",
+      "entrypoint": "webhook \u2192 $ARIFOS_DEPLOY_SCRIPT",
+      "target": "varies",
+      "mutation_type": [
+        "delegated"
+      ],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "manual",
+      "classification": "OPEN",
+      "reason": "delegates to /root/arifOS/scripts/deploy_arifosmcp.sh, which does not exist in this tree (verified: ENOENT). Surface is inert today; if the target is restored it must be one of the mediated entrypoints."
+    },
+    {
+      "file": "arifosmcp/abi/amanah_gate.py",
+      "writer_id": "N01",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "matches 'systemctl ... arifos' as a PROHIBITION pattern inside the amanah gate, not as an executed command."
+    },
+    {
+      "file": "deploy/cli-governance-sidecar.sh",
+      "writer_id": "N02",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "regex deny-list ('^systemctl restart .*arifos') used to police other CLIs."
+    },
+    {
+      "file": "deploy/check_reality.sh",
+      "writer_id": "N03",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "the match is a comment telling the operator to run it AFTER a restart."
+    },
+    {
+      "file": "deploy/bootstrap-arifos.sh",
+      "writer_id": "N04",
+      "entrypoint": "n/a",
+      "target": "arifos-kernel (unit not present on this host)",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "starts a different unit name (arifos-kernel); no such unit is installed here."
+    },
+    {
+      "file": "deploy/etc/arifOS/runtime-manifest.yaml",
+      "writer_id": "N05",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "documents the install target; it executes nothing."
+    },
+    {
+      "file": "tests/04_adversarial/test_arif_forge_adversarial.py",
+      "writer_id": "N06",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "test fixture strings."
+    },
+    {
+      "file": "tests/core/test_action_profile.py",
+      "writer_id": "N07",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "test fixture strings."
+    },
+    {
+      "file": "tests/foundation/test_chapter6_batch2.py",
+      "writer_id": "N08",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "test fixture strings."
+    },
+    {
+      "file": "tests/test_anti_beautiful_scorer.py",
+      "writer_id": "N09",
+      "entrypoint": "n/a",
+      "target": "none",
+      "mutation_type": [],
+      "mediation": null,
+      "mediated": false,
+      "discovery": "scan",
+      "classification": "NOT_A_WRITER",
+      "reason": "test fixture strings."
+    }
+  ],
+  "outside_repository_control": [
+    "any ad-hoc `rsync`/`cp`/`systemctl` typed by an operator or agent that does not call scripts/deploy_lease.py",
+    "cron/systemd units defined outside this repo that restart arifos.service",
+    "another host with its own copy of the venv"
+  ]
+}
