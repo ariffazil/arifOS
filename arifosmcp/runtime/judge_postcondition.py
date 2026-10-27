@@ -91,6 +91,23 @@ def _evidence_has_provenance(evidence: dict[str, Any]) -> bool:
     return False
 
 
+def _iter_evidence_items(evidence: dict[str, Any]):
+    """Yield dict-shaped items from any list/dict value in the evidence envelope.
+
+    The judge accepts evidence as a list of tagged items, a dict of items, or
+    a bare dict of fields; this walks every shape uniformly.
+    """
+    for val in evidence.values():
+        if isinstance(val, list):
+            for item in val:
+                if isinstance(item, dict):
+                    yield item
+        elif isinstance(val, dict):
+            for item in val.values():
+                if isinstance(item, dict):
+                    yield item
+
+
 def _sha256_text(text: str) -> str:
     return "sha256:" + hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
 
@@ -191,6 +208,27 @@ def check_judge_postcondition(
         )
         return report
 
+    # 2026-10-27 (external-reality-test defect, confirmed in code): evidence
+    # items self-declared UNKNOWN were swallowed silently — the judge could
+    # report missing_evidence:[] while holding unwitnessed items (Claude
+    # external test passed an UNKNOWN-tagged CVSS figure; the gap never
+    # surfaced). Surface them on every verdict (advisory); the SEAL family
+    # additionally must not rest on self-declared unknowns.
+    unwitnessed: list[dict[str, Any]] = []
+    for _idx, _item in enumerate(_iter_evidence_items(ev)):
+        for _key in ("tag", "claim_class", "truth_class", "label", "epistemic_tag"):
+            _v = _item.get(_key)
+            if isinstance(_v, str) and _v.strip().upper() == "UNKNOWN":
+                unwitnessed.append(
+                    {
+                        "index": _idx,
+                        "field": _key,
+                        "item": str(_item.get("fact") or _item)[:160],
+                    }
+                )
+                break
+    report["unwitnessed_evidence"] = unwitnessed
+
     # SEAL family requires provenance-bearing evidence + channel integrity.
     if verdict_key in _SEAL_FAMILY:
         if not _evidence_has_provenance(ev):
@@ -201,6 +239,9 @@ def check_judge_postcondition(
         report["ledger_precheck"] = ledger
         if ENFORCE_LEDGER_GATE and ledger.get("verified") is False:
             report["missing_evidence"].append("ledger_verified")
+        if unwitnessed:
+            # A seal may not rest on evidence that declares itself unwitnessed.
+            report["missing_evidence"].append("unwitnessed_evidence_items")
         # S4 (F13 FIX-S4 2026-09-22): a stage-invalid integrity bit is
         # superseded by the rewrite below. Keeping False would re-fire at
         # reconcile time as a Point-#4 epistemic veto — HOLD became
