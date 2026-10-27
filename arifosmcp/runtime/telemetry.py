@@ -283,7 +283,16 @@ def _build_arifflow_receipt(
     """
     from uuid import uuid4
 
-    # Map verdict to step_type
+    # Map verdict to step_type.
+    # FIX 2026-10-27 (metabolic classifier): verdict alone misclassified
+    # verification-native tools as Execute — every kernel-internal probe actor
+    # (f006-edge-probe, opencode-e2e-probe, path-a-detector, ...) accrued
+    # exec-without-verify and arifFlow held them indefinitely (436 consecutive
+    # on f006). Spec FLOW_RECEIPT_v1 StepType: Verify = "Verification, audit,
+    # floor check"; Route = "Routing — dispatch to another organ". arifFlow FQ
+    # counts Execute|Merge as work, Verify as verification, Route neutral.
+    # Verdict overrides keep priority (HOLD/VOID→Cool, SEAL→Seal, SABAR→Verify);
+    # tool semantics decide only in the OK/CAUTION branch.
     _verdict_upper = (verdict or "OK").upper()
     if _verdict_upper in ("HOLD", "VOID"):
         step_type = "Cool"
@@ -291,6 +300,10 @@ def _build_arifflow_receipt(
         step_type = "Seal"
     elif _verdict_upper == "SABAR":
         step_type = "Verify"
+    elif tool_name == "arif_observe":
+        step_type = "Verify"
+    elif tool_name == "arif_route":
+        step_type = "Route"
     else:
         step_type = "Execute"
 
@@ -873,12 +886,7 @@ def trace_tool_call(
     _inner = result.get("result")
     if not isinstance(_inner, dict):
         _inner = {}
-    status = (
-        result.get("status")
-        or result.get("verdict")
-        or _inner.get("status", "OK")
-        or "OK"
-    )
+    status = result.get("status") or result.get("verdict") or _inner.get("status", "OK") or "OK"
     reasons = result.get("reasons", []) or _inner.get("reasons", [])
     next_action = result.get("next_safe_action") or _inner.get("next_safe_action")
     vault_receipt = _inner.get("entry_id") or result.get("vault_receipt") or None
