@@ -349,6 +349,12 @@ def _build_arifflow_receipt(
         ):
             if key in metadata:
                 payload[key] = metadata[key]
+    # FIX 2026-10-27b (metabolic classifier debugging): bind the tool name INTO
+    # the receipt. FQ classification depends on tool_name, but arifFlow receipts
+    # never carried it — observe receipts kept landing as Execute and the real
+    # name reaching this builder was unwitnessable from the wire. Permanent
+    # provenance field, not a debug stub.
+    payload["emitter_tool"] = tool_name
 
     return {
         "receipt_id": str(uuid4()),
