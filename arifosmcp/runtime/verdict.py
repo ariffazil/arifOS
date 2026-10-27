@@ -765,6 +765,22 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
     # (result.payload.canonical_verdict) and every other verdict-named key
     # remain fully judged — fail-closed semantics unchanged.
     "intermediate_trace_states.canonical_verdict",
+    # 2026-10-27 (333-AGI, live repro via external Claude MCP test + direct
+    # judge probe): meta.post_observe_gate.verdict is the POST-OBSERVE gate's
+    # domain check (PASS/WARN/HOLD, post_observe_gate.py) attached to
+    # response["meta"] for the audit trail (tools.py:5065). It is a gate
+    # advisory wearing a verdict-named key, same class as the S4/IRFAN/
+    # zen_apex/trace-state carve-outs above. Without exemption the legacy
+    # alias PASS→SEAL manufactures
+    #   NONCANONICAL_VERDICT_TOKEN:meta.post_observe_gate.verdict=PASS->SEAL
+    # → INCONSISTENT_STATE → HOLD on EVERY judge response whose gate said
+    # PASS, regardless of evidence. Kernel-lane verdicts remain fully judged.
+    "meta.post_observe_gate.verdict",
+    # 2026-10-27 (same session, live repro): meta.sabar_gate.verdict — the
+    # sabar gate's own domain check, identical axis and identical failure
+    # mode (PASS->SEAL legacy alias → INCONSISTENT_STATE → HOLD). Same
+    # carve-out, same semantics.
+    "meta.sabar_gate.verdict",
 )
 
 # 2026-10-05c (FI-008, convergent bridge fix): organ payloads nest verdict-
