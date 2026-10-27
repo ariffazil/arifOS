@@ -230,10 +230,10 @@ class GovernanceKernel:
                 ("F4", bool(self._assumptions or self._resolved)),
                 ("F5", outcome_count > 0),
                 # FLR-F6-KAPPA (2026-10-21, deploy-binding-20261021-f6diag.json):
-            # kappa_r = 0.5 + 0.5*care_ratio is pinned at the structural 0.5
-            # baseline whenever reversibility_flags == 0 — action_count alone
-            # does not make F6 a measurement. Rename the signal, not the value.
-            ("F6", reversibility_flags > 0),
+                # kappa_r = 0.5 + 0.5*care_ratio is pinned at the structural 0.5
+                # baseline whenever reversibility_flags == 0 — action_count alone
+                # does not make F6 a measurement. Rename the signal, not the value.
+                ("F6", reversibility_flags > 0),
                 ("F9", bool(query_text)),
             )
             if not has_signal
@@ -247,6 +247,19 @@ class GovernanceKernel:
             "witness_sum": round(witness_sum, 4),
             "query_evaluated": bool(query_text),
             "unmeasured_floors": unmeasured_floors,
+            # MEASUREMENT WINDOW (2026-10-28): the counters above are in-process
+            # and reset on every service restart, so `unmeasured_floors` right
+            # after a deploy means "this process has seen no such event yet",
+            # NOT "the federation has none". Without this declaration a kernel
+            # restart reads as a constitutional regression (measured
+            # 2026-10-27: event_count 82 -> 0, floors_pass 10/13 -> 7/13,
+            # F4/F7/F9 labelled unmeasured_default:empty_kernel_signal).
+            # Declaration only — no counter, threshold or floor value changes.
+            "event_window": "since_process_boot",
+            "event_window_note": (
+                "counters reset on service restart; unmeasured_floors here means "
+                "no such event in THIS process, not an absent federation signal"
+            ),
         }
 
         res = {
