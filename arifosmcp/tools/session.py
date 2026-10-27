@@ -1895,7 +1895,28 @@ def _project_light(
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
         out["session_token"] = _token
-        out["apex_scalars"] = dict(_apex)
+        # P1 2026-10-27 (apex-scalar-disambiguation): this block is the
+        # ACTOR-SCOPED reading frozen into the token at mint. The outer
+        # standing echo carries the FEDERATION aggregate from the same
+        # response. Unlabelled, the two G values read as one another.
+        from arifosmcp.runtime.act_token import (
+            APEX_ACTOR_NOTE,
+            APEX_SCOPE_ACTOR,
+            tag_apex_scope,
+        )
+
+        _apex_measured = any(
+            isinstance(_v, (int, float)) and not isinstance(_v, bool) for _v in _apex.values()
+        )
+        out["apex_scalars"] = tag_apex_scope(
+            dict(_apex),
+            scope=APEX_SCOPE_ACTOR,
+            note=(
+                APEX_ACTOR_NOTE
+                if _apex_measured
+                else "No actor-scoped APEX measured at session mint; session-level G is UNMEASURED."
+            ),
+        )
         # P0.8 (2026-08-15): kernel_baseline — federation-wide reference.
         # NOT this session's score. Agents can use it for soft decisions
         # but cannot claim it as their own G. Honest separation between
@@ -1982,12 +2003,18 @@ def _project_light(
         # what looks like a crash. The caller needs to distinguish "refused" from "broken."
         logger.error(f"SCT mint failed: {_sct_exc}")
         out["session_token"] = None
-        out["apex_scalars"] = {
-            "G": "UNMEASURED",
-            "C_dark": "UNMEASURED",
-            "W3": "UNMEASURED",
-            "h": "UNMEASURED",
-        }
+        from arifosmcp.runtime.act_token import APEX_SCOPE_ACTOR, tag_apex_scope
+
+        out["apex_scalars"] = tag_apex_scope(
+            {
+                "G": "UNMEASURED",
+                "C_dark": "UNMEASURED",
+                "W3": "UNMEASURED",
+                "h": "UNMEASURED",
+            },
+            scope=APEX_SCOPE_ACTOR,
+            note="SCT mint failed; session-level G is UNMEASURED (not the federation aggregate).",
+        )
         out["sct_error"] = str(_sct_exc) or type(_sct_exc).__name__
 
     # FIX 2026-07-29: Self-audit — actor_verified MUST agree across all fields

@@ -1164,11 +1164,15 @@ def _apex_measurement_contracts(apex: Any) -> dict[str, Any]:
 
 @trace_tool("arif_judge")
 def _tag_apex_scope(apex: Any) -> dict[str, Any]:
-    """Label federation-baseline scalars so no reader mistakes them for session state."""
-    payload = dict(apex) if isinstance(apex, dict) else {"value": apex}
-    payload.setdefault("scope", "federation")
-    payload.setdefault("note", "Federation baseline, not this session's score.")
-    return payload
+    """Label federation-baseline scalars so no reader mistakes them for session state.
+
+    P1 2026-10-27: the labelling rule now lives in act_token.tag_apex_scope so
+    init / observe / memory / judge share one writer. Kept as a thin alias
+    because tests and call sites import this name.
+    """
+    from arifosmcp.runtime.act_token import APEX_SCOPE_FEDERATION, tag_apex_scope
+
+    return tag_apex_scope(apex, scope=APEX_SCOPE_FEDERATION)
 
 
 def _evidence_postcondition_report(
