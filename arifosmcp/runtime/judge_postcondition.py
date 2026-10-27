@@ -126,7 +126,7 @@ def _coerce_evidence(evidence: Any, _depth: int = 0) -> Any:
     return _coerce_evidence(parsed, _depth + 1) if isinstance(parsed, str) else parsed
 
 
-def _iter_evidence_items(evidence: Any, _depth: int = 0):
+def _iter_evidence_items(evidence: Any, _depth: int = 0, _state: dict | None = None):
     """Yield item-shaped dicts from any depth of the caller's transport.
 
     An item is a dict carrying "fact" or an epistemic key. Containers are NOT
@@ -135,12 +135,17 @@ def _iter_evidence_items(evidence: Any, _depth: int = 0):
     asserts index==1 for the second item). Nested evidence lists inside an item
     ("sources", "facts", "claims") are still walked, so a tagged child cannot hide.
     """
-    if _depth > 6:
+    if _state is None:
+        _state = {"truncated": False}
+    if _depth > 32:
+        # Fail-visible, not fail-silent (verifier red-team 2026-10-28): a cut walk
+        # could otherwise leave a tagged item unfound and a SEAL standing.
+        _state["truncated"] = True
         return
     data = _coerce_evidence(evidence)
     if isinstance(data, list):
         for entry in data:
-            yield from _iter_evidence_items(entry, _depth + 1)
+            yield from _iter_evidence_items(entry, _depth + 1, _state)
         return
     if not isinstance(data, dict):
         return
@@ -148,21 +153,28 @@ def _iter_evidence_items(evidence: Any, _depth: int = 0):
         yield data
     for value in data.values():
         if isinstance(value, (list, dict)):
-            yield from _iter_evidence_items(value, _depth + 1)
+            yield from _iter_evidence_items(value, _depth + 1, _state)
 
 
 def _witness_token(value: Any) -> str | None:
-    """Normalise a declared epistemic status; tolerate case, spacing, trailing punctuation."""
+    """Normalise a declared epistemic status; tolerate case, spacing, punctuation, lists."""
+    if isinstance(value, (list, tuple, set)):
+        for entry in value:
+            token = _witness_token(entry)
+            if token:
+                return token
+        return None
     if not isinstance(value, str):
         return None
     token = value.strip().rstrip(".;,").strip().upper()
     return token if token in _UNWITNESSED_TOKENS else None
 
 
-def _collect_unwitnessed(evidence: Any) -> list[dict[str, Any]]:
+def _collect_unwitnessed(evidence: Any, state: dict | None = None) -> list[dict[str, Any]]:
     """Items that self-declare an unwitnessed epistemic status, on any shape."""
+    state = state if state is not None else {"truncated": False}
     found: list[dict[str, Any]] = []
-    for idx, item in enumerate(_iter_evidence_items(evidence)):
+    for idx, item in enumerate(_iter_evidence_items(evidence, 0, state)):
         field = value = None
         for key, candidate in item.items():
             if str(key).lower() in _EPISTEMIC_KEYS:
@@ -273,8 +285,10 @@ def check_judge_postcondition(
     # Unwitnessed evidence is disclosed on EVERY path, including advisory modes
     # (D3, 2026-10-28): mode=intercept is the pre-flight gate a caller uses to
     # decide whether to proceed, so it may not hide an UNKNOWN-tagged item.
-    unwitnessed = _collect_unwitnessed(evidence)
+    _walk_state = {"truncated": False}
+    unwitnessed = _collect_unwitnessed(evidence, _walk_state)
     report["unwitnessed_evidence"] = unwitnessed
+    report["evidence_walk_truncated"] = _walk_state["truncated"]
 
     # Advisory modes: annotate and leave the verdict untouched.
     if mode_key in _ADVISORY_MODES:
@@ -329,6 +343,9 @@ def check_judge_postcondition(
         if unwitnessed:
             # A seal may not rest on evidence that declares itself unwitnessed.
             report["missing_evidence"].append("unwitnessed_evidence_items")
+        if report.get("evidence_walk_truncated"):
+            # Nor on a walk we could not finish: unknown-but-possible > absent.
+            report["missing_evidence"].append("evidence_walk_truncated")
         # S4 (F13 FIX-S4 2026-09-22): a stage-invalid integrity bit is
         # superseded by the rewrite below. Keeping False would re-fire at
         # reconcile time as a Point-#4 epistemic veto — HOLD became
