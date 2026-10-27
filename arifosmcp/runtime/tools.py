@@ -4944,8 +4944,10 @@ _SCT_FULL_SHAPE = re.compile(r"act_v1\.[A-Za-z0-9_\-]{8,}\.[a-f0-9]{32,}")
 
 def _mask_sct_in_string(text: str) -> str:
     """Redact every full-shape act_v1 credential inside a string value."""
+
     def _sub(m: "re.Match[str]") -> str:
         return _mask_sct(m.group(0))
+
     return _SCT_FULL_SHAPE.sub(_sub, text)
 
 
@@ -13033,7 +13035,12 @@ def _arif_sense_observe(
                         "actor_id": actor_id,
                     }
                     from arifosmcp.runtime.a_rif.entropy import measure_delta_s
-                    _tvly_text = " ".join(str(r.get("content", r.get("title", ""))) for r in tvly_hits if isinstance(r, dict))
+
+                    _tvly_text = " ".join(
+                        str(r.get("content", r.get("title", "")))
+                        for r in tvly_hits
+                        if isinstance(r, dict)
+                    )
                     _tvly_ds = measure_delta_s(query, _tvly_text)
                     return _ok(
                         "arif_sense_observe",
@@ -13081,7 +13088,12 @@ def _arif_sense_observe(
                         "actor_id": actor_id,
                     }
                     from arifosmcp.runtime.a_rif.entropy import measure_delta_s
-                    _fc_text = " ".join(str(r.get("content", r.get("snippet", r.get("title", "")))) for r in fc_hits if isinstance(r, dict))
+
+                    _fc_text = " ".join(
+                        str(r.get("content", r.get("snippet", r.get("title", ""))))
+                        for r in fc_hits
+                        if isinstance(r, dict)
+                    )
                     _fc_ds = measure_delta_s(query, _fc_text)
                     return _ok(
                         "arif_sense_observe",
@@ -13128,7 +13140,12 @@ def _arif_sense_observe(
                         "actor_id": actor_id,
                     }
                     from arifosmcp.runtime.a_rif.entropy import measure_delta_s
-                    _exa_text = " ".join(str(r.get("text", r.get("title", ""))) for r in exa_hits if isinstance(r, dict))
+
+                    _exa_text = " ".join(
+                        str(r.get("text", r.get("title", "")))
+                        for r in exa_hits
+                        if isinstance(r, dict)
+                    )
                     _exa_ds = measure_delta_s(query, _exa_text)
                     return _ok(
                         "arif_sense_observe",
@@ -21020,9 +21037,7 @@ def _critique_admissibility(
 _CAP_BLOCKED_VERDICTS = frozenset({"SEAL", "SABAR", "SABAR_HOLD", "PROCEED", "999_SEAL"})
 
 
-def _cap_critique(
-    payload: Any, action_class: str | None, critique: dict[str, Any] | None
-) -> Any:
+def _cap_critique(payload: Any, action_class: str | None, critique: dict[str, Any] | None) -> Any:
     """Cap the verdict at HOLD when the critique is inadmissible.
 
     The cap can only move a verdict DOWN. It never raises one, never turns HOLD
@@ -27295,22 +27310,10 @@ def _wrap_with_canonical_normalization(handler, tool_name):
             ):
                 response = await handler(*args, **kwargs)
                 _latency_ms = (_time.time() - _start_t) * 1000.0
-                # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────
-                try:
-                    from arifosmcp.runtime.telemetry import trace_tool_call
-
-                    trace_tool_call(
-                        tool_name=tool_name,
-                        arguments={k: v for k, v in kwargs.items() if k != "session_token"},
-                        result=response
-                        if isinstance(response, dict)
-                        else {"result": str(response)[:500]},
-                        session_id=kwargs.get("session_id"),
-                        actor_id=kwargs.get("actor_id") or "unknown",
-                        latency_ms=_latency_ms,
-                    )
-                except Exception:
-                    logger.exception("suppressed exception", exc_info=True)
+                # FIX 2026-10-27c (metabolic multi-fire): canonical-norm hook
+                # REMOVED — duplicated _wrap_handler's async post-emit (29201)
+                # for the same logical call. Single canonical emission lives in
+                # _wrap_handler; this wrapper keeps span + envelope duties only.
             # ────────────────────────────────────────────────────────────────
             try:
                 body = response if isinstance(response, dict) else {"result": response}
@@ -27388,22 +27391,11 @@ def _wrap_with_canonical_normalization(handler, tool_name):
         with _tspan(tool_name, actor_id=kwargs.get("actor_id"), act_sid=kwargs.get("session_id")):
             response = handler(*args, **kwargs)
             _latency_ms = (_time.time() - _start_t) * 1000.0
-            # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────────
-            try:
-                from arifosmcp.runtime.telemetry import trace_tool_call
-
-                trace_tool_call(
-                    tool_name=tool_name,
-                    arguments={k: v for k, v in kwargs.items() if k != "session_token"},
-                    result=response
-                    if isinstance(response, dict)
-                    else {"result": str(response)[:500]},
-                    session_id=kwargs.get("session_id"),
-                    actor_id=kwargs.get("actor_id") or "unknown",
-                    latency_ms=_latency_ms,
-                )
-            except Exception:
-                logger.exception("suppressed exception", exc_info=True)
+            # FIX 2026-10-27c (metabolic multi-fire): canonical-norm hook REMOVED.
+            # It duplicated _wrap_handler's post-emit for the same logical call
+            # (same result, same latency → duplicate arifFlow receipts, 2-3x
+            # execute inflation). Single canonical emission lives in
+            # _wrap_handler; this wrapper keeps span + envelope duties only.
         # ────────────────────────────────────────────────────────────────────
         try:
             body = response if isinstance(response, dict) else {"result": response}
@@ -28704,19 +28696,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _filtered = _filter_kwargs_for_handler(_inner_handler, kwargs, tool_name)
         try:
             # Kabarkan telemetry (ATLAS333 hook) - sync path
-            try:
-                from arifosmcp.runtime.telemetry import trace_tool_call as _kt
-
-                _kt(
-                    tool_name=tool_name,
-                    arguments=kwargs,
-                    result={},
-                    session_id=kwargs.get("session_id"),
-                    actor_id=kwargs.get("actor_id") or "system",
-                    latency_ms=0.0,
-                )
-            except Exception:
-                logger.exception("suppressed exception", exc_info=True)
+            # FIX 2026-10-27c (metabolic multi-fire): the pre-emit trace
+            # (result={}, 0ms) was ingested by arifFlow as a SECOND receipt
+            # per logical call, inflating every actor's execute count ~3x
+            # (with the post-emit and Kabarkan valve below: init alone
+            # produced 3 Execute receipts per call — the true driver of the
+            # f006-edge-probe 436-consecutive-exec-no-verify hold). One
+            # logical step = ONE receipt: the post-emit below is the sole
+            # arifFlow emission; STARTED marking stays with event_bus.
             # ── Session A: Emit operation STARTED ──────────────────────────
             from arifosmcp.runtime.event_bus import emit_operation
 
@@ -28792,23 +28779,10 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
             # ── Kabarkan telemetry (ATLAS333 valve) ────────────────────────
-            try:
-                from arifosmcp.runtime.telemetry import trace_tool_call as _kabarkan_trace
-                import time as _time
-
-                _latency = (_time.time() - _start_t) * 1000 if "_start_t" in dir() else 0.0
-                _kabarkan_trace(
-                    tool_name=tool_name,
-                    arguments=kwargs,
-                    result=_dict_from_response(response)
-                    if not isinstance(response, dict)
-                    else response,
-                    session_id=kwargs.get("session_id"),
-                    actor_id=kwargs.get("actor_id") or "system",
-                    latency_ms=_latency,
-                )
-            except Exception:
-                logger.exception("suppressed exception", exc_info=True)
+            # FIX 2026-10-27c (metabolic multi-fire): the duplicate "valve"
+            # trace re-emitted the SAME receipt as the post-emit above (same
+            # output_hash, ~15ms apart) — a third Execute/Verify per logical
+            # call. Removed; the post-emit is the single canonical emission.
             # ────────────────────────────────────────────────────────────────
         except Exception as exc:
             # ── KITARAN Tuas 2: failed invocation still counts (ok=False) ──
@@ -29305,22 +29279,10 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _schedule_seal(final_resp, tool_name, kwargs)
         # P3 FIX: V2 envelope on async-success path (post-attach_canonical).
         _attach_v2_envelope_guarantee(final_resp, tool_name)
-        # ── Kabarkan telemetry (ATLAS333 valve, async) ────────────────────
-        try:
-            from arifosmcp.runtime.telemetry import trace_tool_call as _kabarkan_trace
-            import time as _time
-
-            _latency = (_time.time() - _start_t) * 1000
-            _kabarkan_trace(
-                tool_name=tool_name,
-                arguments=kwargs,
-                result=final_resp,
-                session_id=kwargs.get("session_id"),
-                actor_id=kwargs.get("actor_id") or "system",
-                latency_ms=_latency,
-            )
-        except Exception:
-            logger.exception("suppressed exception", exc_info=True)
+        # FIX 2026-10-27c (metabolic multi-fire): async "Kabarkan valve"
+        # REMOVED — it re-emitted the SAME receipt as the async post-emit
+        # above (same final_resp, same latency → third receipt per logical
+        # call). The async post-emit is the single canonical emission.
         # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
         try:
             from datetime import UTC as _UTC
