@@ -386,6 +386,13 @@ async def _arif_kernel_intercept(
         "EVIDENCE_ATTESTATION": "R2",
         "RECORD_SEAL": "R2",
         "EVIDENCE_SEAL": "R2",
+        # P1 2026-10-27 (judge-schema-reversibility-drift): the public
+        # arif_judge schema documents reversibility_level as
+        # 'reversible' | 'hard' | 'irreversible'. The runtime accepted the
+        # first and third but rejected 'HARD' as an unknown class — a
+        # documented input produced CLASSIFICATION_HOLD. "Hard to undo,
+        # still possible" is R3 (costly reversible), not R4.
+        "HARD": "R3",
         "R3": "R3",
         "R3_COSTLY_REVERSIBLE": "R3",
         "COSTLY": "R3",

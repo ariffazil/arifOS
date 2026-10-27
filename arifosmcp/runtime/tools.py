@@ -1510,7 +1510,7 @@ def _canonical_tool_name(name: str) -> str:
     candidate = (name or "").strip()
     for prefix in ("mcp__arifos__", "arifos_", "arifos.", "kernel_", "aaa_"):
         if candidate.startswith(prefix):
-            candidate = candidate[len(prefix):]
+            candidate = candidate[len(prefix) :]
     return _ALIAS_TO_CANON.get(candidate, candidate)
 
 
@@ -9131,6 +9131,7 @@ def build_standard_mcp_result(
     raw_result: dict[str, Any] | None = None,
     mode: str = "observe",
     authority: str = "advisory_only",
+    risk_overrides: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Core builder for the cognitively clear MCP output envelope.
 
@@ -9191,6 +9192,18 @@ def build_standard_mcp_result(
         else "reversible",
         "human_confirmation_required": human_req,
     }
+    # P1 2026-10-27 (judge-schema-reversibility-drift): the static block above
+    # describes the TOOL, not the action under judgment. For judgment verbs the
+    # caller declares the action's own reversibility/blast — echoing the tool
+    # passport back as if it were the action's risk contradicts the input
+    # (verified live: HARD/low in → "reversible"/"medium" out). When the caller
+    # supplies the judged action's declaration, echo it and keep the passport
+    # visible as tool_baseline so both facts survive.
+    if risk_overrides:
+        _tool_baseline = dict(risk)
+        risk.update({k: v for k, v in risk_overrides.items() if v is not None})
+        risk["subject"] = "judged_action"
+        risk["tool_baseline"] = _tool_baseline
 
     # 2026-08-04 333-AGI: Gate predicate fix.
     # "L5 irreversible action OR confidence < 0.5" fires on reversible reads.
@@ -9373,6 +9386,49 @@ def _arif_init_refusal_fields(payload: dict[str, Any]) -> tuple[list[str], str] 
         if status == "HOLD" and "MISSING" in failure:
             return ([], str(block.get("reason") or "missing required input"))
     return None
+
+
+_REVERSIBILITY_ECHO_MAP = {
+    "R0": "reversible",
+    "R1": "reversible",
+    "R2": "reversible",
+    "R3": "hard",
+    "R4": "irreversible",
+    "R5": "irreversible",
+    "TRIVIAL": "reversible",
+    "REVERSIBLE": "reversible",
+    "PARTIAL": "reversible",
+    "COSTLY": "hard",
+    "HARD": "hard",
+    "SEMI_IRREVERSIBLE": "hard",
+    "IRREVERSIBLE": "irreversible",
+    "CRITICAL": "irreversible",
+}
+
+
+def _judged_action_risk_echo(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """Return the judged action's declared risk, when the payload carries it.
+
+    arif_judge records the submitted reversibility_level/blast_radius under
+    meta. The standard envelope's risk block otherwise describes the judge
+    TOOL's static passport (medium/reversible), which reads as a contradiction
+    to callers who submitted a different class. Echo the declaration; the
+    tool passport survives as risk.tool_baseline.
+    """
+    meta = payload.get("meta") if isinstance(payload, dict) else None
+    if not isinstance(meta, dict):
+        return None
+    raw = meta.get("reversibility_level")
+    if not raw:
+        return None
+    reversibility = _REVERSIBILITY_ECHO_MAP.get(str(raw).strip().upper())
+    if reversibility is None:
+        return None
+    echo: dict[str, Any] = {"reversibility": reversibility}
+    blast = meta.get("blast_radius")
+    if blast:
+        echo["blast_radius"] = str(blast)
+    return echo
 
 
 def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -9636,6 +9692,7 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         next_safe_action=next_act,
         raw_result=payload.get("result", payload),
         mode=_payload_mode or "observe",
+        risk_overrides=_judged_action_risk_echo(payload),
     )
 
 
