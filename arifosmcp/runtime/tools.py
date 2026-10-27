@@ -14512,9 +14512,39 @@ def _arif_evidence_fetch(
         # ── A-RIF: Entropy-based search stopping ──
         from arifosmcp.runtime.a_rif.entropy import should_stop_search
 
-        entropy_before = 0.5
-        entropy_after = 0.45 if _results else 0.6
-        entropy_report = should_stop_search(entropy_before, entropy_after)
+        # KX-009 fix (2026-10-27, F13 order): entropy is now MEASURED from the
+        # actual result text (character-level Shannon, normalised by log2 of
+        # the observed alphabet size), not asserted from literals. Before =
+        # entropy of the query string; after = pooled entropy of returned
+        # content. Empty results are UNMEASURED (None), which should_stop_search
+        # treats as no-signal rather than inventing a number.
+        import math as _math
+
+        def _shannon_norm(_text: str) -> float | None:
+            if not _text:
+                return None
+            _freq: dict[str, int] = {}
+            for _ch in _text:
+                _freq[_ch] = _freq.get(_ch, 0) + 1
+            _n = len(_text)
+            _h = -sum((c / _n) * _math.log2(c / _n) for c in _freq.values())
+            _max_h = _math.log2(max(len(_freq), 2))
+            return round(_h / _max_h, 4) if _max_h > 0 else None
+
+        entropy_before = _shannon_norm(query or "")
+        _result_text = " ".join(
+            str(r.get("title", "") + " " + r.get("content", r.get("snippet", "")))
+            for r in (_results or [])
+            if isinstance(r, dict)
+        ).strip()
+        entropy_after = _shannon_norm(_result_text) if _results else None
+        if entropy_before is None or entropy_after is None:
+            entropy_report = should_stop_search(0.5, 0.5)
+            entropy_report.before = entropy_before
+            entropy_report.after = entropy_after
+            entropy_report.reason = "UNMEASURED: empty query or empty results — no entropy signal"
+        else:
+            entropy_report = should_stop_search(entropy_before, entropy_after)
 
         if entropy_report.recommendation == "void":
             return _ok(
