@@ -1649,9 +1649,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     )
                 )
                 _cr = (
-                    _json.loads(_cr_path.read_text(errors="replace"))
-                    if _cr_path.exists()
-                    else None
+                    _json.loads(_cr_path.read_text(errors="replace")) if _cr_path.exists() else None
                 )
                 _wire_producer("F8", {"contradiction_register": _cr})
             except Exception as _f8_exc:
@@ -1879,8 +1877,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
             "floor_producer:"
         ) or _f8_prov_now.startswith("arifflow_live_vector")
         if not _f8_already_measured and (
-            _safe_float(resolved_floors.get("F8"), 0.0) <= 0.0
-            or resolved_floors.get("F8") is None
+            _safe_float(resolved_floors.get("F8"), 0.0) <= 0.0 or resolved_floors.get("F8") is None
         ):
             from core.enforcement.genius import calculate_genius, coerce_floor_scores
 
@@ -2054,6 +2051,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
             # named on the contract too. g_authorization is capped at NONE —
             # an uncalibrated number may not promise authorization.
             _scope_contract = dict(apex_scalars[_scope]["measurement_contract"])
+            # measurement_id must be unique per scalar (same-name-metric law
+            # inside the contract layer): a shallow copy of G's contract used
+            # to leave all four scoped copies reporting id 'kx010.g', so a
+            # consumer could not tell which scope a contract described.
+            _scope_contract["measurement_id"] = "kx010." + re.sub(
+                r"[^a-z0-9]+", "_", _scope.lower()
+            ).strip("_")
             _scope_contract["scope"] = _scope
             _scope_contract["decision_eligibility"] = (
                 "NONE" if _scope == "g_authorization" else "ADVISORY"
