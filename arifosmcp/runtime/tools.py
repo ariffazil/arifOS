@@ -13032,6 +13032,9 @@ def _arif_sense_observe(
                         "session_id": session_id,
                         "actor_id": actor_id,
                     }
+                    from arifosmcp.runtime.a_rif.entropy import measure_delta_s
+                    _tvly_text = " ".join(str(r.get("content", r.get("title", ""))) for r in tvly_hits if isinstance(r, dict))
+                    _tvly_ds = measure_delta_s(query, _tvly_text)
                     return _ok(
                         "arif_sense_observe",
                         {
@@ -13046,7 +13049,7 @@ def _arif_sense_observe(
                             "cascade_depth": 2,
                             "evidence_receipt": evidence_receipt,
                         },
-                        delta_S=0.002,
+                        delta_S=_tvly_ds,
                         provider="tavily",
                     )
                 tvly_error = tvly_result.get("error", "zero_hits")
@@ -13077,6 +13080,9 @@ def _arif_sense_observe(
                         "session_id": session_id,
                         "actor_id": actor_id,
                     }
+                    from arifosmcp.runtime.a_rif.entropy import measure_delta_s
+                    _fc_text = " ".join(str(r.get("content", r.get("snippet", r.get("title", "")))) for r in fc_hits if isinstance(r, dict))
+                    _fc_ds = measure_delta_s(query, _fc_text)
                     return _ok(
                         "arif_sense_observe",
                         {
@@ -13091,7 +13097,7 @@ def _arif_sense_observe(
                             "cascade_depth": 3,
                             "evidence_receipt": evidence_receipt,
                         },
-                        delta_S=0.002,
+                        delta_S=_fc_ds,
                         provider="firecrawl",
                     )
                 fc_error = fc_result.get("error", "zero_hits")
@@ -13121,6 +13127,9 @@ def _arif_sense_observe(
                         "session_id": session_id,
                         "actor_id": actor_id,
                     }
+                    from arifosmcp.runtime.a_rif.entropy import measure_delta_s
+                    _exa_text = " ".join(str(r.get("text", r.get("title", ""))) for r in exa_hits if isinstance(r, dict))
+                    _exa_ds = measure_delta_s(query, _exa_text)
                     return _ok(
                         "arif_sense_observe",
                         {
@@ -13135,7 +13144,7 @@ def _arif_sense_observe(
                             "cascade_depth": 4,
                             "evidence_receipt": evidence_receipt,
                         },
-                        delta_S=0.002,
+                        delta_S=_exa_ds,
                         provider="exa",
                     )
                 exa_result.get("error", "zero_hits")
@@ -13653,7 +13662,7 @@ def _arif_sense_observe(
                 else "arif_mind_reason",
                 "omega_0": 0.03,
             },
-            delta_S=0.002,
+            delta_S=None,
         )
 
     if mode == "extract_claims":
@@ -14613,7 +14622,7 @@ def _arif_evidence_fetch(
         return _ok(
             "arif_evidence_fetch",
             {"url": url, "archived": True, "archive_id": uuid.uuid4().hex[:8]},
-            delta_S=0.002,
+            delta_S=None,
         )
 
     if mode == "verify":
@@ -15079,7 +15088,7 @@ def _arif_mind_reason(
                 "plan_receipt": plan_receipt,
                 "vault_entry_id": vault_entry["id"],
             },
-            delta_S=0.002,
+            delta_S=None,
             session_id=session_id,
         )
 
@@ -15328,7 +15337,7 @@ def _arif_mind_reason(
         )
         thermo = ThermodynamicState(
             energy_estimate=0.0005,
-            delta_S=0.002,
+            delta_S=None,
             entropy_direction="stable",
             irreversibility=False,
         )
@@ -15513,7 +15522,7 @@ def _arif_mind_reason(
             thermodynamic_state=thermo,
             toac_self_correction=None,
             meta={"actor_id": actor_id, "session_id": session_id},
-            delta_S=0.002,
+            delta_S=None,
             timestamp=_now(),
         )
         return output
@@ -15800,7 +15809,7 @@ def _arif_mind_reason(
                 "evidence_used": _evidence,
                 "invariant": "INSUFFICIENT_EVIDENCE" if not _evidence else None,
             },
-            delta_S=0.002,
+            delta_S=None,
             session_id=session_id,
         )
     if mode == "critique":
@@ -15813,7 +15822,7 @@ def _arif_mind_reason(
                 "stress_test_passed": v.confidence < 0.5,
                 "vulnerabilities": list(v.violations),
             },
-            delta_S=0.002,
+            delta_S=None,
             session_id=session_id,
         )
 
@@ -17146,8 +17155,8 @@ def _arif_kernel_route(
     if mode == "telemetry":
         return _ok(
             "arif_kernel_route",
-            {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91},
-            delta_S=0.002,
+            {"g_score": 0.97, "delta_S": None, "omega": 0.91},
+            delta_S=None,
         )
 
     # ── Standalone governance gating modes ─────────────────────────────────────
@@ -18229,13 +18238,13 @@ def _arif_memory_recall(
                 tier=resolved_tier,
                 constitutional=constitutional,
             )
-            return _ok("arif_memory_recall", {"stored": True, **_result}, delta_S=0.002)
+            return _ok("arif_memory_recall", {"stored": True, **_result}, delta_S=None)
         except Exception as exc:
             logger.warning("memory_store.store failed: %s", exc)
             return _ok(
                 "arif_memory_recall",
                 {"stored": False, "_degraded": str(exc)},
-                delta_S=0.002,
+                delta_S=None,
             )
 
     # ── get ──────────────────────────────────────────────────
@@ -18945,13 +18954,13 @@ def _arif_gateway_connect(
                 "handshake": "OK",
                 "capability_token": uuid.uuid4().hex[:16],
             },
-            delta_S=0.001,
+            delta_S=None,
         )
     if mode == "relay":
         return _ok(
             "arif_gateway_connect",
             {"target": target_agent, "relay": "sealed", "status": "transit"},
-            delta_S=0.002,
+            delta_S=None,
         )
     if mode == "seal":
         return _ok(
@@ -18961,7 +18970,7 @@ def _arif_gateway_connect(
                 "seal": "cross-agent-SEAL",
                 "status": "pending_888",
             },
-            delta_S=0.002,
+            delta_S=None,
         )
     if mode == "delegate":
         from arifosmcp.runtime.exa_bridge import exa_bridge

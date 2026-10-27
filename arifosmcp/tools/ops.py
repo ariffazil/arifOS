@@ -252,7 +252,7 @@ def arif_measure(
             "probe_latency_ms": 0,  # set below
             "thermodynamics": {
                 "g_score": 0.97,
-                "delta_S": 0.002,
+                "delta_S": None,
                 "omega": 0.95,
                 "psi_le": 1.02,
                 "source": "default",
@@ -274,7 +274,7 @@ def arif_measure(
             thermo = get_thermodynamic_report()
             vitals["thermodynamics"] = {
                 "g_score": thermo.get("G_star", 0.97),
-                "delta_S": thermo.get("entropy_delta", 0.002),
+                "delta_S": thermo.get("entropy_delta"),
                 "omega": thermo.get("omega", 0.95),
                 "psi_le": thermo.get("psi_le", 1.02),
                 "source": "thermodynamic_report",
@@ -288,7 +288,7 @@ def arif_measure(
                 if isinstance(cd_vitals, dict):
                     vitals["thermodynamics"] = {
                         "g_score": cd_vitals.get("g_score", 0.97),
-                        "delta_S": cd_vitals.get("delta_S", 0.002),
+                        "delta_S": cd_vitals.get("delta_S"),
                         "omega": cd_vitals.get("omega", 0.95),
                         "psi_le": cd_vitals.get("psi_le", 1.02),
                         "source": "cooldown_engine",

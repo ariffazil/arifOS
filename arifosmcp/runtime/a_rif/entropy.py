@@ -13,9 +13,35 @@ from __future__ import annotations
 from arifosmcp.runtime.a_rif.engine import evaluate_entropy_delta
 from arifosmcp.runtime.a_rif.models import EntropyReport
 
-__all__ = ["evaluate_entropy_delta", "should_stop_search"]
+__all__ = ["evaluate_entropy_delta", "should_stop_search", "measure_shannon_entropy", "measure_delta_s"]
 
 PLATEAU_THRESHOLD = 0.01
+
+
+def measure_shannon_entropy(text: str | None) -> float | None:
+    """Measure character-level Shannon entropy normalised by log2(alphabet size)."""
+    if not text or not str(text).strip():
+        return None
+    import math
+    _str = str(text)
+    freq: dict[str, int] = {}
+    for ch in _str:
+        freq[ch] = freq.get(ch, 0) + 1
+    n = len(_str)
+    if n == 0:
+        return None
+    h = -sum((c / n) * math.log2(c / n) for c in freq.values())
+    max_h = math.log2(max(len(freq), 2))
+    return round(h / max_h, 4) if max_h > 0 else None
+
+
+def measure_delta_s(before_text: str | None, after_text: str | None) -> float | None:
+    """Measure change in Shannon entropy: after - before."""
+    s_before = measure_shannon_entropy(before_text)
+    s_after = measure_shannon_entropy(after_text)
+    if s_before is None or s_after is None:
+        return None
+    return round(s_after - s_before, 4)
 
 
 def should_stop_search(

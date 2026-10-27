@@ -14,7 +14,7 @@ def _register(mcp: FastMCP) -> None:
     def metabolic_vitals() -> dict:
         return {
             "g_score": 0.97,
-            "delta_S": 0.002,
+            "delta_S": None,
             "omega": 0.91,
             "psi_le": 1.02,
             "status": "nominal",

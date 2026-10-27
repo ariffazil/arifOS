@@ -1207,12 +1207,35 @@ async def arif_judge(
 
     _auth = _vs(session_id, actor_id, session_token=session_token)
     if not _auth.get("valid"):
+        from contracts.four_plane_contract import evaluate_four_planes
+
+        _epi, _auth_s, _disp, _const_v, _rem = evaluate_four_planes(
+            candidate=candidate,
+            auth_valid=False,
+            actor_id=actor_id,
+            evidence=evidence,
+            reversibility_level=reversibility_level,
+            action_tier=action_tier,
+            auth_reason=_auth.get("reason"),
+        )
+        _out_verdict = _const_v
         return {
-            "status": "HOLD",
+            "status": _out_verdict,
             "tool": "arif_judge",
-            "verdict": "HOLD",
+            "verdict": _out_verdict,
+            "effective_verdict": _out_verdict,
+            "canonical_verdict": _out_verdict,
+            "epistemic_state": _epi,
+            "authority_state": _auth_s,
+            "action_disposition": _disp,
+            "constitutional_verdict": _const_v,
+            "remediation": _rem,
             "reasons": [_auth.get("reason", "L11 AUTH: session required")],
-            "next_safe_action": "Call arif_init(mode='init') first to bind a session.",
+            "next_safe_action": (
+                "Call arif_init(mode='init') first to bind a session."
+                if not _rem.get("human_required")
+                else "Await human sovereign authorization."
+            ),
             "actor_id": actor_id or "anonymous",
             "session_id": session_id or "anonymous-session",
             "mutation_allowed": False,
@@ -1221,6 +1244,7 @@ async def arif_judge(
                 "violated_laws": ["L11"],
                 "failure_type": "ARIF_SESSION_NOT_FOUND",
                 "detail": "Call arif_init(mode='init') first to bind a session.",
+                "remediation": _rem,
             },
         }
 
@@ -2360,6 +2384,30 @@ async def arif_judge(
                     "next_action": _envelope["next_action"],
                 }
             )
+            # KX-009: Bind Four Planes & Remediation Contract
+            try:
+                from contracts.four_plane_contract import evaluate_four_planes
+
+                _epi, _auth_s, _disp, _const_v, _rem = evaluate_four_planes(
+                    candidate=candidate,
+                    auth_valid=True,
+                    actor_id=actor_id,
+                    evidence=evidence,
+                    reversibility_level=reversibility_level,
+                    action_tier=action_tier,
+                    current_verdict=str(getattr(out, "verdict", "HOLD")),
+                )
+                out = out.model_copy(
+                    update={
+                        "epistemic_state": _epi,
+                        "authority_state": _auth_s,
+                        "action_disposition": _disp,
+                        "constitutional_verdict": _const_v,
+                        "remediation": _rem,
+                    }
+                )
+            except Exception as _four_exc:
+                logger.debug("KX-009 four planes in echo_standing non-fatal: %s", _four_exc)
         except Exception as _cmp_exc:
             # Fail-closed: never let the composer crash the worker.
             logger.warning("T2 canonical composer forced fail-closed fallback: %s", _cmp_exc)
