@@ -188,6 +188,25 @@ if [ "$DRY" != "1" ]; then
 	find "$SITE_PACKAGES/arifosmcp" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
 	STALE_PRUNED="true:stale_modules_pruned=${STALE_COUNT:-0}"
 
+	# Top-level `core` package (2026-10-28). rest_routes imports
+	# `core.governance_kernel`, and with cwd=/var/lib/arifos that resolves to
+	# $SITE_PACKAGES/core/ -- NOT /opt/arifos/app/core/ and NOT the repo tree.
+	# This deploy used to sync only arifosmcp/, so every commit touching core/
+	# reached /opt/arifos/app and the test suite but never the live import path:
+	# a deploy reported "aligned" while the running kernel executed the previous
+	# release's core. Measured 2026-10-28: commit 6a644b07c (measurement window
+	# declaration) was absent from live /health with deployment_drift=aligned.
+	#
+	# NO --delete here, deliberately: $SITE_PACKAGES/core/vault999/ (9 files:
+	# unified_vault999.py, verify.py, reality_ledger.py, redaction.py + data)
+	# exists only in the deployed tree, not in the repo. A --delete sync would
+	# erase live vault code. Update-in-place, never prune this tree.
+	if [ -d "$EXPORT_DIR/core" ]; then
+		rsync -a --exclude='__pycache__' "$EXPORT_DIR/core/" "$SITE_PACKAGES/core/"
+		find "$SITE_PACKAGES/core" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+		echo "Synced core/ into \$SITE_PACKAGES/core (no --delete: deployed-only vault999 preserved)."
+	fi
+
 	# Marker provenance: both stamps are written from LEASE_CANDIDATE, never
 	# from a post-acquire HEAD re-read.
 	echo "$LEASE_CANDIDATE" >/opt/arifos/app/.git_commit
