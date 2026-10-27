@@ -1873,6 +1873,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
             "value": _h_val,
             "status": "MEASURED" if _h_val is not None else "UNMEASURED",
         }
+        # KX-002 closure (2026-10-27, F13 order): publish G under its scoped
+        # names alongside the bare scalar. One canonical G formula; the scoped
+        # names name the CONSUMER scope, not different values. g_task_verdict
+        # (kernel judge/router), g_well_state (WELL mirror), g_authorization
+        # (ACT token gate), g_metabolism (metabolic loop). Bare G remains for
+        # backward compat until every consumer reads a scoped name — then the
+        # bare key retires per KX-002 falsifier.
+        _g_scoped = apex_scalars["G"]
+        for _scope in ("g_task_verdict", "g_well_state", "g_authorization", "g_metabolism"):
+            apex_scalars[_scope] = dict(_g_scoped)
+            apex_scalars[_scope]["scope"] = _scope
         # Derive QDF
         g_val = _apex.get("G", 0.0) or 0.0
         c_val = _apex.get("C_dark", 0.0) or 0.0
