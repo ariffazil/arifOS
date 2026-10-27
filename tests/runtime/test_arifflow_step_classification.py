@@ -105,3 +105,23 @@ class TestProbeActorFlowShape:
         execute_count = sum(1 for s in steps if s in ("Execute", "Merge"))
         verify_count = sum(1 for s in steps if s == "Verify")
         assert verify_count / execute_count >= 0.5  # clears FQ floor band
+
+
+class TestEmitterToolProvenance:
+    """FIX 2026-10-27b: receipts must carry the tool name that classified them."""
+
+    def test_payload_carries_emitter_tool(self):
+        receipt = _build_arifflow_receipt(
+            tool_name="arif_observe", verdict="OK", latency_ms=1.0,
+            session_id=None, actor_id="test-actor", metadata=None,
+        )
+        assert receipt["payload"]["emitter_tool"] == "arif_observe"
+
+    def test_payload_emitter_tool_present_even_with_metadata(self):
+        receipt = _build_arifflow_receipt(
+            tool_name="arif_init", verdict="OK", latency_ms=1.0,
+            session_id=None, actor_id="test-actor",
+            metadata={"input_hash": "abc"},
+        )
+        assert receipt["payload"]["emitter_tool"] == "arif_init"
+        assert receipt["payload"]["input_hash"] == "abc"
