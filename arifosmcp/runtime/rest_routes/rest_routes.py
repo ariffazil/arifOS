@@ -283,6 +283,85 @@ def _normalize_parameters(tool_name: str, body: dict[str, Any]) -> dict[str, Any
 
 logger = logging.getLogger(__name__)
 
+
+def measurement_contract(
+    metric: str,
+    *,
+    semantic_class: str,
+    unit: str,
+    measurement_method: str,
+    monotonic_drivers: Any,
+    falsification_test: str | None,
+    provenance_class: str,
+    calibration_status: str,
+    observed_at: str | None = None,
+    decision_eligibility: str,
+    derivation_ref: str,
+    schema_version: str = "kx010.v1",
+    expected_range: list | None = None,
+    valid_until: str | None = None,
+    scope: str | None = None,
+) -> dict[str, Any]:
+    """KX-010 measurement contract (VD-888-KX010-APEX-MEASUREMENT-CONTRACT-2026-10-27).
+
+    Emits the 05-CONTRACT-SCHEMA.json field set so every physics-labelled
+    scalar on the wire declares meaning, unit, measurement method, monotonic
+    drivers, falsification test, provenance class, calibration status, and
+    decision eligibility. ADDITIVE ONLY: callers attach the returned dict as a
+    new ``measurement_contract`` key beside existing wire keys — this helper
+    never renames, removes, or recomputes anything, and ``value`` stays null
+    because the authoritative value is the sibling wire field (no drift).
+
+    Fail-closed rule (05 schema): UNKNOWN semantic class, missing provenance,
+    or an unresolved contradiction renders decision_eligibility=NONE —
+    callers pass the eligibility explicitly; the A6/A3 cases in
+    tests/test_kx010_measurement_contract.py pin the enum.
+    """
+    slug = re.sub(r"[^a-z0-9]+", "_", metric.lower()).strip("_")
+    return {
+        "measurement_id": f"kx010.{slug}" if slug else "kx010.unnamed",
+        "metric_name": metric,
+        "semantic_class": semantic_class,
+        "value": None,
+        "unit": unit,
+        "dimension": "1" if unit == "1" else None,
+        "measurement_method": measurement_method,
+        "monotonic_drivers": monotonic_drivers,
+        "producer": "arifosmcp.runtime.rest_routes",
+        "source_inputs": [],
+        "derivation_ref": derivation_ref,
+        "observed_at": observed_at,
+        "valid_from": None,
+        "valid_until": valid_until,
+        "scope": scope,
+        "population_or_system": "arifOS kernel :8088 runtime",
+        "calibration_status": calibration_status,
+        "calibration_ref": None,
+        "uncertainty": None,
+        "expected_range": expected_range,
+        "threshold_ref": None,
+        "falsification_test": falsification_test,
+        "falsifier": falsification_test,
+        "decision_eligibility": decision_eligibility,
+        "provenance_class": provenance_class,
+        "schema_version": schema_version,
+    }
+
+
+_APEX_CONTRACT_REF = "arifosmcp/runtime/apex_primitives.py:197"
+_APEX_CONTRACT_KW = dict(
+    semantic_class="DERIVED_MEASUREMENT",
+    unit="1",
+    measurement_method=(
+        "windowed aggregation over 7d tool-call metrics (arifosmcp/runtime/apex_primitives.py:197)"
+    ),
+    falsification_test=("recompute from metrics DB window; register/metrics hash drift"),
+    provenance_class="SERVER_OBSERVED",
+    calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+    derivation_ref=_APEX_CONTRACT_REF,
+)
+
+
 _DASHBOARD_ALLOWED_ORIGINS = {
     "https://apex.arif-fazil.com",
     "https://arifosmcp.arif-fazil.com",
@@ -1833,11 +1912,28 @@ def _build_governance_status_payload() -> dict[str, Any]:
         from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
 
         _apex = compute_apex_from_metrics()
+        # KX-010 (VD-888-KX010-2026-10-27): additive measurement contracts.
+        # Names the promise each number can keep; ADVISORY because every apex
+        # scalar is PHASE_1_HEURISTIC_UNCALIBRATED. No value/status edited.
+        _apex_drivers = {
+            "G": ["A", "P", "E", "X"],
+            "C_dark": ["A", "P", "X"],
+            "A": ["in_lease share of windowed tool calls"],
+            "P": ["has_evidence share of windowed tool calls"],
+            "E": ["execution success share of execution-classed outcomes"],
+            "X": ["dry_run_first share of windowed tool calls"],
+        }
         for scalar in ("G", "C_dark", "A", "P", "E", "X"):
             val = _apex.get(scalar)
             apex_scalars[scalar] = {
                 "value": val,
                 "status": "MEASURED" if val is not None else "UNMEASURED",
+                "measurement_contract": measurement_contract(
+                    scalar,
+                    monotonic_drivers=_apex_drivers[scalar],
+                    decision_eligibility="ADVISORY",
+                    **_APEX_CONTRACT_KW,
+                ),
             }
         measurement_basis["f8_g_basis"] = {
             "formula": "G = (A * P * E * X) ** 0.25",
@@ -1866,12 +1962,30 @@ def _build_governance_status_payload() -> dict[str, Any]:
             # rank-check — cardinality is not independence. w3_rank_check()
             # in apex_primitives gates ∛ once witness sample streams exist.
             "independence": "UNMEASURED (scalar channels; rank requires witness sample vectors)",
+            # KX-010: additive contract — composite of the three live legs;
+            # A3 declares a null component consumes as NONE (fail-closed).
+            "measurement_contract": measurement_contract(
+                "W3",
+                monotonic_drivers=[
+                    "resolved_witness.human",
+                    "resolved_witness.ai",
+                    "resolved_witness.earth",
+                ],
+                decision_eligibility="ADVISORY",
+                **_APEX_CONTRACT_KW,
+            ),
         }
         # h — humility mass = evidence gap (1 - P), from tool-call metrics
         _h_val = _apex.get("h")
         apex_scalars["h"] = {
             "value": _h_val,
             "status": "MEASURED" if _h_val is not None else "UNMEASURED",
+            "measurement_contract": measurement_contract(
+                "h",
+                monotonic_drivers=["P"],
+                decision_eligibility="ADVISORY",
+                **_APEX_CONTRACT_KW,
+            ),
         }
         # KX-002 closure (2026-10-27, F13 order): publish G under its scoped
         # names alongside the bare scalar. One canonical G formula; the scoped
@@ -1884,12 +1998,27 @@ def _build_governance_status_payload() -> dict[str, Any]:
         for _scope in ("g_task_verdict", "g_well_state", "g_authorization", "g_metabolism"):
             apex_scalars[_scope] = dict(_g_scoped)
             apex_scalars[_scope]["scope"] = _scope
+            # KX-010: the scoped copy inherits G's contract; the scope key is
+            # named on the contract too. g_authorization is capped at NONE —
+            # an uncalibrated number may not promise authorization.
+            _scope_contract = dict(apex_scalars[_scope]["measurement_contract"])
+            _scope_contract["scope"] = _scope
+            _scope_contract["decision_eligibility"] = (
+                "NONE" if _scope == "g_authorization" else "ADVISORY"
+            )
+            apex_scalars[_scope]["measurement_contract"] = _scope_contract
         # Derive QDF
         g_val = _apex.get("G", 0.0) or 0.0
         c_val = _apex.get("C_dark", 0.0) or 0.0
         apex_scalars["QDF"] = {
             "value": round(g_val * (1 - c_val), 4),
             "status": "MEASURED" if _apex.get("sample_size", 0) > 0 else "UNMEASURED",
+            "measurement_contract": measurement_contract(
+                "QDF",
+                monotonic_drivers=["G", "C_dark"],
+                decision_eligibility="ADVISORY",
+                **_APEX_CONTRACT_KW,
+            ),
         }
     except Exception as _apex_exc:
         import logging as _log
@@ -4913,6 +5042,114 @@ def register_rest_routes(
                 ),
                 "metabolic_stage": thermo.get("metabolic_stage"),
                 "witness": thermo.get("witness"),
+                # KX-010 (VD-888-KX010-2026-10-27): additive measurement
+                # contracts for the numeric leaves above. Labels only — no
+                # value, status, or verdict math touched (A6 condition 2).
+                # metabolic_stage (the borderline "333" leaf) is deliberately
+                # OUT-OF-SCOPE: no producer contract authorized in this patch;
+                # it is named debt in the P5(a) out-of-scope roster.
+                "measurement_contract": {
+                    "entropy_delta": measurement_contract(
+                        "entropy_delta",
+                        semantic_class="UNKNOWN",
+                        unit="1",
+                        measurement_method="telemetry.dS from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel event entropy per report cycle"],
+                        falsification_test="recompute dS from the kernel event log for the same window",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
+                        derivation_ref="rest_routes.py thermodynamic block <- telemetry.dS",
+                    ),
+                    "peace_squared": measurement_contract(
+                        "peace_squared",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="DISPLAY_ONLY",
+                        derivation_ref="rest_routes.py thermodynamic block <- telemetry.peace2",
+                    ),
+                    "vitality_index": measurement_contract(
+                        "vitality_index",
+                        semantic_class="HEURISTIC",
+                        unit="1",
+                        measurement_method="telemetry.psi_le from governance kernel vitality heuristic",
+                        monotonic_drivers=["honest memory integral (chain_length x seal_rate)"],
+                        falsification_test="recompute psi_le from the seal chain tail and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py thermodynamic block <- telemetry.psi_le",
+                    ),
+                    "kappa_r": measurement_contract(
+                        "kappa_r",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.kappa_r from governance kernel structural baseline",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="DISPLAY_ONLY",
+                        derivation_ref="rest_routes.py thermodynamic block <- telemetry.kappa_r",
+                    ),
+                    "echo_debt": measurement_contract(
+                        "echo_debt",
+                        semantic_class="DERIVED_MEASUREMENT",
+                        unit="1",
+                        measurement_method="telemetry.echoDebt counter from governance kernel event log",
+                        monotonic_drivers=["unacknowledged echo events in the event log"],
+                        falsification_test="recount echo events in the event log window",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py thermodynamic block <- telemetry.echoDebt",
+                    ),
+                    "shadow": measurement_contract(
+                        "shadow",
+                        semantic_class="DERIVED_MEASUREMENT",
+                        unit="1",
+                        measurement_method="telemetry.shadow counter from governance kernel event log",
+                        monotonic_drivers=["shadow-class events in the event log"],
+                        falsification_test="recount shadow-class events in the event log window",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py thermodynamic block <- telemetry.shadow",
+                    ),
+                    "confidence": measurement_contract(
+                        "confidence",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.confidence — self-report of the health endpoint (F7 note)",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="DISPLAY_ONLY",
+                        derivation_ref="rest_routes.py thermodynamic block <- telemetry.confidence",
+                    ),
+                    "witness": measurement_contract(
+                        "witness",
+                        semantic_class="HEURISTIC",
+                        unit="1",
+                        measurement_method="tri-witness legs published verbatim (human/ai/earth), no aggregation on this surface",
+                        monotonic_drivers=[
+                            "resolved_witness.human",
+                            "resolved_witness.ai",
+                            "resolved_witness.earth",
+                        ],
+                        falsification_test="re-probe collect_witness_legs(); a leg that changes without a ledger change falsifies",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py thermodynamic block <- resolved_witness",
+                    ),
+                },
             },
             # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
             # Computed from live tool call metrics over 24h window.
@@ -4955,6 +5192,62 @@ def register_rest_routes(
                 "psi_vitality": telemetry.get("psi_le"),
                 # peace_squared: Lyapunov stability from kernel; null if kernel unavailable
                 "peace_squared": telemetry.get("peace2"),
+                # KX-010 (VD-888-KX010-2026-10-27): additive measurement
+                # contracts. tau_confidence_system is a policy constant that
+                # may NOT decide (NONE); tau_threshold_f2's producer is
+                # unknown (threshold unpinned) so it is UNKNOWN->NONE;
+                # psi_vitality stays an uncalibrated heuristic (ADVISORY).
+                # Labels only — no threshold or verdict math touched.
+                "measurement_contract": {
+                    "tau_confidence_system": measurement_contract(
+                        "tau_confidence_system",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.confidence — aggregate system readiness self-report (NOT per-claim F2 threshold)",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="NONE",
+                        derivation_ref="rest_routes.py governance block <- telemetry.confidence",
+                    ),
+                    "tau_threshold_f2": measurement_contract(
+                        "tau_threshold_f2",
+                        semantic_class="UNKNOWN",
+                        unit="1",
+                        measurement_method="literal 0.99 emitted at build site; producing spec unpinned",
+                        monotonic_drivers="none",
+                        falsification_test="pin the floor-spec producer; a spec pin that disagrees with 0.99 falsifies this value",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
+                        derivation_ref="rest_routes.py governance block (threshold_ref unpinned)",
+                    ),
+                    "psi_vitality": measurement_contract(
+                        "psi_vitality",
+                        semantic_class="HEURISTIC",
+                        unit="1",
+                        measurement_method="telemetry.psi_le from governance kernel vitality heuristic",
+                        monotonic_drivers=["honest memory integral (chain_length x seal_rate)"],
+                        falsification_test="recompute psi_le from the seal chain tail and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py governance block <- telemetry.psi_le",
+                    ),
+                    "peace_squared": measurement_contract(
+                        "peace_squared",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="DISPLAY_ONLY",
+                        derivation_ref="rest_routes.py governance block <- telemetry.peace2",
+                    ),
+                },
                 # Last VAULT999 seal — null if no seal yet or vault unavailable
                 "last_seal_timestamp": vault_last_seal,
                 # Hard/soft floor classification: COMPUTED from
@@ -5667,6 +5960,143 @@ def register_rest_routes(
                     "live" if telemetry.get("confidence") is not None else "unavailable"
                 ),
                 "timestamp": datetime.now(UTC).isoformat(),
+                # KX-010 (VD-888-KX010-2026-10-27): additive measurement
+                # contracts for the numeric gauges above (same classification
+                # as the /health thermodynamic block). Labels only.
+                "measurement_contract": {
+                    "entropy_delta": measurement_contract(
+                        "entropy_delta",
+                        semantic_class="UNKNOWN",
+                        unit="1",
+                        measurement_method="telemetry.dS from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel event entropy per report cycle"],
+                        falsification_test="recompute dS from the kernel event log for the same window",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
+                        derivation_ref="rest_routes.py /metrics/json <- telemetry.dS",
+                    ),
+                    "peace_squared": measurement_contract(
+                        "peace_squared",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="DISPLAY_ONLY",
+                        derivation_ref="rest_routes.py /metrics/json <- telemetry.peace2",
+                    ),
+                    "vitality_index": measurement_contract(
+                        "vitality_index",
+                        semantic_class="HEURISTIC",
+                        unit="1",
+                        measurement_method="telemetry.psi_le from governance kernel vitality heuristic",
+                        monotonic_drivers=["honest memory integral (chain_length x seal_rate)"],
+                        falsification_test="recompute psi_le from the seal chain tail and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py /metrics/json <- telemetry.psi_le",
+                    ),
+                    "echo_debt": measurement_contract(
+                        "echo_debt",
+                        semantic_class="DERIVED_MEASUREMENT",
+                        unit="1",
+                        measurement_method="telemetry.echoDebt counter from governance kernel event log",
+                        monotonic_drivers=["unacknowledged echo events in the event log"],
+                        falsification_test="recount echo events in the event log window",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py /metrics/json <- telemetry.echoDebt",
+                    ),
+                    "shadow": measurement_contract(
+                        "shadow",
+                        semantic_class="DERIVED_MEASUREMENT",
+                        unit="1",
+                        measurement_method="telemetry.shadow counter from governance kernel event log",
+                        monotonic_drivers=["shadow-class events in the event log"],
+                        falsification_test="recount shadow-class events in the event log window",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py /metrics/json <- telemetry.shadow",
+                    ),
+                    "confidence": measurement_contract(
+                        "confidence",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.confidence — self-report of the health endpoint (F7 note)",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="DISPLAY_ONLY",
+                        derivation_ref="rest_routes.py /metrics/json <- telemetry.confidence",
+                    ),
+                    "kappa_r": measurement_contract(
+                        "kappa_r",
+                        semantic_class="POLICY_CONSTANT",
+                        unit="1",
+                        measurement_method="telemetry.kappa_r from governance kernel structural baseline",
+                        monotonic_drivers="none",
+                        falsification_test="none — constant",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="POLICY_CONSTANT",
+                        decision_eligibility="DISPLAY_ONLY",
+                        derivation_ref="rest_routes.py /metrics/json <- telemetry.kappa_r",
+                    ),
+                    "tau_threshold_f2": measurement_contract(
+                        "tau_threshold_f2",
+                        semantic_class="UNKNOWN",
+                        unit="1",
+                        measurement_method="literal 0.99 emitted at build site; producing spec unpinned",
+                        monotonic_drivers="none",
+                        falsification_test="pin the floor-spec producer; a spec pin that disagrees with 0.99 falsifies this value",
+                        provenance_class="POLICY_DERIVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
+                        derivation_ref="rest_routes.py /metrics/json (threshold_ref unpinned)",
+                    ),
+                    "witness_human": measurement_contract(
+                        "witness_human",
+                        semantic_class="HEURISTIC",
+                        unit="1",
+                        measurement_method="witness leg human from collect_witness_legs() external probes",
+                        monotonic_drivers=["human-witness ledger legs"],
+                        falsification_test="re-probe collect_witness_legs(); a leg that changes without a ledger change falsifies",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py /metrics/json <- witness.human",
+                    ),
+                    "witness_ai": measurement_contract(
+                        "witness_ai",
+                        semantic_class="HEURISTIC",
+                        unit="1",
+                        measurement_method="witness leg ai from collect_witness_legs() external probes",
+                        monotonic_drivers=["ai-witness ledger legs"],
+                        falsification_test="re-probe collect_witness_legs(); a leg that changes without a ledger change falsifies",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py /metrics/json <- witness.ai",
+                    ),
+                    "witness_earth": measurement_contract(
+                        "witness_earth",
+                        semantic_class="HEURISTIC",
+                        unit="1",
+                        measurement_method="witness leg earth from collect_witness_legs() external probes",
+                        monotonic_drivers=["earth-witness ledger legs"],
+                        falsification_test="re-probe collect_witness_legs(); a leg that changes without a ledger change falsifies",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                        decision_eligibility="ADVISORY",
+                        derivation_ref="rest_routes.py /metrics/json <- witness.earth",
+                    ),
+                },
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )
@@ -7745,6 +8175,84 @@ def register_rest_routes(
                     "kappa_r": vitals.get("kappa_r"),
                     "echo_debt": vitals.get("echo_debt"),
                     "psi_le": vitals.get("vitality_index"),
+                    # KX-010 (VD-888-KX010-2026-10-27): additive contracts for
+                    # the remapped vitals. G_star and psi_le BOTH read
+                    # vitality_index (pre-existing mapping, untouched) — the
+                    # contracts name that alias honestly. Labels only.
+                    "measurement_contract": {
+                        "G_star": measurement_contract(
+                            "G_star (alias of vitality_index)",
+                            semantic_class="HEURISTIC",
+                            unit="1",
+                            measurement_method="same source as psi_le: vitals.vitality_index remap",
+                            monotonic_drivers=["honest memory integral (chain_length x seal_rate)"],
+                            falsification_test="recompute psi_le from the seal chain tail and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                            decision_eligibility="ADVISORY",
+                            derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.vitality_index",
+                        ),
+                        "dS": measurement_contract(
+                            "dS (alias of entropy_delta)",
+                            semantic_class="UNKNOWN",
+                            unit="1",
+                            measurement_method="same source as entropy_delta: vitals remap; producer instrument unpinned",
+                            monotonic_drivers=["kernel event entropy per report cycle"],
+                            falsification_test="recompute dS from the kernel event log for the same window",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
+                            derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.entropy_delta",
+                        ),
+                        "peace2": measurement_contract(
+                            "peace2 (alias of peace_squared)",
+                            semantic_class="POLICY_CONSTANT",
+                            unit="1",
+                            measurement_method="same source as peace_squared: vitals remap",
+                            monotonic_drivers="none",
+                            falsification_test="none — constant",
+                            provenance_class="POLICY_DERIVED",
+                            calibration_status="POLICY_CONSTANT",
+                            decision_eligibility="DISPLAY_ONLY",
+                            derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.peace_squared",
+                        ),
+                        "kappa_r": measurement_contract(
+                            "kappa_r",
+                            semantic_class="POLICY_CONSTANT",
+                            unit="1",
+                            measurement_method="vitals remap of thermodynamic.kappa_r structural baseline",
+                            monotonic_drivers="none",
+                            falsification_test="none — constant",
+                            provenance_class="POLICY_DERIVED",
+                            calibration_status="POLICY_CONSTANT",
+                            decision_eligibility="DISPLAY_ONLY",
+                            derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.kappa_r",
+                        ),
+                        "echo_debt": measurement_contract(
+                            "echo_debt",
+                            semantic_class="DERIVED_MEASUREMENT",
+                            unit="1",
+                            measurement_method="vitals remap of thermodynamic.echo_debt counter",
+                            monotonic_drivers=["unacknowledged echo events in the event log"],
+                            falsification_test="recount echo events in the event log window",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                            decision_eligibility="ADVISORY",
+                            derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.echo_debt",
+                        ),
+                        "psi_le": measurement_contract(
+                            "psi_le",
+                            semantic_class="HEURISTIC",
+                            unit="1",
+                            measurement_method="vitals remap of thermodynamic.vitality_index heuristic",
+                            monotonic_drivers=["honest memory integral (chain_length x seal_rate)"],
+                            falsification_test="recompute psi_le from the seal chain tail and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                            decision_eligibility="ADVISORY",
+                            derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.vitality_index",
+                        ),
+                    },
                 },
                 "verdict": vitals.get("verdict"),
                 "latency_ms": 0.0,
@@ -7772,6 +8280,59 @@ def register_rest_routes(
                     "f2_threshold": 0.99,
                     "psi_vitality": vitals.get("vitality_index"),
                     "peace2": vitals.get("peace_squared"),
+                    # KX-010 (VD-888-KX010-2026-10-27): additive contracts,
+                    # same classification as the /health governance block.
+                    # Labels only — floors_passing/verdict math untouched.
+                    "measurement_contract": {
+                        "tau_confidence_system": measurement_contract(
+                            "tau_confidence_system",
+                            semantic_class="POLICY_CONSTANT",
+                            unit="1",
+                            measurement_method="aggregate system readiness self-report via vitals remap (NOT per-claim F2 threshold)",
+                            monotonic_drivers="none",
+                            falsification_test="none — constant",
+                            provenance_class="POLICY_DERIVED",
+                            calibration_status="POLICY_CONSTANT",
+                            decision_eligibility="NONE",
+                            derivation_ref="rest_routes.py /api/live/all governance <- thermodynamic.confidence",
+                        ),
+                        "f2_threshold": measurement_contract(
+                            "f2_threshold",
+                            semantic_class="UNKNOWN",
+                            unit="1",
+                            measurement_method="literal 0.99 emitted at build site; producing spec unpinned",
+                            monotonic_drivers="none",
+                            falsification_test="pin the floor-spec producer; a spec pin that disagrees with 0.99 falsifies this value",
+                            provenance_class="POLICY_DERIVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
+                            derivation_ref="rest_routes.py /api/live/all governance (threshold_ref unpinned)",
+                        ),
+                        "psi_vitality": measurement_contract(
+                            "psi_vitality",
+                            semantic_class="HEURISTIC",
+                            unit="1",
+                            measurement_method="vitals remap of thermodynamic.vitality_index heuristic",
+                            monotonic_drivers=["honest memory integral (chain_length x seal_rate)"],
+                            falsification_test="recompute psi_le from the seal chain tail and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="PHASE_1_HEURISTIC_UNCALIBRATED",
+                            decision_eligibility="ADVISORY",
+                            derivation_ref="rest_routes.py /api/live/all governance <- thermodynamic.vitality_index",
+                        ),
+                        "peace2": measurement_contract(
+                            "peace2 (alias of peace_squared)",
+                            semantic_class="POLICY_CONSTANT",
+                            unit="1",
+                            measurement_method="same source as peace_squared: vitals remap",
+                            monotonic_drivers="none",
+                            falsification_test="none — constant",
+                            provenance_class="POLICY_DERIVED",
+                            calibration_status="POLICY_CONSTANT",
+                            decision_eligibility="DISPLAY_ONLY",
+                            derivation_ref="rest_routes.py /api/live/all governance <- thermodynamic.peace_squared",
+                        ),
+                    },
                     "vault999": health_payload.get("vault999_health", "unknown"),
                     "runtime_drift": health_payload.get("runtime_drift", False),
                 },
