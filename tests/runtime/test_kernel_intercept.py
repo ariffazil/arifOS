@@ -347,3 +347,42 @@ class TestRecordSealVsAuthorizationSeal:
         assert r["decision"] == "CLASSIFICATION_HOLD"
         assert r["constitutional_floor_triggered"] == "F2"
         assert "UNKNOWN_ACTION_CLASS_XYZ" in r["reason"]
+
+
+# ── P1 2026-10-27 — documented reversibility vocabulary ─────────────────────
+
+
+@pytest.mark.asyncio
+class TestDocumentedReversibilityVocabulary:
+    """The public judge schema documents reversible | hard | irreversible.
+
+    P1 judge-schema-reversibility-drift: 'HARD' was rejected as an unknown
+    class while the live schema advertised it, so a documented input produced
+    CLASSIFICATION_HOLD. 'hard' = hard to undo but still possible → R3.
+    """
+
+    async def test_hard_class_is_accepted_as_r3(self):
+        r = await _arif_kernel_intercept(
+            actor="test-agent",
+            intent="rotate a signing key with a documented rollback",
+            requested_capability="judge",
+            domain="arifOS",
+            reversibility_level="HARD",
+            blast_radius="low",
+        )
+        assert r["decision"] != "CLASSIFICATION_HOLD", r.get("reason")
+        assert "Unknown reversibility" not in str(r.get("reason", ""))
+        # R3 (costly reversible) carries a reverse-operation rollback hint.
+        assert r["rollback_instruction"] == "reverse_operation"
+
+    async def test_hard_is_case_insensitive(self):
+        for token in ("hard", "Hard "):
+            r = await _arif_kernel_intercept(
+                actor="test-agent",
+                intent="rotate a signing key with a documented rollback",
+                requested_capability="judge",
+                domain="arifOS",
+                reversibility_level=token,
+                blast_radius="low",
+            )
+            assert r["decision"] != "CLASSIFICATION_HOLD", token

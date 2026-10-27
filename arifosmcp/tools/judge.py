@@ -1970,6 +1970,10 @@ async def arif_judge(
             _intercept_meta = {
                 "kernel_intercept": _intercept_res,
                 "reversibility_level": _rev_param,
+                # P1 2026-10-27 (judge-schema-reversibility-drift): echo the
+                # submitted blast radius so the outer envelope can describe
+                # the judged action instead of only arif_judge's own passport.
+                "blast_radius": blast_radius,
                 "action_class": action_class or reversibility_level,
                 "constitutional_chain_id": _cc_id,
                 "state_hash": _jsh,
@@ -2598,7 +2602,9 @@ async def arif_judge(
             res.setdefault("standing_source", _standing_source or "act")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _tag_apex_scope(_standing_apex))
-                res.setdefault("apex_measurement_contracts", _apex_measurement_contracts(_standing_apex))
+                res.setdefault(
+                    "apex_measurement_contracts", _apex_measurement_contracts(_standing_apex)
+                )
         try:
             from arifosmcp.runtime.act_token import echo_canonical_session
 
