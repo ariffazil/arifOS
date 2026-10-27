@@ -194,6 +194,14 @@ if [ "$DRY" != "1" ]; then
 	mkdir -p /opt/arifos/releases
 	echo "$LEASE_CANDIDATE" >/opt/arifos/releases/deployed-commit
 
+	# 2026-10-27 (stabilization-tail B2): the runtime attestation also reads
+	# /opt/arifos/releases/release-manifest.json — a third stamp previously
+	# written only by the legacy deploy-release.sh wheel path. Leaving it
+	# stale made /health report drift=true against a proven-current artifact
+	# until a manual reconcile + restart. Rewrite it from LEASE_CANDIDATE,
+	# same provenance as the two stamps above.
+	"$RUNTIME_PYTHON" -c 'import json,sys,os; p="/opt/arifos/releases/release-manifest.json"; c=sys.argv[1]; m=json.load(open(p)) if os.path.exists(p) else {"release":1,"name":"Runtime Truth"}; m.update({"git_commit":c,"origin_main_commit":c[:10],"deployed_via":"deploy_local_body.sh"}); json.dump(m,open(p,"w"),indent=2)' "$LEASE_CANDIDATE" 2>/dev/null || true
+
 	echo "Restarting arifOS bare-metal service..."
 	systemctl restart arifos.service
 
