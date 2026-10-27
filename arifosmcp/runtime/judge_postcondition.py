@@ -91,21 +91,89 @@ def _evidence_has_provenance(evidence: dict[str, Any]) -> bool:
     return False
 
 
-def _iter_evidence_items(evidence: dict[str, Any]):
-    """Yield dict-shaped items from any list/dict value in the evidence envelope.
+# Epistemic keys a caller may use to declare an item unwitnessed (D2, 2026-10-28).
+_EPISTEMIC_KEYS = (
+    "tag",
+    "claim_class",
+    "truth_class",
+    "label",
+    "epistemic_tag",
+    "epistemic",
+    "epistemic_status",
+    "status",
+)
+# Tokens that mean "nobody witnessed this" (D4: KX-007 names three; code matched one).
+_UNWITNESSED_TOKENS = ("UNKNOWN", "UNK", "UNMEASURED", "UNVERIFIED", "UNWITNESSED")
 
-    The judge accepts evidence as a list of tagged items, a dict of items, or
-    a bare dict of fields; this walks every shape uniformly.
+
+def _coerce_evidence(evidence: Any) -> Any:
+    """Parse schema-legal transports: `evidence` may arrive as a JSON string (D1)."""
+    if isinstance(evidence, str):
+        txt = evidence.strip()
+        if txt.startswith("```"):  # fenced block from a chat client
+            txt = txt.strip("`")
+            if txt.lower().startswith("json"):
+                txt = txt[4:]
+        try:
+            return json.loads(txt)
+        except (ValueError, TypeError):
+            return None
+    return evidence
+
+
+def _iter_evidence_items(evidence: Any):
+    """Yield dict-shaped items from any caller transport.
+
+    Handles a list of items, {"facts": [...]} / {"items": [...]} envelopes,
+    a JSON string, and one level of nesting beneath either. A string that does
+    not parse is not an item; it is an opaque blob and yields nothing.
     """
-    for val in evidence.values():
-        if isinstance(val, list):
-            for item in val:
-                if isinstance(item, dict):
-                    yield item
-        elif isinstance(val, dict):
-            for item in val.values():
-                if isinstance(item, dict):
-                    yield item
+    data = _coerce_evidence(evidence)
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                yield item
+    elif isinstance(data, dict):
+        if "fact" in data or any(k in data for k in _EPISTEMIC_KEYS):
+            yield data
+            return
+        for val in data.values():
+            if isinstance(val, (list, dict, str)):
+                yield from _iter_evidence_items(val)
+
+
+def _collect_unwitnessed(evidence: Any) -> list[dict[str, Any]]:
+    """Items that self-declare an unwitnessed epistemic status, on any shape."""
+    found: list[dict[str, Any]] = []
+    for idx, item in enumerate(_iter_evidence_items(evidence)):
+        field = None
+        value = None
+        for key in _EPISTEMIC_KEYS:
+            candidate = item.get(key)
+            if isinstance(candidate, str) and candidate.strip().upper() in _UNWITNESSED_TOKENS:
+                field, value = key, candidate.strip().upper()
+                break
+        if field is None:
+            meta = item.get("meta")
+            if isinstance(meta, dict):
+                for key in _EPISTEMIC_KEYS:
+                    candidate = meta.get(key)
+                    if (
+                        isinstance(candidate, str)
+                        and candidate.strip().upper() in _UNWITNESSED_TOKENS
+                    ):
+                        field, value = f"meta.{key}", candidate.strip().upper()
+                        break
+        if field is not None:
+            found.append(
+                {
+                    "index": idx,
+                    "field": field,
+                    "value": value,
+                    "item": str(item.get("fact") or item)[:160],
+                }
+            )
+    return found
 
 
 def _sha256_text(text: str) -> str:
@@ -159,8 +227,16 @@ def check_judge_postcondition(
     eff_key = (effective_verdict or "").strip().upper()
     cand_text = candidate if isinstance(candidate, str) else json.dumps(candidate, default=str)
     cand_ok = _is_substantive(cand_text)
-    ev = evidence if isinstance(evidence, dict) else ({} if evidence is None else {"value": evidence})
+    _coerced = _coerce_evidence(evidence)
+    ev = (
+        _coerced
+        if isinstance(_coerced, dict)
+        else ({} if _coerced is None else {"value": _coerced})
+    )
     ev_ok = bool(ev) and any(_is_substantive(v) for v in ev.values())
+    # An unparseable string transport is opaque evidence, not absent evidence:
+    # disclose it so the caller is not left guessing why nothing was detected.
+    evidence_opaque_string = isinstance(evidence, str) and _coerced is None and bool(evidence.strip())
 
     report: dict[str, Any] = {
         "spec": SPEC,
@@ -171,7 +247,14 @@ def check_judge_postcondition(
         "missing_evidence": [],
         "ledger_precheck": None,
         "enforce_ledger_gate": ENFORCE_LEDGER_GATE,
+        "evidence_opaque_string": evidence_opaque_string,
     }
+
+    # Unwitnessed evidence is disclosed on EVERY path, including advisory modes
+    # (D3, 2026-10-28): mode=intercept is the pre-flight gate a caller uses to
+    # decide whether to proceed, so it may not hide an UNKNOWN-tagged item.
+    unwitnessed = _collect_unwitnessed(evidence)
+    report["unwitnessed_evidence"] = unwitnessed
 
     # Advisory modes: annotate and leave the verdict untouched.
     if mode_key in _ADVISORY_MODES:
@@ -208,26 +291,10 @@ def check_judge_postcondition(
         )
         return report
 
-    # 2026-10-27 (external-reality-test defect, confirmed in code): evidence
-    # items self-declared UNKNOWN were swallowed silently — the judge could
-    # report missing_evidence:[] while holding unwitnessed items (Claude
-    # external test passed an UNKNOWN-tagged CVSS figure; the gap never
-    # surfaced). Surface them on every verdict (advisory); the SEAL family
-    # additionally must not rest on self-declared unknowns.
-    unwitnessed: list[dict[str, Any]] = []
-    for _idx, _item in enumerate(_iter_evidence_items(ev)):
-        for _key in ("tag", "claim_class", "truth_class", "label", "epistemic_tag"):
-            _v = _item.get(_key)
-            if isinstance(_v, str) and _v.strip().upper() == "UNKNOWN":
-                unwitnessed.append(
-                    {
-                        "index": _idx,
-                        "field": _key,
-                        "item": str(_item.get("fact") or _item)[:160],
-                    }
-                )
-                break
-    report["unwitnessed_evidence"] = unwitnessed
+    # `unwitnessed` was computed once, before any early return (see above), so
+    # every path — advisory, empty-evidence, candidate-missing, full — discloses
+    # the same epistemic surface. The SEAL family additionally must not rest on
+    # self-declared unknowns.
 
     # SEAL family requires provenance-bearing evidence + channel integrity.
     if verdict_key in _SEAL_FAMILY:
@@ -250,14 +317,9 @@ def check_judge_postcondition(
         # evidence gaps (provenance / ledger / empty evidence via Rule #1);
         # only the stale cross-stage comparison stops vetoing. Final
         # cross-key coherence remains reconcile_decision_contract's job.
-        if (
-            report.get("verdict_channel_integrity") is False
-            and report["missing_evidence"]
-        ):
+        if report.get("verdict_channel_integrity") is False and report["missing_evidence"]:
             report["missing_evidence"] = [
-                m
-                for m in report["missing_evidence"]
-                if m != "verdict_channel_integrity"
+                m for m in report["missing_evidence"] if m != "verdict_channel_integrity"
             ]
             report["verdict_channel_integrity"] = None
         if report["missing_evidence"]:
