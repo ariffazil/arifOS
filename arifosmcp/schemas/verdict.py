@@ -700,10 +700,26 @@ class VerdictOutput(BaseModel):
         default=None, description="Philosophy-stabilized reasoning anchor"
     )
 
-    # ── Uncertainty (structured epistemic discipline) ──
-    epistemic_state: UncertaintyGeometry = Field(
-        default_factory=UncertaintyGeometry,
-        description="Structured uncertainty geometry — not just confidence number",
+    # ── Uncertainty & KX-009 Four Planes ──
+    epistemic_state: str | UncertaintyGeometry = Field(
+        default="NOT_VERIFIABLE",
+        description="KX-009 Plane 1: Epistemic state (SUPPORTED | PARTIALLY_SUPPORTED | INSUFFICIENT | CONFLICTING | REFUTED | NOT_VERIFIABLE) or UncertaintyGeometry",
+    )
+    authority_state: str = Field(
+        default="OBSERVE_ONLY",
+        description="KX-009 Plane 2: Actor authorization status (AUTHORIZED | OBSERVE_ONLY | DENIED | HUMAN_REQUIRED)",
+    )
+    action_disposition: str = Field(
+        default="REPORT_ONLY",
+        description="KX-009 Plane 3: Permitted next step (REPORT_ONLY | GATHER_EVIDENCE | REQUEST_AUTHORITY | ELIGIBLE_FOR_EXECUTION | BLOCKED)",
+    )
+    constitutional_verdict: str = Field(
+        default="HOLD",
+        description="KX-009 Plane 4: Constitutional transition verdict (SEAL | PARTIAL | SABAR | HOLD | VOID)",
+    )
+    remediation: dict[str, Any] = Field(
+        default_factory=dict,
+        description="KX-009 Typed remediation contract",
     )
 
     judge_contract: JudgeSealContract | None = Field(
