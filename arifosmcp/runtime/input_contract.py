@@ -129,6 +129,32 @@ def _is_absent(value: Any) -> bool:
     return value is None or (isinstance(value, str) and not value.strip())
 
 
+def normalize_request_fields(kwargs: dict[str, Any]) -> dict[str, list[str]]:
+    """Normalize and classify request input fields into distinct sets (KX-008).
+
+    - raw_present_fields: all keys present in the raw input dictionary.
+    - valid_fields: fields holding non-empty, non-null usable data.
+    - invalid_fields: fields explicitly provided but null or empty.
+    """
+    raw_present = sorted(str(k) for k in kwargs.keys())
+    valid: list[str] = []
+    invalid: list[str] = []
+
+    for k, v in kwargs.items():
+        if k.startswith("_") or k == "mode":
+            continue
+        if _is_absent(v):
+            invalid.append(str(k))
+        else:
+            valid.append(str(k))
+
+    return {
+        "raw_present_fields": raw_present,
+        "valid_fields": sorted(valid),
+        "invalid_fields": sorted(invalid),
+    }
+
+
 def _mode_of(tool_name: str, kwargs: dict[str, Any]) -> str:
     """Resolve the effective mode (caller-supplied or the signature default)."""
     return kwargs.get("mode") or DEFAULT_MODE.get(tool_name, "")
@@ -166,6 +192,9 @@ def enforce(tool_name: str, kwargs: dict[str, Any]) -> str | None:
     try:
         mode_map = MODE_REQUIRED.get(tool_name)
         mode = _mode_of(tool_name, kwargs)
+        norm = normalize_request_fields(kwargs)
+        got = norm["valid_fields"]
+
         if mode_map:
             # AND-requirements message from the table itself (NOT from
             # missing_params, which unions anyOf failures — an anyOf refusal
@@ -174,13 +203,6 @@ def enforce(tool_name: str, kwargs: dict[str, Any]) -> str | None:
             if required:
                 and_missing = [p for p in required if _is_absent(kwargs.get(p))]
                 if and_missing:
-                    got = sorted(
-                        k
-                        for k in kwargs
-                        if not k.startswith("_")
-                        and k != "mode"
-                        and not _is_absent(kwargs.get(k))
-                    )
                     return (
                         f"MISSING_REQUIRED_INPUT: {tool_name} mode='{mode}' requires "
                         f"{', '.join(and_missing)}. State it explicitly — the kernel no "
@@ -191,7 +213,6 @@ def enforce(tool_name: str, kwargs: dict[str, Any]) -> str | None:
 
         for group in MODE_ANY_REQUIRED.get(tool_name, {}).get(mode, ()):
             if all(_is_absent(kwargs.get(p)) for p in group):
-                got = sorted(k for k in kwargs if not k.startswith("_") and k != "mode")
                 return (
                     f"MISSING_REQUIRED_INPUT: {tool_name} mode='{mode}' requires at "
                     f"least one of {' or '.join(group)} — any one alternative "

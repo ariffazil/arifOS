@@ -546,6 +546,14 @@ class SessionManifest(BaseModel):
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     session_id: str | None = None
+    handle: str | None = Field(
+        default=None,
+        description="Canonical server-minted opaque runtime handle (KX-008)",
+    )
+    client_ref: str | None = Field(
+        default=None,
+        description="Optional caller correlation reference echoed back (KX-008)",
+    )
     session_token: str | None = None
     doctrine: dict[str, Any] | None = None
     timestamp: str | None = None

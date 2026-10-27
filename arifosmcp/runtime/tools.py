@@ -28511,12 +28511,16 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # advertised schema stays all-optional (wire back-compat); the contract
     # lives in runtime/input_contract.py — the one owner of this truth.
     def _input_contract_gate(tool: str, kw: dict[str, Any]) -> dict[str, Any] | None:
-        from arifosmcp.runtime.input_contract import enforce as _ic_enforce
-        from arifosmcp.runtime.input_contract import missing_params as _ic_missing
+        from arifosmcp.runtime.input_contract import (
+            enforce as _ic_enforce,
+            missing_params as _ic_missing,
+            normalize_request_fields as _ic_norm,
+        )
 
         msg = _ic_enforce(tool, kw)
         if msg is None:
             return None
+        norm_fields = _ic_norm(kw)
         # R3 (input-contract hardening 2026-10-15): name the missing fields
         # STRUCTURALLY, not only in prose — same truth as the message, from
         # the same single source (missing_params mirrors enforce).
@@ -28531,6 +28535,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 "failure_type": "MISSING_REQUIRED_INPUT",
                 "error_code": "MISSING_INPUT",
                 "missing_fields": _ic_missing(tool, kw),
+                "raw_present_fields": norm_fields["raw_present_fields"],
+                "valid_fields": norm_fields["valid_fields"],
+                "invalid_fields": norm_fields["invalid_fields"],
                 "tool": tool,
                 "mode": kw.get("mode"),
                 "next_safe_action": "Supply the field(s) named in missing_fields, then retry.",
@@ -28540,6 +28547,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 "failure_type": "MISSING_REQUIRED_INPUT",
                 "error_code": "MISSING_INPUT",
                 "missing_fields": _ic_missing(tool, kw),
+                "raw_present_fields": norm_fields["raw_present_fields"],
+                "valid_fields": norm_fields["valid_fields"],
+                "invalid_fields": norm_fields["invalid_fields"],
                 "violated_laws": ["F4_CLARITY"],
             },
         }

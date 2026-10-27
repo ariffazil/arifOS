@@ -1333,6 +1333,8 @@ def _project_light(
     is_sovereign_principal: bool = False,
     verbosity: str = "minimal",
     init_mode_label: str = "light",
+    client_ref: str | None = None,
+    handle: str | None = None,
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -1562,6 +1564,8 @@ def _project_light(
         "effective_state": _effective_state,
         # GATING (deprecated aliases — prefer effective_state)
         "session_id": sid,
+        "handle": handle or sid,
+        "client_ref": client_ref,
         "actor_id": actor_id,
         "canonical_id": _identity["canonical_id"],
         "identity_resolved": _identity,
@@ -2275,6 +2279,8 @@ def arif_init(
     actor_id: str | None = None,
     ack_irreversible: bool = False,
     session_id: str | None = None,
+    client_ref: str | None = None,
+    handle: str | None = None,
     declared_model_key: str | None = None,
     deployment_id: str = "vps_main_arifos",
     output_contract: str = "compact",
@@ -2342,6 +2348,15 @@ def arif_init(
     ("Salam ARIF", "Hi Arif", "Saya Arif") are normalized to canonical form
     before any identity resolution. See governance_identity.normalize_actor_id.
     """
+    # ── KX-008 Ingress normalization & compatibility adapter ──────────────
+    # Legacy session_id is translated to client_ref correlation label.
+    # The server mints and manages the authoritative runtime handle.
+    _session_id_deprecated_witness: bool = False
+    if session_id is not None and client_ref is None:
+        client_ref = session_id
+        _session_id_deprecated_witness = True
+    if handle is None and session_id is not None and str(session_id).startswith(("SEAL-", "hdl_")):
+        handle = session_id
     # ── Sovereign alias normalization (FORGED 2026-07-15) ──
     # Normalize natural-language actor_id variants to canonical form.
     # "Salam ARIF" → "arif", "Hi Arif" → "arif", "Saya Arif" → "arif"
@@ -3206,6 +3221,8 @@ def arif_init(
             intent=intent or sess.get("intent") or "light_bootstrap",
             authority_override=_light_band,
             verbosity=_verbosity,
+            client_ref=client_ref,
+            handle=sid,
         )
 
         # ── A5: verbosity-gated extra blocks ──────────────────────────
@@ -3492,6 +3509,8 @@ def arif_init(
             actor_verified=bool(sess.get("actor_verified", False)),
             result=header,
             session_id=sid,
+            handle=sid,
+            client_ref=client_ref,
             session_token=header.get("session_token"),
             doctrine=ARIF_DOCTRINE,
             # Session Contract v2 — temporal grounding context (additive)
@@ -4351,6 +4370,8 @@ def arif_init(
             intent=sess.get("intent") or intent or "constitutionally_bound_session",
             verbosity=_vb_full,
             init_mode_label="init",  # T3 2026-10-22: the full-init path must report what it is
+            client_ref=client_ref,
+            handle=sid,
         )
         # Belt: force effective_state consistent with authority_override
         if isinstance(header, dict):
@@ -4660,6 +4681,8 @@ def arif_init(
             actor_verified=identity_verified,  # DEPRECATED
             result=header,
             session_id=sid,
+            handle=sid,
+            client_ref=client_ref,
             session_token=header.get("session_token"),
             doctrine=ARIF_DOCTRINE,
             # Workstream 1: top-level authority_state for easy access
@@ -5094,6 +5117,59 @@ def arif_init(
             status="HOLD",
             result={},
             meta={"reason": "session_id required for revoke"},
+            doctrine=ARIF_DOCTRINE,
+        )
+
+    # ── RESUME MODE (KX-008 Canonical Handle Lookup) ─────────
+    if mode == "resume":
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        target_sid = handle or session_id
+        if not target_sid:
+            return _sm(
+                status="HOLD",
+                verdict="HOLD",
+                result={
+                    "valid": False,
+                    "error": "handle required for resume",
+                    "client_ref": client_ref,
+                },
+                meta={"reason": "handle required for resume"},
+                doctrine=ARIF_DOCTRINE,
+            )
+
+        if target_sid not in _SESSIONS:
+            return _sm(
+                status="HOLD",
+                verdict="HOLD",
+                result={
+                    "valid": False,
+                    "error": f"handle not found or expired: {target_sid}",
+                    "handle": target_sid,
+                    "client_ref": client_ref,
+                },
+                meta={
+                    "reason": f"handle not found or expired: {target_sid}",
+                    "error_code": "HANDLE_NOT_FOUND",
+                },
+                doctrine=ARIF_DOCTRINE,
+            )
+
+        sess_data = _SESSIONS[target_sid]
+        return _sm(
+            status="OK",
+            verdict="SEAL",
+            result={
+                "resumed": True,
+                "handle": target_sid,
+                "session_id": target_sid,
+                "client_ref": client_ref,
+                "actor_id": sess_data.get("actor_id"),
+                "authority": sess_data.get("authority", "OBSERVE_ONLY"),
+                "stage": sess_data.get("stage", "000"),
+            },
+            handle=target_sid,
+            session_id=target_sid,
             doctrine=ARIF_DOCTRINE,
         )
 
