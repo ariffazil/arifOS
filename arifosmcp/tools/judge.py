@@ -1119,6 +1119,14 @@ def _apply_bijaksana_advisory(result: Any, advisory: dict[str, Any]) -> None:
 
 
 @trace_tool("arif_judge")
+def _tag_apex_scope(apex: Any) -> dict[str, Any]:
+    """Label federation-baseline scalars so no reader mistakes them for session state."""
+    payload = dict(apex) if isinstance(apex, dict) else {"value": apex}
+    payload.setdefault("scope", "federation")
+    payload.setdefault("note", "Federation baseline, not this session's score.")
+    return payload
+
+
 def _evidence_postcondition_report(
     mode: str, candidate: str | None, evidence: Any, verdict: str
 ) -> dict:
@@ -2524,7 +2532,10 @@ async def arif_judge(
         data["session_token_ref"] = f"sct_ref:{token_ref}"
         data["standing_source"] = _standing_source or "act"
         if _standing_apex is not None:
-            data["apex_scalars"] = _standing_apex
+            # Lane 3 (2026-10-28): these scalars are the FEDERATION baseline, not
+            # this session's score. init already labels its copy; judge must too,
+            # or a reader cannot tell whose G=0.58 they are looking at.
+            data["apex_scalars"] = _tag_apex_scope(_standing_apex)
         data["authority"] = _standing_authority or "OBSERVE_ONLY"
         data["actor_verified"] = _standing_actor_verified
         if _standing_delta is not None:
@@ -2541,7 +2552,7 @@ async def arif_judge(
             res.setdefault("session_token_ref", f"sct_ref:{token_ref}")
             res.setdefault("standing_source", _standing_source or "act")
             if _standing_apex is not None:
-                res.setdefault("apex_scalars", _standing_apex)
+                res.setdefault("apex_scalars", _tag_apex_scope(_standing_apex))
         try:
             from arifosmcp.runtime.act_token import echo_canonical_session
 
