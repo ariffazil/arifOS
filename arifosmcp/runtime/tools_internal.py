@@ -594,7 +594,7 @@ async def _wrap_call(
         # Build metrics with safe access
         metrics = CanonicalMetrics()
         metrics.telemetry.ds = kernel_res.get("delta_s", 0.0)
-        metrics.telemetry.G_star = kernel_res.get("g_score", 0.0)
+        metrics.telemetry.G_star = kernel_res.get("g_score")
 
         envelope = forge_verdict(
             tool_id=tool_name,

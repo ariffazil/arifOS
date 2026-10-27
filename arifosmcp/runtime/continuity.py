@@ -159,11 +159,11 @@ def seal_runtime_envelope(
     # Populate ai witness from G★ so F3 gating has real teeth.
     # AI witness = min(g_star, confidence) — avoids inflating weak evidence.
     # Capped at 0.95 — only a verified human witness can reach 1.0.
-    if envelope.metrics and envelope.metrics.telemetry.G_star > 0.0:
+    if envelope.metrics and envelope.metrics.telemetry.G_star is not None:
         _g = envelope.metrics.telemetry.G_star
         _c = envelope.metrics.telemetry.confidence
-        # Only update if currently 0.0 to avoid overwriting a deliberately set value
-        if envelope.metrics.witness.ai == 0.0:
+        # Only update if currently unset to avoid overwriting a deliberately set value
+        if envelope.metrics.witness.ai in (None, 0.0) and _g > 0.0:
             # Use confidence if set; else fall back to g_star alone
             _ai_w = round(min(_g, _c) if _c > 0.0 else _g * 0.8, 3)
             envelope.metrics.witness.ai = min(_ai_w, 0.95)
@@ -172,7 +172,7 @@ def seal_runtime_envelope(
     # Earth witness reflects whether the system has a live connection to
     # persistent reality anchors (vault trail, session state, VPS health).
     # A non-zero earth score means the pipeline has a verifiable external anchor.
-    if envelope.metrics and envelope.metrics.witness.earth == 0.0:
+    if envelope.metrics and envelope.metrics.witness.earth in (None, 0.0):
         _earth_score = 0.0
         # Criterion 1: session is anchored (not global/anonymous)
         if resolved_session_id and not resolved_session_id.startswith("global"):
@@ -189,7 +189,7 @@ def seal_runtime_envelope(
     # Human witness reflects whether a sovereign actor is actively bound
     # to this session. A non-zero score means the pipeline has human
     # accountability, not just machine autonomy.
-    if envelope.metrics and envelope.metrics.witness.human == 0.0:
+    if envelope.metrics and envelope.metrics.witness.human in (None, 0.0):
         _human_score = 0.5  # baseline: session present (asynchronous)
         if resolved_session_id and not resolved_session_id.startswith("global"):
             _human_score = 1.0

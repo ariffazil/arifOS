@@ -448,7 +448,11 @@ class PNSContext(BaseModel):
 class TelemetryMetrics(BaseModel):
     ds: float = 0.0
     confidence: float = 0.85
-    G_star: float = 0.0
+    # P1 2026-10-27 (memory-audit-zero-laundering): G_star was `float = 0.0`.
+    # An unmeasured vitality reading then reached the wire as a measured zero
+    # (live: arif_memory mode=audit diagnostics.telemetry.G_star=0 beside
+    # verdict "ALIVE"). Unknown is None, never 0 (K2).
+    G_star: float | None = None
     peace2: float = 1.0
     omega_ortho: float = 1.0
     shadow: float = 0.0
@@ -464,9 +468,12 @@ class TelemetryBasis(BaseModel):
 
 
 class TripleWitness(BaseModel):
-    human: float = 0.0
-    ai: float = 0.0
-    earth: float = 0.0
+    # P1 2026-10-27 (memory-audit-zero-laundering): witness channels were
+    # `float = 0.0`. Zero reads as "measured absent" when the truth is
+    # "not measured". Unknown is None.
+    human: float | None = None
+    ai: float | None = None
+    earth: float | None = None
 
 
 class CanonicalMetrics(BaseModel):
