@@ -1412,6 +1412,58 @@ def _build_governance_status_payload() -> dict[str, Any]:
             ),
         }
 
+        # KX-010 gaps verdict (W1/S1, BINDING): fq.value and decomposition.raw
+        # are physics-labelled scalars inside the registered KX-010 scope —
+        # they carry the five-field contract, declared-uncalibrated,
+        # display-only. Values, thresholds and windows are untouched; the
+        # contract's value stays null (sibling wire field is authoritative).
+        _federation_fq["measurement_contract"] = {
+            "value": measurement_contract(
+                "fq.value",
+                semantic_class="UNKNOWN",
+                unit="1",
+                measurement_method=(
+                    "arifFlow qg.v0.3.1-vector quotient over the 100-sample "
+                    "receipt window; replicated unnormalized on /health via "
+                    "the federation probe (fq_truth.py)"
+                ),
+                monotonic_drivers=[
+                    "verified-receipt share of the window rises -> quotient rises",
+                    "executes without verify receipts accumulate -> quotient falls",
+                ],
+                falsification_test=(
+                    "recompute the quotient from /var/lib/arifflow/receipts.jsonl "
+                    "for the same window and compare"
+                ),
+                provenance_class="SERVER_OBSERVED",
+                calibration_status="UNCALIBRATED_DECLARED",
+                decision_eligibility="DISPLAY_ONLY",
+                derivation_ref="rest_routes.py federation fq block <- arifFlow :7073",
+                scope="federation",
+            ),
+            "raw": measurement_contract(
+                "fq.decomposition.raw",
+                semantic_class="UNKNOWN",
+                unit="1",
+                measurement_method=(
+                    "raw quotient exactly as published by arifFlow "
+                    "(NONE_PASSTHROUGH_QUOTIENT normalization)"
+                ),
+                monotonic_drivers=[
+                    "identical to fq.value — raw is its unnormalized source",
+                ],
+                falsification_test=(
+                    "recompute the quotient from /var/lib/arifflow/receipts.jsonl "
+                    "for the same window and compare with the raw field"
+                ),
+                provenance_class="SERVER_OBSERVED",
+                calibration_status="UNCALIBRATED_DECLARED",
+                decision_eligibility="DISPLAY_ONLY",
+                derivation_ref="rest_routes.py federation fq decomposition <- arifFlow :7073",
+                scope="federation",
+            ),
+        }
+
         # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
         _dims = _fq_data.get("vector", {}).get("dimensions", {})
         if "ds" in _dims and _dims["ds"].get("value") is not None:
