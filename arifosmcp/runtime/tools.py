@@ -1499,6 +1499,21 @@ _ALIAS_TO_CANON: dict[str, str] = {
 }
 
 
+def _canonical_tool_name(name: str) -> str:
+    """Resolve a transport-prefixed tool name to its canonical contract key.
+
+    MCP surfaces tools as ``arifos_arif_judge`` / ``arifos.arif_judge`` while the
+    affordance contracts are keyed ``arif_judge``. Without this the lookup misses
+    and returns the "_default" contract, whose purpose is "not yet declared" and
+    whose known flag is false — measured live 2026-10-27 (external reality test).
+    """
+    candidate = (name or "").strip()
+    for prefix in ("mcp__arifos__", "arifos_", "arifos.", "kernel_", "aaa_"):
+        if candidate.startswith(prefix):
+            candidate = candidate[len(prefix):]
+    return _ALIAS_TO_CANON.get(candidate, candidate)
+
+
 def get_full_affordance(tool_name: str) -> dict[str, Any]:
     """Return the complete cognitive + power affordance contract for an agent.
 
@@ -1512,7 +1527,7 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
 
     # Orphan kill: never leave arif_mind_reason as undeclared purpose.
     # _ALIAS_TO_CANON now lives at module level (shared with ingress_middleware).
-    lookup = _ALIAS_TO_CANON.get(tool_name, tool_name)
+    lookup = _canonical_tool_name(tool_name)
     purpose = dict(
         TOOL_PURPOSE_CONTRACTS.get(lookup)
         or TOOL_PURPOSE_CONTRACTS.get(tool_name)
