@@ -108,17 +108,41 @@ class SupabaseVaultStore:
         if not self.client:
             return False
         try:
+            # F7: unknown confidence stays null. Hardcoded 1.0 retired 2026-10-28 (SCHEMA-AUDIT §D.3)
+            confidence = (
+                event.payload.get("confidence")
+                if isinstance(event.payload, dict)
+                and isinstance(event.payload.get("confidence"), (int, float))
+                and not isinstance(event.payload.get("confidence"), bool)
+                and 0.0 <= event.payload.get("confidence") <= 1.0
+                else None
+            )
             data = {
                 "seal_id": event.event_id,
                 "agent_id": event.actor_id,
                 "action": event.event_type,
                 "payload": event.payload,
-                "confidence": 1.0,
+                "confidence": confidence,
                 "epoch": event.sealed_at.isoformat(),
                 "prev_hash": event.prev_hash,
                 "chain_hash": event.chain_hash,
                 "auth_lineage": event.auth_lineage,
             }
+            if isinstance(event.payload, dict):
+                for k in (
+                    "claim_id",
+                    "claim_text",
+                    "confidence_actor",
+                    "confidence_semantics",
+                    "evidence_refs",
+                    "verification_status",
+                    "confidence_produced_at",
+                    "verification_event_id",
+                    "verified_by",
+                    "outcome_observed_at",
+                ):
+                    if k in event.payload:
+                        data[k] = event.payload[k]
             self.client.table("arifosmcp_vault_seals").insert(data).execute()
             return True
         except Exception as e:
@@ -161,12 +185,34 @@ class PostgresVaultStore:
         if not pool:
             return False
         try:
+            confidence = (
+                event.payload.get("confidence")
+                if isinstance(event.payload, dict)
+                and isinstance(event.payload.get("confidence"), (int, float))
+                and not isinstance(event.payload.get("confidence"), bool)
+                and 0.0 <= event.payload.get("confidence") <= 1.0
+                else None
+            )
+            claim_id = event.payload.get("claim_id") if isinstance(event.payload, dict) else None
+            claim_text = event.payload.get("claim_text") if isinstance(event.payload, dict) else None
+            confidence_actor = event.payload.get("confidence_actor") if isinstance(event.payload, dict) else None
+            confidence_semantics = event.payload.get("confidence_semantics") if isinstance(event.payload, dict) else None
+            evidence_refs = json.dumps(event.payload.get("evidence_refs")) if isinstance(event.payload, dict) and event.payload.get("evidence_refs") is not None else None
+            verification_status = event.payload.get("verification_status", "EVENT_ONLY") if isinstance(event.payload, dict) else "EVENT_ONLY"
+            confidence_produced_at = event.payload.get("confidence_produced_at") if isinstance(event.payload, dict) else None
+            verification_event_id = event.payload.get("verification_event_id") if isinstance(event.payload, dict) else None
+            verified_by = event.payload.get("verified_by") if isinstance(event.payload, dict) else None
+            outcome_observed_at = event.payload.get("outcome_observed_at") if isinstance(event.payload, dict) else None
+
             async with pool.acquire() as conn:
                 await conn.execute(
                     "INSERT INTO vault_events "
                     "(event_id, event_type, session_id, actor_id, stage, verdict, "
-                    "payload, merkle_leaf, prev_hash, chain_hash, risk_tier, auth_lineage) "
-                    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+                    "payload, merkle_leaf, prev_hash, chain_hash, risk_tier, auth_lineage, "
+                    "confidence, claim_id, claim_text, confidence_actor, confidence_semantics, "
+                    "evidence_refs, verification_status, confidence_produced_at, verification_event_id, "
+                    "verified_by, outcome_observed_at) "
+                    "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)",
                     event.event_id,
                     event.event_type,
                     event.session_id,
@@ -179,6 +225,17 @@ class PostgresVaultStore:
                     event.chain_hash,
                     event.risk_tier,
                     json.dumps(event.auth_lineage) if event.auth_lineage else None,
+                    confidence,
+                    claim_id,
+                    claim_text,
+                    confidence_actor,
+                    confidence_semantics,
+                    evidence_refs,
+                    verification_status,
+                    confidence_produced_at,
+                    verification_event_id,
+                    verified_by,
+                    outcome_observed_at,
                 )
             return True
         except Exception as e:
