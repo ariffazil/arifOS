@@ -106,63 +106,74 @@ _EPISTEMIC_KEYS = (
 _UNWITNESSED_TOKENS = ("UNKNOWN", "UNK", "UNMEASURED", "UNVERIFIED", "UNWITNESSED")
 
 
-def _coerce_evidence(evidence: Any) -> Any:
-    """Parse schema-legal transports: `evidence` may arrive as a JSON string (D1)."""
-    if isinstance(evidence, str):
-        txt = evidence.strip()
-        if txt.startswith("```"):  # fenced block from a chat client
-            txt = txt.strip("`")
-            if txt.lower().startswith("json"):
-                txt = txt[4:]
-        try:
-            return json.loads(txt)
-        except (ValueError, TypeError):
-            return None
-    return evidence
+def _coerce_evidence(evidence: Any, _depth: int = 0) -> Any:
+    """Parse schema-legal transports: `evidence` may arrive as a JSON string (D1).
 
-
-def _iter_evidence_items(evidence: Any):
-    """Yield dict-shaped items from any caller transport.
-
-    Handles a list of items, {"facts": [...]} / {"items": [...]} envelopes,
-    a JSON string, and one level of nesting beneath either. A string that does
-    not parse is not an item; it is an opaque blob and yields nothing.
+    Repeated encoding (a JSON string wrapping a JSON string) is unwrapped up to
+    three times; beyond that the value is treated as opaque.
     """
+    if _depth >= 3 or not isinstance(evidence, str):
+        return evidence
+    txt = evidence.strip()
+    if txt.startswith("```"):  # fenced block from a chat client
+        txt = txt.strip("`")
+        if txt.lower().startswith("json"):
+            txt = txt[4:]
+    try:
+        parsed = json.loads(txt)
+    except (ValueError, TypeError):
+        return None
+    return _coerce_evidence(parsed, _depth + 1) if isinstance(parsed, str) else parsed
+
+
+def _iter_evidence_items(evidence: Any, _depth: int = 0):
+    """Yield candidate dicts from any depth of the caller's transport.
+
+    D2 follow-up (2026-10-28, verifier red-team): an item may nest its own
+    evidence list ("sources", "facts", "claims"), and an envelope may carry a
+    top-level "fact" summary. Yielding the container AND recursing into every
+    dict/list value means neither shape can hide a tagged child.
+    """
+    if _depth > 6:
+        return
     data = _coerce_evidence(evidence)
     if isinstance(data, list):
-        for item in data:
-            if isinstance(item, dict):
-                yield item
-    elif isinstance(data, dict):
-        if "fact" in data or any(k in data for k in _EPISTEMIC_KEYS):
-            yield data
-            return
-        for val in data.values():
-            if isinstance(val, (list, dict, str)):
-                yield from _iter_evidence_items(val)
+        for entry in data:
+            yield from _iter_evidence_items(entry, _depth + 1)
+        return
+    if not isinstance(data, dict):
+        return
+    yield data
+    for value in data.values():
+        if isinstance(value, (list, dict)):
+            yield from _iter_evidence_items(value, _depth + 1)
+
+
+def _witness_token(value: Any) -> str | None:
+    """Normalise a declared epistemic status; tolerate case, spacing, trailing punctuation."""
+    if not isinstance(value, str):
+        return None
+    token = value.strip().rstrip(".;,").strip().upper()
+    return token if token in _UNWITNESSED_TOKENS else None
 
 
 def _collect_unwitnessed(evidence: Any) -> list[dict[str, Any]]:
     """Items that self-declare an unwitnessed epistemic status, on any shape."""
     found: list[dict[str, Any]] = []
     for idx, item in enumerate(_iter_evidence_items(evidence)):
-        field = None
-        value = None
-        for key in _EPISTEMIC_KEYS:
-            candidate = item.get(key)
-            if isinstance(candidate, str) and candidate.strip().upper() in _UNWITNESSED_TOKENS:
-                field, value = key, candidate.strip().upper()
-                break
-        if field is None:
-            meta = item.get("meta")
-            if isinstance(meta, dict):
-                for key in _EPISTEMIC_KEYS:
-                    candidate = meta.get(key)
-                    if (
-                        isinstance(candidate, str)
-                        and candidate.strip().upper() in _UNWITNESSED_TOKENS
-                    ):
-                        field, value = f"meta.{key}", candidate.strip().upper()
+        field = value = None
+        for key, candidate in item.items():
+            if str(key).lower() in _EPISTEMIC_KEYS:
+                value = _witness_token(candidate)
+                if value:
+                    field = str(key)
+                    break
+        if field is None and isinstance(item.get("meta"), dict):
+            for key, candidate in item["meta"].items():
+                if str(key).lower() in _EPISTEMIC_KEYS:
+                    value = _witness_token(candidate)
+                    if value:
+                        field = f"meta.{key}"
                         break
         if field is not None:
             found.append(
