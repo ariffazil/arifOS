@@ -144,6 +144,7 @@ def build_authority_state_for_actor(
         # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
         # `_actor_key_basa in _BASA_LIST`, which missed `name/FI-nnn`).
         from arifosmcp.runtime.session_auth import exempt_actor_band as _basa_band
+
         _is_exempt = _basa_band(safe_actor) is not None
     except ImportError:
         pass
@@ -426,6 +427,7 @@ def _strip_control_chars(s: str) -> str:
     """
     return "".join(ch for ch in s if (ord(ch) >= 0x20 and ord(ch) != 0x7F))
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # HARDENED DATA STRUCTURES
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -657,6 +659,7 @@ async def init_anchor(
     # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
     # `_actor_key_exempt in _EXEMPT_LIST`, which missed `name/FI-nnn`).
     from arifosmcp.runtime.session_auth import exempt_actor_band as _exempt_band_c
+
     _exempt_band_resolved = _exempt_band_c(_dn)
     if _exempt_band_resolved:
         _exempt_authority = _exempt_band_resolved.upper()
@@ -785,6 +788,37 @@ async def init_anchor(
         "omega_0": 0.04,
         "paradox_vector": "VOID + SABAR",
         "note": "This system is incomplete. Truth > Proof.",
+        # KX-010 (VD-888-KX010-2026-10-27): additive measurement contract for
+        # omega_0 only. Value 0.04 is untouched — this label names the promise
+        # the constant can keep (display) and the one it cannot (decision).
+        "measurement_contract": {
+            "measurement_id": "kx010.omega_0",
+            "metric_name": "omega_0",
+            "semantic_class": "POLICY_CONSTANT",
+            "value": None,
+            "unit": "1",
+            "dimension": "1",
+            "measurement_method": "constant (hard-coded 0.04)",
+            "monotonic_drivers": "none",
+            "producer": "arifosmcp.runtime.megaTools.tool_01_init_anchor",
+            "source_inputs": [],
+            "derivation_ref": "arifosmcp/runtime/megaTools/tool_01_init_anchor.py:785",
+            "observed_at": None,
+            "valid_from": None,
+            "valid_until": None,
+            "scope": "arif_init envelope (godel_lock)",
+            "population_or_system": "arifOS kernel MCP bootstrap",
+            "calibration_status": "POLICY_CONSTANT",
+            "calibration_ref": None,
+            "uncertainty": None,
+            "expected_range": None,
+            "threshold_ref": None,
+            "falsification_test": "none (constant)",
+            "falsifier": "none (constant)",
+            "decision_eligibility": "DISPLAY_ONLY",
+            "provenance_class": "POLICY_DERIVED",
+            "schema_version": "kx010.v1",
+        },
     }
 
     # Build Response Payload
@@ -840,6 +874,7 @@ async def init_anchor(
         # 2026-09-30 (333-AGI): shared spelling-tolerant resolver (was a raw
         # `.get(_actor_key_t3a)`, which missed `name/FI-nnn`).
         from arifosmcp.runtime.session_auth import exempt_actor_band as _exempt_band_t3a
+
         _exempt_authority = _exempt_band_t3a(_dn)
         _authority_level = (
             _exempt_authority  # T3a: exempt actors get their listed level

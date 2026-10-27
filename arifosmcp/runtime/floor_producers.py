@@ -30,6 +30,103 @@ from typing import Any
 
 FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
 
+# ── KX-010 measurement-contract labels (VD-888-KX010-APEX-MEASUREMENT-CONTRACT-2026-10-27) ──
+# ADDITIVE wire data only: these keys describe the measurement, they are NEVER
+# read by status/score math (A6 condition 2 — runtime_floors_status,
+# floors_pass aggregation, and verdict computation stay frozen). F3/F4/F5/F9
+# carry the A6 labels (decision_eligibility=NONE + known_contradiction) naming
+# the live same-payload contradiction deferred to KX-011.
+_A6_CONTRADICTION = (
+    "measurement_basis.unmeasured_floors lists this floor while a measured "
+    "score is published (KX-011)"
+)
+
+_FLOOR_CONTRACT_LABELS: dict[str, dict[str, Any]] = {
+    "F2": {
+        "falsification_test": (
+            "re-derive floor provenance from the same event log; an origin "
+            "claiming a real measurement while the value equals the placeholder "
+            "default falsifies it"
+        ),
+    },
+    "F3": {
+        "falsification_test": (
+            "re-probe collect_witness_legs(); a coherence value that changes "
+            "without a leg-ledger change falsifies it"
+        ),
+        "decision_eligibility": "NONE",
+        "known_contradiction": _A6_CONTRADICTION,
+    },
+    "F4": {
+        "falsification_test": (
+            "recompute ΔS from the kernel event log for the same window; a "
+            "placeholder 0.80 baseline presented as a measured ΔS falsifies it"
+        ),
+        "decision_eligibility": "NONE",
+        "known_contradiction": _A6_CONTRADICTION,
+    },
+    "F5": {
+        "falsification_test": (
+            "re-read the seal chain tail; an IRREVERSIBLE seal without human "
+            "ratification falsifies non-destructive power"
+        ),
+        "decision_eligibility": "NONE",
+        "known_contradiction": _A6_CONTRADICTION,
+    },
+    "F6": {
+        "falsification_test": (
+            "re-run the six F6 meters and the witness lane; a meter reporting "
+            "PASS with missing inputs falsifies it"
+        ),
+    },
+    "F8": {
+        "falsification_test": ("contradiction_register.json contains zero active entries"),
+    },
+    "F9": {
+        "falsification_test": (
+            "recompute the shadow ratio from the same event log; a placeholder "
+            "0.0 presented as a measured shadow falsifies it"
+        ),
+        "decision_eligibility": "NONE",
+        "known_contradiction": _A6_CONTRADICTION,
+    },
+    "F10": {
+        "falsification_test": (
+            "re-run F10OntologyGuard over the same inbox corpus; a detector "
+            "that clears the positive fixtures is blind and falsifies the "
+            "measurement"
+        ),
+    },
+    "F11": {
+        "falsification_test": (
+            "re-read the arifFlow receipt ledger tail; a seal whose actor "
+            "attribution cannot be recomputed falsifies it"
+        ),
+    },
+    "F12": {
+        "falsification_test": (
+            "re-evaluate auto_sign_allowed() against ARIFOS_TRUST_AUTO_SIGN; a "
+            "declared default that differs from the effective default falsifies it"
+        ),
+    },
+    "F13": {
+        "falsification_test": (
+            "re-read the seal chain tail; a machine SEAL without a human "
+            "ratifier or signature falsifies it"
+        ),
+    },
+}
+
+# Default for floors with no producer wired here (F3/F4/F9 land here) and for
+# any unknown floor id: the honest statement is that no instrument exists in
+# THIS module, so the entry cannot claim a falsifiable measurement yet.
+_NO_PRODUCER_CONTRACT_LABELS: dict[str, Any] = {
+    "falsification_test": (
+        "no producer instrument in floor_producers._PRODUCERS; wire an "
+        "instrument and observe the placeholder score change to falsify"
+    ),
+}
+
 
 def _now_iso() -> str:
     """P4 (F13 D2 2026-10-23): producer WHEN slot — emission time of THIS
@@ -120,18 +217,30 @@ def collect_floor_producer_signal(
     """
     sources = sources or {}
     handler = _PRODUCERS.get(floor_id)
+    # KX-010: attach contract labels WITHOUT overwriting anything a producer
+    # already set (setdefault everywhere — additive discipline).
+    _labels = _FLOOR_CONTRACT_LABELS.get(floor_id, _NO_PRODUCER_CONTRACT_LABELS)
     if handler is None:
-        return {
+        _signal = {
             "floor": floor_id,
             "status": "UNMEASURED",
             "origin": "unmeasured_default:no_producer",
             "measured_at": _now_iso(),
+            "unit": "1",
         }
+        for _k, _v in _labels.items():
+            _signal.setdefault(_k, _v)
+        return _signal
     signal = handler(sources)
     if isinstance(signal, dict):
         # P4 (F13 D2 2026-10-23): every producer signal carries its own WHEN
         # slot — stamped at emission unless the producer already dated itself.
         signal.setdefault("measured_at", _now_iso())
+        # KX-010: additive contract labels (unit + falsification_test, and the
+        # A6 pair for F3/F4/F5/F9). Labels only — no status/score math change.
+        signal.setdefault("unit", "1")
+        for _k, _v in _labels.items():
+            signal.setdefault(_k, _v)
     return signal
 
 
