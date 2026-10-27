@@ -53,6 +53,29 @@ def test_blank_string_counts_as_missing():
     assert msg is not None and "actor_id" in msg and "intent" in msg
 
 
+def test_rejection_message_never_lists_absent_params_as_received():
+    # 2026-10-27 external-test defect: arif_observe mode=ingest with url=None
+    # was rejected with "Params received: [..., 'url']" — the message listed a
+    # null param as "received", contradicting itself. Absent (None/blank)
+    # params must not appear in the received list.
+    msg = enforce(
+        "arif_observe",
+        {
+            "mode": "ingest",
+            "query": "claim text",
+            "url": None,
+            "session_id": "SEAL-x",
+            "session_token": "tok",
+            "actor_id": "a",
+        },
+    )
+    assert msg is not None and "requires url" in msg
+    received = msg.split("Params received: [")[1].split("]")[0]
+    assert "'url'" not in received, f"url listed as received despite being None: {received}"
+    assert "'query'" in received
+    assert "'session_id'" in received
+
+
 def test_resume_requires_session():
     assert enforce("arif_init", {"mode": "resume"}) is not None
     assert enforce("arif_init", {"mode": "resume", "session_id": "sess-1"}) is None

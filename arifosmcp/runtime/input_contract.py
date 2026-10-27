@@ -174,7 +174,13 @@ def enforce(tool_name: str, kwargs: dict[str, Any]) -> str | None:
             if required:
                 and_missing = [p for p in required if _is_absent(kwargs.get(p))]
                 if and_missing:
-                    got = sorted(k for k in kwargs if not k.startswith("_") and k != "mode")
+                    got = sorted(
+                        k
+                        for k in kwargs
+                        if not k.startswith("_")
+                        and k != "mode"
+                        and not _is_absent(kwargs.get(k))
+                    )
                     return (
                         f"MISSING_REQUIRED_INPUT: {tool_name} mode='{mode}' requires "
                         f"{', '.join(and_missing)}. State it explicitly — the kernel no "
