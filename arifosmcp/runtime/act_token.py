@@ -477,6 +477,37 @@ def unmeasured_apex() -> dict[str, Any]:
     }
 
 
+# P1 2026-10-27 (apex-scalar-disambiguation): one payload can carry two
+# different G values — the federation aggregate (7-day tool-call metrics,
+# no actor filter) and an actor-scoped reading frozen into the session token
+# at mint. Neither carried a scope, so a reader could not tell which number
+# described what (measured live: 0.5798 beside 0.3663, same response).
+# Every APEX block must say which system it describes. Values are never
+# rewritten — only labelled.
+APEX_SCOPE_FEDERATION = "federation"
+APEX_SCOPE_ACTOR = "actor"
+APEX_FEDERATION_NOTE = "Federation baseline (7-day tool-call metrics), not this session's score."
+APEX_ACTOR_NOTE = (
+    "Actor-scoped 7-day reading frozen into this session's token at mint; "
+    "not the federation aggregate."
+)
+
+
+def tag_apex_scope(
+    apex: Any,
+    *,
+    scope: str = APEX_SCOPE_FEDERATION,
+    note: str | None = None,
+) -> dict[str, Any]:
+    """Label APEX scalars with the system they describe (idempotent)."""
+    payload = dict(apex) if isinstance(apex, dict) else {"value": apex}
+    payload.setdefault("scope", scope)
+    if note is None:
+        note = APEX_FEDERATION_NOTE if scope == APEX_SCOPE_FEDERATION else APEX_ACTOR_NOTE
+    payload.setdefault("note", note)
+    return payload
+
+
 def _b64url_encode(raw: bytes) -> str:
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
@@ -789,18 +820,21 @@ def _claims_to_standing(
 
         _live = compute_apex_from_metrics()
         if _live.get("sample_size", 0) > 0:
-            apex = {
-                "G": _live.get("G"),
-                "C_dark": _live.get("C_dark"),
-                "W3": _live.get("W3", None),
-                "h": _live.get("h", None),
-                "sample_size": _live.get("sample_size"),
-                "source": "apex_primitives.py",
-            }
+            apex = tag_apex_scope(
+                {
+                    "G": _live.get("G"),
+                    "C_dark": _live.get("C_dark"),
+                    "W3": _live.get("W3", None),
+                    "h": _live.get("h", None),
+                    "sample_size": _live.get("sample_size"),
+                    "source": "apex_primitives.py",
+                },
+                scope=APEX_SCOPE_FEDERATION,
+            )
         else:
-            apex = unmeasured_apex()
+            apex = tag_apex_scope(unmeasured_apex(), scope=APEX_SCOPE_FEDERATION)
     except Exception:
-        apex = unmeasured_apex()
+        apex = tag_apex_scope(unmeasured_apex(), scope=APEX_SCOPE_FEDERATION)
     return Standing(
         valid=True,
         source=source,
