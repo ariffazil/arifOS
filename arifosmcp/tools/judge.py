@@ -1118,6 +1118,50 @@ def _apply_bijaksana_advisory(result: Any, advisory: dict[str, Any]) -> None:
     # else: BRIDGE_PROCEED → advisory recorded, verdict untouched
 
 
+_APEX_DRIVERS = {
+    "G": ["A", "P", "E", "X"],
+    "C_dark": ["A", "P", "X"],
+    "A": ["in_lease share of windowed tool calls"],
+    "P": ["has_evidence share of windowed tool calls"],
+    "E": ["execution success share of execution-classed outcomes"],
+    "X": ["dry_run_first share of windowed tool calls"],
+    "W3": ["resolved_witness.human", "resolved_witness.ai", "resolved_witness.earth"],
+    "h": ["P"],
+    "QDF": ["G", "C_dark"],
+}
+
+
+def _apex_measurement_contracts(apex: Any) -> dict[str, Any]:
+    """KX-010: per-scalar five-field contract for the judge wire (additive).
+
+    /health publishes apex_scalars as {value, status, measurement_contract}.
+    The judge standing echo flattened them to bare numbers, so a physics-labelled
+    number reached the judge wire with no meaning/unit/method/drivers/falsifier.
+    This returns the contract map as a SIBLING key — the numbers keep their shape,
+    so no consumer breaks (default output shape untouched).
+    """
+    if not isinstance(apex, dict):
+        return {}
+    try:
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _APEX_CONTRACT_KW,
+            measurement_contract,
+        )
+    except Exception:
+        return {}
+    contracts: dict[str, Any] = {}
+    for scalar in apex:
+        if scalar in ("sample_size", "source", "note", "scope"):
+            continue
+        contracts[scalar] = measurement_contract(
+            scalar,
+            monotonic_drivers=_APEX_DRIVERS.get(scalar, []),
+            decision_eligibility="NONE" if scalar == "g_authorization" else "ADVISORY",
+            **_APEX_CONTRACT_KW,
+        )
+    return contracts
+
+
 @trace_tool("arif_judge")
 def _tag_apex_scope(apex: Any) -> dict[str, Any]:
     """Label federation-baseline scalars so no reader mistakes them for session state."""
@@ -2536,6 +2580,7 @@ async def arif_judge(
             # this session's score. init already labels its copy; judge must too,
             # or a reader cannot tell whose G=0.58 they are looking at.
             data["apex_scalars"] = _tag_apex_scope(_standing_apex)
+            data["apex_measurement_contracts"] = _apex_measurement_contracts(_standing_apex)
         data["authority"] = _standing_authority or "OBSERVE_ONLY"
         data["actor_verified"] = _standing_actor_verified
         if _standing_delta is not None:
@@ -2553,6 +2598,7 @@ async def arif_judge(
             res.setdefault("standing_source", _standing_source or "act")
             if _standing_apex is not None:
                 res.setdefault("apex_scalars", _tag_apex_scope(_standing_apex))
+                res.setdefault("apex_measurement_contracts", _apex_measurement_contracts(_standing_apex))
         try:
             from arifosmcp.runtime.act_token import echo_canonical_session
 
