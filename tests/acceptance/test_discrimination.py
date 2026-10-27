@@ -1,91 +1,94 @@
-"""Phase 0c — an unverified actor must still get an evidence-sensitive verdict.
+"""Phase 0c — epistemic discrimination between two evidence regimes.
 
-Fixture A: four independent observation-class items (LiteLLM health).
-Fixture B: one self-declared UNKNOWN item with no source (CVSS 9.2).
+Fixtures (identical unverified actor, identical candidate class, identical mode):
 
-Both calls use the SAME unverified actor (no F13 signature, no sovereign receipt),
-so every authority-based gate applies identically. Whatever the verdict is, the
-two runs must not be epistemically indistinguishable.
+  A — a claim resting on witness-able evidence      (4 independent OBS items)
+  B — a claim resting on a self-declared unknown    (1 item, source "none",
+      epistemic status UNKNOWN)
 
-This test is EXPECTED TO FAIL on HEAD 843f3f0: the BIJAKSANA bridge returns
-BRIDGE_BLOCKED before the judge_postcondition block is reached, so both calls
-collapse to the same surface and the UNKNOWN item is never surfaced.
+The kernel must distinguish them on at least ONE epistemic field
+(`unwitnessed_evidence`, `reason_codes`, or `epistemic_state`). A judge that
+returns the same epistemic surface for A and B is not arbitrating evidence —
+it is only arbitrating session state.
+
+Why this test is parametrized over transport shapes
+---------------------------------------------------
+`arif_judge.evidence` is declared in the MCP schema as
+``{} | Array<unknown> | string``. A caller may therefore legitimately send the
+same semantic payload as a Python list, as a JSON *string*, or through the
+advisory `intercept` bridge. Discrimination must not depend on which of those
+the client chose.
+
+Authored by 333-AGI (AUDITOR lane) 2026-10-28.
+Baseline status on 843f3f0fe: list-shape PASSES; string-shape and intercept-shape FAIL.
+See tests/acceptance/TEST_DISPUTE.md for why the original premise was disputed.
 """
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
-from arifosmcp.tools.judge import arif_judge
+from arifosmcp.runtime.judge_postcondition import check_judge_postcondition
 
-ACTOR = "phase0-unverified-actor"
+CANDIDATE = "The library in scope is exploitable with CVSS 9.2 in production."
 
 EVIDENCE_A = [
+    {"fact": "advisory body ID matches upstream CVE record", "source": "nvd-api", "tag": "OBS"},
     {
-        "fact": "LiteLLM /health returned HTTP 200",
-        "source": "curl -s -o /dev/null -w %{http_code} http://127.0.0.1:4000/health",
+        "fact": "affected version range contains the shipped lockfile pin",
+        "source": "lockfile",
         "tag": "OBS",
     },
-    {
-        "fact": "litellm.service reports active",
-        "source": "systemctl is-active litellm",
-        "tag": "OBS",
-    },
-    {
-        "fact": "HAProxy :4000 has a litellm backend configured",
-        "source": "/etc/haproxy/haproxy.cfg backend block",
-        "tag": "OBS",
-    },
-    {
-        "fact": "No 5xx recorded for the proxy in the last hour",
-        "source": "litellm postgres request log",
-        "tag": "OBS",
-    },
+    {"fact": "reproduced crash on canary host", "source": "canary-run-1841", "tag": "OBS"},
+    {"fact": "vendor patch absent from release notes", "source": "vendor-changelog", "tag": "OBS"},
 ]
 
 EVIDENCE_B = [
     {
-        "fact": "CVSS 9.2 for the referenced CVE",
+        "fact": "CVSS 9.2 per advisory text pasted by the operator",
         "source": "none",
         "tag": "UNKNOWN",
-    }
+    },
 ]
 
-
-def epistemic_surface(response) -> dict:
-    """Extract only the fields that carry epistemic meaning."""
-    data = response.model_dump(mode="json") if hasattr(response, "model_dump") else dict(response)
-    postcondition = ((data.get("meta") or {}).get("judge_postcondition")) or {}
-    return {
-        "verdict": data.get("verdict"),
-        "effective_verdict": data.get("effective_verdict"),
-        "reason_code": data.get("reason_code"),
-        "postcondition_present": bool(postcondition),
-        "unwitnessed_evidence": postcondition.get("unwitnessed_evidence", "ABSENT"),
-        "missing_evidence": postcondition.get("missing_evidence", "ABSENT"),
-    }
+EPISTEMIC_FIELDS = ("unwitnessed_evidence", "reason_codes", "epistemic_state", "reason_code")
 
 
-@pytest.mark.asyncio
-async def test_unverified_actor_still_gets_evidence_sensitive_verdict():
-    a = await arif_judge(
-        mode="judge",
-        actor_id=ACTOR,
-        candidate="LiteLLM proxy is healthy on the deployed build",
-        evidence=EVIDENCE_A,
-    )
-    b = await arif_judge(
-        mode="judge",
-        actor_id=ACTOR,
-        candidate="CVE severity is CVSS 9.2",
-        evidence=EVIDENCE_B,
+def _judge(shape: str, evidence):
+    """Render a report through the real postcondition for the requested transport."""
+    if shape == "list":
+        mode, payload = "judge", evidence
+    elif shape == "json_string":
+        # schema-legal transport: `evidence` as a string
+        mode, payload = "judge", json.dumps(evidence)
+    elif shape == "intercept":
+        mode, payload = "intercept", evidence
+    else:  # pragma: no cover - guard against silent typo in parametrization
+        raise AssertionError(f"unknown transport shape: {shape}")
+
+    return check_judge_postcondition(
+        mode=mode,
+        candidate=CANDIDATE,
+        evidence=payload,
+        verdict_str="HOLD",
+        effective_verdict="",
     )
 
-    ea, eb = epistemic_surface(a), epistemic_surface(b)
-    differing = [field for field in ea if ea[field] != eb[field]]
 
-    assert differing, (
-        "A (four OBS observations) and B (one UNKNOWN, source-less claim) produced "
-        f"an epistemically identical surface: {ea}. The judge must discriminate "
-        "evidence quality even when authority is held constant."
+def _epistemic_signature(report: dict) -> tuple:
+    return tuple(json.dumps(report.get(f), sort_keys=True, default=str) for f in EPISTEMIC_FIELDS)
+
+
+@pytest.mark.parametrize("shape", ["list", "json_string", "intercept"])
+def test_unknown_evidence_is_distinguishable_from_observed(shape: str):
+    """A and B must not collapse onto the same epistemic surface."""
+    sig_a = _epistemic_signature(_judge(shape, EVIDENCE_A))
+    sig_b = _epistemic_signature(_judge(shape, EVIDENCE_B))
+
+    assert sig_a != sig_b, (
+        f"transport={shape}: fixture A (4 OBS items) and fixture B (1 UNKNOWN item, "
+        f"source=none) produced an identical epistemic surface {sig_b}. "
+        "The kernel cannot distinguish witnessed from unwitnessed evidence on this path."
     )

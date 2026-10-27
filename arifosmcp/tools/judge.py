@@ -25,7 +25,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 # HOLD_888 verdict class (sovereign-hold), NOT the tool sigil.
 # Live wire advertises: "KERNEL 666". Do not "correct" 666 -> 888; the map wins.
 
-
 from __future__ import annotations
 
 import hashlib
@@ -1120,6 +1119,32 @@ def _apply_bijaksana_advisory(result: Any, advisory: dict[str, Any]) -> None:
 
 
 @trace_tool("arif_judge")
+def _evidence_postcondition_report(
+    mode: str, candidate: str | None, evidence: Any, verdict: str
+) -> dict:
+    """Disclose-only evidence postcondition for EARLY-RETURN verdict paths.
+
+    The full postcondition runs at the end of arif_judge. Every early return —
+    L11 session-not-found, BRIDGE_BLOCKED, echo_standing — skips it, which made
+    UNKNOWN-tagged or source-less evidence invisible to the caller (external
+    reality test 2026-10-27). Attaching the same report here is additive: it
+    never rewrites the verdict, and it never raises.
+    """
+    try:
+        from arifosmcp.runtime.judge_postcondition import check_judge_postcondition
+
+        return check_judge_postcondition(
+            mode=mode,
+            candidate=candidate,
+            evidence=evidence,
+            verdict_str=str(verdict or ""),
+            effective_verdict="",
+        )
+    except Exception as exc:  # noqa: BLE001 — disclosure must never break a verdict
+        logger.warning("early-path postcondition non-fatal: %s", exc)
+        return {"applied": False, "error": type(exc).__name__}
+
+
 async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,
@@ -1245,6 +1270,11 @@ async def arif_judge(
                 "failure_type": "ARIF_SESSION_NOT_FOUND",
                 "detail": "Call arif_init(mode='init') first to bind a session.",
                 "remediation": _rem,
+                # Lane 1 (2026-10-28): an unverified actor gets the same evidence
+                # disclosure as a verified one — the HOLD must say WHY.
+                "judge_postcondition": _evidence_postcondition_report(
+                    mode, candidate, evidence, "HOLD"
+                ),
             },
         }
 
@@ -2110,6 +2140,13 @@ async def arif_judge(
         # before its definition would fail with SAFE_VOID_FALLBACK. The
         # bridge meta is load-bearing for audit; _echo_standing's standing
         # copy is additive (not required for BLOCK semantics).
+        #
+        # Lane 1 (2026-10-28): the evidence postcondition must still be attached
+        # here. It is computed at ~line 2415, but this early return means the
+        # BRIDGE_BLOCKED path never reached it — so an UNKNOWN-tagged, source-less
+        # item produced no unwitnessed_evidence at all. Disclose-only: the blocked
+        # verdict stays HOLD; the report is attached for the caller to read.
+        _pc_blocked = _evidence_postcondition_report(mode, candidate, evidence, "HOLD")
         return VerdictOutput(
             verdict=VerdictCode.HOLD,
             reasons=[
@@ -2129,6 +2166,7 @@ async def arif_judge(
                 "dial_states": _bridge_advisory["dial_states"],
                 "entropy_receipt_in": entropy_receipt,
                 "zend": "2026-08-01",
+                "judge_postcondition": _pc_blocked,
             },
         )
     from arifosmcp.tools.ops import arif_measure
