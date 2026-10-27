@@ -127,12 +127,13 @@ def _coerce_evidence(evidence: Any, _depth: int = 0) -> Any:
 
 
 def _iter_evidence_items(evidence: Any, _depth: int = 0):
-    """Yield candidate dicts from any depth of the caller's transport.
+    """Yield item-shaped dicts from any depth of the caller's transport.
 
-    D2 follow-up (2026-10-28, verifier red-team): an item may nest its own
-    evidence list ("sources", "facts", "claims"), and an envelope may carry a
-    top-level "fact" summary. Yielding the container AND recursing into every
-    dict/list value means neither shape can hide a tagged child.
+    An item is a dict carrying "fact" or an epistemic key. Containers are NOT
+    yielded — only walked — so the reported `index` stays the position within the
+    caller's item sequence (regression guard: tests/test_judge_postcondition_unwitnessed.py
+    asserts index==1 for the second item). Nested evidence lists inside an item
+    ("sources", "facts", "claims") are still walked, so a tagged child cannot hide.
     """
     if _depth > 6:
         return
@@ -143,7 +144,8 @@ def _iter_evidence_items(evidence: Any, _depth: int = 0):
         return
     if not isinstance(data, dict):
         return
-    yield data
+    if "fact" in data or any(str(key).lower() in _EPISTEMIC_KEYS for key in data):
+        yield data
     for value in data.values():
         if isinstance(value, (list, dict)):
             yield from _iter_evidence_items(value, _depth + 1)
@@ -238,16 +240,23 @@ def check_judge_postcondition(
     eff_key = (effective_verdict or "").strip().upper()
     cand_text = candidate if isinstance(candidate, str) else json.dumps(candidate, default=str)
     cand_ok = _is_substantive(cand_text)
-    _coerced = _coerce_evidence(evidence)
+    # NOTE: `ev` keeps its pre-2026-10-28 shape on purpose. Coercing a string
+    # transport into its parsed list here changed ev_ok for callers that pass
+    # evidence as text, which flipped unrelated gateway verdicts to HOLD
+    # (tests/test_art_compat.py). Parsing belongs in the item walker only.
     ev = (
-        _coerced
-        if isinstance(_coerced, dict)
-        else ({} if _coerced is None else {"value": _coerced})
+        evidence
+        if isinstance(evidence, dict)
+        else ({} if evidence is None else {"value": evidence})
     )
     ev_ok = bool(ev) and any(_is_substantive(v) for v in ev.values())
     # An unparseable string transport is opaque evidence, not absent evidence:
     # disclose it so the caller is not left guessing why nothing was detected.
-    evidence_opaque_string = isinstance(evidence, str) and _coerced is None and bool(evidence.strip())
+    evidence_opaque_string = (
+        isinstance(evidence, str)
+        and _coerce_evidence(evidence) is None
+        and bool(evidence.strip())
+    )
 
     report: dict[str, Any] = {
         "spec": SPEC,
