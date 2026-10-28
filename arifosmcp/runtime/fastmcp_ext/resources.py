@@ -340,12 +340,7 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     @mcp.resource(
         "arifos://init/agent_init",
         title="Agent Initialization Bootstrap",
-        description=(
-            "INIT.md v4.0 SUPERSEDED 2026-09-04 — file is now a redirect stub (MCP /init). "
-            "Canonical init = arif_init (KERNEL 000) + command/init.md v7.0. "
-            "Legacy 293-line content preserved at _archive/2026-09-16-prompt-zen/. "
-            "Fix 2026-10-18 (FI-008): description drift — was advertising 293 lines against an 8-line stub."
-        ),
+        description="Agent initialization bootstrap contract and canonical prompt redirection.",
         annotations={"audience": ["assistant"], "priority": 0.9},
     )
     async def agent_init() -> str:
