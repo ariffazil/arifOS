@@ -568,6 +568,14 @@ def mint_act(
                 if v == UNMEASURED or isinstance(v, (int, float)):
                     apex_out[k] = v
                 # else leave UNMEASURED — refuse invented strings
+        # P1 2026-10-28 (apex-scalar-disambiguation): carry the scope label
+        # into the signed claims. The claims' apex is a THIRD G in the same
+        # payload (actor-scoped); without the label a reader cannot tell it
+        # from the federation aggregate or from the session baseline. Labels
+        # are not scores - they are copied verbatim, never invented.
+        for label in ("scope", "note"):
+            if isinstance(apex.get(label), str) and apex.get(label):
+                apex_out[label] = apex[label]
 
     # P0 BOUNDARY FIX (2026-07-19): canonicalize the actor at the issuance
     # boundary. The canonical machine actor is lowercase ``arif``; "ARIF" /
@@ -806,7 +814,10 @@ class Standing:
         }
 
 
-def build_standing_apex(live: dict[str, Any] | None) -> dict[str, Any]:
+def build_standing_apex(
+    live: dict[str, Any] | None,
+    scope: str = APEX_SCOPE_FEDERATION,
+) -> dict[str, Any]:
     """Standing APEX built from live federation metrics.
 
     P1 2026-10-28 (memory-audit-zero-laundering): a canonical scalar the
@@ -817,6 +828,11 @@ def build_standing_apex(live: dict[str, Any] | None) -> dict[str, Any]:
 
     A MEASURED zero stays zero (0.0 is a real reading); only "not measured"
     becomes the marker.
+
+    P1 2026-10-28 (apex-scalar-disambiguation): every APEX block says WHICH
+    system it describes - `scope` + `note` (federation aggregate vs
+    actor-scoped). Two different G values can live in one payload; without
+    the label a reader cannot tell which one describes what.
     """
     live = live if isinstance(live, dict) else {}
     if (live.get("sample_size") or 0) > 0:
@@ -834,9 +850,9 @@ def build_standing_apex(live: dict[str, Any] | None) -> dict[str, Any]:
                 "sample_size": live.get("sample_size"),
                 "source": "apex_primitives.py",
             },
-            scope=APEX_SCOPE_FEDERATION,
+            scope=scope,
         )
-    return tag_apex_scope(unmeasured_apex(), scope=APEX_SCOPE_FEDERATION)
+    return tag_apex_scope(unmeasured_apex(), scope=scope)
 
 
 def _claims_to_standing(
