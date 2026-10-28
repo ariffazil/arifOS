@@ -5260,6 +5260,14 @@ def _enforce_nine_signal(
             result_payload = dict(_out_result_dict)
         else:
             result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
+        # P1 judge-schema-reversibility-drift (2026-10-28): capture the judged
+        # action's own declaration (top-level meta: reversibility_level /
+        # blast_radius) BEFORE the envelope build mutates it. result_payload
+        # above carries result-only (the else-branch strips 'meta' via
+        # envelope_keys), so the risk echo never saw the caller's declared
+        # class and the envelope answered with the judge TOOL's static
+        # passport — "reversible"/"medium" for an action declared HARD.
+        _judged_action_meta = out.get("meta") if isinstance(out.get("meta"), dict) else None
 
         # /000 principal-agent separation: actor surfaced at top-level
         # envelope (not inside result). See envelope dict below.
@@ -5800,7 +5808,9 @@ def _enforce_nine_signal(
         # 4. Confidence + evidence?     (confidence, metacognition, unknowns)
         # + explicit next_safe_action + constitutional_check + L0-L5 agency.
         try:
-            enriched = ensure_standard_mcp_output(tool_name, result_payload)
+            enriched = ensure_standard_mcp_output(
+                tool_name, result_payload, judged_action_meta=_judged_action_meta
+            )
             # Merge without overwriting core governed fields
             for k in (
                 "facts",
@@ -9431,7 +9441,20 @@ def _judged_action_risk_echo(payload: dict[str, Any]) -> dict[str, Any] | None:
     return echo
 
 
-def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
+def ensure_standard_mcp_output(
+    tool: str,
+    payload: dict[str, Any],
+    judged_action_meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the standard MCP envelope for a tool payload.
+
+    judged_action_meta: the tool's top-level meta, when the payload handed in
+    does not carry it (the wrapper passes result-only payloads). P1
+    judge-schema-reversibility-drift (2026-10-28): the judged action's own
+    reversibility/blast declaration lives in that meta; without it the risk
+    echo could not see it and the envelope answered with the judge TOOL's
+    static passport ("reversible"/"medium") for an action declared HARD.
+    """
     """Post-process any tool return to guarantee the full metacognitive grammar.
 
     If the payload already has facts/inferences/next_safe_action etc, keep them.
@@ -9692,7 +9715,8 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         next_safe_action=next_act,
         raw_result=payload.get("result", payload),
         mode=_payload_mode or "observe",
-        risk_overrides=_judged_action_risk_echo(payload),
+        risk_overrides=_judged_action_risk_echo(payload)
+        or _judged_action_risk_echo({"meta": judged_action_meta}),
     )
 
 

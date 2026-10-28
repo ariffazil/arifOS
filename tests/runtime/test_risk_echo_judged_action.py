@@ -12,7 +12,58 @@ tool-level risk block unchanged.
 
 from __future__ import annotations
 
-from arifosmcp.runtime.tools import build_standard_mcp_result, ensure_standard_mcp_output
+from arifosmcp.runtime.tools import (
+    _enforce_nine_signal,
+    build_standard_mcp_result,
+    ensure_standard_mcp_output,
+)
+
+
+def test_wrapper_echo_survives_result_only_payload():
+    """LIVE-DEFECT regression (2026-10-28).
+
+    The wrapper hands ensure_standard_mcp_output a RESULT-ONLY payload, so the
+    judged action's declaration (top-level meta: reversibility_level /
+    blast_radius) was never visible to the risk echo. The envelope therefore
+    answered with the judge TOOL's static passport — "reversible"/"medium" for
+    an action the caller declared HARD/organ.
+
+    Seams tested here is the REAL one (_enforce_nine_signal -> public
+    envelope), not the helper the earlier unit test called directly.
+    """
+    payload = {
+        "status": "completed",
+        "tool": "arif_judge",
+        "verdict": "HOLD",
+        "effective_verdict": "HOLD",
+        "meta": {
+            "reversibility_level": "HARD",
+            "blast_radius": "organ",
+            "kernel_intercept": {"affordance": {"blast_radius": "unknown"}},
+        },
+        "result": {"verdict": "HOLD", "judgment": "probe"},
+    }
+    out = _enforce_nine_signal("arif_judge", payload, actor_id="333-AGI")
+    risk = out.get("risk", {})
+    assert risk.get("subject") == "judged_action", risk
+    assert risk.get("reversibility") == "hard", risk
+    assert risk.get("blast_radius") == "organ", risk
+    # The static tool passport survives — it is not erased.
+    assert risk.get("tool_baseline", {}).get("reversibility") == "reversible", risk
+
+
+def test_wrapper_without_declaration_keeps_tool_passport():
+    payload = {
+        "status": "completed",
+        "tool": "arif_judge",
+        "verdict": "HOLD",
+        "meta": {"latency_ms": 1.2},
+        "result": {"verdict": "HOLD"},
+    }
+    out = _enforce_nine_signal("arif_judge", payload, actor_id="333-AGI")
+    risk = out.get("risk", {})
+    assert "subject" not in risk, risk
+    assert risk.get("reversibility") == "reversible", risk
 
 
 def test_judged_action_risk_echo_prefers_declared_class():
