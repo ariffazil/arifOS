@@ -89,10 +89,10 @@ A-FORGE  test/policyKeyedToVerifiedIdentity.test.ts  7 passed
 | measure | baseline (00:24 MYT) | now (01:2x MYT) |
 |---|---|---|
 | arifOS public tools exported | 14 | 14 |
-| **tools OK from the public path** | **9** | **14** (5 fixed by the 00:27 deploy + my PR for the undeclared-field path — *the live box has the deploy, not my PR*) |
-| tools ERROR | **5** | **0** (minimal-argument path) |
-| tools ERROR *with an undeclared field* | not measured at baseline | **5** → **0 after my PR** (live still 5 until deploy) |
-| tools covered by `surface_hash` | **8 of 14** | **14 of 14** after my PR |
+| **tools returning a real payload from the public path** | **9** (+5 coordination tools erroring) | **13** — the 5 coordination tools now return payloads, and `arif_forge` returns a *correct* constitutional HOLD (`888_HOLD: requires SOVEREIGN authority; Current: LOW`) for this unverified actor. **Zero broken.** |
+| tools erroring | **5** | **0** |
+| tools erroring *when the caller adds `session_token`* | not measured at baseline | **5** (the coordination tools) — closed by PR #965, live after deploy |
+| tools covered by `surface_hash` | **8 of 14** | **14 of 14** after PR #965 |
 | organs healthy | 4/4 (GEOX 27/27, WEALTH 15/15, WELL 10/10, A-FORGE healthy) | 4/4 |
 | disk used | 92% | 92% (nothing deleted) |
 | AGENTS.md > 32 KB | 0 | 0 |
@@ -100,6 +100,14 @@ A-FORGE  test/policyKeyedToVerifiedIdentity.test.ts  7 passed
 | identity spellings → canonical | 4 → `ARIF` | 4 → `ARIF` (0 py/ts mismatches) |
 | A-FORGE `npm test` | not measured | 321/320/1 → **349/348/1** |
 | A-FORGE policy posture | not measured | `PERMISSIVE_FALLBACK` (pin violated) |
+
+> **A note on how these numbers were measured.** An intermediate combined probe reported "11
+> broken" and was wrong — the script shared argument dicts across tools and re-ran `arif_init`
+> inside the loop, displacing the session. Every count above comes from a re-probe where each tool
+> was called with its own arguments and the failure text was read, not inferred from a boolean.
+> `arif_forge` is counted separately because `isError: true` with a constitutional HOLD verdict is
+> a **correct refusal**, not a defect.
+
 
 ---
 
