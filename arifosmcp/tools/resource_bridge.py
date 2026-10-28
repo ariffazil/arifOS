@@ -13,11 +13,19 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-async def read_resource(uri: str) -> dict[str, Any]:
+async def read_resource(
+    uri: str,
+    _envelope: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
     """Read a registered MCP resource by URI.
 
     Use this when your client does not support reading MCP resources directly
     or when custom URI schemes (skill://, arifos://) cannot be fetched natively.
+
+    Honesty contract: "ok" only when the resource read returned content.
+    Empty content => "degraded"; read failure => "error". Never "ok" on empty.
     """
     from arifosmcp.server import mcp
 
@@ -29,6 +37,14 @@ async def read_resource(uri: str) -> dict[str, Any]:
             first = res.contents[0]
             content_text = getattr(first, "content", "") or getattr(first, "text", "")
             mime_type = getattr(first, "mime_type", "text/plain") or "text/plain"
+        if not content_text:
+            return {
+                "status": "degraded",
+                "uri": uri,
+                "mime_type": mime_type,
+                "content": "",
+                "degraded_reasons": ["resource_returned_empty_content"],
+            }
         return {
             "status": "ok",
             "uri": uri,
@@ -44,10 +60,19 @@ async def read_resource(uri: str) -> dict[str, Any]:
         }
 
 
-async def search_resources(query: str = "") -> dict[str, Any]:
+async def search_resources(
+    query: str = "",
+    _envelope: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
     """Search or list available MCP resources by keyword in URI, name, or description.
 
     Returns a list of matching resources with their URI, name, and description.
+
+    Honesty contract: "ok" when the registry answered (zero keyword matches is
+    a legitimate negative answer). "degraded" only when the resource registry
+    itself is empty — the index is broken, not the query.
     """
     from arifosmcp.server import mcp
 
@@ -68,6 +93,14 @@ async def search_resources(query: str = "") -> dict[str, Any]:
                         "mime_type": getattr(r, "mime_type", "text/plain") or "text/plain",
                     }
                 )
+        if not all_res:
+            return {
+                "status": "degraded",
+                "query": query,
+                "count": 0,
+                "resources": [],
+                "degraded_reasons": ["resource_registry_empty"],
+            }
         return {
             "status": "ok",
             "query": query,
@@ -83,7 +116,7 @@ async def search_resources(query: str = "") -> dict[str, Any]:
         }
 
 
-def register_resource_bridge(mcp_server: Any) -> list[str]:
+def register_resource_bridge(mcp_server: Any, *, ingress_middleware: Any | None = None) -> list[str]:
     """Register read_resource and search_resources as callable tools."""
     registered = []
     try:
@@ -102,6 +135,12 @@ def register_resource_bridge(mcp_server: Any) -> list[str]:
             annotations={"readOnlyHint": True, "destructiveHint": False},
         )(search_resources)
         registered.append("search_resources")
+        from arifosmcp.runtime.ingress_middleware import register_tool_param_sets
+
+        register_tool_param_sets(
+            ingress_middleware,
+            {"read_resource": read_resource, "search_resources": search_resources},
+        )
         logger.info("RESOURCE BRIDGE: registered read_resource and search_resources tools")
     except Exception as exc:
         logger.warning("Failed to register resource bridge tools: %s", exc)
