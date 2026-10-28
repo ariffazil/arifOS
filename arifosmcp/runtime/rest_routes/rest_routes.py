@@ -4863,12 +4863,20 @@ def register_rest_routes(
             # measured:true while layer_health.constitutional.floors_measured
             # named 2 — the same response contradicting itself. `measured` now
             # means "an instrument produced this number", which is what SC4 said.
+            #
+            # KX-010 / A6 (2026-10-28): Forward floor measurement contract labels
+            # to runtime_floors_status wire (decision_eligibility=NONE + known_contradiction
+            # for F3/F4/F5/F9, falsification_test per floor). Additive metadata only —
+            # status and score math remain strictly frozen.
             "runtime_floors_status": {
                 fid: {
                     "score": score,
                     "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
                     "measured": not _provenance_is_unmeasured(_floor_provenance.get(fid)),
                     "provenance": _floor_provenance.get(fid),
+                    **__import__(
+                        "arifosmcp.runtime.floor_producers", fromlist=["_FLOOR_CONTRACT_LABELS"]
+                    )._FLOOR_CONTRACT_LABELS.get(fid, {}),
                 }
                 for fid, score in thermo.get("floors", {}).items()
             },
