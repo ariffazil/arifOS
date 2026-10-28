@@ -220,7 +220,14 @@ class TestMCPProtocol:
             "arif_seal",
         }
         # Coordination lanes surfaced alongside the canonical 8 — NOT constitutional verbs.
-        declared_lanes = {"arif_report"}
+        # Declared non-constitutional coordination lanes come from the SOURCE OF TRUTH
+        # (public_surface.COORDINATION_TOOLS), not a hardcoded snapshot. A stale
+        # snapshot made this gate fail while the surface was correct, and it
+        # would have silently ACCEPTED a lane the registry no longer declares.
+        # An UNDECLARED tool still fails - that is what this gate is for.
+        from arifosmcp.runtime.public_surface import COORDINATION_TOOLS
+
+        declared_lanes = set(COORDINATION_TOOLS)
         assert expected <= names, f"Missing canonical verbs: {sorted(expected - names)}"
         unexpected = names - expected - declared_lanes
         assert not unexpected, f"Undeclared tools surfaced: {sorted(unexpected)}"
