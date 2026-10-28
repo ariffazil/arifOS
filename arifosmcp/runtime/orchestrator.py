@@ -853,11 +853,15 @@ async def metabolic_loop(
                 "session_id": current_session_id,
                 "stage": policy_res.stage,
                 "sacred_stage": _get_sacred_name(policy_res.stage),
-                "verdict": final_metrics.telemetry.verdict,
-                "status": ("SUCCESS" if final_metrics.telemetry.verdict == "ALIVE" else "ERROR"),
+                # P1 2026-10-28: telemetry carries a LIFECYCLE token, not a
+                # constitutional verdict. Publishing it under verdict-shaped keys
+                # fed the canonical-vocabulary walker. attach_canonical
+                # supplies the one canonical `verdict` on the envelope.
+                "lifecycle": final_metrics.telemetry.lifecycle,
+                "status": ("SUCCESS" if final_metrics.telemetry.lifecycle == "ALIVE" else "ERROR"),
                 "trace": trace,
                 "payload": cumulative_payload,  # Replaces overwritten payload with cumulative one
-                "final_verdict": final_metrics.telemetry.verdict,
+                "final_lifecycle": final_metrics.telemetry.lifecycle,
                 "metrics": final_metrics.model_dump(mode="json"),  # Rule 3 Format
                 "pns_active": pns_context is not None,
                 "caller_context": _dump_caller_context(caller_ctx),
