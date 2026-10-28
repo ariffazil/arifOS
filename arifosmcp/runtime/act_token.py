@@ -806,6 +806,39 @@ class Standing:
         }
 
 
+def build_standing_apex(live: dict[str, Any] | None) -> dict[str, Any]:
+    """Standing APEX built from live federation metrics.
+
+    P1 2026-10-28 (memory-audit-zero-laundering): a canonical scalar the
+    producer could not measure carries the UNMEASURED marker - never a bare
+    null, never a fabricated zero. A bare null reads as "present, value
+    zero-ish"; the marker reads as "not measured". Same convention as
+    unmeasured_apex() - one convention, not two.
+
+    A MEASURED zero stays zero (0.0 is a real reading); only "not measured"
+    becomes the marker.
+    """
+    live = live if isinstance(live, dict) else {}
+    if (live.get("sample_size") or 0) > 0:
+
+        def _scalar(name: str) -> Any:
+            value = live.get(name)
+            return value if value is not None else UNMEASURED
+
+        return tag_apex_scope(
+            {
+                "G": _scalar("G"),
+                "C_dark": _scalar("C_dark"),
+                "W3": _scalar("W3"),
+                "h": _scalar("h"),
+                "sample_size": live.get("sample_size"),
+                "source": "apex_primitives.py",
+            },
+            scope=APEX_SCOPE_FEDERATION,
+        )
+    return tag_apex_scope(unmeasured_apex(), scope=APEX_SCOPE_FEDERATION)
+
+
 def _claims_to_standing(
     claims: dict[str, Any],
     token: str,
@@ -818,21 +851,7 @@ def _claims_to_standing(
     try:
         from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
 
-        _live = compute_apex_from_metrics()
-        if _live.get("sample_size", 0) > 0:
-            apex = tag_apex_scope(
-                {
-                    "G": _live.get("G"),
-                    "C_dark": _live.get("C_dark"),
-                    "W3": _live.get("W3", None),
-                    "h": _live.get("h", None),
-                    "sample_size": _live.get("sample_size"),
-                    "source": "apex_primitives.py",
-                },
-                scope=APEX_SCOPE_FEDERATION,
-            )
-        else:
-            apex = tag_apex_scope(unmeasured_apex(), scope=APEX_SCOPE_FEDERATION)
+        apex = build_standing_apex(compute_apex_from_metrics())
     except Exception:
         apex = tag_apex_scope(unmeasured_apex(), scope=APEX_SCOPE_FEDERATION)
     return Standing(
