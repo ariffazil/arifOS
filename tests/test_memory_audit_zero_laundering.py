@@ -85,3 +85,40 @@ def test_provenance_mode_names_the_call(mode):
         {"verdict": "SABAR", "payload": {}}, mode=mode, session_id="sess-mode-test"
     )
     assert envelope.payload["diagnostics"]["metrics"]["basis"]["mode"] == mode
+
+
+def test_unmeasured_g_marker_neither_gates_nor_crashes_the_f8_genius_gate():
+    """The standing APEX may carry G = "UNMEASURED"; the verdict gate must
+    treat that as unmeasured (skip the gate) instead of comparing a string
+    with a float (TypeError) - and a MEASURED G must still gate."""
+    from arifosmcp.runtime.verdict import compose_effective_verdict
+
+    unmeasured = compose_effective_verdict(
+        inner_verdict="SEAL",
+        session_authority_band="FULL",
+        drift=[],
+        g_score="UNMEASURED",
+    )
+    assert "F8_GENIUS" not in (unmeasured.reason_code or "")
+
+    measured = compose_effective_verdict(
+        inner_verdict="SEAL",
+        session_authority_band="FULL",
+        drift=[],
+        g_score=0.50,
+    )
+    assert "F8_GENIUS" in (measured.reason_code or "")
+
+
+def test_measured_zero_g_still_gates():
+    """Zero is a reading, not a missing value: it must not be laundered into
+    'unmeasured' (which would silently unlock a SEAL that should be gated)."""
+    from arifosmcp.runtime.verdict import compose_effective_verdict
+
+    zero_g = compose_effective_verdict(
+        inner_verdict="SEAL",
+        session_authority_band="FULL",
+        drift=[],
+        g_score=0.0,
+    )
+    assert "F8_GENIUS" in (zero_g.reason_code or "")

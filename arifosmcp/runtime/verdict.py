@@ -243,7 +243,12 @@ def compose_effective_verdict(
 
     # F8 GENIUS: G gate — computed but previously never wired.
     # G below SEAL threshold blocks SEAL. G below DEGRADED downgrades to HOLD.
-    if g_score is not None and canonical == SEAL:
+    # P1 2026-10-28 (memory-audit-zero-laundering): an UNMEASURED G must not
+    # gate the verdict - and must not crash it. A non-numeric G (e.g. the
+    # "UNMEASURED" marker) is not a measurement: skip the gate exactly as
+    # None does. A numeric G - including a measured 0.0 - is a real reading
+    # and still gates.
+    if isinstance(g_score, (int, float)) and not isinstance(g_score, bool) and canonical == SEAL:
         if g_score < _G_DEGRADED_THRESHOLD:
             canonical = HOLD
             explicit_reason = (
