@@ -173,6 +173,22 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     )
 
 
+def public_exposed_tool_names(mode: str | None = None) -> tuple[str, ...]:
+    """Every tool the public wire actually lists and accepts.
+
+    The public surface is the constitutional verbs for the active mode PLUS the
+    coordination channels — which are listed, callable, and not constitutional.
+
+    This is the single owner of "what is on the public wire". Both the tools/list
+    filter and the released `surface_hash` read it, so the hash cannot describe a
+    different set than the one clients see. Measured 2026-10-29: the hash covered
+    only the 8 constitutional tools while the public wire exposed 14 — six tools
+    (all of them coordination channels) could be added or removed without moving
+    the hash.
+    """
+    return tuple(sorted(set(public_tool_names_for_mode(mode)) | set(COORDINATION_TOOLS)))
+
+
 def public_boundary_allows(name: str, mode: str | None = None) -> bool:
     lowered = (name or "").strip().lower()
     if not lowered or lowered.startswith(BLOCKED_PUBLIC_PREFIXES):
