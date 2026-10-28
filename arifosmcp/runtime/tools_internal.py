@@ -647,6 +647,21 @@ async def _wrap_call(
         except Exception as next_action_err:
             logger.debug(f"Next action resolution failed: {next_action_err}")
 
+        # ── VOID CONTRACT (2026-10-28) ────────────────────────────────────
+        # A VOID that reaches a human as "aku tak tahu" charges the cost of a
+        # gap without returning the way to close it. In arifOS grammar VOID is
+        # the HARDEST verdict (path invalid), so it always knows which
+        # invariant, on which evidence — a bare VOID is an unfinished thought
+        # wearing a verdict's clothes. Stamp the five-field contract state so an
+        # incomplete VOID is visible at the boundary instead of arriving clean.
+        # Additive: this NEVER changes the verdict and never suppresses refusal.
+        try:
+            from arifosmcp.runtime.void_contract import stamp_void_contract
+
+            stamp_void_contract(envelope)
+        except Exception as void_err:
+            logger.debug(f"VOID contract stamp failed: {void_err}")
+
         # ── Philosophy Injection ──
         try:
             from arifosmcp.runtime.philosophy_registry import inject_philosophy
