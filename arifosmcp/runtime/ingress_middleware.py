@@ -1893,7 +1893,52 @@ if not IS_FASTMCP_3:
 
 
 # Export
-__all__ = ["IngressToleranceMiddleware", "MODE_SYNONYMS", "MEGA_TOOLS"]
+__all__ = [
+    "IngressToleranceMiddleware",
+    "MODE_SYNONYMS",
+    "MEGA_TOOLS",
+    "register_tool_param_sets",
+]
+
+
+def register_tool_param_sets(
+    ingress_middleware: object | None,
+    tools: dict[str, Any],
+) -> list[str]:
+    """Register the declared parameter set of each tool with the ingress middleware.
+
+    The middleware strips unknown fields from `msg.arguments` before FastMCP
+    validates the input — but only for tools whose parameter set is known.
+    A tool that never registers its params skips the filter entirely, so any
+    extra field a caller sends reaches FastMCP unfiltered and kills the call
+    with `CONTRACT_VIOLATION`.
+
+    Registering a tool here is what makes it behave like the canonical tools:
+    fields the tool did not declare are absorbed instead of crashing the call.
+
+    Param names are derived from the function signature — the same source
+    FastMCP derives the advertised schema from — so the two cannot drift.
+
+    Returns the names that were registered.
+    """
+    if ingress_middleware is None:
+        return []
+    register = getattr(ingress_middleware, "register_tool_params", None)
+    if register is None:
+        logger.warning("ingress middleware has no register_tool_params; skipping param registration")
+        return []
+    import inspect
+
+    registered: list[str] = []
+    for name, fn in tools.items():
+        try:
+            params = set(inspect.signature(fn).parameters.keys())
+        except (TypeError, ValueError) as exc:
+            logger.warning("Cannot derive param names for %s: %s", name, exc)
+            continue
+        register(name, params)
+        registered.append(name)
+    return registered
 
 # ── Global instance reference (set by server.py at boot) ──
 # Used by conformance spine for Anti-sink A3 contradiction check.
