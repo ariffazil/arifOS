@@ -1172,14 +1172,9 @@ if IS_FASTMCP_3:
                 # ChatGPT scanned/callable surface ≠ tools/list → HOLD_REGISTRY_DRIFT.
                 # Law: on public wire, list == callable.
                 try:
-                    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+                    from arifosmcp.runtime.public_surface import public_exposed_tool_names
 
-                    _public_allowed = set(public_tool_names_for_mode())
-                    # Coordination channels are callable but are not
-                    # constitutional verbs — see public_surface.COORDINATION_TOOLS.
-                    from arifosmcp.runtime.public_surface import COORDINATION_TOOLS
-
-                    _public_allowed |= set(COORDINATION_TOOLS)
+                    _public_allowed = set(public_exposed_tool_names())
                     if tool_name not in _public_allowed:
                         from mcp.types import TextContent
 

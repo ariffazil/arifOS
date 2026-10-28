@@ -168,12 +168,19 @@ def _read_git_head(git_dir: str) -> str:
 
 
 def _compute_tool_surface_hash() -> str:
-    """Hash the canonical public tool schemas for surface integrity verification."""
+    """Hash the canonical public tool schemas for surface integrity verification.
+
+    Hashes the tools the public wire actually lists and accepts — the
+    constitutional verbs for the active mode plus the coordination channels.
+    Measured 2026-10-29: this covered only the 8 constitutional tools while the
+    public `tools/list` exposed 14, so the six coordination tools could be added
+    or removed without moving the hash.
+    """
     try:
-        from arifosmcp.runtime.public_registry import public_tool_names
+        from arifosmcp.runtime.public_surface import public_exposed_tool_names
 
         schemas: dict[str, Any] = {}
-        for name in sorted(public_tool_names()):
+        for name in sorted(public_exposed_tool_names()):
             schemas[name] = {"name": name}
         raw = json.dumps(schemas, sort_keys=True, separators=(",", ":"))
         return "sha256:" + hashlib.sha256(raw.encode()).hexdigest()
