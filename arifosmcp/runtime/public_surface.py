@@ -81,7 +81,14 @@ BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
 # nothing, so they never count toward the ratified 8-verb facade. Single owner:
 # every surface (list, call gate, drift guard) imports this tuple; do not
 # re-declare it anywhere else (ANTI-BANGANG LAW 8).
-COORDINATION_TOOLS: tuple[str, ...] = ("arif_report",)
+COORDINATION_TOOLS: tuple[str, ...] = (
+    "arif_report",
+    "read_resource",
+    "search_resources",
+    "arif_research",
+    "arif_recall",
+    "arif_delegate",
+)
 
 # Diagnostic tools are reversible inspectors, not canonical constitutional tools.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (

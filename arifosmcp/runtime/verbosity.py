@@ -662,7 +662,61 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
     except Exception:
         pass
 
+    # External orchestrator / minimal payload slimming (2026-10-28, Copilot MCP optimization):
+    # In minimal mode, strip redundant schema documentation and heavy internal diagnostics
+    # from result and meta to protect external agent context budgets.
+    if isinstance(minimal.get("result"), dict):
+        res_dict = minimal["result"]
+        for heavy_key in (
+            "_affordance",
+            "_wrapper_degradation",
+            "_wrapper_note",
+            "act_claims",
+            "apex_scalars",
+        ):
+            res_dict.pop(heavy_key, None)
+
+    if isinstance(minimal.get("meta"), dict):
+        meta_dict = minimal["meta"]
+        # Pipe irfan_review to witness ledger if present, then replace with concise recommendation
+        _ir = meta_dict.pop("irfan_review", None)
+        if _ir and isinstance(_ir, dict):
+            _pipe_governance_telemetry("irfan_review", _ir, minimal.get("session_id"), minimal.get("tool"))
+            meta_dict["irfan_recommendation"] = _ir.get("recommendation", "CONCERN")
+
+        # Compact sesat_event to id & code, full event is already recorded by emit_sesat
+        _se = meta_dict.pop("sesat_event", None)
+        if _se and isinstance(_se, dict):
+            _pipe_governance_telemetry("sesat_event", _se, minimal.get("session_id"), minimal.get("tool"))
+            if _se.get("id"):
+                meta_dict["sesat_id"] = _se["id"]
+            if _se.get("failure_code"):
+                meta_dict["sesat_code"] = str(_se["failure_code"])
+
+        meta_dict.pop("session_notice", None)
+
     return minimal
+
+
+def _pipe_governance_telemetry(kind: str, payload: dict[str, Any], session_id: Any, tool: Any) -> None:
+    """Pipe heavy governance diagnostics to witness ledger instead of wire output."""
+    try:
+        import json as _json, os as _os, time as _time
+        witness_dir = "/var/lib/arifos/witness"
+        if not _os.path.exists(witness_dir):
+            _os.makedirs(witness_dir, exist_ok=True)
+        log_path = _os.path.join(witness_dir, "governance_telemetry.jsonl")
+        entry = {
+            "ts": _time.time(),
+            "kind": kind,
+            "tool": str(tool),
+            "session_id": str(session_id),
+            "payload": payload,
+        }
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(_json.dumps(entry, default=str) + "\n")
+    except Exception:
+        pass
 
 
 __all__ = ["trim_for_verbosity"]

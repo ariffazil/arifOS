@@ -30205,6 +30205,32 @@ def register_tools(
     except Exception as _rep_exc:  # noqa: BLE001
         logger.warning("arif_report registration skipped: %s", _rep_exc)
 
+    # ── RESOURCE TOOLS BRIDGE (2026-10-28, Copilot Studio / custom URI support) ──
+    try:
+        from arifosmcp.tools.resource_bridge import register_resource_bridge
+
+        _res_tools = register_resource_bridge(mcp)
+        registered.extend(_res_tools)
+    except Exception as _rb_exc:
+        logger.warning("Resource bridge registration skipped: %s", _rb_exc)
+
+    # ── COPILOT ENTERPRISE FACADE (Profile B) ─────────────────────────────
+    # Registered when ARIFOS_COPILOT_FACADE is enabled (default enabled for external orchestrators)
+    _enable_copilot = os.environ.get("ARIFOS_COPILOT_FACADE", "true").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if _enable_copilot:
+        try:
+            from arifosmcp.tools.copilot_facade import register_copilot_facade
+
+            _copilot_tools = register_copilot_facade(mcp)
+            registered.extend(_copilot_tools)
+        except Exception as _cp_exc:
+            logger.warning("Copilot facade registration skipped: %s", _cp_exc)
+
     return registered
 
 

@@ -88,7 +88,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 111 OBSERVE ─────────────────────────────────────────────────────────
     "arif_observe": (
-        "Collect evidence and operational facts with provenance. Modes: search "
+        "Collect evidence, reality observations, and operational facts with provenance. Modes: search "
         "(web literature queries), fetch (targeted URL retrieval), vitals "
         "(system metrics). Requires valid session credentials. "
         "Outputs: structured facts, source attribution, and epistemic tags."
