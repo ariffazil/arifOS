@@ -54,6 +54,43 @@ def test_no_sample_size_falls_back_to_unmeasured_apex():
     assert apex["W3"] == UNMEASURED
 
 
+def test_apex_block_says_which_system_it_describes():
+    """Two different G values can live in one payload. Every APEX block must
+    name the system it describes (scope + note) - the disambiguation."""
+    from arifosmcp.runtime.act_token import APEX_SCOPE_ACTOR, APEX_SCOPE_FEDERATION
+
+    federation = build_standing_apex({"sample_size": 5, "G": 0.58, "W3": None})
+    actor = build_standing_apex({"sample_size": 5, "G": 0.34, "W3": None}, scope=APEX_SCOPE_ACTOR)
+    assert federation["scope"] == APEX_SCOPE_FEDERATION
+    assert actor["scope"] == APEX_SCOPE_ACTOR
+    assert federation["scope"] != actor["scope"]
+    for block in (federation, actor):
+        assert block.get("note"), "an APEX block without a note cannot be told apart from another"
+        assert "G" in block and "W3" in block
+
+
+def test_mint_carries_the_scope_label_into_the_signed_claims():
+    """The token's claims hold a THIRD G (actor-scoped). Without the label a
+    reader cannot tell it from the federation aggregate."""
+    from arifosmcp.runtime.act_token import APEX_SCOPE_ACTOR, build_standing_apex, mint_act
+
+    apex = build_standing_apex(
+        {"sample_size": 5, "G": 0.34, "C_dark": 0.18, "W3": None, "h": 0.98},
+        scope=APEX_SCOPE_ACTOR,
+    )
+    _token, claims = mint_act(
+        sid="sess-apex-label-test",
+        actor="333-AGI",
+        auth="OBSERVE_ONLY",
+        av=False,
+        apex=apex,
+    )
+    assert claims["apex"]["scope"] == APEX_SCOPE_ACTOR
+    assert claims["apex"]["note"]
+    assert claims["apex"]["G"] == 0.34
+    assert claims["apex"]["W3"] == UNMEASURED
+
+
 def test_telemetry_defaults_are_unknown_not_zero():
     telemetry = TelemetryMetrics()
     assert telemetry.G_star is None

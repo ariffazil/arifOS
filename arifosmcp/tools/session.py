@@ -1826,11 +1826,26 @@ def _project_light(
                     # Actor-scoped: verified actors get their OWN history
                     _live = compute_apex_from_metrics(actor_id=actor_id)
                     if _live.get("sample_size", 0) > 0:
+                        # P1 2026-10-28 (apex-scalar-disambiguation): the
+                        # actor-scoped apex must SAY that it is actor-scoped
+                        # (it is a third G in the same payload as the
+                        # federation aggregate and the session baseline), and
+                        # an unmeasured scalar must carry the marker rather
+                        # than a bare null. One owner:
+                        # act_token.build_standing_apex.
+                        from arifosmcp.runtime.act_token import (
+                            APEX_SCOPE_ACTOR,
+                            build_standing_apex,
+                        )
+
+                        _typed = build_standing_apex(_live, scope=APEX_SCOPE_ACTOR)
                         _apex = {
-                            "G": _live.get("G"),
-                            "C_dark": _live.get("C_dark"),
-                            "W3": _live.get("W3", None),
-                            "h": _live.get("h", None),
+                            "G": _typed.get("G"),
+                            "C_dark": _typed.get("C_dark"),
+                            "W3": _typed.get("W3"),
+                            "h": _typed.get("h"),
+                            "scope": _typed.get("scope"),
+                            "note": _typed.get("note"),
                         }
                 except Exception:
                     logger.exception("suppressed exception", exc_info=True)
