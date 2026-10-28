@@ -637,10 +637,19 @@ def arif_observe(
                 "source": "ephemeral",
             }
         else:
+            # Use the module-level _hold/_sabar (imported line ~56), NOT the
+            # continuity-wrapped local defs below: the locals are assigned
+            # later in this function body, so referencing them here raises
+            # UnboundLocalError (observed 2026-10-28 via copilot facade).
+            # Wrapped-vs-raw is behaviorally identical on this path:
+            # auth failed, so _standing_token is None and the wrapper's
+            # continuity echo would be a no-op.
+            from arifosmcp.runtime.tools import _hold as _hold_raw, _sabar as _sabar_raw
+
             if auth.get("expired"):
-                out = _sabar("arif_observe", auth["reason"], session_id=session_id)
+                out = _sabar_raw("arif_observe", auth["reason"], session_id=session_id)
             else:
-                out = _hold("arif_observe", auth["reason"], ["L11"], session_id=session_id)
+                out = _hold_raw("arif_observe", auth["reason"], ["L11"], session_id=session_id)
             if isinstance(out, dict) and session_id:
                 out.setdefault("session_id", session_id)
             return out
