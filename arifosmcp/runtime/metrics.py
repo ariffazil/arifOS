@@ -709,15 +709,17 @@ def compute_integrity_telemetry(
     shadow = round((1 if claim_ungrounded else 0) / max(total_claims, 1), 2)
     confidence = round(g_star * (1 - shadow), 2)
 
-    # 7. Verdict Logic
+    # 7. Lifecycle logic (P1 2026-10-28: was `verdict`, which the verdict
+    #    walker read as a constitutional verdict token -> UNKNOWN_VERDICT_TOKEN
+    #    -> INCONSISTENT_STATE -> HOLD on every response embedding it)
     if hold_active:
-        verdict = "888_HOLD"
+        lifecycle = "888_HOLD"
     elif peace2 < 1.0:
-        verdict = "PAUSED"
+        lifecycle = "PAUSED"
     elif g_star < 0.80:
-        verdict = "DEGRADED"
+        lifecycle = "DEGRADED"
     else:
-        verdict = "ALIVE"
+        lifecycle = "ALIVE"
 
     return CanonicalMetrics(
         telemetry=TelemetryMetrics(
@@ -729,7 +731,7 @@ def compute_integrity_telemetry(
             shadow=shadow,
             confidence=confidence,
             psi_le=psi_le,
-            verdict=verdict,
+            lifecycle=lifecycle,
         ),
         basis=TelemetryBasis(),
         witness=TripleWitness(

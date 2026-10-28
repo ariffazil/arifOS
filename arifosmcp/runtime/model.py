@@ -459,7 +459,15 @@ class TelemetryMetrics(BaseModel):
     kappa_r: float | None = None
     echo_debt: float = 0.1
     psi_le: float = 0.0
-    verdict: str = "ALIVE"
+    # P1 2026-10-28 (333-AGI): this is a LIFECYCLE token
+    # (ALIVE/PAUSED/DEGRADED/888_HOLD), NOT a constitutional verdict
+    # (SEAL/HOLD/SABAR/VOID/OBSERVE_ONLY/888_HOLD). Named `verdict`, it was
+    # walked by reconcile_decision_contract as a verdict-bearing key, so every
+    # response embedding it tripped UNKNOWN_VERDICT_TOKEN -> INCONSISTENT_STATE
+    # -> HOLD (live: result.diagnostics.metrics.telemetry.verdict=ALIVE).
+    # Same axis separation already applied to the metabolic axis in
+    # fq_gate.py (`verdict` -> `fq_outcome`).
+    lifecycle: str = "ALIVE"
 
 
 class TelemetryBasis(BaseModel):
