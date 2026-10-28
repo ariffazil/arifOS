@@ -68,6 +68,7 @@ import hmac
 import json
 import os
 import secrets
+import subprocess
 import sys
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -319,8 +320,68 @@ def _validate_envelope(
 
 
 # ── commands ───────────────────────────────────────────────────────────────
+CONTRADICTION_GATE = os.environ.get(
+    "ARIFOS_CONTRADICTION_GATE", "/root/scripts/contradiction_gate.py"
+)
+
+
+def _contradiction_gate(a) -> tuple[int, dict]:
+    """Ask the contradiction register whether this deploy may exist yet.
+
+    Returns (0, payload) when no ACTIVE contradiction names a surface this
+    deploy republishes. Returns (non-zero, payload) otherwise — including when
+    the gate itself cannot be evaluated: a gate that cannot run cannot pass
+    (a void is not a zero, K2).
+    """
+    surface = os.environ.get("ARIFOS_DEPLOY_SURFACE", "arifOS")
+    actor = str(getattr(a, "actor", None) or "unknown")
+    try:
+        proc = subprocess.run(
+            [sys.executable, CONTRADICTION_GATE, "--json", "--surface", surface,
+             "--operation", "deploy", "--actor", actor],
+            capture_output=True, text=True, timeout=20,
+        )
+        payload = json.loads(proc.stdout or "{}")
+    except Exception as exc:  # noqa: BLE001 - fail closed on any gate fault
+        return 10, {
+            "status": "HOLD_GATE_UNAVAILABLE",
+            "reason": "contradiction gate could not be evaluated: %s" % exc,
+            "surface": surface,
+            "message": "Nothing was written. A gate that cannot run cannot pass.",
+        }
+    if proc.returncode != 0:
+        if "verdict" not in payload:  # the gate itself failed to run
+            return 10, {
+                "status": "HOLD_GATE_UNAVAILABLE",
+                "reason": "contradiction gate exited %d without a verdict" % proc.returncode,
+                "stderr": (proc.stderr or "")[:400],
+                "surface": surface,
+                "message": "Nothing was written. A gate that cannot run cannot pass.",
+            }
+        payload.setdefault("status", "HOLD_ACTIVE_CONTRADICTION")
+        payload["message"] = (
+            "An ACTIVE contradiction names a surface this deploy republishes. "
+            "Nothing was written. Close the entry with evidence that its "
+            "acceptance test now holds, or obtain a bounded human exception "
+            "naming this exact action."
+        )
+        return int(proc.returncode), payload
+    return 0, payload
+
+
 def cmd_acquire(a) -> int:
     with _Lock():
+        # CONTRADICTION BRAKE (F13 2026-10-28, decision "yes B").
+        # Measured defect: the register had four REPORTERS (contradiction_margin,
+        # floor_producers/F8, rest_routes/health, session gate) and ZERO DRIVERS.
+        # KX-010 sat active for 10 days, degraded four organs, and every deploy
+        # acquired a lease anyway because nothing on the action path ever asked.
+        # acquire() is the chokepoint every production mutation passes through,
+        # so a gate here cannot be forgotten by a caller. Fail closed.
+        rc, gate = _contradiction_gate(a)
+        if rc != 0:
+            print(json.dumps(gate, indent=2))
+            return rc
         current = _read_lease()
         if _is_live(current):
             print(
