@@ -30233,7 +30233,7 @@ def register_tools(
     try:
         from arifosmcp.tools.resource_bridge import register_resource_bridge
 
-        _res_tools = register_resource_bridge(mcp)
+        _res_tools = register_resource_bridge(mcp, ingress_middleware=ingress_middleware)
         registered.extend(_res_tools)
     except Exception as _rb_exc:
         logger.warning("Resource bridge registration skipped: %s", _rb_exc)
@@ -30250,7 +30250,7 @@ def register_tools(
         try:
             from arifosmcp.tools.copilot_facade import register_copilot_facade
 
-            _copilot_tools = register_copilot_facade(mcp)
+            _copilot_tools = register_copilot_facade(mcp, ingress_middleware=ingress_middleware)
             registered.extend(_copilot_tools)
         except Exception as _cp_exc:
             logger.warning("Copilot facade registration skipped: %s", _cp_exc)
