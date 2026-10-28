@@ -716,7 +716,7 @@ def _risk_tier_for_mode(mode: str) -> str:
 
 def _wrap_result(res_dict: dict, mode: str, session_id: str | None) -> RuntimeEnvelope:
     """Wrap a handler result into RuntimeEnvelope."""
-    from arifosmcp.runtime.model import VerdictCode
+    from arifosmcp.runtime.model import CanonicalMetrics, VerdictCode
     from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
     # Day 3.5 fix: handle string verdict properly (was falling through to SABAR)
@@ -731,12 +731,20 @@ def _wrap_result(res_dict: dict, mode: str, session_id: str | None) -> RuntimeEn
     else:
         override_code = VerdictCode.SABAR
 
+    # P1 2026-10-28 (memory-audit-zero-laundering): the memory envelope must
+    # name where its metrics came from. A metrics block with no basis is a
+    # number without provenance - indistinguishable from a dataclass default.
+    _metrics = CanonicalMetrics()
+    _metrics.basis.source = "arif_memory"
+    _metrics.basis.mode = mode
+
     return forge_verdict(
         tool_id="arif_memory",
         canonical_tool_name="arif_memory",
         stage="555m",
         payload=res_dict.get("payload", {}),
         session_id=session_id,
+        metrics=_metrics,
         override_code=override_code,
         message=res_dict.get("payload", {}).get("note", f"arif_memory({mode}) processed."),
     )

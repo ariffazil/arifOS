@@ -405,6 +405,7 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
         # Check CANONICAL_ACTORS aliases from contracts.identity
         try:
             from contracts.identity import CANONICAL_ACTORS
+
             for _canon, info in CANONICAL_ACTORS.items():
                 aliases = info.get("aliases", [])
                 aliases_lower = [str(a).lower() for a in aliases]
@@ -417,6 +418,7 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
             # 2026-09-30 (333-AGI): shared spelling-tolerant resolver, so a
             # `name/FI-nnn` standing record still matches its bare canonical head.
             from arifosmcp.runtime.session_auth import exempt_actor_band as _eab_ss
+
             if _eab_ss(r) and _eab_ss(c):
                 return True
         except Exception:
@@ -683,7 +685,8 @@ def _allowed_verbs_for_band(band: str) -> list[str]:
             "arif_think",
             "arif_route",
             "arif_memory",
-            "arif_judge",        ]
+            "arif_judge",
+        ]
 
 
 def _sync_authority_surfaces_from_standing_dict(
@@ -961,11 +964,17 @@ def _sync_authority_surfaces_from_standing(
 
                 _live = compute_apex_from_metrics()
                 if _live.get("sample_size", 0) > 0:
+                    # P1 2026-10-28 (memory-audit-zero-laundering): unmeasured
+                    # canonical scalar -> UNMEASURED marker, never a bare null.
+                    # One owner: act_token.build_standing_apex.
+                    from arifosmcp.runtime.act_token import build_standing_apex
+
+                    _typed = build_standing_apex(_live)
                     _apex = {
-                        "G": _live.get("G"),
-                        "C_dark": _live.get("C_dark"),
-                        "W3": _live.get("W3", None),
-                        "h": _live.get("h", None),
+                        "G": _typed.get("G"),
+                        "C_dark": _typed.get("C_dark"),
+                        "W3": _typed.get("W3"),
+                        "h": _typed.get("h"),
                     }
             except Exception:
                 _apex = None  # fall through to mint_act default
@@ -1127,7 +1136,9 @@ def attach_canonical(
                 _m_cands.append(_rm)
             for _mm in _m_cands:
                 _zc2 = _mm.get("zen_apex") if isinstance(_mm.get("zen_apex"), dict) else {}
-                _core2 = _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
+                _core2 = (
+                    _zc2.get("decision_core") if isinstance(_zc2.get("decision_core"), dict) else {}
+                )
                 _zv2 = str(_core2.get("verdict") or "").upper()
                 if _zv2 in _cv:
                     inner_verdict = _zv2
