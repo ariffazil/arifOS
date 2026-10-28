@@ -2184,12 +2184,12 @@ try:
 
             async def _public_only_list_tools():
                 tools = await _orig_list_tools()
-                allowed = set(public_tool_names_for_mode())
-                # Coordination channels are listed AND callable but are not
-                # constitutional verbs — single owner public_surface.
-                from arifosmcp.runtime.public_surface import COORDINATION_TOOLS
+                # Single owner of "what is on the public wire": the same set the
+                # released surface_hash is computed over, so the hash and the
+                # listing can never describe different surfaces.
+                from arifosmcp.runtime.public_surface import public_exposed_tool_names
 
-                allowed |= set(COORDINATION_TOOLS)
+                allowed = set(public_exposed_tool_names())
                 return [tool for tool in tools if tool.name in allowed]
 
             _provider._list_tools = _public_only_list_tools
