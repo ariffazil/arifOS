@@ -294,21 +294,31 @@ def invalid_mode(tool_name: str, kwargs: dict[str, Any], handler: Any = None) ->
 
     A tool with no declared mode set (arif_route: "modes": []) is not guarded —
     its modes are declared by the individual adapted tools, not by the verb.
+
+    An OMITTED mode takes the signature default. An EXPLICITLY EMPTY mode
+    ("" or None) is NOT a declared mode and must be rejected — silently
+    defaulting it is the exact failure class this guard exists to close
+    (review finding 2026-10-29: mode="" reached the handler untouched).
     """
     if tool_name not in GUARDED_TOOLS or not _guard_enabled():
         return None
     modes = allowed_modes(tool_name, handler)
     if not modes:
         return None
-    mode = _mode_of(tool_name, kwargs)
+    if "mode" in kwargs:
+        mode = kwargs["mode"]
+        if mode in modes:
+            return None
+        return "<empty>" if mode in ("", None) else str(mode)
+    mode = _mode_of(tool_name, kwargs)  # omitted -> signature default
     if mode in modes:
         return None
     return str(mode)
 
 
-def invalid_mode_message(tool_name: str, mode: str) -> str:
+def invalid_mode_message(tool_name: str, mode: str, handler: Any = None) -> str:
     """Actionable rejection text — the model must be able to fix the call."""
-    modes = allowed_modes(tool_name)
+    modes = allowed_modes(tool_name, handler)
     return (
         f"INVALID_MODE: {tool_name} does not accept mode='{mode}'. "
         f"Valid modes: {', '.join(modes) if modes else '<none declared>'}. "

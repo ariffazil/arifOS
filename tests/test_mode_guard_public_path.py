@@ -140,9 +140,45 @@ async def test_valid_mode_is_not_rejected(mcp_server):
     async with Client(mcp_server) as client:
         result = await _call(client, "arif_observe", {"mode": "vitals"})
 
+    assert not _is_error(result), f"G3: a valid mode produced a tool error: {_text(result)[:300]}"
     assert "INVALID_MODE" not in _text(result), (
         f"G3: a valid mode was rejected by the guard: {_text(result)[:300]}"
     )
+
+
+@pytest.mark.asyncio
+async def test_explicitly_empty_mode_is_rejected(mcp_server):
+    """An EXPLICITLY EMPTY mode is not a declared mode.
+
+    Silently defaulting it is the failure class this guard exists to close:
+    mode="" used to reach the handler untouched and fall through to a default
+    branch (review finding 2026-10-29).
+    """
+    from fastmcp import Client
+
+    async with Client(mcp_server) as client:
+        for name, args in (
+            ("arif_observe", {"mode": "", "query": "g3 probe"}),
+            ("arif_judge", {"mode": "", "candidate": "g3 probe"}),
+        ):
+            result = await _call(client, name, args)
+            assert _is_error(result), (
+                f"G3: an explicitly empty mode reached the handler on {name}: {_text(result)[:300]}"
+            )
+            assert "INVALID_MODE" in _text(result)
+
+
+def test_omitted_mode_is_distinguished_from_explicitly_empty():
+    """Unit-level: omitted -> signature default (valid); "" -> rejected.
+
+    Deliberately not probed through the public path for arif_observe: an
+    omitted mode defaults to "search", which is the known self-DoS path.
+    """
+    assert invalid_mode("arif_observe", {}) is None
+    assert invalid_mode("arif_observe", {"mode": ""}) == "<empty>"
+    assert invalid_mode("arif_observe", {"mode": None}) == "<empty>"
+    assert invalid_mode("arif_judge", {}) is None
+    assert invalid_mode("arif_judge", {"mode": ""}) == "<empty>"
 
 
 @pytest.mark.asyncio

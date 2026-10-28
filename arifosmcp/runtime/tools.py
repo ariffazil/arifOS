@@ -28680,7 +28680,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             return
         from fastmcp.exceptions import ToolError as _ToolError
 
-        raise _ToolError(_ic_invalid_mode_msg(tool_name, bad_mode))
+        raise _ToolError(_ic_invalid_mode_msg(tool_name, bad_mode, handler))
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
