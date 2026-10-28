@@ -96,19 +96,76 @@ async def test_resource_tools_bridge():
 
 @pytest.mark.asyncio
 async def test_copilot_facade_tools():
-    # 1. arif_research
+    # 1. arif_research — contract: "ok" only with real evidence; otherwise
+    # honest "degraded" with machine-readable reasons (LLM quota / empty
+    # index in CI must never masquerade as ok).
     research_res = await arif_research(query="system vitals test")
-    assert research_res["status"] == "ok"
+    assert research_res["status"] in ("ok", "degraded")
     assert "query" in research_res
     assert isinstance(research_res.get("facts"), list)
     assert "synthesis" in research_res
+    if research_res["status"] == "ok":
+        assert research_res["facts"] or research_res["synthesis"]
+    else:
+        assert research_res.get("degraded_reasons")
 
-    # 2. arif_recall
+    # 2. arif_recall — same honesty contract
     recall_res = await arif_recall(query="anti-bangang")
-    assert recall_res["status"] == "ok"
+    assert recall_res["status"] in ("ok", "degraded")
     assert "entries" in recall_res
+    if recall_res["status"] == "ok":
+        assert recall_res["entries"]
+    else:
+        assert recall_res.get("degraded_reasons")
 
     # 3. arif_delegate
     delegate_res = await arif_delegate(query="calculate seismic velocity for fault zone", organ="GEOX")
-    assert delegate_res["status"] == "ok"
+    assert delegate_res["status"] in ("ok", "degraded")
     assert "target_organ" in delegate_res
+    if delegate_res["status"] == "degraded":
+        assert delegate_res.get("degraded_reasons")
+
+
+@pytest.mark.asyncio
+async def test_envelope_tolerance_all_five():
+    """Ingress middleware injects _envelope/actor_id/session_id into arguments
+    before FastMCP validation. Every public tool signature must tolerate them
+    (failure class 2026-10-28: CONTRACT_VIOLATION _envelope on public path)."""
+    env = {"_envelope": {"trace_id": "t"}, "actor_id": "probe", "session_id": "probe"}
+    res1 = await arif_research(query="envelope tolerance", **env)
+    assert isinstance(res1, dict) and res1["status"] in ("ok", "degraded", "error")
+    res2 = await arif_recall(query="envelope tolerance", **env)
+    assert isinstance(res2, dict) and res2["status"] in ("ok", "degraded", "error")
+    res3 = await arif_delegate(query="envelope tolerance", **env)
+    assert isinstance(res3, dict) and res3["status"] in ("ok", "degraded", "error")
+    res4 = await search_resources(query="vitals", **env)
+    assert isinstance(res4, dict) and res4["status"] in ("ok", "degraded", "error")
+    res5 = await read_resource("arifos://vitals", **env)
+    assert isinstance(res5, dict) and res5["status"] in ("ok", "degraded", "error")
+
+
+@pytest.mark.asyncio
+async def test_facade_never_ok_on_inner_failure(monkeypatch):
+    """A governed facade must not claim "ok" when an inner pass fails
+    or evidence is empty (F2 honesty: degraded, never false-ok)."""
+    import arifosmcp.tools.sense as sense_mod
+
+    def _boom(*a, **kw):
+        raise RuntimeError("forced inner failure")
+
+    monkeypatch.setattr(sense_mod, "arif_observe", _boom, raising=False)
+    res = await arif_research(query="forced failure test")
+    assert res["status"] == "degraded"
+    assert any("observe_pass_exception" in r for r in res["degraded_reasons"])
+
+    import arifosmcp.runtime.tools as rt
+
+    monkeypatch.setitem(rt._CANONICAL_HANDLERS, "arif_memory", _boom)
+    res = await arif_recall(query="forced failure test")
+    assert res["status"] in ("degraded", "error")
+    assert res["status"] != "ok"
+
+    monkeypatch.setitem(rt._CANONICAL_HANDLERS, "arif_route", _boom)
+    res = await arif_delegate(query="forced failure test")
+    assert res["status"] in ("degraded", "error")
+    assert res["status"] != "ok"
