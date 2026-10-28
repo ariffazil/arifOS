@@ -252,3 +252,108 @@ someone to re-review the policies against the current HEAD.
 | tools covered by `surface_hash` | 8 of 14 | **14 of 14** (`sha256:873dc35e…`) |
 | release_id | `arifos-68e308f8bfbc` (an unmerged branch commit) | `arifos-921cabefbe99` (merged main) |
 | A-FORGE runtime | `02b7f6b`, healthy | `02b7f6b`, healthy (**unchanged — deliberately**) |
+
+---
+
+## 8. A-FORGE POLICY RE-PIN — 2026-10-29 (Arif: "re-pin the policies against HEAD and deploy it")
+
+### Done
+
+`config/mcp_policies.json` → `pinned_commit: "748741ac"` → **`"02b7f6bc"`** (the deployed/live
+service commit), applied through the sanctioned `canon-mutate file` cycle with the expected
+post-hash declared (`81a017e2…`, matched), then `make deploy-local` (canary PASS · verify PASS ·
+both surfaces restarted).
+
+Live before → after:
+
+| | before | after |
+|---|---|---|
+| `policy_gate.pin_violated` | `true` | **`false`** |
+| `policy_gate.posture` | `PERMISSIVE_FALLBACK` | **`PINNED`** |
+| reviewed policies loaded | **no** ("Reviewed policies NOT loaded — FAIL-OPEN") | **yes** (`loaded 1 policies`) |
+| `status` / `degraded_mode` / `deployment_drift` | healthy / false / false | healthy / false / false |
+| `tool_count` | 118 | 118 |
+| deployed = source = head | `02b7f6b` | `02b7f6b` |
+
+Gate stderr: `[McpPolicyGate] constraint pin OK (02b7f6b)` ·
+`[McpPolicyGate] loaded 1 policies from /root/A-FORGE/config/mcp_policies.json`
+
+Gate still governs after the re-pin (probed on `:7072/mcp`): `forge_health_check` → ALLOW ·
+`forge_filesystem_write` → **DENY** `SESSION_REQUIRED` · `forge_seal` → **HOLD** `A_THINK_GUARD`.
+
+### What the re-pin does NOT do — read this before assuming the posture means more than it does
+
+The pin is an **attestation**, not an access change. The only reviewed policy is
+`chatgpt-arif`, and it is **inert**:
+
+- **It has no `actor_id`.** `resolvePolicy()` matches on `String(p.actor_id || "")`, so the policy
+  can only ever be selected by an *empty* actor id. It is never selected for a real caller.
+- **Its allowlist is in a field the gate does not read.** `McpPolicy` has no `allowed_tools` member
+  (the type is `policy_id / actor_id / role / description / allow_by_default / allowed_mcp_servers /
+  denied_mcp_servers / max_requests_per_minute`). The file's 64-name `allowed_tools` array is
+  ignored — `grep -rn "allowed_tools" src/` finds it only in an unrelated type
+  (`src/domain/types/outcome-spec.ts`) and in a header comment.
+
+So `effective_policy` remains `default:sovereign` with `allow_by_default: true` for every actor,
+**before and after** the re-pin. What changed is that the gate now *says* PINNED instead of
+"reviewed policies NOT loaded — FAIL-OPEN", and the tripwire is re-armed for the next source
+change.
+
+**The reviewed allowlist is also stale against HEAD**, measured live:
+
+- **77** of the 118 live tools are absent from the 64-name list — including `forge_seal`,
+  `forge_scar`, `forge_policy`, `forge_lock`, `forge_chain_state`, `forge_witness`,
+  `forge_drive_create`, `forge_telegram`, `forge_hf_import`.
+- **23** listed tools are not on the public surface (`forge_fetch_url`, `forge_fetch_json`,
+  `forge_fetch_links`, `forge_fetch_metadata`, `forge_docs_lookup`, `forge_filesystem_delete`, …).
+
+Re-pinning does not fix that. It needs a real policy rewrite (real `actor_id` binding, real
+`allowed_mcp_servers` shape) — a policy decision, not a pin.
+
+### DECISION FOR ARIF — the re-pin is deliberately uncommitted
+
+`config/mcp_policies.json` is **tracked**, and the pin compares against the **deploy stamp**
+(`/root/A-FORGE/.git_commit`), not against git HEAD — the code path is
+`getCurrentHeadSha() → readFileSync("/root/A-FORGE/.git_commit")`, falling back to
+`git rev-parse`. That creates a fixed-point problem:
+
+| action | pin holds? | drift-free? | organ status |
+|---|---|---|---|
+| **leave the re-pin uncommitted** (current) | **yes** (pin `02b7f6bc` == stamp) | **yes** (stamp == HEAD) | **healthy** |
+| commit the re-pin, don't deploy | yes | no (HEAD ahead of stamp) | **degraded** |
+| commit the re-pin *and* deploy it | **no** (pin ≠ new stamp) | yes | healthy, but the pin re-breaks |
+
+"Commit the pin" is self-contradictory here: the pin value would have to contain the sha of the
+commit that contains it. The repo's own precedent (`5855576e fix(governance): re-pin mcp_policies to
+LIVE service commit`) committed a re-pin and left `deployment_drift: true` — the organ went
+degraded until the next deploy.
+
+I chose the row that keeps **both** the attestation and the health signal true, at the cost of one
+uncommitted line in a tree that already carries 10 modified files from another agent:
+
+```
+ M config/mcp_policies.json     <- this re-pin (1 line: 748741ac -> 02b7f6bc)
+```
+
+*If you want it in git, the fix is in the mechanism, not the commit:* compare the pin against the
+**deployed artifact's content sha256** instead of a commit id. Then a committed pin is satisfiable,
+the tripwire still fires on any content change, and the git history stops carrying a
+permanent-degraded window.
+
+### New finding — the gate's audit log has been dead since 2026-10-22
+
+`/root/A-FORGE/logs/mcp_policy_gate.log` is `chattr +i`, so `appendFileSync` fails with EPERM. The
+gate **swallows the error** and prints one line to stderr:
+
+```
+[McpPolicyGate] audit log write failed
+```
+
+The file's last write was **2026-10-22 22:05** (24.7 MB). Every A-FORGE gate decision since then —
+every ALLOW and every DENY — is **unrecorded**. This is the "visible but unread" honesty shape: the
+gate names an audit defence it cannot perform.
+
+`canon-mutate` cannot fix it: its cycle is unlock → run → **relock**, so a log that must stay
+appendable can never be left writable through that path. Fixing it needs either a deliberate
+F13 exception to the relock, or a code change so the gate fails loud (or falls back to a writable
+sink) instead of swallowing. Recorded, not actioned.
