@@ -77,13 +77,10 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 000 INIT ────────────────────────────────────────────────────────────
     "arif_init": (
-        "KERNEL 000 · Ignite a governed kernel session: binds actor identity, "
-        "constitutional floors F1–F13, and the audit chain. Returns the "
-        "session_id + session_token that every other arif_* verb requires. "
-        "Use mode=preflight to inspect an existing session without re-igniting, "
-        "mode=resume to continue one. Modes: init, preflight, resume, validate, "
-        "canary, triage, epoch_open, epoch_seal, light, opt_out."
-        "Auth: the only verb needing no session — it mints the session_id + session_token every other verb requires. Returns: session_id, session_token, constitution_hash, allowed_next_tools."
+        "Ignite or resume a governed session. Returns session_id and session_token "
+        "required for subsequent operations. Modes: init (default new session), "
+        "preflight (inspect existing session), resume (continue active session). "
+        "Outputs: session credentials and allowed next tools."
     ),
     # ── 000 TRIAGE (session immune, not intent router) ─────────────────────
     "arif_triage": (
@@ -91,14 +88,10 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 111 OBSERVE ─────────────────────────────────────────────────────────
     "arif_observe": (
-        "KERNEL 111 · Collect evidence — facts and sources with epistemic tags "
-        "(OBS) and uncertainty bounds, never conclusions. mode=search queries "
-        "the open web/literature; mode=fetch retrieves a URL and records its "
-        "provenance; mode=vitals reads kernel machine telemetry. Reason over "
-        "what you gathered with arif_think; delegate domain analysis to an "
-        "organ with arif_route. Modes: search, fetch, hybrid_discovery, ingest, "
-        "compass, atlas, entropy_dS, vitals."
-        "Auth: requires session_id + session_token from arif_init. Returns: evidence items with epistemic tags (OBS) and uncertainty bounds — facts, never conclusions."
+        "Collect evidence and operational facts with provenance. Modes: search "
+        "(web literature queries), fetch (targeted URL retrieval), vitals "
+        "(system metrics). Requires valid session credentials. "
+        "Outputs: structured facts, source attribution, and epistemic tags."
     ),
     "arif_sense_observe": (
         "[alias → arif_observe] KERNEL 111 sense. Prefer canonical name arif_observe."
@@ -113,25 +106,17 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 333 THINK ───────────────────────────────────────────────────────────
     "arif_think": (
-        "KERNEL 333 · Structured reasoning pass: decomposes a query and returns "
-        "reasoning steps labeled OBS (observed), DER (derived), INT "
-        "(interpretation), SPEC (specification) under truth floors. Produces "
-        "reasoning records only — no verdicts (those come from arif_judge) and "
-        "no state changes. The plan-family modes draft/review/approve execution "
-        "plans; simulate and wonder explore counterfactuals. Modes: reason, "
-        "reflect, verify, axioms, plan, plan_review, plan_approve, "
-        "refactor_plan, metabolize, simulate, wonder, atlas."
-        "Auth: requires session_id + session_token from arif_init. Returns: reasoning steps labelled OBS/DER/INT/SPEC — records only; verdicts belong to arif_judge."
+        "Execute structured reasoning and plan formulation. Decomposes inquiries "
+        "into verified derivations. Modes: reason (inquiry breakdown), plan "
+        "(drafting multi-step execution steps), verify (logical proof check). "
+        "Requires valid session credentials. Outputs: structured reasoning record."
     ),
     "arif_mind_reason": ("[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."),
     # ── 444 ROUTE ───────────────────────────────────────────────────────────
     "arif_route": (
-        "KERNEL 444 · Intent→organ router: classifies a natural-language intent "
-        "and prepares a dispatch envelope for the specialist organ (GEOX geoscience, "
-        "WEALTH capital, WELL vitality, A-FORGE execution). Returns the routing "
-        "decision and target organ contract. Calling the organ tool itself is a separate "
-        "governed invocation (via arif_forge after judgment or direct organ client). "
-        "Auth: requires session_id + session_token from arif_init."
+        "Classify intent and route tasks to domain organs (GEOX for Earth science, "
+        "WEALTH for capital markets, WELL for human vitality, A-FORGE for execution). "
+        "Requires valid session credentials. Outputs: organ dispatch envelope."
     ),
     "arif_kernel_route": ("[DEPRECATED → arif_route] Legacy KERNEL 444 entry."),
     # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
@@ -144,39 +129,26 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_heart_critique": ("[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."),
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
-        "KERNEL 555 · Governed memory of the kernel itself: six tiers (L1–L6) "
-        "with per-mode gating. recall, inspect, and audit are read paths; "
-        "remember, revise, promote, and forget mutate tiers — promote and "
-        "forget additionally require human_approval=true. Use for cross-session "
-        "lessons, canon, and memory audit; external evidence belongs to "
-        "arif_observe and reasoning artifacts to arif_think. Modes: recall, "
-        "inspect, attest, remember, promote, revise, forget, audit, metabolize."
-        "Auth: requires session_id + session_token from arif_init. Returns: memory entries by tier (L1–L6); promote and forget gates require explicit human approval."
+        "Access and maintain persistent institutional knowledge across sessions. "
+        "Modes: recall (retrieve relevant context), inspect (audit stored decisions), "
+        "remember (store verified lesson). Mutations to permanent tiers require "
+        "explicit approval. Outputs: scoped memory entries."
     ),
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
-        "KERNEL 666 · Binding constitutional arbitration: evaluates a candidate "
-        "action or claim and returns SEAL / HOLD / SABAR / VOID with the full "
-        "reason chain. Weighs action class, blast radius, reversibility, "
-        "entropy pathway, and cooling state; a SEAL verdict here is what "
-        "arif_forge requires before it will execute anything. Judge arbitrates "
-        "— it does not gather (evidence comes via arif_observe, reasoning via "
-        "arif_think) and it does not mutate (execution is arif_forge, "
-        "permanence is arif_seal). Modes: judge, intercept, validate, hold, "
-        "escalate."
-        "Auth: requires session_id + session_token from arif_init. Returns: verdict (SEAL/HOLD/SABAR/VOID) with the full reason chain — arbitration only, it does not mutate."
+        "Evaluate proposed operations against policy and safety constraints. "
+        "Weighs blast radius, reversibility, and permission level. Returns binding "
+        "verdict (SEAL for approved, HOLD for blocked, SABAR for awaiting conditions). "
+        "Approval verdict is required prior to calling arif_forge. "
+        "Outputs: evaluation verdict and authorization receipt."
     ),
     "arif_judge_deliberate": ("[alias/internal → arif_judge] Prefer public arif_judge."),
     # ── 777 FORGE ───────────────────────────────────────────────────────────
     "arif_forge": (
-        "KERNEL 777 · Governed execution: applies a mutation through A-FORGE "
-        "only when carrying a sealed verdict id (seal_verdict_id) from arif_judge "
-        "and a live session. The manifest/query defines exactly what changes; "
-        "mode=dry_run previews the plan without applying it. This is the only "
-        "verb that executes general mutations — kernel memory writes go to "
-        "arif_memory and permanent records to arif_seal."
-        "Auth: requires session_id + session_token from arif_init plus a sealed verdict id (seal_verdict_id) from arif_judge. Returns: the applied mutation receipt — one of the two committal verbs (with arif_seal)."
+        "Apply an authorized system modification. Requires a valid seal_verdict_id "
+        "obtained from arif_judge. Mode: dry_run (preview impact without execution), "
+        "apply (execute authorized change). Outputs: execution receipt."
     ),
     "arif_forge_execute": ("[alias → arif_forge] Prefer arif_forge."),
     "arif_act": (
@@ -189,15 +161,9 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_reply_compose": ("[alias → arif_compose] Prefer arif_compose."),
     # ── 999 SEAL ────────────────────────────────────────────────────────────
     "arif_seal": (
-        "KERNEL 999 · Append an entry to VAULT999, the immutable ledger — "
-        "accepted entries can never be edited or removed; there is no unseal. "
-        "Use for permanent records of verified outcomes, lessons, and session "
-        "closure once a verdict exists. ack_irreversible=true is the explicit "
-        "acknowledgment of permanence, and judge_state_hash binds the entry to "
-        "the verdict that authorized it. Reversible changes belong in "
-        "arif_forge under a SEAL. Modes: seal, verify, ledger, changelog, "
-        "audit, session_close."
-        "Commit projection: seven of the eight verbs are reversible or informational and project their outcomes onto the two committal verbs — arif_forge (governed mutation) and arif_seal (permanence). Auth: requires session_id + session_token from arif_init. Returns: the immutable ledger entry id — append-only, there is no unseal."
+        "Append verified outcome or lesson to the immutable audit ledger. "
+        "Requires ack_irreversible=true to confirm permanent commit. "
+        "Outputs: immutable ledger entry receipt."
     ),
     "arif_vault_seal": ("[alias → arif_seal] Prefer arif_seal."),
     # ── Gateway / measure (non-public helpers) ──────────────────────────────
