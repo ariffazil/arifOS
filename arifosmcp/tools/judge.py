@@ -2470,7 +2470,13 @@ async def arif_judge(
                     "SOVEREIGN" if _standing_actor_verified else "OBSERVE_ONLY"
                 ),
                 drift=[],
-                g_score=_standing_apex.get("G") if isinstance(_standing_apex, dict) else None,
+                g_score=(
+                    _standing_apex.get("G")
+                    if isinstance(_standing_apex, dict)
+                    and isinstance(_standing_apex.get("G"), (int, float))
+                    and not isinstance(_standing_apex.get("G"), bool)
+                    else None
+                ),
             )
             _envelope = verdict_to_envelope(_canonical)
             # Merge the four canonical fields into the response payload.
