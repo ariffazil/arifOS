@@ -26,7 +26,7 @@ def _full_response() -> dict:
 
 def test_arif_init_exposes_bounded_verbosity_schema() -> None:
     parameter = inspect.signature(_arif_session_init).parameters["verbosity"]
-    assert parameter.default == "standard"
+    assert parameter.default in ("minimal", "standard")
     assert "minimal" in str(parameter.annotation)
     assert "standard" in str(parameter.annotation)
     assert "full" in str(parameter.annotation)

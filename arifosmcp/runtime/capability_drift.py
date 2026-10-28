@@ -61,6 +61,11 @@ PUBLIC_CANONICAL_TOOLS: frozenset[str] = frozenset(
 COORDINATION_TOOLS: frozenset[str] = frozenset(
     {
         "arif_report",
+        "read_resource",
+        "search_resources",
+        "arif_research",
+        "arif_recall",
+        "arif_delegate",
     }
 )
 
