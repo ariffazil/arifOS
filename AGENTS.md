@@ -32,7 +32,7 @@ Reality determines survival.
 arifOS is the **Constitutional Kernel** of the federation. It is the sole authority that evaluates claims against the 13 Constitutional Floors (F1–F13) and issues binding verdicts.
 
 * **Port 8088:** Live kernel REST/HTTP & FastMCP interface (`/health`, `/tools`, `/mcp`, `/status`).
-* **Port 8100:** VAULT999 internal viewer (append-only immutable ledger with 342,000+ sealed records).
+* **Port 8100:** VAULT999 internal viewer (append-only immutable ledger — record counts are live measurements: run `python3 scripts/verify_vault_chain.py` from the repo root; never cite static counts).
 * **Canonical 8-Verb Chain:**
   ```text
   arif_init → arif_observe → arif_think → arif_route → arif_memory
