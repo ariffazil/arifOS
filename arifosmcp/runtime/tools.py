@@ -17526,8 +17526,29 @@ def _arif_kernel_route(
                 _args = arguments or {}
                 _sid = _args.get("session_id")
                 _aid = _args.get("actor_id")
+                _tid = _args.get("trace_id")
+                # E1 edge propagation (2026-10-30, feat/e1-geox-edge): the kernel
+                # SIGNS its organ calls instead of passthrough-only. Caller-supplied
+                # identity still wins; fallbacks: ambient MCP session (middleware
+                # contextvar), kernel actor, per-call trace. Fixes GEOX minting
+                # ANON-* sessions when callers omit identity (Packet P7 E1).
+                if not _sid:
+                    try:
+                        from arifosmcp.runtime.mcp_transport_bridge import (
+                            get_current_mcp_session_id,
+                        )
+
+                        _sid = get_current_mcp_session_id()
+                    except Exception:
+                        _sid = None
+                if not _aid:
+                    _aid = "arifos-kernel"
+                if not _tid:
+                    _tid = f"trc-{uuid.uuid4().hex[:12]}"
                 result = _run_async(
-                    call_geox_tool(tool_name, _args, session_id=_sid, actor_id=_aid)
+                    call_geox_tool(
+                        tool_name, _args, session_id=_sid, actor_id=_aid, trace_id=_tid
+                    )
                 )
                 return _ok(
                     "arif_kernel_route",
