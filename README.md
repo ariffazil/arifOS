@@ -2,7 +2,7 @@
 <!-- GENERATED:CURRENT-STATE:BEGIN · source: scripts/generate_current_state.py · never hand-edit -->
 > ### ⚠️ Current verified state — generated, never hand-edited
 >
-> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-26T16:06:09Z`): kernel **degraded** · floors **11/13 measured pass** · failing: F8 · vault999 healthy · release `arifos-42f52e6c66e2` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
+> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-29T17:02:36Z`): kernel **degraded** · floors **12/13 measured pass** · vault999 healthy · release `arifos-5564ca6f7f61` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
 >
 > **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured = 13 distinct** (raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13) · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
@@ -101,7 +101,7 @@ Full transcript: [`docs/QUICKSTART.md`](./docs/QUICKSTART.md). The demo runs in-
 ## What works today
 
 - **Deterministic rejection without consulting an LLM.** The judge refuses on the constitution, not on a model opinion (`gate: hard_deterministic`, `llm_consulted: false`).
-- **Prevention of a tested unauthorised mutation.** One MUTATE-class call without presented authority was stopped before execution.
+- **Prevention of a tested unauthorised mutation.** One MUTATE-class call without presented authority was stopped before execution. Stronger: tampered-ACT tokens were rejected on 3 surfaces (kernel validate + kernel observe + A-FORGE policy gate) — receipts `forge_work/lingkaran1/`, measured 2026-10-29/30.
 
 ## What is not yet proven
 
@@ -159,7 +159,7 @@ See [SECURITY.md](./SECURITY.md) for the threat model and disclosure policy, and
 
 ### The verdict lattice
 
-Verdicts are ordered and non-compensatory — a stronger verdict always dominates a weaker one (`arifosmcp/models/verdicts.py`):
+Verdicts are ordered and non-compensatory — a stronger verdict always dominates a weaker one. Two SOTs, one chain: the 5 primary ranks are declared in the constitutional SOT (`kernel-sot.yaml`); the full 7-rank chain adds 2 extension ranks in the runtime SOT (`arifosmcp/models/verdicts.py`):
 
 ```
 VOID  >  HOLD_888  >  HOLD  >  SABAR  >  PARTIAL  >  PROVISIONAL  >  SEAL
