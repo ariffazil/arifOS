@@ -141,6 +141,7 @@ def report(
     verified_actor: bool = False,
     dry_run: bool = False,
     server_actor: str | None = None,
+    envelope_call_hash: str | None = None,
 ) -> dict[str, Any]:
     """File one report into the lane. Never raises on bad input; coerces.
 
@@ -210,6 +211,12 @@ def report(
             ).encode()
         ).hexdigest()
     )
+    # PACKET-AB Changeset A (F13 authorized 2026-10-29, plan_hash
+    # sha256:1a411120afbac012d79c1cfb…): a ΔS claim in a report body is
+    # prose until bound to an envelope call_hash by a later, separately
+    # authorized wiring. Until then every prose ΔS stores UNMEASURED —
+    # it can never enter a governance field as a number.
+    row["delta_s_claim"] = bind_delta_s(body, envelope_call_hash)
 
     if dry_run:
         # F2 honesty: a dry run must not touch the store. Preview only.
@@ -221,6 +228,7 @@ def report(
             "queued_for_human": escalate,
             "escalation_withheld": withheld,
             "claim_state": "SELF_REPORTED",
+            "delta_s_claim": row["delta_s_claim"],
             "note": "Dry run — nothing written to the store.",
         }
 
@@ -600,3 +608,111 @@ def stats() -> dict[str, Any]:
         "human_classes": sorted(HUMAN_CLASSES),
         "store": str(INBOX),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SESSION RESOLUTION + ΔS ADMISSION — PACKET-AB Changeset A (2026-10-29)
+# F13 authorization bound to PACKET-AB-20261029 v1.1, plan_hash
+# sha256:1a411120afbac012d79c1cfb…. Fail closed at ADMISSIBILITY, never at
+# write: rows keep flowing; only readiness counting refuses to trust them.
+# ═══════════════════════════════════════════════════════════════════════════
+
+import re as _re
+
+from arifosmcp.runtime.act_token import UNMEASURED as _UNMEASURED
+
+SESSION_RESOLUTION_VOCAB: frozenset[str] = frozenset(
+    {"real", "synthetic", "legacy_unclassified"}
+)
+
+# Named limitation (packet §8 R1): shape-based, NOT provenance. A writer can
+# mint a real-shaped session id. Provenance binding (envelope call_hash) is
+# follow-up packet scope; until then this admission is shape-admission.
+_REAL_SESSION_RE = _re.compile(r"^session_[0-9a-f]{8,}")
+
+# ΔS-shaped prose: the pattern two different agents emitted (-0.85, -0.48).
+_DELTA_S_CLAIM_RE = _re.compile(r"(?:ΔS|delta_S|delta S)\s*[:=]?\s*-?\d", _re.IGNORECASE)
+
+
+def classify_session(session: str | None) -> str:
+    """Classify a session id by shape into the closed vocabulary."""
+    s = (session or "").strip()
+    return "real" if _REAL_SESSION_RE.match(s) else "synthetic"
+
+
+def resolve_row_resolution(row: dict) -> str:
+    """Read-time resolution of a telemetry row.
+
+    A row's own stamped field wins when valid; a missing field reads as
+    legacy_unclassified (history is never rewritten); anything outside the
+    closed vocabulary is invalid and the caller fails closed.
+    """
+    stamped = row.get("session_resolution")
+    if stamped in SESSION_RESOLUTION_VOCAB:
+        return stamped
+    if stamped is None:
+        return "legacy_unclassified"
+    return "__invalid__"
+
+
+def admit_for_readiness(row: dict, *, test_scope: bool = False) -> bool:
+    """Admission rule: only real rows may satisfy production readiness.
+
+    synthetic rows count only inside a designated test scope; legacy and
+    invalid rows never count. Missing resolution fails CLOSED.
+    """
+    resolution = resolve_row_resolution(row)
+    if resolution == "real":
+        return True
+    if resolution == "synthetic":
+        return bool(test_scope)
+    return False  # legacy_unclassified, __invalid__ → fail closed
+
+
+def readiness_counts(rows: list[dict], *, test_scope: bool = False) -> dict:
+    """Aggregate admissibility over a telemetry store.
+
+    readiness is UNMEASURED (house sentinel) when zero real rows are
+    admitted — an empty or fixture-only store is not a green reading.
+    """
+    admitted = sum(1 for r in rows if admit_for_readiness(r, test_scope=test_scope))
+    synthetic = sum(1 for r in rows if resolve_row_resolution(r) == "synthetic")
+    legacy = sum(1 for r in rows if resolve_row_resolution(r) == "legacy_unclassified")
+    invalid = sum(1 for r in rows if resolve_row_resolution(r) == "__invalid__")
+    return {
+        "admitted_real": admitted,
+        "synthetic": synthetic,
+        "legacy_unclassified": legacy,
+        "invalid": invalid,
+        "readiness": "MEASURED" if admitted > 0 else _UNMEASURED,
+    }
+
+
+def bind_delta_s(body: str | None, envelope_call_hash: str | None = None) -> dict:
+    """Admission gate for ΔS claims in report prose.
+
+    A ΔS-shaped claim without an envelope call_hash (the only binding a
+    later wiring may supply — a hash-shaped string inside the prose itself
+    is NOT evidence) stores UNMEASURED with the reason. It can never reach
+    a governance field as a number.
+    """
+    if not _DELTA_S_CLAIM_RE.search(body or ""):
+        return {"present": False}
+    if envelope_call_hash:
+        return {
+            "present": True,
+            "delta_S": {"value": None, "call_hash": envelope_call_hash},
+            "note": "binding wiring lands in a separately authorized changeset",
+        }
+    return {"present": True, "delta_S": _UNMEASURED, "reason": "NO_BOUND_CALL_HASH"}
+
+
+if "__all__" in globals():
+    __all__ += [
+        "SESSION_RESOLUTION_VOCAB",
+        "classify_session",
+        "resolve_row_resolution",
+        "admit_for_readiness",
+        "readiness_counts",
+        "bind_delta_s",
+    ]

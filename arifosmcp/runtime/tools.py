@@ -1450,6 +1450,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
             "Claiming verified truth — a report is a claim, evidence is a probe",
         ],
         "authority_level": "advisory_only",
+        "delta_s_admission": "PACKET-AB A (2026-10-29): a ΔS claim in a report body is stored UNMEASURED (NO_BOUND_CALL_HASH) unless bound to an envelope call_hash by separately authorized wiring — prose ΔS can never enter a governance field as a number.",
         "side_effect": "append_only_store_write",
         "blast_radius": "low",
         "requires_human_confirmation": False,
