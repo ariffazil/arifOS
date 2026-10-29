@@ -275,6 +275,11 @@ class RSILedger:
         self._path = Path(path) if path else LEDGER_PATH
         self._path.parent.mkdir(parents=True, exist_ok=True)
 
+    @property
+    def path(self) -> Path:
+        """The file this ledger reads and appends to."""
+        return self._path
+
     def record(self, decision: RSIDecisionRecord) -> None:
         """Append a single RSIDecisionRecord to the ledger (append-only)."""
         line = decision.to_jsonl()
@@ -839,6 +844,18 @@ def _get_ledger() -> RSILedger:
     return _default_ledger
 
 
+def open_ledger(path: Path | str | None = None) -> RSILedger:
+    """Open a ledger handle bound to an EXPLICIT target.
+
+    ``open_ledger()`` with no argument binds the LIVE canonical ledger
+    (``LEDGER_PATH``); passing a path binds that file instead. A caller that
+    means to work on a copy can now say so, instead of reaching the module
+    singleton and landing on the live ledger by accident
+    (P2 of ARIFOS::RSI_REVIEW_PATH::AUTHORITY_RECONCILIATION_V1).
+    """
+    return RSILedger(path)
+
+
 def record_rsi_decision(
     *,
     tool: str,
@@ -889,8 +906,13 @@ def record_rsi_review(
     evidence_refs: list[str] | None = None,
     independent: bool | None = None,
     note: str = "",
+    ledger: RSILedger | None = None,
 ) -> RSIDecisionRecord:
     """Record a post-hoc review of an existing RSI decision.
+
+    The target is the LIVE canonical ledger unless an explicit handle is
+    supplied: ``ledger=open_ledger(path)``. The resolved target is logged, so
+    a receipt can name which ledger actually received the review.
 
     The review contract (forge_work/2026-10-29-TTME-RSI-REVIEW-CONTRACT.md):
 
@@ -904,7 +926,9 @@ def record_rsi_review(
 
     Returns the superseding RSIDecisionRecord.
     """
-    return _get_ledger().record_review(
+    target = ledger if ledger is not None else _get_ledger()
+    logger.info("rsi_audit: review target=%s", target.path)
+    return target.record_review(
         decision_id,
         review_outcome,
         reviewed_by=reviewed_by,
@@ -930,6 +954,7 @@ __all__ = [
     "StratifiedSampler",
     "record_rsi_decision",
     "record_rsi_review",
+    "open_ledger",
     "select_review_batch",
     "DECISIVE_REVIEW_OUTCOMES",
     "LEDGER_PATH",
