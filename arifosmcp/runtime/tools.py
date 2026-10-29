@@ -12740,8 +12740,97 @@ def _arif_session_init(
 # ═══════════════════════════════════════════════════════════════════════════════
 # ═══════════════════════════════════════════════════════════════════════════════
 # Brave Search fallback — constitutional cascade (F7 Humility)
-# Path: minimax_bridge → Brave API → SABAR
+# Path: minimax_bridge → SearXNG (localhost, keyless) → Brave (optional key) → SABAR
 # ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _searxng_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
+    """Free search via the sovereign SearXNG on this host (no key, RM0).
+
+    M365 free-search lane 2026-10-29 (Arif: "replace brave with free").
+    SearXNG aggregates live engines; engines are PINNED at the query layer
+    (never by editing the container config — a settings.yml edit in this
+    session degraded the container and was reverted from backup; lesson:
+    the wiring owns engine selection, the stable service stays untouched).
+    stdlib urllib only — no new dependency. Honest failure shapes mirror
+    the Brave fallback: no hits is SABAR, never a fabricated success.
+    """
+    import urllib.parse
+    import urllib.request
+
+    base = os.getenv("ARIFOS_SEARXNG_URL", "http://127.0.0.1:8080/search")
+    engines = os.getenv("ARIFOS_SEARXNG_ENGINES", "bing,google,wikipedia,bing news")
+    timeout = float(os.getenv("ARIFOS_SEARXNG_TIMEOUT", "12"))
+    try:
+        params = urllib.parse.urlencode(
+            {"q": query, "format": "json", "engines": engines, "pageno": 1}
+        )
+        req = urllib.request.Request(f"{base}?{params}", headers={"User-Agent": "arifOS-kernel/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310 localhost env
+            data = json.loads(resp.read().decode("utf-8"))
+        hits = []
+        for item in (data.get("results") or [])[:max_results]:
+            hits.append(
+                {
+                    "title": item.get("title", ""),
+                    "link": item.get("url", ""),
+                    "snippet": item.get("content", ""),
+                    "engine": item.get("engine", ""),
+                }
+            )
+        return {
+            "status": "success" if hits else "empty",
+            "verdict": "SEAL" if hits else "SABAR",
+            "hits": hits,
+            "result_count": len(hits),
+            "source": "searxng",
+            "provider": "searxng_localhost",
+            "engines_pinned": engines,
+            "unresponsive_engines": [
+                {"engine": u[0], "reason": u[1]} for u in (data.get("unresponsive_engines") or [])
+            ],
+            "cascade": True,
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "verdict": "SABAR",
+            "error": f"{type(exc).__name__}: {exc}",
+            "hits": [],
+            "result_count": 0,
+            "source": "searxng",
+            "provider": "searxng_localhost",
+            "cascade": True,
+        }
+
+
+def _free_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
+    """Free-first search ladder: SearXNG localhost → Brave (only if a key is
+    configured) → error shape. Returns the Brave-compatible envelope so every
+    existing cascade consumer keeps its contract; 'provider' names the engine
+    that actually answered — receipts must never claim a provider that did
+    not serve the query (F2).
+    """
+    out = _searxng_web_search(query, max_results=max_results)
+    if out.get("hits"):
+        return out
+    searx_note = f"searxng: {out.get('status')} {out.get('error', '')}".strip()
+    if os.getenv("BRAVE_API_KEY", ""):
+        brave = _brave_web_search(query, max_results=max_results)
+        if brave.get("hits"):
+            brave["fallback_of"] = "searxng_empty_or_error"
+            brave["provider"] = "brave_api"
+            return brave
+    return {
+        "status": out.get("status", "error"),
+        "verdict": "SABAR",
+        "error": searx_note,
+        "hits": [],
+        "result_count": 0,
+        "source": out.get("source", "searxng"),
+        "provider": out.get("provider", "searxng_localhost"),
+        "cascade": True,
+    }
 
 
 def _brave_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
@@ -13353,12 +13442,12 @@ def _arif_sense_observe(
             )
 
         # ── Brave cascade (F7 Humility) ──
-        brave = _brave_web_search(query or "", max_results=result_limit)
+        brave = _free_web_search(query or "", max_results=result_limit)
         if brave.get("hits"):
             evidence_receipt = {
                 "tool": "111_SENSE",
                 "mode": "search",
-                "provider": "brave_api",
+                "provider": brave.get("provider", "brave_api"),
                 "bridge": "mcp_http_sse",
                 "query_sent": query or "",
                 "results_returned": len(brave["hits"]),
@@ -13828,7 +13917,7 @@ def _arif_sense_observe(
             q = q.strip()
             if not q:
                 continue
-            brave = _brave_web_search(q, max_results=3)
+            brave = _free_web_search(q, max_results=3)
             all_results.append({"query": q, "hits": brave.get("hits", [])})
         agreements = []
         contradictions = []
