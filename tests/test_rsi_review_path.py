@@ -175,3 +175,32 @@ def test_module_level_entry_points_exist_but_are_not_run_here():
     assert "review_outcome" in inspect.signature(record_rsi_review).parameters
     assert "reviewed_by" in inspect.signature(record_rsi_review).parameters
     assert "n" in inspect.signature(select_review_batch).parameters
+
+
+# ── D2 / D3: published counts (555-verifier findings) ──────────────────────
+def test_stats_publishes_disk_rows_and_effective_decisions_separately(tmp_path):
+    led = _ledger(tmp_path)
+    rec = _rec()
+    led.record(rec)
+    led.record_review(rec.decision_id, "CORRECT_HOLD", reviewed_by="r", independent=True)
+    stats = led.stats()
+    assert stats["total_records"] == 1        # effective decisions
+    assert stats["ledger_rows"] == 2         # rows on disk (append-only)
+    assert stats["reviewed_count"] == 1
+
+
+def test_stats_exposes_reviewer_independence(tmp_path):
+    led = _ledger(tmp_path)
+    a = _rec()
+    b = _rec(tool="t2")
+    c = _rec(tool="t3")
+    led.record(a)
+    led.record(b)
+    led.record(c)
+    led.record_review(a.decision_id, "CORRECT_HOLD", reviewed_by="r", independent=True)
+    led.record_review(b.decision_id, "CORRECT_HOLD", reviewed_by="r", independent=False)
+    led.record_review(c.decision_id, "INCONCLUSIVE", reviewed_by="r")
+    stats = led.stats()
+    assert stats["independent_reviews"] == 1
+    assert stats["non_independent_reviews"] == 1
+    assert stats["reviews_without_independence_claim"] == 1
