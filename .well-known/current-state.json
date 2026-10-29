@@ -1,34 +1,32 @@
 {
-  "generated_at": "2026-10-26T16:06:09Z",
+  "generated_at": "2026-10-29T17:02:36Z",
   "self_measurement": {
     "status": "degraded",
-    "probe": "http://127.0.0.1:8088/health @2026-10-26T16:06:09Z",
-    "floors_pass": 11,
+    "probe": "http://127.0.0.1:8088/health @2026-10-29T17:02:36Z",
+    "floors_pass": 12,
     "floors_target": 13,
-    "floors_failing": [
-      "F8"
-    ],
+    "floors_failing": [],
     "floors_unmeasured": [
       "F6"
     ],
     "floors_provenance": {
-      "F10": "floor_producer:PASS:f10_guard:report_corpus:77:601234dfed3d:fresh:artifact=42f52e6c@2026-10-26T16:06:02Z",
-      "F11": "floor_producer:PASS:receipt_ledger@2026-10-26T16:06:01Z",
-      "F12": "floor_producer:PASS:request_trust@2026-10-26T16:06:01Z",
-      "F13": "floor_producer:PASS:seal_chain_sovereign@2026-10-26T16:06:01Z",
-      "F1": "arifflow_probe:quotient=1.0076335877862594;floor=0.5;constellation=FLOWING@2026-10-26T16:06:01Z",
-      "F2": "floor_producer:PASS:floor_provenance_coverage@2026-10-26T16:06:02Z",
-      "F3": "floor_producer:MEASURED:witness_coherence=0.9812@2026-10-26T16:06:01Z",
-      "F4": "arifflow_probe:ds=-0.0@2026-10-26T16:06:01Z",
-      "F5": "floor_producer:PASS:seal_chain_peace@2026-10-26T16:06:01Z",
+      "F10": "floor_producer:PASS:f10_guard:report_corpus:118:a47880724a23:fresh:artifact=5564ca6f@2026-10-29T17:01:25Z",
+      "F11": "floor_producer:PASS:receipt_ledger@2026-10-29T17:01:24Z",
+      "F12": "floor_producer:PASS:request_trust@2026-10-29T17:01:24Z",
+      "F13": "floor_producer:PASS:seal_chain_sovereign@2026-10-29T17:01:24Z",
+      "F1": "arifflow_probe:quotient=2.2601574803149607;floor=0.5;constellation=FEEL_UNANCHORED@2026-10-29T17:01:24Z",
+      "F2": "floor_producer:PASS:floor_provenance_coverage@2026-10-29T17:01:25Z",
+      "F3": "floor_producer:MEASURED:witness_coherence=0.9431@2026-10-29T17:01:24Z",
+      "F4": "arifflow_probe:ds=-0.0@2026-10-29T17:01:24Z",
+      "F5": "floor_producer:PASS:seal_chain_peace@2026-10-29T17:01:24Z",
       "F6": "unmeasured_default:f6_partially_measured",
-      "F7": "arifflow_live_vector:omega=0.04@2026-10-26T16:06:01Z",
-      "F8": "floor_producer:FAIL:f8_logic_active_contradictions@2026-10-26T16:06:01Z",
-      "F9": "arifflow_live_vector:c_dark=0.1991@2026-10-26T16:06:01Z"
+      "F7": "arifflow_live_vector:omega=0.04@2026-10-29T17:01:24Z",
+      "F8": "floor_producer:PASS:f8_logic_contradiction_register@2026-10-29T17:01:24Z",
+      "F9": "arifflow_live_vector:c_dark=0.2166@2026-10-29T17:01:24Z"
     },
     "vault999": "healthy",
-    "release_id": "arifos-42f52e6c66e2",
-    "source_commit": "42f52e6c66e2539681a94a7c38155eaef6973089",
+    "release_id": "arifos-5564ca6f7f61",
+    "source_commit": "5564ca6f7f6127380b36458f60de0b453c368d7d",
     "drift": false,
     "tools_exposed": 9,
     "registry_size": 63
