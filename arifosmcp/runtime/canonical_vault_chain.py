@@ -234,6 +234,15 @@ class ReceiptEnvelope:
     actor: str | None = None
     verdict: str = "SEAL"
     idempotency_key: str = ""
+    # PACKET C (F13 2026-10-30, "F13 AUTHORIZE PACKET C"): per-row declaration
+    # of the hash algorithm used for receipt_hash / prev_hash chaining. The
+    # writer always computes sha256 (compute_receipt_hash), so this is DERIVED,
+    # never caller-supplied — __post_init__ forces it. New rows carrying the
+    # declaration let verify_vault_chain.py's chain_hash_integrity report
+    # TAMPER on mismatch instead of UNMEASURED; legacy rows without it stay
+    # readable and read as UNMEASURED on mismatch (F9) — history is never
+    # rewritten. Sibling of sig_method (PATCH 4, 888 F13 2026-10-21).
+    chain_hash_alg: str = "sha256"
 
     def __post_init__(self) -> None:
         if self.seq is None:
@@ -244,6 +253,8 @@ class ReceiptEnvelope:
             self.this_hash = self.receipt_hash
         if self.actor is None:
             self.actor = self.actor_id
+        # PACKET C: derived, never caller-supplied — the writer computes sha256.
+        self.chain_hash_alg = "sha256"
 
     def to_wire(self) -> dict[str, Any]:
         d = asdict(self)
