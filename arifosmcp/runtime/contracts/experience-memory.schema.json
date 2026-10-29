@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifos://contracts/experience-memory.schema.json",
+  "title": "ExperienceMemory",
+  "description": "Canonical typed contract for experiential memory in the arifOS federation. One object per experience record; adapters exist for every legacy surface (Seal C proposals, CHRON lessons, adaptations, dream proposals, RSI decisions). Missing legacy fields resolve to UNKNOWN - never to a fabricated default. Promotion vocabulary is shared with the ACD receipt contract (promotion_status) so no second taxonomy exists.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["memory_id", "schema_version", "memory_class", "epistemic_status", "outcome", "review_status", "promotion_status"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "properties": {
+        "memory_id": {"type": "string"},
+        "schema_version": {"type": "string", "const": "experience-memory/1.0"},
+        "created_at": {"type": "string"},
+        "source_surface": {"type": "string"},
+        "source_record_id": {"type": "string"},
+        "source_attempt_id": {"type": ["string", "null"]},
+        "task_id": {"type": ["string", "null"]},
+        "session_id": {"type": ["string", "null"]}
+      },
+      "required": ["memory_id", "schema_version", "source_surface"]
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "actor_id": {"type": ["string", "null"]},
+        "model_id": {"type": ["string", "null"]},
+        "framework": {"type": ["string", "null"]},
+        "repository": {"type": ["string", "null"]},
+        "commit": {"type": ["string", "null"]},
+        "policy_version": {"type": ["string", "null"]},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "classification": {
+      "type": "object",
+      "properties": {
+        "memory_class": {"enum": ["NOISE", "EPISODE", "SKILL", "GATE", "LEDGER", "SCAR", "LESSON", "STRATEGY"]},
+        "epistemic_status": {"enum": ["OBSERVED", "INFERRED", "HYPOTHESIS", "VERIFIED", "FALSIFIED", "UNKNOWN"]},
+        "verdict": {"enum": ["HOLD", "PROCEED", "SABAR", "VOID", "SEAL", "UNKNOWN"]},
+        "outcome": {"enum": ["SUCCESS", "FAILURE", "PARTIAL", "REJECTED", "VOID", "UNOBSERVED", "UNKNOWN"]},
+        "review_status": {"enum": ["UNREVIEWED", "IN_REVIEW", "REVIEWED", "INVALID_REVIEW"]},
+        "promotion_status": {"enum": ["RAW", "DISTILLED", "CANDIDATE", "REVIEWED", "ACTIVE", "REJECTED", "EXPIRED", "RETIRED", "UNKNOWN"]}
+      },
+      "required": ["memory_class", "epistemic_status", "outcome", "review_status", "promotion_status"]
+    },
+    "content": {
+      "type": "object",
+      "properties": {
+        "observation": {"type": ["string", "null"]},
+        "attempted_strategy": {"type": ["string", "null"]},
+        "distilled_lesson": {"type": ["string", "null"]},
+        "applicability_scope": {"type": ["string", "null"]},
+        "prohibited_generalization": {"type": ["string", "null"]},
+        "expected_behavior_change": {"type": ["string", "null"]}
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "properties": {
+        "checker_type": {"type": ["string", "null"]},
+        "score_before": {"type": ["number", "null"]},
+        "score_after": {"type": ["number", "null"]},
+        "score_delta": {"type": ["number", "null"]},
+        "outcome_evidence": {"type": ["string", "null"]},
+        "confidence": {"type": ["number", "null"]},
+        "falsifier": {"type": ["string", "null"]}
+      }
+    },
+    "governance": {
+      "type": "object",
+      "properties": {
+        "proposed_by": {"type": ["string", "null"]},
+        "verified_by": {"type": ["string", "null"]},
+        "reviewed_by": {"type": ["string", "null"]},
+        "authorized_by": {"type": ["string", "null"]},
+        "promotion_reason": {"type": ["string", "null"]},
+        "rejection_reason": {"type": ["string", "null"]},
+        "expires_at": {"type": ["string", "null"]},
+        "next_review_at": {"type": ["string", "null"]},
+        "reversible": {"type": ["boolean", "null"]},
+        "rollback_ref": {"type": ["string", "null"]}
+      }
+    },
+    "consumption": {
+      "type": "object",
+      "properties": {
+        "eligible_consumers": {"type": "array", "items": {"type": "string"}},
+        "times_retrieved": {"type": "integer", "minimum": 0},
+        "times_applied": {"type": "integer", "minimum": 0},
+        "last_applied_at": {"type": ["string", "null"]},
+        "measured_effect": {"type": ["string", "null"]},
+        "effect_status": {"enum": ["UNEVALUATED", "EFFECTIVE", "INEFFECTIVE", "HARMFUL", "REGRESSED", "UNKNOWN"]}
+      }
+    }
+  }
+}
