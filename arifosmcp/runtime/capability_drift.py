@@ -403,6 +403,7 @@ def record_test_result(
     input_schema_hash: str | None = None,
     output_schema_hash: str | None = None,
     invoked_at: float | int | None = None,
+    outcome: str | None = None,
 ) -> None:
     """Public hook for live MCP tool paths and observatory seal/test probes.
 
@@ -416,12 +417,23 @@ def record_test_result(
     # Never regress a newer observation with an older backfill.
     if prior.get("last_invocation_at") and int(prior["last_invocation_at"]) > epoch:
         return
+    # F13-authorized canary fix #2 (2026-10-30): outcome separates "the tool
+    # worked and answered" (PASSED | HELD_BY_AUTHORITY) from "the tool is
+    # broken" (FAILED). HELD_BY_AUTHORITY = the tool correctly refused an
+    # unverified actor — real data returned, no failure. Collapsing it into
+    # FAILED poisoned the cache and locked the ai witness loop.
+    _outcome = outcome or ("PASSED" if passed else "FAILED")
+    if passed is False and _outcome == "PASSED":
+        raise ValueError("record_test_result: passed=False cannot carry outcome=PASSED")
+    if _outcome not in ("PASSED", "HELD_BY_AUTHORITY", "FAILED"):
+        raise ValueError(f"record_test_result: unknown outcome {_outcome!r}")
     row = {
         "last_invocation_at": epoch,
         "last_pass": bool(passed),
         "last_error": error,
         "input_schema_hash": input_schema_hash or prior.get("input_schema_hash"),
         "output_schema_hash": output_schema_hash or prior.get("output_schema_hash"),
+        "outcome": _outcome,
         "source": "record_test_result",
     }
     cache[tool_name] = row

@@ -28,6 +28,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 import time
 from typing import Any
 
@@ -53,6 +54,26 @@ MODE_SAFE_TOOLS = {
 
 # Tools that must NEVER be auto-tested
 NEVER_TOOLS = {"arif_seal", "arif_forge", "arif_judge"}
+
+
+def _outcome_of(passed: bool, error: str | None, raw: Any) -> str:
+    """Classify a canary call: PASSED | HELD_BY_AUTHORITY | FAILED.
+
+    F13-authorized canary fix #2 (2026-10-30): a tool that ANSWERS with a
+    constitutional HOLD / OBSERVE_ONLY verdict worked correctly — it refused
+    an unverified actor exactly as designed. That is HELD_BY_AUTHORITY,
+    never FAILED, and never a decisive PASSED.
+    """
+    if not passed or error is not None:
+        return "FAILED"
+    try:
+        for c in getattr(raw, "content", []) or []:
+            text = getattr(c, "text", "") or ""
+            if "OBSERVE_ONLY" in text or '"verdict": "HOLD"' in text or '"verdict":"HOLD"' in text:
+                return "HELD_BY_AUTHORITY"
+    except Exception:
+        pass
+    return "PASSED"
 
 
 def _schema_hash(data: Any) -> str | None:
@@ -185,7 +206,12 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
     latency_ms = int((time.time() - t0) * 1000)
 
     actually_passed = passed and error is None
-    record_test_result("arif_memory", passed=actually_passed, error=error)
+    record_test_result(
+        "arif_memory",
+        passed=actually_passed,
+        error=error,
+        outcome=_outcome_of(passed, error, raw),
+    )
     results["arif_memory"] = {
         "passed": actually_passed,
         "error": error,
@@ -206,7 +232,12 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
     latency_ms = int((time.time() - t0) * 1000)
 
     actually_passed = passed and error is None
-    record_test_result("arif_report", passed=actually_passed, error=error)
+    record_test_result(
+        "arif_report",
+        passed=actually_passed,
+        error=error,
+        outcome=_outcome_of(passed, error, raw),
+    )
     results["arif_report"] = {
         "passed": actually_passed,
         "error": error,
@@ -266,9 +297,32 @@ def run_smoke_tests(mcp: Any) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
+    # F13-authorized canary fix #1 (2026-10-30): the historical path
+    # insertion of /root/arifOS at sys.path[0] forced the SOURCE TREE ahead
+    # of the canonical runtime — run as documented, this canary measured the repo,
+    # not the kernel (AGENTS.md §6 trap #1, sealed P4). Removed. A canary
+    # that measures the wrong tree is worse than no canary.
     import sys
 
-    sys.path.insert(0, "/root/arifOS")
+    import arifosmcp as _arifosmcp_pkg
+
+    _resolved = os.path.realpath(_arifosmcp_pkg.__file__)
+    if _resolved.startswith("/root/arifOS") and not os.environ.get(
+        "ARIFOS_CANARY_ALLOW_SOURCE"
+    ):
+        print(
+            json.dumps(
+                {
+                    "refused": "source_tree_shadow",
+                    "resolved": _resolved,
+                    "reason": "canary would measure the source tree, not the canonical runtime",
+                    "override": "set ARIFOS_CANARY_ALLOW_SOURCE=1 for dev runs",
+                    "exit": 3,
+                }
+            )
+        )
+        raise SystemExit(3)
+
     from arifosmcp.server import mcp
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
