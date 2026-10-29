@@ -47,6 +47,62 @@ logger = logging.getLogger(__name__)
 LEDGER_PATH: Path = Path("/root/VAULT999/rsi_ledger.jsonl")
 CALIBRATION_MINIMUM: int = 30  # minimum reviewed records for calibrated_score
 
+# ── Metric semantics (F2 TRUTH: an unmeasured rate is never 0.0) ─────────────
+# House rule (333-AGI, 2026-10-28): arifosmcp/runtime/act_token.UNMEASURED +
+# tests/test_memory_audit_zero_laundering.py. A rate whose denominator holds no
+# REVIEWED example is UNMEASURED, never 0.0 — 0.0 is a reading, "nobody
+# reviewed" is not.
+#
+# Why this exists (FI-003 audit, 2026-10-29): the live ledger held 14193 HOLD
+# records with review_outcome UNRESOLVED on every row, so false_hold_rate
+# computed 0.0 — reading as PERFECT governance purely because nobody reviewed.
+# That number laundered an absence; it was not a measurement.
+from arifosmcp.runtime.act_token import UNMEASURED
+
+METRIC_STATUS_MEASURED = "MEASURED"
+METRIC_STATUS_UNKNOWN = "UNKNOWN"
+METRIC_STATUS_INSUFFICIENT = "INSUFFICIENT"
+METRIC_STATUS_INVALID_INPUT = "INVALID_INPUT"
+
+
+def _rate(
+    numerator: int,
+    denominator: int,
+    *,
+    no_reviewed_reason: str,
+    invalid_records: int = 0,
+) -> dict:
+    """Build one rate with an explicit, non-laundered status.
+
+    value is UNMEASURED when no reviewed example backs the denominator.
+    status is MEASURED / UNKNOWN / INSUFFICIENT / INVALID_INPUT.
+    numerator and denominator always travel with the value.
+    """
+    if denominator > 0:
+        sufficient = denominator >= CALIBRATION_MINIMUM
+        return {
+            "value": round(numerator / denominator, 4),
+            "status": METRIC_STATUS_MEASURED if sufficient else METRIC_STATUS_INSUFFICIENT,
+            "reason": None if sufficient else "BELOW_CALIBRATION_MINIMUM",
+            "numerator": numerator,
+            "denominator": denominator,
+        }
+    if invalid_records > 0:
+        return {
+            "value": UNMEASURED,
+            "status": METRIC_STATUS_INVALID_INPUT,
+            "reason": "INVALID_REVIEW_RECORDS",
+            "numerator": numerator,
+            "denominator": 0,
+        }
+    return {
+        "value": UNMEASURED,
+        "status": METRIC_STATUS_UNKNOWN,
+        "reason": no_reviewed_reason,
+        "numerator": numerator,
+        "denominator": 0,
+    }
+
 # Review outcome literals that count as "reviewed" (definitively adjudicated)
 REVIEWED_OUTCOMES: set[str] = {
     "CORRECT_HOLD",
@@ -178,9 +234,19 @@ class RSILedger:
 
     def _load_all(self) -> list[RSIDecisionRecord]:
         """Load all records from the JSONL ledger."""
+        records, _ = self._load_all_with_invalid()
+        return records
+
+    def _load_all_with_invalid(self) -> tuple[list[RSIDecisionRecord], int]:
+        """Load records and count the rows that could not be parsed.
+
+        A malformed row is evidence, not noise to be dropped in silence: the
+        count feeds the INVALID_INPUT metric status (2026-10-29 audit).
+        """
         records: list[RSIDecisionRecord] = []
+        invalid = 0
         if not self._path.exists():
-            return records
+            return records, invalid
         with open(self._path, encoding="utf-8") as fh:
             for line in fh:
                 line = line.strip()
@@ -189,8 +255,9 @@ class RSILedger:
                 try:
                     records.append(RSIDecisionRecord.model_validate_json(line))
                 except Exception:
+                    invalid += 1
                     logger.warning("rsi_ledger: skipping corrupt line in %s", self._path)
-        return records
+        return records, invalid
 
     def pending_review(self) -> list[RSIDecisionRecord]:
         """Return all records whose review_outcome is UNRESOLVED.
@@ -213,14 +280,35 @@ class RSILedger:
                 reviewed_count: int
                 unresolved_count: int
         """
-        all_records = self._load_all()
+        all_records, invalid_records = self._load_all_with_invalid()
         total = len(all_records)
+
+        # A ledger whose rows are ALL malformed is an input defect, not an
+        # absence of decisions. "NO_RECORDS" would be a false statement —
+        # there WERE records, they could not be parsed. Report
+        # INVALID_INPUT (2026-10-29: caught by tests/test_rsi_metric_semantics.py).
+        _empty_status = (
+            METRIC_STATUS_INVALID_INPUT if invalid_records > 0 else METRIC_STATUS_UNKNOWN
+        )
+        _empty_reason = "INVALID_REVIEW_RECORDS" if invalid_records > 0 else "NO_RECORDS"
 
         if total == 0:
             return {
-                "false_proceed_rate": 0.0,
-                "false_hold_rate": 0.0,
-                "unresolved_hold_rate": 0.0,
+                "false_proceed_rate": UNMEASURED,
+                "false_hold_rate": UNMEASURED,
+                "unresolved_hold_rate": UNMEASURED,
+                "false_proceed_rate_status": _empty_status,
+                "false_hold_rate_status": _empty_status,
+                "unresolved_hold_rate_status": _empty_status,
+                "false_proceed_rate_reason": _empty_reason,
+                "false_hold_rate_reason": _empty_reason,
+                "unresolved_hold_rate_reason": _empty_reason,
+                "false_proceed_rate_numerator": 0,
+                "false_proceed_rate_denominator": 0,
+                "false_hold_rate_numerator": 0,
+                "false_hold_rate_denominator": 0,
+                "unresolved_hold_rate_numerator": 0,
+                "unresolved_hold_rate_denominator": 0,
                 "hold_reversal_latency_avg": None,
                 "confusion_matrix": {
                     "CORRECT_HOLD": 0,
@@ -232,6 +320,8 @@ class RSILedger:
                 "total_records": 0,
                 "reviewed_count": 0,
                 "unresolved_count": 0,
+                "invalid_records": invalid_records,
+                "metric_status": _empty_status,
             }
 
         # Confusion matrix counts
@@ -243,19 +333,36 @@ class RSILedger:
         unresolved_count = total - reviewed_count
 
         # False proceed rate: FALSE_PROCEED / (CORRECT_PROCEED + FALSE_PROCEED)
-        proceed_total = matrix.get("CORRECT_PROCEED", 0) + matrix.get("FALSE_PROCEED", 0)
-        false_proceed_rate = (
-            matrix.get("FALSE_PROCEED", 0) / proceed_total if proceed_total > 0 else 0.0
-        )
-
-        # False hold rate: FALSE_HOLD / (CORRECT_HOLD + FALSE_HOLD)
-        hold_total = matrix.get("CORRECT_HOLD", 0) + matrix.get("FALSE_HOLD", 0)
-        false_hold_rate = matrix.get("FALSE_HOLD", 0) / hold_total if hold_total > 0 else 0.0
-
+        # False hold rate:   FALSE_HOLD   / (CORRECT_HOLD   + FALSE_HOLD)
         # Unresolved hold rate: UNRESOLVED holds / total holds
+        #
+        # Every rate below carries an explicit status and its numerator and
+        # denominator. A denominator with no REVIEWED example yields UNMEASURED,
+        # never 0.0 (2026-10-29 audit: 14193 HOLD rows, 0 reviewed ->
+        # false_hold_rate reported 0.0, i.e. perfect governance by omission).
+        proceed_total = matrix.get("CORRECT_PROCEED", 0) + matrix.get("FALSE_PROCEED", 0)
+        hold_total = matrix.get("CORRECT_HOLD", 0) + matrix.get("FALSE_HOLD", 0)
         unresolved_holds = sum(1 for r in all_records if r.is_unresolved_hold)
         total_holds = sum(1 for r in all_records if r.is_hold)
-        unresolved_hold_rate = unresolved_holds / total_holds if total_holds > 0 else 0.0
+
+        proceed_rate = _rate(
+            matrix.get("FALSE_PROCEED", 0),
+            proceed_total,
+            no_reviewed_reason="NO_REVIEWED_PROCEEDS",
+            invalid_records=invalid_records,
+        )
+        hold_rate = _rate(
+            matrix.get("FALSE_HOLD", 0),
+            hold_total,
+            no_reviewed_reason="NO_REVIEWED_HOLDS",
+            invalid_records=invalid_records,
+        )
+        unresolved_rate = _rate(
+            unresolved_holds,
+            total_holds,
+            no_reviewed_reason="NO_HOLD_RECORDS",
+            invalid_records=invalid_records,
+        )
 
         # Hold reversal latency average (FALSE_HOLD records with latency data)
         reversal_latencies = [
@@ -267,10 +374,36 @@ class RSILedger:
             sum(reversal_latencies) / len(reversal_latencies) if reversal_latencies else None
         )
 
+        statuses = [
+            proceed_rate["status"],
+            hold_rate["status"],
+            unresolved_rate["status"],
+        ]
+        if METRIC_STATUS_INVALID_INPUT in statuses:
+            overall_status = METRIC_STATUS_INVALID_INPUT
+        elif METRIC_STATUS_UNKNOWN in statuses:
+            overall_status = METRIC_STATUS_UNKNOWN
+        elif METRIC_STATUS_INSUFFICIENT in statuses:
+            overall_status = METRIC_STATUS_INSUFFICIENT
+        else:
+            overall_status = METRIC_STATUS_MEASURED
+
         return {
-            "false_proceed_rate": round(false_proceed_rate, 4),
-            "false_hold_rate": round(false_hold_rate, 4),
-            "unresolved_hold_rate": round(unresolved_hold_rate, 4),
+            "false_proceed_rate": proceed_rate["value"],
+            "false_hold_rate": hold_rate["value"],
+            "unresolved_hold_rate": unresolved_rate["value"],
+            "false_proceed_rate_status": proceed_rate["status"],
+            "false_hold_rate_status": hold_rate["status"],
+            "unresolved_hold_rate_status": unresolved_rate["status"],
+            "false_proceed_rate_reason": proceed_rate["reason"],
+            "false_hold_rate_reason": hold_rate["reason"],
+            "unresolved_hold_rate_reason": unresolved_rate["reason"],
+            "false_proceed_rate_numerator": proceed_rate["numerator"],
+            "false_proceed_rate_denominator": proceed_rate["denominator"],
+            "false_hold_rate_numerator": hold_rate["numerator"],
+            "false_hold_rate_denominator": hold_rate["denominator"],
+            "unresolved_hold_rate_numerator": unresolved_rate["numerator"],
+            "unresolved_hold_rate_denominator": unresolved_rate["denominator"],
             "hold_reversal_latency_avg": (
                 round(hold_reversal_latency_avg, 2)
                 if hold_reversal_latency_avg is not None
@@ -286,6 +419,8 @@ class RSILedger:
             "total_records": total,
             "reviewed_count": reviewed_count,
             "unresolved_count": unresolved_count,
+            "invalid_records": invalid_records,
+            "metric_status": overall_status,
         }
 
 
@@ -392,18 +527,27 @@ class RSIScorer:
         self._ledger = ledger or RSILedger()
 
     @property
-    def false_proceed_rate(self) -> float:
-        """Rate at which PROCEED verdicts were later found incorrect."""
+    def false_proceed_rate(self) -> float | str:
+        """Rate at which PROCEED verdicts were later found incorrect.
+
+        Returns UNMEASURED (not 0.0) when no reviewed PROCEED exists.
+        """
         return self._ledger.stats()["false_proceed_rate"]
 
     @property
-    def false_hold_rate(self) -> float:
-        """Rate at which HOLD verdicts were later found incorrect."""
+    def false_hold_rate(self) -> float | str:
+        """Rate at which HOLD verdicts were later found incorrect.
+
+        Returns UNMEASURED (not 0.0) when no reviewed HOLD exists.
+        """
         return self._ledger.stats()["false_hold_rate"]
 
     @property
-    def unresolved_hold_rate(self) -> float:
-        """Fraction of HOLD verdicts that remain unreviewed."""
+    def unresolved_hold_rate(self) -> float | str:
+        """Fraction of HOLD verdicts that remain unreviewed.
+
+        Returns UNMEASURED (not 0.0) when no HOLD record exists at all.
+        """
         return self._ledger.stats()["unresolved_hold_rate"]
 
     @property
@@ -437,6 +581,17 @@ class RSIScorer:
 
         # Calibrated score: weighted average of error rates
         # false_proceed_rate (0.4) + false_hold_rate (0.4) + unresolved_hold_rate (0.2)
+        #
+        # If any term is UNMEASURED there is no composite: a weighted average
+        # containing an unmeasured term is a fabricated number, so the score
+        # stays absent (2026-10-29 audit).
+        components = (
+            s["false_proceed_rate"],
+            s["false_hold_rate"],
+            s["unresolved_hold_rate"],
+        )
+        if any(not isinstance(c, (int, float)) or isinstance(c, bool) for c in components):
+            return None
         calibrated = (
             0.4 * s["false_proceed_rate"]
             + 0.4 * s["false_hold_rate"]
@@ -460,15 +615,26 @@ class RSIScorer:
         until >= 30 reviewed records exist.
         """
         calibrated = self.calibrated_score
+        s = self._ledger.stats()
         return {
             "false_proceed_rate": self.false_proceed_rate,
             "false_hold_rate": self.false_hold_rate,
             "unresolved_hold_rate": self.unresolved_hold_rate,
+            "false_proceed_rate_status": s["false_proceed_rate_status"],
+            "false_hold_rate_status": s["false_hold_rate_status"],
+            "unresolved_hold_rate_status": s["unresolved_hold_rate_status"],
+            "false_proceed_rate_denominator": s["false_proceed_rate_denominator"],
+            "false_hold_rate_denominator": s["false_hold_rate_denominator"],
+            "unresolved_hold_rate_denominator": s["unresolved_hold_rate_denominator"],
+            "metric_status": s["metric_status"],
             "hold_reversal_latency_avg": self.hold_reversal_latency_avg,
             "calibrated_score": (calibrated["calibrated_score"] if calibrated else None),
             "calibration_met": calibrated is not None,
             "calibration_minimum": CALIBRATION_MINIMUM,
-            "reviewed_count": self._ledger.stats()["reviewed_count"],
+            "reviewed_count": s["reviewed_count"],
+            "total_records": s["total_records"],
+            "unresolved_count": s["unresolved_count"],
+            "invalid_records": s["invalid_records"],
         }
 
 
