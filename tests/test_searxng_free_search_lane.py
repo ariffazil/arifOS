@@ -136,15 +136,6 @@ def test_ladder_falls_to_brave_only_with_key(monkeypatch):
     assert out2.get("fallback_of") == "searxng_empty_or_error"
 
 
-@(
-    pytest.mark.skipif(not _live_searx(), reason="localhost SearXNG not reachable")
-    if False
-    else lambda f: f
-)  # placeholder replaced below
-def test_placeholder():
-    pass
-
-
 def _live_searx():
     try:
         with socket.create_connection(("127.0.0.1", 8080), timeout=2):

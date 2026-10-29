@@ -13447,7 +13447,7 @@ def _arif_sense_observe(
             evidence_receipt = {
                 "tool": "111_SENSE",
                 "mode": "search",
-                "provider": brave.get("provider", "brave_api"),
+                "provider": brave.get("provider", "searxng_localhost"),
                 "bridge": "mcp_http_sse",
                 "query_sent": query or "",
                 "results_returned": len(brave["hits"]),
@@ -13486,16 +13486,19 @@ def _arif_sense_observe(
                 {
                     "query": query,
                     "results": brave["hits"],
-                    "source": "brave",
+                    # 888 COND-1 (F2): envelope must name the ACTUAL answerer —
+                    # this block reads the ladder result, whose source is
+                    # "searxng" (or "brave" only on the optional keyed path).
+                    "source": brave.get("source", "searxng"),
                     "omega_0": 0.06,
-                    "verdict": brave.get("verdict", "SEAL"),
+                    "verdict": brave.get("verdict", "SABAR"),  # 888 COND-1: fail-closed default
                     "cascade": True,
                     "minimax_note": mm_error,
                     "evidence_receipt": evidence_receipt,
                     "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",
                 },
                 delta_S=0.004,
-                provider="brave",
+                provider=brave.get("provider", "searxng_localhost"),  # 888 COND-1
             )
 
         # Both failed → SABAR
