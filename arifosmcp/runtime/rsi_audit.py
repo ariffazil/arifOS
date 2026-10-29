@@ -386,6 +386,19 @@ class RSILedger:
         """
         return StratifiedSampler(self).select_batch(n=n)
 
+    def raw_row_count(self) -> int:
+        """Number of ROWS on disk (not effective decisions).
+
+        The ledger is append-only: a review appends a row, so the file holds
+        one row per review on top of one row per decision. stats() publishes
+        both numbers so `wc -l` and total_records can never be confused
+        (2026-10-29, 555-verifier finding D2).
+        """
+        if not self._path.exists():
+            return 0
+        with open(self._path, encoding="utf-8") as fh:
+            return sum(1 for line in fh if line.strip())
+
     def pending_review(self) -> list[RSIDecisionRecord]:
         """Return all records whose review_outcome is UNRESOLVED.
 
@@ -538,6 +551,16 @@ class RSILedger:
             sum(reversal_latencies) / len(reversal_latencies) if reversal_latencies else None
         )
 
+        # Reviewer independence is a CLAIM, and a claim that is not surfaced
+        # cannot be audited (2026-10-29, 555-verifier finding D3).
+        independent_reviews = sum(1 for r in all_records if r.review_independent is True)
+        non_independent_reviews = sum(1 for r in all_records if r.review_independent is False)
+        reviews_without_claim = sum(
+            1
+            for r in all_records
+            if r.review_independent is None and r.review_outcome != "UNRESOLVED"
+        )
+
         statuses = [
             proceed_rate["status"],
             hold_rate["status"],
@@ -575,9 +598,13 @@ class RSILedger:
             ),
             "confusion_matrix": dict(matrix),
             "total_records": total,
+            "ledger_rows": self.raw_row_count(),
             "reviewed_count": reviewed_count,
             "unresolved_count": unresolved_count,
             "invalid_records": invalid_records,
+            "independent_reviews": independent_reviews,
+            "non_independent_reviews": non_independent_reviews,
+            "reviews_without_independence_claim": reviews_without_claim,
             "metric_status": overall_status,
         }
 
