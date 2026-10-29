@@ -378,3 +378,45 @@ def test_p1_08_gate_deny_carries_explicit_failure(monkeypatch):
     )
     assert res.get("blocked") is True and res.get("mode") == "remember"
     assert "EFFECTIVE_HOLD" in _text(res)
+
+
+def test_p2_07_alias_never_mints_sovereign_or_seal_without_crypto():
+    """888-C2 negative regression (mirror semantics).
+
+    The alias performs NO independent identity binding: _SESSIONS is the
+    single write path, so the ghost record must be label-IDENTICAL to the
+    freshly minted live session — never stronger, never sovereign, and
+    verified=False for a token-less claim. If the kernel stamps its own
+    session-birth governance SEAL on the live record (verified=False is the
+    truth axis there), the ghost mirrors it equally; that parity — not an
+    alias mint — is the property under test.
+    """
+    import uuid as _uuid
+
+    ghost = "SEAL-" + _uuid.uuid4().hex[:16]
+    res = _arif_session_init(mode="init", actor_id="arif", session_id=ghost)
+    assert isinstance(res, dict), _text(res)[:200]
+    live = res.get("session_id")
+    assert live and live != ghost, f"init did not mint a fresh session: {live!r}"
+    assert ghost in T._SESSIONS, "stale client_ref was not aliased (invariant E)"
+
+    g = S._SESSION_IDENTITY.get(ghost) or {}
+    l = S._SESSION_IDENTITY.get(live) or {}
+
+    def sig(r):
+        return (
+            str(r.get("authority_level", "")).lower(),
+            bool(r.get("verified", False)),
+            (r.get("governance") or {}).get("verdict"),
+        )
+
+    assert sig(g) == sig(l), f"alias diverged from live labels: ghost={sig(g)} live={sig(l)}"
+    assert g.get("authority_level", "").lower() not in ("sovereign", "full"), (
+        f"alias record carries {g.get('authority_level')!r} from a bare claim — F13 violation"
+    )
+    assert g.get("verified") is False, (
+        "ghost verified=True without cryptographic standing"
+    )
+    assert l.get("verified") is False, (
+        "premise drift: live itself verified without crypto — surface separately"
+    )
