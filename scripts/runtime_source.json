@@ -1,0 +1,39 @@
+{
+  "schema_version": "arifos.runtime_source.v1",
+  "declared_at": "2026-10-29",
+  "declared_by": "333-AGI (FI-003)",
+  "authority": "sealed by F13 as proposal P4 of ARIFOS::RSI_REVIEW_PATH::AUTHORITY_RECONCILIATION_V1",
+  "canonical_runtime": {
+    "venv": "/opt/arifos/current/venv",
+    "import_root_template": "/opt/arifos/current/venv/lib/python{major}.{minor}/site-packages/arifosmcp",
+    "service": "arifos.service",
+    "service_working_directory": "/var/lib/arifos"
+  },
+  "other_trees": {
+    "deployed_source_copy": {
+      "path": "/opt/arifos/app",
+      "role": "synced copy of the repository plus the deploy marker (.git_commit); NOT the import origin of the running kernel"
+    },
+    "repository": {
+      "path": "/root/arifOS",
+      "role": "source of truth for CODE and for this declaration; NOT the import origin of the running kernel"
+    }
+  },
+  "interpreters": {
+    "/opt/arifos/current/venv/bin/python": "deployed artifact - the only interpreter that can measure the live kernel",
+    "/root/arifOS/.venv/bin/python": "EDITABLE install (__editable__.arifos-*.pth) - ALWAYS resolves /root/arifOS/arifosmcp from any cwd; never a live measurement"
+  },
+  "shadow_rules": [
+    "python -c / -m / stdin puts the CURRENT DIRECTORY first on sys.path: the deployed interpreter run with cwd inside /root/arifOS imports the SOURCE tree, not the deployed artifact.",
+    "Any probe that imports arifosmcp must chdir to a neutral directory AND purge sys.path entries that resolve inside /root/arifOS.",
+    "Measure the live kernel with /opt/arifos/current/venv/bin/python from a neutral cwd.",
+    "A probe that reports the source tree while claiming to measure the live kernel is a failed probe, not a surprising result."
+  ],
+  "probe": {
+    "command": "/opt/arifos/current/venv/bin/python /root/arifOS/scripts/probe_runtime_source.py",
+    "exit_codes": {
+      "0": "observed import origin == declared canonical import root",
+      "3": "mismatch - the measured tree is not the declared canonical runtime"
+    }
+  }
+}
