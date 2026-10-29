@@ -253,7 +253,7 @@ PYRC
 	cat >"/var/lib/arifos/deploy_receipts/${RECEIPT_TS}-${LEASE_CANDIDATE:0:8}.md" <<MDRC
 # arifOS deploy receipt — ${RECEIPT_TS}
 
-- commit: `${LEASE_CANDIDATE}`
+- commit: ${LEASE_CANDIDATE}
 - deployed via: deploy_local_body.sh (make deploy-local)
 - session: ${DEPLOY_SESSION:-unattributed} · actor: ${DEPLOY_ACTOR:-unattributed}
 - prev commit (receipt chain): ${PREV_RECEIPT_SHA:-none}
