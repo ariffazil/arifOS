@@ -322,6 +322,15 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_parameters": ["url"],
                 "returns": ["url", "ingested", "note"],
             },
+            "resource_read": {
+                "purpose": "Read a registered arifos:// knowledge resource by URI (absorbed read_resource wire tool, F13 2026-10-29).",
+                "required_parameters": ["uri"],
+                "returns": ["uri", "content", "mime_type"],
+            },
+            "resource_search": {
+                "purpose": "Search or list registered knowledge resources (absorbed search_resources wire tool).",
+                "returns": ["query", "count", "resources"],
+            },
             "compass": {
                 "purpose": "Directional / geospatial heading query.",
                 "returns": ["heading", "confidence"],

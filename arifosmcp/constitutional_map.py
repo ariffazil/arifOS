@@ -629,6 +629,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "atlas",
             "entropy_dS",
             "vitals",
+            # F13 C2 fix 2026-10-30: publish the absorbed resource-bridge modes
+            # (implemented in sense.py dispatch; wire contract must match code —
+            # 888-APEX finding: enum omitted them, discoverability gap).
+            "resource_read",
+            "resource_search",
         ],
         "eureka_insight": "F2: τ ≥ 0.95 required. F7: Ω ∈ [0.03, 0.05] = humble.",
         "cognitive_axis": "observe",
@@ -2699,6 +2704,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "session_id": str | None,
         "actor_id": str | None,
         "url": str | None,  # [L12: sanitized]
+        "uri": str | None,  # [L12: sanitized] F13 C2 fix 2026-10-30: resource_read target
         "layers": list[str] | None,
         "result_limit": int,  # max results for search/ingest (default 10)
     },
