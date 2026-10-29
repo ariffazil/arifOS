@@ -576,6 +576,7 @@ def arif_observe(
     mode: str = "search",
     query: str | None = None,
     url: str | None = None,
+    uri: str | None = None,  # F13 2026-10-29: resource_read target (absorbed read_resource tool)
     layers: list[str]
     | str
     | None = None,  # BRIDGE-COMPAT: JSON-string tolerated (SCAR_JUDGE_EVIDENCE_BRIDGE)
@@ -606,6 +607,8 @@ def arif_observe(
       organ_health → Federation organ health probe (HTTP /health on all 7 organs)
       rasa_dunia → Evaluates physical-world thermodynamic and market stresses
       rrr      → Resource Reality Resolution: intent → reality resource set (2026-08-15)
+      resource_read → Read a registered arifos:// resource by URI (F13 2026-10-29: absorbed the read_resource wire tool)
+      resource_search → Search/list registered resources (absorbed the search_resources wire tool)
     """
     if mode in (
         "geox_quantum_scope",
@@ -626,7 +629,16 @@ def arif_observe(
         # Read-only SENSE: ephemeral only when no SCT was supplied (token failure is hard).
         if (
             not session_token
-            and mode in ("hybrid_discovery", "vitals", "compass", "search", "rasa_dunia", "rrr")
+            and mode in (
+                "hybrid_discovery",
+                "vitals",
+                "compass",
+                "search",
+                "rasa_dunia",
+                "rrr",
+                "resource_read",
+                "resource_search",
+            )
             and actor_id
         ):
             logger.debug("L11 AUTH: no standing for %s, using ephemeral context.", mode)
@@ -715,6 +727,22 @@ def arif_observe(
     def _inject_rasa(result: dict) -> dict:
         """Placeholder — rasa injection is done by the wiring wrapper."""
         return result
+
+    # ── RESOURCE BRIDGE MODES (F13 2026-10-29: absorbed the read_resource /
+    # search_resources wire tools — see runtime/public_surface.py) ──────────
+    if mode in ("resource_read", "resource_search"):
+        import asyncio as _asyncio
+
+        from arifosmcp.tools.resource_bridge import read_resource as _read_resource
+        from arifosmcp.tools.resource_bridge import search_resources as _search_resources
+
+        if mode == "resource_read":
+            if not (uri or "").strip():
+                return _hold("arif_observe", "resource_read requires uri (e.g. arifos://vitals)", ["F2"], session_id=session_id)
+            data = _asyncio.run(_read_resource(uri=uri, actor_id=actor_id, session_id=session_id))
+        else:
+            data = _asyncio.run(_search_resources(query=q, actor_id=actor_id, session_id=session_id))
+        return _ok("arif_observe", {"mode": mode, "resource": data})
 
     if mode == "compass":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS

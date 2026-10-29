@@ -58,16 +58,14 @@ PUBLIC_CANONICAL_TOOLS: frozenset[str] = frozenset(
 # canonical counters (declared_count/registered_count/exposed_count) keep
 # counting only PUBLIC_CANONICAL_TOOLS — capability ≠ authority, and a
 # coordination tool never inflates the canonical 8.
-COORDINATION_TOOLS: frozenset[str] = frozenset(
-    {
-        "arif_report",
-        "read_resource",
-        "search_resources",
-        "arif_research",
-        "arif_recall",
-        "arif_delegate",
-    }
+# F13 2026-10-29: single owner restored — derived from
+# runtime/public_surface.py, never re-declared (LAW 8; the hand-copy here was
+# the same drift class as the surface-hash bug).
+from arifosmcp.runtime.public_surface import (
+    COORDINATION_TOOLS as _SURFACE_COORDINATION_TOOLS,
 )
+
+COORDINATION_TOOLS: frozenset[str] = frozenset(_SURFACE_COORDINATION_TOOLS)
 
 # Snapshot TTL — observations older than this are marked stale at the snapshot layer.
 TEST_FRESHNESS_SECONDS = 86700  # 24h+margin — cadence-aligned 2026-10-20:
