@@ -18,6 +18,7 @@ class ProviderType(StrEnum):
     FIRECRAWL = "firecrawl"
     JINA = "jina"
     MEYHEM = "meyhem"
+    SEARXNG = "searxng"  # sovereign localhost aggregator — keyless, RM0 (2026-10-29)
 
 
 class QueryMode(StrEnum):
@@ -72,6 +73,19 @@ class ProviderConfig:
 
 
 PROVIDER_CONFIGS: dict[ProviderType, ProviderConfig] = {
+    ProviderType.SEARXNG: ProviderConfig(
+        name="SearXNG (localhost)",
+        provider_type=ProviderType.SEARXNG,
+        api_key_env="",  # keyless — is_live is always True (Meyhem pattern)
+        base_url="http://127.0.0.1:8080/search",
+        monthly_quota=0,  # no vendor quota: own infrastructure
+        rate_limit_rpm=60,
+        is_default=True,
+        supported_modes=[QueryMode.REALTIME, QueryMode.NEWS, QueryMode.SEMANTIC],
+        priority_realtime=11,
+        priority_semantic=6,
+        timeout_secs=15.0,
+    ),
     ProviderType.BRAVE: ProviderConfig(
         name="Brave Search",
         provider_type=ProviderType.BRAVE,
@@ -79,7 +93,10 @@ PROVIDER_CONFIGS: dict[ProviderType, ProviderConfig] = {
         base_url="https://api.search.brave.com/res/v1/web/search",
         monthly_quota=20_000_000,
         rate_limit_rpm=20 * 60,
-        is_default=True,
+        # demoted 2026-10-29: paid plan exhausted (HTTP 402 observed). Kept as
+        # OPTIONAL last-resort in the ladder — only used when a working key is
+        # present. Default is now the sovereign free lane (SEARXNG).
+        is_default=False,
         supported_modes=[QueryMode.REALTIME, QueryMode.SEMANTIC],
         priority_realtime=10,
         priority_semantic=7,
