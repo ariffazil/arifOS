@@ -12978,6 +12978,7 @@ def _arif_sense_observe(
     actor_id: str | None = None,
     session_token: str | None = None,
     url: str | None = None,
+    uri: str | None = None,  # F13 C2 fix 2026-10-30: resource_read target
     layers: list[str] | None = None,
     result_limit: int = 10,
 ) -> dict[str, Any]:
@@ -12996,6 +12997,8 @@ def _arif_sense_observe(
       atlas       — Structured map/layer retrieval.
       entropy_dS  — Measure thermodynamic entropy delta of the session.
       vitals      — CPU, memory, and I/O telemetry.
+      resource_read — Read a registered arifos:// resource by uri (C2 fix).
+      resource_search — Search/list registered resources (C2 fix).
 
     Parameters:
       mode       — search | fetch | ingest | compass | atlas | entropy_dS | vitals
@@ -13043,6 +13046,30 @@ def _arif_sense_observe(
             repo_path=query or ".",
             max_depth=int(layers[0]) if layers else 4,
         )
+
+    # ── Resource bridge modes (F13 C2 fix 2026-10-30) ──────────────────────────
+    # read-only, non-network: short-circuit before auth/gate (repo_map precedent).
+    # Absorbed from the retired read_resource/search_resources wire tools; the
+    # bridge functions stay the internal implementation.
+    if mode in ("resource_read", "resource_search"):
+        import asyncio as _asyncio
+
+        from arifosmcp.tools.resource_bridge import read_resource as _read_resource
+        from arifosmcp.tools.resource_bridge import search_resources as _search_resources
+
+        if mode == "resource_read":
+            if not (uri or "").strip():
+                return _hold(
+                    "arif_sense_observe",
+                    "resource_read requires uri (e.g. arifos://vitals)",
+                    ["F2"],
+                    session_id=session_id,
+                )
+            data = _asyncio.run(_read_resource(uri=uri, actor_id=actor_id, session_id=session_id))
+        else:
+            data = _asyncio.run(_search_resources(query=query, actor_id=actor_id, session_id=session_id))
+        _cache_obs_result(session_id, data)
+        return _ok("arif_sense_observe", {"mode": mode, "resource": data}, session_id=session_id)
 
     # L11 AUTH: validate session before processing observational data
     _session_valid = False

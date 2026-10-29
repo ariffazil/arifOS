@@ -38,7 +38,8 @@ MODE_REQUIRED: dict[str, dict[str, tuple[str, ...]]] = {
         "hybrid_discovery": ("query",),
         "fetch": ("url",),
         "ingest": ("url",),
-        # compass / atlas / entropy_dS / vitals: no minimum
+        "resource_read": ("uri",),
+        # resource_search / compass / atlas / entropy_dS / vitals: no minimum
     },
     "arif_think": {
         "reason": ("query",),

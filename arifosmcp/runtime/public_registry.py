@@ -335,10 +335,15 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "URL with provenance; 'hybrid_discovery' — combine sources; 'ingest' "
             "— absorb a document; 'compass'/'atlas' — guided navigation; "
             "'entropy_dS' — measure system change; 'vitals' — kernel machine "
-            "telemetry."
+            "telemetry; 'resource_read' — read a registered arifos:// resource "
+            "by uri; 'resource_search' — search/list registered resources."
         ),
         "query": ("What to look for, in plain language, e.g. 'TDQS scoring rubric MCP'."),
         "url": ("Exact URL to retrieve when mode=fetch, e.g. 'https://example.com/report.pdf'."),
+        "uri": (
+            "Registered resource URI to read when mode=resource_read, "
+            "e.g. 'arifos://vitals' or 'arifos://carry-forward'."
+        ),
         "layers": (
             'Restrict where to look, e.g. ["web"] or ["canon", "memory"]; '
             "omit to search everything available."
