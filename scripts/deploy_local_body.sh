@@ -221,6 +221,59 @@ if [ "$DRY" != "1" ]; then
 	# same provenance as the two stamps above.
 	"$RUNTIME_PYTHON" -c 'import json,sys,os; p="/opt/arifos/releases/release-manifest.json"; c=sys.argv[1]; m=json.load(open(p)) if os.path.exists(p) else {"release":1,"name":"Runtime Truth"}; m.update({"git_commit":c,"origin_main_commit":c[:10],"deployed_via":"deploy_local_body.sh"}); json.dump(m,open(p,"w"),indent=2)' "$LEASE_CANDIDATE" 2>/dev/null || true
 
+
+	# ── P7 (RSI reconciliation §12, landed 2026-10-29): deploy provenance receipt ──
+	# deploy-release.sh writes /opt/arifos/current/receipts/latest.json but the
+	# deploy-local path never did, so /health reported
+	# deployed_commit_receipt_stale=true after every local deploy (epoch 36
+	# measured: receipt still described 7599f1c4 from 2026-10-28). Write BOTH
+	# truths from ONE place, every deploy: a dated receipt file plus
+	# latest.json re-pointed at it — a symlink swap preserves the dated
+	# history; writing THROUGH the link would overwrite an old receipt.
+	RECEIPT_DIR="/opt/arifos/current/receipts"
+	RECEIPT_TS="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+	mkdir -p "$RECEIPT_DIR" /var/lib/arifos/deploy_receipts
+	PREV_RECEIPT_SHA="$("$RUNTIME_PYTHON" -c "import json
+try: print(json.load(open('$RECEIPT_DIR/latest.json')).get('commit_sha',''))
+except Exception: print('')" 2>/dev/null || true)"
+	"$RUNTIME_PYTHON" - "$RECEIPT_DIR/${RECEIPT_TS}.json" "$LEASE_CANDIDATE" "$RECEIPT_TS" "$PREV_RECEIPT_SHA" "$DEPLOY_SESSION" "$DEPLOY_ACTOR" <<'PYRC'
+import json, sys
+path, commit, ts, prev, session, actor = sys.argv[1:7]
+json.dump({
+    "commit_sha": commit,
+    "branch": "main",
+    "build_time": ts,
+    "deployed_via": "deploy_local_body.sh",
+    "prev_commit_sha": prev or None,
+    "deploy_session": session or None,
+    "deploy_actor": actor or None,
+}, open(path, "w"), indent=1)
+PYRC
+	ln -sfn "${RECEIPT_TS}.json" "$RECEIPT_DIR/latest.json"
+	cat >"/var/lib/arifos/deploy_receipts/${RECEIPT_TS}-${LEASE_CANDIDATE:0:8}.md" <<MDRC
+# arifOS deploy receipt — ${RECEIPT_TS}
+
+- commit: `${LEASE_CANDIDATE}`
+- deployed via: deploy_local_body.sh (make deploy-local)
+- session: ${DEPLOY_SESSION:-unattributed} · actor: ${DEPLOY_ACTOR:-unattributed}
+- prev commit (receipt chain): ${PREV_RECEIPT_SHA:-none}
+- dated JSON receipt: ${RECEIPT_DIR}/${RECEIPT_TS}.json
+MDRC
+	echo "Deploy receipt (P7): $RECEIPT_DIR/latest.json -> ${RECEIPT_TS}.json"
+	
+	# ── P6 (RSI reconciliation §12, landed 2026-10-29): pre-deploy health snapshot ──
+	# Capture the RUNNING kernel's /health immediately before the restart so a
+	# later read has a same-instrument pre-image. A failed capture is recorded
+	# as a .FAILED marker — never silently absent.
+	SNAP_DIR="/var/lib/arifos/deploy_health_snapshots"
+	mkdir -p "$SNAP_DIR"
+	if curl -sf -m 5 http://127.0.0.1:8088/health -o "$SNAP_DIR/pre-${LEASE_CANDIDATE:0:8}-${RECEIPT_TS}.json"; then
+		echo "Pre-deploy health snapshot (P6): $SNAP_DIR/pre-${LEASE_CANDIDATE:0:8}-${RECEIPT_TS}.json"
+	else
+		printf '{"captured_utc":"%s","commit":"%s","error":"health capture failed pre-restart"}\n' \
+			"$RECEIPT_TS" "$LEASE_CANDIDATE" >"$SNAP_DIR/pre-${LEASE_CANDIDATE:0:8}-${RECEIPT_TS}.FAILED.json"
+		echo "P6 WARNING: pre-deploy health capture FAILED (marker written)"
+	fi
 	echo "Restarting arifOS bare-metal service..."
 	systemctl restart arifos.service
 
