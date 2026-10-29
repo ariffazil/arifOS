@@ -96,7 +96,17 @@ def _bootstrap_result(
         "risk": risk_tier,
         "platform": platform,
         "stage": stage,
-        "governance": {"verdict": "SEAL" if verified else "SABAR"},
+        # VERDICT-DECOUPLE (P2 2026-10-29, p2-arif-init-multi-verdict-decoupling):
+        # init binds ACCESS, not judgment. 'verdict' below is the LEGACY
+        # verdict-as-access tag kept one release cycle for compat (removal
+        # target 2026-11-30); 'access' is the canonical access-control fact.
+        # Constitutional verdicts (SEAL/HOLD/SABAR/VOID) issue from arif_judge
+        # only — init NEVER seals anything.
+        "governance": {
+            "verdict": "SEAL" if verified else "SABAR",  # LEGACY verdict-as-access
+            "verdict_class": "ACCESS_CONTROL",
+            "access": "ACCESS_FULL" if verified else "ACCESS_OBSERVE_ONLY",
+        },
         "bootstrap_sequence": [
             "1. check_vital",
             "2. audit_rules",
@@ -342,7 +352,10 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
         canonical_tool_name="arifos_init",
         stage="000_INIT",
         status=RuntimeStatus.SUCCESS,
-        verdict=Verdict.SEAL,
+        # VERDICT-DECOUPLE E2: an anchored-but-unverified identity previously
+        # got envelope SEAL while the payload said SABAR — a multi-verdict
+        # contradiction. Envelope now tracks the access truth.
+        verdict=Verdict.SEAL if verified else Verdict.SABAR,
         session_id=session_id,
         caller_state="verified" if verified else "anchored",
         allowed_next_tools=list(_ANCHORED_NEXT_TOOLS),
@@ -581,7 +594,11 @@ async def init_anchor(
                 platform=str(identity.get("platform") or "mcp"),
                 verified=bool(identity.get("verified")),
                 stage="000_INIT",
-                governance={"verdict": "SEAL" if bool(identity.get("verified")) else "SABAR"},
+                governance={
+                    "verdict": "SEAL" if bool(identity.get("verified")) else "SABAR",  # LEGACY
+                    "verdict_class": "ACCESS_CONTROL",
+                    "access": "ACCESS_FULL" if bool(identity.get("verified")) else "ACCESS_OBSERVE_ONLY",
+                },
             )
         return _status_envelope(_session_id, get_session_identity(_session_id))
 
@@ -826,7 +843,11 @@ async def init_anchor(
         "ok": True,
         "session_id": _session_id,
         "status": "SUCCESS",
-        "verdict": "SEAL" if verified else "SABAR_OBSERVE_ONLY",
+        # VERDICT-DECOUPLE E4: the compound "SABAR_OBSERVE_ONLY" token
+        # conflated a verdict word with an access mode. Split into axes.
+        "verdict": "SEAL" if verified else "SABAR",  # LEGACY verdict-as-access
+        "verdict_class": "ACCESS_CONTROL",
+        "access": "ACCESS_FULL" if verified else "ACCESS_OBSERVE_ONLY",
         "identity": {
             "declared_actor_id": _dn,
             "auth_state": auth_state,
@@ -900,7 +921,11 @@ async def init_anchor(
             platform="mcp",
             verified=verified,
             stage="555_ROUTE",
-            governance={"verdict": "SEAL" if verified else "SABAR"},
+            governance={
+                "verdict": "SEAL" if verified else "SABAR",  # LEGACY verdict-as-access
+                "verdict_class": "ACCESS_CONTROL",
+                "access": "ACCESS_FULL" if verified else "ACCESS_OBSERVE_ONLY",
+            },
             sign=True,  # ← FIXED: generates continuity token
         )
         _session_id = _signed_session_id
