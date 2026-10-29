@@ -310,6 +310,37 @@ def godel_lock_gate(ctx: Any) -> dict[str, Any]:
         "doctrine": "GENESIS/058 §1 Q9 — Gödel Lock",
     }
 
+    # ── RSI: record the PERMISSION side of a consequential decision ──────
+    # Bounded population (FI-003, 2026-10-29, Phase 5): a SEAL-BOUND action
+    # that was ALLOWED. HOLD belongs to the tools.py refusal path — recording
+    # it here would double-count one decision. Observation and reasoning tiers
+    # are not decisions worth auditing for a false proceed.
+    #
+    # This call NEVER changes the verdict below: the recorder counts its own
+    # failures, and anything that escapes is logged and swallowed, because a
+    # governance decision must not be taken hostage by its own audit trail.
+    try:
+        from arifosmcp.runtime.rsi_proceed import record_governed_proceed
+
+        record_governed_proceed(
+            verdict=verdict,
+            seal_bound=is_seal_bound,
+            tool="godel_lock_gate",
+            reason_class="EVIDENCE" if auditor is True else "UNCERTAINTY",
+            severity_weight=2.0 if is_seal_bound else 1.0,
+            evidence=[
+                f"phi_external={phi['phi_external']:.2f}",
+                f"claim_severity={severity}",
+                f"action_class={action_class}",
+            ],
+        )
+    except Exception as exc:  # noqa: BLE001 — recording must never change a verdict
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "godel_lock_gate: RSI proceed recording unavailable (decision unaffected): %s", exc
+        )
+
     return {
         "passed": passed,
         "verdict": verdict,
