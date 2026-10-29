@@ -79,3 +79,26 @@ curl -s http://127.0.0.1:8088/health | jq .
 # Verify MCP tools list
 curl -s -X POST http://127.0.0.1:8088/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | jq .
 ```
+
+---
+
+## 6. Runtime Source Discipline (P4, sealed 2026-10-29)
+
+**One declared truth:** `scripts/runtime_source.json` — canonical runtime, other trees, interpreters, shadow rules.
+
+- **Canonical runtime (what the kernel actually imports):** `/opt/arifos/current/venv/lib/python3.13/site-packages/arifosmcp`
+- `/opt/arifos/app` — synced source copy + deploy marker (`.git_commit`); **not** the import origin.
+- `/root/arifOS` — source of truth for code and for this declaration; **not** the import origin.
+
+```bash
+# The only sanctioned way to measure the live kernel
+/opt/arifos/current/venv/bin/python /root/arifOS/scripts/probe_runtime_source.py
+# exit 0 = you measured the canonical runtime   |   exit 3 = you measured the wrong tree
+```
+
+**Two traps the probe reports:**
+
+1. `python -c` / `-m` / stdin with cwd inside `/root/arifOS` puts the **source tree** first on `sys.path`.
+2. `/root/arifOS/.venv` is an **editable** install (`__editable__.arifos-*.pth`) and always resolves the source tree.
+
+A probe that reports the source tree while claiming to measure the live kernel is a failed probe, not a surprising result.
