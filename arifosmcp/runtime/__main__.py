@@ -395,29 +395,41 @@ def _run_minimal_stdio_server() -> None:
     _shutdown_fd_str = os.getenv("ARIFOS_STDIO_SHUTDOWN_FD")
     _shutdown_fd = int(_shutdown_fd_str) if _shutdown_fd_str else None
 
+    pending = b""
     while not _shutdown:
-        # Wait for stdin with 1-second timeout — keeps server alive for late-connecting clients.
-        r, _, _ = select.select([stdin_fd], [], [], 1.0)
-        if not r:
-            continue  # timeout — check shutdown flag and loop
+        # Drain fix (2026-10-29): select() watches the raw fd, but buffered
+        # readline() may have pre-pulled bytes that arrived while a previous
+        # request was being handled (back-to-back notification+request writes).
+        # select() then starves on an empty fd while a complete request sits in
+        # the userspace buffer — the client waits forever. Drain pending lines
+        # BEFORE select(); read via os.read (stdin_fd is O_NONBLOCK).
+        if b"\n" not in pending:
+            # Wait for stdin with 1-second timeout — keeps server alive for late-connecting clients.
+            r, _, _ = select.select([stdin_fd], [], [], 1.0)
+            if not r:
+                continue  # timeout — check shutdown flag and loop
+            try:
+                chunk = os.read(stdin_fd, 65536)
+            except (BlockingIOError, InterruptedError):
+                continue
+            if not chunk:
+                # EOF received — stdin closed by test harness.
+                # Check if shutdown is explicitly requested via fd, else keep alive.
+                if _shutdown_fd is not None:
+                    try:
+                        w, _, _ = select.select([], [_shutdown_fd], [], 0)
+                        if w:
+                            os.read(_shutdown_fd, 1)  # consume shutdown signal
+                            break
+                    except OSError:
+                        pass
+                # No explicit shutdown signal — stay alive (late client may still connect).
+                # A closed pipe stays readable, so the select above returns at once.
+                select.select([], [], [], 1.0)
+                continue
+            pending += chunk
 
-        line = sys.stdin.buffer.readline()
-        if not line:
-            # EOF received — stdin closed by test harness.
-            # Check if shutdown is explicitly requested via fd, else keep alive.
-            if _shutdown_fd is not None:
-                try:
-                    w, _, _ = select.select([], [_shutdown_fd], [], 0)
-                    if w:
-                        os.read(_shutdown_fd, 1)  # consume shutdown signal
-                        break
-                except OSError:
-                    pass
-            # No explicit shutdown signal — stay alive (late client may still connect).
-            # A closed pipe stays readable, so the select above returns at once.
-            select.select([], [], [], 1.0)
-            continue
-
+        line, pending = pending.split(b"\n", 1)
         raw = line.decode("utf-8", errors="replace").strip()
         if not raw:
             continue
