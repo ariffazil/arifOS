@@ -64,6 +64,25 @@ METRIC_STATUS_UNKNOWN = "UNKNOWN"
 METRIC_STATUS_INSUFFICIENT = "INSUFFICIENT"
 METRIC_STATUS_INVALID_INPUT = "INVALID_INPUT"
 
+# A review that ADJUDICATES a decision. Reviews that happened but did not
+# decide (INCONCLUSIVE / OUTCOME_UNOBSERVED / INVALID_REVIEW) are real
+# reviews, but they must never enter a rate denominator - a rate is a
+# statement about decisions, and an undecided decision is not a data point
+# (FI-003, 2026-10-29, Phase 5).
+DECISIVE_REVIEW_OUTCOMES = frozenset(
+    {
+        "CORRECT_HOLD",
+        "FALSE_HOLD",
+        "CORRECT_PROCEED",
+        "FALSE_PROCEED",
+        "CORRECT_SABAR",
+        "FALSE_SABAR",
+        "CORRECT_VOID",
+        "FALSE_VOID",
+        "CORRECT_DECISION",
+    }
+)
+
 
 def _rate(
     numerator: int,
@@ -137,7 +156,7 @@ class RSIDecisionRecord(BaseModel):
         ...,
         description="Which tool issued the verdict (e.g. 'arif_judge', 'arif_seal')",
     )
-    original_verdict: Literal["HOLD", "PROCEED"] = Field(
+    original_verdict: Literal["HOLD", "PROCEED", "SABAR", "VOID"] = Field(
         ...,
         description="The original verdict issued by the tool",
     )
@@ -146,7 +165,19 @@ class RSIDecisionRecord(BaseModel):
         description="Classification of why HOLD/PROCEED was issued",
     )
     review_outcome: Literal[
-        "CORRECT_HOLD", "FALSE_HOLD", "CORRECT_PROCEED", "FALSE_PROCEED", "UNRESOLVED"
+        "CORRECT_HOLD",
+        "FALSE_HOLD",
+        "CORRECT_PROCEED",
+        "FALSE_PROCEED",
+        "CORRECT_SABAR",
+        "FALSE_SABAR",
+        "CORRECT_VOID",
+        "FALSE_VOID",
+        "CORRECT_DECISION",
+        "INCONCLUSIVE",
+        "OUTCOME_UNOBSERVED",
+        "INVALID_REVIEW",
+        "UNRESOLVED",
     ] = Field(
         default="UNRESOLVED",
         description="Post-hoc review outcome — starts UNRESOLVED",
@@ -154,6 +185,26 @@ class RSIDecisionRecord(BaseModel):
     review_latency_hours: float | None = Field(
         default=None,
         description="Hours between original decision and review completion",
+    )
+    reviewed_by: str | None = Field(
+        default=None,
+        description="Who performed the review (identity, not a role label)",
+    )
+    review_evidence: list[str] = Field(
+        default_factory=list,
+        description="Evidence refs the review relied on (post-hoc or independent)",
+    )
+    review_independent: bool | None = Field(
+        default=None,
+        description=(
+            "Whether the reviewer claims independence from the original decider. "
+            "None = not claimed; False = same actor/failure domain. Counted and "
+            "exposed, never silently assumed."
+        ),
+    )
+    review_note: str | None = Field(
+        default=None,
+        description="Reviewer's own reasoning, including why INCONCLUSIVE",
     )
     evidence_available_at_decision: list[str] = Field(
         default_factory=list,
@@ -178,8 +229,13 @@ class RSIDecisionRecord(BaseModel):
 
     @property
     def is_reviewed(self) -> bool:
-        """True if this record has a definitive review outcome."""
-        return self.review_outcome in REVIEWED_OUTCOMES
+        """True only when the review ADJUDICATED the decision.
+
+        INCONCLUSIVE / OUTCOME_UNOBSERVED / INVALID_REVIEW are reviews that
+        happened but decided nothing, so they stay out of the rate
+        denominators (2026-10-29, Phase 5).
+        """
+        return self.review_outcome in DECISIVE_REVIEW_OUTCOMES
 
     @property
     def is_hold(self) -> bool:
@@ -257,7 +313,78 @@ class RSILedger:
                 except Exception:
                     invalid += 1
                     logger.warning("rsi_ledger: skipping corrupt line in %s", self._path)
-        return records, invalid
+
+        # Append-only supersede: a review row appended for an earlier
+        # decision has the same decision_id and is the later truth for that
+        # decision. The earlier row stays on disk — history is never
+        # rewritten, only superseded (2026-10-29, Phase 5).
+        effective: dict[str, RSIDecisionRecord] = {}
+        for rec in records:
+            effective[rec.decision_id] = rec
+        return list(effective.values()), invalid
+
+    def record_review(
+        self,
+        decision_id: str,
+        review_outcome: str,
+        *,
+        reviewed_by: str,
+        evidence_refs: list[str] | None = None,
+        independent: bool | None = None,
+        note: str = "",
+    ) -> RSIDecisionRecord:
+        """Append a REVIEW row that supersedes an earlier decision row.
+
+        Append-only: the original row is never rewritten on disk. The review
+        row carries the same decision_id and the loader takes last-write-wins,
+        so the decision's effective review outcome changes without history
+        being edited (2026-10-29, Phase 5).
+
+        The reviewer must state WHO they are and WHAT evidence they used.
+        `independent` is an explicit claim, not an inference: None means the
+        reviewer did not claim independence, False means same actor or
+        failure domain. Both are counted and exposed by stats().
+        """
+        effective = {r.decision_id: r for r in self._load_all()}
+        original = effective.get(decision_id)
+        if original is None:
+            raise KeyError(f"no RSI decision with id {decision_id!r}")
+
+        latency: float | None = None
+        try:
+            elapsed = datetime.now(UTC) - original.timestamp
+            latency = round(elapsed.total_seconds() / 3600.0, 2)
+        except Exception:  # noqa: BLE001 — latency is metadata, never a blocker
+            latency = None
+
+        reviewed = original.model_copy(
+            update={
+                "review_outcome": review_outcome,
+                "reviewed_by": reviewed_by,
+                "review_evidence": list(evidence_refs or []),
+                "review_independent": independent,
+                "review_note": note or None,
+                "review_latency_hours": latency,
+            }
+        )
+        self.record(reviewed)
+        logger.info(
+            "rsi_ledger: review %s -> %s by %s (independent=%s)",
+            decision_id[:8],
+            review_outcome,
+            reviewed_by,
+            independent,
+        )
+        return reviewed
+
+    def select_review_batch(self, n: int = 10) -> list[RSIDecisionRecord]:
+        """Select a stratified canary batch for REVIEW. Never auto-reviews.
+
+        The 14193 historical HOLD rows are NOT to be bulk-reviewed. A small
+        stratified batch is selected so the first reviews test the review
+        contract itself, not the population (2026-10-29, Phase 5).
+        """
+        return StratifiedSampler(self).select_batch(n=n)
 
     def pending_review(self) -> list[RSIDecisionRecord]:
         """Return all records whose review_outcome is UNRESOLVED.
@@ -315,6 +442,14 @@ class RSILedger:
                     "FALSE_HOLD": 0,
                     "CORRECT_PROCEED": 0,
                     "FALSE_PROCEED": 0,
+                    "CORRECT_SABAR": 0,
+                    "FALSE_SABAR": 0,
+                    "CORRECT_VOID": 0,
+                    "FALSE_VOID": 0,
+                    "CORRECT_DECISION": 0,
+                    "INCONCLUSIVE": 0,
+                    "OUTCOME_UNOBSERVED": 0,
+                    "INVALID_REVIEW": 0,
                     "UNRESOLVED": 0,
                 },
                 "total_records": 0,
@@ -324,13 +459,42 @@ class RSILedger:
                 "metric_status": _empty_status,
             }
 
-        # Confusion matrix counts
-        matrix = Counter(r.review_outcome for r in all_records)
+        # Confusion matrix counts. Built from (original_verdict,
+        # review_outcome) pairs so a generic CORRECT_DECISION is counted
+        # against the verdict it actually judged (2026-10-29, Phase 5).
+        confusion: dict[str, int] = {
+            "CORRECT_HOLD": 0,
+            "FALSE_HOLD": 0,
+            "CORRECT_PROCEED": 0,
+            "FALSE_PROCEED": 0,
+            "CORRECT_SABAR": 0,
+            "FALSE_SABAR": 0,
+            "CORRECT_VOID": 0,
+            "FALSE_VOID": 0,
+            "CORRECT_DECISION": 0,
+            "INCONCLUSIVE": 0,
+            "OUTCOME_UNOBSERVED": 0,
+            "INVALID_REVIEW": 0,
+            "UNRESOLVED": 0,
+        }
+        for _rec in all_records:
+            _ro = _rec.review_outcome
+            if _ro == "CORRECT_DECISION":
+                confusion["CORRECT_DECISION"] += 1
+                if _rec.original_verdict in ("HOLD", "PROCEED", "SABAR", "VOID"):
+                    confusion[f"CORRECT_{_rec.original_verdict}"] += 1
+            elif _ro in confusion:
+                confusion[_ro] += 1
+        matrix = confusion
 
         # Reviewed-only pool for rate calculations (excludes UNRESOLVED)
         reviewed = [r for r in all_records if r.is_reviewed]
         reviewed_count = len(reviewed)
-        unresolved_count = total - reviewed_count
+        # UNRESOLVED is its own state: a review that happened but did not
+        # adjudicate (INCONCLUSIVE / OUTCOME_UNOBSERVED / INVALID_REVIEW) is
+        # neither a decisive data point nor still-unreviewed
+        # (2026-10-29, Phase 5).
+        unresolved_count = sum(1 for r in all_records if r.review_outcome == "UNRESOLVED")
 
         # False proceed rate: FALSE_PROCEED / (CORRECT_PROCEED + FALSE_PROCEED)
         # False hold rate:   FALSE_HOLD   / (CORRECT_HOLD   + FALSE_HOLD)
@@ -409,13 +573,7 @@ class RSILedger:
                 if hold_reversal_latency_avg is not None
                 else None
             ),
-            "confusion_matrix": {
-                "CORRECT_HOLD": matrix.get("CORRECT_HOLD", 0),
-                "FALSE_HOLD": matrix.get("FALSE_HOLD", 0),
-                "CORRECT_PROCEED": matrix.get("CORRECT_PROCEED", 0),
-                "FALSE_PROCEED": matrix.get("FALSE_PROCEED", 0),
-                "UNRESOLVED": matrix.get("UNRESOLVED", 0),
-            },
+            "confusion_matrix": dict(matrix),
             "total_records": total,
             "reviewed_count": reviewed_count,
             "unresolved_count": unresolved_count,
@@ -657,7 +815,7 @@ def _get_ledger() -> RSILedger:
 def record_rsi_decision(
     *,
     tool: str,
-    verdict: Literal["HOLD", "PROCEED"],
+    verdict: Literal["HOLD", "PROCEED", "SABAR", "VOID"],
     reason_class: Literal["AUTHORITY", "EVIDENCE", "SAFETY", "TOOL_FAILURE", "UNCERTAINTY"],
     severity_weight: float = 1.0,
     evidence_available: list[str] | None = None,
@@ -696,6 +854,44 @@ def record_rsi_decision(
     return decision
 
 
+def record_rsi_review(
+    *,
+    decision_id: str,
+    review_outcome: str,
+    reviewed_by: str,
+    evidence_refs: list[str] | None = None,
+    independent: bool | None = None,
+    note: str = "",
+) -> RSIDecisionRecord:
+    """Record a post-hoc review of an existing RSI decision.
+
+    The review contract (forge_work/2026-10-29-TTME-RSI-REVIEW-CONTRACT.md):
+
+    - a valid reviewer uses evidence occurring AFTER or independently of the
+      original decision;
+    - a valid reviewer does not merely restate the original judge's narrative;
+    - a valid reviewer states whether it is independent;
+    - a valid reviewer produces evidence references;
+    - INCONCLUSIVE is a legitimate outcome;
+    - absence of an incident is NEVER evidence of a correct decision.
+
+    Returns the superseding RSIDecisionRecord.
+    """
+    return _get_ledger().record_review(
+        decision_id,
+        review_outcome,
+        reviewed_by=reviewed_by,
+        evidence_refs=evidence_refs,
+        independent=independent,
+        note=note,
+    )
+
+
+def select_review_batch(n: int = 10) -> list[RSIDecisionRecord]:
+    """Select a stratified canary batch of decisions awaiting review."""
+    return _get_ledger().select_review_batch(n=n)
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Module exports
 # ═══════════════════════════════════════════════════════════════════════════
@@ -706,6 +902,9 @@ __all__ = [
     "RSIScorer",
     "StratifiedSampler",
     "record_rsi_decision",
+    "record_rsi_review",
+    "select_review_batch",
+    "DECISIVE_REVIEW_OUTCOMES",
     "LEDGER_PATH",
     "CALIBRATION_MINIMUM",
 ]
