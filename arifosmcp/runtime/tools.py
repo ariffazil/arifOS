@@ -27411,8 +27411,10 @@ def _alias_stale_client_ref(result_dict: Any, caller_sid: Any, actor_id: Any, se
     When the minted session is live and the caller's sid is an unresolvable
     ghost, alias the ghost onto the live execution record so EVERY sid
     returned to the caller is resolvable by the canonical validator in the
-    same runtime scope (invariant E). Never hijacks a live sid; a supplied
-    ACT token must verify for this actor; fail-closed on any bind error.
+    same runtime scope (invariant E). Never hijacks a live sid; fail-closed.
+    888-C1 final: the alias is a pure mirror — it performs no independent
+    identity binding, so it cannot mint any label beyond the live session's
+    own birth-truth (structural, not conditional).
     """
     try:
         if not isinstance(result_dict, dict) or not isinstance(caller_sid, str):
@@ -27426,43 +27428,23 @@ def _alias_stale_client_ref(result_dict: Any, caller_sid: Any, actor_id: Any, se
         live_sid = live_sid or result_dict.get("handle") or result_dict.get("session_id")
         if not isinstance(live_sid, str) or live_sid == caller_sid or live_sid not in _SESSIONS:
             return
-        if session_token:
-            try:
-                from arifosmcp.runtime.act_token import verify_act as _va
-
-                if not _va(session_token, expected_actor=actor_id):
-                    return
-            except Exception:
-                return
+        # 888-C1 final (2026-10-29): the alias is a CONTINUITY MIRROR, never
+        # a mint. _SESSIONS is the documented single write path (Zen collapse
+        # 2026-07-24: the proxy upserts the full session record onto the
+        # identity store), so assigning the live record onto the ghost sid
+        # gives the ghost EXACTLY the live session's own labels — derived
+        # from the kernel's binding of that session at birth, not from this
+        # caller's claim string. The alias contains no independent
+        # bind_session_identity call: it CANNOT mint a label by construction.
+        # Evidence (probed 2026-10-29, /root/forge_work/receipts/
+        # RECEIPT-m365-c1final-888-2026-10-29.md): for a token-less claimed
+        # actor, the DELEGATE's own fresh live session already carries
+        # authority_level=ANONYMOUS / verified=False / governance.verdict=SEAL
+        # (session-birth convention, not an authority grant — verified=False
+        # is the truth axis). Ghost labels are strictly equal to live labels.
+        # Relabelling kernel-wide birth governance is a separate surface —
+        # escalated to 888 with this evidence, deliberately NOT touched here.
         _SESSIONS[caller_sid] = _SESSIONS[live_sid]
-        try:
-            from arifosmcp.runtime.session import (
-                bind_session_identity as _bind_alias,
-                session_exists as _sess_exists,
-            )
-
-            if not _sess_exists(caller_sid):
-                _live = _SESSIONS.get(live_sid)
-                _bind_alias(
-                    caller_sid,
-                    actor_id or "anonymous",
-                    "sovereign"
-                    if actor_id
-                    and str(actor_id).lower().strip()
-                    in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
-                    else ("operator" if actor_id else "anonymous"),
-                    {"source": "arif_session_init", "mode": "init_alias"},
-                    ["query"],
-                    False,
-                    "verified" if actor_id else "anonymous",
-                    "init_alias",
-                    stage="000",
-                    governance={"verdict": "SEAL"},
-                    trace_packet=_live.get("trace_packet") if isinstance(_live, dict) else None,
-                )
-        except Exception:
-            _SESSIONS.pop(caller_sid, None)
-            raise
     except Exception:
         logger.warning("m365 P2: stale client_ref alias failed", exc_info=True)
 
