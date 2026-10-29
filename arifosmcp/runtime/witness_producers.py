@@ -130,6 +130,7 @@ def probe_ai_witness(
     now = time.time()
     total = 0
     passed_fresh = 0
+    held_fresh = 0
     stale = 0
     for name, rec in cache.items():
         if not isinstance(rec, dict):
@@ -140,6 +141,16 @@ def probe_ai_witness(
         if age is not None and age > fresh_seconds:
             stale += 1
             continue
+        if rec.get("outcome") == "HELD_BY_AUTHORITY" and rec.get("last_pass") is True:
+            # F13-authorized canary fix #4 (2026-10-30): the tool answered,
+            # correctly refusing an unverified actor. It is fresh evidence and
+            # counted in the denominator — but NOT as a decisive pass: a HOLD
+            # is not a demonstrated capability, and counting it as one would
+            # push W3 past what the sovereign has been told. The loop breaks
+            # here by honesty: rows refresh (no false staleness) while the
+            # witness stays conservative.
+            held_fresh += 1
+            continue
         if rec.get("last_pass") is True:
             passed_fresh += 1
     if total == 0:
@@ -147,7 +158,8 @@ def probe_ai_witness(
     value = round(passed_fresh / total, 4)
     return value, (
         f"record_test_result {passed_fresh}/{total} tools passed within "
-        f"{fresh_seconds}s ({stale} stale excluded)"
+        f"{fresh_seconds}s ({stale} stale excluded, {held_fresh} "
+        f"held-by-authority fresh: answered, not decisive)"
     )
 
 

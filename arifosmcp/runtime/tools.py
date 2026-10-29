@@ -29114,7 +29114,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             try:
                 from arifosmcp.runtime.capability_drift import record_test_result
 
-                record_test_result(tool_name, passed=True)
+                record_test_result(tool_name, passed=True, outcome="PASSED")
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
             # ── Kabarkan telemetry (ATLAS333 valve) ────────────────────────
