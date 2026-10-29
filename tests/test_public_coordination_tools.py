@@ -1,27 +1,27 @@
-"""Public-surface regression tests for the five coordination tools.
+"""Post-retirement surface tests for the coordination lane (F13 2026-10-29).
 
 Failure class (measured 2026-10-29, public path https://mcp.arif-fazil.com/mcp):
-all five coordination tools — read_resource, search_resources, arif_research,
-arif_recall, arif_delegate — returned "Error calling tool 'X'" for EVERY caller.
+five coordination channels sat on the public wire — read_resource,
+search_resources, arif_research, arif_recall, arif_delegate — and after the
+envelope fix three of them were still facades with nothing behind them
+(keputusan probe luar 02:21: research/recall/delegate mati, memory recall sampah).
 
-Cause (source-read, not inferred):
-  * arifosmcp/runtime/ingress_middleware.py assigns `msg.arguments["_envelope"]`
-    and setdefaults `actor_id` / `session_id` for every tool call, BEFORE
-    FastMCP validates the input.
-  * The middleware strips unknown fields only for tools whose parameter set is
-    known (`_tool_param_sets`, populated by `register_tool_params`).
-  * The canonical tools register their params. The five coordination tools are
-    registered on a different path and never did — so the filter was skipped
-    AND their signatures rejected the injected envelope fields.
+Decision (recommended by external probe 2026-10-29 02:21; ratified by Arif
+11:46 MYT, F13): the public wire is exactly 9 tools =
+KERNEL_ABI_8 + arif_report.
 
-  => ValueError: CONTRACT_VIOLATION: _envelope / actor_id / session_id:
-     Unexpected keyword argument.
+  * read_resource / search_resources → absorbed as arif_observe modes
+    resource_read / resource_search (the bridge functions remain the internal
+    implementation behind those modes).
+  * arif_research / arif_recall / arif_delegate → retired; jobs owned by
+    arif_observe / arif_memory / arif_route.
 
-These tests pin both halves of the fix:
-  1. the five tools declare the envelope fields in their signature, and
-  2. their parameter sets are registered with the ingress middleware, so a
-     caller-supplied extra field (e.g. session_token) is absorbed instead of
-     killing the call.
+These tests pin the new contract:
+  1. the five names are NOT on the wire (public_exposed_tool_names);
+  2. a wire call to a retired name fails honestly (unknown tool);
+  3. the observe modes exist and answer;
+  4. the surviving bridge/facade functions keep their envelope tolerance and
+     honesty contracts.
 """
 
 from __future__ import annotations
@@ -35,99 +35,96 @@ from arifosmcp.tools.resource_bridge import read_resource, search_resources
 
 ENVELOPE_FIELDS = {"_envelope", "actor_id", "session_id"}
 
-FIVE = {
-    "read_resource": read_resource,
-    "search_resources": search_resources,
-    "arif_research": arif_research,
-    "arif_recall": arif_recall,
-    "arif_delegate": arif_delegate,
-}
+RETIRED_FIVE = (
+    "read_resource",
+    "search_resources",
+    "arif_research",
+    "arif_recall",
+    "arif_delegate",
+)
 
 
-@pytest.mark.parametrize("name", sorted(FIVE))
-def test_tool_signature_tolerates_injected_envelope(name):
-    """Every coordination tool must accept what the ingress middleware injects."""
-    params = set(inspect.signature(FIVE[name]).parameters.keys())
-    missing = ENVELOPE_FIELDS - params
-    assert not missing, f"{name} would die with CONTRACT_VIOLATION on: {sorted(missing)}"
+def test_retired_names_are_not_on_the_public_wire():
+    from arifosmcp.runtime.public_surface import public_exposed_tool_names
 
-
-@pytest.mark.parametrize("name", sorted(FIVE))
-def test_tool_param_set_is_registered_with_ingress_middleware(name):
-    """Unknown-field filtering only runs for tools with a registered param set.
-
-    An unregistered tool skips the filter entirely, so any extra field a caller
-    sends reaches FastMCP unfiltered and raises CONTRACT_VIOLATION.
-    """
-    from arifosmcp.runtime import ingress_middleware as _im
-
-    # Importing the server module is what runs register_tools(), which is what
-    # registers the param sets. Without it the middleware instance does not exist.
-    import arifosmcp.server  # noqa: F401
-
-    middleware = getattr(_im, "_ARIFOS_INGRESS_INSTANCE", None)
-    assert middleware is not None, "ingress middleware instance not published"
-
-    known = getattr(middleware, "_tool_param_sets", {})
-    assert name in known, f"{name} has no registered param set — unknown-field filter would be skipped"
-
-    expected = set(inspect.signature(FIVE[name]).parameters.keys())
-    assert known[name] == expected, f"{name} param set drifted from its signature"
+    exposed = set(public_exposed_tool_names())
+    for name in RETIRED_FIVE:
+        assert name not in exposed, f"{name} was retired (F13 2026-10-29) but is still exposed"
 
 
 @pytest.mark.asyncio
-async def test_coordination_tools_survive_an_undeclared_caller_field():
-    """A caller that sends session_token must not kill the call.
-
-    session_token is what the canonical tools accept; a client that sends the
-    standard envelope to every tool would previously crash all five.
-    """
+@pytest.mark.parametrize("name", sorted(RETIRED_FIVE))
+async def test_wire_call_to_retired_name_fails_honestly(name):
+    """A retired tool must be unknown on the wire — never advertised-but-broken."""
     from arifosmcp.server import mcp
 
-    calls = [
-        ("read_resource", {"uri": "arifos://vitals", "session_token": "act_v1.test"}),
-        ("search_resources", {"query": "vitals", "session_token": "act_v1.test"}),
-        ("arif_recall", {"query": "housekeeping", "session_token": "act_v1.test"}),
-        ("arif_delegate", {"query": "probe organ health", "session_token": "act_v1.test"}),
-        ("arif_research", {"query": "probe federation", "session_token": "act_v1.test"}),
-    ]
-    for name, args in calls:
+    args = {"uri": "arifos://vitals"} if name == "read_resource" else {"query": "probe"}
+    try:
         result = await mcp.call_tool(name, args, run_middleware=True)
-        is_error = getattr(result, "is_error", getattr(result, "isError", False))
-        assert not is_error, f"{name} returned an error with an undeclared field"
-        assert result.content, f"{name} returned no content"
+    except Exception:
+        return  # raised = not served = honest absence
+    is_error = getattr(result, "is_error", getattr(result, "isError", False))
+    assert is_error, f"{name} is retired but the wire still serves it"
+
+
+def test_observe_resource_modes_answer():
+    """The absorbed modes must answer through the observe envelope."""
+    from arifosmcp.tools.sense import arif_observe
+
+    read_res = arif_observe(
+        mode="resource_read",
+        uri="arifos://vitals",
+        actor_id="probe",
+        session_id="probe",
+    )
+    assert isinstance(read_res, dict)
+    # Kernel envelope normalizes status to upper case — compare honestly.
+    assert str(read_res.get("status", "")).upper() == "OK", (
+        f"resource_read did not answer ok: {str(read_res)[:300]}"
+    )
+    payload_r = read_res.get("result", read_res)
+    assert str(payload_r.get("resource", {}).get("status", "")).upper() == "OK", (
+        "resource_read inner bridge not ok"
+    )
+
+    search_res = arif_observe(
+        mode="resource_search", query="vitals", actor_id="probe", session_id="probe"
+    )
+    assert isinstance(search_res, dict)
+    assert str(search_res.get("status", "")).upper() == "OK", (
+        f"resource_search did not answer ok: {str(search_res)[:300]}"
+    )
+    payload = search_res.get("result", search_res)
+    assert str(payload.get("resource", {}).get("status", "")).upper() == "OK", (
+        "resource_search lost its registry"
+    )
+    assert payload["resource"].get("count", 0) >= 1
+
+
+def test_observe_resource_read_requires_uri():
+    """F2: a resource_read without a URI must HOLD, not fabricate."""
+    from arifosmcp.tools.sense import arif_observe
+
+    res = arif_observe(mode="resource_read", actor_id="probe", session_id="probe")
+    assert isinstance(res, dict)
+    assert str(res.get("status", "")).upper() == "HOLD", f"missing uri must hold: {str(res)[:300]}"
+    assert res.get("meta", {}).get("violated_laws") == ["F2"] or res.get("verdict"), (
+        "hold must name F2"
+    )
+
+
+def test_bridge_signatures_still_tolerate_injected_envelope():
+    """The bridge functions are the implementation behind the observe modes."""
+    for fn in (read_resource, search_resources):
+        params = set(inspect.signature(fn).parameters.keys())
+        missing = ENVELOPE_FIELDS - params
+        assert not missing, f"{fn.__name__} would die with CONTRACT_VIOLATION on: {sorted(missing)}"
 
 
 @pytest.mark.asyncio
-async def test_coordination_tools_survive_the_injected_envelope():
-    """The exact payload the ingress middleware injects must be tolerated."""
-    from arifosmcp.server import mcp
-
-    envelope = {"_envelope": {"trace_id": "t"}, "actor_id": "probe", "session_id": "probe"}
-    for name, extra in (
-        ("read_resource", {"uri": "arifos://vitals"}),
-        ("search_resources", {"query": "vitals"}),
-        ("arif_recall", {"query": "housekeeping"}),
-        ("arif_delegate", {"query": "probe organ health"}),
-        ("arif_research", {"query": "probe federation"}),
-    ):
-        result = await mcp.call_tool(name, {**extra, **envelope}, run_middleware=True)
-        is_error = getattr(result, "is_error", getattr(result, "isError", False))
-        assert not is_error, f"{name} returned an error with the injected envelope"
-        assert result.content, f"{name} returned no content"
-
-
-@pytest.mark.asyncio
-async def test_coordination_tools_never_report_ok_on_empty_truth():
-    """Honesty contract: degraded, never a false 'ok' on empty evidence.
-
-    The live providers were exhausted during the 2026-10-29 probe (Groq 429,
-    Cerebras 402, Gemini transport error, Postgres auth failure). A facade that
-    reported 'ok' with zero facts in that state would be lying.
-    """
-    from arifosmcp.tools.copilot_facade import arif_recall as recall_fn
-
-    result = await recall_fn(query="housekeeping-regression-probe")
+async def test_facade_never_report_ok_on_empty_truth():
+    """Honesty contract survives retirement: degraded, never a false ok."""
+    result = await arif_recall(query="housekeeping-regression-probe")
     assert result["status"] in ("ok", "degraded", "error")
     if result["status"] == "ok":
         assert result["entries"], "reported ok with zero entries"

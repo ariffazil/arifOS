@@ -32,22 +32,21 @@ import pytest
 
 PRODUCTION_MODE = "forge_next_8"
 
-# The 14 tools the live public wire exposed at the time of the audit.
+# Public wire reduced 14 → 9 (recommended by external probe 2026-10-29 02:21;
+# ratified by Arif 11:46 MYT, F13).
+# KERNEL_ABI_8 + arif_report. read_resource / search_resources are absorbed as
+# arif_observe modes resource_read / resource_search; arif_research,
+# arif_recall, arif_delegate are retired (jobs owned by observe/memory/route).
 LIVE_PUBLIC_SURFACE = (
-    "arif_init",
-    "arif_observe",
-    "arif_think",
-    "arif_route",
-    "arif_memory",
-    "arif_judge",
     "arif_forge",
-    "arif_seal",
+    "arif_init",
+    "arif_judge",
+    "arif_memory",
+    "arif_observe",
     "arif_report",
-    "read_resource",
-    "search_resources",
-    "arif_research",
-    "arif_recall",
-    "arif_delegate",
+    "arif_route",
+    "arif_seal",
+    "arif_think",
 )
 
 
@@ -67,6 +66,21 @@ def test_exposed_set_matches_the_live_public_wire(production_mode):
     from arifosmcp.runtime.public_surface import public_exposed_tool_names
 
     assert sorted(public_exposed_tool_names()) == sorted(LIVE_PUBLIC_SURFACE)
+
+
+def test_retired_coordination_tools_are_off_the_wire(production_mode):
+    """F13 2026-10-29: the five retired names must never appear on the wire.
+
+    Off the wire entirely — "advertised-but-uncallable is worse than absent."
+    """
+    from arifosmcp.runtime.public_surface import (
+        RETIRED_COORDINATION_TOOLS,
+        public_exposed_tool_names,
+    )
+
+    exposed = set(public_exposed_tool_names())
+    for name in RETIRED_COORDINATION_TOOLS:
+        assert name not in exposed, f"{name} retired but still exposed"
 
 
 def test_surface_hash_covers_every_exposed_tool(production_mode):
@@ -97,10 +111,12 @@ def test_removing_a_coordination_tool_changes_the_hash(production_mode, monkeypa
     from arifosmcp.runtime import public_surface as ps
 
     before = build_mod._compute_tool_surface_hash()
+    # F13 2026-10-29: the only coordination channel left on the wire is
+    # arif_report — removing it must still move the hash.
     monkeypatch.setattr(
         ps,
         "COORDINATION_TOOLS",
-        tuple(t for t in ps.COORDINATION_TOOLS if t != "arif_delegate"),
+        tuple(t for t in ps.COORDINATION_TOOLS if t != "arif_report"),
     )
     after = build_mod._compute_tool_surface_hash()
     assert after != before, "removing an exposed tool did not change surface_hash"
