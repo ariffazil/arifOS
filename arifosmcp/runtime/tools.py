@@ -11308,6 +11308,9 @@ def _arif_session_init(
                 )
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
+            # M365 P2 (2026-10-29): make an echoed stale client_ref sid
+            # resolvable before the response reaches the caller.
+            _alias_stale_client_ref(_result_dict, session_id, actor_id, session_token)
             return _inject_atlas333_boot(_result_dict)
         except Exception as e:
             return _hold(
@@ -11455,6 +11458,8 @@ def _arif_session_init(
             # W-02/W-03: single drift floor on pre-session init return
             if isinstance(_result_dict, dict):
                 apply_deployment_drift_floor(_result_dict)
+            # M365 P2 (2026-10-29): same alias duty on the defensive lane.
+            _alias_stale_client_ref(_result_dict, session_id, actor_id, session_token)
             return _inject_atlas333_boot(_result_dict)
         except Exception as e:
             return _hold(
@@ -25954,6 +25959,37 @@ async def _arif_memory_v5_router(
         "arif_memory", mode, actor_id, session_id=session_id, candidate=_gate_candidate
     )
     if gate is not None:
+        # M365 P1 (2026-10-29, k-def-arif-memory-empty-payload): a
+        # pre-execution denial must reach the wire as an EXPLICIT structured
+        # failure payload. A thin {status/verdict/reasons} envelope has no
+        # result substance, so the hollow_success_gate rewrites the whole
+        # response to UNMEASURED with a generic note (invariants A/B). The
+        # verdict itself is untouched — HOLD stays HOLD.
+        if isinstance(gate, dict) and not gate.get("result"):
+            _gmeta = gate.get("meta") if isinstance(gate.get("meta"), dict) else {}
+            _greason = (
+                gate.get("reason")
+                or _gmeta.get("reason")
+                or (
+                    gate["reasons"][0]
+                    if isinstance(gate.get("reasons"), list) and gate["reasons"]
+                    else None
+                )
+                or "constitutional gate denied pre-execution"
+            )
+            gate["result"] = {
+                "mode": mode,
+                "blocked": True,
+                "reason": _greason,
+                "violated_laws": gate.get("violated_laws") or _gmeta.get("violated_laws") or [],
+                "failure_type": gate.get("failure_type")
+                or _gmeta.get("reason")
+                or "PRE_EXECUTION_GATE_DENY",
+                "next_safe_action": (
+                    "Re-init under a verified session carrying the MUTATE band, "
+                    "or route the operation through arif_judge first."
+                ),
+            }
         return gate
 
     # Capability-truth 2026-09-18 (333-AGI): routing derives from the v5
@@ -27335,6 +27371,102 @@ def _force_hold_mutation_fields(response: Any) -> Any:
     return response
 
 
+def _flatten_wire_envelope(response: Any) -> dict[str, Any]:
+    """M365 P1 (2026-10-29, k-def-arif-memory-empty-payload): normalize a
+    handler response to a dict for the canonical-normalization wrappers.
+
+    RuntimeEnvelope (and any Pydantic model) previously fell to the
+    {"result": <object>} branch WITHOUT conversion. Consumers downstream
+    (attach_canonical, hollow_success_gate, verbosity trim) read dict keys
+    only — a well-formed envelope reached the wire as an empty payload.
+    Flatten via model_dump, alias payload→result and message→reasons.
+    Verdict/status fields pass through untouched; nothing is derived here.
+    """
+    if isinstance(response, dict):
+        return response
+    dump = getattr(response, "model_dump", None)
+    if callable(dump):
+        try:
+            dumped = dump()
+            if isinstance(dumped, dict):
+                if not dumped.get("result") and isinstance(dumped.get("payload"), dict):
+                    dumped["result"] = dumped["payload"]
+                if not dumped.get("reasons") and dumped.get("message"):
+                    dumped["reasons"] = [dumped["message"]]
+                return dumped
+        except Exception:
+            logger.exception("suppressed exception: envelope flatten failed", exc_info=True)
+    return {"result": response}
+
+
+def _alias_stale_client_ref(result_dict: Any, caller_sid: Any, actor_id: Any, session_token: Any) -> None:
+    """M365 P2 (2026-10-29, k-def-session-resume-stale-sid).
+
+    The init delegate mints a fresh runtime session, while the wire echo can
+    still hand the caller their previously minted SEAL sid (client_ref /
+    token.sid). After a restart that old sid resolves NOWHERE: the router's
+    raw _SESSIONS.get() misses, remember collapses to a hollow refusal, and
+    the judge answers L11 NOT_FOUND beside an sid the kernel itself returned.
+
+    When the minted session is live and the caller's sid is an unresolvable
+    ghost, alias the ghost onto the live execution record so EVERY sid
+    returned to the caller is resolvable by the canonical validator in the
+    same runtime scope (invariant E). Never hijacks a live sid; a supplied
+    ACT token must verify for this actor; fail-closed on any bind error.
+    """
+    try:
+        if not isinstance(result_dict, dict) or not isinstance(caller_sid, str):
+            return
+        if not caller_sid.startswith("SEAL-") or caller_sid in _SESSIONS:
+            return
+        birth = result_dict.get("session_birth")
+        live_sid = None
+        if isinstance(birth, dict) and isinstance(birth.get("session_id"), str):
+            live_sid = birth["session_id"]
+        live_sid = live_sid or result_dict.get("handle") or result_dict.get("session_id")
+        if not isinstance(live_sid, str) or live_sid == caller_sid or live_sid not in _SESSIONS:
+            return
+        if session_token:
+            try:
+                from arifosmcp.runtime.act_token import verify_act as _va
+
+                if not _va(session_token, expected_actor=actor_id):
+                    return
+            except Exception:
+                return
+        _SESSIONS[caller_sid] = _SESSIONS[live_sid]
+        try:
+            from arifosmcp.runtime.session import (
+                bind_session_identity as _bind_alias,
+                session_exists as _sess_exists,
+            )
+
+            if not _sess_exists(caller_sid):
+                _live = _SESSIONS.get(live_sid)
+                _bind_alias(
+                    caller_sid,
+                    actor_id or "anonymous",
+                    "sovereign"
+                    if actor_id
+                    and str(actor_id).lower().strip()
+                    in ("arif", "888", "ariffazil", "arif-fazil", "arif_fazil")
+                    else ("operator" if actor_id else "anonymous"),
+                    {"source": "arif_session_init", "mode": "init_alias"},
+                    ["query"],
+                    False,
+                    "verified" if actor_id else "anonymous",
+                    "init_alias",
+                    stage="000",
+                    governance={"verdict": "SEAL"},
+                    trace_packet=_live.get("trace_packet") if isinstance(_live, dict) else None,
+                )
+        except Exception:
+            _SESSIONS.pop(caller_sid, None)
+            raise
+    except Exception:
+        logger.warning("m365 P2: stale client_ref alias failed", exc_info=True)
+
+
 def _wrap_with_canonical_normalization(handler, tool_name):
     """Epoch 1 canonical normalization. Applied to every canonical/diagnostic
     handler at registration time. Reversible: delete this block and the
@@ -27412,7 +27544,7 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 # _wrap_handler; this wrapper keeps span + envelope duties only.
             # ────────────────────────────────────────────────────────────────
             try:
-                body = response if isinstance(response, dict) else {"result": response}
+                body = _flatten_wire_envelope(response)
                 sid, aid = _resolve_standing_ids(body, kwargs)
                 response = attach_canonical(body, session_id=sid, actor_id=aid)
             except Exception:
@@ -27494,7 +27626,7 @@ def _wrap_with_canonical_normalization(handler, tool_name):
             # _wrap_handler; this wrapper keeps span + envelope duties only.
         # ────────────────────────────────────────────────────────────────────
         try:
-            body = response if isinstance(response, dict) else {"result": response}
+            body = _flatten_wire_envelope(response)
             sid, aid = _resolve_standing_ids(body, kwargs)
             response = attach_canonical(body, session_id=sid, actor_id=aid)
         except Exception:

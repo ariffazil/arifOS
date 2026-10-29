@@ -555,7 +555,7 @@ class SessionManifest(BaseModel):
         description="Optional caller correlation reference echoed back (KX-008)",
     )
     session_token: str | None = None
-    doctrine: dict[str, Any] | None = None
+    doctrine: str | dict[str, Any] | None = None  # M365 P1 2026-10-29: writer assigns motto str; schema follows reality
     timestamp: str | None = None
     actor_signature: str | None = None
     nonce: str | None = None
