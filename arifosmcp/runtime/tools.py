@@ -12781,6 +12781,10 @@ def _searxng_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
         return {
             "status": "success" if hits else "empty",
             "verdict": "SEAL" if hits else "SABAR",
+            # F2 stamp 2026-10-29 (Arif correction): search snippets are
+            # third-party CLAIMS (source present), not our OBSERVATION; an
+            # empty ladder answer is UNKNOWN — never silent, never false-certainty.
+            "epistemic_tag": "CLAIM" if hits else "UNKNOWN",
             "hits": hits,
             "result_count": len(hits),
             "source": "searxng",
@@ -12795,6 +12799,7 @@ def _searxng_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
         return {
             "status": "error",
             "verdict": "SABAR",
+            "epistemic_tag": "UNKNOWN",  # nothing measured — self-disclosed
             "error": f"{type(exc).__name__}: {exc}",
             "hits": [],
             "result_count": 0,
@@ -12824,6 +12829,7 @@ def _free_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
     return {
         "status": out.get("status", "error"),
         "verdict": "SABAR",
+        "epistemic_tag": "UNKNOWN",  # no answerer — nothing to claim
         "error": searx_note,
         "hits": [],
         "result_count": 0,
@@ -13513,6 +13519,9 @@ def _arif_sense_observe(
                 {
                     "query": query,
                     "results": brave["hits"],
+                    # F2 2026-10-29: carry the answerer's epistemic stamp
+                    # (CLAIM on snippets; UNKNOWN when the ladder found nothing).
+                    "epistemic_tag": brave.get("epistemic_tag", "CLAIM"),
                     # 888 COND-1 (F2): envelope must name the ACTUAL answerer —
                     # this block reads the ladder result, whose source is
                     # "searxng" (or "brave" only on the optional keyed path).
