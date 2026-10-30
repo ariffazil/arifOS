@@ -57,6 +57,10 @@ _MINIMAL_KEEP_TOP_LEVEL = {
     # then dropped failure class again).
     "handoff_evidence",
     "missing_evidence",
+    # Model Governance Card (runtime wiring v1, 2026-10-30, additive — F2 truth):
+    # the card is identity/ceiling TRUTH for the session; a minimal view that
+    # drops it repeats the built-then-dropped failure class.
+    "model_governance",
 }
 
 _MINIMAL_KEEP_RESULT = {
