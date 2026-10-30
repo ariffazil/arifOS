@@ -25903,6 +25903,16 @@ async def _arif_report(
     plat = (platform or "mcp").strip()
 
     if m == "report":
+        # producer-context v1 (2026-10-31): mint server-side from kernel state;
+        # callers cannot inject one — the lane record carries model provenance.
+        try:
+            from arifosmcp.runtime.producer_context import build_producer_context
+
+            _pc = build_producer_context(
+                session_id=session_id, actor_id=who, session_token=session_token
+            )
+        except Exception:  # noqa: BLE001 — provenance must never block the lane
+            _pc = None
         result = rl.report(
             sender=who,
             platform=plat,
@@ -25916,6 +25926,7 @@ async def _arif_report(
             verified_actor=_caller_verified(),
             dry_run=dry_run,
             server_actor=_caller_actor(),
+            producer_context=_pc,
         )
     elif m == "inbox":
         result = rl.inbox(
@@ -25947,6 +25958,8 @@ async def _arif_report(
 
     result["tool"] = "arif_report"
     result["actor_id"] = who
+    if m == "report" and _pc is not None:
+        result["producer_context"] = _pc
     return _ok("arif_report", result, delta_S=-0.001)
 
 

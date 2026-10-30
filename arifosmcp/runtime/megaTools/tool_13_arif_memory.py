@@ -738,11 +738,27 @@ def _wrap_result(res_dict: dict, mode: str, session_id: str | None) -> RuntimeEn
     _metrics.basis.source = "arif_memory"
     _metrics.basis.mode = mode
 
+    # producer-context v1 (2026-10-31): write lanes (remember/revise/attest)
+    # carry model provenance on the payload; recall stays lean. Server-minted.
+    _final_payload = res_dict.get("payload", {})
+    if mode in ("remember", "revise", "attest"):
+        try:
+            from arifosmcp.runtime.producer_context import build_producer_context
+
+            _final_payload = dict(_final_payload)
+            _final_payload.setdefault(
+                "producer_context",
+                build_producer_context(
+                    session_id=session_id, actor_id=actor_id, session_token=session_token
+                ),
+            )
+        except Exception:  # noqa: BLE001 — provenance must never block a write
+            pass
     return forge_verdict(
         tool_id="arif_memory",
         canonical_tool_name="arif_memory",
         stage="555m",
-        payload=res_dict.get("payload", {}),
+        payload=_final_payload,
         session_id=session_id,
         metrics=_metrics,
         override_code=override_code,
