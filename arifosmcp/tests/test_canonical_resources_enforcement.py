@@ -77,8 +77,8 @@ _NON_TEXT_RESOURCE_KEYS: frozenset[str] = frozenset(
         "arifos://atlas333/flow",
         "arifos://atlas333/metrics",  # MAP·ATLAS·ECHO wiring input (2026-08-09)
         "arifos://wisdom/quotes/all",
-        "tree777://index",
         "skill://index",
+        "arifos://model-governance-card/{lane}",
     }
 )
 
@@ -119,7 +119,6 @@ CANONICAL_RESOURCE_FILES: dict[str, str] = {
     "arifos://atlas333/paradox/list": "atlas333.py",
     "arifos://atlas333/geometry": "atlas333.py",
     "arifos://atlas333/flow": "atlas333.py",
-    "tree777://index": "tree777.py",
     # NOTE: skill://index is a documented target (no handler module yet);
     # it is included in EXPECTED_CANONICAL_RESOURCES but has no source file.
 }

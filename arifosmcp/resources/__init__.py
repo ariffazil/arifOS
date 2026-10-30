@@ -444,6 +444,7 @@ from .tool_discovery import register_tool_discovery
 from .tree777 import register_tree777_resources
 from .trinity import register_trinity
 from .vault999_template import register_vault999_template
+from .model_governance import register_model_governance_template
 from .vitals import register_vitals
 from .wisdom_resources import register_wisdom_resources
 
@@ -500,6 +501,9 @@ CANONICAL_RESOURCES = (
     # Structural anchors
     "arifos://index",
     "arifos://affordances",
+    # Model Governance Card — deterministic AAA supply-chain registry projection
+    # (runtime wiring 2026-10-30, F13-sealed). Fail-closed, never authority-bearing.
+    "arifos://model-governance-card/{lane}",
 )  # REMOVED 2026-08-08 (48 → 30):
 #   arifos://resources/index, arifos://resources/audit, arifos://atlas-repo,
 #   arifos://aaa-index, arifos://a-forge-index, arifos://vault999-index,
@@ -608,6 +612,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_tool_discovery(mcp))
     registered.extend(register_retrieve_tools(mcp))
     registered.extend(register_vault999_template(mcp))
+    registered.extend(register_model_governance_template(mcp))  # model-governance-card/{lane} (2026-10-30)
     # REMOVED 2026-08-08 — arifos://mcp/surface-map (duplicate of arifos://schema):
     # registered.extend(register_surface_map(mcp))
     registered.extend(register_wisdom_resources(mcp))

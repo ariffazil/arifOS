@@ -2315,6 +2315,34 @@ from arifosmcp.schemas.session import (
 )
 
 
+
+def _build_model_governance(actor_id: str | None) -> dict:
+    """Model Governance Card binding (runtime wiring v1, F13-sealed 2026-10-30).
+
+    Resolves the AAA lane for this actor and loads its card from the deterministic
+    registry projection. Fail-closed: unavailable card -> explicit UNKNOWN payload
+    with a zeroed authority ceiling; never fabricates identity, never inflates
+    authority, never changes verdicts (additive to the existing constitutional
+    binding). Card is revision-bound; immutability within the session is the
+    runtime's contract (TOCTOU: registry_revision here == revision in any receipt).
+    """
+    try:
+        from arifosmcp.resources.model_governance import resolve_lane, load_card
+        lane = resolve_lane(actor_id)
+        card = load_card(lane)
+        card["session_binding"] = {"actor_id": actor_id, "lane": lane}
+        return card
+    except Exception as exc:  # noqa: BLE001 — fail-closed by construction
+        return {
+            "card_source": "UNAVAILABLE",
+            "identity_state": "UNKNOWN",
+            "resolved_model": "UNKNOWN",
+            "authority_ceiling": {"propose": False, "verify": False, "authorize": False, "execute": False},
+            "operating_mode": "OBSERVE_ONLY",
+            "reason": f"card loader failed: {type(exc).__name__}",
+            "verdict": "HOLD",
+        }
+
 @trace_tool("arif_init")
 def arif_init(
     mode: str = "init",
@@ -2912,6 +2940,9 @@ def arif_init(
         _model_soul, _model_shadow = _load_soul_shadow(model_key)
         sess["model_soul"] = _model_soul
         sess["model_shadow"] = _model_shadow
+
+        # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — additive, fail-closed
+        sess["model_governance"] = _build_model_governance(actor_id)
 
         # ── WELL (lightweight — single boolean for header) ───────────────
         well_ok = False
@@ -4334,6 +4365,9 @@ def arif_init(
         _model_soul, _model_shadow = _load_soul_shadow(declared_model_key or "unknown")
         sess["model_soul"] = _model_soul
         sess["model_shadow"] = _model_shadow
+
+        # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — additive, fail-closed
+        sess["model_governance"] = _build_model_governance(actor_id)
 
         # ── Verdict coherence (2026-07-06) ──────────────────────────────
         # F2 TRUTH + F3 WITNESS: top-level verdict must reflect actual state.
