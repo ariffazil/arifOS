@@ -142,6 +142,7 @@ def report(
     dry_run: bool = False,
     server_actor: str | None = None,
     envelope_call_hash: str | None = None,
+    producer_context: dict | None = None,  # server-minted only (2026-10-31)
 ) -> dict[str, Any]:
     """File one report into the lane. Never raises on bad input; coerces.
 
@@ -198,6 +199,9 @@ def report(
         "escalated": escalate,
         "escalation_withheld": withheld,
         "sender_verified": bool(verified_actor),
+        # Model provenance (producer-context v1, 2026-10-31): server-minted
+        # two-layer block; absent for legacy callers, never caller-injected.
+        "producer_context": producer_context if isinstance(producer_context, dict) else None,
         # A report is the sender's own claim. Never verified here.
         "claim_state": "SELF_REPORTED",
         "verified_by": None,

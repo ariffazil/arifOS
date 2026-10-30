@@ -365,6 +365,9 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         # precedent). It is identity/ceiling TRUTH for the session, not
         # decoration; a consumer must never receive INIT silently cardless.
         "model_governance",
+        # producer_context (same class, same closeout): write-lane records and
+        # their envelopes must never lose model provenance to a trim.
+        "producer_context",
     )
     for field in _SEMANTIC_PRESERVED_FIELDS:
         # P0 2026-08-09 A3: delta_S key must ALWAYS be present after trim.
