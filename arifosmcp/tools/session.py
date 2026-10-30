@@ -2044,6 +2044,19 @@ def _project_light(
     # A5 2026-07-27: egress budget — strip fields by verbosity level
     out = _strip_by_verbosity(out, verbosity)
 
+    # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — attached AFTER the
+    # egress strip so every projection (light + full) carries it. Fail-closed:
+    # unavailable card -> explicit UNKNOWN payload; never authority-bearing.
+    try:
+        out["model_governance"] = _build_model_governance(actor_id)
+    except Exception:  # noqa: BLE001 — the card must never break INIT
+        out["model_governance"] = {
+            "card_source": "UNAVAILABLE", "identity_state": "UNKNOWN",
+            "resolved_model": "UNKNOWN",
+            "authority_ceiling": {"propose": False, "verify": False, "authorize": False, "execute": False},
+            "verdict": "HOLD",
+        }
+
     return out
 
 
@@ -3551,6 +3564,7 @@ def arif_init(
             status="OK",
             tool="arif_init",
             mode=mode,
+            model_governance=_build_model_governance(actor_id),
             session=SessionState(
                 session_id=sid,
                 actor_id=actor_id,
@@ -4650,6 +4664,7 @@ def arif_init(
         # ── output_contract=debug: legacy path, preserves raw session ─────
         if output_contract == "debug":
             return _sm(
+            model_governance=header.get("model_governance"),
                 status="OK",
                 result={"session": sess, "header": header},
                 doctrine=ARIF_DOCTRINE,
@@ -4715,10 +4730,12 @@ def arif_init(
         # Prefer the earlier authority_level if set in the same branch
         if authority_level in ("SOVEREIGN", "OPERATOR", "ANONYMOUS"):
             _kc8_authority_level = authority_level
+            model_governance=header.get("model_governance"),
         return _sm(
             status="OK",
             tool="arif_init",
             mode=mode,
+            model_governance=_build_model_governance(actor_id),
             session=SessionState(
                 session_id=sid,
                 actor_id=actor_id,
