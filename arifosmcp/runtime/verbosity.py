@@ -359,6 +359,12 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "can_mutate",
         "can_claim_success",
         "warnings",
+        # Model Governance Card (runtime wiring v1 closeout, 2026-10-31): the
+        # card is built on the SessionManifest and then projected out by the
+        # minimal envelope — the built-then-dropped class again (T2/FQ
+        # precedent). It is identity/ceiling TRUTH for the session, not
+        # decoration; a consumer must never receive INIT silently cardless.
+        "model_governance",
     )
     for field in _SEMANTIC_PRESERVED_FIELDS:
         # P0 2026-08-09 A3: delta_S key must ALWAYS be present after trim.
