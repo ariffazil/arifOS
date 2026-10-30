@@ -539,6 +539,11 @@ class SessionManifest(BaseModel):
     # Context completeness (v3.1)
     context_completeness: ContextCompletenessReceipt | None = None
 
+    # Model Governance Card (runtime wiring v1, 2026-10-30) — deterministic AAA
+    # supply-chain registry projection. Fail-closed; may lower confidence,
+    # never raise authority. None = card unavailable (identity UNKNOWN).
+    model_governance: dict[str, Any] | None = None
+
     # Output control
     output_contract: str = "compact"  # compact | seal_card | debug
 
