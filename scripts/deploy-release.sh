@@ -48,6 +48,7 @@ _ARIFOS_PY="${ARIFOS_PYTHON:-/opt/arifos/current/venv/bin/python}"
 _ARIFOS_LEASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/deploy_lease.py"
 _ARIFOS_SHA="$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)"
 if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "${DEPLOY_ACTOR:-$(whoami)}" \
+     --session "${DEPLOY_SESSION:-manual-$(date -u +%Y%m%dT%H%M%SZ)}" \
      --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
   echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another deployment owns production; nothing was written" >&2
   exit 3
