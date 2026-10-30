@@ -3298,6 +3298,9 @@ def arif_init(
             handle=sid,
         )
 
+        # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — additive, fail-closed
+        header["model_governance"] = sess.get("model_governance") or _build_model_governance(actor_id)
+
         # ── A5: verbosity-gated extra blocks ──────────────────────────
         _verbosity = _normalize_verbosity(verbose)
         if _verbosity == "full":
@@ -4449,6 +4452,9 @@ def arif_init(
             client_ref=client_ref,
             handle=sid,
         )
+
+        # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — additive, fail-closed
+        header["model_governance"] = sess.get("model_governance") or _build_model_governance(actor_id)
         # Belt: force effective_state consistent with authority_override
         if isinstance(header, dict):
             _es = header.get("effective_state")
