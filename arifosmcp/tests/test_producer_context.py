@@ -99,3 +99,11 @@ def test_verbosity_keepset_lists_pc():
     src = Path("/root/arifOS/arifosmcp/runtime/verbosity.py").read_text()
     assert '"producer_context",' in src
     assert '"model_governance",' in src
+
+def test_unavailable_card_labels_attribution_unknown():
+    """Polish 2026-10-31: loader's UNAVAILABLE payload must read as attribution
+    'unknown' — never 'session_only' over null card fields (live canary case)."""
+    pc = build_producer_context(actor_id="totally-unmapped-agent")
+    assert pc["attribution"]["state"] == "unknown"
+    assert pc["session"]["governance_card_hash"] is None
+    assert "no_session_card" in pc["attribution"]["limitations"]

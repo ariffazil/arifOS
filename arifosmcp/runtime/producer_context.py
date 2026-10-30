@@ -121,6 +121,13 @@ def build_producer_context(
             card = _build_model_governance(actor_id)
         except Exception:  # noqa: BLE001
             card = None
+    # Label honesty (2026-10-31 polish): a fail-closed UNAVAILABLE payload from
+    # the loader is NOT a card — treat it as absent so attribution reads
+    # "unknown", never "session_only" over null fields.
+    if isinstance(card, dict) and (
+        card.get("card_source") == "UNAVAILABLE" or not card.get("card_hash")
+    ):
+        card = None
     if card is None:
         return _unknown(session_id, actor_id)
     block = _from_card(card)
