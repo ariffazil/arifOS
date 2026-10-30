@@ -57,7 +57,7 @@ _arifos_release_lease() {
   local rc=$?
   trap - EXIT INT TERM
   "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "${DEPLOY_ACTOR:-$(whoami)}" \
-    --receipt "${0##*/}" >/dev/null 2>&1 || echo "WARNING: lease release failed" >&2
+    --session "${DEPLOY_SESSION:-manual}" --receipt "${0##*/}" >/dev/null 2>&1 || echo "WARNING: lease release failed" >&2
   exit "$rc"
 }
 trap _arifos_release_lease EXIT INT TERM
