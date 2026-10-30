@@ -1,3 +1,2362 @@
+"""
+arifosmcp/tools/session.py — 000_INIT
+══════════════════════════════════════════════════════════════════
+
+EMBODIMENT UPGRADE v2 — EUREKA
+Atomic button awareness + blast-radius binding + VPS-root capability disclosure
+
+Constitutional session bootstrap + identity binding + embodiment card.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import logging
+import time as _time
+
+logger = logging.getLogger(__name__)
+
+# ── Enforcement Envelope (AOB P0 — 2026-07-03) ──
+from arifosmcp.arifos_otel_wiring import trace_tool
+from arifosmcp.schemas.enforcement_envelope import (
+    make_ephemeral_envelope,
+)
+
+# ════════════════════════════════════════════════════════════════════════════════
+# DITEMPA, BUKAN DIBERI — Constitutional Identity Seal (forged 2026-06-22)
+# Every init response — success OR hold — carries the motto, state emoji,
+# and a deterministic signature. Identity is invariant. DENY is still anchored.
+# ════════════════════════════════════════════════════════════════════════════════
+
+DITEMPA_MOTTO = "DITEMPA, BUKAN DIBERI"
+
+# State emoji — load-bearing cognitive signal, not decoration.
+# Humans read state faster through symbols; agents read state through structured fields.
+_STATE_EMOJI: dict[str, str] = {
+    "OK": "🔥",  # forged, alive, ignition complete
+    "HOLD": "🔒",  # locked, awaiting human input or co-signature
+    "FAILURE": "❌",  # denied or unrecoverable failure
+    "DEGRADED": "🧩",  # partial, fragmented session
+    "REVOKED": "🛑",  # permanently withdrawn
+    "PARTIAL": "🟡",  # mixed state — some capabilities bound, others not
+    "UNKNOWN": "⚪",  # indeterminate
+}
+
+_MODE_EMOJI: dict[str, str] = {
+    "init": "🔥",
+    "light": "⚡",
+    "ping": "💓",
+    "discover": "🔍",
+    "resume": "🔄",
+    "validate": "✅",
+    "epoch_open": "📂",
+    "epoch_seal": "📦",
+    "challenge": "🔐",
+    "cleanup": "🧹",
+    "full": "🌐",
+    "opt_out": "🚪",
+}
+
+# INIT v2.0 — Explicit failure taxonomy
+# Every INIT HOLD carries a specific type so clients can handle each case distinctly.
+# These are encoded in meta.failure_type and meta.reason.
+INIT_FAILURE_TYPE: dict[str, str] = {
+    "actor_id_required": "INIT_IDENTITY_HOLD",  # null actor_id
+    "constitution_hash_schism": "INIT_CONSTITUTION_HOLD",  # constitution mismatch
+    "jurisdiction_mismatch": "INIT_JURISDICTION_HOLD",  # sovereign/actor mismatch
+    "capacity_insufficient": "INIT_CAPACITY_HOLD",  # context completeness too low
+    "floor_check_failed": "INIT_FLOOR_HOLD",  # F1-F13 gate failed
+    "unknown_mode": "INIT_MODE_HOLD",  # unrecognized mode
+    "idempotency_conflict": "INIT_IDEMPOTENCY_HOLD",  # conflicting sessions
+    "injection_detected": "INIT_INJECTION_HOLD",  # F12 injection pattern in identity field (K1 2026-08-08)
+}
+
+
+def _build_unknown_classification(reason: str, failure_type: str) -> dict:
+    """Build the UNKNOWN classification envelope (F13 ARIF GO 2026-10-05).
+
+    Four fields per schema arifos.init.unknown_classification.v1:
+    - as_of_date: ISO8601 UTC
+    - anchor_evidence: verbatim reason (or "no anchor found")
+    - reason_class: one of substrate_health|constitutional_hold|substrate_drift|missing_data|self_correctable_failure|other
+    - falsifier: concrete condition that, if observed, would falsify this UNKNOWN
+
+    Doctrine: absence_of_evidence_is_NOT_evidence_of_absence (GODEL_LOCK axiom A6).
+    """
+    from datetime import datetime, timezone
+
+    _type_to_class = {
+        "SUBSTRATE_DEGRADED": "substrate_health",
+        "SUBSTRATE_DRIFT": "substrate_drift",
+        "ACTOR_UNVERIFIED": "substrate_drift",
+        "CONSTITUTIONAL_HOLD": "constitutional_hold",
+        "MISSING_DATA": "missing_data",
+        "F13_REQUIRED": "constitutional_hold",
+        "L05_PEACE_FAIL": "substrate_health",
+        "INIT_FAILURE": "other",
+    }
+    return {
+        "as_of_date": datetime.now(timezone.utc).isoformat(),
+        "anchor_evidence": reason or "no anchor found",
+        "reason_class": _type_to_class.get(failure_type, "other"),
+        "falsifier": (
+            f"This UNKNOWN classification is falsified if "
+            f"`{failure_type}` is resolved: re-probe shows status != HOLD "
+            f"with the same reason. (Absence of evidence is NOT evidence "
+            f"of absence — per GODEL_LOCK axiom A6.)"
+        ),
+    }
+
+
+def _make_init_hold(
+    reason: str,
+    failure_type: str,
+    *,
+    mode: str = "",
+    extra_meta: dict | None = None,
+) -> SessionManifest:
+    """Construct a typed INIT HOLD response.
+
+    All failure responses from arif_init carry:
+    - status=HOLD
+    - meta.failure_type = specific INIT_FAILURE_TYPE value
+    - meta.reason = human-readable explanation
+    - meta.violated_laws = list of F-laws implicated
+    - unknown_classification = F13 ARIF GO 2026-10-05 UNKNOWN classification envelope
+    """
+    meta = {
+        "reason": reason,
+        "failure_type": failure_type,
+        "violated_laws": [],
+    }
+    if extra_meta:
+        meta.update(extra_meta)
+    # 2026-10-18 (333-AGI, F0 fix): result={} made every INIT HOLD invisible —
+    # the hollow_success_gate rewrote the whole response to UNMEASURED, discarding
+    # meta.reason. mode=init therefore returned "no session, no reason" while
+    # full/light/birth worked. The reason must live in `result` where the wrapper
+    # and the caller can see it. meta/status/unknown_classification unchanged.
+    return _sm(
+        status="HOLD",
+        result={
+            "implementation": "HOLD",
+            "reason": reason,
+            "failure_type": failure_type,
+            "violated_laws": meta.get("violated_laws", []),
+            "mode": mode or None,
+            "next_safe_action": (
+                "Resolve the stated reason, then retry. For crypto auth: "
+                "call mode=challenge, sign signature_payload, then mode=init before expiry."
+            ),
+        },
+        meta=meta,
+        doctrine=ARIF_DOCTRINE,
+        unknown_classification=_build_unknown_classification(reason, failure_type),
+    )
+
+
+from arifosmcp.runtime.ditempa import compute_signature as _compute_signature
+
+
+def _probe_constitution_hash() -> tuple[bool, str]:
+    """Probe whether the running constitution matches the sealed reference.
+
+    Returns (ok, detail). ok=True means hashes match.
+    detail explains what was checked and what the result was.
+    """
+    import hashlib
+    import os
+
+    # Canonical constitution hash — defined once at line ~229
+    expected = CONSTITUTION_HASH
+
+    # Check 1: Sealed constitution file
+    genesis_path = "/root/arifOS/GENESIS/constitution.json"
+    sealed_hash = "unknown"
+    if os.path.isfile(genesis_path):
+        try:
+            with open(genesis_path, "rb") as f:
+                sealed_hash = f"sha256:{hashlib.sha256(f.read()).hexdigest()[:16]}"
+        except Exception:
+            sealed_hash = "unreadable"
+
+    # Check 2: Runtime constitution module
+    runtime_hash = "unknown"
+    runtime_path = "/root/arifOS/arifosmcp/constitution_kernel.py"
+    if os.path.isfile(runtime_path):
+        try:
+            with open(runtime_path, "rb") as f:
+                runtime_hash = f"sha256:{hashlib.sha256(f.read()).hexdigest()[:16]}"
+        except Exception:
+            runtime_hash = "unreadable"
+
+    # A "schism" is: we can read both, and they differ
+    schism = (
+        sealed_hash not in ("unknown", "unreadable")
+        and runtime_hash not in ("unknown", "unreadable")
+        and sealed_hash != runtime_hash
+    )
+
+    if schism:
+        return False, (
+            f"constitution_hash_schism_detected: "
+            f"sealed={sealed_hash} runtime={runtime_hash} expected={expected}. "
+            f"Run mode=audit for full diagnosis."
+        )
+
+    return True, (
+        f"constitution_hash_intact: sealed={sealed_hash} runtime={runtime_hash} expected={expected}"
+    )
+
+
+def _ditempa_seal(manifest: SessionManifest, mode: str = "") -> SessionManifest:
+    """Attach the DITEMPA identity envelope to any session manifest.
+
+    - motto:      the forge doctrine (always echoed)
+    - state_emoji: cognitive state at a glance
+    - mode_emoji:  ignition mode marker
+    - signature:   deterministic hash, even for HOLD — failure is constitutionally anchored
+    - forged_at:   ISO timestamp
+
+    Mutates `manifest.meta["ditempa"]` in place. Returns manifest for chaining.
+    Safe on HOLD, FAILURE, DEGRADED — any SessionManifest.
+    """
+    status = str(manifest.status) if hasattr(manifest, "status") else "UNKNOWN"
+    state_emoji = _STATE_EMOJI.get(status, "⚪")
+    mode_emoji = _MODE_EMOJI.get(mode or getattr(manifest, "mode", "") or "", "")
+
+    # Session id resolution: manifest.session.session_id > manifest.result.session_id > ""
+    sid = ""
+    if hasattr(manifest, "session") and manifest.session is not None:
+        sid = getattr(manifest.session, "session_id", "") or ""
+    if not sid and hasattr(manifest, "result") and isinstance(manifest.result, dict):
+        sid = manifest.result.get("session_id", "") or ""
+
+    ts = getattr(manifest, "timestamp", None) or _time.time()
+    if isinstance(ts, str):
+        # Try to keep ISO string, but hash needs a stable form
+        try:
+            ts_float = _time.mktime(_time.strptime(ts, "%Y-%m-%dT%H:%M:%S"))
+            signature = _compute_signature(status, mode, sid, ts_float)
+        except Exception:
+            signature = _compute_signature(status, mode, sid, _time.time())
+    else:
+        signature = _compute_signature(status, mode, sid, ts)
+
+    # Inject via meta — meta is dict on SessionManifest
+    if not hasattr(manifest, "meta") or manifest.meta is None:
+        try:
+            manifest.meta = {}
+        except Exception:
+            return manifest  # schema rejects meta; signature still computed in result below
+
+    if isinstance(manifest.meta, dict):
+        manifest.meta["ditempa"] = {
+            "motto": DITEMPA_MOTTO,
+            "state_emoji": state_emoji,
+            "mode_emoji": mode_emoji,
+            "signature": signature,
+            "signed_at": _time.time(),
+            "anchor": "constitutional_init_v1",
+        }
+
+    # Also surface motto + emoji at top level so ChatGPT/Claude UI shows it.
+    # doctrine may be None — if so, initialize with the canonical motto.
+    try:
+        existing = getattr(manifest, "doctrine", None)
+        if existing is None or not isinstance(existing, str):
+            manifest.doctrine = f"— {DITEMPA_MOTTO} {state_emoji}"
+        elif DITEMPA_MOTTO not in existing:
+            manifest.doctrine = f"{existing}\n\n— {DITEMPA_MOTTO} {state_emoji}"
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+    return manifest
+
+
+def _build_meta(
+    identity_verified: bool,
+    authority: str,
+    sess: dict,
+) -> dict[str, Any]:
+    """Build the meta response dict, optionally including challenge nonce.
+
+    When a sovereign identity (arif/888) claims identity without crypto proof,
+    the pending_challenge_nonce is surfaced in meta so the caller can complete
+    the challenge-response flow on the next init call.
+    """
+    meta: dict[str, Any] = {
+        "actor_verified": identity_verified,
+        "authority_mode": authority,
+        "genesis_anchor": {
+            "position": "/000",
+            "invariant": "REALITY > EVERYTHING",
+            "sovereign": "Muhammad Arif bin Fazil",
+            "did": "did:web:arif-fazil.com",
+            "genesis_statement": "arifos://000/genesis",
+            "claims": "arifos://000/claims",
+            "proof_chamber": "/999",
+        },
+    }
+    challenge_nonce = sess.get("pending_challenge_nonce") if isinstance(sess, dict) else None
+    if challenge_nonce:
+        meta["challenge_nonce"] = challenge_nonce
+        meta["challenge_required"] = True
+        meta["next_safe_action"] = (
+            "Sign the nonce with your Ed25519 key and re-init with nonce+signature "
+            "for full sovereign authority"
+        )
+    return meta
+
+
+def _sm(*args, **kwargs) -> SessionManifest:
+    """Shorthand: build SessionManifest + seal with DITEMPA in one call.
+
+    Usage:
+        return _sm(status="OK", ..., doctrine=ARIF_DOCTRINE)
+
+    The mode used for the seal is read from the manifest's `mode` field after
+    construction. If not present, falls back to empty string.
+    """
+    manifest = SessionManifest(*args, **kwargs)
+    # F13 ARIF GO 2026-10-05: auto-populate unknown_classification for HOLD/UNKNOWN.
+    # Catches all paths that go through _sm (covers any caller that didn't
+    # explicitly pass unknown_classification=... to the constructor).
+    # Uses model_copy because Pydantic v2 models are immutable by default.
+    if (
+        getattr(manifest, "status", "") == "HOLD"
+        and getattr(manifest, "unknown_classification", None) is None
+    ):
+        meta = getattr(manifest, "meta", {}) or {}
+        reason = (
+            meta.get("reason", "no reason provided")
+            if isinstance(meta, dict)
+            else "no reason provided"
+        )
+        failure_type = (
+            meta.get("failure_type", "INIT_FAILURE") if isinstance(meta, dict) else "INIT_FAILURE"
+        )
+        manifest = manifest.model_copy(
+            update={"unknown_classification": _build_unknown_classification(reason, failure_type)}
+        )
+    mode = getattr(manifest, "mode", "") or ""
+    sealed = _ditempa_seal(manifest, mode=mode)
+    try:
+        from arifosmcp.runtime.act_token import echo_canonical_session
+
+        sid = getattr(sealed, "session_id", None) or (
+            sealed.session.session_id if getattr(sealed, "session", None) else None
+        )
+        actor_id = getattr(sealed, "actor_id", None) or (
+            sealed.actor.get("claimed_id")
+            if isinstance(getattr(sealed, "actor", None), dict)
+            else None
+        )
+        return echo_canonical_session(sealed, session_id=sid, actor_id=actor_id)
+    except Exception:
+        return sealed
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# RSI Optimization Helpers — DRY the try/except + model_dump repetition
+# ════════════════════════════════════════════════════════════════════════════════
+
+
+def _safe_dump(obj: Any) -> Any:
+    """Best-effort serialize. Handles Pydantic models, dicts, dataclasses, None.
+
+    Pydantic v2 first, then dict, then __dict__, else return as-is.
+    """
+    if obj is None:
+        return None
+    if hasattr(obj, "model_dump"):
+        try:
+            return obj.model_dump()
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+    if isinstance(obj, dict):
+        return obj
+    if hasattr(obj, "__dict__"):
+        return obj.__dict__
+    return obj
+
+
+def _safe_build(builder: Callable, *args, fallback: Any = None, **kwargs) -> Any:
+    """Best-effort build with graceful fallback. Catches all exceptions.
+
+    Replaces the repeated try/except wrappers around _build_*() calls.
+    """
+    try:
+        return builder(*args, **kwargs)
+    except Exception:
+        return fallback
+
+
+def _load_soul_shadow(model_key: str | None) -> tuple[dict, dict]:
+    """Load model soul + shadow from AAA registries. Empty dicts on failure.
+
+    Single source of truth for the soul/shadow load path used by both
+    light and full init modes.
+
+    When `model_key` is None or empty, falls back to env-derived keys so
+    agent harness invocations (which historically did not thread model_key)
+    still bind to the correct alignment/adversarial profile. 2026-07-27 patch
+    resolves SABAR.DEGRADED for sovereign sessions where the loader
+    previously returned empty dicts.
+    """
+    import os
+
+    soul: dict = {}
+    shadow: dict = {}
+    key = (model_key or "").strip()
+    if not key or key.lower() == "unknown":
+        # F1 AMANAH + F11 AUDITABILITY: try explicit env first, then harness
+        # conventions, then a sentinel that maps to a generic constitutional
+        # baseline. Never silently return empty — that hides degradation.
+        key = (
+            os.environ.get("ARIFOS_MODEL_KEY")
+            or os.environ.get("KIMI_MODEL")
+            or os.environ.get("OPENAI_MODEL")
+            or ""
+        ).strip()
+    if not key:
+        return soul, shadow
+    try:
+        soul, shadow, _ = _load_model_registry(key)
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+    return soul, shadow
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# DITEMPA 2026-06-22 — LAYERED INIT HEADER (frozen schema, hard invariants)
+# ════════════════════════════════════════════════════════════════════════════════
+# Mandate from Arif: statics by hash+ref, NEVER inline. light=default, init=session
+# start, verbose=audit=seal only. Init response is a projection, not a dump.
+# ════════════════════════════════════════════════════════════════════════════════
+
+# Frozen header schema — agent runtime reads this. ~15 fields. No redundancy.
+INIT_HEADER_SCHEMA: tuple[str, ...] = (
+    "session_id",  # once
+    "actor_verified",  # the field that actually gates everything
+    "authority",  # OBSERVE_ONLY | LIMITED_MUTATE | FULL
+    "verdict",  # {delta, psi, omega, overall} — computed once
+    "constitution_hash",  # + detail_ref pointer, statics by reference
+    "detail_ref",  # arifos://constitution/<hash> — NEVER inline
+    "next_tool",  # one tool, not the whole allowed_tools list
+    "degraded",  # FIRST-CLASS, top of response — exceptions lead
+    "next_safe_action",  # human-readable next step
+    "energy_remaining",  # resource headroom
+)
+
+# Static constitution blocks — by-reference ONLY, never inline (except verbose=audit).
+# Each is identified by its key in the payload. Hash discipline: same hash ⇒ cached.
+STATIC_BLOCK_KEYS: frozenset[str] = frozenset(
+    {
+        "axioms",
+        "physics",
+        "logic",
+        "action_classifier",
+        "embodiment_full",  # full embodiment card (vs. lightweight host/deployment)
+        "execution_policy",
+        "atomic_patterns",
+        "belief_full",  # full ToM-1 scaffold (intent_model, belief_state, preference_memory)
+        "law_full",  # full causality_warning, execution_law, attention_surface
+        "continuity_full",  # full session_continuity chain
+        "context_full",  # full context_completeness receipt
+    }
+)
+
+# Canonical constitution hash — single source of truth for the static blocks
+CONSTITUTION_HASH: str = "arifos-constitution-v2026.05.05-SSCT"
+
+
+def _assert_no_static_inline(payload: dict, verbose: str) -> None:
+    """HARD INVARIANT — statics by hash+ref, NEVER inline unless verbosity=full.
+
+    Raises ValueError if a static block is found inline in a non-full payload.
+    This is the constitutional enforcement of the mandate.
+    """
+    if verbose == "full":
+        return  # seal path may inline
+    violations = []
+    for key in STATIC_BLOCK_KEYS:
+        if key in payload:
+            violations.append(key)
+    if violations:
+        raise ValueError(
+            f"STATIC_INLINE_FORBIDDEN: {violations} inlined but mandate requires "
+            f"reference via detail_ref={CONSTITUTION_HASH}. Use verbosity='full' to override."
+        )
+
+
+# ── A5 2026-07-27: Egress budget — verbosity levels ─────────────────────────
+# Each level strips fields to stay within token budgets.
+# minimal:  < 400 tokens (session_id, authority_band, verdict, degraded, next)
+# standard: < 1500 tokens (minimal + clarity_contract, witness, software_release)
+# full:     uncapped (everything — seal path only)
+
+_VERBOSITY_LEGACY_MAP: dict[str | None, str] = {
+    None: "minimal",
+    "": "minimal",
+    "minimal": "minimal",
+    "standard": "standard",
+    "audit": "full",
+    "full": "full",
+}
+
+# Fields retained at each verbosity level (beyond the core gate fields).
+# Core gate fields ALWAYS present: session_id, actor_id, actor_claimed,
+# actor_canonicalized, actor_bound, actor_verified, actor_cryptographically_verified,
+# authority, authority_band, mutation_allowed, seal_allowed, init_mode,
+# session_mode, authority_scope, kernel_epoch, constitution_hash, detail_ref,
+# next_tool, degraded, next_safe_action, verdict, verdict_code, action_class,
+# substrate, allowed_next_verbs, software_release, session_birth.
+
+_STANDARD_FIELDS: frozenset[str] = frozenset(
+    {
+        "clarity_contract",
+        "clarity_metrics",
+        "witness",
+        "trace",
+        "energy_remaining",
+        "context_completeness",
+    }
+)
+
+_FULL_FIELDS: frozenset[str] = frozenset(
+    {
+        "motto",
+        "state_emoji",
+        "mode_emoji",
+        "signature",
+        "call_hash",
+        "trace_id",
+        "called_from_kernel",
+        "invocation_count",
+        "alignment_profile_loaded",
+        "adversarial_profile_loaded",
+        "genesis",
+        "genesis_status",
+        "audit_full",
+        "public_surface_version",
+        "tool_registry_version",
+    }
+)
+
+
+def _normalize_verbosity(verbose: str | None) -> str:
+    """Map legacy verbose values to A5 verbosity levels."""
+    if verbose is None:
+        return "minimal"
+    return _VERBOSITY_LEGACY_MAP.get(verbose, "minimal")
+
+
+def _strip_by_verbosity(out: dict, verbosity: str) -> dict:
+    """Remove fields not allowed at the given verbosity level."""
+    if verbosity == "full":
+        return out
+    if verbosity == "standard":
+        remove = _FULL_FIELDS
+    else:  # minimal
+        remove = _STANDARD_FIELDS | _FULL_FIELDS
+    for key in list(out.keys()):
+        if key in remove:
+            del out[key]
+    # M5 payload diet (KUTIP SAMPAH 2026-08-05): strip nested bloat at minimal
+    if verbosity == "minimal":
+        _strip_nested_bloat(out)
+    return out
+
+
+def _strip_nested_bloat(out: dict) -> None:
+    """Remove nested duplicate/redundant fields from minimal-verbosity payload."""
+    # 1. Strip session_token from session_birth (already at top level)
+    birth = out.get("session_birth")
+    if isinstance(birth, dict):
+        birth.pop("session_token", None)
+
+    # 2. Strip *_WEIGHT lookup tables from verdicts (static enums, not runtime data)
+    verdicts = out.get("verdicts")
+    if isinstance(verdicts, dict):
+        for k in list(verdicts.keys()):
+            if k.endswith("_WEIGHT"):
+                del verdicts[k]
+
+    # 3. Strip domain_meaning strings from nine_signal subfields (decorative)
+    ns = out.get("nine_signal")
+    if isinstance(ns, dict):
+        for plane in ("delta", "psi", "omega"):
+            plane_dict = ns.get(plane)
+            if isinstance(plane_dict, dict):
+                plane_dict.pop("domain_meaning", None)
+
+    # 4. Strip failure_modes from metacognition (identical generic constants)
+    meta = out.get("metacognition")
+    if isinstance(meta, dict):
+        meta.pop("failure_modes", None)
+
+    # 5. Strip work_contract from result (task budgeting, not session bind)
+    result = out.get("result")
+    if isinstance(result, dict):
+        result.pop("work_contract", None)
+
+    # 6. Strip affordance_contract detail at minimal (available via arifos://resource)
+    out.pop("affordance_contract", None)
+
+    # 7. Strip vps_snapshot from session_birth at minimal (available via /health)
+    if isinstance(birth, dict):
+        birth.pop("vps_snapshot", None)
+
+
+# ── Session Contract v2 — Temporal Grounding Context (2026-09-19) ────────
+# Thin builder: reads carry_forward.temporal_root, checks freshness,
+# optionally refreshes via aaa-time. Returns a dict for the `temporal`
+# field of SessionManifest. Additive — old clients ignore it.
+_CARRY_FORWARD_PATH = "/root/.local/share/arifos/carry_forward.json"
+_CARRY_FORWARD_SCHEMA = "arifos.carry_forward.v3"
+_TEMPORAL_SCHEMA = "arifos.time.v1"
+_TEMPORAL_ANCHOR_TTL_S = 300
+_TEMPORAL_CLAIM_REFRESH_TTL_S = 60
+_AAA_TIME_CLI = "/usr/local/bin/aaa-time"
+
+
+def _build_temporal_context(mode: str = "light") -> dict[str, Any] | None:
+    """Build the temporal grounding context for session contract v2.
+
+    Reads carry_forward.temporal_root if available and valid.
+    For non-light modes: if anchor is stale, calls aaa-time now.
+    Returns None if temporal context cannot be built at all.
+    """
+    import subprocess as _sp
+    from datetime import datetime as _dt, timezone as _tz
+
+    base: dict[str, Any] = {
+        "root_ref": "arifos://carry-forward/temporal_root",
+        "schema": _TEMPORAL_SCHEMA,
+        "timezone": "Asia/Kuala_Lumpur",
+        "anchor_ttl_s": _TEMPORAL_ANCHOR_TTL_S,
+        "claim_refresh_ttl_s": _TEMPORAL_CLAIM_REFRESH_TTL_S,
+        "provider": "aaa-time",
+        "on_stale": "CALL_PROVIDER",
+        "on_provider_failure": "RETURN_UNKNOWN",
+        "chron_is_clock_provider": False,
+    }
+
+    # ── Try reading carry_forward temporal_root ──
+    tr: dict[str, Any] | None = None
+    try:
+        import json as _json
+
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json.loads(fh.read())
+        if isinstance(doc, dict) and doc.get("schema") == _CARRY_FORWARD_SCHEMA:
+            raw_tr = doc.get("temporal_root")
+            if isinstance(raw_tr, dict) and raw_tr.get("schema") == _TEMPORAL_SCHEMA:
+                tr = raw_tr
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+    # ── Check freshness ──
+    anchor_fresh = False
+    anchor_age_ms = -1
+    if tr and tr.get("injected_at_utc"):
+        try:
+            injected = _dt.fromisoformat(tr["injected_at_utc"].replace("Z", "+00:00"))
+            age = _dt.now(_tz.utc) - injected
+            anchor_age_ms = int(age.total_seconds() * 1000)
+            anchor_fresh = age.total_seconds() <= _TEMPORAL_ANCHOR_TTL_S
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+    # ── If anchor is fresh, use it ──
+    if tr and anchor_fresh:
+        base["observed_at_utc"] = tr["observed_at_utc"]
+        base["clock_status"] = tr.get("clock_status", "OK")
+        base["anchor_source"] = "carry_forward.temporal_root"
+        base["anchor_age_ms"] = anchor_age_ms
+        base["status"] = "AVAILABLE"
+        return base
+
+    if mode != "light":
+        try:
+            import sys as _sys
+
+            result = _sp.run(
+                [_sys.executable, _AAA_TIME_CLI, "now", "--format", "json"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                fresh = _json.loads(result.stdout)
+                if isinstance(fresh, dict) and fresh.get("schema") == _TEMPORAL_SCHEMA:
+                    base["observed_at_utc"] = fresh["observed_at_utc"]
+                    base["clock_status"] = fresh.get("clock_status", "OK")
+                    base["anchor_source"] = "aaa-time.now"
+                    base["anchor_age_ms"] = 0
+                    base["status"] = "REFRESHED"
+                    if tr:
+                        base["stale_anchor_observed_at_utc"] = tr.get("observed_at_utc")
+                        base["stale_anchor_age_ms"] = anchor_age_ms
+                    return base
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+    # ── Fallback: return what we have, even if stale ──
+    if tr:
+        base["observed_at_utc"] = tr.get("observed_at_utc")
+        base["clock_status"] = tr.get("clock_status", "UNKNOWN")
+        base["anchor_source"] = "carry_forward.temporal_root"
+        base["anchor_age_ms"] = anchor_age_ms
+        base["status"] = "STALE"
+        base["requires_refresh"] = True
+        return base
+
+    # ── Nothing available ──
+    base["observed_at_utc"] = None
+    base["clock_status"] = "UNAVAILABLE"
+    base["anchor_source"] = None
+    base["status"] = "UNAVAILABLE"
+    return base
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# INIT v2 ROOTS (F13-ratified 2026-09-20)
+# Four critical roots: TEMPORAL, OBJECTIVE, NEGATIVE_KNOWLEDGE, PROVENANCE.
+# Each root is falsifiable. Each root emits evidence.
+# Schema: arifos.init.v2.roots — additive, old clients ignore.
+# ════════════════════════════════════════════════════════════════════════════════
+
+
+def _build_init_v2_roots(
+    *,
+    sid: str,
+    actor_id: str | None,
+    identity_verified: bool,
+    mode: str,
+    objective: str | None,
+    success_criteria: list[str] | None,
+    verification_requirements: list[str] | None,
+    sess: dict,
+    temporal_context: dict | None,
+) -> dict[str, Any]:
+    """Build the 4 critical INIT v2 roots.
+
+    Returns a dict with keys: TEMPORAL_ROOT, OBJECTIVE_ROOT,
+    NEGATIVE_KNOWLEDGE, PROVENANCE_ROOT. Each is independently falsifiable.
+    """
+    import hashlib as _hashlib
+    import subprocess as _sp
+    from datetime import datetime as _dt, timezone as _tz
+
+    roots: dict[str, Any] = {
+        "schema": "arifos.init.v2.roots",
+        "version": "2.0.0",
+        "ratified": "2026-09-20",
+        "status": "ACTIVE",
+    }
+
+    _now = _dt.now(_tz.utc)
+    probe_trail: list[str] = []
+
+    # ── 1. TEMPORAL_ROOT ──────────────────────────────────────────────────
+    # Question: WHEN am I?
+    # Closes F9 = 0.0 by binding clock state with uncertainty.
+    # L2 fix: use chronyc tracking (precise drift) + timedatectl status (sync flag)
+    clock_status = "UNKNOWN"
+    ntp_drift_ms: float | None = None
+    clock_uncertainty_ms = 5000  # conservative default: ±5s without NTP
+    ntp_source: str | None = None
+    ntp_stratum: int | None = None
+
+    # Primary: chronyc tracking — gives exact offset from NTP reference
+    try:
+        result = _sp.run(
+            ["chronyc", "tracking"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            for line in result.stdout.strip().split("\n"):
+                line_l = line.strip()
+                if "System time" in line_l and "seconds" in line_l:
+                    # "System time     : 0.000134506 seconds fast of NTP time"
+                    try:
+                        drift_s = float(line_l.split(":")[1].split("seconds")[0].strip())
+                        ntp_drift_ms = round(drift_s * 1000, 3)
+                        clock_status = "NTP_SYNCED"
+                        clock_uncertainty_ms = max(1, int(abs(ntp_drift_ms) * 2) + 1)
+                    except (ValueError, IndexError):
+                        pass
+                elif "Reference ID" in line_l:
+                    # "Reference ID    : B97DBE7B (ntp-nts-3.ps5.canonical.com)"
+                    ntp_source = line_l.split("(")[-1].rstrip(")") if "(" in line_l else None
+                elif "Stratum" in line_l:
+                    try:
+                        ntp_stratum = int(line_l.split(":")[1].strip())
+                    except (ValueError, IndexError):
+                        pass
+            if clock_status == "NTP_SYNCED":
+                probe_trail.append("chronyc:tracking:NTP_SYNCED")
+    except Exception:
+        probe_trail.append("chronyc:tracking:FAILED")
+
+    # Fallback: timedatectl status — sync flag only, no drift data
+    if clock_status == "UNKNOWN":
+        try:
+            result = _sp.run(
+                ["timedatectl", "status"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                output = result.stdout
+                if "synchronized: yes" in output.lower() or "NTPSynchronized=yes" in output:
+                    clock_status = "NTP_SYNCED"
+                    clock_uncertainty_ms = 100
+                elif "synchronized: no" in output.lower() or "NTPSynchronized=no" in output:
+                    clock_status = "NTP_UNSYNCED"
+                    clock_uncertainty_ms = 1000
+                probe_trail.append("timedatectl:status")
+        except Exception:
+            clock_status = "NTP_PROBE_FAILED"
+            probe_trail.append("timedatectl:FAILED")
+
+    tc_status = "UNAVAILABLE"
+    if temporal_context and isinstance(temporal_context, dict):
+        tc_status = temporal_context.get("status", "UNAVAILABLE")
+
+    roots["TEMPORAL_ROOT"] = {
+        "question": "WHEN am I?",
+        "observed_at_utc": _now.isoformat(),
+        "epoch_ms": int(_now.timestamp() * 1000),
+        "clock_status": clock_status,
+        "clock_uncertainty_ms": clock_uncertainty_ms,
+        "ntp_drift_ms": ntp_drift_ms,
+        "ntp_source": ntp_source,
+        "ntp_stratum": ntp_stratum,
+        "timezone": "Asia/Kuala_Lumpur",
+        "temporal_context_status": tc_status,
+        "falsification": "Any subsequent timestamp contradicts this anchor",
+    }
+
+    # ── 2. OBJECTIVE_ROOT ─────────────────────────────────────────────────
+    # Question: WHAT am I trying to accomplish?
+    task_type = "OPEN"
+    _obj = objective or ""
+    _sc = success_criteria or []
+    _vr = verification_requirements or []
+
+    if _sc:
+        task_type = "EXECUTION"
+    elif _obj and ("?" in _obj or "understand" in _obj.lower() or "explore" in _obj.lower()):
+        task_type = "EXPLORATION"
+    elif _obj:
+        task_type = "EXECUTION"
+        if not _sc:
+            _sc = [
+                f"objective_addressed: {_obj[:100]}",
+                "no_irreversible_side_effects_without_f13",
+                "receipt_emitted",
+            ]
+        if not _vr:
+            _vr = ["evidence_trace_available", "session_budget_not_exhausted"]
+
+    roots["OBJECTIVE_ROOT"] = {
+        "question": "WHAT am I trying to accomplish?",
+        "objective": _obj or "unspecified — session created without explicit objective",
+        "task_type": task_type,
+        "success_criteria": _sc if _sc else ["unspecified — no success criteria declared"],
+        "falsification_criteria": _vr
+        if _vr
+        else ["session budget exhausted", "HOLD verdict reached"],
+        "termination_rules": [
+            "goal_achieved",
+            "budget_exhausted",
+            "hold_verdict",
+            "sovereign_interrupt",
+        ],
+        "falsification": "If success_criteria are met but objective is not achieved, criteria were wrong",
+    }
+
+    # ── 3. NEGATIVE_KNOWLEDGE ─────────────────────────────────────────────
+    # Question: WHAT DON'T I know?
+    unmeasured: list[str] = ["G", "C_dark", "W3", "kappa_r"]
+    degraded_organs: list[str] = []
+    stale_data: list[str] = []
+    missing_witnesses: list[str] = []
+
+    try:
+        import urllib.request as _urllib_req
+        import json as _json
+
+        _organ_probes = {
+            "GEOX": "http://127.0.0.1:8081/health",
+            "WEALTH": "http://127.0.0.1:18082/health",
+            "WELL": "http://127.0.0.1:18083/health",
+            "A-FORGE": "http://127.0.0.1:7071/health",
+            "AAA": "http://127.0.0.1:3001/health",
+            "FRAME": "http://127.0.0.1:18085/health",
+            "arifFlow": "http://127.0.0.1:7073/health",
+        }
+        for organ, url in _organ_probes.items():
+            try:
+                with _urllib_req.urlopen(url, timeout=2) as r:
+                    if r.status != 200:
+                        degraded_organs.append(f"{organ}:HTTP_{r.status}")
+                    probe_trail.append(f"probe:{organ}:UP")
+            except Exception:
+                degraded_organs.append(f"{organ}:UNREACHABLE")
+                probe_trail.append(f"probe:{organ}:DOWN")
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+    try:
+        import urllib.request as _urllib_req2
+        import json as _json2
+
+        with _urllib_req2.urlopen("http://127.0.0.1:8088/health", timeout=3) as r:
+            if r.status == 200:
+                health = _json2.loads(r.read())
+                floors = health.get("runtime_floors", {})
+                f7 = floors.get("F7", {})
+                f9 = floors.get("F9", {})
+                if isinstance(f7, dict) and f7.get("score", 0) < 0.5:
+                    stale_data.append("F7_epistemic_rigor_below_threshold")
+                if isinstance(f9, dict) and f9.get("score", 0) < 0.5:
+                    stale_data.append("F9_temporal_grounding_below_threshold")
+                probe_trail.append("probe:kernel_health:OK")
+    except Exception:
+        stale_data.append("kernel_health:UNREACHABLE")
+        probe_trail.append("probe:kernel_health:FAILED")
+
+    if not identity_verified:
+        missing_witnesses.append("actor_identity_not_cryptographically_verified")
+
+    try:
+        import json as _json3
+
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json3.loads(fh.read())
+        last_write = doc.get("writers", {}).get("last_write_utc")
+        if last_write:
+            from datetime import datetime as _dt2, timezone as _tz2
+
+            lw = _dt2.fromisoformat(last_write.replace("Z", "+00:00"))
+            age_h = (_dt2.now(_tz2.utc) - lw).total_seconds() / 3600
+            if age_h > 24:
+                stale_data.append(f"carry_forward_stale_{age_h:.0f}h")
+            probe_trail.append("carry_forward:read:OK")
+    except Exception:
+        stale_data.append("carry_forward:UNREADABLE")
+        probe_trail.append("carry_forward:read:FAILED")
+
+    roots["NEGATIVE_KNOWLEDGE"] = {
+        "question": "WHAT DON'T I know?",
+        "unmeasured_scalars": unmeasured,
+        "degraded_organs": degraded_organs,
+        "stale_data": stale_data,
+        "missing_witnesses": missing_witnesses,
+        "unresolved_contradictions": 0,
+        "clock_uncertainty_ms": clock_uncertainty_ms,
+        "falsification": "If a claimed-unknown fact is later found knowable at init time, root was wrong",
+    }
+
+    # ── 4. PROVENANCE_ROOT ────────────────────────────────────────────────
+    # Question: CAN THIS be challenged?
+    # State hash is deterministically reconstructable from sid, actor_id, mode, observed_at_utc, and audit_trail
+    _obs_iso = _now.isoformat()
+    state_input = f"{sid}|{actor_id}|{mode}|{_obs_iso}|{','.join(probe_trail)}"
+    state_hash = f"sha256:{_hashlib.sha256(state_input.encode()).hexdigest()[:32]}"
+
+    roots["PROVENANCE_ROOT"] = {
+        "question": "CAN THIS be challenged?",
+        "session_receipt_id": sid,
+        "actor_id": actor_id,
+        "mode": mode,
+        "state_hash": state_hash,
+        "observed_at_utc": _obs_iso,
+        "reconstructable": True,
+        "challengeable": True,
+        "audit_trail": probe_trail,
+        "probe_count": len(probe_trail),
+        "falsification": "If any field cannot be traced back to a measurement or probe",
+    }
+
+    return roots
+
+
+def reconstruct_provenance_hash(
+    provenance_root: dict[str, Any] | None = None,
+    *,
+    sid: str | None = None,
+    actor_id: str | None = None,
+    mode: str | None = None,
+    observed_at_utc: str | None = None,
+    audit_trail: list[str] | None = None,
+) -> str:
+    """Deterministically reconstruct the PROVENANCE_ROOT state_hash.
+
+    Can be called either with the provenance_root dict directly:
+        reconstruct_provenance_hash(prov_dict)
+    or with keyword arguments.
+    Enforces that reconstructable=True is a falsifiable, verified guarantee.
+    """
+    import hashlib as _hl
+
+    if provenance_root and isinstance(provenance_root, dict):
+        sid = sid or provenance_root.get("session_receipt_id") or provenance_root.get("sid")
+        actor_id = actor_id or provenance_root.get("actor_id")
+        mode = mode or provenance_root.get("mode") or "init"
+        observed_at_utc = observed_at_utc or provenance_root.get("observed_at_utc")
+        audit_trail = (
+            audit_trail if audit_trail is not None else (provenance_root.get("audit_trail") or [])
+        )
+
+    trail_str = ",".join(audit_trail) if audit_trail else ""
+    state_input = f"{sid}|{actor_id}|{mode}|{observed_at_utc}|{trail_str}"
+    return f"sha256:{_hl.sha256(state_input.encode()).hexdigest()[:32]}"
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CARRY FORWARD INJECTION (L3 — F13-ratified 2026-09-20)
+# Injects generational memory into init so agents start with context.
+# Reads carry_forward.json: human_state, top entries, chron_briefing.
+# Additive — old clients ignore. Fails closed (returns None on any error).
+# ════════════════════════════════════════════════════════════════════════════════
+
+_CARRY_FORWARD_MAX_ENTRIES = 10
+
+
+def _build_carry_forward_context() -> dict[str, Any] | None:
+    """Build carry_forward context for injection into init response.
+
+    Returns a dict with: human_state, recent_entries, chron_briefing,
+    generation, writers. Returns None if carry_forward is unreadable.
+    """
+    import json as _json
+    from datetime import datetime as _dt, timezone as _tz
+
+    try:
+        with open(_CARRY_FORWARD_PATH, encoding="utf-8") as fh:
+            doc = _json.loads(fh.read())
+    except Exception:
+        return None
+
+    if not isinstance(doc, dict) or doc.get("schema") != _CARRY_FORWARD_SCHEMA:
+        return None
+
+    ctx: dict[str, Any] = {
+        "source": _CARRY_FORWARD_PATH,
+        "schema": _CARRY_FORWARD_SCHEMA,
+    }
+
+    # ── Generation metadata ──
+    gen = doc.get("generation")
+    if isinstance(gen, dict):
+        ctx["generation"] = {
+            "gen_id": gen.get("gen_id"),
+            "created_utc": gen.get("created_utc"),
+        }
+
+    # ── Writers (last write freshness) ──
+    writers = doc.get("writers")
+    if isinstance(writers, dict):
+        last_write = writers.get("last_write_utc")
+        ctx["last_writer"] = writers.get("last_writer")
+        ctx["last_write_utc"] = last_write
+        if last_write:
+            try:
+                lw = _dt.fromisoformat(last_write.replace("Z", "+00:00"))
+                age_h = (_dt.now(_tz.utc) - lw).total_seconds() / 3600
+                ctx["stale_hours"] = round(age_h, 1)
+                ctx["is_stale"] = age_h > 24
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+    # ── Human state ──
+    hs = doc.get("human_state")
+    if isinstance(hs, dict):
+        ctx["human_state"] = {
+            "last_seen_utc": hs.get("last_seen_utc"),
+            "current_focus": hs.get("current_focus"),
+            "energy_estimate": hs.get("energy_estimate"),
+            "sleep_state": hs.get("sleep_state"),
+            "mood_indicator": hs.get("mood_indicator"),
+        }
+
+    # ── Recent entries (top N by recency) ──
+    entries = doc.get("entries", [])
+    if isinstance(entries, list) and entries:
+        recent = []
+        for e in entries[-_CARRY_FORWARD_MAX_ENTRIES:]:
+            if isinstance(e, dict):
+                recent.append(
+                    {
+                        "id": e.get("id"),
+                        "kind": e.get("kind"),
+                        "content": (e.get("content") or "")[:200],
+                        "agent": e.get("agent"),
+                    }
+                )
+        ctx["recent_entries"] = recent
+        ctx["total_entry_count"] = len(entries)
+        # Entry kind summary
+        kinds: dict[str, int] = {}
+        for e in entries:
+            if isinstance(e, dict):
+                k = e.get("kind", "?")
+                kinds[k] = kinds.get(k, 0) + 1
+        ctx["entry_kinds"] = kinds
+
+    # ── Chron briefing (temporal predictions) ──
+    cb = doc.get("chron_briefing")
+    if isinstance(cb, dict):
+        preds = cb.get("predictions", {})
+        ctx["chron_briefing"] = {
+            "generated_utc": cb.get("generated_utc"),
+            "active_predictions": preds.get("active_count", 0),
+            "due_predictions": preds.get("due_count", 0),
+        }
+
+    # ── Open loops (entries with kind=open_loop) ──
+    open_loops = [e for e in entries if isinstance(e, dict) and e.get("kind") == "open_loop"]
+    if open_loops:
+        ctx["open_loop_count"] = len(open_loops)
+        ctx["top_open_loops"] = [
+            {"id": e.get("id"), "content": (e.get("content") or "")[:150]} for e in open_loops[-5:]
+        ]
+
+    return ctx
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CHRON TEMPORAL CONTEXT (L4 — F13-ratified 2026-09-20)
+# Injects prediction/calibration state into init so agents know what the
+# institution expects and how accurate it has been. Reads from CHRON data
+# files directly (bypasses broken MCP structuredContent serialization).
+# ════════════════════════════════════════════════════════════════════════════════
+
+_CHRON_DATA_DIR = "/root/chron/data"
+_CHRON_DUE_SOON_DAYS = 7
+
+
+def _build_chron_temporal_context() -> dict[str, Any] | None:
+    """Build CHRON temporal context for injection into init response.
+
+    Returns predictions (active, due-soon), calibration stats, and
+    lessons count. Returns None if CHRON data is unreadable.
+    """
+    import json as _json
+    from datetime import datetime as _dt, timezone as _tz
+    from pathlib import Path
+
+    preds_path = Path(_CHRON_DATA_DIR) / "predictions.jsonl"
+    cal_path = Path(_CHRON_DATA_DIR) / "calibration.json"
+    verif_path = Path(_CHRON_DATA_DIR) / "verification_log.jsonl"
+    lessons_path = Path(_CHRON_DATA_DIR) / "lessons.jsonl"
+
+    # ── Load predictions ──
+    preds: list[dict] = []
+    try:
+        with open(preds_path, encoding="utf-8") as f:
+            preds = [_json.loads(line) for line in f if line.strip()]
+    except Exception:
+        return None
+
+    if not preds:
+        return None
+
+    now = _dt.now(_tz.utc)
+    ctx: dict[str, Any] = {
+        "source": "chron",
+        "data_dir": _CHRON_DATA_DIR,
+    }
+
+    # ── Active predictions ──
+    # Canonical CHRON semantics (chron.chron_prediction): the verification ledger
+    # is append-only and last-write-wins per prediction_id; a verdict is then
+    # normalised so a retraction (VOID/VOIDED/RETRACTED) or an explicit
+    # CLOSED_UNTESTABLE / UNVERIFIABLE re-classification supersedes an earlier
+    # decisive record. 2026-10-10 FIX-3: the prior code counted *any* VERIFIED_*
+    # ever seen and reported 35 vs the canonical store's 31 — the four extra were
+    # one VOIDed retraction and three rows a later non-decisive record superseded.
+    def _canonical_verdict(rec: dict) -> str:
+        raw = str(rec.get("verdict") or rec.get("status") or "").strip().upper()
+        if raw in ("CORRECT", "VERIFIED_CORRECT"):
+            return "VERIFIED_CORRECT"
+        if raw in ("INCORRECT", "VERIFIED_INCORRECT"):
+            return "VERIFIED_INCORRECT"
+        if raw in ("VOID", "VOIDED", "RETRACTED"):
+            return "VOID"
+        if rec.get("resolution_class") == "CLOSED_UNTESTABLE" or (
+            rec.get("verified_by") == "chron_resolve_unverifiable"
+        ):
+            return "UNVERIFIABLE_CLOSED"
+        if raw == "UNVERIFIABLE_CLOSED":
+            return "UNVERIFIABLE_CLOSED"
+        return "UNVERIFIABLE"
+
+    latest_verifications: dict[str, dict] = {}
+    try:
+        with open(verif_path, encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    v = _json.loads(line)
+                    vid = v.get("prediction_id")
+                    if vid:
+                        latest_verifications[vid] = v
+    except Exception:
+        logger.exception("suppressed exception", exc_info=True)
+
+    decisive_ids = {
+        vid
+        for vid, rec in latest_verifications.items()
+        if _canonical_verdict(rec) in ("VERIFIED_CORRECT", "VERIFIED_INCORRECT")
+    }
+    # resolved also carries explicitly-closed-untestable arrows: finished but unscored.
+    resolved_ids = decisive_ids | {
+        vid
+        for vid, rec in latest_verifications.items()
+        if _canonical_verdict(rec) == "UNVERIFIABLE_CLOSED"
+    }
+    verified_ids = decisive_ids
+    active = [
+        p
+        for p in preds
+        if p.get("status") == "ACTIVE" and p.get("prediction_id") not in resolved_ids
+    ]
+
+    ctx["total_predictions"] = len(preds)
+    ctx["active_count"] = len(active)
+    ctx["verified_count"] = len(verified_ids)
+
+    # ── Due-soon predictions (within _CHRON_DUE_SOON_DAYS) ──
+    due_soon: list[dict] = []
+    for p in active:
+        try:
+            va = p.get("verify_at", "")
+            if va:
+                due = _dt.fromisoformat(va.replace("Z", "+00:00"))
+                days = (due - now).total_seconds() / 86400
+                if 0 <= days <= _CHRON_DUE_SOON_DAYS:
+                    due_soon.append(
+                        {
+                            "prediction_id": p.get("prediction_id"),
+                            "claim": (p.get("claim") or "")[:200],
+                            "confidence": p.get("confidence"),
+                            "verify_at": va,
+                            "days_until_due": round(days, 1),
+                            "domain": p.get("domain"),
+                        }
+                    )
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+    due_soon.sort(key=lambda x: x.get("days_until_due", 999))
+    ctx["due_soon"] = due_soon
+    ctx["due_soon_count"] = len(due_soon)
+
+    # ── Upcoming predictions (next 30 days) ──
+    upcoming: list[dict] = []
+    for p in active:
+        try:
+            va = p.get("verify_at", "")
+            if va:
+                due = _dt.fromisoformat(va.replace("Z", "+00:00"))
+                days = (due - now).total_seconds() / 86400
+                if 0 < days <= 30 and days > _CHRON_DUE_SOON_DAYS:
+                    upcoming.append(
+                        {
+                            "prediction_id": p.get("prediction_id"),
+                            "claim": (p.get("claim") or "")[:150],
+                            "confidence": p.get("confidence"),
+                            "days_until_due": round(days, 1),
+                        }
+                    )
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+    upcoming.sort(key=lambda x: x.get("days_until_due", 999))
+    ctx["upcoming"] = upcoming[:5]
+
+    # ── Calibration ──
+    try:
+        with open(cal_path, encoding="utf-8") as f:
+            cal = _json.loads(f.read())
+        ctx["calibration"] = {
+            "total": cal.get("total", 0),
+            "correct": cal.get("correct", 0),
+            "incorrect": cal.get("incorrect", 0),
+            "accuracy": cal.get("accuracy"),
+            "mean_brier": cal.get("mean_brier"),
+            "unverifiable": cal.get("unverifiable", 0),
+        }
+    except Exception:
+        ctx["calibration"] = {"total": 0, "note": "calibration data unreadable"}
+
+    # ── Lessons ──
+    # Canonical CHRON semantics (chron.chron_learn.load_lessons): the lesson
+    # ledger is append-only and last-write-wins per lesson_id, so a superseded
+    # row does not count twice. 2026-10-10 FIX-3: raw line-counting reported 16
+    # vs the canonical store's 14.
+    try:
+        effective_lessons: dict[str, dict] = {}
+        with open(lessons_path, encoding="utf-8") as f:
+            for idx, line in enumerate(f):
+                if not line.strip():
+                    continue
+                row = _json.loads(line)
+                lid = row.get("lesson_id") or f"_row-{idx}"
+                effective_lessons[lid] = row
+        ctx["lessons_count"] = len(effective_lessons)
+    except Exception:
+        ctx["lessons_count"] = 0
+
+    # ── Temporal summary ──
+    ctx["temporal_summary"] = (
+        f"{len(active)} active predictions, "
+        f"{len(due_soon)} due within {_CHRON_DUE_SOON_DAYS}d, "
+        f"{len(verified_ids)} verified, "
+        f"{ctx.get('lessons_count', 0)} lessons"
+    )
+
+    return ctx
+
+
+def _project_light(
+    components: dict,
+    sid: str,
+    actor_id: str,
+    constitution_hash: str,
+    context_completeness: dict | None = None,
+    actor_verified: bool = False,
+    session_mode: str = "persistent_bound",
+    authority_override: str | None = None,
+    intent: str | None = None,
+    signature_verified: bool = False,
+    is_sovereign_principal: bool = False,
+    verbosity: str = "minimal",
+    init_mode_label: str = "light",
+    client_ref: str | None = None,
+    handle: str | None = None,
+) -> dict:
+    """Project the full components dict into the frozen light header.
+
+    Degraded-first ordering: exceptions lead, constants trail. ~15 fields.
+
+    RSI 2026-06-22 (FORGE): vocabulary renamed for F9/F10 compliance.
+      - model_soul → alignment_profile (mechanical, not mystical)
+      - model_shadow → adversarial_profile (mechanical, not mystical)
+      Internal loader variables (sess["model_soul"]) untouched for backwards compat.
+
+    RSI 2026-06-22 (FORGE): F11 audit spine restored.
+      Light path now populates call_hash, trace_id, called_from_kernel,
+      invocation_count. Without these the session cannot be sealed.
+
+    AOB P0 — 2026-07-03: Machine-readable enforcement envelope added.
+      Every light-mode response now includes: init_mode, session_mode,
+      authority_scope, actor_bound, tool_registry_version, kernel_epoch,
+      public_surface_version, allowed_next_verbs, trace block, and
+      witness block — the complete contract needed for benchmark operability.
+    """
+    import uuid as _uuid
+
+    degraded: list[str] = []
+    if not components["alignment_profile"]["loaded"]:
+        degraded.append("alignment_profile_not_loaded")
+    if not components["adversarial_profile"]["loaded"]:
+        degraded.append("adversarial_profile_not_loaded")
+    # F4 FIX 2026-07-19: belief_scaffold_deferred suppressed from degraded list.
+    # Light-init defers belief scaffold by design (intentional, not a failure).
+    # Full-init defers it only when identity is not verified — the missing
+    # identity is the real signal, not the deferred scaffold. The degraded list
+    # should indicate anomalies, not design choices. The belief scaffold status
+    # is still visible via the response's structural fields for diagnostics.
+
+    # F11 audit spine — was nulled by abd33817d refactor
+    _now_ts = _time.time()
+    # ── IDENTITY_CANON v1 (2026-10-22): ONE resolved identity object ──────
+    # Every identity block in this payload (top-level, session_birth,
+    # act_claims, metabolic_state) reads from _identity. The claimed handle
+    # is preserved; canonical_id is comparison-only and never overwrites it.
+    try:
+        from contracts.identity_canon import resolve_actor_identity
+
+        _identity = resolve_actor_identity(actor_id)
+    except Exception:  # noqa: BLE001 — identity canon must never block a session
+        _identity = {
+            "claimed": actor_id,
+            "canonical_id": actor_id,
+            "comparison_key": (actor_id or "").lower(),
+            "source": "inline_fallback",
+        }
+    _call_payload = f"arif_init|light|{sid}|{actor_id}|{_now_ts:.6f}"
+    call_hash = f"sha256:{hashlib.sha256(_call_payload.encode()).hexdigest()}"
+    trace_id = f"trc-{_uuid.uuid4().hex[:12]}"
+    called_from_kernel = True  # arif_init is always a kernel-internal call
+    invocation_count = 1  # first call in session
+
+    # ── AOB P0 — 2026-07-03: Machine envelope fields ──
+    # Fix 2026-07-06 ROUND-2: Use authority_override when caller provides it.
+    # Previously, _project_light derived authority from actor_verified boolean,
+    # which gave "FULL" for any verified identity — bypassing the init path's
+    # signature-gated authority logic (LIMITED_MUTATE vs FULL/SOVEREIGN).
+    # Now: caller passes the session's actual authority level.
+    if authority_override:
+        _authority = authority_override
+    else:
+        # Spine P0: identity band only at birth — no invented G → VOID theater
+        from arifosmcp.runtime.act_token import identity_band_authority
+
+        _authority = identity_band_authority(
+            actor_verified=bool(actor_verified),
+            signature_verified=signature_verified,
+            is_sovereign_principal=is_sovereign_principal,
+        )
+    # ── FQ Metabolic Cap (fq_policy.yaml F13_RATIFIED 2026-09-12) ──────
+    # Same session-birth rule as the persistent path: STUCK/BURNING below
+    # the 0.5 floor caps the band at OBSERVE_ONLY. Must run BEFORE the
+    # _is_full_authority/_is_limited booleans so downstream verbs inherit
+    # the capped authority, not the pre-cap one.
+    from arifosmcp.runtime.fq_gate import metabolic_cap
+
+    _authority, _fq_state = metabolic_cap(
+        actor_id,
+        _authority,
+        is_sovereign_principal=bool(is_sovereign_principal),
+    )
+    _is_ephemeral = session_mode == "ephemeral_eval"
+    # Fix 2026-07-06 ROUND-2: allowed_next_verbs gated by actual authority,
+    # not just actor_verified boolean. FULL/SOVEREIGN → all verbs.
+    # LIMITED_MUTATE → no seal append. OBSERVE_ONLY → observe/think/route +
+    # arif_seal safe modes only (Layer 6 effect typing 2026-07-30).
+    # FIX 2026-07-09: SOVEREIGN is equal or higher than FULL — both get all verbs.
+    # FIX 2026-07-09 (amanah): public surface uses arif_forge; arif_act is internal
+    # alias only and must not leak into allowed_next_verbs (registry contract).
+    _is_full_authority = _authority in ("FULL", "SOVEREIGN")
+    _is_limited = _authority in ("LIMITED_MUTATE",)
+    # FIX 2026-09-12 P0 (verb-list drift): derive allowed_next_verbs from the SAME
+    # source the token mint uses (AUTHORITY_VERBS via derive_verbs), not a hardcoded
+    # branch that drifted. The 2026-08-14 P0 fix changed the mint (allowed=None →
+    # derive_verbs) but left this response serializer on the stale list → init
+    # advertised 4 verbs while the token carried 6 (Hermes/555 probe 2026-09-12).
+    # Ephemeral keeps its sandbox list — the mint also uses _allowed_next for
+    # ephemeral (line ~992), so the two stay consistent by construction.
+    from arifosmcp.runtime.act_token import derive_verbs
+
+    if _is_ephemeral:
+        _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_seal"]
+    else:
+        _allowed_next = derive_verbs(_authority)
+
+    # Fix 2026-07-08: intent is an explicit param — never read free variable `sess`
+    # (NameError blocked light bootstrap → all tools stayed anonymous).
+    _clarity_intent = intent or (
+        "light_bootstrap" if session_mode == "light" else "constitutionally_bound_session"
+    )
+
+    from arifosmcp.runtime.build import get_runtime_attestation
+
+    # Identity lattice (MASTER FORGE W9 + A1 2026-07-27) — never conflate.
+    # actor_claimed: caller supplied an actor_id string
+    # actor_canonicalized: actor_id mapped to known principal (if applicable)
+    # actor_bound: session has an actor_id attached (binding, not crypto)
+    # actor_verified: identity claim recognized by registry
+    # actor_cryptographically_verified: Ed25519/MTLS proof validated (A1: separate from actor_verified)
+    _actor_claimed = bool(actor_id)
+    _actor_bound = bool(actor_id)  # session birth always binds claimed actor if present
+    _actor_crypto = bool(signature_verified and actor_verified)
+
+    # A3 2026-07-27: drift degrades substrate.
+    # Deployment drift (source != built) is honest measurement — but it MUST
+    # degrade the substrate state and block mutation. Per spec: "drift detected
+    # and exposed as honest measurement" but "drift == True → substrate.state =
+    # DEGRADED → canonical_verdict floor = HOLD → mutation_allowed = False".
+    _sw = get_runtime_attestation()
+    _drift = _sw.get("drift", False)
+    if _drift:
+        degraded.append("kernel_drift")
+        _sw["_freshness_warning"] = (
+            "built_commit in this token is from install time and may be stale. "
+            "Check live /health endpoint for current runtime attestation."
+        )
+    _mutation_granted = bool(_is_full_authority or _is_limited)
+    _mutation_allowed = _mutation_granted and not _drift
+    _seal_granted = bool(actor_verified and _is_full_authority)
+    _seal_allowed = _seal_granted and not _drift
+    # INTERPRETATION_INVARIANT: substrate_state must consult boot attestation
+    # (canonical: arifosmcp/runtime/organ_attestation.py) before claiming HEALTHY.
+    # Boot attestation returning None or non-ALIVE downgrades session envelope.
+    # T3 (F13 2026-09-22): exception above means ABSENCE, and absence is
+    # UNMEASURED — it must not degrade the substrate or fail the join.
+    try:
+        from arifosmcp.runtime.organ_attestation import boot_gate_state
+
+        _boot_status, _boot_unhealthy = boot_gate_state("arifOS")
+        _boot_missing = _boot_status == "UNATTESTED"
+    except Exception:  # noqa: BLE001 — attestation is best-effort during boot
+        _boot_status = "UNATTESTED"
+        _boot_unhealthy = False  # default: do not block on attestation absence
+        _boot_missing = True
+    from arifosmcp.runtime.health_truth import (
+        read_system_floor_truth,
+        substrate_truth,
+    )
+    from arifosmcp.runtime.contradiction_margin import contradiction_margin
+
+    # Echo the system reading when /health has published one in this process.
+    # Otherwise derive locally with the same single function. Two surfaces,
+    # one vocabulary — the drift predicates differ (build attestation vs
+    # /health's build-stamp comparison) and must not each mint a state.
+    _system_reading = read_system_floor_truth()
+    if (
+        _system_reading
+        and not _system_reading.get("stale")
+        and _system_reading.get("substrate_state")
+    ):
+        _substrate_state = _system_reading["substrate_state"]
+        _substrate_causes = list(_system_reading.get("substrate_degraded_causes") or [])
+    else:
+        _substrate = substrate_truth(
+            source_drift=bool(_drift), boot_unhealthy=bool(_boot_unhealthy)
+        )
+        _substrate_state = _substrate["substrate_state"]
+        _substrate_causes = _substrate["degraded_causes"]
+
+    # ── WAJIB 3: Single canonical effective_state (2026-08-07) ──
+    # Consolidates the 5-field authority scatter (authority, authority_band,
+    # authority_scope, authority_mode in session_birth, nested authority
+    # runtime_grant) into ONE canonical field. The old fields remain as
+    # deprecated aliases for backward compatibility.
+    # See: arifosmcp/runtime/effective_state.py
+    _effective_state = {
+        "actor_verified": actor_verified,
+        "authority_band": _authority,
+        "mutation_allowed": _mutation_allowed,
+        "seal_allowed": _seal_allowed,
+        "substrate_state": _substrate_state,
+        "substrate_degraded_causes": _substrate_causes,
+        "derived_from": "session_capability_token_v1",
+        "computed_at": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime(_now_ts)),
+        # APEX-777: session_authority_state separates session gate from organ health.
+        # substrate_state = deployment drift / organ health.
+        # session_authority_state = why THIS session is restricted.
+        "session_authority_state": (
+            "DEPLOYMENT_DRIFT"
+            if _drift
+            else "BOOT_ATTESTATION_FAILED"
+            if _boot_unhealthy
+            else "MUST_ATTEST"
+            if _boot_missing
+            else "ACTOR_NOT_VERIFIED"
+            if not actor_verified
+            else "VERIFIED"
+        ),
+        # ── Orthogonal State Ontology (2026-09-20 F13 Ratified) ──
+        "machine_state": "HEALTHY",
+        "runtime_state": "DRIFT" if _drift else "CONVERGED",
+        "identity_state": "VERIFIED" if actor_verified else "UNVERIFIED",
+        "witness_state": "FULL" if (actor_verified and _seal_allowed) else "ABSENT",
+        "authority_state": _authority,
+        "constitutional_state": "HOLD"
+        if (not actor_verified or _drift or _boot_unhealthy)
+        else "OPERATIONAL",
+    }
+
+    out = {
+        # ── WAJIB 3 canonical authority (single source — see above) ──
+        "effective_state": _effective_state,
+        # GATING (deprecated aliases — prefer effective_state)
+        "session_id": sid,
+        "handle": handle or sid,
+        "client_ref": client_ref,
+        "actor_id": actor_id,
+        "canonical_id": _identity["canonical_id"],
+        "identity_resolved": _identity,
+        "actor_claimed": _actor_claimed,
+        "actor_canonicalized": _identity[
+            "canonical_id"
+        ],  # IDENTITY_CANON v1: string|None (was bool — forks were undetectable)
+        "actor_bound": _actor_bound,
+        "actor_verified": actor_verified,
+        "actor_cryptographically_verified": _actor_crypto,
+        "authority": _authority,
+        "authority_band": _authority,
+        "metabolic_state": {**_fq_state, "canonical_id": _identity["canonical_id"]},
+        "mutation_allowed": _mutation_allowed,
+        "seal_allowed": _seal_allowed,
+        # ── AOB P0: Machine enforcement envelope ──
+        "init_mode": init_mode_label,  # T3 2026-10-22: mode=init must not self-report "light"
+        "session_mode": session_mode,
+        "authority_scope": _authority,
+        "kernel_epoch": "2026-07-03",
+        "software_release": _sw,
+        "eureka_margin": contradiction_margin(),
+        "substrate": {
+            "state": _substrate_state,
+            "drift": _drift,
+            "degraded_causes": _substrate_causes,
+        },
+        "public_surface_version": "7",
+        "tool_registry_version": "1.0.0",
+        "allowed_next_verbs": _allowed_next,
+        "trace": {
+            "run_id": f"run-{_uuid.uuid4().hex[:8]}",
+            "scenario_id": None,
+            "benchmark_id": None,
+            "tool_registry_version": "1.0.0",
+            "otel_trace_id": None,
+        },
+        "witness": {
+            "active_count": 1 if actor_verified else 0,
+            "missing_types": (
+                ["EARTH_MEASUREMENT", "INDEPENDENT_HUMAN", "AI_MODEL_B"]
+                if actor_verified
+                else ["HUMAN", "AI_MODEL_A", "AI_MODEL_B", "EARTH_MEASUREMENT", "INDEPENDENT_HUMAN"]
+            ),
+            "mode3_collapse": False,
+            "diversity_level": "NONE" if not actor_verified else "PARTIAL",
+        },
+        # VERDICT (single source — A1 fix 2026-08-05)
+        # MUST be a string, not a dict. _compute_canonical_verdict calls str()
+        # on this value; a dict produces a non-matching repr that defaults to
+        # "SEAL" (the cheerful-corpse bug). The structured verdict data lives
+        # in result.verdict (inside this result dict) — consumers reading the
+        # public envelope read envelope.verdict (string), not result.verdict.
+        "verdict": "OK" if not degraded else f"DEGRADED:{len(degraded)}",
+        "verdict_code": "OK" if not degraded else "SABAR.DEGRADED",
+        "action_class": "OBSERVE",
+        # CONSTITUTION (by-reference, never inline)
+        "constitution_hash": constitution_hash,
+        "detail_ref": f"arifos://constitution/{constitution_hash}",
+        # NEXT (one tool, not list)
+        "next_tool": components["next"]["recommended_next"],
+        # EXCEPTIONS FIRST
+        "degraded": degraded,
+        # OPERATOR GUIDANCE
+        "next_safe_action": "proceed" if not degraded else "address degraded items",
+        "energy_remaining": "sufficient",
+        # BACKWARD-COMPAT MINIMAL ALIASES (one source, no duplication)
+        # FIX 2026-07-09 (amanah): session_birth MUST mirror real authority band.
+        # Prior bug: actor_verified alone → authority_mode=SOVEREIGN / verdict=FULL
+        # while top-level authority stayed LIMITED_MUTATE/OBSERVE_ONLY (dual source).
+        # Authority bands only — never role labels (OPERATOR) or constitutional SEAL.
+        "session_birth": {
+            "session_id": sid,
+            "actor_id": actor_id,
+            "canonical_id": _identity["canonical_id"],
+            "actor_verified": actor_verified,
+            "actor_cryptographically_verified": _actor_crypto,
+            "authority_mode": _authority,
+            "stage": "000",
+            "lane": "AGI",
+            "verdict": _authority,
+            "mutation_allowed": _mutation_allowed,
+            "seal_allowed": _seal_allowed,
+            "substrate_state": _substrate_state,
+            "substrate_degraded_causes": _substrate_causes,
+            "authority_source": "identity_band",
+        },
+        # RSI 2026-06-22: renamed from model_soul_loaded / model_shadow_loaded
+        # (F9 ANTI-HANTU / F10 MECHANICAL-CLAIM compliance)
+        "alignment_profile_loaded": components["alignment_profile"]["loaded"],
+        "adversarial_profile_loaded": components["adversarial_profile"]["loaded"],
+        # DITEMPA seal (constitutional, not redundancy)
+        "motto": DITEMPA_MOTTO,
+        "state_emoji": "⚡",
+        "mode_emoji": "⚡",
+        "signature": f"sha256:{hashlib.sha256(f'{DITEMPA_MOTTO}|light|{sid}|{_now_ts:.6f}'.encode()).hexdigest()[:16]}",
+        # F11 audit spine (RSI 2026-06-22 fix — was nulled by abd33817d refactor)
+        "call_hash": call_hash,
+        "trace_id": trace_id,
+        "called_from_kernel": called_from_kernel,
+        "invocation_count": invocation_count,
+        # INIT v2.0 Phase 3.2: always surface context completeness score
+        # Lightweight — does not trigger STATIC_INLINE_FORBIDDEN.
+        # Full receipt (with beliefs/laws/continuity) still behind verbose=="audit".
+        "context_completeness": context_completeness
+        or {
+            "score": None,
+            "status": "not_computed",
+        },
+        # Z5 REALITY ANCHOR — VPS snapshot at init (non-blocking, fail-safe)
+        "vps_snapshot": _safe_build(_get_vps_snapshot, fallback={"error": "anchor_unavailable"}),
+        # ── DRAFT_CONTROL_DOCTRINE: Stage 000 INIT clarity (2026-07-08) ─────────
+        # Forces clarity_contract minimum on every session birth.
+        "clarity_contract": {
+            "actor": actor_id or "anonymous",
+            "session_id": sid,
+            "intent": _clarity_intent,
+            "evidence_layer": "L2" if actor_verified else "L4",
+            "timestamp": _now_ts,
+            "authority_band": _authority,
+            "reversibility": "PARTIAL"
+            if _is_limited
+            else ("FULL" if _is_full_authority else "LOW"),
+            "route_owner": "arifOS",
+            "proposed_action": "session_bind",
+            "expected_receipt": "arifos://session/" + sid,
+            "stop_condition": "missing_actor or missing_evidence_layer or mutation_without_ack",
+            "actor_bound": _actor_bound,
+            "actor_verified": actor_verified,
+            "session_bound": True,
+            "authority_declared": True,
+            "mutation_allowed": (_is_full_authority or _is_limited) and not _drift,
+        },
+        "clarity_metrics": {
+            "intent_sharpness": "CLEAR",
+            "evidence_honesty": "CLEAR" if actor_verified else "FUZZY",
+            "clarity_compression": "CLEAR",
+        },
+    }
+
+    # ── SCT Signed Capability (sct_v1 only — never dual-mint arifos.v1) ─────
+    # F-AUDIT-CLAUDE-2026-08-02 (Finding 4): Token MUST NOT be minted on the
+    # DENY path. Previously the mint ran for any session that reached
+    # this block — including anonymous / unverified actors. Now we gate
+    # on `actor_verified` (cryptographic identity proven). If the actor
+    # is not cryptographically verified, we skip the mint and surface a
+    # challenge nonce so the caller can re-attest sovereign key.
+    #
+    # Layer 6 (identity-fix-6, 2026-08-11): ACT issuance for DID-verified
+    # canonical actors. If `actor_verified` is False but the actor is
+    # canonically known AND has a registered DID, consult the registry
+    # as an alternative proof of identity (per Layer 5b identity matrix).
+    # This is the path that UNBLOCKS forge_vault Lane B sealing for
+    # canonical actors (kimi-code/FI-008, ARIF, FORGE, AAAGW, etc.)
+    # without requiring a separate EdDSA signature in the init request.
+    try:
+        from arifosmcp.runtime.act_token import derive_verbs, mint_sct, unmeasured_apex
+
+        _did_consulted: bool = False
+        _did_verified: bool = False
+        if not actor_verified and actor_id:
+            try:
+                from contracts.identity import normalize_actor_identity
+
+                _canon = normalize_actor_identity(actor_id)
+                if _canon.get("normalized") and _canon.get("did_consulted"):
+                    if _canon.get("verification_state") == "VERIFIED":
+                        _did_consulted = True
+                        _did_verified = True
+                        actor_verified = True  # elevate to mint path
+                        out["actor_cryptographically_verified"] = True
+                        out["verification_path"] = "did_registry"
+                        logger.info(
+                            "arif_init: actor '%s' elevated to verified via DID registry "
+                            "(state=%s, did_key=%s)",
+                            actor_id,
+                            _canon.get("verification_state"),
+                            _canon.get("did_entry", {}).get("public_key_hex", "n/a")[:12]
+                            if _canon.get("did_entry")
+                            else "n/a",
+                        )
+            except ImportError:
+                pass
+            except Exception as _did_exc:
+                logger.debug("DID consultation during mint failed: %s", _did_exc)
+
+        if not actor_verified:
+            # P0.1 FIX (2026-08-13): Mint a limited-privilege SCT even for unverified
+            # actors. The token IS the governance boundary — it carries av=False and
+            # auth=OBSERVE_ONLY. Downstream tools check av in claims. Previously this
+            # raised RuntimeError which hid a governance decision behind what looked
+            # like a crash (F-AUDIT-CLAUDE-2026-08-02 superseded).
+            out["standing_source"] = "no_act_unverified"
+            out["session_birth"]["session_token_status"] = (
+                "MINTED_LIMITED: actor not cryptographically verified — OBSERVE_ONLY token issued"
+            )
+            # ESCALATION-OFFER (2026-09-04): make the prove-lane discoverable from
+            # the refusal itself — an unsigned claim must not read as "no binding exists".
+            out["identity_escalation"] = {
+                "status": "OFFERED",
+                "reason": "actor identity is self-asserted — OBSERVE_ONLY token issued",
+                "bind_path": (
+                    "arif_init with actor_signature (Ed25519 over the challenge "
+                    "nonce), or crypto_auth.issue_authorization_challenge -> sign "
+                    "canonical challenge via sovereign signing lane "
+                    "(localhost:18900) -> crypto_auth.verify_authorization_challenge"
+                ),
+                "on_success": (
+                    "actor_cryptographically_verified=true — full token mint path "
+                    "and authority bands unlock"
+                ),
+            }
+            _unverified_token, _unverified_claims = mint_sct(
+                sid=sid,
+                actor=actor_id or "anonymous",
+                canonical_id=_identity["canonical_id"],
+                auth="OBSERVE_ONLY",
+                av=False,
+                stage="000",
+                lane="AGI",
+                verdict_state="OBSERVE_ONLY",
+                dominant_reason="actor_not_verified",
+                allowed=derive_verbs("OBSERVE_ONLY"),
+                apex=unmeasured_apex(),
+                witness={"active": 0, "diversity": "NONE"},
+            )
+            out["session_token"] = _unverified_token
+            out["session_birth"]["session_token"] = _unverified_token
+            out["act_claims"] = {
+                "canonical_id": _identity["canonical_id"],
+                "auth": _unverified_claims.get("auth"),
+                "av": _unverified_claims.get("av"),
+                "exp": _unverified_claims.get("exp"),
+                "sid": _unverified_claims.get("sid"),
+                "act_v": _unverified_claims.get("act_v"),
+            }
+            # Skip the full mint path below — we already have a token
+            _token = _unverified_token
+            _claims = _unverified_claims
+            _apex = unmeasured_apex()
+            _sct_minted = True  # flag to skip full mint path
+        else:
+            _sct_minted = False
+
+        # W3 FIX 2026-07-29: Use real shadow measurement when intent is provided.
+        # Falls through to unmeasured_apex() if probe fails or intent is blank.
+        # Only compute apex + mint full token for verified actors.
+        if not _sct_minted:
+            _apex = None
+            # P0.8 FIX (2026-08-15): Removed dead shadow_probe import.
+            # arifosmcp.tools.shadow_probe does not exist — import always
+            # failed silently. Replaced with direct compute_apex_from_metrics
+            # call with actor-scoped filtering for verified actors.
+            if _apex is None:
+                try:
+                    from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
+
+                    # Actor-scoped: verified actors get their OWN history
+                    _live = compute_apex_from_metrics(actor_id=actor_id)
+                    if _live.get("sample_size", 0) > 0:
+                        # P1 2026-10-28 (apex-scalar-disambiguation): the
+                        # actor-scoped apex must SAY that it is actor-scoped
+                        # (it is a third G in the same payload as the
+                        # federation aggregate and the session baseline), and
+                        # an unmeasured scalar must carry the marker rather
+                        # than a bare null. One owner:
+                        # act_token.build_standing_apex.
+                        from arifosmcp.runtime.act_token import (
+                            APEX_SCOPE_ACTOR,
+                            build_standing_apex,
+                        )
+
+                        _typed = build_standing_apex(_live, scope=APEX_SCOPE_ACTOR)
+                        _apex = {
+                            "G": _typed.get("G"),
+                            "C_dark": _typed.get("C_dark"),
+                            "W3": _typed.get("W3"),
+                            "h": _typed.get("h"),
+                            "scope": _typed.get("scope"),
+                            "note": _typed.get("note"),
+                        }
+                except Exception:
+                    logger.exception("suppressed exception", exc_info=True)
+            if _apex is None:
+                _apex = unmeasured_apex()  # fallback base structure
+
+            # P1 Tri-Witness Nash Resolution: W3 = (Human * AI * Earth)^(1/3)
+            # Channel measurement:
+            _hw = 0.95 if actor_verified else 0.42
+            _aw = 0.94 if components.get("alignment_profile", {}).get("loaded") else 0.32
+            _ew = 0.93  # Earth / substrate sensor measurement
+            _w3_val = round((_hw * _aw * _ew) ** (1.0 / 3.0), 4)
+
+            if _apex.get("W3") in (None, "UNMEASURED"):
+                _apex["W3"] = _w3_val
+
+            _active_witnesses = 3 if actor_verified else 1
+            _diversity = "FULL" if actor_verified else "PARTIAL"
+
+            # P0 FIX (2026-08-14): mint capabilities from AUTHORITY_VERBS (the
+            # single source in act_token.py), not from _allowed_next — that list
+            # is a next-verb UI hint and omits arif_memory/arif_init for
+            # LIMITED_MUTATE, silently stripping constitutional verbs from the
+            # ACT. Only ephemeral_eval keeps its restricted set.
+            _token, _claims = mint_sct(
+                sid=sid,
+                actor=actor_id or "anonymous",
+                canonical_id=_identity["canonical_id"],
+                auth=_authority,
+                av=bool(actor_verified),
+                stage="000",
+                lane="AGI",
+                verdict_state=str(out.get("verdict_code") or "OK"),
+                dominant_reason=None,
+                allowed=_allowed_next if _is_ephemeral else None,
+                apex=_apex,
+                witness={
+                    "active": _active_witnesses,
+                    "diversity": _diversity,
+                },
+            )
+        # Layer 5e (2026-08-11): surface verification_method + evidence_ref
+        # to the unified session record when DID consultation (Layer 5b/5c)
+        # was the proof path. This satisfies the HONEST_HOLD gate requirement
+        # that these fields be non-null when actor_verified=True.
+        if actor_verified:
+            try:
+                _did_meta = _claims.get("did_entry_kid") or _claims.get("did_organ_id")
+                if _did_meta:
+                    out["verification_path"] = out.get("verification_path", "did_registry")
+                    out["verification_method"] = "did_registry"
+                    # evidence_ref format: did://<kid> (W3C DID URI)
+                    # _did_meta may be "did:arif:arifos" or just "arifos"
+                    _kid_for_uri = _did_meta
+                    if _kid_for_uri.startswith("did:"):
+                        _kid_for_uri = _kid_for_uri[4:]  # strip leading "did:" for clean URI
+                    out["evidence_ref"] = f"did://{_kid_for_uri}"
+                    # Also surface in the ACT claims for downstream
+                    if isinstance(_claims, dict):
+                        _claims["verification_method"] = "did_registry"
+                        _claims["evidence_ref"] = f"did://{_kid_for_uri}"
+            except Exception:
+                logger.exception("suppressed exception", exc_info=True)
+        out["session_token"] = _token
+        # P1 2026-10-27 (apex-scalar-disambiguation): this block is the
+        # ACTOR-SCOPED reading frozen into the token at mint. The outer
+        # standing echo carries the FEDERATION aggregate from the same
+        # response. Unlabelled, the two G values read as one another.
+        from arifosmcp.runtime.act_token import (
+            APEX_ACTOR_NOTE,
+            APEX_SCOPE_ACTOR,
+            tag_apex_scope,
+        )
+
+        _apex_measured = any(
+            isinstance(_v, (int, float)) and not isinstance(_v, bool) for _v in _apex.values()
+        )
+        out["apex_scalars"] = tag_apex_scope(
+            dict(_apex),
+            scope=APEX_SCOPE_ACTOR,
+            note=(
+                APEX_ACTOR_NOTE
+                if _apex_measured
+                else "No actor-scoped APEX measured at session mint; session-level G is UNMEASURED."
+            ),
+        )
+        # P0.8 (2026-08-15): kernel_baseline — federation-wide reference.
+        # NOT this session's score. Agents can use it for soft decisions
+        # but cannot claim it as their own G. Honest separation between
+        # "what I've measured" (apex_scalars) and "what the federation
+        # looks like" (kernel_baseline).
+        try:
+            from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics as _kb_compute
+
+            _global = _kb_compute()  # no actor_id → global
+            out["kernel_baseline"] = {
+                "G": _global.get("G"),
+                "C_dark": _global.get("C_dark"),
+                "W3": _global.get("W3"),
+                "h": _global.get("h"),
+                "sample_size": _global.get("sample_size", 0),
+                "window_seconds": _global.get("window_seconds", 0),
+                "note": "Federation-wide reference. Not this session's score.",
+            }
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+        if _sct_minted:
+            pass  # standing_source already set to "no_act_unverified" in limited path
+        else:
+            out["standing_source"] = "act"
+        out["session_birth"]["session_token"] = _token
+        out["act_claims"] = {
+            "canonical_id": _identity["canonical_id"],
+            "auth": _claims.get("auth"),
+            "av": _claims.get("av"),
+            "exp": _claims.get("exp"),
+            "sid": _claims.get("sid"),
+            "act_v": _claims.get("act_v"),
+        }
+        # 2026-08-04 333-AGI + audit fix: Session store bridge.
+        # SCT returns sid=SEAL-* while identity bind uses sid_sess-*.
+        # Downstream get_session(SEAL-*) must resolve actor_verified=True.
+        # Do NOT import arifosmcp.runtime.tools here (circular import → silent fail).
+        # Write via upsert_session_record (session identity store) under BOTH keys.
+        _sct_sid = _claims.get("sid")
+        if _sct_sid and actor_verified:
+            _bridge_rec = {
+                "session_id": _sct_sid,
+                "actor_id": actor_id or "anonymous",
+                "actor_verified": True,
+                "authority": str(_authority or "SOVEREIGN").upper(),
+                "authority_level": str(_authority or "SOVEREIGN").upper(),
+                "verification_method": "system_exempt",
+                "verified": True,
+                "identity_verified": True,
+                "act_sid": _sct_sid,
+                "birth_sid": sid,
+            }
+            try:
+                from arifosmcp.runtime.session import upsert_session_record
+
+                upsert_session_record(_sct_sid, _bridge_rec)
+                # Also alias the birth sid (sid_sess-*) if different
+                if sid and sid != _sct_sid:
+                    _alias = dict(_bridge_rec)
+                    _alias["session_id"] = sid
+                    _alias["act_sid"] = _sct_sid
+                    upsert_session_record(sid, _alias)
+                out["session_bridge"] = {
+                    "status": "bound",
+                    "act_sid": _sct_sid,
+                    "birth_sid": sid,
+                }
+            except Exception as _bridge_exc:
+                logger.error(
+                    "session_bridge_failed act_sid=%s birth_sid=%s err=%s",
+                    _sct_sid,
+                    sid,
+                    _bridge_exc,
+                )
+                out["session_bridge"] = {
+                    "status": "failed",
+                    "error": type(_bridge_exc).__name__,
+                    "detail": str(_bridge_exc)[:200],
+                }
+    except Exception as _sct_exc:
+        # Continuity mint failure must not block init — but mark clearly.
+        # P0.1 FIX (2026-08-13): surface the ACTUAL error message, not just the
+        # exception class name. "RuntimeError" hides governance decisions behind
+        # what looks like a crash. The caller needs to distinguish "refused" from "broken."
+        logger.error(f"SCT mint failed: {_sct_exc}")
+        out["session_token"] = None
+        from arifosmcp.runtime.act_token import APEX_SCOPE_ACTOR, tag_apex_scope
+
+        out["apex_scalars"] = tag_apex_scope(
+            {
+                "G": "UNMEASURED",
+                "C_dark": "UNMEASURED",
+                "W3": "UNMEASURED",
+                "h": "UNMEASURED",
+            },
+            scope=APEX_SCOPE_ACTOR,
+            note="SCT mint failed; session-level G is UNMEASURED (not the federation aggregate).",
+        )
+        out["sct_error"] = str(_sct_exc) or type(_sct_exc).__name__
+
+    # FIX 2026-07-29: Self-audit — actor_verified MUST agree across all fields
+    _sb_av = out.get("session_birth", {}).get("actor_verified")
+    assert bool(actor_verified) == bool(_sb_av), (
+        "actor_verified mismatch: top_level="
+        + str(bool(actor_verified))
+        + " vs session_birth.actor_verified="
+        + str(_sb_av)
+    )
+
+    # A5 2026-07-27: egress budget — strip fields by verbosity level
+    out = _strip_by_verbosity(out, verbosity)
+
+    # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — attached AFTER the
+    # egress strip so every projection (light + full) carries it. Fail-closed:
+    # unavailable card -> explicit UNKNOWN payload; never authority-bearing.
+    try:
+        out["model_governance"] = _build_model_governance(actor_id)
+    except Exception:  # noqa: BLE001 — the card must never break INIT
+        out["model_governance"] = {
+            "card_source": "UNAVAILABLE", "identity_state": "UNKNOWN",
+            "resolved_model": "UNKNOWN",
+            "authority_ceiling": {"propose": False, "verify": False, "authorize": False, "execute": False},
+            "verdict": "HOLD",
+        }
+
+    return out
+
+
+def _build_audit_full(sess: dict, actor_id: str, model_key: str, deployment_id: str) -> dict:
+    """Build the full union for verbose=audit (seal path only).
+
+    Heavy blocks materialize here: full embodiment, ToM-1 scaffold, law, continuity.
+    Called ONLY when verbose='audit'. INVARIANT enforced by _assert_no_static_inline.
+    """
+    _model_soul, _model_shadow = _load_soul_shadow(model_key)
+    embodiment_card = _safe_build(_build_embodiment_card, fallback=EmbodimentCard())
+    warnings = _safe_build(
+        _compute_warnings,
+        actor_id=actor_id,
+        declared_model_key=model_key,
+        # A1: default must not invent SEAL when session has no verdict yet
+        floor_check={"verdict": sess.get("verdict") or sess.get("verdict_code") or "OK"},
+        fallback=[],
+    )
+    context_completeness = _safe_build(
+        _compute_context_completeness,
+        actor_id=actor_id,
+        identity_verified=False,
+        well_mirror={},
+        session=sess,
+    )
+    return {
+        "embodiment_full": _safe_dump(embodiment_card),
+        "belief_full": {
+            "intent_model": _safe_dump(
+                _safe_build(_build_intent_model, sess, actor_id, fallback={})
+            ),
+            "belief_state": _safe_dump(_safe_build(_build_belief_state, actor_id, fallback={})),
+            "preference_memory": _safe_dump(
+                _safe_build(_build_preference_memory, actor_id, fallback={})
+            ),
+            "false_belief_flags": _safe_dump(
+                _safe_build(_build_false_belief_flags, actor_id, fallback={})
+            ),
+        },
+        "law_full": {
+            "causality_warning": _safe_dump(
+                _safe_build(CausalityWarning, fallback={"atomic_button_awareness": True})
+            ),
+            "execution_law": _safe_dump(
+                _safe_build(ExecutionLaw, fallback={"irreversible_requires_ack": True})
+            ),
+            "attention_surface": _safe_dump(_safe_build(AttentionSurface, fallback=[])),
+            "tool_surface": _safe_dump(
+                _safe_build(_build_tool_surface, fallback={"groups": {}, "tools": []})
+            ),
+            "risk_leash": _safe_dump(
+                _safe_build(
+                    _compute_risk_leash,
+                    actor_id=actor_id,
+                    declared_model_key=model_key,
+                    fallback={"level": "DEFAULT", "leash_active": True},
+                )
+            ),
+        },
+        "continuity_full": _safe_dump(
+            _safe_build(
+                _build_session_continuity,
+                sess,
+                None,
+                actor_id,
+                fallback={"status": "no_previous_session"},
+            )
+        ),
+        "context_full": {
+            "warnings": [_safe_dump(w) for w in warnings],
+            "completeness": _safe_dump(context_completeness),
+        },
+        "next_actions_full": _manifest_backed_next_actions(
+            [
+                ("kernel self-attestation", "arif_kernel_attest", "attest"),
+                ("federation organ liveness and telemetry", "arif_kernel_status", "status"),
+                ("preflight before a proposed action", "arif_triage", "preflight"),
+                ("full constitutional binding", "arif_init", "init"),
+            ]
+        ),
+        "soul_full": _model_soul,
+        "shadow_full": _model_shadow,
+        "deployment_id": deployment_id,
+    }
+
+
+from arifosmcp.runtime.law import check_laws
+from arifosmcp.runtime.public_surface import current_public_surface_mode, public_boundary_allows
+from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
+
+# ── Ω: Model Registry Loader (AGI Kernel, 2026-06-12) ──────────────
+
+
+def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
+    """
+    Load model soul, shadow, and floor posture from AAA registries.
+
+    Source priority:
+      1. Compiled registry (/root/AAA/registry/compiled/FEDERATION_MODEL.json)
+         — canonical, schema-validated, generated by aaa-registry compile
+      2. Legacy soul/shadow YAML files (/root/AAA/registries/models/)
+         — fallback for models not yet migrated
+
+    The soul is the capability profile (what the model is trusted for).
+    The shadow is the hazard profile (where the model systematically fails).
+    The floor posture is constitutional tightening based on shadow patterns.
+    """
+    import json
+    import os
+
+    result_soul: dict = {}
+    result_shadow: dict = {}
+    result_posture: dict = {}
+
+    # ── Try compiled registry first ────────────────────────────────
+    compiled_path = "/root/AAA/registry/compiled/FEDERATION_MODEL.json"
+    if os.path.isfile(compiled_path):
+        try:
+            with open(compiled_path) as f:
+                compiled = json.load(f)
+
+            # Find matching model by key or family
+            key_lower = (declared_model_key or "").lower().strip()
+            matched = None
+            for model in compiled.get("models", []):
+                model_key = model.get("model_key", "").lower()
+                family = model.get("family", "").lower()
+                # Match by: exact key, key contains family, or family contains key
+                if (
+                    key_lower == model_key
+                    or key_lower in model_key
+                    or model_key in key_lower
+                    or key_lower in family
+                    or family in key_lower
+                ):
+                    matched = model
+                    break
+
+            if matched:
+                # Build soul from capability data
+                result_soul = {
+                    "model_id": matched.get("model_key"),
+                    "model_family": matched.get("family"),
+                    "provider": matched.get("provider"),
+                    "status": matched.get("status"),
+                    "soul": {
+                        "capabilities": {
+                            cap: {"description": "", "confidence": 0.8}
+                            for cap in matched.get("capabilities", [])
+                        },
+                        "trust_tier": 2,
+                    },
+                    "source": "compiled_registry",
+                }
+
+                # Build shadow from hazard data
+                result_shadow = {
+                    "model_id": matched.get("model_key"),
+                    "version": "compiled",
+                    "status": matched.get("status"),
+                    "shadow": [
+                        {
+                            "id": h,
+                            "name": h.replace("_", " ").title(),
+                            "severity": matched.get("max_hazard_severity", "medium").upper(),
+                            "class": "compiled",
+                            "pattern": "",
+                            "triggers": [],
+                            "floor_posture_delta": matched.get("floor_deltas", {}),
+                            "mitigation": matched.get("requires_human_ack_for", []),
+                        }
+                        for h in matched.get("hazards", [])
+                    ],
+                    "floor_posture": {k: v for k, v in matched.get("floor_deltas", {}).items()},
+                    "forbidden": matched.get("forbidden", []),
+                    "requires_human_ack_for": matched.get("requires_human_ack_for", []),
+                    "source": "compiled_registry",
+                    "registry_hash": compiled.get("hashes", {}).get("FEDERATION_MODEL.json", ""),
+                }
+
+                # Floor posture from compiled deltas
+                result_posture = matched.get("floor_deltas", {})
+
+                logger.info(
+                    "Model profile loaded from compiled registry: %s (%d hazards, floor_deltas=%s)",
+                    matched.get("model_key"),
+                    len(matched.get("hazards", [])),
+                    bool(result_posture),
+                )
+                return result_soul, result_shadow, result_posture
+
+        except Exception as e:
+            logger.warning("Failed to load compiled registry: %s — falling back", e)
+
+    # ── Fallback: legacy soul/shadow YAML files ────────────────────
+    registry_dir = "/root/AAA/registries/models"
+    if not os.path.isdir(registry_dir):
+        return result_soul, result_shadow, result_posture
+
+    _MODEL_KEY_MAP: dict[str, str] = {
+        "minimax": "minimax",
+        "minimax-m3": "minimax",
+        "deepseek": "deepseek",
+        "deepseek-v4": "deepseek",
+        "qwen": "qwen",
+        "qwen3": "qwen",
+        "qwen2.5": "qwen",
+        "gpt": "openai",
+        "gpt-4": "openai",
+        "claude": "anthropic",
+        "gemini": "google",
+        "mimo": "xiaomi_mimo",
+        "xiaomi": "xiaomi_mimo",
+        "xiaomi-mimo": "xiaomi_mimo",
+        "glm": "zhipu_glm",
+        "zhipu": "zhipu_glm",
+    }
+
+    resolved = _MODEL_KEY_MAP.get((declared_model_key or "").lower().strip(), declared_model_key)
+
+    soul_path = os.path.join(registry_dir, f"{resolved}_soul.yaml")
+    shadow_path = os.path.join(registry_dir, f"{resolved}_shadow.yaml")
+
+    # Load soul
+    if os.path.isfile(soul_path):
+        try:
+            import yaml
+
+            with open(soul_path) as f:
+                result_soul = yaml.safe_load(f) or {}
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+    # Load shadow and extract floor posture
+    if os.path.isfile(shadow_path):
+        try:
+            import yaml
+
+            with open(shadow_path) as f:
+                result_shadow = yaml.safe_load(f) or {}
+            # Extract floor posture from shadow
+            result_posture = result_shadow.get("floor_posture", {})
+        except Exception:
+            logger.exception("suppressed exception", exc_info=True)
+    return result_soul, result_shadow, result_posture
+
+
+from arifosmcp.schemas.session import (
+    AttentionSurface,
+    BeliefState,
+    CausalityWarning,
+    ConsentBoundaries,
+    ContextCompletenessReceipt,
+    EmbodimentCard,
+    ExecutionLaw,
+    FalseBeliefFlag,
+    IntentModel,
+    OperatorIdentity,
+    PreferenceMemory,
+    RiskLeash,
+    SessionContinuity,
+    SessionManifest,
+    SessionState,
+    SessionWarnings,
+    ToolSurface,
+    WellMirrorEnhanced,
+    _get_os_info,
+    _is_root,
+)
+
+
+
+def _build_model_governance(actor_id: str | None) -> dict:
+    """Model Governance Card binding (runtime wiring v1, F13-sealed 2026-10-30).
+
+    Resolves the AAA lane for this actor and loads its card from the deterministic
+    registry projection. Fail-closed: unavailable card -> explicit UNKNOWN payload
+    with a zeroed authority ceiling; never fabricates identity, never inflates
+    authority, never changes verdicts (additive to the existing constitutional
+    binding). Card is revision-bound; immutability within the session is the
+    runtime's contract (TOCTOU: registry_revision here == revision in any receipt).
+    """
+    try:
+        from arifosmcp.resources.model_governance import resolve_lane, load_card
+        lane = resolve_lane(actor_id)
+        card = load_card(lane)
+        card["session_binding"] = {"actor_id": actor_id, "lane": lane}
+        return card
+    except Exception as exc:  # noqa: BLE001 — fail-closed by construction
+        return {
+            "card_source": "UNAVAILABLE",
+            "identity_state": "UNKNOWN",
+            "resolved_model": "UNKNOWN",
+            "authority_ceiling": {"propose": False, "verify": False, "authorize": False, "execute": False},
+            "operating_mode": "OBSERVE_ONLY",
+            "reason": f"card loader failed: {type(exc).__name__}",
+            "verdict": "HOLD",
+        }
+
+@trace_tool("arif_init")
 def arif_init(
     mode: str = "init",
     actor_id: str | None = None,
@@ -1211,7 +3570,6 @@ def arif_init(
             status="OK",
             tool="arif_init",
             mode=mode,
-            model_governance=_build_model_governance(actor_id),
             session=SessionState(
                 session_id=sid,
                 actor_id=actor_id,
@@ -2385,7 +4743,6 @@ def arif_init(
             status="OK",
             tool="arif_init",
             mode=mode,
-            model_governance=_build_model_governance(actor_id),
             session=SessionState(
                 session_id=sid,
                 actor_id=actor_id,
