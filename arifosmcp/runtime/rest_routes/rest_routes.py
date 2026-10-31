@@ -3621,54 +3621,109 @@ def _compute_runtime_drift() -> dict[str, Any]:
     }
 
 
+_VAULT_CHAIN_PATHS = (
+    "/root/.local/share/arifos/vault999/seal_chain.jsonl",
+    "/root/.local/share/arifos/vault999/seal_chain_head.json",
+)
+# P0 (333-AGI 2026-10-31): a chain that has not advanced in 72h is not healthy,
+# whatever the writer's heartbeat says. Same bound as the standing P0 rule.
+_VAULT_TAIL_MAX_AGE_S = 72 * 3600.0
+# Evidence behind the last verdict, for /health.seal_readiness (read, never edit).
+_VAULT_LAST_EVIDENCE: dict[str, Any] = {}
+
+
+def _vault_chain_evidence() -> dict[str, Any]:
+    """The chain's OWN verdict: integrity + tail age. Never a health inference."""
+    from arifosmcp.runtime.canonical_vault_chain import derive_head, verify_chain
+
+    head = derive_head()
+    vr = verify_chain(scope="canonical")
+    tail_age: float | None = None
+    ts = head.get("timestamp")
+    if ts:
+        try:
+            tail_age = round(
+                time.time()
+                - datetime.fromisoformat(str(ts).replace("Z", "+00:00")).timestamp(),
+                1,
+            )
+        except Exception:
+            tail_age = None
+    return {
+        "verified": bool(vr.verified),
+        "status": str(vr.status),
+        "gaps": len(vr.gaps),
+        "failure_classes": dict(vr.failure_classes or {}),
+        "head_seq": head.get("seq"),
+        "canonical_entries": head.get("canonical_entries"),
+        "tail_timestamp": ts,
+        "tail_age_seconds": tail_age,
+        "signed_entries": vr.signed_entries,
+        "sig_enforce": bool(vr.sig_enforce),
+    }
+
+
+def _vault_writer_alive() -> bool:
+    """Writer heartbeat (:5001). ONE input — it may downgrade, never upgrade."""
+    for _url, _codes in (
+        ("http://localhost:5001/health", ("healthy",)),
+        ("http://localhost:8100/health", ("healthy", "ok", "alive")),
+    ):
+        try:
+            import urllib.request
+
+            with urllib.request.urlopen(_url, timeout=2) as resp:
+                if json.loads(resp.read().decode()).get("status") in _codes:
+                    return True
+        except Exception:
+            continue
+    return False
+
+
 def _probe_vault999_health() -> str:
-    """Best-effort vault999 health probe.
-    Prefers live writer (5001) + seal_chain_head (fs truth) over legacy 8100 container.
-    Fixes: vault999_health "unreachable"/None in arifOS /health report.
+    """Vault999 health = the STATE OF THE CHAIN, not the state of its writer.
 
-    A2 (branch fix/honest-green-2026-10-25) — TWO PRODUCERS, ONE VERDICT CLASS:
-      producer 1 = runtime/floor_producers._f13_sovereign — seal-chain SEMANTICS
-        (unreachable/empty/unreadable -> UNMEASURED; machine self-acceptance ->
-        FAIL); it never greens on presence alone,
-      producer 2 = this probe — vault LIVENESS.
-    Both must agree on the evidence class: when the only evidence is "files
-    exist", the verdict is presence_only -> PRESENCE_ONLY (amber), never
-    "healthy" (green) and never PASS.
+    Defect closed (333-AGI 2026-10-31): the previous version returned "healthy"
+    the moment the :5001 writer reported healthy. The canonical chain had been
+    silent 168h with 4 unexplained canonical gaps (3x SIGNATURE_FAIL, 1x
+    HASH_MISMATCH, signed_entries=0) and still rendered healthy — which then set
+    seal_readiness.ack_irreversible_gate = "passable". Writer liveness was
+    standing in for chain integrity: a receipt is not an outcome.
+
+    Order — first true statement wins, a later input may never upgrade it:
+      1 unreachable   no chain/head on disk
+      2 gaps_found    verify_chain(canonical).verified is False (count named)
+      3 stale         tail older than _VAULT_TAIL_MAX_AGE_S
+      4 presence_only verified + tail fresh but no readable timestamp
+      5 degraded      chain intact+fresh, writer heartbeat absent
+      6 healthy       chain verified AND tail fresh AND writer alive
     """
-    # 1. Live writer (canonical active path)
+    global _VAULT_LAST_EVIDENCE
+    if not all(os.path.exists(p) for p in _VAULT_CHAIN_PATHS):
+        _VAULT_LAST_EVIDENCE = {"state": "unreachable", "why": "chain_or_head_absent"}
+        return "unreachable"
     try:
-        import urllib.request
-
-        with urllib.request.urlopen("http://localhost:5001/health", timeout=2) as resp:
-            data = json.loads(resp.read().decode())
-            if data.get("status") == "healthy":
-                return "healthy"
-    except Exception:
+        ev = _vault_chain_evidence()
+    except Exception as exc:
         logger.exception("suppressed exception", exc_info=True)
-    # 2. Legacy API (if ever revived)
-    try:
-        with urllib.request.urlopen("http://localhost:8100/health", timeout=2) as resp:
-            data = json.loads(resp.read().decode())
-            if data.get("status") in ("healthy", "ok", "alive"):
-                return "healthy"
-    except Exception:
-        logger.exception("suppressed exception", exc_info=True)
-    # 3. FS-backed truth: seal_chain + head present + recent activity
-    #    A2 (fix/honest-green-2026-10-25): files existing (even fresh) is
-    #    PRESENCE, not liveness -> presence_only (amber). The old return value
-    #    here was the green half of the false-green: presence read as healthy.
-    try:
-        head_p = "/root/.local/share/arifos/vault999/seal_chain_head.json"
-        chain_p = "/root/.local/share/arifos/vault999/seal_chain.jsonl"
-        if os.path.exists(head_p) and os.path.exists(chain_p):
-            import time as _t
-
-            if _t.time() - os.path.getmtime(head_p) < 86400:  # within 24h
-                return "presence_only"
-            return "degraded"  # exists but stale
-    except Exception:
-        logger.exception("suppressed exception", exc_info=True)
-    return "unreachable"
+        _VAULT_LAST_EVIDENCE = {
+            "state": "degraded",
+            "why": f"chain_probe_error:{type(exc).__name__}",
+        }
+        return "degraded"
+    if not ev["verified"]:
+        state = "gaps_found"
+    elif ev["tail_age_seconds"] is None:
+        state = "presence_only"
+    elif ev["tail_age_seconds"] > _VAULT_TAIL_MAX_AGE_S:
+        state = "stale"
+    elif not _vault_writer_alive():
+        state = "degraded"
+    else:
+        state = "healthy"
+    ev["state"] = state
+    _VAULT_LAST_EVIDENCE = ev
+    return state
 
 
 def _get_vault_sealer_breaker_state() -> dict[str, Any]:
@@ -4990,6 +5045,9 @@ def register_rest_routes(
             },
             "seal_readiness": {
                 "vault999_health": _vault_health,
+                # 333-AGI 2026-10-31: a state word without its measurement is a
+                # label, not a receipt. Publish the chain's own evidence.
+                "vault999_probe": dict(_VAULT_LAST_EVIDENCE) or None,
                 "ack_irreversible_gate": ("passable" if _vault_health == "healthy" else "blocked"),
                 "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
                 "runtime_drift": runtime_drift_val,
