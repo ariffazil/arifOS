@@ -28929,8 +28929,41 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         }
 
     # Sync wrapper
+    def _g3_mode_guard(kw: dict[str, Any]) -> None:
+        """G3 — reject an undeclared `mode` as an MCP SEP-1303 tool error.
+
+        An undeclared mode is an INPUT VALIDATION ERROR: it must surface as a
+        TOOL EXECUTION ERROR (isError:true, actionable message) so the calling
+        model can read it and self-correct — not a protocol error, and not a
+        silent fall-through to a default branch.
+
+        Failure class closed (2026-08-12; re-measured 2026-10-29): on this
+        tree an undeclared mode made arif_observe raise UnboundLocalError and
+        made arif_judge silently enter the judgment path.
+
+        ONE implementation, called from BOTH wrappers — arif_observe is sync,
+        arif_judge is async. Keep them in step.
+        """
+        try:
+            from arifosmcp.runtime.input_contract import (
+                invalid_mode as _ic_invalid_mode,
+                invalid_mode_message as _ic_invalid_mode_msg,
+            )
+
+            bad_mode = _ic_invalid_mode(tool_name, kw, handler)
+        except Exception:  # fail-open: a guard bug must never break dispatch
+            return
+        if bad_mode is None:
+            return
+        from fastmcp.exceptions import ToolError as _ToolError
+
+        raise _ToolError(_ic_invalid_mode_msg(tool_name, bad_mode, handler))
+
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # ── G3 INVALID-MODE GUARD (Arif ratified 2026-10-29) ───────────────
+        _g3_mode_guard(kwargs)
 
         # INPUT CONTRACT — cheapest, most actionable check runs first.
         _ic_resp = _input_contract_gate(tool_name, kwargs)
@@ -29402,6 +29435,11 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
 
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # ── G3 INVALID-MODE GUARD (Arif ratified 2026-10-29) ───────────────
+        # Same guard as the sync wrapper — arif_judge is an async handler and
+        # was silently entering the judgment path on an undeclared mode.
+        _g3_mode_guard(kwargs)
 
         # INPUT CONTRACT — cheapest, most actionable check runs first.
         _ic_resp = _input_contract_gate(tool_name, kwargs)
