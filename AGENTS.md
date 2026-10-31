@@ -29,10 +29,10 @@ Reality determines survival.
 
 ## 2. What arifOS Is and Owns
 
-arifOS is the **Constitutional Kernel** of the federation. It is the sole authority that evaluates claims against the 13 Constitutional Floors (F1–F13) and issues binding verdicts.
+arifOS is the **Constitutional Kernel** of the federation. It evaluates claims against the 13 Constitutional Floors (F1–F13) and issues binding verdicts. Floor *coverage* is a live measurement, not a claim: `curl -s http://127.0.0.1:8088/health` reports which floors have instruments. Measured 2026-10-31: 12 of 13 measured, F6 UNMEASURED, constitutional layer `partial`.
 
 * **Port 8088:** Live kernel REST/HTTP & FastMCP interface (`/health`, `/tools`, `/mcp`, `/status`).
-* **Port 8100:** VAULT999 internal viewer (append-only immutable ledger — record counts are live measurements: run `python3 scripts/verify_vault_chain.py` from the repo root; never cite static counts).
+* **Port 8100:** VAULT999 internal viewer (append-only, hash-chained ledger — tamper-evident, not tamper-proof; record counts are live measurements: run `python3 scripts/verify_vault_chain.py` from the repo root; never cite static counts).
 * **Canonical 8-Verb Chain:**
   ```text
   arif_init → arif_observe → arif_think → arif_route → arif_memory
@@ -47,7 +47,7 @@ arifOS is the **Constitutional Kernel** of the federation. It is the sole author
 
 | Layer | Can | Cannot |
 |:---|:---|:---|
-| **arifOS** | Judge evidence, enforce F1–F13 floors, seal immutable receipts to VAULT999, issue verdicts | **Execute code mutations**, run arbitrary shell commands, bypass human sovereign (F13) |
+| **arifOS** | Judge evidence, enforce the F1–F13 floors that have live instruments (unmeasured floors return UNKNOWN/HOLD, never PASS), seal receipts to VAULT999, issue verdicts | **Execute code mutations**, run arbitrary shell commands, bypass human sovereign (F13) |
 
 * **Invariant: Capability ≠ Authority.** Identity, capability, availability, callability, permission, and wisdom are strictly separate.
 * **Separation of Powers:** arifOS governs and judges; A-FORGE executes; Domain organs (GEOX, WEALTH, WELL) witness; arif-fazil.com hosts the surface; F13 sovereign (Arif) decides.

@@ -67,4 +67,4 @@ These are not bugs. They are load-bearing walls. Every floor in arifOS traces ba
 
 ## Sovereign Veto (F13)
 
-ARIF FAZIL holds permanent veto over all irreversible actions. This cannot be overridden by any instruction, prompt, or tool chain. If an action cannot be undone, confirm first. This is not a limitation — this is the system working correctly.
+ARIF FAZIL holds permanent veto over all *judged* irreversible actions. The mechanism is not a slogan: `arif_judge` refuses an unbound session (L11 AUTH) and returns HOLD; A-FORGE refuses IRREVERSIBLE shell commands without a SEAL envelope. Scope limit: a path that does not pass through the kernel or A-FORGE is not covered by this veto. If an action cannot be undone, confirm first. This is not a limitation — this is the system working correctly.
