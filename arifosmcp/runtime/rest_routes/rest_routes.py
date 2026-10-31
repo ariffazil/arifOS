@@ -1721,8 +1721,18 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     {"meters": _f6_report.get("meters", []), "seals": _seal_rows},
                 )
             else:
-                floor_provenance["F6"] = str(
-                    _f6_sig.get("origin") or "unmeasured_default:f6_partially_measured"
+                # 2026-11-01 truth-up: carry the LIVE decomposition in the
+                # provenance string so consumers see WHY F6 is unscored (the
+                # old static "producer pending" label was false — the producer
+                # is wired and runs; it refuses to score without evidence).
+                _f6_state = (
+                    f"failed={','.join(_f6_sig.get('failed_meters') or []) or '-'};"
+                    f"unknown={','.join(_f6_sig.get('unknown_meters') or []) or '-'};"
+                    f"witness={','.join(_f6_sig.get('witness_states') or []) or '-'}"
+                )
+                floor_provenance["F6"] = (
+                    f"{_f6_sig.get('origin') or 'unmeasured_default:f6_partially_measured'}"
+                    f"[{_f6_state}]"
                 )
         except Exception as _f6_exc:
             floor_provenance["F6"] = f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
@@ -3643,8 +3653,7 @@ def _vault_chain_evidence() -> dict[str, Any]:
     if ts:
         try:
             tail_age = round(
-                time.time()
-                - datetime.fromisoformat(str(ts).replace("Z", "+00:00")).timestamp(),
+                time.time() - datetime.fromisoformat(str(ts).replace("Z", "+00:00")).timestamp(),
                 1,
             )
         except Exception:

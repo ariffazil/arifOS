@@ -945,9 +945,14 @@ def _governance_block() -> dict[str, dict[str, Any]]:
             # evaluation path (K12). UNMEASURED != PASS; absent != denied.
             if origin.startswith("unmeasured_default"):
                 is_placeholder = True
+                # 2026-11-01 truth-up: this label used to hardcode F6 commentary
+                # ("Maruah predicates live, producer pending") for ANY unmeasured
+                # floor, and the claim was stale — the F6 producer is wired and
+                # runs; it refuses to score without evidence. Carry the live
+                # origin instead of a fixed story.
                 placeholder_label = (
-                    "rest_routes._FLOOR_DEFAULTS (unmeasured — Maruah predicates live, "
-                    "producer pending; docs/canon/F6_MARUAH_CANON.md)"
+                    f"rest_routes._FLOOR_DEFAULTS (unmeasured — no scored "
+                    f"measurement; live origin: {origin})"
                 )
             elif "_skipped" in origin or score is None:
                 is_placeholder = True
@@ -973,7 +978,8 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                 "score": _pf(
                     None if is_placeholder else score,
                     source=(
-                        placeholder_label if is_placeholder
+                        placeholder_label
+                        if is_placeholder
                         else f"governance_kernel.get_current_state [{origin}]"
                     ),
                     state="unknown" if is_placeholder else "observed",
