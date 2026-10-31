@@ -9127,6 +9127,33 @@ def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+# P1-4 (repair-2026-11-01): risk takes the STRICTER of declared vs computed.
+# Unknown labels rank strictest (99) — an unrecognized declaration never
+# softens computed risk (fail-closed for the informational field).
+_RISK_AXIS_RANK: dict[str, dict[str, int]] = {
+    "reversibility": {
+        "reversible": 0, "trivial": 0, "low": 0, "partial": 0,
+        "hard": 1, "costly": 1, "semi_irreversible": 1, "medium": 1,
+        "irreversible": 2, "critical": 2, "r4": 2, "r5": 2,
+    },
+    "blast_radius": {
+        "reversible": 0, "low": 0, "l1_local": 0,
+        "medium": 1, "l2": 1,
+        "organ": 2, "high": 2, "l3": 2,
+        "critical": 3, "l3_critical": 3,
+        "federation": 4, "fed": 4, "global": 4, "r4": 4, "r5": 4,
+    },
+}
+
+
+def _stricter_risk_value(axis: str, a: Any, b: Any) -> Any:
+    """Strictest of two risk-axis values wins; unknown labels rank strictest."""
+    ranks = _RISK_AXIS_RANK[axis]
+    ra = ranks.get(str(a).strip().lower(), 99)
+    rb = ranks.get(str(b).strip().lower(), 99)
+    return a if ra >= rb else b
+
+
 def build_standard_mcp_result(
     *,
     tool: str,
@@ -9212,7 +9239,15 @@ def build_standard_mcp_result(
     # visible as tool_baseline so both facts survive.
     if risk_overrides:
         _tool_baseline = dict(risk)
-        risk.update({k: v for k, v in risk_overrides.items() if v is not None})
+        # P1-4: per-axis stricter-of — declared may RAISE computed risk but
+        # never soften it (and computed may raise a soft declaration).
+        for _k, _v in risk_overrides.items():
+            if _v is None:
+                continue
+            if _k in ("reversibility", "blast_radius") and _k in risk:
+                risk[_k] = _stricter_risk_value(_k, _v, risk[_k])
+            else:
+                risk[_k] = _v
         risk["subject"] = "judged_action"
         risk["tool_baseline"] = _tool_baseline
 

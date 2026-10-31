@@ -1367,6 +1367,12 @@ async def arif_judge(
                 "failure_type": "ARIF_SESSION_NOT_FOUND",
                 "detail": "Call arif_init(mode='init') first to bind a session.",
                 "remediation": _rem,
+                # P1-4: echo the caller's DECLARED risk — the envelope risk
+                # block must describe the ACTION, not the tool passport
+                # (sessionless had no meta echo → "reversible"/"medium"
+                # even for declared IRREVERSIBLE/federation).
+                **({"reversibility_level": reversibility_level} if reversibility_level else {}),
+                **({"blast_radius": blast_radius} if blast_radius else {}),
                 # Lane 1 (2026-10-28): an unverified actor gets the same evidence
                 # disclosure as a verified one — the HOLD must say WHY.
                 "judge_postcondition": _evidence_postcondition_report(

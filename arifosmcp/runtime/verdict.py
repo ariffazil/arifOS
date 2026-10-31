@@ -804,10 +804,22 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
 # verdict (effective=SABAR vs meta=HOLD). Same class as the carve-outs
 # above; fail-closed semantics for genuine kernel-lane divergence are
 # unchanged.
+# P1-4 (repair-2026-11-01, live repro): human remediation text sits under a
+# verdict-named key — four_plane_contract.py:239 writes
+#   human_required[] = {"decision": "Authorize {action}"}
+# (KX-009 instruction-to-human TEXT). The walker matched `decision` →
+#   UNKNOWN_VERDICT_TOKEN:remediation.human_required[0].decision=Authorize
+#   Delete VAULT999… (+ the meta.remediation copy) → INCONSISTENT_STATE →
+# forced HOLD on the whole envelope. Remediation is an instruction channel,
+# never a verdict channel: exclude the WHOLE remediation subtree. Kernel
+# verdicts elsewhere in the same envelope remain fully judged (fail-closed
+# divergence semantics unchanged).
 _NON_VERDICT_AXIS_PATHS_PRE = (
     "result.bridge_result.",
     "meta.zen_apex.",
     "meta.zen_witness.",
+    "remediation.",
+    "meta.remediation.",
 )
 
 # 2026-10-25 (333-AGI, live repro through arif_judge mode=validate):
