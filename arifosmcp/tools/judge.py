@@ -1279,6 +1279,27 @@ async def arif_judge(
         except (ValueError, TypeError):
             pass  # leave as-is; empty-evidence gate then HOLDs honestly
 
+    # ── P0-1 (repair-2026-11-01): a sovereign_receipt is a CLAIM ─────────────
+    # Until it resolves to a real ledger entry bound to THIS candidate and
+    # THIS actor (runtime/sovereign_receipt_verify.py), it must neither
+    # promote a verdict nor disarm a perimeter gate.
+    _receipt_verify: dict[str, Any] = {"verified": False, "reason": "NO_RECEIPT"}
+    if sovereign_receipt and str(sovereign_receipt).strip():
+        try:
+            from arifosmcp.runtime.sovereign_receipt_verify import (
+                verify_sovereign_receipt as _vsr,
+            )
+
+            _receipt_verify = _vsr(sovereign_receipt, candidate, actor_id=actor_id)
+        except Exception as _vsr_exc:  # noqa: BLE001 — fail closed, never crash a verdict
+            logger.warning("sovereign_receipt verification failed closed: %s", _vsr_exc)
+            _receipt_verify = {
+                "verified": False,
+                "reason": "VERIFIER_ERROR",
+                "error": str(_vsr_exc)[:200],
+            }
+    _receipt_verified = bool(_receipt_verify.get("verified"))
+
     # ── L11 AUTH: session gate (W1 fix 2026-10-15) ───────────────────────────
     # arif_observe enforced session binding; arif_judge did not — unbound
     # callers received status:"completed" verdict envelopes. Replicate the
@@ -1514,7 +1535,7 @@ async def arif_judge(
     )
     if (
         _is_destructive
-        and not sovereign_receipt
+        and not _receipt_verified
         and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
     ):
         _hard_reasons.append(
@@ -1532,7 +1553,7 @@ async def arif_judge(
     )
     if (
         _is_security_mutation
-        and not sovereign_receipt
+        and not _receipt_verified
         and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
     ):
         _hard_reasons.append(
@@ -1606,11 +1627,12 @@ async def arif_judge(
     # Gate 3: Critical blast radius requires sovereign receipt
     if (
         _br in ("CRITICAL", "L3_CRITICAL", "HIGH")
-        and not sovereign_receipt
+        and not _receipt_verified
         and action_tier == "standard"
     ):
         _hard_reasons.append(
-            f"Critical blast radius ({_br}) requires sovereign_receipt or action_tier=sovereign."
+            f"Critical blast radius ({_br}) requires a VERIFIED ledger-bound "
+            "sovereign_receipt or action_tier=sovereign."
         )
 
     # Gate 4: Action tier c4/c5 requires WELL attestation (cannot proceed without it)
@@ -1866,12 +1888,45 @@ async def arif_judge(
                 session_id=session_id,
             )
             _v_str = _intercept_res.get("decision") or _intercept_res.get("status") or "HOLD"
+            # ── P0-1: high-risk ALLOW requires substantive evidence ────────────
+            # MUTATE/IRREVERSIBLE (or blast >= ORGAN) may not reach ALLOW on
+            # session state alone; provenance-bearing evidence is mandatory.
+            _reason_highrisk: str | None = None
+            if _v_str in ("ALLOW", "OK"):
+                _hr_rev = str(_rev_param or "").upper()
+                _hr_br = str(blast_radius or "").upper()
+                _hr_class = str(action_class or "").upper()
+                _hr = _hr_rev in (
+                    "IRREVERSIBLE", "MUTATE", "ATOMIC", "SEAL",
+                    "R4", "R4_IRREVERSIBLE", "R5", "R5_IRREVERSIBLE",
+                ) or _hr_class in ("MUTATE", "IRREVERSIBLE") or _hr_br in (
+                    "ORGAN", "FEDERATION", "GLOBAL", "FED", "CRITICAL", "L3_CRITICAL", "HIGH",
+                )
+                if _hr:
+                    _hr_ev_ok = False
+                    try:
+                        from arifosmcp.runtime.judge_postcondition import (
+                            _evidence_has_provenance as _ehp,
+                        )
+
+                        _hr_ev = evidence if isinstance(evidence, dict) else {}
+                        _hr_ev_ok = bool(_hr_ev) and _ehp(_hr_ev)
+                    except Exception:
+                        _hr_ev_ok = False
+                    if not _hr_ev_ok:
+                        _v_str = "HOLD"
+                        _reason_highrisk = (
+                            "INSUFFICIENT_EVIDENCE_HIGH_RISK: MUTATE/IRREVERSIBLE or "
+                            f"blast_radius={_hr_br or 'UNSET'} requires substantive "
+                            "provenance-bearing evidence to reach ALLOW."
+                        )
             # Kernel intercept speaks ALLOW/DENY/ESCALATE; Lane A seal needs SEAL.
             # With F13 sovereign_receipt + REVERSIBLE/ATTEST, promote ALLOW → SEAL and
             # surface constitutional_chain_id / judge_state_hash for arif_seal (2026-07-30).
             _rev_u = str(_rev_param or "").upper()
             _br_u = str(blast_radius or "").upper()
-            _has_f13 = bool(sovereign_receipt and str(sovereign_receipt).strip())
+            # P0-1: only a VERIFIED ledger-bound receipt counts as F13 backing.
+            _has_f13 = _receipt_verified
             # Explicit only — empty rev/blast must not default to "safe".
             _safe_revs = (
                 "TRIVIAL",
@@ -1951,6 +2006,26 @@ async def arif_judge(
             except Exception as _pc_int_exc:  # noqa: BLE001 — never break a verdict
                 logger.warning("P0-1 intercept postcondition non-fatal: %s", _pc_int_exc)
 
+            # P0-1: enforce_ledger_gate ON for receipt-backed promotion paths —
+            # a verified receipt still cannot promote over an unverified chain head.
+            _reason_ledger: str | None = None
+            if _code == VerdictCode.SEAL and _has_f13:
+                try:
+                    from arifosmcp.runtime.judge_postcondition import (
+                        ledger_precheck as _lp_fn,
+                    )
+
+                    _lp = _lp_fn()
+                except Exception as _lp_exc:  # noqa: BLE001
+                    _lp = {"verified": False, "error": str(_lp_exc)[:200]}
+                if _lp.get("verified") is not True:
+                    _code = VerdictCode.HOLD
+                    _v_str = "HOLD"
+                    _reason_ledger = (
+                        "LEDGER_PRECHECK_FAILED: receipt-backed promotion requires a "
+                        f"verified seal-chain head; ledger_precheck={_lp}"
+                    )
+
             _cc_id = _intercept_res.get("constitutional_chain_id") or (
                 _intercept_res.get("output") or {}
             ).get("constitutional_chain_id")
@@ -1961,6 +2036,10 @@ async def arif_judge(
                 _intercept_res.get("reason")
                 or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
             ]
+            if _reason_highrisk:
+                _reasons.append(_reason_highrisk)
+            if _reason_ledger:
+                _reasons.append(_reason_ledger)
             if _code == VerdictCode.SEAL and _has_f13 and _v_str == "SEAL":
                 _reasons.append(
                     "F13 sovereign_receipt present — confirms passed intercept "
@@ -1984,6 +2063,8 @@ async def arif_judge(
                 "judge_state_hash": _jsh,
                 "f13_promoted_allow_to_seal": bool(_code == VerdictCode.SEAL and _has_f13),
                 "judge_postcondition": _ipc_report,
+                "sovereign_receipt_verification": _receipt_verify,
+                "enforce_ledger_gate": bool(_code == VerdictCode.SEAL and _has_f13),
             }
             # S2 FIX: reconcile kernel_intercept with effective_verdict.
             # If the verdict is HOLD (identity unverified, drift, etc.),
