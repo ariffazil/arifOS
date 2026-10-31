@@ -384,9 +384,30 @@ def probe_vault999() -> OrganStandardProbe:
             try:
                 with open(head_p, encoding="utf-8") as fh:
                     head = json.load(fh)
-                p.capability_registered = head.get("seq")
-                p.capability_declared = head.get("seq")
-                p.capability_drift = False
+                from arifosmcp.runtime.canonical_vault_chain import derive_head
+
+                derived = derive_head()
+                declared = head.get("seq")
+                registered = derived.get("canonical_entries", derived.get("seq"))
+                p.capability_registered = registered
+                p.capability_declared = declared
+                p.capability_drift = (
+                    None
+                    if registered is None or declared is None
+                    else registered != declared
+                )
+                if derived.get("timestamp"):
+                    from datetime import datetime as _dt
+
+                    p.evidence_age_seconds = max(
+                        0,
+                        int(
+                            time.time()
+                            - _dt.fromisoformat(
+                                str(derived["timestamp"]).replace("Z", "+00:00")
+                            ).timestamp()
+                        ),
+                    )
             except Exception:
                 p.capability_drift = None
             p.governance_session_required = True
@@ -396,7 +417,6 @@ def probe_vault999() -> OrganStandardProbe:
             p.transport_state = "degraded"
     else:
         p.transport_state = "unreachable"
-    p.evidence_age_seconds = 0
     p.overall_state, p.overall_reasons = _aggregate_overall(p)
     return p
 
