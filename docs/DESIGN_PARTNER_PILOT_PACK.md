@@ -11,10 +11,10 @@ Enterprises want to deploy autonomous AI agents to automate customer operations,
 - Prompt injection or autonomous action drift causes runaway API mutations.
 - Unchecked agents can initiate unauthorized payouts, purge customer records, or escalate privileges.
 
-**The Solution:** arifOS sits immediately before execution as a **zero-bypass constitutional control plane**. It decouples *machine intelligence* from *execution authority*:
+**The Solution:** arifOS sits before execution as a **constitutional control plane**. "Before execution" is literal: only calls routed through the kernel or A-FORGE pass the gate. It decouples *machine intelligence* from *execution authority*:
 > **Machine-Proposed Action ≠ Machine-Authorized Action**
 
-arifOS automatically allows bounded, low-risk operations at machine speed, intercepts high-impact or ambiguous actions for scoped human approval, and fail-closed blocks destructive actions—leaving a tamper-evident cryptographic receipt for every decision.
+arifOS classifies each call (OBSERVE → IRREVERSIBLE) at A-FORGE ingress. Reversible operations proceed with a session lease; IRREVERSIBLE shell commands require a SEAL envelope from `arif_judge`; unknown tools fall to the MUTATE floor and HOLD. Every decision writes a receipt. Coverage is per-tool: tools that do not route through A-FORGE are outside this boundary.
 
 ---
 
