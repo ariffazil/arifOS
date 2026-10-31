@@ -902,8 +902,17 @@ def _bijaksana_bridge_check(
     actor_Phi: dict[str, Any] | None,
     entropy_pathway: str | None,
     entropy_receipt: dict[str, Any] | None,
+    advisory_only: bool = False,
 ) -> dict[str, Any]:
-    """Compute the BIJAKSANA four-dial lens verdict."""
+    """Compute the BIJAKSANA four-dial lens verdict.
+
+    advisory_only (P0-3, repair-2026-11-01): the dials were AUTO-COMPUTED
+    telemetry (judge.py collapse trigger), not caller-asserted identity
+    measurements. Advisory dials record but never block for THIS gate —
+    BLOCK conditions downgrade to BRIDGE_PENDING with disclosure. Caller-
+    ASSERTED dials keep full bridge enforcement; the collapse trigger keeps
+    its own F13-ratified enforcement internally (COLLAPSE_TRIGGER_ENFORCE).
+    """
     reasons: list[str] = []
     dial_states: dict[str, Any] = {
         "dial_1_akal": None,
@@ -976,17 +985,28 @@ def _bijaksana_bridge_check(
     sabar_kind = None
 
     # BLOCK conditions (any one → HOLD)
+    _block_reason: str | None = None
     if dial_states["dial_1_akal"] in ("below_floor", "out_of_range"):
-        verdict = "BRIDGE_BLOCKED"
+        _block_reason = "dial_1_akal_below_floor"
     elif dial_states["dial_3_entropy_pathway"] == "sealed":
-        verdict = "BRIDGE_BLOCKED"
-        sabar_kind = "terminal_extract"
+        _block_reason = "dial_3_terminal_extract"
     elif (
         dial_states["dial_1_akal"] == "invalid"
         or dial_states["dial_3_entropy_pathway"] == "invalid"
         or dial_states["dial_2_present"] == "malformed"
     ):
+        _block_reason = "invalid_or_malformed_dial"
+    if _block_reason and advisory_only:
+        verdict = "BRIDGE_PENDING"
+        reasons.append(
+            "AUTO_DIALS_ADVISORY: collapse-trigger auto-computed dials are "
+            f"advisory (enforce=False) — {_block_reason} recorded, not "
+            "enforced (Phase-1 contract: observe-only, never blocks)."
+        )
+    elif _block_reason:
         verdict = "BRIDGE_BLOCKED"
+        if _block_reason == "dial_3_terminal_extract":
+            sabar_kind = "terminal_extract"
 
     # RESTRAIN conditions
     if verdict == "BRIDGE_PROCEED":
@@ -2229,9 +2249,11 @@ async def arif_judge(
     # ── APEX COLLAPSE TRIGGER AUTO-COMPUTE (Phase 1, 2026-08-02) ───────────────
     # If four-dial params (actor_B, actor_Phi, entropy_pathway, entropy_receipt)
     # are not explicitly provided, auto-compute them from the candidate text using
-    # the collapse trigger. Phase 1: observe-only, never blocks. Phase 2: gates
-    # enforcement when COLLAPSE_TRIGGER_ENFORCE=True.
+    # the collapse trigger. P0-3 (2026-11-01): these auto values are ADVISORY
+    # for the BIJAKSANA bridge (recorded, never blocking); the collapse trigger
+    # keeps its own F13-ratified enforcement (COLLAPSE_TRIGGER_ENFORCE) intact.
     # F1: fail-soft — collapse trigger failure never blocks arif_judge.
+    _dials_advisory = False
     if actor_B is None and candidate and str(candidate).strip():
         try:
             from arifosmcp.core.apex_collapse_trigger import collapse_json
@@ -2245,6 +2267,10 @@ async def arif_judge(
                 actor_id=actor_id or "unknown",
             )
             actor_B = _collapse_result.get("B_phi")
+            # P0-3: AUTO-COMPUTED telemetry — advisory FOR THE BRIDGE
+            # (the auto->bridge wiring predates both the bridge seal and
+            # collapse Phase-2; collapse keeps its OWN ratified enforcement).
+            _dials_advisory = True
             actor_Phi = {
                 "phi": _collapse_result["dials"].get("phi", 0.0),
                 "c_dark": _collapse_result.get("c_dark", 0.0),
@@ -2272,6 +2298,7 @@ async def arif_judge(
         actor_Phi=actor_Phi,
         entropy_pathway=entropy_pathway,
         entropy_receipt=entropy_receipt,
+        advisory_only=_dials_advisory,
     )
     global _LAST_BRIDGE_ADVISORY
     _LAST_BRIDGE_ADVISORY = _bridge_advisory
