@@ -33,7 +33,11 @@ jobs:
             set -euo pipefail
 
             cd /root/arifOS
-            git fetch origin main
+            # 2026-11-01: VPS checkout has NO 'origin' remote (runtime +
+            # vps-mirror only, and the mirror path is dead) — the old
+            # `git fetch origin main` made every deploy abort at set -e.
+            # Fetch the deploy SHA straight from GitHub (public repo).
+            git fetch https://github.com/ariffazil/arifOS.git main
             if [ "${{ github.event.inputs.dry_run }}" = "true" ] && [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
               echo "[DRY RUN] Verifying target SHA and deploy prerequisites only"
               git rev-parse "${{ github.sha }}"
