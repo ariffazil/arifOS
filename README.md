@@ -244,7 +244,8 @@ Claude Desktop — stdio bridge to the HTTP door:
 curl -s http://localhost:8088/mcp \
   -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
-# → 8 tools: arif_init arif_observe arif_think arif_route arif_memory arif_judge arif_forge arif_seal
+# → 9 tools: arif_init arif_observe arif_think arif_route arif_memory arif_judge arif_forge arif_seal arif_report
+# (surface measured 2026-11-01 — P1-5 identity truth-up)
 ```
 
 ### Session flow (agents start here)

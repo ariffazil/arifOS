@@ -4433,6 +4433,14 @@ def register_rest_routes(
             _attest = {}
             _sr_drift = False
         runtime_drift_val = runtime_drift_val or _sr_drift
+        # P1-5 (repair-2026-11-01): canonical identity surfaced at top level
+        # (audit D1 — six surfaces never agreed; now they render from one).
+        try:
+            from arifosmcp.runtime.deployment_identity import canonical_identity as _canonical_identity_h
+
+            _identity_h = _canonical_identity_h()
+        except Exception:  # noqa: BLE001 — health must never raise
+            _identity_h = {}
         c_dark_val = float(
             (thermo.get("apex_scalars", {}).get("C_dark", {}) or {}).get("value") or 0.0
         )
@@ -4840,6 +4848,17 @@ def register_rest_routes(
             "eureka_margin": _eureka_margin,
             "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
+            # P1-5: one canonical identity block (serverInfo/health/canon/
+            # server.json/registry all trace back to this source).
+            "identity": {
+                "source": _identity_h.get("source"),
+                "version": _identity_h.get("version"),
+                "deployed_commit": _identity_h.get("deployed_commit_short"),
+                "repo_head_commit": _identity_h.get("repo_head_commit"),
+                "repo_gap": _identity_h.get("repo_gap"),
+                "deployed_reachable": _identity_h.get("deployed_reachable"),
+                "drift": _identity_h.get("drift"),
+            },
             # ZEN 2026-09-02 (F13 'audit this and zen all'): the import path is
             # the runtime truth. Deploy markers once said "aligned" while the
             # service imported a stale venv site-packages copy (79 paths behind

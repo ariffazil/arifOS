@@ -8,13 +8,13 @@
     "source": "github"
   },
   "homepage": "https://arifos.arif-fazil.com",
-  "version": "1!2026.10.17",
+  "version": "1!2026.10.31",
   "license": "AGPL-3.0",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "arifos",
-      "version": "1!2026.10.17",
+      "version": "1!2026.10.31",
       "transport": {
         "type": "streamable-http",
         "url": "https://mcp.arif-fazil.com/mcp"
