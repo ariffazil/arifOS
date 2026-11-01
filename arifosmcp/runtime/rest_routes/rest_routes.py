@@ -3661,8 +3661,7 @@ def _vault_chain_evidence() -> dict[str, Any]:
     if ts:
         try:
             tail_age = round(
-                time.time()
-                - datetime.fromisoformat(str(ts).replace("Z", "+00:00")).timestamp(),
+                time.time() - datetime.fromisoformat(str(ts).replace("Z", "+00:00")).timestamp(),
                 1,
             )
         except Exception:
@@ -8364,14 +8363,19 @@ def register_rest_routes(
                         ),
                         "peace2": measurement_contract(
                             "peace2 (alias of peace_squared)",
-                            semantic_class="POLICY_CONSTANT",
+                            # KX010 truth-fix follow-up 2026-11-01 (4th callsite;
+                            # same F13 ruling as the 3-callsite fix 886174496):
+                            # peace2 is live governance-kernel telemetry — the
+                            # alias surface may not outlive the ruling as a
+                            # POLICY_CONSTANT label on another wire.
+                            semantic_class="UNKNOWN",
                             unit="1",
-                            measurement_method="same source as peace_squared: vitals remap",
-                            monotonic_drivers="none",
-                            falsification_test="none — constant",
-                            provenance_class="POLICY_DERIVED",
-                            calibration_status="POLICY_CONSTANT",
-                            decision_eligibility="DISPLAY_ONLY",
+                            measurement_method="same source as peace_squared: vitals remap of governance kernel telemetry; producer instrument unpinned",
+                            monotonic_drivers=["kernel stability events per report cycle"],
+                            falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
                             derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.peace_squared",
                         ),
                         "kappa_r": measurement_contract(
@@ -8480,14 +8484,14 @@ def register_rest_routes(
                         ),
                         "peace2": measurement_contract(
                             "peace2 (alias of peace_squared)",
-                            semantic_class="POLICY_CONSTANT",
+                            semantic_class="UNKNOWN",
                             unit="1",
-                            measurement_method="same source as peace_squared: vitals remap",
-                            monotonic_drivers="none",
-                            falsification_test="none — constant",
-                            provenance_class="POLICY_DERIVED",
-                            calibration_status="POLICY_CONSTANT",
-                            decision_eligibility="DISPLAY_ONLY",
+                            measurement_method="same source as peace_squared: vitals remap of governance kernel telemetry; producer instrument unpinned",
+                            monotonic_drivers=["kernel stability events per report cycle"],
+                            falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
                             derivation_ref="rest_routes.py /api/live/all governance <- thermodynamic.peace_squared",
                         ),
                     },
