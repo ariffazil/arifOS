@@ -245,6 +245,36 @@ async def arif_think(
     typed EvidenceObjects into the reasoning prompt. context.role and
     context.handoff remain the only context keys read.
     """
+    # ── HUMAN_RASA G3 wiring (2026-11-02, F13 'finish off all') ────────────
+    # Prohibited-inference lexical gate at the reasoning boundary (mind_reason
+    # was the named wiring point, former line 232). Gate verdict passes through
+    # AS-IS: ALLOW proceeds, HOLD returns suspensive, VOID refuses the
+    # prohibited class. Gate-VOID is a BOUNDARY refusal of a prohibited
+    # inference class about a person — constitutional VOID remains the
+    # kernel's alone (E1 correction 2026-11-01).
+    from arifosmcp.runtime.f6.inference_grammar import (
+        check_human_claim,
+        target_is_person,
+    )
+
+    _gate = check_human_claim(query, target_is_person(query))
+    if _gate["decision"] != "ALLOW":
+        return {
+            "status": _gate["decision"],
+            "gate": "f6.inference_grammar",
+            "hits": _gate["hits"],
+            "subject_is_person": _gate["subject_is_person"],
+            "reason": (
+                "prohibited-inference gate: reasoning about a person's inner "
+                "state refused at the reasoning boundary — observable "
+                "behaviour and first-person self-report only"
+            ),
+            "known_limit": _gate.get("known_limit"),
+            "query": query,
+            "session_id": session_id,
+            "actor_id": actor_id,
+        }
+
     if mode == "metabolize":
         from arifosmcp.schemas.mind_metabolism import MindRequest, ReasoningControl
 

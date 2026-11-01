@@ -14,6 +14,7 @@ from .extractors import (
 )
 from .policy_engine import MemoryPolicyEngine
 from .types import (
+    Authority,
     MemoryRecord,
     MemoryStatus,
     MemoryType,
@@ -78,15 +79,52 @@ class MemoryIngestionService:
             candidate.hash = self._compute_hash(candidate.content)
 
             # 3. Policy Evaluation
-            # TODO(HUMAN_RASA G2 — NOT WIRED BY DESIGN): consent_level is copied
-            # into the MemoryRecord below but never checked against a purpose-
-            # scoped consent grant. When ARIF approves the wiring, evaluate here
-            # via the READ-ONLY ledger reader:
-            #   consent_ledger.check_consent_from_ledger(scope_id, want_use=True,
-            #       requested_purpose=..., requested_modality=..., source_verified=True)
-            # and fail closed (UNKNOWN, never ALLOW) on any missing dependency.
-            # Blocked on sovereign decision: ledger file location + writer of
-            # record (env var NAME only: ARIFOS_CONSENT_LEDGER_PATH).
+            # HUMAN_RASA G2 wiring (2026-11-02, F13 "finish off all") — the
+            # TODO is now executed. Consent check runs when the candidate is
+            # person-scoped; fail-closed on every dependency problem:
+            #   scope_id present        → ledger lookup (UNKNOWN never ALLOW)
+            #   self-authored (EXPLICIT_USER, e.g. sovereign geometry intake)
+            #                           → pass-through, writer of record IS
+            #                             the subject (self-consent)
+            #   person-named, no scope  → BLOCKED (quarantine entry)
+            #   not person-scoped       → unchanged path
+            _scope_id = (candidate.source_ref or {}).get("consent_scope_id")
+            _self_auth = candidate.authority == Authority.EXPLICIT_USER
+            _person_scoped = bool(candidate.subject) and not _self_auth
+            _consent_block: dict[str, Any] | None = None
+            if _scope_id:
+                from arifosmcp.runtime.f6.consent_ledger import (
+                    check_consent_from_ledger,
+                )
+
+                _cc = check_consent_from_ledger(
+                    _scope_id,
+                    want_use=True,
+                    requested_purpose="memory",
+                    requested_modality="text",
+                    source_verified=True,
+                )
+                if _cc.get("decision") != "ALLOW":
+                    _consent_block = {
+                        "reason": "consent ledger deny/unknown — fail-closed",
+                        "consent": _cc,
+                    }
+            elif _person_scoped:
+                _consent_block = {
+                    "reason": ("person-scoped record without consent_scope_id — fail-closed (G2)"),
+                    "subject": candidate.subject,
+                }
+            if _consent_block is not None:
+                results.append(
+                    {
+                        "status": "BLOCKED",
+                        "reason": _consent_block["reason"],
+                        "consent": _consent_block.get("consent"),
+                        "subject": candidate.subject,
+                        "hash": candidate.hash,
+                    }
+                )
+                continue
             actor_role = ctx.get("actor_role", "user")
             allowed, reason, score = self.policy_engine.evaluate(candidate, actor_role, ctx)
 
