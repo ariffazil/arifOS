@@ -324,3 +324,73 @@ class TestFusionEdgeCases:
         # but the prohibited list is specifically for WELL
         # This test documents that ALL organs should respect boundaries
         pass
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# P0-2 RED SUITE — consent violation must reach the verdict (ARIFOS::HUMAN_RASA::P0)
+# Regression: compute_verdict used to honor only violations containing the
+# literal "prohibited inference", so a consent-only violation returned CLEAR.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class TestP02ConsentReachesVerdict:
+    """The canonical field (fusion_verdict) must agree with validate()."""
+
+    def _fresh_three_organ(self, finding: str):
+        fresh = datetime.now(timezone.utc) + timedelta(hours=24)
+        return [
+            OrganSignal(
+                organ=Organ.WELL,
+                truth_class=TruthClass.INT,
+                finding=finding,
+                provenance=["well-receipt:p02"],
+                authority="REFLECT_ONLY",
+                valid_until=fresh,
+            ),
+            OrganSignal(
+                organ=Organ.GEOX,
+                truth_class=TruthClass.OBS,
+                finding="seismic stable",
+                provenance=["geox-receipt:p02"],
+                valid_until=fresh,
+            ),
+            OrganSignal(
+                organ=Organ.WEALTH,
+                truth_class=TruthClass.DER,
+                finding="positive NPV",
+                provenance=["wealth-receipt:p02"],
+                valid_until=fresh,
+            ),
+        ]
+
+    def test_red_consent_violation_blocks_not_clear(self):
+        """RED: consent violation without clinical words must BLOCK, not CLEAR."""
+        bundle = build_federation_bundle(
+            subject_scope="P0-2 leak probe",
+            organ_signals=self._fresh_three_organ(
+                "Behavioral pattern: reply cadence changed this week"
+            ),
+            consent_lease=None,
+        )
+        ok, violations = bundle.validate()
+        assert not ok, "Expected consent violation from validate()"
+        assert any("consent" in v.lower() for v in violations), violations
+        assert bundle.fusion_verdict == FusionVerdict.BLOCKED, (
+            f"Consent violation must reach the verdict: got {bundle.fusion_verdict.value}"
+        )
+
+    def test_red_with_consent_not_blocked(self):
+        """Control: same signals with a consent lease are not blocked."""
+        bundle = build_federation_bundle(
+            subject_scope="P0-2 control",
+            organ_signals=self._fresh_three_organ(
+                "Behavioral pattern: reply cadence changed this week"
+            ),
+            consent_lease="consent:p02-2026-11-01",
+        )
+        assert bundle.fusion_verdict != FusionVerdict.BLOCKED, (
+            f"Consented bundle must not BLOCK: {bundle.fusion_verdict.value}"
+        )
+        assert bundle.fusion_verdict == FusionVerdict.CLEAR, (
+            f"Consented fresh 3-organ bundle should be CLEAR: {bundle.fusion_verdict.value}"
+        )
