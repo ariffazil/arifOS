@@ -28,7 +28,6 @@ Run:
 from __future__ import annotations
 
 import pytest
-
 from arifosmcp.runtime.f6.inference_grammar import (
     check_human_claim,
     target_is_person,

@@ -52,6 +52,10 @@ from arifosmcp.paradox import (
     inject_paradox_anchor,
     register_organ,
 )
+from arifosmcp.runtime.f6.inference_grammar import (
+    check_human_claim,
+    target_is_person,
+)
 from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
 
 _VAULT999_PATH = Path(
@@ -974,6 +978,55 @@ CRITIQUE_SCHEMA = {
 }
 
 
+# ── G3 Person-Target Guard (HUMAN_RASA P0, 2026-11-01) ───────────────────────
+
+
+def _schema_for_target(target: str) -> dict[str, Any]:
+    """Person targets never receive a `sentiment` field (prohibited inference).
+
+    Non-person targets keep the existing CRITIQUE_SCHEMA unchanged. For a
+    person target, `sentiment` is dropped and `inner_state` frozen to UNKNOWN.
+    """
+    if not target_is_person(target or ""):
+        return CRITIQUE_SCHEMA
+    props = {k: v for k, v in CRITIQUE_SCHEMA["properties"].items() if k != "sentiment"}
+    props["inner_state"] = {
+        "type": "string",
+        "enum": ["UNKNOWN"],
+        "description": (
+            "Inner state of a person target — always UNKNOWN (F6: third-party "
+            "inner state is never asserted)"
+        ),
+    }
+    return {**CRITIQUE_SCHEMA, "properties": props}
+
+
+def _apply_person_inner_state_guard(result: Any, target: str | None) -> Any:
+    """G3: person target → sentiment withheld, inner_state frozen to UNKNOWN.
+
+    Also runs the prohibited-inference lexical gate (check_human_claim) over
+    the target: any HOLD/VOID claim forces heart's ADVISORY status to HOLD —
+    heart never blesses content that asserts a third party's inner state.
+    Judge still decides; this only refuses to lend the claim a clean status.
+    """
+    if not isinstance(result, dict) or not target_is_person(target or ""):
+        return result
+    result.pop("sentiment", None)
+    result["inner_state"] = "UNKNOWN"
+    claim = check_human_claim(target or "", subject_is_person=True)
+    result["inference_grammar"] = claim
+    if claim["decision"] != "ALLOW":
+        result["status"] = "HOLD"
+        result["human_decision_required"] = True
+        result["action_risk_verdict"] = "HOLD"
+        result["caveats"] = result.get("caveats", []) + [
+            f"inference_grammar {claim['decision']}: prohibited inner-state claim "
+            f"about a person target ({len(claim['hits'])} hit(s)) — sentiment "
+            "withheld, inner_state=UNKNOWN"
+        ]
+    return result
+
+
 # ── Mode to Prompt Mapping ───────────────────────────────────────────────────
 
 _MODE_PROMPTS = {
@@ -1003,7 +1056,9 @@ Return outcomes[] and worst_case in the JSON schema.""",
 Identify the weakest stakeholder (most burdened).
 Calculate empathy_score on L06 scale [0.0–1.0].
 Provide a care_note with L06 empathy guidance.
-Return empathy_score, weakest_stakeholder, human_impact_load, sentiment, care_note.""",
+Return empathy_score, weakest_stakeholder, human_impact_load, sentiment, care_note.
+If the TARGET is a person, do NOT assess their inner state — sentiment is not
+yours to emit; inner_state must be UNKNOWN.""",
     "redteam": """Red-team this action: identify potential attack vectors and failure modes.
 What could go wrong? What would a malicious actor exploit?
 Provide specific attacks[] and mitigations[].
@@ -1065,7 +1120,7 @@ A response without "risks_found" will be REJECTED. Return ONLY valid JSON, no ma
         envelope = await call_llm(
             system=SYSTEM_PROMPT,
             user=user,
-            response_schema=CRITIQUE_SCHEMA,
+            response_schema=_schema_for_target(target),
             temperature=0.3,
             max_tokens=2500,  # Increased from 1200 — CRITIQUE_SCHEMA is large (8 risk
             # categories × nested objects + metadata). FED-FEDERATION truncates at lower limits.
@@ -1959,6 +2014,7 @@ async def arif_critique(
             context_type=_ct,
             trace_recursion_depth=trace_recursion_depth,
         )
+        fb = _apply_person_inner_state_guard(fb, target)
         if isinstance(fb, dict) and _standing_token:
             fb["session_token"] = _standing_token
         return fb
@@ -2171,6 +2227,11 @@ async def arif_critique(
         result["caveats"] = result.get("caveats", []) + [
             f"Ω₁ flagged: auto-revise recommended — P(truth)={omega_state['p_truth']}"
         ]
+
+    # ── G3 person-target guard (HUMAN_RASA P0) ──────────────────────────────
+    # Person target: sentiment withheld, inner_state frozen to UNKNOWN; a
+    # prohibited-inference claim about the person forces HOLD advisory status.
+    result = _apply_person_inner_state_guard(result, target)
 
     # ── Final Verdict Logic ──
     llm_ok = result.get("_llm_available", True) is not False
