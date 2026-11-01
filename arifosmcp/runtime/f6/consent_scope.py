@@ -8,6 +8,10 @@ Implements F6 v0 Tertib Kerja #4 (Meter 6 — Consent yang sah):
     `inferred_from_confidence` is always rejected).
   - Fresh consent for an irrelevant subject/resource (`requested_subject != scope.subject`)
     never passes (`DENY_OUT_OF_SCOPE`).
+  - G2 (HUMAN_RASA P0, 2026-11-01): purpose/modality are FAIL-CLOSED axes the
+    moment either side declares them, or the scope names a human `data_subject`
+    — mismatch is `DENY_OUT_OF_SCOPE`, missing on either side is `UNKNOWN`
+    (never ALLOW). File-backed read-only ledger lookup lives in `consent_ledger.py`.
   - If the consent source is missing or unverified, reports the dependency and
     remains `UNKNOWN` (never fabricated as ALLOW/PASS).
 """
@@ -24,9 +28,9 @@ SCHEMA = "arifos.f6.consent_scope.v1"
 class ConsentSource:
     """Only legitimate sources count. Anything else = no consent exists."""
 
-    OPERATOR_DECLARATION = "OPERATOR_DECLARATION"   # F13/operator written grant
-    CONFIG_SURFACE = "CONFIG_SURFACE"               # allowlist/permit file
-    INFERENCE = "INFERENCE"                         # FORBIDDEN as consent
+    OPERATOR_DECLARATION = "OPERATOR_DECLARATION"  # F13/operator written grant
+    CONFIG_SURFACE = "CONFIG_SURFACE"  # allowlist/permit file
+    INFERENCE = "INFERENCE"  # FORBIDDEN as consent
 
 
 class ConsentDecision:
@@ -36,9 +40,9 @@ class ConsentDecision:
     DENY_CONSENT_STALE = "DENY_CONSENT_STALE"
     DENY_REVOKED = "DENY_REVOKED"
     DENY_DELEGATION_WIDENED = "DENY_DELEGATION_WIDENED"
-    DENY_USE_NOT_GRANTED = "DENY_USE_NOT_GRANTED"   # access yes, use/disclose no
+    DENY_USE_NOT_GRANTED = "DENY_USE_NOT_GRANTED"  # access yes, use/disclose no
     DENY_INFERRED_CONSENT = "DENY_INFERRED_CONSENT"
-    UNKNOWN = "UNKNOWN"                             # missing source — never faked
+    UNKNOWN = "UNKNOWN"  # missing source — never faked
 
 
 def _parse_utc(ts_str: str) -> datetime:
@@ -53,17 +57,27 @@ class ConsentScope:
     """A recorded consent grant from a LEGITIMATE source."""
 
     scope_id: str
-    subject: str            # what data/system (never a human's identity score)
-    source: str             # ConsentSource (INFERENCE is rejected)
-    can_access: bool        # permission to read/access
-    can_use: bool           # permission to use in outputs/computation
-    can_disclose: bool      # permission to disclose to third parties / shared channels
-    not_after: str          # ISO UTC — consent expires
+    subject: str  # what data/system (never a human's identity score)
+    source: str  # ConsentSource (INFERENCE is rejected)
+    can_access: bool  # permission to read/access
+    can_use: bool  # permission to use in outputs/computation
+    can_disclose: bool  # permission to disclose to third parties / shared channels
+    not_after: str  # ISO UTC — consent expires
     not_before: Optional[str] = None
     revoked: bool = False
     allowed_recipients: Optional[list[str]] = None
     parent_scope: Optional["ConsentScope"] = None
     meta: dict[str, Any] = field(default_factory=dict)
+    # G2 — HUMAN_RASA P0 remediation (2026-11-01): person-data context fields.
+    # Optional so legacy system-only scopes keep their shape; when the axis is
+    # in play, check_consent is FAIL-CLOSED (mismatch -> DENY_OUT_OF_SCOPE,
+    # missing on either side -> UNKNOWN, never ALLOW).
+    data_subject: Optional[str] = None  # the human person the data is about
+    purpose: Optional[str] = None  # declared purpose of the grant
+    modality: Optional[str] = None  # form covered (text/audio/image/...)
+    processor: Optional[str] = None  # who processes data under this grant
+    derived_features: Optional[list[str]] = None  # derived features permitted
+    withdrawal_effect: Optional[str] = None  # what withdrawal/revocation triggers
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -77,21 +91,41 @@ def _check_consent_delegation(child: ConsentScope, now: datetime) -> tuple[bool,
     while curr.parent_scope is not None:
         depth += 1
         if depth > 8:
-            return False, ConsentDecision.DENY_DELEGATION_WIDENED, "consent delegation depth exceeded"
+            return (
+                False,
+                ConsentDecision.DENY_DELEGATION_WIDENED,
+                "consent delegation depth exceeded",
+            )
         parent = curr.parent_scope
         if parent.scope_id in visited:
-            return False, ConsentDecision.DENY_DELEGATION_WIDENED, "consent delegation cycle detected"
+            return (
+                False,
+                ConsentDecision.DENY_DELEGATION_WIDENED,
+                "consent delegation cycle detected",
+            )
         visited.add(parent.scope_id)
 
         if parent.revoked:
-            return False, ConsentDecision.DENY_REVOKED, f"parent consent '{parent.scope_id}' revoked"
+            return (
+                False,
+                ConsentDecision.DENY_REVOKED,
+                f"parent consent '{parent.scope_id}' revoked",
+            )
         if parent.source == ConsentSource.INFERENCE:
-            return False, ConsentDecision.DENY_INFERRED_CONSENT, "parent consent derived from inference"
+            return (
+                False,
+                ConsentDecision.DENY_INFERRED_CONSENT,
+                "parent consent derived from inference",
+            )
         try:
             p_na = _parse_utc(parent.not_after)
             c_na = _parse_utc(curr.not_after)
             if now > p_na:
-                return False, ConsentDecision.DENY_CONSENT_STALE, f"parent consent '{parent.scope_id}' expired"
+                return (
+                    False,
+                    ConsentDecision.DENY_CONSENT_STALE,
+                    f"parent consent '{parent.scope_id}' expired",
+                )
             if c_na > p_na:
                 return (
                     False,
@@ -108,11 +142,23 @@ def _check_consent_delegation(child: ConsentScope, now: datetime) -> tuple[bool,
                 f"delegated consent subject '{curr.subject}' != parent subject '{parent.subject}'",
             )
         if curr.can_access and not parent.can_access:
-            return False, ConsentDecision.DENY_DELEGATION_WIDENED, "delegated consent widened can_access"
+            return (
+                False,
+                ConsentDecision.DENY_DELEGATION_WIDENED,
+                "delegated consent widened can_access",
+            )
         if curr.can_use and not parent.can_use:
-            return False, ConsentDecision.DENY_DELEGATION_WIDENED, "delegated consent widened can_use"
+            return (
+                False,
+                ConsentDecision.DENY_DELEGATION_WIDENED,
+                "delegated consent widened can_use",
+            )
         if curr.can_disclose and not parent.can_disclose:
-            return False, ConsentDecision.DENY_DELEGATION_WIDENED, "delegated consent widened can_disclose"
+            return (
+                False,
+                ConsentDecision.DENY_DELEGATION_WIDENED,
+                "delegated consent widened can_disclose",
+            )
         if parent.allowed_recipients is not None:
             if curr.allowed_recipients is None or not set(curr.allowed_recipients).issubset(
                 set(parent.allowed_recipients)
@@ -137,6 +183,8 @@ def check_consent(
     requested_recipient: Optional[str] = None,
     revocation_store: Optional[Any] = None,
     model_confidence: Optional[float] = None,
+    requested_purpose: Optional[str] = None,
+    requested_modality: Optional[str] = None,
 ) -> dict[str, Any]:
     """Evaluate a requested access/use/disclose action against CURRENT consent scope.
 
@@ -147,6 +195,10 @@ def check_consent(
         reported (never fabricated as ALLOW).
       - `requested_subject` mismatch -> `DENY_OUT_OF_SCOPE` (fresh consent for
         subject A does not authorize subject B).
+      - Purpose / modality axes (G2): in play when either side declares a value,
+        or when `scope.data_subject` names a human person (purpose is then
+        always load-bearing). In play + mismatch -> `DENY_OUT_OF_SCOPE`;
+        in play + missing on either side -> `UNKNOWN` (never ALLOW).
       - Revoked scope (or revoked ancestor) -> `DENY_REVOKED`.
       - Delegated scope widening parent -> `DENY_DELEGATION_WIDENED`.
       - Expired consent -> `DENY_CONSENT_STALE`.
@@ -240,6 +292,33 @@ def check_consent(
         out["decision"] = ConsentDecision.UNKNOWN
         out["reason"] = "consent expiry unparseable — fail-closed"
         return out
+
+    # Purpose / modality axes (G2 — fail-closed the moment the axis is in play)
+    for axis, requested in (("purpose", requested_purpose), ("modality", requested_modality)):
+        scoped = getattr(scope, axis)
+        in_play = (
+            scoped is not None
+            or requested is not None
+            or (axis == "purpose" and scope.data_subject is not None)
+        )
+        if not in_play:
+            continue  # legacy system-only scope: axis never declared, behaviour unchanged
+        if scoped is None or requested is None:
+            missing = f"scope.{axis}" if scoped is None else f"requested_{axis}"
+            out["decision"] = ConsentDecision.UNKNOWN
+            out["reason"] = (
+                f"{axis} axis in play (data_subject={scope.data_subject!r}) but "
+                f"{missing} is missing — consent without a matching {axis} "
+                "resolves to UNKNOWN, never ALLOW"
+            )
+            return out
+        if scoped != requested:
+            out["decision"] = ConsentDecision.DENY_OUT_OF_SCOPE
+            out["reason"] = (
+                f"consent {axis} '{scoped}' does not cover requested {axis} "
+                f"'{requested}' — fresh irrelevant consent never passes"
+            )
+            return out
 
     # Distinct permission axes: access vs use vs disclose
     if want_access and not scope.can_access:
