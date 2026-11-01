@@ -5201,16 +5201,22 @@ def register_rest_routes(
                         decision_eligibility="NONE",
                         derivation_ref="rest_routes.py thermodynamic block <- telemetry.dS",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py thermodynamic block <- telemetry.peace2",
                     ),
                     "vitality_index": measurement_contract(
@@ -5375,16 +5381,22 @@ def register_rest_routes(
                         decision_eligibility="ADVISORY",
                         derivation_ref="rest_routes.py governance block <- telemetry.psi_le",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py governance block <- telemetry.peace2",
                     ),
                 },
@@ -6116,16 +6128,22 @@ def register_rest_routes(
                         decision_eligibility="NONE",
                         derivation_ref="rest_routes.py /metrics/json <- telemetry.dS",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py /metrics/json <- telemetry.peace2",
                     ),
                     "vitality_index": measurement_contract(
