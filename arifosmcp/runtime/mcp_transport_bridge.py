@@ -118,6 +118,21 @@ ERR_UNSUPPORTED_VERSION = -32022  # UnsupportedProtocolVersion
 # ═══════════════════════════════════════════════════════════════
 
 
+def _server_version() -> str:
+    """The ONE build identity, from the ONE source.
+
+    Every MCP surface (discover, initialize, /health) must report this. Fail-open
+    to an honest "kanon-unknown" — never to a hardcoded date, which is a lie that
+    survives every deploy (F2 TRUTH / F7 HUMILITY).
+    """
+    try:
+        from arifosmcp.runtime.deployment_identity import canonical_identity
+
+        return canonical_identity().get("version") or "kanon-unknown"
+    except Exception:
+        return "kanon-unknown"
+
+
 class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
     """
     Dual-era protocol gate (2025-11-25 + 2026-07-28).
@@ -622,7 +637,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 "_meta": {
                     "io.modelcontextprotocol/serverInfo": {
                         "name": "ARIFOS MCP",
-                        "version": "kanon-2026.08.09",
+                        "version": _server_version(),
                         "websiteUrl": "https://mcp.arif-fazil.com",
                     },
                     "io.modelcontextprotocol/protocolVersion": LATEST_PROTOCOL_VERSION,
@@ -662,7 +677,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 },
                 "serverInfo": {
                     "name": "ARIFOS MCP",
-                    "version": "kanon-2026.08.09",
+                    "version": _server_version(),
                     "websiteUrl": "https://mcp.arif-fazil.com",
                 },
                 "instructions": (
@@ -676,7 +691,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 "_meta": {
                     "io.modelcontextprotocol/serverInfo": {
                         "name": "ARIFOS MCP",
-                        "version": "kanon-2026.08.09",
+                        "version": _server_version(),
                         "websiteUrl": "https://mcp.arif-fazil.com",
                     },
                     "io.modelcontextprotocol/protocolVersion": LATEST_PROTOCOL_VERSION,
