@@ -8296,12 +8296,25 @@ def register_rest_routes(
             floors_passing = 0
             floors_failing = 0
             for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:])):
-                score = float(
-                    governance_floor_scores.get(
-                        law_id,
-                        _FLOOR_DEFAULTS.get(law_id, 0.0),
-                    )
-                )
+                # 2026-11-01 (api_live/all 500 fix): 1d1a042bd made unmeasured
+                # floors publish None IN PLACE (key present, value null). The
+                # old .get(law_id, default) only fires on ABSENT keys, so
+                # float(None) crashed the whole composite. FAILURE-CLASS-
+                # SEPARATION: an unmeasured floor is neither pass nor fail —
+                # it renders "unmeasured" with score null and counts in
+                # neither aggregate. Placeholder defaults stay banned from
+                # rendering pass (SCAR-OBS-GREENWASH).
+                raw_score = governance_floor_scores.get(law_id)
+                if raw_score is None:
+                    raw_score = _FLOOR_DEFAULTS.get(law_id)
+                if raw_score is None:
+                    governance_floors[law_id] = {
+                        "name": law_id,
+                        "status": "unmeasured",
+                        "score": None,
+                    }
+                    continue
+                score = float(raw_score)
                 floor_passes = _floor_passes(law_id, score)
                 if floor_passes:
                     floors_passing += 1
