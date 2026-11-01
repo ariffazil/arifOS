@@ -1786,6 +1786,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
         )
+
+    # 2026-11-01 (F13 order, analytics): an unmeasured floor must not publish a score.
+    # Measured defect: /health published F6 = 0.70, F7 = 0.04, F4 = 0.80 while all
+    # three statuses said `unmeasured` and their origins said `unmeasured_default*`.
+    # None of those numbers is a reading:
+    #   0.70 is F6's pass threshold   (_representative_floor_score, ">=" -> threshold)
+    #   0.04 is F7's representative in-band constant ("range" -> low + 0.01)
+    #   0.80 is F4's placeholder 0.0 pushed through the ΔS normalisation curve
+    # A consumer reading only runtime_floors reads a threshold or a constant as a
+    # measurement. Absence stays absence (K2): publish null, keep the reason in
+    # runtime_floors_status. Floors with a real producer/probe origin are untouched.
+    for _fid, _origin in list(floor_provenance.items()):
+        if str(_origin).startswith("unmeasured_default"):
+            resolved_floors[_fid] = None
     # SCAR-OBS-GREENWASH / DEFAULT_TRI_WITNESS (2026-10-03): this used to be
     #   {k: witness.get(k) if witness.get(k) not in (None, 0.0) else v
     #        for k, v in _WITNESS_DEFAULTS.items()}
@@ -2131,19 +2145,23 @@ def _render_status_html(payload: dict[str, Any]) -> str:
     vitals = payload["machine_vitals"]
     witness = payload["witness"]
 
+    def _floor_cell(law_id: str) -> str:
+        """Render one floor. A null score renders as no-measurement, never a pass.
+
+        2026-11-01: runtime_floors publishes null for a floor whose origin is an
+        unmeasured default (see the provenance guard in the health builder). This
+        renderer used floors.get(law_id, default), which returns the None instead
+        of the default — float(None) crashed the whole /status page.
+        """
+        raw = floors.get(law_id)
+        if raw is None:
+            return f'<div class="floor unmeasured"><strong>{law_id}</strong><span>—</span></div>'
+        value = float(raw)
+        cls = "pass" if _floor_passes(law_id, value) else "fail"
+        return f'<div class="floor {cls}"><strong>{law_id}</strong><span>{value:.3f}</span></div>'
+
     floor_html = "".join(
-        '<div class="floor {}"><strong>{}</strong><span>{:.3f}</span></div>'.format(
-            (
-                "pass"
-                if _floor_passes(
-                    law_id,
-                    float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
-                )
-                else "fail"
-            ),
-            law_id,
-            float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
-        )
+        _floor_cell(law_id)
         for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:]))
     )
 
@@ -2315,7 +2333,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
   <section class="panel">
     <div class="floor-mosaic">
-      {{floor_html}}
+      {floor_html}
     </div>
     <p style="margin-top:1rem; color:#92a1b5;">Each floor is rendered as a status chip that pulses when passing and glows red when locked.</p>
   </section>
@@ -4433,14 +4451,6 @@ def register_rest_routes(
             _attest = {}
             _sr_drift = False
         runtime_drift_val = runtime_drift_val or _sr_drift
-        # P1-5 (repair-2026-11-01): canonical identity surfaced at top level
-        # (audit D1 — six surfaces never agreed; now they render from one).
-        try:
-            from arifosmcp.runtime.deployment_identity import canonical_identity as _canonical_identity_h
-
-            _identity_h = _canonical_identity_h()
-        except Exception:  # noqa: BLE001 — health must never raise
-            _identity_h = {}
         c_dark_val = float(
             (thermo.get("apex_scalars", {}).get("C_dark", {}) or {}).get("value") or 0.0
         )
@@ -4848,17 +4858,6 @@ def register_rest_routes(
             "eureka_margin": _eureka_margin,
             "layer_health": _layer_health,
             "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
-            # P1-5: one canonical identity block (serverInfo/health/canon/
-            # server.json/registry all trace back to this source).
-            "identity": {
-                "source": _identity_h.get("source"),
-                "version": _identity_h.get("version"),
-                "deployed_commit": _identity_h.get("deployed_commit_short"),
-                "repo_head_commit": _identity_h.get("repo_head_commit"),
-                "repo_gap": _identity_h.get("repo_gap"),
-                "deployed_reachable": _identity_h.get("deployed_reachable"),
-                "drift": _identity_h.get("drift"),
-            },
             # ZEN 2026-09-02 (F13 'audit this and zen all'): the import path is
             # the runtime truth. Deploy markers once said "aligned" while the
             # service imported a stale venv site-packages copy (79 paths behind
