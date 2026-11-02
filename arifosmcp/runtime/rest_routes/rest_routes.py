@@ -1801,6 +1801,65 @@ def _build_governance_status_payload() -> dict[str, Any]:
             ),
             "definition_source": "floor_producers._f2_truth coverage contract §5",
         }
+
+        # F7 HUMILITY (Gate 4, F13 2026-11-02): Ω₀ uncertainty-band discipline.
+        # Canon defines the semantics: core/shared/types.py AgiMetrics.omega_0
+        # Field(ge=0.03, le=0.05) HARD ("F7: Ω₀ ∈ [0.03, 0.05]"); mottos.py
+        # Ω₀ ≈ 0.04. The kernel must DECLARE a nonzero irreducible-uncertainty
+        # bound inside the band, the validation constraint must actually reject
+        # out-of-band values (tested live below), and nothing may publish
+        # perfect certainty. Score = the Ω₀ value itself (range-pass semantics —
+        # never the 1.0 predicate projection, which would sit outside the band).
+        try:
+            from core.shared.mottos import PromptManifold as _F7Manifold
+
+            _f7_omega = float(_F7Manifold().omega_0)
+        except Exception:
+            _f7_omega = None
+        _f7_band: Any = None
+        _f7_enforced: Any = None
+        try:
+            from core.shared.types import AgiMetrics as _F7Metrics
+            from annotated_types import Ge as _F7Ge, Le as _F7Le
+
+            _f7_field = _F7Metrics.model_fields["omega_0"]
+            _f7_band = [
+                next(float(m.ge) for m in _f7_field.metadata if isinstance(m, _F7Ge)),
+                next(float(m.le) for m in _f7_field.metadata if isinstance(m, _F7Le)),
+            ]
+            try:
+                _F7Metrics(
+                    truth_score=0.99, delta_s=-0.1, omega_0=0.9, precision=1.0, free_energy=0.0
+                )
+                _f7_enforced = False  # out-of-band Ω₀ accepted — constraint decorative
+            except Exception:
+                _f7_enforced = True
+        except Exception:
+            _f7_band = None
+            _f7_enforced = None
+        _f7_sig = collect_floor_producer_signal(
+            "F7",
+            sources={
+                "omega_0": _f7_omega,
+                "band": _f7_band,
+                "constraint_enforced": _f7_enforced,
+            },
+        )
+        if _f7_sig.get("status") in _producer_score:
+            resolved_floors["F7"] = (
+                float(_f7_sig["omega_0"])
+                if _f7_sig.get("status") == "PASS"
+                else _producer_score[_f7_sig["status"]]
+            )
+            floor_provenance["F7"] = (
+                f"floor_producer:{_f7_sig['status']}:{_f7_sig.get('origin')}"
+                f"@{_f7_sig.get('measured_at') or now_iso()}"
+            )
+        measurement_basis["f7_humility"] = {
+            _k: _f7_sig[_k]
+            for _k in ("status", "origin", "omega_0", "band", "shadow_residual")
+            if _k in _f7_sig
+        }
     except Exception as _fp_exc:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"

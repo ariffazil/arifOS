@@ -115,6 +115,14 @@ _FLOOR_CONTRACT_LABELS: dict[str, dict[str, Any]] = {
             "ratifier or signature falsifies it"
         ),
     },
+    "F7": {
+        "falsification_test": (
+            "re-read AgiMetrics.omega_0 and the manifold constant; an Ω₀ "
+            "outside [0.03,0.05], a decorative constraint that accepts "
+            "out-of-band values, or a published confidence of 1.0 "
+            "falsifies the humility reading"
+        ),
+    },
 }
 
 # Default for floors with no producer wired here (F3/F4/F9 land here) and for
@@ -1061,10 +1069,99 @@ def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+# ── F7 HUMILITY (Gate 4, F13 directive 2026-11-02) ──────────────────────────
+# Ω₀ uncertainty-band discipline. Canon already defines the semantics:
+#   core/shared/types.py   AgiMetrics.omega_0 Field(ge=0.03, le=0.05) HARD
+#                          ("F7: Ω₀ ∈ [0.03, 0.05]"; AgiMetrics docstring
+#                          names F7 among the floors it enforces)
+#   core/shared/mottos.py  Ω₀ ≈ 0.04 — "Fundamental uncertainty is law,
+#                          not weakness" (PromptManifold.omega_0)
+# Independent of F6 (no dignity/meters) and F8 (no contradiction register):
+# F7 restrains CERTAINTY claims — the kernel must declare a nonzero
+# irreducible-uncertainty bound inside the band, the validation constraint
+# must actually reject out-of-band values, and nothing may publish perfect
+# certainty. Score = the Ω₀ value itself, so the reading lives in its own
+# band (range-pass semantics — never the 1.0 predicate projection).
+_F7_HUMILITY_FAIL = "FAIL"
+
+
+def _f7_humility(sources: dict[str, Any]) -> dict[str, Any]:
+    omega = sources.get("omega_0")
+    band = sources.get("band")
+    if omega is None:
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_unreadable",
+        }
+    try:
+        omega = float(omega)
+    except (TypeError, ValueError):
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_malformed",
+        }
+    if not band or len(band) != 2:
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_band_unextractable",
+        }
+    try:
+        lo, hi = float(band[0]), float(band[1])
+    except (TypeError, ValueError):
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_band_malformed",
+        }
+    if sources.get("constraint_enforced") is False:
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_omega0_band",
+            "reason": "band_constraint_not_enforced",
+            "omega_0": omega,
+        }
+    if not (lo <= omega <= hi):
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_omega0_band",
+            "reason": "omega0_outside_band",
+            "omega_0": omega,
+            "band": [lo, hi],
+        }
+    max_conf = sources.get("max_published_confidence")
+    if max_conf is not None and float(max_conf) >= 1.0:
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_certainty_claim",
+            "reason": "perfect_certainty_published",
+            "max_confidence": max_conf,
+        }
+    return {
+        "floor": "F7",
+        "status": "PASS",
+        "origin": "f7_omega0_band",
+        "omega_0": omega,
+        "band": [lo, hi],
+        "constraint_enforced": bool(sources.get("constraint_enforced")),
+        "shadow_residual": (
+            "Ω₀ declared + constraint enforced; per-verdict Ω₀ exercise on "
+            "live MCP responses not yet measured (K11: declared ≠ exercised)"
+        ),
+    }
+
+
 _PRODUCERS = {
     "F2": _f2_truth,
     "F5": _f5_peace,
     "F6": _f6_maruah,
+    "F7": _f7_humility,
     "F8": _f8_logic,
     "F10": _f10_ontology,
     "F11": _f11_audit,
@@ -1129,10 +1226,11 @@ _FLOOR_ONTOLOGY: dict[str, dict[str, Any]] = {
         "producer_instrument": "floor_producers._f6_maruah",
     },
     "F7": {
-        "value_kind": "predicate",
-        "direction": "none",
-        "scope": "epistemic restraint — no independent producer instrument wired",
-        "producer_instrument": "none (independent F7 contract pending; F6 canon must not be duplicated)",
+        "value_kind": "score", "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "Ω₀ uncertainty-band discipline (AgiMetrics.omega_0 ∈ [0.03,0.05] HARD)",
+        "producer_instrument": "floor_producers._f7_humility (Ω₀ band + constraint enforcement)",
+        "display_transform": "score IS Ω₀ (≈0.04); in-band = pass; never projected to 1.00",
     },
     "F8": {
         "value_kind": "predicate",
