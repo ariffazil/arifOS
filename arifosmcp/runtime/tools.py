@@ -23222,7 +23222,10 @@ async def _arif_vault_seal_tool(
     from arifosmcp.runtime.session_auth import validate_session as _vs_seal
 
     _auth_seal = _vs_seal(session_id, actor_id, session_token=session_token)
-    if not _auth_seal.get("valid"):
+    if not _auth_seal.get("valid") and mode != "ledger":
+        # FIX 2026-11-02 (civfork blocker #1): mode=ledger is L0_OBSERVE --
+        # sessionless observers reach the metadata-only reader downstream
+        # (head_hash + entry_count, no content). All other modes stay gated.
         return {
             "status": "HOLD",
             "tool": "arif_seal",
@@ -23241,7 +23244,8 @@ async def _arif_vault_seal_tool(
 
     try:
         # Verify mode is read-only — no irreversible ack needed
-        if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit"):
+        if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit", "ledger"):
+            # ledger joins read-only set: no elicitation, no irreversible ack (FIX 2026-11-02)
             ack_irreversible = True
             hold = None
         else:

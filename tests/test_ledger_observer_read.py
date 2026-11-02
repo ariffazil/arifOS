@@ -89,3 +89,9 @@ def test_ledger_registered_session_discloses_content():
     assert res["content_disclosed"] is True
     assert "ledger" in res
     assert res["head_hash"] is not None or res["entry_count"] == 0
+
+
+def test_seal_tool_ledger_bypasses_session_gate():
+    src = (REPO / "arifosmcp/runtime/tools.py").read_text()
+    assert 'and mode != "ledger"' in src, "async wrapper must exempt ledger from L11 gate"
+    assert '"audit", "ledger")' in src, "ledger must join the read-only ack set"
