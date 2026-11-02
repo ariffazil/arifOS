@@ -1721,10 +1721,11 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     {"meters": _f6_report.get("meters", []), "seals": _seal_rows},
                 )
             else:
-                # 2026-11-01 truth-up: carry the LIVE decomposition in the
-                # provenance string so consumers see WHY F6 is unscored (the
-                # old static "producer pending" label was false — the producer
-                # is wired and runs; it refuses to score without evidence).
+                # 2026-11-01 truth-up (GitHub lineage): carry the LIVE
+                # decomposition in the provenance string so consumers see WHY
+                # F6 is unscored (the old static "producer pending" label was
+                # false — the producer is wired and runs; it refuses to score
+                # without evidence).
                 _f6_state = (
                     f"failed={','.join(_f6_sig.get('failed_meters') or []) or '-'};"
                     f"unknown={','.join(_f6_sig.get('unknown_meters') or []) or '-'};"
@@ -1796,6 +1797,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
         )
+
+    # 2026-11-01 (F13 order, analytics): an unmeasured floor must not publish a score.
+    # Measured defect: /health published F6 = 0.70, F7 = 0.04, F4 = 0.80 while all
+    # three statuses said `unmeasured` and their origins said `unmeasured_default*`.
+    # None of those numbers is a reading:
+    #   0.70 is F6's pass threshold   (_representative_floor_score, ">=" -> threshold)
+    #   0.04 is F7's representative in-band constant ("range" -> low + 0.01)
+    #   0.80 is F4's placeholder 0.0 pushed through the ΔS normalisation curve
+    # A consumer reading only runtime_floors reads a threshold or a constant as a
+    # measurement. Absence stays absence (K2): publish null, keep the reason in
+    # runtime_floors_status. Floors with a real producer/probe origin are untouched.
+    for _fid, _origin in list(floor_provenance.items()):
+        if str(_origin).startswith("unmeasured_default"):
+            resolved_floors[_fid] = None
     # SCAR-OBS-GREENWASH / DEFAULT_TRI_WITNESS (2026-10-03): this used to be
     #   {k: witness.get(k) if witness.get(k) not in (None, 0.0) else v
     #        for k, v in _WITNESS_DEFAULTS.items()}
@@ -2141,19 +2156,23 @@ def _render_status_html(payload: dict[str, Any]) -> str:
     vitals = payload["machine_vitals"]
     witness = payload["witness"]
 
+    def _floor_cell(law_id: str) -> str:
+        """Render one floor. A null score renders as no-measurement, never a pass.
+
+        2026-11-01: runtime_floors publishes null for a floor whose origin is an
+        unmeasured default (see the provenance guard in the health builder). This
+        renderer used floors.get(law_id, default), which returns the None instead
+        of the default — float(None) crashed the whole /status page.
+        """
+        raw = floors.get(law_id)
+        if raw is None:
+            return f'<div class="floor unmeasured"><strong>{law_id}</strong><span>—</span></div>'
+        value = float(raw)
+        cls = "pass" if _floor_passes(law_id, value) else "fail"
+        return f'<div class="floor {cls}"><strong>{law_id}</strong><span>{value:.3f}</span></div>'
+
     floor_html = "".join(
-        '<div class="floor {}"><strong>{}</strong><span>{:.3f}</span></div>'.format(
-            (
-                "pass"
-                if _floor_passes(
-                    law_id,
-                    float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
-                )
-                else "fail"
-            ),
-            law_id,
-            float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
-        )
+        _floor_cell(law_id)
         for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:]))
     )
 
@@ -2325,7 +2344,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
   <section class="panel">
     <div class="floor-mosaic">
-      {{floor_html}}
+      {floor_html}
     </div>
     <p style="margin-top:1rem; color:#92a1b5;">Each floor is rendered as a status chip that pulses when passing and glows red when locked.</p>
   </section>
@@ -5192,16 +5211,22 @@ def register_rest_routes(
                         decision_eligibility="NONE",
                         derivation_ref="rest_routes.py thermodynamic block <- telemetry.dS",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py thermodynamic block <- telemetry.peace2",
                     ),
                     "vitality_index": measurement_contract(
@@ -5366,16 +5391,22 @@ def register_rest_routes(
                         decision_eligibility="ADVISORY",
                         derivation_ref="rest_routes.py governance block <- telemetry.psi_le",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py governance block <- telemetry.peace2",
                     ),
                 },
@@ -6107,16 +6138,22 @@ def register_rest_routes(
                         decision_eligibility="NONE",
                         derivation_ref="rest_routes.py /metrics/json <- telemetry.dS",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py /metrics/json <- telemetry.peace2",
                     ),
                     "vitality_index": measurement_contract(
@@ -8270,12 +8307,25 @@ def register_rest_routes(
             floors_passing = 0
             floors_failing = 0
             for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:])):
-                score = float(
-                    governance_floor_scores.get(
-                        law_id,
-                        _FLOOR_DEFAULTS.get(law_id, 0.0),
-                    )
-                )
+                # 2026-11-01 (api_live/all 500 fix): 1d1a042bd made unmeasured
+                # floors publish None IN PLACE (key present, value null). The
+                # old .get(law_id, default) only fires on ABSENT keys, so
+                # float(None) crashed the whole composite. FAILURE-CLASS-
+                # SEPARATION: an unmeasured floor is neither pass nor fail —
+                # it renders "unmeasured" with score null and counts in
+                # neither aggregate. Placeholder defaults stay banned from
+                # rendering pass (SCAR-OBS-GREENWASH).
+                raw_score = governance_floor_scores.get(law_id)
+                if raw_score is None:
+                    raw_score = _FLOOR_DEFAULTS.get(law_id)
+                if raw_score is None:
+                    governance_floors[law_id] = {
+                        "name": law_id,
+                        "status": "unmeasured",
+                        "score": None,
+                    }
+                    continue
+                score = float(raw_score)
                 floor_passes = _floor_passes(law_id, score)
                 if floor_passes:
                     floors_passing += 1
@@ -8337,14 +8387,19 @@ def register_rest_routes(
                         ),
                         "peace2": measurement_contract(
                             "peace2 (alias of peace_squared)",
-                            semantic_class="POLICY_CONSTANT",
+                            # KX010 truth-fix follow-up 2026-11-01 (4th callsite;
+                            # same F13 ruling as the 3-callsite fix 886174496):
+                            # peace2 is live governance-kernel telemetry — the
+                            # alias surface may not outlive the ruling as a
+                            # POLICY_CONSTANT label on another wire.
+                            semantic_class="UNKNOWN",
                             unit="1",
-                            measurement_method="same source as peace_squared: vitals remap",
-                            monotonic_drivers="none",
-                            falsification_test="none — constant",
-                            provenance_class="POLICY_DERIVED",
-                            calibration_status="POLICY_CONSTANT",
-                            decision_eligibility="DISPLAY_ONLY",
+                            measurement_method="same source as peace_squared: vitals remap of governance kernel telemetry; producer instrument unpinned",
+                            monotonic_drivers=["kernel stability events per report cycle"],
+                            falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
                             derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.peace_squared",
                         ),
                         "kappa_r": measurement_contract(
@@ -8453,14 +8508,14 @@ def register_rest_routes(
                         ),
                         "peace2": measurement_contract(
                             "peace2 (alias of peace_squared)",
-                            semantic_class="POLICY_CONSTANT",
+                            semantic_class="UNKNOWN",
                             unit="1",
-                            measurement_method="same source as peace_squared: vitals remap",
-                            monotonic_drivers="none",
-                            falsification_test="none — constant",
-                            provenance_class="POLICY_DERIVED",
-                            calibration_status="POLICY_CONSTANT",
-                            decision_eligibility="DISPLAY_ONLY",
+                            measurement_method="same source as peace_squared: vitals remap of governance kernel telemetry; producer instrument unpinned",
+                            monotonic_drivers=["kernel stability events per report cycle"],
+                            falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
                             derivation_ref="rest_routes.py /api/live/all governance <- thermodynamic.peace_squared",
                         ),
                     },

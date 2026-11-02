@@ -162,7 +162,7 @@ Mode:         polling
 DM Policy:    pairing
 Group Policy: open
 Streaming:    partial
-Token:        8697661462:AAHo_UP0LzKAuM1zBTitFVRm6PDIMASVBtQ
+Token:        [REDACTED-TELEGRAM-TOKEN]
 Last In:      8m ago
 ```
 

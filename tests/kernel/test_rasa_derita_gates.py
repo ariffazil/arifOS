@@ -121,6 +121,47 @@ class TestConsentLeaseGate:
         v = validate_consent_lease(_valid_lease())
         assert v.passed
 
+    # ── P0-1 red suite: human-data scope must bind subject/modality/retention ──
+
+    def test_p01_red_infer_scope_without_subject_holds(self):
+        """RED: scope=infer with no subject/modality/retention -> 888_HOLD."""
+        v = validate_consent_lease(
+            _valid_lease(scope=["infer"], subject=None, modality=None, retention=None)
+        )
+        assert not v.passed, "infer scope without a data subject must HOLD"
+        assert any("subject" in r for r in v.reasons), v.reasons
+        assert any("retention" in r for r in v.reasons), v.reasons
+
+    def test_p01_red_profile_scope_without_subject_holds(self):
+        v = validate_consent_lease(_valid_lease(scope=["profile"]))
+        assert not v.passed, "profile scope without a data subject must HOLD"
+        assert any("subject" in r for r in v.reasons), v.reasons
+
+    def test_p01_human_scope_with_full_binding_passes(self):
+        v = validate_consent_lease(
+            _valid_lease(
+                scope=["infer"],
+                subject="corpus-subject-01",
+                modality="text",
+                retention={"max_age_days": 90},
+            )
+        )
+        assert v.passed, v.reasons
+        assert v.details.get("subject") == "corpus-subject-01"
+
+    def test_p01_non_human_scope_needs_no_subject(self):
+        """actuate/store (ratified fixture) must keep passing without subject."""
+        v = validate_consent_lease(_valid_lease())
+        assert v.passed, v.reasons
+
+    def test_p01_composite_gate_propagates_hold(self):
+        v = evaluate_mutation_gates(
+            mode="profile",
+            consent_lease=_valid_lease(scope=["profile"]),
+        )
+        assert not v.passed
+        assert v.code == "888_HOLD"
+
 
 class TestCompositeMutationGates:
     def test_deploy_without_cascade_or_consent_holds(self):

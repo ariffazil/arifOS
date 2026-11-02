@@ -222,6 +222,58 @@ def test_setitik_self_check() -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# P0-3 SUBJECT SCOPE RED SUITE (ARIFOS::HUMAN_RASA::P0, 2026-11-01)
+# A text-honesty score attached to a human being is a person score → VOID.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def test_setitik_red_human_message_refused() -> None:
+    """RED: subject_class='human_message' → refusal, zero scores, no signals."""
+    from arifosmcp.core.kernel.setitik_budi import nilai_budi
+
+    s = nilai_budi("Awak dah makan? Jangan stress sangat, ya.", subject_class="human_message")
+    assert s.refused, f"Expected refusal, got classification={s.classification}"
+    assert s.classification == "OUT_OF_SCOPE", f"Expected OUT_OF_SCOPE, got {s.classification}"
+    assert s.budi_weight == 0.0 and s.kaparinyo_score == 0.0, (
+        f"Refusal must carry no score: budi={s.budi_weight} kaparinyo={s.kaparinyo_score}"
+    )
+    assert not s.honesty_signals and not s.simulation_signals, (
+        "Refusal must happen BEFORE signal extraction — no signals about a person"
+    )
+
+
+def test_setitik_red_person_subject_refused_with_honest_text() -> None:
+    """RED: even an 'honest-sounding' human text gets no honesty number."""
+    from arifosmcp.core.kernel.setitik_budi import nilai_budi
+
+    s = nilai_budi("Saya tak tahu nak cakap apa. Source: perbualan peribadi.", subject_class="person")
+    assert s.refused and s.budi_weight == 0.0, (
+        f"Honest-sounding person text must still be refused: {s.classification}"
+    )
+
+
+def test_setitik_p03_receipt_default_unchanged() -> None:
+    """P0-3 back-compat: default subject is receipts; ratified scores unchanged."""
+    from arifosmcp.core.kernel.setitik_budi import nilai_budi
+
+    s = nilai_budi("Salam jumaat. Hang jangan stress2 mail.")
+    assert not s.refused and s.subject_class == "receipt"
+    assert s.classification == "SETITIK" and s.budi_weight >= 0.55, (
+        f"Ratified behavior must not change: {s.classification} {s.budi_weight}"
+    )
+
+
+def test_setitik_p03_output_in_scope() -> None:
+    """'output' declared subject stays scorable — contract, not a blanket clamp."""
+    from arifosmcp.core.kernel.setitik_budi import nilai_budi
+
+    s = nilai_budi("Q3 production: 88,000 boe/d (-12%). Source: internal report.", subject_class="output")
+    assert not s.refused and s.classification != "OUT_OF_SCOPE", (
+        f"'output' must remain in scope: {s.classification}"
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # SEHATI BINDING TESTS
 # ═══════════════════════════════════════════════════════════════════════════════
 

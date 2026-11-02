@@ -778,13 +778,26 @@ def _resolve_git_commit() -> str:
 
 from datetime import UTC, datetime  # noqa: E402
 
-_DEPLOY_GIT_COMMIT = _resolve_git_commit()
-_DEPLOY_BUILD_DATE = datetime.now(UTC).strftime("%Y.%m.%d")
-_DEPLOY_VERSION = (
-    f"kanon-{_DEPLOY_BUILD_DATE}+{_DEPLOY_GIT_COMMIT}"
-    if _DEPLOY_GIT_COMMIT != "unknown"
-    else f"kanon-{_DEPLOY_BUILD_DATE}"
-)
+# P1-5 (repair-2026-11-01): render FROM canonical identity — one source for
+# every surface. The old generator used datetime.now() for the date, so
+# serverInfo's version mutated daily and disagreed with canon/health/
+# server.json. Stamp mtime is the stable build date.
+try:
+    from arifosmcp.runtime.deployment_identity import canonical_identity as _canonical_identity
+
+    _IDENTITY = _canonical_identity()
+    _DEPLOY_GIT_COMMIT = _IDENTITY.get("deployed_commit_short") or "unknown"
+    _DEPLOY_BUILD_DATE = (_IDENTITY.get("build_date") or "unknown").replace("-", ".")
+    _DEPLOY_VERSION = _IDENTITY.get("version") or f"kanon-{_DEPLOY_BUILD_DATE}"
+except Exception:  # noqa: BLE001 — serverInfo must never wedge startup
+    logger.exception("canonical identity unavailable; falling back to stamp chain")
+    _DEPLOY_GIT_COMMIT = _resolve_git_commit()
+    _DEPLOY_BUILD_DATE = datetime.now(UTC).strftime("%Y.%m.%d")
+    _DEPLOY_VERSION = (
+        f"kanon-{_DEPLOY_BUILD_DATE}+{_DEPLOY_GIT_COMMIT}"
+        if _DEPLOY_GIT_COMMIT != "unknown"
+        else f"kanon-{_DEPLOY_BUILD_DATE}"
+    )
 
 
 mcp = FastMCP(
