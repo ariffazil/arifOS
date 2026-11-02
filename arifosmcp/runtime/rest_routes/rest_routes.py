@@ -4134,6 +4134,106 @@ def _compute_known_gaps(
     return gaps
 
 
+# ── Blocker #7 (civfork gap-map 2026-11-02): flat-default scalar labels ──
+# The numeric leaves of /health's thermodynamic block are telemetry
+# observations — but when the governance-kernel event log is empty the
+# kernel returns structural baselines (SCAR-OBS-GREENWASH: "peace2 0.5,
+# kappa_r 0.5, shadow 0.0 ... placeholders exactly like _FLOOR_DEFAULTS").
+# The floors side labels those `unmeasured_default`; the scalar side
+# rendered the same bare numbers with no label, which is how a structural
+# baseline reads as a measurement. `scalar_provenance` applies the floors'
+# discipline to each leaf. Labels only — no value, status, or verdict
+# math is touched (KX-010 A6 condition 2), and each label must stay
+# consistent with that leaf's measurement_contract entry.
+_THERMO_SCALAR_BASELINES: dict[str, float] = {
+    # Only values the SCAR-OBS-GREENWASH doctrine names, or that are
+    # structurally zero-on-empty per their own derivation formula.
+    # No invented baselines — an unverified baseline stays out.
+    "entropy_delta": 0.0,
+    "peace_squared": 0.5,
+    "kappa_r": 0.5,
+    "echo_debt": 0.0,
+    "shadow": 0.0,
+    "vitality_index": 0.0,  # honest memory integral (chain_length x seal_rate): 0 on empty chain
+}
+_THERMO_POLICY_CONSTANTS = frozenset({"kappa_r", "confidence"})
+
+
+def _thermo_scalar_provenance(name: str, value: Any, *, event_log_empty: bool) -> str:
+    """Classify one thermodynamic scalar leaf (Blocker #7, 2026-11-02).
+
+    MEASURED            live telemetry observation in the probe window
+    DEFAULT_UNMEASURED  structural baseline rendered because the producing
+                        signal never existed (empty governance-kernel event log)
+    POLICY_CONSTANT     declared constant — agrees with the leaf's contract
+    ABSENT              no value at all (telemetry key missing/unparseable)
+    """
+    if name in _THERMO_POLICY_CONSTANTS:
+        return "POLICY_CONSTANT"
+    if value is None:
+        return "ABSENT"
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return "ABSENT"
+    baseline = _THERMO_SCALAR_BASELINES.get(name)
+    if event_log_empty and baseline is not None and v == baseline:
+        return "DEFAULT_UNMEASURED"
+    return "MEASURED"
+
+
+def _thermo_scalar_provenance_block(telemetry: dict[str, Any]) -> dict[str, Any]:
+    """Build the scalar_provenance sub-block for /health's thermodynamic dict.
+
+    Single probe call (reality_scoring.probe_governance_kernel_events — the
+    same emptiness detector the floors side defers to). On probe failure the
+    block fails toward honesty: baseline-equal values label
+    DEFAULT_UNMEASURED rather than silently reading as measurements.
+    """
+    has_history = False
+    detail = "probe_unavailable"
+    try:
+        from arifosmcp.runtime.reality_scoring import probe_governance_kernel_events
+
+        has_history, detail = probe_governance_kernel_events()
+    except Exception as exc:  # noqa: BLE001 — labels must never break /health
+        detail = f"probe_error: {exc}"[:200]
+    labels = {
+        "entropy_delta": _thermo_scalar_provenance(
+            "entropy_delta", telemetry.get("dS"), event_log_empty=not has_history
+        ),
+        "peace_squared": _thermo_scalar_provenance(
+            "peace_squared", telemetry.get("peace2"), event_log_empty=not has_history
+        ),
+        "vitality_index": _thermo_scalar_provenance(
+            "vitality_index", telemetry.get("psi_le"), event_log_empty=not has_history
+        ),
+        "kappa_r": _thermo_scalar_provenance(
+            "kappa_r", telemetry.get("kappa_r"), event_log_empty=not has_history
+        ),
+        "echo_debt": _thermo_scalar_provenance(
+            "echo_debt", telemetry.get("echoDebt"), event_log_empty=not has_history
+        ),
+        "shadow": _thermo_scalar_provenance(
+            "shadow", telemetry.get("shadow"), event_log_empty=not has_history
+        ),
+        "confidence": _thermo_scalar_provenance(
+            "confidence", telemetry.get("confidence"), event_log_empty=not has_history
+        ),
+    }
+    return {
+        # Out of scope by the same KX-010 roster that excluded metabolic_stage:
+        # `witness` (leg dict, not a scalar) and `metabolic_stage` (no producer
+        # contract authorized).
+        "labels": labels,
+        "basis": {
+            "event_log_has_history": bool(has_history),
+            "detail": str(detail)[:200],
+            "detector": "reality_scoring.probe_governance_kernel_events",
+        },
+    }
+
+
 def register_rest_routes(
     mcp: Any,
     tool_registry: dict[str, Callable],
@@ -5382,6 +5482,14 @@ def register_rest_routes(
                         derivation_ref="rest_routes.py thermodynamic block <- resolved_witness",
                     ),
                 },
+                # Blocker #7 (civfork gap-map 2026-11-02): the floors block
+                # labels flat defaults `unmeasured_default` (SCAR-OBS-
+                # GREENWASH); the thermodynamic scalar leaves rendered the
+                # same bare numbers with no label, so a structural baseline
+                # read as a measurement (the peace2=0.5 pattern). Same
+                # discipline, scalar side. Labels only — no value, status,
+                # or verdict math touched (KX-010 A6 condition 2).
+                "scalar_provenance": _thermo_scalar_provenance_block(telemetry),
             },
             # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
             # Computed from live tool call metrics over 24h window.

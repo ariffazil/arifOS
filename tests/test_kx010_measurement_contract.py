@@ -175,7 +175,16 @@ ROSTER_MEASUREMENT_BASIS = {
     "C_dark",
 }
 
-ROSTER_MEASUREMENT_BASIS_BLOCKS = {"f6_maruah", "f8_g_basis"}
+# f2_coverage joins the block roster: its contracts live under the F2
+# coverage producer (Gate 1+2, F13 directive 2026-11-02, commit
+# 7784b823f) — not the VD-888-KX010 contract roster. Same named-debt
+# treatment as f6_maruah / f8_g_basis; classified, not silent.
+# f2_coverage + f7_humility join the block roster: their contracts live
+# under their own floor-producer gates (F13 directives 2026-11-02 —
+# f2_coverage: Gate 1+2, commit 7784b823f; f7_humility omega_0: Gate 4,
+# commit 860dded22) — not the VD-888-KX010 contract roster. Same
+# named-debt treatment as f6_maruah / f8_g_basis; classified, not silent.
+ROSTER_MEASUREMENT_BASIS_BLOCKS = {"f6_maruah", "f8_g_basis", "f2_coverage", "f7_humility"}
 
 ROSTER_EUREKA_MARGIN = {
     "n_act",
