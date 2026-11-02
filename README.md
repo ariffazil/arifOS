@@ -15,6 +15,15 @@
 > Known gaps: [What Is Not Yet Proven](#what-is-not-yet-proven)
 <!-- GENERATED:CURRENT-STATE:END -->
 
+## Apa ni sebenarnya?
+
+arifOS bukan AI dan bukan chatbot. Ia mahkamah dasar (Policy Decision Point) untuk tindakan ejen AI: model boleh berfikir dan mengusul, tapi arifOS yang putuskan adakah cadangan itu layak dilaksana — sebahagian pintu keputusannya deterministik (kod Python keras, `llm_consulted: false`), bukan AI yang menilai keselamatan tindakannya sendiri. Bayang macam Permit-to-Work di pelantar minyak: jurutera (model AI) pintar tapi bukan pemegang risiko; bilik PTW (arifOS) yang putuskan boleh masuk ke tidak; bengkel (A-FORGE) baru buka kunci peralatan bila permit keluar; dan setiap kerja dicetak resit berantai (VAULT999, tamper-evident — sejarah yang disunting secara senyap akan pecahkan rantaian). Kuasa ditetapkan oleh rangka, bukan oleh kebijakan mana-mana model:
+
+MODEL/AGENT mengusul → arifOS menghakimi kelayakan → ARIF pegang veto berdaulat → A-FORGE laksana tindakan berpermit → FRAME menyaksi akibat → VAULT999 simpan resit → AAA atur perhatian & koordinasi. Tiada komponen waris kuasa komponen lain secara senyap.
+
+arifOS dihidupkan sebagai pelayan MCP (`pip install arifos`). Bilangan tool, port, dan status lantai ialah fakta runtime — rujuk endpoint hidup (`:8088/health`, `tools/list`), bukan nombor dalam mana-mana ayat statik, termasuk ayat ini.
+
+
 <!-- SOT-MANIFEST
 last_verified: 2026-10-25T09:37:18+00:00
 live_commit: 0c8873e0e (fix(manifests): regenerate llms.txt mirrors from generator — drop unsupported re)
