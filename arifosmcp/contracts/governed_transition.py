@@ -358,19 +358,25 @@ class LegacySealProjection:
 FORMULA_VERSION_REGISTRY = {
     "apex-g-v2-runtime": {
         "formula": "A * P * E * X * Phi",
-        "status": "CURRENT_OBSERVED_IMPLEMENTATION",
+        "status": "DEPRECATED_OBSERVED",
         "source": "arifosmcp/geometry/eureka_zen.py:246",
-        "epistemic_class": "heuristic_scoring",
-        "description": "5-factor product runtime function.",
+        "epistemic_class": "legacy_heuristic_scoring",
+        "description": "5-factor product. Still present at legacy call-sites; "
+        "MUST NOT share numeric thresholds with V3 (scale differs).",
     },
     "apex-g-v3-proposed": {
         "formula": "(A * P * E * X) ** 0.25",
-        "status": "CANONICAL_CANDIDATE",
-        "source": "core/laws.py / ADR-015",
+        "status": "CANONICAL_ACTIVE",
+        "source": "arifosmcp/runtime/apex_canonical.py:573 (ADR-015)",
         "epistemic_class": "heuristic_aggregate",
-        "description": "4-factor geometric mean candidate. Phi separated as scar gate.",
+        "description": "4-factor geometric mean. Canonical since V3; Phi separated as "
+        "scar/witness gate, never a 5th dial. Key name kept for receipt "
+        "backward-compatibility.",
     },
 }
+
+#: The registry key that live judgments MUST bind to.
+CANONICAL_FORMULA_KEY = "apex-g-v3-proposed"
 
 
 def assert_jacobian_non_authority(role: str) -> None:
@@ -408,5 +414,6 @@ __all__ = [
     "GovernedTransition",
     "LegacySealProjection",
     "FORMULA_VERSION_REGISTRY",
+    "CANONICAL_FORMULA_KEY",
     "assert_jacobian_non_authority",
 ]
