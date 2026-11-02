@@ -71,12 +71,40 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
     PROMPT_ALIASES: dict[str, str] = {
         "/init": "⚓ INIT",
         "init": "⚓ INIT",
-        "/seal": "🔐 CLOSE",
-        "seal": "🔐 CLOSE",
-        "/close": "🔐 CLOSE",
-        "close": "🔐 CLOSE",
+        "/ignite": "000 🌱 IGNITE",
+        "ignite": "000 🌱 IGNITE",
+        "000": "000 🌱 IGNITE",
+        "/sense": "111 🌊 SENSE",
+        "sense": "111 🌊 SENSE",
+        "111": "111 🌊 SENSE",
+        "/plan": "222 🏛 PLAN",
+        "plan": "222 🏛 PLAN",
+        "222": "222 🏛 PLAN",
+        "/reason": "333 🧠 REASON",
+        "reason": "333 🧠 REASON",
+        "333": "333 🧠 REASON",
+        "/direct": "444 🧭 DIRECT",
+        "direct": "444 🧭 DIRECT",
+        "444": "444 🧭 DIRECT",
+        "/remember": "555 🗂 REMEMBER",
+        "remember": "555 🗂 REMEMBER",
+        "555": "555 🗂 REMEMBER",
+        "/dignity": "666 ⚖ DIGNITY",
+        "dignity": "666 ⚖ DIGNITY",
+        "666": "666 ⚖ DIGNITY",
+        "/judge": "888 🔒 JUDGE",
+        "judge": "888 🔒 JUDGE",
+        "888": "888 🔒 JUDGE",
+        "/forge": "777 🔥 FORGE",
+        "forge": "777 🔥 FORGE",
+        "777": "777 🔥 FORGE",
+        "/seal": "999 💎 SEAL",
+        "seal": "999 💎 SEAL",
+        "999": "999 💎 SEAL",
         "/govern": "🌀 GOVERN",
         "govern": "🌀 GOVERN",
+        "/close": "🔐 CLOSE",
+        "close": "🔐 CLOSE",
     }
 
     async def get_prompt_with_aliases(
@@ -119,15 +147,19 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
                     arguments.keys() if isinstance(arguments, dict) else []
                 )
                 if missing:
-                    raise McpError(
-                        mcp_types.ErrorData(
-                            code=mcp_types.INVALID_PARAMS,  # -32602
-                            message=(
-                                f"Invalid params: Missing required arguments: "
-                                f"{sorted(missing)}"
-                            ),
-                        )
+                    msg = (
+                        f"Invalid params: Missing required arguments: "
+                        f"{sorted(missing)}"
                     )
+                    try:
+                        raise McpError(mcp_types.INVALID_PARAMS, msg)
+                    except TypeError:
+                        raise McpError(
+                            mcp_types.ErrorData(
+                                code=mcp_types.INVALID_PARAMS,  # -32602
+                                message=msg,
+                            )
+                        )
         except McpError:
             raise
         if args:

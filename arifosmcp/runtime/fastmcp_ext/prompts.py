@@ -359,8 +359,17 @@ Route to the institution with authority, not the one with speed.
 ## What to do
 1. Call arif_route(intent='{intent}') → determine correct organ routing.
 2. Load arifos://institution → current organ topology and authority map.
-3. Match intent to organ authority, not speed or convenience.
-4. If organ requires higher authority tier, escalate properly.
+3. Match intent to organ authority plane:
+   - arifOS (:8088): Authority, judge, seal, VAULT999 (JUDGE_ONLY).
+   - A-FORGE (:7071/7072): Governed execution (requires seal_verdict_id + lease).
+   - arifFlow (:7073): Metabolism, FQ balance, verify-deficit gates.
+   - GEOX (:8081): Earth reasoning (mode=screen for ANALYZE vs mode=evaluate for JUDGMENT).
+   - WEALTH (:18082): Capital evidence, live market snapshots, four-layer intelligence.
+   - WELL (:18083): Human vitality, substrate readiness, dignity guard.
+   - FRAME (:18085): Drift witness, OBSERVE_ONLY.
+   - HERMES (:18087): Agent-to-agent gateway, multi-human lanes.
+   - CHRON (:18102): Temporal intelligence, predictions calibration.
+4. Separate pure computation (ANALYZE / OBSERVE_ONLY) from state mutation (OPERATOR / JUDGMENT).
 5. Verify F1 reversibility and F4 entropy constraints before routing.
 
 ## Floors
@@ -469,7 +478,7 @@ Return a DIGNITY block:
   weakest_stakeholder: <role>
   dignity_preserved: true|false
   refinements_required: [list]
-  next_stage: 777 FORGE
+  next_stage: 888 JUDGE
 """
 
     registered.append("666 ⚖ DIGNITY")
@@ -519,7 +528,7 @@ Return a FORGE block:
   trace_id: <string>
   reversibility: true|false
   audit_trail: [list of receipts]
-  next_stage: 888 JUDGE
+  next_stage: 999 SEAL
 """
 
     registered.append("777 🔥 FORGE")
@@ -554,9 +563,12 @@ Verdict, not invention. VOID = branch dead.
 1. Call arif_judge → kernel verdict engine.
 2. Load arifos://doctrine → constitutional doctrine.
 3. Load arifos://affordances → current affordance surface.
-4. Compute verdict: SEAL | HOLD | SABAR | VOID.
+4. Compute verdict across 7-rank lattice (non-compensatory):
+   SEAL > PROVISIONAL > PARTIAL > SABAR > HOLD > HOLD_888 > VOID.
+   Floors are never averaged; one failing floor drops the verdict.
 5. Verify every epistemic tag has provenance_source (F2 PROVENANCE GATE).
 6. Tags without provenance → VOID. Do not seal.
+7. Only verdicts of SEAL or SABAR permit proceeding to execution.
 
 ## Floors
 F1 AMANAH — verdict must be auditable.
@@ -574,7 +586,7 @@ Return a JUDGE block:
   floors_passed: [list of F-IDs]
   floors_failed: [list of F-IDs]
   remediation_required: <string or null>
-  next_stage: 999 SEAL | HOLD | HALT
+  next_stage: 777 FORGE (if SEAL) | HOLD | HALT
 """
 
     registered.append("888 🔒 JUDGE")
@@ -692,7 +704,7 @@ GATE 4 — VOID:
 
 ## STAGE SEQUENCE (depth={depth})
 000 IGNITE → 111 SENSE → 222 PLAN → 333 REASON → 444 DIRECT →
-555 REMEMBER → 666 DIGNITY → 777 FORGE → 888 JUDGE → 999 SEAL
+555 REMEMBER → 666 DIGNITY → 888 JUDGE → 777 FORGE → 999 SEAL
 
 ## Linked tools (in order):
 arif_init → arif_observe → arif_think → arif_route → arif_memory →
