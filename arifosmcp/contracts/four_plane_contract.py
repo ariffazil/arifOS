@@ -253,7 +253,8 @@ def evaluate_four_planes(
                 {
                     "capability_id": "arif_init",
                     "target_ref": "capability://arifos/init",
-                    "side_effect_class": "READ_ONLY",
+                    "side_effect_class": "WRITE_SAFE",
+                    "persistence_class": "PERSISTENT_AUDIT_WRITE",
                     "authority_required": "OBSERVE_ONLY",
                     "completion_evidence": ["session_id"],
                     "max_attempts": 3,
@@ -278,7 +279,8 @@ def evaluate_four_planes(
                 {
                     "capability_id": "arif_init",
                     "target_ref": "capability://arifos/init",
-                    "side_effect_class": "READ_ONLY",
+                    "side_effect_class": "WRITE_SAFE",
+                    "persistence_class": "PERSISTENT_AUDIT_WRITE",
                     "authority_required": "OBSERVE_ONLY",
                     "completion_evidence": ["session_id"],
                     "max_attempts": 3,

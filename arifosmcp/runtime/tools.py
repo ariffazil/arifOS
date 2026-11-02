@@ -1124,6 +1124,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
             "verify": "L0_OBSERVE",
             "chain": "L0_OBSERVE",
             "list": "L0_OBSERVE",
+            "ledger": "L0_OBSERVE",
             "verify_chain": "L0_OBSERVE",
             "chain_status": "L0_OBSERVE",
             "audit": "L0_OBSERVE",
@@ -22775,9 +22776,53 @@ def _arif_vault_seal(
         )
     if mode == "ledger":
         _ensure_vault_loaded()  # P0-FIX-1
+        # FIX 2026-11-02 (civilization-fork audit blocker #1): mode=ledger is
+        # L0_OBSERVE. Sessionless observers get head_hash + entry_count ONLY --
+        # metadata proves non-execution (head unchanged before/after) without
+        # exposing ledger content. Content requires a REGISTERED session.
+        _head = _VAULT_LEDGER[-1] if _VAULT_LEDGER else None
+        _head_hash = (
+            hashlib.sha256(
+                json.dumps(_head, sort_keys=True, default=str).encode()
+            ).hexdigest()[:32]
+            if _head is not None
+            else None
+        )
+        _meta_result = {
+            "mode": "ledger",
+            "ledger_size": len(_VAULT_LEDGER),
+            "entry_count": len(_VAULT_LEDGER),
+            "head_hash": _head_hash,
+            "head_entry_id": _head.get("id") if _head else None,
+            "content_disclosed": False,
+        }
+        _sess_ctx = _SESSIONS.get(session_id) if session_id else None
+        if _sess_ctx is None:
+            _meta_result["note"] = (
+                "Sessionless observer read: metadata only (no content). "
+                "Provide a registered session_id to read ledger entries."
+            )
+            return SealOutput(
+                status="OK",
+                result=_meta_result,
+                ledger_size=len(_VAULT_LEDGER),
+                irreversibility_bond=IrreversibilityBond(
+                    level=IrreversibilityLevel.REVERSIBLE,
+                    delta_S=0.0,
+                    rollback_possible=True,
+                ),
+                entropy_delta=EntropyDelta(delta_S=0.0, entropy_direction="stable"),
+                meta={},
+                actor_id=actor_id,
+                timestamp=_now(),
+            ).model_dump(mode="json")
         return SealOutput(
             status="OK",
-            result={"ledger": _VAULT_LEDGER[-10:]},
+            result={
+                **_meta_result,
+                "content_disclosed": True,
+                "ledger": _VAULT_LEDGER[-10:],
+            },
             ledger_size=len(_VAULT_LEDGER),
             irreversibility_bond=IrreversibilityBond(
                 level=IrreversibilityLevel.REVERSIBLE,
