@@ -420,3 +420,57 @@ class TestEndToEndShape:
         assert cbr["receipt_status"] == "UNSEALED"
         # Bridge proof: law stamped
         assert "F13 cross-boundary" in bridge["bridge_proof"]["law"]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Test 11: Organ error payload (isError=true) yields FAILED + no evidence
+# ═══════════════════════════════════════════════════════════════════════════
+class TestBridgeOrganErrorReclassification:
+    """Task 1 P0: Any organ payload with isError=true must yield execution_status=FAILED, evidence_produced=false."""
+
+    def test_mock_organ_returns_iserror_yields_failed_status_and_no_evidence(self):
+        error_payload = {
+            "isError": True,
+            "content": [{"type": "text", "text": "requires OPERATOR"}],
+        }
+        bridge = _bridge_ok(
+            "GEOX", "geox_prospect", error_payload,
+            kernel_actor_id=KERNEL_ACTOR, kernel_session_id=KERNEL_SESSION,
+        )
+        cbr = bridge.get("result", {}).get("cross_boundary_result", {})
+        assert cbr.get("execution_status") == "FAILED", (
+            f"execution_status must be FAILED on isError=True; got {cbr.get('execution_status')}"
+        )
+        assert cbr.get("evidence_produced") is False, (
+            f"evidence_produced must be False on isError=True; got {cbr.get('evidence_produced')}"
+        )
+
+    def test_mock_organ_returns_nested_iserror_yields_failed_status(self):
+        error_payload = {
+            "payload": {
+                "isError": True,
+                "message": "upstream service unavailable",
+            }
+        }
+        bridge = _bridge_ok(
+            "WEALTH", "wealth_portfolio", error_payload,
+            kernel_actor_id=KERNEL_ACTOR, kernel_session_id=KERNEL_SESSION,
+        )
+        cbr = bridge.get("result", {}).get("cross_boundary_result", {})
+        assert cbr.get("execution_status") == "FAILED"
+        assert cbr.get("evidence_produced") is False
+
+    def test_bridge_geox_iserror_yields_failed_status_and_no_evidence(self):
+        error_payload = {
+            "content": [{"type": "text", "text": "requires OPERATOR"}],
+            "isError": True,
+        }
+        with patch("arifosmcp.tools.kernel_canonical._assert_organ_attested", return_value=None):
+            with patch("arifosmcp.runtime.geox_bridge.call_geox_tool", return_value=error_payload):
+                bridge = _bridge_geox("geox_prospect", {"prospect_ref": "Lang-Lebah-1"}, KERNEL_SESSION, KERNEL_ACTOR)
+
+        cbr = bridge.get("result", {}).get("cross_boundary_result", {})
+        assert cbr.get("execution_status") == "FAILED", f"got {cbr.get('execution_status')}"
+        assert cbr.get("evidence_produced") is False, f"got {cbr.get('evidence_produced')}"
+
+

@@ -1516,6 +1516,21 @@ def _enforce_bridge_invariants(
     return response, claims
 
 
+def _is_organ_error(obj: Any) -> bool:
+    """Detect whether organ response indicates an error or failure."""
+    if not isinstance(obj, dict):
+        return False
+    if obj.get("isError") is True or obj.get("is_error") is True:
+        return True
+    if obj.get("execution_status") in ("ERROR", "HALT", "FAILED"):
+        return True
+    for key in ("payload", "result", "output", "data"):
+        nested = obj.get(key)
+        if isinstance(nested, dict) and _is_organ_error(nested):
+            return True
+    return False
+
+
 def _bridge_ok(
     organ: str,
     tool_name: str,
@@ -1538,12 +1553,16 @@ def _bridge_ok(
     protocol/source/execution_status/provenance/action_authority schema
     specified by the F13 directive.
     """
+    is_error = _is_organ_error(inner_result)
+    exec_status = "FAILED" if is_error else "SUCCESS"
+    evidence_produced = False if is_error else True
+
     cross_boundary_result = {
         "protocol": "MCP",
         "source_server": organ,
         "source_tool": tool_name,
-        "execution_status": "SUCCESS",
-        "evidence_produced": True,
+        "execution_status": exec_status,
+        "evidence_produced": evidence_produced,
         "provenance": f"{organ.lower()}_mcp_via_bridge",
         "action_authority": "NONE",
         "receipt_status": "UNSEALED",
@@ -1552,7 +1571,7 @@ def _bridge_ok(
         "organ": organ,
         "tool": tool_name,
         "result": inner_result,
-        "status": "bridged",
+        "status": "failed" if is_error else "bridged",
         "boundary_enforced": boundary_enforced,
         "violations": violations or [],
         "_epistemic_checked": epistemic_checked,

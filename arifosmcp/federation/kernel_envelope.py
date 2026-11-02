@@ -307,6 +307,8 @@ def wrap_geox_output(
 
     claim_state = geox_envelope.get("claim_state", "INGESTED")
     execution_status = geox_envelope.get("execution_status", "SUCCESS")
+    if geox_envelope.get("isError") is True or geox_envelope.get("is_error") is True:
+        execution_status = "FAILED"
 
     # Determine verdict from claim state
     verdict_map = {
@@ -320,7 +322,7 @@ def wrap_geox_output(
     verdict: VerdictClass = verdict_map.get(claim_state, "QUALIFY")
 
     # Downgrade on error
-    if execution_status in ("ERROR", "HALT"):
+    if execution_status in ("ERROR", "HALT", "FAILED"):
         verdict = "HOLD"
 
     return build_kernel_envelope(
