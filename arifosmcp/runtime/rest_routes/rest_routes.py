@@ -1782,6 +1782,25 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 "floor_statuses": _floor_statuses_snapshot,
             },
         )
+        # Gate 2 F2 (F13 2026-11-02, Arif audit): the truth floor's PASS is
+        # scope-limited — publish the coverage fraction's numerator/denominator
+        # + scope so no consumer can read floor-provenance coverage as
+        # whole-payload truth closure ("we don't know the denominator").
+        # Same map, same startswith rule as _f2_truth's coverage contract §5;
+        # alias rows (L10..) are included exactly as the producer counts them.
+        measurement_basis["f2_coverage"] = {
+            "numerator": sum(
+                1
+                for _o in floor_provenance.values()
+                if not str(_o).startswith("unmeasured_default")
+            ),
+            "denominator": len(floor_provenance),
+            "coverage_scope": (
+                "kernel floor-provenance map (this payload's floor origins, "
+                "alias rows included) — NOT the whole observatory payload"
+            ),
+            "definition_source": "floor_producers._f2_truth coverage contract §5",
+        }
     except Exception as _fp_exc:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
@@ -4949,6 +4968,15 @@ def register_rest_routes(
                     **__import__(
                         "arifosmcp.runtime.floor_producers", fromlist=["_FLOOR_CONTRACT_LABELS"]
                     )._FLOOR_CONTRACT_LABELS.get(fid, {}),
+                    # Gate 1 (F13 2026-11-02): measurement ontology — types the
+                    # reading (score|predicate|risk), direction, evidence class,
+                    # measurement state, scope, threshold. Declarative only; no
+                    # status/score math reads it (labels discipline). Kills the
+                    # named promotions: constant→measured, presence→pass,
+                    # producer-pass→perfect score, receipt→audited, seal→authorized.
+                    **__import__(
+                        "arifosmcp.runtime.floor_producers", fromlist=["floor_ontology_record"]
+                    ).floor_ontology_record(fid, _floor_provenance.get(fid), score),
                 }
                 for fid, score in thermo.get("floors", {}).items()
             },

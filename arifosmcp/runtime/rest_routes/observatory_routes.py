@@ -934,6 +934,12 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         passing = 0
         failing = 0
         unmeasured = 0
+        # Gate 1 (F13 2026-11-02): floor measurement ontology — types each
+        # reading so a predicate/presence pass never renders as a scored
+        # measurement (Arif composition audit; table in floor_producers.py).
+        from arifosmcp.runtime.floor_producers import (
+            floor_ontology_record as _floor_ontology_record,
+        )
         for fid, score in raw_floors.items():
             origin = str(provenance.get(fid) or "governance_kernel")
             # 2026-10-26 (333-AGI): a SKIPPED producer is not a measurement either.
@@ -996,6 +1002,9 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                     confidence=0.99,
                     observation_method=_OBS_METHOD_DERIVED,
                     independent=False,
+                ),
+                "measurement": _floor_ontology_record(
+                    fid, origin, None if is_placeholder else score
                 ),
             }
         verdict = gov.get("verdict")
