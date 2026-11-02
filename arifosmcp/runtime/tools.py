@@ -9133,16 +9133,35 @@ def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
 # softens computed risk (fail-closed for the informational field).
 _RISK_AXIS_RANK: dict[str, dict[str, int]] = {
     "reversibility": {
-        "reversible": 0, "trivial": 0, "low": 0, "partial": 0,
-        "hard": 1, "costly": 1, "semi_irreversible": 1, "medium": 1,
-        "irreversible": 2, "critical": 2, "r4": 2, "r5": 2,
+        "reversible": 0,
+        "trivial": 0,
+        "low": 0,
+        "partial": 0,
+        "hard": 1,
+        "costly": 1,
+        "semi_irreversible": 1,
+        "medium": 1,
+        "irreversible": 2,
+        "critical": 2,
+        "r4": 2,
+        "r5": 2,
     },
     "blast_radius": {
-        "reversible": 0, "low": 0, "l1_local": 0,
-        "medium": 1, "l2": 1,
-        "organ": 2, "high": 2, "l3": 2,
-        "critical": 3, "l3_critical": 3,
-        "federation": 4, "fed": 4, "global": 4, "r4": 4, "r5": 4,
+        "reversible": 0,
+        "low": 0,
+        "l1_local": 0,
+        "medium": 1,
+        "l2": 1,
+        "organ": 2,
+        "high": 2,
+        "l3": 2,
+        "critical": 3,
+        "l3_critical": 3,
+        "federation": 4,
+        "fed": 4,
+        "global": 4,
+        "r4": 4,
+        "r5": 4,
     },
 }
 
@@ -12802,7 +12821,9 @@ def _searxng_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
         params = urllib.parse.urlencode(
             {"q": query, "format": "json", "engines": engines, "pageno": 1}
         )
-        req = urllib.request.Request(f"{base}?{params}", headers={"User-Agent": "arifOS-kernel/1.0"})
+        req = urllib.request.Request(
+            f"{base}?{params}", headers={"User-Agent": "arifOS-kernel/1.0"}
+        )
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310 localhost env
             data = json.loads(resp.read().decode("utf-8"))
         hits = []
@@ -13110,7 +13131,9 @@ def _arif_sense_observe(
                 )
             data = _asyncio.run(_read_resource(uri=uri, actor_id=actor_id, session_id=session_id))
         else:
-            data = _asyncio.run(_search_resources(query=query, actor_id=actor_id, session_id=session_id))
+            data = _asyncio.run(
+                _search_resources(query=query, actor_id=actor_id, session_id=session_id)
+            )
         _cache_obs_result(session_id, data)
         return _ok("arif_sense_observe", {"mode": mode, "resource": data}, session_id=session_id)
 
@@ -17582,9 +17605,7 @@ def _arif_kernel_route(
                 if not _tid:
                     _tid = f"trc-{uuid.uuid4().hex[:12]}"
                 result = _run_async(
-                    call_geox_tool(
-                        tool_name, _args, session_id=_sid, actor_id=_aid, trace_id=_tid
-                    )
+                    call_geox_tool(tool_name, _args, session_id=_sid, actor_id=_aid, trace_id=_tid)
                 )
                 return _ok(
                     "arif_kernel_route",
@@ -22782,9 +22803,7 @@ def _arif_vault_seal(
         # exposing ledger content. Content requires a REGISTERED session.
         _head = _VAULT_LEDGER[-1] if _VAULT_LEDGER else None
         _head_hash = (
-            hashlib.sha256(
-                json.dumps(_head, sort_keys=True, default=str).encode()
-            ).hexdigest()[:32]
+            hashlib.sha256(json.dumps(_head, sort_keys=True, default=str).encode()).hexdigest()[:32]
             if _head is not None
             else None
         )
@@ -26684,10 +26703,70 @@ async def _arif_ed25519_verify_tool(
         else f"anon:{_hashlib.sha256(bytes.fromhex(pubkey_hex)).hexdigest()[:16]}"
     )
 
+    # ── F1/F11 hardening (arif_verify pubkey-registry binding, 2026-11-02) ───
+    # The caller-supplied pubkey proves nothing on its own: any Ed25519 key
+    # holder could sign f"{actor_id}:{challenge}" for a REGISTERED actor and
+    # pass this lane. The anchor of truth is the REGISTERED key. When one
+    # resolves, the caller key must BE that key and the signature must verify
+    # against it. Fail CLOSED when the registry itself errors.
+    from arifosmcp.runtime.crypto_auth import resolve_actor_public_key
+
+    try:
+        registered_key = resolve_actor_public_key(effective_actor_id)
+    except Exception as e:  # noqa: BLE001 — identity surface fails closed
+        logger.warning(
+            "arif_verify: registry lookup failed actor=%s (%s) — fail closed",
+            effective_actor_id,
+            type(e).__name__,
+        )
+        return _verify_fail_response(
+            tool_name,
+            effective_actor_id,
+            session_id,
+            reason="pubkey_registry_unavailable",
+        )
+    verify_key = pubkey
+    if registered_key is not None:
+        try:
+            from cryptography.hazmat.primitives.serialization import (
+                Encoding as _Enc,
+                PublicFormat as _Fmt,
+            )
+
+            registered_hex = registered_key.public_bytes(_Enc.Raw, _Fmt.Raw).hex()
+        except Exception as e:  # noqa: BLE001 — fail closed
+            logger.warning(
+                "arif_verify: registered key encode failed actor=%s (%s)",
+                effective_actor_id,
+                type(e).__name__,
+            )
+            return _verify_fail_response(
+                tool_name,
+                effective_actor_id,
+                session_id,
+                reason="pubkey_registry_unavailable",
+            )
+        if registered_hex != pubkey_hex:
+            logger.warning(
+                "arif_verify: REJECTED caller key != registered key actor=%s "
+                "supplied=%s registered=%s",
+                effective_actor_id,
+                pubkey_hex[:12],
+                registered_hex[:12],
+            )
+            return _verify_fail_response(
+                tool_name,
+                effective_actor_id,
+                session_id,
+                reason="pubkey_registry_mismatch",
+            )
+        # Anchor the verification to the registry key, not the caller bytes.
+        verify_key = registered_key
+
     # Verify Ed25519 signature over payload bytes
     payload = f"{effective_actor_id}:{challenge}".encode()
     try:
-        pubkey.verify(sig_raw, payload)
+        verify_key.verify(sig_raw, payload)
     except Exception as e:  # noqa: BLE001 — InvalidSignature is expected for bad sigs
         logger.info(
             "arif_verify: signature rejected actor=%s reason=%s",
@@ -27646,7 +27725,9 @@ def _flatten_wire_envelope(response: Any) -> dict[str, Any]:
     return {"result": response}
 
 
-def _alias_stale_client_ref(result_dict: Any, caller_sid: Any, actor_id: Any, session_token: Any) -> None:
+def _alias_stale_client_ref(
+    result_dict: Any, caller_sid: Any, actor_id: Any, session_token: Any
+) -> None:
     """M365 P2 (2026-10-29, k-def-session-resume-stale-sid).
 
     The init delegate mints a fresh runtime session, while the wire echo can
