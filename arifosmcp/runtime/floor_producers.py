@@ -136,6 +136,34 @@ _NO_PRODUCER_CONTRACT_LABELS: dict[str, Any] = {
 }
 
 
+def _floor_wire_labels(
+    fid: str, *, is_measured: bool, basis_unmeasured: Any
+) -> dict[str, Any]:
+    """KX-011 (2026-11-02): /health wire contract labels with LIVE contradiction.
+
+    Producer-level ``_FLOOR_CONTRACT_LABELS`` keep the static A6 disclosure —
+    they describe the contract, and ``collect_floor_producer_signal`` pins
+    them in tests. On the /health wire the contradiction is computed:
+    ``known_contradiction`` exists ONLY while ``measurement_basis.
+    unmeasured_floors`` still lists a floor whose wire entry is measured.
+    After the KX-011 basis reconciliation the collision cannot occur, so the
+    key is honestly ABSENT instead of a permanently-true-looking flag.
+
+    Metadata only — never read by status/score math (A6 condition 2).
+    ``is_measured`` is computed by the caller with the canonical classifier
+    (rest_routes._provenance_is_unmeasured) — one classifier, one answer.
+    """
+    labels: dict[str, Any] = dict(_FLOOR_CONTRACT_LABELS.get(fid, {}))
+    labels.pop("known_contradiction", None)
+    try:
+        listed = fid in set(basis_unmeasured or [])
+    except TypeError:
+        listed = False
+    if is_measured and listed:
+        labels["known_contradiction"] = _A6_CONTRADICTION
+    return labels
+
+
 def _now_iso() -> str:
     """P4 (F13 D2 2026-10-23): producer WHEN slot — emission time of THIS
     measurement, never report-generation time."""

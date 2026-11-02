@@ -1028,6 +1028,39 @@ def _provenance_is_unmeasured(provenance: Any) -> bool:
     return _p.startswith("unmeasured_default") or "_skipped" in _p
 
 
+def _reconcile_unmeasured_basis(
+    basis_list: Any, floor_provenance: dict[str, Any]
+) -> list[str]:
+    """KX-011 (2026-11-02): drop producer-measured floors from the wire basis.
+
+    ``measurement_basis.unmeasured_floors`` is born kernel-side meaning
+    "no such event in THIS process" (event_window: since_process_boot).
+    Floors that an independent producer went on to measure (seal chain,
+    arifFlow probes, witness legs) are no longer unmeasured in THIS
+    payload — leaving them listed while ``runtime_floors_status`` publishes
+    ``measured: true`` was the A6 known_contradiction this retires.
+
+    Removal is conservative: a floor leaves the list only when its
+    provenance EXISTS and does not itself declare unmeasured (the same
+    canonical classifier ``_provenance_is_unmeasured`` that gates
+    ``runtime_floors_status.measured`` — one classifier, one answer).
+    An absent provenance keeps the floor listed (unknown is not measured).
+
+    Metadata only — no score, threshold, or verdict math reads this list
+    (A6 condition 2). The raw kernel-log basis remains untouched in
+    ``core.governance_kernel.get_current_state()``.
+    """
+    if not isinstance(basis_list, list):
+        return []
+    kept: list[str] = []
+    for fid in basis_list:
+        prov = floor_provenance.get(fid)
+        if prov is not None and not _provenance_is_unmeasured(prov):
+            continue  # an independent producer measured it — not unmeasured
+        kept.append(fid)
+    return kept
+
+
 def _floor_status_strict(law_id: str, score: Any) -> str:
     """Return one of 'unmeasured' | 'pass' | 'fail' for a floor.
 
@@ -2180,6 +2213,21 @@ def _build_governance_status_payload() -> dict[str, Any]:
     resolved_floors, floor_provenance, _floor_alias_contradictions = _normalize_floors_to_canonical(
         resolved_floors, floor_provenance
     )
+
+    # KX-011 (2026-11-02): reconcile the kernel event-log basis with producer
+    # outcomes on this wire. Runs AFTER every producer probe above, so the
+    # published list answers the reader's question ("which floors are
+    # unmeasured?") with one source instead of colliding with
+    # runtime_floors_status.
+    if isinstance(measurement_basis.get("unmeasured_floors"), list):
+        measurement_basis["unmeasured_floors"] = _reconcile_unmeasured_basis(
+            measurement_basis["unmeasured_floors"], floor_provenance
+        )
+        measurement_basis["reconciliation"] = (
+            "kx011: floors measured by an independent producer after this "
+            "basis snapshot are removed; raw kernel-log basis retained in "
+            "governance_kernel.get_current_state()"
+        )
 
     return {
         "telemetry": resolved_telemetry,
@@ -4737,6 +4785,11 @@ def register_rest_routes(
         # measured:true. Provenance now GATES the classification instead of
         # merely annotating it.
         _floor_provenance = dict(thermo.get("floor_provenance") or {})
+        # KX-011: reconciled basis (post-producer) drives live contradiction
+        # labels on runtime_floors_status — see floor_producers._floor_wire_labels.
+        _basis_unmeasured = set(
+            thermo.get("measurement_basis", {}).get("unmeasured_floors") or []
+        )
 
         # Per-floor breakdown (2026-10-07): floors_pass said 10/13 but the
         # response never named WHICH 3 failed, so no one could act on it.
@@ -5124,9 +5177,18 @@ def register_rest_routes(
                     "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
                     "measured": not _provenance_is_unmeasured(_floor_provenance.get(fid)),
                     "provenance": _floor_provenance.get(fid),
+                    # KX-011: contradiction is a LIVE computed disclosure, not a
+                    # static label — attached only while the wire still shows the
+                    # collision (measured floor still listed in the basis).
                     **__import__(
-                        "arifosmcp.runtime.floor_producers", fromlist=["_FLOOR_CONTRACT_LABELS"]
-                    )._FLOOR_CONTRACT_LABELS.get(fid, {}),
+                        "arifosmcp.runtime.floor_producers", fromlist=["_floor_wire_labels"]
+                    )._floor_wire_labels(
+                        fid,
+                        is_measured=not _provenance_is_unmeasured(
+                            _floor_provenance.get(fid)
+                        ),
+                        basis_unmeasured=_basis_unmeasured,
+                    ),
                     # Gate 1 (F13 2026-11-02): measurement ontology — types the
                     # reading (score|predicate|risk), direction, evidence class,
                     # measurement state, scope, threshold. Declarative only; no

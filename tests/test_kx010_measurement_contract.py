@@ -48,6 +48,8 @@ from arifosmcp.runtime.floor_producers import (
     collect_floor_producer_signal,
 )
 from arifosmcp.runtime.rest_routes.rest_routes import measurement_contract
+from arifosmcp.runtime.rest_routes.rest_routes import _reconcile_unmeasured_basis
+from arifosmcp.runtime.floor_producers import _floor_wire_labels
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -809,3 +811,49 @@ class TestMeasurementContractHelper:
             derivation_ref="test",
         )
         assert contract["decision_eligibility"] == "NONE"
+
+
+# ── KX-011 (2026-11-02): live contradiction + basis reconciliation ──────────
+
+
+class TestKX011WireReconciliation:
+    """The A6 contradiction is computed on the wire, not permanently labeled.
+
+    2026-11-02 measured defect: measurement_basis.unmeasured_floors listed
+    F2/F3/F4/F5/F6/F9 (kernel event-log scope, since_process_boot) while
+    runtime_floors_status published measured:true for F2/F3/F4/F5/F9 from
+    independent producers — the same payload answering "which floors are
+    unmeasured?" twice with different answers (K7 dual-truth).
+    """
+
+    def test_wire_labels_attach_contradiction_only_on_live_collision(self) -> None:
+        labels = _floor_wire_labels("F5", is_measured=True, basis_unmeasured={"F5"})
+        assert "KX-011" in str(labels.get("known_contradiction", ""))
+        assert labels.get("falsification_test"), "falsifier must survive the live path"
+
+    def test_wire_labels_omit_contradiction_after_reconciliation(self) -> None:
+        labels = _floor_wire_labels("F5", is_measured=True, basis_unmeasured=set())
+        assert "known_contradiction" not in labels
+        assert labels.get("falsification_test"), "falsifier must survive the live path"
+
+    def test_wire_labels_never_flag_unmeasured_floor(self) -> None:
+        labels = _floor_wire_labels("F5", is_measured=False, basis_unmeasured={"F5"})
+        assert "known_contradiction" not in labels
+
+    def test_reconcile_drops_producer_measured_floors(self) -> None:
+        basis = ["F2", "F5", "F6", "F9"]
+        prov = {
+            "F2": "floor_producer:PASS:floor_provenance_coverage@2026-11-02T07:34:08Z",
+            "F5": "floor_producer:PASS:seal_chain_peace@2026-11-02T07:34:08Z",
+            "F6": "unmeasured_default:maruah_meters_pending",
+            "F9": "arifflow_live_vector:c_dark=0.21@2026-11-02T07:34:07Z",
+        }
+        assert _reconcile_unmeasured_basis(basis, prov) == ["F6"]
+
+    def test_reconcile_keeps_floor_with_absent_provenance(self) -> None:
+        # unknown is not measured: an absent provenance never leaves the list
+        basis = ["F5"]
+        assert _reconcile_unmeasured_basis(basis, {"F5": None}) == ["F5"]
+
+    def test_reconcile_ignores_non_list_basis(self) -> None:
+        assert _reconcile_unmeasured_basis(None, {}) == []
