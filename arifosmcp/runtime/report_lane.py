@@ -262,6 +262,7 @@ def inbox(
     since: str | None = None,
     sender: str | None = None,
     kind: str | None = None,
+    thread_id: str | None = None,
     limit: int = 20,
     mark_read: bool = False,
     reader: str = "unknown",
@@ -273,6 +274,18 @@ def inbox(
     open — that is the messageboard. Rows of HUMAN_CLASSES (decision/blocked)
     carry operational secrets (tokens, hosts, infrastructure) and are visible
     ONLY to verified actors. Unverified readers never see them.
+
+    thread_id filter (fix 2026-11-02): the MCP tool schema has always accepted
+    ``thread_id`` for inbox reads, but the wrapper never forwarded it and this
+    function had no such parameter — the value was silently dropped and the
+    caller received the unfiltered oldest page (OBS 2026-11-01T17:14Z).
+    It is now a real filter; the privacy floor above still applies underneath.
+
+    cursor honesty (fix 2026-11-02): ``result["cursor"]`` is the newest filed
+    timestamp observed on THIS read. It is persisted (and therefore applied as
+    a floor on the next read) only when ``mark_read=True`` — default reads do
+    not advance it. ``cursor_persisted`` states which case happened, so a
+    displayed cursor is never mistaken for saved pagination state.
     """
     rows = _read_all(INBOX)
     cursor = _load_cursor(reader)
@@ -287,6 +300,8 @@ def inbox(
         if sender and row.get("sender") != sender:
             continue
         if kind and row.get("kind") != kind:
+            continue
+        if thread_id and row.get("thread_id") != thread_id:
             continue
         row_kind = row.get("kind")
         # Downgraded human-class rows carry `kind_requested` = decision/blocked
@@ -327,6 +342,7 @@ def inbox(
         "count": len(out),
         "total_filed": len(rows),
         "cursor": latest,
+        "cursor_persisted": bool(mark_read and latest),
         "reports": out,
         "reminder": "Reports are SELF_REPORTED by the sender. Probe before relying on one.",
     }
