@@ -11149,6 +11149,12 @@ def _arif_session_init(
                 delegation_mode=delegation_mode or "internal_executor",
                 # DITEMPA 2026-06-22 — Layered init: forward verbose for audit path
                 verbose=verbose,
+                # RC1 fix 2026-11-03 (FI-008, sovereign ruling 'A'): forward the
+                # declared agent_policy to the canonical delegate. Previously
+                # dropped HERE — every MCP mint landed DEFAULT_DENY regardless
+                # of declaration (fall-chain link 1/2; TEST-J receipt
+                # forge_work/fi008-session-20261102).
+                agent_policy=agent_policy,
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
             _result_dict = (
@@ -11504,6 +11510,9 @@ def _arif_session_init(
                 executor_actor_id=executor_actor_id or "arifOS@af-forge",
                 sovereign_id=sovereign_id or "ARIF_FAZIL",
                 delegation_mode=delegation_mode or "internal_executor",
+                # RC1 fix 2026-11-03 (FI-008, ruling 'A'): same forward on the
+                # defensive fallback lane — no silent policy drop here either.
+                agent_policy=agent_policy,
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
             # Inject ATLAS333 onto the Pydantic model BEFORE dump so it survives.
