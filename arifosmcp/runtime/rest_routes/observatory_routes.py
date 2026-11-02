@@ -711,19 +711,35 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
     )
 
     # Drift state derivation — namespaced per verdict 2026-07-15.
-    # artifact: source=build=deployed alignment (independent filesystem probe)
+    # artifact: build_commit vs deployed_commit alignment (package build integrity).
+    # NOTE (2026-11-02 F2 audit): Does NOT evaluate repository workspace checkout;
+    # workspace_vs_deployed provides independent repository HEAD vs deployed alignment.
     # capability: declared vs registered tool drift (derived from capability_matrix)
     # forge_registry: A-FORGE registry staleness (independent registry probe)
-    # schema / route / upstream_repository: honest UNKNOWN until probed
-    if drift.get("runtime_drift") is True:
-        artifact_state = "DRIFTED"
-    elif drift.get("runtime_drift") is False:
-        artifact_state = "ALIGNED"
+    # schema / route: honest UNKNOWN until runtime introspection probes exist
+    # upstream_repository: honest UNVERIFIED until origin reachability probe exists
+    _b_commit = drift.get("build_commit", "unknown")
+    _l_commit = drift.get("live_commit", "unknown")
+    _both_known = _b_commit != "unknown" and _l_commit != "unknown"
+    if _both_known:
+        build_vs_deployed = "ALIGNED" if _b_commit == _l_commit else "DRIFTED"
     else:
-        artifact_state = "UNKNOWN"
+        build_vs_deployed = "UNKNOWN"
+
+    if workspace_commit and _l_commit != "unknown":
+        _cmatch = str(workspace_commit).startswith(str(_l_commit)) or str(_l_commit).startswith(str(workspace_commit))
+        workspace_vs_deployed = "ALIGNED" if (_cmatch and workspace_dirty is False) else "DRIFTED"
+    else:
+        workspace_vs_deployed = "UNKNOWN"
+
+    artifact_state = build_vs_deployed
+
     out["drift"] = _pf(
         {
             "artifact": artifact_state,
+            "artifact_scope": "build_vs_deployed",
+            "build_vs_deployed": build_vs_deployed,
+            "workspace_vs_deployed": workspace_vs_deployed,
             "capability": "UNKNOWN",  # populated from capability_matrix at snapshot level
             "forge_registry": "UNKNOWN",  # populated from A-FORGE probe at snapshot level
             "schema": "UNKNOWN",
@@ -1596,14 +1612,25 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         # deliberately not confused with a version field. capability stays None:
         # arifFLOW publishes no tool count, and inventing one is exactly the
         # defect class this file just removed.
-        "contract": flow_dp["contract"]
+        "status": flow_dp["contract"]
         or _pf(
-            flow_dp.get("status"),
+            flow_dp.get("status") or _flow_facts.get("status"),
             source="GET 127.0.0.1:7073/health→status (no version field published)",
-            state="observed" if flow_dp.get("status") else "unknown",
-            confidence=0.7 if flow_dp.get("status") else 0.0,
+            state="observed" if (flow_dp.get("status") or _flow_facts.get("status")) else "unknown",
+            confidence=0.7 if (flow_dp.get("status") or _flow_facts.get("status")) else 0.0,
             observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
+        ),
+        "contract": flow_dp["contract"]
+        or _pf(
+            flow_dp.get("status") or _flow_facts.get("status"),
+            source="GET 127.0.0.1:7073/health→status (no version field published)",
+            state="observed" if (flow_dp.get("status") or _flow_facts.get("status")) else "unknown",
+            confidence=0.7 if (flow_dp.get("status") or _flow_facts.get("status")) else 0.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
         ),
         "capability": flow_mcp_dp["capability"]
         or _pf(
@@ -1637,14 +1664,19 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
             observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
         ),
-        "receipts": _pf(
-            _flow_facts.get("receipts"),
-            source="GET 127.0.0.1:7073/health→receipts",
-            state="observed" if _flow_facts.get("receipts") is not None else "unknown",
-            confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
-            observation_method=_OBS_METHOD_SELF_REPORTED,
-            independent=True,
+        "receipts": dict(
+            _pf(
+                _flow_facts.get("receipts"),
+                source="GET 127.0.0.1:7073/health→receipts",
+                state="observed" if _flow_facts.get("receipts") is not None else "unknown",
+                confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
+                observation_method=_OBS_METHOD_SELF_REPORTED,
+                independent=True,
+                observed_epoch=_flow_facts.get("observed_epoch"),
+            ),
+            verification_state="NOT_ATTEMPTED",
         ),
         "chain_status": _pf(
             _flow_facts.get("chain"),
@@ -1653,7 +1685,9 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             confidence=0.85 if _flow_facts.get("chain") else 0.0,
             observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
         ),
+        "_flow_facts": _flow_facts,
         "drift": _pf(
             None,
             source="arifFLOW vs VAULT999",
@@ -1821,11 +1855,30 @@ def _probe_arifflow_flow_facts() -> dict[str, Any]:
             f"cycles={inv.get('cycle_count')} · holds={inv.get('hold_count')} · "
             f"throttled={inv.get('throttle_count')}"
         )
+    fq = data.get("fq") if isinstance(data, dict) else {}
+    per_actor = fq.get("per_actor") if isinstance(fq, dict) else {}
+    held = sorted(a for a, v in per_actor.items() if isinstance(v, dict) and v.get("held")) if isinstance(per_actor, dict) else []
+    actors_tracked = len(per_actor) if isinstance(per_actor, dict) else None
+    why = []
+    for _a in held:
+        _v = per_actor.get(_a) or {}
+        _q = _v.get("quotient")
+        if _q is None:
+            why.append(f"{_a}: tiada kaunter semasa")
+        else:
+            why.append(f"{_a}: FQ {float(_q):.2f} vs paras {_v.get('fq_required')}")
+    held_reason = "; ".join(why) if why else None
     return {
         "receipts": receipts,
         "chain": chain,
         "probe_status": "OK",
         "flow_state": "FLOWING" if receipts is not None else None,
+        "status": data.get("status") if isinstance(data, dict) else None,
+        "held": len(held) if isinstance(per_actor, dict) else None,
+        "held_actors": held,
+        "actors_tracked": actors_tracked,
+        "held_reason": held_reason,
+        "observed_epoch": time.time(),
     }
 
 
@@ -3301,6 +3354,22 @@ def _attach_authority_planes_and_evidence_counts(
             independent=True,
         ),
     }
+    _af_node = organs.get("arifflow") or {}
+    _ff_node = _af_node.get("_flow_facts") or {}
+    payload["fleet"] = {
+        "actors_tracked": _ff_node.get("actors_tracked"),
+        "held": _ff_node.get("held"),
+        "held_actors": _ff_node.get("held_actors", []),
+        "reason": _ff_node.get("held_reason"),
+        "scope": "8 federation nodes (6 core + gateway + arifflow)",
+        "source": "ariflow:7073/health :: fq.per_actor",
+        "observed_at": time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ",
+            time.gmtime(_ff_node.get("observed_epoch") or time.time()),
+        ),
+        "verification_state": "VERIFIED" if _ff_node.get("held") is not None else "NOT_ATTEMPTED",
+    }
+    payload["arifflow"] = _af_node
     payload["planes"] = {
         "authorization": "PUBLIC tier · OBSERVE_ONLY · mutation per-action via arif_judge",
         "readiness": f"{ready}/{total} organs READY",

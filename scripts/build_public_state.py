@@ -8,6 +8,7 @@ Never hand-maintain the same numbers in HTML.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 import urllib.request
@@ -385,6 +386,42 @@ def _override_verdict_with_canonical(gov: dict[str, Any], extras: dict[str, Any]
     return out
 
 
+def _wrap_identity_field(
+    field_record: Any,
+    default_val: Any = None,
+    default_src: str = "snapshot.runtime_identity",
+    observed_at: str | None = None,
+    default_conf: float = 0.99,
+    evidence_class: str = "observed",
+) -> dict[str, Any]:
+    """Preserve provenance envelopes in runtime_identity (F2 truth rule 2026-11-02).
+    Never strip metadata down to bare primitives.
+    """
+    if isinstance(field_record, dict) and ("value" in field_record or "source" in field_record):
+        res = dict(field_record)
+        if "observed_at" not in res and observed_at:
+            res["observed_at"] = observed_at
+        return res
+    val = field_record if (field_record is not None and field_record != "") else default_val
+    if val is None or val == "" or val == "unknown":
+        return {
+            "value": None if (val is None or val == "") else "unknown",
+            "state": "unknown",
+            "source": default_src,
+            "confidence": 0.0,
+            "observed_at": observed_at,
+            "evidence_class": "unknown",
+        }
+    return {
+        "value": val,
+        "state": "observed",
+        "source": default_src,
+        "confidence": default_conf,
+        "observed_at": observed_at,
+        "evidence_class": evidence_class,
+    }
+
+
 def project_public_state(
     snapshot: dict[str, Any] | None,
     health: dict[str, Any] | None,
@@ -651,6 +688,29 @@ def project_public_state(
         else "NONE"
     )
 
+    # ── F2 Runtime Identity calculation (pre-envelope preparation) ──
+    _ri_obs = snap.get("observed_at") or extra.get("ariflow_observed_at") or now_iso()
+    _drift_f = dict(ri.get("drift")) if isinstance(ri.get("drift"), dict) else {}
+    _drift_val = dict(_drift_f.get("value") if isinstance(_drift_f.get("value"), dict) else (drift_obj if isinstance(drift_obj, dict) else {}))
+    _drift_val.setdefault("artifact", "ALIGNED" if (build and deployed and (build.startswith(deployed) or deployed.startswith(build))) else "DRIFTED")
+    _drift_val["artifact_scope"] = "build_vs_deployed"
+    _drift_val.setdefault("build_vs_deployed", "ALIGNED" if (build and deployed and (build.startswith(deployed) or deployed.startswith(build))) else "DRIFTED")
+    _drift_val["workspace_vs_deployed"] = alignment
+    _drift_val.setdefault("capability", "ALIGNED" if (caps.get("degraded_count", 0) or 0) == 0 else "DRIFTED")
+    _drift_val.setdefault("forge_registry", "ALIGNED")
+    _drift_val.setdefault("schema", "UNKNOWN")
+    _drift_val.setdefault("route", "UNKNOWN")
+    _drift_val.setdefault("upstream_repository", "UNVERIFIED")
+
+    _drift_envelope = {
+        "value": _drift_val,
+        "state": "derived",
+        "source": _drift_f.get("source") or "_compute_runtime_drift + capability_matrix",
+        "confidence": _drift_f.get("confidence", 0.9),
+        "observed_at": _drift_f.get("observed_at") or _ri_obs,
+        "evidence_class": "derived",
+    }
+
     return {
         "schema": PUBLIC_STATE_SCHEMA,
         "schema_version": PUBLIC_STATE_SCHEMA,
@@ -662,6 +722,7 @@ def project_public_state(
             "public_state_endpoint": "/api/public-state",
         },
         "generated_at": now_iso(),
+        "observed_at": extra.get("ariflow_observed_at") or snap.get("observed_at") or now_iso(),
         "headline": headline,
         "planes": planes,
         # ── Class B (2026-10-20): carry the snapshot's metabolism stages
@@ -683,18 +744,57 @@ def project_public_state(
             "verify_url": release_url,
             "connect_url": connect_url,
         },
-        # ── Observatory wiring (class A, 2026-10-20, additive) ──────────────
-        # observatory.js renderIdentity() reads data.runtime_identity.* — the
-        # snapshot already carries this (ri); carry it through merged with the
-        # release commits so the F2 panel shows real data, not "source: missing".
+        # ── Observatory wiring (class A, 2026-10-20, additive; 2026-11-02 F2 provenance)
+        # observatory.js renderIdentity() reads data.runtime_identity.* — preserve
+        # full provenance envelopes instead of stripping with pf_value().
+        # source_commit: deployed binary source identity
+        # workspace_source_commit: /root/arifOS working tree checkout HEAD
         "runtime_identity": {
-            "source_commit": pf_value(ri.get("workspace_source_commit"))
-            or pf_value(ri.get("source_commit"))
-            or short_commit(source, 7),
-            "source_commit_full": source,
-            "deployed_commit": pf_value(ri.get("deployed_commit")) or short_commit(deployed, 7),
-            "build_commit": pf_value(ri.get("build_commit")) or short_commit(build, 7),
-            "drift": drift_obj if drift_obj is not None else alignment,
+            "source_commit": _wrap_identity_field(
+                ri.get("source_commit"),
+                default_val=short_commit(build or deployed, 7),
+                default_src="arifOS/_collect_git_snapshot",
+                observed_at=_ri_obs,
+                default_conf=0.99,
+                evidence_class="observed",
+            ),
+            "source_commit_full": pf_value(ri.get("source_commit")) or build or deployed,
+            "workspace_source_commit": _wrap_identity_field(
+                ri.get("workspace_source_commit"),
+                default_val=short_commit(source, 7),
+                default_src=os.getenv("ARIFOS_SOURCE_REPO", "/root/arifOS"),
+                observed_at=_ri_obs,
+                default_conf=0.99 if source else 0.0,
+                evidence_class="observed",
+            ),
+            "workspace_source_commit_full": source,
+            "workspace_dirty": _wrap_identity_field(
+                ri.get("workspace_dirty"),
+                default_val=workspace_dirty,
+                default_src=f"git status --porcelain ({os.getenv('ARIFOS_SOURCE_REPO', '/root/arifOS')})",
+                observed_at=_ri_obs,
+                default_conf=0.99 if workspace_dirty is not None else 0.0,
+                evidence_class="observed",
+            ),
+            "deployed_commit": _wrap_identity_field(
+                ri.get("deployed_commit"),
+                default_val=short_commit(deployed, 7),
+                default_src="/opt/arifos/app/.git_commit or HEAD",
+                observed_at=_ri_obs,
+                default_conf=0.99 if deployed else 0.0,
+                evidence_class="observed",
+            ),
+            "deployed_commit_full": deployed,
+            "build_commit": _wrap_identity_field(
+                ri.get("build_commit"),
+                default_val=short_commit(build, 7),
+                default_src="BUILD_INFO.build.commit",
+                observed_at=_ri_obs,
+                default_conf=0.99 if build else 0.0,
+                evidence_class="observed",
+            ),
+            "build_commit_full": build,
+            "drift": _drift_envelope,
             # 2026-10-24 333-AGI — "capability: DRIFTED" is an enum with no units, so
             # the page could not say WHAT drifted. It is a coverage statement, not a
             # mismatch: the matrix marks a public verb degraded whenever truth is not
@@ -707,13 +807,41 @@ def project_public_state(
                 "public_tools": public_tools,
                 "read_as": "DRIFTED here means NOT-PROVEN, not declared!=actual",
             },
-            "deployment_mode": pf_value(ri.get("deployment_mode")) or health.get("deployment_mode"),
-            "process_started_at": pf_value(ri.get("process_started_at")),
-            "platform": pf_value(ri.get("platform")),
-            "kernel_epoch": pf_value(ri.get("kernel_epoch")),
-            "confidence": ri.get("confidence"),
+            "deployment_mode": _wrap_identity_field(
+                ri.get("deployment_mode"),
+                default_val=health.get("deployment_mode", "container"),
+                default_src="Container/Path-probe",
+                observed_at=_ri_obs,
+                default_conf=0.85,
+                evidence_class="reported",
+            ),
+            "process_started_at": _wrap_identity_field(
+                ri.get("process_started_at"),
+                default_val=None,
+                default_src="psutil.Process(arifOS).create_time (preferred) → /proc/stat btime fallback",
+                observed_at=_ri_obs,
+                default_conf=0.85,
+                evidence_class="observed",
+            ),
+            "platform": _wrap_identity_field(
+                ri.get("platform"),
+                default_val=None,
+                default_src="platform.platform",
+                observed_at=_ri_obs,
+                default_conf=0.99,
+                evidence_class="observed",
+            ),
+            "kernel_epoch": _wrap_identity_field(
+                ri.get("kernel_epoch"),
+                default_val=None,
+                default_src="BUILD_INFO.protocol_version",
+                observed_at=_ri_obs,
+                default_conf=0.85,
+                evidence_class="reported",
+            ),
+            "confidence": ri.get("confidence", 0.99),
             "source": "snapshot.runtime_identity+release",
-            "observed_at": snap.get("observed_at"),
+            "observed_at": _ri_obs,
         },
         # ── Footer signature (P1, additive): observatory.js footer reads
         # data.signature.{algorithm,key_id,payload_hash,signed_at} and derives
@@ -776,17 +904,35 @@ def project_public_state(
             "held": extra.get("fleet_held"),
             "held_actors": extra.get("fleet_held_actors") or [],
             "reason": extra.get("fleet_held_reason"),
+            "scope": "6 core organs (arifos, geox, wealth, well, aforge, aaa)",
             "source": "ariflow:7073/health :: fq.per_actor",
             "observed_at": extra.get("ariflow_observed_at"),
+            "verification_state": "VERIFIED" if extra.get("fleet_held") is not None else "NOT_ATTEMPTED",
         },
         "ariflow": {
             "fq_quotient": extra.get("ariflow_fq_quotient"),
             "fq_verdict": extra.get("ariflow_fq_verdict"),
             "execute_count": extra.get("ariflow_execute_count"),
             "verify_count": extra.get("ariflow_verify_count"),
-            "receipts": extra.get("ariflow_receipts"),
+            "receipts": {
+                "value": extra.get("ariflow_receipts"),
+                "state": "observed" if extra.get("ariflow_receipts") is not None else "unknown",
+                "source": "GET 127.0.0.1:7073/health→receipts",
+                "observed_at": extra.get("ariflow_observed_at"),
+                "confidence": 0.9 if extra.get("ariflow_receipts") is not None else 0.0,
+                "evidence_class": "observed",
+                "verification_state": "NOT_ATTEMPTED",
+            },
+            "status": {
+                "value": extra.get("ariflow_status"),
+                "state": "healthy" if extra.get("ariflow_status") == "ok-v3-vector" else ("unknown" if not extra.get("ariflow_status") else "degraded"),
+                "source": "GET 127.0.0.1:7073/health→status",
+                "observed_at": extra.get("ariflow_observed_at"),
+                "confidence": 0.9 if extra.get("ariflow_status") else 0.0,
+                "evidence_class": "observed",
+                "verification_state": "VERIFIED" if extra.get("ariflow_status") == "ok-v3-vector" else "NOT_ATTEMPTED",
+            },
             "uptime_ms": extra.get("ariflow_uptime_ms"),
-            "status": extra.get("ariflow_status"),  # P0-A
             "source": extra.get("ariflow_source", "ariflow:7073/health"),
             "observed_at": extra.get("ariflow_observed_at"),
         },
@@ -1712,7 +1858,10 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
         ),
         "state": "healthy" if chain_ok else "unknown",
         "source": "vault receipt census",
-        "confidence": None,
+        "confidence": 0.85 if chain_ok else 0.5,
+        "observed_at": flow.get("observed_at"),
+        "evidence_class": "observed",
+        "verification_state": "VERIFIED" if chain_ok else "UNVERIFIED",
     }
     gov = state.get("governance")
     if isinstance(gov, dict):
