@@ -1,12 +1,13 @@
-"""HUMAN_RASA G2/G3 wiring tests — 2026-11-02 (F13 'finish off all').
+"""HUMAN_RASA consent v2 — writer/reader unified contract + revocation flow.
 
-Covers the three F13 namings executed:
-  (b1) consent_writer.py  — attribution-enforced append (unattributed writes
-        structurally impossible), withdrawal tombstones.
-  (b2) ingestion_service  — person-scoped records fail-closed through the
-        ledger; sovereign self-geometry path preserved.
-  (c)  mind_reason.arif_think — prohibited-inference gate verdict passes
-        through at the reasoning boundary (HOLD suspensive / VOID refuses).
+2026-11-02 (F13 reconciliation requirements 4/5). v2 settles:
+  - ledger = JSON **array of ConsentScope rows** (reader contract canonical;
+    v1's dict/events wrapper was a writer/reader mismatch — dead)
+  - writer = attribution-enforced, confirm-gated, flock-serialised state upsert
+  - withdrawal = scope row `revoked: true` → check_consent_from_ledger
+    DENY_REVOKED (revocation flows downstream through the EXISTING reader)
+  - corrupt/unavailable ledger → UNKNOWN, never implicit consent
+  - concurrent writers serialise via flock — no lost rows
 
 Run: pytest tests/test_rasa_wiring_20261102.py -v
 """
@@ -15,9 +16,9 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import sys
-import tempfile
+import threading
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -26,66 +27,188 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from arifosmcp.runtime.f6.consent_writer import append_consent_entry, withdraw_scope
+from arifosmcp.memory.ingestion_service import MemoryIngestionService
+from arifosmcp.memory.types import Authority, MemoryCandidate, MemoryType
+from arifosmcp.runtime.f6.consent_ledger import check_consent_from_ledger
+from arifosmcp.runtime.f6.consent_scope import ConsentSource
+from arifosmcp.runtime.f6.consent_writer import (
+    grant_scope,
+    withdraw_scope,
+)
 
 
-class TestConsentWriterAttribution:
-    def test_unattributed_write_rejected(self):
+def _iso(dt):
+    return dt.isoformat()
+
+
+NOW = datetime.now(timezone.utc)
+
+
+def _person_a_file_scope(**kw) -> dict:
+    """Valid scope ROW (dict form — what the ledger stores / reader parses)."""
+    base = dict(
+        scope_id="g2-person-a-file",
+        subject="file:PERSON_A_upload",
+        source=ConsentSource.OPERATOR_DECLARATION,
+        can_access=True,
+        can_use=True,
+        can_disclose=True,
+        not_after=_iso(NOW + timedelta(days=1)),
+        data_subject="PERSON_A",
+        purpose="communication",
+        modality="text",
+    )
+    base.update(kw)
+    return base
+
+
+@pytest.fixture()
+def ledger(tmp_path, monkeypatch):
+    led = tmp_path / "consent_ledger.json"
+    led.write_text("[]")
+    monkeypatch.setenv("ARIFOS_CONSENT_LEDGER_PATH", str(led))
+    return led
+
+
+class TestWriterContract:
+    def test_unattributed_write_rejected(self, ledger):
         """PEACE² #3 by construction: no actor/session/trace → no write."""
-        r = append_consent_entry({"action": "grant", "scope_id": "s1"})
+        r = grant_scope(_person_a_file_scope(), confirm_write=True)
         assert r["status"] == "ERROR"
         assert r["error_code"] == "ATTRIBUTION_REQUIRED"
 
-    def test_missing_env_reported_never_guessed(self, monkeypatch):
-        monkeypatch.delenv("ARIFOS_CONSENT_LEDGER_PATH", raising=False)
-        r = append_consent_entry(
-            {"action": "grant", "scope_id": "s1"},
-            actor="f13",
+    def test_unconfirmed_write_rejected(self, ledger):
+        """confirm_write is the write-side mirror of source_verified."""
+        r = grant_scope(
+            _person_a_file_scope(),
+            actor="333-AGI",
             session_id="s",
             trace_id="t",
+        )
+        assert r["status"] == "ERROR"
+        assert r["error_code"] == "CONFIRMATION_REQUIRED"
+
+    def test_missing_env_reported_never_guessed(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("ARIFOS_CONSENT_LEDGER_PATH", raising=False)
+        r = grant_scope(
+            _person_a_file_scope(),
+            actor="333-AGI",
+            session_id="s",
+            trace_id="t",
+            confirm_write=True,
         )
         assert r["status"] == "UNKNOWN"
         assert r["dependency_missing"] is True
 
-    def test_append_and_withdraw_roundtrip(self, tmp_path, monkeypatch):
-        led = tmp_path / "consent_ledger.json"
-        led.write_text(
-            json.dumps({"schema": "arifos.f6.consent_ledger.v1", "scopes": [], "events": []})
-        )
-        monkeypatch.setenv("ARIFOS_CONSENT_LEDGER_PATH", str(led))
-        g = append_consent_entry(
-            {"action": "grant", "scope_id": "s1", "purpose": "communication"},
+    def test_grant_upsert_last_wins(self, ledger):
+        g1 = grant_scope(
+            _person_a_file_scope(purpose="communication"),
             actor="333-AGI",
-            session_id="ses-x",
-            trace_id="trc-1",
-            on_behalf_of_f13=True,
+            session_id="s",
+            trace_id="t1",
+            confirm_write=True,
+        )
+        g2 = grant_scope(
+            _person_a_file_scope(purpose="communication", can_disclose=False),
+            actor="333-AGI",
+            session_id="s",
+            trace_id="t2",
+            confirm_write=True,
+        )
+        assert g1["status"] == g2["status"] == "OK"
+        assert g1["replaced"] is False and g2["replaced"] is True
+        rows = json.loads(ledger.read_text())
+        assert len(rows) == 1 and rows[0]["can_disclose"] is False
+
+
+class TestRevocationDownstream:
+    def test_grant_allows_then_withdraw_denies_revoked(self, ledger):
+        """THE revocation flow: ALLOW → withdraw → DENY_REVOKED, end-to-end."""
+        g = grant_scope(
+            _person_a_file_scope(),
+            actor="333-AGI",
+            session_id="s",
+            trace_id="t",
+            confirm_write=True,
         )
         assert g["status"] == "OK"
+        allow = check_consent_from_ledger(
+            "g2-person-a-file",
+            want_use=True,
+            requested_purpose="communication",
+            requested_modality="text",
+            source_verified=True,
+        )
+        assert allow["decision"] == "ALLOW"
+
         w = withdraw_scope(
-            "s1", actor="f13", session_id="ses-x", trace_id="trc-2", reason="changed mind"
+            "g2-person-a-file",
+            reason="subject changed mind",
+            actor="f13",
+            session_id="s",
+            trace_id="t2",
+            confirm_write=True,
         )
         assert w["status"] == "OK"
-        data = json.loads(led.read_text())
-        assert data["events"][-1]["action"] == "withdraw"
-        assert data["events"][0]["attribution"]["writer_of_record"] == "F13"
-        # nothing deleted — tombstone appended
-        assert len(data["events"]) == 2
 
-    def test_scribe_delegation_recorded(self, tmp_path, monkeypatch):
-        led = tmp_path / "consent_ledger.json"
-        led.write_text(
-            json.dumps({"schema": "arifos.f6.consent_ledger.v1", "scopes": [], "events": []})
+        deny = check_consent_from_ledger(
+            "g2-person-a-file",
+            want_use=True,
+            requested_purpose="communication",
+            requested_modality="text",
+            source_verified=True,
         )
-        monkeypatch.setenv("ARIFOS_CONSENT_LEDGER_PATH", str(led))
-        r = append_consent_entry(
-            {"action": "grant", "scope_id": "s2"},
-            actor="hermes",
-            session_id="ses-h",
-            trace_id="trc-3",
-            on_behalf_of_f13=True,
+        assert deny["decision"] == "DENY_REVOKED"
+
+    def test_row_kept_for_audit_after_withdrawal(self, ledger):
+        """Withdrawal flips the flag in place — the fact of former consent stays."""
+        grant_scope(
+            _person_a_file_scope(), actor="a", session_id="s", trace_id="t", confirm_write=True
         )
-        assert r["status"] == "OK"
-        assert json.loads(led.read_text())["events"][0]["attribution"]["on_behalf_of_f13"] is True
+        withdraw_scope(
+            "g2-person-a-file",
+            reason="audit: flag flip check",
+            actor="f13",
+            session_id="s",
+            trace_id="t2",
+            confirm_write=True,
+        )
+        rows = json.loads(ledger.read_text())
+        assert len(rows) == 1
+        assert rows[0]["revoked"] is True
+        assert rows[0]["revoked_reason"] == "audit: flag flip check"
+
+
+class TestConcurrencyAndCorruption:
+    def test_concurrent_writers_no_lost_rows(self, ledger):
+        """10 concurrent grants, 10 distinct scope_ids → 10 rows survive."""
+
+        def worker(i):
+            grant_scope(
+                _person_a_file_scope(scope_id=f"conc-{i}"),
+                actor="a",
+                session_id="s",
+                trace_id=f"t{i}",
+                confirm_write=True,
+            )
+
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+        rows = json.loads(ledger.read_text())
+        assert len(rows) == 10
+        assert len({r["scope_id"] for r in rows}) == 10
+
+    def test_corrupt_ledger_is_unknown_never_consent(self, ledger):
+        """Corrupt file cannot become implicit consent — reader fails closed."""
+        ledger.write_text("{ this is not valid json")
+        out = check_consent_from_ledger(
+            "g2-person-a-file",
+            want_use=True,
+            source_verified=True,
+        )
+        assert out["decision"] == "UNKNOWN"
+        assert out.get("dependency_missing") is True
 
 
 class TestIngestionConsentWiring:
@@ -97,13 +220,9 @@ class TestIngestionConsentWiring:
             return self.cands
 
     def _svc(self):
-        from arifosmcp.memory.ingestion_service import MemoryIngestionService
-
         return MemoryIngestionService()
 
     def _cand(self, subject="Ali", authority=None, scope_id=None):
-        from arifosmcp.memory.types import Authority, MemoryCandidate, MemoryType
-
         return MemoryCandidate(
             type=MemoryType.WORKING,
             subject=subject,
@@ -115,7 +234,6 @@ class TestIngestionConsentWiring:
         )
 
     def test_person_scoped_without_scope_blocked(self, monkeypatch):
-        """Person-named, no scope_id, not self-authored → BLOCKED (fail-closed)."""
         monkeypatch.delenv("ARIFOS_CONSENT_LEDGER_PATH", raising=False)
         svc = self._svc()
         cand = self._cand(subject="Ali")
@@ -124,20 +242,22 @@ class TestIngestionConsentWiring:
         assert res and res[0]["status"] == "BLOCKED"
         assert "consent_scope_id" in res[0]["reason"]
 
-    def test_scope_id_with_dead_env_blocked_unknown(self, monkeypatch):
-        """scope_id present but env unset → ledger UNKNOWN → BLOCKED, dependency named."""
-        monkeypatch.delenv("ARIFOS_CONSENT_LEDGER_PATH", raising=False)
+    def test_revoked_scope_blocks_ingestion(self, ledger):
+        """End-to-end: withdrawn consent blocks a later ingestion attempt."""
+        grant_scope(
+            _person_a_file_scope(), actor="a", session_id="s", trace_id="t", confirm_write=True
+        )
+        withdraw_scope(
+            "g2-person-a-file", actor="f13", session_id="s", trace_id="t2", confirm_write=True
+        )
         svc = self._svc()
-        cand = self._cand(subject="Ali", scope_id="s-42")
+        cand = self._cand(subject="PERSON_A", scope_id="g2-person-a-file")
         svc.extractors = [self._Ext([cand])]
         res = asyncio.run(svc.ingest({}, {"actor_role": "user"}))
         assert res and res[0]["status"] == "BLOCKED"
-        assert res[0]["consent"]["dependency_missing"] is True
+        assert res[0]["consent"]["decision"] == "DENY_REVOKED"
 
     def test_sovereign_self_geometry_passes(self, monkeypatch):
-        """EXPLICIT_USER self-authored records keep the sovereign intake path."""
-        from arifosmcp.memory.types import Authority
-
         monkeypatch.delenv("ARIFOS_CONSENT_LEDGER_PATH", raising=False)
         svc = self._svc()
         cand = self._cand(subject="Arif", authority=Authority.EXPLICIT_USER)
@@ -150,7 +270,7 @@ class TestIngestionConsentWiring:
 
 
 class TestMindReasonGate:
-    def test_third_party_inner_state_holds(self):
+    def test_third_party_prediction_refused(self):
         from arifosmcp.runtime.mind_reason import arif_think
 
         r = asyncio.run(arif_think("he will betray the team", session_id="t", actor_id="333-AGI"))
@@ -162,7 +282,7 @@ class TestMindReasonGate:
         from arifosmcp.runtime.mind_reason import arif_think
 
         r = asyncio.run(arif_think("I feel tired today", session_id="t", actor_id="333-AGI"))
-        assert r.get("gate") != "f6.inference_grammar"  # gate ALLOWed → reasoning proceeded
+        assert r.get("gate") != "f6.inference_grammar"  # gate ALLOWed → proceeded
 
     def test_non_person_query_proceeds(self):
         from arifosmcp.runtime.mind_reason import arif_think
