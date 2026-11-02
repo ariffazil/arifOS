@@ -42,6 +42,15 @@ CONSTITUTIONAL BINDING:
   F9 ANTIHANTU: simulation score inversion = anti-deception
   F1 AMANAH:   fully reversible — scoring only, never blocks
 
+SUBJECT SCOPE (P0-3 · ARIFOS::HUMAN_RASA::P0 · 2026-11-01 · F13 Arif):
+  This scorer grades OUTPUT ARTIFACTS (receipts), never persons. Callers declare
+  subject_class; only IN_SCOPE_SUBJECTS are scored. Anything else (human_message,
+  person, chat, ...) returns classification="OUT_OF_SCOPE" with refused=True and
+  NO computed scores — a text-honesty number attached to a human being is a
+  person score, and person scores are VOID (Receipt != Person).
+  Honest limit: this is a declared contract, not a classifier — a caller that
+  mislabels a human message as "receipt" is outside what a parameter can catch.
+
 USAGE:
   from arifosmcp.core.kernel.setitik_budi import nilai_budi
 
@@ -59,6 +68,11 @@ import re
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
+# ── Subject scope (P0-3): receipts only, never persons ──────────────────────
+# Declared-contract guard: the caller names what it is scoring. Scores computed
+# for subjects outside this set would be person scores → OUT_OF_SCOPE refusal.
+IN_SCOPE_SUBJECTS: frozenset[str] = frozenset({"receipt", "output"})
 
 # ── Honesty signals (perkataan orang jujur) ─────────────────────────────────
 HONESTY_SIGNALS: list[tuple[re.Pattern, float]] = [
@@ -101,7 +115,7 @@ class BudiScore:
 
     budi_weight: float  # 0.0 (lautan) → 1.0 (setitik)
     kaparinyo_score: float  # 0.0 (performative) → 1.0 (apa adanya)
-    classification: str  # "SETITIK" | "SEDERHANA" | "LAUTAN"
+    classification: str  # "SETITIK" | "SEDERHANA" | "LAUTAN" | "OUT_OF_SCOPE"
     honesty_signals: list[dict[str, Any]] = field(default_factory=list)
     simulation_signals: list[dict[str, Any]] = field(default_factory=list)
     text_length: int = 0
@@ -110,6 +124,8 @@ class BudiScore:
     gate_id: str = "setitik_budi"
     sha256: str = ""
     epoch_utc: str = ""
+    subject_class: str = "receipt"  # what the caller declared it is scoring
+    refused: bool = False  # True → OUT_OF_SCOPE, scores carry no meaning
 
     def __post_init__(self) -> None:
         if not self.epoch_utc:
@@ -120,7 +136,7 @@ class BudiScore:
             ).hexdigest()[:16]
 
 
-def nilai_budi(text: str) -> BudiScore:
+def nilai_budi(text: str, subject_class: str = "receipt") -> BudiScore:
     """Evaluate a receipt: is this 'setitik' (honest drop) or 'lautan' (simulative ocean)?
 
     One honest line from Mail ("Salam jumaat. Hang jangan stress2 mail.") —
@@ -131,10 +147,38 @@ def nilai_budi(text: str) -> BudiScore:
 
     Args:
         text: The receipt / output text to evaluate
+        subject_class: What the caller says it is scoring. Must be in
+            IN_SCOPE_SUBJECTS ("receipt" | "output"). Any other value — e.g.
+            "human_message" — is refused before any scoring runs: no honesty
+            signal is extracted and no number is returned about that subject.
 
     Returns:
         BudiScore with budi_weight, kaparinyo_score, and BM/EN advice.
+        Refusals carry classification="OUT_OF_SCOPE", refused=True, and
+        zeroed scores (scores are meaningless, not low).
     """
+    # ── P0-3 subject-scope guard: refuse BEFORE any signal extraction ──
+    declared = (subject_class or "").strip().lower()
+    if declared not in IN_SCOPE_SUBJECTS:
+        return BudiScore(
+            budi_weight=0.0,
+            kaparinyo_score=0.0,
+            classification="OUT_OF_SCOPE",
+            text_length=len(text or ""),
+            advice_bm=(
+                "OUT_OF_SCOPE — pemanggil memberi subject_class="
+                f"'{subject_class}'. nilai_budi hanya menilai resit/output, "
+                "bukan manusia. Tiada skor jujur dihasilkan untuk subjek ini."
+            ),
+            advice_en=(
+                f"OUT_OF_SCOPE — caller declared subject_class='{subject_class}'. "
+                "nilai_budi scores receipts/outputs only, never persons. "
+                "No honesty score is produced for this subject."
+            ),
+            subject_class=subject_class or "",
+            refused=True,
+        )
+
     if not text or not text.strip():
         return BudiScore(
             budi_weight=0.0,
@@ -287,6 +331,7 @@ def nilai_budi(text: str) -> BudiScore:
         text_length=text_len,
         advice_bm=advice_bm,
         advice_en=advice_en,
+        subject_class=declared,
     )
 
 
@@ -342,6 +387,33 @@ def _self_check() -> dict[str, Any]:
         {
             "name": "specific_data_setitik",
             "pass": s.classification in ("SETITIK", "SEDERHANA") and s.budi_weight >= 0.50,
+        }
+    )
+
+    # Test 6 (P0-3): human message subject → refused, no scores
+    s = nilai_budi("Hang dah makan? Jangan stress sangat.", subject_class="human_message")
+    tests.append(
+        {
+            "name": "human_subject_refused",
+            "pass": s.classification == "OUT_OF_SCOPE" and s.refused and s.budi_weight == 0.0,
+        }
+    )
+
+    # Test 7 (P0-3): declared "output" stays in scope (contract not a clamp)
+    s = nilai_budi("Q3 report: 12% drop. Source: internal data.", subject_class="output")
+    tests.append(
+        {
+            "name": "output_subject_in_scope",
+            "pass": not s.refused and s.classification != "OUT_OF_SCOPE",
+        }
+    )
+
+    # Test 8 (P0-3): refusal happens before extraction — no signals recorded
+    s = nilai_budi("Saya tak tahu. Source: chat peribadi.", subject_class="person")
+    tests.append(
+        {
+            "name": "refusal_carries_no_signals",
+            "pass": s.refused and not s.honesty_signals and not s.simulation_signals,
         }
     )
 

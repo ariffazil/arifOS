@@ -266,33 +266,29 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     if not origin_ok:
         drift = True
 
-    # T3b identity-directive (2026-10-22): `drift` compares the three BUILD
-    # stamps only. The comment above claimed "source repo HEAD" but the code
-    # never read the live repo. Live case 2026-10-21: repo HEAD 3980bbe vs
-    # deployed e69abf6 (2 docs commits) reported drift=false. Expose the repo
-    # delta explicitly instead of widening `drift` (docs-only commits would
-    # otherwise flip the kernel substrate to degraded).
-    repo_head_commit = None
-    repo_head_in_sync = None
+    # P1-5 (repair-2026-11-01, audit D1): identity rendered FROM the canonical
+    # identity source (single source). Replaces the inline git probe that
+    # derived the repo from the IMPORT location (live kernel in
+    # site-packages got repo=null) and WIDENS detection per the audit:
+    #   drift_scope = binary_build_stamps + repo_head_vs_deployed +
+    #                 stamp_reachability (orphaned pre-rewrite stamps).
+    # T3b's repo delta stays visible as its own fields.
     try:
-        import subprocess as _sp
+        from arifosmcp.runtime.deployment_identity import canonical_identity as _canonical_identity
 
-        from arifosmcp import __file__ as _pkg_init
-
-        _repo_dir = str(Path(_pkg_init).resolve().parents[1])
-        _head = _sp.run(
-            ["git", "-C", _repo_dir, "rev-parse", "--short=7", "HEAD"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if _head.returncode == 0:
-            repo_head_commit = _head.stdout.strip() or None
-            if repo_head_commit and source_commit not in ("unknown", ""):
-                repo_head_in_sync = source_commit.startswith(repo_head_commit[:7])
+        _ident_src = _canonical_identity()
     except Exception:  # noqa: BLE001 — attestation must never raise
-        repo_head_commit = None
-        repo_head_in_sync = None
+        _ident_src = {}
+    repo_head_commit = _ident_src.get("repo_head_commit")
+    _ident_drift = _ident_src.get("drift") or {}
+    repo_head_in_sync = _ident_drift.get("in_sync")
+    _identity_drift = bool(_ident_drift.get("identity_drift"))
+    _repo_gap = _ident_src.get("repo_gap") or {}
+    _deployed_reachable = _ident_src.get("deployed_reachable")
+    # WIDENED (D1): repo-vs-deployed divergence and unreachable stamps are
+    # identity drift — drift now reflects them, scope declares the full set.
+    if _identity_drift:
+        drift = True
 
     surface_hash = _compute_tool_surface_hash()
 
@@ -305,9 +301,14 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "built_commit": built_commit,
         "deployed_commit": deployed_commit,
         "drift": drift,
-        "drift_scope": "binary_build_stamps",  # T3b: what `drift` actually compares
-        "repo_head_commit": repo_head_commit,  # T3b: live repo HEAD (was invisible)
-        "repo_head_in_sync": repo_head_in_sync,  # T3b: repo HEAD vs deployed stamp
+        # P1-5 widened (2026-11-01, audit D1): drift now ALSO covers
+        # repo HEAD vs deployed + deploy-stamp reachability.
+        "drift_scope": "binary_build_stamps+repo_head_vs_deployed+stamp_reachability",
+        "repo_head_commit": repo_head_commit,
+        "repo_head_in_sync": repo_head_in_sync,
+        "repo_gap": _repo_gap,  # P1-5: both-direction commit counts
+        "deployed_reachable": _deployed_reachable,  # P1-5: orphan-stamp detector
+        "identity_drift": _identity_drift,
         "wheel_hash": wheel_hash,
         "runtime_manifest_hash": runtime_manifest_hash,
         "surface_hash": surface_hash,
