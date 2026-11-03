@@ -598,6 +598,14 @@ def classify_mission(intent: str) -> MissionPlan:
             classified_by="destructive_verb_guard_v1",
         )
 
+    # EGRESS-GATE (2026-11-03 · patch 333-AGI ke atas scaffold FI-008): semakan
+    # escalation mesti dijalankan pada SETIAP laluan. Dahulu cabang
+    # zero_match_human_fallback_v1 keluar SEBELUM _detect_escalation dipanggil —
+    # probe hidup F13 05:57 UTC: dua ayat "Telegram PERSON_B …" (BM + EN) lepas
+    # sebagai interpret/ASK tanpa risk_tag, sedangkan _ESCALATION_VERBS sudah
+    # mengandungi telegram/send/hantar.
+    escalation = _detect_escalation(intent_lower)
+
     # Score every mission
     scores: dict[Mission, tuple[int, int, list[str]]] = {}
     for mission in Mission:
@@ -629,6 +637,8 @@ def classify_mission(intent: str) -> MissionPlan:
         best_mission = Mission.INTERPRET
         confidence = 0.20
         matched = ["(no keyword match — defaulting to interpret/care)"]
+        if escalation:
+            matched.append(f"(egress verbs detected: {escalation})")
         return MissionPlan(
             mission=best_mission,
             confidence=round(confidence, 2),
@@ -639,9 +649,10 @@ def classify_mission(intent: str) -> MissionPlan:
                 OrganStage("arifOS", "synthesize", 3, tools_hint=["arif_think"], can_parallel=False),
             ],
             output_format=MISSION_TEMPLATES[best_mission]["output"],
-            autonomy="ASK",
+            autonomy=("888_HOLD" if escalation else "ASK"),
             matched_triggers=matched,
             classified_by="zero_match_human_fallback_v1",
+            risk_tag=("EGRESS_888" if escalation else ""),
         )
 
     template = MISSION_TEMPLATES[best_mission]
