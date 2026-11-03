@@ -8957,16 +8957,35 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
 
     # If engine path (SessionManifest ping/light) never set substrate, inject
     # live attestation so the wire cannot claim SEAL while drift is unknown.
-    if not isinstance(dst.get("software_release"), dict) or not isinstance(
-        dst.get("substrate"), dict
+    # P0 FIX 2026-11-03 (FI-008, A/B defect #2 root): a session-bound substrate
+    # snapshot older than 10 minutes must NEVER dominate a fresh verdict —
+    # degraded_dominates on stale state turned every advisory ALLOW into HOLD
+    # across service restarts. Refresh instead of replaying stale state.
+    _stale_substrate = False
+    _sub0 = dst.get("substrate") if isinstance(dst.get("substrate"), dict) else None
+    if isinstance(_sub0, dict):
+        try:
+            from datetime import datetime as _dt, timezone as _tz
+
+            _ma = str(_sub0.get("measured_at") or "").replace("Z", "+00:00")
+            _age_s = (
+                (_dt.now(_tz) - _dt.fromisoformat(_ma)).total_seconds() if _ma else 1e9
+            )
+            _stale_substrate = _age_s > 600
+        except Exception:
+            _stale_substrate = True
+    if (
+        _stale_substrate
+        or not isinstance(dst.get("software_release"), dict)
+        or not isinstance(dst.get("substrate"), dict)
     ):
         try:
             from arifosmcp.runtime.build import get_runtime_attestation
 
             _att = get_runtime_attestation(detail=False) or {}
-            if not isinstance(dst.get("software_release"), dict):
+            if _stale_substrate or not isinstance(dst.get("software_release"), dict):
                 dst["software_release"] = _att
-            if not isinstance(dst.get("substrate"), dict):
+            if _stale_substrate or not isinstance(dst.get("substrate"), dict):
                 _sys = read_system_floor_truth()
                 if _sys and not _sys.get("stale") and _sys.get("substrate_state"):
                     # Echo the reading /health already published. The build

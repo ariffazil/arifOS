@@ -543,8 +543,7 @@ def plan_to_dict(plan: MissionPlan) -> dict[str, Any]:
 # never be classified AUTO_DO / "reversible, low". Whole-word match only;
 # negated commands ("jangan hantar") are ignored.
 _ESCALATION_VERBS = (
-    "delete", "padam", "hapus", "buang", "purge", "wipe",
-    "hantar", "send", "share", "kongsi", "telegram",
+    "hantar", "send", "share", "kongsi", "siar", "telegram",
 )
 
 
@@ -657,14 +656,21 @@ def classify_mission(intent: str) -> MissionPlan:
 
     template = MISSION_TEMPLATES[best_mission]
 
+    # P0 2026-11-03 (FI-008): egress verbs escalate even without destructive
+    # verbs (destructive class already blocked by destructive_verb_guard_v1).
+    escalation = _detect_escalation(intent_lower)
+    if escalation:
+        matched.append(f"(egress verbs detected: {escalation})")
+
     return MissionPlan(
         mission=best_mission,
         confidence=round(confidence, 2),
         human_label=template["label"],
         organ_pipeline=template["pipeline"],
         output_format=template["output"],
-        autonomy=template["autonomy"],
+        autonomy=("888_HOLD" if escalation else template["autonomy"]),
         matched_triggers=matched,
+        risk_tag=("EGRESS_888" if escalation else ""),
     )
 
 
