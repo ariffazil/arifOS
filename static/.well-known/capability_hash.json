@@ -1,5 +1,5 @@
 {
-  "capability_hash": "sha256:8822a4d25bc4a7c0b2a7fe9d37497a1aafbac9a87c0982140ed9b56e90a960d3",
+  "capability_hash": "sha256:54e5753061316168e08c571aa2ffb982e4d0f298f9a3749359c6fb31fdd95426",
   "algorithm": "RFC8785-JCS + SHA256 over sorted semantic records",
   "record_count": 8,
   "records": [
@@ -17,15 +17,15 @@
     },
     {
       "name": "arif_memory",
-      "record_sha256": "sha256:e09fa32b03712c641b785ccacd94c0cdf59d7fcf0a5fde4482076aea4fec1621"
+      "record_sha256": "sha256:e4553827611f528e8b5a3bbd24b325aed6dc53bb78a58ffec32f30f78936e982"
     },
     {
       "name": "arif_observe",
-      "record_sha256": "sha256:358bd7d4b6a9a66fcdbcfec358ddaf2ba263267e5fd11206fc933244a6085b22"
+      "record_sha256": "sha256:6c8e1ee6ecb8d03d2043f1c6cc4126da39bcc339ccc46020639fa32e5accafdc"
     },
     {
       "name": "arif_route",
-      "record_sha256": "sha256:16099305288ed7e33a05082c245f7d8360172094a908da552c90a7b6b9c43ce0"
+      "record_sha256": "sha256:eb2b22d8a4170157a9a38e2886b969eb897952ca8f9775cd96317d3506e4cb53"
     },
     {
       "name": "arif_seal",
@@ -33,7 +33,7 @@
     },
     {
       "name": "arif_think",
-      "record_sha256": "sha256:eaabb64a0adee6a218be11a2617074949c4e9fe7e21aaed9a8c01b111a54ab2c"
+      "record_sha256": "sha256:b594e67c9f1eeebb1665d326820ca8c81fc396f76555268df3839121935d9ae5"
     }
   ],
   "excluded_by_design": [
