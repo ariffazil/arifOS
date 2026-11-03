@@ -1002,9 +1002,10 @@ def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
     WHY THIS PRODUCER (2026-10-26, Track 2):
       The arifFlow vector dimension `g` is labelled
       PHASE_1_HEURISTIC_UNCALIBRATED, and the F13 order of 2026-10-25 bars an
-      uncalibrated heuristic from being gate-grade. F8's constitutional name
-      is LOGIC — internal consistency — so the gate-grade instrument measures
-      exactly that, from the federation's own acknowledged-contradiction
+      uncalibrated heuristic from being gate-grade — it falls through to the
+      derived path instead of deciding F8 (commit e643de0ba). While that
+      fall-through leaves F8 unresolved, this fallback instrument measures
+      internal consistency, from the federation's own acknowledged-contradiction
       ledger (/var/lib/arifos/contradiction_register.json, consumer:
       contradiction_margin -> /health eureka_margin + arif_init session gate).
 
