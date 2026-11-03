@@ -256,6 +256,26 @@ class ReceiptEnvelope:
         # PACKET C: derived, never caller-supplied — the writer computes sha256.
         self.chain_hash_alg = "sha256"
 
+        # ── OUT_OF_BAND_APPEND guard (seq 43 defect, F13 2026-10-24; deployed
+        # 2026-11-03 per F13 word "deploy guard seq43 dulu") ─────────────────
+        # An envelope whose operation_id is a prefix of its own receipt_hash
+        # can only have been assembled with the digest computed BEFORE
+        # operation_id was set. The stored body then can never reproduce the
+        # stored hash (verify_chain reports HASH_MISMATCH). Refuse to build
+        # the object so the malformed row cannot be appended — including by
+        # a caller that bypasses append_receipt's assembly order. Coexists
+        # with PACKET C chain_hash_alg (ratified 2026-10-30) — orthogonal.
+        _op = str(self.operation_id or "").strip()
+        _rh = str(self.receipt_hash or "").strip()
+        if _op and _rh:
+            _rh_bare = _rh[7:] if _rh.startswith("sha256:") else _rh
+            if _rh_bare.startswith(_op):
+                raise ValueError(
+                    "OUT_OF_BAND_APPEND: operation_id is a prefix of its own "
+                    "receipt_hash (digest computed before operation_id was set)"
+                    " — envelope refused"
+                )
+
     def to_wire(self) -> dict[str, Any]:
         d = asdict(self)
         # Keep both canonical and legacy keys for dual readers.
