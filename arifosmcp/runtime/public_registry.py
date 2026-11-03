@@ -79,8 +79,13 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_init": (
         "Ignite or resume a governed session. Returns session_id and session_token "
         "required for subsequent operations. Modes: init (default new session), "
-        "preflight (inspect existing session), resume (continue active session). "
-        "Outputs: session credentials and allowed next tools."
+        "preflight (inspect existing session state), resume (continue active "
+        "session), validate (re-check credentials), canary (transport probe), "
+        "triage (read session state), epoch_open/epoch_seal (bracket a long "
+        "working window), light (minimal session), opt_out (privacy opt-out). "
+        "Outputs: session credentials and allowed next tools. To END a governed "
+        "session, call arif_seal(mode=session_close) — session closure is a "
+        "ledger event, not an init mode."
     ),
     # ── 000 TRIAGE (session immune, not intent router) ─────────────────────
     "arif_triage": (
@@ -130,9 +135,12 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
         "Access and maintain persistent institutional knowledge across sessions. "
-        "Modes: recall (retrieve relevant context), inspect (audit stored decisions), "
-        "remember (store verified lesson). Mutations to permanent tiers require "
-        "explicit approval. Outputs: scoped memory entries."
+        "Modes: recall (retrieve relevant context), inspect (read one memory in "
+        "full), attest (vouch for a memory's accuracy), remember (store new "
+        "text), promote (move a memory up a tier), revise (replace a memory's "
+        "text), forget (remove a memory, gated), audit (integrity scan), "
+        "metabolize (compact and consolidate tiers). Writes to permanent tiers "
+        "require explicit approval. Outputs: scoped memory entries."
     ),
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
@@ -146,9 +154,16 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_judge_deliberate": ("[alias/internal → arif_judge] Prefer public arif_judge."),
     # ── 777 FORGE ───────────────────────────────────────────────────────────
     "arif_forge": (
-        "Apply an authorized system modification. Requires a valid seal_verdict_id "
-        "obtained from arif_judge. Mode: dry_run (preview impact without execution), "
-        "apply (execute authorized change). Outputs: execution receipt."
+        "Execute an action arif_judge has already SEALed — nothing runs without "
+        "seal_verdict_id and approved_action_hash matching the judged action. "
+        "Modes: engineer (default; plan and apply — requires manifest), "
+        "dry_run (preview, no side effects; manifest or query), query "
+        "(read-only), write (write files), generate (generate code/content), "
+        "commit (commit prepared work), recall (retrieve past forge artifacts). "
+        "Irreversible judged actions additionally require ack_irreversible=true. "
+        "On missing seal or hash mismatch the call returns REFUSED with no "
+        "change made. Outputs: execution receipt (receipt_id, status, actor_id, "
+        "timestamp)."
     ),
     "arif_forge_execute": ("[alias → arif_forge] Prefer arif_forge."),
     "arif_act": (
@@ -161,9 +176,13 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_reply_compose": ("[alias → arif_compose] Prefer arif_compose."),
     # ── 999 SEAL ────────────────────────────────────────────────────────────
     "arif_seal": (
-        "Append verified outcome or lesson to the immutable audit ledger. "
-        "Requires ack_irreversible=true to confirm permanent commit. "
-        "Outputs: immutable ledger entry receipt."
+        "Appends a receipt to the VAULT999 immutable ledger. This is NOT a "
+        "verdict and does not authorize anything — verdicts come only from "
+        "arif_judge. Modes: seal (default; permanent append, requires payload "
+        "and seal_purpose), verify (check one entry), ledger (read the ledger "
+        "head), changelog (recent appends), audit (integrity check), "
+        "session_close (close out a session into the ledger). Write modes "
+        "require ack_irreversible=true. Outputs: immutable ledger entry receipt."
     ),
     "arif_vault_seal": ("[alias → arif_seal] Prefer arif_seal."),
     # ── Gateway / measure (non-public helpers) ──────────────────────────────
