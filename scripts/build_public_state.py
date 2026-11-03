@@ -270,6 +270,19 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
             or health_data.get("git_commit")
         )
 
+    # 2026-11-03 (FI-008): surface the /health body's own status word so
+    # "reachable" (transport PRESENT) is never rendered as "healthy".
+    # Vocabulary observed live: ok / ok-v3-vector / healthy / degraded.
+    health_status = None
+    if health_data:
+        raw_hs = str(health_data.get("status") or "").lower()
+        if raw_hs == "degraded":
+            health_status = "DEGRADED"
+        elif raw_hs.startswith("ok") or raw_hs == "healthy":
+            health_status = "HEALTHY"
+        elif raw_hs:
+            health_status = raw_hs.upper()
+
     return {
         "organ": meta.get("label") or organ_id.upper(),
         "id": organ_id,
@@ -281,6 +294,7 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
         "last_observed": now_iso(),
         "probe_reason": health_verdict.get("reason"),
         "probe_status_code": health_verdict.get("status_code"),
+        "health_status": health_status,
         "website": meta.get("website"),
         "mcp": meta.get("mcp"),
         "evidence_url": meta.get("evidence_url"),
@@ -1432,6 +1446,7 @@ def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, 
         # governance / receipt / contract signals — whitelisted through so the
         # contract wire can emit sourced records instead of honest-null.
         "probe_status_code": row.get("probe_status_code"),
+        "health_status": row.get("health_status"),
         "governance_evidence": row.get("governance_evidence"),
         "receipt_evidence": row.get("receipt_evidence"),
         "contract_evidence": row.get("contract_evidence"),

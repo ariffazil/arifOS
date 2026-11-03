@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -144,7 +145,9 @@ def _full_built_commit() -> str:
 def _installation_manifest_hash() -> str | None:
     """Hash the installed distribution RECORD (the reproducible install manifest)."""
     candidates = sorted(
-        Path("/opt/arifos/venv/lib").glob("python*/site-packages/arifos-*.dist-info/RECORD")
+        Path("/opt/arifos/venv/lib").glob(
+            "python*/site-packages/arifos-*.dist-info/RECORD"
+        )
     )
     return _sha256_file(candidates[-1]) if candidates else None
 
@@ -210,7 +213,117 @@ def _origin_ok() -> bool:
     if os.getenv("ARIFOS_ENFORCE_ORIGIN", "").strip() != "1":
         return True
     origin = _runtime_origin()
-    return origin != "unknown" and origin.startswith(str(Path(ACTIVE_VENV_ROOT).resolve()) + "/")
+    return origin != "unknown" and origin.startswith(
+        str(Path(ACTIVE_VENV_ROOT).resolve()) + "/"
+    )
+
+
+def _git_blob_sha1(data: bytes) -> str:
+    """Git object SHA-1 of a blob: sha1(b'blob <size>\\0' + data)."""
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def _content_parity(
+    source_commit: str,
+    *,
+    package_root: Path | None = None,
+    repo_path: Path | None = None,
+) -> dict[str, Any]:
+    """CONTENT-PARITY (2026-11-03): installed BYTES vs the committed tree.
+
+    Stamps can agree while bytes diverge. Measured 2026-11-03 on the live box:
+    built==deployed==source==f26af25 and drift=false, while the running package
+    held 2 modified files + 7 files with NO git history at all — a false
+    negative, because drift compares SHAs, never content.
+
+    Method: git blob SHA-1 of every *.py under the installed package vs
+    `git ls-tree -r <source_commit> arifosmcp`.
+
+    Fail-closed by law: any error (unknown commit, unreadable file, git
+    unavailable) returns state=UNKNOWN — absent/unchecked is NEVER MATCH.
+    Always measured; flips `drift` only under ARIFOS_CONTENT_PARITY_ENFORCE=1.
+    """
+    root = package_root
+    if root is None:
+        root_override = os.getenv("ARIFOS_PACKAGE_ROOT", "").strip()
+        if root_override:
+            root = Path(root_override)
+        else:
+            try:
+                import arifosmcp as _pkg
+
+                root = Path(_pkg.__file__).resolve().parent
+            except Exception:
+                root = Path(__file__).resolve().parents[1]
+    repo = Path(repo_path or os.getenv("ARIFOS_REPO_PATH", "/root/arifOS"))
+    out: dict[str, Any] = {
+        "state": "UNKNOWN",
+        "method": "git_blob_sha1_vs_ls-tree",
+        "package_root": str(root),
+        "repo": str(repo),
+        "commit": source_commit,
+        "files_compared": 0,
+        "files_changed": 0,
+        "files_untracked": 0,
+        "files_missing": 0,
+        "sample_changed": [],
+        "sample_untracked": [],
+        "sample_missing": [],
+        "reason": None,
+    }
+    if not source_commit or source_commit == "unknown":
+        out["reason"] = "source_commit unknown — cannot compare"
+        return out
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo), "ls-tree", "-r", source_commit, "arifosmcp"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:  # git missing/timeout
+        out["reason"] = f"git unavailable: {type(exc).__name__}"
+        return out
+    if proc.returncode != 0:
+        out["reason"] = f"ls-tree failed rc={proc.returncode}"
+        return out
+    committed: dict[str, str] = {}
+    for line in proc.stdout.splitlines():
+        try:
+            meta, path = line.split("\t", 1)
+            sha = meta.split()[2]
+        except (ValueError, IndexError):
+            continue
+        if path.endswith(".py"):
+            committed[path] = sha
+    if not committed:
+        out["reason"] = "commit resolves but holds no arifosmcp/*.py"
+        return out
+    local: dict[str, str] = {}
+    try:
+        for path in sorted(Path(root).rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            rel = "arifosmcp/" + str(path.relative_to(root))
+            local[rel] = _git_blob_sha1(path.read_bytes())
+    except OSError as exc:
+        out["reason"] = f"unreadable package file: {type(exc).__name__}"
+        return out
+    changed = sorted(p for p in local if p in committed and committed[p] != local[p])
+    untracked = sorted(p for p in local if p not in committed)
+    missing = sorted(p for p in committed if p not in local)
+    out.update(
+        files_compared=len(local),
+        files_changed=len(changed),
+        files_untracked=len(untracked),
+        files_missing=len(missing),
+        sample_changed=changed[:8],
+        sample_untracked=untracked[:8],
+        sample_missing=missing[:8],
+    )
+    out["state"] = "MISMATCH" if (changed or untracked or missing) else "MATCH"
+    return out
 
 
 def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
@@ -225,9 +338,13 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     built_commit = _full_built_commit()
 
     critical_module_hashes = {
-        rel: digest for rel in _CRITICAL_MODULES if (digest := _sha256_file(ROOT / rel)) is not None
+        rel: digest
+        for rel in _CRITICAL_MODULES
+        if (digest := _sha256_file(ROOT / rel)) is not None
     }
-    wheel_hash = os.getenv("ARIFOS_WHEEL_SHA256", "").strip() or _installation_manifest_hash()
+    wheel_hash = (
+        os.getenv("ARIFOS_WHEEL_SHA256", "").strip() or _installation_manifest_hash()
+    )
     manifest = {
         "source_commit": source_commit,
         "wheel_hash": wheel_hash,
@@ -274,7 +391,9 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     #                 stamp_reachability (orphaned pre-rewrite stamps).
     # T3b's repo delta stays visible as its own fields.
     try:
-        from arifosmcp.runtime.deployment_identity import canonical_identity as _canonical_identity
+        from arifosmcp.runtime.deployment_identity import (
+            canonical_identity as _canonical_identity,
+        )
 
         _ident_src = _canonical_identity()
     except Exception:  # noqa: BLE001 — attestation must never raise
@@ -290,6 +409,17 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     if _identity_drift:
         drift = True
 
+    # CONTENT-PARITY (2026-11-03): stamp agreement ≠ byte agreement. Measured
+    # false negative: built==deployed==source==f26af25 + drift=false while the
+    # running package held 2 modified + 7 never-committed files. Always
+    # MEASURED here; it flips `drift` only when F13 turns the switch on —
+    # enforcement would immediately clamp today's box (content MISMATCH is the
+    # current measured state), so it stays off until sovereign decision.
+    content_parity = _content_parity(source_commit)
+    _content_enforced = os.getenv("ARIFOS_CONTENT_PARITY_ENFORCE", "").strip() == "1"
+    if _content_enforced and content_parity.get("state") == "MISMATCH":
+        drift = True
+
     surface_hash = _compute_tool_surface_hash()
 
     release_id = os.getenv("ARIFOS_RELEASE_ID", "").strip() or (
@@ -303,7 +433,15 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "drift": drift,
         # P1-5 widened (2026-11-01, audit D1): drift now ALSO covers
         # repo HEAD vs deployed + deploy-stamp reachability.
-        "drift_scope": "binary_build_stamps+repo_head_vs_deployed+stamp_reachability",
+        "drift_scope": (
+            "binary_build_stamps+repo_head_vs_deployed+stamp_reachability+content_hash"
+            if _content_enforced
+            else "binary_build_stamps+repo_head_vs_deployed+stamp_reachability"
+            "(content_hash=measured_only)"
+        ),
+        # CONTENT-PARITY (2026-11-03): bytes-vs-commit verdict, always measured.
+        "content_parity": content_parity,
+        "content_parity_enforced": _content_enforced,
         "repo_head_commit": repo_head_commit,
         "repo_head_in_sync": repo_head_in_sync,
         "repo_gap": _repo_gap,  # P1-5: both-direction commit counts
@@ -327,6 +465,23 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         # labelling. Without _field_semantics, the field names alone cannot
         # distinguish deployed-binary source from a VPS snapshot of repo HEAD.
         "_field_semantics": {
+            "drift": (
+                "True when any ENFORCED attested dimension diverges. The SHA/stamp "
+                "dimensions are always enforced; the content_hash dimension is "
+                "MEASURED always but enforced only under "
+                "ARIFOS_CONTENT_PARITY_ENFORCE=1 (default off — enforcement would "
+                "currently clamp the box; measured content MISMATCH on 2026-11-03). "
+                "While enforcement is off, drift=false must NOT be read as "
+                "'running bytes == committed bytes' — check content_parity."
+            ),
+            "content_parity": (
+                "Git-blob-SHA1 comparison of every *.py in the installed package "
+                "against `git ls-tree -r source_commit`. MATCH = bytes equal the "
+                "commit; MISMATCH = modified/untracked/missing files present "
+                "(sample_* lists them); UNKNOWN = the check could not run "
+                "(unknown commit, unreadable file, git unavailable) and is NEVER "
+                "to be read as MATCH."
+            ),
             "release_id": (
                 "Human-readable identifier combining product and source SHA prefix. "
                 "Equals arifos-{source_commit[:12]} when source is known."
@@ -344,7 +499,8 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
             "deployed_commit": (
                 "Git SHA stamped into the runtime at package install time. "
                 "Should equal source_commit and built_commit on a clean deployment. "
-                "drift=true means one or more of these three SHAs diverge."
+                "drift=true means one or more of these three SHAs diverge — a "
+                "SHA-only statement; byte-level coverage lives in content_parity."
             ),
             "wheel_hash": (
                 "SHA-256 of the installed wheel when ARIFOS_WHEEL_SHA256 is set; "
@@ -493,7 +649,10 @@ def _detect_deployment_mode() -> str:
         cgroup_path = Path("/proc/1/cgroup")
         if cgroup_path.exists():
             cgroup = cgroup_path.read_text(errors="replace")
-            if any(token in cgroup for token in ("docker-", "kubepods", "/lxc/", "containerd-")):
+            if any(
+                token in cgroup
+                for token in ("docker-", "kubepods", "/lxc/", "containerd-")
+            ):
                 return "container"
     except (FileNotFoundError, PermissionError, OSError):
         pass
