@@ -21596,36 +21596,14 @@ async def _arif_judge_deliberate_tool(
             # Inject failure must not block verdict; log and proceed.
             logger.warning(f"F13#6 scar_recall injection failed: {_inj_err}")
 
-        try:
-            import asyncio
-
-            from arifOS.supabase_adapter import record_judge_verdict
-
-            v_code = result.get("verdict", "UNKNOWN")
-            v_str = v_code if isinstance(v_code, str) else getattr(v_code, "value", str(v_code))
-
-            comp = result.get("constitutional_compliance")
-            floor_summary = (
-                comp
-                if isinstance(comp, dict)
-                else (comp.model_dump() if hasattr(comp, "model_dump") else {})
-            )
-
-            reasons = result.get("reasons", [])
-            reasoning = reasons[0] if reasons else None
-
-            loop = asyncio.get_running_loop()
-            loop.create_task(
-                record_judge_verdict(
-                    tool_call_id=None,
-                    session_ref=session_id or "unknown",
-                    verdict=v_str,
-                    floor_summary=floor_summary,
-                    reasoning=reasoning,
-                )
-            )
-        except Exception as e:
-            logger.error(f"Failed to trigger Supabase record_judge_verdict: {e}")
+        # Supabase verdict-telemetry hook REMOVED 2026-11-03 (kimi-code/FI-008,
+        # F13 order TDQS/zen pass): `from arifOS.supabase_adapter import
+        # record_judge_verdict` referenced a module that no longer exists —
+        # the block raised ModuleNotFoundError every ~10 min in production
+        # logs (measured 2026-11-03 journalctl). Dead code deleted, not
+        # silenced: supabase/ now holds only config.toml + SQL migrations.
+        # If cloud verdict mirroring is ever wanted again, re-add it against
+        # a module that exists and fail-soft at DEBUG level.
 
         # F14 stamping (Right #2 appeal path, Right #3 escalation,
         # Right #8 explanation). Fails closed: missing substrate

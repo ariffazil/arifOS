@@ -162,6 +162,25 @@ echo "  Commit:     $GIT_COMMIT"
 echo "  Build time: $BUILD_TS"
 echo ""
 
+# ── Step 0.5: immutability cycle (F13 zen pass 2026-11-03) ─────────────
+# The production tree is chattr +i hardened; this script must rm build/
+# and rewrite the .git_commit markers. Before 2026-11-03 it did NOT own
+# that cycle and deploys died mid-flight on EPERM (measured twice today).
+# git-lane owns .git; this helper owns the WORKING TREE nodes below and
+# relocks them via EXIT trap no matter how this script ends.
+if [ -r "$SELF_DIR/immutability_cycle.sh" ]; then
+	# shellcheck disable=SC1091
+	source "$SELF_DIR/immutability_cycle.sh"
+	immutability_unlock \
+		"$REPO_DIR" \
+		"$REPO_DIR/build" \
+		"$REPO_DIR/arifos.egg-info" \
+		"$REPO_DIR/.git_commit" \
+		"/opt/arifos/app/.git_commit"
+else
+	echo "⚠️  immutability_cycle.sh missing — deploy may fail on hardened nodes" >&2
+fi
+
 # ── Step 1: Build wheel ──────────────────────────────────────────────
 echo "--- Step 1: Build immutable wheel ---"
 cd "$REPO_DIR"
