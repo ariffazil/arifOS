@@ -30685,15 +30685,51 @@ def register_tools(
                 "AGENT REPORT LANE · File or read reports between agents without "
                 "involving the human. Use when your work is done, when you are "
                 "blocked by another agent, or when you need to tell peers a fact. "
-                "modes: report (file), inbox (read peers), ack, flush, stats. "
+                "Modes: report (file), inbox (read peers), ack, flush, stats. "
                 "kind=fyi|peer|done|claim stay in the peer lane; ONLY kind=decision "
                 "or kind=blocked reach the sovereign, and only in one coalesced "
-                "message. Reports are SELF_REPORTED — probe before relying on one."
+                "message. Reports are SELF_REPORTED — probe before relying on one. "
+                "Not for constitutional verdicts, sealing, or mutations — use the "
+                "canonical verbs (arif_init … arif_seal); this lane coordinates, it "
+                "never governs. Behavior: filing appends to an agent-only store "
+                "(never the VAULT999 ledger); reads are side-effect-free; "
+                "dry_run=true validates without storing. Requires a session from "
+                "arif_init. Outputs: the filed report record (mode=report), or the "
+                "inbox/ack/flush/stats payload for the other modes."
             ),
             tags={"coordination", "arifos", "non-constitutional"},
             annotations={"readOnlyHint": False, "destructiveHint": False},
+            output_schema=_tool_output_schema("arif_report"),
             meta=_rep_meta,
         )(_arif_report)
+        # TDQS Parameter Semantics (F13 order 2026-11-03): the lane registers
+        # straight off the handler signature, so without this patch its params
+        # ship with empty descriptions (measured 0/19 documented — Glama TDQS
+        # warning). Merge the _PARAM_DOCS prose exactly like the canonical 8,
+        # and strip the transport-owned _envelope param from the advertised
+        # surface (same rule the canonical loop applies).
+        try:
+            _rep_provider = getattr(mcp, "_local_provider", None)
+            if _rep_provider is not None:
+                _rep_ft = getattr(_rep_provider, "_components", {}).get(
+                    "tool:arif_report@"
+                )
+                if _rep_ft is not None and hasattr(_rep_ft, "parameters"):
+                    from arifosmcp.runtime.public_registry import _merge_param_docs
+
+                    _rep_schema = _merge_param_docs(
+                        "arif_report", dict(_rep_ft.parameters)
+                    )
+                    _rep_props = _rep_schema.get("properties")
+                    if isinstance(_rep_props, dict):
+                        _rep_props.pop("_envelope", None)
+                        if _rep_schema.get("required"):
+                            _rep_schema["required"] = [
+                                r for r in _rep_schema["required"] if r != "_envelope"
+                            ]
+                    _rep_ft.parameters = _rep_schema
+        except Exception:
+            logger.warning("arif_report param-doc merge skipped", exc_info=True)
         registered.append("arif_report")
         logger.info("AGENT REPORT LANE: registered arif_report (coordination channel)")
     except Exception as _rep_exc:  # noqa: BLE001

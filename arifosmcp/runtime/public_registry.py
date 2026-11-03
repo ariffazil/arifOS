@@ -93,10 +93,20 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 111 OBSERVE ─────────────────────────────────────────────────────────
     "arif_observe": (
-        "Collect evidence, reality observations, and operational facts with provenance. Modes: search "
-        "(web literature queries), fetch (targeted URL retrieval), vitals "
-        "(system metrics). Requires valid session credentials. "
-        "Outputs: structured facts, source attribution, and epistemic tags."
+        "Sense reality into sourced evidence — gather external facts with "
+        "provenance, the kernel's sensing verb. Run it before arif_think or "
+        "arif_judge so decisions rest on sourced "
+        "facts. Modes: search (web/literature query, default), fetch (one URL with "
+        "provenance), hybrid_discovery (combine sources), ingest (absorb a "
+        "document), compass/atlas (guided navigation), entropy_dS (measure system "
+        "change), vitals (kernel machine telemetry), resource_read (read a "
+        "registered arifos:// resource), resource_search (list registered "
+        "resources). Use for fresh external facts or live system state; NOT for "
+        "stored institutional knowledge (arif_memory recall) or organ dispatch "
+        "(arif_route). Read-only and idempotent — writes nothing; every result "
+        "carries source attribution and an epistemic tag (OBS/DER/INT). Requires "
+        "a valid arif_init session; unauthenticated calls are refused. "
+        "Outputs: structured facts with provenance and uncertainty labels."
     ),
     "arif_sense_observe": (
         "[alias → arif_observe] KERNEL 111 sense. Prefer canonical name arif_observe."
@@ -111,17 +121,38 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 333 THINK ───────────────────────────────────────────────────────────
     "arif_think": (
-        "Execute structured reasoning and plan formulation. Decomposes inquiries "
-        "into verified derivations. Modes: reason (inquiry breakdown), plan "
-        "(drafting multi-step execution steps), verify (logical proof check). "
-        "Requires valid session credentials. Outputs: structured reasoning record."
+        "Structured reasoning and plan formulation — decomposes a question or "
+        "claim into labeled derivations (OBS/DER/INT) before you act. Modes: "
+        "reason (inquiry breakdown, default), reflect (self-review of prior "
+        "reasoning), verify (check a derivation), axioms (surface hidden "
+        "assumptions), plan/plan_review/plan_approve/refactor_plan "
+        "(execution-plan lifecycle), metabolize (consolidate past reasoning), "
+        "simulate (what-if), wonder (open exploration), atlas (map the problem "
+        "space). Use to prepare evidence chains and plans BEFORE arif_judge or "
+        "arif_forge — pass the returned plan_id to arif_forge when executing an "
+        "approved plan. NOT for gathering facts (arif_observe), dispatching to "
+        "organs (arif_route), or issuing verdicts (arif_judge — think never "
+        "issues them). Pure reasoning: mutates no state and calls no external "
+        "systems; its output is a reasoning record, not ground truth. Requires "
+        "a valid arif_init session. Outputs: structured reasoning record with "
+        "epistemic labels."
     ),
     "arif_mind_reason": ("[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."),
     # ── 444 ROUTE ───────────────────────────────────────────────────────────
     "arif_route": (
-        "Classify intent and route tasks to domain organs (GEOX for Earth science, "
-        "WEALTH for capital markets, WELL for human vitality, A-FORGE for execution). "
-        "Requires valid session credentials. Outputs: organ dispatch envelope."
+        "Classify an intent and route it to the organ that owns it — GEOX (Earth "
+        "science), WEALTH (capital markets), WELL (human vitality), A-FORGE "
+        "(execution), or the arifOS kernel itself. Modes: route (default; "
+        "classify and recommend), triage (rank a batch of intents), delegate "
+        "(prepare an A2A handoff), status (organ state), kernel (kernel-level "
+        "status), metabolize (feed routing outcomes to arifFlow). Use when a "
+        "task belongs to a specialized organ and you need a dispatch envelope "
+        "or organ health before acting; supply organ_tool + arguments to bridge "
+        "one call through to the organ. Routing RECOMMENDS only — it never "
+        "executes: for execution obtain an arif_judge SEAL, then call arif_forge. "
+        "Not for general reasoning (arif_think). Read-only unless organ_tool is "
+        "supplied. Requires a valid arif_init session. "
+        "Outputs: organ dispatch envelope with recommended organ and tool."
     ),
     "arif_kernel_route": ("[DEPRECATED → arif_route] Legacy KERNEL 444 entry."),
     # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
@@ -134,13 +165,22 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_heart_critique": ("[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."),
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
-        "Access and maintain persistent institutional knowledge across sessions. "
-        "Modes: recall (retrieve relevant context), inspect (read one memory in "
-        "full), attest (vouch for a memory's accuracy), remember (store new "
-        "text), promote (move a memory up a tier), revise (replace a memory's "
-        "text), forget (remove a memory, gated), audit (integrity scan), "
-        "metabolize (compact and consolidate tiers). Writes to permanent tiers "
-        "require explicit approval. Outputs: scoped memory entries."
+        "Persistent institutional knowledge across sessions — store, recall, and "
+        "curate lessons, decisions, and context so later sessions inherit them. "
+        "Modes: recall (semantic search, default), inspect (read one memory in "
+        "full), attest (vouch for its accuracy), remember (store a self-contained "
+        "lesson), promote (move up a tier), revise (replace its text), forget "
+        "(remove — gated), audit (integrity scan), metabolize (compact and "
+        "consolidate tiers). Use to carry knowledge forward between sessions; "
+        "NOT for fresh external facts (arif_observe) and NOT for permanent audit "
+        "receipts — those are arif_seal appends to the VAULT999 ledger, which "
+        "can never be edited, whereas memory entries are revisable by design. "
+        "Tiers L1 (hot working memory) → L6 (sealed canon). Behavior: reads "
+        "(recall/inspect/audit) are side-effect-free; writes (remember/promote/"
+        "revise/metabolize) mutate memory state; promote and forget refuse "
+        "without human_approval=true — only the human owner may destroy memory. "
+        "Requires a valid arif_init session. Outputs: scoped memory entries "
+        "with tier and provenance."
     ),
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
@@ -386,6 +426,18 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         "witness_type": (
             "Who vouches for the reasoning record: 'ai' (default), 'human', or 'external' system."
         ),
+        "context": (
+            "Structured sideband for the reasoning call — JSON object, e.g. "
+            "{'handoff': <hermes_handoff_package envelope>}. Handoff context is "
+            "reported as transport status only (REFS_RESOLVED / "
+            "EVIDENCE_NOT_RECEIVED / HASH_MISMATCH) and never upgrades a claim's "
+            "epistemic state."
+        ),
+        "evidence": (
+            "Prior verified facts to reason from — JSON list like "
+            "[{'fact': 'tests pass', 'source': 'CI'}]; the derivation labels "
+            "which evidence each conclusion rests on."
+        ),
         "concise": (
             "Trim result.result to essential fields (default true). Set false for the "
             "full payload — evidence_used, epistemic_labels and the AGI-readiness block. "
@@ -520,6 +572,51 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         "ack_irreversible": (
             "Set true to confirm you understand sealed entries are PERMANENT — "
             "they can never be edited or removed."
+        ),
+    },
+    "arif_report": {
+        "mode": (
+            "'report' (default) — file a report into the agent lane; 'inbox' — "
+            "read reports addressed to you or your platform; 'ack' — vouch for "
+            "a peer thread so an unverified escalation can proceed; 'flush' — "
+            "page out coalesced escalations; 'stats' — lane statistics."
+        ),
+        "kind": (
+            "Report class. 'fyi' | 'peer' | 'done' | 'claim' stay in the agent "
+            "lane; ONLY 'decision' or 'blocked' can reach the human sovereign, "
+            "and only in one coalesced message."
+        ),
+        "subject": ("Short headline of the report (mode=report)."),
+        "body": (
+            "The report text (mode=report). A report is a SELF-REPORTED claim — "
+            "include pointers to evidence (paths, URLs, receipt ids), not bare "
+            "assertions."
+        ),
+        "sender": (
+            "Filing agent identity, e.g. 'kimi-code/FI-008'. Defaults to actor_id."
+        ),
+        "platform": ("Originating surface tag, e.g. 'mcp' (default), 'telegram'."),
+        "thread_id": (
+            "Thread to file into, read, or ack — groups related reports so a "
+            "conversation stays together."
+        ),
+        "evidence": (
+            "Evidence pointers attached to the report — paths, URLs, or receipt "
+            "ids that let a peer verify the claim independently."
+        ),
+        "needs_human": (
+            "Set true ONLY when the report genuinely requires the sovereign's "
+            "decision; escalation is withheld unless the actor is verified or "
+            "the thread has a 2-distinct-agent quorum."
+        ),
+        "report_id": ("Id of a specific report — used by mode=ack and mark_read."),
+        "since": ("ISO timestamp filter for mode=inbox — return reports filed after this."),
+        "limit": ("Maximum reports to return (mode=inbox). Default 20."),
+        "mark_read": ("Mark the returned inbox reports as read."),
+        "force": ("Bypass coalescing guards when flushing. Use sparingly."),
+        "dry_run": (
+            "Validate and preview the report without storing it — no lane write "
+            "happens."
         ),
     },
 }
