@@ -449,6 +449,15 @@ MANIFEST_EOF
 # Deployment stamp: ONE stable path (build.py + reconciler read this).
 # No legacy /opt/arifos/app stamp — that tree is retired by ONE_ORIGIN.
 echo "$GIT_COMMIT" >"$STAMP_FILE"
+# 2026-11-03 (F13 signed deploy chain): the wheel flow must ALSO advance the
+# legacy app marker. ExecStartPost sync-deployed-commit reads /opt/arifos/app/
+# .git_commit FIRST on every boot; with only the releases stamp updated, boot
+# re-poisoned deployed-commit back to 948c56b ~4s after restart and Step 7
+# failed for EVERY lane (rollback-* 29 Oct / 2 Nov / 3 Nov all explained).
+# deploy_local_body.sh and deploy-to-runtime.sh already write BOTH markers;
+# this restores flow parity. App marker must stay writable (sealing it traps
+# all three flows). STRICT — a failed write must fail the deploy loudly.
+printf "%s\n" "$GIT_COMMIT" >/opt/arifos/app/.git_commit
 
 # ── Deploy receipt (F2 2026-10-21, 333-AGI): the kernel's /health top-level
 # deployed_commit reads /opt/arifos/current/receipts/latest.json. This script
