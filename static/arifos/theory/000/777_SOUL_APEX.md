@@ -393,7 +393,7 @@ APEX observes modified self
 | **Amanah** | أمانة (trust) | Reversibility constraint | Linear type |
 | **Adab** | أدب (discipline) | Procedural etiquette | Protocol state |
 | **Akal** | عقل (intellect) | Reasoning capacity | Function Δ |
-| **Hikmah** | حكمة (wisdom) | Governed intelligence | Product A×P×X×E² |
+| **Hikmah** | حكمة (wisdom) | Governed intelligence | Geometric mean (A×P×E×X)^(1/4) |
 | **Maruah** | مروءة (dignity) | Inherent worth | Unmeasurable |
 | **RASA** | راسا (essence) | Active listening | Attention mechanism |
 | **Sabar** | صبر (patience) | Cooling/refinement | Time delay |
@@ -546,10 +546,10 @@ def calculate_genius(
     """
     F8 Genius — Governed Intelligence.
 
-    G = A × P × X × E²
+    G = (A × P × E × X)^(1/4)
 
     Multiplicative: any zero → G = 0
-    E²: Energy depletion is exponential
+    E: one of four equal dials — no squaring
     Threshold: G ≥ 0.80
 
     CRITICAL: A/P/X/E must be DERIVED from floor scores via eigendecomposition,
@@ -592,7 +592,7 @@ The APEX dials (A/P/X/E) are **not independent inputs**—they are **principal c
                          ↓
                     A/P/X/E Dials
                          ↓
-                  G = A × P × X × E²
+                  G = (A × P × E × X)^(1/4)
 ```
 
 ### 10.4.2 Floor-to-Dial Cluster Mapping
@@ -635,7 +635,7 @@ E = (F12 × F13)^(1/2) × (budget_ratio)  # System energy
 
 **Step 4: Calculate Genius**
 ```
-G = A × P × X × E²
+G = (A × P × E × X)^(1/4)
 ```
 
 ### 10.4.4 Reference Implementation
@@ -746,7 +746,7 @@ def calculate_genius_from_floors(
     """
     Constitutional Genius calculation with proper eigendecomposition.
 
-    G = A × P × X × E²
+    G = (A × P × E × X)^(1/4)
 
     Where A/P/X/E are derived FROM floor scores, not set arbitrarily.
     """
@@ -1045,7 +1045,7 @@ YES     NO
 
 | Feature | Status | Location | Notes |
 |---------|--------|----------|-------|
-| G = A×P×X×E² formula | ✅ Implemented | `codebase/floors/genius.py` | `GeniusCalculator.compute()` |
+| G = (A×P×E×X)^(1/4) formula | ✅ Implemented | `codebase/floors/genius.py` | `GeniusCalculator.compute()` |
 | A/P/X/E dials as dataclass | ✅ Implemented | `codebase/floors/genius.py` | `GeniusMetrics` class |
 | **Eigendecomposition (§10.4)** | ❌ **NOT IMPLEMENTED** | — | **PRIORITY FIX NEEDED** |
 | `floors_to_dials()` function | ❌ Missing | — | Derive A/P/X/E from F1-F13 |

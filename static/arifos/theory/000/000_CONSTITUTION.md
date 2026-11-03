@@ -269,7 +269,7 @@ Pass condition: 0.03 ≤ score ≤ 0.05
 
 ### Math Axiom + Measurement Spec
 ```
-G = A × P × X × E² ≥ 0.80
+G = (A × P × E × X)^(1/4) ≥ 0.80
 
 A = AKAL (Clarity)      [0, 1]
 P = PRESENT (Regulation) [0, 1]
@@ -572,7 +572,7 @@ The contract is read by **arifOS alone**. The 3 evidence-producing organs emit i
 | **L05 PEACE²** | inflammatory_word_count, buffer_ratio | VAULT999.recent_peace_squared_history | `P² = buffers / risk` | `P² ≥ 1.0` |
 | **L06 EMPATHY** | `stakeholder_harm_score`, `stakeholder_care_score` | WELL state.json, session.stakeholders_affected | `κᵣ = care_score - harm_score` | `κᵣ ≥ 0.70` |
 | **L07 HUMILITY** | `uncertainty_band`, certainty_indicators_count | L4 Supabase.certainty_history | `Ω₀ = f(certainty_indicators_count)` | `0.03 ≤ Ω₀ ≤ 0.05` |
-| **L08 GENIUS** | clarity, regulation, trust, energy (4 inputs) | L4 Supabase.organ_health_metrics | `G = A × P × X × E²` | `G ≥ 0.80` |
+| **L08 GENIUS** | clarity, regulation, trust, energy (4 inputs) | L4 Supabase.organ_health_metrics | `G = (A × P × E × X)^(1/4)` | `G ≥ 0.80` |
 | **L09 ANTIHANTU** | `consciousness_claims`, deception_patterns | L4 Supabase.consciousness_claim_history | `C_dark = Σ weighted_claims` | `C_dark < 0.30` |
 | **L10 ONTOLOGY** | `ai_human_equivalence_claims` | (none — pure boolean on envelope) | `score = 1.0 if no claims else 0.0` | `score ≥ 1.00` |
 | **L11 AUDIT** | `session_id`, `actor_id` | VAULT999.actor_authorization_registry | `verify(actor_id) ∈ authorized_set` | `verified = True` |

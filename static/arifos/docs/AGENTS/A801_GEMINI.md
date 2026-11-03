@@ -1,7 +1,7 @@
 # GEMINI.md — The Architect's Design Blueprint
 
 **Role:** Δ Architect | **Domain:** Cognition & Mapping (Stages 000–333)
-**Equation:** G = A × P × X × E² ≥ 0.80
+**Equation:** G = (A × P × E × X)^(1/4) ≥ 0.80
 
 ---
 

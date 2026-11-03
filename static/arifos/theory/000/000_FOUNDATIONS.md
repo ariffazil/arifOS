@@ -36,7 +36,7 @@ This is not humility theater. This is constitutional law.
 ### What This Means
 
 **Knowing**: arifOS computes P_truth, entropy, tri-witness, genius index
-- Measurable (ΔS in bits, TW as geometric mean, G = A×P×X×E²)
+- Measurable (ΔS in bits, TW as geometric mean, G = (A×P×E×X)^(1/4))
 - Auditable (every computation logged in VAULT-999)
 - Verifiable (zkPC proofs embedded in every verdict)
 
@@ -196,7 +196,7 @@ Physics defines what cannot be violated.
 - **Second Law of Thermodynamics:** Entropy increases in closed systems—order costs energy, and intelligence is the temporary defiance of disorder, paid for in heat dissipation.[^7][^8]
 - **Free Energy Principle:** All adaptive systems minimize surprise by building predictive models.[^9][^10]
 - **Maxwell's Demon:** Information processing requires energy—every thought is a thermodynamic transaction.[^11][^12][^13]
-- **Energy Depletion:** Causes exponential, not linear, collapse in biological and artificial systems—which is why **E²** appears in the equation.[^14][^15]
+- **Energy Depletion:** Causes exponential, not linear, collapse in biological and artificial systems—which is why **E** carries equal weight with the other dials in G.[^14][^15]
 
 **Physics says:** Intelligence emerges when systems resist entropy long enough to compress patterns, build models, and act. But the universe always collects its debt.
 
@@ -351,7 +351,7 @@ Through eigendecomposition, we extract four directions of maximum variance:[^17]
 |------|------|----------|---------|
 | **A** | AKAL (عقل) | ~48% | Intelligence/Clarity — The axis of **KNOWING** |
 | **P** | PRESENT (سكينة) | ~20% | Peace/Stability — Homeostatic regulation, active negentropy[^36][^37] |
-| **E** | ENERGY (طاقة) | ~12% | Sustainable Stamina — Thermodynamic endurance (why **E²**) |
+| **E** | ENERGY (طاقة) | ~12% | Sustainable Stamina — Thermodynamic endurance (equal dial in G) |
 | **X** | EXPLORATION (أمانة+RASA) | ~10% | Curiosity/Amanah/Intuition — The axis of **BECOMING** |
 
 **Total variance captured: 90%**
@@ -365,14 +365,14 @@ Through eigendecomposition, we extract four directions of maximum variance:[^17]
 ### 6.1 The Genius Index
 
 ```
-G = A × P × X × E²
+G = (A × P × E × X)^(1/4)
 ```
 
 **G** ∈ [0, ∞) = Genius under governance (measurable wisdom)
 
 **Why multiplicative?** If any dial = 0, then G = 0. Real systems fail catastrophically when one component collapses.
 
-**Why E²?** Energy depletion is exponential. A 50% drop in energy causes a 75% drop in genius (0.5² = 0.25).[^14][^15]
+**Why energy matters?** Energy is one of four equal dials in G: a 50% drop in energy drops G to 0.5^(1/4) ≈ 0.84.[^14][^15]
 
 ### 6.2 The Wisdom Formula (AHA)
 
@@ -478,8 +478,7 @@ Wisdom = Governed Intelligence = Measurable Vitality
 
 HIKMAH = AKAL × HALUAN
        = Δ × (Ω × Ψ)
-       = A × (X × E) × (P × E)
-       = A × P × X × E²
+       = (A × P × E × X)^(1/4)
 ```
 
 ---
@@ -912,7 +911,7 @@ This section defines the thermodynamic variables used by arifOS to constrain AI 
 ## §21 DERIVED INDICES (Apex Telemetry)
 
 ### G: Genius Index
-*   **Formula:** `G = A × P × X × E²`
+*   **Formula:** `G = (A × P × E × X)^(1/4)`
 *   **Threshold:** `G ≥ 0.80`.
 *   **Components:** Akal (A), Present (P), Exploration (X), Energy (E).
 

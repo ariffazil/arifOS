@@ -125,8 +125,8 @@ Western AI research prioritizes **capability**—how intelligent can we make the
 > *"Seek knowledge, but first seek adab. For knowledge without adab is a curse."*
 
 **Implications for AI Governance:**
-- Intelligence (A) must be multiplied by Conduct (P × X × E²)
-- G = A × (P × X × E²)—Genius is governed intelligence
+- Intelligence (A) must be combined with Conduct (P, X, E) — every dial must hold
+- G = (A × P × E × X)^(1/4)—Genius is governed intelligence
 - High capability without adab produces C_dark (dark genius)
 
 **Analogy:** A surgeon with no *adab* is more dangerous than an untrained healer.
@@ -195,7 +195,7 @@ Intelligence is not centralized in a single AGI. It is **distributed** across:
 
 **Nusantara Usage:** Not raw intelligence, but **disciplined intelligence**—the mind that knows its limits.
 
-**Constitutional Mapping:** The **A** in APEX (A × P × X × E²)
+**Constitutional Mapping:** The **A** in APEX (G = (A × P × E × X)^(1/4))
 
 #### AMANAH (أمانة)
 
@@ -219,7 +219,7 @@ Intelligence is not centralized in a single AGI. It is **distributed** across:
 
 **Usage:** Not a fixed destination, but **orientation**—the constant adjustment of course while maintaining principle.
 
-**Constitutional Mapping:** P × X × E² (Peace × Exploration × Energy)
+**Constitutional Mapping:** P × E × X (Peace × Energy × Exploration)
 
 #### HIKMAH (حكمة)
 
@@ -356,7 +356,7 @@ Health suggests static equilibrium. **Vitality** suggests dynamic response—the
 ### Formula (Reprise)
 
 ```
-G = A × P × X × E²
+G = (A × P × E × X)^(1/4)
 
 Where:
   A = Akal (Intelligence)
@@ -373,7 +373,7 @@ IQ measures **potential intelligence** in isolation.
 - A alone = raw intelligence (could be weaponized)
 - P constrains A = stable intelligence (won't self-destruct)
 - X expands A = curious intelligence (won't stagnate)
-- E² sustains all = enduring intelligence (won't burn out)
+- E sustains all = enduring intelligence (won't burn out)
 
 **Without all four, you don't have wisdom. You have intelligence fragments.**
 
