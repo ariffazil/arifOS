@@ -68,4 +68,34 @@ designed — F6 refuses greenwash. Closing the seam (all commits via `/root/scri
 - Hot-deploy: surgical cp of meters.py to the canonical runtime + service restart
   (pattern recorded in commit 76db1625f), NOT a full wheel deploy — the repo carries
   9 unrelated in-flight files from sibling sessions.
-- Independent design review: delegated witness (separate session).
+- Independent design review: delegated witness (separate session, 05/11 07:29 MYT,
+  verdict on the rejected d1-d6 scoring proposal: "structurally sound, not yet
+  shippable"). Findings folded into section 3 below as requirements, not code.
+
+## 3b. Requirements if F13 ever ratifies scoring (from the independent review)
+
+The deployed panel computes NO aggregate score (canon: "never a score"). If a
+scoring proposal is ever ratified, these are binding before any code:
+
+1. **Witnessless-PASS leak is structural in the 0.85/0.80 proposal.** An unratified
+   cap of 0.85 sits ABOVE the 0.80 PASS line — any code path reading the number
+   without the status leaks a witnessless PASS. Required: PASS = (score >= line AND
+   witness_valid AND all-meters-observed) as ONE conjunct; unratified cap <= 0.79;
+   weights renormalize explicitly over observed meters only.
+2. **NULL laundering.** A killed sensor after a violation must not launder the
+   violation into NULL: any NULL => status DEGRADED, max band CAUTION, never PASS;
+   track sensor-death separately from never-installed; all-NULL => UNMEASURED;
+   float equality replaced by epsilon + explicit violation boolean.
+3. **Verifier provenance, not IDs.** proposer_id != verifier_id is sybil-able
+   (spawn a "verifier"); require out-of-lane verifier with independent attestation
+   root.
+4. **Escalation drift (nuance on G3).** Deflection rules must route by
+   consequence-class change (canon: interruptions ~= 0 for Tier 1/2), never by
+   question weight alone — otherwise the human becomes the machine's runtime
+   dependency again. G3 room deflection is social routing (the room's human speaks
+   instead of the bot) and stays; anything routing machine DECISIONS to the human
+   on question-weight alone violates F6.
+5. **Hypothesis theater.** ">=2 hypotheses + falsifier" is itself gameable
+   (strawman rival + unfalsifiable falsifier); score hypothesis SURVIVAL under
+   pre-registered time-bounded falsifiers, backtested against human surprise
+   events ("itu bukan maksud saya"), not hypothesis count.
