@@ -1166,7 +1166,9 @@ try:
                         "l5a_pass": dual["l5a_pass"],
                         "l5b_present": dual["l5b_present"],
                         "blocked_reason": dual.get("blocked_reason"),
-                        "verdict": dual.get("verdict", "PENDING"),
+                        # G8 rename (888-APEX 2026-11-04, D2): advisory
+                        # pre-judge state, never a constitutional verdict.
+                        "pre_judge_state": dual.get("pre_judge_state", "PENDING"),
                     }
                     # ── Gödel Lock: External witness check ──
                     try:
