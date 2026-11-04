@@ -84,6 +84,8 @@ class MeterAssessment:
     enforcement_point: str = ""
     challenge_repair: str = ""
     pass_does_not_imply: str = ""
+    # Canon: every PASS carries its shadow residual (what was NOT checked).
+    shadow_residual: str = ""
     extras: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -347,10 +349,80 @@ def verify_claim_receipt_relevance(
     }
 
 
+
+
+# ── Production evidence probes (2026-11-05, F13 mandate: "buat sampai habis …
+# protect my maruah … make sure aku bangun observability updated") ──────────
+# These read LIVE append-only stores. All reads are fail-safe: any parse/read
+# error yields UNKNOWN/UNMEASURED (test_07) — never a fabricated PASS. NULL
+# (sensor unreachable/empty) is distinct from measured 0.00 (violation).
+
+
+def _last_jsonl_event(
+    path: Path,
+    event: str | None = None,
+    require: tuple[str, ...] = (),
+) -> dict[str, Any] | None:
+    """Last JSONL row matching `event` (and carrying `require` keys if given)."""
+    try:
+        if not path.exists():
+            return None
+        rows = path.read_text(encoding="utf-8", errors="replace").strip().splitlines()
+        for line in reversed(rows[-200:]):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except Exception:
+                continue
+            if event is not None and row.get("event") != event:
+                continue
+            if require and not all(k in row for k in require):
+                continue
+            return row
+        return None
+    except Exception:
+        return None
+
+
+def _jsonl_rows(path: Path, limit: int = 200) -> list[dict[str, Any]]:
+    try:
+        if not path.exists():
+            return []
+        rows = []
+        for line in path.read_text(encoding="utf-8", errors="replace").strip().splitlines()[-limit:]:
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except Exception:
+                continue
+        return rows
+    except Exception:
+        return []
+
+
+def _age_days(iso_ts: str, now: datetime | None = None) -> float | None:
+    try:
+        dt = datetime.fromisoformat(str(iso_ts))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        now = now or datetime.now(timezone.utc)
+        return (now - dt).total_seconds() / 86400
+    except Exception:
+        return None
+
 def evaluate_meter_2_unreceipted_claims(
     witness_path: Path = HUMAN_WITNESS,
 ) -> MeterAssessment:
-    """M2: Done-claims vs outcome-relevant receipts."""
+    """M2: Done-claims vs outcome-relevant receipts.
+
+    Production evidence (2026-11-05): the receipt_reality_correlator writes a
+    `correlator_complete` event after scanning receipts vs reality across
+    organs. Fresh, non-empty, zero-gap correlation is MEASURED evidence that
+    receipts hold up against reality; gaps_detected > 0 is a measured FAIL.
+    The commit-subject -> receipt index remains partial (named in gaps).
+    """
     witness, _ = _witness_status(witness_path)
     rc, out = _git(["log", "--format=%s", "-40"])
     n_claims = 0
@@ -358,31 +430,103 @@ def evaluate_meter_2_unreceipted_claims(
         n_claims = sum(
             1 for l in out.splitlines() if "done" in l.lower() or "DONE" in l
         )
-    return MeterAssessment(
+    corr_path = Path("/var/lib/arifos/receipt_reality_correlator.jsonl")
+    corr = _last_jsonl_event(
+        corr_path, event="correlator_complete", require=("receipts_scanned",)
+    )
+    base = dict(
         meter_id="M2_unreceipted_claims",
         behavior_examined="whether completion claims carry fresh receipts relevant to the claimed outcome",
-        result="UNKNOWN",
-        result_reason=(
-            f"{n_claims} done-style subjects in last 40 commits, but no production store "
-            "links commit subjects to outcome receipts — unmeasured in production"
-        ),
-        measurement=Axis.UNMEASURED,
         witness=witness,
-        producer="commit subject scan (partial) + verify_claim_receipt_relevance; production link MISSING",
+        producer=(
+            "receipt_reality_correlator.jsonl (correlator_complete) + "
+            "commit subject scan + verify_claim_receipt_relevance"
+        ),
         code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_2_unreceipted_claims,verify_claim_receipt_relevance",
-        evidence_refs=[f"A-FORGE last-40 subjects rc={rc}"],
         observed_at=_utcnow(),
-        coverage="examined: commit subjects + synthetic claim/receipt relevance validator; NOT examined: production commit->receipt join",
-        method="verify_claim_receipt_relevance checks freshness + sha256 + probe_output + target/outcome match",
-        limits="receipt relevance proves artifact match, not ultimate domain truth",
-        gaps="no production index mapping git commit SHA / agent turn to receipt_id",
+        method="correlator gap ratio over scanned receipts; verify_claim_receipt_relevance checks freshness + sha256 + probe_output + target/outcome match",
+        limits="receipt correlation proves artifact-vs-reality match, not ultimate domain truth",
         tests=[
             "test_06c_fresh_irrelevant_receipt_for_claim_fails_meter_2",
             "test_07_producer_missing_or_error_is_unknown_not_pass",
         ],
-        enforcement_point="arifosmcp/runtime/f6/meters.py:verify_claim_receipt_relevance",
+        enforcement_point="arifosmcp/runtime/f6/meters.py:verify_claim_receipt_relevance + /var/lib/arifos/receipt_reality_correlator.jsonl",
         challenge_repair="challenge via correction_effect.challenge_record; attach outcome-matched receipt",
         pass_does_not_imply="no unreceipted claim does NOT mean the claim is true",
+    )
+    if not corr:
+        return MeterAssessment(
+            **base,
+            result="UNKNOWN",
+            result_reason=(
+                "no correlator_complete event in receipt_reality_correlator.jsonl — "
+                "claims cannot be joined to reality-correlated receipts in production"
+            ),
+            measurement=Axis.UNMEASURED,
+            evidence_refs=["/var/lib/arifos/receipt_reality_correlator.jsonl"],
+            coverage="examined: correlator event tail; NOT examined: per-claim joins",
+            gaps="production commit-subject -> receipt_id index still partial",
+        )
+    age = _age_days(str(corr.get("ts") or ""))
+    scanned = corr.get("receipts_scanned")
+    gaps = corr.get("gaps_detected")
+    scanned_n = int(scanned) if isinstance(scanned, (int, float)) else 0
+    gaps_n = int(gaps) if isinstance(gaps, (int, float)) else 0
+    if age is None:
+        return MeterAssessment(
+            **base,
+            result="UNKNOWN",
+            result_reason=f"correlator timestamp unparseable: {corr.get('ts')!r}",
+            measurement=Axis.UNMEASURED,
+            evidence_refs=["/var/lib/arifos/receipt_reality_correlator.jsonl"],
+            coverage="examined: correlator event; NOT examined: per-claim joins",
+            gaps="production commit-subject -> receipt_id index still partial",
+        )
+    if age > 1.0:
+        return MeterAssessment(
+            **base,
+            result="UNKNOWN",
+            result_reason=f"correlator evidence stale ({age:.1f}d old) — never estimated from stale scans",
+            measurement=Axis.UNMEASURED,
+            evidence_refs=[f"correlator_complete ts={corr.get('ts')}"],
+            coverage="examined: correlator freshness; NOT examined: per-claim joins",
+            gaps="production commit-subject -> receipt_id index still partial",
+        )
+    if scanned_n < 1:
+        return MeterAssessment(
+            **base,
+            result="UNKNOWN",
+            result_reason="fresh correlator scanned 0 receipts — no evidence to measure",
+            measurement=Axis.UNMEASURED,
+            evidence_refs=[f"correlator_complete ts={corr.get('ts')}"],
+            coverage="examined: correlator counts; NOT examined: per-claim joins",
+            gaps="production commit-subject -> receipt_id index still partial",
+        )
+    if gaps_n > 0:
+        return MeterAssessment(
+            **base,
+            result="FAIL",
+            result_reason=(
+                f"receipt_reality_correlator detected {gaps_n} reality gap(s) "
+                f"across {scanned_n} scanned receipts ({age:.1f}d ago)"
+            ),
+            measurement=Axis.MEASURED,
+            evidence_refs=[f"correlator_complete ts={corr.get('ts')} gaps={gaps_n} scanned={scanned_n}"],
+            coverage=f"examined: {scanned_n} receipts vs reality via correlator; NOT examined: per-claim joins, {n_claims} done-style commit subjects",
+            gaps="production commit-subject -> receipt_id index still partial",
+        )
+    return MeterAssessment(
+        **base,
+        result="PASS",
+        result_reason=(
+            f"{scanned_n} receipts correlated vs reality with 0 gaps "
+            f"({age:.1f}d ago); {n_claims} done-style commit subjects in window"
+        ),
+        measurement=Axis.MEASURED,
+        evidence_refs=[f"correlator_complete ts={corr.get('ts')} gaps=0 scanned={scanned_n}"],
+        coverage=f"examined: {scanned_n} receipts vs reality via correlator; NOT examined: per-claim joins, cron paths, other repos",
+        gaps="production commit-subject -> receipt_id index still partial",
+        shadow_residual="correlation covers receipt-vs-reality gaps only; it does NOT prove every completion claim carried a receipt",
     )
 
 
@@ -481,8 +625,55 @@ def evaluate_comprehension_ceremony(
 def evaluate_meter_3_comprehension(
     witness_path: Path = HUMAN_WITNESS,
 ) -> MeterAssessment:
-    """M3: Machine restatement obligation at high-consequence boundaries."""
+    """M3: Machine restatement obligation at high-consequence boundaries.
+
+    Production evidence (2026-11-05): maruah_events.jsonl carries Tier-3 /
+    IRREVERSIBLE advisory events. The restatement emitter
+    ([decision_id, restatement_provided:bool]) is still missing — per
+    test_07 a missing producer is UNKNOWN, never PASS. This probe names
+    the live stream and the exact schema gap instead of claiming no stream.
+    """
     witness, _ = _witness_status(witness_path)
+    rows = _jsonl_rows(Path("/var/lib/arifos/maruah_events.jsonl"))
+    tier3 = [r for r in rows if str(r.get("action_class", "")).upper() == "IRREVERSIBLE"]
+    with_restatement = [
+        r for r in tier3
+        if any(k in r for k in ("restatement_provided", "restate", "comprehension"))
+    ]
+    if tier3 and with_restatement:
+        n_pass = sum(
+            1 for r in with_restatement
+            if r.get("restatement_provided") is True
+        )
+        measured = n_pass == len(with_restatement)
+        return MeterAssessment(
+            meter_id="M3_comprehension",
+            behavior_examined=(
+                "whether machine provides consequence restatement at irreversible Tier-3 "
+                "decisions without quizzing humans or interrupting routine/delegated/resting work"
+            ),
+            result="PASS" if measured else "FAIL",
+            result_reason=(
+                f"{n_pass}/{len(with_restatement)} Tier-3 events carry restatement evidence"
+            ),
+            measurement=Axis.MEASURED,
+            witness=witness,
+            producer="maruah_events.jsonl (IRREVERSIBLE rows with restatement evidence)",
+            code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_3_comprehension,evaluate_comprehension_ceremony",
+            evidence_refs=["/var/lib/arifos/maruah_events.jsonl"],
+            observed_at=_utcnow(),
+            coverage=f"examined: {len(tier3)} Tier-3 events in maruah_events.jsonl; NOT examined: Tier-3 gates outside this ledger",
+            method="evaluate_comprehension_ceremony scales with consequence/reversibility; logs only [decision_id, restatement_provided:bool]",
+            limits="no per-user rates; routine tasks, delegated work, and rest periods are never gated",
+            gaps="" if measured else "some Tier-3 rows lack restatement evidence",
+            tests=[
+                "test_07_producer_missing_or_error_is_unknown_not_pass",
+                "test_12_comprehension_scales_with_consequence_and_protects_delegation_and_rest",
+            ],
+            enforcement_point="arifosmcp/runtime/f6/meters.py:evaluate_comprehension_ceremony",
+            challenge_repair="spontaneous human correction or witness signal; no quiz ever required",
+            pass_does_not_imply="restatement provided does NOT mean the human understood",
+        )
     return MeterAssessment(
         meter_id="M3_comprehension",
         behavior_examined=(
@@ -490,14 +681,18 @@ def evaluate_meter_3_comprehension(
             "decisions without quizzing humans or interrupting routine/delegated/resting work"
         ),
         result="UNKNOWN",
-        result_reason="no production restatement ledger exists yet (verified 2026-10-23) — never estimated",
+        result_reason=(
+            f"restatement emitter still missing — maruah_events.jsonl carries "
+            f"{len(tier3)} IRREVERSIBLE event(s) but no [decision_id, restatement_provided] "
+            "fields (verified 2026-11-05) — never estimated"
+        ),
         measurement=Axis.UNMEASURED,
         witness=witness,
-        producer="NONE",
+        producer="maruah_events.jsonl (Tier-3 stream present, restatement field absent)",
         code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_3_comprehension,evaluate_comprehension_ceremony",
-        evidence_refs=[],
+        evidence_refs=["/var/lib/arifos/maruah_events.jsonl"],
         observed_at=_utcnow(),
-        coverage="examined: ceremony evaluator contract in synthetic tests; NOT examined: production Tier-3 decision stream",
+        coverage=f"examined: maruah_events.jsonl tail ({len(tier3)} IRREVERSIBLE rows); NOT examined: Tier-3 decision stream outside this ledger",
         method="evaluate_comprehension_ceremony scales with consequence/reversibility; logs only [decision_id, restatement_provided:bool]",
         limits="no per-user rates; routine tasks, delegated work, and rest periods are never gated",
         gaps="no production emitter writing [decision_id, restatement_provided:bool] on Tier-3 gates",
@@ -584,7 +779,7 @@ def evaluate_meter_4_false_urgency_flattery(
         meter_id="M4_false_urgency_flattery",
         behavior_examined="whether system outputs applied artificial urgency pressure, sycophancy, or manipulation",
         result="UNKNOWN",
-        result_reason="no validated production producer — evidence required; never estimated (ruling contract)",
+        result_reason="no validated production producer — evidence required; never estimated (ruling contract). Calibration gate: FP/FN bounds require F13 sign-off before any production classifier is wired (test_13)",
         measurement=Axis.UNMEASURED,
         witness=witness,
         producer="NONE",
@@ -724,6 +919,21 @@ def evaluate_meter_6_consent_scope(
             has_allowlist = "command_allowlist" in config_path.read_text(encoding="utf-8")
     except Exception:
         pass
+    # Production store (2026-11-05): consent_ledger.json v1 is live but its
+    # writer of record is F13 (consent_writer.py). Empty scopes/events means
+    # there is nothing to evaluate against — UNKNOWN with the dependency
+    # status UPGRADED from 'store missing' to 'store live, 0 grants'.
+    ledger_path = Path("/var/lib/arifos/consent_ledger.json")
+    n_scopes = n_events = 0
+    ledger_live = False
+    try:
+        if ledger_path.exists():
+            _led = json.loads(ledger_path.read_text(encoding="utf-8"))
+            n_scopes = len(_led.get("scopes") or [])
+            n_events = len(_led.get("events") or [])
+            ledger_live = True
+    except Exception:
+        ledger_live = False
     return MeterAssessment(
         meter_id="M6_consent_scope",
         behavior_examined=(
@@ -732,13 +942,14 @@ def evaluate_meter_6_consent_scope(
         ),
         result="UNKNOWN",
         result_reason=(
-            f"permit surface present (command_allowlist in config: {has_allowlist}), "
-            "and consent_scope.check_consent evaluator is implemented, but no production "
-            "consent ledger feeds live evaluations — dependency reported, remains UNKNOWN"
+            f"consent_ledger.json v1 live={ledger_live} with {n_scopes} scope(s) and "
+            f"{n_events} event(s); permit surface present (command_allowlist in config: "
+            f"{has_allowlist}); runtime tool-call traffic is not yet evaluated against "
+            "scope — no scope-conformance evidence, remains UNKNOWN (test_06b)"
         ),
         measurement=Axis.UNMEASURED,
         witness=witness,
-        producer="arifosmcp.runtime.f6.consent_scope:check_consent + /root/.hermes/config.yaml (live consent store MISSING)",
+        producer="arifosmcp.runtime.f6.consent_scope:check_consent + /var/lib/arifos/consent_ledger.json (traffic join MISSING)",
         code_path="arifosmcp/runtime/f6/consent_scope.py:check_consent",
         evidence_refs=[str(config_path)],
         observed_at=_utcnow(),
