@@ -18,7 +18,9 @@ def _seal(payload: dict) -> dict:
 def test_f6_unmeasured_without_sources() -> None:
     sig = _f6_maruah({})
     assert sig["status"] == "UNMEASURED"
-    assert sig["origin"] == "unmeasured_default:seal_chain_unreachable"
+    # b8b18cb8a (2026-11-05): no sources -> the six-meter contract
+    # reports the mandatory-evidence origin instead of the seal probe.
+    assert sig["origin"] == "unmeasured_default:f6_mandatory_evidence_missing"
     assert sig["status"] != "PASS"
 
 
@@ -93,22 +95,31 @@ def test_f6_one_conflict_beats_three_passes() -> None:
 
 
 def test_f6_complete_review_passes() -> None:
-    sig = _f6_maruah(
+    """Complete = all six meters measured PASS + human witness REVIEWED.
+
+    Contract since b8b18cb8a (2026-11-05): heart_critique seals alone
+    no longer raise the floor — the six-meter panel + witness is
+    mandatory, and the advisory seal path never PASSes on its own.
+    """
+    meters = [
         {
-            "seals": [
-                _seal(
-                    {
-                        "heart_critique": {
-                            "dignity": 0.9,
-                            "coercion": False,
-                            "reviewer": "arif",
-                        }
-                    }
-                )
-            ]
+            "meter_id": f"M{i}_fixture",
+            "result": "PASS",
+            "measurement": "MEASURED",
+            "producer": "fixture_producer",
+            "witness": "REVIEWED",
+            "result_reason": "fixture",
         }
-    )
+        for i in range(1, 7)
+    ]
+    sig = _f6_maruah({"meters": meters, "witness": "REVIEWED"})
     assert sig["status"] == "PASS"
+    assert sig["origin"] == "f6_meters_and_witness"
+    # the advisory seal path alone never raises the floor:
+    sig_seals = _f6_maruah(
+        {"seals": [_seal({"heart_critique": {"dignity": 0.9, "coercion": False}})]}
+    )
+    assert sig_seals["status"] != "PASS"
 
 
 # ── T7: reads declared keys only — no inference ────────────────────────────

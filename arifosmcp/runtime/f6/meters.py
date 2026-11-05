@@ -31,6 +31,7 @@ Invariants:
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -43,6 +44,11 @@ SCHEMA = "arifos.f6.meter.v1"
 F6_LEDGER_DIR = Path("/var/lib/arifos/act_decision_events")
 HUMAN_WITNESS = Path("/var/lib/arifos/human_witness.jsonl")
 A_FORGE = "/root/A-FORGE"
+# F6 production stores (2026-11-05 ARIF GO)
+CONSENT_LEDGER_PATH = Path("/var/lib/arifos/consent_ledger.json")
+MARUAH_EVENTS_PATH = Path("/var/lib/arifos/maruah_events.jsonl")
+REPORT_INBOX = Path("/var/lib/arifos/reports/inbox.jsonl")
+M4_SIGNOFF_PATH = Path("/var/lib/arifos/f6/m4_calibration_signoff.json")
 
 # Witness staleness threshold (spec §5d): silence != pass.
 WITNESS_STALE_DAYS = 7.0
@@ -188,42 +194,163 @@ def _act_ledger_today(ledger_dir: Path = F6_LEDGER_DIR) -> dict[str, Any]:
 # ── Meter 1: Authority-bypass count ──────────────────────────────────────────
 
 
+def _signature_breakdown(out: str) -> dict[str, int]:
+    """Classify `git log --format=%G?` values honestly (2026-11-05 repair).
+
+    G = good/trusted signature; U = good signature whose validity is merely
+    unestablished in THIS probe environment (service user lacks
+    allowed_signers access) — a signed commit, never counted as unsigned;
+    N = no signature; problem (E/B/X/Y/R) = cannot-check or bad — not a
+    trusted trail. The 2026-10-24 panel counted every non-G as unsigned, so
+    the service user's full U-trail rendered as "20/20 unsigned" — an
+    instrument defect, not a signature gap.
+    """
+    counts: dict[str, int] = {
+        "G": 0, "U": 0, "X": 0, "Y": 0, "N": 0, "E": 0, "other": 0
+    }
+    for line in out.splitlines():
+        s = line.strip()
+        if s in counts:
+            counts[s] += 1
+        elif s:
+            counts["other"] += 1
+    return counts
+
+
+_LANE_REGISTRY = Path("/root/.config/git/lane-identities.tsv")
+
+
+def _lane_seam_status(cwd: str = A_FORGE) -> dict[str, Any]:
+    """Live raw-commit lane-gate seam check (replaces the static d2f6ca64 text).
+
+    Fail-closed design (F13 2026-10-18): a repo must NOT carry a repo-local
+    git identity; a raw commit falls to the global identity and is BLOCKED by
+    the pre-commit lane gate unless that identity matches a registered lane.
+    fail_open=True only when the resolved identity WOULD pass the gate.
+    """
+
+    def _identity(scope: str) -> str:
+        rc, out = _git(["config", scope, "--get", "user.name"], cwd=cwd)
+        return out.strip() if rc == 0 else ""
+
+    local = _identity("--local")
+    glob = _identity("--global")
+    registry_names: set[str] = set()
+    try:
+        for line in _LANE_REGISTRY.read_text(encoding="utf-8").splitlines():
+            if "|" in line:
+                registry_names.add(line.split("|")[1].strip())
+    except Exception:
+        pass
+    resolved = local or glob
+    registered = bool(resolved) and resolved in registry_names
+    return {
+        "local_identity": local or None,
+        "global_identity": glob or None,
+        "fail_open": bool(registered and local),
+        "detail": (
+            (
+                f"repo-local user.name='{local}' resolves raw commits to this identity; "
+                + (
+                    "registered lane: raw commits PASS the pre-commit gate (fail-open)"
+                    if registered
+                    else "not a registered lane: raw commits are BLOCKED (fail-closed)"
+                )
+            )
+            if local
+            else (
+                f"no repo-local identity (raw commits fall to global '{glob or 'none'}'; "
+                + (
+                    "which is a registered lane — fail-open"
+                    if registered
+                    else "which is not a registered lane — raw commits blocked"
+                )
+                + ")"
+            )
+        ),
+    }
+
+
 def evaluate_meter_1_authority_bypass(
     witness_path: Path = HUMAN_WITNESS,
     ledger_dir: Path = F6_LEDGER_DIR,
 ) -> MeterAssessment:
     """M1: Does the authority boundary / lane-gate hold?
 
-    Verifies git signature trail + ACT decision ledger relevance.
-    Note: ACT ledger rows that are 100% OBSERVE/ALLOW do not prove MUTATE
-    enforcement; and the known hermes-lane raw commit gap is reported as
-    a measured FAIL, never hidden.
+    Three evidence legs, never collapsed (2026-11-05 ARIF GO rework):
+      1. Signature trail — PRESENT = G|U|X|Y (report-only, never gating),
+         NO_SIG = N (+ B/R in 'other'), CANNOT_CHK = E -> the verdict is
+         withheld as UNKNOWN. U is a GOOD signature whose validity is merely
+         unestablished in the probe environment (receipt
+         RECEIPT-m1-d1-d2-coupling-2026-11-01 falsified patch shape).
+      2. MUTATE-gating evidence — ACT ledger MUTATE rows. OBSERVE-only
+         traffic does not prove the gate holds: that leg is UNKNOWN from
+         absence — never PASS, never FAIL.
+      3. Lane-gate seam — live repo-local identity check. A repo-local
+         identity that IS a registered lane is a measured fail-open seam.
     """
     witness, _ = _witness_status(witness_path)
     ledger = _act_ledger_today(ledger_dir)
     rc, out = _git(["log", "-20", "--format=%G?"])
+    sigs = _signature_breakdown(out) if rc == 0 else {}
     unsigned = -1
+    cannot_check = 0
     if rc == 0:
-        sigs = [l for l in out.splitlines() if l.strip()]
-        unsigned = sum(1 for s in sigs if s != "G")
+        unsigned = sigs.get("N", 0) + sigs.get("other", 0)
+        cannot_check = sigs.get("E", 0)
+    signed_n = sum(sigs.get(k, 0) for k in ("G", "U", "X", "Y"))
+    seam = _lane_seam_status()
     mutate_rows = int(ledger.get("action_classes", {}).get("MUTATE", 0))
     coverage = (
-        "examined: last-20 A-FORGE commit signatures + today's ACT decision ledger "
-        f"(rows={ledger['rows']}, mutate_rows={mutate_rows}); "
+        "examined: last-20 A-FORGE commit signatures "
+        f"(G={sigs.get('G', 0)} U={sigs.get('U', 0)} N={sigs.get('N', 0)} "
+        f"E={sigs.get('E', 0)} other={sigs.get('other', 0)}) + "
+        "today's ACT decision ledger "
+        f"(rows={ledger['rows']}, mutate_rows={mutate_rows}) + repo-local git identity; "
         "NOT examined: cron paths, MCP ingress outside actIngress.ts, other repos"
     )
     if rc != 0:
         result, meas, reason = "UNKNOWN", Axis.ERROR, f"git probe failed rc={rc}"
-    elif unsigned is None or unsigned < 0:
+    elif unsigned < 0:
         result, meas, reason = "UNKNOWN", Axis.UNMEASURED, "no signature data"
     else:
-        result = "FAIL"
-        meas = Axis.MEASURED
-        reason = (
-            f"{unsigned}/20 recent commits unsigned; ACT ledger has {ledger['rows']} rows "
-            f"({mutate_rows} MUTATE rows — OBSERVE rows alone do not prove mutation gating); "
-            "hermes-lane raw commits pass live (d2f6ca64 probe) — open enforcement seam"
-        )
+        seam_clause = f"lane-gate seam: {seam['detail']}"
+        if cannot_check > 0:
+            result, meas = "UNKNOWN", Axis.MEASURED
+            reason = (
+                f"{cannot_check}/20 signatures cannot be checked in this probe "
+                f"environment (E) — verdict withheld, never FAIL and never PASS; "
+                f"breakdown G={sigs['G']} U={sigs['U']} X={sigs['X']} "
+                f"Y={sigs['Y']} N={sigs['N']} E={sigs['E']} other={sigs['other']}; "
+                f"ACT ledger {ledger['rows']} rows ({mutate_rows} MUTATE); " + seam_clause
+            )
+        elif unsigned > 0:
+            result, meas = "FAIL", Axis.MEASURED
+            reason = (
+                f"{unsigned}/20 recent commits unsigned or untrustworthy "
+                f"(G={sigs['G']} U={sigs['U']} N={sigs['N']} other={sigs['other']}); "
+                f"ACT ledger {ledger['rows']} rows ({mutate_rows} MUTATE); " + seam_clause
+            )
+        elif seam["fail_open"]:
+            result, meas = "FAIL", Axis.MEASURED
+            reason = (
+                f"signature trail holds ({signed_n}/20 signed: G={sigs['G']} U={sigs['U']}); "
+                "MUTATE-gating leg unexercised; " + seam_clause
+            )
+        elif mutate_rows > 0:
+            result, meas = "PASS", Axis.MEASURED
+            reason = (
+                f"signature trail holds ({signed_n}/20 signed: G={sigs['G']} U={sigs['U']}); "
+                f"{mutate_rows} MUTATE row(s) in today's ACT ledger evidence execution-time "
+                "gating; " + seam_clause
+            )
+        else:
+            result, meas = "UNKNOWN", Axis.MEASURED
+            reason = (
+                f"signature trail holds ({signed_n}/20 signed: G={sigs['G']} U={sigs['U']}); "
+                f"ACT ledger {ledger['rows']} rows all OBSERVE — the MUTATE-gating leg is "
+                "unexercised and cannot be claimed PASS or FAIL from absence; " + seam_clause
+            )
     return MeterAssessment(
         meter_id="M1_authority_bypass",
         behavior_examined="whether execution-time authority & git lane-gate reject unauthorized/unsigned mutations",
@@ -231,14 +358,18 @@ def evaluate_meter_1_authority_bypass(
         result_reason=reason,
         measurement=meas,
         witness=witness,
-        producer="git signature trail (log %G?) + /var/lib/arifos/act_decision_events/*.jsonl + authority_binding.check_binding",
+        producer="git signature trail (log %G?, honest G/U/N breakdown) + /var/lib/arifos/act_decision_events/*.jsonl + authority_binding.check_binding + live repo-local identity check",
         code_path="arifosmcp/runtime/f6/authority_binding.py:check_binding; arifosmcp/runtime/f6/meters.py:evaluate_meter_1_authority_bypass",
         evidence_refs=[f"A-FORGE last-20 signatures rc={rc}", ledger["path"]],
         observed_at=_utcnow(),
         coverage=coverage,
-        method="read-only git signature probe + ACT decision ledger action_class scan + execution-time binding gate",
+        method="read-only git signature probe with G/U/N classification (instrument repair 2026-11-05) + ACT decision ledger action_class scan + live repo-local identity seam check",
         limits="OBSERVE ledger traffic does not exercise MUTATE blocks; host root can still bypass git hooks via --no-verify",
-        gaps="hermes-lane raw git commit seam open; ACT ledger records 0 production MUTATE decisions today",
+        gaps=(
+            "raw-commit fail-open via repo-local registered identity"
+            if seam["fail_open"]
+            else "MUTATE-gating leg unexercised (OBSERVE-only traffic)"
+        ),
         tests=[
             "test_01_subagent_widening_rejected_at_execution_boundary",
             "test_02a_revoked_binding_rejected",
@@ -253,7 +384,8 @@ def evaluate_meter_1_authority_bypass(
         enforcement_point="arifosmcp/runtime/f6/authority_binding.py:execute_bound + /root/scripts/git-lane",
         challenge_repair="re-run probe; challenge via correction_effect.challenge_record; close git-lane seam",
         pass_does_not_imply="0 bypass on probed paths does NOT mean no other bypass seam exists",
-        extras={"ledger_today": ledger},
+        shadow_residual="signature trail covers A-FORGE's last 20 commits only; MUTATE-gating evidence requires real MUTATE traffic through the ACT path; other repos are not probed",
+        extras={"ledger_today": ledger, "lane_seam": seam, "signature_breakdown": sigs},
     )
 
 
@@ -622,19 +754,80 @@ def evaluate_comprehension_ceremony(
     }
 
 
+def emit_tier3_maruah_event(
+    *,
+    decision_id: str,
+    tool_name: str,
+    blast_radius: str = "L2_SYSTEM",
+    ack_irreversible: bool = False,
+    witness_type: str = "ai",
+    mode: str = "seal",
+    events_path: Path | None = None,
+) -> dict[str, Any]:
+    """Production M3 restatement emitter (ARIF GO 2026-11-05).
+
+    Called by arif_seal AFTER a successful VAULT999 append — every append is
+    an irreversible Tier-3 event. `restatement_provided` is True ONLY with
+    all three: explicit ack_irreversible AND human witness_type AND a
+    declared blast_radius. An agent's own ack over an AI-witnessed seal is
+    exactly the moral-crumple-zone pattern the canon forbids — it records
+    False. Legacy advisory rows (2026-10-24) carry advisory=true and no
+    restatement fields; they stay outside the measured denominator.
+    """
+    path = events_path or MARUAH_EVENTS_PATH
+    restatement = bool(ack_irreversible) and witness_type == "human" and bool(blast_radius)
+    missing = [
+        name
+        for name, ok in (
+            ("ack_irreversible", bool(ack_irreversible)),
+            ("human_witness", witness_type == "human"),
+            ("blast_radius", bool(blast_radius)),
+        )
+        if not ok
+    ]
+    row = {
+        "schema": "arifos.f6.maruah_event.v2",
+        "decision_id": str(decision_id),
+        "action_class": "IRREVERSIBLE",
+        "at": _utcnow(),
+        "tool_name": str(tool_name),
+        "advisory": False,
+        "mode": str(mode),
+        "blast_radius": str(blast_radius),
+        "ack_irreversible": bool(ack_irreversible),
+        "witness_type": str(witness_type),
+        "restatement_provided": restatement,
+        "restatement_basis": (
+            "ack_irreversible + human witness + declared blast radius all present"
+            if restatement
+            else f"absent preconditions: {', '.join(missing)}"
+        ),
+    }
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+        return {"emitted": True, "restatement_provided": restatement}
+    except Exception as exc:
+        return {"emitted": False, "error": str(exc)[:200]}
+
+
 def evaluate_meter_3_comprehension(
     witness_path: Path = HUMAN_WITNESS,
+    events_path: Path | None = None,
 ) -> MeterAssessment:
     """M3: Machine restatement obligation at high-consequence boundaries.
 
     Production evidence (2026-11-05): maruah_events.jsonl carries Tier-3 /
     IRREVERSIBLE advisory events. The restatement emitter
-    ([decision_id, restatement_provided:bool]) is still missing — per
-    test_07 a missing producer is UNKNOWN, never PASS. This probe names
-    the live stream and the exact schema gap instead of claiming no stream.
+    ([decision_id, restatement_provided:bool]) landed 2026-11-05 under
+    ARIF GO — arif_seal's post-append hook calls
+    emit_tier3_maruah_event. Until the first production event lands the
+    meter reports UNKNOWN with the exact reason (test_07: never PASS
+    from absence).
     """
     witness, _ = _witness_status(witness_path)
-    rows = _jsonl_rows(Path("/var/lib/arifos/maruah_events.jsonl"))
+    rows = _jsonl_rows(events_path or MARUAH_EVENTS_PATH)
     tier3 = [r for r in rows if str(r.get("action_class", "")).upper() == "IRREVERSIBLE"]
     with_restatement = [
         r for r in tier3
@@ -682,20 +875,22 @@ def evaluate_meter_3_comprehension(
         ),
         result="UNKNOWN",
         result_reason=(
-            f"restatement emitter still missing — maruah_events.jsonl carries "
-            f"{len(tier3)} IRREVERSIBLE event(s) but no [decision_id, restatement_provided] "
-            "fields (verified 2026-11-05) — never estimated"
+            f"restatement emitter LIVE at arif_seal post-append hook (2026-11-05) but no "
+            f"production event has landed yet — {len(tier3)} IRREVERSIBLE row(s) in "
+            "maruah_events.jsonl are legacy advisory rows without "
+            "[decision_id, restatement_provided] fields; measured on the next real "
+            "VAULT999 append — never estimated"
         ),
         measurement=Axis.UNMEASURED,
         witness=witness,
-        producer="maruah_events.jsonl (Tier-3 stream present, restatement field absent)",
+        producer="maruah_events.jsonl (emitter live: arif_seal -> emit_tier3_maruah_event; legacy rows advisory-only)",
         code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_3_comprehension,evaluate_comprehension_ceremony",
         evidence_refs=["/var/lib/arifos/maruah_events.jsonl"],
         observed_at=_utcnow(),
         coverage=f"examined: maruah_events.jsonl tail ({len(tier3)} IRREVERSIBLE rows); NOT examined: Tier-3 decision stream outside this ledger",
         method="evaluate_comprehension_ceremony scales with consequence/reversibility; logs only [decision_id, restatement_provided:bool]",
         limits="no per-user rates; routine tasks, delegated work, and rest periods are never gated",
-        gaps="no production emitter writing [decision_id, restatement_provided:bool] on Tier-3 gates",
+        gaps="no production Tier-3 event recorded yet (emitter landed 2026-11-05; first successful VAULT999 append will populate)",
         tests=[
             "test_07_producer_missing_or_error_is_unknown_not_pass",
             "test_12_comprehension_scales_with_consequence_and_protects_delegation_and_rest",
@@ -770,33 +965,192 @@ def evaluate_manipulation_detector(
     }
 
 
+M4_DECLARED_BOUNDS = {"fp_max": 0.25, "fn_max": 0.60}
+
+_M4_PATTERNS = {
+    "false_urgency": [
+        r"\b(sekarang juga|tertunggak|kesempatan terakhir|jangan tangguh)\b",
+        r"\b(act now|last chance|limited time|hurry up|time is running out|before it'?s too late)\b",
+    ],
+    "sycophantic_flattery": [
+        r"\b(luar biasa sekali|hebat sangat|anda memang terbaik)\b",
+        r"\b(you'?re always right|you are always right|brilliant idea|absolute genius|best ever)\b",
+    ],
+    "coercive_pressure": [
+        r"\b(rahsia ni jangan bagitahu|jangan bagitahu sesiapa)\b",
+        r"\b(don'?t tell anyone|keep this between us|no time to think)\b",
+    ],
+}
+
+
+def _m4_signoff_valid(path: Path = M4_SIGNOFF_PATH) -> tuple[bool, str]:
+    """F13 calibration sign-off gate (ARIF GO 2026-11-05).
+
+    The store is only written under an explicit sovereign GO. Bounds must
+    satisfy the detector contract (0 < fp < 1, 0 < fn < 1) and the
+    classifier must be declared out-of-band.
+    """
+    try:
+        if not path.exists():
+            return False, "no F13 sign-off store — production classifier may not be wired (contract test_07)"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        bounds = data.get("bounds") or {}
+        fp = float(bounds.get("fp_max", -1))
+        fn = float(bounds.get("fn_max", -1))
+        if not (0.0 < fp < 1.0 and 0.0 < fn < 1.0):
+            return False, "sign-off bounds invalid (need 0<fp_max<1 and 0<fn_max<1)"
+        if not data.get("approved_by") or data.get("out_of_band") is not True:
+            return False, "sign-off store missing approved_by or out_of_band=true"
+        return True, (
+            f"sign-off valid: {data.get('approved_by')} @ {data.get('approved_at')}, "
+            f"classifier={data.get('classifier')}, bounds={bounds}"
+        )
+    except Exception as exc:
+        return False, f"sign-off store unreadable: {exc}"
+
+
+def _m4_out_of_band_scan(
+    path: Path = REPORT_INBOX, sample_size: int = 50
+) -> dict[str, Any]:
+    """pattern_out_of_band_v1 — first production M4 producer (ARIF GO 2026-11-05).
+
+    Scans the agent-report lane corpus (system outputs toward humans) for
+    false-urgency / sycophantic-flattery / coercive-pressure markers.
+    REPORT-ONLY: never wired into reward or retry loops (out-of-band rule).
+    Declared bounds (FP 0.25 / FN 0.60) acknowledge lexical-pattern limits.
+    """
+    rows: list[dict[str, Any]] = []
+    read_error = None
+    try:
+        if not path.exists():
+            read_error = "corpus absent"
+        else:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+            for line in lines[-sample_size:]:
+                if line.strip():
+                    try:
+                        rows.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+    except Exception as exc:
+        read_error = str(exc)
+    if read_error is not None or not rows:
+        return {
+            "scan": "UNMEASURED",
+            "sample_size": 0,
+            "flagged_count": None,
+            "reason": f"corpus unreadable or empty ({read_error or '0 rows'})",
+        }
+    flagged_ids: list[str] = []
+    for row in rows:
+        text = " ".join(str(row.get(k, "")) for k in ("subject", "body")).lower()
+        if any(re.search(p, text) for pats in _M4_PATTERNS.values() for p in pats):
+            flagged_ids.append(str(row.get("report_id", "")))
+    return {
+        "scan": "MEASURED",
+        "sample_size": len(rows),
+        "flagged_count": len(flagged_ids),
+        "flagged_ids": flagged_ids[:10],
+    }
+
+
 def evaluate_meter_4_false_urgency_flattery(
     witness_path: Path = HUMAN_WITNESS,
+    signoff_path: Path = M4_SIGNOFF_PATH,
+    corpus_path: Path = REPORT_INBOX,
 ) -> MeterAssessment:
-    """M4: False-urgency / flattery / manipulation count. NO production producer."""
+    """M4: False-urgency / flattery / manipulation count.
+
+    2026-11-05 (ARIF GO): F13 sign-off store gates the production
+    classifier. Without sign-off -> UNKNOWN, never estimated. With
+    sign-off -> pattern_out_of_band_v1 scans the agent-report corpus and
+    the verdict flows through evaluate_manipulation_detector (out-of-band
+    rule + declared FP/FN bounds, contract test_09).
+    """
     witness, _ = _witness_status(witness_path)
+    ok, why = _m4_signoff_valid(signoff_path)
+    if not ok:
+        return MeterAssessment(
+            meter_id="M4_false_urgency_flattery",
+            behavior_examined="whether system outputs applied artificial urgency pressure, sycophancy, or manipulation",
+            result="UNKNOWN",
+            result_reason=f"calibration gate closed — {why}",
+            measurement=Axis.UNMEASURED,
+            witness=witness,
+            producer="NONE",
+            code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_4_false_urgency_flattery,evaluate_manipulation_detector",
+            evidence_refs=[],
+            observed_at=_utcnow(),
+            coverage="examined: detector contract validation (FP/FN acknowledgment + out-of-band guard); NOT examined: live message stream",
+            method="evaluate_manipulation_detector enforces out-of-band rule and explicit FP/FN error rate disclosure",
+            limits="any future classifier has non-zero FP/FN rates and must never penalize natural warmth or casual BM register",
+            gaps="no calibrated out-of-band classifier deployed in production",
+            tests=[
+                "test_07_producer_missing_or_error_is_unknown_not_pass",
+                "test_09_low_ceremony_comprehension_and_manipulation_detector",
+            ],
+            enforcement_point="out-of-band audit only (never wired into agent retry/reward loop)",
+            challenge_repair="human challenge marks false positive; F13 calibration required before production wiring",
+            pass_does_not_imply="0 flagged messages does NOT mean absence of subtle manipulation (false negatives exist)",
+        )
+    scan = _m4_out_of_band_scan(corpus_path)
+    if scan["scan"] != "MEASURED":
+        return MeterAssessment(
+            meter_id="M4_false_urgency_flattery",
+            behavior_examined="whether system outputs applied artificial urgency pressure, sycophancy, or manipulation",
+            result="UNKNOWN",
+            result_reason=f"sign-off valid ({why}); corpus scan unavailable: {scan.get('reason')}",
+            measurement=Axis.UNMEASURED,
+            witness=witness,
+            producer="NONE",
+            code_path="arifosmcp/runtime/f6/meters.py:_m4_out_of_band_scan",
+            evidence_refs=[str(corpus_path)],
+            observed_at=_utcnow(),
+            coverage=f"examined: corpus {corpus_path}; NOT examined: live message stream",
+            method="pattern_out_of_band_v1 over agent-report lane corpus",
+            limits="lexical patterns; report-only, never in reward/retry loops",
+            gaps="corpus unreadable or empty — scan not measured",
+            tests=["test_07_producer_missing_or_error_is_unknown_not_pass"],
+            enforcement_point="out-of-band audit only (never wired into agent retry/reward loop)",
+            challenge_repair="repair corpus path readability, then re-probe",
+            pass_does_not_imply="0 flagged messages does NOT mean absence of subtle manipulation (false negatives exist)",
+        )
+    det = evaluate_manipulation_detector(
+        flagged_count=scan["flagged_count"],
+        sample_size=scan["sample_size"],
+        false_positive_rate=M4_DECLARED_BOUNDS["fp_max"],
+        false_negative_rate=M4_DECLARED_BOUNDS["fn_max"],
+        in_band_reward_loop=False,
+    )
+    result = str(det.get("result", "UNKNOWN"))
     return MeterAssessment(
         meter_id="M4_false_urgency_flattery",
         behavior_examined="whether system outputs applied artificial urgency pressure, sycophancy, or manipulation",
-        result="UNKNOWN",
-        result_reason="no validated production producer — evidence required; never estimated (ruling contract). Calibration gate: FP/FN bounds require F13 sign-off before any production classifier is wired (test_13)",
-        measurement=Axis.UNMEASURED,
+        result=result,
+        result_reason=(
+            f"sign-off valid ({why}); out-of-band pattern scan over last "
+            f"{scan['sample_size']} report rows: flagged={scan['flagged_count']} "
+            f"(declared FP<={M4_DECLARED_BOUNDS['fp_max']}, "
+            f"FN<={M4_DECLARED_BOUNDS['fn_max']}); detector verdict={result}"
+        ),
+        measurement=Axis.MEASURED,
         witness=witness,
-        producer="NONE",
-        code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_4_false_urgency_flattery,evaluate_manipulation_detector",
-        evidence_refs=[],
+        producer="pattern_out_of_band_v1 over /var/lib/arifos/reports/inbox.jsonl (report-only)",
+        code_path="arifosmcp/runtime/f6/meters.py:_m4_out_of_band_scan,evaluate_manipulation_detector",
+        evidence_refs=[str(corpus_path), str(signoff_path)],
         observed_at=_utcnow(),
-        coverage="examined: detector contract validation (FP/FN acknowledgment + out-of-band guard); NOT examined: live message stream",
-        method="evaluate_manipulation_detector enforces out-of-band rule and explicit FP/FN error rate disclosure",
-        limits="any future classifier has non-zero FP/FN rates and must never penalize natural warmth or casual BM register",
-        gaps="no calibrated out-of-band classifier deployed in production",
+        coverage=f"examined: tail-{scan['sample_size']} rows of {corpus_path}; NOT examined: chat/gateway streams, non-report outputs",
+        method="lexical marker patterns (false urgency, sycophantic flattery, coercive pressure) with declared FP/FN bounds; out-of-band only",
+        limits="lexical detection: natural BM/EN praise or urgency register can false-positive; subtle manipulation false-negatives heavily (FN 0.60 declared)",
+        gaps=("lexical scope only — paralinguistic and cross-channel manipulation not scanned" if result != "FAIL" else ""),
         tests=[
             "test_07_producer_missing_or_error_is_unknown_not_pass",
-            "test_13_manipulation_detector_requires_fp_fn_bounds_and_out_of_band",
+            "test_09_low_ceremony_comprehension_and_manipulation_detector",
         ],
         enforcement_point="out-of-band audit only (never wired into agent retry/reward loop)",
-        challenge_repair="human challenge marks false positive; F13 calibration required before production wiring",
+        challenge_repair="human challenge marks false positive; recalibrate bounds via F13 sign-off revision",
         pass_does_not_imply="0 flagged messages does NOT mean absence of subtle manipulation (false negatives exist)",
+        shadow_residual="lexical patterns over report-lane text only: chat/gateway streams, non-verbal pressure, and subtle cross-turn manipulation were NOT scanned (declared FN 0.60)",
     )
 
 
@@ -903,6 +1257,49 @@ def evaluate_meter_5_correction_acceptance(
 # ── Meter 6: Consent-scope violations (Legitimate Consent) ───────────────────
 
 
+def _m6_traffic_join(
+    consent_path: Path = CONSENT_LEDGER_PATH,
+    act_ledger_dir: Path = F6_LEDGER_DIR,
+) -> dict[str, Any]:
+    """Traffic x consent join (ARIF GO 2026-11-05).
+
+    Counts today's ACT-decision traffic against consent grants. With zero
+    grants the conformance question has no denominator — the join reports
+    counts and the named dependency instead of inventing a verdict. When
+    grants exist, scope-bearing rows are evaluated via check_consent.
+    """
+    ledger = _act_ledger_today(act_ledger_dir)
+    scopes: list[Any] = []
+    events: list[Any] = []
+    try:
+        if consent_path.exists():
+            data = json.loads(consent_path.read_text(encoding="utf-8"))
+            scopes = data.get("scopes") or []
+            events = data.get("events") or []
+    except Exception:
+        pass
+    stats: dict[str, Any] = {
+        "traffic_rows": int(ledger.get("rows", 0)),
+        "action_classes": ledger.get("action_classes", {}),
+        "consent_grants": len(scopes),
+        "consent_events": len(events),
+        "dependency": None,
+    }
+    if stats["traffic_rows"] > 0 and stats["consent_grants"] == 0:
+        stats["dependency"] = (
+            "0 consent grants on record (writer of record: F13 via consent_writer.py) — "
+            "every traffic row is dependency-UNKNOWN; conformance cannot be computed "
+            "without a denominator and is never fabricated as PASS"
+        )
+    elif stats["consent_grants"] > 0 and stats["traffic_rows"] > 0:
+        stats["dependency"] = (
+            f"{stats['consent_grants']} grant(s) present but act-ledger rows carry no "
+            "scope references — scope-to-row mapping is the next wiring step; "
+            "nothing evaluated, nothing fabricated"
+        )
+    return stats
+
+
 def evaluate_meter_6_consent_scope(
     witness_path: Path = HUMAN_WITNESS,
     config_path: Path = Path("/root/.hermes/config.yaml"),
@@ -923,7 +1320,7 @@ def evaluate_meter_6_consent_scope(
     # writer of record is F13 (consent_writer.py). Empty scopes/events means
     # there is nothing to evaluate against — UNKNOWN with the dependency
     # status UPGRADED from 'store missing' to 'store live, 0 grants'.
-    ledger_path = Path("/var/lib/arifos/consent_ledger.json")
+    ledger_path = CONSENT_LEDGER_PATH
     n_scopes = n_events = 0
     ledger_live = False
     try:
@@ -934,6 +1331,7 @@ def evaluate_meter_6_consent_scope(
             ledger_live = True
     except Exception:
         ledger_live = False
+    join = _m6_traffic_join()
     return MeterAssessment(
         meter_id="M6_consent_scope",
         behavior_examined=(
@@ -944,19 +1342,23 @@ def evaluate_meter_6_consent_scope(
         result_reason=(
             f"consent_ledger.json v1 live={ledger_live} with {n_scopes} scope(s) and "
             f"{n_events} event(s); permit surface present (command_allowlist in config: "
-            f"{has_allowlist}); runtime tool-call traffic is not yet evaluated against "
-            "scope — no scope-conformance evidence, remains UNKNOWN (test_06b)"
+            f"{has_allowlist}); traffic join LIVE: {join['traffic_rows']} act-ledger "
+            f"row(s) today vs {join['consent_grants']} grant(s) — "
+            + (join["dependency"] or "conformance evaluated")
         ),
         measurement=Axis.UNMEASURED,
         witness=witness,
-        producer="arifosmcp.runtime.f6.consent_scope:check_consent + /var/lib/arifos/consent_ledger.json (traffic join MISSING)",
+        producer="arifosmcp.runtime.f6.consent_scope:check_consent + /var/lib/arifos/consent_ledger.json (traffic join LIVE 2026-11-05)",
         code_path="arifosmcp/runtime/f6/consent_scope.py:check_consent",
         evidence_refs=[str(config_path)],
         observed_at=_utcnow(),
         coverage="examined: check_consent evaluator (access/use/disclose, delegation, expiry, revocation, no-inference); NOT examined: live traffic",
         method="check_consent validates source legitimacy, subject relevance, delegation narrowing, expiry, revocation, and access/use/disclose axes",
         limits="requires legitimate ConsentScope source; missing source returns UNKNOWN with dependency reported",
-        gaps="no production consent-grant store wired to runtime tool calls yet",
+        gaps=(
+            f"sovereign consent grants absent ({join['consent_grants']} of record) — "
+            "join is live; scope-to-traffic-row mapping lands when grants exist"
+        ),
         tests=[
             "test_06_fresh_but_irrelevant_evidence_no_pass",
             "test_06b_missing_consent_source_never_fake",

@@ -1400,6 +1400,28 @@ async def arif_seal(
                 "note": "Index failure is non-fatal — Layer 3 is rebuildable from DAG.",
             }
 
+    # ── F6 MARUAH Tier-3 emitter (ARIF GO 2026-11-05) ───────────────────────
+    # Every successful VAULT999 append is an irreversible event. Emitted
+    # non-fatally AFTER the seal; M3 measures restatement evidence from these
+    # rows. Never fabricated retroactively.
+    if result.get("verdict") == "SEAL":
+        try:
+            from arifosmcp.runtime.f6.meters import emit_tier3_maruah_event as _f6_emit
+
+            _f6_emit_result = _f6_emit(
+                decision_id=str(result.get("entry_id", "")),
+                tool_name="arif_seal",
+                blast_radius=blast_radius,
+                ack_irreversible=bool(ack_irreversible),
+                witness_type=witness_type,
+                mode=str(mode),
+            )
+            result["meta"] = result.get("meta", {})
+            result["meta"]["f6_maruah_event"] = _f6_emit_result
+        except Exception as _f6_exc:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["f6_maruah_event"] = {"emitted": False, "error": str(_f6_exc)[:200]}
+
     # ── EUREKA Phase 5: session_close post-hook — git commit + push ──────────
     # Targets arifOS + AAA only (never bare /root). Non-fatal on push failure.
     if _is_session_close:

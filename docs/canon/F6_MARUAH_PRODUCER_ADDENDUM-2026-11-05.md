@@ -99,3 +99,61 @@ scoring proposal is ever ratified, these are binding before any code:
    (strawman rival + unfalsifiable falsifier); score hypothesis SURVIVAL under
    pre-registered time-bounded falsifiers, backtested against human surprise
    events ("itu bukan maksud saya"), not hypothesis count.
+
+## 6. ARIF GO execution delta (2026-11-05 ~11:20-12:05 MYT · 333-AGI · sovereign words: "buat ja, aku arif")
+
+Four gaps closed, one instrument defect found and repaired, one seam closed:
+
+1. **M1 instrument defect (found, not built).** The panel counted `%G?=U` as
+   unsigned — under the service user every signature reads `U` (good
+   signature, trust unresolvable: HOME=/home/arifos has no allowed_signers),
+   so a fully-signed A-FORGE trail rendered "20/20 unsigned FAIL". This
+   duplicates the independent diagnosis in
+   `/root/forge_work/receipts/RECEIPT-m1-d1-d2-coupling-2026-11-01.md`
+   (K11 honest sensor). Repaired to that receipt's falsified patch shape:
+   PRESENT=G|U|X|Y (report-only), NO_SIG=N (+B/R in `other`), CANNOT_CHK=E →
+   verdict withheld UNKNOWN, TRUSTED=G reported but never gating. Pass-arm
+   added: PASS only when signature trail holds AND >=1 MUTATE row evidences
+   the ACT gating leg AND no fail-open seam. Static "d2f6ca64 probe" text
+   replaced with a live repo-local-identity seam check.
+   Falsifier `/root/forge_work/f6-m1-sensor-check.sh` -> exit 0 (meter
+   capable of PASS; kernel agrees with control census).
+   **Seam closed:** A-FORGE repo-local git identity removed (was `333-AGI` —
+   a registered lane, i.e. raw commits PASSED the pre-commit gate
+   fail-open). Raw commits now resolve to an unregistered identity and are
+   BLOCKED. M1 now reads **UNKNOWN (MEASURED)** — MUTATE leg unexercised
+   (63 OBSERVE rows), which is absence of evidence, not violation.
+   **Federation audit (NOT touched):** arifOS/GEOX/WEALTH/WELL carry local
+   `333-AGI`; arifFlow carries registered `kimi-code/FI-008` (fail-open);
+   AAA carries an unregistered local name (fail-closed). One-line removal
+   of the three local user.* keys per repo — sibling blast radius, awaits
+   sovereign GO as its own transaction.
+2. **M4 sign-off + first production producer.**
+   `/var/lib/arifos/f6/m4_calibration_signoff.json` written under ARIF GO
+   (approved_by ARIF F13, bounds FP<=0.25 / FN<=0.60, out_of_band=true,
+   report-only). `pattern_out_of_band_v1` scans the agent-report corpus
+   (tail-50) through `evaluate_manipulation_detector`. Live: flagged=0 ->
+   **M4 PASS (MEASURED)** with declared-FN shadow residual. Dangling
+   `test_13` citation replaced by the real `test_09`.
+3. **M3 restatement emitter.** `emit_tier3_maruah_event()` wired into
+   arif_seal's post-append hook (verdict==SEAL). `restatement_provided=True`
+   requires ack_irreversible AND `witness_type=human` AND declared blast
+   radius — an agent self-ack over an AI-witnessed seal records False
+   (moral-crumple-zone guard). First production row lands on the next real
+   VAULT999 append; M3 stays UNKNOWN until then (honest, never estimated).
+4. **M6 traffic x consent join.** `_m6_traffic_join()` live — 63 act-ledger
+   rows vs 0 grants today; conformance has no denominator, dependency named
+   (writer of record F13). M6 stays UNKNOWN until sovereign grants exist;
+   scope-to-row mapping lands with the first grant.
+5. **Witness:** already REVIEWED — row 2026-11-03T03:37:28Z, statement
+   "akubterima. sahhhhh" (Arif's own words), valid to 2026-11-10. A fresh
+   `--confirm` for the post-change report sha remains Arif's act
+   (`scripts/f6_witness_review.py` render is machine-proposes only; no
+   pipeline or agent may invoke `--confirm` on his behalf).
+
+**Tests:** new `tests/runtime/test_f6_arifgo_producers_20261105.py` (15) +
+suite repair for b8b18cb8a contract drift (2 stale expectations) +
+test_07 M4 absent-store fix -> **60 passed, 1 skipped, 0 failed**.
+**Live after restart:** failed_meters=[] · unknown=[M1,M3,M6] ·
+M2/M4/M5 PASS · f6_overall UNPROVEN (honest).
+**Receipt:** `/root/forge_work/receipts/RECEIPT-f6-arifgo-2026-11-05.md`.
