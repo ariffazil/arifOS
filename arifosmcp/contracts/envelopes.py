@@ -43,5 +43,8 @@ class ResponseEnvelope(BaseModel):
     diagnostics: dict = Field(default_factory=dict)
 
     # Metadata
+    # 2026-11-05 (F4 defect layer 2): sole producer verdict_wrapper.forge_verdict
+    # emits ISO-8601; consumers only copy this value into dicts (no arithmetic).
+    # float|str admits both forms instead of crashing every envelope build.
     version: str = "2.0.0"
-    timestamp: float
+    timestamp: float | str
