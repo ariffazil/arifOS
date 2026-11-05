@@ -1,6 +1,6 @@
 # arifOS — Constitutional AI Governance Kernel
-> Auto-generated from live tool and resource registries. Hash: c19847d1a74a6d37
-> Total MCP: 65 Tools | 42 Resources | Status: OPERATIONAL
+> Auto-generated from live tool and resource registries. Hash: fd62541e5fd940f6
+> Total MCP: 65 Tools | 43 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
 > Version: 1!2026.10.17 · MCP Protocol: 2026-07-28
 > Verdict grammar: SEAL / HOLD / SABAR / VOID
@@ -51,7 +51,7 @@ These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed vi
 |------|-------|--------|------------|-------|
 | `arif_kernel_intercept` | 666 | internal_only | ✓ | intercept |
 | `arif_init` | 000 | public | ✓ | init, light, resume, validate, canary, preflight +5 more |
-| `arif_observe` | 111 | public | ✓ | search, fetch, hybrid_discovery, ingest, compass, atlas +2 more |
+| `arif_observe` | 111 | public | ✓ | search, fetch, hybrid_discovery, ingest, compass, atlas +4 more |
 | `arif_fetch` | 111 | internal_only | ✓ | fetch, search, eureka |
 | `arif_think` | 333 | public | ✓ | reason, reflect, verify, axioms, plan, plan_review +6 more |
 | `arif_critique` | 555 | internal_only | ✓ | critique, redteam, maruah, shadow, deescalate, empathy |
@@ -154,6 +154,7 @@ All resources carry an explicit `truth_level` under the arifOS truth hierarchy:
 | `arifos://jurisdiction` | canonical | F11, F13 | Five autonomy bands (GREEN→BLACK), CapabilityGrant registry, jurisdiction rules. |
 | `arifos://loop-engineering` | canonical |  |  |
 | `arifos://memory` | canonical | F2, F6, F12 | Six-layer memory architecture: L1 ephemeral → L6 immutable (VAULT999). Memory ≠ truth without provenance. |
+| `arifos://model-governance-card/{lane}` | canonical |  |  |
 | `arifos://quickstart` | canonical |  |  |
 | `arifos://reality/state` | canonical |  |  |
 | `arifos://refusal-surface` | canonical |  |  |
@@ -263,7 +264,7 @@ Tool counts outside arifOS are dynamic observations, not constants. Probe them a
 ## Verification
 - tools/list count should match total (65)
 - canonical_tools + operational_tools == tools_exposed_via_mcp
-- Manifest hash: c19847d1a74a6d37
+- Manifest hash: fd62541e5fd940f6
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-10-25T07:32:13.784659+00:00 ---
+--- Auto-generated 2026-11-04T03:26:52.415509+00:00 ---

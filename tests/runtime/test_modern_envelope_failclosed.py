@@ -7,6 +7,9 @@ These tests prove the confused-deputy paths now fail closed, the happy modern
 path still passes, legacy-era traffic is untouched, and the emergency
 kill-switch works.
 
+Since 2026-10-08 an absent Mcp-Method/Mcp-Name is completed from the body
+(one interpretation). A header that disagrees with the body still fails closed.
+
 Refs: external AGI-substrate audit (2026-09-17) + live probe of
 arifosmcp/runtime/mcp_transport_bridge.py (old line 203).
 """
@@ -76,23 +79,40 @@ def _assert_rejected(response, state) -> None:
     assert state["reached"] is False, "kernel must NOT receive ambiguous requests"
 
 
-def test_tools_call_without_mcp_method_header_fails_closed():
+def test_tools_call_without_mcp_method_header_is_completed():
+    """Absent Mcp-Method is filled from the body (2026-10-08), not a second meaning."""
     req = _make_request(_tools_call_body(), [(b"mcp-protocol-version", MODERN)])
-    call_next, state = _downstream_reached()
+    seen = {}
+
+    async def call_next(request: Request) -> JSONResponse:
+        seen["method"] = request.headers.get("mcp-method")
+        seen["name"] = request.headers.get("mcp-name")
+        seen["reached"] = True
+        return JSONResponse({"jsonrpc": "2.0", "id": 41, "result": {"ok": True}})
+
     response = _run(req, call_next)
-    _assert_rejected(response, state)
-    assert "Mcp-Method" in json.loads(response.body)["error"]["message"]
+    assert response.status_code == 200
+    assert seen["reached"] is True
+    assert seen["method"] == "tools/call"
+    assert seen["name"] == "arif_init"
 
 
-def test_tools_call_without_mcp_name_header_fails_closed():
+def test_tools_call_without_mcp_name_header_is_completed():
     req = _make_request(
         _tools_call_body(),
         [(b"mcp-protocol-version", MODERN), (b"mcp-method", b"tools/call")],
     )
-    call_next, state = _downstream_reached()
+    seen = {}
+
+    async def call_next(request: Request) -> JSONResponse:
+        seen["name"] = request.headers.get("mcp-name")
+        seen["reached"] = True
+        return JSONResponse({"jsonrpc": "2.0", "id": 41, "result": {"ok": True}})
+
     response = _run(req, call_next)
-    _assert_rejected(response, state)
-    assert "Mcp-Name" in json.loads(response.body)["error"]["message"]
+    assert response.status_code == 200
+    assert seen["reached"] is True
+    assert seen["name"] == "arif_init"
 
 
 def test_method_header_mismatch_still_rejected():
@@ -136,19 +156,23 @@ def test_valid_modern_envelope_reaches_kernel():
     assert state["reached"] is True
 
 
-def test_readonly_method_without_headers_ratchet_rejects():
-    """G0.7 ratchet: Mcp-Method required for ALL routed modern methods.
-
-    Justified by production evidence: zero transition-window warnings
-    between the 2026-09-17 03:03 deploy and the ratchet.
-    """
+def test_readonly_method_without_headers_is_completed():
+    """tools/list with no Mcp-Method is completed from the body."""
     req = _make_request(
         {"jsonrpc": "2.0", "id": 42, "method": "tools/list", "params": {}},
         [(b"mcp-protocol-version", MODERN)],
     )
-    call_next, state = _downstream_reached()
+    seen = {}
+
+    async def call_next(request: Request) -> JSONResponse:
+        seen["method"] = request.headers.get("mcp-method")
+        seen["reached"] = True
+        return JSONResponse({"jsonrpc": "2.0", "id": 42, "result": {"ok": True}})
+
     response = _run(req, call_next)
-    _assert_rejected(response, state)
+    assert response.status_code == 200
+    assert seen["reached"] is True
+    assert seen["method"] == "tools/list"
 
 
 def test_readonly_method_without_headers_lenient_mode_passes():
@@ -429,3 +453,167 @@ def test_get_without_version_is_not_rejected():
     call_next, state = _downstream_reached()
     response = _run(req, call_next)
     assert state["reached"] is True
+
+
+def test_prompts_get_emoji_name_injected_as_base64_reaches_kernel():
+    """The live crash: prompts/get "000 seedling IGNITE" on 2026-07-28.
+
+    Starlette encodes header values as latin-1. The name must ride as the
+    MCP base64 sentinel, and the SDK decoder must recover it.
+    """
+    from mcp.shared.inbound import decode_header_value
+
+    name = "000 🌱 IGNITE"
+    body = {
+        "jsonrpc": "2.0",
+        "id": 7,
+        "method": "prompts/get",
+        "params": {"name": name, "arguments": {}},
+    }
+    req = _make_request(body, [(b"mcp-protocol-version", MODERN)])
+    seen = {}
+
+    async def call_next(request: Request) -> JSONResponse:
+        seen["header"] = request.headers.get("mcp-name")
+        seen["reached"] = True
+        return JSONResponse({"jsonrpc": "2.0", "id": 7, "result": {}})
+
+    response = _run(req, call_next)
+    assert response.status_code == 200
+    assert seen["reached"] is True
+    header = seen["header"]
+    header.encode("latin-1")
+    assert header != name
+    assert decode_header_value(header) == name
+
+
+def test_prompts_get_anchor_name_reaches_kernel():
+    from mcp.shared.inbound import decode_header_value
+
+    name = "⚓ INIT"
+    body = {"jsonrpc": "2.0", "id": 8, "method": "prompts/get", "params": {"name": name}}
+    req = _make_request(body, [(b"mcp-protocol-version", MODERN)])
+    seen = {}
+
+    async def call_next(request: Request) -> JSONResponse:
+        seen["header"] = request.headers.get("mcp-name")
+        seen["reached"] = True
+        return JSONResponse({"jsonrpc": "2.0", "id": 8, "result": {}})
+
+    response = _run(req, call_next)
+    assert response.status_code == 200
+    assert seen["reached"] is True
+    seen["header"].encode("latin-1")
+    assert decode_header_value(seen["header"]) == name
+
+
+def test_prompts_get_wrong_base64_name_still_rejected():
+    import base64
+
+    name = "⚓ INIT"
+    wrong = "=?base64?" + base64.b64encode(b"other").decode("ascii") + "?="
+    body = {"jsonrpc": "2.0", "id": 9, "method": "prompts/get", "params": {"name": name}}
+    req = _make_request(
+        body,
+        [
+            (b"mcp-protocol-version", MODERN),
+            (b"mcp-method", b"prompts/get"),
+            (b"mcp-name", wrong.encode("ascii")),
+        ],
+    )
+    call_next, state = _downstream_reached()
+    response = _run(req, call_next)
+    _assert_rejected(response, state)
+
+
+def test_resources_read_ascii_uri_stays_literal():
+    uri = "arifos://vitals"
+    body = {"jsonrpc": "2.0", "id": 10, "method": "resources/read", "params": {"uri": uri}}
+    req = _make_request(body, [(b"mcp-protocol-version", MODERN)])
+    seen = {}
+
+    async def call_next(request: Request) -> JSONResponse:
+        seen["name"] = request.headers.get("mcp-name")
+        seen["reached"] = True
+        return JSONResponse({"jsonrpc": "2.0", "id": 10, "result": {}})
+
+    response = _run(req, call_next)
+    assert response.status_code == 200
+    assert seen["reached"] is True
+    assert seen["name"] == uri
+
+
+def test_resulttype_forwards_empty_202():
+    from arifosmcp.transport.resulttype_asgi import ResultTypeASGIMiddleware
+
+    sent = []
+
+    async def app(scope, receive, send):
+        await receive()
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 202,
+                "headers": [(b"content-length", b"0")],
+            }
+        )
+        await send({"type": "http.response.body", "body": b"", "more_body": False})
+
+    async def receive():
+        raw = json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}).encode()
+        return {"type": "http.request", "body": raw, "more_body": False}
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/mcp",
+        "headers": [(b"mcp-protocol-version", b"2026-07-28")],
+    }
+    asyncio.run(ResultTypeASGIMiddleware(app)(scope, receive, send))
+    assert [m["type"] for m in sent] == ["http.response.start", "http.response.body"]
+    assert sent[0]["status"] == 202
+    assert sent[1]["body"] == b""
+
+
+def test_resulttype_injects_nonempty_json_once():
+    from arifosmcp.transport.resulttype_asgi import ResultTypeASGIMiddleware
+
+    sent = []
+    payload = json.dumps({"jsonrpc": "2.0", "id": 1, "result": {"tools": []}}).encode()
+    half, rest = payload[:8], payload[8:]
+
+    async def app(scope, receive, send):
+        await receive()
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [(b"content-type", b"application/json")],
+            }
+        )
+        await send({"type": "http.response.body", "body": half, "more_body": True})
+        await send({"type": "http.response.body", "body": rest, "more_body": False})
+
+    async def receive():
+        raw = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}).encode()
+        return {"type": "http.request", "body": raw, "more_body": False}
+
+    async def send(message):
+        sent.append(message)
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/mcp",
+        "headers": [(b"mcp-protocol-version", b"2026-07-28")],
+    }
+    asyncio.run(ResultTypeASGIMiddleware(app)(scope, receive, send))
+    starts = [m for m in sent if m["type"] == "http.response.start"]
+    bodies = [m for m in sent if m["type"] == "http.response.body"]
+    assert len(starts) == 1 and len(bodies) == 1
+    doc = json.loads(bodies[0]["body"])
+    assert doc["result"]["resultType"] == "complete"
+    assert doc["result"]["tools"] == []

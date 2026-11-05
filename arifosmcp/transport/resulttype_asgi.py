@@ -90,40 +90,43 @@ class ResultTypeASGIMiddleware:
                 response_body.extend(body)
 
                 more_body = message.get("more_body", False)
-                if not more_body and response_body:
-                    # _inject_all's contract expects `out` pre-cleared; without
-                    # the snapshot+clear the injected doc is appended after the
-                    # original, yielding two concatenated JSON-RPC documents.
-                    raw = bytes(response_body)
-                    response_body.clear()
+                if more_body:
+                    return
+                # Final chunk. G7 answers notifications/initialized with an
+                # empty 202. Forwarding only a non-empty body drops that
+                # start, and the outer middleware then raises
+                # "No response returned." Inject only when there is JSON.
+                raw = bytes(response_body)
+                response_body.clear()
+                if raw:
+                    # _inject_all expects `out` pre-cleared. If it writes
+                    # nothing, keep the original bytes.
                     _inject_all(raw, method, response_body)
                     if not response_body:
                         response_body.extend(raw)
-
-                    # Update content-length
-                    new_headers = []
-                    for k, v in response_headers:
-                        if k == b"content-length":
-                            new_headers.append((k, str(len(response_body)).encode()))
-                        else:
-                            new_headers.append((k, v))
-                    response_headers[:] = new_headers
-
-                    await send(
-                        {
-                            "type": "http.response.start",
-                            "status": status_code,
-                            "headers": response_headers,
-                        }
-                    )
-                    await send(
-                        {
-                            "type": "http.response.body",
-                            "body": bytes(response_body),
-                            "more_body": False,
-                        }
-                    )
-                    response_body = bytearray()
+                if not response_started:
+                    return
+                new_headers = []
+                for k, v in response_headers:
+                    if k == b"content-length":
+                        new_headers.append((k, str(len(response_body)).encode()))
+                    else:
+                        new_headers.append((k, v))
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": status_code,
+                        "headers": new_headers,
+                    }
+                )
+                await send(
+                    {
+                        "type": "http.response.body",
+                        "body": bytes(response_body),
+                        "more_body": False,
+                    }
+                )
+                response_body = bytearray()
 
         await self._app(scope, _replay_receive, send_wrapper)
 
