@@ -223,6 +223,35 @@ def _git_blob_sha1(data: bytes) -> str:
     return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
 
 
+def _strip_content_stamp(data: bytes) -> bytes:
+    """S5 exclusion rule (deploy-release.sh S5, 2026-09-23).
+
+    The installed __init__.py carries __content_sha256__, which by
+    design cannot contain its own digest (self-reference
+    cryptographically infeasible — the deploy script documents the
+    exclusion). Parity compares content with ONLY that stamp line
+    removed; every other byte difference still counts as changed.
+    The repo side never carries the stamp (committing it would
+    itself be flagged as changed).
+    """
+    lines = data.splitlines(keepends=True)
+    kept = [ln for ln in lines if not ln.startswith(b"__content_sha256__")]
+    return data if len(kept) == len(lines) else b"".join(kept)
+
+
+def _parity_scope(path: str) -> bool:
+    """Shippable runtime scope for parity (D1b\u2019, 2026-11-05).
+
+    Test trees (arifosmcp/**/tests/) are committed source that the
+    wheel intentionally does not package — counting them as
+    `missing` makes the invariant permanently unreachable. Tests
+    are validated by pytest (separate instrument), not runtime
+    parity. Everything else ships and stays in scope: modified or
+    untracked shipped files still flag.
+    """
+    return path.endswith(".py") and "/tests/" not in path
+
+
 def _content_parity(
     source_commit: str,
     *,
@@ -237,7 +266,11 @@ def _content_parity(
     negative, because drift compares SHAs, never content.
 
     Method: git blob SHA-1 of every *.py under the installed package vs
-    `git ls-tree -r <source_commit> arifosmcp`.
+    `git ls-tree -r <source_commit> arifosmcp`, after excluding (a) the
+    S5 __content_sha256__ stamp line (its own documented exclusion rule)
+    and (b) committed test trees the wheel never packages (D1b\u2019,
+    2026-11-05). Both exclusions are structural, not policy: shippable
+    code differences always still flag.
 
     Fail-closed by law: any error (unknown commit, unreadable file, git
     unavailable) returns state=UNKNOWN — absent/unchecked is NEVER MATCH.
@@ -258,7 +291,7 @@ def _content_parity(
     repo = Path(repo_path or os.getenv("ARIFOS_REPO_PATH", "/root/arifOS"))
     out: dict[str, Any] = {
         "state": "UNKNOWN",
-        "method": "git_blob_sha1_vs_ls-tree",
+        "method": "git_blob_sha1_vs_ls-tree;excl=__content_sha256_stamp,tests/",
         "package_root": str(root),
         "repo": str(repo),
         "commit": source_commit,
@@ -295,7 +328,7 @@ def _content_parity(
             sha = meta.split()[2]
         except (ValueError, IndexError):
             continue
-        if path.endswith(".py"):
+        if _parity_scope(path):
             committed[path] = sha
     if not committed:
         out["reason"] = "commit resolves but holds no arifosmcp/*.py"
@@ -306,7 +339,9 @@ def _content_parity(
             if "__pycache__" in path.parts:
                 continue
             rel = "arifosmcp/" + str(path.relative_to(root))
-            local[rel] = _git_blob_sha1(path.read_bytes())
+            if not _parity_scope(rel):
+                continue
+            local[rel] = _git_blob_sha1(_strip_content_stamp(path.read_bytes()))
     except OSError as exc:
         out["reason"] = f"unreadable package file: {type(exc).__name__}"
         return out
