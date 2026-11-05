@@ -1728,7 +1728,7 @@ def arif_think(
             if reason_result.get("degraded_state")
             else ("PASS" if floor_verdict == "SEAL" else "HOLD"),
             "reason": (
-                f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}"
+                f"Reasoning backend unavailable: {(_ds if isinstance(_ds := reason_result['degraded_state'], str) else _ds.get('evidence', ''))}"
                 if reason_result.get("degraded_state")
                 else ("All floors passed" if floor_verdict == "SEAL" else floor_reason)
             ),
@@ -1752,7 +1752,7 @@ def arif_think(
 
     if floor_verdict != "SEAL" or reason_result.get("degraded_state"):
         eff_reason = (
-            f"Reasoning backend unavailable: {reason_result['degraded_state'].get('evidence', '')}"
+            f"Reasoning backend unavailable: {(_ds if isinstance(_ds := reason_result['degraded_state'], str) else _ds.get('evidence', ''))}"
             if reason_result.get("degraded_state")
             else floor_reason
         )

@@ -1838,9 +1838,20 @@ async def arif_judge(
             )
             for r in _hard_reasons
         )
+        # Fasa-4 C3 (2026-11-05, acceptance #3): mode=escalate must return an
+        # esc_-prefixed receipt id carrying the constitutional gate reasons —
+        # never an empty {}.
+        import uuid as _uuid
+
+        _escalate_receipt = (
+            {"receipt_id": f"esc_{_uuid.uuid4().hex[:16]}", "mode": mode}
+            if mode == "escalate"
+            else {}
+        )
         return VerdictOutput(
             verdict=VerdictCode.VOID if _is_void else VerdictCode.HOLD,
             reasons=_hard_reasons,
+            result=_escalate_receipt,
             next_safe_action=(
                 "Aborted: action violates constitutional floors (F1/F9/F13)."
                 if _is_void

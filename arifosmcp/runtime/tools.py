@@ -3206,7 +3206,13 @@ def _compute_canonical_verdict(
                 _sct_sovereign = (_claims.get("auth") or "").upper() == "SOVEREIGN"
         except Exception:
             logger.exception("suppressed exception", exc_info=True)
-    if verdict == "SEAL" and _session_actor_verified is False:
+    # P0-3 + WAJIB-4 (2026-06-21) narrowed SEAL only; SABAR slipped through as
+    # an unhandled close-class case — latent until the D2 restraint-pair rule
+    # (888-APEX 2026-11-04) stopped the divergence HOLD from masking it
+    # (test_p0_3 test_f caught it live 2026-11-04). Unverified actors never
+    # receive a close-class verdict: SEAL and SABAR both narrow to
+    # OBSERVE_ONLY. HOLD/VOID are already fail-closed and stay as-is.
+    if verdict in ("SEAL", "SABAR") and _session_actor_verified is False:
         if _sct_sovereign:
             degradation.append(
                 "SCT_SOVEREIGN_BYPASS: session store has actor_verified=False "
@@ -3218,7 +3224,8 @@ def _compute_canonical_verdict(
             degradation.append(
                 "actor_verified=False — identity not verified, verdict narrowed to "
                 "OBSERVE_ONLY. May observe, may not authorize or approve. "
-                "(P0-3 + WAJIB-4 enforcement 2026-06-21)."
+                "(P0-3 + WAJIB-4 enforcement 2026-06-21; SABAR added 2026-11-04, "
+                "D2 restraint-pair exposure)."
             )
 
     # ── Step 5c: Witness degradation ceiling (FORGE 2026-07-08) ─────────
@@ -3662,6 +3669,20 @@ from arifosmcp.schemas.verdict import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _reasons_from_floor_reasons(floor_reasons, fallback: str = "Constitutional verification failed") -> list[str]:
+    """Fasa-4 C3 (2026-11-05, warning 2): VerdictOutput.reasons must never be
+    silently empty — default_factory=list hid omitted kwargs at construction."""
+    if isinstance(floor_reasons, dict) and floor_reasons:
+        return [f"{k}: {v}" for k, v in floor_reasons.items()]
+    if isinstance(floor_reasons, list) and floor_reasons:
+        return [str(r) for r in floor_reasons]
+    if floor_reasons:
+        return [str(floor_reasons)]
+    return [fallback]
+
+
 _RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
     "arifos_response_context",
     default=None,
@@ -5456,7 +5477,19 @@ def _enforce_nine_signal(
             _session_state in ("OBSERVE_ONLY", "SABAR") and not _action_or_substrate_failed
         )
 
-        if verdict in ("VOID", "HOLD") and _action_or_substrate_failed:
+        # Fasa-4 C1 (2026-11-05): a DECLARED degrade (degraded_state present —
+        # e.g. arif_think LLM-unavailable -> synthesis:null + DEGRADED_TIMEOUT) is
+        # the system failing correctly, not straying: never mint the malu
+        # classification (JALAN_BENAR -> 0.15) for it.
+        _declared_degrade = isinstance(out, dict) and bool(
+            out.get("degraded_state")
+            or (isinstance(out.get("meta"), dict) and out["meta"].get("degraded_state"))
+        )
+        if (
+            verdict in ("VOID", "HOLD")
+            and _action_or_substrate_failed
+            and not _declared_degrade
+        ):
             # TRUE failure — mint sesat event for the failure ledger
             try:
                 from arifosmcp.runtime.sesat_event import (
@@ -20933,6 +20966,7 @@ def _arif_judge_deliberate(
             status=verdict.status,
             verdict=VerdictCode.HOLD if verdict.verdict == "HOLD" else VerdictCode.VOID,
             candidate=candidate,
+            reasons=_reasons_from_floor_reasons(verdict.floors.floor_reasons),
             result={
                 "candidate": candidate,
                 "reason": verdict.floors.floor_reasons,
@@ -21012,6 +21046,7 @@ def _arif_judge_deliberate(
             status="SABAR",
             verdict=VerdictCode.SABAR,
             candidate=candidate,
+            reasons=["Evidence receipt required for SEAL", "Witness proof absent"],
             result={
                 "candidate": candidate,
                 "verdict": "SABAR",
@@ -21224,6 +21259,7 @@ def _arif_judge_deliberate(
             status="VOID",
             verdict=VerdictCode.VOID,
             candidate=candidate,
+            reasons=[f"L08 GENIUS GATE: g_score {contract.g_score} below floor {GENIUS_SCORE_VOID_FLOOR}"],
             result={
                 "candidate": candidate,
                 "verdict": "VOID",
@@ -21260,6 +21296,7 @@ def _arif_judge_deliberate(
         status="OK",
         verdict=VerdictCode.SEAL,
         candidate=candidate,
+        reasons=["Constitutional floors passed (L01, L12); verification state clean"],
         result={
             "candidate": candidate,
             "verdict": "SEAL",

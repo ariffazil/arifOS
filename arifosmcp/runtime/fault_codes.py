@@ -82,6 +82,7 @@ class ConstitutionalFaultCode(StrEnum):
     F9_SHADOW_VIOLATION = "F9_SHADOW_VIOLATION"  # Shadow load > 0.3
     L10_ONTOLOGY = "L10_ONTOLOGY"  # Personhood/consciousness claim
     L11_AUDIT_FAILURE = "L11_AUDIT_FAILURE"  # Actor not in whitelist
+    L11_ACTOR_UNVERIFIED = "L11_ACTOR_UNVERIFIED"  # Actor identity unverified — NOT a signature failure
     L11_TOKEN_INVALID = "L11_TOKEN_INVALID"  # Signature mismatch
     L11_TOKEN_EXPIRED = "L11_TOKEN_EXPIRED"  # Bucket stale → re-anchor
     L11_SESSION_MISMATCH = "L11_SESSION_MISMATCH"  # session_id mismatch
