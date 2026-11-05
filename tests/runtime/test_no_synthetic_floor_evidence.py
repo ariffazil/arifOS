@@ -175,10 +175,12 @@ def test_threshold_placeholder_floors_are_labelled_unmeasured():
     assert placeholders, "expected at least one threshold-placeholder floor on an empty kernel"
     # 2026-11-02 (KX-011 suite repair): L10-L13 were canonicalized to F10-F13
     # and grew real producers (Gate 1+2), so the old L-id placeholder pin no
-    # longer describes reality. The stable no-producer floor is F6 MARUAH
-    # (meters live, producer pending — docs/canon/F6_MARUAH_CANON.md).
+    # longer describes reality. The stable placeholder floor is F6 MARUAH:
+    # its producer (floor_producers._f6_maruah) runs but reports
+    # f6_partially_measured, which is not wireable, so F6 stays an
+    # unmeasured_default (docs/canon/F6_MARUAH_CANON.md).
     assert "F6" in placeholders, (
-        f"F6 has no producer but is labelled '{provenance.get('F6')}'"
+        f"F6 is not labelled unmeasured_default but is '{provenance.get('F6')}'"
     )
 
 

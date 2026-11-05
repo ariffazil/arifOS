@@ -967,9 +967,16 @@ def _governance_block() -> dict[str, dict[str, Any]]:
             # evaluation path (K12). UNMEASURED != PASS; absent != denied.
             if origin.startswith("unmeasured_default"):
                 is_placeholder = True
+                # 2026-11-05 (333-AGI): the fixed "producer pending" label was
+                # stale since the F6 producer landed (floor_producers._f6_maruah
+                # + f6/meters.py live on /health; provenance now
+                # "unmeasured_default:f6_partially_measured" — M1 FAIL,
+                # M3/M4/M6 UNKNOWN). Publish the provenance's own reason;
+                # never a hard-coded story.
+                _reason = origin.removeprefix("unmeasured_default:") or "no_evidence"
                 placeholder_label = (
-                    "rest_routes._FLOOR_DEFAULTS (unmeasured — Maruah predicates live, "
-                    "producer pending; docs/canon/F6_MARUAH_CANON.md)"
+                    f"rest_routes._FLOOR_DEFAULTS (unmeasured — {_reason}; "
+                    "docs/canon/F6_MARUAH_CANON.md)"
                 )
             elif "_skipped" in origin or score is None:
                 is_placeholder = True
