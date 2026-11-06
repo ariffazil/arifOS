@@ -182,12 +182,18 @@ def _act_ledger_today(ledger_dir: Path = F6_LEDGER_DIR) -> dict[str, Any]:
                 out["error"] = "malformed row present"
                 continue
             out["rows"] += 1
+            out["_rows_internal"] = out.get("_rows_internal", [])
+            out["_rows_internal"].append({
+                k: e.get(k) for k in
+                ("actor_id", "organ", "action_class", "decision", "required_authority", "tool")
+            })
             ac = e.get("action_class") or ""
             out["action_classes"][ac] = out["action_classes"].get(ac, 0) + 1
             d = e.get("decision") or ""
             out["decisions"][d] = out["decisions"].get(d, 0) + 1
     except Exception as exc:
         out["error"] = f"ledger read error: {exc}"
+    out.pop("_rows_internal", None)
     return out
 
 
@@ -1292,11 +1298,49 @@ def _m6_traffic_join(
             "without a denominator and is never fabricated as PASS"
         )
     elif stats["consent_grants"] > 0 and stats["traffic_rows"] > 0:
-        stats["dependency"] = (
-            f"{stats['consent_grants']} grant(s) present but act-ledger rows carry no "
-            "scope references — scope-to-row mapping is the next wiring step; "
-            "nothing evaluated, nothing fabricated"
-        )
+        # Scope-to-traffic mapping (2026-11-07, F13 GO "setel maruah score").
+        # Actor identity is used for coverage matching INTERNALLY and is NEVER
+        # emitted: the F6 surface carries no actor-identity fields (linkage guard,
+        # test_f6_output_contains_no_actor_identity_fields).
+        tier1 = {"OBSERVE", ""}
+        now_iso = _utcnow()
+        covered = 0
+        uncovered: list[dict[str, Any]] = []
+        for e in ledger.get("_rows_internal", []):
+            action_class = e.get("action_class", "")
+            decision = e.get("decision")
+            if (action_class in tier1) or (decision != "ALLOW"):
+                covered += 1
+                continue
+            hit = False
+            for sc in scopes:
+                if sc.get("status") != "GRANTED":
+                    continue
+                exp = sc.get("expiry", "none")
+                if exp not in ("none", None) and str(exp) <= now_iso:
+                    continue
+                actor_ok = sc.get("actor") == e.get("actor_id") or sc.get("actor") == "ALL-AGENTS"
+                organ_ok = sc.get("organ") in (e.get("organ"), "federation")
+                axes_ok = any(ax in ("use", "execute-reversible") for ax in sc.get("axes", []))
+                if actor_ok and organ_ok and axes_ok:
+                    hit = True
+                    break
+            if hit:
+                covered += 1
+            else:
+                uncovered.append({
+                    "organ": e.get("organ"),
+                    "action_class": action_class,
+                    "required_authority": e.get("required_authority"),
+                    "tool": e.get("tool"),
+                })
+        stats["mapping"] = {
+            "covered": covered,
+            "uncovered_count": len(uncovered),
+            "uncovered": uncovered,
+            "grants_on_record": stats["consent_grants"],
+        }
+        stats["dependency"] = None
     return stats
 
 
@@ -1332,21 +1376,35 @@ def evaluate_meter_6_consent_scope(
     except Exception:
         ledger_live = False
     join = _m6_traffic_join()
+    grants_present = join.get("consent_grants", 0) > 0
+    rows_present = join.get("traffic_rows", 0) > 0
+    result = "UNKNOWN"
+    measurement = Axis.UNMEASURED
+    mapping = join.get("mapping") or {}
+    mapping_summary = "no traffic and/or no grants in window — nothing to evaluate (never PASS from absence)"
+    uncovered_count = 0
+    if grants_present and rows_present and mapping:
+        uncovered_count = mapping.get("uncovered_count", 0)
+        covered_count = mapping.get("covered", 0)
+        result = "PASS" if uncovered_count == 0 else "FAIL"
+        measurement = Axis.MEASURED
+        mapping_summary = (
+            f"scope-to-traffic mapping LIVE: {covered_count} covered, "
+            f"{uncovered_count} uncovered, {join.get('consent_grants')} grant(s) on record"
+        )
     return MeterAssessment(
         meter_id="M6_consent_scope",
         behavior_examined=(
             "whether data access, use, and disclosure stay within legitimate, current, "
             "unrevoked consent scope without model-confidence inference"
         ),
-        result="UNKNOWN",
+        result=result,
         result_reason=(
             f"consent_ledger.json v1 live={ledger_live} with {n_scopes} scope(s) and "
             f"{n_events} event(s); permit surface present (command_allowlist in config: "
-            f"{has_allowlist}); traffic join LIVE: {join['traffic_rows']} act-ledger "
-            f"row(s) today vs {join['consent_grants']} grant(s) — "
-            + (join["dependency"] or "conformance evaluated")
+            f"{has_allowlist}); {mapping_summary}"
         ),
-        measurement=Axis.UNMEASURED,
+        measurement=measurement,
         witness=witness,
         producer="arifosmcp.runtime.f6.consent_scope:check_consent + /var/lib/arifos/consent_ledger.json (traffic join LIVE 2026-11-05)",
         code_path="arifosmcp/runtime/f6/consent_scope.py:check_consent",
@@ -1356,8 +1414,10 @@ def evaluate_meter_6_consent_scope(
         method="check_consent validates source legitimacy, subject relevance, delegation narrowing, expiry, revocation, and access/use/disclose axes",
         limits="requires legitimate ConsentScope source; missing source returns UNKNOWN with dependency reported",
         gaps=(
-            f"sovereign consent grants absent ({join['consent_grants']} of record) — "
-            "join is live; scope-to-traffic-row mapping lands when grants exist"
+            "no gaps" if result == "PASS" else (
+                f"{uncovered_count} uncovered human-class traffic row(s)"
+                if uncovered_count else mapping_summary
+            )
         ),
         tests=[
             "test_06_fresh_but_irrelevant_evidence_no_pass",
