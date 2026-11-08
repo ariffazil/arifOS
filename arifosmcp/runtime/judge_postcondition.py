@@ -332,8 +332,30 @@ def check_judge_postcondition(
 
     # SEAL family requires provenance-bearing evidence + channel integrity.
     if verdict_key in _SEAL_FAMILY:
-        if not _evidence_has_provenance(ev):
-            report["missing_evidence"].append("provenance")
+        try:
+            from contracts.four_plane_contract import classify_evidence as _classify_evidence
+
+            _q_class, _q_reason, _q_detail = _classify_evidence(ev)
+            report["evidence_quality"] = {
+                "source_class": _q_class,
+                "reason_code": _q_reason,
+                "detail": _q_detail,
+            }
+            if _q_reason in (
+                "CONSENSUS_NOT_AUTHORITY",
+                "TRANSPORT_NOT_GOVERNANCE",
+                "STALE_OR_UNDATED_EVIDENCE",
+                "EVIDENCE_EMPTY_RULE1",
+            ):
+                report["missing_evidence"].append(_q_reason.lower())
+            elif not _evidence_has_provenance(ev):
+                # Legacy acceptance still applies to anything the quality gate
+                # does not veto by name.
+                report["missing_evidence"].append("provenance")
+        except Exception as _q_exc:  # noqa: BLE001 — fail closed to the legacy keyword check
+            report["evidence_quality_error"] = f"{type(_q_exc).__name__}: {_q_exc}"
+            if not _evidence_has_provenance(ev):
+                report["missing_evidence"].append("provenance")
         if report["verdict_channel_integrity"] is False:
             report["missing_evidence"].append("verdict_channel_integrity")
         ledger = ledger_precheck()
@@ -360,11 +382,17 @@ def check_judge_postcondition(
             ]
             report["verdict_channel_integrity"] = None
         if report["missing_evidence"]:
+            _q_rc = (report.get("evidence_quality") or {}).get("reason_code")
+            _q_only = (
+                len(report["missing_evidence"]) == 1
+                and _q_rc
+                and report["missing_evidence"][0] == _q_rc.lower()
+            )
             report.update(
                 {
                     "applied": True,
                     "verdict": "SABAR",
-                    "reason_code": "EVIDENCE_POSTCONDITION_VIOLATION",
+                    "reason_code": _q_rc if _q_only else "EVIDENCE_POSTCONDITION_VIOLATION",
                 }
             )
             return report
