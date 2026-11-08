@@ -8,6 +8,7 @@
 > **Sovereign:** Muhammad Arif bin Fazil (F13)
 > **Formula:** G = (A × P × E × X)^(1/4) — frozen, not iterable
 > **Truth Ladder:** Level 6/7 (Level 7 requires empirical data)
+> **Amendment 2026-11-08:** citation-integrity repair in Appendix C and Q1 — T5/T6/T7 and “A3 (Four Dials Only)” removed; refutations re-cited to A7/A5. Formula, axioms, thresholds unchanged (F13-authorized).
 
 ---
 
@@ -461,14 +462,20 @@ G = (A × P × E × X)^(1/4) ← UNIQUE solution
 
 | Previous Version | Problem | How This Version Fixes It |
 |---|---|---|
-| E² formula G = (A·P·E²·X)^(1/5) | E² is HARAM — mathematically disproven by T5 counterexample | Canonical (A·P·E·X)^(1/4) — single E |
-| Φ dial formula G = A·P·E·X·Φ | Φ is an illegal 5th dimension — disproven by T6 | Exactly 4 dials: A, P, E, X |
-| Product formula G = A·P·E·X | Product fails A2 (geometric mean required) — disproven by T7 | (A·P·E·X)^(1/4) — correct scale |
+| E² formula G = (A·P·E²·X)^(1/5) | E² is HARAM — violates A7 (Equal Dignity): E would carry weight 2/5 while A, P, X carry 1/5 | Canonical (A·P·E·X)^(1/4) — single E |
+| Φ dial formula G = A·P·E·X·Φ | Φ is outside T1's four-dial domain and, as a fifth factor, gives each of A, P, E, X weight 1/5 instead of 1/4 (A7 violation); Φ is a separate scar-pressure gate, not a dial | Exactly 4 dials: A, P, E, X |
+| Product formula G = A·P·E·X | Product fails A5 (Normalization): G(k,k,k,k) = k⁴ ≠ k | (A·P·E·X)^(1/4) — correct scale |
 | Old axiom set (A1-A5 only) | Harmonic mean could also satisfy all 5 axioms — no uniqueness | A6 (Multiplicativity) added — harmonic mean disproven |
 | No equal weight constraint | Weighted GM could also satisfy — no constitutional justification | A7 (Equal Dignity) added — unequal weights now require F13 override |
 | No falsification suite | Only assertion tests — no counterexample search | 43 falsification tests across 15 suites — all survive |
 | Gödel Lock not enforced | F7 documented but zero code implementation | godelLock.ts enforces uncertainty band on every output |
 | Unnecessary human gates | git_commit, session_id checks dilute attention | Streamlined to only genuine F13 sovereign gates |
+
+> **Citation integrity repair (2026-11-08):** earlier revisions of this Appendix cited
+> T5/T6/T7 counterexamples and an “A3 (Four Dials Only)” axiom. None exist in this canon —
+> theorems stop at T4 and A3 is Monotonicity. The refutations above now cite the axioms that
+> actually carry them: **A7 (Equal Dignity)** for E² and Φ, **A5 (Normalization)** for the
+> unrooted product. No formula, threshold, or seal changes — citation repair only.
 
 ## QQQQ Recommendation Protocol
 
@@ -478,9 +485,9 @@ The following aggregation functions were evaluated against A1-A8:
 2. Arithmetic mean — (A+P+E+X)/4 ❌ REFUTED — violates A1 (Nash Collapse)
 3. Harmonic mean — 4/(1/A+1/P+1/E+1/X) ❌ REFUTED — violates A6 (Multiplicativity)
 4. Weighted geometric mean — A^a·P^b·E^c·X^d ❌ REFUTED — violates A7 (Equal Dignity) unless all weights equal
-5. Product — A·P·E·X ❌ REFUTED — violates A2 (Geometric Aggregation)
-6. E² formula — (A·P·E²·X)^(1/5) ❌ REFUTED — violates A3 (Four Dials Only), T5 counterexample
-7. Φ formula — A·P·E·X·Φ ❌ REFUTED — violates A3 (Four Dials Only), T6 counterexample
+5. Product — A·P·E·X ❌ REFUTED — violates A5 (Normalization): G(k,k,k,k) = k⁴ ≠ k
+6. E² formula — (A·P·E²·X)^(1/5) ❌ REFUTED — violates A7 (Equal Dignity): E weight 2/5, A/P/X weight 1/5
+7. Φ formula — A·P·E·X·Φ ❌ REFUTED — outside T1's four-dial domain; as a fifth factor A/P/E/X carry 1/5 ≠ 1/4 (A7 violation)
 8. NULL — no aggregation ❌ REFUTED — violates requirement for governance metric
 
 ### Q2 (Quantitative) — BR, REV, Time, Conf, PA
@@ -563,8 +570,8 @@ By authority of F13 SOVEREIGN (Muhammad Arif bin Fazil), this canon is sealed on
 - 8 constitutional axioms formalized (A1-A8)
 - 4 theorems proven (T1 uniqueness, T2-T4 refutations)
 - 43 falsification tests across 15 suites — all pass
-- 2 prior versions refuted (E² formula, Φ formula, product formula, harmonic mean, 
-  arithmetic mean, weighted GM — ALL disproven by counterexample)
+- 6 prior candidate forms refuted (E² formula, Φ formula, product formula, harmonic mean,
+  arithmetic mean, weighted GM) — E² by A7, Φ by four-dial domain/A7, product by A5; the rest by T2–T4 counterexamples
 - 12 code paths patched across federation
 - Gödel Lock (F7) enforcement implemented
 - Unnecessary human gates removed — attention preserved for genuine sovereign decisions
