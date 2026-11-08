@@ -993,6 +993,12 @@ def project_public_state(
             "observed_at": extra.get("chain_observed_at"),
             "source": extra.get("chain_source", "/api/observatory/v1/seal/verify"),
         },
+        # ── Evidence + receipts (2026-11-08): carry the snapshot's envelopes
+        # into public-state so the Observatory vault block reads the same
+        # sources/chain as the signed snapshot instead of rendering 0/unavailable.
+        "evidence": snap.get("evidence"),
+        "receipts": snap.get("receipts"),
+
         # ── Kernel canonical verdict (T1.6): the actual nine-signal verdict
         # (BELUM_SAH / SYUBHAH / SABAR / SEAL / HOLD) — never the parser's
         # 'UNKNOWN' fallback, which would render as false-green HOLD.
