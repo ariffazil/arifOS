@@ -2154,6 +2154,29 @@ async def arif_judge(
                     "Run arif_init(actor_signature=<ed25519>, "
                     "ack_irreversible=true) to unlock seal, then re-run arif_judge."
                 )
+            # PUBLIC VISIBILITY (2026-11-08): the intercept path returns BEFORE the
+            # composer's four-plane block, so a HOLD carried no evidence-quality
+            # signal. Attach it here — same pure function, no new authority.
+            try:
+                from contracts.four_plane_contract import evaluate_four_planes as _efp
+
+                _fp_epi, _fp_auth, _fp_disp, _fp_const, _fp_rem = _efp(
+                    candidate=candidate,
+                    auth_valid=True,
+                    actor_id=actor_id,
+                    evidence=evidence,
+                    reversibility_level=reversibility_level,
+                    action_tier=action_tier,
+                    current_verdict=str(_code),
+                )
+                _intercept_meta["four_plane"] = {
+                    "epistemic_state": _fp_epi,
+                    "authority_state": _fp_auth,
+                    "action_disposition": _fp_disp,
+                    "constitutional_verdict": _fp_const,
+                }
+            except Exception as _fp_exc:  # noqa: BLE001 — visibility must not break a verdict
+                logger.debug("four_plane visibility non-fatal: %s", _fp_exc)
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
