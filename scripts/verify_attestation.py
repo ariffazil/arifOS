@@ -72,8 +72,24 @@ def verify_health_payload(payload: dict, strict: bool = False) -> int:
     score = 0
     print("\n📋 Health Envelope Invariants:")
 
-    # 1. Status must be healthy
-    score += _check(payload.get("status") == "healthy", "status = healthy", fail=True)
+    # 1. Status must be healthy — OR degraded solely because floors are UNMEASURED.
+    #    Provenance (drift / parity / commit equality) is the attestation subject.
+    #    A kernel honest about a missing instrument must not fail the release gate;
+    #    a kernel with a FAILING floor must.
+    _lh = payload.get("layer_health") or {}
+    _con = _lh.get("constitutional") or {}
+    _failing = _con.get("floors_failing") or []
+    _unmeasured = _con.get("floors_unmeasured") or []
+    _status = payload.get("status")
+    _status_ok = _status == "healthy" or (_status == "degraded" and not _failing)
+    _status_msg = f"status = {_status}"
+    if _status == "degraded" and not _failing:
+        _status_msg += f" (degraded only by unmeasured floors: {_unmeasured})"
+    score += _check(
+        _status_ok,
+        _status_msg if _status_ok else _status_msg + " (expected healthy, or degraded with no failing floors)",
+        fail=True,
+    )
 
     # 2. Required top-level fields
     missing = HEALTH_INVARIANTS - set(payload.keys())

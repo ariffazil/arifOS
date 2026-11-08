@@ -2626,6 +2626,17 @@ async def arif_judge(
                     action_tier=action_tier,
                     current_verdict=str(getattr(out, "verdict", "HOLD")),
                 )
+                # PUBLIC VISIBILITY (2026-11-08, 333-AGI): the four-plane state is
+                # the judge's evidence-quality signal. The public facade projects a
+                # fixed result block, so mirror it into meta — the field the facade
+                # preserves — otherwise the gate is invisible to every caller.
+                _fp_meta = dict(getattr(out, "meta", {}) or {})
+                _fp_meta["four_plane"] = {
+                    "epistemic_state": _epi,
+                    "authority_state": _auth_s,
+                    "action_disposition": _disp,
+                    "constitutional_verdict": _const_v,
+                }
                 out = out.model_copy(
                     update={
                         "epistemic_state": _epi,
@@ -2633,6 +2644,7 @@ async def arif_judge(
                         "action_disposition": _disp,
                         "constitutional_verdict": _const_v,
                         "remediation": _rem,
+                        "meta": _fp_meta,
                     }
                 )
             except Exception as _four_exc:
