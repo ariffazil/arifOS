@@ -4541,3 +4541,10 @@ def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> No
 
 # Backward compatibility alias
 arif_judge_deliberate = arif_judge
+
+
+# S3c (PLAN-2026-11-10-Q1, ARIF GO S3c): OS-1 canary — dry-run receipt
+# emission on arif_judge outcomes (env-gated, default off, zero ingest).
+from arifosmcp.runtime.os1_canary import wrap_mutate_verbs as _os1_wrap_mutate
+
+arif_judge = _os1_wrap_mutate(arif_judge)
