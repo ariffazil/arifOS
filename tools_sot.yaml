@@ -48,6 +48,8 @@ tools:
       - L07_HUMILITY
       - L12_INJECTION
     modes:
+      - resource_read
+      - resource_search
       - search
       - fetch
       - hybrid_discovery
