@@ -9,6 +9,7 @@ class never matches.
 import json
 
 from arifosmcp.runtime.canonical_vault_chain import (
+    _annotation_matches,
     ANNOTATIONS_FILENAME,
     CHAIN_FILENAME,
     GapClass,
@@ -198,3 +199,65 @@ def test_structural_wrong_class_never_matches(tmp_path):
         g.gap_class == GapClass.HISTORICAL_MISSING_FIELDS for g in r.gaps
     )
     assert not r.verified
+
+
+# ── S1c (PLAN-2026-11-10-Q1, ARIF GO S1c): canonical-era defect classes are
+# consumable annotations — structural (class + line) matching. ──
+
+
+def test_signature_fail_annotation_matches_by_class_and_line():
+    anns = [
+        {
+            "annotation_id": "ANN-SF-S1C",
+            "target_gap_class": "SIGNATURE_FAIL",
+            "position": {"line_no": 276, "seq": 57},
+        }
+    ]
+    m = _annotation_matches(
+        anns, line_no=276, gap_class=GapClass.SIGNATURE_FAIL,
+        expected_prev=None, got_prev=None,
+    )
+    assert m is not None and m["annotation_id"] == "ANN-SF-S1C"
+
+
+def test_hash_mismatch_annotation_matches_structurally():
+    anns = [
+        {
+            "annotation_id": "ANN-HM-S1C",
+            "target_gap_class": "HASH_MISMATCH",
+            "position": {"line_no": 261, "seq": 43},
+        }
+    ]
+    m = _annotation_matches(
+        anns, line_no=261, gap_class=GapClass.HASH_MISMATCH,
+        expected_prev="sha256:aa", got_prev="sha256:bb",
+    )
+    assert m is not None and m["annotation_id"] == "ANN-HM-S1C"
+
+
+def test_signature_fail_wrong_line_never_matches():
+    anns = [
+        {
+            "annotation_id": "ANN-SF-WRONG-LINE",
+            "target_gap_class": "SIGNATURE_FAIL",
+            "position": {"line_no": 255},
+        }
+    ]
+    assert _annotation_matches(
+        anns, line_no=276, gap_class=GapClass.SIGNATURE_FAIL,
+        expected_prev=None, got_prev=None,
+    ) is None
+
+
+def test_signature_fail_wrong_class_never_matches():
+    anns = [
+        {
+            "annotation_id": "ANN-WRONG-CLASS-S1C",
+            "target_gap_class": "HASH_MISMATCH",
+            "position": {"line_no": 276},
+        }
+    ]
+    assert _annotation_matches(
+        anns, line_no=276, gap_class=GapClass.SIGNATURE_FAIL,
+        expected_prev=None, got_prev=None,
+    ) is None

@@ -164,11 +164,16 @@ class VerifyStatus(StrEnum):
 # structural classes (missing-fields / corrupt-line / epoch-reset) carry no
 # hash pair and match on class + line_no only — still never a blanket skip.
 _ANNOTATION_LINK_CLASSES = frozenset({GapClass.CHAIN_BREAK, GapClass.HISTORICAL_LINK_GAP})
+# S1c 2026-11-10 (PLAN-2026-11-10-Q1, ARIF GO S1c): canonical-era defect
+# classes join the structural family — a signature/hash defect is pinned to
+# one row; class + line_no matching, hash-pair never required, blanket never.
 _ANNOTATION_STRUCTURAL_CLASSES = frozenset(
     {
         GapClass.HISTORICAL_MISSING_FIELDS,
         GapClass.HISTORICAL_CORRUPT_LINE,
         GapClass.EPOCH_RESET,
+        GapClass.SIGNATURE_FAIL,
+        GapClass.HASH_MISMATCH,
     }
 )
 _ANNOTATION_CONSUMABLE_CLASSES = _ANNOTATION_LINK_CLASSES | _ANNOTATION_STRUCTURAL_CLASSES
