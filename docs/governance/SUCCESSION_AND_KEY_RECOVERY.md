@@ -1,8 +1,8 @@
 # arifOS Maintainer Continuity and Key-Recovery Procedure
-## Canonical Succession, Key Governance, and Institutional Resilience Protocol
+## Cadangan Reka Bentuk Arkitektur (Menunggu Semakan & Pengesahan Kedaulatan F13)
 
-> Status: Ratified Canonical Procedure (F13 2026-11-10)
-> Single source of truth for institutional adoption, key recovery, and maintainer succession.
+> Status: DRAFT PROPOSAL — Belum Disahkan oleh Kedaulatan F13 Arif Fazil
+> Catatan Had Realiti: Mekanisme automasi (demote 30 hari tanpa degupan) belum diimplementasikan dalam enjin runtime. Dokumen ini adalah spesifikasi seni bina sahaja.
 
 ---
 

@@ -16,8 +16,10 @@ from .arifos_attestation.sbom_scan import SBOM, SBOMScanner
 
 def generate_arifos_sbom() -> SBOM:
     """Generate CycloneDX SBOM for the current arifOS venv."""
+    import arifosmcp
+    version = getattr(arifosmcp, "__version__", "1!2026.9.6")
     scanner = SBOMScanner()
-    return scanner.scan_pip(project_name="arifOS", project_version="2026.06.14")
+    return scanner.scan_pip(project_name="arifOS", project_version=version)
 
 
 def export_sbom_to_file(sbom: SBOM, output_path: str) -> None:
