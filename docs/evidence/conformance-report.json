@@ -3,15 +3,18 @@
   "protocol": "MCP",
   "spec_version": "2025-11-25",
   "runner_version": "internal-conformance-v2",
-  "commit": "60ce7e05d",
-  "generated_at": "2026-11-10T07:00:00Z",
-  "result": "PASS",
+  "commit": "a7ebba153",
+  "generated_at": "2026-11-10T07:15:00Z",
+  "result": "PARTIAL",
   "tests": {
     "transport_parse": "PASS",
     "jsonrpc_handshake": "PASS",
     "registry_compliance": "PASS",
     "abi_drift_guard": "PASS",
-    "per_tool_schema_validation": "PASS"
+    "per_tool_input_schema_validation": "PASS",
+    "runtime_invalid_input_rejection": "PASS",
+    "output_schema_validation": "DEFERRED",
+    "a2a_streaming_conformance": "DEFERRED"
   },
   "tools_validated": [
     "arif_init",
@@ -27,9 +30,10 @@
   "schema_spec": "JSON Schema Draft 2020-12",
   "limitations": [
     "Results published internally in repo and live observatory",
-    "A2A conformance tested via FAST/Airlock protocol; SSE streaming P2"
+    "Output schema validation deferred",
+    "A2A conformance not tested (SSE streaming P2)"
   ],
   "ci_workflow": ".github/workflows/06-mcp-conformance.yml",
   "abi_workflow": ".github/workflows/federation-abi-conformance.yml",
-  "notes": "Per-tool schema validation completed 2026-11-10 against JSON Schema Draft 2020-12 across all 9 canonical wire tools on :8088/mcp."
+  "notes": "9/9 tool input schemas validated against Draft 2020-12; runtime negative input type rejection verified on wire."
 }
