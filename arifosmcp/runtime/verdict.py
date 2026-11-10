@@ -394,6 +394,13 @@ def attach_effective_verdict(
     """
     if not isinstance(response, dict):
         return response
+    # Preserve top-level verdict before _strip_legacy_verdict removes it
+    if inner_verdict is None:
+        raw_v = response.get("verdict")
+        if raw_v and str(raw_v).upper() in CANONICAL_VERDICTS:
+            inner_verdict = str(raw_v).upper()
+        elif raw_v and str(raw_v).upper() in _LEGACY_VERDICT_MAP:
+            inner_verdict = _LEGACY_VERDICT_MAP[str(raw_v).upper()]
     _strip_legacy_verdict(response)
     existing = response.get("effective_verdict")
     if isinstance(existing, str) and existing.strip():

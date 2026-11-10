@@ -2879,10 +2879,14 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
         )
 
     # Deep scan: look for HOLD/FAIL/VOID in nested result fields
+    _OBSERVED_DATA_KEYS = frozenset({"organs", "telemetry", "probes", "endpoints", "services", "fleet"})
+
     def _scan(obj: Any, prefix: str = "") -> list[str]:
         hits: list[str] = []
         if isinstance(obj, dict):
             for k, v in obj.items():
+                if k in _OBSERVED_DATA_KEYS or (prefix and prefix.split(".")[0] in _OBSERVED_DATA_KEYS):
+                    continue
                 path = f"{prefix}.{k}" if prefix else k
                 if isinstance(k, str) and (k.startswith("L0") or k.startswith("F0")):
                     if isinstance(v, str) and v.upper() in ("FAIL", "HOLD", "VOID"):
@@ -3308,7 +3312,9 @@ def _compute_canonical_verdict(
     # sub-signal one more time and ensure no signal is worse than the
     # aggregate. This kills the "PASS-over-BROKEN" bug class permanently.
     floor_verdict = _collect_monotonicity_floor(out, _meta, result_payload)
-    if _SIGNAL_SEVERITY.get(verdict, 6) > _SIGNAL_SEVERITY.get(floor_verdict, 6):
+    if verdict == "OBSERVE_ONLY" and floor_verdict == "SYUBHAH":
+        pass  # Unverified identity's expected PSI=SYUBHAH must not downgrade OBSERVE_ONLY to HOLD
+    elif _SIGNAL_SEVERITY.get(verdict, 6) > _SIGNAL_SEVERITY.get(floor_verdict, 6):
         degradation.append(
             f"verdict_monotonicity: {verdict} → {floor_verdict} "
             f"(sub-signal floor dominates aggregate)"
@@ -3332,6 +3338,7 @@ def _compute_canonical_verdict(
         "SABAR_HOLD": "SABAR",
         "PASS": "SEAL",
         "ALLOW": "SEAL",
+        "BIJAK": "SEAL",
     }
     if verdict in _WIRE_VERDICT_NORM:
         verdict = _WIRE_VERDICT_NORM[verdict]
