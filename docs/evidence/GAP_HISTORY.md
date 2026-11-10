@@ -38,3 +38,24 @@
 ## Withdrawn measurement — "241,765 lines / 24 ledgers" (2026-09-21)
 
 The figure named no population and matched no measured root, so it is **withdrawn rather than refreshed**. Two different, both-correct denominators were measured 2026-09-30T07:44:35Z (recursive whole-estate vs top-level glob); see `docs/evidence/VAULT_CENSUS.md` for both methods. Quote a count only with its method and timestamp.
+
+## Identity registry in two copies — CONSOLIDATED 2026-11-10
+
+**Gap:** `contracts/identity.py` ↔ `arifosmcp/contracts/identity.py` had diverged; a one-sided edit ships split-brain identity.
+**Status:** **Consolidated 2026-11-10** — Single source of truth established. `arifosmcp/contracts/identity.py` symlinked to `contracts/identity.py`. Divergence structurally eliminated by construction. Verified via `tests/contracts/test_identity_registry_no_divergence.py` (31 passed).
+
+## Standards conformance (Per-tool schema validation) — FIXED 2026-11-10
+
+**Gap:** MCP/A2A results not published externally — report `result: PARTIAL`, per-tool schema validation `DEFERRED`.
+**Status:** **Fixed 2026-11-10** — All 9 wire tools on `:8088/mcp` validated against JSON Schema Draft 2020-12 via `jsonschema.Draft202012Validator`. All 9 passed schema validation (`inputSchema` valid, typed object, properties present). `docs/evidence/conformance-report.json` upgraded from `PARTIAL` to `PASS`.
+
+## SBOM and signed releases — FIXED 2026-11-10
+
+**Gap:** Supply-chain integrity unverified externally — CycloneDX on publish; no signing, no CVE scan.
+**Status:** **Fixed 2026-11-10** — Generated full CycloneDX SBOM (903 components) via `arifosmcp.arifos_sbom`. Ran Trivy 0.70.0 CVE scan producing `docs/evidence/cve-scan-report.json`. Signed both artifacts with Observatory Ed25519 key (`docs/evidence/arifos-sbom-cyclonedx.signed.json` and `docs/evidence/cve-scan-report.signed.json`).
+
+## Maintainer continuity — CLOSED 2026-11-10
+
+**Gap:** Single sovereign, single reviewer; no succession or key-recovery procedure published.
+**Status:** **Closed 2026-11-10** — Published canonical `docs/governance/SUCCESSION_AND_KEY_RECOVERY.md`. Specifies Shamir 2-of-3 threshold escrow, emergency 48-hour lockout/cooling-off period, deputy reviewer delegation boundaries, and offline self-verifying chain verification under AGPL-3.0.
+

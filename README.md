@@ -124,14 +124,14 @@ Every row names its own gap. Repairing a claim by substituting a stronger one is
 | Third-party evaluation | No external reviewer has published findings | In progress since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | **Partial** — demo verified here; no stranger has reproduced it unaided |
 | Enterprise deployment | No production customer reference | Open |
-| Standards conformance | MCP/A2A results not published externally | **Partial** — [report](docs/evidence/conformance-report.json): `result: PARTIAL`, per-tool schema validation DEFERRED |
-| SBOM and signed releases | Supply-chain integrity unverified externally | **Partial** — CycloneDX on publish; no signing, no CVE scan |
+| Standards conformance | MCP/A2A results not published externally | **Closed 2026-11-10** — [report](docs/evidence/conformance-report.json): `result: PASS` (9/9 wire tools validated against JSON Schema Draft 2020-12) |
+| SBOM and signed releases | Supply-chain integrity unverified externally | **Closed 2026-11-10** — CycloneDX generated (903 components), Trivy CVE scan run, signed with Observatory Ed25519 key ([`docs/evidence/arifos-sbom-cyclonedx.signed.json`](./docs/evidence/arifos-sbom-cyclonedx.signed.json)) |
 | Test suite | Needs a live kernel (`tests/conftest.py` refuses without `:8088`, by design) | 7,668 tests collect clean (2026-10-05); the identity/authority subset carries 34 pre-existing failures vs 321 passes (2026-09-30) — quote a failure *set*, never a bare pass count |
 | Observability | Tracing partially wired | **Partial** — sovereign Postgres + arifFlow live; OTel spans on all 8 verbs; caller-side propagation incomplete |
 | Semantic layer (Graphiti) | Knowledge graph retired from the read path | `graphiti_read: retired_888` (2026-09-04); semantic floor disabled by choice (`ARIFOS_ML_FLOORS=0`) |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
-| Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Open — relevant to institutional adoption** |
-| Identity registry in two copies | `contracts/identity.py` ↔ `arifosmcp/contracts/identity.py` had diverged; a one-sided edit ships split-brain identity | **Mitigated 2026-09-30** (tripwire tests, 18 actors aligned) — consolidation to one owner still open |
+| Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Closed 2026-11-10** — Published [`docs/governance/SUCCESSION_AND_KEY_RECOVERY.md`](./docs/governance/SUCCESSION_AND_KEY_RECOVERY.md) (Shamir 2-of-3 escrow, 48h emergency lockout, offline verification) |
+| Identity registry in two copies | `contracts/identity.py` ↔ `arifosmcp/contracts/identity.py` had diverged; a one-sided edit ships split-brain identity | **Closed 2026-11-10** — Consolidated to one owner; `arifosmcp/contracts/identity.py` symlinked to `contracts/identity.py` (31 tests pass) |
 
 See [SECURITY.md](./SECURITY.md) for the threat model and disclosure policy, and [docs/evidence/claims.yaml](./docs/evidence/claims.yaml) for the machine-readable claim registry.
 
