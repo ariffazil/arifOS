@@ -1023,9 +1023,18 @@ def _provenance_is_unmeasured(provenance: Any) -> bool:
     ``arifflow_vector_g_skipped:calibration=PHASE_1_HEURISTIC_UNCALIBRATED``
     — the live reading was skipped and the placeholder rendered as a measured
     pass. Provenance was honest; the status derived from it was not.
+
+    2026-11-11 (F6 contradiction fix): an explicit UNMEASURED segment in any
+    part of the provenance string (e.g. floor_producer:UNMEASURED:...)
+    outranks the head token.
     """
-    _p = str(provenance or "").strip().lower()
-    return _p.startswith("unmeasured_default") or "_skipped" in _p
+    _p = str(provenance or "").strip()
+    if not _p:
+        return False
+    if any(seg.strip().upper().startswith("UNMEASURED") for seg in _p.split(":")):
+        return True
+    _pl = _p.lower()
+    return _pl.startswith("unmeasured_default") or "_skipped" in _pl
 
 
 def _reconcile_unmeasured_basis(
