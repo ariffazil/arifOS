@@ -62,8 +62,13 @@ fi
 _ARIFOS_PY="${ARIFOS_PYTHON:-/opt/arifos/current/venv/bin/python}"
 _ARIFOS_LEASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/deploy_lease.py"
 _ARIFOS_SHA="$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)"
-if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "${DEPLOY_ACTOR:-$(whoami)}" \
-     --session "${DEPLOY_SESSION:-manual-$(date -u +%Y%m%dT%H%M%SZ)}" \
+# DP-E (2026-11-11): acquire and release must reassemble one identity. The
+# old defaults diverged (acquire "manual-<ts>" vs release "manual"), so an
+# unset DEPLOY_SESSION guaranteed HOLD_NOT_OWNER on the release path.
+_LEASE_ACTOR="${DEPLOY_ACTOR:-$(whoami)}"
+_LEASE_SESSION="${DEPLOY_SESSION:-manual-$(date -u +%Y%m%dT%H%M%SZ)}"
+if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "$_LEASE_ACTOR" \
+     --session "$_LEASE_SESSION" \
      --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
   echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another deployment owns production; nothing was written" >&2
   exit 3
@@ -71,8 +76,11 @@ fi
 _arifos_release_lease() {
   local rc=$?
   trap - EXIT INT TERM
-  "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "${DEPLOY_ACTOR:-$(whoami)}" \
-    --session "${DEPLOY_SESSION:-manual}" --receipt "${0##*/}" >/dev/null 2>&1 || echo "WARNING: lease release failed" >&2
+  if [ -z "${_ARIFOS_LEASE_RELEASED:-}" ]; then
+    "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
+      --session "$_LEASE_SESSION" --receipt "${0##*/}-trap" >/dev/null 2>&1 \
+      || echo "WARNING: lease release failed (trap); run scripts/deploy_lease.py status" >&2
+  fi
   exit "$rc"
 }
 trap _arifos_release_lease EXIT INT TERM
@@ -696,3 +704,18 @@ print('✅ Canon gate: ABI, capability, and policy registries consistent')
 }
 echo "$CANON_RESULT"
 echo ""
+
+# ── DP-E: explicit lease release on green exit (2026-11-11) ──────────
+# Every green deploy leaked its lease (4x LEASE_EXPIRED_UNRELEASED in the
+# epoch ledger; the EXIT trap alone never produced a RELEASED row). The
+# trap stays as the failure-path fallback; _ARIFOS_LEASE_RELEASED keeps
+# the second call silent on green runs.
+if "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
+     --session "$_LEASE_SESSION" --receipt "${0##*/}" \
+     --exit-code 0 --observed-head "$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)" \
+     >/dev/null 2>&1; then
+  _ARIFOS_LEASE_RELEASED=1
+  echo "✓ deploy lease released (green path)"
+else
+  echo "WARNING: explicit lease release failed — trap fallback armed; check deploy_lease.py status" >&2
+fi

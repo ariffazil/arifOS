@@ -47,6 +47,14 @@ SAFE_CALLER_KEYS = {
     "runtime_drift",
     "runtime_matches_build",
     "git_dirty",
+    # Identity Contract keys (2026-10-26) — all emitted by
+    # _compute_runtime_drift (rest_routes.py:3778-3785); consumers reading
+    # them from the drift dict are canonical, not the None-drift bug class.
+    "identity_authority",
+    "identity_sources",
+    "identity_consistent",
+    "identity_conflict",
+    "identity_stale_sources",
 }
 
 
