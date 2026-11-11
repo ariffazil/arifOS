@@ -40,6 +40,21 @@ else
 	echo "⚠️  flock unavailable — proceeding WITHOUT mutual exclusion." >&2
 fi
 
+# ── DP-D: dirty-tree refusal (2026-11-11) ───────────────────────────
+# The 22:36 deploy shipped 8 uncommitted files (content_parity MISMATCH,
+# 7 changed files) — production ran bytes no commit could name. Refuse a
+# dirty tracked tree by default, BEFORE the lease is taken, so a refused
+# deploy strands nothing. Escape hatch for deliberate canary deploys:
+# ARIFOS_DEPLOY_ALLOW_DIRTY=1 (the decision lands on the operator).
+# v1 scope: tracked modifications; untracked strays stay visible via the
+# git status printed in the refusal output.
+if [ -z "${ARIFOS_DEPLOY_ALLOW_DIRTY:-}" ] && ! git -C /root/arifOS diff --quiet; then
+        echo "888_HOLD: DIRTY_WORKING_TREE — uncommitted tracked changes would ship to production." >&2
+        git -C /root/arifOS status --porcelain >&2
+        echo "Commit them, or set ARIFOS_DEPLOY_ALLOW_DIRTY=1 to deploy dirty deliberately." >&2
+        exit 4
+fi
+
 # ── deployment lease convergence (P0 complete mediation, 2026-10-26) ──────────
 # This script mutates the production runtime, so it takes the SAME lease that
 # `make deploy-local` takes. Two writers that share one lease serialise; two
