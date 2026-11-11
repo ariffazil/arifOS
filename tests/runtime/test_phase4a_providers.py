@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -272,3 +273,208 @@ class TestT6ResultQualitySignals:
         assert trusted_band.domain_adjustment < 0
         assert trusted_band.freshness_adjustment < 0
         assert trusted_band.base_uncertainty < stale_band.base_uncertainty
+
+
+class _FirecrawlResp:
+    def __init__(self, status_code: int, payload: dict) -> None:
+        self.status_code = status_code
+        self._payload = payload
+
+    def json(self) -> dict:
+        return self._payload
+
+
+def _firecrawl_client(resp: _FirecrawlResp) -> AsyncMock:
+    client = AsyncMock()
+    client.post = AsyncMock(return_value=resp)
+    client.__aenter__.return_value = client
+    client.__aexit__.return_value = False
+    return client
+
+
+class TestFirecrawlV2:
+    """Mocked HTTP only. v2 search lives at data.web; failures stay silent."""
+
+    @pytest.mark.asyncio
+    async def test_planner_search_posts_v2_and_maps_web(self, monkeypatch):
+        monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test-key")
+        from arifosmcp.runtime.query_planner import QueryPlanner
+
+        resp = _FirecrawlResp(
+            200,
+            {
+                "success": True,
+                "data": {
+                    "web": [
+                        {
+                            "url": "https://example.com/a",
+                            "title": "Alpha",
+                            "description": "First hit",
+                        }
+                    ],
+                    "news": [
+                        {
+                            "url": "https://news.example/n",
+                            "title": "Not requested",
+                            "snippet": "ignored",
+                        }
+                    ],
+                },
+            },
+        )
+        client = _firecrawl_client(resp)
+        rows = await QueryPlanner()._firecrawl_search(client, "gold price", 5)
+
+        args, kwargs = client.post.call_args
+        assert args[0] == "https://api.firecrawl.dev/v2/search"
+        assert kwargs["json"] == {"query": "gold price", "limit": 5}
+        assert kwargs["headers"]["Authorization"] == "Bearer fc-test-key"
+        assert rows == [
+            {
+                "url": "https://example.com/a",
+                "title": "Alpha",
+                "description": "First hit",
+                "score": 0.5,
+            }
+        ]
+
+    @pytest.mark.asyncio
+    async def test_planner_search_non_200_returns_empty(self, monkeypatch):
+        monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test-key")
+        from arifosmcp.runtime.query_planner import QueryPlanner
+
+        client = _firecrawl_client(_FirecrawlResp(410, {"error": "gone"}))
+        rows = await QueryPlanner()._firecrawl_search(client, "gold price", 5)
+        assert rows == []
+
+    @pytest.mark.asyncio
+    async def test_planner_search_exception_returns_empty(self, monkeypatch):
+        monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test-key")
+        from arifosmcp.runtime.query_planner import QueryPlanner
+
+        client = AsyncMock()
+        client.post = AsyncMock(side_effect=RuntimeError("down"))
+        rows = await QueryPlanner()._firecrawl_search(client, "gold price", 5)
+        assert rows == []
+
+    @pytest.mark.asyncio
+    async def test_provider_search_maps_web_to_normalized_fields(self):
+        from arifosmcp.runtime.firecrawl_provider import FirecrawlProvider
+
+        resp = _FirecrawlResp(
+            200,
+            {
+                "success": True,
+                "data": {
+                    "web": [
+                        {
+                            "url": "https://example.com/a",
+                            "title": "Alpha",
+                            "description": "First hit",
+                        }
+                    ]
+                },
+            },
+        )
+        client = _firecrawl_client(resp)
+        provider = FirecrawlProvider(api_key="fc-test-key")
+        with patch(
+            "arifosmcp.runtime.firecrawl_provider.httpx.AsyncClient",
+            return_value=client,
+        ):
+            rows = await provider.search("gold price")
+
+        args, kwargs = client.post.call_args
+        assert args[0] == "https://api.firecrawl.dev/v2/search"
+        assert kwargs["json"]["limit"] == 5
+        assert kwargs["headers"]["Authorization"] == "Bearer fc-test-key"
+        assert len(rows) == 1
+        assert rows[0].url == "https://example.com/a"
+        assert rows[0].title == "Alpha"
+        assert rows[0].snippet == "First hit"
+        assert rows[0].score == 0.8
+
+    @pytest.mark.asyncio
+    async def test_provider_search_non_200_returns_empty(self):
+        from arifosmcp.runtime.firecrawl_provider import FirecrawlProvider
+
+        client = _firecrawl_client(_FirecrawlResp(410, {"error": "gone"}))
+        provider = FirecrawlProvider(api_key="fc-test-key")
+        with patch(
+            "arifosmcp.runtime.firecrawl_provider.httpx.AsyncClient",
+            return_value=client,
+        ):
+            assert await provider.search("gold price", limit=3) == []
+        assert client.post.call_args.kwargs["json"]["limit"] == 3
+
+    @pytest.mark.asyncio
+    async def test_provider_search_exception_returns_empty(self):
+        from arifosmcp.runtime.firecrawl_provider import FirecrawlProvider
+
+        client = _firecrawl_client(_FirecrawlResp(200, {}))
+        client.post = AsyncMock(side_effect=RuntimeError("down"))
+        provider = FirecrawlProvider(api_key="fc-test-key")
+        with patch(
+            "arifosmcp.runtime.firecrawl_provider.httpx.AsyncClient",
+            return_value=client,
+        ):
+            assert await provider.search("gold price", limit=5) == []
+
+    @pytest.mark.asyncio
+    async def test_provider_scrape_reads_v2_markdown(self):
+        from arifosmcp.runtime.firecrawl_provider import FirecrawlProvider
+
+        resp = _FirecrawlResp(
+            200,
+            {
+                "success": True,
+                "data": {
+                    "markdown": "Hello markdown body",
+                    "metadata": {
+                        "title": "Page",
+                        "description": "A desc",
+                        "ogUrl": "https://example.com/og",
+                    },
+                },
+            },
+        )
+        client = _firecrawl_client(resp)
+        provider = FirecrawlProvider(api_key="fc-test-key")
+        with patch(
+            "arifosmcp.runtime.firecrawl_provider.httpx.AsyncClient",
+            return_value=client,
+        ):
+            result = await provider.scrape_url("https://example.com")
+
+        assert client.post.call_args.args[0] == "https://api.firecrawl.dev/v2/scrape"
+        assert result is not None
+        assert result.url == "https://example.com/og"
+        assert result.title == "Page"
+        assert result.snippet == "A desc"
+        assert result.extra["raw_content"] == "Hello markdown body"
+        assert result.score == 0.8
+
+    @pytest.mark.asyncio
+    async def test_provider_scrape_non_200_returns_none(self):
+        from arifosmcp.runtime.firecrawl_provider import FirecrawlProvider
+
+        client = _firecrawl_client(_FirecrawlResp(410, {"error": "gone"}))
+        provider = FirecrawlProvider(api_key="fc-test-key")
+        with patch(
+            "arifosmcp.runtime.firecrawl_provider.httpx.AsyncClient",
+            return_value=client,
+        ):
+            assert await provider.scrape_url("https://example.com") is None
+
+    @pytest.mark.asyncio
+    async def test_provider_scrape_exception_returns_none(self):
+        from arifosmcp.runtime.firecrawl_provider import FirecrawlProvider
+
+        client = _firecrawl_client(_FirecrawlResp(200, {}))
+        client.post = AsyncMock(side_effect=RuntimeError("down"))
+        provider = FirecrawlProvider(api_key="fc-test-key")
+        with patch(
+            "arifosmcp.runtime.firecrawl_provider.httpx.AsyncClient",
+            return_value=client,
+        ):
+            assert await provider.scrape_url("https://example.com") is None
