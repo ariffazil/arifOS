@@ -673,22 +673,12 @@ _INPUT_CONTRACT_FACADES: dict[str, dict[str, Any]] = {
     # 999 SEAL — payload required for write modes (seal, session_close);
     # pure reads (verify, ledger, changelog, audit, chain_status) may omit it.
     # mode='seal' (default) additionally requires seal_purpose: a permanent record
-    # with no stated reason is refused, mirrored here as if/then.
+    # with no stated reason is refused; enforced in runtime/input_contract.py (schema flat for Anthropic compat).
     "arif_seal": {
-        "allOf": [
-            {
-                "if": {
-                    "anyOf": [
-                        {"not": {"required": ["mode"]}},
-                        {
-                            "required": ["mode"],
-                            "properties": {"mode": {"enum": ["seal", "session_close"]}},
-                        },
-                    ]
-                },
-                "then": {"required": ["payload", "seal_purpose"]},
-            }
-        ],
+        # ANTHROPIC-COMPAT 2026-11-11 (FI-008): top-level allOf REMOVED —
+        # Anthropic tool-schemas reject top-level oneOf/allOf/anyOf. Conditional
+        # payload+seal_purpose (mode=seal/session_close) enforced server-side by
+        # runtime/input_contract.py MODE_REQUIRED; stated in descriptions.
     },
 }
 
@@ -1084,31 +1074,15 @@ def _spec_for_name(name: str) -> Any:
             # INPUT-CONTRACT FACADE 2026-10-15: manifest is required on the
             # write paths — engineer (also the default mode), write, generate.
             # dry_run accepts manifest OR query (the explicit fallback path —
-            # gate and schema say the same thing: allOf/anyOf below, enforced
+            # gate and schema say the same thing (flat schema; enforced
             # by runtime/input_contract.py MODE_ANY_REQUIRED). Query-only
             # stays legal in mode=query and mode=recall; commit is gated
             # downstream by seal_verdict_id.
-            "allOf": [
-                {
-                    "if": {
-                        "anyOf": [
-                            {"not": {"required": ["mode"]}},
-                            {
-                                "required": ["mode"],
-                                "properties": {"mode": {"enum": ["engineer", "write", "generate"]}},
-                            },
-                        ]
-                    },
-                    "then": {"required": ["manifest"]},
-                },
-                {
-                    "if": {
-                        "required": ["mode"],
-                        "properties": {"mode": {"enum": ["dry_run"]}},
-                    },
-                    "then": {"anyOf": [{"required": ["manifest"]}, {"required": ["query"]}]},
-                },
-            ],
+            # ANTHROPIC-COMPAT 2026-11-11 (FI-008): top-level allOf
+            # REMOVED — Anthropic tool-schemas reject top-level combinators.
+            # mode-conditional requiredness enforced server-side by
+            # runtime/input_contract.py MODE_REQUIRED/MODE_ANY_REQUIRED and
+            # stated in the property descriptions below.
             "properties": {
                 "mode": {
                     "default": "engineer",
