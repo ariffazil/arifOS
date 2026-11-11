@@ -69,7 +69,7 @@ _LEASE_ACTOR="${DEPLOY_ACTOR:-$(whoami)}"
 _LEASE_SESSION="${DEPLOY_SESSION:-manual-$(date -u +%Y%m%dT%H%M%SZ)}"
 if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "$_LEASE_ACTOR" \
      --session "$_LEASE_SESSION" \
-     --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
+     --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --session "${DEPLOY_SESSION:-deploy-$$}" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
   echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another deployment owns production; nothing was written" >&2
   exit 3
 fi
