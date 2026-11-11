@@ -334,14 +334,22 @@ class TestPrompts:
     def test_metabolic_loop_prompts_present(self, prompt_list: list):
         """Canonical numbered-hook prompts must be present."""
         prompt_names = {p.get("name", "") for p in prompt_list}
-        required = {"000 🌱 IGNITE", "111 🌊 SENSE", "333 🧠 REASON", "888 🔒 JUDGE", "999 💎 SEAL"}
-        for name in required:
-            assert name in prompt_names, f"Canonical prompt '{name}' missing"
+        required_pairs = (
+            ("000 🌱 IGNITE", "s000_ignite"),
+            ("111 🌊 SENSE", "s111_sense"),
+            ("333 🧠 REASON", "s333_reason"),
+            ("888 🔒 JUDGE", "s888_judge"),
+            ("999 💎 SEAL", "s999_seal"),
+        )
+        for emoji_name, slug in required_pairs:
+            assert emoji_name in prompt_names or slug in prompt_names, (
+                f"Canonical prompt '{slug}' missing"
+            )
 
     def test_constitutional_judge_prompt_present(self, prompt_list: list):
         """Constitutional judge prompt must be present."""
         prompt_names = {p.get("name", "") for p in prompt_list}
-        assert "888 🔒 JUDGE" in prompt_names
+        assert "888 🔒 JUDGE" in prompt_names or "s888_judge" in prompt_names
 
     def test_prompt_descriptions_present(self, prompt_list: list):
         """Every prompt must have a description."""

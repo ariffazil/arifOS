@@ -50,6 +50,12 @@ def copies():
     return _load("contracts.identity"), _load("arifosmcp.contracts.identity")
 
 
+def test_identity_module_singleton_identity(copies):
+    """Anti-split-brain invariant (Gap 14): both imports MUST resolve to the exact same module object."""
+    top, packaged = copies
+    assert top is packaged, f"Split-brain in sys.modules: top={id(top)} packaged={id(packaged)}"
+
+
 def test_both_copies_expose_the_same_registry_keys(copies):
     top, packaged = copies
     a, b = set(top.CANONICAL_ACTORS), set(packaged.CANONICAL_ACTORS)

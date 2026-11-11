@@ -51,19 +51,19 @@ def test_canonical_sequence_correct() -> bool:
         return False
 
     # Verify numbered hooks are present and correctly named
-    spec_plan = registry.get("222 🏛 PLAN")
-    spec_judge = registry.get("888 🔒 JUDGE")
+    spec_plan = registry.get("s222_plan")
+    spec_judge = registry.get("s888_judge")
 
     if "plan" not in spec_plan.id.lower():
-        print(f"  ❌ FAIL — 222 🏛 PLAN missing or wrong id: {spec_plan.id}")
+        print(f"  ❌ FAIL — s222_plan missing or wrong id: {spec_plan.id}")
         return False
     if "judge" not in spec_judge.id.lower():
-        print(f"  ❌ FAIL — 888 🔒 JUDGE missing or wrong id: {spec_judge.id}")
+        print(f"  ❌ FAIL — s888_judge missing or wrong id: {spec_judge.id}")
         return False
 
     print("  ✅ PASS — sequence correct (numbered ladder)")
-    print(f"     222 🏛 PLAN={spec_plan.id} ({spec_plan.semantic_name})")
-    print(f"     888 🔒 JUDGE={spec_judge.id} ({spec_judge.semantic_name})")
+    print(f"     s222_plan={spec_plan.id} ({spec_plan.semantic_name})")
+    print(f"     s888_judge={spec_judge.id} ({spec_judge.semantic_name})")
     return True
 
 
@@ -74,14 +74,14 @@ def test_sha256_stability() -> bool:
     print("=" * 70)
     reg1 = get_registry()
     sha1 = reg1.registry_sha256
-    spec_sha_plan_1 = reg1.get("222 🏛 PLAN").sha256
-    spec_sha_judge_1 = reg1.get("888 🔒 JUDGE").sha256
+    spec_sha_plan_1 = reg1.get("s222_plan").sha256
+    spec_sha_judge_1 = reg1.get("s888_judge").sha256
 
     # Reload — same data on disk → same SHA
     reg2 = reload_registry()
     sha2 = reg2.registry_sha256
-    spec_sha_plan_2 = reg2.get("222 🏛 PLAN").sha256
-    spec_sha_judge_2 = reg2.get("888 🔒 JUDGE").sha256
+    spec_sha_plan_2 = reg2.get("s222_plan").sha256
+    spec_sha_judge_2 = reg2.get("s888_judge").sha256
 
     if sha1 != sha2:
         print("  ❌ FAIL — registry SHA changed across reloads")
@@ -93,8 +93,8 @@ def test_sha256_stability() -> bool:
 
     print("  ✅ PASS — SHA stable across reloads")
     print(f"     registry_sha: {sha1[:16]}...")
-    print(f"     222 🏛 PLAN: {spec_sha_plan_1[:16]}...")
-    print(f"     888 🔒 JUDGE: {spec_sha_judge_1[:16]}...")
+    print(f"     s222_plan: {spec_sha_plan_1[:16]}...")
+    print(f"     s888_judge: {spec_sha_judge_1[:16]}...")
     return True
 
 

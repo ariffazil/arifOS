@@ -100,7 +100,7 @@ def _canonical_resources_list() -> list[dict[str, Any]]:
             "arifos://vitals": "Constitutional metrics and green/yellow/red thresholds.",
             "arifos://bootstrap": "Complete federation knowledge-graph context in a single call.",
             "arifos://human/metabolized": "Compact human intelligence/context (nutrient representation).",
-            "arifos://loop-engineering": "7-stage reality engineering loop (K1 dual naming).",
+            "arifos://loop-engineering": "13-hook ladder; 2026-06-25 7-stage table superseded 2026-11-10.",
             "arifos://quickstart": "LLM client onboarding and fast-start guide.",
             "arifos://mcp-alignment": "MCP specification conformance and client compatibility matrix.",
             "arifos://mcp/surface-map": "Map of owned tools and resources across organs.",

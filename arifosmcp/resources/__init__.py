@@ -36,7 +36,7 @@ CANONICAL (30 — organized by chamber):
 
   MIND chamber (7):
     arifos://epistemic         — Epistemic label ontology (OBS/DER/INT/SPEC)
-    arifos://loop-engineering  — 7-stage reality engineering loop (K1 dual naming)
+    arifos://loop-engineering  — 13-hook ladder; 2026-06-25 7-stage table superseded 2026-11-10
     arifos://schema            — Complete blueprint (tools, lanes, forge bridge)
     arifos://bootstrap         — Full federation knowledge-graph context
     arifos://quickstart        — LLM client getting started guide

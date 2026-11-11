@@ -46,10 +46,10 @@ CHATGPT_RESOURCE_URIS: tuple[str, ...] = (
 
 # Prompts exposed to ChatGPT
 CHATGPT_PROMPT_NAMES: tuple[str, ...] = (
-    "000 🌱 IGNITE",
-    "111 🌊 SENSE",
-    "333 🧠 REASON",
-    "🌀 GOVERN",
+    "s000_ignite",
+    "s111_sense",
+    "s333_reason",
+    "s_govern",
 )
 
 

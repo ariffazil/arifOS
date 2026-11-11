@@ -15,10 +15,10 @@ They reduce entropy by turning vague intent into grounded
 observation, lawful action, verified consequence, and
 clear forward direction for humans and agents.
 
-Aligned 2026-08-08:
-  - 13 governed agentic intelligence hooks (000→999 ladder + 🌀 ⚓ 🔐)
+Aligned 2026-11-10:
+  - 13 governed hooks. Wire ids are ASCII slugs.
   - Single source of truth: runtime/fastmcp_ext/prompts.py
-  - 6-stage reality loop (🌊→🧠→⚖→🔒→🔥→💎 via 🌀 GOVERN)
+  - Run order puts s888_judge before s777_forge. s666_dignity is advisory.
   - ART → APA → ACT intelligence flow
   - Ed25519 session bind (actor_verified) — agents never become F13
   - Legacy numeric aliases (111_sense, 333_reason, …) and archived
@@ -44,20 +44,20 @@ from __future__ import annotations
 #   - tests/runtime/test_context_runner_route.py  (runner surface)
 CANONICAL_PROMPTS: tuple[str, ...] = (
     # ── 10 canonical stages of the 000→999 reality ladder ────────────────
-    "000 🌱 IGNITE",   # 000  Bootstrap — identity bind, session, sovereign ack
-    "111 🌊 SENSE",    # 111  Witness reality — observe, don't interpret
-    "222 🏛 PLAN",     # 222  Plan / propose hypotheses
-    "333 🧠 REASON",   # 333  Reason / synthesize
-    "444 🧭 DIRECT",   # 444  Route intent to organ
-    "555 🗂 REMEMBER", # 555  Memory governor / recall
-    "666 ⚖ DIGNITY",   # 666  Heart / maruah / dignity check
-    "777 🔥 FORGE",    # 777  Execute only AFTER judge SEAL (+ lease)
-    "888 🔒 JUDGE",    # 888  Verdict SEAL | HOLD | SABAR | VOID
-    "999 💎 SEAL",     # 999  VAULT999 append (needs ack_irreversible)
+    "s000_ignite",   # 000  Bootstrap — identity bind, session, sovereign ack
+    "s111_sense",    # 111  Witness reality — observe, don't interpret
+    "s222_plan",     # 222  Plan / propose hypotheses
+    "s333_reason",   # 333  Reason / synthesize
+    "s444_direct",   # 444  Route intent to organ
+    "s555_remember", # 555  Memory governor / recall
+    "s666_dignity",   # 666  Heart / maruah / dignity check
+    "s777_forge",    # 777  Execute after the judge verdict token. Not a vault write.
+    "s888_judge",    # 888  Verdict SEAL | HOLD | SABAR | VOID
+    "s999_seal",     # 999  VAULT999 append (needs ack_irreversible)
     # ── 3 orchestrator / boundary hooks ─────────────────────────────────
-    "🌀 GOVERN",       # Recursive Governed Loop orchestrator
-    "⚓ INIT",         # Collapsed 4-step governed ignition (000_INIT v5.0)
-    "🔐 CLOSE",        # 11-step autonomous session close (999_CLOSE)
+    "s_govern",       # Recursive Governed Loop orchestrator
+    "s_init",         # Session ignition. Five tools. Distinct from s000_ignite.
+    "s_close",        # Session close. Human ack required before the vault append.
 )
 
 
