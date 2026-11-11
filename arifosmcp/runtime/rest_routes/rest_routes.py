@@ -1593,6 +1593,21 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
         _producer_score = {"PASS": 1.0, "FAIL": 0.0, "CONTRADICTED": 0.0}
 
+        def _f6_first_class_state(_sig: dict) -> tuple:
+            """F6 seam closure (F13 SEAL F6_MARUAH_CODE_REPAIR 2026-11-11,
+            plan c2f5a175): the consumer must preserve the producer's full
+            epistemic range. UNKNOWN/UNMEASURED are first-class states —
+            never discarded into _FLOOR_DEFAULTS, never coerced to a score.
+            Returns (score, provenance) for non-scoring statuses;
+            scoring statuses are handled by the caller's PASS/FAIL path."""
+            _st = str(_sig.get("status") or "UNMEASURED").upper()
+            if _st in _producer_score:
+                return None, None
+            return None, (
+                f"floor_producer:{_st}:{_sig.get('origin') or 'f6_producer'}"
+                f"@{_sig.get('measured_at') or now_iso()}"
+            )
+
         def _wire_producer(fid: str, _src: dict) -> None:
             _sig = collect_floor_producer_signal(fid, sources=_src)
             if _sig.get("status") in _producer_score:
@@ -1754,9 +1769,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     {"meters": _f6_report.get("meters", []), "seals": _seal_rows},
                 )
             else:
-                floor_provenance["F6"] = str(
-                    _f6_sig.get("origin") or "unmeasured_default:f6_partially_measured"
-                )
+                # F6 seam closure: a valid UNMEASURED/UNKNOWN from the REAL
+                # producer is a first-class state — score stays None (never
+                # coerced), provenance names the producer, not _FLOOR_DEFAULTS.
+                _f6_score, _f6_prov = _f6_first_class_state(_f6_sig)
+                resolved_floors["F6"] = _f6_score
+                floor_provenance["F6"] = _f6_prov
         except Exception as _f6_exc:
             floor_provenance["F6"] = f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
 

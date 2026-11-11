@@ -1400,6 +1400,20 @@ async def arif_seal(
                 "note": "Index failure is non-fatal — Layer 3 is rebuildable from DAG.",
             }
 
+    def _f6_log_emit_failure(_exc=None):
+        """F6 seam closure P2 (F13 SEAL 2026-11-11, plan c2f5a175): bounded
+        operational evidence for Maruah emission failure. Logs error CLASS +
+        decision-id prefix ONLY — never payload, never secrets (test H)."""
+        try:
+            import logging as _f6lg
+            _f6lg.getLogger("arifos.f6").error(
+                "maruah_emit_failed decision_id=%s tool=arif_seal err=%s",
+                str(result.get("entry_id", ""))[:64],
+                type(_exc).__name__ if _exc is not None else "returned_error",
+            )
+        except Exception:
+            pass
+
     # ── F6 MARUAH Tier-3 emitter (ARIF GO 2026-11-05) ───────────────────────
     # Every successful VAULT999 append is an irreversible event. Emitted
     # non-fatally AFTER the seal; M3 measures restatement evidence from these
@@ -1418,9 +1432,15 @@ async def arif_seal(
             )
             result["meta"] = result.get("meta", {})
             result["meta"]["f6_maruah_event"] = _f6_emit_result
+            if isinstance(_f6_emit_result, dict) and _f6_emit_result.get("emitted") is False:
+                # non-fatal must never be invisible
+                _f6_log_emit_failure()
+                result["meta"]["f6_incomplete_transition"] = True
         except Exception as _f6_exc:
             result["meta"] = result.get("meta", {})
             result["meta"]["f6_maruah_event"] = {"emitted": False, "error": str(_f6_exc)[:200]}
+            _f6_log_emit_failure(_f6_exc)
+            result["meta"]["f6_incomplete_transition"] = True
 
     # ── EUREKA Phase 5: session_close post-hook — git commit + push ──────────
     # Targets arifOS + AAA only (never bare /root). Non-fatal on push failure.
