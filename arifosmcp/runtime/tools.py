@@ -30723,6 +30723,7 @@ def register_tools(
             ),
             tags={"coordination", "arifos", "non-constitutional"},
             annotations={
+                "title": "Agent Report Lane · Peer Coordination",
                 "readOnlyHint": False,
                 "destructiveHint": False,
                 "idempotentHint": False,

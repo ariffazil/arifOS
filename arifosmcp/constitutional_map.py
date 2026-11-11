@@ -2096,6 +2096,16 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
         "BRIDGE",
         title="444 Bridge · Direct Organ (HIGH)",
     ),
+    "arif_report": {
+        **derive_mcp_annotations(
+            "COMMUNICATE",
+            title="Agent Report Lane · Peer Coordination",
+        ),
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    },
     # ═══════════════════════════════════════════════════════════════════
     # CHATGPT COMPATIBILITY SHIM — OBSERVE-class, read-only, open-world
     # ═══════════════════════════════════════════════════════════════════
