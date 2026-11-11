@@ -26039,7 +26039,8 @@ async def _arif_report(
     needs_human: bool | None = None,
     report_id: str | None = None,
     since: str | None = None,
-    limit: int = 20,
+    limit: int = 5,
+    full: bool = False,
     mark_read: bool = False,
     force: bool = False,
     dry_run: bool = False,
@@ -26087,6 +26088,7 @@ async def _arif_report(
             sender=sender,
             kind=kind if kind not in ("fyi", "all") else None,
             limit=limit,
+            full=full,
             mark_read=mark_read,
             reader=who,
             verified_actor=_caller_verified(),
@@ -30720,7 +30722,12 @@ def register_tools(
                 "inbox/ack/flush/stats payload for the other modes."
             ),
             tags={"coordination", "arifos", "non-constitutional"},
-            annotations={"readOnlyHint": False, "destructiveHint": False},
+            annotations={
+                "readOnlyHint": False,
+                "destructiveHint": False,
+                "idempotentHint": False,
+                "openWorldHint": False,
+            },
             output_schema=_tool_output_schema("arif_report"),
             meta=_rep_meta,
         )(_arif_report)
@@ -30745,9 +30752,12 @@ def register_tools(
                     _rep_props = _rep_schema.get("properties")
                     if isinstance(_rep_props, dict):
                         _rep_props.pop("_envelope", None)
+                        for _p in ("actor_id", "session_token", "force", "platform"):
+                            _rep_props.pop(_p, None)
                         if _rep_schema.get("required"):
                             _rep_schema["required"] = [
-                                r for r in _rep_schema["required"] if r != "_envelope"
+                                r for r in _rep_schema["required"]
+                                if r != "_envelope" and r not in ("actor_id", "session_token", "force", "platform")
                             ]
                     _rep_ft.parameters = _rep_schema
         except Exception:

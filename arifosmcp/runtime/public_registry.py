@@ -944,6 +944,56 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
     }
 
 
+_STRIP_UNADVERTISED_PARAMS: dict[str, set[str]] = {
+    "arif_init": {
+        "verbose",
+        "previous_session_hash",
+        "actor_signature",
+        "nonce",
+        "epoch_id",
+        "idempotency_key",
+        "caller_actor_id",
+        "executor_actor_id",
+        "sovereign_id",
+        "delegation_mode",
+        "payload",
+        "client_capabilities",
+        "session_token",
+        "auth_context",
+        "counterparty",
+        "declared_model_key",
+        "trace_id",
+    },
+    "arif_judge": {
+        "session_token",
+        "actor_id",
+        "constitutional_chain_id",
+        "vault_entry_id",
+        "cooldown_entry_id",
+        "heart_critique",
+        "niat_params",
+        "sovereign_receipt",
+        "actor_signature",
+        "nonce",
+        "key_id",
+        "authority_token",
+        "authority_effect",
+        "action_class",
+        "domain",
+        "actor_B",
+        "actor_Phi",
+        "entropy_pathway",
+        "entropy_receipt",
+    },
+    "arif_report": {
+        "actor_id",
+        "session_token",
+        "force",
+        "platform",
+    },
+}
+
+
 @lru_cache(maxsize=1)
 def _runtime_contracts() -> dict[str, dict[str, Any]]:
     from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, _wrap_handler
@@ -972,6 +1022,14 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
         _props = input_schema.get("properties")
         if isinstance(_props, dict):
             _props.pop("_envelope", None)
+            _to_strip = _STRIP_UNADVERTISED_PARAMS.get(name, set())
+            for param in _to_strip:
+                _props.pop(param, None)
+            if input_schema.get("required"):
+                input_schema["required"] = [
+                    r for r in input_schema["required"]
+                    if r != "_envelope" and r not in _to_strip
+                ]
         # INPUT-CONTRACT FACADES (2026-10-15 hardening): advertise required
         # minimums for arif_init / arif_seal (forge has its own facade in
         # _spec_for_name). Enforcement stays server-side in input_contract.

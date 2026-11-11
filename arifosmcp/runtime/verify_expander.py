@@ -168,7 +168,7 @@ async def _expand_firecrawl(url: str) -> ExpansionResult:
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
-                "https://api.firecrawl.dev/v0/expand",
+                "https://api.firecrawl.dev/v2/expand",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={"url": url},
             )
