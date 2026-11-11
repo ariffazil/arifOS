@@ -1539,10 +1539,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
             )
 
         # F9 ANTI-HANTU / SHADOW: live from arifFlow vector dimension c_dark
-        if "c_dark" in _dims and _dims["c_dark"].get("value") is not None:
-            resolved_floors["F9"] = float(_dims["c_dark"]["value"])
+        # 2026-11-11: same gate-grade guard as F8 (2026-10-25 F13 order) — a
+        # PHASE_1_HEURISTIC_UNCALIBRATED dimension must not dress telemetry as a
+        # floor score. The runtime classifier already marks F9 unmeasured when
+        # the kernel signal is empty; telemetry may not contradict it.
+        _c_dim = _dims.get("c_dark") or {}
+        _c_calib = str(_c_dim.get("calibration") or "").upper()
+        if _c_dim.get("value") is not None and "UNCALIBRATED" not in _c_calib:
+            resolved_floors["F9"] = float(_c_dim["value"])
             floor_provenance["F9"] = (
-                f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}@{now_iso()}"
+                f"arifflow_live_vector:c_dark={_c_dim['value']}@{now_iso()}"
+            )
+        elif _c_dim.get("value") is not None:
+            floor_provenance["F9"] = (
+                f"arifflow_vector_c_dark_skipped:calibration={_c_calib or 'unknown'}@{now_iso()}"
             )
 
         # L10 ONTOLOGY: live from arifFlow ontology specification
@@ -1583,7 +1593,14 @@ def _build_governance_status_payload() -> dict[str, Any]:
             elif f4_val < 0:
                 resolved_floors["F4"] = round(0.80 + abs(f4_val) * 0.4, 4)
             elif f4_val == 0:
-                resolved_floors["F4"] = 0.80
+                # 2026-11-11 honesty repair (public-page false-green): a trivial-zero
+                # ΔS (ds=-0.0, no completed window) IS the placeholder baseline, and
+                # rendering it as 0.80 is the exact falsification the F4 contract
+                # names ("a placeholder 0.80 baseline presented as a measured ΔS
+                # falsifies it"). Drop to unmeasured; runtime_floors already
+                # classifies this signal NOT_MEASURED.
+                resolved_floors.pop("F4", None)
+                floor_provenance["F4"] = f"unmeasured_default:ds_trivial_zero@{now_iso()}"
             else:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
