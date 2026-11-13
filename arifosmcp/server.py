@@ -134,6 +134,16 @@ try:
     from fastmcp.tools.function_tool import _validate_input as _orig_validate_input
 
     def _d3_wrapped_validate_input(type_adapter, value, *, strict=None):
+        # T1 (F2 TRUTH 2026-11-13): reject unknown fields instead of silently
+        # dropping them. Only when the schema is a fixed model (has a fields
+        # map); **kwargs-style open schemas are left untouched (fail-safe).
+        if isinstance(value, dict):
+            _cs = getattr(type_adapter, "core_schema", None) or {}
+            _fields = set((_cs.get("schema", {}).get("fields", {}) or {})) or set((_cs.get("fields", {}) or {}))
+            if _fields:
+                _unknown = sorted(k for k in value if k not in _fields)
+                if _unknown:
+                    raise ValueError(f"unknown parameter(s): {', '.join(_unknown)}")
         try:
             return _orig_validate_input(type_adapter, value, strict=strict)
         except Exception as e:
