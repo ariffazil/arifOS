@@ -12549,7 +12549,7 @@ def _arif_session_init(
 
                     _live_url = _genesis_card.get("url", "")
                     if _live_url:
-                        # SSRF guard (CVE-2026-SyedAnas, 2026-08-25):
+                        # SSRF guard (SSRF-2026-08-25):
                         # Genesis card URL was fetched without SSRF validation.
                         # urlopen follows redirects and resolves DNS internally,
                         # so a malicious genesis_card.yaml could exfil to private IPs.

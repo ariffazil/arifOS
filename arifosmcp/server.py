@@ -939,7 +939,7 @@ if Path is not None:
                 "Use skill://index first to discover available skills.",
             )
             def skill_by_name_resource(name: str) -> str:
-                # Path traversal guard (external report, Syed Anas Mohiuddin,
+                # Path traversal guard (external report,
                 # 2026-09-15, finding #2): `name` came from the URL path template
                 # with no validation at all, so `..%2F` walked out of the skill
                 # root — any directory holding a file literally named SKILL.md
