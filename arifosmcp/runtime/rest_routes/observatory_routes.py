@@ -335,20 +335,32 @@ def _finalize_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
         items = findings.get("findings") or findings.get("items") or findings.get("list") or []
         if isinstance(items, list):
             sig = payload.get("signature") or {}
+            sig_state = str(sig.get("state") or "").lower() if isinstance(sig, dict) else ""
+            # A signature blob means the snapshot was signed. It does not mean
+            # anybody verified that signature. "verified" requires state=verified.
+            verified = sig_state == "verified"
             signed = bool(isinstance(sig, dict) and sig.get("value"))
             for f in items:
                 if isinstance(f, dict) and f.get("id") == "F-007":
-                    f["status"] = "RESOLVED" if signed else "OPEN"
-                    f["description"] = (
-                        "Snapshot signature verified (ed25519)"
-                        if signed
-                        else "Snapshot signature is not cryptographically verified"
-                    )
-                    f["evidence"] = (
-                        f"signature.state={sig.get('state')} key_id={sig.get('key_id')}"
-                        if signed
-                        else "signature.value=null (signing failed or key missing)"
-                    )
+                    if verified:
+                        f["status"] = "RESOLVED"
+                        f["description"] = "Snapshot signature verified (ed25519)"
+                        f["evidence"] = (
+                            f"signature.state={sig.get('state')} key_id={sig.get('key_id')}"
+                        )
+                    elif signed:
+                        f["status"] = "OPEN"
+                        f["description"] = (
+                            "Snapshot is signed (ed25519). This snapshot did not verify the signature."
+                        )
+                        f["evidence"] = (
+                            f"signature.state={sig.get('state') or 'signed'} "
+                            f"key_id={sig.get('key_id')} verification=not_run"
+                        )
+                    else:
+                        f["status"] = "OPEN"
+                        f["description"] = "Snapshot signature is not cryptographically verified"
+                        f["evidence"] = "signature.value=null (signing failed or key missing)"
             open_items = [f for f in items if isinstance(f, dict) and f.get("status") == "OPEN"]
             findings["count"] = len(open_items)
             by_sev: dict[str, int] = {}
@@ -582,6 +594,17 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
         vault_state = _probe_vault999_health()
     except Exception:
         vault_state = "unknown"
+    # The probe's "healthy" is the canonical chain only. The public cell was
+    # printing that word while the seal ledger still had unlinked rows.
+    census = _unlinked_seal_census()
+    unlinked = census.get("unlinked") if isinstance(census, dict) else None
+    rows = census.get("chain_length") if isinstance(census, dict) else None
+    if isinstance(unlinked, int) and unlinked > 0:
+        vault_public = f"degraded · probe {vault_state} · unlinked {unlinked} of {rows}"
+        vault_pf_state = "degraded"
+    else:
+        vault_public = vault_state
+        vault_pf_state = "observed" if vault_state in ("healthy", "degraded", "gaps_found") else "unknown"
     sub["postgres"] = _pf(
         None,
         source="postgres_probe_pending",
@@ -607,10 +630,11 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
         independent=True,
     )
     # vault999 probe is independent — it checks filesystem state, not the organ's self-report.
+    # When unlinked seal rows exist, the public value names them. The probe word stays in the sentence.
     sub["vault999"] = _pf(
-        vault_state,
-        source="rest_routes._probe_vault999_health",
-        state="observed" if vault_state in ("healthy", "degraded") else "unknown",
+        vault_public,
+        source="rest_routes._probe_vault999_health + unlinked seal census",
+        state=vault_pf_state,
         confidence=0.9,
         observation_method=_OBS_METHOD_FILESYSTEM,
         independent=True,
@@ -2522,6 +2546,77 @@ def _local_chain_replay_ok() -> dict[str, Any]:
         return {"ok": False, "entries": 0, "status": "error", "detail": str(exc)}
 
 
+def _unlinked_seal_census() -> dict[str, Any]:
+    """Count SEALED_EVENTS rows the verify-mode calls unlinked.
+
+    Same rule as arif_seal mode=verify (tools.py): a seal/verdict/decision/
+    constitutional row is unlinked when id, timestamp, or depends_on is null
+    after the v2 field fallbacks. This does not repair the rows.
+    """
+    raw = os.getenv("ARIFOS_VAULT_PATH") or os.getenv("VAULT999_PATH") or "/var/lib/arifos/vault"
+    candidates: list[str] = []
+    if os.path.isdir(raw):
+        candidates.append(os.path.join(raw, "SEALED_EVENTS_v2.jsonl"))
+    elif raw:
+        candidates.append(raw)
+    candidates.append("/var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl")
+    path = next((item for item in candidates if os.path.isfile(item)), None)
+    if path is None:
+        return {"available": False, "path": None, "chain_length": None, "unlinked": None}
+    chain_length = 0
+    unlinked = 0
+    missing_id = 0
+    missing_ts = 0
+    missing_dep = 0
+    with open(path, encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(entry, dict):
+                continue
+            entry_type = entry.get("type") or entry.get("event_type") or entry.get("verdict_issued") or ""
+            if not entry_type or not any(
+                token in str(entry_type).lower()
+                for token in ("seal", "verdict", "decision", "constitutional")
+            ):
+                continue
+            chain_length += 1
+            entry_id = entry.get("id") or entry.get("event_id") or entry.get("decision_id")
+            timestamp = (
+                entry.get("timestamp")
+                or entry.get("sealed_at")
+                or entry.get("issued_at_utc")
+                or entry.get("timestamp_decision")
+            )
+            depends_on = (
+                entry.get("constitutional_chain_id")
+                or entry.get("prev_seal_id")
+                or entry.get("prev_leaf")
+            )
+            if entry_id is None or timestamp is None or depends_on is None:
+                unlinked += 1
+            if entry_id is None:
+                missing_id += 1
+            if timestamp is None:
+                missing_ts += 1
+            if depends_on is None:
+                missing_dep += 1
+    return {
+        "available": True,
+        "path": path,
+        "chain_length": chain_length,
+        "unlinked": unlinked,
+        "missing_id": missing_id,
+        "missing_timestamp": missing_ts,
+        "missing_depends_on": missing_dep,
+    }
+
+
 def _receipts_block() -> dict[str, dict[str, Any]]:
     head_path = Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
     chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
@@ -2547,6 +2642,15 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             pass
     chain_v = _local_chain_verify()
     replay_v = _local_chain_replay_ok()
+    seal_census = _unlinked_seal_census()
+    # Canonical-scope hash success is not a clean chain. A gaps-found walk
+    # or any unlinked seal row must not publish chain_verified=true.
+    chain_is_clean = (
+        bool(chain_v.get("verified"))
+        and chain_v.get("status") != "gaps-found"
+        and not (chain_v.get("gaps") or [])
+        and not (isinstance(seal_census.get("unlinked"), int) and seal_census.get("unlinked", 0) > 0)
+    )
     # 2026-10-07 (Observatory green mission, F13 "deploy all"): the VAULT999 panel
     # rendered LAST RECEIPT / SEAL CHAIN unavailable while head_seq and the local
     # chain walk were already computed here. Read the tail record's tier/reason for
@@ -2677,8 +2781,13 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             independent=True,
         ),
         "chain_verified": _pf(
-            chain_v.get("verified"),
-            source=f"local seal_chain.jsonl walk status={chain_v.get('status')} gaps={len(chain_v.get('gaps') or [])}",
+            chain_is_clean,
+            source=(
+                "local seal_chain.jsonl walk "
+                f"status={chain_v.get('status')} gaps={len(chain_v.get('gaps') or [])} "
+                f"canonical_verified={bool(chain_v.get('verified'))} "
+                f"unlinked_seal_entries={seal_census.get('unlinked')}"
+            ),
             state="observed" if chain_v.get("status") != "error" else "unknown",
             confidence=0.9 if chain_v.get("status") != "error" else 0.0,
             observation_method=_OBS_METHOD_FILESYSTEM,
@@ -2721,13 +2830,40 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
         ),
         "chain_status": _pf(
             (
-                f"{chain_v.get('status')} · entries={chain_v.get('entries')} · gaps={len(chain_v.get('gaps') or [])}"
+                (
+                    f"{chain_v.get('status')} · entries={chain_v.get('entries')} · "
+                    f"gaps={len(chain_v.get('gaps') or [])} · "
+                    f"unlinked_seal_entries={seal_census.get('unlinked')} · "
+                    f"seal_ledger_rows={seal_census.get('chain_length')}"
+                )
                 if chain_v.get("status") not in (None, "no-chain")
                 else None
             ),
-            source="_local_chain_verify walk of seal_chain.jsonl (sovereign-frozen gaps documented, never silently repaired)",
+            source="_local_chain_verify walk of seal_chain.jsonl plus SEALED_EVENTS unlinked count (rows not backfilled)",
             state="observed" if chain_v.get("status") not in (None, "no-chain") else "unknown",
             confidence=0.9 if chain_v.get("status") not in (None, "no-chain") else 0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "unlinked_seal_entries": _pf(
+            seal_census.get("unlinked"),
+            source=(
+                f"{seal_census.get('path') or 'SEALED_EVENTS missing'}: "
+                "id or timestamp or depends_on is null after v2 fallbacks. "
+                f"missing_timestamp={seal_census.get('missing_timestamp')} "
+                f"missing_depends_on={seal_census.get('missing_depends_on')} "
+                f"missing_id={seal_census.get('missing_id')}"
+            ),
+            state="observed" if seal_census.get("available") else "unknown",
+            confidence=0.9 if seal_census.get("available") else 0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "seal_ledger_rows": _pf(
+            seal_census.get("chain_length"),
+            source="SEALED_EVENTS rows whose type is seal, verdict, decision, or constitutional",
+            state="observed" if seal_census.get("available") else "unknown",
+            confidence=0.9 if seal_census.get("available") else 0.0,
             observation_method=_OBS_METHOD_FILESYSTEM,
             independent=True,
         ),
@@ -3032,15 +3168,31 @@ def _findings_block(
     verify_alive = _rv("verify_path_alive")
     replay_alive = _rv("replay_path_alive")
     chain_verified = _rv("chain_verified")
-    if verify_alive is True and replay_alive is True and chain_verified is True:
-        f004_status, f004_ev = "RESOLVED", "verify+replay alive; chain_verified=true"
-        f004_desc = "VAULT verify/replay paths live and chain verified"
+    chain_status_text = _rv("chain_status") or ""
+    unlinked = _rv("unlinked_seal_entries")
+    gaps_open = isinstance(chain_status_text, str) and "gap" in chain_status_text
+    unlinked_open = isinstance(unlinked, int) and unlinked > 0
+    if (
+        verify_alive is True
+        and replay_alive is True
+        and chain_verified is True
+        and not gaps_open
+        and not unlinked_open
+    ):
+        f004_status, f004_ev = "RESOLVED", "verify+replay alive; chain_verified=true; no gaps; unlinked=0"
+        f004_desc = "VAULT verify/replay paths live and the chain has no declared gap"
     elif verify_alive is True or replay_alive is True:
         f004_status, f004_ev = (
             "OPEN",
-            f"verify={verify_alive} replay={replay_alive} chain_verified={chain_verified} (gaps may be declared)",
+            f"verify={verify_alive} replay={replay_alive} chain_verified={chain_verified} "
+            f"chain_status={chain_status_text} unlinked_seal_entries={unlinked}",
         )
-        f004_desc = "VAULT paths live; chain not fully green (gaps declared allowed)"
+        f004_desc = (
+            "VAULT paths answer. The chain is not clean: "
+            f"{chain_status_text or 'gap count not in this snapshot'}. "
+            f"Unlinked seal entries (id, timestamp, or depends_on is null): {unlinked}. "
+            "Those rows were not backfilled."
+        )
     else:
         f004_status, f004_ev = "OPEN", f"verify={verify_alive} replay={replay_alive}"
         f004_desc = "VAULT chain verification and replay path not proven in this snapshot"

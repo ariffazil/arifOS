@@ -1088,8 +1088,18 @@ def project_public_state(
             "chain_verified": pf_value(receipts.get("chain_verified")),
             "replay_verified": pf_value(receipts.get("replay_verified")),
             "vault_status": (
-                receipts.get("VAULT999")
-                or ("HEALTHY" if verify is True else "DEGRADED" if verify is False else "UNKNOWN")
+                "DEGRADED"
+                if (
+                    "gap" in str(pf_value(receipts.get("chain_status")) or "").lower()
+                    or (
+                        isinstance(pf_value(receipts.get("unlinked_seal_entries")), int)
+                        and pf_value(receipts.get("unlinked_seal_entries")) > 0
+                    )
+                )
+                else (
+                    receipts.get("VAULT999")
+                    or ("HEALTHY" if verify is True else "DEGRADED" if verify is False else "UNKNOWN")
+                )
             ),
             "verify_url": "https://arif-fazil.com/999/",
         },
@@ -1862,27 +1872,43 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
     rb = state.get("receipt") if isinstance(state.get("receipt"), dict) else {}
     if not rb:
         return
-    chain_ok = bool(rb.get("chain_verified"))
+    raw_receipts = state.get("receipts") if isinstance(state.get("receipts"), dict) else {}
+    raw_chain = raw_receipts.get("chain_status")
+    if isinstance(raw_chain, dict):
+        raw_chain_text = str(raw_chain.get("value") or "")
+    else:
+        raw_chain_text = str(raw_chain or "")
+    unlinked_cell = raw_receipts.get("unlinked_seal_entries")
+    unlinked_n = unlinked_cell.get("value") if isinstance(unlinked_cell, dict) else unlinked_cell
+    gaps_open = "gap" in raw_chain_text.lower() or (
+        isinstance(unlinked_n, int) and unlinked_n > 0
+    )
+    chain_ok = bool(rb.get("chain_verified")) and not gaps_open
     # 2026-10-24 333-AGI: the chip previously read "canonical UNKNOWN · head_seq 73"
     # — a status that was never measured plus a COUNT wearing a sequence label.
     # Publish the measured sequence, the entry count under its own name, and the
     # canonical-scope verdict (CLASSIFIED_GAPS:n when a gap exists).
+    # 2026-11-11: canonical-scope VERIFIED must not paint the chip healthy while
+    # the full walk says gaps-found. Replay here means the file parsed.
     _seq = rb.get("head_sequence")
     _cnt = rb.get("canonical_entry_count")
     _entries = f" · entries {_cnt}" if _cnt is not None else ""
+    _replay = "parsed" if rb.get("replay_verified") else "unparsed"
+    _gap_clause = f" · full {raw_chain_text}" if raw_chain_text else ""
     flow["chain_status"] = {
         "value": (
             f"canonical {rb.get('canonical_status') or 'UNKNOWN'}"
             f" · head_seq {_seq}"
             f"{_entries}"
-            f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+            f" · replay {_replay}"
+            f"{_gap_clause}"
         ),
-        "state": "healthy" if chain_ok else "unknown",
+        "state": "degraded" if gaps_open else ("healthy" if chain_ok else "unknown"),
         "source": "vault receipt census",
         "confidence": 0.85 if chain_ok else 0.5,
         "observed_at": flow.get("observed_at"),
         "evidence_class": "observed",
-        "verification_state": "VERIFIED" if chain_ok else "UNVERIFIED",
+        "verification_state": "UNVERIFIED" if gaps_open or not chain_ok else "VERIFIED",
     }
     gov = state.get("governance")
     if isinstance(gov, dict):
@@ -1892,9 +1918,10 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
                 f" · canonical {rb.get('canonical_status') or 'UNKNOWN'}"
                 f" · head_seq {_seq}"
                 f"{_entries}"
-                f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+                f" · replay {_replay}"
+                + (f" · unlinked {unlinked_n}" if isinstance(unlinked_n, int) else "")
             ),
-            "state": "healthy" if chain_ok else "unknown",
+            "state": "degraded" if gaps_open else ("healthy" if chain_ok else "unknown"),
             "source": "vault receipt census (build_public_state receipt block)",
             "confidence": None,
         }

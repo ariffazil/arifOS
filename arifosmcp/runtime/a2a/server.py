@@ -556,7 +556,7 @@ class A2AServer:
         self.app = FastAPI(
             title="arifOS A2A Server",
             description="Agent-to-Agent protocol with constitutional governance",
-            version=self.build_info["version"],
+            version=self.build_info.get("version") or "0.0.0-unreleased",
         )
         self._setup_routes()
 
