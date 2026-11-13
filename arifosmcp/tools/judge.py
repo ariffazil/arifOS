@@ -461,7 +461,7 @@ def _read_well_substrate() -> dict[str, Any]:
     if _age_hours is not None and _age_hours > 24.0:
         packet["status"] = "stale"
         packet["age_hours"] = round(_age_hours, 1)
-        packet["stale_reason"] = f"WELL data {round(_age_hours)}h old"
+        packet["stale_reason"] = f"stale WELL data ({round(_age_hours)} hours old)"
     return packet
 
 
@@ -1370,6 +1370,16 @@ async def arif_judge(
             auth_reason=_auth.get("reason"),
         )
         _out_verdict = _const_v
+        # T3 (F2 TRUTH 2026-11-13): surface WELL staleness even on the
+        # session-gate path — a stale human-readiness reading must not be
+        # silently masked by the L11 AUTH reason.
+        _well_stale_reason: list[str] = []
+        try:
+            _ws_pkt = _read_well_substrate()
+            if _ws_pkt.get("status") == "stale":
+                _well_stale_reason = [_ws_pkt.get("stale_reason", "stale WELL data")]
+        except Exception:
+            pass
         return {
             "status": _out_verdict,
             "tool": "arif_judge",
@@ -1381,7 +1391,7 @@ async def arif_judge(
             "action_disposition": _disp,
             "constitutional_verdict": _const_v,
             "remediation": _rem,
-            "reasons": [_auth.get("reason", "L11 AUTH: session required")],
+            "reasons": [_auth.get("reason", "L11 AUTH: session required")] + _well_stale_reason,
             "next_safe_action": (
                 "Call arif_init(mode='init') first to bind a session."
                 if not _rem.get("human_required")
