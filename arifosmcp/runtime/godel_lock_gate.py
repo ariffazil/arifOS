@@ -96,11 +96,16 @@ def _is_self_certifying(ctx: Any) -> tuple[bool, str]:
         return False, ""
 
     params = getattr(ctx, "params", {}) or {}
+    # 2026-11-13 F13: declared subject outranks the session-injected self.
+    # The wrapper injects the caller's actor into params["actor_id"], so
+    # reading actor_id first made caller == target on every sessioned call and
+    # Q9b fired before phi_external could be evaluated. Self-judgment still
+    # fails via the final fallback.
     target = (
-        params.get("actor_id")
-        or params.get("target_actor")
+        params.get("target_actor")
         or params.get("candidate_actor")
         or params.get("subject_actor")
+        or params.get("actor_id")
     )
     if target and str(target).strip().lower() == caller:
         return True, f"Q9b self-certification: actor='{caller}' matches target='{target}'"
