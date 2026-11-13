@@ -43,7 +43,10 @@ APEX_SPEC = "APEX-MCP-001"
 
 BOUNDARIES = {"LIVE", "CACHED", "INFERRED"}
 ACTION_CLASSES = {"READ", "MUTATE", "ATOMIC", "IRREVERSIBLE"}
-PROOF_LEVELS = {"ZKPC_NONE", "ZKPC_OBSERVATION", "ZKPC_AUDIT", "ZKPC_CERTAINTY"}
+PROOF_LEVELS = {"PROOF_NONE", "PROOF_OBSERVED", "PROOF_ATTESTED", "PROOF_VERIFIED"}
+# F13 rename 2026-11-14 (Law 1): OBSERVED = computed here; ATTESTED = reserved for a
+# real attester; VERIFIED = reserved for an external verifier. "ZKPC" is reserved for
+# an actually-running zero-knowledge circuit (archived 2026-06-14), not for gates.
 
 from arifosmcp.models.verdicts import (
     Verdict,  # Canonical: SEAL, HOLD, SABAR, VOID

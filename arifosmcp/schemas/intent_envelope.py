@@ -26,7 +26,7 @@ The kernel rule (Arif, 2026-06-06, ratified):
 Operationalization:
   - UNKNOWN_ORIGIN is fail-secure: cannot cross C1+ (HOLD)
   - AI_DRAFT at C3+ cannot cross into consequence (HOLD)
-  - AI_AGENT_ACTION at C4+ requires signature (F1_AMANAH_ZKPC)
+  - AI_AGENT_ACTION at C4+ requires signature (F1_AMANAH_SIGNED)
   - HUMAN_DIRECT/HUMAN_ASSISTED_AI/AI_AGENT_ACTION must chain to did: human_root
 
 The doctrine:
@@ -45,7 +45,7 @@ The scar principle (Arif, 2026-06-06):
    The two are not equivalent."
 
 Constitutional floor binding (canonical: F1-F13 = L01-L13):
-  F01/L01 AMANAH    — reversibility, risk_class; C4+ requires ZKPC; C5+ requires sovereign ack
+  F01/L01 AMANAH    — reversibility, risk_class; C4+ requires cryptographic signature; C5+ requires sovereign ack
   F02/L02 TRUTH     — provenance_class is declared, not detected; the field is the evidence
   F09/L09 ANTIHANTU — no consciousness claims; categorical lock via Pydantic
   F10/L10 ONTOLOGY  — this is a tool, not an identity claim
@@ -60,7 +60,7 @@ Constitutional floor binding (canonical: F1-F13 = L01-L13):
   AI_DRAFT                  PASS   PASS   PASS   HOLD   HOLD   HOLD
   AI_AGENT_ACTION           PASS   PASS   PASS   PASS   PASS*  PASS*
   UNKNOWN_ORIGIN            PASS   HOLD   HOLD   HOLD   HOLD   HOLD
-  * AI_AGENT_ACTION at C4+ requires cryptographic signature (F1_AMANAH_ZKPC path).
+  * AI_AGENT_ACTION at C4+ requires cryptographic signature (F1_AMANAH_SIGNED path).
     Without sig → HOLD. With sig → PASS.
 
 The 7 remaining cracks (v1 honest gap analysis, NOT closed by this forge):
@@ -367,7 +367,7 @@ class IntentEnvelopeV1(BaseModel):
         Operationalization:
           - UNKNOWN_ORIGIN is fail-secure: cannot cross C1+ (HOLD)
           - AI_DRAFT at C3+ cannot cross into consequence (HOLD)
-          - AI_AGENT_ACTION at C4+ requires signature (F1_AMANAH_ZKPC)
+          - AI_AGENT_ACTION at C4+ requires signature (F1_AMANAH_SIGNED)
           - HUMAN_DIRECT/HUMAN_ASSISTED_AI/AI_AGENT_ACTION must chain to did: human_root
         """
         # Rule 1: UNKNOWN_ORIGIN is fail-secure — cannot cross at all
@@ -397,7 +397,7 @@ class IntentEnvelopeV1(BaseModel):
             if self.risk_class.requires_zkpc_proof and not self.signature:
                 raise ValueError(
                     f"KERNEL RULE: AI_AGENT_ACTION at C{self.risk_class.value[-1]}+ "
-                    f"requires cryptographic signature (F1_AMANAH_ZKPC path). "
+                    f"requires cryptographic signature (F1_AMANAH_SIGNED path). "
                     f"Agent acting without human signature cannot cross into "
                     f"high-stakes consequence."
                 )

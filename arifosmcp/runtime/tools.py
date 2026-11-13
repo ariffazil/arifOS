@@ -6334,7 +6334,7 @@ def _enforce_nine_signal(
                     cost_budget=1.0,
                     actor_id=resolved_actor_id,
                     action_class=str(out.get("action_class", "READ")),
-                    proof_level=str(out.get("proof_level", "ZKPC_OBSERVATION")),
+                    proof_level=str(out.get("proof_level", "PROOF_OBSERVED")),
                     f13_halt=(verdict == "VOID"),
                 )
             except Exception:

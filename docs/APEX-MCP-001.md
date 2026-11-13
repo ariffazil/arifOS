@@ -78,7 +78,7 @@ Every MCP tool response carries this envelope at the `apex` key:
       "energy":      { "pass": true,  "score": 0.78, "detail": "cost 0.22 ≤ budget 1.0" },
       "authority":   { "pass": true,  "score": 1.0,  "detail": "actor verified", "actor_id": "opencode" },
       "reversibility": { "pass": true, "score": 1.0, "detail": "READ action_class", "action_class": "READ" },
-      "proof":       { "pass": true,  "score": 0.85, "detail": "ZKPC_OBSERVATION matches READ", "proof_level": "ZKPC_OBSERVATION" },
+      "proof":       { "pass": true,  "score": 0.85, "detail": "PROOF_OBSERVED matches READ", "proof_level": "PROOF_OBSERVED" },
       "sovereign":   { "pass": true,  "score": 1.0,  "detail": "no F13 halt active" }
     },
     "dials": {
@@ -109,7 +109,7 @@ Each gate produces:
     # Optional domain-specific fields:
     "boundary": str,    # Presence gate: "LIVE" | "CACHED" | "INFERRED"
     "action_class": str, # Reversibility gate: "READ" | "MUTATE" | "ATOMIC" | "IRREVERSIBLE"
-    "proof_level": str,  # Proof gate: "ZKPC_NONE" | "ZKPC_OBSERVATION" | "ZKPC_AUDIT" | "ZKPC_CERTAINTY"
+    "proof_level": str,  # Proof gate: "PROOF_NONE" | "PROOF_OBSERVED" | "PROOF_ATTESTED" | "PROOF_VERIFIED"
     "actor_id": str,     # Authority gate: verified actor
 }
 ```
@@ -228,19 +228,19 @@ Transport is pure JSON-RPC over stdio or Streamable HTTP. No governance semantic
 
 - **Gate source:** `get_standard_envelope` extended with `apex` key
 - **Cognitive gates:** amanah (from claim_state), presence (from perception_class), signal (from evidence_refs), humility (from uncertainty)
-- **Kernel gates:** authority (from actor_id), reversibility (inherited READ for evidence), proof (ZKPC_OBSERVATION), sovereign (passthrough)
+- **Kernel gates:** authority (from actor_id), reversibility (inherited READ for evidence), proof (PROOF_OBSERVED), sovereign (passthrough)
 
 ### 5.3 WEALTH (Capital Intelligence)
 
 - **Gate source:** `create_envelope` extended with `apex` key
 - **Cognitive gates:** amanah (from confidence), signal (from g_score), energy (from entropy_s)
-- **Kernel gates:** authority (from session), reversibility (all capital tools are READ), proof (ZKPC_OBSERVATION), sovereign (passthrough)
+- **Kernel gates:** authority (from session), reversibility (all capital tools are READ), proof (PROOF_OBSERVED), sovereign (passthrough)
 
 ### 5.4 WELL (Vitality)
 
 - **Gate source:** New `apex_envelope()` call added to each tool
 - **Cognitive gates:** presence (LIVE from state.json), humility (from truth_status), signal (from well_score)
-- **Kernel gates:** authority (from operator_id), reversibility (all WELL tools are READ), proof (ZKPC_OBSERVATION), sovereign (passthrough)
+- **Kernel gates:** authority (from operator_id), reversibility (all WELL tools are READ), proof (PROOF_OBSERVED), sovereign (passthrough)
 
 ### 5.5 A-FORGE (Execution Shell)
 

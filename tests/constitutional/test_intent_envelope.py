@@ -11,7 +11,7 @@ Test matrix:
   - v0 carry-overs (T01-T11): display hash binding, scar coercion flag,
     freshness, JSON roundtrip, determinism
   - v1 additions (T13-T22): kernel rule, 5-class provenance, did: root
-    chain, F1_AMANAH_ZKPC path, 30-cell truth table
+    chain, F1_AMANAH_SIGNED path, 30-cell truth table
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
@@ -300,7 +300,7 @@ def test_T17_human_direct_requires_did_root() -> None:
 
 
 def test_T18_ai_agent_action_c4_requires_sig() -> None:
-    """AI_AGENT_ACTION at C4+ requires cryptographic signature (F1_AMANAH_ZKPC)."""
+    """AI_AGENT_ACTION at C4+ requires cryptographic signature (F1_AMANAH_SIGNED)."""
     with pytest.raises(ValueError, match=r"AI_AGENT_ACTION.*signature|F1_AMANAH"):
         _make_envelope(
             risk=RiskClass.C4,

@@ -81,7 +81,8 @@ _SOVEREIGN_FILES: dict[str, str] = {
     "data-sources": "15_DATA_SOURCES.md",
     "reality": "16_REALITY.md",
     "unsealed": "17_UNSEALED.md",
-    "zkpc-atlas": "18_ZKPC_ATLAS_333.md",
+    # "zkpc-atlas" removed 2026-11-14 (F13 audit): 18_ZKPC_ATLAS_333.md never existed
+    # on disk anywhere reachable — a name without a mechanism is removed, not fed.
     "soul-metabolism": "19_SOUL_METABOLISM.md",
 }
 

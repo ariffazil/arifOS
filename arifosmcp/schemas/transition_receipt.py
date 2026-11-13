@@ -92,12 +92,18 @@ class AuthoritySource(str, Enum):
 
 
 class ProofLevel(str, Enum):
-    """Cryptographic proof level of the transition receipt."""
+    """Integrity/authenticity level of the transition receipt.
 
-    ZKPC_L0 = "ZKPC-L0"  # Hash chain only (local receipt, not externally verifiable)
-    ZKPC_L1 = "ZKPC-L1"  # Hash chain + vault999-writer seal (canonical)
-    ZKPC_L2 = "ZKPC-L2"  # ZKPC-L1 + Ed25519 sovereign signature
-    ZKPC_L3 = "ZKPC-L3"  # ZKPC-L2 + Supabase chain anchor
+    F13 rename 2026-11-14 (Law 1 acceptance test): these are tamper-evidence
+    and signature levels, NOT zero-knowledge — L2 names the signer, which is
+    the opposite of ZK. The ZKPC name is reserved for an actually-running
+    zero-knowledge circuit (archived: zkpc_v2_epoch.circom, 2026-06-14).
+    """
+
+    RECEIPT_INTEGRITY_L0 = "RECEIPT_INTEGRITY_L0"  # Hash chain only (local receipt, not externally verifiable)
+    RECEIPT_INTEGRITY_L1 = "RECEIPT_INTEGRITY_L1"  # Hash chain + vault999-writer seal (canonical)
+    RECEIPT_INTEGRITY_L2 = "RECEIPT_INTEGRITY_L2"  # L1 + Ed25519 sovereign signature (names the signer)
+    RECEIPT_INTEGRITY_L3 = "RECEIPT_INTEGRITY_L3"  # L2 + Supabase chain anchor
 
 
 class VerdictCode(str, Enum):
@@ -231,7 +237,7 @@ class TransitionReceipt(BaseModel):
         description="Who or what authorized this transition.",
     )
     proof_level: ProofLevel = Field(
-        default=ProofLevel.ZKPC_L1,
+        default=ProofLevel.RECEIPT_INTEGRITY_L1,
         description="Cryptographic proof level attached to this receipt.",
     )
 
@@ -361,7 +367,7 @@ def genesis_transition_receipt(
         to_ksr_hash=ksr_initial_hash,
         prior_ledger_hash="sha256:0",
         authority_source=AuthoritySource.SYSTEM,
-        proof_level=ProofLevel.ZKPC_L1,
+        proof_level=ProofLevel.RECEIPT_INTEGRITY_L1,
         verdict=VerdictCode.SEAL,
         metadata={"note": "Genesis transition. No prior state."},
     )

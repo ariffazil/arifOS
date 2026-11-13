@@ -53,7 +53,7 @@ class TestSovereignAnchor:
 from arifosmcp.runtime.context_coherence import verify_context_coherence as verify_zkpc
 
 
-class TestZKPCVerifier:
+class TestContextCoherenceVerifier:
     """Eureka 2: 7-dimension coherence check for context claims."""
 
     FULL_EVIDENCE = {
@@ -286,7 +286,7 @@ class TestLoopClosure:
         # Step 3: ZKPC verify context (E2)
         zkpc_ok, scores = verify_zkpc(
             {"claim": "session context"},
-            TestZKPCVerifier.FULL_EVIDENCE,
+            TestContextCoherenceVerifier.FULL_EVIDENCE,
         )
         assert zkpc_ok is True, f"Scores: {scores}"
 
