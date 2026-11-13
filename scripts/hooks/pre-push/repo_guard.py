@@ -17,6 +17,8 @@ import json
 import os
 import subprocess
 import sys
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -49,6 +51,45 @@ def run(cmd: list[str], cwd: Path | None = None, timeout: int = 120) -> tuple[in
         return 124, f"TIMEOUT after {timeout}s"
     except Exception as e:
         return 1, f"EXEC ERROR: {e}"
+
+
+def _kernel_ready(url: str, timeout: float = 3.0) -> tuple[bool, str]:
+    """Single /health probe. Return (ready, reason)."""
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            d = json.loads(r.read())
+        status = d.get("status")
+        return status in ("healthy", "degraded"), f"status={status}"
+    except urllib.error.URLError as e:
+        return False, f"URLError: {e.reason}"
+    except Exception as e:
+        return False, f"EXEC ERROR: {e}"
+
+
+def wait_for_kernel(
+    url: str = KERNEL_HEALTH, timeout_s: int = 90, poll_interval: float = 2.0
+) -> bool:
+    """Block until /health returns healthy|degraded, up to timeout_s.
+
+    Absorbs the concurrent-restart window: a kernel mid-restart answers
+    connection-refused for a few seconds, which previously surfaced as a false
+    FAILED in GATE 1 (7 e2e connection-refused) and GATE 3. Waiting here means
+    GATE 1 runs against a live kernel instead of a restarting one.
+    """
+    step("PRE-GATE 0: wait for kernel /health")
+    deadline = time.monotonic() + timeout_s
+    waited = 0.0
+    while True:
+        ready, reason = _kernel_ready(url)
+        if ready:
+            print(f"  ✅ kernel ready after {waited:.0f}s ({reason})")
+            return True
+        if time.monotonic() >= deadline:
+            print(f"  ❌ kernel not ready after {timeout_s}s (last: {reason})")
+            return False
+        print(f"  … kernel not ready ({reason}); retry in {poll_interval:.0f}s")
+        time.sleep(poll_interval)
+        waited += poll_interval
 
 
 def gate_1_pytest() -> tuple[bool, str]:
@@ -105,7 +146,7 @@ def gate_2_path_a() -> tuple[bool, str]:
     return False, f"A3 not yet fixed\n{out}"
 
 
-def gate_3_deploy_alignment() -> tuple[bool, str]:
+def gate_3_deploy_alignment() -> tuple[str, str]:
     step("GATE 3: deploy drift check (:8088/health vs git HEAD)")
     try:
         git_head = subprocess.check_output(
@@ -114,7 +155,7 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
             text=True,
         ).strip()
     except Exception as e:
-        return False, f"git rev-parse failed: {e}"
+        return "FAIL", f"git rev-parse failed: {e}"
 
     try:
         with urllib.request.urlopen(KERNEL_HEALTH, timeout=5) as r:
@@ -124,8 +165,13 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
         drift = sr.get("drift")
         status = d.get("status")
         runtime_drift = d.get("runtime_drift")
+    except urllib.error.URLError as e:
+        # Connection refused / timeout = infrastructure, not a code defect.
+        # The pre-wait (PRE-GATE 0) already absorbed the restart window, so
+        # reaching here means a genuine outage, not a race. Label honestly.
+        return "INCONCLUSIVE", f"kernel /health unreachable: {e.reason} (infra, retry)"
     except Exception as e:
-        return False, f"kernel /health unreachable: {e}"
+        return "INCONCLUSIVE", f"kernel /health error: {e}"
 
     head_short = git_head[:12]
     # F13 directive 2026-08-12: status='degraded' is acceptable intermediate state
@@ -136,7 +182,7 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
     stamps_match = bool(deployed) and deployed == head_short
     relation = "aligned" if stamps_match else "ahead"
     if status_ok:
-        return True, (
+        return "PASS", (
             f"deployed={deployed} HEAD={head_short} "
             f"health_drift={drift} commit_{relation} status={status}"
         )
@@ -146,7 +192,7 @@ def gate_3_deploy_alignment() -> tuple[bool, str]:
     ]
     if not status_ok:
         msgs.append(f"  → kernel status is {status}, not healthy or degraded")
-    return False, "\n".join(msgs)
+    return "FAIL", "\n".join(msgs)
 
 
 def main() -> int:
@@ -154,32 +200,57 @@ def main() -> int:
     print("arifOS KERNEL DEPLOY GUARD")
     print("=" * 60)
 
+    # PRE-GATE 0: absorb the concurrent kernel-restart window before running
+    # anything that talks to :8088. A mid-restart kernel answers
+    # connection-refused, which previously read as a false FAILED.
+    if not wait_for_kernel():
+        print("\n" + "=" * 60)
+        print("⚠️  INCONCLUSIVE — kernel /health unreachable after wait")
+        print("   Infrastructure not ready, NOT a code defect. Retry the push.")
+        print("=" * 60)
+        return 2
+
     gates = [
         ("GATE 1 — pytest E2E", gate_1_pytest),
         ("GATE 2 — Path A detectors", gate_2_path_a),
         ("GATE 3 — deploy alignment", gate_3_deploy_alignment),
     ]
 
+    # results: list of (name, verdict, msg); verdict ∈ {PASS, FAIL, INCONCLUSIVE}
     results = []
     for name, fn in gates:
-        ok, msg = fn()
-        mark = "✅" if ok else "❌"
+        verdict, msg = fn()
+        if isinstance(verdict, bool):
+            verdict = "PASS" if verdict else "FAIL"
+        mark = (
+            "✅" if verdict == "PASS" else ("⚠️" if verdict == "INCONCLUSIVE" else "❌")
+        )
         print(f"  {mark} {msg}")
-        results.append((name, ok, msg))
+        results.append((name, verdict, msg))
 
     print("\n" + "=" * 60)
-    if all(r[1] for r in results):
+    if all(v == "PASS" for _, v, _ in results):
         print("✅ ALL GATES PASSED — push permitted")
         print("=" * 60)
         return 0
 
-    print("❌ DEPLOY GATE FAILED — push BLOCKED")
+    if any(v == "FAIL" for _, v, _ in results):
+        print("❌ DEPLOY GATE FAILED — push BLOCKED (code defect)")
+        print("=" * 60)
+        for name, verdict, msg in results:
+            if verdict == "FAIL":
+                print(f"\n{name}:")
+                print(f"  {msg}")
+        return 1
+
+    # No FAIL, but at least one INCONCLUSIVE: infrastructure, not code.
+    print("⚠️  DEPLOY GATE INCONCLUSIVE — push BLOCKED (infrastructure, retry)")
     print("=" * 60)
-    for name, ok, msg in results:
-        if not ok:
+    for name, verdict, msg in results:
+        if verdict == "INCONCLUSIVE":
             print(f"\n{name}:")
             print(f"  {msg}")
-    return 1
+    return 2
 
 
 if __name__ == "__main__":
