@@ -25964,10 +25964,16 @@ async def _arif_report(
             producer_context=_pc,
         )
     elif m == "inbox":
+        # thread_id pass-through (fix 2026-11-02): the tool schema accepted
+        # thread_id on inbox reads but this branch never forwarded it and
+        # report_lane.inbox() had no such parameter — silently dropped filter
+        # (OBS 2026-11-01T17:14Z: thread-filtered read returned the same
+        # unfiltered oldest page).
         result = rl.inbox(
             since=since,
             sender=sender,
             kind=kind if kind not in ("fyi", "all") else None,
+            thread_id=thread_id,
             limit=limit,
             mark_read=mark_read,
             reader=who,
