@@ -165,6 +165,50 @@ except Exception:
     pass  # non-fatal: middleware has defense-in-depth
 # ── END D3 ───────────────────────────────────────────────────────────
 
+# ── T1 (F2 TRUTH 2026-11-13): strict tool input models ──────────────
+# FastMCP builds tool input models via TypeAdapter(function), which Pydantic
+# defaults to extra="ignore" — unknown params are silently dropped before the
+# handler ever sees them. Patch get_cached_typeadapter to build function input
+# models with extra="forbid" so an unknown field is a named error, not a silent
+# drop. Non-function types fall through to the original (fail-safe).
+try:
+    import inspect as _inspect
+    from functools import lru_cache as _lru_cache
+
+    from pydantic import ConfigDict as _ConfigDict
+    from pydantic import TypeAdapter as _TypeAdapter
+    from pydantic import create_model as _create_model
+
+    import fastmcp.utilities.types as _fut
+
+    _orig_gcta = _fut.get_cached_typeadapter
+
+    @_lru_cache(maxsize=5000)
+    def _strict_typeadapter(fn):
+        if _inspect.isfunction(fn) or _inspect.ismethod(fn):
+            try:
+                _hints = _fut.get_function_type_hints(fn)
+            except Exception:
+                _hints = getattr(fn, "__annotations__", {}) or {}
+            _sig = _inspect.signature(fn)
+            _fields = {}
+            for _n, _a in _hints.items():
+                _p = _sig.parameters.get(_n)
+                _d = None if (_p is None or _p.default is _inspect.Parameter.empty) else _p.default
+                _fields[_n] = (_a, _d)
+            _model = _create_model(
+                f"{getattr(fn, '__name__', 'Tool')}Input",
+                __config__=_ConfigDict(extra="forbid"),
+                **_fields,
+            )
+            return _TypeAdapter(_model)
+        return _orig_gcta(fn)
+
+    _fut.get_cached_typeadapter = _strict_typeadapter
+except Exception:
+    pass
+
+
 try:
     from mcp import McpError  # noqa: E402
 except ImportError:
