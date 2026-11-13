@@ -120,6 +120,16 @@ logger = logging.getLogger(__name__)
 # ══════════════════════════════════════════════════════════════════════════════
 
 _RESOURCE_PROVENANCE: dict[str, dict[str, Any]] = {
+    "arifos://wisdom/eureka-ladder": {
+        "source": "aforge_eureka_ladder_doctrine",
+        "truth_level": 2,
+        "truth_label": "F13_RATIFIED_DOCTRINE",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "governance",
+        "ratified": "F13 2026-11-14 (sah D1, buka lane eureka)",
+        "enforcer": "A-FORGE actuator; kernel reads receipts only",
+    },
     "arifos://doctrine": {
         "source": "constitution",
         "truth_level": 1,
@@ -447,6 +457,7 @@ from .vault999_template import register_vault999_template
 from .model_governance import register_model_governance_template
 from .vitals import register_vitals
 from .wisdom_resources import register_wisdom_resources
+from .eureka_ladder_resource import register_eureka_ladder_resources
 
 # REMOVED 2026-08-08 imports (resources deregistered):
 # from .mcp_alignment import register_mcp_alignment   # arifos://mcp-alignment
@@ -491,6 +502,7 @@ CANONICAL_RESOURCES = (
     "arifos://atlas333/metrics",
     "arifos://wisdom/contract",
     "arifos://wisdom/quotes/all",
+    "arifos://wisdom/eureka-ladder",
     # DOORS chamber
     # REMOVED 2026-09-29 (F13 Order A — tree777 de-advertisement):
     #   "tree777://index" — retired namespace. Service held 2026-08-14
@@ -616,6 +628,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     # REMOVED 2026-08-08 — arifos://mcp/surface-map (duplicate of arifos://schema):
     # registered.extend(register_surface_map(mcp))
     registered.extend(register_wisdom_resources(mcp))
+    registered.extend(register_eureka_ladder_resources(mcp))
     registered.extend(register_rrr_resources(mcp))  # RRR + skill-health + skill-drift (2026-08-15)
     registered.extend(alignment_gap.register_alignment_gap_resources(mcp))
     if _atlas333_attach:
