@@ -20,18 +20,94 @@ logger = logging.getLogger(__name__)
 # all 5 coordination tools returned "Error calling tool" remotely).
 
 
-def _get_ephemeral_session(intent: str) -> tuple[str, str]:
-    """Mint or retrieve an ephemeral read-only session for stateless callers."""
+# The actor label used for stateless callers. The kernel binds an unverified
+# actor to OBSERVE_ONLY at birth (runtime/tools.py: "actual capability is
+# OBSERVE_ONLY at birth"), so a minted session can never carry mutation
+# authority.
+EPHEMERAL_ACTOR_ID = "anonymous"
+
+
+def _session_credentials(res: object) -> tuple[str, str]:
+    """Extract (session_id, session_token) from an init receipt, if present."""
+    if hasattr(res, "session_id") and hasattr(res, "session_token"):
+        return str(res.session_id), str(res.session_token)
+    if isinstance(res, dict):
+        inner = res.get("result") if isinstance(res.get("result"), dict) else {}
+        sid = res.get("session_id") or inner.get("session_id") or ""
+        stok = res.get("session_token") or inner.get("session_token") or ""
+        return str(sid), str(stok)
+    return "", ""
+
+
+def _mark_session_read_only(rt_module: object, sid: str) -> None:
+    """Make a minted session's read-only band inspectable on its record.
+
+    The init path stores an unverified actor's session with
+    ``authority_level="ANONYMOUS"`` (runtime/crypto_auth.py). That label is
+    load-bearing — the envelope maps it to OBSERVE_ONLY
+    (runtime/v2_envelope.py: "if level == 'ANONYMOUS': return 'OBSERVE_ONLY'")
+    — so it is NOT rewritten here.
+
+    What is written is the same truth the kernel already enforces, stated
+    plainly on the record so an operator (or a later gate) can read it
+    without knowing the enum-name convention: the band it renders as, and
+    the fact that mutation is not available.
+
+    Enforcement is NOT here: it stays in the envelope + the L11/L13 gates
+    (an unverified actor cannot mutate — a write returns HOLD, a seal
+    returns 888_HOLD). This makes the enforced truth legible; the proof
+    that it is enforced is the acceptance test that drives an irreversible
+    candidate without a session and requires HOLD.
+    """
     try:
+        store = getattr(rt_module, "_SESSIONS", None)
+        rec = store.get(sid) if store is not None else None
+        if not isinstance(rec, dict):
+            return
+        updated = dict(rec)
+        updated["authority_band"] = "OBSERVE_ONLY"
+        updated["can_mutate"] = False
+        store[sid] = updated
+    except Exception as exc:  # noqa: BLE001 — legibility must never break the mint
+        logger.warning("Could not mark ephemeral session read-only: %s", exc)
+
+
+def _get_ephemeral_session(intent: str) -> tuple[str, str]:
+    """Mint or retrieve an ephemeral read-only session for stateless callers.
+
+    Contract (Arif, 2026-10-29 — merge gate for PR #964):
+      * success -> a REAL session: non-empty id, a token, and the id present in
+        runtime.tools._SESSIONS with a read-only band;
+      * any failure or refusal -> ("", "") so callers degrade honestly
+        (ephemeral_session_unavailable) instead of fabricating a session.
+
+    Why this changed: the mint called mode="preflight" — a mode that REPORTS an
+    existing session and never creates one. The HOLD receipt it returned
+    carries the placeholder id "anonymous-session" and NO token
+    (runtime/tools.py). That placeholder is truthy, so the caller's
+    `if not sid` honesty check never fired and the facade reported
+    status="ok" on a session that did not exist.
+
+    A refusal is not a session. Only a stored, token-bound session counts.
+    """
+    try:
+        from arifosmcp.runtime import tools as rt
         from arifosmcp.runtime.tools import _arif_session_init
 
-        res = _arif_session_init(mode="preflight", intent=intent, verbosity="minimal")
-        if hasattr(res, "session_id") and hasattr(res, "session_token"):
-            return str(res.session_id), str(res.session_token)
-        if isinstance(res, dict):
-            sid = res.get("session_id") or res.get("result", {}).get("session_id") or ""
-            stok = res.get("session_token") or res.get("result", {}).get("session_token") or ""
-            return str(sid), str(stok)
+        res = _arif_session_init(
+            mode="init",
+            actor_id=EPHEMERAL_ACTOR_ID,
+            intent=intent,
+            verbosity="minimal",
+        )
+        sid, stok = _session_credentials(res)
+        if sid and stok and sid in rt._SESSIONS:
+            _mark_session_read_only(rt, sid)
+            return sid, stok
+        logger.warning(
+            "Ephemeral session mint did not yield a stored, token-bound session; "
+            "degrading to unavailable (no fabrication)"
+        )
     except Exception as exc:
         logger.warning("Failed to mint ephemeral session: %s", exc)
     return "", ""
@@ -159,6 +235,7 @@ async def arif_recall(
             }
         res = mem_fn(mode="recall", query=query, tier=tier, session_id=sid, session_token=stok)
         import inspect as _inspect
+
         if _inspect.isawaitable(res):
             res = await res
         if isinstance(res, dict):
@@ -227,6 +304,7 @@ async def arif_delegate(
             }
         res = route_fn(intent=query, session_id=sid, session_token=stok)
         import inspect as _inspect
+
         if _inspect.isawaitable(res):
             res = await res
         if isinstance(res, dict):
