@@ -205,6 +205,12 @@ try:
         return _orig_gcta(fn)
 
     _fut.get_cached_typeadapter = _strict_typeadapter
+    try:
+        import fastmcp.tools.function_tool as _ftt
+
+        _ftt.get_cached_typeadapter = _strict_typeadapter
+    except Exception:
+        pass
 except Exception:
     pass
 
