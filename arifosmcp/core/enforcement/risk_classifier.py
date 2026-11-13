@@ -433,6 +433,23 @@ def classify_tool(
     desc = (tool_description or "").lower()
     combined = name + " " + desc
 
+    # Fasa-4 C4 (2026-11-05, acceptance #4): closing a session is self-service
+    # lifecycle for the CALLER'S OWN session — the canonical handler
+    # (tools/vault.arif_seal) enforces session ownership via validate_session
+    # (L11 gate, W1 fix 2026-10-15) before any RECORD append. Split-brain fix:
+    # mode=session_close now matches the name-based classifier (bare tool name
+    # `session_close` -> OBSERVE, measured 2026-11-05), unblocking LEGACY_WRAP
+    # MCP clients for their own-session close. Precedent: dry_run universal
+    # downgrade (APEX-777).
+    if mode and str(mode).strip().lower() == "session_close":
+        return RiskPassport(
+            tier=RiskTier.T2,
+            action_class=ActionClass.OBSERVE,
+            tool_class=ToolClass.OBSERVE,
+            blast_radius=BlastRadius.NONE,
+            reversibility=ReversibilityLevel.HIGH,
+        )
+
     # Explicit mapping for canonical tools
     if name in _CANONICAL_TOOL_RISKS:
         passport = _CANONICAL_TOOL_RISKS[name]

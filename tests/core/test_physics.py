@@ -25,7 +25,7 @@ def test_delta_s_cooling():
 
 
 def test_genius_score():
-    # G = A * P * X * E^2
+    # G = (A * P * E * X) ** 0.25 (canonical v3)
     tensor = ConstitutionalTensor(
         witness=TrinityTensor(0.95, 0.95, 0.95),
         entropy_delta=-0.1,

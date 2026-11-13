@@ -970,7 +970,7 @@ class F8_Genius(Law):
     """
     F8: GENIUS (G) - Governed Intelligence
     Threshold: G ≥ 0.80 (DERIVED)
-    Formula: G = (A × P × X × E²) × (1 - h)
+    Formula: G = (A × P × E × X)^(1/4)
     """
 
     def __init__(self):
@@ -984,7 +984,7 @@ class F8_Genius(Law):
         E = context.get("energy", 0.9)
         h = context.get("hysteresis_penalty", 0.0)
 
-        # Multiplicative law with Hysteresis penalty
+        # Canonical v3 geometric mean (no Φ, no H) — hysteresis applies to G† only
         from core.shared.physics import GeniusDial
 
         dial = GeniusDial(A, P, X, E, h)
@@ -995,7 +995,7 @@ class F8_Genius(Law):
             self.id,
             passed,
             genius,
-            f"Genius G: {genius:.3f} (A:{A:.2f} × P:{P:.2f} × X:{X:.2f} × E²:{E**2:.2f} × h_pen:{1 - h:.2f})",
+            f"Genius G: {genius:.3f} (A:{A:.2f} · P:{P:.2f} · E:{E:.2f} · X:{X:.2f})^(1/4)",
         )
 
 

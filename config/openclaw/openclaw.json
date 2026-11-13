@@ -375,7 +375,7 @@
       "name": "AGI_ASI_bot",
       "webhookUrl": "",
       "webhookSecret": "${TELEGRAM_WEBHOOK_SECRET}",
-      "botToken": "8149595687:AAH3iDg7dJfjJ-xNvEbrUGl5uuNGlBz7Yf8",
+      "botToken": "${OPENCLAW_BOT_TOKEN}",
       "streaming": {
         "mode": "progress"
       },

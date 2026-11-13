@@ -8,6 +8,7 @@ Never hand-maintain the same numbers in HTML.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 import urllib.request
@@ -269,6 +270,19 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
             or health_data.get("git_commit")
         )
 
+    # 2026-11-03 (FI-008): surface the /health body's own status word so
+    # "reachable" (transport PRESENT) is never rendered as "healthy".
+    # Vocabulary observed live: ok / ok-v3-vector / healthy / degraded.
+    health_status = None
+    if health_data:
+        raw_hs = str(health_data.get("status") or "").lower()
+        if raw_hs == "degraded":
+            health_status = "DEGRADED"
+        elif raw_hs.startswith("ok") or raw_hs == "healthy":
+            health_status = "HEALTHY"
+        elif raw_hs:
+            health_status = raw_hs.upper()
+
     return {
         "organ": meta.get("label") or organ_id.upper(),
         "id": organ_id,
@@ -280,6 +294,7 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
         "last_observed": now_iso(),
         "probe_reason": health_verdict.get("reason"),
         "probe_status_code": health_verdict.get("status_code"),
+        "health_status": health_status,
         "website": meta.get("website"),
         "mcp": meta.get("mcp"),
         "evidence_url": meta.get("evidence_url"),
@@ -383,6 +398,42 @@ def _override_verdict_with_canonical(gov: dict[str, Any], extras: dict[str, Any]
             "observed_at": extras.get("kernel_observed_at"),
         }
     return out
+
+
+def _wrap_identity_field(
+    field_record: Any,
+    default_val: Any = None,
+    default_src: str = "snapshot.runtime_identity",
+    observed_at: str | None = None,
+    default_conf: float = 0.99,
+    evidence_class: str = "observed",
+) -> dict[str, Any]:
+    """Preserve provenance envelopes in runtime_identity (F2 truth rule 2026-11-02).
+    Never strip metadata down to bare primitives.
+    """
+    if isinstance(field_record, dict) and ("value" in field_record or "source" in field_record):
+        res = dict(field_record)
+        if "observed_at" not in res and observed_at:
+            res["observed_at"] = observed_at
+        return res
+    val = field_record if (field_record is not None and field_record != "") else default_val
+    if val is None or val == "" or val == "unknown":
+        return {
+            "value": None if (val is None or val == "") else "unknown",
+            "state": "unknown",
+            "source": default_src,
+            "confidence": 0.0,
+            "observed_at": observed_at,
+            "evidence_class": "unknown",
+        }
+    return {
+        "value": val,
+        "state": "observed",
+        "source": default_src,
+        "confidence": default_conf,
+        "observed_at": observed_at,
+        "evidence_class": evidence_class,
+    }
 
 
 def project_public_state(
@@ -651,6 +702,29 @@ def project_public_state(
         else "NONE"
     )
 
+    # ── F2 Runtime Identity calculation (pre-envelope preparation) ──
+    _ri_obs = snap.get("observed_at") or extra.get("ariflow_observed_at") or now_iso()
+    _drift_f = dict(ri.get("drift")) if isinstance(ri.get("drift"), dict) else {}
+    _drift_val = dict(_drift_f.get("value") if isinstance(_drift_f.get("value"), dict) else (drift_obj if isinstance(drift_obj, dict) else {}))
+    _drift_val.setdefault("artifact", "ALIGNED" if (build and deployed and (build.startswith(deployed) or deployed.startswith(build))) else "DRIFTED")
+    _drift_val["artifact_scope"] = "build_vs_deployed"
+    _drift_val.setdefault("build_vs_deployed", "ALIGNED" if (build and deployed and (build.startswith(deployed) or deployed.startswith(build))) else "DRIFTED")
+    _drift_val["workspace_vs_deployed"] = alignment
+    _drift_val.setdefault("capability", "ALIGNED" if (caps.get("degraded_count", 0) or 0) == 0 else "DRIFTED")
+    _drift_val.setdefault("forge_registry", "ALIGNED")
+    _drift_val.setdefault("schema", "UNKNOWN")
+    _drift_val.setdefault("route", "UNKNOWN")
+    _drift_val.setdefault("upstream_repository", "UNVERIFIED")
+
+    _drift_envelope = {
+        "value": _drift_val,
+        "state": "derived",
+        "source": _drift_f.get("source") or "_compute_runtime_drift + capability_matrix",
+        "confidence": _drift_f.get("confidence", 0.9),
+        "observed_at": _drift_f.get("observed_at") or _ri_obs,
+        "evidence_class": "derived",
+    }
+
     return {
         "schema": PUBLIC_STATE_SCHEMA,
         "schema_version": PUBLIC_STATE_SCHEMA,
@@ -662,6 +736,7 @@ def project_public_state(
             "public_state_endpoint": "/api/public-state",
         },
         "generated_at": now_iso(),
+        "observed_at": extra.get("ariflow_observed_at") or snap.get("observed_at") or now_iso(),
         "headline": headline,
         "planes": planes,
         # ── Class B (2026-10-20): carry the snapshot's metabolism stages
@@ -683,18 +758,57 @@ def project_public_state(
             "verify_url": release_url,
             "connect_url": connect_url,
         },
-        # ── Observatory wiring (class A, 2026-10-20, additive) ──────────────
-        # observatory.js renderIdentity() reads data.runtime_identity.* — the
-        # snapshot already carries this (ri); carry it through merged with the
-        # release commits so the F2 panel shows real data, not "source: missing".
+        # ── Observatory wiring (class A, 2026-10-20, additive; 2026-11-02 F2 provenance)
+        # observatory.js renderIdentity() reads data.runtime_identity.* — preserve
+        # full provenance envelopes instead of stripping with pf_value().
+        # source_commit: deployed binary source identity
+        # workspace_source_commit: /root/arifOS working tree checkout HEAD
         "runtime_identity": {
-            "source_commit": pf_value(ri.get("workspace_source_commit"))
-            or pf_value(ri.get("source_commit"))
-            or short_commit(source, 7),
-            "source_commit_full": source,
-            "deployed_commit": pf_value(ri.get("deployed_commit")) or short_commit(deployed, 7),
-            "build_commit": pf_value(ri.get("build_commit")) or short_commit(build, 7),
-            "drift": drift_obj if drift_obj is not None else alignment,
+            "source_commit": _wrap_identity_field(
+                ri.get("source_commit"),
+                default_val=short_commit(build or deployed, 7),
+                default_src="arifOS/_collect_git_snapshot",
+                observed_at=_ri_obs,
+                default_conf=0.99,
+                evidence_class="observed",
+            ),
+            "source_commit_full": pf_value(ri.get("source_commit")) or build or deployed,
+            "workspace_source_commit": _wrap_identity_field(
+                ri.get("workspace_source_commit"),
+                default_val=short_commit(source, 7),
+                default_src=os.getenv("ARIFOS_SOURCE_REPO", "/root/arifOS"),
+                observed_at=_ri_obs,
+                default_conf=0.99 if source else 0.0,
+                evidence_class="observed",
+            ),
+            "workspace_source_commit_full": source,
+            "workspace_dirty": _wrap_identity_field(
+                ri.get("workspace_dirty"),
+                default_val=workspace_dirty,
+                default_src=f"git status --porcelain ({os.getenv('ARIFOS_SOURCE_REPO', '/root/arifOS')})",
+                observed_at=_ri_obs,
+                default_conf=0.99 if workspace_dirty is not None else 0.0,
+                evidence_class="observed",
+            ),
+            "deployed_commit": _wrap_identity_field(
+                ri.get("deployed_commit"),
+                default_val=short_commit(deployed, 7),
+                default_src="/opt/arifos/app/.git_commit or HEAD",
+                observed_at=_ri_obs,
+                default_conf=0.99 if deployed else 0.0,
+                evidence_class="observed",
+            ),
+            "deployed_commit_full": deployed,
+            "build_commit": _wrap_identity_field(
+                ri.get("build_commit"),
+                default_val=short_commit(build, 7),
+                default_src="BUILD_INFO.build.commit",
+                observed_at=_ri_obs,
+                default_conf=0.99 if build else 0.0,
+                evidence_class="observed",
+            ),
+            "build_commit_full": build,
+            "drift": _drift_envelope,
             # 2026-10-24 333-AGI — "capability: DRIFTED" is an enum with no units, so
             # the page could not say WHAT drifted. It is a coverage statement, not a
             # mismatch: the matrix marks a public verb degraded whenever truth is not
@@ -707,13 +821,41 @@ def project_public_state(
                 "public_tools": public_tools,
                 "read_as": "DRIFTED here means NOT-PROVEN, not declared!=actual",
             },
-            "deployment_mode": pf_value(ri.get("deployment_mode")) or health.get("deployment_mode"),
-            "process_started_at": pf_value(ri.get("process_started_at")),
-            "platform": pf_value(ri.get("platform")),
-            "kernel_epoch": pf_value(ri.get("kernel_epoch")),
-            "confidence": ri.get("confidence"),
+            "deployment_mode": _wrap_identity_field(
+                ri.get("deployment_mode"),
+                default_val=health.get("deployment_mode", "container"),
+                default_src="Container/Path-probe",
+                observed_at=_ri_obs,
+                default_conf=0.85,
+                evidence_class="reported",
+            ),
+            "process_started_at": _wrap_identity_field(
+                ri.get("process_started_at"),
+                default_val=None,
+                default_src="psutil.Process(arifOS).create_time (preferred) → /proc/stat btime fallback",
+                observed_at=_ri_obs,
+                default_conf=0.85,
+                evidence_class="observed",
+            ),
+            "platform": _wrap_identity_field(
+                ri.get("platform"),
+                default_val=None,
+                default_src="platform.platform",
+                observed_at=_ri_obs,
+                default_conf=0.99,
+                evidence_class="observed",
+            ),
+            "kernel_epoch": _wrap_identity_field(
+                ri.get("kernel_epoch"),
+                default_val=None,
+                default_src="BUILD_INFO.protocol_version",
+                observed_at=_ri_obs,
+                default_conf=0.85,
+                evidence_class="reported",
+            ),
+            "confidence": ri.get("confidence", 0.99),
             "source": "snapshot.runtime_identity+release",
-            "observed_at": snap.get("observed_at"),
+            "observed_at": _ri_obs,
         },
         # ── Footer signature (P1, additive): observatory.js footer reads
         # data.signature.{algorithm,key_id,payload_hash,signed_at} and derives
@@ -776,17 +918,35 @@ def project_public_state(
             "held": extra.get("fleet_held"),
             "held_actors": extra.get("fleet_held_actors") or [],
             "reason": extra.get("fleet_held_reason"),
+            "scope": "6 core organs (arifos, geox, wealth, well, aforge, aaa)",
             "source": "ariflow:7073/health :: fq.per_actor",
             "observed_at": extra.get("ariflow_observed_at"),
+            "verification_state": "VERIFIED" if extra.get("fleet_held") is not None else "NOT_ATTEMPTED",
         },
         "ariflow": {
             "fq_quotient": extra.get("ariflow_fq_quotient"),
             "fq_verdict": extra.get("ariflow_fq_verdict"),
             "execute_count": extra.get("ariflow_execute_count"),
             "verify_count": extra.get("ariflow_verify_count"),
-            "receipts": extra.get("ariflow_receipts"),
+            "receipts": {
+                "value": extra.get("ariflow_receipts"),
+                "state": "observed" if extra.get("ariflow_receipts") is not None else "unknown",
+                "source": "GET 127.0.0.1:7073/health→receipts",
+                "observed_at": extra.get("ariflow_observed_at"),
+                "confidence": 0.9 if extra.get("ariflow_receipts") is not None else 0.0,
+                "evidence_class": "observed",
+                "verification_state": "NOT_ATTEMPTED",
+            },
+            "status": {
+                "value": extra.get("ariflow_status"),
+                "state": "healthy" if extra.get("ariflow_status") == "ok-v3-vector" else ("unknown" if not extra.get("ariflow_status") else "degraded"),
+                "source": "GET 127.0.0.1:7073/health→status",
+                "observed_at": extra.get("ariflow_observed_at"),
+                "confidence": 0.9 if extra.get("ariflow_status") else 0.0,
+                "evidence_class": "observed",
+                "verification_state": "VERIFIED" if extra.get("ariflow_status") == "ok-v3-vector" else "NOT_ATTEMPTED",
+            },
             "uptime_ms": extra.get("ariflow_uptime_ms"),
-            "status": extra.get("ariflow_status"),  # P0-A
             "source": extra.get("ariflow_source", "ariflow:7073/health"),
             "observed_at": extra.get("ariflow_observed_at"),
         },
@@ -833,6 +993,12 @@ def project_public_state(
             "observed_at": extra.get("chain_observed_at"),
             "source": extra.get("chain_source", "/api/observatory/v1/seal/verify"),
         },
+        # ── Evidence + receipts (2026-11-08): carry the snapshot's envelopes
+        # into public-state so the Observatory vault block reads the same
+        # sources/chain as the signed snapshot instead of rendering 0/unavailable.
+        "evidence": snap.get("evidence"),
+        "receipts": snap.get("receipts"),
+
         # ── Kernel canonical verdict (T1.6): the actual nine-signal verdict
         # (BELUM_SAH / SYUBHAH / SABAR / SEAL / HOLD) — never the parser's
         # 'UNKNOWN' fallback, which would render as false-green HOLD.
@@ -922,8 +1088,18 @@ def project_public_state(
             "chain_verified": pf_value(receipts.get("chain_verified")),
             "replay_verified": pf_value(receipts.get("replay_verified")),
             "vault_status": (
-                receipts.get("VAULT999")
-                or ("HEALTHY" if verify is True else "DEGRADED" if verify is False else "UNKNOWN")
+                "DEGRADED"
+                if (
+                    "gap" in str(pf_value(receipts.get("chain_status")) or "").lower()
+                    or (
+                        isinstance(pf_value(receipts.get("unlinked_seal_entries")), int)
+                        and pf_value(receipts.get("unlinked_seal_entries")) > 0
+                    )
+                )
+                else (
+                    receipts.get("VAULT999")
+                    or ("HEALTHY" if verify is True else "DEGRADED" if verify is False else "UNKNOWN")
+                )
             ),
             "verify_url": "https://arif-fazil.com/999/",
         },
@@ -1286,6 +1462,7 @@ def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, 
         # governance / receipt / contract signals — whitelisted through so the
         # contract wire can emit sourced records instead of honest-null.
         "probe_status_code": row.get("probe_status_code"),
+        "health_status": row.get("health_status"),
         "governance_evidence": row.get("governance_evidence"),
         "receipt_evidence": row.get("receipt_evidence"),
         "contract_evidence": row.get("contract_evidence"),
@@ -1695,24 +1872,43 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
     rb = state.get("receipt") if isinstance(state.get("receipt"), dict) else {}
     if not rb:
         return
-    chain_ok = bool(rb.get("chain_verified"))
+    raw_receipts = state.get("receipts") if isinstance(state.get("receipts"), dict) else {}
+    raw_chain = raw_receipts.get("chain_status")
+    if isinstance(raw_chain, dict):
+        raw_chain_text = str(raw_chain.get("value") or "")
+    else:
+        raw_chain_text = str(raw_chain or "")
+    unlinked_cell = raw_receipts.get("unlinked_seal_entries")
+    unlinked_n = unlinked_cell.get("value") if isinstance(unlinked_cell, dict) else unlinked_cell
+    gaps_open = "gap" in raw_chain_text.lower() or (
+        isinstance(unlinked_n, int) and unlinked_n > 0
+    )
+    chain_ok = bool(rb.get("chain_verified")) and not gaps_open
     # 2026-10-24 333-AGI: the chip previously read "canonical UNKNOWN · head_seq 73"
     # — a status that was never measured plus a COUNT wearing a sequence label.
     # Publish the measured sequence, the entry count under its own name, and the
     # canonical-scope verdict (CLASSIFIED_GAPS:n when a gap exists).
+    # 2026-11-11: canonical-scope VERIFIED must not paint the chip healthy while
+    # the full walk says gaps-found. Replay here means the file parsed.
     _seq = rb.get("head_sequence")
     _cnt = rb.get("canonical_entry_count")
     _entries = f" · entries {_cnt}" if _cnt is not None else ""
+    _replay = "parsed" if rb.get("replay_verified") else "unparsed"
+    _gap_clause = f" · full {raw_chain_text}" if raw_chain_text else ""
     flow["chain_status"] = {
         "value": (
             f"canonical {rb.get('canonical_status') or 'UNKNOWN'}"
             f" · head_seq {_seq}"
             f"{_entries}"
-            f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+            f" · replay {_replay}"
+            f"{_gap_clause}"
         ),
-        "state": "healthy" if chain_ok else "unknown",
+        "state": "degraded" if gaps_open else ("healthy" if chain_ok else "unknown"),
         "source": "vault receipt census",
-        "confidence": None,
+        "confidence": 0.85 if chain_ok else 0.5,
+        "observed_at": flow.get("observed_at"),
+        "evidence_class": "observed",
+        "verification_state": "UNVERIFIED" if gaps_open or not chain_ok else "VERIFIED",
     }
     gov = state.get("governance")
     if isinstance(gov, dict):
@@ -1722,9 +1918,10 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
                 f" · canonical {rb.get('canonical_status') or 'UNKNOWN'}"
                 f" · head_seq {_seq}"
                 f"{_entries}"
-                f" · replay {'verified' if rb.get('replay_verified') else 'unverified'}"
+                f" · replay {_replay}"
+                + (f" · unlinked {unlinked_n}" if isinstance(unlinked_n, int) else "")
             ),
-            "state": "healthy" if chain_ok else "unknown",
+            "state": "degraded" if gaps_open else ("healthy" if chain_ok else "unknown"),
             "source": "vault receipt census (build_public_state receipt block)",
             "confidence": None,
         }

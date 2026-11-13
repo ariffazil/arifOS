@@ -91,23 +91,23 @@ FIRST STEPS FOR AN LLM CLIENT:
      arifos://vitals           — metric thresholds
      arifos://bootstrap        — full knowledge-graph context
      arifos://human/metabolized — compact sovereign context
-     arifos://loop-engineering — 7-stage reality loop
+     arifos://loop-engineering — 13-hook ladder (2026-06-25 7-stage table superseded 2026-11-10)
      arifos://atlas333/index   — 33 human paradoxes, 7 zones
 
-  5. KNOW YOUR PROMPTS (run prompts/list — counts live in arifos://index):
-     000 🌱 IGNITE    — Position Zero sovereign anchor
-     111 🌊 SENSE     — Reality before judgment
-     222 🏛 PLAN      — Design reality change
-     333 🧠 REASON    — Structured reasoning
-     444 🧭 DIRECT    — Route to correct organ
-     555 🗂 REMEMBER  — Memory with provenance
-     666 ⚖ DIGNITY   — Weakest stakeholder position
-     777 🔥 FORGE     — Reality contact before belief
-     888 🔒 JUDGE     — Verdict, not invention
-     999 💎 SEAL      — Immutable record
-     🌀 GOVERN       — Full loop + 4 gates
-     ⚓ INIT         — Collapsed ignition
-     🔐 CLOSE        — Session close ritual
+  5. KNOW YOUR PROMPTS (run prompts/list — wire ids are ASCII slugs):
+     s000_ignite    — identity only
+     s111_sense     — observe
+     s222_plan      — plan
+     s333_reason    — hypotheses
+     s444_direct    — route
+     s555_remember  — memory
+     s666_dignity   — advisory, F6 unmeasured
+     s888_judge     — verdict token
+     s777_forge     — execute after the verdict token
+     s999_seal      — vault append, human ack
+     s_govern       — sequence only
+     s_init         — session ignition, five tools
+     s_close        — close, human ack before the vault append
 
 KEY CONSTITUTIONAL RULES:
   F1  AMANAH    — Reversible first. Irreversible → 888_HOLD.

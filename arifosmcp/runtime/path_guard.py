@@ -2,7 +2,7 @@
 path_guard.py — filesystem containment for URI-path-derived reads.
 
 Forged 2026-09-22 after tracing the 2026-09-15 external report class
-(Syed Anas Mohiuddin): fastmcp matches URI templates *before* percent-decoding,
+(external security report): fastmcp matches URI templates *before* percent-decoding,
 so ``%2F`` / ``%2e%2e`` smuggle ``../`` past a ``[^/]+`` segment guard. Any
 resource that turns a URI path parameter into a filesystem path MUST resolve
 the candidate against its root and refuse anything that escapes it. A bare

@@ -48,6 +48,8 @@ memory/*.db
 memory/*.jsonl
 memory/*.bin
 telemetry/
+# SOURCE module 2026-11-03 (live_metrics.py diimport tools.py:19838)
+!core/telemetry/
 
 # pytest
 .pytest_cache/

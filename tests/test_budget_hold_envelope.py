@@ -1,7 +1,7 @@
 """
 G4 Test — Budget HOLD Envelope Compliance
 ==========================================
-Target: arifosmcp/runtime/floor.py budget HOLD returns
+Target: arifosmcp.runtime.law._get_budget_contract
 Verifies: reasons[], output_policy=DOMAIN_VOID, nine_signal
 """
 
@@ -34,13 +34,17 @@ def mock_get_budget(session_id: str):  # type: ignore[no-untyped-def]
 
 @pytest.fixture(autouse=True)
 def patch_budget_contract():
-    """Patch _get_budget_contract before each test."""
-    import arifosmcp.runtime.floor as _floor_mod
+    """Patch the budget lookup check_laws actually calls.
 
-    _original = _floor_mod._get_budget_contract
-    _floor_mod._get_budget_contract = mock_get_budget
+    It lives on arifosmcp.runtime.law. arifosmcp.runtime.floor is not a
+    module (pytest 2026-11-12: ModuleNotFoundError at setup, 5 errors).
+    """
+    import arifosmcp.runtime.law as _law_mod
+
+    _original = _law_mod._get_budget_contract
+    _law_mod._get_budget_contract = mock_get_budget
     yield
-    _floor_mod._get_budget_contract = _original
+    _law_mod._get_budget_contract = _original
 
 
 def test_budget_turn_hold_has_reasons_plural():

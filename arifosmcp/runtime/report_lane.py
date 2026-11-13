@@ -262,7 +262,8 @@ def inbox(
     since: str | None = None,
     sender: str | None = None,
     kind: str | None = None,
-    limit: int = 20,
+    limit: int = 5,
+    full: bool = False,
     mark_read: bool = False,
     reader: str = "unknown",
     verified_actor: bool = False,
@@ -309,13 +310,13 @@ def inbox(
                 "platform": row.get("platform"),
                 "kind": row.get("kind"),
                 "subject": row.get("subject"),
-                "body": (row.get("body") or "")[:1200],
+                "body": (row.get("body") or "")[:(1200 if full else 400)],
                 "thread_id": row.get("thread_id"),
                 "claim_state": row.get("claim_state"),
                 "escalated": row.get("escalated"),
             }
         )
-        if len(out) >= max(1, min(int(limit or 20), 200)):
+        if len(out) >= max(1, min(int(limit or 5), 200)):
             break
 
     latest = rows[-1].get("ts") if rows else since

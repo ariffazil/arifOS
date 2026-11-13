@@ -702,7 +702,7 @@ def peace_squared(stakeholder_harms: dict[str, float]) -> float:
 @dataclass(frozen=True)
 class GeniusDial:
     """
-    F8: Genius Equation: G = (A × P × X × E²) × (1 - h)
+    F8: Genius Equation: G = (A × P × E × X)^(1/4)
 
     A (Akal): Logical Accuracy [0, 1]
     P (Peace): Safety/Stability [0, 1]
@@ -740,9 +740,8 @@ class GeniusDial:
         object.__setattr__(self, "h", max(0.0, min(1.0, self.h)))
 
     def G(self) -> float:
-        """Compute legacy Genius Score with Hysteresis penalty."""
-        base_g = self.A * self.P * self.X * (self.E**2)
-        return base_g * (1.0 - self.h)
+        """Canonical F8 Genius Score (v3): G = (A · P · E · X)^(1/4). No Φ, no H."""
+        return (self.A * self.P * self.X * self.E) ** 0.25
 
     def G_star(self) -> float:
         """APEX Potential: Capacity * Effort."""
@@ -770,7 +769,7 @@ class GeniusDial:
 
 def G(A: float, P: float, X: float, E: float, h: float = 0.0) -> float:
     """
-    F8 Genius Equation: G = (A × P × X × E²) × (1 - h)
+    F8 Genius Equation (v3): G = (A × P × E × X)^(1/4)
     """
     return GeniusDial(A, P, X, E, h).G()
 

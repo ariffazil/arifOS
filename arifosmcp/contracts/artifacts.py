@@ -47,6 +47,10 @@ class Artifact(BaseModel):
     answer_basis: AnswerBasis | None = None
 
     # Audit trail (F1, L11)
+    # 2026-11-05 (F4 defect, sibling report rep-f4795259ff0f): the sole
+    # producer (verdict_wrapper.forge_verdict) emits ISO-8601; no consumer
+    # reads .timestamp arithmetically, so float|str admits both forms
+    # instead of crashing every forge_verdict call with float_parsing.
     creator_id: str
     session_id: str
-    timestamp: float
+    timestamp: float | str

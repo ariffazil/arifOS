@@ -19,6 +19,99 @@ from enum import Enum
 from typing import Any
 from pydantic import BaseModel, Field
 
+# ── Evidence quality v1 (F13 order 2026-11-08) ─────────────────────────────
+# A claim's class is decided by WHAT THE EVIDENCE IS, not by which keys it carries.
+_EVIDENCE_CLASS_RANK = {
+    "MEASURED": 3, "WITNESSED": 3, "DERIVED": 2,
+    "REPORTED": 1, "NARRATIVE": 1,
+    "CONSENSUS": 0, "TRANSPORT": 0, "UNKNOWN": 0,
+}
+_CONSENSUS_KEYS = frozenset({
+    "consensus", "all_agents_agree", "agents_agree", "agent_agreement",
+    "votes", "unanimous", "everyone_agrees",
+})
+_TRANSPORT_KEYS = frozenset({
+    "http_status", "status_code", "response_code", "ok", "http_ok",
+})
+_MEASURE_KEYS = frozenset({
+    "value", "measurement", "reading", "sample", "observation", "assay", "result",
+})
+_RECENCY_KEYS = ("observed_at", "measured_at", "timestamp", "as_of")
+_MIN_SEAL_RANK = 2
+_MAX_EVIDENCE_AGE_DAYS = 90
+
+
+def _has_any(d: dict[str, Any], keys: frozenset[str]) -> bool:
+    return any(k in d for k in keys)
+
+
+def _parse_recency(d: dict[str, Any]):
+    from datetime import UTC, datetime
+    for k in _RECENCY_KEYS:
+        raw = d.get(k)
+        if not raw:
+            continue
+        try:
+            dt = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+            return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
+        except ValueError:
+            continue
+    return None
+
+
+def _classify_one(item: Any) -> tuple[str, str | None, str | None]:
+    if not isinstance(item, dict) or not item:
+        return "UNKNOWN", "EVIDENCE_EMPTY_RULE1", "no evidence"
+    declared = str(item.get("source_class") or "").upper()
+    if declared in _EVIDENCE_CLASS_RANK:
+        return declared, None, f"DECLARED={declared}"
+    if _has_any(item, _CONSENSUS_KEYS) and not _has_any(item, _MEASURE_KEYS):
+        return "CONSENSUS", "CONSENSUS_NOT_AUTHORITY", "agreement is not evidence"
+    if _has_any(item, _TRANSPORT_KEYS) and not _has_any(item, _MEASURE_KEYS):
+        return "TRANSPORT", "TRANSPORT_NOT_GOVERNANCE", "HTTP is not governance"
+    if _has_any(item, _MEASURE_KEYS):
+        return "MEASURED", None, "measurement key present"
+    return "REPORTED", "INSUFFICIENT_EVIDENCE_CLASS", "undeclared class"
+
+
+def classify_evidence(evidence: Any) -> tuple[str, str | None, str | None]:
+    """Return (source_class, reason_code|None, detail|None). None = may seal."""
+    from datetime import UTC, datetime
+
+    items: list[Any]
+    if isinstance(evidence, dict):
+        inner = evidence.get("items")
+        items = inner if isinstance(inner, list) and inner else [evidence]
+    elif isinstance(evidence, list):
+        items = evidence
+    else:
+        items = []
+
+    best: tuple[str, str | None, str | None] | None = None
+    best_item: Any = None
+    for item in items:
+        c, r, d = _classify_one(item)
+        if best is None or _EVIDENCE_CLASS_RANK.get(c, 0) > _EVIDENCE_CLASS_RANK.get(best[0], 0):
+            best = (c, r, d)
+            best_item = item
+    if best is None:
+        best = ("UNKNOWN", "EVIDENCE_EMPTY_RULE1", "no evidence")
+
+    cls, reason, detail = best
+    if _EVIDENCE_CLASS_RANK.get(cls, 0) < _MIN_SEAL_RANK:
+        return cls, reason or "INSUFFICIENT_EVIDENCE_CLASS", detail
+
+    when = _parse_recency(best_item) if isinstance(best_item, dict) else None
+    if when is None:
+        # Undated: do not invent a veto here. The legacy provenance check still runs
+        # at the SEAL surface; staleness only fires when a date exists and is old.
+        return cls, None, "no recency key"
+    age_days = (datetime.now(UTC) - when).days
+    if age_days > _MAX_EVIDENCE_AGE_DAYS:
+        return cls, "STALE_OR_UNDATED_EVIDENCE", f"AGE={age_days}d"
+    return cls, None, f"AGE={age_days}d"
+
+
 
 class EpistemicState(str, Enum):
     """Plane 1: Truth status of the claim or proposition."""
@@ -183,7 +276,7 @@ def evaluate_four_planes(
         else:
             authority_state = AuthorityState.OBSERVE_ONLY
 
-    # 2. Epistemic Plane
+    # 2. Epistemic Plane (evidence quality v1, F13 2026-11-08)
     has_unknown = False
     has_refuted = False
     has_conflicting = False
@@ -207,11 +300,22 @@ def evaluate_four_planes(
             if "CONFLICTING" in st:
                 has_conflicting = True
 
+    # Content-derived class: consensus/transport cannot be promoted by key names,
+    # and a real measurement without a source key is still a real measurement.
+    _quality_class, _quality_reason, _quality_detail = classify_evidence(evidence)
+
     if has_refuted:
         epistemic_state = EpistemicState.REFUTED
     elif has_conflicting:
         epistemic_state = EpistemicState.CONFLICTING
-    elif has_unknown or evidence_count == 0:
+    elif has_unknown or _quality_reason in (
+        "CONSENSUS_NOT_AUTHORITY",
+        "TRANSPORT_NOT_GOVERNANCE",
+        "STALE_OR_UNDATED_EVIDENCE",
+        "EVIDENCE_EMPTY_RULE1",
+    ):
+        epistemic_state = EpistemicState.INSUFFICIENT
+    elif evidence_count == 0:
         epistemic_state = EpistemicState.INSUFFICIENT
     else:
         epistemic_state = EpistemicState.SUPPORTED
@@ -264,6 +368,8 @@ def evaluate_four_planes(
             }
         else:
             verdict = ConstitutionalVerdict.SABAR if epistemic_state == EpistemicState.INSUFFICIENT else ConstitutionalVerdict.SEAL
+            if epistemic_state == EpistemicState.INSUFFICIENT and _quality_reason:
+                remediation_data["blocking_conditions"] = [_quality_reason]
             if current_verdict:
                 try:
                     verdict = ConstitutionalVerdict(current_verdict)
@@ -295,6 +401,8 @@ def evaluate_four_planes(
                     verdict = ConstitutionalVerdict.HOLD
             else:
                 verdict = ConstitutionalVerdict.SEAL if (epistemic_state == EpistemicState.SUPPORTED and authority_state == AuthorityState.AUTHORIZED) else ConstitutionalVerdict.HOLD
+                if verdict == ConstitutionalVerdict.HOLD and _quality_reason:
+                    remediation_data["blocking_conditions"] = [_quality_reason]
 
     return (
         epistemic_state.value,

@@ -148,6 +148,10 @@ ln -sf "$RECEIPT_FILE" "$RECEIPTS_DIR/latest.json" || cp -f "$RECEIPT_FILE" "$RE
 log "Deploy receipt recorded: commit=${COMMIT_SHA:0:12} branch=$BRANCH"
 
 # ── Update deployment commit stamps (SOT parity) ───────────────────────────
+if [[ -r "$SRC/scripts/immutability_cycle.sh" ]]; then
+    source "$SRC/scripts/immutability_cycle.sh"
+    immutability_unlock "/opt/arifos/app/.git_commit" "$SRC/.git_commit"
+fi
 echo -n "${COMMIT_SHA:0:7}" > /opt/arifos/releases/deployed-commit
 echo -n "$COMMIT_SHA" > /opt/arifos/app/.git_commit
 echo -n "$COMMIT_SHA" > "$SRC/.git_commit"

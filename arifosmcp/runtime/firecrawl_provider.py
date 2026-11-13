@@ -16,7 +16,7 @@ from .result_normalizer import NormalizedResult
 logger = logging.getLogger(__name__)
 
 FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY", "")
-FIRECRAWL_BASE_URL = "https://api.firecrawl.dev/v0"
+FIRECRAWL_BASE_URL = "https://api.firecrawl.dev/v2"
 
 
 @dataclass
@@ -65,7 +65,11 @@ class FirecrawlProvider:
                 if resp.status_code != 200:
                     return None
                 data = resp.json()
-                return self._normalize_response(data, url)
+                inner = data.get("data") if isinstance(data, dict) else None
+                page = inner if isinstance(inner, dict) else data
+                if not isinstance(page, dict):
+                    return None
+                return self._normalize_response(page, url)
         except Exception as e:
             logger.error(f"Firecrawl scrape failed for {url}: {e}")
             return None
@@ -86,24 +90,42 @@ class FirecrawlProvider:
                 if resp.status_code != 200:
                     return []
                 data = resp.json()
+                payload = data.get("data") if isinstance(data, dict) else None
+                web = payload.get("web", []) if isinstance(payload, dict) else []
+                if not isinstance(web, list):
+                    return []
                 return [
                     self._normalize_response(item, item.get("url", ""))
-                    for item in data.get("data", [])[:limit]
-                    if item.get("url")
+                    for item in web[:limit]
+                    if isinstance(item, dict) and item.get("url")
                 ]
         except Exception as e:
             logger.error(f"Firecrawl search failed: {e}")
             return []
 
     def _normalize_response(self, data: dict[str, Any], original_url: str) -> NormalizedResult:
+        metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
+        content = data.get("content") or data.get("markdown") or ""
+        if not isinstance(content, str):
+            content = ""
+        title = data.get("title") or metadata.get("title") or ""
+        description = data.get("description") or metadata.get("description") or ""
+        if isinstance(title, list):
+            title = title[0] if title else ""
+        if isinstance(description, list):
+            description = description[0] if description else ""
+        if not isinstance(title, str):
+            title = ""
+        if not isinstance(description, str):
+            description = ""
         return NormalizedResult(
-            url=data.get("metadata", {}).get("ogUrl", original_url) or original_url,
-            title=data.get("title", "") or data.get("metadata", {}).get("title", ""),
-            snippet=data.get("description", "") or (data.get("content", "") or "")[:300],
+            url=metadata.get("ogUrl") or metadata.get("url") or original_url,
+            title=title,
+            snippet=description or content[:300],
             source="firecrawl",
             score=0.8,
             published_date=None,
             author=data.get("author"),
             provider_type="firecrawl",
-            extra={"raw_content": (data.get("content") or "")[:1000]},
+            extra={"raw_content": content[:1000]},
         )

@@ -20,4 +20,4 @@ security-audit:
 		echo "No changed Python files; skipping ruff." >> /tmp/af_audit_output.txt; \
 	fi
 	@cat /tmp/af_audit_output.txt | python3 /root/arifOS/scripts/audit_parser.py || true
-	@rm -f /tmp/af_audit_output.txt
+	@mkdir -p /var/log/arifos/audit && mv /tmp/af_audit_output.txt /var/log/arifos/audit/audit-$$(date -u +%Y%m%dT%H%M%SZ).txt

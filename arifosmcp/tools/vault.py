@@ -11,6 +11,7 @@ Contains:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import hashlib
@@ -1109,7 +1110,15 @@ async def arif_seal(
     except Exception:
         pass  # Reality anchor must never block seal
 
-    result = _arif_vault_seal(
+    # P0 event-loop fix (FI-008 2026-11-13): _arif_vault_seal walks ledger
+    # files synchronously (1.9 MB SEALED_EVENTS.jsonl and friends). Under
+    # hypervisor steal-time this measured 13.2 s of event-loop lag
+    # (lag_ms=13164, journalctl 13:16:38), cascading into
+    # concurrency-limit rejections and 'No response returned' 503 bursts.
+    # Offload to a worker thread: fail-closed semantics unchanged, only
+    # scheduling moved off the loop.
+    result = await asyncio.to_thread(
+        _arif_vault_seal,
         mode=mode,
         payload=_seal_payload,
         session_id=session_id,
@@ -1400,6 +1409,48 @@ async def arif_seal(
                 "note": "Index failure is non-fatal — Layer 3 is rebuildable from DAG.",
             }
 
+    def _f6_log_emit_failure(_exc=None):
+        """F6 seam closure P2 (F13 SEAL 2026-11-11, plan c2f5a175): bounded
+        operational evidence for Maruah emission failure. Logs error CLASS +
+        decision-id prefix ONLY — never payload, never secrets (test H)."""
+        try:
+            import logging as _f6lg
+            _f6lg.getLogger("arifos.f6").error(
+                "maruah_emit_failed decision_id=%s tool=arif_seal err=%s",
+                str(result.get("entry_id", ""))[:64],
+                type(_exc).__name__ if _exc is not None else "returned_error",
+            )
+        except Exception:
+            pass
+
+    # ── F6 MARUAH Tier-3 emitter (ARIF GO 2026-11-05) ───────────────────────
+    # Every successful VAULT999 append is an irreversible event. Emitted
+    # non-fatally AFTER the seal; M3 measures restatement evidence from these
+    # rows. Never fabricated retroactively.
+    if result.get("verdict") == "SEAL":
+        try:
+            from arifosmcp.runtime.f6.meters import emit_tier3_maruah_event as _f6_emit
+
+            _f6_emit_result = _f6_emit(
+                decision_id=str(result.get("entry_id", "")),
+                tool_name="arif_seal",
+                blast_radius=blast_radius,
+                ack_irreversible=bool(ack_irreversible),
+                witness_type=witness_type,
+                mode=str(mode),
+            )
+            result["meta"] = result.get("meta", {})
+            result["meta"]["f6_maruah_event"] = _f6_emit_result
+            if isinstance(_f6_emit_result, dict) and _f6_emit_result.get("emitted") is False:
+                # non-fatal must never be invisible
+                _f6_log_emit_failure()
+                result["meta"]["f6_incomplete_transition"] = True
+        except Exception as _f6_exc:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["f6_maruah_event"] = {"emitted": False, "error": str(_f6_exc)[:200]}
+            _f6_log_emit_failure(_f6_exc)
+            result["meta"]["f6_incomplete_transition"] = True
+
     # ── EUREKA Phase 5: session_close post-hook — git commit + push ──────────
     # Targets arifOS + AAA only (never bare /root). Non-fatal on push failure.
     if _is_session_close:
@@ -1588,3 +1639,10 @@ def arif_vault_verify(
 
 # Backward compatibility alias
 arif_vault_seal = arif_seal
+
+
+# S3c (PLAN-2026-11-10-Q1, ARIF GO S3c): OS-1 canary — dry-run receipt
+# emission on arif_seal outcomes (env-gated, default off, zero ingest).
+from arifosmcp.runtime.os1_canary import wrap_mutate_verbs as _os1_wrap_mutate
+
+arif_seal = _os1_wrap_mutate(arif_seal)

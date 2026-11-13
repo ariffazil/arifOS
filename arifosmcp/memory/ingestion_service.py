@@ -78,15 +78,6 @@ class MemoryIngestionService:
             candidate.hash = self._compute_hash(candidate.content)
 
             # 3. Policy Evaluation
-            # TODO(HUMAN_RASA G2 — NOT WIRED BY DESIGN): consent_level is copied
-            # into the MemoryRecord below but never checked against a purpose-
-            # scoped consent grant. When ARIF approves the wiring, evaluate here
-            # via the READ-ONLY ledger reader:
-            #   consent_ledger.check_consent_from_ledger(scope_id, want_use=True,
-            #       requested_purpose=..., requested_modality=..., source_verified=True)
-            # and fail closed (UNKNOWN, never ALLOW) on any missing dependency.
-            # Blocked on sovereign decision: ledger file location + writer of
-            # record (env var NAME only: ARIFOS_CONSENT_LEDGER_PATH).
             actor_role = ctx.get("actor_role", "user")
             allowed, reason, score = self.policy_engine.evaluate(candidate, actor_role, ctx)
 

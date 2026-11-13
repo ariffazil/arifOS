@@ -164,11 +164,16 @@ class VerifyStatus(StrEnum):
 # structural classes (missing-fields / corrupt-line / epoch-reset) carry no
 # hash pair and match on class + line_no only — still never a blanket skip.
 _ANNOTATION_LINK_CLASSES = frozenset({GapClass.CHAIN_BREAK, GapClass.HISTORICAL_LINK_GAP})
+# S1c 2026-11-10 (PLAN-2026-11-10-Q1, ARIF GO S1c): canonical-era defect
+# classes join the structural family — a signature/hash defect is pinned to
+# one row; class + line_no matching, hash-pair never required, blanket never.
 _ANNOTATION_STRUCTURAL_CLASSES = frozenset(
     {
         GapClass.HISTORICAL_MISSING_FIELDS,
         GapClass.HISTORICAL_CORRUPT_LINE,
         GapClass.EPOCH_RESET,
+        GapClass.SIGNATURE_FAIL,
+        GapClass.HASH_MISMATCH,
     }
 )
 _ANNOTATION_CONSUMABLE_CLASSES = _ANNOTATION_LINK_CLASSES | _ANNOTATION_STRUCTURAL_CLASSES
@@ -255,6 +260,26 @@ class ReceiptEnvelope:
             self.actor = self.actor_id
         # PACKET C: derived, never caller-supplied — the writer computes sha256.
         self.chain_hash_alg = "sha256"
+
+        # ── OUT_OF_BAND_APPEND guard (seq 43 defect, F13 2026-10-24; deployed
+        # 2026-11-03 per F13 word "deploy guard seq43 dulu") ─────────────────
+        # An envelope whose operation_id is a prefix of its own receipt_hash
+        # can only have been assembled with the digest computed BEFORE
+        # operation_id was set. The stored body then can never reproduce the
+        # stored hash (verify_chain reports HASH_MISMATCH). Refuse to build
+        # the object so the malformed row cannot be appended — including by
+        # a caller that bypasses append_receipt's assembly order. Coexists
+        # with PACKET C chain_hash_alg (ratified 2026-10-30) — orthogonal.
+        _op = str(self.operation_id or "").strip()
+        _rh = str(self.receipt_hash or "").strip()
+        if _op and _rh:
+            _rh_bare = _rh[7:] if _rh.startswith("sha256:") else _rh
+            if _rh_bare.startswith(_op):
+                raise ValueError(
+                    "OUT_OF_BAND_APPEND: operation_id is a prefix of its own "
+                    "receipt_hash (digest computed before operation_id was set)"
+                    " — envelope refused"
+                )
 
     def to_wire(self) -> dict[str, Any]:
         d = asdict(self)

@@ -10,6 +10,7 @@
       "type": "string",
       "enum": [
         "reason",
+        "critique",
         "reflect",
         "verify",
         "axioms",

@@ -2,23 +2,38 @@
   "project": "arifOS",
   "protocol": "MCP",
   "spec_version": "2025-11-25",
-  "runner_version": "internal-conformance-v1",
-  "commit": "7fb6b9b5d39d3181626adc47a2629d939dc823ec",
-  "generated_at": "2026-09-15T16:16:16Z",
+  "runner_version": "internal-conformance-v2",
+  "commit": "a7ebba153",
+  "generated_at": "2026-11-10T07:15:00Z",
   "result": "PARTIAL",
   "tests": {
     "transport_parse": "PASS",
     "jsonrpc_handshake": "PASS",
     "registry_compliance": "PASS",
     "abi_drift_guard": "PASS",
-    "per_tool_schema_validation": "DEFERRED"
+    "per_tool_input_schema_validation": "PASS",
+    "runtime_invalid_input_rejection": "PASS",
+    "output_schema_validation": "DEFERRED",
+    "a2a_streaming_conformance": "DEFERRED"
   },
+  "tools_validated": [
+    "arif_init",
+    "arif_observe",
+    "arif_think",
+    "arif_route",
+    "arif_memory",
+    "arif_judge",
+    "arif_forge",
+    "arif_seal",
+    "arif_report"
+  ],
+  "schema_spec": "JSON Schema Draft 2020-12",
   "limitations": [
-    "Results not published externally — CI artifact only",
-    "Per-tool schema validation deferred",
+    "Results published internally in repo and live observatory",
+    "Output schema validation deferred",
     "A2A conformance not tested (SSE streaming P2)"
   ],
   "ci_workflow": ".github/workflows/06-mcp-conformance.yml",
   "abi_workflow": ".github/workflows/federation-abi-conformance.yml",
-  "notes": "Generated as part of gap closure on 2026-09-16. This is an internal evidence artifact — not an external audit."
+  "notes": "9/9 tool input schemas validated against Draft 2020-12; runtime negative input type rejection verified on wire."
 }

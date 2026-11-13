@@ -162,7 +162,7 @@ Mode:         polling
 DM Policy:    pairing
 Group Policy: open
 Streaming:    partial
-Token:        8697661462:AAHo_UP0LzKAuM1zBTitFVRm6PDIMASVBtQ
+Token:        <REVOKED-PENDING-BOTFATHER 2026-11-02 — old value was public on github/main; rotate via BotFather, record new value OUTSIDE git>
 Last In:      8m ago
 ```
 

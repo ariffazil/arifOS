@@ -502,9 +502,21 @@ class F6ConsentAndRelevanceTests(unittest.TestCase):
 
             m3_none = evaluate_meter_3_comprehension()
             self.assertEqual(m3_none.result, "UNKNOWN")
-            m4_none = evaluate_meter_4_false_urgency_flattery()
+            # ARIF GO 2026-11-05: the M4 sign-off store is live in
+            # production. This test targets the gate-closed branch, so it
+            # must point at absent stores explicitly.
+            _absent_signoff = Path(tmp) / "missing_signoff.json"
+            _absent_corpus = Path(tmp) / "missing_corpus.jsonl"
+            m4_none = evaluate_meter_4_false_urgency_flattery(
+                signoff_path=_absent_signoff, corpus_path=_absent_corpus
+            )
             self.assertEqual(m4_none.result, "UNKNOWN")
-            self.assertEqual(evaluate_meter_5_false_urgency_flattery().result, "UNKNOWN")
+            self.assertEqual(
+                evaluate_meter_5_false_urgency_flattery(
+                    signoff_path=_absent_signoff, corpus_path=_absent_corpus
+                ).result,
+                "UNKNOWN",
+            )
 
             bad_corr = Path(tmp) / "bad_corr.jsonl"
             bad_corr.mkdir()

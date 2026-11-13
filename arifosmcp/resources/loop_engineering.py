@@ -1,13 +1,14 @@
 """
-arifos://loop-engineering — 7-Stage Reality Engineering Loop
+arifos://loop-engineering — 13-Hook Governed Prompt Ladder
 ══════════════════════════════════════════════════════════════
 
 DITEMPA BUKAN DIBERI — Reality is forged, not given.
 
-This resource documents the 7-stage reality engineering loop as implemented
-in CANONICAL_PROMPTS. Every stage carries a dual name (K1):
-  - External function name: arifosmcp_{name} — for MCP prompt surface
-  - Internal numeric ID: NNN_name — for stage ordering and routing
+This resource documents the live 13-hook prompt ladder.
+The 2026-06-25 7-stage table is superseded as of 2026-11-10.
+Wire ids are ASCII slugs. Stage keys stay numeric.
+Run order puts s888_judge before s777_forge.
+s666_dignity is advisory while F6 is unmeasured.
 
 K2 Epistemic Tags (7-tag system):
   OBSERVED | DERIVED | CLAIM | PLAUSIBLE | HYPOTHESIS | ESTIMATE | UNKNOWN
@@ -16,9 +17,9 @@ K3 Uncertainty Substrate (quantum-physics-inspired, NOT literal):
   superposition → N≥3 competing hypotheses held simultaneously
   interference  → evidence weights cancel/damplify
   decoherence  → contradiction scan eliminates incompatible hypotheses
-  collapse     → 555_JUDGE verdict (SEAL/SABAR/HOLD/VOID)
-  irreversibility → 777_FORGE committed execution
-  ledger       → 999_SEAL to VAULT999
+  collapse        → s888_judge verdict token (SEAL/SABAR/HOLD/VOID). Not a vault write.
+  irreversibility → s777_forge runs after that verdict token
+  ledger          → s999_seal vault append, human ack required
 
 APEX THEORY:
   A — Abservation: witness reality as it IS
@@ -37,7 +38,7 @@ LOOP_ENGINEERING_TEXT = """\
 resource_class: constitution
 authority_level: SOVEREIGN_CANON
 owner: ARIF_FAZIL
-version: 2026.06.25
+version: 2026.11.10
 mutation_allowed: false
 requires_actor_verified: false
 requires_session: false
@@ -45,30 +46,31 @@ lease_required: false
 blast_radius: LOW
 evidence_level: CANONICAL
 staleness_policy: fail_closed
-last_attested: 2026-06-25T00:00:00Z
+last_attested: 2026-11-10T04:17:00Z
 truth_level: 1
 ---end_arifos_meta
 
-arifOS 7-Stage Reality Engineering Loop
+arifOS 13-Hook Governed Prompt Ladder
 ═══════════════════════════════════════
 
-THE 7 STAGES (dual-naming per K1):
-┌────────┬──────────────────────────┬──────────────────────────────────┐
-│ Stage  │ Function Name (MCP)      │ Purpose                          │
-├────────┼──────────────────────────┼──────────────────────────────────┤
-│ 000    │ arifosmcp_loop_engineer  │ Entry guard — intent classifier  │
-│ 000    │ arifosmcp_000_init       │ Anchor identity, frame reality   │
-│ 111    │ arifosmcp_111_sense      │ Observe reality as it IS         │
-│ 333    │ arifosmcp_333_reason      │ Extract principles, design change│
-│ 555    │ arifosmcp_555_judge      │ Constitutional verdict            │
-│ 666    │ arifosmcp_666_critique    │ Consequence scan, dignity check  │
-│ 777    │ arifosmcp_777_forge       │ Execute, verify, rollback        │
-│ 999    │ arifosmcp_999_seal        │ Immutable record, close loop     │
-└────────┴──────────────────────────┴──────────────────────────────────┘
+LIVE 13-HOOK LADDER (wire id, run order):
+  s_govern       sequence only; this prompt does not enforce gates
+  s_init         session ignition, five tools
+  s000_ignite    identity only
+  s111_sense     observe
+  s222_plan      plan
+  s333_reason    hypotheses
+  s444_direct    route
+  s555_remember  memory
+  s666_dignity   advisory while F6 is unmeasured
+  s888_judge     verdict token
+  s777_forge     execute after the verdict token
+  s999_seal      vault append, human ack required
+  s_close        close; vault append waits for a human ack
 
-STAGE HANDSHAKE (each stage receives full prior record, appends its layer):
-  000 → 111 → 333 → 555 → 666 → 777 → 999
-  No stage may be skipped. No stage modifies prior output.
+Registration order still lists s777_forge before s888_judge.
+Run order is judge, then forge.
+arif_report coordinates and is not a stage.
 
 ORGAN ROUTING TABLE:
   "Should we do this?"              → arifOS (arif_judge)
@@ -116,9 +118,9 @@ UNCERTAINTY SUBSTRATE (quantum-physics-inspired, NOT literal quantum):
   decoherence     → contradiction scan eliminates incompatible hypotheses
   entanglement     → organs share state via NATS — correlated decisions
   tunneling       → bounded non-determinism — APPROVE despite low probability
-  collapse        → 555_JUDGE verdict = SEAL | SABAR | HOLD | VOID
-  irreversibility → 777_FORGE committed state change
-  ledger          → 999_SEAL to VAULT999 (append-only)
+  collapse        → s888_judge verdict token (SEAL/SABAR/HOLD/VOID). Not a vault write.
+  irreversibility → s777_forge runs after that verdict token
+  ledger          → s999_seal vault append, human ack required
 
 ANTI-HANTU GUARD (F9):
   C_dark < 0.30 for any SEAL-grade output.
@@ -130,18 +132,16 @@ DITEMPA BUKAN DIBERI — Reality is forged, not given.
 
 
 def register_loop_engineering(mcp: FastMCP) -> list[str]:
-    """Register arifos://loop-engineering — 7-stage reality engineering loop documentation."""
+    """Register arifos://loop-engineering — 13-hook governed prompt ladder."""
     resource = TextResource(
         uri="arifos://loop-engineering",
-        name="7-Stage Reality Engineering Loop",
+        name="13-Hook Governed Prompt Ladder",
         description=(
-            "Documents the arifOS 7-stage reality engineering loop: "
-            "arifosmcp_loop_engineer (entry guard) + 000_init/111_sense/333_reason/"
-            "555_judge/666_critique/777_forge/999_seal. "
-            "Each stage has dual naming (K1: numeric internal ID + function name). "
-            "Includes organ routing table, reversibility classification, blast radius, "
-            "evidence truth hierarchy, and uncertainty substrate mapping. "
-            "MCP prompt surface is at arifosmcp_prompts module."
+            "13-hook governed prompt ladder. The 2026-06-25 7-stage table is superseded "
+            "as of 2026-11-10. Run order puts s888_judge before s777_forge. "
+            "s666_dignity is advisory while F6 is unmeasured. "
+            "Includes organ routing, reversibility, blast radius, evidence ranks, "
+            "and the uncertainty substrate. Verdict token and vault write are different."
         ),
         text=LOOP_ENGINEERING_TEXT,
         tags={"resource", "loop-engineering", "reality-engineering", "stages", "governance"},

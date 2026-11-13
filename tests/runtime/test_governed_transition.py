@@ -57,6 +57,7 @@ from arifosmcp.contracts.governed_transition import (
     GovernedTransition,
     LegacySealProjection,
     FORMULA_VERSION_REGISTRY,
+    CANONICAL_FORMULA_KEY,
     assert_jacobian_non_authority,
 )
 
@@ -348,7 +349,11 @@ def test_formula_version_registry():
     assert "apex-g-v2-runtime" in FORMULA_VERSION_REGISTRY
     assert "apex-g-v3-proposed" in FORMULA_VERSION_REGISTRY
     assert FORMULA_VERSION_REGISTRY["apex-g-v2-runtime"]["formula"] == "A * P * E * X * Phi"
-    assert FORMULA_VERSION_REGISTRY["apex-g-v3-proposed"]["status"] == "CANONICAL_CANDIDATE"
+    # Reconciled 2026-11-02 (ADR-015 follow-up): runtime already runs V3;
+    # registry narrative must match observed reality.
+    assert FORMULA_VERSION_REGISTRY["apex-g-v2-runtime"]["status"] == "DEPRECATED_OBSERVED"
+    assert FORMULA_VERSION_REGISTRY["apex-g-v3-proposed"]["status"] == "CANONICAL_ACTIVE"
+    assert CANONICAL_FORMULA_KEY == "apex-g-v3-proposed"
 
 
 # ── Test 22: Jacobian Non-Authority Invariant ────────────────────────────────
