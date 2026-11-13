@@ -72,6 +72,11 @@ jobs:
           # because the routing contract is about commits that carry intent.
 
           declare -a FAILED=()
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            COMMIT_RANGE="${{ github.event.before }}..${{ github.event.after }}"
+          else
+            COMMIT_RANGE="origin/main..HEAD"
+          fi
           while IFS= read -r sha; do
             [ -z "$sha" ] && continue
             body=$(git log -1 --format='%B' "$sha")
@@ -88,7 +93,7 @@ jobs:
                 echo "✅ Commit $sha: REPO=$DECLARED ✓"
               fi
             fi
-          done < <(git rev-list --no-merges origin/main..HEAD 2>/dev/null || git rev-list --no-merges HEAD)
+          done < <(git rev-list --no-merges "$COMMIT_RANGE" 2>/dev/null || git rev-list --no-merges HEAD)
 
           if [ ${#FAILED[@]} -gt 0 ]; then
             echo ""
