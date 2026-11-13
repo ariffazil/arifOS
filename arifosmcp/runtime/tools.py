@@ -11090,6 +11090,7 @@ def _arif_session_init(
     auth_context: dict[str, Any] | None = None,
     #   T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP+registry promotion channel.
     #   Caller-supplied; cross-checked against DID registry before elevation.
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap — three-phase binding.
@@ -11137,6 +11138,16 @@ def _arif_session_init(
       constitution, and session_verdict. Phase 1 only produces a provisional
       receipt; Phase 3 produces the full STABLE/DEGRADED_* receipt.
     """
+    # T1 (F2 TRUTH 2026-11-13): reject unknown parameters — a caller who sends
+    # a field this surface does not accept must learn it was ignored (never a
+    # silent drop). **kwargs is the catch-all that FastMCP's open schema lets
+    # through; the handler refuses it here.
+    if kwargs:
+        return {
+            "status": "error",
+            "tool": "arif_init",
+            "meta": {"reason": f"unknown parameter(s): {', '.join(sorted(kwargs.keys()))}"},
+        }
     # ── PRE-SESSION LANE DISPATCHER (Ω-PATCH 2026-06-13, F13 ratified) ─────
     import logging as _atl_logger
 
