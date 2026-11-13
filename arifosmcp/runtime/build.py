@@ -248,8 +248,18 @@ def _parity_scope(path: str) -> bool:
     are validated by pytest (separate instrument), not runtime
     parity. Everything else ships and stays in scope: modified or
     untracked shipped files still flag.
+
+    /_archive/ joins tests as a structural exclusion (FI-008 2026-11-13):
+    committed-but-retired trees the wheel never packages. Without it,
+    ARIFOS_CONTENT_PARITY_ENFORCE=1 held drift=True forever on 2 files
+    under runtime/_archive/dead-2026-09-29-* — a permanent false alarm,
+    not a real divergence.
     """
-    return path.endswith(".py") and "/tests/" not in path
+    return (
+        path.endswith(".py")
+        and "/tests/" not in path
+        and "/_archive/" not in path
+    )
 
 
 def _content_parity(
