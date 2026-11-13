@@ -118,6 +118,22 @@ def _same(x: object, y: object) -> bool:
     return hmac.compare_digest(str(x or ""), str(y or ""))
 
 
+def _same_commit(x: object, y: object) -> bool:
+    """SHA equality across print lengths (git emits 7-40 hex chars of one object).
+
+    2026-11-11 S2c: release/verify compared exact strings, so a lease holding
+    candidate 0f3d607d7f95 vs deployed app_git_commit 0f3d607 read as MISMATCH
+    on every clean deploy. Prefix-aware, min 7 chars, case-insensitive.
+    """
+    a, b = str(x or "").strip().lower(), str(y or "").strip().lower()
+    if not a or not b:
+        return False
+    if hmac.compare_digest(a, b):
+        return True
+    short, long_ = (a, b) if len(a) < len(b) else (b, a)
+    return len(short) >= 7 and long_.startswith(short)
+
+
 def artifact_manifest() -> dict:
     """Hash the code actually imported by the running kernel (not the git tree)."""
     files: list[str] = []
@@ -556,7 +572,7 @@ def cmd_release(a) -> int:
         candidate = lease.get("candidate_commit")
         observed_head = a.observed_head if a.observed_head is not None else deployed
         source_match = _same(observed_head, candidate) if a.observed_head is not None else True
-        candidate_match = bool(candidate) and deployed == candidate and source_match
+        candidate_match = bool(candidate) and _same_commit(deployed, candidate) and source_match
 
         row = dict(lease)
         row.pop("holder_token_sha256", None)
@@ -693,7 +709,7 @@ def cmd_verify_candidate(a) -> int:
         )
         return 7
     candidate = lease.get("candidate_commit")
-    same = observed.get("app_git_commit") == candidate
+    same = _same_commit(observed.get("app_git_commit"), candidate)
     print(
         json.dumps(
             {
@@ -759,11 +775,11 @@ def cmd_verify_epoch(a) -> int:
                 reasons.append("legacy_epoch")
             if not target.get("candidate_match"):
                 reasons.append("candidate_mismatch")
-            if target.get("candidate_commit") != target.get("deployed_commit"):
+            if not _same_commit(target.get("candidate_commit"), target.get("deployed_commit")):
                 reasons.append("candidate_deployed_mismatch")
             if not observed.get("observable"):
                 reasons.append("artifact_unobservable")
-            if observed.get("app_git_commit") != target.get("candidate_commit"):
+            if not _same_commit(observed.get("app_git_commit"), target.get("candidate_commit")):
                 reasons.append("running_commit_mismatch")
             if expected.get("manifest_sha256") != observed.get("manifest_sha256"):
                 reasons.append("manifest_mismatch")

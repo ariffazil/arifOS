@@ -165,6 +165,8 @@ skills/github-readme-dynamic/
 # Runtime evidence outputs (not source)
 evidence/
 !docs/evidence/
+# SOURCE pkg 2026-11-03 (diimport tools/evidence_pipeline.py, schemas/evidence_bundle.py)
+!arifosmcp/evidence/
 *.zkey
 zkp_artifacts/
 arifos.egg-info/
@@ -247,6 +249,8 @@ incidents/
 blueprints/
 design/
 evals/
+# SOURCE evals 2026-11-03 (f5_independent_witness)
+!arifosmcp/evals/
 benchmarks/
 reports/
 rendered/

@@ -337,7 +337,7 @@ def _build_cypher(
     # enough. Keys arrive from result.episode_properties / ent.properties /
     # edge.properties, i.e. from an LLM's JSON extraction of raw memory text —
     # attacker-influenced by any prompt injection that reaches that text.
-    # External report (Syed Anas Mohiuddin, 2026-09-15, finding #1): a crafted
+    # External report (2026-09-15, finding #1): a crafted
     # key closed the clause and appended `MATCH (n) DETACH DELETE n`, wiping the
     # graph. Reproduced: key "x MATCH (n) DETACH DELETE n //" reached the query
     # unquoted. Whitelist, do not sanitize — same shape as the edge-label check.

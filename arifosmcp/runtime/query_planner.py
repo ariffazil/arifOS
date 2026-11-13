@@ -284,13 +284,17 @@ class QueryPlanner:
         api_key = os.getenv("FIRECRAWL_API_KEY", "")
         try:
             resp = await client.post(
-                "https://api.firecrawl.dev/v1/search",
+                "https://api.firecrawl.dev/v2/search",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={"query": query, "limit": limit},
             )
             if resp.status_code != 200:
                 return []
             data = resp.json()
+            payload = data.get("data") if isinstance(data, dict) else None
+            web = payload.get("web", []) if isinstance(payload, dict) else []
+            if not isinstance(web, list):
+                return []
             return [
                 {
                     "url": r.get("url", ""),
@@ -298,7 +302,8 @@ class QueryPlanner:
                     "description": r.get("description", ""),
                     "score": 0.5,
                 }
-                for r in data.get("data", [])[:limit]
+                for r in web[:limit]
+                if isinstance(r, dict)
             ]
         except Exception:
             return []

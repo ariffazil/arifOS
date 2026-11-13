@@ -224,11 +224,23 @@ def test_init_advertises_required_intent():
 
 def test_seal_advertises_required_payload_and_purpose_branch():
     schema = _contracts()["arif_seal"]["input_schema"]
-    assert schema.get("required") == ["payload"]
+    # 2026-11-03 reconciliation: the 2026-10-15 input-contract hardening moved
+    # payload to a CONDITIONAL requirement (write modes seal/session_close must
+    # send payload + seal_purpose; pure reads — verify/ledger/changelog/audit —
+    # may omit both). A top-level required would make every read-only seal call
+    # schema-invalid, so the facade advertises the if/then branch instead.
+    # Live-wire evidence: production tools/list serves allOf with no top-level
+    # required (measured 2026-11-03, probe of arifos.arif-fazil.com/mcp).
     branches = schema.get("allOf") or []
-    assert branches, "arif_seal must mirror the seal_purpose requirement"
+    assert branches, "arif_seal must advertise the conditional requirement branch"
     then = branches[0]["then"]
-    assert then.get("required") == ["seal_purpose"]
+    assert then.get("required") == ["payload", "seal_purpose"], (
+        f"write modes must require payload+seal_purpose, got {then.get('required')}"
+    )
+    # pure reads must NOT be forced into payload
+    assert schema.get("required") is None, (
+        "top-level required would break read-only modes (ledger/audit/changelog)"
+    )
 
 
 def test_forge_facade_conditional_manifest():

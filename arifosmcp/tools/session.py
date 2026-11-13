@@ -2382,6 +2382,10 @@ def arif_init(
     tenant_id: str | None = None,
     # ── Ω-PATCH 2026-06-13: thin client payload enrichment ───────────────
     intent: str | None = None,
+    # RC1 fix 2026-11-03 (FI-008, ruling 'A'): declared session policy.
+    # Honored ONLY after signature_verified (merge below); birth stays
+    # DEFAULT_DENY for every actor — anti-escalation preserved (TEST-J).
+    agent_policy: dict | None = None,
     #   Human-readable purpose. Recorded for audit (F2 TRUTH).
     requested_authority: str = "OBSERVE_ONLY",
     verbose: str | None = None,
@@ -4525,6 +4529,24 @@ def arif_init(
                 set_active_session(sess["session_id"])
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
+            # RC1 fix 2026-11-03 (FI-008, ruling 'A'): honor a DECLARED agent_policy
+            # only after cryptographic verification. Birth policy stayed DEFAULT_DENY
+            # for everyone (anti-escalation preserved); verified non-sovereign actors
+            # get their declared policy merged; sovereign-derived policy (threshold
+            # 1.0, 2026-09-04 P0 FIX) keeps precedence via the note marker below.
+            if identity_verified and isinstance(agent_policy, dict) and agent_policy:
+                _cur_pol = dict(sess.get("agent_policy") or {})
+                if "sovereign policy derived" not in str(_cur_pol.get("note") or ""):
+                    _merged_pol = {
+                        **_cur_pol,
+                        **{k: v for k, v in agent_policy.items() if v is not None},
+                    }
+                    _merged_pol["note"] = (
+                        "declared agent_policy honored (Ed25519 signature_verified, "
+                        "RC1 fix 2026-11-03)"
+                    )
+                    sess["agent_policy"] = _merged_pol
+
             # F13: bind into canonical identity store used by compose_standing
             # (get_session_identity / _SESSION_IDENTITY — NOT tools._SESSIONS alone)
             try:
@@ -4546,6 +4568,7 @@ def arif_init(
                     actor_id=actor_id or "anonymous",
                     authority_level=_auth_lvl,
                     verified=bool(identity_verified),
+                    agent_policy=sess.get("agent_policy"),
                     stage=str(sess.get("stage") or "000"),
                     lane=str(sess.get("lane") or "AGI"),
                     auth_context={

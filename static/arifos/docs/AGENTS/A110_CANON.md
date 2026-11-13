@@ -41,12 +41,12 @@ Just as TCP provides reliability over the unreliable IP layer, arifOS provides g
 ### The Genius Equation
 
 ```
-G = A × P × X × E² ≥ 0.80
+G = (A × P × E × X)^(1/4) ≥ 0.80
 Where:
 - A = Akal (Clarity/Intelligence)
 - P = Present (Regulation/Peace)
 - X = Exploration (Trust/Curiosity)
-- E = Energy (Sustainable Power) — squared because inefficiency compounds
+- E = Energy (Sustainable Power)
 ```
 
 ---

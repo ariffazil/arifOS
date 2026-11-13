@@ -502,6 +502,25 @@ def _finish_edge_fields(edge: dict[str, Any]) -> None:
         edge["state"] = edge.get("state") or "unknown"
         edge["overall"] = edge.get("overall") or "unknown"
 
+    # S3a (PLAN-2026-11-10-Q1, ARIF GO S3a): render highest PROVEN observation
+    # level from existing evidence only — never borrow lower green. L4 is the
+    # current ceiling (no echo instrument yet); identity is both-present
+    # semantics, never equality (see normalize comment above).
+    if semantic_ok:
+        level = "L4_RECEIPT_CHAINED"
+    elif identity_ok and edge.get("session_propagated") is True and edge.get("actor_propagated") is True:
+        level = "L3_SESSION_ACTOR_BOUND"
+    elif identity_ok:
+        level = "L2_IDENTITY_PRESENT"
+    elif transport_ok:
+        level = "L1_TRANSPORT"
+    else:
+        level = "L0_DECLARED"
+    edge["observed_level"] = level
+    if edge.get("identity_match") is True:
+        edge["identity_semantics"] = "IDENTITY_PRESENT_BOTH"
+    edge.setdefault("telemetry_produced", "NOT_IN_SCHEMA")
+
     # P1 semantic classification — never collapse transport to GOVERNED
     try:
         from arifosmcp.runtime.semantic_edge import enrich_edge_semantic_state

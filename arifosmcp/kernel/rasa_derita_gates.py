@@ -60,6 +60,13 @@ _CONSENT_MODES = frozenset(
     }
 )
 
+# P0-1 (ARIFOS::HUMAN_RASA::P0, 2026-11-01): scopes that process a PERSON's data
+# for inference/profiling require the full consent object — who (subject), what
+# modality, and how long data is kept (retention). Purposes like deploy/actuate
+# carry no human subject and are unaffected (ratified fixtures use
+# scope=["actuate","store"] without a subject — by design, not by accident).
+_HUMAN_DATA_SCOPES = frozenset({"infer", "profile"})
+
 
 @dataclass(frozen=True)
 class GateVerdict:
@@ -236,6 +243,25 @@ def validate_consent_lease(lease: Any, *, now: datetime | None = None) -> GateVe
     if scope is not None and not isinstance(scope, (list, tuple, set)):
         reasons.append("consent_lease.scope must be a list")
 
+    # P0-1: human-data scopes (infer/profile) must bind subject + modality + retention.
+    # Without these the lease names a purpose but not a person, so withdrawal and
+    # deletion cannot be addressed to anyone — consent about a human, unbound to
+    # that human, is exactly the gap P0 closes.
+    scope_set = {str(s).strip().lower() for s in scope} if isinstance(scope, (list, tuple, set)) else set()
+    if scope_set & _HUMAN_DATA_SCOPES:
+        for key in ("subject", "modality", "retention"):
+            if key not in lease or lease.get(key) in (None, "", []):
+                reasons.append(
+                    f"consent_lease missing {key} (required for human-data scope "
+                    f"{sorted(scope_set & _HUMAN_DATA_SCOPES)})"
+                )
+        subject = lease.get("subject")
+        if subject is not None and not isinstance(subject, str):
+            reasons.append("consent_lease.subject must be a string identifying the data subject")
+        retention = lease.get("retention")
+        if isinstance(retention, dict) and not retention.get("expires_at") and not retention.get("max_age_days"):
+            reasons.append("consent_lease.retention needs expires_at or max_age_days")
+
     # Expiry check
     expires_at = lease.get("expires_at")
     if isinstance(expires_at, str) and expires_at.strip():
@@ -274,6 +300,11 @@ def validate_consent_lease(lease: Any, *, now: datetime | None = None) -> GateVe
             "purpose": lease.get("purpose"),
             "scope": list(lease.get("scope") or []),
             "expires_at": lease.get("expires_at"),
+            # P0-1: echo the human-data binding when present; absent subject on
+            # a non-human scope is correct, not a gap
+            **({"subject": lease["subject"]} if lease.get("subject") else {}),
+            **({"modality": lease["modality"]} if lease.get("modality") else {}),
+            **({"retention": lease["retention"]} if lease.get("retention") else {}),
         },
     )
 

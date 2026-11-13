@@ -23,8 +23,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 REGISTRY_PATH = REPO_ROOT / "registry" / "federation_registry.json"
-ROUTING_PATH = REPO_ROOT / "blueprints" / "routing_engine.yaml"
-CONSTITUTION_PATH = REPO_ROOT / "blueprints" / "kernel_constitution.yaml"
+ROUTING_PATH = REPO_ROOT / "tests" / "fixtures" / "apex" / "routing_engine.yaml"
+CONSTITUTION_PATH = REPO_ROOT / "tests" / "fixtures" / "apex" / "kernel_constitution.yaml"
 VERDICT_CONTRACT_PATH = REPO_ROOT / "contracts" / "verdict_contract.json"
 ARIFOS_HOST = "http://localhost:8088"
 WEALTH_HOST = "http://localhost:18082"
@@ -580,7 +580,7 @@ def test_trust_thermodynamics(result: AuditResult):
         result.fail_test("F1 (Amanah): NOT codified")
 
     # 8.2: F13 (Sovereign veto) codified
-    f13 = find_floor(constitution, "L13")
+    f13 = find_floor(constitution, "F13")
     if f13:
         result.pass_test("F13 (Sovereign/Human Veto): codified")
     else:

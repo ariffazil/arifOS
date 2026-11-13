@@ -778,13 +778,26 @@ def _resolve_git_commit() -> str:
 
 from datetime import UTC, datetime  # noqa: E402
 
-_DEPLOY_GIT_COMMIT = _resolve_git_commit()
-_DEPLOY_BUILD_DATE = datetime.now(UTC).strftime("%Y.%m.%d")
-_DEPLOY_VERSION = (
-    f"kanon-{_DEPLOY_BUILD_DATE}+{_DEPLOY_GIT_COMMIT}"
-    if _DEPLOY_GIT_COMMIT != "unknown"
-    else f"kanon-{_DEPLOY_BUILD_DATE}"
-)
+# P1-5 (repair-2026-11-01): render FROM canonical identity — one source for
+# every surface. The old generator used datetime.now() for the date, so
+# serverInfo's version mutated daily and disagreed with canon/health/
+# server.json. Stamp mtime is the stable build date.
+try:
+    from arifosmcp.runtime.deployment_identity import canonical_identity as _canonical_identity
+
+    _IDENTITY = _canonical_identity()
+    _DEPLOY_GIT_COMMIT = _IDENTITY.get("deployed_commit_short") or "unknown"
+    _DEPLOY_BUILD_DATE = (_IDENTITY.get("build_date") or "unknown").replace("-", ".")
+    _DEPLOY_VERSION = _IDENTITY.get("version") or f"kanon-{_DEPLOY_BUILD_DATE}"
+except Exception:  # noqa: BLE001 — serverInfo must never wedge startup
+    logger.exception("canonical identity unavailable; falling back to stamp chain")
+    _DEPLOY_GIT_COMMIT = _resolve_git_commit()
+    _DEPLOY_BUILD_DATE = datetime.now(UTC).strftime("%Y.%m.%d")
+    _DEPLOY_VERSION = (
+        f"kanon-{_DEPLOY_BUILD_DATE}+{_DEPLOY_GIT_COMMIT}"
+        if _DEPLOY_GIT_COMMIT != "unknown"
+        else f"kanon-{_DEPLOY_BUILD_DATE}"
+    )
 
 
 mcp = FastMCP(
@@ -805,15 +818,15 @@ mcp = FastMCP(
         "arifOS — Constitutional AI orchestration kernel. F1-F13 governed.\n\n"
         "═══ AGENT BOOT SEQUENCE (MCP-NATIVE) ═══\n"
         "Every agent entering arifOS for the first time MUST:\n"
-        "  1. CALL prompt '/init' → full 10-step autonomous ignition sequence\n"
+        "  1. CALL prompt 's_init' → session ignition, five tools, distinct from s000_ignite\n"
         "  2. READ resource arifos://bootstrap → live federation context\n"
         "  3. READ resource arifos://carry-forward → prior session state\n"
         "  4. READ resource arifos://flow-state → FQ pulse (FQ<0.5 → OBSERVE_ONLY)\n"
         "  5. CALL tool arif_init → bind session + get SCT token\n\n"
         "═══ AGENT CLOSE SEQUENCE (MCP-NATIVE) ═══\n"
         "Every session MUST close with:\n"
-        "  1. CALL prompt '/seal' → 11-step autonomous close ritual\n"
-        "  2. CALL tool arif_seal or forge_vault → immutable record\n"
+        "  1. CALL prompt 's_close' → session close; the vault append waits for a human ack\n"
+        "  2. CALL tool arif_seal with judge_state_hash, and only after the human ack\n"
         "  3. VERIFY: resources/read arifos://vault/head\n\n"
         "═══ Membrane Principle ═══\n"
         "- Language is lossy compression, not the world.\n"
@@ -849,7 +862,7 @@ mcp = FastMCP(
         "  Templates: arifos://verdict/{sid}, continuity/{sid}, floor/{fid}, vault/{type}\n"
         "  Skills: skill://index, skill://{name}/SKILL.md\n"
         "  Wisdom: arifos://wisdom/quotes/*, arifos://wisdom/contract\n"
-        "Key prompts: /init (ignition), /seal (close), 000 🌱 IGNITE (identity), 🌀 GOVERN (governed loop).\n"
+        "Key prompts: s_init (session ignition), s_close (close, human ack), s000_ignite (identity), s_govern (sequence only).\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
@@ -926,7 +939,7 @@ if Path is not None:
                 "Use skill://index first to discover available skills.",
             )
             def skill_by_name_resource(name: str) -> str:
-                # Path traversal guard (external report, Syed Anas Mohiuddin,
+                # Path traversal guard (external report,
                 # 2026-09-15, finding #2): `name` came from the URL path template
                 # with no validation at all, so `..%2F` walked out of the skill
                 # root — any directory holding a file literally named SKILL.md
@@ -1153,7 +1166,9 @@ try:
                         "l5a_pass": dual["l5a_pass"],
                         "l5b_present": dual["l5b_present"],
                         "blocked_reason": dual.get("blocked_reason"),
-                        "verdict": dual.get("verdict", "PENDING"),
+                        # G8 rename (888-APEX 2026-11-04, D2): advisory
+                        # pre-judge state, never a constitutional verdict.
+                        "pre_judge_state": dual.get("pre_judge_state", "PENDING"),
                     }
                     # ── Gödel Lock: External witness check ──
                     try:

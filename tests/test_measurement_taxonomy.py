@@ -101,3 +101,34 @@ def test_aggregate_names_its_composition() -> None:
     assert "measured" in d["floors_aggregate"]
     assert "declared" in d["floors_aggregate"]
     assert d["floors_aggregate"] != "13/13"
+
+
+def test_explicit_unmeasured_segment_outranks_producer_head() -> None:
+    """S1 (2026-11-11): the instrument's own UNMEASURED verdict wins.
+
+    F6 ships floor_producer:UNMEASURED:unmeasured_default:f6_partially_measured.
+    Head-token classification read "producer" and answered measured, so the
+    status map and floors_detail split one floor across two buckets and the
+    aggregate claimed "11 measured · 3 unmeasured / 13" (14 of 13).
+    """
+    f6_prov = "floor_producer:UNMEASURED:unmeasured_default:f6_partially_measured"
+    assert classify_provenance(f6_prov) == MEASUREMENT_UNMEASURED
+
+    detail = dict(ALL_PASS)
+    for fid in ("F4", "F6", "F9"):
+        detail[fid] = "unmeasured"
+    prov = {
+        "F4": "unmeasured_default:empty_kernel_signal",
+        "F6": f6_prov,
+        "F9": "unmeasured_default:empty_kernel_signal",
+    }
+    truth = floor_truth(detail, 13, provenance=prov)
+    d = truth.as_dict()
+    status = d["floors_measurement_status"]
+    for fid in ("F4", "F6", "F9"):
+        assert status[fid] == MEASUREMENT_UNMEASURED
+    assert truth.floors_pass == 10
+    assert truth.floors_unmeasured == ("F4", "F6", "F9")
+    assert truth.floor_passed is None
+    # The aggregate must partition the 13 — no floor in two buckets.
+    assert d["floors_aggregate"] == "10 measured · 0 attested · 0 declared · 3 unmeasured / 13"

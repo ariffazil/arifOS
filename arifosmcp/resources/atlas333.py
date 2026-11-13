@@ -407,7 +407,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
         try:
             import pathlib
 
-            # Path traversal guard (external report, Syed Anas Mohiuddin,
+            # Path traversal guard (external report,
             # 2026-09-15, finding #2): `id` is a URL-path parameter used directly
             # as a filename, so `../` walked out of the scars directory. Contain
             # it by resolving and comparing against the resolved root.

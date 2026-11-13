@@ -166,7 +166,7 @@ _DESCRIPTIONS: dict[str, str] = {
     "arifos://vitals": "Constitutional vitals reference — metric definitions, green/yellow/red thresholds. For LIVE values use arif_measure.",
     "arifos://bootstrap": "Complete federation knowledge-graph bootstrap context. Full world-model in one call. v2026.06.14.",
     "arifos://human/metabolized": "Metabolized sovereign context — compact human intelligence. The nutrient, not the full testimony.",
-    "tree777://index": "TREE777 wiki full index — all skills, concepts, and scars in the canonical knowledge graph.",
+    "tree777://index": "RETIRED — tree777-service persaraan (port 18077 no listener, probe 2026-11-12). TREE777 wiki index no longer served. Entry kept for reference continuity only; prior DECISION_TREE777_GO_2026-08-14 citation removed (ghost decision — no artifact found on box).",
     "runner://policy/v1": "Pinned policy of the context_runner bridge. F2 deterministic, F11 source-of-truth.",
     "runner://receipt/{run_id}": "Cached ContextRunReceipt by run_id from the context_runner bridge.",
     "arifos://tools/self-model/{view}": "Self-model introspection by view type.",

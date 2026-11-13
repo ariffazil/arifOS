@@ -13,8 +13,8 @@ Intelligence is the capacity to minimize **free energy** (uncertainty) across ti
 2.  **Empathy (Ω):** Extending care radius (Heart).
 3.  **Truth (Ψ):** Aligning internal models with external reality (Soul).
 
-The Formula: **`G = A × P × X × E²`**
-(Genius = Clarity × Presence × Exploration × Energy²)
+The Formula: **`G = (A × P × E × X)^(1/4)`**
+(Genius = geometric mean of Clarity × Presence × Exploration × Energy)
 
 ### 2. The OODA Loop (Cognitive Cycle)
 We map the military OODA loop to the **Metabolic Pipeline (000-999)**:

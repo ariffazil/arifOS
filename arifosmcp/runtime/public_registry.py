@@ -79,8 +79,13 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_init": (
         "Ignite or resume a governed session. Returns session_id and session_token "
         "required for subsequent operations. Modes: init (default new session), "
-        "preflight (inspect existing session), resume (continue active session). "
-        "Outputs: session credentials and allowed next tools."
+        "preflight (inspect existing session state), resume (continue active "
+        "session), validate (re-check credentials), canary (transport probe), "
+        "triage (read session state), epoch_open/epoch_seal (bracket a long "
+        "working window), light (minimal session), opt_out (privacy opt-out). "
+        "Outputs: session credentials and allowed next tools. To END a governed "
+        "session, call arif_seal(mode=session_close) — session closure is a "
+        "ledger event, not an init mode."
     ),
     # ── 000 TRIAGE (session immune, not intent router) ─────────────────────
     "arif_triage": (
@@ -88,10 +93,20 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 111 OBSERVE ─────────────────────────────────────────────────────────
     "arif_observe": (
-        "Collect evidence, reality observations, and operational facts with provenance. Modes: search "
-        "(web literature queries), fetch (targeted URL retrieval), vitals "
-        "(system metrics). Requires valid session credentials. "
-        "Outputs: structured facts, source attribution, and epistemic tags."
+        "Sense reality into sourced evidence — gather external facts with "
+        "provenance, the kernel's sensing verb. Run it before arif_think or "
+        "arif_judge so decisions rest on sourced "
+        "facts. Modes: search (web/literature query, default), fetch (one URL with "
+        "provenance), hybrid_discovery (combine sources), ingest (absorb a "
+        "document), compass/atlas (guided navigation), entropy_dS (measure system "
+        "change), vitals (kernel machine telemetry), resource_read (read a "
+        "registered arifos:// resource), resource_search (list registered "
+        "resources). Use for fresh external facts or live system state; NOT for "
+        "stored institutional knowledge (arif_memory recall) or organ dispatch "
+        "(arif_route). Read-only and idempotent — writes nothing; every result "
+        "carries source attribution and an epistemic tag (OBS/DER/INT). Requires "
+        "a valid arif_init session; unauthenticated calls are refused. "
+        "Outputs: structured facts with provenance and uncertainty labels."
     ),
     "arif_sense_observe": (
         "[alias → arif_observe] KERNEL 111 sense. Prefer canonical name arif_observe."
@@ -106,17 +121,38 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 333 THINK ───────────────────────────────────────────────────────────
     "arif_think": (
-        "Execute structured reasoning and plan formulation. Decomposes inquiries "
-        "into verified derivations. Modes: reason (inquiry breakdown), plan "
-        "(drafting multi-step execution steps), verify (logical proof check). "
-        "Requires valid session credentials. Outputs: structured reasoning record."
+        "Structured reasoning and plan formulation — decomposes a question or "
+        "claim into labeled derivations (OBS/DER/INT) before you act. Modes: "
+        "reason (inquiry breakdown, default), reflect (self-review of prior "
+        "reasoning), verify (check a derivation), axioms (surface hidden "
+        "assumptions), plan/plan_review/plan_approve/refactor_plan "
+        "(execution-plan lifecycle), metabolize (consolidate past reasoning), "
+        "simulate (what-if), wonder (open exploration), atlas (map the problem "
+        "space). Use to prepare evidence chains and plans BEFORE arif_judge or "
+        "arif_forge — pass the returned plan_id to arif_forge when executing an "
+        "approved plan. NOT for gathering facts (arif_observe), dispatching to "
+        "organs (arif_route), or issuing verdicts (arif_judge — think never "
+        "issues them). Pure reasoning: mutates no state and calls no external "
+        "systems; its output is a reasoning record, not ground truth. Requires "
+        "a valid arif_init session. Outputs: structured reasoning record with "
+        "epistemic labels."
     ),
     "arif_mind_reason": ("[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."),
     # ── 444 ROUTE ───────────────────────────────────────────────────────────
     "arif_route": (
-        "Classify intent and route tasks to domain organs (GEOX for Earth science, "
-        "WEALTH for capital markets, WELL for human vitality, A-FORGE for execution). "
-        "Requires valid session credentials. Outputs: organ dispatch envelope."
+        "Classify an intent and route it to the organ that owns it — GEOX (Earth "
+        "science), WEALTH (capital markets), WELL (human vitality), A-FORGE "
+        "(execution), or the arifOS kernel itself. Modes: route (default; "
+        "classify and recommend), triage (rank a batch of intents), delegate "
+        "(prepare an A2A handoff), status (organ state), kernel (kernel-level "
+        "status), metabolize (feed routing outcomes to arifFlow). Use when a "
+        "task belongs to a specialized organ and you need a dispatch envelope "
+        "or organ health before acting; supply organ_tool + arguments to bridge "
+        "one call through to the organ. Routing RECOMMENDS only — it never "
+        "executes: for execution obtain an arif_judge SEAL, then call arif_forge. "
+        "Not for general reasoning (arif_think). Read-only unless organ_tool is "
+        "supplied. Requires a valid arif_init session. "
+        "Outputs: organ dispatch envelope with recommended organ and tool."
     ),
     "arif_kernel_route": ("[DEPRECATED → arif_route] Legacy KERNEL 444 entry."),
     # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
@@ -129,26 +165,53 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_heart_critique": ("[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."),
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
-        "Access and maintain persistent institutional knowledge across sessions. "
-        "Modes: recall (retrieve relevant context), inspect (audit stored decisions), "
-        "remember (store verified lesson). Mutations to permanent tiers require "
-        "explicit approval. Outputs: scoped memory entries."
+        "Persistent institutional knowledge across sessions — store, recall, and "
+        "curate lessons, decisions, and context so later sessions inherit them. "
+        "Modes: recall (semantic search, default), inspect (read one memory in "
+        "full), attest (vouch for its accuracy), remember (store a self-contained "
+        "lesson), promote (move up a tier), revise (replace its text), forget "
+        "(remove — gated), audit (integrity scan), metabolize (compact and "
+        "consolidate tiers). Use to carry knowledge forward between sessions; "
+        "NOT for fresh external facts (arif_observe) and NOT for permanent audit "
+        "receipts — those are arif_seal appends to the VAULT999 ledger, which "
+        "can never be edited, whereas memory entries are revisable by design. "
+        "Tiers L1 (hot working memory) → L6 (sealed canon). Behavior: reads "
+        "(recall/inspect/audit) are side-effect-free; writes (remember/promote/"
+        "revise/metabolize) mutate memory state; promote and forget refuse "
+        "without human_approval=true — only the human owner may destroy memory. "
+        "Requires a valid arif_init session. Outputs: scoped memory entries "
+        "with tier and provenance."
     ),
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
-        "Evaluate proposed operations against policy and safety constraints. "
-        "Weighs blast radius, reversibility, and permission level. Returns binding "
-        "verdict (SEAL for approved, HOLD for blocked, SABAR for awaiting conditions). "
-        "Approval verdict is required prior to calling arif_forge. "
-        "Outputs: evaluation verdict and authorization receipt."
+        "Evaluate proposed operations and claims against constitutional policy and "
+        "safety constraints. Weighs blast radius, reversibility, and authority tier to "
+        "render a binding verdict: SEAL (approved for forge execution), HOLD (blocked/escalate "
+        "to sovereign human), SABAR (cooling/backoff), or VOID (permanently refused). "
+        "Modes: judge (default; evaluate candidate against all 13 floors), intercept "
+        "(pre-flight gate before action dispatch), validate (re-check a prior verdict), "
+        "hold (place action into cooling period), escalate (refer decision to human owner). "
+        "Use when you have formulated a candidate plan/action and need an authoritative verdict; "
+        "a SEAL verdict_id is strictly required before calling arif_forge. NOT for executing actions "
+        "(use arif_forge after SEAL), NOT for gathering facts (use arif_observe), NOT for "
+        "open-ended reasoning (use arif_think). Read-only: evaluates without mutating workspace "
+        "state. Requires candidate (the proposal under judgment) and an active session from arif_init. "
+        "Outputs: binding verdict, floor compliance matrix, and authorization receipt."
     ),
     "arif_judge_deliberate": ("[alias/internal → arif_judge] Prefer public arif_judge."),
     # ── 777 FORGE ───────────────────────────────────────────────────────────
     "arif_forge": (
-        "Apply an authorized system modification. Requires a valid seal_verdict_id "
-        "obtained from arif_judge. Mode: dry_run (preview impact without execution), "
-        "apply (execute authorized change). Outputs: execution receipt."
+        "Execute an action arif_judge has already SEALed — nothing runs without "
+        "seal_verdict_id and approved_action_hash matching the judged action. "
+        "Modes: engineer (default; plan and apply — requires manifest), "
+        "dry_run (preview, no side effects; manifest or query), query "
+        "(read-only), write (write files), generate (generate code/content), "
+        "commit (commit prepared work), recall (retrieve past forge artifacts). "
+        "Irreversible judged actions additionally require ack_irreversible=true. "
+        "On missing seal or hash mismatch the call returns REFUSED with no "
+        "change made. Outputs: execution receipt (receipt_id, status, actor_id, "
+        "timestamp)."
     ),
     "arif_forge_execute": ("[alias → arif_forge] Prefer arif_forge."),
     "arif_act": (
@@ -161,11 +224,28 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_reply_compose": ("[alias → arif_compose] Prefer arif_compose."),
     # ── 999 SEAL ────────────────────────────────────────────────────────────
     "arif_seal": (
-        "Append verified outcome or lesson to the immutable audit ledger. "
-        "Requires ack_irreversible=true to confirm permanent commit. "
-        "Outputs: immutable ledger entry receipt."
+        "Appends a receipt to the VAULT999 immutable ledger. This is NOT a "
+        "verdict and does not authorize anything — verdicts come only from "
+        "arif_judge. Modes: seal (default; permanent append, requires payload "
+        "and seal_purpose), verify (check one entry), ledger (read the ledger "
+        "head), changelog (recent appends), audit (integrity check), "
+        "session_close (close out a session into the ledger). Write modes "
+        "require ack_irreversible=true. Outputs: immutable ledger entry receipt."
     ),
     "arif_vault_seal": ("[alias → arif_seal] Prefer arif_seal."),
+    # ── AGENT REPORT LANE (coordination channel) ────────────────────────────
+    "arif_report": (
+        "Agent-to-agent coordination lane. File or read reports between agents without "
+        "involving the human. Use when your work is done, when you are blocked by another "
+        "agent, or when you need to tell peers a fact. Modes: report (file a new report), "
+        "inbox (read peer reports), ack (vouch for a peer thread), flush (mark reports processed), "
+        "stats (view lane metrics). kind=fyi|peer|done|claim stay in the peer lane; ONLY kind=decision "
+        "or kind=blocked reach the sovereign, coalesced. Reports are SELF_REPORTED claims — probe "
+        "before relying on them. Not for constitutional verdicts, sealing, or workspace mutations — "
+        "use the canonical verbs (arif_init … arif_seal); this lane coordinates, it never governs. "
+        "Behavior: filing appends to an agent-only store (never the VAULT999 ledger); reads are side-effect-free. "
+        "Requires a session from arif_init. Outputs: filed report record or inbox payload."
+    ),
     # ── Gateway / measure (non-public helpers) ──────────────────────────────
     "arif_gateway_connect": (
         "KERNEL federation gateway (legacy). Prefer arif_route for organ selection."
@@ -248,10 +328,11 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
             "What to do: 'init' (default) starts a new governed session; "
             "'preflight' checks an existing session's state without creating one; "
             "'resume' re-attaches to the session in session_id; 'validate' "
-            "re-checks credentials; 'canary' is a transport probe; 'triage' reads "
-            "session state; 'epoch_open'/'epoch_seal' bracket a long working "
-            "window; 'light' is a minimal session; 'opt_out' records a privacy "
-            "opt-out."
+            "re-checks credentials; 'canary' is a transport probe; 'triage' "
+            "(session health preflight — inspects active session state, holds, "
+            "and next safe kernel verb; distinct from arif_route's task intent ranking); "
+            "'epoch_open'/'epoch_seal' bracket a long working window; 'light' is a minimal "
+            "session; 'opt_out' records a privacy opt-out."
         ),
         "ack_irreversible": (
             "Set true to acknowledge that session records are permanent audit "
@@ -367,6 +448,18 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         "witness_type": (
             "Who vouches for the reasoning record: 'ai' (default), 'human', or 'external' system."
         ),
+        "context": (
+            "Structured sideband for the reasoning call — JSON object, e.g. "
+            "{'handoff': <hermes_handoff_package envelope>}. Handoff context is "
+            "reported as transport status only (REFS_RESOLVED / "
+            "EVIDENCE_NOT_RECEIVED / HASH_MISMATCH) and never upgrades a claim's "
+            "epistemic state."
+        ),
+        "evidence": (
+            "Prior verified facts to reason from — JSON list like "
+            "[{'fact': 'tests pass', 'source': 'CI'}]; the derivation labels "
+            "which evidence each conclusion rests on."
+        ),
         "concise": (
             "Trim result.result to essential fields (default true). Set false for the "
             "full payload — evidence_used, epistemic_labels and the AGI-readiness block. "
@@ -376,10 +469,11 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
     "arif_route": {
         "mode": (
             "'route' (default) — classify intent and recommend the target organ; "
-            "'triage' — rank a batch of intents; 'delegate' — prepare an A2A "
-            "handoff; 'status' — surface organ state; 'kernel' — kernel-level "
-            "status; 'metabolize' — feed routing outcomes to arifFlow. Routing "
-            "only recommends — execution is arif_forge after a SEAL verdict."
+            "'triage' (task intent ranking — rank and prioritize a batch of multiple incoming "
+            "tasks to determine organ routing priority; distinct from arif_init's session health check); "
+            "'delegate' — prepare an A2A handoff; 'status' — surface organ state; "
+            "'kernel' — kernel-level status; 'metabolize' — feed routing outcomes to arifFlow. "
+            "Routing only recommends — execution is arif_forge after a SEAL verdict."
         ),
         "contract_c_kwargs": (
             "Extra keyword arguments passed through to the organ tool call, as a JSON object."
@@ -387,13 +481,26 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
     },
     "arif_judge": {
         "mode": (
-            "'judge' (default) — render a verdict on candidate; 'intercept' — "
-            "pre-flight gate before an action runs; 'validate' — re-check a prior "
-            "verdict; 'hold' — place an action into a cooling period; 'escalate' "
-            "— refer the decision to the human owner."
+            "'judge' (default) — render a constitutional verdict on candidate; "
+            "'intercept' — pre-flight gate before an action runs; 'validate' — "
+            "re-check a prior verdict; 'hold' — place an action into a cooling period; "
+            "'escalate' — refer the decision to the human owner."
         ),
         "candidate": (
-            "The action or claim being judged, stated plainly, e.g. 'delete table users in prod'."
+            "Required for judgment. The action, proposal, or plan being evaluated, "
+            "stated plainly (e.g. 'deploy commit 2c49b35 to production'). "
+            "For evaluating specific factual claims, you may alternatively supply claim_text."
+        ),
+        "claim_text": (
+            "Optional factual claim statement under judgment (e.g. 'all CI tests pass'). "
+            "Used when evaluating epistemic truth and grounding; evaluated alongside or in lieu of candidate."
+        ),
+        "claim_class": (
+            "Epistemic strength of the claim: 'OBS' (directly observed), 'DER' "
+            "(derived from observations), 'INT' (interpreted), 'SPEC' (speculative), "
+            "'UNKNOWN' (cannot witness — honest null; maps to TruthClass.UNK, weight 0.30, "
+            "cannot authorize mutation). RULE absence-null: 'not in my knowledge' is "
+            "NOT evidence a claim is false — label UNKNOWN, never FALSE."
         ),
         "authority_token": (
             "Authority credential CLAIMED for this proposal (payload field, not proof). "
@@ -475,7 +582,7 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         "mode": (
             "'seal' (default) — append a permanent entry; 'verify' — check one "
             "entry; 'ledger' — read the ledger head; 'changelog' — recent "
-            "appends; 'audit' — integrity check; 'session_close' — close out a "
+            "appends; 'audit' (VAULT999 ledger integrity check — cryptographically verifies immutable receipt chains, block hashes, and replay consistency; distinct from arif_memory's knowledge scan); 'session_close' — close out a "
             "session into the ledger."
         ),
         "payload": (
@@ -501,6 +608,51 @@ _PARAM_DOCS: dict[str, dict[str, str]] = {
         "ack_irreversible": (
             "Set true to confirm you understand sealed entries are PERMANENT — "
             "they can never be edited or removed."
+        ),
+    },
+    "arif_report": {
+        "mode": (
+            "'report' (default) — file a report into the agent lane; 'inbox' — "
+            "read reports addressed to you or your platform; 'ack' — vouch for "
+            "a peer thread so an unverified escalation can proceed; 'flush' — "
+            "page out coalesced escalations; 'stats' — lane statistics."
+        ),
+        "kind": (
+            "Report class. 'fyi' | 'peer' | 'done' | 'claim' stay in the agent "
+            "lane; ONLY 'decision' or 'blocked' can reach the human sovereign, "
+            "and only in one coalesced message."
+        ),
+        "subject": ("Short headline of the report (mode=report)."),
+        "body": (
+            "The report text (mode=report). A report is a SELF-REPORTED claim — "
+            "include pointers to evidence (paths, URLs, receipt ids), not bare "
+            "assertions."
+        ),
+        "sender": (
+            "Filing agent identity, e.g. 'kimi-code/FI-008'. Defaults to actor_id."
+        ),
+        "platform": ("Originating surface tag, e.g. 'mcp' (default), 'telegram'."),
+        "thread_id": (
+            "Thread to file into, read, or ack — groups related reports so a "
+            "conversation stays together."
+        ),
+        "evidence": (
+            "Evidence pointers attached to the report — paths, URLs, or receipt "
+            "ids that let a peer verify the claim independently."
+        ),
+        "needs_human": (
+            "Set true ONLY when the report genuinely requires the sovereign's "
+            "decision; escalation is withheld unless the actor is verified or "
+            "the thread has a 2-distinct-agent quorum."
+        ),
+        "report_id": ("Id of a specific report — used by mode=ack and mark_read."),
+        "since": ("ISO timestamp filter for mode=inbox — return reports filed after this."),
+        "limit": ("Maximum reports to return (mode=inbox). Default 20."),
+        "mark_read": ("Mark the returned inbox reports as read."),
+        "force": ("Bypass coalescing guards when flushing. Use sparingly."),
+        "dry_run": (
+            "Validate and preview the report without storing it — no lane write "
+            "happens."
         ),
     },
 }
@@ -554,25 +706,29 @@ _INPUT_CONTRACT_FACADES: dict[str, dict[str, Any]] = {
             "intent": {"type": "string", "minLength": 1},
         },
     },
+    # 888 JUDGE — candidate is required for judgment (the action or proposal being evaluated).
+    "arif_judge": {
+        "required": ["candidate"],
+        "properties": {
+            "candidate": {
+                "type": "string",
+                "minLength": 1,
+                "description": (
+                    "The action or proposal being judged, stated plainly, e.g. "
+                    "'deploy commit 2c49b35 to production'. Required for judgment."
+                ),
+            },
+        },
+    },
     # 999 SEAL — payload required for write modes (seal, session_close);
     # pure reads (verify, ledger, changelog, audit, chain_status) may omit it.
     # mode='seal' (default) additionally requires seal_purpose: a permanent record
-    # with no stated reason is refused, mirrored here as if/then.
+    # with no stated reason is refused; enforced in runtime/input_contract.py (schema flat for Anthropic compat).
     "arif_seal": {
-        "allOf": [
-            {
-                "if": {
-                    "anyOf": [
-                        {"not": {"required": ["mode"]}},
-                        {
-                            "required": ["mode"],
-                            "properties": {"mode": {"enum": ["seal", "session_close"]}},
-                        },
-                    ]
-                },
-                "then": {"required": ["payload", "seal_purpose"]},
-            }
-        ],
+        # ANTHROPIC-COMPAT 2026-11-11 (FI-008): top-level allOf REMOVED —
+        # Anthropic tool-schemas reject top-level oneOf/allOf/anyOf. Conditional
+        # payload+seal_purpose (mode=seal/session_close) enforced server-side by
+        # runtime/input_contract.py MODE_REQUIRED; stated in descriptions.
     },
 }
 
@@ -828,6 +984,54 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
     }
 
 
+_STRIP_UNADVERTISED_PARAMS: dict[str, set[str]] = {
+    "arif_init": {
+        "verbose",
+        "previous_session_hash",
+        "epoch_id",
+        "idempotency_key",
+        "caller_actor_id",
+        "executor_actor_id",
+        "sovereign_id",
+        "delegation_mode",
+        "payload",
+        "client_capabilities",
+        "session_token",
+        "auth_context",
+        "counterparty",
+        "declared_model_key",
+        "trace_id",
+    },
+    "arif_judge": {
+        "session_token",
+        "actor_id",
+        "constitutional_chain_id",
+        "vault_entry_id",
+        "cooldown_entry_id",
+        "heart_critique",
+        "niat_params",
+        "sovereign_receipt",
+        "actor_signature",
+        "nonce",
+        "key_id",
+        "authority_token",
+        "authority_effect",
+        "action_class",
+        "domain",
+        "actor_B",
+        "actor_Phi",
+        "entropy_pathway",
+        "entropy_receipt",
+    },
+    "arif_report": {
+        "actor_id",
+        "session_token",
+        "force",
+        "platform",
+    },
+}
+
+
 @lru_cache(maxsize=1)
 def _runtime_contracts() -> dict[str, dict[str, Any]]:
     from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, _wrap_handler
@@ -856,6 +1060,14 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
         _props = input_schema.get("properties")
         if isinstance(_props, dict):
             _props.pop("_envelope", None)
+            _to_strip = _STRIP_UNADVERTISED_PARAMS.get(name, set())
+            for param in _to_strip:
+                _props.pop(param, None)
+            if input_schema.get("required"):
+                input_schema["required"] = [
+                    r for r in input_schema["required"]
+                    if r != "_envelope" and r not in _to_strip
+                ]
         # INPUT-CONTRACT FACADES (2026-10-15 hardening): advertise required
         # minimums for arif_init / arif_seal (forge has its own facade in
         # _spec_for_name). Enforcement stays server-side in input_contract.
@@ -910,31 +1122,15 @@ def _spec_for_name(name: str) -> Any:
             # INPUT-CONTRACT FACADE 2026-10-15: manifest is required on the
             # write paths — engineer (also the default mode), write, generate.
             # dry_run accepts manifest OR query (the explicit fallback path —
-            # gate and schema say the same thing: allOf/anyOf below, enforced
+            # gate and schema say the same thing (flat schema; enforced
             # by runtime/input_contract.py MODE_ANY_REQUIRED). Query-only
             # stays legal in mode=query and mode=recall; commit is gated
             # downstream by seal_verdict_id.
-            "allOf": [
-                {
-                    "if": {
-                        "anyOf": [
-                            {"not": {"required": ["mode"]}},
-                            {
-                                "required": ["mode"],
-                                "properties": {"mode": {"enum": ["engineer", "write", "generate"]}},
-                            },
-                        ]
-                    },
-                    "then": {"required": ["manifest"]},
-                },
-                {
-                    "if": {
-                        "required": ["mode"],
-                        "properties": {"mode": {"enum": ["dry_run"]}},
-                    },
-                    "then": {"anyOf": [{"required": ["manifest"]}, {"required": ["query"]}]},
-                },
-            ],
+            # ANTHROPIC-COMPAT 2026-11-11 (FI-008): top-level allOf
+            # REMOVED — Anthropic tool-schemas reject top-level combinators.
+            # mode-conditional requiredness enforced server-side by
+            # runtime/input_contract.py MODE_REQUIRED/MODE_ANY_REQUIRED and
+            # stated in the property descriptions below.
             "properties": {
                 "mode": {
                     "default": "engineer",
@@ -1083,7 +1279,7 @@ def _spec_for_name(name: str) -> Any:
                         "a memory's accuracy; 'remember' — store new text; "
                         "'promote' — move a memory up a tier; 'revise' — replace a "
                         "memory's text; 'forget' — remove a memory (gated); "
-                        "'audit' — integrity scan; 'metabolize' — compact and "
+                        "'audit' (memory integrity scan — verifies and integrity-scans stored semantic knowledge across tiers L1–L6; distinct from arif_seal's immutable ledger audit); 'metabolize' — compact and "
                         "consolidate tiers."
                     ),
                 },

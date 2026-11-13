@@ -73,7 +73,7 @@ async def verify_url(url: str, timeout: float = 10.0) -> VerifyResult:
             error="URL failed safety checks",
         )
     try:
-        # SSRF redirect guard (CVE-2026-SyedAnas, 2026-08-25): follow_redirects=True
+        # SSRF redirect guard (SSRF-2026-08-25): follow_redirects=True
         # re-resolves DNS per hop — a public host can 30x to 127.0.0.1 and bypass
         # the pre-check above. Redirects are handled explicitly with SSRF re-check.
         from .ssrf_guard import resolve_blocked as _ssrf_resolve
@@ -168,7 +168,7 @@ async def _expand_firecrawl(url: str) -> ExpansionResult:
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
-                "https://api.firecrawl.dev/v0/expand",
+                "https://api.firecrawl.dev/v2/expand",
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 json={"url": url},
             )

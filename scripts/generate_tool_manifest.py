@@ -100,7 +100,7 @@ def _canonical_resources_list() -> list[dict[str, Any]]:
             "arifos://vitals": "Constitutional metrics and green/yellow/red thresholds.",
             "arifos://bootstrap": "Complete federation knowledge-graph context in a single call.",
             "arifos://human/metabolized": "Compact human intelligence/context (nutrient representation).",
-            "arifos://loop-engineering": "7-stage reality engineering loop (K1 dual naming).",
+            "arifos://loop-engineering": "13-hook ladder; 2026-06-25 7-stage table superseded 2026-11-10.",
             "arifos://quickstart": "LLM client onboarding and fast-start guide.",
             "arifos://mcp-alignment": "MCP specification conformance and client compatibility matrix.",
             "arifos://mcp/surface-map": "Map of owned tools and resources across organs.",
@@ -138,13 +138,34 @@ def generate_llms_txt() -> str:
     total_tools = len(canonical) + len(operational)
     mhash = manifest_hash()
 
+    # Live kernel status — never hardcode (static-lie class, musyawarah 2026-11-12 item 1)
+    try:
+        import json as _json
+        import urllib.request as _ur
+
+        with _ur.urlopen("http://127.0.0.1:8088/health", timeout=3) as _resp:
+            _h = _json.loads(_resp.read().decode())
+        _verdict = (
+            _h.get("verdict")
+            or _h.get("effective_verdict")
+            or (_h.get("thermodynamic") or {}).get("verdict")
+            or _h.get("status")
+            or "UNKNOWN"
+        )
+        _status = "{}/readiness={}".format(
+            _verdict,
+            _h.get("execution_readiness", _h.get("readiness", "unknown")),
+        )
+    except Exception as _e:
+        _status = "UNMEASURED (probe failed: {})".format(type(_e).__name__)
+
     lines: list[str] = []
     lines.append("# arifOS — Constitutional AI Governance Kernel")
     lines.append(f"> Auto-generated from live tool and resource registries. Hash: {mhash}")
     lines.append(
-        f"> Total MCP: {total_tools} Tools | {len(resources)} Resources | Status: OPERATIONAL"
+        f"> Total MCP: {total_tools} Tools | {len(resources)} Resources | Status: {_status}"
     )
-    lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
+    lines.append(f"> Port: 8088 | License: AGPL-3.0 | Status: {_status}")
     try:
         from importlib.metadata import version as _pkg_version
 
@@ -165,10 +186,6 @@ def generate_llms_txt() -> str:
         "> Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class"
     )
     lines.append("")
-    lines.append("## Canonical Kernel Tools (8 exposed via /tools/list)")
-    lines.append(
-        "The live MCP gateway exposes 8 canonical kernel verbs. The internal constitutional_map has more entries (legacy, internal-only, or filtered by server). The 8 below are the only ones visible to agents at https://mcp.arif-fazil.com/mcp:"
-    )
     kernel_exposed = [
         ("arif_init", "000", "Session ignition — binds actor, floors, and audit"),
         ("arif_observe", "111", "Sense reality with epistemic tags OBS/DER/INT/SPEC"),
@@ -179,6 +196,11 @@ def generate_llms_txt() -> str:
         ("arif_forge", "777", "Execution gate via A-FORGE — mutates ONLY after SEAL"),
         ("arif_seal", "999", "VAULT999 immutable append"),
     ]
+    _n_exposed = len(kernel_exposed)
+    lines.append(f"## Canonical Kernel Tools ({_n_exposed} exposed via /tools/list)")
+    lines.append(
+        f"The live MCP gateway exposes {_n_exposed} canonical kernel verbs. The internal constitutional_map has more entries (legacy, internal-only, or filtered by server). The {_n_exposed} below are the only ones visible to agents at https://mcp.arif-fazil.com/mcp:"
+    )
     lines.append("")
     lines.append("| Verb | KERNEL | What it does |")
     lines.append("|------|--------|--------------|")
@@ -194,19 +216,7 @@ def generate_llms_txt() -> str:
     lines.append("")
     lines.append("## Docs")
     lines.append(
-        "- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)"
-    )
-    lines.append(
-        "- [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context"
-    )
-    lines.append(
-        "- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping"
-    )
-    lines.append(
-        "- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles"
-    )
-    lines.append(
-        "- [AAA/wiki/INDEX.md](file:///root/AAA/wiki/INDEX.md): Federation operational knowledge corpus — concepts, axioms, scars, entities. Owner of the retired `tree777://` namespace."
+        "- Internal canon docs (AGENTS.md, CONTEXT.md, MCP-RESOURCES-MAP.md, INVARIANTS.md, AAA wiki) are VPS-local by design — not exposed on the public surface (EDGE CLOSE F13 2026-10-03). The `tree777://` namespace is fully retired (tree777-service persaraan; no owner service remains)."
     )
     lines.append("")
     lines.append("## MCP Tools — Complete Surface (federation aggregate)")
@@ -229,7 +239,7 @@ def generate_llms_txt() -> str:
     # Canonical tools (full constitutional_map)
     lines.append(f"### Constitutional Map (full internal table — {len(canonical)} entries)")
     lines.append(
-        "These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed via /tools/list — see 'Canonical Kernel Tools (8 exposed via /tools/list)' above for the live MCP surface."
+        "These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed via /tools/list — see the 'Canonical Kernel Tools' section above for the live MCP surface."
     )
     lines.append("| Tool | Stage | Access | Reversible | Modes |")
     lines.append("|------|-------|--------|------------|-------|")
@@ -409,7 +419,9 @@ def generate_llms_txt() -> str:
     lines.append(f"- tools/list count should match total ({total_tools})")
     lines.append("- canonical_tools + operational_tools == tools_exposed_via_mcp")
     lines.append(f"- Manifest hash: {mhash}")
-    lines.append("- Manifest URL: https://arifos.arif-fazil.com/tools.json")
+    lines.append(
+        "- tools.json: intentionally returns 401 — internal tool surface protected by EDGE CLOSE F13 2026-10-03. Served manifest = llms.txt + live /tools/list. Do NOT advertise the fenced URL."
+    )
     lines.append("")
     lines.append(f"--- Auto-generated {datetime.datetime.now(datetime.UTC).isoformat()} ---")
 

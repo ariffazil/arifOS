@@ -65,7 +65,7 @@
 | Independent benchmark | none |
 | Completed formal external security audit | none |
 
-**Disclosure note:** an external vulnerability disclosure (5 vulnerability classes) was received from an external researcher (Syed Anas Mohiuddin). Researcher identity NOT independently verified; this is NOT a formal commissioned security audit.
+**Disclosure note:** an external vulnerability disclosure (5 vulnerability classes) was received from an external security report. Reporter identity not independently verified; this is NOT a formal commissioned security audit.
 
 ## SECTION 7 — AGENT_START MANIFEST (single canonical entry point per repo)
 

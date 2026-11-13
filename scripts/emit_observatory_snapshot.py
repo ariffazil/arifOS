@@ -27,7 +27,10 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 from observatory_publish import publish_latest_snapshot  # noqa: E402
 
-from arifosmcp.runtime.capability_drift import PUBLIC_CANONICAL_TOOLS  # noqa: E402
+from arifosmcp.runtime.capability_drift import (  # noqa: E402
+    COORDINATION_TOOLS,
+    PUBLIC_CANONICAL_TOOLS,
+)
 from arifosmcp.runtime.rest_routes.observatory_routes import build_snapshot  # noqa: E402
 
 SNAP_DIR = Path("/root/.arifos/observatory/snapshots")
@@ -40,7 +43,10 @@ def build_observatory() -> dict[str, object]:
     public registration set. Invocation and test truth still comes from the
     canonical durable capability cache and event bus.
     """
-    return build_snapshot(None, registered_tools=set(PUBLIC_CANONICAL_TOOLS))
+    return build_snapshot(
+        None,
+        registered_tools=set(PUBLIC_CANONICAL_TOOLS) | set(COORDINATION_TOOLS),
+    )
 
 
 def _maybe_publish() -> None:

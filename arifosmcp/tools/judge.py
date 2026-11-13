@@ -902,8 +902,17 @@ def _bijaksana_bridge_check(
     actor_Phi: dict[str, Any] | None,
     entropy_pathway: str | None,
     entropy_receipt: dict[str, Any] | None,
+    advisory_only: bool = False,
 ) -> dict[str, Any]:
-    """Compute the BIJAKSANA four-dial lens verdict."""
+    """Compute the BIJAKSANA four-dial lens verdict.
+
+    advisory_only (P0-3, repair-2026-11-01): the dials were AUTO-COMPUTED
+    telemetry (judge.py collapse trigger), not caller-asserted identity
+    measurements. Advisory dials record but never block for THIS gate —
+    BLOCK conditions downgrade to BRIDGE_PENDING with disclosure. Caller-
+    ASSERTED dials keep full bridge enforcement; the collapse trigger keeps
+    its own F13-ratified enforcement internally (COLLAPSE_TRIGGER_ENFORCE).
+    """
     reasons: list[str] = []
     dial_states: dict[str, Any] = {
         "dial_1_akal": None,
@@ -976,17 +985,28 @@ def _bijaksana_bridge_check(
     sabar_kind = None
 
     # BLOCK conditions (any one → HOLD)
+    _block_reason: str | None = None
     if dial_states["dial_1_akal"] in ("below_floor", "out_of_range"):
-        verdict = "BRIDGE_BLOCKED"
+        _block_reason = "dial_1_akal_below_floor"
     elif dial_states["dial_3_entropy_pathway"] == "sealed":
-        verdict = "BRIDGE_BLOCKED"
-        sabar_kind = "terminal_extract"
+        _block_reason = "dial_3_terminal_extract"
     elif (
         dial_states["dial_1_akal"] == "invalid"
         or dial_states["dial_3_entropy_pathway"] == "invalid"
         or dial_states["dial_2_present"] == "malformed"
     ):
+        _block_reason = "invalid_or_malformed_dial"
+    if _block_reason and advisory_only:
+        verdict = "BRIDGE_PENDING"
+        reasons.append(
+            "AUTO_DIALS_ADVISORY: collapse-trigger auto-computed dials are "
+            f"advisory (enforce=False) — {_block_reason} recorded, not "
+            "enforced (Phase-1 contract: observe-only, never blocks)."
+        )
+    elif _block_reason:
         verdict = "BRIDGE_BLOCKED"
+        if _block_reason == "dial_3_terminal_extract":
+            sabar_kind = "terminal_extract"
 
     # RESTRAIN conditions
     if verdict == "BRIDGE_PROCEED":
@@ -1279,6 +1299,27 @@ async def arif_judge(
         except (ValueError, TypeError):
             pass  # leave as-is; empty-evidence gate then HOLDs honestly
 
+    # ── P0-1 (repair-2026-11-01): a sovereign_receipt is a CLAIM ─────────────
+    # Until it resolves to a real ledger entry bound to THIS candidate and
+    # THIS actor (runtime/sovereign_receipt_verify.py), it must neither
+    # promote a verdict nor disarm a perimeter gate.
+    _receipt_verify: dict[str, Any] = {"verified": False, "reason": "NO_RECEIPT"}
+    if sovereign_receipt and str(sovereign_receipt).strip():
+        try:
+            from arifosmcp.runtime.sovereign_receipt_verify import (
+                verify_sovereign_receipt as _vsr,
+            )
+
+            _receipt_verify = _vsr(sovereign_receipt, candidate, actor_id=actor_id)
+        except Exception as _vsr_exc:  # noqa: BLE001 — fail closed, never crash a verdict
+            logger.warning("sovereign_receipt verification failed closed: %s", _vsr_exc)
+            _receipt_verify = {
+                "verified": False,
+                "reason": "VERIFIER_ERROR",
+                "error": str(_vsr_exc)[:200],
+            }
+    _receipt_verified = bool(_receipt_verify.get("verified"))
+
     # ── L11 AUTH: session gate (W1 fix 2026-10-15) ───────────────────────────
     # arif_observe enforced session binding; arif_judge did not — unbound
     # callers received status:"completed" verdict envelopes. Replicate the
@@ -1326,6 +1367,12 @@ async def arif_judge(
                 "failure_type": "ARIF_SESSION_NOT_FOUND",
                 "detail": "Call arif_init(mode='init') first to bind a session.",
                 "remediation": _rem,
+                # P1-4: echo the caller's DECLARED risk — the envelope risk
+                # block must describe the ACTION, not the tool passport
+                # (sessionless had no meta echo → "reversible"/"medium"
+                # even for declared IRREVERSIBLE/federation).
+                **({"reversibility_level": reversibility_level} if reversibility_level else {}),
+                **({"blast_radius": blast_radius} if blast_radius else {}),
                 # Lane 1 (2026-10-28): an unverified actor gets the same evidence
                 # disclosure as a verified one — the HOLD must say WHY.
                 "judge_postcondition": _evidence_postcondition_report(
@@ -1514,7 +1561,7 @@ async def arif_judge(
     )
     if (
         _is_destructive
-        and not sovereign_receipt
+        and not _receipt_verified
         and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
     ):
         _hard_reasons.append(
@@ -1532,7 +1579,7 @@ async def arif_judge(
     )
     if (
         _is_security_mutation
-        and not sovereign_receipt
+        and not _receipt_verified
         and str(actor_id).strip().lower() not in ("sovereign", "f13", "arif")
     ):
         _hard_reasons.append(
@@ -1606,11 +1653,12 @@ async def arif_judge(
     # Gate 3: Critical blast radius requires sovereign receipt
     if (
         _br in ("CRITICAL", "L3_CRITICAL", "HIGH")
-        and not sovereign_receipt
+        and not _receipt_verified
         and action_tier == "standard"
     ):
         _hard_reasons.append(
-            f"Critical blast radius ({_br}) requires sovereign_receipt or action_tier=sovereign."
+            f"Critical blast radius ({_br}) requires a VERIFIED ledger-bound "
+            "sovereign_receipt or action_tier=sovereign."
         )
 
     # Gate 4: Action tier c4/c5 requires WELL attestation (cannot proceed without it)
@@ -1790,9 +1838,20 @@ async def arif_judge(
             )
             for r in _hard_reasons
         )
+        # Fasa-4 C3 (2026-11-05, acceptance #3): mode=escalate must return an
+        # esc_-prefixed receipt id carrying the constitutional gate reasons —
+        # never an empty {}.
+        import uuid as _uuid
+
+        _escalate_receipt = (
+            {"receipt_id": f"esc_{_uuid.uuid4().hex[:16]}", "mode": mode}
+            if mode == "escalate"
+            else {}
+        )
         return VerdictOutput(
             verdict=VerdictCode.VOID if _is_void else VerdictCode.HOLD,
             reasons=_hard_reasons,
+            result=_escalate_receipt,
             next_safe_action=(
                 "Aborted: action violates constitutional floors (F1/F9/F13)."
                 if _is_void
@@ -1866,12 +1925,45 @@ async def arif_judge(
                 session_id=session_id,
             )
             _v_str = _intercept_res.get("decision") or _intercept_res.get("status") or "HOLD"
+            # ── P0-1: high-risk ALLOW requires substantive evidence ────────────
+            # MUTATE/IRREVERSIBLE (or blast >= ORGAN) may not reach ALLOW on
+            # session state alone; provenance-bearing evidence is mandatory.
+            _reason_highrisk: str | None = None
+            if _v_str in ("ALLOW", "OK"):
+                _hr_rev = str(_rev_param or "").upper()
+                _hr_br = str(blast_radius or "").upper()
+                _hr_class = str(action_class or "").upper()
+                _hr = _hr_rev in (
+                    "IRREVERSIBLE", "MUTATE", "ATOMIC", "SEAL",
+                    "R4", "R4_IRREVERSIBLE", "R5", "R5_IRREVERSIBLE",
+                ) or _hr_class in ("MUTATE", "IRREVERSIBLE") or _hr_br in (
+                    "ORGAN", "FEDERATION", "GLOBAL", "FED", "CRITICAL", "L3_CRITICAL", "HIGH",
+                )
+                if _hr:
+                    _hr_ev_ok = False
+                    try:
+                        from arifosmcp.runtime.judge_postcondition import (
+                            _evidence_has_provenance as _ehp,
+                        )
+
+                        _hr_ev = evidence if isinstance(evidence, dict) else {}
+                        _hr_ev_ok = bool(_hr_ev) and _ehp(_hr_ev)
+                    except Exception:
+                        _hr_ev_ok = False
+                    if not _hr_ev_ok:
+                        _v_str = "HOLD"
+                        _reason_highrisk = (
+                            "INSUFFICIENT_EVIDENCE_HIGH_RISK: MUTATE/IRREVERSIBLE or "
+                            f"blast_radius={_hr_br or 'UNSET'} requires substantive "
+                            "provenance-bearing evidence to reach ALLOW."
+                        )
             # Kernel intercept speaks ALLOW/DENY/ESCALATE; Lane A seal needs SEAL.
             # With F13 sovereign_receipt + REVERSIBLE/ATTEST, promote ALLOW → SEAL and
             # surface constitutional_chain_id / judge_state_hash for arif_seal (2026-07-30).
             _rev_u = str(_rev_param or "").upper()
             _br_u = str(blast_radius or "").upper()
-            _has_f13 = bool(sovereign_receipt and str(sovereign_receipt).strip())
+            # P0-1: only a VERIFIED ledger-bound receipt counts as F13 backing.
+            _has_f13 = _receipt_verified
             # Explicit only — empty rev/blast must not default to "safe".
             _safe_revs = (
                 "TRIVIAL",
@@ -1951,6 +2043,26 @@ async def arif_judge(
             except Exception as _pc_int_exc:  # noqa: BLE001 — never break a verdict
                 logger.warning("P0-1 intercept postcondition non-fatal: %s", _pc_int_exc)
 
+            # P0-1: enforce_ledger_gate ON for receipt-backed promotion paths —
+            # a verified receipt still cannot promote over an unverified chain head.
+            _reason_ledger: str | None = None
+            if _code == VerdictCode.SEAL and _has_f13:
+                try:
+                    from arifosmcp.runtime.judge_postcondition import (
+                        ledger_precheck as _lp_fn,
+                    )
+
+                    _lp = _lp_fn()
+                except Exception as _lp_exc:  # noqa: BLE001
+                    _lp = {"verified": False, "error": str(_lp_exc)[:200]}
+                if _lp.get("verified") is not True:
+                    _code = VerdictCode.HOLD
+                    _v_str = "HOLD"
+                    _reason_ledger = (
+                        "LEDGER_PRECHECK_FAILED: receipt-backed promotion requires a "
+                        f"verified seal-chain head; ledger_precheck={_lp}"
+                    )
+
             _cc_id = _intercept_res.get("constitutional_chain_id") or (
                 _intercept_res.get("output") or {}
             ).get("constitutional_chain_id")
@@ -1961,6 +2073,10 @@ async def arif_judge(
                 _intercept_res.get("reason")
                 or f"Adjudicated via kernel intercept (reversibility={_rev_param})"
             ]
+            if _reason_highrisk:
+                _reasons.append(_reason_highrisk)
+            if _reason_ledger:
+                _reasons.append(_reason_ledger)
             if _code == VerdictCode.SEAL and _has_f13 and _v_str == "SEAL":
                 _reasons.append(
                     "F13 sovereign_receipt present — confirms passed intercept "
@@ -1984,6 +2100,8 @@ async def arif_judge(
                 "judge_state_hash": _jsh,
                 "f13_promoted_allow_to_seal": bool(_code == VerdictCode.SEAL and _has_f13),
                 "judge_postcondition": _ipc_report,
+                "sovereign_receipt_verification": _receipt_verify,
+                "enforce_ledger_gate": bool(_code == VerdictCode.SEAL and _has_f13),
             }
             # S2 FIX: reconcile kernel_intercept with effective_verdict.
             # If the verdict is HOLD (identity unverified, drift, etc.),
@@ -2036,6 +2154,29 @@ async def arif_judge(
                     "Run arif_init(actor_signature=<ed25519>, "
                     "ack_irreversible=true) to unlock seal, then re-run arif_judge."
                 )
+            # PUBLIC VISIBILITY (2026-11-08): the intercept path returns BEFORE the
+            # composer's four-plane block, so a HOLD carried no evidence-quality
+            # signal. Attach it here — same pure function, no new authority.
+            try:
+                from contracts.four_plane_contract import evaluate_four_planes as _efp
+
+                _fp_epi, _fp_auth, _fp_disp, _fp_const, _fp_rem = _efp(
+                    candidate=candidate,
+                    auth_valid=True,
+                    actor_id=actor_id,
+                    evidence=evidence,
+                    reversibility_level=reversibility_level,
+                    action_tier=action_tier,
+                    current_verdict=str(_code),
+                )
+                _intercept_meta["four_plane"] = {
+                    "epistemic_state": _fp_epi,
+                    "authority_state": _fp_auth,
+                    "action_disposition": _fp_disp,
+                    "constitutional_verdict": _fp_const,
+                }
+            except Exception as _fp_exc:  # noqa: BLE001 — visibility must not break a verdict
+                logger.debug("four_plane visibility non-fatal: %s", _fp_exc)
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
@@ -2148,9 +2289,11 @@ async def arif_judge(
     # ── APEX COLLAPSE TRIGGER AUTO-COMPUTE (Phase 1, 2026-08-02) ───────────────
     # If four-dial params (actor_B, actor_Phi, entropy_pathway, entropy_receipt)
     # are not explicitly provided, auto-compute them from the candidate text using
-    # the collapse trigger. Phase 1: observe-only, never blocks. Phase 2: gates
-    # enforcement when COLLAPSE_TRIGGER_ENFORCE=True.
+    # the collapse trigger. P0-3 (2026-11-01): these auto values are ADVISORY
+    # for the BIJAKSANA bridge (recorded, never blocking); the collapse trigger
+    # keeps its own F13-ratified enforcement (COLLAPSE_TRIGGER_ENFORCE) intact.
     # F1: fail-soft — collapse trigger failure never blocks arif_judge.
+    _dials_advisory = False
     if actor_B is None and candidate and str(candidate).strip():
         try:
             from arifosmcp.core.apex_collapse_trigger import collapse_json
@@ -2164,6 +2307,10 @@ async def arif_judge(
                 actor_id=actor_id or "unknown",
             )
             actor_B = _collapse_result.get("B_phi")
+            # P0-3: AUTO-COMPUTED telemetry — advisory FOR THE BRIDGE
+            # (the auto->bridge wiring predates both the bridge seal and
+            # collapse Phase-2; collapse keeps its OWN ratified enforcement).
+            _dials_advisory = True
             actor_Phi = {
                 "phi": _collapse_result["dials"].get("phi", 0.0),
                 "c_dark": _collapse_result.get("c_dark", 0.0),
@@ -2191,6 +2338,7 @@ async def arif_judge(
         actor_Phi=actor_Phi,
         entropy_pathway=entropy_pathway,
         entropy_receipt=entropy_receipt,
+        advisory_only=_dials_advisory,
     )
     global _LAST_BRIDGE_ADVISORY
     _LAST_BRIDGE_ADVISORY = _bridge_advisory
@@ -2501,6 +2649,17 @@ async def arif_judge(
                     action_tier=action_tier,
                     current_verdict=str(getattr(out, "verdict", "HOLD")),
                 )
+                # PUBLIC VISIBILITY (2026-11-08, 333-AGI): the four-plane state is
+                # the judge's evidence-quality signal. The public facade projects a
+                # fixed result block, so mirror it into meta — the field the facade
+                # preserves — otherwise the gate is invisible to every caller.
+                _fp_meta = dict(getattr(out, "meta", {}) or {})
+                _fp_meta["four_plane"] = {
+                    "epistemic_state": _epi,
+                    "authority_state": _auth_s,
+                    "action_disposition": _disp,
+                    "constitutional_verdict": _const_v,
+                }
                 out = out.model_copy(
                     update={
                         "epistemic_state": _epi,
@@ -2508,6 +2667,7 @@ async def arif_judge(
                         "action_disposition": _disp,
                         "constitutional_verdict": _const_v,
                         "remediation": _rem,
+                        "meta": _fp_meta,
                     }
                 )
             except Exception as _four_exc:
@@ -4381,3 +4541,10 @@ def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> No
 
 # Backward compatibility alias
 arif_judge_deliberate = arif_judge
+
+
+# S3c (PLAN-2026-11-10-Q1, ARIF GO S3c): OS-1 canary — dry-run receipt
+# emission on arif_judge outcomes (env-gated, default off, zero ingest).
+from arifosmcp.runtime.os1_canary import wrap_mutate_verbs as _os1_wrap_mutate
+
+arif_judge = _os1_wrap_mutate(arif_judge)

@@ -25,6 +25,7 @@ DITEMPA BUKAN DIBERI — 2026-07-30 A3A correction.
 from __future__ import annotations
 
 import logging
+import sys
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
     """Patch FastMCP._render_prompt so missing prompt args return
     JSON-RPC -32602 Invalid params (per MCP / JSON-RPC 2.0)."""
     global _APPLIED
-    print("[mcp_prompt_rpc_fix] apply() called, _APPLIED=", _APPLIED, flush=True)
+    print("[mcp_prompt_rpc_fix] apply() called, _APPLIED=", _APPLIED, file=sys.stderr, flush=True)
     if _APPLIED:
         return True
 
@@ -69,14 +70,55 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
     original_get_prompt = FastMCP.get_prompt
 
     PROMPT_ALIASES: dict[str, str] = {
-        "/init": "⚓ INIT",
-        "init": "⚓ INIT",
-        "/seal": "🔐 CLOSE",
-        "seal": "🔐 CLOSE",
-        "/close": "🔐 CLOSE",
-        "close": "🔐 CLOSE",
-        "/govern": "🌀 GOVERN",
-        "govern": "🌀 GOVERN",
+        "/init": "s_init",
+        "init": "s_init",
+        "⚓ INIT": "s_init",
+        "/ignite": "s000_ignite",
+        "ignite": "s000_ignite",
+        "000": "s000_ignite",
+        "000 🌱 IGNITE": "s000_ignite",
+        "/sense": "s111_sense",
+        "sense": "s111_sense",
+        "111": "s111_sense",
+        "111 🌊 SENSE": "s111_sense",
+        "/plan": "s222_plan",
+        "plan": "s222_plan",
+        "222": "s222_plan",
+        "222 🏛 PLAN": "s222_plan",
+        "/reason": "s333_reason",
+        "reason": "s333_reason",
+        "333": "s333_reason",
+        "333 🧠 REASON": "s333_reason",
+        "/direct": "s444_direct",
+        "direct": "s444_direct",
+        "444": "s444_direct",
+        "444 🧭 DIRECT": "s444_direct",
+        "/remember": "s555_remember",
+        "remember": "s555_remember",
+        "555": "s555_remember",
+        "555 🗂 REMEMBER": "s555_remember",
+        "/dignity": "s666_dignity",
+        "dignity": "s666_dignity",
+        "666": "s666_dignity",
+        "666 ⚖ DIGNITY": "s666_dignity",
+        "/judge": "s888_judge",
+        "judge": "s888_judge",
+        "888": "s888_judge",
+        "888 🔒 JUDGE": "s888_judge",
+        "/forge": "s777_forge",
+        "forge": "s777_forge",
+        "777": "s777_forge",
+        "777 🔥 FORGE": "s777_forge",
+        "/seal": "s999_seal",
+        "seal": "s999_seal",
+        "999": "s999_seal",
+        "999 💎 SEAL": "s999_seal",
+        "/govern": "s_govern",
+        "govern": "s_govern",
+        "🌀 GOVERN": "s_govern",
+        "/close": "s_close",
+        "close": "s_close",
+        "🔐 CLOSE": "s_close",
     }
 
     async def get_prompt_with_aliases(
@@ -119,15 +161,19 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
                     arguments.keys() if isinstance(arguments, dict) else []
                 )
                 if missing:
-                    raise McpError(
-                        mcp_types.ErrorData(
-                            code=mcp_types.INVALID_PARAMS,  # -32602
-                            message=(
-                                f"Invalid params: Missing required arguments: "
-                                f"{sorted(missing)}"
-                            ),
-                        )
+                    msg = (
+                        f"Invalid params: Missing required arguments: "
+                        f"{sorted(missing)}"
                     )
+                    try:
+                        raise McpError(mcp_types.INVALID_PARAMS, msg)
+                    except TypeError:
+                        raise McpError(
+                            mcp_types.ErrorData(
+                                code=mcp_types.INVALID_PARAMS,  # -32602
+                                message=msg,
+                            )
+                        )
         except McpError:
             raise
         if args:
@@ -146,5 +192,5 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
         "(patched FastMCP.get_prompt and FastMCP._render_prompt)"
     )
     logger.warning(msg)
-    print(msg, flush=True)
+    print(msg, file=sys.stderr, flush=True)
     return True

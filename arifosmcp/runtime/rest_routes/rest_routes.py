@@ -1023,9 +1023,51 @@ def _provenance_is_unmeasured(provenance: Any) -> bool:
     ``arifflow_vector_g_skipped:calibration=PHASE_1_HEURISTIC_UNCALIBRATED``
     — the live reading was skipped and the placeholder rendered as a measured
     pass. Provenance was honest; the status derived from it was not.
+
+    2026-11-11 (F6 contradiction fix): an explicit UNMEASURED segment in any
+    part of the provenance string (e.g. floor_producer:UNMEASURED:...)
+    outranks the head token.
     """
-    _p = str(provenance or "").strip().lower()
-    return _p.startswith("unmeasured_default") or "_skipped" in _p
+    _p = str(provenance or "").strip()
+    if not _p:
+        return False
+    if any(seg.strip().upper().startswith("UNMEASURED") for seg in _p.split(":")):
+        return True
+    _pl = _p.lower()
+    return _pl.startswith("unmeasured_default") or "_skipped" in _pl
+
+
+def _reconcile_unmeasured_basis(
+    basis_list: Any, floor_provenance: dict[str, Any]
+) -> list[str]:
+    """KX-011 (2026-11-02): drop producer-measured floors from the wire basis.
+
+    ``measurement_basis.unmeasured_floors`` is born kernel-side meaning
+    "no such event in THIS process" (event_window: since_process_boot).
+    Floors that an independent producer went on to measure (seal chain,
+    arifFlow probes, witness legs) are no longer unmeasured in THIS
+    payload — leaving them listed while ``runtime_floors_status`` publishes
+    ``measured: true`` was the A6 known_contradiction this retires.
+
+    Removal is conservative: a floor leaves the list only when its
+    provenance EXISTS and does not itself declare unmeasured (the same
+    canonical classifier ``_provenance_is_unmeasured`` that gates
+    ``runtime_floors_status.measured`` — one classifier, one answer).
+    An absent provenance keeps the floor listed (unknown is not measured).
+
+    Metadata only — no score, threshold, or verdict math reads this list
+    (A6 condition 2). The raw kernel-log basis remains untouched in
+    ``core.governance_kernel.get_current_state()``.
+    """
+    if not isinstance(basis_list, list):
+        return []
+    kept: list[str] = []
+    for fid in basis_list:
+        prov = floor_provenance.get(fid)
+        if prov is not None and not _provenance_is_unmeasured(prov):
+            continue  # an independent producer measured it — not unmeasured
+        kept.append(fid)
+    return kept
 
 
 def _floor_status_strict(law_id: str, score: Any) -> str:
@@ -1497,10 +1539,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
             )
 
         # F9 ANTI-HANTU / SHADOW: live from arifFlow vector dimension c_dark
-        if "c_dark" in _dims and _dims["c_dark"].get("value") is not None:
-            resolved_floors["F9"] = float(_dims["c_dark"]["value"])
+        # 2026-11-11: same gate-grade guard as F8 (2026-10-25 F13 order) — a
+        # PHASE_1_HEURISTIC_UNCALIBRATED dimension must not dress telemetry as a
+        # floor score. The runtime classifier already marks F9 unmeasured when
+        # the kernel signal is empty; telemetry may not contradict it.
+        _c_dim = _dims.get("c_dark") or {}
+        _c_calib = str(_c_dim.get("calibration") or "").upper()
+        if _c_dim.get("value") is not None and "UNCALIBRATED" not in _c_calib:
+            resolved_floors["F9"] = float(_c_dim["value"])
             floor_provenance["F9"] = (
-                f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}@{now_iso()}"
+                f"arifflow_live_vector:c_dark={_c_dim['value']}@{now_iso()}"
+            )
+        elif _c_dim.get("value") is not None:
+            floor_provenance["F9"] = (
+                f"arifflow_vector_c_dark_skipped:calibration={_c_calib or 'unknown'}@{now_iso()}"
             )
 
         # L10 ONTOLOGY: live from arifFlow ontology specification
@@ -1541,7 +1593,14 @@ def _build_governance_status_payload() -> dict[str, Any]:
             elif f4_val < 0:
                 resolved_floors["F4"] = round(0.80 + abs(f4_val) * 0.4, 4)
             elif f4_val == 0:
-                resolved_floors["F4"] = 0.80
+                # 2026-11-11 honesty repair (public-page false-green): a trivial-zero
+                # ΔS (ds=-0.0, no completed window) IS the placeholder baseline, and
+                # rendering it as 0.80 is the exact falsification the F4 contract
+                # names ("a placeholder 0.80 baseline presented as a measured ΔS
+                # falsifies it"). Drop to unmeasured; runtime_floors already
+                # classifies this signal NOT_MEASURED.
+                resolved_floors.pop("F4", None)
+                floor_provenance["F4"] = f"unmeasured_default:ds_trivial_zero@{now_iso()}"
             else:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
@@ -1559,6 +1618,21 @@ def _build_governance_status_payload() -> dict[str, Any]:
         from arifosmcp.runtime.floor_producers import collect_floor_producer_signal
 
         _producer_score = {"PASS": 1.0, "FAIL": 0.0, "CONTRADICTED": 0.0}
+
+        def _f6_first_class_state(_sig: dict) -> tuple:
+            """F6 seam closure (F13 SEAL F6_MARUAH_CODE_REPAIR 2026-11-11,
+            plan c2f5a175): the consumer must preserve the producer's full
+            epistemic range. UNKNOWN/UNMEASURED are first-class states —
+            never discarded into _FLOOR_DEFAULTS, never coerced to a score.
+            Returns (score, provenance) for non-scoring statuses;
+            scoring statuses are handled by the caller's PASS/FAIL path."""
+            _st = str(_sig.get("status") or "UNMEASURED").upper()
+            if _st in _producer_score:
+                return None, None
+            return None, (
+                f"floor_producer:{_st}:{_sig.get('origin') or 'f6_producer'}"
+                f"@{_sig.get('measured_at') or now_iso()}"
+            )
 
         def _wire_producer(fid: str, _src: dict) -> None:
             _sig = collect_floor_producer_signal(fid, sources=_src)
@@ -1721,19 +1795,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     {"meters": _f6_report.get("meters", []), "seals": _seal_rows},
                 )
             else:
-                # 2026-11-01 truth-up: carry the LIVE decomposition in the
-                # provenance string so consumers see WHY F6 is unscored (the
-                # old static "producer pending" label was false — the producer
-                # is wired and runs; it refuses to score without evidence).
-                _f6_state = (
-                    f"failed={','.join(_f6_sig.get('failed_meters') or []) or '-'};"
-                    f"unknown={','.join(_f6_sig.get('unknown_meters') or []) or '-'};"
-                    f"witness={','.join(_f6_sig.get('witness_states') or []) or '-'}"
-                )
-                floor_provenance["F6"] = (
-                    f"{_f6_sig.get('origin') or 'unmeasured_default:f6_partially_measured'}"
-                    f"[{_f6_state}]"
-                )
+                # F6 seam closure: a valid UNMEASURED/UNKNOWN from the REAL
+                # producer is a first-class state — score stays None (never
+                # coerced), provenance names the producer, not _FLOOR_DEFAULTS.
+                _f6_score, _f6_prov = _f6_first_class_state(_f6_sig)
+                resolved_floors["F6"] = _f6_score
+                floor_provenance["F6"] = _f6_prov
         except Exception as _f6_exc:
             floor_provenance["F6"] = f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
 
@@ -1792,10 +1859,102 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 "floor_statuses": _floor_statuses_snapshot,
             },
         )
+        # Gate 2 F2 (F13 2026-11-02, Arif audit): the truth floor's PASS is
+        # scope-limited — publish the coverage fraction's numerator/denominator
+        # + scope so no consumer can read floor-provenance coverage as
+        # whole-payload truth closure ("we don't know the denominator").
+        # Same map, same startswith rule as _f2_truth's coverage contract §5;
+        # alias rows (L10..) are included exactly as the producer counts them.
+        measurement_basis["f2_coverage"] = {
+            "numerator": sum(
+                1
+                for _o in floor_provenance.values()
+                if not str(_o).startswith("unmeasured_default")
+            ),
+            "denominator": len(floor_provenance),
+            "coverage_scope": (
+                "kernel floor-provenance map (this payload's floor origins, "
+                "alias rows included) — NOT the whole observatory payload"
+            ),
+            "definition_source": "floor_producers._f2_truth coverage contract §5",
+        }
+
+        # F7 HUMILITY (Gate 4, F13 2026-11-02): Ω₀ uncertainty-band discipline.
+        # Canon defines the semantics: core/shared/types.py AgiMetrics.omega_0
+        # Field(ge=0.03, le=0.05) HARD ("F7: Ω₀ ∈ [0.03, 0.05]"); mottos.py
+        # Ω₀ ≈ 0.04. The kernel must DECLARE a nonzero irreducible-uncertainty
+        # bound inside the band, the validation constraint must actually reject
+        # out-of-band values (tested live below), and nothing may publish
+        # perfect certainty. Score = the Ω₀ value itself (range-pass semantics —
+        # never the 1.0 predicate projection, which would sit outside the band).
+        try:
+            from core.shared.mottos import PromptManifold as _F7Manifold
+
+            _f7_omega = float(_F7Manifold().omega_0)
+        except Exception:
+            _f7_omega = None
+        _f7_band: Any = None
+        _f7_enforced: Any = None
+        try:
+            from core.shared.types import AgiMetrics as _F7Metrics
+            from annotated_types import Ge as _F7Ge, Le as _F7Le
+
+            _f7_field = _F7Metrics.model_fields["omega_0"]
+            _f7_band = [
+                next(float(m.ge) for m in _f7_field.metadata if isinstance(m, _F7Ge)),
+                next(float(m.le) for m in _f7_field.metadata if isinstance(m, _F7Le)),
+            ]
+            try:
+                _F7Metrics(
+                    truth_score=0.99, delta_s=-0.1, omega_0=0.9, precision=1.0, free_energy=0.0
+                )
+                _f7_enforced = False  # out-of-band Ω₀ accepted — constraint decorative
+            except Exception:
+                _f7_enforced = True
+        except Exception:
+            _f7_band = None
+            _f7_enforced = None
+        _f7_sig = collect_floor_producer_signal(
+            "F7",
+            sources={
+                "omega_0": _f7_omega,
+                "band": _f7_band,
+                "constraint_enforced": _f7_enforced,
+            },
+        )
+        if _f7_sig.get("status") in _producer_score:
+            resolved_floors["F7"] = (
+                float(_f7_sig["omega_0"])
+                if _f7_sig.get("status") == "PASS"
+                else _producer_score[_f7_sig["status"]]
+            )
+            floor_provenance["F7"] = (
+                f"floor_producer:{_f7_sig['status']}:{_f7_sig.get('origin')}"
+                f"@{_f7_sig.get('measured_at') or now_iso()}"
+            )
+        measurement_basis["f7_humility"] = {
+            _k: _f7_sig[_k]
+            for _k in ("status", "origin", "omega_0", "band", "shadow_residual")
+            if _k in _f7_sig
+        }
     except Exception as _fp_exc:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
         )
+
+    # 2026-11-01 (F13 order, analytics): an unmeasured floor must not publish a score.
+    # Measured defect: /health published F6 = 0.70, F7 = 0.04, F4 = 0.80 while all
+    # three statuses said `unmeasured` and their origins said `unmeasured_default*`.
+    # None of those numbers is a reading:
+    #   0.70 is F6's pass threshold   (_representative_floor_score, ">=" -> threshold)
+    #   0.04 is F7's representative in-band constant ("range" -> low + 0.01)
+    #   0.80 is F4's placeholder 0.0 pushed through the ΔS normalisation curve
+    # A consumer reading only runtime_floors reads a threshold or a constant as a
+    # measurement. Absence stays absence (K2): publish null, keep the reason in
+    # runtime_floors_status. Floors with a real producer/probe origin are untouched.
+    for _fid, _origin in list(floor_provenance.items()):
+        if str(_origin).startswith("unmeasured_default"):
+            resolved_floors[_fid] = None
     # SCAR-OBS-GREENWASH / DEFAULT_TRI_WITNESS (2026-10-03): this used to be
     #   {k: witness.get(k) if witness.get(k) not in (None, 0.0) else v
     #        for k, v in _WITNESS_DEFAULTS.items()}
@@ -2099,6 +2258,21 @@ def _build_governance_status_payload() -> dict[str, Any]:
         resolved_floors, floor_provenance
     )
 
+    # KX-011 (2026-11-02): reconcile the kernel event-log basis with producer
+    # outcomes on this wire. Runs AFTER every producer probe above, so the
+    # published list answers the reader's question ("which floors are
+    # unmeasured?") with one source instead of colliding with
+    # runtime_floors_status.
+    if isinstance(measurement_basis.get("unmeasured_floors"), list):
+        measurement_basis["unmeasured_floors"] = _reconcile_unmeasured_basis(
+            measurement_basis["unmeasured_floors"], floor_provenance
+        )
+        measurement_basis["reconciliation"] = (
+            "kx011: floors measured by an independent producer after this "
+            "basis snapshot are removed; raw kernel-log basis retained in "
+            "governance_kernel.get_current_state()"
+        )
+
     return {
         "telemetry": resolved_telemetry,
         "witness": resolved_witness,
@@ -2141,19 +2315,23 @@ def _render_status_html(payload: dict[str, Any]) -> str:
     vitals = payload["machine_vitals"]
     witness = payload["witness"]
 
+    def _floor_cell(law_id: str) -> str:
+        """Render one floor. A null score renders as no-measurement, never a pass.
+
+        2026-11-01: runtime_floors publishes null for a floor whose origin is an
+        unmeasured default (see the provenance guard in the health builder). This
+        renderer used floors.get(law_id, default), which returns the None instead
+        of the default — float(None) crashed the whole /status page.
+        """
+        raw = floors.get(law_id)
+        if raw is None:
+            return f'<div class="floor unmeasured"><strong>{law_id}</strong><span>—</span></div>'
+        value = float(raw)
+        cls = "pass" if _floor_passes(law_id, value) else "fail"
+        return f'<div class="floor {cls}"><strong>{law_id}</strong><span>{value:.3f}</span></div>'
+
     floor_html = "".join(
-        '<div class="floor {}"><strong>{}</strong><span>{:.3f}</span></div>'.format(
-            (
-                "pass"
-                if _floor_passes(
-                    law_id,
-                    float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
-                )
-                else "fail"
-            ),
-            law_id,
-            float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
-        )
+        _floor_cell(law_id)
         for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:]))
     )
 
@@ -2325,7 +2503,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
 
   <section class="panel">
     <div class="floor-mosaic">
-      {{floor_html}}
+      {floor_html}
     </div>
     <p style="margin-top:1rem; color:#92a1b5;">Each floor is rendered as a status chip that pulses when passing and glows red when locked.</p>
   </section>
@@ -4048,6 +4226,106 @@ def _compute_known_gaps(
     return gaps
 
 
+# ── Blocker #7 (civfork gap-map 2026-11-02): flat-default scalar labels ──
+# The numeric leaves of /health's thermodynamic block are telemetry
+# observations — but when the governance-kernel event log is empty the
+# kernel returns structural baselines (SCAR-OBS-GREENWASH: "peace2 0.5,
+# kappa_r 0.5, shadow 0.0 ... placeholders exactly like _FLOOR_DEFAULTS").
+# The floors side labels those `unmeasured_default`; the scalar side
+# rendered the same bare numbers with no label, which is how a structural
+# baseline reads as a measurement. `scalar_provenance` applies the floors'
+# discipline to each leaf. Labels only — no value, status, or verdict
+# math is touched (KX-010 A6 condition 2), and each label must stay
+# consistent with that leaf's measurement_contract entry.
+_THERMO_SCALAR_BASELINES: dict[str, float] = {
+    # Only values the SCAR-OBS-GREENWASH doctrine names, or that are
+    # structurally zero-on-empty per their own derivation formula.
+    # No invented baselines — an unverified baseline stays out.
+    "entropy_delta": 0.0,
+    "peace_squared": 0.5,
+    "kappa_r": 0.5,
+    "echo_debt": 0.0,
+    "shadow": 0.0,
+    "vitality_index": 0.0,  # honest memory integral (chain_length x seal_rate): 0 on empty chain
+}
+_THERMO_POLICY_CONSTANTS = frozenset({"kappa_r", "confidence"})
+
+
+def _thermo_scalar_provenance(name: str, value: Any, *, event_log_empty: bool) -> str:
+    """Classify one thermodynamic scalar leaf (Blocker #7, 2026-11-02).
+
+    MEASURED            live telemetry observation in the probe window
+    DEFAULT_UNMEASURED  structural baseline rendered because the producing
+                        signal never existed (empty governance-kernel event log)
+    POLICY_CONSTANT     declared constant — agrees with the leaf's contract
+    ABSENT              no value at all (telemetry key missing/unparseable)
+    """
+    if name in _THERMO_POLICY_CONSTANTS:
+        return "POLICY_CONSTANT"
+    if value is None:
+        return "ABSENT"
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return "ABSENT"
+    baseline = _THERMO_SCALAR_BASELINES.get(name)
+    if event_log_empty and baseline is not None and v == baseline:
+        return "DEFAULT_UNMEASURED"
+    return "MEASURED"
+
+
+def _thermo_scalar_provenance_block(telemetry: dict[str, Any]) -> dict[str, Any]:
+    """Build the scalar_provenance sub-block for /health's thermodynamic dict.
+
+    Single probe call (reality_scoring.probe_governance_kernel_events — the
+    same emptiness detector the floors side defers to). On probe failure the
+    block fails toward honesty: baseline-equal values label
+    DEFAULT_UNMEASURED rather than silently reading as measurements.
+    """
+    has_history = False
+    detail = "probe_unavailable"
+    try:
+        from arifosmcp.runtime.reality_scoring import probe_governance_kernel_events
+
+        has_history, detail = probe_governance_kernel_events()
+    except Exception as exc:  # noqa: BLE001 — labels must never break /health
+        detail = f"probe_error: {exc}"[:200]
+    labels = {
+        "entropy_delta": _thermo_scalar_provenance(
+            "entropy_delta", telemetry.get("dS"), event_log_empty=not has_history
+        ),
+        "peace_squared": _thermo_scalar_provenance(
+            "peace_squared", telemetry.get("peace2"), event_log_empty=not has_history
+        ),
+        "vitality_index": _thermo_scalar_provenance(
+            "vitality_index", telemetry.get("psi_le"), event_log_empty=not has_history
+        ),
+        "kappa_r": _thermo_scalar_provenance(
+            "kappa_r", telemetry.get("kappa_r"), event_log_empty=not has_history
+        ),
+        "echo_debt": _thermo_scalar_provenance(
+            "echo_debt", telemetry.get("echoDebt"), event_log_empty=not has_history
+        ),
+        "shadow": _thermo_scalar_provenance(
+            "shadow", telemetry.get("shadow"), event_log_empty=not has_history
+        ),
+        "confidence": _thermo_scalar_provenance(
+            "confidence", telemetry.get("confidence"), event_log_empty=not has_history
+        ),
+    }
+    return {
+        # Out of scope by the same KX-010 roster that excluded metabolic_stage:
+        # `witness` (leg dict, not a scalar) and `metabolic_stage` (no producer
+        # contract authorized).
+        "labels": labels,
+        "basis": {
+            "event_log_has_history": bool(has_history),
+            "detail": str(detail)[:200],
+            "detector": "reality_scoring.probe_governance_kernel_events",
+        },
+    }
+
+
 def register_rest_routes(
     mcp: Any,
     tool_registry: dict[str, Callable],
@@ -4551,6 +4829,11 @@ def register_rest_routes(
         # measured:true. Provenance now GATES the classification instead of
         # merely annotating it.
         _floor_provenance = dict(thermo.get("floor_provenance") or {})
+        # KX-011: reconciled basis (post-producer) drives live contradiction
+        # labels on runtime_floors_status — see floor_producers._floor_wire_labels.
+        _basis_unmeasured = set(
+            thermo.get("measurement_basis", {}).get("unmeasured_floors") or []
+        )
 
         # Per-floor breakdown (2026-10-07): floors_pass said 10/13 but the
         # response never named WHICH 3 failed, so no one could act on it.
@@ -4938,9 +5221,27 @@ def register_rest_routes(
                     "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
                     "measured": not _provenance_is_unmeasured(_floor_provenance.get(fid)),
                     "provenance": _floor_provenance.get(fid),
+                    # KX-011: contradiction is a LIVE computed disclosure, not a
+                    # static label — attached only while the wire still shows the
+                    # collision (measured floor still listed in the basis).
                     **__import__(
-                        "arifosmcp.runtime.floor_producers", fromlist=["_FLOOR_CONTRACT_LABELS"]
-                    )._FLOOR_CONTRACT_LABELS.get(fid, {}),
+                        "arifosmcp.runtime.floor_producers", fromlist=["_floor_wire_labels"]
+                    )._floor_wire_labels(
+                        fid,
+                        is_measured=not _provenance_is_unmeasured(
+                            _floor_provenance.get(fid)
+                        ),
+                        basis_unmeasured=_basis_unmeasured,
+                    ),
+                    # Gate 1 (F13 2026-11-02): measurement ontology — types the
+                    # reading (score|predicate|risk), direction, evidence class,
+                    # measurement state, scope, threshold. Declarative only; no
+                    # status/score math reads it (labels discipline). Kills the
+                    # named promotions: constant→measured, presence→pass,
+                    # producer-pass→perfect score, receipt→audited, seal→authorized.
+                    **__import__(
+                        "arifosmcp.runtime.floor_producers", fromlist=["floor_ontology_record"]
+                    ).floor_ontology_record(fid, _floor_provenance.get(fid), score),
                 }
                 for fid, score in thermo.get("floors", {}).items()
             },
@@ -5192,16 +5493,22 @@ def register_rest_routes(
                         decision_eligibility="NONE",
                         derivation_ref="rest_routes.py thermodynamic block <- telemetry.dS",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py thermodynamic block <- telemetry.peace2",
                     ),
                     "vitality_index": measurement_contract(
@@ -5281,6 +5588,14 @@ def register_rest_routes(
                         derivation_ref="rest_routes.py thermodynamic block <- resolved_witness",
                     ),
                 },
+                # Blocker #7 (civfork gap-map 2026-11-02): the floors block
+                # labels flat defaults `unmeasured_default` (SCAR-OBS-
+                # GREENWASH); the thermodynamic scalar leaves rendered the
+                # same bare numbers with no label, so a structural baseline
+                # read as a measurement (the peace2=0.5 pattern). Same
+                # discipline, scalar side. Labels only — no value, status,
+                # or verdict math touched (KX-010 A6 condition 2).
+                "scalar_provenance": _thermo_scalar_provenance_block(telemetry),
             },
             # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
             # Computed from live tool call metrics over 24h window.
@@ -5366,16 +5681,22 @@ def register_rest_routes(
                         decision_eligibility="ADVISORY",
                         derivation_ref="rest_routes.py governance block <- telemetry.psi_le",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py governance block <- telemetry.peace2",
                     ),
                 },
@@ -6107,16 +6428,22 @@ def register_rest_routes(
                         decision_eligibility="NONE",
                         derivation_ref="rest_routes.py /metrics/json <- telemetry.dS",
                     ),
+                    # KX010 truth-fix 2026-11-01 (F13 approved in-session by Arif "ok i approve all";
+                    # judge SABAR/PARTIAL_PROCEED trc-6beb5fed6b7c): peace2 is live
+                    # governance-kernel telemetry (0.5 live / 1.0 model default /
+                    # 1.21 tools_internal) - NOT a policy constant. Mirrors the
+                    # entropy_delta sibling contract shape. F5 seal-chain floor
+                    # producer untouched.
                     "peace_squared": measurement_contract(
                         "peace_squared",
-                        semantic_class="POLICY_CONSTANT",
+                        semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.peace2 from governance kernel structural baseline",
-                        monotonic_drivers="none",
-                        falsification_test="none — constant",
-                        provenance_class="POLICY_DERIVED",
-                        calibration_status="POLICY_CONSTANT",
-                        decision_eligibility="DISPLAY_ONLY",
+                        measurement_method="telemetry.peace2 from governance kernel; producer instrument unpinned",
+                        monotonic_drivers=["kernel stability events per report cycle"],
+                        falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                        provenance_class="SERVER_OBSERVED",
+                        calibration_status="UNKNOWN",
+                        decision_eligibility="NONE",
                         derivation_ref="rest_routes.py /metrics/json <- telemetry.peace2",
                     ),
                     "vitality_index": measurement_contract(
@@ -8270,12 +8597,25 @@ def register_rest_routes(
             floors_passing = 0
             floors_failing = 0
             for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:])):
-                score = float(
-                    governance_floor_scores.get(
-                        law_id,
-                        _FLOOR_DEFAULTS.get(law_id, 0.0),
-                    )
-                )
+                # 2026-11-01 (api_live/all 500 fix): 1d1a042bd made unmeasured
+                # floors publish None IN PLACE (key present, value null). The
+                # old .get(law_id, default) only fires on ABSENT keys, so
+                # float(None) crashed the whole composite. FAILURE-CLASS-
+                # SEPARATION: an unmeasured floor is neither pass nor fail —
+                # it renders "unmeasured" with score null and counts in
+                # neither aggregate. Placeholder defaults stay banned from
+                # rendering pass (SCAR-OBS-GREENWASH).
+                raw_score = governance_floor_scores.get(law_id)
+                if raw_score is None:
+                    raw_score = _FLOOR_DEFAULTS.get(law_id)
+                if raw_score is None:
+                    governance_floors[law_id] = {
+                        "name": law_id,
+                        "status": "unmeasured",
+                        "score": None,
+                    }
+                    continue
+                score = float(raw_score)
                 floor_passes = _floor_passes(law_id, score)
                 if floor_passes:
                     floors_passing += 1
@@ -8337,14 +8677,19 @@ def register_rest_routes(
                         ),
                         "peace2": measurement_contract(
                             "peace2 (alias of peace_squared)",
-                            semantic_class="POLICY_CONSTANT",
+                            # KX010 truth-fix follow-up 2026-11-01 (4th callsite;
+                            # same F13 ruling as the 3-callsite fix 886174496):
+                            # peace2 is live governance-kernel telemetry — the
+                            # alias surface may not outlive the ruling as a
+                            # POLICY_CONSTANT label on another wire.
+                            semantic_class="UNKNOWN",
                             unit="1",
-                            measurement_method="same source as peace_squared: vitals remap",
-                            monotonic_drivers="none",
-                            falsification_test="none — constant",
-                            provenance_class="POLICY_DERIVED",
-                            calibration_status="POLICY_CONSTANT",
-                            decision_eligibility="DISPLAY_ONLY",
+                            measurement_method="same source as peace_squared: vitals remap of governance kernel telemetry; producer instrument unpinned",
+                            monotonic_drivers=["kernel stability events per report cycle"],
+                            falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
                             derivation_ref="rest_routes.py /api/live/all vitals <- thermodynamic.peace_squared",
                         ),
                         "kappa_r": measurement_contract(
@@ -8453,14 +8798,14 @@ def register_rest_routes(
                         ),
                         "peace2": measurement_contract(
                             "peace2 (alias of peace_squared)",
-                            semantic_class="POLICY_CONSTANT",
+                            semantic_class="UNKNOWN",
                             unit="1",
-                            measurement_method="same source as peace_squared: vitals remap",
-                            monotonic_drivers="none",
-                            falsification_test="none — constant",
-                            provenance_class="POLICY_DERIVED",
-                            calibration_status="POLICY_CONSTANT",
-                            decision_eligibility="DISPLAY_ONLY",
+                            measurement_method="same source as peace_squared: vitals remap of governance kernel telemetry; producer instrument unpinned",
+                            monotonic_drivers=["kernel stability events per report cycle"],
+                            falsification_test="recompute peace2 from the governance kernel for the same window and compare",
+                            provenance_class="SERVER_OBSERVED",
+                            calibration_status="UNKNOWN",
+                            decision_eligibility="NONE",
                             derivation_ref="rest_routes.py /api/live/all governance <- thermodynamic.peace_squared",
                         ),
                     },

@@ -117,6 +117,24 @@ def attest_runtime() -> AttestationResult:
     manifest = _get_release_manifest()
     actual_python = sys.executable
 
+    # 2026-11-13 (packaging): VPS-deploy attestation only applies when the deploy
+    # structure exists. On a pip install (external machine) there is no /opt/arifos
+    # deploy to align with — the installed package IS the release, so the
+    # source-vs-deploy checks below are a NO-OP (passed, informational).
+    on_vps_deploy = RELEASE_DIR.exists() or Path(EXPECTED_VENV).exists()
+    if not on_vps_deploy:
+        return AttestationResult(
+            passed=True,
+            module_path=module_path,
+            runtime_commit=runtime_commit,
+            actual_python=actual_python,
+            manifest_found=False,
+            warnings=[
+                "Not a VPS deployment (no /opt/arifos/releases) — "
+                "attestation N/A; installed package is self-contained"
+            ],
+        )
+
     expected_commit = ""
     if manifest:
         expected_commit = manifest.get("git_commit", "")

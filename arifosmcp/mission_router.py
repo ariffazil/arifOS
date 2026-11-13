@@ -66,6 +66,7 @@ class MissionPlan:
     autonomy: str  # AUTO_DO, ASK, or AUTO_DO_SILENT
     matched_triggers: list[str]  # which trigger words matched
     classified_by: str = "keyword_router_v1"  # upgrade path to ML classifier
+    risk_tag: str = ""  # P0 2026-11-03 (defect R1): "IRREVERSIBLE_888" when destructive/egress verbs detected
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -537,6 +538,31 @@ def plan_to_dict(plan: MissionPlan) -> dict[str, Any]:
     }
 
 
+# ── P0 2026-11-03 (defect R1): destructive/egress verb escalation ─────────────
+# Charter: AAA::ARIFOS_AUTOMATED_RED_TEAM::v1.0 — a delete/send intent must
+# never be classified AUTO_DO / "reversible, low". Whole-word match only;
+# negated commands ("jangan hantar") are ignored.
+_ESCALATION_VERBS = (
+    "hantar", "send", "share", "kongsi", "siar", "telegram",
+)
+
+
+def _detect_escalation(intent_lower: str) -> str:
+    """Return comma-joined destructive/egress verbs found in ``intent_lower``.
+
+    Empty string when clean. Negated forms ("jangan hantar", "don't send",
+    "jgn padam") do not trigger escalation.
+    """
+    hits = []
+    for verb in _ESCALATION_VERBS:
+        negation_guard = "".join(
+            f"(?<!{prefix} )" for prefix in ("jangan", "jgn", "don't", "dont", "tak")
+        )
+        if re.search(negation_guard + re.escape(verb) + r"\b", intent_lower):
+            hits.append(verb)
+    return ",".join(hits)
+
+
 def classify_mission(intent: str) -> MissionPlan:
     """Classify natural language intent into the closest mission.
 
@@ -548,6 +574,36 @@ def classify_mission(intent: str) -> MissionPlan:
         MissionPlan with classified mission, confidence, pipeline, and output format.
     """
     intent_lower = intent.lower().strip()
+
+    # P0 Security Gate (2026-11-03 / F13): Destructive verb guard
+    DESTRUCTIVE_VERBS = (
+        "delete", "padam", "destroy", "wipe", "hapus", "drop",
+        "truncate", "clobber", "purge", "format", "clear all",
+        "delete all", "padam semua", "hapus semua"
+    )
+    is_dest = any(re.search(r"\b" + re.escape(v) + r"\b", intent_lower) for v in DESTRUCTIVE_VERBS)
+    if is_dest:
+        matched_dest = [v for v in DESTRUCTIVE_VERBS if re.search(r"\b" + re.escape(v) + r"\b", intent_lower)]
+        return MissionPlan(
+            mission=Mission.DECIDE,
+            confidence=0.99,
+            human_label="DESTRUCTIVE INTENT BLOCKED — 888_HOLD Required",
+            organ_pipeline=[
+                OrganStage("arifOS", "hold_verdict", 1, tools_hint=["arif_judge"], can_parallel=False)
+            ],
+            output_format="DESTRUCTIVE ACTION BLOCKED: Requires F13 / 888 sovereign confirmation. No automatic execution.",
+            autonomy="888_HOLD",
+            matched_triggers=matched_dest,
+            classified_by="destructive_verb_guard_v1",
+        )
+
+    # EGRESS-GATE (2026-11-03 · patch 333-AGI ke atas scaffold FI-008): semakan
+    # escalation mesti dijalankan pada SETIAP laluan. Dahulu cabang
+    # zero_match_human_fallback_v1 keluar SEBELUM _detect_escalation dipanggil —
+    # probe hidup F13 05:57 UTC: dua ayat "Telegram PERSON_B …" (BM + EN) lepas
+    # sebagai interpret/ASK tanpa risk_tag, sedangkan _ESCALATION_VERBS sudah
+    # mengandungi telegram/send/hantar.
+    escalation = _detect_escalation(intent_lower)
 
     # Score every mission
     scores: dict[Mission, tuple[int, int, list[str]]] = {}
@@ -575,13 +631,36 @@ def classify_mission(intent: str) -> MissionPlan:
         total_positive = sum(s[0] for s in eligible.values())
         confidence = min(positive / max(total_positive, 1), 0.95)
 
-    # If zero matches, default to INVESTIGATE with low confidence
+    # If zero matches, default to INTERPRET (deliberation / care) without invoking earth/finance pipelines
     if positive == 0:
-        best_mission = Mission.INVESTIGATE
-        confidence = 0.15
-        matched = ["(no keyword match — defaulting to investigate)"]
+        best_mission = Mission.INTERPRET
+        confidence = 0.20
+        matched = ["(no keyword match — defaulting to interpret/care)"]
+        if escalation:
+            matched.append(f"(egress verbs detected: {escalation})")
+        return MissionPlan(
+            mission=best_mission,
+            confidence=round(confidence, 2),
+            human_label="Interpret — General / Human inquiry deliberation",
+            organ_pipeline=[
+                OrganStage("arifOS", "observe", 1, tools_hint=["arif_observe"], can_parallel=False),
+                OrganStage("HERMES", "sense", 2, tools_hint=["hermes_qualia_boundary"], can_parallel=True),
+                OrganStage("arifOS", "synthesize", 3, tools_hint=["arif_think"], can_parallel=False),
+            ],
+            output_format=MISSION_TEMPLATES[best_mission]["output"],
+            autonomy=("888_HOLD" if escalation else "ASK"),
+            matched_triggers=matched,
+            classified_by="zero_match_human_fallback_v1",
+            risk_tag=("EGRESS_888" if escalation else ""),
+        )
 
     template = MISSION_TEMPLATES[best_mission]
+
+    # P0 2026-11-03 (FI-008): egress verbs escalate even without destructive
+    # verbs (destructive class already blocked by destructive_verb_guard_v1).
+    escalation = _detect_escalation(intent_lower)
+    if escalation:
+        matched.append(f"(egress verbs detected: {escalation})")
 
     return MissionPlan(
         mission=best_mission,
@@ -589,8 +668,9 @@ def classify_mission(intent: str) -> MissionPlan:
         human_label=template["label"],
         organ_pipeline=template["pipeline"],
         output_format=template["output"],
-        autonomy=template["autonomy"],
+        autonomy=("888_HOLD" if escalation else template["autonomy"]),
         matched_triggers=matched,
+        risk_tag=("EGRESS_888" if escalation else ""),
     )
 
 

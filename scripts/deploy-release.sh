@@ -40,6 +40,21 @@ else
 	echo "⚠️  flock unavailable — proceeding WITHOUT mutual exclusion." >&2
 fi
 
+# ── DP-D: dirty-tree refusal (2026-11-11) ───────────────────────────
+# The 22:36 deploy shipped 8 uncommitted files (content_parity MISMATCH,
+# 7 changed files) — production ran bytes no commit could name. Refuse a
+# dirty tracked tree by default, BEFORE the lease is taken, so a refused
+# deploy strands nothing. Escape hatch for deliberate canary deploys:
+# ARIFOS_DEPLOY_ALLOW_DIRTY=1 (the decision lands on the operator).
+# v1 scope: tracked modifications; untracked strays stay visible via the
+# git status printed in the refusal output.
+if [ -z "${ARIFOS_DEPLOY_ALLOW_DIRTY:-}" ] && ! git -C /root/arifOS diff --quiet; then
+        echo "888_HOLD: DIRTY_WORKING_TREE — uncommitted tracked changes would ship to production." >&2
+        git -C /root/arifOS status --porcelain >&2
+        echo "Commit them, or set ARIFOS_DEPLOY_ALLOW_DIRTY=1 to deploy dirty deliberately." >&2
+        exit 4
+fi
+
 # ── deployment lease convergence (P0 complete mediation, 2026-10-26) ──────────
 # This script mutates the production runtime, so it takes the SAME lease that
 # `make deploy-local` takes. Two writers that share one lease serialise; two
@@ -47,17 +62,25 @@ fi
 _ARIFOS_PY="${ARIFOS_PYTHON:-/opt/arifos/current/venv/bin/python}"
 _ARIFOS_LEASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/deploy_lease.py"
 _ARIFOS_SHA="$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)"
-if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "${DEPLOY_ACTOR:-$(whoami)}" \
-     --session "${DEPLOY_SESSION:-manual-$(date -u +%Y%m%dT%H%M%SZ)}" \
-     --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
+# DP-E (2026-11-11): acquire and release must reassemble one identity. The
+# old defaults diverged (acquire "manual-<ts>" vs release "manual"), so an
+# unset DEPLOY_SESSION guaranteed HOLD_NOT_OWNER on the release path.
+_LEASE_ACTOR="${DEPLOY_ACTOR:-$(whoami)}"
+_LEASE_SESSION="${DEPLOY_SESSION:-manual-$(date -u +%Y%m%dT%H%M%SZ)}"
+if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "$_LEASE_ACTOR" \
+     --session "$_LEASE_SESSION" \
+     --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --session "${DEPLOY_SESSION:-deploy-$$}" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
   echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another deployment owns production; nothing was written" >&2
   exit 3
 fi
 _arifos_release_lease() {
   local rc=$?
   trap - EXIT INT TERM
-  "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "${DEPLOY_ACTOR:-$(whoami)}" \
-    --session "${DEPLOY_SESSION:-manual}" --receipt "${0##*/}" >/dev/null 2>&1 || echo "WARNING: lease release failed" >&2
+  if [ -z "${_ARIFOS_LEASE_RELEASED:-}" ]; then
+    "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
+      --session "$_LEASE_SESSION" --receipt "${0##*/}-trap" >/dev/null 2>&1 \
+      || echo "WARNING: lease release failed (trap); run scripts/deploy_lease.py status" >&2
+  fi
   exit "$rc"
 }
 trap _arifos_release_lease EXIT INT TERM
@@ -161,6 +184,25 @@ echo "  Source:     $REPO_DIR"
 echo "  Commit:     $GIT_COMMIT"
 echo "  Build time: $BUILD_TS"
 echo ""
+
+# ── Step 0.5: immutability cycle (F13 zen pass 2026-11-03) ─────────────
+# The production tree is chattr +i hardened; this script must rm build/
+# and rewrite the .git_commit markers. Before 2026-11-03 it did NOT own
+# that cycle and deploys died mid-flight on EPERM (measured twice today).
+# git-lane owns .git; this helper owns the WORKING TREE nodes below and
+# relocks them via EXIT trap no matter how this script ends.
+if [ -r "$SELF_DIR/immutability_cycle.sh" ]; then
+	# shellcheck disable=SC1091
+	source "$SELF_DIR/immutability_cycle.sh"
+	immutability_unlock \
+		"$REPO_DIR" \
+		"$REPO_DIR/build" \
+		"$REPO_DIR/arifos.egg-info" \
+		"$REPO_DIR/.git_commit" \
+		"/opt/arifos/app/.git_commit"
+else
+	echo "⚠️  immutability_cycle.sh missing — deploy may fail on hardened nodes" >&2
+fi
 
 # ── Step 1: Build wheel ──────────────────────────────────────────────
 echo "--- Step 1: Build immutable wheel ---"
@@ -449,6 +491,15 @@ MANIFEST_EOF
 # Deployment stamp: ONE stable path (build.py + reconciler read this).
 # No legacy /opt/arifos/app stamp — that tree is retired by ONE_ORIGIN.
 echo "$GIT_COMMIT" >"$STAMP_FILE"
+# 2026-11-03 (F13 signed deploy chain): the wheel flow must ALSO advance the
+# legacy app marker. ExecStartPost sync-deployed-commit reads /opt/arifos/app/
+# .git_commit FIRST on every boot; with only the releases stamp updated, boot
+# re-poisoned deployed-commit back to 948c56b ~4s after restart and Step 7
+# failed for EVERY lane (rollback-* 29 Oct / 2 Nov / 3 Nov all explained).
+# deploy_local_body.sh and deploy-to-runtime.sh already write BOTH markers;
+# this restores flow parity. App marker must stay writable (sealing it traps
+# all three flows). STRICT — a failed write must fail the deploy loudly.
+printf "%s\n" "$GIT_COMMIT" >/opt/arifos/app/.git_commit
 
 # ── Deploy receipt (F2 2026-10-21, 333-AGI): the kernel's /health top-level
 # deployed_commit reads /opt/arifos/current/receipts/latest.json. This script
@@ -653,3 +704,18 @@ print('✅ Canon gate: ABI, capability, and policy registries consistent')
 }
 echo "$CANON_RESULT"
 echo ""
+
+# ── DP-E: explicit lease release on green exit (2026-11-11) ──────────
+# Every green deploy leaked its lease (4x LEASE_EXPIRED_UNRELEASED in the
+# epoch ledger; the EXIT trap alone never produced a RELEASED row). The
+# trap stays as the failure-path fallback; _ARIFOS_LEASE_RELEASED keeps
+# the second call silent on green runs.
+if "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
+     --session "$_LEASE_SESSION" --receipt "${0##*/}" \
+     --exit-code 0 --observed-head "$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)" \
+     >/dev/null 2>&1; then
+  _ARIFOS_LEASE_RELEASED=1
+  echo "✓ deploy lease released (green path)"
+else
+  echo "WARNING: explicit lease release failed — trap fallback armed; check deploy_lease.py status" >&2
+fi

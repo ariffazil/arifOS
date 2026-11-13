@@ -394,6 +394,13 @@ def attach_effective_verdict(
     """
     if not isinstance(response, dict):
         return response
+    # Preserve top-level verdict before _strip_legacy_verdict removes it
+    if inner_verdict is None:
+        raw_v = response.get("verdict")
+        if raw_v and str(raw_v).upper() in CANONICAL_VERDICTS:
+            inner_verdict = str(raw_v).upper()
+        elif raw_v and str(raw_v).upper() in _LEGACY_VERDICT_MAP:
+            inner_verdict = _LEGACY_VERDICT_MAP[str(raw_v).upper()]
     _strip_legacy_verdict(response)
     existing = response.get("effective_verdict")
     if isinstance(existing, str) and existing.strip():
@@ -804,10 +811,22 @@ _NON_VERDICT_AXIS_PATHS_SUF = (
 # verdict (effective=SABAR vs meta=HOLD). Same class as the carve-outs
 # above; fail-closed semantics for genuine kernel-lane divergence are
 # unchanged.
+# P1-4 (repair-2026-11-01, live repro): human remediation text sits under a
+# verdict-named key — four_plane_contract.py:239 writes
+#   human_required[] = {"decision": "Authorize {action}"}
+# (KX-009 instruction-to-human TEXT). The walker matched `decision` →
+#   UNKNOWN_VERDICT_TOKEN:remediation.human_required[0].decision=Authorize
+#   Delete VAULT999… (+ the meta.remediation copy) → INCONSISTENT_STATE →
+# forced HOLD on the whole envelope. Remediation is an instruction channel,
+# never a verdict channel: exclude the WHOLE remediation subtree. Kernel
+# verdicts elsewhere in the same envelope remain fully judged (fail-closed
+# divergence semantics unchanged).
 _NON_VERDICT_AXIS_PATHS_PRE = (
     "result.bridge_result.",
     "meta.zen_apex.",
     "meta.zen_witness.",
+    "remediation.",
+    "meta.remediation.",
 )
 
 # 2026-10-25 (333-AGI, live repro through arif_judge mode=validate):
@@ -1071,14 +1090,30 @@ def reconcile_decision_contract(
             unknown[path] = token
 
     flags: list[str] = []
+    pair_notes: list[str] = []
     for path, token in unknown.items():
         flags.append(f"UNKNOWN_VERDICT_TOKEN:{path}={token}")
     for path, token in noncanonical.items():
         flags.append(f"NONCANONICAL_VERDICT_TOKEN:{path}={token}->{claims.get(path)}")
     if len(set(claims.values())) > 1:
         detail = ",".join(f"{p}={v}" for p, v in sorted(claims.items()))
-        flags.append(f"VERDICT_FIELD_DIVERGENCE:{detail}")
+        if set(claims.values()) == {"HOLD", "SABAR"}:
+            # G8 restraint-pair rule (888-APEX verdict 2026-11-04, D2): HOLD and
+            # SABAR are the same restraint class — identical downstream behavior
+            # (no act, no seal, no void). A contradiction with zero behavioral
+            # delta is a name collision, not a live veto. Conditions: (i) EXACTLY
+            # this pair — any other combination still diverges; (ii) canonical
+            # selection policy unchanged (degraded_dominates keeps deciding);
+            # (iii) the pair is recorded — auditable, never silently dropped.
+            # Cross-class disagreement (e.g. postcondition HOLD vs final SEAL)
+            # must keep vetoing — that is the true anti-smoothing case R-1b
+            # guards (see verdict.py R-1b note, upgrade direction stays live).
+            pair_notes.append(f"RESTRAINT_PAIR:{detail}")
+        else:
+            flags.append(f"VERDICT_FIELD_DIVERGENCE:{detail}")
     flags.extend(_collect_epistemic_flags(response))
+    if pair_notes and flags:
+        flags.extend(pair_notes)  # advisory context alongside the blocking flag
 
     prior = str(response.get("effective_verdict") or response.get("verdict") or "")
     if flags:
@@ -1136,6 +1171,21 @@ def reconcile_decision_contract(
                 f"effective_verdict={response.get('effective_verdict')} "
                 f"reason_code={response.get('reason_code')}"
             )
+
+    if pair_notes and not flags:
+        # G8 restraint-pair rule — record on the NORMAL path (no HOLD force):
+        # meta.reconciliation.inconsistent=False names the writer honestly.
+        _pair_meta = response.get("meta")
+        if not isinstance(_pair_meta, dict):
+            _pair_meta = {}
+            response["meta"] = _pair_meta
+        _pair_meta["reconciliation"] = {
+            "inconsistent": False,
+            "reason": "RESTRAINT_PAIR",
+            "flags": pair_notes,
+            "claims": claims,
+            "reconciled_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
 
     # Point #2 (crack #2) — review 2026-09-22 item 5:
     # - INCONSISTENT payload → supplied next_safe_action must NOT survive:

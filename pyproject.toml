@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "1!2026.10.17"
+version = "1!2026.11.13.post1"
 
 # 2026.06.19 — Packaging Unification (FORGE SEAL)
 #   Package rename: arifosmcp → arifos (MCP is transport, not identity)
@@ -8,7 +8,7 @@ version = "1!2026.10.17"
 #   Domain coverage: [geox] [wealth] [well] [aaa] [io] [search] [google] [db] [heavy] [observe]
 #   Floor alignment: canonical matrix 2026-06-19 across all organs
 # 2026.06.11 — previous release (arifosmcp on PyPI)
-description = "Open-source governance decision point for AI agent actions. Evaluates proposed actions against constitutional policy floors (F1-F13) and returns SEAL/HOLD/SABAR/VOID verdicts before execution. 8 MCP tools, append-only audit ledger (VAULT999), Streamable HTTP transport. Designed for regulated AI deployment."
+description = "Open-source governance decision point for AI agent actions. Evaluates proposed actions against constitutional policy floors (F1-F13) and returns SEAL/HOLD/SABAR/VOID verdicts before execution. 9 MCP tools (8 canonical verbs + report), append-only audit ledger (VAULT999), Streamable HTTP transport. Designed for regulated AI deployment."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "AGPL-3.0-only"
@@ -285,6 +285,7 @@ aclip-cai  = "arifosmcp.intelligence.cli:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
+namespaces = true
 # Wheel roots. The 2026-09-16 hygiene note claimed "exactly three top-level
 # packages ship" while the list below already carried four (arifos*, arifosmcp*,
 # core*, schemas*) — a comment contradicting its own code, corrected 2026-09-30.
@@ -329,6 +330,60 @@ exclude = [
     "tests.*",
     "tests",
     "core.archive*",
+    "arifosmcp.tests*",
+    "arifosmcp.geometry.tests*",
+    "contracts.tests*",
+    "arifosmcp.runtime._archive*",
+    "arifosmcp.packages*",
+    "arifosmcp.sites*",
+    "arifosmcp.evals*",
+    "arifosmcp.static*",
+    "arifosmcp.probes*",
+    "arifosmcp.maintenance*",
+    "arifosmcp.metadata*",
+    "arifosmcp.manifests*",
+    "arifosmcp.router*",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*vault999*",
+    "vault_attestation*",
+    "*.jsonl",
+    "*.sqlite*",
+    "*.db",
+    "cold_storage/*",
+    "packages/*",
+    "packages/**/*",
+    "sites/*",
+    "sites/**/*",
+    "evals/*",
+    "evals/**/*",
+    "static/*",
+    "static/**/*",
+    "probes/*",
+    "probes/**/*",
+    "maintenance/*",
+    "maintenance/**/*",
+    "metadata/*",
+    "metadata/**/*",
+    "manifests/*",
+    "manifests/**/*",
+    "router/*",
+    "router/**/*",
+    "__pycache__/*",
+    "**/*.pyc",
+    "*.pyc",
+]
+"arifosmcp" = [
+    "packages/npm/*",
+    "packages/npm/**/*",
+    "sites/*",
+    "sites/**/*",
+]
+"core" = [
+    "vault999/*",
+    "vault999/**/*",
 ]
 
 [tool.setuptools.package-data]

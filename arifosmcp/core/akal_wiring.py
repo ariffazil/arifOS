@@ -503,7 +503,12 @@ def akal_pre_judge(
         # into a verdict field. Unknown -> HOLD (fail-closed). The honest
         # pending signal moves to judge_state, where consumers can see it
         # without mistaking it for a constitutional verdict.
-        "verdict": (
+        # G8 rename (888-APEX 2026-11-04, D2): the key stops being a verdict
+        # field — a pre-judge advisory opinion must never enter the reconciler's
+        # claim set as a competing constitutional verdict (VERDICT_FIELD_
+        # DIVERGENCE deadlock, session SEAL-3f6a3d2834a44416). Value semantics
+        # unchanged (G6 fail-closed HOLD when no L5b judge).
+        "pre_judge_state": (
             __import__(
                 "arifosmcp.runtime.verdict", fromlist=["_normalize_verdict"]
             )._normalize_verdict(result.judge.verdict)

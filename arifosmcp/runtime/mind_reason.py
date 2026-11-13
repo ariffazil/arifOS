@@ -451,10 +451,28 @@ ROLE GUARD: If ROLE is UNKNOWN, do not hallucinate, adopt, or fabricate domain e
     # ── Deterministic Fallback ─────────────────────────────────────────────────
     if not llm_available:
         status = _mode_to_status_fallback(mode)
+        # Fasa-4 C1 (2026-11-05, acceptance #1): a failed LLM call is a DECLARED
+        # degrade — synthesis is null (no template prose) and degraded_state names
+        # the failure class (DEGRADED_TIMEOUT on timeout under load, else
+        # DEGRADED_DISPATCH), so the wrapper skips the malu misclassification
+        # (JALAN_BENAR -> malu_delta 0.15) that used to label this path.
+        _err_lc = (llm_error or "").lower()
+        _degraded_state = {
+            "code": (
+                "DEGRADED_TIMEOUT"
+                if ("timeout" in _err_lc or "timed out" in _err_lc)
+                else "DEGRADED_DISPATCH"
+            ),
+            "verdict": status,
+            "dependency": "llm_backend",
+            "evidence": (llm_error or "LLM unavailable")[:300],
+            "retryable": True,
+        }
         parsed_output = {
             "status": status,
             "claim_state": "HYPOTHESIS",
-            "synthesis": f"[deterministic] {mode} reasoning - LLM unavailable",
+            "synthesis": None,
+            "degraded_state": _degraded_state,
             "reasoning": {
                 "observed_inputs": [query],
                 "inferences": ["LLM fallback triggered"],

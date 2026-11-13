@@ -600,6 +600,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             # F14 — Right #10 (opt out) + Right #6 (refuse profiling).
             "opt_out",
             "opt_out_profiling",
+            # F13 crypto bind: issue a single-use Ed25519 challenge nonce.
+            "challenge",
         ],
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
         "cognitive_axis": "identity",
@@ -2061,7 +2063,7 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     ),
     "arif_judge": derive_mcp_annotations(
         "DRAFT",
-        title="666 Judge · Verdict",
+        title="888 Judge · Verdict",
     ),
     "arif_seal": derive_mcp_annotations(
         "IRREVERSIBLE",
@@ -2096,6 +2098,16 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
         "BRIDGE",
         title="444 Bridge · Direct Organ (HIGH)",
     ),
+    "arif_report": {
+        **derive_mcp_annotations(
+            "COMMUNICATE",
+            title="Agent Report Lane · Peer Coordination",
+        ),
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    },
     # ═══════════════════════════════════════════════════════════════════
     # CHATGPT COMPATIBILITY SHIM — OBSERVE-class, read-only, open-world
     # ═══════════════════════════════════════════════════════════════════

@@ -78,8 +78,8 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 
 | Date | Surface | Reported by | Outcome |
 |------|---------|-------------|---------|
-| 2026-08-25 | `arif_fetch` / fetch fallback (SSRF, fail-open) | Syed Anas Mohiuddin (private report) | Confirmed, fixed same day, released in `1!2026.9.1`. Reporter of record; filing with MITRE. Residual accepted and documented in `arifosmcp/runtime/ssrf_guard.py` (DNS-rebinding TOCTOU — resolve-at-check vs resolve-at-connect) |
-| 2026-09-15/16 | `l5_sovereign_forge.py` Cypher injection (graph wipe via unvalidated LLM-extracted property key) + fastmcp decode-after-match path traversal (`atlas333.py`, `server.py`) — mcp-safeguard scan of `1!2026.9.1`, 117 raw findings manually triaged to 2 confirmed real issues (105 refuted as noise) | Syed Anas Mohiuddin (private report) | Both confirmed by source-level trace. Cypher injection: HIGH, fix pending (key whitelist). Path traversal: MEDIUM, root cause is upstream fastmcp; arifOS-side mitigation (post-unquote validation) pending, upstream report pending |
+| 2026-08-25 | `arif_fetch` / fetch fallback (SSRF, fail-open) | External security report (private disclosure) | Confirmed, fixed same day, released in `1!2026.9.1`. Reporter of record; filing with MITRE. Residual accepted and documented in `arifosmcp/runtime/ssrf_guard.py` (DNS-rebinding TOCTOU — resolve-at-check vs resolve-at-connect) |
+| 2026-09-15/16 | `l5_sovereign_forge.py` Cypher injection (graph wipe via unvalidated LLM-extracted property key) + fastmcp decode-after-match path traversal (`atlas333.py`, `server.py`) — mcp-safeguard scan of `1!2026.9.1`, 117 raw findings manually triaged to 2 confirmed real issues (105 refuted as noise) | External security report (private disclosure) | Both confirmed by source-level trace. Cypher injection: HIGH, fix pending (key whitelist). Path traversal: MEDIUM, root cause is upstream fastmcp; arifOS-side mitigation (post-unquote validation) pending, upstream report pending |
 
 ---
 

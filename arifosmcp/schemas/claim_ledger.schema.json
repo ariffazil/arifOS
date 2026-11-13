@@ -12,7 +12,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique ledger identifier (e.g., PETRONAS-MAKCIK-2026-06-20)",
+          "description": "Unique ledger identifier (e.g., PETRONAS-EXAMPLE-2026-06-20)",
           "pattern": "^[A-Z0-9_-]+$"
         },
         "version": {

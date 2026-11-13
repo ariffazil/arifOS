@@ -55,6 +55,14 @@ def classify_provenance(provenance: str | None) -> str:
     p = str(provenance or "").strip()
     if not p:
         return MEASUREMENT_UNMEASURED
+    # An explicit UNMEASURED verdict in ANY segment outranks the producing
+    # head token: the instrument spoke and said it has no reading. F6 ships
+    # "floor_producer:UNMEASURED:unmeasured_default:f6_partially_measured";
+    # classifying by head alone answered "measured" while floors_detail
+    # answered "unmeasured", splitting one floor across two buckets and
+    # breaking the aggregate arithmetic (11+3=14/13, 2026-11-11 S1).
+    if any(seg.strip().upper().startswith("UNMEASURED") for seg in p.split(":")):
+        return MEASUREMENT_UNMEASURED
     head = p.split(":", 1)[0]
     if "claims.json" in p or head in ("static_claim", "claims"):
         return MEASUREMENT_DECLARED

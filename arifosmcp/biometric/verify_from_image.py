@@ -6,7 +6,7 @@ Pipeline: image → [faceid-venv] extract_edge.py (embedding+quality, air-gapped
           (multi-baseline max-K · band 0.25/0.42 · assertions · replay · rate-limit)
         → structured verdict (no biometric material on output).
 
-Syed baselines seeded from identity_vault (2 conditions) with recorded
+Subject baselines seeded from identity_vault (2 conditions) with recorded
 consent: test subject via Arif F13 gate 2026-09-05.
 """
 
@@ -33,7 +33,7 @@ def extract(image_path: str) -> dict:
 
 
 def seed_service(svc: FaceVerifyService, token: str) -> dict:
-    """Seed Syed's baselines from identity_vault vectors (consented test subject)."""
+    """Seed the test subject's baselines from identity_vault vectors (consented test subject)."""
     seeds = json.load(open("/tmp/identity_vault_vectors.json"))
     n = 0
     for s in seeds:

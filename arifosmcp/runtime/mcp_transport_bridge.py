@@ -30,6 +30,7 @@ import logging
 import os
 from typing import Any
 
+from mcp.shared.inbound import encode_header_value
 from starlette.datastructures import MutableHeaders
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -116,6 +117,21 @@ ERR_UNSUPPORTED_VERSION = -32022  # UnsupportedProtocolVersion
 # ═══════════════════════════════════════════════════════════════
 # MCP PROTOCOL VERSION MIDDLEWARE
 # ═══════════════════════════════════════════════════════════════
+
+
+def _server_version() -> str:
+    """The ONE build identity, from the ONE source.
+
+    Every MCP surface (discover, initialize, /health) must report this. Fail-open
+    to an honest "kanon-unknown" — never to a hardcoded date, which is a lie that
+    survives every deploy (F2 TRUTH / F7 HUMILITY).
+    """
+    try:
+        from arifosmcp.runtime.deployment_identity import canonical_identity
+
+        return canonical_identity().get("version") or "kanon-unknown"
+    except Exception:
+        return "kanon-unknown"
 
 
 class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
@@ -236,7 +252,12 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                     ):
                         _name_val = _p.get(_name_key)
                         if isinstance(_name_val, str):
-                            _mh["mcp-name"] = _name_val
+                            # HTTP field values are latin-1. Emoji prompt names
+                            # raise UnicodeEncodeError here and the panic
+                            # middleware reports a fake HALT. encode_header_value
+                            # emits =?base64?...?= (decoded below, and by the
+                            # SDK inbound ladder). ASCII names stay literal.
+                            _mh["mcp-name"] = encode_header_value(_name_val)
                             _envelope_injected.append("Mcp-Name")
                     # logger.warning, not .info: uvicorn's journald wiring drops
                     # INFO from this logger (the lenient-mode pass line uses
@@ -358,6 +379,12 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 mcp_name = (
                     request.headers.get("Mcp-Name") or request.headers.get("mcp-name") or ""
                 ).strip()
+                if mcp_name.startswith("=?base64?") and mcp_name.endswith("?="):
+                    try:
+                        import base64
+                        mcp_name = base64.b64decode(mcp_name[9:-2]).decode("utf-8")
+                    except Exception:
+                        pass
 
                 # ── G0.7 version coherence ──
                 # MCP-Protocol-Version header MUST equal _meta protocolVersion
@@ -622,7 +649,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 "_meta": {
                     "io.modelcontextprotocol/serverInfo": {
                         "name": "ARIFOS MCP",
-                        "version": "kanon-2026.08.09",
+                        "version": _server_version(),
                         "websiteUrl": "https://mcp.arif-fazil.com",
                     },
                     "io.modelcontextprotocol/protocolVersion": LATEST_PROTOCOL_VERSION,
@@ -662,7 +689,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 },
                 "serverInfo": {
                     "name": "ARIFOS MCP",
-                    "version": "kanon-2026.08.09",
+                    "version": _server_version(),
                     "websiteUrl": "https://mcp.arif-fazil.com",
                 },
                 "instructions": (
@@ -676,7 +703,7 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 "_meta": {
                     "io.modelcontextprotocol/serverInfo": {
                         "name": "ARIFOS MCP",
-                        "version": "kanon-2026.08.09",
+                        "version": _server_version(),
                         "websiteUrl": "https://mcp.arif-fazil.com",
                     },
                     "io.modelcontextprotocol/protocolVersion": LATEST_PROTOCOL_VERSION,

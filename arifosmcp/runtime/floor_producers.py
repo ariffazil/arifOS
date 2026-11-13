@@ -115,6 +115,14 @@ _FLOOR_CONTRACT_LABELS: dict[str, dict[str, Any]] = {
             "ratifier or signature falsifies it"
         ),
     },
+    "F7": {
+        "falsification_test": (
+            "re-read AgiMetrics.omega_0 and the manifold constant; an Ω₀ "
+            "outside [0.03,0.05], a decorative constraint that accepts "
+            "out-of-band values, or a published confidence of 1.0 "
+            "falsifies the humility reading"
+        ),
+    },
 }
 
 # Default for floors with no producer wired here (F3/F4/F9 land here) and for
@@ -126,6 +134,34 @@ _NO_PRODUCER_CONTRACT_LABELS: dict[str, Any] = {
         "instrument and observe the placeholder score change to falsify"
     ),
 }
+
+
+def _floor_wire_labels(
+    fid: str, *, is_measured: bool, basis_unmeasured: Any
+) -> dict[str, Any]:
+    """KX-011 (2026-11-02): /health wire contract labels with LIVE contradiction.
+
+    Producer-level ``_FLOOR_CONTRACT_LABELS`` keep the static A6 disclosure —
+    they describe the contract, and ``collect_floor_producer_signal`` pins
+    them in tests. On the /health wire the contradiction is computed:
+    ``known_contradiction`` exists ONLY while ``measurement_basis.
+    unmeasured_floors`` still lists a floor whose wire entry is measured.
+    After the KX-011 basis reconciliation the collision cannot occur, so the
+    key is honestly ABSENT instead of a permanently-true-looking flag.
+
+    Metadata only — never read by status/score math (A6 condition 2).
+    ``is_measured`` is computed by the caller with the canonical classifier
+    (rest_routes._provenance_is_unmeasured) — one classifier, one answer.
+    """
+    labels: dict[str, Any] = dict(_FLOOR_CONTRACT_LABELS.get(fid, {}))
+    labels.pop("known_contradiction", None)
+    try:
+        listed = fid in set(basis_unmeasured or [])
+    except TypeError:
+        listed = False
+    if is_measured and listed:
+        labels["known_contradiction"] = _A6_CONTRADICTION
+    return labels
 
 
 def _now_iso() -> str:
@@ -966,9 +1002,10 @@ def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
     WHY THIS PRODUCER (2026-10-26, Track 2):
       The arifFlow vector dimension `g` is labelled
       PHASE_1_HEURISTIC_UNCALIBRATED, and the F13 order of 2026-10-25 bars an
-      uncalibrated heuristic from being gate-grade. F8's constitutional name
-      is LOGIC — internal consistency — so the gate-grade instrument measures
-      exactly that, from the federation's own acknowledged-contradiction
+      uncalibrated heuristic from being gate-grade — it falls through to the
+      derived path instead of deciding F8 (commit e643de0ba). While that
+      fall-through leaves F8 unresolved, this fallback instrument measures
+      internal consistency, from the federation's own acknowledged-contradiction
       ledger (/var/lib/arifos/contradiction_register.json, consumer:
       contradiction_margin -> /health eureka_margin + arif_init session gate).
 
@@ -1061,13 +1098,286 @@ def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+# ── F7 HUMILITY (Gate 4, F13 directive 2026-11-02) ──────────────────────────
+# Ω₀ uncertainty-band discipline. Canon already defines the semantics:
+#   core/shared/types.py   AgiMetrics.omega_0 Field(ge=0.03, le=0.05) HARD
+#                          ("F7: Ω₀ ∈ [0.03, 0.05]"; AgiMetrics docstring
+#                          names F7 among the floors it enforces)
+#   core/shared/mottos.py  Ω₀ ≈ 0.04 — "Fundamental uncertainty is law,
+#                          not weakness" (PromptManifold.omega_0)
+# Independent of F6 (no dignity/meters) and F8 (no contradiction register):
+# F7 restrains CERTAINTY claims — the kernel must declare a nonzero
+# irreducible-uncertainty bound inside the band, the validation constraint
+# must actually reject out-of-band values, and nothing may publish perfect
+# certainty. Score = the Ω₀ value itself, so the reading lives in its own
+# band (range-pass semantics — never the 1.0 predicate projection).
+_F7_HUMILITY_FAIL = "FAIL"
+
+
+def _f7_humility(sources: dict[str, Any]) -> dict[str, Any]:
+    omega = sources.get("omega_0")
+    band = sources.get("band")
+    if omega is None:
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_unreadable",
+        }
+    try:
+        omega = float(omega)
+    except (TypeError, ValueError):
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_malformed",
+        }
+    if not band or len(band) != 2:
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_band_unextractable",
+        }
+    try:
+        lo, hi = float(band[0]), float(band[1])
+    except (TypeError, ValueError):
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_band_malformed",
+        }
+    if sources.get("constraint_enforced") is False:
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_omega0_band",
+            "reason": "band_constraint_not_enforced",
+            "omega_0": omega,
+        }
+    if not (lo <= omega <= hi):
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_omega0_band",
+            "reason": "omega0_outside_band",
+            "omega_0": omega,
+            "band": [lo, hi],
+        }
+    max_conf = sources.get("max_published_confidence")
+    if max_conf is not None and float(max_conf) >= 1.0:
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_certainty_claim",
+            "reason": "perfect_certainty_published",
+            "max_confidence": max_conf,
+        }
+    return {
+        "floor": "F7",
+        "status": "PASS",
+        "origin": "f7_omega0_band",
+        "omega_0": omega,
+        "band": [lo, hi],
+        "constraint_enforced": bool(sources.get("constraint_enforced")),
+        "shadow_residual": (
+            "Ω₀ declared + constraint enforced; per-verdict Ω₀ exercise on "
+            "live MCP responses not yet measured (K11: declared ≠ exercised)"
+        ),
+    }
+
+
 _PRODUCERS = {
     "F2": _f2_truth,
     "F5": _f5_peace,
     "F6": _f6_maruah,
+    "F7": _f7_humility,
     "F8": _f8_logic,
     "F10": _f10_ontology,
     "F11": _f11_audit,
     "F12": _f12_injection,
     "F13": _f13_sovereign,
+}# ── Floor measurement ontology (Gate 1, F13 directive 2026-11-02) ───────────
+# Arif composition audit: the floor panel mixes continuous scores, thresholded
+# quotients, binary predicate passes projected to 1.00, and lower-is-better
+# risks — "a typed vector, not a scalar composition". This table types each
+# floor's reading declaratively so the promotions he named (constant→measured,
+# presence→pass, receipt→audited, seal→authorized, producer-pass→perfect
+# score) become structurally unrepresentable on the wire. NO status/score
+# math reads this table (same additive discipline as _FLOOR_CONTRACT_LABELS).
+#   value_kind: score | predicate | risk | category
+#   direction:  higher_better | lower_better | none
+#   evidence_class here = the class a REAL measurement of this floor would
+#   carry; wire time derives UNMEASURED/NOT_MEASURED from live provenance,
+#   never from this table.
+_FLOOR_ONTOLOGY: dict[str, dict[str, Any]] = {
+    "F1": {
+        "value_kind": "score",
+        "direction": "higher_better",
+        "evidence_class": "MEASURED",
+        "scope": "arifFlow FQ window (federation metabolism)",
+        "producer_instrument": "arifflow fq_truth probe (quotient vs threshold)",
+        "display_transform": "PASS projects to 1.00; raw quotient rides provenance",
+    },
+    "F2": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "kernel floor-provenance map only — NOT whole-payload truth closure",
+        "producer_instrument": "floor_producers._f2_truth",
+    },
+    "F3": {
+        "value_kind": "score",
+        "direction": "higher_better",
+        "evidence_class": "MEASURED",
+        "scope": "tri-witness coherence legs",
+        "producer_instrument": "witness legs (collect_witness_legs)",
+    },
+    "F4": {
+        "value_kind": "score",
+        "direction": "higher_better",
+        "evidence_class": "DERIVED",
+        "scope": "per-report entropy delta",
+        "producer_instrument": "delta-S normalisation curve (FLR-001/002: deltaS<=0 -> >=0.80)",
+    },
+    "F5": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "seal chain tail (recent seals)",
+        "producer_instrument": "floor_producers._f5_peace (seal_chain_peace)",
+        "display_transform": "PASS projects to 1.00",
+    },
+    "F6": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "six system-behavior meters + human witness lane",
+        "producer_instrument": "floor_producers._f6_maruah",
+    },
+    "F7": {
+        "value_kind": "score", "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "Ω₀ uncertainty-band discipline (AgiMetrics.omega_0 ∈ [0.03,0.05] HARD)",
+        "producer_instrument": "floor_producers._f7_humility (Ω₀ band + constraint enforcement)",
+        "display_transform": "score IS Ω₀ (≈0.04); in-band = pass; never projected to 1.00",
+    },
+    "F8": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "acknowledged-contradiction register",
+        "producer_instrument": "floor_producers._f8_logic",
+        "display_transform": "PASS projects to 1.00; open contradictions named, never averaged",
+    },
+    "F9": {
+        "value_kind": "risk",
+        "direction": "lower_better",
+        "evidence_class": "MEASURED",
+        "scope": "arifFlow g vector (C_dark)",
+        "producer_instrument": "arifflow g vector (PHASE_1_HEURISTIC_UNCALIBRATED)",
+    },
+    "F10": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "report inbox corpus (last 200 rows)",
+        "producer_instrument": "floor_producers._f10_ontology + F10OntologyGuard",
+        "display_transform": "PASS projects to 1.00; shadow residual names the unread",
+    },
+    "F11": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "arifFlow receipt ledger tail (last 200 rows)",
+        "producer_instrument": "floor_producers._f11_audit",
+        "verification": {
+            "verification_state": "NOT_ATTEMPTED",
+            "issuer_verified": False,
+            "signature_verified": False,
+            "replay_verified": False,
+            "checks_performed": ["actor_attribution", "chain_continuity"],
+        },
+    },
+    "F12": {
+        "value_kind": "risk",
+        "direction": "lower_better",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "request-trust context — snapshot is request-unbound",
+        "producer_instrument": "floor_producers._f12_injection",
+        "request_bound": False,
+    },
+    "F13": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "seal chain tail (machine self-acceptance check)",
+        "producer_instrument": "floor_producers._f13_sovereign",
+        "action_authority": (
+            "NOT_ESTABLISHED — a presence/predicate pass never authorizes; "
+            "mutation is per-action via arif_judge + ARIF GO"
+        ),
+    },
 }
+
+
+def floor_ontology_record(
+    floor_id: str, provenance: Any = None, score: Any = None
+) -> dict[str, Any]:
+    """Wire-time ontology record for one floor (Gate 1, F13 2026-11-02).
+
+    evidence_class/measurement_state derive from LIVE provenance, never from
+    the table: ``unmeasured_default*`` / ``*_skipped`` origins mean no
+    instrument ran, so the floor is UNMEASURED / NOT_MEASURED no matter what
+    number sits beside it. Threshold/comparator are read from the kernel LAW
+    table at call time (no hardcoded copy to drift). Pure function.
+    """
+    onto = _FLOOR_ONTOLOGY.get(floor_id, {})
+    prov = str(provenance or "")
+    unmeasured = prov.startswith("unmeasured_default") or "_skipped" in prov
+    if unmeasured:
+        evidence_class = "UNMEASURED"
+        measurement_state = "NOT_MEASURED"
+    else:
+        evidence_class = onto.get("evidence_class", "MEASURED")
+        measurement_state = "MEASURED"
+    threshold: Any = None
+    threshold_comparator: Any = None
+    threshold_range: Any = None
+    try:
+        from core.shared.laws import (  # local import: no cycle at module load
+            get_floor_comparator,
+            get_floor_spec,
+            get_law_threshold,
+        )
+
+        spec = get_floor_spec(floor_id)
+        if spec:
+            if "range" in spec:
+                threshold_range = [float(x) for x in spec["range"]]
+            else:
+                threshold = float(get_law_threshold(floor_id))
+                threshold_comparator = get_floor_comparator(floor_id) or None
+    except Exception:
+        threshold = None
+    rec: dict[str, Any] = {
+        "value_kind": onto.get("value_kind", "unknown"),
+        "direction": onto.get("direction", "none"),
+        "evidence_class": evidence_class,
+        "measurement_state": measurement_state,
+        "scope": onto.get("scope"),
+        "producer_instrument": onto.get("producer_instrument"),
+        "threshold": threshold,
+        "threshold_comparator": threshold_comparator,
+    }
+    if threshold_range is not None:
+        rec["threshold_range"] = threshold_range
+    for _k in (
+        "display_transform",
+        "verification",
+        "action_authority",
+        "request_bound",
+    ):
+        if _k in onto:
+            rec[_k] = onto[_k]
+    return rec
+

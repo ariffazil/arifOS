@@ -93,21 +93,23 @@ def test_coerce_floor_scores():
 def test_calculate_genius_edge_cases():
     floors = FloorScores()
 
-    # 1. Zero Akal (F2=0)
+    # 1. Zero Akal (F2=0) — v3 floors each dial at 0.01 (no zero-collapse),
+    #    but zero truth still lands below the 0.60 REJECT band.
     floors_zero_akal = floors.model_copy(update={"f2_truth": 0.0})
     res = calculate_genius(floors_zero_akal)
-    assert res["genius_score"] == 0.0
+    assert 0.0 < res["genius_score"] < 0.60
     assert res["verdict"] == "VOID"
+    assert res["recommended_action"] == "REJECT"
 
-    # 2. High Hysteresis (h=1.0)
+    # 2. High Hysteresis (h=1.0) — v3 has no H: h is echoed, never scoring.
     res_h1 = calculate_genius(floors, h=1.0)
-    assert res_h1["genius_score"] == 0.0
-    assert res_h1["verdict"] == "VOID"
+    assert res_h1["hysteresis"] == 1.0
+    assert res_h1["genius_score"] > 0.60
+    assert res_h1["verdict"] == "SEAL"
 
     # 3. High Energy usage
     res_e_low = calculate_genius(floors, compute_budget_used=1.0, compute_budget_max=1.0)
-    # Energy dial will be (Energy_floors + 0)/2
-    # G = A * P * X * E^2
+    # Energy dial falls as budget is consumed; G is monotonic in E
     assert res_e_low["genius_score"] < calculate_genius(floors)["genius_score"]
 
 

@@ -41,7 +41,7 @@
 
 ### 4.1 Attractor vs. Orbit vs. Selector
 *Do not treat as binary types. Treat as continuous parameters: Flexibility, Volatility, Context Sensitivity.*
-- **Orbit Profile (e.g., Syed):** High stability, narrow viable repertoire. **Adaptive** if niche is stable. **Maladaptive** if environment shifts and person cannot update.
+- **Orbit Profile (e.g., a high-stability subject):** High stability, narrow viable repertoire. **Adaptive** if niche is stable. **Maladaptive** if environment shifts and person cannot update.
 - **Selector Profile (e.g., Arif):** High context sensitivity, broad repertoire. **Adaptive** if calibrated to reality. **Pseudo-Navigator** if high variability but poor discrimination (impulsivity).
 
 ### 4.2 Trauma & Landscape Change
@@ -57,7 +57,7 @@ Trauma alters parameters $\theta$:
 
 ## 5. CASE STUDIES (Applied Lens)
 
-### 5.1 Syed: The Container (Orbit Profile)
+### 5.1 Subject A: The Container (Orbit Profile)
 - **Primary Regulation:** Containment (Control/Security).
 - **Attractor:** Routine, physical service, compartmentalization.
 - **Shadow (Operational):** Vulnerability, direct emotional expression (High transition cost $C(z)$). **Not** sexual orientation or secrecy. The neglected capacity is *receiving tenderness without performing strength*.

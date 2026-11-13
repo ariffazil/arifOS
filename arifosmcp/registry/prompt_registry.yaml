@@ -21,8 +21,8 @@ schema_version: "2026.09.18"
 registry_id: "arifos.prompt_registry.v3"
 registry_forged_at: "2026-07-20T15:11Z"
 registry_forged_by: "FORGE (000Ω) — F13 SOVEREIGN directive · dual registration collapse"
-registry_updated_at: "2026-09-18T00:00Z"
-registry_updated_by: "333-AGI (Δ MIND) — F13 SOVEREIGN directive · reality alignment (APEX-777)"
+registry_updated_at: "2026-11-10T04:17:00Z"
+registry_updated_by: "FI-007 — prompt catalogue alignment, source only"
 lineage:
   sealed_at: "2026-07-20T15:11Z"
   supersedes:
@@ -43,19 +43,21 @@ lineage:
       what: "Legacy aliases archived (arif_init_prompt, constitutional_pre_flight, agi_reply_protocol_v3)."
     - at: "2026-09-18T00:00Z"
       what: "Reality alignment: canonical_sequence = CANONICAL_PROMPTS (13). Numeric aliases moved to aliases_archived. Gate now validates registry against runtime, not a hardcoded canon."
+    - at: "2026-11-10T04:17:00Z"
+      what: "Wire ids are ASCII slugs. execution_order puts judge before forge. s666_dignity is advisory while F6 is unmeasured. Vault append requires a human ack. arif_report stays without a prompt."
 
 # ── ARCHIVED ALIASES (not registered at runtime; preserved for audit) ──────
 # The 2026-07-20 numeric compatibility aliases reached their removal epoch
 # (2026-09-16) and are absent from the runtime surface. Kept as history.
 # The 2026-08-05 archived text-prompt aliases are below them.
 aliases_archived:
-  - { id: "111_sense", canonical_id: "111 🌊 SENSE", archived_at: "2026-09-16" }
-  - { id: "333_reason", canonical_id: "333 🧠 REASON", archived_at: "2026-09-16" }
-  - { id: "555_critique", canonical_id: "666 ⚖ DIGNITY", archived_at: "2026-09-16" }
-  - { id: "888_judge", canonical_id: "888 🔒 JUDGE", archived_at: "2026-09-16" }
-  - { id: "777_forge", canonical_id: "777 🔥 FORGE", archived_at: "2026-09-16" }
-  - { id: "999_seal", canonical_id: "999 💎 SEAL", archived_at: "2026-09-16" }
-  - { id: "recursive_governed_loop", canonical_id: "🌀 GOVERN", archived_at: "2026-09-16" }
+  - { id: "111_sense", canonical_id: "s111_sense", archived_at: "2026-09-16" }
+  - { id: "333_reason", canonical_id: "s333_reason", archived_at: "2026-09-16" }
+  - { id: "555_critique", canonical_id: "s666_dignity", archived_at: "2026-09-16" }
+  - { id: "888_judge", canonical_id: "s888_judge", archived_at: "2026-09-16" }
+  - { id: "777_forge", canonical_id: "s777_forge", archived_at: "2026-09-16" }
+  - { id: "999_seal", canonical_id: "s999_seal", archived_at: "2026-09-16" }
+  - { id: "recursive_governed_loop", canonical_id: "s_govern", archived_at: "2026-09-16" }
   - { id: "arif_init_prompt_v3", canonical_id: "🌱 BOOT", archived_at: "2026-09-16" }
   - { id: "arif_init_prompt", canonical_id: "🌱 BOOT", archived_at: "2026-08-05" }
   - { id: "constitutional_pre_flight", canonical_id: "🔍 PREFLIGHT", archived_at: "2026-08-05" }
@@ -67,30 +69,39 @@ aliases_archived:
 # the singularity gate will fail.
 aliases: []
 
+coordination_without_prompt:
+  tool: arif_report
+  note: "Ninth public tool. Coordination. Not a stage. Prompt count stays 13."
+
 # Constitutional binding — values come from arifosmcp.constitutional_map.CANONICAL_FLOORS
 floors_ref: "arifosmcp.constitutional_map.CANONICAL_FLOORS"
 
 # Canonical sequence — MUST equal arifosmcp/prompts/__init__.py::CANONICAL_PROMPTS.
 canonical_sequence:
-  - "000 🌱 IGNITE"
-  - "111 🌊 SENSE"
-  - "222 🏛 PLAN"
-  - "333 🧠 REASON"
-  - "444 🧭 DIRECT"
-  - "555 🗂 REMEMBER"
-  - "666 ⚖ DIGNITY"
-  - "777 🔥 FORGE"
-  - "888 🔒 JUDGE"
-  - "999 💎 SEAL"
-  - "🌀 GOVERN"
-  - "⚓ INIT"
-  - "🔐 CLOSE"
+  - "s000_ignite"
+  - "s111_sense"
+  - "s222_plan"
+  - "s333_reason"
+  - "s444_direct"
+  - "s555_remember"
+  - "s666_dignity"
+  - "s777_forge"
+  - "s888_judge"
+  - "s999_seal"
+  - "s_govern"
+  - "s_init"
+  - "s_close"
 
 prompts:
 
-  - id: "000 🌱 IGNITE"
+  - id: "s000_ignite"
     semantic_name: "ignite"
-    title: "000 🌱 IGNITE — Identity Ignition"
+    execution_order: 10
+    execution_role: step
+    tool_verb: arif_init
+    entry_kind: identity_only
+    legacy_name: "000 🌱 IGNITE"
+    title: "000 🌱 — Identity Ignition"
     description: "Identity before action. VOID is final without new evidence."
     floor_binding: ["F1", "F7", "F11", "F13"]
     inputs_schema:
@@ -106,9 +117,13 @@ prompts:
       - "IGNITE block returned"
     entropy_budget_tokens: 400
 
-  - id: "111 🌊 SENSE"
+  - id: "s111_sense"
     semantic_name: "sense"
-    title: "111 🌊 SENSE — Reality Observation"
+    execution_order: 20
+    execution_role: step
+    tool_verb: arif_observe
+    legacy_name: "111 🌊 SENSE"
+    title: "111 🌊 — Reality Observation"
     description: "Reality before judgment. Verify before integrate."
     floor_binding: ["F2", "F3", "F9"]
     inputs_schema:
@@ -123,9 +138,14 @@ prompts:
       - "SENSE block returned"
     entropy_budget_tokens: 600
 
-  - id: "222 🏛 PLAN"
+  - id: "s222_plan"
     semantic_name: "plan"
-    title: "222 🏛 PLAN — Reality Change Design"
+    execution_order: 30
+    execution_role: step
+    tool_verb: arif_think
+    shared_tool_note: "PLAN and REASON both call arif_think"
+    legacy_name: "222 🏛 PLAN"
+    title: "222 🏛 — Reality Change Design"
     description: "Design reality change. Map reversibility."
     floor_binding: ["F1", "F4", "F8"]
     inputs_schema:
@@ -137,12 +157,17 @@ prompts:
     expected_contracts:
       - "actions with reversibility flags"
       - "reversibility_map returned"
-      - "ΔS ≤ 0 verified"
+      - "entropy_impact UNMEASURED unless a tool returns delta_s"
     entropy_budget_tokens: 1000
 
-  - id: "333 🧠 REASON"
+  - id: "s333_reason"
     semantic_name: "reason"
-    title: "333 🧠 REASON — Hypothesis Engine"
+    execution_order: 40
+    execution_role: step
+    tool_verb: arif_think
+    shared_tool_note: "PLAN and REASON both call arif_think"
+    legacy_name: "333 🧠 REASON"
+    title: "333 🧠 — Hypothesis Engine"
     description: "UNMEASURED beats fabricated certainty."
     floor_binding: ["F2", "F7", "F8"]
     inputs_schema:
@@ -157,9 +182,13 @@ prompts:
       - "REASON block returned"
     entropy_budget_tokens: 1200
 
-  - id: "444 🧭 DIRECT"
+  - id: "s444_direct"
     semantic_name: "direct"
-    title: "444 🧭 DIRECT — Institution Routing"
+    execution_order: 50
+    execution_role: step
+    tool_verb: arif_route
+    legacy_name: "444 🧭 DIRECT"
+    title: "444 🧭 — Institution Routing"
     description: "Route to the institution with authority, not the one with speed."
     floor_binding: ["F1", "F4"]
     inputs_schema:
@@ -174,9 +203,13 @@ prompts:
       - "DIRECT block returned"
     entropy_budget_tokens: 600
 
-  - id: "555 🗂 REMEMBER"
+  - id: "s555_remember"
     semantic_name: "remember"
-    title: "555 🗂 REMEMBER — Memory Governor"
+    execution_order: 60
+    execution_role: step
+    tool_verb: arif_memory
+    legacy_name: "555 🗂 REMEMBER"
+    title: "555 🗂 — Memory Governor"
     description: "Memory without provenance is not truth."
     floor_binding: ["F2", "F11"]
     inputs_schema:
@@ -191,10 +224,18 @@ prompts:
       - "REMEMBER block returned"
     entropy_budget_tokens: 800
 
-  - id: "666 ⚖ DIGNITY"
+  - id: "s666_dignity"
     semantic_name: "dignity"
-    title: "666 ⚖ DIGNITY — Dignity Check"
-    description: "Stand in the position of the weakest stakeholder."
+    execution_order: 70
+    execution_role: step
+    tool_verb: none
+    advisory_only: true
+    enforcement: none
+    f6_status: unmeasured
+    superseded_stage: "CRITIQUE archived 2026-09-16; this stage is DIGNITY"
+    legacy_name: "666 ⚖ DIGNITY"
+    title: "666 ⚖ — Dignity Check"
+    description: "Advisory dignity check. No linked tool. F6 is unmeasured. Not an enforcing gate."
     floor_binding: ["F5", "F6", "F10"]
     inputs_schema:
       type: "object"
@@ -203,31 +244,45 @@ prompts:
         proposal: { type: "string", minLength: 1 }
         stakeholders: { type: "string" }
     expected_contracts:
-      - "dignity_score returned (κᵣ ≥ 0.70 target)"
-      - "weakest_stakeholder identified"
-      - "DIGNITY block returned"
+      - "advisory_only true"
+      - "f6_status unmeasured"
+      - "no score invented"
     entropy_budget_tokens: 800
-
-  - id: "777 🔥 FORGE"
+  - id: "s777_forge"
     semantic_name: "forge"
-    title: "777 🔥 FORGE — Guarded Execution"
-    description: "Reality contact before belief. Mutation after SEAL only."
+    execution_order: 90
+    execution_role: step
+    tool_verb: arif_forge
+    runs_after: s888_judge
+    verdict_handle: judge_state_hash
+    vault_write: false
+    legacy_name: "777 🔥 FORGE"
+    title: "777 🔥 — Guarded Execution"
+    description: "Governed execution after the judge verdict token. Not a vault write."
     floor_binding: ["F1", "F4", "F11"]
     inputs_schema:
       type: "object"
-      required: ["action"]
+      required: ["action", "judge_state_hash"]
       properties:
         action: { type: "string", minLength: 1 }
-        verify: { type: "string" }
+        judge_state_hash: { type: "string", minLength: 1 }
+        ack_irreversible: { type: "string", enum: ["true", "false"], default: "false" }
+        mode: { type: "string", default: "engineer" }
     expected_contracts:
-      - "JUDGE verdict SEAL|SABAR verified before execution"
-      - "execution_receipt returned"
-      - "call_hash + trace_id recorded"
+      - "judge_state_hash required before MUTATE or ATOMIC"
+      - "manifest is the work; the forge tool has no action parameter"
+      - "vault_write false"
     entropy_budget_tokens: 1000
-
-  - id: "888 🔒 JUDGE"
+  - id: "s888_judge"
     semantic_name: "judge"
-    title: "888 🔒 JUDGE — Constitutional Verdict"
+    execution_order: 80
+    execution_role: step
+    tool_verb: arif_judge
+    runs_before: s777_forge
+    verdict_token: "SEAL|SABAR|HOLD|VOID"
+    vault_write: false
+    legacy_name: "888 🔒 JUDGE"
+    title: "888 🔒 — Constitutional Verdict"
     description: "Verdict, not invention. VOID = branch dead."
     floor_binding: ["F1", "F2", "F5", "F6", "F7", "F13"]
     inputs_schema:
@@ -240,29 +295,43 @@ prompts:
       - "verdict returned (SEAL/SABAR/HOLD/VOID)"
       - "provenance_verified true|false"
       - "floors_passed / floors_failed returned"
+      - "judge_state_hash returned for the next forge call"
+      - "verdict token is not a vault write"
     entropy_budget_tokens: 600
 
-  - id: "999 💎 SEAL"
+  - id: "s999_seal"
     semantic_name: "seal"
-    title: "999 💎 SEAL — VAULT999 Record"
-    description: "Immutable record. Hash-chained. Cannot be undone."
+    execution_order: 100
+    execution_role: step
+    tool_verb: arif_seal
+    requires_human_ack: true
+    vault_write: true
+    legacy_name: "999 💎 SEAL"
+    title: "999 💎 — VAULT999 Record"
+    description: "Immutable vault append. Hash-chained. Human ack required. Cannot be undone."
     floor_binding: ["F1", "F11"]
     inputs_schema:
       type: "object"
-      required: ["receipt"]
+      required: ["payload", "judge_state_hash", "ack_irreversible"]
       properties:
-        receipt: { type: "string", minLength: 1 }
+        payload: { type: "string", minLength: 1 }
+        judge_state_hash: { type: "string", minLength: 1 }
+        ack_irreversible: { type: "string", enum: ["true", "false"] }
         mode: { type: "string", default: "seal" }
     expected_contracts:
-      - "seal_id returned"
-      - "chain_hash returned"
-      - "SEAL block returned"
+      - "ack_irreversible is the string true before mode seal"
+      - "payload is the content argument"
+      - "seal_id and chain_hash from the tool, else UNMEASURED"
     entropy_budget_tokens: 400
-
-  - id: "🌀 GOVERN"
+  - id: "s_govern"
     semantic_name: "govern"
-    title: "🌀 GOVERN — Recursive Governed Loop"
-    description: "Full loop + 4 invariant enforcement gates. GATE 1 GÖDEL LOCK: every loop touches reality before becoming doctrine. GATE 2 ANTI-SINK: signal → verify → reality → integrate (no amplified garbage). GATE 3 ENTROPY: ΔS ≤ 0 per cycle. GATE 4 VOID: dead branches stay dead without new evidence."
+    execution_order: 0
+    execution_role: orchestrator
+    tool_verb: none
+    enforces_gates: false
+    legacy_name: "🌀 GOVERN"
+    title: "🌀 — Recursive Governed Loop"
+    description: "Sequences the governed loop. Kernel tools enforce their own gates when called. This prompt does not measure delta_s and does not itself enforce the four gates."
     floor_binding: ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]
     inputs_schema:
       type: "object"
@@ -271,15 +340,20 @@ prompts:
         intent: { type: "string", minLength: 1 }
         depth: { type: "string", enum: ["auto", "stage", "full"], default: "auto" }
     expected_contracts:
-      - "gate_status [GÖDEL_LOCK, ANTI_SINK, ENTROPY, VOID] returned"
-      - "stages_completed returned"
-      - "loop_integrity verified"
+      - "run order lists s888_judge before s777_forge"
+      - "a gate is reported only when a tool result contains it"
+      - "loop_integrity stays UNMEASURED unless a tool returns it"
     entropy_budget_tokens: 1200
-
-  - id: "⚓ INIT"
+  - id: "s_init"
     semantic_name: "init"
-    title: "⚓ INIT — Governed Ignition"
-    description: "Collapsed governed ignition (000_INIT). Probes kernel, binds session, loads context."
+    execution_order: 5
+    execution_role: entry
+    tool_verb: arif_init
+    entry_kind: session_ignition
+    linked_tool_count: 5
+    legacy_name: "⚓ INIT"
+    title: "⚓ — Governed Ignition"
+    description: "Session ignition. Five tools: arif_init, arif_observe, arif_think, arif_route, arif_memory. Distinct from s000_ignite."
     floor_binding: ["F1", "F2", "F4", "F7", "F8", "F11", "F13"]
     inputs_schema:
       type: "object"
@@ -287,25 +361,29 @@ prompts:
       properties:
         depth: { type: "string", enum: ["full", "summary"], default: "full" }
     expected_contracts:
-      - "kernel probed"
-      - "session bound"
-      - "context loaded"
+      - "linked_tool_count 5"
+      - "distinct from identity-only s000_ignite"
+      - "no host path in the prompt body"
     entropy_budget_tokens: 800
-    canonical_source: "/root/.config/opencode/command/init.md"
-
-  - id: "🔐 CLOSE"
+  - id: "s_close"
     semantic_name: "close"
-    title: "🔐 CLOSE — Session Close Ritual"
-    description: "Full autonomous session close ritual (999_CLOSE). Two-lane seal/receipt."
+    execution_order: 110
+    execution_role: close
+    tool_verb: arif_seal
+    requires_human_ack: true
+    vault_write: true
+    legacy_name: "🔐 CLOSE"
+    title: "🔐 — Session Close Ritual"
+    description: "Session close. The vault append waits for a human ack."
     floor_binding: ["F1", "F2", "F3", "F4", "F7", "F11", "F13"]
     inputs_schema:
       type: "object"
-      required: []
+      required: ["ack_irreversible"]
       properties:
+        ack_irreversible: { type: "string", enum: ["true", "false"] }
         depth: { type: "string", enum: ["full", "summary"], default: "full" }
     expected_contracts:
-      - "lane classified (A constitutional | B receipt)"
-      - "receipt/seal landed and verified"
-      - "RECEIPT block returned"
+      - "ack_irreversible is required"
+      - "arif_seal mode seal waits until the string true"
+      - "verdict token is not the vault write"
     entropy_budget_tokens: 800
-    canonical_source: "/root/.config/opencode/command/seal.md"
