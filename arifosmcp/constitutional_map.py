@@ -600,6 +600,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             # F14 — Right #10 (opt out) + Right #6 (refuse profiling).
             "opt_out",
             "opt_out_profiling",
+            # F13 crypto bind: issue a single-use Ed25519 challenge nonce.
+            "challenge",
         ],
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
         "cognitive_axis": "identity",
