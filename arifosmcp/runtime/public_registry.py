@@ -1011,10 +1011,12 @@ _STRIP_UNADVERTISED_PARAMS: dict[str, set[str]] = {
         "heart_critique",
         "niat_params",
         "sovereign_receipt",
-        "actor_signature",
-        "nonce",
-        "key_id",
-        "authority_token",
+        # 2026-11-13 F13 "jalan": actor_signature / nonce / key_id /
+        # authority_token are the non-repudiation carrier for Gate 2
+        # (tools/judge.py "Irreversible action requires actor_signature").
+        # Stripping them + additionalProperties:false made the carrier
+        # unreachable for strict MCP clients. Verification stays fail-closed
+        # in the facade (HMAC-rootkey → Ed25519 challenge → HOLD on failure).
         "authority_effect",
         "action_class",
         "domain",
