@@ -37,6 +37,7 @@ probe from a different process is independent.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -4315,16 +4316,23 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
             scope = (req.query_params.get("scope") or "full").strip().lower()
             if scope not in ("full", "canonical"):
                 scope = "full"
-            result = verify_chain(scope=scope)
+            # P0 event-loop fix (FI-008 2026-11-13): this endpoint ran THREE
+            # synchronous full-chain walks per request (full + canonical + the
+            # canonical walk inside heads_agreement) on the event loop. The
+            # observatory polls it continuously, so every poll stalled all
+            # in-flight MCP traffic. Offload each walk to a worker thread.
+            result = await asyncio.to_thread(verify_chain, scope=scope)
             body = result.to_dict()
             body["scope"] = scope
             # Always include both scopes so SPA cannot false-green historical
             try:
-                body["scope_canonical"] = verify_chain(scope="canonical").to_dict()
+                body["scope_canonical"] = (
+                    await asyncio.to_thread(verify_chain, scope="canonical")
+                ).to_dict()
             except Exception as sc_exc:  # noqa: BLE001
                 body["scope_canonical"] = {"error": str(sc_exc)}
             try:
-                body["heads_agreement"] = heads_agreement()
+                body["heads_agreement"] = await asyncio.to_thread(heads_agreement)
             except Exception as agr_exc:  # noqa: BLE001
                 body["heads_agreement"] = {"error": str(agr_exc)}
             return JSONResponse(

@@ -11,6 +11,7 @@ Contains:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import hashlib
@@ -1109,7 +1110,15 @@ async def arif_seal(
     except Exception:
         pass  # Reality anchor must never block seal
 
-    result = _arif_vault_seal(
+    # P0 event-loop fix (FI-008 2026-11-13): _arif_vault_seal walks ledger
+    # files synchronously (1.9 MB SEALED_EVENTS.jsonl and friends). Under
+    # hypervisor steal-time this measured 13.2 s of event-loop lag
+    # (lag_ms=13164, journalctl 13:16:38), cascading into
+    # concurrency-limit rejections and 'No response returned' 503 bursts.
+    # Offload to a worker thread: fail-closed semantics unchanged, only
+    # scheduling moved off the loop.
+    result = await asyncio.to_thread(
+        _arif_vault_seal,
         mode=mode,
         payload=_seal_payload,
         session_id=session_id,
