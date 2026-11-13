@@ -229,10 +229,24 @@ class FederatedEvidenceBundle:
         """Compute the fusion verdict from the evidence bundle.
 
         This is a deterministic function, not an AI judgment.
+
+        P0-2 fix (ARIFOS::HUMAN_RASA::P0, 2026-11-01): CLEAR requires a
+        clean validate(). Previously only violations containing the literal
+        "prohibited inference" degraded the verdict, so a bundle carrying a
+        consent violation (Rule 7 — behavioral/psychological WELL signal
+        without a consent_lease) still returned CLEAR: validate() said
+        invalid while the canonical field said safe. Consent violations now
+        BLOCK; any residual violation degrades to PARTIAL; CLEAR is only
+        reachable when validate() reports zero violations.
         """
-        # Check for blocked state first
-        _, violations = self.validate()
+        is_valid, violations = self.validate()
+
+        # Check for blocked state first — prohibited inference (Rule 5)
         if any("prohibited inference" in v for v in violations):
+            return FusionVerdict.BLOCKED
+
+        # Rule 7: no consent → fusion must not proceed (profiling boundary)
+        if any("consent_lease" in v for v in violations):
             return FusionVerdict.BLOCKED
 
         # Check for conflicts
@@ -252,7 +266,10 @@ class FederatedEvidenceBundle:
         if well_only:
             return FusionVerdict.PARTIAL
 
-        # All signals present, fresh, non-conflicting
+        # All signals present, fresh, non-conflicting — and no open violation
+        if not is_valid:
+            return FusionVerdict.PARTIAL
+
         return FusionVerdict.CLEAR
 
 

@@ -50,11 +50,14 @@ ACTOR_LANE = {
     "claude-code": "888",
     "FI-002": "888",
     "888-APEX": "888",
+    "999-SEAL": "999",
     "HERMES": "hermes",
     "hermes": "hermes",
+    "hermes-asi": "hermes",
     "FORGE": "forge",
     "forge": "forge",
     "000Ω": "forge",
+    "warga": "warga",
 }
 
 
@@ -77,8 +80,22 @@ def load_card(lane: str) -> dict:
         return _unavailable(lane, f"card read failed: {type(exc).__name__}")
     if str(card.get("identity_state")) not in ("matched", "classified_remap", "MISMATCH", "UNRESOLVED"):
         return _unavailable(lane, "card failed identity_state grammar")
-    card["card_source"] = "aaa-registry-projection"
+    # Preserve a valid declared provenance; never fabricate one. Compiler cards and
+    # organ-lane cards carry a truthful card_source (registry/assignments/*.yaml,
+    # registry/organ-lanes/*.json); anything else is reported as unknown rather than
+    # mislabelled as a registry projection.
+    _declared = card.get("card_source")
+    card["card_source"] = _declared if _valid_card_source(_declared) else "unknown"
     return card
+
+
+def _valid_card_source(value) -> bool:
+    import re
+    if not value:
+        return False
+    return bool(re.fullmatch(
+        r"registry/(organ-lanes/[a-z0-9][a-z0-9-]{0,15}\.json|assignments/[a-z0-9][a-z0-9_-]{0,63}\.yaml)",
+        str(value)))
 
 
 def _unavailable(lane: str, reason: str) -> dict:
