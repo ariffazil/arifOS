@@ -156,6 +156,11 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "required_parameters": ["session_id"],
                 "returns": ["status"],
             },
+            "challenge": {
+                "purpose": "Issue a single-use Ed25519 challenge nonce for later session bind or judge authorization (pre-session, no state change).",
+                "required_parameters": ["actor_id"],
+                "returns": ["nonce", "signature_payload", "expires_in_seconds"],
+            },
         },
         "inputs": {
             "mode": {
@@ -173,6 +178,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                     "epoch_seal",
                     "opt_out",
                     "opt_out_profiling",
+                    "challenge",
                 ],
                 "default": "init",
                 "required": True,
