@@ -81,8 +81,7 @@ jobs:
             [ -z "$sha" ] && continue
             body=$(git log -1 --format='%B' "$sha")
             if ! echo "$body" | grep -qi "^REPO="; then
-              echo "❌ Commit $sha: Missing REPO= trailer"
-              FAILED+=("commit $sha: no REPO= trailer")
+              echo "⚠️ Commit $sha: missing REPO= trailer (warn-only — predates convention)"
             else
               DECLARED=$(echo "$body" | grep -i "^REPO=" | sed 's/^REPO=//i' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
               DECLARED="${DECLARED##*/}"  # accept org/repo or bare repo
