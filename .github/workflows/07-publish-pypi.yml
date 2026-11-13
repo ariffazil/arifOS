@@ -50,6 +50,7 @@ jobs:
           packages-dir: dist/
           password: ${{ secrets.PYPI_API_TOKEN }}
           attestations: false
+          skip-existing: true
 
   sbom:
     if: github.actor != 'dependabot[bot]' && github.actor != 'app/dependabot'

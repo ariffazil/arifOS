@@ -80,6 +80,7 @@ jobs:
               FAILED+=("commit $sha: no REPO= trailer")
             else
               DECLARED=$(echo "$body" | grep -i "^REPO=" | sed 's/^REPO=//i' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+              DECLARED="${DECLARED##*/}"  # accept org/repo or bare repo
               if [ "$DECLARED" != "${TARGET_REPO,,}" ]; then
                 echo "❌ Commit $sha: REPO mismatch (got '$DECLARED', expected '$TARGET_REPO')"
                 FAILED+=("commit $sha: REPO=$DECLARED does not match target $TARGET_REPO")
