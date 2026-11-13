@@ -185,13 +185,31 @@ def godel_lock_gate(ctx: Any) -> dict[str, Any]:
     action_class = str(getattr(ctx, "action_class", "OBSERVE") or "OBSERVE").upper()
     is_seal_bound = action_class in SEAL_BOUND_ACTION_CLASSES
 
-    # F2 TRUTH: also feed anti_calhoun if we have any audit-style fields in params
+    # F2 TRUTH: also feed anti_calhoun if we have any audit-style fields in params.
+    # T2 (2026-11-13): read anti-Calhoun inputs from BOTH top-level params AND the
+    # nested evidence dict — callers declare finding/mutated/auditor inside evidence.
+    _params = getattr(ctx, "params", {}) or {}
+    _evidence = _params.get("evidence") or {}
+    if isinstance(_evidence, str):
+        import json as _json
+
+        try:
+            _evidence = _json.loads(_evidence)
+        except Exception:
+            _evidence = {}
+    if not isinstance(_evidence, dict):
+        _evidence = {}
     calhoun_payload = {
-        "has_actionable_finding": bool(getattr(ctx, "params", {}).get("finding")),
-        "changed_something": bool(getattr(ctx, "params", {}).get("mutated")),
-        "evidence_declared": bool(getattr(ctx, "params", {}).get("evidence")),
+        "has_actionable_finding": bool(
+            _params.get("finding")
+            or _evidence.get("finding")
+            or _evidence.get("actionable_finding")
+        ),
+        "changed_something": bool(_params.get("mutated") or _evidence.get("mutated")),
+        "evidence_declared": bool(_params.get("evidence")),
         "seal_bound": is_seal_bound,
-        "external_validated": bool(auditor),
+        "external_validated": bool(auditor)
+        or bool(_evidence.get("external_validated") or _evidence.get("auditor")),
         "self_certified": self_cert,
         "polished_no_substance": False,
     }
