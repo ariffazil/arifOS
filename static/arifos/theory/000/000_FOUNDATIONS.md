@@ -949,7 +949,7 @@ This section defines the thermodynamic variables used by arifOS to constrain AI 
 | **TEACH** | Principles: Truth, Empathy, Amanah, Clarity, Humility. |
 | **Tri-Witness (TW)** | Consensus requirement (Human × AI × Earth). |
 | **VAULT-999** | Immutable storage layer (Hash-chained ledger). |
-| **zkPC** | Zero-Knowledge Proof of Constitution (Cryptographic receipt). |
+| **zkPC** | Structural witness — hash commitment + Merkle-chained receipts (tamper-evident). NOT a cryptographic zero-knowledge proof. |
 
 ---
 

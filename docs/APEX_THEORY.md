@@ -111,7 +111,7 @@ arifOS is designed to scale to:
 
 2. **Constitutional inheritance** — subsidiary organisations deriving their own rules from a base constitutional layer, with the whole stack auditable and mathematically verifiable
 
-3. **Zero-Knowledge Proof of Compliance (ZKPC)** — proving to external auditors that AI acted within constitutional constraints, without revealing the actual decision content
+3. **Structural Witness of Compliance (ZKPC)** — hash-committed receipts that let external auditors re-check that AI acted within constitutional constraints without exposing the decision content. Tamper-evident, not a cryptographic zero-knowledge proof (no simulator/circuit); formal ZK remains future work.
 
 4. **Thermodynamic alignment** — using structural invariants (entropy budgets, reversibility scoring, phase-transition detection) as a general AI governance mechanism that works regardless of how capable the underlying model becomes
 

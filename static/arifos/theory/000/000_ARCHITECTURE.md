@@ -683,7 +683,7 @@ Every verdict follows this pattern:
   - Unmeasurable values (dignity, love, sacred—F10)
   ↓
 **Prove (889 PROOF)**: GENERATE cryptographic proof
-  - zkPC (zero-knowledge proof of constitution)
+  - zkPC (structural witness — hash commitment + receipt chain; not a ZK proof)
   - Ed25519 signature (Arif's authority)
   - Merkle chain (audit trail integrity)
   ↓
