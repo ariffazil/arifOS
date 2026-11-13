@@ -232,3 +232,97 @@ def enforce(tool_name: str, kwargs: dict[str, Any]) -> str | None:
         return None
     except Exception:  # fail-open: contract check must never break dispatch
         return None
+
+
+# ── G3 INVALID-MODE GUARD (Arif ratified 2026-10-29) ─────────────────────
+# An undeclared `mode` is an INPUT VALIDATION ERROR. MCP SEP-1303
+# ("Input Validation Errors as Tool Execution Errors", Final) requires it to be
+# reported as a TOOL EXECUTION ERROR — isError:true, with an actionable message
+# — so the calling model can read the error and self-correct.
+#
+# It must NOT fall through to a default branch. Failure class observed
+# 2026-08-12 and re-measured on this tree 2026-10-29:
+#   arif_observe(mode=<undeclared>) → UnboundLocalError (crash, not actionable)
+#   arif_judge(mode=<undeclared>)   → silently entered the judgment path
+#
+# The allowed set is read from constitutional_map CANONICAL_TOOLS/DIAGNOSTIC_TOOLS
+# — the SAME lists that generate the advertised input_schema enum — and is
+# filtered by the handler's __dispatch_modes__ exactly as register_tools filters
+# the wire enum. Schema and guard read one source, so they cannot drift
+# (LAW 8: one owner).
+#
+# Scope (Arif, 2026-10-29): arif_observe + arif_judge only.
+GUARDED_TOOLS: frozenset[str] = frozenset({"arif_observe", "arif_judge"})
+
+
+def _guard_enabled() -> bool:
+    """Guard is ON by default (the ratified doctrine must be in force).
+
+    Kill-switch: ARIFOS_MODE_GUARD=0|off|false|no disables it without a code
+    change — reversible at deploy time (F1 AMANAH).
+    """
+    import os
+
+    return os.environ.get("ARIFOS_MODE_GUARD", "1").strip().lower() not in {
+        "0",
+        "off",
+        "false",
+        "no",
+    }
+
+
+def allowed_modes(tool_name: str, handler: Any = None) -> tuple[str, ...]:
+    """The modes this tool accepts — the set the wire advertises.
+
+    Mirrors register_tools' MODE ENUM GUARD: declared modes ∩ the handler's
+    dispatchable universe. Never invents a mode the wire does not offer.
+    """
+    try:
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
+
+        spec = {**CANONICAL_TOOLS, **DIAGNOSTIC_TOOLS}.get(tool_name) or {}
+        modes = list(spec.get("modes") or [])
+        universe = getattr(handler, "__dispatch_modes__", None)
+        if universe is not None:
+            modes = [m for m in modes if m in universe]
+        return tuple(modes)
+    except Exception:  # fail-open: a guard bug must never break dispatch
+        return ()
+
+
+def invalid_mode(tool_name: str, kwargs: dict[str, Any], handler: Any = None) -> str | None:
+    """Return the offending mode, or None when the call is admissible.
+
+    A tool with no declared mode set (arif_route: "modes": []) is not guarded —
+    its modes are declared by the individual adapted tools, not by the verb.
+
+    An OMITTED mode takes the signature default. An EXPLICITLY EMPTY mode
+    ("" or None) is NOT a declared mode and must be rejected — silently
+    defaulting it is the exact failure class this guard exists to close
+    (review finding 2026-10-29: mode="" reached the handler untouched).
+    """
+    if tool_name not in GUARDED_TOOLS or not _guard_enabled():
+        return None
+    modes = allowed_modes(tool_name, handler)
+    if not modes:
+        return None
+    if "mode" in kwargs:
+        mode = kwargs["mode"]
+        if mode in modes:
+            return None
+        return "<empty>" if mode in ("", None) else str(mode)
+    mode = _mode_of(tool_name, kwargs)  # omitted -> signature default
+    if mode in modes:
+        return None
+    return str(mode)
+
+
+def invalid_mode_message(tool_name: str, mode: str, handler: Any = None) -> str:
+    """Actionable rejection text — the model must be able to fix the call."""
+    modes = allowed_modes(tool_name, handler)
+    return (
+        f"INVALID_MODE: {tool_name} does not accept mode='{mode}'. "
+        f"Valid modes: {', '.join(modes) if modes else '<none declared>'}. "
+        f"No work was executed and no state was changed. "
+        f"Retry with one of the valid modes."
+    )
