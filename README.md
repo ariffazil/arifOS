@@ -15,6 +15,8 @@
 > Known gaps: [What Is Not Yet Proven](#what-is-not-yet-proven)
 <!-- GENERATED:CURRENT-STATE:END -->
 
+mcp-name: io.github.ariffazil/arifos
+
 ## Apa ni sebenarnya?
 
 arifOS bukan AI dan bukan chatbot. Ia mahkamah dasar (Policy Decision Point) untuk tindakan ejen AI: model boleh berfikir dan mengusul, tapi arifOS yang putuskan adakah cadangan itu layak dilaksana — sebahagian pintu keputusannya deterministik (kod Python keras, `llm_consulted: false`), bukan AI yang menilai keselamatan tindakannya sendiri. Bayang macam Permit-to-Work di pelantar minyak: jurutera (model AI) pintar tapi bukan pemegang risiko; bilik PTW (arifOS) yang putuskan boleh masuk ke tidak; bengkel (A-FORGE) baru buka kunci peralatan bila permit keluar; dan setiap kerja dicetak resit berantai (VAULT999, tamper-evident — sejarah yang disunting secara senyap akan pecahkan rantaian). Kuasa ditetapkan oleh rangka, bukan oleh kebijakan mana-mana model:
