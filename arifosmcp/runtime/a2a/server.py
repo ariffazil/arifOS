@@ -30,7 +30,7 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-# SSRF guard fix (CVE-2026-SyedAnas, 2026-08-25): replaced weak
+# SSRF guard fix (SSRF-2026-08-25): replaced weak
 # a_rif.ssrf_guard (string-prefix matching) with canonical resolve_blocked
 # (ipaddress + DNS resolution). a_rif/ssrf_guard.py is now deprecated.
 from arifosmcp.runtime.ssrf_guard import resolve_blocked
