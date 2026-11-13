@@ -8,7 +8,7 @@ version = "1!2026.11.13.post1"
 #   Domain coverage: [geox] [wealth] [well] [aaa] [io] [search] [google] [db] [heavy] [observe]
 #   Floor alignment: canonical matrix 2026-06-19 across all organs
 # 2026.06.11 — previous release (arifosmcp on PyPI)
-description = "Open-source governance decision point for AI agent actions. Evaluates proposed actions against constitutional policy floors (F1-F13) and returns SEAL/HOLD/SABAR/VOID verdicts before execution. 8 MCP tools, append-only audit ledger (VAULT999), Streamable HTTP transport. Designed for regulated AI deployment."
+description = "Open-source governance decision point for AI agent actions. Evaluates proposed actions against constitutional policy floors (F1-F13) and returns SEAL/HOLD/SABAR/VOID verdicts before execution. 9 MCP tools (8 canonical verbs + report), append-only audit ledger (VAULT999), Streamable HTTP transport. Designed for regulated AI deployment."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "AGPL-3.0-only"

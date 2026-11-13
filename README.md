@@ -78,7 +78,7 @@ Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](http
 
 ## Who built this
 
-arifOS was built by Arif Fazil, a senior exploration geoscientist who spent his career making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
+arifOS was built by Arif Fazil, a senior exploration geoscientist who has spent 12+ years making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
 
 **I am a geologist, not a programmer.** I did not write this codebase and I do not read it line by line. What I do is point at where the problem is — and the agents in my federation solve it, inside the constitution and the review gates I set, with the commit trail to show who ran what.
 
