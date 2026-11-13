@@ -376,6 +376,31 @@ def _read_well_substrate() -> dict[str, Any]:
     if state is None:
         return {"status": "unavailable", "coupled_verdict": "CAUTION", "source": "all_paths_failed"}
 
+    # T3 (F2 TRUTH 2026-11-13): surface WELL data staleness — a stale reading
+    # must not masquerade as a fresh decision (STALE VETO honesty).
+    _age_hours = None
+    _stamps = []
+
+    def _walk_stamps(o):
+        if isinstance(o, dict):
+            for _k, _v in o.items():
+                if _k == "stamped_at" and isinstance(_v, str):
+                    _stamps.append(_v)
+                _walk_stamps(_v)
+        elif isinstance(o, list):
+            for _v in o:
+                _walk_stamps(_v)
+
+    _walk_stamps(state)
+    if _stamps:
+        try:
+            from datetime import datetime, timezone
+
+            _t = datetime.fromisoformat(max(_stamps).replace("Z", "+00:00"))
+            _age_hours = (datetime.now(timezone.utc) - _t).total_seconds() / 3600.0
+        except Exception:
+            _age_hours = None
+
     _ws = state.get("well_score", None)
     try:
         well_score = None if _ws is None else float(_ws)
@@ -433,6 +458,10 @@ def _read_well_substrate() -> dict[str, Any]:
     }
     if clarity is not None:
         packet["clarity"] = clarity
+    if _age_hours is not None and _age_hours > 24.0:
+        packet["status"] = "stale"
+        packet["age_hours"] = round(_age_hours, 1)
+        packet["stale_reason"] = f"WELL data {round(_age_hours)}h old"
     return packet
 
 
