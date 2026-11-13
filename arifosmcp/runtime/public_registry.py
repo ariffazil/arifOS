@@ -988,8 +988,6 @@ _STRIP_UNADVERTISED_PARAMS: dict[str, set[str]] = {
     "arif_init": {
         "verbose",
         "previous_session_hash",
-        "actor_signature",
-        "nonce",
         "epoch_id",
         "idempotency_key",
         "caller_actor_id",
