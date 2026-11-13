@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "1!2026.10.17"
+version = "1!2026.11.13"
 
 # 2026.06.19 — Packaging Unification (FORGE SEAL)
 #   Package rename: arifosmcp → arifos (MCP is transport, not identity)
@@ -285,6 +285,7 @@ aclip-cai  = "arifosmcp.intelligence.cli:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
+namespaces = true
 # Wheel roots. The 2026-09-16 hygiene note claimed "exactly three top-level
 # packages ship" while the list below already carried four (arifos*, arifosmcp*,
 # core*, schemas*) — a comment contradicting its own code, corrected 2026-09-30.
@@ -329,6 +330,36 @@ exclude = [
     "tests.*",
     "tests",
     "core.archive*",
+    "arifosmcp.tests*",
+    "arifosmcp.geometry.tests*",
+    "contracts.tests*",
+    "arifosmcp.runtime._archive*",
+    "arifosmcp.packages.npm*",
+    "arifosmcp.sites*",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*vault999*",
+    "vault_attestation*",
+    "*.jsonl",
+    "*.sqlite*",
+    "*.db",
+    "cold_storage/*",
+    "packages/npm/*",
+    "packages/npm/**/*",
+    "sites/*",
+    "sites/**/*",
+]
+"arifosmcp" = [
+    "packages/npm/*",
+    "packages/npm/**/*",
+    "sites/*",
+    "sites/**/*",
+]
+"core" = [
+    "vault999/*",
+    "vault999/**/*",
 ]
 
 [tool.setuptools.package-data]
