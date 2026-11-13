@@ -138,8 +138,10 @@ try:
         # dropping them. Only when the schema is a fixed model (has a fields
         # map); **kwargs-style open schemas are left untouched (fail-safe).
         if isinstance(value, dict):
-            _cs = getattr(type_adapter, "core_schema", None) or {}
-            _fields = set((_cs.get("schema", {}).get("fields", {}) or {})) or set((_cs.get("fields", {}) or {}))
+            try:
+                _fields = set((type_adapter.json_schema().get("properties") or {}).keys())
+            except Exception:
+                _fields = set()
             if _fields:
                 _unknown = sorted(k for k in value if k not in _fields)
                 if _unknown:
