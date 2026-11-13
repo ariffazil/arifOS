@@ -87,7 +87,19 @@ def get_tool_handler(name: str) -> Any:
 
 def hardened_init_anchor_dispatch(mode: str = "status", **kwargs: Any) -> dict[str, Any]:
     """Compatibility wrapper that keeps the legacy init-anchor mode vocabulary visible."""
+    import inspect
     from arifosmcp.runtime.tools import _arif_session_init
+
+    # T1 (F2 TRUTH 2026-11-13): reject unknown parameters instead of silently
+    # dropping them — a caller who sends a field we ignore must learn it was ignored.
+    _known = set(inspect.signature(_arif_session_init).parameters)
+    _unknown = sorted(k for k in kwargs if k not in _known)
+    if _unknown:
+        return {
+            "status": "error",
+            "tool": "init_anchor",
+            "meta": {"reason": f"unknown parameter(s): {', '.join(_unknown)}"},
+        }
 
     if mode == "revoke":
         return {
