@@ -336,6 +336,13 @@ exclude = [
     "arifosmcp.runtime._archive*",
     "arifosmcp.packages.npm*",
     "arifosmcp.sites*",
+    "arifosmcp.evals*",
+    "arifosmcp.static*",
+    "arifosmcp.probes*",
+    "arifosmcp.maintenance*",
+    "arifosmcp.router*",
+    "arifosmcp.metadata*",
+    "arifosmcp.manifests*",
 ]
 
 [tool.setuptools.exclude-package-data]
@@ -350,6 +357,21 @@ exclude = [
     "packages/npm/**/*",
     "sites/*",
     "sites/**/*",
+    "evals/*",
+    "evals/**/*",
+    "static/*",
+    "static/**/*",
+    "probes/*",
+    "probes/**/*",
+    "maintenance/*",
+    "maintenance/**/*",
+    "router/*",
+    "metadata/*",
+    "manifests/*",
+    "npm/*",
+    "npm/**/*",
+    "**/__pycache__/*",
+    "**/*.pyc",
 ]
 "arifosmcp" = [
     "packages/npm/*",

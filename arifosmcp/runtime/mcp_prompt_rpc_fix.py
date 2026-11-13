@@ -36,7 +36,7 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
     """Patch FastMCP._render_prompt so missing prompt args return
     JSON-RPC -32602 Invalid params (per MCP / JSON-RPC 2.0)."""
     global _APPLIED
-    print("[mcp_prompt_rpc_fix] apply() called, _APPLIED=", _APPLIED, flush=True)
+    logger.info("[mcp_prompt_rpc_fix] apply() called, _APPLIED=%s", _APPLIED)
     if _APPLIED:
         return True
 
@@ -191,5 +191,4 @@ def apply_prompt_missing_args_rpc_fix() -> bool:
         "(patched FastMCP.get_prompt and FastMCP._render_prompt)"
     )
     logger.warning(msg)
-    print(msg, flush=True)
     return True
