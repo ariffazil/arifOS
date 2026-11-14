@@ -605,7 +605,9 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
         vault_pf_state = "degraded"
     else:
         vault_public = vault_state
-        vault_pf_state = "observed" if vault_state in ("healthy", "degraded", "gaps_found") else "unknown"
+        vault_pf_state = (
+            "observed" if vault_state in ("healthy", "degraded", "gaps_found") else "unknown"
+        )
     sub["postgres"] = _pf(
         None,
         source="postgres_probe_pending",
@@ -752,7 +754,9 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
         build_vs_deployed = "UNKNOWN"
 
     if workspace_commit and _l_commit != "unknown":
-        _cmatch = str(workspace_commit).startswith(str(_l_commit)) or str(_l_commit).startswith(str(workspace_commit))
+        _cmatch = str(workspace_commit).startswith(str(_l_commit)) or str(_l_commit).startswith(
+            str(workspace_commit)
+        )
         workspace_vs_deployed = "ALIGNED" if (_cmatch and workspace_dirty is False) else "DRIFTED"
     else:
         workspace_vs_deployed = "UNKNOWN"
@@ -981,6 +985,7 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         from arifosmcp.runtime.floor_producers import (
             floor_ontology_record as _floor_ontology_record,
         )
+
         for fid, score in raw_floors.items():
             origin = str(provenance.get(fid) or "governance_kernel")
             # 2026-10-26 (333-AGI): a SKIPPED producer is not a measurement either.
@@ -1027,7 +1032,8 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                 "score": _pf(
                     None if is_placeholder else score,
                     source=(
-                        placeholder_label if is_placeholder
+                        placeholder_label
+                        if is_placeholder
                         else f"governance_kernel.get_current_state [{origin}]"
                     ),
                     state="unknown" if is_placeholder else "observed",
@@ -1347,8 +1353,36 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     ]
     for name, label, host, port in organs:
         dp = _deep_probe_organ(host, port, label)
+        # FG-3 (ZEN ledger 2026-11-14, F13 zero-HITL): organ rows must carry
+        # app_health — the organ's own /health status word — so "reachable"
+        # (transport) is never rendered as "healthy". dp already fetches it.
+        _hs = dp.get("status")
+        if _hs is None:
+            _app_health_val, _app_health_state, _app_health_conf = (
+                None,
+                "unknown",
+                0.0,
+            )
+        else:
+            _raw = str(_hs).lower()
+            _app_health_val = (
+                "DEGRADED"
+                if _raw == "degraded"
+                else "HEALTHY"
+                if (_raw.startswith("ok") or _raw == "healthy")
+                else str(_hs).upper()
+            )
+            _app_health_state, _app_health_conf = "observed", 0.9
         out[name] = {
             "transport": _probe_transport(host, port),
+            "app_health": _pf(
+                _app_health_val,
+                source=f"GET 127.0.0.1:{port}/health→status",
+                state=_app_health_state,
+                confidence=_app_health_conf,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=True,
+            ),
             "identity": dp["identity"]
             or _pf(
                 None,
@@ -1889,7 +1923,11 @@ def _probe_arifflow_flow_facts() -> dict[str, Any]:
         )
     fq = data.get("fq") if isinstance(data, dict) else {}
     per_actor = fq.get("per_actor") if isinstance(fq, dict) else {}
-    held = sorted(a for a, v in per_actor.items() if isinstance(v, dict) and v.get("held")) if isinstance(per_actor, dict) else []
+    held = (
+        sorted(a for a, v in per_actor.items() if isinstance(v, dict) and v.get("held"))
+        if isinstance(per_actor, dict)
+        else []
+    )
     actors_tracked = len(per_actor) if isinstance(per_actor, dict) else None
     why = []
     for _a in held:
@@ -2580,7 +2618,9 @@ def _unlinked_seal_census() -> dict[str, Any]:
                 continue
             if not isinstance(entry, dict):
                 continue
-            entry_type = entry.get("type") or entry.get("event_type") or entry.get("verdict_issued") or ""
+            entry_type = (
+                entry.get("type") or entry.get("event_type") or entry.get("verdict_issued") or ""
+            )
             if not entry_type or not any(
                 token in str(entry_type).lower()
                 for token in ("seal", "verdict", "decision", "constitutional")
@@ -2650,7 +2690,9 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
         bool(chain_v.get("verified"))
         and chain_v.get("status") != "gaps-found"
         and not (chain_v.get("gaps") or [])
-        and not (isinstance(seal_census.get("unlinked"), int) and seal_census.get("unlinked", 0) > 0)
+        and not (
+            isinstance(seal_census.get("unlinked"), int) and seal_census.get("unlinked", 0) > 0
+        )
     )
     # 2026-10-07 (Observatory green mission, F13 "deploy all"): the VAULT999 panel
     # rendered LAST RECEIPT / SEAL CHAIN unavailable while head_seq and the local
@@ -3180,7 +3222,10 @@ def _findings_block(
         and not gaps_open
         and not unlinked_open
     ):
-        f004_status, f004_ev = "RESOLVED", "verify+replay alive; chain_verified=true; no gaps; unlinked=0"
+        f004_status, f004_ev = (
+            "RESOLVED",
+            "verify+replay alive; chain_verified=true; no gaps; unlinked=0",
+        )
         f004_desc = "VAULT verify/replay paths live and the chain has no declared gap"
     elif verify_alive is True or replay_alive is True:
         f004_status, f004_ev = (
