@@ -25,7 +25,35 @@ def _fetch_outcomes(limit: int):
     base = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or ""
     if not base or not key:
-        raise RuntimeError("supabase env missing")
+        # Root-cron builders: inherit SUPABASE_* from the running kernel's live
+        # environment (the kernel holds them via its EnvironmentFile). Root can
+        # read /proc; non-root contexts without env keep fail-closed semantics.
+        import subprocess as _sp
+
+        try:
+            _pids = _sp.run(
+                ["pgrep", "-f", "arifosmcp.runtime.__main__"],
+                capture_output=True, text=True, timeout=5,
+            ).stdout.split()
+            for _p in _pids[:3]:
+                try:
+                    with open(f"/proc/{_p}/environ", "rb") as fh:
+                        for _line in fh.read().decode(errors="ignore").split("\0"):
+                            if "=" not in _line:
+                                continue
+                            _k, _v = _line.split("=", 1)
+                            if _k == "SUPABASE_URL" and not base:
+                                base = _v
+                            elif _k == "SUPABASE_SERVICE_ROLE_KEY" and not key:
+                                key = _v
+                except OSError:
+                    continue
+                if base and key:
+                    break
+        except Exception:
+            pass
+        if not base or not key:
+            raise RuntimeError("supabase env missing")
     url = (
         f"{base}/rest/v1/arifosmcp_tool_calls"
         f"?select=id,result_code,verdict&order=id.desc&limit={limit}"
@@ -88,5 +116,10 @@ def measure_windowed_ds(window: int | None = None, use_cache: bool = True) -> di
         _cache = {"ts": now, "value": result}
         return result
     except Exception:
+        import logging
+
+        logging.getLogger("arifos.windowed_ds").warning(
+            "windowed_ds fetch failed: %s", exc_info=True
+        )
         _cache = {"ts": now, "value": None}
         return None

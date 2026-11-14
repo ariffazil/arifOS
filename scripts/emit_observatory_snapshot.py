@@ -25,6 +25,23 @@ sys.path.insert(0, str(PROJECT_ROOT))
 SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
+# F4 instrument env (2026-11-14, 333-AGI): the cron context has a minimal env, but the
+# windowed-dS floor instrument needs SUPABASE_* to read the tool_calls store. Load the
+# sanctioned EnvironmentFile (same one arifos.service uses) when env is absent.
+# Values are never logged. Guarded: existing env always wins.
+if not os.environ.get("SUPABASE_URL"):
+    _ENV_FILE = Path("/etc/secrets-sliced/arifos.env")
+    try:
+        for _line in _ENV_FILE.read_text().splitlines():
+            _line = _line.strip()
+            if not _line or _line.startswith("#") or "=" not in _line:
+                continue
+            _k, _v = _line.split("=", 1)
+            if _k.strip() and not os.environ.get(_k.strip()):
+                os.environ[_k.strip()] = _v.strip().strip('"').strip("'")
+    except OSError:
+        pass  # fail-closed: instrument returns None downstream, never fabricates
+
 from observatory_publish import publish_latest_snapshot  # noqa: E402
 
 from arifosmcp.runtime.capability_drift import (  # noqa: E402
