@@ -2,7 +2,7 @@
 <!-- GENERATED:CURRENT-STATE:BEGIN · source: scripts/generate_current_state.py · never hand-edit -->
 > ### ⚠️ Current verified state — generated, never hand-edited
 >
-> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-29T17:02:36Z`): kernel **degraded** · floors **12/13 measured pass** · vault999 healthy · release `arifos-5564ca6f7f61` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
+> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-11-14T07:37:41Z`): kernel **degraded** · floors **10/13 measured pass** · vault999 stale · release `arifos-87227d8` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
 >
 > **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured = 13 distinct** (raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13) · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
@@ -16,14 +16,14 @@
 <!-- GENERATED:CURRENT-STATE:END -->
 
 <!-- SOT-MANIFEST
-last_verified: 2026-10-25T09:37:18+00:00
-live_commit: 0c8873e0e (fix(manifests): regenerate llms.txt mirrors from generator — drop unsupported re)
-source_commit: 0c8873e0e
-built_commit: e62a940
-deployment_drift_status: repo_live_divergence (kernel self-report drift=false (built=e62a940) — this says nothing about the repo tree above, which is 0c8873e (deploy pending))
-tools_exposed_via_mcp: 8 (verified by live POST /mcp tools/list on 2026-10-18: arif_init, arif_observe, arif_think, arif_route, arif_memory, arif_judge, arif_forge, arif_seal)
+last_verified: 2026-11-14T07:37:41+00:00
+live_commit: 87227d8 (runtime-reported via :8088/health)
+source_commit: main (PR #985 · 01-unified-ci green)
+built_commit: 87227d8
+deployment_drift_status: aligned (source=built=deployed reported by :8088/health; runtime kernel degraded: 10/13 floors measured pass, 3 unmeasured, vault999 stale)
+tools_exposed_via_mcp: 9 (runtime self-measurement :8088/health @2026-11-14T07:37:41Z)
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
-generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
+generated_by: scripts/generate_current_state.py + manual SOT-MANIFEST sync
 -->
 
 <p align="center">
@@ -40,7 +40,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 
 [Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [MCP Registry (Glama)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
 
-**Maintainer:** ARIF FAZIL · agentic contact: [[REDACTED:EMAIL]](mailto:[REDACTED:EMAIL]) · [arif-fazil.com](https://arif-fazil.com) · [llms.txt](./llms.txt)
+**Maintainer:** ARIF FAZIL · [arif-fazil.com](https://arif-fazil.com) · [llms.txt](./llms.txt)
 
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/pypi/pyversions/arifos?style=flat-square)](https://pypi.org/project/arifos)
