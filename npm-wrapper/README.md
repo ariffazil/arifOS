@@ -41,7 +41,7 @@ Add to your MCP client config:
 
 | Registry | Link |
 |----------|------|
-| Glama | https://glama.ai/mcp/servers/ariffazil/arifos |
+| Glama | https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp |
 | PulseMCP | https://pulsemcp.com/servers/ariffazil-arifos |
 | Smithery | https://smithery.ai/server/arifos |
 | mcp.so | https://mcp.so/server/arifos |
