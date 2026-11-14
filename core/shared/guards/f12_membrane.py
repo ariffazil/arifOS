@@ -249,6 +249,46 @@ class ModelArmorAdapter:
         self.endpoint_identity = endpoint_identity
         self.template_fingerprint = template_fingerprint
 
+    @classmethod
+    def from_env(cls) -> "ModelArmorAdapter":
+        """
+        Construct adapter from environment without failing open if SDK/config is absent.
+        """
+        import os
+
+        template_id = os.environ.get("MODEL_ARMOR_TEMPLATE_ID", "")
+        region = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+        endpoint = f"modelarmor.{region}.rep.googleapis.com"
+        if not template_id:
+            return cls(
+                client=None,
+                template_resource="",
+                region=region,
+                endpoint_identity=endpoint,
+                template_fingerprint="unconfigured",
+            )
+        try:
+            from google.api_core.client_options import ClientOptions
+            from google.cloud import modelarmor_v1
+
+            client = modelarmor_v1.ModelArmorClient(
+                client_options=ClientOptions(api_endpoint=endpoint)
+            )
+            return cls(
+                client=client,
+                template_resource=template_id,
+                region=region,
+                endpoint_identity=endpoint,
+            )
+        except Exception:
+            return cls(
+                client=None,
+                template_resource=template_id,
+                region=region,
+                endpoint_identity=endpoint,
+                template_fingerprint="sdk_unavailable",
+            )
+
     @staticmethod
     def _operation_for_crossing(crossing_type: CrossingType) -> str:
         if crossing_type == CrossingType.AGENT_TO_USER:
@@ -277,6 +317,21 @@ class ModelArmorAdapter:
     ) -> DetectorObservation:
         op = self._operation_for_crossing(crossing_type)
         content_hash = sha256_bytes(text)
+        if self.client is None:
+            return DetectorObservation(
+                detector=self.name,
+                operation=op,
+                verdict=SecurityVerdict.UNAVAILABLE,
+                latency_ms=0.0,
+                request_content_hash=content_hash,
+                timestamp=_utc_now_iso(),
+                provider="google-cloud-model-armor",
+                template_resource=self.template_resource,
+                template_fingerprint=self.template_fingerprint,
+                region=self.region,
+                endpoint_identity=self.endpoint_identity,
+                reason_codes=("MODEL_ARMOR_NOT_CONFIGURED",),
+            )
         t0 = time.perf_counter()
         try:
             if op == "sanitize_model_response":

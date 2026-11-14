@@ -18,12 +18,14 @@ from core.shared.guards.f12_membrane import (
 from core.shared.guards.sovereign_crossing import (
     CrossingReceipt,
     EpistemicClass,
+    F13ActionEnvelope,
     F13ToolAuthorityGate,
     MemoryAdmissionGate,
     MemoryCandidate,
     MemoryState,
     SovereignReceiptChain,
     ToolAuthorizationResult,
+    sign_action_envelope,
 )
 
 __all__ = [
@@ -36,6 +38,7 @@ __all__ = [
     "EpistemicClass",
     "ExternalDisclosureGate",
     "F12Membrane",
+    "F13ActionEnvelope",
     "F13ToolAuthorityGate",
     "LocalSemanticFallbackAdapter",
     "MemoryAdmissionGate",
@@ -48,4 +51,5 @@ __all__ = [
     "ToolAuthorizationResult",
     "canonicalize_for_inspection",
     "sha256_bytes",
+    "sign_action_envelope",
 ]

@@ -10,12 +10,20 @@ Stage-3 T1 Sovereign Crossing Enforcement:
 
 from __future__ import annotations
 
+import base64
 import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
 from typing import Any
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey,
+    Ed25519PublicKey,
+)
 
 from core.shared.guards.f12_membrane import (
     CrossingDecision,
@@ -135,6 +143,128 @@ class F13ToolAuthorityGate:
             tool_name, canonical, actual_hash, actor_id, user_id, session_id,
             authority_scope, PolicyOutcome.ALLOW, "F13_T1_AUTHORIZED",
         )
+
+    def authorize_t2_t3(
+        self,
+        envelope: "F13ActionEnvelope",
+        public_key: Ed25519PublicKey,
+        tool_name: str,
+        args: dict[str, Any] | None,
+        destination: str,
+        operation: str,
+        principal: str,
+        crossing_decision: CrossingDecision,
+        now_ts: float | None = None,
+    ) -> ToolAuthorizationResult:
+        """
+        Stage 4: Authorize T2/T3 mutation ONLY when F12 admission passes AND
+        an Ed25519-signed F13ActionEnvelope binds tool, destination, operation,
+        canonical arguments hash, expiry, and single-use nonce.
+        """
+        crossing_decision.require_information_admission()
+        if not isinstance(args, dict):
+            return ToolAuthorizationResult(
+                tool_name, "", "", principal, envelope.approving_human,
+                crossing_decision.session_id, "T2_T3_MUTATE", PolicyOutcome.HOLD, "F13_MALFORMED_ARGS",
+            )
+        canonical, actual_hash = self.canonicalize_args(args)
+
+        if not envelope.signature_b64:
+            return ToolAuthorizationResult(
+                tool_name, canonical, actual_hash, principal, envelope.approving_human,
+                crossing_decision.session_id, "T2_T3_MUTATE", PolicyOutcome.HOLD, "F13_MISSING_SIGNATURE",
+            )
+        try:
+            sig = base64.b64decode(envelope.signature_b64)
+            public_key.verify(sig, envelope.canonical_signing_bytes())
+        except (InvalidSignature, Exception):
+            return ToolAuthorizationResult(
+                tool_name, canonical, actual_hash, principal, envelope.approving_human,
+                crossing_decision.session_id, "T2_T3_MUTATE", PolicyOutcome.HOLD, "F13_INVALID_SIGNATURE",
+            )
+
+        current = datetime.now(timezone.utc).timestamp() if now_ts is None else now_ts
+        if current < envelope.issued_at or current > envelope.expiry:
+            return ToolAuthorizationResult(
+                tool_name, canonical, actual_hash, principal, envelope.approving_human,
+                crossing_decision.session_id, "T2_T3_MUTATE", PolicyOutcome.HOLD, "F13_ENVELOPE_EXPIRED",
+            )
+        if not envelope.nonce or envelope.nonce in self._consumed_nonces:
+            return ToolAuthorizationResult(
+                tool_name, canonical, actual_hash, principal, envelope.approving_human,
+                crossing_decision.session_id, "T2_T3_MUTATE", PolicyOutcome.BLOCK, "F13_REPLAY_OR_EMPTY_NONCE",
+            )
+        if (
+            envelope.principal != principal
+            or envelope.tool_name != tool_name
+            or envelope.destination != destination
+            or envelope.operation != operation
+            or envelope.canonical_arguments_hash != actual_hash
+        ):
+            return ToolAuthorizationResult(
+                tool_name, canonical, actual_hash, principal, envelope.approving_human,
+                crossing_decision.session_id, "T2_T3_MUTATE", PolicyOutcome.BLOCK, "F13_ENVELOPE_BINDING_MISMATCH",
+            )
+
+        self._consumed_nonces.add(envelope.nonce)
+        return ToolAuthorizationResult(
+            tool_name, canonical, actual_hash, principal, envelope.approving_human,
+            crossing_decision.session_id, "T2_T3_MUTATE", PolicyOutcome.ALLOW, "F13_T2_T3_AUTHORIZED",
+        )
+
+
+@dataclass(frozen=True)
+class F13ActionEnvelope:
+    principal: str
+    approving_human: str
+    tool_name: str
+    destination: str
+    operation: str
+    canonical_arguments_hash: str
+    issued_at: float
+    expiry: float
+    nonce: str
+    policy_version: str
+    approval_reference: str
+    signature_b64: str = ""
+
+    def canonical_signing_bytes(self) -> bytes:
+        payload = json.dumps(
+            {
+                "principal": self.principal,
+                "approving_human": self.approving_human,
+                "tool_name": self.tool_name,
+                "destination": self.destination,
+                "operation": self.operation,
+                "canonical_arguments_hash": self.canonical_arguments_hash,
+                "issued_at": self.issued_at,
+                "expiry": self.expiry,
+                "nonce": self.nonce,
+                "policy_version": self.policy_version,
+                "approval_reference": self.approval_reference,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return payload.encode("utf-8")
+
+
+def sign_action_envelope(envelope: F13ActionEnvelope, private_key: Ed25519PrivateKey) -> F13ActionEnvelope:
+    sig = private_key.sign(envelope.canonical_signing_bytes())
+    return F13ActionEnvelope(
+        principal=envelope.principal,
+        approving_human=envelope.approving_human,
+        tool_name=envelope.tool_name,
+        destination=envelope.destination,
+        operation=envelope.operation,
+        canonical_arguments_hash=envelope.canonical_arguments_hash,
+        issued_at=envelope.issued_at,
+        expiry=envelope.expiry,
+        nonce=envelope.nonce,
+        policy_version=envelope.policy_version,
+        approval_reference=envelope.approval_reference,
+        signature_b64=base64.b64encode(sig).decode("ascii"),
+    )
 
 
 @dataclass(frozen=True)
@@ -343,3 +473,51 @@ class SovereignReceiptChain:
                 return False, f"CHAIN_RECEIPT_HASH_TAMPERED_AT_{idx}"
             expected_prev = entry.receipt_hash
         return True, "CHAIN_VERIFIED"
+
+    def append_jsonl(self, path: Path, receipt: CrossingReceipt) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        record = {
+            "receipt_id": receipt.receipt_id,
+            "previous_receipt_hash": receipt.previous_receipt_hash,
+            "crossing_id": receipt.crossing_id,
+            "actor_id": receipt.actor_id,
+            "session_id": receipt.session_id,
+            "input_hash": receipt.input_hash,
+            "inspection_hash": receipt.inspection_hash,
+            "detector_observations": list(receipt.detector_observations),
+            "f12_verdict": receipt.f12_verdict,
+            "f13_verdict": receipt.f13_verdict,
+            "canonical_argument_hash": receipt.canonical_argument_hash,
+            "final_bytes_hash": receipt.final_bytes_hash,
+            "timestamp": receipt.timestamp,
+            "receipt_hash": receipt.receipt_hash,
+        }
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, sort_keys=True) + "\n")
+
+    @classmethod
+    def load_jsonl(cls, path: Path, genesis_hash: str = "sha256:genesis") -> "SovereignReceiptChain":
+        chain = cls(genesis_hash=genesis_hash)
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            d = json.loads(line)
+            rcpt = CrossingReceipt(
+                receipt_id=d["receipt_id"],
+                previous_receipt_hash=d["previous_receipt_hash"],
+                crossing_id=d["crossing_id"],
+                actor_id=d["actor_id"],
+                session_id=d["session_id"],
+                input_hash=d["input_hash"],
+                inspection_hash=d["inspection_hash"],
+                detector_observations=tuple(d["detector_observations"]),
+                f12_verdict=d["f12_verdict"],
+                f13_verdict=d["f13_verdict"],
+                canonical_argument_hash=d["canonical_argument_hash"],
+                final_bytes_hash=d["final_bytes_hash"],
+                timestamp=d["timestamp"],
+                receipt_hash=d["receipt_hash"],
+            )
+            chain.entries.append(rcpt)
+            chain.tail_hash = rcpt.receipt_hash
+        return chain
