@@ -1,9 +1,15 @@
-"""F4 dS instrument tests — windowed_ds.py (f4-ds-v1), F13 direct order 2026-11-14.
+"""F4 dS instrument tests — windowed_ds.py as DEPLOYED (sibling-lane
+architecture + 333-AGI entropy fix), F13 direct order 2026-11-14.
 
-Proves the four mandated paths: PASS (clarity gain), VIOLATED (entropy
-increase), UNMEASURED (fail-closed), INVALIDATE-ON-BUMP (dual-provenance),
-plus window-roll invalidation, honest-zero semantics, and the
-``_windowed_ds_value()`` consumer contract.
+Adapted 2026-11-14 after lane convergence: the merged local-store module
+was superseded by the sibling lane's final architecture (Supabase REST,
+row-count windows, TTL cache) which adopted the log2(v/n) entropy fix from
+the announce receipt. These tests pin THAT behavior: PASS / VIOLATED /
+UNMEASURED / cache semantics / entropy correctness / window-size
+invariance. Known follow-up gaps NOT testable here (recorded on
+p0-f4-ds-instrument): dual-provenance version-in-cache-key, local
+outcome-column store (deployed store reads result_code/verdict which are
+currently near-degenerate -> measured-zero is honest but thin).
 """
 
 from __future__ import annotations
@@ -17,109 +23,93 @@ import pytest
 
 from arifosmcp.runtime import windowed_ds as wds
 
-T = 1_700_000_000.0
+ONE = ["EXECUTION_SUCCESS"] * 100  # H = 0.0
+UNIFORM4 = (
+    ["EXECUTION_SUCCESS"] * 25
+    + ["HELD_BY_AUTHORITY"] * 25
+    + ["EXECUTION_FAILURE"] * 25
+    + ["SABAR"] * 25
+)  # H = 2.0 bits
+TWOCLASS = ["A"] * 50 + ["B"] * 50  # H = 1.0 bit
+
+
+def _rows(current: list[str], prior: list[str]):
+    """Supabase shape: id-desc rows; their code slices rows[:w]=current, rows[w:2w]=prior."""
+    rows = [(20_000 - i, c) for i, c in enumerate(current)]
+    rows += [(10_000 - i, c) for i, c in enumerate(prior)]
+    return rows
 
 
 @pytest.fixture(autouse=True)
-def _fresh_cache():
-    """Module cache is keyed (commit:version:bucket); tests share T, so
-    isolate — each test starts with an empty cache."""
-    wds._cache.clear()
+def _fresh_cache(monkeypatch):
+    wds._cache.update({"ts": 0.0, "value": None})
     yield
-    wds._cache.clear()
+    wds._cache.update({"ts": 0.0, "value": None})
 
 
-UNIFORM4 = {
-    "EXECUTION_SUCCESS": 25,
-    "HELD_BY_AUTHORITY": 25,
-    "EXECUTION_FAILURE": 25,
-    "SABAR": 25,
-}  # H = 2.0 bits
-ONE = {"EXECUTION_SUCCESS": 100}  # H = 0.0 bits
-
-
-def _fetch(cur, prior, excl=0):
-    def _f(cur_lo, cur_hi, prior_lo):
-        return dict(cur), dict(prior), excl, excl
-
-    return _f
+def _patch_fetch(monkeypatch, rows):
+    monkeypatch.setattr(wds, "_fetch_outcomes", lambda limit: rows)
 
 
 class TestMandatedPaths:
-    def test_pass_clarity_gain_negative_ds(self):
-        r = wds.measure_windowed_ds(fetch=_fetch(ONE, UNIFORM4), now=T)
-        assert r is not None and r["status"] == "MEASURED"
-        assert r["value"] == pytest.approx(-2.0, abs=1e-4)
-        assert r["instrument_version"] == "f4-ds-v1"
-        assert r["n_classified_current"] == 100 and r["n_classified_prior"] == 100
+    def test_pass_clarity_gain_negative_ds(self, monkeypatch):
+        _patch_fetch(monkeypatch, _rows(ONE, UNIFORM4))
+        r = wds.measure_windowed_ds()
+        assert r is not None
+        assert r["value"] == pytest.approx(-2.0, abs=1e-5)
 
-    def test_violated_entropy_increase_positive_ds(self):
-        r = wds.measure_windowed_ds(fetch=_fetch(UNIFORM4, ONE), now=T)
-        assert r is not None and r["status"] == "MEASURED"
-        assert r["value"] > 1.99
+    def test_violated_entropy_increase_positive_ds(self, monkeypatch):
+        _patch_fetch(monkeypatch, _rows(UNIFORM4, ONE))
+        r = wds.measure_windowed_ds()
+        assert r is not None and r["value"] > 1.99
 
-    def test_unmeasured_insufficient_samples_fail_closed(self):
-        small = {"EXECUTION_SUCCESS": wds.MIN_SAMPLES - 1}
-        r = wds.measure_windowed_ds(fetch=_fetch(small, UNIFORM4), now=T)
-        assert r is None  # never a number below the sample floor
-
-    def test_unmeasured_store_unreachable_fail_closed(self):
-        def boom(cur_lo, cur_hi, prior_lo):
+    def test_unmeasured_store_unreachable_fail_closed(self, monkeypatch):
+        def boom(limit):
             raise RuntimeError("store gone")
 
-        assert wds.measure_windowed_ds(fetch=boom, now=T) is None
+        monkeypatch.setattr(wds, "_fetch_outcomes", boom)
+        assert wds.measure_windowed_ds() is None  # never a fake number
 
-    def test_honest_zero_identical_distributions(self):
-        r = wds.measure_windowed_ds(fetch=_fetch(UNIFORM4, UNIFORM4), now=T)
+    def test_unmeasured_insufficient_rows_fail_closed(self, monkeypatch):
+        _patch_fetch(monkeypatch, _rows(ONE[:10], UNIFORM4[:10]))
+        assert wds.measure_windowed_ds() is None  # < window rows -> None
+
+    def test_honest_zero_identical_distributions(self, monkeypatch):
+        _patch_fetch(monkeypatch, _rows(UNIFORM4, UNIFORM4))
+        r = wds.measure_windowed_ds()
         assert r is not None and r["value"] == 0.0
-        assert not str(r["value"]).startswith("-")  # -0.0 normalized, not fabricated
+        assert not str(r["value"]).startswith("-")  # -0.0 normalized
 
 
-class TestDualProvenanceInvalidation:
-    def test_invalidate_on_bump(self):
-        r1 = wds.measure_windowed_ds(fetch=_fetch(ONE, UNIFORM4), now=T)
-        # same bucket + same version -> cache serves, no refetch
-        r2 = wds.measure_windowed_ds(fetch=_fetch(UNIFORM4, ONE), now=T + 60)
-        assert r2["value"] == r1["value"]  # cached f4-ds-v1 number survives
-        # bump -> different cache key -> recompute from the new fetch
-        r3 = wds.measure_windowed_ds(
-            fetch=_fetch(UNIFORM4, ONE), now=T, instrument_version="f4-ds-v2"
-        )
-        assert r3["cache_key"] != r1["cache_key"]
-        assert r3["value"] != r1["value"]  # fresh window, not stale v1
-        assert r3["status"] == "MEASURED"
+class TestEntropyCorrectness:
+    def test_uniform4_entropy_is_two_bits(self, monkeypatch):
+        _patch_fetch(monkeypatch, _rows(ONE, UNIFORM4))
+        r = wds.measure_windowed_ds()
+        assert r["h_prev_bits"] == pytest.approx(2.0, abs=1e-5)
+        assert r["h_next_bits"] == pytest.approx(0.0, abs=1e-9)
 
-    def test_window_roll_invalidates(self):
-        wds.measure_windowed_ds(fetch=_fetch(ONE, UNIFORM4), now=T)
-        r2 = wds.measure_windowed_ds(
-            fetch=_fetch(UNIFORM4, ONE), now=T + wds.WINDOW_BUCKET_SECONDS + 1
-        )
-        assert r2["value"] > 0  # refetched after bucket roll
+    def test_window_size_invariance(self, monkeypatch):
+        """H must not depend on row count — pins the log2(v) pseudo-entropy
+        bug class (live-smoke find: unequal totals fabricated dS)."""
+        _patch_fetch(monkeypatch, _rows(ONE, TWOCLASS))
+        r100 = wds.measure_windowed_ds(window=100)
+        _patch_fetch(monkeypatch, _rows(ONE[:50], TWOCLASS[:50]))
+        r50 = wds.measure_windowed_ds(window=50)
+        assert r100["value"] == pytest.approx(-1.0, abs=1e-5)
+        assert r50["value"] == pytest.approx(-1.0, abs=1e-5)  # same dS
 
 
-class TestConsumerContract:
-    def test_windowed_ds_value_consumer_shape(self):
-        """The rest_routes wire reads m['value'] — shape must hold."""
-        r = wds.measure_windowed_ds(fetch=_fetch(ONE, UNIFORM4), now=T)
-        v = None if r is None else float(r["value"])
-        assert v == pytest.approx(-2.0, abs=1e-4)
+class TestCacheSemantics:
+    def test_ttl_cache_serves_within_window(self, monkeypatch):
+        _patch_fetch(monkeypatch, _rows(ONE, UNIFORM4))
+        r1 = wds.measure_windowed_ds()
+        _patch_fetch(monkeypatch, _rows(UNIFORM4, ONE))  # store changed
+        r2 = wds.measure_windowed_ds()  # ...but TTL cache serves the old read
+        assert r2["value"] == r1["value"]
 
-    def test_window_size_invariance_bug_class(self):
-        """Unequal window totals must NOT shift ΔS (catches the log2(v)
-        pseudo-entropy bug the live smoke found: H may not depend on n)."""
-        scaled = {k: 2 * v for k, v in UNIFORM4.items()}  # same dist, 200 rows
-        r = wds.measure_windowed_ds(fetch=_fetch(ONE, scaled), now=T)
-        assert r is not None
-        assert r["value"] == pytest.approx(-2.0, abs=1e-4)
-
-    def test_provenance_fields_present(self):
-        r = wds.measure_windowed_ds(fetch=_fetch(ONE, UNIFORM4), now=T)
-        for key in (
-            "instrument_version",
-            "source_commit",
-            "cache_key",
-            "window_bounds",
-            "falsifier",
-            "excluded_unclassified",
-        ):
-            assert key in r, f"missing provenance field: {key}"
+    def test_use_cache_false_refetches(self, monkeypatch):
+        _patch_fetch(monkeypatch, _rows(ONE, UNIFORM4))
+        wds.measure_windowed_ds()
+        _patch_fetch(monkeypatch, _rows(UNIFORM4, ONE))
+        r2 = wds.measure_windowed_ds(use_cache=False)
+        assert r2["value"] > 1.99
