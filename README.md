@@ -40,6 +40,8 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 
 [Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [MCP Registry (Glama)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
 
+**Maintainer:** ARIF FAZIL · agentic contact: [[REDACTED:EMAIL]](mailto:[REDACTED:EMAIL]) · [arif-fazil.com](https://arif-fazil.com) · [llms.txt](./llms.txt)
+
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/pypi/pyversions/arifos?style=flat-square)](https://pypi.org/project/arifos)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](./LICENSE)
