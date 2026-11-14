@@ -30,7 +30,7 @@ def _fetch_outcomes(limit: int):
         f"{base}/rest/v1/arifosmcp_tool_calls"
         f"?select=id,result_code,verdict&order=id.desc&limit={limit}"
     )
-    resp = httpx.get(url, headers={"apikey": key, "Authorization": f"Bearer {key}"}, timeout=5.0)
+    resp = httpx.get(url, headers={"apikey": key, "Authorization": f"Bearer {key}"}, timeout=8.0)
     resp.raise_for_status()
     rows = resp.json()
     return [(int(r.get("id", 0)), str(r.get("result_code") or r.get("verdict") or "UNKNOWN")) for r in rows]
@@ -52,7 +52,13 @@ def measure_windowed_ds(window: int | None = None, use_cache: bool = True) -> di
     if use_cache and _cache["value"] is not None and (now - _cache["ts"]) < TTL_S:
         return _cache["value"]
     try:
-        rows = _fetch_outcomes(2 * window)
+        try:
+            rows = _fetch_outcomes(2 * window)
+        except Exception:
+            # transient store hiccup (observed under observatory snapshot load):
+            # one retry before honest None — never fabricate, just de-flake.
+            time.sleep(1.0)
+            rows = _fetch_outcomes(2 * window)
         if len(rows) < window:
             _cache = {"ts": now, "value": None}
             return None
