@@ -1989,7 +1989,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_confidence is None:
         live_confidence = resolved_floors.get("F2", 1.0)
     resolved_telemetry = {
-        "dS": telemetry.get("dS", floors.get("ds", 0.0)),
+        "dS": (_windowed_ds_value() if _windowed_ds_value() is not None else telemetry.get("dS", floors.get("ds", 0.0))),
         "peace2": telemetry.get("peace2", floors.get("peace2", 1.0)),
         "kappa_r": telemetry.get("kappa_r", floors.get("kappa_r", 1.0)),
         "echoDebt": telemetry.get("echoDebt"),
@@ -4251,6 +4251,17 @@ _THERMO_SCALAR_BASELINES: dict[str, float] = {
 _THERMO_POLICY_CONSTANTS = frozenset({"kappa_r", "confidence"})
 
 
+def _windowed_ds_value() -> float | None:
+    """F4 instrument (2026-11-14, 333-AGI): real windowed entropy-delta over tool_calls outcome-classes."""
+    try:
+        from arifosmcp.runtime.windowed_ds import measure_windowed_ds
+
+        m = measure_windowed_ds()
+        return None if m is None else float(m["value"])
+    except Exception:  # noqa: BLE001 — instrument failure must degrade to unmeasured, never fake
+        return None
+
+
 def _thermo_scalar_provenance(name: str, value: Any, *, event_log_empty: bool) -> str:
     """Classify one thermodynamic scalar leaf (Blocker #7, 2026-11-02).
 
@@ -4269,7 +4280,7 @@ def _thermo_scalar_provenance(name: str, value: Any, *, event_log_empty: bool) -
     except (TypeError, ValueError):
         return "ABSENT"
     baseline = _THERMO_SCALAR_BASELINES.get(name)
-    if event_log_empty and baseline is not None and v == baseline:
+    if event_log_empty and baseline is not None and abs(v - baseline) < 1e-12:
         return "DEFAULT_UNMEASURED"
     return "MEASURED"
 
@@ -5450,7 +5461,7 @@ def register_rest_routes(
             "thermodynamic": {
                 # Preserve UNKNOWN as None. These are telemetry observations,
                 # not policy defaults or health decorations.
-                "entropy_delta": telemetry.get("dS"),
+                "entropy_delta": (_windowed_ds_value() if _windowed_ds_value() is not None else telemetry.get("dS")),
                 "peace_squared": telemetry.get("peace2"),
                 "vitality_index": telemetry.get("psi_le"),
                 "kappa_r": telemetry.get("kappa_r"),
@@ -5485,9 +5496,9 @@ def register_rest_routes(
                         "entropy_delta",
                         semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.dS from governance kernel; producer instrument unpinned",
+                        measurement_method="windowed Shannon entropy over outcome-classes, arifosmcp_tool_calls (window 100 vs prev 100); fallback telemetry.dS",
                         monotonic_drivers=["kernel event entropy per report cycle"],
-                        falsification_test="recompute dS from the kernel event log for the same window",
+                        falsification_test="recompute dS from arifosmcp_tool_calls outcome-classes: H(id desc [:100]) - H(id desc [100:200])",
                         provenance_class="SERVER_OBSERVED",
                         calibration_status="UNKNOWN",
                         decision_eligibility="NONE",
@@ -6391,7 +6402,7 @@ def register_rest_routes(
         return JSONResponse(
             {
                 # Core gauges — null if kernel telemetry unavailable
-                "entropy_delta": telemetry.get("dS"),
+                "entropy_delta": (_windowed_ds_value() if _windowed_ds_value() is not None else telemetry.get("dS")),
                 "peace_squared": telemetry.get("peace2"),
                 "vitality_index": telemetry.get("psi_le"),
                 "echo_debt": telemetry.get("echoDebt"),
@@ -6420,9 +6431,9 @@ def register_rest_routes(
                         "entropy_delta",
                         semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.dS from governance kernel; producer instrument unpinned",
+                        measurement_method="windowed Shannon entropy over outcome-classes, arifosmcp_tool_calls (window 100 vs prev 100); fallback telemetry.dS",
                         monotonic_drivers=["kernel event entropy per report cycle"],
-                        falsification_test="recompute dS from the kernel event log for the same window",
+                        falsification_test="recompute dS from arifosmcp_tool_calls outcome-classes: H(id desc [:100]) - H(id desc [100:200])",
                         provenance_class="SERVER_OBSERVED",
                         calibration_status="UNKNOWN",
                         decision_eligibility="NONE",
@@ -8669,7 +8680,7 @@ def register_rest_routes(
                             unit="1",
                             measurement_method="same source as entropy_delta: vitals remap; producer instrument unpinned",
                             monotonic_drivers=["kernel event entropy per report cycle"],
-                            falsification_test="recompute dS from the kernel event log for the same window",
+                            falsification_test="recompute dS from arifosmcp_tool_calls outcome-classes: H(id desc [:100]) - H(id desc [100:200])",
                             provenance_class="SERVER_OBSERVED",
                             calibration_status="UNKNOWN",
                             decision_eligibility="NONE",
