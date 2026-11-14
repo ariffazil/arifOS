@@ -1424,15 +1424,21 @@ async def arif_seal(
             pass
 
     # ── F6 MARUAH Tier-3 emitter (ARIF GO 2026-11-05) ───────────────────────
-    # Every successful VAULT999 append is an irreversible event. Emitted
-    # non-fatally AFTER the seal; M3 measures restatement evidence from these
-    # rows. Never fabricated retroactively.
-    if result.get("verdict") == "SEAL":
+    # Only mutating VAULT999 appends (seal, session_close) with a valid entry_id
+    # are irreversible Tier-3 events. Read-only modes (audit/verify/ledger/changelog)
+    # must never be classified as IRREVERSIBLE.
+    _entry_id = result.get("entry_id")
+    if (
+        result.get("verdict") == "SEAL"
+        and str(mode) in ("seal", "session_close")
+        and _entry_id is not None
+        and str(_entry_id).strip() not in ("", "None", "null")
+    ):
         try:
             from arifosmcp.runtime.f6.meters import emit_tier3_maruah_event as _f6_emit
 
             _f6_emit_result = _f6_emit(
-                decision_id=str(result.get("entry_id", "")),
+                decision_id=str(_entry_id),
                 tool_name="arif_seal",
                 blast_radius=blast_radius,
                 ack_irreversible=bool(ack_irreversible),

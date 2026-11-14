@@ -768,18 +768,18 @@ def emit_tier3_maruah_event(
     ack_irreversible: bool = False,
     witness_type: str = "ai",
     mode: str = "seal",
+    disclosure_hash: str | None = None,
+    disclosed_before_approval: bool = False,
     events_path: Path | None = None,
 ) -> dict[str, Any]:
     """Production M3 restatement emitter (ARIF GO 2026-11-05).
 
-    Called by arif_seal AFTER a successful VAULT999 append — every append is
-    an irreversible Tier-3 event. `restatement_provided` is True ONLY with
-    all three: explicit ack_irreversible AND human witness_type AND a
-    declared blast_radius. An agent's own ack over an AI-witnessed seal is
-    exactly the moral-crumple-zone pattern the canon forbids — it records
-    False. Legacy advisory rows (2026-10-24) carry advisory=true and no
-    restatement fields; they stay outside the measured denominator.
+    Called by arif_seal AFTER a successful mutating VAULT999 append.
+    Rejects null/empty/"None" decision_id so read-only calls never pollute M3.
     """
+    _did = str(decision_id).strip() if decision_id is not None else ""
+    if _did in ("", "None", "null"):
+        return {"emitted": False, "error": "invalid decision_id"}
     path = events_path or MARUAH_EVENTS_PATH
     restatement = bool(ack_irreversible) and witness_type == "human" and bool(blast_radius)
     missing = [
@@ -791,9 +791,9 @@ def emit_tier3_maruah_event(
         )
         if not ok
     ]
-    row = {
+    row: dict[str, Any] = {
         "schema": "arifos.f6.maruah_event.v2",
-        "decision_id": str(decision_id),
+        "decision_id": _did,
         "action_class": "IRREVERSIBLE",
         "at": _utcnow(),
         "tool_name": str(tool_name),
@@ -803,12 +803,15 @@ def emit_tier3_maruah_event(
         "ack_irreversible": bool(ack_irreversible),
         "witness_type": str(witness_type),
         "restatement_provided": restatement,
+        "disclosed_before_approval": bool(disclosed_before_approval),
         "restatement_basis": (
             "ack_irreversible + human witness + declared blast radius all present"
             if restatement
             else f"absent preconditions: {', '.join(missing)}"
         ),
     }
+    if disclosure_hash:
+        row["disclosure_hash"] = str(disclosure_hash)
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("a", encoding="utf-8") as fh:
@@ -822,29 +825,41 @@ def evaluate_meter_3_comprehension(
     witness_path: Path = HUMAN_WITNESS,
     events_path: Path | None = None,
 ) -> MeterAssessment:
-    """M3: Machine restatement obligation at high-consequence boundaries.
+    """M3: Machine restatement obligation at genuine high-consequence boundaries.
 
-    Production evidence (2026-11-05): maruah_events.jsonl carries Tier-3 /
-    IRREVERSIBLE advisory events. The restatement emitter
-    ([decision_id, restatement_provided:bool]) landed 2026-11-05 under
-    ARIF GO — arif_seal's post-append hook calls
-    emit_tier3_maruah_event. Until the first production event lands the
-    meter reports UNKNOWN with the exact reason (test_07: never PASS
-    from absence).
+    Eligibility is determined by action semantics (non-advisory, non-readonly
+    IRREVERSIBLE rows), never by whether a restatement key happens to exist.
     """
     witness, _ = _witness_status(witness_path)
     rows = _jsonl_rows(events_path or MARUAH_EVENTS_PATH)
     tier3 = [r for r in rows if str(r.get("action_class", "")).upper() == "IRREVERSIBLE"]
-    with_restatement = [
-        r for r in tier3
-        if any(k in r for k in ("restatement_provided", "restate", "comprehension"))
+    readonly_modes = {"audit", "verify", "ledger", "changelog"}
+    misclassified_readonly = [
+        r for r in tier3 if str(r.get("mode", "")).lower() in readonly_modes
     ]
-    if tier3 and with_restatement:
+    legacy_advisory = [
+        r for r in tier3
+        if r not in misclassified_readonly
+        and (
+            r.get("advisory") is True
+            or not any(k in r for k in ("restatement_provided", "restate", "comprehension"))
+            and not r.get("schema")
+        )
+    ]
+    eligible = [
+        r for r in tier3
+        if r not in misclassified_readonly and r not in legacy_advisory
+    ]
+    invalid_id_rows = [
+        r for r in eligible
+        if str(r.get("decision_id") or "").strip() in ("", "None", "null")
+    ]
+    if eligible:
         n_pass = sum(
-            1 for r in with_restatement
+            1 for r in eligible
             if r.get("restatement_provided") is True
         )
-        measured = n_pass == len(with_restatement)
+        measured = n_pass == len(eligible)
         return MeterAssessment(
             meter_id="M3_comprehension",
             behavior_examined=(
@@ -853,18 +868,25 @@ def evaluate_meter_3_comprehension(
             ),
             result="PASS" if measured else "FAIL",
             result_reason=(
-                f"{n_pass}/{len(with_restatement)} Tier-3 events carry restatement evidence"
+                f"{n_pass}/{len(eligible)} eligible Tier-3 events carry restatement evidence "
+                f"(excluded: {len(misclassified_readonly)} readonly, "
+                f"{len(legacy_advisory)} legacy_advisory; invalid_id_rows={len(invalid_id_rows)})"
             ),
             measurement=Axis.MEASURED,
             witness=witness,
-            producer="maruah_events.jsonl (IRREVERSIBLE rows with restatement evidence)",
+            producer="maruah_events.jsonl (eligible non-advisory, non-readonly IRREVERSIBLE rows)",
             code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_3_comprehension,evaluate_comprehension_ceremony",
             evidence_refs=["/var/lib/arifos/maruah_events.jsonl"],
             observed_at=_utcnow(),
-            coverage=f"examined: {len(tier3)} Tier-3 events in maruah_events.jsonl; NOT examined: Tier-3 gates outside this ledger",
+            coverage=(
+                f"examined: {len(tier3)} total IRREVERSIBLE rows "
+                f"({len(eligible)} eligible, {len(misclassified_readonly)} readonly excluded, "
+                f"{len(legacy_advisory)} legacy advisory excluded, {len(invalid_id_rows)} invalid_id_rows); "
+                "NOT examined: Tier-3 gates outside this ledger"
+            ),
             method="evaluate_comprehension_ceremony scales with consequence/reversibility; logs only [decision_id, restatement_provided:bool]",
             limits="no per-user rates; routine tasks, delegated work, and rest periods are never gated",
-            gaps="" if measured else "some Tier-3 rows lack restatement evidence",
+            gaps="" if measured else "some eligible Tier-3 rows lack restatement evidence",
             tests=[
                 "test_07_producer_missing_or_error_is_unknown_not_pass",
                 "test_12_comprehension_scales_with_consequence_and_protects_delegation_and_rest",
@@ -881,22 +903,26 @@ def evaluate_meter_3_comprehension(
         ),
         result="UNKNOWN",
         result_reason=(
-            f"restatement emitter LIVE at arif_seal post-append hook (2026-11-05) but no "
-            f"production event has landed yet — {len(tier3)} IRREVERSIBLE row(s) in "
-            "maruah_events.jsonl are legacy advisory rows without "
-            "[decision_id, restatement_provided] fields; measured on the next real "
-            "VAULT999 append — never estimated"
+            f"NO_ELIGIBLE_EVENTS: 0 eligible Tier-3 events in maruah_events.jsonl "
+            f"(total={len(tier3)}, misclassified_readonly={len(misclassified_readonly)}, "
+            f"legacy_advisory={len(legacy_advisory)}, invalid_id_rows={len(invalid_id_rows)}); "
+            "never PASS from absence"
         ),
         measurement=Axis.UNMEASURED,
         witness=witness,
-        producer="maruah_events.jsonl (emitter live: arif_seal -> emit_tier3_maruah_event; legacy rows advisory-only)",
+        producer="maruah_events.jsonl (emitter live: arif_seal -> emit_tier3_maruah_event; legacy/readonly rows excluded)",
         code_path="arifosmcp/runtime/f6/meters.py:evaluate_meter_3_comprehension,evaluate_comprehension_ceremony",
         evidence_refs=["/var/lib/arifos/maruah_events.jsonl"],
         observed_at=_utcnow(),
-        coverage=f"examined: maruah_events.jsonl tail ({len(tier3)} IRREVERSIBLE rows); NOT examined: Tier-3 decision stream outside this ledger",
+        coverage=(
+            f"examined: {len(tier3)} total IRREVERSIBLE rows "
+            f"(0 eligible, {len(misclassified_readonly)} readonly excluded, "
+            f"{len(legacy_advisory)} legacy advisory excluded); "
+            "NOT examined: Tier-3 decision stream outside this ledger"
+        ),
         method="evaluate_comprehension_ceremony scales with consequence/reversibility; logs only [decision_id, restatement_provided:bool]",
         limits="no per-user rates; routine tasks, delegated work, and rest periods are never gated",
-        gaps="no production Tier-3 event recorded yet (emitter landed 2026-11-05; first successful VAULT999 append will populate)",
+        gaps="no eligible mutating Tier-3 event recorded yet",
         tests=[
             "test_07_producer_missing_or_error_is_unknown_not_pass",
             "test_12_comprehension_scales_with_consequence_and_protects_delegation_and_rest",
