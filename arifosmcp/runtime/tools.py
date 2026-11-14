@@ -2879,13 +2879,17 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
         )
 
     # Deep scan: look for HOLD/FAIL/VOID in nested result fields
-    _OBSERVED_DATA_KEYS = frozenset({"organs", "telemetry", "probes", "endpoints", "services", "fleet"})
+    _OBSERVED_DATA_KEYS = frozenset(
+        {"organs", "telemetry", "probes", "endpoints", "services", "fleet"}
+    )
 
     def _scan(obj: Any, prefix: str = "") -> list[str]:
         hits: list[str] = []
         if isinstance(obj, dict):
             for k, v in obj.items():
-                if k in _OBSERVED_DATA_KEYS or (prefix and prefix.split(".")[0] in _OBSERVED_DATA_KEYS):
+                if k in _OBSERVED_DATA_KEYS or (
+                    prefix and prefix.split(".")[0] in _OBSERVED_DATA_KEYS
+                ):
                     continue
                 path = f"{prefix}.{k}" if prefix else k
                 if isinstance(k, str) and (k.startswith("L0") or k.startswith("F0")):
@@ -3678,7 +3682,9 @@ from arifosmcp.schemas.verdict import (
 logger = logging.getLogger(__name__)
 
 
-def _reasons_from_floor_reasons(floor_reasons, fallback: str = "Constitutional verification failed") -> list[str]:
+def _reasons_from_floor_reasons(
+    floor_reasons, fallback: str = "Constitutional verification failed"
+) -> list[str]:
     """Fasa-4 C3 (2026-11-05, warning 2): VerdictOutput.reasons must never be
     silently empty — default_factory=list hid omitted kwargs at construction."""
     if isinstance(floor_reasons, dict) and floor_reasons:
@@ -5492,11 +5498,7 @@ def _enforce_nine_signal(
             out.get("degraded_state")
             or (isinstance(out.get("meta"), dict) and out["meta"].get("degraded_state"))
         )
-        if (
-            verdict in ("VOID", "HOLD")
-            and _action_or_substrate_failed
-            and not _declared_degrade
-        ):
+        if verdict in ("VOID", "HOLD") and _action_or_substrate_failed and not _declared_degrade:
             # TRUE failure — mint sesat event for the failure ledger
             try:
                 from arifosmcp.runtime.sesat_event import (
@@ -9008,9 +9010,7 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
             from datetime import datetime as _dt, timezone as _tz
 
             _ma = str(_sub0.get("measured_at") or "").replace("Z", "+00:00")
-            _age_s = (
-                (_dt.now(_tz) - _dt.fromisoformat(_ma)).total_seconds() if _ma else 1e9
-            )
+            _age_s = (_dt.now(_tz) - _dt.fromisoformat(_ma)).total_seconds() if _ma else 1e9
             _stale_substrate = _age_s > 600
         except Exception:
             _stale_substrate = True
@@ -16330,7 +16330,7 @@ async def _arif_mind_reason_tool(
     ctx: Context | None = None,
     concise: bool = True,
     context: dict | None = None,
-    evidence: list[dict[str, Any]] | None = None,
+    evidence: dict[str, Any] | list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
@@ -16350,6 +16350,14 @@ async def _arif_mind_reason_tool(
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
     """
+    # 2026-11-14 (F13 P1 order, external-audit finding): callers send the
+    # schema's own documented EXAMPLE item shape ({'fact':…,'source':…}) as
+    # a bare dict; the published list-of-objects contract then hard-crashes
+    # the whole call with an opaque CONTRACT_VIOLATION. Coerce at the door:
+    # dict -> [dict]. List callers unaffected; judge already accepts dict
+    # evidence — this only stops the crash class.
+    if isinstance(evidence, dict):
+        evidence = [evidence]
     trace = None
     if _ensure_langfuse_tracer() is not None:
         try:
@@ -21277,7 +21285,9 @@ def _arif_judge_deliberate(
             status="VOID",
             verdict=VerdictCode.VOID,
             candidate=candidate,
-            reasons=[f"L08 GENIUS GATE: g_score {contract.g_score} below floor {GENIUS_SCORE_VOID_FLOOR}"],
+            reasons=[
+                f"L08 GENIUS GATE: g_score {contract.g_score} below floor {GENIUS_SCORE_VOID_FLOOR}"
+            ],
             result={
                 "candidate": candidate,
                 "verdict": "VOID",
@@ -21765,6 +21775,16 @@ def _arif_vault_seal(
     constitutional (optional): Δ Axis 3 — moral provenance for the seal.
     {"value_anchor": [...], "floor_constraint": [...], "care_provenance": "..."}
     When present, the seal carries irreversible moral meaning.
+
+    AUTHORITY CONTRACT (pinned 2026-11-14, F13 P1 order — was implicit at
+    tools.py:2939 "a read-only vault verify gets over-gated as SEAL-class"):
+    READ modes — verify | chain | list | ledger | audit | history — are
+    OBSERVE-class by design and callable without SEAL-class authority; they
+    never append, never mutate, and return their source path
+    (vault_path_read). WRITE modes — seal | epoch_seal — require verified
+    authority (F13/888 lane). A read answering an unverified actor is the
+    contract, not a leak; an anonymous caller receives HOLD-class envelopes
+    with no ledger payloads.
     """
     # ── CANDIDATE ONLY FIREWALL (2026-07-18, hardened 2026-07-18) ─────────
     # PRIMARY GATE: Authoritative CandidateStore reference-based lookup.
@@ -22842,6 +22862,11 @@ def _arif_vault_seal(
                     "irreversibility_chain": irreversibility_chain[-20:],  # last 20
                     "chain_length": len(irreversibility_chain),
                     "note": "All entries in irreversibility_chain are permanent. No rollback possible.",
+                    # 2026-11-14 (F13 P1 order): name the file this read served
+                    # from — multi-root vault fragmentation (g11) made verify
+                    # answers unfalsifiable; every verify answer now carries its
+                    # own source path (recompute = re-open this file).
+                    "vault_path_read": _get_vault_file_path(),
                 },
                 ledger_size=len(_VAULT_LEDGER),
                 irreversibility_bond=IrreversibilityBond(
@@ -30752,15 +30777,11 @@ def register_tools(
         try:
             _rep_provider = getattr(mcp, "_local_provider", None)
             if _rep_provider is not None:
-                _rep_ft = getattr(_rep_provider, "_components", {}).get(
-                    "tool:arif_report@"
-                )
+                _rep_ft = getattr(_rep_provider, "_components", {}).get("tool:arif_report@")
                 if _rep_ft is not None and hasattr(_rep_ft, "parameters"):
                     from arifosmcp.runtime.public_registry import _merge_param_docs
 
-                    _rep_schema = _merge_param_docs(
-                        "arif_report", dict(_rep_ft.parameters)
-                    )
+                    _rep_schema = _merge_param_docs("arif_report", dict(_rep_ft.parameters))
                     _rep_props = _rep_schema.get("properties")
                     if isinstance(_rep_props, dict):
                         _rep_props.pop("_envelope", None)
@@ -30768,8 +30789,10 @@ def register_tools(
                             _rep_props.pop(_p, None)
                         if _rep_schema.get("required"):
                             _rep_schema["required"] = [
-                                r for r in _rep_schema["required"]
-                                if r != "_envelope" and r not in ("actor_id", "session_token", "force", "platform")
+                                r
+                                for r in _rep_schema["required"]
+                                if r != "_envelope"
+                                and r not in ("actor_id", "session_token", "force", "platform")
                             ]
                     _rep_ft.parameters = _rep_schema
         except Exception:
