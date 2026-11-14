@@ -1506,9 +1506,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
             ),
         }
 
-        # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
+        # F4 CLARITY: instrument first (2026-11-14, 333-AGI) — windowed_ds measurement
+        # distinguishes a REAL measured zero (uniform outcomes, pinned instrument)
+        # from the historical placeholder; arifFlow vector ds remains the fallback.
         _dims = _fq_data.get("vector", {}).get("dimensions", {})
-        if "ds" in _dims and _dims["ds"].get("value") is not None:
+        _wds_m = _windowed_ds_meta()
+        if _wds_m is not None:
+            _raw_ds = float(_wds_m["value"])
+            resolved_floors["F4"] = _raw_ds
+            floor_provenance["F4"] = (
+                f"windowed_ds_measured:{_wds_m['instrument']}:value={_raw_ds}"
+                f":h_next={_wds_m['h_next_bits']}:h_prev={_wds_m['h_prev_bits']}"
+                f":store={_wds_m['store']}@{now_iso()}"
+            )
+        elif "ds" in _dims and _dims["ds"].get("value") is not None:
             _raw_ds = float(_dims["ds"]["value"])
             resolved_floors["F4"] = _raw_ds
             floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}@{now_iso()}"
@@ -1593,14 +1604,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
             elif f4_val < 0:
                 resolved_floors["F4"] = round(0.80 + abs(f4_val) * 0.4, 4)
             elif f4_val == 0:
-                # 2026-11-11 honesty repair (public-page false-green): a trivial-zero
-                # ΔS (ds=-0.0, no completed window) IS the placeholder baseline, and
-                # rendering it as 0.80 is the exact falsification the F4 contract
-                # names ("a placeholder 0.80 baseline presented as a measured ΔS
-                # falsifies it"). Drop to unmeasured; runtime_floors already
-                # classifies this signal NOT_MEASURED.
-                resolved_floors.pop("F4", None)
-                floor_provenance["F4"] = f"unmeasured_default:ds_trivial_zero@{now_iso()}"
+                # 2026-11-11 honesty repair + 2026-11-14 instrument refinement: a
+                # trivial-zero ΔS is ONLY a placeholder when no pinned instrument
+                # produced it. A windowed_ds_measured zero is a real observation
+                # (uniform outcome distribution) → normalized 0.80 per the
+                # calibrated ΔS=0 rule, carrying its instrument provenance.
+                if str(floor_provenance.get("F4", "")).startswith("windowed_ds_measured:"):
+                    resolved_floors["F4"] = 0.80
+                    floor_provenance["F4"] += "|normalized:0.80(measured-zero,calibrated-rule)"
+                else:
+                    resolved_floors.pop("F4", None)
+                    floor_provenance["F4"] = f"unmeasured_default:ds_trivial_zero@{now_iso()}"
             else:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
@@ -4259,6 +4273,16 @@ def _windowed_ds_value() -> float | None:
         m = measure_windowed_ds()
         return None if m is None else float(m["value"])
     except Exception:  # noqa: BLE001 — instrument failure must degrade to unmeasured, never fake
+        return None
+
+
+def _windowed_ds_meta() -> dict | None:
+    """Full instrument measurement (for floor provenance): dict or None."""
+    try:
+        from arifosmcp.runtime.windowed_ds import measure_windowed_ds
+
+        return measure_windowed_ds()
+    except Exception:  # noqa: BLE001
         return None
 
 
