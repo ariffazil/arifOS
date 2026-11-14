@@ -1,1 +1,51 @@
 """Guards for constitutional enforcement."""
+
+from core.shared.guards.f12_membrane import (
+    CrossingDecision,
+    CrossingType,
+    DataClassification,
+    DeterministicSecretDetector,
+    DetectorObservation,
+    ExternalDisclosureGate,
+    F12Membrane,
+    LocalSemanticFallbackAdapter,
+    ModelArmorAdapter,
+    PolicyOutcome,
+    SecurityVerdict,
+    canonicalize_for_inspection,
+    sha256_bytes,
+)
+from core.shared.guards.sovereign_crossing import (
+    CrossingReceipt,
+    EpistemicClass,
+    F13ToolAuthorityGate,
+    MemoryAdmissionGate,
+    MemoryCandidate,
+    MemoryState,
+    SovereignReceiptChain,
+    ToolAuthorizationResult,
+)
+
+__all__ = [
+    "CrossingDecision",
+    "CrossingReceipt",
+    "CrossingType",
+    "DataClassification",
+    "DeterministicSecretDetector",
+    "DetectorObservation",
+    "EpistemicClass",
+    "ExternalDisclosureGate",
+    "F12Membrane",
+    "F13ToolAuthorityGate",
+    "LocalSemanticFallbackAdapter",
+    "MemoryAdmissionGate",
+    "MemoryCandidate",
+    "MemoryState",
+    "ModelArmorAdapter",
+    "PolicyOutcome",
+    "SecurityVerdict",
+    "SovereignReceiptChain",
+    "ToolAuthorizationResult",
+    "canonicalize_for_inspection",
+    "sha256_bytes",
+]

@@ -30,6 +30,13 @@ from pathlib import Path
 from typing import Any
 
 from core.shared.guards.injection_guard import InjectionGuard
+from core.shared.guards.f12_membrane import (
+    CrossingType,
+    DataClassification,
+    F12Membrane,
+    LocalSemanticFallbackAdapter,
+    PolicyOutcome,
+)
 from core.shared.guards.ontology_guard import OntologyGuard
 
 # =============================================================================
@@ -1324,14 +1331,31 @@ class L12_Injection(Law):
     def __init__(self):
         super().__init__("L12_Injection")
         self.guard = InjectionGuard(threshold=self.spec["threshold"])
+        self.membrane = F12Membrane(
+            injection_guard=self.guard,
+            local_semantic_fallback=LocalSemanticFallbackAdapter(),
+        )
 
     def check(self, context: dict[str, Any]) -> LawResult:
         text = context.get("query", "")
-        # Scan using the robust guard
-        result = self.guard.scan_input(text)
-
-        passed = not result.blocked
-        return LawResult(self.id, passed, result.injection_score, result.reason)
+        actor_id = str(context.get("actor_id") or context.get("user_id") or "local_kernel")
+        session_id = str(context.get("session_id") or "local_session")
+        # Route through F12Membrane (one constitutional owner, preserving InjectionGuard)
+        decision = self.membrane.evaluate_crossing(
+            text=text,
+            crossing_type=CrossingType.USER_TO_AGENT,
+            source_domain="user",
+            destination_domain="agent",
+            actor_id=actor_id,
+            session_id=session_id,
+            classification=DataClassification.INTERNAL,
+            disclosure_approved=False,
+        )
+        ig_res = self.guard.scan_input(text)
+        passed = decision.policy_verdict == PolicyOutcome.ALLOW
+        score = ig_res.injection_score if passed or ig_res.blocked else 1.0
+        reason = ig_res.reason if (passed or ig_res.blocked) else f"F12Membrane:{','.join(decision.reason_codes)}"
+        return LawResult(self.id, passed, score, reason)
 
 
 # --- L13: SOVEREIGN (Human Final Authority) ---
