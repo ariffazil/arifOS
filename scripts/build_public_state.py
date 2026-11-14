@@ -736,9 +736,10 @@ def project_public_state(
             "public_state_endpoint": "/api/public-state",
         },
         "generated_at": now_iso(),
-        "observed_at": extra.get("ariflow_observed_at") or snap.get("observed_at") or now_iso(),
+        "observed_at": snap.get("observed_at") or extra.get("ariflow_observed_at") or now_iso(),
         "headline": headline,
         "planes": planes,
+        "substrate": snap.get("substrate") if isinstance(snap.get("substrate"), dict) else {},
         # ── Class B (2026-10-20): carry the snapshot's metabolism stages
         # (000_INIT…, per-field envelopes with origin + confidence) so the
         # observatory renderMetabolism panel reads measured data instead of
@@ -846,6 +847,14 @@ def project_public_state(
                 evidence_class="observed",
             ),
             "kernel_epoch": _wrap_identity_field(
+                {"value": "2026-07-03", "state": "observed", "source": "arifOS constitutional epoch (2026-07-03)", "confidence": 0.99},
+                default_val="2026-07-03",
+                default_src="arifOS constitutional epoch (2026-07-03)",
+                observed_at=_ri_obs,
+                default_conf=0.99,
+                evidence_class="observed",
+            ),
+            "mcp_protocol_version": _wrap_identity_field(
                 ri.get("kernel_epoch"),
                 default_val=None,
                 default_src="BUILD_INFO.protocol_version",
@@ -1069,7 +1078,11 @@ def project_public_state(
                 canonical_status
                 if canonical_status is not None
                 else (
-                    "VERIFIED"
+                    (
+                        f"CANONICAL_0_GAPS · HISTORICAL_GAPS:{extra.get('chain_historical_gap_count')}"
+                        if (extra.get("chain_historical_gap_count") or 0) > 0 or verify is False
+                        else "VERIFIED"
+                    )
                     if extra.get("chain_canonical_gap_count") == 0
                     else (
                         f"CLASSIFIED_GAPS:{extra.get('chain_canonical_gap_count')}"
@@ -1772,10 +1785,11 @@ def wire_observatory_contract(state: dict[str, Any]) -> dict[str, Any]:
                 "confidence": row.get("confidence"),
             }
             status_code = row.get("probe_status_code")
+            health_degraded = str(row.get("health_status") or "").upper() == "DEGRADED"
             if status_code is not None:
                 row["readiness"] = {
-                    "value": f"http {status_code}",
-                    "state": "healthy" if status_code == 200 else "degraded",
+                    "value": f"http {status_code} (degraded)" if (status_code == 200 and health_degraded) else f"http {status_code}",
+                    "state": "degraded" if (status_code != 200 or health_degraded) else "healthy",
                     "source": "live /health probe",
                     "confidence": row.get("confidence"),
                 }
@@ -1894,16 +1908,20 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
     _cnt = rb.get("canonical_entry_count")
     _entries = f" · entries {_cnt}" if _cnt is not None else ""
     _replay = "parsed" if rb.get("replay_verified") else "unparsed"
+    _hist_gaps = (state.get("chain_integrity") or {}).get("gap_count_historical")
+    _canon_gaps = (state.get("chain_integrity") or {}).get("gap_count_canonical", 0)
+    _unlinked_str = f" · unlinked {unlinked_n}" if isinstance(unlinked_n, int) else ""
+    _hist_str = f" · historical_gaps {_hist_gaps}" if _hist_gaps is not None else ""
     _gap_clause = f" · full {raw_chain_text}" if raw_chain_text else ""
     flow["chain_status"] = {
         "value": (
-            f"canonical {rb.get('canonical_status') or 'UNKNOWN'}"
+            f"canonical_gaps {_canon_gaps}{_hist_str}{_unlinked_str}"
             f" · head_seq {_seq}"
             f"{_entries}"
             f" · replay {_replay}"
             f"{_gap_clause}"
         ),
-        "state": "degraded" if gaps_open else ("healthy" if chain_ok else "unknown"),
+        "state": "degraded" if gaps_open or not chain_ok else "healthy",
         "source": "vault receipt census",
         "confidence": 0.85 if chain_ok else 0.5,
         "observed_at": flow.get("observed_at"),
@@ -1915,13 +1933,13 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
         gov["vault999"] = {
             "value": (
                 f"vault {rb.get('vault_status') or 'UNKNOWN'}"
-                f" · canonical {rb.get('canonical_status') or 'UNKNOWN'}"
+                f" · canonical_gaps {_canon_gaps}{_hist_str}{_unlinked_str}"
                 f" · head_seq {_seq}"
                 f"{_entries}"
                 f" · replay {_replay}"
-                + (f" · unlinked {unlinked_n}" if isinstance(unlinked_n, int) else "")
+                f" · full_verify {rb.get('verify') or 'UNKNOWN'}"
             ),
-            "state": "degraded" if gaps_open else ("healthy" if chain_ok else "unknown"),
+            "state": "degraded" if gaps_open or not chain_ok else "healthy",
             "source": "vault receipt census (build_public_state receipt block)",
             "confidence": None,
         }
