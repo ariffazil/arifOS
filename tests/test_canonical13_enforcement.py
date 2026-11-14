@@ -31,7 +31,9 @@ def test_deprecated_numeric_constants_resolve_to_the_abi() -> None:
 
 
 def test_only_abi_bindings_are_non_internal_kernel_tools() -> None:
-    discoverable = {name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") != "internal_only"}
+    discoverable = {
+        name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") != "internal_only"
+    }
     assert discoverable == set(KERNEL_ABI_8)
 
 
@@ -40,7 +42,8 @@ def test_absorbed_verbs_are_internal_stages() -> None:
         "arif_bridge_connect",
         "arif_critique",
         "arif_compose",
-        "arif_verify",
+        # "arif_verify" removed 2026-11-14 resync: folded out of CANONICAL_TOOLS
+        # by 1a165a96f (F-003 fold completion) — deliberate canon decision.
         "arif_entropy_observe",
         "arif_j_state_assess",
         "arif_correction_probe",
