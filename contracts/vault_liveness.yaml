@@ -58,6 +58,36 @@ degradation_effects:
     forge_allowed: false
     note: "Vault is expired >24h. System is read-only. All writes are VOID."
 
+# ── Sovereign Cadence Exemption (F13 sah 2026-11-15, "ok sah. execute all") ──
+# GAP 7 / SCAR-VAULT-2026-11-15: age-of-last-sovereign-seal measures the
+# sovereign's cadence, not chain health. A chain that verifies (canonical gaps
+# 0, merkle intact) whose last FULL seal was the sovereign hand (actor=arif,
+# ed25519, SOVEREIGN — e.g. seq 61, 2026-11-10) is "awaiting the sovereign
+# hand", NOT "audit degraded". Exemption caps liveness effect at YELLOW; agent
+# seals remain PARTIAL-capable (no agent full-seal — Gödel, untouched).
+# Any canonical chain gap voids the exemption immediately (falls to RED/BLACK).
+# STATUS (2026-11-15, verifier two-rhythm finding): this block is a CODIFIED
+# HYPOTHESIS — inert until consumer wiring AND split-signal data (append-stream
+# liveness vs seal cadence, measured separately) justify the numbers. Option C
+# governs: collect both rhythms first, then calibrate bands. Do not treat the
+# conditions below as ratified calibration.
+sovereign_cadence_exemption:
+  enabled: true
+  last_verified: "2026-11-15"
+  conditions:
+    canonical_chain_verified: true
+    last_full_seal_actor: "arif"
+    last_full_seal_method: "ed25519"
+    zero_genuine_unlinked: true
+  effect:
+    readiness_cap: "YELLOW"
+    seal_allowed: true
+    judge_allowed: true
+    forge_allowed: true
+    label: "awaiting_sovereign"
+    note: "Chain intact, sovereign cadence pending. Not a defect. Any chain gap voids this exemption."
+  consumer_wiring: pending
+
 # ── Self-Verification ──
 self_verification:
   endpoint: "http://localhost:5001/health"

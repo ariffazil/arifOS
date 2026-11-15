@@ -600,7 +600,18 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
     census = _unlinked_seal_census()
     unlinked = census.get("unlinked") if isinstance(census, dict) else None
     rows = census.get("chain_length") if isinstance(census, dict) else None
-    if isinstance(unlinked, int) and unlinked > 0:
+    genuine = census.get("genuine_unlinked") if isinstance(census, dict) else None
+    legacy_n = census.get("legacy_v1_unlinked") if isinstance(census, dict) else None
+    # gate on GENUINE linkage failures; v1 backlog is labeled, never silently green
+    if isinstance(genuine, int) and genuine > 0:
+        vault_public = f"degraded · probe {vault_state} · unlinked {genuine} of {rows}"
+        vault_pf_state = "degraded"
+    elif isinstance(legacy_n, int) and legacy_n > 0:
+        vault_public = f"{vault_state} · legacy_v1 {legacy_n} of {rows} (immutable history)"
+        vault_pf_state = (
+            "observed" if vault_state in ("healthy", "degraded", "gaps_found") else "unknown"
+        )
+    elif isinstance(unlinked, int) and unlinked > 0:
         vault_public = f"degraded · probe {vault_state} · unlinked {unlinked} of {rows}"
         vault_pf_state = "degraded"
     else:
@@ -2604,6 +2615,7 @@ def _unlinked_seal_census() -> dict[str, Any]:
         return {"available": False, "path": None, "chain_length": None, "unlinked": None}
     chain_length = 0
     unlinked = 0
+    legacy_v1_unlinked = 0
     missing_id = 0
     missing_ts = 0
     missing_dep = 0
@@ -2639,8 +2651,36 @@ def _unlinked_seal_census() -> dict[str, Any]:
                 or entry.get("prev_seal_id")
                 or entry.get("prev_leaf")
             )
+            # SCAR-VAULT-2026-11-15 (g11 census honesty, F13 "next go"): rows
+            # written in the v1 schema era (verdict_issued/decision_id, pre
+            # KRT-F4 2026-08-15) never carried chain linkage. They are immutable
+            # history, not a live chain failure. Backlog is NAMED; the degraded
+            # gate keys off GENUINE linkage failures only.
+            # SCAR-VAULT-2026-11-15 (era cut, measured): unlinked rows cluster
+            # 2026-04-05..2026-05-27 (early-v2 writer: real prev hashes but null
+            # id/timestamp, or "None"-string linkage). From 2026-05-28 every row
+            # links. Era-cut classifies the cluster as immutable history; any
+            # unlinked row AFTER the cut is a GENUINE live failure.
+            _era_ts = str(
+                entry.get("timestamp")
+                or entry.get("sealed_at")
+                or entry.get("issued_at_utc")
+                or entry.get("timestamp_decision")
+                or ""
+            )[:10]
+            legacy_v1_row = bool(
+                ("verdict_issued" in entry or "decision_id" in entry)
+                and not entry.get("prev_seal_id")
+                and not entry.get("constitutional_chain_id")
+                and not entry.get("prev_leaf")
+            ) or (not _era_ts or _era_ts <= "2026-05-27")
+            # burden of proof flipped: a row only counts GENUINE if its own
+            # timestamp proves it was written AFTER the enforcement cut and
+            # still failed to link. No date = cannot convict = backlog.
             if entry_id is None or timestamp is None or depends_on is None:
                 unlinked += 1
+                if legacy_v1_row:
+                    legacy_v1_unlinked += 1
             if entry_id is None:
                 missing_id += 1
             if timestamp is None:
@@ -2652,6 +2692,8 @@ def _unlinked_seal_census() -> dict[str, Any]:
         "path": path,
         "chain_length": chain_length,
         "unlinked": unlinked,
+        "genuine_unlinked": unlinked - legacy_v1_unlinked,
+        "legacy_v1_unlinked": legacy_v1_unlinked,
         "missing_id": missing_id,
         "missing_timestamp": missing_ts,
         "missing_depends_on": missing_dep,

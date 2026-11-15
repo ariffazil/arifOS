@@ -1105,8 +1105,20 @@ def project_public_state(
                 if (
                     "gap" in str(pf_value(receipts.get("chain_status")) or "").lower()
                     or (
-                        isinstance(pf_value(receipts.get("unlinked_seal_entries")), int)
-                        and pf_value(receipts.get("unlinked_seal_entries")) > 0
+                        isinstance(
+                            pf_value(
+                                receipts.get("genuine_unlinked_seal_entries")
+                                if receipts.get("genuine_unlinked_seal_entries") is not None
+                                else receipts.get("unlinked_seal_entries")
+                            ),
+                            int,
+                        )
+                        and pf_value(
+                            receipts.get("genuine_unlinked_seal_entries")
+                            if receipts.get("genuine_unlinked_seal_entries") is not None
+                            else receipts.get("unlinked_seal_entries")
+                        )
+                        > 0
                     )
                 )
                 else (
@@ -1894,8 +1906,15 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
         raw_chain_text = str(raw_chain or "")
     unlinked_cell = raw_receipts.get("unlinked_seal_entries")
     unlinked_n = unlinked_cell.get("value") if isinstance(unlinked_cell, dict) else unlinked_cell
+    _gen_cell = raw_receipts.get("genuine_unlinked_seal_entries")
+    genuine_n = _gen_cell.get("value") if isinstance(_gen_cell, dict) else _gen_cell
+    _legacy_cell = raw_receipts.get("legacy_v1_backlog")
+    legacy_n = _legacy_cell.get("value") if isinstance(_legacy_cell, dict) else _legacy_cell
+    # SCAR-VAULT-2026-11-15: gate on GENUINE linkage failures; v1-era backlog is
+    # immutable history and is reported separately, never silently green.
+    _gate_n = genuine_n if genuine_n is not None else unlinked_n
     gaps_open = "gap" in raw_chain_text.lower() or (
-        isinstance(unlinked_n, int) and unlinked_n > 0
+        isinstance(_gate_n, int) and _gate_n > 0
     )
     chain_ok = bool(rb.get("chain_verified")) and not gaps_open
     # 2026-10-24 333-AGI: the chip previously read "canonical UNKNOWN · head_seq 73"
@@ -1910,7 +1929,15 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
     _replay = "parsed" if rb.get("replay_verified") else "unparsed"
     _hist_gaps = (state.get("chain_integrity") or {}).get("gap_count_historical")
     _canon_gaps = (state.get("chain_integrity") or {}).get("gap_count_canonical", 0)
-    _unlinked_str = f" · unlinked {unlinked_n}" if isinstance(unlinked_n, int) else ""
+    if isinstance(genuine_n, int):
+        _unlinked_str = (
+            f" · unlinked {genuine_n}"
+            + (f" · legacy_v1 {legacy_n}" if isinstance(legacy_n, int) else "")
+        )
+    elif isinstance(unlinked_n, int):
+        _unlinked_str = f" · unlinked {unlinked_n}"
+    else:
+        _unlinked_str = ""
     _hist_str = f" · historical_gaps {_hist_gaps}" if _hist_gaps is not None else ""
     _gap_clause = f" · full {raw_chain_text}" if raw_chain_text else ""
     flow["chain_status"] = {

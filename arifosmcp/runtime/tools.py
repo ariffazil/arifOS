@@ -22794,6 +22794,33 @@ def _arif_vault_seal(
                         "depends_on": entry.get("constitutional_chain_id")
                         or entry.get("prev_seal_id")
                         or entry.get("prev_leaf"),
+                        # SCAR-VAULT-2026-11-15 era cut (measured): unlinked rows
+                        # cluster 2026-04-05..2026-05-27 (early-v2 writer era);
+                        # 2026-05-28 onward every row links. Era rows = immutable
+                        # history; unlinked rows AFTER the cut are genuine failures.
+                        "legacy_v1": bool(
+                            ("verdict_issued" in entry or "decision_id" in entry)
+                            and not entry.get("prev_seal_id")
+                            and not entry.get("constitutional_chain_id")
+                            and not entry.get("prev_leaf")
+                        )
+                        or (
+                            not str(
+                                entry.get("timestamp")
+                                or entry.get("sealed_at")
+                                or entry.get("issued_at_utc")
+                                or entry.get("timestamp_decision")
+                                or ""
+                            )[:10]
+                            or str(
+                                entry.get("timestamp")
+                                or entry.get("sealed_at")
+                                or entry.get("issued_at_utc")
+                                or entry.get("timestamp_decision")
+                                or ""
+                            )[:10]
+                            <= "2026-05-27"
+                        ),
                     }
                 )
 
@@ -22805,11 +22832,24 @@ def _arif_vault_seal(
         # unlinked (id/timestamp/depends_on null) entries fail integrity here
         # too. An immutable ledger that reports OK on a broken chain is the
         # most dangerous surface in the federation — never fabricate green.
+        # SCAR-VAULT-2026-11-15 (g11 census honesty, F13 "next go"): the v1-era
+        # legacy log (verdict_issued/decision_id/timestamp_decision, written
+        # before chain linkage existed — KRT-F4 2026-08-15) can never satisfy the
+        # v2 linkage test. Counting immutable history as a permanent integrity
+        # failure trains alarm fatigue. The backlog is NAMED; the gate keys off
+        # GENUINE v2 linkage failures only.
         _unlinked = sum(
             1
             for e in irreversibility_chain
             if e["id"] is None or e["timestamp"] is None or e["depends_on"] is None
         )
+        _legacy_v1_unlinked = sum(
+            1
+            for e in irreversibility_chain
+            if e.get("legacy_v1")
+            and (e["id"] is None or e["timestamp"] is None or e["depends_on"] is None)
+        )
+        _genuine_unlinked = _unlinked - _legacy_v1_unlinked
         _audit: dict[str, Any] = {"available": False}
         _chain_ok = False
         try:
@@ -22843,7 +22883,7 @@ def _arif_vault_seal(
             _audit = {"available": False, "error": f"{type(_exc).__name__}: {_exc}"}
             _chain_ok = False
 
-        _integrity = "OK" if (_chain_ok and _unlinked == 0) else "GAPS_FOUND"
+        _integrity = "OK" if (_chain_ok and _genuine_unlinked == 0) else "GAPS_FOUND"
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
@@ -22856,7 +22896,9 @@ def _arif_vault_seal(
                     "integrity_detail": {
                         "canonical_chain_verified": _chain_ok,
                         "unlinked_seal_entries": _unlinked,
-                        "rule": "integrity=OK requires canonical chain verified AND zero unlinked seal entries",
+                        "genuine_unlinked_seal_entries": _genuine_unlinked,
+                        "legacy_v1_backlog": _legacy_v1_unlinked,
+                        "rule": "integrity=OK requires canonical chain verified AND zero GENUINE unlinked seal entries; v1-era rows without chain linkage (pre KRT-F4 2026-08-15) are immutable history, reported as legacy_v1_backlog",
                     },
                     "canonical_audit": _audit,
                     "irreversibility_chain": irreversibility_chain[-20:],  # last 20
