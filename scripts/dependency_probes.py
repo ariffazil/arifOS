@@ -321,7 +321,20 @@ def probe_fastmcp() -> ProbeResult:
     try:
         from mcp.server.fastmcp import FastMCP  # canonical FastMCP entry
     except ImportError:
-        from fastmcp import FastMCP  # mcp 2.0.0 / fastmcp 4.x
+        # mcp 2.0.0 / fastmcp 4.x moved the entry point. A failed fallback
+        # must be reported, not raised — the old shape put `except Exception`
+        # after `except ImportError`, so it was unreachable for the very
+        # error it was meant to catch and the probe crashed instead of failing.
+        try:
+            from fastmcp import FastMCP
+        except Exception as e:
+            return ProbeResult(
+                name=name,
+                result="fail",
+                reason=f"fastmcp import failed: {type(e).__name__}: {e}",
+                epistemic_label="OBS",
+                traceback=traceback.format_exc(),
+            )
     except Exception as e:
         return ProbeResult(
             name=name,
