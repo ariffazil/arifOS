@@ -5291,6 +5291,10 @@ def arif_init(
         return _sm(
             model_governance=_mg,
             status="OK",
+            # External token-verified agents carry the card ceiling as the
+            # top-level verdict; the finalizer derives mutation_allowed from
+            # this field. Internal birth keeps the OBSERVE_ONLY baseline.
+            verdict=_auth if _ext else "OBSERVE_ONLY",
             mode=mode,
             stage="000_BORN",
             session=SessionState(
