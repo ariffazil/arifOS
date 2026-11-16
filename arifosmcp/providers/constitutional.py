@@ -12,7 +12,7 @@ import logging
 from typing import Any
 
 from fastmcp.server.providers import Provider
-from fastmcp.tools.tool import Tool, ToolResult
+from fastmcp.tools import Tool, ToolResult  # fastmcp 4.x: fastmcp.tools.tool is gone
 from mcp.types import TextContent
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS
