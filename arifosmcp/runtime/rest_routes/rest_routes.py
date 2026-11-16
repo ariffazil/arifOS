@@ -1037,9 +1037,7 @@ def _provenance_is_unmeasured(provenance: Any) -> bool:
     return _pl.startswith("unmeasured_default") or "_skipped" in _pl
 
 
-def _reconcile_unmeasured_basis(
-    basis_list: Any, floor_provenance: dict[str, Any]
-) -> list[str]:
+def _reconcile_unmeasured_basis(basis_list: Any, floor_provenance: dict[str, Any]) -> list[str]:
     """KX-011 (2026-11-02): drop producer-measured floors from the wire basis.
 
     ``measurement_basis.unmeasured_floors`` is born kernel-side meaning
@@ -1558,9 +1556,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         _c_calib = str(_c_dim.get("calibration") or "").upper()
         if _c_dim.get("value") is not None and "UNCALIBRATED" not in _c_calib:
             resolved_floors["F9"] = float(_c_dim["value"])
-            floor_provenance["F9"] = (
-                f"arifflow_live_vector:c_dark={_c_dim['value']}@{now_iso()}"
-            )
+            floor_provenance["F9"] = f"arifflow_live_vector:c_dark={_c_dim['value']}@{now_iso()}"
         elif _c_dim.get("value") is not None:
             floor_provenance["F9"] = (
                 f"arifflow_vector_c_dark_skipped:calibration={_c_calib or 'unknown'}@{now_iso()}"
@@ -2003,7 +1999,11 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_confidence is None:
         live_confidence = resolved_floors.get("F2", 1.0)
     resolved_telemetry = {
-        "dS": (_windowed_ds_value() if _windowed_ds_value() is not None else telemetry.get("dS", floors.get("ds", 0.0))),
+        "dS": (
+            _windowed_ds_value()
+            if _windowed_ds_value() is not None
+            else telemetry.get("dS", floors.get("ds", 0.0))
+        ),
         "peace2": telemetry.get("peace2", floors.get("peace2", 1.0)),
         "kappa_r": telemetry.get("kappa_r", floors.get("kappa_r", 1.0)),
         "echoDebt": telemetry.get("echoDebt"),
@@ -4866,9 +4866,7 @@ def register_rest_routes(
         _floor_provenance = dict(thermo.get("floor_provenance") or {})
         # KX-011: reconciled basis (post-producer) drives live contradiction
         # labels on runtime_floors_status — see floor_producers._floor_wire_labels.
-        _basis_unmeasured = set(
-            thermo.get("measurement_basis", {}).get("unmeasured_floors") or []
-        )
+        _basis_unmeasured = set(thermo.get("measurement_basis", {}).get("unmeasured_floors") or [])
 
         # Per-floor breakdown (2026-10-07): floors_pass said 10/13 but the
         # response never named WHICH 3 failed, so no one could act on it.
@@ -5263,9 +5261,7 @@ def register_rest_routes(
                         "arifosmcp.runtime.floor_producers", fromlist=["_floor_wire_labels"]
                     )._floor_wire_labels(
                         fid,
-                        is_measured=not _provenance_is_unmeasured(
-                            _floor_provenance.get(fid)
-                        ),
+                        is_measured=not _provenance_is_unmeasured(_floor_provenance.get(fid)),
                         basis_unmeasured=_basis_unmeasured,
                     ),
                     # Gate 1 (F13 2026-11-02): measurement ontology — types the
@@ -5485,7 +5481,11 @@ def register_rest_routes(
             "thermodynamic": {
                 # Preserve UNKNOWN as None. These are telemetry observations,
                 # not policy defaults or health decorations.
-                "entropy_delta": (_windowed_ds_value() if _windowed_ds_value() is not None else telemetry.get("dS")),
+                "entropy_delta": (
+                    _windowed_ds_value()
+                    if _windowed_ds_value() is not None
+                    else telemetry.get("dS")
+                ),
                 "peace_squared": telemetry.get("peace2"),
                 "vitality_index": telemetry.get("psi_le"),
                 "kappa_r": telemetry.get("kappa_r"),
@@ -6426,7 +6426,11 @@ def register_rest_routes(
         return JSONResponse(
             {
                 # Core gauges — null if kernel telemetry unavailable
-                "entropy_delta": (_windowed_ds_value() if _windowed_ds_value() is not None else telemetry.get("dS")),
+                "entropy_delta": (
+                    _windowed_ds_value()
+                    if _windowed_ds_value() is not None
+                    else telemetry.get("dS")
+                ),
                 "peace_squared": telemetry.get("peace2"),
                 "vitality_index": telemetry.get("psi_le"),
                 "echo_debt": telemetry.get("echoDebt"),
@@ -7979,53 +7983,87 @@ def register_rest_routes(
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         return JSONResponse(payload)
 
+    # 2026-11-16 (F13 kernel-latency directive): the readiness probe used to run
+    # _runtime_selftest() + _compute_runtime_drift() inline on the event loop.
+    # Measured cost: 6.8s of a blocked loop per call (health probe starved for
+    # 6.7s). Offload to worker threads; cache the composite for 15s so a probe
+    # storm cannot re-run 13 dependency checks per request.
+    _ready_state = {"at": 0.0, "payload": None, "status_code": 503}
+    _ready_ttl_s = float(os.getenv("ARIFOS_READY_CACHE_TTL_S", "15") or "15")
+    try:
+        _ready_lock = asyncio.Lock()
+    except RuntimeError:  # pragma: no cover — no loop at registration time
+        _ready_lock = None
+
     @route("/ready", methods=["GET"])
     async def readiness_alias(request: Request) -> Response:
         from arifosmcp.runtime.tools import _runtime_selftest
 
-        readiness = _runtime_selftest()
-        selftest_verdict = str(
-            readiness.get("verdict", "FAIL")
-        )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
+        async def _compute_ready() -> tuple[dict, int]:
+            readiness = await asyncio.to_thread(_runtime_selftest)
+            selftest_verdict = str(
+                readiness.get("verdict", "FAIL")
+            )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
 
-        # P0-5: Deployment invariant check via _compute_runtime_drift()
-        drift = _compute_runtime_drift()
-        drift_detected = drift.get("runtime_drift", False)
-        # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
-        src = drift.get("live_commit", "?") or "?"
-        built = drift.get("build_commit", "?") or "?"
-        deployed = drift.get("live_commit", "?") or "?"
-        deploy_ok = not drift_detected and built != "?" and src == built
+            # P0-5: Deployment invariant check via _compute_runtime_drift()
+            drift = await asyncio.to_thread(_compute_runtime_drift)
+            drift_detected = drift.get("runtime_drift", False)
+            # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
+            src = drift.get("live_commit", "?") or "?"
+            built = drift.get("build_commit", "?") or "?"
+            deployed = drift.get("live_commit", "?") or "?"
+            deploy_ok = not drift_detected and built != "?" and src == built
 
-        # Composite verdict
-        if selftest_verdict == "FAIL":
-            overall, reason = "degraded", "selftest_fail"
-        elif not deploy_ok:
-            overall, reason = "degraded", "deploy_drift" if drift_detected else "commit_mismatch"
-        elif selftest_verdict == "PARTIAL":
-            overall, reason = "degraded", "selftest_partial"
-        else:
-            overall, reason = "ready", None
+            # Composite verdict
+            if selftest_verdict == "FAIL":
+                overall, reason = "degraded", "selftest_fail"
+            elif not deploy_ok:
+                overall, reason = (
+                    "degraded",
+                    "deploy_drift" if drift_detected else "commit_mismatch",
+                )
+            elif selftest_verdict == "PARTIAL":
+                overall, reason = "degraded", "selftest_partial"
+            else:
+                overall, reason = "ready", None
 
-        payload = {
-            "status": overall,
-            "machine_status": selftest_verdict,
-            "deploy_invariant": {
-                "ok": deploy_ok,
-                "drift_detected": drift_detected,
-                "source_commit": src,
-                "built_commit": built,
-                "deployed_commit": deployed,
-                "rule": "source_commit == built_commit == deployed_commit",
-            },
-            "checks": readiness.get("checks", {}),
-            "failures": readiness.get("failed_checks", []),
-            "warnings": readiness.get("warnings", []),
-            "degraded_reason": reason,
-            "timestamp": readiness.get("timestamp"),
-        }
-        status_code = 200 if overall == "ready" else 503
-        return JSONResponse(payload, status_code=status_code)
+            payload = {
+                "status": overall,
+                "machine_status": selftest_verdict,
+                "deploy_invariant": {
+                    "ok": deploy_ok,
+                    "drift_detected": drift_detected,
+                    "source_commit": src,
+                    "built_commit": built,
+                    "deployed_commit": deployed,
+                    "rule": "source_commit == built_commit == deployed_commit",
+                },
+                "checks": readiness.get("checks", {}),
+                "failures": readiness.get("failed_checks", []),
+                "warnings": readiness.get("warnings", []),
+                "degraded_reason": reason,
+                "timestamp": readiness.get("timestamp"),
+            }
+            return payload, (200 if overall == "ready" else 503)
+
+        now = time.monotonic()
+        if _ready_state["payload"] is None or (now - _ready_state["at"]) >= _ready_ttl_s:
+            if _ready_lock is None:
+                payload, status_code = await _compute_ready()
+                _ready_state.update(at=now, payload=payload, status_code=status_code)
+            else:
+                async with _ready_lock:
+                    now = time.monotonic()
+                    if (
+                        _ready_state["payload"] is None
+                        or (now - _ready_state["at"]) >= _ready_ttl_s
+                    ):
+                        payload, status_code = await _compute_ready()
+                        _ready_state.update(at=now, payload=payload, status_code=status_code)
+
+        payload = dict(_ready_state["payload"] or {})
+        payload["cache_age_s"] = round(time.monotonic() - _ready_state["at"], 1)
+        return JSONResponse(payload, status_code=_ready_state["status_code"])
 
     @route("/.well-known/mcp/internal-server.json", methods=["GET"])
     async def internal_well_known(request: Request) -> Response:
@@ -8058,7 +8096,10 @@ def register_rest_routes(
     async def governance_status(request: Request) -> Response:
         """Return current governance telemetry for the Constitutional Visualizer."""
         try:
-            payload = _build_governance_status_payload()
+            # 2026-11-16 (F13 kernel-latency directive): this payload builder costs
+            # ~1.0-2.2s and used to run inline on the event loop. Offload it so a
+            # dashboard poll cannot starve /health or /mcp.
+            payload = await asyncio.to_thread(_build_governance_status_payload)
             return JSONResponse(
                 payload,
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
