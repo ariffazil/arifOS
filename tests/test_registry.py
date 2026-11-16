@@ -12,28 +12,51 @@ REGISTRY_PATH = Path(__file__).parent.parent
 
 
 def _resolve_registry_paths() -> tuple[Path, Path, Path, Path, Path]:
+    """Resolve the model-registry fixture, checkout-first and permission-safe.
+
+    The registry data lives outside git, so on a CI runner no candidate exists.
+    The old order put /root/arifOS/registry first, and its final fallback also
+    pointed there — so on a runner every test died with
+    ``PermissionError: '/root/arifOS/registry/catalog.json'`` instead of saying
+    "fixture absent". Now: checkout first, every stat guarded, and the fallback
+    stays inside the checkout.
+    """
     candidates = [
-        Path("/root/arifOS/registry"),  # NEW: in-repo registry (v3)
+        REGISTRY_PATH / "registry",  # checkout-local (runner-safe)
+        Path("/root/arifOS/registry"),  # dev box, in-repo registry (v3)
         Path("/root/arifos-model-registry"),  # Legacy separate repo
         REGISTRY_PATH / "archive",
         REGISTRY_PATH / "00_legacy_materials" / "arifOS-upstream" / "archive",
     ]
     for root in candidates:
-        models = root / "models"
-        souls = root / "provider_souls"
-        if models.exists() and souls.exists():
-            return models, souls, root / "runtime_profiles", root / "catalog.json", root / "schemas"
+        try:
+            models = root / "models"
+            souls = root / "provider_souls"
+            if models.exists() and souls.exists():
+                return models, souls, root / "runtime_profiles", root / "catalog.json", root / "schemas"
+        except OSError:
+            # Unreadable candidate (e.g. /root on a CI runner) — try the next.
+            continue
 
+    fallback = REGISTRY_PATH / "registry"
     return (
-        candidates[0] / "models",
-        candidates[0] / "provider_souls",
-        candidates[0] / "runtime_profiles",
-        candidates[0] / "catalog.json",
-        candidates[0] / "schemas",
+        fallback / "models",
+        fallback / "provider_souls",
+        fallback / "runtime_profiles",
+        fallback / "catalog.json",
+        fallback / "schemas",
     )
 
 
 MODELS_PATH, SOULS_PATH, RUNTIME_PATH, CATALOG_PATH, SCHEMAS_PATH = _resolve_registry_paths()
+
+# The registry fixture is NOT in git. Without it these tests can only fail for
+# environmental reasons, so say that out loud instead of reporting a red gate
+# that has nothing to do with the code under test.
+pytestmark = pytest.mark.skipif(
+    not CATALOG_PATH.exists(),
+    reason=f"model-registry fixture absent (looked for {CATALOG_PATH})",
+)
 
 
 def _load_schema(filename: str) -> dict:
