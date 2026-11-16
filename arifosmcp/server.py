@@ -19,6 +19,7 @@ import asyncio
 import logging
 import os
 import sys
+import time
 import traceback
 from collections.abc import Callable
 from typing import Any
@@ -2856,23 +2857,52 @@ async def horizon_health(request: Request) -> JSONResponse:
     )
 
 
+# 2026-11-16 (F13 kernel-latency directive): this is the ACTIVE /ready route
+# (server.py app.add_route). It used to run _runtime_selftest() inline on the
+# event loop — measured 6.8s handler and 6.7s of /health starvation per call.
+# Offload to a worker thread; cache the composite for 15s (single-flight) so a
+# probe storm cannot re-run 13 dependency checks per request.
+_HORIZON_READY_CACHE: dict[str, Any] = {"at": 0.0, "payload": None, "status_code": 503}
+_HORIZON_READY_TTL_S = float(os.getenv("ARIFOS_READY_CACHE_TTL_S", "15") or "15")
+_HORIZON_READY_LOCK: asyncio.Lock | None = None
+
+
 async def horizon_ready(request: Request) -> JSONResponse:
+    global _HORIZON_READY_LOCK
     from arifosmcp.runtime.tools import _runtime_selftest
 
-    readiness = _runtime_selftest()
-    verdict = str(
-        readiness.get("verdict", "FAIL")
-    )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
-    payload = {
-        "status": verdict.lower(),  # human-readable alias: pass | partial | fail
-        "machine_status": verdict,  # machine health, not constitutional verdict
-        "checks": readiness.get("checks", {}),
-        "failures": readiness.get("failed_checks", []),
-        "warnings": readiness.get("warnings", []),
-        "timestamp": readiness.get("timestamp"),
-    }
-    status_code = 200 if verdict in {"PASS", "PARTIAL"} else 503
-    return JSONResponse(payload, status_code=status_code)
+    if (
+        _HORIZON_READY_CACHE["payload"] is None
+        or (time.monotonic() - _HORIZON_READY_CACHE["at"]) >= _HORIZON_READY_TTL_S
+    ):
+        if _HORIZON_READY_LOCK is None:
+            _HORIZON_READY_LOCK = asyncio.Lock()
+        async with _HORIZON_READY_LOCK:
+            if (
+                _HORIZON_READY_CACHE["payload"] is None
+                or (time.monotonic() - _HORIZON_READY_CACHE["at"]) >= _HORIZON_READY_TTL_S
+            ):
+                readiness = await asyncio.to_thread(_runtime_selftest)
+                verdict = str(
+                    readiness.get("verdict", "FAIL")
+                )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
+                payload = {
+                    "status": verdict.lower(),  # human-readable alias: pass | partial | fail
+                    "machine_status": verdict,  # machine health, not constitutional verdict
+                    "checks": readiness.get("checks", {}),
+                    "failures": readiness.get("failed_checks", []),
+                    "warnings": readiness.get("warnings", []),
+                    "timestamp": readiness.get("timestamp"),
+                }
+                _HORIZON_READY_CACHE.update(
+                    at=time.monotonic(),
+                    payload=payload,
+                    status_code=200 if verdict in {"PASS", "PARTIAL"} else 503,
+                )
+
+    payload = dict(_HORIZON_READY_CACHE["payload"] or {})
+    payload["cache_age_s"] = round(time.monotonic() - _HORIZON_READY_CACHE["at"], 1)
+    return JSONResponse(payload, status_code=_HORIZON_READY_CACHE["status_code"])
 
 
 async def horizon_metadata(request: Request) -> JSONResponse:
