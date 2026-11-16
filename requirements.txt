@@ -3602,9 +3602,9 @@ polars-runtime-32==1.44.1 \
     --hash=sha256:abd10a54ed1caff42228610fcba0f93251f9870bd7cffb0c78bc26f5e0718ce4 \
     --hash=sha256:eea4283be8e60822d890dbda20588fe59b4172b508bd5ebf3471e531ca9f50d7
     # via polars
-portalocker==3.2.0 \
-    --hash=sha256:1f3002956a54a8c3730586c5c77bf18fae4149e07eaf1c29fc3faf4d5a3f89ac \
-    --hash=sha256:3cdc5f565312224bc570c49337bd21428bba0ef363bbcf58b9ef4a9f11779968
+portalocker==4.4.2 \
+    --hash=sha256:7ac85bb2aa3c7873bf2ac72586fc6154afa4671ac786994a16617a6b7ccb3e5e \
+    --hash=sha256:e661b91af34fc1806740f8e0e42990fe55cd85cbae55675ac48a400a9656a51b
     # via qdrant-client
 postgrest==2.31.0 \
     --hash=sha256:2f395d84b2ee34fc57622ff2f711df603e2ede625f98e5015240741888f7bd0c \
