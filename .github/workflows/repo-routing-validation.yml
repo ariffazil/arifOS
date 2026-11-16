@@ -74,6 +74,16 @@ jobs:
           declare -a FAILED=()
           while IFS= read -r sha; do
             [ -z "$sha" ] && continue
+            # Bot-authored commits cannot carry a REPO= trailer: Dependabot
+            # writes its own message. Require BOTH the author name and email to
+            # be bot-issued so a spoofed name alone buys nothing. The PR still
+            # declares its target repo through its base branch.
+            author_name=$(git log -1 --format=%an "$sha")
+            author_email=$(git log -1 --format=%ae "$sha")
+            if printf '%s %s' "$author_name" "$author_email" | grep -qiE 'dependabot.*dependabot|github-actions.*github-actions'; then
+              echo "↷ Commit $sha: bot-authored ($author_name), trailer not required"
+              continue
+            fi
             body=$(git log -1 --format='%B' "$sha")
             if ! echo "$body" | grep -qi "^REPO="; then
               echo "❌ Commit $sha: Missing REPO= trailer"
