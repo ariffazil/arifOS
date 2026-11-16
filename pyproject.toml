@@ -221,13 +221,13 @@ anthropic = [
     "anthropic>=0.40.0",
 ]
 dev = [
-    "pytest>=9.1.1",
-    "pytest-asyncio>=1.3.0",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.16.7",
     "mypy>=2.1.0",
     "httpx>=0.28.1",
-    "hypothesis>=6.168.0",
+    "hypothesis>=6.170.15",
     "python-lsp-server>=1.11.0",
     "aiohttp>=3.9.0",
 ]
@@ -506,6 +506,6 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
-    "pytest>=9.0.3",
-    "pytest-asyncio>=1.3.0",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
 ]
