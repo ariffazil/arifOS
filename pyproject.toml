@@ -158,7 +158,7 @@ google = [
     "google-api-python-client>=2.200.0",
     "google-auth-httplib2>=0.4.0",
     "google-auth-oauthlib>=1.4.0",
-    "google-genai>=0.1.0",
+    "google-genai>=3.3.0",
 ]
 db = [
     "sqlalchemy>=2.0.36",

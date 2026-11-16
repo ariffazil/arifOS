@@ -1441,9 +1441,9 @@ google-auth-oauthlib==1.4.1 \
     --hash=sha256:1a83f5f2a8421dedadaa3caf25b3a710dddf85a33a63144be41c2fc79174b106 \
     --hash=sha256:a1be43ec69fe563ac9b2c4d6fc4334b323b21cbdc59a638b5fa34dd4d5a2a348
     # via arifos
-google-genai==2.17.0 \
-    --hash=sha256:6b640a2390c82b4a240873eddb9f518c6d2c33244b2de16ed3d14526a6da7f57 \
-    --hash=sha256:a4835563c60aee646c9c4b261c507aa4a624710d25017012d20dc65abf3d9a54
+google-genai==3.3.0 \
+    --hash=sha256:86bd1830fec4b12e474237414fa52383aa0f49458910f6c9c938c207715559b5 \
+    --hash=sha256:c0ab7bfbf13d4a24a5798ec9e4200773b2fa150eb620317db337f751a9c9576c
     # via
     #   arifos
     #   pydantic-ai-slim
