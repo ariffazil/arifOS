@@ -4128,9 +4128,9 @@ pyjwt==2.15.1 \
     #   arifos
     #   mcp
     #   supabase-auth
-pymc==6.2.0 \
-    --hash=sha256:ae6aafe14992cbabcf577026f0f1fa66f9876d0d216bf58cbf85a5ac6e537b64 \
-    --hash=sha256:b168d0ce7e55df947a01289425f038346445232cfc4d1dfdfa8f54b909e8bcc1
+pymc==6.4.0 \
+    --hash=sha256:319348878ec698b6cc406320456b2bc00d80bea9bfb72b6ab02b2ce6b179e3b5 \
+    --hash=sha256:fa0dd3574b4465662f7aa70e8f1bd02dc2081e05a99ba65fb33c3f3614271f86
     # via arifos
 pymupdf==1.28.2 \
     --hash=sha256:2e1b574c0fd2cb238021033fd3c0f9c4388816638df064e4bfb56d9d81736dc8 \
