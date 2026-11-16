@@ -11052,6 +11052,9 @@ def _arif_session_init(
     #    "max_tokens_per_call": int, "max_runtime_seconds": int,
     #    "policy_version": str}
     #   Maps MXC SandboxPolicy concept onto arifOS session binding.
+    #   External-agent token (2026-11-16): card-backed long-lived credential.
+    #   Verified by the kernel; no Ed25519 required for the external agent.
+    agent_token: str | None = None,
     # ── Pre-session identity lineage (forged 2026-06-12 — session-birth fix) ───
     intent: str | None = None,
     #   Human-readable purpose of this session. Recorded for audit (F2 TRUTH).
@@ -11225,6 +11228,9 @@ def _arif_session_init(
                 # of declaration (fall-chain link 1/2; TEST-J receipt
                 # forge_work/fi008-session-20261102).
                 agent_policy=agent_policy,
+                # External-agent token (2026-11-16): forwarded to the canonical
+                # delegate so the card ceiling/allowed_tools bind at birth.
+                agent_token=agent_token,
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
             _result_dict = (
