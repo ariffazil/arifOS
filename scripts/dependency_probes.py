@@ -565,6 +565,34 @@ def probe_caio() -> ProbeResult:
 # ─── Driver ─────────────────────────────────────────────────────────────────
 
 
+# Probes whose failure must block, regardless of declaration: the MCP surface
+# itself. `fastmcp` is declared in pyproject, but keep it explicit so a probe
+# rename can never silently downgrade the strongest signal to advisory.
+ALWAYS_BLOCKING = {"fastmcp"}
+
+
+def _normalise(name: str) -> str:
+    return name.strip().lower().replace("_", "-")
+
+
+def _declared_core_packages(pyproject: Path | None = None) -> set[str]:
+    """Core dependency names from [project.dependencies] (no extras, no markers)."""
+    import re
+    import tomllib
+
+    path = pyproject or Path("pyproject.toml")
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        return set()
+    names: set[str] = set()
+    for spec in data.get("project", {}).get("dependencies", []):
+        base = re.split(r"[<>=!~\[; ]", spec, maxsplit=1)[0]
+        if base:
+            names.add(_normalise(base))
+    return names
+
+
 PROBES = [
     probe_protobuf,
     probe_cryptography,
@@ -597,9 +625,20 @@ def main(argv: list[str]) -> int:
         results.append(r)
         # Don't print individual results — the JSON envelope is the canonical output.
 
-    # Overall: fail if any probe failed. skip does NOT fail overall.
+    # Overall: only a failure of a DECLARED core dependency blocks. Undeclared
+    # transitives (and optional extras that are simply not installed in this
+    # environment) are advisory — otherwise every Dependabot PR is red for
+    # pre-existing drift in packages this bump never touched.
+    declared = _declared_core_packages()
+    blocking_names = declared | ALWAYS_BLOCKING
+    for r in results:
+        blocking = _normalise(r.name) in blocking_names
+        r.details["blocking"] = blocking
+        r.details["declared"] = _normalise(r.name) in declared
+
     overall = "pass"
-    if any(r.result == "fail" for r in results):
+    blocking_failures = [r.name for r in results if r.result == "fail" and r.details["blocking"]]
+    if blocking_failures:
         overall = "fail"
 
     envelope = Envelope(
@@ -617,10 +656,15 @@ def main(argv: list[str]) -> int:
     out_path.write_text(envelope.to_json() + "\n", encoding="utf-8")
 
     # Compact one-line status for the CI log
-    summary = " ".join(
-        f"{r.name}={r.result}" + (f"({r.reason[:60]})" if r.reason and r.result != "pass" else "")
-        for r in results
-    )
+    def _label(r: ProbeResult) -> str:
+        tag = r.result
+        if r.result == "fail" and not r.details.get("blocking", True):
+            tag = "fail(advisory)"
+        return f"{r.name}={tag}" + (
+            f"({r.reason[:60]})" if r.reason and r.result != "pass" else ""
+        )
+
+    summary = " ".join(_label(r) for r in results)
     print(f"[dependency_probes] overall={overall}  {summary}")
 
     return 0 if overall == "pass" else 1
