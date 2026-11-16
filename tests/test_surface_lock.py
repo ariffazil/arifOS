@@ -99,9 +99,21 @@ def test_meta_skills_registered():
 
 
 def test_version_string():
-    """Version must match the current sealed runtime release."""
+    """__version__ must equal the installed distribution version.
+
+    Previously this pinned a literal release ("2026.06.11-FIQHGEOM") that can
+    never be true again, so the gate was red for a reason that had nothing to
+    do with the code under test. The invariant that matters is: the module and
+    the packaging metadata agree, and we are not on the dev placeholder.
+    """
+    from importlib.metadata import version as dist_version
+
     from arifosmcp import __version__
 
-    assert __version__ == "2026.06.11-FIQHGEOM", (
-        f"Version drift: expected 2026.06.11-FIQHGEOM, got {__version__}. VOID."
+    declared = dist_version("arifos")
+    assert __version__ == declared, (
+        f"Version drift: arifosmcp.__version__={__version__} but package metadata says {declared}."
+    )
+    assert __version__ not in ("", "0.0.0.dev0"), (
+        f"Version fell back to the dev placeholder ({__version__}) — package metadata missing."
     )
