@@ -108,7 +108,7 @@ dependencies = [
 [project.optional-dependencies]
 # === DOMAIN EXTRAS — organ-specific capability gates ===
 ml = [
-    "sentence-transformers>=5.6.0",  # H1.2: SBERT-based ASI floors (F5, F6, F9)
+    "sentence-transformers>=6.3.0",  # H1.2: SBERT-based ASI floors (F5, F6, F9)
     "scikit-learn>=1.9.1",  # H1.2: Cosine similarity for SBERT embeddings
 ]
 vectors = [
@@ -123,7 +123,7 @@ browser = [
 ]
 heavy = [
     "torch>=2.12.1",
-    "transformers>=5.17.0",
+    "transformers>=5.22.2",
 ]
 observe = [
     "opentelemetry-api>=1.42.1",
