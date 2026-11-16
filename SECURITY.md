@@ -48,12 +48,14 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 | Observability — trace propagation fix in progress | MEDIUM | Partial — sovereign Postgres backend exists; arifFlow, FRAME, and Kabarkan live; trace propagation not yet complete |
 | VAULT999 hash chain not independently verified | LOW | Open |
 | ZKPC (structural witness; formal zero-knowledge proof deferred) | LOW | Design stage |
-| Cypher injection via unescaped property key (`arifosmcp/runtime/l5_sovereign_forge.py:401,425,474`) — LLM-extracted property keys reach the query builder unvalidated; a crafted key can append `DETACH DELETE n` and wipe the graph | HIGH | Open — fix is a key whitelist (`^[A-Za-z_][A-Za-z0-9_]*$`) before `_s(k)`, same pattern already used for edge labels |
-| Path traversal via fastmcp decode-after-match (`arifosmcp/resources/atlas333.py:410`, `arifosmcp/server.py:815`) — upstream fastmcp 3.3.1 matches URI templates before `unquote()`, so `%2F` bypasses the `[^/]+` segment guard | MEDIUM | Open — fix is post-unquote path validation + containment check before filesystem access; root cause reported upstream to fastmcp |
-| Path traversal in `sovereign://{file}` (`arifosmcp/resources/sovereign.py`) — third instance of the same decode-after-match class; the handler guarded only with a `.endswith(".md")` suffix, so an absolute path or `../` read any file outside the archive (reproduced: `_read_file("/etc/hostname")` → OK, `source: /etc/hostname`) | MEDIUM | Fixed in source 2026-09-22 — containment via `arifosmcp/runtime/path_guard.py` (single source of truth for the check); regression test `tests/core/test_sovereign_path_containment.py`. Not yet in a release |
+| Cypher injection via unescaped property key (`arifosmcp/runtime/l5_sovereign_forge.py:401,425,474`) — LLM-extracted property keys reach the query builder unvalidated; a crafted key can append `DETACH DELETE n` and wipe the graph | HIGH | **FIXED_IN_SOURCE** — 2026-11-13, commit `dc9bd2600`. Reported property-key sink now applies an identifier allowlist `^[A-Za-z_][A-Za-z0-9_]*$` before interpolation. Release artifact / live runtime / independent verification: **not established**. Full trace of every dynamic Cypher identifier sink: **not recorded** |
+| Path traversal via fastmcp decode-after-match (`arifosmcp/resources/atlas333.py:410`, `arifosmcp/server.py:815`) — upstream fastmcp 3.3.1 matches URI templates before `unquote()`, so `%2F` bypasses the `[^/]+` segment guard | MEDIUM | **MITIGATED_IN_SOURCE** — arifOS-side post-resolution containment checks are present in the inspected source tree. Upstream fastmcp root cause: **not established**; independent verification: **pending** |
+| Path traversal in `sovereign://{file}` (`arifosmcp/resources/sovereign.py`) — third instance of the same decode-after-match class; the handler guarded only with a `.endswith(".md")` suffix, so an absolute path or `../` read any file outside the archive (reproduced: `_read_file("/etc/hostname")` → OK, `source: /etc/hostname`) | MEDIUM | **FIXED_IN_SOURCE** — routes the handler through the canonical containment guard `arifosmcp/runtime/path_guard.py`; regression test `tests/core/test_sovereign_path_containment.py` present. Release inclusion / live-runtime alignment / independent verification: **not established** |
 | CVE disclosure history | INFO | One privately reported finding accepted, fixed and released in `1!2026.9.1` (2026-09-15); the reporter is filing it with MITRE. No CVE assigned yet. A second report (2026-09-15/16, same reporter) found the two open issues above in `1!2026.9.1` — see Disclosure History |
 
 **Status labels:** Open = no work started · Partial = infrastructure exists but not complete · Verified = independently tested · Complete = fully operational with evidence.
+
+**Security-state labels (typed — never collapse distinct states):** `FIXED_IN_SOURCE` (the fix is observed in the inspected source tree) ≠ `MITIGATED_IN_SOURCE` (arifOS-side workaround present; upstream root cause may remain) ≠ `INCLUDED_IN_RELEASE` (present in a published wheel/sdist) ≠ `OBSERVED_IN_RUNTIME` (the live kernel imports the patched artifact) ≠ `INDEPENDENTLY_VERIFIED` (an outside party tested it) ≠ `UPSTREAM_RESOLVED` (the dependency itself fixed it). A source fix must **never** be reported as released, deployed, upstream-resolved, or independently verified without the corresponding evidence.
 
 ## What Has Been Tested
 
@@ -79,7 +81,7 @@ arifOS is a governance decision point inserted between AI agent proposals and ex
 | Date | Surface | Reported by | Outcome |
 |------|---------|-------------|---------|
 | 2026-08-25 | `arif_fetch` / fetch fallback (SSRF, fail-open) | External security report (private disclosure) | Confirmed, fixed same day, released in `1!2026.9.1`. Reporter of record; filing with MITRE. Residual accepted and documented in `arifosmcp/runtime/ssrf_guard.py` (DNS-rebinding TOCTOU — resolve-at-check vs resolve-at-connect) |
-| 2026-09-15/16 | `l5_sovereign_forge.py` Cypher injection (graph wipe via unvalidated LLM-extracted property key) + fastmcp decode-after-match path traversal (`atlas333.py`, `server.py`) — mcp-safeguard scan of `1!2026.9.1`, 117 raw findings manually triaged to 2 confirmed real issues (105 refuted as noise) | External security report (private disclosure) | Both confirmed by source-level trace. Cypher injection: HIGH, fix pending (key whitelist). Path traversal: MEDIUM, root cause is upstream fastmcp; arifOS-side mitigation (post-unquote validation) pending, upstream report pending |
+| 2026-09-15/16 | `l5_sovereign_forge.py` Cypher injection (graph wipe via unvalidated LLM-extracted property key) + fastmcp decode-after-match path traversal (`atlas333.py`, `server.py`) — mcp-safeguard scan of `1!2026.9.1`, 117 raw findings manually triaged to 2 confirmed real issues (105 refuted as noise) | External security report (private disclosure) | Both confirmed by source-level trace. **Current state (2026-11-16):** Cypher injection = FIXED_IN_SOURCE (2026-11-13, `dc9bd2600`, identifier allowlist); fastmcp traversal = MITIGATED_IN_SOURCE (arifOS-side containment). Release / runtime / independent verification still pending — see Known Gaps. |
 
 ---
 
@@ -122,11 +124,26 @@ arifbfazil@gmail.com
 
 ---
 
-**Last updated:** 22 September 2026
+**Last updated:** 16 November 2026 — source inspected at `ffbcac2ca`; see Verification Snapshot.
 
 ---
 
-## Marketplace Audit Findings — Live-State Rebuttal (2026-10-16)
+## Verification Snapshot
+
+| Field | Value |
+|---|---|
+| Source commit inspected | `ffbcac2ca` |
+| Inspection date | 2026-11-16 |
+| Scope | Reported sinks and named containment handlers |
+| Artifact verification | Not performed in this inspection |
+| Runtime verification | Not established |
+| Independent verification | Not performed |
+
+> This snapshot records what was **inspected**, not a release or runtime assurance. The typed security-state of each finding is in [Known Gaps](#known-gaps).
+
+## Historical Marketplace Rebuttal — 2026-10-16 (not current security status)
+
+> **Historical record.** This section captures the state observed on **2026-10-16** (source `a4481ec2b`, release `v2026.10.15`). It is **not** the current security status; it is superseded by the Verification Snapshot above and the typed labels in Known Gaps.
 
 The MCP Marketplace published scan (against `v2026.10.11`) reported six findings. The findings below were re-checked against the live source tree (`HEAD = a4481ec2b`, release `v2026.10.15`, marketplace version label `1!2026.10.11`) on **2026-10-16**.
 

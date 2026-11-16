@@ -2,6 +2,8 @@
 
 > **DITEMPA BUKAN DIBERI** — Forged, Not Given.
 
+> **Canonical security status:** [`/SECURITY.md`](../SECURITY.md) (repository root) is the single source of truth for current security findings and typed security-state labels. This page is a federation-scope snapshot (public-repo vs live codebase, last revised 2026-07-06) and may lag — prefer the root file for current status.
+
 ## Public Repository vs Live Codebase
 
 The GitHub repository `ariffazil/arifos` is a **public snapshot**. The live production
