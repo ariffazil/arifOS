@@ -6,10 +6,13 @@ This module provides runtime traceability back to that canonical repo.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import os
 import subprocess
+import threading
+import time
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -145,9 +148,7 @@ def _full_built_commit() -> str:
 def _installation_manifest_hash() -> str | None:
     """Hash the installed distribution RECORD (the reproducible install manifest)."""
     candidates = sorted(
-        Path("/opt/arifos/venv/lib").glob(
-            "python*/site-packages/arifos-*.dist-info/RECORD"
-        )
+        Path("/opt/arifos/venv/lib").glob("python*/site-packages/arifos-*.dist-info/RECORD")
     )
     return _sha256_file(candidates[-1]) if candidates else None
 
@@ -213,9 +214,7 @@ def _origin_ok() -> bool:
     if os.getenv("ARIFOS_ENFORCE_ORIGIN", "").strip() != "1":
         return True
     origin = _runtime_origin()
-    return origin != "unknown" and origin.startswith(
-        str(Path(ACTIVE_VENV_ROOT).resolve()) + "/"
-    )
+    return origin != "unknown" and origin.startswith(str(Path(ACTIVE_VENV_ROOT).resolve()) + "/")
 
 
 def _git_blob_sha1(data: bytes) -> str:
@@ -255,11 +254,7 @@ def _parity_scope(path: str) -> bool:
     under runtime/_archive/dead-2026-09-29-* — a permanent false alarm,
     not a real divergence.
     """
-    return (
-        path.endswith(".py")
-        and "/tests/" not in path
-        and "/_archive/" not in path
-    )
+    return path.endswith(".py") and "/tests/" not in path and "/_archive/" not in path
 
 
 def _content_parity(
@@ -371,7 +366,7 @@ def _content_parity(
     return out
 
 
-def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
+def _get_runtime_attestation_uncached(*, detail: bool = False) -> dict[str, Any]:
     """Public, machine-readable binding from release to this live process.
 
     KUTIP SAMPAH M5 (2026-08-05): default is compact — hash manifest + drift only.
@@ -383,13 +378,9 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     built_commit = _full_built_commit()
 
     critical_module_hashes = {
-        rel: digest
-        for rel in _CRITICAL_MODULES
-        if (digest := _sha256_file(ROOT / rel)) is not None
+        rel: digest for rel in _CRITICAL_MODULES if (digest := _sha256_file(ROOT / rel)) is not None
     }
-    wheel_hash = (
-        os.getenv("ARIFOS_WHEEL_SHA256", "").strip() or _installation_manifest_hash()
-    )
+    wheel_hash = os.getenv("ARIFOS_WHEEL_SHA256", "").strip() or _installation_manifest_hash()
     manifest = {
         "source_commit": source_commit,
         "wheel_hash": wheel_hash,
@@ -694,10 +685,7 @@ def _detect_deployment_mode() -> str:
         cgroup_path = Path("/proc/1/cgroup")
         if cgroup_path.exists():
             cgroup = cgroup_path.read_text(errors="replace")
-            if any(
-                token in cgroup
-                for token in ("docker-", "kubepods", "/lxc/", "containerd-")
-            ):
+            if any(token in cgroup for token in ("docker-", "kubepods", "/lxc/", "containerd-")):
                 return "container"
     except (FileNotFoundError, PermissionError, OSError):
         pass
@@ -831,3 +819,35 @@ def get_version_string(format: str = "short") -> str:
     """Get a formatted version string."""
     info = get_build_info()
     return info["display"].get(format, info["display"]["short"])
+
+
+# ── Attestation cache (2026-11-16, F13 kernel-latency directive) ─────────────
+# get_runtime_attestation() recomputes _content_parity() (git ls-tree -r plus a
+# read of every *.py) and the deployment identity on every arif_init envelope.
+# Live profile: 87% of arif_init CPU in this path; 12 concurrent inits collapsed
+# to ~25s because every call re-hashed the tree. Attestation is read-only and
+# stable for the life of the process; cache compact/detail separately with a
+# 60s TTL so a deploy (which restarts the process) is still observed promptly.
+_ATTESTATION_CACHE: dict[bool, tuple[float, dict[str, Any]]] = {}
+_ATTESTATION_CACHE_LOCK = threading.Lock()
+_ATTESTATION_COMPUTE_LOCK = threading.Lock()
+_ATTESTATION_TTL_S = float(os.getenv("ARIFOS_ATTESTATION_CACHE_TTL_S", "60") or "60")
+
+
+def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
+    now = time.monotonic()
+    with _ATTESTATION_CACHE_LOCK:
+        cached = _ATTESTATION_CACHE.get(detail)
+        if cached is not None and (now - cached[0]) < _ATTESTATION_TTL_S:
+            return copy.deepcopy(cached[1])
+
+    # Single-flight: one thread computes, the rest reuse its result.
+    with _ATTESTATION_COMPUTE_LOCK:
+        with _ATTESTATION_CACHE_LOCK:
+            cached = _ATTESTATION_CACHE.get(detail)
+            if cached is not None and (time.monotonic() - cached[0]) < _ATTESTATION_TTL_S:
+                return copy.deepcopy(cached[1])
+        result = _get_runtime_attestation_uncached(detail=detail)
+        with _ATTESTATION_CACHE_LOCK:
+            _ATTESTATION_CACHE[detail] = (time.monotonic(), result)
+        return copy.deepcopy(result)
