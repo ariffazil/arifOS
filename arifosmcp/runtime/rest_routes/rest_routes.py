@@ -4813,13 +4813,41 @@ def register_rest_routes(
         _code_runtime_drift = bool(_drift.get("runtime_drift", False))
         degraded_reasons: list[dict[str, str]] = []
         if _sr_drift:
+            # 2026-11-17: name the pair that actually diverged. The old text
+            # hardcoded "source_commit != built_commit" even when source, built
+            # and deployed agreed and the gap was repo HEAD vs deployed — a
+            # false explanation on a truthful drift flag.
+            _a = _attest if isinstance(_attest, dict) else {}
+
+            def _f13d_div(x, y):
+                return (
+                    x not in ("", "?", "unknown", "None")
+                    and y not in ("", "?", "unknown", "None")
+                    and not (x.startswith(y[:7]) or y.startswith(x[:7]))
+                )
+
+            _src = str(_a.get("source_commit") or "?")
+            _built = str(_a.get("built_commit") or "?")
+            _dep = str(_a.get("deployed_commit") or "?")
+            _repo = str(_a.get("repo_head_commit") or "")
+            _pairs = []
+            if _f13d_div(_src, _built):
+                _pairs.append(f"source {_src[:12]} != built {_built[:12]}")
+            if _f13d_div(_built, _dep):
+                _pairs.append(f"built {_built[:12]} != deployed {_dep[:12]}")
+            if _repo and _f13d_div(_repo, _dep):
+                _pairs.append(f"repo_head {_repo[:12]} != deployed {_dep[:12]}")
+            if _a.get("deployed_reachable") is False:
+                _pairs.append("deployed stamp unreachable")
+            if not _pairs:
+                _pairs.append(f"drift_scope={_a.get('drift_scope') or 'undeclared'}")
             degraded_reasons.append(
                 {
                     "layer": "deployment_attestation",
                     "field": "software_release.drift",
                     "value": "true",
                     "severity": "warning",
-                    "explanation": "source_commit != built_commit in runtime attestation (SOT drift, not code drift)",
+                    "explanation": "; ".join(_pairs),
                 }
             )
         if _code_runtime_drift:
