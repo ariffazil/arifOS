@@ -127,3 +127,43 @@ def test_f6_none_payload_is_unmeasured() -> None:
     sig = _f6_maruah({"seals": [{"actor": "888", "payload": None}]})
     assert sig["status"] == "UNMEASURED"
     assert sig["origin"] == "unmeasured_default:no_heart_critique"
+
+
+# ── F6 OS-1 follow-up: a producer that RAN keeps its own diagnostic ──────────
+
+
+def test_f6_unmeasured_producer_publishes_own_diagnostic_not_skipped() -> None:
+    """2026-11-18 (333-AGI, OS-1 follow-up): the F6 producer returned
+    UNMEASURED:well_health:coverage_insufficient and the observatory publisher
+    stamped the fixed story "skipped producer, no measurement" over it. The
+    producer RAN — "skipped" is reserved for origins carrying _skipped. Same
+    rule as the unmeasured_default branch above it (K12: never a hard-coded
+    story)."""
+    import arifosmcp.runtime.rest_routes.rest_routes as _rr_inner
+    from arifosmcp.runtime.rest_routes import observatory_routes as _obs
+
+    real = _rr_inner._build_governance_status_payload
+
+    def _fake() -> dict:
+        return {
+            "floors": {"F6": None},
+            "floor_provenance": {
+                "F6": (
+                    "floor_producer:UNMEASURED:well_health:coverage_insufficient"
+                    "@2026-11-18T01:40:00Z"
+                )
+            },
+        }
+
+    _rr_inner._build_governance_status_payload = _fake  # type: ignore[attr-defined]
+    try:
+        out = _obs._governance_block()
+    finally:
+        _rr_inner._build_governance_status_payload = real  # type: ignore[attr-defined]
+
+    src = out["floors"]["F6"]["score"]["source"]
+    assert (
+        "instrumented producer ran — coverage insufficient "
+        "(well_health:coverage_insufficient)" in src
+    ), src
+    assert "skipped producer" not in src, src

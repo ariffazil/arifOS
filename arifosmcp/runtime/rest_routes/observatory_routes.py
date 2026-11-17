@@ -1021,7 +1021,18 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                 )
             elif "_skipped" in origin or score is None:
                 is_placeholder = True
-                placeholder_label = f"skipped producer, no measurement [{origin}]"
+                # 2026-11-18 (333-AGI): never a hard-coded story — same rule as the
+                # branch above. A producer that RAN and returned UNMEASURED:<reason>
+                # must publish its own diagnostic. "skipped" is reserved for origins
+                # with _skipped.
+                if origin.startswith("floor_producer:UNMEASURED:"):
+                    _producer_reason = origin.split("UNMEASURED:", 1)[1].split("@", 1)[0]
+                    placeholder_label = (
+                        f"instrumented producer ran — coverage insufficient "
+                        f"({_producer_reason}) [{origin}]"
+                    )
+                else:
+                    placeholder_label = f"skipped producer, no measurement [{origin}]"
             else:
                 is_placeholder = False
                 placeholder_label = None
