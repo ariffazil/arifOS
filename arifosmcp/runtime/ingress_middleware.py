@@ -1730,13 +1730,43 @@ if IS_FASTMCP_3:
                                 if k not in allowed_params and k not in internal
                             )
                             if unknown:
-                                logger.warning(
-                                    "ingress: rejecting unknown parameter(s) for %s: %s",
+                                # Some tools publish a NARROWER schema than their
+                                # signature (arif_seal's witness/blast_radius are
+                                # function params the published schema omits).
+                                # Consult the same signature D3 validates against
+                                # before rejecting, so legitimate fields flow and
+                                # only truly unknown ones are named and refused.
+                                fn_params: set[str] = set()
+                                try:
+                                    import inspect as _insp
+
+                                    _fastmcp_app = getattr(
+                                        getattr(context, "fastmcp_context", None),
+                                        "fastmcp",
+                                        None,
+                                    )
+                                    if _fastmcp_app is not None:
+                                        _tool_obj = await _fastmcp_app.get_tool(tool_name)
+                                        _fn = getattr(_tool_obj, "fn", None)
+                                        if _fn is not None:
+                                            fn_params = set(_insp.signature(_fn).parameters)
+                                except Exception:
+                                    fn_params = set()
+                                real_unknown = [k for k in unknown if k not in fn_params]
+                                if real_unknown:
+                                    logger.warning(
+                                        "ingress: rejecting unknown parameter(s) for %s: %s",
+                                        tool_name,
+                                        ", ".join(real_unknown),
+                                    )
+                                    return _unknown_parameter_rejection_result(
+                                        tool_name=tool_name, unknown=real_unknown
+                                    )
+                                logger.debug(
+                                    "ingress: %s carries unpublished but declared "
+                                    "parameter(s) for %s — passing through",
                                     tool_name,
-                                    ", ".join(unknown),
-                                )
-                                return _unknown_parameter_rejection_result(
-                                    tool_name=tool_name, unknown=unknown
+                                    ", ".join(k for k in unknown if k in fn_params),
                                 )
                             for k in internal:
                                 msg.arguments.pop(k, None)
