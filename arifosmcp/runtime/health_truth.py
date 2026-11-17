@@ -70,7 +70,7 @@ def classify_provenance(provenance: str | None) -> str:
         return MEASUREMENT_UNMEASURED
     if head.startswith("attestation") or head.startswith("signed"):
         return MEASUREMENT_ATTESTED
-    if any(t in head for t in ("probe", "producer", "live")):
+    if any(t in head for t in ("probe", "producer", "live")) or head == "measured" or head.endswith("_measured"):
         return MEASUREMENT_MEASURED
     return MEASUREMENT_UNMEASURED
 
