@@ -197,6 +197,66 @@ def _act_ledger_today(ledger_dir: Path = F6_LEDGER_DIR) -> dict[str, Any]:
     return out
 
 
+# ── M1 mutating-traffic evidence (D2, F13 GO 2026-11-17) ─────────────────────
+# M1's leg is the MUTATE gate. The federation stopped emitting the literal
+# "MUTATE" on 2026-11-10; live rows carry the canonical taxonomy
+# (ACTION_AUTHORIZATION / CONSTITUTIONAL_AMENDMENT / IRREVERSIBLE) or the R-band.
+# Counting only "MUTATE" made the meter blind. Counting every non-OBSERVE row
+# would instead mint a pass from SCT-era rows and from test fixtures — measured
+# 2026-11-17: 132 of 192 non-OBSERVE rows in 8 days were test actors and 0 rows
+# carried any ACT evidence. So the rule is class AND evidence AND not-a-fixture.
+TIER_M_ACTION_CLASSES = frozenset({
+    "MUTATE", "LIMITED_MUTATE", "ACTION_AUTHORIZATION",
+    "CONSTITUTIONAL_AMENDMENT", "IRREVERSIBLE",
+})
+
+
+def _is_test_actor(actor_id: Any) -> bool:
+    """Fixture actors never testify about a live gate (F2)."""
+    a = str(actor_id or "").strip().lower()
+    return a in {"test-agent", "test-runner"} or a.endswith("-test-actor")
+
+
+def _mutating_evidence_rows(ledger_dir: Path = F6_LEDGER_DIR) -> dict[str, Any]:
+    """Today's rows that prove the MUTATE gate ran — with evidence, not claims.
+
+    A row counts only if it carries act_fingerprint or require_act=true.
+    Absence of evidence is UNKNOWN, never PASS.
+    """
+    path = Path(ledger_dir) / f"act_decisions_{_utcnow()[:10]}.jsonl"
+    out: dict[str, Any] = {
+        "path": str(path), "counted": 0, "excluded_test": 0,
+        "excluded_no_evidence": 0, "excluded_class": 0, "tool_names": [],
+    }
+    if not path.exists():
+        return out
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return out
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            e = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if str(e.get("action_class") or "").strip().upper() not in TIER_M_ACTION_CLASSES:
+            out["excluded_class"] += 1
+            continue
+        if _is_test_actor(e.get("actor_id")):
+            out["excluded_test"] += 1
+            continue
+        if not (e.get("act_fingerprint") or e.get("require_act") is True):
+            out["excluded_no_evidence"] += 1
+            continue
+        out["counted"] += 1
+        tool = str(e.get("tool") or "")
+        if tool and tool not in out["tool_names"]:
+            out["tool_names"].append(tool)
+    return out
+
+
 # ── Meter 1: Authority-bypass count ──────────────────────────────────────────
 
 
@@ -306,13 +366,18 @@ def evaluate_meter_1_authority_bypass(
         cannot_check = sigs.get("E", 0)
     signed_n = sum(sigs.get(k, 0) for k in ("G", "U", "X", "Y"))
     seam = _lane_seam_status()
-    mutate_rows = int(ledger.get("action_classes", {}).get("MUTATE", 0))
+    # D2: tier-M classes + ACT evidence + no fixtures (see _mutating_evidence_rows).
+    _mut_ev = _mutating_evidence_rows(ledger_dir)
+    mutate_rows = int(_mut_ev.get("counted", 0))
     coverage = (
         "examined: last-20 A-FORGE commit signatures "
         f"(G={sigs.get('G', 0)} U={sigs.get('U', 0)} N={sigs.get('N', 0)} "
         f"E={sigs.get('E', 0)} other={sigs.get('other', 0)}) + "
         "today's ACT decision ledger "
-        f"(rows={ledger['rows']}, mutate_rows={mutate_rows}) + repo-local git identity; "
+        f"(rows={ledger['rows']}, mutate_rows={mutate_rows}; "
+        f"excluded: class={_mut_ev['excluded_class']}, "
+        f"test_actor={_mut_ev['excluded_test']}, "
+        f"no_act_evidence={_mut_ev['excluded_no_evidence']}) + repo-local git identity; "
         "NOT examined: cron paths, MCP ingress outside actIngress.ts, other repos"
     )
     if rc != 0:
@@ -347,15 +412,19 @@ def evaluate_meter_1_authority_bypass(
             result, meas = "PASS", Axis.MEASURED
             reason = (
                 f"signature trail holds ({signed_n}/20 signed: G={sigs['G']} U={sigs['U']}); "
-                f"{mutate_rows} MUTATE row(s) in today's ACT ledger evidence execution-time "
-                "gating; " + seam_clause
+                f"{mutate_rows} tier-M row(s) with ACT evidence in today's ledger "
+                f"({', '.join(_mut_ev['tool_names']) or 'unnamed tool'}) evidence "
+                "execution-time gating; " + seam_clause
             )
         else:
             result, meas = "UNKNOWN", Axis.MEASURED
             reason = (
                 f"signature trail holds ({signed_n}/20 signed: G={sigs['G']} U={sigs['U']}); "
-                f"ACT ledger {ledger['rows']} rows all OBSERVE — the MUTATE-gating leg is "
-                "unexercised and cannot be claimed PASS or FAIL from absence; " + seam_clause
+                f"ACT ledger {ledger['rows']} rows, no tier-M row with ACT evidence "
+                f"(excluded: class={_mut_ev['excluded_class']}, "
+                f"test_actor={_mut_ev['excluded_test']}, "
+                f"no_act_evidence={_mut_ev['excluded_no_evidence']}) — the MUTATE-gating "
+                "leg is unexercised and cannot be claimed PASS or FAIL from absence; " + seam_clause
             )
     return MeterAssessment(
         meter_id="M1_authority_bypass",
