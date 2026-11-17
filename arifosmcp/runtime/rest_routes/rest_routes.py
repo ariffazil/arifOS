@@ -1783,29 +1783,57 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 f"unmeasured_default:seal_chain_unreachable:{type(_f5_exc).__name__}"
             )
 
-        # F6 MARUAH — six system-behavior meters + human-witness lane (read-only),
-        # with the seal-level heart_critique check as a FAIL-only fallback
-        # (2026-10-26 merge: feat/f6-maruah-v0-20261023 + the 2026-10-24
-        # MARUAH_HIKMAH wiring). Missing meters/witness -> UNMEASURED, never PASS.
+        # F6 MARUAH — OS-1 Source A (F13 GO 2026-11-18): the kernel reads the
+        # WELL SERVED truth (127.0.0.1:18083/health) coverage-first; the six
+        # system-behavior meters stay as the fallback determination when WELL
+        # is unreachable, and the seal-level heart_critique check remains a
+        # FAIL-only guard inside the producer (never averaged away).
+        # Covered -> MEASURED_V0_PARTIAL with the conservative f6_index as the
+        # reading; uncovered -> honest null-with-reason under the producer
+        # origin. NEVER a painted number.
         try:
             from arifosmcp.runtime.f6.meters import evaluate_all as _f6_eval_all
 
             _f6_report = _f6_eval_all()
             measurement_basis["f6_maruah"] = _f6_report
-            _f6_sig = collect_floor_producer_signal(
-                "F6",
-                sources={
-                    "meters": _f6_report.get("meters", []),
-                    "seals": _seal_rows,
-                },
+            _wh: dict[str, Any] | None = None
+            try:
+                import urllib.request as _ureq
+
+                with _ureq.urlopen(  # noqa: S310
+                    "http://127.0.0.1:18083/health", timeout=2.5
+                ) as _wh_resp:
+                    _wh_body = _wh_resp.read()
+                _wh = _json.loads(_wh_body) if _wh_body else None
+                if not isinstance(_wh, dict):
+                    _wh = None
+            except Exception:
+                _wh = None  # honest: WELL unreachable -> meters fallback path
+            _f6_sources = {"meters": _f6_report.get("meters", []), "seals": _seal_rows}
+            if _wh is not None:
+                _f6_sources["well_health"] = _wh
+            _f6_sig = collect_floor_producer_signal("F6", sources=_f6_sources)
+            measurement_basis["f6_well_coverage"] = (
+                {
+                    _k: _f6_sig.get(_k)
+                    for _k in ("status", "origin", "f6_index", "verdict", "null_reasons")
+                }
+                if _wh is not None
+                else {"status": "WELL_UNREACHABLE", "origin": "well_health:fetch_failed"}
             )
-            if _f6_sig.get("status") in _producer_score:
-                _wire_producer(
-                    "F6",
-                    {"meters": _f6_report.get("meters", []), "seals": _seal_rows},
+            _f6_st = str(_f6_sig.get("status") or "UNMEASURED").upper()
+            if _f6_st == "MEASURED":
+                # OS-1 covered: the reading IS the conservative f6_index
+                # (F7 band semantics) — never projected to 1.0.
+                resolved_floors["F6"] = _f6_sig.get("f6_index")
+                floor_provenance["F6"] = (
+                    f"floor_producer:MEASURED:{_f6_sig.get('origin')}"
+                    f"@{_f6_sig.get('measured_at') or now_iso()}"
                 )
+            elif _f6_st in _producer_score:
+                _wire_producer("F6", _f6_sources)
             else:
-                # F6 seam closure: a valid UNMEASURED/UNKNOWN from the REAL
+                # F6 seam closure: a valid UNMEASURED/STALE from the REAL
                 # producer is a first-class state — score stays None (never
                 # coerced), provenance names the producer, not _FLOOR_DEFAULTS.
                 _f6_score, _f6_prov = _f6_first_class_state(_f6_sig)

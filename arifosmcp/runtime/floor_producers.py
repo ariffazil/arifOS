@@ -28,7 +28,10 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
+# MEASURED (OS-1 2026-11-18, F13 GO): a real instrument reading whose value is
+# the measurement itself (F7 band semantics) — the consumer assigns the
+# producer's own index, never a projected 1.0.
+FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR", "MEASURED")
 
 # ── KX-010 measurement-contract labels (VD-888-KX010-APEX-MEASUREMENT-CONTRACT-2026-10-27) ──
 # ADDITIVE wire data only: these keys describe the measurement, they are NEVER
@@ -76,7 +79,10 @@ _FLOOR_CONTRACT_LABELS: dict[str, dict[str, Any]] = {
     "F6": {
         "falsification_test": (
             "re-run the six F6 meters and the witness lane; a meter reporting "
-            "PASS with missing inputs falsifies it"
+            "PASS with missing inputs falsifies it; for OS-1 Source A re-probe "
+            "WELL /health — a covered verdict with truth_status outside "
+            "{OPERATOR_VERBAL, OPERATOR_REPORTED}, age beyond the 4h band, or "
+            "contaminated state falsifies it"
         ),
     },
     "F8": {
@@ -136,9 +142,7 @@ _NO_PRODUCER_CONTRACT_LABELS: dict[str, Any] = {
 }
 
 
-def _floor_wire_labels(
-    fid: str, *, is_measured: bool, basis_unmeasured: Any
-) -> dict[str, Any]:
+def _floor_wire_labels(fid: str, *, is_measured: bool, basis_unmeasured: Any) -> dict[str, Any]:
     """KX-011 (2026-11-02): /health wire contract labels with LIVE contradiction.
 
     Producer-level ``_FLOOR_CONTRACT_LABELS`` keep the static A6 disclosure —
@@ -644,6 +648,138 @@ def _f6_maruah_seal_fallback(sources: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+_F6_TRUTH_COVERED = frozenset({"OPERATOR_VERBAL", "OPERATOR_REPORTED"})
+_F6_STATE_MAX_AGE_S = 4 * 3600  # mirror of well_mcp f6_maruah STATE_MAX_AGE_S (4h band)
+
+
+def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
+    """F6 MARUAH Source A — WELL served-surface coverage (OS-1, F13 GO 2026-11-18).
+
+    Reads the WELL /health payload the CALLER injected (producers stay pure:
+    evidence in, signal out — the kernel fetches the served truth in
+    rest_routes, respecting the H1 cutover: kernel reads what :18083 SERVES,
+    never WELL's modular target). Coverage-first rule mirrors the
+    well_mcp/tools/f6_maruah.py substrate class: covered iff truth_status
+    ∈ {OPERATOR_VERBAL, OPERATOR_REPORTED} AND age ≤ stale_after (4h band)
+    AND uncontaminated. Null-unless-covered; NEVER a painted number.
+
+    Seal heart_critique FAIL conditions stay in front: declared coercion or
+    compromised dignity is never averaged away by coverage.
+    """
+    if seals:
+        for s in seals:
+            payload = (s or {}).get("payload")
+            if isinstance(payload, str):
+                try:
+                    payload = json.loads(payload)
+                except (TypeError, ValueError):
+                    continue
+            if not isinstance(payload, dict):
+                continue
+            critique = payload.get("heart_critique")
+            if not isinstance(critique, dict):
+                continue
+            if critique.get("coercion") is True:
+                return {
+                    "floor": "F6",
+                    "status": "FAIL",
+                    "origin": "heart_critique",
+                    "reason": "coercion_present",
+                }
+            if str(critique.get("dignity_verdict") or "").upper() == "COMPROMISED":
+                return {
+                    "floor": "F6",
+                    "status": "FAIL",
+                    "origin": "heart_critique",
+                    "reason": "dignity_verdict_compromised",
+                }
+            _d = critique.get("dignity")
+            if isinstance(_d, (int, float)) and _d < 0.5:
+                return {
+                    "floor": "F6",
+                    "status": "FAIL",
+                    "origin": "heart_critique",
+                    "reason": "dignity_conflict",
+                    "dignity": _d,
+                }
+
+    truth = str(wh.get("truth_status") or "").upper()
+    fr = wh.get("freshness") if isinstance(wh.get("freshness"), dict) else {}
+    honesty = wh.get("honesty") if isinstance(wh.get("honesty"), dict) else {}
+    try:
+        cap = float(
+            fr.get("stale_after_seconds") or fr.get("expired_after_seconds") or _F6_STATE_MAX_AGE_S
+        )
+    except (TypeError, ValueError):
+        cap = float(_F6_STATE_MAX_AGE_S)
+    _age_raw = fr.get("age_seconds")
+    try:
+        age: float | None = float(_age_raw) if _age_raw is not None else None
+    except (TypeError, ValueError):
+        age = None
+    contaminated = (
+        str(wh.get("environment") or "").upper() == "TEST" or honesty.get("is_mock_or_test") is True
+    )
+    truth_ok = truth in _F6_TRUTH_COVERED
+    age_ok = age is not None and age <= cap
+    covered = truth_ok and age_ok and not contaminated
+
+    coverage = {
+        "truth_status": truth or None,
+        "source_type": honesty.get("source_type"),
+        "age_seconds": age,
+        "cap_seconds": cap,
+        "contaminated": contaminated,
+    }
+    null_reasons: list[str] = []
+    if not truth_ok:
+        null_reasons.append(
+            f"human_substrate: truth={truth or 'NONE'} (need OPERATOR_VERBAL|OPERATOR_REPORTED)"
+        )
+    if not age_ok:
+        null_reasons.append(
+            f"human_substrate: age={'UNKNOWN' if age is None else f'{age:.0f}s'} > {cap:.0f}s cap"
+        )
+    if contaminated:
+        null_reasons.append("human_substrate: contaminated (TEST env or mock/test state)")
+
+    base: dict[str, Any] = {
+        "floor": "F6",
+        "f6_index": None,
+        "verdict": "INSTRUMENTED_COVERAGE_INSUFFICIENT",
+        "null_reasons": null_reasons,
+        "coverage": coverage,
+        "instrument": "well_health_served_v0",
+        "instrument_note": (
+            "OS-1 Source A: kernel reads the served /health only; the "
+            "consequence_flow class is not observable from the served surface, "
+            "so a covered reading carries the conservative floor of the WELL "
+            "v0 formula (0.5 + 0.5*flow with worst-case flow factor 0)."
+        ),
+    }
+    if not covered:
+        stale = truth_ok and age is not None and age > cap
+        return {
+            **base,
+            "status": "STALE" if stale else "UNMEASURED",
+            "origin": "well_health:stale_substrate"
+            if stale
+            else "well_health:coverage_insufficient",
+        }
+    return {
+        **base,
+        "status": "MEASURED",
+        "origin": f"well_health:f6_v0_partial:covered@age={age:.0f}s",
+        "f6_index": 0.5,
+        "verdict": "MEASURED_V0_PARTIAL",
+        "null_reasons": [],
+        "shadow_residual": [
+            "consequence_flow (intake receipts) unobservable from served /health — worst-case flow factor assumed",
+            "dignity_surface guard verified WELL-side only, not re-checked here",
+        ],
+    }
+
+
 def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
     """F6 MARUAH = six separate system-behavior meters + human-witness lane.
 
@@ -678,6 +814,17 @@ def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
             "origin": "unmeasured_default:kappa_r_proxy_rejected",
             "reason": "kappa_r is reversibility, never F6 Maruah (spec C.11)",
         }
+
+    # ── OS-1 Source A (F13 GO 2026-11-18): WELL /health coverage-first ──────
+    # When the caller could read the WELL served truth, it decides F6:
+    # covered -> MEASURED_V0_PARTIAL (conservative index), uncovered ->
+    # honest null-with-reason carrying the producer origin (NOT
+    # unmeasured_default — the floor line reads "instrumented, coverage
+    # insufficient"). WELL unreachable (well_health absent) falls through to
+    # the meters path below, unchanged.
+    _wh = sources.get("well_health")
+    if isinstance(_wh, dict):
+        return _f6_well_coverage(_wh, sources.get("seals"))
 
     meters = sources.get("meters")
     if not meters or not isinstance(meters, list) or len(meters) < 6:
@@ -1098,7 +1245,6 @@ def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-
 # ── F7 HUMILITY (Gate 4, F13 directive 2026-11-02) ──────────────────────────
 # Ω₀ uncertainty-band discipline. Canon already defines the semantics:
 #   core/shared/types.py   AgiMetrics.omega_0 Field(ge=0.03, le=0.05) HARD
@@ -1196,7 +1342,7 @@ _PRODUCERS = {
     "F11": _f11_audit,
     "F12": _f12_injection,
     "F13": _f13_sovereign,
-}# ── Floor measurement ontology (Gate 1, F13 directive 2026-11-02) ───────────
+}  # ── Floor measurement ontology (Gate 1, F13 directive 2026-11-02) ───────────
 # Arif composition audit: the floor panel mixes continuous scores, thresholded
 # quotients, binary predicate passes projected to 1.00, and lower-is-better
 # risks — "a typed vector, not a scalar composition". This table types each
@@ -1251,11 +1397,15 @@ _FLOOR_ONTOLOGY: dict[str, dict[str, Any]] = {
         "value_kind": "predicate",
         "direction": "none",
         "evidence_class": "PREDICATE_PASS",
-        "scope": "six system-behavior meters + human witness lane",
-        "producer_instrument": "floor_producers._f6_maruah",
+        "scope": "WELL served truth coverage (OS-1 Source A) + six system-behavior meters fallback",
+        "producer_instrument": (
+            "floor_producers._f6_well_coverage (OS-1 WELL /health Source A) "
+            "+ floor_producers._f6_maruah (meters/seal fallback)"
+        ),
     },
     "F7": {
-        "value_kind": "score", "direction": "none",
+        "value_kind": "score",
+        "direction": "none",
         "evidence_class": "PREDICATE_PASS",
         "scope": "Ω₀ uncertainty-band discipline (AgiMetrics.omega_0 ∈ [0.03,0.05] HARD)",
         "producer_instrument": "floor_producers._f7_humility (Ω₀ band + constraint enforcement)",
@@ -1380,4 +1530,3 @@ def floor_ontology_record(
         if _k in onto:
             rec[_k] = onto[_k]
     return rec
-
