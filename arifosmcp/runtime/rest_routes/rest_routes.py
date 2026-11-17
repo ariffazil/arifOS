@@ -445,6 +445,12 @@ def _well_snapshot_loop() -> None:
                     "err": f"{type(_exc).__name__}: {str(_exc)[:120]}",
                 }
             )
+            # Fast retry on failure: a fetch that races a kernel /health cold
+            # build times out (the blocked loop cannot serve WELL's callback
+            # into :8088). Cold builds run ~10s, so a 2s retry rides out the
+            # window instead of parking the snapshot in a 30s error hole.
+            time.sleep(2.0)
+            continue
         time.sleep(WELL_SNAPSHOT_INTERVAL_S)
 
 
