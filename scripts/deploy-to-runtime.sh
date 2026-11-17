@@ -169,6 +169,39 @@ with open(p, 'w') as f:
 fi
 log "Deployment commit stamps updated to ${COMMIT_SHA:0:7}"
 
+# ── Publish the release label (2026-11-17) ───────────────────────────────────
+# /health release_name and release_tag are BUILD_INFO["version"], and that is
+# canon_release.canon_version -- ONE publisher. deploy-release.sh regenerates
+# it on a full build; this script advanced the commit stamps but left the
+# label naming the PREVIOUS commit, so a reader trusting release_name read a
+# commit that was no longer running. Same publisher, same rule:
+# canon_version = <deploy_date>-<sha7>; every other field preserved verbatim.
+CANON_RELEASE="/etc/arifos/canon/canon-release.json"
+if [[ -f "$CANON_RELEASE" ]]; then
+    if python3 - "$CANON_RELEASE" "$(date -u +%Y.%m.%d)" "${COMMIT_SHA:0:7}" <<'PYEOF'
+import json, os, sys, tempfile
+
+path, date, sha = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(path) as fh:
+    d = json.load(fh)
+old = d.get("canon_version")
+d["canon_version"] = f"{date}-{sha}"
+d["source_commit"] = sha
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".canon-release.", suffix=".tmp")
+with os.fdopen(fd, "w") as out:
+    json.dump(d, out, ensure_ascii=False)
+    out.write("\n")
+os.chmod(tmp, 0o644)
+os.replace(tmp, path)
+print(f"canon_version {old} -> {d['canon_version']}")
+PYEOF
+    then
+        log "Release label updated ($CANON_RELEASE)"
+    else
+        log "WARN: could not update $CANON_RELEASE — release_name stays on the previous commit"
+    fi
+fi
+
 # ── Restart services ────────────────────────────────────────────────────────
 for svc in "${SERVICES[@]}"; do
     log "Restarting $svc"
