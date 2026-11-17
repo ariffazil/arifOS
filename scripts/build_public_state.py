@@ -312,6 +312,99 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
     }
 
 
+def _parse_mcp_http_payload(raw_bytes: bytes) -> dict[str, Any]:
+    """Decode JSON or SSE `data:` frame from a Streamable HTTP MCP response."""
+    text = raw_bytes.decode("utf-8", errors="replace").strip()
+    if not text:
+        return {}
+    if text.startswith("{"):
+        return json.loads(text)
+    for line in text.splitlines():
+        if line.startswith("data:"):
+            payload = line[5:].strip()
+            if payload.startswith("{"):
+                return json.loads(payload)
+    return {}
+
+
+def probe_aaamcp(timeout: float = 1.5) -> dict[str, Any]:
+    """Probe the loopback-only AAA FastMCP service (:3002/mcp) via Streamable HTTP."""
+    url = "http://127.0.0.1:3002/mcp"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
+    observed_at = now_iso()
+    try:
+        init_body = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-03-26",
+                    "capabilities": {},
+                    "clientInfo": {"name": "arifos-observatory-probe", "version": "1"},
+                },
+            }
+        ).encode("utf-8")
+        init_req = urllib.request.Request(url, data=init_body, headers=headers, method="POST")
+        with urllib.request.urlopen(init_req, timeout=timeout) as resp:
+            session_id = resp.headers.get("mcp-session-id")
+            init_payload = _parse_mcp_http_payload(resp.read())
+        init_result = init_payload.get("result") if isinstance(init_payload, dict) else {}
+        if not isinstance(init_result, dict):
+            init_result = {}
+        server_info = (
+            init_result.get("serverInfo") if isinstance(init_result.get("serverInfo"), dict) else {}
+        )
+        tools: list[str] = []
+        if session_id:
+            list_body = json.dumps(
+                {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
+            ).encode("utf-8")
+            list_req = urllib.request.Request(
+                url,
+                data=list_body,
+                headers={**headers, "mcp-session-id": session_id},
+                method="POST",
+            )
+            with urllib.request.urlopen(list_req, timeout=timeout) as resp:
+                list_payload = _parse_mcp_http_payload(resp.read())
+            list_result = list_payload.get("result") if isinstance(list_payload, dict) else {}
+            raw_tools = list_result.get("tools") if isinstance(list_result, dict) else []
+            if isinstance(raw_tools, list):
+                tools = [
+                    str(item["name"])
+                    for item in raw_tools
+                    if isinstance(item, dict) and item.get("name")
+                ]
+        return {
+            "organ_id": "aaamcp",
+            "liveness": "live",
+            "state": "healthy" if tools else "degraded",
+            "transport": "http_200",
+            "server_name": server_info.get("name"),
+            "server_version": server_info.get("version"),
+            "protocol_version": init_result.get("protocolVersion"),
+            "tool_count": len(tools),
+            "tools": tools,
+            "observed_at": observed_at,
+            "source": "POST 127.0.0.1:3002/mcp initialize+tools/list",
+            "confidence": 0.99 if tools else 0.7,
+        }
+    except Exception as exc:
+        return {
+            "organ_id": "aaamcp",
+            "liveness": "unreachable",
+            "state": "unknown",
+            "reason": f"{type(exc).__name__}:{str(exc)[:80]}",
+            "observed_at": observed_at,
+            "source": "POST 127.0.0.1:3002/mcp",
+            "confidence": 0.0,
+        }
+
+
 def load_snapshot(path: Path | None = None) -> dict[str, Any] | None:
     p = path or SNAPSHOT_LATEST
     if not p.exists():
@@ -457,6 +550,59 @@ def project_public_state(
     caps = snap.get("capabilities") if isinstance(snap.get("capabilities"), dict) else {}
     fed = snap.get("federation_edges") if isinstance(snap.get("federation_edges"), dict) else {}
     receipts = snap.get("receipts") if isinstance(snap.get("receipts"), dict) else {}
+    receipts = dict(receipts)
+    # 2026-11-17 333-AGI — one head, two names. `receipts.head_seq` and
+    # `receipts.seal_chain_seq` were the raw sealer-panel alias (78 = canonical
+    # entry count) while `chain_integrity.head_seq_canonical` is the verified
+    # chain head (61). Derive the public aliases from the canonical chain scope
+    # so no consumer can read two heads from one document.
+    _canonical_head = extra.get("chain_canonical_head_seq")
+    _canonical_entries = extra.get("chain_canonical_entries")
+    _canonical_hash = extra.get("chain_head_hash")
+    _canonical_observed = extra.get("chain_observed_at") or now_iso()
+    if _canonical_head is not None:
+        for _alias in ("head_seq", "seal_chain_seq"):
+            _old = receipts.get(_alias)
+            _env = dict(_old) if isinstance(_old, dict) else {}
+            _env.update(
+                {
+                    "value": _canonical_head,
+                    "state": "observed",
+                    "source": "chain_integrity.head_seq_canonical (single source)",
+                    "observed_at": _canonical_observed,
+                    "confidence": 0.99,
+                    "verification_state": "VERIFIED",
+                }
+            )
+            receipts[_alias] = _env
+    if _canonical_entries is not None:
+        _old = receipts.get("canonical_entry_count")
+        _env = dict(_old) if isinstance(_old, dict) else {}
+        _env.update(
+            {
+                "value": _canonical_entries,
+                "state": "observed",
+                "source": "chain_integrity.canonical_entries (single source)",
+                "observed_at": _canonical_observed,
+                "confidence": 0.99,
+                "verification_state": "VERIFIED",
+            }
+        )
+        receipts["canonical_entry_count"] = _env
+    if _canonical_hash is not None:
+        _old = receipts.get("head_hash")
+        _env = dict(_old) if isinstance(_old, dict) else {}
+        _env.update(
+            {
+                "value": _canonical_hash,
+                "state": "observed",
+                "source": "chain_integrity.head_hash (single source)",
+                "observed_at": _canonical_observed,
+                "confidence": 0.99,
+                "verification_state": "VERIFIED",
+            }
+        )
+        receipts["head_hash"] = _env
     gov = snap.get("governance") if isinstance(snap.get("governance"), dict) else {}
     findings_block = snap.get("findings") if isinstance(snap.get("findings"), dict) else {}
     findings = (
@@ -705,12 +851,28 @@ def project_public_state(
     # ── F2 Runtime Identity calculation (pre-envelope preparation) ──
     _ri_obs = snap.get("observed_at") or extra.get("ariflow_observed_at") or now_iso()
     _drift_f = dict(ri.get("drift")) if isinstance(ri.get("drift"), dict) else {}
-    _drift_val = dict(_drift_f.get("value") if isinstance(_drift_f.get("value"), dict) else (drift_obj if isinstance(drift_obj, dict) else {}))
-    _drift_val.setdefault("artifact", "ALIGNED" if (build and deployed and (build.startswith(deployed) or deployed.startswith(build))) else "DRIFTED")
+    _drift_val = dict(
+        _drift_f.get("value")
+        if isinstance(_drift_f.get("value"), dict)
+        else (drift_obj if isinstance(drift_obj, dict) else {})
+    )
+    _drift_val.setdefault(
+        "artifact",
+        "ALIGNED"
+        if (build and deployed and (build.startswith(deployed) or deployed.startswith(build)))
+        else "DRIFTED",
+    )
     _drift_val["artifact_scope"] = "build_vs_deployed"
-    _drift_val.setdefault("build_vs_deployed", "ALIGNED" if (build and deployed and (build.startswith(deployed) or deployed.startswith(build))) else "DRIFTED")
+    _drift_val.setdefault(
+        "build_vs_deployed",
+        "ALIGNED"
+        if (build and deployed and (build.startswith(deployed) or deployed.startswith(build)))
+        else "DRIFTED",
+    )
     _drift_val["workspace_vs_deployed"] = alignment
-    _drift_val.setdefault("capability", "ALIGNED" if (caps.get("degraded_count", 0) or 0) == 0 else "DRIFTED")
+    _drift_val.setdefault(
+        "capability", "ALIGNED" if (caps.get("degraded_count", 0) or 0) == 0 else "DRIFTED"
+    )
     _drift_val.setdefault("forge_registry", "ALIGNED")
     _drift_val.setdefault("schema", "UNKNOWN")
     _drift_val.setdefault("route", "UNKNOWN")
@@ -847,7 +1009,12 @@ def project_public_state(
                 evidence_class="observed",
             ),
             "kernel_epoch": _wrap_identity_field(
-                {"value": "2026-07-03", "state": "observed", "source": "arifOS constitutional epoch (2026-07-03)", "confidence": 0.99},
+                {
+                    "value": "2026-07-03",
+                    "state": "observed",
+                    "source": "arifOS constitutional epoch (2026-07-03)",
+                    "confidence": 0.99,
+                },
                 default_val="2026-07-03",
                 default_src="arifOS constitutional epoch (2026-07-03)",
                 observed_at=_ri_obs,
@@ -930,7 +1097,9 @@ def project_public_state(
             "scope": "6 core organs (arifos, geox, wealth, well, aforge, aaa)",
             "source": "ariflow:7073/health :: fq.per_actor",
             "observed_at": extra.get("ariflow_observed_at"),
-            "verification_state": "VERIFIED" if extra.get("fleet_held") is not None else "NOT_ATTEMPTED",
+            "verification_state": "VERIFIED"
+            if extra.get("fleet_held") is not None
+            else "NOT_ATTEMPTED",
         },
         "ariflow": {
             "fq_quotient": extra.get("ariflow_fq_quotient"),
@@ -948,12 +1117,16 @@ def project_public_state(
             },
             "status": {
                 "value": extra.get("ariflow_status"),
-                "state": "healthy" if extra.get("ariflow_status") == "ok-v3-vector" else ("unknown" if not extra.get("ariflow_status") else "degraded"),
+                "state": "healthy"
+                if extra.get("ariflow_status") == "ok-v3-vector"
+                else ("unknown" if not extra.get("ariflow_status") else "degraded"),
                 "source": "GET 127.0.0.1:7073/health→status",
                 "observed_at": extra.get("ariflow_observed_at"),
                 "confidence": 0.9 if extra.get("ariflow_status") else 0.0,
                 "evidence_class": "observed",
-                "verification_state": "VERIFIED" if extra.get("ariflow_status") == "ok-v3-vector" else "NOT_ATTEMPTED",
+                "verification_state": "VERIFIED"
+                if extra.get("ariflow_status") == "ok-v3-vector"
+                else "NOT_ATTEMPTED",
             },
             "uptime_ms": extra.get("ariflow_uptime_ms"),
             "source": extra.get("ariflow_source", "ariflow:7073/health"),
@@ -1006,8 +1179,19 @@ def project_public_state(
         # into public-state so the Observatory vault block reads the same
         # sources/chain as the signed snapshot instead of rendering 0/unavailable.
         "evidence": snap.get("evidence"),
-        "receipts": snap.get("receipts"),
-
+        "receipts": receipts,
+        "stage_evidence": snap.get("stage_evidence"),
+        "conformance": snap.get("conformance"),
+        "authority": snap.get("authority"),
+        "authority_dimensions": snap.get("authority_dimensions"),
+        "tier": snap.get("tier"),
+        "incidents": snap.get("incidents") if isinstance(snap.get("incidents"), list) else [],
+        "intelligence_decomposition": snap.get("intelligence_decomposition"),
+        "declared_surfaces": (
+            {"aaamcp": extra["aaamcp"]}
+            if isinstance(extra.get("aaamcp"), dict)
+            else snap.get("declared_surfaces")
+        ),
         # ── Kernel canonical verdict (T1.6): the actual nine-signal verdict
         # (BELUM_SAH / SYUBHAH / SABAR / SEAL / HOLD) — never the parser's
         # 'UNKNOWN' fallback, which would render as false-green HOLD.
@@ -1095,6 +1279,12 @@ def project_public_state(
             "verify": "PROVEN"
             if verify is True
             else ("NOT_PROVEN" if verify is None else "FAILED"),
+            "verify_scope": "full_chain (canonical + historical)",
+            "canonical_verify": (
+                "PROVEN"
+                if extra.get("chain_canonical_verified") is True
+                else ("FAILED" if extra.get("chain_canonical_verified") is False else "NOT_PROVEN")
+            ),
             "replay": "PROVEN"
             if replay is True
             else ("NOT_PROVEN" if replay is None else "FAILED"),
@@ -1123,7 +1313,13 @@ def project_public_state(
                 )
                 else (
                     receipts.get("VAULT999")
-                    or ("HEALTHY" if verify is True else "DEGRADED" if verify is False else "UNKNOWN")
+                    or (
+                        "HEALTHY"
+                        if verify is True
+                        else "DEGRADED"
+                        if verify is False
+                        else "UNKNOWN"
+                    )
                 )
             ),
             "verify_url": "https://arif-fazil.com/999/",
@@ -1554,6 +1750,8 @@ def collect_extras() -> dict[str, Any]:
         extras["apex_source"] = "aaa:3001/health"
         extras["apex_observed_at"] = observed_at
 
+    extras["aaamcp"] = probe_aaamcp(timeout=1.5)
+
     # ── arifFLOW FQ from /health (Rust daemon :7073)
     flow = probe_url("http://127.0.0.1:7073/health", timeout=2.0)
     if flow.get("state") == "PRESENT":
@@ -1800,7 +1998,9 @@ def wire_observatory_contract(state: dict[str, Any]) -> dict[str, Any]:
             health_degraded = str(row.get("health_status") or "").upper() == "DEGRADED"
             if status_code is not None:
                 row["readiness"] = {
-                    "value": f"http {status_code} (degraded)" if (status_code == 200 and health_degraded) else f"http {status_code}",
+                    "value": f"http {status_code} (degraded)"
+                    if (status_code == 200 and health_degraded)
+                    else f"http {status_code}",
                     "state": "degraded" if (status_code != 200 or health_degraded) else "healthy",
                     "source": "live /health probe",
                     "confidence": row.get("confidence"),
@@ -1913,9 +2113,7 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
     # SCAR-VAULT-2026-11-15: gate on GENUINE linkage failures; v1-era backlog is
     # immutable history and is reported separately, never silently green.
     _gate_n = genuine_n if genuine_n is not None else unlinked_n
-    gaps_open = "gap" in raw_chain_text.lower() or (
-        isinstance(_gate_n, int) and _gate_n > 0
-    )
+    gaps_open = "gap" in raw_chain_text.lower() or (isinstance(_gate_n, int) and _gate_n > 0)
     chain_ok = bool(rb.get("chain_verified")) and not gaps_open
     # 2026-10-24 333-AGI: the chip previously read "canonical UNKNOWN · head_seq 73"
     # — a status that was never measured plus a COUNT wearing a sequence label.
@@ -1930,9 +2128,8 @@ def _p0a_wire_census(state: dict[str, Any], flow: dict[str, Any]) -> None:
     _hist_gaps = (state.get("chain_integrity") or {}).get("gap_count_historical")
     _canon_gaps = (state.get("chain_integrity") or {}).get("gap_count_canonical", 0)
     if isinstance(genuine_n, int):
-        _unlinked_str = (
-            f" · unlinked {genuine_n}"
-            + (f" · legacy_v1 {legacy_n}" if isinstance(legacy_n, int) else "")
+        _unlinked_str = f" · unlinked {genuine_n}" + (
+            f" · legacy_v1 {legacy_n}" if isinstance(legacy_n, int) else ""
         )
     elif isinstance(unlinked_n, int):
         _unlinked_str = f" · unlinked {unlinked_n}"
