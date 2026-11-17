@@ -335,6 +335,7 @@ def _art_reflex_check(
                 action_class=requested_action.value,
                 is_reversible=(manifest_entry.is_reversible if manifest_entry else False),
                 session_id=envelope.kernel.session_id,
+                session_token=(envelope.payload.get("session_token") or envelope.payload.get("sct") or "").strip() or None,
                 # [2026-10-26 IDENTITY_BUCKET] These receipts are the KERNEL's own
                 # self-check, so they book under the kernel's namespace. They used
                 # to fall through to the literal bucket "anonymous", which made an
