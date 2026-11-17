@@ -253,6 +253,9 @@ def _emit_flow_receipt(
         # None on every ART evidence receipt (54,764-row audit: arifOS 0/5,284).
         # Thread the caller's SCT when present — omitted, never fabricated.
         "session_token": session_token,
+        # 2026-11-18 (333-AGI, binding-gap item 6 residue): the ART emitter
+        # never named its organ — routed_organ was null on this lane.
+        "routed_organ": "arifOS",
         "step_type": "Verify",
         "risk_class": "T0Observe",
         "topology_id": "art-evidence-gate",
