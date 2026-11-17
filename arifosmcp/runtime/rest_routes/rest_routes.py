@@ -35,6 +35,7 @@ import secrets
 import socket
 import subprocess  # nosec B404
 import sys
+import threading
 import time
 import uuid
 from collections.abc import Callable
@@ -405,6 +406,57 @@ _WITNESS_DEFAULTS: dict[str, float] = {"human": 0.42, "ai": 0.32, "earth": 0.26}
 # /health was ~1.5s per request (governance kernel cold-start + redundant probes).
 # Cache with 30s TTL drops it to <5ms. Kernel is primed once at import time.
 _health_cache: dict[str, Any] = {"payload": None, "ts": 0.0}
+
+# ── F6 OS-1 WELL snapshot refresher (2026-11-18 live-defect fix) ─────────────
+# Measured in-service defect: fetching WELL :18083/health inline during the
+# /health cold build deadlocks — WELL's own /health calls BACK into kernel
+# :8088/health (server.py:2769,2813 federation geometry), the kernel event
+# loop is blocked inside the inline fetch, and both sides stall until the
+# 2.5s socket timeout (TimeoutError). Shell-side fetches never saw it because
+# the kernel answered WELL from the warm cache. Fix: a daemon refresher
+# thread owns the fetch — the event loop stays free to serve WELL's callback,
+# so the cycle cannot close. The builder reads the snapshot and never fetches
+# inline. Snapshot cadence (30s) is trivially small against the 4h F6 band;
+# the snapshot age is disclosed in the f6_well_coverage marker.
+_well_health_snapshot: dict[str, Any] = {"payload": None, "ts": 0.0, "err": None}
+_well_snapshot_thread: threading.Thread | None = None
+_well_snapshot_lock = threading.Lock()
+WELL_SNAPSHOT_INTERVAL_S = 30.0
+
+
+def _well_snapshot_loop() -> None:
+    while True:
+        try:
+            import urllib.request as _ureq
+
+            with _ureq.urlopen(  # noqa: S310
+                "http://127.0.0.1:18083/health", timeout=2.5
+            ) as _resp:
+                _body = _resp.read()
+            _payload = json.loads(_body) if _body else None
+            if not isinstance(_payload, dict):
+                raise ValueError("well /health payload is not a JSON object")
+            _well_health_snapshot.update({"payload": _payload, "ts": time.time(), "err": None})
+        except Exception as _exc:  # noqa: BLE001 — refresher must never die
+            _well_health_snapshot.update(
+                {
+                    "payload": None,
+                    "ts": time.time(),
+                    "err": f"{type(_exc).__name__}: {str(_exc)[:120]}",
+                }
+            )
+        time.sleep(WELL_SNAPSHOT_INTERVAL_S)
+
+
+def _ensure_well_snapshot() -> dict[str, Any]:
+    """Start the daemon refresher once; return the current snapshot."""
+    global _well_snapshot_thread
+    with _well_snapshot_lock:
+        if _well_snapshot_thread is None or not _well_snapshot_thread.is_alive():
+            _t = threading.Thread(target=_well_snapshot_loop, name="f6-well-snapshot", daemon=True)
+            _t.start()
+            _well_snapshot_thread = _t
+    return _well_health_snapshot
 
 
 def _prime_governance_kernel() -> None:
@@ -1796,30 +1848,15 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
             _f6_report = _f6_eval_all()
             measurement_basis["f6_maruah"] = _f6_report
-            _wh: dict[str, Any] | None = None
-            _wh_err: str | None = None
-            try:
-                import urllib.request as _ureq
-
-                with _ureq.urlopen(  # noqa: S310
-                    "http://127.0.0.1:18083/health", timeout=2.5
-                ) as _wh_resp:
-                    _wh_body = _wh_resp.read()
-                _wh = _json.loads(_wh_body) if _wh_body else None
-                if not isinstance(_wh, dict):
-                    _wh = None
-            except Exception as _wh_exc:  # noqa: BLE001
-                # Debuggable honesty (2026-11-18 live defect): a silent except
-                # hid an in-service-only fetch failure that reproduces neither
-                # as root nor as the service user from a shell. The marker must
-                # name WHY (exception class), not just that, it failed.
-                _wh = None
-                _wh_err = f"{type(_wh_exc).__name__}: {str(_wh_exc)[:120]}"
+            _snap = _ensure_well_snapshot()
+            _wh = _snap.get("payload")
+            _snap_ts = _snap.get("ts") or 0.0
+            _snap_age = round(time.time() - _snap_ts, 1) if _snap_ts else None
             _f6_sources = {"meters": _f6_report.get("meters", []), "seals": _seal_rows}
             if _wh is not None:
                 _f6_sources["well_health"] = _wh
             _f6_sig = collect_floor_producer_signal("F6", sources=_f6_sources)
-            measurement_basis["f6_well_coverage"] = (
+            _f6_marker = (
                 {
                     _k: _f6_sig.get(_k)
                     for _k in ("status", "origin", "f6_index", "verdict", "null_reasons")
@@ -1828,9 +1865,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 else {
                     "status": "WELL_UNREACHABLE",
                     "origin": "well_health:fetch_failed",
-                    "error": _wh_err,
+                    "error": _snap.get("err") or "snapshot_warming",
                 }
             )
+            if _snap_age is not None:
+                _f6_marker["snapshot_age_s"] = _snap_age
+            measurement_basis["f6_well_coverage"] = _f6_marker
             _f6_st = str(_f6_sig.get("status") or "UNMEASURED").upper()
             if _f6_st == "MEASURED":
                 # OS-1 covered: the reading IS the conservative f6_index
