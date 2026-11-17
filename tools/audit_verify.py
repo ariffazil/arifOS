@@ -33,6 +33,7 @@ Exit codes: 0 = VERIFIED (all signed entries green, no gaps)
 
 DITEMPA BUKAN DIBERI — Forged, not given.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -121,14 +122,30 @@ def load_key(args: argparse.Namespace) -> bytes | None:
 
 
 def sign(receipt_hash: str, key: bytes) -> str:
-    return SIG_PREFIX + hmac.new(
-        key, receipt_hash.encode("utf-8"), hashlib.sha256
-    ).hexdigest()
+    return SIG_PREFIX + hmac.new(key, receipt_hash.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 def verify_chain_file(chain_path: Path, key: bytes | None) -> dict[str, Any]:
     report: dict[str, Any] = {
         "tool": "audit_verify.py",
+        # Instrument identity (2026-11-17, 333-AGI): a verdict without its
+        # instrument and scope is UNMEASURED. The kernel's /999/verify and
+        # scripts/verify_vault_chain.py audit DIFFERENT objects; a bare
+        # "verified" from any of them invites the wrong conclusion.
+        "instrument": "audit_verify.py (independent offline file audit; no kernel trust)",
+        "scope": "all parsed lines in the chain file (canonical + historical)",
+        "annotations_aware": False,
+        "annotation_note": (
+            "Chain annotations are the kernel's explain layer and are NOT consumed "
+            "here by design. A gap reported by this tool is a RAW divergence and may "
+            "already be adjudicated elsewhere; compare against annotations_loaded "
+            "before treating it as new."
+        ),
+        "seq_semantics": (
+            "canonical_entries is a COUNT of canonical rows; a row's sequence/seq is "
+            "a RECORD id. They are different axes and must never be compared as one "
+            "number (the two-clocks defect)."
+        ),
         "sig_epoch": "VAULT-SIG-1",
         "chain_path": str(chain_path),
         "entries": 0,
@@ -214,13 +231,21 @@ def verify_chain_file(chain_path: Path, key: bytes | None) -> dict[str, Any]:
             if rid:
                 if rid in seen_ids:
                     report["failures"].append(
-                        {"class": "DUPLICATE_RECEIPT", "line": line_no, "detail": f"duplicate receipt_id={rid}"}
+                        {
+                            "class": "DUPLICATE_RECEIPT",
+                            "line": line_no,
+                            "detail": f"duplicate receipt_id={rid}",
+                        }
                     )
                 seen_ids.add(str(rid))
             if canon and isinstance(seq, int):
                 if seq in seen_seqs:
                     report["failures"].append(
-                        {"class": "SEQUENCE_COLLISION", "line": line_no, "detail": f"duplicate canonical sequence={seq}"}
+                        {
+                            "class": "SEQUENCE_COLLISION",
+                            "line": line_no,
+                            "detail": f"duplicate canonical sequence={seq}",
+                        }
                     )
                 seen_seqs.add(seq)
 
@@ -230,7 +255,12 @@ def verify_chain_file(chain_path: Path, key: bytes | None) -> dict[str, Any]:
             if canon and skid:
                 if skid != SIG_KEY_ID:
                     report["failures"].append(
-                        {"class": "WRONG_KEY", "line": line_no, "seq": seq, "detail": f"unknown sig_key_id '{skid}'"}
+                        {
+                            "class": "WRONG_KEY",
+                            "line": line_no,
+                            "seq": seq,
+                            "detail": f"unknown sig_key_id '{skid}'",
+                        }
                     )
                 elif key is None:
                     report["signed_unverifiable"] += 1
@@ -292,8 +322,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--chain", required=True, help="path to seal_chain.jsonl (work on a COPY)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--key-file", help="file containing the vault HMAC key")
-    g.add_argument("--key-env", default="ARIFOS_VAULT_HMAC_KEY", help="env var holding the key (default %(default)s)")
-    ap.add_argument("--expect-head", help="externally recorded head hash (bare64 or sha256:-prefixed)")
+    g.add_argument(
+        "--key-env",
+        default="ARIFOS_VAULT_HMAC_KEY",
+        help="env var holding the key (default %(default)s)",
+    )
+    ap.add_argument(
+        "--expect-head", help="externally recorded head hash (bare64 or sha256:-prefixed)"
+    )
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args(argv)
 
@@ -312,7 +348,10 @@ def main(argv: list[str] | None = None) -> int:
         got = report.get("head_hash_bare64") or ""
         if want != got:
             report["failures"].append(
-                {"class": "HEAD_ANCHOR_MISMATCH", "detail": f"expected head {want[:16]}… got {got[:16]}…"}
+                {
+                    "class": "HEAD_ANCHOR_MISMATCH",
+                    "detail": f"expected head {want[:16]}… got {got[:16]}…",
+                }
             )
             report["verified"] = False
 
@@ -322,15 +361,23 @@ def main(argv: list[str] | None = None) -> int:
         r = report
         verdict = "GREEN ✔ VERIFIED" if r["verified"] else "RED ✘ GAPS FOUND"
         print(f"VAULT999-SIG audit — {verdict}")
+        print(f"  instrument : {r.get('instrument', 'audit_verify.py')}")
+        print(f"  scope      : {r.get('scope', 'unknown')}")
         print(f"  chain      : {r['chain_path']}")
-        print(f"  entries    : {r['entries']} (canonical {r['canonical_entries']}, historical {r['historical_entries']}, corrupt {r['corrupt_lines']})")
-        print(f"  signatures : {r['signed_entries']} verified, {r['signed_unverifiable']} unverifiable(no key), cutover_seq={r['cutover_seq']}")
+        print(
+            f"  entries    : {r['entries']} (canonical {r['canonical_entries']}, historical {r['historical_entries']}, corrupt {r['corrupt_lines']})"
+        )
+        print(
+            f"  signatures : {r['signed_entries']} verified, {r['signed_unverifiable']} unverifiable(no key), cutover_seq={r['cutover_seq']}"
+        )
         print(f"  unsigned after cutover : {r['unsigned_after_cutover']}")
         print(f"  head (bare64)          : {r.get('head_hash_bare64', '')[:24]}…")
         if r["warnings"]:
             print(f"  warnings   : {len(r['warnings'])}")
         for f in r["failures"][:20]:
-            print(f"  ✘ [{f['class']}] line={f.get('line', '?')} seq={f.get('seq', '?')} — {f['detail']}")
+            print(
+                f"  ✘ [{f['class']}] line={f.get('line', '?')} seq={f.get('seq', '?')} — {f['detail']}"
+            )
         if len(r["failures"]) > 20:
             print(f"  … and {len(r['failures']) - 20} more (use --json)")
 
