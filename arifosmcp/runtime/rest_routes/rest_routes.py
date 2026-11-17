@@ -1797,6 +1797,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
             _f6_report = _f6_eval_all()
             measurement_basis["f6_maruah"] = _f6_report
             _wh: dict[str, Any] | None = None
+            _wh_err: str | None = None
             try:
                 import urllib.request as _ureq
 
@@ -1807,8 +1808,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 _wh = _json.loads(_wh_body) if _wh_body else None
                 if not isinstance(_wh, dict):
                     _wh = None
-            except Exception:
-                _wh = None  # honest: WELL unreachable -> meters fallback path
+            except Exception as _wh_exc:  # noqa: BLE001
+                # Debuggable honesty (2026-11-18 live defect): a silent except
+                # hid an in-service-only fetch failure that reproduces neither
+                # as root nor as the service user from a shell. The marker must
+                # name WHY (exception class), not just that, it failed.
+                _wh = None
+                _wh_err = f"{type(_wh_exc).__name__}: {str(_wh_exc)[:120]}"
             _f6_sources = {"meters": _f6_report.get("meters", []), "seals": _seal_rows}
             if _wh is not None:
                 _f6_sources["well_health"] = _wh
@@ -1819,7 +1825,11 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     for _k in ("status", "origin", "f6_index", "verdict", "null_reasons")
                 }
                 if _wh is not None
-                else {"status": "WELL_UNREACHABLE", "origin": "well_health:fetch_failed"}
+                else {
+                    "status": "WELL_UNREACHABLE",
+                    "origin": "well_health:fetch_failed",
+                    "error": _wh_err,
+                }
             )
             _f6_st = str(_f6_sig.get("status") or "UNMEASURED").upper()
             if _f6_st == "MEASURED":
