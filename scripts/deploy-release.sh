@@ -49,10 +49,10 @@ fi
 # v1 scope: tracked modifications; untracked strays stay visible via the
 # git status printed in the refusal output.
 if [ -z "${ARIFOS_DEPLOY_ALLOW_DIRTY:-}" ] && ! git -C /root/arifOS diff --quiet; then
-        echo "888_HOLD: DIRTY_WORKING_TREE — uncommitted tracked changes would ship to production." >&2
-        git -C /root/arifOS status --porcelain >&2
-        echo "Commit them, or set ARIFOS_DEPLOY_ALLOW_DIRTY=1 to deploy dirty deliberately." >&2
-        exit 4
+	echo "888_HOLD: DIRTY_WORKING_TREE — uncommitted tracked changes would ship to production." >&2
+	git -C /root/arifOS status --porcelain >&2
+	echo "Commit them, or set ARIFOS_DEPLOY_ALLOW_DIRTY=1 to deploy dirty deliberately." >&2
+	exit 4
 fi
 
 # ── deployment lease convergence (P0 complete mediation, 2026-10-26) ──────────
@@ -68,20 +68,20 @@ _ARIFOS_SHA="$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)"
 _LEASE_ACTOR="${DEPLOY_ACTOR:-$(whoami)}"
 _LEASE_SESSION="${DEPLOY_SESSION:-manual-$(date -u +%Y%m%dT%H%M%SZ)}"
 if ! "$_ARIFOS_PY" "$_ARIFOS_LEASE" acquire --actor "$_LEASE_ACTOR" \
-     --session "$_LEASE_SESSION" \
-     --base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
-  echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another deployment owns production; nothing was written" >&2
-  exit 3
+	--session "$_LEASE_SESSION" \
+	--base "$_ARIFOS_SHA" --candidate "$_ARIFOS_SHA" --ttl "${DEPLOY_LEASE_TTL:-1800}" >/dev/null; then
+	echo "888_HOLD: HOLD_CONCURRENT_DEPLOY — another deployment owns production; nothing was written" >&2
+	exit 3
 fi
 _arifos_release_lease() {
-  local rc=$?
-  trap - EXIT INT TERM
-  if [ -z "${_ARIFOS_LEASE_RELEASED:-}" ]; then
-    "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
-      --session "$_LEASE_SESSION" --receipt "${0##*/}-trap" >/dev/null 2>&1 \
-      || echo "WARNING: lease release failed (trap); run scripts/deploy_lease.py status" >&2
-  fi
-  exit "$rc"
+	local rc=$?
+	trap - EXIT INT TERM
+	if [ -z "${_ARIFOS_LEASE_RELEASED:-}" ]; then
+		"$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
+			--session "$_LEASE_SESSION" --receipt "${0##*/}-trap" >/dev/null 2>&1 ||
+			echo "WARNING: lease release failed (trap); run scripts/deploy_lease.py status" >&2
+	fi
+	exit "$rc"
 }
 trap _arifos_release_lease EXIT INT TERM
 
@@ -200,6 +200,13 @@ if [ -r "$SELF_DIR/immutability_cycle.sh" ]; then
 		"$REPO_DIR/arifos.egg-info" \
 		"$REPO_DIR/.git_commit" \
 		"/opt/arifos/app/.git_commit"
+	# DP-F2 (2026-11-17, 333-AGI): immutability_unlock arms ITS OWN EXIT trap
+	# (relock), which REPLACES _arifos_release_lease as the EXIT handler — so
+	# every failure path after step 0.5 leaked the deploy lease for its full
+	# TTL (measured: dl-18254bcc99ca acquired 05:37:54Z, no RELEASED event,
+	# blocked the next deploy for 30 min). Run BOTH handlers: relock first
+	# (it returns the script's rc), then release (it re-exits with that rc).
+	trap '_immutable_relock_all; _arifos_release_lease' EXIT INT TERM HUP
 else
 	echo "⚠️  immutability_cycle.sh missing — deploy may fail on hardened nodes" >&2
 fi
@@ -647,6 +654,17 @@ else
 	echo "  ❌ Attestation gate FAILED (rc=$VERIFY_RC). The artifact above IS live and healthy;"
 	echo "     the provenance invariant is not satisfied. Do not treat this deploy as sealed."
 	echo "     Investigate: /opt/arifos/releases/release-manifest.json + :8088/health software_release"
+	# DP-F (2026-11-17, 333-AGI): release the lease HERE, not only via the EXIT
+	# trap. Step 0.5 sources immutability_cycle.sh, whose relock trap REPLACES
+	# _arifos_release_lease as the EXIT handler — so every failure path after
+	# step 0.5 leaked its lease for the full TTL (measured: dl-18254bcc99ca,
+	# acquired 05:37:54Z, no RELEASED event, blocked the next deploy 30 min).
+	if [ -z "${_ARIFOS_LEASE_RELEASED:-}" ]; then
+		"$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
+			--session "$_LEASE_SESSION" --receipt "step9-attestation-fail" >/dev/null 2>&1 ||
+			echo "  ⚠️  lease release failed on the attestation-fail path (see deploy_lease.py status)"
+		_ARIFOS_LEASE_RELEASED=1
+	fi
 	exit 1
 fi
 
@@ -711,11 +729,11 @@ echo ""
 # trap stays as the failure-path fallback; _ARIFOS_LEASE_RELEASED keeps
 # the second call silent on green runs.
 if "$_ARIFOS_PY" "$_ARIFOS_LEASE" release --actor "$_LEASE_ACTOR" \
-     --session "$_LEASE_SESSION" --receipt "${0##*/}" \
-     --exit-code 0 --observed-head "$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)" \
-     >/dev/null 2>&1; then
-  _ARIFOS_LEASE_RELEASED=1
-  echo "✓ deploy lease released (green path)"
+	--session "$_LEASE_SESSION" --receipt "${0##*/}" \
+	--exit-code 0 --observed-head "$(git -C /root/arifOS rev-parse HEAD 2>/dev/null || echo unknown)" \
+	>/dev/null 2>&1; then
+	_ARIFOS_LEASE_RELEASED=1
+	echo "✓ deploy lease released (green path)"
 else
-  echo "WARNING: explicit lease release failed — trap fallback armed; check deploy_lease.py status" >&2
+	echo "WARNING: explicit lease release failed — trap fallback armed; check deploy_lease.py status" >&2
 fi
