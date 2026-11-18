@@ -166,6 +166,7 @@ _ACTIVE_SESSION_ID: str | None = None
 _SESSION_CONTINUITY_STATE: dict[str, dict[str, Any]] = {}
 _STORE_LOCK = RLock()
 _STORE_LOADED = False
+_STORE_MTIME_NS = 0  # mtime of the store file at last successful load (P0 2026-11-19)
 
 _SESSION_TTL_SECONDS = max(300, int(os.getenv("ARIFOS_SESSION_TTL_SECONDS", "86400")))
 
@@ -573,9 +574,22 @@ def migrate_legacy_exec_store(*, force: bool = False) -> dict[str, Any]:
 
 
 def _load_store() -> None:
-    global _STORE_LOADED, _ACTIVE_SESSION_ID
+    # P0 loop-stall fix (333-AGI 2026-11-19): the store reached 22.8MB and the
+    # old load-once guard was defeated by get_session_execution_state forcing
+    # _STORE_LOADED=False per read — a full 22.8MB json parse on the event loop
+    # per read (38% of py-spy samples during one judge call). mtime-ns
+    # invalidation keeps the P1 2026-10-06 staleness guarantee: any disk write
+    # (this process or another) changes mtime and forces a reload; an unchanged
+    # file cannot have newer receipts, so the cached parse is never stale.
+    # On parse failure the cache stays unloaded -> next read retries
+    # (fail-toward-fresh; the old code cached the failure forever until force-reset).
+    global _STORE_LOADED, _ACTIVE_SESSION_ID, _STORE_MTIME_NS
+    try:
+        _mtime_ns = _SESSION_STORE_PATH.stat().st_mtime_ns
+    except OSError:
+        _mtime_ns = None
     with _STORE_LOCK:
-        if _STORE_LOADED:
+        if _STORE_LOADED and _mtime_ns is not None and _mtime_ns == _STORE_MTIME_NS:
             return
         if _SESSION_STORE_PATH.exists():
             try:
@@ -599,9 +613,13 @@ def _load_store() -> None:
                     _SESSION_CONTINUITY_STATE.update(continuity)
                 if payload.get("active_session_id"):
                     _ACTIVE_SESSION_ID = str(payload["active_session_id"])
+                if _mtime_ns is not None:
+                    _STORE_MTIME_NS = _mtime_ns
+                _STORE_LOADED = True
             except Exception:
-                pass
-        _STORE_LOADED = True
+                pass  # leave _STORE_LOADED unchanged -> next read retries
+        else:
+            _STORE_LOADED = True
     if not _LEGACY_MIGRATING and not _LEGACY_MIGRATED:
         try:
             migrate_legacy_exec_store()
@@ -1256,8 +1274,10 @@ def get_session_execution_state(session_id: str | None) -> dict[str, Any] | None
     """
     if not session_id:
         return None
-    global _STORE_LOADED
-    _STORE_LOADED = False
+    # P0 2026-11-19: force-reset removed — _load_store now invalidates on
+    # mtime, which preserves the P1 2026-10-06 guarantee (post-restart and
+    # cross-process disk writes always change mtime -> reloaded) without a
+    # 22.8MB event-loop parse per read.
     _load_store()
     record = _SESSION_IDENTITY.get(session_id)
     if record is None:
