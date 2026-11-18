@@ -2,7 +2,7 @@
 <!-- GENERATED:CURRENT-STATE:BEGIN · source: scripts/generate_current_state.py · never hand-edit -->
 > ### ⚠️ Current verified state — generated, never hand-edited
 >
-> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-10-29T17:02:36Z`): kernel **degraded** · floors **12/13 measured pass** · vault999 healthy · release `arifos-5564ca6f7f61` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
+> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-11-18T09:09:11Z`): kernel **degraded** · floors **12/13 measured pass** · vault999 healthy · release `arifos-287f997` · drift `DRIFT` · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
 >
 > **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured = 13 distinct** (raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13) · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
@@ -27,11 +27,11 @@ arifOS dihidupkan sebagai pelayan MCP (`pip install arifos`). Bilangan tool, por
 
 
 <!-- SOT-MANIFEST
-last_verified: 2026-10-25T09:37:18+00:00
-live_commit: 0c8873e0e (fix(manifests): regenerate llms.txt mirrors from generator — drop unsupported re)
-source_commit: 0c8873e0e
-built_commit: e62a940
-deployment_drift_status: repo_live_divergence (kernel self-report drift=false (built=e62a940) — this says nothing about the repo tree above, which is 0c8873e (deploy pending))
+last_verified: 2026-11-18T09:09:13+00:00
+live_commit: b30c037ac (feat(f6): M1 counts lane-gate mutation receipts as evidence (F13 GO 2026-11-18))
+source_commit: b30c037ac
+built_commit: b30c037ac
+deployment_drift_status: drift_detected (source != deployed (drift: true) — run deploy-release.sh)
 tools_exposed_via_mcp: 8 (verified by live POST /mcp tools/list on 2026-10-18: arif_init, arif_observe, arif_think, arif_route, arif_memory, arif_judge, arif_forge, arif_seal)
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
 generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
