@@ -119,8 +119,11 @@ class OrganHeartbeatDaemon:
     async def start(self):
         logger.info(f"[{self.organ_id}] daemon starting")
         if not await self.connect_nats():
-            logger.error(f"[{self.organ_id}] cannot start: NATS unreachable")
-            return
+            # EXIT NON-ZERO (2026-11-18, p2 heartbeat family revival): a plain
+            # return exits 0 and Restart=on-failure never fires — the daemon
+            # died at boot and stayed dead. systemd owns the retry.
+            logger.error(f"[{self.organ_id}] cannot start: NATS unreachable — exiting 1 for supervised retry")
+            sys.exit(1)
         self.running = True
         await self.run_loop()
 
