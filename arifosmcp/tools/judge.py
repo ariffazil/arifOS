@@ -3066,7 +3066,17 @@ async def arif_judge(
     if mode != "history":
         if _evidence.get("vitals") is None:
             try:
-                vitals_result = arif_measure(mode="vitals")
+                # P0 loop-stall fix (333-AGI 2026-11-19): arif_measure vitals runs
+                # 6 sequential sync organ probes (3s timeout each — the :8088
+                # self-probe can never be answered while this sync call blocks
+                # the loop), psutil, and docker ps — 10-30s ON THE EVENT LOOP.
+                # Starved every concurrent request: py-spy witnessed 3 distinct
+                # blocking sites, /health >=5s stalls, 401 "No response returned"
+                # bursts. Same class as the sealed vault_seal to_thread fix
+                # (vault.py:1113): scheduling moved, semantics unchanged.
+                import asyncio
+
+                vitals_result = await asyncio.to_thread(arif_measure, mode="vitals")
                 _evidence["vitals"] = getattr(vitals_result, "__dict__", {}) or {
                     "status": "unavailable"
                 }
@@ -3117,7 +3127,11 @@ async def arif_judge(
         # ── WELL biological substrate pre-load (Gap 2 wire) ──────────────────
         # W0 preserved: WELL informs, judge decides, operator holds veto.
         # This is advisory evidence surfaced alongside every verdict — not a gate.
-        _evidence["well_substrate"] = _read_well_substrate()
+        # P0 loop-stall fix (333-AGI 2026-11-19): sync urllib (timeout=2)
+        # moved off the event loop — same sealed class as vault.py:1113.
+        import asyncio
+
+        _evidence["well_substrate"] = await asyncio.to_thread(_read_well_substrate)
 
         # ── ECHO/PaW L3 GRADIENT INJECTION ──────────────────────────────────
         # Query arif_memory for past L2-tier prediction deltas on similar
