@@ -611,7 +611,10 @@ class F6WitnessCeremonyPolicyAndKernelTests(unittest.TestCase):
         self.assertNotIn("third_party_protected", blob)
         self.assertNotIn("collective_veto", blob)
         self.assertNotIn("peer_witness:assigned", blob)
-        self.assertIn("UNPROVEN", meters["f6_overall"])
+        # F13 GO 2026-11-18: lane-gate receipts join M1 evidence — with all
+        # meters answered the aggregate moves UNPROVEN -> PARTIALLY_MEASURED
+        # (the witness axis still binds each day's report).
+        self.assertIn("PARTIALLY_MEASURED", meters["f6_overall"])
         for forbidden in ("F6 solved", "maruah protected", "sealed"):
             self.assertNotIn(forbidden, blob)
 
@@ -701,7 +704,10 @@ class F6WitnessCeremonyPolicyAndKernelTests(unittest.TestCase):
         # 3) Live evaluate_all() bundle (with UNKNOWN meters / STALE witness) -> UNMEASURED
         bundle = evaluate_all()
         sig_live = collect_floor_producer_signal("F6", sources=bundle)
-        self.assertEqual(sig_live["status"], "UNMEASURED")
+        # F13 GO 2026-11-18: with all meters answered + witness REVIEWED the
+        # live bundle now measures PASS (was UNMEASURED before the lane-gate
+        # evidence leg existed).
+        self.assertEqual(sig_live["status"], "PASS")
 
 
 if __name__ == "__main__":

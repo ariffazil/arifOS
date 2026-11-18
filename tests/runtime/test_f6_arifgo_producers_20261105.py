@@ -48,10 +48,29 @@ _LEDGER_MUTATE = {
 }
 
 
-def _m1(monkeypatch, sig_out: str, seam: dict, ledger: dict):
+def _m1(monkeypatch, sig_out: str, seam: dict, ledger: dict, lane: dict | None = None):
+    mutate_count = (ledger.get("action_classes") or {}).get("MUTATE", 0)
     monkeypatch.setattr(m6, "_git", lambda args, cwd=m6.A_FORGE: (0, sig_out))
     monkeypatch.setattr(m6, "_lane_seam_status", lambda cwd=m6.A_FORGE: seam)
     monkeypatch.setattr(m6, "_act_ledger_today", lambda d=None: ledger)
+    # deterministic stubs for BOTH file-reading legs (the live ledgers move
+    # under the tests otherwise — measured 2026-11-18)
+    monkeypatch.setattr(
+        m6,
+        "_mutating_evidence_rows",
+        lambda ledger_dir=None: {
+            "path": "stub", "counted": mutate_count,
+            "excluded_test": 0, "excluded_no_evidence": 0,
+            "excluded_class": ledger.get("rows", 0) - mutate_count,
+            "tool_names": [],
+        },
+    )
+    monkeypatch.setattr(
+        m6,
+        "_lane_gate_evidence_rows",
+        lambda ledger_path=None, day=None: lane
+        or {"counted": 0, "excluded_failed": 0, "excluded_test": 0, "targets": []},
+    )
     return m6.evaluate_meter_1_authority_bypass()
 
 
@@ -63,6 +82,20 @@ def test_m1_pass_arm_reached_when_all_legs_hold(monkeypatch) -> None:
     assert r.result == "PASS", r.result_reason
     assert r.measurement == m6.Axis.MEASURED
     assert r.shadow_residual, "a PASS must carry its shadow residual"
+
+
+def test_m1_lane_gate_receipts_are_evidence_f13_go_20261118(monkeypatch) -> None:
+    """F13 GO 2026-11-18: lane-gate receipts join ACT-ingress rows as M1 evidence."""
+    lane = {
+        "counted": 2,
+        "excluded_failed": 1,
+        "excluded_test": 1,
+        "targets": ["/root/AAA/federation/organs.yaml"],
+    }
+    r = _m1(monkeypatch, "\n".join(["G"] * 20), _SEAM_CLOSED, _LEDGER_OBSERVE, lane=lane)
+    assert r.result == "PASS", r.result_reason
+    assert "lane-gate receipts 2" in r.result_reason
+    assert r.measurement == m6.Axis.MEASURED
 
 
 def test_m1_unsigned_trail_fails(monkeypatch) -> None:

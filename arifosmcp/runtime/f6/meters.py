@@ -42,6 +42,7 @@ from arifosmcp.runtime.f6.correction_effect import DEFAULT_LEDGER as CORRECTIONS
 
 SCHEMA = "arifos.f6.meter.v1"
 F6_LEDGER_DIR = Path("/var/lib/arifos/act_decision_events")
+CANON_MUTATIONS_LEDGER = Path("/var/lib/arifos/canon_mutations.jsonl")
 HUMAN_WITNESS = Path("/var/lib/arifos/human_witness.jsonl")
 A_FORGE = "/root/A-FORGE"
 # F6 production stores (2026-11-05 ARIF GO)
@@ -257,6 +258,64 @@ def _mutating_evidence_rows(ledger_dir: Path = F6_LEDGER_DIR) -> dict[str, Any]:
     return out
 
 
+# ── Lane-gate mutation receipts (F13 GO 2026-11-18) ─────────────────────────
+def _lane_gate_evidence_rows(
+    ledger_path: Path = CANON_MUTATIONS_LEDGER,
+    day: str | None = None,
+) -> dict[str, Any]:
+    """Lane-gate mutation receipts are M1 evidence too (F13 GO 2026-11-18).
+
+    Real mutating traffic runs through TWO gates. The ACT ingress writes
+    act_decisions rows (counted by _mutating_evidence_rows); the lane gate
+    writes canon-mutate receipts (actor-attributed, sha256 pre/post, lock
+    cycle). Before this leg, a day whose real mutations all ran through
+    lane gates reported UNKNOWN while the gate was exercised and verified
+    all day (measured 2026-11-18: registry lands + a run-cycle receipt,
+    all lock_restored). A receipt counts only if: same UTC day,
+    exit_code == 0, lock_restored true, post_sha256 present, not a test
+    actor. canon-mutate refuses unattributed runs WITHOUT writing a
+    receipt (measured 2026-11-18), so a receipt's existence already
+    proves gated attribution — the meter does not re-derive lane
+    membership here (the repo-local seam check covers that separately).
+    """
+    out: dict[str, Any] = {
+        "path": str(ledger_path), "counted": 0, "excluded_test": 0,
+        "excluded_failed": 0, "targets": [],
+    }
+    day = day or _utcnow()[:10]
+    p = Path(ledger_path)
+    if not p.exists():
+        return out
+    try:
+        raw = p.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return out
+    for line in raw:
+        if not line.strip():
+            continue
+        try:
+            e = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not str(e.get("ts") or "").startswith(day):
+            continue
+        if e.get("exit_code") != 0 or e.get("lock_restored") is not True:
+            out["excluded_failed"] += 1
+            continue
+        if not str(e.get("post_sha256") or ""):
+            out["excluded_failed"] += 1
+            continue
+        actor = str(e.get("agent_id") or e.get("actor") or "")
+        if _is_test_actor(actor):
+            out["excluded_test"] += 1
+            continue
+        out["counted"] += 1
+        tree = str(e.get("tree") or "")
+        if tree and tree not in out["targets"]:
+            out["targets"].append(tree)
+    return out
+
+
 # ── Meter 1: Authority-bypass count ──────────────────────────────────────────
 
 
@@ -340,6 +399,7 @@ def _lane_seam_status(cwd: str = A_FORGE) -> dict[str, Any]:
 def evaluate_meter_1_authority_bypass(
     witness_path: Path = HUMAN_WITNESS,
     ledger_dir: Path = F6_LEDGER_DIR,
+    lane_ledger: Path = CANON_MUTATIONS_LEDGER,
 ) -> MeterAssessment:
     """M1: Does the authority boundary / lane-gate hold?
 
@@ -368,7 +428,9 @@ def evaluate_meter_1_authority_bypass(
     seam = _lane_seam_status()
     # D2: tier-M classes + ACT evidence + no fixtures (see _mutating_evidence_rows).
     _mut_ev = _mutating_evidence_rows(ledger_dir)
-    mutate_rows = int(_mut_ev.get("counted", 0))
+    _lane_ev = _lane_gate_evidence_rows(lane_ledger)
+    lane_rows = int(_lane_ev.get("counted", 0))
+    mutate_rows = int(_mut_ev.get("counted", 0)) + lane_rows
     coverage = (
         "examined: last-20 A-FORGE commit signatures "
         f"(G={sigs.get('G', 0)} U={sigs.get('U', 0)} N={sigs.get('N', 0)} "
@@ -377,7 +439,10 @@ def evaluate_meter_1_authority_bypass(
         f"(rows={ledger['rows']}, mutate_rows={mutate_rows}; "
         f"excluded: class={_mut_ev['excluded_class']}, "
         f"test_actor={_mut_ev['excluded_test']}, "
-        f"no_act_evidence={_mut_ev['excluded_no_evidence']}) + repo-local git identity; "
+        f"no_act_evidence={_mut_ev['excluded_no_evidence']}) + "
+        f"lane-gate receipts (verified={_lane_ev['counted']}, "
+        f"excluded_failed={_lane_ev['excluded_failed']}, "
+        f"excluded_test={_lane_ev['excluded_test']}) + repo-local git identity; "
         "NOT examined: cron paths, MCP ingress outside actIngress.ts, other repos"
     )
     if rc != 0:
@@ -412,9 +477,10 @@ def evaluate_meter_1_authority_bypass(
             result, meas = "PASS", Axis.MEASURED
             reason = (
                 f"signature trail holds ({signed_n}/20 signed: G={sigs['G']} U={sigs['U']}); "
-                f"{mutate_rows} tier-M row(s) with ACT evidence in today's ledger "
-                f"({', '.join(_mut_ev['tool_names']) or 'unnamed tool'}) evidence "
-                "execution-time gating; " + seam_clause
+                f"{mutate_rows} verified mutation-gate row(s) today (ACT-ingress "
+                f"{_mut_ev['counted']}, lane-gate receipts {lane_rows}: "
+                f"{', '.join(_lane_ev['targets']) or 'unnamed targets'}) — "
+                "execution-time gating evidenced; " + seam_clause
             )
         else:
             result, meas = "UNKNOWN", Axis.MEASURED
@@ -423,7 +489,9 @@ def evaluate_meter_1_authority_bypass(
                 f"ACT ledger {ledger['rows']} rows, no tier-M row with ACT evidence "
                 f"(excluded: class={_mut_ev['excluded_class']}, "
                 f"test_actor={_mut_ev['excluded_test']}, "
-                f"no_act_evidence={_mut_ev['excluded_no_evidence']}) — the MUTATE-gating "
+                f"no_act_evidence={_mut_ev['excluded_no_evidence']}; "
+                f"lane-gate receipts verified={_lane_ev['counted']}, "
+                f"excluded_failed={_lane_ev['excluded_failed']}) — the MUTATE-gating "
                 "leg is unexercised and cannot be claimed PASS or FAIL from absence; " + seam_clause
             )
     return MeterAssessment(
@@ -433,17 +501,17 @@ def evaluate_meter_1_authority_bypass(
         result_reason=reason,
         measurement=meas,
         witness=witness,
-        producer="git signature trail (log %G?, honest G/U/N breakdown) + /var/lib/arifos/act_decision_events/*.jsonl + authority_binding.check_binding + live repo-local identity check",
+        producer="git signature trail (log %G?, honest G/U/N breakdown) + /var/lib/arifos/act_decision_events/*.jsonl + /var/lib/arifos/canon_mutations.jsonl (lane-gate receipts, F13 GO 2026-11-18) + authority_binding.check_binding + live repo-local identity check",
         code_path="arifosmcp/runtime/f6/authority_binding.py:check_binding; arifosmcp/runtime/f6/meters.py:evaluate_meter_1_authority_bypass",
         evidence_refs=[f"A-FORGE last-20 signatures rc={rc}", ledger["path"]],
         observed_at=_utcnow(),
         coverage=coverage,
-        method="read-only git signature probe with G/U/N classification (instrument repair 2026-11-05) + ACT decision ledger action_class scan + live repo-local identity seam check",
+        method="read-only git signature probe with G/U/N classification (instrument repair 2026-11-05) + ACT decision ledger action_class scan + canon-mutate lane-gate receipt scan (F13 GO 2026-11-18) + live repo-local identity seam check",
         limits="OBSERVE ledger traffic does not exercise MUTATE blocks; host root can still bypass git hooks via --no-verify",
         gaps=(
             "raw-commit fail-open via repo-local registered identity"
             if seam["fail_open"]
-            else "MUTATE-gating leg unexercised (OBSERVE-only traffic)"
+            else "MUTATE-gating leg unexercised (no verified ACT-ingress or lane-gate mutation traffic today)"
         ),
         tests=[
             "test_01_subagent_widening_rejected_at_execution_boundary",
