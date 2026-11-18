@@ -26140,6 +26140,16 @@ async def _arif_report(
     who = (sender or actor_id or "unknown").strip()
     plat = (platform or "mcp").strip()
 
+    # L11 session gate (2026-11-18, p0-kernel-anon-report-inbox-read): READ and
+    # READ-MODIFY modes are identity-gated. Filing (mode=report) stays open for
+    # peer emitters; anonymous READING was measured returning peer reports on
+    # the PUBLIC ingress (RECEIPT-audit-verification-2026-11-11.md). The label
+    # said "Requires a session from arif_init" — now the runtime enforces it.
+    if m in ("inbox", "ack", "flush", "stats"):
+        _sess_obj, _hold_resp = _require_session("arif_report", session_id)
+        if _hold_resp is not None:
+            return _hold_resp
+
     if m == "report":
         # producer-context v1 (2026-10-31): mint server-side from kernel state;
         # callers cannot inject one — the lane record carries model provenance.

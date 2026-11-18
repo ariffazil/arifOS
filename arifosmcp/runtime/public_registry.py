@@ -244,7 +244,9 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "before relying on them. Not for constitutional verdicts, sealing, or workspace mutations — "
         "use the canonical verbs (arif_init … arif_seal); this lane coordinates, it never governs. "
         "Behavior: filing appends to an agent-only store (never the VAULT999 ledger); reads are side-effect-free. "
-        "Requires a session from arif_init. Outputs: filed report record or inbox payload."
+        "Read modes (inbox/ack/flush/stats) REQUIRE a bound session from arif_init — anonymous reads are "
+        "refused with an L11 AUTH hold (enforced 2026-11-18, p0-kernel-anon-report-inbox-read). Filing "
+        "(mode=report) stays open for peer emitters. Outputs: filed report record or inbox payload."
     ),
     # ── Gateway / measure (non-public helpers) ──────────────────────────────
     "arif_gateway_connect": (
