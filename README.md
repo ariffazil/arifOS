@@ -2,7 +2,7 @@
 <!-- GENERATED:CURRENT-STATE:BEGIN · source: scripts/generate_current_state.py · never hand-edit -->
 > ### ⚠️ Current verified state — generated, never hand-edited
 >
-> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-11-14T07:37:41Z`): kernel **degraded** · floors **10/13 measured pass** · vault999 stale · release `arifos-87227d8` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
+> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-11-18T09:24:13Z`): kernel **degraded** · floors **12/13 measured pass** · vault999 healthy · release `arifos-97ad7bb3d08e` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
 >
 > **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured = 13 distinct** (raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13) · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
@@ -15,15 +15,26 @@
 > Known gaps: [What Is Not Yet Proven](#what-is-not-yet-proven)
 <!-- GENERATED:CURRENT-STATE:END -->
 
+mcp-name: io.github.ariffazil/arifos
+
+## Apa ni sebenarnya?
+
+arifOS bukan AI dan bukan chatbot. Ia mahkamah dasar (Policy Decision Point) untuk tindakan ejen AI: model boleh berfikir dan mengusul, tapi arifOS yang putuskan adakah cadangan itu layak dilaksana — sebahagian pintu keputusannya deterministik (kod Python keras, `llm_consulted: false`), bukan AI yang menilai keselamatan tindakannya sendiri. Bayang macam Permit-to-Work di pelantar minyak: jurutera (model AI) pintar tapi bukan pemegang risiko; bilik PTW (arifOS) yang putuskan boleh masuk ke tidak; bengkel (A-FORGE) baru buka kunci peralatan bila permit keluar; dan setiap kerja dicetak resit berantai (VAULT999, tamper-evident — sejarah yang disunting secara senyap akan pecahkan rantaian). Kuasa ditetapkan oleh rangka, bukan oleh kebijakan mana-mana model:
+
+MODEL/AGENT mengusul → arifOS menghakimi kelayakan → ARIF pegang veto berdaulat → A-FORGE laksana tindakan berpermit → FRAME menyaksi akibat → VAULT999 simpan resit → AAA atur perhatian & koordinasi. Tiada komponen waris kuasa komponen lain secara senyap.
+
+arifOS dihidupkan sebagai pelayan MCP (`pip install arifos`). Bilangan tool, port, dan status lantai ialah fakta runtime — rujuk endpoint hidup (`:8088/health`, `tools/list`), bukan nombor dalam mana-mana ayat statik, termasuk ayat ini.
+
+
 <!-- SOT-MANIFEST
-last_verified: 2026-11-14T07:37:41+00:00
-live_commit: 87227d8 (runtime-reported via :8088/health)
-source_commit: main (PR #985 · 01-unified-ci green)
-built_commit: 87227d8
-deployment_drift_status: aligned (source=built=deployed reported by :8088/health; runtime kernel degraded: 10/13 floors measured pass, 3 unmeasured, vault999 stale)
-tools_exposed_via_mcp: 9 (runtime self-measurement :8088/health @2026-11-14T07:37:41Z)
+last_verified: 2026-11-18T09:24:14+00:00
+live_commit: 97ad7bb3d (chore(organ-heartbeat): land sibling WIP as-found to unblock the F13-GO deploy ()
+source_commit: 97ad7bb3d
+built_commit: 97ad7bb3d08e
+deployment_drift_status: aligned (source = built = deployed (drift: false))
+tools_exposed_via_mcp: 8 (verified by live POST /mcp tools/list on 2026-10-18: arif_init, arif_observe, arif_think, arif_route, arif_memory, arif_judge, arif_forge, arif_seal)
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
-generated_by: scripts/generate_current_state.py + manual SOT-MANIFEST sync
+generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
 -->
 
 <p align="center">
@@ -38,14 +49,12 @@ generated_by: scripts/generate_current_state.py + manual SOT-MANIFEST sync
 
 In a world where intelligence is abundant, authority becomes the scarce resource. arifOS keeps judgment independent from execution.
 
-[Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [MCP Registry (Glama)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
-
-**Maintainer:** ARIF FAZIL · [arif-fazil.com](https://arif-fazil.com) · [llms.txt](./llms.txt)
+[Documentation](#how-to-use-it) · [Live Kernel](https://arifos.arif-fazil.com) · [MCP](https://mcp.arif-fazil.com/mcp) · [MCP Registry (Glama)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) · [PyPI](https://pypi.org/project/arifos/) · [Security](./SECURITY.md) · [Evidence](./CURRENT_VERIFIED_STATE.md)
 
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/pypi/pyversions/arifos?style=flat-square)](https://pypi.org/project/arifos)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](./LICENSE)
-[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp)
+[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
 [![Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
 [![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
 [![Security audit](https://img.shields.io/badge/audit-partial_in_progress-d4a853?style=flat-square)](./SECURITY.md#known-gaps)
@@ -61,7 +70,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 | **Agent / A2A** | MCP tools + receipts. You do not get the keys. Judgment by arifOS, discovery by AAA, execution by A-FORGE |
 | **Institution** | Policy floors F1–F13, a hash-chained VAULT999 audit trail, model-vendor independence |
 | **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, [published schemas](https://arifos.arif-fazil.com/tools.json) |
-| **Registries & Indexers** | [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp) (Score: A · [Kernel listing](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)) · [`server.json`](./server.json) (Official MCP Registry) · [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) |
+| **Registries & Indexers** | [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) (Score: A) · [`server.json`](./server.json) (Official MCP Registry) · [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) |
 
 Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](https://github.com/ariffazil/AAA) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [GEOX](https://github.com/ariffazil/GEOX)
 
@@ -69,7 +78,7 @@ Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](http
 
 ## Who built this
 
-arifOS was built by Arif Fazil, a senior exploration geoscientist who spent his career making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
+arifOS was built by Arif Fazil, a senior exploration geoscientist who has spent 12+ years making decisions where observations are incomplete, interpretations are probabilistic, provenance matters, and irreversible action must be gated. He transferred that discipline into agent runtime governance.
 
 **I am a geologist, not a programmer.** I did not write this codebase and I do not read it line by line. What I do is point at where the problem is — and the agents in my federation solve it, inside the constitution and the review gates I set, with the commit trail to show who ran what.
 
@@ -111,20 +120,20 @@ Every row names its own gap. Repairing a claim by substituting a stronger one is
 
 | Gap | Risk | Status |
 |---|---|---|
-| Independent security audit | Adversarial bypass testing not published | **In progress** — external researcher reviewing since 2026-08-25. Findings so far: fetch-surface SSRF (fixed, `1!2026.9.1`); Cypher injection (HIGH — key whitelist landed) and fastmcp path traversal (MEDIUM — containment guard landed). See [SECURITY.md](./SECURITY.md#known-gaps) |
+| Independent security audit | Adversarial bypass testing not published | **In progress** — external researcher reviewing since 2026-08-25. Findings: fetch-surface SSRF (FIXED_IN_SOURCE + released `1!2026.9.1`); Cypher injection (HIGH — **FIXED_IN_SOURCE**, 2026-11-13); fastmcp path traversal (MEDIUM — **MITIGATED_IN_SOURCE**). Release / runtime / independent verification still pending for the last two. See [SECURITY.md](./SECURITY.md#known-gaps) |
 | **Sovereign-binding of irreversible acknowledgement** | `ack_irreversible` and `actor_signature` are transported as payload fields; nothing published shows a human signature bound to `(transaction_hash ‖ state_hash ‖ nonce)`, single-use, scoped, unforgeable by the proposing agent | **Open** — design drafted ([`docs/judgment-integrity-2026-09-22/`](./docs/judgment-integrity-2026-09-22/ARIFOS_AUTHORITY_SERVICE_DESIGN.md)), not implemented. F13 is enforced by convention and band-gating, not cryptographic transaction binding |
 | **Ledger head not externally anchored or signed** | A hash chain held entirely by one party cannot detect wholesale rewrite by that party | **Open** — VAULT999 today is self-verifiable, not independently attestable |
 | Third-party evaluation | No external reviewer has published findings | In progress since 2026-08-25; nothing published |
 | Reproducible demo by strangers | Onboarding path not independently tested | **Partial** — demo verified here; no stranger has reproduced it unaided |
 | Enterprise deployment | No production customer reference | Open |
-| Standards conformance | MCP/A2A results not published externally | **Partial** — [report](docs/evidence/conformance-report.json): `result: PARTIAL`, per-tool schema validation DEFERRED |
-| SBOM and signed releases | Supply-chain integrity unverified externally | **Partial** — CycloneDX on publish; no signing, no CVE scan |
+| Standards conformance | MCP/A2A results not published externally | **Partial** — 9/9 wire tool input schemas verified against Draft 2020-12 and runtime rejection tested ([report](docs/evidence/conformance-report.json)); output schemas and A2A streaming pending |
+| SBOM and signed releases | Supply-chain integrity unverified externally | **Partial** — CycloneDX generated (903 pkgs) and signed with Observatory operational key; Trivy scan executed (found 11 Critical, 94 High open CVEs in python env); release artifact signing and CVE remediation pending |
 | Test suite | Needs a live kernel (`tests/conftest.py` refuses without `:8088`, by design) | 7,668 tests collect clean (2026-10-05); the identity/authority subset carries 34 pre-existing failures vs 321 passes (2026-09-30) — quote a failure *set*, never a bare pass count |
 | Observability | Tracing partially wired | **Partial** — sovereign Postgres + arifFlow live; OTel spans on all 8 verbs; caller-side propagation incomplete |
 | Semantic layer (Graphiti) | Knowledge graph retired from the read path | `graphiti_read: retired_888` (2026-09-04); semantic floor disabled by choice (`ARIFOS_ML_FLOORS=0`) |
 | Comparative benchmark | No published comparison against alternative frameworks | Open |
-| Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Open — relevant to institutional adoption** |
-| Identity registry in two copies | `contracts/identity.py` ↔ `arifosmcp/contracts/identity.py` had diverged; a one-sided edit ships split-brain identity | **Mitigated 2026-09-30** (tripwire tests, 18 actors aligned) — consolidation to one owner still open |
+| Maintainer continuity | Single sovereign, single reviewer; no succession or key-recovery procedure published | **Drafted (Pending F13 Ratification)** — Architecture proposed in [`docs/governance/SUCCESSION_AND_KEY_RECOVERY.md`](./docs/governance/SUCCESSION_AND_KEY_RECOVERY.md) (Shamir 2-of-3 escrow, 48h emergency lockout, offline verification); custody and deputy terms require Arif's direct review |
+| Identity registry in two copies | `contracts/identity.py` ↔ `arifosmcp/contracts/identity.py` had diverged; a one-sided edit ships split-brain identity | **Partial** — Disk unified via symlink (`arifosmcp/contracts/identity.py` → `contracts/identity.py`), 31 tripwire tests pass; Python in-memory module consolidation (`sys.modules` alias or single-package migration) pending |
 
 See [SECURITY.md](./SECURITY.md) for the threat model and disclosure policy, and [docs/evidence/claims.yaml](./docs/evidence/claims.yaml) for the machine-readable claim registry.
 
@@ -209,14 +218,14 @@ Every consequential verdict and receipt is written to VAULT999: a hash-chained, 
 
 ## Connect an MCP client
 
-[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp)
+[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
 [![Official Registry Manifest](https://img.shields.io/badge/MCP_Registry-server.json_valid-brightgreen?style=flat-square)](./server.json)
 
 ```
 https://mcp.arif-fazil.com/mcp      # canonical public door · or http://localhost:8088/mcp self-hosted
 ```
 
-**Canonical endpoint:** `https://mcp.arif-fazil.com/mcp`. Listed & verified on [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp) (and [Kernel listing](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)) with rating **A**. Official registry manifest: [`server.json`](./server.json). `https://arifos.arif-fazil.com/mcp` is a live alias (proxies to the same kernel); use the canonical URL in client configs.
+**Canonical endpoint:** `https://mcp.arif-fazil.com/mcp`. Listed & verified on [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) with rating **A**. Official registry manifest: [`server.json`](./server.json). `https://arifos.arif-fazil.com/mcp` is a live alias (proxies to the same kernel); use the canonical URL in client configs.
 
 <details>
 <summary><strong>Client config</strong> — Cline · Cursor · Windsurf · Claude Desktop</summary>
