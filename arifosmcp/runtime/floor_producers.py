@@ -826,16 +826,46 @@ def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
     if isinstance(_wh, dict):
         return _f6_well_coverage(_wh, sources.get("seals"))
 
+    # seal-chain coercion alarm — FAIL-dominant, evaluated before the meters
+    # path so a declared coercion / compromised-dignity seal is never averaged
+    # away by a passing meter bundle (2026-10-26 ruling preserved).
+    if sources.get("seals") is not None:
+        _seal_sig = _f6_maruah_seal_fallback(sources)
+        if _seal_sig.get("status") == "FAIL":
+            _seal_sig["origin"] = "seal_fallback:" + str(_seal_sig.get("origin"))
+            return _seal_sig
+
+    # F13 GO 2026-11-18: the producer SELF-SERVES the live six meters when
+    # the caller brings no meter bundle (the kernel health path passes only
+    # seals). Machine proposes; the witness lane stays the human half — each
+    # meter carries its per-meter witness state read from the human_witness
+    # ledger, and UNPROVEN stays UNMEASURED without it. The seal fallback
+    # remains the fail-closed path if the meters cannot be produced at all.
     meters = sources.get("meters")
     if not meters or not isinstance(meters, list) or len(meters) < 6:
-        if sources.get("seals") is not None:
-            return _f6_maruah_seal_fallback(sources)
-        return {
-            "floor": "F6",
-            "status": "UNMEASURED",
-            "origin": "unmeasured_default:f6_mandatory_evidence_missing",
-            "reason": "all 6 F6 meters required; missing evidence never yields PASS",
-        }
+        try:
+            from dataclasses import asdict
+
+            from arifosmcp.runtime.f6.meters import evaluate_all
+
+            _bundle = evaluate_all()
+            meters = _bundle.get("meters") if isinstance(_bundle, dict) else None
+            if isinstance(meters, list):
+                meters = [
+                    asdict(v) if hasattr(v, "__dataclass_fields__") else v
+                    for v in meters
+                ]
+        except Exception:
+            meters = None
+        if not meters or not isinstance(meters, list) or len(meters) < 6:
+            if sources.get("seals") is not None:
+                return _f6_maruah_seal_fallback(sources)
+            return {
+                "floor": "F6",
+                "status": "UNMEASURED",
+                "origin": "unmeasured_default:f6_mandatory_evidence_missing",
+                "reason": "all 6 F6 meters required; missing evidence never yields PASS",
+            }
 
     failed = []
     unknown = []
@@ -1400,7 +1430,9 @@ _FLOOR_ONTOLOGY: dict[str, dict[str, Any]] = {
         "scope": "WELL served truth coverage (OS-1 Source A) + six system-behavior meters fallback",
         "producer_instrument": (
             "floor_producers._f6_well_coverage (OS-1 WELL /health Source A) "
-            "+ floor_producers._f6_maruah (meters/seal fallback)"
+            "+ floor_producers._f6_maruah (six meters self-served via "
+            "f6.meters.evaluate_all + human-witness lane; seal-chain "
+            "coercion alarm FAIL-dominant; F13 GO 2026-11-18)"
         ),
     },
     "F7": {
