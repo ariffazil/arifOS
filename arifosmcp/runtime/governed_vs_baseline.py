@@ -42,7 +42,9 @@ def _get_db() -> sqlite3.Connection:
             measurement_G REAL DEFAULT 0,
             measurement_C_dark REAL DEFAULT 0,
             actor_id TEXT DEFAULT '',
-            session_id TEXT DEFAULT ''
+            session_id TEXT DEFAULT '',
+            detector_version TEXT DEFAULT '',
+            evidence_ref TEXT DEFAULT ''
         )
     """)
     conn.commit()
@@ -59,16 +61,35 @@ def record_comparison(
     measurement_C_dark: float = 0.0,
     actor_id: str = "",
     session_id: str = "",
+    detector_version: str = "",
+    evidence_ref: str = "",
 ) -> None:
-    """Record a governed-vs-baseline comparison event."""
+    """Record a governed-vs-baseline comparison event.
+    
+    When sesat_detected=True, sesat_code, detector_version, and evidence_ref
+    MUST be non-empty (fail-closed validation).
+    detector_version scheme: 'sesat.v1.<YYYY-MM-DD>'
+    """
+    # Fail-closed validation for sesat_detected events
+    if sesat_detected:
+        if not sesat_code:
+            raise ValueError("sesat_code required when sesat_detected=True")
+        if not detector_version:
+            raise ValueError("detector_version required when sesat_detected=True")
+        if not evidence_ref:
+            raise ValueError("evidence_ref required when sesat_detected=True")
+        # Validate detector_version scheme
+        if not detector_version.startswith("sesat.v1."):
+            raise ValueError(f"detector_version must follow 'sesat.v1.<YYYY-MM-DD>' scheme, got: {detector_version}")
+    
     try:
         conn = _get_db()
         conn.execute(
             """INSERT INTO governed_events
                (timestamp, tool_name, governed_verdict, baseline_verdict,
                 sesat_detected, sesat_code, measurement_G, measurement_C_dark,
-                actor_id, session_id)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                actor_id, session_id, detector_version, evidence_ref)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 tool_name,
@@ -80,6 +101,8 @@ def record_comparison(
                 measurement_C_dark,
                 actor_id,
                 session_id,
+                detector_version,
+                evidence_ref,
             ),
         )
         conn.commit()

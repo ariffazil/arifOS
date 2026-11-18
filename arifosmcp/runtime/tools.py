@@ -21719,15 +21719,27 @@ async def _arif_judge_deliberate_tool(
             )
 
             _gverdict = result.get("verdict", "UNKNOWN")
+            _sesat_detected = _gverdict in ("HOLD", "VOID")
+            _detector_version = "sesat.v1.2026-11-19"
+            _evidence_ref = f"judge:deliberate:{actor_id or 'unknown'}:{session_id or 'unknown'}"
+            _sesat_code = ""
+            if _sesat_detected:
+                _g_val = measurement.get("G", 0) if measurement else 0
+                _c_val = measurement.get("C_dark", 0) if measurement else 0
+                _sesat_code = f"{_gverdict}:G={_g_val}:C_dark={_c_val}"
+
             _record_cmp(
                 tool_name="arif_judge_deliberate",
                 governed_verdict=_gverdict,
                 baseline_verdict="ALLOW",  # ungoverned default
-                sesat_detected=(_gverdict in ("HOLD", "VOID")),
+                sesat_detected=_sesat_detected,
+                sesat_code=_sesat_code,
                 measurement_G=measurement.get("G", 0) if measurement else 0,
                 measurement_C_dark=measurement.get("C_dark", 0) if measurement else 0,
                 actor_id=actor_id or "",
                 session_id=session_id or "",
+                detector_version=_detector_version,
+                evidence_ref=_evidence_ref,
             )
         except Exception:
             pass  # Comparison recording is best-effort
