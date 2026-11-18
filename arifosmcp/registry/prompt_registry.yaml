@@ -72,23 +72,23 @@ floors_ref: "arifosmcp.constitutional_map.CANONICAL_FLOORS"
 
 # Canonical sequence — MUST equal arifosmcp/prompts/__init__.py::CANONICAL_PROMPTS.
 canonical_sequence:
-  - "000 🌱 IGNITE"
-  - "111 🌊 SENSE"
-  - "222 🏛 PLAN"
-  - "333 🧠 REASON"
-  - "444 🧭 DIRECT"
-  - "555 🗂 REMEMBER"
-  - "666 ⚖ DIGNITY"
-  - "777 🔥 FORGE"
-  - "888 🔒 JUDGE"
-  - "999 💎 SEAL"
-  - "🌀 GOVERN"
-  - "⚓ INIT"
-  - "🔐 CLOSE"
+  - "ignite"
+  - "sense"
+  - "plan"
+  - "reason"
+  - "direct"
+  - "remember"
+  - "dignity"
+  - "judge"
+  - "forge"
+  - "seal"
+  - "govern"
+  - "init"
+  - "close"
 
 prompts:
 
-  - id: "000 🌱 IGNITE"
+  - id: "ignite"
     semantic_name: "ignite"
     title: "000 🌱 IGNITE — Identity Ignition"
     description: "Identity before action. VOID is final without new evidence."
@@ -106,7 +106,7 @@ prompts:
       - "IGNITE block returned"
     entropy_budget_tokens: 400
 
-  - id: "111 🌊 SENSE"
+  - id: "sense"
     semantic_name: "sense"
     title: "111 🌊 SENSE — Reality Observation"
     description: "Reality before judgment. Verify before integrate."
@@ -123,7 +123,7 @@ prompts:
       - "SENSE block returned"
     entropy_budget_tokens: 600
 
-  - id: "222 🏛 PLAN"
+  - id: "plan"
     semantic_name: "plan"
     title: "222 🏛 PLAN — Reality Change Design"
     description: "Design reality change. Map reversibility."
@@ -140,7 +140,7 @@ prompts:
       - "ΔS ≤ 0 verified"
     entropy_budget_tokens: 1000
 
-  - id: "333 🧠 REASON"
+  - id: "reason"
     semantic_name: "reason"
     title: "333 🧠 REASON — Hypothesis Engine"
     description: "UNMEASURED beats fabricated certainty."
@@ -157,7 +157,7 @@ prompts:
       - "REASON block returned"
     entropy_budget_tokens: 1200
 
-  - id: "444 🧭 DIRECT"
+  - id: "direct"
     semantic_name: "direct"
     title: "444 🧭 DIRECT — Institution Routing"
     description: "Route to the institution with authority, not the one with speed."
@@ -174,7 +174,7 @@ prompts:
       - "DIRECT block returned"
     entropy_budget_tokens: 600
 
-  - id: "555 🗂 REMEMBER"
+  - id: "remember"
     semantic_name: "remember"
     title: "555 🗂 REMEMBER — Memory Governor"
     description: "Memory without provenance is not truth."
@@ -191,7 +191,7 @@ prompts:
       - "REMEMBER block returned"
     entropy_budget_tokens: 800
 
-  - id: "666 ⚖ DIGNITY"
+  - id: "dignity"
     semantic_name: "dignity"
     title: "666 ⚖ DIGNITY — Dignity Check"
     description: "Stand in the position of the weakest stakeholder."
@@ -208,7 +208,7 @@ prompts:
       - "DIGNITY block returned"
     entropy_budget_tokens: 800
 
-  - id: "777 🔥 FORGE"
+  - id: "forge"
     semantic_name: "forge"
     title: "777 🔥 FORGE — Guarded Execution"
     description: "Reality contact before belief. Mutation after SEAL only."
@@ -225,7 +225,7 @@ prompts:
       - "call_hash + trace_id recorded"
     entropy_budget_tokens: 1000
 
-  - id: "888 🔒 JUDGE"
+  - id: "judge"
     semantic_name: "judge"
     title: "888 🔒 JUDGE — Constitutional Verdict"
     description: "Verdict, not invention. VOID = branch dead."
@@ -242,7 +242,7 @@ prompts:
       - "floors_passed / floors_failed returned"
     entropy_budget_tokens: 600
 
-  - id: "999 💎 SEAL"
+  - id: "seal"
     semantic_name: "seal"
     title: "999 💎 SEAL — VAULT999 Record"
     description: "Immutable record. Hash-chained. Cannot be undone."
@@ -259,7 +259,7 @@ prompts:
       - "SEAL block returned"
     entropy_budget_tokens: 400
 
-  - id: "🌀 GOVERN"
+  - id: "govern"
     semantic_name: "govern"
     title: "🌀 GOVERN — Recursive Governed Loop"
     description: "Full loop + 4 invariant enforcement gates. GATE 1 GÖDEL LOCK: every loop touches reality before becoming doctrine. GATE 2 ANTI-SINK: signal → verify → reality → integrate (no amplified garbage). GATE 3 ENTROPY: ΔS ≤ 0 per cycle. GATE 4 VOID: dead branches stay dead without new evidence."
@@ -276,7 +276,7 @@ prompts:
       - "loop_integrity verified"
     entropy_budget_tokens: 1200
 
-  - id: "⚓ INIT"
+  - id: "init"
     semantic_name: "init"
     title: "⚓ INIT — Governed Ignition"
     description: "Collapsed governed ignition (000_INIT). Probes kernel, binds session, loads context."
@@ -293,7 +293,7 @@ prompts:
     entropy_budget_tokens: 800
     canonical_source: "/root/.config/opencode/command/init.md"
 
-  - id: "🔐 CLOSE"
+  - id: "close"
     semantic_name: "close"
     title: "🔐 CLOSE — Session Close Ritual"
     description: "Full autonomous session close ritual (999_CLOSE). Two-lane seal/receipt."

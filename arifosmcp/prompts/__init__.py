@@ -44,20 +44,20 @@ from __future__ import annotations
 #   - tests/runtime/test_context_runner_route.py  (runner surface)
 CANONICAL_PROMPTS: tuple[str, ...] = (
     # ── 10 canonical stages of the 000→999 reality ladder ────────────────
-    "000 🌱 IGNITE",   # 000  Bootstrap — identity bind, session, sovereign ack
-    "111 🌊 SENSE",    # 111  Witness reality — observe, don't interpret
-    "222 🏛 PLAN",     # 222  Plan / propose hypotheses
-    "333 🧠 REASON",   # 333  Reason / synthesize
-    "444 🧭 DIRECT",   # 444  Route intent to organ
-    "555 🗂 REMEMBER", # 555  Memory governor / recall
-    "666 ⚖ DIGNITY",   # 666  Heart / maruah / dignity check
-    "777 🔥 FORGE",    # 777  Execute only AFTER judge SEAL (+ lease)
-    "888 🔒 JUDGE",    # 888  Verdict SEAL | HOLD | SABAR | VOID
-    "999 💎 SEAL",     # 999  VAULT999 append (needs ack_irreversible)
+    "ignite",    # 000 🌱 IGNITE   — Identity bind, session, sovereign ack
+    "sense",     # 111 🌊 SENSE    — Witness reality — observe, don't interpret
+    "plan",      # 222 🏛 PLAN     — Plan / propose hypotheses
+    "reason",    # 333 🧠 REASON   — Reason / synthesize
+    "direct",    # 444 🧭 DIRECT   — Route intent to organ
+    "remember",  # 555 🗂 REMEMBER — Memory governor / recall
+    "dignity",   # 666 ⚖ DIGNITY  — Heart / maruah / dignity check
+    "judge",     # 888 🔒 JUDGE   — Constitutional verdict (SEAL/HOLD/SABAR/VOID)
+    "forge",     # 777 🔥 FORGE   — Reality mutation after judge SEAL (+ lease)
+    "seal",      # 999 💎 SEAL    — VAULT999 append (needs ack_irreversible)
     # ── 3 orchestrator / boundary hooks ─────────────────────────────────
-    "🌀 GOVERN",       # Recursive Governed Loop orchestrator
-    "⚓ INIT",         # Collapsed 4-step governed ignition (000_INIT v5.0)
-    "🔐 CLOSE",        # 11-step autonomous session close (999_CLOSE)
+    "govern",    # 🌀 GOVERN       — Recursive Governed Loop orchestrator
+    "init",      # ⚓ INIT         — Collapsed 4-step governed ignition (000_INIT v5.0)
+    "close",     # 🔐 CLOSE        — 11-step autonomous session close (999_CLOSE)
 )
 
 

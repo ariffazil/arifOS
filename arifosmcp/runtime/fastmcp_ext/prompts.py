@@ -64,8 +64,8 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
 
     # ─── 000 🌱 IGNITE — Identity before action ─────────────────────────
     @mcp.prompt(
-        name="000 🌱 IGNITE",
-        title="000 — Identity Ignition",
+        name="ignite",
+        title="000 🌱 IGNITE",
         description="Position Zero (/000) Sovereign Anchor. Identity before action. REALITY > EVERYTHING.",
         meta={
             "stage": "000_IGNITE",
@@ -83,7 +83,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_000_ignite(actor_id: str = "", intent: str = "") -> str:
+    def hook_000_ignite(actor_id: str, intent: str) -> str:
         """000 🌱 IGNITE — Position Zero (/000) Sovereign Anchor. Identity before action. REALITY > EVERYTHING."""
         actor_str = actor_id if actor_id else "<unbound>"
         intent_str = intent if intent else "<unspecified>"
@@ -118,12 +118,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("000 🌱 IGNITE")
+    registered.append("ignite")
 
     # ─── 111 🌊 SENSE — Reality contact before belief ────────────────────
     @mcp.prompt(
-        name="111 🌊 SENSE",
-        title="111 — Reality Sensing",
+        name="sense",
+        title="111 🌊 SENSE",
         description="Reality contact before belief. Probe before claim. REALITY > BELIEF.",
         meta={
             "stage": "111_SENSE",
@@ -136,7 +136,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_111_sense(query: str = "", focus: str = "") -> str:
+    def hook_111_sense(query: str, focus: str = "") -> str:
         """111 🌊 SENSE — Reality contact before belief. Probe before claim. REALITY > BELIEF."""
         query_str = query if query else "<reality_probe>"
         focus_str = f"focus: {focus}\n" if focus else ""
@@ -173,12 +173,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("111 🌊 SENSE")
+    registered.append("sense")
 
     # ─── 222 🏛 PLAN — Structure before execution ────────────────────────
     @mcp.prompt(
-        name="222 🏛 PLAN",
-        title="222 — Topological DAG",
+        name="plan",
+        title="222 🏛 PLAN",
         description="Structure before execution. Declare reversibility boundary. Minimal work.",
         meta={
             "stage": "222_PLAN",
@@ -191,7 +191,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_222_plan(intent: str = "", constraints: str = "") -> str:
+    def hook_222_plan(intent: str, constraints: str = "") -> str:
         """222 🏛 PLAN — Structure before execution. Topological DAG."""
         intent_str = intent if intent else "<plan_objective>"
         constraints_str = f"constraints: {constraints}\n" if constraints else ""
@@ -226,12 +226,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("222 🏛 PLAN")
+    registered.append("plan")
 
     # ─── 333 🧠 REASON — Hypothesis before verdict ───────────────────────
     @mcp.prompt(
-        name="333 🧠 REASON",
-        title="333 — Hypothesis & Reasoning",
+        name="reason",
+        title="333 🧠 REASON",
         description="Hypothesis before verdict. Meaning > wiring. Explain for human understanding.",
         meta={
             "stage": "333_REASON",
@@ -244,7 +244,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_333_reason(query: str = "", hypothesis_count: int = 3) -> str:
+    def hook_333_reason(query: str, hypothesis_count: int = 3) -> str:
         """333 🧠 REASON — Hypothesis before verdict. Meaning > wiring."""
         query_str = query if query else "<reasoning_target>"
         return (
@@ -279,12 +279,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("333 🧠 REASON")
+    registered.append("reason")
 
     # ─── 444 🧭 DIRECT — Federation routing ─────────────────────────────
     @mcp.prompt(
-        name="444 🧭 DIRECT",
-        title="444 — Organ Routing",
+        name="direct",
+        title="444 🧭 DIRECT",
         description="Route work to active federation organ (:8088-:18102). Orchestrator directs, never mutates.",
         meta={
             "stage": "444_DIRECT",
@@ -297,7 +297,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_444_direct(intent: str = "", organ: str = "") -> str:
+    def hook_444_direct(intent: str, organ: str = "") -> str:
         """444 🧭 DIRECT — Federation routing hook."""
         intent_str = intent if intent else "<routing_objective>"
         organ_str = f"target_organ: {organ}\n" if organ else ""
@@ -341,12 +341,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("444 🧭 DIRECT")
+    registered.append("direct")
 
     # ─── 555 🗂 REMEMBER — Verification before persistence ───────────────
     @mcp.prompt(
-        name="555 🗂 REMEMBER",
-        title="555 — Verification & Memory",
+        name="remember",
+        title="555 🗂 REMEMBER",
         description="Verification before persistence. Independent witness. F1 ≥ 0.95.",
         meta={
             "stage": "555_REMEMBER",
@@ -359,7 +359,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_555_remember(query: str = "", mode: str = "recall") -> str:
+    def hook_555_remember(query: str, mode: str = "recall") -> str:
         """555 🗂 REMEMBER — Memory & verification hook."""
         query_str = query if query else "<verification_target>"
         return (
@@ -394,12 +394,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("555 🗂 REMEMBER")
+    registered.append("remember")
 
     # ─── 666 ⚖ DIGNITY — Human dignity & weakest stakeholder ─────────────
     @mcp.prompt(
-        name="666 ⚖ DIGNITY",
-        title="666 — Dignity Check",
+        name="dignity",
+        title="666 ⚖ DIGNITY",
         description="Stand in the position of the weakest stakeholder. Protect human dignity.",
         meta={
             "stage": "666_DIGNITY",
@@ -412,7 +412,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_666_dignity(proposal: str = "", stakeholders: str = "") -> str:
+    def hook_666_dignity(proposal: str, stakeholders: str = "") -> str:
         """666 ⚖ DIGNITY — Human dignity & somatic audit hook."""
         proposal_str = proposal if proposal else "<pending_action>"
         stakeholders_str = f"stakeholders: {stakeholders}\n" if stakeholders else ""
@@ -452,12 +452,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("666 ⚖ DIGNITY")
+    registered.append("dignity")
 
     # ─── 888 🔒 JUDGE — Constitutional verdict ───────────────────────────
     @mcp.prompt(
-        name="888 🔒 JUDGE",
-        title="888 — Constitutional Verdict",
+        name="judge",
+        title="888 🔒 JUDGE",
         description="Constitutional verdict. 7-rank lattice. Gated before FORGE. VOID = branch dead.",
         meta={
             "stage": "888_JUDGE",
@@ -470,7 +470,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_888_judge(proposal: str = "", evidence: str = "") -> str:
+    def hook_888_judge(proposal: str, evidence: str = "") -> str:
         """888 🔒 JUDGE — Constitutional verdict hook."""
         proposal_str = proposal if proposal else "<action_proposal>"
         evidence_str = evidence if evidence else "<verified_receipts>"
@@ -510,12 +510,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("888 🔒 JUDGE")
+    registered.append("judge")
 
     # ─── 777 🔥 FORGE — Governed execution ───────────────────────────────
     @mcp.prompt(
-        name="777 🔥 FORGE",
-        title="777 — Governed Execution",
+        name="forge",
+        title="777 🔥 FORGE",
         description="Physical execution after SEAL only. Strict gate: requires seal_verdict_id.",
         meta={
             "stage": "777_FORGE",
@@ -528,7 +528,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_777_forge(action: str = "", verify: str = "") -> str:
+    def hook_777_forge(action: str, verify: str = "") -> str:
         """777 🔥 FORGE — Governed execution hook."""
         action_str = action if action else "<mutation_command>"
         verify_str = f"verify: {verify}\n" if verify else ""
@@ -566,12 +566,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("777 🔥 FORGE")
+    registered.append("forge")
 
     # ─── 999 💎 SEAL — Immutable record in VAULT999 ──────────────────────
     @mcp.prompt(
-        name="999 💎 SEAL",
-        title="999 — Immutable Record",
+        name="seal",
+        title="999 💎 SEAL",
         description="Immutable record. Hash-chained. Companion chamber to /000. Cannot be undone.",
         meta={
             "stage": "999_SEAL",
@@ -584,7 +584,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             "federation_layer": "arifOS.kernel.prompts",
         },
     )
-    def hook_999_seal(receipt: str = "", mode: str = "seal") -> str:
+    def hook_999_seal(receipt: str, mode: str = "seal") -> str:
         """999 💎 SEAL — Immutable witness & ledger hook."""
         receipt_str = receipt if receipt else "<execution_receipt>"
         return (
@@ -619,12 +619,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("999 💎 SEAL")
+    registered.append("seal")
 
     # ─── 🌀 GOVERN — Full loop + 4 invariant gates ──────────────────────
     @mcp.prompt(
-        name="🌀 GOVERN",
-        title="Full Governed Loop",
+        name="govern",
+        title="🌀 GOVERN",
         description="Full governed loop + 4 invariant enforcement gates (Gödel, Anti-Sink, Entropy, Void).",
         meta={
             "stage": "GOVERN",
@@ -682,12 +682,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("🌀 GOVERN")
+    registered.append("govern")
 
     # ─── ⚓ INIT — Session Ignition ──────────────────────────────────────
     @mcp.prompt(
-        name="⚓ INIT",
-        title="Session Ignition",
+        name="init",
+        title="⚓ INIT",
         description=(
             "Collapsed 4-step governed ignition (000_INIT). Probes kernel, "
             "binds session, loads context."
@@ -739,12 +739,12 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("⚓ INIT")
+    registered.append("init")
 
     # ─── 🔐 CLOSE — Session Close Ritual ────────────────────────────────
     @mcp.prompt(
-        name="🔐 CLOSE",
-        title="Session Close Ritual",
+        name="close",
+        title="🔐 CLOSE",
         description=(
             "Full autonomous session close ritual (999_CLOSE). "
             "Two-lane seal/receipt."
@@ -796,7 +796,7 @@ def register_arifos_prompts(mcp: FastMCP) -> list[str]:
             + CONSTITUTIONAL_BOUNDARY_FOOTER
         )
 
-    registered.append("🔐 CLOSE")
+    registered.append("close")
 
     logger.info(
         "arifOS hooks registered: %d (13 governed agentic intelligence hooks, 000-999 ladder)",

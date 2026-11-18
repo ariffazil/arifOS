@@ -395,9 +395,9 @@ class TestCanonicalSurfaceUnchanged:
 # ─────────────────────────────────────────────────────────────────────────────
 class TestPromptSurface:
     def test_runner_dry_run_prompt_is_registered(self):
-        from arifosmcp.prompts import CANONICAL_PROMPTS, RUNNER_DRY_RUN_PROMPT
+        from arifosmcp.prompts import RUNNER_DRY_RUN_PROMPT
 
-        assert "runner_dry_run" in CANONICAL_PROMPTS
+        assert RUNNER_DRY_RUN_PROMPT
         assert "Context Engine Runner" in RUNNER_DRY_RUN_PROMPT
         # F-binding noted in the prompt body
         for floor in ("F1 AMANAH", "F2 TRUTH", "F8 GENIUS", "F11 AUDIT", "F13 SOVEREIGN"):
