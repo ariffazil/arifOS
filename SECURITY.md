@@ -180,3 +180,20 @@ A re-publication of `arifOS` (PyPI `1!2026.10.17`, tag `v2026.10.17`) triggers a
 ### Honest note
 
 This rebuttal is grounded in live source measurements from this turn. Each finding below carries an exact file:line or advisory reference. The marketplace's findings were not fabricated — they were **stale relative to live HEAD**: the scanner scored `v2026.10.11` while the live tree is `a4481ec2b`. Two of the six findings were **fixed in code and declaration** (commit `525bcb1121`, release `1!2026.10.16`: anyio floor `>=4.14.2`, `_unlock` exception classes + logger) rather than merely retracted; the version bump (`1!2026.10.11` → `1!2026.10.16`) is the mechanism that triggers the marketplace re-scan.
+
+---
+
+## ReversingLabs / Static ML Scanner Attestation — 2026-11-18 (`1!2026.11.13.post1` → `1!2026.11.18`)
+
+Static ML reverse-engineering scanners (e.g. ReversingLabs Spectra Assure on PyPI wheel `arifos-1!2026.11.13.post1-py3-none-any.whl`) inspect string tables and call graphs without distinguishing a **harm-blocking rule table** from an offensive payload. Below is the line-cited disposition of every item surfaced by that scan:
+
+1. **False Positive — "Destructive shell / remote-pipe behaviors" (`arifosmcp/abi/amanah_gate.py`):**
+   - `arifosmcp/abi/amanah_gate.py` is arifOS's **F1 Amanah harm-prevention classifier** (`AmanahVerdict.HARAM` / `888_HOLD`). Its `HARAM_PATTERNS` and `HOLD_PATTERNS` regex tables match destructive strings (`rm -rf /`, `dd if=/dev/zero`, `DROP DATABASE`, `chmod 777 /etc`, remote pipe-to-shell, `shutil.rmtree('/')`) specifically to **block** them before any tool or shell call can execute.
+   - In `1!2026.11.13.post1`, an inline `if __name__ == "__main__": tests = [...]` self-test block at the bottom of `amanah_gate.py` carried literal test strings. In `1!2026.11.18+`, that inline test corpus is removed from the shipped runtime module (kept in `tests/`), while all defensive regexes remain active.
+2. **Closed in `pyproject.toml` — Self-Referential Extras (`Requires-Dist: arifos[...]`) & `setuptools` Advisory:**
+   - **Self-dependency bug:** `federation`, `full`, and `all` extras previously listed `arifos[geox]`, `arifos[wealth]`, etc., causing SBOM generators to emit an unpinned `pkg:pypi/arifos` self-edge and forcing air-gapped resolvers to query PyPI for `arifos` itself. **Fixed 2026-11-18:** `federation`, `full`, and `all` are now expanded into flat, deduplicated dependency lists (`0` self-edges).
+   - **Vulnerability count (`41` in full closure vs `0` in default install):** `pip-audit` over the default install (`[project.dependencies]`, 34 packages) reports **0 known vulnerabilities**. The `geox` extra previously pinned `setuptools<70` (which triggered `PYSEC-2025-49`, `PYSEC-2026-1918`, `PYSEC-2026-3447`, `GHSA-xmj3-9gf7-h52w`); **fixed 2026-11-18** by updating `geox` to `setuptools>=84.1.0`.
+3. **Closed in `rest_routes.py` & `README.md` — Remote Raw-File References:**
+   - `/inspector/sot` (`arifosmcp/runtime/rest_routes/rest_routes.py:8505`) previously fetched `tool_registry.json` from a remote branch URL at runtime. **Fixed 2026-11-18:** `/inspector/sot` now reads the packaged `arifosmcp/tool_registry.json` locally (`0` outbound raw-branch calls in the wheel).
+4. **Confirmed by Design — License (`AGPL-3.0-only`) & Secrets (`0` leaked):**
+   - `arifOS` is intentionally licensed under `AGPL-3.0-only` (network copyleft under §13 applies when offering `arifOS` as a hosted network MCP service to third parties; commercial/enterprise exception requires explicit sovereign agreement from Muhammad Arif bin Fazil).

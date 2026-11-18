@@ -8502,29 +8502,31 @@ def register_rest_routes(
             }
         )
 
-    GITHUB_RAW_TOOL_REGISTRY = (
-        "https://raw.githubusercontent.com/ariffazil/arifOS/main/arifosmcp/tool_registry.json"
+    # 2026-11-18 security & air-gap hardening: read the packaged tool_registry.json
+    # shipped inside arifosmcp (or $ARIFOS_TOOL_REGISTRY_PATH checkout when present)
+    # instead of fetching a remote branch URL at runtime.
+    PACKAGED_TOOL_REGISTRY = str(Path(__file__).resolve().parents[2] / "tool_registry.json")
+    REPO_CHECKOUT_TOOL_REGISTRY = os.getenv(
+        "ARIFOS_TOOL_REGISTRY_PATH", "/root/arifOS/arifosmcp/tool_registry.json"
     )
-    LOCAL_FALLBACK_TOOL_REGISTRY = "/root/arifOS/arifosmcp/tool_registry.json"
 
     @route("/inspector/sot", methods=["GET"])
     async def inspector_sot(request: Request) -> Response:
-        """Source-of-Truth drift detector — live registry vs GitHub main."""
+        """Source-of-Truth drift detector — live registry vs packaged/repo SOT."""
         live_tools = sorted(tool_registry.keys())
         main_registry: dict[str, Any] = {}
         sot_source = "unknown"
 
-        try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                r = await client.get(GITHUB_RAW_TOOL_REGISTRY)
-                r.raise_for_status()
-                main_registry = r.json()
-                sot_source = "github:ariffazil/arifOS/main"
-        except Exception:
+        for candidate_path, label in (
+            (PACKAGED_TOOL_REGISTRY, "package:arifosmcp/tool_registry.json"),
+            (REPO_CHECKOUT_TOOL_REGISTRY, "local:repo_checkout"),
+        ):
             try:
-                with open(LOCAL_FALLBACK_TOOL_REGISTRY) as f:
-                    main_registry = json.load(f)
-                sot_source = "local:fallback"
+                if os.path.exists(candidate_path):
+                    with open(candidate_path, encoding="utf-8") as f:
+                        main_registry = json.load(f)
+                    sot_source = label
+                    break
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
         # Full intended surface = canonical_order + diagnostic_order
