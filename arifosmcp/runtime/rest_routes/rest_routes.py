@@ -5929,6 +5929,11 @@ def register_rest_routes(
             # when callers use that helper; force-slim if full dict snuck in
             _sw = payload.get("software_release")
             if isinstance(_sw, dict) and "critical_module_hashes" in _sw:
+                # F1 completion 2026-11-19 (audit finding 1, F13 "jalan sisa
+                # tu"): the slim whitelist silently dropped the per-module
+                # hash list AND the process-identity fields, so
+                # live_health_attestation could not verify hashes against
+                # disk from /health. Whitelist them (additive only).
                 payload["software_release"] = {
                     k: _sw[k]
                     for k in (
@@ -5940,7 +5945,10 @@ def register_rest_routes(
                         "wheel_hash",
                         "runtime_manifest_hash",
                         "surface_hash",
+                        "critical_module_hashes",
                         "critical_module_hash_count",
+                        "service_pid",
+                        "service_started_at",
                         "payload_mode",
                     )
                     if k in _sw
