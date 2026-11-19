@@ -147,9 +147,16 @@ def _full_built_commit() -> str:
 
 def _installation_manifest_hash() -> str | None:
     """Hash the installed distribution RECORD (the reproducible install manifest)."""
+    # F2 fix 2026-11-19 (audit finding 2, F13 "jalan sisa tu"): the legacy
+    # hardcoded /opt/arifos/venv died with the current/ layout - the glob
+    # found no RECORD and wheel_hash published None. Glob the ACTIVE venv.
     candidates = sorted(
-        Path("/opt/arifos/venv/lib").glob("python*/site-packages/arifos-*.dist-info/RECORD")
+        Path(ACTIVE_VENV_ROOT).glob("lib/python*/site-packages/arifos-*.dist-info/RECORD")
     )
+    if not candidates:
+        candidates = sorted(
+            Path(ACTIVE_VENV_ROOT).glob("**/arifos-*.dist-info/RECORD")
+        )
     return _sha256_file(candidates[-1]) if candidates else None
 
 
@@ -493,6 +500,10 @@ def _get_runtime_attestation_uncached(*, detail: bool = False) -> dict[str, Any]
         "origin_enforced": os.getenv("ARIFOS_ENFORCE_ORIGIN", "").strip() == "1",
         "service_pid": os.getpid(),
         "service_started_at": PROCESS_STARTED_AT,
+        # F1 fix 2026-11-19 (audit finding 1, F13 "jalan sisa tu"): restore the
+        # hash LIST in /health software_release - the attestation gate verifies
+        # module hashes against disk; a bare count is not verifiable.
+        "critical_module_hashes": critical_module_hashes,
         "critical_module_hash_count": len(critical_module_hashes),
         "payload_mode": "compact",
         # F2 TRUTH fix 2026-10-16: explicit semantic labels so a consumer
