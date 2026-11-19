@@ -8,6 +8,8 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: read
+  pull-requests: read
 
 concurrency:
   group: federation-health
@@ -22,10 +24,48 @@ jobs:
       - name: Build federation health report
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          READ_TOKEN: ${{ secrets.FEDERATION_READ_TOKEN || secrets.GITHUB_TOKEN }}
+          STALE_DAYS: "14"
         run: |
           set -euo pipefail
           WEEK=$(date -u +%Y-%m-%d)
           REPORT=federation-report.md
+
+          ERRF=$(mktemp)
+          run_gh() {
+            RC=0
+            OUT=$(GH_TOKEN="$READ_TOKEN" gh "$@" 2> "$ERRF") || RC=$?
+            ERR=$(head -c 160 "$ERRF" | tr '\n\r\\|' '    ')
+          }
+          
+          # ci_status <slug> -> sets CI_STATE (success|failure|stale|none|error) and CI_DETAIL
+          ci_status() {
+            local slug=$1 branch summary failed total age
+            run_gh repo view "$slug" --json defaultBranchRef --jq '.defaultBranchRef.name'
+            if [ "$RC" -ne 0 ] || [ -z "$OUT" ]; then CI_STATE=error; CI_DETAIL="repo lookup failed: $ERR"; return; fi
+            branch=$OUT
+
+            run_gh run list --repo "$slug" --branch "$branch" --status completed --limit 100 \
+              --json workflowName,conclusion,updatedAt
+            if [ "$RC" -ne 0 ]; then CI_STATE=error; CI_DETAIL="run list failed: $ERR"; return; fi
+
+            summary=$(printf '%s' "$OUT" | jq -c '
+              group_by(.workflowName) | map(sort_by(.updatedAt) | last)
+              | map(select(.conclusion | IN("cancelled","skipped","neutral") | not)) as $w
+              | { total: ($w | length),
+                  failed: [ $w[] | select(.conclusion | IN("failure","timed_out","startup_failure","action_required")) | .workflowName ],
+                  age: (now - ([ $w[].updatedAt | fromdateiso8601 ] | max // 0)) }')
+
+            total=$(jq -r '.total' <<<"$summary")
+            failed=$(jq -r '.failed | join(", ")' <<<"$summary")
+            age=$(jq -r '.age | floor' <<<"$summary")
+
+            if [ "$total" -eq 0 ]; then CI_STATE=none;    CI_DETAIL="no completed runs on $branch"
+            elif [ -n "$failed" ]; then CI_STATE=failure; CI_DETAIL="failing on $branch: $failed"
+            elif [ "$age" -gt $((STALE_DAYS * 86400)) ]; then CI_STATE=stale; CI_DETAIL="newest run on $branch is $((age / 86400))d old"
+            else CI_STATE=success; CI_DETAIL="$total workflows green on $branch"
+            fi
+          }
 
           declare -A TIERS=( ["arifOS"]="infra" ["AAA"]="infra" ["A-FORGE"]="core"
             ["well"]="core" ["geox"]="core" ["wealth"]="core" ["arif-sites"]="site" )
@@ -44,34 +84,33 @@ jobs:
             SLUG="ariffazil/$repo_path"
             TIER="${TIERS[$repo_path]:-unknown}"
 
-            LAST_RUN=$(gh run list --repo "$SLUG" --limit 1 \
-              --json conclusion --jq '.[0].conclusion // "unknown"' 2>/dev/null || echo "unknown")
-            LAST_RUN=${LAST_RUN:-unknown}
+            ci_status "$SLUG"
 
-            OPEN_PRS=$(gh pr list --repo "$SLUG" --state open \
-              --json number --jq 'length' 2>/dev/null || echo "?")
+            OPEN_PRS="?"; DEP_PRS="?"; PR_ERR=""
+            run_gh pr list --repo "$SLUG" --state open --limit 500 --json number --jq 'length'
+            if [ "$RC" -eq 0 ]; then OPEN_PRS=$OUT; else PR_ERR=$ERR; fi
+            run_gh pr list --repo "$SLUG" --state open --author "app/dependabot" --limit 500 --json number --jq 'length'
+            if [ "$RC" -eq 0 ]; then DEP_PRS=$OUT; else PR_ERR=${PR_ERR:-$ERR}; fi
 
-            DEP_PRS=$(gh pr list --repo "$SLUG" --state open \
-              --author "app/dependabot" --json number --jq 'length' 2>/dev/null || echo "?")
-
-            case "$LAST_RUN" in
-              success)   STATUS="✅ green" ;;
-              failure)   STATUS="🔴 FAIL"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path last CI failed" ;;
-              cancelled) STATUS="⚠️ cancelled"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path last CI cancelled" ;;
-              *)         STATUS="⚪ $LAST_RUN"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path CI not verified: $LAST_RUN" ;;
+            case "$CI_STATE" in
+              success) STATUS="✅ green" ;;
+              failure) STATUS="🔴 FAIL";  ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path CI $CI_DETAIL" ;;
+              stale)   STATUS="🕓 stale"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path CI stale: $CI_DETAIL" ;;
+              none)    STATUS="⚪ no runs"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path CI: $CI_DETAIL" ;;
+              *)       STATUS="⚠️ API error"; ALL_GREEN=false; ALERTS="$ALERTS\n- $repo_path CI not verified (collector error): $CI_DETAIL" ;;
             esac
 
             if [ "$OPEN_PRS" = "?" ] || [ "$DEP_PRS" = "?" ]; then
               ALL_GREEN=false
-              STATUS="⚠️ incomplete observation"
-              ALERTS="$ALERTS\n- $repo_path PR counts unavailable"
+              [ "$CI_STATE" = "success" ] && STATUS="⚠️ incomplete observation" 
+              ALERTS="$ALERTS\n- $repo_path PR counts unavailable: $PR_ERR"
             fi
 
             if [ "$DEP_PRS" != "?" ] && [ "$DEP_PRS" -gt 5 ]; then
               ALERTS="$ALERTS\n- $repo_path has $DEP_PRS Dependabot PRs open"
             fi
 
-            echo "| \`$repo_path\` | $TIER | \`$LAST_RUN\` | $OPEN_PRS | $DEP_PRS | $STATUS |" >> "$REPORT"
+            echo "| \`$repo_path\` | $TIER | \`$CI_STATE\` | $OPEN_PRS | $DEP_PRS | $STATUS |" >> "$REPORT"
           done
 
           {
