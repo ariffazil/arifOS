@@ -40,21 +40,32 @@ jobs:
           
           # ci_status <slug> -> sets CI_STATE (success|failure|stale|none|error) and CI_DETAIL
           ci_status() {
-            local slug=$1 branch summary failed total age
+            local slug=$1 branch summary failed total age ids id runs
             run_gh repo view "$slug" --json defaultBranchRef --jq '.defaultBranchRef.name'
             if [ "$RC" -ne 0 ] || [ -z "$OUT" ]; then CI_STATE=error; CI_DETAIL="repo lookup failed: $ERR"; return; fi
             branch=$OUT
 
-            run_gh run list --repo "$slug" --branch "$branch" --status completed --limit 100 \
-              --json workflowName,conclusion,updatedAt
-            if [ "$RC" -ne 0 ]; then CI_STATE=error; CI_DETAIL="run list failed: $ERR"; return; fi
+            run_gh workflow list --repo "$slug" --limit 1000 --json id --jq '.[].id'
+            if [ "$RC" -ne 0 ]; then CI_STATE=error; CI_DETAIL="workflow list failed: $ERR"; return; fi
+            ids=$OUT
+            if [ -n "$ids" ] && [ "$(wc -l <<<"$ids")" -ge 1000 ]; then CI_STATE=error; CI_DETAIL="workflow list truncated at 1000"; return; fi
+            
+            runs="[]"
+            for id in $ids; do
+              run_gh run list --repo "$slug" --workflow "$id" --branch "$branch" --status completed --limit 20 \
+                --json workflowName,conclusion,updatedAt \
+                --jq '[.[] | select(.conclusion | IN("cancelled","skipped","neutral") | not)] | sort_by(.updatedAt) | last // empty'
+              if [ "$RC" -ne 0 ]; then CI_STATE=error; CI_DETAIL="run list failed for workflow $id: $ERR"; return; fi
+              [ -z "$OUT" ] && continue
+              runs=$(jq -c -s '.[0] + [.[1]]' <<<"$runs"$'\n'"$OUT")
+            done
+            OUT=$runs
 
             summary=$(printf '%s' "$OUT" | jq -c '
-              group_by(.workflowName) | map(sort_by(.updatedAt) | last)
-              | map(select(.conclusion | IN("cancelled","skipped","neutral") | not)) as $w
-              | { total: ($w | length),
-                  failed: [ $w[] | select(.conclusion | IN("failure","timed_out","startup_failure","action_required")) | .workflowName ],
-                  age: (now - ([ $w[].updatedAt | fromdateiso8601 ] | max // 0)) }')
+            . as $w
+            | { total: ($w | length),
+                failed: [ $w[] | select(.conclusion | IN("failure","timed_out","startup_failure","action_required")) | .workflowName ],
+                age: (now - ([ $w[].updatedAt | fromdateiso8601 ] | max // 0)) }')
 
             total=$(jq -r '.total' <<<"$summary")
             failed=$(jq -r '.failed | join(", ")' <<<"$summary")
