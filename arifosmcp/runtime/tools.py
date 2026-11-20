@@ -10080,6 +10080,7 @@ def _ok(
         # APEX P-signal: evidence detection (broadened 2026-07-16)
         # Old check only matched evidence/sources/citations keys.
         # Most tools return structured data under "result" — that IS evidence.
+        # 2026-11-20: also count vault receipt (entry_id) as evidence — a seal IS evidence.
         _has_evidence = bool(
             result.get("evidence")
             or result.get("sources")
@@ -10089,6 +10090,9 @@ def _ok(
             or result.get("output")  # compute tools return output
             or (isinstance(result.get("result"), dict) and len(result["result"]) > 2)
             or (isinstance(result.get("result"), list) and len(result["result"]) > 0)
+            # Vault receipt = cryptographic proof = evidence
+            or result.get("vault_entry_id")
+            or (isinstance(result.get("result"), dict) and result["result"].get("entry_id"))
         )
         # APEX X-signal: dry_run detection (2026-08-04 fix)
         # Previous check used meta_payload["action_class"]=="OBSERVE" which was

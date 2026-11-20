@@ -703,6 +703,21 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
                     "dignity": _d,
                 }
 
+    # Check WELL's own top-level status: if WELL reports degraded/unhealthy,
+    # F6 must not claim MEASURED coverage (honest fail, no greenwashing).
+    well_status_raw = wh.get("status")
+    if well_status_raw is not None:
+        well_status = str(well_status_raw).lower()
+        if well_status and well_status not in ("healthy", "ok", "pass"):
+            return {
+                "floor": "F6",
+                "status": "UNMEASURED",
+                "origin": "well_status_degraded",
+                "reason": f"WELL organ status is '{well_status or 'NONE'}', not healthy — F6 cannot claim coverage",
+                "well_status": well_status or None,
+                "f6_index": None,
+            }
+
     truth = str(wh.get("truth_status") or "").upper()
     fr = wh.get("freshness") if isinstance(wh.get("freshness"), dict) else {}
     honesty = wh.get("honesty") if isinstance(wh.get("honesty"), dict) else {}
