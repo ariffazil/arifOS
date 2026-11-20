@@ -1420,6 +1420,10 @@ async def arif_judge(
             },
         }
 
+    # Resolve actor_id from the validated session when the MCP schema omits it.
+    if not actor_id and _auth.get("actor_id"):
+        actor_id = _auth.get("actor_id")
+
     # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any LLM call ──
     # Per ChatGPT forensic: arif_judge must not wait 45s for LLM to decide
     # hard facts. Identity, permissions, and reversibility are checkable
