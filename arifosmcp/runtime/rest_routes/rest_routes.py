@@ -1768,6 +1768,48 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 f"unmeasured_default:f10_producer_error:{type(_f10_exc).__name__}"
             )
 
+        # F9 ANTI-HANTU (KX-011 producer, F13 GO 2026-11-20): governance-shadow
+        # density over the kernel's own rule topology — the One Rule One Home
+        # audit (authority_flow_graph.audit_shadows) is the independent,
+        # recomputable evidence source (same class as F8's contradiction
+        # register: a machine-owned registry the producer scans). Pure
+        # producer; caller injects. MEASURED is a band status — the floor
+        # becomes instrumented WITHOUT asserting PASS (F9 acceptance
+        # semantics, thresholds, G/W3 math, lease policy untouched).
+        try:
+            from arifosmcp.runtime.authority_flow_graph import (
+                audit_shadows as _f9_audit_shadows,
+            )
+
+            _f9_sources = {"shadow_audit": _f9_audit_shadows()}
+            _f9_sig = collect_floor_producer_signal("F9", sources=_f9_sources)
+            _f9_st = str(_f9_sig.get("status") or "UNMEASURED").upper()
+            if _f9_st == "MEASURED":
+                # KX-011 OS (F13 GO 2026-11-20): the reading IS the conservative
+                # shadow_ratio (lower-is-better risk, F7 band semantics) — never
+                # projected to 1.0, never coerced to a pass verdict here; the
+                # pre-existing F9 threshold table (untouched) classifies it.
+                resolved_floors["F9"] = _f9_sig.get("shadow_ratio")
+                floor_provenance["F9"] = (
+                    f"floor_producer:MEASURED:{_f9_sig.get('origin')}"
+                    f"@{_f9_sig.get('measured_at') or now_iso()}"
+                )
+            elif _f9_st in _producer_score:
+                _wire_producer("F9", _f9_sources)
+            else:
+                # First-class UNMEASURED/STALE from the REAL producer — score
+                # stays None (never coerced), provenance names the producer,
+                # not _FLOOR_DEFAULTS (F6 seam closure precedent).
+                resolved_floors["F9"] = None
+                floor_provenance["F9"] = (
+                    f"floor_producer:{_f9_st}:{_f9_sig.get('origin')}"
+                    f"@{_f9_sig.get('measured_at') or now_iso()}"
+                )
+        except Exception as _f9_exc:
+            floor_provenance["F9"] = (
+                f"unmeasured_default:f9_producer_error:{type(_f9_exc).__name__}"
+            )
+
         # F2 TRUTH — greenwash/contradiction check across the kernel's own floor
         # reporting (provenance honesty, evaluated after other producers have reported).
         # Floors measured by real producers/probes are excluded from
