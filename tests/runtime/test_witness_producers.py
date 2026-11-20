@@ -21,9 +21,17 @@ def test_coherence_is_undefined_when_any_leg_is_unmeasured():
 
 
 def test_coherence_matches_the_kernel_formula():
-    # Same closed form evaluate_floors uses, so a measured F3 is comparable with
-    # history. This is also the exact value the removed fabrication produced.
-    assert wp.coherence(0.42, 0.99, 0.99) == 0.9299
+    # Canonical Nash geometric mean, same closed form as the live W3 scalar
+    # (rest_routes), phoenix_72 and apex_canonical — one instrument per truth.
+    assert wp.coherence(0.42, 0.99, 0.99) == 0.7439
+
+
+def test_uniform_low_legs_no_longer_mint_consensus():
+    """Regression (2026-11-21): the old 3*GM/AM form returned 1.0 for
+    H=AI=E=0.1 — uniform absence — and passed the 0.75 threshold. The plain
+    Nash product collapses that to 0.1 (honest FAIL)."""
+    assert wp.coherence(0.1, 0.1, 0.1) == 0.1
+    assert wp.coherence(0.1, 0.1, 0.1) < 0.75
 
 
 def test_real_zeros_are_a_result_not_undefined():
@@ -117,7 +125,12 @@ def test_payload_publishes_legs_and_does_not_score_f3_without_them():
         )
     else:
         assert f3 == legs["coherence"]
-        assert provenance.startswith("witness_producers:")
+        # P5 provenance format (rest_routes floor_producer line, F13 D2
+        # 2026-10-23) — the old "witness_producers:" prefix never matched the
+        # real format and only passed while the human leg stayed unmeasured.
+        assert provenance.startswith("floor_producer:MEASURED:witness_coherence="), (
+            f"F3 measured but provenance is '{provenance}'"
+        )
 
     # The regression that matters: no leg may be silently substituted.
     for name, leg in legs["legs"].items():

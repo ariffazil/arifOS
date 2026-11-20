@@ -124,7 +124,15 @@ def test_agentic_intelligence_product():
     m = compute_agentic_intelligence(f)
     assert m.agentic_intelligence == pytest.approx(1.0)
     assert m.zero_factors == ()
-    assert m.admissible is True
+    # Fail-closed F8 (2026-11-21): genius unmeasured -> inadmissible, named.
+    assert m.admissible is False
+    assert any("genius unmeasured" in r for r in m.reasons)
+
+    # With measured passing genius, the same product is admissible.
+    m2 = compute_agentic_intelligence(
+        f, genius_components={"A": 1, "P": 1, "X": 1, "E": 1, "h": 0.04}
+    )
+    assert m2.admissible is True
 
 
 def test_agentic_intelligence_zero_metabolism():
