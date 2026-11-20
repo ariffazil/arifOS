@@ -122,7 +122,9 @@ def test_clean_verdict_with_shadows_is_fail():
 
 
 def test_counts_mismatch_total_is_fail():
-    sig = _f9_antihantu({"shadow_audit": _audit(real=5, shadow=1, verdict="SHADOWS_PRESENT", total=10)})
+    sig = _f9_antihantu(
+        {"shadow_audit": _audit(real=5, shadow=1, verdict="SHADOWS_PRESENT", total=10)}
+    )
     assert sig["status"] == "FAIL"
     assert "counts_mismatch" in sig["origin"]
 

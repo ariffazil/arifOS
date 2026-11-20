@@ -24,7 +24,11 @@ def test_predicate_not_enforcement_and_projected_score_withheld():
     assert _projected_unit_score(ont_pred) is True
     assert _classify_published_floor(True, ont_pred) == ("predicate", "predicate", True)
 
-    ont_meter = {"evidence_class": "MEASURED", "value_kind": "scalar", "display_transform": "never projected"}
+    ont_meter = {
+        "evidence_class": "MEASURED",
+        "value_kind": "scalar",
+        "display_transform": "never projected",
+    }
     assert _classify_published_floor(True, ont_meter) == ("pass", "passing", False)
     assert _classify_published_floor(False, ont_meter) == ("fail", "failing", False)
 
@@ -56,7 +60,9 @@ def test_f007_signed_not_verified_stays_open(monkeypatch):
         "arifosmcp.runtime.rest_routes.observatory_routes._sign_observatory_snapshot",
         lambda payload: {"state": "signed", "value": "sig123", "key_id": "k1"},
     )
-    out_signed = _finalize_snapshot({"findings": {"findings": [{"id": "F-007", "severity": "HIGH"}]}})
+    out_signed = _finalize_snapshot(
+        {"findings": {"findings": [{"id": "F-007", "severity": "HIGH"}]}}
+    )
     f007_signed = out_signed["findings"]["findings"][0]
     assert f007_signed["status"] == "OPEN"
     assert "verification=not_run" in f007_signed["evidence"]

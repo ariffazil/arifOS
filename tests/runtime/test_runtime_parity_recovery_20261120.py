@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from arifosmcp.runtime.build import _content_parity, _git_blob_sha1, _parity_scope, _strip_content_stamp
+from arifosmcp.runtime.build import (
+    _content_parity,
+    _git_blob_sha1,
+    _parity_scope,
+    _strip_content_stamp,
+)
 from arifosmcp.runtime.rest_routes.rest_routes import (
     _provenance_is_unmeasured,
     _reconcile_unmeasured_basis,
@@ -38,7 +43,9 @@ def test_git_blob_sha1_matches_git_format():
 
 
 def test_provenance_is_unmeasured_handles_segment():
-    assert _provenance_is_unmeasured("floor_producer:UNMEASURED:shadow_audit:evidence_absent") is True
+    assert _provenance_is_unmeasured(
+        "floor_producer:UNMEASURED:shadow_audit:evidence_absent"
+    ) is True
     assert _provenance_is_unmeasured("floor_producer:MEASURED:shadow_audit:rules=10") is False
 
 
@@ -54,6 +61,9 @@ def test_reconcile_unmeasured_basis_drops_measured_floors():
 
 def test_thermo_scalar_provenance_labels_honestly():
     assert _thermo_scalar_provenance("kappa_r", 0.5, event_log_empty=True) == "POLICY_CONSTANT"
-    assert _thermo_scalar_provenance("peace_squared", 0.5, event_log_empty=True) == "DEFAULT_UNMEASURED"
+    assert (
+        _thermo_scalar_provenance("peace_squared", 0.5, event_log_empty=True)
+        == "DEFAULT_UNMEASURED"
+    )
     assert _thermo_scalar_provenance("peace_squared", 0.91, event_log_empty=True) == "MEASURED"
     assert _thermo_scalar_provenance("echo_debt", None, event_log_empty=False) == "ABSENT"
