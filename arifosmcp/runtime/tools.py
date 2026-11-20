@@ -29096,6 +29096,29 @@ def _attach_handoff_evidence_from_input(resp: dict[str, Any], kwargs: dict[str, 
     )
 
 
+def _envelope_has_evidence(resp: dict[str, Any]) -> bool:
+    """Return True if a tool response carries structured evidence or a vault receipt."""
+    if not isinstance(resp, dict):
+        return False
+    if resp.get("vault_entry_id") or resp.get("receipt"):
+        return True
+    res = resp.get("result")
+    if not isinstance(res, dict):
+        return bool(isinstance(res, list) and len(res) > 0)
+    return bool(
+        res.get("evidence")
+        or res.get("sources")
+        or res.get("citations")
+        or res.get("vault_entry_id")
+        or res.get("entry_id")
+        or res.get("receipt")
+        or res.get("provenance")
+        or res.get("verdict")
+        or res.get("output")
+        or res.get("data")
+    )
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """ "
         Wrap a handler so:
@@ -29701,11 +29724,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _apex_record(
                 tool_name=tool_name,
                 success=_is_success,
-                has_evidence=bool(
-                    final_resp.get("result", {}).get("evidence")
-                    or final_resp.get("result", {}).get("sources")
-                    or final_resp.get("result", {}).get("citations")
-                ),
+                has_evidence=_envelope_has_evidence(final_resp),
                 within_lease=_has_lease,
                 dry_run_first=_is_dry,
                 reversible=(_status != "VOID"),
@@ -30052,11 +30071,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _apex_record(
                 tool_name=tool_name,
                 success=_is_success,
-                has_evidence=bool(
-                    final_resp.get("result", {}).get("evidence")
-                    or final_resp.get("result", {}).get("sources")
-                    or final_resp.get("result", {}).get("citations")
-                ),
+                has_evidence=_envelope_has_evidence(final_resp),
                 within_lease=_has_lease,
                 dry_run_first=_is_dry,
                 reversible=(_status != "VOID"),
