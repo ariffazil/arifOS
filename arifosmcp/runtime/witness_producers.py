@@ -46,6 +46,8 @@ CAPABILITY_TEST_CACHE = "/var/lib/arifos/observatory/capability-test-cache.json"
 # Where a real human-witness signal would be read from. Neither exists as of
 # 2026-10-03; they are declared so the leg becomes measurable without a code
 # change, and so "no instrument" is a checked fact rather than an assumption.
+HUMAN_WITNESS_STREAM = "/var/lib/arifos/human_witness_stream.jsonl"
+
 HUMAN_WITNESS_SOURCES = (
     "/var/lib/arifos/human_witness.jsonl",
     "/var/lib/arifflow/human_witness.jsonl",
@@ -163,15 +165,64 @@ def probe_ai_witness(
     )
 
 
+def _probe_human_witness_stream(path: str, now_ts: float | None = None) -> tuple[float | None, str] | None:
+    """Read ratification-point human witness stream (idempotent, TTL-windowed, signed)."""
+    if not os.path.exists(path):
+        return None
+    now = now_ts if now_ts is not None else time.time()
+    seen_decisions: set[str] = set()
+    valid_fresh = 0
+    total_unique = 0
+    try:
+        with open(path) as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(rec, dict):
+                    continue
+                if str(rec.get("environment") or "").upper() == "TEST" or rec.get("is_mock_or_test") is True:
+                    continue
+                if str(rec.get("actor_class") or "").upper() != "HUMAN":
+                    continue
+                dec_id = str(rec.get("decision_id") or "").strip()
+                if not dec_id or dec_id in seen_decisions:
+                    continue
+                seen_decisions.add(dec_id)
+                total_unique += 1
+                if rec.get("human_witness") is not True:
+                    continue
+                if not (rec.get("signature") or rec.get("key_id")):
+                    continue
+                ttl = float(rec.get("ttl_seconds") or DEFAULT_FRESH_SECONDS)
+                ts_val = rec.get("captured_at_epoch")
+                if ts_val is not None and (now - float(ts_val)) > ttl:
+                    continue
+                valid_fresh += 1
+        if total_unique == 0:
+            return None
+        return round(valid_fresh / total_unique, 4), f"human_witness_stream {valid_fresh}/{total_unique} fresh: {path}"
+    except OSError as exc:
+        return None, f"human_witness_stream_unreadable: {type(exc).__name__}: {exc}"
+
+
 def probe_human_witness(
     sources: tuple[str, ...] = HUMAN_WITNESS_SOURCES,
+    stream_path: str = HUMAN_WITNESS_STREAM,
 ) -> tuple[float | None, str]:
     """Human-witness leg. Returns None until a real ledger exists.
 
     Deliberately cheap: this runs inside /health and must not scan 100k-line
-    ledgers per request. It checks for a declared human-witness source and reads
-    it if present; otherwise it reports the measured gap.
+    ledgers per request. Checks ratification stream first, then falls back
+    to legacy HUMAN_WITNESS_SOURCES.
     """
+    stream_res = _probe_human_witness_stream(stream_path)
+    if stream_res is not None:
+        return stream_res
     for path in sources:
         if not os.path.exists(path):
             continue
