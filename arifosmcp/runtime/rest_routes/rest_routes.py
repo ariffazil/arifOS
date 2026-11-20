@@ -418,10 +418,15 @@ _health_cache: dict[str, Any] = {"payload": None, "ts": 0.0}
 # so the cycle cannot close. The builder reads the snapshot and never fetches
 # inline. Snapshot cadence (30s) is trivially small against the 4h F6 band;
 # the snapshot age is disclosed in the f6_well_coverage marker.
-_well_health_snapshot: dict[str, Any] = {"payload": None, "ts": 0.0, "err": None}
+_well_health_snapshot: dict[str, Any] = {"payload": None, "ts": 0.0, "err": None, "degraded": False}
 _well_snapshot_thread: threading.Thread | None = None
 _well_snapshot_lock = threading.Lock()
 WELL_SNAPSHOT_INTERVAL_S = 30.0
+# 2026-11-20 (333-AGI): stale-while-error window. A failed refresh retains the
+# last known-good payload (with its OWN ts) for this long instead of erasing it —
+# the failure window is caused by kernel cold builds stalling WELL's callback
+# into :8088, so the builder must not lose evidence to the very stall it caused.
+WELL_SNAPSHOT_STALE_KEEP_S = 600.0
 
 
 def _well_snapshot_loop() -> None:
@@ -436,20 +441,32 @@ def _well_snapshot_loop() -> None:
             _payload = json.loads(_body) if _body else None
             if not isinstance(_payload, dict):
                 raise ValueError("well /health payload is not a JSON object")
-            _well_health_snapshot.update({"payload": _payload, "ts": time.time(), "err": None})
+            _well_health_snapshot.update({"payload": _payload, "ts": time.time(), "err": None, "degraded": False})
         except Exception as _exc:  # noqa: BLE001 — refresher must never die
+            # 2026-11-20 (333-AGI): a failed refresh must not ERASE the last
+            # known-good payload. Measured cycle: WELL /health calls back into
+            # kernel :8088 (well server.py:2769,2813 federation geometry); a
+            # kernel cold build blocks the loop, WELL's answer stalls past the
+            # 2.5s budget, and the build that caused the stall then read
+            # payload=None — F6 fell to meters (origin unmeasured_default:...)
+            # instead of naming the real reason (well_health:coverage_insufficient).
+            # Retain the payload with its own ts up to KEEP; disclose err/degraded.
+            _now = time.time()
+            _prev = _well_health_snapshot.get("payload")
+            _prev_ts = _well_health_snapshot.get("ts") or 0.0
+            _kept = isinstance(_prev, dict) and (_now - _prev_ts) < WELL_SNAPSHOT_STALE_KEEP_S
             _well_health_snapshot.update(
                 {
-                    "payload": None,
-                    "ts": time.time(),
+                    "payload": _prev if _kept else None,
+                    "ts": _prev_ts if _kept else _now,
                     "err": f"{type(_exc).__name__}: {str(_exc)[:120]}",
+                    "degraded": True,
                 }
             )
-            # Fast retry on failure: a fetch that races a kernel /health cold
-            # build times out (the blocked loop cannot serve WELL's callback
-            # into :8088). Cold builds run ~10s, so a 2s retry rides out the
-            # window instead of parking the snapshot in a 30s error hole.
-            time.sleep(2.0)
+            # Fast retry on failure ONLY while we have nothing to serve (the
+            # blocked-loop stall window is ~10s); a retained payload rides the
+            # normal cadence instead of hammering a stalled callback.
+            time.sleep(2.0 if not _kept else WELL_SNAPSHOT_INTERVAL_S)
             continue
         time.sleep(WELL_SNAPSHOT_INTERVAL_S)
 
@@ -1876,6 +1893,12 @@ def _build_governance_status_payload() -> dict[str, Any]:
             )
             if _snap_age is not None:
                 _f6_marker["snapshot_age_s"] = _snap_age
+            if _snap.get("err"):
+                # 2026-11-20: disclose a degraded snapshot next to the retained
+                # reading — additive wire data only (A6 rule), never read by
+                # status/score math.
+                _f6_marker["snapshot_degraded"] = True
+                _f6_marker["snapshot_err"] = str(_snap.get("err"))[:160]
             measurement_basis["f6_well_coverage"] = _f6_marker
             _f6_st = str(_f6_sig.get("status") or "UNMEASURED").upper()
             if _f6_st == "MEASURED":
