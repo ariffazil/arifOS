@@ -327,6 +327,62 @@ class WealthGovernance:
         }
 
 
+def _l13_hold_verdict(reason: str, status: str = "HOLD") -> ConstitutionalVerdict:
+    """Build a fail-closed L13 HOLD/WARN ConstitutionalVerdict."""
+    from arifosmcp.core.authority_gate import AuthorityProof
+    from arifosmcp.core.law_evaluator import LawResult
+    from arifosmcp.core.threat_engine import IrreversibilityLevel, ThreatAssessment
+
+    return ConstitutionalVerdict(
+        status=status,
+        verdict=status,
+        threat=ThreatAssessment(
+            threats=[],
+            overall_confidence=1.0,
+            irreversibility=IrreversibilityLevel.NONE,
+            category=None,
+        ),
+        floors=LawResult(
+            verdict="HOLD",
+            violated_laws=["L13"],
+            floor_reasons={"L13": reason},
+        ),
+        authority=AuthorityProof(authorized=False, level="SOVEREIGN_VETO"),
+        irreversibility=IrreversibilityLevel.NONE,
+    )
+
+
+def _well_os1_covered(well_state: dict) -> tuple[bool, list[str]]:
+    """OS-1 coverage contract: OPERATOR_VERBAL|OPERATOR_REPORTED, age <= 4h, uncontaminated."""
+    import datetime as _dt
+
+    truth = str(well_state.get("truth_status") or "").upper()
+    truth_ok = truth in ("OPERATOR_VERBAL", "OPERATOR_REPORTED")
+    ts_raw = well_state.get("source_timestamp_utc") or well_state.get("timestamp") or well_state.get("updated_at")
+    age_s: float | None = None
+    if isinstance(ts_raw, str) and ts_raw.strip():
+        try:
+            dt = _dt.datetime.fromisoformat(ts_raw.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=_dt.timezone.utc)
+            age_s = (_dt.datetime.now(_dt.timezone.utc) - dt).total_seconds()
+        except ValueError:
+            age_s = None
+    age_ok = age_s is not None and 0 <= age_s <= 14400
+    contaminated = (
+        str(well_state.get("environment") or "").upper() == "TEST"
+        or well_state.get("is_mock_or_test") is True
+    )
+    reasons: list[str] = []
+    if not truth_ok:
+        reasons.append(f"truth={truth or 'NONE'} (need OPERATOR_VERBAL|OPERATOR_REPORTED)")
+    if not age_ok:
+        reasons.append(f"age={'UNKNOWN' if age_s is None else f'{age_s:.0f}s'} > 14400s cap")
+    if contaminated:
+        reasons.append("contaminated (TEST env or mock/test state)")
+    return (truth_ok and age_ok and not contaminated), reasons
+
+
 class ConstitutionKernel:
     def __init__(self) -> None:
         self.threat_engine = ThreatEngine()
@@ -439,57 +495,18 @@ class ConstitutionKernel:
             if well_state_path and os.path.exists(well_state_path):
                 with open(well_state_path) as f:
                     well_state = json.load(f)
+                covered, null_reasons = _well_os1_covered(well_state)
                 readiness = well_state.get("well_score")
                 backend_status = well_state.get("backend_status", "UNKNOWN")
 
-                # Fail-closed: null well_score or DEGRADED backend blocks SEAL
-                # Note: PIPELINE_FEEDING or STABLE indicates alive backend feed, but null well_score
-                # means biometrics are not yet injected/calibrated.
-                if readiness is None or backend_status in ("DEGRADED", "UNKNOWN"):
-                    is_dev = os.environ.get("ARIFOS_DEV_MODE", "").lower() in (
-                        "1",
-                        "true",
-                        "yes",
-                    )
-                    f13_reason = (
-                        f"WELL telemetry unavailable (well_score={readiness}, "
-                        f"backend_status={backend_status})"
-                    )
-                    from arifosmcp.core.authority_gate import AuthorityProof
-                    from arifosmcp.core.law_evaluator import LawResult
-                    from arifosmcp.core.threat_engine import (
-                        IrreversibilityLevel,
-                        ThreatAssessment,
-                    )
-
-                    threat = ThreatAssessment(
-                        threats=[],
-                        overall_confidence=1.0,
-                        irreversibility=IrreversibilityLevel.NONE,
-                        category=None,
-                    )
-                    floors = LawResult(
-                        verdict="HOLD",
-                        violated_laws=["L13"],
-                        floor_reasons={"L13": f13_reason},
-                    )
-                    authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
-                    return ConstitutionalVerdict(
-                        status="WARN" if is_dev else "HOLD",
-                        verdict="WARN" if is_dev else "HOLD",
-                        threat=threat,
-                        floors=floors,
-                        authority=authority,
-                        irreversibility=IrreversibilityLevel.NONE,
-                    )
-
-                if readiness < 40:  # Threshold per doctrinal move
-                    # F13 waiver path (2026-09-12, "waive the WELL fixture for
-                    # lane A"): a RECORDED governance override in well_state
-                    # (f13_well_waiver: active/scope/marker/expires_utc).
-                    # Score unchanged and visible; the waiver is witnessed in
-                    # state.json + ritual.log markers + the seal witness block.
-                    # Same semantics as well_bridge.apply_metabolic_constraints.
+                # PROPOSAL-OS2: OS-1 coverage contract takes precedence over legacy
+                # well_score=0 (doctrine-pinned 0 until P4 couples). Fail-closed preserved.
+                p4_ready = (
+                    backend_status in ("PIPELINE_FEEDING", "STABLE")
+                    and isinstance(readiness, (int, float))
+                    and readiness >= 40
+                )
+                if not covered and not p4_ready:
                     _waiver = well_state.get("f13_well_waiver") or {}
                     _now_iso = __import__("datetime").datetime.now(
                         __import__("datetime").timezone.utc
@@ -503,44 +520,10 @@ class ConstitutionKernel:
                             or str(_waiver.get("expires_utc")) >= _now_iso
                         )
                     )
-                    if _waiver_active:
-                        # Sovereign waiver recorded — suppress ONLY this floor's
-                        # HOLD. Do NOT return early: the full constitutional
-                        # evaluation (Step 0 onward, all 13 floors) must still
-                        # run. The waiver trail lives in state.json + markers +
-                        # the seal witness block; this gate just stops
-                        # false-blocking on a known-bad fixture.
-                        pass
-                    else:
-                        from arifosmcp.core.authority_gate import AuthorityProof
-                        from arifosmcp.core.law_evaluator import LawResult
-                        from arifosmcp.core.threat_engine import (
-                            IrreversibilityLevel,
-                            ThreatAssessment,
-                        )
-
-                        threat = ThreatAssessment(
-                            threats=[],
-                            overall_confidence=1.0,
-                            irreversibility=IrreversibilityLevel.NONE,
-                            category=None,
-                        )
-                        floors = LawResult(
-                            verdict="HOLD",
-                            violated_laws=["L13"],
-                            floor_reasons={
-                                "L13": f"Operator readiness {readiness} below constitutional floor (40)"
-                            },
-                        )
-                        authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
-                        return ConstitutionalVerdict(
-                            status="HOLD",
-                            verdict="HOLD",
-                            threat=threat,
-                            floors=floors,
-                            authority=authority,
-                            irreversibility=IrreversibilityLevel.NONE,
-                        )
+                    if not _waiver_active:
+                        is_dev = os.environ.get("ARIFOS_DEV_MODE", "").lower() in ("1", "true", "yes")
+                        reason = f"INSTRUMENTED_COVERAGE_INSUFFICIENT: {'; '.join(null_reasons)}"
+                        return _l13_hold_verdict(reason, status="WARN" if is_dev else "HOLD")
         except Exception:
             # We do not block on well-mirror errors to prevent deadlocks,
             # but we log the friction.
