@@ -1362,12 +1362,118 @@ def _f7_humility(sources: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _f9_antihantu(sources: dict[str, Any]) -> dict[str, Any]:
+    """F9 ANTI-HANTU = governance-shadow density over the kernel's own rule
+    topology (One Rule One Home — authority_flow_graph.audit_shadows).
+
+    Contract-label basis: recompute the shadow ratio; a placeholder 0.0
+    presented as a measured shadow falsifies it. The audit is the kernel's
+    own executable anti-hantu scan — a rule is real only with owner + purpose
+    + test; a rule missing any is a shadow (fabrication-prone governance).
+    Producer stays PURE: the caller injects the audit result; this module
+    never fetches.
+
+    Three states (KX-011 producer, F13 GO 2026-11-20 — instrumentation only):
+      * consistent audit payload -> MEASURED band with the computed shadow
+        ratio (lower-is-better risk; ratio 0.0 over real_count>0 is a REAL
+        zero — origin names the counts, never a placeholder)
+      * evidence absent / malformed -> UNMEASURED under the producer origin
+        (present-but-junk is not evidence, SCAR-OBS-GREENWASH)
+      * internal contradiction (CLEAN verdict with shadow_count>0, counts
+        contradicting total_rules) -> FAIL naming the signature — an active
+        fabrication signature is never averaged away by a coverage verdict
+    """
+    audit = sources.get("shadow_audit")
+    if audit is None:
+        return {
+            "floor": "F9",
+            "status": "UNMEASURED",
+            "origin": "shadow_audit:evidence_absent",
+            "null_reasons": ["no shadow_audit payload injected by caller"],
+        }
+    if not isinstance(audit, dict):
+        return {
+            "floor": "F9",
+            "status": "UNMEASURED",
+            "origin": "shadow_audit:malformed_payload",
+            "null_reasons": [f"audit type {type(audit).__name__} is not a mapping"],
+        }
+    real = audit.get("real_count")
+    shadow_n = audit.get("shadow_count")
+    if (
+        not isinstance(real, int)
+        or isinstance(real, bool)
+        or not isinstance(shadow_n, int)
+        or isinstance(shadow_n, bool)
+        or real < 0
+        or shadow_n < 0
+    ):
+        return {
+            "floor": "F9",
+            "status": "UNMEASURED",
+            "origin": "shadow_audit:malformed_counts",
+            "null_reasons": [
+                f"real_count={real!r} shadow_count={shadow_n!r} not non-negative ints"
+            ],
+        }
+    verdict = str(audit.get("verdict", ""))
+    if verdict == "CLEAN" and shadow_n > 0:
+        return {
+            "floor": "F9",
+            "status": "FAIL",
+            "origin": "shadow_audit:contradiction:clean_verdict_with_shadows",
+            "reason": f"verdict=CLEAN but shadow_count={shadow_n}",
+        }
+    total_rules = audit.get("total_rules")
+    if total_rules is not None:
+        if not isinstance(total_rules, int) or isinstance(total_rules, bool) or total_rules < 0:
+            return {
+                "floor": "F9",
+                "status": "UNMEASURED",
+                "origin": "shadow_audit:malformed_counts",
+                "null_reasons": [f"total_rules={total_rules!r} not a non-negative int"],
+            }
+        if total_rules != real + shadow_n:
+            return {
+                "floor": "F9",
+                "status": "FAIL",
+                "origin": "shadow_audit:contradiction:counts_mismatch",
+                "reason": f"total_rules={total_rules} != real({real}) + shadow({shadow_n})",
+            }
+    total = real + shadow_n
+    if total <= 0:
+        # Nothing was measured: a 0.0 shadow ratio here would be the exact
+        # placeholder the contract label forbids.
+        return {
+            "floor": "F9",
+            "status": "UNMEASURED",
+            "origin": "shadow_audit:empty_basis",
+            "null_reasons": ["audit covered zero rules — no basis for a ratio"],
+        }
+    ratio = shadow_n / total
+    return {
+        "floor": "F9",
+        "status": "MEASURED",
+        "origin": f"shadow_audit:authority_topology:rules={total}:shadows={shadow_n}",
+        "shadow_ratio": max(0.0, min(1.0, ratio)),
+        "real_count": real,
+        "shadow_count": shadow_n,
+        "audit_verdict": verdict or "UNSPECIFIED",
+        "null_reasons": [],
+        "shadow_residual": [
+            "AUTHORITY_TOPOLOGY rules only — session/claim-level fabrication "
+            "signatures (scalar shadow path) are not scanned by this instrument"
+        ],
+    }
+
+
 _PRODUCERS = {
     "F2": _f2_truth,
     "F5": _f5_peace,
     "F6": _f6_maruah,
     "F7": _f7_humility,
     "F8": _f8_logic,
+    "F9": _f9_antihantu,
     "F10": _f10_ontology,
     "F11": _f11_audit,
     "F12": _f12_injection,
