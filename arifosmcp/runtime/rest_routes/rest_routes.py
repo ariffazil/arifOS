@@ -1010,22 +1010,97 @@ def _read_vault_last_seal() -> dict[str, Any]:
 
 
 def _provenance_is_unmeasured(provenance: Any) -> bool:
-    """True when the provenance string itself DECLARES that no instrument ran.
+    """True when the provenance string itself DECLARES that no instrument ran."""
+    _p = str(provenance or "").strip()
+    if not _p:
+        return False
+    if any(seg.strip().upper().startswith("UNMEASURED") for seg in _p.split(":")):
+        return True
+    _pl = _p.lower()
+    return _pl.startswith("unmeasured_default") or "_skipped" in _pl
 
-    2026-10-26: narrow on purpose. Only two shapes qualify —
-    ``unmeasured_default*`` (the substituter's own label) and ``*_skipped*``
-    (a producer that declined to measure). An ABSENT provenance is not
-    declared-absent; it stays with _floor_status_strict so a score carrying no
-    provenance keeps its previous behaviour.
 
-    Measured defect it closes: F8 published ``score 0.80 . status pass .
-    measured true`` while its provenance said
-    ``arifflow_vector_g_skipped:calibration=PHASE_1_HEURISTIC_UNCALIBRATED``
-    — the live reading was skipped and the placeholder rendered as a measured
-    pass. Provenance was honest; the status derived from it was not.
-    """
-    _p = str(provenance or "").strip().lower()
-    return _p.startswith("unmeasured_default") or "_skipped" in _p
+def _reconcile_unmeasured_basis(basis_list: Any, floor_provenance: dict[str, Any]) -> list[str]:
+    """Drop producer-measured floors from measurement_basis.unmeasured_floors."""
+    if not isinstance(basis_list, list):
+        return []
+    kept: list[str] = []
+    for fid in basis_list:
+        prov = floor_provenance.get(fid)
+        if prov is not None and not _provenance_is_unmeasured(prov):
+            continue
+        kept.append(fid)
+    return kept
+
+
+_THERMO_SCALAR_BASELINES: dict[str, float] = {
+    "entropy_delta": 0.0,
+    "peace_squared": 0.5,
+    "kappa_r": 0.5,
+    "echo_debt": 0.0,
+    "shadow": 0.0,
+    "vitality_index": 0.0,
+}
+_THERMO_POLICY_CONSTANTS = frozenset({"kappa_r", "confidence"})
+
+
+def _thermo_scalar_provenance(name: str, value: Any, *, event_log_empty: bool) -> str:
+    """Classify one thermodynamic scalar leaf (MEASURED / DEFAULT_UNMEASURED / POLICY_CONSTANT / ABSENT)."""
+    if name in _THERMO_POLICY_CONSTANTS:
+        return "POLICY_CONSTANT"
+    if value is None:
+        return "ABSENT"
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return "ABSENT"
+    baseline = _THERMO_SCALAR_BASELINES.get(name)
+    if event_log_empty and baseline is not None and abs(v - baseline) < 1e-12:
+        return "DEFAULT_UNMEASURED"
+    return "MEASURED"
+
+
+def _thermo_scalar_provenance_block(telemetry: dict[str, Any]) -> dict[str, Any]:
+    """Build the scalar_provenance sub-block for /health's thermodynamic dict."""
+    has_history = False
+    detail = "probe_unavailable"
+    try:
+        from arifosmcp.runtime.reality_scoring import probe_governance_kernel_events
+
+        has_history, detail = probe_governance_kernel_events()
+    except Exception as exc:  # noqa: BLE001
+        detail = f"probe_error: {exc}"[:200]
+    labels = {
+        "entropy_delta": _thermo_scalar_provenance(
+            "entropy_delta", telemetry.get("dS"), event_log_empty=not has_history
+        ),
+        "peace_squared": _thermo_scalar_provenance(
+            "peace_squared", telemetry.get("peace2"), event_log_empty=not has_history
+        ),
+        "vitality_index": _thermo_scalar_provenance(
+            "vitality_index", telemetry.get("psi_le"), event_log_empty=not has_history
+        ),
+        "kappa_r": _thermo_scalar_provenance(
+            "kappa_r", telemetry.get("kappa_r"), event_log_empty=not has_history
+        ),
+        "echo_debt": _thermo_scalar_provenance(
+            "echo_debt", telemetry.get("echoDebt"), event_log_empty=not has_history
+        ),
+        "shadow": _thermo_scalar_provenance(
+            "shadow", telemetry.get("shadow"), event_log_empty=not has_history
+        ),
+        "confidence": _thermo_scalar_provenance(
+            "confidence", telemetry.get("confidence"), event_log_empty=not has_history
+        ),
+    }
+    return {
+        "labels": labels,
+        "basis": {
+            "event_log_has_history": bool(has_history),
+            "detail": str(detail)[:200],
+            "detector": "reality_scoring.probe_governance_kernel_events",
+        },
+    }
 
 
 def _floor_status_strict(law_id: str, score: Any) -> str:
@@ -2171,7 +2246,16 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # value came from _representative_floor_score() — the floor's own passing
         # threshold — and must never be rendered as green.
         "floor_provenance": floor_provenance,
-        "measurement_basis": measurement_basis,
+        "measurement_basis": (
+            {
+                **measurement_basis,
+                "unmeasured_floors": _reconcile_unmeasured_basis(
+                    measurement_basis.get("unmeasured_floors"), floor_provenance
+                ),
+            }
+            if isinstance(measurement_basis, dict) and "unmeasured_floors" in measurement_basis
+            else measurement_basis
+        ),
         # F3 tri-witness legs, each with value/state/evidence. Published even
         # when incomplete so the blocking leg is visible.
         "witness_legs": witness_legs,
@@ -5217,6 +5301,7 @@ def register_rest_routes(
                 "echo_debt": telemetry.get("echoDebt"),
                 "shadow": telemetry.get("shadow"),
                 "confidence": telemetry.get("confidence"),
+                "scalar_provenance": _thermo_scalar_provenance_block(telemetry),
                 # WS2 (2026-07-12): no default SEAL. verdict is substrate-side
                 # signal that may be unset; consumers should fall back to
                 # service_health / execution_readiness instead of inferring SEAL.
@@ -6149,6 +6234,7 @@ def register_rest_routes(
                 "echo_debt": telemetry.get("echoDebt"),
                 "shadow": telemetry.get("shadow"),
                 "confidence": telemetry.get("confidence"),
+                "scalar_provenance": _thermo_scalar_provenance_block(telemetry),
                 "kappa_r": telemetry.get("kappa_r"),
                 "verdict": telemetry.get("verdict"),
                 "metabolic_stage": thermo.get("metabolic_stage"),
