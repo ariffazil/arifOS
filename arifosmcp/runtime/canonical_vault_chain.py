@@ -1578,7 +1578,26 @@ def append_receipt(
     p = paths_for(vault_dir)
     p.vault_dir.mkdir(parents=True, exist_ok=True)
 
+    # ── Constitutional chain writer fencing (Gap 3, F13 GO 2026-11-20) ─────
+    # Scope: constitutional seal_chain only. Default fenced writer = hermes
+    # (+ sovereign arif / kernel arifos / 333-AGI); blocks rogue external
+    # writers such as aaa-gateway and blocks any genesis reset after init.
+    _allowed_raw = os.environ.get(
+        "ARIFOS_VAULT_ALLOWED_WRITERS",
+        "hermes,hermes-main,arif,arifos,333-AGI",
+    )
+    _allowed_writers = {w.strip().lower() for w in _allowed_raw.split(",") if w.strip()}
+    if (actor_id or "").strip().lower() not in _allowed_writers:
+        raise ValueError(
+            f"WRITER_FENCED: actor_id={actor_id!r} is not authorized to append to seal_chain"
+        )
+
     with _thread_lock, _FileLock(p.lock):
+        if p.chain.exists() and p.chain.stat().st_size > 0:
+            if force_prev_hash == GENESIS_PREV_HASH or force_sequence == 1:
+                raise ValueError(
+                    "EPOCH_RESET_FORBIDDEN: cannot reset non-empty seal_chain to seq=1 / genesis"
+                )
         # Last hash from chain
         prev = GENESIS_PREV_HASH
         if p.chain.exists():

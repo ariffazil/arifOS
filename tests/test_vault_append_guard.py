@@ -51,3 +51,28 @@ def test_valid_envelope_still_constructs():
     env = ReceiptEnvelope(**_valid_env())
     assert env.seq == 1
     assert env.this_hash == env.receipt_hash
+
+
+def test_writer_fenced_blocks_rogue_actor(tmp_path):
+    """Rogue/unlisted actors (e.g. aaa-gateway) are blocked from constitutional seal_chain."""
+    from arifosmcp.runtime.canonical_vault_chain import append_receipt
+    with pytest.raises(ValueError, match="WRITER_FENCED"):
+        append_receipt(actor_id="aaa-gateway", vault_dir=tmp_path)
+
+
+def test_epoch_reset_forbidden_on_nonempty_chain(tmp_path):
+    """Non-empty chain refuses force_sequence=1 or force_prev_hash=sha256:0."""
+    from arifosmcp.runtime.canonical_vault_chain import append_receipt, GENESIS_PREV_HASH
+    (tmp_path / "seal_chain.jsonl").write_text('{"seq":1}\n', encoding="utf-8")
+    with pytest.raises(ValueError, match="EPOCH_RESET_FORBIDDEN"):
+        append_receipt(
+            actor_id="hermes",
+            vault_dir=tmp_path,
+            force_prev_hash=GENESIS_PREV_HASH,
+        )
+    with pytest.raises(ValueError, match="EPOCH_RESET_FORBIDDEN"):
+        append_receipt(
+            actor_id="hermes",
+            vault_dir=tmp_path,
+            force_sequence=1,
+        )
