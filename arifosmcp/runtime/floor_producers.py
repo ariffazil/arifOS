@@ -713,6 +713,7 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
                 "floor": "F6",
                 "status": "UNMEASURED",
                 "origin": "well_status_degraded",
+                "measurement_basis": "f6_well_coverage",
                 "reason": f"WELL organ status is '{well_status or 'NONE'}', not healthy — F6 cannot claim coverage",
                 "well_status": well_status or None,
                 "f6_index": None,
@@ -761,6 +762,7 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
         "floor": "F6",
         "f6_index": None,
+        "measurement_basis": "f6_well_coverage",
         "verdict": "INSTRUMENTED_COVERAGE_INSUFFICIENT",
         "null_reasons": null_reasons,
         "coverage": coverage,
