@@ -335,20 +335,31 @@ def _finalize_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
         items = findings.get("findings") or findings.get("items") or findings.get("list") or []
         if isinstance(items, list):
             sig = payload.get("signature") or {}
+            sig_state = str(sig.get("state") or "").lower() if isinstance(sig, dict) else ""
+            # F-007 honesty: signed != verified.
+            verified = sig_state == "verified"
             signed = bool(isinstance(sig, dict) and sig.get("value"))
             for f in items:
                 if isinstance(f, dict) and f.get("id") == "F-007":
-                    f["status"] = "RESOLVED" if signed else "OPEN"
-                    f["description"] = (
-                        "Snapshot signature verified (ed25519)"
-                        if signed
-                        else "Snapshot signature is not cryptographically verified"
-                    )
-                    f["evidence"] = (
-                        f"signature.state={sig.get('state')} key_id={sig.get('key_id')}"
-                        if signed
-                        else "signature.value=null (signing failed or key missing)"
-                    )
+                    if verified:
+                        f["status"] = "RESOLVED"
+                        f["description"] = "Snapshot signature verified (ed25519)"
+                        f["evidence"] = (
+                            f"signature.state={sig.get('state')} key_id={sig.get('key_id')}"
+                        )
+                    elif signed:
+                        f["status"] = "OPEN"
+                        f["description"] = (
+                            "Snapshot is signed (ed25519). This snapshot did not verify the signature."
+                        )
+                        f["evidence"] = (
+                            f"signature.state={sig.get('state') or 'signed'} "
+                            f"key_id={sig.get('key_id')} verification=not_run"
+                        )
+                    else:
+                        f["status"] = "OPEN"
+                        f["description"] = "Snapshot signature is not cryptographically verified"
+                        f["evidence"] = "signature.value=null (signing failed or key missing)"
             open_items = [f for f in items if isinstance(f, dict) and f.get("status") == "OPEN"]
             findings["count"] = len(open_items)
             by_sev: dict[str, int] = {}
@@ -607,6 +618,10 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
         independent=True,
     )
     # vault999 probe is independent — it checks filesystem state, not the organ's self-report.
+    census = _unlinked_seal_census()
+    genuine = census.get("genuine_unlinked") if isinstance(census, dict) else None
+    if isinstance(genuine, int) and genuine > 0:
+        vault_state = "degraded"
     sub["vault999"] = _pf(
         vault_state,
         source="rest_routes._probe_vault999_health",
@@ -899,6 +914,100 @@ def _resolve_session_state_from_sessions() -> str:
 
 
 # ── Governance envelope ────────────────────────────────────────────────────────
+def _predicate_not_enforcement(ontology: dict[str, Any] | None) -> bool:
+    """PREDICATE_PASS means a predicate held, not that an action was enforced."""
+    return isinstance(ontology, dict) and ontology.get("evidence_class") == "PREDICATE_PASS"
+
+
+def _projected_unit_score(ontology: dict[str, Any] | None) -> bool:
+    """True when a 1.00 beside this floor is a PASS projection, not a meter."""
+    if not isinstance(ontology, dict):
+        return False
+    if ontology.get("value_kind") == "predicate":
+        return True
+    transform = str(ontology.get("display_transform") or "")
+    return "projects to 1.00" in transform and "never projected" not in transform
+
+
+def _classify_published_floor(
+    threshold_ok: bool, ontology: dict[str, Any] | None
+) -> tuple[str, str, bool]:
+    """Return (status, bucket, withhold_score): predicate != passing, projected 1.00 withheld."""
+    if threshold_ok and _predicate_not_enforcement(ontology):
+        return "predicate", "predicate", _projected_unit_score(ontology)
+    if threshold_ok:
+        return "pass", "passing", False
+    return "fail", "failing", False
+
+
+def _unlinked_seal_census() -> dict[str, Any]:
+    """Count SEALED_EVENTS rows missing id, timestamp, or chain linkage; separate legacy v1 backlog."""
+    raw = os.getenv("ARIFOS_VAULT_PATH") or os.getenv("VAULT999_PATH") or "/var/lib/arifos/vault"
+    candidates: list[str] = []
+    if os.path.isdir(raw):
+        candidates.append(os.path.join(raw, "SEALED_EVENTS_v2.jsonl"))
+    elif raw:
+        candidates.append(raw)
+    candidates.append("/var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl")
+    path = next((item for item in candidates if os.path.isfile(item)), None)
+    if path is None:
+        return {"available": False, "path": None, "chain_length": None, "unlinked": None}
+    chain_length = 0
+    unlinked = 0
+    legacy_v1_unlinked = 0
+    with open(path, encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(entry, dict):
+                continue
+            entry_type = (
+                entry.get("type") or entry.get("event_type") or entry.get("verdict_issued") or ""
+            )
+            if not entry_type or not any(
+                token in str(entry_type).lower()
+                for token in ("seal", "verdict", "decision", "constitutional")
+            ):
+                continue
+            chain_length += 1
+            entry_id = entry.get("id") or entry.get("event_id") or entry.get("decision_id")
+            timestamp = (
+                entry.get("timestamp")
+                or entry.get("sealed_at")
+                or entry.get("issued_at_utc")
+                or entry.get("timestamp_decision")
+            )
+            depends_on = (
+                entry.get("constitutional_chain_id")
+                or entry.get("prev_seal_id")
+                or entry.get("prev_leaf")
+            )
+            _era_ts = str(timestamp or "")[:10]
+            legacy_v1_row = bool(
+                ("verdict_issued" in entry or "decision_id" in entry)
+                and not entry.get("prev_seal_id")
+                and not entry.get("constitutional_chain_id")
+                and not entry.get("prev_leaf")
+            ) or (not _era_ts or _era_ts <= "2026-05-27")
+            if entry_id is None or timestamp is None or depends_on is None:
+                unlinked += 1
+                if legacy_v1_row:
+                    legacy_v1_unlinked += 1
+    return {
+        "available": True,
+        "path": path,
+        "chain_length": chain_length,
+        "unlinked": unlinked,
+        "genuine_unlinked": unlinked - legacy_v1_unlinked,
+        "legacy_v1_unlinked": legacy_v1_unlinked,
+    }
+
+
 def _governance_block() -> dict[str, dict[str, Any]]:
     """Governance verdict + 13-floor status + per-field envelopes."""
     out: dict[str, dict[str, Any]] = {}
