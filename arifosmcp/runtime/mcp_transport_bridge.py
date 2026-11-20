@@ -373,6 +373,12 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                 mcp_name = (
                     request.headers.get("Mcp-Name") or request.headers.get("mcp-name") or ""
                 ).strip()
+                if mcp_name.startswith("=?base64?") and mcp_name.endswith("?="):
+                    try:
+                        import base64
+                        mcp_name = base64.b64decode(mcp_name[9:-2]).decode("utf-8")
+                    except Exception:
+                        pass
 
                 # ── G0.7 version coherence ──
                 # MCP-Protocol-Version header MUST equal _meta protocolVersion
