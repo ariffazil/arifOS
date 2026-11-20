@@ -500,7 +500,9 @@ class F6ConsentAndRelevanceTests(unittest.TestCase):
             m5_empty = evaluate_meter_5_correction_acceptance(ledger_path=empty_corr)
             self.assertEqual(m5_empty.result, "UNKNOWN")
 
-            m3_none = evaluate_meter_3_comprehension()
+            # M3: must point at absent store explicitly (gate-closed branch)
+            empty_events = Path(tmp) / "missing_maruah.jsonl"
+            m3_none = evaluate_meter_3_comprehension(events_path=empty_events)
             self.assertEqual(m3_none.result, "UNKNOWN")
             # ARIF GO 2026-11-05: the M4 sign-off store is live in
             # production. This test targets the gate-closed branch, so it

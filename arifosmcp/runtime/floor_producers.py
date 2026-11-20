@@ -841,14 +841,30 @@ def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
     if isinstance(_wh, dict):
         return _f6_well_coverage(_wh, sources.get("seals"))
 
+    # Contract (f6-dignity-boundary-ruling.md + F6 spec v0, item 3):
+    # "Missing meters or empty sources -> UNMEASURED (never PASS)."
+    # Empty sources (no well_health, no seals, no meters) must return UNMEASURED
+    # immediately — do not self-serve meters.
+    if _wh is None and sources.get("seals") is None and not sources.get("meters"):
+        return {
+            "floor": "F6",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:f6_mandatory_evidence_missing",
+            "reason": "all 6 F6 meters required; missing evidence never yields PASS",
+        }
+
     # seal-chain coercion alarm — FAIL-dominant, evaluated before the meters
     # path so a declared coercion / compromised-dignity seal is never averaged
     # away by a passing meter bundle (2026-10-26 ruling preserved).
+    # When seals is explicitly provided (even empty list), the seal fallback
+    # is the authoritative path — return its result unconditionally.
+    # For FAIL, prefix origin with "seal_fallback:" to preserve provenance;
+    # for UNMEASURED, keep the seal_fallback's original origin (historical probe).
     if sources.get("seals") is not None:
         _seal_sig = _f6_maruah_seal_fallback(sources)
         if _seal_sig.get("status") == "FAIL":
             _seal_sig["origin"] = "seal_fallback:" + str(_seal_sig.get("origin"))
-            return _seal_sig
+        return _seal_sig
 
     # F13 GO 2026-11-18: the producer SELF-SERVES the live six meters when
     # the caller brings no meter bundle (the kernel health path passes only

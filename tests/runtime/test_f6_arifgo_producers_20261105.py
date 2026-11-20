@@ -196,7 +196,7 @@ def test_m3_meter_measures_rows_with_restatement_fields(tmp_path: Path) -> None:
 def test_m3_meter_unknown_without_production_events(tmp_path: Path) -> None:
     r = m6.evaluate_meter_3_comprehension(events_path=tmp_path / "absent.jsonl")
     assert r.result == "UNKNOWN"
-    assert "never estimated" in r.result_reason
+    assert "never PASS from absence" in r.result_reason
 
 
 # ── M4: sign-off gate + out-of-band scan ─────────────────────────────────────
