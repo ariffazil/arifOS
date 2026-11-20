@@ -18,7 +18,7 @@ services:
       ARIFOS_CONSTITUTION: /etc/arifos/constitution
       ARIFOS_MANIFESTS: /etc/arifos/manifests
       VAULT_URL: http://vault999:5001
-      POSTGRES_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      POSTGRES_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/vault999
       REDIS_URL: redis://redis:6379
       QDRANT_URL: http://qdrant:6333
       ARIFOS_SOVEREIGN_PUBKEY_FILE: /run/sekrits/arifos_sovereign.pub
@@ -74,7 +74,7 @@ services:
     container_name: vault999
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/vault999
       PORT: '5001'
     networks:
       - arifos_core
@@ -103,7 +103,7 @@ services:
     ports:
       - "127.0.0.1:5001:5001"
     environment:
-      VAULT999_DB: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
+      VAULT999_DB: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/vault999
       PORT: '5001'
     networks:
       - arifos_core

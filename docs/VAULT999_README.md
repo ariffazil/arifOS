@@ -129,13 +129,13 @@ Required in `/etc/arifOS/secrets.env` (or systemd `Environment=`):
 
 ```bash
 # For vault999 API layer (port 5001)
-DATABASE_URL=postgresql://postgres:<PASSWORD>@db.utbmmjmbolmuahwixjqc.supabase.co:5432/postgres?sslmode=require
+DATABASE_URL=postgresql://postgres:${SUPABASE_PASSWORD}@db.utbmmjmbolmuahwixjqc.supabase.co:5432/postgres?sslmode=require
 VAULT_WRITER_URL=http://localhost:5001
 VAULT_ADMIN_TOKEN=<strong-random-token>
 PORT=5001
 
 # For vault999-writer (port 5001)
-VAULT999_DB=postgresql://postgres:<PASSWORD>@db.utbmmjmbolmuahwixjqc.supabase.co:5432/postgres?sslmode=require
+VAULT999_DB=postgresql://postgres:${SUPABASE_PASSWORD}@db.utbmmjmbolmuahwixjqc.supabase.co:5432/postgres?sslmode=require
 VAULT_WRITER_TOKEN=<strong-random-token>
 PORT=5001
 ```

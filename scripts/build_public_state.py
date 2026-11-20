@@ -672,6 +672,8 @@ def project_public_state(
     reachable = int(fed.get("reachable") or 0)
     declared = int(fed.get("declared") or 0)
     probed = int(fed.get("probed") or 0)
+    skipped = int(fed.get("skipped") or 0)
+    attempted = max(0, (probed or declared) - skipped)
     semantic = int(fed.get("semantic_proven") or 0)
     if probed and reachable == probed and semantic == probed:
         fed_state = "ALIGNED"
@@ -1220,13 +1222,27 @@ def project_public_state(
         },
         "federation": {
             "declared": declared,
+            "attempted": attempted,
+            "skipped": skipped,
             "probed": probed,
             "reachable": reachable,
             "semantic_proven": semantic,
-            "transport_edges": f"{reachable}/{probed or declared or 11}",
-            "semantic_edges": f"{semantic}/{probed or declared or 11}",
+            "transport_edges": f"{reachable}/{attempted}" if attempted > 0 else "0/0",
+            "semantic_edges": f"{semantic}/{declared or 11}",
             "state": fed_state,
             "aggregate_state": fed.get("aggregate_state"),
+        },
+        "witness_head": {
+            "store_id": "vault999.seal_chain.v2",
+            "schema_version": "witness-head.v1",
+            "head_seq": extra.get("chain_canonical_head_seq"),
+            "entry_count": extra.get("chain_canonical_entries"),
+            "total_entries": extra.get("chain_entries"),
+            "last_append_seq": extra.get("chain_head_seq"),
+            "head_hash": extra.get("chain_head_hash"),
+            "canonical_path": "/root/.local/share/arifos/vault999/seal_chain.jsonl",
+            "generated_at": extra.get("chain_observed_at"),
+            "verification_status": "ALIGNED" if extra.get("chain_canonical_verified") else "DISCONTINUOUS_TAIL_VS_CANONICAL",
         },
         "receipt": {
             # 2026-10-24 333-AGI — two quantities shared one name. `head_seq` from
