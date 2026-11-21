@@ -80,6 +80,9 @@ THRESHOLDS = {
     "F5_PEACE": 1.0,
     "F6_EMPATHY": 0.70,
     "F7_HUMILITY": (0.03, 0.05),
+    # F8_THRESHOLD_ORIGIN (RATIFIED F13 titah "Ya" 2026-11-20; receipt /root/forge_work/proposals/HERMES/F8-THRESHOLD-ORIGIN-STAGED-20261120.md):
+    # 0.80 = garis A waktu F13 darjah 2 (markah pertama B: 78). Margin, bukan kebijaksanaan, memisahkan kelas.
+    # Dipilih sebelum ukuran; hanya dibuka dengan bukti kalibrasi via T3, bukan keselesaan. Gate strict 0.7999->SABAR / 0.8000->SEAL.
     "F8_GENIUS": 0.80,
     "F9_ANTI_HANTU": 0.30,
     "L10_ONTOLOGY": 1.00,
