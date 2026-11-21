@@ -10,6 +10,9 @@ transport: streamable_http
 profile: public_agent
 kernel_capability_count: 8
 public_tool_count: 6
+public_wire_tool_count: 9
+public_wire_tool_count_source: live :8088/health public wire (canonical_tools + coordination_tools)
+public_wire_tools: arif_init arif_observe arif_think arif_route arif_memory arif_judge arif_forge arif_seal arif_report
 tools:
   - id: arif_init
     name: arif_init

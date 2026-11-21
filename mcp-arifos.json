@@ -12,7 +12,7 @@
   },
   "profile": "public_agent",
   "server_info": {
-    "description": "Six-tool public profile projected from the eight-capability platform-neutral Kernel ABI.",
+    "description": "Public profile projected from the eight-capability platform-neutral Kernel ABI. The live public wire additionally exposes the arif_report coordination tool; the wire count and its source are published in the marketplace manifests.",
     "name": "arifOS MCP"
   },
   "tools": [
