@@ -297,14 +297,13 @@ def floor_truth(
     declared = tuple(sorted(f for f, b in buckets.items() if b == "declared"))
     unmeasured = tuple(sorted(f for f, b in buckets.items() if b == "unmeasured"))
     passed = sum(1 for b in buckets.values() if b == "pass")
-    # Counts come from the bucket too: a "pass" floor is split into measured vs
-    # attested, and nothing outside a pass bucket may be counted as measured.
-    measured_n = sum(
-        1 for f, b in buckets.items() if b == "pass" and mstatus[f] == MEASUREMENT_MEASURED
-    )
-    attested_n = sum(
-        1 for f, b in buckets.items() if b == "pass" and mstatus[f] == MEASUREMENT_ATTESTED
-    )
+    # Counts come from the normalised class, over ALL floors. A measured FAIL is
+    # still a measurement (F3 failing at 11/13 on 2026-11-21 exposed the first
+    # cut of this fix: counting only pass buckets dropped the failing floor and
+    # the aggregate summed to 12/13). The normalisation above is what stops an
+    # unmeasured floor being counted as measured.
+    measured_n = sum(1 for c in mstatus.values() if c == MEASUREMENT_MEASURED)
+    attested_n = sum(1 for c in mstatus.values() if c == MEASUREMENT_ATTESTED)
     aggregate = (
         f"{measured_n} measured · {attested_n} attested · "
         f"{len(declared)} declared · {len(unmeasured)} unmeasured / {total}"

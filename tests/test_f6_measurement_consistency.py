@@ -113,6 +113,31 @@ def test_f6_mutual_exclusion_and_arithmetic() -> None:
     assert sum(v for k, v in counts.items() if k != "total") == counts["total"] == 13
 
 
+def test_measured_fail_is_counted_as_a_measurement() -> None:
+    """A failing floor was still measured — the aggregate must count it.
+
+    Live evidence 2026-11-21 10:27Z: F3 flipped to a measured FAIL while F6
+    stayed unmeasured, and the first version of this fix (counting only pass
+    buckets) published "11 measured · 0 attested · 0 declared · 1 unmeasured /
+    13" — 12 classes across 13 floors. Measured + unmeasured must still sum to
+    the total when a floor fails.
+    """
+    detail = _detail_with_f6("unmeasured")
+    detail["F3"] = "fail"
+    truth = floor_truth(detail, 13, provenance=_provenance(F6_STALE))
+    d = truth.as_dict()
+
+    assert d["floors_failing"] == ["F3"]
+    assert d["status"] == "degraded"
+    assert d["floors_measurement_status"]["F3"] == MEASUREMENT_MEASURED
+    assert d["floors_pass"] == 11
+
+    counts = _aggregate_counts(d["floors_aggregate"])
+    assert counts["measured"] == 12, "the failing floor is a measurement, not a gap"
+    assert counts["unmeasured"] == 1
+    assert sum(v for k, v in counts.items() if k != "total") == counts["total"] == 13
+
+
 def test_control_all_measured_floors_earn_a_measured_pass() -> None:
     """Control case: a genuinely measured floor must still report measured/pass."""
     truth = floor_truth(_detail_with_f6("pass"), 13, provenance=_provenance(F6_FRESH))
