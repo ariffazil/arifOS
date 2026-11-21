@@ -183,8 +183,10 @@ def test_cli_test_flag_refuses_production_ledger():
     assert "production witness ledger" in p.stderr
 
 
-def test_legacy_cli_confirm_still_writes_a_row(tmp_path: Path):
-    """Backward compatibility: a bare --confirm still records (as a statement)."""
+def test_legacy_cli_confirm_still_records_on_a_scratch_ledger(tmp_path: Path):
+    """Backward compatibility, scoped: a bare --confirm records on a SCRATCH
+    ledger (as a non-qualifying statement). On the production ledger it is
+    refused — see the append-guard tests below."""
     import os
 
     witness = tmp_path / "hw.jsonl"
@@ -202,3 +204,73 @@ def test_legacy_cli_confirm_still_writes_a_row(tmp_path: Path):
     assert row["act_type"] == "statement"
     assert row["human_witness"] is False
     assert len(row["report_sha256"]) == 64
+
+
+# ── Phase 2: production-ledger append guard ────────────────────────────────
+def test_production_path_constant_is_the_live_ledger():
+    assert mod.WITNESS_PATH == Path("/var/lib/arifos/human_witness.jsonl")
+
+
+def test_append_guard_refuses_nonqualifying_on_production():
+    reason = mod._append_guard(
+        qualifies=False, target=mod.WITNESS_PATH, allow_nonqualifying=False
+    )
+    assert reason and "NON_QUALIFYING_ROW_ON_PRODUCTION_LEDGER" in reason
+
+
+def test_append_guard_allows_qualified_on_production():
+    assert (
+        mod._append_guard(qualifies=True, target=mod.WITNESS_PATH, allow_nonqualifying=False)
+        is None
+    )
+
+
+def test_append_guard_allows_nonqualifying_on_scratch_ledger(tmp_path: Path):
+    assert (
+        mod._append_guard(
+            qualifies=False, target=tmp_path / "hw.jsonl", allow_nonqualifying=False
+        )
+        is None
+    )
+
+
+def test_append_guard_override_is_explicit():
+    assert (
+        mod._append_guard(
+            qualifies=False, target=mod.WITNESS_PATH, allow_nonqualifying=True
+        )
+        is None
+    )
+
+
+def test_legacy_confirm_refused_on_production_before_any_write(tmp_path: Path, monkeypatch):
+    """End-to-end: production path + non-qualifying act => rc 2, no file created.
+
+    WITNESS_PATH is rebound to a tmp path so the real ledger is never touched;
+    the refusal path is identical because the guard compares target==WITNESS_PATH.
+    """
+    prod = tmp_path / "prod.jsonl"
+    monkeypatch.setattr(mod, "WITNESS_PATH", prod)
+    monkeypatch.setenv("ARIFOS_HUMAN_WITNESS", str(prod))
+    rc = mod.confirm("legacy bare confirm", "arif", act_type="statement")
+    assert rc == 2
+    assert not prod.exists()
+
+
+def test_qualified_confirm_writes_on_production_path(tmp_path: Path, monkeypatch):
+    """Control: the same path accepts a fully-bound, authenticated act."""
+    prod = tmp_path / "prod.jsonl"
+    monkeypatch.setattr(mod, "WITNESS_PATH", prod)
+    monkeypatch.setenv("ARIFOS_HUMAN_WITNESS", str(prod))
+    rc = mod.confirm(
+        "saya terima",
+        "arif",
+        act_type="authorization",
+        subject_id="plan-test",
+        subject_hash="c" * 64,
+        auth_method="authenticated_session",
+        auth_evidence="session:test",
+    )
+    assert rc == 0
+    row = json.loads(prod.read_text().splitlines()[-1])
+    assert row["human_witness"] is True

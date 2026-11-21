@@ -127,6 +127,27 @@ def _qualification_blocker(
     return None
 
 
+def _append_guard(
+    *, qualifies: bool, target: Path, allow_nonqualifying: bool
+) -> str | None:
+    """Refuse to append a non-qualifying row to the PRODUCTION witness ledger.
+
+    A row that cannot qualify still enters ``probe_human_witness``'s
+    denominator (it counts every non-empty line), so writing one would move
+    F3 without adding a witness. A "warning + write" is not enough: the write
+    itself is the pollution. Scratch/derived ledgers are unaffected, and an
+    explicit ``--allow-nonqualifying`` override exists for deliberate
+    operator use (not authorised for production in this deployment).
+    """
+    if target == WITNESS_PATH and not qualifies and not allow_nonqualifying:
+        return (
+            "NON_QUALIFYING_ROW_ON_PRODUCTION_LEDGER — this row cannot qualify, "
+            "and every line in the production ledger is counted in F3's "
+            "denominator. Nothing was written."
+        )
+    return None
+
+
 def build_witness_row(
     *,
     act_type: str,
@@ -280,6 +301,7 @@ def confirm(
     expires_at: str | None = None,
     supersedes: str | None = None,
     test: bool = False,
+    allow_nonqualifying: bool = False,
 ) -> int:
     statement = (statement or "").strip()
     if not statement:
@@ -297,6 +319,33 @@ def confirm(
         print(
             "REFUSED: --test may not append to the production witness ledger. "
             "Set ARIFOS_HUMAN_WITNESS to a scratch path for test rows.",
+            file=sys.stderr,
+        )
+        return 2
+
+    # Phase 2 guard: decide eligibility BEFORE any report work or file open.
+    # A non-qualifying row would still be counted in F3's denominator.
+    _authenticated = auth_method in AUTHENTICATED_METHODS and bool(auth_evidence)
+    _blocker = _qualification_blocker(
+        act_type=act_type,
+        test=bool(test),
+        authenticated=_authenticated,
+        subject_id=subject_id,
+        subject_hash=subject_hash,
+        outcome_witness_hash=outcome_witness_hash,
+    )
+    _refusal = _append_guard(
+        qualifies=_blocker is None,
+        target=target,
+        allow_nonqualifying=allow_nonqualifying,
+    )
+    if _refusal:
+        print(f"REFUSED: {_refusal}", file=sys.stderr)
+        print(
+            "  To record a qualifying act: --act-type authorization|acceptance "
+            "--subject-id <id> --subject-hash <sha256> "
+            "--auth-method authenticated_session --auth-evidence <ref> "
+            "(acceptance also needs --bind-report-as-outcome).",
             file=sys.stderr,
         )
         return 2
@@ -329,6 +378,10 @@ def confirm(
             file=sys.stderr,
         )
         return 2
+
+    if allow_nonqualifying and not row["human_witness"]:
+        # Explicit operator override: make the deviation visible on the row.
+        row["provenance"]["non_qualifying_override"] = True
 
     target = append_witness_row(row)
     print(f"WITNESS_RECORDED {target} at={row['recorded_at']} actor={actor}")
@@ -408,6 +461,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--supersedes", default=None, help="record_id this row supersedes")
     ap.add_argument("--test", action="store_true", help="explicit test row (never qualifies)")
+    ap.add_argument(
+        "--allow-nonqualifying",
+        action="store_true",
+        help="operator override: permit a non-qualifying row on the PRODUCTION ledger "
+        "(not authorised for production in this deployment; the row is stamped)",
+    )
     a = ap.parse_args(argv)
     if not a.confirm:
         return render()
@@ -437,6 +496,7 @@ def main(argv: list[str] | None = None) -> int:
         expires_at=a.expires_at,
         supersedes=a.supersedes,
         test=a.test,
+        allow_nonqualifying=a.allow_nonqualifying,
     )
 
 
