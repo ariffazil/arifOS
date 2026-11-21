@@ -5081,9 +5081,16 @@ def register_rest_routes(
         _floors_unmeasured = sorted(
             _fid for _fid, _st in _floor_detail.items() if _st == _FLOOR_STATUS_UNMEASURED
         )
-        _floors_measured = sorted(
-            _fid for _fid, _src in _floor_provenance.items() if not _provenance_is_unmeasured(_src)
-        )
+        # P0-2 (2026-11-21, single-state derivation): _floor_detail is the ONE
+        # canonical measurement state per floor; measured/unmeasured both derive
+        # from it. The provenance-prefix filter double-classified a stale floor
+        # (F6) as measured while _floor_detail called it unmeasured -- one
+        # response, two answers. Provenance remains visible evidence; it no
+        # longer votes on measurement class.
+        from arifosmcp.runtime.floor_projections import derive_projections as _derive_floor_projections
+        _floor_projections = _derive_floor_projections(_floor_detail, _floor_provenance)
+        _floors_measured = _floor_projections["floors_measured"]
+        _floor_measurement_status = _floor_projections["floors_measurement_status"]
         _floors_defaulted = sorted(
             _fid
             for _fid, _src in _floor_provenance.items()
@@ -5132,6 +5139,7 @@ def register_rest_routes(
                 "floors_measurement_status": dict(_floor_verdict.measurement_status),
                 "floors_aggregate": _floor_verdict.aggregate,
                 "floors_detail": _floor_detail,
+                "floors_measurement_status": _floor_measurement_status,
                 "floors_provenance": _floor_provenance,
                 # P4 (F13 D2 2026-10-23): per-floor producer WHEN slots parsed
                 # from the provenance stamps — never report-generation time.
