@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -220,6 +221,115 @@ def _origin_ok() -> bool:
     return origin != "unknown" and origin.startswith(str(Path(ACTIVE_VENV_ROOT).resolve()) + "/")
 
 
+def _git_blob_sha1(data: bytes) -> str:
+    """Git object SHA-1 of a blob: sha1(b'blob <size>\\0' + data)."""
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def _strip_content_stamp(data: bytes) -> bytes:
+    """S5 exclusion rule: strip __content_sha256__ stamp line from installed __init__.py."""
+    lines = data.splitlines(keepends=True)
+    kept = [ln for ln in lines if not ln.startswith(b"__content_sha256__")]
+    return data if len(kept) == len(lines) else b"".join(kept)
+
+
+def _parity_scope(path: str) -> bool:
+    """Shippable runtime scope for parity: exclude committed test and _archive trees."""
+    return path.endswith(".py") and "/tests/" not in path and "/_archive/" not in path
+
+
+def _content_parity(
+    source_commit: str,
+    *,
+    package_root: Path | None = None,
+    repo_path: Path | None = None,
+) -> dict[str, Any]:
+    """Compare installed arifosmcp *.py git-blob SHA-1 against git ls-tree <source_commit>."""
+    root = package_root
+    if root is None:
+        root_override = os.getenv("ARIFOS_PACKAGE_ROOT", "").strip()
+        if root_override:
+            root = Path(root_override)
+        else:
+            try:
+                import arifosmcp as _pkg
+
+                root = Path(_pkg.__file__).resolve().parent
+            except Exception:
+                root = Path(__file__).resolve().parents[1]
+    repo = Path(repo_path or os.getenv("ARIFOS_REPO_PATH", "/root/arifOS"))
+    out: dict[str, Any] = {
+        "state": "UNKNOWN",
+        "method": "git_blob_sha1_vs_ls-tree;excl=__content_sha256_stamp,tests/",
+        "package_root": str(root),
+        "repo": str(repo),
+        "commit": source_commit,
+        "files_compared": 0,
+        "files_changed": 0,
+        "files_untracked": 0,
+        "files_missing": 0,
+        "sample_changed": [],
+        "sample_untracked": [],
+        "sample_missing": [],
+        "reason": None,
+    }
+    if not source_commit or source_commit == "unknown":
+        out["reason"] = "source_commit unknown — cannot compare"
+        return out
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo), "ls-tree", "-r", source_commit, "arifosmcp"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        out["reason"] = f"git unavailable: {type(exc).__name__}"
+        return out
+    if proc.returncode != 0:
+        out["reason"] = f"ls-tree failed rc={proc.returncode}"
+        return out
+    committed: dict[str, str] = {}
+    for line in proc.stdout.splitlines():
+        try:
+            meta, path = line.split("\t", 1)
+            sha = meta.split()[2]
+        except (ValueError, IndexError):
+            continue
+        if _parity_scope(path):
+            committed[path] = sha
+    if not committed:
+        out["reason"] = "commit resolves but holds no arifosmcp/*.py"
+        return out
+    local: dict[str, str] = {}
+    try:
+        for path in sorted(Path(root).rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            rel = "arifosmcp/" + str(path.relative_to(root))
+            if not _parity_scope(rel):
+                continue
+            local[rel] = _git_blob_sha1(_strip_content_stamp(path.read_bytes()))
+    except OSError as exc:
+        out["reason"] = f"unreadable package file: {type(exc).__name__}"
+        return out
+    changed = sorted(p for p in local if p in committed and committed[p] != local[p])
+    untracked = sorted(p for p in local if p not in committed)
+    missing = sorted(p for p in committed if p not in local)
+    out.update(
+        files_compared=len(local),
+        files_changed=len(changed),
+        files_untracked=len(untracked),
+        files_missing=len(missing),
+        sample_changed=changed[:8],
+        sample_untracked=untracked[:8],
+        sample_missing=missing[:8],
+    )
+    out["state"] = "MISMATCH" if (changed or untracked or missing) else "MATCH"
+    return out
+
+
 def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     """Public, machine-readable binding from release to this live process.
 
@@ -297,6 +407,11 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     if _identity_drift:
         drift = True
 
+    content_parity = _content_parity(source_commit)
+    _content_enforced = os.getenv("ARIFOS_CONTENT_PARITY_ENFORCE", "").strip() == "1"
+    if _content_enforced and content_parity.get("state") == "MISMATCH":
+        drift = True
+
     surface_hash = _compute_tool_surface_hash()
 
     release_id = os.getenv("ARIFOS_RELEASE_ID", "").strip() or (
@@ -309,8 +424,15 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "deployed_commit": deployed_commit,
         "drift": drift,
         # P1-5 widened (2026-11-01, audit D1): drift now ALSO covers
-        # repo HEAD vs deployed + deploy-stamp reachability.
-        "drift_scope": "binary_build_stamps+repo_head_vs_deployed+stamp_reachability",
+        # repo HEAD vs deployed + deploy-stamp reachability + content_hash.
+        "drift_scope": (
+            "binary_build_stamps+repo_head_vs_deployed+stamp_reachability+content_hash"
+            if _content_enforced
+            else "binary_build_stamps+repo_head_vs_deployed+stamp_reachability"
+            "(content_hash=measured_only)"
+        ),
+        "content_parity": content_parity,
+        "content_parity_enforced": _content_enforced,
         "repo_head_commit": repo_head_commit,
         "repo_head_in_sync": repo_head_in_sync,
         "repo_gap": _repo_gap,  # P1-5: both-direction commit counts
