@@ -88,6 +88,7 @@ from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
 from arifosmcp.runtime.law import get_floor_count
 from arifosmcp.runtime.health_truth import (
     FLOOR_SCOPE_SYSTEM,
+    declares_no_measurement,
     floor_truth,
     publish_system_floor_truth,
     substrate_truth,
@@ -1102,11 +1103,16 @@ def _provenance_is_unmeasured(provenance: Any) -> bool:
     2026-11-11 (F6 contradiction fix): an explicit UNMEASURED segment in any
     part of the provenance string (e.g. floor_producer:UNMEASURED:...)
     outranks the head token.
+
+    2026-11-21 (P0-2): the segment-token rule is not restated here — it is
+    delegated to ``health_truth.declares_no_measurement`` so this renderer and
+    ``health_truth.classify_provenance`` cannot drift apart again. The STALE
+    case (floor_producer:STALE:well_health:stale_substrate) was the drift.
     """
     _p = str(provenance or "").strip()
     if not _p:
         return False
-    if any(seg.strip().upper().startswith("UNMEASURED") for seg in _p.split(":")):
+    if declares_no_measurement(_p):
         return True
     _pl = _p.lower()
     return _pl.startswith("unmeasured_default") or "_skipped" in _pl

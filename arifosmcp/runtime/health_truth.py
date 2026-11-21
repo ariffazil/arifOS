@@ -49,19 +49,44 @@ MEASUREMENT_ATTESTED = "attested"
 MEASUREMENT_DECLARED = "declared"
 MEASUREMENT_UNMEASURED = "unmeasured"
 
+# Verdict tokens a producer can place in a provenance segment that say the
+# instrument has NO current reading, even though a producer did run. A stale
+# or expired substrate is an absent *current* measurement, not a measurement.
+_NON_MEASUREMENT_VERDICT_TOKENS = ("UNMEASURED", "STALE", "EXPIRED", "MISSING")
+
+
+def declares_no_measurement(provenance: str | None) -> bool:
+    """True when any provenance segment declares the instrument has no reading.
+
+    ONE rule, shared by the measurement classifier and the /health renderer.
+    The 2026-11-21 F6 defect existed because only UNMEASURED was recognised:
+    ``floor_producer:STALE:well_health:stale_substrate`` classed as *measured*
+    by its head token while the floor status said unmeasured, so /health
+    published the same floor in both buckets and an aggregate reading
+    "13 measured · 0 attested · 0 declared · 1 unmeasured / 13".
+    """
+    p = str(provenance or "").strip()
+    if not p:
+        return False
+    return any(
+        seg.strip().upper().startswith(_NON_MEASUREMENT_VERDICT_TOKENS)
+        for seg in p.split(":")
+    )
+
 
 def classify_provenance(provenance: str | None) -> str:
     """Map one provenance string to its measurement class."""
     p = str(provenance or "").strip()
     if not p:
         return MEASUREMENT_UNMEASURED
-    # An explicit UNMEASURED verdict in ANY segment outranks the producing
-    # head token: the instrument spoke and said it has no reading. F6 ships
-    # "floor_producer:UNMEASURED:unmeasured_default:f6_partially_measured";
+    # An explicit non-measurement verdict in ANY segment outranks the producing
+    # head token: the instrument spoke and said it has no current reading.
+    # F6 ships "floor_producer:STALE:well_health:stale_substrate";
     # classifying by head alone answered "measured" while floors_detail
     # answered "unmeasured", splitting one floor across two buckets and
-    # breaking the aggregate arithmetic (11+3=14/13, 2026-11-11 S1).
-    if any(seg.strip().upper().startswith("UNMEASURED") for seg in p.split(":")):
+    # breaking the aggregate arithmetic (2026-11-11 S1 UNMEASURED case,
+    # 2026-11-21 F6 STALE case).
+    if declares_no_measurement(p):
         return MEASUREMENT_UNMEASURED
     head = p.split(":", 1)[0]
     if "claims.json" in p or head in ("static_claim", "claims"):
@@ -256,12 +281,30 @@ def floor_truth(
         return "unmeasured"
 
     buckets = {fid: _bucket(fid) for fid in statuses}
+    # One normalized state (2026-11-21 F6 fix). The bucket decides what class a
+    # floor reports, so status and measurement class cannot contradict each
+    # other. Without this, a floor whose status said "unmeasured" but whose
+    # provenance head was a producer still classed as "measured" appeared in
+    # two places at once: floors_detail.F6=unmeasured beside
+    # floors_measurement_status.F6=measured, and an aggregate reading
+    # "13 measured · 0 attested · 0 declared · 1 unmeasured / 13" (14 over 13).
+    for _fid, _bucket_name in buckets.items():
+        if _bucket_name == "unmeasured":
+            mstatus[_fid] = MEASUREMENT_UNMEASURED
+        elif _bucket_name == "declared":
+            mstatus[_fid] = MEASUREMENT_DECLARED
     failing = tuple(sorted(f for f, b in buckets.items() if b == "fail"))
     declared = tuple(sorted(f for f, b in buckets.items() if b == "declared"))
     unmeasured = tuple(sorted(f for f, b in buckets.items() if b == "unmeasured"))
     passed = sum(1 for b in buckets.values() if b == "pass")
-    measured_n = sum(1 for c in mstatus.values() if c == MEASUREMENT_MEASURED)
-    attested_n = sum(1 for c in mstatus.values() if c == MEASUREMENT_ATTESTED)
+    # Counts come from the bucket too: a "pass" floor is split into measured vs
+    # attested, and nothing outside a pass bucket may be counted as measured.
+    measured_n = sum(
+        1 for f, b in buckets.items() if b == "pass" and mstatus[f] == MEASUREMENT_MEASURED
+    )
+    attested_n = sum(
+        1 for f, b in buckets.items() if b == "pass" and mstatus[f] == MEASUREMENT_ATTESTED
+    )
     aggregate = (
         f"{measured_n} measured · {attested_n} attested · "
         f"{len(declared)} declared · {len(unmeasured)} unmeasured / {total}"
