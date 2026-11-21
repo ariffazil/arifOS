@@ -155,6 +155,40 @@ def update_readme_sot(dry_run: bool = False) -> dict:
         changes["source_commit"] = (old_source.group(), new_source)
         content = content.replace(old_source.group(), new_source)
 
+    # Patch tools_exposed_via_mcp from the LIVE kernel wire.
+    #
+    # 2026-11-21 (FI-008 audit): the stamper computed `tools` but never wrote
+    # it anywhere, so the SOT-MANIFEST kept a static
+    # "tools_exposed_via_mcp: 8 (verified 2026-10-18)" while the live wire
+    # exposed 9 and the generated block directly above it said 9 -- two
+    # contradictory tool counts in one file. The truth_rule in this very block
+    # says the live endpoint beats any static count in prose, so the stamper
+    # must own this field or the contradiction is free to regrow.
+    live_tools = health.get("tools_exposed_via_mcp")
+    if live_tools is None:
+        live_tools = health.get("layer_health", {}).get("registry", {}).get("exposed_tools")
+    if isinstance(live_tools, int):
+        old_tools = re.search(r"tools_exposed_via_mcp: .*", content)
+        new_tools = (
+            f"tools_exposed_via_mcp: {live_tools} "
+            f"(verified by live POST /mcp tools/list on {now_iso[:10]})"
+        )
+        if old_tools and old_tools.group() != new_tools:
+            changes["tools_exposed_via_mcp"] = (old_tools.group(), new_tools)
+            content = content.replace(old_tools.group(), new_tools)
+
+    # Keep generated_by honest about the fields this stamper owns.
+    old_gen = re.search(r"generated_by: scripts/update_readme_sot\.py .*", content)
+    new_gen = (
+        "generated_by: scripts/update_readme_sot.py re-stamps live_commit, "
+        "source_commit, built_commit, deployment_drift_status, tools_exposed_via_mcp "
+        "and last_verified; every other machine value in this README lives in the "
+        "generated block above"
+    )
+    if old_gen and old_gen.group() != new_gen:
+        changes["generated_by"] = (old_gen.group(), new_gen)
+        content = content.replace(old_gen.group(), new_gen)
+
     # Patch built_commit + deployment_drift_status from LIVE kernel health
     # (2026-09-15 M5: these fields were previously never re-stamped — the
     # README claimed stale commits until someone hand-patched them.)

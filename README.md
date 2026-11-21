@@ -27,14 +27,14 @@ arifOS dihidupkan sebagai pelayan MCP (`pip install arifos`). Bilangan tool, por
 
 
 <!-- SOT-MANIFEST
-last_verified: 2026-11-18T09:24:14+00:00
-live_commit: 97ad7bb3d (chore(organ-heartbeat): land sibling WIP as-found to unblock the F13-GO deploy ()
-source_commit: 97ad7bb3d
-built_commit: 97ad7bb3d08e
-deployment_drift_status: aligned (source = built = deployed (drift: false))
-tools_exposed_via_mcp: 8 (verified by live POST /mcp tools/list on 2026-10-18: arif_init, arif_observe, arif_think, arif_route, arif_memory, arif_judge, arif_forge, arif_seal)
+last_verified: 2026-11-21T06:09:06+00:00
+live_commit: 3eba0e7c6 (feat(horizon-seal): unify P evidence tracking, F8 origin, and W3 ratification-po)
+source_commit: 3eba0e7c6
+built_commit: 9d5d743
+deployment_drift_status: repo_live_divergence (kernel self-report drift=false (built=9d5d743) — this says nothing about the repo tree above, which is 3eba0e7 (deploy pending))
+tools_exposed_via_mcp: 9 (verified by live POST /mcp tools/list on 2026-11-21)
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
-generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
+generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status, tools_exposed_via_mcp and last_verified; every other machine value in this README lives in the generated block above
 -->
 
 <p align="center">
