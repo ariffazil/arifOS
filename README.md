@@ -472,6 +472,10 @@ arifOS publishes verifiable evidence for its claims. Every public claim links to
 
 ---
 
+### SAKSI — the witness bot
+
+**SAKSI** (*Witness of Agentic REALITY by arifOS*, Telegram `@arifOS_bot`) is the federation's independent witness: a 1-shot, read-only MCP client with no multi-turn loop and no code-writing tools, so it audits `journalctl` and kernel health without narrative bias. Execution, judgment and witnessing stay separate — **author ≠ judge ≠ executor ≠ witness** — and a human keeps the circuit-breaker (888 HMAC). Live pattern card: [mcp.arif-fazil.com](https://mcp.arif-fazil.com/#saksi-witness-pattern).
+
 ## External Footprint & Discovery
 
 arifOS is publicly discoverable beyond first-party domains.
