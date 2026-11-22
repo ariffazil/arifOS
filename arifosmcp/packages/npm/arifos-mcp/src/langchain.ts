@@ -1,8 +1,8 @@
 /**
  * @arifos/mcp - LangChain.js Integration (stub)
  *
- * The package stays model-agnostic. This wrapper exposes the public 8-tool
- * contract shape only; structured LangChain tool bindings can be added later.
+ * The package stays model-agnostic and carries zero governance authority.
+ * Use client.listTools(), client.init(), client.judge(), or client.callTool() directly.
  */
 
 import { PUBLIC_TOOL_NAMES, type ArifOSToolName } from "./types.js";
@@ -22,7 +22,7 @@ export class ArifOSToolset {
   async getTools(): Promise<[]> {
     console.warn(
       "[@arifos/mcp/langchain] Structured LangChain bindings are not implemented yet.\n" +
-        "Use client.callTool(), client.runKernel(), or client.listTools() directly.",
+        "Use client.callTool(), client.init(), client.judge(), or client.listTools() directly.",
     );
     return [];
   }

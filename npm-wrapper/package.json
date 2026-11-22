@@ -1,47 +1,14 @@
 {
-  "name": "arifos",
+  "name": "arifos-legacy-wrapper",
+  "private": true,
   "version": "2026.7.17",
-  "description": "Constitutional execution gate for AI agents. Verifies identity, evidence, authority and reversibility before tools may mutate the world.",
-  "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "ai-governance",
-    "agent-safety",
-    "constitutional-ai",
-    "execution-gate",
-    "arifos"
-  ],
-  "homepage": "https://arif-fazil.com/mcp",
+  "description": "SUPERSEDED local wrapper (never published to npm). Use @arifos/mcp (arifosmcp/packages/npm/arifos-mcp) for JS/TS integration and `pip install arifos` (PyPI) for the Python governance kernel.",
+  "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ariffazil/arifos"
-  },
-  "license": "AGPL-3.0",
-  "author": {
-    "name": "Muhammad Arif bin Fazil",
-    "email": "arifos@arif-fazil.com",
-    "url": "https://arif-fazil.com"
-  },
-  "bin": {
-    "arifos-connect": "./bin/connect.js"
-  },
-  "files": [
-    "bin/",
-    "mcp.json",
-    "README.md"
-  ],
-  "scripts": {
-    "postinstall": "node bin/postinstall.js"
+    "url": "https://github.com/ariffazil/arifOS"
   },
   "engines": {
     "node": ">=18"
-  },
-  "mcp": {
-    "servers": {
-      "arifos": {
-        "type": "streamable-http",
-        "url": "https://mcp.arif-fazil.com/mcp"
-      }
-    }
   }
 }

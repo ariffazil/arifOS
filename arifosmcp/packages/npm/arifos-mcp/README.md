@@ -1,10 +1,19 @@
 # @arifos/mcp
 
-**L2 Skills Adapter** — TypeScript client for the arifOS Constitutional AI Governance System.
+**Thin JavaScript/TypeScript MCP client for the arifOS governance kernel.**
 
-> **F4 CLARITY:** This package is a **CABLE**, not the **KERNEL**.
-> Governance authority resides exclusively in the PyPI [`arifosmcp`](https://pypi.org/project/arifosmcp/) package.
-> This npm package only provides TypeScript types and a thin MCP transport client.
+```text
+PyPI (`pip install arifos`) ships the kernel.
+npm  (`npm install @arifos/mcp`) ships the JavaScript cable.
+MCP  is the language through the cable.
+The endpoint (`https://mcp.arif-fazil.com/mcp`) is the address of a running kernel.
+arifOS judges; this client carries ZERO independent constitutional authority.
+```
+
+> **Choose the right tool first:**
+> - **Just want to try arifOS?** Connect your MCP client directly to `https://mcp.arif-fazil.com/mcp` — no Python or Node.js installation required.
+> - **Want to run your own kernel?** Install the Python package: `pip install arifos` ([PyPI](https://pypi.org/project/arifos/)).
+> - **Building a JavaScript or TypeScript app?** Install `@arifos/mcp` to talk to a running kernel (hosted or self-hosted).
 
 ---
 
@@ -12,230 +21,105 @@
 
 ```bash
 npm install @arifos/mcp
-# or
-pnpm add @arifos/mcp
-# or
-yarn add @arifos/mcp
 ```
+
+Requires Node.js >= 18. Installing this package does **not** start a kernel, run background services, or evaluate constitutional floors locally.
 
 ---
 
 ## Quick Start
 
-### HTTP Mode (Remote VPS)
+### Connect to the hosted kernel (Streamable HTTP)
 
 ```typescript
-import { createClient, ENDPOINTS } from '@arifos/mcp';
+import { createClient, ENDPOINTS } from "@arifos/mcp";
 
 const client = await createClient({
-  transport: 'http',
-  endpoint: ENDPOINTS.VPS,  // https://arifosmcp.arif-fazil.com/mcp
+  transport: "http",
+  endpoint: ENDPOINTS.MCP, // https://mcp.arif-fazil.com/mcp
 });
 
 await client.connect();
 
-const identity = await client.bootstrapIdentity({
-  declared_name: 'Researcher',
-  human_approval: true,
+// 1. Discover the live wire tools (8 canonical verbs + arif_report)
+const tools = await client.listTools();
+console.log(tools.map((t) => t.name));
+
+// 2. Ignite a governed session (000)
+const session = await client.init({
+  intent: "Check whether a refund action is permitted",
+  actor_id: "my-ts-app",
 });
 
-const result = await client.runKernel({
-  query: 'What is quantum computing?',
-  risk_tier: 'medium',
-  actor_id: 'researcher'
+// 3. Request a constitutional verdict (666)
+const verdict = await client.judge({
+  candidate: "Issue RM5000 customer refund without human approval",
+  action_tier: "T3",
 });
 
-console.log(identity.session_id);
-console.log(result.verdict);
-console.log(result.payload);
-
+console.log(session.session_id, verdict.verdict);
 await client.disconnect();
 ```
 
-### stdio Mode (Local)
+### Connect to a local self-hosted kernel (stdio)
 
-> **⚠️ SECURITY:** Never hardcode secrets. Load from `.env` or a secrets manager.
+Requires `pip install arifos` so the `arifos-mcp` binary is available on `PATH`:
 
 ```typescript
-import { createClient } from '@arifos/mcp';
+import { quickConnect } from "@arifos/mcp";
 
-const client = await createClient({
-  transport: 'stdio',
-  env: {
-    // Load from environment — never commit these values
-    ARIFOS_GOVERNANCE_SECRET: process.env.ARIFOS_GOVERNANCE_SECRET!,
-    DATABASE_URL: process.env.DATABASE_URL!,
-  },
-});
-
+const client = await quickConnect.local();
 await client.connect();
-// ... use client
+const tools = await client.listTools();
 await client.disconnect();
 ```
 
 ---
 
-## Architecture
+## Live Wire Contract (9 tools = 8 canonical verbs + `arif_report`)
+
+| Tool | Stage | Purpose |
+| :--- | :--- | :--- |
+| `arif_init` | `000_INIT` | Start or resume a governed session |
+| `arif_observe` | `111_OBSERVE` | Collect labeled evidence (`OBS`/`DER`/`INT`/`SPEC`) |
+| `arif_think` | `333_THINK` | Structured reasoning under F2/F7 |
+| `arif_route` | `444_ROUTE` | Route intent to the right organ or next step |
+| `arif_memory` | `555_MEMORY` | Recall, store, or promote governed memory |
+| `arif_judge` | `666_JUDGE` | Evaluate a proposed action against F1–F13 |
+| `arif_forge` | `777_FORGE` | Execute an approved action (requires a prior `SEAL`) |
+| `arif_seal` | `999_SEAL` | Record an auditable receipt in VAULT999 |
+| `arif_report` | `REPORT` | File, read, or acknowledge operational reports |
+
+Always treat live `tools/list` on the connected kernel as authoritative over static documentation.
+
+---
+
+## Architecture & Authority Boundary
 
 ```text
-┌─────────────────────────────────────┐
-│  Your Application (JS/TS)           │
-│  ┌─────────────────────────────┐    │
-│  │  @arifos/mcp (L2 Adapter)   │    │
-│  │  ├── types.ts (mirrors)     │    │
-│  │  ├── client.ts (transport)  │    │
-│  │  └── langchain.ts (stub)    │    │
-│  └───────────┬─────────────────┘    │
-└──────────────┼──────────────────────┘
-               │ MCP Protocol
-┌──────────────▼──────────────────────┐
-│  arifosmcp (PyPI) — THE KERNEL         │
-│  ├── core/ (13 Floors, Trinity)     │
-│  ├── arifosmcp.runtime/ (MCP server)   │
-│  └── VAULT999 (immutable ledger)    │
-└─────────────────────────────────────┘
+JavaScript / TypeScript application
+           |
+           | @arifos/mcp (transport + types only)
+           v
+Running arifOS Python kernel (`pip install arifos` or https://mcp.arif-fazil.com/mcp)
+           |
+           v
+Verdict (SEAL / PROVISIONAL / PARTIAL / SABAR / HOLD / HOLD_888 / VOID) + receipt
 ```
 
-**Key Principle:** This package has **ZERO governance logic**. All constitutional enforcement (F1-F13) happens server-side in the Python kernel. The npm client is a transport client that passes through whatever the kernel decides.
-
----
-
-## API Reference
-
-### `createClient(config)`
-
-Create an MCP client connection to arifOS.
-
-```typescript
-interface ArifOSClientConfig {
-  transport: 'stdio' | 'http';
-  endpoint?: string;          // Required for http
-  env?: Record<string, string>; // Required for stdio
-  timeout?: number;           // Default: 60000ms
-  debug?: boolean;
-}
-```
-
-### Client Methods
-
-| Method | Description |
-| :--- | :--- |
-| `client.connect()` | Establish MCP connection |
-| `client.disconnect()` | Close connection |
-| `client.callTool(name, params)` | Call one of the 8 public tools directly |
-| `client.bootstrapIdentity(params)` | Start governed session grounding and capture `auth_context` |
-| `client.runKernel(params)` | Execute the public kernel and auto-carry known `auth_context` |
-| `client.searchReality(params)` | Ground a query with external sources |
-| `client.ingestEvidence(params)` | Load evidence from a URL |
-| `client.sessionMemory(params)` | Store/retrieve governed memory |
-| `client.auditRules(params?)` | Inspect floor logic |
-| `client.checkVital(params?)` | Read runtime health and telemetry |
-| `client.openApexDashboard(params?)` | Open the dashboard surface |
-| `client.listTools()` | Discover the filtered 8-tool public contract |
-
-### Types
-
-```typescript
-import type {
-  Verdict,        // 'SEAL' | 'PROVISIONAL' | 'PARTIAL' | 'SABAR' | 'HOLD' | 'HOLD_888' | 'VOID'
-  FloorCode,      // 'F1' | 'F2' | ... | 'F13'
-  Stage,          // public stage string or runtime stage string
-  RuntimeEnvelope,
-  ArifOSMetadata,
-  ArifOSKernelInput,
-} from '@arifos/mcp';
-```
-
----
-
-## Compatibility Matrix
-
-| @arifos/mcp | Node.js | arifOS (PyPI) | Transport | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| 0.5.0 | ≥18 | ≥2026.03.10-FORGED | HTTP/stdio | 🔄 **Current** |
-| 0.4.0 | ≥18 | 2026.03.10 | HTTP/stdio | historical |
-| 0.1.1 | ≥18 | 2026.2.22 | HTTP/stdio | ✅ Tested |
-| 0.1.0 | ≥18 | 2026.2.17 | HTTP/stdio | ✅ Stable |
-
-**Notes:**
-- All versions tested against production VPS endpoint (`arifosmcp.arif-fazil.com`)
-- `stdio` transport tested locally with `arifosmcp>=2026.2.17`
-- Public contract authority comes from the generated runtime registry, not this README alone
-
----
-
-## Public MCP Contract (8 tools)
-
-The production runtime exposes 8 public/main tools to model-facing clients:
-
-| Tool | Purpose |
-| :--- | :--- |
-| `arifOS_kernel` | One-call governed constitutional execution entrypoint |
-| `search_reality` | Web grounding |
-| `ingest_evidence` | URL/document/file intake |
-| `session_memory` | Governed session continuity |
-| `audit_rules` | Governance rule audit |
-| `check_vital` | System health and telemetry |
-| `open_apex_dashboard` | Observability dashboard |
-| `init_anchor_state` | Onboarding and continuity anchor |
-
-## Compatibility Guidance
-
-Use the public 8-tool contract for model-facing integrations. Legacy names such as `anchor_session`, `reason_mind`, `apex_judge`, and `seal_vault` should be treated as compatibility history or internal/dev-only stage tools unless a specific internal profile documents otherwise.
-
-The generated runtime contract lives in the docs:
-
-- <https://arifos.arif-fazil.com/public-contract>
-
----
-
-## Error Handling
-
-```typescript
-import { ArifOSError } from '@arifos/mcp';
-
-try {
-  await client.runKernel({ query: 'Explain F2 Truth briefly.', dry_run: true });
-} catch (error) {
-  if (error instanceof ArifOSError) {
-    console.log(error.code);   // 'CONNECTION_FAILED' | 'INVALID_RESPONSE' | ...
-    console.log(error.stage);  // Stage where error occurred
-    console.log(error.floor);  // Floor that triggered error (if any)
-  }
-}
-```
-
----
-
-## Development
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build
-pnpm run build
-
-# Type check
-pnpm run typecheck
-
-# Test
-pnpm test
-```
-
----
-
-## License
-
-AGPL-3.0-only — Same as arifOS kernel.
+- `AuthorityEnvelope` and `ReceiptRecord` types are **transparent payload mirrors** only.
+- Presenting a token or authority field in TypeScript does **not** grant authority; the Python kernel verifies and decides.
+- To remove this package cleanly: `npm uninstall @arifos/mcp`.
 
 ---
 
 ## Links
 
-- **arifOS Kernel:** <https://pypi.org/project/arifosmcp/>
-- **Documentation:** <https://arifos.arif-fazil.com>
-- **Repository:** <https://github.com/ariffazil/arifosmcp>
-- **MCP Protocol:** <https://modelcontextprotocol.io>
+- **Authoritative Kernel (PyPI):** <https://pypi.org/project/arifos/>
+- **Source & Evidence (GitHub):** <https://github.com/ariffazil/arifOS>
+- **Hosted MCP Endpoint:** `https://mcp.arif-fazil.com/mcp`
+- **Public Health:** <https://mcp.arif-fazil.com/health>
 
-*Ditempa Bukan Diberi* — Forged, Not Given
+## License
+
+AGPL-3.0-only — *DITEMPA BUKAN DIBERI*

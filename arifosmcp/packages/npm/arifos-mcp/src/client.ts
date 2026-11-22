@@ -1,8 +1,9 @@
 /**
- * @arifos/mcp - MCP Client
+ * @arifos/mcp - Thin MCP Client
  *
- * Thin public-contract adapter over the MCP SDK.
- * This package intentionally exposes only the 8-tool public surface.
+ * JavaScript/TypeScript transport adapter for the arifOS Python kernel.
+ * Carries ZERO constitutional decision logic: it forwards requests over MCP
+ * and returns the kernel's response verbatim.
  */
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -13,45 +14,43 @@ import {
   ArifOSError,
   PUBLIC_TOOL_NAMES,
   isPublicToolName,
+  type ArifForgeInput,
+  type ArifInitInput,
+  type ArifJudgeInput,
+  type ArifMemoryInput,
   type ArifOSClientConfig,
-  type ArifOSKernelInput,
   type ArifOSMetadata,
   type ArifOSToolName,
+  type ArifObserveInput,
+  type ArifReportInput,
+  type ArifRouteInput,
+  type ArifSealInput,
+  type ArifThinkInput,
   type AuthContext,
-  type BootstrapIdentityInput,
-  type CheckVitalInput,
-  type IngestEvidenceInput,
-  type OpenApexDashboardInput,
   type PublicToolDefinition,
   type RuntimeEnvelope,
-  type SearchRealityInput,
-  type SessionMemoryInput,
   type ToolInputMap,
   type ToolPayloadMap,
-  type AuditRulesInput,
 } from "./types.js";
 
 export { Client } from "@modelcontextprotocol/sdk/client/index.js";
 export type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 export * from "./types.js";
 
+export const DEFAULT_MCP_ENDPOINT = "https://mcp.arif-fazil.com/mcp";
+
 function createTransport(config: ArifOSClientConfig): Transport {
   switch (config.transport) {
     case "stdio": {
-      if (!config.env) {
-        throw new ArifOSError("stdio transport requires env configuration", "TRANSPORT_ERROR");
-      }
       return new StdioClientTransport({
-        command: "python",
-        args: ["-m", "arifosmcp.runtime", "stdio"],
+        command: config.command ?? "arifos-mcp",
+        args: config.args ?? [],
         env: config.env,
       });
     }
     case "http": {
-      if (!config.endpoint) {
-        throw new ArifOSError("http transport requires endpoint", "TRANSPORT_ERROR");
-      }
-      return new StreamableHTTPClientTransport(new URL(config.endpoint));
+      const endpoint = config.endpoint ?? DEFAULT_MCP_ENDPOINT;
+      return new StreamableHTTPClientTransport(new URL(endpoint));
     }
     default: {
       const exhaustive: never = config.transport;
@@ -77,35 +76,15 @@ function extractTextContent(content: unknown): TextContent[] {
   );
 }
 
-function parseStructuredEnvelope(raw: unknown): RuntimeEnvelope<Record<string, unknown>> {
-  if (typeof raw !== "object" || raw === null) {
-    throw new Error("Expected a structured JSON object.");
-  }
-
-  if (
-    !("tool" in raw) ||
-    !("stage" in raw) ||
-    !("verdict" in raw) ||
-    !("status" in raw) ||
-    !("metrics" in raw) ||
-    !("trace" in raw) ||
-    !("authority" in raw) ||
-    !("payload" in raw) ||
-    !("errors" in raw) ||
-    !("meta" in raw)
-  ) {
-    throw new Error("Response does not match RuntimeEnvelope shape.");
-  }
-
-  return raw as RuntimeEnvelope<Record<string, unknown>>;
-}
-
-function parseEnvelopeFromResult(result: {
-  structuredContent?: unknown;
-  content?: unknown;
-}): RuntimeEnvelope<Record<string, unknown>> {
-  if (result.structuredContent) {
-    return parseStructuredEnvelope(result.structuredContent);
+function parseEnvelopeFromResult(
+  toolName: ArifOSToolName,
+  result: { structuredContent?: unknown; content?: unknown },
+): RuntimeEnvelope<Record<string, unknown>> {
+  if (result.structuredContent && typeof result.structuredContent === "object") {
+    return {
+      tool: toolName,
+      ...(result.structuredContent as Record<string, unknown>),
+    };
   }
 
   const textContent = extractTextContent(result.content);
@@ -115,13 +94,22 @@ function parseEnvelopeFromResult(result: {
     throw new Error("Tool returned neither structuredContent nor text JSON.");
   }
 
-  return parseStructuredEnvelope(JSON.parse(fullText) as unknown);
+  const parsed: unknown = JSON.parse(fullText);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("Expected a JSON object response from the arifOS kernel.");
+  }
+
+  return {
+    tool: toolName,
+    ...(parsed as Record<string, unknown>),
+  };
 }
 
 export interface ArifOSMCPClient {
   readonly mcp: Client;
   readonly metadata: ArifOSMetadata | null;
   readonly sessionId: string | null;
+  readonly sessionToken: string | null;
   readonly authContext: AuthContext | null;
   connect(): Promise<void>;
   disconnect(): Promise<void>;
@@ -129,43 +117,29 @@ export interface ArifOSMCPClient {
     name: N,
     params: ToolInputMap[N],
   ): Promise<RuntimeEnvelope<ToolPayloadMap[N]>>;
-  runKernel(
-    params: ArifOSKernelInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["arifOS_kernel"]>>;
-  bootstrapIdentity(
-    params: BootstrapIdentityInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["bootstrap_identity"]>>;
-  searchReality(
-    params: SearchRealityInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["search_reality"]>>;
-  ingestEvidence(
-    params: IngestEvidenceInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["ingest_evidence"]>>;
-  sessionMemory(
-    params: SessionMemoryInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["session_memory"]>>;
-  auditRules(
-    params?: AuditRulesInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["audit_rules"]>>;
-  checkVital(
-    params?: CheckVitalInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["check_vital"]>>;
-  openApexDashboard(
-    params?: OpenApexDashboardInput,
-  ): Promise<RuntimeEnvelope<ToolPayloadMap["open_apex_dashboard"]>>;
+  init(params: ArifInitInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_init"]>>;
+  observe(params?: ArifObserveInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_observe"]>>;
+  think(params?: ArifThinkInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_think"]>>;
+  route(params?: ArifRouteInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_route"]>>;
+  memory(params?: ArifMemoryInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_memory"]>>;
+  judge(params: ArifJudgeInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_judge"]>>;
+  forge(params?: ArifForgeInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_forge"]>>;
+  seal(params?: ArifSealInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_seal"]>>;
+  report(params?: ArifReportInput): Promise<RuntimeEnvelope<ToolPayloadMap["arif_report"]>>;
   listTools(): Promise<PublicToolDefinition[]>;
 }
 
 /**
- * Create an arifOS MCP client bound to the public 8-tool contract.
+ * Create a thin MCP client for the 9-tool arifOS wire contract
+ * (8 canonical stage verbs + arif_report).
  */
 export async function createClient(config: ArifOSClientConfig): Promise<ArifOSMCPClient> {
   const transport = createTransport(config);
 
   const mcp = new Client(
     {
-      name: "@arifos/mcp-client",
-      version: "0.5.0",
+      name: "@arifos/mcp",
+      version: "2026.11.22",
     },
     {
       capabilities: {},
@@ -174,17 +148,34 @@ export async function createClient(config: ArifOSClientConfig): Promise<ArifOSMC
 
   let currentMetadata: ArifOSMetadata | null = null;
   let currentSessionId: string | null = null;
+  let currentSessionToken: string | null = null;
   let currentAuthContext: AuthContext | null = null;
 
-  function updateStateFromEnvelope(envelope: RuntimeEnvelope<Record<string, unknown>>): void {
-    currentSessionId = envelope.session_id ?? currentSessionId;
-    currentAuthContext = envelope.auth_context ?? currentAuthContext;
+  function updateStateFromEnvelope(
+    toolName: ArifOSToolName,
+    envelope: RuntimeEnvelope<Record<string, unknown>>,
+  ): void {
+    if (typeof envelope.session_id === "string" && envelope.session_id.length > 0) {
+      currentSessionId = envelope.session_id;
+    }
+    if (typeof envelope.session_token === "string" && envelope.session_token.length > 0) {
+      currentSessionToken = envelope.session_token;
+    }
+    if (envelope.auth_context) {
+      currentAuthContext = envelope.auth_context;
+    } else if (currentSessionId) {
+      currentAuthContext = {
+        session_id: currentSessionId,
+        session_token: currentSessionToken ?? undefined,
+      };
+    }
+
     currentMetadata = {
-      session_id: envelope.session_id,
-      tool: envelope.tool,
+      session_id: currentSessionId,
+      tool: envelope.tool ?? toolName,
       version: String(envelope.meta?.schema_version ?? "unknown"),
-      stage: envelope.stage,
-      verdict: envelope.verdict,
+      stage: envelope.stage ?? toolName,
+      verdict: envelope.verdict ?? "UNKNOWN",
       timestamp: String(envelope.meta?.timestamp ?? new Date().toISOString()),
     };
   }
@@ -194,13 +185,24 @@ export async function createClient(config: ArifOSClientConfig): Promise<ArifOSMC
     params: ToolInputMap[N],
   ): Promise<RuntimeEnvelope<ToolPayloadMap[N]>> {
     try {
+      const effectiveArgs: Record<string, unknown> = { ...(params as Record<string, unknown>) };
+      if (currentSessionId && effectiveArgs.session_id === undefined) {
+        effectiveArgs.session_id = currentSessionId;
+      }
+      if (currentSessionToken && effectiveArgs.session_token === undefined && name !== "arif_init") {
+        effectiveArgs.session_token = currentSessionToken;
+      }
+
       const result = await mcp.callTool(
-        { name, arguments: params as Record<string, unknown> },
+        { name, arguments: effectiveArgs },
         undefined,
         { timeout: config.timeout ?? 60000 },
       );
-      const envelope = parseEnvelopeFromResult(result as { structuredContent?: unknown; content?: unknown });
-      updateStateFromEnvelope(envelope);
+      const envelope = parseEnvelopeFromResult(
+        name,
+        result as { structuredContent?: unknown; content?: unknown },
+      );
+      updateStateFromEnvelope(name, envelope);
       return envelope as RuntimeEnvelope<ToolPayloadMap[N]>;
     } catch (cause) {
       if (cause instanceof ArifOSError) {
@@ -224,6 +226,9 @@ export async function createClient(config: ArifOSClientConfig): Promise<ArifOSMC
     get sessionId() {
       return currentSessionId;
     },
+    get sessionToken() {
+      return currentSessionToken;
+    },
     get authContext() {
       return currentAuthContext;
     },
@@ -246,63 +251,39 @@ export async function createClient(config: ArifOSClientConfig): Promise<ArifOSMC
       await mcp.close();
     },
 
-    async callTool<N extends ArifOSToolName>(
+    callTool<N extends ArifOSToolName>(
       name: N,
       params: ToolInputMap[N],
     ): Promise<RuntimeEnvelope<ToolPayloadMap[N]>> {
       return callPublicTool(name, params);
     },
 
-    async runKernel(
-      params: ArifOSKernelInput,
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["arifOS_kernel"]>> {
-      const effectiveParams: ArifOSKernelInput = {
-        ...params,
-        auth_context: params.auth_context ?? currentAuthContext ?? undefined,
-      };
-      return callPublicTool("arifOS_kernel", effectiveParams);
+    init(params: ArifInitInput) {
+      return callPublicTool("arif_init", params);
     },
-
-    async bootstrapIdentity(
-      params: BootstrapIdentityInput,
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["bootstrap_identity"]>> {
-      return callPublicTool("bootstrap_identity", params);
+    observe(params: ArifObserveInput = {}) {
+      return callPublicTool("arif_observe", params);
     },
-
-    async searchReality(
-      params: SearchRealityInput,
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["search_reality"]>> {
-      return callPublicTool("search_reality", params);
+    think(params: ArifThinkInput = {}) {
+      return callPublicTool("arif_think", params);
     },
-
-    async ingestEvidence(
-      params: IngestEvidenceInput,
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["ingest_evidence"]>> {
-      return callPublicTool("ingest_evidence", params);
+    route(params: ArifRouteInput = {}) {
+      return callPublicTool("arif_route", params);
     },
-
-    async sessionMemory(
-      params: SessionMemoryInput,
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["session_memory"]>> {
-      return callPublicTool("session_memory", params);
+    memory(params: ArifMemoryInput = {}) {
+      return callPublicTool("arif_memory", params);
     },
-
-    async auditRules(
-      params: AuditRulesInput = {},
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["audit_rules"]>> {
-      return callPublicTool("audit_rules", params);
+    judge(params: ArifJudgeInput) {
+      return callPublicTool("arif_judge", params);
     },
-
-    async checkVital(
-      params: CheckVitalInput = {},
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["check_vital"]>> {
-      return callPublicTool("check_vital", params);
+    forge(params: ArifForgeInput = {}) {
+      return callPublicTool("arif_forge", params);
     },
-
-    async openApexDashboard(
-      params: OpenApexDashboardInput = {},
-    ): Promise<RuntimeEnvelope<ToolPayloadMap["open_apex_dashboard"]>> {
-      return callPublicTool("open_apex_dashboard", params);
+    seal(params: ArifSealInput = {}) {
+      return callPublicTool("arif_seal", params);
+    },
+    report(params: ArifReportInput = {}) {
+      return callPublicTool("arif_report", params);
     },
 
     async listTools(): Promise<PublicToolDefinition[]> {
@@ -341,11 +322,11 @@ export async function createClient(config: ArifOSClientConfig): Promise<ArifOSMC
 }
 
 export const quickConnect = {
-  local(env: Record<string, string>): Promise<ArifOSMCPClient> {
+  local(env?: Record<string, string>): Promise<ArifOSMCPClient> {
     return createClient({ transport: "stdio", env });
   },
 
-  vps(endpoint = "https://arifosmcp.arif-fazil.com/mcp"): Promise<ArifOSMCPClient> {
+  hosted(endpoint = DEFAULT_MCP_ENDPOINT): Promise<ArifOSMCPClient> {
     return createClient({ transport: "http", endpoint });
   },
 };

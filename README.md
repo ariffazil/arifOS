@@ -91,6 +91,49 @@ One human, and the agents he directs.
 
 ---
 
+## Choose your path
+
+**Plain-language summary:**
+
+```text
+PyPI ships the kernel.
+npm ships the JavaScript cable.
+MCP is the language through the cable.
+The endpoint is the address of a running kernel.
+arifOS judges; it does not silently inherit execution authority.
+```
+
+`pip` and `npm` are delivery systems. **MCP** is a communication protocol (not a package manager and not a kernel). **arifOS** is the governance kernel. An **endpoint** is the address of a kernel already running. Installing a package does not start or verify a service by itself.
+
+- **A. I only want to try arifOS (easiest — zero install)**
+  Connect your MCP client directly to the hosted endpoint: `https://mcp.arif-fazil.com/mcp`. No local Python or Node.js installation required.
+- **B. I want to run my own arifOS kernel (self-hosting)**
+  Install the authoritative Python kernel: `pip install arifos`, then start it with `PORT=8088 arifos-mcp streamable-http`.
+- **C. I am building a JavaScript or TypeScript application**
+  Install the thin client connector: `npm install @arifos/mcp` (source: [`arifosmcp/packages/npm/arifos-mcp/`](./arifosmcp/packages/npm/arifos-mcp/)). It connects to a running arifOS kernel and carries **no independent constitutional authority**.
+- **D. I want to review evidence or contribute**
+  Use this GitHub repository, [`docs/START_HERE.md`](./docs/START_HERE.md) (includes a non-coder walkthrough & glossary), and [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
+```text
+Human / AI client
+       |
+       | MCP
+       v
+Running arifOS kernel
+installed through PyPI (`pip install arifos`) or reached at a hosted endpoint
+       |
+       v
+governed verdict + evidence + receipt
+
+JavaScript application
+       |
+       | @arifos/mcp (thin cable — zero governance authority)
+       v
+same running arifOS kernel
+```
+
+---
+
 ## 30-second proof
 
 ```bash

@@ -1,51 +1,12 @@
-# arifOS — Constitutional AI Governance Kernel
+# SUPERSEDED — `npm-wrapper/`
 
-> **Constitutional execution gate for AI agents.**
-> Verifies identity, evidence, authority and reversibility before tools may mutate the world.
+> **Status: `SUPERSEDED` (marked `"private": true`, never published to npm).**
+> Retained for historical traceability only. Do not publish this directory.
 
-## What arifOS does
+## Canonical Packages
 
-arifOS sits between your AI agent and its tools. Before any write, delete, deploy, transfer, or publish action, arifOS checks:
+- **Authoritative Python Governance Kernel (PyPI):** `pip install arifos` (<https://pypi.org/project/arifos/>)
+- **Canonical JavaScript/TypeScript MCP Client (npm):** `npm install @arifos/mcp` — source at [`../arifosmcp/packages/npm/arifos-mcp/`](../arifosmcp/packages/npm/arifos-mcp/)
+- **Zero-Install Hosted MCP Endpoint:** `https://mcp.arif-fazil.com/mcp`
 
-- **Identity** — who is this agent?
-- **Evidence** — what supports this action?
-- **Authority** — is this action authorized?
-- **Reversibility** — can it be undone?
-
-Result: **SEAL** (proceed), **HOLD** (need more evidence/approval), **VOID** (blocked).
-
-## Quick Start
-
-```bash
-npm install arifos
-# Then install the Python kernel:
-pip install arifos
-```
-
-## Connect
-
-Add to your MCP client config:
-
-```json
-{
-  "mcpServers": {
-    "arifos": {
-      "type": "streamable-http",
-      "url": "https://mcp.arif-fazil.com/mcp"
-    }
-  }
-}
-```
-
-## MCP Registries
-
-| Registry | Link |
-|----------|------|
-| Glama | https://glama.ai/mcp/connectors/io.github.ariffazil/arifosmcp |
-| PulseMCP | https://pulsemcp.com/servers/ariffazil-arifos |
-| Smithery | https://smithery.ai/server/arifos |
-| mcp.so | https://mcp.so/server/arifos |
-
-## License
-
-AGPL-3.0 — DITEMPA BUKAN DIBERI
+See [`../docs/START_HERE.md`](../docs/START_HERE.md) for the plain-language guide.
