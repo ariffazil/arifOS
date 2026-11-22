@@ -57,20 +57,20 @@ def test_covered_is_unmeasured_not_a_measured_fail() -> None:
     assert sig["verdict"] == "INSTRUMENTED_COVERAGE_INSUFFICIENT"
     assert sig["f6_index"] is None
     assert any("consequence_flow" in r for r in sig["null_reasons"])
-    assert sig["origin"].startswith("well_health:f6_v0_partial:covered@")
-    assert sig["null_reasons"] == []
+    assert sig["origin"].startswith("well_health:f6_v0_partial:evidence_missing@")
 
 
 def test_covered_via_operator_reported() -> None:
     sig = _f6_maruah(
         {"well_health": _wh(truth="OPERATOR_REPORTED", source_type="OPERATOR_REPORTED")}
     )
-    assert sig["status"] == "MEASURED"
+    # 2026-11-23 F13 R1: covered is still UNMEASURED while mandatory evidence is missing.
+    assert sig["status"] == "UNMEASURED"
 
 
 def test_string_age_is_coerced_not_dropped() -> None:
     sig = _f6_maruah({"well_health": _wh(age="7200")})
-    assert sig["status"] == "MEASURED", "served JSON may carry numeric strings; coerce honestly"
+    assert sig["status"] == "UNMEASURED", "served JSON may carry numeric strings; coerce honestly"
 
 
 # ── uncovered states keep the producer origin, never unmeasured_default ────
@@ -196,14 +196,16 @@ def test_live_shaped_payload_does_not_trip_l1() -> None:
 def test_registered_through_collect_signal() -> None:
     sig = collect_floor_producer_signal("F6", sources={"well_health": _wh()})
     assert sig["floor"] == "F6"
-    assert sig["status"] == "MEASURED"
+    assert sig["status"] == "UNMEASURED"
     assert sig.get("unit") == "1"
     assert sig.get("measured_at"), "P4 WHEN slot must ride every signal"
     assert "falsification_test" in sig, "KX-010 contract label must ride the signal"
 
 
-def test_measured_provenance_string_carries_no_unmeasured_segment() -> None:
+def test_unmeasured_provenance_names_the_producer_and_reason() -> None:
+    # 2026-11-23 F13 R1: provenance must say UNMEASURED, never MEASURED, and
+    # must still name the producer rather than unmeasured_default.
     sig = collect_floor_producer_signal("F6", sources={"well_health": _wh()})
     prov = f"floor_producer:{sig['status']}:{sig.get('origin')}@{sig.get('measured_at')}"
-    assert "floor_producer:MEASURED:well_health:" in prov
-    assert "UNMEASURED" not in prov, "MEASURED must not contain an UNMEASURED segment"
+    assert "floor_producer:UNMEASURED:well_health:f6_v0_partial:evidence_missing" in prov
+    assert "floor_producer:MEASURED" not in prov
