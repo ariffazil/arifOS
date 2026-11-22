@@ -28811,10 +28811,32 @@ def _attach_handoff_evidence_from_input(resp: dict[str, Any], kwargs: dict[str, 
 
 
 def _envelope_has_evidence(resp: dict[str, Any]) -> bool:
-    """Return True if a tool response carries structured evidence or a vault receipt."""
+    """Return True if a tool response carries structured evidence or a vault receipt.
+
+    M1 fix (2026-11-22): arif_judge and arif_seal return flat top-level dicts
+    (without a nested `result` wrapper). Inspect top-level verdict + structured
+    evidence/receipt fields in addition to nested `result` so telemetry does not
+    falsely log has_evidence=0 while keeping the F8 0.80 floor unchanged.
+    """
     if not isinstance(resp, dict):
         return False
-    if resp.get("vault_entry_id") or resp.get("receipt"):
+    if (
+        resp.get("vault_entry_id")
+        or resp.get("receipt")
+        or resp.get("receipt_hash")
+        or resp.get("entry_hash")
+        or resp.get("provenance")
+        or resp.get("evidence")
+        or resp.get("evidence_refs")
+    ):
+        return True
+    if resp.get("verdict") and (
+        resp.get("constitutional_check")
+        or resp.get("floors_checked")
+        or resp.get("trace_id")
+        or resp.get("seal_id")
+        or resp.get("vault_hash")
+    ):
         return True
     res = resp.get("result")
     if not isinstance(res, dict):
@@ -28826,6 +28848,8 @@ def _envelope_has_evidence(resp: dict[str, Any]) -> bool:
         or res.get("vault_entry_id")
         or res.get("entry_id")
         or res.get("receipt")
+        or res.get("receipt_hash")
+        or res.get("entry_hash")
         or res.get("provenance")
         or res.get("verdict")
         or res.get("output")
