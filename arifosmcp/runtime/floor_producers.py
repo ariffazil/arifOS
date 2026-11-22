@@ -783,13 +783,23 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
             if stale
             else "well_health:coverage_insufficient",
         }
+    # 2026-11-23 F13 R1 RULING: "F6 UNMEASURED is not a measured fail."
+    # This branch previously stamped status=MEASURED with a hard-coded
+    # f6_index=0.5, presenting a placeholder as a measurement so that a
+    # downstream threshold turned the constant into `fail`. Mandatory evidence
+    # (consequence_flow) is unobservable from the served /health, therefore this
+    # is INSTRUMENTED_COVERAGE_INSUFFICIENT: UNMEASURED, no numeric score, reason
+    # named. Supersedes the 2026-11-18 OS-1 `covered -> MEASURED_V0_PARTIAL`
+    # LABEL only; the coverage mechanism, fail-closed posture and the F6
+    # threshold are unchanged.
     return {
         **base,
-        "status": "MEASURED",
-        "origin": f"well_health:f6_v0_partial:covered@age={age:.0f}s",
-        "f6_index": 0.5,
-        "verdict": "MEASURED_V0_PARTIAL",
-        "null_reasons": [],
+        "status": "UNMEASURED",
+        "origin": f"well_health:f6_v0_partial:evidence_missing@age={age:.0f}s",
+        "f6_index": None,
+        "verdict": "INSTRUMENTED_COVERAGE_INSUFFICIENT",
+        "null_reasons": list(null_reasons or [])
+        + ["consequence_flow unobservable from served /health — mandatory evidence missing"],
         "shadow_residual": [
             "consequence_flow (intake receipts) unobservable from served /health — worst-case flow factor assumed",
             "dignity_surface guard verified WELL-side only, not re-checked here",

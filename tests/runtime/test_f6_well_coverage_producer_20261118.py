@@ -48,11 +48,15 @@ def _seal_with_critique(critique: dict) -> dict:
 # ── covered -> MEASURED_V0_PARTIAL ──────────────────────────────────────────
 
 
-def test_covered_yields_measured_partial() -> None:
+def test_covered_is_unmeasured_not_a_measured_fail() -> None:
+    # 2026-11-23 F13 R1: "F6 UNMEASURED is not a measured fail." Covered but
+    # evidence-missing must carry NO numeric score, so no threshold can turn
+    # the conservative constant into `fail`.
     sig = _f6_maruah({"well_health": _wh()})
-    assert sig["status"] == "MEASURED"
-    assert sig["verdict"] == "MEASURED_V0_PARTIAL"
-    assert sig["f6_index"] == 0.5, "conservative floor of the WELL v0 formula, never painted higher"
+    assert sig["status"] == "UNMEASURED"
+    assert sig["verdict"] == "INSTRUMENTED_COVERAGE_INSUFFICIENT"
+    assert sig["f6_index"] is None
+    assert any("consequence_flow" in r for r in sig["null_reasons"])
     assert sig["origin"].startswith("well_health:f6_v0_partial:covered@")
     assert sig["null_reasons"] == []
 
