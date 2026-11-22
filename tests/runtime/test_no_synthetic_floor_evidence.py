@@ -71,6 +71,37 @@ def _is_unmeasured_provenance(provenance: str) -> bool:
     return p.startswith("unmeasured_default") or ":UNMEASURED:" in p or "unmeasured_default" in p
 
 
+@pytest.fixture
+def f6_without_served_evidence(monkeypatch):
+    """Hermetic F6 — CONSTRUCT the 'no producer signal' scenario (2026-11-23).
+
+    F6's producer reads the WELL SERVED surface (127.0.0.1:18083/health). Since
+    the A+B real-index deploy (arifOS 46a98bf62) that surface carries
+    consequence_flow + dignity_surface, so on a live box F6 is a real MEASURED
+    reading. The three tests below pin the OTHER contract — a floor with no
+    instrument must be labelled unmeasured, never painted green — so they must
+    construct that scenario instead of inheriting whatever the machine serves.
+    This is the same hermeticity the F3 leg already gets above through
+    collect_witness_legs.
+
+    The substituted payload is deliberately leg-free (no consequence_flow, no
+    dignity_surface, no truth_status), which is exactly the F13 R1
+    'evidence_missing' path this file pins: the producer answers UNMEASURED
+    with no score. Anti-greenwash intent unchanged — a floor renders only from
+    a real instrument or is labelled unmeasured.
+    """
+    monkeypatch.setattr(
+        rr,
+        "_ensure_well_snapshot",
+        lambda: {
+            "payload": {"status": "healthy"},
+            "ts": 0.0,
+            "err": None,
+            "degraded": False,
+        },
+    )
+
+
 def test_building_payload_does_not_grow_the_global_event_log():
     """The ratchet. A display endpoint must not write governance state.
 
@@ -129,7 +160,7 @@ def test_no_floor_publishes_the_fabricated_coherence_constant():
         )
 
 
-def test_empty_signal_floors_are_labelled_unmeasured(monkeypatch):
+def test_empty_signal_floors_are_labelled_unmeasured(monkeypatch, f6_without_served_evidence):
     """A structural baseline is a placeholder, not a score.
 
     On an empty event log evaluate_floors returns tau_truth 0.5, peace2 0.5,
@@ -190,7 +221,7 @@ def test_empty_signal_floors_are_labelled_unmeasured(monkeypatch):
     )
 
 
-def test_threshold_placeholder_floors_are_labelled_unmeasured():
+def test_threshold_placeholder_floors_are_labelled_unmeasured(f6_without_served_evidence):
     """_FLOOR_DEFAULTS comes from _representative_floor_score(), which returns
     the floor's own passing threshold, so it can never fail. Floors that fall
     back to it must be labelled rather than published as measured."""
@@ -210,7 +241,7 @@ def test_threshold_placeholder_floors_are_labelled_unmeasured():
     )
 
 
-def test_observatory_renders_unmeasured_not_pass():
+def test_observatory_renders_unmeasured_not_pass(f6_without_served_evidence):
     """End-to-end: the published observatory block must be three-state, and
     substrate_state must not read PASS while floors are unmeasured."""
     from arifosmcp.runtime.rest_routes import observatory_routes as obs
