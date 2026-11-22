@@ -738,6 +738,44 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
     )
     truth_ok = truth in _F6_TRUTH_COVERED
     age_ok = age is not None and age <= cap
+
+    # ── F6 MARUAH evidence legs, served by WELL (F13 GO A, 2026-11-23) ──
+    # The served /health now carries the two legs WELL's own instrument
+    # computes: consequence_flow (the age of the newest REAL receipt — human
+    # reality entering the substrate) and dignity_surface (presence of the
+    # canonical Omega-WELL-12 guard).
+    #
+    # F13 R1 (2026-11-23) is already live in this function: a covered reading
+    # with no observable flow answers UNMEASURED with no score rather than a
+    # measured fail. This hunk does NOT change that. It makes the flow leg
+    # OBSERVABLE — so that when the served surface carries it, the producer can
+    # compute the REAL v0 index (0.5 + 0.5*flow) instead of answering
+    # "evidence missing" forever. With the legs absent, the R1 branch below is
+    # untouched.
+    flow_block = wh.get("consequence_flow") if isinstance(wh.get("consequence_flow"), dict) else None
+    dignity_block = wh.get("dignity_surface") if isinstance(wh.get("dignity_surface"), dict) else None
+
+    flow_age: float | None = None
+    flow_cap = 86400.0
+    flow_factor = 0.0
+    flow_served = flow_block is not None
+    flow_ok = False
+    if flow_served:
+        try:
+            flow_cap = float(flow_block.get("band_seconds") or 86400.0)
+        except (TypeError, ValueError):
+            flow_cap = 86400.0
+        _flow_raw = flow_block.get("last_receipt_age_s")
+        try:
+            flow_age = float(_flow_raw) if _flow_raw is not None else None
+        except (TypeError, ValueError):
+            flow_age = None
+        flow_ok = flow_age is not None and 0.0 <= flow_age <= flow_cap
+        flow_factor = max(0.0, 1.0 - (flow_age / flow_cap)) if flow_ok else 0.0
+
+    dignity_served = dignity_block is not None
+    dignity_ok = bool(dignity_block.get("covered")) if dignity_served else False
+    legs_ok = flow_served and flow_ok and dignity_served and dignity_ok
     covered = truth_ok and age_ok and not contaminated
 
     coverage = {
@@ -746,6 +784,18 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
         "age_seconds": age,
         "cap_seconds": cap,
         "contaminated": contaminated,
+        "consequence_flow": {
+            "served": flow_served,
+            "covered": flow_ok,
+            "last_receipt_age_s": flow_age,
+            "band_seconds": flow_cap,
+            "flow_factor": round(flow_factor, 6),
+        },
+        "dignity_surface": {
+            "served": dignity_served,
+            "covered": dignity_ok,
+            "guard": (dignity_block or {}).get("guard"),
+        },
     }
     null_reasons: list[str] = []
     if not truth_ok:
@@ -758,6 +808,13 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
         )
     if contaminated:
         null_reasons.append("human_substrate: contaminated (TEST env or mock/test state)")
+    if flow_served and not flow_ok:
+        null_reasons.append(
+            "consequence_flow: no real receipt within "
+            f"{flow_cap:.0f}s (age={'UNKNOWN' if flow_age is None else f'{flow_age:.0f}s'})"
+        )
+    if dignity_served and not dignity_ok:
+        null_reasons.append("dignity_surface: canonical guard not present on the served surface")
 
     base: dict[str, Any] = {
         "floor": "F6",
@@ -783,6 +840,25 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
             if stale
             else "well_health:coverage_insufficient",
         }
+    # ── F13 GO A (2026-11-23): the served surface carries the flow leg ──
+    # With consequence_flow and dignity_surface observable, the mandatory
+    # evidence is present and the REAL v0 index can be computed:
+    #   f6_index = 0.5 + 0.5 * flow_factor,  flow_factor = 1 - age/band
+    # The index is recomputed HERE from the age we were given — a `covered`
+    # flag in the payload is never trusted on its own. With the legs absent,
+    # the R1 branch below is untouched.
+    if legs_ok:
+        return {
+            **base,
+            "status": "MEASURED",
+            "origin": f"well_health:f6_v0_partial:covered@age={age:.0f}s",
+            "f6_index": round(0.5 + 0.5 * flow_factor, 3),
+            "verdict": "MEASURED_V0_PARTIAL",
+            "null_reasons": [],
+            "shadow_residual": [
+                "dignity_surface guard verified WELL-side only, not re-checked here",
+            ],
+        }
     # 2026-11-23 F13 R1 RULING: "F6 UNMEASURED is not a measured fail."
     # This branch previously stamped status=MEASURED with a hard-coded
     # f6_index=0.5, presenting a placeholder as a measurement so that a
@@ -792,16 +868,24 @@ def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
     # named. Supersedes the 2026-11-18 OS-1 `covered -> MEASURED_V0_PARTIAL`
     # LABEL only; the coverage mechanism, fail-closed posture and the F6
     # threshold are unchanged.
+    #
+    # 2026-11-23 F13 GO A: when the leg IS served but carries no receipt inside
+    # its band, the reason names that (not "unobservable") — the served surface
+    # told us, and what it told us was "no reality has entered the substrate".
+    _flow_reason = (
+        "consequence_flow observable on the served surface but no real receipt within "
+        f"{flow_cap:.0f}s (age={'UNKNOWN' if flow_age is None else f'{flow_age:.0f}s'})"
+        if flow_served
+        else "consequence_flow unobservable from served /health — mandatory evidence missing"
+    )
     return {
         **base,
         "status": "UNMEASURED",
         "origin": f"well_health:f6_v0_partial:evidence_missing@age={age:.0f}s",
         "f6_index": None,
         "verdict": "INSTRUMENTED_COVERAGE_INSUFFICIENT",
-        "null_reasons": list(null_reasons or [])
-        + ["consequence_flow unobservable from served /health — mandatory evidence missing"],
+        "null_reasons": list(null_reasons or []) + [_flow_reason],
         "shadow_residual": [
-            "consequence_flow (intake receipts) unobservable from served /health — worst-case flow factor assumed",
             "dignity_surface guard verified WELL-side only, not re-checked here",
         ],
     }

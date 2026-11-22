@@ -175,5 +175,10 @@ def test_f6_producer_path_intact():
         "honesty": {"source_type": "OPERATOR_VERBAL", "is_mock_or_test": False},
     }
     sig = collect_floor_producer_signal("F6", sources={"well_health": wh})
-    assert str(sig.get("status", "")).startswith("MEASURED")
+    # F13 R1 (2026-11-23): "F6 UNMEASURED is not a measured fail." With no
+    # served flow evidence the producer answers UNMEASURED, not MEASURED. The
+    # ORIGIN is what proves this path was taken (the meters fallback reads
+    # unmeasured_default:*), so path integrity is asserted on the origin.
     assert str(sig.get("origin", "")).startswith("well_health:")
+    assert sig["status"] == "UNMEASURED"
+    assert sig["f6_index"] is None
