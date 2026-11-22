@@ -33,8 +33,7 @@ logger = logging.getLogger(__name__)
 # Where the OS-level capability test cache lives.
 # Each entry: {tool_name: {"last_invocation_at": epoch_seconds, "last_pass": bool, "last_error": str|null}}
 TEST_CACHE_PATH = Path("/var/lib/arifos/observatory/capability-test-cache.json")
-# The writer creates the directory lazily. Importing a read-only probe must
-# remain possible on an unprivileged runner or a read-only filesystem.
+TEST_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Canonical namespace per arifOS constitution (FLOOR_PUBLIC_MAP.md, public_surface.py).
 PUBLIC_NAMESPACE_PREFIX = "arif_"

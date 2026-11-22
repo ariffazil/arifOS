@@ -306,8 +306,10 @@ def arif_measure(
             "aaa": 3001,
         }
         import urllib.request
+        from concurrent.futures import ThreadPoolExecutor
 
-        for name, port in ORGANS.items():
+        def _probe_organ(item):
+            name, port = item
             try:
                 req = urllib.request.Request(
                     f"http://127.0.0.1:{port}/health",
@@ -315,7 +317,7 @@ def arif_measure(
                 )
                 with urllib.request.urlopen(req, timeout=3) as resp:
                     body = json.loads(resp.read().decode())
-                    vitals["organs"][name] = {
+                    return name, {
                         "port": port,
                         "http": resp.status,
                         "status": body.get("status", "unknown"),
@@ -329,12 +331,20 @@ def arif_measure(
                         ),
                     }
             except Exception as e:
-                vitals["organs"][name] = {
+                return name, {
                     "port": port,
                     "http": "unreachable",
                     "status": "DOWN",
                     "error": str(e)[:120],
                 }
+
+        # P0 latency fix (333-AGI 2026-11-19): probes ran sequentially (worst
+        # case ~18s with slow/down organs) and the :8088 self-probe deadlocked
+        # against the judge's own blocked event loop. Parallel wall clock =
+        # max(one probe) ~3s; same probe set, same timeouts, same payloads.
+        with ThreadPoolExecutor(max_workers=len(ORGANS)) as _probe_pool:
+            for name, probe in _probe_pool.map(_probe_organ, ORGANS.items()):
+                vitals["organs"][name] = probe
 
         # ── System vitals (CPU / memory / disk) ──
         try:

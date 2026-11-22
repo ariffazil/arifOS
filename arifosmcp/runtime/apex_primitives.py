@@ -271,8 +271,24 @@ def compute_apex_from_metrics(
 
         # A = lease compliance rate
         A = round(in_lease / n, 4) if n > 0 else None
-        # P = evidence floor compliance
-        P = round(with_evidence / n, 4) if n > 0 else None
+        # P = evidence floor compliance (Gap 1, F13 2026-11-20: exclude
+        # probe/bootstrap traffic arif_init & arif_route from P denominator;
+        # threshold 0.80 stays untouched).
+        _p_query = """SELECT has_evidence FROM tool_calls
+                      WHERE timestamp >= ?
+                        AND COALESCE(tool_name, '') NOT IN ('arif_init', 'arif_route')"""
+        _p_params: list = [cutoff]
+        if actor_id:
+            _p_query += " AND actor_id = ?"
+            _p_params.append(actor_id)
+        try:
+            _p_conn = _get_db()
+            _p_rows = _p_conn.execute(_p_query, _p_params).fetchall()
+            _p_conn.close()
+            _p_n = len(_p_rows)
+            P = round(sum(1 for r in _p_rows if r[0]) / _p_n, 4) if _p_n > 0 else round(with_evidence / n, 4)
+        except Exception:
+            P = round(with_evidence / n, 4) if n > 0 else None
         # E = execution success rate — constitutional verdicts (HOLD/SABAR)
         # are excluded from BOTH numerator and denominator. A brake
         # activation is not an engine failure. If the window carries only

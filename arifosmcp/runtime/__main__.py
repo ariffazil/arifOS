@@ -28,8 +28,153 @@ if TYPE_CHECKING:
     from arifosmcp.runtime.session import get_session_identity as _gsi  # noqa: F401,I001
 
 
+
+_HUMAN_CLI_FLAGS = {"--version", "-v", "version", "--help", "-h", "help", "doctor", "status"}
+
+
+def _is_interactive_human_cli() -> bool:
+    """Return True if invoked with CLI diagnostic args OR by a human in a TTY with no args."""
+    args = sys.argv[1:]
+    if any(arg in _HUMAN_CLI_FLAGS for arg in args):
+        return True
+    if args:
+        return False
+    if "AAA_MCP_TRANSPORT" not in os.environ and sys.stdin.isatty():
+        return True
+    return False
+
+
+def _get_version_info() -> dict[str, str]:
+    import importlib.metadata
+    from pathlib import Path
+
+    pkg_root = Path(__file__).resolve().parents[2]
+    try:
+        dist_version = importlib.metadata.version("arifos")
+    except Exception:
+        dist_version = "1!2026.11.13"
+
+    git_sha = "n/a"
+    git_branch = "n/a"
+    if (pkg_root / ".git").exists():
+        try:
+            import subprocess
+
+            git_sha = subprocess.check_output(
+                ["git", "-C", str(pkg_root), "rev-parse", "--short", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=2,
+            ).strip()
+            git_branch = subprocess.check_output(
+                ["git", "-C", str(pkg_root), "rev-parse", "--abbrev-ref", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=2,
+            ).strip()
+        except Exception:
+            pass
+
+    is_editable = (pkg_root / ".git").exists()
+    return {
+        "version": dist_version,
+        "git_sha": git_sha,
+        "git_branch": git_branch,
+        "root": str(pkg_root),
+        "install_mode": "editable (-e)" if is_editable else "site-packages (wheel)",
+    }
+
+
+def _run_doctor() -> int:
+    try:
+        from arifosmcp.runtime.doctor import run_doctor
+        return run_doctor(sys.argv[1:])
+    except Exception:
+        pass
+    import urllib.request
+
+    info = _get_version_info()
+    print("arifOS Constitutional AI Kernel — Doctor & Federation Probe")
+    print(
+        f"  Version      : {info['version']} (branch: {info['git_branch']} @ {info['git_sha']})"
+    )
+    print(f"  Install Mode : {info['install_mode']} [{info['root']}]")
+    print("-" * 64)
+
+    modules = [
+        "arifos",
+        "arifos_av",
+        "contracts",
+        "arifosmcp",
+        "arifosmcp.hexagon.memory",
+        "arifosmcp.governance",
+        "arifosmcp.floors",
+    ]
+    print("[1/2] Module Import Integrity:")
+    all_ok = True
+    for mod in modules:
+        try:
+            __import__(mod)
+            print(f"  [OK]   {mod}")
+        except Exception as exc:
+            all_ok = False
+            print(f"  [FAIL] {mod} -> {exc}")
+
+    organs = [
+        ("arifOS Kernel", "http://127.0.0.1:8088/health"),
+        ("A-FORGE HTTP", "http://127.0.0.1:7071/health"),
+        ("GEOX", "http://127.0.0.1:8081/health"),
+        ("WEALTH", "http://127.0.0.1:18082/health"),
+        ("WELL", "http://127.0.0.1:18083/health"),
+        ("FRAME", "http://127.0.0.1:18085/health"),
+        ("HERMES", "http://127.0.0.1:18087/health"),
+        ("CHRON", "http://127.0.0.1:18102/health"),
+    ]
+    print("\n[2/2] Local Organ Federation Reachability (127.0.0.1):")
+    for name, url in organs:
+        try:
+            req = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(req, timeout=1.2) as resp:
+                print(f"  [LIVE] {name:<15} ({resp.status}) -> {url}")
+        except Exception:
+            print(f"  [DOWN] {name:<15} (unreachable) -> {url}")
+
+    return 0 if all_ok else 1
+
+
+def _handle_human_cli() -> int:
+    args = sys.argv[1:]
+    info = _get_version_info()
+
+    if any(a in ("--version", "-v", "version") for a in args):
+        print(
+            f"arifos {info['version']} ({info['install_mode']}, git {info['git_branch']}@{info['git_sha']})"
+        )
+        return 0
+
+    if any(a in ("doctor", "status") for a in args):
+        return _run_doctor()
+
+    print(
+        f"arifOS Constitutional AI Kernel — v{info['version']} [{info['git_branch']}@{info['git_sha']}]"
+    )
+    print(f"Location : {info['root']} ({info['install_mode']})\n")
+    print("Usage:")
+    print("  arifos --version          Show version, git commit, and install mode")
+    print("  arifos doctor             Verify package imports & probe live federation organs")
+    print("  arifos stdio              Start FastMCP JSON-RPC stdio server explicitly")
+    print("  arifos --mode <sse|http>  Start network MCP transport server")
+    print(
+        "\nNote: When invoked by an MCP client (non-TTY stdin pipe), `arifos` and `arifos-mcp`"
+    )
+    print("      automatically enter FastMCP minimal stdio server mode.")
+    return 0
+
+
 def _bootstrap_environment() -> None:
     try:
+        if _is_interactive_human_cli():
+            return
         mode = (
             sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")
         ).lower()
@@ -773,6 +918,9 @@ def _run_minimal_stdio_server() -> None:
 
 
 def main() -> None:
+    if _is_interactive_human_cli():
+        raise SystemExit(_handle_human_cli())
+
     # Accept ARIFOS_MCP_* env vars as deployment-friendly aliases
     if not os.getenv("AAA_MCP_TRANSPORT") and os.getenv("ARIFOS_MCP_TRANSPORT"):
         os.environ["AAA_MCP_TRANSPORT"] = os.environ["ARIFOS_MCP_TRANSPORT"]

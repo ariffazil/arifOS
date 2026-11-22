@@ -250,18 +250,22 @@ def probe_human_witness(
 
 
 def coherence(human: float | None, ai: float | None, earth: float | None) -> float | None:
-    """Normalised geometric-mean tri-witness coherence, or None if incomplete.
+    """Canonical Nash tri-witness coherence: ``∛(h·a·e)``.
 
-    Same formula the kernel uses, so a measured F3 is comparable with history:
-    ``3 * (h*a*e)**(1/3) / (h + a + e)``. Undefined when any leg is unmeasured
-    (None) — never when a leg is merely zero, which is a real result.
+    One instrument per truth (MACHINE-OPERATING-RULES #1): the live W3 scalar
+    (rest_routes), phoenix_72 W3, apex_canonical and webmcp governance all use
+    the plain Nash geometric mean, so this producer must too. The former
+    normalised form ``3*GM/AM`` measured UNIFORMITY, not agreement —
+    H=AI=E=0.1 (all witnesses nearly absent) returned 1.0 and passed the
+    0.75 threshold; the plain product collapses that to 0.1 (honest FAIL).
+    Undefined when any leg is unmeasured (None) — never when a leg is merely
+    zero, which is a real result.
     """
     if human is None or ai is None or earth is None:
         return None
-    total = human + ai + earth
-    if total <= 0:
+    if human <= 0 or ai <= 0 or earth <= 0:
         return 0.0
-    return round(3.0 * ((human * ai * earth) ** (1.0 / 3.0)) / total, 4)
+    return round((human * ai * earth) ** (1.0 / 3.0), 4)
 
 
 def collect_witness_legs() -> dict[str, Any]:

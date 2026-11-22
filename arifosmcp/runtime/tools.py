@@ -1124,6 +1124,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
             "verify": "L0_OBSERVE",
             "chain": "L0_OBSERVE",
             "list": "L0_OBSERVE",
+            "ledger": "L0_OBSERVE",
             "verify_chain": "L0_OBSERVE",
             "chain_status": "L0_OBSERVE",
             "audit": "L0_OBSERVE",
@@ -2878,10 +2879,18 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
         )
 
     # Deep scan: look for HOLD/FAIL/VOID in nested result fields
+    _OBSERVED_DATA_KEYS = frozenset(
+        {"organs", "telemetry", "probes", "endpoints", "services", "fleet"}
+    )
+
     def _scan(obj: Any, prefix: str = "") -> list[str]:
         hits: list[str] = []
         if isinstance(obj, dict):
             for k, v in obj.items():
+                if k in _OBSERVED_DATA_KEYS or (
+                    prefix and prefix.split(".")[0] in _OBSERVED_DATA_KEYS
+                ):
+                    continue
                 path = f"{prefix}.{k}" if prefix else k
                 if isinstance(k, str) and (k.startswith("L0") or k.startswith("F0")):
                     if isinstance(v, str) and v.upper() in ("FAIL", "HOLD", "VOID"):
@@ -3205,7 +3214,13 @@ def _compute_canonical_verdict(
                 _sct_sovereign = (_claims.get("auth") or "").upper() == "SOVEREIGN"
         except Exception:
             logger.exception("suppressed exception", exc_info=True)
-    if verdict == "SEAL" and _session_actor_verified is False:
+    # P0-3 + WAJIB-4 (2026-06-21) narrowed SEAL only; SABAR slipped through as
+    # an unhandled close-class case — latent until the D2 restraint-pair rule
+    # (888-APEX 2026-11-04) stopped the divergence HOLD from masking it
+    # (test_p0_3 test_f caught it live 2026-11-04). Unverified actors never
+    # receive a close-class verdict: SEAL and SABAR both narrow to
+    # OBSERVE_ONLY. HOLD/VOID are already fail-closed and stay as-is.
+    if verdict in ("SEAL", "SABAR") and _session_actor_verified is False:
         if _sct_sovereign:
             degradation.append(
                 "SCT_SOVEREIGN_BYPASS: session store has actor_verified=False "
@@ -3217,7 +3232,8 @@ def _compute_canonical_verdict(
             degradation.append(
                 "actor_verified=False — identity not verified, verdict narrowed to "
                 "OBSERVE_ONLY. May observe, may not authorize or approve. "
-                "(P0-3 + WAJIB-4 enforcement 2026-06-21)."
+                "(P0-3 + WAJIB-4 enforcement 2026-06-21; SABAR added 2026-11-04, "
+                "D2 restraint-pair exposure)."
             )
 
     # ── Step 5c: Witness degradation ceiling (FORGE 2026-07-08) ─────────
@@ -3300,7 +3316,9 @@ def _compute_canonical_verdict(
     # sub-signal one more time and ensure no signal is worse than the
     # aggregate. This kills the "PASS-over-BROKEN" bug class permanently.
     floor_verdict = _collect_monotonicity_floor(out, _meta, result_payload)
-    if _SIGNAL_SEVERITY.get(verdict, 6) > _SIGNAL_SEVERITY.get(floor_verdict, 6):
+    if verdict == "OBSERVE_ONLY" and floor_verdict == "SYUBHAH":
+        pass  # Unverified identity's expected PSI=SYUBHAH must not downgrade OBSERVE_ONLY to HOLD
+    elif _SIGNAL_SEVERITY.get(verdict, 6) > _SIGNAL_SEVERITY.get(floor_verdict, 6):
         degradation.append(
             f"verdict_monotonicity: {verdict} → {floor_verdict} "
             f"(sub-signal floor dominates aggregate)"
@@ -3324,6 +3342,7 @@ def _compute_canonical_verdict(
         "SABAR_HOLD": "SABAR",
         "PASS": "SEAL",
         "ALLOW": "SEAL",
+        "BIJAK": "SEAL",
     }
     if verdict in _WIRE_VERDICT_NORM:
         verdict = _WIRE_VERDICT_NORM[verdict]
@@ -3661,6 +3680,22 @@ from arifosmcp.schemas.verdict import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _reasons_from_floor_reasons(
+    floor_reasons, fallback: str = "Constitutional verification failed"
+) -> list[str]:
+    """Fasa-4 C3 (2026-11-05, warning 2): VerdictOutput.reasons must never be
+    silently empty — default_factory=list hid omitted kwargs at construction."""
+    if isinstance(floor_reasons, dict) and floor_reasons:
+        return [f"{k}: {v}" for k, v in floor_reasons.items()]
+    if isinstance(floor_reasons, list) and floor_reasons:
+        return [str(r) for r in floor_reasons]
+    if floor_reasons:
+        return [str(floor_reasons)]
+    return [fallback]
+
+
 _RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
     "arifos_response_context",
     default=None,
@@ -5455,7 +5490,15 @@ def _enforce_nine_signal(
             _session_state in ("OBSERVE_ONLY", "SABAR") and not _action_or_substrate_failed
         )
 
-        if verdict in ("VOID", "HOLD") and _action_or_substrate_failed:
+        # Fasa-4 C1 (2026-11-05): a DECLARED degrade (degraded_state present —
+        # e.g. arif_think LLM-unavailable -> synthesis:null + DEGRADED_TIMEOUT) is
+        # the system failing correctly, not straying: never mint the malu
+        # classification (JALAN_BENAR -> 0.15) for it.
+        _declared_degrade = isinstance(out, dict) and bool(
+            out.get("degraded_state")
+            or (isinstance(out.get("meta"), dict) and out["meta"].get("degraded_state"))
+        )
+        if verdict in ("VOID", "HOLD") and _action_or_substrate_failed and not _declared_degrade:
             # TRUE failure — mint sesat event for the failure ledger
             try:
                 from arifosmcp.runtime.sesat_event import (
@@ -6293,7 +6336,7 @@ def _enforce_nine_signal(
                     cost_budget=1.0,
                     actor_id=resolved_actor_id,
                     action_class=str(out.get("action_class", "READ")),
-                    proof_level=str(out.get("proof_level", "ZKPC_OBSERVATION")),
+                    proof_level=str(out.get("proof_level", "PROOF_OBSERVED")),
                     f13_halt=(verdict == "VOID"),
                 )
             except Exception:
@@ -8956,16 +8999,33 @@ def _preserve_arif_init_truth(src: dict[str, Any], dst: dict[str, Any]) -> dict[
 
     # If engine path (SessionManifest ping/light) never set substrate, inject
     # live attestation so the wire cannot claim SEAL while drift is unknown.
-    if not isinstance(dst.get("software_release"), dict) or not isinstance(
-        dst.get("substrate"), dict
+    # P0 FIX 2026-11-03 (FI-008, A/B defect #2 root): a session-bound substrate
+    # snapshot older than 10 minutes must NEVER dominate a fresh verdict —
+    # degraded_dominates on stale state turned every advisory ALLOW into HOLD
+    # across service restarts. Refresh instead of replaying stale state.
+    _stale_substrate = False
+    _sub0 = dst.get("substrate") if isinstance(dst.get("substrate"), dict) else None
+    if isinstance(_sub0, dict):
+        try:
+            from datetime import datetime as _dt, timezone as _tz
+
+            _ma = str(_sub0.get("measured_at") or "").replace("Z", "+00:00")
+            _age_s = (_dt.now(_tz) - _dt.fromisoformat(_ma)).total_seconds() if _ma else 1e9
+            _stale_substrate = _age_s > 600
+        except Exception:
+            _stale_substrate = True
+    if (
+        _stale_substrate
+        or not isinstance(dst.get("software_release"), dict)
+        or not isinstance(dst.get("substrate"), dict)
     ):
         try:
             from arifosmcp.runtime.build import get_runtime_attestation
 
             _att = get_runtime_attestation(detail=False) or {}
-            if not isinstance(dst.get("software_release"), dict):
+            if _stale_substrate or not isinstance(dst.get("software_release"), dict):
                 dst["software_release"] = _att
-            if not isinstance(dst.get("substrate"), dict):
+            if _stale_substrate or not isinstance(dst.get("substrate"), dict):
                 _sys = read_system_floor_truth()
                 if _sys and not _sys.get("stale") and _sys.get("substrate_state"):
                     # Echo the reading /health already published. The build
@@ -9132,16 +9192,35 @@ def _stamp_arif_init_deterministic(payload: dict[str, Any]) -> dict[str, Any]:
 # softens computed risk (fail-closed for the informational field).
 _RISK_AXIS_RANK: dict[str, dict[str, int]] = {
     "reversibility": {
-        "reversible": 0, "trivial": 0, "low": 0, "partial": 0,
-        "hard": 1, "costly": 1, "semi_irreversible": 1, "medium": 1,
-        "irreversible": 2, "critical": 2, "r4": 2, "r5": 2,
+        "reversible": 0,
+        "trivial": 0,
+        "low": 0,
+        "partial": 0,
+        "hard": 1,
+        "costly": 1,
+        "semi_irreversible": 1,
+        "medium": 1,
+        "irreversible": 2,
+        "critical": 2,
+        "r4": 2,
+        "r5": 2,
     },
     "blast_radius": {
-        "reversible": 0, "low": 0, "l1_local": 0,
-        "medium": 1, "l2": 1,
-        "organ": 2, "high": 2, "l3": 2,
-        "critical": 3, "l3_critical": 3,
-        "federation": 4, "fed": 4, "global": 4, "r4": 4, "r5": 4,
+        "reversible": 0,
+        "low": 0,
+        "l1_local": 0,
+        "medium": 1,
+        "l2": 1,
+        "organ": 2,
+        "high": 2,
+        "l3": 2,
+        "critical": 3,
+        "l3_critical": 3,
+        "federation": 4,
+        "fed": 4,
+        "global": 4,
+        "r4": 4,
+        "r5": 4,
     },
 }
 
@@ -10001,6 +10080,7 @@ def _ok(
         # APEX P-signal: evidence detection (broadened 2026-07-16)
         # Old check only matched evidence/sources/citations keys.
         # Most tools return structured data under "result" — that IS evidence.
+        # 2026-11-20: also count vault receipt (entry_id) as evidence — a seal IS evidence.
         _has_evidence = bool(
             result.get("evidence")
             or result.get("sources")
@@ -10010,6 +10090,9 @@ def _ok(
             or result.get("output")  # compute tools return output
             or (isinstance(result.get("result"), dict) and len(result["result"]) > 2)
             or (isinstance(result.get("result"), list) and len(result["result"]) > 0)
+            # Vault receipt = cryptographic proof = evidence
+            or result.get("vault_entry_id")
+            or (isinstance(result.get("result"), dict) and result["result"].get("entry_id"))
         )
         # APEX X-signal: dry_run detection (2026-08-04 fix)
         # Previous check used meta_payload["action_class"]=="OBSERVE" which was
@@ -10973,6 +11056,9 @@ def _arif_session_init(
     #    "max_tokens_per_call": int, "max_runtime_seconds": int,
     #    "policy_version": str}
     #   Maps MXC SandboxPolicy concept onto arifOS session binding.
+    #   External-agent token (2026-11-16): card-backed long-lived credential.
+    #   Verified by the kernel; no Ed25519 required for the external agent.
+    agent_token: str | None = None,
     # ── Pre-session identity lineage (forged 2026-06-12 — session-birth fix) ───
     intent: str | None = None,
     #   Human-readable purpose of this session. Recorded for audit (F2 TRUTH).
@@ -11011,6 +11097,7 @@ def _arif_session_init(
     auth_context: dict[str, Any] | None = None,
     #   T3 grant 2026-08-07 by 888 SOVEREIGN: DPoP+registry promotion channel.
     #   Caller-supplied; cross-checked against DID registry before elevation.
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap — three-phase binding.
@@ -11058,6 +11145,16 @@ def _arif_session_init(
       constitution, and session_verdict. Phase 1 only produces a provisional
       receipt; Phase 3 produces the full STABLE/DEGRADED_* receipt.
     """
+    # T1 (F2 TRUTH 2026-11-13): reject unknown parameters — a caller who sends
+    # a field this surface does not accept must learn it was ignored (never a
+    # silent drop). **kwargs is the catch-all that FastMCP's open schema lets
+    # through; the handler refuses it here.
+    if kwargs:
+        return {
+            "status": "error",
+            "tool": "arif_init",
+            "meta": {"reason": f"unknown parameter(s): {', '.join(sorted(kwargs.keys()))}"},
+        }
     # ── PRE-SESSION LANE DISPATCHER (Ω-PATCH 2026-06-13, F13 ratified) ─────
     import logging as _atl_logger
 
@@ -11129,6 +11226,15 @@ def _arif_session_init(
                 delegation_mode=delegation_mode or "internal_executor",
                 # DITEMPA 2026-06-22 — Layered init: forward verbose for audit path
                 verbose=verbose,
+                # RC1 fix 2026-11-03 (FI-008, sovereign ruling 'A'): forward the
+                # declared agent_policy to the canonical delegate. Previously
+                # dropped HERE — every MCP mint landed DEFAULT_DENY regardless
+                # of declaration (fall-chain link 1/2; TEST-J receipt
+                # forge_work/fi008-session-20261102).
+                agent_policy=agent_policy,
+                # External-agent token (2026-11-16): forwarded to the canonical
+                # delegate so the card ceiling/allowed_tools bind at birth.
+                agent_token=agent_token,
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
             _result_dict = (
@@ -11484,6 +11590,9 @@ def _arif_session_init(
                 executor_actor_id=executor_actor_id or "arifOS@af-forge",
                 sovereign_id=sovereign_id or "ARIF_FAZIL",
                 delegation_mode=delegation_mode or "internal_executor",
+                # RC1 fix 2026-11-03 (FI-008, ruling 'A'): same forward on the
+                # defensive fallback lane — no silent policy drop here either.
+                agent_policy=agent_policy,
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
             # Inject ATLAS333 onto the Pydantic model BEFORE dump so it survives.
@@ -12461,7 +12570,7 @@ def _arif_session_init(
 
                     _live_url = _genesis_card.get("url", "")
                     if _live_url:
-                        # SSRF guard (CVE-2026-SyedAnas, 2026-08-25):
+                        # SSRF guard (SSRF-2026-08-25):
                         # Genesis card URL was fetched without SSRF validation.
                         # urlopen follows redirects and resolves DNS internally,
                         # so a malicious genesis_card.yaml could exfil to private IPs.
@@ -12801,7 +12910,9 @@ def _searxng_web_search(query: str, max_results: int = 5) -> dict[str, Any]:
         params = urllib.parse.urlencode(
             {"q": query, "format": "json", "engines": engines, "pageno": 1}
         )
-        req = urllib.request.Request(f"{base}?{params}", headers={"User-Agent": "arifOS-kernel/1.0"})
+        req = urllib.request.Request(
+            f"{base}?{params}", headers={"User-Agent": "arifOS-kernel/1.0"}
+        )
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310 localhost env
             data = json.loads(resp.read().decode("utf-8"))
         hits = []
@@ -13109,7 +13220,9 @@ def _arif_sense_observe(
                 )
             data = _asyncio.run(_read_resource(uri=uri, actor_id=actor_id, session_id=session_id))
         else:
-            data = _asyncio.run(_search_resources(query=query, actor_id=actor_id, session_id=session_id))
+            data = _asyncio.run(
+                _search_resources(query=query, actor_id=actor_id, session_id=session_id)
+            )
         _cache_obs_result(session_id, data)
         return _ok("arif_sense_observe", {"mode": mode, "resource": data}, session_id=session_id)
 
@@ -16227,7 +16340,7 @@ async def _arif_mind_reason_tool(
     ctx: Context | None = None,
     concise: bool = True,
     context: dict | None = None,
-    evidence: list[dict[str, Any]] | None = None,
+    evidence: dict[str, Any] | list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
@@ -16247,6 +16360,14 @@ async def _arif_mind_reason_tool(
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
     """
+    # 2026-11-14 (F13 P1 order, external-audit finding): callers send the
+    # schema's own documented EXAMPLE item shape ({'fact':…,'source':…}) as
+    # a bare dict; the published list-of-objects contract then hard-crashes
+    # the whole call with an opaque CONTRACT_VIOLATION. Coerce at the door:
+    # dict -> [dict]. List callers unaffected; judge already accepts dict
+    # evidence — this only stops the crash class.
+    if isinstance(evidence, dict):
+        evidence = [evidence]
     trace = None
     if _ensure_langfuse_tracer() is not None:
         try:
@@ -17581,9 +17702,7 @@ def _arif_kernel_route(
                 if not _tid:
                     _tid = f"trc-{uuid.uuid4().hex[:12]}"
                 result = _run_async(
-                    call_geox_tool(
-                        tool_name, _args, session_id=_sid, actor_id=_aid, trace_id=_tid
-                    )
+                    call_geox_tool(tool_name, _args, session_id=_sid, actor_id=_aid, trace_id=_tid)
                 )
                 return _ok(
                     "arif_kernel_route",
@@ -20883,6 +21002,7 @@ def _arif_judge_deliberate(
             status=verdict.status,
             verdict=VerdictCode.HOLD if verdict.verdict == "HOLD" else VerdictCode.VOID,
             candidate=candidate,
+            reasons=_reasons_from_floor_reasons(verdict.floors.floor_reasons),
             result={
                 "candidate": candidate,
                 "reason": verdict.floors.floor_reasons,
@@ -20962,6 +21082,7 @@ def _arif_judge_deliberate(
             status="SABAR",
             verdict=VerdictCode.SABAR,
             candidate=candidate,
+            reasons=["Evidence receipt required for SEAL", "Witness proof absent"],
             result={
                 "candidate": candidate,
                 "verdict": "SABAR",
@@ -21174,6 +21295,9 @@ def _arif_judge_deliberate(
             status="VOID",
             verdict=VerdictCode.VOID,
             candidate=candidate,
+            reasons=[
+                f"L08 GENIUS GATE: g_score {contract.g_score} below floor {GENIUS_SCORE_VOID_FLOOR}"
+            ],
             result={
                 "candidate": candidate,
                 "verdict": "VOID",
@@ -21210,6 +21334,7 @@ def _arif_judge_deliberate(
         status="OK",
         verdict=VerdictCode.SEAL,
         candidate=candidate,
+        reasons=["Constitutional floors passed (L01, L12); verification state clean"],
         result={
             "candidate": candidate,
             "verdict": "SEAL",
@@ -21546,36 +21671,14 @@ async def _arif_judge_deliberate_tool(
             # Inject failure must not block verdict; log and proceed.
             logger.warning(f"F13#6 scar_recall injection failed: {_inj_err}")
 
-        try:
-            import asyncio
-
-            from arifOS.supabase_adapter import record_judge_verdict
-
-            v_code = result.get("verdict", "UNKNOWN")
-            v_str = v_code if isinstance(v_code, str) else getattr(v_code, "value", str(v_code))
-
-            comp = result.get("constitutional_compliance")
-            floor_summary = (
-                comp
-                if isinstance(comp, dict)
-                else (comp.model_dump() if hasattr(comp, "model_dump") else {})
-            )
-
-            reasons = result.get("reasons", [])
-            reasoning = reasons[0] if reasons else None
-
-            loop = asyncio.get_running_loop()
-            loop.create_task(
-                record_judge_verdict(
-                    tool_call_id=None,
-                    session_ref=session_id or "unknown",
-                    verdict=v_str,
-                    floor_summary=floor_summary,
-                    reasoning=reasoning,
-                )
-            )
-        except Exception as e:
-            logger.error(f"Failed to trigger Supabase record_judge_verdict: {e}")
+        # Supabase verdict-telemetry hook REMOVED 2026-11-03 (kimi-code/FI-008,
+        # F13 order TDQS/zen pass): `from arifOS.supabase_adapter import
+        # record_judge_verdict` referenced a module that no longer exists —
+        # the block raised ModuleNotFoundError every ~10 min in production
+        # logs (measured 2026-11-03 journalctl). Dead code deleted, not
+        # silenced: supabase/ now holds only config.toml + SQL migrations.
+        # If cloud verdict mirroring is ever wanted again, re-add it against
+        # a module that exists and fail-soft at DEBUG level.
 
         # F14 stamping (Right #2 appeal path, Right #3 escalation,
         # Right #8 explanation). Fails closed: missing substrate
@@ -21620,15 +21723,27 @@ async def _arif_judge_deliberate_tool(
             )
 
             _gverdict = result.get("verdict", "UNKNOWN")
+            _sesat_detected = _gverdict in ("HOLD", "VOID")
+            _detector_version = "sesat.v1.2026-11-19"
+            _evidence_ref = f"judge:deliberate:{actor_id or 'unknown'}:{session_id or 'unknown'}"
+            _sesat_code = ""
+            if _sesat_detected:
+                _g_val = measurement.get("G", 0) if measurement else 0
+                _c_val = measurement.get("C_dark", 0) if measurement else 0
+                _sesat_code = f"{_gverdict}:G={_g_val}:C_dark={_c_val}"
+
             _record_cmp(
                 tool_name="arif_judge_deliberate",
                 governed_verdict=_gverdict,
                 baseline_verdict="ALLOW",  # ungoverned default
-                sesat_detected=(_gverdict in ("HOLD", "VOID")),
+                sesat_detected=_sesat_detected,
+                sesat_code=_sesat_code,
                 measurement_G=measurement.get("G", 0) if measurement else 0,
                 measurement_C_dark=measurement.get("C_dark", 0) if measurement else 0,
                 actor_id=actor_id or "",
                 session_id=session_id or "",
+                detector_version=_detector_version,
+                evidence_ref=_evidence_ref,
             )
         except Exception:
             pass  # Comparison recording is best-effort
@@ -21682,6 +21797,16 @@ def _arif_vault_seal(
     constitutional (optional): Δ Axis 3 — moral provenance for the seal.
     {"value_anchor": [...], "floor_constraint": [...], "care_provenance": "..."}
     When present, the seal carries irreversible moral meaning.
+
+    AUTHORITY CONTRACT (pinned 2026-11-14, F13 P1 order — was implicit at
+    tools.py:2939 "a read-only vault verify gets over-gated as SEAL-class"):
+    READ modes — verify | chain | list | ledger | audit | history — are
+    OBSERVE-class by design and callable without SEAL-class authority; they
+    never append, never mutate, and return their source path
+    (vault_path_read). WRITE modes — seal | epoch_seal — require verified
+    authority (F13/888 lane). A read answering an unverified actor is the
+    contract, not a leak; an anonymous caller receives HOLD-class envelopes
+    with no ledger payloads.
     """
     # ── CANDIDATE ONLY FIREWALL (2026-07-18, hardened 2026-07-18) ─────────
     # PRIMARY GATE: Authoritative CandidateStore reference-based lookup.
@@ -22691,6 +22816,33 @@ def _arif_vault_seal(
                         "depends_on": entry.get("constitutional_chain_id")
                         or entry.get("prev_seal_id")
                         or entry.get("prev_leaf"),
+                        # SCAR-VAULT-2026-11-15 era cut (measured): unlinked rows
+                        # cluster 2026-04-05..2026-05-27 (early-v2 writer era);
+                        # 2026-05-28 onward every row links. Era rows = immutable
+                        # history; unlinked rows AFTER the cut are genuine failures.
+                        "legacy_v1": bool(
+                            ("verdict_issued" in entry or "decision_id" in entry)
+                            and not entry.get("prev_seal_id")
+                            and not entry.get("constitutional_chain_id")
+                            and not entry.get("prev_leaf")
+                        )
+                        or (
+                            not str(
+                                entry.get("timestamp")
+                                or entry.get("sealed_at")
+                                or entry.get("issued_at_utc")
+                                or entry.get("timestamp_decision")
+                                or ""
+                            )[:10]
+                            or str(
+                                entry.get("timestamp")
+                                or entry.get("sealed_at")
+                                or entry.get("issued_at_utc")
+                                or entry.get("timestamp_decision")
+                                or ""
+                            )[:10]
+                            <= "2026-05-27"
+                        ),
                     }
                 )
 
@@ -22702,11 +22854,24 @@ def _arif_vault_seal(
         # unlinked (id/timestamp/depends_on null) entries fail integrity here
         # too. An immutable ledger that reports OK on a broken chain is the
         # most dangerous surface in the federation — never fabricate green.
+        # SCAR-VAULT-2026-11-15 (g11 census honesty, F13 "next go"): the v1-era
+        # legacy log (verdict_issued/decision_id/timestamp_decision, written
+        # before chain linkage existed — KRT-F4 2026-08-15) can never satisfy the
+        # v2 linkage test. Counting immutable history as a permanent integrity
+        # failure trains alarm fatigue. The backlog is NAMED; the gate keys off
+        # GENUINE v2 linkage failures only.
         _unlinked = sum(
             1
             for e in irreversibility_chain
             if e["id"] is None or e["timestamp"] is None or e["depends_on"] is None
         )
+        _legacy_v1_unlinked = sum(
+            1
+            for e in irreversibility_chain
+            if e.get("legacy_v1")
+            and (e["id"] is None or e["timestamp"] is None or e["depends_on"] is None)
+        )
+        _genuine_unlinked = _unlinked - _legacy_v1_unlinked
         _audit: dict[str, Any] = {"available": False}
         _chain_ok = False
         try:
@@ -22740,7 +22905,7 @@ def _arif_vault_seal(
             _audit = {"available": False, "error": f"{type(_exc).__name__}: {_exc}"}
             _chain_ok = False
 
-        _integrity = "OK" if (_chain_ok and _unlinked == 0) else "GAPS_FOUND"
+        _integrity = "OK" if (_chain_ok and _genuine_unlinked == 0) else "GAPS_FOUND"
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
@@ -22753,12 +22918,19 @@ def _arif_vault_seal(
                     "integrity_detail": {
                         "canonical_chain_verified": _chain_ok,
                         "unlinked_seal_entries": _unlinked,
-                        "rule": "integrity=OK requires canonical chain verified AND zero unlinked seal entries",
+                        "genuine_unlinked_seal_entries": _genuine_unlinked,
+                        "legacy_v1_backlog": _legacy_v1_unlinked,
+                        "rule": "integrity=OK requires canonical chain verified AND zero GENUINE unlinked seal entries; v1-era rows without chain linkage (pre KRT-F4 2026-08-15) are immutable history, reported as legacy_v1_backlog",
                     },
                     "canonical_audit": _audit,
                     "irreversibility_chain": irreversibility_chain[-20:],  # last 20
                     "chain_length": len(irreversibility_chain),
                     "note": "All entries in irreversibility_chain are permanent. No rollback possible.",
+                    # 2026-11-14 (F13 P1 order): name the file this read served
+                    # from — multi-root vault fragmentation (g11) made verify
+                    # answers unfalsifiable; every verify answer now carries its
+                    # own source path (recompute = re-open this file).
+                    "vault_path_read": _get_vault_file_path(),
                 },
                 ledger_size=len(_VAULT_LEDGER),
                 irreversibility_bond=IrreversibilityBond(
@@ -22775,9 +22947,51 @@ def _arif_vault_seal(
         )
     if mode == "ledger":
         _ensure_vault_loaded()  # P0-FIX-1
+        # FIX 2026-11-02 (civilization-fork audit blocker #1): mode=ledger is
+        # L0_OBSERVE. Sessionless observers get head_hash + entry_count ONLY --
+        # metadata proves non-execution (head unchanged before/after) without
+        # exposing ledger content. Content requires a REGISTERED session.
+        _head = _VAULT_LEDGER[-1] if _VAULT_LEDGER else None
+        _head_hash = (
+            hashlib.sha256(json.dumps(_head, sort_keys=True, default=str).encode()).hexdigest()[:32]
+            if _head is not None
+            else None
+        )
+        _meta_result = {
+            "mode": "ledger",
+            "ledger_size": len(_VAULT_LEDGER),
+            "entry_count": len(_VAULT_LEDGER),
+            "head_hash": _head_hash,
+            "head_entry_id": _head.get("id") if _head else None,
+            "content_disclosed": False,
+        }
+        _sess_ctx = _SESSIONS.get(session_id) if session_id else None
+        if _sess_ctx is None:
+            _meta_result["note"] = (
+                "Sessionless observer read: metadata only (no content). "
+                "Provide a registered session_id to read ledger entries."
+            )
+            return SealOutput(
+                status="OK",
+                result=_meta_result,
+                ledger_size=len(_VAULT_LEDGER),
+                irreversibility_bond=IrreversibilityBond(
+                    level=IrreversibilityLevel.REVERSIBLE,
+                    delta_S=0.0,
+                    rollback_possible=True,
+                ),
+                entropy_delta=EntropyDelta(delta_S=0.0, entropy_direction="stable"),
+                meta={},
+                actor_id=actor_id,
+                timestamp=_now(),
+            ).model_dump(mode="json")
         return SealOutput(
             status="OK",
-            result={"ledger": _VAULT_LEDGER[-10:]},
+            result={
+                **_meta_result,
+                "content_disclosed": True,
+                "ledger": _VAULT_LEDGER[-10:],
+            },
             ledger_size=len(_VAULT_LEDGER),
             irreversibility_bond=IrreversibilityBond(
                 level=IrreversibilityLevel.REVERSIBLE,
@@ -23177,7 +23391,10 @@ async def _arif_vault_seal_tool(
     from arifosmcp.runtime.session_auth import validate_session as _vs_seal
 
     _auth_seal = _vs_seal(session_id, actor_id, session_token=session_token)
-    if not _auth_seal.get("valid"):
+    if not _auth_seal.get("valid") and mode != "ledger":
+        # FIX 2026-11-02 (civfork blocker #1): mode=ledger is L0_OBSERVE --
+        # sessionless observers reach the metadata-only reader downstream
+        # (head_hash + entry_count, no content). All other modes stay gated.
         return {
             "status": "HOLD",
             "tool": "arif_seal",
@@ -23196,7 +23413,8 @@ async def _arif_vault_seal_tool(
 
     try:
         # Verify mode is read-only — no irreversible ack needed
-        if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit"):
+        if mode in ("verify", "chain", "list", "verify_chain", "chain_status", "audit", "ledger"):
+            # ledger joins read-only set: no elicitation, no irreversible ack (FIX 2026-11-02)
             ack_irreversible = True
             hold = None
         else:
@@ -25921,7 +26139,8 @@ async def _arif_report(
     needs_human: bool | None = None,
     report_id: str | None = None,
     since: str | None = None,
-    limit: int = 20,
+    limit: int = 5,
+    full: bool = False,
     mark_read: bool = False,
     force: bool = False,
     dry_run: bool = False,
@@ -25936,6 +26155,16 @@ async def _arif_report(
     m = (mode or "report").strip().lower()
     who = (sender or actor_id or "unknown").strip()
     plat = (platform or "mcp").strip()
+
+    # L11 session gate (2026-11-18, p0-kernel-anon-report-inbox-read): READ and
+    # READ-MODIFY modes are identity-gated. Filing (mode=report) stays open for
+    # peer emitters; anonymous READING was measured returning peer reports on
+    # the PUBLIC ingress (RECEIPT-audit-verification-2026-11-11.md). The label
+    # said "Requires a session from arif_init" — now the runtime enforces it.
+    if m in ("inbox", "ack", "flush", "stats"):
+        _sess_obj, _hold_resp = _require_session("arif_report", session_id)
+        if _hold_resp is not None:
+            return _hold_resp
 
     if m == "report":
         # producer-context v1 (2026-10-31): mint server-side from kernel state;
@@ -25964,17 +26193,12 @@ async def _arif_report(
             producer_context=_pc,
         )
     elif m == "inbox":
-        # thread_id pass-through (fix 2026-11-02): the tool schema accepted
-        # thread_id on inbox reads but this branch never forwarded it and
-        # report_lane.inbox() had no such parameter — silently dropped filter
-        # (OBS 2026-11-01T17:14Z: thread-filtered read returned the same
-        # unfiltered oldest page).
         result = rl.inbox(
             since=since,
             sender=sender,
             kind=kind if kind not in ("fyi", "all") else None,
-            thread_id=thread_id,
             limit=limit,
+            full=full,
             mark_read=mark_read,
             reader=who,
             verified_actor=_caller_verified(),
@@ -26641,10 +26865,70 @@ async def _arif_ed25519_verify_tool(
         else f"anon:{_hashlib.sha256(bytes.fromhex(pubkey_hex)).hexdigest()[:16]}"
     )
 
+    # ── F1/F11 hardening (arif_verify pubkey-registry binding, 2026-11-02) ───
+    # The caller-supplied pubkey proves nothing on its own: any Ed25519 key
+    # holder could sign f"{actor_id}:{challenge}" for a REGISTERED actor and
+    # pass this lane. The anchor of truth is the REGISTERED key. When one
+    # resolves, the caller key must BE that key and the signature must verify
+    # against it. Fail CLOSED when the registry itself errors.
+    from arifosmcp.runtime.crypto_auth import resolve_actor_public_key
+
+    try:
+        registered_key = resolve_actor_public_key(effective_actor_id)
+    except Exception as e:  # noqa: BLE001 — identity surface fails closed
+        logger.warning(
+            "arif_verify: registry lookup failed actor=%s (%s) — fail closed",
+            effective_actor_id,
+            type(e).__name__,
+        )
+        return _verify_fail_response(
+            tool_name,
+            effective_actor_id,
+            session_id,
+            reason="pubkey_registry_unavailable",
+        )
+    verify_key = pubkey
+    if registered_key is not None:
+        try:
+            from cryptography.hazmat.primitives.serialization import (
+                Encoding as _Enc,
+                PublicFormat as _Fmt,
+            )
+
+            registered_hex = registered_key.public_bytes(_Enc.Raw, _Fmt.Raw).hex()
+        except Exception as e:  # noqa: BLE001 — fail closed
+            logger.warning(
+                "arif_verify: registered key encode failed actor=%s (%s)",
+                effective_actor_id,
+                type(e).__name__,
+            )
+            return _verify_fail_response(
+                tool_name,
+                effective_actor_id,
+                session_id,
+                reason="pubkey_registry_unavailable",
+            )
+        if registered_hex != pubkey_hex:
+            logger.warning(
+                "arif_verify: REJECTED caller key != registered key actor=%s "
+                "supplied=%s registered=%s",
+                effective_actor_id,
+                pubkey_hex[:12],
+                registered_hex[:12],
+            )
+            return _verify_fail_response(
+                tool_name,
+                effective_actor_id,
+                session_id,
+                reason="pubkey_registry_mismatch",
+            )
+        # Anchor the verification to the registry key, not the caller bytes.
+        verify_key = registered_key
+
     # Verify Ed25519 signature over payload bytes
     payload = f"{effective_actor_id}:{challenge}".encode()
     try:
-        pubkey.verify(sig_raw, payload)
+        verify_key.verify(sig_raw, payload)
     except Exception as e:  # noqa: BLE001 — InvalidSignature is expected for bad sigs
         logger.info(
             "arif_verify: signature rejected actor=%s reason=%s",
@@ -27603,7 +27887,9 @@ def _flatten_wire_envelope(response: Any) -> dict[str, Any]:
     return {"result": response}
 
 
-def _alias_stale_client_ref(result_dict: Any, caller_sid: Any, actor_id: Any, session_token: Any) -> None:
+def _alias_stale_client_ref(
+    result_dict: Any, caller_sid: Any, actor_id: Any, session_token: Any
+) -> None:
     """M365 P2 (2026-10-29, k-def-session-resume-stale-sid).
 
     The init delegate mints a fresh runtime session, while the wire echo can
@@ -29017,41 +29303,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         }
 
     # Sync wrapper
-    def _g3_mode_guard(kw: dict[str, Any]) -> None:
-        """G3 — reject an undeclared `mode` as an MCP SEP-1303 tool error.
-
-        An undeclared mode is an INPUT VALIDATION ERROR: it must surface as a
-        TOOL EXECUTION ERROR (isError:true, actionable message) so the calling
-        model can read it and self-correct — not a protocol error, and not a
-        silent fall-through to a default branch.
-
-        Failure class closed (2026-08-12; re-measured 2026-10-29): on this
-        tree an undeclared mode made arif_observe raise UnboundLocalError and
-        made arif_judge silently enter the judgment path.
-
-        ONE implementation, called from BOTH wrappers — arif_observe is sync,
-        arif_judge is async. Keep them in step.
-        """
-        try:
-            from arifosmcp.runtime.input_contract import (
-                invalid_mode as _ic_invalid_mode,
-                invalid_mode_message as _ic_invalid_mode_msg,
-            )
-
-            bad_mode = _ic_invalid_mode(tool_name, kw, handler)
-        except Exception:  # fail-open: a guard bug must never break dispatch
-            return
-        if bad_mode is None:
-            return
-        from fastmcp.exceptions import ToolError as _ToolError
-
-        raise _ToolError(_ic_invalid_mode_msg(tool_name, bad_mode, handler))
-
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
-
-        # ── G3 INVALID-MODE GUARD (Arif ratified 2026-10-29) ───────────────
-        _g3_mode_guard(kwargs)
 
         # INPUT CONTRACT — cheapest, most actionable check runs first.
         _ic_resp = _input_contract_gate(tool_name, kwargs)
@@ -29519,11 +29772,6 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
 
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
-
-        # ── G3 INVALID-MODE GUARD (Arif ratified 2026-10-29) ───────────────
-        # Same guard as the sync wrapper — arif_judge is an async handler and
-        # was silently entering the judgment path on an undeclared mode.
-        _g3_mode_guard(kwargs)
 
         # INPUT CONTRACT — cheapest, most actionable check runs first.
         _ic_resp = _input_contract_gate(tool_name, kwargs)
@@ -30610,15 +30858,58 @@ def register_tools(
                 "AGENT REPORT LANE · File or read reports between agents without "
                 "involving the human. Use when your work is done, when you are "
                 "blocked by another agent, or when you need to tell peers a fact. "
-                "modes: report (file), inbox (read peers), ack, flush, stats. "
+                "Modes: report (file), inbox (read peers), ack, flush, stats. "
                 "kind=fyi|peer|done|claim stay in the peer lane; ONLY kind=decision "
                 "or kind=blocked reach the sovereign, and only in one coalesced "
-                "message. Reports are SELF_REPORTED — probe before relying on one."
+                "message. Reports are SELF_REPORTED — probe before relying on one. "
+                "Not for constitutional verdicts, sealing, or mutations — use the "
+                "canonical verbs (arif_init … arif_seal); this lane coordinates, it "
+                "never governs. Behavior: filing appends to an agent-only store "
+                "(never the VAULT999 ledger); reads are side-effect-free; "
+                "dry_run=true validates without storing. Requires a session from "
+                "arif_init. Outputs: the filed report record (mode=report), or the "
+                "inbox/ack/flush/stats payload for the other modes."
             ),
             tags={"coordination", "arifos", "non-constitutional"},
-            annotations={"readOnlyHint": False, "destructiveHint": False},
+            annotations={
+                "title": "Agent Report Lane · Peer Coordination",
+                "readOnlyHint": False,
+                "destructiveHint": False,
+                "idempotentHint": False,
+                "openWorldHint": False,
+            },
+            output_schema=_tool_output_schema("arif_report"),
             meta=_rep_meta,
         )(_arif_report)
+        # TDQS Parameter Semantics (F13 order 2026-11-03): the lane registers
+        # straight off the handler signature, so without this patch its params
+        # ship with empty descriptions (measured 0/19 documented — Glama TDQS
+        # warning). Merge the _PARAM_DOCS prose exactly like the canonical 8,
+        # and strip the transport-owned _envelope param from the advertised
+        # surface (same rule the canonical loop applies).
+        try:
+            _rep_provider = getattr(mcp, "_local_provider", None)
+            if _rep_provider is not None:
+                _rep_ft = getattr(_rep_provider, "_components", {}).get("tool:arif_report@")
+                if _rep_ft is not None and hasattr(_rep_ft, "parameters"):
+                    from arifosmcp.runtime.public_registry import _merge_param_docs
+
+                    _rep_schema = _merge_param_docs("arif_report", dict(_rep_ft.parameters))
+                    _rep_props = _rep_schema.get("properties")
+                    if isinstance(_rep_props, dict):
+                        _rep_props.pop("_envelope", None)
+                        for _p in ("actor_id", "session_token", "force", "platform"):
+                            _rep_props.pop(_p, None)
+                        if _rep_schema.get("required"):
+                            _rep_schema["required"] = [
+                                r
+                                for r in _rep_schema["required"]
+                                if r != "_envelope"
+                                and r not in ("actor_id", "session_token", "force", "platform")
+                            ]
+                    _rep_ft.parameters = _rep_schema
+        except Exception:
+            logger.warning("arif_report param-doc merge skipped", exc_info=True)
         registered.append("arif_report")
         logger.info("AGENT REPORT LANE: registered arif_report (coordination channel)")
     except Exception as _rep_exc:  # noqa: BLE001

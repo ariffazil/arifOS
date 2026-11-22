@@ -239,7 +239,9 @@ def compute_agentic_intelligence(
         reasons.append("QQQQ incomplete")
     if not kernel_floors_pass:
         reasons.append("kernel floors not pass")
-    if genius is not None and genius < 0.80:
+    if genius is None:
+        reasons.append("F8 genius unmeasured (fail-closed 2026-11-21)")
+    elif genius < 0.80:
         reasons.append(f"F8 Genius G={genius:.3f} < 0.80")
     if psi is not None and psi < 1.0:
         reasons.append(f"Ψ vitality={psi:.3f} < 1.0 (not homeostatic)")
@@ -249,7 +251,7 @@ def compute_agentic_intelligence(
         and kernel_floors_pass
         and qqqq_complete
         and (delta_s_session is None or delta_s_session <= 0)
-        and (genius is None or genius >= 0.80)
+        and (genius is not None and genius >= 0.80)
     )
 
     equations = {

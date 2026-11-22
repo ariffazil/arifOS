@@ -54,6 +54,23 @@ def emit_dry_run(tool, actor_id, session_id, verdict, mode_param=None, trace_id=
         return False
 
 
+def _result_payload(result):
+    # 2026-11-18 shape fix: arif_judge/arif_seal handler paths return pydantic
+    # models (VerdictOutput / SealOutput via _echo_standing), not dicts — the
+    # dict-only ladder never saw their verdict, so 57% of canary rows read
+    # Unknown. Normalize pydantic results to a dict once; keep one ladder.
+    if isinstance(result, dict):
+        return result
+    model_dump = getattr(result, "model_dump", None)
+    if callable(model_dump):
+        try:
+            payload = model_dump(mode="json")
+        except Exception:
+            return None
+        return payload if isinstance(payload, dict) else None
+    return None
+
+
 def wrap_mutate_verbs(fn):
     @wraps(fn)
     async def wrapper(*args, **kwargs):
@@ -62,23 +79,31 @@ def wrap_mutate_verbs(fn):
             verdict = None
             actor_id = kwargs.get("actor_id")
             session_id = kwargs.get("session_id")
-            if isinstance(result, dict):
+            trace_id = kwargs.get("trace_id")
+            payload = _result_payload(result)
+            if isinstance(payload, dict):
                 verdict = (
-                    result.get("effective_verdict")
-                    or result.get("verdict")
-                    or (result.get("actor") or {}).get("verdict")
-                    or result.get("status")
+                    payload.get("effective_verdict")
+                    or payload.get("verdict")
+                    or (payload.get("actor") or {}).get("verdict")
+                    or payload.get("status")
                 )
-                # resolved identity (result) outranks the claimed kwargs alias
-                actor_id = (result.get("actor") or {}).get("actor_id") or actor_id
-                session_id = result.get("session_id") or session_id
+                # resolved identity (result) outranks the claimed kwargs alias;
+                # nested actor{} (judge dict path) or flat actor_id (VerdictOutput)
+                actor_id = (
+                    (payload.get("actor") or {}).get("actor_id")
+                    or payload.get("actor_id")
+                    or actor_id
+                )
+                session_id = payload.get("session_id") or session_id
+                trace_id = trace_id or payload.get("trace_id")
             emit_dry_run(
                 tool=getattr(fn, "__name__", "unknown"),
                 actor_id=actor_id,
                 session_id=session_id,
                 verdict=verdict,
                 mode_param=kwargs.get("mode"),
-                trace_id=kwargs.get("trace_id") or (result.get("trace_id") if isinstance(result, dict) else None),
+                trace_id=trace_id,
             )
         except Exception as exc:
             print(f"[os1-canary] wrap failed: {exc}", file=sys.stderr)

@@ -286,6 +286,9 @@ async def arif_memory(
     actor_id: str | None = None,
     lease_id: str | None = None,
     human_approval: bool = False,
+    policy_basis: str | None = None,
+    memory_class: str | None = None,
+    require_human_ack: bool | None = None,
     idempotency_key: str | None = None,
     trace_id: str | None = None,
     request_id: str | None = None,
@@ -454,6 +457,35 @@ async def arif_memory(
         )
 
     # ── 1. Action-class enforcement: lease + human_ack ──
+    # DEFECT B fix (p1-arifmemory-forget-policy-basis-lie, 2026-11-02):
+    # forward provenance fields verbatim into the handler payload. NEVER default
+    # policy_basis here — a false reason on a consequential receipt is a provenance
+    # lie (K7: one question, one answer, one writer). Handler validates the allowlist.
+    if mode == "forget":
+        payload = dict(payload or {})
+        if policy_basis is not None:
+            payload.setdefault("policy_basis", policy_basis)
+        if memory_class is not None:
+            payload.setdefault("memory_class", memory_class)
+        if require_human_ack is not None:
+            payload.setdefault("require_human_ack", require_human_ack)
+        if payload.get("policy_basis") is None:
+            return _echo_standing(
+                forge_verdict(
+                    tool_id="arif_memory",
+                    canonical_tool_name="arif_memory",
+                    stage="555m",
+                    payload={"mode": mode, "note": "policy_basis required"},
+                    session_id=session_id,
+                    override_code=VerdictCode.SABAR,
+                    message=(
+                        "arif_memory: mode='forget' requires policy_basis "
+                        "(ttl_expired|scope_revoked|consent_withdrawn|floor_violation|superseded|human_veto) "
+                        "(K7 provenance: no silent defaults on consequential receipts)"
+                    ),
+                )
+            )
+
     if MODE_REQUIRES_LEASE.get(mode) and not lease_id:
         return _echo_standing(
             forge_verdict(
@@ -766,34 +798,11 @@ def _wrap_result(res_dict: dict, mode: str, session_id: str | None) -> RuntimeEn
     )
 
 
-# ── NEW handlers: promote, attest, forget (Day 3 work) ────────────────────
-# These are stubs for Phase 2 Day 3. The schema-level contracts are in
-# schemas/memory_payload.py; the runtime logic lands in Day 3.
-
-
-async def _handle_promote(payload: dict, ctx: Any) -> dict:
-    """NEW — promote a memory from L3 (Qdrant) to L4 (Postgres canonical).
-
-    Day 3 work. Stub returns SABAR for now.
-    """
-    return {
-        "mode": "promote",
-        "verdict": "SABAR",
-        "payload": {"note": "promote handler — Day 3 implementation"},
-    }
-
-
-async def _handle_forget(payload: dict, ctx: Any) -> dict:
-    """NEW — tombstone an L4 record + emit vault tombstone seal.
-
-    Day 3 work. Stub returns SABAR for now.
-    """
-    return {
-        "mode": "forget",
-        "verdict": "SABAR",
-        "payload": {"note": "forget handler — Day 3 implementation (L13 SOVEREIGN)"},
-    }
-
+# ── NEW handlers: attest (Day 3 work) ────────────────────────────────────
+# promote/forget module stubs REMOVED 2026-11-02 (release train: defectA+defectB+stub):
+# the dispatcher binds the REAL handlers from memory_handlers_v5 (import ~:589,
+# dispatch map ~:600) — zero call sites for the stubs. attest below remains a
+# Day-3 stub, OUT of this bounded removal scope.
 
 async def _handle_federation_query(payload: dict, ctx: Any) -> dict:
     """Phase 4 — Federation memory bridge query (Hermes-as-bridge).
@@ -1195,8 +1204,6 @@ __all__ = [
     "MODE_REQUIRES_HUMAN_ACK",
     "LEGACY_MODE_ALIASES",
     "resolve_legacy_mode",
-    "_handle_promote",
-    "_handle_forget",
     "_handle_attest",
     "_handle_score_prediction",
 ]

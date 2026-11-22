@@ -37,6 +37,7 @@ probe from a different process is independent.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -336,7 +337,8 @@ def _finalize_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
         if isinstance(items, list):
             sig = payload.get("signature") or {}
             sig_state = str(sig.get("state") or "").lower() if isinstance(sig, dict) else ""
-            # F-007 honesty: signed != verified.
+            # A signature blob means the snapshot was signed. It does not mean
+            # anybody verified that signature. "verified" requires state=verified.
             verified = sig_state == "verified"
             signed = bool(isinstance(sig, dict) and sig.get("value"))
             for f in items:
@@ -593,6 +595,30 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
         vault_state = _probe_vault999_health()
     except Exception:
         vault_state = "unknown"
+    # The probe's "healthy" is the canonical chain only. The public cell was
+    # printing that word while the seal ledger still had unlinked rows.
+    census = _unlinked_seal_census()
+    unlinked = census.get("unlinked") if isinstance(census, dict) else None
+    rows = census.get("chain_length") if isinstance(census, dict) else None
+    genuine = census.get("genuine_unlinked") if isinstance(census, dict) else None
+    legacy_n = census.get("legacy_v1_unlinked") if isinstance(census, dict) else None
+    # gate on GENUINE linkage failures; v1 backlog is labeled, never silently green
+    if isinstance(genuine, int) and genuine > 0:
+        vault_public = f"degraded · probe {vault_state} · unlinked {genuine} of {rows}"
+        vault_pf_state = "degraded"
+    elif isinstance(legacy_n, int) and legacy_n > 0:
+        vault_public = f"{vault_state} · legacy_v1 {legacy_n} of {rows} (immutable history)"
+        vault_pf_state = (
+            "observed" if vault_state in ("healthy", "degraded", "gaps_found") else "unknown"
+        )
+    elif isinstance(unlinked, int) and unlinked > 0:
+        vault_public = f"degraded · probe {vault_state} · unlinked {unlinked} of {rows}"
+        vault_pf_state = "degraded"
+    else:
+        vault_public = vault_state
+        vault_pf_state = (
+            "observed" if vault_state in ("healthy", "degraded", "gaps_found") else "unknown"
+        )
     sub["postgres"] = _pf(
         None,
         source="postgres_probe_pending",
@@ -618,14 +644,11 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
         independent=True,
     )
     # vault999 probe is independent — it checks filesystem state, not the organ's self-report.
-    census = _unlinked_seal_census()
-    genuine = census.get("genuine_unlinked") if isinstance(census, dict) else None
-    if isinstance(genuine, int) and genuine > 0:
-        vault_state = "degraded"
+    # When unlinked seal rows exist, the public value names them. The probe word stays in the sentence.
     sub["vault999"] = _pf(
-        vault_state,
-        source="rest_routes._probe_vault999_health",
-        state="observed" if vault_state in ("healthy", "degraded") else "unknown",
+        vault_public,
+        source="rest_routes._probe_vault999_health + unlinked seal census",
+        state=vault_pf_state,
         confidence=0.9,
         observation_method=_OBS_METHOD_FILESYSTEM,
         independent=True,
@@ -726,19 +749,37 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
     )
 
     # Drift state derivation — namespaced per verdict 2026-07-15.
-    # artifact: source=build=deployed alignment (independent filesystem probe)
+    # artifact: build_commit vs deployed_commit alignment (package build integrity).
+    # NOTE (2026-11-02 F2 audit): Does NOT evaluate repository workspace checkout;
+    # workspace_vs_deployed provides independent repository HEAD vs deployed alignment.
     # capability: declared vs registered tool drift (derived from capability_matrix)
     # forge_registry: A-FORGE registry staleness (independent registry probe)
-    # schema / route / upstream_repository: honest UNKNOWN until probed
-    if drift.get("runtime_drift") is True:
-        artifact_state = "DRIFTED"
-    elif drift.get("runtime_drift") is False:
-        artifact_state = "ALIGNED"
+    # schema / route: honest UNKNOWN until runtime introspection probes exist
+    # upstream_repository: honest UNVERIFIED until origin reachability probe exists
+    _b_commit = drift.get("build_commit", "unknown")
+    _l_commit = drift.get("live_commit", "unknown")
+    _both_known = _b_commit != "unknown" and _l_commit != "unknown"
+    if _both_known:
+        build_vs_deployed = "ALIGNED" if _b_commit == _l_commit else "DRIFTED"
     else:
-        artifact_state = "UNKNOWN"
+        build_vs_deployed = "UNKNOWN"
+
+    if workspace_commit and _l_commit != "unknown":
+        _cmatch = str(workspace_commit).startswith(str(_l_commit)) or str(_l_commit).startswith(
+            str(workspace_commit)
+        )
+        workspace_vs_deployed = "ALIGNED" if (_cmatch and workspace_dirty is False) else "DRIFTED"
+    else:
+        workspace_vs_deployed = "UNKNOWN"
+
+    artifact_state = build_vs_deployed
+
     out["drift"] = _pf(
         {
             "artifact": artifact_state,
+            "artifact_scope": "build_vs_deployed",
+            "build_vs_deployed": build_vs_deployed,
+            "workspace_vs_deployed": workspace_vs_deployed,
             "capability": "UNKNOWN",  # populated from capability_matrix at snapshot level
             "forge_registry": "UNKNOWN",  # populated from A-FORGE probe at snapshot level
             "schema": "UNKNOWN",
@@ -914,100 +955,6 @@ def _resolve_session_state_from_sessions() -> str:
 
 
 # ── Governance envelope ────────────────────────────────────────────────────────
-def _predicate_not_enforcement(ontology: dict[str, Any] | None) -> bool:
-    """PREDICATE_PASS means a predicate held, not that an action was enforced."""
-    return isinstance(ontology, dict) and ontology.get("evidence_class") == "PREDICATE_PASS"
-
-
-def _projected_unit_score(ontology: dict[str, Any] | None) -> bool:
-    """True when a 1.00 beside this floor is a PASS projection, not a meter."""
-    if not isinstance(ontology, dict):
-        return False
-    if ontology.get("value_kind") == "predicate":
-        return True
-    transform = str(ontology.get("display_transform") or "")
-    return "projects to 1.00" in transform and "never projected" not in transform
-
-
-def _classify_published_floor(
-    threshold_ok: bool, ontology: dict[str, Any] | None
-) -> tuple[str, str, bool]:
-    """Return (status, bucket, withhold_score): predicate != passing, projected 1.00 withheld."""
-    if threshold_ok and _predicate_not_enforcement(ontology):
-        return "predicate", "predicate", _projected_unit_score(ontology)
-    if threshold_ok:
-        return "pass", "passing", False
-    return "fail", "failing", False
-
-
-def _unlinked_seal_census() -> dict[str, Any]:
-    """Count SEALED_EVENTS rows missing id, timestamp, or chain linkage; separate legacy v1 backlog."""
-    raw = os.getenv("ARIFOS_VAULT_PATH") or os.getenv("VAULT999_PATH") or "/var/lib/arifos/vault"
-    candidates: list[str] = []
-    if os.path.isdir(raw):
-        candidates.append(os.path.join(raw, "SEALED_EVENTS_v2.jsonl"))
-    elif raw:
-        candidates.append(raw)
-    candidates.append("/var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl")
-    path = next((item for item in candidates if os.path.isfile(item)), None)
-    if path is None:
-        return {"available": False, "path": None, "chain_length": None, "unlinked": None}
-    chain_length = 0
-    unlinked = 0
-    legacy_v1_unlinked = 0
-    with open(path, encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                entry = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if not isinstance(entry, dict):
-                continue
-            entry_type = (
-                entry.get("type") or entry.get("event_type") or entry.get("verdict_issued") or ""
-            )
-            if not entry_type or not any(
-                token in str(entry_type).lower()
-                for token in ("seal", "verdict", "decision", "constitutional")
-            ):
-                continue
-            chain_length += 1
-            entry_id = entry.get("id") or entry.get("event_id") or entry.get("decision_id")
-            timestamp = (
-                entry.get("timestamp")
-                or entry.get("sealed_at")
-                or entry.get("issued_at_utc")
-                or entry.get("timestamp_decision")
-            )
-            depends_on = (
-                entry.get("constitutional_chain_id")
-                or entry.get("prev_seal_id")
-                or entry.get("prev_leaf")
-            )
-            _era_ts = str(timestamp or "")[:10]
-            legacy_v1_row = bool(
-                ("verdict_issued" in entry or "decision_id" in entry)
-                and not entry.get("prev_seal_id")
-                and not entry.get("constitutional_chain_id")
-                and not entry.get("prev_leaf")
-            ) or (not _era_ts or _era_ts <= "2026-05-27")
-            if entry_id is None or timestamp is None or depends_on is None:
-                unlinked += 1
-                if legacy_v1_row:
-                    legacy_v1_unlinked += 1
-    return {
-        "available": True,
-        "path": path,
-        "chain_length": chain_length,
-        "unlinked": unlinked,
-        "genuine_unlinked": unlinked - legacy_v1_unlinked,
-        "legacy_v1_unlinked": legacy_v1_unlinked,
-    }
-
-
 def _governance_block() -> dict[str, dict[str, Any]]:
     """Governance verdict + 13-floor status + per-field envelopes."""
     out: dict[str, dict[str, Any]] = {}
@@ -1043,6 +990,13 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         passing = 0
         failing = 0
         unmeasured = 0
+        # Gate 1 (F13 2026-11-02): floor measurement ontology — types each
+        # reading so a predicate/presence pass never renders as a scored
+        # measurement (Arif composition audit; table in floor_producers.py).
+        from arifosmcp.runtime.floor_producers import (
+            floor_ontology_record as _floor_ontology_record,
+        )
+
         for fid, score in raw_floors.items():
             origin = str(provenance.get(fid) or "governance_kernel")
             # 2026-10-26 (333-AGI): a SKIPPED producer is not a measurement either.
@@ -1054,18 +1008,31 @@ def _governance_block() -> dict[str, dict[str, Any]]:
             # evaluation path (K12). UNMEASURED != PASS; absent != denied.
             if origin.startswith("unmeasured_default"):
                 is_placeholder = True
-                # 2026-11-01 truth-up: this label used to hardcode F6 commentary
-                # ("Maruah predicates live, producer pending") for ANY unmeasured
-                # floor, and the claim was stale — the F6 producer is wired and
-                # runs; it refuses to score without evidence. Carry the live
-                # origin instead of a fixed story.
+                # 2026-11-05 (333-AGI): the fixed "producer pending" label was
+                # stale since the F6 producer landed (floor_producers._f6_maruah
+                # + f6/meters.py live on /health; provenance now
+                # "unmeasured_default:f6_partially_measured" — M1 FAIL,
+                # M3/M4/M6 UNKNOWN). Publish the provenance's own reason;
+                # never a hard-coded story.
+                _reason = origin.removeprefix("unmeasured_default:") or "no_evidence"
                 placeholder_label = (
-                    f"rest_routes._FLOOR_DEFAULTS (unmeasured — no scored "
-                    f"measurement; live origin: {origin})"
+                    f"rest_routes._FLOOR_DEFAULTS (unmeasured — {_reason}; "
+                    "docs/canon/F6_MARUAH_CANON.md)"
                 )
             elif "_skipped" in origin or score is None:
                 is_placeholder = True
-                placeholder_label = f"skipped producer, no measurement [{origin}]"
+                # 2026-11-18 (333-AGI): never a hard-coded story — same rule as the
+                # branch above. A producer that RAN and returned UNMEASURED:<reason>
+                # must publish its own diagnostic. "skipped" is reserved for origins
+                # with _skipped.
+                if origin.startswith("floor_producer:UNMEASURED:"):
+                    _producer_reason = origin.split("UNMEASURED:", 1)[1].split("@", 1)[0]
+                    placeholder_label = (
+                        f"instrumented producer ran — coverage insufficient "
+                        f"({_producer_reason}) [{origin}]"
+                    )
+                else:
+                    placeholder_label = f"skipped producer, no measurement [{origin}]"
             else:
                 is_placeholder = False
                 placeholder_label = None
@@ -1111,6 +1078,9 @@ def _governance_block() -> dict[str, dict[str, Any]]:
                     confidence=0.99,
                     observation_method=_OBS_METHOD_DERIVED,
                     independent=False,
+                ),
+                "measurement": _floor_ontology_record(
+                    fid, origin, None if is_placeholder else score
                 ),
             }
         verdict = gov.get("verdict")
@@ -1405,8 +1375,36 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     ]
     for name, label, host, port in organs:
         dp = _deep_probe_organ(host, port, label)
+        # FG-3 (ZEN ledger 2026-11-14, F13 zero-HITL): organ rows must carry
+        # app_health — the organ's own /health status word — so "reachable"
+        # (transport) is never rendered as "healthy". dp already fetches it.
+        _hs = dp.get("status")
+        if _hs is None:
+            _app_health_val, _app_health_state, _app_health_conf = (
+                None,
+                "unknown",
+                0.0,
+            )
+        else:
+            _raw = str(_hs).lower()
+            _app_health_val = (
+                "DEGRADED"
+                if _raw == "degraded"
+                else "HEALTHY"
+                if (_raw.startswith("ok") or _raw == "healthy")
+                else str(_hs).upper()
+            )
+            _app_health_state, _app_health_conf = "observed", 0.9
         out[name] = {
             "transport": _probe_transport(host, port),
+            "app_health": _pf(
+                _app_health_val,
+                source=f"GET 127.0.0.1:{port}/health→status",
+                state=_app_health_state,
+                confidence=_app_health_conf,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=True,
+            ),
             "identity": dp["identity"]
             or _pf(
                 None,
@@ -1702,14 +1700,25 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         # deliberately not confused with a version field. capability stays None:
         # arifFLOW publishes no tool count, and inventing one is exactly the
         # defect class this file just removed.
-        "contract": flow_dp["contract"]
+        "status": flow_dp["contract"]
         or _pf(
-            flow_dp.get("status"),
+            flow_dp.get("status") or _flow_facts.get("status"),
             source="GET 127.0.0.1:7073/health→status (no version field published)",
-            state="observed" if flow_dp.get("status") else "unknown",
-            confidence=0.7 if flow_dp.get("status") else 0.0,
+            state="observed" if (flow_dp.get("status") or _flow_facts.get("status")) else "unknown",
+            confidence=0.7 if (flow_dp.get("status") or _flow_facts.get("status")) else 0.0,
             observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
+        ),
+        "contract": flow_dp["contract"]
+        or _pf(
+            flow_dp.get("status") or _flow_facts.get("status"),
+            source="GET 127.0.0.1:7073/health→status (no version field published)",
+            state="observed" if (flow_dp.get("status") or _flow_facts.get("status")) else "unknown",
+            confidence=0.7 if (flow_dp.get("status") or _flow_facts.get("status")) else 0.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
         ),
         "capability": flow_mcp_dp["capability"]
         or _pf(
@@ -1743,14 +1752,19 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
             observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
         ),
-        "receipts": _pf(
-            _flow_facts.get("receipts"),
-            source="GET 127.0.0.1:7073/health→receipts",
-            state="observed" if _flow_facts.get("receipts") is not None else "unknown",
-            confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
-            observation_method=_OBS_METHOD_SELF_REPORTED,
-            independent=True,
+        "receipts": dict(
+            _pf(
+                _flow_facts.get("receipts"),
+                source="GET 127.0.0.1:7073/health→receipts",
+                state="observed" if _flow_facts.get("receipts") is not None else "unknown",
+                confidence=0.9 if _flow_facts.get("receipts") is not None else 0.0,
+                observation_method=_OBS_METHOD_SELF_REPORTED,
+                independent=True,
+                observed_epoch=_flow_facts.get("observed_epoch"),
+            ),
+            verification_state="NOT_ATTEMPTED",
         ),
         "chain_status": _pf(
             _flow_facts.get("chain"),
@@ -1759,7 +1773,9 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
             confidence=0.85 if _flow_facts.get("chain") else 0.0,
             observation_method=_OBS_METHOD_SELF_REPORTED,
             independent=True,
+            observed_epoch=_flow_facts.get("observed_epoch"),
         ),
+        "_flow_facts": _flow_facts,
         "drift": _pf(
             None,
             source="arifFLOW vs VAULT999",
@@ -1927,11 +1943,34 @@ def _probe_arifflow_flow_facts() -> dict[str, Any]:
             f"cycles={inv.get('cycle_count')} · holds={inv.get('hold_count')} · "
             f"throttled={inv.get('throttle_count')}"
         )
+    fq = data.get("fq") if isinstance(data, dict) else {}
+    per_actor = fq.get("per_actor") if isinstance(fq, dict) else {}
+    held = (
+        sorted(a for a, v in per_actor.items() if isinstance(v, dict) and v.get("held"))
+        if isinstance(per_actor, dict)
+        else []
+    )
+    actors_tracked = len(per_actor) if isinstance(per_actor, dict) else None
+    why = []
+    for _a in held:
+        _v = per_actor.get(_a) or {}
+        _q = _v.get("quotient")
+        if _q is None:
+            why.append(f"{_a}: tiada kaunter semasa")
+        else:
+            why.append(f"{_a}: FQ {float(_q):.2f} vs paras {_v.get('fq_required')}")
+    held_reason = "; ".join(why) if why else None
     return {
         "receipts": receipts,
         "chain": chain,
         "probe_status": "OK",
         "flow_state": "FLOWING" if receipts is not None else None,
+        "status": data.get("status") if isinstance(data, dict) else None,
+        "held": len(held) if isinstance(per_actor, dict) else None,
+        "held_actors": held,
+        "actors_tracked": actors_tracked,
+        "held_reason": held_reason,
+        "observed_epoch": time.time(),
     }
 
 
@@ -2568,6 +2607,110 @@ def _local_chain_replay_ok() -> dict[str, Any]:
         return {"ok": False, "entries": 0, "status": "error", "detail": str(exc)}
 
 
+def _unlinked_seal_census() -> dict[str, Any]:
+    """Count SEALED_EVENTS rows the verify-mode calls unlinked.
+
+    Same rule as arif_seal mode=verify (tools.py): a seal/verdict/decision/
+    constitutional row is unlinked when id, timestamp, or depends_on is null
+    after the v2 field fallbacks. This does not repair the rows.
+    """
+    raw = os.getenv("ARIFOS_VAULT_PATH") or os.getenv("VAULT999_PATH") or "/var/lib/arifos/vault"
+    candidates: list[str] = []
+    if os.path.isdir(raw):
+        candidates.append(os.path.join(raw, "SEALED_EVENTS_v2.jsonl"))
+    elif raw:
+        candidates.append(raw)
+    candidates.append("/var/lib/arifos/vault/SEALED_EVENTS_v2.jsonl")
+    path = next((item for item in candidates if os.path.isfile(item)), None)
+    if path is None:
+        return {"available": False, "path": None, "chain_length": None, "unlinked": None}
+    chain_length = 0
+    unlinked = 0
+    legacy_v1_unlinked = 0
+    missing_id = 0
+    missing_ts = 0
+    missing_dep = 0
+    with open(path, encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(entry, dict):
+                continue
+            entry_type = (
+                entry.get("type") or entry.get("event_type") or entry.get("verdict_issued") or ""
+            )
+            if not entry_type or not any(
+                token in str(entry_type).lower()
+                for token in ("seal", "verdict", "decision", "constitutional")
+            ):
+                continue
+            chain_length += 1
+            entry_id = entry.get("id") or entry.get("event_id") or entry.get("decision_id")
+            timestamp = (
+                entry.get("timestamp")
+                or entry.get("sealed_at")
+                or entry.get("issued_at_utc")
+                or entry.get("timestamp_decision")
+            )
+            depends_on = (
+                entry.get("constitutional_chain_id")
+                or entry.get("prev_seal_id")
+                or entry.get("prev_leaf")
+            )
+            # SCAR-VAULT-2026-11-15 (g11 census honesty, F13 "next go"): rows
+            # written in the v1 schema era (verdict_issued/decision_id, pre
+            # KRT-F4 2026-08-15) never carried chain linkage. They are immutable
+            # history, not a live chain failure. Backlog is NAMED; the degraded
+            # gate keys off GENUINE linkage failures only.
+            # SCAR-VAULT-2026-11-15 (era cut, measured): unlinked rows cluster
+            # 2026-04-05..2026-05-27 (early-v2 writer: real prev hashes but null
+            # id/timestamp, or "None"-string linkage). From 2026-05-28 every row
+            # links. Era-cut classifies the cluster as immutable history; any
+            # unlinked row AFTER the cut is a GENUINE live failure.
+            _era_ts = str(
+                entry.get("timestamp")
+                or entry.get("sealed_at")
+                or entry.get("issued_at_utc")
+                or entry.get("timestamp_decision")
+                or ""
+            )[:10]
+            legacy_v1_row = bool(
+                ("verdict_issued" in entry or "decision_id" in entry)
+                and not entry.get("prev_seal_id")
+                and not entry.get("constitutional_chain_id")
+                and not entry.get("prev_leaf")
+            ) or (not _era_ts or _era_ts <= "2026-05-27")
+            # burden of proof flipped: a row only counts GENUINE if its own
+            # timestamp proves it was written AFTER the enforcement cut and
+            # still failed to link. No date = cannot convict = backlog.
+            if entry_id is None or timestamp is None or depends_on is None:
+                unlinked += 1
+                if legacy_v1_row:
+                    legacy_v1_unlinked += 1
+            if entry_id is None:
+                missing_id += 1
+            if timestamp is None:
+                missing_ts += 1
+            if depends_on is None:
+                missing_dep += 1
+    return {
+        "available": True,
+        "path": path,
+        "chain_length": chain_length,
+        "unlinked": unlinked,
+        "genuine_unlinked": unlinked - legacy_v1_unlinked,
+        "legacy_v1_unlinked": legacy_v1_unlinked,
+        "missing_id": missing_id,
+        "missing_timestamp": missing_ts,
+        "missing_depends_on": missing_dep,
+    }
+
+
 def _receipts_block() -> dict[str, dict[str, Any]]:
     head_path = Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
     chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
@@ -2593,6 +2736,17 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             pass
     chain_v = _local_chain_verify()
     replay_v = _local_chain_replay_ok()
+    seal_census = _unlinked_seal_census()
+    # Canonical-scope hash success is not a clean chain. A gaps-found walk
+    # or any unlinked seal row must not publish chain_verified=true.
+    chain_is_clean = (
+        bool(chain_v.get("verified"))
+        and chain_v.get("status") != "gaps-found"
+        and not (chain_v.get("gaps") or [])
+        and not (
+            isinstance(seal_census.get("unlinked"), int) and seal_census.get("unlinked", 0) > 0
+        )
+    )
     # 2026-10-07 (Observatory green mission, F13 "deploy all"): the VAULT999 panel
     # rendered LAST RECEIPT / SEAL CHAIN unavailable while head_seq and the local
     # chain walk were already computed here. Read the tail record's tier/reason for
@@ -2723,8 +2877,13 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
             independent=True,
         ),
         "chain_verified": _pf(
-            chain_v.get("verified"),
-            source=f"local seal_chain.jsonl walk status={chain_v.get('status')} gaps={len(chain_v.get('gaps') or [])}",
+            chain_is_clean,
+            source=(
+                "local seal_chain.jsonl walk "
+                f"status={chain_v.get('status')} gaps={len(chain_v.get('gaps') or [])} "
+                f"canonical_verified={bool(chain_v.get('verified'))} "
+                f"unlinked_seal_entries={seal_census.get('unlinked')}"
+            ),
             state="observed" if chain_v.get("status") != "error" else "unknown",
             confidence=0.9 if chain_v.get("status") != "error" else 0.0,
             observation_method=_OBS_METHOD_FILESYSTEM,
@@ -2767,13 +2926,40 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
         ),
         "chain_status": _pf(
             (
-                f"{chain_v.get('status')} · entries={chain_v.get('entries')} · gaps={len(chain_v.get('gaps') or [])}"
+                (
+                    f"{chain_v.get('status')} · entries={chain_v.get('entries')} · "
+                    f"gaps={len(chain_v.get('gaps') or [])} · "
+                    f"unlinked_seal_entries={seal_census.get('unlinked')} · "
+                    f"seal_ledger_rows={seal_census.get('chain_length')}"
+                )
                 if chain_v.get("status") not in (None, "no-chain")
                 else None
             ),
-            source="_local_chain_verify walk of seal_chain.jsonl (sovereign-frozen gaps documented, never silently repaired)",
+            source="_local_chain_verify walk of seal_chain.jsonl plus SEALED_EVENTS unlinked count (rows not backfilled)",
             state="observed" if chain_v.get("status") not in (None, "no-chain") else "unknown",
             confidence=0.9 if chain_v.get("status") not in (None, "no-chain") else 0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "unlinked_seal_entries": _pf(
+            seal_census.get("unlinked"),
+            source=(
+                f"{seal_census.get('path') or 'SEALED_EVENTS missing'}: "
+                "id or timestamp or depends_on is null after v2 fallbacks. "
+                f"missing_timestamp={seal_census.get('missing_timestamp')} "
+                f"missing_depends_on={seal_census.get('missing_depends_on')} "
+                f"missing_id={seal_census.get('missing_id')}"
+            ),
+            state="observed" if seal_census.get("available") else "unknown",
+            confidence=0.9 if seal_census.get("available") else 0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "seal_ledger_rows": _pf(
+            seal_census.get("chain_length"),
+            source="SEALED_EVENTS rows whose type is seal, verdict, decision, or constitutional",
+            state="observed" if seal_census.get("available") else "unknown",
+            confidence=0.9 if seal_census.get("available") else 0.0,
             observation_method=_OBS_METHOD_FILESYSTEM,
             independent=True,
         ),
@@ -3078,15 +3264,34 @@ def _findings_block(
     verify_alive = _rv("verify_path_alive")
     replay_alive = _rv("replay_path_alive")
     chain_verified = _rv("chain_verified")
-    if verify_alive is True and replay_alive is True and chain_verified is True:
-        f004_status, f004_ev = "RESOLVED", "verify+replay alive; chain_verified=true"
-        f004_desc = "VAULT verify/replay paths live and chain verified"
+    chain_status_text = _rv("chain_status") or ""
+    unlinked = _rv("unlinked_seal_entries")
+    gaps_open = isinstance(chain_status_text, str) and "gap" in chain_status_text
+    unlinked_open = isinstance(unlinked, int) and unlinked > 0
+    if (
+        verify_alive is True
+        and replay_alive is True
+        and chain_verified is True
+        and not gaps_open
+        and not unlinked_open
+    ):
+        f004_status, f004_ev = (
+            "RESOLVED",
+            "verify+replay alive; chain_verified=true; no gaps; unlinked=0",
+        )
+        f004_desc = "VAULT verify/replay paths live and the chain has no declared gap"
     elif verify_alive is True or replay_alive is True:
         f004_status, f004_ev = (
             "OPEN",
-            f"verify={verify_alive} replay={replay_alive} chain_verified={chain_verified} (gaps may be declared)",
+            f"verify={verify_alive} replay={replay_alive} chain_verified={chain_verified} "
+            f"chain_status={chain_status_text} unlinked_seal_entries={unlinked}",
         )
-        f004_desc = "VAULT paths live; chain not fully green (gaps declared allowed)"
+        f004_desc = (
+            "VAULT paths answer. The chain is not clean: "
+            f"{chain_status_text or 'gap count not in this snapshot'}. "
+            f"Unlinked seal entries (id, timestamp, or depends_on is null): {unlinked}. "
+            "Those rows were not backfilled."
+        )
     else:
         f004_status, f004_ev = "OPEN", f"verify={verify_alive} replay={replay_alive}"
         f004_desc = "VAULT chain verification and replay path not proven in this snapshot"
@@ -3407,6 +3612,22 @@ def _attach_authority_planes_and_evidence_counts(
             independent=True,
         ),
     }
+    _af_node = organs.get("arifflow") or {}
+    _ff_node = _af_node.get("_flow_facts") or {}
+    payload["fleet"] = {
+        "actors_tracked": _ff_node.get("actors_tracked"),
+        "held": _ff_node.get("held"),
+        "held_actors": _ff_node.get("held_actors", []),
+        "reason": _ff_node.get("held_reason"),
+        "scope": "8 federation nodes (6 core + gateway + arifflow)",
+        "source": "ariflow:7073/health :: fq.per_actor",
+        "observed_at": time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ",
+            time.gmtime(_ff_node.get("observed_epoch") or time.time()),
+        ),
+        "verification_state": "VERIFIED" if _ff_node.get("held") is not None else "NOT_ATTEMPTED",
+    }
+    payload["arifflow"] = _af_node
     payload["planes"] = {
         "authorization": "PUBLIC tier · OBSERVE_ONLY · mutation per-action via arif_judge",
         "readiness": f"{ready}/{total} organs READY",
@@ -4193,16 +4414,23 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
             scope = (req.query_params.get("scope") or "full").strip().lower()
             if scope not in ("full", "canonical"):
                 scope = "full"
-            result = verify_chain(scope=scope)
+            # P0 event-loop fix (FI-008 2026-11-13): this endpoint ran THREE
+            # synchronous full-chain walks per request (full + canonical + the
+            # canonical walk inside heads_agreement) on the event loop. The
+            # observatory polls it continuously, so every poll stalled all
+            # in-flight MCP traffic. Offload each walk to a worker thread.
+            result = await asyncio.to_thread(verify_chain, scope=scope)
             body = result.to_dict()
             body["scope"] = scope
             # Always include both scopes so SPA cannot false-green historical
             try:
-                body["scope_canonical"] = verify_chain(scope="canonical").to_dict()
+                body["scope_canonical"] = (
+                    await asyncio.to_thread(verify_chain, scope="canonical")
+                ).to_dict()
             except Exception as sc_exc:  # noqa: BLE001
                 body["scope_canonical"] = {"error": str(sc_exc)}
             try:
-                body["heads_agreement"] = heads_agreement()
+                body["heads_agreement"] = await asyncio.to_thread(heads_agreement)
             except Exception as agr_exc:  # noqa: BLE001
                 body["heads_agreement"] = {"error": str(agr_exc)}
             return JSONResponse(

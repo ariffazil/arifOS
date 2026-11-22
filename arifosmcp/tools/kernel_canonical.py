@@ -296,7 +296,17 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # which should route to the named organ, not to arifOS. Fix: detect an
     # organ-qualified phrase first (e.g. "WELL organ X", "GEOX earth Y")
     # and route to that organ BEFORE the kernel guard fires.
-    _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS", "HERMES", "CHRON")
+    _ORGAN_NAMES = (
+        "WELL",
+        "GEOX",
+        "WEALTH",
+        "AAA",
+        "A-FORGE",
+        "AFORGE",
+        "ARIFOS",
+        "HERMES",
+        "CHRON",
+    )
 
     # Step 1: organ-qualified phrases win — ONLY for explicit organ queries.
     # HARDEN-C P0 (2026-07-12): bare " well " must NOT match geoscience
@@ -927,7 +937,9 @@ def arif_route(
         return _route_ok({**routing, "bridge_status": "kernel-local: no bridge needed"})
 
     if target_organ.lower() == "hermes":
-        return _route_ok({**routing, "bridge_status": "hermes: semantic boundary — use HERMES:18087"})
+        return _route_ok(
+            {**routing, "bridge_status": "hermes: semantic boundary — use HERMES:18087"}
+        )
 
     if target_organ.lower() == "chron":
         return _route_ok({**routing, "bridge_status": "chron: temporal boundary — use CHRON:18102"})
@@ -1099,15 +1111,27 @@ def arif_triage(
             _authority_mode = standing.authority
             _stage_from_session = standing.stage or stage or "000"
             _standing_source = standing.source
-            _session_token_out = standing.session_token
+            # L11 (2026-11-17, 333-AGI): a store-derived standing is minted from
+            # session_id KNOWLEDGE alone (act_token.resolve_standing step 2).
+            # Preflight is a capability-discovery surface; it must never launder
+            # knowledge into a bearer token. Echo a token only when the caller
+            # already presented one (source="act"), and never upgrade a
+            # store-only caller above OBSERVE_ONLY.
+            if standing.source == "store":
+                _session_token_out = None
+                _authority_mode = "OBSERVE_ONLY"
+                _actor_verified = False
+            else:
+                _session_token_out = standing.session_token
             _apex_scalars = dict(standing.apex)
             _sid_resolved = standing.session_id or session_id
         elif session_id and not session_token:
             sess = _SESSIONS.get(session_id)
             if sess and isinstance(sess, dict):
                 _session_found = True
-                _actor_verified = sess.get("actor_verified", False)
-                _authority_mode = sess.get("authority", "OBSERVE_ONLY")
+                # Same L11 rule: store presence is not proof. No token, no upgrade.
+                _actor_verified = False
+                _authority_mode = "OBSERVE_ONLY"
                 _stage_from_session = sess.get("stage", stage or "000")
                 _standing_source = "store"
 

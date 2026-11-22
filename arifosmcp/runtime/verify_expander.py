@@ -73,7 +73,7 @@ async def verify_url(url: str, timeout: float = 10.0) -> VerifyResult:
             error="URL failed safety checks",
         )
     try:
-        # SSRF redirect guard (CVE-2026-SyedAnas, 2026-08-25): follow_redirects=True
+        # SSRF redirect guard (SSRF-2026-08-25): follow_redirects=True
         # re-resolves DNS per hop — a public host can 30x to 127.0.0.1 and bypass
         # the pre-check above. Redirects are handled explicitly with SSRF re-check.
         from .ssrf_guard import resolve_blocked as _ssrf_resolve

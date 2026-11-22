@@ -30,7 +30,7 @@ from typing import Any
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-# SSRF guard fix (CVE-2026-SyedAnas, 2026-08-25): replaced weak
+# SSRF guard fix (SSRF-2026-08-25): replaced weak
 # a_rif.ssrf_guard (string-prefix matching) with canonical resolve_blocked
 # (ipaddress + DNS resolution). a_rif/ssrf_guard.py is now deprecated.
 from arifosmcp.runtime.ssrf_guard import resolve_blocked
@@ -556,7 +556,7 @@ class A2AServer:
         self.app = FastAPI(
             title="arifOS A2A Server",
             description="Agent-to-Agent protocol with constitutional governance",
-            version=self.build_info["version"],
+            version=self.build_info.get("version") or "0.0.0-unreleased",
         )
         self._setup_routes()
 

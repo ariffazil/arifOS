@@ -2051,9 +2051,15 @@ def _project_light(
         out["model_governance"] = _build_model_governance(actor_id)
     except Exception:  # noqa: BLE001 — the card must never break INIT
         out["model_governance"] = {
-            "card_source": "UNAVAILABLE", "identity_state": "UNKNOWN",
+            "card_source": "UNAVAILABLE",
+            "identity_state": "UNKNOWN",
             "resolved_model": "UNKNOWN",
-            "authority_ceiling": {"propose": False, "verify": False, "authorize": False, "execute": False},
+            "authority_ceiling": {
+                "propose": False,
+                "verify": False,
+                "authorize": False,
+                "execute": False,
+            },
             "verdict": "HOLD",
         }
 
@@ -2328,7 +2334,6 @@ from arifosmcp.schemas.session import (
 )
 
 
-
 def _build_model_governance(actor_id: str | None) -> dict:
     """Model Governance Card binding (runtime wiring v1, F13-sealed 2026-10-30).
 
@@ -2341,6 +2346,7 @@ def _build_model_governance(actor_id: str | None) -> dict:
     """
     try:
         from arifosmcp.resources.model_governance import resolve_lane, load_card
+
         lane = resolve_lane(actor_id)
         card = load_card(lane)
         card["session_binding"] = {"actor_id": actor_id, "lane": lane}
@@ -2350,11 +2356,17 @@ def _build_model_governance(actor_id: str | None) -> dict:
             "card_source": "UNAVAILABLE",
             "identity_state": "UNKNOWN",
             "resolved_model": "UNKNOWN",
-            "authority_ceiling": {"propose": False, "verify": False, "authorize": False, "execute": False},
+            "authority_ceiling": {
+                "propose": False,
+                "verify": False,
+                "authorize": False,
+                "execute": False,
+            },
             "operating_mode": "OBSERVE_ONLY",
             "reason": f"card loader failed: {type(exc).__name__}",
             "verdict": "HOLD",
         }
+
 
 @trace_tool("arif_init")
 def arif_init(
@@ -2382,6 +2394,13 @@ def arif_init(
     tenant_id: str | None = None,
     # ── Ω-PATCH 2026-06-13: thin client payload enrichment ───────────────
     intent: str | None = None,
+    # RC1 fix 2026-11-03 (FI-008, ruling 'A'): declared session policy.
+    # Honored ONLY after signature_verified (merge below); birth stays
+    # DEFAULT_DENY for every actor — anti-escalation preserved (TEST-J).
+    agent_policy: dict | None = None,
+    #   External-agent credential (2026-11-16): card-backed long-lived token.
+    #   Resolves agent_id/lane/ceiling/allowed_tools from the external card.
+    agent_token: str | None = None,
     #   Human-readable purpose. Recorded for audit (F2 TRUTH).
     requested_authority: str = "OBSERVE_ONLY",
     verbose: str | None = None,
@@ -2431,6 +2450,42 @@ def arif_init(
     ("Salam ARIF", "Hi Arif", "Saya Arif") are normalized to canonical form
     before any identity resolution. See governance_identity.normalize_actor_id.
     """
+    # ── EXTERNAL AGENT TOKEN (2026-11-16) ────────────────────────────────
+    # A registered external agent may present a card-backed long-lived token
+    # instead of an Ed25519 signature. Resolve it BEFORE every identity gate so
+    # the actor_id is populated and the F12/F13 spoof checks see a real agent_id.
+    # The card caps the ceiling at LIMITED_MUTATE; F13 remains sole sovereign.
+    _external_ctx = None
+    if agent_token:
+        from arifosmcp.runtime.external_agents import (
+            build_agent_policy as _build_external_policy,
+            resolve_external_agent as _resolve_external_agent,
+        )
+
+        _external_ctx = _resolve_external_agent(agent_token)
+        if _external_ctx is None:
+            return _make_init_hold(
+                reason=(
+                    "EXTERNAL_AGENT_TOKEN_INVALID: token is unknown, revoked, or expired. "
+                    "Register the agent with scripts/onboard_external_agent.py (F13 only)."
+                ),
+                failure_type="auth",
+                extra_meta={
+                    "violated_laws": ["F11_AUDIT", "F2_TRUTH"],
+                    "auth_method": "external_agent_token",
+                },
+            )
+        actor_id = _external_ctx["agent_id"]
+        requested_authority = _external_ctx["authority_ceiling"]
+        agent_policy = _build_external_policy(_external_ctx["card"])
+        delegation_mode = "external_delegate"
+        sovereign_id = sovereign_id or "F13"
+        tenant_id = _external_ctx["memory_compartment"]
+        # Route to the birth path that binds the card policy. The full init
+        # path hardcodes OBSERVE_ONLY for its legacy birth contract; external
+        # agents need the card ceiling and allowed_tools at birth.
+        mode = "birth"
+
     # ── KX-008 Ingress normalization & compatibility adapter ──────────────
     # Legacy session_id is translated to client_ref correlation label.
     # The server mints and manages the authoritative runtime handle.
@@ -2613,7 +2668,7 @@ def arif_init(
                 actor_id,
             )
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="VOID",
                 result={
                     "session_id": None,
@@ -3317,7 +3372,9 @@ def arif_init(
         )
 
         # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — additive, fail-closed
-        header["model_governance"] = sess.get("model_governance") or _build_model_governance(actor_id)
+        header["model_governance"] = sess.get("model_governance") or _build_model_governance(
+            actor_id
+        )
 
         # ── A5: verbosity-gated extra blocks ──────────────────────────
         _verbosity = _normalize_verbosity(verbose)
@@ -4475,7 +4532,9 @@ def arif_init(
         )
 
         # MODEL GOVERNANCE CARD (runtime wiring v1, 2026-10-30) — additive, fail-closed
-        header["model_governance"] = sess.get("model_governance") or _build_model_governance(actor_id)
+        header["model_governance"] = sess.get("model_governance") or _build_model_governance(
+            actor_id
+        )
         # Belt: force effective_state consistent with authority_override
         if isinstance(header, dict):
             _es = header.get("effective_state")
@@ -4525,6 +4584,24 @@ def arif_init(
                 set_active_session(sess["session_id"])
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
+            # RC1 fix 2026-11-03 (FI-008, ruling 'A'): honor a DECLARED agent_policy
+            # only after cryptographic verification. Birth policy stayed DEFAULT_DENY
+            # for everyone (anti-escalation preserved); verified non-sovereign actors
+            # get their declared policy merged; sovereign-derived policy (threshold
+            # 1.0, 2026-09-04 P0 FIX) keeps precedence via the note marker below.
+            if identity_verified and isinstance(agent_policy, dict) and agent_policy:
+                _cur_pol = dict(sess.get("agent_policy") or {})
+                if "sovereign policy derived" not in str(_cur_pol.get("note") or ""):
+                    _merged_pol = {
+                        **_cur_pol,
+                        **{k: v for k, v in agent_policy.items() if v is not None},
+                    }
+                    _merged_pol["note"] = (
+                        "declared agent_policy honored (Ed25519 signature_verified, "
+                        "RC1 fix 2026-11-03)"
+                    )
+                    sess["agent_policy"] = _merged_pol
+
             # F13: bind into canonical identity store used by compose_standing
             # (get_session_identity / _SESSION_IDENTITY — NOT tools._SESSIONS alone)
             try:
@@ -4546,6 +4623,7 @@ def arif_init(
                     actor_id=actor_id or "anonymous",
                     authority_level=_auth_lvl,
                     verified=bool(identity_verified),
+                    agent_policy=sess.get("agent_policy"),
                     stage=str(sess.get("stage") or "000"),
                     lane=str(sess.get("lane") or "AGI"),
                     auth_context={
@@ -4671,7 +4749,7 @@ def arif_init(
         # ── output_contract=debug: legacy path, preserves raw session ─────
         if output_contract == "debug":
             return _sm(
-            model_governance=header.get("model_governance"),
+                model_governance=header.get("model_governance"),
                 status="OK",
                 result={"session": sess, "header": header},
                 doctrine=ARIF_DOCTRINE,
@@ -4737,7 +4815,7 @@ def arif_init(
         # Prefer the earlier authority_level if set in the same branch
         if authority_level in ("SOVEREIGN", "OPERATOR", "ANONYMOUS"):
             _kc8_authority_level = authority_level
-            model_governance=header.get("model_governance"),
+            model_governance = (header.get("model_governance"),)
         return _sm(
             model_governance=_build_model_governance(actor_id),
             status="OK",
@@ -4983,7 +5061,7 @@ def arif_init(
 
         if not actor_id:
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="HOLD",
                 mode="birth",
                 result={},
@@ -5004,7 +5082,7 @@ def arif_init(
                     if existing_composite == composite_key:
                         # Reuse the original session
                         return _sm(
-            model_governance=_build_model_governance(actor_id),
+                            model_governance=_build_model_governance(actor_id),
                             status="OK",
                             mode=mode,
                             stage="000_BORN",
@@ -5061,6 +5139,9 @@ def arif_init(
             actor_id,
             declared_model_key=declared_model_key,
             deployment_id=deployment_id,
+            agent_policy=agent_policy,
+            sovereign_id=sovereign_id,
+            delegation_mode=delegation_mode,
         )
         sid = sess.get("session_id", "UNKNOWN")
         sess["constitution_hash"] = "sha256:8bea28833523c652"
@@ -5078,6 +5159,20 @@ def arif_init(
         if intent:
             sess["birth_intent"] = intent
         sess["requested_authority"] = requested_authority
+
+        # External-agent token bind: the card is the source of truth for lane,
+        # ceiling, allowed tools and memory compartment. Authority is NOT
+        # inferred from the typed actor_id; it was resolved from the token.
+        if _external_ctx is not None:
+            sess["actor_verified"] = True
+            sess["auth_method"] = "external_agent_token"
+            sess["authority_level"] = _external_ctx["authority_ceiling"]
+            sess["lane_id"] = _external_ctx["lane"]
+            sess["lane"] = _external_ctx["lane"]
+            sess["tenant_id"] = _external_ctx["memory_compartment"]
+            sess["external_agent"] = True
+            sess["agent_policy"] = agent_policy
+            sess["mutability_band"] = _external_ctx["authority_ceiling"]
 
         # ── Quranic Runtime Distillation Hooks (forged 2026-08-02) ────────
         # Al-Fatihah = kernel boot ROM + security context. Each arif_init
@@ -5130,6 +5225,32 @@ def arif_init(
             _SESSIONS[sid] = sess
         except Exception:
             logger.exception("suppressed exception", exc_info=True)
+
+        # External-agent identity store bind. The finalizer and the session
+        # policy clamp read _SESSION_IDENTITY first; without this bind the
+        # session token would be re-minted OBSERVE_ONLY even though the birth
+        # record above carries the card ceiling.
+        if _external_ctx is not None:
+            try:
+                from arifosmcp.runtime.session import bind_session_identity
+
+                bind_session_identity(
+                    sid,
+                    actor_id,
+                    _external_ctx["authority_ceiling"],
+                    {
+                        "verified": True,
+                        "auth_method": "external_agent_token",
+                        "canonical_actor_id": actor_id,
+                        "lane": _external_ctx["lane"],
+                    },
+                    verified=True,
+                    lane=_external_ctx["lane"],
+                    agent_policy=agent_policy,
+                )
+            except Exception:
+                logger.exception("external agent identity bind failed")
+
         from arifosmcp.runtime.work_spine import create_work_contract
 
         work_receipt = create_work_contract(
@@ -5141,45 +5262,80 @@ def arif_init(
             verification_criteria=verification_requirements,
         )
 
+        _ext = _external_ctx is not None
+        _auth = _external_ctx["authority_ceiling"] if _ext else "OBSERVE_ONLY"
+        _lane = _external_ctx["lane"] if _ext else "AGI"
+        _verified = bool(_ext)
+        _mut = _auth in ("LIMITED_MUTATE", "FULL")
+        _mg = _build_model_governance(actor_id)
+        if _ext:
+            _mg = {
+                **_mg,
+                "lane_id": _lane,
+                "lane": _lane,
+                "identity_state": "TOKEN_VERIFIED",
+                "operating_mode": _auth,
+                "authority_ceiling": {
+                    "propose": _mut,
+                    "verify": True,
+                    "authorize": False,
+                    "execute": _mut,
+                },
+                "session_binding": {
+                    "actor_id": actor_id,
+                    "lane": _lane,
+                    "auth_method": "external_agent_token",
+                },
+            }
+
         return _sm(
-            model_governance=_build_model_governance(actor_id),
+            model_governance=_mg,
             status="OK",
+            # External token-verified agents carry the card ceiling as the
+            # top-level verdict; the finalizer derives mutation_allowed from
+            # this field. Internal birth keeps the OBSERVE_ONLY baseline.
+            verdict=_auth if _ext else "OBSERVE_ONLY",
             mode=mode,
             stage="000_BORN",
             session=SessionState(
                 session_id=sid,
                 actor_id=actor_id,
                 stage="000",
-                lane="AGI",
+                lane=_lane,
                 constitution_bound=True,
-                verdict="OBSERVE_ONLY",
-                authority="OBSERVE_ONLY",
+                verdict=_auth,
+                authority=_auth,
                 init_tier=2,
-                actor_verified=False,
+                actor_verified=_verified,
             ),
             actor={
                 "claimed_id": actor_id,
-                "identity_verified": False,
-                "authority_level": "OBSERVE_ONLY",
+                "identity_verified": _verified,
+                "authority_level": _auth,
             },
             constitution={
                 "id": "arifos-constitution-v2026.05.05-SSCT",
                 "human_judge_required": True,
             },
-            meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
-            actor_verified=False,
+            meta={"actor_verified": _verified, "authority_mode": _auth},
+            actor_verified=_verified,
             result={
                 "session_id": sid,
                 "actor_id": actor_id,
-                "actor_verified": False,
-                "authority_mode": "OBSERVE_ONLY",
+                "actor_verified": _verified,
+                "authority_mode": _auth,
                 "requested_authority": requested_authority,
                 "session_stage": "BORN_OBSERVE",
                 "stage": "000",
-                "mutation_allowed": False,
+                "mutation_allowed": _mut,
                 "irreversible_allowed": False,
                 "external_side_effects_allowed": False,
-                "verdict": "OBSERVE_ONLY",
+                "verdict": _auth,
+                "lane_id": _lane,
+                "external_agent": _ext,
+                "allowed_tools": agent_policy.get("allowed_tools", []) if _ext else [],
+                "memory_compartment": _external_ctx["memory_compartment"] if _ext else None,
+                "auth_method": "external_agent_token" if _ext else None,
                 "pre_session": False,
                 "present_boundary": "LIVE",
                 "action_class": "SESSION_BIRTH",
@@ -5222,7 +5378,7 @@ def arif_init(
         if session_id and session_id in _SESSIONS:
             del _SESSIONS[session_id]
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="OK",
                 result={"revoked": session_id},
                 doctrine=ARIF_DOCTRINE,
@@ -5242,7 +5398,7 @@ def arif_init(
         target_sid = handle or session_id
         if not target_sid:
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="HOLD",
                 verdict="HOLD",
                 result={
@@ -5256,7 +5412,7 @@ def arif_init(
 
         if target_sid not in _SESSIONS:
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="HOLD",
                 verdict="HOLD",
                 result={
@@ -5300,7 +5456,7 @@ def arif_init(
 
             _SESSIONS[session_id]["refreshed_at"] = _now()
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="OK",
                 result={"refreshed": session_id},
                 doctrine=ARIF_DOCTRINE,
@@ -5330,7 +5486,7 @@ def arif_init(
 
         if not target_sid:
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="HOLD",
                 result={
                     "valid": False,
@@ -5350,7 +5506,7 @@ def arif_init(
             claims = verify_sct(_sid_str, expected_actor=actor_id)
             if not claims:
                 return _sm(
-            model_governance=_build_model_governance(actor_id),
+                    model_governance=_build_model_governance(actor_id),
                     status="HOLD",
                     result={
                         "valid": False,
@@ -5362,7 +5518,7 @@ def arif_init(
                     doctrine=ARIF_DOCTRINE,
                 )
             return _sm(
-            model_governance=_build_model_governance(actor_id),
+                model_governance=_build_model_governance(actor_id),
                 status="OK",
                 verdict="SEAL",
                 result={
@@ -5398,7 +5554,7 @@ def arif_init(
                 and _provided_norm != "anonymous"
             ):
                 return _sm(
-            model_governance=_build_model_governance(actor_id),
+                    model_governance=_build_model_governance(actor_id),
                     status="HOLD",
                     result={
                         "valid": False,
@@ -5459,7 +5615,7 @@ def arif_init(
         )
 
     return _sm(
-            model_governance=_build_model_governance(actor_id),
+        model_governance=_build_model_governance(actor_id),
         status="HOLD",
         result={},
         meta={"reason": f"Unknown mode: {mode}"},

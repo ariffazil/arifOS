@@ -84,10 +84,20 @@ def admit_evidence(
             summary["rejected"].append({"index": idx, "reason": "not an object"})
             summary["counts"]["rejected"] += 1
             continue
-        claim = item.get("claim")
+        # 2026-11-14 (F13 P1 order — row p1-think-evidence-schema-drift):
+        # the tool's own documented example shape is {'fact':…,'source':…}.
+        # fact IS the claim text; a sourced-but-unclassified fact admits as
+        # REPORTED (sourced, not independently verified) with the defaulting
+        # echoed — visible, never silent. Explicit invalid classifications
+        # still reject; neither fact nor claim still rejects.
+        claim = item.get("claim") or item.get("fact")
         classification = str(item.get("classification", "")).strip().upper()
+        classification_defaulted = False
+        if not classification:
+            classification = "REPORTED"
+            classification_defaulted = True
         if not claim or not isinstance(claim, str):
-            summary["rejected"].append({"index": idx, "reason": "missing claim"})
+            summary["rejected"].append({"index": idx, "reason": "missing claim (or fact)"})
             summary["counts"]["rejected"] += 1
             continue
         if classification not in CLASSIFICATIONS:
@@ -119,9 +129,18 @@ def admit_evidence(
         )
         contradictions = item.get("contradictions") or []
         if contradictions:
-            lines.append(f"    contradictions: {_clip('; '.join(map(str, list(contradictions)[:4])))}")
+            lines.append(
+                f"    contradictions: {_clip('; '.join(map(str, list(contradictions)[:4])))}"
+            )
         summary["consumed"].append(eid)
-        summary["admitted_items"].append({"eid": eid, "evidence": item})
+        summary["admitted_items"].append(
+            {
+                "eid": eid,
+                "evidence": item,
+                "classification": classification,
+                "classification_defaulted": classification_defaulted,
+            }
+        )
         summary["counts"]["admitted"] += 1
         if classification in GATED_CLASSIFICATIONS:
             summary["counts"]["gated"] += 1

@@ -6,10 +6,13 @@ This module provides runtime traceability back to that canonical repo.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import os
 import subprocess
+import threading
+import time
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -227,14 +230,37 @@ def _git_blob_sha1(data: bytes) -> str:
 
 
 def _strip_content_stamp(data: bytes) -> bytes:
-    """S5 exclusion rule: strip __content_sha256__ stamp line from installed __init__.py."""
+    """S5 exclusion rule (deploy-release.sh S5, 2026-09-23).
+
+    The installed __init__.py carries __content_sha256__, which by
+    design cannot contain its own digest (self-reference
+    cryptographically infeasible — the deploy script documents the
+    exclusion). Parity compares content with ONLY that stamp line
+    removed; every other byte difference still counts as changed.
+    The repo side never carries the stamp (committing it would
+    itself be flagged as changed).
+    """
     lines = data.splitlines(keepends=True)
     kept = [ln for ln in lines if not ln.startswith(b"__content_sha256__")]
     return data if len(kept) == len(lines) else b"".join(kept)
 
 
 def _parity_scope(path: str) -> bool:
-    """Shippable runtime scope for parity: exclude committed test and _archive trees."""
+    """Shippable runtime scope for parity (D1b\u2019, 2026-11-05).
+
+    Test trees (arifosmcp/**/tests/) are committed source that the
+    wheel intentionally does not package — counting them as
+    `missing` makes the invariant permanently unreachable. Tests
+    are validated by pytest (separate instrument), not runtime
+    parity. Everything else ships and stays in scope: modified or
+    untracked shipped files still flag.
+
+    /_archive/ joins tests as a structural exclusion (FI-008 2026-11-13):
+    committed-but-retired trees the wheel never packages. Without it,
+    ARIFOS_CONTENT_PARITY_ENFORCE=1 held drift=True forever on 2 files
+    under runtime/_archive/dead-2026-09-29-* — a permanent false alarm,
+    not a real divergence.
+    """
     return path.endswith(".py") and "/tests/" not in path and "/_archive/" not in path
 
 
@@ -244,7 +270,24 @@ def _content_parity(
     package_root: Path | None = None,
     repo_path: Path | None = None,
 ) -> dict[str, Any]:
-    """Compare installed arifosmcp *.py git-blob SHA-1 against git ls-tree <source_commit>."""
+    """CONTENT-PARITY (2026-11-03): installed BYTES vs the committed tree.
+
+    Stamps can agree while bytes diverge. Measured 2026-11-03 on the live box:
+    built==deployed==source==f26af25 and drift=false, while the running package
+    held 2 modified files + 7 files with NO git history at all — a false
+    negative, because drift compares SHAs, never content.
+
+    Method: git blob SHA-1 of every *.py under the installed package vs
+    `git ls-tree -r <source_commit> arifosmcp`, after excluding (a) the
+    S5 __content_sha256__ stamp line (its own documented exclusion rule)
+    and (b) committed test trees the wheel never packages (D1b\u2019,
+    2026-11-05). Both exclusions are structural, not policy: shippable
+    code differences always still flag.
+
+    Fail-closed by law: any error (unknown commit, unreadable file, git
+    unavailable) returns state=UNKNOWN — absent/unchecked is NEVER MATCH.
+    Always measured; flips `drift` only under ARIFOS_CONTENT_PARITY_ENFORCE=1.
+    """
     root = package_root
     if root is None:
         root_override = os.getenv("ARIFOS_PACKAGE_ROOT", "").strip()
@@ -284,7 +327,7 @@ def _content_parity(
             timeout=15,
             check=False,
         )
-    except (OSError, subprocess.SubprocessError) as exc:
+    except (OSError, subprocess.SubprocessError) as exc:  # git missing/timeout
         out["reason"] = f"git unavailable: {type(exc).__name__}"
         return out
     if proc.returncode != 0:
@@ -330,7 +373,7 @@ def _content_parity(
     return out
 
 
-def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
+def _get_runtime_attestation_uncached(*, detail: bool = False) -> dict[str, Any]:
     """Public, machine-readable binding from release to this live process.
 
     KUTIP SAMPAH M5 (2026-08-05): default is compact — hash manifest + drift only.
@@ -391,7 +434,9 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     #                 stamp_reachability (orphaned pre-rewrite stamps).
     # T3b's repo delta stays visible as its own fields.
     try:
-        from arifosmcp.runtime.deployment_identity import canonical_identity as _canonical_identity
+        from arifosmcp.runtime.deployment_identity import (
+            canonical_identity as _canonical_identity,
+        )
 
         _ident_src = _canonical_identity()
     except Exception:  # noqa: BLE001 — attestation must never raise
@@ -407,6 +452,12 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
     if _identity_drift:
         drift = True
 
+    # CONTENT-PARITY (2026-11-03): stamp agreement ≠ byte agreement. Measured
+    # false negative: built==deployed==source==f26af25 + drift=false while the
+    # running package held 2 modified + 7 never-committed files. Always
+    # MEASURED here; it flips `drift` only when F13 turns the switch on —
+    # enforcement would immediately clamp today's box (content MISMATCH is the
+    # current measured state), so it stays off until sovereign decision.
     content_parity = _content_parity(source_commit)
     _content_enforced = os.getenv("ARIFOS_CONTENT_PARITY_ENFORCE", "").strip() == "1"
     if _content_enforced and content_parity.get("state") == "MISMATCH":
@@ -424,13 +475,14 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         "deployed_commit": deployed_commit,
         "drift": drift,
         # P1-5 widened (2026-11-01, audit D1): drift now ALSO covers
-        # repo HEAD vs deployed + deploy-stamp reachability + content_hash.
+        # repo HEAD vs deployed + deploy-stamp reachability.
         "drift_scope": (
             "binary_build_stamps+repo_head_vs_deployed+stamp_reachability+content_hash"
             if _content_enforced
             else "binary_build_stamps+repo_head_vs_deployed+stamp_reachability"
             "(content_hash=measured_only)"
         ),
+        # CONTENT-PARITY (2026-11-03): bytes-vs-commit verdict, always measured.
         "content_parity": content_parity,
         "content_parity_enforced": _content_enforced,
         "repo_head_commit": repo_head_commit,
@@ -460,6 +512,23 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
         # labelling. Without _field_semantics, the field names alone cannot
         # distinguish deployed-binary source from a VPS snapshot of repo HEAD.
         "_field_semantics": {
+            "drift": (
+                "True when any ENFORCED attested dimension diverges. The SHA/stamp "
+                "dimensions are always enforced; the content_hash dimension is "
+                "MEASURED always but enforced only under "
+                "ARIFOS_CONTENT_PARITY_ENFORCE=1 (default off — enforcement would "
+                "currently clamp the box; measured content MISMATCH on 2026-11-03). "
+                "While enforcement is off, drift=false must NOT be read as "
+                "'running bytes == committed bytes' — check content_parity."
+            ),
+            "content_parity": (
+                "Git-blob-SHA1 comparison of every *.py in the installed package "
+                "against `git ls-tree -r source_commit`. MATCH = bytes equal the "
+                "commit; MISMATCH = modified/untracked/missing files present "
+                "(sample_* lists them); UNKNOWN = the check could not run "
+                "(unknown commit, unreadable file, git unavailable) and is NEVER "
+                "to be read as MATCH."
+            ),
             "release_id": (
                 "Human-readable identifier combining product and source SHA prefix. "
                 "Equals arifos-{source_commit[:12]} when source is known."
@@ -477,7 +546,8 @@ def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
             "deployed_commit": (
                 "Git SHA stamped into the runtime at package install time. "
                 "Should equal source_commit and built_commit on a clean deployment. "
-                "drift=true means one or more of these three SHAs diverge."
+                "drift=true means one or more of these three SHAs diverge — a "
+                "SHA-only statement; byte-level coverage lives in content_parity."
             ),
             "wheel_hash": (
                 "SHA-256 of the installed wheel when ARIFOS_WHEEL_SHA256 is set; "
@@ -760,3 +830,35 @@ def get_version_string(format: str = "short") -> str:
     """Get a formatted version string."""
     info = get_build_info()
     return info["display"].get(format, info["display"]["short"])
+
+
+# ── Attestation cache (2026-11-16, F13 kernel-latency directive) ─────────────
+# get_runtime_attestation() recomputes _content_parity() (git ls-tree -r plus a
+# read of every *.py) and the deployment identity on every arif_init envelope.
+# Live profile: 87% of arif_init CPU in this path; 12 concurrent inits collapsed
+# to ~25s because every call re-hashed the tree. Attestation is read-only and
+# stable for the life of the process; cache compact/detail separately with a
+# 60s TTL so a deploy (which restarts the process) is still observed promptly.
+_ATTESTATION_CACHE: dict[bool, tuple[float, dict[str, Any]]] = {}
+_ATTESTATION_CACHE_LOCK = threading.Lock()
+_ATTESTATION_COMPUTE_LOCK = threading.Lock()
+_ATTESTATION_TTL_S = float(os.getenv("ARIFOS_ATTESTATION_CACHE_TTL_S", "60") or "60")
+
+
+def get_runtime_attestation(*, detail: bool = False) -> dict[str, Any]:
+    now = time.monotonic()
+    with _ATTESTATION_CACHE_LOCK:
+        cached = _ATTESTATION_CACHE.get(detail)
+        if cached is not None and (now - cached[0]) < _ATTESTATION_TTL_S:
+            return copy.deepcopy(cached[1])
+
+    # Single-flight: one thread computes, the rest reuse its result.
+    with _ATTESTATION_COMPUTE_LOCK:
+        with _ATTESTATION_CACHE_LOCK:
+            cached = _ATTESTATION_CACHE.get(detail)
+            if cached is not None and (time.monotonic() - cached[0]) < _ATTESTATION_TTL_S:
+                return copy.deepcopy(cached[1])
+        result = _get_runtime_attestation_uncached(detail=detail)
+        with _ATTESTATION_CACHE_LOCK:
+            _ATTESTATION_CACHE[detail] = (time.monotonic(), result)
+        return copy.deepcopy(result)
