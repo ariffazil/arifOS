@@ -2,7 +2,7 @@
 <!-- GENERATED:CURRENT-STATE:BEGIN · source: scripts/generate_current_state.py · never hand-edit -->
 > ### ⚠️ Current verified state — generated, never hand-edited
 >
-> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-11-18T09:24:13Z`): kernel **degraded** · floors **12/13 measured pass** · vault999 healthy · release `arifos-97ad7bb3d08e` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
+> **Runtime self-measurement** (`http://127.0.0.1:8088/health @2026-11-22T02:44:18Z`): kernel **degraded** · floors **11/13 measured pass** · failing: F3, F6 · vault999 stale · release `arifos-f0d0b3c` · drift `aligned` (source=built=deployed) · tools exposed 9. Per-floor provenance: `.well-known/current-state.json`.
 >
 > **Independent audit** (2026-10-11, live re-probe by FI-008 + claim-level hand audit; receipts: `AAA/forge_work/grant-arifos-reality-reforge-2026-10-11/`): floors **2 pass · fail F2, F11, F12, F13 · 7 unmeasured = 13 distinct** (raw key-count 10 includes L11/L12/L13, L-prefix aliases of the failing F11/F12/F13) · actor binding not verified (observed calls unsigned) · receipt fidelity broken on invocation-telemetry surface (HOLD persisted as ok:true) · independent reconstruction: no external verifier bound.
 >
@@ -27,14 +27,14 @@ arifOS dihidupkan sebagai pelayan MCP (`pip install arifos`). Bilangan tool, por
 
 
 <!-- SOT-MANIFEST
-last_verified: 2026-11-21T06:09:06+00:00
-live_commit: 3eba0e7c6 (feat(horizon-seal): unify P evidence tracking, F8 origin, and W3 ratification-po)
-source_commit: 3eba0e7c6
-built_commit: 9d5d743
-deployment_drift_status: repo_live_divergence (kernel self-report drift=false (built=9d5d743) — this says nothing about the repo tree above, which is 3eba0e7 (deploy pending))
-tools_exposed_via_mcp: 9 (verified by live POST /mcp tools/list on 2026-11-21)
+last_verified: 2026-11-22T02:44:18+00:00
+live_commit: 1c51527a0 (docs(readme): ClaudeRules badge + reality-graph section + dead-link truth pass)
+source_commit: 1c51527a0
+built_commit: f0d0b3c
+deployment_drift_status: repo_live_divergence (kernel self-report drift=false (built=f0d0b3c) — this says nothing about the repo tree above, which is 1c51527 (deploy pending))
+tools_exposed_via_mcp: 9 (8 canonical stage verbs + arif_report; verified by live POST /mcp tools/list on 2026-11-22: arif_init, arif_observe, arif_think, arif_route, arif_memory, arif_judge, arif_forge, arif_seal, arif_report)
 truth_rule: live :8088/health + tools/list beat any static count in prose — re-run before you quote this file
-generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status, tools_exposed_via_mcp and last_verified; every other machine value in this README lives in the generated block above
+generated_by: scripts/update_readme_sot.py re-stamps live_commit, source_commit, built_commit, deployment_drift_status and last_verified; every other machine value in this README lives in the generated block above
 -->
 
 <p align="center">
@@ -70,7 +70,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 | **Human** | A quiet veto: the agent proposes, the kernel records a verdict, you stay sovereign |
 | **Agent / A2A** | MCP tools + receipts. You do not get the keys. Judgment by arifOS, discovery by AAA, execution by A-FORGE |
 | **Institution** | Policy floors F1–F13, a hash-chained VAULT999 audit trail, model-vendor independence |
-| **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical verbs, [published schemas](https://arifos.arif-fazil.com/tools.json) |
+| **Machine / MCP** | [Streamable HTTP endpoint](https://mcp.arif-fazil.com/mcp), 8 canonical stage verbs (+ `arif_report` = 9 wire tools), [published schemas](https://arifos.arif-fazil.com/tools.json) |
 | **Registries & Indexers** | [Glama MCP Directory](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos) (Score: A) · [`server.json`](./server.json) (Official MCP Registry) · [ClaudeRules](https://clauderules.net/mcp/io-github-ariffazil-arifos) (MCP directory) · [`CURRENT_VERIFIED_STATE.md`](./CURRENT_VERIFIED_STATE.md) · [`llms.txt`](./llms.txt) · [`CITATION.cff`](./CITATION.cff) |
 
 Live: `https://arifos.arif-fazil.com` · MCP `:8088` · sister organs [AAA](https://aaa.arif-fazil.com) · [A-FORGE](https://github.com/ariffazil/A-FORGE) · [GEOX](https://github.com/ariffazil/GEOX)
@@ -107,6 +107,20 @@ Delete account + audit trail      → VOID   (blocked by a hard floor)
 ```
 
 Full transcript: [`docs/QUICKSTART.md`](./docs/QUICKSTART.md). The demo runs in-process — no real records or funds are touched.
+
+### Reference App: SAKSI — The arifOS Witness Pattern
+
+> **"Never let the agent that writes the code be the agent that declares the server healthy. Put a thin, read-only Witness in front of raw logs, and lock every mutation behind an HMAC human switch."**
+
+[**SAKSI** (`examples/saksi-witness/`)](./examples/saksi-witness/) is the reference MCP client and runtime governance surface for arifOS. Instead of adding another multi-turn autonomous agent loop (which creates echo chambers and shared blind spots), SAKSI implements **Asymmetric Role Separation (`Author ≠ Judge`)**:
+- **1-Shot Read-Only Watchdog:** Binds the arifOS kernel (`:8088/mcp`) at `OBSERVE_ONLY` and probes raw `journalctl` and systemd unit telemetry (`MainPID`, `ActiveEnterTimestamp`, `_SYSTEMD_INVOCATION_ID`) without narrative bias.
+- **888 HMAC Circuit-Breaker:** Mutations (`systemctl restart`) are locked behind a single-use, 10-minute cryptographic HMAC-SHA256 inline button that only the human sovereign (`F13`) can press—and only when deterministic Python gates (`is-failed` + `1/30m` & `3/24h` rate limits, `llm_consulted: false`) pass.
+
+```bash
+python examples/saksi-witness/saksi_reference.py
+```
+
+Architecture & production case study: [`docs/patterns/saksi-witness.md`](./docs/patterns/saksi-witness.md) · Persona contract: [`examples/saksi-witness/SOUL.template.md`](./examples/saksi-witness/SOUL.template.md).
 
 ---
 
@@ -340,7 +354,7 @@ arifOS Federation — planes and classes
 | Provider gateway | **FED** `:7074` | Multi-provider model routing (advisory-only) |
 | Boundary services | **HERMES** `:18087` · **CHRON** `:18102` | Semantic and temporal boundaries — not organs ([FEDERATION_CONTRACT.md §2.1](./FEDERATION_CONTRACT.md)) |
 
-**Tool-count semantics** (so no two surfaces disagree): `tools_loaded = 8` — the public MCP facade (KERNEL_ABI_8), the only number to quote publicly · `canonical superset = 25` (8 public ABI + 4 map-only verbs: `arif_fetch`, `arif_challenge`, `arif_stage`, `arif_measure` + 13 hidden verbs) · `total_declared = 48` (8 canonical + 40 diagnostic) · `registry = 62` (with aliases) · `operational = 3` (durable SUCCESS in the last 24 h — proven live, not merely invocable).
+**Tool-count semantics** (so no two surfaces disagree): `tools_exposed = 9` on the public MCP wire (`8` canonical stage verbs `KERNEL_ABI_8` + `arif_report`, matching `/health → layer_health.registry.exposed_tools` and live `POST /mcp tools/list`) · `canonical superset = 25` (8 stage ABI + 4 map-only verbs: `arif_fetch`, `arif_challenge`, `arif_stage`, `arif_measure` + 13 hidden verbs) · `total_declared = 48` (8 canonical + 40 diagnostic) · `registry = 62` (with aliases) · `operational = 3` (durable SUCCESS in the last 24 h — proven live, not merely invocable).
 
 ---
 
@@ -530,7 +544,7 @@ arifOS/
 ├── contracts/          # Runtime contract package                [wheel root]
 ├── core/               # Load-bearing legacy root                [wheel root]
 ├── schemas/            # INIT v2 schemas (F13-ratified 2026-09-20) [wheel root]
-├── examples/           # Runnable governed workflow demo
+├── examples/           # Runnable governed workflow demo + SAKSI Witness Pattern (examples/saksi-witness/) + SAKSI Witness Pattern (examples/saksi-witness/)
 ├── tests/              # Test suite (pytest)
 ├── scripts/            # Operational tooling (update_readme_sot.py, generate_current_state.py)
 ├── .well-known/        # Generated machine state + truth badges (gitignored: state/)
@@ -552,7 +566,7 @@ See [SECURITY.md](./SECURITY.md) for the threat model, known vulnerabilities and
 
 ---
 
-*Revision 2026-11-18 — ClaudeRules listing badge + one-command Claude Code install; new Reality graph section binding the `lg:` stage path to organs, domains and infra; dead-link truth pass (`github.com/ariffazil/AAA`, `/WEALTH` and `AAA/FEDERATION.md` all 404; the floors badge endpoint returned 404 on the public alias, so it now renders from `raw.githubusercontent`). Prior revision: 2026-10-17 — APEX-ZEN upgrade: human story moved forward, founding context consolidated, 30-second proof elevated, duplicate "not yet proven" consolidated, "drift aligned" semantics clarified (binary matches build source, not necessarily repo HEAD). Prior revision: 2026-10-16 restructured under AGENTIC-README-DOCTRINE v1. Prior audit passes: 2026-09-21 full re-measurement · 2026-09-22 Copilot external ENTERPRISE · 2026-10-11 independent re-probe · 2026-10-17 four-probe audit (333-AGI + IrfanClaw + ChatGPT + WawaBot).*
+*Revision 2026-11-22 — Added SAKSI Witness Pattern reference app (`examples/saksi-witness/`, `docs/patterns/saksi-witness.md`) demonstrating 1-shot read-only MCP runtime witnessing + 888 HMAC human circuit-breaker (`Author ≠ Judge`); reconciled `SOT-MANIFEST` and tool-count semantics (`9` wire tools = `8` canonical stage verbs `KERNEL_ABI_8` + `arif_report`) with live `/health` and `POST /mcp tools/list`; refreshed generated current-state block. Prior revision: 2026-11-18 — ClaudeRules listing badge + one-command Claude Code install; new Reality graph section binding the `lg:` stage path to organs, domains and infra; dead-link truth pass (`github.com/ariffazil/AAA`, `/WEALTH` and `AAA/FEDERATION.md` all 404; the floors badge endpoint returned 404 on the public alias, so it now renders from `raw.githubusercontent`). Prior revision: 2026-10-17 — APEX-ZEN upgrade: human story moved forward, founding context consolidated, 30-second proof elevated, duplicate "not yet proven" consolidated, "drift aligned" semantics clarified (binary matches build source, not necessarily repo HEAD). Prior revision: 2026-10-16 restructured under AGENTIC-README-DOCTRINE v1. Prior audit passes: 2026-09-21 full re-measurement · 2026-09-22 Copilot external ENTERPRISE · 2026-10-11 independent re-probe · 2026-10-17 four-probe audit (333-AGI + IrfanClaw + ChatGPT + WawaBot).*
 
 **Ditempa Bukan Diberi** — Forged, Not Given.
 
