@@ -7,32 +7,32 @@
   "service": [
     {
       "id": "did:web:arif-fazil.com#constitution",
-      "type": "LinkedDomains",
-      "serviceEndpoint": "https://arif-fazil.com/proof/geologist-credential.json.sig",
+      "type": "SignedManifest",
+      "serviceEndpoint": "https://arif-fazil.com/arifos/AGENTS.md",
       "proof": "https://arif-fazil.com/arifos/AGENTS.md.sig"
     },
     {
-      "id": "#arif-fazil",
+      "id": "did:web:arif-fazil.com#arif-fazil",
       "type": "Entity",
       "serviceEndpoint": "https://arif-fazil.com"
     },
     {
-      "id": "#proof-human",
+      "id": "did:web:arif-fazil.com#proof-human",
       "type": "VerificationService",
       "serviceEndpoint": "https://arif-fazil.com/proof/human"
     },
     {
-      "id": "#proof-authorship",
+      "id": "did:web:arif-fazil.com#proof-authorship",
       "type": "VerificationService",
       "serviceEndpoint": "https://arif-fazil.com/proof/authorship"
     },
     {
-      "id": "#proof-runtime",
+      "id": "did:web:arif-fazil.com#proof-runtime",
       "type": "VerificationService",
       "serviceEndpoint": "https://arif-fazil.com/proof/runtime"
     },
     {
-      "id": "#vault",
+      "id": "did:web:arif-fazil.com#vault",
       "type": "SecuredMessage",
       "serviceEndpoint": "https://arif-fazil.com/999"
     }
@@ -41,19 +41,62 @@
     {
       "id": "did:web:arif-fazil.com#arif-fazil",
       "controller": "did:web:arif-fazil.com",
-      "type": "Ed25519VerificationKey2020",
-      "publicKeyMultibase": "z9AafFEn8WYCaE1ooiAud5gVLFapgkyyCvj34HSFgxoBK"
+      "type": "Multikey",
+      "publicKeyMultibase": "z6MkmeeGJo5mhf1vXBSqhp2T6FXpxtuQyHFtJkFSFFj1v4ub"
+    },
+    {
+      "id": "did:web:arif-fazil.com#warga-agi",
+      "controller": "did:web:arif-fazil.com",
+      "type": "Multikey",
+      "publicKeyMultibase": "z6MkhNnYWQTwYHRn3Y72LHb7YeEm9eYNZMTT4Zby7r4DZ2iM"
+    },
+    {
+      "id": "did:web:arif-fazil.com#warga-apex",
+      "controller": "did:web:arif-fazil.com",
+      "type": "Multikey",
+      "publicKeyMultibase": "z6Mkn8DJV4x5DsV5T6ou5VwNYucmj3Rksbv39vmK3iL7yUi2"
+    },
+    {
+      "id": "did:web:arif-fazil.com#warga-asi",
+      "controller": "did:web:arif-fazil.com",
+      "type": "Multikey",
+      "publicKeyMultibase": "z6Mkjk8ia31U1uQNLnWSx3PqKSKDv7Mv4Y7bWEpBbWfUYC2k"
+    },
+    {
+      "id": "did:web:arif-fazil.com#warga-forge",
+      "controller": "did:web:arif-fazil.com",
+      "type": "Multikey",
+      "publicKeyMultibase": "z6MkntQ4fW8Yp5Skrna69c6mEbMukQW2YYwZm3H1rVWfDrXG"
+    },
+    {
+      "id": "did:web:arif-fazil.com#warga-hermes",
+      "controller": "did:web:arif-fazil.com",
+      "type": "Multikey",
+      "publicKeyMultibase": "z6MkifrYuZrXvYTdGRJ4hYXUkv5vEMJs4zn5FvwqisJU3gXb"
+    },
+    {
+      "id": "did:web:arif-fazil.com#constitution",
+      "controller": "did:web:arif-fazil.com",
+      "type": "Multikey",
+      "publicKeyMultibase": "z6MkncqhqV2Zr5h3LWeWPjsTvn3L5A6YAsDZcjwz7iDht1xh",
+      "note": "Signing key observed in published AGENTS.md.sig (ns arifos-constitution) and proof/geologist-credential.json.sig (ns arifos-credential)."
     }
   ],
   "authentication": [
     "did:web:arif-fazil.com#arif-fazil"
   ],
   "assertionMethod": [
-    "did:web:arif-fazil.com#arif-fazil"
+    "did:web:arif-fazil.com#arif-fazil",
+    "did:web:arif-fazil.com#warga-agi",
+    "did:web:arif-fazil.com#warga-apex",
+    "did:web:arif-fazil.com#warga-asi",
+    "did:web:arif-fazil.com#warga-forge",
+    "did:web:arif-fazil.com#warga-hermes",
+    "did:web:arif-fazil.com#constitution"
   ],
   "created": "2026-01-01T00:00:00Z",
-  "updated": "2026-04-15T00:00:00Z",
+  "updated": "2026-11-21T06:51:39Z",
   "relinkMetadata": {
-    "comment": "This DID document is published at the domain it identifies. Control of this domain provides a reasonable chain of custody for the DID. Cryptographic keys pending setup."
+    "comment": "This DID document is published at the domain it identifies. Domain control provides initial custody evidence. Full cryptographic attestation requires signed challenge verification and successful verification of AGENTS.md.sig against the declared Ed25519 public key."
   }
 }
