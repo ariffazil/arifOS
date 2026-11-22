@@ -262,10 +262,9 @@ def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
             violations.append("W6_METABOLIC_PAUSE")
 
         state["metrics"] = metrics
-        # Note: We don't recompute score here to keep the bridge lightweight;
-        # the score will be recomputed next time WELL server is used or state is loaded.
-        # But for UI accuracy, a quick estimation is better:
-        state["well_score"] = max(0, state.get("well_score", 50) - (load_delta * 2))
+        # PR-0a cross-substrate guard (2026-11-22): machine load_delta stays
+        # under machine/coupled provenance (cognitive metrics + W6 floor) and
+        # MUST NEVER mutate well_score (consumed as H-WELL).
         state["floors_violated"] = violations
 
         with open(WELL_STATE_PATH, "w") as f:
