@@ -1,33 +1,32 @@
 {
-  "generated_at": "2026-11-22T02:44:18Z",
+  "generated_at": "2026-11-22T23:43:20Z",
   "self_measurement": {
     "status": "degraded",
-    "probe": "http://127.0.0.1:8088/health @2026-11-22T02:44:18Z",
-    "floors_pass": 11,
+    "probe": "http://127.0.0.1:8088/health @2026-11-22T23:43:20Z",
+    "floors_pass": 12,
     "floors_target": 13,
-    "floors_failing": [
-      "F3",
+    "floors_failing": [],
+    "floors_unmeasured": [
       "F6"
     ],
-    "floors_unmeasured": [],
     "floors_provenance": {
-      "F10": "floor_producer:PASS:f10_guard:report_corpus:199:bdeb55dff615:fresh:artifact=f0d0b3c@2026-11-22T02:42:58Z",
-      "F11": "floor_producer:PASS:receipt_ledger@2026-11-22T02:42:57Z",
-      "F12": "floor_producer:PASS:request_trust@2026-11-22T02:42:54Z",
-      "F13": "floor_producer:PASS:seal_chain_sovereign@2026-11-22T02:42:57Z",
-      "F1": "arifflow_probe:quotient=1.585245550075059;floor=0.5;constellation=FLOWING@2026-11-22T02:42:54Z",
-      "F2": "floor_producer:PASS:floor_provenance_coverage@2026-11-22T02:42:58Z",
-      "F3": "floor_producer:MEASURED:witness_coherence=0.5291@2026-11-22T02:42:54Z",
-      "F4": "windowed_ds_measured:windowed-outcome-shannon.v1:value=0.0:h_next=-0.0:h_prev=-0.0:store=public.arifosmcp_tool_calls@2026-11-22T02:42:54Z|normalized:0.80(measured-zero,calibrated-rule)",
-      "F5": "floor_producer:PASS:seal_chain_peace@2026-11-22T02:42:57Z",
-      "F6": "floor_producer:MEASURED:well_health:f6_v0_partial:covered@age=471s@2026-11-22T02:42:57Z",
-      "F7": "floor_producer:PASS:f7_omega0_band@2026-11-22T02:42:58Z",
-      "F8": "floor_producer:PASS:f8_logic_contradiction_register@2026-11-22T02:42:57Z",
-      "F9": "floor_producer:MEASURED:shadow_audit:authority_topology:rules=11:shadows=0@2026-11-22T02:42:58Z"
+      "F10": "floor_producer:PASS:f10_guard:report_corpus:199:2d4d9e7cc288:fresh:artifact=6425ae4@2026-11-22T23:42:53Z",
+      "F11": "floor_producer:PASS:receipt_ledger@2026-11-22T23:42:52Z",
+      "F12": "floor_producer:PASS:request_trust@2026-11-22T23:42:52Z",
+      "F13": "floor_producer:PASS:seal_chain_sovereign@2026-11-22T23:42:52Z",
+      "F1": "arifflow_probe:quotient=1.5668953687821612;floor=0.5;constellation=FEEL_UNANCHORED@2026-11-22T23:42:52Z",
+      "F2": "floor_producer:PASS:floor_provenance_coverage@2026-11-22T23:42:53Z",
+      "F3": "floor_producer:MEASURED:witness_coherence=0.84@2026-11-22T23:42:52Z",
+      "F4": "windowed_ds_measured:windowed-outcome-shannon.v1:value=0.0:h_next=-0.0:h_prev=-0.0:store=public.arifosmcp_tool_calls@2026-11-22T23:42:52Z|normalized:0.80(measured-zero,calibrated-rule)",
+      "F5": "floor_producer:PASS:seal_chain_peace@2026-11-22T23:42:52Z",
+      "F6": "floor_producer:UNMEASURED:well_status_degraded@2026-11-22T23:42:52Z",
+      "F7": "floor_producer:PASS:f7_omega0_band@2026-11-22T23:42:53Z",
+      "F8": "floor_producer:PASS:f8_logic_contradiction_register@2026-11-22T23:42:52Z",
+      "F9": "floor_producer:MEASURED:shadow_audit:authority_topology:rules=11:shadows=0@2026-11-22T23:42:53Z"
     },
     "vault999": "stale",
-    "release_id": "arifos-f0d0b3c",
-    "source_commit": "f0d0b3c",
+    "release_id": "arifos-6425ae4",
+    "source_commit": "6425ae4",
     "drift": false,
     "tools_exposed": 9,
     "registry_size": 63
