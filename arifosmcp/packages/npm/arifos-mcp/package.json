@@ -1,7 +1,7 @@
 {
   "name": "@arifos/mcp",
-  "version": "2026.05.22",
-  "description": "arifOS MCP Client v2026.05.01 — TypeScript adapter for 13 Canonical Tools (arif_verb_noun), 13 Constitutional Laws (F1-F13), ConstitutionKernel dynamic enforcement, Protocol Trinity (MCP + A2A + WebMCP), VAULT999 immutable ledger.",
+  "version": "2026.11.22",
+  "description": "Thin TypeScript/JavaScript MCP client for the arifOS governance kernel (PyPI: arifos). Mirrors the 9 live MCP wire tools (8 canonical verbs + arif_report) with zero client-side governance authority.",
   "keywords": [
     "mcp",
     "arifos",
@@ -12,11 +12,11 @@
   "homepage": "https://arifos.arif-fazil.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ariffazil/arifos.git",
+    "url": "https://github.com/ariffazil/arifOS.git",
     "directory": "arifosmcp/packages/npm/arifos-mcp"
   },
   "bugs": {
-    "url": "https://github.com/ariffazil/arifos/issues"
+    "url": "https://github.com/ariffazil/arifOS/issues"
   },
   "license": "AGPL-3.0-only",
   "author": "Muhammad Arif bin Fazil <arifos@arif-fazil.com>",
@@ -54,19 +54,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/**/*.ts",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
-    "express": "^5.3.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3",
+    "typescript": "^5.8.0",
     "vitest": "^1.0.0"
   },
   "engines": {
@@ -75,9 +73,5 @@
   "publishConfig": {
     "access": "public",
     "tag": "latest"
-  },
-  "_updated": "2026.03.12",
-  "overrides": {
-    "proxy-addr": "2.0.8"
   }
 }

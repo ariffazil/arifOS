@@ -10,7 +10,7 @@ arifOS evaluates a proposed action against 13 constitutional floors and returns 
 
 ```bash
 pip install arifos
-pip show arifos            # → Version: 1!2026.9.2
+pip show arifos            # Check your installed version dynamically
 
 # HTTP transport — the MCP endpoint. The port comes from $PORT (default 8080).
 PORT=8088 arifos-mcp streamable-http
@@ -18,6 +18,8 @@ PORT=8088 arifos-mcp streamable-http
 # stdio transport, for a local stdio MCP client
 arifos-mcp
 ```
+
+> **Building in JavaScript or TypeScript?** `pip install arifos` installs the authoritative Python kernel. To connect a JS/TS app to a running kernel (hosted or self-hosted), use `npm install @arifos/mcp` (thin client; zero governance authority). See [`docs/START_HERE.md`](./START_HERE.md) for the non-coder guide and glossary.
 
 Version checks: quote `pip show arifos` or `/health`. The in-package `__version__` strings (`arifos.__version__`, `arifosmcp.__version__`) are stale and must not be quoted as the release.
 
@@ -103,9 +105,9 @@ Two things a first-time caller should expect:
 - **HOLD is the normal first verdict.** A fresh session starts at `OBSERVE_ONLY`: nothing is authorised yet and the kernel says so, with the reason and the next safe action rather than a bare refusal.
 - **No session, no authority.** Calling `arif_judge` without `arif_init` returns `actor: anonymous`, `authority_level: OBSERVE_ONLY`, `verdict: HOLD`. The kernel will not silently upgrade an unattested caller.
 
-## The 8 canonical verbs
+## The 8 canonical verbs (+ `arif_report` = 9 live wire tools)
 
-The live `tools/list` facade exposes exactly these eight:
+The live `tools/list` facade exposes the **8 canonical stage verbs** plus **`arif_report`** (`9` wire tools total; always check live `tools/list` as authoritative):
 
 | Stage | Verb | Use when |
 |-------|------|----------|
@@ -117,14 +119,15 @@ The live `tools/list` facade exposes exactly these eight:
 | 666 | `arif_judge` | You need a verdict — SEAL / PARTIAL / SABAR / HOLD / VOID |
 | 777 | `arif_forge` | Execute an approved action (requires a prior SEAL) |
 | 999 | `arif_seal` | Write the immutable receipt to VAULT999 |
+| REPORT | `arif_report` | File, read, or acknowledge operational reports |
 
 Stage numbering is the F13-ratified nine-stage map (`arifosmcp/constitutional_map.py`, `ToolStage`): **JUDGE = 666, FORGE = 777**. The old `888` stage was retired when compose was absorbed into forge; a few description strings and the generated `llms.txt` still carry the retired label — they are mirrors, the stage field and the live wire are the source of truth.
 
-Hidden from the public facade but present internally (25 canonical entries in total, 13 hidden — e.g. `arif_challenge`, `arif_judge_deliberate`). `tools_loaded = 8` is the only tool count to quote publicly.
+Additional internal/diagnostic tools exist behind the facade, so always treat live `tools/list` (currently **8 canonical stage verbs + `arif_report` = 9 live wire tools**) as the authoritative public count.
 
 ## Invariants
 
-1. **The public wire is 8 verbs.** Any count you read elsewhere is a mirror of a different surface.
+1. **The public wire exposes 8 canonical stage verbs + `arif_report` (9 wire tools).** Always verify against live `tools/list` rather than static prose.
 2. **No action skips judgment.** `arif_forge` is downstream of a SEAL verdict.
 3. **No organ self-authorises.** A-FORGE executes; arifOS judges; FRAME witnesses; VAULT999 remembers.
 4. **Pass `session_id` (and `session_token` when issued) with every hop.** Do not re-derive identity from a store-only id.

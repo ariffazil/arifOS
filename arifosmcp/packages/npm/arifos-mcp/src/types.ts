@@ -1,64 +1,79 @@
 /**
- * @arifos/mcp - Public Contract Types
+ * @arifos/mcp - Public Wire Contract Types
  *
- * Mirrors the generated 8-tool public contract from
- * arifosmcp.runtime.public_registry for model-agnostic clients.
+ * Thin TypeScript mirrors for the live arifOS MCP wire contract.
+ * This package carries ZERO governance authority: all constitutional
+ * evaluation (F1-F13) and receipt sealing happen server-side in the
+ * Python arifOS kernel (`pip install arifos`).
+ *
+ * Canonical wire surface (9 tools = 8 canonical stage verbs + arif_report),
+ * verified against live https://mcp.arif-fazil.com/mcp tools/list.
  */
 
-export const PUBLIC_TOOL_NAMES = [
-  "arifOS_kernel",
-  "search_reality",
-  "ingest_evidence",
-  "session_memory",
-  "audit_rules",
-  "check_vital",
-  "open_apex_dashboard",
-  "bootstrap_identity",
+export const CANONICAL_STAGE_VERBS = [
+  "arif_init",
+  "arif_observe",
+  "arif_think",
+  "arif_route",
+  "arif_memory",
+  "arif_judge",
+  "arif_forge",
+  "arif_seal",
 ] as const;
 
+export const PUBLIC_TOOL_NAMES = [
+  ...CANONICAL_STAGE_VERBS,
+  "arif_report",
+] as const;
+
+export type CanonicalStageVerb = (typeof CANONICAL_STAGE_VERBS)[number];
 export type ArifOSToolName = (typeof PUBLIC_TOOL_NAMES)[number];
 
 export const PUBLIC_TOOL_METADATA = {
-  arifOS_kernel: {
-    stage: "444_ROUTER",
+  arif_init: {
+    stage: "000_INIT",
     readonly: false,
-    description:
-      "Run the governed metabolic reasoning pipeline (000-999) through the public kernel.",
+    description: "Ignite or resume a governed session and bind actor identity.",
   },
-  search_reality: {
-    stage: "111_SENSE",
+  arif_observe: {
+    stage: "111_OBSERVE",
     readonly: true,
-    description: "Ground a query with external sources before reasoning.",
+    description: "Probe reality and collect labeled evidence (OBS/DER/INT/SPEC).",
   },
-  ingest_evidence: {
-    stage: "222_REALITY",
+  arif_think: {
+    stage: "333_THINK",
     readonly: true,
-    description: "Fetch or extract evidence from a URL, document, or file path reference.",
+    description: "Run structured reasoning under F2/F7 before proposing an action.",
   },
-  session_memory: {
+  arif_route: {
+    stage: "444_ROUTE",
+    readonly: true,
+    description: "Route an intent to the appropriate organ or governed next step.",
+  },
+  arif_memory: {
     stage: "555_MEMORY",
     readonly: false,
-    description: "Store, retrieve, forget, or search governed session memory.",
+    description: "Recall, store, or promote governed institutional memory.",
   },
-  audit_rules: {
-    stage: "333_MIND",
+  arif_judge: {
+    stage: "666_JUDGE",
     readonly: true,
-    description: "Inspect constitutional floors and governance logic.",
+    description: "Evaluate a proposed action against F1-F13 and return a verdict.",
   },
-  check_vital: {
-    stage: "000_INIT",
-    readonly: true,
-    description: "Read runtime health, vitality, and capability-map telemetry.",
-  },
-  open_apex_dashboard: {
-    stage: "888_JUDGE",
-    readonly: true,
-    description: "Open the APEX dashboard surface for governed observability.",
-  },
-  bootstrap_identity: {
-    stage: "000_INIT",
+  arif_forge: {
+    stage: "777_FORGE",
     readonly: false,
-    description: "Declare identity and initialize governed session grounding.",
+    description: "Execute an approved action (requires a prior SEAL verdict).",
+  },
+  arif_seal: {
+    stage: "999_SEAL",
+    readonly: false,
+    description: "Append an auditable receipt or session closure to VAULT999.",
+  },
+  arif_report: {
+    stage: "REPORT",
+    readonly: false,
+    description: "File, read, or acknowledge governed operational reports.",
   },
 } as const satisfies Record<
   ArifOSToolName,
@@ -69,6 +84,11 @@ export const PUBLIC_TOOL_METADATA = {
   }
 >;
 
+/**
+ * Primary verdict lattice mirrored from arifosmcp/models/verdicts.py
+ * and arifosmcp/runtime/apex_canonical.py.
+ * Ordered: VOID > HOLD_888 > HOLD > SABAR > PARTIAL > PROVISIONAL > SEAL.
+ */
 export type Verdict =
   | "SEAL"
   | "PROVISIONAL"
@@ -77,6 +97,25 @@ export type Verdict =
   | "HOLD"
   | "HOLD_888"
   | "VOID";
+
+/**
+ * Fine-grained kernel VerdictState values observed in arifosmcp/models/verdicts.py.
+ */
+export type VerdictState =
+  | "SEAL_CANONICAL"
+  | "SEAL_QUALIFIED"
+  | "WORK_DONE"
+  | "WAITING_FOR_WITNESS"
+  | "HOLD_888"
+  | "HOLD_UNCERTAINTY"
+  | "HOLD_TEMPORAL"
+  | "VOID_BREACH"
+  | "VOID_HANTU"
+  | "VOID_IRREVERSIBLE"
+  | "SABAR_EPISTEMIC"
+  | "SABAR_GEOPOLITICAL"
+  | "PARTIAL_DERIVED"
+  | "PARTIAL_REVERSIBILITY";
 
 export type RuntimeStatus = "SUCCESS" | "ERROR" | "TIMEOUT" | "DRY_RUN";
 
@@ -90,25 +129,63 @@ export const FLOOR_CODES = [
   "F7",
   "F8",
   "F9",
-  "L10",
-  "L11",
-  "L12",
-  "L13",
+  "F10",
+  "F11",
+  "F12",
+  "F13",
 ] as const;
 
 export type FloorCode = (typeof FLOOR_CODES)[number];
 
 export const PUBLIC_STAGES = [
   "000_INIT",
-  "111_SENSE",
-  "222_REALITY",
-  "333_MIND",
-  "444_ROUTER",
+  "111_OBSERVE",
+  "333_THINK",
+  "444_ROUTE",
   "555_MEMORY",
-  "888_JUDGE",
+  "666_JUDGE",
+  "777_FORGE",
+  "999_SEAL",
+  "REPORT",
 ] as const;
 
 export type Stage = (typeof PUBLIC_STAGES)[number] | (string & {});
+
+/**
+ * Transparent payload mirror for caller authority metadata sent to the kernel.
+ * Presenting these fields NEVER grants authority client-side; the Python
+ * kernel independently verifies or holds every request.
+ */
+export type ActionTier = "T1" | "T2" | "T3" | "standard" | "irreversible" | (string & {});
+
+export interface AuthorityEnvelope {
+  actor_id?: string | null;
+  session_id?: string | null;
+  session_token?: string | null;
+  authority_token?: string | null;
+  actor_signature?: string | null;
+  key_id?: string | null;
+  nonce?: string | null;
+  requested_authority?: string;
+  action_tier?: ActionTier;
+  ack_irreversible?: boolean;
+}
+
+/**
+ * Transparent payload mirror for kernel-issued receipt fields.
+ * Distinct from proposal, authorization, execution, and human acceptance.
+ */
+export interface ReceiptRecord {
+  receipt_id?: string;
+  trace_id?: string;
+  verdict?: Verdict | VerdictState | string;
+  session_id?: string | null;
+  vault_hash?: string;
+  entry_hash?: string;
+  prev_hash?: string;
+  timestamp?: string;
+  [key: string]: unknown;
+}
 
 export interface RuntimeMetrics {
   truth?: number;
@@ -126,20 +203,8 @@ export type RuntimeTrace = Partial<Record<string, Verdict>> & Record<string, Ver
 
 export interface RuntimeAuthority {
   actor_id?: string;
-  level?:
-    | "human"
-    | "user"
-    | "agent"
-    | "system"
-    | "anonymous"
-    | "operator"
-    | "sovereign"
-    | "declared"
-    | "claimed"
-    | "verified"
-    | "apex"
-    | "none"
-    | "execute";
+  level?: string;
+  autonomy_band?: string;
   human_required?: boolean;
   approval_scope?: string[];
   auth_state?: string;
@@ -165,37 +230,32 @@ export interface RuntimeMeta {
 
 export interface AuthContext {
   session_id: string;
-  actor_id: string;
-  token_fingerprint: string;
-  nonce: string;
-  iat: number;
-  exp: number;
-  approval_scope: string[];
-  parent_signature: string;
-  signature: string;
+  actor_id?: string;
+  session_token?: string;
   authority_level?: string;
-  math?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
+/**
+ * Transparent response mirror returned by a kernel tool call.
+ */
 export interface RuntimeEnvelope<TPayload = Record<string, unknown>> {
-  ok: boolean;
-  tool: ArifOSToolName | string;
-  session_id: string | null;
-  stage: Stage;
-  verdict: Verdict;
-  status: RuntimeStatus | string;
-  metrics: RuntimeMetrics;
-  trace: RuntimeTrace;
-  authority: RuntimeAuthority;
-  payload: TPayload;
-  errors: RuntimeErrorEntry[];
-  meta: RuntimeMeta;
+  ok?: boolean;
+  tool?: ArifOSToolName | string;
+  session_id?: string | null;
+  session_token?: string | null;
+  stage?: Stage;
+  verdict?: Verdict | VerdictState | string;
+  status?: RuntimeStatus | string;
+  trace_id?: string;
+  receipt?: ReceiptRecord | null;
+  metrics?: RuntimeMetrics;
+  trace?: RuntimeTrace;
+  authority?: RuntimeAuthority;
+  payload?: TPayload;
+  errors?: RuntimeErrorEntry[];
+  meta?: RuntimeMeta;
   auth_context?: AuthContext | null;
-  caller_context?: Record<string, unknown> | null;
-  user_model?: Record<string, unknown> | null;
-  philosophy?: Record<string, unknown> | null;
-  debug?: Record<string, unknown> | null;
   [key: string]: unknown;
 }
 
@@ -206,7 +266,7 @@ export interface ArifOSMetadata {
   tool: ArifOSToolName | string;
   version: string;
   stage: Stage;
-  verdict: Verdict;
+  verdict: Verdict | VerdictState | string;
   timestamp: string;
 }
 
@@ -214,81 +274,141 @@ export type ArifOSTransport = "stdio" | "http";
 
 export interface ArifOSClientConfig {
   transport: ArifOSTransport;
+  /** Streamable HTTP MCP endpoint URL. Defaults to ENDPOINTS.MCP when transport is "http". */
   endpoint?: string;
+  /** Optional command override for stdio transport (default: "arifos-mcp"). */
+  command?: string;
+  /** Optional args override for stdio transport (default: []). */
+  args?: string[];
+  /** Environment variables for stdio transport. */
   env?: Record<string, string>;
   timeout?: number;
   debug?: boolean;
 }
 
-export interface ArifOSKernelInput {
-  query: string;
-  context?: string;
-  risk_tier?: "low" | "medium" | "high" | "critical";
-  actor_id?: string;
-  auth_context?: AuthContext | null;
-  use_memory?: boolean;
-  use_heart?: boolean;
-  use_critique?: boolean;
-  allow_execution?: boolean;
-  debug?: boolean;
-  dry_run?: boolean;
-  requested_persona?: "architect" | "engineer" | "auditor" | "validator";
+// ── Per-tool input mirrors (matching live tools/list inputSchema) ──────────
+
+export interface ArifInitInput extends AuthorityEnvelope {
+  intent: string;
+  mode?:
+    | "init"
+    | "light"
+    | "resume"
+    | "validate"
+    | "canary"
+    | "preflight"
+    | "triage"
+    | "epoch_open"
+    | "epoch_seal"
+    | "opt_out"
+    | "opt_out_profiling"
+    | "challenge";
+  context?: Record<string, unknown>;
+  evidence?: Record<string, unknown> | Array<Record<string, unknown>>;
+  tooling?: string[] | Record<string, unknown>;
+  agent_policy?: Record<string, unknown>;
+  verbosity?: "minimal" | "standard" | "full";
 }
 
-export interface SearchRealityInput {
-  query: string;
+export interface ArifObserveInput extends AuthorityEnvelope {
+  mode?: string;
+  query?: string;
+  url?: string;
+  uri?: string;
+  layers?: string[];
+  result_limit?: number;
 }
 
-export interface IngestEvidenceInput {
-  url: string;
+export interface ArifThinkInput extends AuthorityEnvelope {
+  mode?: string;
+  query?: string;
+  plan_id?: string;
+  witness_type?: string;
+  context?: Record<string, unknown>;
+  evidence?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-export interface SessionMemoryInput {
-  session_id: string;
-  operation: "store" | "retrieve" | "forget" | "search";
+export interface ArifRouteInput extends AuthorityEnvelope {
+  intent?: string;
+  mode?: string;
+  organ?: string;
+  task?: string;
+  organ_tool?: string;
+  arguments?: Record<string, unknown>;
+  mission_id?: string;
+}
+
+export interface ArifMemoryInput extends AuthorityEnvelope {
+  mode?: string;
+  query?: string;
+  memory_id?: string;
   content?: string;
-  memory_ids?: string[];
-  top_k?: number;
-}
-
-export interface AuditRulesInput {
-  session_id?: string;
-}
-
-export interface CheckVitalInput {
-  session_id?: string;
-}
-
-export interface OpenApexDashboardInput {
-  session_id?: string;
-}
-
-export interface BootstrapIdentityInput {
-  declared_name: string;
-  session_id?: string;
+  tier?: string;
+  to_tier?: string;
+  new_content?: string;
   human_approval?: boolean;
+  payload?: Record<string, unknown>;
+}
+
+export interface ArifJudgeInput extends AuthorityEnvelope {
+  candidate: string;
+  mode?: string;
+  context_source?: string;
+  evidence?: Record<string, unknown> | Array<Record<string, unknown>>;
+}
+
+export interface ArifForgeInput extends AuthorityEnvelope {
+  mode?: string;
+  manifest?: Record<string, unknown>;
+  seal_verdict_id?: string;
+  approved_action_hash?: string;
+  query?: string;
+  artifact_id?: string;
+}
+
+export interface ArifSealInput extends AuthorityEnvelope {
+  mode?: string;
+  payload?: string | Record<string, unknown>;
+  constitutional_chain_id?: string;
+  judge_state_hash?: string;
+  witness_type?: string;
+}
+
+export interface ArifReportInput extends AuthorityEnvelope {
+  mode?: string;
+  kind?: string;
+  subject?: string;
+  body?: string;
+  sender?: string;
+  thread_id?: string;
+  evidence?: Record<string, unknown> | Array<Record<string, unknown>>;
+  needs_human?: boolean;
+  report_id?: string;
+  since?: string;
 }
 
 export interface ToolInputMap {
-  arifOS_kernel: ArifOSKernelInput;
-  search_reality: SearchRealityInput;
-  ingest_evidence: IngestEvidenceInput;
-  session_memory: SessionMemoryInput;
-  audit_rules: AuditRulesInput;
-  check_vital: CheckVitalInput;
-  open_apex_dashboard: OpenApexDashboardInput;
-  bootstrap_identity: BootstrapIdentityInput;
+  arif_init: ArifInitInput;
+  arif_observe: ArifObserveInput;
+  arif_think: ArifThinkInput;
+  arif_route: ArifRouteInput;
+  arif_memory: ArifMemoryInput;
+  arif_judge: ArifJudgeInput;
+  arif_forge: ArifForgeInput;
+  arif_seal: ArifSealInput;
+  arif_report: ArifReportInput;
 }
 
 export interface ToolPayloadMap {
-  arifOS_kernel: Record<string, unknown>;
-  search_reality: Record<string, unknown>;
-  ingest_evidence: Record<string, unknown>;
-  session_memory: Record<string, unknown>;
-  audit_rules: Record<string, unknown>;
-  check_vital: Record<string, unknown>;
-  open_apex_dashboard: Record<string, unknown>;
-  bootstrap_identity: Record<string, unknown>;
+  arif_init: Record<string, unknown>;
+  arif_observe: Record<string, unknown>;
+  arif_think: Record<string, unknown>;
+  arif_route: Record<string, unknown>;
+  arif_memory: Record<string, unknown>;
+  arif_judge: Record<string, unknown>;
+  arif_forge: Record<string, unknown>;
+  arif_seal: Record<string, unknown>;
+  arif_report: Record<string, unknown>;
 }
 
 export interface PublicToolDefinition {
@@ -324,5 +444,5 @@ export class ArifOSError extends Error {
 }
 
 export function isPublicToolName(value: string): value is ArifOSToolName {
-  return PUBLIC_TOOL_NAMES.includes(value as ArifOSToolName);
+  return (PUBLIC_TOOL_NAMES as readonly string[]).includes(value);
 }

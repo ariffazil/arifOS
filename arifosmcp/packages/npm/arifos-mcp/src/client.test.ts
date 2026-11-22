@@ -1,28 +1,62 @@
 /**
- * @arifos/mcp - Client Tests
+ * @arifos/mcp - Contract & Integration Tests
  */
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createClient, ENDPOINTS, PUBLIC_TOOL_NAMES, VERSION } from "./index.js";
+import {
+  CANONICAL_STAGE_VERBS,
+  createClient,
+  ENDPOINTS,
+  FLOOR_CODES,
+  isPublicToolName,
+  PUBLIC_TOOL_NAMES,
+  VERSION,
+} from "./index.js";
 import type { ArifOSMCPClient } from "./client.js";
 
-const TEST_ENDPOINT = process.env.ARIFOS_TEST_ENDPOINT ?? "http://localhost:8080/mcp";
+const TEST_ENDPOINT = process.env.ARIFOS_TEST_ENDPOINT ?? ENDPOINTS.MCP;
 const SKIP_INTEGRATION = process.env.SKIP_INTEGRATION_TESTS === "true";
 
-describe("@arifos/mcp client", () => {
+describe("public package contract", () => {
+  it("exports the canonical 9-tool wire contract (8 stage verbs + arif_report)", () => {
+    expect(VERSION).toBe("2026.11.22");
+    expect(CANONICAL_STAGE_VERBS).toEqual([
+      "arif_init",
+      "arif_observe",
+      "arif_think",
+      "arif_route",
+      "arif_memory",
+      "arif_judge",
+      "arif_forge",
+      "arif_seal",
+    ]);
+    expect(PUBLIC_TOOL_NAMES).toEqual([...CANONICAL_STAGE_VERBS, "arif_report"]);
+    expect(isPublicToolName("arif_judge")).toBe(true);
+    expect(isPublicToolName("arif_report")).toBe(true);
+    expect(isPublicToolName("arifOS_kernel")).toBe(false);
+  });
+
+  it("points to the canonical live endpoint and PyPI/GitHub references", () => {
+    expect(ENDPOINTS.MCP).toBe("https://mcp.arif-fazil.com/mcp");
+    expect(ENDPOINTS.HEALTH).toBe("https://mcp.arif-fazil.com/health");
+    expect(ENDPOINTS.PYPI).toBe("https://pypi.org/project/arifos/");
+    expect(ENDPOINTS.REPO).toBe("https://github.com/ariffazil/arifOS");
+    expect(FLOOR_CODES).toHaveLength(13);
+  });
+});
+
+describe("@arifos/mcp live wire integration", () => {
   let client: ArifOSMCPClient;
 
   beforeAll(async () => {
     if (SKIP_INTEGRATION) {
       return;
     }
-
     client = await createClient({
       transport: "http",
       endpoint: TEST_ENDPOINT,
       timeout: 30000,
     });
-
     await client.connect();
   });
 
@@ -32,47 +66,8 @@ describe("@arifos/mcp client", () => {
     }
   });
 
-  it.skipIf(SKIP_INTEGRATION)("lists only the public 8-tool contract", async () => {
+  it.skipIf(SKIP_INTEGRATION)("discovers the 9 live wire tools", async () => {
     const tools = await client.listTools();
     expect(tools.map((tool) => tool.name)).toEqual([...PUBLIC_TOOL_NAMES]);
-  });
-
-  it.skipIf(SKIP_INTEGRATION)("bootstraps identity and tracks auth context", async () => {
-    const envelope = await client.bootstrapIdentity({
-      declared_name: "npm-test",
-      human_approval: true,
-    });
-
-    expect(envelope.tool).toBe("bootstrap_identity");
-    expect(envelope.session_id).toBeTruthy();
-    expect(client.sessionId).toBe(envelope.session_id);
-    expect(client.authContext?.session_id).toBe(envelope.session_id);
-  });
-
-  it.skipIf(SKIP_INTEGRATION)("runs the public kernel with carried continuity", async () => {
-    await client.bootstrapIdentity({
-      declared_name: "kernel-test",
-      human_approval: true,
-    });
-
-    const envelope = await client.runKernel({
-      query: "Summarize the purpose of the public contract in one sentence.",
-      risk_tier: "low",
-      dry_run: true,
-    });
-
-    expect(envelope.tool).toBe("arifOS_kernel");
-    expect(envelope.stage).toBeTruthy();
-    expect(envelope.verdict).toBeTruthy();
-    expect(envelope.status).toBeTruthy();
-  });
-});
-
-describe("public package contract", () => {
-  it("exports the narrowed public version and endpoints", () => {
-    expect(VERSION).toBe("0.6.0");
-    expect(PUBLIC_TOOL_NAMES).toHaveLength(8);
-    expect(ENDPOINTS.VPS).toBe("https://arifosmcp.arif-fazil.com/mcp");
-    expect("SSE" in ENDPOINTS).toBe(false);
   });
 });

@@ -1,70 +1,91 @@
-# START HERE — arifOS Documentation
+# START HERE — arifOS Plain-Language Guide & Onboarding
 
-**One question, four paths.**
-
-## What are you trying to do?
-
-### "I want to understand what arifOS is"
-Read the [README](../README.md) — it covers the problem, solution, architecture, and what is/isn't proven in one page.
-
-### "I want to evaluate arifOS for my team"
-1. Read the [README](../README.md) for the architecture overview
-2. Read [SECURITY.md](../SECURITY.md) for the threat model and known gaps
-3. Run the five-minute walkthrough in [QUICKSTART.md](./QUICKSTART.md): install, run the kernel, run `python examples/enterprise_operations_demo.py` and read six verdicts
-4. Check the [live health endpoint](https://arifos.arif-fazil.com/health) for current status
-
-### "I want to build with arifOS"
-1. Read the [README](../README.md) Quick Start section
-2. Read [QUICKSTART.md](./QUICKSTART.md) for the verified `arif_init → arif_judge → arif_seal` flow
-3. Connect to the kernel at `http://localhost:8088/mcp` (protocol negotiates `2025-11-25`; 8 canonical verbs)
-4. See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines
-
-### "I want to review arifOS as a security evaluator"
-1. Read [SECURITY.md](../SECURITY.md) — threat model, known gaps, disclosure policy
-2. Read the [README](../README.md) "Verification Status" and "What Is Not Yet Proven" sections
-3. Check the [live health endpoint](https://arifos.arif-fazil.com/health)
-4. The kernel source is in `arifosmcp/` — constitutional floors are in `arifosmcp/constitution/`
+> **Canonical model:**
+> - **PyPI (`pip install arifos`)** ships the arifOS governance kernel (for self-hosting).
+> - **npm (`npm install @arifos/mcp`)** ships the JavaScript/TypeScript cable (thin client, zero governance authority).
+> - **MCP** is the communication protocol through the cable.
+> - **Hosted endpoint (`https://mcp.arif-fazil.com/mcp`)** is the address of a kernel already running.
+> - **GitHub (`ariffazil/arifOS`)** is the source, evidence, and contribution surface.
+>
+> Installing a package is **not** the same as starting, operating, or verifying a service. Human authority remains above machine capability.
 
 ---
 
-## Documentation Map
+## Choose Your Path (No Coding Background Assumed)
 
-| Document | Purpose |
-|----------|---------|
-| [README](../README.md) | What arifOS is, how it works, what's proven |
-| [SECURITY.md](../SECURITY.md) | Threat model, known gaps, disclosure policy |
-| [CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
-| [LICENSE](../LICENSE) | AGPL-3.0 license terms |
+### Path A — Try arifOS without installing anything (Recommended first step)
+- **Goal:** Connect an AI app (Claude Desktop, Claude Code, Cursor, Windsurf, Cline) to arifOS.
+- **What you need beforehand:** An MCP-compatible AI app and internet access. No Python, no Node.js.
+- **What gets installed:** Nothing on your computer.
+- **What runs locally:** Nothing; only your AI app sends requests.
+- **What crosses the network:** The tool call proposals your AI app sends to `https://mcp.arif-fazil.com/mcp` and the verdicts/receipts returned.
+- **How to verify success:** Open <https://mcp.arif-fazil.com/health> in a browser (returns JSON status) or ask your AI app to list arifOS tools — you should see **9 live wire tools** (`8` canonical stage verbs `arif_init`..`arif_seal` + `arif_report`).
+- **How to stop or remove:** Delete the `"arifos"` entry from your AI app's MCP settings.
+- **Common failures:** `HTTP 405 Method Not Allowed` if you open `/mcp` directly in a web browser (normal — `/mcp` speaks JSON-RPC POST, not browser GET; use `/health` in a browser).
+- **What not to do:** Do not paste secrets, passwords, or private customer data into public trial prompts.
 
-### Architecture
-| Document | Purpose |
-|----------|---------|
-| [FEDERATION_CARD.md](./FEDERATION_CARD.md) | Organ topology and relationships |
-| [README-FULL.md](./README-FULL.md) | Complete feature documentation |
-| [CONSTITUTION.md](./CONSTITUTION.md) | Constitutional floors and doctrine |
-| [ZEN.md](./ZEN.md) | Governance philosophy |
+### Path B — Run your own arifOS kernel (Self-hosting via PyPI)
+- **Goal:** Operate your own local or private arifOS governance kernel.
+- **What you need beforehand:** Python `3.12`–`3.14` and a terminal.
+- **What gets installed:** The `arifos` Python package (`pip install arifos`) and console commands (`arifos-mcp`, `arifos`).
+- **What runs locally:** Nothing until you explicitly start it with `PORT=8088 arifos-mcp streamable-http` (or `arifos-mcp` for stdio).
+- **What crosses the network:** Only package downloads during `pip install`, plus any external URLs you explicitly ask `arif_observe` to fetch.
+- **How to verify success:**
+  1. Check installed version: `pip show arifos`
+  2. Probe local health: `curl -s http://localhost:8088/health`
+  3. Run the safe offline demo: `python examples/enterprise_operations_demo.py`
+- **How to stop or remove:** Press `Ctrl+C` in the terminal running the server; uninstall with `pip uninstall arifos`.
+- **Common failures:** `command not found: pip` (use `python3 -m pip install arifos`); `Address already in use` (another process uses port `8088` — choose another port, e.g. `PORT=8089`).
+- **What not to do:** Do not assume `pip install arifos` starts a background service, and do not expose `localhost:8088` directly to the public internet without authentication and TLS.
 
-### Reference
-| Document | Purpose |
-|----------|---------|
-| [VAULT999_README.md](./VAULT999_README.md) | Audit ledger implementation |
-| [VERDICT_SEMANTICS.md](./VERDICT_SEMANTICS.md) | What SEAL/HOLD/SABAR/VOID mean |
-| [QUICKSTART.md](./QUICKSTART.md) | Getting started guide |
+### Path C — Integrate from a JavaScript or TypeScript app (`@arifos/mcp`)
+- **Goal:** Let a Node.js or TypeScript application request verdicts from a running arifOS kernel.
+- **What you need beforehand:** Node.js `>= 18` and a running arifOS kernel (either the hosted endpoint or your own Path B server).
+- **What gets installed:** The thin TypeScript client `@arifos/mcp` (`npm install @arifos/mcp`) — zero Python runtime, zero constitutional decision logic.
+- **What runs locally:** Only your JavaScript/TypeScript application code.
+- **What crosses the network:** MCP requests from your app to the configured kernel endpoint (`https://mcp.arif-fazil.com/mcp` by default, or `http://localhost:8088/mcp`).
+- **How to verify success:** Call `await client.listTools()` and confirm it returns the 9 live wire tools from the connected kernel.
+- **How to stop or remove:** Close your app (`await client.disconnect()`) and remove with `npm uninstall @arifos/mcp`.
+- **Common failures:** Connection refused when pointed at `localhost:8088` without starting the Python kernel first; or using retired package names (`npm install arifos` is **not** published — use `@arifos/mcp`).
+- **What not to do:** Never duplicate F1–F13 governance rules in JavaScript; the Python kernel is the sole judge.
+
+### Path D — Review evidence or contribute (GitHub)
+- **Goal:** Inspect constitutional floors, live health evidence, security gaps, or submit pull requests.
+- **Where to look:**
+  - Architecture & what is/isn't proven: [`README.md`](../README.md)
+  - Live generated runtime state: [`CURRENT_VERIFIED_STATE.md`](../CURRENT_VERIFIED_STATE.md)
+  - Threat model & known gaps: [`SECURITY.md`](../SECURITY.md)
+  - 5-minute technical walkthrough: [`docs/QUICKSTART.md`](./QUICKSTART.md)
+  - Contribution rules: [`CONTRIBUTING.md`](../CONTRIBUTING.md)
+
+---
+
+## Plain-Language Glossary
+
+| Term | Plain-language meaning |
+| :--- | :--- |
+| **PyPI** | The public directory where Python software packages (including the `arifos` kernel) are stored and downloaded. |
+| **pip** | The Python command-line installer that downloads packages from PyPI (`pip install arifos`). |
+| **npm** | The JavaScript/Node.js package directory and installer (`npm install @arifos/mcp`). |
+| **Node.js** | The runtime that runs JavaScript/TypeScript programs outside a web browser. |
+| **MCP** | Model Context Protocol — the standard message format AI apps use to talk to external tools and governance kernels. |
+| **kernel** | The core decision engine (in arifOS, the Python program that evaluates proposals against floors F1–F13 and issues verdicts). |
+| **client** | A program (like Claude Desktop, Cursor, or `@arifos/mcp`) that sends requests to a server. |
+| **server** | A running program that listens for requests and sends back responses (for example, the running arifOS kernel). |
+| **endpoint** | The web address (URL) where a running server can be reached, such as `https://mcp.arif-fazil.com/mcp`. |
+| **localhost** | Your own computer's private network address (`127.0.0.1`), reachable only from the same machine. |
+| **port** | A numbered doorway on a computer (such as `8088`) so multiple servers can run side by side without colliding. |
+| **self-hosting** | Running and operating your own copy of the arifOS kernel on your own computer or server instead of using the hosted endpoint. |
 
 ---
 
 ## Evidence Hierarchy
 
-Every claim in this documentation is classified:
+Every factual claim in this documentation carries an evidence class:
+- **OBS** — Directly observed from a live endpoint, repository file, or command output.
+- **DER** — Derived from observed evidence.
+- **INT** — Interpretive assessment or recommendation.
+- **SPEC** — Design intent not yet proven in production.
 
-- **OBS** — Externally observable (GitHub, PyPI, live endpoints)
-- **DER** — Derived from observed evidence (architecture analysis, code inspection)
-- **INT** — Interpretive (assessment, positioning, recommendations)
-- **SPEC** — Specification (design intent, not yet proven in production)
-
-When you see a claim, check which class it belongs to. OBS claims can be independently verified. INT claims are the author's assessment. SPEC claims are design goals.
-
----
-
-**Last updated:** September 2026
+**Last updated:** 2026-11-22
 **Maintainer:** Muhammad Arif bin Fazil
