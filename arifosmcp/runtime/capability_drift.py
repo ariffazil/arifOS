@@ -23,6 +23,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import threading
 import time
 import urllib.request
 from pathlib import Path
@@ -383,16 +384,72 @@ def _load_test_cache() -> dict[str, dict[str, Any]]:
         return {}
 
 
-def _save_test_cache(cache: dict[str, dict[str, Any]]) -> None:
-    """Persist the per-tool test cache. Best-effort — never raises into the request path."""
+def _save_test_cache(cache: dict[str, dict[str, Any]]) -> bool:
+    """Persist the per-tool test cache. Best-effort — never raises into the request path.
+
+    Returns True when the cache reached disk.  Callers that keep a read
+    position (the durable-bus cursor) must not advance it on a failed write,
+    or the evidence they were about to merge would be skipped forever.
+    """
     try:
         TEST_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         tmp = TEST_CACHE_PATH.with_suffix(".tmp")
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(cache, fh, indent=2, sort_keys=True)
         tmp.replace(TEST_CACHE_PATH)
+        return True
     except Exception as exc:
         logger.warning("Could not write capability-test-cache: %s", exc)
+        return False
+
+
+# Durable-bus read cursor. Lives beside the cache it maintains: the cursor
+# says how far the bus has been consumed, the cache says what was learned.
+# Losing the cursor costs one bounded re-seed, never any cached evidence.
+BUS_CURSOR_PATH = TEST_CACHE_PATH.parent / "durable-bus-cursor.json"
+
+# Evidence horizon for durable-bus hydration.  The widest freshness gate the
+# capability cache feeds is TEST_FRESHNESS_SECONDS (24 h + margin), so
+# evidence older than that cannot make a tool ``tested`` or ``proven``.
+BUS_EVIDENCE_HORIZON_SECONDS = max(PROVEN_LIVE_SECONDS, TEST_FRESHNESS_SECONDS)
+
+# Serialises the durable-bus hydration: it is a read-modify-write over the
+# cursor and the cache, and /health can be served concurrently.
+_BUS_HYDRATE_LOCK = threading.Lock()
+
+
+def _load_bus_cursor() -> dict[str, dict[str, int]]:
+    """Load the durable-bus read cursor. Empty dict => caller must re-seed."""
+    try:
+        if not BUS_CURSOR_PATH.exists():
+            return {}
+        with open(BUS_CURSOR_PATH, encoding="utf-8") as fh:
+            data = json.load(fh)
+        if not isinstance(data, dict):
+            return {}
+        cursor: dict[str, dict[str, int]] = {}
+        for key, entry in data.items():
+            if not isinstance(entry, dict):
+                continue
+            cursor[str(key)] = {
+                "ino": int(entry.get("ino") or 0),
+                "offset": int(entry.get("offset") or 0),
+            }
+        return cursor
+    except Exception:
+        return {}
+
+
+def _save_bus_cursor(cursor: dict[str, dict[str, int]]) -> None:
+    """Persist the durable-bus read cursor. Best-effort — never raises into the request path."""
+    try:
+        BUS_CURSOR_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = BUS_CURSOR_PATH.with_suffix(".tmp")
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(cursor, fh, indent=2, sort_keys=True)
+        tmp.replace(BUS_CURSOR_PATH)
+    except Exception as exc:
+        logger.warning("Could not write durable-bus cursor: %s", exc)
 
 
 def record_test_result(
@@ -466,28 +523,13 @@ def _parse_event_epoch(event: dict[str, Any]) -> float | None:
     return None
 
 
-def hydrate_test_cache_from_durable_bus(*, limit: int = 50_000) -> int:
-    """Merge durable operation SUCCESS events into the capability test cache.
+def _bus_success_epochs(events: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Fold bus events into the newest durable SUCCESS epoch per public tool.
 
-    Returns number of public tools updated. F2 honesty: only SUCCESS/ok/pass
-    statuses count as proven; STARTED alone never does.
-
-    Default limit raised 5k → 50k (2026-07-30): operations.log + receipts.log
-    combined exceeds 5k lines, so the old window was mostly receipts and
-    missed recent arif_* SUCCESS operations — proven_live stuck at 3/8.
+    F2 honesty: only SUCCESS/ok/pass statuses count as proven; STARTED alone
+    never does.  A tool with no durable SUCCESS is absent from the result —
+    absence is UNKNOWN, never PASS.
     """
-    try:
-        from arifosmcp.runtime.event_bus import read_durable_events
-    except Exception as exc:
-        logger.debug("durable bus import failed: %s", exc)
-        return 0
-
-    try:
-        events = read_durable_events(limit=limit)
-    except Exception as exc:
-        logger.debug("durable bus read failed: %s", exc)
-        return 0
-
     latest: dict[str, dict[str, Any]] = {}
     for event in events:
         if not isinstance(event, dict):
@@ -513,26 +555,82 @@ def hydrate_test_cache_from_durable_bus(*, limit: int = 50_000) -> int:
                 "last_error": None,
                 "source": "durable_event_bus",
             }
+    return latest
 
-    if not latest:
+
+def hydrate_test_cache_from_durable_bus(*, limit: int = 50_000) -> int:
+    """Merge durable operation SUCCESS events into the capability test cache.
+
+    Returns number of public tools updated. F2 honesty: only SUCCESS/ok/pass
+    statuses count as proven; STARTED alone never does.
+
+    Incremental (2026-11-23): the durable bus is append-only, so this reads
+    only the rows appended since the previous hydration instead of rescanning
+    the whole archive.  The old rescan cost 1.9 s and 326 MB of parsed rows
+    per call on the /health request thread, every 60 s, for zero qualifying
+    rows — receipts.log was read last and displaced every operations.log row.
+
+    The seed window is the freshness horizon: only evidence inside it is
+    merged.  A durable SUCCESS older than that can never make a tool
+    ``tested`` or ``proven`` (both gates are age-bounded), so merging it
+    would add rows that dilute the AI-witness fraction without proving
+    anything.  The merge itself stays monotone: an older epoch never
+    overwrites a newer cached one.  The cursor lives beside the cache it
+    maintains, so a restart resumes rather than re-scanning.
+    """
+    try:
+        from arifosmcp.runtime import event_bus
+    except Exception as exc:
+        logger.debug("durable bus import failed: %s", exc)
         return 0
 
-    cache = _load_test_cache()
-    updated = 0
-    for tool, row in latest.items():
-        prior = cache.get(tool) if isinstance(cache.get(tool), dict) else {}
-        prior_at = int(prior.get("last_invocation_at") or 0)
-        if row["last_invocation_at"] >= prior_at:
-            cache[tool] = {
-                **prior,
-                **row,
-                "input_schema_hash": prior.get("input_schema_hash"),
-                "output_schema_hash": prior.get("output_schema_hash"),
-            }
-            updated += 1
-    if updated:
-        _save_test_cache(cache)
-    return updated
+    with _BUS_HYDRATE_LOCK:
+        cursor = _load_bus_cursor()
+        try:
+            if cursor:
+                events, cursor = event_bus.read_durable_events_incremental(cursor)
+            else:
+                # Cold start: seed from the freshness horizon only.
+                events, cursor = event_bus.read_durable_events_recent(
+                    within_seconds=BUS_EVIDENCE_HORIZON_SECONDS,
+                    max_lines_per_file=limit,
+                )
+        except Exception as exc:
+            logger.debug("durable bus read failed: %s", exc)
+            return 0
+
+        latest = _bus_success_epochs(events)
+        cutoff = time.time() - BUS_EVIDENCE_HORIZON_SECONDS
+        latest = {
+            tool: row
+            for tool, row in latest.items()
+            if row["last_invocation_at"] >= cutoff
+        }
+
+        updated = 0
+        saved = True
+        if latest:
+            cache = _load_test_cache()
+            for tool, row in latest.items():
+                prior = cache.get(tool) if isinstance(cache.get(tool), dict) else {}
+                prior_at = int(prior.get("last_invocation_at") or 0)
+                if row["last_invocation_at"] >= prior_at:
+                    cache[tool] = {
+                        **prior,
+                        **row,
+                        "input_schema_hash": prior.get("input_schema_hash"),
+                        "output_schema_hash": prior.get("output_schema_hash"),
+                    }
+                    updated += 1
+            if updated:
+                saved = _save_test_cache(cache)
+
+        # Advance the cursor only after the cache merge reached disk, so a
+        # failed write (or a crash mid-merge) re-reads and re-merges the
+        # evidence rather than skipping it forever.
+        if saved:
+            _save_bus_cursor(cursor)
+        return updated
 
 
 def _schema_hash(value: Any) -> str | None:

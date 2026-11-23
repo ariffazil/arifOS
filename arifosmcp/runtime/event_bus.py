@@ -21,6 +21,7 @@ import os
 import time
 import uuid
 from collections import deque
+from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -393,7 +394,200 @@ def emit_stage_event(
 
 
 _TAIL_CACHE_TTL_S = 60.0
-_tail_cache: dict[int, tuple[float, list[dict[str, Any]]]] = {}
+_tail_cache: dict[tuple[Any, ...], tuple[float, list[dict[str, Any]]]] = {}
+
+# ── Incremental durable-bus reads ───────────────────────────────────────────
+# The durable bus is append-only (verified 2026-11-23: file sizes only grow,
+# inodes stay stable, previously written bytes never change).  A reader can
+# therefore consume only the bytes appended since its last position, so the
+# cost of a refresh tracks the append rate instead of the archive size
+# (operations.log was 205 MB and growing ~4.7 KB/min).
+#
+# Two entry points:
+#   * read_durable_events_recent()  — cold start: the tail of recent traffic
+#   * read_durable_events_incremental() — warm: only what was appended
+# The caller owns the cursor (a plain dict of per-file byte positions), so
+# nothing here holds mutable module state.
+
+
+def _bus_files() -> tuple[Path, ...]:
+    """Durable bus files in read order (legacy, operations, receipts)."""
+    return (_LEGACY_LOG, _OPERATIONS_LOG, _RECEIPTS_LOG)
+
+
+def _write_epoch(event: dict[str, Any]) -> float | None:
+    """When a bus row was *written* (as opposed to when the tool ran).
+
+    Used for horizon checks: freshness of a record is a property of when it
+    landed in the log.  ``_emitted_at`` is stamped by ``_sanitize_event`` on
+    every durable row; ``timestamp`` is the fallback for legacy rows written
+    before that field existed.
+    """
+    for key in ("_emitted_at", "timestamp"):
+        raw = event.get(key)
+        if isinstance(raw, (int, float)):
+            return float(raw)
+        if isinstance(raw, str) and raw.strip():
+            try:
+                return datetime.fromisoformat(raw.replace("Z", "+00:00")).timestamp()
+            except ValueError:
+                continue
+    return None
+
+
+def _iter_backward_lines(path: Path, *, max_lines: int) -> Iterator[bytes]:
+    """Yield raw lines from *path* newest-first, at most ``max_lines``.
+
+    Streams in 1 MiB chunks so a bounded backward scan costs O(window)
+    memory, never O(file).
+    """
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return
+    if size <= 0 or max_lines <= 0:
+        return
+    seen = 0
+    pending = b""
+    with open(path, "rb") as fh:
+        pos = size
+        while pos > 0 and seen < max_lines:
+            step = min(1 << 20, pos)
+            pos -= step
+            fh.seek(pos)
+            chunk = fh.read(step)
+            lines = (chunk + pending).split(b"\n")
+            pending = lines[0]  # earliest fragment — its head is in an earlier chunk
+            for raw in reversed(lines[1:]):
+                seen += 1
+                if seen > max_lines:
+                    return
+                yield raw
+    if pending and seen < max_lines:
+        # The file's first line — complete by definition (bounded by file start).
+        yield pending
+
+
+def read_durable_events_recent(
+    *,
+    within_seconds: float,
+    max_lines_per_file: int = 50_000,
+    files: tuple[Path, ...] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, dict[str, int]]]:
+    """Cold-start read: bus rows written within ``within_seconds``.
+
+    Each bus file is scanned backwards from EOF and the scan stops at the
+    horizon, so the cost is proportional to recent traffic rather than to
+    archive size.  Rows older than the horizon are excluded: they cannot
+    prove a tool is live, and the merge is monotone, so an older epoch never
+    wins against a newer cached one.
+
+    Returns ``(events, resume_cursor)``.  The cursor resumes at the size
+    observed *before* the scan, so bytes appended during the scan are read
+    again (and re-merged) on the next call rather than lost.
+    """
+    paths = files if files is not None else _bus_files()
+    cutoff = time.time() - within_seconds
+    events: list[dict[str, Any]] = []
+    cursor: dict[str, dict[str, int]] = {}
+    for path in paths:
+        try:
+            st = path.stat()
+        except OSError:
+            continue
+        cursor[str(path)] = {"ino": st.st_ino, "offset": st.st_size}
+        for raw in _iter_backward_lines(path, max_lines=max_lines_per_file):
+            line = raw.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line.decode("utf-8", errors="replace"))
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(obj, dict):
+                continue
+            written = _write_epoch(obj)
+            if written is not None and written < cutoff:
+                break  # append-only: everything further back is older still
+            events.append(obj)
+    return events, cursor
+
+
+def _read_appended(path: Path, offset: int) -> tuple[list[dict[str, Any]], int]:
+    """Parse the complete lines appended to *path* after *offset``.
+
+    Returns ``(events, new_offset)``.  The new offset stops at the last
+    complete line, so a partially written trailing line is re-read on the
+    next call rather than lost.
+    """
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return [], offset
+    if size <= offset:
+        return [], offset
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(offset)
+            chunk = fh.read(size - offset)
+    except OSError as exc:
+        logger.debug("durable bus append read failed %s: %s", path, exc)
+        return [], offset
+    cut = chunk.rfind(b"\n")
+    if cut < 0:
+        return [], offset  # no complete line yet
+    usable = chunk[: cut + 1]
+    events: list[dict[str, Any]] = []
+    for raw in usable.splitlines():
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            obj = json.loads(raw.decode("utf-8", errors="replace"))
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict):
+            events.append(obj)
+    return events, offset + len(usable)
+
+
+def read_durable_events_incremental(
+    cursor: dict[str, dict[str, int]] | None = None,
+    *,
+    files: tuple[Path, ...] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, dict[str, int]]]:
+    """Read the durable bus events appended since ``cursor``.
+
+    ``cursor`` maps a bus file path to ``{"ino": int, "offset": int}``.  Only
+    bytes written since the recorded offset are read, so the cost tracks the
+    append rate rather than the archive size.  A file that was rotated
+    (inode changed) or truncated (size below the offset) restarts from the
+    top.
+
+    Returns ``(events, new_cursor)``.
+    """
+    paths = files if files is not None else _bus_files()
+    previous = cursor or {}
+    events: list[dict[str, Any]] = []
+    new_cursor: dict[str, dict[str, int]] = {}
+    for path in paths:
+        key = str(path)
+        prev = previous.get(key) or {}
+        try:
+            st = path.stat()
+        except OSError:
+            continue
+        offset = int(prev.get("offset") or 0)
+        ino = int(prev.get("ino") or 0)
+        if ino and ino != st.st_ino:
+            offset = 0  # rotated — the new file starts at the top
+        elif st.st_size < offset:
+            offset = 0  # truncated — rewind
+        got, offset = _read_appended(path, offset)
+        events.extend(got)
+        new_cursor[key] = {"ino": st.st_ino, "offset": offset}
+    return events, new_cursor
+
 
 
 def _read_tail_lines(path: Path, take: int | None) -> list[str]:
@@ -427,23 +621,39 @@ def _read_tail_lines(path: Path, take: int | None) -> list[str]:
     return [ln.decode("utf-8", errors="replace") for ln in lines]
 
 
-def read_durable_events(limit: int = 5000, force: bool = False) -> list[dict[str, Any]]:
-    """Read durable JSONL events from all bus files (newest-last).
+def read_durable_events(
+    limit: int = 5000,
+    force: bool = False,
+    *,
+    files: tuple[Path, ...] | None = None,
+) -> list[dict[str, Any]]:
+    """Read durable JSONL events from the bus files (oldest-first per file).
 
     Tail-bounded per file (2026-10-09): only the last ``limit`` complete
-    lines of EACH bus file are decoded — operations.log events can no
-    longer be displaced by receipts.log volume (or vice versa), and the
-    read cost is O(tail) instead of O(bus).  Results are cached for
-    ``_TAIL_CACHE_TTL_S`` seconds (telemetry bus, not transactional);
-    pass ``force=True`` to bypass the cache.
+    lines of EACH bus file are decoded, and the read cost is O(tail) instead
+    of O(bus).
+
+    2026-11-23 (starvation fix): the per-file windows were concatenated and
+    then truncated as one block, so ``receipts.log`` — read last, and the
+    largest file — displaced *every* ``operations.log`` row.  operations.log
+    is the only bus file carrying ``capability``/``status``, so the
+    capability hydration saw zero qualifying events at every window size
+    while paying the full read cost on the /health request thread.  The
+    per-file windows are now kept separate: each file contributes its own
+    bounded window and no file can evict another's events.
+
+    Results are cached for ``_TAIL_CACHE_TTL_S`` seconds (telemetry bus,
+    not transactional); pass ``force=True`` to bypass the cache.
     """
+    paths = files if files is not None else _bus_files()
+    key = (int(limit or 0), tuple(str(p) for p in paths))
     now = time.monotonic()
-    cached = _tail_cache.get(int(limit or 0))
+    cached = _tail_cache.get(key)
     if not force and cached is not None and (now - cached[0]) < _TAIL_CACHE_TTL_S:
         return cached[1]
 
     out: list[dict[str, Any]] = []
-    for path in (_LEGACY_LOG, _OPERATIONS_LOG, _RECEIPTS_LOG):
+    for path in paths:
         if not path.exists():
             continue
         try:
@@ -459,10 +669,8 @@ def read_durable_events(limit: int = 5000, force: bool = False) -> list[dict[str
                     out.append(obj)
         except Exception as exc:
             logger.debug("durable bus read failed %s: %s", path, exc)
-    if limit and len(out) > limit:
-        out = out[-limit:]
 
-    _tail_cache[int(limit or 0)] = (now, out)
+    _tail_cache[key] = (now, out)
     if len(_tail_cache) > 8:  # bound distinct-limit cache entries
         oldest_key = min(_tail_cache, key=lambda k: _tail_cache[k][0])
         _tail_cache.pop(oldest_key, None)
@@ -513,8 +721,14 @@ def stage_counters(limit: int = 5000) -> dict[str, dict[str, Any]]:
         except Exception as exc:
             logger.debug("stage_counters: events.jsonl read failed: %s", exc)
 
-    # ── Supplement: windowed tail from all bus files (operations + receipts) ───
-    all_events = dedicated_events + read_durable_events(limit=limit)
+    # ── Supplement: windowed tail from the operation/receipt logs ─────────────
+    # events.jsonl is deliberately excluded: it was already read in full above,
+    # so including it here would count every stage event twice.  The per-file
+    # windows are kept separate (2026-11-23) so operations.log and
+    # receipts.log can no longer displace one another.
+    all_events = dedicated_events + read_durable_events(
+        limit=limit, files=(_OPERATIONS_LOG, _RECEIPTS_LOG)
+    )
 
     for ev in all_events:
         stage = ev.get("stage")
