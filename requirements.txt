@@ -5476,9 +5476,9 @@ traitlets==5.16.0 \
     #   ipython
     #   ipywidgets
     #   matplotlib-inline
-transformers==5.22.2 \
-    --hash=sha256:55f57e5cbd7c0b500b7a706daa0ecd76567b56ca139e6e02ef0bba0437e3a763 \
-    --hash=sha256:829c2820aff91730b8ec45a4b8ff4be07f586a140b68a9073998b36fa35297dc
+transformers==5.23.0 \
+    --hash=sha256:018e82fd07490ad5bb58414f65e31576033dc7f36bed10c574843f69b90991bf \
+    --hash=sha256:19d647a4d5d903a7c644ca5cde2d86efc3dde7d8c687ae7988806ff2205efa71
     # via
     #   arifos
     #   sentence-transformers

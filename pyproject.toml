@@ -123,7 +123,7 @@ browser = [
 ]
 heavy = [
     "torch>=2.12.1",
-    "transformers>=5.22.2",
+    "transformers>=5.23.0",
 ]
 observe = [
     "opentelemetry-api>=1.42.1",
