@@ -483,10 +483,16 @@ def _finish_edge_fields(edge: dict[str, Any]) -> None:
         edge.get(f) is True
         for f in ("session_propagated", "actor_propagated", "trace_propagated", "receipt_produced")
     )
+    # FG-5 (ZEN ledger 2026-11-14, F13 zero-HITL): CONTRACT_ALIGNED must be
+    # derived from OBSERVED contract evidence, never from schema shape alone.
+    # trace/receipt N/E (never exercised) => label may not exceed identity tier.
+    contract_witnessed = (
+        edge.get("trace_propagated") is True and edge.get("receipt_produced") is True
+    )
     if transport_ok and identity_ok and schema_ok and semantic_ok:
         edge["state"] = "SEMANTIC_PROVEN"
         edge["overall"] = "GOVERNED"
-    elif transport_ok and identity_ok and schema_ok:
+    elif transport_ok and identity_ok and schema_ok and contract_witnessed:
         edge["state"] = "CONTRACT_ALIGNED"
         edge["overall"] = "CONTRACT_ALIGNED"
     elif transport_ok and identity_ok:
@@ -501,6 +507,29 @@ def _finish_edge_fields(edge: dict[str, Any]) -> None:
     else:
         edge["state"] = edge.get("state") or "unknown"
         edge["overall"] = edge.get("overall") or "unknown"
+
+    # S3a (PLAN-2026-11-10-Q1, ARIF GO S3a): render highest PROVEN observation
+    # level from existing evidence only — never borrow lower green. L4 is the
+    # current ceiling (no echo instrument yet); identity is both-present
+    # semantics, never equality (see normalize comment above).
+    if semantic_ok:
+        level = "L4_RECEIPT_CHAINED"
+    elif (
+        identity_ok
+        and edge.get("session_propagated") is True
+        and edge.get("actor_propagated") is True
+    ):
+        level = "L3_SESSION_ACTOR_BOUND"
+    elif identity_ok:
+        level = "L2_IDENTITY_PRESENT"
+    elif transport_ok:
+        level = "L1_TRANSPORT"
+    else:
+        level = "L0_DECLARED"
+    edge["observed_level"] = level
+    if edge.get("identity_match") is True:
+        edge["identity_semantics"] = "IDENTITY_PRESENT_BOTH"
+    edge.setdefault("telemetry_produced", "NOT_IN_SCHEMA")
 
     # P1 semantic classification — never collapse transport to GOVERNED
     try:

@@ -47,7 +47,7 @@ def _sha256_file(path: str | Path) -> str:
 def _actor_signature(actor_id: str, step_payload: dict[str, Any]) -> str:
     """Schema-stamped actor signature — Ed25519 in production, HMAC-stub now.
 
-    External report (Syed Anas Mohiuddin, 2026-09-15, finding #3): this carried a
+    External report (2026-09-15, finding #3): this carried a
     hardcoded fallback secret. It is dead code today — nothing calls it; the live
     signature path is ``crypto_auth.verify_actor_signature`` (Ed25519) — so there
     is no live hole. It is a bomb, though: the first caller to wire it would sign

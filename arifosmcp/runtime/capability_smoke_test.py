@@ -69,7 +69,10 @@ def _outcome_of(passed: bool, error: str | None, raw: Any) -> str:
     try:
         for c in getattr(raw, "content", []) or []:
             text = getattr(c, "text", "") or ""
-            if "OBSERVE_ONLY" in text or '"verdict": "HOLD"' in text or '"verdict":"HOLD"' in text:
+            if any(tok in text for tok in (
+                "OBSERVE_ONLY", '"verdict": "HOLD"', '"verdict":"HOLD"',
+                '"effective_verdict": "HOLD"', "888_HOLD", '"verdict": "VOID"',
+            )):
                 return "HELD_BY_AUTHORITY"
     except Exception:
         pass
@@ -249,18 +252,43 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
         "Smoke test: arif_report %s (%dms)", "PASS" if actually_passed else "FAIL", latency_ms
     )
 
-    # ── Step 4: Record NEVER tools as intentionally skipped ──────────────────
-    for tool_name in NEVER_TOOLS:
-        # 2026-10-24 333-AGI — do NOT write a cache row for a decision not taken.
-        # `record_test_result(passed=False)` made a deliberate skip indistinguishable
-        # from a failed invocation: arif_judge/arif_forge/arif_seal then read as
-        # DEGRADED forever, and the observatory published capability=DRIFTED off a
-        # choice nobody made. A skip is reported in this run's summary only; the
-        # tool's last real observation is left untouched.
+    # ── Step 4: Safe non-mutating fail-closed probes for gated verbs ─────────
+    _GATED_SAFE_FIXTURES: dict[str, dict] = {
+        "arif_judge": {
+            "mode": "judge",
+            "candidate": "smoke test: read-only gate check",
+            "reversibility_level": "reversible",
+            "blast_radius": "session",
+            **({"session_id": session_id} if session_id else {}),
+        },
+        "arif_forge": {
+            "mode": "dry_run",
+            "query": "smoke test: fail-closed dry_run without seal_verdict_id",
+            **({"session_id": session_id} if session_id else {}),
+        },
+        "arif_seal": {
+            "mode": "audit",
+            **({"session_id": session_id} if session_id else {}),
+        },
+    }
+    for tool_name, fixture in _GATED_SAFE_FIXTURES.items():
+        t0 = time.time()
+        passed, error, raw = await _call_tool_safe(mcp, tool_name, fixture)
+        latency_ms = int((time.time() - t0) * 1000)
+        outcome = _outcome_of(passed, error, raw)
+        actually_passed = passed and error is None
+        record_test_result(
+            tool_name,
+            passed=actually_passed,
+            error=error,
+            outcome=outcome,
+            input_schema_hash=_schema_hash(fixture),
+        )
         results[tool_name] = {
-            "passed": None,
-            "skipped": True,
-            "error": "intentionally_skipped: mutation/irreversible tool",
+            "passed": actually_passed,
+            "outcome": outcome,
+            "error": error,
+            "latency_ms": latency_ms,
             "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
 

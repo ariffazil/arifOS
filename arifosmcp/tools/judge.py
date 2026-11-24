@@ -376,6 +376,31 @@ def _read_well_substrate() -> dict[str, Any]:
     if state is None:
         return {"status": "unavailable", "coupled_verdict": "CAUTION", "source": "all_paths_failed"}
 
+    # T3 (F2 TRUTH 2026-11-13): surface WELL data staleness — a stale reading
+    # must not masquerade as a fresh decision (STALE VETO honesty).
+    _age_hours = None
+    _stamps = []
+
+    def _walk_stamps(o):
+        if isinstance(o, dict):
+            for _k, _v in o.items():
+                if _k == "stamped_at" and isinstance(_v, str):
+                    _stamps.append(_v)
+                _walk_stamps(_v)
+        elif isinstance(o, list):
+            for _v in o:
+                _walk_stamps(_v)
+
+    _walk_stamps(state)
+    if _stamps:
+        try:
+            from datetime import datetime, timezone
+
+            _t = datetime.fromisoformat(max(_stamps).replace("Z", "+00:00"))
+            _age_hours = (datetime.now(timezone.utc) - _t).total_seconds() / 3600.0
+        except Exception:
+            _age_hours = None
+
     _ws = state.get("well_score", None)
     try:
         well_score = None if _ws is None else float(_ws)
@@ -433,6 +458,10 @@ def _read_well_substrate() -> dict[str, Any]:
     }
     if clarity is not None:
         packet["clarity"] = clarity
+    if _age_hours is not None and _age_hours > 24.0:
+        packet["status"] = "stale"
+        packet["age_hours"] = round(_age_hours, 1)
+        packet["stale_reason"] = f"stale WELL data ({round(_age_hours)} hours old)"
     return packet
 
 
@@ -1341,6 +1370,16 @@ async def arif_judge(
             auth_reason=_auth.get("reason"),
         )
         _out_verdict = _const_v
+        # T3 (F2 TRUTH 2026-11-13): surface WELL staleness even on the
+        # session-gate path — a stale human-readiness reading must not be
+        # silently masked by the L11 AUTH reason.
+        _well_stale_reason: list[str] = []
+        try:
+            _ws_pkt = _read_well_substrate()
+            if _ws_pkt.get("status") == "stale":
+                _well_stale_reason = [_ws_pkt.get("stale_reason", "stale WELL data")]
+        except Exception:
+            pass
         return {
             "status": _out_verdict,
             "tool": "arif_judge",
@@ -1352,7 +1391,7 @@ async def arif_judge(
             "action_disposition": _disp,
             "constitutional_verdict": _const_v,
             "remediation": _rem,
-            "reasons": [_auth.get("reason", "L11 AUTH: session required")],
+            "reasons": [_auth.get("reason", "L11 AUTH: session required")] + _well_stale_reason,
             "next_safe_action": (
                 "Call arif_init(mode='init') first to bind a session."
                 if not _rem.get("human_required")
@@ -1380,6 +1419,10 @@ async def arif_judge(
                 ),
             },
         }
+
+    # Resolve actor_id from the validated session when the MCP schema omits it.
+    if not actor_id and _auth.get("actor_id"):
+        actor_id = _auth.get("actor_id")
 
     # ── ZEN HARD GATE (2026-07-30): Deterministic rules BEFORE any LLM call ──
     # Per ChatGPT forensic: arif_judge must not wait 45s for LLM to decide
@@ -1838,9 +1881,20 @@ async def arif_judge(
             )
             for r in _hard_reasons
         )
+        # Fasa-4 C3 (2026-11-05, acceptance #3): mode=escalate must return an
+        # esc_-prefixed receipt id carrying the constitutional gate reasons —
+        # never an empty {}.
+        import uuid as _uuid
+
+        _escalate_receipt = (
+            {"receipt_id": f"esc_{_uuid.uuid4().hex[:16]}", "mode": mode}
+            if mode == "escalate"
+            else {}
+        )
         return VerdictOutput(
             verdict=VerdictCode.VOID if _is_void else VerdictCode.HOLD,
             reasons=_hard_reasons,
+            result=_escalate_receipt,
             next_safe_action=(
                 "Aborted: action violates constitutional floors (F1/F9/F13)."
                 if _is_void
@@ -2143,6 +2197,29 @@ async def arif_judge(
                     "Run arif_init(actor_signature=<ed25519>, "
                     "ack_irreversible=true) to unlock seal, then re-run arif_judge."
                 )
+            # PUBLIC VISIBILITY (2026-11-08): the intercept path returns BEFORE the
+            # composer's four-plane block, so a HOLD carried no evidence-quality
+            # signal. Attach it here — same pure function, no new authority.
+            try:
+                from contracts.four_plane_contract import evaluate_four_planes as _efp
+
+                _fp_epi, _fp_auth, _fp_disp, _fp_const, _fp_rem = _efp(
+                    candidate=candidate,
+                    auth_valid=True,
+                    actor_id=actor_id,
+                    evidence=evidence,
+                    reversibility_level=reversibility_level,
+                    action_tier=action_tier,
+                    current_verdict=str(_code),
+                )
+                _intercept_meta["four_plane"] = {
+                    "epistemic_state": _fp_epi,
+                    "authority_state": _fp_auth,
+                    "action_disposition": _fp_disp,
+                    "constitutional_verdict": _fp_const,
+                }
+            except Exception as _fp_exc:  # noqa: BLE001 — visibility must not break a verdict
+                logger.debug("four_plane visibility non-fatal: %s", _fp_exc)
             return VerdictOutput(
                 verdict=_code,
                 reasons=_reasons,
@@ -2615,6 +2692,17 @@ async def arif_judge(
                     action_tier=action_tier,
                     current_verdict=str(getattr(out, "verdict", "HOLD")),
                 )
+                # PUBLIC VISIBILITY (2026-11-08, 333-AGI): the four-plane state is
+                # the judge's evidence-quality signal. The public facade projects a
+                # fixed result block, so mirror it into meta — the field the facade
+                # preserves — otherwise the gate is invisible to every caller.
+                _fp_meta = dict(getattr(out, "meta", {}) or {})
+                _fp_meta["four_plane"] = {
+                    "epistemic_state": _epi,
+                    "authority_state": _auth_s,
+                    "action_disposition": _disp,
+                    "constitutional_verdict": _const_v,
+                }
                 out = out.model_copy(
                     update={
                         "epistemic_state": _epi,
@@ -2622,6 +2710,7 @@ async def arif_judge(
                         "action_disposition": _disp,
                         "constitutional_verdict": _const_v,
                         "remediation": _rem,
+                        "meta": _fp_meta,
                     }
                 )
             except Exception as _four_exc:
@@ -2981,7 +3070,17 @@ async def arif_judge(
     if mode != "history":
         if _evidence.get("vitals") is None:
             try:
-                vitals_result = arif_measure(mode="vitals")
+                # P0 loop-stall fix (333-AGI 2026-11-19): arif_measure vitals runs
+                # 6 sequential sync organ probes (3s timeout each — the :8088
+                # self-probe can never be answered while this sync call blocks
+                # the loop), psutil, and docker ps — 10-30s ON THE EVENT LOOP.
+                # Starved every concurrent request: py-spy witnessed 3 distinct
+                # blocking sites, /health >=5s stalls, 401 "No response returned"
+                # bursts. Same class as the sealed vault_seal to_thread fix
+                # (vault.py:1113): scheduling moved, semantics unchanged.
+                import asyncio
+
+                vitals_result = await asyncio.to_thread(arif_measure, mode="vitals")
                 _evidence["vitals"] = getattr(vitals_result, "__dict__", {}) or {
                     "status": "unavailable"
                 }
@@ -3032,7 +3131,11 @@ async def arif_judge(
         # ── WELL biological substrate pre-load (Gap 2 wire) ──────────────────
         # W0 preserved: WELL informs, judge decides, operator holds veto.
         # This is advisory evidence surfaced alongside every verdict — not a gate.
-        _evidence["well_substrate"] = _read_well_substrate()
+        # P0 loop-stall fix (333-AGI 2026-11-19): sync urllib (timeout=2)
+        # moved off the event loop — same sealed class as vault.py:1113.
+        import asyncio
+
+        _evidence["well_substrate"] = await asyncio.to_thread(_read_well_substrate)
 
         # ── ECHO/PaW L3 GRADIENT INJECTION ──────────────────────────────────
         # Query arif_memory for past L2-tier prediction deltas on similar
@@ -4495,3 +4598,10 @@ def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> No
 
 # Backward compatibility alias
 arif_judge_deliberate = arif_judge
+
+
+# S3c (PLAN-2026-11-10-Q1, ARIF GO S3c): OS-1 canary — dry-run receipt
+# emission on arif_judge outcomes (env-gated, default off, zero ingest).
+from arifosmcp.runtime.os1_canary import wrap_mutate_verbs as _os1_wrap_mutate
+
+arif_judge = _os1_wrap_mutate(arif_judge)

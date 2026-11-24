@@ -1,6 +1,6 @@
 """SSRF guard — resolve-then-verify URL egress safety for every fetch path.
 
-Forged 2026-08-25 after an external report (Syed Anas Mohiuddin, private
+Forged 2026-08-25 after an external report (private
 disclosure): ``_arif_evidence_fetch`` flagged private IPs by URL-string
 prefix only, and its RealityHandler fallback re-fetched URLs the primary
 path had just blocked (fail-open). Both layers also missed non-dotted IP

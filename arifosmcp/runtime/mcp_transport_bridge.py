@@ -30,6 +30,7 @@ import logging
 import os
 from typing import Any
 
+from mcp.shared.inbound import encode_header_value
 from starlette.datastructures import MutableHeaders
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -251,7 +252,12 @@ class MCPProtocolVersionMiddleware(BaseHTTPMiddleware):
                     ):
                         _name_val = _p.get(_name_key)
                         if isinstance(_name_val, str):
-                            _mh["mcp-name"] = _name_val
+                            # HTTP field values are latin-1. Emoji prompt names
+                            # raise UnicodeEncodeError here and the panic
+                            # middleware reports a fake HALT. encode_header_value
+                            # emits =?base64?...?= (decoded below, and by the
+                            # SDK inbound ladder). ASCII names stay literal.
+                            _mh["mcp-name"] = encode_header_value(_name_val)
                             _envelope_injected.append("Mcp-Name")
                     # logger.warning, not .info: uvicorn's journald wiring drops
                     # INFO from this logger (the lenient-mode pass line uses

@@ -35,6 +35,7 @@ import secrets
 import socket
 import subprocess  # nosec B404
 import sys
+import threading
 import time
 import uuid
 from collections.abc import Callable
@@ -87,6 +88,7 @@ from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
 from arifosmcp.runtime.law import get_floor_count
 from arifosmcp.runtime.health_truth import (
     FLOOR_SCOPE_SYSTEM,
+    declares_no_measurement,
     floor_truth,
     publish_system_floor_truth,
     substrate_truth,
@@ -405,6 +407,80 @@ _WITNESS_DEFAULTS: dict[str, float] = {"human": 0.42, "ai": 0.32, "earth": 0.26}
 # /health was ~1.5s per request (governance kernel cold-start + redundant probes).
 # Cache with 30s TTL drops it to <5ms. Kernel is primed once at import time.
 _health_cache: dict[str, Any] = {"payload": None, "ts": 0.0}
+
+# ── F6 OS-1 WELL snapshot refresher (2026-11-18 live-defect fix) ─────────────
+# Measured in-service defect: fetching WELL :18083/health inline during the
+# /health cold build deadlocks — WELL's own /health calls BACK into kernel
+# :8088/health (server.py:2769,2813 federation geometry), the kernel event
+# loop is blocked inside the inline fetch, and both sides stall until the
+# 2.5s socket timeout (TimeoutError). Shell-side fetches never saw it because
+# the kernel answered WELL from the warm cache. Fix: a daemon refresher
+# thread owns the fetch — the event loop stays free to serve WELL's callback,
+# so the cycle cannot close. The builder reads the snapshot and never fetches
+# inline. Snapshot cadence (30s) is trivially small against the 4h F6 band;
+# the snapshot age is disclosed in the f6_well_coverage marker.
+_well_health_snapshot: dict[str, Any] = {"payload": None, "ts": 0.0, "err": None, "degraded": False}
+_well_snapshot_thread: threading.Thread | None = None
+_well_snapshot_lock = threading.Lock()
+WELL_SNAPSHOT_INTERVAL_S = 30.0
+# 2026-11-20 (333-AGI): stale-while-error window. A failed refresh retains the
+# last known-good payload (with its OWN ts) for this long instead of erasing it —
+# the failure window is caused by kernel cold builds stalling WELL's callback
+# into :8088, so the builder must not lose evidence to the very stall it caused.
+WELL_SNAPSHOT_STALE_KEEP_S = 600.0
+
+
+def _well_snapshot_loop() -> None:
+    while True:
+        try:
+            import urllib.request as _ureq
+
+            with _ureq.urlopen(  # noqa: S310
+                "http://127.0.0.1:18083/health", timeout=2.5
+            ) as _resp:
+                _body = _resp.read()
+            _payload = json.loads(_body) if _body else None
+            if not isinstance(_payload, dict):
+                raise ValueError("well /health payload is not a JSON object")
+            _well_health_snapshot.update({"payload": _payload, "ts": time.time(), "err": None, "degraded": False})
+        except Exception as _exc:  # noqa: BLE001 — refresher must never die
+            # 2026-11-20 (333-AGI): a failed refresh must not ERASE the last
+            # known-good payload. Measured cycle: WELL /health calls back into
+            # kernel :8088 (well server.py:2769,2813 federation geometry); a
+            # kernel cold build blocks the loop, WELL's answer stalls past the
+            # 2.5s budget, and the build that caused the stall then read
+            # payload=None — F6 fell to meters (origin unmeasured_default:...)
+            # instead of naming the real reason (well_health:coverage_insufficient).
+            # Retain the payload with its own ts up to KEEP; disclose err/degraded.
+            _now = time.time()
+            _prev = _well_health_snapshot.get("payload")
+            _prev_ts = _well_health_snapshot.get("ts") or 0.0
+            _kept = isinstance(_prev, dict) and (_now - _prev_ts) < WELL_SNAPSHOT_STALE_KEEP_S
+            _well_health_snapshot.update(
+                {
+                    "payload": _prev if _kept else None,
+                    "ts": _prev_ts if _kept else _now,
+                    "err": f"{type(_exc).__name__}: {str(_exc)[:120]}",
+                    "degraded": True,
+                }
+            )
+            # Fast retry on failure ONLY while we have nothing to serve (the
+            # blocked-loop stall window is ~10s); a retained payload rides the
+            # normal cadence instead of hammering a stalled callback.
+            time.sleep(2.0 if not _kept else WELL_SNAPSHOT_INTERVAL_S)
+            continue
+        time.sleep(WELL_SNAPSHOT_INTERVAL_S)
+
+
+def _ensure_well_snapshot() -> dict[str, Any]:
+    """Start the daemon refresher once; return the current snapshot."""
+    global _well_snapshot_thread
+    with _well_snapshot_lock:
+        if _well_snapshot_thread is None or not _well_snapshot_thread.is_alive():
+            _t = threading.Thread(target=_well_snapshot_loop, name="f6-well-snapshot", daemon=True)
+            _t.start()
+            _well_snapshot_thread = _t
+    return _well_health_snapshot
 
 
 def _prime_governance_kernel() -> None:
@@ -1010,97 +1086,67 @@ def _read_vault_last_seal() -> dict[str, Any]:
 
 
 def _provenance_is_unmeasured(provenance: Any) -> bool:
-    """True when the provenance string itself DECLARES that no instrument ran."""
+    """True when the provenance string itself DECLARES that no instrument ran.
+
+    2026-10-26: narrow on purpose. Only two shapes qualify —
+    ``unmeasured_default*`` (the substituter's own label) and ``*_skipped*``
+    (a producer that declined to measure). An ABSENT provenance is not
+    declared-absent; it stays with _floor_status_strict so a score carrying no
+    provenance keeps its previous behaviour.
+
+    Measured defect it closes: F8 published ``score 0.80 . status pass .
+    measured true`` while its provenance said
+    ``arifflow_vector_g_skipped:calibration=PHASE_1_HEURISTIC_UNCALIBRATED``
+    — the live reading was skipped and the placeholder rendered as a measured
+    pass. Provenance was honest; the status derived from it was not.
+
+    2026-11-11 (F6 contradiction fix): an explicit UNMEASURED segment in any
+    part of the provenance string (e.g. floor_producer:UNMEASURED:...)
+    outranks the head token.
+
+    2026-11-21 (P0-2): the segment-token rule is not restated here — it is
+    delegated to ``health_truth.declares_no_measurement`` so this renderer and
+    ``health_truth.classify_provenance`` cannot drift apart again. The STALE
+    case (floor_producer:STALE:well_health:stale_substrate) was the drift.
+    """
     _p = str(provenance or "").strip()
     if not _p:
         return False
-    if any(seg.strip().upper().startswith("UNMEASURED") for seg in _p.split(":")):
+    if declares_no_measurement(_p):
         return True
     _pl = _p.lower()
     return _pl.startswith("unmeasured_default") or "_skipped" in _pl
 
 
 def _reconcile_unmeasured_basis(basis_list: Any, floor_provenance: dict[str, Any]) -> list[str]:
-    """Drop producer-measured floors from measurement_basis.unmeasured_floors."""
+    """KX-011 (2026-11-02): drop producer-measured floors from the wire basis.
+
+    ``measurement_basis.unmeasured_floors`` is born kernel-side meaning
+    "no such event in THIS process" (event_window: since_process_boot).
+    Floors that an independent producer went on to measure (seal chain,
+    arifFlow probes, witness legs) are no longer unmeasured in THIS
+    payload — leaving them listed while ``runtime_floors_status`` publishes
+    ``measured: true`` was the A6 known_contradiction this retires.
+
+    Removal is conservative: a floor leaves the list only when its
+    provenance EXISTS and does not itself declare unmeasured (the same
+    canonical classifier ``_provenance_is_unmeasured`` that gates
+    ``runtime_floors_status.measured`` — one classifier, one answer).
+    An absent provenance keeps the floor listed (unknown is not measured).
+
+    Metadata only — no score, threshold, or verdict math reads this list
+    (A6 condition 2). The raw kernel-log basis remains untouched in
+    ``core.governance_kernel.get_current_state()``.
+    """
     if not isinstance(basis_list, list):
         return []
     kept: list[str] = []
     for fid in basis_list:
         prov = floor_provenance.get(fid)
         if prov is not None and not _provenance_is_unmeasured(prov):
-            continue
+            continue  # an independent producer measured it — not unmeasured
         kept.append(fid)
     return kept
-
-
-_THERMO_SCALAR_BASELINES: dict[str, float] = {
-    "entropy_delta": 0.0,
-    "peace_squared": 0.5,
-    "kappa_r": 0.5,
-    "echo_debt": 0.0,
-    "shadow": 0.0,
-    "vitality_index": 0.0,
-}
-_THERMO_POLICY_CONSTANTS = frozenset({"kappa_r", "confidence"})
-
-
-def _thermo_scalar_provenance(name: str, value: Any, *, event_log_empty: bool) -> str:
-    """Classify one thermodynamic scalar leaf (MEASURED / DEFAULT_UNMEASURED / POLICY_CONSTANT / ABSENT)."""
-    if name in _THERMO_POLICY_CONSTANTS:
-        return "POLICY_CONSTANT"
-    if value is None:
-        return "ABSENT"
-    try:
-        v = float(value)
-    except (TypeError, ValueError):
-        return "ABSENT"
-    baseline = _THERMO_SCALAR_BASELINES.get(name)
-    if event_log_empty and baseline is not None and abs(v - baseline) < 1e-12:
-        return "DEFAULT_UNMEASURED"
-    return "MEASURED"
-
-
-def _thermo_scalar_provenance_block(telemetry: dict[str, Any]) -> dict[str, Any]:
-    """Build the scalar_provenance sub-block for /health's thermodynamic dict."""
-    has_history = False
-    detail = "probe_unavailable"
-    try:
-        from arifosmcp.runtime.reality_scoring import probe_governance_kernel_events
-
-        has_history, detail = probe_governance_kernel_events()
-    except Exception as exc:  # noqa: BLE001
-        detail = f"probe_error: {exc}"[:200]
-    labels = {
-        "entropy_delta": _thermo_scalar_provenance(
-            "entropy_delta", telemetry.get("dS"), event_log_empty=not has_history
-        ),
-        "peace_squared": _thermo_scalar_provenance(
-            "peace_squared", telemetry.get("peace2"), event_log_empty=not has_history
-        ),
-        "vitality_index": _thermo_scalar_provenance(
-            "vitality_index", telemetry.get("psi_le"), event_log_empty=not has_history
-        ),
-        "kappa_r": _thermo_scalar_provenance(
-            "kappa_r", telemetry.get("kappa_r"), event_log_empty=not has_history
-        ),
-        "echo_debt": _thermo_scalar_provenance(
-            "echo_debt", telemetry.get("echoDebt"), event_log_empty=not has_history
-        ),
-        "shadow": _thermo_scalar_provenance(
-            "shadow", telemetry.get("shadow"), event_log_empty=not has_history
-        ),
-        "confidence": _thermo_scalar_provenance(
-            "confidence", telemetry.get("confidence"), event_log_empty=not has_history
-        ),
-    }
-    return {
-        "labels": labels,
-        "basis": {
-            "event_log_has_history": bool(has_history),
-            "detail": str(detail)[:200],
-            "detector": "reality_scoring.probe_governance_kernel_events",
-        },
-    }
 
 
 def _floor_status_strict(law_id: str, score: Any) -> str:
@@ -1539,9 +1585,20 @@ def _build_governance_status_payload() -> dict[str, Any]:
             ),
         }
 
-        # F4 CLARITY: probe live ΔS (delta-entropy) from arifFlow vector dimensions
+        # F4 CLARITY: instrument first (2026-11-14, 333-AGI) — windowed_ds measurement
+        # distinguishes a REAL measured zero (uniform outcomes, pinned instrument)
+        # from the historical placeholder; arifFlow vector ds remains the fallback.
         _dims = _fq_data.get("vector", {}).get("dimensions", {})
-        if "ds" in _dims and _dims["ds"].get("value") is not None:
+        _wds_m = _windowed_ds_meta()
+        if _wds_m is not None:
+            _raw_ds = float(_wds_m["value"])
+            resolved_floors["F4"] = _raw_ds
+            floor_provenance["F4"] = (
+                f"windowed_ds_measured:{_wds_m['instrument']}:value={_raw_ds}"
+                f":h_next={_wds_m['h_next_bits']}:h_prev={_wds_m['h_prev_bits']}"
+                f":store={_wds_m['store']}@{now_iso()}"
+            )
+        elif "ds" in _dims and _dims["ds"].get("value") is not None:
             _raw_ds = float(_dims["ds"]["value"])
             resolved_floors["F4"] = _raw_ds
             floor_provenance["F4"] = f"arifflow_probe:ds={_raw_ds}@{now_iso()}"
@@ -1572,10 +1629,18 @@ def _build_governance_status_payload() -> dict[str, Any]:
             )
 
         # F9 ANTI-HANTU / SHADOW: live from arifFlow vector dimension c_dark
-        if "c_dark" in _dims and _dims["c_dark"].get("value") is not None:
-            resolved_floors["F9"] = float(_dims["c_dark"]["value"])
+        # 2026-11-11: same gate-grade guard as F8 (2026-10-25 F13 order) — a
+        # PHASE_1_HEURISTIC_UNCALIBRATED dimension must not dress telemetry as a
+        # floor score. The runtime classifier already marks F9 unmeasured when
+        # the kernel signal is empty; telemetry may not contradict it.
+        _c_dim = _dims.get("c_dark") or {}
+        _c_calib = str(_c_dim.get("calibration") or "").upper()
+        if _c_dim.get("value") is not None and "UNCALIBRATED" not in _c_calib:
+            resolved_floors["F9"] = float(_c_dim["value"])
+            floor_provenance["F9"] = f"arifflow_live_vector:c_dark={_c_dim['value']}@{now_iso()}"
+        elif _c_dim.get("value") is not None:
             floor_provenance["F9"] = (
-                f"arifflow_live_vector:c_dark={_dims['c_dark']['value']}@{now_iso()}"
+                f"arifflow_vector_c_dark_skipped:calibration={_c_calib or 'unknown'}@{now_iso()}"
             )
 
         # L10 ONTOLOGY: live from arifFlow ontology specification
@@ -1616,7 +1681,17 @@ def _build_governance_status_payload() -> dict[str, Any]:
             elif f4_val < 0:
                 resolved_floors["F4"] = round(0.80 + abs(f4_val) * 0.4, 4)
             elif f4_val == 0:
-                resolved_floors["F4"] = 0.80
+                # 2026-11-11 honesty repair + 2026-11-14 instrument refinement: a
+                # trivial-zero ΔS is ONLY a placeholder when no pinned instrument
+                # produced it. A windowed_ds_measured zero is a real observation
+                # (uniform outcome distribution) → normalized 0.80 per the
+                # calibrated ΔS=0 rule, carrying its instrument provenance.
+                if str(floor_provenance.get("F4", "")).startswith("windowed_ds_measured:"):
+                    resolved_floors["F4"] = 0.80
+                    floor_provenance["F4"] += "|normalized:0.80(measured-zero,calibrated-rule)"
+                else:
+                    resolved_floors.pop("F4", None)
+                    floor_provenance["F4"] = f"unmeasured_default:ds_trivial_zero@{now_iso()}"
             else:
                 resolved_floors["F4"] = round(max(0.0, 1.0 - f4_val), 4)
         except (TypeError, ValueError):
@@ -1634,6 +1709,21 @@ def _build_governance_status_payload() -> dict[str, Any]:
         from arifosmcp.runtime.floor_producers import collect_floor_producer_signal
 
         _producer_score = {"PASS": 1.0, "FAIL": 0.0, "CONTRADICTED": 0.0}
+
+        def _f6_first_class_state(_sig: dict) -> tuple:
+            """F6 seam closure (F13 SEAL F6_MARUAH_CODE_REPAIR 2026-11-11,
+            plan c2f5a175): the consumer must preserve the producer's full
+            epistemic range. UNKNOWN/UNMEASURED are first-class states —
+            never discarded into _FLOOR_DEFAULTS, never coerced to a score.
+            Returns (score, provenance) for non-scoring statuses;
+            scoring statuses are handled by the caller's PASS/FAIL path."""
+            _st = str(_sig.get("status") or "UNMEASURED").upper()
+            if _st in _producer_score:
+                return None, None
+            return None, (
+                f"floor_producer:{_st}:{_sig.get('origin') or 'f6_producer'}"
+                f"@{_sig.get('measured_at') or now_iso()}"
+            )
 
         def _wire_producer(fid: str, _src: dict) -> None:
             _sig = collect_floor_producer_signal(fid, sources=_src)
@@ -1774,42 +1864,66 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 f"unmeasured_default:seal_chain_unreachable:{type(_f5_exc).__name__}"
             )
 
-        # F6 MARUAH — six system-behavior meters + human-witness lane (read-only),
-        # with the seal-level heart_critique check as a FAIL-only fallback
-        # (2026-10-26 merge: feat/f6-maruah-v0-20261023 + the 2026-10-24
-        # MARUAH_HIKMAH wiring). Missing meters/witness -> UNMEASURED, never PASS.
+        # F6 MARUAH — OS-1 Source A (F13 GO 2026-11-18): the kernel reads the
+        # WELL SERVED truth (127.0.0.1:18083/health) coverage-first; the six
+        # system-behavior meters stay as the fallback determination when WELL
+        # is unreachable, and the seal-level heart_critique check remains a
+        # FAIL-only guard inside the producer (never averaged away).
+        # Covered -> MEASURED_V0_PARTIAL with the conservative f6_index as the
+        # reading; uncovered -> honest null-with-reason under the producer
+        # origin. NEVER a painted number.
         try:
             from arifosmcp.runtime.f6.meters import evaluate_all as _f6_eval_all
 
             _f6_report = _f6_eval_all()
             measurement_basis["f6_maruah"] = _f6_report
-            _f6_sig = collect_floor_producer_signal(
-                "F6",
-                sources={
-                    "meters": _f6_report.get("meters", []),
-                    "seals": _seal_rows,
-                },
+            _snap = _ensure_well_snapshot()
+            _wh = _snap.get("payload")
+            _snap_ts = _snap.get("ts") or 0.0
+            _snap_age = round(time.time() - _snap_ts, 1) if _snap_ts else None
+            _f6_sources = {"meters": _f6_report.get("meters", []), "seals": _seal_rows}
+            if _wh is not None:
+                _f6_sources["well_health"] = _wh
+            _f6_sig = collect_floor_producer_signal("F6", sources=_f6_sources)
+            _f6_marker = (
+                {
+                    _k: _f6_sig.get(_k)
+                    for _k in ("status", "origin", "f6_index", "verdict", "null_reasons")
+                }
+                if _wh is not None
+                else {
+                    "status": "WELL_UNREACHABLE",
+                    "origin": "well_health:fetch_failed",
+                    "error": _snap.get("err") or "snapshot_warming",
+                }
             )
-            if _f6_sig.get("status") in _producer_score:
-                _wire_producer(
-                    "F6",
-                    {"meters": _f6_report.get("meters", []), "seals": _seal_rows},
-                )
-            else:
-                # 2026-11-01 truth-up (GitHub lineage): carry the LIVE
-                # decomposition in the provenance string so consumers see WHY
-                # F6 is unscored (the old static "producer pending" label was
-                # false — the producer is wired and runs; it refuses to score
-                # without evidence).
-                _f6_state = (
-                    f"failed={','.join(_f6_sig.get('failed_meters') or []) or '-'};"
-                    f"unknown={','.join(_f6_sig.get('unknown_meters') or []) or '-'};"
-                    f"witness={','.join(_f6_sig.get('witness_states') or []) or '-'}"
-                )
+            if _snap_age is not None:
+                _f6_marker["snapshot_age_s"] = _snap_age
+            if _snap.get("err"):
+                # 2026-11-20: disclose a degraded snapshot next to the retained
+                # reading — additive wire data only (A6 rule), never read by
+                # status/score math.
+                _f6_marker["snapshot_degraded"] = True
+                _f6_marker["snapshot_err"] = str(_snap.get("err"))[:160]
+            measurement_basis["f6_well_coverage"] = _f6_marker
+            _f6_st = str(_f6_sig.get("status") or "UNMEASURED").upper()
+            if _f6_st == "MEASURED":
+                # OS-1 covered: the reading IS the conservative f6_index
+                # (F7 band semantics) — never projected to 1.0.
+                resolved_floors["F6"] = _f6_sig.get("f6_index")
                 floor_provenance["F6"] = (
-                    f"{_f6_sig.get('origin') or 'unmeasured_default:f6_partially_measured'}"
-                    f"[{_f6_state}]"
+                    f"floor_producer:MEASURED:{_f6_sig.get('origin')}"
+                    f"@{_f6_sig.get('measured_at') or now_iso()}"
                 )
+            elif _f6_st in _producer_score:
+                _wire_producer("F6", _f6_sources)
+            else:
+                # F6 seam closure: a valid UNMEASURED/STALE from the REAL
+                # producer is a first-class state — score stays None (never
+                # coerced), provenance names the producer, not _FLOOR_DEFAULTS.
+                _f6_score, _f6_prov = _f6_first_class_state(_f6_sig)
+                resolved_floors["F6"] = _f6_score
+                floor_provenance["F6"] = _f6_prov
         except Exception as _f6_exc:
             floor_provenance["F6"] = f"unmeasured_default:f6_probe_error:{type(_f6_exc).__name__}"
 
@@ -1910,6 +2024,84 @@ def _build_governance_status_payload() -> dict[str, Any]:
                 "floor_statuses": _floor_statuses_snapshot,
             },
         )
+        # Gate 2 F2 (F13 2026-11-02, Arif audit): the truth floor's PASS is
+        # scope-limited — publish the coverage fraction's numerator/denominator
+        # + scope so no consumer can read floor-provenance coverage as
+        # whole-payload truth closure ("we don't know the denominator").
+        # Same map, same startswith rule as _f2_truth's coverage contract §5;
+        # alias rows (L10..) are included exactly as the producer counts them.
+        measurement_basis["f2_coverage"] = {
+            "numerator": sum(
+                1
+                for _o in floor_provenance.values()
+                if not str(_o).startswith("unmeasured_default")
+            ),
+            "denominator": len(floor_provenance),
+            "coverage_scope": (
+                "kernel floor-provenance map (this payload's floor origins, "
+                "alias rows included) — NOT the whole observatory payload"
+            ),
+            "definition_source": "floor_producers._f2_truth coverage contract §5",
+        }
+
+        # F7 HUMILITY (Gate 4, F13 2026-11-02): Ω₀ uncertainty-band discipline.
+        # Canon defines the semantics: core/shared/types.py AgiMetrics.omega_0
+        # Field(ge=0.03, le=0.05) HARD ("F7: Ω₀ ∈ [0.03, 0.05]"); mottos.py
+        # Ω₀ ≈ 0.04. The kernel must DECLARE a nonzero irreducible-uncertainty
+        # bound inside the band, the validation constraint must actually reject
+        # out-of-band values (tested live below), and nothing may publish
+        # perfect certainty. Score = the Ω₀ value itself (range-pass semantics —
+        # never the 1.0 predicate projection, which would sit outside the band).
+        try:
+            from core.shared.mottos import PromptManifold as _F7Manifold
+
+            _f7_omega = float(_F7Manifold().omega_0)
+        except Exception:
+            _f7_omega = None
+        _f7_band: Any = None
+        _f7_enforced: Any = None
+        try:
+            from core.shared.types import AgiMetrics as _F7Metrics
+            from annotated_types import Ge as _F7Ge, Le as _F7Le
+
+            _f7_field = _F7Metrics.model_fields["omega_0"]
+            _f7_band = [
+                next(float(m.ge) for m in _f7_field.metadata if isinstance(m, _F7Ge)),
+                next(float(m.le) for m in _f7_field.metadata if isinstance(m, _F7Le)),
+            ]
+            try:
+                _F7Metrics(
+                    truth_score=0.99, delta_s=-0.1, omega_0=0.9, precision=1.0, free_energy=0.0
+                )
+                _f7_enforced = False  # out-of-band Ω₀ accepted — constraint decorative
+            except Exception:
+                _f7_enforced = True
+        except Exception:
+            _f7_band = None
+            _f7_enforced = None
+        _f7_sig = collect_floor_producer_signal(
+            "F7",
+            sources={
+                "omega_0": _f7_omega,
+                "band": _f7_band,
+                "constraint_enforced": _f7_enforced,
+            },
+        )
+        if _f7_sig.get("status") in _producer_score:
+            resolved_floors["F7"] = (
+                float(_f7_sig["omega_0"])
+                if _f7_sig.get("status") == "PASS"
+                else _producer_score[_f7_sig["status"]]
+            )
+            floor_provenance["F7"] = (
+                f"floor_producer:{_f7_sig['status']}:{_f7_sig.get('origin')}"
+                f"@{_f7_sig.get('measured_at') or now_iso()}"
+            )
+        measurement_basis["f7_humility"] = {
+            _k: _f7_sig[_k]
+            for _k in ("status", "origin", "omega_0", "band", "shadow_residual")
+            if _k in _f7_sig
+        }
     except Exception as _fp_exc:
         floor_provenance["F2"] = (
             f"unmeasured_default:producer_import_error:{type(_fp_exc).__name__}"
@@ -1962,7 +2154,11 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_confidence is None:
         live_confidence = resolved_floors.get("F2", 1.0)
     resolved_telemetry = {
-        "dS": telemetry.get("dS", floors.get("ds", 0.0)),
+        "dS": (
+            _windowed_ds_value()
+            if _windowed_ds_value() is not None
+            else telemetry.get("dS", floors.get("ds", 0.0))
+        ),
         "peace2": telemetry.get("peace2", floors.get("peace2", 1.0)),
         "kappa_r": telemetry.get("kappa_r", floors.get("kappa_r", 1.0)),
         "echoDebt": telemetry.get("echoDebt"),
@@ -2231,6 +2427,21 @@ def _build_governance_status_payload() -> dict[str, Any]:
         resolved_floors, floor_provenance
     )
 
+    # KX-011 (2026-11-02): reconcile the kernel event-log basis with producer
+    # outcomes on this wire. Runs AFTER every producer probe above, so the
+    # published list answers the reader's question ("which floors are
+    # unmeasured?") with one source instead of colliding with
+    # runtime_floors_status.
+    if isinstance(measurement_basis.get("unmeasured_floors"), list):
+        measurement_basis["unmeasured_floors"] = _reconcile_unmeasured_basis(
+            measurement_basis["unmeasured_floors"], floor_provenance
+        )
+        measurement_basis["reconciliation"] = (
+            "kx011: floors measured by an independent producer after this "
+            "basis snapshot are removed; raw kernel-log basis retained in "
+            "governance_kernel.get_current_state()"
+        )
+
     return {
         "telemetry": resolved_telemetry,
         "witness": resolved_witness,
@@ -2246,16 +2457,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         # value came from _representative_floor_score() — the floor's own passing
         # threshold — and must never be rendered as green.
         "floor_provenance": floor_provenance,
-        "measurement_basis": (
-            {
-                **measurement_basis,
-                "unmeasured_floors": _reconcile_unmeasured_basis(
-                    measurement_basis.get("unmeasured_floors"), floor_provenance
-                ),
-            }
-            if isinstance(measurement_basis, dict) and "unmeasured_floors" in measurement_basis
-            else measurement_basis
-        ),
+        "measurement_basis": measurement_basis,
         # F3 tri-witness legs, each with value/state/evidence. Published even
         # when incomplete so the blocking leg is visible.
         "witness_legs": witness_legs,
@@ -4193,6 +4395,127 @@ def _compute_known_gaps(
     return gaps
 
 
+# ── Blocker #7 (civfork gap-map 2026-11-02): flat-default scalar labels ──
+# The numeric leaves of /health's thermodynamic block are telemetry
+# observations — but when the governance-kernel event log is empty the
+# kernel returns structural baselines (SCAR-OBS-GREENWASH: "peace2 0.5,
+# kappa_r 0.5, shadow 0.0 ... placeholders exactly like _FLOOR_DEFAULTS").
+# The floors side labels those `unmeasured_default`; the scalar side
+# rendered the same bare numbers with no label, which is how a structural
+# baseline reads as a measurement. `scalar_provenance` applies the floors'
+# discipline to each leaf. Labels only — no value, status, or verdict
+# math is touched (KX-010 A6 condition 2), and each label must stay
+# consistent with that leaf's measurement_contract entry.
+_THERMO_SCALAR_BASELINES: dict[str, float] = {
+    # Only values the SCAR-OBS-GREENWASH doctrine names, or that are
+    # structurally zero-on-empty per their own derivation formula.
+    # No invented baselines — an unverified baseline stays out.
+    "entropy_delta": 0.0,
+    "peace_squared": 0.5,
+    "kappa_r": 0.5,
+    "echo_debt": 0.0,
+    "shadow": 0.0,
+    "vitality_index": 0.0,  # honest memory integral (chain_length x seal_rate): 0 on empty chain
+}
+_THERMO_POLICY_CONSTANTS = frozenset({"kappa_r", "confidence"})
+
+
+def _windowed_ds_value() -> float | None:
+    """F4 instrument (2026-11-14, 333-AGI): real windowed entropy-delta over tool_calls outcome-classes."""
+    try:
+        from arifosmcp.runtime.windowed_ds import measure_windowed_ds
+
+        m = measure_windowed_ds()
+        return None if m is None else float(m["value"])
+    except Exception:  # noqa: BLE001 — instrument failure must degrade to unmeasured, never fake
+        return None
+
+
+def _windowed_ds_meta() -> dict | None:
+    """Full instrument measurement (for floor provenance): dict or None."""
+    try:
+        from arifosmcp.runtime.windowed_ds import measure_windowed_ds
+
+        return measure_windowed_ds()
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _thermo_scalar_provenance(name: str, value: Any, *, event_log_empty: bool) -> str:
+    """Classify one thermodynamic scalar leaf (Blocker #7, 2026-11-02).
+
+    MEASURED            live telemetry observation in the probe window
+    DEFAULT_UNMEASURED  structural baseline rendered because the producing
+                        signal never existed (empty governance-kernel event log)
+    POLICY_CONSTANT     declared constant — agrees with the leaf's contract
+    ABSENT              no value at all (telemetry key missing/unparseable)
+    """
+    if name in _THERMO_POLICY_CONSTANTS:
+        return "POLICY_CONSTANT"
+    if value is None:
+        return "ABSENT"
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return "ABSENT"
+    baseline = _THERMO_SCALAR_BASELINES.get(name)
+    if event_log_empty and baseline is not None and abs(v - baseline) < 1e-12:
+        return "DEFAULT_UNMEASURED"
+    return "MEASURED"
+
+
+def _thermo_scalar_provenance_block(telemetry: dict[str, Any]) -> dict[str, Any]:
+    """Build the scalar_provenance sub-block for /health's thermodynamic dict.
+
+    Single probe call (reality_scoring.probe_governance_kernel_events — the
+    same emptiness detector the floors side defers to). On probe failure the
+    block fails toward honesty: baseline-equal values label
+    DEFAULT_UNMEASURED rather than silently reading as measurements.
+    """
+    has_history = False
+    detail = "probe_unavailable"
+    try:
+        from arifosmcp.runtime.reality_scoring import probe_governance_kernel_events
+
+        has_history, detail = probe_governance_kernel_events()
+    except Exception as exc:  # noqa: BLE001 — labels must never break /health
+        detail = f"probe_error: {exc}"[:200]
+    labels = {
+        "entropy_delta": _thermo_scalar_provenance(
+            "entropy_delta", telemetry.get("dS"), event_log_empty=not has_history
+        ),
+        "peace_squared": _thermo_scalar_provenance(
+            "peace_squared", telemetry.get("peace2"), event_log_empty=not has_history
+        ),
+        "vitality_index": _thermo_scalar_provenance(
+            "vitality_index", telemetry.get("psi_le"), event_log_empty=not has_history
+        ),
+        "kappa_r": _thermo_scalar_provenance(
+            "kappa_r", telemetry.get("kappa_r"), event_log_empty=not has_history
+        ),
+        "echo_debt": _thermo_scalar_provenance(
+            "echo_debt", telemetry.get("echoDebt"), event_log_empty=not has_history
+        ),
+        "shadow": _thermo_scalar_provenance(
+            "shadow", telemetry.get("shadow"), event_log_empty=not has_history
+        ),
+        "confidence": _thermo_scalar_provenance(
+            "confidence", telemetry.get("confidence"), event_log_empty=not has_history
+        ),
+    }
+    return {
+        # Out of scope by the same KX-010 roster that excluded metabolic_stage:
+        # `witness` (leg dict, not a scalar) and `metabolic_stage` (no producer
+        # contract authorized).
+        "labels": labels,
+        "basis": {
+            "event_log_has_history": bool(has_history),
+            "detail": str(detail)[:200],
+            "detector": "reality_scoring.probe_governance_kernel_events",
+        },
+    }
+
+
 def register_rest_routes(
     mcp: Any,
     tool_registry: dict[str, Callable],
@@ -4645,13 +4968,41 @@ def register_rest_routes(
         _code_runtime_drift = bool(_drift.get("runtime_drift", False))
         degraded_reasons: list[dict[str, str]] = []
         if _sr_drift:
+            # 2026-11-17: name the pair that actually diverged. The old text
+            # hardcoded "source_commit != built_commit" even when source, built
+            # and deployed agreed and the gap was repo HEAD vs deployed — a
+            # false explanation on a truthful drift flag.
+            _a = _attest if isinstance(_attest, dict) else {}
+
+            def _f13d_div(x, y):
+                return (
+                    x not in ("", "?", "unknown", "None")
+                    and y not in ("", "?", "unknown", "None")
+                    and not (x.startswith(y[:7]) or y.startswith(x[:7]))
+                )
+
+            _src = str(_a.get("source_commit") or "?")
+            _built = str(_a.get("built_commit") or "?")
+            _dep = str(_a.get("deployed_commit") or "?")
+            _repo = str(_a.get("repo_head_commit") or "")
+            _pairs = []
+            if _f13d_div(_src, _built):
+                _pairs.append(f"source {_src[:12]} != built {_built[:12]}")
+            if _f13d_div(_built, _dep):
+                _pairs.append(f"built {_built[:12]} != deployed {_dep[:12]}")
+            if _repo and _f13d_div(_repo, _dep):
+                _pairs.append(f"repo_head {_repo[:12]} != deployed {_dep[:12]}")
+            if _a.get("deployed_reachable") is False:
+                _pairs.append("deployed stamp unreachable")
+            if not _pairs:
+                _pairs.append(f"drift_scope={_a.get('drift_scope') or 'undeclared'}")
             degraded_reasons.append(
                 {
                     "layer": "deployment_attestation",
                     "field": "software_release.drift",
                     "value": "true",
                     "severity": "warning",
-                    "explanation": "source_commit != built_commit in runtime attestation (SOT drift, not code drift)",
+                    "explanation": "; ".join(_pairs),
                 }
             )
         if _code_runtime_drift:
@@ -4696,6 +5047,9 @@ def register_rest_routes(
         # measured:true. Provenance now GATES the classification instead of
         # merely annotating it.
         _floor_provenance = dict(thermo.get("floor_provenance") or {})
+        # KX-011: reconciled basis (post-producer) drives live contradiction
+        # labels on runtime_floors_status — see floor_producers._floor_wire_labels.
+        _basis_unmeasured = set(thermo.get("measurement_basis", {}).get("unmeasured_floors") or [])
 
         # Per-floor breakdown (2026-10-07): floors_pass said 10/13 but the
         # response never named WHICH 3 failed, so no one could act on it.
@@ -4727,9 +5081,16 @@ def register_rest_routes(
         _floors_unmeasured = sorted(
             _fid for _fid, _st in _floor_detail.items() if _st == _FLOOR_STATUS_UNMEASURED
         )
-        _floors_measured = sorted(
-            _fid for _fid, _src in _floor_provenance.items() if not _provenance_is_unmeasured(_src)
-        )
+        # P0-2 (2026-11-21, single-state derivation): _floor_detail is the ONE
+        # canonical measurement state per floor; measured/unmeasured both derive
+        # from it. The provenance-prefix filter double-classified a stale floor
+        # (F6) as measured while _floor_detail called it unmeasured -- one
+        # response, two answers. Provenance remains visible evidence; it no
+        # longer votes on measurement class.
+        from arifosmcp.runtime.floor_projections import derive_projections as _derive_floor_projections
+        _floor_projections = _derive_floor_projections(_floor_detail, _floor_provenance)
+        _floors_measured = _floor_projections["floors_measured"]
+        _floor_measurement_status = _floor_projections["floors_measurement_status"]
         _floors_defaulted = sorted(
             _fid
             for _fid, _src in _floor_provenance.items()
@@ -4778,6 +5139,7 @@ def register_rest_routes(
                 "floors_measurement_status": dict(_floor_verdict.measurement_status),
                 "floors_aggregate": _floor_verdict.aggregate,
                 "floors_detail": _floor_detail,
+                "floors_measurement_status": _floor_measurement_status,
                 "floors_provenance": _floor_provenance,
                 # P4 (F13 D2 2026-10-23): per-floor producer WHEN slots parsed
                 # from the provenance stamps — never report-generation time.
@@ -5083,9 +5445,25 @@ def register_rest_routes(
                     "status": _floor_status_with_provenance(fid, score, _floor_provenance.get(fid)),
                     "measured": not _provenance_is_unmeasured(_floor_provenance.get(fid)),
                     "provenance": _floor_provenance.get(fid),
+                    # KX-011: contradiction is a LIVE computed disclosure, not a
+                    # static label — attached only while the wire still shows the
+                    # collision (measured floor still listed in the basis).
                     **__import__(
-                        "arifosmcp.runtime.floor_producers", fromlist=["_FLOOR_CONTRACT_LABELS"]
-                    )._FLOOR_CONTRACT_LABELS.get(fid, {}),
+                        "arifosmcp.runtime.floor_producers", fromlist=["_floor_wire_labels"]
+                    )._floor_wire_labels(
+                        fid,
+                        is_measured=not _provenance_is_unmeasured(_floor_provenance.get(fid)),
+                        basis_unmeasured=_basis_unmeasured,
+                    ),
+                    # Gate 1 (F13 2026-11-02): measurement ontology — types the
+                    # reading (score|predicate|risk), direction, evidence class,
+                    # measurement state, scope, threshold. Declarative only; no
+                    # status/score math reads it (labels discipline). Kills the
+                    # named promotions: constant→measured, presence→pass,
+                    # producer-pass→perfect score, receipt→audited, seal→authorized.
+                    **__import__(
+                        "arifosmcp.runtime.floor_producers", fromlist=["floor_ontology_record"]
+                    ).floor_ontology_record(fid, _floor_provenance.get(fid), score),
                 }
                 for fid, score in thermo.get("floors", {}).items()
             },
@@ -5294,14 +5672,17 @@ def register_rest_routes(
             "thermodynamic": {
                 # Preserve UNKNOWN as None. These are telemetry observations,
                 # not policy defaults or health decorations.
-                "entropy_delta": telemetry.get("dS"),
+                "entropy_delta": (
+                    _windowed_ds_value()
+                    if _windowed_ds_value() is not None
+                    else telemetry.get("dS")
+                ),
                 "peace_squared": telemetry.get("peace2"),
                 "vitality_index": telemetry.get("psi_le"),
                 "kappa_r": telemetry.get("kappa_r"),
                 "echo_debt": telemetry.get("echoDebt"),
                 "shadow": telemetry.get("shadow"),
                 "confidence": telemetry.get("confidence"),
-                "scalar_provenance": _thermo_scalar_provenance_block(telemetry),
                 # WS2 (2026-07-12): no default SEAL. verdict is substrate-side
                 # signal that may be unset; consumers should fall back to
                 # service_health / execution_readiness instead of inferring SEAL.
@@ -5330,9 +5711,9 @@ def register_rest_routes(
                         "entropy_delta",
                         semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.dS from governance kernel; producer instrument unpinned",
+                        measurement_method="windowed Shannon entropy over outcome-classes, arifosmcp_tool_calls (window 100 vs prev 100); fallback telemetry.dS",
                         monotonic_drivers=["kernel event entropy per report cycle"],
-                        falsification_test="recompute dS from the kernel event log for the same window",
+                        falsification_test="recompute dS from arifosmcp_tool_calls outcome-classes: H(id desc [:100]) - H(id desc [100:200])",
                         provenance_class="SERVER_OBSERVED",
                         calibration_status="UNKNOWN",
                         decision_eligibility="NONE",
@@ -5433,6 +5814,14 @@ def register_rest_routes(
                         derivation_ref="rest_routes.py thermodynamic block <- resolved_witness",
                     ),
                 },
+                # Blocker #7 (civfork gap-map 2026-11-02): the floors block
+                # labels flat defaults `unmeasured_default` (SCAR-OBS-
+                # GREENWASH); the thermodynamic scalar leaves rendered the
+                # same bare numbers with no label, so a structural baseline
+                # read as a measurement (the peace2=0.5 pattern). Same
+                # discipline, scalar side. Labels only — no value, status,
+                # or verdict math touched (KX-010 A6 condition 2).
+                "scalar_provenance": _thermo_scalar_provenance_block(telemetry),
             },
             # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
             # Computed from live tool call metrics over 24h window.
@@ -5619,6 +6008,11 @@ def register_rest_routes(
             # when callers use that helper; force-slim if full dict snuck in
             _sw = payload.get("software_release")
             if isinstance(_sw, dict) and "critical_module_hashes" in _sw:
+                # F1 completion 2026-11-19 (audit finding 1, F13 "jalan sisa
+                # tu"): the slim whitelist silently dropped the per-module
+                # hash list AND the process-identity fields, so
+                # live_health_attestation could not verify hashes against
+                # disk from /health. Whitelist them (additive only).
                 payload["software_release"] = {
                     k: _sw[k]
                     for k in (
@@ -5630,7 +6024,10 @@ def register_rest_routes(
                         "wheel_hash",
                         "runtime_manifest_hash",
                         "surface_hash",
+                        "critical_module_hashes",
                         "critical_module_hash_count",
+                        "service_pid",
+                        "service_started_at",
                         "payload_mode",
                     )
                     if k in _sw
@@ -6228,13 +6625,16 @@ def register_rest_routes(
         return JSONResponse(
             {
                 # Core gauges — null if kernel telemetry unavailable
-                "entropy_delta": telemetry.get("dS"),
+                "entropy_delta": (
+                    _windowed_ds_value()
+                    if _windowed_ds_value() is not None
+                    else telemetry.get("dS")
+                ),
                 "peace_squared": telemetry.get("peace2"),
                 "vitality_index": telemetry.get("psi_le"),
                 "echo_debt": telemetry.get("echoDebt"),
                 "shadow": telemetry.get("shadow"),
                 "confidence": telemetry.get("confidence"),
-                "scalar_provenance": _thermo_scalar_provenance_block(telemetry),
                 "kappa_r": telemetry.get("kappa_r"),
                 "verdict": telemetry.get("verdict"),
                 "metabolic_stage": thermo.get("metabolic_stage"),
@@ -6258,9 +6658,9 @@ def register_rest_routes(
                         "entropy_delta",
                         semantic_class="UNKNOWN",
                         unit="1",
-                        measurement_method="telemetry.dS from governance kernel; producer instrument unpinned",
+                        measurement_method="windowed Shannon entropy over outcome-classes, arifosmcp_tool_calls (window 100 vs prev 100); fallback telemetry.dS",
                         monotonic_drivers=["kernel event entropy per report cycle"],
-                        falsification_test="recompute dS from the kernel event log for the same window",
+                        falsification_test="recompute dS from arifosmcp_tool_calls outcome-classes: H(id desc [:100]) - H(id desc [100:200])",
                         provenance_class="SERVER_OBSERVED",
                         calibration_status="UNKNOWN",
                         decision_eligibility="NONE",
@@ -7782,53 +8182,87 @@ def register_rest_routes(
         payload.setdefault("supportedProtocolVersions", MCP_SUPPORTED_PROTOCOL_VERSIONS)
         return JSONResponse(payload)
 
+    # 2026-11-16 (F13 kernel-latency directive): the readiness probe used to run
+    # _runtime_selftest() + _compute_runtime_drift() inline on the event loop.
+    # Measured cost: 6.8s of a blocked loop per call (health probe starved for
+    # 6.7s). Offload to worker threads; cache the composite for 15s so a probe
+    # storm cannot re-run 13 dependency checks per request.
+    _ready_state = {"at": 0.0, "payload": None, "status_code": 503}
+    _ready_ttl_s = float(os.getenv("ARIFOS_READY_CACHE_TTL_S", "15") or "15")
+    try:
+        _ready_lock = asyncio.Lock()
+    except RuntimeError:  # pragma: no cover — no loop at registration time
+        _ready_lock = None
+
     @route("/ready", methods=["GET"])
     async def readiness_alias(request: Request) -> Response:
         from arifosmcp.runtime.tools import _runtime_selftest
 
-        readiness = _runtime_selftest()
-        selftest_verdict = str(
-            readiness.get("verdict", "FAIL")
-        )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
+        async def _compute_ready() -> tuple[dict, int]:
+            readiness = await asyncio.to_thread(_runtime_selftest)
+            selftest_verdict = str(
+                readiness.get("verdict", "FAIL")
+            )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
 
-        # P0-5: Deployment invariant check via _compute_runtime_drift()
-        drift = _compute_runtime_drift()
-        drift_detected = drift.get("runtime_drift", False)
-        # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
-        src = drift.get("live_commit", "?") or "?"
-        built = drift.get("build_commit", "?") or "?"
-        deployed = drift.get("live_commit", "?") or "?"
-        deploy_ok = not drift_detected and built != "?" and src == built
+            # P0-5: Deployment invariant check via _compute_runtime_drift()
+            drift = await asyncio.to_thread(_compute_runtime_drift)
+            drift_detected = drift.get("runtime_drift", False)
+            # P0-5 fix (2026-09-28): _compute_runtime_drift returns build_commit/live_commit
+            src = drift.get("live_commit", "?") or "?"
+            built = drift.get("build_commit", "?") or "?"
+            deployed = drift.get("live_commit", "?") or "?"
+            deploy_ok = not drift_detected and built != "?" and src == built
 
-        # Composite verdict
-        if selftest_verdict == "FAIL":
-            overall, reason = "degraded", "selftest_fail"
-        elif not deploy_ok:
-            overall, reason = "degraded", "deploy_drift" if drift_detected else "commit_mismatch"
-        elif selftest_verdict == "PARTIAL":
-            overall, reason = "degraded", "selftest_partial"
-        else:
-            overall, reason = "ready", None
+            # Composite verdict
+            if selftest_verdict == "FAIL":
+                overall, reason = "degraded", "selftest_fail"
+            elif not deploy_ok:
+                overall, reason = (
+                    "degraded",
+                    "deploy_drift" if drift_detected else "commit_mismatch",
+                )
+            elif selftest_verdict == "PARTIAL":
+                overall, reason = "degraded", "selftest_partial"
+            else:
+                overall, reason = "ready", None
 
-        payload = {
-            "status": overall,
-            "machine_status": selftest_verdict,
-            "deploy_invariant": {
-                "ok": deploy_ok,
-                "drift_detected": drift_detected,
-                "source_commit": src,
-                "built_commit": built,
-                "deployed_commit": deployed,
-                "rule": "source_commit == built_commit == deployed_commit",
-            },
-            "checks": readiness.get("checks", {}),
-            "failures": readiness.get("failed_checks", []),
-            "warnings": readiness.get("warnings", []),
-            "degraded_reason": reason,
-            "timestamp": readiness.get("timestamp"),
-        }
-        status_code = 200 if overall == "ready" else 503
-        return JSONResponse(payload, status_code=status_code)
+            payload = {
+                "status": overall,
+                "machine_status": selftest_verdict,
+                "deploy_invariant": {
+                    "ok": deploy_ok,
+                    "drift_detected": drift_detected,
+                    "source_commit": src,
+                    "built_commit": built,
+                    "deployed_commit": deployed,
+                    "rule": "source_commit == built_commit == deployed_commit",
+                },
+                "checks": readiness.get("checks", {}),
+                "failures": readiness.get("failed_checks", []),
+                "warnings": readiness.get("warnings", []),
+                "degraded_reason": reason,
+                "timestamp": readiness.get("timestamp"),
+            }
+            return payload, (200 if overall == "ready" else 503)
+
+        now = time.monotonic()
+        if _ready_state["payload"] is None or (now - _ready_state["at"]) >= _ready_ttl_s:
+            if _ready_lock is None:
+                payload, status_code = await _compute_ready()
+                _ready_state.update(at=now, payload=payload, status_code=status_code)
+            else:
+                async with _ready_lock:
+                    now = time.monotonic()
+                    if (
+                        _ready_state["payload"] is None
+                        or (now - _ready_state["at"]) >= _ready_ttl_s
+                    ):
+                        payload, status_code = await _compute_ready()
+                        _ready_state.update(at=now, payload=payload, status_code=status_code)
+
+        payload = dict(_ready_state["payload"] or {})
+        payload["cache_age_s"] = round(time.monotonic() - _ready_state["at"], 1)
+        return JSONResponse(payload, status_code=_ready_state["status_code"])
 
     @route("/.well-known/mcp/internal-server.json", methods=["GET"])
     async def internal_well_known(request: Request) -> Response:
@@ -7861,7 +8295,10 @@ def register_rest_routes(
     async def governance_status(request: Request) -> Response:
         """Return current governance telemetry for the Constitutional Visualizer."""
         try:
-            payload = _build_governance_status_payload()
+            # 2026-11-16 (F13 kernel-latency directive): this payload builder costs
+            # ~1.0-2.2s and used to run inline on the event loop. Offload it so a
+            # dashboard poll cannot starve /health or /mcp.
+            payload = await asyncio.to_thread(_build_governance_status_payload)
             return JSONResponse(
                 payload,
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
@@ -8152,29 +8589,31 @@ def register_rest_routes(
             }
         )
 
-    GITHUB_RAW_TOOL_REGISTRY = (
-        "https://raw.githubusercontent.com/ariffazil/arifOS/main/arifosmcp/tool_registry.json"
+    # 2026-11-18 security & air-gap hardening: read the packaged tool_registry.json
+    # shipped inside arifosmcp (or $ARIFOS_TOOL_REGISTRY_PATH checkout when present)
+    # instead of fetching a remote branch URL at runtime.
+    PACKAGED_TOOL_REGISTRY = str(Path(__file__).resolve().parents[2] / "tool_registry.json")
+    REPO_CHECKOUT_TOOL_REGISTRY = os.getenv(
+        "ARIFOS_TOOL_REGISTRY_PATH", "/root/arifOS/arifosmcp/tool_registry.json"
     )
-    LOCAL_FALLBACK_TOOL_REGISTRY = "/root/arifOS/arifosmcp/tool_registry.json"
 
     @route("/inspector/sot", methods=["GET"])
     async def inspector_sot(request: Request) -> Response:
-        """Source-of-Truth drift detector — live registry vs GitHub main."""
+        """Source-of-Truth drift detector — live registry vs packaged/repo SOT."""
         live_tools = sorted(tool_registry.keys())
         main_registry: dict[str, Any] = {}
         sot_source = "unknown"
 
-        try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                r = await client.get(GITHUB_RAW_TOOL_REGISTRY)
-                r.raise_for_status()
-                main_registry = r.json()
-                sot_source = "github:ariffazil/arifOS/main"
-        except Exception:
+        for candidate_path, label in (
+            (PACKAGED_TOOL_REGISTRY, "package:arifosmcp/tool_registry.json"),
+            (REPO_CHECKOUT_TOOL_REGISTRY, "local:repo_checkout"),
+        ):
             try:
-                with open(LOCAL_FALLBACK_TOOL_REGISTRY) as f:
-                    main_registry = json.load(f)
-                sot_source = "local:fallback"
+                if os.path.exists(candidate_path):
+                    with open(candidate_path, encoding="utf-8") as f:
+                        main_registry = json.load(f)
+                    sot_source = label
+                    break
             except Exception:
                 logger.exception("suppressed exception", exc_info=True)
         # Full intended surface = canonical_order + diagnostic_order
@@ -8507,7 +8946,7 @@ def register_rest_routes(
                             unit="1",
                             measurement_method="same source as entropy_delta: vitals remap; producer instrument unpinned",
                             monotonic_drivers=["kernel event entropy per report cycle"],
-                            falsification_test="recompute dS from the kernel event log for the same window",
+                            falsification_test="recompute dS from arifosmcp_tool_calls outcome-classes: H(id desc [:100]) - H(id desc [100:200])",
                             provenance_class="SERVER_OBSERVED",
                             calibration_status="UNKNOWN",
                             decision_eligibility="NONE",

@@ -9,6 +9,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import time
 from typing import Any
 
@@ -25,6 +26,13 @@ from arifosmcp.runtime.model import (
     RuntimeStatus,
     VerdictCode,
 )
+
+
+def _now_iso() -> str:
+    """K11-honest timestamp: ISO-8601 string. The declared MCP output schema
+    requires string; time.time() float was rejected client-side
+    (p1-arifmemory-inspect-schema-timestamp, reproduced live 2026-11-02)."""
+    return datetime.now(timezone.utc).isoformat()
 
 
 def forge_verdict(
@@ -153,7 +161,7 @@ def forge_verdict(
             payload=payload,
             creator_id="arif",  # Default to arif for now per CF-01
             session_id=session_id or "global",
-            timestamp=time.time(),
+            timestamp=_now_iso()
         ),
         diagnostics={
             "metrics": metrics.model_dump() if hasattr(metrics, "model_dump") else {},
@@ -162,7 +170,7 @@ def forge_verdict(
             "message": message,
             "contradiction_flags": contradiction_flags if is_contradiction else [],
         },
-        timestamp=time.time(),
+        timestamp=_now_iso()
     )
 
     # Audit 2026-07-28 rule: "tool completed with conditional governance verdict

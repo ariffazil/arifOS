@@ -235,6 +235,7 @@ def aggregate_evidence(verdicts: dict[str, str]) -> str:
 def _emit_flow_receipt(
     *, actor_id: str, session_id: str, gate: str, verdict: str,
     source: str, payload: dict[str, Any], witness_organs: list[str],
+    session_token: str | None = None,
 ) -> dict[str, Any]:
     epistemic = {
         "SUFFICIENT": "Specification",
@@ -248,7 +249,13 @@ def _emit_flow_receipt(
         "created_at": datetime.now(UTC).isoformat(),
         "actor_id": actor_id,
         "session_id": session_id,
-        "session_token": None,
+        # 2026-11-18 (333-AGI, binding-gap item 1): session_token was hardcoded
+        # None on every ART evidence receipt (54,764-row audit: arifOS 0/5,284).
+        # Thread the caller's SCT when present — omitted, never fabricated.
+        "session_token": session_token,
+        # 2026-11-18 (333-AGI, binding-gap item 6 residue): the ART emitter
+        # never named its organ — routed_organ was null on this lane.
+        "routed_organ": "arifOS",
         "step_type": "Verify",
         "risk_class": "T0Observe",
         "topology_id": "art-evidence-gate",
@@ -290,7 +297,7 @@ def _emit_flow_receipt(
 def run_art_evidence_gates(
     *, tool_name: str, action_class: str, is_reversible: bool,
     session_id: str, actor_id: str, payload: dict[str, Any],
-    canonical_tool: bool = False,
+    canonical_tool: bool = False, session_token: str | None = None,
 ) -> EvidenceGateResult:
     """Run all three gates and emit one arifFlow receipt per gate."""
 
@@ -338,16 +345,19 @@ def run_art_evidence_gates(
             actor_id=actor_id, session_id=session_id, gate="selfcheck",
             verdict=selfcheck_verdict.value, source=selfcheck_source,
             payload={"matched_gene": matched_gene}, witness_organs=["arifos"],
+            session_token=session_token,
         ),
         "sufficient_context": _emit_flow_receipt(
             actor_id=actor_id, session_id=session_id, gate="sufficient_context",
             verdict=context_verdict.value, source=context_source,
             payload={"details": context_details}, witness_organs=["arifos", "aforge"],
+            session_token=session_token,
         ),
         "atomic_decomposition": _emit_flow_receipt(
             actor_id=actor_id, session_id=session_id, gate="atomic_decomposition",
             verdict=atomic_verdict.value, source=atomic_source,
             payload={"atom_count": len(atoms), "atoms_preview": atoms[:3]},
+            session_token=session_token,
             witness_organs=["arifos"],
         ),
     }

@@ -28,7 +28,10 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR")
+# MEASURED (OS-1 2026-11-18, F13 GO): a real instrument reading whose value is
+# the measurement itself (F7 band semantics) — the consumer assigns the
+# producer's own index, never a projected 1.0.
+FLOOR_STATUS = ("PASS", "FAIL", "UNMEASURED", "STALE", "CONTRADICTED", "ERROR", "MEASURED")
 
 # ── KX-010 measurement-contract labels (VD-888-KX010-APEX-MEASUREMENT-CONTRACT-2026-10-27) ──
 # ADDITIVE wire data only: these keys describe the measurement, they are NEVER
@@ -76,7 +79,10 @@ _FLOOR_CONTRACT_LABELS: dict[str, dict[str, Any]] = {
     "F6": {
         "falsification_test": (
             "re-run the six F6 meters and the witness lane; a meter reporting "
-            "PASS with missing inputs falsifies it"
+            "PASS with missing inputs falsifies it; for OS-1 Source A re-probe "
+            "WELL /health — a covered verdict with truth_status outside "
+            "{OPERATOR_VERBAL, OPERATOR_REPORTED}, age beyond the 4h band, or "
+            "contaminated state falsifies it"
         ),
     },
     "F8": {
@@ -115,6 +121,14 @@ _FLOOR_CONTRACT_LABELS: dict[str, dict[str, Any]] = {
             "ratifier or signature falsifies it"
         ),
     },
+    "F7": {
+        "falsification_test": (
+            "re-read AgiMetrics.omega_0 and the manifold constant; an Ω₀ "
+            "outside [0.03,0.05], a decorative constraint that accepts "
+            "out-of-band values, or a published confidence of 1.0 "
+            "falsifies the humility reading"
+        ),
+    },
 }
 
 # Default for floors with no producer wired here (F3/F4/F9 land here) and for
@@ -126,6 +140,32 @@ _NO_PRODUCER_CONTRACT_LABELS: dict[str, Any] = {
         "instrument and observe the placeholder score change to falsify"
     ),
 }
+
+
+def _floor_wire_labels(fid: str, *, is_measured: bool, basis_unmeasured: Any) -> dict[str, Any]:
+    """KX-011 (2026-11-02): /health wire contract labels with LIVE contradiction.
+
+    Producer-level ``_FLOOR_CONTRACT_LABELS`` keep the static A6 disclosure —
+    they describe the contract, and ``collect_floor_producer_signal`` pins
+    them in tests. On the /health wire the contradiction is computed:
+    ``known_contradiction`` exists ONLY while ``measurement_basis.
+    unmeasured_floors`` still lists a floor whose wire entry is measured.
+    After the KX-011 basis reconciliation the collision cannot occur, so the
+    key is honestly ABSENT instead of a permanently-true-looking flag.
+
+    Metadata only — never read by status/score math (A6 condition 2).
+    ``is_measured`` is computed by the caller with the canonical classifier
+    (rest_routes._provenance_is_unmeasured) — one classifier, one answer.
+    """
+    labels: dict[str, Any] = dict(_FLOOR_CONTRACT_LABELS.get(fid, {}))
+    labels.pop("known_contradiction", None)
+    try:
+        listed = fid in set(basis_unmeasured or [])
+    except TypeError:
+        listed = False
+    if is_measured and listed:
+        labels["known_contradiction"] = _A6_CONTRADICTION
+    return labels
 
 
 def _now_iso() -> str:
@@ -608,6 +648,155 @@ def _f6_maruah_seal_fallback(sources: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+_F6_TRUTH_COVERED = frozenset({"OPERATOR_VERBAL", "OPERATOR_REPORTED"})
+_F6_STATE_MAX_AGE_S = 4 * 3600  # mirror of well_mcp f6_maruah STATE_MAX_AGE_S (4h band)
+
+
+def _f6_well_coverage(wh: dict[str, Any], seals: Any) -> dict[str, Any]:
+    """F6 MARUAH Source A — WELL served-surface coverage (OS-1, F13 GO 2026-11-18).
+
+    Reads the WELL /health payload the CALLER injected (producers stay pure:
+    evidence in, signal out — the kernel fetches the served truth in
+    rest_routes, respecting the H1 cutover: kernel reads what :18083 SERVES,
+    never WELL's modular target). Coverage-first rule mirrors the
+    well_mcp/tools/f6_maruah.py substrate class: covered iff truth_status
+    ∈ {OPERATOR_VERBAL, OPERATOR_REPORTED} AND age ≤ stale_after (4h band)
+    AND uncontaminated. Null-unless-covered; NEVER a painted number.
+
+    Seal heart_critique FAIL conditions stay in front: declared coercion or
+    compromised dignity is never averaged away by coverage.
+    """
+    if seals:
+        for s in seals:
+            payload = (s or {}).get("payload")
+            if isinstance(payload, str):
+                try:
+                    payload = json.loads(payload)
+                except (TypeError, ValueError):
+                    continue
+            if not isinstance(payload, dict):
+                continue
+            critique = payload.get("heart_critique")
+            if not isinstance(critique, dict):
+                continue
+            if critique.get("coercion") is True:
+                return {
+                    "floor": "F6",
+                    "status": "FAIL",
+                    "origin": "heart_critique",
+                    "reason": "coercion_present",
+                }
+            if str(critique.get("dignity_verdict") or "").upper() == "COMPROMISED":
+                return {
+                    "floor": "F6",
+                    "status": "FAIL",
+                    "origin": "heart_critique",
+                    "reason": "dignity_verdict_compromised",
+                }
+            _d = critique.get("dignity")
+            if isinstance(_d, (int, float)) and _d < 0.5:
+                return {
+                    "floor": "F6",
+                    "status": "FAIL",
+                    "origin": "heart_critique",
+                    "reason": "dignity_conflict",
+                    "dignity": _d,
+                }
+
+    # Check WELL's own top-level status: if WELL reports degraded/unhealthy,
+    # F6 must not claim MEASURED coverage (honest fail, no greenwashing).
+    well_status_raw = wh.get("status")
+    if well_status_raw is not None:
+        well_status = str(well_status_raw).lower()
+        if well_status and well_status not in ("healthy", "ok", "pass"):
+            return {
+                "floor": "F6",
+                "status": "UNMEASURED",
+                "origin": "well_status_degraded",
+                "measurement_basis": "f6_well_coverage",
+                "reason": f"WELL organ status is '{well_status or 'NONE'}', not healthy — F6 cannot claim coverage",
+                "well_status": well_status or None,
+                "f6_index": None,
+            }
+
+    truth = str(wh.get("truth_status") or "").upper()
+    fr = wh.get("freshness") if isinstance(wh.get("freshness"), dict) else {}
+    honesty = wh.get("honesty") if isinstance(wh.get("honesty"), dict) else {}
+    try:
+        cap = float(
+            fr.get("stale_after_seconds") or fr.get("expired_after_seconds") or _F6_STATE_MAX_AGE_S
+        )
+    except (TypeError, ValueError):
+        cap = float(_F6_STATE_MAX_AGE_S)
+    _age_raw = fr.get("age_seconds")
+    try:
+        age: float | None = float(_age_raw) if _age_raw is not None else None
+    except (TypeError, ValueError):
+        age = None
+    contaminated = (
+        str(wh.get("environment") or "").upper() == "TEST" or honesty.get("is_mock_or_test") is True
+    )
+    truth_ok = truth in _F6_TRUTH_COVERED
+    age_ok = age is not None and age <= cap
+    covered = truth_ok and age_ok and not contaminated
+
+    coverage = {
+        "truth_status": truth or None,
+        "source_type": honesty.get("source_type"),
+        "age_seconds": age,
+        "cap_seconds": cap,
+        "contaminated": contaminated,
+    }
+    null_reasons: list[str] = []
+    if not truth_ok:
+        null_reasons.append(
+            f"human_substrate: truth={truth or 'NONE'} (need OPERATOR_VERBAL|OPERATOR_REPORTED)"
+        )
+    if not age_ok:
+        null_reasons.append(
+            f"human_substrate: age={'UNKNOWN' if age is None else f'{age:.0f}s'} > {cap:.0f}s cap"
+        )
+    if contaminated:
+        null_reasons.append("human_substrate: contaminated (TEST env or mock/test state)")
+
+    base: dict[str, Any] = {
+        "floor": "F6",
+        "f6_index": None,
+        "measurement_basis": "f6_well_coverage",
+        "verdict": "INSTRUMENTED_COVERAGE_INSUFFICIENT",
+        "null_reasons": null_reasons,
+        "coverage": coverage,
+        "instrument": "well_health_served_v0",
+        "instrument_note": (
+            "OS-1 Source A: kernel reads the served /health only; the "
+            "consequence_flow class is not observable from the served surface, "
+            "so a covered reading carries the conservative floor of the WELL "
+            "v0 formula (0.5 + 0.5*flow with worst-case flow factor 0)."
+        ),
+    }
+    if not covered:
+        stale = truth_ok and age is not None and age > cap
+        return {
+            **base,
+            "status": "STALE" if stale else "UNMEASURED",
+            "origin": "well_health:stale_substrate"
+            if stale
+            else "well_health:coverage_insufficient",
+        }
+    return {
+        **base,
+        "status": "MEASURED",
+        "origin": f"well_health:f6_v0_partial:covered@age={age:.0f}s",
+        "f6_index": 0.5,
+        "verdict": "MEASURED_V0_PARTIAL",
+        "null_reasons": [],
+        "shadow_residual": [
+            "consequence_flow (intake receipts) unobservable from served /health — worst-case flow factor assumed",
+            "dignity_surface guard verified WELL-side only, not re-checked here",
+        ],
+    }
+
+
 def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
     """F6 MARUAH = six separate system-behavior meters + human-witness lane.
 
@@ -643,16 +832,73 @@ def _f6_maruah(sources: dict[str, Any]) -> dict[str, Any]:
             "reason": "kappa_r is reversibility, never F6 Maruah (spec C.11)",
         }
 
-    meters = sources.get("meters")
-    if not meters or not isinstance(meters, list) or len(meters) < 6:
-        if sources.get("seals") is not None:
-            return _f6_maruah_seal_fallback(sources)
+    # ── OS-1 Source A (F13 GO 2026-11-18): WELL /health coverage-first ──────
+    # When the caller could read the WELL served truth, it decides F6:
+    # covered -> MEASURED_V0_PARTIAL (conservative index), uncovered ->
+    # honest null-with-reason carrying the producer origin (NOT
+    # unmeasured_default — the floor line reads "instrumented, coverage
+    # insufficient"). WELL unreachable (well_health absent) falls through to
+    # the meters path below, unchanged.
+    _wh = sources.get("well_health")
+    if isinstance(_wh, dict):
+        return _f6_well_coverage(_wh, sources.get("seals"))
+
+    # Contract (f6-dignity-boundary-ruling.md + F6 spec v0, item 3):
+    # "Missing meters or empty sources -> UNMEASURED (never PASS)."
+    # Empty sources (no well_health, no seals, no meters) must return UNMEASURED
+    # immediately — do not self-serve meters.
+    if _wh is None and sources.get("seals") is None and not sources.get("meters"):
         return {
             "floor": "F6",
             "status": "UNMEASURED",
             "origin": "unmeasured_default:f6_mandatory_evidence_missing",
             "reason": "all 6 F6 meters required; missing evidence never yields PASS",
         }
+
+    # seal-chain coercion alarm — FAIL-dominant, evaluated before the meters
+    # path so a declared coercion / compromised-dignity seal is never averaged
+    # away by a passing meter bundle (2026-10-26 ruling preserved).
+    # When seals is explicitly provided (even empty list), the seal fallback
+    # is the authoritative path — return its result unconditionally.
+    # For FAIL, prefix origin with "seal_fallback:" to preserve provenance;
+    # for UNMEASURED, keep the seal_fallback's original origin (historical probe).
+    if sources.get("seals") is not None:
+        _seal_sig = _f6_maruah_seal_fallback(sources)
+        if _seal_sig.get("status") == "FAIL":
+            _seal_sig["origin"] = "seal_fallback:" + str(_seal_sig.get("origin"))
+        return _seal_sig
+
+    # F13 GO 2026-11-18: the producer SELF-SERVES the live six meters when
+    # the caller brings no meter bundle (the kernel health path passes only
+    # seals). Machine proposes; the witness lane stays the human half — each
+    # meter carries its per-meter witness state read from the human_witness
+    # ledger, and UNPROVEN stays UNMEASURED without it. The seal fallback
+    # remains the fail-closed path if the meters cannot be produced at all.
+    meters = sources.get("meters")
+    if not meters or not isinstance(meters, list) or len(meters) < 6:
+        try:
+            from dataclasses import asdict
+
+            from arifosmcp.runtime.f6.meters import evaluate_all
+
+            _bundle = evaluate_all()
+            meters = _bundle.get("meters") if isinstance(_bundle, dict) else None
+            if isinstance(meters, list):
+                meters = [
+                    asdict(v) if hasattr(v, "__dataclass_fields__") else v
+                    for v in meters
+                ]
+        except Exception:
+            meters = None
+        if not meters or not isinstance(meters, list) or len(meters) < 6:
+            if sources.get("seals") is not None:
+                return _f6_maruah_seal_fallback(sources)
+            return {
+                "floor": "F6",
+                "status": "UNMEASURED",
+                "origin": "unmeasured_default:f6_mandatory_evidence_missing",
+                "reason": "all 6 F6 meters required; missing evidence never yields PASS",
+            }
 
     failed = []
     unknown = []
@@ -966,9 +1212,10 @@ def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
     WHY THIS PRODUCER (2026-10-26, Track 2):
       The arifFlow vector dimension `g` is labelled
       PHASE_1_HEURISTIC_UNCALIBRATED, and the F13 order of 2026-10-25 bars an
-      uncalibrated heuristic from being gate-grade. F8's constitutional name
-      is LOGIC — internal consistency — so the gate-grade instrument measures
-      exactly that, from the federation's own acknowledged-contradiction
+      uncalibrated heuristic from being gate-grade — it falls through to the
+      derived path instead of deciding F8 (commit e643de0ba). While that
+      fall-through leaves F8 unresolved, this fallback instrument measures
+      internal consistency, from the federation's own acknowledged-contradiction
       ledger (/var/lib/arifos/contradiction_register.json, consumer:
       contradiction_margin -> /health eureka_margin + arif_init session gate).
 
@@ -1058,6 +1305,93 @@ def _f8_logic(sources: dict[str, Any]) -> dict[str, Any]:
         "closed_count": closed,
         "checked_entries": len(entries),
         "shadow_residual": residual,
+    }
+
+
+# ── F7 HUMILITY (Gate 4, F13 directive 2026-11-02) ──────────────────────────
+# Ω₀ uncertainty-band discipline. Canon already defines the semantics:
+#   core/shared/types.py   AgiMetrics.omega_0 Field(ge=0.03, le=0.05) HARD
+#                          ("F7: Ω₀ ∈ [0.03, 0.05]"; AgiMetrics docstring
+#                          names F7 among the floors it enforces)
+#   core/shared/mottos.py  Ω₀ ≈ 0.04 — "Fundamental uncertainty is law,
+#                          not weakness" (PromptManifold.omega_0)
+# Independent of F6 (no dignity/meters) and F8 (no contradiction register):
+# F7 restrains CERTAINTY claims — the kernel must declare a nonzero
+# irreducible-uncertainty bound inside the band, the validation constraint
+# must actually reject out-of-band values, and nothing may publish perfect
+# certainty. Score = the Ω₀ value itself, so the reading lives in its own
+# band (range-pass semantics — never the 1.0 predicate projection).
+_F7_HUMILITY_FAIL = "FAIL"
+
+
+def _f7_humility(sources: dict[str, Any]) -> dict[str, Any]:
+    omega = sources.get("omega_0")
+    band = sources.get("band")
+    if omega is None:
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_unreadable",
+        }
+    try:
+        omega = float(omega)
+    except (TypeError, ValueError):
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_malformed",
+        }
+    if not band or len(band) != 2:
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_band_unextractable",
+        }
+    try:
+        lo, hi = float(band[0]), float(band[1])
+    except (TypeError, ValueError):
+        return {
+            "floor": "F7",
+            "status": "UNMEASURED",
+            "origin": "unmeasured_default:omega0_band_malformed",
+        }
+    if sources.get("constraint_enforced") is False:
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_omega0_band",
+            "reason": "band_constraint_not_enforced",
+            "omega_0": omega,
+        }
+    if not (lo <= omega <= hi):
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_omega0_band",
+            "reason": "omega0_outside_band",
+            "omega_0": omega,
+            "band": [lo, hi],
+        }
+    max_conf = sources.get("max_published_confidence")
+    if max_conf is not None and float(max_conf) >= 1.0:
+        return {
+            "floor": "F7",
+            "status": _F7_HUMILITY_FAIL,
+            "origin": "f7_certainty_claim",
+            "reason": "perfect_certainty_published",
+            "max_confidence": max_conf,
+        }
+    return {
+        "floor": "F7",
+        "status": "PASS",
+        "origin": "f7_omega0_band",
+        "omega_0": omega,
+        "band": [lo, hi],
+        "constraint_enforced": bool(sources.get("constraint_enforced")),
+        "shadow_residual": (
+            "Ω₀ declared + constraint enforced; per-verdict Ω₀ exercise on "
+            "live MCP responses not yet measured (K11: declared ≠ exercised)"
+        ),
     }
 
 
@@ -1170,10 +1504,200 @@ _PRODUCERS = {
     "F2": _f2_truth,
     "F5": _f5_peace,
     "F6": _f6_maruah,
+    "F7": _f7_humility,
     "F8": _f8_logic,
     "F9": _f9_antihantu,
     "F10": _f10_ontology,
     "F11": _f11_audit,
     "F12": _f12_injection,
     "F13": _f13_sovereign,
+}  # ── Floor measurement ontology (Gate 1, F13 directive 2026-11-02) ───────────
+# Arif composition audit: the floor panel mixes continuous scores, thresholded
+# quotients, binary predicate passes projected to 1.00, and lower-is-better
+# risks — "a typed vector, not a scalar composition". This table types each
+# floor's reading declaratively so the promotions he named (constant→measured,
+# presence→pass, receipt→audited, seal→authorized, producer-pass→perfect
+# score) become structurally unrepresentable on the wire. NO status/score
+# math reads this table (same additive discipline as _FLOOR_CONTRACT_LABELS).
+#   value_kind: score | predicate | risk | category
+#   direction:  higher_better | lower_better | none
+#   evidence_class here = the class a REAL measurement of this floor would
+#   carry; wire time derives UNMEASURED/NOT_MEASURED from live provenance,
+#   never from this table.
+_FLOOR_ONTOLOGY: dict[str, dict[str, Any]] = {
+    "F1": {
+        "value_kind": "score",
+        "direction": "higher_better",
+        "evidence_class": "MEASURED",
+        "scope": "arifFlow FQ window (federation metabolism)",
+        "producer_instrument": "arifflow fq_truth probe (quotient vs threshold)",
+        "display_transform": "PASS projects to 1.00; raw quotient rides provenance",
+    },
+    "F2": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "kernel floor-provenance map only — NOT whole-payload truth closure",
+        "producer_instrument": "floor_producers._f2_truth",
+    },
+    "F3": {
+        "value_kind": "score",
+        "direction": "higher_better",
+        "evidence_class": "MEASURED",
+        "scope": "tri-witness coherence legs",
+        "producer_instrument": "witness legs (collect_witness_legs)",
+    },
+    "F4": {
+        "value_kind": "score",
+        "direction": "higher_better",
+        "evidence_class": "DERIVED",
+        "scope": "per-report entropy delta",
+        "producer_instrument": "delta-S normalisation curve (FLR-001/002: deltaS<=0 -> >=0.80)",
+    },
+    "F5": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "seal chain tail (recent seals)",
+        "producer_instrument": "floor_producers._f5_peace (seal_chain_peace)",
+        "display_transform": "PASS projects to 1.00",
+    },
+    "F6": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "WELL served truth coverage (OS-1 Source A) + six system-behavior meters fallback",
+        "producer_instrument": (
+            "floor_producers._f6_well_coverage (OS-1 WELL /health Source A) "
+            "+ floor_producers._f6_maruah (six meters self-served via "
+            "f6.meters.evaluate_all + human-witness lane; seal-chain "
+            "coercion alarm FAIL-dominant; F13 GO 2026-11-18)"
+        ),
+    },
+    "F7": {
+        "value_kind": "score",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "Ω₀ uncertainty-band discipline (AgiMetrics.omega_0 ∈ [0.03,0.05] HARD)",
+        "producer_instrument": "floor_producers._f7_humility (Ω₀ band + constraint enforcement)",
+        "display_transform": "score IS Ω₀ (≈0.04); in-band = pass; never projected to 1.00",
+    },
+    "F8": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "acknowledged-contradiction register",
+        "producer_instrument": "floor_producers._f8_logic",
+        "display_transform": "PASS projects to 1.00; open contradictions named, never averaged",
+    },
+    "F9": {
+        "value_kind": "risk",
+        "direction": "lower_better",
+        "evidence_class": "MEASURED",
+        "scope": "arifFlow g vector (C_dark)",
+        "producer_instrument": "arifflow g vector (PHASE_1_HEURISTIC_UNCALIBRATED)",
+    },
+    "F10": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "report inbox corpus (last 200 rows)",
+        "producer_instrument": "floor_producers._f10_ontology + F10OntologyGuard",
+        "display_transform": "PASS projects to 1.00; shadow residual names the unread",
+    },
+    "F11": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "arifFlow receipt ledger tail (last 200 rows)",
+        "producer_instrument": "floor_producers._f11_audit",
+        "verification": {
+            "verification_state": "NOT_ATTEMPTED",
+            "issuer_verified": False,
+            "signature_verified": False,
+            "replay_verified": False,
+            "checks_performed": ["actor_attribution", "chain_continuity"],
+        },
+    },
+    "F12": {
+        "value_kind": "risk",
+        "direction": "lower_better",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "request-trust context — snapshot is request-unbound",
+        "producer_instrument": "floor_producers._f12_injection",
+        "request_bound": False,
+    },
+    "F13": {
+        "value_kind": "predicate",
+        "direction": "none",
+        "evidence_class": "PREDICATE_PASS",
+        "scope": "seal chain tail (machine self-acceptance check)",
+        "producer_instrument": "floor_producers._f13_sovereign",
+        "action_authority": (
+            "NOT_ESTABLISHED — a presence/predicate pass never authorizes; "
+            "mutation is per-action via arif_judge + ARIF GO"
+        ),
+    },
 }
+
+
+def floor_ontology_record(
+    floor_id: str, provenance: Any = None, score: Any = None
+) -> dict[str, Any]:
+    """Wire-time ontology record for one floor (Gate 1, F13 2026-11-02).
+
+    evidence_class/measurement_state derive from LIVE provenance, never from
+    the table: ``unmeasured_default*`` / ``*_skipped`` origins mean no
+    instrument ran, so the floor is UNMEASURED / NOT_MEASURED no matter what
+    number sits beside it. Threshold/comparator are read from the kernel LAW
+    table at call time (no hardcoded copy to drift). Pure function.
+    """
+    onto = _FLOOR_ONTOLOGY.get(floor_id, {})
+    prov = str(provenance or "")
+    unmeasured = prov.startswith("unmeasured_default") or "_skipped" in prov
+    if unmeasured:
+        evidence_class = "UNMEASURED"
+        measurement_state = "NOT_MEASURED"
+    else:
+        evidence_class = onto.get("evidence_class", "MEASURED")
+        measurement_state = "MEASURED"
+    threshold: Any = None
+    threshold_comparator: Any = None
+    threshold_range: Any = None
+    try:
+        from core.shared.laws import (  # local import: no cycle at module load
+            get_floor_comparator,
+            get_floor_spec,
+            get_law_threshold,
+        )
+
+        spec = get_floor_spec(floor_id)
+        if spec:
+            if "range" in spec:
+                threshold_range = [float(x) for x in spec["range"]]
+            else:
+                threshold = float(get_law_threshold(floor_id))
+                threshold_comparator = get_floor_comparator(floor_id) or None
+    except Exception:
+        threshold = None
+    rec: dict[str, Any] = {
+        "value_kind": onto.get("value_kind", "unknown"),
+        "direction": onto.get("direction", "none"),
+        "evidence_class": evidence_class,
+        "measurement_state": measurement_state,
+        "scope": onto.get("scope"),
+        "producer_instrument": onto.get("producer_instrument"),
+        "threshold": threshold,
+        "threshold_comparator": threshold_comparator,
+    }
+    if threshold_range is not None:
+        rec["threshold_range"] = threshold_range
+    for _k in (
+        "display_transform",
+        "verification",
+        "action_authority",
+        "request_bound",
+    ):
+        if _k in onto:
+            rec[_k] = onto[_k]
+    return rec

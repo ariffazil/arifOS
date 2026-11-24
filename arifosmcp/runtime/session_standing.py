@@ -1108,6 +1108,10 @@ def attach_canonical(
     if not inner_verdict and isinstance(response, dict):
         from arifosmcp.runtime.verdict import CANONICAL_VERDICTS as _cv
 
+        _top_v = response.get("verdict")
+        if _top_v is not None and str(_top_v).upper() in _cv:
+            inner_verdict = str(_top_v).upper()
+
         _r = response.get("result")
         # LIVE JUDGE SHAPE (observed 2026-09-22): the handler returns a
         # Pydantic VerdictOutput MODEL, so the wrapper builds

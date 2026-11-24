@@ -308,6 +308,54 @@ class BindingStore:
             )
             conn.commit()
 
+    def claim_nonce(self, binding_id: str, nonce: str) -> tuple[str, str]:
+        """Atomically claim a one-time nonce via BEGIN IMMEDIATE.
+
+        Returns ("CLAIMED", ""), ("REPLAY", reason), or ("STORE_BUSY"/"STORE_ERROR", reason).
+        Never swallows OperationalError/lock failures as REPLAY or CLAIMED.
+        """
+        conn: Optional[sqlite3.Connection] = None
+        try:
+            conn = sqlite3.connect(str(self.db_path), timeout=0.05, isolation_level=None)
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute(
+                "INSERT INTO f6_nonce_used (binding_id, nonce, used_at) VALUES (?,?,?)",
+                (
+                    binding_id,
+                    nonce,
+                    datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                ),
+            )
+            conn.execute("COMMIT")
+            return "CLAIMED", ""
+        except sqlite3.IntegrityError:
+            if conn is not None:
+                try:
+                    conn.execute("ROLLBACK")
+                except sqlite3.Error:
+                    pass
+            return "REPLAY", "nonce already consumed — replay rejected"
+        except sqlite3.OperationalError as exc:
+            if conn is not None:
+                try:
+                    conn.execute("ROLLBACK")
+                except sqlite3.Error:
+                    pass
+            return "STORE_BUSY", f"nonce store busy/unavailable: {exc}"
+        except Exception as exc:
+            if conn is not None:
+                try:
+                    conn.execute("ROLLBACK")
+                except sqlite3.Error:
+                    pass
+            return "STORE_ERROR", f"nonce store error: {type(exc).__name__}: {exc}"
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except sqlite3.Error:
+                    pass
+
 
 def _param_ok(
     constraints: dict[str, Any],
@@ -593,9 +641,28 @@ def check_binding(
         out["reason"] = why or "relevant state changed since approval"
         return out
 
-    # Consume nonce last (only on the real execution path)
+    # Re-check revocation right before atomic nonce claim, then claim atomically
+    if store.revocations.is_revoked(b.binding_id):
+        out["decision"] = BindingVerdict.REJECT_REVOKED
+        out["reason"] = f"binding {b.binding_id!r} was revoked"
+        return out
+
     if b.nonce:
-        store.consume_nonce(b.binding_id, b.nonce)
+        claim_status, claim_reason = store.claim_nonce(b.binding_id, b.nonce)
+        if claim_status == "REPLAY":
+            out["decision"] = BindingVerdict.REJECT_REPLAY
+            out["reason"] = claim_reason
+            return out
+        if claim_status != "CLAIMED":
+            out["decision"] = BindingVerdict.UNKNOWN
+            out["reason"] = claim_reason
+            return out
+
+    # Re-check revocation after claim (fail-closed)
+    if store.revocations.is_revoked(b.binding_id):
+        out["decision"] = BindingVerdict.REJECT_REVOKED
+        out["reason"] = f"binding {b.binding_id!r} was revoked"
+        return out
 
     out["decision"] = BindingVerdict.ALLOW
     out["reason"] = (

@@ -641,12 +641,23 @@ def verify_act(
     *,
     expected_actor: str | None = None,
     now: float | None = None,
+    failure_code: list[str] | None = None,
 ) -> dict[str, Any] | None:
     """
     Verify ACT signature + exp. Returns claims dict or None.
 
     Does not consult the session store.
+
+    Fasa-4 C2 (2026-11-05): failure_code (optional, keyword-only) receives the
+    TYPED failure — L11_ACTOR_UNVERIFIED vs L11_TOKEN_INVALID vs
+    L11_TOKEN_EXPIRED — so callers can report actor-mismatch as identity
+    failure instead of signature failure. Default (None) preserves legacy
+    behavior exactly.
     """
+
+    def _fc(code: str) -> None:
+        if failure_code is not None:
+            failure_code.append(code)
     if not token or not isinstance(token, str):
         return None
 
@@ -689,6 +700,7 @@ def verify_act(
                     _claim = str(claims.get("actor") or "").lower().strip()
                     _expected = str(expected_actor or "").lower().strip()
                     if _claim != _expected and _claim != "anonymous" and _expected != "anonymous":
+                        _fc("L11_ACTOR_UNVERIFIED")
                         return None
                 return claims
         except Exception:
@@ -697,10 +709,12 @@ def verify_act(
 
     parts = token.split(".")
     if len(parts) != 3:
+        _fc("L11_TOKEN_INVALID")
         return None
     prefix, payload_b64, sig = parts
     # P2.1 DUAL-ACCEPT: verify both act_v1 (new) and sct_v1 (legacy) prefixes
     if prefix != ACT_PREFIX and prefix != LEGACY_SCT_PREFIX:
+        _fc("L11_TOKEN_INVALID")
         return None
 
     try:
@@ -711,15 +725,18 @@ def verify_act(
     # legacy 16-hex window for tokens minted before the upgrade (TTL-bounded).
     if len(sig) == 64:
         if not hmac.compare_digest(expected_full, sig):
+            _fc("L11_TOKEN_INVALID")
             return None
     else:
         if not hmac.compare_digest(expected_full[:16], sig[:16]):
+            _fc("L11_TOKEN_INVALID")
             return None
 
     try:
         raw = _b64url_decode(payload_b64)
         claims = json.loads(raw.decode("utf-8"))
     except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+        _fc("L11_TOKEN_INVALID")
         return None
 
     if not isinstance(claims, dict):
@@ -730,6 +747,7 @@ def verify_act(
     ts = now if now is not None else time.time()
     exp = claims.get("exp")
     if exp is not None and ts > float(exp):
+        _fc("L11_TOKEN_EXPIRED")
         return None
     nbf = claims.get("nbf")
     if nbf is not None and ts < float(nbf):
@@ -752,6 +770,7 @@ def verify_act(
                 and _claim_norm != "anonymous"
                 and _expected_norm != "anonymous"
             ):
+                _fc("L11_ACTOR_UNVERIFIED")
                 return None
 
     return claims
@@ -971,7 +990,8 @@ def resolve_standing(
     """
     # ── 1. Capability token path ──────────────────────────────────────────
     if session_token:
-        claims = verify_act(session_token, expected_actor=actor_id)
+        _fc: list[str] = []
+        claims = verify_act(session_token, expected_actor=actor_id, failure_code=_fc)
         if claims is None:
             # Distinguish expiry vs bad sig when possible
             raw_claims = None
@@ -990,10 +1010,16 @@ def resolve_standing(
                         )
             except Exception:
                 pass
+            if "L11_ACTOR_UNVERIFIED" in _fc:
+                _reason = "L11 ACTOR_UNVERIFIED: token actor does not match expected actor"
+            elif "L11_TOKEN_EXPIRED" in _fc:
+                _reason = "L11 AUTH: SCT expired"
+            else:
+                _reason = "L11 AUTH: SCT invalid (signature or actor mismatch)"
             return Standing(
                 valid=False,
                 source="deny",
-                reason="L11 AUTH: SCT invalid (signature or actor mismatch)",
+                reason=_reason,
                 session_id=session_id,
                 actor_id=actor_id,
             )

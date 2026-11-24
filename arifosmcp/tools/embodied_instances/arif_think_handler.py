@@ -31,13 +31,19 @@ async def embodied_mind_reason_handler(
     plan_id: str | None = None,
     witness_type: str = "ai",
     context: dict | None = None,
-    evidence: list[dict] | None = None,
+    # 2026-11-14 (F13 P1 order): accept the schema's documented EXAMPLE item
+    # shape ({'fact':…,'source':…}) as a bare dict; coerce to the list form at
+    # the door. List callers unaffected; stops the CONTRACT_VIOLATION crash
+    # class external callers kept hitting (tools.py twin already widened).
+    evidence: dict | list[dict] | None = None,
     ctx: Any = None,
     # Continuity / envelope fields ChatGPT + SCT path may pass
     _envelope: Any = None,
     contract_c_kwargs: dict | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
+    if isinstance(evidence, dict):
+        evidence = [evidence]
 
     """
     333_REASON: + reason — Symbolic reasoning kernel.

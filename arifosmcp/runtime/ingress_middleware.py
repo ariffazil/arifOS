@@ -225,6 +225,61 @@ def _interceptor_hold_tool_result(
     )
 
 
+def _unknown_parameter_rejection_result(*, tool_name: str, unknown: list[str]) -> Any:
+    """T1 / F2 TRUTH (2026-11-17, 333-AGI): reject a tools/call carrying a field
+    this surface does not publish — NAMING the fields.
+
+    Before this, ingress popped unknown keys before validation, so the caller got
+    a normal `completed` and never learned the field was ignored. The D3 guard in
+    server.py already raises the same vocabulary (``unknown parameter(s): …``);
+    this helper makes that contract reachable from the wire even when FastMCP
+    masks exception details (``_mask_error_details``). Names only — values are
+    never echoed.
+    """
+    from mcp.types import TextContent
+
+    try:
+        from fastmcp.server.middleware.middleware import ToolResult  # type: ignore
+    except Exception:
+        from mcp.types import CallToolResult as ToolResult  # type: ignore
+
+    names = ", ".join(unknown)
+    envelope = {
+        "status": "completed",
+        "tool": tool_name,
+        "verdict": "completed",
+        "effective_verdict": "VOID",
+        "execution_state": "COMPLETED",
+        "status_scope": "execution",
+        "reason_code": "UNKNOWN_PARAMETER",
+        "error": f"unknown parameter(s): {names}",
+        "mutation_allowed": False,
+        "seal_allowed": False,
+        "reasons": [f"UNKNOWN_PARAMETER: {names}"],
+        "facts": [
+            f"tool={tool_name}",
+            f"unknown={','.join(unknown)}",
+            "surface=arifos.ingress",
+        ],
+        "next_action": "REMOVE_THE_FIELD_OR_SEND_A_PUBLISHED_PARAMETER",
+        "can_continue_observing": True,
+        "can_mutate": False,
+        "can_claim_success": False,
+        "human_readable": (
+            f"unknown parameter(s): {names}\n\n"
+            f"Tool: {tool_name}\n"
+            "These fields are not on this tool's published schema, so they were "
+            "rejected instead of silently dropped (T1 / F2 TRUTH). Check "
+            "tools/list for the accepted parameters."
+        ),
+    }
+    return ToolResult(
+        is_error=True,
+        content=[TextContent(type="text", text=json.dumps(envelope, default=str))],
+        structured_content=envelope,
+    )
+
+
 # ── SIGNED-ENVELOPE v1 (GAP #1 slice) ────────────────────────────────────
 # Spec: arifosmcp/docs/SIGNED-ENVELOPE-v1.md. Flag: ARIF_ENVELOPE_SIGNED=1.
 # Verify-if-present, fail-closed on any PRESENT invalid envelope. Absent
@@ -1648,12 +1703,73 @@ if IS_FASTMCP_3:
 
                         known = self._tool_param_sets.get(tool_name)
                         if known is not None:
-                            # Keep metadata parameters and those defined in the tool's parameter schema
-                            allowed_params = known | {"_envelope", "actor_id", "session_id"}
-                            unknown = {k for k in msg.arguments if k not in allowed_params}
+                            # Metadata/credential fields are carried by every harness even
+                            # when a tool's published schema omits them (session flows).
+                            # They are function parameters, so D3 accepts them downstream;
+                            # only genuinely unknown caller fields are rejected.
+                            allowed_params = known | {
+                                "_envelope",
+                                "actor_id",
+                                "session_id",
+                                "session_token",
+                                "actor_signature",
+                                "nonce",
+                            }
+                            # T1 root cause (2026-11-17, 333-AGI): the old pop() silently
+                            # deleted CALLER fields before validation, so the published D3
+                            # guard (server.py "unknown parameter(s)") was unreachable from
+                            # the wire — the caller learned nothing and the handler saw a
+                            # clean dict. Unknown caller keys are now REJECTED here with
+                            # the field name (names only, values never logged), before
+                            # dispatch. Middleware-internal keys stay ours: _simulation_mode
+                            # is stripped exactly as before.
+                            internal = {"_simulation_mode"}
+                            unknown = sorted(
+                                k
+                                for k in msg.arguments
+                                if k not in allowed_params and k not in internal
+                            )
                             if unknown:
-                                for k in unknown:
-                                    msg.arguments.pop(k)
+                                # Some tools publish a NARROWER schema than their
+                                # signature (arif_seal's witness/blast_radius are
+                                # function params the published schema omits).
+                                # Consult the same signature D3 validates against
+                                # before rejecting, so legitimate fields flow and
+                                # only truly unknown ones are named and refused.
+                                fn_params: set[str] = set()
+                                try:
+                                    import inspect as _insp
+
+                                    _fastmcp_app = getattr(
+                                        getattr(context, "fastmcp_context", None),
+                                        "fastmcp",
+                                        None,
+                                    )
+                                    if _fastmcp_app is not None:
+                                        _tool_obj = await _fastmcp_app.get_tool(tool_name)
+                                        _fn = getattr(_tool_obj, "fn", None)
+                                        if _fn is not None:
+                                            fn_params = set(_insp.signature(_fn).parameters)
+                                except Exception:
+                                    fn_params = set()
+                                real_unknown = [k for k in unknown if k not in fn_params]
+                                if real_unknown:
+                                    logger.warning(
+                                        "ingress: rejecting unknown parameter(s) for %s: %s",
+                                        tool_name,
+                                        ", ".join(real_unknown),
+                                    )
+                                    return _unknown_parameter_rejection_result(
+                                        tool_name=tool_name, unknown=real_unknown
+                                    )
+                                logger.debug(
+                                    "ingress: %s carries unpublished but declared "
+                                    "parameter(s) for %s — passing through",
+                                    tool_name,
+                                    ", ".join(k for k in unknown if k in fn_params),
+                                )
+                            for k in internal:
+                                msg.arguments.pop(k, None)
 
                     from arifosmcp.runtime.tools import _RESPONSE_CONTEXT
 
@@ -1920,7 +2036,9 @@ def register_tool_param_sets(
         return []
     register = getattr(ingress_middleware, "register_tool_params", None)
     if register is None:
-        logger.warning("ingress middleware has no register_tool_params; skipping param registration")
+        logger.warning(
+            "ingress middleware has no register_tool_params; skipping param registration"
+        )
         return []
     import inspect
 
@@ -1934,6 +2052,7 @@ def register_tool_param_sets(
         register(name, params)
         registered.append(name)
     return registered
+
 
 # ── Global instance reference (set by server.py at boot) ──
 # Used by conformance spine for Anti-sink A3 contradiction check.
