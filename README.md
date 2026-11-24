@@ -54,7 +54,7 @@ In a world where intelligence is abundant, authority becomes the scarce resource
 [![PyPI](https://img.shields.io/pypi/v/arifos?style=flat-square)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/pypi/pyversions/arifos?style=flat-square)](https://pypi.org/project/arifos)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](./LICENSE)
-[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
+[![ariffazil/arifos MCP server](https://glama.ai/mcp/servers/ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/servers/ariffazil/arifos)
 [![Listed on clauderules.net](https://clauderules.net/api/badge/io-github-ariffazil-arifos)](https://clauderules.net/mcp/io-github-ariffazil-arifos)
 [![Unified CI](https://img.shields.io/github/actions/workflow/status/ariffazil/arifOS/01-unified-ci.yml?label=Unified_CI&style=flat-square)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
 [![Floors](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ariffazil/arifOS/main/.well-known/badges/floors.json&style=flat-square)](./CURRENT_VERIFIED_STATE.md)
@@ -276,7 +276,7 @@ Every consequential verdict and receipt is written to VAULT999: a hash-chained, 
 
 ## Connect an MCP client
 
-[![Glama](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.ariffazil/arifos)
+[![ariffazil/arifos MCP server](https://glama.ai/mcp/servers/ariffazil/arifos/badges/score.svg)](https://glama.ai/mcp/servers/ariffazil/arifos)
 [![Official Registry Manifest](https://img.shields.io/badge/MCP_Registry-server.json_valid-brightgreen?style=flat-square)](./server.json)
 
 ```
