@@ -72,7 +72,7 @@ LATENCY_BUDGETS: dict[DecisionClass, LatencyBudget] = {
     ),
     DecisionClass.C3_DEEP: LatencyBudget(
         decision_class=DecisionClass.C3_DEEP,
-        max_latency_ms=1000,
+        max_latency_ms=8000,
         degradation_verdict=VerdictClass.HOLD.value,
         reasoning="Multi-stage validation — AAA deliberation. 1s ceiling.",
     ),

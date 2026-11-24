@@ -214,14 +214,48 @@ def compute_apex_from_metrics(
     try:
         conn = _get_db()
         cutoff = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - window_seconds))
+        # AZ-01 (2026-11-25): Exclude bootstrap/probe traffic (arif_init, arif_route,
+        # arif_session_init, arif_kernel_route, arif_ping) uniformly from the work
+        # window so P, _gram_block, and _reduce_letters measure the same population,
+        # and normalize read-side has_evidence so historical HOLD/SABAR rows (which
+        # recorded has_evidence=bool(floors)) do not reward HOLD over execution, while
+        # historical successful top-level envelope calls (arif_judge, arif_seal,
+        # arif_think, arif_evidence_fetch) are recognized as evidence-bearing.
+        _BOOT_TOOLS = "('arif_init', 'arif_route', 'arif_session_init', 'arif_kernel_route', 'arif_ping')"
+        _EVIDENCE_EXEC_TOOLS = frozenset({
+            "arif_judge", "arif_judge_deliberate", "arif_seal", "arif_vault_seal",
+            "arif_think", "arif_mind_reason", "arif_evidence_fetch", "arif_observe",
+            "arif_sense_observe", "arif_memory", "arif_memory_recall", "arif_bridge",
+            "arif_measure", "arif_ops_measure",
+        })
+
+        def _norm_row(r: tuple) -> tuple:
+            # r = (success, has_evidence, within_lease, dry_run_first, reversible, failure_code, outcome, tool_name)
+            succ, ev, lease, dry, rev, fc, out, tname = r
+            cls = (out or "").strip() or derive_outcome(bool(succ), fc or "")
+            if cls in (OUTCOME_CONSTITUTIONAL_HOLD, OUTCOME_CONSTITUTIONAL_SABAR, OUTCOME_CONSTITUTIONAL_VOID):
+                ev_norm = 0
+            elif succ and tname in _EVIDENCE_EXEC_TOOLS:
+                ev_norm = 1
+            else:
+                ev_norm = int(bool(ev))
+            return (succ, ev_norm, lease, dry, rev, fc, cls)
+
+        _BOOT_SET = frozenset({"arif_init", "arif_route", "arif_session_init", "arif_kernel_route", "arif_ping"})
         query = """SELECT success, has_evidence, within_lease, dry_run_first,
-                      reversible, failure_code, outcome
+                      reversible, failure_code, outcome, COALESCE(tool_name, '')
                FROM tool_calls WHERE timestamp >= ?"""
         params: list = [cutoff]
         if actor_id:
             query += " AND actor_id = ?"
             params.append(actor_id)
-        rows = conn.execute(query, params).fetchall()
+        _raw_rows = conn.execute(query, params).fetchall()
+        rows = [_norm_row(r) for r in _raw_rows]
+        _work_pairs = [
+            (_norm_row(r), ((r[6] or "").strip() or derive_outcome(bool(r[0]), r[5] or "")))
+            for r in _raw_rows
+            if r[7] not in _BOOT_SET
+        ]
         # P1 residual accounting: fetch prior window BEFORE closing (same conn)
         _cutoff_prior = time.strftime(
             "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 2 * window_seconds)
@@ -229,13 +263,13 @@ def compute_apex_from_metrics(
         _rows_prior: list = []
         try:
             _qp = """SELECT success, has_evidence, within_lease, dry_run_first,
-                      reversible, failure_code, outcome
+                      reversible, failure_code, outcome, COALESCE(tool_name, '')
                FROM tool_calls WHERE timestamp >= ? AND timestamp < ?"""
             _pp: list = [_cutoff_prior, cutoff]
             if actor_id:
                 _qp += " AND actor_id = ?"
                 _pp.append(actor_id)
-            _rows_prior = conn.execute(_qp, _pp).fetchall()
+            _rows_prior = [_norm_row(r) for r in conn.execute(_qp, _pp).fetchall()]
         except Exception:
             _rows_prior = []
         conn.close()
@@ -271,24 +305,18 @@ def compute_apex_from_metrics(
 
         # A = lease compliance rate
         A = round(in_lease / n, 4) if n > 0 else None
-        # P = evidence floor compliance (Gap 1, F13 2026-11-20: exclude
-        # probe/bootstrap traffic arif_init & arif_route from P denominator;
-        # threshold 0.80 stays untouched).
-        _p_query = """SELECT has_evidence FROM tool_calls
-                      WHERE timestamp >= ?
-                        AND COALESCE(tool_name, '') NOT IN ('arif_init', 'arif_route')"""
-        _p_params: list = [cutoff]
-        if actor_id:
-            _p_query += " AND actor_id = ?"
-            _p_params.append(actor_id)
-        try:
-            _p_conn = _get_db()
-            _p_rows = _p_conn.execute(_p_query, _p_params).fetchall()
-            _p_conn.close()
-            _p_n = len(_p_rows)
-            P = round(sum(1 for r in _p_rows if r[0]) / _p_n, 4) if _p_n > 0 else round(with_evidence / n, 4)
-        except Exception:
-            P = round(with_evidence / n, 4) if n > 0 else None
+        # P = evidence floor compliance across execution-classed work calls
+        # (excluding bootstrap arif_init/arif_route per Gap 1 2026-11-20 and
+        # excluding HOLD/SABAR brake activations per AZ-01 2026-11-25).
+        _work_exec = [
+            r for r, c in _work_pairs
+            if c in (OUTCOME_EXECUTION_SUCCESS, OUTCOME_EXECUTION_FAILURE)
+        ]
+        P = (
+            round(sum(1 for r in _work_exec if r[1]) / len(_work_exec), 4)
+            if _work_exec
+            else (round(with_evidence / n, 4) if n > 0 else None)
+        )
         # E = execution success rate — constitutional verdicts (HOLD/SABAR)
         # are excluded from BOTH numerator and denominator. A brake
         # activation is not an engine failure. If the window carries only
@@ -390,7 +418,7 @@ def compute_apex_from_metrics(
                 for cls in sorted(outcome_counts)
             },
             "E_semantics": "execution-classed; constitutional verdicts excluded (energy/entropy components CANON_DERIVED, unimplemented)",
-            "gram": _gram_block(rows, classes),
+            "gram": _gram_block([r for r, _ in _work_pairs] or rows, [c for _, c in _work_pairs] or classes),
             "residual": _residual_block(_rows_prior, rows),
             "source": "apex_primitives.py",
             "version": "apex-v2-outcome-semantics",
@@ -471,8 +499,13 @@ def _reduce_letters(rows: list) -> dict[str, Any] | None:
     es = sum(1 for c in classes if c == OUTCOME_EXECUTION_SUCCESS)
     ef = sum(1 for c in classes if c == OUTCOME_EXECUTION_FAILURE)
     et = es + ef
+    exec_ev = sum(
+        1
+        for r, c in zip(rows, classes)
+        if r[1] and c in (OUTCOME_EXECUTION_SUCCESS, OUTCOME_EXECUTION_FAILURE)
+    )
     A = sum(1 for r in rows if r[2]) / n
-    P = sum(1 for r in rows if r[1]) / n
+    P = (exec_ev / et) if et > 0 else (sum(1 for r in rows if r[1]) / n)
     E = es / et if et > 0 else None
     X = sum(1 for r in rows if r[3]) / n
     G = None

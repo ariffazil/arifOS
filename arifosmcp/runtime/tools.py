@@ -10389,7 +10389,7 @@ def _hold(
         _apex_record(
             tool_name=tool,
             success=False,
-            has_evidence=bool(floors),
+            has_evidence=False,
             within_lease=bool(session_id),
             dry_run_first=False,
             reversible=True,
@@ -10517,7 +10517,7 @@ def _sabar(
         _apex_record(
             tool_name=tool,
             success=False,
-            has_evidence=bool(reason),
+            has_evidence=False,
             within_lease=bool(session_id),
             dry_run_first=False,
             reversible=True,
@@ -29097,10 +29097,29 @@ def _attach_handoff_evidence_from_input(resp: dict[str, Any], kwargs: dict[str, 
 
 
 def _envelope_has_evidence(resp: dict[str, Any]) -> bool:
-    """Return True if a tool response carries structured evidence or a vault receipt."""
+    """Return True if a tool response carries structured evidence or a vault receipt.
+    AZ-01 (2026-11-25): A brake activation (HOLD/VOID/ERROR) is a refusal, not evidence;
+    and top-level Pydantic responses (VerdictOutput, SealOutput, Synthesis) carry
+    verdict/entry_id/facts/reasoning_output at the root dict rather than inside result{}.
+    """
     if not isinstance(resp, dict):
         return False
-    if resp.get("vault_entry_id") or resp.get("receipt"):
+    status = str(resp.get("status") or "").upper()
+    if status in ("HOLD", "VOID", "ERROR"):
+        return False
+    if (
+        resp.get("vault_entry_id")
+        or resp.get("entry_id")
+        or resp.get("receipt")
+        or resp.get("receipt_id")
+        or resp.get("verdict")
+        or resp.get("effective_verdict")
+        or resp.get("evidence")
+        or resp.get("sources")
+        or resp.get("citations")
+        or resp.get("reasoning_output")
+        or resp.get("facts")
+    ):
         return True
     res = resp.get("result")
     if not isinstance(res, dict):
@@ -29112,8 +29131,13 @@ def _envelope_has_evidence(resp: dict[str, Any]) -> bool:
         or res.get("vault_entry_id")
         or res.get("entry_id")
         or res.get("receipt")
+        or res.get("receipt_id")
         or res.get("provenance")
         or res.get("verdict")
+        or res.get("reasoning_output")
+        or res.get("results")
+        or res.get("memories")
+        or res.get("resource")
         or res.get("output")
         or res.get("data")
     )

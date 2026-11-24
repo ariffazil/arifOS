@@ -5261,7 +5261,12 @@ def register_rest_routes(
             if _health_telemetry.get("dS") is not None:
                 _const_metrics["dS"] = float(_health_telemetry["dS"])
                 _const_provenance["dS"] = "derived"
-            if _health_telemetry.get("peace2") is not None:
+            _f5_prov = str((thermo.get("floor_provenance") or thermo.get("floors_provenance") or {}).get("F5", ""))
+            _f5_val = (thermo.get("floors") or {}).get("F5")
+            if _f5_prov.startswith("floor_producer:") and _f5_val is not None:
+                _const_metrics["peace2"] = float(_f5_val)
+                _const_provenance["peace2"] = "measured"
+            elif _health_telemetry.get("peace2") is not None and not _f5_prov.startswith("unmeasured"):
                 _const_metrics["peace2"] = float(_health_telemetry["peace2"])
                 _const_provenance["peace2"] = "derived"
             if _health_telemetry.get("kappa_r") is not None:
