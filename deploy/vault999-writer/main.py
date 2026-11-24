@@ -550,20 +550,35 @@ class VaultDB:
 
     async def ratify(self, req: RatifyRequest) -> dict:
         """Unified ratification: SEAL or VOID. Ed25519 preferred; legacy accepted."""
-        if req.ed25519_signature:
-            sig_payload = {
-                "cooling_id": req.cooling_id,
-                "decision": req.decision,
-                "review_reason": req.review_reason,
-                "human_ratifier": req.human_ratifier,
-                "irreversibility_ack": req.irreversibility_ack,
-                "action_type": req.action_type,
-                "session_id": req.session_id,
-                "metadata": req.metadata,
-            }
-            sig_verified, sig_reason = verify_arif_signature(req.ed25519_signature, sig_payload)
-            if not sig_verified:
-                raise HTTPException(status_code=403, detail=f"F11 AUTH: {sig_reason}")
+        # ── FORBIDDEN-TRANSITION REPAIR (2026-11-24 · HERMES) ────────────────
+        # Ratification (SEAL or VOID) is a human act. Previously a MISSING or
+        # EMPTY ed25519_signature SKIPPED verification (`if req.ed25519_signature:`
+        # is False for "") while the code still wrote human_reviews
+        # (reviewer_id='arif') and vault999_witness(human_witness=true) and
+        # stamped ed25519_verified=True unconditionally. Fail closed now: no
+        # verified signature, no ratification.
+        if not req.ed25519_signature:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "F11 AUTH: ratify requires Arif's ed25519_signature over the "
+                    "canonical payload. Empty or missing signature = no human act "
+                    "= no ratification."
+                ),
+            )
+        sig_payload = {
+            "cooling_id": req.cooling_id,
+            "decision": req.decision,
+            "review_reason": req.review_reason,
+            "human_ratifier": req.human_ratifier,
+            "irreversibility_ack": req.irreversibility_ack,
+            "action_type": req.action_type,
+            "session_id": req.session_id,
+            "metadata": req.metadata,
+        }
+        sig_verified, sig_reason = verify_arif_signature(req.ed25519_signature, sig_payload)
+        if not sig_verified:
+            raise HTTPException(status_code=403, detail=f"F11 AUTH: {sig_reason}")
 
         if req.decision == "VOID":
             void_req = VoidRequest(
@@ -648,7 +663,7 @@ class VaultDB:
                 VALUES ($1, true, true, true, 1.00, $2)
             """,
                 seal_row["id"],
-                json.dumps({"review_reason": req.review_reason, "ed25519_verified": True}),
+                json.dumps({"review_reason": req.review_reason, "ed25519_verified": bool(req.ed25519_signature)}),
             )
 
             log.info(f"RATIFY SEAL: cooling_id={req.cooling_id}, seal_id={seal_row['id']}")
@@ -775,23 +790,37 @@ async def vault_status():
 
 @app.post("/seal")
 async def create_seal(req: SovereignSealRequest, _auth=Depends(verify_writer_token)):
-    """Direct SOVEREIGN SEAL insert. Ed25519 preferred; legacy signature accepted as fallback."""
-    if req.ed25519_signature:
-        sig_payload = {
-            "action": req.action,
-            "payload": req.payload,
-            "epoch": req.epoch,
-            "verdict": req.verdict,
-            "human_ratifier": req.human_ratifier,
-            "session_id": req.session_id,
-        }
-        sig_verified, sig_reason = verify_arif_signature(req.ed25519_signature, sig_payload)
-        if not sig_verified:
-            raise HTTPException(status_code=403, detail=f"F11 AUTH: {sig_reason}")
-    elif not req.human_signature:
+    """Direct SOVEREIGN SEAL insert. Ed25519 REQUIRED (F11, 2026-11-24)."""
+    # ── FORBIDDEN-TRANSITION REPAIR (2026-11-24 · HERMES · bounded F13 grant) ──
+    # TECHNICAL_DONE -> HUMAN_ACCEPTED is closed here. A SOVEREIGN SEAL asserts
+    # human ratification (human_ratifier / signed_by = the human). Only a
+    # VERIFIED human act may create it. The legacy human_signature fallback was
+    # the false-pass path: any writer-token holder minted signed_by='arif'
+    # records from an unverified string (live vault_seals rows 407-415 and 415,
+    # 2026-07-04, ed25519_signature_present=false). An unverified string is a
+    # CLAIM, not a human act; claim-level traffic belongs in /audit-receipt
+    # (claim_state=PENDING_RATIFICATION) and must never create acceptance state.
+    if not req.ed25519_signature:
         raise HTTPException(
-            status_code=403, detail="F11 AUTH: Provide ed25519_signature or human_signature"
+            status_code=403,
+            detail=(
+                "F11 AUTH: SOVEREIGN SEAL requires a verified ed25519_signature. "
+                "An unverified human_signature string is not a human act. "
+                "Record the technical result via /audit-receipt "
+                "(claim_state=PENDING_RATIFICATION)."
+            ),
         )
+    sig_payload = {
+        "action": req.action,
+        "payload": req.payload,
+        "epoch": req.epoch,
+        "verdict": req.verdict,
+        "human_ratifier": req.human_ratifier,
+        "session_id": req.session_id,
+    }
+    sig_verified, sig_reason = verify_arif_signature(req.ed25519_signature, sig_payload)
+    if not sig_verified:
+        raise HTTPException(status_code=403, detail=f"F11 AUTH: {sig_reason}")
 
     try:
         result = await db.write_seal(req)
